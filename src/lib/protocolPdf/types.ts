@@ -13,8 +13,12 @@ export interface PdfDateRange {
 export interface PdfProfile {
   display_name: string | null
   username: string | null
+  /** Aus dem Geburtsdatum berechnet; sonst die alte Angabe `profiles.age`. */
   age: number | null
+  /** Alte Freitext-Angabe (`profiles.gender`), nur wenn bio_sex fehlt. */
   gender: string | null
+  /** Biologisches Geschlecht — dieselbe Angabe wie bei den Blutwerten. */
+  bio_sex?: 'male' | 'female' | null
   height_cm: number | null
   weight_kg: number | null
 }

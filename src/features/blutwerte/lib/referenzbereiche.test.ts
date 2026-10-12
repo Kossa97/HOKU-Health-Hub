@@ -152,3 +152,13 @@ describe('bioProfile', () => {
     expect(geburtsdatumGueltig('2026-10-10', '2026-10-09')).toBe(false)
   })
 })
+
+describe('geschlechtAusAltangabe', () => {
+  it('übersetzt nur männlich/weiblich', async () => {
+    const { geschlechtAusAltangabe } = await import('./bioProfile')
+    expect(geschlechtAusAltangabe('männlich')).toBe('male')
+    expect(geschlechtAusAltangabe(' Weiblich ')).toBe('female')
+    expect(geschlechtAusAltangabe('divers')).toBeNull()
+    expect(geschlechtAusAltangabe(null)).toBeNull()
+  })
+})

@@ -71,7 +71,7 @@ interface Copy {
   createdAt: string
   contents: string
   sectionTitles: Record<SectionId, string>
-  age: string; gender: string; height: string; weight: string; years: string
+  age: string; gender: string; male: string; female: string; height: string; weight: string; years: string
   kpiAdherence: string; kpiWeight: string; kpiCycles: string; kpiDays: string
   cyclesHead: [string, string, string, string, string]
   statusActive: string; statusDone: string
@@ -108,7 +108,7 @@ const COPY: Record<PdfLang, Copy> = {
       wellness: 'Wohlbefinden', effects: 'Wirkungen & Nebenwirkungen', reviews: 'Erfahrungen',
       notes: 'Notizen / Fragen',
     },
-    age: 'Alter', gender: 'Geschlecht', height: 'Größe', weight: 'Gewicht', years: 'Jahre',
+    age: 'Alter', gender: 'Geschlecht', male: 'männlich', female: 'weiblich', height: 'Größe', weight: 'Gewicht', years: 'Jahre',
     kpiAdherence: 'Einnahmetreue', kpiWeight: 'Gewicht (Veränd.)', kpiCycles: 'Aktive Zyklen', kpiDays: 'Zeitraum',
     cyclesHead: ['Substanz', 'Dosis', 'Methode', 'Frequenz', 'Zeitraum'],
     statusActive: 'aktiv', statusDone: 'beendet',
@@ -148,7 +148,7 @@ const COPY: Record<PdfLang, Copy> = {
       wellness: 'Well-being', effects: 'Effects & side effects', reviews: 'Experiences',
       notes: 'Notes / questions',
     },
-    age: 'Age', gender: 'Gender', height: 'Height', weight: 'Weight', years: 'years',
+    age: 'Age', gender: 'Sex', male: 'male', female: 'female', height: 'Height', weight: 'Weight', years: 'years',
     kpiAdherence: 'Adherence', kpiWeight: 'Weight (change)', kpiCycles: 'Active cycles', kpiDays: 'Period',
     cyclesHead: ['Substance', 'Dose', 'Route', 'Frequency', 'Period'],
     statusActive: 'active', statusDone: 'completed',
@@ -680,7 +680,8 @@ function renderPersonal(ctx: Ctx, data: ProtocolData) {
   const name = p.display_name?.trim() || p.username?.trim()
   if (name) rows.push([lang === 'de' ? 'Name' : 'Name', name])
   if (p.age != null) rows.push([c.age, `${p.age} ${c.years}`])
-  if (p.gender) rows.push([c.gender, p.gender])
+  const sex = p.bio_sex === 'male' ? c.male : p.bio_sex === 'female' ? c.female : p.gender
+  if (sex) rows.push([c.gender, sex])
   if (p.height_cm != null) rows.push([c.height, `${p.height_cm} cm`])
   if (p.weight_kg != null) rows.push([c.weight, `${fmtNum(Number(p.weight_kg))} ${c.kg}`])
   if (rows.length === 0) { bodyText(ctx, c.noData); return }

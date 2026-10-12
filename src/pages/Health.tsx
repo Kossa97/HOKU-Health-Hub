@@ -8,6 +8,8 @@ import {
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { alterAm } from '../features/blutwerte/lib/referenzbereiche'
+import { altfelderAus, geburtsdatumGueltig, geschlechtAusAltangabe, type BioSex } from '../features/blutwerte/lib/bioProfile'
 import { getHeartRate, getSleep, getSteps, isNative, requestPermissions } from '../lib/health'
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
@@ -20,9 +22,16 @@ interface WeightLog {
   created_at: string | null
 }
 
+/**
+ * Alter und Geschlecht kommen aus Geburtsdatum und biologischem Geschlecht —
+ * dieselben Angaben wie bei den Blutwerten. Die alten Felder `age`/`gender`
+ * werden nur noch gelesen, solange die neuen fehlen.
+ */
 interface HealthProfile {
-  age: number | null
-  gender: string
+  birthDate: string | null
+  sex: BioSex | null
+  legacyAge: number | null
+  legacyGender: string
   height_cm: number | null
   notes: string
 }
@@ -33,8 +42,8 @@ interface WeightForm {
 }
 
 interface ProfileForm {
-  age: string
-  gender: string
+  birthDate: string
+  sex: '' | BioSex
   height_cm: string
   notes: string
 }
@@ -69,17 +78,17 @@ function bmiLabel(bmi: number): { text: string; color: string } {
 }
 
 // Deurenberg-Formel: Körperfett % aus BMI + Alter + Geschlecht
-function estimateBodyFat(bmi: number, age: number, gender: string): number | null {
-  if (!age || !gender) return null
-  const sexFactor = gender === 'weiblich' ? 1 : 0
+function estimateBodyFat(bmi: number, age: number, sex: BioSex | null): number | null {
+  if (!age || !sex) return null
+  const sexFactor = sex === 'female' ? 1 : 0
   return 1.20 * bmi + 0.23 * age - 10.8 * (1 - sexFactor) - 5.4
 }
 
 // Idealgewicht nach Devine-Formel
-function idealWeightRange(heightCm: number, gender: string): { min: number; max: number } | null {
-  if (!heightCm || !gender) return null
+function idealWeightRange(heightCm: number, sex: BioSex | null): { min: number; max: number } | null {
+  if (!heightCm || !sex) return null
   const over152 = Math.max(0, heightCm - 152.4)
-  const base = gender === 'weiblich' ? 45.5 : 50.0
+  const base = sex === 'female' ? 45.5 : 50.0
   const mid  = base + 0.906 * over152
   return { min: Math.round((mid - 5) * 10) / 10, max: Math.round((mid + 5) * 10) / 10 }
 }
@@ -167,9 +176,9 @@ export function Health() {
   const [savingWeight,  setSavingWeight]  = useState(false)
 
   // Körperprofil
-  const [healthProfile, setHealthProfile] = useState<HealthProfile>({ age: null, gender: '', height_cm: null, notes: '' })
+  const [healthProfile, setHealthProfile] = useState<HealthProfile>({ birthDate: null, sex: null, legacyAge: null, legacyGender: '', height_cm: null, notes: '' })
   const [showProfileForm, setShowProfileForm] = useState(false)
-  const [profileForm,   setProfileForm]   = useState<ProfileForm>({ age: '', gender: '', height_cm: '', notes: '' })
+  const [profileForm,   setProfileForm]   = useState<ProfileForm>({ birthDate: '', sex: '', height_cm: '', notes: '' })
   const [savingProfile, setSavingProfile] = useState(false)
 
   // Device
@@ -192,10 +201,12 @@ export function Health() {
   // ── Profil laden ─────────────────────────────────────────────────────────
   const loadProfile = useCallback(async () => {
     if (!user) return
-    const { data } = await supabase.from('profiles').select('age, gender, height_cm, notes').eq('id', user.id).single()
+    const { data } = await supabase.from('profiles').select('birth_date, bio_sex, age, gender, height_cm, notes').eq('id', user.id).single()
     if (data) setHealthProfile({
-      age: data.age ?? null,
-      gender: data.gender ?? '',
+      birthDate: data.birth_date ?? null,
+      sex: data.bio_sex === 'male' || data.bio_sex === 'female' ? data.bio_sex : null,
+      legacyAge: data.age ?? null,
+      legacyGender: data.gender ?? '',
       height_cm: data.height_cm ?? null,
       notes: data.notes ?? '',
     })
@@ -244,24 +255,36 @@ export function Health() {
   }
 
   // ── Profil speichern ─────────────────────────────────────────────────────
+  // Schreibt Geburtsdatum und biologisches Geschlecht; die alten Felder
+  // age/gender werden passend mitgeschrieben, damit ein Leeren auch leer bleibt.
   const saveProfile = async () => {
     if (!user) return
+    if (profileForm.birthDate && !geburtsdatumGueltig(profileForm.birthDate, todayStr())) {
+      return toast.error('Bitte ein gültiges Geburtsdatum eintragen')
+    }
     setSavingProfile(true)
-    const { error } = await supabase.from('profiles').update({
-      age:       profileForm.age       ? parseInt(profileForm.age)       : null,
-      gender:    profileForm.gender    || null,
+    const bio = { birthDate: profileForm.birthDate || null, sex: profileForm.sex || null }
+    const alt = altfelderAus(bio, todayStr())
+    const next = {
+      birth_date: bio.birthDate,
+      bio_sex: bio.sex,
+      ...alt,
       height_cm: profileForm.height_cm ? parseFloat(profileForm.height_cm) : null,
-      notes:     profileForm.notes     || null,
-    }).eq('id', user.id)
+      notes: profileForm.notes || null,
+    }
+    const { error } = await supabase.from('profiles').update(next).eq('id', user.id)
     if (error) toast.error('Konnte nicht gespeichert werden')
     else {
       toast.success('Körperprofil aktualisiert')
-      setHealthProfile({
-        age:       profileForm.age       ? parseInt(profileForm.age)       : null,
-        gender:    profileForm.gender,
-        height_cm: profileForm.height_cm ? parseFloat(profileForm.height_cm) : null,
-        notes:     profileForm.notes,
-      })
+      setHealthProfile(p => ({
+        ...p,
+        birthDate: next.birth_date,
+        sex: next.bio_sex,
+        legacyAge: alt.age,
+        legacyGender: alt.gender ?? '',
+        height_cm: next.height_cm,
+        notes: profileForm.notes,
+      }))
       setShowProfileForm(false)
     }
     setSavingProfile(false)
@@ -269,10 +292,11 @@ export function Health() {
 
   const openProfileForm = () => {
     setProfileForm({
-      age:       healthProfile.age       != null ? String(healthProfile.age)       : '',
-      gender:    healthProfile.gender    ?? '',
+      birthDate: healthProfile.birthDate ?? '',
+      // Ohne neue Angabe die alte vorschlagen; gespeichert wird erst beim Speichern.
+      sex: healthProfile.sex ?? geschlechtAusAltangabe(healthProfile.legacyGender) ?? '',
       height_cm: healthProfile.height_cm != null ? String(healthProfile.height_cm) : '',
-      notes:     healthProfile.notes     ?? '',
+      notes: healthProfile.notes ?? '',
     })
     setShowProfileForm(true)
   }
@@ -282,10 +306,13 @@ export function Health() {
   const currentKg    = latestWeight ? Number(latestWeight.weight_kg) : null
   const bmi          = currentKg && healthProfile.height_cm ? calcBMI(currentKg, healthProfile.height_cm) : null
   const bmiInfo      = bmi ? bmiLabel(bmi) : null
-  const bodyFat      = bmi && healthProfile.age && healthProfile.gender
-    ? estimateBodyFat(bmi, healthProfile.age, healthProfile.gender) : null
-  const idealRange   = healthProfile.height_cm && healthProfile.gender
-    ? idealWeightRange(healthProfile.height_cm, healthProfile.gender) : null
+  // Neue Angaben zuerst, sonst die alten (bis jemand das Profil neu speichert)
+  const age          = alterAm(healthProfile.birthDate, todayStr()) ?? healthProfile.legacyAge
+  const sex          = healthProfile.sex ?? geschlechtAusAltangabe(healthProfile.legacyGender)
+  const sexLabel     = sex === 'male' ? 'Männlich' : sex === 'female' ? 'Weiblich'
+    : healthProfile.legacyGender === 'divers' ? 'Divers' : null
+  const bodyFat      = bmi && age ? estimateBodyFat(bmi, age, sex) : null
+  const idealRange   = healthProfile.height_cm ? idealWeightRange(healthProfile.height_cm, sex) : null
 
   const deviceMetrics: DeviceMetric[] = [
     { key: 'steps', icon: Footprints, value: stepsToday,  label: 'Schritte heute',    color: '#00ccf5', loading: loadingDevice },
@@ -336,7 +363,7 @@ export function Health() {
         {/* Mini-Verlauf Gewicht → idealRange */}
         {idealRange && (
           <p className="text-[0.68rem] text-slate-500 mt-3">
-            Idealgewicht ({healthProfile.gender}): {fmtNum(idealRange.min)} – {fmtNum(idealRange.max)} kg
+            Idealgewicht ({sexLabel}): {fmtNum(idealRange.min)} – {fmtNum(idealRange.max)} kg
           </p>
         )}
       </section>
@@ -359,18 +386,14 @@ export function Health() {
           {/* Alter */}
           <StatCell
             label="Alter"
-            value={healthProfile.age ? `${healthProfile.age} J.` : '—'}
+            value={age ? `${age} J.` : '—'}
             color="#00ccf5"
           />
 
           {/* Geschlecht */}
           <StatCell
             label="Geschlecht"
-            value={
-              healthProfile.gender === 'männlich' ? 'Männlich' :
-              healthProfile.gender === 'weiblich' ? 'Weiblich' :
-              healthProfile.gender === 'divers'   ? 'Divers'   : '—'
-            }
+            value={sexLabel ?? '—'}
             color="#00ccf5"
           />
 
@@ -419,9 +442,9 @@ export function Health() {
           </div>
         )}
 
-        {!healthProfile.height_cm && !healthProfile.age && (
+        {!healthProfile.height_cm && !age && (
           <p className="text-xs text-slate-500 mt-3 text-center">
-            Trage Alter, Geschlecht und Größe ein um BMI & Co. zu berechnen.
+            Trage Geburtsdatum, Geschlecht und Größe ein, um BMI & Co. zu berechnen.
           </p>
         )}
       </section>
@@ -475,20 +498,20 @@ export function Health() {
             <h2 className="text-lg font-bold">Körperprofil bearbeiten</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label">Alter</label>
-                <input className="input" type="number" placeholder="Jahre" value={profileForm.age}
-                  onChange={e => setProfileForm(f => ({ ...f, age: e.target.value }))} />
+                <label className="label" htmlFor="health-birth">Geburtsdatum</label>
+                <input id="health-birth" className="input" type="date" min="1900-01-01" max={todayStr()} value={profileForm.birthDate}
+                  onChange={e => setProfileForm(f => ({ ...f, birthDate: e.target.value }))} />
               </div>
               <div>
-                <label className="label">Geschlecht</label>
-                <select className="select" value={profileForm.gender}
-                  onChange={e => setProfileForm(f => ({ ...f, gender: e.target.value }))}>
-                  <option value="">—</option>
-                  <option value="männlich">Männlich</option>
-                  <option value="weiblich">Weiblich</option>
-                  <option value="divers">Divers</option>
+                <label className="label" htmlFor="health-sex">Biologisches Geschlecht</label>
+                <select id="health-sex" className="select" value={profileForm.sex}
+                  onChange={e => setProfileForm(f => ({ ...f, sex: e.target.value as ProfileForm['sex'] }))}>
+                  <option value="">Keine Angabe</option>
+                  <option value="male">Männlich</option>
+                  <option value="female">Weiblich</option>
                 </select>
               </div>
+              <p className="col-span-2 -mt-1 text-xs text-slate-500">Dieselben Angaben wie bei den Blutwerten – sie bestimmen dort auch die Referenzbereiche.</p>
               <div className="col-span-2">
                 <label className="label">Größe (cm)</label>
                 <input className="input" type="number" placeholder="181" value={profileForm.height_cm}

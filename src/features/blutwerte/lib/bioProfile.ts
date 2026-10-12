@@ -2,9 +2,11 @@
  * Geburtsdatum und biologisches Geschlecht aus dem eigenen Profil
  * (`profiles.birth_date`, `profiles.bio_sex`). Beide freiwillig; sie wählen
  * nur den passenden Referenzbereich, wenn ein Befund keinen eigenen hat.
- * Das öffentliche Profil und der PDF-Export lesen sie nicht.
+ * Gelesen von Blutwerten, /health und dem eigenen PDF-Export; das öffentliche
+ * Profil liest sie nicht.
  */
 import { supabase } from '../../../lib/supabase'
+import { alterAm } from './referenzbereiche'
 
 export type BioSex = 'male' | 'female'
 
@@ -37,6 +39,36 @@ export function geburtsdatumGueltig(value: string, heute: string): boolean {
   return value >= GEBURTSDATUM_MIN && value <= heute
 }
 
+/**
+ * Biologisches Geschlecht aus der alten Freitext-Angabe `profiles.gender`
+ * (von /health: 'männlich' / 'weiblich' / 'divers'). „divers“ und Unbekanntes
+ * ergeben null — dafuer gibt es keinen Referenzbereich.
+ */
+export function geschlechtAusAltangabe(gender: unknown): BioSex | null {
+  if (typeof gender !== 'string') return null
+  const g = gender.trim().toLowerCase()
+  if (g === 'männlich' || g === 'male') return 'male'
+  if (g === 'weiblich' || g === 'female') return 'female'
+  return null
+}
+
+/**
+ * Die alten Felder `age`/`gender` passend zu den neuen Angaben. Wird beim
+ * Speichern mitgeschrieben, damit der Rueckfall auf die alten Felder (/health,
+ * PDF) nie eine Angabe zurueckholt, die gerade geleert wurde.
+ */
+export function altfelderAus(p: BioProfile, heute: string): { age: number | null; gender: string | null } {
+  return {
+    age: alterAm(p.birthDate, heute),
+    gender: p.sex === 'male' ? 'männlich' : p.sex === 'female' ? 'weiblich' : null,
+  }
+}
+
+const heuteIso = (): string => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export const bioVollstaendig = (p: BioProfile): boolean => !!p.birthDate && !!p.sex
 
 export async function loadBioProfile(userId: string): Promise<BioProfile> {
@@ -48,7 +80,7 @@ export async function loadBioProfile(userId: string): Promise<BioProfile> {
 export async function saveBioProfile(userId: string, profile: BioProfile): Promise<void> {
   const { data, error } = await supabase
     .from('profiles')
-    .update({ birth_date: profile.birthDate, bio_sex: profile.sex })
+    .update({ birth_date: profile.birthDate, bio_sex: profile.sex, ...altfelderAus(profile, heuteIso()) })
     .eq('id', userId)
     .select('id')
   if (error) throw new Error(error.message)

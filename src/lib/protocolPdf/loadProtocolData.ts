@@ -3,6 +3,8 @@
 // vom Dashboard-State in Protokoll.tsx.
 
 import { supabase } from '../supabase'
+import { format } from 'date-fns'
+import { alterAm } from '../../features/blutwerte/lib/referenzbereiche'
 import type {
   ProtocolData,
   PdfDateRange,
@@ -48,6 +50,35 @@ function toCycle(row: CycleRow): PdfCycle {
   }
 }
 
+interface ProfileRow {
+  display_name: string | null
+  username: string | null
+  birth_date: string | null
+  bio_sex: string | null
+  age: number | null
+  gender: string | null
+  height_cm: number | null
+  weight_kg: number | null
+}
+
+/**
+ * Alter und Geschlecht wie auf /health und bei den Blutwerten: Geburtsdatum und
+ * biologisches Geschlecht zuerst, die alten Felder nur als Rueckfall.
+ */
+export function toPdfProfile(row: ProfileRow | null, heute: string): PdfProfile | null {
+  if (!row) return null
+  const bioSex = row.bio_sex === 'male' || row.bio_sex === 'female' ? row.bio_sex : null
+  return {
+    display_name: row.display_name,
+    username: row.username,
+    age: alterAm(row.birth_date, heute) ?? row.age,
+    gender: bioSex ? null : row.gender,
+    bio_sex: bioSex,
+    height_cm: row.height_cm,
+    weight_kg: row.weight_kg,
+  }
+}
+
 export async function loadProtocolData(userId: string, range: PdfDateRange): Promise<ProtocolData> {
   const toBound = `${range.to}T23:59:59`
 
@@ -64,7 +95,7 @@ export async function loadProtocolData(userId: string, range: PdfDateRange): Pro
     stackItemsRes,
   ] = await Promise.all([
     supabase.from('profiles')
-      .select('display_name, username, age, gender, height_cm, weight_kg')
+      .select('display_name, username, birth_date, bio_sex, age, gender, height_cm, weight_kg')
       .eq('id', userId).maybeSingle(),
     supabase.from('cycles').select(CYCLE_COLS)
       .eq('user_id', userId).eq('active', true)
@@ -108,7 +139,7 @@ export async function loadProtocolData(userId: string, range: PdfDateRange): Pro
   }
 
   return {
-    profile: (profileRes.data as PdfProfile | null) ?? null,
+    profile: toPdfProfile(profileRes.data as ProfileRow | null, format(new Date(), 'yyyy-MM-dd')),
     cycles,
     weightLogs: ((weightRes.data as { logged_at: string; weight_kg: number | string }[] | null) ?? [])
       .map(w => ({ logged_at: w.logged_at, weight_kg: Number(w.weight_kg) }))

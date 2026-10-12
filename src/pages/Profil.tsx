@@ -63,8 +63,9 @@ export function Profil() {
       id: user!.id,
       username: profile.username.trim().toLowerCase(),
       display_name: profile.display_name || null,
-      age: profile.age, weight_kg: profile.weight_kg, height_cm: profile.height_cm,
-      gender: profile.gender || null, notes: profile.notes || null,
+      // age/gender gehoeren zu Geburtsdatum/Geschlecht (eigene Karte) — hier nicht zurueckschreiben.
+      weight_kg: profile.weight_kg, height_cm: profile.height_cm,
+      notes: profile.notes || null,
       is_public: profile.is_public, public_bio: profile.public_bio || null,
       share_peptide: profile.share_peptide,
       share_kalender: profile.share_kalender,
