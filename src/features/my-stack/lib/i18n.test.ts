@@ -1076,6 +1076,12 @@ const EXPECTED_MY_STACK_KEYS = [
   'pk_overview_no_next',
   'pk_manual_open',
   'pk_recent_doses',
+  'pk_title',
+  'pk_live_label',
+  'pk_refresh',
+  'pk_not_found',
+  'pk_back_overview',
+  'pk_overview_paused',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

@@ -3,27 +3,18 @@
  * Name, Mini-Verlauf der letzten 24 h, aktuellem Spiegel und Veränderung.
  * Ein Tipp führt in die Detailansicht (/simulation/<eintrag>).
  */
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
+import { LiveStatus } from './LiveStatus'
 import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
 import { formatOffset, useBlutspiegelFormat } from './format'
-import { levelAt, type LevelPoint } from './chart/stocksChartMath'
+import { aenderungSeit, type LevelPoint } from './chart/stocksChartMath'
 import { NoCurveRow } from './BlutspiegelView'
-import { detailPfad } from './pfade'
+import { MANUELL_PFAD, detailPfad } from './pfade'
 
 const DAY = 24 * 3_600_000
-// Dieselben Farben wie im Kopf der Detailansicht
-const RISING = '#15803d'
-const FALLING = '#be123c'
-
-/** Veränderung über die letzten 24 h; beginnt der Verlauf später, zählt sein Anfang. */
-function aenderung24h(points: LevelPoint[], now: number): number | null {
-  if (points.length < 2) return null
-  const ende = points[points.length - 1]
-  const start = points[0].ts > now - DAY ? points[0].level : levelAt(points, now - DAY)
-  return start == null ? null : ende.level - start
-}
 
 function Verlauf({ points, now, color }: { points: LevelPoint[]; now: number; color: string }) {
   const W = 72
@@ -57,10 +48,10 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
   const f = useBlutspiegelFormat()
   const { t } = f
   const points = curve?.points ?? []
-  const change = aenderung24h(points, now)
-  const flach = change == null || Math.abs(change) < 0.05
-  const farbe = flach ? 'var(--surface-raised)' : change! > 0 ? RISING : FALLING
-  const linie = flach ? entry.accent : change! > 0 ? RISING : FALLING
+  const pausiert = curve?.interruptedAt != null
+  const change = pausiert ? null : aenderungSeit(points, now - DAY)
+  // Neutral: zwischen zwei Dosen faellt der Spiegel immer — das ist kein Warnsignal.
+  const linie = entry.accent
   const naechste = entry.nextDoseAt != null ? formatOffset(entry.nextDoseAt - now, t) : null
   return (
     <li>
@@ -74,15 +65,15 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
           <span className="truncate text-[17px] font-extrabold tracking-tight">{entry.name}</span>
           <span className="truncate text-[13px]" style={{ color: 'var(--text-muted)' }}>
             {entry.profile.name !== entry.name ? `${entry.profile.name} · ` : ''}
-            {naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
+            {pausiert ? t('pk_overview_paused') : naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
           </span>
         </span>
         <Verlauf points={points} now={now} color={linie} />
         <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
-          <span className="text-[17px] font-bold">{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
+          <span className="text-[17px] font-bold" style={pausiert ? { color: 'var(--text-muted)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
           <span
             className="min-w-[62px] rounded-[7px] px-2 py-[3px] text-right text-[13px] font-bold"
-            style={{ background: farbe, color: flach ? 'var(--text-muted)' : '#fff' }}
+            style={{ background: 'var(--surface-raised)', color: 'var(--text)', border: '1px solid var(--border)' }}
             data-bs-change
           >
             {change == null ? '—' : f.signed(change)}
@@ -93,24 +84,55 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
   )
 }
 
-export function BlutspiegelUebersicht() {
+/** Kopf wie die Aktienliste: Titel, „+“ für die eigene Simulation, Live-Stand. */
+function Kopf({ asOf, refreshing, onRefresh }: { asOf: number; refreshing: boolean; onRefresh: () => void }) {
+  const { t } = useBlutspiegelFormat()
+  return (
+    <header className="grid items-start gap-x-3" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
+      <h1 className="min-w-0 text-[2rem] font-black leading-tight tracking-tight" style={{ color: 'var(--text)' }}>{t('pk_title')}</h1>
+      <Link
+        to={MANUELL_PFAD}
+        aria-label={t('pk_manual_open')}
+        title={t('pk_manual_open')}
+        className="mt-1 flex h-11 w-11 items-center justify-center rounded-full"
+        style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', color: 'var(--text)' }}
+        data-bs-manual
+      >
+        <Plus size={22} />
+      </Link>
+      <div className="col-span-2 mt-1">
+        <LiveStatus asOf={asOf} refreshing={refreshing} onRefresh={onRefresh} />
+      </div>
+    </header>
+  )
+}
+
+/** children: steht zwischen Kopf und Liste (etwa der Medizin-Hinweis). */
+export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const data = useBlutspiegelData()
   const f = useBlutspiegelFormat()
   const { t } = f
   const missing = data.entries.filter((e): e is MissingEntry | UnsupportedEntry => e.kind !== 'ready')
+  const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} onRefresh={data.refresh} />
 
-  if (data.error) return <p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p>
+  if (data.error) return <div className="flex flex-col gap-4">{kopf}{children}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p></div>
   if (data.loading) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center gap-2.5">
-        <Loader2 size={18} color="var(--accent)" className="animate-spin" />
-        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_live_loading')}</span>
+      <div className="flex flex-col gap-4">
+        {kopf}
+        {children}
+        <div className="flex min-h-[200px] items-center justify-center gap-2.5">
+          <Loader2 size={18} color="var(--accent)" className="animate-spin" />
+          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_live_loading')}</span>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-5">
+      {kopf}
+      {children}
       {data.ready.length > 0 ? (
         <section aria-label={t('pk_overview_list')}>
           <p className="mb-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>{t('pk_overview_hint')}</p>

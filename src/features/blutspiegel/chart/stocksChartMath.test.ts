@@ -11,6 +11,7 @@ import {
   zoneRuns,
   zoneRunsStepped,
   limitsAt,
+  aenderungSeit,
 } from './stocksChartMath'
 
 const H = 3_600_000
@@ -142,5 +143,17 @@ describe('zoneRunsStepped', () => {
     expect(limitsAt(steps, 5)).toEqual(steps[0])
     expect(limitsAt(steps, 25)).toEqual(steps[1])
     expect(limitsAt([], 25)).toBeNull()
+  })
+})
+
+describe('aenderungSeit', () => {
+  const p = (ts: number, level: number) => ({ ts, level })
+  it('vom Wert zum Startzeitpunkt bis zum letzten Punkt', () => {
+    expect(aenderungSeit([p(0, 10), p(100, 30)], 50)).toBeCloseTo(10)
+  })
+  it('beginnt der Verlauf später, zählt sein Anfang; ohne Punkte nichts', () => {
+    expect(aenderungSeit([p(100, 10), p(200, 4)], 0)).toBe(-6)
+    expect(aenderungSeit([], 0)).toBeNull()
+    expect(aenderungSeit([p(5, 3)], 0)).toBeNull()
   })
 })

@@ -17,7 +17,7 @@ export function BlutspiegelManuell() {
         style={{ color: 'var(--accent)' }}
       >
         <ChevronLeft size={24} strokeWidth={2.4} aria-hidden="true" />
-        {t('pk_sim_title')}
+        {t('pk_title')}
       </Link>
       <MedicalNotice />
       <ManualSimulation preselectProfileId={searchParams.get('pk')} startOffen />

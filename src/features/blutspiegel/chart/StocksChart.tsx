@@ -144,6 +144,8 @@ export interface StocksChartProps {
 export const AXIS_WIDTH = 38
 const AXIS_BOTTOM = 22
 const INTAKE_STRIP_H = 12
+/** Mehr Einnahmen im Fenster: nur noch Striche unter der Achse, keine Linien und Ringe. */
+const MAX_EINNAHME_LINIEN = 40
 const PAD_TOP = 10
 /** Hoehe der freien Zeile fuer das Ablese-Schild. */
 const LABEL_H = 40
@@ -177,6 +179,7 @@ export const StocksChart = memo(function StocksChart({
 }: StocksChartProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const pulseRef = useRef<HTMLSpanElement>(null)
   const widthRef = useRef(0)
   const rafRef = useRef<number | null>(null)
   // Wischen: hoechstens ein Fensterwechsel je Bild
@@ -434,12 +437,24 @@ export const StocksChart = memo(function StocksChart({
       }
     }
 
-    // Einnahmen als Striche
-    ctx.fillStyle = muted
-    for (const ts of intakeList) {
-      if (ts < view.start || ts > view.end) continue
-      const x = xOf(ts)
-      ctx.fillRect(Math.round(x) - 1, plotB + 3, 2, INTAKE_STRIP - 4)
+    // Einnahmen: Striche unter der Achse in der Farbe der Substanz; sind es
+    // nicht zu viele, dazu eine dezente senkrechte Linie bis zur Kurve.
+    const sichtbareEinnahmen = intakeList.filter(ts => ts >= view.start && ts <= view.end)
+    ctx.fillStyle = hexAlpha(color, 0.8)
+    for (const ts of sichtbareEinnahmen) {
+      ctx.fillRect(Math.round(xOf(ts)) - 1, plotB + 3, 2, INTAKE_STRIP - 4)
+    }
+    if (sichtbareEinnahmen.length <= MAX_EINNAHME_LINIEN && reveal >= 1) {
+      ctx.save()
+      ctx.strokeStyle = hexAlpha(color, 0.28)
+      ctx.lineWidth = 1
+      ctx.setLineDash([2, 4])
+      for (const ts of sichtbareEinnahmen) {
+        const lv = levelAt(pointsRef.current, ts)
+        const x = Math.round(xOf(ts)) + 0.5
+        ctx.beginPath(); ctx.moveTo(x, lv != null ? yOf(lv) : plotT); ctx.lineTo(x, plotB); ctx.stroke()
+      }
+      ctx.restore()
     }
 
     // Kurve(n)
@@ -539,6 +554,21 @@ export const StocksChart = memo(function StocksChart({
       }
     }
 
+    // Einnahmezeitpunkte als Ring auf der Kurve
+    if (sichtbareEinnahmen.length <= MAX_EINNAHME_LINIEN && reveal >= 1 && !otherList.length) {
+      for (const ts of sichtbareEinnahmen) {
+        const lv = levelAt(pts, ts)
+        if (lv == null) continue
+        const x = xOf(ts)
+        const y = yOf(lv)
+        ctx.fillStyle = surface
+        ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fill()
+        ctx.strokeStyle = scrubTs != null && ts > scrubTs ? hexAlpha(color, 0.45) : color
+        ctx.lineWidth = 2
+        ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.stroke()
+      }
+    }
+
     // Markierungen (manuelle Simulation)
     if (markerList.length && reveal >= 1) {
       ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif'
@@ -560,6 +590,9 @@ export const StocksChart = memo(function StocksChart({
     }
 
     // Live-Punkt am Ende
+    // Live-Punkt am Kurvenende; das Pulsieren liegt als eigenes Element darueber
+    // (CSS-Animation, laeuft ohne neues Zeichnen).
+    let pulsAn = false
     if (showLive && scrubTs == null && reveal >= 1 && pts.length) {
       const last = pts[pts.length - 1]
       if (last.ts >= view.start && last.ts <= view.end + 60_000) {
@@ -569,8 +602,17 @@ export const StocksChart = memo(function StocksChart({
         ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill()
         ctx.fillStyle = color
         ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill()
+        const puls = pulseRef.current
+        // Bei „Bewegung reduzieren“ kein Pulsieren (der Inline-Stil schluege die CSS-Klasse)
+        if (puls && !reduced) {
+          puls.style.transform = `translate(${x - 9}px, ${y - 9}px)`
+          const ring = puls.firstElementChild as HTMLElement | null
+          if (ring) ring.style.background = color
+          pulsAn = true
+        }
       }
     }
+    if (pulseRef.current) pulseRef.current.style.display = pulsAn ? 'block' : 'none'
 
     // Ablese-Linie
     if (scrubTs != null) {
@@ -908,6 +950,17 @@ export const StocksChart = memo(function StocksChart({
           WebkitTouchCallout: 'none', outline: 'none', cursor: 'crosshair',
         }}
       />
+      {/* Aussen die Position (per transform aus dem Zeichnen), innen das Pulsieren —
+          getrennt, weil die Ping-Animation selbst transform setzt. */}
+      <span
+        ref={pulseRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 h-[18px] w-[18px] motion-reduce:hidden"
+        style={{ display: 'none' }}
+        data-chart-live-pulse
+      >
+        <span className="absolute inset-0 animate-ping rounded-full opacity-40" />
+      </span>
       {pan && end < pan.max - 1000 && (
         <button
           type="button"

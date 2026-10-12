@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
   buildEntryCurve,
@@ -23,6 +23,10 @@ export interface BlutspiegelData {
   curves: Map<string, EntryCurve>
   /** Zeitpunkt des letzten Abrufs (Unix ms) — „jetzt" fuer die Ansicht. */
   asOf: number
+  /** Ein Abruf laeuft gerade (auch der minuetliche im Hintergrund). */
+  refreshing: boolean
+  /** Sofort neu laden (Aktualisieren-Knopf). */
+  refresh: () => void
 }
 
 interface Loaded {
@@ -38,11 +42,25 @@ async function fetchAll(userId: string) {
   return { entries, histories }
 }
 
+/**
+ * Letzter Stand, ueber Seitenwechsel hinweg (Uebersicht ↔ Detail): die neue
+ * Seite zeigt ihn sofort und laedt im Hintergrund nach, statt mit Spinner.
+ */
+let zwischenstand: Loaded | null = null
+
+/** Zwischenstand verwerfen (Tests). Er gilt ohnehin nur fuer dieselbe Nutzer-ID. */
+export function vergissBlutspiegelStand(): void {
+  zwischenstand = null
+}
+
 export function useBlutspiegelData(): BlutspiegelData {
   const { user } = useAuth()
   const userId = user?.id ?? null
-  const [loaded, setLoaded] = useState<Loaded | null>(null)
+  const [loaded, setLoaded] = useState<Loaded | null>(() => (zwischenstand && zwischenstand.userId === userId ? zwischenstand : null))
   const [error, setError] = useState(false)
+
+  const [refreshing, setRefreshing] = useState(false)
+  const runRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     if (!userId) return
@@ -51,19 +69,25 @@ export function useBlutspiegelData(): BlutspiegelData {
     const run = () => {
       if (inFlight) return
       inFlight = true
+      setRefreshing(true)
       fetchAll(userId)
         .then(data => {
           if (cancelled) return
-          setLoaded({ userId, ...data, asOf: Date.now() })
+          const neu = { userId, ...data, asOf: Date.now() }
+          zwischenstand = neu
+          setLoaded(neu)
           setError(false)
         })
         .catch(() => { if (!cancelled) setError(true) })
-        .finally(() => { inFlight = false })
+        .finally(() => { inFlight = false; if (!cancelled) setRefreshing(false) })
     }
+    runRef.current = run
     run()
     const id = window.setInterval(run, BLUTSPIEGEL_REFRESH_MS)
-    return () => { cancelled = true; window.clearInterval(id) }
+    return () => { cancelled = true; runRef.current = () => {}; window.clearInterval(id) }
   }, [userId])
+
+  const refresh = useCallback(() => runRef.current(), [])
 
   const current = loaded && loaded.userId === userId ? loaded : null
   const entries = useMemo(() => current?.entries ?? [], [current])
@@ -80,5 +104,7 @@ export function useBlutspiegelData(): BlutspiegelData {
     ready,
     curves,
     asOf: current?.asOf ?? 0,
+    refreshing,
+    refresh,
   }
 }

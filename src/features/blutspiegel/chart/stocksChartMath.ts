@@ -244,3 +244,14 @@ export function zoneRunsStepped(points: LevelPoint[], steps: LimitStep[]): ZoneR
   })
   return runs
 }
+
+/**
+ * Veraenderung des Spiegels seit `start` bis zum letzten Punkt. Beginnt der
+ * Verlauf erst danach, zaehlt sein Anfang; endet er davor, gibt es keine.
+ */
+export function aenderungSeit(points: LevelPoint[], start: number): number | null {
+  // Ein einzelner Punkt hat keine Veraenderung
+  if (points.length < 2) return null
+  const anfang = start < points[0].ts ? points[0].level : levelAt(points, start)
+  return anfang == null ? null : points[points.length - 1].level - anfang
+}

@@ -2039,5 +2039,11 @@
   "pk_overview_next": "next dose {{when}}",
   "pk_overview_no_next": "no next dose planned",
   "pk_manual_open": "Own simulation",
-  "pk_recent_doses": "Recent doses"
+  "pk_recent_doses": "Recent doses",
+  "pk_title": "Blood levels",
+  "pk_live_label": "Live",
+  "pk_refresh": "Refresh now",
+  "pk_not_found": "This substance no longer has a blood level curve.",
+  "pk_back_overview": "Back to the overview",
+  "pk_overview_paused": "cycle paused"
 }

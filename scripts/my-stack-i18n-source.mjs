@@ -1067,6 +1067,12 @@ export const MY_STACK_EN = {
   pk_overview_no_next: "no next dose planned",
   pk_manual_open: "Own simulation",
   pk_recent_doses: "Recent doses",
+  pk_title: "Blood levels",
+  pk_live_label: "Live",
+  pk_refresh: "Refresh now",
+  pk_not_found: "This substance no longer has a blood level curve.",
+  pk_back_overview: "Back to the overview",
+  pk_overview_paused: "cycle paused",
 }
 
 export const MY_STACK_DE = {
@@ -2137,6 +2143,12 @@ export const MY_STACK_DE = {
   pk_overview_no_next: "keine nächste Dosis geplant",
   pk_manual_open: "Eigene Simulation",
   pk_recent_doses: "Letzte Einnahmen",
+  pk_title: "Blutspiegel",
+  pk_live_label: "Live",
+  pk_refresh: "Jetzt aktualisieren",
+  pk_not_found: "Für diesen Eintrag gibt es keinen Blutspiegel mehr.",
+  pk_back_overview: "Zur Übersicht",
+  pk_overview_paused: "Zyklus pausiert",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

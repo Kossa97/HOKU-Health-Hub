@@ -17,7 +17,7 @@ export function BlutspiegelDetail() {
         data-bs-back
       >
         <ChevronLeft size={24} strokeWidth={2.4} aria-hidden="true" />
-        {t('pk_sim_title')}
+        {t('pk_title')}
       </Link>
       <BlutspiegelView variant="full" initialKey={key ?? null} einzeln key={key} />
       <p className="disclaimer" style={{ textAlign: 'center', padding: '4px 8px 12px' }}>{t('pk_consult')}</p>

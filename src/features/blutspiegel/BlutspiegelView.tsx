@@ -11,27 +11,26 @@ import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import type { PkRequirement } from '../my-stack/lib/pkReadiness'
 import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
-import { detailPfad } from './pfade'
+import { UEBERSICHT_PFAD, detailPfad } from './pfade'
+import { LiveStatus } from './LiveStatus'
 import { formatOffset, useBlutspiegelFormat } from './format'
 import { StocksChart } from './chart/StocksChart'
 import {
   CHART_RANGES,
-  levelAt,
+  aenderungSeit,
   rangeBounds,
   type ChartRange,
   type LevelPoint,
 } from './chart/stocksChartMath'
 
 const DAY = 24 * 3_600_000
-const RISING = '#10b981'
-const FALLING = '#f43f5e'
 
 // ── Bausteine ─────────────────────────────────────────────────────────────
 
 const MUTED: CSSProperties = { color: 'var(--text-muted)' }
 const HAIRLINE = '1px solid var(--border)'
 
-export function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
+function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
   if (points.length < 2) return <span style={{ width: 48, height: 20, display: 'inline-block' }} />
   let min = Infinity
   let max = -Infinity
@@ -281,8 +280,8 @@ function LetzteEinnahmen({ doses }: { doses: EntryCurve['doses'] }) {
         <span style={{ fontSize: 14, ...MUTED, fontVariantNumeric: 'tabular-nums' }}>{doses.length}</span>
       </div>
       <ul>
-        {liste.map(d => (
-          <li key={d.ts} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: HAIRLINE, fontVariantNumeric: 'tabular-nums' }}>
+        {liste.map((d, i) => (
+          <li key={`${d.ts}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: HAIRLINE, fontVariantNumeric: 'tabular-nums' }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{f.scrub(d.ts)}</span>
             <span style={{ fontSize: 15, color: 'var(--text)' }}>{f.num(d.dose)} <span style={MUTED}>{d.unit}</span></span>
           </li>
@@ -310,7 +309,9 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   // Zurueckgeblaettert: Ende des sichtbaren Fensters; null folgt „jetzt".
   const [viewEnd, setViewEnd] = useState<number | null>(null)
 
-  const selected = data.ready.find(e => e.key === pickedKey) ?? data.ready[0] ?? null
+  const gefunden = data.ready.find(e => e.key === pickedKey)
+  // Detailseite: eine unbekannte Adresse zeigt nie still eine andere Substanz.
+  const selected = gefunden ?? (einzeln && pickedKey ? null : data.ready[0] ?? null)
   const curve = selected ? data.curves.get(selected.key) : undefined
   // Kompakt (Home) nur, was sich ergaenzen laesst; ein Vitamin ohne PK-Profil
   // waere dort bloss Rauschen. Die volle Seite nennt alles.
@@ -336,12 +337,28 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     ? { min: firstTs, max: bounds.end, onPan: (end: number) => setViewEnd(end >= bounds.end - 1000 ? null : end), jumpLabel: t('pk_axis_now_title') }
     : undefined
 
-  if (data.error) return <p role="alert" style={{ fontSize: 14, ...MUTED }}>{t('pk_data_load_error')}</p>
+  if (data.error) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <p role="alert" style={{ fontSize: 14, ...MUTED }}>{t('pk_data_load_error')}</p>
+        <LiveStatus asOf={asOf} refreshing={data.refreshing} onRefresh={data.refresh} interrupted />
+      </div>
+    )
+  }
   if (data.loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: compact ? 160 : 280, justifyContent: 'center' }}>
         <Loader2 size={18} color="var(--accent)" className="animate-spin" />
         <span style={{ fontSize: 14, ...MUTED }}>{t('pk_live_loading')}</span>
+      </div>
+    )
+  }
+
+  if (!selected && einzeln && pickedKey) {
+    return (
+      <div style={{ padding: '24px 0', textAlign: 'center' }} data-bs-not-found>
+        <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 6 }}>{t('pk_not_found')}</p>
+        <Link to={UEBERSICHT_PFAD} style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{t('pk_back_overview')}</Link>
       </div>
     )
   }
@@ -367,13 +384,11 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   const effectiveRange: ChartRange = compact ? '1d' : range
   // Beginnt der Verlauf erst im Zeitraum, zaehlt sein Anfang. Endet er davor
   // (unterbrochener Zyklus), gibt es keine Veraenderung „im Zeitraum".
-  const startLevel = points.length && bounds.start < points[0].ts
-    ? points[0].level
-    : levelAt(points, bounds.start)
   // Der Kopf bleibt beim Ablesen stehen; der abgelesene Wert steht im Schild ueber dem Graph.
   const shown = curve?.current != null && points.length ? points[points.length - 1] : null
-  const change = shown && startLevel != null ? shown.level - startLevel : null
-  const changeColor = change == null || Math.abs(change) < 0.05 ? 'var(--text-dim)' : change > 0 ? RISING : FALLING
+  const change = shown ? aenderungSeit(points, bounds.start) : null
+  // Neutral: zwischen zwei Dosen faellt der Spiegel immer — kein Warnsignal.
+  const changeColor = 'var(--text-dim)'
   const subline = t(`pk_range_label_${effectiveRange}`)
 
   return (
@@ -416,6 +431,9 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           </p>
           <p style={{ fontSize: compact ? 13 : 16, color: 'var(--text-dim)', marginTop: 2 }}>{subline}</p>
           {!compact && <p style={{ fontSize: 13, ...MUTED, marginTop: 2 }}>{t('pk_model_note')}</p>}
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <LiveStatus asOf={asOf} refreshing={data.refreshing} onRefresh={data.refresh} interrupted={curve?.interruptedAt != null} />
         </div>
         {curve?.interruptedAt != null && (
           <p role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>{t('pk_interrupted')}</p>

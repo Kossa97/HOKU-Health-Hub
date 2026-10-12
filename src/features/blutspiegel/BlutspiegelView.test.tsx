@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { BlutspiegelView } from './BlutspiegelView'
 import { BlutspiegelSimulation } from '../../pages/BlutspiegelSimulation'
 import { loadBlutspiegelEntries, loadEntryHistories, type BlutspiegelEntry } from './entries'
+import { vergissBlutspiegelStand } from './useBlutspiegelData'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -56,6 +57,7 @@ function withData(entries: BlutspiegelEntry[]) {
 }
 
 afterEach(() => {
+  vergissBlutspiegelStand()
   vi.useRealTimers()
   cleanup()
   vi.clearAllMocks()
@@ -107,7 +109,7 @@ describe('BlutspiegelView', () => {
     render(<MemoryRouter><BlutspiegelView variant="compact" /></MemoryRouter>)
     await screen.findByRole('heading', { name: 'BPC-157' })
     expect(screen.queryByRole('radiogroup')).toBeNull()
-    expect(screen.getByRole('link', { name: /pk_more/ }).getAttribute('href')).toBe('/simulation?entry=cycle-1%3Apk-1&pk=pk-1')
+    expect(screen.getByRole('link', { name: /pk_more/ }).getAttribute('href')).toBe('/simulation/cycle-1%3Apk-1')
   })
 
   it('fragt die Datenbank nicht vor Ablauf einer Minute erneut', async () => {
@@ -124,13 +126,27 @@ describe('BlutspiegelView', () => {
 })
 
 describe('BlutspiegelSimulation', () => {
-  it('zeigt Live-Verlauf, manuelle Simulation und die Hinweise', async () => {
+  it('Übersicht: Titel, Live-Stand, je Substanz eine Zeile zur Detailseite, „+“ zur eigenen Simulation, Hinweise', async () => {
+    withData([ready, missing])
+    render(<MemoryRouter initialEntries={['/simulation']}><BlutspiegelSimulation /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: 'pk_title' })).toBeTruthy()
+    expect(screen.getByText(/pk_sim_disclaimer/)).toBeTruthy()
+    const zeile = await screen.findByRole('link', { name: /BPC-157/ })
+    expect(zeile.getAttribute('href')).toBe('/simulation/cycle-1%3Apk-1')
+    expect(screen.getByRole('link', { name: 'pk_manual_open' }).getAttribute('href')).toBe('/simulation/neu')
+    expect(screen.getByRole('button', { name: 'pk_refresh' })).toBeTruthy()
+    expect(screen.getByText('TB-500')).toBeTruthy()
+    // Keine Kurve und keine manuelle Simulation mehr auf der Übersicht
+    expect(screen.queryByRole('img')).toBeNull()
+    expect(screen.queryByRole('button', { name: /pk_manual_title/ })).toBeNull()
+  })
+
+  it('Aktualisieren lädt sofort neu', async () => {
     withData([ready])
-    render(<MemoryRouter initialEntries={['/simulation?entry=cycle-1:pk-1']}><BlutspiegelSimulation /></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'pk_sim_title' })).toBeTruthy()
-    expect(screen.getByText('pk_sim_disclaimer')).toBeTruthy()
-    expect(screen.getByText('pk_consult')).toBeTruthy()
-    expect(await screen.findByRole('heading', { name: 'BPC-157' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /pk_manual_title/ })).toBeTruthy()
+    render(<MemoryRouter initialEntries={['/simulation']}><BlutspiegelSimulation /></MemoryRouter>)
+    await screen.findByRole('link', { name: /BPC-157/ })
+    expect(loadBlutspiegelEntries).toHaveBeenCalledTimes(1)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'pk_refresh' })) })
+    expect(loadBlutspiegelEntries).toHaveBeenCalledTimes(2)
   })
 })
