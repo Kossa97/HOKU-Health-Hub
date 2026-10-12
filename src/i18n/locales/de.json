@@ -2259,6 +2259,6 @@
   "bw_assessment_title": "Hinweise und Ursachen",
   "bw_badge_above": "{{value}} über dem Bereich",
   "bw_badge_below": "{{value}} unter dem Bereich",
-  "bw_trend_since": "{{value}} seit {{date}}",
-  "bw_sources_count": "Quellen ({{count}})"
+  "bw_sources_count": "Quellen ({{count}})",
+  "bw_current_label": "Aktuell"
 }

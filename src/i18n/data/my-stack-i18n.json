@@ -1051,8 +1051,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2106,8 +2106,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3161,8 +3161,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4216,8 +4216,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5271,8 +5271,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6326,8 +6326,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7381,8 +7381,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8436,8 +8436,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9491,8 +9491,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10546,8 +10546,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11601,8 +11601,8 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12656,7 +12656,7 @@
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
-    "bw_trend_since": "{{value}} since {{date}}",
-    "bw_sources_count": "Sources ({{count}})"
+    "bw_sources_count": "Sources ({{count}})",
+    "bw_current_label": "Current"
   }
 }

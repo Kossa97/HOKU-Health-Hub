@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { EffectiveRange } from '../lib/bloodwork'
 import { referenceBarGeometry } from '../lib/referenceBar'
 import { bereichsHerkunft } from '../lib/bereichsHerkunft'
-import { formatRange } from '../lib/format'
+import { formatNumber, formatRange } from '../lib/format'
 import { GREEN, MUTED, RED, TEXT } from '../styles'
 
 interface Props {
@@ -65,7 +65,10 @@ export function ReferenceBar({ value, unit, range, inRange }: Props) {
         />
       </div>
 
-      {/* Ohne Skalenzahlen: der Bereich steht oben, die Skala selbst sagt nichts. */}
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[0.65rem]" style={{ color: MUTED }}>{formatNumber(geo.scaleMin)}</span>
+        <span className="text-[0.65rem]" style={{ color: MUTED }}>{formatNumber(geo.scaleMax)}</span>
+      </div>
     </div>
   )
 }

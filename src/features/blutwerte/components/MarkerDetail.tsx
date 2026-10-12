@@ -6,7 +6,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, subMonths, subYears } from 'date-fns'
-import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronLeft, Plus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, Plus } from 'lucide-react'
 import { KATEGORIE_KEY, markerErklaerung, markerName } from '../lib/markerCatalog.en'
 import type { MarkerSummary } from '../lib/bloodwork'
 import { chooseDisplayUnit, entryInRange, roundConverted, toNumber } from '../lib/bloodwork'
@@ -15,9 +15,9 @@ import { unitChoices, type UnitSystem } from '../lib/unitConversion'
 import { GUIDANCE_STAND, markerGuidance, type GuidanceItem } from '../lib/markerGuidance'
 import type { BloodworkEntry, BloodworkReport } from '../types'
 import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
-import { CYAN, GREEN, MUTED, PANEL_STYLE, RED, RED_WEAK, TEXT } from '../styles'
+import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
-import { TrendIcon } from './trend'
+import { TrendIcon, trendColor } from './trend'
 import { AXIS_WIDTH, StocksChart } from '../../blutspiegel/chart/StocksChart'
 import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
 import { ZyklusStreifen } from './ZyklusStreifen'
@@ -79,7 +79,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const { t, i18n } = useTranslation()
   const sprache = i18n.resolvedLanguage ?? i18n.language
   const [rangeFilter, setRangeFilter] = useState<RangeFilter>('1J')
-  const [offen, setOffen] = useState<'niedrig' | 'bereich' | 'hoch' | null>(null)
+  const [offen, setOffen] = useState<'niedrig' | 'hoch' | null>(null)
 
   const { name, latest, range, inRange, def, trend } = summary
   const unit = summary.displayUnit
@@ -157,9 +157,6 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     if (above) return { key: 'bw_badge_above', wert: v - range.max! }
     return range.min != null ? { key: 'bw_badge_below', wert: range.min - v } : null
   })()
-  // Vorheriger umrechenbarer Wert: Bezug fuer „+570 seit 28.05.“
-  const vorher = summary.points.filter(p => p.value != null)[1] ?? null
-  const tagMonat = useMemo(() => new Intl.DateTimeFormat(sprache, { day: '2-digit', month: '2-digit' }), [sprache])
   const monthYear = useMemo(() => new Intl.DateTimeFormat(sprache, { month: '2-digit', year: 'numeric' }), [sprache])
 
   const guidance = def ? markerGuidance(def.name, sprache) : null
@@ -207,49 +204,43 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       <div className="p-5" style={PANEL_STYLE} data-bw-hero>
         {latest && shownValue != null ? (
           <div className="flex flex-col gap-3">
+            <p className="-mb-2 text-sm font-semibold" style={{ color: MUTED }} data-bw-hero-label>{t('bw_current_label')}</p>
             <div className="flex items-end justify-between gap-3">
               <p className="text-3xl font-bold tabular-nums" style={{ color: inRange === false ? RED : CYAN }} data-bw-hero-value>
                 {formatNumber(shownValue)}
-                {(() => {
-                  // Einheit nur fuer diesen Marker; „Automatisch" folgt dem Schalter in der Uebersicht.
-                  // Klein direkt an der Einheit: man stellt sie einmal ein, sie gehoert nicht in die erste Reihe.
-                  const einheit = <span className="ml-1.5 text-base font-semibold" style={{ color: MUTED }}>{shownUnit}</span>
-                  const katalog = def?.einheit ?? ''
-                  const units = [...(markerUnit ? [markerUnit] : []), ...summary.entries.map(e => e.unit)]
-                  const choices = onMarkerUnit ? unitChoices(def?.name ?? name, katalog, units) : []
-                  if (choices.length < 2 || !onMarkerUnit) return einheit
-                  const automatisch = chooseDisplayUnit(def, name, latest.value, latest.unit, { system: unitSystem })
-                  return (
-                    <span className="relative ml-1.5 inline-flex items-center gap-0.5 text-base font-semibold" style={{ color: MUTED }}>
-                      {shownUnit}
-                      <ChevronDown size={14} strokeWidth={2.4} aria-hidden="true" />
-                      {/* Unsichtbare echte Auswahl darueber: oeffnet die native Liste */}
-                      <select
-                        id="bw-marker-unit"
-                        aria-label={t('bw_unit_label')}
-                        className="absolute inset-0 cursor-pointer opacity-0"
-                        value={markerUnit && choices.includes(markerUnit) ? markerUnit : ''}
-                        onChange={e => onMarkerUnit(e.target.value || null)}
-                      >
-                        <option value="">{t('bw_unit_auto', { unit: automatisch })}</option>
-                        {choices.map(u => <option key={u} value={u}>{u}</option>)}
-                      </select>
-                    </span>
-                  )
-                })()}
+                <span className="ml-1.5 text-base font-semibold" style={{ color: MUTED }}>{shownUnit}</span>
               </p>
               {trend && (
-                // Neutral: eine Veraenderung ist weder gut noch schlecht — das sagt die Plakette.
-                <div className="flex items-center gap-1 text-sm font-semibold tabular-nums" style={{ color: MUTED }} data-bw-trend>
+                <div className="flex items-center gap-1 text-sm font-semibold tabular-nums" style={{ color: trendColor(summary) }}>
                   <TrendIcon trend={trend} />
-                  {trend === 'same'
-                    ? t('bw_trend_same')
-                    : vorher
-                      ? t('bw_trend_since', { value: signed(summary.diff), date: tagMonat.format(new Date(`${vorher.entry.tested_at.slice(0, 10)}T00:00:00`)) })
-                      : signed(summary.diff)}
+                  {trend === 'same' ? t('bw_trend_same') : formatNumber(Math.abs(summary.diff))}
                 </div>
               )}
             </div>
+            {(() => {
+              // Einheit nur fuer diesen Marker; „Automatisch" folgt dem Schalter in der Uebersicht.
+              const katalog = def?.einheit ?? ''
+              const units = [...(markerUnit ? [markerUnit] : []), ...summary.entries.map(e => e.unit)]
+              const choices = onMarkerUnit ? unitChoices(def?.name ?? name, katalog, units) : []
+              if (choices.length < 2 || !onMarkerUnit) return null
+              // Was ohne eigene Wahl tatsaechlich gezeigt wuerde — samt Rueckfall.
+              const automatisch = chooseDisplayUnit(def, name, latest.value, latest.unit, { system: unitSystem })
+              return (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: MUTED }} htmlFor="bw-marker-unit">{t('bw_unit_label')}</label>
+                  <select
+                    id="bw-marker-unit"
+                    className="select"
+                    style={{ color: TEXT, width: 'auto', paddingTop: 4, paddingBottom: 4, fontSize: 13 }}
+                    value={markerUnit && choices.includes(markerUnit) ? markerUnit : ''}
+                    onChange={e => onMarkerUnit(e.target.value || null)}
+                  >
+                    <option value="">{t('bw_unit_auto', { unit: automatisch })}</option>
+                    {choices.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              )
+            })()}
             {range.source !== 'none' ? (
               <ReferenceBar value={shownValue} unit={shownUnit} range={range} inRange={inRange} />
             ) : (
@@ -338,62 +329,6 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
         </div>
       )}
 
-      {/* Messungen */}
-      <section aria-labelledby="bw-history-title" className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between">
-          <h2 id="bw-history-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_measurements')}</h2>
-          <span className="text-sm tabular-nums" style={{ color: MUTED }}>{summary.entries.length}</span>
-        </div>
-        {summary.entries.length === 0 && (
-          <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
-        )}
-        <ul>
-          {summary.points.map((p, i) => {
-            const e = p.entry
-            const v = p.value != null ? p.value : toNumber(e.value)
-            const u = p.value != null ? unit : e.unit
-            // Veraenderung zum naechstaelteren umrechenbaren Wert
-            const older = p.value != null ? summary.points.slice(i + 1).find(o => o.value != null) : undefined
-            const diff = older && p.value != null ? p.value - (older.value as number) : null
-            const status = entryInRange(e, def, unit, profil)
-            const punktFarbe = status === false ? RED : status === true ? GREEN : 'var(--border)'
-            const lab = e.report_id ? labNamen.get(e.report_id) : null
-            // Nur Werte aus einem Befund bekommen eine Herkunft; „Manuell“ in jeder Zeile waere Rauschen.
-            const source = e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : null
-            return (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  onClick={() => onEdit(e)}
-                  data-bw-entry-edit
-                  aria-label={t('bw_edit_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
-                  className="flex min-h-14 w-full items-center gap-3 py-3 text-left"
-                  style={{ borderBottom: '1px solid var(--border)', color: TEXT }}
-                >
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ background: punktFarbe }}
-                    aria-label={status === false ? t('bw_out_range') : status === true ? t('bw_in_range') : t('bw_no_reference')}
-                    role="img"
-                    data-bw-entry-status={status === false ? 'out' : status === true ? 'in' : 'none'}
-                  />
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-base font-bold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
-                    {source && <span className="truncate text-[13px]" style={{ color: MUTED }}>{source}</span>}
-                  </span>
-                  <span className="text-right tabular-nums">
-                    <span className="block text-base font-bold">{formatNumber(v)}</span>
-                    <span className="block text-xs" style={{ color: MUTED }}>{u}</span>
-                  </span>
-                  <span className="min-w-[62px] text-right text-[13px] font-semibold tabular-nums" style={{ color: MUTED }} data-bw-entry-diff>
-                    {diff != null ? signed(diff) : p.value != null ? t('bw_first_value') : '–'}
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      </section>
       {/* Hinweise und Ursachen */}
       <section aria-labelledby="bw-meaning-title" className="flex flex-col gap-2.5">
         <h2 id="bw-meaning-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_assessment_title')}</h2>
@@ -406,7 +341,6 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} data-bw-guidance>
               {([
                 ['niedrig', 'bw_guidance_low', ArrowDown, guidance.text.niedrig],
-                ['bereich', 'bw_guidance_normal', Check, guidance.text.bereich],
                 ['hoch', 'bw_guidance_high', ArrowUp, guidance.text.hoch],
               ] as const).map(([key, label, Icon, items], i) => {
                 const auf = offen === key
@@ -445,25 +379,79 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                 )
               })}
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: MUTED }}>{t('bw_guidance_footer', { date: standDatum })}</p>
-            {/* Quellen eingeklappt: sonst eine halbe Bildschirmhoehe Links */}
-            <details className="text-xs leading-relaxed" style={{ color: MUTED }} data-bw-sources>
-              <summary className="min-h-9 cursor-pointer py-2 font-semibold" style={{ color: CYAN }}>
-                {t('bw_sources_count', { count: guidance.quellen.length })}
-              </summary>
-              <ul className="flex flex-col gap-1.5 pb-1">
-                {guidance.quellen.map(q => (
-                  <li key={q.url}>
-                    <a href={q.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline" style={{ color: CYAN }}>{q.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </details>
           </>
         )}
         {!guidance && <p className="text-xs" style={{ color: MUTED }}>{t('bw_disclaimer')}</p>}
       </section>
 
+      {/* Messungen */}
+      <section aria-labelledby="bw-history-title" className="flex flex-col gap-1">
+        <div className="flex items-baseline justify-between">
+          <h2 id="bw-history-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_measurements')}</h2>
+          <span className="text-sm tabular-nums" style={{ color: MUTED }}>{summary.entries.length}</span>
+        </div>
+        {summary.entries.length === 0 && (
+          <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
+        )}
+        <ul>
+          {summary.points.map((p, i) => {
+            const e = p.entry
+            const v = p.value != null ? p.value : toNumber(e.value)
+            const u = p.value != null ? unit : e.unit
+            // Veraenderung zum naechstaelteren umrechenbaren Wert
+            const older = p.value != null ? summary.points.slice(i + 1).find(o => o.value != null) : undefined
+            const diff = older && p.value != null ? p.value - (older.value as number) : null
+            const status = entryInRange(e, def, unit, profil)
+            const pillColor = status === false ? PILL_RED : status === true ? PILL_GREEN : PILL_GRAY
+            const lab = e.report_id ? labNamen.get(e.report_id) : null
+            const source = e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : t('bw_source_manual')
+            return (
+              <li key={e.id}>
+                <button
+                  type="button"
+                  onClick={() => onEdit(e)}
+                  data-bw-entry-edit
+                  aria-label={t('bw_edit_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
+                  className="flex min-h-14 w-full items-center gap-3 py-3 text-left"
+                  style={{ borderBottom: '1px solid var(--border)', color: TEXT }}
+                >
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-base font-bold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
+                    <span className="truncate text-[13px]" style={{ color: MUTED }}>{source}</span>
+                  </span>
+                  <span className="text-right tabular-nums">
+                    <span className="block text-base font-bold">{formatNumber(v)}</span>
+                    <span className="block text-xs" style={{ color: MUTED }}>{u}</span>
+                  </span>
+                  <span
+                    className="min-w-[62px] rounded-[7px] px-2 py-[5px] text-right text-[13px] font-bold tabular-nums text-white"
+                    style={{ background: pillColor }}
+                  >
+                    {diff != null ? signed(diff) : p.value != null ? t('bw_first_value') : '–'}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {/* Quellen ganz unten, gebuendelt und eingeklappt */}
+      {guidance && (
+        <details className="text-xs leading-relaxed" style={{ color: MUTED }} data-bw-sources>
+          <summary className="min-h-9 cursor-pointer py-2 font-semibold" style={{ color: CYAN }}>
+            {t('bw_sources_count', { count: guidance.quellen.length })}
+          </summary>
+          <ul className="flex flex-col gap-1.5 pb-2">
+            {guidance.quellen.map(q => (
+              <li key={q.url}>
+                <a href={q.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline" style={{ color: CYAN }}>{q.label}</a>
+              </li>
+            ))}
+          </ul>
+          <p>{t('bw_guidance_footer', { date: standDatum })}</p>
+        </details>
+      )}
     </div>
   )
 }

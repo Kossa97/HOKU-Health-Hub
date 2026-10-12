@@ -40,8 +40,8 @@ test.describe('auf Englisch', () => {
     await page.getByRole('button', { name: /Cortisol/ }).first().click()
     await expect(page.getByRole('heading', { name: 'Cortisol' })).toBeVisible()
     await expect(page.getByText('The central stress hormone.', { exact: false })).toBeVisible()
-    await expect(page.locator('[data-bw-status]')).toHaveText('Out of range')
-    await expect(page.getByRole('region', { name: 'Key figures' })).toContainText('Above limit+5')
+    await expect(page.locator('[data-bw-status]')).toHaveText('5 µg/dL above range')
+    await expect(page.getByRole('heading', { name: 'Notes and causes' })).toBeVisible()
     await expect(page.getByText('09/15/2026')).toBeVisible()
   })
 })
@@ -365,7 +365,7 @@ test('Verlauf: Zyklen aus My Stack als Zeilen unter dem Diagramm', async ({ page
   }
 })
 
-test('Detail: Wert mit Veraenderung, Status, Kennzahlen, zugeklappte Einordnung und Messungen', async ({ page, mock }) => {
+test('Detail: „Aktuell“, Wert, Abstand zur Grenze, ohne Kennzahlen, zugeklappte Hinweise, Messungen, Quellen ganz unten', async ({ page, mock }) => {
   const befund = mock.insert('bloodwork_reports', { user_id: TEST_USER.id, tested_at: '2026-09-15', lab_name: 'Labor Mitte', source: 'import' })
   wert(mock, 'Testosteron', { tested_at: '2026-04-12', value: 980, unit: 'ng/dL' })
   wert(mock, 'Testosteron', { value: 1310, unit: 'ng/dL', ref_min: 349, ref_max: 1110, report_id: befund.id })
@@ -376,27 +376,41 @@ test('Detail: Wert mit Veraenderung, Status, Kennzahlen, zugeklappte Einordnung 
   await expect(page.locator('[data-bw-hero-value]')).toContainText('1.310ng/dL')
   // Kasten oben wie in der ersten Fassung: Wert, Veraenderung, Referenzbalken, Plakette
   const kasten = page.locator('[data-bw-hero]')
+  await expect(kasten.locator('[data-bw-hero-label]')).toHaveText('Aktuell')
   await expect(kasten).toContainText('330')
   await expect(kasten).toContainText('349–1.110 ng/dL (Labor)')
-  await expect(page.locator('[data-bw-status]')).toHaveText('Außerhalb')
+  await expect(page.locator('[data-bw-status]')).toHaveText('200 ng/dL über dem Bereich')
   await expect(page.getByRole('img', { name: /Testosteron/ })).toBeVisible()
 
   const zeitraum = page.getByRole('group', { name: 'Zeitraum' })
   await expect(zeitraum.getByRole('button')).toHaveText(['3M', '6M', '1J', '2J', 'Alles'])
   await expect(zeitraum.getByRole('button', { name: '1J' })).toHaveAttribute('aria-pressed', 'true')
 
-  const kennzahlen = page.getByRole('region', { name: 'Kennzahlen' })
-  await expect(kennzahlen).toContainText('Über Grenze+200')
-  await expect(kennzahlen).toContainText('Messungen2')
+  await expect(page.getByRole('region', { name: 'Kennzahlen' })).toHaveCount(0)
 
-  // Einordnung: nie von selbst aufgeklappt
+  // Hinweise und Ursachen: nur „Zu niedrig“ und „Zu hoch“, nie von selbst aufgeklappt
   const einordnung = page.locator('[data-bw-guidance]')
-  for (const name of ['Zu niedrig', 'Im Bereich', 'Zu hoch']) {
+  await expect(page.getByRole('heading', { name: 'Hinweise und Ursachen' })).toBeVisible()
+  await expect(einordnung.getByRole('button')).toHaveText(['Zu niedrig', 'Zu hoch'])
+  for (const name of ['Zu niedrig', 'Zu hoch']) {
     await expect(einordnung.getByRole('button', { name })).toHaveAttribute('aria-expanded', 'false')
   }
   await einordnung.getByRole('button', { name: 'Zu hoch' }).click()
   await expect(einordnung).toContainText('Mögliche Ursachen')
-  await expect(page.getByRole('link', { name: 'gesundheitsinformation.de: Testosteron' })).toHaveAttribute('href', /gesundheitsinformation\.de/)
+
+  // Quellen: ganz unten, eingeklappt
+  const quellen = page.locator('[data-bw-sources]')
+  await expect(quellen.locator('summary')).toHaveText('Quellen (6)')
+  const link = page.getByRole('link', { name: 'gesundheitsinformation.de: Testosteron' })
+  await expect(link).toBeHidden()
+  await quellen.locator('summary').click()
+  await expect(link).toHaveAttribute('href', /gesundheitsinformation\.de/)
+  const reihenfolge = await page.evaluate(() => {
+    const q = document.querySelector('[data-bw-sources]')!
+    const m = document.getElementById('bw-history-title')!
+    return !!(m.compareDocumentPosition(q) & Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+  expect(reihenfolge).toBe(true)
 
   const messungen = page.getByRole('region', { name: 'Messungen' })
   await expect(messungen.getByRole('button')).toHaveCount(2)
@@ -470,7 +484,7 @@ test('Detail-Kopf: Kategorie hinter dem Namen, Kurzerklaerung ausgeschrieben, la
   await expect(intro).toContainText('Das wichtigste männliche Sexualhormon')
   await expect(intro).toContainText('Muskelabbau zeigen.')
   await expect(page.getByRole('button', { name: 'mehr' })).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'Einordnung' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hinweise und Ursachen' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Was bedeutet der Wert?' })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Zurück' }).click()
