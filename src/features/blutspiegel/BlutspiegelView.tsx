@@ -11,6 +11,7 @@ import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import type { PkRequirement } from '../my-stack/lib/pkReadiness'
 import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
+import { detailPfad } from './pfade'
 import { formatOffset, useBlutspiegelFormat } from './format'
 import { StocksChart } from './chart/StocksChart'
 import {
@@ -30,7 +31,7 @@ const FALLING = '#f43f5e'
 const MUTED: CSSProperties = { color: 'var(--text-muted)' }
 const HAIRLINE = '1px solid var(--border)'
 
-function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
+export function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
   if (points.length < 2) return <span style={{ width: 48, height: 20, display: 'inline-block' }} />
   let min = Infinity
   let max = -Infinity
@@ -162,7 +163,7 @@ function UnsupportedRow({ entry }: { entry: UnsupportedEntry }) {
   )
 }
 
-function NoCurveRow({ entry }: { entry: MissingEntry | UnsupportedEntry }) {
+export function NoCurveRow({ entry }: { entry: MissingEntry | UnsupportedEntry }) {
   return entry.kind === 'missing' ? <MissingRow entry={entry} /> : <UnsupportedRow entry={entry} />
 }
 
@@ -269,9 +270,36 @@ function MissingRow({ entry }: { entry: MissingEntry }) {
   )
 }
 
+/** Letzte Einnahmen, neueste zuerst — das Gegenstück zu „Messungen“ bei den Blutwerten. */
+function LetzteEinnahmen({ doses }: { doses: EntryCurve['doses'] }) {
+  const f = useBlutspiegelFormat()
+  const liste = doses.slice(-10).reverse()
+  return (
+    <section aria-labelledby="bs-doses-title">
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 0 4px' }}>
+        <h2 id="bs-doses-title" style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text)' }}>{f.t('pk_recent_doses')}</h2>
+        <span style={{ fontSize: 14, ...MUTED, fontVariantNumeric: 'tabular-nums' }}>{doses.length}</span>
+      </div>
+      <ul>
+        {liste.map(d => (
+          <li key={d.ts} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: HAIRLINE, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{f.scrub(d.ts)}</span>
+            <span style={{ fontSize: 15, color: 'var(--text)' }}>{f.num(d.dose)} <span style={MUTED}>{d.unit}</span></span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 // ── Ansicht ───────────────────────────────────────────────────────────────
 
-export function BlutspiegelView({ variant, initialKey }: { variant: 'full' | 'compact'; initialKey?: string | null }) {
+export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
+  variant: 'full' | 'compact'
+  initialKey?: string | null
+  /** Detailseite einer Substanz: ohne Substanz-Leiste und ohne „Unvollständig“ (beides steht in der Übersicht). */
+  einzeln?: boolean
+}) {
   const data = useBlutspiegelData()
   const f = useBlutspiegelFormat()
   const { t } = f
@@ -350,7 +378,7 @@ export function BlutspiegelView({ variant, initialKey }: { variant: 'full' | 'co
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 10 : 14 }}>
-      {data.ready.length > 1 && (
+      {data.ready.length > 1 && !einzeln && (
         <TickerStrip entries={data.ready} curves={data.curves} selectedKey={selected.key} onSelect={select} compact={compact} now={asOf} />
       )}
 
@@ -370,7 +398,7 @@ export function BlutspiegelView({ variant, initialKey }: { variant: 'full' | 'co
           )}
           {compact && (
             <Link
-              to={`/simulation?entry=${encodeURIComponent(selected.key)}&pk=${encodeURIComponent(selected.profileId)}`}
+              to={detailPfad(selected.key)}
               style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', minHeight: 44, fontSize: 14, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}
             >
               {t('pk_more')} <ChevronRight size={16} />
@@ -426,7 +454,8 @@ export function BlutspiegelView({ variant, initialKey }: { variant: 'full' | 'co
       {!compact && (
         <>
           <DetailStats entry={selected} curve={curve} start={bounds.start} end={bounds.end} now={asOf} />
-          {missing.length > 0 && (
+          {einzeln && curve && curve.doses.length > 0 && <LetzteEinnahmen doses={curve.doses} />}
+          {missing.length > 0 && !einzeln && (
             <div>
               <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)', padding: '12px 0 4px' }}>{t('pk_incomplete_title')}</p>
               {missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}

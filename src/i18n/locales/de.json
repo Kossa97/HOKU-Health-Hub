@@ -2267,5 +2267,12 @@
   "bw_menopause_unknown": "Weiß nicht",
   "bw_menopause_hint": "Davon hängt bei diesem Wert der Referenzbereich ab. Ein Bereich aus deinem Laborbefund geht immer vor.",
   "bw_range_premeno": "vor den Wechseljahren",
-  "bw_range_postmeno": "nach den Wechseljahren"
+  "bw_range_postmeno": "nach den Wechseljahren",
+  "pk_overview_as_of": "Stand {{time}}",
+  "pk_overview_list": "Deine Substanzen",
+  "pk_overview_hint": "Modellierter Spiegel im Verhältnis zur Spitze · Veränderung über 24 h",
+  "pk_overview_next": "nächste Dosis {{when}}",
+  "pk_overview_no_next": "keine nächste Dosis geplant",
+  "pk_manual_open": "Eigene Simulation",
+  "pk_recent_doses": "Letzte Einnahmen"
 }

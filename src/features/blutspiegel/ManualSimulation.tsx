@@ -32,7 +32,7 @@ const hourTicks = (start: number, end: number, widthPx: number) => {
   return { ticks, step: ticks.length > 1 ? ticks[1] - ticks[0] : HOUR }
 }
 
-export function ManualSimulation({ preselectProfileId }: { preselectProfileId: string | null }) {
+export function ManualSimulation({ preselectProfileId, startOffen = false }: { preselectProfileId: string | null; /** Eigene Seite: gleich aufgeklappt. */ startOffen?: boolean }) {
   const { t } = useTranslation()
   const f = useBlutspiegelFormat()
   const [profiles, setProfiles] = useState<PkProfile[]>([])
@@ -46,7 +46,7 @@ export function ManualSimulation({ preselectProfileId }: { preselectProfileId: s
   // Das Ergebnis haelt fest, womit gerechnet wurde — spaetere Eingaben
   // aendern Kurve und Beschriftung erst nach erneutem „Starten".
   const [run, setRun] = useState<{ sim: SimResult; profile: PkProfile; multiDose: boolean; key: string } | null>(null)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(startOffen)
   const [scrub, setScrub] = useState<LevelPoint | null>(null)
 
   useEffect(() => {

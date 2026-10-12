@@ -282,6 +282,8 @@ export interface EntryCurve {
   points: LevelPoint[]
   /** Einnahmezeitpunkte (Unix ms) */
   intakes: number[]
+  /** Bestaetigte Einnahmen mit Dosis, alt → neu (fuer „Letzte Einnahmen“). */
+  doses: Array<{ ts: number; dose: number; unit: string }>
   current: number | null
   /** Hoechster Spiegel nach der letzten Einnahme */
   lastPeak: LevelPoint | null
@@ -291,7 +293,7 @@ export interface EntryCurve {
 const CURVE_RESOLUTION_MINUTES = 15
 
 export function buildEntryCurve(entry: ReadyEntry, history: EntryHistory | undefined): EntryCurve {
-  const empty: EntryCurve = { points: [], intakes: [], current: null, lastPeak: null, interruptedAt: history?.interruptedAt ?? null }
+  const empty: EntryCurve = { points: [], intakes: [], doses: [], current: null, lastPeak: null, interruptedAt: history?.interruptedAt ?? null }
   if (!history) return empty
   const taken = history.events.filter(e => e.status === 'taken')
   if (!taken.length) return empty
@@ -315,6 +317,7 @@ export function buildEntryCurve(entry: ReadyEntry, history: EntryHistory | undef
   return {
     points,
     intakes,
+    doses: taken.map(e => ({ ts: e.timestamp.getTime(), dose: e.dose, unit: e.unit })),
     current: points.length ? points[points.length - 1].level : null,
     lastPeak,
     interruptedAt: history.interruptedAt,

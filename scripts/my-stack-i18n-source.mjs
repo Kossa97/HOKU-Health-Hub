@@ -1060,6 +1060,13 @@ export const MY_STACK_EN = {
   bw_menopause_hint: "For this value the reference range depends on it. A range from your lab report always takes priority.",
   bw_range_premeno: "before menopause",
   bw_range_postmeno: "after menopause",
+  pk_overview_as_of: "As of {{time}}",
+  pk_overview_list: "Your substances",
+  pk_overview_hint: "Modelled level relative to the peak · change over 24 h",
+  pk_overview_next: "next dose {{when}}",
+  pk_overview_no_next: "no next dose planned",
+  pk_manual_open: "Own simulation",
+  pk_recent_doses: "Recent doses",
 }
 
 export const MY_STACK_DE = {
@@ -2123,6 +2130,13 @@ export const MY_STACK_DE = {
   bw_menopause_hint: "Davon hängt bei diesem Wert der Referenzbereich ab. Ein Bereich aus deinem Laborbefund geht immer vor.",
   bw_range_premeno: "vor den Wechseljahren",
   bw_range_postmeno: "nach den Wechseljahren",
+  pk_overview_as_of: "Stand {{time}}",
+  pk_overview_list: "Deine Substanzen",
+  pk_overview_hint: "Modellierter Spiegel im Verhältnis zur Spitze · Veränderung über 24 h",
+  pk_overview_next: "nächste Dosis {{when}}",
+  pk_overview_no_next: "keine nächste Dosis geplant",
+  pk_manual_open: "Eigene Simulation",
+  pk_recent_doses: "Letzte Einnahmen",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

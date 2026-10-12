@@ -1059,7 +1059,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2121,7 +2128,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3183,7 +3197,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4245,7 +4266,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5307,7 +5335,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6369,7 +6404,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7431,7 +7473,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8493,7 +8542,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9555,7 +9611,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10617,7 +10680,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11679,7 +11749,14 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12741,6 +12818,13 @@
     "bw_menopause_unknown": "Not sure",
     "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
     "bw_range_premeno": "before menopause",
-    "bw_range_postmeno": "after menopause"
+    "bw_range_postmeno": "after menopause",
+    "pk_overview_as_of": "As of {{time}}",
+    "pk_overview_list": "Your substances",
+    "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+    "pk_overview_next": "next dose {{when}}",
+    "pk_overview_no_next": "no next dose planned",
+    "pk_manual_open": "Own simulation",
+    "pk_recent_doses": "Recent doses"
   }
 }
