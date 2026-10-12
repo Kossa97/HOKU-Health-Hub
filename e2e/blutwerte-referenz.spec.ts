@@ -81,7 +81,7 @@ test('Östradiol bei Frauen: kein Standardbereich, kein falsches Urteil', async 
   await expect(page.getByRole('button', { name: 'Auffällige', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
   await page.getByRole('button', { name: /Östradiol/ }).first().click()
-  await expect(page.locator('[data-bw-no-range]')).toContainText('Für Frauen gibt es hier keinen einzelnen Bereich')
+  await expect(page.locator('[data-bw-no-range]')).toContainText('Für Frauen hängt der Bereich hier von Zyklus und Wechseljahren ab')
   await expect(page.locator('[data-bw-status]')).toHaveText('Kein Referenzbereich')
 })
 
@@ -101,4 +101,58 @@ test('Profil: Angaben ändern und speichern', async ({ page, mock }) => {
   await karte.getByRole('radio', { name: 'Keine Angabe' }).click()
   await speichern.click()
   await expect.poll(() => eigenesProfil(mock).bio_sex).toBeNull()
+})
+
+test('Frauen: Wechseljahre beim Bearbeiten angeben; danach gilt der passende Bereich', async ({ page, mock }) => {
+  const wert = mock.insert('bloodwork', {
+    user_id: TEST_USER.id, tested_at: '2026-09-15', marker: 'Östradiol', value: 150, unit: 'pg/mL', notes: null,
+    report_id: null, ref_min: null, ref_max: null, menopause: null,
+  })
+  Object.assign(eigenesProfil(mock), { birth_date: '1970-05-01', bio_sex: 'female' })
+  await page.goto('/blutwerte')
+  await page.getByRole('button', { name: 'Alle', exact: true }).click()
+  await page.getByRole('button', { name: /Östradiol/ }).first().click()
+  await expect(page.locator('[data-bw-no-range]')).toContainText('Gib beim Wert an')
+
+  await page.getByRole('button', { name: '150 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  const frage = page.locator('[data-bw-menopause]')
+  await expect(frage.getByRole('radio', { name: 'Weiß nicht' })).toHaveAttribute('aria-checked', 'true')
+  await frage.getByRole('radio', { name: 'Schon durch' }).click()
+  await page.locator('[data-app-modal]').getByRole('button', { name: 'Speichern' }).click()
+
+  await expect.poll(() => mock.table('bloodwork').find(r => r.id === wert.id)?.menopause).toBe('post')
+  // Nach den Wechseljahren bis 30 pg/mL: 150 liegt 120 darüber
+  await expect(page.locator('[data-bw-status]')).toHaveText('120 pg/mL über dem Bereich')
+  await expect(page.locator('[data-bw-hero] [data-bw-range-source]').first()).toHaveText('(Frauen, nach den Wechseljahren)')
+})
+
+test('Männer werden nicht nach den Wechseljahren gefragt', async ({ page, mock }) => {
+  mock.insert('bloodwork', {
+    user_id: TEST_USER.id, tested_at: '2026-09-15', marker: 'Östradiol', value: 30, unit: 'pg/mL', notes: null,
+    report_id: null, ref_min: null, ref_max: null,
+  })
+  Object.assign(eigenesProfil(mock), { birth_date: '1980-05-01', bio_sex: 'male' })
+  await page.goto('/blutwerte')
+  await page.getByRole('button', { name: 'Alle', exact: true }).click()
+  await page.getByRole('button', { name: /Östradiol/ }).first().click()
+  await page.getByRole('button', { name: '30 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  await expect(page.locator('[data-app-modal]')).toBeVisible()
+  await expect(page.locator('[data-bw-menopause]')).toHaveCount(0)
+})
+
+test('Formular nennt den Bereich, der ohne Laborangabe wirklich gilt', async ({ page, mock }) => {
+  mock.insert('bloodwork', {
+    user_id: TEST_USER.id, tested_at: '2026-09-15', marker: 'Östradiol', value: 150, unit: 'pg/mL', notes: null,
+    report_id: null, ref_min: null, ref_max: null,
+  })
+  Object.assign(eigenesProfil(mock), { birth_date: '1970-05-01', bio_sex: 'female' })
+  await page.goto('/blutwerte')
+  await page.getByRole('button', { name: 'Alle', exact: true }).click()
+  await page.getByRole('button', { name: /Östradiol/ }).first().click()
+  await page.getByRole('button', { name: '150 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  const modal = page.locator('[data-app-modal]')
+  // Ohne Angabe zu den Wechseljahren gibt es keinen Standardbereich — also kein falscher Hinweis
+  await expect(modal.getByText('Ohne eigenen Bereich gilt der Standardbereich')).toHaveCount(0)
+  await modal.locator('[data-bw-menopause]').getByRole('radio', { name: 'Schon durch' }).click()
+  await expect(modal.getByText('Ohne eigenen Bereich gilt der Standardbereich bis 30 pg/mL.')).toBeVisible()
 })

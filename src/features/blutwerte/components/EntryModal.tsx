@@ -4,6 +4,9 @@ import { markerName } from '../lib/markerCatalog.en'
 import toast from 'react-hot-toast'
 import { Trash2 } from 'lucide-react'
 import { CATALOG_MARKER_NAMES, normalizeMarker } from '../lib/markerCatalog'
+import { WECHSELJAHR_MARKER } from '../lib/referenzbereiche'
+import { effectiveRange } from '../lib/bloodwork'
+import type { BioProfile } from '../lib/bioProfile'
 import { conversionHint } from '../lib/conversionHint'
 import { formatEingabe, formatRange } from '../lib/format'
 import { unitChoices } from '../lib/unitConversion'
@@ -29,6 +32,8 @@ export interface EntryDraft {
   /** Eigener Referenzbereich; leer heisst: Standardbereich des Katalogs. */
   refMin: string
   refMax: string
+  /** Nur Oestradiol/LH/FSH bei Frauen: Wechseljahre zum Messzeitpunkt ('' = weiss nicht). */
+  menopause?: '' | 'pre' | 'post'
 }
 
 export interface ParsedEntry {
@@ -38,6 +43,8 @@ export interface ParsedEntry {
   unit: string
   ref_min: number | null
   ref_max: number | null
+  /** Nur gesetzt, wenn gefragt wurde; sonst bleibt das Feld unberuehrt. */
+  menopause?: 'pre' | 'post' | null
 }
 
 /** Uebliche Laboreinheiten als Vorschlag fuer eigene Blutwerte. */
@@ -77,9 +84,13 @@ interface Props {
   onSave: (parsed: ParsedEntry) => void
   /** Beim Bearbeiten: Wert loeschen (fragt danach noch einmal nach). */
   onDelete?: () => void
+  /** Bei Oestradiol, LH, FSH nach den Wechseljahren fragen (im Profil: weiblich). */
+  frageWechseljahre?: boolean
+  /** Geschlecht/Alter: der Hinweis nennt den Bereich, der ohne Laborangabe tatsaechlich gilt. */
+  profil?: BioProfile | null
 }
 
-export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, onSave, onDelete }: Props) {
+export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, onSave, onDelete, frageWechseljahre = false, profil }: Props) {
   const { t, i18n } = useTranslation()
   const sprache = i18n.resolvedLanguage ?? i18n.language
   const def = draft.custom ? null : normalizeMarker(draft.marker)
@@ -100,7 +111,14 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
     ? unitChoices(def.name, def.einheit, draft.originalUnit ? [draft.originalUnit] : [])
     : COMMON_UNITS
   const unitIsOther = !!draft.unitOther || (draft.unit !== '' && !unitOptions.includes(draft.unit))
-  const katalogBereich = def ? formatRange(def.refMin ?? null, def.refMax ?? null, def.einheit) : null
+  // Was ohne eigenen Bereich gilt: Gruppe (Geschlecht, Alter, Wechseljahre) oder allgemein.
+  const standard = def
+    ? effectiveRange({ tested_at: draft.tested_at, menopause: draft.menopause || null, ref_min: null, ref_max: null }, def, profil)
+    : null
+  const katalogBereich = def && standard && standard.source !== 'none'
+    ? formatRange(standard.min, standard.max, def.einheit)
+    : null
+  const wechseljahreFragen = frageWechseljahre && !!def && WECHSELJAHR_MARKER.has(def.name)
 
   const save = () => {
     const marker = draft.marker.trim()
@@ -116,7 +134,10 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
     if (Number.isNaN(refMin) || Number.isNaN(refMax)) return toast.error(t('bw_err_ref_value'))
     if (refMin != null && refMax != null && refMin >= refMax) return toast.error(t('bw_err_ref'))
 
-    onSave({ tested_at: draft.tested_at, marker, value: parsedValue, unit, ref_min: refMin, ref_max: refMax })
+    onSave({
+      tested_at: draft.tested_at, marker, value: parsedValue, unit, ref_min: refMin, ref_max: refMax,
+      ...(wechseljahreFragen ? { menopause: draft.menopause || null } : {}),
+    })
   }
 
   const hasLabRange = !!draft.originalRef && (draft.originalRef.min !== '' || draft.originalRef.max !== '')
@@ -239,6 +260,31 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
             </p>
           ) : null
         })()}
+
+        {wechseljahreFragen && (
+          <fieldset data-bw-menopause>
+            <legend className="label">{t('bw_menopause_label')}</legend>
+            <div role="radiogroup" aria-label={t('bw_menopause_label')} className="flex rounded-xl p-1" style={{ border: '1px solid var(--border)' }}>
+              {([['pre', 'bw_menopause_pre'], ['post', 'bw_menopause_post'], ['', 'bw_menopause_unknown']] as const).map(([key, label]) => {
+                const aktiv = (draft.menopause ?? '') === key
+                return (
+                  <button
+                    key={key || 'unknown'}
+                    type="button"
+                    role="radio"
+                    aria-checked={aktiv}
+                    onClick={() => onChange({ ...draft, menopause: key })}
+                    className="min-h-10 flex-1 rounded-lg px-2 text-sm transition-colors"
+                    style={aktiv ? { background: 'var(--accent-soft, rgba(34,195,230,0.15))', color: CYAN, fontWeight: 700 } : { color: MUTED, fontWeight: 600 }}
+                  >
+                    {t(label)}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-xs mt-1.5" style={{ color: MUTED }}>{t('bw_menopause_hint')}</p>
+          </fieldset>
+        )}
 
         <fieldset>
           <legend className="label">{t('bw_ref_optional')}</legend>

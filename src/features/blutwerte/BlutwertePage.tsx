@@ -221,7 +221,9 @@ export function BlutwertePage() {
   }, [entries])
 
   const openNew = (marker?: string) => {
-    setDraft(emptyDraft(marker))
+    // Wechseljahre aendern sich selten: die Angabe der letzten Messung desselben Markers vorschlagen
+    const vorher = marker ? entries.find(e => e.marker === marker && e.menopause) : undefined
+    setDraft({ ...emptyDraft(marker), menopause: vorher?.menopause ?? '' })
     setShowForm(true)
   }
 
@@ -238,6 +240,7 @@ export function BlutwertePage() {
       unit: entry.unit,
       refMin: refText(entry.ref_min),
       refMax: refText(entry.ref_max),
+      menopause: entry.menopause ?? '',
     })
     setShowForm(true)
   }
@@ -267,6 +270,7 @@ export function BlutwertePage() {
         value: parsed.value,
         unit: parsed.unit,
         ...ref,
+        ...(parsed.menopause !== undefined ? { menopause: parsed.menopause } : {}),
       }).eq('id', id).eq('user_id', user.id)
       : await supabase.from('bloodwork').insert({
         user_id: user.id,
@@ -275,6 +279,8 @@ export function BlutwertePage() {
         value: parsed.value,
         unit: parsed.unit,
         ...ref,
+        // Beim Anlegen nur senden, wenn angegeben (leer ist ohnehin der Standard)
+        ...(parsed.menopause ? { menopause: parsed.menopause } : {}),
         notes: null,
       })
     setSaving(false)
@@ -337,6 +343,8 @@ export function BlutwertePage() {
   const modal = showForm && (
     <EntryModal
       draft={draft}
+      frageWechseljahre={bioProfil?.sex === 'female'}
+      profil={bioProfil}
       markerLocked={!!draft.id || (!!draft.marker && selectedMarker === draft.marker)}
       saving={saving}
       onChange={setDraft}

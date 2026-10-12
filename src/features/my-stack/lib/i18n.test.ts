@@ -1062,6 +1062,13 @@ const EXPECTED_MY_STACK_KEYS = [
   'bw_badge_below',
   'bw_sources_count',
   'bw_current_label',
+  'bw_menopause_label',
+  'bw_menopause_pre',
+  'bw_menopause_post',
+  'bw_menopause_unknown',
+  'bw_menopause_hint',
+  'bw_range_premeno',
+  'bw_range_postmeno',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

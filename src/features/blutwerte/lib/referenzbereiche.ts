@@ -7,9 +7,10 @@
  * 18 Jahre“) zuerst; wo es dort keine Seite gibt, MedlinePlus. Grenzen der
  * Form „unter X“ stehen als max X. Stand der Recherche: 2026-10-09.
  *
- * Für Östradiol, LH und FSH gibt es bei Frauen keinen einzelnen Bereich —
- * die Werte hängen von Zyklusphase und Menopause ab. Dort steht eine Regel
- * ohne Grenzen: dann wird kein Bereich gezeigt statt eines falschen.
+ * Für Östradiol, LH und FSH hängt der Bereich bei Frauen von Zyklus und
+ * Wechseljahren ab. MedlinePlus nennt Bereiche vor und nach den Wechseljahren
+ * (nicht je Zyklusphase); die Angabe kommt je Messung. Fehlt sie, gilt eine
+ * Regel ohne Grenzen: dann wird kein Bereich gezeigt statt eines falschen.
  */
 import type { BioSex } from './bioProfile'
 
@@ -18,11 +19,15 @@ export interface RangeRule {
   /** Alter in vollen Jahren am Tag der Messung, einschließlich. */
   ageMin?: number
   ageMax?: number
+  /** Nur Frauen: gilt vor ('pre') oder nach ('post') den Wechseljahren. */
+  menopause?: Wechseljahre
   min?: number
   max?: number
   /** Kein Standardbereich für diese Gruppe (Zyklus/Menopause). */
   keinStandard?: true
 }
+
+export type Wechseljahre = 'pre' | 'post'
 
 export interface RangeSet {
   rules: RangeRule[]
@@ -41,20 +46,33 @@ const nachGeschlecht = (frau: [number | undefined, number | undefined], mann: [n
   quellen: [quelle],
 })
 
-/** Frauen: kein Einzelbereich (Zyklus/Menopause); Männer: fester Bereich. */
-const nurMaenner = (min: number, max: number, quelle: string): RangeSet => ({
+/**
+ * Frauen nach Wechseljahren (vor / nach); ohne Angabe kein Einzelbereich.
+ * Männer: fester Bereich. Werte in Klammern der Quelle: [min, max].
+ */
+const nachWechseljahren = (
+  vor: [number | undefined, number | undefined],
+  nach: [number | undefined, number | undefined],
+  mann: [number, number],
+  quelle: string,
+): RangeSet => ({
   rules: [
+    { sex: 'female', ageMin: 18, menopause: 'pre', min: vor[0], max: vor[1] },
+    { sex: 'female', ageMin: 18, menopause: 'post', min: nach[0], max: nach[1] },
     { sex: 'female', ageMin: 18, keinStandard: true },
-    { sex: 'male', ageMin: 18, min, max },
+    { sex: 'male', ageMin: 18, min: mann[0], max: mann[1] },
   ],
   quellen: [quelle],
 })
 
 export const REFERENZBEREICHE: Record<string, RangeSet> = {
   'Testosteron': nachGeschlecht([16, 78], [271, 1070], IQWIG('testosteron')),
-  'Östradiol': nurMaenner(10, 50, MLP('003711')),
-  'LH': nurMaenner(1.8, 8.6, MLP('003708')),
-  'FSH': nurMaenner(1.5, 12.4, MLP('003710')),
+  // MedlinePlus: Frauen vor den Wechseljahren 30–400, danach 0–30 pg/mL
+  'Östradiol': nachWechseljahren([30, 400], [undefined, 30], [10, 50], MLP('003711')),
+  // vor den Wechseljahren 5–25, danach 7,7–58,5 IU/L (= mIU/mL)
+  'LH': nachWechseljahren([5, 25], [7.7, 58.5], [1.8, 8.6], MLP('003708')),
+  // noch menstruierend 4,7–21,5, danach 25,8–134,8 mIU/mL
+  'FSH': nachWechseljahren([4.7, 21.5], [25.8, 134.8], [1.5, 12.4], MLP('003710')),
   'Prolaktin': nachGeschlecht([undefined, 25], [undefined, 20], MLP('003718')),
   'DHEA-S': {
     rules: [
@@ -99,7 +117,13 @@ export interface RangeGroup {
   sex?: BioSex
   ageMin?: number
   ageMax?: number
+  menopause?: Wechseljahre
 }
+
+/** Marker, bei denen der Bereich für Frauen von den Wechseljahren abhängt. */
+export const WECHSELJAHR_MARKER: ReadonlySet<string> = new Set(
+  Object.entries(REFERENZBEREICHE).filter(([, set]) => set.rules.some(r => r.menopause)).map(([name]) => name),
+)
 
 export type ProfilBereich =
   | { art: 'bereich'; min: number | null; max: number | null; gruppe: RangeGroup }
@@ -118,8 +142,9 @@ export function alterAm(geburtsdatum: string | null | undefined, stichtag: strin
   return alter >= 0 ? alter : null
 }
 
-function passt(rule: RangeRule, sex: BioSex | null, alter: number | null): boolean {
+function passt(rule: RangeRule, sex: BioSex | null, alter: number | null, menopause: Wechseljahre | null): boolean {
   if (rule.sex && rule.sex !== sex) return false
+  if (rule.menopause && rule.menopause !== menopause) return false
   // Jede Regel gilt erst ab 18; ohne Alter weiß man das nicht sicher.
   if (rule.ageMin != null || rule.ageMax != null) {
     if (alter == null) {
@@ -141,13 +166,14 @@ export function profilBereich(
   markerName: string,
   profil: { birthDate: string | null; sex: BioSex | null } | null | undefined,
   testedAt: string,
+  menopause: Wechseljahre | null = null,
 ): ProfilBereich | null {
   const set = REFERENZBEREICHE[markerName]
   if (!set || !profil || (!profil.birthDate && !profil.sex)) return null
   const alter = alterAm(profil.birthDate, testedAt)
-  const rule = set.rules.find(r => passt(r, profil.sex, alter))
+  const rule = set.rules.find(r => passt(r, profil.sex, alter, menopause))
   if (!rule) return null
-  const gruppe: RangeGroup = { sex: rule.sex, ageMin: rule.ageMin, ageMax: rule.ageMax }
+  const gruppe: RangeGroup = { sex: rule.sex, ageMin: rule.ageMin, ageMax: rule.ageMax, menopause: rule.menopause }
   if (rule.keinStandard) return { art: 'keinStandard', gruppe }
   return { art: 'bereich', min: rule.min ?? null, max: rule.max ?? null, gruppe }
 }

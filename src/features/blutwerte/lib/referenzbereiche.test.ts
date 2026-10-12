@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BloodworkEntry } from '../types'
 import { MARKER_CATALOG, normalizeMarker } from './markerCatalog'
-import { alterAm, profilBereich, REFERENZBEREICHE } from './referenzbereiche'
+import { alterAm, profilBereich, REFERENZBEREICHE, WECHSELJAHR_MARKER } from './referenzbereiche'
 import { buildMarkerSummaries, effectiveRange, entryInRange, entryRange } from './bloodwork'
 import { bereichsHerkunft } from './bereichsHerkunft'
 import { geburtsdatumGueltig, parseBioProfile } from './bioProfile'
@@ -34,7 +34,8 @@ describe('Daten', () => {
   it('Altersgruppen eines Geschlechts überlappen nicht und lassen keine Lücke', () => {
     for (const [name, set] of Object.entries(REFERENZBEREICHE)) {
       for (const sex of ['male', 'female', undefined]) {
-        const rules = set.rules.filter(r => r.sex === sex)
+        // Wechseljahr-Regeln sind Alternativen zur Regel ohne Angabe
+        const rules = set.rules.filter(r => r.sex === sex && !r.menopause)
         if (!rules.length) continue
         for (let alter = 18; alter <= 110; alter++) {
           const treffer = rules.filter(r => (r.ageMin ?? 0) <= alter && alter <= (r.ageMax ?? Infinity))
@@ -82,6 +83,17 @@ describe('profilBereich', () => {
     expect(profilBereich('Hämoglobin', { birthDate: '2010-01-01', sex: 'male' }, '2026-07-01')).toBeNull()
   })
 
+  it('Östradiol, LH, FSH bei Frauen: Bereich nach Wechseljahren, ohne Angabe keiner', () => {
+    expect(profilBereich('Östradiol', frau, '2026-07-01', 'pre')).toMatchObject({ art: 'bereich', min: 30, max: 400, gruppe: { sex: 'female', menopause: 'pre' } })
+    expect(profilBereich('Östradiol', frau, '2026-07-01', 'post')).toMatchObject({ art: 'bereich', min: null, max: 30 })
+    expect(profilBereich('LH', frau, '2026-07-01', 'post')).toMatchObject({ min: 7.7, max: 58.5 })
+    expect(profilBereich('FSH', frau, '2026-07-01', 'pre')).toMatchObject({ min: 4.7, max: 21.5 })
+    expect(profilBereich('FSH', frau, '2026-07-01', null)).toMatchObject({ art: 'keinStandard' })
+    // Bei Männern zählt die Angabe nicht
+    expect(profilBereich('FSH', mann, '2026-07-01', 'post')).toMatchObject({ min: 1.5, max: 12.4 })
+    expect([...WECHSELJAHR_MARKER].sort()).toEqual(['FSH', 'LH', 'Östradiol'])
+  })
+
   it('Östradiol bei Frauen: kein Standardbereich', () => {
     expect(profilBereich('Östradiol', frau, '2026-07-01')).toEqual({ art: 'keinStandard', gruppe: { sex: 'female', ageMin: 18, ageMax: undefined } })
   })
@@ -102,6 +114,13 @@ describe('effectiveRange mit Profil', () => {
   it('Urteil folgt der Gruppe', () => {
     expect(entryInRange(entry({ value: 300 }), def, 'ng/dL')).toBe(false)
     expect(entryInRange(entry({ value: 300 }), def, 'ng/dL', mann)).toBe(true)
+  })
+
+  it('Wechseljahr-Angabe am Eintrag wählt den Bereich', () => {
+    const d = normalizeMarker('Östradiol')
+    const e = entry({ marker: 'Östradiol', value: 150, unit: 'pg/mL', menopause: 'post' })
+    expect(entryInRange(e, d, 'pg/mL', frau)).toBe(false)
+    expect(entryInRange({ ...e, menopause: 'pre' }, d, 'pg/mL', frau)).toBe(true)
   })
 
   it('kein Standard: kein Urteil statt eines falschen', () => {
@@ -136,6 +155,7 @@ describe('bereichsHerkunft', () => {
       .toBe('bw_range_women, bw_range_age:{"min":40,"max":49}')
     expect(bereichsHerkunft({ min: 1, max: 2, source: 'catalog', gruppe: { ageMin: 50 } }, t)).toBe('bw_range_age_from:{"min":50}')
     expect(bereichsHerkunft({ min: null, max: null, source: 'none' }, t)).toBeNull()
+    expect(bereichsHerkunft({ min: 1, max: 2, source: 'catalog', gruppe: { sex: 'female', ageMin: 18, menopause: 'post' } }, t)).toBe('bw_range_women, bw_range_postmeno')
   })
 })
 

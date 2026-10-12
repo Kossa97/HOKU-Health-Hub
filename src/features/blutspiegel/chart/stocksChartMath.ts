@@ -202,3 +202,45 @@ export function zoneRuns(points: LevelPoint[], lo: number | null, hi: number | n
   runs[runs.length - 1].to = Infinity
   return runs
 }
+
+/** Grenzen, die ab `from` gelten (bis zum naechsten Schritt). Beide null: kein Bereich. */
+export interface LimitStep { from: number; lo: number | null; hi: number | null }
+
+/** Grenzen zum Zeitpunkt ts; vor dem ersten Schritt gilt der erste. */
+export function limitsAt(steps: LimitStep[], ts: number): LimitStep | null {
+  if (!steps.length) return null
+  let current = steps[0]
+  for (const s of steps) {
+    if (s.from <= ts) current = s
+    else break
+  }
+  return current
+}
+
+export type Zone = 'inside' | 'outside' | 'none'
+export interface ZoneRunStepped { from: number; to: number; zone: Zone }
+
+/**
+ * Wie zoneRuns, aber mit Grenzen, die sich ueber die Zeit aendern (z. B. ein
+ * anderer Laborbereich oder eine neue Altersgruppe). Jeder Schritt gilt von
+ * seinem `from` bis zum naechsten; ein Schritt ohne Grenzen ergibt 'none'.
+ */
+export function zoneRunsStepped(points: LevelPoint[], steps: LimitStep[]): ZoneRunStepped[] {
+  if (!points.length || !steps.length) return []
+  const runs: ZoneRunStepped[] = []
+  const push = (from: number, to: number, zone: Zone) => {
+    if (to <= from) return
+    const last = runs[runs.length - 1]
+    if (last && last.zone === zone && last.to === from) last.to = to
+    else runs.push({ from, to, zone })
+  }
+  steps.forEach((step, i) => {
+    const von = i === 0 ? -Infinity : step.from
+    const bis = i + 1 < steps.length ? steps[i + 1].from : Infinity
+    if (step.lo == null && step.hi == null) { push(von, bis, 'none'); return }
+    for (const r of zoneRuns(points, step.lo, step.hi)) {
+      push(Math.max(von, r.from), Math.min(bis, r.to), r.inside ? 'inside' : 'outside')
+    }
+  })
+  return runs
+}

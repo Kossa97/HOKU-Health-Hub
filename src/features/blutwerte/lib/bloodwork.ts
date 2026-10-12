@@ -63,11 +63,15 @@ export function toNumber(value: number | string): number {
  * Alter am Messtag (wenn im Profil angegeben), dann der allgemeine
  * Katalogbereich; sonst kein Bereich.
  */
-export function effectiveRange(entry: BloodworkEntry | null, def: MarkerDef | null, profil?: BioProfile | null): EffectiveRange {
+export function effectiveRange(
+  entry: Pick<BloodworkEntry, 'ref_min' | 'ref_max' | 'tested_at' | 'menopause'> | null,
+  def: MarkerDef | null,
+  profil?: BioProfile | null,
+): EffectiveRange {
   if (entry && (entry.ref_min != null || entry.ref_max != null)) {
     return { min: entry.ref_min ?? null, max: entry.ref_max ?? null, source: 'lab' }
   }
-  const gruppe = def && entry ? profilBereich(def.name, profil, entry.tested_at) : null
+  const gruppe = def && entry ? profilBereich(def.name, profil, entry.tested_at, entry.menopause ?? null) : null
   if (gruppe?.art === 'keinStandard') return { min: null, max: null, source: 'none', keinStandard: gruppe.gruppe }
   if (gruppe?.art === 'bereich') return { min: gruppe.min, max: gruppe.max, source: 'catalog', gruppe: gruppe.gruppe }
   if (def && (def.refMin != null || def.refMax != null)) {

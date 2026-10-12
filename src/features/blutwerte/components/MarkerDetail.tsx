@@ -9,7 +9,7 @@ import { format, subMonths, subYears } from 'date-fns'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, Plus } from 'lucide-react'
 import { KATEGORIE_KEY, markerErklaerung, markerName } from '../lib/markerCatalog.en'
 import type { MarkerSummary } from '../lib/bloodwork'
-import { chooseDisplayUnit, entryInRange, roundConverted, toNumber } from '../lib/bloodwork'
+import { chooseDisplayUnit, entryInRange, entryRange, roundConverted, toNumber } from '../lib/bloodwork'
 import type { BioProfile } from '../lib/bioProfile'
 import { unitChoices, type UnitSystem } from '../lib/unitConversion'
 import { GUIDANCE_STAND, markerGuidance, type GuidanceItem } from '../lib/markerGuidance'
@@ -136,11 +136,28 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     value: (v: number) => `${formatNumber(v)} ${unit}`,
   }), [unit])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
-  const band = useMemo(() => (range.source !== 'none' ? { lo: range.min, hi: range.max, color: '#10b981' } : undefined), [range])
+  // Jede Messung hat ihren eigenen Bereich (Labor, Altersgruppe, allgemein). Weichen
+  // sie voneinander ab, wechselt das Band ab der jeweiligen Messung — sonst ein Band.
+  const steps = useMemo(() => {
+    const roh = summary.points
+      .filter(p => p.value != null)
+      .map(p => {
+        // Gerundet wie der Bereich im Kasten, damit Band und Text uebereinstimmen
+        const r = entryRange(p.entry, def, unit, profil)
+        return { from: tagMs(p.entry.tested_at) + HALBER_TAG, lo: r.min, hi: r.max }
+      })
+      .sort((a, b) => a.from - b.from)
+    const zusammen = roh.filter((st, i) => i === 0 || st.lo !== roh[i - 1].lo || st.hi !== roh[i - 1].hi)
+    return zusammen.length > 1 ? zusammen : undefined
+  }, [summary.points, def, unit, profil])
+  const band = useMemo(() => (range.source !== 'none' || steps
+    ? { lo: range.min, hi: range.max, color: '#10b981', steps }
+    : undefined), [range, steps])
   // Im Referenzbereich gruen, darueber und darunter rot — Linie, Punkte und Ablesen
-  const zoneColors = useMemo(() => (range.source !== 'none'
-    ? { lo: range.min, hi: range.max, inside: '#10b981', outside: '#ef4444' }
-    : undefined), [range])
+  const zoneColors = useMemo(() => (range.source !== 'none' || steps
+    ? { lo: range.min, hi: range.max, inside: '#10b981', outside: '#ef4444', steps, neutral: NEUTRAL_LINE }
+    : undefined), [range, steps])
+  // Nur der aktuelle Bereich: alte Bereiche ausserhalb des Fensters sollen die Achse nicht strecken
   const yInclude = [range.min, range.max].filter((v): v is number => v != null)
   const values = allPoints.map(p => p.level)
   // Mindesthoehe der Achse: 10 % des groessten Werts, damit Rauschen flach bleibt.

@@ -9,6 +9,8 @@ import {
   visibleSlice,
   yDomainFor,
   zoneRuns,
+  zoneRunsStepped,
+  limitsAt,
 } from './stocksChartMath'
 
 const H = 3_600_000
@@ -110,5 +112,35 @@ describe('zoneRuns', () => {
     expect(zoneRuns([p(0, 30), p(10, 70)], 40, null).map(r => r.inside)).toEqual([false, true])
     expect(zoneRuns([p(0, 5)], 1, 3)).toEqual([{ from: -Infinity, to: Infinity, inside: false }])
     expect(zoneRuns([], 1, 3)).toEqual([])
+  })
+})
+
+describe('zoneRunsStepped', () => {
+  const p = (ts: number, level: number) => ({ ts, level })
+
+  it('wechselt den Bereich zum Zeitpunkt des Schritts', () => {
+    // Wert 450 durchgehend; bis t=50 gilt 110–510 (im Bereich), danach 110–370 (darueber)
+    const runs = zoneRunsStepped([p(0, 450), p(100, 450)], [{ from: 0, lo: 110, hi: 510 }, { from: 50, lo: 110, hi: 370 }])
+    expect(runs).toEqual([
+      { from: -Infinity, to: 50, zone: 'inside' },
+      { from: 50, to: Infinity, zone: 'outside' },
+    ])
+  })
+
+  it('gleiche Lage ueber Schritte hinweg wird zusammengefasst; ohne Grenzen „none“', () => {
+    const runs = zoneRunsStepped([p(0, 5), p(100, 5)], [
+      { from: 0, lo: 1, hi: 10 }, { from: 30, lo: 2, hi: 9 }, { from: 60, lo: null, hi: null },
+    ])
+    expect(runs).toEqual([
+      { from: -Infinity, to: 60, zone: 'inside' },
+      { from: 60, to: Infinity, zone: 'none' },
+    ])
+  })
+
+  it('limitsAt nimmt den letzten Schritt bis ts, davor den ersten', () => {
+    const steps = [{ from: 10, lo: 1, hi: 2 }, { from: 20, lo: 3, hi: 4 }]
+    expect(limitsAt(steps, 5)).toEqual(steps[0])
+    expect(limitsAt(steps, 25)).toEqual(steps[1])
+    expect(limitsAt([], 25)).toBeNull()
   })
 })

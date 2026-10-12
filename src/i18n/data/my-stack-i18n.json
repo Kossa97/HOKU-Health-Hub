@@ -1052,7 +1052,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2107,7 +2114,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3162,7 +3176,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4217,7 +4238,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5272,7 +5300,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6327,7 +6362,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7382,7 +7424,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8437,7 +8486,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9492,7 +9548,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10547,7 +10610,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11602,7 +11672,14 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12657,6 +12734,13 @@
     "bw_badge_above": "{{value}} above range",
     "bw_badge_below": "{{value}} below range",
     "bw_sources_count": "Sources ({{count}})",
-    "bw_current_label": "Current"
+    "bw_current_label": "Current",
+    "bw_menopause_label": "Menopause at the time of the test",
+    "bw_menopause_pre": "Not yet",
+    "bw_menopause_post": "Past",
+    "bw_menopause_unknown": "Not sure",
+    "bw_menopause_hint": "For this value the reference range depends on it. A range from your lab report always takes priority.",
+    "bw_range_premeno": "before menopause",
+    "bw_range_postmeno": "after menopause"
   }
 }

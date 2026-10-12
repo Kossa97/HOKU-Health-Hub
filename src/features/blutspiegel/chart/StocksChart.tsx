@@ -25,6 +25,9 @@ import {
   timeTicks,
   visibleSlice,
   zoneRuns,
+  zoneRunsStepped,
+  limitsAt,
+  type LimitStep,
   yDomainFor,
   type LevelPoint,
   type YDomain,
@@ -80,13 +83,23 @@ export interface StocksChartProps {
   /** Punkt am Kurvenende (Live). */
   liveEnd?: boolean
   /** Schattiertes Band (z. B. Referenzbereich) mit gestrichelten Grenzen. */
-  band?: { lo: number | null; hi: number | null; color: string }
+  band?: {
+    lo: number | null; hi: number | null; color: string
+    /** Grenzen, die sich ueber die Zeit aendern; ersetzt dann lo/hi. */
+    steps?: LimitStep[]
+  }
   /**
    * Hauptlinie nach Bereich faerben: innerhalb [lo, hi] `inside`, darueber und
    * darunter `outside` — Linie, Flaeche, Punkte und Ablesen. Die Farbe wechselt
    * genau dort, wo die Linie eine Grenze kreuzt.
    */
-  zoneColors?: { lo: number | null; hi: number | null; inside: string; outside: string }
+  zoneColors?: {
+    lo: number | null; hi: number | null; inside: string; outside: string
+    /** Grenzen, die sich ueber die Zeit aendern; ersetzt dann lo/hi. */
+    steps?: LimitStep[]
+    /** Farbe fuer Abschnitte ohne Bereich (nur mit steps). */
+    neutral?: string
+  }
   /** Jeden Datenpunkt als Punkt zeigen (Messwerte statt Kurve). */
   dots?: boolean
   /** Werte, die die Y-Achse immer enthalten soll (z. B. die Bandgrenzen). */
@@ -278,24 +291,35 @@ export const StocksChart = memo(function StocksChart({
     const yOf = (lv: number) => plotB - ((lv - view.lo) / Math.max(1e-9, view.hi - view.lo)) * plotH
 
     // Band (Referenzbereich): offene Seite reicht bis an den Rand
-    if (bandArea && (bandArea.lo != null || bandArea.hi != null)) {
-      const yTop = bandArea.hi != null ? Math.max(plotT, yOf(bandArea.hi)) : plotT
-      const yBot = bandArea.lo != null ? Math.min(plotB, yOf(bandArea.lo)) : plotB
-      if (yBot > yTop) {
-        ctx.fillStyle = hexAlpha(bandArea.color, 0.1)
-        ctx.fillRect(plotL, yTop, plotW, yBot - yTop)
+    if (bandArea) {
+      // Ohne steps ein Band ueber die ganze Breite; mit steps je Abschnitt eines.
+      const abschnitte = bandArea.steps?.length
+        ? bandArea.steps.map((st, i, all) => ({
+          x1: i === 0 ? plotL : Math.max(plotL, xOf(st.from)),
+          x2: i + 1 < all.length ? Math.min(plotR, xOf(all[i + 1].from)) : plotR,
+          lo: st.lo, hi: st.hi,
+        }))
+        : [{ x1: plotL, x2: plotR, lo: bandArea.lo, hi: bandArea.hi }]
+      for (const ab of abschnitte) {
+        if (ab.x2 <= ab.x1 || (ab.lo == null && ab.hi == null)) continue
+        const yTop = ab.hi != null ? Math.max(plotT, yOf(ab.hi)) : plotT
+        const yBot = ab.lo != null ? Math.min(plotB, yOf(ab.lo)) : plotB
+        if (yBot > yTop) {
+          ctx.fillStyle = hexAlpha(bandArea.color, 0.1)
+          ctx.fillRect(ab.x1, yTop, ab.x2 - ab.x1, yBot - yTop)
+        }
+        ctx.save()
+        ctx.strokeStyle = hexAlpha(bandArea.color, 0.55)
+        ctx.lineWidth = 1
+        ctx.setLineDash([4, 4])
+        for (const edge of [ab.lo, ab.hi]) {
+          if (edge == null) continue
+          const y = Math.round(yOf(edge)) + 0.5
+          if (y < plotT || y > plotB) continue
+          ctx.beginPath(); ctx.moveTo(ab.x1, y); ctx.lineTo(ab.x2, y); ctx.stroke()
+        }
+        ctx.restore()
       }
-      ctx.save()
-      ctx.strokeStyle = hexAlpha(bandArea.color, 0.55)
-      ctx.lineWidth = 1
-      ctx.setLineDash([4, 4])
-      for (const edge of [bandArea.lo, bandArea.hi]) {
-        if (edge == null) continue
-        const y = Math.round(yOf(edge)) + 0.5
-        if (y < plotT || y > plotB) continue
-        ctx.beginPath(); ctx.moveTo(plotL, y); ctx.lineTo(plotR, y); ctx.stroke()
-      }
-      ctx.restore()
     }
 
     // Zyklus-Balken am Boden, hinter Raster und Kurve
@@ -475,16 +499,25 @@ export const StocksChart = memo(function StocksChart({
     for (const o of otherList) drawSeries(o.points, o.color, fade)
     const zones = propsRef.current.zoneColors
     // Farbe eines Werts: im Bereich `inside`, sonst `outside` — ohne Bereich die Linienfarbe.
-    const colorOf = (level: number) => (zones
-      ? ((zones.lo != null && level < zones.lo) || (zones.hi != null && level > zones.hi) ? zones.outside : zones.inside)
-      : color)
+    // Mit steps gelten die Grenzen zum Zeitpunkt des Punkts.
+    const colorOf = (level: number, ts?: number) => {
+      if (!zones) return color
+      const lim = zones.steps?.length && ts != null ? limitsAt(zones.steps, ts) : zones
+      if (!lim || (lim.lo == null && lim.hi == null && zones.steps?.length)) return zones.neutral ?? color
+      return (lim.lo != null && level < lim.lo) || (lim.hi != null && level > lim.hi) ? zones.outside : zones.inside
+    }
     if (zones) {
       // In senkrechten Streifen gezeichnet, getrennt dort, wo die Linie eine
       // Grenze kreuzt: Linie und Schleier darunter haben dieselbe Farbe.
-      for (const run of zoneRuns(visibleSlice(pts, view.start, view.end), zones.lo, zones.hi)) {
+      const slice = visibleSlice(pts, view.start, view.end)
+      const runs = zones.steps?.length
+        ? zoneRunsStepped(slice, zones.steps)
+        : zoneRuns(slice, zones.lo, zones.hi).map(r => ({ from: r.from, to: r.to, zone: r.inside ? 'inside' as const : 'outside' as const }))
+      for (const run of runs) {
         const x1 = Number.isFinite(run.from) ? xOf(run.from) : plotL
         const x2 = Number.isFinite(run.to) ? xOf(run.to) : plotR
-        drawSeries(pts, run.inside ? zones.inside : zones.outside, fade, [x1, x2])
+        const c = run.zone === 'inside' ? zones.inside : run.zone === 'outside' ? zones.outside : (zones.neutral ?? color)
+        drawSeries(pts, c, fade, [x1, x2])
       }
     } else {
       drawSeries(pts, color, fade)
@@ -497,7 +530,7 @@ export const StocksChart = memo(function StocksChart({
           if (p.ts < view.start || p.ts > view.end) continue
           const x = xOf(p.ts)
           const y = yOf(p.level)
-          const c = base ?? colorOf(p.level)
+          const c = base ?? colorOf(p.level, p.ts)
           ctx.fillStyle = surface
           ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fill()
           ctx.fillStyle = scrubTs != null && p.ts > scrubTs ? hexAlpha(c, 0.45) : c
@@ -543,7 +576,7 @@ export const StocksChart = memo(function StocksChart({
     if (scrubTs != null) {
       const lv = levelAt(pts, scrubTs)
       const x = Math.round(xOf(scrubTs)) + 0.5
-      const scrubColor = lv != null ? colorOf(lv) : color
+      const scrubColor = lv != null ? colorOf(lv, scrubTs) : color
       ctx.strokeStyle = label ? scrubColor : muted
       ctx.lineWidth = 1
       ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + INTAKE_STRIP); ctx.stroke()
