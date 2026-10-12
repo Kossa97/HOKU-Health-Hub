@@ -1,16 +1,16 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-12)
 
 ## Corpus Check
-- 1039 files · ~1,326,585 words
+- 1039 files · ~1,326,474 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 7233 nodes · 15405 edges · 521 communities (344 shown, 129 thin omitted)
+- 7233 nodes · 15412 edges · 521 communities (344 shown, 129 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 94 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7b914276`
+- Built from commit: `df72f012`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -560,7 +560,7 @@ Nodes (29): Collections, Emails, URLs, identifiers, Environment, Images and medi
 
 ### Community 10 - "MarkerList.tsx"
 Cohesion: 0.09
-Nodes (42): Props, BefundListe(), ConflictResolver(), CardProps, CardSparkline(), GRID, MarkerCard(), MarkerLayout (+34 more)
+Nodes (39): Props, BefundListe(), ConflictResolver(), CardProps, CardSparkline(), GRID, MarkerCard(), MarkerLayout (+31 more)
 
 ### Community 11 - "BlutspiegelView.tsx"
 Cohesion: 0.12
@@ -1212,7 +1212,7 @@ Nodes (18): ./features/my-stack/MyStackPage, assertIsoDay(), assertMatchingUnit(
 
 ### Community 281 - "BlutwertePage.tsx"
 Cohesion: 0.08
-Nodes (65): bioHinweisAus(), BlutwertePage(), loadMarkerLayout(), bewertung(), COMMON_UNITS, emptyDraft(), EntryDraft, EntryModal() (+57 more)
+Nodes (64): bioHinweisAus(), BlutwertePage(), loadMarkerLayout(), bewertung(), COMMON_UNITS, emptyDraft(), EntryDraft, EntryModal() (+56 more)
 
 ### Community 282 - "Peptipedia: Fakten- und Aktualitätsaudit des Gesamtkatalogs"
 Cohesion: 0.10
@@ -1464,7 +1464,7 @@ Nodes (7): 1. Bild für Bild nachfassen, bis eine Messung zustande kommt, 2. Ohn
 
 ### Community 345 - "react-i18next"
 Cohesion: 0.11
-Nodes (28): react-i18next, AddChoice, AddSheet(), OPTIONS, Props, AuffaelligeWerte(), Props, Layout (+20 more)
+Nodes (31): react-i18next, AddChoice, AddSheet(), OPTIONS, Props, AuffaelligeWerte(), Props, Layout (+23 more)
 
 ### Community 346 - "merge-my-stack-i18n.mjs"
 Cohesion: 0.21
@@ -1639,8 +1639,8 @@ Cohesion: 0.24
 Nodes (7): __dirname, generated, generatedPath, LOCALES, localesDir, OB_DE, OB_EN
 
 ### Community 391 - "zyklusZeilen.ts"
-Cohesion: 0.22
-Nodes (13): achse(), achsenTicks(), MAX_ZEILEN, msTag(), ohnePausen(), TAG_MS, tagMs(), fenster (+5 more)
+Cohesion: 0.20
+Nodes (15): MarkerDetail(), trendColor(), achse(), achsenTicks(), MAX_ZEILEN, msTag(), ohnePausen(), TAG_MS (+7 more)
 
 ### Community 392 - "inventoryMath.ts"
 Cohesion: 0.43
@@ -1896,7 +1896,7 @@ Nodes (4): Debugging Animations, Frame-by-frame inspection, Slow motion testing,
 
 ## Knowledge Gaps
 - **2585 isolated node(s):** `WEEKDAYS_DE`, `SLOT_TIMES`, `SLOT_GROUPS`, `CASES`, `FREQUENCY_CASES` (+2580 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3301 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3300 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **129 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
