@@ -1051,6 +1051,8 @@ export const MY_STACK_EN = {
   bw_assessment_title: "Notes and causes",
   bw_badge_above: "{{value}} above range",
   bw_badge_below: "{{value}} below range",
+  bw_trend_since: "{{value}} since {{date}}",
+  bw_sources_count: "Sources ({{count}})",
 }
 
 export const MY_STACK_DE = {
@@ -2105,6 +2107,8 @@ export const MY_STACK_DE = {
   bw_assessment_title: "Hinweise und Ursachen",
   bw_badge_above: "{{value}} über dem Bereich",
   bw_badge_below: "{{value}} unter dem Bereich",
+  bw_trend_since: "{{value}} seit {{date}}",
+  bw_sources_count: "Quellen ({{count}})",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

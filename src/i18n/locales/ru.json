@@ -2026,5 +2026,7 @@
   "bw_bio_load_error": "Your details could not be loaded.",
   "bw_assessment_title": "Assessment",
   "bw_badge_above": "{{value}} above range",
-  "bw_badge_below": "{{value}} below range"
+  "bw_badge_below": "{{value}} below range",
+  "bw_trend_since": "{{value}} since {{date}}",
+  "bw_sources_count": "Sources ({{count}})"
 }

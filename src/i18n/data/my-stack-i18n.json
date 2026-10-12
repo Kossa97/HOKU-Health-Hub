@@ -1050,7 +1050,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2103,7 +2105,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3156,7 +3160,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4209,7 +4215,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5262,7 +5270,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6315,7 +6325,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7368,7 +7380,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8421,7 +8435,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9474,7 +9490,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10527,7 +10545,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11580,7 +11600,9 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12633,6 +12655,8 @@
     "bw_bio_load_error": "Your details could not be loaded.",
     "bw_assessment_title": "Assessment",
     "bw_badge_above": "{{value}} above range",
-    "bw_badge_below": "{{value}} below range"
+    "bw_badge_below": "{{value}} below range",
+    "bw_trend_since": "{{value}} since {{date}}",
+    "bw_sources_count": "Sources ({{count}})"
   }
 }

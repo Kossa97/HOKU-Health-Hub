@@ -1060,6 +1060,8 @@ const EXPECTED_MY_STACK_KEYS = [
   'bw_assessment_title',
   'bw_badge_above',
   'bw_badge_below',
+  'bw_trend_since',
+  'bw_sources_count',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
