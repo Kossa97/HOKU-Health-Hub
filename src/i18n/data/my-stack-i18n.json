@@ -1072,7 +1072,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2147,7 +2152,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3222,7 +3232,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4297,7 +4312,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5372,7 +5392,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6447,7 +6472,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7522,7 +7552,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8597,7 +8632,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9672,7 +9712,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10747,7 +10792,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11822,7 +11872,12 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12897,6 +12952,11 @@
     "pk_refresh": "Refresh now",
     "pk_not_found": "This substance no longer has a blood level curve.",
     "pk_back_overview": "Back to the overview",
-    "pk_overview_paused": "cycle paused"
+    "pk_overview_paused": "cycle paused",
+    "pk_unsupported_route": "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+    "my_stack_pk_route_title": "PK profile",
+    "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
+    "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+    "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
   }
 }

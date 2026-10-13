@@ -1073,6 +1073,11 @@ export const MY_STACK_EN = {
   pk_not_found: "This substance no longer has a blood level curve.",
   pk_back_overview: "Back to the overview",
   pk_overview_paused: "cycle paused",
+  pk_unsupported_route: "There is no PK profile for {{method}}: the numbers apply to a different route, so no curve is calculated.",
+  my_stack_pk_route_title: "PK profile",
+  my_stack_pk_route_covered: "The PK profile applies to {{method}} and is linked automatically.",
+  my_stack_pk_route_mismatch: "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
+  my_stack_pk_route_mismatch_save: "There is no PK profile for this route. Choose a matching route in the intake plan.",
 }
 
 export const MY_STACK_DE = {
@@ -2149,6 +2154,11 @@ export const MY_STACK_DE = {
   pk_not_found: "Für diesen Eintrag gibt es keinen Blutspiegel mehr.",
   pk_back_overview: "Zur Übersicht",
   pk_overview_paused: "Zyklus pausiert",
+  pk_unsupported_route: "Für {{method}} gibt es kein PK-Profil: Die Werte gelten für eine andere Route, deshalb wird keine Kurve berechnet.",
+  my_stack_pk_route_title: "PK-Profil",
+  my_stack_pk_route_covered: "Das PK-Profil gilt für {{method}} und ist automatisch verknüpft.",
+  my_stack_pk_route_mismatch: "Das PK-Profil gilt für {{routes}}, nicht für {{method}}. Für diese Route gibt es keine Kurve.",
+  my_stack_pk_route_mismatch_save: "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route.",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

@@ -62,6 +62,7 @@ interface PkRow {
   bioavailability_sc: number
   iu_per_mg: number | null
   category: string
+  routes?: string[] | null
 }
 
 interface CycleRow extends PkScheduleCycle {
@@ -117,7 +118,7 @@ export async function loadNormalizedPkCycles(userId: string): Promise<CycleRow[]
       id, display_name, tracking_level, pk_profile_method,
       ingredients:stack_item_ingredients ( position, custom_name, amount_value, amount_unit, basis_value, basis_unit,
         substance_catalog ( canonical_name, pk_profile_id,
-          pk_profiles ( name, half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, vd_l_kg, category )
+          pk_profiles ( name, half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, vd_l_kg, category, routes )
         )
       )
     )`).eq('user_id', userId),
@@ -141,7 +142,7 @@ export async function loadAllCycleChartData(userId: string): Promise<CycleChartD
         stack_items ( id, display_name, tracking_level, pk_profile_method,
           ingredients:stack_item_ingredients ( position,
             substance_catalog ( pk_profile_id,
-              pk_profiles ( half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, category )
+              pk_profiles ( half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, category, routes )
             )
           )
         )`)
@@ -169,6 +170,7 @@ export async function loadAllCycleChartData(userId: string): Promise<CycleChartD
         trackingLevel: cycle.stack_items?.tracking_level ?? 'intake_only',
         pkProfileId: linked?.id ?? null,
         pkProfileMethod: cycle.stack_items?.pk_profile_method ?? null,
+        pkProfileRoutes: linked?.profile.routes ?? null,
         method: schedule.method,
         dose: schedule.dose,
         unit: schedule.unit,

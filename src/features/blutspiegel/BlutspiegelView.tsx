@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { fractionEliminatedPerHour } from '../../lib/pkModel'
+import { methodLabel } from '../../lib/intakeMethods'
 import type { PkRequirement } from '../my-stack/lib/pkReadiness'
 import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
@@ -156,7 +157,9 @@ function UnsupportedRow({ entry }: { entry: UnsupportedEntry }) {
       <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{entry.name}</p>
       <p style={{ marginTop: 2, fontSize: 13, color: 'var(--text-dim)' }}>{t('pk_unavailable_title')}</p>
       <p style={{ marginTop: 2, fontSize: 12, lineHeight: 1.5, ...MUTED }}>
-        {entry.reason === 'unit_conversion' ? t('pk_unsupported_unit') : t('pk_unsupported_profile')}
+        {entry.reason === 'unit_conversion' ? t('pk_unsupported_unit')
+          : entry.reason === 'route' ? t('pk_unsupported_route', { method: methodLabel(t, entry.method) })
+            : t('pk_unsupported_profile')}
       </p>
     </div>
   )

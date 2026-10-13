@@ -21,6 +21,8 @@ export interface PkReadinessInput {
   trackingLevel: TrackingLevel
   pkProfileId: string | null
   pkProfileMethod: string | null
+  /** Routen, fuer die das Profil gilt (`pk_profiles.routes`); leer = unklar. */
+  pkProfileRoutes?: readonly string[] | null
   method: string | null
   dose: number | null
   unit: string | null
@@ -140,6 +142,39 @@ export function resolvePkScheduleForDay(
   }
 }
 
+export type PkRouteStatus =
+  /** Keine Route im Plan. */
+  | 'no_method'
+  /** Das Profil nennt keine Route; der Nutzer hat diese selbst bestaetigt. */
+  | 'confirmed'
+  /** Das Profil gilt fuer diese Route — keine Rueckfrage noetig. */
+  | 'covered'
+  /** Das Profil gilt fuer andere Routen; eine Kurve waere falsch. */
+  | 'mismatch'
+  /** Das Profil nennt keine Route; der Nutzer muss bestaetigen. */
+  | 'unconfirmed'
+
+/**
+ * Passt die Route im Plan zum Profil?
+ *
+ * Nennt das Profil Routen, entscheiden allein sie — auch gegen eine fruehere
+ * Bestaetigung, denn eine Kurve fuer die falsche Route waere falsch. Die
+ * Bestaetigung des Nutzers zaehlt nur, wo das Profil keine Route nennt.
+ */
+export function pkRouteStatus(
+  method: string | null | undefined,
+  confirmedMethod: string | null | undefined,
+  routes: readonly string[] | null | undefined,
+): PkRouteStatus {
+  const route = normalizedText(method ?? null)
+  if (!route) return 'no_method'
+  if (routes?.length) return routes.some(r => normalizedText(r) === route) ? 'covered' : 'mismatch'
+  return normalizedText(confirmedMethod ?? null) === route ? 'confirmed' : 'unconfirmed'
+}
+
+/** Darf die Kurve fuer diese Route rechnen? */
+export const pkRouteAccepted = (status: PkRouteStatus): boolean => status === 'confirmed' || status === 'covered'
+
 export function evaluatePkReadiness(input: PkReadinessInput): PkReadiness {
   if (!input.pkProfileId?.trim()) {
     return { status: 'unsupported', reason: 'no_profile' }
@@ -147,8 +182,10 @@ export function evaluatePkReadiness(input: PkReadinessInput): PkReadiness {
 
   const missing: PkRequirement[] = []
   if (input.trackingLevel !== 'complete') missing.push('complete_tracking')
-  const method = normalizedText(input.method)
-  if (!method || normalizedText(input.pkProfileMethod) !== method) missing.push('method')
+  const route = pkRouteStatus(input.method, input.pkProfileMethod, input.pkProfileRoutes)
+  // Das Profil gilt fuer andere Routen: keine Angabe kann das beheben.
+  if (route === 'mismatch') return { status: 'unsupported', reason: 'route' }
+  if (!pkRouteAccepted(route)) missing.push('method')
   if (input.dose == null || !Number.isFinite(input.dose) || input.dose <= 0) missing.push('dose')
   if (!input.unit?.trim()) missing.push('unit')
   if (!input.scheduledAt?.trim()) missing.push('time')

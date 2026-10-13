@@ -5,6 +5,8 @@ import { addDays, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import {
+  pkRouteAccepted,
+  pkRouteStatus,
   resolvePkScheduleForDay,
   toPkMilligrams,
   type PkScheduleCycle,
@@ -230,26 +232,40 @@ interface NormalisierteZeile {
 function zuEreignissen(
   zeilen: NormalisierteZeile[],
   profileMethod: string | undefined,
+  profileRoutes: readonly string[] | null = null,
 ): DoseHistory {
   const events: DoseEvent[] = []
   for (const row of zeilen) {
     const dose = row.dose == null ? null : Number(row.dose)
-    if (!row.method?.trim() || !profileMethod?.trim()
-      || row.method.trim().toLocaleLowerCase() !== profileMethod.trim().toLocaleLowerCase()) {
+    // Eine Einnahme ueber eine Route, fuer die das Profil nicht gilt, beendet
+    // die Kurve — bestaetigt oder vom Profil abgedeckt muss sie sein.
+    if (!pkRouteAccepted(pkRouteStatus(row.method, profileMethod, profileRoutes))) {
       return { events, interruptedAt: row.logged_at }
     }
     if (dose == null || !Number.isFinite(dose) || !row.unit?.trim()) {
       return { events, interruptedAt: row.logged_at }
     }
     events.push({ timestamp: new Date(row.logged_at), dose, unit: row.unit, status: 'taken',
-      cycleId: row.cycle_id, planVersionId: row.plan_version_id, method: row.method })
+      cycleId: row.cycle_id, planVersionId: row.plan_version_id, method: row.method ?? undefined })
   }
   return { events, interruptedAt: null }
 }
 
+interface ZyklusSubstanz {
+  pk_profile_method?: string | null
+  ingredients?: Array<{ position: number; substance_catalog: { pk_profiles: { routes?: string[] | null } | null } | null }> | null
+}
+
+/** Routen des ersten verknuepften Profils — dasselbe Profil, das die Bereitschaft prueft. */
+function ersteProfilRouten(item: ZyklusSubstanz | null): string[] | null {
+  const zutaten = (item?.ingredients ?? []).slice().sort((a, b) => a.position - b.position)
+  return zutaten.find(z => z.substance_catalog?.pk_profiles)?.substance_catalog?.pk_profiles?.routes ?? null
+}
+
 async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHistory>> {
   const { data: cycleRows, error } = await supabase.from('cycles')
-    .select('id, stack_item_id, started_at, ended_at, start_local_date, end_local_date, stack_items(pk_profile_method)')
+    .select(`id, stack_item_id, started_at, ended_at, start_local_date, end_local_date,
+      stack_items(pk_profile_method, ingredients:stack_item_ingredients(position, substance_catalog(pk_profiles(routes))))`)
     .in('id', cycleIds)
   if (error) throw error
 
@@ -305,8 +321,8 @@ async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHi
     )
     const zeilen = [...(exaktNachZyklus.get(zyklus.id) ?? []), ...alt]
       .sort((a, b) => a.logged_at.localeCompare(b.logged_at))
-    const profileMethod = (zyklus.stack_items as unknown as { pk_profile_method?: string } | null)?.pk_profile_method
-    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, profileMethod))
+    const item = zyklus.stack_items as unknown as ZyklusSubstanz | null
+    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, item?.pk_profile_method ?? undefined, ersteProfilRouten(item)))
   }
   return ergebnisse
 }
@@ -564,6 +580,7 @@ export async function getCurrentBlutspiegelLevel(
   bioavailability: number = 1.0,
   umrechnung: DoseUmrechnung = {},
   pkProfileMethod: string | null = null,
+  pkProfileRoutes: readonly string[] | null = null,
 ): Promise<CurrentBlutspiegelLevel> {
   const history = await loadDoseHistory(cycle.id)
   const { events, interruptedAt } = history
@@ -573,8 +590,7 @@ export async function getCurrentBlutspiegelLevel(
   const cycleUnit = schedule ? schedule.unit ?? 'mcg' : '—'
   const nextDose = findNextPkDose(cycle, escalations, now)
   const canProject = Boolean(nextDose && (!FEATURES.planTimelineV2 || (
-    schedule && pkProfileMethod?.trim()
-    && nextDose.method?.trim().toLocaleLowerCase() === pkProfileMethod.trim().toLocaleLowerCase()
+    schedule && pkRouteAccepted(pkRouteStatus(nextDose.method, pkProfileMethod, pkProfileRoutes))
     && nextDose.dose != null && nextDose.dose > 0 && nextDose.unit
     && toPkMilligrams(nextDose.dose, nextDose.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null) != null
   )))

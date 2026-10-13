@@ -46,7 +46,7 @@ import { buildReview, carryOverReview, planBaseAt, reviewedSnapshot, reviewStepC
 import { formatLocalDay, laterLocalDay, shiftLocalDay } from '../lib/localDays'
 import { fuehrendeMenge, rhythmSummary, rhythmText } from '../lib/intakeRhythm'
 import { validateIntakePlan, validateStackItemDraft } from '../lib/validation'
-import { evaluatePkReadiness, toPkMilligrams } from '../lib/pkReadiness'
+import { evaluatePkReadiness, pkRouteAccepted, pkRouteStatus, toPkMilligrams } from '../lib/pkReadiness'
 import { useSloshEngine } from '../../../components/SloshContext'
 import { isStageRenderable } from '../lib/dosageForms'
 import { methodLabel } from '../../../lib/intakeMethods'
@@ -176,10 +176,20 @@ export type StackItemWizardProps = StackItemWizardBaseProps & (
     }
 )
 
+/** Routen des ersten Profils unter den Zutaten — dasselbe, das die Kurve prueft. */
+function ersteProfilRouten(item: StackItem, catalogEntries: SubstanceCatalogEntry[]): string[] {
+  const catalogById = new Map(catalogEntries.map(entry => [entry.id, entry]))
+  return [...item.ingredients]
+    .sort((a, b) => a.position - b.position)
+    .map(ingredient => ingredient.catalog_substance_id ? catalogById.get(ingredient.catalog_substance_id) : undefined)
+    .find(entry => entry?.pk_profile_id)?.pk_profiles?.routes ?? []
+}
+
 function pkIntentSteps(
   item: StackItem,
   plan: StackItemSetupDraft['plan'] | undefined,
   iuPerMg: number | null = null,
+  pkRoutes: readonly string[] = [],
 ): WizardStep[] {
   const steps: WizardStep[] = []
   if (item.tracking_level !== 'complete') steps.push('tracking_level')
@@ -194,10 +204,7 @@ function pkIntentSteps(
     || !ingredient.basis_unit?.trim()
   ))
   if (strengthMissing) steps.push('strength')
-  const methodMatches = Boolean(
-    plan?.method.trim()
-    && item.pk_profile_method?.trim().toLocaleLowerCase() === plan.method.trim().toLocaleLowerCase(),
-  )
+  const methodMatches = pkRouteAccepted(pkRouteStatus(plan?.method, item.pk_profile_method, pkRoutes))
   const planNeedsAttention = !methodMatches
     || fuehrendeMenge(plan?.slots ?? []) == null
     || !plan?.unit?.trim()
@@ -274,7 +281,9 @@ export function StackItemWizard({
   const editOverview = metadataOnly && Boolean(existingItem) && !planEditContext && !intent
   // Die Schritte fuer „PK vervollstaendigen" — einmal beim Oeffnen bestimmt.
   const [pkIntentStepList] = useState<WizardStep[] | null>(() => (
-    intent === 'pk' && existingItem ? pkIntentSteps(existingItem, selectedPlan) : null
+    intent === 'pk' && existingItem
+      ? pkIntentSteps(existingItem, selectedPlan, null, ersteProfilRouten(existingItem, catalogEntries))
+      : null
   ))
   const [state, dispatch] = useReducer(
     wizardReducer,
@@ -491,6 +500,12 @@ export function StackItemWizard({
         : undefined)
       .find((entry): entry is SubstanceCatalogEntry => Boolean(entry?.pk_profile_id))
   }, [catalogEntries, state.draft.ingredients])
+  // Fuer welche Routen das Profil gilt. Nennt es welche, entscheiden sie
+  // ohne Haekchen; nur ohne Angabe im Profil bestaetigt der Nutzer selbst.
+  // Gespeichert wird nur diese ausdrueckliche Bestaetigung.
+  const pkRoutes = selectedPkCatalogEntry?.pk_profiles?.routes ?? []
+  const planMethod = state.draft.plan.method.trim()
+  const pkRoute = pkRouteStatus(planMethod, pkProfileMethod, pkRoutes)
   const identityChanged = Boolean(state.original && didIdentityChange(state.original, state.draft))
 
   useEffect(() => {
@@ -731,6 +746,7 @@ export function StackItemWizard({
         trackingLevel: state.draft.trackingLevel,
         pkProfileId: linkedProfileId,
         pkProfileMethod,
+        pkProfileRoutes: pkRoutes,
         method: state.draft.plan.method,
         dose: fuehrendeMenge(state.draft.plan.slots),
         unit: state.draft.plan.unit,
@@ -740,15 +756,18 @@ export function StackItemWizard({
       })
       if (readiness.status !== 'ready') {
         const field = readiness.status === 'unsupported'
-          ? readiness.reason === 'unit_conversion' ? 'plan.unit' : 'pkProfileMethod'
+          ? readiness.reason === 'unit_conversion' ? 'plan.unit'
+            : readiness.reason === 'route' ? 'plan.method' : 'pkProfileMethod'
           : readiness.missing[0] === 'complete_tracking' ? 'trackingLevel'
             : readiness.missing[0] === 'dose' ? 'plan.dose'
               : readiness.missing[0] === 'unit' ? 'plan.unit'
                 : readiness.missing[0] === 'time' ? 'plan.slots.0.routineGroup'
                   : state.draft.plan.method.trim() ? 'pkProfileMethod' : 'plan.method'
-        setPkIntentError(String(t('my_stack_pk_requirements_missing', {
-          defaultValue: 'Vervollständige und bestätige alle PK-Angaben, bevor du speicherst.',
-        })))
+        setPkIntentError(String(readiness.status === 'unsupported' && readiness.reason === 'route'
+          ? t('my_stack_pk_route_mismatch_save')
+          : t('my_stack_pk_requirements_missing', {
+              defaultValue: 'Vervollständige und bestätige alle PK-Angaben, bevor du speicherst.',
+            })))
         focusField(field)
         return
       }
@@ -1244,8 +1263,22 @@ export function StackItemWizard({
                 className="rounded-2xl border border-sky-400/25 bg-sky-400/[0.06] p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
                 <legend className="px-1 text-sm font-semibold text-sky-100">
-                  {t('my_stack_pk_method_title', { defaultValue: 'PK-Route bestätigen' })}
+                  {pkRoutes.length
+                    ? t('my_stack_pk_route_title')
+                    : t('my_stack_pk_method_title', { defaultValue: 'PK-Route bestätigen' })}
                 </legend>
+                {pkRoute === 'covered' ? (
+                  <p className="mt-2 text-sm leading-relaxed text-slate-200" data-pk-route="covered">
+                    {t('my_stack_pk_route_covered', { method: methodLabel(t, planMethod) })}
+                  </p>
+                ) : pkRoute === 'mismatch' ? (
+                  <p className="mt-2 text-sm leading-relaxed text-amber-200" data-pk-route="mismatch">
+                    {t('my_stack_pk_route_mismatch', {
+                      method: methodLabel(t, planMethod),
+                      routes: pkRoutes.map(route => methodLabel(t, route)).join(' / '),
+                    })}
+                  </p>
+                ) : (
                 <label className="mt-2 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-200">
                   <input
                     type="checkbox"
@@ -1273,6 +1306,7 @@ export function StackItemWizard({
                         })}
                   </span>
                 </label>
+                )}
                 {pkIntentError && (
                   <p role="alert" className="mt-2 text-sm text-rose-300">{pkIntentError}</p>
                 )}

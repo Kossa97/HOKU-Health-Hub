@@ -1020,6 +1020,51 @@ describe('StackItemWizard interactions', () => {
     })
   })
 
+  it('verknuepft das Profil ohne Haekchen, wenn es fuer die Route im Plan gilt', async () => {
+    const pkItem: StackItem = { ...existingVitaminD, pk_profile_method: null }
+    const pkPlan: IntakePlanDraft = {
+      ...existingPlan,
+      unit: 'mg',
+      slots: [{ routineGroup: 'morning', time: '08:30', dose: 1, weekdays: [] }],
+    }
+    const { onSave } = renderWizard({
+      catalogEntries: [{ ...pkVitaminD3, pk_profiles: { routes: ['Oral'] } }],
+      existingItem: pkItem,
+      existingPlan: pkPlan,
+      intent: 'pk',
+    })
+
+    expect(screen.queryByRole('checkbox', { name: 'my_stack_pk_method_confirm' })).toBeNull()
+    expect(document.querySelector('[data-pk-route="covered"]')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'save' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+    // Die Deckung durch das Profil wird nicht als Bestaetigung gespeichert.
+    expect(onSave.mock.calls[0][0].pkProfileMethod).toBeNull()
+  })
+
+  it('sagt es, wenn das Profil nicht fuer die Route im Plan gilt, und speichert nicht', async () => {
+    const pkItem: StackItem = { ...existingVitaminD, pk_profile_method: null }
+    const pkPlan: IntakePlanDraft = {
+      ...existingPlan,
+      unit: 'mg',
+      slots: [{ routineGroup: 'morning', time: '08:30', dose: 1, weekdays: [] }],
+    }
+    const { onSave } = renderWizard({
+      catalogEntries: [{ ...pkVitaminD3, pk_profiles: { routes: ['Subkutan'] } }],
+      existingItem: pkItem,
+      existingPlan: pkPlan,
+      intent: 'pk',
+    })
+
+    expect(screen.queryByRole('checkbox', { name: 'my_stack_pk_method_confirm' })).toBeNull()
+    expect(document.querySelector('[data-pk-route="mismatch"]')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'save' }))
+
+    expect(await screen.findByText('my_stack_pk_route_mismatch_save')).toBeTruthy()
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
   it('preserves raw multi-word typing and a chosen custom category', () => {
     renderWizard()
     const input = screen.getByLabelText('my_stack_question') as HTMLInputElement

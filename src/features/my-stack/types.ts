@@ -48,6 +48,8 @@ export interface SubstanceCatalogEntry {
   suggested_units: string[]
   suggested_dosage_forms: DosageFormKey[]
   pk_profile_id: string | null
+  /** Eingebettet aus `pk_profiles`: fuer welche Routen das Profil gilt. */
+  pk_profiles?: { routes?: string[] | null } | null
   active: boolean
   // Ein Kombipraeparat nennt hier die kanonischen Namen seiner Bestandteile —
   // „CJC-1295 ohne DAC + Ipamorelin" also die beiden Peptide. Leer oder

@@ -37,6 +37,8 @@ export interface PkProfileEmbed {
   iu_per_mg: number | null
   vd_l_kg?: number | null
   category: string
+  /** Routen, fuer die die Zahlen gelten; leer = unklar (Nutzer bestaetigt). */
+  routes?: string[] | null
 }
 
 interface CycleWithPk extends PkScheduleCycle {
@@ -95,7 +97,9 @@ export interface UnsupportedEntry {
   cycleId: string
   stackItemId: string
   name: string
-  reason: 'unit_conversion' | 'profile'
+  reason: 'unit_conversion' | 'profile' | 'route'
+  /** Bei 'route': die Route im Plan, fuer die es kein Profil gibt. */
+  method?: string | null
 }
 
 export type BlutspiegelEntry = ReadyEntry | MissingEntry | UnsupportedEntry
@@ -152,6 +156,10 @@ function linkedProfiles(cycle: CycleWithPk): VerknuepfteZutat[] {
   return verknuepft
 }
 
+function grund(reason: string): UnsupportedEntry['reason'] {
+  return reason === 'unit_conversion' || reason === 'route' ? reason : 'profile'
+}
+
 function isLegacyCycleActive(cycle: CycleWithPk, todayKey: string): boolean {
   if (cycle.active) return true
   return Boolean(cycle.end_date && cycle.end_date >= todayKey)
@@ -167,7 +175,7 @@ const LEGACY_SELECT = `
       position, custom_name, amount_value, amount_unit, basis_value, basis_unit,
       substance_catalog (
         canonical_name, pk_profile_id,
-        pk_profiles ( name, half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, vd_l_kg, category )
+        pk_profiles ( name, half_life_hours, tmax_hours, bioavailability_sc, iu_per_mg, vd_l_kg, category, routes )
       )
     )
   )`
@@ -200,6 +208,7 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
       trackingLevel: item.tracking_level ?? 'intake_only',
       pkProfileId: zutat?.id ?? null,
       pkProfileMethod: item.pk_profile_method ?? null,
+      pkProfileRoutes: zutat?.profile.routes ?? null,
       method: schedule?.method ?? null,
       dose: schedule?.dose ?? null,
       unit: schedule?.unit ?? null,
@@ -219,7 +228,8 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
     if (first.status === 'unsupported' || !verknuepft.length) {
       entries.push({
         kind: 'unsupported', key: cycle.id, ...base, name: item.display_name,
-        reason: first.status === 'unsupported' && first.reason === 'unit_conversion' ? 'unit_conversion' : 'profile',
+        reason: first.status === 'unsupported' ? grund(first.reason) : 'profile',
+        method: schedule?.method ?? null,
       })
       continue
     }
@@ -240,7 +250,7 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
         continue
       }
       if (readiness.status === 'unsupported') {
-        entries.push({ kind: 'unsupported', key, ...base, name, reason: readiness.reason === 'unit_conversion' ? 'unit_conversion' : 'profile' })
+        entries.push({ kind: 'unsupported', key, ...base, name, reason: grund(readiness.reason), method: schedule?.method ?? null })
         continue
       }
       entries.push({

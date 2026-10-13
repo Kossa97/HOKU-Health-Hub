@@ -23,6 +23,7 @@
     "i18n:onboarding:generate": "node scripts/generate-onboarding-i18n.mjs",
     "catalog:sql": "node scripts/generate-substance-catalog-sql.mjs",
     "pk:sql": "node scripts/generate-pk-profiles-sql.mjs",
+    "pk:routes-sql": "node scripts/generate-pk-profile-routes-sql.mjs",
     "effects:duration:sql": "node scripts/generate-effect-duration-sql.mjs",
     "peptipedia:audit": "tsx --tsconfig tsconfig.app.json scripts/audit-peptipedia.ts"
   },
