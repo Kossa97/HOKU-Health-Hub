@@ -1088,7 +1088,7 @@ export const MY_STACK_EN = {
   my_stack_rhythm_weeks_on: "Every {{n}} weeks on {{tag}}",
   my_stack_plan_today: "Today",
   my_stack_plan_tomorrow: "Tomorrow",
-  pk_overview_intro: "How much of each substance is in your blood right now — estimated from your logged doses.",
+  pk_overview_intro: "How your substances move through your blood, in real time — estimated from your confirmed doses.",
 }
 
 export const MY_STACK_DE = {
@@ -2180,7 +2180,7 @@ export const MY_STACK_DE = {
   my_stack_rhythm_weeks_on: "Alle {{n}} Wochen am {{tag}}",
   my_stack_plan_today: "Heute",
   my_stack_plan_tomorrow: "Morgen",
-  pk_overview_intro: "Wie viel deiner Substanzen gerade im Blut ist — geschätzt aus deinen Einnahmen.",
+  pk_overview_intro: "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)
