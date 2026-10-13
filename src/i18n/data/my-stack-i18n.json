@@ -1087,7 +1087,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2177,7 +2178,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3267,7 +3269,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4357,7 +4360,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5447,7 +5451,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6537,7 +6542,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7627,7 +7633,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8717,7 +8724,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9807,7 +9815,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10897,7 +10906,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11987,7 +11997,8 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13077,6 +13088,7 @@
     "my_stack_rhythm_weekly_on": "Every {{tag}}",
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
-    "my_stack_plan_tomorrow": "Tomorrow"
+    "my_stack_plan_tomorrow": "Tomorrow",
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
   }
 }

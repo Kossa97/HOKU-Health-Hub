@@ -2295,5 +2295,6 @@
   "my_stack_rhythm_weekly_on": "Jeden {{tag}}",
   "my_stack_rhythm_weeks_on": "Alle {{n}} Wochen am {{tag}}",
   "my_stack_plan_today": "Heute",
-  "my_stack_plan_tomorrow": "Morgen"
+  "my_stack_plan_tomorrow": "Morgen",
+  "pk_overview_intro": "Wie viel deiner Substanzen gerade im Blut ist — geschätzt aus deinen Einnahmen."
 }

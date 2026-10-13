@@ -113,7 +113,10 @@ function Kopf({ asOf, refreshing, naechsterTakt }: { asOf: number; refreshing: b
       >
         <Plus size={22} />
       </Link>
-      <div className="col-span-2 mt-1">
+      <p className="col-span-2 mt-1 max-w-[34ch] text-[14px] leading-snug" style={{ color: 'var(--text-muted)' }} data-bs-intro>
+        {t('pk_overview_intro')}
+      </p>
+      <div className="col-span-2 mt-2">
         <LiveStatus asOf={asOf} refreshing={refreshing} naechsterTakt={naechsterTakt} />
       </div>
     </header>
