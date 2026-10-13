@@ -149,11 +149,18 @@ describe('BlutspiegelSimulation', () => {
     render(<MemoryRouter initialEntries={['/simulation']}><BlutspiegelSimulation /></MemoryRouter>)
     await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
     const zahl = () => document.querySelector('[data-bs-countdown]')?.textContent
-    expect(zahl()).toBe('5')
-    await act(async () => { await vi.advanceTimersByTimeAsync(2_100) })
-    expect(zahl()).toBe('3')
+    const dreht = () => document.querySelector('[data-bs-refresh-icon]') != null
+    expect(zahl()).toBe('5.00')
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000) })
+    expect(zahl()).toBe('3.00')
+    // Abgelaufen: eine Sekunde das drehende Symbol statt der Zahl …
     await act(async () => { await vi.advanceTimersByTimeAsync(3_000) })
-    expect(zahl()).toBe('5')
+    expect(dreht()).toBe(true)
+    expect(zahl()).toBeUndefined()
+    // … dann wieder ab 5.00
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_000) })
+    expect(dreht()).toBe(false)
+    expect(zahl()).toBe('5.00')
     expect(loadBlutspiegelEntries).toHaveBeenCalledTimes(1)
   })
 })

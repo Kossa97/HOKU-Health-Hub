@@ -10,14 +10,16 @@ import {
   type ReadyEntry,
 } from './entries'
 
-// Zwei Takte. Alle fuenf Sekunden wird die Kurve bis „jetzt" neu gerechnet —
-// lokal, ohne Abfrage; das ist der Live-Takt mit Countdown. Einmal pro Minute
-// werden Eintraege und Einnahmen neu geladen: oefter aendern sie sich nicht,
-// und jede Abfrage kostet.
-export const BLUTSPIEGEL_TAKT_MS = 5_000
+// Zwei Takte, wie in der alten LIVE-Zeile des Karussells (Commit c931c883):
+// fuenf Sekunden Countdown, dann eine Sekunde das drehende Symbol, waehrend
+// die Kurve bis „jetzt" neu gerechnet wird — lokal, ohne Abfrage. Einmal pro
+// Minute werden Eintraege und Einnahmen neu geladen: oefter aendern sie sich
+// nicht, und jede Abfrage kostet.
+export const BLUTSPIEGEL_COUNTDOWN_MS = 5_000
+/** So lange dreht sich das Symbol nach Ablauf des Countdowns. */
+export const BLUTSPIEGEL_DREH_MS = 1_000
+export const BLUTSPIEGEL_TAKT_MS = BLUTSPIEGEL_COUNTDOWN_MS + BLUTSPIEGEL_DREH_MS
 export const BLUTSPIEGEL_REFRESH_MS = 60_000
-/** So lange dreht sich das Symbol nach einem Takt — sichtbar, nicht hektisch. */
-const TAKT_ANZEIGE_MS = 700
 
 export interface BlutspiegelData {
   loading: boolean
@@ -29,7 +31,7 @@ export interface BlutspiegelData {
   asOf: number
   /** Gerade wird neu gerechnet oder geladen (fuer das drehende Symbol). */
   refreshing: boolean
-  /** Wann der naechste Takt kommt (Unix ms) — fuer den Countdown. */
+  /** Wann der Countdown bei null ankommt (Unix ms). */
   naechsterTakt: number
 }
 
@@ -64,7 +66,7 @@ export function useBlutspiegelData(): BlutspiegelData {
   const [error, setError] = useState(false)
 
   const [laedt, setLaedt] = useState(false)
-  const [takt, setTakt] = useState(() => ({ jetzt: Date.now(), naechster: Date.now() + BLUTSPIEGEL_TAKT_MS }))
+  const [takt, setTakt] = useState(() => ({ jetzt: Date.now(), naechster: Date.now() + BLUTSPIEGEL_COUNTDOWN_MS }))
   const [dreht, setDreht] = useState(false)
   const fehlerRef = useRef(false)
 
@@ -72,12 +74,10 @@ export function useBlutspiegelData(): BlutspiegelData {
     if (!userId) return
     let cancelled = false
     let inFlight = false
-    let letzterAbruf = 0
     let anzeige = 0
     const laden = () => {
       if (inFlight) return
       inFlight = true
-      letzterAbruf = Date.now()
       setLaedt(true)
       fetchAll(userId)
         .then(data => {
@@ -93,17 +93,23 @@ export function useBlutspiegelData(): BlutspiegelData {
     }
     const tick = () => {
       const jetzt = Date.now()
+      // Countdown ist abgelaufen: eine Sekunde drehen, dann ab 5,00 von vorn.
       setTakt({ jetzt, naechster: jetzt + BLUTSPIEGEL_TAKT_MS })
       setDreht(true)
       window.clearTimeout(anzeige)
-      anzeige = window.setTimeout(() => { if (!cancelled) setDreht(false) }, TAKT_ANZEIGE_MS)
-      // Nach einem Fehler beim naechsten Takt erneut versuchen, sonst einmal pro Minute.
-      if (fehlerRef.current || jetzt - letzterAbruf >= BLUTSPIEGEL_REFRESH_MS) laden()
+      anzeige = window.setTimeout(() => { if (!cancelled) setDreht(false) }, BLUTSPIEGEL_DREH_MS)
+      // Nach einem Fehler beim naechsten Takt erneut versuchen.
+      if (fehlerRef.current) laden()
     }
     laden()
-    setTakt({ jetzt: Date.now(), naechster: Date.now() + BLUTSPIEGEL_TAKT_MS })
-    const id = window.setInterval(tick, BLUTSPIEGEL_TAKT_MS)
-    return () => { cancelled = true; window.clearInterval(id); window.clearTimeout(anzeige) }
+    // Erster Takt nach dem ersten Countdown, danach alle 6 s (5 s zaehlen + 1 s drehen).
+    let id = 0
+    const start = window.setTimeout(() => {
+      tick()
+      id = window.setInterval(tick, BLUTSPIEGEL_TAKT_MS)
+    }, BLUTSPIEGEL_COUNTDOWN_MS)
+    const abruf = window.setInterval(laden, BLUTSPIEGEL_REFRESH_MS)
+    return () => { cancelled = true; window.clearTimeout(start); window.clearInterval(id); window.clearInterval(abruf); window.clearTimeout(anzeige) }
   }, [userId])
 
   const current = loaded && loaded.userId === userId ? loaded : null
@@ -125,7 +131,8 @@ export function useBlutspiegelData(): BlutspiegelData {
     ready,
     curves,
     asOf: current ? Math.max(current.asOf, takt.jetzt) : 0,
-    refreshing: laedt || dreht,
+    // Das Nachladen im Hintergrund unterbricht den Countdown nicht; nur der Takt dreht.
+    refreshing: dreht || (laedt && !current),
     naechsterTakt: takt.naechster,
   }
 }
