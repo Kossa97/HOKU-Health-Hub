@@ -2154,7 +2154,7 @@
   "pk_model_note": "Model estimate · % of the highest level so far",
   "pk_chart_aria": "Blood level history of {{name}}: currently {{value}} %, {{range}}",
   "pk_explain_title": "What do these values mean?",
-  "pk_incomplete_title": "No curve yet",
+  "pk_incomplete_title": "Needs your input",
   "pk_incomplete_count": "Without curve: {{count}}",
   "pk_stat_high": "High",
   "pk_stat_low": "Low",

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, Plus } from 'lucide-react'
 import { LiveStatus } from './LiveStatus'
-import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
+import { behebbar, type EntryCurve, type ReadyEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
 import { formatOffset, useBlutspiegelFormat } from './format'
 import { aenderungSeit, type LevelPoint } from './chart/stocksChartMath'
@@ -125,7 +125,8 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const data = useBlutspiegelData()
   const f = useBlutspiegelFormat()
   const { t } = f
-  const missing = data.entries.filter((e): e is MissingEntry | UnsupportedEntry => e.kind !== 'ready')
+  // Ohne PK-Profil gibt es nie eine Kurve und nichts zu tun — das bleibt weg.
+  const missing = data.entries.filter(behebbar)
   const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} />
 
   if (data.error) return <div className="flex flex-col gap-4">{kopf}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p>{children}</div>

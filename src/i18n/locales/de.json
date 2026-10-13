@@ -2154,7 +2154,7 @@
   "pk_model_note": "Modellschätzung · % vom bisherigen Höchstwert",
   "pk_chart_aria": "Blutspiegel-Verlauf von {{name}}: aktuell {{value}} %, {{range}}",
   "pk_explain_title": "Was bedeuten die Werte?",
-  "pk_incomplete_title": "Noch ohne Kurve",
+  "pk_incomplete_title": "Fehlt noch etwas",
   "pk_incomplete_count": "Ohne Kurve: {{count}}",
   "pk_stat_high": "Hoch",
   "pk_stat_low": "Tief",

@@ -104,6 +104,15 @@ export interface UnsupportedEntry {
 
 export type BlutspiegelEntry = ReadyEntry | MissingEntry | UnsupportedEntry
 
+/**
+ * Ohne Kurve, aber behebbar: es fehlt eine Angabe, die Route passt nicht
+ * oder die Einheit laesst sich nicht umrechnen. Ohne PK-Profil gibt es nichts
+ * zu tun — solche Eintraege (Vitamine, Insulin) zeigt der Blutspiegel nicht.
+ */
+export function behebbar(entry: BlutspiegelEntry): entry is MissingEntry | UnsupportedEntry {
+  return entry.kind === 'missing' || (entry.kind === 'unsupported' && entry.reason !== 'profile')
+}
+
 export const CATEGORY_ACCENT: Record<PkCategory, string> = {
   peptide: '#00ccf5',
   glp1: '#10b981',

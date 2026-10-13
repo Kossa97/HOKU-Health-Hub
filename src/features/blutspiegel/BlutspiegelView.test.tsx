@@ -143,6 +143,19 @@ describe('BlutspiegelSimulation', () => {
     expect(screen.queryByRole('button', { name: /pk_manual_title/ })).toBeNull()
   })
 
+  it('zeigt Eintraege ohne PK-Profil nicht, behebbare schon', async () => {
+    withData([
+      ready,
+      { kind: 'unsupported', key: 'c4', cycleId: 'c4', stackItemId: 's4', name: 'Vitamin D3', reason: 'profile' },
+      { kind: 'unsupported', key: 'c5', cycleId: 'c5', stackItemId: 's5', name: 'Semaglutid', reason: 'route', method: 'Oral' },
+    ])
+    render(<MemoryRouter initialEntries={['/simulation']}><BlutspiegelSimulation /></MemoryRouter>)
+    await screen.findByRole('link', { name: /BPC-157/ })
+    expect(screen.queryByText('Vitamin D3')).toBeNull()
+    expect(screen.getByText('Semaglutid')).toBeTruthy()
+    expect(screen.getByText('pk_incomplete_title')).toBeTruthy()
+  })
+
   it('zaehlt alle 5 Sekunden herunter und rechnet neu, ohne die Datenbank zu fragen', async () => {
     vi.useFakeTimers()
     withData([ready])

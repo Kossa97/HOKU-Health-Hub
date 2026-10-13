@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import { methodLabel } from '../../lib/intakeMethods'
 import type { PkRequirement } from '../my-stack/lib/pkReadiness'
-import type { EntryCurve, MissingEntry, ReadyEntry, UnsupportedEntry } from './entries'
+import { behebbar, type EntryCurve, type MissingEntry, type ReadyEntry, type UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
 import { UEBERSICHT_PFAD, detailPfad } from './pfade'
 import { LiveStatus } from './LiveStatus'
@@ -321,11 +321,10 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   // Detailseite: eine unbekannte Adresse zeigt nie still eine andere Substanz.
   const selected = gefunden ?? (einzeln && pickedKey ? null : data.ready[0] ?? null)
   const curve = selected ? data.curves.get(selected.key) : undefined
-  // Kompakt (Home) nur, was sich ergaenzen laesst; ein Vitamin ohne PK-Profil
-  // waere dort bloss Rauschen. Die volle Seite nennt alles.
+  // Nur, was sich beheben laesst; ein Vitamin ohne PK-Profil waere bloss
+  // Rauschen. Kompakt (Home) nur fehlende Angaben.
   const missing = useMemo(
-    () => data.entries.filter((e): e is MissingEntry | UnsupportedEntry =>
-      e.kind === 'missing' || (!compact && e.kind === 'unsupported')),
+    () => data.entries.filter((e): e is MissingEntry | UnsupportedEntry => (compact ? e.kind === 'missing' : behebbar(e))),
     [data.entries, compact],
   )
 

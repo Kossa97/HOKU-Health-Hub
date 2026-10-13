@@ -32,8 +32,9 @@ test('Übersicht: Zeile je Substanz mit Wert und neutraler 24-h-Veränderung; Ti
   await expect(zeile).toContainText('BPC-157')
   await expect(zeile).toContainText('nächste Dosis')
   await expect(zeile).toContainText('%')
-  // Ohne Kurve: steht darunter, nicht als Zeile
-  await expect(page.getByText('TB-500')).toBeVisible()
+  // Ohne PK-Profil gibt es nie eine Kurve: steht gar nicht da
+  await expect(page.getByText('TB-500')).toHaveCount(0)
+  await expect(page.getByText('Fehlt noch etwas')).toHaveCount(0)
   // Keine Kurve und keine manuelle Simulation auf der Übersicht
   await expect(page.getByRole('img', { name: /BPC-157/ })).toHaveCount(0)
 
