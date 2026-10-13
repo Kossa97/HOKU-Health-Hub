@@ -20,10 +20,14 @@ export function BlutspiegelSimulation() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
+      {/* Hinweis und Haftung gebuendelt unter der Liste: einmal, statt oben als
+          Kasten und unten noch einmal als Fusszeile. */}
       <BlutspiegelUebersicht>
-        <MedicalNotice />
+        <footer className="flex flex-col gap-2 pt-2">
+          <MedicalNotice />
+          <p className="disclaimer" style={{ textAlign: 'center', padding: '0 8px 12px' }}>{t('pk_sim_disclaimer')} {t('pk_consult')}</p>
+        </footer>
       </BlutspiegelUebersicht>
-      <p className="disclaimer" style={{ textAlign: 'center', padding: '4px 8px 12px' }}>{t('pk_sim_disclaimer')} {t('pk_consult')}</p>
     </div>
   )
 }

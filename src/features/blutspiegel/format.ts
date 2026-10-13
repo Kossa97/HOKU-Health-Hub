@@ -20,7 +20,11 @@ export function useBlutspiegelFormat() {
       t,
       pct: (v: number) => pct.format(v),
       num: (v: number) => whole.format(v),
-      signed: (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${pct.format(Math.abs(v))}`,
+      // Erst runden, dann das Vorzeichen: sonst entsteht „−0,0“.
+      signed: (v: number) => {
+        const gerundet = Math.round(v * 10) / 10
+        return gerundet === 0 ? pct.format(0) : `${gerundet > 0 ? '+' : '−'}${pct.format(Math.abs(gerundet))}`
+      },
       tick: (ts: number, step: number) => (step < DAY ? hourFmt : dayFmt).format(ts),
       scrub: (ts: number) => scrubFmt.format(ts),
     }

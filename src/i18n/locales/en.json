@@ -2056,9 +2056,9 @@
   "pk_cycle_card": "{{name}}, card {{index}}",
   "pk_peak_past": "{{value}} ago",
   "pk_peak_future": "in {{value}}",
-  "pk_duration_under_hour": "<1h",
-  "pk_duration_hours": "{{count}}h",
-  "pk_duration_days": "{{count}}d",
+  "pk_duration_under_hour": "< 1 h",
+  "pk_duration_hours": "{{count}} h",
+  "pk_duration_days": "{{count}} d",
   "pk_window_24h": "24h window",
   "pk_window_7d": "7-day window",
   "pk_chart_gestures": "swipe for history · hold to read",
@@ -2270,7 +2270,7 @@
   "bw_range_postmeno": "after menopause",
   "pk_overview_as_of": "As of {{time}}",
   "pk_overview_list": "Your substances",
-  "pk_overview_hint": "Modelled level relative to the peak · change over 24 h",
+  "pk_overview_hint": "Modelled level relative to its peak · change over 24 h",
   "pk_overview_next": "next dose {{when}}",
   "pk_overview_no_next": "no next dose planned",
   "pk_manual_open": "Own simulation",
@@ -2285,5 +2285,6 @@
   "my_stack_pk_route_title": "PK profile",
   "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
   "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
-  "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan."
+  "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
+  "pk_overview_decayed": "cleared"
 }

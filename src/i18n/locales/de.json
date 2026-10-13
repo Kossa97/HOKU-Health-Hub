@@ -2056,9 +2056,9 @@
   "pk_cycle_card": "{{name}}, Karte {{index}}",
   "pk_peak_past": "vor {{value}}",
   "pk_peak_future": "in {{value}}",
-  "pk_duration_under_hour": "<1h",
-  "pk_duration_hours": "{{count}}h",
-  "pk_duration_days": "{{count}}T",
+  "pk_duration_under_hour": "< 1 Std.",
+  "pk_duration_hours": "{{count}} Std.",
+  "pk_duration_days": "{{count}} Tg.",
   "pk_window_24h": "24h-Fenster",
   "pk_window_7d": "7-Tage-Fenster",
   "pk_chart_gestures": "wischen für Verlauf · halten zum Ablesen",
@@ -2285,5 +2285,6 @@
   "my_stack_pk_route_title": "PK-Profil",
   "my_stack_pk_route_covered": "Das PK-Profil gilt für {{method}} und ist automatisch verknüpft.",
   "my_stack_pk_route_mismatch": "Das PK-Profil gilt für {{routes}}, nicht für {{method}}. Für diese Route gibt es keine Kurve.",
-  "my_stack_pk_route_mismatch_save": "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route."
+  "my_stack_pk_route_mismatch_save": "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route.",
+  "pk_overview_decayed": "abgeklungen"
 }

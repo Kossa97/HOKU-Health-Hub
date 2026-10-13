@@ -848,9 +848,9 @@ export const MY_STACK_EN = {
   pk_cycle_card: "{{name}}, card {{index}}",
   pk_peak_past: "{{value}} ago",
   pk_peak_future: "in {{value}}",
-  pk_duration_under_hour: "<1h",
-  pk_duration_hours: "{{count}}h",
-  pk_duration_days: "{{count}}d",
+  pk_duration_under_hour: "< 1 h",
+  pk_duration_hours: "{{count}} h",
+  pk_duration_days: "{{count}} d",
   pk_window_24h: "24h window",
   pk_window_7d: "7-day window",
   pk_chart_gestures: "swipe for history · hold to read",
@@ -1062,7 +1062,7 @@ export const MY_STACK_EN = {
   bw_range_postmeno: "after menopause",
   pk_overview_as_of: "As of {{time}}",
   pk_overview_list: "Your substances",
-  pk_overview_hint: "Modelled level relative to the peak · change over 24 h",
+  pk_overview_hint: "Modelled level relative to its peak · change over 24 h",
   pk_overview_next: "next dose {{when}}",
   pk_overview_no_next: "no next dose planned",
   pk_manual_open: "Own simulation",
@@ -1078,6 +1078,7 @@ export const MY_STACK_EN = {
   my_stack_pk_route_covered: "The PK profile applies to {{method}} and is linked automatically.",
   my_stack_pk_route_mismatch: "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
   my_stack_pk_route_mismatch_save: "There is no PK profile for this route. Choose a matching route in the intake plan.",
+  pk_overview_decayed: "cleared",
 }
 
 export const MY_STACK_DE = {
@@ -1929,9 +1930,9 @@ export const MY_STACK_DE = {
   pk_cycle_card: "{{name}}, Karte {{index}}",
   pk_peak_past: "vor {{value}}",
   pk_peak_future: "in {{value}}",
-  pk_duration_under_hour: "<1h",
-  pk_duration_hours: "{{count}}h",
-  pk_duration_days: "{{count}}T",
+  pk_duration_under_hour: "< 1 Std.",
+  pk_duration_hours: "{{count}} Std.",
+  pk_duration_days: "{{count}} Tg.",
   pk_window_24h: "24h-Fenster",
   pk_window_7d: "7-Tage-Fenster",
   pk_chart_gestures: "wischen für Verlauf · halten zum Ablesen",
@@ -2159,6 +2160,7 @@ export const MY_STACK_DE = {
   my_stack_pk_route_covered: "Das PK-Profil gilt für {{method}} und ist automatisch verknüpft.",
   my_stack_pk_route_mismatch: "Das PK-Profil gilt für {{routes}}, nicht für {{method}}. Für diese Route gibt es keine Kurve.",
   my_stack_pk_route_mismatch_save: "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route.",
+  pk_overview_decayed: "abgeklungen",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

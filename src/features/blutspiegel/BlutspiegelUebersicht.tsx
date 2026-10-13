@@ -15,8 +15,12 @@ import { NoCurveRow } from './BlutspiegelView'
 import { MANUELL_PFAD, detailPfad } from './pfade'
 
 const DAY = 24 * 3_600_000
+/** Darunter gilt ein Spiegel als abgeklungen: „0,0 %“ mit „±0,0“ sagt nichts. */
+const ABGEKLUNGEN_UNTER = 0.5
+/** Kleinste Spanne der Mini-Kurve in Prozentpunkten — sonst wird Rauschen zur Zacke. */
+const MIN_SPANNE = 2
 
-function Verlauf({ points, now, color }: { points: LevelPoint[]; now: number; color: string }) {
+function Verlauf({ points, now, color, ruhig }: { points: LevelPoint[]; now: number; color: string; ruhig: boolean }) {
   const W = 72
   const H = 32
   const tag = points.filter(p => p.ts >= now - DAY)
@@ -24,7 +28,8 @@ function Verlauf({ points, now, color }: { points: LevelPoint[]; now: number; co
   let min = Infinity
   let max = -Infinity
   for (const p of tag) { min = Math.min(min, p.level); max = Math.max(max, p.level) }
-  const span = Math.max(1, max - min)
+  // Eigene Spanne je Zeile, wie in der Aktienliste: die Form zaehlt, nicht die Hoehe.
+  const span = Math.max(MIN_SPANNE, max - min)
   const t0 = tag[0].ts
   const dt = Math.max(1, tag[tag.length - 1].ts - t0)
   const xy = tag.map(p => [((p.ts - t0) / dt) * W, H - 3 - ((p.level - min) / span) * (H - 6)] as const)
@@ -38,8 +43,8 @@ function Verlauf({ points, now, color }: { points: LevelPoint[]; now: number; co
           <stop offset="100%" stopColor={color} stopOpacity={0} />
         </linearGradient>
       </defs>
-      <path d={`${line}L${W},${H}L0,${H}Z`} fill={`url(#${id})`} />
-      <path d={line} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+      {!ruhig && <path d={`${line}L${W},${H}L0,${H}Z`} fill={`url(#${id})`} />}
+      <path d={line} fill="none" stroke={ruhig ? 'var(--text-dim)' : color} strokeOpacity={ruhig ? 0.5 : 1} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
@@ -49,7 +54,8 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
   const { t } = f
   const points = curve?.points ?? []
   const pausiert = curve?.interruptedAt != null
-  const change = pausiert ? null : aenderungSeit(points, now - DAY)
+  const abgeklungen = !pausiert && curve?.current != null && curve.current < ABGEKLUNGEN_UNTER
+  const change = pausiert || abgeklungen ? null : aenderungSeit(points, now - DAY)
   // Neutral: zwischen zwei Dosen faellt der Spiegel immer — das ist kein Warnsignal.
   const linie = entry.accent
   const naechste = entry.nextDoseAt != null ? formatOffset(entry.nextDoseAt - now, t) : null
@@ -57,28 +63,35 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
     <li>
       <Link
         to={detailPfad(entry.key)}
-        className="flex min-h-[68px] items-center gap-3 py-2.5"
-        style={{ borderBottom: '1px solid var(--border)', color: 'var(--text)' }}
+        // Rueckmeldung beim Druecken, nicht erst beim Loslassen.
+        className="-mx-3 flex min-h-[64px] items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-100 active:bg-[var(--surface-raised)]"
+        style={{ color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
         data-bs-row={entry.key}
+        data-bs-decayed={abgeklungen || undefined}
       >
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-[17px] font-extrabold tracking-tight">{entry.name}</span>
           <span className="truncate text-[13px]" style={{ color: 'var(--text-muted)' }}>
-            {entry.profile.name !== entry.name ? `${entry.profile.name} · ` : ''}
             {pausiert ? t('pk_overview_paused') : naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
           </span>
         </span>
-        <Verlauf points={points} now={now} color={linie} />
-        <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
-          <span className="text-[17px] font-bold" style={pausiert ? { color: 'var(--text-muted)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
-          <span
-            className="min-w-[62px] rounded-[7px] px-2 py-[3px] text-right text-[13px] font-bold"
-            style={{ background: 'var(--surface-raised)', color: 'var(--text)', border: '1px solid var(--border)' }}
-            data-bs-change
-          >
-            {change == null ? '—' : f.signed(change)}
+        <Verlauf points={points} now={now} color={linie} ruhig={pausiert || abgeklungen} />
+        {abgeklungen ? (
+          <span className="flex w-[84px] shrink-0 justify-end whitespace-nowrap text-[13px] font-medium" style={{ color: 'var(--text-dim)' }}>
+            {t('pk_overview_decayed')}
           </span>
-        </span>
+        ) : (
+          <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
+            <span className="text-[17px] font-bold tracking-tight" style={pausiert ? { color: 'var(--text-muted)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
+            <span
+              className="min-w-[56px] rounded-md px-1.5 py-[2px] text-right text-[13px] font-semibold"
+              style={{ background: 'var(--surface-raised)', color: 'var(--text-muted)' }}
+              data-bs-change
+            >
+              {change == null ? '—' : f.signed(change)}
+            </span>
+          </span>
+        )}
       </Link>
     </li>
   )
@@ -107,7 +120,7 @@ function Kopf({ asOf, refreshing, onRefresh }: { asOf: number; refreshing: boole
   )
 }
 
-/** children: steht zwischen Kopf und Liste (etwa der Medizin-Hinweis). */
+/** children: Fusszeile unter der Liste (Medizin-Hinweis, Haftung). */
 export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const data = useBlutspiegelData()
   const f = useBlutspiegelFormat()
@@ -115,16 +128,16 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const missing = data.entries.filter((e): e is MissingEntry | UnsupportedEntry => e.kind !== 'ready')
   const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} onRefresh={data.refresh} />
 
-  if (data.error) return <div className="flex flex-col gap-4">{kopf}{children}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p></div>
+  if (data.error) return <div className="flex flex-col gap-4">{kopf}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p>{children}</div>
   if (data.loading) {
     return (
       <div className="flex flex-col gap-4">
         {kopf}
-        {children}
         <div className="flex min-h-[200px] items-center justify-center gap-2.5">
           <Loader2 size={18} color="var(--accent)" className="animate-spin" />
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_live_loading')}</span>
         </div>
+        {children}
       </div>
     )
   }
@@ -132,15 +145,14 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   return (
     <div className="flex flex-col gap-5">
       {kopf}
-      {children}
       {data.ready.length > 0 ? (
         <section aria-label={t('pk_overview_list')}>
-          <p className="mb-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>{t('pk_overview_hint')}</p>
-          <ul style={{ borderTop: '1px solid var(--border)' }}>
+          <ul className="divide-y divide-[var(--border)]">
             {data.ready.map(entry => (
               <Zeile key={entry.key} entry={entry} curve={data.curves.get(entry.key)} now={data.asOf} />
             ))}
           </ul>
+          <p className="mt-2 text-[12px]" style={{ color: 'var(--text-dim)' }}>{t('pk_overview_hint')}</p>
         </section>
       ) : (
         <p className="py-6 text-center text-sm" style={{ color: 'var(--text-dim)' }}>{t('pk_no_ready_items')}</p>
@@ -152,6 +164,7 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
           {missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}
         </section>
       )}
+      {children}
     </div>
   )
 }
