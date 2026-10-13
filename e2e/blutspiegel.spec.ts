@@ -26,7 +26,7 @@ test('Übersicht: Zeile je Substanz mit Wert und neutraler 24-h-Veränderung; Ti
 
   await expect(page.getByRole('heading', { level: 1, name: 'Blutspiegel' })).toBeVisible()
   await expect(page.locator('[data-bs-live]')).toContainText('Live')
-  await expect(page.locator('[data-bs-live]')).toContainText('Stand 10:00')
+  await expect(page.locator('[data-bs-countdown]')).toHaveText(/^[1-5]$/)
   const zeile = page.locator('[data-bs-row]')
   await expect(zeile).toHaveCount(1)
   await expect(zeile).toContainText('BPC-157')
@@ -60,13 +60,17 @@ test('„+“ öffnet die eigene Simulation; alte Links leiten weiter', async ({
   await expect(page).toHaveURL(/\/simulation\/neu\?pk=abc$/)
 })
 
-test('Aktualisieren lädt neu', async ({ page, mock }) => {
+test('Live: zählt alle 5 Sekunden herunter, lädt jede Minute neu – ohne Knopf', async ({ page, mock }) => {
   bpcMitEinnahmen(mock)
   await page.goto('/simulation')
   await expect(page.locator('[data-bs-row]')).toHaveCount(1)
+  await expect(page.locator('[data-bs-refresh]')).toHaveCount(0)
   const anfragen: string[] = []
   page.on('request', r => { if (r.url().includes('dose_logs')) anfragen.push(r.url()) })
-  await page.locator('[data-bs-refresh]').click()
+  await page.clock.runFor(5_000)
+  await expect(page.locator('[data-bs-countdown]')).toHaveText(/^[1-5]$/)
+  expect(anfragen).toHaveLength(0)
+  await page.clock.runFor(60_000)
   await expect.poll(() => anfragen.length).toBeGreaterThan(0)
 })
 

@@ -2286,5 +2286,10 @@
   "my_stack_pk_route_covered": "Das PK-Profil gilt für {{method}} und ist automatisch verknüpft.",
   "my_stack_pk_route_mismatch": "Das PK-Profil gilt für {{routes}}, nicht für {{method}}. Für diese Route gibt es keine Kurve.",
   "my_stack_pk_route_mismatch_save": "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route.",
-  "pk_overview_decayed": "abgeklungen"
+  "pk_overview_decayed": "abgeklungen",
+  "pk_live_auto": "Live — aktualisiert sich alle 5 Sekunden",
+  "pk_nocurve_missing": "fehlt: {{requirements}}",
+  "pk_nocurve_profile": "kein PK-Profil",
+  "pk_nocurve_unit": "Einheit nicht umrechenbar",
+  "pk_nocurve_route": "kein Profil für {{method}}"
 }

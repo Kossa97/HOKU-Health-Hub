@@ -2056,5 +2056,10 @@
   "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
   "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
   "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-  "pk_overview_decayed": "cleared"
+  "pk_overview_decayed": "cleared",
+  "pk_live_auto": "Live — updates itself every 5 seconds",
+  "pk_nocurve_missing": "missing: {{requirements}}",
+  "pk_nocurve_profile": "no PK profile",
+  "pk_nocurve_unit": "unit not convertible",
+  "pk_nocurve_route": "no profile for {{method}}"
 }

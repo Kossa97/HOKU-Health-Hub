@@ -1088,6 +1088,11 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_pk_route_mismatch',
   'my_stack_pk_route_mismatch_save',
   'pk_overview_decayed',
+  'pk_live_auto',
+  'pk_nocurve_missing',
+  'pk_nocurve_profile',
+  'pk_nocurve_unit',
+  'pk_nocurve_route',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

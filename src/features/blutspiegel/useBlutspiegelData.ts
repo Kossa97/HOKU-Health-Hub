@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
   buildEntryCurve,
@@ -10,10 +10,14 @@ import {
   type ReadyEntry,
 } from './entries'
 
-// PK-Kurven aendern sich im Minuten- bis Stundentakt. Einmal pro Minute
-// werden Eintraege und Einnahmen neu geladen und die Kurve bis „jetzt"
-// neu gerechnet — oefter lohnt sich nicht.
+// Zwei Takte. Alle fuenf Sekunden wird die Kurve bis „jetzt" neu gerechnet —
+// lokal, ohne Abfrage; das ist der Live-Takt mit Countdown. Einmal pro Minute
+// werden Eintraege und Einnahmen neu geladen: oefter aendern sie sich nicht,
+// und jede Abfrage kostet.
+export const BLUTSPIEGEL_TAKT_MS = 5_000
 export const BLUTSPIEGEL_REFRESH_MS = 60_000
+/** So lange dreht sich das Symbol nach einem Takt — sichtbar, nicht hektisch. */
+const TAKT_ANZEIGE_MS = 700
 
 export interface BlutspiegelData {
   loading: boolean
@@ -21,12 +25,12 @@ export interface BlutspiegelData {
   entries: BlutspiegelEntry[]
   ready: ReadyEntry[]
   curves: Map<string, EntryCurve>
-  /** Zeitpunkt des letzten Abrufs (Unix ms) — „jetzt" fuer die Ansicht. */
+  /** Stand der Kurve (Unix ms) — „jetzt" fuer die Ansicht, alle 5 s neu. */
   asOf: number
-  /** Ein Abruf laeuft gerade (auch der minuetliche im Hintergrund). */
+  /** Gerade wird neu gerechnet oder geladen (fuer das drehende Symbol). */
   refreshing: boolean
-  /** Sofort neu laden (Aktualisieren-Knopf). */
-  refresh: () => void
+  /** Wann der naechste Takt kommt (Unix ms) — fuer den Countdown. */
+  naechsterTakt: number
 }
 
 interface Loaded {
@@ -59,17 +63,22 @@ export function useBlutspiegelData(): BlutspiegelData {
   const [loaded, setLoaded] = useState<Loaded | null>(() => (zwischenstand && zwischenstand.userId === userId ? zwischenstand : null))
   const [error, setError] = useState(false)
 
-  const [refreshing, setRefreshing] = useState(false)
-  const runRef = useRef<() => void>(() => {})
+  const [laedt, setLaedt] = useState(false)
+  const [takt, setTakt] = useState(() => ({ jetzt: Date.now(), naechster: Date.now() + BLUTSPIEGEL_TAKT_MS }))
+  const [dreht, setDreht] = useState(false)
+  const fehlerRef = useRef(false)
 
   useEffect(() => {
     if (!userId) return
     let cancelled = false
     let inFlight = false
-    const run = () => {
+    let letzterAbruf = 0
+    let anzeige = 0
+    const laden = () => {
       if (inFlight) return
       inFlight = true
-      setRefreshing(true)
+      letzterAbruf = Date.now()
+      setLaedt(true)
       fetchAll(userId)
         .then(data => {
           if (cancelled) return
@@ -77,24 +86,36 @@ export function useBlutspiegelData(): BlutspiegelData {
           zwischenstand = neu
           setLoaded(neu)
           setError(false)
+          fehlerRef.current = false
         })
-        .catch(() => { if (!cancelled) setError(true) })
-        .finally(() => { inFlight = false; if (!cancelled) setRefreshing(false) })
+        .catch(() => { if (!cancelled) { setError(true); fehlerRef.current = true } })
+        .finally(() => { inFlight = false; if (!cancelled) setLaedt(false) })
     }
-    runRef.current = run
-    run()
-    const id = window.setInterval(run, BLUTSPIEGEL_REFRESH_MS)
-    return () => { cancelled = true; runRef.current = () => {}; window.clearInterval(id) }
+    const tick = () => {
+      const jetzt = Date.now()
+      setTakt({ jetzt, naechster: jetzt + BLUTSPIEGEL_TAKT_MS })
+      setDreht(true)
+      window.clearTimeout(anzeige)
+      anzeige = window.setTimeout(() => { if (!cancelled) setDreht(false) }, TAKT_ANZEIGE_MS)
+      // Nach einem Fehler beim naechsten Takt erneut versuchen, sonst einmal pro Minute.
+      if (fehlerRef.current || jetzt - letzterAbruf >= BLUTSPIEGEL_REFRESH_MS) laden()
+    }
+    laden()
+    setTakt({ jetzt: Date.now(), naechster: Date.now() + BLUTSPIEGEL_TAKT_MS })
+    const id = window.setInterval(tick, BLUTSPIEGEL_TAKT_MS)
+    return () => { cancelled = true; window.clearInterval(id); window.clearTimeout(anzeige) }
   }, [userId])
-
-  const refresh = useCallback(() => runRef.current(), [])
 
   const current = loaded && loaded.userId === userId ? loaded : null
   const entries = useMemo(() => current?.entries ?? [], [current])
   const ready = useMemo(() => entries.filter((e): e is ReadyEntry => e.kind === 'ready'), [entries])
+  // Neu gerechnet bei jedem Takt: die Kurve endet „jetzt" (buildEntryCurve
+  // rechnet bis zur aktuellen Uhrzeit).
   const curves = useMemo(
     () => new Map(ready.map(entry => [entry.key, buildEntryCurve(entry, current?.histories.get(entry.cycleId))])),
-    [ready, current],
+    // takt.jetzt ist Absicht: ohne ihn bliebe die Kurve auf dem Stand des letzten Abrufs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ready, current, takt.jetzt],
   )
 
   return {
@@ -103,8 +124,8 @@ export function useBlutspiegelData(): BlutspiegelData {
     entries,
     ready,
     curves,
-    asOf: current?.asOf ?? 0,
-    refreshing,
-    refresh,
+    asOf: current ? Math.max(current.asOf, takt.jetzt) : 0,
+    refreshing: laedt || dreht,
+    naechsterTakt: takt.naechster,
   }
 }

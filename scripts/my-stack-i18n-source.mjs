@@ -1079,6 +1079,11 @@ export const MY_STACK_EN = {
   my_stack_pk_route_mismatch: "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
   my_stack_pk_route_mismatch_save: "There is no PK profile for this route. Choose a matching route in the intake plan.",
   pk_overview_decayed: "cleared",
+  pk_live_auto: "Live — updates itself every 5 seconds",
+  pk_nocurve_missing: "missing: {{requirements}}",
+  pk_nocurve_profile: "no PK profile",
+  pk_nocurve_unit: "unit not convertible",
+  pk_nocurve_route: "no profile for {{method}}",
 }
 
 export const MY_STACK_DE = {
@@ -2161,6 +2166,11 @@ export const MY_STACK_DE = {
   my_stack_pk_route_mismatch: "Das PK-Profil gilt für {{routes}}, nicht für {{method}}. Für diese Route gibt es keine Kurve.",
   my_stack_pk_route_mismatch_save: "Für diese Route gibt es kein PK-Profil. Wähle im Einnahmeplan eine passende Route.",
   pk_overview_decayed: "abgeklungen",
+  pk_live_auto: "Live — aktualisiert sich alle 5 Sekunden",
+  pk_nocurve_missing: "fehlt: {{requirements}}",
+  pk_nocurve_profile: "kein PK-Profil",
+  pk_nocurve_unit: "Einheit nicht umrechenbar",
+  pk_nocurve_route: "kein Profil für {{method}}",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

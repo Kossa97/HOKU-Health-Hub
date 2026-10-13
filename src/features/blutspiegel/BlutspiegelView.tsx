@@ -152,15 +152,17 @@ function StatTable({ rows }: { rows: Array<{ label: string; value: string }> }) 
 
 function UnsupportedRow({ entry }: { entry: UnsupportedEntry }) {
   const { t } = useTranslation()
+  // Eine Zeile: Name und der kurze Grund; der ausfuehrliche steht im Tooltip.
+  const lang = entry.reason === 'unit_conversion' ? t('pk_unsupported_unit')
+    : entry.reason === 'route' ? t('pk_unsupported_route', { method: methodLabel(t, entry.method) })
+      : t('pk_unsupported_profile')
+  const kurz = entry.reason === 'unit_conversion' ? t('pk_nocurve_unit')
+    : entry.reason === 'route' ? t('pk_nocurve_route', { method: methodLabel(t, entry.method) })
+      : t('pk_nocurve_profile')
   return (
-    <div style={{ padding: '12px 0', borderTop: HAIRLINE }}>
-      <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{entry.name}</p>
-      <p style={{ marginTop: 2, fontSize: 13, color: 'var(--text-dim)' }}>{t('pk_unavailable_title')}</p>
-      <p style={{ marginTop: 2, fontSize: 12, lineHeight: 1.5, ...MUTED }}>
-        {entry.reason === 'unit_conversion' ? t('pk_unsupported_unit')
-          : entry.reason === 'route' ? t('pk_unsupported_route', { method: methodLabel(t, entry.method) })
-            : t('pk_unsupported_profile')}
-      </p>
+    <div className="flex min-h-[52px] items-baseline gap-2 py-3.5" style={{ borderTop: HAIRLINE }} title={lang} data-bs-nocurve={entry.reason}>
+      <span className="shrink-0 text-[15px] font-bold" style={{ color: 'var(--text)' }}>{entry.name}</span>
+      <span className="truncate text-[13px]" style={MUTED}>{kurz}</span>
     </div>
   )
 }
@@ -255,20 +257,23 @@ function MissingRow({ entry }: { entry: MissingEntry }) {
     unit: t('pk_requirement_unit'),
     time: t('pk_requirement_time'),
   }
+  // Eine Zeile: Name und was fehlt. Die ganze Zeile fuehrt zum Ergaenzen.
   return (
-    <div style={{ padding: '12px 0', borderTop: HAIRLINE }}>
-      <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{entry.name}</p>
-      <p style={{ marginTop: 2, fontSize: 13, color: 'var(--text-dim)' }}>{t('pk_missing_title')}</p>
-      <p style={{ marginTop: 2, fontSize: 12, lineHeight: 1.5, ...MUTED }}>
-        {t('pk_missing_copy', { requirements: entry.missing.map(r => labels[r]).join(', ') })}
-      </p>
-      <Link
-        to={`/my-stack?edit=${encodeURIComponent(entry.stackItemId)}&intent=pk`}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 44, fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}
-      >
-        {t('pk_complete_action')} <ChevronRight size={16} />
-      </Link>
-    </div>
+    <Link
+      to={`/my-stack?edit=${encodeURIComponent(entry.stackItemId)}&intent=pk`}
+      aria-label={`${entry.name}: ${t('pk_complete_action')}`}
+      className="-mx-3 flex min-h-[52px] items-center gap-3 rounded-xl px-3 transition-colors duration-100 active:bg-[var(--surface-raised)]"
+      style={{ borderTop: HAIRLINE, color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
+      data-bs-nocurve="missing"
+    >
+      <span className="flex min-w-0 flex-1 items-baseline gap-2">
+        <span className="shrink-0 text-[15px] font-bold">{entry.name}</span>
+        <span className="truncate text-[13px]" style={MUTED}>
+          {t('pk_nocurve_missing', { requirements: entry.missing.map(r => labels[r]).join(', ') })}
+        </span>
+      </span>
+      <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
+    </Link>
   )
 }
 
@@ -344,7 +349,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p role="alert" style={{ fontSize: 14, ...MUTED }}>{t('pk_data_load_error')}</p>
-        <LiveStatus asOf={asOf} refreshing={data.refreshing} onRefresh={data.refresh} interrupted />
+        <LiveStatus asOf={asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} interrupted />
       </div>
     )
   }
@@ -436,7 +441,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           {!compact && <p style={{ fontSize: 13, ...MUTED, marginTop: 2 }}>{t('pk_model_note')}</p>}
         </div>
         <div style={{ marginTop: 6 }}>
-          <LiveStatus asOf={asOf} refreshing={data.refreshing} onRefresh={data.refresh} interrupted={curve?.interruptedAt != null} />
+          <LiveStatus asOf={asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} interrupted={curve?.interruptedAt != null} />
         </div>
         {curve?.interruptedAt != null && (
           <p role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>{t('pk_interrupted')}</p>

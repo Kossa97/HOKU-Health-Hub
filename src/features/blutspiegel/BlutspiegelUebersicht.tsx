@@ -98,7 +98,7 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
 }
 
 /** Kopf wie die Aktienliste: Titel, „+“ für die eigene Simulation, Live-Stand. */
-function Kopf({ asOf, refreshing, onRefresh }: { asOf: number; refreshing: boolean; onRefresh: () => void }) {
+function Kopf({ asOf, refreshing, naechsterTakt }: { asOf: number; refreshing: boolean; naechsterTakt: number }) {
   const { t } = useBlutspiegelFormat()
   return (
     <header className="grid items-start gap-x-3" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
@@ -114,7 +114,7 @@ function Kopf({ asOf, refreshing, onRefresh }: { asOf: number; refreshing: boole
         <Plus size={22} />
       </Link>
       <div className="col-span-2 mt-1">
-        <LiveStatus asOf={asOf} refreshing={refreshing} onRefresh={onRefresh} />
+        <LiveStatus asOf={asOf} refreshing={refreshing} naechsterTakt={naechsterTakt} />
       </div>
     </header>
   )
@@ -126,7 +126,7 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const f = useBlutspiegelFormat()
   const { t } = f
   const missing = data.entries.filter((e): e is MissingEntry | UnsupportedEntry => e.kind !== 'ready')
-  const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} onRefresh={data.refresh} />
+  const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} />
 
   if (data.error) return <div className="flex flex-col gap-4">{kopf}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p>{children}</div>
   if (data.loading) {

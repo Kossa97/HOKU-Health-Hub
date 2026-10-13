@@ -1078,7 +1078,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2159,7 +2164,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3240,7 +3250,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4321,7 +4336,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5402,7 +5422,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6483,7 +6508,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7564,7 +7594,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8645,7 +8680,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9726,7 +9766,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10807,7 +10852,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11888,7 +11938,12 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12969,6 +13024,11 @@
     "my_stack_pk_route_covered": "The PK profile applies to {{method}} and is linked automatically.",
     "my_stack_pk_route_mismatch": "The PK profile applies to {{routes}}, not to {{method}}. There is no curve for this route.",
     "my_stack_pk_route_mismatch_save": "There is no PK profile for this route. Choose a matching route in the intake plan.",
-    "pk_overview_decayed": "cleared"
+    "pk_overview_decayed": "cleared",
+    "pk_live_auto": "Live — updates itself every 5 seconds",
+    "pk_nocurve_missing": "missing: {{requirements}}",
+    "pk_nocurve_profile": "no PK profile",
+    "pk_nocurve_unit": "unit not convertible",
+    "pk_nocurve_route": "no profile for {{method}}"
   }
 }

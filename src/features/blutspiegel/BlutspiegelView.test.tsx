@@ -82,7 +82,7 @@ describe('BlutspiegelView', () => {
     withData([ready, { kind: 'unsupported', key: 'c3', cycleId: 'c3', stackItemId: 's3', name: 'HCG', reason: 'unit_conversion' }])
     render(<MemoryRouter><BlutspiegelView variant="full" /></MemoryRouter>)
     expect(await screen.findByText('HCG')).toBeTruthy()
-    expect(screen.getByText('pk_unsupported_unit')).toBeTruthy()
+    expect(screen.getByText('pk_nocurve_unit')).toBeTruthy()
   })
 
   it('zeigt bei unterbrochenem Zyklus keine Veraenderung im Zeitraum', async () => {
@@ -100,7 +100,7 @@ describe('BlutspiegelView', () => {
   it('zeigt ohne fertige Kurve nur, was fehlt', async () => {
     withData([missing])
     render(<MemoryRouter><BlutspiegelView variant="compact" /></MemoryRouter>)
-    expect(await screen.findByText('pk_missing_title')).toBeTruthy()
+    expect(await screen.findByText(/^pk_nocurve_missing/)).toBeTruthy()
     expect(screen.queryByRole('img')).toBeNull()
   })
 
@@ -134,19 +134,26 @@ describe('BlutspiegelSimulation', () => {
     const zeile = await screen.findByRole('link', { name: /BPC-157/ })
     expect(zeile.getAttribute('href')).toBe('/simulation/cycle-1%3Apk-1')
     expect(screen.getByRole('link', { name: 'pk_manual_open' }).getAttribute('href')).toBe('/simulation/neu')
-    expect(screen.getByRole('button', { name: 'pk_refresh' })).toBeTruthy()
+    // Live statt Knopf: der Stand erneuert sich selbst, mit Countdown.
+    expect(screen.queryByRole('button', { name: 'pk_refresh' })).toBeNull()
+    expect(screen.getByRole('status', { name: 'pk_live_auto' })).toBeTruthy()
     expect(screen.getByText('TB-500')).toBeTruthy()
     // Keine Kurve und keine manuelle Simulation mehr auf der Übersicht
     expect(screen.queryByRole('img')).toBeNull()
     expect(screen.queryByRole('button', { name: /pk_manual_title/ })).toBeNull()
   })
 
-  it('Aktualisieren lädt sofort neu', async () => {
+  it('zaehlt alle 5 Sekunden herunter und rechnet neu, ohne die Datenbank zu fragen', async () => {
+    vi.useFakeTimers()
     withData([ready])
     render(<MemoryRouter initialEntries={['/simulation']}><BlutspiegelSimulation /></MemoryRouter>)
-    await screen.findByRole('link', { name: /BPC-157/ })
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
+    const zahl = () => document.querySelector('[data-bs-countdown]')?.textContent
+    expect(zahl()).toBe('5')
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_100) })
+    expect(zahl()).toBe('3')
+    await act(async () => { await vi.advanceTimersByTimeAsync(3_000) })
+    expect(zahl()).toBe('5')
     expect(loadBlutspiegelEntries).toHaveBeenCalledTimes(1)
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'pk_refresh' })) })
-    expect(loadBlutspiegelEntries).toHaveBeenCalledTimes(2)
   })
 })
