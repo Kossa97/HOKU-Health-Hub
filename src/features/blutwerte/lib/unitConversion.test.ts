@@ -133,3 +133,23 @@ describe('systemUnit und unitChoices', () => {
     expect(unitChoices('TSH', 'mIU/L', ['mU/l', 'µIU/mL'])).toEqual(['mIU/L'])
   })
 })
+
+describe('Laborschreibweisen', () => {
+  it('kennt „E“ als Einheit: µE/ml ist µIU/mL', () => {
+    expect(convert(2.6, 'µE/ml', 'µIU/mL', 'Insulin')).toBeCloseTo(2.6)
+    expect(convert(2.6, 'uE/ml', 'mIU/L', 'Insulin')).toBeCloseTo(2.6)
+  })
+
+  it('rechnet Hämatokrit zwischen l/l und % um, aber keinen relativen Zellanteil in eine Zellzahl', () => {
+    expect(convert(0.45, 'l/l', '%', 'Hämatokrit')).toBeCloseTo(45)
+    expect(convert(1, '%', 'G/l', 'Basophile')).toBeNull()
+  })
+
+  it('liest „mIU/mL“ bei TSH als µIU/mL — der Bereich springt nicht mehr um den Faktor 1000', () => {
+    expect(convert(4.2, 'mIU/l', 'mIU/mL', 'TSH')).toBeCloseTo(4.2)
+    expect(convert(2, 'mIU/mL', 'mIU/L', 'TSH')).toBeCloseTo(2)
+    // Bei LH und FSH ist mIU/mL richtig und bleibt, was es ist
+    expect(convert(5, 'mIU/mL', 'IU/L', 'LH')).toBeCloseTo(5)
+    expect(convert(5, 'mIU/mL', 'mIU/L', 'LH')).toBeCloseTo(5000)
+  })
+})

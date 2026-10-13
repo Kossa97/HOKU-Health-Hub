@@ -11,7 +11,7 @@
 import { MARKER_CATALOG } from './markerCatalog'
 import { MARKER_BRIDGES } from './unitBridges'
 
-type Family = 'mass' | 'molar' | 'iu' | 'enzyme' | 'cells'
+type Family = 'mass' | 'molar' | 'iu' | 'enzyme' | 'cells' | 'anteil'
 
 /** Faktor je Einheit zur Basis ihrer Familie. */
 const FAMILIES: Record<Family, Record<string, number>> = {
@@ -27,9 +27,14 @@ const FAMILIES: Record<Family, Record<string, number>> = {
   iu: {
     'iu/l': 1, 'iu/ml': 1e3, 'miu/ml': 1, 'miu/l': 1e-3, 'µiu/ml': 1e-3,
     'mu/ml': 1, 'mu/l': 1e-3, 'µu/ml': 1e-3, 'ie/l': 1, 'mie/ml': 1, 'mie/l': 1e-3, 'µie/ml': 1e-3,
+    // „E“ = Einheit, so schreiben deutsche Labore: µE/ml ist µIU/mL.
+    'e/l': 1, 'me/ml': 1, 'me/l': 1e-3, 'µe/ml': 1e-3,
   },
   // Basis U/L (1 U = 1 µmol/min = 1/60 µkat)
   enzyme: { 'u/l': 1, 'ku/l': 1e3, 'µkat/l': 60, 'nkat/l': 0.06 },
+  // Volumenanteil (Hämatokrit): 0,45 l/l = 45 %. Ein „%“ bei Zellzahlen ist
+  // ein relativer Anteil und bleibt ohne Umrechnung in G/l.
+  anteil: { 'l/l': 1, '%': 0.01 },
   // Basis /nL (= 10^9/L = G/L)
   cells: {
     '/nl': 1, '10^9/l': 1, 'tsd/µl': 1, '/µl': 1e-3, '/pl': 1e3,
@@ -45,12 +50,25 @@ export function normalizeUnitString(unit: string): string {
     .replace(/\s+/g, '')
     .replace(/^mc/, 'µ')          // mcg -> µg
     .replace(/^u(?=g\/)/, 'µ')    // ug/... -> µg/...
-    .replace(/^u(?=(iu|u)\/)/, 'µ') // uIU/mL, uU/mL -> µ...
+    .replace(/^u(?=(iu|u|e|ie)\/)/, 'µ') // uIU/mL, uU/mL, uE/ml -> µ...
     .replace(/^u(?=mol\/)/, 'µ')  // umol/L -> µmol/L
     .replace(/×/g, 'x')
     .replace(/^x?10\*?\^?9\/l$/, '10^9/l')
     .replace(/^x?10\*?\^?12\/l$/, '10^12/l')
     .replace(/^g\/nl$/, '/nl')
+}
+
+/**
+ * Bekannte Verschreiber, je Marker. TSH steht im Blut bei rund 0,4–4 mIU/L;
+ * „mIU/mL“ waere tausendmal mehr und kommt so nicht vor — gemeint ist µIU/mL
+ * (= mIU/L). Woertlich genommen sprang der Bereich um den Faktor 1000.
+ */
+const VERSCHRIEBEN: Record<string, Record<string, string>> = {
+  TSH: { 'miu/ml': 'µiu/ml', 'mu/ml': 'µu/ml', 'mie/ml': 'µie/ml', 'me/ml': 'µe/ml' },
+}
+
+function gemeinteEinheit(unit: string, marker: string | undefined): string {
+  return (marker && VERSCHRIEBEN[marker]?.[unit]) || unit
 }
 
 /** Familie der Katalog-Einheit eines Markers — klaert mehrdeutige Kuerzel. */
@@ -91,8 +109,8 @@ function factorOf(unit: string, family: Family): number {
  */
 export function convert(value: number, from: string, to: string, marker?: string): number | null {
   if (!Number.isFinite(value)) return null
-  const a = normalizeUnitString(from)
-  const b = normalizeUnitString(to)
+  const a = gemeinteEinheit(normalizeUnitString(from), marker)
+  const b = gemeinteEinheit(normalizeUnitString(to), marker)
   if (a === b) return value
   if (!a || !b) return null
   const context = markerFamily(marker)
