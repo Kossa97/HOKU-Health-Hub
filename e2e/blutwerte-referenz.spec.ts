@@ -4,7 +4,8 @@ import { TEST_USER, type MockSupabase } from './support/mockSupabase'
 /**
  * Referenzbereiche nach Geschlecht und Alter: ohne Angaben gilt der allgemeine
  * Bereich und die Seite bietet die Angaben an; danach gilt der Bereich der
- * Gruppe. Ein Laborbereich am Befund geht immer vor.
+ * Gruppe. Ein Laborbereich am Befund steht bei der Messung; bewertet wird nach
+ * dem Bereich aus der Quelle, damit das Band ueber Labore hinweg gleich bleibt.
  */
 
 function testosteron(mock: MockSupabase, felder: Record<string, unknown> = {}) {
@@ -45,18 +46,20 @@ test('Hinweis öffnet die Angaben; danach gilt der Bereich für Männer', async 
   await expect(page.locator('[data-bw-hero] [data-bw-range-source]').first()).toHaveText('(Männer)')
 })
 
-test('Laborbereich geht vor; ausgeblendeter Hinweis bleibt weg', async ({ page, mock }) => {
+test('Quelle geht vor, der Laborbereich steht bei der Messung; ausgeblendeter Hinweis bleibt weg', async ({ page, mock }) => {
+  // 300 liegt unter dem Laborbereich 350–1000, aber im Bereich fuer Maenner (271–1070)
   testosteron(mock, { ref_min: 350, ref_max: 1000 })
   const profil = eigenesProfil(mock)
   profil.birth_date = '1980-03-15'
   profil.bio_sex = 'male'
   await page.goto('/blutwerte')
 
-  await expect(page.getByRole('button', { name: 'Auffällige (1)' })).toBeVisible()
   await expect(page.locator('[data-bio-hint]')).toHaveCount(0)
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
   await page.getByRole('button', { name: /Testosteron/ }).first().click()
-  await expect(page.locator('[data-bw-hero] [data-bw-range-source]').first()).toHaveText('(Labor)')
+  await expect(page.locator('[data-bw-hero] [data-bw-range-source]').first()).toHaveText('(Männer)')
+  await expect(page.locator('[data-bw-status]')).toHaveText('Im Normalbereich')
+  await expect(page.locator('[data-bw-entry-edit]').first()).toContainText('Labor 350–1.000 ng/dL')
 })
 
 test('Hinweis lässt sich ausblenden', async ({ page, mock }) => {

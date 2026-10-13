@@ -1088,7 +1088,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2179,7 +2180,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3270,7 +3272,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4361,7 +4364,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5452,7 +5456,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6543,7 +6548,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7634,7 +7640,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8725,7 +8732,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9816,7 +9824,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10907,7 +10916,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11998,7 +12008,8 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13089,6 +13100,7 @@
     "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
     "my_stack_plan_today": "Today",
     "my_stack_plan_tomorrow": "Tomorrow",
-    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+    "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+    "bw_lab_range_note": "lab {{range}}"
   }
 }

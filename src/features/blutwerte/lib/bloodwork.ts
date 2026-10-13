@@ -5,7 +5,7 @@ import { convert, normalizeUnitString, systemUnit, type UnitSystem } from './uni
 import { markerName } from './markerCatalog.en'
 import { aktiveSprache } from './sprache'
 import type { BioProfile } from './bioProfile'
-import { profilBereich, type RangeGroup } from './referenzbereiche'
+import { REFERENZBEREICHE, profilBereich, type RangeGroup } from './referenzbereiche'
 
 export interface EffectiveRange {
   min: number | null
@@ -59,25 +59,36 @@ export function toNumber(value: number | string): number {
 }
 
 /**
- * Reihenfolge: Labor-Referenz am Eintrag, dann der Bereich für Geschlecht und
- * Alter am Messtag (wenn im Profil angegeben), dann der allgemeine
- * Katalogbereich; sonst kein Bereich.
+ * Reihenfolge: zuerst der Bereich aus der Quelle — fuer Geschlecht und Alter
+ * am Messtag (IQWiG, MedlinePlus; wenn im Profil angegeben), sonst der
+ * allgemeine Katalogbereich. Der Laborbereich am Eintrag gilt nur, wo es
+ * keinen Quellbereich gibt.
+ *
+ * Warum nicht das Labor zuerst: jedes Labor hat seinen eigenen Bereich, und
+ * ueber einen Verlauf aus mehreren Laboren sprang das Band dann von Messung
+ * zu Messung. Ein Bereich aus einer festen Quelle macht die Werte ueber die
+ * Zeit vergleichbar. Der Laborbereich bleibt an der Messung sichtbar.
+ *
+ * Hat ein Marker Bereiche je Geschlecht, gilt der allgemeine Katalogbereich
+ * ohne Profilangabe nicht — er waere fuer das andere Geschlecht falsch; dann
+ * lieber der Bereich des Labors.
  */
 export function effectiveRange(
   entry: Pick<BloodworkEntry, 'ref_min' | 'ref_max' | 'tested_at' | 'menopause'> | null,
   def: MarkerDef | null,
   profil?: BioProfile | null,
 ): EffectiveRange {
-  if (entry && (entry.ref_min != null || entry.ref_max != null)) {
-    return { min: entry.ref_min ?? null, max: entry.ref_max ?? null, source: 'lab' }
-  }
+  const labor = entry && (entry.ref_min != null || entry.ref_max != null)
+    ? { min: entry.ref_min ?? null, max: entry.ref_max ?? null, source: 'lab' as const }
+    : null
   const gruppe = def && entry ? profilBereich(def.name, profil, entry.tested_at, entry.menopause ?? null) : null
-  if (gruppe?.art === 'keinStandard') return { min: null, max: null, source: 'none', keinStandard: gruppe.gruppe }
   if (gruppe?.art === 'bereich') return { min: gruppe.min, max: gruppe.max, source: 'catalog', gruppe: gruppe.gruppe }
-  if (def && (def.refMin != null || def.refMax != null)) {
+  if (gruppe?.art === 'keinStandard') return labor ?? { min: null, max: null, source: 'none', keinStandard: gruppe.gruppe }
+  const jeGeschlecht = def != null && def.name in REFERENZBEREICHE
+  if (def && !(jeGeschlecht && labor) && (def.refMin != null || def.refMax != null)) {
     return { min: def.refMin ?? null, max: def.refMax ?? null, source: 'catalog' }
   }
-  return { min: null, max: null, source: 'none' }
+  return labor ?? { min: null, max: null, source: 'none' }
 }
 
 /**

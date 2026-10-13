@@ -2296,5 +2296,6 @@
   "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
   "my_stack_plan_today": "Today",
   "my_stack_plan_tomorrow": "Tomorrow",
-  "pk_overview_intro": "How your substances move through your blood, in real time — estimated from your confirmed doses."
+  "pk_overview_intro": "How your substances move through your blood, in real time — estimated from your confirmed doses.",
+  "bw_lab_range_note": "lab {{range}}"
 }

@@ -75,6 +75,14 @@ function monthTicks(start: number, end: number, widthPx: number): { ticks: numbe
   return { ticks, step: every * 30 * TAG_MS }
 }
 
+
+/** „3,49–11,1 µg/l“, „< 25 mg/l“, „> 40 mg/dl“ — der Bereich, wie das Labor ihn angibt. */
+function bereichText(min: number | null, max: number | null, einheit: string): string {
+  const text = min != null && max != null ? `${formatNumber(min)}–${formatNumber(max)}`
+    : max != null ? `< ${formatNumber(max)}` : `> ${formatNumber(min as number)}`
+  return `${text} ${einheit}`.trim()
+}
+
 export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onEdit, unitSystem = 'konventionell', markerUnit = null, onMarkerUnit, profil }: Props) {
   const { t, i18n } = useTranslation()
   const sprache = i18n.resolvedLanguage ?? i18n.language
@@ -136,14 +144,21 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     value: (v: number) => `${formatNumber(v)} ${unit}`,
   }), [unit])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
-  // Jede Messung hat ihren eigenen Bereich (Labor, Altersgruppe, allgemein). Weichen
-  // sie voneinander ab, wechselt das Band ab der jeweiligen Messung — sonst ein Band.
+  // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
+  // Gruppe aendert (neue Altersgruppe, Wechseljahre). Gilt mangels Quelle der
+  // Laborbereich, steht fuer den ganzen Verlauf der der neuesten Messung —
+  // sonst sprang das Band bei jedem Laborwechsel.
   const steps = useMemo(() => {
-    const roh = summary.points
-      .filter(p => p.value != null)
+    const mitWert = summary.points.filter(p => p.value != null)
+    const neuesteMitLabor = mitWert
+      .filter(p => entryRange(p.entry, def, unit, profil).source === 'lab')
+      .sort((a, b) => b.entry.tested_at.localeCompare(a.entry.tested_at))[0]
+    const laborBereich = neuesteMitLabor ? entryRange(neuesteMitLabor.entry, def, unit, profil) : null
+    const roh = mitWert
       .map(p => {
         // Gerundet wie der Bereich im Kasten, damit Band und Text uebereinstimmen
-        const r = entryRange(p.entry, def, unit, profil)
+        const eigen = entryRange(p.entry, def, unit, profil)
+        const r = eigen.source === 'lab' && laborBereich ? laborBereich : eigen
         return { from: tagMs(p.entry.tested_at) + HALBER_TAG, lo: r.min, hi: r.max }
       })
       .sort((a, b) => a.from - b.from)
@@ -421,7 +436,13 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             const status = entryInRange(e, def, unit, profil)
             const pillColor = status === false ? PILL_RED : status === true ? PILL_GREEN : PILL_GRAY
             const lab = e.report_id ? labNamen.get(e.report_id) : null
-            const source = e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : t('bw_source_manual')
+            // Der Bereich des Labors bleibt an der Messung sichtbar, auch wenn die
+            // Bewertung dem Bereich aus der Quelle folgt.
+            const laborBereich = e.ref_min != null || e.ref_max != null
+              ? t('bw_lab_range_note', { range: bereichText(e.ref_min, e.ref_max, e.unit) })
+              : null
+            const source = [e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : t('bw_source_manual'), laborBereich]
+              .filter(Boolean).join(' · ')
             return (
               <li key={e.id}>
                 <button

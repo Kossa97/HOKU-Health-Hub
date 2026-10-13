@@ -40,7 +40,8 @@ test.describe('auf Englisch', () => {
     await page.getByRole('button', { name: /Cortisol/ }).first().click()
     await expect(page.getByRole('heading', { name: 'Cortisol' })).toBeVisible()
     await expect(page.getByText('The central stress hormone.', { exact: false })).toBeVisible()
-    await expect(page.locator('[data-bw-status]')).toHaveText('5 µg/dL above range')
+    // Bewertet nach dem Bereich aus der Quelle, nicht nach dem des Labors
+    await expect(page.locator('[data-bw-status]')).toHaveText(/µg\/dL above range$/)
     await expect(page.getByRole('heading', { name: 'Notes and causes' })).toBeVisible()
     await expect(page.getByText('09/15/2026')).toBeVisible()
   })

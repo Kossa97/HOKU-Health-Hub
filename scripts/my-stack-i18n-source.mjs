@@ -1089,6 +1089,7 @@ export const MY_STACK_EN = {
   my_stack_plan_today: "Today",
   my_stack_plan_tomorrow: "Tomorrow",
   pk_overview_intro: "How your substances move through your blood, in real time — estimated from your confirmed doses.",
+  bw_lab_range_note: "lab {{range}}",
 }
 
 export const MY_STACK_DE = {
@@ -2181,6 +2182,7 @@ export const MY_STACK_DE = {
   my_stack_plan_today: "Heute",
   my_stack_plan_tomorrow: "Morgen",
   pk_overview_intro: "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
+  bw_lab_range_note: "Labor {{range}}",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

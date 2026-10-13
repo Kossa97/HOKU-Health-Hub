@@ -2296,5 +2296,6 @@
   "my_stack_rhythm_weeks_on": "Alle {{n}} Wochen am {{tag}}",
   "my_stack_plan_today": "Heute",
   "my_stack_plan_tomorrow": "Morgen",
-  "pk_overview_intro": "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen."
+  "pk_overview_intro": "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
+  "bw_lab_range_note": "Labor {{range}}"
 }

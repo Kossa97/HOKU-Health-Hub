@@ -2066,5 +2066,6 @@
   "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
   "my_stack_plan_today": "Today",
   "my_stack_plan_tomorrow": "Tomorrow",
-  "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses."
+  "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
+  "bw_lab_range_note": "lab {{range}}"
 }

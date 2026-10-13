@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BloodworkEntry } from '../types'
-import { MARKER_CATALOG, normalizeMarker } from './markerCatalog'
+import { MARKER_CATALOG, normalizeMarker, type MarkerDef } from './markerCatalog'
 import { alterAm, profilBereich, REFERENZBEREICHE, WECHSELJAHR_MARKER } from './referenzbereiche'
 import { buildMarkerSummaries, effectiveRange, entryInRange, entryRange } from './bloodwork'
 import { bereichsHerkunft } from './bereichsHerkunft'
@@ -102,8 +102,18 @@ describe('profilBereich', () => {
 describe('effectiveRange mit Profil', () => {
   const def = normalizeMarker('Testosteron')
 
-  it('Labor schlägt Gruppe', () => {
-    expect(effectiveRange(entry({ ref_min: 250, ref_max: 800 }), def, mann)).toEqual({ min: 250, max: 800, source: 'lab' })
+  it('Quelle schlägt Labor: ein Band ueber den ganzen Verlauf, egal welches Labor', () => {
+    expect(effectiveRange(entry({ ref_min: 250, ref_max: 800 }), def, mann))
+      .toEqual({ min: 271, max: 1070, source: 'catalog', gruppe: { sex: 'male', ageMin: 18, ageMax: undefined } })
+  })
+
+  it('ohne Geschlecht im Profil gilt bei geschlechtsabhaengigen Markern das Labor, nicht der allgemeine Bereich', () => {
+    expect(effectiveRange(entry({ ref_min: 250, ref_max: 800 }), def)).toEqual({ min: 250, max: 800, source: 'lab' })
+  })
+
+  it('ohne Quellbereich gilt das Labor', () => {
+    const ohne = { ...def, name: 'Unbekannt', refMin: undefined, refMax: undefined } as MarkerDef
+    expect(effectiveRange(entry({ ref_min: 1, ref_max: 2 }), ohne, mann)).toEqual({ min: 1, max: 2, source: 'lab' })
   })
 
   it('Gruppe schlägt allgemein', () => {
