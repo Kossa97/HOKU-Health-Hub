@@ -14,6 +14,8 @@
 --     Nutzer ihn genannt hat. Rueckgaengig: catalog_substance_id wieder auf null.
 --
 -- Stand 2026-10-13: trifft 3 Zutaten. Nur aendernd, nichts wird geloescht.
+-- Ausgefuehrt in der Produktion am 2026-10-13: 3 verknuepft (19 Zutaten, davon
+-- vorher 12 verknuepft / 7 Freitext, danach 15 / 4).
 -- Ein zweiter Lauf aendert nichts.
 
 begin;
