@@ -1093,6 +1093,10 @@ const EXPECTED_MY_STACK_KEYS = [
   'pk_nocurve_profile',
   'pk_nocurve_unit',
   'pk_nocurve_route',
+  'my_stack_rhythm_weekly_on',
+  'my_stack_rhythm_weeks_on',
+  'my_stack_plan_today',
+  'my_stack_plan_tomorrow',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

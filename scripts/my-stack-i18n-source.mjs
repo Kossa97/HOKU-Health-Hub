@@ -1084,6 +1084,10 @@ export const MY_STACK_EN = {
   pk_nocurve_profile: "no PK profile",
   pk_nocurve_unit: "unit not convertible",
   pk_nocurve_route: "no profile for {{method}}",
+  my_stack_rhythm_weekly_on: "Every {{tag}}",
+  my_stack_rhythm_weeks_on: "Every {{n}} weeks on {{tag}}",
+  my_stack_plan_today: "Today",
+  my_stack_plan_tomorrow: "Tomorrow",
 }
 
 export const MY_STACK_DE = {
@@ -2171,6 +2175,10 @@ export const MY_STACK_DE = {
   pk_nocurve_profile: "kein PK-Profil",
   pk_nocurve_unit: "Einheit nicht umrechenbar",
   pk_nocurve_route: "kein Profil für {{method}}",
+  my_stack_rhythm_weekly_on: "Jeden {{tag}}",
+  my_stack_rhythm_weeks_on: "Alle {{n}} Wochen am {{tag}}",
+  my_stack_plan_today: "Heute",
+  my_stack_plan_tomorrow: "Morgen",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

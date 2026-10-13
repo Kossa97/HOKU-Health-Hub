@@ -27,6 +27,70 @@ export function rhythmLabel(version: CyclePlanVersion, t: Translate): string {
   return rhythmText(rhythmSummary(versionRhythm(version)), t)
 }
 
+/** Wochentag eines lokalen Datums (YYYY-MM-DD), ausgeschrieben in der App-Sprache. */
+function wochentagLang(localDate: string, language: string): string {
+  return new Intl.DateTimeFormat(language, { weekday: 'long', timeZone: 'UTC' })
+    .format(new Date(`${localDate.slice(0, 10)}T00:00:00.000Z`))
+}
+
+/**
+ * Der Rhythmus mit seinem Wochentag: „Jeden Mittwoch“ statt „Jede Woche“.
+ * Der Tag kommt aus der naechsten Einnahme — die faellt bei einem
+ * Wochenrhythmus immer auf denselben Wochentag, und so rechnet hier niemand
+ * den Anker ein zweites Mal aus. Beim Monatsrhythmus nicht: ein Plan vom 31.
+ * landet im Februar auf dem 28., der Tag waere dort falsch. Ohne naechste
+ * Einnahme bleibt es bei der allgemeinen Fassung.
+ */
+export function rhythmLabelWithDay(
+  version: CyclePlanVersion,
+  t: Translate,
+  language: string,
+  nextLocalDate: string | null | undefined,
+): string {
+  const rhythmus = versionRhythm(version)
+  if (rhythmus.kind !== 'interval' || !nextLocalDate) return rhythmLabel(version, t)
+  const n = rhythmus.intervalValue ?? 1
+  if (rhythmus.intervalUnit === 'week') {
+    const tag = wochentagLang(nextLocalDate, language)
+    return String(n === 1
+      ? t('my_stack_rhythm_weekly_on', { tag, defaultValue: 'Jeden {{tag}}' })
+      : t('my_stack_rhythm_weeks_on', { n, tag, defaultValue: 'Alle {{n}} Wochen am {{tag}}' }))
+  }
+  return rhythmLabel(version, t)
+}
+
+/** Die Zeile unter dem Rhythmus: die Zahl der Einnahmezeiten nur, wenn es mehrere sind. */
+export function slotCountSuffix(slots: number, t: Translate): string {
+  return slots > 1 ? ` · ${slotCountLabel(slots, t)}` : ''
+}
+
+/**
+ * Die naechste Einnahme so, wie man sie sagt: „Heute · 08:00“, „Morgen · 08:00“,
+ * sonst „Mi., 14.10. · 08:00“ — das Jahr nur, wenn es nicht dieses ist.
+ */
+export function nextIntakeLabel(
+  next: { localDate: string; time: string },
+  today: string,
+  language: string,
+  t: Translate,
+): string {
+  const tag = next.localDate.slice(0, 10)
+  const morgen = new Date(`${today}T00:00:00.000Z`)
+  morgen.setUTCDate(morgen.getUTCDate() + 1)
+  const datum = tag === today
+    ? String(t('my_stack_plan_today', { defaultValue: 'Heute' }))
+    : tag === morgen.toISOString().slice(0, 10)
+      ? String(t('my_stack_plan_tomorrow', { defaultValue: 'Morgen' }))
+      : new Intl.DateTimeFormat(language, {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        ...(tag.slice(0, 4) !== today.slice(0, 4) ? { year: 'numeric' as const } : {}),
+        timeZone: 'UTC',
+      }).format(new Date(`${tag}T00:00:00.000Z`))
+  return `${datum} · ${next.time}`
+}
+
 /** „Bei Bedarf" hat keine Einnahmezeiten — die gespeicherte Tageszeit bedeutet dort nichts. */
 export function versionSlots(version: CyclePlanVersion): PlanCardSlot[] {
   const rhythmus = versionRhythm(version)

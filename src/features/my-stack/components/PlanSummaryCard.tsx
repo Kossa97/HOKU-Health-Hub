@@ -10,8 +10,9 @@ import {
   durationLabel,
   nextIntakeFor,
   orderTimelines,
-  rhythmLabel,
-  slotCountLabel,
+  nextIntakeLabel,
+  rhythmLabelWithDay,
+  slotCountSuffix,
   slotDoseLabel,
   stepKindLabel,
   versionSlots,
@@ -231,8 +232,8 @@ export function PlanSummaryCard({
 
       <div>
         <p className="text-xs text-slate-400">
-          {rhythmLabel(version, tr)}
-          {slots.length > 0 && ` · ${slotCountLabel(slots.length, tr)}`}
+          {rhythmLabelWithDay(version, tr, language, nextIntake?.localDate)}
+          {slotCountSuffix(slots.length, tr)}
         </p>
         {slots.length > 0 && (
           <ul className="mt-2 space-y-1.5">
@@ -255,7 +256,7 @@ export function PlanSummaryCard({
             </p>
             <p className="mt-0.5 text-sm font-semibold text-slate-100">
               {nextIntake
-                ? `${dateLabel(`${nextIntake.localDate}|00:00:00`, language, timeZone)} · ${nextIntake.time}`
+                ? nextIntakeLabel(nextIntake, today, language, tr)
                 : t('my_stack_plan_next_intake_none', { defaultValue: 'Keine feste Einnahme geplant' })}
             </p>
           </div>

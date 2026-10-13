@@ -18,7 +18,9 @@ import {
   dateLabel,
   durationLabel,
   rhythmLabel,
-  slotCountLabel,
+  nextIntakeLabel,
+  rhythmLabelWithDay,
+  slotCountSuffix,
   stepKindLabel,
   nextIntakeFor,
   versionRhythm,
@@ -468,8 +470,8 @@ export function PlanManagementSection({
                 )}
               </div>
               <p className="mt-2 text-[13px] text-slate-300">
-                {rhythmLabel(panelVersion, t)}
-                {panelSlots.length > 0 && ` · ${slotCountLabel(panelSlots.length, t)}`}
+                {rhythmLabelWithDay(panelVersion, t, language, !isEnded ? nextIntake?.localDate : null)}
+                {slotCountSuffix(panelSlots.length, t)}
               </p>
               {panelSlots.length > 0 && (
                 <ul className="mt-3 space-y-2">
@@ -491,7 +493,7 @@ export function PlanManagementSection({
                     <p className="text-xs text-slate-500">{t('my_stack_plan_next_intake', { defaultValue: 'Nächste Einnahme' })}</p>
                     <p className="mt-0.5 text-sm font-semibold text-slate-100">
                       {nextIntake
-                        ? `${dateLabel(`${nextIntake.localDate}|00:00:00`, language, timeZone)} · ${nextIntake.time}`
+                        ? nextIntakeLabel(nextIntake, today, language, t)
                         : t('my_stack_plan_next_intake_none', { defaultValue: 'Keine feste Einnahme geplant' })}
                     </p>
                   </div>

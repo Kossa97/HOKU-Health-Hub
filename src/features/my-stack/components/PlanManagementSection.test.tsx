@@ -371,7 +371,7 @@ describe('PlanManagementSection', () => {
 
     const section = screen.getByTestId('plan-management-cycle-1')
     expect(section.textContent).toContain('Geplant')
-    expect(section.textContent).toContain('20.09.2026 · 20:00')
+    expect(section.textContent).toContain('Morgen · 20:00')
     expect(within(section).getByRole('button', { name: 'Geplante Änderung vom 20.09.2026 bearbeiten' })).toBeTruthy()
     fireEvent.click(within(section).getByRole('button', { name: 'Geplante Änderung vom 20.09.2026 entfernen' }))
     expect(screen.queryByRole('dialog', { name: 'Geplante Änderung entfernen' })).toBeNull()

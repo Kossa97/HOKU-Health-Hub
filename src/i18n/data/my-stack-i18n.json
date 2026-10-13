@@ -1083,7 +1083,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2169,7 +2173,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3255,7 +3263,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4341,7 +4353,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5427,7 +5443,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6513,7 +6533,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7599,7 +7623,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8685,7 +8713,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9771,7 +9803,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10857,7 +10893,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11943,7 +11983,11 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13029,6 +13073,10 @@
     "pk_nocurve_missing": "missing: {{requirements}}",
     "pk_nocurve_profile": "no PK profile",
     "pk_nocurve_unit": "unit not convertible",
-    "pk_nocurve_route": "no profile for {{method}}"
+    "pk_nocurve_route": "no profile for {{method}}",
+    "my_stack_rhythm_weekly_on": "Every {{tag}}",
+    "my_stack_rhythm_weeks_on": "Every {{n}} weeks on {{tag}}",
+    "my_stack_plan_today": "Today",
+    "my_stack_plan_tomorrow": "Tomorrow"
   }
 }

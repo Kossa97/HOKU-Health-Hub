@@ -2291,5 +2291,9 @@
   "pk_nocurve_missing": "fehlt: {{requirements}}",
   "pk_nocurve_profile": "kein PK-Profil",
   "pk_nocurve_unit": "Einheit nicht umrechenbar",
-  "pk_nocurve_route": "kein Profil für {{method}}"
+  "pk_nocurve_route": "kein Profil für {{method}}",
+  "my_stack_rhythm_weekly_on": "Jeden {{tag}}",
+  "my_stack_rhythm_weeks_on": "Alle {{n}} Wochen am {{tag}}",
+  "my_stack_plan_today": "Heute",
+  "my_stack_plan_tomorrow": "Morgen"
 }
