@@ -6174,9 +6174,9 @@
     "semantic_hash": ""
   },
   "src/features/blutspiegel/BlutspiegelView.test.tsx": {
-    "mtime": 1791856404.6955955,
-    "seen": 1791856613.8888118,
-    "ast_hash": "7f9f61de2df26d145e9352c5261f2b3b",
+    "mtime": 1791857149.0999885,
+    "seen": 1791857593.998809,
+    "ast_hash": "2d764709cdfbf99ba268f4e1f07498a4",
     "semantic_hash": ""
   },
   "src/features/blutspiegel/BlutspiegelView.tsx": {
@@ -6234,9 +6234,9 @@
     "semantic_hash": ""
   },
   "src/features/blutspiegel/useBlutspiegelData.ts": {
-    "mtime": 1791856318.6748457,
-    "seen": 1791856613.889286,
-    "ast_hash": "170a448486fb721d509ef905929c69c8",
+    "mtime": 1791857509.245116,
+    "seen": 1791857593.9993265,
+    "ast_hash": "072b72d89843402ce7f2b0d99944dcf5",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/MarkerList.tsx": {
@@ -6294,9 +6294,9 @@
     "semantic_hash": ""
   },
   "e2e/blutspiegel.spec.ts": {
-    "mtime": 1791856418.76372,
-    "seen": 1791856613.8848076,
-    "ast_hash": "5d63683f13dd19375c452ac97c59300e",
+    "mtime": 1791857149.100602,
+    "seen": 1791857593.9941678,
+    "ast_hash": "c2eac5cae5ce838c12c85ff07a2a868a",
     "semantic_hash": ""
   },
   "e2e/fortschritt-verlauf.spec.ts": {
@@ -6600,9 +6600,9 @@
     "semantic_hash": ""
   },
   "src/features/blutspiegel/LiveStatus.tsx": {
-    "mtime": 1791856370.9926708,
-    "seen": 1791856613.888817,
-    "ast_hash": "575e0bb89afe17301bbd0c48a4ee4c91",
+    "mtime": 1791857403.3704255,
+    "seen": 1791857593.998847,
+    "ast_hash": "e5472cef3b79ddc0f787e43e00d5ab6b",
     "semantic_hash": ""
   },
   "scripts/generate-pk-profile-routes-sql.mjs": {
