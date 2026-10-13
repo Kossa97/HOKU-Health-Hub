@@ -26209,7 +26209,7 @@
       "file_type": "code",
       "norm_label": "blutspiegeluebersicht()",
       "source_file": "src/features/blutspiegel/BlutspiegelUebersicht.tsx",
-      "source_location": "L124"
+      "source_location": "L127"
     },
     {
       "id": "src_features_blutspiegel_blutspiegeluebersicht_kopf",
@@ -26653,7 +26653,7 @@
       "file_type": "code",
       "norm_label": "canonicalhash()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1156"
+      "source_location": "L1157"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_interpolationtokens",
@@ -26665,7 +26665,7 @@
       "file_type": "code",
       "norm_label": "interpolationtokens()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1169"
+      "source_location": "L1170"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_loadlocale",
@@ -26677,7 +26677,7 @@
       "file_type": "code",
       "norm_label": "loadlocale()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1149"
+      "source_location": "L1150"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_loadsource",
@@ -26689,7 +26689,7 @@
       "file_type": "code",
       "norm_label": "loadsource()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1141"
+      "source_location": "L1142"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_withoutmystackoverlay",
@@ -26701,7 +26701,7 @@
       "file_type": "code",
       "norm_label": "withoutmystackoverlay()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1163"
+      "source_location": "L1164"
     },
     {
       "id": "src_pages_rechner_test_enter",
@@ -62984,7 +62984,7 @@
       "file_type": "code",
       "norm_label": "my_stack_de",
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L1093"
+      "source_location": "L1094"
     },
     {
       "id": "scripts_my_stack_i18n_source_my_stack_en",
@@ -63006,7 +63006,7 @@
       "file_type": "code",
       "norm_label": "my_stack_keys",
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L2184"
+      "source_location": "L2186"
     },
     {
       "id": "docs_superpowers_checklists_my_stack_backup_manifest",
@@ -71505,7 +71505,7 @@
       "file_type": "code",
       "norm_label": "expectedkeyset",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1139"
+      "source_location": "L1140"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_localecodes",
@@ -71527,7 +71527,7 @@
       "file_type": "code",
       "norm_label": "manual_outside_overlay_hashes",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1119"
+      "source_location": "L1120"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_manuallocalecodes",
@@ -71560,7 +71560,7 @@
       "file_type": "code",
       "norm_label": "translated_outside_overlay_hashes",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1125"
+      "source_location": "L1126"
     },
     {
       "id": "src_i18n_plandataerrors_test",
@@ -89850,7 +89850,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutspiegel/BlutspiegelUebersicht.tsx",
-      "source_location": "L125",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
@@ -89862,7 +89862,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutspiegel/BlutspiegelUebersicht.tsx",
-      "source_location": "L126",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -222526,7 +222526,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L1093",
+      "source_location": "L1094",
       "weight": 1.0
     },
     {
@@ -222548,7 +222548,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L2184",
+      "source_location": "L2186",
       "weight": 1.0
     },
     {
@@ -226695,7 +226695,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutspiegel/BlutspiegelUebersicht.tsx",
-      "source_location": "L124",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -242436,7 +242436,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1119",
+      "source_location": "L1120",
       "weight": 1.0
     },
     {
@@ -242447,7 +242447,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1125",
+      "source_location": "L1126",
       "weight": 1.0
     },
     {
@@ -242458,7 +242458,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1139",
+      "source_location": "L1140",
       "weight": 1.0
     },
     {
@@ -242469,7 +242469,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1141",
+      "source_location": "L1142",
       "weight": 1.0
     },
     {
@@ -242480,7 +242480,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1149",
+      "source_location": "L1150",
       "weight": 1.0
     },
     {
@@ -242491,7 +242491,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1156",
+      "source_location": "L1157",
       "weight": 1.0
     },
     {
@@ -242502,7 +242502,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1163",
+      "source_location": "L1164",
       "weight": 1.0
     },
     {
@@ -242513,7 +242513,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1169",
+      "source_location": "L1170",
       "weight": 1.0
     },
     {
@@ -267039,7 +267039,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/features/blutspiegel/BlutspiegelUebersicht.tsx",
-      "source_location": "L129",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -267929,5 +267929,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f022da1d413d3fc9217df5e858720a038e0a1b26"
+  "built_at_commit": "fafa75d99dce1bc399e98a41eb52f5a8fd38ede8"
 }
