@@ -127,14 +127,19 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
 
   // Zyklen als dezente Balken unter der Kurve: parallele untereinander,
   // aufeinanderfolgende nebeneinander, alle unter der untersten Wertelinie.
-  // Abgewaehlte Substanzen (stackItemId): ihre Balken fehlen, die uebrigen ruecken zusammen
-  const [aus, setAus] = useState<ReadonlySet<string>>(() => new Set())
-  const toggleZyklus = useCallback((id: string) => setAus(alt => {
-    const neu = new Set(alt)
-    if (!neu.delete(id)) neu.add(id)
-    return neu
-  }), [])
-  const gewaehlt = useMemo(() => streifen.zeilen.filter(zeile => !aus.has(zeile.stackItemId)), [streifen, aus])
+  // Angewaehlte Substanzen (stackItemId); anfangs keine. Bis zum ersten Tippen
+  // weist der erste Chip mit einem Puls darauf hin — je Besuch der Detailansicht.
+  const [an, setAn] = useState<ReadonlySet<string>>(() => new Set())
+  const [angetippt, setAngetippt] = useState(false)
+  const toggleZyklus = useCallback((id: string) => {
+    setAngetippt(true)
+    setAn(alt => {
+      const neu = new Set(alt)
+      if (!neu.delete(id)) neu.add(id)
+      return neu
+    })
+  }, [])
+  const gewaehlt = useMemo(() => streifen.zeilen.filter(zeile => an.has(zeile.stackItemId)), [streifen, an])
   const balken = useMemo(() => zyklusBalken(gewaehlt, fenster), [gewaehlt, fenster])
   const lanes = useMemo(() => ({
     items: balken.balken.map((b): LaneBand => ({
@@ -379,7 +384,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             </div>
           )}
           {inWindow.length > 0 && (
-            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} an={id => !aus.has(id)} onToggle={toggleZyklus} />
+            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} an={id => an.has(id)} hinweis={!angetippt} onToggle={toggleZyklus} />
           )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>

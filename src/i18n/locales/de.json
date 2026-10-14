@@ -2026,7 +2026,7 @@
   "bw_cycles_title": "Deine Zyklen in diesem Zeitraum",
   "bw_cycles_running": "läuft",
   "bw_cycles_more": "+{{count}} weitere Zyklen nicht dargestellt.",
-  "bw_cycles_hint": "Antippen blendet einen Zyklus ein oder aus. Nur zur Orientierung — der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.",
+  "bw_cycles_hint": "Tippe einen Zyklus an, um ihn im Verlauf zu zeigen. Nur zur Orientierung — der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.",
   "bw_cycles_period": "{{from}} – {{to}}",
   "bw_edit_title": "Wert bearbeiten",
   "bw_edit_aria": "{{value}} vom {{date}} bearbeiten",

@@ -354,15 +354,25 @@ test('Verlauf: Zyklen aus My Stack als Balken hinter dem Verlauf', async ({ page
   await expect(streifen.locator('[data-cycle-row]').first()).toContainText('TB-500')
   const tb500 = streifen.getByRole('button', { name: 'TB-500: 10.06.2026 – 19.07.2026' })
   const bpc = streifen.getByRole('button', { name: 'BPC-157: 01.08.2026 – läuft' })
-  // anfangs alle an; Antippen blendet aus, erneutes Tippen wieder ein
+  // anfangs keiner an; der erste Chip weist mit einem Puls darauf hin
+  await expect(tb500).toHaveAttribute('aria-pressed', 'false')
+  await expect(bpc).toHaveAttribute('aria-pressed', 'false')
+  await expect(streifen.locator('[data-cycle-hint]')).toHaveCount(1)
+  await expect(tb500).toHaveAttribute('data-cycle-hint', '')
+  // Antippen blendet ein (mehrere moeglich), erneutes Tippen wieder aus; der Puls ist danach weg
+  await bpc.click()
+  await expect(streifen.locator('[data-cycle-hint]')).toHaveCount(0)
+  await tb500.click()
   await expect(tb500).toHaveAttribute('aria-pressed', 'true')
   await expect(bpc).toHaveAttribute('aria-pressed', 'true')
   await tb500.click()
-  await bpc.click()
   await expect(tb500).toHaveAttribute('aria-pressed', 'false')
-  await expect(bpc).toHaveAttribute('aria-pressed', 'false')
-  await tb500.click()
-  await expect(tb500).toHaveAttribute('aria-pressed', 'true')
+  await expect(streifen.locator('[data-cycle-hint]')).toHaveCount(0)
+  // neu in die Detailansicht: wieder nichts gewaehlt, der Puls ist zurueck
+  await page.getByRole('button', { name: 'Zurück' }).click()
+  await page.getByRole('button', { name: /Kortisol/ }).first().click()
+  await expect(streifen.getByRole('button', { name: 'BPC-157: 01.08.2026 – läuft' })).toHaveAttribute('aria-pressed', 'false')
+  await expect(streifen.locator('[data-cycle-hint]')).toHaveCount(1)
   await expect(streifen.locator('[data-cycle-note]')).toContainText('sagt nichts über Ursache und Wirkung')
   await expect(streifen.locator('[data-cycle-note]')).not.toContainText('weitere')
 
