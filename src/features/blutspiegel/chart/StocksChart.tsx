@@ -139,7 +139,11 @@ export interface StocksChartProps {
   /** Von aussen gesetzter Ablesezeitpunkt (gekoppelte Graphen). */
   syncTs?: number | null
   /** Zyklus-Balken hinter der Kurve. */
-  lanes?: { items: LaneBand[]; count: number; layout: (plotHeight: number, count: number) => LaneLayout }
+  lanes?: {
+    items: LaneBand[]; count: number; layout: (plotHeight: number, count: number) => LaneLayout
+    /** Zusaetzliche Hoehe unter der Werteflaeche: die unteren Reihen haengen dort hinein. */
+    below?: number
+  }
 }
 
 /** Breite der Werte-Achse rechts; Inhalte darunter richten sich danach aus. */
@@ -229,6 +233,9 @@ export const StocksChart = memo(function StocksChart({
     const color = currentAccentRef.current
     const { intakes: intakeList, markers: markerList, formatTick: fmtTick, xTicks: customTicks, formatValue: fmtValue, liveEnd: showLive, height: h, band: bandArea, dots: showDots } = propsRef.current
     const INTAKE_STRIP = propsRef.current.intakeStrip ? INTAKE_STRIP_H : 0
+    const LANES_BELOW = propsRef.current.lanes?.below ?? 0
+    // Alles zwischen Werteflaeche und Zeitachse
+    const BELOW = INTAKE_STRIP + LANES_BELOW
     if (width <= 0) return
 
     const reduced = prefersReducedMotion()
@@ -288,7 +295,7 @@ export const StocksChart = memo(function StocksChart({
     const plotT = PAD_TOP + (label ? LABEL_H : 0)
     // Ohne Zeitachse bleibt ein schmaler Rand, damit die unterste Zahl nicht abgeschnitten wird.
     const axisBottom = propsRef.current.xAxis ? AXIS_BOTTOM : 8
-    const plotB = h - axisBottom - INTAKE_STRIP
+    const plotB = h - axisBottom - BELOW
     const plotW = plotR - plotL
     const plotH = plotB - plotT
     const span = Math.max(1, view.end - view.start)
@@ -331,7 +338,7 @@ export const StocksChart = memo(function StocksChart({
     const laneData = propsRef.current.lanes
     if (laneData && laneData.count > 0 && laneData.items.length) {
       const { laneHeight, laneGap, blockHeight } = laneData.layout(plotH, laneData.count)
-      const baseY = plotB - blockHeight
+      const baseY = plotB + LANES_BELOW - blockHeight
       const scrubX = scrubTsRef.current != null ? xOf(scrubTsRef.current) : null
       // Farben duerfen auch `var(--name)` sein
       const farbe = (c: string) => {
@@ -361,15 +368,22 @@ export const StocksChart = memo(function StocksChart({
         }
         ctx.restore()
         if (b.label && reveal >= 1 && laneHeight >= 12) {
-          // Name links im Balken, in Textfarbe; passt er nicht, entfaellt er
+          // Name links im Balken, in Textfarbe
           ctx.save()
           ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif'
           ctx.textBaseline = 'middle'
           ctx.textAlign = 'left'
           const links = b.start != null && xOf(b.start) >= plotL ? x + 7 : x + 5
-          if (ctx.measureText(b.label).width <= x2 - links - 4) {
+          // Zu lang: mit „…" kuerzen, solange mindestens drei Zeichen bleiben
+          const frei = x2 - links - 4
+          let text = b.label
+          if (ctx.measureText(text).width > frei) {
+            while (text.length > 3 && ctx.measureText(`${text}…`).width > frei) text = text.slice(0, -1)
+            text = `${text.trimEnd()}…`
+          }
+          if (ctx.measureText(text).width <= frei) {
             ctx.fillStyle = muted
-            ctx.fillText(b.label, links, y + laneHeight / 2)
+            ctx.fillText(text, links, y + laneHeight / 2)
           }
           ctx.restore()
         }
@@ -416,14 +430,14 @@ export const StocksChart = memo(function StocksChart({
       const x = Math.round(xOf(ts)) + 0.5
       if (x < plotL || x > plotR) continue
       ctx.strokeStyle = grid
-      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotB + INTAKE_STRIP); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotB + BELOW); ctx.stroke()
       ctx.fillStyle = muted
       const label = fmtTick(ts, step)
-      if (propsRef.current.xAxis && x + 4 + ctx.measureText(label).width < width) ctx.fillText(label, x + 4, plotB + INTAKE_STRIP + 6)
+      if (propsRef.current.xAxis && x + 4 + ctx.measureText(label).width < width) ctx.fillText(label, x + 4, plotB + BELOW + 6)
     }
     // Grundlinie
     ctx.strokeStyle = grid
-    ctx.beginPath(); ctx.moveTo(plotL, plotB + INTAKE_STRIP + 0.5); ctx.lineTo(plotR, plotB + INTAKE_STRIP + 0.5); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(plotL, plotB + BELOW + 0.5); ctx.lineTo(plotR, plotB + BELOW + 0.5); ctx.stroke()
 
     // Zeitabschnitte (Zyklusphasen) und senkrechte Linien (Bluttests)
     ctx.textBaseline = 'top'
@@ -642,7 +656,7 @@ export const StocksChart = memo(function StocksChart({
       const scrubColor = lv != null ? colorOf(lv, scrubTs) : color
       ctx.strokeStyle = label ? scrubColor : muted
       ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + INTAKE_STRIP); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + BELOW); ctx.stroke()
       if (label && otherList.length) {
         // Mehrere Linien: Datum, darunter je Linie Name und Wert in ihrer Farbe
         const parts = [{ name: propsRef.current.seriesName ?? '', v: lv, c: color }, ...otherList.map(o => ({ name: o.name, v: levelAt(o.points, scrubTs), c: o.color }))]

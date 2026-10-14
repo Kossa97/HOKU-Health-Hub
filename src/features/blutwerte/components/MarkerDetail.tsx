@@ -22,7 +22,7 @@ import { TrendIcon, trendColor } from './trend'
 import { StocksChart, type LaneBand } from '../../blutspiegel/chart/StocksChart'
 import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { TAG_MS, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusZeilen } from '../lib/zyklusZeilen'
+import { TAG_MS, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from '../lib/zyklusZeilen'
 
 export type RangeFilter = '3M' | '6M' | '1J' | '2J' | 'ALL'
 
@@ -143,8 +143,9 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     })),
     count: balken.reihen,
     layout: zyklusBalkenLayout,
+    // Viele parallele Zyklen: der Graph waechst unter der untersten Wertelinie
+    below: zyklusBalkenUnten(balken.reihen),
   }), [balken])
-  const weitereZyklen = streifen.weitere + balken.ausgelassen
 
   const inWindow = allPoints.filter(p => p.ts >= start && p.ts <= end)
   const excludedCount = summary.points.filter(p => {
@@ -356,7 +357,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               start={start}
               end={end}
               accent={lineColor}
-              height={CHART_H}
+              height={CHART_H + lanes.below}
               seriesKey={`${name}|${unit}`}
               formatTick={formatTick}
               xTicks={monthTicks}
@@ -378,7 +379,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             </div>
           )}
           {inWindow.length > 0 && (
-            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={weitereZyklen} an={id => !aus.has(id)} onToggle={toggleZyklus} />
+            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} an={id => !aus.has(id)} onToggle={toggleZyklus} />
           )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>
