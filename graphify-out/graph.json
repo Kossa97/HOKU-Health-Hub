@@ -126111,18 +126111,6 @@
     },
     {
       "source": "src_features_blutwerte_components_auffaelligewerte",
-      "target": "src_features_blutwerte_styles_red",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/features/blutwerte/components/AuffaelligeWerte.tsx",
-      "source_location": "L4",
-      "weight": 1.0
-    },
-    {
-      "source": "src_features_blutwerte_components_auffaelligewerte",
       "target": "src_features_blutwerte_styles_text",
       "relation": "imports",
       "_origin": "ast",
@@ -269011,5 +268999,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "6f9992dd53f2f0f4d20e2e8cb8608c5dce17e986"
+  "built_at_commit": "e39f0785ac0888809b39608d2f9c37fae0ffe314"
 }
