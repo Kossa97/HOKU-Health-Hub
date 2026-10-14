@@ -339,3 +339,11 @@ export function auffaelligeWerte(summaries: MarkerSummary[]): MarkerSummary[] {
 export function ungepruefteWerte(summaries: MarkerSummary[]): MarkerSummary[] {
   return summaries.filter(s => s.latest !== null && s.inRange === null)
 }
+
+/** Abstand zur naeheren Grenze, wenn der Wert ausserhalb liegt — fuer die Plakette. */
+export function abstandZurGrenze(v: number | null, range: EffectiveRange, inRange: boolean | null): { key: string; wert: number } | null {
+  if (v == null || inRange !== false) return null
+  const above = range.max != null && (range.min == null || Math.abs(v - range.max) <= Math.abs(v - range.min))
+  if (above) return { key: 'bw_badge_above', wert: v - range.max! }
+  return range.min != null ? { key: 'bw_badge_below', wert: range.min - v } : null
+}

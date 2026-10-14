@@ -1091,6 +1091,9 @@ export const MY_STACK_EN = {
   pk_overview_intro: "How your substances move through your blood, in real time — estimated from your confirmed doses.",
   bw_lab_range_note: "lab {{range}}",
   bw_cycle_week: "wk {{n}}",
+  bw_entry_open_aria: "{{value}} from {{date}}",
+  bw_entry_change: "{{value}} since last",
+  bw_edit: "Edit",
 }
 
 export const MY_STACK_DE = {
@@ -2185,6 +2188,9 @@ export const MY_STACK_DE = {
   pk_overview_intro: "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
   bw_lab_range_note: "Labor {{range}}",
   bw_cycle_week: "Wo. {{n}}",
+  bw_entry_open_aria: "{{value}} vom {{date}}",
+  bw_entry_change: "{{value}} seit der vorigen",
+  bw_edit: "Bearbeiten",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

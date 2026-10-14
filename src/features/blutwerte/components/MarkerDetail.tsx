@@ -9,7 +9,7 @@ import { format, subMonths, subYears } from 'date-fns'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, Plus } from 'lucide-react'
 import { KATEGORIE_KEY, markerErklaerung, markerName } from '../lib/markerCatalog.en'
 import type { MarkerSummary } from '../lib/bloodwork'
-import { chooseDisplayUnit, entryInRange, entryRange, roundConverted, toNumber } from '../lib/bloodwork'
+import { abstandZurGrenze, chooseDisplayUnit, entryInRange, entryRange, roundConverted, toNumber } from '../lib/bloodwork'
 import type { BioProfile } from '../lib/bioProfile'
 import { unitChoices, type UnitSystem } from '../lib/unitConversion'
 import { GUIDANCE_STAND, markerGuidance, type GuidanceItem } from '../lib/markerGuidance'
@@ -17,6 +17,7 @@ import type { BloodworkEntry, BloodworkReport } from '../types'
 import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
 import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
+import { MessungDetail } from './MessungDetail'
 import { ZyklusAuswahl } from './ZyklusAuswahl'
 import { TrendIcon, trendColor } from './trend'
 import { StocksChart, type LaneBand } from '../../blutspiegel/chart/StocksChart'
@@ -88,6 +89,9 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const sprache = i18n.resolvedLanguage ?? i18n.language
   const [rangeFilter, setRangeFilter] = useState<RangeFilter>('1J')
   const [offen, setOffen] = useState<'niedrig' | 'hoch' | null>(null)
+  // Messungen: anfangs zugeklappt; darin hoechstens eine Messung aufgeklappt
+  const [messungenOffen, setMessungenOffen] = useState(false)
+  const [offeneMessung, setOffeneMessung] = useState<string | null>(null)
 
   const { name, latest, range, inRange, def, trend } = summary
   const unit = summary.displayUnit
@@ -215,13 +219,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   // Abstand zur naeheren Grenze fuer die Plakette. Richtung nach der naeheren
   // Grenze: das Urteil kommt aus ungerundeten Werten, ein gerundeter Wert kann
   // genau auf der Grenze liegen.
-  const abstand = (() => {
-    const v = summary.displayValue
-    if (v == null || inRange !== false) return null
-    const above = range.max != null && (range.min == null || Math.abs(v - range.max) <= Math.abs(v - range.min))
-    if (above) return { key: 'bw_badge_above', wert: v - range.max! }
-    return range.min != null ? { key: 'bw_badge_below', wert: range.min - v } : null
-  })()
+  const abstand = abstandZurGrenze(summary.displayValue, range, inRange)
   const monthYear = useMemo(() => new Intl.DateTimeFormat(sprache, { month: '2-digit', year: 'numeric' }), [sprache])
 
   const guidance = def ? markerGuidance(def.name, sprache) : null
@@ -449,23 +447,40 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
         {!guidance && <p className="text-xs" style={{ color: MUTED }}>{t('bw_disclaimer')}</p>}
       </section>
 
-      {/* Messungen */}
+      {/* Messungen — einklappbar; eine Messung antippen zeigt sie im Detail, dort Bearbeiten */}
       <section aria-labelledby="bw-history-title" className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <h2 id="bw-history-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_measurements')}</h2>
-          {/* Anzahl als Plakette wie bei „Auffällige", nur neutral */}
-          <span
-            data-bw-measurement-count
-            className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
-            style={{ background: 'color-mix(in srgb, var(--text-muted) 18%, transparent)', color: TEXT }}
+        <h2 className={sectionTitle} style={{ color: TEXT }}>
+          <button
+            type="button"
+            aria-expanded={messungenOffen}
+            aria-controls="bw-history-list"
+            onClick={() => setMessungenOffen(o => !o)}
+            className="flex min-h-11 w-full items-center gap-2 text-left"
+            data-bw-history-toggle
           >
-            {summary.entries.length}
-          </span>
-        </div>
-        {summary.entries.length === 0 && (
+            <span id="bw-history-title">{t('bw_measurements')}</span>
+            {/* Anzahl als Plakette wie bei „Auffällige", nur neutral */}
+            <span
+              data-bw-measurement-count
+              className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
+              style={{ background: 'color-mix(in srgb, var(--text-muted) 18%, transparent)', color: TEXT }}
+            >
+              {summary.entries.length}
+            </span>
+            <ChevronDown
+              size={20}
+              strokeWidth={2.2}
+              aria-hidden="true"
+              className="ml-auto transition-transform duration-200"
+              style={{ color: MUTED, transform: messungenOffen ? 'rotate(180deg)' : undefined }}
+            />
+          </button>
+        </h2>
+        {messungenOffen && summary.entries.length === 0 && (
           <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
         )}
-        <ul>
+        {messungenOffen && (
+        <ul id="bw-history-list">
           {summary.points.map((p, i) => {
             const e = p.entry
             const v = p.value != null ? p.value : toNumber(e.value)
@@ -483,15 +498,19 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               : null
             const source = [e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : t('bw_source_manual'), laborBereich]
               .filter(Boolean).join(' · ')
+            const auf = offeneMessung === e.id
+            const detailId = `bw-entry-${e.id}`
             return (
-              <li key={e.id}>
+              <li key={e.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <button
                   type="button"
-                  onClick={() => onEdit(e)}
-                  data-bw-entry-edit
-                  aria-label={t('bw_edit_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
+                  onClick={() => setOffeneMessung(auf ? null : e.id)}
+                  aria-expanded={auf}
+                  aria-controls={detailId}
+                  aria-label={t('bw_entry_open_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
+                  data-bw-entry
                   className="flex min-h-14 w-full items-center gap-3 py-3 text-left"
-                  style={{ borderBottom: '1px solid var(--border)', color: TEXT }}
+                  style={{ color: TEXT }}
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="text-base font-bold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
@@ -508,10 +527,23 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                     {diff != null ? signed(diff) : p.value != null ? t('bw_first_value') : '–'}
                   </span>
                 </button>
+                {auf && (
+                  <MessungDetail
+                    id={detailId}
+                    entry={e}
+                    value={v}
+                    unit={u}
+                    diff={diff}
+                    range={p.value != null ? entryRange(e, def, unit, profil) : null}
+                    inRange={status}
+                    onEdit={() => onEdit(e)}
+                  />
+                )}
               </li>
             )
           })}
         </ul>
+        )}
       </section>
 
       {/* Quellen ganz unten, gebuendelt und eingeklappt */}

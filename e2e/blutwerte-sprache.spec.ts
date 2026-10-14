@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
 import { TEST_USER, type MockSupabase } from './support/mockSupabase'
 import { seedPeptide } from './support/myStack'
+import { messungBearbeiten } from './support/blutwerte'
 
 /**
  * Blutwerte, Etappe 1: der Bereich spricht Deutsch und Englisch, Marker
@@ -43,7 +44,9 @@ test.describe('auf Englisch', () => {
     // Bewertet nach dem Bereich aus der Quelle, nicht nach dem des Labors
     await expect(page.locator('[data-bw-status]')).toHaveText(/µg\/dL above range$/)
     await expect(page.getByRole('heading', { name: 'Notes and causes' })).toBeVisible()
+    await page.locator('[data-bw-history-toggle]').click()
     await expect(page.getByText('09/15/2026')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Measurements 1' })).toHaveAttribute('aria-expanded', 'true')
   })
 })
 
@@ -263,7 +266,7 @@ test('Loeschen: eigenes Sheet statt Browser-Fenster; Abbrechen laesst den Wert s
   await markerAnsicht(page)
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
   // Loeschen sitzt im Bearbeiten-Fenster der Messung
-  await page.getByRole('button', { name: '14 µg/dL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '14 µg/dL vom 15.09.2026')
   await page.locator('[data-bw-entry-delete]').click()
 
   const sheet = page.getByRole('alertdialog', { name: 'Wert löschen?' })
@@ -284,7 +287,7 @@ test('Bearbeiten: Einzelwert aendert Datum, Wert und Einheit', async ({ page, mo
   const eintrag = wert(mock, 'Kortisol', { value: 14, notes: 'nuechtern' })
   await markerAnsicht(page)
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
-  await page.getByRole('button', { name: '14 µg/dL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '14 µg/dL vom 15.09.2026')
 
   await expect(page.getByRole('heading', { name: 'Wert bearbeiten' })).toBeVisible()
   // Marker ist fest, kein Auswahlfeld
@@ -297,7 +300,7 @@ test('Bearbeiten: Einzelwert aendert Datum, Wert und Einheit', async ({ page, mo
   const [zeile] = mock.table('bloodwork')
   expect(zeile).toMatchObject({ id: eintrag.id, tested_at: '2026-09-14', value: 16.5, unit: 'µg/dL', notes: 'nuechtern' })
   // erneut geoeffnet: Dezimalkomma wie eingegeben
-  await page.getByRole('button', { name: '16,5 µg/dL vom 14.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '16,5 µg/dL vom 14.09.2026')
   await expect(page.getByLabel('Wert', { exact: true })).toHaveValue('16,5')
 })
 
@@ -307,7 +310,7 @@ test('Bearbeiten: Wert aus einem Befund — Datum bleibt beim Befund, Referenz b
   await markerAnsicht(page)
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/liste.png`, fullPage: true })
-  await page.getByRole('button', { name: '14 µg/dL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '14 µg/dL vom 15.09.2026')
 
   const datum = page.locator('[data-app-modal] input[type="date"]')
   await expect(datum).toBeDisabled()
@@ -324,7 +327,7 @@ test('Bearbeiten: andere Einheit — Laborreferenz faellt weg, mit Hinweis', asy
   wert(mock, 'Kortisol', { value: 14, ref_min: 5, ref_max: 25 })
   await markerAnsicht(page)
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
-  await page.getByRole('button', { name: '14 µg/dL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '14 µg/dL vom 15.09.2026')
 
   await expect(page.locator('[data-bw-unit-drops-range]')).toHaveCount(0)
   await page.getByLabel('Wert', { exact: true }).fill('386')
@@ -432,13 +435,33 @@ test('Detail: „Aktuell“, Wert, Abstand zur Grenze, ohne Kennzahlen, zugeklap
   })
   expect(reihenfolge).toBe(true)
 
+  // Messungen: anfangs zugeklappt, die Anzahl steht trotzdem da
   const messungen = page.getByRole('region', { name: 'Messungen' })
-  await expect(messungen.getByRole('button')).toHaveCount(2)
+  const kopf = messungen.locator('[data-bw-history-toggle]')
+  await expect(kopf).toHaveAttribute('aria-expanded', 'false')
   await expect(messungen.locator('[data-bw-measurement-count]')).toHaveText('2')
-  await expect(messungen.getByRole('button').first()).toContainText('Befund · Labor Mitte')
-  await expect(messungen.getByRole('button').first()).toContainText('+330')
-  await expect(messungen.getByRole('button').last()).toContainText('Manuell')
-  await expect(messungen.getByRole('button').last()).toContainText('Erstwert')
+  await expect(messungen.locator('[data-bw-entry]')).toHaveCount(0)
+  await kopf.click()
+  const zeilen = messungen.locator('[data-bw-entry]')
+  await expect(zeilen).toHaveCount(2)
+  await expect(zeilen.first()).toContainText('Befund · Labor Mitte')
+  await expect(zeilen.first()).toContainText('+330')
+  await expect(zeilen.last()).toContainText('Manuell')
+  await expect(zeilen.last()).toContainText('Erstwert')
+  // Antippen oeffnet erst die kleine Detailansicht, nicht das Formular
+  await zeilen.first().click()
+  await expect(zeilen.first()).toHaveAttribute('aria-expanded', 'true')
+  const detail = messungen.locator('[data-bw-entry-detail]')
+  await expect(detail).toHaveCount(1)
+  await expect(detail.locator('[data-bw-entry-value]')).toContainText('1.310')
+  await expect(detail).toContainText('+330 ng/dL seit der vorigen')
+  await expect(detail).toContainText('200 ng/dL über dem Bereich')
+  await expect(page.locator('[data-app-modal]')).toHaveCount(0)
+  // eine andere Messung: die erste klappt zu
+  await zeilen.last().click()
+  await expect(detail).toHaveCount(1)
+  await expect(zeilen.first()).toHaveAttribute('aria-expanded', 'false')
+  await expect(detail).toContainText('Erstwert')
   if (process.env.SCREENSHOT_DIR) {
     await page.waitForTimeout(900)
     for (const thema of ['dark', 'light']) {
@@ -452,7 +475,7 @@ test('Loeschen aus dem Formular: Abbrechen fuehrt mit den Eingaben zurueck', asy
   wert(mock, 'Kortisol', { value: 14 })
   await markerAnsicht(page)
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
-  await page.getByRole('button', { name: '14 µg/dL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '14 µg/dL vom 15.09.2026')
   await page.getByLabel('Wert', { exact: true }).fill('15')
   await page.getByRole('button', { name: 'Wert löschen' }).click()
   await page.getByRole('alertdialog', { name: 'Wert löschen?' }).getByRole('button', { name: 'Abbrechen' }).click()

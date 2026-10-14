@@ -1090,7 +1090,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2183,7 +2186,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3276,7 +3282,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4369,7 +4378,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5462,7 +5474,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6555,7 +6570,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7648,7 +7666,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8741,7 +8762,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9834,7 +9858,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10927,7 +10954,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12020,7 +12050,10 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13113,6 +13146,9 @@
     "my_stack_plan_tomorrow": "Tomorrow",
     "pk_overview_intro": "How much of each substance is in your blood right now — estimated from your logged doses.",
     "bw_lab_range_note": "lab {{range}}",
-    "bw_cycle_week": "wk {{n}}"
+    "bw_cycle_week": "wk {{n}}",
+    "bw_entry_open_aria": "{{value}} from {{date}}",
+    "bw_entry_change": "{{value}} since last",
+    "bw_edit": "Edit"
   }
 }

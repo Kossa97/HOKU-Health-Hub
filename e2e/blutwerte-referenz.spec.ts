@@ -1,5 +1,6 @@
 import { expect, test } from './support/fixtures'
 import { TEST_USER, type MockSupabase } from './support/mockSupabase'
+import { messungBearbeiten, messungenAufklappen } from './support/blutwerte'
 
 /**
  * Referenzbereiche nach Geschlecht und Alter: ohne Angaben gilt der allgemeine
@@ -59,7 +60,8 @@ test('Quelle geht vor, der Laborbereich steht bei der Messung; ausgeblendeter Hi
   await page.getByRole('button', { name: /Testosteron/ }).first().click()
   await expect(page.locator('[data-bw-hero] [data-bw-range-source]').first()).toHaveText('(Männer)')
   await expect(page.locator('[data-bw-status]')).toHaveText('Im Normalbereich')
-  await expect(page.locator('[data-bw-entry-edit]').first()).toContainText('Labor 350–1.000 ng/dL')
+  await messungenAufklappen(page)
+  await expect(page.locator('[data-bw-entry]').first()).toContainText('Labor 350–1.000 ng/dL')
 })
 
 test('Hinweis lässt sich ausblenden', async ({ page, mock }) => {
@@ -117,7 +119,7 @@ test('Frauen: Wechseljahre beim Bearbeiten angeben; danach gilt der passende Ber
   await page.getByRole('button', { name: /Östradiol/ }).first().click()
   await expect(page.locator('[data-bw-no-range]')).toContainText('Gib beim Wert an')
 
-  await page.getByRole('button', { name: '150 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '150 pg/mL vom 15.09.2026')
   const frage = page.locator('[data-bw-menopause]')
   await expect(frage.getByRole('radio', { name: 'Weiß nicht' })).toHaveAttribute('aria-checked', 'true')
   await frage.getByRole('radio', { name: 'Schon durch' }).click()
@@ -138,7 +140,7 @@ test('Männer werden nicht nach den Wechseljahren gefragt', async ({ page, mock 
   await page.goto('/blutwerte')
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
   await page.getByRole('button', { name: /Östradiol/ }).first().click()
-  await page.getByRole('button', { name: '30 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '30 pg/mL vom 15.09.2026')
   await expect(page.locator('[data-app-modal]')).toBeVisible()
   await expect(page.locator('[data-bw-menopause]')).toHaveCount(0)
 })
@@ -152,7 +154,7 @@ test('Formular nennt den Bereich, der ohne Laborangabe wirklich gilt', async ({ 
   await page.goto('/blutwerte')
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
   await page.getByRole('button', { name: /Östradiol/ }).first().click()
-  await page.getByRole('button', { name: '150 pg/mL vom 15.09.2026 bearbeiten' }).click()
+  await messungBearbeiten(page, '150 pg/mL vom 15.09.2026')
   const modal = page.locator('[data-app-modal]')
   // Ohne Angabe zu den Wechseljahren gibt es keinen Standardbereich — also kein falscher Hinweis
   await expect(modal.getByText('Ohne eigenen Bereich gilt der Standardbereich')).toHaveCount(0)
