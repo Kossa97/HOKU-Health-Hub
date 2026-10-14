@@ -408,14 +408,14 @@ test('Detail: „Aktuell“, Wert, Abstand zur Grenze, ohne Kennzahlen, zugeklap
 
   await expect(page.getByRole('region', { name: 'Kennzahlen' })).toHaveCount(0)
 
-  // Hinweise und Ursachen: nur „Zu niedrig“ und „Zu hoch“, nie von selbst aufgeklappt
+  // Hinweise und Ursachen: nur „Wenn der Wert zu niedrig ist“ und „Wenn der Wert zu hoch ist“, nie von selbst aufgeklappt
   const einordnung = page.locator('[data-bw-guidance]')
   await expect(page.getByRole('heading', { name: 'Hinweise und Ursachen' })).toBeVisible()
-  await expect(einordnung.getByRole('button')).toHaveText(['Zu niedrig', 'Zu hoch'])
-  for (const name of ['Zu niedrig', 'Zu hoch']) {
+  await expect(einordnung.getByRole('button')).toHaveText(['Wenn der Wert zu niedrig ist', 'Wenn der Wert zu hoch ist'])
+  for (const name of ['Wenn der Wert zu niedrig ist', 'Wenn der Wert zu hoch ist']) {
     await expect(einordnung.getByRole('button', { name })).toHaveAttribute('aria-expanded', 'false')
   }
-  await einordnung.getByRole('button', { name: 'Zu hoch' }).click()
+  await einordnung.getByRole('button', { name: 'Wenn der Wert zu hoch ist' }).click()
   await expect(einordnung).toContainText('Mögliche Ursachen')
 
   // Quellen: ganz unten, eingeklappt
@@ -434,6 +434,7 @@ test('Detail: „Aktuell“, Wert, Abstand zur Grenze, ohne Kennzahlen, zugeklap
 
   const messungen = page.getByRole('region', { name: 'Messungen' })
   await expect(messungen.getByRole('button')).toHaveCount(2)
+  await expect(messungen.locator('[data-bw-measurement-count]')).toHaveText('2')
   await expect(messungen.getByRole('button').first()).toContainText('Befund · Labor Mitte')
   await expect(messungen.getByRole('button').first()).toContainText('+330')
   await expect(messungen.getByRole('button').last()).toContainText('Manuell')

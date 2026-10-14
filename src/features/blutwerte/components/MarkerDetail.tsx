@@ -451,9 +451,16 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
 
       {/* Messungen */}
       <section aria-labelledby="bw-history-title" className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-center gap-2">
           <h2 id="bw-history-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_measurements')}</h2>
-          <span className="text-sm tabular-nums" style={{ color: MUTED }}>{summary.entries.length}</span>
+          {/* Anzahl als Plakette wie bei „Auffällige", nur neutral */}
+          <span
+            data-bw-measurement-count
+            className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
+            style={{ background: 'color-mix(in srgb, var(--text-muted) 18%, transparent)', color: TEXT }}
+          >
+            {summary.entries.length}
+          </span>
         </div>
         {summary.entries.length === 0 && (
           <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
