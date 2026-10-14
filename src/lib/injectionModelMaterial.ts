@@ -1,5 +1,9 @@
 import * as THREE from 'three'
 
+// Fuer Handys verkleinerte Fassung (scripts/optimize-torso-model.mjs). Gleiche
+// Geometrie wie die Quelle, daher bleibt MODEL_VERSION 'placeholder-v1' gueltig.
+export const INJECTION_TORSO_MODEL_URL = '/models/torso_hybrid_v1.web.glb'
+
 const FALLBACK_TORSO_COLOR = new THREE.Color('#d9b8a8')
 
 function prepareMaterial(material: THREE.Material): THREE.Material {
