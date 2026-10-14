@@ -92038,6 +92038,18 @@
     },
     {
       "source": "src_features_blutwerte_components_referencebar_referencebar",
+      "target": "src_features_blutwerte_lib_format_formatnumber",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/features/blutwerte/components/ReferenceBar.tsx",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "src_features_blutwerte_components_referencebar_referencebar",
       "target": "src_features_blutwerte_lib_referencebar_referencebargeometry",
       "relation": "calls",
       "_origin": "ast",
@@ -92081,19 +92093,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/ReferenceBar.tsx",
-      "source_location": "L72",
-      "weight": 1.0
-    },
-    {
-      "source": "src_features_blutwerte_components_referencebar_referencebar",
-      "target": "src_features_blutwerte_lib_format_formatnumber",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/features/blutwerte/components/ReferenceBar.tsx",
-      "source_location": "L95",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -268092,5 +268092,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a858e92bcfcd4e82f563fc610dc90dd3f94dff9b"
+  "built_at_commit": "b7b049d3af2cf9c28f0277d09ebbd312ecc55ce9"
 }
