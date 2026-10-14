@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { MAX_ZEILEN, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusZeilen } from './zyklusZeilen'
+import { MAX_REIHEN, MAX_ZEILEN, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusZeilen } from './zyklusZeilen'
 
 const timeZone = 'Europe/Berlin'
 
@@ -152,5 +152,36 @@ describe('aktiveZyklen (Ablese-Schild)', () => {
   it('der letzte Tag gehoert dazu, der Tag danach nicht', () => {
     expect(aktiveZyklen(zeilen, fenster, mittag('2026-01-10')).map(({ zeile }) => zeile.substanz)).toEqual(['BPC-157', 'TB-500'])
     expect(aktiveZyklen(zeilen, fenster, mittag('2026-01-11')).map(({ zeile }) => zeile.substanz)).toEqual(['TB-500'])
+  })
+})
+
+describe('zyklusBalken (Hintergrund des Verlaufs)', () => {
+  it('parallele Zyklen untereinander, aufeinanderfolgende in derselben Reihe', () => {
+    const { zeilen } = zyklusZeilen([
+      zyklus('c1', 'bpc', '2026-01-05', '2026-02-01'),
+      zyklus('c2', 'tb', '2026-01-20', '2026-03-01'),
+      zyklus('c3', 'sema', '2026-02-10', '2026-03-20'),
+    ], namen, fenster, '2026-04-10', timeZone)
+    const { balken, reihen, ausgelassen } = zyklusBalken(zeilen, fenster)
+    const reihe = Object.fromEntries(balken.map(b => [b.substanz, b.reihe]))
+    // BPC und TB ueberlappen; Semaglutid beginnt nach BPC und rueckt in dessen Reihe
+    expect(reihe).toEqual({ 'BPC-157': 0, 'TB-500': 1, Semaglutid: 0 })
+    expect(reihen).toBe(2)
+    expect(ausgelassen).toBe(0)
+  })
+
+  it(`hoechstens ${MAX_REIHEN} Reihen; was darueber parallel laeuft, wird gezaehlt`, () => {
+    const parallel = Array.from({ length: MAX_REIHEN + 1 }, (_, i) => zyklus(`c${i}`, `s${i}`, '2026-02-01', '2026-03-01'))
+    const { zeilen } = zyklusZeilen(parallel, new Map(), fenster, '2026-04-10', timeZone)
+    const { balken, reihen, ausgelassen } = zyklusBalken(zeilen, fenster)
+    expect(reihen).toBe(MAX_REIHEN)
+    expect(balken).toHaveLength(MAX_REIHEN)
+    expect(ausgelassen).toBe(1)
+  })
+
+  it('Layout waechst nie ueber 70 % der Flaeche', () => {
+    expect(zyklusBalkenLayout(200, 1).laneHeight).toBe(22)
+    const voll = zyklusBalkenLayout(100, MAX_REIHEN)
+    expect(voll.blockHeight).toBeLessThanOrEqual(70)
   })
 })

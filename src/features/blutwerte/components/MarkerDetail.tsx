@@ -18,11 +18,10 @@ import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/
 import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
 import { TrendIcon, trendColor } from './trend'
-import { StocksChart, type CycleStripRow } from '../../blutspiegel/chart/StocksChart'
-import { cycleStripHeight, timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
-import { ZyklusAuswahl } from './ZyklusAuswahl'
+import { StocksChart, type LaneBand } from '../../blutspiegel/chart/StocksChart'
+import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { TAG_MS, achse, aktiveZyklen, msTag, tagMs, zyklusZeilen } from '../lib/zyklusZeilen'
+import { TAG_MS, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusZeilen } from '../lib/zyklusZeilen'
 
 export type RangeFilter = '3M' | '6M' | '1J' | '2J' | 'ALL'
 
@@ -33,8 +32,6 @@ const RANGES: Array<[RangeFilter, string]> = [
 /** Messpunkt in der Mitte seines Tags — dort, wo der Tag auch in den Zyklus-Zeilen liegt. */
 const HALBER_TAG = TAG_MS / 2
 const CHART_H = 250
-// Dritte Ablese-Zeile fuer laufende Zyklen; der Graph waechst um sie, die Flaeche bleibt gleich.
-const CYCLE_TAGS_H = 20
 /** Linienfarbe ohne Referenzbereich (Hex, der Graph mischt Transparenz hinein). */
 const NEUTRAL_LINE = '#22c3e6'
 
@@ -127,23 +124,18 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     ? zyklusZeilen(zyklen.timelines, zyklen.namen, fenster, heute, Intl.DateTimeFormat().resolvedOptions().timeZone)
     : { zeilen: [], weitere: 0 }, [zyklen, fenster, heute])
 
-  // Hervorgehobene Zyklen (mehrere moeglich); leer = alle Spuren gleich stark
-  const [hervor, setHervor] = useState<ReadonlySet<string>>(() => new Set())
-  const toggleZyklus = useCallback((id: string) => setHervor(alt => {
-    const neu = new Set(alt)
-    if (!neu.delete(id)) neu.add(id)
-    return neu
-  }), [])
-  const zyklusSpuren = useMemo((): CycleStripRow[] => {
-    const [a0, a1] = achse(fenster)
-    const ms = (anteil: number) => a0 + anteil * (a1 - a0)
-    return streifen.zeilen.map(zeile => ({
-      id: zeile.stackItemId,
-      color: `var(--cycle-${zeile.farbe + 1})`,
-      on: hervor.has(zeile.stackItemId),
-      segments: zeile.abschnitte.map(ab => ({ x1: ms(ab.start), x2: ms(ab.ende), open: ab.bis === null })),
-    }))
-  }, [streifen, fenster, hervor])
+  // Zyklen als dezente Balken hinter der Kurve: parallele untereinander,
+  // aufeinanderfolgende nebeneinander, hoechstens MAX_REIHEN Reihen.
+  const balken = useMemo(() => zyklusBalken(streifen.zeilen, fenster), [streifen, fenster])
+  const lanes = useMemo(() => ({
+    items: balken.balken.map((b): LaneBand => ({
+      id: b.key, color: `var(--cycle-${b.farbe + 1})`, filled: !b.laeuft,
+      x1: b.x1, x2: b.x2, lane: b.reihe, start: b.start, label: b.substanz,
+    })),
+    count: balken.reihen,
+    layout: zyklusBalkenLayout,
+  }), [balken])
+  const weitereZyklen = streifen.weitere + balken.ausgelassen
 
   const inWindow = allPoints.filter(p => p.ts >= start && p.ts <= end)
   const excludedCount = summary.points.filter(p => {
@@ -163,15 +155,12 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const scrubLabel = useMemo(() => ({
     date: (ts: number) => formatDisplayDate(msTag(ts)),
     value: (v: number) => `${formatNumber(v)} ${unit}`,
-    // Eigene Zeile: was an dem Tag lief — bei Auswahl nur die hervorgehobenen
-    // Zyklen. Ohne Zyklen im Zeitraum bleibt das Schild zweizeilig.
-    tags: streifen.zeilen.length ? (ts: number) => {
-      const auswahl = streifen.zeilen.some(zeile => hervor.has(zeile.stackItemId))
-      return aktiveZyklen(streifen.zeilen, fenster, ts)
-        .filter(({ zeile }) => !auswahl || hervor.has(zeile.stackItemId))
-        .map(({ zeile, woche }) => ({ text: `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`, color: `var(--cycle-${zeile.farbe + 1})` }))
-    } : undefined,
-  }), [unit, streifen, fenster, hervor, t])
+    // Was an dem Tag lief, mit Zykluswoche
+    note: (ts: number) => {
+      const aktiv = aktiveZyklen(streifen.zeilen, fenster, ts)
+      return aktiv.length ? aktiv.map(({ zeile, woche }) => `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`).join(' · ') : null
+    },
+  }), [unit, streifen, fenster, t])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
   // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
   // Gruppe aendert (neue Altersgruppe, Wechseljahre). Gilt mangels Quelle der
@@ -358,7 +347,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               start={start}
               end={end}
               accent={lineColor}
-              height={CHART_H + cycleStripHeight(zyklusSpuren.length) + (zyklusSpuren.length ? CYCLE_TAGS_H : 0)}
+              height={CHART_H}
               seriesKey={`${name}|${unit}`}
               formatTick={formatTick}
               xTicks={monthTicks}
@@ -372,15 +361,18 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               minSpan={minSpan}
               intakeStrip={false}
               zoneColors={zoneColors}
-              cycleStrip={zyklusSpuren}
+              lanes={lanes}
             />
           ) : (
             <div className="flex items-center justify-center text-center text-sm" style={{ height: CHART_H, color: MUTED }}>
               {t('bw_no_values_period')}
             </div>
           )}
-          {inWindow.length > 0 && (
-            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} hervor={hervor} onToggle={toggleZyklus} />
+          {inWindow.length > 0 && streifen.zeilen.length > 0 && (
+            <p data-cycle-note className="text-[0.7rem] leading-snug" style={{ color: MUTED }}>
+              {weitereZyklen > 0 && <>{t('bw_cycles_more', { count: weitereZyklen })} </>}
+              {t('bw_cycles_hint')}
+            </p>
           )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>

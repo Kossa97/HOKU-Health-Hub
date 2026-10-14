@@ -1,4 +1,5 @@
 import type { CycleTimeline } from '../../../lib/planTimeline'
+import { assignLanes, laneCount } from '../../fortschritt/lib/cycleLanes'
 import { cyclePeriod, localDay } from '../../my-stack/lib/planCard'
 
 /**
@@ -172,4 +173,59 @@ export function aktiveZyklen(
     treffer.push({ zeile, woche: Math.floor((ts - tagMs(abschnitt.zyklusVon)) / (7 * TAG_MS)) + 1 })
   }
   return treffer
+}
+
+/** Hoechstens so viele Balken-Reihen im Graph; was darueber hinaus parallel laeuft, wird gezaehlt. */
+export const MAX_REIHEN = 4
+
+export interface ZyklusBalken {
+  key: string
+  stackItemId: string
+  substanz: string
+  farbe: number
+  /** Lage in ms auf der Achse, aufs Fenster zugeschnitten. */
+  x1: number
+  x2: number
+  /** Echter Beginn in ms, null wenn vor dem Fenster. */
+  start: number | null
+  laeuft: boolean
+  reihe: number
+}
+
+/**
+ * Die Abschnitte als Balken in Reihen: parallele untereinander,
+ * aufeinanderfolgende in derselben Reihe. Ueber MAX_REIHEN hinaus fallen
+ * Balken weg; `ausgelassen` zaehlt die Substanzen, die dadurch ganz fehlen.
+ */
+export function zyklusBalken(
+  zeilen: readonly ZyklusZeile[],
+  fenster: { von: string; bis: string },
+): { balken: ZyklusBalken[]; reihen: number; ausgelassen: number } {
+  const [a0, a1] = achse(fenster)
+  const ms = (anteil: number) => a0 + anteil * (a1 - a0)
+  const alle = zeilen.flatMap(zeile => zeile.abschnitte.map(ab => {
+    const beginn = tagMs(ab.von)
+    return {
+      key: ab.key, stackItemId: zeile.stackItemId, substanz: zeile.substanz, farbe: zeile.farbe,
+      x1: ms(ab.start), x2: ms(ab.ende),
+      start: beginn >= a0 ? beginn : null,
+      laeuft: ab.bis === null,
+    }
+  }))
+  const gepackt = assignLanes(alle).map(({ lane, ...b }) => ({ ...b, reihe: lane }))
+  const balken = gepackt.filter(b => b.reihe < MAX_REIHEN)
+  const sichtbar = new Set(balken.map(b => b.stackItemId))
+  const ausgelassen = new Set(gepackt.filter(b => !sichtbar.has(b.stackItemId)).map(b => b.stackItemId)).size
+  return { balken, reihen: laneCount(balken.map(b => ({ lane: b.reihe }))), ausgelassen }
+}
+
+/**
+ * Hoehe der Balken: je Reihe hoechstens 22 px, zusammen hoechstens 70 % der
+ * Flaeche — der Graph waechst nie, bei vielen Reihen werden sie schmaler.
+ */
+export function zyklusBalkenLayout(plotHeight: number, reihen: number): { blockHeight: number; laneHeight: number; laneGap: number } {
+  if (reihen <= 0 || plotHeight <= 0) return { blockHeight: 0, laneHeight: 0, laneGap: 0 }
+  const laneGap = 3
+  const laneHeight = Math.max(6, Math.min(22, (plotHeight * 0.7 - (reihen - 1) * laneGap) / reihen))
+  return { blockHeight: reihen * laneHeight + (reihen - 1) * laneGap, laneHeight, laneGap }
 }
