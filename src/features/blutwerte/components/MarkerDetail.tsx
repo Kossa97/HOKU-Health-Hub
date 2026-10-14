@@ -33,6 +33,8 @@ const RANGES: Array<[RangeFilter, string]> = [
 /** Messpunkt in der Mitte seines Tags — dort, wo der Tag auch in den Zyklus-Zeilen liegt. */
 const HALBER_TAG = TAG_MS / 2
 const CHART_H = 250
+// Dritte Ablese-Zeile fuer laufende Zyklen; der Graph waechst um sie, die Flaeche bleibt gleich.
+const CYCLE_TAGS_H = 20
 /** Linienfarbe ohne Referenzbereich (Hex, der Graph mischt Transparenz hinein). */
 const NEUTRAL_LINE = '#22c3e6'
 
@@ -161,13 +163,14 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const scrubLabel = useMemo(() => ({
     date: (ts: number) => formatDisplayDate(msTag(ts)),
     value: (v: number) => `${formatNumber(v)} ${unit}`,
-    // Was an dem Tag lief — bei Auswahl nur die hervorgehobenen Zyklen
-    note: (ts: number) => {
+    // Eigene Zeile: was an dem Tag lief — bei Auswahl nur die hervorgehobenen
+    // Zyklen. Ohne Zyklen im Zeitraum bleibt das Schild zweizeilig.
+    tags: streifen.zeilen.length ? (ts: number) => {
       const auswahl = streifen.zeilen.some(zeile => hervor.has(zeile.stackItemId))
-      const aktiv = aktiveZyklen(streifen.zeilen, fenster, ts)
+      return aktiveZyklen(streifen.zeilen, fenster, ts)
         .filter(({ zeile }) => !auswahl || hervor.has(zeile.stackItemId))
-      return aktiv.length ? aktiv.map(({ zeile, woche }) => `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`).join(' · ') : null
-    },
+        .map(({ zeile, woche }) => ({ text: `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`, color: `var(--cycle-${zeile.farbe + 1})` }))
+    } : undefined,
   }), [unit, streifen, fenster, hervor, t])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
   // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
@@ -355,7 +358,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               start={start}
               end={end}
               accent={lineColor}
-              height={CHART_H + cycleStripHeight(zyklusSpuren.length)}
+              height={CHART_H + cycleStripHeight(zyklusSpuren.length) + (zyklusSpuren.length ? CYCLE_TAGS_H : 0)}
               seriesKey={`${name}|${unit}`}
               formatTick={formatTick}
               xTicks={monthTicks}

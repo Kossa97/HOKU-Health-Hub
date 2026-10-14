@@ -58,22 +58,22 @@ describe('Zyklen als Zeitstreifen', () => {
     expect(zeilen.map(z => [z.substanz, z.farbe])).toEqual([['BPC-157', 1], ['TB-500', 2]])
   })
 
-  it('zeigt hoechstens sechs Zeilen und zaehlt den Rest', () => {
-    const viele = Array.from({ length: 8 }, (_, i) => zyklus(`c${i}`, `s${i}`, `2026-02-0${i + 1}`, '2026-03-01'))
+  it('zeigt hoechstens fuenf Zeilen und zaehlt den Rest', () => {
+    const viele = Array.from({ length: 7 }, (_, i) => zyklus(`c${i}`, `s${i}`, `2026-02-0${i + 1}`, '2026-03-01'))
     const { zeilen, weitere } = zyklusZeilen(viele, new Map(), fenster, '2026-04-10', timeZone)
     expect(zeilen).toHaveLength(MAX_ZEILEN)
     expect(weitere).toBe(2)
     expect(zeilen[0].substanz).toBe('—')
   })
 
-  it('ab der siebten Substanz wiederholen sich die Farbplaetze, statt grau zu werden', () => {
-    // s0 begann zuerst (alter Zyklus ausserhalb des Fensters), s6 als siebte.
+  it('ab der sechsten Substanz wiederholen sich die Farbplaetze, statt grau zu werden', () => {
+    // s0 begann zuerst (alter Zyklus ausserhalb des Fensters), s5 als sechste.
     const timelines = [
-      ...Array.from({ length: 6 }, (_, i) => zyklus(`alt${i}`, `s${i}`, `2025-0${i + 1}-01`, `2025-0${i + 1}-10`)),
-      zyklus('neu', 's6', '2026-02-01', '2026-03-01'),
+      ...Array.from({ length: 5 }, (_, i) => zyklus(`alt${i}`, `s${i}`, `2025-0${i + 1}-01`, `2025-0${i + 1}-10`)),
+      zyklus('neu', 's5', '2026-02-01', '2026-03-01'),
     ]
     const { zeilen } = zyklusZeilen(timelines, new Map(), fenster, '2026-04-10', timeZone)
-    expect(zeilen.map(z => [z.stackItemId, z.farbe])).toEqual([['s6', 0]])
+    expect(zeilen.map(z => [z.stackItemId, z.farbe])).toEqual([['s5', 0]])
   })
 
   it('teilen sich zwei sichtbare Substanzen den Platz, weicht die spaetere aus', () => {

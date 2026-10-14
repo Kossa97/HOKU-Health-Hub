@@ -24,13 +24,14 @@ export interface ZyklusAbschnitt {
 export interface ZyklusZeile {
   stackItemId: string
   substanz: string
-  /** Farbplatz 0–5: fest je Substanz, im selben Fenster nie doppelt. */
+  /** Farbplatz 0–4: fest je Substanz, im selben Fenster nie doppelt. */
   farbe: number
   abschnitte: ZyklusAbschnitt[]
 }
 
-export const MAX_ZEILEN = 6
-const FARBEN = 6
+export const MAX_ZEILEN = 5
+// Fuenf Plaetze: mehr unterscheidbare Farben gibt es ohne Gruen/Rot nicht.
+const FARBEN = 5
 export const TAG_MS = 24 * 60 * 60 * 1000
 
 // ── Gemeinsame Zeitachse fuer Diagramm und Zeilen ────────────────────────────
@@ -135,8 +136,8 @@ export function zyklusZeilen(
     .sort((a, b) => a.abschnitte[0].start - b.abschnitte[0].start)
   const sichtbar = alle.slice(0, MAX_ZEILEN)
 
-  // Bei mehr als sechs Substanzen ueberhaupt teilen sich zwei denselben
-  // Wunschplatz. Im Fenster stehen hoechstens sechs Zeilen — die frueher
+  // Bei mehr als fuenf Substanzen ueberhaupt teilen sich zwei denselben
+  // Wunschplatz. Im Fenster stehen hoechstens fuenf Zeilen — die frueher
   // begonnene behaelt ihren Platz, die andere nimmt den naechsten freien.
   const farbe = new Map<string, number>()
   const belegt = new Set<number>()

@@ -626,14 +626,14 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* ── Semantic theme tokens (dark defaults) ── */
-  /* Zyklus-Zeilen unter dem Blutwert-Verlauf: feste Farbplaetze je Substanz,
-     mit dem dataviz-Validator gegen die dunkle Flaeche geprueft. */
+  /* Zyklus-Spuren im Blutwert-Verlauf: feste Farbplaetze je Substanz,
+     mit dem dataviz-Validator gegen die dunkle Flaeche geprueft. Kein Gruen,
+     Aqua oder Rot — die stehen dort fuer „im/ausser Bereich". */
   --cycle-1: #3987e5;
   --cycle-2: #d95926;
-  --cycle-3: #199e70;
+  --cycle-3: #9085e9;
   --cycle-4: #c98500;
   --cycle-5: #d55181;
-  --cycle-6: #9085e9;
   --app-bg:          #020308;
   --surface:         rgba(3,4,12,0.96);
   --surface-raised:  rgba(18,22,48,0.92);
@@ -725,14 +725,13 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
 
 /* ── Light theme overrides ── */
 [data-theme="light"] {
-  /* Zyklus-Zeilen, gegen Weiss geprueft (unter 3:1 bei 3/4/5 — darum steht
-     an jeder Zeile der Name). */
+  /* Zyklus-Spuren, gegen Weiss geprueft (unter 3:1 bei 4/5 — darum steht
+     an jedem Chip der Name). */
   --cycle-1: #2a78d6;
   --cycle-2: #eb6834;
-  --cycle-3: #1baf7a;
+  --cycle-3: #4a3aa7;
   --cycle-4: #eda100;
   --cycle-5: #e87ba4;
-  --cycle-6: #4a3aa7;
   --app-bg:          #f4f7fb;
   --surface:         #ffffff;
   --surface-raised:  #ffffff;

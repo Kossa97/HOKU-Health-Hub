@@ -96,6 +96,11 @@ export interface StocksChartProps {
     value: (level: number) => string
     /** Zusatz hinter dem Wert, z. B. „BPC-157 · Start" (gedaempft). */
     note?: (ts: number) => string | null
+    /**
+     * Eigene dritte Zeile unter dem Wert: je Eintrag Farbpunkt und Text (z. B.
+     * laufende Zyklen). Haelt die Zeile immer frei, damit nichts springt.
+     */
+    tags?: (ts: number) => Array<{ text: string; color: string }>
   }
   ariaLabel: string
   /** Punkt am Kurvenende (Live). */
@@ -169,6 +174,7 @@ const MAX_EINNAHME_LINIEN = 40
 const PAD_TOP = 10
 /** Hoehe der freien Zeile fuer das Ablese-Schild. */
 const LABEL_H = 40
+const TAGS_H = 20
 const ANIM_MS = 350
 const REVEAL_MS = 650
 const HOLD_MS = 180
@@ -307,7 +313,8 @@ export const StocksChart = memo(function StocksChart({
     // Rechts derselbe Rand wie links fuer die Werte: der Graph steht mittig.
     const plotR = width - propsRef.current.axisWidth
     const label = propsRef.current.scrubLabel
-    const plotT = PAD_TOP + (label ? LABEL_H : 0)
+    const labelH = label ? LABEL_H + (label.tags ? TAGS_H : 0) : 0
+    const plotT = PAD_TOP + labelH
     // Ohne Zeitachse bleibt ein schmaler Rand, damit die unterste Zahl nicht abgeschnitten wird.
     const axisBottom = propsRef.current.xAxis ? AXIS_BOTTOM : 8
     const plotB = h - axisBottom - BELOW
@@ -680,7 +687,7 @@ export const StocksChart = memo(function StocksChart({
       const scrubColor = lv != null ? colorOf(lv, scrubTs) : color
       ctx.strokeStyle = label ? scrubColor : muted
       ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + BELOW); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x, label ? labelH : plotT - 4); ctx.lineTo(x, plotB + BELOW); ctx.stroke()
       if (label && otherList.length) {
         // Mehrere Linien: Datum, darunter je Linie Name und Wert in ihrer Farbe
         const parts = [{ name: propsRef.current.seriesName ?? '', v: lv, c: color }, ...otherList.map(o => ({ name: o.name, v: levelAt(o.points, scrubTs), c: o.color }))]
@@ -749,6 +756,47 @@ export const StocksChart = memo(function StocksChart({
         } else {
           ctx.fillStyle = scrubColor
           ctx.fillText(valueText, cx, 33)
+        }
+      }
+      const tags = label?.tags?.(scrubTs) ?? []
+      if (tags.length) {
+        // Farbpunkt + Text je Eintrag, mittig unter dem Wert. Passt nicht alles,
+        // stehen die letzten als „+n".
+        ctx.font = '600 12px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.textBaseline = 'alphabetic'
+        ctx.textAlign = 'left'
+        const DOT = 10, GAP = 12
+        const breite = (t: string) => DOT + ctx.measureText(t).width
+        // Rechts etwas Luft, damit der letzte Buchstabe nicht am Rand klebt
+        const platz = width - plotL - 6
+        let zeigen = tags.length
+        const gesamt = (n: number) => {
+          const rest = tags.length - n
+          return tags.slice(0, n).reduce((sum, t) => sum + breite(t.text), 0)
+            + GAP * Math.max(0, n - 1) + (rest ? GAP + ctx.measureText(`+${rest}`).width : 0)
+        }
+        while (zeigen > 1 && gesamt(zeigen) > platz) zeigen--
+        const total = Math.min(gesamt(zeigen), platz)
+        let left = Math.min(Math.max(x - total / 2, plotL), width - 6 - total)
+        const y = LABEL_H + 12
+        for (const tag of tags.slice(0, zeigen)) {
+          ctx.fillStyle = tag.color.startsWith('var(') ? cssVar(canvas, tag.color.slice(4, -1).trim(), muted) : tag.color
+          ctx.beginPath(); ctx.arc(left + 3.5, y - 4, 3.5, 0, Math.PI * 2); ctx.fill()
+          ctx.fillStyle = muted
+          // Ein einzelner zu langer Eintrag wird mit „…" gekuerzt
+          let text = tag.text
+          const rest = tags.length - zeigen
+          const frei = platz - DOT - (rest ? GAP + ctx.measureText(`+${rest}`).width : 0)
+          if (zeigen === 1 && ctx.measureText(text).width > frei) {
+            while (text.length > 1 && ctx.measureText(`${text}…`).width > frei) text = text.slice(0, -1)
+            text = `${text.trimEnd()}…`
+          }
+          ctx.fillText(text, left + DOT, y)
+          left += breite(text) + GAP
+        }
+        if (zeigen < tags.length) {
+          ctx.fillStyle = muted
+          ctx.fillText(`+${tags.length - zeigen}`, left, y)
         }
       }
       for (const [v, c] of [...otherList.map(o => [levelAt(o.points, scrubTs), o.color] as const), [lv, scrubColor] as const]) {
