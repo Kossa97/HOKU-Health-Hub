@@ -2026,7 +2026,7 @@
   "bw_cycles_title": "Deine Zyklen in diesem Zeitraum",
   "bw_cycles_running": "läuft",
   "bw_cycles_more": "+{{count}} weitere",
-  "bw_cycles_hint": "Nur zur Orientierung — der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.",
+  "bw_cycles_hint": "Tippe einen Zyklus an, um ihn im Verlauf hervorzuheben — auch mehrere. Nur zur Orientierung: der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.",
   "bw_cycles_period": "{{from}} – {{to}}",
   "bw_edit_title": "Wert bearbeiten",
   "bw_edit_aria": "{{value}} vom {{date}} bearbeiten",
@@ -2297,5 +2297,6 @@
   "my_stack_plan_today": "Heute",
   "my_stack_plan_tomorrow": "Morgen",
   "pk_overview_intro": "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
-  "bw_lab_range_note": "Labor {{range}}"
+  "bw_lab_range_note": "Labor {{range}}",
+  "bw_cycle_week": "Wo. {{n}}"
 }

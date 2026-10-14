@@ -18,11 +18,11 @@ import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/
 import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
 import { TrendIcon, trendColor } from './trend'
-import { AXIS_WIDTH, StocksChart } from '../../blutspiegel/chart/StocksChart'
-import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
-import { ZyklusStreifen } from './ZyklusStreifen'
+import { StocksChart, type CycleStripRow } from '../../blutspiegel/chart/StocksChart'
+import { cycleStripHeight, timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
+import { ZyklusAuswahl } from './ZyklusAuswahl'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { TAG_MS, msTag, tagMs, zyklusZeilen } from '../lib/zyklusZeilen'
+import { TAG_MS, achse, aktiveZyklen, msTag, tagMs, zyklusZeilen } from '../lib/zyklusZeilen'
 
 export type RangeFilter = '3M' | '6M' | '1J' | '2J' | 'ALL'
 
@@ -119,10 +119,29 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     return first - Math.max(7 * TAG_MS, (end - first) * 0.04)
   }, [rangeFilter, end, allPoints])
 
-  const fenster = { von: msTag(start), bis: bisTag }
-  const streifen = zyklen
+  const von = msTag(start)
+  const fenster = useMemo(() => ({ von, bis: bisTag }), [von, bisTag])
+  const streifen = useMemo(() => zyklen
     ? zyklusZeilen(zyklen.timelines, zyklen.namen, fenster, heute, Intl.DateTimeFormat().resolvedOptions().timeZone)
-    : { zeilen: [], weitere: 0 }
+    : { zeilen: [], weitere: 0 }, [zyklen, fenster, heute])
+
+  // Hervorgehobene Zyklen (mehrere moeglich); leer = alle Spuren gleich stark
+  const [hervor, setHervor] = useState<ReadonlySet<string>>(() => new Set())
+  const toggleZyklus = useCallback((id: string) => setHervor(alt => {
+    const neu = new Set(alt)
+    if (!neu.delete(id)) neu.add(id)
+    return neu
+  }), [])
+  const zyklusSpuren = useMemo((): CycleStripRow[] => {
+    const [a0, a1] = achse(fenster)
+    const ms = (anteil: number) => a0 + anteil * (a1 - a0)
+    return streifen.zeilen.map(zeile => ({
+      id: zeile.stackItemId,
+      color: `var(--cycle-${zeile.farbe + 1})`,
+      on: hervor.has(zeile.stackItemId),
+      segments: zeile.abschnitte.map(ab => ({ x1: ms(ab.start), x2: ms(ab.ende), open: ab.bis === null })),
+    }))
+  }, [streifen, fenster, hervor])
 
   const inWindow = allPoints.filter(p => p.ts >= start && p.ts <= end)
   const excludedCount = summary.points.filter(p => {
@@ -142,7 +161,14 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const scrubLabel = useMemo(() => ({
     date: (ts: number) => formatDisplayDate(msTag(ts)),
     value: (v: number) => `${formatNumber(v)} ${unit}`,
-  }), [unit])
+    // Was an dem Tag lief — bei Auswahl nur die hervorgehobenen Zyklen
+    note: (ts: number) => {
+      const auswahl = streifen.zeilen.some(zeile => hervor.has(zeile.stackItemId))
+      const aktiv = aktiveZyklen(streifen.zeilen, fenster, ts)
+        .filter(({ zeile }) => !auswahl || hervor.has(zeile.stackItemId))
+      return aktiv.length ? aktiv.map(({ zeile, woche }) => `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`).join(' · ') : null
+    },
+  }), [unit, streifen, fenster, hervor, t])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
   // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
   // Gruppe aendert (neue Altersgruppe, Wechseljahre). Gilt mangels Quelle der
@@ -329,7 +355,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               start={start}
               end={end}
               accent={lineColor}
-              height={CHART_H}
+              height={CHART_H + cycleStripHeight(zyklusSpuren.length)}
               seriesKey={`${name}|${unit}`}
               formatTick={formatTick}
               xTicks={monthTicks}
@@ -343,16 +369,16 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               minSpan={minSpan}
               intakeStrip={false}
               zoneColors={zoneColors}
+              cycleStrip={zyklusSpuren}
             />
           ) : (
             <div className="flex items-center justify-center text-center text-sm" style={{ height: CHART_H, color: MUTED }}>
               {t('bw_no_values_period')}
             </div>
           )}
-          {/* Die Zyklus-Zeilen enden vor der Werte-Achse — auf derselben Zeitachse wie der Graph. */}
-          <div style={{ marginLeft: AXIS_WIDTH, marginRight: AXIS_WIDTH }}>
-            <ZyklusStreifen zeilen={streifen.zeilen} weitere={streifen.weitere} />
-          </div>
+          {inWindow.length > 0 && (
+            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} hervor={hervor} onToggle={toggleZyklus} />
+          )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>
               {excludedCount === 1 ? t('bw_excluded_one') : t('bw_excluded_many', { count: excludedCount })}

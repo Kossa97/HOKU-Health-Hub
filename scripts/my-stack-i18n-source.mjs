@@ -818,7 +818,7 @@ export const MY_STACK_EN = {
   bw_cycles_title: 'Your cycles in this period',
   bw_cycles_running: 'ongoing',
   bw_cycles_more: '+{{count}} more',
-  bw_cycles_hint: 'Shown for orientation only — the timing says nothing about cause and effect.',
+  bw_cycles_hint: 'Tap a cycle to highlight it in the chart — several at once. For orientation only: the timing says nothing about cause and effect.',
   bw_cycles_period: '{{from}} – {{to}}',
   bw_edit_title: 'Edit value',
   bw_edit_aria: 'Edit {{value}} from {{date}}',
@@ -1090,6 +1090,7 @@ export const MY_STACK_EN = {
   my_stack_plan_tomorrow: "Tomorrow",
   pk_overview_intro: "How your substances move through your blood, in real time — estimated from your confirmed doses.",
   bw_lab_range_note: "lab {{range}}",
+  bw_cycle_week: "wk {{n}}",
 }
 
 export const MY_STACK_DE = {
@@ -1911,7 +1912,7 @@ export const MY_STACK_DE = {
   bw_cycles_title: 'Deine Zyklen in diesem Zeitraum',
   bw_cycles_running: 'läuft',
   bw_cycles_more: '+{{count}} weitere',
-  bw_cycles_hint: 'Nur zur Orientierung — der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.',
+  bw_cycles_hint: 'Tippe einen Zyklus an, um ihn im Verlauf hervorzuheben — auch mehrere. Nur zur Orientierung: der zeitliche Zusammenhang sagt nichts über Ursache und Wirkung.',
   bw_cycles_period: '{{from}} – {{to}}',
   bw_edit_title: 'Wert bearbeiten',
   bw_edit_aria: '{{value}} vom {{date}} bearbeiten',
@@ -2183,6 +2184,7 @@ export const MY_STACK_DE = {
   my_stack_plan_tomorrow: "Morgen",
   pk_overview_intro: "Der Wirkstoffverlauf deiner Substanzen im Blut, in Echtzeit — geschätzt aus deinen bestätigten Einnahmen.",
   bw_lab_range_note: "Labor {{range}}",
+  bw_cycle_week: "Wo. {{n}}",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

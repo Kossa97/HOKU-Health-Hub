@@ -2026,7 +2026,7 @@
   "bw_cycles_title": "Your cycles in this period",
   "bw_cycles_running": "ongoing",
   "bw_cycles_more": "+{{count}} more",
-  "bw_cycles_hint": "Shown for orientation only — the timing says nothing about cause and effect.",
+  "bw_cycles_hint": "Tap a cycle to highlight it in the chart — several at once. For orientation only: the timing says nothing about cause and effect.",
   "bw_cycles_period": "{{from}} – {{to}}",
   "bw_edit_title": "Edit value",
   "bw_edit_aria": "Edit {{value}} from {{date}}",
@@ -2297,5 +2297,6 @@
   "my_stack_plan_today": "Today",
   "my_stack_plan_tomorrow": "Tomorrow",
   "pk_overview_intro": "How your substances move through your blood, in real time — estimated from your confirmed doses.",
-  "bw_lab_range_note": "lab {{range}}"
+  "bw_lab_range_note": "lab {{range}}",
+  "bw_cycle_week": "wk {{n}}"
 }

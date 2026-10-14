@@ -336,7 +336,7 @@ test('Bearbeiten: andere Einheit — Laborreferenz faellt weg, mit Hinweis', asy
   expect(mock.table('bloodwork')[0]).toMatchObject({ value: 386, unit: 'nmol/L', ref_min: null, ref_max: null })
 })
 
-test('Verlauf: Zyklen aus My Stack als Zeilen unter dem Diagramm', async ({ page, mock }) => {
+test('Verlauf: Zyklen aus My Stack als Spuren im Diagramm, antippbar', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-08-01' })
   seedPeptide(mock, 'TB-500', { startDate: '2026-06-10' })
   const tb = mock.table('stack_items').find(row => row.display_name === 'TB-500')!
@@ -353,8 +353,18 @@ test('Verlauf: Zyklen aus My Stack als Zeilen unter dem Diagramm', async ({ page
   await expect(streifen.locator('[data-cycle-row]')).toHaveCount(2)
   // aelteste zuerst; beendet mit Enddatum, laufend mit „läuft"
   await expect(streifen.locator('[data-cycle-row]').first()).toContainText('TB-500')
-  await expect(streifen.getByRole('img', { name: 'TB-500: 10.06.2026 – 19.07.2026' })).toBeVisible()
-  await expect(streifen.getByRole('img', { name: 'BPC-157: 01.08.2026 – läuft' })).toBeVisible()
+  const tb500 = streifen.getByRole('button', { name: 'TB-500: 10.06.2026 – 19.07.2026' })
+  const bpc = streifen.getByRole('button', { name: 'BPC-157: 01.08.2026 – läuft' })
+  await expect(tb500).toHaveAttribute('aria-pressed', 'false')
+  await expect(bpc).toHaveAttribute('aria-pressed', 'false')
+  // mehrere hervorheben, erneutes Tippen nimmt wieder heraus
+  await tb500.click()
+  await bpc.click()
+  await expect(tb500).toHaveAttribute('aria-pressed', 'true')
+  await expect(bpc).toHaveAttribute('aria-pressed', 'true')
+  await tb500.click()
+  await expect(tb500).toHaveAttribute('aria-pressed', 'false')
+  await expect(bpc).toHaveAttribute('aria-pressed', 'true')
   await expect(streifen).toContainText('sagt nichts über Ursache und Wirkung')
 
   if (process.env.SCREENSHOT_DIR) {

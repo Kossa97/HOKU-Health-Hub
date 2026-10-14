@@ -255,3 +255,12 @@ export function aenderungSeit(points: LevelPoint[], start: number): number | nul
   const anfang = start < points[0].ts ? points[0].level : levelAt(points, start)
   return anfang == null ? null : points[points.length - 1].level - anfang
 }
+
+// Zyklus-Spuren: Abstand zur Zeichenflaeche, Zeilenhoehe, Luecke
+export const STRIP_PAD = 8
+export const STRIP_ROW = 5
+export const STRIP_GAP = 4
+/** Hoehe der Zyklus-Spuren fuer `rows` Zeilen — so viel waechst der Graph. */
+export function cycleStripHeight(rows: number): number {
+  return rows > 0 ? STRIP_PAD + rows * STRIP_ROW + (rows - 1) * STRIP_GAP + 4 : 0
+}

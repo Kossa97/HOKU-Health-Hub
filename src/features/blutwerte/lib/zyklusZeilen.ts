@@ -2,7 +2,7 @@ import type { CycleTimeline } from '../../../lib/planTimeline'
 import { cyclePeriod, localDay } from '../../my-stack/lib/planCard'
 
 /**
- * Zyklen aus My Stack als Zeitstreifen unter dem Verlauf eines Markers:
+ * Zyklen aus My Stack als Spuren unter dem Verlauf eines Markers:
  * je Substanz eine Zeile, darin ihre Zyklen als Abschnitte, auf derselben
  * Zeitachse wie das Diagramm. Pausen sind Luecken. Nur zur Orientierung —
  * die App zeigt Zeitraeume, keine Wirkung.
@@ -14,6 +14,8 @@ export interface ZyklusAbschnitt {
   von: string
   /** Letzter Tag; null = laeuft noch. */
   bis: string | null
+  /** Erster Tag des ganzen Zyklus — auch wenn der Abschnitt nach einer Pause beginnt. */
+  zyklusVon: string
   /** Lage auf der Achse, 0–1, bereits auf das Fenster zugeschnitten. */
   start: number
   ende: number
@@ -116,6 +118,7 @@ export function zyklusZeilen(
         key: `${timeline.cycle.id}:${index}`,
         von: msTag(a),
         bis: laeuft ? null : msTag(b - TAG_MS),
+        zyklusVon: first,
         start: Math.max(0, (a - fensterStart) / spanne),
         ende: Math.min(1, (b - fensterStart) / spanne),
       })
@@ -148,4 +151,24 @@ export function zyklusZeilen(
     zeilen: sichtbar.map(zeile => ({ ...zeile, farbe: farbe.get(zeile.stackItemId)! })),
     weitere: alle.length - sichtbar.length,
   }
+}
+
+/**
+ * Was am Zeitpunkt `ts` laeuft: je Zeile der Abschnitt, der ihn enthaelt, und
+ * die Zykluswoche (1 = erste Woche ab Zyklusbeginn). Reihenfolge wie die Zeilen.
+ */
+export function aktiveZyklen(
+  zeilen: readonly ZyklusZeile[],
+  fenster: { von: string; bis: string },
+  ts: number,
+): Array<{ zeile: ZyklusZeile; woche: number }> {
+  const [start, ende] = achse(fenster)
+  const anteil = (ts - start) / (ende - start)
+  const treffer: Array<{ zeile: ZyklusZeile; woche: number }> = []
+  for (const zeile of zeilen) {
+    const abschnitt = zeile.abschnitte.find(a => anteil >= a.start && anteil < a.ende)
+    if (!abschnitt) continue
+    treffer.push({ zeile, woche: Math.floor((ts - tagMs(abschnitt.zyklusVon)) / (7 * TAG_MS)) + 1 })
+  }
+  return treffer
 }

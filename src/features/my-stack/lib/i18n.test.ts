@@ -1099,6 +1099,7 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_plan_tomorrow',
   'pk_overview_intro',
   'bw_lab_range_note',
+  'bw_cycle_week',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

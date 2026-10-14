@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { MAX_ZEILEN, achse, achsenTicks, msTag, zyklusZeilen } from './zyklusZeilen'
+import { MAX_ZEILEN, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusZeilen } from './zyklusZeilen'
 
 const timeZone = 'Europe/Berlin'
 
@@ -133,5 +133,24 @@ describe('Zyklen als Zeitstreifen', () => {
     const [a] = zeilen[0].abschnitte
     expect(a.bis).toBe('2026-02-10')
     expect(a.ende).toBeGreaterThan(a.start)
+  })
+})
+
+describe('aktiveZyklen (Ablese-Schild)', () => {
+  const { zeilen } = zyklusZeilen([
+    zyklus('c1', 'bpc', '2025-12-01', '2026-01-11'),
+    zyklus('c2', 'tb', '2026-01-05', null),
+  ], namen, fenster, '2026-04-10', timeZone)
+  const mittag = (tag: string) => tagMs(tag) + 12 * 60 * 60 * 1000
+
+  it('nennt die laufenden Zyklen mit Woche ab Zyklusbeginn, auch vor dem Fenster begonnen', () => {
+    // BPC seit 01.12.: 08.01. ist Tag 39 → Woche 6; TB seit 05.01. → Woche 1
+    expect(aktiveZyklen(zeilen, fenster, mittag('2026-01-08')).map(({ zeile, woche }) => [zeile.substanz, woche]))
+      .toEqual([['BPC-157', 6], ['TB-500', 1]])
+  })
+
+  it('der letzte Tag gehoert dazu, der Tag danach nicht', () => {
+    expect(aktiveZyklen(zeilen, fenster, mittag('2026-01-10')).map(({ zeile }) => zeile.substanz)).toEqual(['BPC-157', 'TB-500'])
+    expect(aktiveZyklen(zeilen, fenster, mittag('2026-01-11')).map(({ zeile }) => zeile.substanz)).toEqual(['TB-500'])
   })
 })

@@ -31,6 +31,10 @@ import {
   yDomainFor,
   type LevelPoint,
   type YDomain,
+  STRIP_PAD,
+  STRIP_ROW,
+  STRIP_GAP,
+  cycleStripHeight,
 } from './stocksChartMath'
 
 export interface ChartMarker { ts: number; label: string; color: string }
@@ -46,6 +50,20 @@ export interface LaneBand {
   lane: number
   /** Echter Start (fuer den Start-Strich); null, wenn er vor dem Fenster liegt. */
   start: number | null
+}
+
+/**
+ * Zyklus-Spur unter der Zeichenflaeche (Blutwerte): je Substanz eine schmale
+ * Zeile auf derselben Zeitachse. `on` hebt sie hervor — ihre Abschnitte legen
+ * dann einen Schleier hinter die Kurve, die uebrigen Spuren treten zurueck.
+ */
+export interface CycleStripRow {
+  id: string
+  /** Hex oder `var(--name)`. */
+  color: string
+  on: boolean
+  /** Abschnitte in ms; `open` = laeuft noch (rechts offen). */
+  segments: Array<{ x1: number; x2: number; open: boolean }>
 }
 
 export interface LaneLayout { blockHeight: number; laneHeight: number; laneGap: number }
@@ -138,6 +156,8 @@ export interface StocksChartProps {
   syncTs?: number | null
   /** Zyklus-Balken hinter der Kurve. */
   lanes?: { items: LaneBand[]; count: number; layout: (plotHeight: number, count: number) => LaneLayout }
+  /** Zyklus-Spuren unter der Zeichenflaeche; hervorgehobene als Schleier dahinter. */
+  cycleStrip?: CycleStripRow[]
 }
 
 /** Breite der Werte-Achse rechts; Inhalte darunter richten sich danach aus. */
@@ -175,7 +195,7 @@ export const StocksChart = memo(function StocksChart({
   formatTick, xTicks, formatValue = v => String(Math.round(v)), onScrub, scrubLabel, ariaLabel, liveEnd = false,
   band, dots = false, yInclude, percentCap = true, minSpan = 2, intakeStrip = true,
   axisWidth = AXIS_WIDTH, pan, holdMs = HOLD_MS, snapTimes, lanes,
-  seriesName, others, xBands, xLines, xAxis = true, syncTs = null, yTicks = 4, zoneColors,
+  seriesName, others, xBands, xLines, xAxis = true, syncTs = null, yTicks = 4, zoneColors, cycleStrip,
 }: StocksChartProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -201,11 +221,11 @@ export const StocksChart = memo(function StocksChart({
   const seriesKeyRef = useRef(seriesKey)
   const revealStartRef = useRef<number | null>(null)
 
-  const propsRef = useRef({ intakes, markers, formatTick, xTicks, formatValue, liveEnd, height, scrubLabel, band, dots, intakeStrip, axisWidth, snapTimes, lanes, seriesName, others, xBands, xLines, xAxis, syncTs, zoneColors })
+  const propsRef = useRef({ intakes, markers, formatTick, xTicks, formatValue, liveEnd, height, scrubLabel, band, dots, intakeStrip, axisWidth, snapTimes, lanes, seriesName, others, xBands, xLines, xAxis, syncTs, zoneColors, cycleStrip })
   const onScrubRef = useRef(onScrub)
   const panRef = useRef(pan)
   useLayoutEffect(() => {
-    propsRef.current = { intakes, markers, formatTick, xTicks, formatValue, liveEnd, height, scrubLabel, band, dots, intakeStrip, axisWidth, snapTimes, lanes, seriesName, others, xBands, xLines, xAxis, syncTs, zoneColors }
+    propsRef.current = { intakes, markers, formatTick, xTicks, formatValue, liveEnd, height, scrubLabel, band, dots, intakeStrip, axisWidth, snapTimes, lanes, seriesName, others, xBands, xLines, xAxis, syncTs, zoneColors, cycleStrip }
     onScrubRef.current = onScrub
     panRef.current = pan
   })
@@ -227,6 +247,10 @@ export const StocksChart = memo(function StocksChart({
     const color = currentAccentRef.current
     const { intakes: intakeList, markers: markerList, formatTick: fmtTick, xTicks: customTicks, formatValue: fmtValue, liveEnd: showLive, height: h, band: bandArea, dots: showDots } = propsRef.current
     const INTAKE_STRIP = propsRef.current.intakeStrip ? INTAKE_STRIP_H : 0
+    const stripRows = propsRef.current.cycleStrip ?? []
+    const STRIP = cycleStripHeight(stripRows.length)
+    // Alles zwischen Zeichenflaeche und Zeitachse
+    const BELOW = INTAKE_STRIP + STRIP
     if (width <= 0) return
 
     const reduced = prefersReducedMotion()
@@ -286,7 +310,7 @@ export const StocksChart = memo(function StocksChart({
     const plotT = PAD_TOP + (label ? LABEL_H : 0)
     // Ohne Zeitachse bleibt ein schmaler Rand, damit die unterste Zahl nicht abgeschnitten wird.
     const axisBottom = propsRef.current.xAxis ? AXIS_BOTTOM : 8
-    const plotB = h - axisBottom - INTAKE_STRIP
+    const plotB = h - axisBottom - BELOW
     const plotW = plotR - plotL
     const plotH = plotB - plotT
     const span = Math.max(1, view.end - view.start)
@@ -370,6 +394,41 @@ export const StocksChart = memo(function StocksChart({
       }
     }
 
+    // Zyklus-Spuren unter der Flaeche; hervorgehobene als Schleier dahinter
+    if (stripRows.length) {
+      const farbe = (c: string) => {
+        const m = /^var\((--[\w-]+)\)$/.exec(c.trim())
+        return m ? cssVar(canvas, m[1], '#8a94a6') : c
+      }
+      const irgendwas = stripRows.some(row => row.on)
+      const y0 = plotB + INTAKE_STRIP + STRIP_PAD
+      stripRows.forEach((row, i) => {
+        const c = farbe(row.color)
+        const y = y0 + i * (STRIP_ROW + STRIP_GAP)
+        ctx.fillStyle = 'rgba(148,163,184,0.12)'
+        ctx.beginPath(); ctx.roundRect(plotL, y, plotW, STRIP_ROW, STRIP_ROW / 2); ctx.fill()
+        for (const seg of row.segments) {
+          const x1 = Math.max(plotL, xOf(seg.x1))
+          const x2 = Math.min(plotR, xOf(seg.x2))
+          if (x2 <= x1) continue
+          // Waechst beim ersten Auftritt von links, wie die Kurve
+          const w = Math.max(3, (x2 - x1) * reveal)
+          if (row.on) {
+            ctx.fillStyle = hexAlpha(c, 0.1)
+            ctx.fillRect(x1, plotT, w, plotB - plotT)
+            ctx.fillStyle = hexAlpha(c, 0.85)
+            ctx.fillRect(x1, plotT, w, 2)
+          }
+          ctx.save()
+          ctx.globalAlpha = irgendwas && !row.on ? 0.3 : 1
+          ctx.fillStyle = c
+          const r = STRIP_ROW / 2
+          ctx.beginPath(); ctx.roundRect(x1, y, w, STRIP_ROW, seg.open && w >= x2 - x1 ? [r, 0, 0, r] : r); ctx.fill()
+          ctx.restore()
+        }
+      })
+    }
+
     // Horizontale Linien + Werte rechts (die Ziel-Ticks, mit gleitender Lage)
     ctx.font = '500 11px ui-sans-serif, system-ui, -apple-system, sans-serif'
     ctx.textBaseline = 'middle'
@@ -398,9 +457,9 @@ export const StocksChart = memo(function StocksChart({
       ctx.beginPath(); ctx.moveTo(x, plotT); ctx.lineTo(x, plotB + INTAKE_STRIP); ctx.stroke()
       ctx.fillStyle = muted
       const label = fmtTick(ts, step)
-      if (propsRef.current.xAxis && x + 4 + ctx.measureText(label).width < width) ctx.fillText(label, x + 4, plotB + INTAKE_STRIP + 6)
+      if (propsRef.current.xAxis && x + 4 + ctx.measureText(label).width < width) ctx.fillText(label, x + 4, plotB + BELOW + 6)
     }
-    // Grundlinie
+    // Grundlinie — ueber den Zyklus-Spuren, die Zeit steht darunter
     ctx.strokeStyle = grid
     ctx.beginPath(); ctx.moveTo(plotL, plotB + INTAKE_STRIP + 0.5); ctx.lineTo(plotR, plotB + INTAKE_STRIP + 0.5); ctx.stroke()
 
@@ -621,7 +680,7 @@ export const StocksChart = memo(function StocksChart({
       const scrubColor = lv != null ? colorOf(lv, scrubTs) : color
       ctx.strokeStyle = label ? scrubColor : muted
       ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + INTAKE_STRIP); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x, label ? LABEL_H : plotT - 4); ctx.lineTo(x, plotB + BELOW); ctx.stroke()
       if (label && otherList.length) {
         // Mehrere Linien: Datum, darunter je Linie Name und Wert in ihrer Farbe
         const parts = [{ name: propsRef.current.seriesName ?? '', v: lv, c: color }, ...otherList.map(o => ({ name: o.name, v: levelAt(o.points, scrubTs), c: o.color }))]
@@ -668,8 +727,15 @@ export const StocksChart = memo(function StocksChart({
         ctx.font = '800 16px ui-sans-serif, system-ui, -apple-system, sans-serif'
         if (note) {
           // Wert in Linienfarbe, Zusatz gedaempft dahinter — zusammen mittig
-          const noteText = `  ${note}`
           ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+          // Passt der Zusatz nicht neben den Wert, wird er mit „…" gekuerzt.
+          const platz = width - plotL - wValue
+          let noteText = `  ${note}`
+          if (ctx.measureText(noteText).width > platz) {
+            let n = note.length
+            while (n > 1 && ctx.measureText(`  ${note.slice(0, n)}…`).width > platz) n--
+            noteText = `  ${note.slice(0, n).trimEnd()}…`
+          }
           const wNote = ctx.measureText(noteText).width
           const total = wValue + wNote
           const left = Math.min(Math.max(x - total / 2, plotL), width - total)
@@ -733,7 +799,7 @@ export const StocksChart = memo(function StocksChart({
     schedule()
   }, [points, start, end, seriesKey, accent, schedule, yIncludeKey, percentCap, minSpan, yTicks])
 
-  useEffect(() => { schedule() }, [intakes, markers, height, liveEnd, formatTick, formatValue, xTicks, axisWidth, seriesName, snapTimes, scrubLabel, band, dots, intakeStrip, lanes, others, xBands, xLines, xAxis, syncTs, zoneColors, schedule])
+  useEffect(() => { schedule() }, [intakes, markers, height, liveEnd, formatTick, formatValue, xTicks, axisWidth, seriesName, snapTimes, scrubLabel, band, dots, intakeStrip, lanes, others, xBands, xLines, xAxis, syncTs, zoneColors, cycleStrip, schedule])
   useThemeRedraw(schedule)
 
   // Breite
