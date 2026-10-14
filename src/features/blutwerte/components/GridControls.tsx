@@ -100,9 +100,10 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
           </div>
         )}
 
-        {/* Bei „Auffällige“ steht links, was die Liste zeigt — neben dem Schalter statt darueber. */}
+        {/* Bei „Auffällige“ steht links, was die Liste zeigt — neben dem Schalter statt darueber.
+            Zwei Zeilen à 16 px = Hoehe des Schalters; nur auf sehr schmalen Geraeten wird es hoeher. */}
         {kategorie === AUFFAELLIG && auffaellig > 0 && (
-          <p className="flex min-w-0 flex-1 items-center gap-1.5 text-xs leading-snug" style={{ color: MUTED }} data-bw-flagged-hint>
+          <p className="flex min-h-8 min-w-0 flex-1 items-center gap-1.5 text-[11px] leading-4" style={{ color: MUTED }} data-bw-flagged-hint>
             <AlertTriangle size={14} className="shrink-0" style={{ color: RED }} aria-hidden="true" />
             {t('bw_flagged_hint')}
           </p>
