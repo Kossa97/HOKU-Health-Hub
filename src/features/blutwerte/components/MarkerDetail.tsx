@@ -17,6 +17,7 @@ import type { BloodworkEntry, BloodworkReport } from '../types'
 import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
 import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
+import { ZyklusAuswahl } from './ZyklusAuswahl'
 import { TrendIcon, trendColor } from './trend'
 import { StocksChart, type LaneBand } from '../../blutspiegel/chart/StocksChart'
 import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
@@ -126,7 +127,15 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
 
   // Zyklen als dezente Balken hinter der Kurve: parallele untereinander,
   // aufeinanderfolgende nebeneinander, hoechstens MAX_REIHEN Reihen.
-  const balken = useMemo(() => zyklusBalken(streifen.zeilen, fenster), [streifen, fenster])
+  // Abgewaehlte Substanzen (stackItemId): ihre Balken fehlen, die uebrigen ruecken zusammen
+  const [aus, setAus] = useState<ReadonlySet<string>>(() => new Set())
+  const toggleZyklus = useCallback((id: string) => setAus(alt => {
+    const neu = new Set(alt)
+    if (!neu.delete(id)) neu.add(id)
+    return neu
+  }), [])
+  const gewaehlt = useMemo(() => streifen.zeilen.filter(zeile => !aus.has(zeile.stackItemId)), [streifen, aus])
+  const balken = useMemo(() => zyklusBalken(gewaehlt, fenster), [gewaehlt, fenster])
   const lanes = useMemo(() => ({
     items: balken.balken.map((b): LaneBand => ({
       id: b.key, color: `var(--cycle-${b.farbe + 1})`, filled: !b.laeuft,
@@ -157,10 +166,10 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     value: (v: number) => `${formatNumber(v)} ${unit}`,
     // Was an dem Tag lief, mit Zykluswoche
     note: (ts: number) => {
-      const aktiv = aktiveZyklen(streifen.zeilen, fenster, ts)
+      const aktiv = aktiveZyklen(gewaehlt, fenster, ts)
       return aktiv.length ? aktiv.map(({ zeile, woche }) => `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`).join(' · ') : null
     },
-  }), [unit, streifen, fenster, t])
+  }), [unit, gewaehlt, fenster, t])
   const formatValue = useCallback((v: number) => formatNumber(v), [])
   // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
   // Gruppe aendert (neue Altersgruppe, Wechseljahre). Gilt mangels Quelle der
@@ -368,11 +377,8 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               {t('bw_no_values_period')}
             </div>
           )}
-          {inWindow.length > 0 && streifen.zeilen.length > 0 && (
-            <p data-cycle-note className="text-[0.7rem] leading-snug" style={{ color: MUTED }}>
-              {weitereZyklen > 0 && <>{t('bw_cycles_more', { count: weitereZyklen })} </>}
-              {t('bw_cycles_hint')}
-            </p>
+          {inWindow.length > 0 && (
+            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={weitereZyklen} an={id => !aus.has(id)} onToggle={toggleZyklus} />
           )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>
