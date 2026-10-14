@@ -201,6 +201,80 @@ export async function saveInjectionLog(
   return data.id as string
 }
 
+export interface InjectionLogEdit {
+  notes: string | null
+  substanceLabel: string | null
+  dose: number | null
+  unit: string | null
+  method: string | null
+  loggedAt: string
+}
+
+/**
+ * Was sich an einer gespeicherten Injektion aendern laesst. Ist sie an eine
+ * bestaetigte Einnahme gebunden, gehoeren Dosis, Methode und Zeitpunkt der
+ * Einnahme (dose_logs) -- hier nur die Notiz, sonst laufen beide auseinander.
+ * Die Stelle selbst bleibt; verschieben heisst loeschen und neu setzen.
+ */
+export function buildInjectionUpdatePayload(log: Pick<InjectionLog3D, 'dose_log_id'>, edit: InjectionLogEdit) {
+  const notes = edit.notes?.trim() || null
+  if (log.dose_log_id) return { notes }
+  return {
+    notes,
+    substance_label: edit.substanceLabel?.trim() || null,
+    dose: edit.dose,
+    unit: edit.unit,
+    method: edit.method,
+    logged_at: edit.loggedAt,
+  }
+}
+
+// Ohne passende Zeile (fremde ID, schon geloescht, RLS) melden update und
+// delete keinen Fehler, sondern aendern still nichts. Das darf nicht als
+// Erfolg durchgehen.
+const INJECTION_LOG_NOT_FOUND = 'Injection log not found'
+
+function requireAffectedRow(data: unknown[] | null): void {
+  if (!data || data.length === 0) throw new Error(INJECTION_LOG_NOT_FOUND)
+}
+
+/** Die Zeile gibt es nicht (mehr) -- etwa auf einem anderen Geraet geloescht. */
+export function isInjectionLogNotFoundError(error: unknown): boolean {
+  return error instanceof Error && error.message === INJECTION_LOG_NOT_FOUND
+}
+
+export async function updateInjectionLog(
+  supabase: SupabaseClient,
+  userId: string,
+  log: Pick<InjectionLog3D, 'id' | 'dose_log_id'>,
+  edit: InjectionLogEdit,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('injection_logs')
+    .update(buildInjectionUpdatePayload(log, edit))
+    .eq('id', log.id)
+    .eq('user_id', userId)
+    .select('id')
+  if (error) throw error
+  requireAffectedRow(data)
+}
+
+/** Entfernt nur die Injektionsstelle. Eine verknuepfte Einnahme bleibt unberuehrt. */
+export async function deleteInjectionLog(
+  supabase: SupabaseClient,
+  userId: string,
+  logId: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('injection_logs')
+    .delete()
+    .eq('id', logId)
+    .eq('user_id', userId)
+    .select('id')
+  if (error) throw error
+  requireAffectedRow(data)
+}
+
 export async function loadSelectableInjectionCycles(
   supabase: SupabaseClient,
   userId: string,

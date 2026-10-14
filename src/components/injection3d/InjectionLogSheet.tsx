@@ -15,12 +15,16 @@ import {
 } from '../../lib/openInjectionIntakeFilters'
 import {
   areInjectionDetailsLocked,
+  INJECTION_METHOD_OPTIONS,
+  INJECTION_UNIT_OPTIONS,
+  parseInjectionDose,
   replaceTimeInLocalDateTime,
+  toLocalDateTimeInput,
 } from '../../lib/injectionLogSheetState'
 import { denyProps } from '../../lib/denyFeedback'
 
-const UNIT_OPTIONS = ['mcg', 'mg', 'IU', 'ml', 'nmol']
-const METHOD_OPTIONS = ['Subkutan', 'Intramuskulär']
+const UNIT_OPTIONS = INJECTION_UNIT_OPTIONS
+const METHOD_OPTIONS = INJECTION_METHOD_OPTIONS
 
 export type InjectionSaveMode = 'intake' | 'manual'
 
@@ -36,7 +40,7 @@ export interface InjectionSaveInput {
 }
 
 const intakeKey = getOpenInjectionIntakeKey
-const toLocalInput = (iso: string) => format(parseISO(iso), "yyyy-MM-dd'T'HH:mm")
+const toLocalInput = toLocalDateTimeInput
 
 export function InjectionLogSheet({
   pin,
@@ -112,9 +116,10 @@ export function InjectionLogSheet({
     if (selectedKey !== targetIntakeKey || !dose || !unit || !method) selectIntake(targetIntake)
   }, [dose, method, mode, selectedKey, targetIntake, targetIntakeKey, unit])
 
+  const parsedDose = parseInjectionDose(dose)
   const canSave = mode === 'intake'
-    ? Boolean(selectedIntake && dose && unit && method)
-    : Boolean(substance.trim() && dose && unit && method)
+    ? Boolean(selectedIntake && parsedDose != null && unit && method)
+    : Boolean(substance.trim() && parsedDose != null && unit && method)
 
   const save = async () => {
     if (!canSave) return
@@ -123,7 +128,7 @@ export function InjectionLogSheet({
       mode,
       intake: mode === 'intake' ? selectedIntake : null,
       substanceLabel: mode === 'manual' ? substance.trim() : null,
-      dose: dose ? Number(dose) : null,
+      dose: parsedDose ?? null,
       unit,
       method,
       notes,

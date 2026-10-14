@@ -11,15 +11,20 @@ import { InjectionMapCanvas, type InjectionFocusRequest } from '../components/in
 import { InjectionIntroSheet, INJECTION_INTRO_VERSION } from '../components/injection3d/InjectionIntroSheet'
 import { InjectionLogSheet, type InjectionSaveInput } from '../components/injection3d/InjectionLogSheet'
 import { InjectionTrackerTabs } from '../components/injection3d/InjectionTrackerTabs'
+import { InjectionEditSheet } from '../components/injection3d/InjectionEditSheet'
 import {
   assertInjectionProSchema,
   confirmIntakeDoseLog,
+  deleteInjectionLog,
   loadInjectionLogs,
   loadSelectableInjectionIntakes,
   isDoseLogAlreadyLinkedError,
+  isInjectionLogNotFoundError,
   isInjectionProSchemaError,
   resolveInjectionDoseLogId,
   saveInjectionLog,
+  updateInjectionLog,
+  type InjectionLogEdit,
   type OpenInjectionIntake,
 } from '../lib/injectionPersistence'
 import { proximityWarning } from '../lib/injectionGeometry'
@@ -136,6 +141,7 @@ export function InjektionsTracker() {
   const [visibleLogIds, setVisibleLogIds] = useState<Set<string>>(() => new Set())
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
+  const [editingLog, setEditingLog] = useState<InjectionLog3D | null>(null)
   const [showIntro, setShowIntro] = useState(
     () => Number(localStorage.getItem(INTRO_STORAGE_KEY) ?? 0) < INJECTION_INTRO_VERSION,
   )
@@ -228,6 +234,51 @@ export function InjektionsTracker() {
       setInventoryRetryIds(current => current.filter(id => id !== doseLogId))
     } catch {
       toast.error(t('inventory_update_failed', { defaultValue: 'Bestand konnte nicht aktualisiert werden' }))
+    }
+  }
+
+  const saveLogEdit = async (edit: InjectionLogEdit) => {
+    if (!user || !editingLog) return
+    try {
+      await updateInjectionLog(supabase, user.id, editingLog, edit)
+      toast.success(t('injection_edit_saved', { defaultValue: 'Änderungen gespeichert' }))
+      setEditingLog(null)
+      await loadData()
+    } catch (error) {
+      console.error('[InjektionsTracker] saveLogEdit error:', error)
+      toast.error(t('injection_edit_failed', { defaultValue: 'Änderungen konnten nicht gespeichert werden' }))
+      // Schon geloescht (anderes Geraet): Fenster zu, Liste auf den echten Stand.
+      if (isInjectionLogNotFoundError(error)) {
+        setEditingLog(null)
+        await loadData()
+      }
+    }
+  }
+
+  const deleteEditingLog = async () => {
+    if (!user || !editingLog) return
+    const id = editingLog.id
+    try {
+      try {
+        await deleteInjectionLog(supabase, user.id, id)
+      } catch (error) {
+        // Schon weg (anderes Geraet): das Ziel ist erreicht.
+        if (!isInjectionLogNotFoundError(error)) throw error
+      }
+      setVisibleLogIds(prev => {
+        if (!prev.has(id)) return prev
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      setActiveLogId(current => current === id ? null : current)
+      setFocusRequest(current => current?.log.id === id ? null : current)
+      toast.success(t('injection_deleted', { defaultValue: 'Injektion gelöscht' }))
+      setEditingLog(null)
+      await loadData()
+    } catch (error) {
+      console.error('[InjektionsTracker] deleteEditingLog error:', error)
+      toast.error(t('injection_delete_failed', { defaultValue: 'Injektion konnte nicht gelöscht werden' }))
     }
   }
 
@@ -431,6 +482,7 @@ export function InjektionsTracker() {
             onHistoryDaysChange={setHistoryDays}
             onToggleLog={toggleLogVisibility}
             onFocusLog={focusLog}
+            onEditLog={setEditingLog}
             onSelectOpenIntake={selectOpenIntakeForInjection}
             onSheetOpenChange={setTrackerSheetOpen}
           />
@@ -459,6 +511,16 @@ export function InjektionsTracker() {
           targetIntakeKey={targetIntakeKey}
           onCancel={() => setShowLogSheet(false)}
           onSave={saveDraftPin}
+        />
+      )}
+
+      {editingLog && (
+        <InjectionEditSheet
+          key={editingLog.id}
+          log={editingLog}
+          onCancel={() => setEditingLog(null)}
+          onSave={saveLogEdit}
+          onDelete={deleteEditingLog}
         />
       )}
 

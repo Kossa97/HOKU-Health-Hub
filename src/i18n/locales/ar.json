@@ -2071,5 +2071,17 @@
   "bw_cycle_week": "wk {{n}}",
   "bw_entry_open_aria": "{{value}} from {{date}}",
   "bw_entry_change": "{{value}} since last",
-  "bw_edit": "Edit"
+  "bw_edit": "Edit",
+  "injection_edit_action": "Edit {{substance}}",
+  "injection_edit_title": "Edit injection",
+  "injection_edit_linked_hint": "Dose, method and time belong to the linked intake and are changed there.",
+  "injection_edit_saved": "Changes saved",
+  "injection_edit_failed": "Changes could not be saved",
+  "injection_delete": "Delete injection",
+  "injection_delete_confirm": "This injection will be deleted permanently.",
+  "injection_delete_confirm_linked": "Only the injection site is removed. The linked intake stays as it is.",
+  "injection_delete_keep": "Keep",
+  "injection_delete_final": "Delete permanently",
+  "injection_deleted": "Injection deleted",
+  "injection_delete_failed": "Injection could not be deleted"
 }

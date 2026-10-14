@@ -1094,6 +1094,18 @@ export const MY_STACK_EN = {
   bw_entry_open_aria: "{{value}} from {{date}}",
   bw_entry_change: "{{value}} since last",
   bw_edit: "Edit",
+  injection_edit_action: "Edit {{substance}}",
+  injection_edit_title: "Edit injection",
+  injection_edit_linked_hint: "Dose, method and time belong to the linked intake and are changed there.",
+  injection_edit_saved: "Changes saved",
+  injection_edit_failed: "Changes could not be saved",
+  injection_delete: "Delete injection",
+  injection_delete_confirm: "This injection will be deleted permanently.",
+  injection_delete_confirm_linked: "Only the injection site is removed. The linked intake stays as it is.",
+  injection_delete_keep: "Keep",
+  injection_delete_final: "Delete permanently",
+  injection_deleted: "Injection deleted",
+  injection_delete_failed: "Injection could not be deleted",
 }
 
 export const MY_STACK_DE = {
@@ -2191,6 +2203,18 @@ export const MY_STACK_DE = {
   bw_entry_open_aria: "{{value}} vom {{date}}",
   bw_entry_change: "{{value}} seit der vorigen",
   bw_edit: "Bearbeiten",
+  injection_edit_action: "{{substance}} bearbeiten",
+  injection_edit_title: "Injektion bearbeiten",
+  injection_edit_linked_hint: "Dosis, Methode und Zeitpunkt gehören zur verknüpften Einnahme und werden dort geändert.",
+  injection_edit_saved: "Änderungen gespeichert",
+  injection_edit_failed: "Änderungen konnten nicht gespeichert werden",
+  injection_delete: "Injektion löschen",
+  injection_delete_confirm: "Diese Injektion wird endgültig gelöscht.",
+  injection_delete_confirm_linked: "Nur die Injektionsstelle wird entfernt. Die verknüpfte Einnahme bleibt, wie sie ist.",
+  injection_delete_keep: "Behalten",
+  injection_delete_final: "Endgültig löschen",
+  injection_deleted: "Injektion gelöscht",
+  injection_delete_failed: "Injektion konnte nicht gelöscht werden",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

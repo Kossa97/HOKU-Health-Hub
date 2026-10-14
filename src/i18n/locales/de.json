@@ -2301,5 +2301,17 @@
   "bw_cycle_week": "Wo. {{n}}",
   "bw_entry_open_aria": "{{value}} vom {{date}}",
   "bw_entry_change": "{{value}} seit der vorigen",
-  "bw_edit": "Bearbeiten"
+  "bw_edit": "Bearbeiten",
+  "injection_edit_action": "{{substance}} bearbeiten",
+  "injection_edit_title": "Injektion bearbeiten",
+  "injection_edit_linked_hint": "Dosis, Methode und Zeitpunkt gehören zur verknüpften Einnahme und werden dort geändert.",
+  "injection_edit_saved": "Änderungen gespeichert",
+  "injection_edit_failed": "Änderungen konnten nicht gespeichert werden",
+  "injection_delete": "Injektion löschen",
+  "injection_delete_confirm": "Diese Injektion wird endgültig gelöscht.",
+  "injection_delete_confirm_linked": "Nur die Injektionsstelle wird entfernt. Die verknüpfte Einnahme bleibt, wie sie ist.",
+  "injection_delete_keep": "Behalten",
+  "injection_delete_final": "Endgültig löschen",
+  "injection_deleted": "Injektion gelöscht",
+  "injection_delete_failed": "Injektion konnte nicht gelöscht werden"
 }

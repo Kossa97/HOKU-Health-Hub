@@ -1103,6 +1103,18 @@ const EXPECTED_MY_STACK_KEYS = [
   'bw_entry_open_aria',
   'bw_entry_change',
   'bw_edit',
+  'injection_edit_action',
+  'injection_edit_title',
+  'injection_edit_linked_hint',
+  'injection_edit_saved',
+  'injection_edit_failed',
+  'injection_delete',
+  'injection_delete_confirm',
+  'injection_delete_confirm_linked',
+  'injection_delete_keep',
+  'injection_delete_final',
+  'injection_deleted',
+  'injection_delete_failed',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

@@ -23,6 +23,7 @@ export function InjectionTrackerTabs({
   onHistoryDaysChange,
   onToggleLog,
   onFocusLog,
+  onEditLog,
   onSelectOpenIntake,
   onSheetOpenChange,
 }: {
@@ -33,6 +34,7 @@ export function InjectionTrackerTabs({
   onHistoryDaysChange: (days: InjectionHistoryDays) => void
   onToggleLog: (id: string) => void
   onFocusLog: (log: InjectionLog3D) => void
+  onEditLog?: (log: InjectionLog3D) => void
   onSelectOpenIntake: (intake: OpenInjectionIntake) => void
   onSheetOpenChange: (open: boolean) => void
 }) {
@@ -208,6 +210,7 @@ export function InjectionTrackerTabs({
               onHistoryDaysChange={onHistoryDaysChange}
               onToggleLog={onToggleLog}
               onFocusLog={onFocusLog}
+              onEditLog={onEditLog}
             />
           </div>
         </section>
