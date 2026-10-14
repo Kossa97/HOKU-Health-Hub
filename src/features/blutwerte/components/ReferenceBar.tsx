@@ -58,9 +58,10 @@ export function ReferenceBar({ value, unit, range, inRange }: Props) {
             background: 'rgba(16,185,129,0.35)',
           }}
         />
-        {/* Der aktuelle Wert leuchtet auf: beim Oeffnen einmal hell, dann ein
-            ruhiger Schein in seiner Farbe. Nur transform und opacity bewegen
-            sich; bei „Bewegung reduzieren“ bleibt nur der ruhige Schein. */}
+        {/* Der aktuelle Wert leuchtet pulsierend: ein atmender Schein in seiner
+            Farbe und ein feiner Ring, der sich im selben Takt loest und
+            verblasst. Nur transform und opacity bewegen sich; bei „Bewegung
+            reduzieren“ bleibt nur der ruhige Schein. */}
         <div
           className="absolute"
           style={{ left: `${geo.valuePercent}%`, top: -3, width: 10, height: 16, marginLeft: -5 }}
@@ -70,6 +71,11 @@ export function ReferenceBar({ value, unit, range, inRange }: Props) {
             aria-hidden="true"
             className="bw-marker-glow pointer-events-none absolute rounded-full"
             style={{ inset: -9, background: `radial-gradient(closest-side, ${hexAlpha(farbe, 0.55)}, ${hexAlpha(farbe, 0)})` }}
+          />
+          <span
+            aria-hidden="true"
+            className="bw-marker-ring pointer-events-none absolute inset-0 rounded-full"
+            style={{ boxShadow: `0 0 0 1.5px ${hexAlpha(farbe, 0.7)}` }}
           />
           <span
             className="absolute inset-0 rounded-full"
@@ -84,11 +90,27 @@ export function ReferenceBar({ value, unit, range, inRange }: Props) {
       <style>{`
         @keyframes bw-marker-aufleuchten {
           0% { opacity: 0; transform: scale(0.6) }
-          35% { opacity: 1; transform: scale(1.35) }
-          100% { opacity: 0.7; transform: scale(1) }
+          100% { opacity: 1; transform: scale(1.3) }
         }
-        .bw-marker-glow { opacity: 0.7; animation: bw-marker-aufleuchten 900ms cubic-bezier(0.23, 1, 0.32, 1) 150ms both }
-        @media (prefers-reduced-motion: reduce) { .bw-marker-glow { animation: none } }
+        @keyframes bw-marker-atmen {
+          0%, 100% { opacity: 1; transform: scale(1.3) }
+          50% { opacity: 0.45; transform: scale(0.95) }
+        }
+        @keyframes bw-marker-welle {
+          0% { opacity: 0.8; transform: scale(1) }
+          100% { opacity: 0; transform: scale(2.6) }
+        }
+        .bw-marker-glow {
+          opacity: 0.7;
+          animation:
+            bw-marker-aufleuchten 600ms cubic-bezier(0.23, 1, 0.32, 1) 150ms both,
+            bw-marker-atmen 2400ms cubic-bezier(0.77, 0, 0.175, 1) 750ms infinite;
+        }
+        .bw-marker-ring { opacity: 0; animation: bw-marker-welle 2400ms cubic-bezier(0.23, 1, 0.32, 1) 750ms infinite }
+        @media (prefers-reduced-motion: reduce) {
+          .bw-marker-glow { animation: none }
+          .bw-marker-ring { animation: none; opacity: 0 }
+        }
       `}</style>
 
       <div className="flex justify-between mt-1.5">
