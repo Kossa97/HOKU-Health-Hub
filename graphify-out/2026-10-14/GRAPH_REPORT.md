@@ -1,7 +1,7 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-14)
 
 ## Corpus Check
-- 1047 files · ~1,348,131 words
+- 1047 files · ~1,348,190 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 55 file(s) not represented in the graph (top: (none) 26, .xml 10, .css 4)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5f4339b8`
+- Built from commit: `0b935008`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1572,7 +1572,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `renderProtocolPdf.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.10549645390070922 - nodes in this community are weakly interconnected._
 - **Why does `vitest` connect `vitest` to `vialStock.ts`, `Protokoll.tsx`, `ref_node_path`, `intakeConfirmation.ts`, `injectionPinPresentation.ts`, `StocksChart.tsx`, `Home.test.ts`, `usePushNotifications.ts`, `planLifecycle.ts`, `bestand.ts`, `Auswertung.tsx`, `App.tsx`, `@testing-library/react`, `ProductInventorySection.tsx`, `legacyPlanTimeline.ts`, `bloodwork.ts`, `stage/types.ts`, `InjectionMapCanvas.tsx`, `planTimeline.js`, `IntakePlanEditor.tsx`, `StackListView.tsx`, `InjectionLogSheet.tsx`, `injectionPersistence.ts`, `PowderVisual.tsx`, `react`, `content/types.ts`, `Bewertungen.tsx`, `BottomNavigation.tsx`, `BlutspiegelView.tsx`, `staleChunkReload.ts`, `EntryModal.tsx`, `StackItemWizard.tsx`, `chartVisibility.ts`, `package.json`, `chartMath.ts`, `valueOverview.ts`, `StackItemIngredient`, `MarkerList.tsx`, `SyringeScale.test.tsx`, `features.ts`, `CapsuleVisual.tsx`, `FotosTab.tsx`, `PatchVisual.tsx`, `PenVisual.tsx`, `planTimeline.ts`, `liquidCalculation.ts`, `batchFiles.ts`, `monitoring.ts`, `metrics.ts`, `BefundEditor.tsx`, `lib/format.ts`, `TodayLogSheet.tsx`, `react-hot-toast`, `PeptideCalculatorPanel.tsx`, `units.ts`, `PeptideVialVisual.test.ts`, `trackingDepthSchema.test.ts`, `BatchDateiLink.test.tsx`, `Home.tsx`, `entries.ts`, `FortschrittPage.tsx`, `planLabels.ts`, `intakeSchedule.ts`, `progress-year-data.ts`, `GelVisual.tsx`, `mockSupabase.ts`, `produktAngaben.ts`, `MarkerDetail.tsx`, `legacyMyStackPersistence.ts`, `bloodwork-extract/index.ts`, `react-router-dom`, `DropsVisual.tsx`, `SprayVisual.tsx`, `LiquidGraphic`, `dosePlan.ts`, `StageFormSpec`, `TubeVisual.tsx`, `audit-peptipedia.ts`, `TabletVisual.tsx`, `NasalSprayVisual.tsx`, `blutspiegelHistory.ts`, `AccountSection.tsx`, `MyStackPage.visibility.test.tsx`, `wellnessBuckets.ts`, `stackInventory.ts`, `Dashboard.test.ts`, `my-stack/types.ts`, `intakeFrequency.ts`, `MetricChart.tsx`, `ProtocolPdfModal.tsx`, `StackItemWizard.interaction.test.tsx`, `objektSkala`, `TrackingLevel`, `denyProps`, `Dashboard.tsx`, `InjectionTrackerTabs.tsx`, `injectionLogTypes.ts`, `Tagebuch.tsx`, `dosageForms.ts`, `lucide-react`, `inventoryMath.ts`, `my-stack/lib/colors.ts`, `chartData.test.ts`, `i18n.test.ts`, `StageDetailSheet.tsx`, `chartTooltip.ts`, `PeptideDetailPage.tsx`, `rechnerVial.ts`, `UnitConverter.tsx`, `MyStackPage.tsx`, `LiveBlutspiegelChart.tsx`, `StageFit.test.tsx`, `ManualSimulation.tsx`, `wizardState.ts`, `stackItems.ts`, `DoseCalculator.tsx`, `useWischZeile.ts`, `AppBackNavigation.test.tsx`, `markerGuidance.ts`?**
-  _High betweenness centrality (0.164) - this node is a cross-community bridge._
+  _High betweenness centrality (0.167) - this node is a cross-community bridge._
 - **Should `Animation Recipes` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
 - **Why does `date-fns` connect `MyStackPage.tsx` to `MarkerDetail.tsx`, `TodayLogSheet.tsx`, `vialStock.ts`, `injectionLogTypes.ts`, `injectionPinPresentation.ts`, `Protokoll.tsx`, `Tagebuch.tsx`, `Auswertung.tsx`, `bestand.ts`, `App.tsx`, `legacyPlanTimeline.ts`, `protocolPdf/types.ts`, `planTimeline.js`, `dosePlan.ts`, `seed-test-data.ts`, `useAuth`, `StackListView.tsx`, `InjectionLogSheet.tsx`, `injectionPersistence.ts`, `blutspiegelHistory.ts`, `MyStackPage.visibility.test.tsx`, `EntryModal.tsx`, `package.json`, `valueOverview.ts`, `MetricChart.tsx`, `features.ts`, `Health.tsx`, `chartTooltip.ts`, `FotosTab.tsx`, `LiveBlutspiegelChart.tsx`, `planTimeline.ts`, `wizardState.ts`, `Dashboard.tsx`, `metrics.ts`, `fortschritt/styles.ts`, `Home.tsx`, `entries.ts`, `FortschrittPage.tsx`, `planLabels.ts`, `intakeSchedule.ts`, `InjectionTrackerTabs.tsx`, `progress-year-data.ts`?**
