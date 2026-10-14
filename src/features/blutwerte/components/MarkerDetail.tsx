@@ -127,7 +127,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const fenster = useMemo(() => ({ von, bis: bisTag }), [von, bisTag])
   const streifen = useMemo(() => zyklen
     ? zyklusZeilen(zyklen.timelines, zyklen.namen, fenster, heute, Intl.DateTimeFormat().resolvedOptions().timeZone)
-    : { zeilen: [], weitere: 0 }, [zyklen, fenster, heute])
+    : { zeilen: [] }, [zyklen, fenster, heute])
 
   // Zyklen als dezente Balken unter der Kurve: parallele untereinander,
   // aufeinanderfolgende nebeneinander, alle unter der untersten Wertelinie.
@@ -382,7 +382,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             </div>
           )}
           {inWindow.length > 0 && (
-            <ZyklusAuswahl zeilen={streifen.zeilen} weitere={streifen.weitere} an={id => an.has(id)} hinweis={!angetippt} onToggle={toggleZyklus} />
+            <ZyklusAuswahl zeilen={streifen.zeilen} an={id => an.has(id)} hinweis={!angetippt} onToggle={toggleZyklus} />
           )}
           {excludedCount > 0 && (
             <p className="text-xs" style={{ color: MUTED }}>

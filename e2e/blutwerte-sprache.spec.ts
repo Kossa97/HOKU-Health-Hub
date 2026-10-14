@@ -376,7 +376,7 @@ test('Verlauf: Zyklen aus My Stack als Balken hinter dem Verlauf', async ({ page
   await page.getByRole('button', { name: /Kortisol/ }).first().click()
   await expect(streifen.getByRole('button', { name: 'BPC-157: 01.08.2026 – läuft' })).toHaveAttribute('aria-pressed', 'false')
   await expect(streifen.locator('[data-cycle-hint]')).toHaveCount(1)
-  await expect(streifen.locator('[data-cycle-note]')).toContainText('sagt nichts über Ursache und Wirkung')
+  await expect(streifen.locator('[data-cycle-note]')).toContainText('Zeitliche Nähe ist kein Beleg für eine Wirkung.')
   await expect(streifen.locator('[data-cycle-note]')).not.toContainText('weitere')
 
   if (process.env.SCREENSHOT_DIR) {

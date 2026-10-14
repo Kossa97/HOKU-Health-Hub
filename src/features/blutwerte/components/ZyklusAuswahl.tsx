@@ -9,9 +9,8 @@ import { MUTED, TEXT } from '../styles'
  * ihre Balken ein oder wieder aus; anfangs ist keiner an. Mit `hinweis` pulst
  * ein Ring um den ersten Chip, bis irgendein Chip angetippt wurde.
  */
-export function ZyklusAuswahl({ zeilen, weitere, an: istAn, hinweis, onToggle }: {
+export function ZyklusAuswahl({ zeilen, an: istAn, hinweis, onToggle }: {
   zeilen: ZyklusZeile[]
-  weitere: number
   an: (stackItemId: string) => boolean
   hinweis: boolean
   onToggle: (stackItemId: string) => void
@@ -85,7 +84,6 @@ export function ZyklusAuswahl({ zeilen, weitere, an: istAn, hinweis, onToggle }:
         })}
       </ul>
       <p data-cycle-note className="text-[0.7rem] mt-2 leading-snug" style={{ color: MUTED }}>
-        {weitere > 0 && <>{t('bw_cycles_more', { count: weitere })} </>}
         {t('bw_cycles_hint')}
       </p>
     </div>

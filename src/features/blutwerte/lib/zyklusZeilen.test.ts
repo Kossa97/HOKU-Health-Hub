@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { MAX_ZEILEN, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from './zyklusZeilen'
+import { achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from './zyklusZeilen'
 
 const timeZone = 'Europe/Berlin'
 
@@ -23,12 +23,11 @@ const fenster = { von: '2026-01-01', bis: '2026-04-10' }
 
 describe('Zyklen als Zeitstreifen', () => {
   it('legt Zyklen einer Substanz in eine Zeile, zugeschnitten aufs Fenster', () => {
-    const { zeilen, weitere } = zyklusZeilen([
+    const { zeilen } = zyklusZeilen([
       zyklus('c1', 'bpc', '2025-12-01', '2026-01-11'),
       zyklus('c2', 'bpc', '2026-03-12', null),
     ], namen, fenster, '2026-04-10', timeZone)
 
-    expect(weitere).toBe(0)
     expect(zeilen).toHaveLength(1)
     const [z] = zeilen
     expect(z.substanz).toBe('BPC-157')
@@ -58,12 +57,14 @@ describe('Zyklen als Zeitstreifen', () => {
     expect(zeilen.map(z => [z.substanz, z.farbe])).toEqual([['BPC-157', 1], ['TB-500', 2]])
   })
 
-  it('zeigt hoechstens fuenf Zeilen und zaehlt den Rest', () => {
+  it('zeigt alle Substanzen; ab der sechsten im Fenster wiederholen sich die Farben', () => {
     const viele = Array.from({ length: 7 }, (_, i) => zyklus(`c${i}`, `s${i}`, `2026-02-0${i + 1}`, '2026-03-01'))
-    const { zeilen, weitere } = zyklusZeilen(viele, new Map(), fenster, '2026-04-10', timeZone)
-    expect(zeilen).toHaveLength(MAX_ZEILEN)
-    expect(weitere).toBe(2)
+    const { zeilen } = zyklusZeilen(viele, new Map(), fenster, '2026-04-10', timeZone)
+    expect(zeilen).toHaveLength(7)
     expect(zeilen[0].substanz).toBe('—')
+    // die ersten fuenf alle verschieden, danach von vorn
+    expect(new Set(zeilen.slice(0, 5).map(z => z.farbe)).size).toBe(5)
+    expect(zeilen.map(z => z.farbe)).toEqual([0, 1, 2, 3, 4, 0, 1])
   })
 
   it('ab der sechsten Substanz wiederholen sich die Farbplaetze, statt grau zu werden', () => {

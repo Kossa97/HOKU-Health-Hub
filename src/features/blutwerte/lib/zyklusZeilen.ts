@@ -30,7 +30,6 @@ export interface ZyklusZeile {
   abschnitte: ZyklusAbschnitt[]
 }
 
-export const MAX_ZEILEN = 5
 // Fuenf Plaetze: mehr unterscheidbare Farben gibt es ohne Gruen/Rot nicht.
 const FARBEN = 5
 export const TAG_MS = 24 * 60 * 60 * 1000
@@ -77,7 +76,7 @@ function ohnePausen(start: number, ende: number, pausen: [number, number][]): [n
 /**
  * @param fenster erster und letzter Tag der Diagramm-Achse (yyyy-MM-dd)
  * @param heute   heutiger Tag — Ende laufender Zyklen und offener Pausen
- * @returns die Zeilen (hoechstens MAX_ZEILEN) und wie viele weitere es gaebe
+ * @returns je Substanz mit Zyklus im Fenster eine Zeile
  */
 export function zyklusZeilen(
   timelines: readonly CycleTimeline[],
@@ -85,10 +84,10 @@ export function zyklusZeilen(
   fenster: { von: string; bis: string },
   heute: string,
   timeZone: string,
-): { zeilen: ZyklusZeile[]; weitere: number } {
+): { zeilen: ZyklusZeile[] } {
   const [fensterStart, fensterEnde] = achse(fenster)
   const spanne = fensterEnde - fensterStart
-  if (!(spanne > 0)) return { zeilen: [], weitere: 0 }
+  if (!(spanne > 0)) return { zeilen: [] }
   const heuteEnde = tagMs(heute) + TAG_MS
 
   // Farbe folgt der Substanz: Wunschplatz aus der Reihenfolge nach erstem
@@ -135,14 +134,14 @@ export function zyklusZeilen(
       abschnitte: abschnitte.sort((a, b) => a.start - b.start),
     }))
     .sort((a, b) => a.abschnitte[0].start - b.abschnitte[0].start)
-  const sichtbar = alle.slice(0, MAX_ZEILEN)
-
   // Bei mehr als fuenf Substanzen ueberhaupt teilen sich zwei denselben
-  // Wunschplatz. Im Fenster stehen hoechstens fuenf Zeilen — die frueher
-  // begonnene behaelt ihren Platz, die andere nimmt den naechsten freien.
+  // Wunschplatz — die frueher begonnene behaelt ihn, die andere nimmt den
+  // naechsten freien. Sind im Fenster mehr als fuenf, wiederholen sich die
+  // Farben; der Name steht ueberall dabei.
   const farbe = new Map<string, number>()
   const belegt = new Set<number>()
-  for (const zeile of sichtbar.slice().sort((a, b) => reihenfolge.get(a.stackItemId)! - reihenfolge.get(b.stackItemId)!)) {
+  for (const zeile of alle.slice().sort((a, b) => reihenfolge.get(a.stackItemId)! - reihenfolge.get(b.stackItemId)!)) {
+    if (belegt.size === FARBEN) belegt.clear()
     let platz = reihenfolge.get(zeile.stackItemId)! % FARBEN
     while (belegt.has(platz)) platz = (platz + 1) % FARBEN
     belegt.add(platz)
@@ -150,8 +149,7 @@ export function zyklusZeilen(
   }
 
   return {
-    zeilen: sichtbar.map(zeile => ({ ...zeile, farbe: farbe.get(zeile.stackItemId)! })),
-    weitere: alle.length - sichtbar.length,
+    zeilen: alle.map(zeile => ({ ...zeile, farbe: farbe.get(zeile.stackItemId)! })),
   }
 }
 
