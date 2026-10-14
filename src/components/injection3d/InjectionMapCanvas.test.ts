@@ -19,14 +19,16 @@ describe('InjectionMapCanvas WebGL-Haushalt', () => {
     expect(source).toContain('renderer.current = gl')
   })
 
-  it('rendert nicht weiter, wenn niemand hinsieht', () => {
+  it('rendert nur bei Aenderungen und nicht, wenn niemand hinsieht', () => {
     // Ohne `frameloop` rendert der Canvas dauerhaft mit 60 Bildern je
-    // Sekunde -- auch ausserhalb des Blickfelds und im Hintergrundtab. Die
-    // Szene animiert ueber `useFrame`, kann also nicht auf `demand`; sie darf
-    // nur ruhen, solange sie nicht zu sehen ist.
+    // Sekunde -- auch im Stillstand, ausserhalb des Blickfelds und im
+    // Hintergrundtab. `demand` zeichnet nur auf Anforderung; die
+    // Kamerafahrt muss sich deshalb selbst Bilder anfordern.
     const source = quelle()
 
-    expect(source).toContain("frameloop={sichtbar ? 'always' : 'never'}")
+    expect(source).toContain("frameloop={sichtbar ? 'demand' : 'never'}")
+    expect(source).toContain('else invalidate()')
+    expect(source).toContain("if (frameloop !== 'never') invalidate()")
     expect(source).toContain('IntersectionObserver')
     expect(source).toContain("document.addEventListener('visibilitychange'")
     // Und aufgeraeumt wird auch hier.

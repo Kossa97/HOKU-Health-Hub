@@ -144,6 +144,8 @@ function focusTargetForRequest(point: THREE.Vector3, sheetOpen = false) {
 function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFocusRequest | null; resetRequestId: number }) {
   const camera = useThree((s) => s.camera)
   const controls = useThree((s) => s.controls) as OrbitControlsApi | null
+  const invalidate = useThree((s) => s.invalidate)
+  const frameloop = useThree((s) => s.frameloop)
   const warmupFrames = useRef(0)
   const animation = useRef<{
     fromPosition: THREE.Vector3
@@ -162,7 +164,14 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     animation.current = null
     resetCameraFrame(camera, controls)
     warmupFrames.current = 0
-  }, [camera, controls, resetRequestId])
+    invalidate()
+  }, [camera, controls, resetRequestId, invalidate])
+
+  // Beim Wechsel von `never` (nicht sichtbar) zurueck auf `demand` einmal
+  // zeichnen; setFrameloop selbst stoesst kein Bild an.
+  useEffect(() => {
+    if (frameloop !== 'never') invalidate()
+  }, [frameloop, invalidate])
 
   useEffect(() => {
     if (!focusRequest || !controls) return
@@ -189,7 +198,8 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       toTarget: target,
       progress: 0,
     }
-  }, [camera, controls, focusRequest])
+    invalidate()
+  }, [camera, controls, focusRequest, invalidate])
 
   useFrame((_, delta) => {
     const active = animation.current
@@ -200,12 +210,14 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       controls?.target.lerpVectors(active.fromTarget, active.toTarget, t)
       controls?.update()
       if (active.progress >= 1) animation.current = null
+      else invalidate()
       return
     }
 
     if (warmupFrames.current >= 6) return
     resetCameraFrame(camera, controls)
     warmupFrames.current += 1
+    if (warmupFrames.current < 6) invalidate()
   })
 
   return null
@@ -312,10 +324,10 @@ export function InjectionMapCanvas({
 }) {
   const huelle = useRef<HTMLDivElement | null>(null)
   const renderer = useRef<THREE.WebGLRenderer | null>(null)
-  // `always` ist der Standard: 60 Bilder je Sekunde, auch wenn nichts
-  // passiert und auch, wenn niemand hinsieht. Die Szene animiert ueber
-  // `useFrame`, also kann sie nicht auf `demand` -- sie darf nur ruhen,
-  // solange sie nicht zu sehen ist.
+  // `demand`: nur zeichnen, wenn sich etwas aendert. Die OrbitControls
+  // fordern beim Drehen und Ausrollen selbst Bilder an, Aenderungen an der
+  // Szene (Pins, Modell) ebenso; die Kamerafahrt in CameraRig ruft
+  // `invalidate()` je Bild. Im Stillstand steht die GPU. Ausser Sicht `never`.
   const [sichtbar, setSichtbar] = useState(true)
 
   useEffect(() => {
@@ -364,7 +376,7 @@ export function InjectionMapCanvas({
       <Canvas
         camera={{ position: [0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.05, far: 50 }}
         dpr={[1, 1.35]}
-        frameloop={sichtbar ? 'always' : 'never'}
+        frameloop={sichtbar ? 'demand' : 'never'}
         onCreated={({ camera, gl }) => { renderer.current = gl; resetCameraFrame(camera, null) }}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       >
