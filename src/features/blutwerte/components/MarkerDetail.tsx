@@ -6,7 +6,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, subMonths, subYears } from 'date-fns'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, Plus } from 'lucide-react'
+import { ChevronDown, ChevronLeft, Plus } from 'lucide-react'
 import { KATEGORIE_KEY, markerErklaerung, markerName } from '../lib/markerCatalog.en'
 import type { MarkerSummary } from '../lib/bloodwork'
 import { abstandZurGrenze, chooseDisplayUnit, entryInRange, entryRange, roundConverted, toNumber } from '../lib/bloodwork'
@@ -403,9 +403,9 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             {/* Immer zugeklappt: nie nach dem eigenen Wert ausgewaehlt. */}
             <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} data-bw-guidance>
               {([
-                ['niedrig', 'bw_guidance_low', ArrowDown, guidance.text.niedrig],
-                ['hoch', 'bw_guidance_high', ArrowUp, guidance.text.hoch],
-              ] as const).map(([key, label, Icon, items], i) => {
+                ['niedrig', 'bw_guidance_low', guidance.text.niedrig],
+                ['hoch', 'bw_guidance_high', guidance.text.hoch],
+              ] as const).map(([key, label, items], i) => {
                 const auf = offen === key
                 const panelId = `bw-guidance-${key}`
                 return (
@@ -418,7 +418,6 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                       className="flex min-h-[52px] w-full items-center gap-3 px-3.5 text-left text-base font-bold"
                       style={{ color: TEXT }}
                     >
-                      <Icon size={18} strokeWidth={2.2} aria-hidden="true" style={{ color: MUTED }} />
                       <span className="flex-1">{t(label)}</span>
                       <ChevronDown
                         size={18}
@@ -429,7 +428,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                       />
                     </button>
                     {auf && (
-                      <div id={panelId} className="flex flex-col gap-2.5 pb-3.5 pl-11 pr-3.5 text-sm leading-relaxed" style={{ color: 'var(--text-dim, var(--text-muted))' }}>
+                      <div id={panelId} className="flex flex-col gap-2.5 px-3.5 pb-3.5 text-sm leading-relaxed" style={{ color: 'var(--text-dim, var(--text-muted))' }}>
                         {items.map((item: GuidanceItem, j: number) => (
                           <p key={j} style={item.label ? undefined : { color: TEXT }}>
                             {item.label && <><strong style={{ color: TEXT }}>{item.label}</strong><br /></>}
