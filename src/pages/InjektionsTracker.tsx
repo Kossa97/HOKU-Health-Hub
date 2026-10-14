@@ -15,6 +15,7 @@ import { InjectionEditSheet } from '../components/injection3d/InjectionEditSheet
 import {
   assertInjectionProSchema,
   confirmIntakeDoseLog,
+  confirmIntakeWithInjection,
   deleteInjectionLog,
   loadInjectionLogs,
   loadSelectableInjectionIntakes,
@@ -287,55 +288,81 @@ export function InjektionsTracker() {
     try {
       await assertInjectionProSchema(supabase)
 
-      let doseLogId: string | null = null
-      let stackItemId: string | null = null
-      let cycleId: string | null = null
-
-      // From an open intake: confirm the dose, then link the injection to it.
-      // Stock is a separately retryable follow-up keyed by the committed log.
-      if (input.mode === 'intake' && input.intake) {
-        stackItemId = input.intake.stackItemId
-        cycleId = input.intake.cycleId
-        doseLogId = await resolveInjectionDoseLogId(input.intake, () => confirmIntakeDoseLog(supabase, {
-          userId: user.id,
-          stackItemId: input.intake!.stackItemId,
-          dose: input.dose ?? input.intake!.dose,
-          unit: input.unit ?? input.intake!.unit,
-          method: input.method ?? input.intake!.method,
-          loggedAt: input.loggedAt,
-          doseLogId: input.intake!.doseLogId,
-          cycleId: input.intake!.cycleId,
-          planVersionId: input.intake!.planVersionId,
-          routineSlotKey: input.intake!.routineSlotKey,
-          scheduledAt: input.intake!.scheduledAt,
-          debitVialStock: false,
-        }))
+      // Bestand ist ein getrennt wiederholbarer Nachlauf zur gespeicherten Einnahme.
+      const debitStock = async (committedDoseLogId: string) => {
         try {
-          await debitPeptideStockForDoseById(supabase, doseLogId)
+          await debitPeptideStockForDoseById(supabase, committedDoseLogId)
         } catch {
-          setInventoryRetryIds(current => current.includes(doseLogId as string)
+          setInventoryRetryIds(current => current.includes(committedDoseLogId)
             ? current
-            : [...current, doseLogId as string])
+            : [...current, committedDoseLogId])
           toast.error(t('inventory_update_failed', { defaultValue: 'Bestand konnte nicht aktualisiert werden' }))
         }
       }
+      const warningState = warning.level === 'none' ? null : warning.level
 
-      const confirmedSnapshot = FEATURES.planTimelineV2 && input.mode === 'intake' && input.intake?.status === 'confirmed'
-        ? input.intake : null
-      await saveInjectionLog(supabase, {
+      const openIntake = input.mode === 'intake' && input.intake?.status === 'open' ? input.intake : null
+      const confirmInput = openIntake ? {
         userId: user.id,
-        doseLogId,
-        stackItemId,
-        cycleId,
-        dose: confirmedSnapshot?.dose ?? input.dose,
-        unit: confirmedSnapshot?.unit ?? input.unit,
-        method: confirmedSnapshot?.method ?? input.method,
-        notes: input.notes,
-        loggedAt: confirmedSnapshot?.scheduledAt ?? input.loggedAt,
-        warningState: warning.level === 'none' ? null : warning.level,
-        substanceLabel: input.substanceLabel,
-        pin: draftPin,
-      })
+        stackItemId: openIntake.stackItemId,
+        dose: input.dose ?? openIntake.dose,
+        unit: input.unit ?? openIntake.unit,
+        method: input.method ?? openIntake.method,
+        loggedAt: input.loggedAt,
+        doseLogId: openIntake.doseLogId,
+        cycleId: openIntake.cycleId,
+        planVersionId: openIntake.planVersionId,
+        routineSlotKey: openIntake.routineSlotKey,
+        scheduledAt: openIntake.scheduledAt,
+        debitVialStock: false,
+      } : null
+
+      // Offene Einnahme: bestaetigen und Stelle speichern in einer
+      // Transaktion. `null` heisst, die Datenbank kennt die Funktion noch
+      // nicht -- dann der bisherige Weg in zwei Schritten. Der alte Zweig
+      // ohne Planversionen (planTimelineV2 aus) bleibt zweistufig; die
+      // Datenbankfunktion braucht Zyklus und Planversion.
+      const atomic = FEATURES.planTimelineV2 && confirmInput
+        ? await confirmIntakeWithInjection(supabase, confirmInput, {
+          notes: input.notes, warningState, substanceLabel: input.substanceLabel, pin: draftPin,
+        })
+        : null
+
+      if (atomic) {
+        await debitStock(atomic.doseLogId)
+      } else {
+        let doseLogId: string | null = null
+        let stackItemId: string | null = null
+        let cycleId: string | null = null
+
+        if (input.mode === 'intake' && input.intake) {
+          const intake = input.intake
+          stackItemId = intake.stackItemId
+          cycleId = intake.cycleId
+          doseLogId = await resolveInjectionDoseLogId(intake, () => {
+            if (!confirmInput) throw new Error('Open intake is missing its confirmation input')
+            return confirmIntakeDoseLog(supabase, confirmInput)
+          })
+          await debitStock(doseLogId)
+        }
+
+        const confirmedSnapshot = FEATURES.planTimelineV2 && input.mode === 'intake' && input.intake?.status === 'confirmed'
+          ? input.intake : null
+        await saveInjectionLog(supabase, {
+          userId: user.id,
+          doseLogId,
+          stackItemId,
+          cycleId,
+          dose: confirmedSnapshot?.dose ?? input.dose,
+          unit: confirmedSnapshot?.unit ?? input.unit,
+          method: confirmedSnapshot?.method ?? input.method,
+          notes: input.notes,
+          loggedAt: confirmedSnapshot?.scheduledAt ?? input.loggedAt,
+          warningState,
+          substanceLabel: input.substanceLabel,
+          pin: draftPin,
+        })
+      }
 
       toast.success(input.mode === 'intake'
         ? input.intake?.status === 'confirmed'
@@ -351,7 +378,7 @@ export function InjektionsTracker() {
       if (isDoseLogAlreadyLinkedError(error)) {
         toast.error('Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert')
         setShowLogSheet(false)
-      setSelectedTargetIntakeKey(null)
+        setSelectedTargetIntakeKey(null)
         await loadData()
         return
       }

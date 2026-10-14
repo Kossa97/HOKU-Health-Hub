@@ -2,7 +2,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { FEATURES } from '../config/features'
 import { loadCycleTimelines } from '../features/my-stack/services/planLifecycle'
-import { confirmIntakeGroup } from '../features/routines/services/intakeConfirmation'
+import { buildIntakeRpcEntries, confirmIntakeGroup } from '../features/routines/services/intakeConfirmation'
+import type { RoutineConfirmationEntry } from '../features/routines/intakeGroups'
 import { localDateTimeKey, resolveCycleAt, type CycleTimeline } from './planTimeline'
 import { differenceInCalendarDays, format, parseISO, startOfDay, subDays } from 'date-fns'
 import {
@@ -73,17 +74,12 @@ interface SelectableCycleRow {
   stack_items?: { display_name?: string } | Array<{ display_name?: string }> | null
 }
 
-export function buildInjectionInsertPayload(input: SaveInjectionInput) {
+type InjectionPlacementInput = Pick<SaveInjectionInput, 'notes' | 'warningState' | 'substanceLabel' | 'pin'>
+
+/** Alles an einer Injektion, was vom Geraet kommt: Stelle, Notiz, Warnstufe. */
+export function buildInjectionPlacement(input: InjectionPlacementInput) {
   return {
-    user_id: input.userId,
-    dose_log_id: input.doseLogId,
-    stack_item_id: input.stackItemId,
-    cycle_id: input.cycleId,
-    dose: input.dose,
-    unit: input.unit,
-    method: input.method,
     notes: input.notes?.trim() || null,
-    logged_at: input.loggedAt,
     site: `${input.pin.body_region}_${input.pin.body_side}`,
     substance_label: input.substanceLabel?.trim() || null,
     body_region: input.pin.body_region,
@@ -94,6 +90,20 @@ export function buildInjectionInsertPayload(input: SaveInjectionInput) {
     uv: input.pin.uv ?? null,
     camera_state: input.pin.camera_state ?? null,
     warning_state: input.warningState,
+  }
+}
+
+export function buildInjectionInsertPayload(input: SaveInjectionInput) {
+  return {
+    user_id: input.userId,
+    dose_log_id: input.doseLogId,
+    stack_item_id: input.stackItemId,
+    cycle_id: input.cycleId,
+    dose: input.dose,
+    unit: input.unit,
+    method: input.method,
+    logged_at: input.loggedAt,
+    ...buildInjectionPlacement(input),
   }
 }
 
@@ -619,50 +629,106 @@ export function isDoseLogAlreadyLinkedError(error: unknown): boolean {
   const candidate = error as { code?: string; message?: string }
   return candidate.code === '23505' && (candidate.message ?? '').includes('injection_logs_dose_log_id_unique_idx')
 }
+export interface ConfirmIntakeDoseLogInput {
+  userId: string
+  stackItemId: string
+  dose: number
+  unit: string
+  method: string
+  loggedAt: string
+  doseLogId?: string | null
+  cycleId?: string | null
+  planVersionId?: string | null
+  routineSlotKey?: string | null
+  scheduledAt?: string
+  debitVialStock?: boolean
+}
+
+/** Prueft die Herkunft der Einnahme und baut den Eintrag fuer `confirm_intake_group`. */
+async function prepareTimelineConfirmEntry(
+  supabase: SupabaseClient,
+  input: ConfirmIntakeDoseLogInput,
+): Promise<RoutineConfirmationEntry> {
+  // Frueher stand hier ein Vergleich gegen den aus `scheduledAt`
+  // gerechneten Zeitpunkt. Der Schluessel traegt jetzt die Wanduhr der
+  // Planung, und die stimmt unterwegs bewusst nicht mit der Uhr am
+  // Aufenthaltsort ueberein -- der Vergleich haette genau die Reise
+  // blockiert, deretwegen das Format gewechselt ist. Geprueft wird, was
+  // hier zu pruefen ist: dass der Schluessel zu diesem Zyklus gehoert und
+  // nicht erfunden ist. Ob er einen offenen Platz trifft, entscheidet der
+  // Upsert in der Datenbank.
+  if (!input.cycleId || !input.planVersionId || !input.scheduledAt
+    || !istSlotSchluessel(input.routineSlotKey, input.cycleId)) {
+    throw new Error('Injection occurrence provenance unavailable')
+  }
+  const timelines = await loadCycleTimelines(supabase as never, input.userId)
+  const timeline = timelines.find(row => row.cycle.id === input.cycleId && row.cycle.stack_item_id === input.stackItemId)
+  if (!timeline) throw new Error('Injection cycle timeline unavailable')
+  const resolved = resolveCycleAt(timeline, new Date(input.loggedAt), Intl.DateTimeFormat().resolvedOptions().timeZone)
+  if (resolved.status !== 'active' || !resolved.planVersion) throw new Error('Injection plan version unavailable at actual time')
+  return {
+    key: input.routineSlotKey, cycleId: input.cycleId, planVersionId: resolved.planVersion.id,
+    pendingLogId: input.doseLogId ?? null, stackItemId: input.stackItemId, stackItemName: '',
+    trackingLevel: 'with_amount', group: 'morning', scheduledAt: input.scheduledAt,
+    actualLoggedAt: input.loggedAt, dose: input.dose, unit: input.unit, method: input.method,
+    injectable: true, selected: true, actualDose: input.dose, actualUnit: input.unit,
+  }
+}
+
+// PostgREST kennt die Funktion nicht (PGRST202) bzw. Postgres (42883): die
+// Migration ist auf dieser Datenbank noch nicht eingespielt.
+function isMissingRpcError(error: { code?: string } | null): boolean {
+  return error?.code === 'PGRST202' || error?.code === '42883'
+}
+
+/**
+ * Einnahme bestaetigen und Injektionsstelle speichern in EINER Transaktion
+ * (supabase-injection-atomic-confirm.sql). Dosis, Zeitpunkt usw. der Stelle
+ * setzt die Datenbank aus der bestaetigten Einnahme.
+ *
+ * `null`: die Datenbankfunktion fehlt noch -- der Aufrufer nimmt dann den
+ * bisherigen Weg in zwei Schritten. Bestand bucht diese Funktion NIE; das
+ * macht der Aufrufer danach (getrennt wiederholbar).
+ */
+// Einmal als fehlend erkannt, nicht bei jedem Speichern erneut versuchen
+// (bis zum Neuladen der App, also bis zur naechsten Version).
+let atomicConfirmRpcMissing = false
+
+export async function confirmIntakeWithInjection(
+  supabase: SupabaseClient,
+  input: Omit<ConfirmIntakeDoseLogInput, 'debitVialStock'>,
+  injection: InjectionPlacementInput,
+): Promise<{ doseLogId: string; injectionLogId: string } | null> {
+  if (atomicConfirmRpcMissing) return null
+  const entry = await prepareTimelineConfirmEntry(supabase, input)
+  const [p_entry] = buildIntakeRpcEntries([entry], true)
+  const { data, error } = await supabase.rpc('confirm_intake_with_injection', {
+    p_entry,
+    p_injection: buildInjectionPlacement(injection),
+  })
+  if (isMissingRpcError(error)) {
+    atomicConfirmRpcMissing = true
+    return null
+  }
+  if (error) throw error
+  const result = data as { dose_log_id?: string; injection_log_id?: string } | null
+  if (!result?.dose_log_id || !result.injection_log_id) throw new Error('confirm_intake_with_injection returned no ids')
+  return { doseLogId: result.dose_log_id, injectionLogId: result.injection_log_id }
+}
+
+/** Nur fuer Tests: den gemerkten „Funktion fehlt“-Zustand zuruecksetzen. */
+export function resetAtomicConfirmRpcCache(): void {
+  atomicConfirmRpcMissing = false
+}
+
 // Insert a confirmed dose_log for an intake and debit the linked vial stock,
 // matching the Dashboard confirmation. Returns the new dose_log id to link.
 export async function confirmIntakeDoseLog(
   supabase: SupabaseClient,
-  input: {
-    userId: string
-    stackItemId: string
-    dose: number
-    unit: string
-    method: string
-    loggedAt: string
-    doseLogId?: string | null
-    cycleId?: string | null
-    planVersionId?: string | null
-    routineSlotKey?: string | null
-    scheduledAt?: string
-    debitVialStock?: boolean
-  },
+  input: ConfirmIntakeDoseLogInput,
 ): Promise<string> {
   if (FEATURES.planTimelineV2) {
-    // Frueher stand hier ein Vergleich gegen den aus `scheduledAt`
-    // gerechneten Zeitpunkt. Der Schluessel traegt jetzt die Wanduhr der
-    // Planung, und die stimmt unterwegs bewusst nicht mit der Uhr am
-    // Aufenthaltsort ueberein -- der Vergleich haette genau die Reise
-    // blockiert, deretwegen das Format gewechselt ist. Geprueft wird, was
-    // hier zu pruefen ist: dass der Schluessel zu diesem Zyklus gehoert und
-    // nicht erfunden ist. Ob er einen offenen Platz trifft, entscheidet der
-    // Upsert in der Datenbank.
-    if (!input.cycleId || !input.planVersionId || !input.scheduledAt
-      || !istSlotSchluessel(input.routineSlotKey, input.cycleId)) {
-      throw new Error('Injection occurrence provenance unavailable')
-    }
-    const timelines = await loadCycleTimelines(supabase as never, input.userId)
-    const timeline = timelines.find(row => row.cycle.id === input.cycleId && row.cycle.stack_item_id === input.stackItemId)
-    if (!timeline) throw new Error('Injection cycle timeline unavailable')
-    const resolved = resolveCycleAt(timeline, new Date(input.loggedAt), Intl.DateTimeFormat().resolvedOptions().timeZone)
-    if (resolved.status !== 'active' || !resolved.planVersion) throw new Error('Injection plan version unavailable at actual time')
-    const [saved] = await confirmIntakeGroup(supabase, [{
-      key: input.routineSlotKey, cycleId: input.cycleId, planVersionId: resolved.planVersion.id,
-      pendingLogId: input.doseLogId ?? null, stackItemId: input.stackItemId, stackItemName: '',
-      trackingLevel: 'with_amount', group: 'morning', scheduledAt: input.scheduledAt,
-      actualLoggedAt: input.loggedAt, dose: input.dose, unit: input.unit, method: input.method,
-      injectable: true, selected: true, actualDose: input.dose, actualUnit: input.unit,
-    }])
+    const [saved] = await confirmIntakeGroup(supabase, [await prepareTimelineConfirmEntry(supabase, input)])
     const id = saved?.id
     if (!id) throw new Error('Injection confirmation returned no dose log')
     if (input.debitVialStock !== false) await debitVialStockForDoseById(supabase, id)
