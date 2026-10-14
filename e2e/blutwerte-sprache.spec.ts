@@ -70,7 +70,8 @@ test('Marker: Filter „Auffällige" steht vorn und ist vorausgewaehlt, mit Anza
   // keine Sortierung in der Liste der Auffaelligen
   await expect(page.locator('#blutwerte-sort')).toHaveCount(0)
   const liste = page.locator('[data-bw-flagged]')
-  await expect(liste).toContainText('Deine zuletzt gemessenen Werte außerhalb des Referenzbereichs.')
+  // Der Hinweis steht in der Zeile des Einheiten-Schalters, links daneben
+  await expect(page.locator('[data-bw-flagged-hint]')).toHaveText('Deine zuletzt gemessenen Werte außerhalb des Referenzbereichs.')
   await expect(liste).toContainText('Kortisol')
   await expect(liste).not.toContainText('Ferritin')
   if (process.env.SCREENSHOT_DIR) {
@@ -83,6 +84,7 @@ test('Marker: Filter „Auffällige" steht vorn und ist vorausgewaehlt, mit Anza
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
   await expect(page.locator('[data-bw-flagged]')).toHaveCount(0)
   await expect(page.locator('#blutwerte-sort')).toBeVisible()
+  await expect(page.locator('[data-bw-flagged-hint]')).toHaveCount(0)
   await tab.click()
   await liste.getByRole('button', { name: /Kortisol/ }).click()
   await expect(page.getByRole('heading', { name: 'Kortisol' })).toBeVisible()

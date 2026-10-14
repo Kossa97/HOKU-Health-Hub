@@ -1,7 +1,7 @@
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { MarkerSummary } from '../lib/bloodwork'
-import { CYAN, GREEN, MUTED, RED, TEXT } from '../styles'
+import { CYAN, GREEN, MUTED, TEXT } from '../styles'
 import { MarkerList, type MarkerLayout, type PillMode } from './MarkerList'
 
 interface Props {
@@ -50,10 +50,6 @@ export function AuffaelligeWerte({ summaries, ungeprueft, hatWerte, onSelect, on
   return (
     <div className="mb-4">
       <div role="region" aria-label={t('bw_out_of_range_title', { count: summaries.length })} data-bw-flagged>
-        <p className="flex items-center gap-2 pb-1 text-sm" style={{ color: MUTED }}>
-          <AlertTriangle size={15} style={{ color: RED }} aria-hidden="true" />
-          {t('bw_flagged_hint')}
-        </p>
         <MarkerList summaries={summaries} layout={layout} grouped={false} pillMode={pillMode} onTogglePill={onTogglePill} onSelect={onSelect} />
       </div>
       {ungeprueftHinweis}

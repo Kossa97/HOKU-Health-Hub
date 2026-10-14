@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import { AlertTriangle, ArrowUpDown, ChevronDown } from 'lucide-react'
 import { AUFFAELLIG, type MarkerFilter, type SortMode } from '../lib/bloodwork'
 import type { UnitSystem } from '../lib/unitConversion'
 import { KATEGORIE_KEY } from '../lib/markerCatalog.en'
@@ -98,6 +98,14 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
             </select>
             <ChevronDown size={13} aria-hidden="true" className="pointer-events-none absolute right-2.5" style={{ color: MUTED }} />
           </div>
+        )}
+
+        {/* Bei „Auffällige“ steht links, was die Liste zeigt — neben dem Schalter statt darueber. */}
+        {kategorie === AUFFAELLIG && auffaellig > 0 && (
+          <p className="flex min-w-0 flex-1 items-center gap-1.5 text-xs leading-snug" style={{ color: MUTED }} data-bw-flagged-hint>
+            <AlertTriangle size={14} className="shrink-0" style={{ color: RED }} aria-hidden="true" />
+            {t('bw_flagged_hint')}
+          </p>
         )}
 
         {/* Einheiten: konventionell (z.B. ng/dL) oder SI (z.B. nmol/L), fuer alle Marker. */}
