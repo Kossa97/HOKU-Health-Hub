@@ -125,8 +125,8 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     ? zyklusZeilen(zyklen.timelines, zyklen.namen, fenster, heute, Intl.DateTimeFormat().resolvedOptions().timeZone)
     : { zeilen: [], weitere: 0 }, [zyklen, fenster, heute])
 
-  // Zyklen als dezente Balken hinter der Kurve: parallele untereinander,
-  // aufeinanderfolgende nebeneinander, hoechstens MAX_REIHEN Reihen.
+  // Zyklen als dezente Balken unter der Kurve: parallele untereinander,
+  // aufeinanderfolgende nebeneinander, alle unter der untersten Wertelinie.
   // Abgewaehlte Substanzen (stackItemId): ihre Balken fehlen, die uebrigen ruecken zusammen
   const [aus, setAus] = useState<ReadonlySet<string>>(() => new Set())
   const toggleZyklus = useCallback((id: string) => setAus(alt => {
@@ -143,7 +143,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
     })),
     count: balken.reihen,
     layout: zyklusBalkenLayout,
-    // Viele parallele Zyklen: der Graph waechst unter der untersten Wertelinie
+    // Die Balken haengen unter der untersten Wertelinie; der Graph waechst um sie
     below: zyklusBalkenUnten(balken.reihen),
   }), [balken])
 

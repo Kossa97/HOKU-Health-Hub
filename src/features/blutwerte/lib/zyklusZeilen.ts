@@ -175,8 +175,9 @@ export function aktiveZyklen(
   return treffer
 }
 
-/** So viele Balken-Reihen passen in die Werteflaeche; weitere haengen darunter. */
-export const REIHEN_IN_FLAECHE = 3
+// Die Balken liegen immer unter der untersten Wertelinie — Teil des Graphs,
+// aber nie ueber der Kurve. Abstand zur Linie, Reihenhoehe, Luecke:
+const ABSTAND = 6
 const REIHE_H = 18
 const REIHE_LUECKE = 3
 
@@ -214,13 +215,13 @@ export function zyklusBalken(
   return { balken, reihen: laneCount(balken.map(b => ({ lane: b.reihe }))) }
 }
 
-/** Feste Reihenhoehe; der Block sitzt unten und reicht bei vielen Reihen unter die Flaeche. */
+/** Feste Reihenhoehe; der Block sitzt unten im Bereich unter der Werteflaeche. */
 export function zyklusBalkenLayout(_plotHeight: number, reihen: number): { blockHeight: number; laneHeight: number; laneGap: number } {
   if (reihen <= 0) return { blockHeight: 0, laneHeight: 0, laneGap: 0 }
   return { blockHeight: reihen * REIHE_H + (reihen - 1) * REIHE_LUECKE, laneHeight: REIHE_H, laneGap: REIHE_LUECKE }
 }
 
-/** Um so viel waechst der Graph nach unten: die Reihen ueber REIHEN_IN_FLAECHE hinaus. */
+/** Um so viel waechst der Graph nach unten: alle Reihen samt Abstand zur untersten Wertelinie. */
 export function zyklusBalkenUnten(reihen: number): number {
-  return Math.max(0, reihen - REIHEN_IN_FLAECHE) * (REIHE_H + REIHE_LUECKE)
+  return reihen > 0 ? ABSTAND + zyklusBalkenLayout(0, reihen).blockHeight : 0
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { MAX_ZEILEN, REIHEN_IN_FLAECHE, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from './zyklusZeilen'
+import { MAX_ZEILEN, achse, achsenTicks, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from './zyklusZeilen'
 
 const timeZone = 'Europe/Berlin'
 
@@ -169,14 +169,15 @@ describe('zyklusBalken (Hintergrund des Verlaufs)', () => {
     expect(reihen).toBe(2)
   })
 
-  it('alle parallelen Zyklen bekommen eine Reihe; darueber hinaus waechst der Graph nach unten', () => {
-    const parallel = Array.from({ length: REIHEN_IN_FLAECHE + 2 }, (_, i) => zyklus(`c${i}`, `s${i}`, '2026-02-01', '2026-03-01'))
+  it('alle parallelen Zyklen bekommen eine Reihe, alle unter der Werteflaeche', () => {
+    const parallel = Array.from({ length: 5 }, (_, i) => zyklus(`c${i}`, `s${i}`, '2026-02-01', '2026-03-01'))
     const { zeilen } = zyklusZeilen(parallel, new Map(), fenster, '2026-04-10', timeZone)
     const { balken, reihen } = zyklusBalken(zeilen, fenster)
-    expect(reihen).toBe(REIHEN_IN_FLAECHE + 2)
-    expect(balken).toHaveLength(REIHEN_IN_FLAECHE + 2)
-    expect(zyklusBalkenUnten(REIHEN_IN_FLAECHE)).toBe(0)
-    const { laneHeight, laneGap } = zyklusBalkenLayout(200, reihen)
-    expect(zyklusBalkenUnten(reihen)).toBe(2 * (laneHeight + laneGap))
+    expect(reihen).toBe(5)
+    expect(balken).toHaveLength(5)
+    expect(zyklusBalkenUnten(0)).toBe(0)
+    // Der Bereich unter der Flaeche fasst alle Reihen und laesst oben Luft zur Linie
+    const { blockHeight } = zyklusBalkenLayout(200, reihen)
+    expect(zyklusBalkenUnten(reihen)).toBeGreaterThan(blockHeight)
   })
 })
