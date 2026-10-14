@@ -16502,7 +16502,7 @@
       "file_type": "code",
       "norm_label": "kurzerklaerung()",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L526"
+      "source_location": "L531"
     },
     {
       "id": "src_features_blutwerte_components_markerdetail_laufname",
@@ -16514,7 +16514,7 @@
       "file_type": "code",
       "norm_label": "laufname()",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L537"
+      "source_location": "L542"
     },
     {
       "id": "src_features_blutwerte_components_trend_trendcolor",
@@ -16550,7 +16550,7 @@
       "file_type": "code",
       "norm_label": "zyklusauswahl()",
       "source_file": "src/features/blutwerte/components/ZyklusAuswahl.tsx",
-      "source_location": "L11"
+      "source_location": "L12"
     },
     {
       "id": "src_features_blutwerte_lib_zykluszeilen_achse",
@@ -91734,7 +91734,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L138",
+      "source_location": "L143",
       "weight": 1.0
     },
     {
@@ -91746,7 +91746,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L147",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -91758,7 +91758,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L166",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -91770,7 +91770,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L167",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -91782,7 +91782,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L170",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -91794,7 +91794,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L182",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -91806,7 +91806,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L222",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -91818,7 +91818,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L260",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -91830,7 +91830,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L274",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -91842,7 +91842,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L284",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -91854,7 +91854,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L287",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -91866,7 +91866,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L315",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -91878,7 +91878,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L464",
+      "source_location": "L469",
       "weight": 1.0
     },
     {
@@ -91890,7 +91890,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L470",
+      "source_location": "L475",
       "weight": 1.0
     },
     {
@@ -92274,7 +92274,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/ZyklusAuswahl.tsx",
-      "source_location": "L21",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -228953,7 +228953,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L526",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -228964,7 +228964,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L537",
+      "source_location": "L542",
       "weight": 1.0
     },
     {
@@ -229239,7 +229239,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutwerte/components/ZyklusAuswahl.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -268243,7 +268243,7 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L145",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -268461,5 +268461,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "6e6eff61641692d2e35773063e001e3288aa534d"
+  "built_at_commit": "cb7f3867324d62d0dcd0ef21c06cbd78e8049a22"
 }

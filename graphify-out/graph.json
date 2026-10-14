@@ -16502,7 +16502,7 @@
       "file_type": "code",
       "norm_label": "kurzerklaerung()",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L531"
+      "source_location": "L538"
     },
     {
       "id": "src_features_blutwerte_components_markerdetail_laufname",
@@ -16514,7 +16514,7 @@
       "file_type": "code",
       "norm_label": "laufname()",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L542"
+      "source_location": "L549"
     },
     {
       "id": "src_features_blutwerte_components_trend_trendcolor",
@@ -91878,7 +91878,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L469",
+      "source_location": "L476",
       "weight": 1.0
     },
     {
@@ -91890,7 +91890,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L475",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -228953,7 +228953,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L531",
+      "source_location": "L538",
       "weight": 1.0
     },
     {
@@ -228964,7 +228964,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/blutwerte/components/MarkerDetail.tsx",
-      "source_location": "L542",
+      "source_location": "L549",
       "weight": 1.0
     },
     {
@@ -268461,5 +268461,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "cb7f3867324d62d0dcd0ef21c06cbd78e8049a22"
+  "built_at_commit": "c6fe95063730e08119988e084310539bcc290762"
 }
