@@ -1,5 +1,5 @@
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
-import { AlertCircle, Eye, EyeOff, History, LocateFixed } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, History, LocateFixed, Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { methodLabel } from '../../lib/intakeMethods'
 import {
@@ -19,6 +19,7 @@ export function InjectionHistorySheet({
   onHistoryDaysChange,
   onToggleLog,
   onFocusLog,
+  onEditLog,
   embedded = false,
 }: {
   logs: InjectionLog3D[]
@@ -27,6 +28,7 @@ export function InjectionHistorySheet({
   onHistoryDaysChange: (days: InjectionHistoryDays) => void
   onToggleLog: (id: string) => void
   onFocusLog: (log: InjectionLog3D) => void
+  onEditLog?: (log: InjectionLog3D) => void
   embedded?: boolean
 }) {
   const { t } = useTranslation()
@@ -114,6 +116,16 @@ export function InjectionHistorySheet({
                           </p>
                         )}
                       </div>
+                      {onEditLog && (
+                        <button
+                          type="button"
+                          aria-label={String(t('injection_edit_action', { substance, defaultValue: '{{substance}} bearbeiten' }))}
+                          onClick={() => onEditLog(log)}
+                          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 text-slate-400"
+                        >
+                          <Pencil size={15} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
                     {log.notes?.trim() && (
                       <p className="mt-2 border-t border-white/10 pt-2 text-xs leading-5 text-slate-400">

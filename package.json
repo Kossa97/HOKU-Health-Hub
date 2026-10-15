@@ -25,7 +25,8 @@
     "pk:sql": "node scripts/generate-pk-profiles-sql.mjs",
     "pk:routes-sql": "node scripts/generate-pk-profile-routes-sql.mjs",
     "effects:duration:sql": "node scripts/generate-effect-duration-sql.mjs",
-    "peptipedia:audit": "tsx --tsconfig tsconfig.app.json scripts/audit-peptipedia.ts"
+    "peptipedia:audit": "tsx --tsconfig tsconfig.app.json scripts/audit-peptipedia.ts",
+    "model:optimize": "node scripts/optimize-torso-model.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

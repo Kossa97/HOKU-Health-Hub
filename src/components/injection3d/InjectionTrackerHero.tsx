@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import * as THREE from 'three'
 import { ArrowUpRight, Rotate3D } from 'lucide-react'
 import type { Vector3Json } from '../../lib/injectionLogTypes'
-import { prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
+import { INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 
-const MODEL_URL = '/models/torso_hybrid_v1.glb'
+const MODEL_URL = INJECTION_TORSO_MODEL_URL
 const HERO_MODEL_HEIGHT = 2.85
 const HERO_MODEL_Y_OFFSET = 0.12
 const HERO_PIN_COLORS = ['#22d3ee', '#34d399', '#a78bfa', '#fb7185']

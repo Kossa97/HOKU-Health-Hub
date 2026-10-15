@@ -10,6 +10,8 @@ import {
   buildSelectableInjectionIntakes,
   buildInjectionInsertPayload,
   confirmIntakeDoseLog,
+  confirmIntakeWithInjection,
+  resetAtomicConfirmRpcCache,
   isDoseLogAlreadyLinkedError,
   isInjectionProSchemaError,
   injectionIntakeLookbackStart,
@@ -20,7 +22,7 @@ import {
 } from './injectionPersistence'
 
 describe('normalized injection provenance', () => {
-  afterEach(() => { (FEATURES as { planTimelineV2: boolean }).planTimelineV2 = false; vi.useRealTimers() })
+  afterEach(() => { (FEATURES as { planTimelineV2: boolean }).planTimelineV2 = false; vi.useRealTimers(); resetAtomicConfirmRpcCache() })
   const timeline: CycleTimeline = {
     cycle: { id: 'c1', stack_item_id: 's1', started_at: '2026-09-19T00:00:00Z', ended_at: null },
     versions: [{ id: 'v1', cycle_id: 'c1', effective_kind: 'local_date', effective_at: null,
@@ -69,6 +71,52 @@ describe('normalized injection provenance', () => {
     const other = { ...timeline, cycle: { ...timeline.cycle, id: 'c2' }, versions: timeline.versions.map(v => ({ ...v, id: 'v2', cycle_id: 'c2' })) }
     const confirmed = build([{ ...pending, taken: true }], [other]).find(row => row.status === 'confirmed')
     expect(confirmed).toMatchObject({ cycleId: 'c1', planVersionId: 'v1', dose: 250, unit: 'mcg', scheduledAt: pending.logged_at })
+  })
+  it('confirms and places the injection in one RPC, without dose values from the device', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const rpc = vi.fn(() => Promise.resolve({ data: { dose_log_id: 'd1', injection_log_id: 'i1' }, error: null }))
+    const pin = { model_version: 'placeholder-v1', position: { x: 0.1, y: 0.2, z: 0.3 }, normal: { x: 0, y: 0, z: 1 },
+      body_region: 'abdomen' as const, body_side: 'left' as const, uv: null, camera_state: null }
+    await expect(confirmIntakeWithInjection({ rpc, from: timelineReader() } as never, { userId: 'u', stackItemId: 's1', dose: 250,
+      unit: 'mcg', method: 'Subkutan', loggedAt: '2026-09-19T06:15:00Z', scheduledAt: '2026-09-19T06:00:00.000Z',
+      cycleId: 'c1', planVersionId: 'v1', routineSlotKey: 'c1@2026-09-19T08:00', doseLogId: 'pending' },
+    { notes: ' rot ', warningState: 'caution', substanceLabel: null, pin })).resolves.toEqual({ doseLogId: 'd1', injectionLogId: 'i1' })
+    expect(rpc).toHaveBeenCalledTimes(1)
+    const [name, args] = rpc.mock.calls[0] as unknown as [string, { p_entry: Record<string, unknown>; p_injection: Record<string, unknown> }]
+    expect(name).toBe('confirm_intake_with_injection')
+    expect(args.p_entry).toMatchObject({ cycle_id: 'c1', plan_version_id: 'v1', slot_key: 'c1@2026-09-19T08:00',
+      dose_log_id: 'pending', dose: 250, unit: 'mcg', logged_at: '2026-09-19T06:15:00Z', taken: true })
+    expect(args.p_injection).toEqual({ site: 'abdomen_left', notes: 'rot', substance_label: null, body_region: 'abdomen',
+      body_side: 'left', model_version: 'placeholder-v1', position: pin.position, normal: pin.normal, uv: null,
+      camera_state: null, warning_state: 'caution' })
+  })
+  it.each(['PGRST202', '42883'])('falls back (null) when the atomic RPC is not deployed yet (%s)', async code => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const rpc = vi.fn(() => Promise.resolve({ data: null, error: { code, message: 'missing' } }))
+    const pin = { model_version: 'm', position: { x: 1, y: 1, z: 1 }, normal: { x: 0, y: 0, z: 1 },
+      body_region: 'thigh' as const, body_side: 'right' as const }
+    await expect(confirmIntakeWithInjection({ rpc, from: timelineReader() } as never, { userId: 'u', stackItemId: 's1', dose: 250,
+      unit: 'mcg', method: 'Subkutan', loggedAt: '2026-09-19T06:15:00Z', scheduledAt: '2026-09-19T06:00:00.000Z',
+      cycleId: 'c1', planVersionId: 'v1', routineSlotKey: 'c1@2026-09-19T08:00' },
+    { notes: null, warningState: null, pin })).resolves.toBeNull()
+    // Gemerkt: das naechste Speichern versucht es nicht erneut.
+    await expect(confirmIntakeWithInjection({ rpc, from: timelineReader() } as never, { userId: 'u', stackItemId: 's1', dose: 250,
+      unit: 'mcg', method: 'Subkutan', loggedAt: '2026-09-19T06:15:00Z', scheduledAt: '2026-09-19T06:00:00.000Z',
+      cycleId: 'c1', planVersionId: 'v1', routineSlotKey: 'c1@2026-09-19T08:00' },
+    { notes: null, warningState: null, pin })).resolves.toBeNull()
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
+  it('rethrows other atomic RPC errors (nothing half-saved to fall back from)', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const error = { code: '23505', message: 'duplicate key value violates unique constraint "injection_logs_dose_log_id_unique_idx"' }
+    const rpc = vi.fn(() => Promise.resolve({ data: null, error }))
+    const pin = { model_version: 'm', position: { x: 1, y: 1, z: 1 }, normal: { x: 0, y: 0, z: 1 },
+      body_region: 'thigh' as const, body_side: 'right' as const }
+    await expect(confirmIntakeWithInjection({ rpc, from: timelineReader() } as never, { userId: 'u', stackItemId: 's1', dose: 250,
+      unit: 'mcg', method: 'Subkutan', loggedAt: '2026-09-19T06:15:00Z', scheduledAt: '2026-09-19T06:00:00.000Z',
+      cycleId: 'c1', planVersionId: 'v1', routineSlotKey: 'c1@2026-09-19T08:00' },
+    { notes: null, warningState: null, pin })).rejects.toBe(error)
+    expect(isDoseLogAlreadyLinkedError(error)).toBe(true)
   })
   it('confirms through the authoritative RPC without direct dose-log writes', async () => {
     ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true

@@ -1,5 +1,6 @@
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { InjectionLog3D } from './injectionLogTypes'
+import { BODY_LANDMARKS as L } from './injectionGeometry'
 
 export type InjectionHistoryDays = 7 | 14 | 30 | 60 | 90 | 'all'
 
@@ -44,19 +45,19 @@ function sideLabel(log: InjectionLog3D): string {
   return 'mittig'
 }
 
+function thirds(y: number, bottom: number, top: number): string {
+  const third = (top - bottom) / 3
+  if (y > top - third) return 'oben'
+  if (y < bottom + third) return 'unten'
+  return 'mittig'
+}
+
+// Drittel bzw. Haelften der jeweiligen Region, aus BODY_LANDMARKS.
 function verticalLabel(log: InjectionLog3D): string {
   const y = log.position.y
-  if (log.body_region === 'abdomen') {
-    if (y > 0.2) return 'oben'
-    if (y < -0.05) return 'unten'
-    return 'mittig'
-  }
-  if (log.body_region === 'thigh') {
-    if (y > -0.38) return 'oben'
-    if (y < -0.65) return 'unten'
-    return 'mittig'
-  }
-  if (log.body_region === 'glute') return y > -0.42 ? 'oben' : 'unten'
+  if (log.body_region === 'abdomen') return thirds(y, L.crotchY, L.ribY)
+  if (log.body_region === 'thigh') return thirds(y, L.kneeY, L.crotchY)
+  if (log.body_region === 'glute') return y > (L.gluteFoldY + L.hipY) / 2 ? 'oben' : 'unten'
   return ''
 }
 

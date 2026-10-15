@@ -4,19 +4,22 @@ import { ContactShadows, OrbitControls, useGLTF } from '@react-three/drei'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import * as THREE from 'three'
 import { inferBodyRegion } from '../../lib/injectionGeometry'
-import { prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
+import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
 import { InjectionPin } from './InjectionPin'
 
-// Coordinate space pins are placed in (the fitted visible model). Kept stable so
-// region inference + proximity stay comparable across saved pins.
-const MODEL_VERSION = 'placeholder-v1'
-const MODEL_URL = '/models/torso_hybrid_v1.glb'
+const MODEL_VERSION = INJECTION_MODEL_VERSION
+const MODEL_URL = INJECTION_TORSO_MODEL_URL
 const LONG_PRESS_MS = 420
+// Wie weit der Finger waehrend des Long-Press wandern darf (CSS-Pixel).
+const LONG_PRESS_SLOP_PX = 8
 
 // Fit params: scale/position the model into the region-inference coordinate space
 // so inferBodyRegion thresholds stay valid while the torso fills the mobile canvas.
+// BODY_LANDMARKS, die Listen-Stellen und supabase-injection-regions-v2.sql sind
+// in genau dieser Einpassung gemessen: FIT_HEIGHT/FIT_Y_OFFSET nur zusammen mit
+// einer neuen INJECTION_MODEL_VERSION aendern.
 const FIT_HEIGHT = 2.85
 const FIT_Y_OFFSET = 0.12
 
@@ -38,7 +41,8 @@ const INJECTION_MAP_LIGHTS = {
 }
 
 export interface InjectionFocusRequest {
-  log: InjectionLog3D
+  // Ein gespeicherter Pin oder eine gerade gewaehlte Stelle (ohne id).
+  log: Pick<InjectionLog3D, 'position' | 'normal'> & { id?: string }
   requestId: number
   sheetOpen?: boolean
 }
@@ -56,7 +60,7 @@ function toJson(v: THREE.Vector3) {
 // mesh remains a worthwhile later asset-pipeline optimization.
 function Torso({ onLongPress }: { onLongPress: (event: ThreeEvent<PointerEvent>) => void }) {
   const { scene } = useGLTF(MODEL_URL)
-  const timer = useRef<number | null>(null)
+  const cancelActivePress = useRef<(() => void) | null>(null)
 
   const model = useMemo(() => {
     const root = scene.clone(true)
@@ -72,24 +76,42 @@ function Torso({ onLongPress }: { onLongPress: (event: ThreeEvent<PointerEvent>)
     return root
   }, [scene])
 
+  useEffect(() => () => cancelActivePress.current?.(), [])
+
+  // Nur pointerdown geht durch react-three-fiber. Bewegung und Loslassen
+  // werden am window beobachtet: Haette der Torso onPointerMove/Leave,
+  // wuerde r3f bei jeder Fingerbewegung -- auch beim Drehen -- alle
+  // Dreiecke des Modells raycasten.
   const startPress = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
-    if (timer.current != null) window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => onLongPress(event), LONG_PRESS_MS)
-  }
-
-  const cancelPress = () => {
-    if (timer.current != null) window.clearTimeout(timer.current)
-    timer.current = null
+    cancelActivePress.current?.()
+    const { pointerId, clientX, clientY } = event.nativeEvent
+    const timer = window.setTimeout(() => {
+      cancel()
+      onLongPress(event)
+    }, LONG_PRESS_MS)
+    const onMove = (move: PointerEvent) => {
+      if (move.pointerId !== pointerId) return
+      if (Math.hypot(move.clientX - clientX, move.clientY - clientY) > LONG_PRESS_SLOP_PX) cancel()
+    }
+    const onEnd = (end: PointerEvent) => {
+      if (end.pointerId === pointerId) cancel()
+    }
+    function cancel() {
+      window.clearTimeout(timer)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onEnd)
+      window.removeEventListener('pointercancel', onEnd)
+      if (cancelActivePress.current === cancel) cancelActivePress.current = null
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onEnd)
+    window.addEventListener('pointercancel', onEnd)
+    cancelActivePress.current = cancel
   }
 
   return (
-    <group
-      onPointerDown={startPress}
-      onPointerUp={cancelPress}
-      onPointerLeave={cancelPress}
-      onPointerMove={cancelPress}
-    >
+    <group onPointerDown={startPress}>
       <primitive object={model} />
     </group>
   )
@@ -124,6 +146,8 @@ function focusTargetForRequest(point: THREE.Vector3, sheetOpen = false) {
 function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFocusRequest | null; resetRequestId: number }) {
   const camera = useThree((s) => s.camera)
   const controls = useThree((s) => s.controls) as OrbitControlsApi | null
+  const invalidate = useThree((s) => s.invalidate)
+  const frameloop = useThree((s) => s.frameloop)
   const warmupFrames = useRef(0)
   const animation = useRef<{
     fromPosition: THREE.Vector3
@@ -142,7 +166,14 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     animation.current = null
     resetCameraFrame(camera, controls)
     warmupFrames.current = 0
-  }, [camera, controls, resetRequestId])
+    invalidate()
+  }, [camera, controls, resetRequestId, invalidate])
+
+  // Beim Wechsel von `never` (nicht sichtbar) zurueck auf `demand` einmal
+  // zeichnen; setFrameloop selbst stoesst kein Bild an.
+  useEffect(() => {
+    if (frameloop !== 'never') invalidate()
+  }, [frameloop, invalidate])
 
   useEffect(() => {
     if (!focusRequest || !controls) return
@@ -169,7 +200,8 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       toTarget: target,
       progress: 0,
     }
-  }, [camera, controls, focusRequest])
+    invalidate()
+  }, [camera, controls, focusRequest, invalidate])
 
   useFrame((_, delta) => {
     const active = animation.current
@@ -180,12 +212,14 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       controls?.target.lerpVectors(active.fromTarget, active.toTarget, t)
       controls?.update()
       if (active.progress >= 1) animation.current = null
+      else invalidate()
       return
     }
 
     if (warmupFrames.current >= 6) return
     resetCameraFrame(camera, controls)
     warmupFrames.current += 1
+    if (warmupFrames.current < 6) invalidate()
   })
 
   return null
@@ -277,6 +311,7 @@ export function InjectionMapCanvas({
   height = 'min(62vh, 540px)',
   minHeight = 360,
   resetRequestId = 0,
+  ariaLabel,
   ...props
 }: {
   draftPin: InjectionPinDraft | null
@@ -289,13 +324,15 @@ export function InjectionMapCanvas({
   height?: CSSProperties['height']
   minHeight?: CSSProperties['minHeight']
   resetRequestId?: number
+  /** Kurzbeschreibung fuer Screenreader; die Karte selbst ist nur per Zeiger bedienbar. */
+  ariaLabel?: string
 }) {
   const huelle = useRef<HTMLDivElement | null>(null)
   const renderer = useRef<THREE.WebGLRenderer | null>(null)
-  // `always` ist der Standard: 60 Bilder je Sekunde, auch wenn nichts
-  // passiert und auch, wenn niemand hinsieht. Die Szene animiert ueber
-  // `useFrame`, also kann sie nicht auf `demand` -- sie darf nur ruhen,
-  // solange sie nicht zu sehen ist.
+  // `demand`: nur zeichnen, wenn sich etwas aendert. Die OrbitControls
+  // fordern beim Drehen und Ausrollen selbst Bilder an, Aenderungen an der
+  // Szene (Pins, Modell) ebenso; die Kamerafahrt in CameraRig ruft
+  // `invalidate()` je Bild. Im Stillstand steht die GPU. Ausser Sicht `never`.
   const [sichtbar, setSichtbar] = useState(true)
 
   useEffect(() => {
@@ -340,11 +377,11 @@ export function InjectionMapCanvas({
   }, [])
 
   return (
-    <div ref={huelle} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: 'radial-gradient(circle at 50% 20%, rgba(0,204,245,0.16), transparent 42%), #07111d' }}>
+    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: 'radial-gradient(circle at 50% 20%, rgba(0,204,245,0.16), transparent 42%), #07111d' }}>
       <Canvas
         camera={{ position: [0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.05, far: 50 }}
         dpr={[1, 1.35]}
-        frameloop={sichtbar ? 'always' : 'never'}
+        frameloop={sichtbar ? 'demand' : 'never'}
         onCreated={({ camera, gl }) => { renderer.current = gl; resetCameraFrame(camera, null) }}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       >

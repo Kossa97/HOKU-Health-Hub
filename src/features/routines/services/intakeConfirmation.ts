@@ -73,13 +73,14 @@ export function quantifiedVialEntries(
   ))
 }
 
-async function decideIntakeGroup(
-  client: IntakeConfirmationClient,
+/** Die Eintraege, wie `confirm_intake_group` sie erwartet (auch fuer
+ * `confirm_intake_with_injection`, das sie unveraendert weiterreicht). */
+export function buildIntakeRpcEntries(
   entries: RoutineConfirmationEntry[],
   taken: boolean,
-): Promise<SavedDoseLog[]> {
+) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-  const p_entries = entries
+  return entries
     .filter(entry => entry.selected)
     .map(entry => ({
       cycle_id: entry.cycleId,
@@ -108,7 +109,14 @@ async function decideIntakeGroup(
       logged_at: entry.actualLoggedAt ?? entry.scheduledAt,
       taken,
     }))
+}
 
+async function decideIntakeGroup(
+  client: IntakeConfirmationClient,
+  entries: RoutineConfirmationEntry[],
+  taken: boolean,
+): Promise<SavedDoseLog[]> {
+  const p_entries = buildIntakeRpcEntries(entries, taken)
   const { data, error } = await client.rpc('confirm_intake_group', { p_entries })
   if (error) throw new Error(error.message)
   if (!data) throw new Error('confirm_intake_group returned no data')
