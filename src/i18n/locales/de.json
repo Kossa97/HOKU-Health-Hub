@@ -2322,5 +2322,17 @@
   "injection_saved_toast": "Injektion gespeichert",
   "injection_already_linked_toast": "Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert",
   "injection_save_failed_toast": "Injektion konnte nicht gespeichert werden",
-  "injection_selected_chip": "Ausgewählt"
+  "injection_selected_chip": "Ausgewählt",
+  "injection_pick_site_action": "Stelle aus Liste wählen",
+  "injection_pick_site_title": "Injektionsstelle wählen",
+  "injection_pick_site_hint": "Ohne 3D-Modell: Stelle wählen, sie wird auf der Karte markiert. Danach „Position übernehmen“.",
+  "injection_site_option": "{{region}} {{side}}",
+  "injection_region_abdomen": "Bauch",
+  "injection_region_thigh": "Oberschenkel",
+  "injection_region_glute": "Gesäß",
+  "injection_region_deltoid": "Schulter",
+  "injection_region_upper_arm": "Oberarm",
+  "injection_side_left": "links",
+  "injection_side_right": "rechts",
+  "injection_map_aria": "3D-Körpermodell mit deinen Injektionsstellen. Stelle per langem Drücken setzen oder über „Stelle aus Liste wählen“."
 }

@@ -3,6 +3,9 @@ import * as THREE from 'three'
 // Fuer Handys verkleinerte Fassung (scripts/optimize-torso-model.mjs). Gleiche
 // Geometrie wie die Quelle, daher bleibt MODEL_VERSION 'placeholder-v1' gueltig.
 export const INJECTION_TORSO_MODEL_URL = '/models/torso_hybrid_v1.web.glb'
+// Koordinatenraum der Pins (eingepasstes Modell). Bleibt stabil, damit
+// Regionserkennung und Abstand zwischen gespeicherten Pins vergleichbar bleiben.
+export const INJECTION_MODEL_VERSION = 'placeholder-v1'
 
 const FALLBACK_TORSO_COLOR = new THREE.Color('#d9b8a8')
 

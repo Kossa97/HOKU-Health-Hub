@@ -4,14 +4,12 @@ import { ContactShadows, OrbitControls, useGLTF } from '@react-three/drei'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import * as THREE from 'three'
 import { inferBodyRegion } from '../../lib/injectionGeometry'
-import { INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
+import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
 import { InjectionPin } from './InjectionPin'
 
-// Coordinate space pins are placed in (the fitted visible model). Kept stable so
-// region inference + proximity stay comparable across saved pins.
-const MODEL_VERSION = 'placeholder-v1'
+const MODEL_VERSION = INJECTION_MODEL_VERSION
 const MODEL_URL = INJECTION_TORSO_MODEL_URL
 const LONG_PRESS_MS = 420
 // Wie weit der Finger waehrend des Long-Press wandern darf (CSS-Pixel).
@@ -40,7 +38,8 @@ const INJECTION_MAP_LIGHTS = {
 }
 
 export interface InjectionFocusRequest {
-  log: InjectionLog3D
+  // Ein gespeicherter Pin oder eine gerade gewaehlte Stelle (ohne id).
+  log: Pick<InjectionLog3D, 'position' | 'normal'> & { id?: string }
   requestId: number
   sheetOpen?: boolean
 }
@@ -309,6 +308,7 @@ export function InjectionMapCanvas({
   height = 'min(62vh, 540px)',
   minHeight = 360,
   resetRequestId = 0,
+  ariaLabel,
   ...props
 }: {
   draftPin: InjectionPinDraft | null
@@ -321,6 +321,8 @@ export function InjectionMapCanvas({
   height?: CSSProperties['height']
   minHeight?: CSSProperties['minHeight']
   resetRequestId?: number
+  /** Kurzbeschreibung fuer Screenreader; die Karte selbst ist nur per Zeiger bedienbar. */
+  ariaLabel?: string
 }) {
   const huelle = useRef<HTMLDivElement | null>(null)
   const renderer = useRef<THREE.WebGLRenderer | null>(null)
@@ -372,7 +374,7 @@ export function InjectionMapCanvas({
   }, [])
 
   return (
-    <div ref={huelle} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: 'radial-gradient(circle at 50% 20%, rgba(0,204,245,0.16), transparent 42%), #07111d' }}>
+    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: 'radial-gradient(circle at 50% 20%, rgba(0,204,245,0.16), transparent 42%), #07111d' }}>
       <Canvas
         camera={{ position: [0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.05, far: 50 }}
         dpr={[1, 1.35]}

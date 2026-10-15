@@ -1115,6 +1115,18 @@ export const MY_STACK_EN = {
   injection_already_linked_toast: "An injection site has already been saved for this intake",
   injection_save_failed_toast: "Injection could not be saved",
   injection_selected_chip: "Selected",
+  injection_pick_site_action: "Choose site from list",
+  injection_pick_site_title: "Choose injection site",
+  injection_pick_site_hint: "Without the 3D model: choose a site and it is marked on the map. Then tap “Use position”.",
+  injection_site_option: "{{region}}, {{side}}",
+  injection_region_abdomen: "Abdomen",
+  injection_region_thigh: "Thigh",
+  injection_region_glute: "Glute",
+  injection_region_deltoid: "Shoulder",
+  injection_region_upper_arm: "Upper arm",
+  injection_side_left: "left",
+  injection_side_right: "right",
+  injection_map_aria: "3D body model with your injection sites. Place a site with a long press or via “Choose site from list”.",
 }
 
 export const MY_STACK_DE = {
@@ -2233,6 +2245,18 @@ export const MY_STACK_DE = {
   injection_already_linked_toast: "Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert",
   injection_save_failed_toast: "Injektion konnte nicht gespeichert werden",
   injection_selected_chip: "Ausgewählt",
+  injection_pick_site_action: "Stelle aus Liste wählen",
+  injection_pick_site_title: "Injektionsstelle wählen",
+  injection_pick_site_hint: "Ohne 3D-Modell: Stelle wählen, sie wird auf der Karte markiert. Danach „Position übernehmen“.",
+  injection_site_option: "{{region}} {{side}}",
+  injection_region_abdomen: "Bauch",
+  injection_region_thigh: "Oberschenkel",
+  injection_region_glute: "Gesäß",
+  injection_region_deltoid: "Schulter",
+  injection_region_upper_arm: "Oberarm",
+  injection_side_left: "links",
+  injection_side_right: "rechts",
+  injection_map_aria: "3D-Körpermodell mit deinen Injektionsstellen. Stelle per langem Drücken setzen oder über „Stelle aus Liste wählen“.",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

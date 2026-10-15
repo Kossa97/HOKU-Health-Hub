@@ -1124,6 +1124,18 @@ const EXPECTED_MY_STACK_KEYS = [
   'injection_already_linked_toast',
   'injection_save_failed_toast',
   'injection_selected_chip',
+  'injection_pick_site_action',
+  'injection_pick_site_title',
+  'injection_pick_site_hint',
+  'injection_site_option',
+  'injection_region_abdomen',
+  'injection_region_thigh',
+  'injection_region_glute',
+  'injection_region_deltoid',
+  'injection_region_upper_arm',
+  'injection_side_left',
+  'injection_side_right',
+  'injection_map_aria',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
