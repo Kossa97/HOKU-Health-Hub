@@ -1106,6 +1106,15 @@ export const MY_STACK_EN = {
   injection_delete_final: "Delete permanently",
   injection_deleted: "Injection deleted",
   injection_delete_failed: "Injection could not be deleted",
+  injection_unavailable_title: "Injection tracker unavailable right now",
+  injection_unavailable_hint: "Your data is stored safely. Please try again in a moment.",
+  injection_intake_selected_toast: "Intake selected. Now mark the injection site.",
+  injection_site_added_toast: "Injection site added",
+  injection_saved_with_intake_toast: "Injection & intake saved",
+  injection_saved_toast: "Injection saved",
+  injection_already_linked_toast: "An injection site has already been saved for this intake",
+  injection_save_failed_toast: "Injection could not be saved",
+  injection_selected_chip: "Selected",
 }
 
 export const MY_STACK_DE = {
@@ -2215,6 +2224,15 @@ export const MY_STACK_DE = {
   injection_delete_final: "Endgültig löschen",
   injection_deleted: "Injektion gelöscht",
   injection_delete_failed: "Injektion konnte nicht gelöscht werden",
+  injection_unavailable_title: "Injektionstracker gerade nicht verfügbar",
+  injection_unavailable_hint: "Deine Daten sind sicher gespeichert. Bitte versuche es gleich noch einmal.",
+  injection_intake_selected_toast: "Einnahme ausgewählt. Markiere jetzt die Injektionsstelle.",
+  injection_site_added_toast: "Injektionsstelle hinzugefügt",
+  injection_saved_with_intake_toast: "Injektion & Einnahme gespeichert",
+  injection_saved_toast: "Injektion gespeichert",
+  injection_already_linked_toast: "Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert",
+  injection_save_failed_toast: "Injektion konnte nicht gespeichert werden",
+  injection_selected_chip: "Ausgewählt",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

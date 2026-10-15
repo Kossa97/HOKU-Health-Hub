@@ -2313,5 +2313,14 @@
   "injection_delete_keep": "Behalten",
   "injection_delete_final": "Endgültig löschen",
   "injection_deleted": "Injektion gelöscht",
-  "injection_delete_failed": "Injektion konnte nicht gelöscht werden"
+  "injection_delete_failed": "Injektion konnte nicht gelöscht werden",
+  "injection_unavailable_title": "Injektionstracker gerade nicht verfügbar",
+  "injection_unavailable_hint": "Deine Daten sind sicher gespeichert. Bitte versuche es gleich noch einmal.",
+  "injection_intake_selected_toast": "Einnahme ausgewählt. Markiere jetzt die Injektionsstelle.",
+  "injection_site_added_toast": "Injektionsstelle hinzugefügt",
+  "injection_saved_with_intake_toast": "Injektion & Einnahme gespeichert",
+  "injection_saved_toast": "Injektion gespeichert",
+  "injection_already_linked_toast": "Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert",
+  "injection_save_failed_toast": "Injektion konnte nicht gespeichert werden",
+  "injection_selected_chip": "Ausgewählt"
 }

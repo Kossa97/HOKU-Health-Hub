@@ -1115,6 +1115,15 @@ const EXPECTED_MY_STACK_KEYS = [
   'injection_delete_final',
   'injection_deleted',
   'injection_delete_failed',
+  'injection_unavailable_title',
+  'injection_unavailable_hint',
+  'injection_intake_selected_toast',
+  'injection_site_added_toast',
+  'injection_saved_with_intake_toast',
+  'injection_saved_toast',
+  'injection_already_linked_toast',
+  'injection_save_failed_toast',
+  'injection_selected_chip',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

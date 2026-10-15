@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
-import { ArrowLeft, AlertTriangle, Copy, Minimize2, RefreshCw } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Minimize2, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import { useAuth } from '../context/AuthContext'
@@ -53,50 +53,6 @@ const panelStyle: CSSProperties = {
   overflow: 'hidden',
 }
 
-const SETUP_SQL = `create table if not exists injection_logs (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade not null,
-  dose_log_id uuid,
-  site text not null,
-  notes text,
-  logged_at timestamptz not null default now(),
-  created_at timestamptz default now()
-);
-
-alter table injection_logs
-  add column if not exists stack_item_id uuid references stack_items on delete set null,
-  add column if not exists cycle_id uuid references cycles on delete set null,
-  add column if not exists dose numeric(10,3),
-  add column if not exists unit text,
-  add column if not exists method text,
-  add column if not exists body_region text,
-  add column if not exists body_side text,
-  add column if not exists model_version text,
-  add column if not exists position jsonb,
-  add column if not exists normal jsonb,
-  add column if not exists uv jsonb,
-  add column if not exists camera_state jsonb,
-  add column if not exists warning_state text,
-  add column if not exists substance_label text;
-
-alter table injection_logs enable row level security;
-
-do $$ begin
-  create policy "Own injection logs" on injection_logs
-    for all using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
-exception when duplicate_object then null;
-end $$;
-
-create index if not exists injection_logs_user_logged_at_idx
-  on injection_logs (user_id, logged_at desc);
-create index if not exists injection_logs_user_cycle_idx
-  on injection_logs (user_id, cycle_id, logged_at desc);
-create index if not exists injection_logs_user_region_idx
-  on injection_logs (user_id, body_region, body_side, logged_at desc);
-create unique index if not exists injection_logs_dose_log_id_unique_idx
-  on injection_logs (dose_log_id)
-  where dose_log_id is not null;`;
 
 // ── Supabase error helpers ────────────────────────────────────────────────────
 
@@ -210,7 +166,7 @@ export function InjektionsTracker() {
   const selectOpenIntakeForInjection = (intake: OpenInjectionIntake) => {
     setSelectedTargetIntakeKey(getOpenInjectionIntakeKey(intake))
     setTrackerSheetOpen(false)
-    toast.success('Einnahme ausgewählt. Markiere jetzt die Injektionsstelle.')
+    toast.success(t('injection_intake_selected_toast', { defaultValue: 'Einnahme ausgewählt. Markiere jetzt die Injektionsstelle.' }))
   }
 
   const targetIntake = useMemo(() => findTargetInjectionIntake(openIntakes, searchParams), [openIntakes, searchParams])
@@ -366,9 +322,9 @@ export function InjektionsTracker() {
 
       toast.success(input.mode === 'intake'
         ? input.intake?.status === 'confirmed'
-          ? 'Injektionsstelle hinzugefügt'
-          : 'Injektion & Einnahme gespeichert'
-        : 'Injektion gespeichert')
+          ? t('injection_site_added_toast', { defaultValue: 'Injektionsstelle hinzugefügt' })
+          : t('injection_saved_with_intake_toast', { defaultValue: 'Injektion & Einnahme gespeichert' })
+        : t('injection_saved_toast', { defaultValue: 'Injektion gespeichert' }))
       setDraftPin(null)
       setShowLogSheet(false)
       setSelectedTargetIntakeKey(null)
@@ -376,7 +332,7 @@ export function InjektionsTracker() {
     } catch (error) {
       console.error('[InjektionsTracker] saveDraftPin error:', error)
       if (isDoseLogAlreadyLinkedError(error)) {
-        toast.error('Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert')
+        toast.error(t('injection_already_linked_toast', { defaultValue: 'Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert' }))
         setShowLogSheet(false)
         setSelectedTargetIntakeKey(null)
         await loadData()
@@ -385,23 +341,31 @@ export function InjektionsTracker() {
       if (isInjectionProSchemaError(error)) {
         setShowLogSheet(false)
         setTableError(true)
-        toast.error('Datenbank-Update erforderlich')
+        toast.error(t('injection_unavailable_title', { defaultValue: 'Injektionstracker gerade nicht verfügbar' }))
         return
       }
       await loadData()
-      toast.error('Fehler beim Speichern')
+      toast.error(t('injection_save_failed_toast', { defaultValue: 'Injektion konnte nicht gespeichert werden' }))
     }
   }
 
-  if (timelineLoadError) return <div role="alert">
-    {t('inj_plan_load_error')}
-    <button type="button" onClick={() => void loadData()}>{t('routine_confirmation_retry')}</button>
-  </div>
-  if (tableError) {
+  if (timelineLoadError || tableError) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 16,
+        padding: 'calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+      }}>
         <PageHeader onBack={goBack} />
-        <SetupRequired onRetry={() => { setTableError(false); loadData() }} />
+        {/* Die genauere Ursache zuerst: fehlt die Tabelle, ist es nicht der Plan. */}
+        {tableError ? (
+          <TrackerUnavailable
+            title={String(t('injection_unavailable_title', { defaultValue: 'Injektionstracker gerade nicht verfügbar' }))}
+            hint={String(t('injection_unavailable_hint', { defaultValue: 'Deine Daten sind sicher gespeichert. Bitte versuche es gleich noch einmal.' }))}
+            onRetry={() => { setTableError(false); void loadData() }}
+          />
+        ) : (
+          <TrackerUnavailable title={String(t('inj_plan_load_error'))} onRetry={() => void loadData()} />
+        )}
       </div>
     )
   }
@@ -475,7 +439,7 @@ export function InjektionsTracker() {
                 className="flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-xl"
                 style={{ background: 'rgba(7, 11, 24, 0.78)', borderColor: 'rgba(34,211,238,0.22)' }}
               >
-                <span className="shrink-0 text-[0.62rem] font-black uppercase text-cyan-300">Ausgewählt</span>
+                <span className="shrink-0 text-[0.62rem] font-black uppercase text-cyan-300">{t('injection_selected_chip', { defaultValue: 'Ausgewählt' })}</span>
                 <span className="min-w-0 flex-1 truncate">{activeTargetIntake.stackItemName}</span>
                 <span className="shrink-0 text-cyan-100/80">{activeTargetIntake.dose} {activeTargetIntake.unit} - {format(parseISO(activeTargetIntake.scheduledAt), 'HH:mm')}</span>
               </div>
@@ -609,28 +573,22 @@ function PageHeader({ onBack, overlay = false }: { onBack: () => void; overlay?:
   )
 }
 
-// ── SetupRequired ─────────────────────────────────────────────────────────────
+// ── TrackerUnavailable ──────────────────────────────────────────────────────
+//
+// Frueher stand hier das Einrichtungs-SQL zum Kopieren in den Supabase-Editor.
+// Das ist ein Entwicklerwerkzeug: Nutzer koennen damit nichts anfangen, und es
+// zeigt den Aufbau der Datenbank. Die Tabellen stehen versioniert im Repo
+// (supabase-injection*.sql).
 
-function SetupRequired({ onRetry }: { onRetry: () => void }) {
+function TrackerUnavailable({ title, hint, onRetry }: { title: string; hint?: string; onRetry: () => void }) {
   const { t } = useTranslation()
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(SETUP_SQL)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2500)
-    } catch {
-      toast.error('Clipboard nicht verfügbar')
-    }
-  }
-
   return (
-    <div style={{
+    <div role="alert" style={{
       background: 'var(--surface)',
       border: '1px solid var(--border)',
       borderRadius: 22,
       padding: 22,
+      textAlign: 'center',
     }}>
       <div style={{
         width: 52, height: 52, borderRadius: 18,
@@ -638,57 +596,15 @@ function SetupRequired({ onRetry }: { onRetry: () => void }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         margin: '0 auto 14px',
       }}>
-        <AlertTriangle size={22} color="#f59e0b" />
+        <AlertTriangle size={22} color="#f59e0b" aria-hidden="true" />
       </div>
-      <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', textAlign: 'center', marginBottom: 8 }}>
-        {t('inj_setup_required', { defaultValue: 'Datenbank-Setup erforderlich' })}
-      </h2>
-      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.6, textAlign: 'center', marginBottom: 18 }}>
-        {t('inj_setup_hint', { defaultValue: 'Führe folgendes SQL im Supabase SQL-Editor aus, um den Injektions-Tracker zu aktivieren.' })}
-      </p>
-
-      <div style={{
-        background: 'rgba(0,0,0,0.45)', border: '1px solid var(--accent-border)',
-        borderRadius: 14, padding: '12px 14px', marginBottom: 14,
-      }}>
-        <pre style={{
-          fontSize: '0.6rem', color: 'var(--accent)',
-          overflowX: 'auto', margin: 0, lineHeight: 1.65,
-          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          fontFamily: "'SF Mono', 'Fira Code', monospace",
-        }}>
-          {SETUP_SQL}
-        </pre>
-      </div>
-
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          onClick={handleCopy}
-          style={{
-            flex: 1, padding: '11px 0', borderRadius: 14,
-            background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-            color: 'var(--accent)', fontSize: '0.78rem', fontWeight: 800,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}
-        >
-          <Copy size={14} />
-          {copied
-            ? t('inj_copied', { defaultValue: 'Kopiert ✓' })
-            : t('inj_copy_sql', { defaultValue: 'SQL kopieren' })}
-        </button>
-        <button
-          onClick={onRetry}
-          style={{
-            flex: 1, padding: '11px 0', borderRadius: 14,
-            background: 'var(--surface)', border: '1px solid var(--border-strong)',
-            color: 'var(--text-dim)', fontSize: '0.78rem', fontWeight: 800,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}
-        >
-          <RefreshCw size={14} />
-          {t('inj_retry', { defaultValue: 'Erneut versuchen' })}
-        </button>
-      </div>
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: hint ? 8 : 18 }}>{title}</h2>
+      {hint && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 18 }}>{hint}</p>
+      )}
+      <button type="button" className="btn-secondary min-h-11 w-full" onClick={onRetry}>
+        <RefreshCw size={14} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
+      </button>
     </div>
   )
 }

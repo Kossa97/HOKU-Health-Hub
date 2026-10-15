@@ -1105,7 +1105,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2213,7 +2222,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3321,7 +3339,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4429,7 +4456,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5537,7 +5573,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6645,7 +6690,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7753,7 +7807,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8861,7 +8924,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9969,7 +10041,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11077,7 +11158,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12185,7 +12275,16 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13293,6 +13392,15 @@
     "injection_delete_keep": "Keep",
     "injection_delete_final": "Delete permanently",
     "injection_deleted": "Injection deleted",
-    "injection_delete_failed": "Injection could not be deleted"
+    "injection_delete_failed": "Injection could not be deleted",
+    "injection_unavailable_title": "Injection tracker unavailable right now",
+    "injection_unavailable_hint": "Your data is stored safely. Please try again in a moment.",
+    "injection_intake_selected_toast": "Intake selected. Now mark the injection site.",
+    "injection_site_added_toast": "Injection site added",
+    "injection_saved_with_intake_toast": "Injection & intake saved",
+    "injection_saved_toast": "Injection saved",
+    "injection_already_linked_toast": "An injection site has already been saved for this intake",
+    "injection_save_failed_toast": "Injection could not be saved",
+    "injection_selected_chip": "Selected"
   }
 }
