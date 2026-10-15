@@ -6,11 +6,7 @@
 // und sind mit scripts/compute-injection-site-presets.mjs berechnet; ein
 // Pin von hier ist also ein echter Pin wie per Long-Press gesetzt, und die
 // Abstandswarnung rechnet mit ihm wie mit jedem anderen.
-//
-// Region und Seite kommen aus dieser Liste, nicht aus inferBodyRegion: die
-// Punkte sind nach dem Modell gewaehlt (Bauch neben dem Nabel, Gesaess oben
-// aussen, ...), und die Schwellen von inferBodyRegion passen zu diesem Modell
-// nicht (siehe Kommentar im Berechnungsskript).
+// Jede Stelle wird von inferBodyRegion als genau diese Region erkannt (Test).
 import type { BodyRegion, BodySide, InjectionPinDraft, Vector3Json } from './injectionLogTypes'
 import { INJECTION_MODEL_VERSION } from './injectionModelMaterial'
 

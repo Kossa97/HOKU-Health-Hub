@@ -16,9 +16,9 @@ describe('INJECTION_SITE_PRESETS', () => {
   })
 
   it.each(INJECTION_SITE_PRESETS.map(preset => ({ key: injectionSitePresetKey(preset), preset })))(
-    '$key liegt auf der benannten Koerperhaelfte',
+    '$key wird von der Regionserkennung als genau diese Stelle erkannt',
     ({ preset }) => {
-      expect(inferBodyRegion(preset.position, preset.normal).body_side).toBe(preset.side)
+      expect(inferBodyRegion(preset.position, preset.normal)).toEqual({ body_region: preset.region, body_side: preset.side })
       expect(Math.hypot(preset.normal.x, preset.normal.y, preset.normal.z)).toBeCloseTo(1, 2)
     },
   )

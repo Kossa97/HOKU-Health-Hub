@@ -36,9 +36,8 @@ const { inferBodyRegion } = await import('../src/lib/injectionGeometry.ts')
 const rc = new THREE.Raycaster()
 // Nach den Merkmalen des Modells gewaehlt, abgelesen am gerenderten Modell:
 // Schritt y≈0.20, Hosenbund y≈0.56, Achsel y≈0.94, Schulter y≈1.1-1.3,
-// Knie y≈-0.47. Nicht nach den Schwellen von inferBodyRegion -- die liegen
-// fuer dieses Modell rund 0.3-0.4 zu tief (Bauch reicht dort bis -0.2,
-// Brust beginnt bei 0.58).
+// Knie y≈-0.47 (dieselben Werte stehen als BODY_LANDMARKS in
+// src/lib/injectionGeometry.ts).
 const targets = [
   // Region, Richtung, Kandidaten (|x|, y) in Reihenfolge
   ['abdomen', 'front', [[0.12, 0.68], [0.13, 0.66], [0.11, 0.7]]],      // seitlich neben dem Nabel
@@ -60,10 +59,10 @@ for (const [region, from, cands] of targets) {
       const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
       const r = (v) => ({ x: +v.x.toFixed(5), y: +v.y.toFixed(5), z: +v.z.toFixed(5) })
       const p = r(hit.point), nn = r(normal)
-      // Getroffen werden muss die Vorder- bzw. Rueckseite, und der Treffer
-      // muss auf der richtigen Koerperhaelfte liegen (Seite wie inferBodyRegion).
-      const facing = from === 'front' ? nn.z > 0.35 : nn.z < -0.35
-      if (facing && inferBodyRegion(p, nn).body_side === side) { found = { region, side, position: p, normal: nn }; break }
+      // Die Regionserkennung muss genau diese Stelle sehen (Vertrag aus
+      // src/lib/injectionSitePresets.test.ts).
+      const inferred = inferBodyRegion(p, nn)
+      if (inferred.body_region === region && inferred.body_side === side) { found = { region, side, position: p, normal: nn }; break }
     }
     if (!found) throw new Error(`Kein Punkt fuer ${region} ${side}`)
     out.push(found)

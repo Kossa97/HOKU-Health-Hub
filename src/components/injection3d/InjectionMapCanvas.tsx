@@ -17,6 +17,9 @@ const LONG_PRESS_SLOP_PX = 8
 
 // Fit params: scale/position the model into the region-inference coordinate space
 // so inferBodyRegion thresholds stay valid while the torso fills the mobile canvas.
+// BODY_LANDMARKS, die Listen-Stellen und supabase-injection-regions-v2.sql sind
+// in genau dieser Einpassung gemessen: FIT_HEIGHT/FIT_Y_OFFSET nur zusammen mit
+// einer neuen INJECTION_MODEL_VERSION aendern.
 const FIT_HEIGHT = 2.85
 const FIT_Y_OFFSET = 0.12
 

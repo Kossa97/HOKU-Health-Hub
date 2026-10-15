@@ -20,7 +20,7 @@ const log = (overrides: Partial<InjectionLog3D> = {}): InjectionLog3D => ({
   model_version: overrides.model_version ?? 'placeholder-v1',
   body_region: overrides.body_region ?? 'abdomen',
   body_side: overrides.body_side ?? 'right',
-  position: overrides.position ?? { x: 0.38, y: 0.32, z: 0.2 },
+  position: overrides.position ?? { x: 0.32, y: 0.8, z: 0.12 },
   normal: overrides.normal ?? { x: 0.1, y: 0, z: 0.95 },
   uv: null,
   camera_state: null,
@@ -53,7 +53,7 @@ describe('formatInjectionSite', () => {
     expect(formatInjectionSite(log({
       body_region: 'glute',
       body_side: 'center',
-      position: { x: 0.12, y: -0.2, z: -0.2 },
+      position: { x: 0.12, y: 0.42, z: -0.2 },
       normal: { x: 0, y: 0, z: -0.95 },
     }))).toBe('Gesäß mittig · oben innen · Rückseite')
   })
