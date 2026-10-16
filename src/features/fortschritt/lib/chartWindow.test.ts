@@ -1,31 +1,22 @@
 import { describe, it, expect } from 'vitest'
-import {
-  CHART_WINDOWS,
-  DEFAULT_CHART_WINDOW,
-  windowMsFor,
-  rangeBounds,
-} from './chartWindow'
+import { MIN_WINDOW_DAYS, rangeBounds, windowMsForRange } from './chartWindow'
 
 const DAY = 24 * 3_600_000
 
-describe('CHART_WINDOWS', () => {
-  it('bietet genau 30T und 3M', () => {
-    expect(CHART_WINDOWS.map(w => w.key)).toEqual(['30t', '3m'])
-    expect(CHART_WINDOWS.map(w => w.label)).toEqual(['30T', '3M'])
+describe('windowMsForRange', () => {
+  it('ist so breit wie der Seiten-Zeitraum', () => {
+    expect(windowMsForRange({ from: '2026-07-01', to: '2026-09-29' })).toBe(90 * DAY)
+    expect(windowMsForRange({ from: '2025-10-16', to: '2026-10-16' })).toBe(365 * DAY)
   })
 
-  it('Default ist 30T', () => {
-    expect(DEFAULT_CHART_WINDOW).toBe('30t')
-  })
-})
-
-describe('windowMsFor', () => {
-  it('30T sind 30 Tage', () => {
-    expect(windowMsFor('30t')).toBe(30 * DAY)
+  it('zählt ganze Tage, auch über die Zeitumstellung', () => {
+    // 25.10.2026 endet die Sommerzeit: 30 Kalendertage sind 30 Tage + 1 Stunde.
+    expect(windowMsForRange({ from: '2026-10-20', to: '2026-11-19' })).toBe(30 * DAY)
   })
 
-  it('3M sind 90 Tage', () => {
-    expect(windowMsFor('3m')).toBe(90 * DAY)
+  it('wird nie schmaler als 30 Tage', () => {
+    expect(MIN_WINDOW_DAYS).toBe(30)
+    expect(windowMsForRange({ from: '2026-10-10', to: '2026-10-16' })).toBe(30 * DAY)
   })
 })
 

@@ -74,14 +74,13 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
         hasAnyData={hasAnyLogs}
         hasEnoughForTrend={hasEnoughForTrend}
         animationKey={rangeChip}
-        onSelect={key => {
-          if (isWellnessMetricKey(key)) return
-          navigateChart({ metric: key })
-        }}
+        onSelect={key => navigateChart({ metric: key })}
+        canSelect={key => !isWellnessMetricKey(key)}
       />
 
       <VerlaufSection
         state={state}
+        pageRange={pageRange}
         chartNav={chartNav}
         onChartNavConsumed={handleChartNavConsumed}
       />

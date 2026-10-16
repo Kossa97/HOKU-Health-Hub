@@ -883,6 +883,8 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   .no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
   html {
+    /* Kein grauer Blitz beim Tippen — die Knöpfe geben eigene Rückmeldung (:active). */
+    -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
@@ -1043,7 +1045,16 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     padding: 9px 18px;
     border-radius: var(--r-md);
     cursor: pointer;
-    transition: all var(--t-std);
+    transition:
+      transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      background var(--t-std),
+      border-color var(--t-std),
+      box-shadow var(--t-std),
+      color var(--t-std),
+      opacity var(--t-std);
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
@@ -1058,18 +1069,22 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     border-radius: inherit;
     pointer-events: none;
   }
-  .btn-primary:hover {
-    background: linear-gradient(150deg, #28e0ff 0%, #00b8f5 55%, #0066dd 100%);
-    box-shadow:
-      0 0 0 1px rgba(0,220,255,0.50),
-      0 0 28px rgba(0,204,245,0.40),
-      0 6px 24px rgba(0,0,0,0.65),
-      inset 0 1px 0 rgba(255,255,255,0.22);
-    transform: translateY(-1px);
-    color: var(--accent-contrast);
+  /* Hover nur mit Maus: auf Touch bliebe er nach dem Tippen hängen. */
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover {
+      background: linear-gradient(150deg, #28e0ff 0%, #00b8f5 55%, #0066dd 100%);
+      box-shadow:
+        0 0 0 1px rgba(0,220,255,0.50),
+        0 0 28px rgba(0,204,245,0.40),
+        0 6px 24px rgba(0,0,0,0.65),
+        inset 0 1px 0 rgba(255,255,255,0.22);
+      transform: translateY(-1px);
+      color: var(--accent-contrast);
+    }
   }
+  /* Rückmeldung beim Aufsetzen des Fingers, nicht erst beim Loslassen. */
   .btn-primary:active {
-    transform: translateY(0);
+    transform: scale(0.97);
     box-shadow:
       0 0 0 1px rgba(0,204,245,0.35),
       0 0 12px rgba(0,204,245,0.25),
@@ -1100,23 +1115,34 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     padding: 9px 18px;
     border-radius: var(--r-md);
     cursor: pointer;
-    transition: all var(--t-std);
+    transition:
+      transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      background var(--t-std),
+      border-color var(--t-std),
+      box-shadow var(--t-std),
+      color var(--t-std),
+      opacity var(--t-std);
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     backdrop-filter: blur(10px);
     white-space: nowrap;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.06),
       0 2px 10px rgba(0,0,0,0.35);
   }
-  .btn-secondary:hover {
-    background: rgba(255,255,255,0.075);
-    border-color: var(--border-strong);
-    color: var(--text);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.09),
-      0 4px 14px rgba(0,0,0,0.45);
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.075);
+      border-color: var(--border-strong);
+      color: var(--text);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.09),
+        0 4px 14px rgba(0,0,0,0.45);
+      transform: translateY(-1px);
+    }
   }
-  .btn-secondary:active { transform: translateY(0); }
+  .btn-secondary:active { transform: scale(0.97); }
 
   /* Danger — red glass */
   .btn-danger {
@@ -1132,19 +1158,77 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     padding: 9px 18px;
     border-radius: var(--r-md);
     cursor: pointer;
-    transition: all var(--t-std);
+    transition:
+      transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      background var(--t-std),
+      border-color var(--t-std),
+      box-shadow var(--t-std),
+      color var(--t-std),
+      opacity var(--t-std);
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
     box-shadow: inset 0 1px 0 rgba(255,100,120,0.06);
   }
-  .btn-danger:hover {
-    background: rgba(255,35,75,0.12);
-    border-color: rgba(255,55,90,0.32);
-    color: #ff6080;
-    box-shadow:
-      0 0 16px rgba(255,45,80,0.14),
-      inset 0 1px 0 rgba(255,100,120,0.08);
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .btn-danger:hover {
+      background: rgba(255,35,75,0.12);
+      border-color: rgba(255,55,90,0.32);
+      color: #ff6080;
+      box-shadow:
+        0 0 16px rgba(255,45,80,0.14),
+        inset 0 1px 0 rgba(255,100,120,0.08);
+      transform: translateY(-1px);
+    }
   }
-  .btn-danger:active { transform: translateY(0); }
+  .btn-danger:active { transform: scale(0.97); }
+
+  /* ══════════════════════════════════════════════════════════
+     SHEETS (Fortschritt) — Ein- und Ausblenden, nur transform und opacity.
+     .fs-sheet fährt von unten ein und auf demselben Weg hinaus (iOS-Drawer-
+     Kurve, rein 360 ms, raus 240 ms); .fs-modal blendet aus 0,96 auf;
+     .fs-backdrop blendet mit. Gesteuert über data-shown (useSheetPresence).
+     Ruhezustand ist transform: none, nicht translateY(0): ein bleibendes
+     transform würde fixed positionierte Kinder an das Sheet binden.
+     ══════════════════════════════════════════════════════════ */
+  .fs-sheet {
+    transform: none;
+    transition: transform 360ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .fs-sheet[data-shown="false"] {
+    transform: translateY(100%);
+    transition-duration: 240ms;
+    pointer-events: none;
+  }
+  .fs-modal {
+    opacity: 1;
+    transform: none;
+    transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .fs-modal[data-shown="false"] {
+    opacity: 0;
+    transform: scale(0.96);
+    transition-duration: 180ms;
+    pointer-events: none;
+  }
+  .fs-backdrop {
+    opacity: 1;
+    transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .fs-backdrop[data-shown="false"] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fs-sheet,
+    .fs-sheet[data-shown="false"],
+    .fs-modal,
+    .fs-modal[data-shown="false"] {
+      transform: none;
+      transition: opacity 150ms ease;
+    }
+    .fs-sheet[data-shown="false"] { opacity: 0; }
+  }
 
   /* ══════════════════════════════════════════════════════════
      INPUTS & SELECTS

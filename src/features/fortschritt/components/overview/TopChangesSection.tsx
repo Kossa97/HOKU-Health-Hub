@@ -63,9 +63,11 @@ interface Props {
   hasEnoughForTrend: boolean
   animationKey: string
   onSelect?: (key: string) => void
+  /** Nur antippbar, wo das Antippen auch etwas tut — sonst ist die Karte keine Schaltfläche. */
+  canSelect?: (key: string) => boolean
 }
 
-export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, animationKey, onSelect }: Props) {
+export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, animationKey, onSelect, canSelect }: Props) {
   const { t } = useTranslation()
   const initialAnimationKey = useRef(animationKey)
   const hasRefreshed = useRef(false)
@@ -112,7 +114,12 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, anim
           }}
         >
           {changes.map((change, index) => (
-            <ChangeCard key={change.key} change={change} index={index} onSelect={onSelect} />
+            <ChangeCard
+              key={change.key}
+              change={change}
+              index={index}
+              onSelect={onSelect && (canSelect?.(change.key) ?? true) ? onSelect : undefined}
+            />
           ))}
         </div>
       )}
@@ -132,11 +139,12 @@ function ChangeCard({
   const { t } = useTranslation()
   const deltaColor = change.delta > 0 ? '#10b981' : change.delta < 0 ? '#f59e0b' : 'var(--text-muted)'
 
+  const Card = onSelect ? 'button' : 'div'
+
   return (
-    <button
-      type="button"
+    <Card
+      {...(onSelect ? { type: 'button' as const, onClick: () => onSelect(change.key) } : {})}
       className="fortschritt-change-card"
-      onClick={() => onSelect?.(change.key)}
       style={{
         '--change-card-delay': `${index * 90}ms`,
         display: 'block',
@@ -162,7 +170,7 @@ function ChangeCard({
         {formatValue(change.from, change.unit)} → {formatValue(change.to, change.unit)}
       </p>
       </div>
-    </button>
+    </Card>
   )
 }
 

@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns'
 import type { MetricKey } from '../types'
-import type { ChartWindowKey } from './chartWindow'
+import { MIN_WINDOW_DAYS } from './chartWindow'
 
 export const TOOLTIP_CURSOR_PX_THRESHOLD = 14
 /** Pixel-Radius, in dem der Cursor leicht zu Mess- und Zyklus-Startpunkten einrastet */
@@ -24,9 +24,10 @@ export interface MetricChartPoint {
 
 export function usesReducedMetricPoints(
   metricKey: MetricKey,
-  windowKey: ChartWindowKey,
+  windowMs: number,
 ): boolean {
-  return windowKey === '3m'
+  // Breiter als das Mindestfenster: Punkte stehen zu dicht, nur noch die Linie.
+  return windowMs > MIN_WINDOW_DAYS * 24 * 3_600_000
     && (metricKey === 'weight' || metricKey === 'body_fat')
 }
 

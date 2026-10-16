@@ -120,3 +120,49 @@ test('Foto löschen: scheitert die Zeile, bleibt die Datei; sonst gehen beide', 
   expect(mock.tables.get('progress_photos') ?? []).toHaveLength(0)
   expect(mock.storage.get('progress-photos')).toEqual([])
 })
+
+test('Ein Zeitraum für die ganze Seite: der Graph hat keinen eigenen Umschalter mehr', async ({ page, mock }) => {
+  seed(mock)
+  await page.goto('/progress')
+  const alles = page.getByRole('button', { name: 'Alles', exact: true })
+  await expect(alles).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Zeitraum für die ganze Seite')).toBeVisible()
+  await expect(page.getByRole('button', { name: '3M', exact: true })).toHaveCount(0)
+
+  await page.getByRole('button', { name: '30T', exact: true }).click()
+  await expect(page.getByRole('button', { name: '30T', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('img', { name: 'Gewicht: Verlauf' })).toBeVisible()
+})
+
+test('Wellness-Karten sind keine Knöpfe, eine Foto-Kachel öffnet genau dieses Foto', async ({ page, mock }) => {
+  seed(mock)
+  // Ein deutlicher Energie-Anstieg (2 → 6), damit eine Wellness-Karte unter den größten Veränderungen steht.
+  const ersterTag = mock.tables.get('daily_logs')![0]
+  ersterTag.energie = 2
+  const path = `${TEST_USER.id}/1.jpg`
+  mock.storage.set('progress-photos', [path])
+  mock.insert('progress_photos', { user_id: TEST_USER.id, photo_url: path, taken_at: '2026-09-20', weight_kg: 83, notes: 'Notiz zum Foto' })
+  await page.route(/\/storage\/v1\/object\/sign\/.*\.jpg/, route => route.fulfill({
+    contentType: 'image/gif',
+    body: Buffer.from('R0lGODlhAQABAAAAACw=', 'base64'),
+  }))
+  await page.goto('/progress')
+
+  await expect(page.locator('.fortschritt-change-card', { hasText: 'Gewicht' })).toHaveJSProperty('tagName', 'BUTTON')
+  const energie = page.locator('.fortschritt-change-card', { hasText: 'Energie' })
+  await expect(energie).toHaveCount(1)
+  await expect(energie).toHaveJSProperty('tagName', 'DIV')
+
+  await page.getByRole('button', { name: 'Foto anzeigen' }).click()
+  await expect(page.getByText('Notiz zum Foto')).toBeVisible()
+  // Der Schließen-Knopf der Großansicht (das Formular darunter hat einen eigenen).
+  await page.locator('.fs-backdrop[data-shown="true"]').getByRole('button', { name: 'Schließen' }).click()
+  await expect(page.getByText('Notiz zum Foto')).toBeHidden()
+})
+
+test('„Foto hinzufügen“ öffnet direkt das Formular', async ({ page, mock }) => {
+  seed(mock)
+  await page.goto('/progress')
+  await page.getByRole('button', { name: 'Foto hinzufügen' }).last().click()
+  await expect(page.getByText('Foto aufnehmen oder aus Galerie wählen')).toBeVisible()
+})

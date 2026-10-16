@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { useScrollLock } from '../../hooks/useScrollLock'
+import { useSheetPresence } from '../../hooks/useSheetPresence'
 
 const SHEET_Z = 10050
 
@@ -17,13 +18,18 @@ interface Props {
 
 export function VerlaufSetupSheet({ open, onClose, children }: Props) {
   const { t } = useTranslation()
-  useScrollLock(open)
+  const { mounted, shown } = useSheetPresence(open)
+  // Gesperrt bis das Sheet ganz hinausgefahren ist, nicht nur bis zum Schließen.
+  useScrollLock(mounted)
 
-  if (!open) return null
+  if (!mounted) return null
 
   return createPortal(
     <div
       data-app-modal
+      data-shown={shown}
+      inert={!open}
+      className="fs-sheet"
       role="dialog"
       aria-modal="true"
       aria-label={t('fortschritt_setup_title')}

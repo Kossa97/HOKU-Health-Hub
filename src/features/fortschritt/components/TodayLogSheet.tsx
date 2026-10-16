@@ -16,6 +16,7 @@ import {
   type SavedLogFormValues,
 } from '../lib/metricDefaults'
 import { useScrollLock } from '../hooks/useScrollLock'
+import { useSheetPresence } from '../hooks/useSheetPresence'
 import { formatNumber } from '../lib/dates'
 
 const SHEET_Z = 10070
@@ -88,7 +89,9 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
   const [openMetric, setOpenMetric] = useState<'weight' | 'bodyFat' | null>(null)
   const [savedValues, setSavedValues] = useState<SavedLogFormValues | null>(null)
 
-  useScrollLock(open)
+  const { mounted, shown } = useSheetPresence(open)
+  // Gesperrt bis das Sheet ganz hinausgefahren ist, nicht nur bis zum Schließen.
+  useScrollLock(mounted)
 
   useEffect(() => { onSavedRef.current = onSaved })
 
@@ -128,7 +131,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     setWeightRowId(values.weightRowId)
   }, [date, logs, weightLogs, open, savedValues])
 
-  if (!open) return null
+  if (!mounted) return null
 
   const save = async () => {
     if (!user) return
@@ -262,7 +265,9 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
         role="dialog"
         aria-modal="true"
         aria-labelledby="today-log-title"
-        className="fixed inset-0 flex min-h-dvh flex-col overflow-hidden overflow-x-hidden overscroll-y-contain"
+        data-shown={shown}
+        inert={!open}
+        className="fs-sheet fixed inset-0 flex min-h-dvh flex-col overflow-hidden overflow-x-hidden overscroll-y-contain"
         style={{
           zIndex: SHEET_Z,
           background: SHEET_BG,

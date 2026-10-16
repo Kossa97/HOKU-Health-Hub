@@ -49,7 +49,7 @@ export function WerteCard({ dailyLogs, range }: Props) {
         <p style={{ ...sectionLabel, margin: 0 }}>{t('fortschritt_values_title')}</p>
         <TrendingUp size={16} color="var(--accent)" aria-hidden="true" />
       </div>
-      <p style={{ margin: '3px 0 8px', fontSize: '0.58rem', color: 'var(--text-muted)' }}>
+      <p style={{ margin: '3px 0 8px', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
         {t('fortschritt_values_sub')}
       </p>
 
@@ -68,7 +68,7 @@ export function WerteCard({ dailyLogs, range }: Props) {
               minWidth: 0,
               overflow: 'hidden',
               color: 'var(--text-muted)',
-              fontSize: '0.64rem',
+              fontSize: '0.68rem',
               fontWeight: 800,
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -77,7 +77,7 @@ export function WerteCard({ dailyLogs, range }: Props) {
             </span>
             <span style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
               {row.average == null ? (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.62rem', fontWeight: 700 }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 700 }}>
                   {t('fortschritt_values_no_data')}
                 </span>
               ) : (
@@ -86,13 +86,13 @@ export function WerteCard({ dailyLogs, range }: Props) {
                     {valueWithUnit(row.average, row.unit)}
                   </strong>
                   {row.delta == null || row.direction == null ? (
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.55rem', fontWeight: 700 }}>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 700 }}>
                       {t('fortschritt_values_no_compare')}
                     </span>
                   ) : (
                     <span
                       aria-label={t('fortschritt_values_change_aria', { value: valueWithUnit(row.delta, row.unit) })}
-                      style={{ color: TONE_COLORS[row.tone], fontSize: '0.62rem', fontWeight: 800 }}
+                      style={{ color: TONE_COLORS[row.tone], fontSize: '0.68rem', fontWeight: 800 }}
                     >
                       {ARROWS[row.direction]} {row.delta > 0 ? '+' : ''}{valueWithUnit(row.delta, row.unit)}
                     </span>

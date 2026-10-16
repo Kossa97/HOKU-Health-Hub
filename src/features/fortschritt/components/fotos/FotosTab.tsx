@@ -14,6 +14,7 @@ import { denyProps } from '../../../../lib/denyFeedback'
 import { BATCH_BUCKET, batchDateiPfad } from '../../../../lib/batchFiles'
 import { reportError } from '../../../../lib/monitoring'
 import { formatDaySafe, formatNumber } from '../../lib/dates'
+import { useSheetPresence } from '../../hooks/useSheetPresence'
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd')
 const fmtDate = (d: string) => formatDaySafe(d, 'full')
@@ -21,19 +22,33 @@ const fmtDate = (d: string) => formatDaySafe(d, 'full')
 interface Props {
   photos: ProgressPhotoEntry[]
   onChange: () => void
+  /** Dieses Foto gleich groß öffnen — wer eine Kachel antippt, will genau dieses Foto sehen. */
+  initialPhotoId?: string | null
+  /** Gleich das Hinzufügen-Formular öffnen. */
+  initialAdd?: boolean
 }
 
-export function FotosTab({ photos, onChange }: Props) {
+export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd = false }: Props) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const [uploading, setUploading] = useState(false)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(initialAdd)
   const [date, setDate] = useState(todayStr())
   const [weight, setWeight] = useState('')
   const [notes, setNotes] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [activePhoto, setActivePhoto] = useState<ProgressPhotoEntry | null>(null)
+  const [activePhoto, setActivePhoto] = useState<ProgressPhotoEntry | null>(
+    () => photos.find(p => p.id === initialPhotoId) ?? null,
+  )
+  // Beim Ausblenden bleibt das zuletzt gezeigte Foto stehen, bis es weg ist.
+  const [lastPhoto, setLastPhoto] = useState(activePhoto)
+  const openPhoto = (photo: ProgressPhotoEntry) => {
+    setLastPhoto(photo)
+    setActivePhoto(photo)
+  }
+  const lightbox = useSheetPresence(activePhoto != null)
+  const shownPhoto = activePhoto ?? lastPhoto
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [gridSize, setGridSize] = useState<PhotoGridSize>(() => readPhotoGridSize())
 
@@ -152,10 +167,10 @@ export function FotosTab({ photos, onChange }: Props) {
                 aria-pressed={gridSize === option.value}
                 onClick={() => handleGridSizeChange(option.value)}
                 style={{
-                  border: 'none', borderRadius: 9, padding: '6px 8px',
+                  border: 'none', borderRadius: 9, padding: '8px 10px', minHeight: 34,
                   background: gridSize === option.value ? 'var(--accent-weak)' : 'transparent',
                   color: gridSize === option.value ? 'var(--accent)' : 'var(--text-muted)',
-                  fontSize: '0.58rem', fontWeight: 800, cursor: 'pointer',
+                  fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer',
                 }}
               >
                 {t(`fortschritt_grid_${option.value}`)}
@@ -198,7 +213,7 @@ export function FotosTab({ photos, onChange }: Props) {
             <button
               key={photo.id}
               type="button"
-              onClick={() => setActivePhoto(photo)}
+              onClick={() => openPhoto(photo)}
               style={{
                 background: 'var(--surface)', border: '1px solid var(--border)',
                 borderRadius: 18, overflow: 'hidden', padding: 0, textAlign: 'left', cursor: 'pointer',
@@ -210,25 +225,24 @@ export function FotosTab({ photos, onChange }: Props) {
               <div style={{ padding: '9px 11px' }}>
                 <p style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)' }}>{fmtDate(photo.taken_at)}</p>
                 {photo.weight_kg != null && (
-                  <p style={{ fontSize: '0.62rem', color: 'var(--accent)', fontWeight: 700 }}>{formatNumber(photo.weight_kg)} kg</p>
+                  <p style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 700 }}>{formatNumber(photo.weight_kg)} kg</p>
                 )}
               </div>
             </button>
           ))}
         </div>
       )}
-
-      {activePhoto && (
-        <div onClick={() => setActivePhoto(null)} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.93)', display: 'flex', flexDirection: 'column' }}>
+      {lightbox.mounted && shownPhoto && (
+        <div className="fs-backdrop" data-shown={lightbox.shown} inert={!activePhoto} onClick={() => setActivePhoto(null)} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.93)', display: 'flex', flexDirection: 'column' }}>
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
             <div>
-              <p style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text)' }}>{fmtDate(activePhoto.taken_at)}</p>
-              {activePhoto.weight_kg != null && (
-                <p style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, marginTop: 2 }}>{formatNumber(activePhoto.weight_kg)} kg</p>
+              <p style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text)' }}>{fmtDate(shownPhoto.taken_at)}</p>
+              {shownPhoto.weight_kg != null && (
+                <p style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, marginTop: 2 }}>{formatNumber(shownPhoto.weight_kg)} kg</p>
               )}
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" aria-label={t('fortschritt_photo_delete')} onClick={e => { e.stopPropagation(); void deletePhoto(activePhoto) }}
+              <button type="button" aria-label={t('fortschritt_photo_delete')} onClick={e => { e.stopPropagation(); void deletePhoto(shownPhoto) }}
                 style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(244,63,94,0.14)', border: '1px solid rgba(244,63,94,0.24)', color: '#f43f5e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Trash2 size={16} />
               </button>
@@ -238,23 +252,23 @@ export function FotosTab({ photos, onChange }: Props) {
               </button>
             </div>
           </div>
-          <div style={{ flex: 1, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-            <img src={activePhoto.display_url} alt={fmtDate(activePhoto.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+          <div className="fs-modal" data-shown={lightbox.shown} style={{ flex: 1, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            <img src={shownPhoto.display_url} alt={fmtDate(shownPhoto.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
-          {activePhoto.notes && (
+          {shownPhoto.notes && (
             <div onClick={e => e.stopPropagation()} style={{ padding: '14px 18px', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', lineHeight: 1.55 }}>{activePhoto.notes}</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', lineHeight: 1.55 }}>{shownPhoto.notes}</p>
             </div>
           )}
         </div>
       )}
 
-      {sheetOpen && <div onClick={closeSheet} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 40 }} />}
-      <div style={{
+      <div className="fs-backdrop" data-shown={sheetOpen} onClick={closeSheet} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 40 }} />
+      <div className="fs-sheet" data-shown={sheetOpen} inert={!sheetOpen} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px 24px 0 0',
-        padding: '0 18px 40px', transform: sheetOpen ? 'translateY(0)' : 'translateY(100%)',
-        transition: 'transform 0.30s cubic-bezier(0.4,0,0.2,1)', maxHeight: '92vh', overflowY: 'auto',
+        padding: '0 18px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '92dvh', overflowY: 'auto',
+        overscrollBehavior: 'contain',
       }}>
         <div style={{ position: 'sticky', top: 0, paddingTop: 16, paddingBottom: 14, background: 'inherit', zIndex: 1 }}>
           <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)', margin: '0 auto 18px' }} />

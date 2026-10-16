@@ -22,7 +22,6 @@ function usedKeys(): string[] {
     for (const match of source.matchAll(/'(fortschritt_[a-z0-9_]+)'/g)) keys.add(match[1])
   }
   for (const chip of ['30t', '90t', '6m', '1j', 'alles']) keys.add(`fortschritt_range_${chip}`)
-  for (const win of ['30t', '3m']) keys.add(`fortschritt_window_${win}`)
   for (const size of ['small', 'medium', 'large']) keys.add(`fortschritt_grid_${size}`)
   return [...keys].sort()
 }
@@ -48,7 +47,6 @@ describe('Fortschritt i18n', () => {
     expect(same).toEqual([
       'fortschritt_metric_libido',
       'fortschritt_range_6m',
-      'fortschritt_window_3m',
     ])
   })
 

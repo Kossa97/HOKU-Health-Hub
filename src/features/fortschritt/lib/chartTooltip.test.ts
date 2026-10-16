@@ -183,11 +183,12 @@ describe('chartTooltip', () => {
   })
 
   it('uses reduced points only for weight and body fat in 3m', () => {
-    expect(usesReducedMetricPoints('weight', '3m')).toBe(true)
-    expect(usesReducedMetricPoints('body_fat', '3m')).toBe(true)
-    expect(usesReducedMetricPoints('weight', '30t')).toBe(false)
-    expect(usesReducedMetricPoints('body_fat', '30t')).toBe(false)
-    expect(usesReducedMetricPoints('Vitamin D', '3m')).toBe(false)
+    const DAY = 24 * 3_600_000
+    expect(usesReducedMetricPoints('weight', 90 * DAY)).toBe(true)
+    expect(usesReducedMetricPoints('body_fat', 90 * DAY)).toBe(true)
+    expect(usesReducedMetricPoints('weight', 30 * DAY)).toBe(false)
+    expect(usesReducedMetricPoints('body_fat', 30 * DAY)).toBe(false)
+    expect(usesReducedMetricPoints('Vitamin D', 90 * DAY)).toBe(false)
   })
 
   describe('nearest visible metric point', () => {

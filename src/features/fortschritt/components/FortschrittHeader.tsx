@@ -80,7 +80,7 @@ export function FortschrittHeader({
           {t('fortschritt_title')}
         </h1>
         <span style={{
-          fontSize: '0.62rem',
+          fontSize: '0.68rem',
           fontWeight: 700,
           color: 'var(--text-muted)',
         }}>
@@ -94,7 +94,7 @@ export function FortschrittHeader({
       >
         {hasTodayEntry && (
           <span style={{
-            fontSize: '0.62rem',
+            fontSize: '0.68rem',
             fontWeight: 900,
             letterSpacing: '0.08em',
             color: '#22c55e',

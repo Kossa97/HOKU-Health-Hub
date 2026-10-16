@@ -71,7 +71,7 @@ function CheckRow({
           {title}
         </span>
         {subtitle && (
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)' }}>
             {subtitle}
           </span>
         )}
@@ -382,7 +382,7 @@ export function VerlaufSetup({
                         {group.name}
                       </span>
                     </button>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>
                       {counts.visible}/{counts.total}
                     </span>
                   </div>

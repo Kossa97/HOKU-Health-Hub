@@ -10,11 +10,11 @@ import { substanceBarEnd } from '../../lib/focusSummary'
 import { buildCycleLegendItems, type CycleLegendItem } from '../../lib/cycleLegend'
 import { assignLanes, computeCycleBandLayout, laneCount } from '../../lib/cycleLanes'
 import { usesReducedMetricPoints } from '../../lib/chartTooltip'
+import { filterDatesInRange } from '../../lib/range'
 import { panel } from '../../styles'
 import { ChartSettingsButton } from './ChartSettingsButton'
-import { ChartWindowToggle } from './ChartWindowToggle'
 import { MetricChipBar } from './MetricChipBar'
-import { rangeBounds, windowMsFor, type ChartWindowKey } from '../../lib/chartWindow'
+import { rangeBounds, windowMsForRange } from '../../lib/chartWindow'
 import { StocksChart, type LaneBand } from '../../../blutspiegel/chart/StocksChart'
 import type { LevelPoint } from '../../../blutspiegel/chart/stocksChartMath'
 import { clampViewEnd } from '../../../../components/liveCycleChart/chartMath'
@@ -39,8 +39,8 @@ export interface ChartPanHandle {
 interface Props {
   /** Voller Datenbereich — das Fenster schneidet daraus zu. */
   dataRange: DateRange
-  windowKey: ChartWindowKey
-  onWindowChange: (key: ChartWindowKey) => void
+  /** Seiten-Zeitraum (30T … Alles): bestimmt Sichtfenster und das Delta „im Zeitraum“. */
+  pageRange: DateRange
   metric: MetricDefinition
   availableMetrics: MetricDefinition[]
   metricKey: MetricKey
@@ -89,7 +89,7 @@ function AxisUnitLabel({ unit }: { unit: string }) {
       <span style={{
         transform: 'rotate(-90deg)',
         whiteSpace: 'nowrap',
-        fontSize: '0.6rem',
+        fontSize: '0.68rem',
         fontWeight: 700,
         color: 'var(--text-muted)',
       }}>
@@ -156,8 +156,7 @@ function CycleLegend({ items }: { items: CycleLegendItem[] }) {
 const MetricChartInner = forwardRef<ChartPanHandle, Props>(
 function MetricChartInner({
   dataRange,
-  windowKey,
-  onWindowChange,
+  pageRange,
   metric,
   availableMetrics,
   metricKey,
@@ -172,17 +171,19 @@ function MetricChartInner({
 }, ref) {
   const { t } = useTranslation()
   const { start: dataStart, now } = useMemo(() => rangeBounds(dataRange), [dataRange])
-  const windowMs = windowMsFor(windowKey)
+  const windowMs = windowMsForRange(pageRange)
 
   // Zurueckgeblaettert: Ende des Fensters; null folgt „jetzt" (auch wenn neue Daten kommen).
   const [panEnd, setPanEnd] = useState<number | null>(null)
+  // Neuer Zeitraum oben: zurück an „jetzt", wie beim Wechsel eines Zeitraums erwartet.
+  const [prevWindowMs, setPrevWindowMs] = useState(windowMs)
+  if (windowMs !== prevWindowMs) {
+    setPrevWindowMs(windowMs)
+    setPanEnd(null)
+  }
   const viewEnd = panEnd == null ? now : clampViewEnd(panEnd, dataStart, now, windowMs)
   const viewStart = viewEnd - windowMs
 
-  const changeWindow = (key: ChartWindowKey) => {
-    setPanEnd(null)
-    onWindowChange(key)
-  }
   const jumpToNow = useCallback(() => setPanEnd(null), [])
   const jumpToTs = useCallback((ts: number) => setPanEnd(ts + windowMs), [windowMs])
   useImperativeHandle(ref, () => ({ jumpToNow, jumpToTs }), [jumpToNow, jumpToTs])
@@ -245,12 +246,14 @@ function MetricChartInner({
 
   const legendItems = useMemo(() => buildCycleLegendItems(cycles, ongoing), [cycles, ongoing])
 
-  const reducedMetricPoints = usesReducedMetricPoints(metricKey, windowKey)
+  const reducedMetricPoints = usesReducedMetricPoints(metricKey, windowMs)
   const values = points.map(p => Math.abs(p.level))
   const minSpan = Math.max(0.5, (values.length ? Math.max(...values) : 1) * 0.04)
 
-  const delta = useMemo(() => computeDelta(series), [series])
-  const latest = series[series.length - 1]
+  // Wert und Delta über denselben Zeitraum wie die übrigen Karten der Seite.
+  const rangeSeries = useMemo(() => filterDatesInRange(series, pageRange), [series, pageRange])
+  const delta = useMemo(() => computeDelta(rangeSeries), [rangeSeries])
+  const latest = rangeSeries[rangeSeries.length - 1]
 
   const metricBar = (
     <MetricChipBar
@@ -288,11 +291,10 @@ function MetricChartInner({
         position: 'absolute', top: 14, right: 12, zIndex: 2,
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
-        <ChartWindowToggle value={windowKey} onChange={changeWindow} />
         {onOpenSettings && <ChartSettingsButton onClick={onOpenSettings} />}
       </div>
 
-      <div style={{ paddingLeft: 12, marginBottom: 4, paddingRight: 150 }}>
+      <div style={{ paddingLeft: 12, marginBottom: 4, paddingRight: 120 }}>
         <p style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text-dim)' }}>{metric.label}</p>
         {/* Feste Höhe, Wert und Delta immer untereinander: nebeneinander brachen
             lange Einheiten wie "1.9 mIU/mL" um und schoben den Chart nach unten. */}

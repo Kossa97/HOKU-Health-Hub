@@ -46,7 +46,7 @@ export function MetricChipBar({
               flexShrink: 0,
               padding: '4px 9px',
               borderRadius: 99,
-              fontSize: '0.62rem',
+              fontSize: '0.68rem',
               fontWeight: 800,
               whiteSpace: 'nowrap',
               cursor: disabled ? 'not-allowed' : 'pointer',

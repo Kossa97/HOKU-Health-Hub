@@ -217,7 +217,7 @@ export function MetricWheelPicker({
 
   return (
     <div>
-      <label style={{ ...fieldLabel, fontSize: '0.56rem', marginBottom: 5, display: 'block' }}>
+      <label style={{ ...fieldLabel, fontSize: '0.68rem', marginBottom: 5, display: 'block' }}>
         {label}
       </label>
 

@@ -1151,8 +1151,6 @@ const EXPECTED_MY_STACK_KEYS = [
   'fortschritt_range_6m',
   'fortschritt_range_1j',
   'fortschritt_range_alles',
-  'fortschritt_window_30t',
-  'fortschritt_window_3m',
   'fortschritt_empty_title',
   'fortschritt_empty_body',
   'fortschritt_empty_step_substance',

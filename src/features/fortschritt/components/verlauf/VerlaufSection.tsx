@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
-import type { ChartNavigation, FortschrittOverviewState, MetricKey } from '../../types'
+import type { ChartNavigation, DateRange, FortschrittOverviewState, MetricKey } from '../../types'
 import { CHART_METRIC_KEYS, isChartMetricKey } from '../../constants'
 import { buildMetricSeries } from '../../lib/metrics'
 import { buildAvailableMetrics, normalizeMetricKey } from '../../lib/metricDefinitions'
@@ -11,7 +11,6 @@ import {
   filterOngoingByVisibility,
 } from '../../lib/chartVisibility'
 import { useChartVisibility } from '../../hooks/useChartVisibility'
-import { DEFAULT_CHART_WINDOW, type ChartWindowKey } from '../../lib/chartWindow'
 import { panel } from '../../styles'
 import { VerlaufSetup } from './VerlaufSetup'
 import { VerlaufSetupSheet } from './VerlaufSetupSheet'
@@ -20,19 +19,21 @@ import { MetricChart, type ChartPanHandle } from './MetricChart'
 
 interface Props {
   state: FortschrittOverviewState
+  /** Seiten-Zeitraum aus der Leiste oben — gilt auch für den Verlauf. */
+  pageRange: DateRange
   chartNav: ChartNavigation | null
   onChartNavConsumed: () => void
 }
 
 export function VerlaufSection({
   state,
+  pageRange,
   chartNav,
   onChartNavConsumed,
 }: Props) {
   const { t } = useTranslation()
   const [metricKey, setMetricKey] = useState<MetricKey>('weight')
   const [setupOpen, setSetupOpen] = useState(false)
-  const [windowKey, setWindowKey] = useState<ChartWindowKey>(DEFAULT_CHART_WINDOW)
   const chartRef = useRef<ChartPanHandle>(null)
 
   const {
@@ -115,8 +116,7 @@ export function VerlaufSection({
         <MetricChart
           ref={chartRef}
           dataRange={state.fullRange}
-          windowKey={windowKey}
-          onWindowChange={setWindowKey}
+          pageRange={pageRange}
           metric={selectedMetric}
           availableMetrics={availableMetrics}
           metricKey={metricKey}

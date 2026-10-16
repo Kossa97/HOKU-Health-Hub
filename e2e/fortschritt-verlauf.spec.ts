@@ -11,6 +11,8 @@ test('Fortschritt-Verlauf: Aktien-Graph mit Zyklus-Balken, Wischen blaettert zur
     mock.insert('weight_logs', { user_id: TEST_USER.id, logged_at: tag.toISOString(), weight_kg: Math.round(kg * 10) / 10 })
   }
   await page.goto('/progress')
+  // Das Sichtfenster folgt dem Seiten-Zeitraum; in 30 Tagen lässt sich zurückblättern.
+  await page.getByRole('button', { name: '30T', exact: true }).click()
   const graph = page.getByRole('img', { name: 'Gewicht: Verlauf' })
   await graph.scrollIntoViewIfNeeded()
   await expect(graph).toBeVisible()

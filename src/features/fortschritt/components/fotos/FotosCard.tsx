@@ -7,6 +7,10 @@ import { filterByDateRange } from '../../lib/range'
 import { formatDaySafe } from '../../lib/dates'
 import { panel, sectionLabel } from '../../styles'
 import { FotosTab } from './FotosTab'
+import { useSheetPresence } from '../../hooks/useSheetPresence'
+
+/** Womit die Galerie aufgeht: alle Fotos, ein bestimmtes Foto groß oder gleich das Hinzufügen. */
+type SheetTarget = { kind: 'all' } | { kind: 'photo'; id: string } | { kind: 'add' }
 
 function PhotoPeriodMarquee({ children }: { children: ReactNode }) {
   const wrapRef = useRef<HTMLSpanElement | null>(null)
@@ -71,6 +75,15 @@ interface Props {
 export function FotosCard({ photos, range, onChange }: Props) {
   const { t } = useTranslation()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [target, setTarget] = useState<SheetTarget>({ kind: 'all' })
+  // Neuer Schlüssel je Öffnen: die Galerie startet frisch mit dem Ziel.
+  const [openCount, setOpenCount] = useState(0)
+  const sheet = useSheetPresence(sheetOpen)
+  const openSheet = (next: SheetTarget) => {
+    setTarget(next)
+    setOpenCount(c => c + 1)
+    setSheetOpen(true)
+  }
 
   const inRange = useMemo(
     () => filterByDateRange(photos, range, p => p.taken_at),
@@ -87,13 +100,13 @@ export function FotosCard({ photos, range, onChange }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div>
             <p style={{ ...sectionLabel, margin: 0 }}>{t('fortschritt_photos')}</p>
-            <p style={{ margin: '3px 0 0', fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+            <p style={{ margin: '3px 0 0', fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
               {t('fortschritt_photos_in_range')}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setSheetOpen(true)}
+            onClick={() => openSheet({ kind: 'add' })}
             aria-label={t('fortschritt_photo_add')}
             style={{
               width: 28,
@@ -117,7 +130,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
               <button
                 key={slot.photo.id}
                 type="button"
-                onClick={() => setSheetOpen(true)}
+                onClick={() => openSheet(slot.inRange ? { kind: 'photo', id: slot.photo.id } : { kind: 'all' })}
                 aria-label={slot.inRange ? t('fortschritt_photo_show') : t('fortschritt_photo_outside')}
                 style={{
                   position: 'relative',
@@ -136,7 +149,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: slot.inRange ? undefined : 'blur(8px)', transform: slot.inRange ? undefined : 'scale(1.08)' }}
                 />
                 {!slot.inRange && (
-                  <span style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', padding: '5px 7px', background: 'rgba(2, 6, 23, 0.42)', color: 'var(--text)', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
+                  <span style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', padding: '5px 7px', background: 'rgba(2, 6, 23, 0.42)', color: 'var(--text)', fontSize: '0.68rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
                     <PhotoPeriodMarquee>{t('fortschritt_photo_outside_label')}</PhotoPeriodMarquee>
                   </span>
                 )}
@@ -147,7 +160,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
           <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <button
               type="button"
-              onClick={() => setSheetOpen(true)}
+              onClick={() => openSheet({ kind: 'add' })}
               aria-label={t('fortschritt_photo_add')}
               style={{ width: 64, height: 64, borderRadius: 16, border: '1px dashed var(--accent-border)', background: 'var(--accent-weak)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
@@ -158,7 +171,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
         {photos.length > 0 ? (
           <button
             type="button"
-            onClick={() => setSheetOpen(true)}
+            onClick={() => openSheet({ kind: 'all' })}
             style={{
               marginTop: 10,
               background: 'transparent',
@@ -174,14 +187,14 @@ export function FotosCard({ photos, range, onChange }: Props) {
             {t('fortschritt_photos_show_all', { n: photos.length })}
           </button>
         ) : (
-          <button type="button" onClick={() => setSheetOpen(true)} className="btn-secondary" style={{ marginTop: 10, fontSize: '0.72rem', padding: '8px 10px' }}>
+          <button type="button" onClick={() => openSheet({ kind: 'add' })} className="btn-secondary" style={{ marginTop: 10, fontSize: '0.72rem', padding: '8px 10px' }}>
             <Camera size={14} /> {t('fortschritt_photo_add')}
           </button>
         )}
       </section>
 
-      {sheetOpen && (
-        <div style={{
+      {sheet.mounted && (
+        <div className="fs-sheet" data-shown={sheet.shown} inert={!sheetOpen} style={{
           position: 'fixed',
           inset: 0,
           zIndex: 10060,
@@ -217,7 +230,13 @@ export function FotosCard({ photos, range, onChange }: Props) {
             </button>
           </div>
           <div style={{ padding: '0 12px 24px', flex: 1 }}>
-            <FotosTab photos={photos} onChange={() => { onChange(); }} />
+            <FotosTab
+              key={openCount}
+              photos={photos}
+              onChange={() => { onChange(); }}
+              initialPhotoId={target.kind === 'photo' ? target.id : null}
+              initialAdd={target.kind === 'add'}
+            />
           </div>
         </div>
       )}

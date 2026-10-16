@@ -1,8 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { RANGE_CHIPS, type RangeChipKey } from '../lib/verlaufRange'
 
-const CHIPS_HEIGHT = 28
-const HINT_HEIGHT = 14
+/** 36 px sichtbar, per ::after auf 44 px Tippfläche erweitert (Apple-Mindestmaß). */
+const CHIPS_HEIGHT = 36
+const HINT_HEIGHT = 16
+
+const CHIP_CSS = `
+  .fortschritt-range-chip { position: relative; }
+  .fortschritt-range-chip::after { content: ''; position: absolute; inset: -4px 0; }
+`
 const BAR_PADDING_BOTTOM = 6
 
 /** Gesamthöhe unterhalb der Safe-Area (Chips + Hinweis + Padding). */
@@ -17,6 +23,7 @@ export function StickyRangeBar({ value, onChange }: Props) {
   const { t } = useTranslation()
   return (
     <>
+      <style>{CHIP_CSS}</style>
       <div style={{
         position: 'fixed',
         top: 0,
@@ -43,12 +50,14 @@ export function StickyRangeBar({ value, onChange }: Props) {
                 <button
                   key={chip.key}
                   type="button"
+                  className="fortschritt-range-chip"
+                  aria-pressed={on}
                   onClick={() => onChange(chip.key)}
                   style={{
                     flex: 1,
                     padding: 0,
                     borderRadius: 8,
-                    fontSize: '0.65rem',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
                     cursor: 'pointer',
                     background: on ? 'var(--accent-weak)' : 'transparent',
@@ -63,14 +72,11 @@ export function StickyRangeBar({ value, onChange }: Props) {
           </div>
           <p style={{
             margin: '6px 0 0',
-            fontSize: '0.5rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
+            fontSize: '0.68rem',
+            fontWeight: 600,
             color: 'var(--text-muted)',
             textAlign: 'center',
             lineHeight: 1.3,
-            opacity: 0.75,
           }}>
             {t('fortschritt_range_hint')}
           </p>
