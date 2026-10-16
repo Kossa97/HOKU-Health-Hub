@@ -61,3 +61,23 @@ describe('pinDraftFromPreset', () => {
     expect(proximityWarning(pin, [recent], new Date('2026-10-15T08:00:00Z')).level).toBe('strong')
   })
 })
+
+describe('INJECTION_SITE_PRESETS und supabase-injection-testaccount-sites.sql', () => {
+  it('nutzt dieselben Punkte und Normalen fuer Bauch und Oberschenkel', async () => {
+    const { readFileSync } = await import('node:fs')
+    const sql = readFileSync(new URL('../../supabase-injection-testaccount-sites.sql', import.meta.url), 'utf8')
+    const rows = [...sql.matchAll(/\('(\w+)',\s+'(left|right)',((?:\s*-?[\d.]+,?){8})\)/g)]
+    expect(rows).toHaveLength(4)
+    for (const [, region, side, numbers] of rows) {
+      const preset = INJECTION_SITE_PRESETS.find(p => p.region === region && p.side === side)
+      expect(preset, `${region}_${side}`).toBeDefined()
+      const [px, py, pz, nx, ny, nz] = numbers.split(',').map(Number)
+      expect({ x: px, y: py, z: pz }).toEqual(preset!.position)
+      expect({ x: nx, y: ny, z: nz }).toEqual(preset!.normal)
+      // Der Versatz (+-0.02) bleibt in derselben Region.
+      for (const dx of [-0.02, 0.02]) for (const dy of [-0.02, 0.02]) {
+        expect(inferBodyRegion({ x: px + dx, y: py + dy, z: pz }, { x: nx, y: ny, z: nz }).body_region).toBe(region)
+      }
+    }
+  })
+})
