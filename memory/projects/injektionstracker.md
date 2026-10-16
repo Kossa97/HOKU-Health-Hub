@@ -33,7 +33,6 @@ männlich und weiblich.
 | Kontrast Überschriften in Tracker-Sheets im Light-Theme | offen |
 | Rest Aufräumen | Inline-Styles in `InjektionsTracker.tsx` (bewusst gelassen: Safe-Area-Rechnungen, Risiko ohne Nutzen); 4 tote i18n-Keys `inj_setup_required`/`inj_setup_hint`/`inj_copy_sql`/`inj_copied` (Entfernen braucht neue Vertrags-Hashes für alle 14 Sprachen); `supabase-injection-pro.sql` bleibt, Trockenlauf-Tests bauen damit das Schema |
 | Zwei-Schritt-Speichern bucht Bestand vor dem Insert | Altverhalten, nur ohne `confirm_intake_with_injection`/planTimelineV2 relevant (`src/lib/injectionSave.ts`) |
-| Ladezeit in Prod prüfen | nach Deploy von 13590b3a |
 | Test auf echten Geräten | VoiceOver/TalkBack, fps |
 | Dauerhafter e2e-Test | braucht Embed-Support in `e2e/support` MockSupabase |
 
@@ -42,7 +41,7 @@ männlich und weiblich.
 Modell 17,7 MB → 1,2 MB; Rendern nur bei Bedarf; Bearbeiten/Löschen;
 Einnahme + Stelle atomar (`confirm_intake_with_injection`, in Prod); i18n de/en;
 SQL-Bildschirm entfernt; Stellen-Auswahl per Liste (Tastatur/Screenreader);
-Regionserkennung an das Modell angepasst.
+Regionserkennung an das Modell angepasst. Ladezeit in Prod vom Nutzer bestätigt (deutlich besser).
 
 16.10.2026: Die 224 auffälligen Pins waren Seed-Daten des Testkontos
 `test1@trackyourdose.test` (Branch `claude/testaccount-seed`). Positionen
