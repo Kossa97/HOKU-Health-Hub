@@ -1,13 +1,9 @@
--- ╔══════════════════════════════════════════════════════════════════════╗
--- ║ NICHT AUSFUEHREN (Stand 15.10.2026).                                  ║
--- ║ Vorschau gegen Prod (nur lesend): 172 von 174 „Bauch“-Pins wuerden zu ║
--- ║ „Oberschenkel“. Diese Pins stammen ueberwiegend aus der Zeit VOR dem   ║
--- ║ 3D-Tracker (ab Okt. 2025, Tracker seit 24.06.2026) und liegen          ║
--- ║ auffaellig regelmaessig -- vermutlich erzeugte Positionen zu einem     ║
--- ║ echten Namen. Dann ist der Name richtig und die Position falsch, und   ║
--- ║ diese Datei wuerde Gesundheitsdaten verfaelschen. Erst klaeren, woher  ║
--- ║ die Pins kommen.                                                       ║
--- ╚══════════════════════════════════════════════════════════════════════╝
+-- Stand 16.10.2026: Herkunft der Pins geklaert. 224 der 232 Pins sind
+-- Beispieldaten des Testkontos test1@trackyourdose.test (Seed-Skript); ihre
+-- Positionen sind mit supabase-injection-testaccount-sites.sql an die
+-- richtige Stelle gesetzt -- fuer sie aendert diese Datei nichts mehr. Sie
+-- korrigiert nur noch die Namen der echten, per Long-Press gesetzten Pins
+-- (mit uv). Reihenfolge: ERST testaccount-sites, DANN diese Datei.
 --
 -- Injektionstracker: Regionen gespeicherter Pins neu berechnen.
 --
