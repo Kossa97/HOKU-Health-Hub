@@ -1127,6 +1127,10 @@ export const MY_STACK_EN = {
   injection_side_left: "left",
   injection_side_right: "right",
   injection_map_aria: "3D body model with your injection sites. Place a site with a long press or via “Choose site from list”.",
+  my_stack_more_options: 'More options',
+  my_stack_view: 'View',
+  my_stack_view_vials: 'Vials',
+  my_stack_view_list: 'List',
 }
 
 export const MY_STACK_DE = {
@@ -2257,6 +2261,10 @@ export const MY_STACK_DE = {
   injection_side_left: "links",
   injection_side_right: "rechts",
   injection_map_aria: "3D-Körpermodell mit deinen Injektionsstellen. Stelle per langem Drücken setzen oder über „Stelle aus Liste wählen“.",
+  my_stack_more_options: 'Weitere Optionen',
+  my_stack_view: 'Ansicht',
+  my_stack_view_vials: 'Vials',
+  my_stack_view_list: 'Liste',
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)
