@@ -117,7 +117,7 @@ export function FotosTab({ photos, onChange }: Props) {
     // RLS ohne Treffer liefert keinen Fehler, nur null Zeilen — dann bleibt die Datei.
     const { data: deleted, error } = await supabase.from('progress_photos').delete().eq('id', photo.id).select('id')
     if (error || !deleted?.length) {
-      reportError(error ?? new Error('progress_photos: 0 Zeilen gelöscht'), 'fortschritt.photo-delete')
+      reportError(error ?? new Error('progress_photos: no row deleted'), 'fortschritt.photo-delete')
       toast.error(t('fortschritt_photo_delete_failed'))
       return
     }
