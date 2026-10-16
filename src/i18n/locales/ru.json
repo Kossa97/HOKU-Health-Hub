@@ -2102,5 +2102,9 @@
   "injection_region_upper_arm": "Upper arm",
   "injection_side_left": "left",
   "injection_side_right": "right",
-  "injection_map_aria": "3D body model with your injection sites. Place a site with a long press or via “Choose site from list”."
+  "injection_map_aria": "3D body model with your injection sites. Place a site with a long press or via “Choose site from list”.",
+  "my_stack_more_options": "More options",
+  "my_stack_view": "View",
+  "my_stack_view_vials": "Vials",
+  "my_stack_view_list": "List"
 }
