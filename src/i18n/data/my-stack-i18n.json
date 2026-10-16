@@ -1147,7 +1147,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2297,7 +2301,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3447,7 +3455,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4597,7 +4609,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5747,7 +5763,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6897,7 +6917,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8047,7 +8071,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9197,7 +9225,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10347,7 +10379,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -11497,7 +11533,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12647,7 +12687,11 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13797,6 +13841,10 @@
     "injection_region_forearm": "Forearm",
     "injection_region_lower_leg": "Lower leg",
     "injection_region_outside_typical": "Body site",
-    "injection_side_center": "center"
+    "injection_side_center": "center",
+    "my_stack_more_options": "More options",
+    "my_stack_view": "View",
+    "my_stack_view_vials": "Vials",
+    "my_stack_view_list": "List"
   }
 }

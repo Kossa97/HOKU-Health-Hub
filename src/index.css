@@ -2011,3 +2011,22 @@ main.flex-1 {
   justify-content: space-between;
   gap: 8px;
 }
+
+/* My Stack: Kopfknoepfe und Menue. Druck gibt sofort nach; das Menue waechst
+   aus dem Knopf oben rechts, schnell und mit starkem ease-out. Haeufig
+   geoeffnet, also kurz. Bewegung nur, wenn niemand sie abbestellt hat —
+   sonst erscheint das Menue einfach. */
+.stack-head-btn { transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .stack-head-btn--ghost:hover { border-color: rgba(34, 211, 238, 0.5); color: rgb(103, 232, 249); }
+}
+.stack-menu { transform-origin: top right; }
+@keyframes stack-menu-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stack-head-btn { transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
+  .stack-head-btn:active { transform: scale(0.94); }
+  .stack-menu { animation: stack-menu-in 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+}

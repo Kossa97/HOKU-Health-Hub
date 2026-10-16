@@ -2024,6 +2024,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         setFilterOpen={setFilterOpen}
         setArchiveViewOpen={setArchiveViewOpen}
         loadArchived={loadArchived}
+        archivedCount={archivedPeptides.length}
         filterOpen={filterOpen}
         setViewMode={setViewMode}
         viewMode={viewMode}

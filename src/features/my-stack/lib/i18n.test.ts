@@ -1157,6 +1157,10 @@ const EXPECTED_MY_STACK_KEYS = [
   'injection_region_lower_leg',
   'injection_region_outside_typical',
   'injection_side_center',
+  'my_stack_more_options',
+  'my_stack_view',
+  'my_stack_view_vials',
+  'my_stack_view_list',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

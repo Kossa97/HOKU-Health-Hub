@@ -1148,6 +1148,10 @@ export const MY_STACK_EN = {
   injection_region_lower_leg: "Lower leg",
   injection_region_outside_typical: "Body site",
   injection_side_center: "center",
+  my_stack_more_options: 'More options',
+  my_stack_view: 'View',
+  my_stack_view_vials: 'Vials',
+  my_stack_view_list: 'List',
 }
 
 export const MY_STACK_DE = {
@@ -2299,6 +2303,10 @@ export const MY_STACK_DE = {
   injection_region_lower_leg: "Unterschenkel",
   injection_region_outside_typical: "Körperstelle",
   injection_side_center: "mittig",
+  my_stack_more_options: 'Weitere Optionen',
+  my_stack_view: 'Ansicht',
+  my_stack_view_vials: 'Vials',
+  my_stack_view_list: 'Liste',
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)
