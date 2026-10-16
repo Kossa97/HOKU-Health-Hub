@@ -382,11 +382,11 @@ function openIntakeSlotKey(open: { stackItemId: string; dateKey: string; minutes
 }
 
 /**
- * Wie weit offene und bestaetigte Einnahmen ohne Stelle zurueckreichen. Eine
- * Stelle Wochen spaeter nachzutragen, ist unrealistisch; gespeicherte
- * Injektionen sind davon nicht betroffen.
+ * Wie weit offene und bestaetigte Einnahmen ohne Stelle zurueckreichen
+ * („Alle“ in der Einnahmenliste). Gespeicherte Injektionen sind davon nicht
+ * betroffen.
  */
-export const INJECTION_INTAKE_LOOKBACK_DAYS = 14
+export const INJECTION_INTAKE_LOOKBACK_DAYS = 90
 
 export function injectionIntakeLookbackStart(now: Date, lookbackDays = INJECTION_INTAKE_LOOKBACK_DAYS): Date {
   return startOfDay(subDays(now, lookbackDays))

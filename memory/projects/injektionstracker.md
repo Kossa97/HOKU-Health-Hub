@@ -33,6 +33,9 @@ männlich und weiblich.
 | Kontrast Überschriften in Tracker-Sheets im Light-Theme | offen |
 | Rest Aufräumen | Inline-Styles in `InjektionsTracker.tsx` (bewusst gelassen: Safe-Area-Rechnungen, Risiko ohne Nutzen); 4 tote i18n-Keys `inj_setup_required`/`inj_setup_hint`/`inj_copy_sql`/`inj_copied` (Entfernen braucht neue Vertrags-Hashes für alle 14 Sprachen); `supabase-injection-pro.sql` bleibt, Trockenlauf-Tests bauen damit das Schema |
 | Zwei-Schritt-Speichern bucht Bestand vor dem Insert | Altverhalten, nur ohne `confirm_intake_with_injection`/planTimelineV2 relevant (`src/lib/injectionSave.ts`) |
+| Verlauf-Beschriftung nur Deutsch | `formatInjectionSite`/`regionLabel` in `src/lib/injectionHistory.ts` hart kodiert; sollte die Keys `injection_region_*`/`injection_side_*` nutzen |
+| Tote i18n-Keys nach Formular-Umbau | `injection_tab_open`, `injection_open_*`, `injection_mode_*`, `injection_log_help_*`, `injection_cycle_label`, `injection_sort_*` u. a. — Entfernen braucht neue Vertrags-Hashes |
+| `dose_logs`-Abfrage 90 Tage ohne Methodenfilter | Bei sehr vielen Einnahmen/Tag kann das PostgREST-Zeilenlimit (1000) greifen; dann erscheinen alte, genommene Einnahmen als offen. Schon vorher so (Altverhalten) |
 | Test auf echten Geräten | VoiceOver/TalkBack, fps |
 | Dauerhafter e2e-Test | braucht Embed-Support in `e2e/support` MockSupabase |
 
@@ -52,3 +55,11 @@ alten Koordinaten — vor erneutem Seeden anpassen.
 Intramuskulär wurde in älteren Abfragepfaden nicht gefunden (kaputt kodierte
 Liste) — behoben. Speichern ausgelagert nach `src/lib/injectionSave.ts`,
 Kopf/Fehleransicht nach `InjectionTrackerChrome.tsx`.
+
+16.10.2026, Formular-Umbau (Wunsch des Nutzers): Liste „Einnahmen“ zeigt
+offene und bestätigte Einnahmen ohne Stelle, Filter Substanz (Chips) und
+Zeitraum Heute/Gestern/7/14/30/60/Alle (Alle = 90 Tage). Beide Wege nutzen
+dieselbe Liste (`InjectionIntakeList.tsx`). Nach Wahl der Einnahme nur noch
+Karte + Stelle + Uhrzeit (einklappbar) + „Hat sich deine Dosis geändert?“ +
+Notiz (einklappbar). Manuell als Link „Ohne Plan eintragen“. Karte/Verlauf:
+7/14/30/Alle.

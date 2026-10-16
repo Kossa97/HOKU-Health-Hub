@@ -397,9 +397,9 @@ describe('injectionIntakeLookbackStart', () => {
       '2026-06-18T22:00:00.000Z',
     )
   })
-  it('reaches back two weeks by default, not months', () => {
+  it('reaches back 90 days by default („Alle“)', () => {
     expect(injectionIntakeLookbackStart(new Date('2026-06-26T15:30:00.000Z')).toISOString()).toBe(
-      '2026-06-11T22:00:00.000Z',
+      '2026-03-27T23:00:00.000Z',
     )
   })
 })

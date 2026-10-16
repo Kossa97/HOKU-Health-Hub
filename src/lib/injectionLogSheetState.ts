@@ -1,19 +1,10 @@
 import { format, parseISO } from 'date-fns'
 
-export type InjectionEntryMode = 'intake' | 'manual'
-
 export const INJECTION_UNIT_OPTIONS = ['mcg', 'mg', 'IU', 'ml', 'nmol']
 export const INJECTION_METHOD_OPTIONS = ['Subkutan', 'Intramuskulär']
 
 /** ISO-Zeitpunkt -> Wert fuer <input type="datetime-local"> (Ortszeit, Minuten). */
 export const toLocalDateTimeInput = (iso: string) => format(parseISO(iso), "yyyy-MM-dd'T'HH:mm")
-
-export function areInjectionDetailsLocked(
-  mode: InjectionEntryMode,
-  hasSelectedIntake: boolean,
-): boolean {
-  return mode === 'intake' && hasSelectedIntake
-}
 
 export function replaceTimeInLocalDateTime(
   localDateTime: string,

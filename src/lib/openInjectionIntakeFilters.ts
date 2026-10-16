@@ -1,12 +1,15 @@
 import type { InjectionIntakeStatus, OpenInjectionIntake } from './injectionPersistence'
 
-// Offene Einnahmen reichen nur INJECTION_INTAKE_LOOKBACK_DAYS zurueck; 'all' = alles Geladene.
-export type IntakeHistoryDays = 0 | 1 | 7 | 14 | 'all'
+// 'all' = alles Geladene (INJECTION_INTAKE_LOOKBACK_DAYS).
+export const INTAKE_DAY_OPTIONS = [0, 1, 7, 14, 30, 60, 'all'] as const
+export type IntakeHistoryDays = typeof INTAKE_DAY_OPTIONS[number]
 export type IntakeSortOrder = 'newest' | 'oldest'
 export type IntakeStatusFilter = InjectionIntakeStatus | 'all'
 
 export interface OpenIntakeFilterOptions {
   cycleId: string
+  /** Substanz (stack_item_id) oder 'all'. */
+  stackItemId: string
   days: IntakeHistoryDays
   order: IntakeSortOrder
   status: IntakeStatusFilter
@@ -14,6 +17,7 @@ export interface OpenIntakeFilterOptions {
 
 const DEFAULT_OPTIONS: OpenIntakeFilterOptions = {
   cycleId: 'all',
+  stackItemId: 'all',
   days: 7,
   order: 'newest',
   status: 'all',
@@ -27,6 +31,7 @@ export function filterOpenInjectionIntakes(
 
   return intakes
     .filter(intake => filters.cycleId === 'all' || intake.cycleId === filters.cycleId)
+    .filter(intake => filters.stackItemId === 'all' || intake.stackItemId === filters.stackItemId)
     .filter(intake => filters.status === 'all' || intake.status === filters.status)
     .filter(intake => {
       if (filters.days === 'all') return true
