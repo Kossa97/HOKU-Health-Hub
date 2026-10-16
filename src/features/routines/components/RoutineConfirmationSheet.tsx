@@ -123,7 +123,7 @@ export function RoutineConfirmationSheet({
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-cyan-300">
-              {t('routine_group_label', {
+              {group.label ?? t('routine_group_label', {
                 defaultValue: '{{group}}-Routine',
                 group: t(GROUP_LABEL_KEYS[group.key]),
               })}

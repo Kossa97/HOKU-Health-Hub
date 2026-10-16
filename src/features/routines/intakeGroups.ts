@@ -27,6 +27,8 @@ export interface RoutineConfirmationEntry extends RoutineIntake {
 export interface RoutineGroupModel {
   key: RoutineGroup
   items: RoutineIntake[]
+  /** Eigener Name, etwa der eines selbst angelegten Bündels. */
+  label?: string
 }
 
 const ROUTINE_GROUP_ORDER: RoutineGroup[] = ['morning', 'midday', 'evening']

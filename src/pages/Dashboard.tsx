@@ -11,7 +11,7 @@ import {
 } from 'date-fns'
 import {
   AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardList, Clock,
-  Moon, Pin, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  Layers, Moon, Pencil, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -47,6 +47,16 @@ import { confirmIntakeGroup, quantifiedVialEntries, skipIntakeGroup, type Intake
 import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
 import { slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
+import {
+  bundleDueIntakes,
+  deleteIntakeBundle,
+  liveBundleItemIds,
+  loadIntakeBundles,
+  saveIntakeBundle,
+  type IntakeBundle,
+  type IntakeBundleClient,
+} from '../features/routines/bundles/intakeBundles'
+import { IntakeBundleSheet } from '../features/routines/bundles/IntakeBundleSheet'
 import {
   applyInventoryConfirmation,
   InventoryConfirmationError,
@@ -352,6 +362,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const [routineGroupSheet, setRoutineGroupSheet] = useState<RoutineGroupModel | null>(null)
+  const [bundles, setBundles] = useState<IntakeBundle[]>([])
+  // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
+  const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
+  const [bundleBusyId, setBundleBusyId] = useState<string | null>(null)
+  // Sperre gegen Doppeltipp: der State kommt erst mit dem naechsten Render an.
+  const bundleBusyRef = useRef(false)
   const [confirmTime, setConfirmTime]   = useState('')
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
@@ -674,6 +690,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const { data } = await dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name')
     if (data) setStackItems(data)
   }, [dashboardDataClient, user])
+
+  // Bündel sind Einstellungen, keine Tagesdaten: einmal je Nutzer laden.
+  // Fehlt die Tabelle noch (Migration nicht eingespielt), bleibt die Liste
+  // leer, und der Kalender funktioniert wie bisher.
+  const bundleClient = dashboardDataClient as unknown as IntakeBundleClient
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    loadIntakeBundles(bundleClient, user.id)
+      .then(rows => { if (!cancelled) setBundles(rows) })
+      .catch(() => { if (!cancelled) setBundles([]) })
+    return () => { cancelled = true }
+  }, [bundleClient, user])
 
   const loadEscalations = useCallback(async () => {
     if (!user) return
@@ -1004,6 +1033,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     })
   }))
   const dueRoutineGroupByKey = new Map(dueRoutineGroups.map(group => [group.key, group]))
+  const dueIntakes = dueRoutineGroups.flatMap(group => group.items)
+  const bundleRows = bundles.map(bundle => {
+    const itemIds = liveBundleItemIds(bundle, stackItemById)
+    return { bundle, itemIds, open: bundleDueIntakes({ stack_item_ids: itemIds }, dueIntakes) }
+  })
   const duePeriodCarousels = PERIOD_ORDER.map(key => {
     const routineGroup = dueRoutineGroupByKey.get(PERIOD_TO_ROUTINE_GROUP[key]) ?? null
     return {
@@ -1478,6 +1512,75 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     )
     routineCommitted.current = true
     return saved.map(row => row.id)
+  }
+
+  /**
+   * Ein Tipp auf das Bündel: je Substanz die naechste offene Einnahme, mit der
+   * geplanten Menge, ueber dieselbe RPC wie die Tageszeit-Gruppe.
+   *
+   * Zwei Faelle gehen stattdessen ins bekannte Bestaetigungsblatt, mit genau
+   * diesen Einnahmen: fehlt einer die Menge, die sie braucht, wird nicht
+   * geraten; und ist eine Injektion dabei, bietet nur das Blatt danach an,
+   * die Injektionsstelle zu ergaenzen.
+   */
+  const confirmBundle = async (bundle: IntakeBundle, items: RoutineIntake[]) => {
+    if (items.length === 0 || bundleBusyRef.current) return
+    const entries = items.map(buildConfirmationEntry)
+    const needsReview = entries.some(entry => entry.injectable || (
+      entry.trackingLevel !== 'intake_only'
+      && !(entry.actualDose != null && Number.isFinite(entry.actualDose) && entry.actualDose > 0 && entry.actualUnit?.trim())
+    ))
+    if (needsReview) {
+      routineCommitted.current = false
+      setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name })
+      return
+    }
+    bundleBusyRef.current = true
+    setBundleBusyId(bundle.id)
+    try {
+      let savedLogIds: string[]
+      try {
+        savedLogIds = await confirmRoutineGroup(entries)
+      } catch {
+        toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+        return
+      }
+      // Ab hier ist gespeichert. Was danach scheitert, ist kein Speicherfehler.
+      try {
+        await afterRoutineGroupConfirmed(entries, savedLogIds)
+      } catch (error) {
+        if (error instanceof InventoryConfirmationError) {
+          toast.error(t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' }))
+        } else {
+          toast.success(t('einnahme_bestaetigt', { defaultValue: 'Einnahme bestätigt' }))
+        }
+      }
+    } finally {
+      bundleBusyRef.current = false
+      setBundleBusyId(null)
+    }
+  }
+
+  const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
+    if (!user || bundleSheet === undefined) return
+    const saved = await saveIntakeBundle(bundleClient, user.id, {
+      id: bundleSheet?.id,
+      name: draft.name,
+      stackItemIds: draft.stackItemIds,
+      sortOrder: bundleSheet?.sort_order ?? bundles.reduce((max, bundle) => Math.max(max, bundle.sort_order + 1), 0),
+    })
+    setBundles(current => bundleSheet
+      ? current.map(bundle => bundle.id === saved.id ? saved : bundle)
+      : [...current, saved])
+    setBundleSheet(undefined)
+  }
+
+  const removeBundle = async () => {
+    if (!user || !bundleSheet) return
+    const id = bundleSheet.id
+    await deleteIntakeBundle(bundleClient, user.id, id)
+    setBundles(current => current.filter(bundle => bundle.id !== id))
+    setBundleSheet(undefined)
   }
 
   const afterRoutineGroupConfirmed = async (
@@ -2293,6 +2396,74 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
 
+        {/* ── Eigene Bündel ──────────────────────────────────────────────
+            Selbst zusammengestellte Gruppen, mit einem Tipp bestaetigt. Sie
+            stehen ueber der Tagesliste, weil sie sie abkuerzen. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
+          <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-3 space-y-2">
+            <div className="flex items-center justify-between gap-3 px-1">
+              <h3 id="intake-bundles-title" className="flex min-w-0 items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.12em] text-sky-300">
+                <Layers size={14} aria-hidden="true" />
+                <span className="truncate">{t('bundle_section_title', { defaultValue: 'Meine Bündel' })}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setBundleSheet(null)}
+                className="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-extrabold text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+              >
+                <Plus size={13} aria-hidden="true" />
+                {t('bundle_new', { defaultValue: 'Bündel' })}
+              </button>
+            </div>
+            {bundleRows.map(({ bundle, itemIds, open }) => {
+              const busy = bundleBusyId === bundle.id
+              const done = open.length === 0
+              return (
+                <div key={bundle.id} className="flex items-stretch gap-2">
+                  <button
+                    type="button"
+                    disabled={done || Boolean(bundleBusyId)}
+                    aria-busy={busy || undefined}
+                    onClick={() => void confirmBundle(bundle, open)}
+                    className={`flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-default ${done
+                      ? 'border-white/10 bg-white/[0.03]'
+                      : 'border-emerald-500/30 bg-emerald-500/[0.12] hover:bg-emerald-500/20'}`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${done ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                      <Check size={17} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-extrabold text-white">{bundle.name}</span>
+                      <span className={`block truncate text-xs font-semibold ${done ? 'text-slate-500' : 'text-emerald-300'}`}>
+                        {itemIds.length === 0
+                          ? t('bundle_no_items', { defaultValue: 'Keine Substanzen mehr im Bündel' })
+                          : done
+                          ? t('bundle_nothing_open', { defaultValue: 'Nichts offen' })
+                          : busy
+                          ? t('bundle_confirming', { defaultValue: 'Wird bestätigt …' })
+                          : t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: open.length })}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
+                    onClick={() => setBundleSheet(bundle)}
+                    className="flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    <Pencil size={15} aria-hidden="true" />
+                  </button>
+                </div>
+              )
+            })}
+            {bundleRows.length === 0 && (
+              <p className="px-1 text-xs text-slate-400">
+                {t('bundle_empty_hint', { defaultValue: 'Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.' })}
+              </p>
+            )}
+          </section>
+        )}
+
         {/* ── Die offenen Einnahmen ──────────────────────────────────────
             Eine Liste in Tagesordnung. Genau eine ist aufgeklappt — zuerst
             die naechste anstehende, danach die, die man antippt. Aufgeklappt
@@ -2450,6 +2621,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
           onAddInjection={openRoutineInjection}
+        />
+      )}
+
+      {bundleSheet !== undefined && (
+        <IntakeBundleSheet
+          bundle={bundleSheet}
+          stackItems={stackItems}
+          onClose={() => setBundleSheet(undefined)}
+          onSave={saveBundle}
+          onDelete={bundleSheet ? removeBundle : undefined}
         />
       )}
 
