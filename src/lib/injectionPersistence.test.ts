@@ -452,6 +452,29 @@ describe('buildSelectableInjectionIntakes', () => {
     ]))
   })
 
+  it('includes a confirmed intramuscular dose log (correctly encoded)', () => {
+    const result = buildSelectableInjectionIntakes({
+      cycles: [{ ...cycle, method: 'Intramuskulär' }],
+      logs: [{
+        id: 'dose-im',
+        stack_item_id: 'stack-item-1',
+        dose: 100,
+        unit: 'mg',
+        method: 'Intramuskulär',
+        logged_at: '2026-06-23T20:15:00.000Z',
+        taken: true,
+      }],
+      linkedDoseLogIds: new Set(),
+      escalations: [],
+      now: new Date('2026-06-24T21:00:00.000Z'),
+      lookbackDays: 2,
+    })
+
+    expect(result).toEqual(expect.arrayContaining([
+      expect.objectContaining({ status: 'confirmed', doseLogId: 'dose-im', method: 'Intramuskulär' }),
+    ]))
+  })
+
   it('uses the injectable cycle when an older confirmed dose log has no method', () => {
     const result = buildSelectableInjectionIntakes({
       cycles: [cycle],

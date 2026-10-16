@@ -22,22 +22,10 @@ import {
   toLocalDateTimeInput,
 } from '../../lib/injectionLogSheetState'
 import { denyProps } from '../../lib/denyFeedback'
+import type { InjectionSaveInput, InjectionSaveMode } from '../../lib/injectionSave'
 
 const UNIT_OPTIONS = INJECTION_UNIT_OPTIONS
 const METHOD_OPTIONS = INJECTION_METHOD_OPTIONS
-
-export type InjectionSaveMode = 'intake' | 'manual'
-
-export interface InjectionSaveInput {
-  mode: InjectionSaveMode
-  intake: OpenInjectionIntake | null
-  substanceLabel: string | null
-  dose: number | null
-  unit: string | null
-  method: string | null
-  notes: string | null
-  loggedAt: string
-}
 
 const intakeKey = getOpenInjectionIntakeKey
 const toLocalInput = toLocalDateTimeInput

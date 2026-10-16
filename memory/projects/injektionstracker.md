@@ -1,6 +1,6 @@
 # Injektionstracker
 
-**Stand:** 15.10.2026, v1 auf `main` (PR #23, Merge 13590b3a)
+**Stand:** 16.10.2026, v1 auf `main` (PR #23, Merge 13590b3a); Folgearbeit auf `claude/vigilant-davinci-iucck1`
 **Code:** `src/pages/InjektionsTracker.tsx`, `src/components/injection3d/`,
 `src/lib/injection*.ts`
 
@@ -30,9 +30,9 @@ männlich und weiblich.
 
 | Punkt | Stand |
 |---|---|
-| Herkunft der gespeicherten Pins | Großteil stammt aus der Zeit vor dem 3D-Tracker (seit 24.06.2026) mit auffällig regelmäßigen Positionen. `supabase-injection-regions-v2.sql` bleibt **gesperrt**, bis geklärt ist, ob Name oder Position stimmt. Alternative: Positionen statt Namen verschieben |
 | Kontrast Überschriften in Tracker-Sheets im Light-Theme | offen |
-| Aufräumen (Punkt 7) | `InjektionsTracker.tsx` lang mit Inline-Styles; Mojibake-Workaround `IntramuskulÃ¤r` in `INJECTABLE_METHODS`; ungenutzt `injectionSaveActionLabel` und Keys `inj_setup_required`/`inj_setup_hint`/`inj_copy_sql`/`inj_copied`; veraltete `supabase-injection-pro.sql` (`peptide_id`) |
+| Rest Aufräumen | Inline-Styles in `InjektionsTracker.tsx` (bewusst gelassen: Safe-Area-Rechnungen, Risiko ohne Nutzen); 4 tote i18n-Keys `inj_setup_required`/`inj_setup_hint`/`inj_copy_sql`/`inj_copied` (Entfernen braucht neue Vertrags-Hashes für alle 14 Sprachen); `supabase-injection-pro.sql` bleibt, Trockenlauf-Tests bauen damit das Schema |
+| Zwei-Schritt-Speichern bucht Bestand vor dem Insert | Altverhalten, nur ohne `confirm_intake_with_injection`/planTimelineV2 relevant (`src/lib/injectionSave.ts`) |
 | Ladezeit in Prod prüfen | nach Deploy von 13590b3a |
 | Test auf echten Geräten | VoiceOver/TalkBack, fps |
 | Dauerhafter e2e-Test | braucht Embed-Support in `e2e/support` MockSupabase |
@@ -43,3 +43,13 @@ Modell 17,7 MB → 1,2 MB; Rendern nur bei Bedarf; Bearbeiten/Löschen;
 Einnahme + Stelle atomar (`confirm_intake_with_injection`, in Prod); i18n de/en;
 SQL-Bildschirm entfernt; Stellen-Auswahl per Liste (Tastatur/Screenreader);
 Regionserkennung an das Modell angepasst.
+
+16.10.2026: Die 224 auffälligen Pins waren Seed-Daten des Testkontos
+`test1@trackyourdose.test` (Branch `claude/testaccount-seed`). Positionen
+verschoben (`supabase-injection-testaccount-sites.sql`), danach
+`supabase-injection-regions-v2.sql`: 5 echte Pins „Brust“ → „Bauch“. Beides
+in Prod, mit Sicherungstabellen. Seed-Skript auf dem Branch hat noch die
+alten Koordinaten — vor erneutem Seeden anpassen.
+Intramuskulär wurde in älteren Abfragepfaden nicht gefunden (kaputt kodierte
+Liste) — behoben. Speichern ausgelagert nach `src/lib/injectionSave.ts`,
+Kopf/Fehleransicht nach `InjectionTrackerChrome.tsx`.

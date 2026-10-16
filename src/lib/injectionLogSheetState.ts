@@ -22,14 +22,6 @@ export function replaceTimeInLocalDateTime(
   return `${localDateTime.slice(0, 10)}T${time}`
 }
 
-export function injectionSaveActionLabel(
-  status: 'open' | 'confirmed',
-): string {
-  return status === 'confirmed'
-    ? 'Injektionsstelle hinzufügen'
-    : 'Speichern & bestätigen'
-}
-
 /**
  * Dosis aus einem Textfeld: leer -> null, sonst eine Dezimalzahl >= 0 mit
  * Punkt oder Komma („0,5“). Alles andere -> undefined (ungueltig). Kein

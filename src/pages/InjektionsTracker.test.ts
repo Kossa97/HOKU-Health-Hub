@@ -14,6 +14,7 @@ describe('InjektionsTracker fullscreen map layout', () => {
 
   it('keeps the fullscreen map fixed to the viewport with safe-area overlay spacing', () => {
     const source = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
+      + readFileSync(new URL('../components/injection3d/InjectionTrackerChrome.tsx', import.meta.url), 'utf8')
 
     expect(source).not.toContain("marginTop: 'calc(-1 * env(safe-area-inset-top))'")
     expect(source).toContain("top: 'calc(16px + env(safe-area-inset-top))'")
