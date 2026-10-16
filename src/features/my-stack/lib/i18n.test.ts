@@ -1155,7 +1155,6 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_delete_confirm',
   'bundle_no_items',
   'bundle_nothing_open',
-  'bundle_confirming',
   'bundle_confirm_open',
   'bundle_empty_hint',
 ] as const

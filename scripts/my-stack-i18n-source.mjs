@@ -1146,7 +1146,6 @@ export const MY_STACK_EN = {
   bundle_delete_confirm: "Really delete?",
   bundle_no_items: "No substances left in this bundle",
   bundle_nothing_open: "Nothing open",
-  bundle_confirming: "Confirming …",
   bundle_confirm_open: "Confirm {{n}}",
   bundle_empty_hint: "Group substances you take together into a bundle and confirm them with a single tap.",
 }
@@ -2298,7 +2297,6 @@ export const MY_STACK_DE = {
   bundle_delete_confirm: "Wirklich löschen?",
   bundle_no_items: "Keine Substanzen mehr im Bündel",
   bundle_nothing_open: "Nichts offen",
-  bundle_confirming: "Wird bestätigt …",
   bundle_confirm_open: "{{n}} bestätigen",
   bundle_empty_hint: "Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.",
 }

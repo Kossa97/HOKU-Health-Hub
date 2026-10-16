@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { Check, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useSheetClose } from '../../../lib/useSheetClose'
 import { BUNDLE_NAME_MAX, normalizeBundleName, type IntakeBundle } from './intakeBundles'
 
 interface BundleSheetItem {
@@ -21,6 +22,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
   const { t } = useTranslation()
   const titleId = useId()
   const nameId = useId()
+  const { requestClose, closingProps } = useSheetClose(onClose)
   const [name, setName] = useState(bundle?.name ?? '')
   const [selected, setSelected] = useState<string[]>(() => {
     const known = new Set(stackItems.map(item => item.id))
@@ -52,8 +54,9 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
       <button
         type="button"
         aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-        onClick={onClose}
-        className="fixed inset-0 z-50 cursor-pointer bg-black/70"
+        onClick={requestClose}
+        {...closingProps}
+        className="tyd-backdrop fixed inset-0 z-50 cursor-pointer bg-black/70"
       />
       <section
         role="dialog"
@@ -61,7 +64,8 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         data-app-modal
         data-app-back-dirty-on-interaction
         aria-labelledby={titleId}
-        className="fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+        {...closingProps}
+        className="tyd-sheet fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
       >
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -78,8 +82,8 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
             type="button"
             data-app-back-close
             aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-            onClick={onClose}
-            className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            onClick={requestClose}
+            className="tyd-press grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -142,7 +146,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
           type="button"
           disabled={!canSave}
           onClick={() => void run(() => onSave({ name, stackItemIds: selected }))}
-          className="mt-4 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="tyd-press mt-4 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Check size={18} aria-hidden="true" />
           {t('bundle_save', { defaultValue: 'Bündel speichern' })}
@@ -156,7 +160,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
               if (!confirmDelete) { setConfirmDelete(true); return }
               void run(onDelete)
             }}
-            className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/[0.08] text-sm font-extrabold text-rose-300 transition-colors hover:bg-rose-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="tyd-press mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/[0.08] text-sm font-extrabold text-rose-300 transition-colors hover:bg-rose-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 size={15} aria-hidden="true" />
             {confirmDelete

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -11,7 +12,7 @@ import {
 } from 'date-fns'
 import {
   AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardList, Clock,
-  Layers, Moon, Pencil, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  Layers, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -64,6 +65,7 @@ import {
 } from '../features/my-stack/services/stackInventory'
 import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDeepLink'
 import { GlassPanel, PageShell } from '../components/ui/DesignSystem'
+import { useSheetClose } from '../lib/useSheetClose'
 import { denyProps } from '../lib/denyFeedback'
 
 interface DoseLog {
@@ -295,6 +297,13 @@ function cycleLogTimestamp(cycle: Cycle, day: Date): string {
 
 // Minimum horizontal swipe distance to trigger month change
 const SWIPE_THRESHOLD = 80
+// Ab diesem Tempo (px/ms) am ENDE der Geste blaettert auch ein kurzer Wisch.
+// Gemessen ueber die letzten Bewegungen, nicht ueber die ganze Geste: ein
+// langsames Abdriften beim Scrollen ist kein Schnippen.
+const SWIPE_VELOCITY = 0.3
+const SWIPE_FLICK_MIN = 30
+// Dauer, mit der die Nachbarwoche ins Bild gleitet oder zurueckfedert.
+const WISCH_MS = 240
 
 interface DashboardProps {
   dashboardDataClient?: typeof supabase
@@ -361,13 +370,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Einnahme-Bestätigungs-Sheet
   interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<RoutineGroupModel | null>(null)
+  const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
+  // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string }) | null>(null)
   const [bundles, setBundles] = useState<IntakeBundle[]>([])
   // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
   const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
-  const [bundleBusyId, setBundleBusyId] = useState<string | null>(null)
-  // Sperre gegen Doppeltipp: der State kommt erst mit dem naechsten Render an.
-  const bundleBusyRef = useRef(false)
   const [confirmTime, setConfirmTime]   = useState('')
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
@@ -397,11 +405,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
+  const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
   const monatsKnopf = useRef<HTMLButtonElement>(null)
   const monatsBlatt = useRef<HTMLDivElement>(null)
 
   // Horizontal swipe state
-  const calendarSwipeStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+  const calendarSwipeStart = useRef<{ x: number; y: number; t: number; pointerId: number } | null>(null)
   // Ein Wisch endet auf einer Tageszelle und loest dort ein `click` aus. Ohne
   // diesen Merker waehlte das Blaettern den Tag unter dem Finger aus.
   //
@@ -423,10 +432,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       wischMerkerTimer.current = null
     }, 0)
   }
+  // Der Wisch bewegt die Ebenen direkt am Element, nicht ueber State: sonst
+  // rendert jede Fingerbewegung die ganze Seite neu und das Blaettern ruckelt.
+  const streifenRef = useRef<HTMLDivElement>(null)
+  const streifenVorschauRef = useRef<HTMLDivElement>(null)
+  const monatsRasterRef = useRef<HTMLDivElement>(null)
+  const monatsVorschauRef = useRef<HTMLDivElement>(null)
+  const wischRichtung = useRef<-1 | 1>(1)
+  // Die letzten zwei Bewegungen, fuer das Tempo am Ende der Geste.
+  const wischProben = useRef<Array<{ x: number; t: number }>>([])
+  const wischUebergang = useRef<number | null>(null)
+  // Nur waehrend die Nachbarwoche hereingleitet — nicht beim Zurueckfedern.
+  const wischBlaettert = useRef(false)
   useEffect(() => () => {
     if (wischMerkerTimer.current !== null) window.clearTimeout(wischMerkerTimer.current)
+    if (wischUebergang.current !== null) window.clearTimeout(wischUebergang.current)
   }, [])
-  const [calendarDragX, setCalendarDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [peekDir, setPeekDir] = useState<-1 | 0 | 1>(0)
 
@@ -474,6 +495,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Befund: `aria-modal` allein macht keinen Dialog. Escape muss am Dokument
   // haengen (das Blatt selbst bekommt keinen Fokus), und der Fokus muss hinein
   // und danach zurueck auf den Knopf.
+  const requestMonatClose = monatsBlattSchliessen.requestClose
   useEffect(() => {
     if (!monatOffen) return
     const vorher = document.activeElement as HTMLElement | null
@@ -483,7 +505,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const beiTaste = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        setMonatOffen(false)
+        requestMonatClose()
       }
     }
     document.addEventListener('keydown', beiTaste)
@@ -491,11 +513,42 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       document.removeEventListener('keydown', beiTaste)
       ;(knopf ?? vorher)?.focus()
     }
-  }, [monatOffen])
+  }, [monatOffen, requestMonatClose])
+
+  const verschiebeEbenen = (x: number, animiert: boolean) => {
+    const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+    const vorschau = monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current
+    const transition = animiert ? `transform ${WISCH_MS}ms var(--tyd-ease-out)` : 'none'
+    if (haupt) {
+      haupt.style.transition = transition
+      haupt.style.transform = `translateX(${x}px)`
+    }
+    if (vorschau) {
+      vorschau.style.transition = transition
+      vorschau.style.transform = `translateX(calc(${wischRichtung.current === 1 ? '100%' : '-100%'} + ${x}px))`
+    }
+  }
+
+  // Umblaettern, wenn die Nachbarwoche schon ganz im Bild steht: der Tausch
+  // passiert in einem Zug mit dem Zuruecksetzen, sonst blitzte die alte Woche
+  // fuer ein Bild an ihrem alten Platz auf.
+  const wischAbschliessen = (dir: -1 | 1) => {
+    wischUebergang.current = null
+    wischBlaettert.current = false
+    flushSync(() => {
+      if (monatOffen) changeMonth(dir)
+      else changeWeek(dir)
+      setPeekDir(0)
+    })
+    verschiebeEbenen(0, false)
+  }
 
   const handleCalendarPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
-    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
+    // Ein Wisch gleitet noch aus — ein zweiter Finger setzt nicht mittendrin an.
+    if (wischUebergang.current !== null) return
+    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, t: performance.now(), pointerId: event.pointerId }
+    wischProben.current = [{ x: event.clientX, t: performance.now() }]
     wurdeGewischt.current = false
     setIsDragging(true)
   }
@@ -505,23 +558,26 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     if (!start || start.pointerId !== event.pointerId) return
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
+    wischProben.current = [...wischProben.current.slice(-1), { x: event.clientX, t: performance.now() }]
     // Only track if horizontal movement is meaningful and dominant
     if (Math.abs(deltaX) < 6) return
     if (Math.abs(deltaY) > Math.abs(deltaX) * 0.8) return
     merkeWisch()
-    setCalendarDragX(deltaX)
     const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+    wischRichtung.current = dir
     if (peekDir !== dir) setPeekDir(dir)
+    verschiebeEbenen(deltaX, false)
   }
 
   const handleCalendarPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     const start = calendarSwipeStart.current
     calendarSwipeStart.current = null
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
     wischMerkerLoesen()
-    if (!start || start.pointerId !== event.pointerId) return
+    if (!start || start.pointerId !== event.pointerId) {
+      handleCalendarPointerCancel()
+      return
+    }
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
 
@@ -529,19 +585,49 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // `<button>` ohne `onClick` ist fuer Tastatur und Screenreader kein Knopf:
     // Enter und der VoiceOver-Doppeltipp senden `click`, nie `pointerup`.
 
-    // Swipe: require horizontal dominance + minimum distance
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      if (monatOffen) changeMonth(deltaX < 0 ? 1 : -1)
-      else changeWeek(deltaX < 0 ? 1 : -1)
+    // Blaettern bei genug Weg ODER genug Schwung: ein kurzer, schneller Wisch
+    // ist genauso gemeint wie ein langer.
+    const jetzt = performance.now()
+    const probe = wischProben.current.find(eintrag => jetzt - eintrag.t <= 100) ?? { x: start.x, t: start.t }
+    const tempo = Math.abs(event.clientX - probe.x) / Math.max(1, jetzt - probe.t)
+    const waagerecht = Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    if (waagerecht && (Math.abs(deltaX) >= SWIPE_THRESHOLD || (tempo > SWIPE_VELOCITY && Math.abs(deltaX) >= SWIPE_FLICK_MIN))) {
+      const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+      wischRichtung.current = dir
+      const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+      const breite = haupt?.offsetWidth ?? 0
+      const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+      if (ruhig || breite === 0) {
+        wischAbschliessen(dir)
+        return
+      }
+      // Ein schneller Wisch kann ohne eine einzige gezaehlte Bewegung enden;
+      // dann steht die Nachbarwoche noch nicht im DOM. Erst einhaengen, ihre
+      // Ausgangslage einmal lesen lassen, dann gleiten beide zusammen.
+      if (peekDir !== dir) {
+        flushSync(() => setPeekDir(dir))
+        void (monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current)?.offsetWidth
+      }
+      verschiebeEbenen(-dir * breite, true)
+      wischBlaettert.current = true
+      wischUebergang.current = window.setTimeout(() => wischAbschliessen(dir), WISCH_MS)
+      return
     }
+    handleCalendarPointerCancel()
   }
 
   const handleCalendarPointerCancel = () => {
     calendarSwipeStart.current = null
+    // Ein Tipp ohne Bewegung hat nichts verschoben — nichts zurueckzufedern.
+    const bewegt = wurdeGewischt.current
     wischMerkerLoesen()
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
+    if (!bewegt) return
+    verschiebeEbenen(0, true)
+    wischUebergang.current = window.setTimeout(() => {
+      wischUebergang.current = null
+      setPeekDir(0)
+    }, WISCH_MS)
   }
 
   const loadLogSnapshot = useCallback(async function loadSnapshot(): Promise<void> {
@@ -1504,61 +1590,43 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[]): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
+    // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
+    // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
+    // gilt — dieselbe Regel wie im Einzelweg (`confirmCycleDose`).
+    const mitZeit = time
+      ? entries.map(entry => {
+          if (!entry.selected) return entry
+          const [stunde, minute] = time.split(':').map(Number)
+          const zeitpunkt = new Date(selectedDay)
+          zeitpunkt.setHours(stunde, minute, 0, 0)
+          const actualLoggedAt = zeitpunkt.toISOString()
+          if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
+          const timeline = timelines.find(item => item.cycle.id === entry.cycleId)
+          const resolved = timeline && resolveCycleAt(timeline, zeitpunkt, timeZone)
+          if (!resolved?.planVersion || resolved.status !== 'active') throw new Error('Intake timestamp is not active')
+          return { ...entry, planVersionId: resolved.planVersion.id, actualLoggedAt }
+        })
+      : entries
     const saved = await confirmIntakeGroup(
       dashboardDataClient as unknown as IntakeConfirmationClient,
-      entries,
+      mitZeit,
     )
     routineCommitted.current = true
     return saved.map(row => row.id)
   }
 
   /**
-   * Ein Tipp auf das Bündel: je Substanz die naechste offene Einnahme, mit der
-   * geplanten Menge, ueber dieselbe RPC wie die Tageszeit-Gruppe.
-   *
-   * Zwei Faelle gehen stattdessen ins bekannte Bestaetigungsblatt, mit genau
-   * diesen Einnahmen: fehlt einer die Menge, die sie braucht, wird nicht
-   * geraten; und ist eine Injektion dabei, bietet nur das Blatt danach an,
-   * die Injektionsstelle zu ergaenzen.
+   * Ein Tipp auf das Bündel oeffnet das Bestaetigungsblatt mit je Substanz der
+   * naechsten offenen Einnahme. Die Uhrzeit wird immer abgefragt, vorbelegt
+   * mit der fruehesten geplanten; Mengen und Injektionsstelle wie gewohnt.
    */
-  const confirmBundle = async (bundle: IntakeBundle, items: RoutineIntake[]) => {
-    if (items.length === 0 || bundleBusyRef.current) return
-    const entries = items.map(buildConfirmationEntry)
-    const needsReview = entries.some(entry => entry.injectable || (
-      entry.trackingLevel !== 'intake_only'
-      && !(entry.actualDose != null && Number.isFinite(entry.actualDose) && entry.actualDose > 0 && entry.actualUnit?.trim())
-    ))
-    if (needsReview) {
-      routineCommitted.current = false
-      setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name })
-      return
-    }
-    bundleBusyRef.current = true
-    setBundleBusyId(bundle.id)
-    try {
-      let savedLogIds: string[]
-      try {
-        savedLogIds = await confirmRoutineGroup(entries)
-      } catch {
-        toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
-        return
-      }
-      // Ab hier ist gespeichert. Was danach scheitert, ist kein Speicherfehler.
-      try {
-        await afterRoutineGroupConfirmed(entries, savedLogIds)
-      } catch (error) {
-        if (error instanceof InventoryConfirmationError) {
-          toast.error(t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' }))
-        } else {
-          toast.success(t('einnahme_bestaetigt', { defaultValue: 'Einnahme bestätigt' }))
-        }
-      }
-    } finally {
-      bundleBusyRef.current = false
-      setBundleBusyId(null)
-    }
+  const openBundle = (bundle: IntakeBundle, items: RoutineIntake[]) => {
+    if (items.length === 0) return
+    const frueheste = items.reduce((min, item) => item.scheduledAt < min ? item.scheduledAt : min, items[0].scheduledAt)
+    routineCommitted.current = false
+    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime: format(new Date(frueheste), 'HH:mm') })
   }
 
   const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
@@ -1725,11 +1793,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         tabIndex={isPeek ? -1 : undefined}
         onClick={() => {
           // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
-          if (wurdeGewischt.current) return
+          // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
+          // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
+          if (wurdeGewischt.current || wischBlaettert.current) return
           selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
         }}
         className={[
-          'relative flex flex-col items-center gap-1.5 border-r border-b last:border-r-0 transition-all duration-150 select-none',
+          'tyd-press relative flex flex-col items-center gap-1.5 border-r border-b last:border-r-0 select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
           !inMonth ? 'opacity-20' : '',
           isPeek ? 'pointer-events-none' : '',
@@ -1816,7 +1886,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const nurDiese = periode.routineGroup
       ? { ...periode.routineGroup, items: periode.routineGroup.items.filter(item => item.key === slot.key) }
       : null
-    const zweitKnopf = 'flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] text-sm font-semibold text-slate-300 transition-colors hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300'
+    const zweitKnopf = 'tyd-press flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] text-sm font-semibold text-slate-300 transition-colors hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300'
 
     return (
       <div
@@ -1842,10 +1912,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
             <span
-              className="shrink-0 rounded-full transition-all duration-200"
+              className="h-2 w-2 shrink-0 rounded-full transition-[transform,box-shadow] duration-200 motion-reduce:transition-none"
               style={{
-                width: offen ? 10 : 8,
-                height: offen ? 10 : 8,
+                transform: offen ? 'scale(1.25)' : undefined,
                 background: farbe,
                 boxShadow: offen ? `0 0 12px ${farbe}80` : undefined,
               }}
@@ -1882,15 +1951,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </span>
             )}
           </button>
-          {/* Das gruene Haekchen ist der schnelle Weg fuer den Normalfall:
-              bestaetigen, ohne etwas zu aendern — ein Tap statt zwei.
+          {/* Das gruene Haekchen ist der kurze Weg: es oeffnet direkt das
+              Bestaetigungsblatt, ohne die Zeile erst aufzuklappen. Die Uhrzeit
+              wird dort bewusst immer abgefragt.
               Aufgeklappt waere es doppelt, dort steht „Eingenommen" gross. */}
           {!offen && (
             <button
               type="button"
               aria-label={`${c.stack_items?.display_name} ${String(t('eingenommen'))}`}
               onClick={() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key)}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/[0.14] text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              className="tyd-press flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/[0.14] text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
             >
               <Check size={18} aria-hidden="true" />
             </button>
@@ -1899,32 +1969,36 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
         <div
           data-due-panel
-          className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out motion-reduce:transition-none"
-          style={{ maxHeight: offen ? 420 : 0, opacity: offen ? 1 : 0 }}
+          data-open={offen ? '' : undefined}
+          className="tyd-collapse"
           aria-hidden={!offen}
         >
-          <div className="space-y-2 px-3 pb-3">
+          <div><div className="space-y-2 px-3 pb-3">
             <button
               type="button"
               tabIndex={offen ? undefined : -1}
               onClick={() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key)}
-              className="flex min-h-14 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              className="tyd-press flex min-h-14 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
             >
               <Check size={19} aria-hidden="true" />
               {isPastSelected ? t('dose_mark_taken', { defaultValue: 'Doch eingenommen' }) : t('eingenommen')}
             </button>
 
-            <button
-              type="button"
-              tabIndex={offen ? undefined : -1}
-              onClick={() => {
-                routineCommitted.current = false
-                if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
-              }}
-              className={zweitKnopf}
-            >
-              {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
-            </button>
+            {/* Unter der Zeitleiste hat das Bestaetigungsblatt ein Mengenfeld;
+                ein zweiter Weg zur selben Abweichung waere doppelt. */}
+            {!FEATURES.planTimelineV2 && (
+              <button
+                type="button"
+                tabIndex={offen ? undefined : -1}
+                onClick={() => {
+                  routineCommitted.current = false
+                  if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
+                }}
+                className={zweitKnopf}
+              >
+                {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
+              </button>
+            )}
 
             <button
               type="button"
@@ -1950,7 +2024,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('due_confirm_with_injection', { defaultValue: 'Mit Injektion tracken' })}
               </button>
             )}
-          </div>
+          </div></div>
         </div>
       </div>
     )
@@ -1961,20 +2035,25 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       log.taken === true
         ? 'bg-emerald-500/5 border-emerald-500/20'
         : log.taken === false
-          ? 'bg-red-500/5 border-red-500/20'
+          // Verpasst: Bernstein wie in der Tageszelle. Bewusst ausgelassen:
+          // neutral — das war eine Entscheidung, kein Fehler. Kein Rot.
+          ? log.notes === AUTO_MISSED_NOTE ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/[0.03] border-white/10'
           : 'bg-sky-500/5 border-sky-500/15'
     }`}>
       <div className="flex items-center gap-3">
-        <Syringe size={14} className={`shrink-0 ${
-          log.taken === true ? 'text-emerald-400' :
-          log.taken === false ? 'text-red-400' : 'text-sky-400'
-        }`} />
+        {(() => {
+          const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
+          return <Symbol size={14} aria-hidden="true" className={`shrink-0 ${
+            log.taken === true ? 'text-emerald-400' :
+            log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-amber-300' : 'text-slate-400') : 'text-sky-400'
+          }`} />
+        })()}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-white text-sm">{log.stack_items?.display_name ?? t('geloeschte_substanz')}</span>
             <span className={`text-xs font-semibold ${
               log.taken === true ? 'text-emerald-400' :
-              log.taken === false ? 'text-red-400' : 'text-sky-400'
+              log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-amber-300' : 'text-slate-400') : 'text-sky-400'
             }`}>{formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))}</span>
             <span className="text-slate-500 text-xs">{log.method}</span>
             {log.taken === true && (
@@ -1982,20 +2061,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <Check size={11} /> {t('eingenommen')}
               </span>
             )}
-            {log.taken === false && (
-              <span className="flex items-center gap-0.5 text-red-400 text-xs font-medium">
-                <XCircle size={11} /> {log.notes === AUTO_MISSED_NOTE
-                  ? t('verpasst', { defaultValue: 'Verpasst' })
-                  : t('uebersprungen')}
+            {log.taken === false && (log.notes === AUTO_MISSED_NOTE ? (
+              <span className="flex items-center gap-0.5 text-amber-300 text-xs font-medium">
+                <XCircle size={11} aria-hidden="true" /> {t('verpasst', { defaultValue: 'Verpasst' })}
               </span>
-            )}
+            ) : (
+              <span className="flex items-center gap-0.5 text-slate-400 text-xs font-medium">
+                <MinusCircle size={11} aria-hidden="true" /> {t('uebersprungen')}
+              </span>
+            ))}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-slate-500 text-xs">{timeLabel(log.logged_at, t)}</span>
             {log.notes && log.notes !== AUTO_MISSED_NOTE && <span className="text-slate-600 text-xs truncate">· {log.notes}</span>}
           </div>
         </div>
-        {(!FEATURES.planTimelineV2 || log.taken === null) && <button aria-label={t('eintrag_loeschen')} className="p-1.5 text-slate-600 hover:text-red-400 transition-colors shrink-0"
+        {(!FEATURES.planTimelineV2 || log.taken === null) && <button aria-label={t('eintrag_loeschen')} className="tyd-press -m-2 flex h-11 w-11 shrink-0 items-center justify-center text-slate-400 transition-colors hover:text-red-400"
           onClick={() => deleteLog(log)}>
           <X size={13} />
         </button>}
@@ -2005,12 +2086,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <div className="flex gap-2 mt-2 ml-[26px]">
           <button
             onClick={() => openConfirmSheet(undefined, log)}
-            className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-colors">
+            className="tyd-press flex min-h-9 items-center gap-1 text-xs px-3 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-colors">
             <Check size={11} /> {t('eingenommen')}
           </button>
           <button
             onClick={() => confirmDose(log, false)}
-            className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-red-500/15 text-red-400 border border-red-500/25 hover:bg-red-500/25 transition-colors">
+            className="tyd-press flex min-h-9 items-center gap-1 text-xs px-3 rounded-lg bg-white/[0.04] text-slate-300 border border-white/10 hover:bg-white/[0.08] transition-colors">
             <XCircle size={11} /> {t('uebersprungen')}
           </button>
         </div>
@@ -2098,7 +2179,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 type="button"
                 onClick={() => changeWeek(-1)}
                 aria-label={t('prev_week', { defaultValue: 'Vorherige Woche' })}
-                className="shrink-0 rounded-xl p-1.5 text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="tyd-press -my-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -2109,7 +2190,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 type="button"
                 onClick={() => changeWeek(1)}
                 aria-label={t('next_week', { defaultValue: 'Nächste Woche' })}
-                className="shrink-0 rounded-xl p-1.5 text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="tyd-press -my-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
                 <ChevronRight size={18} />
               </button>
@@ -2120,7 +2201,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               {!isTodaySelected && (
                 <button
                   type="button"
-                  className="rounded-xl border px-2.5 py-1.5 text-xs font-bold text-sky-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="tyd-press flex min-h-11 items-center rounded-xl border px-3 text-xs font-bold text-sky-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                   onClick={() => { setSelectedDay(new Date()); setCurrentDate(new Date()) }}
                   style={{ borderColor: 'var(--accent-border)', background: 'var(--accent-weak)' }}
                 >
@@ -2136,7 +2217,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 ref={monatsKnopf}
                 aria-label={t('calendar_open_month', { defaultValue: 'Monatsübersicht öffnen' })}
                 aria-haspopup="dialog"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="tyd-press flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
                 <CalendarDays size={17} />
               </button>
@@ -2152,13 +2233,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             onPointerCancel={handleCalendarPointerCancel}
           >
             <div
+              ref={streifenRef}
               className="grid select-none grid-cols-7 gap-1"
-              style={{
-                // Wischt man IM Blatt, rutschte sonst der Streifen dahinter mit.
-                transform: `translateX(${monatOffen ? 0 : calendarDragX}px)`,
-                transition: isDragging && !monatOffen ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                willChange: 'transform',
-              }}
+              style={{ willChange: 'transform' }}
             >
               {streifenTage.map((day, i) => renderDayCell({
                 day, monatsBezug: selectedDay, key: i, mitWochentag: true,
@@ -2167,12 +2244,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
             {peekDir !== 0 && !monatOffen && (
               <div
+                ref={streifenVorschauRef}
                 className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  willChange: 'transform',
-                }}
+                style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})`, willChange: 'transform' }}
               >
                 {peekCalendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: peekDate!, key: i, vorschau: true, mitWochentag: true,
@@ -2189,8 +2263,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {monatOffen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/60"
-            onClick={() => setMonatOffen(false)}
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={monatsBlattSchliessen.requestClose}
+            {...monatsBlattSchliessen.closingProps}
             aria-hidden="true"
           />
           <div
@@ -2199,7 +2274,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-modal="true"
             aria-label={monthTitle}
             tabIndex={-1}
-            className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border border-b-0 px-4 pb-8 pt-3 focus:outline-none"
+            {...monatsBlattSchliessen.closingProps}
+            className="tyd-sheet fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border border-b-0 px-4 pt-3 focus:outline-none"
             style={{ borderColor: 'var(--accent-border)', background: 'var(--surface)', boxShadow: '0 -12px 48px rgba(0,0,0,0.8)' }}
           >
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />
@@ -2211,7 +2287,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   type="button"
                   onClick={() => changeMonth(-1)}
                   aria-label={t('prev_month', { defaultValue: 'Vorheriger Monat' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="tyd-press flex h-11 w-11 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -2219,16 +2295,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   type="button"
                   onClick={() => changeMonth(1)}
                   aria-label={t('next_month', { defaultValue: 'Nächster Monat' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="tyd-press flex h-11 w-11 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
                   <ChevronRight size={18} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMonatOffen(false)}
+                  onClick={monatsBlattSchliessen.requestClose}
                   data-app-back-close
                   aria-label={t('close', { defaultValue: 'Schließen' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="tyd-press flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
                   <X size={18} />
                 </button>
@@ -2250,11 +2326,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               onPointerCancel={handleCalendarPointerCancel}
             >
               <div
+                ref={monatsRasterRef}
                 className="grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(${calendarDragX}px)`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                }}
               >
                 {calendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: currentDate, key: i, ohneAnker: true,
@@ -2263,11 +2336,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
               {peekDir !== 0 && (
                 <div
+                  ref={monatsVorschauRef}
                   className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                  style={{
-                    transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                    transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  }}
+                  style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})` }}
                 >
                   {peekCalendarDays.map((day, i) => renderDayCell({
                     day, monatsBezug: peekDate!, key: i, vorschau: true, ohneAnker: true,
@@ -2289,18 +2360,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               {selectedDayTitle}
             </h2>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400 tabular-nums">
-              {format(selectedDay, 'dd.MM.yyyy')}
+          {/* Steht der Tag schon im Titel, kein zweites Datum daneben. */}
+          {isTodaySelected && (
+            <span className="shrink-0 text-xs font-semibold text-slate-400">
+              {format(selectedDay, 'EEE, d. MMM', { locale })}
             </span>
-          </div>
+          )}
         </div>
 
         {FEATURES.planTimelineV2 && !timelineReady && (
           <div role={timelineLoadState === 'error' ? 'alert' : 'status'} className="mb-3 text-sm text-slate-400">
             {timelineLoadState === 'error' ? <>
               <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
-              <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
+              <button type="button" className="tyd-press mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
                 {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
               </button>
             </> : t('loading', { defaultValue: 'Lädt…' })}
@@ -2409,23 +2481,21 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               <button
                 type="button"
                 onClick={() => setBundleSheet(null)}
-                className="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-extrabold text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="tyd-press flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-extrabold text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
                 <Plus size={13} aria-hidden="true" />
                 {t('bundle_new', { defaultValue: 'Bündel' })}
               </button>
             </div>
             {bundleRows.map(({ bundle, itemIds, open }) => {
-              const busy = bundleBusyId === bundle.id
               const done = open.length === 0
               return (
                 <div key={bundle.id} className="flex items-stretch gap-2">
                   <button
                     type="button"
-                    disabled={done || Boolean(bundleBusyId)}
-                    aria-busy={busy || undefined}
-                    onClick={() => void confirmBundle(bundle, open)}
-                    className={`flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-default ${done
+                    disabled={done}
+                    onClick={() => openBundle(bundle, open)}
+                    className={`tyd-press flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-default ${done
                       ? 'border-white/10 bg-white/[0.03]'
                       : 'border-emerald-500/30 bg-emerald-500/[0.12] hover:bg-emerald-500/20'}`}
                   >
@@ -2439,8 +2509,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                           ? t('bundle_no_items', { defaultValue: 'Keine Substanzen mehr im Bündel' })
                           : done
                           ? t('bundle_nothing_open', { defaultValue: 'Nichts offen' })
-                          : busy
-                          ? t('bundle_confirming', { defaultValue: 'Wird bestätigt …' })
                           : t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: open.length })}
                       </span>
                     </span>
@@ -2449,7 +2517,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     type="button"
                     aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
                     onClick={() => setBundleSheet(bundle)}
-                    className="flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                    className="tyd-press flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                   >
                     <Pencil size={15} aria-hidden="true" />
                   </button>
@@ -2470,26 +2538,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             wird AN ORT UND STELLE, damit nichts springt. */}
         {offeneGruppen.map(gruppe => (
           <div key={gruppe.key} className="mb-3 space-y-2">
+            {/* Gemeinsam bestaetigt wird ueber die eigenen Bündel oben; die
+                Tageszeit ist hier nur noch Ueberschrift. */}
             <div className="flex items-center justify-between gap-3 px-1">
               <p className="flex min-w-0 items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.12em] text-sky-300">
                 {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
                 <span className="truncate">{gruppe.label}</span>
               </p>
-              {/* Ab zwei Einnahmen im selben Zeitfenster lohnt der Sammelweg:
-                  sonst druecke man denselben Knopf zehnmal. */}
-              {gruppe.slots.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    routineCommitted.current = false
-                    if (gruppe.routineGroup) setRoutineGroupSheet(gruppe.routineGroup)
-                  }}
-                  className="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.12] px-3 text-[11px] font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-                >
-                  <Check size={13} aria-hidden="true" />
-                  {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
-                </button>
-              )}
             </div>
             {gruppe.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
           </div>
@@ -2502,7 +2557,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               type="button"
               onClick={() => setCompletedExpanded(expanded => !expanded)}
               aria-expanded={completedExpanded}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2.5 text-left transition-colors hover:bg-emerald-500/10"
+              className="tyd-press flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2.5 text-left transition-colors hover:bg-emerald-500/10"
             >
               <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-300/80">
@@ -2535,10 +2590,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               type="button"
               onClick={() => setUnloggedExpanded(expanded => !expanded)}
               aria-expanded={unloggedExpanded}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2.5 text-left transition-colors hover:bg-red-500/10"
+              className="tyd-press flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
             >
               <div className="min-w-0">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-red-300/80">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-300">
                   {t('unlogged_intakes_title', { defaultValue: 'Nicht protokolliert' })}
                 </p>
                 <p className="text-xs text-slate-500">
@@ -2546,12 +2601,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300">
+                <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs font-bold text-slate-300">
                   {unloggedLogs.length}
                 </span>
                 <ChevronDown
                   size={16}
-                  className={`text-red-300/80 transition-transform duration-200 ${unloggedExpanded ? 'rotate-180' : ''}`}
+                  className={`text-slate-400 transition-transform duration-200 ${unloggedExpanded ? 'rotate-180' : ''}`}
                 />
               </div>
             </button>
@@ -2564,7 +2619,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         )}
         {loggedLogs.length === 0 && unloggedLogs.length === 0 && dueSlots.length === 0 && selCycles.length === 0 && selOnDemand.length === 0 && !selectedPause
           && timezoneReviewStackItemIds.length === 0 && (!FEATURES.planTimelineV2 || timelineReady) ? (
-          <p className="text-slate-600 text-sm text-center py-4">
+          <p className="text-slate-400 text-sm text-center py-4">
             {isTodaySelected ? t('noch_nichts_heute') : t('kein_eintrag_tag')}
           </p>
         ) : null}
@@ -2600,7 +2655,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     onClick={() => FEATURES.planTimelineV2
                       ? openConfirmSheet(cycle, undefined, format(new Date(), 'HH:mm'))
                       : void confirmCycleDose(cycle, true, new Date().toISOString())}
-                    className="min-h-11 shrink-0 cursor-pointer rounded-xl border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors duration-200 hover:bg-emerald-400/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 motion-reduce:transition-none"
+                    className="tyd-press min-h-11 shrink-0 cursor-pointer rounded-xl border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors duration-200 hover:bg-emerald-400/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 motion-reduce:transition-none"
                   >
                     {t('eingenommen', { defaultValue: 'Eingenommen' })}
                   </button>
@@ -2617,6 +2672,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {routineGroupSheet && (
         <RoutineConfirmationSheet
           group={routineGroupSheet}
+          initialTime={routineGroupSheet.initialTime}
           onClose={() => setRoutineGroupSheet(null)}
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
@@ -2637,43 +2693,49 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {/* ── Einnahme-Zeitpunkt-Sheet ──────────────────────────────────────── */}
       {confirmSheet && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setConfirmSheet(null)} />
+          <div
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={bestaetigenSchliessen.requestClose}
+            {...bestaetigenSchliessen.closingProps}
+          />
           <div
             data-app-modal
             data-app-back-dirty-on-interaction
             role="dialog"
             aria-modal="true"
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border border-white/10 pb-10"
+            aria-labelledby="confirm-sheet-title"
+            {...bestaetigenSchliessen.closingProps}
+            className="tyd-sheet fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border border-white/10"
             style={{ background: 'var(--surface)' }}
           >
             <div style={{ padding: '20px 18px 0' }}>
               <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20" />
               <div className="flex items-center gap-2 mb-1">
                 <Check size={15} className="text-emerald-400" />
-                <h2 className="text-base font-black text-white">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
+                <h2 id="confirm-sheet-title" className="text-base font-black text-white">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
               </div>
               <p className="text-xs text-slate-500 mb-5">
                 {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen? Vorausgefüllt mit der geplanten Zykluszeit.' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-[0.6rem] font-bold uppercase tracking-widest text-slate-500">
+                <label htmlFor="confirm-sheet-time" className="text-[0.6rem] font-bold uppercase tracking-widest text-slate-500">
                   {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                 </label>
                 <button
                   type="button"
                   onClick={() => setConfirmTime(format(new Date(), 'HH:mm'))}
-                  className="flex items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[0.65rem] font-bold text-sky-400 transition-colors hover:bg-sky-500/20"
+                  className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-400 transition-colors hover:bg-sky-500/20"
                 >
                   <Clock size={11} />
                   {t('confirm_time_now', { defaultValue: 'Jetzt' })}
                 </button>
               </div>
               <input
+                id="confirm-sheet-time"
                 type="time"
                 value={confirmTime}
                 onChange={e => setConfirmTime(e.target.value)}
-                className={`w-full rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white outline-none focus:border-sky-500/50 transition-colors ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
-                style={{ background: 'var(--surface-input)', colorScheme: 'dark' }}
+                className={`input min-h-11 text-base font-bold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
               />
               {confirmUnit != null && (
                 <>
@@ -2694,21 +2756,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                       aria-label={String(t('confirm_sheet_dose_label', { defaultValue: 'Menge' }))}
                       value={confirmDoseText}
                       onChange={e => setConfirmDoseText(e.target.value)}
-                      className="min-w-0 flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white outline-none focus:border-sky-500/50 transition-colors"
-                      style={{ background: 'var(--surface-input)', colorScheme: 'dark' }}
+                      className="input min-h-11 min-w-0 flex-1 text-base font-bold"
                     />
                     <span className="text-sm font-bold text-slate-300">{confirmUnit}</span>
                   </div>
                 </>
               )}
               <div className="flex gap-3">
-                <button onClick={() => setConfirmSheet(null)} data-app-back-close className="btn-secondary flex-1">
+                <button onClick={bestaetigenSchliessen.requestClose} data-app-back-close className="tyd-press btn-secondary flex-1">
                   {t('cancel', { defaultValue: 'Abbrechen' })}
                 </button>
                 <button
                   onClick={() => { if (!confirmDoseUngueltig) void handleConfirmSheet() }}
                   {...denyProps(confirmDoseUngueltig)}
-                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  className="tyd-press btn-primary flex-1 flex items-center justify-center gap-2"
                 >
                   <Check size={14} /> {t('eingenommen', { defaultValue: 'Eingenommen' })}
                 </button>

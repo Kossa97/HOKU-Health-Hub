@@ -2354,7 +2354,6 @@
   "bundle_delete_confirm": "Really delete?",
   "bundle_no_items": "No substances left in this bundle",
   "bundle_nothing_open": "Nothing open",
-  "bundle_confirming": "Confirming …",
   "bundle_confirm_open": "Confirm {{n}}",
   "bundle_empty_hint": "Group substances you take together into a bundle and confirm them with a single tap."
 }
