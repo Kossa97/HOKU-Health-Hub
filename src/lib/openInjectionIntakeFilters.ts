@@ -1,6 +1,7 @@
 import type { InjectionIntakeStatus, OpenInjectionIntake } from './injectionPersistence'
 
-export type IntakeHistoryDays = 0 | 1 | 7 | 14 | 30 | 60 | 90 | 'all'
+// Offene Einnahmen reichen nur INJECTION_INTAKE_LOOKBACK_DAYS zurueck; 'all' = alles Geladene.
+export type IntakeHistoryDays = 0 | 1 | 7 | 14 | 'all'
 export type IntakeSortOrder = 'newest' | 'oldest'
 export type IntakeStatusFilter = InjectionIntakeStatus | 'all'
 

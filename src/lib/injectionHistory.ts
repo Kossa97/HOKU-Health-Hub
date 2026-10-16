@@ -2,7 +2,10 @@ import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { InjectionLog3D } from './injectionLogTypes'
 import { BODY_LANDMARKS as L } from './injectionGeometry'
 
-export type InjectionHistoryDays = 7 | 14 | 30 | 60 | 90 | 'all'
+// Karte und Verlauf. 30 Tage reichen auch fuer woechentliche Spritzen (die
+// letzten 4 Stellen); fuer alles Aeltere gibt es „Alle“.
+export const INJECTION_HISTORY_DAY_OPTIONS = [7, 14, 30] as const
+export type InjectionHistoryDays = typeof INJECTION_HISTORY_DAY_OPTIONS[number] | 'all'
 
 export function filterInjectionHistory(
   logs: InjectionLog3D[],

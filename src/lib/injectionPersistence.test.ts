@@ -397,6 +397,11 @@ describe('injectionIntakeLookbackStart', () => {
       '2026-06-18T22:00:00.000Z',
     )
   })
+  it('reaches back two weeks by default, not months', () => {
+    expect(injectionIntakeLookbackStart(new Date('2026-06-26T15:30:00.000Z')).toISOString()).toBe(
+      '2026-06-11T22:00:00.000Z',
+    )
+  })
 })
 describe('buildSelectableInjectionIntakes', () => {
   const cycle = {

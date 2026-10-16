@@ -280,7 +280,7 @@ export function InjectionLogSheet({
                         setHistoryDays(value === 'all' ? 'all' : Number(value) as IntakeHistoryDays)
                         setSelectedKey('')
                       }}>
-                        {[7, 14, 30, 60, 90].map(days => (
+                        {[7, 14].map(days => (
                           <option key={days} value={days}>{t('injection_history_days', { days, defaultValue: `${days} Tage` })}</option>
                         ))}
                         <option value="all">{t('injection_history_all', { defaultValue: 'Alle' })}</option>

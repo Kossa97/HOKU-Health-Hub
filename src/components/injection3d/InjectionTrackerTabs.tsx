@@ -13,7 +13,7 @@ import {
 } from '../../lib/openInjectionIntakeFilters'
 import { HistoryDaysSelect, InjectionHistorySheet } from './InjectionHistorySheet'
 
-const OPEN_DAYS_OPTIONS: IntakeHistoryDays[] = [0, 1, 7, 14, 30, 60, 90]
+const OPEN_DAYS_OPTIONS: IntakeHistoryDays[] = [0, 1, 7, 14]
 
 export function InjectionTrackerTabs({
   logs,

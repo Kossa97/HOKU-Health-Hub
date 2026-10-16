@@ -381,7 +381,14 @@ function openIntakeSlotKey(open: { stackItemId: string; dateKey: string; minutes
   return `${open.stackItemId}|${open.dateKey}|${open.minutes}`
 }
 
-export function injectionIntakeLookbackStart(now: Date, lookbackDays = 90): Date {
+/**
+ * Wie weit offene und bestaetigte Einnahmen ohne Stelle zurueckreichen. Eine
+ * Stelle Wochen spaeter nachzutragen, ist unrealistisch; gespeicherte
+ * Injektionen sind davon nicht betroffen.
+ */
+export const INJECTION_INTAKE_LOOKBACK_DAYS = 14
+
+export function injectionIntakeLookbackStart(now: Date, lookbackDays = INJECTION_INTAKE_LOOKBACK_DAYS): Date {
   return startOfDay(subDays(now, lookbackDays))
 }
 export function buildSelectableInjectionIntakes({
@@ -390,7 +397,7 @@ export function buildSelectableInjectionIntakes({
   linkedDoseLogIds,
   escalations,
   now,
-  lookbackDays = 90,
+  lookbackDays = INJECTION_INTAKE_LOOKBACK_DAYS,
   timelines,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: {
