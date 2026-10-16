@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Camera, Plus, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { DateRange, ProgressPhotoEntry } from '../../types'
 import { buildPhotoSlots, photoPreviewColumns } from '../../lib/photoPreview'
 import { filterByDateRange } from '../../lib/range'
+import { formatDaySafe } from '../../lib/dates'
 import { panel, sectionLabel } from '../../styles'
 import { FotosTab } from './FotosTab'
 
@@ -67,6 +69,7 @@ interface Props {
 }
 
 export function FotosCard({ photos, range, onChange }: Props) {
+  const { t } = useTranslation()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const inRange = useMemo(
@@ -83,15 +86,15 @@ export function FotosCard({ photos, range, onChange }: Props) {
       <section style={{ ...panel, padding: '14px 14px 12px', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div>
-            <p style={{ ...sectionLabel, margin: 0 }}>Fotos</p>
+            <p style={{ ...sectionLabel, margin: 0 }}>{t('fortschritt_photos')}</p>
             <p style={{ margin: '3px 0 0', fontSize: '0.58rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
-              Fotos im ausgewählten Zeitraum
+              {t('fortschritt_photos_in_range')}
             </p>
           </div>
           <button
             type="button"
             onClick={() => setSheetOpen(true)}
-            aria-label="Foto hinzufügen"
+            aria-label={t('fortschritt_photo_add')}
             style={{
               width: 28,
               height: 28,
@@ -115,7 +118,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
                 key={slot.photo.id}
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                aria-label={slot.inRange ? 'Foto anzeigen' : 'Foto außerhalb des Zeitraums'}
+                aria-label={slot.inRange ? t('fortschritt_photo_show') : t('fortschritt_photo_outside')}
                 style={{
                   position: 'relative',
                   minHeight: 0,
@@ -129,12 +132,12 @@ export function FotosCard({ photos, range, onChange }: Props) {
               >
                 <img
                   src={slot.photo.display_url}
-                  alt={slot.inRange ? slot.photo.taken_at : 'Foto nicht im ausgewählten Zeitraum'}
+                  alt={slot.inRange ? formatDaySafe(slot.photo.taken_at, 'full') : t('fortschritt_photo_outside_alt')}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: slot.inRange ? undefined : 'blur(8px)', transform: slot.inRange ? undefined : 'scale(1.08)' }}
                 />
                 {!slot.inRange && (
-                  <span lang="de" style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', padding: '5px 7px', background: 'rgba(2, 6, 23, 0.42)', color: 'var(--text)', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
-                    <PhotoPeriodMarquee>Nicht im ausgewählten Zeitraum</PhotoPeriodMarquee>
+                  <span style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', padding: '5px 7px', background: 'rgba(2, 6, 23, 0.42)', color: 'var(--text)', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center' }}>
+                    <PhotoPeriodMarquee>{t('fortschritt_photo_outside_label')}</PhotoPeriodMarquee>
                   </span>
                 )}
               </button>
@@ -145,7 +148,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
             <button
               type="button"
               onClick={() => setSheetOpen(true)}
-              aria-label="Foto hinzufügen"
+              aria-label={t('fortschritt_photo_add')}
               style={{ width: 64, height: 64, borderRadius: 16, border: '1px dashed var(--accent-border)', background: 'var(--accent-weak)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
               <Plus size={22} />
@@ -168,11 +171,11 @@ export function FotosCard({ photos, range, onChange }: Props) {
               padding: 0,
             }}
           >
-            Alle anzeigen ({photos.length})
+            {t('fortschritt_photos_show_all', { n: photos.length })}
           </button>
         ) : (
           <button type="button" onClick={() => setSheetOpen(true)} className="btn-secondary" style={{ marginTop: 10, fontSize: '0.72rem', padding: '8px 10px' }}>
-            <Camera size={14} /> Foto hinzufügen
+            <Camera size={14} /> {t('fortschritt_photo_add')}
           </button>
         )}
       </section>
@@ -197,7 +200,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
             <button
               type="button"
               onClick={() => setSheetOpen(false)}
-              aria-label="Schließen"
+              aria-label={t('close')}
               style={{
                 width: 36,
                 height: 36,

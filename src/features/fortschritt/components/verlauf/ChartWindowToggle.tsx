@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { CHART_WINDOWS, type ChartWindowKey } from '../../lib/chartWindow'
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 
 /** 30T/3M-Umschalter für das Sichtfenster des Verlaufs-Charts. */
 export function ChartWindowToggle({ value, onChange }: Props) {
+  const { t } = useTranslation()
   return (
     <div style={{ display: 'flex', gap: 4 }}>
       {CHART_WINDOWS.map(win => {
@@ -28,7 +30,7 @@ export function ChartWindowToggle({ value, onChange }: Props) {
               border: on ? '1px solid var(--accent-border)' : '1px solid var(--border)',
             }}
           >
-            {win.label}
+            {t(`fortschritt_window_${win.key}`)}
           </button>
         )
       })}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { panel } from '../../styles'
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function EmptyOverview({ onLogToday }: Props) {
+  const { t } = useTranslation()
   return (
     <section style={{ ...panel, padding: '28px 20px', textAlign: 'center' }}>
       <div style={{
@@ -23,15 +25,15 @@ export function EmptyOverview({ onLogToday }: Props) {
         <TrendingUp size={28} color="var(--accent)" />
       </div>
       <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: 8 }}>
-        Dein Fortschritt beginnt hier
+        {t('fortschritt_empty_title')}
       </h2>
       <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
-        Tracke täglich wie sich dein Körper entwickelt — im Kontext deiner aktiven Substanzen.
+        {t('fortschritt_empty_body')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, textAlign: 'left' }}>
-        <Step n={1} text="Substanz oder Zyklus anlegen" />
-        <Step n={2} text="Ersten Tag mit + Heute loggen" />
+        <Step n={1} text={t('fortschritt_empty_step_substance')} />
+        <Step n={2} text={t('fortschritt_empty_step_log')} />
       </div>
 
       <Link
@@ -39,10 +41,10 @@ export function EmptyOverview({ onLogToday }: Props) {
         className="btn-primary"
         style={{ display: 'block', width: '100%', marginBottom: 10, textAlign: 'center' }}
       >
-        Zyklus anlegen →
+        {t('fortschritt_create_cycle')}
       </Link>
       <button type="button" className="btn-secondary" style={{ width: '100%' }} onClick={onLogToday}>
-        Ersten Tag loggen
+        {t('fortschritt_log_first_day')}
       </button>
     </section>
   )
@@ -80,6 +82,7 @@ function Step({ n, text }: { n: number; text: string }) {
 }
 
 export function NoSubstancesBanner() {
+  const { t } = useTranslation()
   return (
     <section style={{
       ...panel,
@@ -88,10 +91,10 @@ export function NoSubstancesBanner() {
       background: 'rgba(0,204,245,0.05)',
     }}>
       <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-dim)', lineHeight: 1.45, marginBottom: 10 }}>
-        Ohne aktive Substanz siehst du nur deine Werte — ohne Kontext. Lege einen Zyklus an, um Zusammenhänge zu sehen.
+        {t('fortschritt_no_substances_banner')}
       </p>
       <Link to="/my-stack" style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent)' }}>
-        Zyklus anlegen →
+        {t('fortschritt_create_cycle')}
       </Link>
     </section>
   )

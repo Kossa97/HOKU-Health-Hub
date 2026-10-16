@@ -1,11 +1,14 @@
 import { SlidersHorizontal } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   onClick: () => void
   label?: string
 }
 
-export function ChartSettingsButton({ onClick, label = 'Einstellen' }: Props) {
+export function ChartSettingsButton({ onClick, label: labelProp }: Props) {
+  const { t } = useTranslation()
+  const label = labelProp ?? t('fortschritt_chart_settings')
   return (
     <button
       type="button"

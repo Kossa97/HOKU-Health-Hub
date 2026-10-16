@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom'
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
+import { reportError } from '../../../lib/monitoring'
 import type { DailyLogEntry, WeightLogEntry } from '../types'
 import { fieldLabel } from '../styles'
 import { dateFieldStyle, WELLNESS_SLIDER_CSS, WellnessSliderRow } from './WellnessSliderRow'
@@ -14,6 +16,7 @@ import {
   type SavedLogFormValues,
 } from '../lib/metricDefaults'
 import { useScrollLock } from '../hooks/useScrollLock'
+import { formatNumber } from '../lib/dates'
 
 const SHEET_Z = 10070
 
@@ -68,6 +71,7 @@ interface Props {
 }
 
 export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Props) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [date, setDate] = useState(todayStr())
   const [energie, setEnergie] = useState<number | null>(null)
@@ -117,7 +121,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     const hasWeight = weight != null
 
     if (!hasWellness && !hasWeight) {
-      toast.error('Bitte mindestens einen Wert eintragen')
+      toast.error(t('fortschritt_need_value'))
       return
     }
 
@@ -138,7 +142,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
         .upsert(payload, { onConflict: 'user_id,log_date' })
       if (error) {
         setSaving(false)
-        toast.error(`Speichern fehlgeschlagen: ${error.message}`)
+        reportError(error, 'fortschritt.daily-log-save')
+        toast.error(t('fortschritt_save_failed'))
         return
       }
     }
@@ -149,14 +154,15 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
       const kg = weight
       if (!Number.isFinite(kg)) {
         setSaving(false)
-        toast.error('Ungültiges Gewicht')
+        toast.error(t('fortschritt_weight_invalid'))
         return
       }
       if (weightRowId) {
         const { error } = await supabase.from('weight_logs').update({ weight_kg: kg }).eq('id', weightRowId)
         if (error) {
           setSaving(false)
-          toast.error(`Gewicht speichern fehlgeschlagen: ${error.message}`)
+          reportError(error, 'fortschritt.weight-save')
+          toast.error(t('fortschritt_weight_save_failed'))
           return
         }
       } else {
@@ -167,7 +173,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
         }).select('id').single()
         if (error) {
           setSaving(false)
-          toast.error(`Gewicht speichern fehlgeschlagen: ${error.message}`)
+          reportError(error, 'fortschritt.weight-save')
+          toast.error(t('fortschritt_weight_save_failed'))
           return
         }
         savedWeightRowId = data?.id != null ? String(data.id) : null
@@ -186,7 +193,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     }
     setSavedValues(nextSavedValues)
     writeStoredSavedValues(user.id, nextSavedValues)
-    toast.success('Fortschritt gespeichert')
+    toast.success(t('fortschritt_saved'))
     await onSaved()
     setSaving(false)
     onClose()
@@ -194,10 +201,10 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
 
   /** Unten → oben: häufigste Eingaben stehen zuletzt (Daumen-Zone). */
   const sliders = [
-    { label: 'Libido', value: libido, set: setLibido },
-    { label: 'Wohlbefinden', value: wohlbefinden, set: setWohlbefinden },
-    { label: 'Schlafqualität', value: schlaf, set: setSchlaf },
-    { label: 'Energie', value: energie, set: setEnergie },
+    { key: 'libido', label: t('fortschritt_metric_libido'), value: libido, set: setLibido },
+    { key: 'wohlbefinden', label: t('fortschritt_metric_wohlbefinden'), value: wohlbefinden, set: setWohlbefinden },
+    { key: 'schlaf', label: t('fortschritt_metric_schlaf_quality'), value: schlaf, set: setSchlaf },
+    { key: 'energie', label: t('fortschritt_metric_energie'), value: energie, set: setEnergie },
   ]
 
   return createPortal(
@@ -243,7 +250,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
                 marginBottom: 10,
               }}
             >
-              Fortschritt eintragen
+              {t('fortschritt_log_title')}
             </h2>
 
             <div style={{
@@ -256,7 +263,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
               background: 'var(--surface-input)',
               border: '1px solid var(--border)',
             }}>
-              <label style={{ ...fieldLabel, marginBottom: 0, flexShrink: 0 }}>Datum</label>
+              <label style={{ ...fieldLabel, marginBottom: 0, flexShrink: 0 }}>{t('fortschritt_date')}</label>
               <input
                 type="date"
                 value={date}
@@ -268,7 +275,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
 
             {sliders.map(s => (
               <WellnessSliderRow
-                key={s.label}
+                key={s.key}
                 label={s.label}
                 value={s.value}
                 onChange={s.set}
@@ -277,25 +284,25 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
               <MetricWheelPicker
-                label="Gewicht"
+                label={t('fortschritt_metric_weight')}
                 unit="kg"
                 value={weight}
                 onChange={setWeight}
                 min={40}
                 max={200}
-                placeholder="82,5"
+                placeholder={formatNumber(82.5)}
                 defaultValue={82.5}
                 open={openMetric === 'weight'}
                 onOpenChange={next => setOpenMetric(next ? 'weight' : null)}
               />
               <MetricWheelPicker
-                label="KFA"
+                label={t('fortschritt_metric_body_fat_short')}
                 unit="%"
                 value={bodyFat}
                 onChange={setBodyFat}
                 min={3}
                 max={60}
-                placeholder="18,5 %"
+                placeholder={`${formatNumber(18.5)} %`}
                 defaultValue={18.5}
                 wheelSuffix="%"
                 open={openMetric === 'bodyFat'}
@@ -321,13 +328,13 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
             className="btn-primary"
             style={{ flex: 1, minWidth: 0 }}
           >
-            {saving ? 'Speichern…' : 'Speichern'}
+            {saving ? t('fortschritt_saving') : t('save')}
           </button>
           <button
             type="button"
             onClick={onClose}
             data-app-back-close
-            aria-label="Schließen"
+            aria-label={t('close')}
             style={{
               display: 'flex',
               alignItems: 'center',

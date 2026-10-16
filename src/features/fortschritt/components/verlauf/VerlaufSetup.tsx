@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import type { CycleSubstance } from '../../types'
 import { formatDaySafe } from '../../lib/dates'
 import {
@@ -20,9 +22,9 @@ interface Props {
   embedded?: boolean
 }
 
-function formatCycleLabel(cycle: CycleSubstance): string {
+function formatCycleLabel(cycle: CycleSubstance, t: TFunction): string {
   const start = formatDaySafe(cycle.startDate)
-  const end = cycle.endDate ? formatDaySafe(cycle.endDate) : 'offen'
+  const end = cycle.endDate ? formatDaySafe(cycle.endDate) : t('fortschritt_cycle_open')
   return `${start} – ${end}`
 }
 
@@ -89,13 +91,14 @@ function CycleRow({
   checked: boolean
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <CheckRow
       color={color}
       checked={checked}
       onToggle={onToggle}
-      title={formatCycleLabel(cycle)}
-      subtitle={cycle.active ? 'aktiv' : 'beendet'}
+      title={formatCycleLabel(cycle, t)}
+      subtitle={cycle.active ? t('fortschritt_cycle_active') : t('fortschritt_cycle_ended')}
     />
   )
 }
@@ -117,6 +120,7 @@ function CollapseHeader({
   indent?: number
   muted?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <button
       type="button"
@@ -149,7 +153,7 @@ function CollapseHeader({
         )}
         {!open && selectedCount != null && selectedCount > 0 && (
           <span style={{ marginLeft: 6, color: 'var(--accent)', fontWeight: 800 }}>
-            · {selectedCount} angezeigt
+            {t('fortschritt_shown_count', { n: selectedCount })}
           </span>
         )}
       </span>
@@ -210,6 +214,7 @@ function SubstanceCheckbox({
   color: string
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <input
       type="checkbox"
@@ -218,7 +223,7 @@ function SubstanceCheckbox({
         if (el) el.indeterminate = state === 'partial'
       }}
       onChange={onToggle}
-      aria-label={state === 'all' ? 'Substanz ausblenden' : 'Substanz einblenden'}
+      aria-label={state === 'all' ? t('fortschritt_substance_hide') : t('fortschritt_substance_show')}
       style={{ accentColor: color, width: 18, height: 18, flexShrink: 0, cursor: 'pointer' }}
     />
   )
@@ -231,6 +236,7 @@ export function VerlaufSetup({
   onToggleCycle,
   embedded = false,
 }: Props) {
+  const { t } = useTranslation()
   const [substancesPanelOpen, setSubstancesPanelOpen] = useState(false)
   const [openSubstances, setOpenSubstances] = useState<Set<string>>(() => new Set())
   const [openSections, setOpenSections] = useState<Set<string>>(() => new Set())
@@ -254,7 +260,7 @@ export function VerlaufSetup({
   }
 
   const hasCycles = groups.some(g => g.cycles.length > 0 || g.ongoing)
-  const summary = buildSubstancesSummary(groups, visibleIds)
+  const summary = buildSubstancesSummary(groups, visibleIds, t)
 
   const wrapperStyle = embedded
     ? { display: 'flex', flexDirection: 'column' as const, gap: 18 }
@@ -290,7 +296,7 @@ export function VerlaufSetup({
               color: 'var(--text-dim)',
               flex: 1,
             }}>
-              Substanzen hinzufügen
+              {t('fortschritt_add_substances')}
             </span>
             {!substancesPanelOpen && (
               <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)' }}>
@@ -338,7 +344,7 @@ export function VerlaufSetup({
                     />
                     <button
                       type="button"
-                      aria-label={substanceOpen ? 'Zyklen zuklappen' : 'Zyklen aufklappen'}
+                      aria-label={substanceOpen ? t('fortschritt_cycles_collapse') : t('fortschritt_cycles_expand')}
                       aria-expanded={substanceOpen}
                       onClick={() => toggleSubstance(group.key)}
                       style={{
@@ -388,14 +394,14 @@ export function VerlaufSetup({
                           color={group.color}
                           checked={visibleIds.has(group.ongoing.id)}
                           onToggle={() => onToggleCycle(group.ongoing!.id)}
-                          title={`seit ${formatDaySafe(group.ongoing.startDate)}`}
-                          subtitle="dauerhaft"
+                          title={t('fortschritt_since', { date: formatDaySafe(group.ongoing.startDate) })}
+                          subtitle={t('fortschritt_ongoing')}
                         />
                       )}
 
                       {active.length > 0 && (
                         <CycleSection
-                          label="Aktive Zyklen"
+                          label={t('fortschritt_active_cycles')}
                           cycles={active}
                           color={group.color}
                           open={activeOpen}
@@ -407,7 +413,7 @@ export function VerlaufSetup({
 
                       {inactive.length > 0 && (
                         <CycleSection
-                          label="Beendete Zyklen"
+                          label={t('fortschritt_ended_cycles')}
                           cycles={inactive}
                           color={group.color}
                           open={inactiveOpen}
@@ -441,14 +447,18 @@ function groupDefaultCounts(
   }
 }
 
-function buildSubstancesSummary(groups: SubstanceCycleGroup[], visibleIds: VisibleChartIds): string {
+function buildSubstancesSummary(groups: SubstanceCycleGroup[], visibleIds: VisibleChartIds, t: TFunction): string {
   const selected = groups.filter(g => substanceCheckboxState(g, visibleIds) !== 'none').length
   const activeCycles = groups.reduce((sum, g) => {
     const { active } = partitionCyclesForDisplay(g.cycles)
     return sum + active.filter(c => visibleIds.has(c.id)).length
   }, 0)
   const parts: string[] = []
-  if (selected > 0) parts.push(`${selected} ${selected === 1 ? 'Substanz' : 'Substanzen'}`)
-  if (activeCycles > 0) parts.push(`${activeCycles} ${activeCycles === 1 ? 'aktiver Zyklus' : 'aktive Zyklen'}`)
-  return parts.length > 0 ? parts.join(' · ') : 'Nichts ausgewählt'
+  if (selected > 0) {
+    parts.push(t(selected === 1 ? 'fortschritt_summary_substances_singular' : 'fortschritt_summary_substances_plural', { n: selected }))
+  }
+  if (activeCycles > 0) {
+    parts.push(t(activeCycles === 1 ? 'fortschritt_summary_cycles_singular' : 'fortschritt_summary_cycles_plural', { n: activeCycles }))
+  }
+  return parts.length > 0 ? parts.join(' · ') : t('fortschritt_summary_none')
 }

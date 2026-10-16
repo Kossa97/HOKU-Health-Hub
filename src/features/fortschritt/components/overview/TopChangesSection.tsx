@@ -1,6 +1,9 @@
 import { useRef, type CSSProperties } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MetricChange } from '../../types'
 import { panel, sectionLabel } from '../../styles'
+import { metricLabel } from '../../lib/metricLabels'
+import { formatNumber, formatSignedNumber } from '../../lib/dates'
 
 const TOP_CHANGES_MOTION_CSS = `
   @keyframes fortschritt-change-card-enter {
@@ -63,6 +66,7 @@ interface Props {
 }
 
 export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, animationKey, onSelect }: Props) {
+  const { t } = useTranslation()
   const initialAnimationKey = useRef(animationKey)
   const hasRefreshed = useRef(false)
   if (animationKey !== initialAnimationKey.current) hasRefreshed.current = true
@@ -70,30 +74,30 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, anim
 
   return (
     <section style={{ ...panel, padding: '14px 14px 16px' }}>
-      <p style={{ ...sectionLabel, marginBottom: 2 }}>Größte Veränderungen</p>
+      <p style={{ ...sectionLabel, marginBottom: 2 }}>{t('fortschritt_top_changes')}</p>
       <style>{TOP_CHANGES_MOTION_CSS}</style>
       <p style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 12 }}>
-        im gewählten Zeitraum
+        {t('fortschritt_top_changes_sub')}
       </p>
 
       {!hasAnyData && (
         <EmptyMessage
-          title="Noch keine Werte erfasst"
-          body="Starte mit + Heute — dauert unter 30 Sekunden."
+          title={t('fortschritt_no_values_title')}
+          body={t('fortschritt_no_values_body')}
         />
       )}
 
       {hasAnyData && !hasEnoughForTrend && (
         <EmptyMessage
-          title="Noch zu wenig Daten"
-          body="Logge ein paar Tage mit + Heute, um Trends zu sehen."
+          title={t('fortschritt_little_data_title')}
+          body={t('fortschritt_little_data_body')}
         />
       )}
 
       {hasAnyData && hasEnoughForTrend && changes.length === 0 && (
         <EmptyMessage
-          title="Alles stabil im Zeitraum"
-          body="Keine Metrik hat sich merklich verändert."
+          title={t('fortschritt_stable_title')}
+          body={t('fortschritt_stable_body')}
         />
       )}
 
@@ -125,6 +129,7 @@ function ChangeCard({
   index: number
   onSelect?: (key: string) => void
 }) {
+  const { t } = useTranslation()
   const deltaColor = change.delta > 0 ? '#10b981' : change.delta < 0 ? '#f59e0b' : 'var(--text-muted)'
 
   return (
@@ -147,7 +152,7 @@ function ChangeCard({
       <div className="fortschritt-change-copy">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)', lineHeight: 1.2 }}>
-          {change.label}
+          {metricLabel(t, change.key, change.label)}
         </span>
         <span className="fortschritt-change-delta" style={{ fontSize: '0.75rem', fontWeight: 800, color: deltaColor, flexShrink: 0 }}>
           {formatDelta(change)}
@@ -162,19 +167,21 @@ function ChangeCard({
 }
 
 function formatValue(value: number, unit: string): string {
-  if (unit === 'kg') return `${value} kg`
-  if (unit === '%') return `${value}%`
-  if (unit === '/10') return `${value}/10`
-  if (unit) return `${value} ${unit}`
-  return String(value)
+  const n = formatNumber(value)
+  if (unit === 'kg') return `${n} kg`
+  if (unit === '%') return `${n}%`
+  if (unit === '/10') return `${n}/10`
+  if (unit) return `${n} ${unit}`
+  return n
 }
 
 function formatDelta(change: MetricChange): string {
   const sign = change.delta > 0 ? '↑' : change.delta < 0 ? '↓' : '→'
-  if (change.unit === 'kg') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta} kg`
-  if (change.unit === '%') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta}%`
-  if (change.unit === '/10') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta}`
-  const abs = Math.abs(change.delta)
+  const signed = formatSignedNumber(change.delta)
+  if (change.unit === 'kg') return `${sign} ${signed} kg`
+  if (change.unit === '%') return `${sign} ${signed}%`
+  if (change.unit === '/10') return `${sign} ${signed}`
+  const abs = formatNumber(Math.abs(change.delta))
   return `${sign} ${change.delta > 0 ? '+' : ''}${abs}`
 }
 

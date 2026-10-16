@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { CSSProperties, RefObject } from 'react'
 import { fieldLabel } from '../styles'
+import { formatNumber } from '../lib/dates'
 
 const ITEM_H = 30
 const WHEEL_H = ITEM_H * 3
@@ -54,7 +55,7 @@ function indexForValue(options: number[], value: number) {
 }
 
 function formatDecimal(value: number, wheelSuffix?: string) {
-  const base = value.toFixed(1).replace('.', ',')
+  const base = formatNumber(value, 1)
   return wheelSuffix ? `${base} ${wheelSuffix}` : base
 }
 

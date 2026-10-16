@@ -1,7 +1,8 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { Camera, ImageOff, Plus, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../../../../lib/supabase'
 import { useAuth } from '../../../../context/AuthContext'
 import type { ProgressPhotoEntry } from '../../types'
@@ -11,9 +12,10 @@ import { isLegacyPhotoUrl } from '../../hooks/useFortschrittData'
 import { fieldLabel, inputStyle, panel } from '../../styles'
 import { denyProps } from '../../../../lib/denyFeedback'
 import { BATCH_BUCKET, batchDateiPfad } from '../../../../lib/batchFiles'
+import { formatDaySafe, formatNumber } from '../../lib/dates'
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd')
-const fmtDate = (d: string) => format(parseISO(`${d}T00:00:00`), 'dd.MM.yyyy')
+const fmtDate = (d: string) => formatDaySafe(d, 'full')
 
 interface Props {
   photos: ProgressPhotoEntry[]
@@ -21,6 +23,7 @@ interface Props {
 }
 
 export function FotosTab({ photos, onChange }: Props) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -63,7 +66,7 @@ export function FotosTab({ photos, onChange }: Props) {
 
   const handleUpload = async () => {
     if (!user || !selectedFile) {
-      toast.error('Bitte zuerst ein Foto auswählen')
+      toast.error(t('fortschritt_photo_select_first'))
       return
     }
     setUploading(true)
@@ -84,18 +87,18 @@ export function FotosTab({ photos, onChange }: Props) {
         notes: notes || null,
       })
       if (dbErr) throw dbErr
-      toast.success('Foto gespeichert')
+      toast.success(t('fortschritt_photo_saved'))
       closeSheet()
       onChange()
     } catch {
-      toast.error('Fehler beim Hochladen')
+      toast.error(t('fortschritt_photo_upload_failed'))
     } finally {
       setUploading(false)
     }
   }
 
   const deletePhoto = async (photo: ProgressPhotoEntry) => {
-    if (!confirm('Foto wirklich löschen?')) return
+    if (!confirm(t('fortschritt_photo_delete_confirm'))) return
     if (isLegacyPhotoUrl(photo.photo_url)) {
       const pfad = batchDateiPfad(photo.photo_url)
       if (pfad) await supabase.storage.from(BATCH_BUCKET).remove([pfad])
@@ -104,10 +107,10 @@ export function FotosTab({ photos, onChange }: Props) {
     }
     const { error } = await supabase.from('progress_photos').delete().eq('id', photo.id)
     if (error) {
-      toast.error('Fehler beim Löschen')
+      toast.error(t('fortschritt_photo_delete_failed'))
       return
     }
-    toast.success('Foto gelöscht')
+    toast.success(t('fortschritt_photo_deleted'))
     setActivePhoto(null)
     onChange()
   }
@@ -116,13 +119,13 @@ export function FotosTab({ photos, onChange }: Props) {
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' }}>Fotos</h2>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' }}>{t('fortschritt_photos')}</h2>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
-            {photos.length} {photos.length === 1 ? 'Foto' : 'Fotos'} gespeichert
+            {t(photos.length === 1 ? 'fortschritt_photos_count_singular' : 'fortschritt_photos_count_plural', { n: photos.length })}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <div role="group" aria-label="Rastergröße" style={{ display: 'flex', alignItems: 'center', gap: 3, padding: 3, borderRadius: 12, background: 'var(--surface-input)', border: '1px solid var(--border)' }}>
+          <div role="group" aria-label={t('fortschritt_grid_size')} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: 3, borderRadius: 12, background: 'var(--surface-input)', border: '1px solid var(--border)' }}>
             {PHOTO_GRID_OPTIONS.map(option => (
               <button
                 key={option.value}
@@ -136,14 +139,14 @@ export function FotosTab({ photos, onChange }: Props) {
                   fontSize: '0.58rem', fontWeight: 800, cursor: 'pointer',
                 }}
               >
-                {option.label}
+                {t(`fortschritt_grid_${option.value}`)}
               </button>
             ))}
           </div>
           <button
             type="button"
             onClick={openSheet}
-            aria-label="Foto hinzufügen"
+            aria-label={t('fortschritt_photo_add')}
             style={{
               width: 44, height: 44, borderRadius: 16, flexShrink: 0,
               background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
@@ -161,13 +164,13 @@ export function FotosTab({ photos, onChange }: Props) {
             <ImageOff size={30} color="var(--accent)" />
           </div>
           <div>
-            <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 6 }}>Noch keine Fotos</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 6 }}>{t('fortschritt_photos_empty_title')}</p>
             <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>
-              Dokumentiere deinen Fortschritt visuell — z. B. alle 2 Wochen.
+              {t('fortschritt_photos_empty_body')}
             </p>
           </div>
           <button type="button" onClick={openSheet} className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Camera size={15} /> Foto hinzufügen
+            <Camera size={15} /> {t('fortschritt_photo_add')}
           </button>
         </div>
       ) : (
@@ -183,12 +186,12 @@ export function FotosTab({ photos, onChange }: Props) {
               }}
             >
               <div style={{ aspectRatio: '3/4', overflow: 'hidden' }}>
-                <img src={photo.display_url} alt={photo.taken_at} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <img src={photo.display_url} alt={fmtDate(photo.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
               <div style={{ padding: '9px 11px' }}>
                 <p style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)' }}>{fmtDate(photo.taken_at)}</p>
                 {photo.weight_kg != null && (
-                  <p style={{ fontSize: '0.62rem', color: 'var(--accent)', fontWeight: 700 }}>{photo.weight_kg} kg</p>
+                  <p style={{ fontSize: '0.62rem', color: 'var(--accent)', fontWeight: 700 }}>{formatNumber(photo.weight_kg)} kg</p>
                 )}
               </div>
             </button>
@@ -202,22 +205,22 @@ export function FotosTab({ photos, onChange }: Props) {
             <div>
               <p style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text)' }}>{fmtDate(activePhoto.taken_at)}</p>
               {activePhoto.weight_kg != null && (
-                <p style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, marginTop: 2 }}>{activePhoto.weight_kg} kg</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, marginTop: 2 }}>{formatNumber(activePhoto.weight_kg)} kg</p>
               )}
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" onClick={e => { e.stopPropagation(); void deletePhoto(activePhoto) }}
+              <button type="button" aria-label={t('fortschritt_photo_delete')} onClick={e => { e.stopPropagation(); void deletePhoto(activePhoto) }}
                 style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(244,63,94,0.14)', border: '1px solid rgba(244,63,94,0.24)', color: '#f43f5e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Trash2 size={16} />
               </button>
-              <button type="button" onClick={e => { e.stopPropagation(); setActivePhoto(null) }}
+              <button type="button" aria-label={t('close')} onClick={e => { e.stopPropagation(); setActivePhoto(null) }}
                 style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--surface-input)', border: '1px solid var(--border)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={16} />
               </button>
             </div>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-            <img src={activePhoto.display_url} alt={activePhoto.taken_at} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            <img src={activePhoto.display_url} alt={fmtDate(activePhoto.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
           {activePhoto.notes && (
             <div onClick={e => e.stopPropagation()} style={{ padding: '14px 18px', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
@@ -237,8 +240,8 @@ export function FotosTab({ photos, onChange }: Props) {
         <div style={{ position: 'sticky', top: 0, paddingTop: 16, paddingBottom: 14, background: 'inherit', zIndex: 1 }}>
           <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)', margin: '0 auto 18px' }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Foto hinzufügen</h2>
-            <button type="button" onClick={closeSheet} style={{ color: 'var(--text-muted)', display: 'flex' }}><X size={20} /></button>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>{t('fortschritt_photo_add')}</h2>
+            <button type="button" onClick={closeSheet} aria-label={t('close')} style={{ color: 'var(--text-muted)', display: 'flex' }}><X size={20} /></button>
           </div>
         </div>
 
@@ -246,30 +249,30 @@ export function FotosTab({ photos, onChange }: Props) {
 
         {previewUrl ? (
           <div style={{ position: 'relative', marginBottom: 16 }}>
-            <img src={previewUrl} alt="Vorschau" style={{ width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 16, display: 'block' }} />
+            <img src={previewUrl} alt={t('fortschritt_photo_preview')} style={{ width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 16, display: 'block' }} />
           </div>
         ) : (
           <button type="button" onClick={() => fileInputRef.current?.click()}
             style={{ width: '100%', padding: '30px 0', borderRadius: 18, marginBottom: 16, border: '2px dashed var(--accent-border)', background: 'var(--accent-weak)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: 'var(--accent)', cursor: 'pointer' }}>
             <Camera size={30} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>Foto aufnehmen oder aus Galerie wählen</span>
+            <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>{t('fortschritt_photo_pick')}</span>
           </button>
         )}
 
         <div style={{ marginBottom: 12 }}>
-          <label style={fieldLabel}>Datum</label>
+          <label style={fieldLabel}>{t('fortschritt_date')}</label>
           <input type="date" value={date} max={todayStr()} onChange={e => setDate(e.target.value)} style={inputStyle} />
         </div>
         <div style={{ marginBottom: 12 }}>
-          <label style={fieldLabel}>Gewicht in kg (optional)</label>
-          <input type="number" inputMode="decimal" placeholder="z.B. 82.5" value={weight} onChange={e => setWeight(e.target.value)} style={inputStyle} />
+          <label style={fieldLabel}>{t('fortschritt_photo_weight_optional')}</label>
+          <input type="number" inputMode="decimal" placeholder={t('fortschritt_photo_weight_placeholder', { value: formatNumber(82.5) })} value={weight} onChange={e => setWeight(e.target.value)} style={inputStyle} />
         </div>
         <div style={{ marginBottom: 20 }}>
-          <label style={fieldLabel}>Notizen (optional)</label>
-          <textarea placeholder="Besondere Beobachtungen…" value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'none' }} />
+          <label style={fieldLabel}>{t('fortschritt_photo_notes_optional')}</label>
+          <textarea placeholder={t('fortschritt_photo_notes_placeholder')} value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'none' }} />
         </div>
-        <button type="button" onClick={() => void handleUpload()} disabled={uploading} {...denyProps(!selectedFile, 'Bitte zuerst ein Foto auswählen')} className="btn-primary" style={{ width: '100%' }}>
-          {uploading ? 'Wird hochgeladen…' : 'Foto speichern'}
+        <button type="button" onClick={() => void handleUpload()} disabled={uploading} {...denyProps(!selectedFile, t('fortschritt_photo_select_first'))} className="btn-primary" style={{ width: '100%' }}>
+          {uploading ? t('fortschritt_photo_uploading') : t('fortschritt_photo_save')}
         </button>
       </div>
     </>

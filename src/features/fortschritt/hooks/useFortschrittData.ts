@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import i18n from 'i18next'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import type {
@@ -108,13 +109,27 @@ export function useFortschrittData() {
     if (!user) return
     if (!initialLoadedRef.current) setLoading(true)
 
+    // Jede Tabelle seitenweise: Supabase liefert pro Abfrage hoechstens 1000
+    // Zeilen, sonst fehlte bei langer Historie still der Rest. Die `id` als
+    // zweiter Sortierschluessel haelt die Seitengrenzen stabil.
     const [cyclesRes, stackItemsRes] = await Promise.all([
-      supabase
-        .from('cycles')
-        .select('id, stack_item_id, name, start_date, end_date, active, stack_items(display_name)')
-        .eq('user_id', user.id)
-        .order('start_date', { ascending: true }),
-      supabase.from('stack_items').select('id, display_name').eq('user_id', user.id),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('cycles')
+          .select('id, stack_item_id, name, start_date, end_date, active, stack_items(display_name)')
+          .eq('user_id', user.id)
+          .order('start_date', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('stack_items')
+          .select('id, display_name')
+          .eq('user_id', user.id)
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
     ])
 
     const cycles = normalizeCycles(cyclesRes.data as unknown as CycleRow[])
@@ -133,29 +148,46 @@ export function useFortschrittData() {
           .order('log_date', { ascending: true })
           .range(from, to),
       ),
-      supabase
-        .from('weight_logs')
-        .select('id, logged_at, weight_kg')
-        .eq('user_id', user.id)
-        .lte('logged_at', toBound)
-        .order('logged_at', { ascending: true }),
-      supabase
-        .from('bloodwork')
-        .select('id, marker, value, unit, tested_at')
-        .eq('user_id', user.id)
-        .lte('tested_at', activeRange.to)
-        .order('tested_at', { ascending: false }),
-      supabase
-        .from('progress_photos')
-        .select('id, photo_url, taken_at, weight_kg, notes')
-        .eq('user_id', user.id)
-        .lte('taken_at', activeRange.to)
-        .order('taken_at', { ascending: false }),
-      supabase
-        .from('dose_logs')
-        .select('stack_item_id, logged_at, taken')
-        .eq('user_id', user.id)
-        .lte('logged_at', toBound),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('weight_logs')
+          .select('id, logged_at, weight_kg')
+          .eq('user_id', user.id)
+          .lte('logged_at', toBound)
+          .order('logged_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('bloodwork')
+          .select('id, marker, value, unit, tested_at')
+          .eq('user_id', user.id)
+          .lte('tested_at', activeRange.to)
+          .order('tested_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('progress_photos')
+          .select('id, photo_url, taken_at, weight_kg, notes')
+          .eq('user_id', user.id)
+          .lte('taken_at', activeRange.to)
+          .order('taken_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('dose_logs')
+          .select('stack_item_id, logged_at, taken')
+          .eq('user_id', user.id)
+          .lte('logged_at', toBound)
+          .order('logged_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
     ])
 
     const errors = [cyclesRes, stackItemsRes, dailyRes, weightRes, bloodRes, photoRes, doseRes]
@@ -163,7 +195,7 @@ export function useFortschrittData() {
       .filter(Boolean)
     if (errors.length > 0) {
       console.error('Fortschritt: Daten laden fehlgeschlagen', errors)
-      toast.error('Fortschritt-Daten konnten nicht vollständig geladen werden')
+      toast.error(i18n.t('fortschritt_load_failed'))
     }
 
     setDailyLogs(mapDailyLogs(dailyRes.data))

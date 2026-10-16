@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { useScrollLock } from '../../hooks/useScrollLock'
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function VerlaufSetupSheet({ open, onClose, children }: Props) {
+  const { t } = useTranslation()
   useScrollLock(open)
 
   if (!open) return null
@@ -24,7 +26,7 @@ export function VerlaufSetupSheet({ open, onClose, children }: Props) {
       data-app-modal
       role="dialog"
       aria-modal="true"
-      aria-label="Verlauf einstellen"
+      aria-label={t('fortschritt_setup_title')}
       style={{
         position: 'fixed',
         inset: 0,
@@ -50,13 +52,13 @@ export function VerlaufSetupSheet({ open, onClose, children }: Props) {
         flexShrink: 0,
       }}>
         <h2 style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--text)' }}>
-          Verlauf einstellen
+          {t('fortschritt_setup_title')}
         </h2>
         <button
           type="button"
           onClick={onClose}
           data-app-back-close
-          aria-label="Schließen"
+          aria-label={t('close')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -98,7 +100,7 @@ export function VerlaufSetupSheet({ open, onClose, children }: Props) {
           onClick={onClose}
           style={{ width: '100%' }}
         >
-          Fertig
+          {t('fortschritt_setup_done')}
         </button>
       </footer>
     </div>,

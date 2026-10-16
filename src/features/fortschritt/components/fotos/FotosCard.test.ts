@@ -8,7 +8,7 @@ describe('FotosCard period placeholder', () => {
     const source = readSource('./FotosCard.tsx')
 
     expect(source).toContain('PhotoPeriodMarquee')
-    expect(source).toContain('Nicht im ausgewählten Zeitraum')
+    expect(source).toContain("<PhotoPeriodMarquee>{t('fortschritt_photo_outside_label')}</PhotoPeriodMarquee>")
     expect(source).toContain('whiteSpace: \'nowrap\'')
   })
 })

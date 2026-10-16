@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react'
 import { format } from 'date-fns'
-import { dayToTsSafe, formatDaySafe } from '../../lib/dates'
+import { useTranslation } from 'react-i18next'
+import { dayToTsSafe, formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import type { CycleSubstance, DateRange, MetricKey, OngoingSubstance } from '../../types'
 import type { MetricDefinition } from '../../lib/metricDefinitions'
 import { buildMetricSeries, computeDelta } from '../../lib/metrics'
@@ -98,10 +99,13 @@ function AxisUnitLabel({ unit }: { unit: string }) {
   )
 }
 
+function withUnit(formatted: string, unit: string): string {
+  if (unit === '%') return `${formatted}%`
+  return unit ? `${formatted} ${unit}` : formatted
+}
+
 function formatTooltipValue(value: number, unit: string): string {
-  if (unit === 'kg') return `${value} kg`
-  if (unit === '%') return `${value}%`
-  return unit ? `${value} ${unit}` : String(value)
+  return withUnit(formatNumber(value), unit)
 }
 
 /** Zahl ohne Scheingenauigkeit: zwei Nachkommastellen reichen fuer jede Messgroesse. */
@@ -166,6 +170,7 @@ function MetricChartInner({
   ongoing,
   onOpenSettings,
 }, ref) {
+  const { t } = useTranslation()
   const { start: dataStart, now } = useMemo(() => rangeBounds(dataRange), [dataRange])
   const windowMs = windowMsFor(windowKey)
 
@@ -234,9 +239,9 @@ function MetricChartInner({
     note: (ts: number) => {
       const day = format(new Date(ts), 'yyyy-MM-dd')
       const names = packed.filter(b => format(new Date(b.startTs), 'yyyy-MM-dd') === day).map(b => b.name)
-      return names.length ? `${names.join(', ')} · Start` : null
+      return names.length ? t('fortschritt_chart_start_note', { names: names.join(', ') }) : null
     },
-  }), [metric.unit, packed])
+  }), [metric.unit, packed, t])
 
   const legendItems = useMemo(() => buildCycleLegendItems(cycles, ongoing), [cycles, ongoing])
 
@@ -268,10 +273,10 @@ function MetricChartInner({
           {metricBar}
         </div>
         <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 8 }}>
-          Noch keine {metric.label}-Daten
+          {t('fortschritt_chart_no_data_title', { metric: metric.label })}
         </p>
         <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-          Erfasse Werte mit + Heute
+          {t('fortschritt_chart_no_data_body')}
         </p>
       </section>
     )
@@ -313,7 +318,7 @@ function MetricChartInner({
               lineHeight: 1.3,
               whiteSpace: 'nowrap',
             }}>
-              {delta.delta > 0 ? '+' : ''}{formatTooltipValue(delta.delta, metric.unit)} im Zeitraum
+              {t('fortschritt_chart_delta', { value: withUnit(formatSignedNumber(delta.delta), metric.unit) })}
             </p>
           )}
         </div>
@@ -332,9 +337,9 @@ function MetricChartInner({
           height={CHART_HEIGHT}
           seriesKey={metricKey}
           formatTick={tsLabel}
-          formatValue={v => String(roundValue(v))}
+          formatValue={v => formatNumber(roundValue(v))}
           scrubLabel={scrubLabel}
-          ariaLabel={`${metric.label}: Verlauf`}
+          ariaLabel={t('fortschritt_chart_aria', { metric: metric.label })}
           dots={!reducedMetricPoints}
           percentCap={false}
           minSpan={minSpan}
@@ -346,7 +351,7 @@ function MetricChartInner({
             min: dataStart,
             max: now,
             onPan: end => setPanEnd(end >= now - 1000 ? null : end),
-            jumpLabel: 'Jetzt',
+            jumpLabel: t('fortschritt_chart_now'),
           }}
         />
       </div>

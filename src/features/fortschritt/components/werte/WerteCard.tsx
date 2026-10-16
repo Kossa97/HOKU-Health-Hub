@@ -1,4 +1,5 @@
 import { TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { DailyLogEntry, DateRange } from '../../types'
 import {
   buildValueOverview,
@@ -6,6 +7,8 @@ import {
   type ValueOverviewTone,
 } from '../../lib/valueOverview'
 import { panel, sectionLabel } from '../../styles'
+import { formatNumber } from '../../lib/dates'
+import { metricLabel } from '../../lib/metricLabels'
 
 interface Props {
   dailyLogs: DailyLogEntry[]
@@ -25,15 +28,13 @@ const ARROWS: Record<ValueOverviewDirection, string> = {
   flat: '→',
 }
 
-const number = (value: number) => value.toLocaleString('de-DE', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-})
+const number = (value: number) => formatNumber(value, 1)
 
 const valueWithUnit = (value: number, unit: '' | '%') =>
   unit ? `${number(value)} ${unit}` : number(value)
 
 export function WerteCard({ dailyLogs, range }: Props) {
+  const { t } = useTranslation()
   const rows = buildValueOverview(dailyLogs, range)
 
   return (
@@ -45,11 +46,11 @@ export function WerteCard({ dailyLogs, range }: Props) {
       flexDirection: 'column',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <p style={{ ...sectionLabel, margin: 0 }}>Deine Werte</p>
+        <p style={{ ...sectionLabel, margin: 0 }}>{t('fortschritt_values_title')}</p>
         <TrendingUp size={16} color="var(--accent)" aria-hidden="true" />
       </div>
       <p style={{ margin: '3px 0 8px', fontSize: '0.58rem', color: 'var(--text-muted)' }}>
-        Ø zweite Hälfte
+        {t('fortschritt_values_sub')}
       </p>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0, flexDirection: 'column' }}>
@@ -72,12 +73,12 @@ export function WerteCard({ dailyLogs, range }: Props) {
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}>
-              {row.label}
+              {metricLabel(t, row.key, row.label)}
             </span>
             <span style={{ display: 'flex', alignItems: 'baseline', gap: 5, whiteSpace: 'nowrap' }}>
               {row.average == null ? (
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.62rem', fontWeight: 700 }}>
-                  Keine Daten
+                  {t('fortschritt_values_no_data')}
                 </span>
               ) : (
                 <>
@@ -86,11 +87,11 @@ export function WerteCard({ dailyLogs, range }: Props) {
                   </strong>
                   {row.delta == null || row.direction == null ? (
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.55rem', fontWeight: 700 }}>
-                      Noch kein Vergleich
+                      {t('fortschritt_values_no_compare')}
                     </span>
                   ) : (
                     <span
-                      aria-label={`Veränderung ${valueWithUnit(row.delta, row.unit)}`}
+                      aria-label={t('fortschritt_values_change_aria', { value: valueWithUnit(row.delta, row.unit) })}
                       style={{ color: TONE_COLORS[row.tone], fontSize: '0.62rem', fontWeight: 800 }}
                     >
                       {ARROWS[row.direction]} {row.delta > 0 ? '+' : ''}{valueWithUnit(row.delta, row.unit)}

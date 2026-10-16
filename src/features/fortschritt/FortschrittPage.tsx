@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { useFortschrittData } from './hooks/useFortschrittData'
 import { FortschrittHeader } from './components/FortschrittHeader'
@@ -11,6 +12,7 @@ import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verl
 import { formatDaySafe } from './lib/dates'
 
 export function FortschrittPage() {
+  const { t } = useTranslation()
   const { state, reload } = useFortschrittData()
   const [searchParams, setSearchParams] = useSearchParams()
   const [logOpen, setLogOpen] = useState(false)
@@ -27,7 +29,7 @@ export function FortschrittPage() {
     [rangeChip, state.fullRange],
   )
 
-  const rangeLabel = `${formatDaySafe(pageRange.from, 'dd.MM.yyyy')} – ${formatDaySafe(pageRange.to, 'dd.MM.yyyy')}`
+  const rangeLabel = `${formatDaySafe(pageRange.from, 'full')} – ${formatDaySafe(pageRange.to, 'full')}`
 
   const hasTodayEntry = useMemo(
     () => hasLogForDate(state.dailyLogs, state.weightLogs, format(new Date(), 'yyyy-MM-dd')),
@@ -50,7 +52,7 @@ export function FortschrittPage() {
 
       {state.loading ? (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-          Laden…
+          {t('fortschritt_loading')}
         </div>
       ) : (
         <FortschrittDashboard

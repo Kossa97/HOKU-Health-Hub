@@ -6,9 +6,9 @@ describe('FortschrittHeader', () => {
     const source = readFileSync(new URL('./FortschrittHeader.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain("{hasTodayEntry && (")
-    expect(source).toContain('ERLEDIGT')
+    expect(source).toContain("t('fortschritt_done')")
     expect(source).toContain("color: '#22c55e'")
-    expect(source.indexOf('ERLEDIGT')).toBeLessThan(source.indexOf('{button}'))
+    expect(source.indexOf("t('fortschritt_done')")).toBeLessThan(source.indexOf('{button}'))
     expect(source).toContain("alignItems: 'center'")
   })
 })

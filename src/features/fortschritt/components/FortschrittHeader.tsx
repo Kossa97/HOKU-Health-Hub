@@ -1,4 +1,5 @@
 import { Pencil, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const ENTRY_GLOW_CSS = `
   @keyframes fortschritt-entry-glow {
@@ -42,6 +43,7 @@ export function FortschrittHeader({
   hasTodayEntry = false,
   dataReady = false,
 }: Props) {
+  const { t } = useTranslation()
   // Glow genau wenn der Button „Fortschritt eintragen“ zeigt (noch kein heutiger Eintrag)
   const showGlow = dataReady && !hasTodayEntry
 
@@ -61,7 +63,7 @@ export function FortschrittHeader({
       }}
     >
       {hasTodayEntry ? <Pencil size={17} /> : <Plus size={17} />}
-      {hasTodayEntry ? 'HEUTIGEN EINTRAG BEARBEITEN' : 'FORTSCHRITT EINTRAGEN'}
+      {hasTodayEntry ? t('fortschritt_edit_today') : t('fortschritt_log_today')}
     </button>
   )
 
@@ -75,7 +77,7 @@ export function FortschrittHeader({
         gap: '4px 10px',
       }}>
         <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', margin: 0 }}>
-          Fortschritt
+          {t('fortschritt_title')}
         </h1>
         <span style={{
           fontSize: '0.62rem',
@@ -99,7 +101,7 @@ export function FortschrittHeader({
             textAlign: 'center',
             lineHeight: 1,
           }}>
-            ERLEDIGT
+            {t('fortschritt_done')}
           </span>
         )}
         {button}

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import type { ChartNavigation, FortschrittOverviewState, MetricKey } from '../../types'
 import { CHART_METRIC_KEYS, isChartMetricKey } from '../../constants'
 import { buildMetricSeries } from '../../lib/metrics'
 import { buildAvailableMetrics, normalizeMetricKey } from '../../lib/metricDefinitions'
+import { metricLabel } from '../../lib/metricLabels'
 import {
   filterCyclesByVisibility,
   filterOngoingByVisibility,
@@ -27,6 +29,7 @@ export function VerlaufSection({
   chartNav,
   onChartNavConsumed,
 }: Props) {
+  const { t } = useTranslation()
   const [metricKey, setMetricKey] = useState<MetricKey>('weight')
   const [setupOpen, setSetupOpen] = useState(false)
   const [windowKey, setWindowKey] = useState<ChartWindowKey>(DEFAULT_CHART_WINDOW)
@@ -76,8 +79,9 @@ export function VerlaufSection({
   }, [state.bloodwork])
 
   const availableMetrics = useMemo(
-    () => buildAvailableMetrics(pointCounts, [...new Set(state.bloodwork.map(b => b.marker))], labUnits),
-    [pointCounts, state.bloodwork, labUnits],
+    () => buildAvailableMetrics(pointCounts, [...new Set(state.bloodwork.map(b => b.marker))], labUnits)
+      .map(m => ({ ...m, label: metricLabel(t, m.key, m.label) })),
+    [pointCounts, state.bloodwork, labUnits, t],
   )
 
   const selectedMetric = availableMetrics.find(m => m.key === metricKey)
@@ -96,7 +100,7 @@ export function VerlaufSection({
     const metric = availableMetrics.find(m => m.key === key)
     if (!metric || count === 0) return
     if (metric.isLab && count < 2) {
-      toast.error('Mindestens 2 Messungen für den Verlauf nötig')
+      toast.error(t('fortschritt_lab_min_two'))
       return
     }
     setMetricKey(key)
@@ -138,10 +142,10 @@ export function VerlaufSection({
             <ChartSettingsButton onClick={openSetup} />
           </div>
           <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 8 }}>
-            Chart noch leer
+            {t('fortschritt_chart_empty_title')}
           </p>
           <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', maxWidth: 260, margin: '0 auto' }}>
-            Tippe auf Einstellen, um Substanzen und Zyklen für den Verlauf zu wählen.
+            {t('fortschritt_chart_empty_body')}
           </p>
         </section>
       )}

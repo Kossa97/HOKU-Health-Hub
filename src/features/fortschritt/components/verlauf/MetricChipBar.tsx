@@ -1,5 +1,6 @@
 import type { MetricDefinition } from '../../lib/metricDefinitions'
 import type { MetricKey } from '../../types'
+import { useTranslation } from 'react-i18next'
 import { denyProps } from '../../../../lib/denyFeedback'
 
 interface Props {
@@ -15,6 +16,7 @@ export function MetricChipBar({
   pointCounts,
   onSelectMetric,
 }: Props) {
+  const { t } = useTranslation()
   if (availableMetrics.length <= 1) return null
 
   return (
@@ -37,8 +39,8 @@ export function MetricChipBar({
             key={metric.key}
             type="button"
             {...denyProps(disabled, metric.isLab
-              ? `Für „${metric.label}“ braucht es mindestens zwei Werte.`
-              : `Noch keine Werte für „${metric.label}“.`)}
+              ? t('fortschritt_chip_need_two', { metric: metric.label })
+              : t('fortschritt_chip_no_values', { metric: metric.label }))}
             onClick={() => { if (!disabled) onSelectMetric(metric.key) }}
             style={{
               flexShrink: 0,

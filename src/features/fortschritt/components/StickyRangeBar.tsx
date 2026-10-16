@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { RANGE_CHIPS, type RangeChipKey } from '../lib/verlaufRange'
 
 const CHIPS_HEIGHT = 28
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function StickyRangeBar({ value, onChange }: Props) {
+  const { t } = useTranslation()
   return (
     <>
       <div style={{
@@ -54,7 +56,7 @@ export function StickyRangeBar({ value, onChange }: Props) {
                     border: on ? '1px solid var(--accent-border)' : '1px solid var(--border)',
                   }}
                 >
-                  {chip.label}
+                  {t(`fortschritt_range_${chip.key}`)}
                 </button>
               )
             })}
@@ -70,7 +72,7 @@ export function StickyRangeBar({ value, onChange }: Props) {
             lineHeight: 1.3,
             opacity: 0.75,
           }}>
-            Zeitraum für Veränderungen, Fotos und Werte
+            {t('fortschritt_range_hint')}
           </p>
         </div>
       </div>

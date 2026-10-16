@@ -5,8 +5,8 @@ const source = readFileSync(new URL('./WerteCard.tsx', import.meta.url), 'utf8')
 
 describe('WerteCard', () => {
   it('zeigt die freigegebene Überschrift und den Halbzeitraum-Kontext', () => {
-    expect(source).toContain('Deine Werte')
-    expect(source).toContain('Ø zweite Hälfte')
+    expect(source).toContain("t('fortschritt_values_title')")
+    expect(source).toContain("t('fortschritt_values_sub')")
     expect(source).toContain('buildValueOverview(dailyLogs, range)')
   })
 
@@ -19,9 +19,10 @@ describe('WerteCard', () => {
   })
 
   it('zeigt definierte Leer- und Vergleichszustände', () => {
-    expect(source).toContain('Keine Daten')
-    expect(source).toContain('Noch kein Vergleich')
+    expect(source).toContain("t('fortschritt_values_no_data')")
+    expect(source).toContain("t('fortschritt_values_no_compare')")
     expect(source).not.toContain('Gewicht')
+    expect(source).not.toContain('fortschritt_metric_weight')
     expect(source).not.toContain('Blutwerte')
   })
 })
