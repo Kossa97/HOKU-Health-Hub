@@ -1,0 +1,85 @@
+import { describe, expect, it, vi } from 'vitest'
+import type { RoutineIntake } from '../intakeGroups'
+import {
+  bundleDueIntakes,
+  liveBundleItemIds,
+  normalizeBundleName,
+  saveIntakeBundle,
+  type IntakeBundleClient,
+} from './intakeBundles'
+
+function intake(stackItemId: string, scheduledAt: string, key = `${stackItemId}-${scheduledAt}`): RoutineIntake {
+  return {
+    key,
+    cycleId: `cycle-${stackItemId}`,
+    planVersionId: null,
+    pendingLogId: null,
+    stackItemId,
+    stackItemName: stackItemId,
+    trackingLevel: 'complete',
+    group: 'morning',
+    scheduledAt,
+    dose: 1,
+    unit: 'mg',
+    method: 'oral',
+    injectable: false,
+  }
+}
+
+describe('bundleDueIntakes', () => {
+  it('takes only the earliest open intake per substance', () => {
+    const due = [
+      intake('a', '2026-10-16T18:00:00.000Z'),
+      intake('a', '2026-10-16T07:00:00.000Z'),
+      intake('b', '2026-10-16T08:00:00.000Z'),
+    ]
+    const result = bundleDueIntakes({ stack_item_ids: ['a', 'b'] }, due)
+    expect(result.map(item => item.key)).toEqual([
+      'a-2026-10-16T07:00:00.000Z',
+      'b-2026-10-16T08:00:00.000Z',
+    ])
+  })
+
+  it('follows the bundle order and skips members without an open intake', () => {
+    const due = [intake('a', '2026-10-16T07:00:00.000Z'), intake('c', '2026-10-16T06:00:00.000Z')]
+    const result = bundleDueIntakes({ stack_item_ids: ['c', 'b', 'a', 'c'] }, due)
+    expect(result.map(item => item.stackItemId)).toEqual(['c', 'a'])
+  })
+
+  it('ignores open intakes of substances outside the bundle', () => {
+    expect(bundleDueIntakes({ stack_item_ids: ['x'] }, [intake('a', '2026-10-16T07:00:00.000Z')])).toEqual([])
+  })
+})
+
+describe('liveBundleItemIds', () => {
+  it('drops archived or deleted substances and duplicates', () => {
+    expect(liveBundleItemIds({ stack_item_ids: ['a', 'gone', 'b', 'a'] }, new Set(['a', 'b']))).toEqual(['a', 'b'])
+  })
+})
+
+describe('normalizeBundleName', () => {
+  it('trims, collapses whitespace and caps the length', () => {
+    expect(normalizeBundleName('  Morgen   Stack ')).toBe('Morgen Stack')
+    expect(normalizeBundleName('x'.repeat(80))).toHaveLength(60)
+  })
+})
+
+describe('saveIntakeBundle', () => {
+  it('refuses an empty bundle before touching the database', async () => {
+    const from = vi.fn()
+    const client = { from } as unknown as IntakeBundleClient
+    await expect(saveIntakeBundle(client, 'u', { name: 'Morgen', stackItemIds: [], sortOrder: 0 }))
+      .rejects.toThrow('no items')
+    await expect(saveIntakeBundle(client, 'u', { name: '   ', stackItemIds: ['a'], sortOrder: 0 }))
+      .rejects.toThrow('empty')
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it('inserts a new bundle with deduplicated items', async () => {
+    const single = vi.fn().mockResolvedValue({ data: { id: 'b1' }, error: null })
+    const insert = vi.fn(() => ({ select: () => ({ single }) }))
+    const client = { from: () => ({ insert }) } as unknown as IntakeBundleClient
+    await saveIntakeBundle(client, 'u', { name: ' Morgen ', stackItemIds: ['a', 'a', 'b'], sortOrder: 2 })
+    expect(insert).toHaveBeenCalledWith({ user_id: 'u', name: 'Morgen', stack_item_ids: ['a', 'b'], sort_order: 2 })
+  })
+})

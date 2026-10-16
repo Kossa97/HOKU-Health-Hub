@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from 'react'
-import { Check, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
+import { format } from 'date-fns'
+import { Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatTrackedQuantity } from '../quantityPresentation'
 import {
@@ -11,6 +12,7 @@ import {
 import { buildOneOffActualDose, dosePlanCapabilities } from '../../my-stack/lib/dosePlan'
 import { InventoryConfirmationError } from '../../my-stack/services/stackInventory'
 import { denyProps } from '../../../lib/denyFeedback'
+import { useSheetClose } from '../../../lib/useSheetClose'
 
 interface ConfirmedIntake {
   entry: RoutineConfirmationEntry
@@ -20,10 +22,19 @@ interface ConfirmedIntake {
 interface RoutineConfirmationSheetProps {
   group: RoutineGroupModel
   onClose: () => void
-  onConfirm: (entries: RoutineConfirmationEntry[]) => Promise<string[]>
+  /**
+   * `time` ist die abgefragte Uhrzeit (HH:mm), wenn `initialTime` gesetzt ist.
+   * Sie gilt fuer alle gewaehlten Einnahmen: was man zusammen nimmt, nimmt
+   * man zur selben Zeit.
+   */
+  onConfirm: (entries: RoutineConfirmationEntry[], time?: string) => Promise<string[]>
   onAfterConfirm?: (entries: RoutineConfirmationEntry[], savedLogIds: string[]) => void | Promise<void>
   onAddInjection?: (entry: RoutineIntake, doseLogId: string) => void
+  /** Gesetzt, fragt das Blatt die Uhrzeit ab, vorbelegt mit diesem Wert (HH:mm). */
+  initialTime?: string
 }
+
+
 
 const GROUP_LABEL_KEYS: Record<RoutineGroupModel['key'], string> = {
   morning: 'my_stack_routine_morning',
@@ -37,9 +48,13 @@ export function RoutineConfirmationSheet({
   onConfirm,
   onAfterConfirm,
   onAddInjection,
+  initialTime,
 }: RoutineConfirmationSheetProps) {
   const { t } = useTranslation()
   const titleId = useId()
+  const timeId = useId()
+  const { requestClose, closingProps } = useSheetClose(onClose)
+  const [time, setTime] = useState(initialTime ?? '')
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [entries, setEntries] = useState<RoutineConfirmationEntry[]>(() => (
     group.items.map(buildConfirmationEntry)
@@ -69,7 +84,8 @@ export function RoutineConfirmationSheet({
       || entry.actualUnit !== entry.unit
     )
   ))
-  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !saving
+  const timeMissing = initialTime !== undefined && !/^\d{2}:\d{2}$/.test(time)
+  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !timeMissing && !saving
 
   const runAfterConfirm = async (
     confirmedEntries: RoutineConfirmationEntry[],
@@ -91,7 +107,7 @@ export function RoutineConfirmationSheet({
     setError(false)
     let savedLogIds: string[]
     try {
-      savedLogIds = await onConfirm(entries)
+      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time) : await onConfirm(entries)
     } catch {
       setError(true)
       setSaving(false)
@@ -110,20 +126,22 @@ export function RoutineConfirmationSheet({
       <button
         type="button"
         aria-label={String(t('routine_confirmation_close', { defaultValue: 'Routine-Bestätigung schließen' }))}
-        onClick={onClose}
-        className="fixed inset-0 z-50 cursor-pointer bg-black/70"
+        onClick={requestClose}
+        {...closingProps}
+        className="tyd-backdrop fixed inset-0 z-50 cursor-pointer bg-black/70"
       />
       <section
         role="dialog"
         aria-modal="true"
         data-app-back-dirty-on-interaction
         aria-labelledby={titleId}
-        className="fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100vh-1.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+        {...closingProps}
+        className="tyd-sheet fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
       >
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-cyan-300">
-              {t('routine_group_label', {
+              {group.label ?? t('routine_group_label', {
                 defaultValue: '{{group}}-Routine',
                 group: t(GROUP_LABEL_KEYS[group.key]),
               })}
@@ -140,8 +158,8 @@ export function RoutineConfirmationSheet({
             type="button"
             data-app-back-close
             aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-            onClick={onClose}
-            className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            onClick={requestClose}
+            className="tyd-press grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -185,14 +203,38 @@ export function RoutineConfirmationSheet({
             ))}
             <button
               type="button"
-              onClick={onClose}
-              className="min-h-11 w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              onClick={requestClose}
+              className="tyd-press min-h-11 w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
             >
               {t('routine_confirmation_done', { defaultValue: 'Fertig' })}
             </button>
           </div>
         ) : (
           <>
+            {initialTime !== undefined && (
+              <div className="mb-3">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label htmlFor={timeId} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                    {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setTime(format(new Date(), 'HH:mm'))}
+                    className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    <Clock size={12} aria-hidden="true" />
+                    {t('confirm_time_now', { defaultValue: 'Jetzt' })}
+                  </button>
+                </div>
+                <input
+                  id={timeId}
+                  type="time"
+                  value={time}
+                  onChange={event => setTime(event.target.value)}
+                  className="input min-h-11 text-base font-bold"
+                />
+              </div>
+            )}
             <ul className="space-y-2">
               {entries.map(entry => {
                 const editing = editingKeys.includes(entry.key)
@@ -299,8 +341,8 @@ export function RoutineConfirmationSheet({
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={onClose}
-                className="min-h-11 cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                onClick={requestClose}
+                className="tyd-press min-h-11 cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               >
                 {t('routine_confirmation_cancel', { defaultValue: 'Abbrechen' })}
               </button>
@@ -309,10 +351,14 @@ export function RoutineConfirmationSheet({
                 disabled={saving}
                 {...denyProps(!saving && !canConfirm)}
                 onClick={() => void save()}
-                className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-black text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:opacity-50"
+                className="tyd-press flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-black text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:opacity-50"
               >
                 <Check size={16} aria-hidden="true" /> {saving
                   ? t('routine_confirmation_saving', { defaultValue: 'Speichert …' })
+                  // Mit Uhrzeit (Bündel) reicht „Eingenommen": „alle" ist bei
+                  // einer Substanz falsch und bricht auf dem Handy dreizeilig um.
+                  : initialTime !== undefined
+                  ? t('eingenommen', { defaultValue: 'Eingenommen' })
                   : t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
               </button>
             </div>

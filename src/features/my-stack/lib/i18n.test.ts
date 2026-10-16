@@ -1161,6 +1161,23 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_view',
   'my_stack_view_vials',
   'my_stack_view_list',
+  'bundle_section_title',
+  'bundle_new',
+  'bundle_new_title',
+  'bundle_edit_title',
+  'bundle_edit_label',
+  'bundle_sheet_hint',
+  'bundle_name_label',
+  'bundle_name_placeholder',
+  'bundle_items_label',
+  'bundle_items_empty',
+  'bundle_save',
+  'bundle_delete',
+  'bundle_delete_confirm',
+  'bundle_no_items',
+  'bundle_nothing_open',
+  'bundle_confirm_open',
+  'bundle_empty_hint',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

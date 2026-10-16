@@ -2127,5 +2127,22 @@
   "injection_region_forearm": "Forearm",
   "injection_region_lower_leg": "Lower leg",
   "injection_region_outside_typical": "Body site",
-  "injection_side_center": "center"
+  "injection_side_center": "center",
+  "bundle_section_title": "My bundles",
+  "bundle_new": "Bundle",
+  "bundle_new_title": "New bundle",
+  "bundle_edit_title": "Edit bundle",
+  "bundle_edit_label": "Edit {{name}}",
+  "bundle_sheet_hint": "Substances you take together can be confirmed in the calendar with a single tap.",
+  "bundle_name_label": "Name",
+  "bundle_name_placeholder": "e.g. Morning stack",
+  "bundle_items_label": "Substances",
+  "bundle_items_empty": "Add substances in My Stack first.",
+  "bundle_save": "Save bundle",
+  "bundle_delete": "Delete bundle",
+  "bundle_delete_confirm": "Really delete?",
+  "bundle_no_items": "No substances left in this bundle",
+  "bundle_nothing_open": "Nothing open",
+  "bundle_confirm_open": "Confirm {{n}}",
+  "bundle_empty_hint": "Group substances you take together into a bundle and confirm them with a single tap."
 }
