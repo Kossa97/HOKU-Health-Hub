@@ -12,6 +12,7 @@ import { isLegacyPhotoUrl } from '../../hooks/useFortschrittData'
 import { fieldLabel, inputStyle, panel } from '../../styles'
 import { denyProps } from '../../../../lib/denyFeedback'
 import { BATCH_BUCKET, batchDateiPfad } from '../../../../lib/batchFiles'
+import { reportError } from '../../../../lib/monitoring'
 import { formatDaySafe, formatNumber } from '../../lib/dates'
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd')
@@ -78,7 +79,12 @@ export function FotosTab({ photos, onChange }: Props) {
       const { error: upErr } = await supabase.storage
         .from(PHOTO_BUCKET)
         .upload(path, selectedFile, { contentType: selectedFile.type, upsert: false })
-      if (upErr) throw upErr
+      if (upErr) {
+        // Zu groß, falsches Format: Eingabefehler, kein App-Fehler fürs Monitoring.
+        const status = (upErr as { status?: unknown }).status
+        if (!(typeof status === 'number' && status >= 400 && status < 500)) reportError(upErr, 'fortschritt.photo-upload')
+        throw upErr
+      }
       const { error: dbErr } = await supabase.from('progress_photos').insert({
         user_id: user.id,
         photo_url: path,
@@ -86,7 +92,13 @@ export function FotosTab({ photos, onChange }: Props) {
         weight_kg: weight ? Number(weight) : null,
         notes: notes || null,
       })
-      if (dbErr) throw dbErr
+      if (dbErr) {
+        // Ohne Zeile wäre die Datei verwaist und unsichtbar — wieder entfernen.
+        reportError(dbErr, 'fortschritt.photo-insert')
+        const { error: cleanupError } = await supabase.storage.from(PHOTO_BUCKET).remove([path])
+        if (cleanupError) reportError(cleanupError, 'fortschritt.photo-orphan-cleanup')
+        throw dbErr
+      }
       toast.success(t('fortschritt_photo_saved'))
       closeSheet()
       onChange()
@@ -99,16 +111,23 @@ export function FotosTab({ photos, onChange }: Props) {
 
   const deletePhoto = async (photo: ProgressPhotoEntry) => {
     if (!confirm(t('fortschritt_photo_delete_confirm'))) return
-    if (isLegacyPhotoUrl(photo.photo_url)) {
-      const pfad = batchDateiPfad(photo.photo_url)
-      if (pfad) await supabase.storage.from(BATCH_BUCKET).remove([pfad])
-    } else {
-      await supabase.storage.from(PHOTO_BUCKET).remove([photo.photo_url])
-    }
-    const { error } = await supabase.from('progress_photos').delete().eq('id', photo.id)
-    if (error) {
+    // Erst die Zeile, dann die Datei: scheitert das Löschen der Zeile, bleibt
+    // das Foto vollständig. Scheitert danach die Datei, ist sie nur verwaist —
+    // unsichtbar für den Nutzer, aber gemeldet.
+    // RLS ohne Treffer liefert keinen Fehler, nur null Zeilen — dann bleibt die Datei.
+    const { data: deleted, error } = await supabase.from('progress_photos').delete().eq('id', photo.id).select('id')
+    if (error || !deleted?.length) {
+      reportError(error ?? new Error('progress_photos: 0 Zeilen gelöscht'), 'fortschritt.photo-delete')
       toast.error(t('fortschritt_photo_delete_failed'))
       return
+    }
+    const legacy = isLegacyPhotoUrl(photo.photo_url)
+    const pfad = legacy ? batchDateiPfad(photo.photo_url) : photo.photo_url
+    if (pfad) {
+      const { error: storageError } = await supabase.storage
+        .from(legacy ? BATCH_BUCKET : PHOTO_BUCKET)
+        .remove([pfad])
+      if (storageError) reportError(storageError, 'fortschritt.photo-file-delete')
     }
     toast.success(t('fortschritt_photo_deleted'))
     setActivePhoto(null)

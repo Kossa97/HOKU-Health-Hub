@@ -1253,6 +1253,7 @@ const EXPECTED_MY_STACK_KEYS = [
   'fortschritt_summary_cycles_plural',
   'fortschritt_summary_none',
   'fortschritt_load_failed',
+  'fortschritt_weight_partial_failed',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

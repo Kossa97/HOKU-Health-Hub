@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
@@ -82,10 +82,27 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
   const [weightRowId, setWeightRowId] = useState<string | null>(null)
   const [bodyFat, setBodyFat] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  /** Tageswerte stehen schon in der DB, das Gewicht noch nicht — beim Schließen neu laden. */
+  const partiallySavedRef = useRef(false)
+  const onSavedRef = useRef(onSaved)
   const [openMetric, setOpenMetric] = useState<'weight' | 'bodyFat' | null>(null)
   const [savedValues, setSavedValues] = useState<SavedLogFormValues | null>(null)
 
   useScrollLock(open)
+
+  useEffect(() => { onSavedRef.current = onSaved })
+
+  // Nach einem Teil-Speichern die Seite nachziehen, egal wie das Sheet zugeht
+  // (Schließen-Knopf, Zurück-Geste, Seitenwechsel).
+  useEffect(() => {
+    const reloadIfPartial = () => {
+      if (!partiallySavedRef.current) return
+      partiallySavedRef.current = false
+      void onSavedRef.current()
+    }
+    if (!open) reloadIfPartial()
+    return reloadIfPartial
+  }, [open])
 
   useEffect(() => {
     if (!open) setOpenMetric(null)
@@ -125,6 +142,13 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
       return
     }
 
+    // Erst prüfen, dann schreiben: ein ungültiges Gewicht darf nicht nach
+    // bereits gespeicherten Tageswerten auffallen.
+    if (hasWeight && !Number.isFinite(weight)) {
+      toast.error(t('fortschritt_weight_invalid'))
+      return
+    }
+
     setSaving(true)
 
     if (hasWellness) {
@@ -150,31 +174,54 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
 
     let savedWeightRowId = weightRowId
 
+    // Zwei Tabellen, keine Transaktion: scheitert das Gewicht nach den
+    // Tageswerten, bleibt das Sheet offen und sagt genau das. Erneutes
+    // Speichern legt nichts doppelt an — Tageswerte sind ein Upsert pro
+    // Datum, und vor dem Einfügen des Gewichts wird nach der Zeile gesucht.
+    const weightFailed = (error: unknown) => {
+      setSaving(false)
+      reportError(error, 'fortschritt.weight-save')
+      if (hasWellness) {
+        partiallySavedRef.current = true
+        toast.error(t('fortschritt_weight_partial_failed'))
+      } else {
+        toast.error(t('fortschritt_weight_save_failed'))
+      }
+    }
+
     if (hasWeight) {
       const kg = weight
-      if (!Number.isFinite(kg)) {
-        setSaving(false)
-        toast.error(t('fortschritt_weight_invalid'))
-        return
-      }
-      if (weightRowId) {
-        const { error } = await supabase.from('weight_logs').update({ weight_kg: kg }).eq('id', weightRowId)
+      const loggedAt = `${date}T12:00:00`
+      if (!savedWeightRowId) {
+        // Kam die Antwort eines früheren Versuchs nicht an, steht die Zeile
+        // vielleicht schon da — dann aktualisieren statt doppelt einfügen.
+        const { data: existing, error } = await supabase
+          .from('weight_logs')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('logged_at', loggedAt)
+          .limit(1)
+          .maybeSingle()
         if (error) {
-          setSaving(false)
-          reportError(error, 'fortschritt.weight-save')
-          toast.error(t('fortschritt_weight_save_failed'))
+          weightFailed(error)
+          return
+        }
+        if (existing?.id != null) savedWeightRowId = String(existing.id)
+      }
+      if (savedWeightRowId) {
+        const { error } = await supabase.from('weight_logs').update({ weight_kg: kg }).eq('id', savedWeightRowId)
+        if (error) {
+          weightFailed(error)
           return
         }
       } else {
         const { data, error } = await supabase.from('weight_logs').insert({
           user_id: user.id,
-          logged_at: `${date}T12:00:00`,
+          logged_at: loggedAt,
           weight_kg: kg,
         }).select('id').single()
         if (error) {
-          setSaving(false)
-          reportError(error, 'fortschritt.weight-save')
-          toast.error(t('fortschritt_weight_save_failed'))
+          weightFailed(error)
           return
         }
         savedWeightRowId = data?.id != null ? String(data.id) : null
@@ -195,6 +242,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     writeStoredSavedValues(user.id, nextSavedValues)
     toast.success(t('fortschritt_saved'))
     await onSaved()
+    partiallySavedRef.current = false
     setSaving(false)
     onClose()
   }

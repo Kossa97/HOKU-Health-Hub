@@ -2451,5 +2451,6 @@
   "fortschritt_summary_cycles_singular": "{{n}} aktiver Zyklus",
   "fortschritt_summary_cycles_plural": "{{n}} aktive Zyklen",
   "fortschritt_summary_none": "Nichts ausgewählt",
-  "fortschritt_load_failed": "Fortschritt-Daten konnten nicht vollständig geladen werden"
+  "fortschritt_load_failed": "Fortschritt-Daten konnten nicht vollständig geladen werden",
+  "fortschritt_weight_partial_failed": "Werte gespeichert, das Gewicht aber nicht. Bitte erneut speichern."
 }

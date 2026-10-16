@@ -1244,6 +1244,7 @@ export const MY_STACK_EN = {
   fortschritt_summary_cycles_plural: "{{n}} active cycles",
   fortschritt_summary_none: "Nothing selected",
   fortschritt_load_failed: "Progress data could not be loaded completely",
+  fortschritt_weight_partial_failed: "Your values were saved, but the weight was not. Please save again.",
 }
 
 export const MY_STACK_DE = {
@@ -2491,6 +2492,7 @@ export const MY_STACK_DE = {
   fortschritt_summary_cycles_plural: "{{n}} aktive Zyklen",
   fortschritt_summary_none: "Nichts ausgewählt",
   fortschritt_load_failed: "Fortschritt-Daten konnten nicht vollständig geladen werden",
+  fortschritt_weight_partial_failed: "Werte gespeichert, das Gewicht aber nicht. Bitte erneut speichern.",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

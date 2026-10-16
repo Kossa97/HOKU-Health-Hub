@@ -22,6 +22,12 @@ import { PHOTO_BUCKET, SIGNED_URL_TTL_SECONDS } from '../constants'
 import { BATCH_LINK_ERNEUERN_MS, istAdresse, signiereBatchDateien } from '../../../lib/batchFiles'
 import { reportError } from '../../../lib/monitoring'
 
+/**
+ * Dauerhafte Substanzen (ohne Zyklus) haben noch keine Datenquelle — die
+ * Anzeige dafür ist vorbereitet, bekommt aber bis dahin eine feste leere Liste.
+ */
+const ONGOING_SUBSTANCES = Object.freeze([]) as unknown as OngoingSubstance[]
+
 function mapDailyLogs(rows: Record<string, unknown>[] | null): DailyLogEntry[] {
   return (rows ?? []).map(row => ({
     log_date: String(row.log_date),
@@ -70,7 +76,6 @@ export function useFortschrittData() {
   const [dataReady, setDataReady] = useState(false)
   const initialLoadedRef = useRef(false)
   const [cycleSubstances, setCycleSubstances] = useState<CycleSubstance[]>([])
-  const [ongoingSubstances] = useState<OngoingSubstance[]>([])
   const [dailyLogs, setDailyLogs] = useState<DailyLogEntry[]>([])
   const [weightLogs, setWeightLogs] = useState<WeightLogEntry[]>([])
   const [bloodwork, setBloodwork] = useState<BloodworkEntry[]>([])
@@ -82,8 +87,8 @@ export function useFortschrittData() {
   const [stackItemNames, setStackItemNames] = useState<Map<string, string>>(new Map())
 
   const range = useMemo<DateRange>(
-    () => rangeFromActiveSubstances(cycleSubstances, ongoingSubstances),
-    [cycleSubstances, ongoingSubstances],
+    () => rangeFromActiveSubstances(cycleSubstances, ONGOING_SUBSTANCES),
+    [cycleSubstances],
   )
 
   // Volle Historie: ältester Substanz-Start oder ältester Datenpunkt → heute.
@@ -97,13 +102,13 @@ export function useFortschrittData() {
       if (day < from) from = day
     }
     for (const c of cycleSubstances) consider(c.startDate)
-    for (const o of ongoingSubstances) consider(o.startDate)
+    for (const o of ONGOING_SUBSTANCES) consider(o.startDate)
     for (const l of dailyLogs) consider(l.log_date)
     for (const w of weightLogs) consider(w.logged_at)
     for (const b of bloodwork) consider(b.tested_at)
     for (const p of photos) consider(p.taken_at)
     return { from, to: range.to }
-  }, [range, cycleSubstances, ongoingSubstances, dailyLogs, weightLogs, bloodwork, photos])
+  }, [range, cycleSubstances, dailyLogs, weightLogs, bloodwork, photos])
 
   const load = useCallback(async () => {
     if (!user) return
@@ -135,7 +140,7 @@ export function useFortschrittData() {
     const cycles = normalizeCycles(cyclesRes.data as unknown as CycleRow[])
     setCycleSubstances(cycles)
 
-    const activeRange = rangeFromActiveSubstances(cycles, ongoingSubstances)
+    const activeRange = rangeFromActiveSubstances(cycles, ONGOING_SUBSTANCES)
     const toBound = `${activeRange.to}T23:59:59`
 
     const [dailyRes, weightRes, bloodRes, photoRes, doseRes] = await Promise.all([
@@ -240,7 +245,7 @@ export function useFortschrittData() {
     initialLoadedRef.current = true
     setDataReady(true)
     setLoading(false)
-  }, [ongoingSubstances, user])
+  }, [user])
 
   useEffect(() => {
     void load()
@@ -271,7 +276,7 @@ export function useFortschrittData() {
     range,
     fullRange,
     cycleSubstances,
-    ongoingSubstances,
+    ongoingSubstances: ONGOING_SUBSTANCES,
     dailyLogs,
     weightLogs,
     bloodwork,
@@ -284,7 +289,6 @@ export function useFortschrittData() {
     range,
     fullRange,
     cycleSubstances,
-    ongoingSubstances,
     dailyLogs,
     weightLogs,
     bloodwork,

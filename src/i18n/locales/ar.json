@@ -2221,5 +2221,6 @@
   "fortschritt_summary_cycles_singular": "{{n}} active cycle",
   "fortschritt_summary_cycles_plural": "{{n}} active cycles",
   "fortschritt_summary_none": "Nothing selected",
-  "fortschritt_load_failed": "Progress data could not be loaded completely"
+  "fortschritt_load_failed": "Progress data could not be loaded completely",
+  "fortschritt_weight_partial_failed": "Your values were saved, but the weight was not. Please save again."
 }
