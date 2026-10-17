@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, Calculator, Syringe } from 'lucide-react'
-import { PageHero, PageShell } from '../components/ui/DesignSystem'
+import { ArrowLeftRight, Syringe } from 'lucide-react'
+import { PageShell } from '../components/ui/DesignSystem'
 import { useAuth } from '../context/AuthContext'
 import { DoseCalculator } from '../features/rechner/components/DoseCalculator'
 import { UnitConverter } from '../features/rechner/components/UnitConverter'
@@ -13,7 +13,7 @@ export function Rechner() {
   const { user } = useAuth()
   const [mode, setMode] = useState<'dose' | 'units'>('dose')
   return <PageShell className="rechner-page" style={{ gap: 12 }}>
-    <div className="rechner-hero"><PageHero title={t('rechner_title')} icon={Calculator} /></div>
+    <h1 className="rechner-hero lg-large-title min-w-0 truncate">{t('rechner_title')}</h1>
     <div className="rechner-segments" role="group" aria-label={t('rechner_mode')}>
       {([
         { id: 'dose', label: t('rechner_dose_tab'), icon: Syringe },

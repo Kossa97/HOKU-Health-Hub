@@ -1730,8 +1730,7 @@ main.flex-1 {
 .bw-marker-card {
   min-height: 180px;
 }
-/* Viele Karten: kein Weichzeichner je Karte — auf Schwarz zeigt er nichts, kostet aber GPU */
-.bw-marker-card.lg-surface { border-radius: 24px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.bw-marker-card.lg-surface { border-radius: 24px; }
 
 /* Wert und Plakette nebeneinander; reicht der Platz nicht, die Plakette darunter. */
 .bw-card-bottom {

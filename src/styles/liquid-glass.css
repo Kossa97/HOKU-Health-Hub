@@ -398,6 +398,10 @@
 
 /* ── Grund für Vollbilder: dasselbe reine Schwarz wie die Seiten ───────── */
 .lg-backdrop { background-color: #000; }
+/* Viele Glasflächen auf einer Seite: auf Schwarz zeigt der Weichzeichner
+   nichts, kostet aber je Fläche GPU — dort weglassen. Nur „Licht" hat
+   farbiges Umgebungslicht dahinter und behält ihn. */
+html:not([data-look='licht']) .lg-flat { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Umgebungslicht vorerst aus: reines Schwarz, das Glas lebt von seiner
    Lichtkante. Die Logik läuft weiter (Rahmen, Tönung, Ausweichen) — wieder
    einschalten heißt nur diese Regel entfernen. */

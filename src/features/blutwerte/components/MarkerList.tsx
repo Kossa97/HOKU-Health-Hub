@@ -128,7 +128,7 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
   // ein normales Layout — Wert und Plakette stehen nebeneinander, statt sich
   // bei langen Werten zu ueberlappen.
   return (
-    <div className="bw-marker-card lg-surface" style={{ opacity: latest ? 1 : 0.55 }}>
+    <div className="bw-marker-card lg-surface lg-flat" style={{ opacity: latest ? 1 : 0.55 }}>
       <button
         type="button"
         onClick={() => onSelect(summary.name)}
