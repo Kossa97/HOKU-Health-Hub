@@ -20,7 +20,7 @@ describe('AmbientLightProvider (feste Bühne)', () => {
     const { container } = render(<AmbientLightProvider><div /></AmbientLightProvider>)
     expect(container.querySelectorAll('.fg-light')).toHaveLength(3)
     expect(light(container, 'middle').dataset.tinted).toBe('false')
-    expect(light(container, 'middle').style.opacity).toBe('0.3')
+    expect(light(container, 'middle').style.opacity).toBe('0.18')
   })
 
   it('färbt ein Licht, solange eine Karte es wünscht, und gibt es danach zurück', () => {
@@ -41,7 +41,7 @@ describe('AmbientLightProvider (feste Bühne)', () => {
         <Tinter slot="top" tint={{ boost: 0.1 }} />
       </AmbientLightProvider>,
     )
-    expect(Number(light(container, 'top').style.opacity)).toBeCloseTo(0.4)
+    expect(Number(light(container, 'top').style.opacity)).toBeCloseTo(0.28)
     // Der zweite Wunsch hellt nur auf — die Farbe des ersten bleibt
     expect(light(container, 'top').style.backgroundColor).toBe('rgb(255, 0, 0)')
 
@@ -52,12 +52,12 @@ describe('AmbientLightProvider (feste Bühne)', () => {
       </AmbientLightProvider>,
     )
     expect(light(container, 'top').style.backgroundColor).toBe('rgb(0, 255, 0)')
-    expect(light(container, 'top').style.opacity).toBe('0.3')
+    expect(light(container, 'top').style.opacity).toBe('0.18')
   })
 
   it('nur Aufhellen gilt nicht als gefärbt', () => {
     const { container } = render(<AmbientLightProvider><Tinter slot="top" tint={{ boost: 0.12 }} /></AmbientLightProvider>)
     expect(light(container, 'top').dataset.tinted).toBe('false')
-    expect(Number(light(container, 'top').style.opacity)).toBeCloseTo(0.42)
+    expect(Number(light(container, 'top').style.opacity)).toBeCloseTo(0.3)
   })
 })

@@ -112,7 +112,7 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
 
   // Hintergrund: Ablesen hellt das obere Licht etwas auf; ein angewählter Zyklus
   // färbt das mittlere: der gerade angewählte, sonst der erste noch angewählte.
-  useAmbientTint('top', scrubbing ? { boost: 0.12 } : null)
+  useAmbientTint('top', scrubbing ? { boost: 0.06 } : null)
   const cycleColor = substances.find(s => s.id === newSubstance && activeSelection.has(s.id))?.color
     ?? substances.find(s => activeSelection.has(s.id))?.color
   useAmbientTint('middle', cycleColor ? { color: cycleColor } : null)

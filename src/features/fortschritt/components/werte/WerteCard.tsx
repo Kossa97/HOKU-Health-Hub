@@ -56,7 +56,7 @@ export function WerteCard({ dailyLogs, range }: Props) {
   const bodyFat = rows.find(r => r.key === 'body_fat_pct')
 
   // Hintergrund: ein geöffneter Ring färbt das untere Licht in seiner Farbe
-  useAmbientTint('bottom', open ? { color: RING_COLORS[open].b, boost: 0.06 } : null)
+  useAmbientTint('bottom', open ? { color: RING_COLORS[open].b, boost: 0.03 } : null)
 
   return (
     <section className="fg-card fg-surface" aria-labelledby="fg-values-title">

@@ -7,7 +7,7 @@ const BASE: Record<LightSlot, string> = {
   middle: '#8b7cf0',
   bottom: '#30d158',
 }
-const BASE_OPACITY = 0.3
+const BASE_OPACITY = 0.18
 const SLOTS: LightSlot[] = ['top', 'middle', 'bottom']
 
 interface Claim extends Tint { owner: string }
