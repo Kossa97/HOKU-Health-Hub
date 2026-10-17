@@ -533,21 +533,26 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --cycle-3: #9085e9;
   --cycle-4: #c98500;
   --cycle-5: #d55181;
-  --app-bg:          #020308;
-  --surface:         rgba(3,4,12,0.96);
-  --surface-raised:  rgba(18,22,48,0.92);
-  --surface-input:   rgba(2,3,12,0.82);
-  --glass-bg:        rgba(6,7,20,0.78);
-  --text:            #eaeefc;
-  --text-dim:        #9aaabf;
-  --text-muted:      #465265;
-  --border:          rgba(255,255,255,0.07);
-  --border-strong:   rgba(255,255,255,0.12);
-  --card-border:     rgba(255,255,255,0.07);
+  /* Liquid Glass auf Schwarz: neutrale Graphitflächen ohne Blaustich.
+     --surface ist bewusst fast deckend — Sheets, Menüs und Kopfzeilen liegen
+     darauf über Inhalt. Durchscheinendes Glas kommt aus den Bausteinen
+     (.card, .lg-glass, .lg-surface), nicht aus diesem Token. */
+  --app-bg:          #000000;
+  --surface:         rgba(22,22,24,0.97);
+  --surface-raised:  rgba(44,44,46,0.94);
+  --surface-input:   rgba(118,118,128,0.16);
+  --glass-bg:        rgba(28,28,30,0.72);
+  /* Kontrast auf Schwarz: text ≈ 19:1, dim ≈ 8:1, muted ≈ 5:1 */
+  --text:            #f5f5f7;
+  --text-dim:        #a1a1a6;
+  --text-muted:      #7c7c82;
+  --border:          rgba(255,255,255,0.08);
+  --border-strong:   rgba(255,255,255,0.14);
+  --card-border:     rgba(255,255,255,0.08);
   --accent:          #00ccf5;
-  --accent-weak:     rgba(0,204,245,0.10);
-  --accent-border:   rgba(0,204,245,0.28);
-  --accent-contrast: rgba(0,8,20,0.95);
+  --accent-weak:     rgba(0,204,245,0.12);
+  --accent-border:   rgba(0,204,245,0.32);
+  --accent-contrast: #00141c;
   --cat-violet:      #8b5cf6;
   --cat-emerald:     #10b981;
   --cat-amber:       #f59e0b;
@@ -571,27 +576,43 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --c-text-dim:    var(--text-dim);
   --c-text-muted:  var(--text-muted);
 
-  --r-sm:   10px;
-  --r-md:   13px;
-  --r-lg:   18px;
-  --r-xl:   22px;
+  --r-sm:   12px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   24px;
 
-  --t-fast: 0.14s cubic-bezier(0.4,0,0.2,1);
-  --t-std:  0.20s cubic-bezier(0.4,0,0.2,1);
-  --t-slow: 0.32s cubic-bezier(0.4,0,0.2,1);
+  /* Reaktion sofort, Auslaufen weich (ease-out) — nie ease-in auf Bedienung */
+  --t-fast: 0.14s cubic-bezier(0.23,1,0.32,1);
+  --t-std:  0.20s cubic-bezier(0.23,1,0.32,1);
+  --t-slow: 0.32s cubic-bezier(0.23,1,0.32,1);
+
+  /* ── Liquid Glass ── gemeinsame Werte aller Glas-Bausteine (lg-*) */
+  --lg-ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --lg-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --lg-text:   #f5f7fa;
+  /* Kontrast auf Schwarz: text-2 ≈ 9:1, text-3 ≈ 4,8:1 */
+  --lg-text-2: rgba(235, 240, 255, 0.66);
+  --lg-text-3: rgba(235, 240, 255, 0.52);
+  --lg-hair:   rgba(255, 255, 255, 0.08);
+  --lg-accent: #00ccf5;
+  --lg-good:   #30d158;
+  --lg-warn:   #ff9f0a;
+  --lg-bad:    #ff453a;
+  --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
 
   --shadow-card:
-    0 8px 40px rgba(0,0,0,0.75),
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    inset 0 -1px 0 rgba(0,0,0,0.3);
+    0 12px 40px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
   --shadow-btn-primary:
     0 0 0 1px rgba(0,204,245,0.30),
     0 0 20px rgba(0,204,245,0.22),
     0 4px 20px rgba(0,0,0,0.55),
     inset 0 1px 0 rgba(255,255,255,0.15);
   --shadow-input:
-    inset 0 2px 6px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(0,0,0,0.3);
+    inset 0 1px 2px rgba(0,0,0,0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.06);
   --shadow-input-focus:
     0 0 0 3px rgba(0,204,245,0.10),
     0 0 18px rgba(0,204,245,0.06),
@@ -730,7 +751,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(0,204,245,0.28); }
-  ::selection { background: rgba(0,204,245,0.17); color: #00ccf5; }
+  ::selection { background: rgba(0,204,245,0.28); color: #fff; }
 
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
@@ -745,11 +766,8 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   }
 
   body {
+    /* Reines Schwarz; die Farbe kommt vom Umgebungslicht hinter den Seiten */
     background-color: var(--c-bg);
-    background-image:
-      radial-gradient(ellipse 90% 60% at 10% 35%,  rgba(0,175,225,0.036) 0%, transparent 65%),
-      radial-gradient(ellipse 70% 50% at 90% 10%,  rgba(105,55,235,0.026) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 70% at 55% 95%,  rgba(0,95,195,0.020) 0%, transparent 60%);
     color: var(--c-text);
     min-height: 100dvh;
     width: 100%;
@@ -834,7 +852,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   input[type='time'] { color-scheme: inherit; }
 
   /* ── Select options ──────────────────────────────────────────────────────── */
-  select option { background: #0a0c22; color: #eaeefc; }
+  select option { background: #1c1c1e; color: #f5f5f7; }
 
 }
 
