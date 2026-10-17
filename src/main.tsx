@@ -9,10 +9,12 @@ import { initMonitoring, reactRootErrorOptions } from './lib/monitoring'
 import { installUpdateWatch } from './lib/staleChunkReload'
 import { applyLook, getLook } from './lib/look'
 import { installReflex } from './lib/reflex'
+import { installFlashlight } from './lib/flashlight'
 
 // Falls das Startskript in index.html nicht lief (Tests, alte Seiten-Caches)
 applyLook(getLook())
 installReflex()
+installFlashlight()
 
 const DEV_SW_RESET_KEY = 'tyd_dev_sw_reset'
 

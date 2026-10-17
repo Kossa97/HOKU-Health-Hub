@@ -727,3 +727,30 @@ html[data-look='satin'] :is(.lg-surface, .card, .lg-group)[data-reflex-touch]::a
   html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after { animation: none; transition: none; }
 }
 
+/* ── „Schwarz": Taschenlampen-Kante ──────────────────────────────────────
+   Ein Licht vor dem Bildschirm (src/lib/flashlight.ts): die Kante glänzt
+   dort, wo sie zum Licht zeigt (--la, Breite --lw, Helligkeit --li), die
+   Fläche fängt auf dieser Seite einen Hauch Licht (--gx/--gy). Ringsum
+   bleibt eine leise Grundkante, damit jede Karte als Glas lesbar bleibt.
+   Ohne Skript stehen die Ruhewerte: Licht von oben. */
+html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group) {
+  --la: 0deg;
+  --lw: 80deg;
+  --li: 0.8;
+  --gx: 50%;
+  --gy: 0%;
+}
+html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::before {
+  background: conic-gradient(from var(--la),
+    rgba(255, 255, 255, var(--li)) 0deg,
+    rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(var(--lw) * 0.5),
+    rgba(255, 255, 255, 0.08) var(--lw),
+    rgba(255, 255, 255, 0.05) 180deg,
+    rgba(255, 255, 255, 0.08) calc(360deg - var(--lw)),
+    rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(360deg - var(--lw) * 0.5),
+    rgba(255, 255, 255, var(--li)) 360deg);
+}
+html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
+  background: radial-gradient(70% 55% at var(--gx) var(--gy), rgba(255, 255, 255, calc(var(--li) * 0.11)), transparent 70%);
+}
+

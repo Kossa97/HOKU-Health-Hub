@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { OnboardingRestartButton } from '../components/Onboarding'
 import { LANGUAGES, applyDirection } from '../i18n'
 import { useLook, type Look } from '../lib/look'
+import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
@@ -278,9 +279,67 @@ function LookSwitcher() {
         equal
         material="fill"
       />
+      {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: feine Lichtkante. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.' })}
       </p>
+    </div>
+  )
+}
+
+/**
+ * Licht folgt dem Kippen (Taschenlampen-Kante in „Schwarz"). Auf dem iPhone
+ * fragt Safari einmal nach „Bewegung und Ausrichtung" — das muss aus diesem
+ * Tippen kommen.
+ */
+function TiltToggle() {
+  const { t } = useTranslation()
+  const [on, setOn] = useState(tiltWanted)
+  const [denied, setDenied] = useState(false)
+  const toggle = async () => {
+    if (on) {
+      setTiltWanted(false)
+      setOn(false)
+      return
+    }
+    const granted = await requestTilt()
+    setDenied(!granted)
+    setTiltWanted(granted)
+    setOn(granted)
+  }
+  return (
+    <div style={{ marginTop: 12 }}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        onClick={() => void toggle()}
+        data-tilt-toggle
+        style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 44, background: 'none', border: 0, padding: 0, cursor: 'pointer', textAlign: 'left' }}
+      >
+        <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)' }}>
+          {t('look_tilt', { defaultValue: 'Licht folgt dem Kippen' })}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'relative', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
+            background: on ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
+            transition: 'background-color 200ms ease',
+          }}
+        >
+          <span style={{
+            position: 'absolute', top: 2, left: on ? 22 : 2, width: 27, height: 27, borderRadius: '50%',
+            background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
+            transition: 'left 260ms var(--lg-ease-out)',
+          }} />
+        </span>
+      </button>
+      {denied && (
+        <p role="status" style={{ marginTop: 6, fontSize: 13, color: 'var(--lg-warn-text)' }}>
+          {t('look_tilt_denied', { defaultValue: 'Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte.' })}
+        </p>
+      )}
     </div>
   )
 }

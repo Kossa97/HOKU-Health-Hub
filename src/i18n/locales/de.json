@@ -2436,6 +2436,8 @@
   "fortschritt_chart_value_of": "{{metric}} vom {{date}}",
   "look_black": "Schwarz",
   "look_light": "Licht",
-  "look_hint": "Schwarz: feine Lichtkante. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.",
-  "look_satin": "Satin"
+  "look_hint": "Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.",
+  "look_satin": "Satin",
+  "look_tilt": "Licht folgt dem Kippen",
+  "look_tilt_denied": "Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte."
 }
