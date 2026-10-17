@@ -19,13 +19,12 @@ const HOUR = 3_600_000
 
 // ── Oberflaeche ───────────────────────────────────────────────────────────
 
-const LABEL: CSSProperties = { fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }
+const LABEL: CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)', display: 'block', marginBottom: 6, paddingLeft: 4 }
 const INPUT: CSSProperties = {
   width: '100%', minHeight: 44, padding: '10px 12px', borderRadius: 12, boxSizing: 'border-box',
-  background: 'var(--surface-input)', border: '1px solid var(--border)', color: 'var(--text)',
-  fontSize: 16, fontWeight: 600, fontFamily: 'inherit',
+  background: 'var(--lg-fill)', border: 'none', color: 'var(--lg-text)',
+  fontSize: 16, fontWeight: 500, fontFamily: 'inherit',
 }
-const HAIRLINE = '1px solid var(--border)'
 
 const hourTicks = (start: number, end: number, widthPx: number) => {
   const ticks = pickNiceTicks(start / HOUR, end / HOUR, widthPx, 56).map(h => h * HOUR)
@@ -95,31 +94,31 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
   const hours = (h: number) => Math.round(h * 10) / 10
 
   return (
-    <section style={{ borderTop: HAIRLINE }}>
+    <section>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+          background: 'none', border: 'none', padding: '0 4px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         }}
       >
         <span>
-          <span style={{ display: 'block', fontSize: 17, fontWeight: 800, color: 'var(--text)' }}>{t('pk_manual_title')}</span>
-          {!open && <span style={{ display: 'block', fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{t('pk_manual_tap')}</span>}
+          <span className="lg-title2" style={{ display: 'block' }}>{t('pk_manual_title')}</span>
+          {!open && <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>{t('pk_manual_tap')}</span>}
         </span>
-        <ChevronDown size={18} style={{ color: 'var(--text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+        <ChevronDown size={18} style={{ color: 'var(--lg-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
       </button>
 
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 8 }}>
-          <p style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.55 }}>{t('pk_manual_intro')}</p>
+        <div className="lg-surface" style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 16 }}>
+          <p style={{ fontSize: 15, color: 'var(--lg-text-2)', lineHeight: 1.45 }}>{t('pk_manual_intro')}</p>
 
           <div>
             <label style={LABEL} htmlFor="sim-profile">{t('pk_field_substance')}</label>
             {profiles.length === 0 ? (
-              <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>{t('pk_no_profiles')}</p>
+              <p style={{ fontSize: 14, color: 'var(--lg-text-2)' }}>{t('pk_no_profiles')}</p>
             ) : (
               <select id="sim-profile" value={selectedId} onChange={e => setSelectedId(e.target.value)} style={INPUT}>
                 {profiles.map(p => <option key={p.id} value={p.id}>{p.name} — T½ {p.half_life_hours}h</option>)}
@@ -149,8 +148,8 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
 
           <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 44, cursor: 'pointer' }}>
             <span>
-              <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('pk_multi_title')}</span>
-              <span style={{ display: 'block', fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{t('pk_multi_sub')}</span>
+              <span style={{ display: 'block', fontSize: 16, fontWeight: 500, color: 'var(--lg-text)' }}>{t('pk_multi_title')}</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>{t('pk_multi_sub')}</span>
             </span>
             <input type="checkbox" role="switch" checked={multiDose} onChange={e => setMultiDose(e.target.checked)}
               style={{ width: 22, height: 22, accentColor: 'var(--accent)' }} />
@@ -173,12 +172,8 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
             type="button"
             onClick={start}
             {...denyProps(!profile, t('pk_select_first'))}
-            style={{
-              minHeight: 48, borderRadius: 14, border: 'none', cursor: profile ? 'pointer' : 'not-allowed',
-              background: profile ? 'var(--accent)' : 'var(--surface-raised)', color: profile ? '#04121a' : 'var(--text-muted)',
-              fontSize: 16, fontWeight: 800, fontFamily: 'inherit',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
+            className="lg-btn lg-btn-primary w-full"
+            style={profile ? undefined : { opacity: 0.4 }}
           >
             <Activity size={18} /> {t('pk_start')}
           </button>
@@ -186,8 +181,8 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
           {result && run && (() => { const profile = run.profile; const multiDose = run.multiDose; return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 6 }}>
               <div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('pk_curve_title', { name: profile.name })}</p>
-                <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 2 }}>{t('pk_curve_sub')}</p>
+                <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--lg-text)' }}>{t('pk_curve_title', { name: profile.name })}</p>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>{t('pk_curve_sub')}</p>
                 <p className="sr-only" aria-live="polite">
                   {scrub ? `${scrubLabel.date(scrub.ts)}: ${scrubLabel.value(scrub.level)}` : ''}
                 </p>
@@ -208,11 +203,11 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
                 ariaLabel={t('pk_curve_title', { name: profile.name })}
               />
 
-              <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)', marginTop: 8 }}>{t('pk_results_title')}</p>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                <Trans i18nKey="pk_results_intro" values={{ name: profile.name }} components={{ b: <strong style={{ color: 'var(--text-dim)' }} /> }} />
+              <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--lg-text)', marginTop: 8 }}>{t('pk_results_title')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-2)' }}>
+                <Trans i18nKey="pk_results_intro" values={{ name: profile.name }} components={{ b: <strong style={{ color: 'var(--lg-text)' }} /> }} />
               </p>
-              <div>
+              <div className="lg-rows" style={{ borderRadius: 18, background: 'var(--lg-surface-2)', overflow: 'hidden' }}>
                 {[
                   { label: t('pk_res_peak_label'), value: '100 %', explain: t('pk_res_peak_explain') },
                   { label: t('pk_res_tmax_label', { h: f.num(hours(result.tmaxActual)) }), value: t('pk_hours_value', { h: f.num(hours(result.tmaxActual)) }), explain: t('pk_res_tmax_explain', { h: f.num(hours(result.tmaxActual)) }) },
@@ -232,18 +227,18 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
                     explain: `${t('pk_res_accum_explain', { f: result.accumFactor.toFixed(2) })} ${result.accumFactor > 2 ? t('pk_res_accum_strong') : result.accumFactor > 1.5 ? t('pk_res_accum_noticeable') : t('pk_res_accum_low')}`,
                   }] : []),
                 ].map(row => (
-                  <div key={row.label} style={{ padding: '10px 0', borderTop: HAIRLINE }}>
+                  <div key={row.label} style={{ padding: '10px 16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                      <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{row.label}</span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</span>
+                      <span style={{ fontSize: 15, color: 'var(--lg-text)' }}>{row.label}</span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</span>
                     </div>
-                    <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--text-dim)' }}>{row.explain}</p>
+                    <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5, color: 'var(--lg-text-2)' }}>{row.explain}</p>
                   </div>
                 ))}
               </div>
               {profile.notes && (
-                <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--text-muted)' }}>
-                  <strong style={{ color: 'var(--text-dim)' }}>{t('pk_note_prefix')}</strong>{profile.notes}
+                <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--lg-text-2)' }}>
+                  <strong style={{ color: 'var(--lg-text)' }}>{t('pk_note_prefix')}</strong>{profile.notes}
                 </p>
               )}
             </div>

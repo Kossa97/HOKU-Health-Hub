@@ -44,7 +44,7 @@ function Verlauf({ points, now, color, ruhig }: { points: LevelPoint[]; now: num
         </linearGradient>
       </defs>
       {!ruhig && <path d={`${line}L${W},${H}L0,${H}Z`} fill={`url(#${id})`} />}
-      <path d={line} fill="none" stroke={ruhig ? 'var(--text-dim)' : color} strokeOpacity={ruhig ? 0.5 : 1} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={line} fill="none" stroke={ruhig ? 'var(--lg-text-3)' : color} strokeOpacity={ruhig ? 0.5 : 1} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
@@ -64,28 +64,28 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
       <Link
         to={detailPfad(entry.key)}
         // Rueckmeldung beim Druecken, nicht erst beim Loslassen.
-        className="-mx-3 flex min-h-[64px] items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-100 active:bg-[var(--surface-raised)]"
+        className="flex min-h-[64px] items-center gap-3 px-4 py-2.5 transition-colors duration-100 active:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--lg-accent)]"
         style={{ color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
         data-bs-row={entry.key}
         data-bs-decayed={abgeklungen || undefined}
       >
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-[17px] font-extrabold tracking-tight">{entry.name}</span>
-          <span className="truncate text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          <span className="truncate text-[17px] font-semibold">{entry.name}</span>
+          <span className="truncate text-[13px]" style={{ color: 'var(--lg-text-2)' }}>
             {pausiert ? t('pk_overview_paused') : naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
           </span>
         </span>
         <Verlauf points={points} now={now} color={linie} ruhig={pausiert || abgeklungen} />
         {abgeklungen ? (
-          <span className="flex w-[84px] shrink-0 justify-end whitespace-nowrap text-[13px] font-medium" style={{ color: 'var(--text-dim)' }}>
+          <span className="flex w-[84px] shrink-0 justify-end whitespace-nowrap text-[13px] font-medium" style={{ color: 'var(--lg-text-3)' }}>
             {t('pk_overview_decayed')}
           </span>
         ) : (
           <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
-            <span className="text-[17px] font-bold tracking-tight" style={pausiert ? { color: 'var(--text-muted)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
+            <span className="text-[17px] font-semibold" style={pausiert ? { color: 'var(--lg-text-2)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
             <span
-              className="min-w-[56px] rounded-md px-1.5 py-[2px] text-right text-[13px] font-semibold"
-              style={{ background: 'var(--surface-raised)', color: 'var(--text-muted)' }}
+              className="min-w-[56px] rounded-[7px] px-1.5 py-[2px] text-right text-[13px] font-semibold"
+              style={{ background: 'var(--lg-fill)', color: 'var(--lg-text-2)' }}
               data-bs-change
             >
               {change == null ? '—' : f.signed(change)}
@@ -102,18 +102,17 @@ function Kopf({ asOf, refreshing, naechsterTakt }: { asOf: number; refreshing: b
   const { t } = useBlutspiegelFormat()
   return (
     <header className="grid items-start gap-x-3" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-      <h1 className="min-w-0 text-[2rem] font-black leading-tight tracking-tight" style={{ color: 'var(--text)' }}>{t('pk_title')}</h1>
+      <h1 className="lg-large-title min-w-0 truncate">{t('pk_title')}</h1>
       <Link
         to={MANUELL_PFAD}
         aria-label={t('pk_manual_open')}
         title={t('pk_manual_open')}
-        className="mt-1 flex h-11 w-11 items-center justify-center rounded-full"
-        style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', color: 'var(--text)' }}
+        className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         data-bs-manual
       >
         <Plus size={22} />
       </Link>
-      <p className="col-span-2 mt-1 max-w-[34ch] text-[14px] leading-snug" style={{ color: 'var(--text-muted)' }} data-bs-intro>
+      <p className="col-span-2 mt-1 max-w-[34ch] text-[15px] leading-snug" style={{ color: 'var(--lg-text-2)' }} data-bs-intro>
         {t('pk_overview_intro')}
       </p>
       <div className="col-span-2 mt-2">
@@ -132,14 +131,14 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   const missing = data.entries.filter(behebbar)
   const kopf = <Kopf asOf={data.asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} />
 
-  if (data.error) return <div className="flex flex-col gap-4">{kopf}<p role="alert" className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_data_load_error')}</p>{children}</div>
+  if (data.error) return <div className="flex flex-col gap-4">{kopf}<p role="alert" className="text-sm" style={{ color: 'var(--lg-text-2)' }}>{t('pk_data_load_error')}</p>{children}</div>
   if (data.loading) {
     return (
       <div className="flex flex-col gap-4">
         {kopf}
         <div className="flex min-h-[200px] items-center justify-center gap-2.5">
           <Loader2 size={18} color="var(--accent)" className="animate-spin" />
-          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('pk_live_loading')}</span>
+          <span className="text-sm" style={{ color: 'var(--lg-text-2)' }}>{t('pk_live_loading')}</span>
         </div>
         {children}
       </div>
@@ -151,21 +150,21 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
       {kopf}
       {data.ready.length > 0 ? (
         <section aria-label={t('pk_overview_list')}>
-          <ul className="divide-y divide-[var(--border)]">
+          <ul className="lg-group lg-rows">
             {data.ready.map(entry => (
               <Zeile key={entry.key} entry={entry} curve={data.curves.get(entry.key)} now={data.asOf} />
             ))}
           </ul>
-          <p className="mt-2 text-[12px]" style={{ color: 'var(--text-dim)' }}>{t('pk_overview_hint')}</p>
+          <p className="mx-4 mt-2 text-[13px] leading-snug" style={{ color: 'var(--lg-text-3)' }}>{t('pk_overview_hint')}</p>
         </section>
       ) : (
-        <p className="py-6 text-center text-sm" style={{ color: 'var(--text-dim)' }}>{t('pk_no_ready_items')}</p>
+        <p className="py-6 text-center text-sm" style={{ color: 'var(--lg-text-3)' }}>{t('pk_no_ready_items')}</p>
       )}
 
       {missing.length > 0 && (
         <section>
-          <h2 className="pb-1 text-[15px] font-extrabold" style={{ color: 'var(--text)' }}>{t('pk_incomplete_title')}</h2>
-          {missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}
+          <h2 className="lg-group-title">{t('pk_incomplete_title')}</h2>
+          <div className="lg-group lg-rows">{missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}</div>
         </section>
       )}
       {children}
