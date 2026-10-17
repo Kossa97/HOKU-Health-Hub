@@ -22,7 +22,6 @@ const SCHEMES: [prefix: string, scheme: AmbientScheme][] = [
   ['/blutwerte', { palette: { top: '#ff375f', middle: '#8b7cf0', bottom: '#ff8a65' }, level: 0.9 }],
   ['/simulation', { palette: { top: '#06b6d4', middle: '#5e5ce6', bottom: '#00ccf5' }, level: 0.9 }],
   ['/my-stack', { palette: { top: '#00ccf5', middle: '#8b7cf0', bottom: '#30d158' }, level: 0.9 }],
-  ['/peptide', { palette: { top: '#00ccf5', middle: '#8b7cf0', bottom: '#30d158' }, level: 0.9 }],
   ['/kalender', { palette: { top: '#8b5cf6', middle: '#00ccf5', bottom: '#10b981' }, level: 0.85 }],
   ['/injektionen', { palette: { top: '#10b981', middle: '#00ccf5', bottom: '#8b5cf6' }, level: 0.85 }],
   ['/health', { palette: { top: '#ff375f', middle: '#30d158', bottom: '#00ccf5' }, level: 0.85 }],
