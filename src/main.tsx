@@ -7,6 +7,11 @@ import App from './App.tsx'
 import { installDenyFeedback } from './lib/denyFeedback'
 import { initMonitoring, reactRootErrorOptions } from './lib/monitoring'
 import { installUpdateWatch } from './lib/staleChunkReload'
+import { applyLook, getLook } from './lib/look'
+
+// Falls das Startskript in index.html nicht lief (Tests, alte Seiten-Caches)
+applyLook(getLook())
+
 const DEV_SW_RESET_KEY = 'tyd_dev_sw_reset'
 
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {

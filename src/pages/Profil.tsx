@@ -8,6 +8,8 @@ import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
 import { OnboardingRestartButton } from '../components/Onboarding'
 import { LANGUAGES, applyDirection } from '../i18n'
+import { useLook, type Look } from '../lib/look'
+import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
@@ -226,6 +228,9 @@ export function Profil() {
       {/* ── Sprache / Language ── */}
       <LanguageSwitcher />
 
+      {/* ── Erscheinungsbild: Schwarz oder Licht ── */}
+      <LookSwitcher />
+
       {/* ── Push-Notifications ── */}
       <PushSettings />
 
@@ -246,6 +251,35 @@ export function Profil() {
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
+    </div>
+  )
+}
+
+// ── LookSwitcher ─────────────────────────────────────────────────────────────
+
+function LookSwitcher() {
+  const { t } = useTranslation()
+  const { look, setLook } = useLook()
+  const options: SegmentOption<Look>[] = [
+    { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
+    { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
+  ]
+  return (
+    <div className="card" style={{ marginTop: 12 }} data-look-switcher>
+      <p className="label" style={{ marginBottom: 10 }}>
+        {t('theme_label', { defaultValue: 'Erscheinungsbild' })}
+      </p>
+      <GlassSegmented
+        options={options}
+        value={look}
+        onChange={setLook}
+        ariaLabel={String(t('theme_label', { defaultValue: 'Erscheinungsbild' }))}
+        equal
+        material="fill"
+      />
+      <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+        {t('look_hint', { defaultValue: 'Schwarz: Glas mit Lichtkante auf reinem Schwarz. Licht: farbiges Licht schimmert durch das Glas.' })}
+      </p>
     </div>
   )
 }

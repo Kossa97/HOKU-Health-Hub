@@ -2433,5 +2433,8 @@
   "fortschritt_photos_none_in_range": "Keine Fotos in diesem Zeitraum",
   "fortschritt_saved_short": "Gespeichert",
   "fortschritt_save_entry": "Eintrag speichern",
-  "fortschritt_chart_value_of": "{{metric}} vom {{date}}"
+  "fortschritt_chart_value_of": "{{metric}} vom {{date}}",
+  "look_black": "Schwarz",
+  "look_light": "Licht",
+  "look_hint": "Schwarz: Glas mit Lichtkante auf reinem Schwarz. Licht: farbiges Licht schimmert durch das Glas."
 }
