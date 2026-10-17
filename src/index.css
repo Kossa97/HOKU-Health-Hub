@@ -623,13 +623,16 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-primary-fill: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
   --lg-danger-fill: linear-gradient(180deg, rgba(255,69,58,0.42), rgba(255,69,58,0.22));
   /* Inhalt und Füllungen wie bei iOS im Dunkeln */
-  /* Inhalt: leicht durchscheinend, das Umgebungslicht schimmert durch.
-     --lg-surface-fill ist die flache Fassung (für background-color),
-     --lg-surface-bg/-blur/-shadow das volle Material der Karten. */
-  --lg-surface-fill: rgba(255,255,255,0.05);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
+  /* Inhalt: dunkles Glas auf reinem Schwarz („Lichtkante"). Kein Licht
+     dahinter — sichtbar wird das Glas durch seine Kante, die Licht oben
+     links und unten rechts fängt (--lg-card-rim), und einen Glanz oben.
+     --lg-surface-fill ist die flache Fassung (für background-color). */
+  --lg-surface-fill: rgba(255,255,255,0.04);
+  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
   --lg-surface-blur: blur(18px) saturate(140%);
-  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
+  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 18px 40px rgba(0,0,0,0.7);
+  --lg-card-rim: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.12) 30%, rgba(255,255,255,0.02) 55%, rgba(255,255,255,0.10) 78%, rgba(255,255,255,0.45));
+  --lg-card-sheen: radial-gradient(90% 60% at 20% -10%, rgba(255,255,255,0.12), transparent 60%);
   /* Sheets: dichteres Glas, Text und Felder bleiben lesbar */
   --lg-sheet-bg: rgba(30,30,34,0.74);
   --lg-sheet-blur: blur(40px) saturate(180%);

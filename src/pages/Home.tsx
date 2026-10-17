@@ -241,12 +241,8 @@ const pageStyle: CSSProperties = {
   paddingBottom: 8,
 }
 
-/** Inhalt auf durchscheinendem Glas wie die Karten in Fortschritt. */
+/** Maße der Karten; das Material (Glas mit Lichtkante) kommt von `.lg-surface`. */
 const panelStyle: CSSProperties = {
-  background: 'var(--lg-surface-bg)',
-  backdropFilter: 'var(--lg-surface-blur)',
-  WebkitBackdropFilter: 'var(--lg-surface-blur)',
-  boxShadow: 'var(--lg-surface-shadow)',
   borderRadius: 'var(--r-xl)',
   position: 'relative',
   overflow: 'hidden',
@@ -999,7 +995,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
       </header>
 
       {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
-      <section style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <TodayRing percent={completionLevel} done={completionLevel >= 100} />
           <div style={{ minWidth: 0 }}>
@@ -1059,7 +1055,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
                 .map(item => todayIntakeByKey.get(item.key))
                 .filter((intake): intake is TodayIntake => Boolean(intake))
               return (
-                <div key={group.key} style={{ ...panelStyle, padding: '12px 14px 14px' }}>
+                <div key={group.key} className="lg-surface" style={{ ...panelStyle, padding: '12px 14px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)' }}>
                       {groupLabel}
@@ -1199,7 +1195,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
       </section>
 
       {/* ── Studie des Tages ── */}
-      <section style={{ ...panelStyle, padding: 16 }}>
+      <section className="lg-surface" style={{ ...panelStyle, padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
           <span style={{ ...iconTileStyle('#00b4e0'), width: 30, height: 30 }}>
             {(() => { const StudyIcon = todayStudy.icon; return <StudyIcon size={17} /> })()}
@@ -1255,7 +1251,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         <div style={sectionHeaderStyle}>
           <h2 style={sectionTitleStyle}>{t('home_all_tools', { defaultValue: 'Alle Tools' })}</h2>
         </div>
-        <div style={{ ...panelStyle }} data-ob="home-tiles">
+        <div className="lg-surface" style={{ ...panelStyle }} data-ob="home-tiles">
           {TILE_DEFS.map(tile => (
             <TileButton
               key={tile.labelKey}
@@ -1347,7 +1343,7 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className={wide ? 'col-span-2 lg-press' : 'lg-press'}
+      className={wide ? 'lg-surface col-span-2 lg-press' : 'lg-surface lg-press'}
       style={{
         ...panelStyle,
         minHeight: 96,
@@ -1390,7 +1386,7 @@ function InsightCard({
   return (
     <button
       onClick={onClick}
-      className="lg-press"
+      className="lg-surface lg-press"
       style={{
         ...panelStyle,
         minWidth: 0,
@@ -1733,7 +1729,7 @@ function FeatureCard({
   return (
     <button
       onClick={onClick}
-      className="lg-press"
+      className="lg-surface lg-press"
       style={{
         ...panelStyle,
         flex: '0 0 74%',

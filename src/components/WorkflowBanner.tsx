@@ -11,12 +11,8 @@ const WORKFLOW_STEPS: { icon: LucideIcon; labelKey: string; label: string; descK
   { icon: Gauge, labelKey: 'home_flow_track', label: 'Tracken', descKey: 'home_flow_track_desc', desc: 'Dosen, Effekte, Reports' },
 ]
 
-// Inhalt auf durchscheinendem Glas wie jede Karte der Startseite
+// Maße der Karte; das Material (Glas mit Lichtkante) kommt von `.lg-surface`
 const panelStyle: CSSProperties = {
-  background: 'var(--lg-surface-bg)',
-  backdropFilter: 'var(--lg-surface-blur)',
-  WebkitBackdropFilter: 'var(--lg-surface-blur)',
-  boxShadow: 'var(--lg-surface-shadow)',
   borderRadius: 'var(--r-xl)',
   padding: 16,
   position: 'relative',
@@ -85,7 +81,7 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
       `}</style>
 
       <section>
-        <div style={panelStyle}>
+        <div className="lg-surface" style={panelStyle}>
           <div
             style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}
             onClick={stopNav}

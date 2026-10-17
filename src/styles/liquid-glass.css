@@ -113,8 +113,35 @@
   backdrop-filter: var(--lg-surface-blur);
   box-shadow: var(--lg-surface-shadow);
 }
+/* Lichtkante der Inhaltsflächen: ein 1-px-Rand aus Licht (hell oben links,
+   fast nichts in der Mitte, wieder hell unten rechts) und ein Glanz von oben.
+   Beides unter dem Inhalt (z-index −1 in der eigenen Stapelebene). */
+:is(.lg-surface, .card, .lg-group) { isolation: isolate; }
+:is(.lg-surface, .card, .lg-group)::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: var(--lg-card-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+:is(.lg-surface, .card, .lg-group)::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--lg-card-sheen);
+}
 @supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
-  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::before {
+  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger, .lg-surface, .card, .lg-group)::before {
     padding: 0;
     background: none;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
@@ -366,21 +393,15 @@
 
 /* Inhaltsfläche mit Ton: eine Haarlinie in der Farbe sagt Erfolg/Fehler,
    ohne die ganze Fläche einzufärben. */
-.lg-surface[data-tone='good'] { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px color-mix(in srgb, var(--lg-good) 40%, transparent); }
-.lg-surface[data-tone='bad'] { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px color-mix(in srgb, var(--lg-bad) 45%, transparent); }
+.lg-surface[data-tone='good'] { box-shadow: var(--lg-surface-shadow), inset 0 0 0 1px color-mix(in srgb, var(--lg-good) 40%, transparent); }
+.lg-surface[data-tone='bad'] { box-shadow: var(--lg-surface-shadow), inset 0 0 0 1px color-mix(in srgb, var(--lg-bad) 45%, transparent); }
 
-/* ── Grund für Vollbilder ──────────────────────────────────────────────
-   Vollbilder decken das Umgebungslicht der Seite ab. Ohne Licht dahinter
-   wäre Glas auf Schwarz nur eine graue Fläche — deshalb tragen sie dieselben
-   drei Lichter, ruhig und fest (Farben und Stärke wie der Standard). */
-.lg-backdrop {
-  background-color: #000;
-  background-image:
-    radial-gradient(70% 42% at -6% 6%, rgba(0, 204, 245, 0.17), transparent 70%),
-    radial-gradient(70% 42% at 106% 46%, rgba(139, 124, 240, 0.17), transparent 70%),
-    radial-gradient(70% 40% at -8% 104%, rgba(48, 209, 88, 0.14), transparent 70%);
-  background-repeat: no-repeat;
-}
+/* ── Grund für Vollbilder: dasselbe reine Schwarz wie die Seiten ───────── */
+.lg-backdrop { background-color: #000; }
+/* Umgebungslicht vorerst aus: reines Schwarz, das Glas lebt von seiner
+   Lichtkante. Die Logik läuft weiter (Rahmen, Tönung, Ausweichen) — wieder
+   einschalten heißt nur diese Regel entfernen. */
+.lg-ambient { display: none; }
 
 /* ── Titel wie in iOS: Large Title 34 pt, Title 2 20 pt ──────────────── */
 .lg-large-title { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: 0.011em; color: var(--lg-text); }
@@ -546,7 +567,7 @@
   :is(.lg-glass, .lg-menu, .btn-secondary) { background: #2c2c2e; }
   :is(.lg-btn-primary, .lg-btn-tint, .btn-primary) { background: #00b4e0; }
   :is(.lg-btn-danger, .btn-danger) { background: #4a1714; }
-  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::after { display: none; }
+  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger, .lg-surface, .card, .lg-group)::after { display: none; }
 }
 
 /* ── Gruppierte Liste (wie die iOS-Einstellungen) ───────────────────────
