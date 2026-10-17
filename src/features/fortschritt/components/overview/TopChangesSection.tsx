@@ -5,7 +5,6 @@ import type { SeriesPoint } from '../../lib/metrics'
 import { metricLabel } from '../../lib/metricLabels'
 import { formatNumber, formatSignedNumber } from '../../lib/dates'
 import { isWellnessMetricKey } from '../../constants'
-import { useAmbientLight } from '../../ambient/context'
 
 interface Props {
   changes: MetricChange[]
@@ -49,9 +48,6 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
   const { t } = useTranslation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [page, setPage] = useState(0)
-  // Wischfortschritt zwischen zwei Karten (−0,5..0,5): das Licht gleitet mit
-  const [drift, setDrift] = useState(0)
-  const sectionRef = useRef<HTMLElement>(null)
 
   const empty = !hasAnyData
     ? { title: t('fortschritt_no_values_title'), body: t('fortschritt_no_values_body') }
@@ -98,23 +94,11 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
     const el = scrollRef.current
     const card = el?.firstElementChild as HTMLElement | null
     if (!el || !card) return
-    const progress = el.scrollLeft / (card.offsetWidth + 10)
-    const next = Math.round(progress)
-    setPage(next)
-    setDrift(progress - next)
+    setPage(Math.round(el.scrollLeft / (card.offsetWidth + 10)))
   }
 
-  const active = changes[Math.min(page, Math.max(0, changes.length - 1))]
-  useAmbientLight('changes', sectionRef, {
-    color: active ? colorFor(active.key) : '#000000',
-    intensity: active ? 0.42 : 0,
-    anchorX: 0.36 - drift * 0.5,
-    anchorY: 0.6,
-    size: 360,
-  })
-
   return (
-    <section ref={sectionRef} aria-labelledby="fg-changes-title">
+    <section aria-labelledby="fg-changes-title">
       <div className="fg-section-head">
         <h2 id="fg-changes-title" className="fg-h3">{t('fortschritt_top_changes')}</h2>
         <span className="fg-meta">{t('fortschritt_top_changes_sub')}</span>

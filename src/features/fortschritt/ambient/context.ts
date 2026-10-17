@@ -1,27 +1,36 @@
-import { createContext, useCallback, useContext, useEffect, type RefObject } from 'react'
-import type { AmbientEngine, LightSpec } from './engine'
+import { createContext, useContext, useEffect, useId } from 'react'
 
-export const AmbientContext = createContext<AmbientEngine | null>(null)
+/** Die drei festen Lichter der Bühne: oben links, Mitte rechts, unten links. */
+export type LightSlot = 'top' | 'middle' | 'bottom'
 
-/** Eine Karte bekommt ein eigenes Licht, das ihr folgt. */
-export function useAmbientLight(id: string, ref: RefObject<HTMLElement | null>, spec: LightSpec) {
-  const engine = useContext(AmbientContext)
-  useEffect(() => {
-    if (!engine) return
-    engine.register(id, () => ref.current)
-    return () => engine.unregister(id)
-  }, [engine, id, ref])
-  const { color, intensity, anchorX, anchorY, size } = spec
-  useEffect(() => {
-    engine?.update(id, { color, intensity, anchorX, anchorY, size })
-  }, [engine, id, color, intensity, anchorX, anchorY, size])
+/** Wunsch einer Karte an ein Licht: andere Farbe und/oder etwas heller. */
+export interface Tint {
+  color?: string
+  /** zusätzliche Helligkeit, 0..0,2 */
+  boost?: number
 }
 
-/** Kurzes Aufblühen einer Farbe an einer Stelle (Chip an, Ring auf). */
-export function useAmbientPulse() {
-  const engine = useContext(AmbientContext)
-  return useCallback(
-    (color: string, el: HTMLElement | null, anchorX?: number, anchorY?: number) => engine?.pulse(color, el, anchorX, anchorY),
-    [engine],
-  )
+export interface AmbientScene {
+  claim: (slot: LightSlot, owner: string, tint: Tint) => void
+  release: (slot: LightSlot, owner: string) => void
+}
+
+export const AmbientContext = createContext<AmbientScene | null>(null)
+
+/**
+ * Färbt ein Licht der Bühne, solange `tint` gesetzt ist; mit null gibt die
+ * Karte es wieder frei und das Licht kehrt langsam in seine Grundfarbe zurück.
+ * Die Lichter bewegen sich nie — nur Farbe und Helligkeit ändern sich.
+ */
+export function useAmbientTint(slot: LightSlot, tint: Tint | null) {
+  const scene = useContext(AmbientContext)
+  const owner = useId()
+  const color = tint?.color
+  const boost = tint?.boost
+  const active = tint != null
+  useEffect(() => {
+    if (!scene || !active) return
+    scene.claim(slot, owner, { color, boost })
+    return () => scene.release(slot, owner)
+  }, [scene, slot, owner, active, color, boost])
 }

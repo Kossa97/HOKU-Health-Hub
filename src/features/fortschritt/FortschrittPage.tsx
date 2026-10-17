@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
@@ -12,7 +12,6 @@ import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verl
 import { formatDaySafe } from './lib/dates'
 import './glass.css'
 import { AmbientLightProvider } from './ambient/AmbientLight'
-import { useAmbientLight } from './ambient/context'
 
 export function FortschrittPage() {
   const { t } = useTranslation()
@@ -55,14 +54,12 @@ export function FortschrittPage() {
         onChange={setRangeChip}
       />
 
-      <HeaderLight>
-        <FortschrittHeader
-          rangeLabel={rangeLabel}
-          onLogToday={() => setLogOpen(true)}
-          hasTodayEntry={hasTodayEntry}
-          dataReady={state.dataReady}
-        />
-      </HeaderLight>
+      <FortschrittHeader
+        rangeLabel={rangeLabel}
+        onLogToday={() => setLogOpen(true)}
+        hasTodayEntry={hasTodayEntry}
+        dataReady={state.dataReady}
+      />
 
       {state.loading ? (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--fg-text-3)', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -91,9 +88,3 @@ export function FortschrittPage() {
   )
 }
 
-/** Ruhiges Cyan oben links: der Kopf ist nie ganz schwarz. */
-function HeaderLight({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useAmbientLight('head', ref, { color: '#00ccf5', intensity: 0.5, anchorX: 0.12, anchorY: 0.2, size: 420 })
-  return <div ref={ref}>{children}</div>
-}

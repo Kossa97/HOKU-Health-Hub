@@ -6,7 +6,6 @@ import { filterByDateRange } from '../../lib/range'
 import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import { FotosTab } from './FotosTab'
 import { useSheetPresence } from '../../hooks/useSheetPresence'
-import { useAmbientLight } from '../../ambient/context'
 
 /** Womit die Galerie aufgeht: alle Fotos, ein bestimmtes Foto groß oder gleich das Hinzufügen. */
 type SheetTarget = { kind: 'all' } | { kind: 'photo'; id: string } | { kind: 'add' }
@@ -40,21 +39,12 @@ export function FotosCard({ photos, range, onChange }: Props) {
   const after = inRange.length > 1 ? inRange[inRange.length - 1] : null
   const weightDelta = before?.weight_kg != null && after?.weight_kg != null ? after.weight_kg - before.weight_kg : null
 
-  // Kühles Licht hinter den Fotos; beim Vergleich wandert es mit der Trennlinie
-  const sectionRef = useRef<HTMLElement>(null)
   const [split, setSplit] = useState(0.5)
   const [dragging, setDragging] = useState(false)
-  useAmbientLight('photos', sectionRef, {
-    color: '#3fd1c6',
-    intensity: dragging && after ? 0.55 : before ? 0.34 : 0.22,
-    anchorX: after ? split : 0.5,
-    anchorY: 0.55,
-    size: dragging && after ? 320 : 380,
-  })
 
   return (
     <>
-      <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-photos-title">
+      <section className="fg-card fg-surface" aria-labelledby="fg-photos-title">
         <div className="fg-card-head" style={{ alignItems: 'center' }}>
           <div>
             <h3 id="fg-photos-title" className="fg-h3">

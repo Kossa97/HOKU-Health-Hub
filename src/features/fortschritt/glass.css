@@ -48,26 +48,39 @@ html[data-fs-glass] body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Umgebungslicht: fest am Bildschirm, hinter allem. Die Lichter setzt
-   ambient/AmbientLight.tsx per transform/opacity; die Maske macht sie weich,
-   ohne teures filter: blur. Farbwechsel blenden über background-color. */
+/* Umgebungslicht: eine feste Bühne hinter der Seite. Drei weiche Lichter an
+   festen Stellen des Bildschirms; die Karten gleiten beim Scrollen darüber.
+   Interaktionen ändern nur Farbe und Helligkeit (1 s), nie die Lage.
+   Weich durch eine feste Radial-Maske statt filter: blur. */
 .fg-ambient {
   position: fixed;
-  inset: 0;
+  /* Feste Höhe: klappt die Adressleiste ein, springen die Lichter nicht */
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100lvh;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
 }
 .fg-light {
   position: absolute;
-  left: 0;
-  top: 0;
+  width: min(125vw, 620px);
+  aspect-ratio: 1;
   border-radius: 50%;
-  opacity: 0;
-  will-change: transform, opacity;
-  -webkit-mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.32) 48%, transparent 100%);
-  mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.32) 48%, transparent 100%);
-  transition: background-color 700ms ease;
+  -webkit-mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.3) 50%, transparent 100%);
+  mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.3) 50%, transparent 100%);
+  transition: background-color 1000ms ease, opacity 1000ms ease;
+}
+.fg-light-top { left: -38%; top: -14%; }
+.fg-light-middle { right: -46%; top: 26%; }
+.fg-light-bottom { left: -44%; bottom: -18%; }
+@media (min-width: 640px) {
+  .fg-light-top { left: calc(50% - 560px); }
+  .fg-light-middle { right: calc(50% - 600px); }
+  .fg-light-bottom { left: calc(50% - 600px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fg-light { transition-duration: 200ms; }
 }
 
 /* ── Materialien ─────────────────────────────────────────────────────── */

@@ -26,6 +26,9 @@ test('Fortschritt-Verlauf: Zyklus per Chip als Balken hinter der Kurve, Ablesen 
   await expect(chip).toHaveAttribute('aria-pressed', 'true')
   await expect(chip).toHaveAttribute('data-hint', 'false')
   await expect(graph.locator('rect.fg-band')).toHaveCount(1)
+  // Der feste Hintergrund nimmt die Zyklusfarbe im mittleren Licht an
+  const mitte = page.locator('.fg-light-middle')
+  await expect(mitte).toHaveAttribute('data-tinted', 'true')
   const hero = page.locator('[data-hero-value]')
   const heute = await hero.textContent()
 
@@ -46,4 +49,5 @@ test('Fortschritt-Verlauf: Zyklus per Chip als Balken hinter der Kurve, Ablesen 
 
   await chip.click()
   await expect(graph.locator('rect.fg-band')).toHaveCount(0)
+  await expect(mitte).toHaveAttribute('data-tinted', 'false')
 })
