@@ -10,7 +10,7 @@ import { CalendarHeart, X } from 'lucide-react'
 import { GEBURTSDATUM_MIN, geburtsdatumGueltig, type BioProfile, type BioSex } from '../lib/bioProfile'
 import { Sheet } from '../../compliance/components/Sheet'
 import { useBioProfil } from './useBioProfil'
-import { MUTED, TEXT } from '../styles'
+import { TEXT } from '../styles'
 
 const heuteIso = (): string => {
   const d = new Date()
@@ -60,11 +60,11 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
           }}
           data-bio-birth
         />
-        {ungueltig && <p id={`${idPrefix}-birth-error`} className="mt-1 text-xs text-red-400">{t('bw_bio_birth_invalid')}</p>}
+        {ungueltig && <p id={`${idPrefix}-birth-error`} className="mt-1 text-xs text-[var(--lg-bad-text)]">{t('bw_bio_birth_invalid')}</p>}
       </div>
       <div>
         <p className="label" id={`${idPrefix}-sex-label`}>{t('bw_bio_sex')}</p>
-        <div role="radiogroup" aria-labelledby={`${idPrefix}-sex-label`} className="flex rounded-xl p-1" style={{ border: '1px solid var(--border)' }} data-bio-sex>
+        <div role="radiogroup" aria-labelledby={`${idPrefix}-sex-label`} className="flex rounded-full p-0.5" style={{ background: 'var(--lg-fill)' }} data-bio-sex>
           {optionen.map(([key, label]) => {
             const aktiv = value.sex === key
             return (
@@ -75,7 +75,7 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
                 aria-checked={aktiv}
                 disabled={disabled}
                 onClick={() => onChange({ ...value, sex: key })}
-                className={`min-h-10 flex-1 rounded-lg px-2 text-sm transition-colors disabled:opacity-50 ${aktiv ? 'bg-sky-500/20 font-bold text-sky-300' : 'font-semibold text-slate-400'}`}
+                className={`min-h-10 flex-1 whitespace-nowrap rounded-full px-1 text-[13px] transition-colors disabled:opacity-50 ${aktiv ? 'bg-[var(--lg-fill-selected)] font-semibold text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'font-semibold text-[var(--lg-text-2)]'}`}
                 data-bio-sex-option={key ?? 'none'}
               >
                 {label}
@@ -83,7 +83,7 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
             )
           })}
         </div>
-        <p className="mt-1 text-xs text-slate-500">{t('bw_bio_sex_hint')}</p>
+        <p className="mt-1.5 text-xs text-[var(--lg-text-3)]">{t('bw_bio_sex_hint')}</p>
       </div>
     </div>
   )
@@ -125,7 +125,7 @@ function BioProfilFormular({ start, speichern, idPrefix, onGespeichert, onBusy }
       <BioProfilFelder value={entwurf} onChange={setEntwurf} onUnvollstaendig={setUnvollstaendig} idPrefix={idPrefix} heute={heute} disabled={busy} />
       <button
         type="button"
-        className="btn-primary w-full min-h-11"
+        className="lg-btn lg-btn-primary w-full disabled:opacity-40"
         disabled={busy || !gueltig || !geaendert}
         onClick={() => void absenden()}
         data-bio-save
@@ -173,12 +173,12 @@ export function BioProfilSheet({ start, speichern, onClose }: {
   return (
     <Sheet labelledBy="bio-sheet-title" busy={busy} onClose={onClose} data-bio-sheet>
       <div className="flex items-start justify-between gap-3">
-        <h2 id="bio-sheet-title" className="text-lg font-bold text-white">{t('bw_bio_title')}</h2>
-        <button type="button" data-app-back-close disabled={busy} onClick={onClose} aria-label={t('close')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-400">
-          <X size={18} aria-hidden="true" />
+        <h2 id="bio-sheet-title" className="lg-title2 pt-2">{t('bw_bio_title')}</h2>
+        <button type="button" data-app-back-close disabled={busy} onClick={onClose} aria-label={t('close')} className="lg-icon-btn -mr-2 shrink-0 text-[var(--lg-text-2)]">
+          <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
         </button>
       </div>
-      <p className="mt-1 mb-4 text-sm text-slate-400">{t('bw_bio_desc')}</p>
+      <p className="mt-1 mb-4 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('bw_bio_desc')}</p>
       <BioProfilFormular start={start} speichern={speichern} idPrefix="sheet-bio" onGespeichert={onClose} onBusy={setBusy} />
     </Sheet>
   )
@@ -188,16 +188,18 @@ export function BioProfilSheet({ start, speichern, onClose }: {
 export function BioProfilHinweis({ onOeffnen, onAusblenden }: { onOeffnen: () => void; onAusblenden: () => void }) {
   const { t } = useTranslation()
   return (
-    <div className="mb-3 flex items-start gap-3 rounded-2xl p-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} data-bio-hint>
-      <CalendarHeart size={18} className="mt-0.5 shrink-0 text-sky-400" aria-hidden="true" />
+    <div className="lg-surface mb-4 flex items-start gap-3 py-3.5 pl-4 pr-1.5" data-bio-hint>
+      <span className="lg-icon-tile mt-0.5" style={{ background: '#0a84ff' }} aria-hidden="true">
+        <CalendarHeart size={17} />
+      </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold" style={{ color: TEXT }}>{t('bw_bio_hint_title')}</p>
-        <p className="mt-0.5 text-xs" style={{ color: MUTED }}>{t('bw_bio_hint_body')}</p>
-        <button type="button" onClick={onOeffnen} className="mt-1 min-h-11 text-sm font-semibold text-sky-400" data-bio-hint-open>
+        <p className="text-[15px] font-semibold" style={{ color: TEXT }}>{t('bw_bio_hint_title')}</p>
+        <p className="mt-0.5 text-[13px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t('bw_bio_hint_body')}</p>
+        <button type="button" onClick={onOeffnen} className="mt-1 -mb-2 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)]" data-bio-hint-open>
           {t('bw_bio_hint_action')}
         </button>
       </div>
-      <button type="button" onClick={onAusblenden} aria-label={t('bw_bio_hint_dismiss')} title={t('bw_bio_hint_dismiss')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ color: MUTED }} data-bio-hint-dismiss>
+      <button type="button" onClick={onAusblenden} aria-label={t('bw_bio_hint_dismiss')} title={t('bw_bio_hint_dismiss')} className="-mt-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ color: 'var(--lg-text-3)' }} data-bio-hint-dismiss>
         <X size={16} aria-hidden="true" />
       </button>
     </div>

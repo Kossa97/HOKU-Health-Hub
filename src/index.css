@@ -1726,12 +1726,12 @@ main.flex-1 {
 }
 
 /* Blutwerte: Marker-Karten, zwei nebeneinander */
+/* Glasfläche aus .lg-surface, etwas kleiner gerundet als große Karten */
 .bw-marker-card {
   min-height: 180px;
-  border-radius: 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
 }
+/* Viele Karten: kein Weichzeichner je Karte — auf Schwarz zeigt er nichts, kostet aber GPU */
+.bw-marker-card.lg-surface { border-radius: 24px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* Wert und Plakette nebeneinander; reicht der Platz nicht, die Plakette darunter. */
 .bw-card-bottom {

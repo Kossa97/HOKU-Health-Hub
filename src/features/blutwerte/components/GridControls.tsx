@@ -5,9 +5,10 @@ import type { UnitSystem } from '../lib/unitConversion'
 import { KATEGORIE_KEY } from '../lib/markerCatalog.en'
 import type { KategorieFilter } from '../lib/markerCatalog'
 import { KATEGORIEN, SONSTIGE } from '../lib/markerCatalog'
-import { MUTED, RED, RED_WEAK, TEXT } from '../styles'
+import { MUTED, RED, TEXT } from '../styles'
 
-const PILL = { background: 'var(--surface-raised)', border: '1px solid var(--border)' } as const
+// Eingelassene Systemfuellung wie die iOS-Segmente im Inhalt
+const PILL = { background: 'var(--lg-fill)' } as const
 
 const SORT_LABELS: Record<SortMode, string> = {
   kategorie: 'bw_sort_category',
@@ -57,8 +58,8 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
               className="inline-flex min-h-9 items-center gap-1.5 px-3.5 rounded-full text-sm whitespace-nowrap transition-colors"
               style={
                 active
-                  ? { background: 'var(--surface-raised)', color: TEXT, fontWeight: 800 }
-                  : { color: 'var(--text-dim)', fontWeight: 600 }
+                  ? { background: 'var(--lg-fill-selected)', color: 'var(--lg-text)', fontWeight: 700 }
+                  : { color: 'var(--lg-text-2)', fontWeight: 600 }
               }
             >
               {chip.label}
@@ -66,7 +67,7 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
                 <span
                   aria-hidden="true"
                   className="min-w-5 rounded-full px-1.5 text-xs font-bold leading-5 tabular-nums text-center"
-                  style={{ background: RED_WEAK, color: RED }}
+                  style={{ background: 'color-mix(in srgb, var(--lg-bad) 22%, transparent)', color: RED }}
                   data-bw-flagged-count
                 >
                   {auffaellig}
@@ -120,8 +121,8 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
               aria-pressed={unitSystem === key}
               className="h-full rounded-full px-3 text-xs whitespace-nowrap transition-colors"
               style={unitSystem === key
-                ? { background: 'var(--surface)', color: TEXT, fontWeight: 800, boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }
-                : { color: MUTED, fontWeight: 600 }}
+                ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 700, boxShadow: '0 3px 8px rgba(0,0,0,0.25)' }
+                : { color: 'var(--lg-text-2)', fontWeight: 600 }}
             >
               {label}
             </button>

@@ -2439,5 +2439,6 @@
   "look_hint": "Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.",
   "look_satin": "Satin",
   "look_tilt": "Licht folgt dem Kippen",
-  "look_tilt_denied": "Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte."
+  "look_tilt_denied": "Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte.",
+  "bw_view_aria": "Ansicht"
 }

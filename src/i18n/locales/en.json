@@ -2439,5 +2439,6 @@
   "look_hint": "Black: a glass edge that shines as if under a torch. Satin: a thick matte glass edge with a moving highlight. Glow: coloured light shines through the glass.",
   "look_satin": "Satin",
   "look_tilt": "Light follows tilt",
-  "look_tilt_denied": "Motion access not granted. The light stays above the centre of the screen."
+  "look_tilt_denied": "Motion access not granted. The light stays above the centre of the screen.",
+  "bw_view_aria": "View"
 }

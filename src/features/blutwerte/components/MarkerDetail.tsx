@@ -15,7 +15,8 @@ import { unitChoices, type UnitSystem } from '../lib/unitConversion'
 import { GUIDANCE_STAND, markerGuidance, type GuidanceItem } from '../lib/markerGuidance'
 import type { BloodworkEntry, BloodworkReport } from '../types'
 import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
-import { CYAN, GREEN, MUTED, PANEL_STYLE, PILL_GRAY, PILL_GREEN, PILL_RED, RED, RED_WEAK, TEXT } from '../styles'
+import { CYAN, GREEN, MUTED, PILL_GRAY, PILL_GREEN, PILL_RED, RED, TEXT } from '../styles'
+import { GlassSegmented } from '../../../components/ui/GlassSegmented'
 import { ReferenceBar } from './ReferenceBar'
 import { MessungDetail } from './MessungDetail'
 import { ZyklusAuswahl } from './ZyklusAuswahl'
@@ -99,7 +100,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const shownValue = summary.displayValue ?? (latest ? toNumber(latest.value) : null)
   const shownUnit = summary.displayValue != null ? unit : (latest?.unit ?? '')
 
-  const lineColor = inRange === false ? '#ef4444' : inRange === true ? '#10b981' : NEUTRAL_LINE
+  const lineColor = inRange === false ? RED : inRange === true ? GREEN : NEUTRAL_LINE
 
   // Alle umrechenbaren Messungen, alt → neu
   const allPoints: LevelPoint[] = useMemo(() => summary.points
@@ -226,7 +227,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
   const labNamen = useMemo(() => new Map(reports.map(r => [r.id, r.lab_name])), [reports])
   const standDatum = monthYear.format(new Date(`${GUIDANCE_STAND}-01T00:00:00`))
 
-  const sectionTitle = 'text-xl font-extrabold tracking-tight'
+  const sectionTitle = 'lg-title2'
 
   return (
     <div className="flex flex-col gap-6 pb-4">
@@ -235,19 +236,17 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
         <button
           type="button"
           onClick={onBack}
-          className="-ml-2 flex min-h-11 items-center gap-0.5 pr-2 text-[17px] font-medium"
-          style={{ color: CYAN }}
+          className="lg-glass lg-btn lg-btn-glass lg-btn-compact !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
           aria-label={t('back')}
         >
-          <ChevronLeft size={24} strokeWidth={2.4} aria-hidden="true" />
+          <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
           {t('bw_title')}
         </button>
         <button
           type="button"
           onClick={onAdd}
           aria-label={t('bw_add_value_aria')}
-          className="flex h-11 w-11 items-center justify-center rounded-full"
-          style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', color: TEXT }}
+          className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >
           <Plus size={22} aria-hidden="true" />
         </button>
@@ -264,12 +263,12 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       </div>
 
       {/* Wert, Einheit und Referenzbereich — der Kasten wie in der ersten Fassung */}
-      <div className="p-5" style={PANEL_STYLE} data-bw-hero>
+      <div className="lg-surface p-5" data-bw-hero>
         {latest && shownValue != null ? (
           <div className="flex flex-col gap-3">
             <p className="-mb-2 text-sm font-semibold" style={{ color: MUTED }} data-bw-hero-label>{t('bw_current_label')}</p>
             <div className="flex items-end justify-between gap-3">
-              <p className="text-3xl font-bold tabular-nums" style={{ color: inRange === false ? RED : CYAN }} data-bw-hero-value>
+              <p className="text-[34px] font-bold leading-tight tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-hero-value>
                 {formatNumber(shownValue)}
                 <span className="ml-1.5 text-base font-semibold" style={{ color: MUTED }}>{shownUnit}</span>
               </p>
@@ -293,8 +292,8 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                   <label className="text-xs" style={{ color: MUTED }} htmlFor="bw-marker-unit">{t('bw_unit_label')}</label>
                   <select
                     id="bw-marker-unit"
-                    className="select"
-                    style={{ color: TEXT, width: 'auto', paddingTop: 4, paddingBottom: 4, fontSize: 13 }}
+                    className="min-h-9 cursor-pointer rounded-full border-0 pl-3 pr-2 text-[13px] font-semibold"
+                    style={{ color: TEXT, background: 'var(--lg-fill)' }}
                     value={markerUnit && choices.includes(markerUnit) ? markerUnit : ''}
                     onChange={e => onMarkerUnit(e.target.value || null)}
                   >
@@ -312,13 +311,13 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
               </p>
             )}
             <div data-bw-status>
-              {inRange === true && <span className="badge" style={{ background: 'rgba(16,185,129,0.12)', color: GREEN }}>{t('bw_in_range')}</span>}
+              {inRange === true && <span className="lg-tag" data-tone="good">{t('bw_in_range')}</span>}
               {inRange === false && (
-                <span className="badge" style={{ background: RED_WEAK, color: RED }}>
+                <span className="lg-tag" data-tone="bad">
                   {abstand ? t(abstand.key, { value: `${formatNumber(roundConverted(abstand.wert))} ${shownUnit}` }) : t('bw_out_range')}
                 </span>
               )}
-              {inRange === null && <span className="badge" style={{ background: 'var(--border)', color: MUTED }}>{t('bw_no_reference')}</span>}
+              {inRange === null && <span className="lg-tag">{t('bw_no_reference')}</span>}
             </div>
           </div>
         ) : (
@@ -330,30 +329,15 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       {allPoints.length > 0 && (
         <div className="flex flex-col gap-1.5">
           {/* Zeitraum ueber dem Graph */}
-          <div
-            role="group"
-            aria-label={t('bw_period_aria')}
-            className="mb-1.5 grid grid-cols-5 gap-1 rounded-[10px] p-[3px]"
-            style={{ background: 'var(--surface-raised)' }}
-          >
-            {RANGES.map(([key, label]) => {
-              const on = rangeFilter === key
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setRangeFilter(key)}
-                  className="min-h-[34px] rounded-lg text-[13px] font-bold transition-colors"
-                  style={on
-                    ? { background: 'var(--surface)', color: TEXT, boxShadow: '0 1px 2px rgba(0,0,0,0.18)' }
-                    : { color: MUTED }}
-                >
-                  {t(label)}
-                </button>
-              )
-            })}
-          </div>
+          <GlassSegmented
+            className="mb-1.5"
+            material="fill"
+            equal
+            ariaLabel={t('bw_period_aria')}
+            value={rangeFilter}
+            onChange={setRangeFilter}
+            options={RANGES.map(([key, label]) => ({ key, label: t(label) }))}
+          />
           {inWindow.length > 0 ? (
             <StocksChart
               points={allPoints}
@@ -396,26 +380,26 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       <section aria-labelledby="bw-meaning-title" className="flex flex-col gap-2.5">
         <h2 id="bw-meaning-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_assessment_title')}</h2>
         {/* Die Kurzerklaerung steht oben unter dem Namen. */}
-        {!def && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--text-dim, var(--text-muted))' }}>{t('bw_no_explanation')}</p>}
+        {!def && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>{t('bw_no_explanation')}</p>}
         {guidance && (
           <>
-            <p className="text-sm leading-relaxed" style={{ color: MUTED }}>{guidance.text.hinweis}</p>
+            <p className="text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>{guidance.text.hinweis}</p>
             {/* Immer zugeklappt: nie nach dem eigenen Wert ausgewaehlt. */}
-            <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} data-bw-guidance>
+            <div className="lg-group lg-rows" data-bw-guidance>
               {([
                 ['niedrig', 'bw_guidance_low', guidance.text.niedrig],
                 ['hoch', 'bw_guidance_high', guidance.text.hoch],
-              ] as const).map(([key, label, items], i) => {
+              ] as const).map(([key, label, items]) => {
                 const auf = offen === key
                 const panelId = `bw-guidance-${key}`
                 return (
-                  <div key={key} style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}>
+                  <div key={key}>
                     <button
                       type="button"
                       aria-expanded={auf}
                       aria-controls={panelId}
                       onClick={() => setOffen(auf ? null : key)}
-                      className="flex min-h-[52px] w-full items-center gap-3 px-3.5 text-left text-base font-bold"
+                      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left text-[16px] font-semibold"
                       style={{ color: TEXT }}
                     >
                       <span className="flex-1">{t(label)}</span>
@@ -428,7 +412,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                       />
                     </button>
                     {auf && (
-                      <div id={panelId} className="flex flex-col gap-2.5 px-3.5 pb-3.5 text-sm leading-relaxed" style={{ color: 'var(--text-dim, var(--text-muted))' }}>
+                      <div id={panelId} className="flex flex-col gap-2.5 px-4 pb-4 text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>
                         {items.map((item: GuidanceItem, j: number) => (
                           <p key={j} style={item.label ? undefined : { color: TEXT }}>
                             {item.label && <><strong style={{ color: TEXT }}>{item.label}</strong><br /></>}
@@ -462,7 +446,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             <span
               data-bw-measurement-count
               className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
-              style={{ background: 'color-mix(in srgb, var(--text-muted) 18%, transparent)', color: TEXT }}
+              style={{ background: 'var(--lg-fill)', color: TEXT }}
             >
               {summary.entries.length}
             </span>
@@ -479,7 +463,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
           <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
         )}
         {messungenOffen && (
-        <ul id="bw-history-list">
+        <ul id="bw-history-list" className="lg-group lg-rows mt-1">
           {summary.points.map((p, i) => {
             const e = p.entry
             const v = p.value != null ? p.value : toNumber(e.value)
@@ -500,7 +484,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             const auf = offeneMessung === e.id
             const detailId = `bw-entry-${e.id}`
             return (
-              <li key={e.id} style={{ borderBottom: '1px solid var(--border)' }}>
+              <li key={e.id}>
                 <button
                   type="button"
                   onClick={() => setOffeneMessung(auf ? null : e.id)}
@@ -508,15 +492,15 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                   aria-controls={detailId}
                   aria-label={t('bw_entry_open_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
                   data-bw-entry
-                  className="flex min-h-14 w-full items-center gap-3 py-3 text-left"
+                  className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
                   style={{ color: TEXT }}
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-base font-bold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
+                    <span className="text-[16px] font-semibold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
                     <span className="truncate text-[13px]" style={{ color: MUTED }}>{source}</span>
                   </span>
                   <span className="text-right tabular-nums">
-                    <span className="block text-base font-bold">{formatNumber(v)}</span>
+                    <span className="block text-[16px] font-semibold">{formatNumber(v)}</span>
                     <span className="block text-xs" style={{ color: MUTED }}>{u}</span>
                   </span>
                   <span
@@ -618,7 +602,7 @@ function LaufName({ text }: { text: string }) {
   return (
     <h1
       ref={boxRef}
-      className="min-w-0 shrink overflow-hidden whitespace-nowrap text-[2rem] font-black leading-tight tracking-tight"
+      className="lg-large-title min-w-0 shrink overflow-hidden whitespace-nowrap"
       style={{
         color: TEXT,
         ...(ruhig ? { textOverflow: 'ellipsis' } : {}),

@@ -33,7 +33,6 @@ const SPARK_W = 140
 const SPARK_H = 44
 const ROW_SPARK_W = 56
 const ROW_SPARK_H = 36
-const HAIRLINE = '1px solid var(--border)'
 
 /** Mini-Kurve ueber die volle Kartenbreite; Linien bleiben beim Strecken gleich duenn. */
 function CardSparkline({ summary, color }: { summary: MarkerSummary; color: string }) {
@@ -129,7 +128,7 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
   // ein normales Layout — Wert und Plakette stehen nebeneinander, statt sich
   // bei langen Werten zu ueberlappen.
   return (
-    <div className="bw-marker-card" style={{ position: 'relative', opacity: latest ? 1 : 0.55 }}>
+    <div className="bw-marker-card lg-surface" style={{ opacity: latest ? 1 : 0.55 }}>
       <button
         type="button"
         onClick={() => onSelect(summary.name)}
@@ -192,13 +191,13 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
 function MarkerRow({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
   const { t, status, color, latest, name, shownValue, shownUnit, pillText, pillAria, ariaLabel } = useMarkerView(summary, pillMode)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', borderBottom: HAIRLINE }}>
+    <div style={{ display: 'flex', alignItems: 'center', paddingInline: '16px 12px' }}>
       <button
         type="button"
         onClick={() => onSelect(summary.name)}
         aria-label={ariaLabel}
         style={{
-          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0',
+          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0',
           background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}
       >
@@ -274,7 +273,9 @@ export function MarkerList({ summaries, layout, grouped, pillMode, onTogglePill,
   const item = (s: MarkerSummary) => (
     <Item key={s.name} summary={s} pillMode={pillMode} onSelect={onSelect} onTogglePill={onTogglePill} />
   )
-  const block = (items: MarkerSummary[]) => (raster ? <div style={GRID}>{items.map(item)}</div> : items.map(item))
+  const block = (items: MarkerSummary[]) => (raster
+    ? <div style={GRID}>{items.map(item)}</div>
+    : <div className="lg-group lg-rows">{items.map(item)}</div>)
 
   const groups: Array<{ kategorie: string; items: MarkerSummary[] }> = []
   if (grouped && !raster) {
@@ -289,24 +290,24 @@ export function MarkerList({ summaries, layout, grouped, pillMode, onTogglePill,
     <div>
       {groups.length > 0
         ? groups.map(group => (
-          <section key={group.kategorie} aria-label={t(KATEGORIE_KEY[group.kategorie as KategorieFilter] ?? group.kategorie)}>
-            <h3 style={{ margin: '18px 0 0', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: MUTED }}>
+          <section key={group.kategorie} aria-label={t(KATEGORIE_KEY[group.kategorie as KategorieFilter] ?? group.kategorie)} className="mt-6 first:mt-1">
+            <h3 className="lg-group-title">
               {t(KATEGORIE_KEY[group.kategorie as KategorieFilter] ?? group.kategorie)}
             </h3>
-            {group.items.map(item)}
+            {block(group.items)}
           </section>
         ))
         : tested.length > 0 && block(tested)}
 
       {untested.length > 0 && (
-        <div style={{ marginTop: tested.length ? 8 : 0 }}>
+        <div style={{ marginTop: tested.length ? 12 : 0 }}>
           <button
             type="button"
             aria-expanded={showUntested}
             onClick={() => setShowUntested(v => !v)}
             style={{
               width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'none', border: 'none', borderBottom: showUntested && !raster ? HAIRLINE : 'none', padding: 0,
+              background: 'none', border: 'none', padding: '0 4px',
               cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, color: MUTED,
             }}
           >

@@ -225,13 +225,13 @@ export function ImportFlow({ mode, onClose, onSaved }: Props) {
   const saving = phase === 'saving'
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" data-app-modal onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal onClick={onClose}>
       <div
-        className="w-full max-w-lg p-6 pb-8 space-y-4 overflow-y-auto max-h-[90vh] rounded-t-2xl"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold" style={{ color: TEXT }}>{t('bw_import_title')}</h2>
+        <span className="lg-grabber !mb-1" aria-hidden="true" />
+        <h2 className="lg-title2" style={{ color: TEXT }}>{t('bw_import_title')}</h2>
 
         {phase === 'idle' && einwilligung === undefined && !einwilligungFehler && (
           <div className="py-10 text-center text-sm" style={{ color: MUTED }}>…</div>

@@ -22,47 +22,48 @@ const OPTIONS: Array<{ key: AddChoice; icon: LucideIcon; title: string; desc: st
 export function AddSheet({ onPick, onClose }: Props) {
   const { t } = useTranslation()
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" data-app-modal onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" data-app-modal onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="bw-add-title"
-        className="w-full max-w-lg p-6 pb-8 space-y-2 rounded-t-2xl"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        className="lg-sheet w-full max-w-lg px-4 pb-4 pt-2"
         onClick={e => e.stopPropagation()}
       >
-        <h2 id="bw-add-title" className="text-lg font-bold mb-2" style={{ color: TEXT }}>{t('bw_add_title')}</h2>
-        {OPTIONS.map(({ key, icon: Icon, title, desc, ki }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onPick(key)}
-            className="flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors"
-            style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)' }}
-          >
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: 'var(--accent-weak)', color: CYAN }}>
-              <Icon size={19} aria-hidden="true" />
-              {/* KI-Sterne: diese Wege lesen die Werte per KI aus */}
-              {ki && (
-                <Sparkles
-                  aria-hidden="true"
-                  data-bw-ki-badge
-                  size={15}
-                  strokeWidth={1.5}
-                  fill="currentColor"
-                  className="absolute -right-1 -top-1"
-                  style={{ color: CYAN }}
-                />
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-bold" style={{ color: TEXT }}>{t(title)}</span>
-              <span className="block text-xs leading-snug" style={{ color: MUTED }}>{t(desc)}</span>
-            </span>
-            <ChevronRight size={18} aria-hidden="true" style={{ color: MUTED }} />
-          </button>
-        ))}
-        <button type="button" className="btn-secondary w-full !mt-4" data-app-back-close onClick={onClose}>{t('cancel')}</button>
+        <span className="lg-grabber mb-3" aria-hidden="true" />
+        <h2 id="bw-add-title" className="lg-title2 mb-3 px-1">{t('bw_add_title')}</h2>
+        <div className="lg-group lg-rows">
+          {OPTIONS.map(({ key, icon: Icon, title, desc, ki }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onPick(key)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
+            >
+              <span className="lg-icon-tile relative !h-9 !w-9" style={{ background: ki ? '#0a84ff' : '#636366' }}>
+                <Icon size={18} aria-hidden="true" />
+                {/* KI-Sterne: diese Wege lesen die Werte per KI aus */}
+                {ki && (
+                  <Sparkles
+                    aria-hidden="true"
+                    data-bw-ki-badge
+                    size={14}
+                    strokeWidth={1.5}
+                    fill="currentColor"
+                    className="absolute -right-1.5 -top-1.5"
+                    style={{ color: CYAN }}
+                  />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16px] font-semibold" style={{ color: TEXT }}>{t(title)}</span>
+                <span className="block text-[13px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t(desc)}</span>
+              </span>
+              <ChevronRight size={18} aria-hidden="true" style={{ color: MUTED }} />
+            </button>
+          ))}
+        </div>
+        <button type="button" data-quiet className="lg-gray-btn mt-3 w-full !min-h-12 !text-[17px]" data-app-back-close onClick={onClose}>{t('cancel')}</button>
       </div>
     </div>
   )
