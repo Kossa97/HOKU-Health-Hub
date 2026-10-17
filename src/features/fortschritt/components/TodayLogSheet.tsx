@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { format } from 'date-fns'
-import { X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../../lib/supabase'
@@ -83,6 +83,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
   const [weightRowId, setWeightRowId] = useState<string | null>(null)
   const [bodyFat, setBodyFat] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  /** Kurz nach dem Speichern: Haken im Knopf, dann schließt das Sheet. */
+  const [saved, setSaved] = useState(false)
   /** Tageswerte stehen schon in der DB, das Gewicht noch nicht — beim Schließen neu laden. */
   const partiallySavedRef = useRef(false)
   const onSavedRef = useRef(onSaved)
@@ -116,7 +118,11 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     setSavedValues(readStoredSavedValues(user?.id))
   }, [open, user?.id])
   useLayoutEffect(() => {
-    if (open) setDate(todayStr())
+    if (open) {
+      setDate(todayStr())
+      // Der Haken vom letzten Speichern gilt nicht mehr
+      setSaved(false)
+    }
   }, [open])
 
   useEffect(() => {
@@ -247,6 +253,10 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     await onSaved()
     partiallySavedRef.current = false
     setSaving(false)
+    // Der Haken bestätigt, bevor das Sheet hinausfährt (300 ms, Bewegung reduziert: sofort).
+    setSaved(true)
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    await new Promise(resolve => setTimeout(resolve, reduce ? 0 : 320))
     onClose()
   }
 
@@ -377,11 +387,17 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
           <button
             type="button"
             onClick={() => void save()}
-            disabled={saving}
-            className="btn-primary"
+            disabled={saving || saved}
+            className="fg-btn fg-btn-primary"
+            data-state={saved ? 'done' : saving ? 'busy' : 'idle'}
+            aria-live="polite"
             style={{ flex: 1, minWidth: 0 }}
           >
-            {saving ? t('fortschritt_saving') : t('save')}
+            {saved
+              ? <><Check size={20} strokeWidth={3} aria-hidden className="fg-pop" />{t('fortschritt_saved_short')}</>
+              : saving
+                ? <><span className="fg-spinner" aria-hidden />{t('fortschritt_saving')}</>
+                : t('fortschritt_save_entry')}
           </button>
           <button
             type="button"
@@ -392,10 +408,10 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               flexShrink: 0,
-              borderRadius: 10,
+              borderRadius: 24,
               border: '1px solid var(--border)',
               background: 'var(--surface-input)',
               color: 'var(--text-muted)',

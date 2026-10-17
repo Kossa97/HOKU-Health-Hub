@@ -25,13 +25,13 @@ test.describe('auf Englisch', () => {
     await expect(page.getByRole('heading', { name: 'Progress', exact: true })).toBeVisible()
     await expect(page.getByText('Biggest changes')).toBeVisible()
     await expect(page.getByText('Your values')).toBeVisible()
-    await expect(page.getByRole('img', { name: 'Weight: history' })).toBeVisible()
+    await expect(page.getByRole('img', { name: /^Weight: history from/ })).toBeVisible()
     await expect(page.getByRole('button', { name: 'All', exact: true })).toBeVisible()
     await expect(page.getByText('Fortschritt', { exact: true })).toHaveCount(0)
     await page.waitForTimeout(900)
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/fortschritt-en.png`, fullPage: true })
 
-    await page.getByRole('button', { name: /LOG PROGRESS|EDIT TODAY'S ENTRY/ }).click()
+    await page.getByRole('button', { name: /^(Log values|Edit entry)$/ }).click()
     await expect(page.getByRole('dialog', { name: 'Log progress' })).toBeVisible()
     await expect(page.getByText('Sleep quality')).toBeVisible()
     if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/fortschritt-en-eintrag.png` })
@@ -45,7 +45,7 @@ test('Fortschritt bleibt auf Deutsch', async ({ page, mock }) => {
   await expect(page.getByRole('heading', { name: 'Fortschritt', exact: true })).toBeVisible()
   await expect(page.getByText('Größte Veränderungen')).toBeVisible()
   await expect(page.getByText('Deine Werte')).toBeVisible()
-  await expect(page.getByRole('img', { name: 'Gewicht: Verlauf' })).toBeVisible()
+  await expect(page.getByRole('img', { name: /^Gewicht: Verlauf vom/ })).toBeVisible()
   await page.waitForTimeout(900)
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/fortschritt-de.png`, fullPage: true })
 })
@@ -53,7 +53,7 @@ test('Fortschritt bleibt auf Deutsch', async ({ page, mock }) => {
 test('Eintragen: scheitert nur das Gewicht, bleibt das Sheet offen und erneutes Speichern klappt', async ({ page, mock }) => {
   seed(mock)
   await page.goto('/progress')
-  await page.getByRole('button', { name: /FORTSCHRITT EINTRAGEN|HEUTIGEN EINTRAG BEARBEITEN/ }).click()
+  await page.getByRole('button', { name: /^(Werte eintragen|Eintrag bearbeiten)$/ }).click()
   const sheet = page.getByRole('dialog', { name: 'Fortschritt eintragen' })
   await expect(sheet).toBeVisible()
   await sheet.getByRole('slider', { name: 'Energie' }).fill('8')
@@ -72,12 +72,12 @@ test('Eintragen: scheitert nur das Gewicht, bleibt das Sheet offen und erneutes 
   const dailyBefore = mock.tables.get('daily_logs')?.length ?? 0
   const weightBefore = mock.tables.get('weight_logs')?.length ?? 0
 
-  await sheet.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await sheet.getByRole('button', { name: 'Eintrag speichern', exact: true }).click()
   await expect(page.getByText('Werte gespeichert, das Gewicht aber nicht. Bitte erneut speichern.')).toBeVisible()
   await expect(sheet).toBeVisible()
   await expect(page.getByText('boom')).toHaveCount(0)
 
-  await sheet.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await sheet.getByRole('button', { name: 'Eintrag speichern', exact: true }).click()
   await expect(page.getByText('Fortschritt gespeichert')).toBeVisible()
   await expect(sheet).toBeHidden()
   // Zweimal gespeichert, trotzdem nur ein Tageseintrag mehr: Upsert pro Datum.
@@ -126,15 +126,14 @@ test('Ein Zeitraum für die ganze Seite: der Graph hat keinen eigenen Umschalter
   await page.goto('/progress')
   const alles = page.getByRole('button', { name: 'Alles', exact: true })
   await expect(alles).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByText('Zeitraum für die ganze Seite')).toBeVisible()
   await expect(page.getByRole('button', { name: '3M', exact: true })).toHaveCount(0)
 
   await page.getByRole('button', { name: '30T', exact: true }).click()
   await expect(page.getByRole('button', { name: '30T', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('img', { name: 'Gewicht: Verlauf' })).toBeVisible()
+  await expect(page.getByRole('img', { name: /^Gewicht: Verlauf vom/ })).toBeVisible()
 })
 
-test('Wellness-Karten sind keine Knöpfe, eine Foto-Kachel öffnet genau dieses Foto', async ({ page, mock }) => {
+test('Wellness-Karten sind keine Knöpfe, ein einzelnes Foto öffnet genau dieses Foto', async ({ page, mock }) => {
   seed(mock)
   // Ein deutlicher Energie-Anstieg (2 → 6), damit eine Wellness-Karte unter den größten Veränderungen steht.
   const ersterTag = mock.tables.get('daily_logs')![0]
@@ -153,6 +152,7 @@ test('Wellness-Karten sind keine Knöpfe, eine Foto-Kachel öffnet genau dieses 
   await expect(energie).toHaveCount(1)
   await expect(energie).toHaveJSProperty('tagName', 'DIV')
 
+  // Nur ein Foto im Zeitraum: kein Vergleich, sondern das Foto selbst
   await page.getByRole('button', { name: 'Foto anzeigen' }).click()
   await expect(page.getByText('Notiz zum Foto')).toBeVisible()
   // Der Schließen-Knopf der Großansicht (das Formular darunter hat einen eigenen).
@@ -163,6 +163,6 @@ test('Wellness-Karten sind keine Knöpfe, eine Foto-Kachel öffnet genau dieses 
 test('„Foto hinzufügen“ öffnet direkt das Formular', async ({ page, mock }) => {
   seed(mock)
   await page.goto('/progress')
-  await page.getByRole('button', { name: 'Foto hinzufügen' }).last().click()
+  await page.getByRole('button', { name: 'Foto hinzufügen' }).first().click()
   await expect(page.getByText('Foto aufnehmen oder aus Galerie wählen')).toBeVisible()
 })

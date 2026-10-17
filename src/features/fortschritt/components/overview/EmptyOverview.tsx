@@ -1,99 +1,85 @@
 import { Link } from 'react-router-dom'
-import { TrendingUp } from 'lucide-react'
+import { Plus, TrendingUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { panel } from '../../styles'
 
-interface Props {
-  onLogToday: () => void
-}
-
-export function EmptyOverview({ onLogToday }: Props) {
+export function EmptyOverview({ onLogToday }: { onLogToday: () => void }) {
   const { t } = useTranslation()
   return (
-    <section style={{ ...panel, padding: '28px 20px', textAlign: 'center' }}>
-      <div style={{
-        width: 56,
-        height: 56,
-        borderRadius: 18,
-        margin: '0 auto 16px',
-        background: 'var(--accent-weak)',
-        border: '1px solid var(--accent-border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+    <section className="fg-card fg-surface" style={{ padding: '28px 20px', textAlign: 'center' }}>
+      <div className="fg-glass" style={{
+        width: 60,
+        height: 60,
+        borderRadius: 20,
+        margin: '0 auto 18px',
+        display: 'grid',
+        placeItems: 'center',
+        color: 'var(--fg-accent)',
       }}>
-        <TrendingUp size={28} color="var(--accent)" />
+        <TrendingUp size={28} aria-hidden />
       </div>
-      <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: 8 }}>
+      <h2 className="fg-h3" style={{ fontSize: '1.3rem', marginBottom: 8, textWrap: 'balance' }}>
         {t('fortschritt_empty_title')}
       </h2>
-      <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
+      <p style={{ margin: '0 auto 22px', maxWidth: '30ch', fontSize: '0.92rem', lineHeight: 1.5, color: 'var(--fg-text-2)' }}>
         {t('fortschritt_empty_body')}
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, textAlign: 'left' }}>
+      <ol style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '0 0 22px', padding: 0, listStyle: 'none', textAlign: 'left' }}>
         <Step n={1} text={t('fortschritt_empty_step_substance')} />
         <Step n={2} text={t('fortschritt_empty_step_log')} />
-      </div>
+      </ol>
 
-      <Link
-        to="/my-stack"
-        className="btn-primary"
-        style={{ display: 'block', width: '100%', marginBottom: 10, textAlign: 'center' }}
-      >
-        {t('fortschritt_create_cycle')}
-      </Link>
-      <button type="button" className="btn-secondary" style={{ width: '100%' }} onClick={onLogToday}>
-        {t('fortschritt_log_first_day')}
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <button type="button" className="fg-btn fg-btn-primary" onClick={onLogToday}>
+          <Plus size={20} strokeWidth={2.6} aria-hidden />
+          {t('fortschritt_log_first_day')}
+        </button>
+        <Link to="/my-stack" className="fg-btn fg-btn-glass fg-glass" style={{ textDecoration: 'none' }}>
+          {t('fortschritt_create_cycle')}
+        </Link>
+      </div>
     </section>
   )
 }
 
 function Step({ n, text }: { n: number; text: string }) {
   return (
-    <div style={{
+    <li style={{
       display: 'flex',
       alignItems: 'center',
       gap: 12,
       padding: '12px 14px',
-      borderRadius: 14,
-      background: 'var(--surface-input)',
-      border: '1px solid var(--border)',
+      borderRadius: 16,
+      background: 'rgba(255,255,255,0.05)',
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
     }}>
       <span style={{
-        width: 24,
-        height: 24,
-        borderRadius: 8,
-        background: 'var(--accent-weak)',
-        color: 'var(--accent)',
-        fontSize: '0.72rem',
-        fontWeight: 900,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: 26,
+        height: 26,
+        borderRadius: 13,
         flexShrink: 0,
+        display: 'grid',
+        placeItems: 'center',
+        background: 'rgba(0,204,245,0.14)',
+        color: 'var(--fg-accent)',
+        fontSize: '0.8rem',
+        fontWeight: 800,
       }}>
         {n}
       </span>
-      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-dim)' }}>{text}</span>
-    </div>
+      <span style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--fg-text)' }}>{text}</span>
+    </li>
   )
 }
 
 export function NoSubstancesBanner() {
   const { t } = useTranslation()
   return (
-    <section style={{
-      ...panel,
-      padding: '14px 16px',
-      borderColor: 'rgba(0,204,245,0.2)',
-      background: 'rgba(0,204,245,0.05)',
-    }}>
-      <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-dim)', lineHeight: 1.45, marginBottom: 10 }}>
+    <section className="fg-card fg-surface">
+      <p style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5, color: 'var(--fg-text-2)' }}>
         {t('fortschritt_no_substances_banner')}
       </p>
-      <Link to="/my-stack" style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent)' }}>
+      <Link to="/my-stack" className="fg-btn fg-btn-glass fg-glass" style={{ textDecoration: 'none' }}>
         {t('fortschritt_create_cycle')}
       </Link>
     </section>

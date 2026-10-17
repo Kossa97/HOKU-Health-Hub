@@ -10,6 +10,7 @@ import { TodayLogSheet } from './components/TodayLogSheet'
 import { hasLogForDate } from './lib/metricDefaults'
 import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verlaufRange'
 import { formatDaySafe } from './lib/dates'
+import './glass.css'
 
 export function FortschrittPage() {
   const { t } = useTranslation()
@@ -36,8 +37,20 @@ export function FortschrittPage() {
     [state.dailyLogs, state.weightLogs],
   )
 
+  // Fortschritt ist schwarz bis an den Rand: auch hinter der Seite, solange sie offen ist.
+  useEffect(() => {
+    const root = document.documentElement
+    root.setAttribute('data-fs-glass', '')
+    return () => root.removeAttribute('data-fs-glass')
+  }, [])
+
   return (
-    <div className="space-y-4" style={{ marginTop: '-1rem' }}>
+    <div className="fg-root">
+      <div className="fg-glow a" aria-hidden />
+      <div className="fg-glow b" aria-hidden />
+      <div className="fg-glow c" aria-hidden />
+      <div className="fg-glow d" aria-hidden />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <StickyRangeBar
         value={rangeChip}
         onChange={setRangeChip}
@@ -51,7 +64,7 @@ export function FortschrittPage() {
       />
 
       {state.loading ? (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--fg-text-3)', fontSize: '0.9rem', fontWeight: 600 }}>
           {t('fortschritt_loading')}
         </div>
       ) : (
@@ -62,6 +75,8 @@ export function FortschrittPage() {
           onReload={() => void reload()}
         />
       )}
+
+      </div>
 
       <TodayLogSheet
         logs={state.dailyLogs}

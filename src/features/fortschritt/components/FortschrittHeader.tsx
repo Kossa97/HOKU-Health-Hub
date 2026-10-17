@@ -1,39 +1,11 @@
-import { Pencil, Plus } from 'lucide-react'
+import { Check, Pencil, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-
-const ENTRY_GLOW_CSS = `
-  @keyframes fortschritt-entry-glow {
-    0%, 100% {
-      box-shadow:
-        0 0 10px rgba(0, 204, 245, 0.22),
-        var(--shadow-btn-primary);
-    }
-    50% {
-      box-shadow:
-        0 0 18px rgba(0, 204, 245, 0.38),
-        var(--shadow-btn-primary);
-    }
-  }
-  .fortschritt-entry-glow-wrap .btn-primary {
-    animation: fortschritt-entry-glow 2.2s ease-in-out infinite !important;
-    animation-duration: 2.2s !important;
-    animation-iteration-count: infinite !important;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .fortschritt-entry-glow-wrap .btn-primary {
-      animation: none !important;
-      box-shadow:
-        0 0 12px rgba(0, 204, 245, 0.28),
-        var(--shadow-btn-primary) !important;
-    }
-  }
-`
 
 interface Props {
   rangeLabel: string
   onLogToday: () => void
   hasTodayEntry?: boolean
-  /** Daten geladen — Glow erst dann, kein Flackern */
+  /** Daten geladen — die Einladung (Atmen) erst dann, kein Flackern */
   dataReady?: boolean
 }
 
@@ -44,68 +16,35 @@ export function FortschrittHeader({
   dataReady = false,
 }: Props) {
   const { t } = useTranslation()
-  // Glow genau wenn der Button „Fortschritt eintragen“ zeigt (noch kein heutiger Eintrag)
-  const showGlow = dataReady && !hasTodayEntry
-
-  const button = (
-    <button
-      type="button"
-      onClick={onLogToday}
-      className="btn-primary"
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        padding: '12px 16px',
-        fontSize: '0.82rem',
-      }}
-    >
-      {hasTodayEntry ? <Pencil size={17} /> : <Plus size={17} />}
-      {hasTodayEntry ? t('fortschritt_edit_today') : t('fortschritt_log_today')}
-    </button>
-  )
 
   return (
-    <header style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {showGlow && <style>{ENTRY_GLOW_CSS}</style>}
-      <div style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        flexWrap: 'wrap',
-        gap: '4px 10px',
-      }}>
-        <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', margin: 0 }}>
-          {t('fortschritt_title')}
-        </h1>
-        <span style={{
-          fontSize: '0.68rem',
-          fontWeight: 700,
-          color: 'var(--text-muted)',
-        }}>
-          {rangeLabel}
-        </span>
+    <header className="fg-head">
+      <div>
+        <h1 className="fg-title">{t('fortschritt_title')}</h1>
+        <div className="fg-subline">
+          <span>{rangeLabel}</span>
+          {hasTodayEntry && (
+            <span className="fg-done"><Check size={13} strokeWidth={3} aria-hidden />{t('fortschritt_done')}</span>
+          )}
+        </div>
       </div>
 
-      <div
-        className={showGlow ? 'fortschritt-entry-glow-wrap' : undefined}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
-      >
-        {hasTodayEntry && (
-          <span style={{
-            fontSize: '0.68rem',
-            fontWeight: 900,
-            letterSpacing: '0.08em',
-            color: '#22c55e',
-            textAlign: 'center',
-            lineHeight: 1,
-          }}>
-            {t('fortschritt_done')}
-          </span>
-        )}
-        {button}
-      </div>
+      {hasTodayEntry ? (
+        <button type="button" onClick={onLogToday} className="fg-btn fg-btn-glass fg-glass">
+          <Pencil size={18} aria-hidden />
+          {t('fortschritt_edit_today')}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onLogToday}
+          className="fg-btn fg-btn-primary"
+          data-invite={dataReady}
+        >
+          <Plus size={20} strokeWidth={2.6} aria-hidden />
+          {t('fortschritt_log_today')}
+        </button>
+      )}
     </header>
   )
 }

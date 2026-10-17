@@ -1,10 +1,12 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { MIN_POINTS_FOR_TREND, isWellnessMetricKey } from '../constants'
 import {
+  buildMetricSeries,
   computeTopChanges,
   weightSeries,
   dailyFieldSeries,
 } from '../lib/metrics'
+import { METRIC_COLORS } from '../lib/colors'
 import { rangeFromChip, type RangeChipKey } from '../lib/verlaufRange'
 import type { ChartNavigation, FortschrittOverviewState } from '../types'
 import { TopChangesSection } from './overview/TopChangesSection'
@@ -22,6 +24,7 @@ interface Props {
 
 export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }: Props) {
   const [chartNav, setChartNav] = useState<ChartNavigation | null>(null)
+  const heroRef = useRef<HTMLElement>(null)
 
   const pageRange = useMemo(
     () => rangeFromChip(rangeChip, state.fullRange),
@@ -39,6 +42,16 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
     photos,
   } = state
 
+  const topChanges = useMemo(
+    () => computeTopChanges(pageRange, weightLogs, dailyLogs, bloodwork),
+    [pageRange, weightLogs, dailyLogs, bloodwork],
+  )
+  // Hintergrund-Kurven der Karten einmal je Zeitraum, nicht bei jedem Wischen
+  const changeSeries = useMemo(
+    () => new Map(topChanges.map(c => [c.key, buildMetricSeries(c.key, pageRange, weightLogs, dailyLogs, bloodwork)])),
+    [topChanges, pageRange, weightLogs, dailyLogs, bloodwork],
+  )
+
   const hasSubstances = cycleSubstances.length + ongoingSubstances.length > 0
   const activeCycles = cycleSubstances.filter(c => c.active)
   const hasActiveSubstances = activeCycles.length + ongoingSubstances.length > 0
@@ -54,8 +67,6 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
     return <EmptyOverview onLogToday={onLogToday} />
   }
 
-  const topChanges = computeTopChanges(pageRange, weightLogs, dailyLogs, bloodwork)
-
   const trendCandidates = [
     weightSeries(weightLogs, pageRange),
     ...(['energie', 'schlaf', 'wohlbefinden', 'libido'] as const).map(f => dailyFieldSeries(dailyLogs, pageRange, f)),
@@ -65,32 +76,38 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
   ]
   const hasEnoughForTrend = trendCandidates.some(series => series.length >= MIN_POINTS_FOR_TREND)
 
-  const navigateChart = (nav: ChartNavigation) => setChartNav(nav)
+  // Antippen einer Veränderung: Messwert im Graphen wählen und zum Graphen gleiten
+  const showInChart = (key: string) => {
+    setChartNav({ metric: key })
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    heroRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <TopChangesSection
-        changes={topChanges}
-        hasAnyData={hasAnyLogs}
-        hasEnoughForTrend={hasEnoughForTrend}
-        animationKey={rangeChip}
-        onSelect={key => navigateChart({ metric: key })}
-        canSelect={key => !isWellnessMetricKey(key)}
-      />
-
       <VerlaufSection
+        ref={heroRef}
         state={state}
         pageRange={pageRange}
         chartNav={chartNav}
         onChartNavConsumed={handleChartNavConsumed}
       />
 
+      <WerteCard dailyLogs={dailyLogs} range={pageRange} />
+
+      <TopChangesSection
+        changes={topChanges}
+        hasAnyData={hasAnyLogs}
+        hasEnoughForTrend={hasEnoughForTrend}
+        seriesFor={key => changeSeries.get(key) ?? []}
+        colorFor={key => METRIC_COLORS[key] ?? '#8b5cf6'}
+        onSelect={showInChart}
+        canSelect={key => !isWellnessMetricKey(key)}
+      />
+
       {!hasActiveSubstances && <NoSubstancesBanner />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'stretch' }}>
-        <FotosCard photos={photos} range={pageRange} onChange={onReload} />
-        <WerteCard dailyLogs={dailyLogs} range={pageRange} />
-      </div>
+      <FotosCard photos={photos} range={pageRange} onChange={onReload} />
     </div>
   )
 }

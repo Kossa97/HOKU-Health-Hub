@@ -1,0 +1,554 @@
+/* ══════════════════════════════════════════════════════════════════════
+   FORTSCHRITT · SCHWARZGLAS
+   Schwarzer Grund, farbiges Umgebungslicht dahinter. Glas (.fg-glass) nur
+   für die Bedien-Ebene — Zeitraum-Leiste, Umschalter, Knöpfe —, Inhalte auf
+   ruhigeren, leicht durchscheinenden Flächen (.fg-surface). Ohne Licht
+   dahinter wäre Glas auf Schwarz nur eine graue Fläche.
+   Bewegung: nur transform und opacity (dazu die Ring-Füllung über --fg-p),
+   Rückmeldung beim Aufsetzen in 100 ms, fertig nach 300 ms.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@property --fg-p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Kurven global, weil Sheets per Portal außerhalb von .fg-root liegen */
+:root {
+  --fg-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --fg-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html[data-fs-glass],
+html[data-fs-glass] body {
+  background: #000 !important;
+  background-image: none !important;
+}
+
+.fg-root {
+  --fg-bg: #000;
+  --fg-text: #f5f7fa;
+  /* Kontrast auf Schwarz: text-2 ≈ 9:1, text-3 ≈ 4,8:1 */
+  --fg-text-2: rgba(235, 240, 255, 0.66);
+  --fg-text-3: rgba(235, 240, 255, 0.52);
+  --fg-hair: rgba(255, 255, 255, 0.08);
+  --fg-accent: #00ccf5;
+  --fg-good: #30d158;
+  --fg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  color: var(--fg-text);
+  color-scheme: dark;
+  /* Hebt das Seiten-Polster der App auf: Schwarz bis an den Rand */
+  margin: -1rem -12px 0;
+  padding: 0 12px 24px;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Umgebungslicht */
+.fg-glow {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+.fg-glow.a { width: 320px; height: 260px; left: -90px; top: 40px; background: radial-gradient(closest-side, rgba(0, 204, 245, 0.40), transparent); }
+.fg-glow.b { width: 300px; height: 300px; right: -120px; top: 32%; background: radial-gradient(closest-side, rgba(144, 133, 233, 0.34), transparent); }
+.fg-glow.c { width: 320px; height: 260px; left: -110px; top: 58%; background: radial-gradient(closest-side, rgba(48, 209, 88, 0.22), transparent); }
+.fg-glow.d { width: 280px; height: 260px; right: -90px; top: 82%; background: radial-gradient(closest-side, rgba(213, 81, 129, 0.26), transparent); }
+
+/* ── Materialien ─────────────────────────────────────────────────────── */
+.fg-glass {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+}
+.fg-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 70% at 18% 0%, rgba(255, 255, 255, 0.16), transparent 55%);
+}
+.fg-surface {
+  position: relative;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.03));
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .fg-glass,
+  .fg-surface {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #1c1c1f;
+  }
+  .fg-glass::before { display: none; }
+}
+
+/* ── Knöpfe ──────────────────────────────────────────────────────────────
+   48 px hoch, Rundung = halbe Höhe, 17 px halbfett, Icon 10 px vom Text.
+   Licht von oben: heller Rand oben, Schatten fällt nach unten.
+   Drücken antwortet in 100 ms, Loslassen ist nach 300 ms fertig. */
+.fg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 24px 0 18px;
+  border: 0;
+  border-radius: 24px;
+  font: 600 17px/1 -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 300ms var(--fg-ease-out), box-shadow 300ms var(--fg-ease-out), filter 300ms var(--fg-ease-out);
+}
+.fg-btn:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 100ms;
+}
+.fg-btn svg { flex-shrink: 0; }
+.fg-btn-primary {
+  color: #00141c; /* auf Cyan ≈ 11:1 */
+  background: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 8px 22px rgba(0, 204, 245, 0.30);
+}
+.fg-btn-primary:active {
+  filter: brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
+    0 1px 1px rgba(0, 0, 0, 0.6),
+    0 3px 10px rgba(0, 204, 245, 0.22);
+}
+.fg-btn-glass { color: var(--fg-text); }
+@media (hover: hover) and (pointer: fine) {
+  .fg-btn-primary:hover { filter: brightness(1.06); }
+  .fg-btn-glass:hover { filter: brightness(1.15); }
+}
+/* Noch nichts eingetragen: drei ruhige Atemzüge, dann still */
+@keyframes fg-breathe {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,40,60,0.25), 0 1px 2px rgba(0,0,0,0.6), 0 8px 22px rgba(0,204,245,0.30); }
+  50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,40,60,0.25), 0 1px 2px rgba(0,0,0,0.6), 0 8px 34px rgba(0,204,245,0.55); }
+}
+.fg-btn-primary[data-invite='true'] { animation: fg-breathe 2400ms ease-in-out 600ms 3; }
+
+.fg-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--fg-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 300ms var(--fg-ease-out);
+}
+.fg-icon-btn:active { transform: scale(0.92); transition-duration: 100ms; }
+
+/* ── Kopf ────────────────────────────────────────────────────────────── */
+.fg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 2px;
+}
+.fg-title {
+  margin: 0;
+  font-family: var(--fg-display);
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  text-wrap: balance;
+}
+.fg-subline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fg-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.fg-done { color: var(--fg-good); display: inline-flex; align-items: center; gap: 4px; }
+
+/* ── Zeitraum-Leiste: schwebt oben, Inhalt läuft unter dem Glas durch ── */
+.fg-rangebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) max(12px, env(safe-area-inset-right, 0px)) 14px max(12px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+.fg-rangebar > * { pointer-events: auto; max-width: 560px; margin: 0 auto; }
+
+/* ── Segment-Umschalter mit gleitender Markierung ───────────────────── */
+.fg-seg {
+  position: relative;
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border-radius: 999px;
+}
+.fg-seg[data-equal='true'] > button { flex: 1 1 0; }
+.fg-seg-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 4px 14px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.fg-seg-pill[data-animate='true'] {
+  transition: transform 360ms var(--fg-ease-drawer), width 360ms var(--fg-ease-drawer);
+}
+.fg-seg > button {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  color: var(--fg-text-2);
+  font: 650 0.84rem -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 200ms ease, transform 300ms var(--fg-ease-out);
+}
+.fg-seg > button:active { transform: scale(0.94); transition-duration: 100ms; }
+/* 36 px sichtbar, 44 px Tippfläche (Apple-Mindestmaß): das Polster der Leiste zählt mit */
+.fg-seg > button::after { content: ''; position: absolute; inset: -4px 0; }
+.fg-seg > button[aria-pressed='true'] { color: var(--fg-text); }
+.fg-seg > button[aria-disabled='true'] { opacity: 0.4; }
+.fg-seg-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  margin: 0 -18px;
+  padding: 0 18px;
+}
+.fg-seg-scroll::-webkit-scrollbar { display: none; }
+.fg-seg-scroll .fg-seg { display: inline-flex; }
+
+/* ── Hauptfigur ──────────────────────────────────────────────────────── */
+.fg-hero { padding: 16px 0 18px; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 70px); }
+.fg-hero-in { padding: 0 18px; }
+.fg-hero-label { min-height: 1.25em; margin-top: 14px; font-size: 0.82rem; font-weight: 600; color: var(--fg-text-2); font-variant-numeric: tabular-nums; }
+.fg-hero-value {
+  margin-top: 6px;
+  font-family: var(--fg-display);
+  font-weight: 700;
+  font-size: 3.5rem;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  transition: opacity 200ms ease;
+}
+.fg-hero-value small { margin-left: 5px; font-size: 1.15rem; letter-spacing: 0; font-weight: 600; color: var(--fg-text-3); }
+.fg-hero-delta { margin-top: 8px; font-size: 0.92rem; font-weight: 700; color: var(--fg-text-2); font-variant-numeric: tabular-nums; }
+.fg-hero-ctx { display: flex; flex-wrap: wrap; gap: 4px 12px; min-height: 1.2em; margin-top: 4px; font-size: 0.78rem; font-weight: 600; color: var(--fg-text-2); font-variant-numeric: tabular-nums; }
+.fg-hero-ctx span { display: inline-flex; align-items: center; gap: 6px; }
+.fg-hero-ctx span::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--dot); }
+
+.fg-chart { position: relative; margin-top: 12px; touch-action: pan-y; cursor: crosshair; -webkit-user-select: none; user-select: none; }
+.fg-chart[data-scrubbing='true'] { touch-action: none; }
+.fg-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+@keyframes fg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.fg-chart-body { animation: fg-fade-in 240ms var(--fg-ease-out); }
+.fg-band { transition: y 320ms var(--fg-ease-drawer), height 320ms var(--fg-ease-drawer); }
+.fg-band-new { animation: fg-fade-in 280ms var(--fg-ease-out); }
+@keyframes fg-dot-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.fg-scrub-dot { transform-box: fill-box; transform-origin: center; animation: fg-dot-in 160ms var(--fg-ease-out); }
+.fg-chart-empty { padding: 28px 18px 8px; text-align: center; }
+.fg-chart-empty p { margin: 0; }
+.fg-chart-empty p + p { margin-top: 6px; font-size: 0.85rem; color: var(--fg-text-3); }
+
+/* Zyklus-Chips (wie Blutwerte) */
+.fg-cycles { padding: 16px 18px 0; }
+.fg-eyebrow { margin: 0 0 10px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-text-3); }
+.fg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fg-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--fg-text-2);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  font: 650 0.82rem -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 300ms var(--fg-ease-out);
+}
+.fg-chip:active { transform: scale(0.95); transition-duration: 100ms; }
+.fg-chip > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-chip-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cc); transition: background-color 200ms ease, transform 300ms var(--fg-ease-out); }
+.fg-chip[aria-pressed='true'] {
+  color: var(--fg-text);
+  background: color-mix(in srgb, var(--cc) 22%, rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+}
+.fg-chip[aria-pressed='true'] .fg-chip-dot { background: var(--cc); transform: scale(1.1); }
+@keyframes fg-chip-hint {
+  0% { opacity: 0; transform: scale(0.96); }
+  30% { opacity: 0.85; transform: scale(1); }
+  75%, 100% { opacity: 0; transform: scale(1.12); }
+}
+.fg-chip[data-hint='true']::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px 1px color-mix(in srgb, var(--cc) 60%, transparent);
+  pointer-events: none;
+  animation: fg-chip-hint 2600ms var(--fg-ease-out) 700ms infinite;
+}
+.fg-note { margin: 12px 0 0; font-size: 0.76rem; line-height: 1.45; color: var(--fg-text-3); }
+
+/* ── Karten & Überschriften ─────────────────────────────────────────── */
+.fg-card { padding: 18px; }
+.fg-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 16px; }
+.fg-h3 { margin: 0; font-family: var(--fg-display); font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+.fg-meta { font-size: 0.78rem; font-weight: 600; color: var(--fg-text-3); font-variant-numeric: tabular-nums; }
+.fg-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 8px 4px 10px; }
+
+/* ── Ringe (Aktivitätsring-Bauweise) ────────────────────────────────── */
+.fg-rings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.fg-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 0 10px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 200ms ease, transform 300ms var(--fg-ease-out);
+}
+.fg-ring:active { transform: scale(0.95); transition-duration: 100ms; }
+.fg-ring[aria-expanded='true'] { background: rgba(255, 255, 255, 0.06); }
+.fg-rv { --t: 9px; position: relative; width: 70px; height: 70px; transition: --fg-p 1200ms var(--fg-ease-out); }
+.fg-rv > .track,
+.fg-rv > .fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--t) - 0.5px), #000 calc(100% - var(--t)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--t) - 0.5px), #000 calc(100% - var(--t)));
+}
+.fg-rv > .track { background: color-mix(in srgb, var(--ca) 20%, transparent); }
+.fg-rv > .fill {
+  background: conic-gradient(from 0turn, var(--ca) 0turn, var(--cb) calc(var(--fg-p) * 1turn), transparent calc(var(--fg-p) * 1turn));
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--cb) 55%, transparent));
+}
+.fg-rv > .cap-s,
+.fg-rv > .cap-e > i {
+  position: absolute;
+  top: 0;
+  left: calc(50% - var(--t) / 2);
+  width: var(--t);
+  height: var(--t);
+  border-radius: 50%;
+}
+.fg-rv > .cap-s { background: var(--ca); }
+.fg-rv > .cap-e { position: absolute; inset: 0; transform: rotate(calc(var(--fg-p) * 1turn)); }
+.fg-rv > .cap-e > i { background: var(--cb); box-shadow: 2px 0 4px rgba(0, 0, 0, 0.55); }
+.fg-rv[data-empty='true'] > .cap-s,
+.fg-rv[data-empty='true'] > .cap-e { display: none; }
+.fg-rv > .val {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--fg-display);
+  font-weight: 700;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+/* „Wohlbefinden“ passt bei 390 px gerade in seine Spalte; kleinere Breiten kürzen erst dann */
+.fg-ring-name { max-width: calc(100% + 4px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.72rem; letter-spacing: -0.01em; font-weight: 650; color: var(--fg-text-2); }
+.fg-ring-delta { padding: 3px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); font-size: 0.72rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fg-ring-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 360ms var(--fg-ease-drawer), opacity 240ms ease;
+}
+.fg-ring-more[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
+.fg-ring-more > div { overflow: hidden; }
+.fg-ring-detail { margin-top: 12px; padding: 14px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.fg-rd-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.84rem; font-weight: 650; }
+.fg-rd-bars { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; align-items: end; height: 64px; margin-top: 12px; }
+.fg-rd-bars > i { display: block; min-height: 3px; border-radius: 4px; background: linear-gradient(180deg, var(--cb), var(--ca)); transform-origin: bottom; animation: fg-bar-in 420ms var(--fg-ease-out) both; }
+.fg-rd-bars > i[data-empty='true'] { background: rgba(255, 255, 255, 0.08); }
+@keyframes fg-bar-in { from { transform: scaleY(0.2); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+.fg-rd-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.72rem; color: var(--fg-text-3); font-variant-numeric: tabular-nums; }
+.fg-ring-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--fg-hair); font-size: 0.84rem; font-weight: 650; color: var(--fg-text-2); font-variant-numeric: tabular-nums; }
+
+/* ── Wisch-Karten ───────────────────────────────────────────────────── */
+.fg-swipe {
+  display: flex;
+  gap: 10px;
+  margin: 0 -12px;
+  padding: 2px 12px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 12px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.fg-swipe::-webkit-scrollbar { display: none; }
+.fg-chg {
+  flex: 0 0 74%;
+  scroll-snap-align: start;
+  overflow: hidden;
+  padding: 16px 16px 54px;
+  border: 0;
+  border-radius: 24px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.fg-chg { cursor: pointer; touch-action: manipulation; transition: transform 300ms var(--fg-ease-out); }
+button.fg-chg:active { transform: scale(0.97); transition-duration: 100ms; }
+.fg-chg > .n { position: relative; font-size: 0.82rem; font-weight: 650; color: var(--fg-text-2); }
+.fg-chg > .big { position: relative; margin-top: 8px; font-family: var(--fg-display); font-size: 2.05rem; font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.fg-chg > .ft { position: relative; font-size: 0.8rem; font-weight: 600; color: var(--fg-text-3); font-variant-numeric: tabular-nums; }
+.fg-chg > svg { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 46px; }
+.fg-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+.fg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); transition: width 260ms var(--fg-ease-out), background-color 260ms ease; }
+.fg-dots > i[data-on='true'] { width: 18px; background: var(--fg-text); }
+.fg-empty { padding: 22px 18px; text-align: center; }
+.fg-empty p { margin: 0; font-size: 0.95rem; font-weight: 700; }
+.fg-empty p + p { margin-top: 6px; font-size: 0.85rem; font-weight: 600; line-height: 1.45; color: var(--fg-text-3); }
+
+/* ── Vorher / Nachher ───────────────────────────────────────────────── */
+.fg-compare {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #0d0f14;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.fg-compare[data-dragging='true'] { touch-action: none; }
+.fg-compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; pointer-events: none; }
+.fg-compare-after { position: absolute; inset: 0; }
+.fg-tag { position: absolute; bottom: 12px; padding: 7px 10px; border-radius: 14px; font-size: 0.76rem; font-weight: 650; line-height: 1.3; font-variant-numeric: tabular-nums; pointer-events: none; }
+.fg-tag b { display: block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-text-2); }
+.fg-tag.l { left: 12px; }
+.fg-tag.r { right: 12px; text-align: right; }
+.fg-handle { position: absolute; top: 0; bottom: 0; width: 44px; margin-left: -22px; display: flex; justify-content: center; outline: none; }
+.fg-handle::before { content: ''; width: 1.5px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 10px rgba(0, 0, 0, 0.6); }
+.fg-knob {
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--fg-text);
+  transition: transform 300ms var(--fg-ease-out);
+}
+.fg-compare[data-dragging='true'] .fg-knob { transform: scale(1.12); transition-duration: 120ms; }
+.fg-handle:focus-visible .fg-knob { outline: 2px solid var(--fg-accent); outline-offset: 2px; }
+.fg-photo-single { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; padding: 0; border: 0; border-radius: 20px; background: #0d0f14; cursor: pointer; }
+.fg-photo-single img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.fg-root button:focus-visible { outline: 2px solid var(--fg-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-root *,
+  .fg-root *::before,
+  .fg-root *::after,
+  .fg-rangebar * {
+    animation: none !important;
+  }
+  .fg-seg-pill[data-animate='true'],
+  .fg-rv,
+  .fg-band,
+  .fg-ring-more { transition: none; }
+  .fg-btn:active,
+  .fg-chip:active,
+  .fg-ring:active,
+  .fg-seg > button:active,
+  button.fg-chg:active,
+  .fg-icon-btn:active { transform: none; }
+  .fg-chip[data-hint='true']::after { opacity: 0.5; }
+}
+
+/* ── Knopf-Zustände: Spinner beim Speichern, Haken bei Erfolg ───────── */
+@keyframes fg-spin { to { transform: rotate(360deg); } }
+.fg-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  animation: fg-spin 700ms linear infinite;
+}
+@keyframes fg-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.fg-pop { animation: fg-pop 300ms var(--fg-ease-out); }
+.fg-btn[disabled] { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .fg-spinner { animation-duration: 1400ms; }
+  .fg-pop { animation: none; }
+}
