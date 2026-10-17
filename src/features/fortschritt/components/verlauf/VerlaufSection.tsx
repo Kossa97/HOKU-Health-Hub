@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { ChartNavigation, DateRange, FortschrittOverviewState, MetricKey } from '../../types'
@@ -11,6 +11,7 @@ import { todayIso } from '../../lib/substances'
 import { GlassSegmented } from '../GlassSegmented'
 import { GlassChart, type ChartBand, type ScrubState } from './GlassChart'
 import { CycleChips } from './CycleChips'
+import { useAmbientLight, useAmbientPulse } from '../../ambient/context'
 import { substancesInRange } from '../../lib/cycleSubstances'
 
 interface Props {
@@ -35,6 +36,9 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
   const [touched, setTouched] = useState(false)
   const [newSubstance, setNewSubstance] = useState<string | null>(null)
   const [scrub, setScrub] = useState<ScrubState | null>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+  const [lightX, setLightX] = useState<number | null>(null)
+  const pulse = useAmbientPulse()
 
   useEffect(() => {
     if (!chartNav) return
@@ -101,15 +105,53 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
     else next.delete(id)
     setTouched(true)
     setSelected(next)
+    // Angewählt: die Farbe des Zyklus blüht hinter dem Graphen auf
+    if (on) {
+      const substance = substances.find(s => s.id === id)
+      if (substance) pulse(substance.color, sectionRef.current, 0.6, 0.55)
+    }
     // Nur der neu angewählte Balken blendet auf; die übrigen werden dünner.
     setNewSubstance(on ? id : null)
-  }, [selected])
+  }, [selected, substances, pulse])
 
-  const onScrub = useCallback((s: ScrubState | null) => setScrub(s), [])
+  // Die Karte geht an das eigene Licht und an den Aufrufer (Gleiten zum Graphen)
+  const setSection = useCallback((node: HTMLElement | null) => {
+    sectionRef.current = node
+    if (typeof ref === 'function') ref(node)
+    else if (ref) ref.current = node
+  }, [ref])
+
+  const onScrub = useCallback((s: ScrubState | null) => {
+    setScrub(s)
+    // Licht unter den Ablese-Strich: Lage relativ zur Karte
+    const rect = sectionRef.current?.getBoundingClientRect()
+    setLightX(s && rect && rect.width > 0 ? Math.min(1, Math.max(0, (s.clientX - rect.left) / rect.width)) : null)
+  }, [])
+  // Nur ein Ablesen, das zur aktuellen Reihe passt, zählt — wie für die Anzeige unten
+  const scrubbing = scrub != null && scrub.index < series.length && lightX != null
+
+  // Licht der Messwert-Farbe: ruht oben links, folgt beim Ablesen dem Finger.
+  useAmbientLight('hero', sectionRef, {
+    color: metric?.color ?? '#00ccf5',
+    intensity: scrubbing ? 0.85 : 0.55,
+    anchorX: scrubbing ? lightX : 0.24,
+    anchorY: scrubbing ? 0.62 : 0.32,
+    size: scrubbing ? 320 : 400,
+  })
+  // Zweites Licht in der Farbe des zuletzt angewählten Zyklus, hinter den Balken
+  const cycleColor = substances.find(s => s.id === newSubstance && activeSelection.has(s.id))?.color
+    ?? substances.find(s => activeSelection.has(s.id))?.color
+  useAmbientLight('hero-cycle', sectionRef, {
+    color: cycleColor ?? '#000000',
+    intensity: cycleColor ? 0.5 : 0,
+    anchorX: 0.78,
+    anchorY: 0.66,
+    size: 360,
+  })
 
   if (!metric) {
     return (
-      <section ref={ref} className="fg-hero fg-surface" aria-label={t('fortschritt_metric_weight')}>
+      <section ref={setSection} className="fg-hero fg-surface" aria-label={t('fortschritt_metric_weight')}>
         <div className="fg-chart-empty">
           <p className="fg-h3">{t('fortschritt_chart_no_data_title', { metric: t('fortschritt_metric_weight') })}</p>
           <p>{t('fortschritt_chart_no_data_body')}</p>
@@ -154,7 +196,7 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
 
   return (
     <section
-      ref={ref}
+      ref={setSection}
       className="fg-hero fg-surface"
       aria-label={metric.label}
       data-metric={metric.key}

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Camera, ChevronsLeftRight, Plus, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { DateRange, ProgressPhotoEntry } from '../../types'
@@ -6,6 +6,7 @@ import { filterByDateRange } from '../../lib/range'
 import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import { FotosTab } from './FotosTab'
 import { useSheetPresence } from '../../hooks/useSheetPresence'
+import { useAmbientLight } from '../../ambient/context'
 
 /** Womit die Galerie aufgeht: alle Fotos, ein bestimmtes Foto groß oder gleich das Hinzufügen. */
 type SheetTarget = { kind: 'all' } | { kind: 'photo'; id: string } | { kind: 'add' }
@@ -39,9 +40,21 @@ export function FotosCard({ photos, range, onChange }: Props) {
   const after = inRange.length > 1 ? inRange[inRange.length - 1] : null
   const weightDelta = before?.weight_kg != null && after?.weight_kg != null ? after.weight_kg - before.weight_kg : null
 
+  // Kühles Licht hinter den Fotos; beim Vergleich wandert es mit der Trennlinie
+  const sectionRef = useRef<HTMLElement>(null)
+  const [split, setSplit] = useState(0.5)
+  const [dragging, setDragging] = useState(false)
+  useAmbientLight('photos', sectionRef, {
+    color: '#3fd1c6',
+    intensity: dragging && after ? 0.55 : before ? 0.34 : 0.22,
+    anchorX: after ? split : 0.5,
+    anchorY: 0.55,
+    size: dragging && after ? 320 : 380,
+  })
+
   return (
     <>
-      <section className="fg-card fg-surface" aria-labelledby="fg-photos-title">
+      <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-photos-title">
         <div className="fg-card-head" style={{ alignItems: 'center' }}>
           <div>
             <h3 id="fg-photos-title" className="fg-h3">
@@ -62,7 +75,15 @@ export function FotosCard({ photos, range, onChange }: Props) {
         </div>
 
         {before && after ? (
-          <Compare before={before} after={after} onOpen={photo => openSheet({ kind: 'photo', id: photo.id })} />
+          <Compare
+            before={before}
+            after={after}
+            split={split}
+            onSplit={setSplit}
+            dragging={dragging}
+            onDragging={setDragging}
+            onOpen={photo => openSheet({ kind: 'photo', id: photo.id })}
+          />
         ) : before ? (
           <button type="button" className="fg-photo-single" aria-label={t('fortschritt_photo_show')} onClick={() => openSheet({ kind: 'photo', id: before.id })}>
             <img src={before.display_url} alt={formatDaySafe(before.taken_at, 'full')} draggable={false} />
@@ -138,17 +159,25 @@ const DRAG_THRESHOLD_PX = 6
  * Zwei Fotos übereinander, eine Trennlinie zum Ziehen (Finger, Maus, Pfeiltasten).
  * Ziehen verschiebt die Linie, kurzes Antippen öffnet das Foto der angetippten Seite.
  */
-function Compare({ before, after, onOpen }: { before: ProgressPhotoEntry; after: ProgressPhotoEntry; onOpen: (photo: ProgressPhotoEntry) => void }) {
+function Compare({ before, after, split, onSplit, dragging, onDragging, onOpen }: {
+  before: ProgressPhotoEntry
+  after: ProgressPhotoEntry
+  split: number
+  onSplit: (f: number | ((prev: number) => number)) => void
+  dragging: boolean
+  onDragging: (on: boolean) => void
+  onOpen: (photo: ProgressPhotoEntry) => void
+}) {
   const { t } = useTranslation()
   const boxRef = useRef<HTMLDivElement>(null)
-  const [split, setSplit] = useState(0.5)
-  const [dragging, setDragging] = useState(false)
   const downX = useRef<number | null>(null)
+  // Verschwindet der Vergleich mitten im Ziehen (Zeitraum, Foto gelöscht), endet das Ziehen mit
+  useEffect(() => () => onDragging(false), [onDragging])
   const clamp = (f: number) => Math.min(0.97, Math.max(0.03, f))
 
   const moveTo = (clientX: number) => {
     const rect = boxRef.current?.getBoundingClientRect()
-    if (rect) setSplit(clamp((clientX - rect.left) / rect.width))
+    if (rect) onSplit(clamp((clientX - rect.left) / rect.width))
   }
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture?.(e.pointerId)
@@ -157,21 +186,21 @@ function Compare({ before, after, onOpen }: { before: ProgressPhotoEntry; after:
   const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (downX.current == null) return
     if (!dragging && Math.abs(e.clientX - downX.current) < DRAG_THRESHOLD_PX) return
-    setDragging(true)
+    onDragging(true)
     moveTo(e.clientX)
   }
   const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const wasTap = !dragging && downX.current != null
     downX.current = null
-    setDragging(false)
+    onDragging(false)
     if (!wasTap) return
     const rect = boxRef.current?.getBoundingClientRect()
     if (!rect) return
     onOpen((e.clientX - rect.left) / rect.width < split ? before : after)
   }
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'ArrowLeft') { setSplit(s => clamp(s - 0.05)); e.preventDefault() }
-    if (e.key === 'ArrowRight') { setSplit(s => clamp(s + 0.05)); e.preventDefault() }
+    if (e.key === 'ArrowLeft') { onSplit(s => clamp(s - 0.05)); e.preventDefault() }
+    if (e.key === 'ArrowRight') { onSplit(s => clamp(s + 0.05)); e.preventDefault() }
   }
   const tag = (photo: ProgressPhotoEntry) => (
     <>
@@ -188,7 +217,7 @@ function Compare({ before, after, onOpen }: { before: ProgressPhotoEntry; after:
       onPointerDown={onDown}
       onPointerMove={onMove}
       onPointerUp={onUp}
-      onPointerCancel={() => { downX.current = null; setDragging(false) }}
+      onPointerCancel={() => { downX.current = null; onDragging(false) }}
     >
       <img src={before.display_url} alt={`${t('fortschritt_compare_before')}: ${formatDaySafe(before.taken_at, 'full')}`} draggable={false} />
       <div className="fg-compare-after" style={{ clipPath: `inset(0 0 0 ${(split * 100).toFixed(2)}%)` }}>

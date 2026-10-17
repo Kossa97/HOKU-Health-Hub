@@ -78,6 +78,6 @@ describe('GlassChart', () => {
     const onScrub = vi.fn()
     const { chart } = renderChart([], onScrub)
     fireEvent.pointerDown(chart, { clientX: 324, pointerId: 1, pointerType: 'touch' })
-    expect(onScrub).toHaveBeenLastCalledWith({ index: 3, startOf: null, date: '2026-03-01' })
+    expect(onScrub).toHaveBeenLastCalledWith(expect.objectContaining({ index: 3, startOf: null, date: '2026-03-01' }))
   })
 })

@@ -51,6 +51,15 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
     () => new Map(topChanges.map(c => [c.key, buildMetricSeries(c.key, pageRange, weightLogs, dailyLogs, bloodwork)])),
     [topChanges, pageRange, weightLogs, dailyLogs, bloodwork],
   )
+  const seriesFor = useCallback((key: string) => changeSeries.get(key) ?? [], [changeSeries])
+  const colorFor = useCallback((key: string) => METRIC_COLORS[key] ?? '#8b5cf6', [])
+  const canSelect = useCallback((key: string) => !isWellnessMetricKey(key), [])
+  // Antippen einer Veränderung: Messwert im Graphen wählen und zum Graphen gleiten
+  const showInChart = useCallback((key: string) => {
+    setChartNav({ metric: key })
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    heroRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  }, [])
 
   const hasSubstances = cycleSubstances.length + ongoingSubstances.length > 0
   const activeCycles = cycleSubstances.filter(c => c.active)
@@ -76,12 +85,6 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
   ]
   const hasEnoughForTrend = trendCandidates.some(series => series.length >= MIN_POINTS_FOR_TREND)
 
-  // Antippen einer Veränderung: Messwert im Graphen wählen und zum Graphen gleiten
-  const showInChart = (key: string) => {
-    setChartNav({ metric: key })
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    heroRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -99,10 +102,10 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
         changes={topChanges}
         hasAnyData={hasAnyLogs}
         hasEnoughForTrend={hasEnoughForTrend}
-        seriesFor={key => changeSeries.get(key) ?? []}
-        colorFor={key => METRIC_COLORS[key] ?? '#8b5cf6'}
+        seriesFor={seriesFor}
+        colorFor={colorFor}
         onSelect={showInChart}
-        canSelect={key => !isWellnessMetricKey(key)}
+        canSelect={canSelect}
       />
 
       {!hasActiveSubstances && <NoSubstancesBanner />}

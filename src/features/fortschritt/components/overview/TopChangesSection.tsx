@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MetricChange } from '../../types'
 import type { SeriesPoint } from '../../lib/metrics'
 import { metricLabel } from '../../lib/metricLabels'
 import { formatNumber, formatSignedNumber } from '../../lib/dates'
 import { isWellnessMetricKey } from '../../constants'
+import { useAmbientLight } from '../../ambient/context'
 
 interface Props {
   changes: MetricChange[]
@@ -48,6 +49,9 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
   const { t } = useTranslation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [page, setPage] = useState(0)
+  // Wischfortschritt zwischen zwei Karten (−0,5..0,5): das Licht gleitet mit
+  const [drift, setDrift] = useState(0)
+  const sectionRef = useRef<HTMLElement>(null)
 
   const empty = !hasAnyData
     ? { title: t('fortschritt_no_values_title'), body: t('fortschritt_no_values_body') }
@@ -57,29 +61,8 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
         ? { title: t('fortschritt_stable_title'), body: t('fortschritt_stable_body') }
         : null
 
-  const onScroll = () => {
-    const el = scrollRef.current
-    const card = el?.firstElementChild as HTMLElement | null
-    if (!el || !card) return
-    setPage(Math.round(el.scrollLeft / (card.offsetWidth + 10)))
-  }
-
-  return (
-    <section aria-labelledby="fg-changes-title">
-      <div className="fg-section-head">
-        <h2 id="fg-changes-title" className="fg-h3">{t('fortschritt_top_changes')}</h2>
-        <span className="fg-meta">{t('fortschritt_top_changes_sub')}</span>
-      </div>
-
-      {empty ? (
-        <div className="fg-empty fg-surface">
-          <p>{empty.title}</p>
-          <p>{empty.body}</p>
-        </div>
-      ) : (
-        <>
-          <div ref={scrollRef} className="fg-swipe" onScroll={onScroll}>
-            {changes.map(change => {
+  // Karten nur neu bauen, wenn sich ihr Inhalt ändert — nicht bei jedem Wisch-Frame
+  const cards = useMemo(() => changes.map(change => {
               const label = metricLabel(t, change.key, change.label)
               const color = colorFor(change.key)
               const arrow = change.delta > 0 ? '↑' : change.delta < 0 ? '↓' : '→'
@@ -109,7 +92,43 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
               ) : (
                 <div key={change.key} className="fg-chg fg-surface fortschritt-change-card">{body}</div>
               )
-            })}
+            }), [changes, seriesFor, colorFor, onSelect, canSelect, t])
+
+  const onScroll = () => {
+    const el = scrollRef.current
+    const card = el?.firstElementChild as HTMLElement | null
+    if (!el || !card) return
+    const progress = el.scrollLeft / (card.offsetWidth + 10)
+    const next = Math.round(progress)
+    setPage(next)
+    setDrift(progress - next)
+  }
+
+  const active = changes[Math.min(page, Math.max(0, changes.length - 1))]
+  useAmbientLight('changes', sectionRef, {
+    color: active ? colorFor(active.key) : '#000000',
+    intensity: active ? 0.42 : 0,
+    anchorX: 0.36 - drift * 0.5,
+    anchorY: 0.6,
+    size: 360,
+  })
+
+  return (
+    <section ref={sectionRef} aria-labelledby="fg-changes-title">
+      <div className="fg-section-head">
+        <h2 id="fg-changes-title" className="fg-h3">{t('fortschritt_top_changes')}</h2>
+        <span className="fg-meta">{t('fortschritt_top_changes_sub')}</span>
+      </div>
+
+      {empty ? (
+        <div className="fg-empty fg-surface">
+          <p>{empty.title}</p>
+          <p>{empty.body}</p>
+        </div>
+      ) : (
+        <>
+          <div ref={scrollRef} className="fg-swipe" onScroll={onScroll}>
+            {cards}
           </div>
           {changes.length > 1 && (
             <div className="fg-dots" aria-hidden>

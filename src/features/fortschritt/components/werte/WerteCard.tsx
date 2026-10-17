@@ -5,6 +5,7 @@ import type { DailyLogEntry, DateRange } from '../../types'
 import { buildValueOverview, type ValueOverviewKey, type ValueOverviewRow } from '../../lib/valueOverview'
 import { formatDaySafe, formatNumber } from '../../lib/dates'
 import { metricLabel } from '../../lib/metricLabels'
+import { useAmbientLight, useAmbientPulse } from '../../ambient/context'
 
 interface Props {
   dailyLogs: DailyLogEntry[]
@@ -21,6 +22,8 @@ const RING_COLORS: Record<RingKey, { a: string; b: string }> = {
   libido: { a: '#ff2d55', b: '#ff8fb1' },
 }
 const RING_KEYS = Object.keys(RING_COLORS) as RingKey[]
+/** Waagerechte Mitte eines Rings in der Karte (vier gleiche Spalten) — für Licht und Aufblühen */
+const ringAnchorX = (key: RingKey) => (RING_KEYS.indexOf(key) + 0.5) / RING_KEYS.length
 
 const ARROWS = { up: '↑', down: '↓', flat: '→' } as const
 const TONE: Record<ValueOverviewRow['tone'], string> = {
@@ -54,8 +57,24 @@ export function WerteCard({ dailyLogs, range }: Props) {
 
   const bodyFat = rows.find(r => r.key === 'body_fat_pct')
 
+  // Licht: in der Farbe des stärksten Werts; ein geöffneter Ring zieht es zu sich.
+  const sectionRef = useRef<HTMLElement>(null)
+  const pulse = useAmbientPulse()
+  const strongest = RING_KEYS
+    .map(key => ({ key, avg: rows.find(r => r.key === key)?.average ?? null }))
+    .filter((r): r is { key: RingKey; avg: number } => r.avg != null)
+    .sort((a, b) => b.avg - a.avg)[0]?.key
+  const lit = open ?? strongest
+  useAmbientLight('values', sectionRef, {
+    color: lit ? RING_COLORS[lit].b : '#5e5ce6',
+    intensity: open ? 0.6 : lit ? 0.38 : 0,
+    anchorX: lit ? ringAnchorX(lit) : 0.5,
+    anchorY: 0.36,
+    size: open ? 340 : 380,
+  })
+
   return (
-    <section className="fg-card fg-surface" aria-labelledby="fg-values-title">
+    <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-values-title">
       <div className="fg-card-head">
         <h3 id="fg-values-title" className="fg-h3">{t('fortschritt_values_title')}</h3>
         <span className="fg-meta">{t('fortschritt_values_sub')} · {t('fortschritt_values_scale')}</span>
@@ -80,7 +99,10 @@ export function WerteCard({ dailyLogs, range }: Props) {
               onClick={() => {
                 const next = open === key ? null : key
                 setOpen(next)
-                if (next) setShownDetail(next)
+                if (next) {
+                  setShownDetail(next)
+                  pulse(colors.b, sectionRef.current, ringAnchorX(key), 0.32)
+                }
               }}
             >
               <span

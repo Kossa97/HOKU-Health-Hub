@@ -48,18 +48,27 @@ html[data-fs-glass] body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Umgebungslicht */
-.fg-glow {
-  position: absolute;
+/* Umgebungslicht: fest am Bildschirm, hinter allem. Die Lichter setzt
+   ambient/AmbientLight.tsx per transform/opacity; die Maske macht sie weich,
+   ohne teures filter: blur. Farbwechsel blenden über background-color. */
+.fg-ambient {
+  position: fixed;
+  inset: 0;
   z-index: -1;
-  border-radius: 50%;
-  filter: blur(60px);
+  overflow: hidden;
   pointer-events: none;
 }
-.fg-glow.a { width: 320px; height: 260px; left: -90px; top: 40px; background: radial-gradient(closest-side, rgba(0, 204, 245, 0.40), transparent); }
-.fg-glow.b { width: 300px; height: 300px; right: -120px; top: 32%; background: radial-gradient(closest-side, rgba(144, 133, 233, 0.34), transparent); }
-.fg-glow.c { width: 320px; height: 260px; left: -110px; top: 58%; background: radial-gradient(closest-side, rgba(48, 209, 88, 0.22), transparent); }
-.fg-glow.d { width: 280px; height: 260px; right: -90px; top: 82%; background: radial-gradient(closest-side, rgba(213, 81, 129, 0.26), transparent); }
+.fg-light {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  opacity: 0;
+  will-change: transform, opacity;
+  -webkit-mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.32) 48%, transparent 100%);
+  mask-image: radial-gradient(closest-side, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.32) 48%, transparent 100%);
+  transition: background-color 700ms ease;
+}
 
 /* ── Materialien ─────────────────────────────────────────────────────── */
 .fg-glass {
