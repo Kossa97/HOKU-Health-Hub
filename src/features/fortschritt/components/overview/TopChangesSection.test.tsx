@@ -25,7 +25,7 @@ describe('TopChangesSection (Wisch-Karten)', () => {
     expect(cards.map(c => c.tagName)).toEqual(['BUTTON', 'DIV'])
     fireEvent.click(cards[0])
     expect(onSelect).toHaveBeenCalledWith('weight')
-    expect(container.querySelectorAll('.fg-dots > i')).toHaveLength(2)
+    expect(container.querySelectorAll('.lg-dots > i')).toHaveLength(2)
   })
 
   it('zeigt die Leer-Zustände statt Karten', () => {

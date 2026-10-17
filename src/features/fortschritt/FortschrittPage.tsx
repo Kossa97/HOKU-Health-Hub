@@ -38,13 +38,6 @@ export function FortschrittPage() {
     [state.dailyLogs, state.weightLogs],
   )
 
-  // Fortschritt ist schwarz bis an den Rand: auch hinter der Seite, solange sie offen ist.
-  useEffect(() => {
-    const root = document.documentElement
-    root.setAttribute('data-fs-glass', '')
-    return () => root.removeAttribute('data-fs-glass')
-  }, [])
-
   return (
     <div className="fg-root">
       <AmbientLightProvider>

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { denyProps } from '../../../lib/denyFeedback'
+import { denyProps } from '../../lib/denyFeedback'
 
 export interface SegmentOption<K extends string> {
   key: K
@@ -62,12 +62,12 @@ export function GlassSegmented<K extends string>({ options, value, onChange, ari
       role="group"
       aria-label={ariaLabel}
       data-equal={equal}
-      className={`fg-seg fg-glass ${className}`}
+      className={`lg-seg lg-glass ${className}`}
     >
       {pill && (
         <span
           aria-hidden
-          className="fg-seg-pill"
+          className="lg-seg-pill"
           data-animate={animate}
           style={{ width: pill.w, transform: `translateX(${pill.x}px)` }}
         />

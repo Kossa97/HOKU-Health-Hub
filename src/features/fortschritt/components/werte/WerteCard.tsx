@@ -61,10 +61,10 @@ export function WerteCard({ dailyLogs, range }: Props) {
   useReadingZone(sectionRef)
 
   return (
-    <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-values-title">
-      <div className="fg-card-head">
-        <h3 id="fg-values-title" className="fg-h3">{t('fortschritt_values_title')}</h3>
-        <span className="fg-meta">{t('fortschritt_values_sub')} · {t('fortschritt_values_scale')}</span>
+    <section ref={sectionRef} className="lg-card lg-surface" aria-labelledby="fg-values-title">
+      <div className="lg-card-head">
+        <h3 id="fg-values-title" className="lg-h3">{t('fortschritt_values_title')}</h3>
+        <span className="lg-meta">{t('fortschritt_values_sub')} · {t('fortschritt_values_scale')}</span>
       </div>
 
       <div className="fg-rings">
@@ -149,7 +149,7 @@ function RingDetail({ ringKey, logs, range }: { ringKey: RingKey; logs: DailyLog
     <div className="fg-ring-detail" style={{ '--ca': colors.a, '--cb': colors.b } as CSSProperties}>
       <div className="fg-rd-head">
         <span>{t('fortschritt_ring_last14', { metric: label })}</span>
-        <span className="fg-meta">{avg == null ? t('fortschritt_values_no_data') : `Ø ${one(avg)}`}</span>
+        <span className="lg-meta">{avg == null ? t('fortschritt_values_no_data') : `Ø ${one(avg)}`}</span>
       </div>
       <div className="fg-rd-bars">
         {days.map((d, i) => (

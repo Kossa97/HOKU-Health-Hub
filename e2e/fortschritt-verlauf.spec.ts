@@ -16,7 +16,7 @@ test('Fortschritt-Verlauf: Zyklus per Chip als Balken hinter der Kurve, Ablesen 
   await graph.scrollIntoViewIfNeeded()
   await expect(graph).toBeVisible()
   // Ruht das Scrollen auf dem Graphen, weichen die Hintergrundlichter an seine Ränder aus
-  await expect(page.locator('.fg-light[data-moved="true"]').first()).toBeAttached()
+  await expect(page.locator('.lg-light[data-moved="true"]').first()).toBeAttached()
 
   // Anfangs ist kein Zyklus an; der erste Chip weist darauf hin
   const chip = page.getByRole('button', { name: /^BPC-157:/ })
@@ -29,7 +29,7 @@ test('Fortschritt-Verlauf: Zyklus per Chip als Balken hinter der Kurve, Ablesen 
   await expect(chip).toHaveAttribute('data-hint', 'false')
   await expect(graph.locator('rect.fg-band')).toHaveCount(1)
   // Der feste Hintergrund nimmt die Zyklusfarbe im mittleren Licht an
-  const mitte = page.locator('.fg-light-middle')
+  const mitte = page.locator('.lg-light-middle')
   await expect(mitte).toHaveAttribute('data-tinted', 'true')
   const hero = page.locator('[data-hero-value]')
   const heute = await hero.textContent()
@@ -39,7 +39,7 @@ test('Fortschritt-Verlauf: Zyklus per Chip als Balken hinter der Kurve, Ablesen 
   await page.mouse.move(box.x + 6, box.y + box.height / 2)
   await expect(hero).not.toHaveText(heute ?? '')
   // Das Licht unter der Ablese-Linie tritt zurück
-  const zurueck = page.locator('.fg-light[data-avoided="true"]')
+  const zurueck = page.locator('.lg-light[data-avoided="true"]')
   await expect(zurueck).toHaveCount(1)
 
   // Am Zyklusstart rastet der Finger ein und nennt ihn

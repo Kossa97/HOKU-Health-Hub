@@ -13,14 +13,14 @@ function Tinter({ slot, tint }: { slot: LightSlot; tint: Tint | null }) {
 }
 
 const light = (container: HTMLElement, slot: LightSlot) =>
-  container.querySelector<HTMLElement>(`.fg-light-${slot}`)!
+  container.querySelector<HTMLElement>(`.lg-light-${slot}`)!
 /** Farbe und Grundhelligkeit sitzen auf der inneren Ebene */
 const core = (container: HTMLElement, slot: LightSlot) => light(container, slot).firstElementChild as HTMLElement
 
 describe('AmbientLightProvider (feste Bühne)', () => {
   it('zeigt drei Lichter in Grundfarbe', () => {
     const { container } = render(<AmbientLightProvider><div /></AmbientLightProvider>)
-    expect(container.querySelectorAll('.fg-light')).toHaveLength(3)
+    expect(container.querySelectorAll('.lg-light')).toHaveLength(3)
     expect(light(container, 'middle').dataset.tinted).toBe('false')
     expect(core(container, 'middle').style.opacity).toBe('0.18')
   })

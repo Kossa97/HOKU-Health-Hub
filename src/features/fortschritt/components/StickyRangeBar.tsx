@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { RANGE_CHIPS, type RangeChipKey } from '../lib/verlaufRange'
-import { GlassSegmented } from './GlassSegmented'
+import { GlassSegmented } from '../../../components/ui/GlassSegmented'
 
 /** Höhe der schwebenden Leiste unterhalb der Safe-Area (Polster + Glas-Segment). */
 export const RANGE_BAR_CONTENT_HEIGHT = 8 + 44 + 14

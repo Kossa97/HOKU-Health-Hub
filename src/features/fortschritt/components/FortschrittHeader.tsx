@@ -30,7 +30,7 @@ export function FortschrittHeader({
       </div>
 
       {hasTodayEntry ? (
-        <button type="button" onClick={onLogToday} className="fg-btn fg-btn-compact fg-btn-glass fg-glass">
+        <button type="button" onClick={onLogToday} className="lg-btn lg-btn-compact lg-btn-glass lg-glass">
           <Pencil size={17} aria-hidden />
           {t('fortschritt_edit_today')}
         </button>
@@ -38,7 +38,7 @@ export function FortschrittHeader({
         <button
           type="button"
           onClick={onLogToday}
-          className="fg-btn fg-btn-compact fg-btn-tint"
+          className="lg-btn lg-btn-compact lg-btn-tint"
           data-invite={dataReady}
         >
           <Plus size={18} strokeWidth={2.6} aria-hidden />

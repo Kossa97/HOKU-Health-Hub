@@ -388,15 +388,15 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
             type="button"
             onClick={() => void save()}
             disabled={saving || saved}
-            className="fg-btn fg-btn-primary"
+            className="lg-btn lg-btn-primary"
             data-state={saved ? 'done' : saving ? 'busy' : 'idle'}
             aria-live="polite"
             style={{ flex: 1, minWidth: 0 }}
           >
             {saved
-              ? <><Check size={20} strokeWidth={3} aria-hidden className="fg-pop" />{t('fortschritt_saved_short')}</>
+              ? <><Check size={20} strokeWidth={3} aria-hidden className="lg-pop" />{t('fortschritt_saved_short')}</>
               : saving
-                ? <><span className="fg-spinner" aria-hidden />{t('fortschritt_saving')}</>
+                ? <><span className="lg-spinner" aria-hidden />{t('fortschritt_saving')}</>
                 : t('fortschritt_save_entry')}
           </button>
           <button

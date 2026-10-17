@@ -8,7 +8,7 @@ import { buildAvailableMetrics, normalizeMetricKey } from '../../lib/metricDefin
 import { metricLabel } from '../../lib/metricLabels'
 import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import { todayIso } from '../../lib/substances'
-import { GlassSegmented } from '../GlassSegmented'
+import { GlassSegmented } from '../../../../components/ui/GlassSegmented'
 import { GlassChart, type ChartBand, type ScrubState } from './GlassChart'
 import { CycleChips } from './CycleChips'
 import { useAmbientAvoid, useAmbientTint } from '../../ambient/context'
@@ -120,9 +120,9 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
 
   if (!metric) {
     return (
-      <section ref={ref} className="fg-hero fg-surface" aria-label={t('fortschritt_metric_weight')}>
+      <section ref={ref} className="fg-hero lg-surface" aria-label={t('fortschritt_metric_weight')}>
         <div className="fg-chart-empty">
-          <p className="fg-h3">{t('fortschritt_chart_no_data_title', { metric: t('fortschritt_metric_weight') })}</p>
+          <p className="lg-h3">{t('fortschritt_chart_no_data_title', { metric: t('fortschritt_metric_weight') })}</p>
           <p>{t('fortschritt_chart_no_data_body')}</p>
         </div>
         <CycleChips substances={substances} selected={activeSelection} hint={!touched} onToggle={toggle} />
@@ -166,13 +166,13 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
   return (
     <section
       ref={ref}
-      className="fg-hero fg-surface"
+      className="fg-hero lg-surface"
       aria-label={metric.label}
       data-metric={metric.key}
     >
       <div className="fg-hero-in">
         {options.length > 1 && (
-          <div className="fg-seg-scroll">
+          <div className="lg-seg-scroll">
             <GlassSegmented
               ariaLabel={t('fortschritt_metric_switch_aria')}
               options={options}
@@ -184,7 +184,7 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
 
         {series.length === 0 ? (
           <div className="fg-chart-empty">
-            <p className="fg-h3">{t('fortschritt_chart_no_data_title', { metric: metric.label })}</p>
+            <p className="lg-h3">{t('fortschritt_chart_no_data_title', { metric: metric.label })}</p>
             <p>{t('fortschritt_chart_no_data_body')}</p>
           </div>
         ) : (

@@ -28,15 +28,15 @@ export function CycleChips({ substances, selected, hint, onToggle }: Props) {
 
   return (
     <div className="fg-cycles" data-cycle-strip>
-      <p className="fg-eyebrow">{t('bw_cycles_title')}</p>
-      <ul className="fg-chips">
+      <p className="lg-eyebrow">{t('bw_cycles_title')}</p>
+      <ul className="lg-chips">
         {substances.map((substance, index) => {
           const periods = substance.cycles.map(period).join(', ')
           return (
             <li key={substance.id} className="min-w-0">
               <button
                 type="button"
-                className="fg-chip"
+                className="lg-chip"
                 aria-pressed={selected.has(substance.id)}
                 aria-label={`${substance.name}: ${periods}`}
                 title={periods}
@@ -44,14 +44,14 @@ export function CycleChips({ substances, selected, hint, onToggle }: Props) {
                 onClick={() => onToggle(substance.id)}
                 style={{ '--cc': substance.color } as CSSProperties}
               >
-                <span className="fg-chip-dot" aria-hidden />
+                <span className="lg-chip-dot" aria-hidden />
                 <span>{substance.name}</span>
               </button>
             </li>
           )
         })}
       </ul>
-      <p className="fg-note">{t('bw_cycles_hint')}</p>
+      <p className="lg-note">{t('bw_cycles_hint')}</p>
     </div>
   )
 }

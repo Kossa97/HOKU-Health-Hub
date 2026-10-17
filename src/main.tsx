@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import './index.css'
+import './styles/liquid-glass.css'
 import { applyDirection, i18nReady } from './i18n'
 import App from './App.tsx'
 import { installDenyFeedback } from './lib/denyFeedback'

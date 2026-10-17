@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next'
 export function EmptyOverview({ onLogToday }: { onLogToday: () => void }) {
   const { t } = useTranslation()
   return (
-    <section className="fg-card fg-surface" style={{ padding: '28px 20px', textAlign: 'center' }}>
-      <div className="fg-glass" style={{
+    <section className="lg-card lg-surface" style={{ padding: '28px 20px', textAlign: 'center' }}>
+      <div className="lg-glass" style={{
         width: 60,
         height: 60,
         borderRadius: 20,
@@ -17,7 +17,7 @@ export function EmptyOverview({ onLogToday }: { onLogToday: () => void }) {
       }}>
         <TrendingUp size={28} aria-hidden />
       </div>
-      <h2 className="fg-h3" style={{ fontSize: '1.3rem', marginBottom: 8, textWrap: 'balance' }}>
+      <h2 className="lg-h3" style={{ fontSize: '1.3rem', marginBottom: 8, textWrap: 'balance' }}>
         {t('fortschritt_empty_title')}
       </h2>
       <p style={{ margin: '0 auto 22px', maxWidth: '30ch', fontSize: '0.92rem', lineHeight: 1.5, color: 'var(--fg-text-2)' }}>
@@ -30,11 +30,11 @@ export function EmptyOverview({ onLogToday }: { onLogToday: () => void }) {
       </ol>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <button type="button" className="fg-btn fg-btn-primary" onClick={onLogToday}>
+        <button type="button" className="lg-btn lg-btn-primary" onClick={onLogToday}>
           <Plus size={20} strokeWidth={2.6} aria-hidden />
           {t('fortschritt_log_first_day')}
         </button>
-        <Link to="/my-stack" className="fg-btn fg-btn-glass fg-glass" style={{ textDecoration: 'none' }}>
+        <Link to="/my-stack" className="lg-btn lg-btn-glass lg-glass" style={{ textDecoration: 'none' }}>
           {t('fortschritt_create_cycle')}
         </Link>
       </div>
@@ -75,11 +75,11 @@ function Step({ n, text }: { n: number; text: string }) {
 export function NoSubstancesBanner() {
   const { t } = useTranslation()
   return (
-    <section className="fg-card fg-surface">
+    <section className="lg-card lg-surface">
       <p style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5, color: 'var(--fg-text-2)' }}>
         {t('fortschritt_no_substances_banner')}
       </p>
-      <Link to="/my-stack" className="fg-btn fg-btn-glass fg-glass" style={{ textDecoration: 'none' }}>
+      <Link to="/my-stack" className="lg-btn lg-btn-glass lg-glass" style={{ textDecoration: 'none' }}>
         {t('fortschritt_create_cycle')}
       </Link>
     </section>

@@ -1,0 +1,360 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS — gemeinsame Bausteine der ganzen App (lg-*)
+
+   Schwarzer Grund, farbiges Umgebungslicht dahinter (lg-ambient). Glas
+   (.lg-glass) nur für das, was schwebt oder bedient wird; Inhalt liegt auf
+   ruhigeren, leicht durchscheinenden Flächen (.lg-surface). Werte (Farben,
+   Kurven, Schriften) stehen als --lg-* in index.css.
+
+   Bewegung: Drücken antwortet in 100 ms, Loslassen ist nach 300 ms fertig,
+   nur transform und opacity. Ohne Licht (prefers-reduced-transparency) werden
+   die Flächen fest, ohne Bewegung (prefers-reduced-motion) bleibt alles still.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Umgebungslicht ──────────────────────────────────────────────────────
+   Eine feste Bühne hinter der Seite. Drei weiche Lichter; die Karten gleiten
+   beim Scrollen darüber, die Lichter stehen dabei still. Ruht das Scrollen,
+   richten sie sich langsam um die gelesene Karte herum ein (höchstens ein
+   Viertel der Breite). Interaktionen ändern Farbe und Helligkeit. Weich durch
+   eine feste Radial-Maske statt filter: blur. */
+.lg-ambient {
+  position: fixed;
+  /* Feste Höhe: klappt die Adressleiste ein, springen die Lichter nicht */
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100lvh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lg-light {
+  --lg-light-falloff: radial-gradient(closest-side, rgba(0, 0, 0, 0.800) 0%, rgba(0, 0, 0, 0.776) 10%, rgba(0, 0, 0, 0.708) 20%, rgba(0, 0, 0, 0.603) 30%, rgba(0, 0, 0, 0.474) 40%, rgba(0, 0, 0, 0.338) 50%, rgba(0, 0, 0, 0.210) 60%, rgba(0, 0, 0, 0.106) 70%, rgba(0, 0, 0, 0.037) 80%, rgba(0, 0, 0, 0.005) 90%, rgba(0, 0, 0, 0.000) 100%);
+  position: absolute;
+  width: min(125vw, 620px);
+  aspect-ratio: 1;
+  /* Um die gelesene Karte herum: langsam, ohne Nachschwingen. Zurücktreten beim Ablesen: zügiger */
+  transition: transform 1200ms var(--lg-ease-drawer), opacity 400ms ease;
+}
+.lg-light > i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Weich bis zum Rand: (1 - r²)³ läuft flach auf null aus — keine Kante, kein Ring */
+  -webkit-mask-image: var(--lg-light-falloff);
+  mask-image: var(--lg-light-falloff);
+  transition: background-color 1000ms ease, opacity 1000ms ease;
+}
+.lg-light-top { left: -38%; top: -14%; }
+.lg-light-middle { right: -46%; top: 26%; }
+.lg-light-bottom { left: -44%; bottom: -18%; }
+@media (min-width: 640px) {
+  .lg-light-top { left: calc(50% - 560px); }
+  .lg-light-middle { right: calc(50% - 600px); }
+  .lg-light-bottom { left: calc(50% - 600px); }
+}
+/* Bewegung reduzieren: die Lichter bleiben stehen, nur die Helligkeit ändert sich */
+@media (prefers-reduced-motion: reduce) {
+  .lg-light { transform: none !important; transition: opacity 200ms ease; }
+  .lg-light > i { transition-duration: 200ms; }
+}
+
+/* ── Materialien ─────────────────────────────────────────────────────── */
+.lg-glass {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+}
+.lg-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 70% at 18% 0%, rgba(255, 255, 255, 0.16), transparent 55%);
+}
+.lg-surface {
+  position: relative;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.03));
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lg-glass,
+  .lg-surface {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #1c1c1f;
+  }
+  .lg-glass::before { display: none; }
+}
+
+/* ── Knöpfe ──────────────────────────────────────────────────────────────
+   48 px hoch, Rundung = halbe Höhe, 17 px halbfett, Icon 10 px vom Text.
+   Licht von oben: heller Rand oben, Schatten fällt nach unten. */
+.lg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 24px 0 18px;
+  border: 0;
+  border-radius: 24px;
+  font: 600 17px/1 var(--lg-ui);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 300ms var(--lg-ease-out), box-shadow 300ms var(--lg-ease-out), filter 300ms var(--lg-ease-out);
+}
+.lg-btn:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 100ms;
+}
+.lg-btn svg { flex-shrink: 0; }
+.lg-btn[disabled] { cursor: default; }
+.lg-btn-primary {
+  color: #00141c; /* auf Cyan ≈ 11:1 */
+  background: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 8px 22px rgba(0, 204, 245, 0.30);
+}
+.lg-btn-primary:active {
+  filter: brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
+    0 1px 1px rgba(0, 0, 0, 0.6),
+    0 3px 10px rgba(0, 204, 245, 0.22);
+}
+.lg-btn-glass { color: var(--lg-text); }
+/* Kompakt für Titelzeilen: 44 px (Apple-Mindestmaß), Icon 8 px vom Text */
+.lg-btn-compact {
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px 0 12px;
+  border-radius: 22px;
+  font-size: 15px;
+}
+/* Getöntes Glas: Cyan schimmert durch, Kante oben hell, Text hell-cyan (≈ 12:1 auf Schwarz) */
+.lg-btn-tint {
+  color: #8eeaff;
+  background: linear-gradient(180deg, rgba(0, 204, 245, 0.30) 0%, rgba(0, 204, 245, 0.12) 100%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 0 0 1px rgba(120, 230, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px rgba(0, 204, 245, 0.18);
+}
+.lg-btn-tint:active {
+  filter: brightness(0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 0 0 1px rgba(120, 230, 255, 0.24),
+    0 2px 8px rgba(0, 204, 245, 0.14);
+}
+/* Noch nichts eingetragen: drei ruhige Atemzüge, dann still */
+@keyframes lg-breathe-tint {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.38), inset 0 0 0 1px rgba(120,230,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2), 0 6px 20px rgba(0,204,245,0.18); }
+  50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.38), inset 0 0 0 1px rgba(120,230,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 6px 28px rgba(0,204,245,0.4); }
+}
+.lg-btn-tint[data-invite='true'] { animation: lg-breathe-tint 2400ms ease-in-out 600ms 3; }
+@media (hover: hover) and (pointer: fine) {
+  .lg-btn-primary:hover { filter: brightness(1.06); }
+  .lg-btn-glass:hover { filter: brightness(1.15); }
+  .lg-btn-tint:hover { filter: brightness(1.12); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lg-btn-tint { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0b3a47; }
+}
+
+.lg-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--lg-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 300ms var(--lg-ease-out);
+}
+.lg-icon-btn:active { transform: scale(0.92); transition-duration: 100ms; }
+
+/* Knopf-Zustände: Spinner beim Speichern, Haken bei Erfolg */
+@keyframes lg-spin { to { transform: rotate(360deg); } }
+.lg-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  animation: lg-spin 700ms linear infinite;
+}
+@keyframes lg-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.lg-pop { animation: lg-pop 300ms var(--lg-ease-out); }
+
+/* ── Segment-Umschalter mit gleitender Markierung ───────────────────── */
+.lg-seg {
+  position: relative;
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border-radius: 999px;
+}
+.lg-seg[data-equal='true'] > button { flex: 1 1 0; }
+.lg-seg-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 4px 14px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.lg-seg-pill[data-animate='true'] {
+  transition: transform 360ms var(--lg-ease-drawer), width 360ms var(--lg-ease-drawer);
+}
+.lg-seg > button {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  color: var(--lg-text-2);
+  font: 650 0.84rem var(--lg-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 200ms ease, transform 300ms var(--lg-ease-out);
+}
+.lg-seg > button:active { transform: scale(0.94); transition-duration: 100ms; }
+/* 36 px sichtbar, 44 px Tippfläche (Apple-Mindestmaß): das Polster der Leiste zählt mit */
+.lg-seg > button::after { content: ''; position: absolute; inset: -4px 0; }
+.lg-seg > button[aria-pressed='true'] { color: var(--lg-text); }
+.lg-seg > button[aria-disabled='true'] { opacity: 0.4; }
+/* Viele Einträge: eine Glas-Kapsel innerhalb des Kartenrands; was nicht
+   passt, scrollt in der Kapsel und wird an ihrer runden Kante abgeschnitten. */
+.lg-seg-scroll {
+  overflow-x: auto;
+  border-radius: 999px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.lg-seg-scroll::-webkit-scrollbar { display: none; }
+.lg-seg-scroll .lg-seg { display: inline-flex; min-width: 100%; vertical-align: top; }
+
+/* ── Chips (an/aus, mit Farbpunkt --cc) ─────────────────────────────── */
+.lg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lg-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--lg-text-2);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  font: 650 0.82rem var(--lg-ui);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 300ms var(--lg-ease-out);
+}
+.lg-chip:active { transform: scale(0.95); transition-duration: 100ms; }
+.lg-chip > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-chip-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cc); transition: background-color 200ms ease, transform 300ms var(--lg-ease-out); }
+.lg-chip[aria-pressed='true'] {
+  color: var(--lg-text);
+  background: color-mix(in srgb, var(--cc) 22%, rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+}
+.lg-chip[aria-pressed='true'] .lg-chip-dot { background: var(--cc); transform: scale(1.1); }
+@keyframes lg-chip-hint {
+  0% { opacity: 0; transform: scale(0.96); }
+  30% { opacity: 0.85; transform: scale(1); }
+  75%, 100% { opacity: 0; transform: scale(1.12); }
+}
+.lg-chip[data-hint='true']::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px 1px color-mix(in srgb, var(--cc) 60%, transparent);
+  pointer-events: none;
+  animation: lg-chip-hint 2600ms var(--lg-ease-out) 700ms infinite;
+}
+
+/* ── Karten & Überschriften ─────────────────────────────────────────── */
+.lg-card { padding: 18px; }
+.lg-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 16px; }
+.lg-h3 { margin: 0; font-family: var(--lg-display); font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+.lg-meta { font-size: 0.78rem; font-weight: 600; color: var(--lg-text-3); font-variant-numeric: tabular-nums; }
+.lg-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 8px 4px 10px; }
+.lg-eyebrow { margin: 0 0 10px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lg-text-3); }
+.lg-note { margin: 12px 0 0; font-size: 0.76rem; line-height: 1.45; color: var(--lg-text-3); }
+.lg-empty { padding: 22px 18px; text-align: center; }
+.lg-empty p { margin: 0; font-size: 0.95rem; font-weight: 700; }
+.lg-empty p + p { margin-top: 6px; font-size: 0.85rem; font-weight: 600; line-height: 1.45; color: var(--lg-text-3); }
+@keyframes lg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Wisch-Karten mit Punkten ───────────────────────────────────────── */
+.lg-swipe {
+  display: flex;
+  gap: 10px;
+  margin: 0 -12px;
+  padding: 2px 12px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 12px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.lg-swipe::-webkit-scrollbar { display: none; }
+.lg-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+.lg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); transition: width 260ms var(--lg-ease-out), background-color 260ms ease; }
+.lg-dots > i[data-on='true'] { width: 18px; background: var(--lg-text); }
+
+/* ── Fokus und Bewegung ─────────────────────────────────────────────── */
+:is(.lg-btn, .lg-icon-btn, .lg-chip, .lg-seg > button):focus-visible {
+  outline: 2px solid var(--lg-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.lg-btn, .lg-icon-btn, .lg-chip, .lg-seg > button):active { transform: none; }
+  .lg-seg-pill[data-animate='true'],
+  .lg-dots > i { transition: none; }
+  .lg-chip[data-hint='true']::after { animation: none; opacity: 0.5; }
+  .lg-btn-tint[data-invite='true'],
+  .lg-pop { animation: none; }
+  .lg-spinner { animation-duration: 1400ms; }
+}

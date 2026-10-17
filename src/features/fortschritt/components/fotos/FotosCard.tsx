@@ -48,21 +48,21 @@ export function FotosCard({ photos, range, onChange }: Props) {
 
   return (
     <>
-      <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-photos-title">
-        <div className="fg-card-head" style={{ alignItems: 'center' }}>
+      <section ref={sectionRef} className="lg-card lg-surface" aria-labelledby="fg-photos-title">
+        <div className="lg-card-head" style={{ alignItems: 'center' }}>
           <div>
-            <h3 id="fg-photos-title" className="fg-h3">
+            <h3 id="fg-photos-title" className="lg-h3">
               {after ? `${t('fortschritt_compare_before')} / ${t('fortschritt_compare_after')}` : t('fortschritt_photos')}
             </h3>
-            {weightDelta != null && <span className="fg-meta">{formatSignedNumber(Math.round(weightDelta * 10) / 10)} kg</span>}
+            {weightDelta != null && <span className="lg-meta">{formatSignedNumber(Math.round(weightDelta * 10) / 10)} kg</span>}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {photos.length > 0 && (
-              <button type="button" className="fg-btn fg-btn-glass fg-glass" style={{ minHeight: 40, padding: '0 16px', fontSize: 15 }} onClick={() => openSheet({ kind: 'all' })}>
+              <button type="button" className="lg-btn lg-btn-glass lg-glass" style={{ minHeight: 40, padding: '0 16px', fontSize: 15 }} onClick={() => openSheet({ kind: 'all' })}>
                 {t('fortschritt_photos_show_all', { n: photos.length })}
               </button>
             )}
-            <button type="button" className="fg-icon-btn fg-glass" aria-label={t('fortschritt_photo_add')} onClick={() => openSheet({ kind: 'add' })}>
+            <button type="button" className="lg-icon-btn lg-glass" aria-label={t('fortschritt_photo_add')} onClick={() => openSheet({ kind: 'add' })}>
               <Plus size={20} strokeWidth={2.4} />
             </button>
           </div>
@@ -83,10 +83,10 @@ export function FotosCard({ photos, range, onChange }: Props) {
             <img src={before.display_url} alt={formatDaySafe(before.taken_at, 'full')} draggable={false} />
           </button>
         ) : (
-          <div className="fg-empty" style={{ padding: '18px 8px 6px' }}>
+          <div className="lg-empty" style={{ padding: '18px 8px 6px' }}>
             <p>{photos.length > 0 ? t('fortschritt_photos_none_in_range') : t('fortschritt_photos_empty_title')}</p>
             <p>{t('fortschritt_photos_empty_body')}</p>
-            <button type="button" className="fg-btn fg-btn-primary" style={{ marginTop: 16 }} onClick={() => openSheet({ kind: 'add' })}>
+            <button type="button" className="lg-btn lg-btn-primary" style={{ marginTop: 16 }} onClick={() => openSheet({ kind: 'add' })}>
               <Camera size={20} aria-hidden />
               {t('fortschritt_photo_add')}
             </button>
@@ -217,8 +217,8 @@ function Compare({ before, after, split, onSplit, dragging, onDragging, onOpen }
       <div className="fg-compare-after" style={{ clipPath: `inset(0 0 0 ${(split * 100).toFixed(2)}%)` }}>
         <img src={after.display_url} alt={`${t('fortschritt_compare_after')}: ${formatDaySafe(after.taken_at, 'full')}`} draggable={false} />
       </div>
-      <div className="fg-tag l fg-glass"><b>{t('fortschritt_compare_before')}</b>{tag(before)}</div>
-      <div className="fg-tag r fg-glass"><b>{t('fortschritt_compare_after')}</b>{tag(after)}</div>
+      <div className="fg-tag l lg-glass"><b>{t('fortschritt_compare_before')}</b>{tag(before)}</div>
+      <div className="fg-tag r lg-glass"><b>{t('fortschritt_compare_after')}</b>{tag(after)}</div>
       <div
         className="fg-handle"
         style={{ left: `${(split * 100).toFixed(2)}%` }}
@@ -230,7 +230,7 @@ function Compare({ before, after, split, onSplit, dragging, onDragging, onOpen }
         aria-valuenow={Math.round(split * 100)}
         onKeyDown={onKey}
       >
-        <span className="fg-knob fg-glass" aria-hidden><ChevronsLeftRight size={20} /></span>
+        <span className="fg-knob lg-glass" aria-hidden><ChevronsLeftRight size={20} /></span>
       </div>
     </div>
   )

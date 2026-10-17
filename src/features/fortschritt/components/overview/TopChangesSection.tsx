@@ -83,13 +83,13 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
                 <button
                   key={change.key}
                   type="button"
-                  className="fg-chg fg-surface fortschritt-change-card"
+                  className="fg-chg lg-surface fortschritt-change-card"
                   onClick={() => onSelect(change.key)}
                 >
                   {body}
                 </button>
               ) : (
-                <div key={change.key} className="fg-chg fg-surface fortschritt-change-card">{body}</div>
+                <div key={change.key} className="fg-chg lg-surface fortschritt-change-card">{body}</div>
               )
             }), [changes, seriesFor, colorFor, onSelect, canSelect, t])
 
@@ -102,23 +102,23 @@ export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seri
 
   return (
     <section ref={sectionRef} aria-labelledby="fg-changes-title">
-      <div className="fg-section-head">
-        <h2 id="fg-changes-title" className="fg-h3">{t('fortschritt_top_changes')}</h2>
-        <span className="fg-meta">{t('fortschritt_top_changes_sub')}</span>
+      <div className="lg-section-head">
+        <h2 id="fg-changes-title" className="lg-h3">{t('fortschritt_top_changes')}</h2>
+        <span className="lg-meta">{t('fortschritt_top_changes_sub')}</span>
       </div>
 
       {empty ? (
-        <div className="fg-empty fg-surface">
+        <div className="lg-empty lg-surface">
           <p>{empty.title}</p>
           <p>{empty.body}</p>
         </div>
       ) : (
         <>
-          <div ref={scrollRef} className="fg-swipe" onScroll={onScroll}>
+          <div ref={scrollRef} className="lg-swipe" onScroll={onScroll}>
             {cards}
           </div>
           {changes.length > 1 && (
-            <div className="fg-dots" aria-hidden>
+            <div className="lg-dots" aria-hidden>
               {changes.map((change, i) => <i key={change.key} data-on={i === page} />)}
             </div>
           )}

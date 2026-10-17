@@ -129,7 +129,7 @@ export function AmbientLightProvider({ children }: { children: ReactNode }) {
 
   return (
     <AmbientContext.Provider value={scene}>
-      <div ref={stage} className="fg-ambient" aria-hidden>
+      <div ref={stage} className="lg-ambient" aria-hidden>
         {SLOTS.map(slot => {
           const color = claims[slot].findLast(c => c.color != null)?.color
           const boost = claims[slot].findLast(c => c.boost != null)?.boost ?? 0
@@ -139,7 +139,7 @@ export function AmbientLightProvider({ children }: { children: ReactNode }) {
             <div
               key={slot}
               ref={el => { lights.current[slot] = el }}
-              className={`fg-light fg-light-${slot}`}
+              className={`lg-light lg-light-${slot}`}
               data-tinted={color != null}
               data-moved={moved}
               data-avoided={avoided === slot}
