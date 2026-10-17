@@ -78,7 +78,7 @@ export function MyStackHeader({
       <div className="relative mb-3 flex min-h-11 shrink-0 items-center gap-2 px-1">
         {/* Titel — groß wie in iOS; kollabiert smooth, sobald die Suche geöffnet wird */}
         <div className={`flex min-w-0 items-baseline gap-2 overflow-hidden transition-[max-width,opacity] duration-300 ${searchOpen ? 'max-w-0 opacity-0' : 'max-w-[70%] opacity-100'}`}>
-          <h2 className="stack-large-title min-w-0 truncate">{t('meine_peptide')}</h2>
+          <h2 className="lg-large-title min-w-0 truncate">{t('meine_peptide')}</h2>
           {peptides.length > 0 && (
             <span className="shrink-0 text-xl font-semibold tabular-nums text-[var(--lg-text-3)]">{peptides.length}</span>
           )}

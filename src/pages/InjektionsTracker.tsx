@@ -422,10 +422,10 @@ export function InjektionsTracker() {
             type="button"
             aria-label={String(t('injection_camera_reset', { defaultValue: 'Torso zentrieren' }))}
             onClick={() => setCameraResetRequestId(value => value + 1)}
-            className="absolute right-4 z-30 grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-black/55 text-slate-100 shadow-[0_10px_28px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30"
             style={{ top: 'calc(88px + env(safe-area-inset-top))' }}
           >
-            <Minimize2 size={18} aria-hidden="true" />
+            <Minimize2 size={19} aria-hidden="true" />
           </button>
 
           <button
@@ -434,10 +434,10 @@ export function InjektionsTracker() {
             title={String(t('injection_pick_site_action', { defaultValue: 'Stelle aus Liste wählen' }))}
             aria-haspopup="dialog"
             onClick={() => setSitePickerOpen(true)}
-            className="absolute right-4 z-30 grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-black/55 text-slate-100 shadow-[0_10px_28px_rgba(0,0,0,0.42)] backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-            style={{ top: 'calc(140px + env(safe-area-inset-top))' }}
+            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+            style={{ top: 'calc(144px + env(safe-area-inset-top))' }}
           >
-            <ListChecks size={18} aria-hidden="true" />
+            <ListChecks size={19} aria-hidden="true" />
           </button>
 
           {activeLog && visibleLogIds.has(activeLog.id) && (
@@ -446,8 +446,7 @@ export function InjektionsTracker() {
               style={{ top: 'calc(78px + env(safe-area-inset-top))' }}
             >
               <div
-                className="flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-black text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                style={{ background: 'rgba(7, 11, 24, 0.78)', borderColor: 'rgba(255,255,255,0.12)' }}
+                className="lg-glass flex min-h-11 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-[var(--lg-text)]"
               >
                 <span
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -466,28 +465,22 @@ export function InjektionsTracker() {
               style={{ top: 'calc(126px + env(safe-area-inset-top))' }}
             >
               <div
-                className="flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                style={{ background: 'rgba(7, 11, 24, 0.78)', borderColor: 'rgba(34,211,238,0.22)' }}
+                className="lg-glass flex min-h-10 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full px-4 text-[13px] font-semibold text-[var(--lg-text)]"
               >
-                <span className="shrink-0 text-[0.62rem] font-black uppercase text-cyan-300">{t('injection_selected_chip', { defaultValue: 'Ausgewählt' })}</span>
+                <span className="shrink-0 text-[12px] font-semibold uppercase text-[var(--lg-accent-text)]">{t('injection_selected_chip', { defaultValue: 'Ausgewählt' })}</span>
                 <span className="min-w-0 flex-1 truncate">{activeTargetIntake.stackItemName}</span>
-                <span className="shrink-0 text-cyan-100/80">{activeTargetIntake.dose} {activeTargetIntake.unit} - {format(parseISO(activeTargetIntake.scheduledAt), 'HH:mm')}</span>
+                <span className="shrink-0 text-[var(--lg-text-2)]">{activeTargetIntake.dose} {activeTargetIntake.unit} - {format(parseISO(activeTargetIntake.scheduledAt), 'HH:mm')}</span>
               </div>
             </div>
           )}
           {showPositionActions && (
             <div
-              className="absolute left-3 right-3 z-20 rounded-2xl border p-3"
-              style={{
-                background: 'var(--surface)',
-                borderColor: 'var(--border)',
-                boxShadow: '0 -6px 32px rgba(0,0,0,0.5)',
-                bottom: 'calc(14px + env(safe-area-inset-bottom))',
-              }}
+              className="lg-sheet absolute left-2 right-2 z-20 p-3"
+              style={{ bottom: 'calc(8px + env(safe-area-inset-bottom))' }}
             >
               <div className="flex gap-3">
-                <button type="button" className="btn-secondary min-h-11 flex-1" onClick={() => { setDraftPin(null); setSelectedTargetIntakeKey(null) }}>{t('injection_position_cancel', { defaultValue: 'Abbrechen' })}</button>
-                <button type="button" autoFocus className="btn-primary min-h-11 flex-1" onClick={() => setShowLogSheet(true)}>{t('injection_position_accept', { defaultValue: 'Position übernehmen' })}</button>
+                <button type="button" data-quiet className="lg-gray-btn min-h-12 flex-1 !text-[17px]" onClick={() => { setDraftPin(null); setSelectedTargetIntakeKey(null) }}>{t('injection_position_cancel', { defaultValue: 'Abbrechen' })}</button>
+                <button type="button" autoFocus className="lg-btn lg-btn-primary min-h-12 flex-1 !px-4" onClick={() => setShowLogSheet(true)}>{t('injection_position_accept', { defaultValue: 'Position übernehmen' })}</button>
               </div>
             </div>
           )}
@@ -511,12 +504,12 @@ export function InjektionsTracker() {
       </section>
 
       {inventoryRetryIds.length > 0 && (
-        <div role="alert" className="fixed left-4 right-4 top-24 z-50 rounded-2xl border border-amber-500/25 bg-slate-950/95 p-3 text-sm font-bold text-amber-200 shadow-2xl backdrop-blur-xl">
+        <div role="alert" className="fixed left-4 right-4 top-24 z-50 rounded-[22px] bg-[var(--lg-surface-2)] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)] shadow-2xl">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"
             onClick={() => void Promise.all(inventoryRetryIds.map(retryCommittedStock))}
-            className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/15 px-3 text-sm font-black text-amber-100 transition-colors hover:bg-amber-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+            className="lg-gray-btn mt-3 !text-[var(--lg-warn-text)]"
           >
             <RefreshCw size={15} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
           </button>
@@ -578,28 +571,20 @@ function PageHeader({ onBack, overlay = false }: { onBack: () => void; overlay?:
       <button
         onClick={onBack}
         aria-label={String(t('back', { defaultValue: 'Zurück' }))}
-        style={{
-          width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: overlay ? 'rgba(8,13,26,0.72)' : 'var(--surface)',
-          border: '1px solid var(--border)',
-          backdropFilter: overlay ? 'blur(16px)' : undefined,
-          WebkitBackdropFilter: overlay ? 'blur(16px)' : undefined,
-          pointerEvents: overlay ? 'auto' : undefined,
-          color: 'var(--text-dim)',
-        }}
+        className="lg-glass lg-icon-btn lg-press shrink-0"
+        style={{ pointerEvents: overlay ? 'auto' : undefined }}
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={20} />
       </button>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: '0.62rem', fontWeight: 800, letterSpacing: 0,
-          textTransform: 'uppercase', color: 'var(--accent)',
-          textShadow: overlay ? '0 2px 12px rgba(0,0,0,0.75)' : undefined,
+          fontSize: 13, fontWeight: 600,
+          color: 'var(--lg-text-2)',
+          textShadow: overlay ? '0 1px 10px rgba(0,0,0,0.8)' : undefined,
         }}>
           {t('injection_pro_title', { defaultValue: 'Injektionstracker Pro' })}
         </p>
-        <h1 style={{ fontSize: '1.32rem', fontWeight: 900, color: 'var(--text)', letterSpacing: 0, lineHeight: 1.1, textShadow: overlay ? '0 2px 14px rgba(0,0,0,0.8)' : undefined }}>
+        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--text)', textShadow: overlay ? '0 2px 14px rgba(0,0,0,0.8)' : undefined }}>
           {t('injection_map_title', { defaultValue: '3D Injektionskarte' })}
         </h1>
       </div>
@@ -617,26 +602,15 @@ function PageHeader({ onBack, overlay = false }: { onBack: () => void; overlay?:
 function TrackerUnavailable({ title, hint, onRetry }: { title: string; hint?: string; onRetry: () => void }) {
   const { t } = useTranslation()
   return (
-    <div role="alert" style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 22,
-      padding: 22,
-      textAlign: 'center',
-    }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: 18,
-        background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 14px',
-      }}>
-        <AlertTriangle size={22} color="#f59e0b" aria-hidden="true" />
+    <div role="alert" className="lg-surface" style={{ padding: 22, textAlign: 'center' }}>
+      <div className="lg-icon-tile" style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--lg-warn)', margin: '0 auto 14px' }}>
+        <AlertTriangle size={24} aria-hidden="true" />
       </div>
-      <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: hint ? 8 : 18 }}>{title}</h2>
+      <h2 className="lg-title2" style={{ marginBottom: hint ? 8 : 18 }}>{title}</h2>
       {hint && (
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 18 }}>{hint}</p>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.5, marginBottom: 18 }}>{hint}</p>
       )}
-      <button type="button" className="btn-secondary min-h-11 w-full" onClick={onRetry}>
+      <button type="button" data-quiet className="lg-gray-btn min-h-11 w-full" onClick={onRetry}>
         <RefreshCw size={14} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
       </button>
     </div>

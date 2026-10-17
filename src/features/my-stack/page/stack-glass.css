@@ -5,15 +5,6 @@
    auf fester Graphitfläche (gruppierte Liste, liquid-glass.css).
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Kopf: großer Titel (Large Title, 34 pt) ─────────────────────────── */
-.stack-large-title {
-  font-size: 34px;
-  line-height: 41px;
-  font-weight: 700;
-  letter-spacing: 0.011em;
-  color: var(--lg-text);
-}
-
 /* Suchfeld wie in iOS: Kapsel in Systemfüllung, Lupe innen */
 .stack-search {
   min-height: 44px;

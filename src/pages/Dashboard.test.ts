@@ -916,9 +916,9 @@ describe('Dashboard normalized timeline path', () => {
     expect(card.textContent).toContain('0 von 2 bestätigt')
     expect(card.querySelector('.lucide-x')).toBeTruthy()
     expect(card.querySelector('.lucide-check')).toBeNull()
-    expect(card.style.borderColor).toBe('rgba(239, 68, 68, 0.35)')
+    expect(card.getAttribute('data-tone')).toBe('bad')
     expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
-    expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).className).toContain('border-red-500')
+    expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).getAttribute('data-tone')).toBe('bad')
   })
 
   it('trennt bestätigte und übersprungene Einnahmen in grüne und rote Bereiche', async () => {
@@ -932,8 +932,8 @@ describe('Dashboard normalized timeline path', () => {
 
     const logged = await screen.findByRole('button', { name: /Bereits protokolliert/ })
     const unlogged = screen.getByRole('button', { name: /Nicht protokolliert/ })
-    expect(logged.className).toContain('border-emerald-500')
-    expect(unlogged.className).toContain('border-red-500')
+    expect(logged.getAttribute('data-tone')).toBe('good')
+    expect(unlogged.getAttribute('data-tone')).toBe('bad')
     expect(logged.textContent).toContain('1')
     expect(unlogged.textContent).toContain('1')
 

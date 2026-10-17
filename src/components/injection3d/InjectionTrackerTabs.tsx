@@ -102,26 +102,26 @@ export function InjectionTrackerTabs({
           aria-modal="true"
           className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"
           style={{
-            background: 'linear-gradient(180deg, rgba(7,11,24,0.96), var(--surface))',
+            background: '#000',
             overscrollBehaviorY: 'contain',
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          <div className="shrink-0 border-b border-white/10 px-4 py-3">
+          <div className="shrink-0 px-4 pb-2 pt-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 aria-label={String(t('close', { defaultValue: 'Schließen' }))}
                 onClick={closeSheet}
                 data-app-back-close
-                className="grid min-h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:text-white"
+                className="lg-glass lg-icon-btn lg-press shrink-0"
               >
-                <X size={17} aria-hidden="true" />
+                <X size={20} aria-hidden="true" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-xl font-black text-white">{labels.open}</h2>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <h2 className="truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{labels.open}</h2>
+                <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-3)]">
                   {t('injection_open_fullscreen_hint', { defaultValue: 'Einnahme auswählen, danach die Stelle auf der 3D-Karte markieren und die Injektion mit vorausgefüllten Daten speichern.' })}
                 </p>
               </div>
@@ -169,13 +169,13 @@ export function InjectionTrackerTabs({
           data-app-modal
           role="dialog"
           aria-modal="true"
-          className="absolute bottom-0 left-0 right-0 z-40 max-h-[48dvh] overflow-hidden border-t border-white/10 px-4 pt-3"
+          className="lg-sheet absolute bottom-2 left-2 right-2 z-40 max-h-[48dvh] overflow-hidden px-4 pt-3"
           style={{
-            background: 'linear-gradient(180deg, rgba(7, 11, 24, 0.92), var(--surface))',
+            // Leicht durchscheinend: die Karte bleibt darunter erkennbar.
+            background: 'rgba(28, 28, 30, 0.9)',
             paddingBottom: 'calc(0.85rem + env(safe-area-inset-bottom))',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 -18px 46px rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(30px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(30px) saturate(180%)',
           }}
         >
           <div className="mb-2 flex items-center gap-3">
@@ -184,14 +184,13 @@ export function InjectionTrackerTabs({
               aria-label={String(t('close', { defaultValue: 'Schließen' }))}
               onClick={closeSheet}
               data-app-back-close
-              className="grid min-h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:text-white"
+              className="lg-icon-btn lg-press shrink-0 bg-[var(--lg-fill)] !text-[var(--lg-text-2)]"
             >
-              <X size={17} aria-hidden="true" />
+              <X size={20} aria-hidden="true" />
             </button>
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2 text-white">
-                <History size={18} className="shrink-0 text-sky-300" aria-hidden="true" />
-                <h2 className="truncate text-lg font-black">{labels.history}</h2>
+              <div className="flex min-w-0 items-center gap-2 text-[var(--lg-text)]">
+                <h2 className="lg-title2 truncate">{labels.history}</h2>
               </div>
               <HistoryDaysSelect
                 className="shrink-0"
@@ -235,7 +234,8 @@ function FloatingActionButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={'pointer-events-auto flex min-h-12 min-w-[8.5rem] cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 text-sm font-black shadow-[0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl transition-colors ' + (active ? 'border-sky-300/35 bg-sky-400/20 text-sky-200' : 'border-white/10 bg-black/50 text-slate-200 hover:text-white')}
+      // Glas-Kapsel über der Karte; aktiv in der Akzentfarbe getönt.
+      className={'lg-btn pointer-events-auto min-w-[8.5rem] !px-5 !text-[15px] ' + (active ? 'lg-btn-primary' : 'lg-glass lg-btn-glass')}
     >
       {icon}
       <span className="truncate">{label}</span>
@@ -254,10 +254,10 @@ function OpenIntakesTab({
 
   if (openIntakes.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
-        <CheckCircle2 size={22} className="mx-auto mb-2 text-emerald-300" aria-hidden="true" />
-        <p className="text-sm font-black text-white">{t('injection_open_empty_title', { defaultValue: 'Keine offenen Einnahmen' })}</p>
-        <p className="mt-1 text-xs leading-5 text-slate-400">{t('injection_open_empty_body', { defaultValue: 'Für diese Filter ist keine offene Einnahme vorhanden.' })}</p>
+      <div className="lg-surface px-5 py-7 text-center">
+        <CheckCircle2 size={28} className="mx-auto mb-2 text-[var(--lg-good)]" aria-hidden="true" />
+        <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_open_empty_title', { defaultValue: 'Keine offenen Einnahmen' })}</p>
+        <p className="mt-1 text-[15px] leading-5 text-[var(--lg-text-3)]">{t('injection_open_empty_body', { defaultValue: 'Für diese Filter ist keine offene Einnahme vorhanden.' })}</p>
       </div>
     )
   }
@@ -279,27 +279,27 @@ function OpenIntakeRow({ intake, onSelect }: { intake: OpenInjectionIntake; onSe
     <button
       type="button"
       onClick={onSelect}
-      className="w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left transition-colors hover:border-sky-300/35 hover:bg-sky-400/10"
+      className="lg-surface w-full cursor-pointer p-4 text-left transition-colors active:bg-[var(--lg-surface-2)]"
     >
       <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/5 text-slate-400">
-          <CalendarClock size={16} aria-hidden="true" />
-        </div>
+        <span aria-hidden="true" className="lg-icon-tile bg-[#ff9f0a]">
+          <CalendarClock size={17} />
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-black text-white">{intake.stackItemName}</p>
-          <p className="mt-0.5 text-xs text-slate-400">
-            <span className="text-amber-300">{t('injection_status_open', { defaultValue: 'Offen' })}</span>
+          <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{intake.stackItemName}</p>
+          <p className="mt-0.5 text-[13px] text-[var(--lg-text-3)]">
+            <span className="text-[var(--lg-warn-text)]">{t('injection_status_open', { defaultValue: 'Offen' })}</span>
             {' - '}{format(parseISO(intake.scheduledAt), 'dd.MM. HH:mm')}
             {intake.daysOverdue > 0 ? ` - ${openAgeLabel(intake.daysOverdue, t)}` : ''}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm font-black text-sky-300">{intake.dose} {intake.unit}</p>
-          <p className="text-[0.62rem] text-slate-500">{methodLabel(t, intake.method)}</p>
+          <p className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{intake.dose} {intake.unit}</p>
+          <p className="text-[12px] text-[var(--lg-text-3)]">{methodLabel(t, intake.method)}</p>
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-sky-300/20 bg-sky-400/10 px-3 py-2 text-xs font-black text-sky-200">
-        <Syringe size={14} aria-hidden="true" />
+      <div className="lg-gray-btn pointer-events-none mt-3 w-full">
+        <Syringe size={15} aria-hidden="true" />
         {t('injection_open_select_action', { defaultValue: 'Auswählen & Stelle markieren' })}
       </div>
     </button>

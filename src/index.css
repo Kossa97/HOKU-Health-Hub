@@ -600,6 +600,12 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-good-text: #5fe07f;   /* Grün als Schrift auf grün getönter Fläche */
   --lg-warn:   #ff9f0a;
   --lg-bad:    #ff453a;
+  /* Schrift in der hellen Variante der Farbe, auf getönter Fläche */
+  --lg-warn-text: #ffb340;
+  --lg-bad-text: #ff6961;
+  --lg-accent-text: #64d2ff;
+  /* Zweite Inhaltsebene auf Graphit (Felder, Karten im Sheet) */
+  --lg-surface-2: #2c2c2e;
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
   /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*).
