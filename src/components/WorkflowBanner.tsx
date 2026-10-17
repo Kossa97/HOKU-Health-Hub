@@ -11,34 +11,30 @@ const WORKFLOW_STEPS: { icon: LucideIcon; labelKey: string; label: string; descK
   { icon: Gauge, labelKey: 'home_flow_track', label: 'Tracken', descKey: 'home_flow_track_desc', desc: 'Dosen, Effekte, Reports' },
 ]
 
+// Inhalt auf festem Graphit wie jede Karte der Startseite
 const panelStyle: CSSProperties = {
-  background: 'var(--surface)',
-  borderRadius: 24,
-  border: '1px solid var(--border)',
-  boxShadow: '0 18px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)',
-  padding: 14,
+  background: 'var(--lg-surface-fill)',
+  borderRadius: 'var(--r-xl)',
+  padding: 16,
   position: 'relative',
   width: '100%',
   textAlign: 'left',
 }
 
 const labelStyle: CSSProperties = {
-  fontSize: '0.62rem',
-  fontWeight: 800,
-  letterSpacing: '0.13em',
-  textTransform: 'uppercase',
-  color: 'var(--text-muted)',
+  fontSize: 13,
+  fontWeight: 600,
+  color: 'var(--lg-text-3)',
 }
 
 const iconBoxBase: CSSProperties = {
-  width: 36,
-  height: 36,
-  borderRadius: 14,
+  width: 44,
+  height: 44,
+  borderRadius: 12,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   background: 'var(--accent-weak)',
-  border: '1px solid var(--accent-border)',
   color: 'var(--accent)',
 }
 
@@ -96,18 +92,17 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
               onClick={dismiss}
               aria-label={String(t('close'))}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 10,
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'var(--border)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-muted)',
+                background: 'var(--lg-fill)',
+                color: 'var(--lg-text-2)',
               }}
             >
-              <X size={14} />
+              <X size={16} />
             </button>
             <label
               style={{
@@ -133,9 +128,10 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
             </label>
           </div>
 
-          <div style={{ marginBottom: 12, paddingRight: 36 }}>
+          {/* Abstand nach unten: Schließen-Knopf und „Nicht mehr anzeigen" ragen bis ~84 px herab */}
+          <div style={{ marginBottom: 22, paddingRight: 56 }}>
             <p style={labelStyle}>{t('home_workflow', { defaultValue: 'Workflow' })}</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', marginTop: 2 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>
               {t('home_workflow_title', { defaultValue: 'Vom Vial zum Report' })}
             </h2>
           </div>
@@ -148,7 +144,7 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
               return (
                 <div key={step.labelKey} style={{ position: 'relative' }}>
                   {index < WORKFLOW_STEPS.length - 1 && (
-                    <div style={{ position: 'absolute', top: 18, left: '58%', right: '-42%', height: 1, background: 'linear-gradient(90deg, var(--accent-border), transparent)' }} />
+                    <div style={{ position: 'absolute', top: 22, left: '58%', right: '-42%', height: 1, background: 'linear-gradient(90deg, var(--accent-border), transparent)' }} />
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center', position: 'relative' }}>
                     {isStockStep ? (

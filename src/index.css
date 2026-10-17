@@ -593,9 +593,11 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   /* Kontrast auf Schwarz: text-2 ≈ 9:1, text-3 ≈ 4,8:1 */
   --lg-text-2: rgba(235, 240, 255, 0.66);
   --lg-text-3: rgba(235, 240, 255, 0.52);
+  --lg-text-4: rgba(235, 235, 245, 0.30);   /* nur Zeichen ohne Text: Chevrons */
   --lg-hair:   rgba(255, 255, 255, 0.08);
   --lg-accent: var(--accent);
   --lg-good:   #30d158;
+  --lg-good-text: #5fe07f;   /* Grün als Schrift auf grün getönter Fläche */
   --lg-warn:   #ff9f0a;
   --lg-bad:    #ff453a;
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;

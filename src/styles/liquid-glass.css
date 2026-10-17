@@ -424,3 +424,32 @@
   :is(.lg-btn-danger, .btn-danger) { background: #4a1714; }
   :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::after { display: none; }
 }
+
+/* ── Gruppierte Liste (wie die iOS-Einstellungen) ───────────────────────
+   Zeilen auf fester Fläche; Trennlinie unter dem Text, nicht unter dem
+   Symbol; Druck hellt die Zeile kurz auf. */
+.lg-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.lg-row + .lg-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 62px 0;
+  height: 0.5px;
+  background: var(--lg-separator);
+}
+.lg-row:active { background-color: rgba(255, 255, 255, 0.06); }
+.lg-row:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }
