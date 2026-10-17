@@ -120,9 +120,8 @@ export function InjectionTrackerHero({
   return (
     <section
       aria-label={String(t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' }))}
-      className="relative overflow-hidden p-4"
-      // Inhalt auf festem Graphit wie jede Karte; der Torso trägt das Bild
-      style={{ background: 'var(--lg-surface-fill)', borderRadius: 'var(--r-xl)' }}
+      // Inhalt auf durchscheinendem Glas wie jede Karte; der Torso trägt das Bild
+      className="lg-surface overflow-hidden p-4"
     >
 
       <div className="relative grid gap-4 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">

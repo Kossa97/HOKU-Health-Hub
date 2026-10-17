@@ -557,7 +557,7 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('data-archive-fullscreen')
     expect(text).toContain('data-archive-row')
-    expect(text).toContain('fixed inset-0 z-50 flex min-h-dvh flex-col bg-black')
+    expect(text).toContain('lg-backdrop fixed inset-0 z-50 flex min-h-dvh flex-col')
     expect(text).toContain('fillPct={0}')
     expect(text).toContain("color_hex: '#64748b'")
     expect(text).toContain('animateOnMount={false}')
@@ -583,7 +583,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('data-archive-info-button={p.id}')
     expect(text).toContain('setArchiveInfoPeptide(p)')
     expect(text).toContain('data-archive-info-detail={p.id}')
-    expect(text).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-black"')
+    expect(text).toContain('className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col"')
     expect(text).toContain('p.vial_amount_mg')
     expect(text).toContain('p.reconstitution_ml')
     expect(text).toContain('p.syringe_type')

@@ -47,7 +47,7 @@ describe('InjektionsTracker fullscreen map layout', () => {
     const tracker = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
 
     expect(tabs).toContain("activeSheet === 'open'")
-    expect(tabs).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"')
+    expect(tabs).toContain('className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"')
     expect(tabs).toContain('openCycleFilter')
     expect(tabs).toContain('openDaysFilter')
     expect(tabs).toContain('OPEN_DAYS_OPTIONS')

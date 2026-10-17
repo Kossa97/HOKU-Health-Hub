@@ -2215,7 +2215,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           ref={archiveDialogRef}
           labelledBy="archive-title"
         >
-          <header className="shrink-0 bg-black pt-[env(safe-area-inset-top)]">
+          <header className="shrink-0 pt-[env(safe-area-inset-top)]">
             <div className="mx-auto flex min-h-16 w-full max-w-3xl items-center justify-between gap-3 px-4">
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--lg-text-3)]">
@@ -2400,12 +2400,12 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               <div
                 data-archive-info-detail={p.id}
                 data-app-modal
-                className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-black"
+                className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="archive-info-title"
               >
-                <header className="shrink-0 bg-black pt-[env(safe-area-inset-top)]">
+                <header className="shrink-0 pt-[env(safe-area-inset-top)]">
                   <div className="mx-auto flex min-h-16 w-full max-w-3xl items-center gap-3 px-4">
                     <button
                       type="button"

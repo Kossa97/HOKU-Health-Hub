@@ -11,9 +11,12 @@ const WORKFLOW_STEPS: { icon: LucideIcon; labelKey: string; label: string; descK
   { icon: Gauge, labelKey: 'home_flow_track', label: 'Tracken', descKey: 'home_flow_track_desc', desc: 'Dosen, Effekte, Reports' },
 ]
 
-// Inhalt auf festem Graphit wie jede Karte der Startseite
+// Inhalt auf durchscheinendem Glas wie jede Karte der Startseite
 const panelStyle: CSSProperties = {
-  background: 'var(--lg-surface-fill)',
+  background: 'var(--lg-surface-bg)',
+  backdropFilter: 'var(--lg-surface-blur)',
+  WebkitBackdropFilter: 'var(--lg-surface-blur)',
+  boxShadow: 'var(--lg-surface-shadow)',
   borderRadius: 'var(--r-xl)',
   padding: 16,
   position: 'relative',

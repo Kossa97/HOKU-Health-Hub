@@ -579,7 +579,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --r-sm:   12px;
   --r-md:   14px;
   --r-lg:   20px;
-  --r-xl:   26px;
+  --r-xl:   28px;
 
   /* Reaktion sofort, Auslaufen weich (ease-out) — nie ease-in auf Bedienung */
   --t-fast: 0.14s cubic-bezier(0.23,1,0.32,1);
@@ -605,22 +605,34 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-bad-text: #ff6961;
   --lg-accent-text: #64d2ff;
   /* Zweite Inhaltsebene auf Graphit (Felder, Karten im Sheet) */
-  --lg-surface-2: #2c2c2e;
+  --lg-surface-2: rgba(255,255,255,0.07);
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
   /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*).
      Klares Glas für die Bedien-Ebene: wenig Unschärfe, viel Sättigung, Kante
      aus Licht (--lg-rim) und Glanz von oben (--lg-sheen). Inhalt: festes Graphit. */
-  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
-  --lg-glass-filter: blur(14px) saturate(190%) brightness(1.08);
-  --lg-glass-shadow: inset 0 0 14px rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.45);
-  --lg-rim: linear-gradient(140deg, rgba(255,255,255,0.62), rgba(255,255,255,0.10) 34%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.34));
-  --lg-sheen: radial-gradient(90% 70% at 28% -10%, rgba(255,255,255,0.20), transparent 62%);
+  /* Material wie Fortschritt im Schwarzglas-Entwurf (Stand af67ed5) —
+     das Maß für die ganze App. Kante als Innenschatten: oben hell, ringsum
+     eine Haarlinie, unten ein Hauch. */
+  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.04) 100%);
+  --lg-glass-filter: blur(26px) saturate(180%);
+  --lg-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.09), inset 0 -1px 0 rgba(255,255,255,0.04), 0 12px 40px rgba(0,0,0,0.55);
+  --lg-rim: linear-gradient(transparent, transparent);
+  --lg-sheen: radial-gradient(120% 70% at 18% 0%, rgba(255,255,255,0.16), transparent 55%);
   /* Prominent: Glas, in Cyan getönt; Schrift dunkel (≈ 11:1) */
-  --lg-primary-fill: linear-gradient(180deg, rgba(79,226,255,0.92), rgba(0,178,226,0.86));
+  --lg-primary-fill: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
   --lg-danger-fill: linear-gradient(180deg, rgba(255,69,58,0.42), rgba(255,69,58,0.22));
   /* Inhalt und Füllungen wie bei iOS im Dunkeln */
-  --lg-surface-fill: #1c1c1e;
+  /* Inhalt: leicht durchscheinend, das Umgebungslicht schimmert durch.
+     --lg-surface-fill ist die flache Fassung (für background-color),
+     --lg-surface-bg/-blur/-shadow das volle Material der Karten. */
+  --lg-surface-fill: rgba(255,255,255,0.05);
+  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
+  --lg-surface-blur: blur(18px) saturate(140%);
+  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
+  /* Sheets: dichteres Glas, Text und Felder bleiben lesbar */
+  --lg-sheet-bg: rgba(30,30,34,0.74);
+  --lg-sheet-blur: blur(40px) saturate(180%);
   --lg-fill: rgba(118,118,128,0.24);
   --lg-fill-selected: #636366;
   --lg-separator: rgba(84,84,88,0.65);
@@ -629,7 +641,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-pill-shadow: inset 0 0.5px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.3);
 
   --shadow-card: none;
-  --shadow-btn-primary: inset 0 0 14px rgba(255,255,255,0.08), 0 10px 26px rgba(0,0,0,0.4), 0 6px 18px rgba(0,204,245,0.22);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,40,60,0.25), 0 1px 2px rgba(0,0,0,0.6), 0 8px 22px rgba(0,204,245,0.30);
   --shadow-input:
     inset 0 1px 2px rgba(0,0,0,0.45),
     inset 0 0 0 1px rgba(255,255,255,0.06);
@@ -882,7 +894,10 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     padding: 16px;
     border: 1px solid transparent;
     border-radius: var(--r-xl);
-    background: var(--lg-surface-fill);
+    background: var(--lg-surface-bg);
+    -webkit-backdrop-filter: var(--lg-surface-blur);
+    backdrop-filter: var(--lg-surface-blur);
+    box-shadow: var(--lg-surface-shadow);
   }
 
   /* ══════════════════════════════════════════════════════════

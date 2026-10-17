@@ -107,7 +107,7 @@ export function StageDetailSheet({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="fixed inset-0 z-50 flex touch-pan-y flex-col overflow-x-hidden overflow-y-auto overscroll-x-none bg-black"
+      className="fixed inset-0 z-50 flex touch-pan-y flex-col overflow-x-hidden overflow-y-auto overscroll-x-none lg-backdrop"
     >
       {/* Das Vollbild liegt auch unter der Statuszeile des iPhones (Uhr,
           Akku). Ohne den Abstand der Schutzzone sass der Schliessen-Knopf

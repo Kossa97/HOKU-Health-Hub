@@ -24,8 +24,8 @@ export function PlanOverviewSheet({
   return (
     <>
       {currentCycleManagerPeptide && FEATURES.planTimelineV2 && (
-        <div className="fixed inset-0 z-50 flex justify-center bg-black" data-app-modal>
-          <div className="flex h-full w-full max-w-lg flex-col overflow-hidden bg-black">
+        <div className="lg-backdrop fixed inset-0 z-50 flex justify-center" data-app-modal>
+          <div className="flex h-full w-full max-w-lg flex-col overflow-hidden">
             <div className="shrink-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

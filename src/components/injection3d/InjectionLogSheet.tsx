@@ -174,9 +174,8 @@ export function InjectionLogSheet({
         data-app-back-dirty-on-interaction
         role="dialog"
         aria-modal="true"
-        className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overflow-x-hidden overscroll-y-contain"
+        className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overflow-x-hidden overscroll-y-contain"
         style={{
-          background: '#000',
           overscrollBehaviorY: 'contain',
           paddingTop: 'env(safe-area-inset-top)',
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -354,7 +353,7 @@ export function InjectionLogSheet({
                         )
                       })}
                     </div>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black to-transparent" />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/50 to-transparent" />
                   </div>
                 )}
               </div>

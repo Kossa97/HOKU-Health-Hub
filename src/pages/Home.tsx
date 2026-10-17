@@ -241,9 +241,12 @@ const pageStyle: CSSProperties = {
   paddingBottom: 8,
 }
 
-/** Inhalt liegt auf festem Graphit wie eine gruppierte Zelle in iOS — kein Glas. */
+/** Inhalt auf durchscheinendem Glas wie die Karten in Fortschritt. */
 const panelStyle: CSSProperties = {
-  background: 'var(--lg-surface-fill)',
+  background: 'var(--lg-surface-bg)',
+  backdropFilter: 'var(--lg-surface-blur)',
+  WebkitBackdropFilter: 'var(--lg-surface-blur)',
+  boxShadow: 'var(--lg-surface-shadow)',
   borderRadius: 'var(--r-xl)',
   position: 'relative',
   overflow: 'hidden',
@@ -269,8 +272,10 @@ const sectionTitleStyle: CSSProperties = {
 
 /** Sheets der Startseite: schwebend mit Abstand zum Rand, festes Graphit wie iOS-Sheets. */
 const homeSheetStyle: CSSProperties = {
-  background: 'var(--lg-surface-fill)',
-  boxShadow: '0 -16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)',
+  background: 'var(--lg-sheet-bg)',
+  backdropFilter: 'var(--lg-sheet-blur)',
+  WebkitBackdropFilter: 'var(--lg-sheet-blur)',
+  boxShadow: '0 -16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 0 0 1px rgba(255,255,255,0.06)',
 }
 
 /** „Eingenommen": grün getönte Kapsel — Erfolg bleibt grün, wie bisher. */

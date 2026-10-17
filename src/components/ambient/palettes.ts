@@ -19,17 +19,17 @@ export interface AmbientScheme {
  */
 const SCHEMES: [prefix: string, scheme: AmbientScheme][] = [
   ['/progress', { palette: DEFAULT_PALETTE, level: 1 }],
-  ['/blutwerte', { palette: { top: '#ff375f', middle: '#8b7cf0', bottom: '#ff8a65' }, level: 0.9 }],
-  ['/simulation', { palette: { top: '#06b6d4', middle: '#5e5ce6', bottom: '#00ccf5' }, level: 0.9 }],
-  ['/my-stack', { palette: { top: '#00ccf5', middle: '#8b7cf0', bottom: '#30d158' }, level: 0.9 }],
-  ['/kalender', { palette: { top: '#8b5cf6', middle: '#00ccf5', bottom: '#10b981' }, level: 0.85 }],
-  ['/injektionen', { palette: { top: '#10b981', middle: '#00ccf5', bottom: '#8b5cf6' }, level: 0.85 }],
-  ['/health', { palette: { top: '#ff375f', middle: '#30d158', bottom: '#00ccf5' }, level: 0.85 }],
-  ['/lab', { palette: { top: '#8b5cf6', middle: '#06b6d4', bottom: '#5e5ce6' }, level: 0.85 }],
-  ['/lab/peptipedia', { palette: { top: '#06b6d4', middle: '#8b5cf6', bottom: '#00ccf5' }, level: 0.75 }],
-  ['/the-lab', { palette: { top: '#8b5cf6', middle: '#06b6d4', bottom: '#5e5ce6' }, level: 0.85 }],
-  ['/tagebuch', { palette: { top: '#ec4899', middle: '#8b5cf6', bottom: '#00ccf5' }, level: 0.75 }],
-  ['/bewertungen', { palette: { top: '#f59e0b', middle: '#8b7cf0', bottom: '#00ccf5' }, level: 0.75 }],
+  ['/blutwerte', { palette: { top: '#ff375f', middle: '#8b7cf0', bottom: '#ff8a65' }, level: 1 }],
+  ['/simulation', { palette: { top: '#06b6d4', middle: '#5e5ce6', bottom: '#00ccf5' }, level: 1 }],
+  ['/my-stack', { palette: { top: '#00ccf5', middle: '#8b7cf0', bottom: '#30d158' }, level: 1 }],
+  ['/kalender', { palette: { top: '#8b5cf6', middle: '#00ccf5', bottom: '#10b981' }, level: 1 }],
+  ['/injektionen', { palette: { top: '#10b981', middle: '#00ccf5', bottom: '#8b5cf6' }, level: 1 }],
+  ['/health', { palette: { top: '#ff375f', middle: '#30d158', bottom: '#00ccf5' }, level: 1 }],
+  ['/lab', { palette: { top: '#8b5cf6', middle: '#06b6d4', bottom: '#5e5ce6' }, level: 1 }],
+  ['/lab/peptipedia', { palette: { top: '#06b6d4', middle: '#8b5cf6', bottom: '#00ccf5' }, level: 1 }],
+  ['/the-lab', { palette: { top: '#8b5cf6', middle: '#06b6d4', bottom: '#5e5ce6' }, level: 1 }],
+  ['/tagebuch', { palette: { top: '#ec4899', middle: '#8b5cf6', bottom: '#00ccf5' }, level: 1 }],
+  ['/bewertungen', { palette: { top: '#f59e0b', middle: '#8b7cf0', bottom: '#00ccf5' }, level: 1 }],
   ['/rechner', { palette: { top: '#3b82f6', middle: '#00ccf5', bottom: '#5e5ce6' }, level: 0.65 }],
   ['/protokoll', { palette: DEFAULT_PALETTE, level: 0.6 }],
   ['/profil', { palette: DEFAULT_PALETTE, level: 0.6 }],
@@ -44,5 +44,5 @@ export function ambientForPath(pathname: string): AmbientScheme {
     if (hit && prefix.length > bestLength) { best = scheme; bestLength = prefix.length }
   }
   // Startseite und alles Übrige: die Grundbühne
-  return best ?? { palette: DEFAULT_PALETTE, level: 0.9 }
+  return best ?? { palette: DEFAULT_PALETTE, level: 1 }
 }

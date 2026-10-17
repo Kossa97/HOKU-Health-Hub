@@ -504,7 +504,7 @@ export function InjektionsTracker() {
       </section>
 
       {inventoryRetryIds.length > 0 && (
-        <div role="alert" className="fixed left-4 right-4 top-24 z-50 rounded-[22px] bg-[var(--lg-surface-2)] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)] shadow-2xl">
+        <div role="alert" className="lg-sheet fixed left-4 right-4 top-24 z-50 !rounded-[22px] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)] shadow-2xl">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"

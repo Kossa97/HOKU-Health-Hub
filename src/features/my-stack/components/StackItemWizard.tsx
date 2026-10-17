@@ -1565,7 +1565,7 @@ export function StackItemWizard({
         aria-labelledby="stack-item-wizard-title"
         aria-describedby="stack-item-wizard-description"
         onKeyDown={handleDialogKeyDown}
-        className="flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden bg-black shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-[28px] sm:bg-[#1c1c1e]"
+        className="lg-backdrop flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-[28px] sm:bg-[#1c1c1e]"
       >
         <header className="shrink-0 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
           <div className="flex items-start justify-between gap-4">
