@@ -307,10 +307,7 @@ test('Auswertung: Reiter, Verlauf, Abstand zur Einnahme, Tabelle pro Substanz', 
   if (info.project.name === 'iphone-13') {
     // Balken wachsen animiert ein — erst nach der Animation fotografieren.
     await page.waitForTimeout(1600)
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'))
     await page.screenshot({ path: info.outputPath('auswertung-dunkel.png'), fullPage: true })
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'))
-    await page.screenshot({ path: info.outputPath('auswertung-hell.png'), fullPage: true })
     const graph = panel.getByRole('img').first()
     const box = (await graph.boundingBox())!
     await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.6)

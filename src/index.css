@@ -589,17 +589,40 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   /* ── Liquid Glass ── gemeinsame Werte aller Glas-Bausteine (lg-*) */
   --lg-ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
   --lg-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --lg-text:   #f5f7fa;
+  --lg-text:   var(--text);
   /* Kontrast auf Schwarz: text-2 ≈ 9:1, text-3 ≈ 4,8:1 */
   --lg-text-2: rgba(235, 240, 255, 0.66);
   --lg-text-3: rgba(235, 240, 255, 0.52);
   --lg-hair:   rgba(255, 255, 255, 0.08);
-  --lg-accent: #00ccf5;
+  --lg-accent: var(--accent);
   --lg-good:   #30d158;
   --lg-warn:   #ff9f0a;
   --lg-bad:    #ff453a;
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*) */
+  --lg-primary-fill: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
+  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.04) 100%);
+  --lg-glass-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 0 0 1px rgba(255,255,255,0.09),
+    inset 0 -1px 0 rgba(255,255,255,0.04),
+    0 12px 40px rgba(0,0,0,0.55);
+  --lg-surface-fill: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
+  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
+  /* gewählter Eintrag in einer Leiste: heller Glas-Stein */
+  --lg-pill-fill: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.12));
+  --lg-pill-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.14),
+    0 4px 14px rgba(0,0,0,0.45);
+  /* getöntes Glas in Akzentfarbe, Schrift hell-cyan (≈ 12:1 auf Schwarz) */
+  --lg-tint-fill: linear-gradient(180deg, rgba(0,204,245,0.30) 0%, rgba(0,204,245,0.12) 100%);
+  --lg-tint-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.38),
+    inset 0 0 0 1px rgba(120,230,255,0.28),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  --lg-tint-text: #8eeaff;
 
   --shadow-card:
     0 12px 40px rgba(0,0,0,0.55),
@@ -862,13 +885,10 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     padding: 16px;
     border: 1px solid transparent;
     border-radius: var(--r-xl);
-    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.035));
+    background: var(--lg-surface-fill);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
     backdrop-filter: blur(18px) saturate(140%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.10),
-      inset 0 0 0 1px rgba(255,255,255,0.05),
-      0 10px 30px rgba(0,0,0,0.35);
+    box-shadow: var(--lg-surface-shadow), 0 10px 30px rgba(0,0,0,0.35);
   }
   @media (prefers-reduced-transparency: reduce) {
     .card { -webkit-backdrop-filter: none; backdrop-filter: none; background: #1c1c1f; }
@@ -886,12 +906,14 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    max-width: 100%;
     min-height: 44px;
-    padding: 0 20px;
+    padding: 8px 20px;
     border: 0;
     border-radius: 999px;
     font: 600 15px/1.15 var(--lg-ui);
     letter-spacing: -0.01em;
+    text-align: center;
     white-space: nowrap;
     cursor: pointer;
     touch-action: manipulation;
@@ -926,8 +948,9 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
 
   /* Primär — Cyan, Text dunkel (≈ 11:1) */
   .btn-primary {
+    overflow: hidden;
     color: var(--accent-contrast);
-    background: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
+    background: var(--lg-primary-fill);
     box-shadow: var(--shadow-btn-primary);
   }
   .btn-primary:active {
@@ -942,17 +965,16 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   /* Sekundär — Glas */
   .btn-secondary {
     color: var(--lg-text);
-    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
-    -webkit-backdrop-filter: blur(20px) saturate(170%);
-    backdrop-filter: blur(20px) saturate(170%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.24),
-      inset 0 0 0 1px rgba(255,255,255,0.09),
-      0 6px 18px rgba(0,0,0,0.35);
+    background: var(--lg-glass-fill);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: var(--lg-glass-shadow);
   }
 
-  /* Gefahr — rot getöntes Glas, Text ≈ 6:1 auf Schwarz */
+  /* Gefahr — rot getöntes Glas, Text ≈ 6:1 auf Schwarz. Darf umbrechen:
+     sie steht oft halbbreit neben „Behalten" (Löschen bestätigen). */
   .btn-danger {
+    white-space: normal;
     color: #ff7b72;
     background: linear-gradient(180deg, rgba(255,69,58,0.20), rgba(255,69,58,0.09));
     box-shadow:
@@ -1094,24 +1116,27 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
 .rounded-lg.p-1 button:active { transform: scale(0.96); transition-duration: 100ms; }
 .rounded-xl.p-1 .bg-slate-700,
 .rounded-lg.p-1 .bg-slate-700 {
-  background: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.12)) !important;
+  background: var(--lg-pill-fill) !important;
   border: 0 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.45),
-    inset 0 0 0 1px rgba(255,255,255,0.14),
-    0 4px 14px rgba(0,0,0,0.45) !important;
+  box-shadow: var(--lg-pill-shadow) !important;
   color: var(--lg-text) !important;
 }
-/* Gewählt in Farbe: getöntes Glas statt Neonfläche, Schrift hell in der Farbe */
+/* In einer Leiste gewählt, in Farbe: getöntes Glas, Schrift hell in der Farbe */
 .rounded-xl.p-1 .bg-sky-500,
-.rounded-lg.p-1 .bg-sky-500,
-button.bg-sky-500:not(.btn-primary) {
-  background: linear-gradient(180deg, rgba(0,204,245,0.32), rgba(0,204,245,0.14)) !important;
+.rounded-lg.p-1 .bg-sky-500 {
+  background: var(--lg-tint-fill) !important;
   border: 0 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.38),
-    inset 0 0 0 1px rgba(120,230,255,0.30) !important;
-  color: #8eeaff !important;
+  box-shadow: var(--lg-tint-shadow) !important;
+  color: var(--lg-tint-text) !important;
+  font-weight: 700 !important;
+}
+/* Sonst ist bg-sky-500 ein Hauptknopf („Weiter", „Speichern"), ein gewählter
+   Chip oder die An-Fläche eines Schalters: volle Akzentfläche wie .btn-primary */
+button.bg-sky-500:not(.btn-primary) {
+  background: var(--lg-primary-fill) !important;
+  border: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,40,60,0.25) !important;
+  color: var(--accent-contrast) !important;
   font-weight: 700 !important;
 }
 .rounded-xl.p-1 .bg-emerald-500,
@@ -1173,18 +1198,29 @@ div.w-9.h-5.rounded-full > span.bg-white.rounded-full {
 .rounded-t-2xl {
   background: #1c1c1e !important;
   border-top: 0 !important;
-  border-top-left-radius: 28px !important;
-  border-top-right-radius: 28px !important;
   box-shadow:
     0 -20px 60px rgba(0,0,0,0.75),
     inset 0 1px 0 rgba(255,255,255,0.10) !important;
 }
 
-/* ── Sticky Modal Header ─────────────────────────────────────────────────── */
-/* backdrop-filter on sticky removed — can interfere with scroll containers */
+/* Große Rundung nur, wo es ein Sheet von unten ist; ab 640 px werden viele
+   davon zum Dialog in der Mitte (sm:rounded-2xl) */
+@media (max-width: 639px) {
+  .rounded-t-2xl {
+    border-top-left-radius: 28px !important;
+    border-top-right-radius: 28px !important;
+  }
+}
+
+/* ── Sticky Header ───────────────────────────────────────────────────────── */
+/* backdrop-filter on sticky removed — can interfere with scroll containers.
+   Auf der Seite Schwarz wie der Grund, in Sheets im Graphit des Sheets. */
 .sticky.top-0 {
-  background: #1c1c1e !important;
+  background: rgba(0,0,0,0.9) !important;
   border-bottom: 1px solid var(--border) !important;
+}
+:is(.rounded-t-2xl, [role='dialog']) .sticky.top-0 {
+  background: #1c1c1e !important;
 }
 
 /* ── Dropdown / Popover: dunkles Glas ────────────────────────────────────── */
@@ -1688,4 +1724,16 @@ main.flex-1 {
   .stack-head-btn { transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
   .stack-head-btn:active { transform: scale(0.94); }
   .stack-menu { animation: stack-menu-in 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+}
+
+/* ── iOS: Felder ab 16 px ────────────────────────────────────────────────────
+   Unter 16 px Schrift zoomt iOS beim Antippen eines Feldes die ganze Seite
+   heran. Tailwind-Klassen wie text-sm stehen später im Stylesheet und gingen
+   der .input-Regel vor — darum hier für alle Felder auf Touch-Geräten. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']):not([type='color']):not([type='file']):not([type='image']),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
 }

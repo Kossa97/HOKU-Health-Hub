@@ -24,8 +24,10 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
  * eines Lichts; je Eigenschaft gilt der zuletzt angemeldete bzw. geänderte
  * Wunsch, der sie setzt.
  */
-export function AmbientLightProvider({ children, palette = DEFAULT_PALETTE, level = 1 }: {
+export function AmbientLightProvider({ children, palette = DEFAULT_PALETTE, level = 1, off = false }: {
   children: ReactNode
+  /** Vollbild-Seiten (3D-Karte): nichts scheint durch, die Bühne entfällt */
+  off?: boolean
   /** Grundfarben je Licht; ein Wechsel blendet in 1 s über */
   palette?: Palette
   /** Helligkeit relativ zur Grundbühne (1 = wie Fortschritt) */
@@ -88,6 +90,8 @@ export function AmbientLightProvider({ children, palette = DEFAULT_PALETTE, leve
 
     // Nur Scrollen der Seite selbst zählt — nicht das Wischen durch Karten oder Sheets
     const onScroll = (e: Event) => {
+      // Seiten ohne Lesezonen: das Licht bleibt an seinem Platz, nichts zu messen
+      if (zones.current.size === 0) return
       const target = e.target
       if (target === document || (target instanceof Element && [...zones.current.values()].some(z => z.el && target.contains(z.el)))) {
         scheduleSettle()
@@ -131,30 +135,32 @@ export function AmbientLightProvider({ children, palette = DEFAULT_PALETTE, leve
 
   return (
     <AmbientContext.Provider value={scene}>
-      <div ref={stage} className="lg-ambient" aria-hidden>
-        {SLOTS.map(slot => {
-          const color = claims[slot].findLast(c => c.color != null)?.color
-          const boost = claims[slot].findLast(c => c.boost != null)?.boost ?? 0
-          const { x, y } = framing.offsets[slot]
-          const moved = x !== 0 || y !== 0
-          return (
-            <div
-              key={slot}
-              ref={el => { lights.current[slot] = el }}
-              className={`lg-light lg-light-${slot}`}
-              data-tinted={color != null}
-              data-moved={moved}
-              data-avoided={avoided === slot}
-              style={{
-                transform: moved ? `translate3d(${x}px, ${y}px, 0)` : undefined,
-                opacity: framing.dims[slot] * (avoided === slot ? AVOID_DIM : 1),
-              }}
-            >
-              <i style={{ backgroundColor: color ?? palette[slot], opacity: BASE_OPACITY * level + boost }} />
-            </div>
-          )
-        })}
-      </div>
+      {!off && (
+        <div ref={stage} className="lg-ambient" aria-hidden>
+          {SLOTS.map(slot => {
+            const color = claims[slot].findLast(c => c.color != null)?.color
+            const boost = claims[slot].findLast(c => c.boost != null)?.boost ?? 0
+            const { x, y } = framing.offsets[slot]
+            const moved = x !== 0 || y !== 0
+            return (
+              <div
+                key={slot}
+                ref={el => { lights.current[slot] = el }}
+                className={`lg-light lg-light-${slot}`}
+                data-tinted={color != null}
+                data-moved={moved}
+                data-avoided={avoided === slot}
+                style={{
+                  transform: moved ? `translate3d(${x}px, ${y}px, 0)` : undefined,
+                  opacity: framing.dims[slot] * (avoided === slot ? AVOID_DIM : 1),
+                }}
+              >
+                <i style={{ backgroundColor: color ?? palette[slot], opacity: BASE_OPACITY * level + boost }} />
+              </div>
+            )
+          })}
+        </div>
+      )}
       {children}
     </AmbientContext.Provider>
   )

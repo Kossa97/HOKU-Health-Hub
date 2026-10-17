@@ -61,14 +61,10 @@
 /* ── Materialien ─────────────────────────────────────────────────────── */
 .lg-glass {
   position: relative;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
+  background: var(--lg-glass-fill);
   -webkit-backdrop-filter: blur(26px) saturate(180%);
   backdrop-filter: blur(26px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.09),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 12px 40px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--lg-glass-shadow);
 }
 .lg-glass::before {
   content: '';
@@ -81,10 +77,10 @@
 .lg-surface {
   position: relative;
   border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.03));
+  background: var(--lg-surface-fill);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--lg-surface-shadow);
 }
 @media (prefers-reduced-transparency: reduce) {
   .lg-glass,
@@ -124,13 +120,9 @@
 .lg-btn svg { flex-shrink: 0; }
 .lg-btn[disabled] { cursor: default; }
 .lg-btn-primary {
-  color: #00141c; /* auf Cyan ≈ 11:1 */
-  background: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.6),
-    0 8px 22px rgba(0, 204, 245, 0.30);
+  color: var(--accent-contrast); /* auf Cyan ≈ 11:1 */
+  background: var(--lg-primary-fill);
+  box-shadow: var(--shadow-btn-primary);
 }
 .lg-btn-primary:active {
   filter: brightness(0.94);
@@ -151,15 +143,11 @@
 }
 /* Getöntes Glas: Cyan schimmert durch, Kante oben hell, Text hell-cyan (≈ 12:1 auf Schwarz) */
 .lg-btn-tint {
-  color: #8eeaff;
-  background: linear-gradient(180deg, rgba(0, 204, 245, 0.30) 0%, rgba(0, 204, 245, 0.12) 100%);
+  color: var(--lg-tint-text);
+  background: var(--lg-tint-fill);
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   backdrop-filter: blur(22px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    inset 0 0 0 1px rgba(120, 230, 255, 0.28),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
-    0 6px 20px rgba(0, 204, 245, 0.18);
+  box-shadow: var(--lg-tint-shadow), 0 6px 20px rgba(0, 204, 245, 0.18);
 }
 .lg-btn-tint:active {
   filter: brightness(0.92);
@@ -225,11 +213,8 @@
   bottom: 4px;
   left: 0;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 4px 14px rgba(0, 0, 0, 0.45);
+  background: var(--lg-pill-fill);
+  box-shadow: var(--lg-pill-shadow);
   pointer-events: none;
 }
 .lg-seg-pill[data-animate='true'] {

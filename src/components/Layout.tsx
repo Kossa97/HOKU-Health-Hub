@@ -89,7 +89,7 @@ export function Layout() {
 
   return (
     // Umgebungslicht hinter allen Seiten — Farbe und Stärke je Bereich
-    <AmbientLightProvider palette={ambient.palette} level={ambient.level}>
+    <AmbientLightProvider palette={ambient.palette} level={ambient.level} off={hideBottomNav}>
     <div
       className={`flex w-full flex-col overflow-x-hidden ${lockViewport ? 'overflow-y-hidden' : 'min-h-dvh'}`}
       style={{
