@@ -48,10 +48,11 @@ html[data-fs-glass] body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Umgebungslicht: eine feste Bühne hinter der Seite. Drei weiche Lichter an
-   festen Stellen des Bildschirms; die Karten gleiten beim Scrollen darüber.
-   Interaktionen ändern nur Farbe und Helligkeit (1 s), nie die Lage.
-   Weich durch eine feste Radial-Maske statt filter: blur. */
+/* Umgebungslicht: eine feste Bühne hinter der Seite. Drei weiche Lichter;
+   die Karten gleiten beim Scrollen darüber, die Lichter stehen dabei still.
+   Ruht das Scrollen, richten sie sich langsam um die gelesene Karte herum ein
+   (höchstens ein Viertel der Breite). Interaktionen ändern Farbe und
+   Helligkeit. Weich durch eine feste Radial-Maske statt filter: blur. */
 .fg-ambient {
   position: fixed;
   /* Feste Höhe: klappt die Adressleiste ein, springen die Lichter nicht */
@@ -67,6 +68,12 @@ html[data-fs-glass] body {
   position: absolute;
   width: min(125vw, 620px);
   aspect-ratio: 1;
+  /* Um die gelesene Karte herum: langsam, ohne Nachschwingen. Zurücktreten beim Ablesen: zügiger */
+  transition: transform 1200ms var(--fg-ease-drawer), opacity 400ms ease;
+}
+.fg-light > i {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
   /* Weich bis zum Rand: (1 - r²)³ läuft flach auf null aus — keine Kante, kein Ring */
   -webkit-mask-image: var(--fg-light-falloff);
@@ -81,8 +88,10 @@ html[data-fs-glass] body {
   .fg-light-middle { right: calc(50% - 600px); }
   .fg-light-bottom { left: calc(50% - 600px); }
 }
+/* Bewegung reduzieren: die Lichter bleiben stehen, nur die Helligkeit ändert sich */
 @media (prefers-reduced-motion: reduce) {
-  .fg-light { transition-duration: 200ms; }
+  .fg-light { transform: none !important; transition: opacity 200ms ease; }
+  .fg-light > i { transition-duration: 200ms; }
 }
 
 /* ── Materialien ─────────────────────────────────────────────────────── */

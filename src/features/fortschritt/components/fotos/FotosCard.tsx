@@ -6,6 +6,7 @@ import { filterByDateRange } from '../../lib/range'
 import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import { FotosTab } from './FotosTab'
 import { useSheetPresence } from '../../hooks/useSheetPresence'
+import { useReadingZone } from '../../ambient/context'
 
 /** Womit die Galerie aufgeht: alle Fotos, ein bestimmtes Foto groß oder gleich das Hinzufügen. */
 type SheetTarget = { kind: 'all' } | { kind: 'photo'; id: string } | { kind: 'add' }
@@ -41,10 +42,13 @@ export function FotosCard({ photos, range, onChange }: Props) {
 
   const [split, setSplit] = useState(0.5)
   const [dragging, setDragging] = useState(false)
+  // Mit Fotos werden die Lichter nur leiser, damit Hautfarben echt bleiben
+  const sectionRef = useRef<HTMLElement>(null)
+  useReadingZone(sectionRef, before ? 'photo' : 'read')
 
   return (
     <>
-      <section className="fg-card fg-surface" aria-labelledby="fg-photos-title">
+      <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-photos-title">
         <div className="fg-card-head" style={{ alignItems: 'center' }}>
           <div>
             <h3 id="fg-photos-title" className="fg-h3">

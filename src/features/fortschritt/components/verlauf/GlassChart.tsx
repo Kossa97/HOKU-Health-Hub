@@ -20,6 +20,9 @@ export interface ScrubState {
   /** Name der Substanz, deren Start der Finger gerade getroffen hat */
   startOf: string | null
   date: string
+  /** Ablese-Punkt in Bildschirm-Koordinaten (Linie, Mitte des Graphen) — das Licht dahinter tritt zurück */
+  clientX: number
+  clientY: number
 }
 
 interface Props {
@@ -111,8 +114,9 @@ export function GlassChart({ points, range, color, bands, newBandSubstance, aria
       if (Math.abs(pts[i].t - t) < Math.abs(pts[best].t - t)) best = i
     }
     // Linie am Start, Punkt bleibt auf der Kurve beim tatsächlichen Messwert
-    setCursor({ x: startOf ? x(t) : x(pts[best].t), dotX: x(pts[best].t), y: y(pts[best].value) })
-    onScrub({ index: best, startOf, date: startOf ? startIso : pts[best].date })
+    const lineX = startOf ? x(t) : x(pts[best].t)
+    setCursor({ x: lineX, dotX: x(pts[best].t), y: y(pts[best].value) })
+    onScrub({ index: best, startOf, date: startOf ? startIso : pts[best].date, clientX: rect.left + (lineX / W) * rect.width, clientY: rect.top + rect.height / 2 })
   }
 
   const end = () => {

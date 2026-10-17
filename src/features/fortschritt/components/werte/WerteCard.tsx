@@ -5,7 +5,7 @@ import type { DailyLogEntry, DateRange } from '../../types'
 import { buildValueOverview, type ValueOverviewKey, type ValueOverviewRow } from '../../lib/valueOverview'
 import { formatDaySafe, formatNumber } from '../../lib/dates'
 import { metricLabel } from '../../lib/metricLabels'
-import { useAmbientTint } from '../../ambient/context'
+import { useAmbientTint, useReadingZone } from '../../ambient/context'
 
 interface Props {
   dailyLogs: DailyLogEntry[]
@@ -57,9 +57,11 @@ export function WerteCard({ dailyLogs, range }: Props) {
 
   // Hintergrund: ein geöffneter Ring färbt das untere Licht in seiner Farbe
   useAmbientTint('bottom', open ? { color: RING_COLORS[open].b, boost: 0.03 } : null)
+  const sectionRef = useRef<HTMLElement>(null)
+  useReadingZone(sectionRef)
 
   return (
-    <section className="fg-card fg-surface" aria-labelledby="fg-values-title">
+    <section ref={sectionRef} className="fg-card fg-surface" aria-labelledby="fg-values-title">
       <div className="fg-card-head">
         <h3 id="fg-values-title" className="fg-h3">{t('fortschritt_values_title')}</h3>
         <span className="fg-meta">{t('fortschritt_values_sub')} · {t('fortschritt_values_scale')}</span>

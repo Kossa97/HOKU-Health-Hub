@@ -14,6 +14,7 @@ import { EmptyOverview, NoSubstancesBanner } from './overview/EmptyOverview'
 import { VerlaufSection } from './verlauf/VerlaufSection'
 import { FotosCard } from './fotos/FotosCard'
 import { WerteCard } from './werte/WerteCard'
+import { useReadingZone } from '../ambient/context'
 
 interface Props {
   state: FortschrittOverviewState
@@ -25,6 +26,8 @@ interface Props {
 export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }: Props) {
   const [chartNav, setChartNav] = useState<ChartNavigation | null>(null)
   const heroRef = useRef<HTMLElement>(null)
+  // Der Graph ist die wichtigste Lesefläche: das Licht legt sich um ihn herum
+  useReadingZone(heroRef)
 
   const pageRange = useMemo(
     () => rangeFromChip(rangeChip, state.fullRange),
