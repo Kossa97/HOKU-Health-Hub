@@ -12,6 +12,8 @@ import { usePushNotifications } from '../lib/usePushNotifications'
 import { PushNotificationListener } from './PushNotificationListener'
 import { BottomNavigation } from './navigation/BottomNavigation'
 import { routeLayoutMode } from './layoutMode'
+import { AmbientLightProvider } from './ambient/AmbientLight'
+import { ambientForPath } from './ambient/palettes'
 
 const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
@@ -83,8 +85,11 @@ export function Layout() {
   }
 
   const { lockViewport, hideBottomNav, hideFloatingFaq } = routeLayoutMode(pathname)
+  const ambient = ambientForPath(pathname)
 
   return (
+    // Umgebungslicht hinter allen Seiten — Farbe und Stärke je Bereich
+    <AmbientLightProvider palette={ambient.palette} level={ambient.level}>
     <div
       className={`flex w-full flex-col overflow-x-hidden ${lockViewport ? 'overflow-y-hidden' : 'min-h-dvh'}`}
       style={{
@@ -275,6 +280,7 @@ export function Layout() {
         />
       )}
     </div>
+    </AmbientLightProvider>
   )
 }
 

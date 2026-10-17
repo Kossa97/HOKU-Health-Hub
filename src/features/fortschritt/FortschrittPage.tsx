@@ -11,7 +11,6 @@ import { hasLogForDate } from './lib/metricDefaults'
 import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verlaufRange'
 import { formatDaySafe } from './lib/dates'
 import './glass.css'
-import { AmbientLightProvider } from './ambient/AmbientLight'
 
 export function FortschrittPage() {
   const { t } = useTranslation()
@@ -40,7 +39,6 @@ export function FortschrittPage() {
 
   return (
     <div className="fg-root">
-      <AmbientLightProvider>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <StickyRangeBar
         value={rangeChip}
@@ -68,7 +66,6 @@ export function FortschrittPage() {
       )}
 
       </div>
-      </AmbientLightProvider>
 
       <TodayLogSheet
         logs={state.dailyLogs}

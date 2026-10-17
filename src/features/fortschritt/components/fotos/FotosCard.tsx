@@ -6,7 +6,7 @@ import { filterByDateRange } from '../../lib/range'
 import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
 import { FotosTab } from './FotosTab'
 import { useSheetPresence } from '../../hooks/useSheetPresence'
-import { useReadingZone } from '../../ambient/context'
+import { useReadingZone } from '../../../../components/ambient/context'
 
 /** Womit die Galerie aufgeht: alle Fotos, ein bestimmtes Foto groß oder gleich das Hinzufügen. */
 type SheetTarget = { kind: 'all' } | { kind: 'photo'; id: string } | { kind: 'add' }

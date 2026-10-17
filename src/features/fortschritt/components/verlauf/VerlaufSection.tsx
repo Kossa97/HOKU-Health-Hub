@@ -11,7 +11,7 @@ import { todayIso } from '../../lib/substances'
 import { GlassSegmented } from '../../../../components/ui/GlassSegmented'
 import { GlassChart, type ChartBand, type ScrubState } from './GlassChart'
 import { CycleChips } from './CycleChips'
-import { useAmbientAvoid, useAmbientTint } from '../../ambient/context'
+import { useAmbientAvoid, useAmbientTint } from '../../../../components/ambient/context'
 import { substancesInRange } from '../../lib/cycleSubstances'
 
 interface Props {

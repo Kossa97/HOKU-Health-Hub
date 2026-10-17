@@ -5,7 +5,7 @@ import type { DailyLogEntry, DateRange } from '../../types'
 import { buildValueOverview, type ValueOverviewKey, type ValueOverviewRow } from '../../lib/valueOverview'
 import { formatDaySafe, formatNumber } from '../../lib/dates'
 import { metricLabel } from '../../lib/metricLabels'
-import { useAmbientTint, useReadingZone } from '../../ambient/context'
+import { useAmbientTint, useReadingZone } from '../../../../components/ambient/context'
 
 interface Props {
   dailyLogs: DailyLogEntry[]

@@ -5,7 +5,7 @@ import type { SeriesPoint } from '../../lib/metrics'
 import { metricLabel } from '../../lib/metricLabels'
 import { formatNumber, formatSignedNumber } from '../../lib/dates'
 import { isWellnessMetricKey } from '../../constants'
-import { useReadingZone } from '../../ambient/context'
+import { useReadingZone } from '../../../../components/ambient/context'
 
 interface Props {
   changes: MetricChange[]

@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AmbientContext, type AmbientScene, type LightSlot, type Tint } from './context'
 import { AVOID_DIM, SLOTS, frameLights, nearestLight, pickFocus, rest, type Framing, type Point, type Zone, type ZoneKind } from './framing'
+import { DEFAULT_PALETTE, type Palette } from './palettes'
 
-/** Grundfarben der Bühne — ruhig und leise, damit die Glas-Karten tragen. */
-const BASE: Record<LightSlot, string> = {
-  top: '#00ccf5',
-  middle: '#8b7cf0',
-  bottom: '#30d158',
-}
+/** Grundhelligkeit der Bühne — ruhig und leise, damit die Glas-Karten tragen. */
 const BASE_OPACITY = 0.18
 /** So lange muss das Scrollen ruhen, bevor sich das Licht neu einrichtet */
 const SETTLE_MS = 160
@@ -28,7 +24,13 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
  * eines Lichts; je Eigenschaft gilt der zuletzt angemeldete bzw. geänderte
  * Wunsch, der sie setzt.
  */
-export function AmbientLightProvider({ children }: { children: ReactNode }) {
+export function AmbientLightProvider({ children, palette = DEFAULT_PALETTE, level = 1 }: {
+  children: ReactNode
+  /** Grundfarben je Licht; ein Wechsel blendet in 1 s über */
+  palette?: Palette
+  /** Helligkeit relativ zur Grundbühne (1 = wie Fortschritt) */
+  level?: number
+}) {
   const [claims, setClaims] = useState<Record<LightSlot, Claim[]>>({ top: [], middle: [], bottom: [] })
   const [framing, setFraming] = useState<Framing>(rest)
   const [avoided, setAvoided] = useState<LightSlot | null>(null)
@@ -148,7 +150,7 @@ export function AmbientLightProvider({ children }: { children: ReactNode }) {
                 opacity: framing.dims[slot] * (avoided === slot ? AVOID_DIM : 1),
               }}
             >
-              <i style={{ backgroundColor: color ?? BASE[slot], opacity: BASE_OPACITY + boost }} />
+              <i style={{ backgroundColor: color ?? palette[slot], opacity: BASE_OPACITY * level + boost }} />
             </div>
           )
         })}

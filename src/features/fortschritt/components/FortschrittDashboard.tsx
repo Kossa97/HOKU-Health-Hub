@@ -14,7 +14,7 @@ import { EmptyOverview, NoSubstancesBanner } from './overview/EmptyOverview'
 import { VerlaufSection } from './verlauf/VerlaufSection'
 import { FotosCard } from './fotos/FotosCard'
 import { WerteCard } from './werte/WerteCard'
-import { useReadingZone } from '../ambient/context'
+import { useReadingZone } from '../../../components/ambient/context'
 
 interface Props {
   state: FortschrittOverviewState
