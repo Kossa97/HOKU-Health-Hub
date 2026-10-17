@@ -137,12 +137,13 @@ export function Layout() {
             ? 0
             : lockViewport
               ? 'var(--bottom-nav-height)'
-              // Platz fuer den schwebenden FAQ-Knopf (38 px + Abstand): sonst
-              // liegt die letzte Zeile einer Seite dauerhaft unter ihm, und ein
-              // Knopf rechts darin (etwa Loeschen) laesst sich nicht antippen.
+              // Platz fuer den schwebenden FAQ-Knopf (44 px + 10 px Abstand):
+              // sonst liegt die letzte Zeile einer Seite dauerhaft unter ihm,
+              // und ein Knopf rechts darin (etwa Loeschen) laesst sich nicht
+              // antippen.
               : hideFloatingFaq
                 ? 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))'
-                : 'calc(var(--bottom-nav-height) + 48px + env(safe-area-inset-bottom))',
+                : 'calc(var(--bottom-nav-height) + 56px + env(safe-area-inset-bottom))',
           paddingTop: hideBottomNav ? 0 : (showPushBanner || showIOSBanner)
             ? 'calc(1rem + 72px + env(safe-area-inset-top))'
             : undefined,
@@ -159,26 +160,25 @@ export function Layout() {
       {!hideFloatingFaq && (
       <NavLink
         to="/faq"
+        aria-label="FAQ"
+        className="lg-glass lg-press"
         style={{
           position: 'fixed',
-          bottom: `calc(var(--bottom-nav-height) + 4px + env(safe-area-inset-bottom))`,
-          right: 16,
+          // 10 px über dem Plus-Knopf, an derselben rechten Kante wie die
+          // Andockfläche (die ab 512 px Breite mittig auf 480 px steht)
+          bottom: `calc(var(--bottom-nav-height) + 10px + env(safe-area-inset-bottom))`,
+          right: 'max(16px, env(safe-area-inset-right), calc((100vw - 480px) / 2))',
           zIndex: 39,
-          width: 38,
-          height: 38,
+          width: 44,
+          height: 44,
           borderRadius: '50%',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          backdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
-          transition: 'all 0.2s',
-          color: pathname === '/faq' ? 'var(--accent)' : 'var(--text-muted)',
+          color: pathname === '/faq' ? 'var(--accent)' : 'var(--lg-text-2)',
         }}
       >
-        <HelpCircle size={17} />
+        <HelpCircle size={18} style={{ position: 'relative', zIndex: 1 }} />
       </NavLink>
       )}
 
@@ -187,24 +187,19 @@ export function Layout() {
         <>
           <div
             onClick={() => setShowQuickActions(false)}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 45,
-              background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(5px)',
-              WebkitBackdropFilter: 'blur(5px)',
-            }}
+            style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'rgba(0,0,0,0.45)' }}
           />
-          <div style={{
+          {/* Glas-Menü, das aus dem Plus-Knopf unten rechts herauswächst */}
+          <div className="lg-glass lg-menu" style={{
             position: 'fixed',
             bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 10px)',
-            left: 10, right: 10,
+            left: 'max(16px, env(safe-area-inset-left))',
+            right: 'max(16px, env(safe-area-inset-right))',
+            maxWidth: 480,
+            marginInline: 'auto',
             zIndex: 46,
-            borderRadius: 22,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 -6px 48px rgba(0,0,0,0.65)',
+            borderRadius: 28,
             overflow: 'hidden',
-            animation: 'tydSlideUp 0.22s cubic-bezier(0.22,1,0.36,1)',
           }}
             data-app-modal
             role="dialog"
@@ -220,24 +215,18 @@ export function Layout() {
               <button
                 key={action.path + action.label}
                 onClick={() => handleQuickNav(action.path)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                  padding: '13px 18px', textAlign: 'left', cursor: 'pointer',
-                  borderBottom: i < QUICK_ACTIONS.length - 1
-                    ? '1px solid var(--border)' : 'none',
-                  transition: 'background 0.14s',
-                }}
+                className="lg-menu-row"
+                data-last={i === QUICK_ACTIONS.length - 1}
               >
                 <div style={{
-                  width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-                  background: `${action.color}18`,
-                  border: `1px solid ${action.color}28`,
+                  width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                  background: action.color,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: action.color,
+                  color: '#fff',
                 }}>
-                  <action.icon size={18} />
+                  <action.icon size={17} strokeWidth={2.2} />
                 </div>
-                <span style={{ fontSize: '0.92rem', fontWeight: 650, color: 'var(--text)' }}>
+                <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)' }}>
                   {action.label}
                 </span>
               </button>
@@ -249,16 +238,10 @@ export function Layout() {
                 <button
                   key={tile.path + tile.label}
                   onClick={() => handleQuickNav(tile.path)}
-                  style={{
-                    padding: '15px 10px', borderRadius: 14, cursor: 'pointer',
-                    background: `${tile.color}12`,
-                    border: `1px solid ${tile.color}24`,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
-                    transition: 'background 0.14s',
-                  }}
+                  className="lg-menu-tile"
                 >
                   <tile.icon size={20} color={tile.color} />
-                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                     {tile.label}
                   </span>
                 </button>

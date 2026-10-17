@@ -50,6 +50,8 @@ describe('Maße der Bottom-Navigation', () => {
     // verdecken — ein Dialog ist kein Ladezustand.
     const loader = readFileSync(new URL('../LabLoader.tsx', import.meta.url), 'utf8')
 
+    // Die feste Hülle trägt die Stapelordnung; die Kapsel darin ebenfalls.
+    expect(css()).toMatch(/\.tyd-tabdock\s*\{[^}]*z-index:\s*41;/)
     expect(css()).toMatch(/\.tyd-tabbar\s*\{[\s\S]*?z-index:\s*41;/)
     const klassen = loader.match(/className=\{`fixed[^`]*`/)![0]
     expect(klassen).toContain('z-40')

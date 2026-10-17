@@ -177,6 +177,7 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
               ariaLabel={t('fortschritt_metric_switch_aria')}
               options={options}
               value={metric.key}
+              material="fill"
               onChange={key => { setScrub(null); setMetricKey(key) }}
             />
           </div>

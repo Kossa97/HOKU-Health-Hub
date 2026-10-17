@@ -15,6 +15,8 @@ interface Props<K extends string> {
   ariaLabel: string
   /** Gleich breite Segmente (Zeitraum) statt nach Textlänge (Messwerte). */
   equal?: boolean
+  /** Glas für schwebende Leisten (Standard), Füllung für Umschalter im Inhalt */
+  material?: 'glass' | 'fill'
   className?: string
 }
 
@@ -23,7 +25,7 @@ interface Props<K extends string> {
  * Segment und gleitet per transform dorthin (iOS-Drawer-Kurve); beim ersten
  * Zeichnen springt sie ohne Animation an ihren Platz.
  */
-export function GlassSegmented<K extends string>({ options, value, onChange, ariaLabel, equal = false, className = '' }: Props<K>) {
+export function GlassSegmented<K extends string>({ options, value, onChange, ariaLabel, equal = false, material = 'glass', className = '' }: Props<K>) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null)
   const [animate, setAnimate] = useState(false)
@@ -62,7 +64,7 @@ export function GlassSegmented<K extends string>({ options, value, onChange, ari
       role="group"
       aria-label={ariaLabel}
       data-equal={equal}
-      className={`lg-seg lg-glass ${className}`}
+      className={`lg-seg ${material === 'glass' ? 'lg-glass' : 'lg-seg-fill'} ${className}`}
     >
       {pill && (
         <span

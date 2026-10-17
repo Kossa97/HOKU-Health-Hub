@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    LIQUID GLASS — gemeinsame Bausteine der ganzen App (lg-*)
 
-   Schwarzer Grund, farbiges Umgebungslicht dahinter (lg-ambient). Glas
-   (.lg-glass) nur für das, was schwebt oder bedient wird; Inhalt liegt auf
-   ruhigeren, leicht durchscheinenden Flächen (.lg-surface). Werte (Farben,
-   Kurven, Schriften) stehen als --lg-* in index.css.
+   Schwarzer Grund, farbiges Umgebungslicht dahinter (lg-ambient). Klares
+   Glas (.lg-glass) nur für die schwebende Bedien-Ebene; Inhalt liegt auf
+   festem Graphit (.lg-surface). Werte (Farben, Kurven, Schriften) stehen als
+   --lg-* in index.css.
 
    Bewegung: Drücken antwortet in 100 ms, Loslassen ist nach 300 ms fertig,
    nur transform und opacity. Ohne Licht (prefers-reduced-transparency) werden
@@ -58,44 +58,72 @@
   .lg-light > i { transition-duration: 200ms; }
 }
 
-/* ── Materialien ─────────────────────────────────────────────────────── */
-.lg-glass {
+/* ── Materialien ───────────────────────────────────────────────────────
+   Zwei Ebenen wie bei Apple:
+   1. Bedien-Ebene (.lg-glass): klares Glas — wenig Unschärfe, viel Sättigung,
+      eine Lichtkante, die oben links und unten rechts aufleuchtet (so liest
+      sich der Rand als gebogenes Glas), dazu ein Glanz von oben. Nur für
+      Leisten, Knöpfe, Umschalter, Menüs — was über dem Inhalt schwebt.
+   2. Inhalt (.lg-surface, .card): ruhiges, festes Graphit (#1c1c1e), ohne Glas.
+   Kante und Glanz liegen als ::before/::after auf jedem Glas-Baustein. */
+:is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger) {
   position: relative;
+  isolation: isolate;
+}
+/* Unschärfe nur, wo das Glas wirklich durchscheint — die fast deckende
+   Cyan-Füllung bräuchte sie nicht und kostete nur eine Ebene mehr. */
+:is(.lg-glass, .lg-btn-danger, .btn-secondary, .btn-danger) {
+  -webkit-backdrop-filter: var(--lg-glass-filter);
+  backdrop-filter: var(--lg-glass-filter);
+}
+.lg-glass {
   background: var(--lg-glass-fill);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
-  backdrop-filter: blur(26px) saturate(180%);
   box-shadow: var(--lg-glass-shadow);
 }
-.lg-glass::before {
+/* Kante und Glanz liegen UNTER dem Inhalt (z-index −1 in der eigenen
+   Stapelebene, die isolation öffnet) — nie als Schleier über der Schrift. */
+:is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::before {
   content: '';
   position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: var(--lg-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+:is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(120% 70% at 18% 0%, rgba(255, 255, 255, 0.16), transparent 55%);
+  background: var(--lg-sheen);
 }
 .lg-surface {
   position: relative;
-  border-radius: 28px;
+  border-radius: var(--r-xl);
   background: var(--lg-surface-fill);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: var(--lg-surface-shadow);
 }
-@media (prefers-reduced-transparency: reduce) {
-  .lg-glass,
-  .lg-surface {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: #1c1c1f;
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::before {
+    padding: 0;
+    background: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   }
-  .lg-glass::before { display: none; }
 }
 
 /* ── Knöpfe ──────────────────────────────────────────────────────────────
    48 px hoch, Rundung = halbe Höhe, 17 px halbfett, Icon 10 px vom Text.
-   Licht von oben: heller Rand oben, Schatten fällt nach unten. */
+   Prominent: getöntes Glas in Cyan, Schrift dunkel (≈ 11:1). Glas: klares
+   Glas, Schrift hell. Gefahr: rot getöntes Glas. */
 .lg-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -111,28 +139,27 @@
   touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
-  transition: transform 300ms var(--lg-ease-out), box-shadow 300ms var(--lg-ease-out), filter 300ms var(--lg-ease-out);
+  transition: transform 300ms var(--lg-ease-out), filter 300ms var(--lg-ease-out);
 }
 .lg-btn:active {
-  transform: translateY(1px) scale(0.97);
+  transform: scale(0.96);
   transition-duration: 100ms;
 }
 .lg-btn svg { flex-shrink: 0; }
 .lg-btn[disabled] { cursor: default; }
-.lg-btn-primary {
-  color: var(--accent-contrast); /* auf Cyan ≈ 11:1 */
+.lg-btn-primary,
+.lg-btn-tint {
+  color: var(--accent-contrast);
   background: var(--lg-primary-fill);
   box-shadow: var(--shadow-btn-primary);
 }
-.lg-btn-primary:active {
-  filter: brightness(0.94);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -1px 0 rgba(0, 40, 60, 0.25),
-    0 1px 1px rgba(0, 0, 0, 0.6),
-    0 3px 10px rgba(0, 204, 245, 0.22);
-}
 .lg-btn-glass { color: var(--lg-text); }
+.lg-btn-danger {
+  color: #ffb4ae;
+  background: var(--lg-danger-fill);
+  box-shadow: var(--lg-glass-shadow);
+}
+:is(.lg-btn-primary, .lg-btn-tint, .lg-btn-danger):active { filter: brightness(0.92); }
 /* Kompakt für Titelzeilen: 44 px (Apple-Mindestmaß), Icon 8 px vom Text */
 .lg-btn-compact {
   gap: 8px;
@@ -141,34 +168,15 @@
   border-radius: 22px;
   font-size: 15px;
 }
-/* Getöntes Glas: Cyan schimmert durch, Kante oben hell, Text hell-cyan (≈ 12:1 auf Schwarz) */
-.lg-btn-tint {
-  color: var(--lg-tint-text);
-  background: var(--lg-tint-fill);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
-  box-shadow: var(--lg-tint-shadow), 0 6px 20px rgba(0, 204, 245, 0.18);
-}
-.lg-btn-tint:active {
-  filter: brightness(0.92);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 0 0 1px rgba(120, 230, 255, 0.24),
-    0 2px 8px rgba(0, 204, 245, 0.14);
-}
 /* Noch nichts eingetragen: drei ruhige Atemzüge, dann still */
 @keyframes lg-breathe-tint {
-  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.38), inset 0 0 0 1px rgba(120,230,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2), 0 6px 20px rgba(0,204,245,0.18); }
-  50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.38), inset 0 0 0 1px rgba(120,230,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2), 0 6px 28px rgba(0,204,245,0.4); }
+  0%, 100% { box-shadow: var(--shadow-btn-primary); }
+  50% { box-shadow: inset 0 0 14px rgba(255,255,255,0.10), 0 10px 26px rgba(0,0,0,0.4), 0 6px 30px rgba(0,204,245,0.5); }
 }
 .lg-btn-tint[data-invite='true'] { animation: lg-breathe-tint 2400ms ease-in-out 600ms 3; }
 @media (hover: hover) and (pointer: fine) {
-  .lg-btn-primary:hover { filter: brightness(1.06); }
-  .lg-btn-glass:hover { filter: brightness(1.15); }
-  .lg-btn-tint:hover { filter: brightness(1.12); }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .lg-btn-tint { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0b3a47; }
+  :is(.lg-btn-primary, .lg-btn-tint):hover { filter: brightness(1.06); }
+  :is(.lg-btn-glass, .lg-btn-danger):hover { filter: brightness(1.15); }
 }
 
 .lg-icon-btn {
@@ -252,6 +260,17 @@
 }
 .lg-seg-scroll::-webkit-scrollbar { display: none; }
 .lg-seg-scroll .lg-seg { display: inline-flex; min-width: 100%; vertical-align: top; }
+/* Im Inhalt kein Glas: iOS-Segment — eingelassene Füllung, die Wahl als
+   fester grauer Stein (wie UISegmentedControl im Dunkeln) */
+.lg-seg-fill { padding: 2px; background: var(--lg-fill); }
+.lg-seg-fill .lg-seg-pill {
+  top: 2px;
+  bottom: 2px;
+  background: var(--lg-fill-selected);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+.lg-seg-fill > button { min-height: 32px; }
+.lg-seg-fill > button::after { inset: -6px 0; }
 
 /* ── Chips (an/aus, mit Farbpunkt --cc) ─────────────────────────────── */
 .lg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -266,8 +285,7 @@
   border: 0;
   border-radius: 999px;
   color: var(--lg-text-2);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: var(--lg-fill);
   font: 650 0.82rem var(--lg-ui);
   cursor: pointer;
   touch-action: manipulation;
@@ -342,4 +360,67 @@
   .lg-btn-tint[data-invite='true'],
   .lg-pop { animation: none; }
   .lg-spinner { animation-duration: 1400ms; }
+}
+
+/* ── Glas-Menü (Schnellzugriff) ─────────────────────────────────────────
+   Dichter als die Leisten, weil darunter Inhalt liegt; wächst aus dem
+   Plus-Knopf unten rechts heraus (Ursprung dort, nicht in der Mitte). */
+.lg-menu {
+  background: rgba(36, 36, 40, 0.74);
+  transform-origin: bottom right;
+  animation: lg-menu-in 260ms var(--lg-ease-out);
+}
+@keyframes lg-menu-in {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.lg-menu-row {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 18px;
+  border: 0;
+  /* Trennlinie wie in iOS: unter dem Text, nicht unter dem Symbol */
+  background: linear-gradient(var(--lg-separator), var(--lg-separator)) no-repeat 62px 100% / calc(100% - 62px) 0.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.lg-menu-row[data-last='true'] { background-image: none; }
+.lg-menu-row:active { background-color: rgba(255, 255, 255, 0.08); }
+.lg-menu-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 10px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--lg-fill);
+  cursor: pointer;
+  transition: transform 300ms var(--lg-ease-out), background-color 150ms ease;
+}
+.lg-menu-tile:active { transform: scale(0.96); transition-duration: 100ms; }
+/* Drückbare Glas-Elemente ohne eigene Knopf-Klasse (FAQ-Knopf) */
+.lg-press { transition: transform 300ms var(--lg-ease-out); }
+.lg-press:active { transform: scale(0.92); transition-duration: 100ms; }
+@media (prefers-reduced-motion: reduce) {
+  .lg-menu { animation: lg-fade-in 150ms ease; }
+  .lg-menu-tile:active, .lg-press:active { transform: none; }
+}
+
+/* ── Transparenz reduzieren: alles Glas wird fest ─────────────────────────
+   Steht am Ende, damit es jede Füllung oben schlägt. Schrift bleibt lesbar:
+   hell auf Graphit, dunkel auf vollem Cyan, hellrot auf dunklem Rot. */
+@media (prefers-reduced-transparency: reduce) {
+  :is(.lg-glass, .lg-menu, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :is(.lg-glass, .lg-menu, .btn-secondary) { background: #2c2c2e; }
+  :is(.lg-btn-primary, .lg-btn-tint, .btn-primary) { background: #00b4e0; }
+  :is(.lg-btn-danger, .btn-danger) { background: #4a1714; }
+  :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger)::after { display: none; }
 }

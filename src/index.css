@@ -579,7 +579,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --r-sm:   12px;
   --r-md:   14px;
   --r-lg:   20px;
-  --r-xl:   24px;
+  --r-xl:   26px;
 
   /* Reaktion sofort, Auslaufen weich (ease-out) — nie ease-in auf Bedienung */
   --t-fast: 0.14s cubic-bezier(0.23,1,0.32,1);
@@ -600,39 +600,28 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-bad:    #ff453a;
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
-  /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*) */
-  --lg-primary-fill: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
-  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.04) 100%);
-  --lg-glass-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.28),
-    inset 0 0 0 1px rgba(255,255,255,0.09),
-    inset 0 -1px 0 rgba(255,255,255,0.04),
-    0 12px 40px rgba(0,0,0,0.55);
-  --lg-surface-fill: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
-  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
-  /* gewählter Eintrag in einer Leiste: heller Glas-Stein */
-  --lg-pill-fill: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.12));
-  --lg-pill-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.45),
-    inset 0 0 0 1px rgba(255,255,255,0.14),
-    0 4px 14px rgba(0,0,0,0.45);
-  /* getöntes Glas in Akzentfarbe, Schrift hell-cyan (≈ 12:1 auf Schwarz) */
-  --lg-tint-fill: linear-gradient(180deg, rgba(0,204,245,0.30) 0%, rgba(0,204,245,0.12) 100%);
-  --lg-tint-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.38),
-    inset 0 0 0 1px rgba(120,230,255,0.28),
-    inset 0 -1px 0 rgba(0,0,0,0.2);
-  --lg-tint-text: #8eeaff;
+  /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*).
+     Klares Glas für die Bedien-Ebene: wenig Unschärfe, viel Sättigung, Kante
+     aus Licht (--lg-rim) und Glanz von oben (--lg-sheen). Inhalt: festes Graphit. */
+  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  --lg-glass-filter: blur(14px) saturate(190%) brightness(1.08);
+  --lg-glass-shadow: inset 0 0 14px rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.45);
+  --lg-rim: linear-gradient(140deg, rgba(255,255,255,0.62), rgba(255,255,255,0.10) 34%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.34));
+  --lg-sheen: radial-gradient(90% 70% at 28% -10%, rgba(255,255,255,0.20), transparent 62%);
+  /* Prominent: Glas, in Cyan getönt; Schrift dunkel (≈ 11:1) */
+  --lg-primary-fill: linear-gradient(180deg, rgba(79,226,255,0.92), rgba(0,178,226,0.86));
+  --lg-danger-fill: linear-gradient(180deg, rgba(255,69,58,0.42), rgba(255,69,58,0.22));
+  /* Inhalt und Füllungen wie bei iOS im Dunkeln */
+  --lg-surface-fill: #1c1c1e;
+  --lg-fill: rgba(118,118,128,0.24);
+  --lg-fill-selected: #636366;
+  --lg-separator: rgba(84,84,88,0.65);
+  /* gewählter Eintrag in einer Glas-Leiste: heller Glas-Stein */
+  --lg-pill-fill: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(255,255,255,0.10));
+  --lg-pill-shadow: inset 0 0.5px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.3);
 
-  --shadow-card:
-    0 12px 40px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.10),
-    inset 0 0 0 1px rgba(255,255,255,0.05);
-  --shadow-btn-primary:
-    inset 0 1px 0 rgba(255,255,255,0.6),
-    inset 0 -1px 0 rgba(0,40,60,0.25),
-    0 1px 2px rgba(0,0,0,0.6),
-    0 8px 22px rgba(0,204,245,0.30);
+  --shadow-card: none;
+  --shadow-btn-primary: inset 0 0 14px rgba(255,255,255,0.08), 0 10px 26px rgba(0,0,0,0.4), 0 6px 18px rgba(0,204,245,0.22);
   --shadow-input:
     inset 0 1px 2px rgba(0,0,0,0.45),
     inset 0 0 0 1px rgba(255,255,255,0.06);
@@ -877,8 +866,8 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
 @layer components {
 
   /* ── Card ──────────────────────────────────────────────────────────────
-     Liquid Glass: leicht durchscheinende Fläche über Schwarz und Licht,
-     Haarlinie innen statt Rahmen, Licht fällt von oben (obere Kante heller). */
+     Inhalt, kein Glas: ruhiges, festes Graphit wie eine gruppierte Zelle in
+     iOS. Glas bleibt der schwebenden Bedien-Ebene vorbehalten. */
   .card {
     position: relative;
     overflow: hidden;
@@ -886,12 +875,6 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     border: 1px solid transparent;
     border-radius: var(--r-xl);
     background: var(--lg-surface-fill);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    backdrop-filter: blur(18px) saturate(140%);
-    box-shadow: var(--lg-surface-shadow), 0 10px 30px rgba(0,0,0,0.35);
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .card { -webkit-backdrop-filter: none; backdrop-filter: none; background: #1c1c1f; }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -946,41 +929,30 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     filter: none;
   }
 
-  /* Primär — Cyan, Text dunkel (≈ 11:1) */
+  /* Prominent — Glas in Cyan getönt, Text dunkel (≈ 11:1); Lichtkante und
+     Glanz kommen aus liquid-glass.css */
   .btn-primary {
-    overflow: hidden;
     color: var(--accent-contrast);
     background: var(--lg-primary-fill);
     box-shadow: var(--shadow-btn-primary);
   }
-  .btn-primary:active {
-    filter: brightness(0.94);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.45),
-      inset 0 -1px 0 rgba(0,40,60,0.25),
-      0 1px 1px rgba(0,0,0,0.6),
-      0 3px 10px rgba(0,204,245,0.22);
-  }
+  .btn-primary:active,
+  .btn-danger:active { filter: brightness(0.92); }
 
-  /* Sekundär — Glas */
+  /* Sekundär — klares Glas */
   .btn-secondary {
     color: var(--lg-text);
     background: var(--lg-glass-fill);
-    -webkit-backdrop-filter: blur(26px) saturate(180%);
-    backdrop-filter: blur(26px) saturate(180%);
     box-shadow: var(--lg-glass-shadow);
   }
 
-  /* Gefahr — rot getöntes Glas, Text ≈ 6:1 auf Schwarz. Darf umbrechen:
+  /* Gefahr — rot getöntes Glas, Text hellrot. Darf umbrechen:
      sie steht oft halbbreit neben „Behalten" (Löschen bestätigen). */
   .btn-danger {
     white-space: normal;
-    color: #ff7b72;
-    background: linear-gradient(180deg, rgba(255,69,58,0.20), rgba(255,69,58,0.09));
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.14),
-      inset 0 0 0 1px rgba(255,105,97,0.28),
-      0 6px 18px rgba(0,0,0,0.30);
+    color: #ffb4ae;
+    background: var(--lg-danger-fill);
+    box-shadow: var(--lg-glass-shadow);
   }
 
   /* Hover nur mit Maus: auf Touch bliebe er nach dem Tippen hängen */
@@ -991,9 +963,6 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   }
   @media (prefers-reduced-motion: reduce) {
     .btn-primary:active, .btn-secondary:active, .btn-danger:active { transform: none; }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .btn-secondary { -webkit-backdrop-filter: none; backdrop-filter: none; background: #2c2c2e; }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -1102,10 +1071,10 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
    gewählte Schaltfläche liegt als heller Glas-Stein darin. */
 .rounded-xl.p-1,
 .rounded-lg.p-1 {
-  background: rgba(118,118,128,0.14) !important;
+  background: var(--lg-fill) !important;
   border: 0 !important;
-  border-radius: 16px !important;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
 }
 .rounded-xl.p-1 button,
 .rounded-lg.p-1 button {
@@ -1116,18 +1085,18 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
 .rounded-lg.p-1 button:active { transform: scale(0.96); transition-duration: 100ms; }
 .rounded-xl.p-1 .bg-slate-700,
 .rounded-lg.p-1 .bg-slate-700 {
-  background: var(--lg-pill-fill) !important;
+  background: var(--lg-fill-selected) !important;
   border: 0 !important;
-  box-shadow: var(--lg-pill-shadow) !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
   color: var(--lg-text) !important;
 }
-/* In einer Leiste gewählt, in Farbe: getöntes Glas, Schrift hell in der Farbe */
+/* In einer Leiste gewählt, in Farbe: volle Farbfläche, Schrift dunkel */
 .rounded-xl.p-1 .bg-sky-500,
 .rounded-lg.p-1 .bg-sky-500 {
-  background: var(--lg-tint-fill) !important;
+  background: var(--accent) !important;
   border: 0 !important;
-  box-shadow: var(--lg-tint-shadow) !important;
-  color: var(--lg-tint-text) !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
+  color: var(--accent-contrast) !important;
   font-weight: 700 !important;
 }
 /* Sonst ist bg-sky-500 ein Hauptknopf („Weiter", „Speichern"), ein gewählter
@@ -1141,36 +1110,32 @@ button.bg-sky-500:not(.btn-primary) {
 }
 .rounded-xl.p-1 .bg-emerald-500,
 .rounded-lg.p-1 .bg-emerald-500 {
-  background: linear-gradient(180deg, rgba(48,209,88,0.32), rgba(48,209,88,0.14)) !important;
+  background: #30d158 !important;
   border: 0 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.32),
-    inset 0 0 0 1px rgba(120,235,150,0.30) !important;
-  color: #8ff0a8 !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
+  color: #002a10 !important;
   font-weight: 700 !important;
 }
 .rounded-xl.p-1 .bg-amber-500,
 .rounded-lg.p-1 .bg-amber-500 {
-  background: linear-gradient(180deg, rgba(255,159,10,0.32), rgba(255,159,10,0.14)) !important;
+  background: #ff9f0a !important;
   border: 0 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.32),
-    inset 0 0 0 1px rgba(255,190,90,0.30) !important;
-  color: #ffd08a !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
+  color: #2a1600 !important;
   font-weight: 700 !important;
 }
 
 /* ── Chip / Preset Buttons (bg-slate-800 text-slate-400) ───────────────── */
 button.bg-slate-800 {
-  background: rgba(255,255,255,0.06) !important;
+  background: var(--lg-fill) !important;
   border: 0 !important;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08) !important;
+  box-shadow: none !important;
   transition: background-color 200ms ease, color 200ms ease, transform 300ms var(--lg-ease-out);
 }
 button.bg-slate-800:active { transform: scale(0.96); transition-duration: 100ms; }
 @media (hover: hover) and (pointer: fine) {
   button.bg-slate-800:hover {
-    background: rgba(255,255,255,0.10) !important;
+    background: rgba(118,118,128,0.34) !important;
     color: var(--lg-text) !important;
   }
 }
@@ -1223,16 +1188,18 @@ div.w-9.h-5.rounded-full > span.bg-white.rounded-full {
   background: #1c1c1e !important;
 }
 
-/* ── Dropdown / Popover: dunkles Glas ────────────────────────────────────── */
+/* ── Dropdown / Popover: Glas, schwebt über dem Inhalt ───────────────────────
+   Dichter als die Leisten, weil darunter Text liegen kann; Lichtkante als
+   Innenschatten (oben links hell, unten rechts schwächer). */
 .shadow-xl {
-  background: rgba(36,36,38,0.86) !important;
+  background: rgba(36,36,40,0.74) !important;
   border: 0 !important;
   box-shadow:
-    0 20px 60px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 0 0 0 1px rgba(255,255,255,0.08) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
+    0 20px 60px rgba(0,0,0,0.6),
+    inset 1px 1px 0 rgba(255,255,255,0.22),
+    inset -1px -1px 0 rgba(255,255,255,0.08) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  backdrop-filter: blur(30px) saturate(190%);
 }
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
@@ -1332,10 +1299,7 @@ main.flex-1 {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes tydSlideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+
 @keyframes tydPulseSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 /* „Geht gerade nicht“ (src/lib/denyFeedback.ts): dezenter roter Rahmen und
@@ -1446,19 +1410,66 @@ main.flex-1 {
    zweite Zeichenebene auf jedem Bildschirm.
    ══════════════════════════════════════════════════════════════════════════ */
 
-.tyd-tabbar {
+/* Andockfläche wie in iOS 26: links die Glas-Kapsel mit den Reitern, rechts
+   daneben der Plus-Knopf als eigene, getönte Glas-Scheibe. Die Andockfläche
+   trägt Lage und Stapelordnung (41, siehe .tyd-tabbar), die Kapsel füllt sie. */
+.tyd-tabdock {
   position: fixed;
   left: max(var(--bottom-nav-inset), env(safe-area-inset-left));
   right: max(var(--bottom-nav-inset), env(safe-area-inset-right));
   bottom: calc(env(safe-area-inset-bottom) + var(--bottom-nav-gap));
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--bottom-nav-capsule);
+  max-width: 480px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.tyd-tabdock > * { pointer-events: auto; }
+/* Offen liegt der Schnellzugriff (45/46) über der Seite — die Andockfläche
+   steigt darüber, damit das X sichtbar und drückbar bleibt. */
+.tyd-tabdock[data-open='true'] { z-index: 47; }
+.tyd-tabdock-action {
+  flex: none;
+  width: var(--bottom-nav-capsule);
+  height: var(--bottom-nav-capsule);
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 300ms var(--lg-ease-out), filter 300ms var(--lg-ease-out);
+}
+.tyd-tabdock-action:active { transform: scale(0.92); transition-duration: 100ms; }
+.tyd-tabdock-action:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 3px; }
+.tyd-tabdock-action > svg { position: relative; z-index: 1; transition: transform 300ms var(--lg-ease-out); }
+/* Offen: das Plus dreht sich zum X — derselbe Knopf schließt wieder */
+.tyd-tabdock-action[aria-expanded='true'] > svg { transform: rotate(45deg); }
+@media (prefers-reduced-motion: reduce) {
+  .tyd-tabdock-action, .tyd-tabdock-action > svg { transition: none; }
+  .tyd-tabdock-action:active { transform: none; }
+}
+
+.tyd-tabbar {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
   /*
    * Die Stapelordnung am unteren Rand, von unten nach oben:
    *
    *   39  FAQ-Knopf          gehoert zur Seite
    *   40  Ladebildschirm     verdeckt die Seite, nicht das Geruest
    *   41  diese Leiste       bleibt IMMER stehen, auch waehrend geladen wird
+   *                          (gesetzt an .tyd-tabdock, der festen Huelle)
    *   45  Schnellzugriff-Hintergrund
    *   46  Schnellzugriff
+   *   47  Andockflaeche, solange der Schnellzugriff offen ist (X zum Schliessen)
    *   50  Dialoge            duerfen alles verdecken, auch die Leiste
    *
    * Der Sprung von 40 auf 41 ist der Kern: vorher lag der Ladebildschirm mit
@@ -1466,8 +1477,6 @@ main.flex-1 {
    */
   z-index: 41;
   height: var(--bottom-nav-capsule);
-  max-width: 480px;
-  margin-inline: auto;
   border-radius: 999px;
   isolation: isolate;
   /* Kein schwerer Schatten: Glas liegt auf dem Bild, es schwebt nicht davor. */
@@ -1493,7 +1502,7 @@ main.flex-1 {
       rgba(255, 255, 255, 0.03) 46%,
       rgba(255, 255, 255, 0.015) 100%
     ),
-    rgba(18, 18, 20, 0.42);
+    rgba(18, 18, 20, 0.30);
 }
 
 .tyd-tabbar[data-gedrueckt='true'] { transform: scale(1.025); }
@@ -1503,8 +1512,8 @@ main.flex-1 {
     /* Mehr Unschaerfe und Saettigung, weniger eigene Fuellung: dadurch traegt
        das Bild dahinter den Eindruck, nicht eine weisse Flaeche davor. Genau
        das unterscheidet Glas von Milchglas. */
-    -webkit-backdrop-filter: blur(30px) saturate(210%) brightness(1.04);
-    backdrop-filter: blur(30px) saturate(210%) brightness(1.04);
+    -webkit-backdrop-filter: var(--lg-glass-filter);
+    backdrop-filter: var(--lg-glass-filter);
   }
 }
 
