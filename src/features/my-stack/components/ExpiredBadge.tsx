@@ -42,7 +42,7 @@ export function ExpiredBadge({ daysSince, variante = 'still' }: { daysSince: num
     return (
       <span
         data-expired-badge="wechsel"
-        className="tyd-expired-badge inline-flex items-center gap-1.5 rounded-full border border-red-500/35 bg-red-500/10 px-2.5 py-1 font-semibold text-red-300"
+        className="tyd-expired-badge inline-flex min-h-[26px] items-center gap-1.5 rounded-full border border-transparent bg-[rgba(255,69,58,0.18)] px-2.5 text-[13px] font-semibold text-[#ff6961]"
       >
         <AlertTriangle size={13} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
         <span className="sr-only">{String(t('my_stack_expired_aria', { since }))}</span>
@@ -57,7 +57,7 @@ export function ExpiredBadge({ daysSince, variante = 'still' }: { daysSince: num
   return (
     <span
       data-expired-badge="still"
-      className="inline-flex items-center gap-1.5 whitespace-nowrap py-1 font-semibold text-red-300"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap py-1 text-[13px] font-semibold text-[#ff6961]"
     >
       <AlertTriangle size={14} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
       {expiredLabel(t, daysSince)}

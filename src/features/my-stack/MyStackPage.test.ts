@@ -460,13 +460,13 @@ describe('My Stack page vial view', () => {
     expect(scrollHandler).not.toContain('updateVialFocus()')
   })
 
-  test('zeigt die Angaben als ein Raster, nicht als drei Fassungen derselben Daten', () => {
+  test('zeigt die Angaben als eine gruppierte Liste, nicht als drei Fassungen derselben Daten', () => {
     // Die Angaben stehen in nach Form ausgesuchten Abschnitten; die drei
     // Fassungen derselben Daten (zwei davon `hidden`) sind weg, ebenso die
     // Kachel „Peptidname" — der Name steht auf dem Objekt darüber.
     const text = source()
 
-    expect(text).toContain('grid grid-cols-2 gap-2')
+    expect(text).toContain('className="lg-kv"')
     expect(text).toContain("'my_stack_stock_use_within_vial'")
     expect(text).toContain("'my_stack_stock_mixed_on'")
     expect(text).toContain("'my_stack_stock_document'")
@@ -557,14 +557,15 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('data-archive-fullscreen')
     expect(text).toContain('data-archive-row')
-    expect(text).toContain('fixed inset-0 z-50 flex min-h-dvh flex-col bg-slate-950')
+    expect(text).toContain('fixed inset-0 z-50 flex min-h-dvh flex-col bg-black')
     expect(text).toContain('fillPct={0}')
     expect(text).toContain("color_hex: '#64748b'")
     expect(text).toContain('animateOnMount={false}')
     expect(text).toContain('isActive={false}')
     expect(text).toContain('size="compact"')
     expect(text).toContain("t('archiviert_am'")
-    expect(text).toContain('h-11 w-11')
+    // Die Knoepfe der Zeile: 44 px rund (lg-icon-btn).
+    expect(text).toContain('lg-icon-btn lg-press')
     expect(text).toContain('const language = i18n.resolvedLanguage ?? i18n.language')
     expect(text).toContain('formatInstantDay(p.archived_at, language)')
   })
@@ -582,7 +583,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('data-archive-info-button={p.id}')
     expect(text).toContain('setArchiveInfoPeptide(p)')
     expect(text).toContain('data-archive-info-detail={p.id}')
-    expect(text).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-slate-950"')
+    expect(text).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-black"')
     expect(text).toContain('p.vial_amount_mg')
     expect(text).toContain('p.reconstitution_ml')
     expect(text).toContain('p.syringe_type')

@@ -1,0 +1,149 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   My Stack im Liquid-Glass-Stil von iOS.
+   Glas nur für die Bedien-Ebene, die über der Bühne schwebt: Kopfknöpfe,
+   Menü, Pfeile. Reiter und Status sind Füllungen wie in iOS; Angaben stehen
+   auf fester Graphitfläche (gruppierte Liste, liquid-glass.css).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Kopf: großer Titel (Large Title, 34 pt) ─────────────────────────── */
+.stack-large-title {
+  font-size: 34px;
+  line-height: 41px;
+  font-weight: 700;
+  letter-spacing: 0.011em;
+  color: var(--lg-text);
+}
+
+/* Suchfeld wie in iOS: Kapsel in Systemfüllung, Lupe innen */
+.stack-search {
+  min-height: 44px;
+  padding: 0 16px 0 40px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--lg-fill);
+  color: var(--lg-text);
+  font-size: 16px;
+}
+.stack-search::placeholder { color: var(--lg-text-3); }
+.stack-search:focus { outline: none; box-shadow: inset 0 0 0 1.5px rgba(0, 204, 245, 0.6); }
+
+/* Offenes Menü: der Knopf leuchtet in der Akzentfarbe */
+.stack-head-btn[data-open] { color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .stack-head-btn.lg-glass:hover { filter: brightness(1.15); }
+}
+
+/* Menü: dichteres Glas (darunter liegt die Bühne), wächst aus dem Knopf
+   oben rechts — schnell, mit starkem ease-out. */
+/* `position` ausdrücklich: die Glas-Regel setzt `relative` und schlüge
+   sonst Tailwinds `absolute` — das Menü läge dann in der Zeile. */
+.stack-menu.lg-glass { position: absolute; background: rgba(36, 36, 40, 0.74); transform-origin: top right; }
+.stack-menu-label { margin: 0 4px 6px; font-size: 13px; font-weight: 600; color: var(--lg-text-3); }
+.stack-menu-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--lg-fill);
+}
+.stack-menu-seg > button {
+  color: var(--lg-text-2);
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 300ms var(--lg-ease-out);
+}
+.stack-menu-seg > button[aria-checked='true'] {
+  color: var(--lg-text);
+  background: var(--lg-fill-selected);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+@keyframes stack-menu-in {
+  from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stack-head-btn:active,
+  .stack-menu-seg > button:active { transform: scale(0.92); transition-duration: 100ms; }
+  .stack-menu { animation: stack-menu-in 220ms var(--lg-ease-out); }
+}
+
+/* ── Reiter: Kapseln in Systemfüllung, gewählt hell abgesetzt ────────── */
+.stack-tab {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--lg-fill);
+  color: var(--lg-text-2);
+  font: 600 15px/1 var(--lg-ui);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 300ms var(--lg-ease-out);
+}
+.stack-tab > span { font-size: 13px; color: var(--lg-text-3); font-variant-numeric: tabular-nums; transition: color 200ms ease; }
+.stack-tab[aria-selected='true'] {
+  background: var(--lg-text);
+  color: #000;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+.stack-tab[aria-selected='true'] > span { color: rgba(0, 0, 0, 0.55); }
+.stack-tab[data-stack-tab-count='0'] { opacity: 0.4; cursor: default; }
+.stack-tab:active { transform: scale(0.95); transition-duration: 100ms; }
+.stack-tab:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .stack-tab:not([aria-selected='true']):not([data-stack-tab-count='0']):hover { color: var(--lg-text); background: rgba(118, 118, 128, 0.34); }
+}
+
+/* ── Positionszeile: Punkte wie die Seitenpunkte in iOS ──────────────── */
+.stack-dot { display: block; height: 7px; width: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.24); transition: width 300ms var(--lg-ease-out), background-color 300ms ease; }
+.stack-dot[data-on='true'] { width: 20px; background: var(--lg-text); }
+@media (hover: hover) and (pointer: fine) {
+  button:hover > .stack-dot:not([data-on='true']) { background: rgba(255, 255, 255, 0.45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-tab:active { transform: none; }
+}
+/* Transparenz reduzieren: das Menü wird fest wie jedes Glas
+   (liquid-glass.css) — diese Regel ist spezifischer und muss es selbst sagen. */
+@media (prefers-reduced-transparency: reduce) {
+  .stack-menu.lg-glass { background: #2c2c2e; }
+}
+
+/* ── Liste: gruppiert wie in den iOS-Einstellungen ───────────────────────
+   Die Zeilen bleiben einzelne Einträge einer Liste (sie wandern zwischen
+   den Gruppen, ohne neu gebaut zu werden); die Gruppe entsteht aus der
+   Rundung an der ersten und letzten Zeile und den Linien dazwischen. */
+.stack-list-row { background: var(--lg-surface-fill); }
+.stack-list-row[data-list-first] { border-top-left-radius: var(--r-xl); border-top-right-radius: var(--r-xl); }
+.stack-list-row[data-list-last] { border-bottom-left-radius: var(--r-xl); border-bottom-right-radius: var(--r-xl); }
+.stack-list-row:not([data-list-first])::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  inset-inline: 68px 0;
+  height: 0.5px;
+  background: var(--lg-separator);
+  pointer-events: none;
+}
+/* Neu angelegt: kurz hervorgehoben, als Ring innen — außen würde ihn die
+   Nachbarzeile verdecken. */
+.stack-list-row::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgba(100, 210, 255, 0);
+  pointer-events: none;
+  transition: box-shadow 500ms ease;
+}
+.stack-list-row[data-list-highlight]::after { box-shadow: inset 0 0 0 2px rgba(100, 210, 255, 0.7); }
+/* Abzeichen in der Zeile eine Stufe kleiner: die Liste bleibt kompakt */
+.stack-list-row .lg-tag { min-height: 22px; padding: 0 8px; font-size: 12px; }

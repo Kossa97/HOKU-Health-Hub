@@ -18,7 +18,7 @@ export const StackArchive = forwardRef<HTMLDivElement, StackArchiveProps>(functi
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
-      className={`fixed inset-0 z-50 flex min-h-dvh flex-col bg-slate-950 ${className}`}
+      className={`fixed inset-0 z-50 flex min-h-dvh flex-col bg-black ${className}`}
     >
       {children}
     </div>

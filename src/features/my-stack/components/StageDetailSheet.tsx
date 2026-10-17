@@ -107,21 +107,21 @@ export function StageDetailSheet({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="fixed inset-0 z-50 flex touch-pan-y flex-col overflow-x-hidden overflow-y-auto overscroll-x-none bg-slate-950"
+      className="fixed inset-0 z-50 flex touch-pan-y flex-col overflow-x-hidden overflow-y-auto overscroll-x-none bg-black"
     >
       {/* Das Vollbild liegt auch unter der Statuszeile des iPhones (Uhr,
           Akku). Ohne den Abstand der Schutzzone sass der Schliessen-Knopf
           mitten in der Akkuanzeige — die anderen Vollbilder halten ihn schon. */}
-      <div className="flex items-center justify-between gap-3 pb-3 pl-[calc(0.75rem+env(safe-area-inset-left))] pr-[calc(0.75rem+env(safe-area-inset-right))] pt-[calc(0.75rem+env(safe-area-inset-top))]">
-        <div data-stage-detail-top-left className="flex min-w-0 text-xs">{topLeft}</div>
+      <div className="flex items-center justify-between gap-3 pb-3 pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))] pt-[calc(0.75rem+env(safe-area-inset-top))]">
+        <div data-stage-detail-top-left className="flex min-w-0">{topLeft}</div>
         <button
           type="button"
           onClick={onClose}
           data-app-back-close
           aria-label="Schließen"
-          className="grid min-h-11 min-w-11 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:text-white"
+          className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
       </div>
 
@@ -135,15 +135,15 @@ export function StageDetailSheet({
             {sideActions}
           </div>
         </div>
-        <h2 className="mt-3 text-center text-xl font-bold text-white">{title}</h2>
-        {belowTitle && <div className="mt-3 w-full max-w-xs">{belowTitle}</div>}
+        <h2 className="mt-3 text-center text-[28px] font-bold leading-[34px] tracking-[0.013em] text-[var(--lg-text)]">{title}</h2>
+        {belowTitle && <div className="mt-4 w-full max-w-xs">{belowTitle}</div>}
       </div>
 
       {/* Erst wenn das Objekt steht, kommen die Angaben — gestaffelt, damit
           man dem Blick folgt statt alles auf einmal hinzuwerfen. */}
       <div
         data-stage-detail-body
-        className={`mt-4 flex-1 px-3 pb-[calc(2rem+env(safe-area-inset-bottom))] transition-all duration-300 ${
+        className={`mx-auto mt-3 w-full max-w-xl flex-1 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] transition-all duration-300 ${
           gelandet ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
         }`}
       >

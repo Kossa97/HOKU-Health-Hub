@@ -100,17 +100,17 @@ export function VialCarousel({
           <div className="flex min-h-0 flex-1 flex-col pt-1">
             {reiterLeiste}
 
-            <div className="mb-1 flex shrink-0 items-center justify-between px-3">
+            <div className="mb-1 flex shrink-0 items-center justify-between gap-2 px-1">
               <button
                 type="button"
                 onClick={() => selectPeptideOffset(-1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-cyan-400/50 hover:text-cyan-300"
+                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                 aria-label="Vorheriges Peptid"
               >
                 <ChevronLeft size={18} />
               </button>
               {addTileActive ? (
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-xs font-semibold text-cyan-200">
+                <span className="lg-tag" data-tone="accent">
                   {t('neues_peptid_title')}
                 </span>
               ) : (() => {
@@ -120,9 +120,9 @@ export function VialCarousel({
                 const hasActive = cyclesOf(activePeptide.id).some(c => c.active)
 
                 return (
-                  <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 text-xs">
+                  <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
                     <HaltbarkeitChip tage={days} substanzId={activePeptide.id} variante="wechsel" />
-                    <span className={`rounded-full px-2.5 py-1 font-semibold ${hasActive ? 'bg-emerald-500/10 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
+                    <span className="lg-tag" data-tone={hasActive ? 'good' : undefined}>
                       {hasActive ? t('aktiv_badge') : t('inaktiv_badge')}
                     </span>
                   </div>
@@ -131,7 +131,7 @@ export function VialCarousel({
               <button
                 type="button"
                 onClick={() => selectPeptideOffset(1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-cyan-400/50 hover:text-cyan-300"
+                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                 aria-label="Nächstes Peptid"
               >
                 <ChevronRight size={18} />
@@ -295,7 +295,7 @@ export function VialCarousel({
                         einem geschuetzten Leerzeichen; fuer die Vorlesung
                         ist die leere Zeile ausgeblendet. */}
                     <p
-                      className="mt-1 shrink-0 text-center text-xs font-semibold tabular-nums text-slate-400"
+                      className="mt-1 shrink-0 text-center text-[13px] font-semibold tabular-nums text-[var(--lg-text-3)]"
                       aria-hidden={isActive && showsFillPct ? undefined : true}
                     >
                       {isActive && showsFillPct ? `${Math.round(vialPct)}%` : '\u00a0'}
