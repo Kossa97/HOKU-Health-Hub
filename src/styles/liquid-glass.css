@@ -680,3 +680,50 @@ html[data-look='licht'] .lg-backdrop {
   background-repeat: no-repeat;
 }
 
+/* ── Erscheinungsbild „Satin" ───────────────────────────────────────────
+   Schwarzer Grund wie „Schwarz", aber die Kante ist ein gewölbter Glasrand:
+   2,5 px, gleichmäßig satiniert statt einer scharfen Linie; direkt dahinter
+   ein weicher heller Saum (das Glas wirkt dick); oben auf der Kante ein
+   kurzer Lichtreflex. Der Reflex wandert: beim Scrollen gleitet er über die
+   Kante (scrollgetriebene Animation, Lampe über dem Bildschirm), beim
+   Berühren folgt er dem Finger (src/lib/reflex.ts). */
+html[data-look='satin'] {
+  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.17) 35%, rgba(255,255,255,0.11) 65%, rgba(255,255,255,0.22));
+  --lg-surface-shadow:
+    inset 0 0 0 4px rgba(255,255,255,0.035),
+    inset 0 0 10px 2px rgba(255,255,255,0.07),
+    inset 0 5px 10px -6px rgba(255,255,255,0.20),
+    0 18px 40px rgba(0,0,0,0.7);
+}
+html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::before {
+  padding: 2.5px;
+}
+html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after {
+  --rx: 34%;
+  background:
+    radial-gradient(closest-side, rgba(255,255,255,0.95), rgba(255,255,255,0.38) 45%, transparent),
+    radial-gradient(closest-side, rgba(255,255,255,0.13), transparent);
+  background-size: 34% 3px, 64% 26px;
+  background-repeat: no-repeat;
+  background-position: var(--rx) 0, var(--rx) -6px;
+  transition: background-position 420ms var(--lg-ease-out);
+}
+@keyframes lg-reflex-wander {
+  from { background-position: 76% 0, 76% -6px; }
+  to { background-position: 24% 0, 24% -6px; }
+}
+@supports (animation-timeline: view()) {
+  html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after {
+    animation: lg-reflex-wander linear both;
+    animation-timeline: view();
+  }
+}
+/* Finger auf der Karte: der Reflex folgt ihm */
+html[data-look='satin'] :is(.lg-surface, .card, .lg-group)[data-reflex-touch]::after {
+  animation: none;
+  transition-duration: 120ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after { animation: none; transition: none; }
+}
+

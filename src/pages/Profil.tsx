@@ -262,6 +262,7 @@ function LookSwitcher() {
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
+    { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
   ]
   return (
@@ -278,7 +279,7 @@ function LookSwitcher() {
         material="fill"
       />
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glas mit Lichtkante auf reinem Schwarz. Licht: farbiges Licht schimmert durch das Glas.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: feine Lichtkante. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.' })}
       </p>
     </div>
   )

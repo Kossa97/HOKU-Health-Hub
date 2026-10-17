@@ -2436,5 +2436,6 @@
   "fortschritt_chart_value_of": "{{metric}} vom {{date}}",
   "look_black": "Schwarz",
   "look_light": "Licht",
-  "look_hint": "Schwarz: Glas mit Lichtkante auf reinem Schwarz. Licht: farbiges Licht schimmert durch das Glas."
+  "look_hint": "Schwarz: feine Lichtkante. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.",
+  "look_satin": "Satin"
 }

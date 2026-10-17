@@ -26,6 +26,11 @@ describe('Erscheinungsbild', () => {
     expect(getLook()).toBe('licht')
   })
 
+  it('kennt Satin', () => {
+    localStorage.setItem('tyd_look', 'satin')
+    expect(getLook()).toBe('satin')
+  })
+
   it('nimmt unbekannte Werte als schwarz', () => {
     localStorage.setItem('tyd_look', 'neon')
     expect(getLook()).toBe('schwarz')
