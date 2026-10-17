@@ -7,10 +7,10 @@ import { FortschrittHeader } from './FortschrittHeader'
 afterEach(cleanup)
 
 describe('FortschrittHeader', () => {
-  it('lädt ohne heutigen Eintrag mit dem Hauptknopf ein — erst wenn die Daten da sind', () => {
+  it('lädt ohne heutigen Eintrag mit dem getönten Glas-Knopf ein — erst wenn die Daten da sind', () => {
     const { getByRole, rerender } = render(<FortschrittHeader rangeLabel="x" onLogToday={() => {}} />)
     const button = getByRole('button', { name: 'fortschritt_log_today' })
-    expect(button.className).toContain('fg-btn-primary')
+    expect(button.className).toContain('fg-btn-tint')
     expect(button.getAttribute('data-invite')).toBe('false')
     rerender(<FortschrittHeader rangeLabel="x" onLogToday={() => {}} dataReady />)
     expect(getByRole('button', { name: 'fortschritt_log_today' }).getAttribute('data-invite')).toBe('true')
