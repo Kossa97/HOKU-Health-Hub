@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, Monitor, Sun, Moon } from 'lucide-react'
+import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
 import { OnboardingRestartButton } from '../components/Onboarding'
 import { LANGUAGES, applyDirection } from '../i18n'
 import { usePushNotifications } from '../lib/usePushNotifications'
-import { useTheme, type ThemeMode } from '../lib/theme'
 import { AccountSection } from '../features/compliance/components/AccountSection'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
@@ -227,9 +226,6 @@ export function Profil() {
       {/* ── Sprache / Language ── */}
       <LanguageSwitcher />
 
-      {/* ── Erscheinungsbild / Theme ── */}
-      <ThemeSwitcher />
-
       {/* ── Push-Notifications ── */}
       <PushSettings />
 
@@ -250,48 +246,6 @@ export function Profil() {
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
-    </div>
-  )
-}
-
-// ── ThemeSwitcher ─────────────────────────────────────────────────────────────
-
-function ThemeSwitcher() {
-  const { t } = useTranslation()
-  const { mode, setMode } = useTheme()
-  const options: { value: ThemeMode; label: string; icon: typeof Monitor }[] = [
-    { value: 'system', label: t('theme_system', { defaultValue: 'System' }), icon: Monitor },
-    { value: 'light',  label: t('theme_light',  { defaultValue: 'Hell' }),   icon: Sun },
-    { value: 'dark',   label: t('theme_dark',   { defaultValue: 'Dunkel' }), icon: Moon },
-  ]
-  return (
-    <div className="card" style={{ marginTop: 12 }}>
-      <p className="label" style={{ marginBottom: 10 }}>
-        {t('theme_label', { defaultValue: 'Erscheinungsbild' })}
-      </p>
-      <div className="rounded-xl p-1" style={{ display: 'flex', gap: 4 }}>
-        {options.map(opt => {
-          const active = mode === opt.value
-          const Icon = opt.icon
-          return (
-            <button
-              key={opt.value}
-              onClick={() => setMode(opt.value)}
-              aria-pressed={active}
-              className={active ? 'bg-sky-500' : ''}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 5, padding: '10px 6px', borderRadius: 9, cursor: 'pointer',
-                color: active ? 'var(--accent-contrast)' : 'var(--text-dim)',
-                fontSize: '0.72rem', fontWeight: 700,
-              }}
-            >
-              <Icon size={18} />
-              {opt.label}
-            </button>
-          )
-        })}
-      </div>
     </div>
   )
 }

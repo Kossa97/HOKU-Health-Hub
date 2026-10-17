@@ -81,7 +81,7 @@
 .rechner-syringe-rail { min-width: 0; min-height: 0; height: 100%; padding: 18px 10px 12px; border: 1px solid var(--border); border-radius: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%), var(--surface); box-shadow: var(--shadow-card); }
 .rechner-muted { color: var(--text-dim); font-size: 12px; line-height: 1.65; font-weight: 400; }
 .rechner-error { color: #e59a58; font-size: 13px; line-height: 1.65; }
-[data-theme="light"] .rechner-error { color: #99420e; }
+
 .rechner-page .rechner-button { min-height: 44px; padding: 8px 10px; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border-radius: 10px; color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; }
 .rechner-page .rechner-button:hover { background: var(--surface-raised); color: var(--text); }
 .rechner-empty { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; font-size: 14px; line-height: 1.7; color: var(--text-dim); }
