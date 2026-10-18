@@ -684,87 +684,87 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/ar.json": {
-    "mtime": 1792351120.067925,
-    "seen": 1792351162.3174472,
-    "ast_hash": "c6ce57599dd16730728cafb18c97a5f7",
+    "mtime": 1792352579.6567779,
+    "seen": 1792353224.2478282,
+    "ast_hash": "c007801cabf16f6d613b7fc0998047f9",
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1792351120.0689044,
-    "seen": 1792351162.3174505,
-    "ast_hash": "452ac98702e77bb4f8b03e075d3696ef",
+    "mtime": 1792352579.6485329,
+    "seen": 1792353224.2478309,
+    "ast_hash": "3ce1a839afab37f8564c2d5ef0a41e6a",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1792351120.069723,
-    "seen": 1792351162.3174524,
-    "ast_hash": "a76f53572934ccdb1f512271de69f907",
+    "mtime": 1792352579.6525328,
+    "seen": 1792353224.247833,
+    "ast_hash": "093e82274357000d159c02bf1277e30b",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
-    "mtime": 1792351120.07048,
-    "seen": 1792351162.3174548,
-    "ast_hash": "56e3c6b3366b4f2bb0f03c5d911d4596",
+    "mtime": 1792352579.6603289,
+    "seen": 1792353224.2478344,
+    "ast_hash": "ae095d8681372a4b2da0648cd292cac1",
     "semantic_hash": ""
   },
   "src/i18n/locales/fr.json": {
-    "mtime": 1792351120.0710995,
-    "seen": 1792351162.3174572,
-    "ast_hash": "cd4cd5a11653794da9dfef6c5a66a4b5",
+    "mtime": 1792352579.6639624,
+    "seen": 1792353224.2478366,
+    "ast_hash": "7daf2e7b67173e57fca9c8d9d8244aa8",
     "semantic_hash": ""
   },
   "src/i18n/locales/hi.json": {
-    "mtime": 1792351120.0719368,
-    "seen": 1792351162.31746,
-    "ast_hash": "193ea9c749cce794e534b925293f97e4",
+    "mtime": 1792352579.6672873,
+    "seen": 1792353224.2478385,
+    "ast_hash": "73a0dfabee83a84baf8c1f4cd23c1c31",
     "semantic_hash": ""
   },
   "src/i18n/locales/id.json": {
-    "mtime": 1792351120.0727503,
-    "seen": 1792351162.317462,
-    "ast_hash": "10bd0f1f4f1bc0957f798efc16836943",
+    "mtime": 1792352579.671432,
+    "seen": 1792353224.247841,
+    "ast_hash": "a35eae55bd57d5f7404b887ae69cfdb1",
     "semantic_hash": ""
   },
   "src/i18n/locales/it.json": {
-    "mtime": 1792351120.0736399,
-    "seen": 1792351162.3174644,
-    "ast_hash": "e81e6d2ce3aa56d58a7509e67d0e9cd4",
+    "mtime": 1792352579.6748767,
+    "seen": 1792353224.2478426,
+    "ast_hash": "32d14dca109b3c06aecbcae607de0ff1",
     "semantic_hash": ""
   },
   "src/i18n/locales/ja.json": {
-    "mtime": 1792351120.0745432,
-    "seen": 1792351162.3174663,
-    "ast_hash": "0d06a984f98a785ef5193db1a745b34f",
+    "mtime": 1792352579.677818,
+    "seen": 1792353224.2478435,
+    "ast_hash": "1a9ba252a51ca036141a187733eb9778",
     "semantic_hash": ""
   },
   "src/i18n/locales/ko.json": {
-    "mtime": 1792351120.0754764,
-    "seen": 1792351162.3174682,
-    "ast_hash": "cb4df7ffc068530fac53203e59b57151",
+    "mtime": 1792352579.6832504,
+    "seen": 1792353224.2478447,
+    "ast_hash": "538d0c6750541a82efc8ffb208bc2558",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.json": {
-    "mtime": 1792351120.0764217,
-    "seen": 1792351162.3174696,
-    "ast_hash": "98e676c45e598c2c2854f5a42c301171",
+    "mtime": 1792352579.68634,
+    "seen": 1792353224.2478464,
+    "ast_hash": "e95d5c984121032d1fdfb4f257a10cac",
     "semantic_hash": ""
   },
   "src/i18n/locales/ru.json": {
-    "mtime": 1792351120.0771585,
-    "seen": 1792351162.3174717,
-    "ast_hash": "d67171fae4aa499e771efac0bd8f4926",
+    "mtime": 1792352579.6885328,
+    "seen": 1792353224.2478478,
+    "ast_hash": "69fd86ece918fac6e4f4a8b5254c2ead",
     "semantic_hash": ""
   },
   "src/i18n/locales/tr.json": {
-    "mtime": 1792351120.0779562,
-    "seen": 1792351162.317474,
-    "ast_hash": "f15e7be59e7e434cb16ab69b022c894b",
+    "mtime": 1792352579.6925328,
+    "seen": 1792353224.2478497,
+    "ast_hash": "7d6cccb9c10e3b306c9beeeb8321b33c",
     "semantic_hash": ""
   },
   "src/i18n/locales/zh.json": {
-    "mtime": 1792351120.0786636,
-    "seen": 1792351162.317475,
-    "ast_hash": "15f97fc43fe5c457e99bc9e7454da633",
+    "mtime": 1792352579.695908,
+    "seen": 1792353224.2478514,
+    "ast_hash": "ce0838245de61907a33aca50939f9ac7",
     "semantic_hash": ""
   },
   "src/lib/dailyLogs.ts": {
@@ -3630,9 +3630,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1792351120.0674253,
-    "seen": 1792351162.309526,
-    "ast_hash": "e0ceeaa9d7d28daa40f7a6bcae1c1304",
+    "mtime": 1792352580.1725328,
+    "seen": 1792353224.2418544,
+    "ast_hash": "bdc7a4f0dc9e4e4a08ec68337890ed72",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -6912,21 +6912,21 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792351120.0632737,
-    "seen": 1792351162.296555,
-    "ast_hash": "f2f703115fd34f5dae3b098f37603a5a",
+    "mtime": 1792353076.2602394,
+    "seen": 1792353224.231932,
+    "ast_hash": "a0d9b42ecac8acead00cd4a28134d72a",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1792351120.0666358,
-    "seen": 1792351162.3030229,
-    "ast_hash": "2971f92a4ba7c5506a3e320b2b00e98f",
+    "mtime": 1792353069.6126363,
+    "seen": 1792353224.2369332,
+    "ast_hash": "7368ff263251f78603198b6db3f69262",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
-    "mtime": 1792351120.0666358,
-    "seen": 1792351162.3030264,
-    "ast_hash": "8954d1b9b612c77505fac601739d468c",
+    "mtime": 1792352520.5940835,
+    "seen": 1792353224.2369354,
+    "ast_hash": "894c7e5d55cc267a9d08ad7f0db0c08d",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/BarcodeScanner.tsx": {
@@ -6960,9 +6960,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/PortionSheet.tsx": {
-    "mtime": 1792348174.8062773,
-    "seen": 1792348366.065733,
-    "ast_hash": "dda1e2bb96ae5dc3aab3933d077b8f2f",
+    "mtime": 1792352520.5949407,
+    "seen": 1792353224.2371576,
+    "ast_hash": "515384e6cadc7f194762cd0b1a4565bb",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/SourceBadge.tsx": {
@@ -7074,15 +7074,15 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-18-ernaehrung-kalorientracker-design.md": {
-    "mtime": 1792351143.1674519,
-    "seen": 1792351162.3272614,
-    "ast_hash": "ed99f199bd5653edb35807d107f1ecc2",
+    "mtime": 1792353195.0428245,
+    "seen": 1792353224.2541308,
+    "ast_hash": "2d4c4d2617536edc1e161bc2e611621a",
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792351143.1680877,
-    "seen": 1792351162.3273818,
-    "ast_hash": "2cee3c473755679305151a370fd90223",
+    "mtime": 1792353195.0435839,
+    "seen": 1792353224.2542129,
+    "ast_hash": "d2c54a02b0f6c440a3be5ddf7b87465c",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7332,9 +7332,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/PhotoSheet.tsx": {
-    "mtime": 1792351120.0869923,
-    "seen": 1792351162.303265,
-    "ast_hash": "6417dae841ca2c7e872589f0ca92100e",
+    "mtime": 1792353069.613121,
+    "seen": 1792353224.2371545,
+    "ast_hash": "f1b5a3ec1c18b0024cfa635208adee5f",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useFoodAiConsent.ts": {
@@ -7344,27 +7344,39 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/foodPhoto.ts": {
-    "mtime": 1792351120.0869923,
-    "seen": 1792351162.3037388,
-    "ast_hash": "59c3b98af57477e4ceb7e23cfc4e61aa",
+    "mtime": 1792353069.6118855,
+    "seen": 1792353224.2375307,
+    "ast_hash": "88e2ab6ab5424c67ae9d0244869d70aa",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/index.ts": {
-    "mtime": 1792351120.0869923,
-    "seen": 1792351162.3224921,
-    "ast_hash": "6a744056412bb4f97663c4dff01c6fd8",
+    "mtime": 1792352430.467045,
+    "seen": 1792353224.2510004,
+    "ast_hash": "7d06619fd6ff2271172b6ec18a806839",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/photo.test.ts": {
-    "mtime": 1792351120.0894547,
-    "seen": 1792351162.322495,
-    "ast_hash": "249a8b6d2e0dbdbcfc3ac4a3f7e8f1f8",
+    "mtime": 1792353069.6116936,
+    "seen": 1792353224.2510037,
+    "ast_hash": "02113c98ecde3e46067ea64370883673",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/photo.ts": {
-    "mtime": 1792351120.0894547,
-    "seen": 1792351162.3224974,
-    "ast_hash": "acdc06599c19532588da2d34024c7564",
+    "mtime": 1792353069.6114342,
+    "seen": 1792353224.2510061,
+    "ast_hash": "fb09fabf7751d663d24d499259266a3c",
+    "semantic_hash": ""
+  },
+  "src/features/ernaehrung/lib/photoRows.test.ts": {
+    "mtime": 1792353069.6122794,
+    "seen": 1792353224.2374587,
+    "ast_hash": "7cb60f4a26f0bf4865d513c35ffd3f16",
+    "semantic_hash": ""
+  },
+  "src/features/ernaehrung/lib/photoRows.ts": {
+    "mtime": 1792353069.6121128,
+    "seen": 1792353224.237461,
+    "ast_hash": "322c06f8f766aa5f00ed60bb614e326c",
     "semantic_hash": ""
   }
 }
