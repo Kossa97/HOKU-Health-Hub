@@ -145,6 +145,8 @@ export function Layout() {
       >
         <Outlet />
       </main>
+      {/* Schleier hinter Uhrzeit und Akku, damit der Inhalt darunter abtaucht */}
+      {!hideBottomNav && <div aria-hidden="true" className="lg-statusbar-scrim" />}
 
       <LanguageGate />
       <Onboarding />

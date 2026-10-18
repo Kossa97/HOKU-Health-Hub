@@ -794,3 +794,19 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
 @media (prefers-reduced-motion: reduce) {
   .lg-ph { animation: none; opacity: 0.8; }
 }
+
+/* ── Statusleiste ───────────────────────────────────────────────────────
+   Als Web-App (black-translucent) liegt die Seite unter Uhrzeit und Akku.
+   Ein schwarzer Schleier hinter der Leiste: ganz deckend bis zu ihrer
+   Unterkante, darunter 14 px weicher Auslauf — der Inhalt taucht ab wie
+   in iOS, statt sich mit der Uhrzeit zu überlagern. Ohne Statusleiste
+   (Browser-Tab, Desktop) ist der Abstand 0 und der Schleier verschwindet. */
+.lg-statusbar-scrim {
+  --sb: env(safe-area-inset-top, 0px);
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 39;
+  height: calc(var(--sb) + min(calc(var(--sb) * 100), 14px));
+  background: linear-gradient(to bottom, var(--c-bg) 0, var(--c-bg) var(--sb), transparent 100%);
+  pointer-events: none;
+}
