@@ -394,7 +394,8 @@ export function InjectionLogSheet({
               <div className="block min-w-0">
                 <span className="label">{t('injection_time_label', { defaultValue: 'Zeitpunkt (rückwirkend möglich)' })}</span>
                 {mode === 'intake' && selectedIntake ? (
-                  <div className="grid min-w-0 grid-cols-2 gap-3">
+                  // Unter 360 px untereinander, sonst schneidet das Datum ab
+                  <div className="grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     <label className="min-w-0">
                       <span className="label">{t('injection_date_label', { defaultValue: 'Datum' })}</span>
                       <input className="input opacity-70" type="date" value={loggedAt.slice(0, 10)} readOnly aria-readonly="true" />
@@ -414,7 +415,7 @@ export function InjectionLogSheet({
                 )}
               </div>
               <label className="block min-w-0">
-                <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz optional' })}</span>
+                <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz (optional)' })}</span>
                 <textarea className="input min-h-16 resize-none" value={notes} onChange={e => setNotes(e.target.value)} />
               </label>
               <p className="text-[13px] text-[var(--lg-text-3)]">

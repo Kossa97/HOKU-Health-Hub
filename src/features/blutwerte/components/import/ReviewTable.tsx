@@ -57,7 +57,8 @@ export function ReviewTable({ rows, onChange }: Props) {
               )}
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            {/* Unter 360 px zwei Spalten: vier Beschriftungen passen dort nicht nebeneinander */}
+            <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4">
               <div>
                 <label className="label">{t('bw_value')}</label>
                 <input

@@ -1067,15 +1067,17 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     box-shadow: var(--shadow-input-focus);
   }
 
-  /* ── Label ─────────────────────────────────────────────── */
+  /* ── Label ─────────────────────────────────────────────────
+     Wie in iOS-Formularen: normale Schreibweise, hellgrau, etwas
+     eingerückt über dem Feld — keine kleinen Großbuchstaben mehr. */
   .label {
     display: block;
     margin-bottom: 7px;
-    color: var(--lg-text-3);
-    font-size: 0.725rem;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+    padding-inline: 4px;
+    color: var(--lg-text-2);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 20px;
   }
 
   /* ── Badge ─────────────────────────────────────────────── */

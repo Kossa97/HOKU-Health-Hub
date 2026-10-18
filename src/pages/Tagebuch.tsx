@@ -397,20 +397,55 @@ export function Tagebuch() {
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
             </div>
 
-            {/* 3. Substanz */}
-            <div>
-              <label className="label" htmlFor="tagebuch-substanz">{t('peptide_form_group_substance')}</label>
-              <select id="tagebuch-substanz" className="select" value={form.stack_item_id}
-                onChange={e => setForm(f => ({ ...f, stack_item_id: e.target.value, dose_log_id: '' }))}>
-                <option value="">{t('kein_peptid')}</option>
-                {stackItems.map(item => <option key={item.id} value={item.id}>{item.display_name}</option>)}
-              </select>
+            {/* 3. Substanz und Zeitpunkt: eine Gruppe, Name links, Wert rechts */}
+            <div className="lg-form-group">
+              <div className="lg-form-row">
+                <label htmlFor="tagebuch-substanz">{t('peptide_form_group_substance')}</label>
+                <span className="lg-form-value" aria-hidden="true">
+                  {stackItems.find(item => item.id === form.stack_item_id)?.display_name ?? t('tagebuch_substanz_keine')}
+                </span>
+                <select id="tagebuch-substanz" value={form.stack_item_id}
+                  onChange={e => setForm(f => ({ ...f, stack_item_id: e.target.value, dose_log_id: '' }))}>
+                  <option value="">{t('tagebuch_substanz_keine')}</option>
+                  {stackItems.map(item => <option key={item.id} value={item.id}>{item.display_name}</option>)}
+                </select>
+              </div>
+              <div className="lg-form-row">
+                <label htmlFor="tagebuch-zeitpunkt">{t('zeitpunkt')}</label>
+                <input id="tagebuch-zeitpunkt" type="datetime-local" value={form.occurred_at}
+                  onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))} />
+              </div>
             </div>
 
-            {/* 4. Intensität — fünf Stufen; native Radios: Pfeiltasten funktionieren von selbst */}
+            {/* 4. Bezug zur Einnahme — freiwillig, nur mit Substanz */}
+            {form.stack_item_id && (
+              <div>
+                <label className="label" htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_label')}</label>
+                {intakeOptions.length > 0 ? (
+                  <select id="tagebuch-einnahme" className="select" value={form.dose_log_id}
+                    onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
+                    <option value="">{t('tagebuch_einnahme_keine')}</option>
+                    {intakeOptions.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {[format(new Date(option.logged_at), 'dd.MM. HH:mm', { locale }), intakeDose(option, i18n.language)].filter(Boolean).join(' · ')}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p id="tagebuch-einnahme" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
+                )}
+              </div>
+            )}
+
+            {/* 5. Intensität — fünf Stufen; native Radios: Pfeiltasten funktionieren von selbst */}
             <fieldset>
-              <legend className="label">{t('tagebuch_intensitaet')}</legend>
-              <p className="-mt-1 mb-2 text-sm text-[var(--lg-text)]" aria-hidden="true">{severityLabel(form.severity)}</p>
+              {/* Die gewählte Stufe steht rechts neben der Überschrift */}
+              <legend className="label w-full">
+                <span className="flex justify-between gap-3">
+                  <span>{t('tagebuch_intensitaet')}</span>
+                  <span className="text-[var(--lg-text)]" aria-hidden="true">{severityLabel(form.severity)}</span>
+                </span>
+              </legend>
               <div className="grid grid-cols-5 rounded-full bg-[var(--lg-fill)] p-0.5">
                 {[1, 2, 3, 4, 5].map(level => (
                   <label key={level} className="cursor-pointer">
@@ -428,33 +463,6 @@ export function Tagebuch() {
                 <span>{t('sehr_leicht')}</span><span>{t('sehr_stark')}</span>
               </div>
             </fieldset>
-
-            {/* 5. Zeitpunkt */}
-            <div>
-              <label className="label" htmlFor="tagebuch-zeitpunkt">{t('zeitpunkt')}</label>
-              <input id="tagebuch-zeitpunkt" className="input" type="datetime-local" value={form.occurred_at}
-                onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))} />
-            </div>
-
-            {/* 5b. Bezug zur Einnahme — freiwillig, nur mit Substanz */}
-            {form.stack_item_id && (
-              <div>
-                <label className="label" htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_label')}</label>
-                {intakeOptions.length > 0 ? (
-                  <select id="tagebuch-einnahme" className="select" value={form.dose_log_id}
-                    onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
-                    <option value="">{t('tagebuch_einnahme_keine')}</option>
-                    {intakeOptions.map(option => (
-                      <option key={option.id} value={option.id}>
-                        {[format(new Date(option.logged_at), 'dd.MM. HH:mm', { locale }), intakeDose(option, i18n.language)].filter(Boolean).join(' · ')}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p id="tagebuch-einnahme" className="text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
-                )}
-              </div>
-            )}
 
             {/* 6. Dauer */}
             <div>

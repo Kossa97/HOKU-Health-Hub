@@ -166,7 +166,7 @@ export function InjectionEditSheet({
           )}
 
           <label className="block min-w-0">
-            <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz optional' })}</span>
+            <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz (optional)' })}</span>
             <textarea className="input min-h-16 resize-none" value={notes} onChange={e => setNotes(e.target.value)} />
           </label>
 

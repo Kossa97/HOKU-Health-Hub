@@ -915,7 +915,8 @@ export function Protokoll() {
         </div>
 
         {selectorMode === 'custom' ? (
-          <div className="grid grid-cols-2 gap-3">
+          // Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab
+          <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
             <div>
               <label className="label">{copy.from}</label>
               <input

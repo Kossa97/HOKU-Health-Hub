@@ -183,6 +183,7 @@
   "tagebuch_aenderungen_verwerfen": "Discard unsaved changes?",
   "tagebuch_einnahme_label": "Related intake (optional)",
   "tagebuch_einnahme_keine": "None",
+  "tagebuch_substanz_keine": "None",
   "tagebuch_einnahme_leer": "No confirmed intake before this time.",
   "tagebuch_nach_einnahme": "{{abstand}} after intake",
   "tagebuch_abstand_min": "{{n}} min",

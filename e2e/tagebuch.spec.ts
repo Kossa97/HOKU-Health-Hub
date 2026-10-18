@@ -24,7 +24,9 @@ test('Bearbeiten: Formular ist vorbefuellt (auch alte Dauer-Texte), Speichern ae
 
   await expect(page.locator('input[value="Kopfschmerz"]')).toBeVisible()
   await expect(page.getByRole('button', { name: '2 Std', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.locator('select.select').last()).toHaveValue(String(item.id))
+  await expect(page.getByRole('dialog').getByLabel('Substanz')).toHaveValue(String(item.id))
+  // Der Wert steht sichtbar rechts in der Zeile
+  await expect(page.getByRole('dialog').locator('.lg-form-value')).toHaveText('BPC-157')
 
   await page.locator('input[value="Kopfschmerz"]').fill('Leichter Kopfschmerz')
   await page.getByRole('button', { name: 'Speichern' }).click()

@@ -23,7 +23,7 @@ interface Props {
 type UILang = PdfLang
 
 const T: Record<UILang, {
-  title: string; intro: string; presets: string; custom: string; sections: string
+  title: string; titleShort: string; intro: string; presets: string; custom: string; sections: string
   period: string; from: string; to: string
   note: string; notePlaceholder: string; language: string; download: string; generating: string
   loading: string; noneSelected: string; empty: string; emptyClick: (label: string) => string
@@ -34,6 +34,7 @@ const T: Record<UILang, {
 }> = {
   de: {
     title: 'PDF-Protokoll erstellen',
+    titleShort: 'PDF-Protokoll',
     intro: 'Wähle ein Muster oder setze die Häkchen selbst. Die Vorschau aktualisiert sich live.',
     presets: 'Muster',
     custom: 'Benutzerdefiniert',
@@ -60,6 +61,7 @@ const T: Record<UILang, {
   },
   en: {
     title: 'Create PDF report',
+    titleShort: 'PDF report',
     intro: 'Pick a template or tick the boxes yourself. The preview updates live.',
     presets: 'Templates',
     custom: 'Custom',
@@ -386,7 +388,11 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
         <div className={`shrink-0 flex items-center justify-between gap-2 ${isPage ? 'pl-4 pr-1 pt-1 pb-1' : 'pl-5 pr-2 pt-3 pb-1'}`}>
           <div className="flex items-center gap-2 min-w-0">
             <FileText size={18} className="text-[var(--lg-accent-text)] shrink-0" aria-hidden="true" />
-            <h2 className="lg-title2 truncate">{t.title}</h2>
+            {/* Auf dem Handy der kurze Titel, er passt ganz; ab Tablet-Breite der lange */}
+            <h2 className="lg-title2 truncate">
+              <span className="sm:hidden">{t.titleShort}</span>
+              <span className="hidden sm:inline">{t.title}</span>
+            </h2>
           </div>
           <div className="flex items-center shrink-0">
             {langToggle}
@@ -448,25 +454,26 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           <div className={`lg:w-[380px] lg:shrink-0 overflow-y-auto px-4 py-4 space-y-4 ${isPage ? '' : 'max-h-[42vh] lg:max-h-none'}`}>
           <div>
             <p className="lg-group-title !mx-1">{t.period}</p>
-            <div className="grid grid-cols-2 gap-2">
+            {/* Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab */}
+            <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
               <label className="block">
-                <span className="px-1 text-[13px] text-[var(--lg-text-2)]">{t.from}</span>
+                <span className="label !mb-1">{t.from}</span>
                 <input
                   type="date"
                   value={range.from}
                   max={range.to}
                   onChange={e => updateRange({ from: e.target.value })}
-                  className="input mt-0.5"
+                  className="input"
                 />
               </label>
               <label className="block">
-                <span className="px-1 text-[13px] text-[var(--lg-text-2)]">{t.to}</span>
+                <span className="label !mb-1">{t.to}</span>
                 <input
                   type="date"
                   value={range.to}
                   min={range.from}
                   onChange={e => updateRange({ to: e.target.value })}
-                  className="input mt-0.5"
+                  className="input"
                 />
               </label>
             </div>
@@ -479,7 +486,8 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                 <Loader2 size={16} className="animate-spin" /> {t.loading}
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-1.5">
+              // Unter 360 px einspaltig: sonst brechen Wörter wie „Zusammenfassung" mitten im Wort
+              <div className="grid grid-cols-1 gap-1.5 min-[360px]:grid-cols-2">
                 {SECTIONS.map(s => {
                   const has = availability.get(s.id) ?? false
                   const checked = selected.has(s.id)

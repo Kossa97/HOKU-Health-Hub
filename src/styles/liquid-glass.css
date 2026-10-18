@@ -810,3 +810,80 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
   background: linear-gradient(to bottom, var(--c-bg) 0, var(--c-bg) var(--sb), transparent 100%);
   pointer-events: none;
 }
+
+/* ── Formular in Gruppen ────────────────────────────────────────────────
+   Zusammengehörige Angaben in einer Fläche, je Zeile Name links und Wert
+   rechts — wie „Daten hinzufügen" in Health. Eine Auswahl zeigt ihren Wert
+   in .lg-form-value; das echte select liegt unsichtbar über der ganzen
+   Zeile (iOS richtet den Text eines select nicht rechts aus). Felder 16 px,
+   sonst zoomt iOS heran. */
+.lg-form-group {
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--surface-input);
+  box-shadow: var(--shadow-input);
+}
+.lg-form-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding-left: 16px;
+  transition: background-color var(--t-fast);
+}
+.lg-form-row + .lg-form-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 16px 0;
+  height: 0.5px;
+  background: var(--lg-separator);
+}
+.lg-form-row:focus-within { background: var(--lg-fill); }
+/* Tastatur: deutlicher Ring wie bei allen anderen Feldern */
+.lg-form-row:has(:focus-visible) { box-shadow: inset 0 0 0 2px var(--lg-accent); }
+.lg-form-row > label { flex-shrink: 0; font-size: 17px; color: var(--lg-text); }
+.lg-form-value,
+.lg-form-row > input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16px;
+  color: var(--lg-text-2);
+  font-size: 16px;
+  text-align: right;
+}
+.lg-form-value {
+  overflow: hidden;
+  padding-right: 34px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='13' fill='none' stroke='%23ebebf5' stroke-opacity='.3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 1.5l5 5-5 5'/%3E%3C/svg%3E") no-repeat right 16px center;
+}
+.lg-form-row > select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+.lg-form-row > input {
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.lg-form-row > input::-webkit-date-and-time-value { text-align: right; }
+.lg-form-row > input::-webkit-calendar-picker-indicator { opacity: 0.4; }
+/* Schmale Geräte (iPhone SE 1. Gen.): Name über dem Wert statt daneben,
+   sonst schneidet die Zeile Datum und Uhrzeit ab */
+@media (max-width: 359px) {
+  .lg-form-row { flex-direction: column; align-items: stretch; gap: 0; padding-top: 8px; }
+  .lg-form-row > label { font-size: 13px; color: var(--lg-text-2); }
+  .lg-form-value, .lg-form-row > input { min-height: 38px; line-height: 38px; text-align: left; color: var(--lg-text); }
+  .lg-form-row > input::-webkit-date-and-time-value { text-align: left; }
+}
