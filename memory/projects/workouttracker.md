@@ -30,10 +30,23 @@
   auf Englisch zurück — wie die FAQ. Nur Kachel/Schnellzugriff in den Haupt-Locales.
 - Laufendes Training liegt lokal (übersteht App-Neustart), erst „Beenden“ schreibt.
 
+## Stand 18.10.2026
+
+v1 gebaut auf `claude/workout-tracker` (nicht gemergt). Trockenlauf der Migration
+bestanden (`scripts/sql/training.test.sql`), **in Prod noch nicht eingespielt**.
+Gerätetest `e2e/training.spec.ts` (Chromium-Profile grün, WebKit lokal nicht installiert).
+
 ## Offen
 
 | Punkt | Stand |
 |---|---|
-| Kalorientracker | nicht im Repo gefunden; GLP-1-Protein und Trainings-kcal brauchen ihn — Schnittstelle `trainingEnergyForDay` steht bereit |
+| Migration in Prod | wartet auf Zustimmung des Nutzers |
+| Kalorientracker | nicht im Repo gefunden; GLP-1-Protein (`Glp1Card avgProteinG`) und Trainings-kcal brauchen ihn — Schnittstelle `trainingEnergyForDay` (`lib/energy.ts`) steht bereit |
+| Android-Workouts | `capacitor-health-connect` 0.7 kann keine ExerciseSession lesen; anderes Plugin nötig. AndroidManifest hat bisher **keine** Health-Berechtigungen (betrifft auch Gewicht/Schritte) — bewusst nicht geändert (Play-Erklärung nötig) |
+| iOS HealthKit | Entitlement/Capability fehlt im Xcode-Projekt; Info.plist-Text nennt Workouts/Ruhepuls nicht |
+| HRV | liefert keins der Plugins; Bereitschaft nutzt Schlaf, Ruhepuls, Tagesform, Last |
+| Hevy/Strong-CSV | Formate aus Sekundärquellen; mit echten Exportdateien gegenprüfen |
+| Hyrox | Mixed Doubles fehlt (Quellen widersprüchlich); Women-Open-Wall-Balls 100 angenommen |
+| Schnellzugriff-Label | „Training starten" hart deutsch wie die übrigen Einträge in `Layout.tsx` |
 | Live Activity / Apple Watch | braucht nativen Swift-Code, v2 |
 | Auto-Progression / Deload-Vorschlag | v2 |
