@@ -1,9 +1,9 @@
-import { Copy, Plus } from 'lucide-react'
+import { ChefHat, Copy, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type LogEntry, type Meal, sumNutrients } from '../lib/nutrition'
 import { CARD, DIM, MUTED } from '../styles'
 
-export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCopyYesterday }: {
+export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCopyYesterday, onSaveAsDish }: {
   meal: Meal
   entries: LogEntry[]
   hideKcal: boolean
@@ -11,10 +11,14 @@ export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCo
   onAdd: () => void
   onOpen: (entry: LogEntry) => void
   onCopyYesterday: () => void
+  /** Diese Mahlzeit als Gericht speichern (Einträge mit Menge). */
+  onSaveAsDish: () => void
 }) {
   const { t } = useTranslation()
   const sum = sumNutrients(entries.map(e => e.nutrients))
   const headingId = `nutr-meal-${meal}`
+  // Erst ab zwei Zutaten ist es ein Gericht.
+  const canSaveAsDish = entries.filter(e => e.source !== 'quick' && e.amount).length >= 2
 
   return (
     <section aria-labelledby={headingId} className={CARD} data-meal={meal}>
@@ -52,6 +56,13 @@ export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCo
         <button type="button" onClick={onAdd} disabled={busy} className="lg-gray-btn flex-1">
           <Plus size={16} aria-hidden="true" />{t('nutr_add')}
         </button>
+        {canSaveAsDish && (
+          <button type="button" onClick={onSaveAsDish} disabled={busy} data-quiet
+            aria-label={t('nutr_save_as_dish_aria', { meal: t(`nutr_meal_${meal}`) })}
+            className="lg-gray-btn !px-3.5 !text-[13px]">
+            <ChefHat size={14} aria-hidden="true" />{t('nutr_save_as_dish')}
+          </button>
+        )}
         {entries.length === 0 && (
           <button type="button" onClick={onCopyYesterday} disabled={busy} data-quiet
             className="lg-gray-btn !px-3.5 !text-[13px]">

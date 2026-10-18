@@ -7,6 +7,7 @@ import {
   type EntrySource, type Food, type FoodUnit, type Goals, type LogEntry, type Meal, type Nutrients, type Per100,
   nutrientsFor, scaleNutrients,
 } from '../lib/nutrition'
+import { parseIngredients } from '../lib/recipe'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
 type Row = Record<string, unknown>
@@ -35,6 +36,7 @@ export function rowToEntry(r: Row): LogEntry {
 }
 
 export function rowToFood(r: Row): Food {
+  const ingredients = parseIngredients(r.ingredients)
   return {
     itemId: r.id as string,
     source: r.source as Food['source'],
@@ -49,6 +51,7 @@ export function rowToFood(r: Row): Food {
     },
     serving: r.serving_amount == null ? null : { amount: num(r.serving_amount), label: str(r.serving_label) },
     favorite: r.favorite === true,
+    recipe: ingredients?.length ? { portions: num(r.portions) || 1, ingredients } : null,
   }
 }
 
@@ -195,6 +198,8 @@ export async function saveMyFood(userId: string, food: Food): Promise<Food> {
     ...per100Columns(food.per100),
     serving_amount: food.serving?.amount ?? null, serving_label: food.serving?.label ?? null,
     favorite: food.favorite, updated_at: new Date().toISOString(),
+    // Spalten nur bei Gerichten schicken: gewöhnliche Lebensmittel brauchen sie nicht.
+    ...(food.recipe ? { ingredients: food.recipe.ingredients, portions: food.recipe.portions } : {}),
   }
   const query = food.itemId
     ? supabase.from('food_items').update(row).eq('id', food.itemId)

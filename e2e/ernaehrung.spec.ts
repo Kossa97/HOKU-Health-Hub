@@ -1,7 +1,7 @@
 import { expect, test } from './support/fixtures'
 import { TEST_USER, type MockSupabase } from './support/mockSupabase'
 
-/** Ernährung: Barcode, Häufig, Bearbeiten/Korrigieren, Löschen mit Rückgängig, Ziele. */
+/** Ernährung: Barcode, Häufig, Bearbeiten/Korrigieren, Löschen mit Rückgängig, Ziele, Gerichte. */
 
 const SKYR = {
   barcode: '4002671157751', name: 'Skyr Natur', brand: 'Ehrmann', unit: 'g',
@@ -64,7 +64,7 @@ test('Unbekannter Barcode → selbst anlegen → beim nächsten Scan kommt die e
   await page.getByLabel('Eiweiß (g)').fill('32')
   await page.getByLabel('Kohlenhydrate (g)').fill('30')
   await page.getByLabel('Fett (g)').fill('14')
-  await page.getByRole('button', { name: 'Speichern' }).click()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
 
   await expect(page.getByLabel('Menge in g')).toBeVisible()
   await page.getByLabel('Menge in g').fill('60')
@@ -133,10 +133,10 @@ test('Bearbeiten: Menge ändern skaliert den Schnappschuss, Werte korrigieren ä
   await page.getByRole('button', { name: 'Werte korrigieren' }).click()
   await expect(page.getByRole('heading', { name: 'Werte korrigieren' })).toBeVisible()
   await page.getByLabel('Kalorien (kcal)').fill('63')
-  await page.getByRole('button', { name: 'Speichern' }).click()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
 
   await page.getByLabel('Menge in g').fill('200')
-  await page.getByRole('button', { name: 'Speichern' }).click()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
 
   await expect(page.getByRole('button', { name: 'Skyr Natur bearbeiten' })).toContainText('200 g')
   await expect(page.getByRole('button', { name: 'Skyr Natur bearbeiten' })).toContainText('126')
@@ -171,10 +171,87 @@ test('Ziele: Kalorien ausblenden zeigt Eiweiß als Hauptzahl', async ({ page, mo
 
   await page.getByRole('button', { name: 'Ziele', exact: true }).click()
   await page.getByLabel('Kalorienzahlen ausblenden').check()
-  await page.getByRole('button', { name: 'Speichern' }).click()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
 
   await expect(page.getByRole('img', { name: '22 von 110 g Eiweiß' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Tagesübersicht' }).getByText('kcal')).toHaveCount(0)
   expect(mock.table('nutrition_goals')).toHaveLength(1)
   expect(mock.table('nutrition_goals')[0]).toMatchObject({ hide_kcal: true, kcal: 2000 })
+})
+
+function ownFood(mock: MockSupabase, name: string, per100: { kcal: number; protein: number; carbs: number; fat: number }) {
+  return mock.insert('food_items', {
+    user_id: TEST_USER.id, source: 'custom', source_ref: null, barcode: null, name, brand: null, unit: 'g',
+    kcal_100: per100.kcal, protein_100: per100.protein, carbs_100: per100.carbs, fat_100: per100.fat,
+    fiber_100: null, sugar_100: null, salt_100: null, serving_amount: null, serving_label: null, favorite: false,
+  })
+}
+
+test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion eintragen', async ({ page, mock }) => {
+  ownFood(mock, 'Haferflocken', { kcal: 372, protein: 13.5, carbs: 58.7, fat: 7 })
+  ownFood(mock, 'Magerquark', { kcal: 68, protein: 12, carbs: 4, fat: 0.3 })
+  await page.goto('/ernaehrung')
+
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('tab', { name: 'Gerichte' }).click()
+  await page.getByRole('button', { name: 'Neues Gericht' }).click()
+  await page.getByLabel('Name', { exact: true }).fill('Quark-Porridge')
+  await page.getByLabel('Portionen').fill('2')
+
+  for (const [name, amount] of [['Haferflocken', '80'], ['Magerquark', '250']] as const) {
+    await page.getByRole('button', { name: 'Zutat hinzufügen' }).click()
+    await page.getByRole('tab', { name: 'Meine' }).click()
+    await page.getByRole('button', { name: new RegExp(name) }).click()
+    await page.getByLabel('Menge in g').fill(amount)
+    await page.getByRole('button', { name: 'Zum Gericht' }).click()
+  }
+  // Eingaben überstehen das Zutat-Suchen; Menge lässt sich in der Liste ändern
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Quark-Porridge')
+  await page.getByLabel('Menge Magerquark in g').fill('200')
+  // je Portion: (80 g Hafer 297,6 + 200 g Quark 136) / 2
+  await expect(page.getByText('Je Portion (140 g)')).toBeVisible()
+  await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
+
+  // gleich weiter zum Eintragen, eine Portion vorgewählt
+  await expect(page.getByRole('heading', { name: 'Quark-Porridge' })).toBeVisible()
+  await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('1')
+  await page.getByRole('button', { name: '½', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(mealCard(page, 'Frühstück').getByText('Quark-Porridge')).toBeVisible()
+
+  const dish = mock.table('food_items').find(r => r.name === 'Quark-Porridge')!
+  expect(dish).toMatchObject({ portions: 2, serving_amount: 140, source: 'custom' })
+  expect((dish.ingredients as { name: string; amount: number }[]).map(i => [i.name, i.amount])).toEqual([['Haferflocken', 80], ['Magerquark', 200]])
+  const log = mock.table('food_logs')[0]
+  expect(log).toMatchObject({ food_item_id: dish.id, amount: 70 })
+  expect(Number(log.kcal)).toBeCloseTo((297.6 + 136) / 4, 0)
+
+  // Beim nächsten Mal steht es unter „Gerichte" mit Werten je Portion
+  await mealCard(page, 'Abendessen').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('tab', { name: 'Gerichte' }).click()
+  await expect(page.getByRole('button', { name: /Quark-Porridge.*2 Zutaten.*217 kcal/ })).toBeVisible()
+})
+
+test('Mahlzeit als Gericht speichern — Schnelleinträge fallen weg', async ({ page, mock }) => {
+  logEntry(mock, {})
+  logEntry(mock, { name: 'Haferflocken', brand: null, source: 'custom', source_ref: null, amount: 50, kcal: 186, protein_g: 6.8, carbs_g: 29.4, fat_g: 3.5 })
+  logEntry(mock, { name: 'Schnelleintrag', brand: null, source: 'quick', source_ref: null, amount: null, kcal: 100, protein_g: 0, carbs_g: 0, fat_g: 0 })
+  await page.goto('/ernaehrung')
+
+  await page.getByRole('button', { name: 'Frühstück als Gericht speichern' }).click()
+  await expect(page.getByRole('heading', { name: 'Neues Gericht' })).toBeVisible()
+  await expect(page.getByLabel('Menge Skyr Natur in g')).toHaveValue('200')
+  await expect(page.getByLabel('Menge Haferflocken in g')).toHaveValue('50')
+  await expect(page.getByRole('dialog').getByText('Schnelleintrag')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
+  await expect(page.getByText('Bitte Namen, Portionen und für jede Zutat eine Menge angeben.')).toBeVisible()
+  await page.getByLabel('Name', { exact: true }).fill('Mein Frühstück')
+  await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
+  await expect(page.getByText('Gericht gespeichert')).toBeVisible()
+
+  const dish = mock.table('food_items').find(r => r.name === 'Mein Frühstück')!
+  expect(dish).toMatchObject({ portions: 1, serving_amount: 250 })
+  expect(Number(dish.kcal_100)).toBeCloseTo((126 + 186) / 2.5, 0)
+  expect(mock.table('food_logs')).toHaveLength(3) // Einträge bleiben, wie sie sind
 })
