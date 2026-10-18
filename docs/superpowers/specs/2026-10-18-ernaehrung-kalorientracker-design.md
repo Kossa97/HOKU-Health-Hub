@@ -143,30 +143,52 @@ Eigene Gerichte aus mehreren Zutaten, eingetragen wie ein Lebensmittel in jede M
 
 ## 8b. Essen per Foto (Nachtrag 18.10.2026, Wunsch Nutzer: „wie Cal AI")
 
-**Entscheidung Nutzer:** Eine KI-Erkennung von Essen kann nie genau sein. Die
-KI nennt deshalb **nur die Zutaten** — keine Mengen, keine Nährwerte. Zu jeder
-Zutat wählt der Nutzer Lebensmittel und Menge selbst und bestätigt.
+**Entscheidungen Nutzer:** Eine KI-Erkennung von Essen kann nie genau sein.
+Die KI nennt deshalb **nur, was es sein kann** — keine Mengen, keine
+Nährwerte. Bei Gerichten, die man nicht sieht (Beispiel Kürbissuppe), listet
+sie die möglichen Zutaten samt Alternativen (Sahne *oder* Kokosmilch); der
+Nutzer tippt an, was er wirklich genommen hat. Eine Notiz mit dem Namen des
+Gerichts wird empfohlen, weil sie die Zutaten genauer macht.
 
-- **Ablauf:** Kamera-Knopf im Hinzufügen-Sheet → Einwilligung (einmalig) →
-  Foto aufnehmen oder wählen, optional Notiz → Prüfliste „Erkannte Zutaten"
-  (Name, „unsicher"-Marke) → Zeile antippen → gewohnte Suche, mit dem
-  Suchbegriff der KI vorbelegt (Meine, Häufig, Marken, Barcode, Neu anlegen) →
-  Menge → „Übernehmen" → zurück zur Liste. Zutaten entfernen oder ergänzen,
-  Mahlzeit wählen, „n Positionen eintragen". Zeilen ohne Lebensmittel werden
-  nicht eingetragen.
-- **Werte:** ausschließlich aus geprüften Quellen (eigene Liste, Open Food
-  Facts, später BLS) mit Schnappschuss — wie jeder andere Eintrag.
-- **Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
-  SDK, `claude-opus-5-5`, structured outputs: je Zutat `name`, kurzer `search`,
-  `confidence`; Server-Fallback bei Ablehnung). Bild vorher auf 1568 px / JPEG.
-- **Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at`
-  (Zeitpunkt setzt der Server, Widerruf im Profil), getrennt von der
-  Befund-Einwilligung. Foto wird nicht gespeichert. Notiz als eigener Block,
-  ohne Steuerzeichen; Text im Bild gilt nie als Anweisung.
-- **Kosten/Limit:** 30 Fotos je Nutzer und 24 h (`food_photo_scans`, nur
-  Zeitpunkt; erst eintragen, dann zählen). Nur Namen als Antwort → wenige Tokens.
-- **Grenze:** Generische Zutaten („Spaghetti, gekocht") finden ohne BLS oft nur
-  Markenprodukte (roh) — der BLS-Import (Etappe 1b) macht diesen Weg erst rund.
+Ablauf:
+1. **Aufnahme:** Tipp „Schreib dazu, was es ist", Notizfeld (diktieren über das
+   Mikrofon der Tastatur), Kamera / Aus Fotos / „Ohne Foto – nur aus der Beschreibung".
+2. **Auswahl:** Titel = erkanntes Gericht. Passt ein **eigenes Gericht**, steht
+   es ganz oben („mit deinen genauen Zutaten"). Ist das Foto schwer zu deuten
+   (`needs_note`: Suppe, Eintopf, Auflauf, Smoothie …), Bitte um den Namen +
+   „Mit Notiz neu erkennen" (dasselbe Foto). Zutaten in Gruppen: **Drin**
+   (sicher/üblich, vorgewählt), **„Für die Cremigkeit – was hast du genommen?"**
+   (Alternativen, nicht vorgewählt), **Vielleicht auch** (optional).
+3. **Zuordnung:** je Zutat Lebensmittel und Menge über die gewohnte Suche
+   (vorbelegt mit dem kurzen Suchbegriff der KI). Zurück zur Auswahl verliert
+   nichts. Dann „n Positionen eintragen" oder **„Als Gericht"** (Gericht-Editor
+   mit Name und Zutaten vorbelegt → Portionen → eine Portion eintragen; beim
+   nächsten Mal kommt es als eigenes Gericht zuerst).
+
+**Rezeptwissen:** Die möglichen Zutaten kommen aus dem Wissen des Modells
+(deckt sehr viele Gerichte und Varianten ab). Die eigenen Gerichte des Nutzers
+sind die genaue Schicht darüber und wachsen mit jeder Nutzung. Eine eigene
+Rezeptdatenbank ist bewusst nicht gebaut: offene Rezeptsammlungen sind meist
+nur nicht-kommerziell (z. B. RecipeNLG) oder Share-Alike lizenziert — vor einer
+Übernahme rechtlich prüfen.
+
+**Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
+SDK, `claude-opus-5-5`, structured outputs: `dish`, `needs_note`, je Zutat
+`name`, `search`, `kind` visible/usual/alternative/optional, `group`;
+Server-Fallback). Foto optional, dann ist die Notiz Pflicht. Antwort serverseitig
+geprüft (Alternative allein in ihrer Gruppe → optional, höchstens 20 Zutaten).
+
+**Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at` (Fotos *und*
+Notizen; Server stempelt; Widerruf im Profil). Foto und Notiz werden nicht
+gespeichert. Notiz als eigener Block, ohne Steuerzeichen; Text im Bild gilt nie
+als Anweisung. Keine In-App-Spracherkennung (die Web-Speech-API schickt Audio an
+Google bzw. Apple) — Diktieren über die Tastatur ist Sache des Betriebssystems.
+
+**Kosten/Limit:** 30 Erkennungen je Nutzer und 24 h (`food_photo_scans`, nur
+Zeitpunkt; erst eintragen, dann zählen). Nur Namen als Antwort → wenige Tokens.
+
+**Grenze:** Generische Zutaten finden ohne BLS oft nur Markenprodukte — der
+BLS-Import (Etappe 1b) macht die Zuordnung erst rund.
 
 ## 9. Review-Befunde (behoben vor dem ersten Commit)
 

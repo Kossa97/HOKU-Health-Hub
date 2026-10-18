@@ -1,32 +1,48 @@
 import { describe, expect, it } from 'vitest'
 import type { Food } from './nutrition'
-import { chooseFood, chosenRows, rowsFromItems } from './photoRows'
+import { candidatesFrom, chooseFood, chosenRows, groupCandidates, rowsFromSelection } from './photoRows'
 
-const quark: Food = {
-  itemId: 'q1', source: 'custom', sourceRef: null, barcode: null, name: 'Magerquark', brand: null, unit: 'g',
-  per100: { kcal: 68, protein: 12, carbs: 4, fat: 0.3, fiber: null, sugar: null, salt: null }, serving: null, favorite: false,
-}
+const food = (name: string): Food => ({
+  itemId: name, source: 'custom', sourceRef: null, barcode: null, name, brand: null, unit: 'g',
+  per100: { kcal: 100, protein: 1, carbs: 1, fat: 1, fiber: null, sugar: null, salt: null }, serving: null, favorite: false,
+})
 
-describe('photoRows', () => {
-  it('macht aus erkannten Namen offene Zeilen; „low" heißt unsicher', () => {
-    const rows = rowsFromItems([{ name: 'Magerquark, natur', search: 'Magerquark', confidence: 'high' }, { name: 'Beeren', confidence: 'low' }])
-    expect(rows).toMatchObject([
-      { name: 'Magerquark, natur', search: 'Magerquark', unsure: false, food: null, amount: null },
-      { name: 'Beeren', search: 'Beeren', unsure: true, food: null, amount: null },
-    ])
-    expect(rows[0].id).not.toBe(rows[1].id)
+const soup = candidatesFrom([
+  { name: 'Kürbis', kind: 'visible' },
+  { name: 'Zwiebel', kind: 'usual' },
+  { name: 'Sahne', kind: 'alternative', group: 'Für die Cremigkeit' },
+  { name: 'Kokosmilch', search: 'Kokosmilch', kind: 'alternative', group: 'Für die Cremigkeit' },
+  { name: 'Ingwer', kind: 'optional' },
+])
+
+describe('Auswahl', () => {
+  it('wählt Sicheres und Übliches vor, Alternativen und Optionales nicht', () => {
+    expect(soup.map(c => [c.name, c.selected])).toEqual([['Kürbis', true], ['Zwiebel', true], ['Sahne', false], ['Kokosmilch', false], ['Ingwer', false]])
+    expect(soup[0].search).toBe('Kürbis')
   })
 
-  it('setzt Lebensmittel und Menge in die gewählte Zeile oder hängt eine neue an', () => {
-    const rows = rowsFromItems([{ name: 'Quark', confidence: 'high' }, { name: 'Beeren', confidence: 'low' }])
-    const one = chooseFood(rows, 0, quark, 250)
-    expect(one[0]).toMatchObject({ name: 'Quark', food: quark, amount: 250 })
-    expect(one[1].food).toBeNull()
-    expect(chooseFood(one, null, quark, 50)).toHaveLength(3)
+  it('gruppiert Alternativen nach ihrer Rolle', () => {
+    const g = groupCandidates(soup)
+    expect(g.core.map(c => c.name)).toEqual(['Kürbis', 'Zwiebel'])
+    expect(g.groups).toEqual([{ label: 'Für die Cremigkeit', items: [soup[2], soup[3]] }])
+    expect(g.optional.map(c => c.name)).toEqual(['Ingwer'])
+  })
+})
+
+describe('Zuordnung', () => {
+  it('macht aus der Auswahl Zeilen und behält Zugeordnetes und Ergänztes beim Zurückgehen', () => {
+    const picked = soup.map(c => (c.name === 'Kokosmilch' ? { ...c, selected: true } : c))
+    let rows = rowsFromSelection(picked, null)
+    expect(rows.map(r => r.name)).toEqual(['Kürbis', 'Zwiebel', 'Kokosmilch'])
+    rows = chooseFood(rows, 0, food('Hokkaido'), 400)
+    rows = chooseFood(rows, null, food('Salz'), 2)
+    // zurück zur Auswahl, Zwiebel abwählen, wieder vor
+    const again = rowsFromSelection(picked.map(c => (c.name === 'Zwiebel' ? { ...c, selected: false } : c)), rows)
+    expect(again.map(r => [r.name, r.amount])).toEqual([['Kürbis', 400], ['Kokosmilch', null], ['Salz', 2]])
   })
 
   it('trägt nur zugeordnete Zeilen ein', () => {
-    const rows = chooseFood(rowsFromItems([{ name: 'Quark', confidence: 'high' }, { name: 'Beeren', confidence: 'low' }]), 0, quark, 250)
-    expect(chosenRows(rows)).toEqual([{ food: quark, amount: 250 }])
+    const rows = chooseFood(rowsFromSelection(soup, null), 0, food('Hokkaido'), 400)
+    expect(chosenRows(rows)).toEqual([{ food: food('Hokkaido'), amount: 400 }])
   })
 })

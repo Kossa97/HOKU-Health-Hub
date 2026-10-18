@@ -1,17 +1,19 @@
 /**
- * Essen per Foto: Bild verkleinern, an die Edge Function `food-photo` schicken
- * (die fragt Anthropic) — zurück kommen nur die Namen der erkannten Zutaten.
- * Lebensmittel, Menge und damit die Nährwerte wählt der Nutzer selbst.
+ * Essen per Foto und/oder Notiz: Bild verkleinern, an die Edge Function
+ * `food-photo` schicken (die fragt Anthropic) — zurück kommen Gericht und
+ * mögliche Zutaten, nur Namen. Lebensmittel, Menge und damit die Nährwerte
+ * wählt der Nutzer selbst.
  */
 import { supabase } from '../../../lib/supabase'
 import { prepareFile } from '../../blutwerte/lib/imageResize'
+import type { IngredientKind } from '../lib/photoRows'
 
-export interface PhotoItem {
-  /** Anzeige, z. B. „Spaghetti, gekocht". */
-  name: string
-  /** Kurzer Suchbegriff, z. B. „Spaghetti". */
-  search: string
-  confidence: 'low' | 'medium' | 'high'
+export interface MealAnalysis {
+  /** Name des Gerichts, leer bei mehreren einzelnen Lebensmitteln. */
+  dish: string
+  /** Ohne Notiz kaum zu erkennen (Suppe, Eintopf …) — die App bittet dann um den Namen. */
+  needsNote: boolean
+  ingredients: { name: string; search: string; kind: IngredientKind; group: string }[]
 }
 
 export type PhotoErrorCode = 'consent_required' | 'rate_limit' | 'not_food' | 'too_large' | 'unreadable' | 'unavailable'
@@ -38,16 +40,17 @@ async function errorFrom(context: unknown): Promise<PhotoError> {
   return new PhotoError('unavailable')
 }
 
-export async function analyzePhoto(file: File, hint: string, lang: 'de' | 'en'): Promise<PhotoItem[]> {
+/** Foto und/oder Notiz auswerten. Ohne Foto ist die Notiz Pflicht. */
+export async function analyzeMeal(file: File | null, hint: string, lang: 'de' | 'en'): Promise<MealAnalysis> {
   // Bilder, die der Browser nicht lesen kann (etwa HEIC außerhalb von Safari), gar nicht erst schicken.
-  const prepared = await prepareFile(file).catch(() => { throw new PhotoError('unreadable') })
+  const prepared = file ? await prepareFile(file).catch(() => { throw new PhotoError('unreadable') }) : null
   const { data, error } = await supabase.functions.invoke('food-photo', {
-    body: { image: prepared.base64, mimeType: prepared.mimeType, hint: hint.trim(), lang },
+    body: { ...(prepared ? { image: prepared.base64, mimeType: prepared.mimeType } : {}), hint: hint.trim(), lang },
   })
   if (error) throw await errorFrom((error as { context?: unknown }).context)
-  const items = (data as { items?: PhotoItem[] } | null)?.items
-  if (!Array.isArray(items) || !items.length) throw new PhotoError('not_food')
-  return items
+  const result = data as Partial<MealAnalysis> | null
+  if (!result || !Array.isArray(result.ingredients) || !result.ingredients.length) throw new PhotoError('not_food')
+  return { dish: result.dish ?? '', needsNote: result.needsNote === true, ingredients: result.ingredients }
 }
 
 // ─── Einwilligung (profiles.ai_food_consent_at) ─────────────────────────

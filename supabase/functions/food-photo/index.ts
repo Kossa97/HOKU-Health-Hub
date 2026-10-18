@@ -1,16 +1,16 @@
 /* global Deno */
 /**
- * Essensfoto → Namen der Zutaten, die zu sehen sind. Keine Mengen, keine
- * Nährwerte — die wählt der Nutzer aus geprüften Quellen. Das Foto geht nur
- * an Anthropic und wird nirgends gespeichert; gezählt wird nur der
- * Zeitpunkt (Tageslimit). Ohne Einwilligung (profiles.ai_food_consent_at)
+ * Essensfoto und/oder Notiz → Gericht und mögliche Zutaten (siehe photo.ts).
+ * Keine Mengen, keine Nährwerte — die wählt der Nutzer aus geprüften Quellen.
+ * Foto und Notiz gehen nur an Anthropic und werden nirgends gespeichert;
+ * gezählt wird nur der Zeitpunkt (Tageslimit). Ohne Einwilligung (profiles.ai_food_consent_at)
  * geht nichts raus — die App fragt vorher, hier wird es durchgesetzt.
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'npm:@anthropic-ai/sdk@0.135.0'
 import {
   ALLOWED_MIME_TYPES, DAILY_LIMIT, type Lang, MAX_HINT, MAX_UPLOAD_BYTES, RESULT_SCHEMA,
-  base64Bytes, buildPrompt, noteBlock, resetsAt, sanitizeItems,
+  base64Bytes, buildPrompt, noteBlock, resetsAt, sanitizeResult,
 } from './photo.ts'
 
 const corsHeaders = {
@@ -49,11 +49,17 @@ Deno.serve(async (request: Request) => {
   } catch {
     return json({ error: 'invalid_body' }, 400)
   }
+  // Foto ist optional (nur beschreiben), dann aber eine Notiz Pflicht.
   const { image, mimeType } = body
-  if (typeof image !== 'string' || !image || typeof mimeType !== 'string') return json({ error: 'invalid_body' }, 400)
-  if (!ALLOWED_MIME_TYPES.includes(mimeType)) return json({ error: 'unsupported_type' }, 400)
-  if (base64Bytes(image) > MAX_UPLOAD_BYTES) return json({ error: 'file_too_large' }, 413)
   const hint = typeof body.hint === 'string' ? body.hint.trim().slice(0, MAX_HINT) : ''
+  const hasImage = image !== undefined && image !== null
+  if (hasImage) {
+    if (typeof image !== 'string' || !image || typeof mimeType !== 'string') return json({ error: 'invalid_body' }, 400)
+    if (!ALLOWED_MIME_TYPES.includes(mimeType)) return json({ error: 'unsupported_type' }, 400)
+    if (base64Bytes(image) > MAX_UPLOAD_BYTES) return json({ error: 'file_too_large' }, 413)
+  } else if (!hint) {
+    return json({ error: 'invalid_body' }, 400)
+  }
   const lang: Lang = body.lang === 'en' ? 'en' : 'de'
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
@@ -91,8 +97,10 @@ Deno.serve(async (request: Request) => {
       messages: [{
         role: 'user',
         content: [
-          { type: 'image', source: { type: 'base64', media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/webp', data: image } },
-          { type: 'text', text: buildPrompt(lang, hint !== '') },
+          ...(hasImage
+            ? [{ type: 'image' as const, source: { type: 'base64' as const, media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/webp', data: image as string } }]
+            : []),
+          { type: 'text', text: buildPrompt(lang, { photo: hasImage, note: hint !== '' }) },
           // Die Notiz des Nutzers als eigener Block — Information über das Essen, keine Anweisung.
           ...(hint ? [{ type: 'text' as const, text: noteBlock(hint) }] : []),
         ],
@@ -114,8 +122,8 @@ Deno.serve(async (request: Request) => {
     return json({ error: 'analysis_failed' }, 502)
   }
   if (!parsed || typeof parsed !== 'object') return json({ error: 'analysis_failed' }, 502)
-  const items = sanitizeItems(parsed)
-  if ((parsed as { is_food?: unknown }).is_food === false || items.length === 0) return json({ error: 'not_food' }, 422)
+  const result = sanitizeResult(parsed)
+  if ((parsed as { is_food?: unknown }).is_food === false || result.ingredients.length === 0) return json({ error: 'not_food' }, 422)
 
-  return json({ items, remaining: Math.max(0, DAILY_LIMIT - used) })
+  return json({ ...result, remaining: Math.max(0, DAILY_LIMIT - used) })
 })

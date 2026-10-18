@@ -259,59 +259,141 @@ test('Mahlzeit als Gericht speichern — Schnelleinträge fallen weg', async ({ 
 // 1×1-PNG — die App verkleinert und schickt es als JPEG; der Mock erkennt „Spaghetti".
 const TELLER = { name: 'teller.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') }
 
-test('Essen per Foto: KI nennt nur Zutaten — Lebensmittel und Menge wählt der Nutzer, Werte aus der eigenen Liste', async ({ page, mock }) => {
-  const spaghetti = ownFood(mock, 'Spaghetti, gekocht', { kcal: 158, protein: 5.8, carbs: 31, fat: 0.9 })
-  const parmesan = ownFood(mock, 'Parmesan', { kcal: 392, protein: 36, carbs: 0, fat: 26 })
-  mock.foodPhoto.items = [
-    { name: 'Spaghetti, gekocht', search: 'Spaghetti', confidence: 'high' },
-    { name: 'Bolognese', search: 'Bolognese', confidence: 'medium' },
-    { name: 'Parmesan, gerieben', search: 'Parmesan', confidence: 'low' },
-  ]
-  await page.goto('/ernaehrung')
-  await mealCard(page, 'Abendessen').getByRole('button', { name: 'Hinzufügen' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Essen fotografieren' }).click()
+const KUERBISSUPPE = {
+  dish: 'Kürbissuppe', needsNote: true,
+  ingredients: [
+    { name: 'Kürbis (Hokkaido)', search: 'Kürbis', kind: 'visible', group: '' },
+    { name: 'Zwiebel', search: 'Zwiebel', kind: 'usual', group: '' },
+    { name: 'Gemüsebrühe', search: 'Gemüsebrühe', kind: 'usual', group: '' },
+    { name: 'Sahne', search: 'Sahne', kind: 'alternative', group: 'Für die Cremigkeit' },
+    { name: 'Kokosmilch', search: 'Kokosmilch', kind: 'alternative', group: 'Für die Cremigkeit' },
+    { name: 'Ingwer', search: 'Ingwer', kind: 'optional', group: '' },
+  ],
+}
 
-  // Ohne Einwilligung geht kein Foto raus
+async function openPhoto(page: import('@playwright/test').Page, meal: string) {
+  await mealCard(page, meal).getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Essen fotografieren' }).click()
+}
+
+test('Essen per Foto: Suppe → Notiz nachreichen → antippen, was drin war (Kokosmilch statt Sahne) → Lebensmittel und Menge wählen', async ({ page, mock }) => {
+  const kuerbis = ownFood(mock, 'Hokkaido-Kürbis', { kcal: 63, protein: 1.7, carbs: 12.6, fat: 0.6 })
+  const kokos = ownFood(mock, 'Kokosmilch', { kcal: 197, protein: 2, carbs: 3, fat: 20 })
+  mock.foodPhoto.result = KUERBISSUPPE
+  await page.goto('/ernaehrung')
+  await openPhoto(page, 'Mittagessen')
+
+  // Ohne Einwilligung geht nichts raus
   const accept = page.getByRole('button', { name: 'Einwilligen und weiter' })
   await expect(accept).toBeDisabled()
   await page.getByText('Ich willige ausdrücklich ein').click()
   await accept.click()
   await expect.poll(() => mock.table('profiles').find(r => r.id === TEST_USER.id)?.ai_food_consent_at).toBeTruthy()
 
-  await page.getByLabel('Notiz (optional)').fill('mit Olivenöl')
+  // Notiz wird empfohlen; erst ohne fotografiert
+  await expect(page.getByText('Schreib dazu, was es ist')).toBeVisible()
   await page.locator('[data-photo-gallery]').setInputFiles(TELLER)
-  await expect(page.getByRole('heading', { name: 'Erkannte Zutaten' })).toBeVisible()
-  expect(mock.foodPhoto.calls).toEqual([{ mimeType: 'image/jpeg', hint: 'mit Olivenöl', lang: 'de' }])
-  await expect(page.getByText('unsicher')).toBeVisible() // Parmesan: KI ist sich nicht sicher
-  // Noch nichts gewählt → nichts einzutragen
-  await expect(page.getByRole('button', { name: 'Erst Lebensmittel wählen' })).toBeDisabled()
+  await expect(page.getByRole('heading', { name: 'Kürbissuppe' })).toBeVisible()
 
-  // Zeile antippen → Suche mit dem erkannten Namen → eigenes Lebensmittel → Menge → zurück zur Liste
-  await page.getByRole('button', { name: 'Lebensmittel für Spaghetti, gekocht wählen' }).click()
-  await expect(page.getByLabel('Lebensmittel suchen')).toHaveValue('Spaghetti')
-  await page.getByRole('button', { name: /Spaghetti, gekocht/ }).first().click()
+  // Suppe: schwer zu sehen → Notiz nachreichen und mit demselben Foto neu erkennen
+  await expect(page.locator('[data-photo-needs-note]')).toBeVisible()
+  await page.locator('#nutr-photo-hint-again').fill('Kürbissuppe mit Kokosmilch')
+  mock.foodPhoto.result = { ...KUERBISSUPPE, needsNote: false }
+  await page.getByRole('button', { name: 'Mit Notiz neu erkennen' }).click()
+  await expect(page.locator('[data-photo-needs-note]')).toHaveCount(0)
+  expect(mock.foodPhoto.calls).toEqual([
+    { mimeType: 'image/jpeg', hint: '', lang: 'de' },
+    { mimeType: 'image/jpeg', hint: 'Kürbissuppe mit Kokosmilch', lang: 'de' },
+  ])
+
+  // Auswahl: Sicheres/Übliches vorgewählt, Alternativen nicht
+  await expect(page.getByLabel('Kürbis (Hokkaido)')).toBeChecked()
+  await expect(page.getByLabel('Sahne')).not.toBeChecked()
+  await expect(page.getByText('Für die Cremigkeit – was hast du genommen?')).toBeVisible()
+  await page.getByLabel('Kokosmilch').check()
+  await page.getByLabel('Gemüsebrühe').uncheck()
+  await page.getByRole('button', { name: 'Weiter mit 3 Zutaten' }).click()
+
+  // Zuordnung: Suche mit dem Suchbegriff der KI vorbelegt
+  await page.getByRole('button', { name: 'Lebensmittel für Kürbis (Hokkaido) wählen' }).click()
+  await expect(page.getByLabel('Lebensmittel suchen')).toHaveValue('Kürbis')
+  await page.getByRole('button', { name: /Hokkaido-Kürbis/ }).click()
   await page.getByLabel('Menge in g').fill('300')
   await page.getByRole('button', { name: 'Übernehmen' }).click()
-  await expect(page.getByRole('button', { name: 'Spaghetti, gekocht ändern' })).toContainText('300 g · 474 kcal')
+  await expect(page.getByRole('button', { name: 'Hokkaido-Kürbis ändern' })).toContainText('300 g · 189 kcal')
 
-  await page.getByRole('button', { name: 'Lebensmittel für Parmesan, gerieben wählen' }).click()
-  await page.getByRole('button', { name: /Parmesan/ }).first().click()
-  await page.getByLabel('Menge in g').fill('10')
+  // Zurück zur Auswahl und wieder vor: nichts geht verloren
+  await page.getByRole('button', { name: 'Auswahl' }).click()
+  await page.getByRole('button', { name: 'Weiter mit 3 Zutaten' }).click()
+  await expect(page.getByRole('button', { name: 'Hokkaido-Kürbis ändern' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Lebensmittel für Kokosmilch wählen' }).click()
+  await page.getByRole('button', { name: /Kokosmilch/ }).first().click()
+  await page.getByLabel('Menge in g').fill('100')
   await page.getByRole('button', { name: 'Übernehmen' }).click()
 
-  await expect(page.getByText('1 Zutat ohne Lebensmittel wird nicht eingetragen.')).toBeVisible()
-  await page.getByRole('button', { name: 'Bolognese entfernen' }).click()
+  await expect(page.getByText('1 Zutat ohne Lebensmittel wird nicht eingetragen.')).toBeVisible() // Zwiebel offen
   await page.getByRole('button', { name: '2 Positionen eintragen' }).click()
-
-  await expect(mealCard(page, 'Abendessen').getByText('Spaghetti, gekocht')).toBeVisible()
   await expect(page.getByText('2 Positionen eingetragen')).toBeVisible()
-  const logs = mock.table('food_logs')
-  expect(logs.map(r => [r.name, r.amount, r.meal, r.food_item_id])).toEqual([
-    ['Spaghetti, gekocht', 300, 'dinner', spaghetti.id],
-    ['Parmesan', 10, 'dinner', parmesan.id],
+  expect(mock.table('food_logs').map(r => [r.name, r.amount, r.meal, r.food_item_id])).toEqual([
+    ['Hokkaido-Kürbis', 300, 'lunch', kuerbis.id],
+    ['Kokosmilch', 100, 'lunch', kokos.id],
   ])
-  // Werte aus der eigenen Liste, nicht aus der KI
-  expect(Number(logs[0].kcal)).toBe(474)
+})
+
+test('Essen per Foto: ohne Foto beschreiben → eigenes Gericht kommt zuerst', async ({ page, mock }) => {
+  mock.table('profiles').find(r => r.id === TEST_USER.id)!.ai_food_consent_at = '2026-10-01T10:00:00Z'
+  const dish = mock.insert('food_items', {
+    user_id: TEST_USER.id, source: 'custom', source_ref: null, barcode: null, name: 'Kürbissuppe (meine)', brand: null, unit: 'g',
+    kcal_100: 70, protein_100: 1.2, carbs_100: 6, fat_100: 4.5, fiber_100: null, sugar_100: null, salt_100: null,
+    serving_amount: 350, serving_label: null, favorite: false, portions: 3,
+    ingredients: [{ name: 'Hokkaido-Kürbis', brand: null, source: 'custom', sourceRef: null, unit: 'g', amount: 800, per100: { kcal: 63, protein: 1.7, carbs: 12.6, fat: 0.6 } }],
+  })
+  mock.foodPhoto.result = { ...KUERBISSUPPE, needsNote: false }
+  await page.goto('/ernaehrung')
+  await openPhoto(page, 'Abendessen')
+
+  const textOnly = page.getByRole('button', { name: 'Ohne Foto – nur aus der Beschreibung' })
+  await expect(textOnly).toBeDisabled()
+  await page.getByLabel('Was ist es? (empfohlen)').fill('Kürbissuppe')
+  await textOnly.click()
+  expect(mock.foodPhoto.calls).toEqual([{ mimeType: null, hint: 'Kürbissuppe', lang: 'de' }])
+
+  await page.getByRole('button', { name: /Dein Gericht „Kürbissuppe \(meine\)" eintragen/ }).click()
+  await expect(page.getByLabel(/Portionen \(1 Portion = 350 g\)/)).toHaveValue('1')
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(mealCard(page, 'Abendessen').getByText('Kürbissuppe (meine)')).toBeVisible()
+  expect(mock.table('food_logs')[0]).toMatchObject({ food_item_id: dish.id, amount: 350 })
+})
+
+test('Essen per Foto: zugeordnete Zutaten als Gericht speichern', async ({ page, mock }) => {
+  mock.table('profiles').find(r => r.id === TEST_USER.id)!.ai_food_consent_at = '2026-10-01T10:00:00Z'
+  ownFood(mock, 'Hokkaido-Kürbis', { kcal: 63, protein: 1.7, carbs: 12.6, fat: 0.6 })
+  ownFood(mock, 'Kokosmilch', { kcal: 197, protein: 2, carbs: 3, fat: 20 })
+  mock.foodPhoto.result = { ...KUERBISSUPPE, needsNote: false }
+  await page.goto('/ernaehrung')
+  await openPhoto(page, 'Abendessen')
+  await page.getByLabel('Was ist es? (empfohlen)').fill('Kürbissuppe')
+  await page.getByRole('button', { name: 'Ohne Foto – nur aus der Beschreibung' }).click()
+  await page.getByLabel('Zwiebel').uncheck()
+  await page.getByLabel('Gemüsebrühe').uncheck()
+  await page.getByLabel('Kokosmilch').check()
+  await page.getByRole('button', { name: 'Weiter mit 2 Zutaten' }).click()
+  for (const [row, food, amount] of [['Kürbis (Hokkaido)', /Hokkaido-Kürbis/, '800'], ['Kokosmilch', /Kokosmilch/, '400']] as const) {
+    await page.getByRole('button', { name: `Lebensmittel für ${row} wählen` }).click()
+    await page.getByRole('button', { name: food }).first().click()
+    await page.getByLabel('Menge in g').fill(amount)
+    await page.getByRole('button', { name: 'Übernehmen' }).click()
+  }
+  await page.getByRole('button', { name: 'Als Gericht' }).click()
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Kürbissuppe')
+  await page.getByLabel('Portionen').fill('4')
+  await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+
+  const saved = mock.table('food_items').find(r => r.name === 'Kürbissuppe')!
+  expect(saved).toMatchObject({ portions: 4, serving_amount: 300 })
+  expect(mock.table('food_logs')[0]).toMatchObject({ food_item_id: saved.id, amount: 300, meal: 'dinner' })
 })
 
 test('Essen per Foto: kein Essen erkannt → verständlicher Hinweis, nichts eingetragen', async ({ page, mock }) => {
