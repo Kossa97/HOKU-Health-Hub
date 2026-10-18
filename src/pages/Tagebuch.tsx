@@ -29,9 +29,11 @@ interface Effect {
 interface StackItem { id: string; display_name: string }
 
 const SEVERITY_COLORS: Record<number, string> = {
-  1: 'text-emerald-400', 2: 'text-lime-400', 3: 'text-amber-400',
-  4: 'text-orange-400', 5: 'text-red-400',
+  1: 'text-[var(--lg-good-text)]', 2: 'text-[var(--lg-good-text)]', 3: 'text-[var(--lg-warn-text)]',
+  4: 'text-[var(--lg-warn-text)]', 5: 'text-[var(--lg-bad-text)]',
 }
+/** Fest gefülltes Sheet: Weichzeichner stört das Scrollen in iOS Safari */
+const SHEET_BG = '#1c1c1e'
 
 export function Tagebuch() {
   const { user } = useAuth()
@@ -221,21 +223,21 @@ export function Tagebuch() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">{t('tagebuch_title')}</h1>
-        <button type="button" className="btn-primary flex items-center gap-2"
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h1 className="lg-large-title min-w-0 truncate">{t('tagebuch_title')}</h1>
+        <button type="button" className="lg-btn lg-btn-tint lg-btn-compact shrink-0"
           onClick={() => { resetForm(); setShowForm(true) }}>
           <Plus size={16} aria-hidden="true" /> {t('new')}
         </button>
       </div>
 
-      <div className="flex border-b border-slate-800 mb-4" role="tablist" aria-label={t('tagebuch_title')}>
+      <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5 mb-4" role="tablist" aria-label={t('tagebuch_title')}>
         {(['liste', 'auswertung'] as const).map(key => (
           <button key={key} type="button" role="tab" id={`tagebuch-tab-${key}`}
             aria-selected={view === key} aria-controls={`tagebuch-panel-${key}`}
             onClick={() => setView(key)}
-            className={`flex-1 -mb-px border-b-2 py-2 text-sm font-medium transition-colors ${
-              view === key ? 'border-sky-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'
+            className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+              view === key ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'
             }`}>
             {t(key === 'liste' ? 'tagebuch_tab_liste' : 'tagebuch_tab_auswertung')}
           </button>
@@ -249,12 +251,12 @@ export function Tagebuch() {
       ) : (
       <div role="tabpanel" id="tagebuch-panel-liste" aria-labelledby="tagebuch-tab-liste">
       {/* Filter */}
-      <div className="flex bg-slate-900 border border-slate-800 rounded-lg p-1 mb-4 gap-1">
+      <div className="flex gap-2 mb-3 overflow-x-auto [scrollbar-width:none]">
         {([['all', t('alle')], ['effect', t('wirkungen')], ['side_effect', t('nebenwirkungen')]] as const).map(([val, label]) => (
           <button key={val} type="button" aria-pressed={filter === val}
             onClick={() => { setFilter(val as typeof filter); setLimit(PAGE_SIZE) }}
-            className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              filter === val ? 'bg-sky-500 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`shrink-0 min-h-9 rounded-full px-3.5 text-[14px] font-medium transition-colors ${
+              filter === val ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
             }`}>
             {label}
           </button>
@@ -264,11 +266,11 @@ export function Tagebuch() {
       {/* Suche + Sortierung */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search size={14} aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-          <input className="input pl-9 text-sm" type="search" aria-label={t('suchen_placeholder')} placeholder={t('suchen_placeholder')}
+          <Search size={16} aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
+          <input className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" type="search" aria-label={t('suchen_placeholder')} placeholder={t('suchen_placeholder')}
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="select text-sm shrink-0 w-auto pr-8" value={sortBy} aria-label={t('tagebuch_sortierung')}
+        <select className="min-h-11 shrink-0 cursor-pointer rounded-full border-0 bg-[var(--lg-fill)] pl-3.5 pr-8 text-[15px] text-[var(--lg-text)]" value={sortBy} aria-label={t('tagebuch_sortierung')}
           onChange={e => { setSortBy(e.target.value as SortBy); setLimit(PAGE_SIZE) }}>
           <option value="date_new">{t('neueste')}</option>
           <option value="date_old">{t('aelteste')}</option>
@@ -278,14 +280,14 @@ export function Tagebuch() {
       </div>
 
       {loadError ? (
-        <div className="card text-center py-10 text-slate-500" role="alert">
-          <AlertTriangle size={32} className="mx-auto mb-2 text-amber-400 opacity-70" />
+        <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]" role="alert">
+          <AlertTriangle size={30} className="mx-auto mb-2 text-[var(--lg-warn-text)]" />
           <p>{t('tagebuch_load_error')}</p>
-          <button type="button" className="btn-secondary mt-4" onClick={reload}>{t('lab_retry')}</button>
+          <button type="button" data-quiet className="lg-gray-btn mx-auto mt-4" onClick={reload}>{t('lab_retry')}</button>
         </div>
       ) : loaded && effects.length === 0 && (
-        <div className="card text-center py-10 text-slate-500">
-          <BookHeart size={32} aria-hidden="true" className="mx-auto mb-2 opacity-40" />
+        <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]">
+          <BookHeart size={30} aria-hidden="true" className="mx-auto mb-2 text-[var(--lg-text-3)]" />
           <p>{debouncedSearch ? t('nichts_gefunden', { search: debouncedSearch }) : t('noch_keine_eintraege')}</p>
         </div>
       )}
@@ -293,30 +295,28 @@ export function Tagebuch() {
       {/* ── Eintrags-Liste ──────────────────────────────────────────────────── */}
       <ul className="space-y-3">
         {effects.map(e => (
-          <li key={e.id} className={`card border ${
-            e.type === 'effect' ? 'border-emerald-500/20' : 'border-amber-500/20'
-          }`}>
+          <li key={e.id} className="lg-surface lg-flat !rounded-[22px] py-3.5 pl-4 pr-2">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 {/* Typ + Intensität */}
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   {e.type === 'effect'
-                    ? <Zap size={13} aria-hidden="true" className="text-emerald-400 shrink-0" />
-                    : <AlertTriangle size={13} aria-hidden="true" className="text-amber-400 shrink-0" />}
-                  <span className={`text-xs font-medium ${e.type === 'effect' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    ? <Zap size={14} aria-hidden="true" className="text-[var(--lg-good-text)] shrink-0" />
+                    : <AlertTriangle size={14} aria-hidden="true" className="text-[var(--lg-warn-text)] shrink-0" />}
+                  <span className={`text-[13px] font-medium ${e.type === 'effect' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}`}>
                     {e.type === 'effect' ? t('wirkung') : t('nebenwirkung')}
                   </span>
-                  <span className={`text-xs font-medium ml-auto ${SEVERITY_COLORS[e.severity]}`}>
+                  <span className={`text-[13px] font-medium ml-auto ${SEVERITY_COLORS[e.severity]}`}>
                     {severityLabel(e.severity)}
                   </span>
                 </div>
 
-                <p className="text-white font-medium">{e.description}</p>
+                <p className="text-[17px] font-semibold text-[var(--lg-text)]">{e.description}</p>
 
                 {/* Meta */}
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-slate-500 text-xs">
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[var(--lg-text-2)] text-[13px]">
                   <span>{format(new Date(e.occurred_at), 'dd.MM.yyyy HH:mm', { locale })}</span>
-                  {e.stack_items && <span className="text-sky-400">{e.stack_items.display_name}</span>}
+                  {e.stack_items && <span className="text-[var(--lg-accent-text)]">{e.stack_items.display_name}</span>}
                   {e.dose_logs && (() => {
                     const gap = intakeGap(e.dose_logs.logged_at, e.occurred_at, t)
                     const dose = intakeDose(e.dose_logs, i18n.language)
@@ -332,17 +332,17 @@ export function Tagebuch() {
                   )}
                 </div>
 
-                {e.notes && <p className="text-slate-500 text-xs mt-1">{e.notes}</p>}
+                {e.notes && <p className="text-[var(--lg-text-2)] text-[14px] mt-1">{e.notes}</p>}
               </div>
 
               <div className="flex shrink-0">
                 <button type="button" aria-label={t('tagebuch_eintrag_bearbeiten')}
-                  className="p-1.5 text-slate-500 hover:text-sky-400 transition-colors"
+                  className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-accent-text)]"
                   onClick={() => openEdit(e)}>
                   <Pencil size={15} aria-hidden="true" />
                 </button>
                 <button type="button" aria-label={t('eintrag_loeschen')}
-                  className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                  className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-bad-text)]"
                   onClick={() => setDeleting(e)}>
                   <Trash2 size={15} aria-hidden="true" />
                 </button>
@@ -353,7 +353,7 @@ export function Tagebuch() {
       </ul>
 
       {hasMore && !loadError && (
-        <button type="button" className="btn-secondary w-full mt-4" onClick={() => setLimit(n => n + PAGE_SIZE)}>
+        <button type="button" data-quiet className="lg-gray-btn w-full mt-4" onClick={() => setLimit(n => n + PAGE_SIZE)}>
           {t('tagebuch_mehr_laden')}
         </button>
       )}
@@ -362,26 +362,28 @@ export function Tagebuch() {
 
       {/* ══ FORMULAR ══════════════════════════════════════════════════════════ */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" data-app-modal data-app-back-dirty-on-interaction
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-dirty-on-interaction
           onClick={dismissForm}>
           <div role="dialog" aria-modal="true" aria-labelledby="tagebuch-form-title"
-            className="bg-slate-900 rounded-t-2xl w-full max-w-lg px-6 pt-6 space-y-4
-            overflow-y-auto max-h-[92vh] scroll-pb-28" onClick={e => e.stopPropagation()}
+            className="lg-sheet w-full max-w-lg px-5 pt-2 space-y-4
+            overflow-y-auto overscroll-contain max-h-[90vh] scroll-pb-28" onClick={e => e.stopPropagation()}
+            style={{ background: SHEET_BG, WebkitBackdropFilter: 'none', backdropFilter: 'none' }}
             onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); dismissForm() } }}>
-            <h2 id="tagebuch-form-title" className="text-lg font-bold">{t(editingId ? 'tagebuch_eintrag_bearbeiten' : 'neuer_tagebuch_eintrag')}</h2>
+            <span className="lg-grabber !mb-1" aria-hidden="true" />
+            <h2 id="tagebuch-form-title" className="lg-title2">{t(editingId ? 'tagebuch_eintrag_bearbeiten' : 'neuer_tagebuch_eintrag')}</h2>
 
             {/* 1. Wirkung / Nebenwirkung */}
-            <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
+            <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5">
               <button type="button" aria-pressed={form.type === 'effect'}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  form.type === 'effect' ? 'bg-emerald-500 text-white' : 'text-slate-400'
+                className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+                  form.type === 'effect' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-good-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'
                 }`}
                 onClick={() => setForm(f => ({ ...f, type: 'effect' }))}>
                 {t('wirkung')}
               </button>
               <button type="button" aria-pressed={form.type === 'side_effect'}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  form.type === 'side_effect' ? 'bg-amber-500 text-white' : 'text-slate-400'
+                className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+                  form.type === 'side_effect' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-warn-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'
                 }`}
                 onClick={() => setForm(f => ({ ...f, type: 'side_effect' }))}>
                 {t('nebenwirkung')}
@@ -410,21 +412,21 @@ export function Tagebuch() {
             {/* 4. Intensität — fünf Stufen; native Radios: Pfeiltasten funktionieren von selbst */}
             <fieldset>
               <legend className="label">{t('tagebuch_intensitaet')}</legend>
-              <p className="-mt-1 mb-2 text-sm text-slate-300" aria-hidden="true">{severityLabel(form.severity)}</p>
-              <div className="grid grid-cols-5 gap-1.5">
+              <p className="-mt-1 mb-2 text-sm text-[var(--lg-text)]" aria-hidden="true">{severityLabel(form.severity)}</p>
+              <div className="grid grid-cols-5 rounded-full bg-[var(--lg-fill)] p-0.5">
                 {[1, 2, 3, 4, 5].map(level => (
                   <label key={level} className="cursor-pointer">
                     <input type="radio" name="tagebuch-intensitaet" value={level} className="peer sr-only"
                       checked={form.severity === level} aria-label={`${level} – ${severityLabel(level)}`}
                       onChange={() => setForm(f => ({ ...f, severity: level }))} />
-                    <span aria-hidden="true" className="flex h-10 items-center justify-center rounded-lg bg-slate-800 text-sm font-semibold text-slate-400
-                      transition-colors peer-checked:bg-sky-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-sky-400">
+                    <span aria-hidden="true" className="flex h-9 items-center justify-center rounded-full text-[15px] font-semibold text-[var(--lg-text-2)]
+                      transition-colors peer-checked:bg-[var(--lg-fill-selected)] peer-checked:text-[var(--lg-text)] peer-checked:shadow-[0_3px_8px_rgba(0,0,0,0.25)] peer-focus-visible:ring-2 peer-focus-visible:ring-sky-400">
                       {level}
                     </span>
                   </label>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-slate-500 mt-1" aria-hidden="true">
+              <div className="flex justify-between text-xs text-[var(--lg-text-3)] mt-1.5 px-1" aria-hidden="true">
                 <span>{t('sehr_leicht')}</span><span>{t('sehr_stark')}</span>
               </div>
             </fieldset>
@@ -451,7 +453,7 @@ export function Tagebuch() {
                     ))}
                   </select>
                 ) : (
-                  <p id="tagebuch-einnahme" className="text-xs text-slate-500">{t('tagebuch_einnahme_leer')}</p>
+                  <p id="tagebuch-einnahme" className="text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
                 )}
               </div>
             )}
@@ -463,18 +465,18 @@ export function Tagebuch() {
                 {DURATION_KEYS.map(key => (
                   <button key={key} type="button" aria-pressed={form.duration === key && !customDuration}
                     onClick={() => { setForm(f => ({ ...f, duration: key })); setCustomDuration(false) }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`min-h-9 px-3.5 rounded-full text-[14px] font-medium transition-colors ${
                       form.duration === key && !customDuration
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]'
+                        : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
                     }`}>
                     {t(key)}
                   </button>
                 ))}
                 <button type="button" aria-pressed={customDuration}
                   onClick={() => { setCustomDuration(true); setForm(f => ({ ...f, duration: '' })) }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    customDuration ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  className={`min-h-9 px-3.5 rounded-full text-[14px] font-medium transition-colors ${
+                    customDuration ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
                   }`}>
                   {t('individuell')}
                 </button>
@@ -494,9 +496,9 @@ export function Tagebuch() {
             </div>
 
             {/* Bleibt unten stehen — Speichern ist ohne Scrollen erreichbar */}
-            <div className="sticky bottom-0 -mx-6 flex gap-3 border-t border-slate-800 bg-slate-900 px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-              <button type="button" className="btn-secondary flex-1" data-app-back-close onClick={closeForm}>{t('cancel')}</button>
-              <button type="button" className="btn-primary flex-1" onClick={save} disabled={saving}>
+            <div className="sticky bottom-0 -mx-5 flex gap-3 px-5 pt-3 pb-5" style={{ background: SHEET_BG }}>
+              <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" data-app-back-close onClick={closeForm}>{t('cancel')}</button>
+              <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4 disabled:opacity-40" onClick={save} disabled={saving}>
                 {saving ? t('saving') : t('save')}
               </button>
             </div>
@@ -506,13 +508,13 @@ export function Tagebuch() {
 
       {deleting && (
         <Sheet labelledBy="tagebuch-delete-title" busy={deleteBusy} onClose={() => setDeleting(null)} role="alertdialog" data-tagebuch-delete-sheet>
-          <h2 id="tagebuch-delete-title" className="text-lg font-bold text-white">{t('eintrag_loeschen')}</h2>
-          <p className="mt-2 break-words text-sm text-slate-400">{deleting.description}</p>
+          <h2 id="tagebuch-delete-title" className="lg-title2">{t('eintrag_loeschen')}</h2>
+          <p className="mt-1 break-words text-[15px] text-[var(--lg-text-2)]">{deleting.description}</p>
           <div className="mt-5 flex gap-2">
-            <button type="button" autoFocus data-app-back-close disabled={deleteBusy} onClick={() => setDeleting(null)} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 disabled:opacity-50">
+            <button type="button" autoFocus data-app-back-close disabled={deleteBusy} onClick={() => setDeleting(null)} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
               {t('cancel')}
             </button>
-            <button type="button" disabled={deleteBusy} onClick={remove} className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-50">
+            <button type="button" disabled={deleteBusy} onClick={remove} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
               {t('delete')}
             </button>
           </div>
