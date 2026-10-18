@@ -32,7 +32,7 @@
 
 ## Stand 18.10.2026
 
-v1 gebaut auf `claude/workout-tracker` (nicht gemergt). Trockenlauf der Migration
+v1 auf `main` (PR #27, Merge 6522945, 18.10.2026). Trockenlauf der Migration
 bestanden (`scripts/sql/training.test.sql`). **In Prod eingespielt am 18.10.2026** (Migration `training_workout_tracker`): 4 Tabellen, 4× RLS, 16 Policies, 0 Zeilen; Security-Advisor ohne neuen Befund. Konto löschen erfasst die Tabellen per `on delete cascade` an `auth.users`.
 Gerätetest `e2e/training.spec.ts` (Chromium-Profile grün, WebKit lokal nicht installiert).
 
