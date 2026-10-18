@@ -20,9 +20,8 @@ import {
 import { debitPeptideStockForDoseById as debitVialStockForDoseById } from '../features/my-stack/extensions/peptide/vialStock'
 import type { InjectionLog3D, InjectionPinDraft, SelectableInjectionCycle } from './injectionLogTypes'
 import { istSlotSchluessel } from '../features/routines/lib/slotKey'
+import { INJECTABLE_METHODS, isInjectableMethod } from './injectionDeepLink'
 
-const INJECTABLE_METHODS = ['Subkutan', 'IntramuskulÃ¤r', 'Intramuskulaer']
-const NORMALIZED_INJECTABLE_METHODS = [...INJECTABLE_METHODS, 'Intramuskulär']
 
 interface SaveInjectionInput {
   userId: string
@@ -382,7 +381,14 @@ function openIntakeSlotKey(open: { stackItemId: string; dateKey: string; minutes
   return `${open.stackItemId}|${open.dateKey}|${open.minutes}`
 }
 
-export function injectionIntakeLookbackStart(now: Date, lookbackDays = 90): Date {
+/**
+ * Wie weit offene und bestaetigte Einnahmen ohne Stelle zurueckreichen
+ * („Alle“ in der Einnahmenliste). Gespeicherte Injektionen sind davon nicht
+ * betroffen.
+ */
+export const INJECTION_INTAKE_LOOKBACK_DAYS = 90
+
+export function injectionIntakeLookbackStart(now: Date, lookbackDays = INJECTION_INTAKE_LOOKBACK_DAYS): Date {
   return startOfDay(subDays(now, lookbackDays))
 }
 export function buildSelectableInjectionIntakes({
@@ -391,7 +397,7 @@ export function buildSelectableInjectionIntakes({
   linkedDoseLogIds,
   escalations,
   now,
-  lookbackDays = 90,
+  lookbackDays = INJECTION_INTAKE_LOOKBACK_DAYS,
   timelines,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: {
@@ -460,10 +466,10 @@ export function buildSelectableInjectionIntakes({
     const stackItemCycles = cycles.filter(cycle => cycle.stack_item_id === log.stack_item_id)
     const cycle = stackItemCycles.find(candidate => cycleAppliesToDay(candidate, day)) ?? stackItemCycles[0]
     const logStackItem = Array.isArray(log.stack_items) ? log.stack_items[0] : log.stack_items
-    const resolvedMethod = INJECTABLE_METHODS.includes(log.method)
+    const resolvedMethod = isInjectableMethod(log.method)
       ? log.method
       : cycle?.method || logStackItem?.default_method || ''
-    if (!INJECTABLE_METHODS.includes(resolvedMethod)) return []
+    if (!isInjectableMethod(resolvedMethod)) return []
 
     const dose = injectionDoseValue(log.dose)
     if (dose == null || !log.unit?.trim()) return []
@@ -509,7 +515,7 @@ function buildTimelineInjectionIntakes(
       const dose = log ? injectionDoseValue(log.dose) : occurrence.dose
       const unit = log ? log.unit : occurrence.unit
       const method = log ? log.method : occurrence.method
-      if (dose == null || !unit?.trim() || !NORMALIZED_INJECTABLE_METHODS.includes(method)) continue
+      if (dose == null || !unit?.trim() || !isInjectableMethod(method)) continue
       const cycle = cycles.find(row => row.id === occurrence.cycleId)
       result.push({ cycleId: occurrence.cycleId, planVersionId: log?.plan_version_id ?? occurrence.planVersionId,
         routineSlotKey: occurrence.routineSlotKey, stackItemId: occurrence.stackItemId,
@@ -531,7 +537,7 @@ function buildTimelineInjectionIntakes(
     const item = Array.isArray(log.stack_items) ? log.stack_items[0] : log.stack_items
     const method = exact ? log.method : log.method || item?.default_method || ''
     const dose = injectionDoseValue(log.dose)
-    if (dose == null || !log.unit?.trim() || !NORMALIZED_INJECTABLE_METHODS.includes(method)) continue
+    if (dose == null || !log.unit?.trim() || !isInjectableMethod(method)) continue
     result.push({ cycleId, planVersionId: log.plan_version_id ?? null, routineSlotKey: log.routine_slot_key ?? null,
       stackItemId: log.stack_item_id, stackItemName: item?.display_name ?? stackItemName(cycle), cycleName: cycleName(cycle),
       dose, unit: log.unit, method, scheduledAt: log.logged_at,

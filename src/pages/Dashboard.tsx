@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -11,7 +12,7 @@ import {
 } from 'date-fns'
 import {
   AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
-  Moon, Pin, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  Layers, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -48,6 +49,16 @@ import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
 import { slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
 import {
+  bundleDueIntakes,
+  deleteIntakeBundle,
+  liveBundleItemIds,
+  loadIntakeBundles,
+  saveIntakeBundle,
+  type IntakeBundle,
+  type IntakeBundleClient,
+} from '../features/routines/bundles/intakeBundles'
+import { IntakeBundleSheet } from '../features/routines/bundles/IntakeBundleSheet'
+import {
   applyInventoryConfirmation,
   InventoryConfirmationError,
   reverseInventoryConfirmation,
@@ -55,6 +66,7 @@ import {
 import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDeepLink'
 import { PageShell } from '../components/ui/DesignSystem'
 import { EinnahmenUmriss, Silhouette } from '../components/ui/Silhouette'
+import { useSheetClose } from '../lib/useSheetClose'
 import { denyProps } from '../lib/denyFeedback'
 
 interface DoseLog {
@@ -286,6 +298,13 @@ function cycleLogTimestamp(cycle: Cycle, day: Date): string {
 
 // Minimum horizontal swipe distance to trigger month change
 const SWIPE_THRESHOLD = 80
+// Ab diesem Tempo (px/ms) am ENDE der Geste blaettert auch ein kurzer Wisch.
+// Gemessen ueber die letzten Bewegungen, nicht ueber die ganze Geste: ein
+// langsames Abdriften beim Scrollen ist kein Schnippen.
+const SWIPE_VELOCITY = 0.3
+const SWIPE_FLICK_MIN = 30
+// Dauer, mit der die Nachbarwoche ins Bild gleitet oder zurueckfedert.
+const WISCH_MS = 240
 
 interface DashboardProps {
   dashboardDataClient?: typeof supabase
@@ -352,7 +371,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Einnahme-Bestätigungs-Sheet
   interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<RoutineGroupModel | null>(null)
+  const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
+  // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string }) | null>(null)
+  const [bundles, setBundles] = useState<IntakeBundle[]>([])
+  // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
+  const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
   const [confirmTime, setConfirmTime]   = useState('')
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
@@ -382,11 +406,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
+  const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
   const monatsKnopf = useRef<HTMLButtonElement>(null)
   const monatsBlatt = useRef<HTMLDivElement>(null)
 
   // Horizontal swipe state
-  const calendarSwipeStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+  const calendarSwipeStart = useRef<{ x: number; y: number; t: number; pointerId: number } | null>(null)
   // Ein Wisch endet auf einer Tageszelle und loest dort ein `click` aus. Ohne
   // diesen Merker waehlte das Blaettern den Tag unter dem Finger aus.
   //
@@ -408,10 +433,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       wischMerkerTimer.current = null
     }, 0)
   }
+  // Der Wisch bewegt die Ebenen direkt am Element, nicht ueber State: sonst
+  // rendert jede Fingerbewegung die ganze Seite neu und das Blaettern ruckelt.
+  const streifenRef = useRef<HTMLDivElement>(null)
+  const streifenVorschauRef = useRef<HTMLDivElement>(null)
+  const monatsRasterRef = useRef<HTMLDivElement>(null)
+  const monatsVorschauRef = useRef<HTMLDivElement>(null)
+  const wischRichtung = useRef<-1 | 1>(1)
+  // Die letzten zwei Bewegungen, fuer das Tempo am Ende der Geste.
+  const wischProben = useRef<Array<{ x: number; t: number }>>([])
+  const wischUebergang = useRef<number | null>(null)
+  // Nur waehrend die Nachbarwoche hereingleitet — nicht beim Zurueckfedern.
+  const wischBlaettert = useRef(false)
   useEffect(() => () => {
     if (wischMerkerTimer.current !== null) window.clearTimeout(wischMerkerTimer.current)
+    if (wischUebergang.current !== null) window.clearTimeout(wischUebergang.current)
   }, [])
-  const [calendarDragX, setCalendarDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [peekDir, setPeekDir] = useState<-1 | 0 | 1>(0)
 
@@ -459,6 +496,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Befund: `aria-modal` allein macht keinen Dialog. Escape muss am Dokument
   // haengen (das Blatt selbst bekommt keinen Fokus), und der Fokus muss hinein
   // und danach zurueck auf den Knopf.
+  const requestMonatClose = monatsBlattSchliessen.requestClose
   useEffect(() => {
     if (!monatOffen) return
     const vorher = document.activeElement as HTMLElement | null
@@ -468,7 +506,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const beiTaste = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        setMonatOffen(false)
+        requestMonatClose()
       }
     }
     document.addEventListener('keydown', beiTaste)
@@ -476,11 +514,42 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       document.removeEventListener('keydown', beiTaste)
       ;(knopf ?? vorher)?.focus()
     }
-  }, [monatOffen])
+  }, [monatOffen, requestMonatClose])
+
+  const verschiebeEbenen = (x: number, animiert: boolean) => {
+    const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+    const vorschau = monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current
+    const transition = animiert ? `transform ${WISCH_MS}ms var(--tyd-ease-out)` : 'none'
+    if (haupt) {
+      haupt.style.transition = transition
+      haupt.style.transform = `translateX(${x}px)`
+    }
+    if (vorschau) {
+      vorschau.style.transition = transition
+      vorschau.style.transform = `translateX(calc(${wischRichtung.current === 1 ? '100%' : '-100%'} + ${x}px))`
+    }
+  }
+
+  // Umblaettern, wenn die Nachbarwoche schon ganz im Bild steht: der Tausch
+  // passiert in einem Zug mit dem Zuruecksetzen, sonst blitzte die alte Woche
+  // fuer ein Bild an ihrem alten Platz auf.
+  const wischAbschliessen = (dir: -1 | 1) => {
+    wischUebergang.current = null
+    wischBlaettert.current = false
+    flushSync(() => {
+      if (monatOffen) changeMonth(dir)
+      else changeWeek(dir)
+      setPeekDir(0)
+    })
+    verschiebeEbenen(0, false)
+  }
 
   const handleCalendarPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
-    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
+    // Ein Wisch gleitet noch aus — ein zweiter Finger setzt nicht mittendrin an.
+    if (wischUebergang.current !== null) return
+    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, t: performance.now(), pointerId: event.pointerId }
+    wischProben.current = [{ x: event.clientX, t: performance.now() }]
     wurdeGewischt.current = false
     setIsDragging(true)
   }
@@ -490,23 +559,26 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     if (!start || start.pointerId !== event.pointerId) return
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
+    wischProben.current = [...wischProben.current.slice(-1), { x: event.clientX, t: performance.now() }]
     // Only track if horizontal movement is meaningful and dominant
     if (Math.abs(deltaX) < 6) return
     if (Math.abs(deltaY) > Math.abs(deltaX) * 0.8) return
     merkeWisch()
-    setCalendarDragX(deltaX)
     const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+    wischRichtung.current = dir
     if (peekDir !== dir) setPeekDir(dir)
+    verschiebeEbenen(deltaX, false)
   }
 
   const handleCalendarPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     const start = calendarSwipeStart.current
     calendarSwipeStart.current = null
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
     wischMerkerLoesen()
-    if (!start || start.pointerId !== event.pointerId) return
+    if (!start || start.pointerId !== event.pointerId) {
+      handleCalendarPointerCancel()
+      return
+    }
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
 
@@ -514,19 +586,49 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // `<button>` ohne `onClick` ist fuer Tastatur und Screenreader kein Knopf:
     // Enter und der VoiceOver-Doppeltipp senden `click`, nie `pointerup`.
 
-    // Swipe: require horizontal dominance + minimum distance
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      if (monatOffen) changeMonth(deltaX < 0 ? 1 : -1)
-      else changeWeek(deltaX < 0 ? 1 : -1)
+    // Blaettern bei genug Weg ODER genug Schwung: ein kurzer, schneller Wisch
+    // ist genauso gemeint wie ein langer.
+    const jetzt = performance.now()
+    const probe = wischProben.current.find(eintrag => jetzt - eintrag.t <= 100) ?? { x: start.x, t: start.t }
+    const tempo = Math.abs(event.clientX - probe.x) / Math.max(1, jetzt - probe.t)
+    const waagerecht = Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    if (waagerecht && (Math.abs(deltaX) >= SWIPE_THRESHOLD || (tempo > SWIPE_VELOCITY && Math.abs(deltaX) >= SWIPE_FLICK_MIN))) {
+      const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+      wischRichtung.current = dir
+      const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+      const breite = haupt?.offsetWidth ?? 0
+      const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+      if (ruhig || breite === 0) {
+        wischAbschliessen(dir)
+        return
+      }
+      // Ein schneller Wisch kann ohne eine einzige gezaehlte Bewegung enden;
+      // dann steht die Nachbarwoche noch nicht im DOM. Erst einhaengen, ihre
+      // Ausgangslage einmal lesen lassen, dann gleiten beide zusammen.
+      if (peekDir !== dir) {
+        flushSync(() => setPeekDir(dir))
+        void (monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current)?.offsetWidth
+      }
+      verschiebeEbenen(-dir * breite, true)
+      wischBlaettert.current = true
+      wischUebergang.current = window.setTimeout(() => wischAbschliessen(dir), WISCH_MS)
+      return
     }
+    handleCalendarPointerCancel()
   }
 
   const handleCalendarPointerCancel = () => {
     calendarSwipeStart.current = null
+    // Ein Tipp ohne Bewegung hat nichts verschoben — nichts zurueckzufedern.
+    const bewegt = wurdeGewischt.current
     wischMerkerLoesen()
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
+    if (!bewegt) return
+    verschiebeEbenen(0, true)
+    wischUebergang.current = window.setTimeout(() => {
+      wischUebergang.current = null
+      setPeekDir(0)
+    }, WISCH_MS)
   }
 
   const loadLogSnapshot = useCallback(async function loadSnapshot(): Promise<void> {
@@ -675,6 +777,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const { data } = await dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name')
     if (data) setStackItems(data)
   }, [dashboardDataClient, user])
+
+  // Bündel sind Einstellungen, keine Tagesdaten: einmal je Nutzer laden.
+  // Fehlt die Tabelle noch (Migration nicht eingespielt), bleibt die Liste
+  // leer, und der Kalender funktioniert wie bisher.
+  const bundleClient = dashboardDataClient as unknown as IntakeBundleClient
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    loadIntakeBundles(bundleClient, user.id)
+      .then(rows => { if (!cancelled) setBundles(rows) })
+      .catch(() => { if (!cancelled) setBundles([]) })
+    return () => { cancelled = true }
+  }, [bundleClient, user])
 
   const loadEscalations = useCallback(async () => {
     if (!user) return
@@ -1005,6 +1120,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     })
   }))
   const dueRoutineGroupByKey = new Map(dueRoutineGroups.map(group => [group.key, group]))
+  const dueIntakes = dueRoutineGroups.flatMap(group => group.items)
+  const bundleRows = bundles.map(bundle => {
+    const itemIds = liveBundleItemIds(bundle, stackItemById)
+    return { bundle, itemIds, open: bundleDueIntakes({ stack_item_ids: itemIds }, dueIntakes) }
+  })
   const duePeriodCarousels = PERIOD_ORDER.map(key => {
     const routineGroup = dueRoutineGroupByKey.get(PERIOD_TO_ROUTINE_GROUP[key]) ?? null
     return {
@@ -1471,14 +1591,65 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[]): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
+    // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
+    // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
+    // gilt — dieselbe Regel wie im Einzelweg (`confirmCycleDose`).
+    const mitZeit = time
+      ? entries.map(entry => {
+          if (!entry.selected) return entry
+          const [stunde, minute] = time.split(':').map(Number)
+          const zeitpunkt = new Date(selectedDay)
+          zeitpunkt.setHours(stunde, minute, 0, 0)
+          const actualLoggedAt = zeitpunkt.toISOString()
+          if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
+          const timeline = timelines.find(item => item.cycle.id === entry.cycleId)
+          const resolved = timeline && resolveCycleAt(timeline, zeitpunkt, timeZone)
+          if (!resolved?.planVersion || resolved.status !== 'active') throw new Error('Intake timestamp is not active')
+          return { ...entry, planVersionId: resolved.planVersion.id, actualLoggedAt }
+        })
+      : entries
     const saved = await confirmIntakeGroup(
       dashboardDataClient as unknown as IntakeConfirmationClient,
-      entries,
+      mitZeit,
     )
     routineCommitted.current = true
     return saved.map(row => row.id)
+  }
+
+  /**
+   * Ein Tipp auf das Bündel oeffnet das Bestaetigungsblatt mit je Substanz der
+   * naechsten offenen Einnahme. Die Uhrzeit wird immer abgefragt, vorbelegt
+   * mit der fruehesten geplanten; Mengen und Injektionsstelle wie gewohnt.
+   */
+  const openBundle = (bundle: IntakeBundle, items: RoutineIntake[]) => {
+    if (items.length === 0) return
+    const frueheste = items.reduce((min, item) => item.scheduledAt < min ? item.scheduledAt : min, items[0].scheduledAt)
+    routineCommitted.current = false
+    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime: format(new Date(frueheste), 'HH:mm') })
+  }
+
+  const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
+    if (!user || bundleSheet === undefined) return
+    const saved = await saveIntakeBundle(bundleClient, user.id, {
+      id: bundleSheet?.id,
+      name: draft.name,
+      stackItemIds: draft.stackItemIds,
+      sortOrder: bundleSheet?.sort_order ?? bundles.reduce((max, bundle) => Math.max(max, bundle.sort_order + 1), 0),
+    })
+    setBundles(current => bundleSheet
+      ? current.map(bundle => bundle.id === saved.id ? saved : bundle)
+      : [...current, saved])
+    setBundleSheet(undefined)
+  }
+
+  const removeBundle = async () => {
+    if (!user || !bundleSheet) return
+    const id = bundleSheet.id
+    await deleteIntakeBundle(bundleClient, user.id, id)
+    setBundles(current => current.filter(bundle => bundle.id !== id))
+    setBundleSheet(undefined)
   }
 
   const afterRoutineGroupConfirmed = async (
@@ -1623,7 +1794,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         tabIndex={isPeek ? -1 : undefined}
         onClick={() => {
           // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
-          if (wurdeGewischt.current) return
+          // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
+          // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
+          if (wurdeGewischt.current || wischBlaettert.current) return
           selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
         }}
         className={[
@@ -1719,10 +1892,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
             <span
-              className="shrink-0 rounded-full transition-all duration-200"
+              className="h-2 w-2 shrink-0 rounded-full transition-[transform,box-shadow] duration-200 motion-reduce:transition-none"
               style={{
-                width: offen ? 10 : 8,
-                height: offen ? 10 : 8,
+                transform: offen ? 'scale(1.25)' : undefined,
                 background: farbe,
                 boxShadow: offen ? `0 0 12px ${farbe}80` : undefined,
               }}
@@ -1759,8 +1931,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </span>
             )}
           </button>
-          {/* Das gruene Haekchen ist der schnelle Weg fuer den Normalfall:
-              bestaetigen, ohne etwas zu aendern — ein Tap statt zwei.
+          {/* Das gruene Haekchen ist der kurze Weg: es oeffnet direkt das
+              Bestaetigungsblatt, ohne die Zeile erst aufzuklappen. Die Uhrzeit
+              wird dort bewusst immer abgefragt.
               Aufgeklappt waere es doppelt, dort steht „Eingenommen" gross. */}
           {!offen && (
             <button
@@ -1777,11 +1950,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
         <div
           data-due-panel
-          className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out motion-reduce:transition-none"
-          style={{ maxHeight: offen ? 420 : 0, opacity: offen ? 1 : 0 }}
+          data-open={offen ? '' : undefined}
+          className="tyd-collapse"
           aria-hidden={!offen}
         >
-          <div className="space-y-2 px-4 pb-4 pt-1">
+          <div><div className="space-y-2 px-4 pb-4 pt-1">
             <button
               type="button"
               tabIndex={offen ? undefined : -1}
@@ -1793,18 +1966,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               {isPastSelected ? t('dose_mark_taken', { defaultValue: 'Doch eingenommen' }) : t('eingenommen')}
             </button>
 
-            <button
-              type="button"
-              tabIndex={offen ? undefined : -1}
-              onClick={() => {
-                routineCommitted.current = false
-                if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
-              }}
-              className={zweitKnopf}
-              data-quiet
-            >
-              {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
-            </button>
+            {/* Unter der Zeitleiste hat das Bestaetigungsblatt ein Mengenfeld;
+                ein zweiter Weg zur selben Abweichung waere doppelt. */}
+            {!FEATURES.planTimelineV2 && (
+              <button
+                type="button"
+                tabIndex={offen ? undefined : -1}
+                onClick={() => {
+                  routineCommitted.current = false
+                  if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
+                }}
+                className={zweitKnopf}
+                data-quiet
+              >
+                {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
+              </button>
+            )}
 
             <button
               type="button"
@@ -1831,7 +2008,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('due_confirm_with_injection', { defaultValue: 'Mit Injektion tracken' })}
               </button>
             )}
-          </div>
+          </div></div>
         </div>
       </div>
     )
@@ -1840,16 +2017,21 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const renderConfirmedLog = (log: DoseLog) => (
     <div key={log.id} className="lg-surface px-4 py-3">
       <div className="flex items-center gap-3">
-        <Syringe size={16} className={`shrink-0 ${
-          log.taken === true ? 'text-[var(--lg-good-text)]' :
-          log.taken === false ? 'text-[var(--lg-bad-text)]' : 'text-[var(--lg-accent-text)]'
-        }`} />
+        {(() => {
+          // Verpasst: Bernstein wie in der Tageszelle. Bewusst ausgelassen:
+          // neutral — das war eine Entscheidung, kein Fehler. Kein Rot.
+          const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
+          return <Symbol size={16} aria-hidden="true" className={`shrink-0 ${
+            log.taken === true ? 'text-[var(--lg-good-text)]' :
+            log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
+          }`} />
+        })()}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[17px] text-[var(--lg-text)]">{log.stack_items?.display_name ?? t('geloeschte_substanz')}</span>
             <span className={`text-[13px] font-semibold ${
               log.taken === true ? 'text-[var(--lg-good-text)]' :
-              log.taken === false ? 'text-[var(--lg-bad-text)]' : 'text-[var(--lg-accent-text)]'
+              log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
             }`}>{formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))}</span>
             <span className="text-[13px] text-[var(--lg-text-3)]">{log.method}</span>
             {log.taken === true && (
@@ -1857,13 +2039,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <Check size={11} /> {t('eingenommen')}
               </span>
             )}
-            {log.taken === false && (
-              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-bad-text)]">
-                <XCircle size={11} /> {log.notes === AUTO_MISSED_NOTE
-                  ? t('verpasst', { defaultValue: 'Verpasst' })
-                  : t('uebersprungen')}
+            {log.taken === false && (log.notes === AUTO_MISSED_NOTE ? (
+              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-warn-text)]">
+                <XCircle size={11} aria-hidden="true" /> {t('verpasst', { defaultValue: 'Verpasst' })}
               </span>
-            )}
+            ) : (
+              <span className="flex items-center gap-0.5 text-slate-400 text-xs font-medium">
+                <MinusCircle size={11} aria-hidden="true" /> {t('uebersprungen')}
+              </span>
+            ))}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[13px] text-[var(--lg-text-3)]">{timeLabel(log.logged_at, t)}</span>
@@ -2031,13 +2215,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             onPointerCancel={handleCalendarPointerCancel}
           >
             <div
+              ref={streifenRef}
               className="grid select-none grid-cols-7 gap-1"
-              style={{
-                // Wischt man IM Blatt, rutschte sonst der Streifen dahinter mit.
-                transform: `translateX(${monatOffen ? 0 : calendarDragX}px)`,
-                transition: isDragging && !monatOffen ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                willChange: 'transform',
-              }}
+              style={{ willChange: 'transform' }}
             >
               {streifenTage.map((day, i) => renderDayCell({
                 day, monatsBezug: selectedDay, key: i, mitWochentag: true,
@@ -2046,12 +2226,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
             {peekDir !== 0 && !monatOffen && (
               <div
+                ref={streifenVorschauRef}
                 className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  willChange: 'transform',
-                }}
+                style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})`, willChange: 'transform' }}
               >
                 {peekCalendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: peekDate!, key: i, vorschau: true, mitWochentag: true,
@@ -2068,8 +2245,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {monatOffen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/60"
-            onClick={() => setMonatOffen(false)}
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={monatsBlattSchliessen.requestClose}
+            {...monatsBlattSchliessen.closingProps}
             aria-hidden="true"
           />
           <div
@@ -2078,7 +2256,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-modal="true"
             aria-label={monthTitle}
             tabIndex={-1}
-            className="lg-sheet fixed inset-x-2 bottom-2 z-50 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
+            {...monatsBlattSchliessen.closingProps}
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
           >
             <div className="lg-grabber mb-2" />
 
@@ -2103,7 +2282,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMonatOffen(false)}
+                  onClick={monatsBlattSchliessen.requestClose}
                   data-app-back-close
                   aria-label={t('close', { defaultValue: 'Schließen' })}
                   className="lg-icon-btn lg-press ml-1 bg-[var(--lg-fill)] !text-[var(--lg-text-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -2128,11 +2307,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               onPointerCancel={handleCalendarPointerCancel}
             >
               <div
+                ref={monatsRasterRef}
                 className="grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(${calendarDragX}px)`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                }}
               >
                 {calendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: currentDate, key: i, ohneAnker: true,
@@ -2141,11 +2317,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
               {peekDir !== 0 && (
                 <div
+                  ref={monatsVorschauRef}
                   className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                  style={{
-                    transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                    transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  }}
+                  style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})` }}
                 >
                   {peekCalendarDays.map((day, i) => renderDayCell({
                     day, monatsBezug: peekDate!, key: i, vorschau: true, ohneAnker: true,
@@ -2271,33 +2445,84 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
 
+        {/* ── Eigene Bündel ──────────────────────────────────────────────
+            Selbst zusammengestellte Gruppen, mit einem Tipp bestaetigt. Sie
+            stehen ueber der Tagesliste, weil sie sie abkuerzen. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
+          <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-6 space-y-2">
+            <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
+              <h3 id="intake-bundles-title" className="flex min-w-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
+                <Layers size={14} aria-hidden="true" />
+                <span className="truncate">{t('bundle_section_title', { defaultValue: 'Meine Bündel' })}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setBundleSheet(null)}
+                data-quiet
+                className="lg-gray-btn shrink-0 !px-3.5 !text-[13px]"
+              >
+                <Plus size={14} aria-hidden="true" />
+                {t('bundle_new', { defaultValue: 'Bündel' })}
+              </button>
+            </div>
+            {bundleRows.map(({ bundle, itemIds, open }) => {
+              const done = open.length === 0
+              return (
+                <div key={bundle.id} className="flex items-stretch gap-2">
+                  <button
+                    type="button"
+                    disabled={done}
+                    onClick={() => openBundle(bundle, open)}
+                    data-tone={done ? undefined : 'good'}
+                    className="lg-surface flex min-h-[60px] min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)] disabled:cursor-default"
+                  >
+                    <span aria-hidden="true" className="lg-icon-tile" style={{ background: done ? '#636366' : 'var(--lg-good)' }}>
+                      <Check size={17} strokeWidth={2.6} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[17px] text-[var(--lg-text)]">{bundle.name}</span>
+                      <span className={`block truncate text-[13px] ${done ? 'text-[var(--lg-text-3)]' : 'text-[var(--lg-good-text)]'}`}>
+                        {itemIds.length === 0
+                          ? t('bundle_no_items', { defaultValue: 'Keine Substanzen mehr im Bündel' })
+                          : done
+                          ? t('bundle_nothing_open', { defaultValue: 'Nichts offen' })
+                          : t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: open.length })}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
+                    onClick={() => setBundleSheet(bundle)}
+                    data-quiet
+                    className="lg-gray-btn !h-auto !w-12 shrink-0 !rounded-[var(--r-xl)] !p-0"
+                  >
+                    <Pencil size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              )
+            })}
+            {bundleRows.length === 0 && (
+              <p className="px-4 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                {t('bundle_empty_hint', { defaultValue: 'Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.' })}
+              </p>
+            )}
+          </section>
+        )}
+
         {/* ── Die offenen Einnahmen ──────────────────────────────────────
             Eine Liste in Tagesordnung. Genau eine ist aufgeklappt — zuerst
             die naechste anstehende, danach die, die man antippt. Aufgeklappt
             wird AN ORT UND STELLE, damit nichts springt. */}
         {offeneGruppen.map(gruppe => (
           <div key={gruppe.key} className="mb-6">
+            {/* Gemeinsam bestaetigt wird ueber die eigenen Bündel oben; die
+                Tageszeit ist hier nur noch Ueberschrift. */}
             <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
               <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
                 {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
                 <span className="truncate">{gruppe.label}</span>
               </p>
-              {/* Ab zwei Einnahmen im selben Zeitfenster lohnt der Sammelweg:
-                  sonst druecke man denselben Knopf zehnmal. */}
-              {gruppe.slots.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    routineCommitted.current = false
-                    if (gruppe.routineGroup) setRoutineGroupSheet(gruppe.routineGroup)
-                  }}
-                  data-tone="good"
-                  className="lg-gray-btn min-w-0 whitespace-nowrap !px-3.5 !text-[13px]"
-                >
-                  <Check size={14} aria-hidden="true" className="shrink-0" />
-                  <span className="truncate">{t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}</span>
-                </button>
-              )}
             </div>
             <div className="lg-group lg-rows">
               {gruppe.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
@@ -2349,10 +2574,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               type="button"
               onClick={() => setUnloggedExpanded(expanded => !expanded)}
               aria-expanded={unloggedExpanded}
-              data-tone="bad"
               className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
             >
-              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-bad)]"><X size={17} strokeWidth={2.6} /></span>
+              {/* Neutral: ausgelassen heisst entschieden, nicht falsch */}
+              <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><MinusCircle size={17} strokeWidth={2.4} /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-[17px] text-[var(--lg-text)]">
                   {t('unlogged_intakes_title', { defaultValue: 'Nicht protokolliert' })}
@@ -2435,6 +2660,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {routineGroupSheet && (
         <RoutineConfirmationSheet
           group={routineGroupSheet}
+          initialTime={routineGroupSheet.initialTime}
           onClose={() => setRoutineGroupSheet(null)}
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
@@ -2442,28 +2668,44 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         />
       )}
 
+      {bundleSheet !== undefined && (
+        <IntakeBundleSheet
+          bundle={bundleSheet}
+          stackItems={stackItems}
+          onClose={() => setBundleSheet(undefined)}
+          onSave={saveBundle}
+          onDelete={bundleSheet ? removeBundle : undefined}
+        />
+      )}
+
       {/* ── Einnahme-Zeitpunkt-Sheet ──────────────────────────────────────── */}
       {confirmSheet && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setConfirmSheet(null)} />
+          <div
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={bestaetigenSchliessen.requestClose}
+            {...bestaetigenSchliessen.closingProps}
+          />
           <div
             data-app-modal
             data-app-back-dirty-on-interaction
             role="dialog"
             aria-modal="true"
-            className="lg-sheet fixed inset-x-2 bottom-2 z-50 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+            aria-labelledby="confirm-sheet-title"
+            {...bestaetigenSchliessen.closingProps}
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
             <div style={{ padding: '8px 18px 0' }}>
               <div className="lg-grabber mb-4" />
               <div className="mb-1 flex items-center gap-2.5">
                 <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
-                <h2 className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
+                <h2 id="confirm-sheet-title" className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
               </div>
               <p className="mb-5 mt-1.5 text-[15px] text-[var(--lg-text-2)]">
                 {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen? Vorausgefüllt mit der geplanten Zykluszeit.' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-[13px] font-semibold text-[var(--lg-text-3)]">
+                <label htmlFor="confirm-sheet-time" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
                   {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                 </label>
                 <button
@@ -2476,6 +2718,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 </button>
               </div>
               <input
+                id="confirm-sheet-time"
                 type="time"
                 value={confirmTime}
                 onChange={e => setConfirmTime(e.target.value)}
@@ -2509,7 +2752,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 </>
               )}
               <div className="flex gap-3">
-                <button onClick={() => setConfirmSheet(null)} data-app-back-close data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
+                <button onClick={bestaetigenSchliessen.requestClose} data-app-back-close data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
                   {t('cancel', { defaultValue: 'Abbrechen' })}
                 </button>
                 <button

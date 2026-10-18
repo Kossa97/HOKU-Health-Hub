@@ -397,6 +397,11 @@ describe('injectionIntakeLookbackStart', () => {
       '2026-06-18T22:00:00.000Z',
     )
   })
+  it('reaches back 90 days by default („Alle“)', () => {
+    expect(injectionIntakeLookbackStart(new Date('2026-06-26T15:30:00.000Z')).toISOString()).toBe(
+      '2026-03-27T23:00:00.000Z',
+    )
+  })
 })
 describe('buildSelectableInjectionIntakes', () => {
   const cycle = {
@@ -449,6 +454,29 @@ describe('buildSelectableInjectionIntakes', () => {
         doseLogId: null,
         cycleId: 'cycle-1',
       }),
+    ]))
+  })
+
+  it('includes a confirmed intramuscular dose log (correctly encoded)', () => {
+    const result = buildSelectableInjectionIntakes({
+      cycles: [{ ...cycle, method: 'Intramuskulär' }],
+      logs: [{
+        id: 'dose-im',
+        stack_item_id: 'stack-item-1',
+        dose: 100,
+        unit: 'mg',
+        method: 'Intramuskulär',
+        logged_at: '2026-06-23T20:15:00.000Z',
+        taken: true,
+      }],
+      linkedDoseLogIds: new Set(),
+      escalations: [],
+      now: new Date('2026-06-24T21:00:00.000Z'),
+      lookbackDays: 2,
+    })
+
+    expect(result).toEqual(expect.arrayContaining([
+      expect.objectContaining({ status: 'confirmed', doseLogId: 'dose-im', method: 'Intramuskulär' }),
     ]))
   })
 

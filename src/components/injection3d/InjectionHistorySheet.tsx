@@ -7,6 +7,7 @@ import {
   formatInjectionSite,
   hasExactInjectionPosition,
   isDoseConfirmationOpen,
+  INJECTION_HISTORY_DAY_OPTIONS,
   type InjectionHistoryDays,
 } from '../../lib/injectionHistory'
 import type { InjectionLog3D } from '../../lib/injectionLogTypes'
@@ -165,7 +166,7 @@ export function HistoryDaysSelect({
           onHistoryDaysChange(value === 'all' ? 'all' : Number(value) as InjectionHistoryDays)
         }}
       >
-        {[7, 14, 30, 60, 90].map(days => (
+        {INJECTION_HISTORY_DAY_OPTIONS.map(days => (
           <option key={days} value={days}>{t('injection_history_days', { days, defaultValue: String(days) + ' Tage' })}</option>
         ))}
         <option value="all">{t('injection_history_all', { defaultValue: 'Alle' })}</option>

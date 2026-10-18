@@ -799,6 +799,9 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     width: 100%;
     max-width: 100vw;
     position: relative; /* iOS Safari: verhindert horizontales Bounce-Scrollen */
+    /* Kein grauer Kasten beim Antippen: der verriet die Webseite. Rueckmeldung
+       geben die Knoepfe selbst, ueber `.tyd-press:active`. */
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -1755,4 +1758,64 @@ main.flex-1 {
   textarea {
     font-size: max(16px, 1em) !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KALENDER: Druck, Blaetter, Zeilen
+   Kurven aus dem Skill `animate`: --tyd-ease-out fuer Antworten des Systems,
+   --tyd-ease-drawer (iOS) fuer Blaetter. Bewegung nur ohne Abbestellung;
+   mit `prefers-reduced-motion` bleibt das Ueberblenden, die Wege fallen weg.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --tyd-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --tyd-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Knoepfe geben beim Druck nach — sofort, nicht erst beim Loslassen. */
+.tyd-press {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-press { transition: transform 140ms var(--tyd-ease-out), background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease; }
+  .tyd-press:not(:disabled):not([aria-disabled="true"]):active { transform: scale(0.97); }
+}
+
+/* Bottom-Sheet: faehrt aus der Unterkante ein und dorthin wieder hinaus.
+   Hinaus schneller als hinein — das System antwortet, der Nutzer wartet nicht. */
+@keyframes tyd-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes tyd-sheet-out { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes tyd-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tyd-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+.tyd-sheet {
+  overscroll-behavior: contain;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  /* Ohne Bewegungswunsch nur Ueberblenden, kein Weg. */
+  animation: tyd-fade-in 150ms ease both;
+}
+.tyd-sheet[data-closing] { animation: tyd-fade-out 150ms ease both; }
+/* Was hinausfaehrt, nimmt keine Tipps mehr an — sonst startete ein Speichern,
+   das der laufende Schliessvorgang gleich abschneidet. */
+.tyd-sheet[data-closing], .tyd-backdrop[data-closing] { pointer-events: none; }
+.tyd-backdrop { animation: tyd-fade-in 200ms ease both; }
+.tyd-backdrop[data-closing] { animation: tyd-fade-out 200ms ease both; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-sheet { animation: tyd-sheet-in 320ms var(--tyd-ease-drawer) both; }
+  .tyd-sheet[data-closing] { animation: tyd-sheet-out 200ms var(--tyd-ease-out) both; }
+}
+
+/* Aufklappen einer Einnahme: Hoehe ueber das Raster (0fr → 1fr) statt
+   ueber eine geratene max-height, kurz, weil es Layout kostet. */
+.tyd-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.tyd-collapse[data-open] { grid-template-rows: 1fr; opacity: 1; }
+.tyd-collapse > * { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-collapse { transition: grid-template-rows 220ms var(--tyd-ease-out), opacity 180ms ease; }
 }

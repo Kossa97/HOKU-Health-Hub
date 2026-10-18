@@ -9,7 +9,7 @@ import {
   Activity, CheckCircle2,
   Clock3, Package, ShieldCheck,
   Syringe, TrendingUp, Bell, XCircle, RotateCcw,
-  Dumbbell, Dna, Zap, Moon, Brain, Bandage, HeartPulse, Lightbulb, Leaf, Bone,
+  Dumbbell, Dna, Zap, Moon, Brain, Bandage, HeartPulse, Lightbulb, Leaf, Bone, Utensils,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -140,6 +140,7 @@ const EMPTY_OVERVIEW: OverviewStats = {
 const TILE_DEFS: TileDef[] = [
   { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender',             color: '#00ccf5'          },
   { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen',          color: '#10b981'         },
+  { icon: Dumbbell,     labelKey: 'tile_training',    descKey: 'tile_training_desc',    path: '/training',             color: '#f97316', label: 'Training', desc: 'Kraft, Cardio, Hyrox' },
   { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar', color: '#00ccf5'         },
   { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack',             color: '#22d3ee'         },
   { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner',              color: '#3b82f6'         },
@@ -148,6 +149,7 @@ const TILE_DEFS: TileDef[] = [
   { icon: FileText,     labelKey: 'tile_protokoll',   descKey: 'tile_protokoll_desc',   path: '/protokoll',            color: '#00ccf5', label: 'PDF-Generator', desc: 'Report mit Live-Vorschau' },
   { icon: Microscope,   labelKey: 'tile_lab',         descKey: 'tile_lab_desc',         path: '/lab',                  color: '#00ccf5'          },
   { icon: Library,      labelKey: 'tile_bibliothek',  descKey: 'tile_bibliothek_desc',  path: '/lab/peptipedia',        color: '#8b5cf6'         },
+  { icon: Utensils,     labelKey: 'tile_ernaehrung',  descKey: 'tile_ernaehrung_desc',  path: '/ernaehrung',           color: '#f59e0b'         },
   { icon: BookHeart,    labelKey: 'tile_tagebuch',    descKey: 'tile_tagebuch_desc',    path: '/tagebuch',             color: '#8b5cf6'         },
   { icon: Star,         labelKey: 'tile_bewertungen', descKey: 'tile_bewertungen_desc', path: '/bewertungen',          color: '#f59e0b'         },
   { icon: HelpCircle,   labelKey: 'tile_faq',         descKey: 'tile_faq_desc',         path: '/faq',                  color: '#10b981'         },

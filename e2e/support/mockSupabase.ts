@@ -374,6 +374,7 @@ export class MockSupabase {
       if (url.pathname.startsWith('/rest/v1/')) return await this.handleRest(route, url)
       if (url.pathname.startsWith('/storage/v1/object/')) return await this.handleStorage(route, url)
       if (url.pathname === '/functions/v1/bloodwork-extract') return await this.handleBloodworkExtract(route)
+      if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -409,6 +410,27 @@ export class MockSupabase {
         values: [{ marker: 'Ferritin', value: 85, unit: 'ng/ml', ref_min: 30, ref_max: 400, matched: true }],
       },
     })
+  }
+
+  /**
+   * Nachbild von supabase/functions/food-lookup (Open Food Facts). Tests legen
+   * Produkte und Suchtreffer im schon verschlankten Format der Funktion an;
+   * `foodLookup.down` spielt „OFF nicht erreichbar" (503) nach.
+   */
+  readonly foodLookup: {
+    products: Record<string, Row | null>
+    search: Record<string, Row[]>
+    down: boolean
+    calls: { barcode?: string; query?: string }[]
+  } = { products: {}, search: {}, down: false, calls: [] }
+
+  private async handleFoodLookup(route: Route): Promise<void> {
+    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string }
+    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query })
+    if (this.foodLookup.down) return route.fulfill({ status: 503, headers: corsHeaders(), json: { error: 'upstream_unavailable' } })
+    if (body.barcode !== undefined) return route.fulfill({ headers: corsHeaders(), json: { product: this.foodLookup.products[body.barcode] ?? null } })
+    const key = String(body.query ?? '').trim().toLowerCase()
+    return route.fulfill({ headers: corsHeaders(), json: { results: this.foodLookup.search[key] ?? [] } })
   }
 
   /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */

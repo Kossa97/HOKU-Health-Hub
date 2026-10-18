@@ -1,19 +1,12 @@
-import { format, parseISO } from 'date-fns'
-import { CalendarClock, CheckCircle2, ClipboardList, History, Syringe, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ClipboardList, History, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { methodLabel } from '../../lib/intakeMethods'
 import { type InjectionHistoryDays } from '../../lib/injectionHistory'
 import type { OpenInjectionIntake } from '../../lib/injectionPersistence'
 import type { InjectionTrackerTab } from '../../lib/injectionTrackerTabs'
 import type { InjectionLog3D } from '../../lib/injectionLogTypes'
-import {
-  filterOpenInjectionIntakes,
-  type IntakeHistoryDays,
-} from '../../lib/openInjectionIntakeFilters'
 import { HistoryDaysSelect, InjectionHistorySheet } from './InjectionHistorySheet'
-
-const OPEN_DAYS_OPTIONS: IntakeHistoryDays[] = [0, 1, 7, 14, 30, 60, 90]
+import { InjectionIntakeList } from './InjectionIntakeList'
 
 export function InjectionTrackerTabs({
   logs,
@@ -40,27 +33,11 @@ export function InjectionTrackerTabs({
 }) {
   const { t } = useTranslation()
   const [activeSheet, setActiveSheet] = useState<InjectionTrackerTab | null>(null)
-  const [openCycleFilter, setOpenCycleFilter] = useState('all')
-  const [openDaysFilter, setOpenDaysFilter] = useState<IntakeHistoryDays>(7)
 
   const labels: Record<InjectionTrackerTab, string> = {
-    open: String(t('injection_tab_open', { defaultValue: 'Offene Einnahmen' })),
+    open: String(t('injection_tab_intakes', { defaultValue: 'Einnahmen' })),
     history: String(t('injection_tab_history', { defaultValue: 'Historie' })),
   }
-
-  const openCycleOptions = useMemo(() => Array.from(
-    new Map(openIntakes.flatMap(intake => intake.cycleId ? [[
-      intake.cycleId,
-      { id: intake.cycleId, label: intake.cycleName || intake.stackItemName },
-    ] as const] : [])).values(),
-  ).sort((a, b) => a.label.localeCompare(b.label, 'de')), [openIntakes])
-
-  const filteredOpenIntakes = useMemo(() => filterOpenInjectionIntakes(openIntakes, {
-    cycleId: openCycleFilter,
-    days: openDaysFilter,
-    order: 'newest',
-    status: 'open',
-  }), [openCycleFilter, openDaysFilter, openIntakes])
 
   const openSheet = (sheet: InjectionTrackerTab) => setActiveSheet(sheet)
   const closeSheet = () => setActiveSheet(null)
@@ -121,44 +98,14 @@ export function InjectionTrackerTabs({
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{labels.open}</h2>
                 <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-3)]">
-                  {t('injection_open_fullscreen_hint', { defaultValue: 'Einnahme auswählen, danach die Stelle auf der 3D-Karte markieren und die Injektion mit vorausgefüllten Daten speichern.' })}
+                  {t('injection_intakes_hint', { defaultValue: 'Einnahme wählen, dann die Stelle auf der Karte markieren.' })}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto overscroll-y-contain px-4 py-3">
-            <div className="grid grid-cols-2 gap-3">
-              <label>
-                <span className="label">{t('injection_cycle_label', { defaultValue: 'Zyklus' })}</span>
-                <select
-                  className="input"
-                  value={openCycleFilter}
-                  onChange={event => setOpenCycleFilter(event.target.value)}
-                >
-                  <option value="all">{t('injection_all_cycles', { defaultValue: 'Alle Zyklen' })}</option>
-                  {openCycleOptions.map(cycle => (
-                    <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="label">{t('injection_history_back', { defaultValue: 'Rückwirkend' })}</span>
-                <select
-                  className="input"
-                  value={openDaysFilter}
-                  onChange={event => setOpenDaysFilter(Number(event.target.value) as IntakeHistoryDays)}
-                >
-                  {OPEN_DAYS_OPTIONS.map(days => (
-                    <option key={days} value={days}>{openDaysLabel(days, t)}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="mt-3">
-              <OpenIntakesTab openIntakes={filteredOpenIntakes} onSelectIntake={selectOpenIntake} />
-            </div>
+            <InjectionIntakeList intakes={openIntakes} onSelect={intake => selectOpenIntake(intake)} />
           </div>
         </section>
       )}
@@ -240,78 +187,4 @@ function FloatingActionButton({
       <span className="truncate">{label}</span>
     </button>
   )
-}
-
-function OpenIntakesTab({
-  openIntakes,
-  onSelectIntake,
-}: {
-  openIntakes: OpenInjectionIntake[]
-  onSelectIntake: (intake: OpenInjectionIntake) => void
-}) {
-  const { t } = useTranslation()
-
-  if (openIntakes.length === 0) {
-    return (
-      <div className="lg-surface px-5 py-7 text-center">
-        <CheckCircle2 size={28} className="mx-auto mb-2 text-[var(--lg-good)]" aria-hidden="true" />
-        <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_open_empty_title', { defaultValue: 'Keine offenen Einnahmen' })}</p>
-        <p className="mt-1 text-[15px] leading-5 text-[var(--lg-text-3)]">{t('injection_open_empty_body', { defaultValue: 'Für diese Filter ist keine offene Einnahme vorhanden.' })}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-2 pb-5">
-      {openIntakes.map(intake => {
-        const key = intake.doseLogId ?? String(intake.cycleId) + '|' + intake.scheduledAt
-        return <OpenIntakeRow key={key} intake={intake} onSelect={() => onSelectIntake(intake)} />
-      })}
-    </div>
-  )
-}
-
-function OpenIntakeRow({ intake, onSelect }: { intake: OpenInjectionIntake; onSelect: () => void }) {
-  const { t } = useTranslation()
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="lg-surface w-full cursor-pointer p-4 text-left transition-colors active:bg-[var(--lg-surface-2)]"
-    >
-      <div className="flex items-center gap-3">
-        <span aria-hidden="true" className="lg-icon-tile bg-[#ff9f0a]">
-          <CalendarClock size={17} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{intake.stackItemName}</p>
-          <p className="mt-0.5 text-[13px] text-[var(--lg-text-3)]">
-            <span className="text-[var(--lg-warn-text)]">{t('injection_status_open', { defaultValue: 'Offen' })}</span>
-            {' - '}{format(parseISO(intake.scheduledAt), 'dd.MM. HH:mm')}
-            {intake.daysOverdue > 0 ? ` - ${openAgeLabel(intake.daysOverdue, t)}` : ''}
-          </p>
-        </div>
-        <div className="shrink-0 text-right">
-          <p className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{intake.dose} {intake.unit}</p>
-          <p className="text-[12px] text-[var(--lg-text-3)]">{methodLabel(t, intake.method)}</p>
-        </div>
-      </div>
-      <div className="lg-gray-btn pointer-events-none mt-3 w-full">
-        <Syringe size={15} aria-hidden="true" />
-        {t('injection_open_select_action', { defaultValue: 'Auswählen & Stelle markieren' })}
-      </div>
-    </button>
-  )
-}
-
-function openDaysLabel(days: IntakeHistoryDays, t: ReturnType<typeof useTranslation>['t']): string {
-  if (days === 0) return String(t('injection_history_today', { defaultValue: 'Heute' }))
-  if (days === 1) return String(t('injection_history_yesterday', { defaultValue: 'Gestern' }))
-  return String(t('injection_history_days', { days, defaultValue: `${days} Tage` }))
-}
-
-function openAgeLabel(days: number, t: ReturnType<typeof useTranslation>['t']): string {
-  if (days === 1) return String(t('injection_due_yesterday', { defaultValue: 'gestern fällig' }))
-  return String(t('injection_due_days_ago', { days, defaultValue: `vor ${days} Tagen fällig` }))
 }

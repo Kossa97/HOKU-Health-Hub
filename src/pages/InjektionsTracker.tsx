@@ -2,30 +2,27 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
-import { ArrowLeft, AlertTriangle, ListChecks, Minimize2, RefreshCw } from 'lucide-react'
+import { ListChecks, Minimize2, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { InjectionMapCanvas, type InjectionFocusRequest } from '../components/injection3d/InjectionMapCanvas'
 import { InjectionIntroSheet, INJECTION_INTRO_VERSION } from '../components/injection3d/InjectionIntroSheet'
-import { InjectionLogSheet, type InjectionSaveInput } from '../components/injection3d/InjectionLogSheet'
+import { InjectionLogSheet } from '../components/injection3d/InjectionLogSheet'
+import { persistInjectionSave, type InjectionSaveInput } from '../lib/injectionSave'
 import { InjectionTrackerTabs } from '../components/injection3d/InjectionTrackerTabs'
 import { InjectionEditSheet } from '../components/injection3d/InjectionEditSheet'
 import { InjectionSitePickerSheet } from '../components/injection3d/InjectionSitePickerSheet'
+import { InjectionTrackerHeader, InjectionTrackerUnavailable } from '../components/injection3d/InjectionTrackerChrome'
 import { pinDraftFromPreset, type InjectionSitePreset } from '../lib/injectionSitePresets'
 import {
-  assertInjectionProSchema,
-  confirmIntakeDoseLog,
-  confirmIntakeWithInjection,
   deleteInjectionLog,
   loadInjectionLogs,
   loadSelectableInjectionIntakes,
   isDoseLogAlreadyLinkedError,
   isInjectionLogNotFoundError,
   isInjectionProSchemaError,
-  resolveInjectionDoseLogId,
-  saveInjectionLog,
   updateInjectionLog,
   type InjectionLogEdit,
   type OpenInjectionIntake,
@@ -259,83 +256,23 @@ export function InjektionsTracker() {
   const saveDraftPin = async (input: InjectionSaveInput) => {
     if (!user || !draftPin) return
     try {
-      await assertInjectionProSchema(supabase)
-
-      // Bestand ist ein getrennt wiederholbarer Nachlauf zur gespeicherten Einnahme.
-      const debitStock = async (committedDoseLogId: string) => {
-        try {
-          await debitPeptideStockForDoseById(supabase, committedDoseLogId)
-        } catch {
-          setInventoryRetryIds(current => current.includes(committedDoseLogId)
-            ? current
-            : [...current, committedDoseLogId])
-          toast.error(t('inventory_update_failed', { defaultValue: 'Bestand konnte nicht aktualisiert werden' }))
-        }
-      }
-      const warningState = warning.level === 'none' ? null : warning.level
-
-      const openIntake = input.mode === 'intake' && input.intake?.status === 'open' ? input.intake : null
-      const confirmInput = openIntake ? {
+      await persistInjectionSave(supabase, {
         userId: user.id,
-        stackItemId: openIntake.stackItemId,
-        dose: input.dose ?? openIntake.dose,
-        unit: input.unit ?? openIntake.unit,
-        method: input.method ?? openIntake.method,
-        loggedAt: input.loggedAt,
-        doseLogId: openIntake.doseLogId,
-        cycleId: openIntake.cycleId,
-        planVersionId: openIntake.planVersionId,
-        routineSlotKey: openIntake.routineSlotKey,
-        scheduledAt: openIntake.scheduledAt,
-        debitVialStock: false,
-      } : null
-
-      // Offene Einnahme: bestaetigen und Stelle speichern in einer
-      // Transaktion. `null` heisst, die Datenbank kennt die Funktion noch
-      // nicht -- dann der bisherige Weg in zwei Schritten. Der alte Zweig
-      // ohne Planversionen (planTimelineV2 aus) bleibt zweistufig; die
-      // Datenbankfunktion braucht Zyklus und Planversion.
-      const atomic = FEATURES.planTimelineV2 && confirmInput
-        ? await confirmIntakeWithInjection(supabase, confirmInput, {
-          notes: input.notes, warningState, substanceLabel: input.substanceLabel, pin: draftPin,
-        })
-        : null
-
-      if (atomic) {
-        await debitStock(atomic.doseLogId)
-      } else {
-        let doseLogId: string | null = null
-        let stackItemId: string | null = null
-        let cycleId: string | null = null
-
-        if (input.mode === 'intake' && input.intake) {
-          const intake = input.intake
-          stackItemId = intake.stackItemId
-          cycleId = intake.cycleId
-          doseLogId = await resolveInjectionDoseLogId(intake, () => {
-            if (!confirmInput) throw new Error('Open intake is missing its confirmation input')
-            return confirmIntakeDoseLog(supabase, confirmInput)
-          })
-          await debitStock(doseLogId)
-        }
-
-        const confirmedSnapshot = FEATURES.planTimelineV2 && input.mode === 'intake' && input.intake?.status === 'confirmed'
-          ? input.intake : null
-        await saveInjectionLog(supabase, {
-          userId: user.id,
-          doseLogId,
-          stackItemId,
-          cycleId,
-          dose: confirmedSnapshot?.dose ?? input.dose,
-          unit: confirmedSnapshot?.unit ?? input.unit,
-          method: confirmedSnapshot?.method ?? input.method,
-          notes: input.notes,
-          loggedAt: confirmedSnapshot?.scheduledAt ?? input.loggedAt,
-          warningState,
-          substanceLabel: input.substanceLabel,
-          pin: draftPin,
-        })
-      }
+        input,
+        pin: draftPin,
+        warningLevel: warning.level,
+        planTimelineV2: FEATURES.planTimelineV2,
+        debitStock: async committedDoseLogId => {
+          try {
+            await debitPeptideStockForDoseById(supabase, committedDoseLogId)
+          } catch {
+            setInventoryRetryIds(current => current.includes(committedDoseLogId)
+              ? current
+              : [...current, committedDoseLogId])
+            toast.error(t('inventory_update_failed', { defaultValue: 'Bestand konnte nicht aktualisiert werden' }))
+          }
+        },
+      })
 
       toast.success(input.mode === 'intake'
         ? input.intake?.status === 'confirmed'
@@ -372,16 +309,16 @@ export function InjektionsTracker() {
         display: 'flex', flexDirection: 'column', gap: 16,
         padding: 'calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px))',
       }}>
-        <PageHeader onBack={goBack} />
+        <InjectionTrackerHeader onBack={goBack} />
         {/* Die genauere Ursache zuerst: fehlt die Tabelle, ist es nicht der Plan. */}
         {tableError ? (
-          <TrackerUnavailable
+          <InjectionTrackerUnavailable
             title={String(t('injection_unavailable_title', { defaultValue: 'Injektionstracker gerade nicht verfügbar' }))}
             hint={String(t('injection_unavailable_hint', { defaultValue: 'Deine Daten sind sicher gespeichert. Bitte versuche es gleich noch einmal.' }))}
             onRetry={() => { setTableError(false); void loadData() }}
           />
         ) : (
-          <TrackerUnavailable title={String(t('inj_plan_load_error'))} onRetry={() => void loadData()} />
+          <InjectionTrackerUnavailable title={String(t('inj_plan_load_error'))} onRetry={() => void loadData()} />
         )}
       </div>
     )
@@ -403,7 +340,7 @@ export function InjektionsTracker() {
         }}
       >
         <div style={{ position: 'relative', height: TRACKER_FULLSCREEN_HEIGHT, minHeight: TRACKER_FULLSCREEN_HEIGHT }}>
-          <PageHeader onBack={goBack} overlay />
+          <InjectionTrackerHeader onBack={goBack} overlay />
           <InjectionMapCanvas
             height={TRACKER_FULLSCREEN_HEIGHT}
             minHeight={TRACKER_FULLSCREEN_HEIGHT}
@@ -546,73 +483,6 @@ export function InjektionsTracker() {
       {showIntro && (
         <InjectionIntroSheet onClose={closeIntro} onDontShowAgain={dontShowIntro} />
       )}
-    </div>
-  )
-}
-
-// ── PageHeader ─────────────────────────────────────────────────────────────────
-
-function PageHeader({ onBack, overlay = false }: { onBack: () => void; overlay?: boolean }) {
-  const { t } = useTranslation()
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      ...(overlay ? {
-        position: 'absolute',
-        top: 'calc(16px + env(safe-area-inset-top))',
-        left: 14,
-        right: 14,
-        zIndex: 25,
-        pointerEvents: 'none',
-      } : null),
-    }}>
-      <button
-        onClick={onBack}
-        aria-label={String(t('back', { defaultValue: 'Zurück' }))}
-        className="lg-glass lg-icon-btn lg-press shrink-0"
-        style={{ pointerEvents: overlay ? 'auto' : undefined }}
-      >
-        <ArrowLeft size={20} />
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{
-          fontSize: 13, fontWeight: 600,
-          color: 'var(--lg-text-2)',
-          textShadow: overlay ? '0 1px 10px rgba(0,0,0,0.8)' : undefined,
-        }}>
-          {t('injection_pro_title', { defaultValue: 'Injektionstracker Pro' })}
-        </p>
-        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--text)', textShadow: overlay ? '0 2px 14px rgba(0,0,0,0.8)' : undefined }}>
-          {t('injection_map_title', { defaultValue: '3D Injektionskarte' })}
-        </h1>
-      </div>
-    </div>
-  )
-}
-
-// ── TrackerUnavailable ──────────────────────────────────────────────────────
-//
-// Frueher stand hier das Einrichtungs-SQL zum Kopieren in den Supabase-Editor.
-// Das ist ein Entwicklerwerkzeug: Nutzer koennen damit nichts anfangen, und es
-// zeigt den Aufbau der Datenbank. Die Tabellen stehen versioniert im Repo
-// (supabase-injection*.sql).
-
-function TrackerUnavailable({ title, hint, onRetry }: { title: string; hint?: string; onRetry: () => void }) {
-  const { t } = useTranslation()
-  return (
-    <div role="alert" className="lg-surface" style={{ padding: 22, textAlign: 'center' }}>
-      <div className="lg-icon-tile" style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--lg-warn)', margin: '0 auto 14px' }}>
-        <AlertTriangle size={24} aria-hidden="true" />
-      </div>
-      <h2 className="lg-title2" style={{ marginBottom: hint ? 8 : 18 }}>{title}</h2>
-      {hint && (
-        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.5, marginBottom: 18 }}>{hint}</p>
-      )}
-      <button type="button" data-quiet className="lg-gray-btn min-h-11 w-full" onClick={onRetry}>
-        <RefreshCw size={14} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
-      </button>
     </div>
   )
 }

@@ -1136,6 +1136,27 @@ const EXPECTED_MY_STACK_KEYS = [
   'injection_side_left',
   'injection_side_right',
   'injection_map_aria',
+  'injection_tab_intakes',
+  'injection_intakes_hint',
+  'injection_intakes_pick_title',
+  'injection_intakes_empty_title',
+  'injection_intakes_empty_body',
+  'injection_filter_substance',
+  'injection_filter_all',
+  'injection_filter_period',
+  'injection_manual_entry',
+  'injection_back_to_intakes',
+  'injection_time_change',
+  'injection_dose_changed_toggle',
+  'injection_dose_changed_hint',
+  'injection_notes_add',
+  'injection_site_heading',
+  'injection_region_chest',
+  'injection_region_torso',
+  'injection_region_forearm',
+  'injection_region_lower_leg',
+  'injection_region_outside_typical',
+  'injection_side_center',
   'my_stack_more_options',
   'my_stack_view',
   'my_stack_view_vials',
@@ -1235,6 +1256,23 @@ const EXPECTED_MY_STACK_KEYS = [
   'fortschritt_saved_short',
   'fortschritt_save_entry',
   'fortschritt_chart_value_of',
+  'bundle_section_title',
+  'bundle_new',
+  'bundle_new_title',
+  'bundle_edit_title',
+  'bundle_edit_label',
+  'bundle_sheet_hint',
+  'bundle_name_label',
+  'bundle_name_placeholder',
+  'bundle_items_label',
+  'bundle_items_empty',
+  'bundle_save',
+  'bundle_delete',
+  'bundle_delete_confirm',
+  'bundle_no_items',
+  'bundle_nothing_open',
+  'bundle_confirm_open',
+  'bundle_empty_hint',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1254,26 +1292,28 @@ const EXPECTED_MY_STACK_KEYS = [
 // Forschungszwecke" ist die Formel von Graumarkt-Shops und faellt in der
 // Pruefung auf — jetzt „Kein Medizinprodukt" bzw. „Persoenliches
 // Tracking-Werkzeug" (research_only, safety_banner_* — nur de/en).
+// Bewusst ergaenzt (Oktober 2026): Kachel des Workout-Trackers
+// (`tile_training`, `tile_training_desc`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'ca963935fe870972dd7e03113b4bede17d1e98c55e250b46f946cd049883deb5',
-  en: 'c5bef68a8f3c32047d598490ff0fe7ef8998d7f7d4424d5a5639a5b3d3117a07',
+  de: '531ad58df8e2fda40b80e4080a93ea796ab14fe554bc8cfcabec86faa19f1902',
+  en: '50053fac8378d016e0fc12d5e994395d8ef3d140b06898ffdec840a2ecc03833',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
-// Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine) englische
-// Platzhalter (Regel in CLAUDE.md).
+// Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
+// nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '76154fe03421471f76367687d85ae5d35ec0da3d32357efb7bad1489370408a5',
-  es: '704c28e9a6964e2ff523d4af97fb3fd8687a3b61893351125f92590cbef8b01c',
-  fr: 'abfba9652a0995dd30c2fb30804d95952685ddcf96c0c2f88b77eda8b8e34719',
-  hi: '57d5f05724a46bc7086cd95a6be5c3b559e58e501ff938966c081395d9ed2fdc',
-  id: '119b43c453f7ba85166d9b99e3f2ba127b332bba6d58420259d24f3bc3c87171',
-  it: '27065146a04ac69660c5a96c1b16f30c57a89a5ed7cae336fbb7f1fefdf30ab3',
-  ja: 'b36472478c55d948358b88f916aade90bef816f666fad6d6277c53c575644384',
-  ko: 'ae29951512d45e7e23d6eb6aca39d1aeaaae8d4ae2047325aae4c0b35bf3fa47',
-  pt: '1e20826cb04e8689a45826c1b02d1ce94765deb9158ae36d6d109efeac2cdc00',
-  ru: 'f3d24f1776dc956f0f22c3d63ee4591e1b5c71b502684eb9ae98c8901d6e0aeb',
-  tr: '1ba9d82be3df05f58fc4c6937b09ca76fdb71becefd441ddd21bd07177c68850',
-  zh: '4d60478a336a3bb1cd28b5cfadffaa27b9d54f275835a0a7049d54e3644ed4f7',
+  ar: '9b714358e95474ac150e18ca33000209e142f4210f4c5cbd6065c97581a605b2',
+  es: '981b889f78379dae69b33ead9f46e8d310bb7ef4527084bd062309af9215d2ed',
+  fr: '5dd10afe64d55afc857f463a69066359b9aa7cbd8b282b88668acbe0c5ae265e',
+  hi: '030ee926cc0f3e04464548be6ab0b6f7d5524efa1e66de4b60fbef2362c436db',
+  id: '6857f8fdd14c173d51670531e61cb75f260bcfbef59fd4056e65ee4f708efa52',
+  it: '16bd698550d69968d124586c01ab49b2fd5488b17634a621521a0f988d326cf6',
+  ja: '14f3b42fc968b436a5c63d04cebff23536588fedbb3fd25259d1109d9cc25bd4',
+  ko: '32db427b2995f732c39af0f306d09617acd4cf4bd6611df14909b6dac5dc9ff8',
+  pt: 'a8c69f215037c1c86bc523220d4eeecf52b42809f2a4bbb464dcba93a40e35a2',
+  ru: '110d1e5d22b4d994a9c4acdbc813b04ab04892e25ed9b868eb1e2f5757091c54',
+  tr: '5b2325ff19031056c3410cd23d9a31726400c74f805a6c4aeea52e5fcad48a7f',
+  zh: 'ebd6600f14d5b4d5bbc7f0c63c0f87f481a83e245529a7504d66d07e0c914d95',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

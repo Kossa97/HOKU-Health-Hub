@@ -22,7 +22,7 @@ test('Kalender: neue Planmenge gilt ab dem gewählten Tag, bestätigte Einnahme 
   const confirmedSlot = `${cycleId}@2026-09-28T08:00`
 
   await page.goto('/kalender?date=2026-09-28#due-intakes')
-  await expect(page.locator('#due-intakes')).toContainText('28.09.2026')
+  await expect(page.locator('[data-calendar-date="2026-09-28"][aria-pressed="true"]').first()).toBeVisible()
   await expect(page.locator(`[data-due-row="${confirmedSlot}"]`)).toContainText('250 mcg')
   const sheet = await openConfirmation(page, confirmedSlot)
   await expect(sheet.getByRole('spinbutton', { name: 'Menge', exact: true })).toHaveValue('250')
@@ -56,15 +56,15 @@ test('Kalender: neue Planmenge gilt ab dem gewählten Tag, bestätigte Einnahme 
   expect(mock.table('dose_logs')).toEqual([savedLog])
 
   await page.goto('/kalender?date=2026-09-29#due-intakes')
-  await expect(page.locator('#due-intakes')).toContainText('29.09.2026')
+  await expect(page.locator('[data-calendar-date="2026-09-29"][aria-pressed="true"]').first()).toBeVisible()
   const nextSlot = page.locator(`[data-due-row="${cycleId}@2026-09-29T08:00"]`)
   await expect(nextSlot).toContainText('500 mcg')
   await page.reload()
-  await expect(page.locator('#due-intakes')).toContainText('29.09.2026')
+  await expect(page.locator('[data-calendar-date="2026-09-29"][aria-pressed="true"]').first()).toBeVisible()
   await expect(nextSlot).toContainText('500 mcg')
 
   await page.goto('/kalender?date=2026-09-28#due-intakes')
-  await expect(page.locator('#due-intakes')).toContainText('28.09.2026')
+  await expect(page.locator('[data-calendar-date="2026-09-28"][aria-pressed="true"]').first()).toBeVisible()
   await expect(page.locator('[data-due-receipt]')).toContainText('1 von 1 bestätigt')
   await expect(page.locator('[data-due-row]')).toHaveCount(0)
   await page.getByRole('button', { name: /^Bereits protokolliert/ }).click()
@@ -87,7 +87,7 @@ test.describe('Lokaler Tag an der Herbstzeitumstellung', () => {
     const slotKey = `${cycleId}@2026-10-25T02:30`
 
     await page.goto('/kalender')
-    await expect(page.locator('#due-intakes')).toContainText('25.10.2026')
+    await expect(page.locator('[data-calendar-date="2026-10-25"][aria-pressed="true"]').first()).toBeVisible()
     const sheet = await openConfirmation(page, slotKey)
     await expect(sheet.locator('input[type="time"]')).toHaveValue('02:30')
     await sheet.getByRole('button', { name: 'Jetzt', exact: true }).click()
@@ -105,7 +105,7 @@ test.describe('Lokaler Tag an der Herbstzeitumstellung', () => {
     })
 
     await page.reload()
-    await expect(page.locator('#due-intakes')).toContainText('25.10.2026')
+    await expect(page.locator('[data-calendar-date="2026-10-25"][aria-pressed="true"]').first()).toBeVisible()
     await expect(page.locator('[data-due-receipt]')).toContainText('1 von 1 bestätigt')
     await expect(page.locator('[data-due-row]')).toHaveCount(0)
     await page.getByRole('button', { name: /^Bereits protokolliert/ }).click()
@@ -113,7 +113,7 @@ test.describe('Lokaler Tag an der Herbstzeitumstellung', () => {
     await expect(page.locator('#due-intakes')).toContainText('00:05')
 
     await page.goto('/kalender?date=2026-10-26#due-intakes')
-    await expect(page.locator('#due-intakes')).toContainText('26.10.2026')
+    await expect(page.locator('[data-calendar-date="2026-10-26"][aria-pressed="true"]').first()).toBeVisible()
     await expect(page.locator(`[data-due-row="${cycleId}@2026-10-26T02:30"]`)).toBeVisible()
     await expect(page.getByRole('button', { name: /^Bereits protokolliert/ })).toHaveCount(0)
     expect(mock.table('dose_logs')).toEqual([savedLog])

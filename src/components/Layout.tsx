@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   CalendarDays, FlaskConical, Bell, X, Share,
-  Syringe, Activity, Droplets, Calculator, Microscope, BookHeart, CheckCircle2,
+  Syringe, Activity, Droplets, Calculator, Microscope, BookHeart, CheckCircle2, Dumbbell, Utensils,
 } from 'lucide-react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +19,8 @@ const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
   { icon: FlaskConical, label: 'Substanz hinzufügen', path: '/my-stack#new-substance', color: '#00ccf5' },
   { icon: Syringe,      label: 'Injektion loggen',  path: '/injektionen',  color: '#10b981' },
+  { icon: Dumbbell,     label: 'Training starten',  path: '/training?start=empty', color: '#f97316' },
+  { icon: Utensils,     label: 'Essen eintragen',   path: '/ernaehrung',   color: '#f59e0b' },
   { icon: CalendarDays, label: 'Kalender / Zyklus', path: '/kalender',     color: '#8b5cf6' },
   { icon: Activity,     label: 'Blutspiegel',       path: '/simulation',   color: '#06b6d4' },
   { icon: Droplets,     label: 'Blutwerte',         path: '/blutwerte',    color: '#f43f5e' },

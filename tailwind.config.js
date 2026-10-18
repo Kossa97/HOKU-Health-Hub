@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // `hover:` nur auf Geraeten, die wirklich hovern. Auf dem Handy blieb der
+  // Hover-Zustand nach dem Antippen sonst haengen.
+  future: { hoverOnlyWhenSupported: true },
   theme: {
     extend: {
       colors: {
