@@ -1197,25 +1197,27 @@ const EXPECTED_MY_STACK_KEYS = [
 // Forschungszwecke" ist die Formel von Graumarkt-Shops und faellt in der
 // Pruefung auf — jetzt „Kein Medizinprodukt" bzw. „Persoenliches
 // Tracking-Werkzeug" (research_only, safety_banner_* — nur de/en).
+// Bewusst ergaenzt (Oktober 2026): Kachel des Workout-Trackers
+// (`tile_training`, `tile_training_desc`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'a2bc71909693489097b1858ce59d45c34507967ff3a560a0695f7347137a8aa1',
-  en: '88a78a845e8a0bce55f486ff65101349ba3c3db0c8effe266d01172018fc186c',
+  de: '090302e7f0efc61c5397db6e5fab70d0b863745eb0f908d338800fa51b833912',
+  en: '99ed1ee322a21a508fc623adf4a0e04236d2839ae4884d4d493639e689238d7c',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer die neuen Kalendertexte
 // englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '69047c276faeaeda89c64705479dc5a0a701fe37acb1aec4a1559dca67657747',
-  es: '1466533a883b1ad4b1d1c801a7e5bc45e869ab970c709f66a4b5e62d35ac8851',
-  fr: '0d258f2e642c5837a8a0bc4b7cbd2a9b05e9cbe70d59fbc93b7e3017148556c5',
-  hi: 'ceaea1b50ccc1923c794af9a771b477ea418dedec2821374ce67e4c61d947825',
-  id: '69eb4a9093a75b6975b5ad5c965d172e90f3c3565cc324f742a04fe9fd9fb207',
-  it: 'bc15af50cad976563e5073b7c3a427e32aae7898b048c603cfe01b00dac42fa5',
-  ja: 'b26b89e075c3896d421096c7edce753e446e8d174db36663949bc33cce1cab3c',
-  ko: 'df5d44b7b84f9cdb39603a07e94a49303086987d01d6e5a2e1c9eb93cb52fc48',
-  pt: '336ff45d78ad823d2046f4023f61dfac6ed9df489e705980437d318d9b675639',
-  ru: '099adc33449a881ceeb06560f9343d71bae48d1d87297e1fde4e2e70c450c6f4',
-  tr: '5c222257e26fd44384653c3fbff85f5ee849136d83e32117574cc90c6032dfe5',
-  zh: 'edb6ccb94ff102f30203f5aeb9220aa0580e445ddf44851395f9d2f42947df2f',
+  ar: '390f0c2786eac30a20b5ad5c9954a230d0a101286ee8b33ee3a472c2ff77b44d',
+  es: 'eaa1cd67ce2959197e18d213ad11d628da58d4aabbfd017f2871fbf0b5dd51d9',
+  fr: '4a6f62d5a576ea9a339e02a2fb7aaa01456267a081a5f62ce145764d3ce1658a',
+  hi: 'ea96a4bdd754d3fc8121f8755c068ea8c0aca3afb986df841ffc07c8c8e89744',
+  id: 'd9bb8e653cdff7c53cad82ab42f2c5b04050f00c95c831db9240e30213cb3b58',
+  it: '9b68b31028cee49933323375de8e41f497e69535b6fd6084fd7adfaaa7846521',
+  ja: 'e054755b18043be7477ae406d0bc6d2f133875acd68f1468bb4542b576c15df8',
+  ko: '9d68cce2d1e0a1c6f5a6e70475f89ba9b56feb8cc5dc805e5a98a5d71f303c74',
+  pt: '40d6b9f79aaf2c475804b4b6340cb189a0c5c4364c6b0fbc2adce74daf6ef922',
+  ru: '01cfdd72c646846cf2f98a9d8f71c54047258a104d5a5b2bc884e796d62bbb10',
+  tr: '48912c1a4532a147570cc50880b9b0c2179192c6d0dbf6a0ece119ebd68d1806',
+  zh: '64a6388303ac0ce17d4d42a86fd11c728fff17511d1ba457504425cc6f36ef0b',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

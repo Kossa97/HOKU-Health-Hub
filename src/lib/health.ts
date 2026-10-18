@@ -1,13 +1,17 @@
 import { Capacitor } from '@capacitor/core';
 import { CapacitorHealthkit } from '@perfood/capacitor-healthkit';
-import type { OtherData, SleepData } from '@perfood/capacitor-healthkit';
+import type { ActivityData, OtherData, SleepData } from '@perfood/capacitor-healthkit';
 import { HealthConnect } from 'capacitor-health-connect';
 import type { Record as HealthConnectRecord, RecordType } from 'capacitor-health-connect';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'heartRate'];
-const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries'];
+// 'activity' gibt in @perfood/capacitor-healthkit Schlaf UND Workouts frei.
+const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'heartRate', 'restingHeartRate'];
+// 'ExerciseSession' fehlt mit Absicht: capacitor-health-connect 0.7 kann solche
+// Eintraege nicht lesen (siehe getWorkouts). Jede Health-Connect-Berechtigung
+// muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
+const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate'];
 
 export const isNative = Capacitor.isNativePlatform();
 export const isIOS = Capacitor.getPlatform() === 'ios';
@@ -55,11 +59,32 @@ export interface HealthHeartRate {
   source?: string;
 }
 
+/** Ein Workout, wie es die Plattform aufgezeichnet hat (Uhr, Fitness-App). */
+export interface HealthWorkout {
+  /** Plattform-ID: HKWorkout-UUID bzw. Health-Connect-Record-ID. */
+  externalId: string;
+  /**
+   * Rohname der Plattform. HealthKit: Anzeigename aus dem Plugin, z. B.
+   * 'Traditional Strength Training'. Health Connect: ExerciseType als Zahl oder Name.
+   */
+  activityType: string;
+  /** Numerischer Typ der Plattform (HKWorkoutActivityType.rawValue bzw. ExerciseType), falls bekannt. */
+  activityId?: number | null;
+  startDate: Date;
+  endDate: Date;
+  durationS: number;
+  distanceM: number | null;
+  kcal: number | null;
+  avgHr: number | null;
+  source?: string;
+}
+
 type HealthConnectReadRecordsResult = Awaited<ReturnType<typeof HealthConnect.readRecords>>;
 type HealthConnectStoredRecord = HealthConnectReadRecordsResult['records'][number];
 type HealthConnectWeightRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'Weight' }>;
 type HealthConnectStepsRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'Steps' }>;
 type HealthConnectHeartRateRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'HeartRateSeries' }>;
+type HealthConnectRestingHeartRateRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'RestingHeartRate' }>;
 
 function platform(): HealthPlatform {
   return Capacitor.getPlatform();
@@ -85,11 +110,11 @@ function sortByDateDesc<T>(items: T[], getDate: (item: T) => Date) {
   return [...items].sort((a, b) => getDate(b).getTime() - getDate(a).getTime());
 }
 
-function getHealthKitSource(sample: OtherData | SleepData) {
+function getHealthKitSource(sample: OtherData | SleepData | ActivityData) {
   return sample.source || sample.sourceBundleId || undefined;
 }
 
-async function queryHealthKit<T extends OtherData | SleepData>(sampleName: string, options?: HealthQueryOptions) {
+async function queryHealthKit<T extends OtherData | SleepData | ActivityData>(sampleName: string, options?: HealthQueryOptions) {
   const { startDate, endDate, limit } = queryRange(options, 1);
 
   const response = await CapacitorHealthkit.queryHKitSampleType<T>({
@@ -315,3 +340,109 @@ export async function getHeartRate(options?: HealthQueryOptions): Promise<Health
 
   return [];
 }
+
+/** Das Plugin meldet fehlende Werte als -1; 0 ist bei kcal/Strecke ebenfalls „nicht gemessen". */
+function positiveOrNull(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+async function averageHeartRateIOS(startDate: Date, endDate: Date): Promise<number | null> {
+  try {
+    const samples = await queryHealthKit<OtherData>('heartRate', { startDate, endDate });
+    const values = samples.map(sample => sample.value).filter(value => value > 0);
+    if (values.length === 0) return null;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Workouts im Zeitraum (Standard: die letzten 30 Tage), neueste zuerst.
+ *
+ * iOS: HealthKit 'workoutType'. Strecke und kcal (aktive Energie) liefert das
+ * Workout selbst; den Durchschnittspuls gibt das Plugin nicht mit, er wird aus
+ * den Pulsmessungen im Workout-Fenster gemittelt.
+ *
+ * Android: leer. capacitor-health-connect 0.7 serialisiert beim Lesen nur
+ * ActiveCaloriesBurned, Temperatur-/Blutwerte, HeartRateSeries, Height,
+ * OxygenSaturation, RespiratoryRate, RestingHeartRate, Steps und Weight; bei
+ * ExerciseSession oder Distance wirft der Kotlin-Teil innerhalb einer Coroutine
+ * ohne catch — der Aufruf antwortet nie bzw. die App stuerzt ab. Deshalb wird
+ * hier gar nicht erst gefragt.
+ */
+export async function getWorkouts(
+  options?: HealthQueryOptions,
+  /** Fuer welche Workouts der Durchschnittspuls nachgeschlagen wird (Standard: alle). */
+  { withHeartRate = () => true }: { withHeartRate?: (externalId: string) => boolean } = {},
+): Promise<HealthWorkout[]> {
+  if (!isNative) return [];
+
+  if (isIOS) {
+    const { startDate, endDate, limit } = queryRange(options, 30);
+    const samples = await queryHealthKit<ActivityData>('workoutType', { startDate, endDate, limit });
+    const workouts: HealthWorkout[] = [];
+
+    // Nacheinander statt parallel: pro Workout eine Pulsabfrage, HealthKit soll
+    // beim Import nicht mit Dutzenden gleichzeitigen Queries geflutet werden.
+    for (const sample of sortByDateDesc(samples, item => toDate(item.startDate))) {
+      const start = toDate(sample.startDate);
+      const end = toDate(sample.endDate);
+
+      workouts.push({
+        externalId: sample.uuid,
+        activityType: sample.workoutActivityName,
+        activityId: sample.workoutActivityId,
+        startDate: start,
+        endDate: end,
+        // 'duration' kommt vom Plugin in Stunden.
+        durationS: Math.round(sample.duration * 3600),
+        distanceM: positiveOrNull(sample.totalDistance),
+        kcal: positiveOrNull(sample.totalEnergyBurned),
+        avgHr: withHeartRate(sample.uuid) ? await averageHeartRateIOS(start, end) : null,
+        source: getHealthKitSource(sample),
+      });
+    }
+
+    return workouts;
+  }
+
+  return [];
+}
+
+/** Ruhepuls-Tageswerte (Standard: die letzten 30 Tage), neueste zuerst. */
+export async function getRestingHeartRate(options?: HealthQueryOptions): Promise<HealthHeartRate[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate, limit } = queryRange(options, 30);
+
+  if (isIOS) {
+    const samples = await queryHealthKit<OtherData>('restingHeartRate', { startDate, endDate, limit });
+
+    return sortByDateDesc(samples, sample => toDate(sample.endDate)).map(sample => ({
+      bpm: sample.value,
+      date: toDate(sample.endDate),
+      source: getHealthKitSource(sample),
+    }));
+  }
+
+  if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectRestingHeartRateRecord>(
+      'RestingHeartRate',
+      { startDate, endDate, limit },
+      30,
+    );
+
+    return sortByDateDesc(records, record => toDate(record.time)).map(record => ({
+      bpm: record.beatsPerMinute,
+      date: toDate(record.time),
+      source: record.metadata.dataOrigin,
+    }));
+  }
+
+  return [];
+}
+
+// Kein getHrv(): weder @perfood/capacitor-healthkit 1.3 (keine Sample-Art fuer
+// heartRateVariabilitySDNN) noch capacitor-health-connect 0.7 (kein
+// HeartRateVariabilityRmssd im Serializer) liefern Herzratenvariabilitaet.

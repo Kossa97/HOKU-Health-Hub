@@ -494,6 +494,8 @@
   "stat_study": "오늘의 연구",
   "tile_injektionen": "주사",
   "tile_injektionen_desc": "부위 로테이션 & 3D 트래커",
+  "tile_training": "Training",
+  "tile_training_desc": "Strength, cardio, Hyrox",
   "lab_kicker": "연구",
   "lab_title": "Studies",
   "lab_subtitle": "PubMed에서 연구와 초록을 검색하세요.",
