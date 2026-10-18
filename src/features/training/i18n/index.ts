@@ -37,8 +37,11 @@ export function formatText(template: string, vars?: Record<string, string | numb
     name in vars ? String(vars[name]) : match)
 }
 
+/** Einzahl: gibt es zu `x` einen Schluessel `x_one`, gilt er bei `count === 1`. */
 export function trainingText(lang: TrainingLang, key: TrainingTextKey, vars?: Record<string, string | number>): string {
-  return formatText(TRAINING_TEXTS[lang][key] ?? TRAINING_TEXTS.en[key] ?? key, vars)
+  const table = TRAINING_TEXTS[lang] as Record<string, string>
+  const singular = vars?.count === 1 ? table[`${key}_one`] : undefined
+  return formatText(singular ?? TRAINING_TEXTS[lang][key] ?? TRAINING_TEXTS.en[key] ?? key, vars)
 }
 
 export function useTrainingText() {

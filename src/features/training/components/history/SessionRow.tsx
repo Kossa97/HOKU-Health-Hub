@@ -24,7 +24,7 @@ export function SessionRow({ session, data, recordCount = 0, onOpen }: {
   ].filter(Boolean).join(' · ')
 
   return (
-    <Card onClick={onOpen} style={{ padding: 12 }} ariaLabel={`${session.title || tt(`kind_${session.kind}` as TrainingTextKey)}, ${details}`}>
+    <Card onClick={onOpen} style={{ padding: 12 }} ariaLabel={[session.title || tt(`kind_${session.kind}` as TrainingTextKey), details, recordCount > 0 ? tt('session_records', { count: recordCount }) : null].filter(Boolean).join(', ')}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <KindBadge kind={session.kind} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -36,7 +36,7 @@ export function SessionRow({ session, data, recordCount = 0, onOpen }: {
           </div>
         </div>
         {recordCount > 0 && (
-          <span aria-label={tt('session_records', { count: recordCount })} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#eab308', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>
+          <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#eab308', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>
             <Trophy size={14} aria-hidden="true" /> {recordCount}
           </span>
         )}

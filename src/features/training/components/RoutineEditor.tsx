@@ -100,7 +100,7 @@ export function RoutineEditor({ routine, data, onClose }: {
         <Field label={tt('routine_name')}>
           <input value={name} onChange={e => setName(e.target.value)} placeholder={tt('routine_name_placeholder')} maxLength={60} style={inputStyle} />
         </Field>
-        <Field label={tt('routine_days')} hint={tt('routine_days_hint')}>
+        <Field group label={tt('routine_days')} hint={tt('routine_days_hint')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {[1, 2, 3, 4, 5, 6, 7].map(day => (
               <Chip

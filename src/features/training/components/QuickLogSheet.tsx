@@ -108,7 +108,7 @@ export function QuickLogSheet({ session, bodyWeightKg, onSave, onDelete, onClose
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Field label={tt('quick_kind')}>
+        <Field group label={tt('quick_kind')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {QUICK_KINDS.map(k => (
               <Chip key={k} active={kind === k} color={KIND_STYLE[k].color} onClick={() => setKind(k)}>
@@ -138,7 +138,7 @@ export function QuickLogSheet({ session, bodyWeightKg, onSave, onDelete, onClose
             <input inputMode="numeric" value={avgHr} onChange={e => setAvgHr(e.target.value)} style={inputStyle} />
           </Field>
         </div>
-        <Field label={tt('quick_rpe')}>
+        <Field group label={tt('quick_rpe')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {Array.from({ length: 10 }, (_, i) => i + 1).map(v => (
               <Chip key={v} active={rpe === v} onClick={() => setRpe(rpe === v ? null : v)}>{v}</Chip>

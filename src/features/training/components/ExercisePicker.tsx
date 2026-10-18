@@ -199,21 +199,21 @@ function CustomExerciseForm({ initialName, onSave, onCancel }: {
         <Field label={tt('custom_name')}>
           <input value={name} onChange={e => setName(e.target.value)} maxLength={80} autoFocus style={inputStyle} />
         </Field>
-        <Field label={tt('custom_tracking')}>
+        <Field group label={tt('custom_tracking')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {TRACKINGS.map(t => (
               <Chip key={t} active={tracking === t} onClick={() => setTracking(t)}>{tt(`tracking_${t}` as TrainingTextKey)}</Chip>
             ))}
           </div>
         </Field>
-        <Field label={tt('custom_category')}>
+        <Field group label={tt('custom_category')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {CATEGORIES.map(c => (
               <Chip key={c} active={category === c} onClick={() => setCategory(c)}>{tt(`cat_${c}` as TrainingTextKey)}</Chip>
             ))}
           </div>
         </Field>
-        <Field label={tt('custom_muscle')}>
+        <Field group label={tt('custom_muscle')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {MUSCLE_FILTERS.map(m => (
               <Chip key={m} active={muscle === m} onClick={() => setMuscle(m)}>{tt(`muscle_${m}` as TrainingTextKey)}</Chip>

@@ -76,7 +76,7 @@ export function ExerciseBlock({
           </h3>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {groupColor && <span style={{ color: groupColor, fontWeight: 700 }}>{tt('superset')}</span>}
-            <span><Timer size={12} aria-hidden="true" style={{ verticalAlign: -2 }} /> {restS > 0 ? `${restS} s` : tt('rest_off')}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} aria-hidden="true" /> {restS > 0 ? `${restS} s` : tt('rest_off')}</span>
           </div>
         </div>
         <button

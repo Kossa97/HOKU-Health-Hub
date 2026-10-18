@@ -18,7 +18,7 @@ export const TRAINING_ACCENT = '#f97316'
 export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string }> = {
   strength: { icon: Dumbbell, color: '#f97316' },
   run: { icon: Footprints, color: '#10b981' },
-  cycle: { icon: Bike, color: '#06b6d4' },
+  cycle: { icon: Bike, color: '#6366f1' },
   swim: { icon: Waves, color: '#3b82f6' },
   row: { icon: Waves, color: '#0ea5e9' },
   walk: { icon: Footprints, color: '#84cc16' },
@@ -156,12 +156,25 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
   )
 }
 
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: ReactNode }) {
+/**
+ * Beschriftetes Feld. Mit `group` fuer eine Reihe von Chips: dann eine
+ * benannte Gruppe statt eines `<label>` — ein Label wuerde sonst nur den
+ * ersten Chip beschriften und dessen Namen fuer Screenreader ueberschreiben.
+ */
+export function Field({ label, children, hint, group = false }: { label: string; children: ReactNode; hint?: ReactNode; group?: boolean }) {
+  const labelId = useId()
+  const caption = <span id={labelId} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{label}</span>
+  const note = hint && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{hint}</span>
+  if (group) {
+    return (
+      <div role="group" aria-labelledby={labelId} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {caption}{children}{note}
+      </div>
+    )
+  }
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{label}</span>
-      {children}
-      {hint && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{hint}</span>}
+      {caption}{children}{note}
     </label>
   )
 }

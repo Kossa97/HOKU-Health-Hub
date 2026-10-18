@@ -70,9 +70,10 @@ export function FinishSheet({ workout, history, settings, nameOf, onSave, onClos
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {preview.records.map((r, i) => (
-                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: '0.9rem' }}>
-                  <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {nameOf(r.exerciseId)} · {tt(`record_${r.kind}` as TrainingTextKey)}
+                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '0.9rem' }}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontWeight: 700 }}>{tt(`record_${r.kind}` as TrainingTextKey)}</span>
+                    <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(r.exerciseId)}</span>
                   </span>
                   <strong style={{ fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{recordValue(r, settings, locale)}</strong>
                 </li>
