@@ -613,6 +613,8 @@ html:not([data-look='licht']) .lg-flat { -webkit-backdrop-filter: none; backdrop
   color: var(--lg-text-3);
 }
 .lg-group {
+  /* Bezug für Lichtkante und Glanz (::before/::after, inset 0) */
+  position: relative;
   overflow: hidden;
   border-radius: var(--r-xl);
   background: var(--lg-surface-bg);

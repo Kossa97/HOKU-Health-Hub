@@ -10,8 +10,7 @@ interface ResearchSnapshotProps {
 
 interface SnapshotCardProps {
   kicker: string
-  kickerColor: string
-  topBorderColor: string
+  dot: string
   title: string
   sub: string
   cta?: string
@@ -19,30 +18,23 @@ interface SnapshotCardProps {
 }
 
 function SnapshotCard({
-  kicker, kickerColor, topBorderColor, title, sub, cta, onCta,
+  kicker, dot, title, sub, cta, onCta,
 }: SnapshotCardProps) {
   return (
-    <div
-      className={`bg-[#0B1220] border border-white/[0.06] ${topBorderColor} rounded-2xl p-4 hover:bg-[#111827] hover:-translate-y-0.5 transition-all duration-200`}
-    >
-      <p
-        className={`text-[0.58rem] font-black uppercase tracking-wider mb-2 ${kickerColor}`}
-        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-      >
+    <div className="lg-surface lg-flat !rounded-[22px] p-4">
+      <p className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--lg-text-2)]">
+        <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full" style={{ background: dot }} />
         {kicker}
       </p>
-      <p
-        className="text-xl font-black text-white mb-0.5 leading-tight truncate"
-        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-      >
+      <p className="mb-0.5 truncate text-[22px] font-semibold leading-tight text-[var(--lg-text)]">
         {title}
       </p>
-      <p className="text-xs text-slate-500">{sub}</p>
+      <p className="text-[13px] text-[var(--lg-text-2)]">{sub}</p>
       {cta && onCta && (
         <button
           type="button"
           onClick={onCta}
-          className="mt-3 text-xs text-slate-500 hover:text-sky-400 transition-colors"
+          className="-mb-2 mt-1 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)]"
         >
           {cta} →
         </button>
@@ -60,8 +52,7 @@ export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnap
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mb-6">
       <SnapshotCard
         kicker={t('lab_snapshot_trending')}
-        kickerColor="text-sky-400/70"
-        topBorderColor="border-t-2 border-t-sky-500"
+        dot="#0a84ff"
         title={top?.name ?? '—'}
         sub={top
           ? t('lab_snapshot_studies', { count: top.count.toLocaleString() })
@@ -71,8 +62,7 @@ export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnap
       />
       <SnapshotCard
         kicker={t('lab_snapshot_top')}
-        kickerColor="text-violet-400/70"
-        topBorderColor="border-t-2 border-t-violet-500"
+        dot="#bf5af2"
         title={second?.name ?? '—'}
         sub={second
           ? t('lab_snapshot_papers', { count: second.count.toLocaleString() })
@@ -82,8 +72,7 @@ export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnap
       />
       <SnapshotCard
         kicker={t('lab_snapshot_new')}
-        kickerColor="text-blue-400/70"
-        topBorderColor="border-t-2 border-t-blue-500"
+        dot="var(--lg-good)"
         title={String(articles.length)}
         sub={t('lab_snapshot_loaded', { count: articles.length })}
       />

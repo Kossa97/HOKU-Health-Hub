@@ -10,8 +10,7 @@ interface StudySidebarProps {
 function SectionLabel({ children }: { children: string }) {
   return (
     <p
-      className="text-[0.55rem] uppercase tracking-widest text-slate-600 mb-2"
-      style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+      className="text-[11px] uppercase tracking-widest text-[var(--lg-text-3)] mb-2"
     >
       {children}
     </p>
@@ -26,7 +25,7 @@ function FilterOption({
       type="button"
       onClick={onClick}
       className={`flex items-center gap-2 text-xs w-full text-left py-0.5 transition-colors duration-150 ${
-        active ? 'text-sky-400' : 'text-slate-400 hover:text-slate-300'
+        active ? 'text-sky-400' : 'text-[var(--lg-text-2)] hover:text-[var(--lg-text)]'
       }`}
     >
       <span

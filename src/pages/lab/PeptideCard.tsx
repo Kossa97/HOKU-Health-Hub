@@ -7,9 +7,8 @@ import { PEPTIPEDIA_UI_COPY } from '../../features/peptipedia/content/uiCopy'
 import type { PeptipediaView, PeptipediaLocale } from '../../features/peptipedia/content/types'
 import {
   CATEGORY_LABEL_KEYS,
-  CATEGORY_COLORS,
   STATUS_LABEL_KEYS,
-  STATUS_STYLES,
+  STATUS_TONES,
 } from '../../features/peptipedia/display'
 
 interface PeptideCardProps {
@@ -21,100 +20,66 @@ interface PeptideCardProps {
 export function PeptideCard({ peptide, locale, mode = 'public' }: PeptideCardProps) {
   const t = peptipediaText(locale)
   const evidenceCopy = PEPTIPEDIA_UI_COPY[locale].evidence
-  const catColors   = CATEGORY_COLORS[peptide.category]
   const approvedRegions = [...new Set(peptide.approvals?.filter(approval => approval.status === 'approved').map(approval => approval.region))]
 
   const detailPath = peptipediaDetailPath(locale, peptide.slug, mode)
 
   return (
-    <article
-      className={[
-        'group relative bg-[#0B1220] rounded-2xl overflow-hidden cursor-pointer',
-        'border border-white/[0.07] border-t-2',
-        catColors.topBorder,
-        'transition-all duration-300',
-        'hover:border-white/[0.15] hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]',
-        'hover:-translate-y-0.5',
-      ].join(' ')}
-    >
-      {/* Subtle inner gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.015] via-transparent to-transparent pointer-events-none" />
-
-      <div className="relative p-5">
-        {/* Top row: category + identity */}
-        <div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <span
-            className={`text-[0.55rem] font-black uppercase tracking-[0.18em] ${catColors.text}`}
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
+    <article className="group lg-surface lg-flat relative cursor-pointer overflow-hidden transition-transform duration-150 active:scale-[0.99] motion-reduce:transition-none">
+      <div className="relative p-4">
+        {/* Kategorie und Identität */}
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="text-[13px] font-semibold text-[var(--lg-text-3)]">
             {t(CATEGORY_LABEL_KEYS[peptide.category])}
           </span>
-          <div className="flex max-w-full flex-wrap items-center gap-1.5 text-[0.55rem]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-            <span className="uppercase tracking-wider text-slate-600">{locale === 'de' ? 'Identität' : 'Identity'}</span>
-            <span className="break-words rounded border border-white/[0.08] bg-white/[0.03] px-1.5 py-0.5 font-black text-slate-300">
-              {evidenceCopy.identity[peptide.identity.status]}
-            </span>
-          </div>
+          <span className="flex items-baseline gap-1.5 text-[13px]">
+            <span className="text-[var(--lg-text-3)]">{locale === 'de' ? 'Identität' : 'Identity'}</span>
+            <span className="text-[var(--lg-text-2)]">{evidenceCopy.identity[peptide.identity.status]}</span>
+          </span>
         </div>
 
         {/* Name */}
-        <h2
-          className="text-xl font-black text-white mb-0.5 leading-tight group-hover:text-sky-50 transition-colors duration-200"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          <Link to={detailPath} className="after:absolute after:inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">{peptide.name}</Link>
+        <h2 className="text-[17px] font-semibold leading-tight text-[var(--lg-text)]">
+          <Link to={detailPath} className="rounded-sm after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)]">{peptide.name}</Link>
         </h2>
 
-        {/* Full name */}
-        {peptide.blend && <span className="inline-block text-[0.55rem] text-sky-300 border border-sky-500/25 rounded-full px-2 py-0.5 my-2">Blend · {peptide.blend.components.length} {locale === 'de' ? 'Bestandteile' : 'components'}</span>}
+        {peptide.blend && <span className="lg-tag mt-2" data-tone="accent">Blend · {peptide.blend.components.length} {locale === 'de' ? 'Bestandteile' : 'components'}</span>}
         {peptide.fullName && (
-          <p
-            className="text-[0.6rem] text-slate-600 mb-3 leading-tight"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
+          <p className="mt-0.5 text-[13px] leading-tight text-[var(--lg-text-3)]">
             {peptide.fullName}
           </p>
         )}
 
         {/* TLDR */}
-        <p className="text-xs text-slate-400 leading-relaxed mb-4 line-clamp-2">
+        <p className="mt-2 mb-3 line-clamp-2 text-[15px] leading-snug text-[var(--lg-text-2)]">
           {peptide.tldr}
         </p>
 
-        {/* Compact, non-aggregate evidence summary */}
-        <div className="mb-4 flex items-center justify-between gap-3 border-y border-white/[0.05] py-2 text-[0.6rem]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-          <span className="uppercase tracking-wider text-slate-600">{evidenceCopy.dimensions.human}</span>
-          <span className="text-right text-slate-400">{evidenceCopy.human[peptide.evidenceMatrix.human]}</span>
+        {/* Kurze Evidenz-Angabe, ohne Gesamturteil */}
+        <div className="mb-3 flex items-baseline justify-between gap-3 border-y border-[var(--lg-separator)] py-2 text-[13px]" style={{ borderWidth: '0.5px 0' }}>
+          <span className="text-[var(--lg-text-3)]">{evidenceCopy.dimensions.human}</span>
+          <span className="text-right text-[var(--lg-text-2)]">{evidenceCopy.human[peptide.evidenceMatrix.human]}</span>
         </div>
 
-        {/* Tags */}
+        {/* Bereiche */}
         {peptide.researchAreas && peptide.researchAreas.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="mb-3 flex flex-wrap gap-1.5">
             {peptide.researchAreas.slice(0, 4).map((tag, i) => (
-              <span key={i}
-                className="text-[0.55rem] px-1.5 py-0.5 rounded-full bg-white/[0.04] text-slate-500 border border-white/[0.06]">
+              <span key={i} className="lg-tag !min-h-[22px] !px-2 !text-[12px] !font-medium !whitespace-normal !py-1 leading-snug">
                 {tag}
               </span>
             ))}
           </div>
         )}
 
-        {/* Footer: status + CTA */}
-        <div className="flex items-center justify-between">
-          <span
-            className={`text-[0.56rem] font-black uppercase px-2 py-0.5 rounded-md ${STATUS_STYLES[peptide.researchStatus]}`}
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
+        {/* Status und Weiter */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="lg-tag" data-tone={STATUS_TONES[peptide.researchStatus]}>
             {t(STATUS_LABEL_KEYS[peptide.researchStatus])}{approvedRegions?.length ? ` · ${approvedRegions.join('/')}` : ''}
           </span>
-          <span
-            className="flex items-center gap-1 text-xs text-slate-500 group-hover:text-sky-400 transition-colors duration-200"
-          >
+          <span className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[var(--lg-accent-text)]">
             {t('plib_profile')}
-            <ArrowRight
-              size={12}
-              className="group-hover:translate-x-0.5 transition-transform duration-200"
-            />
+            <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
           </span>
         </div>
       </div>
@@ -126,7 +91,7 @@ export function PeptideCard({ peptide, locale, mode = 'public' }: PeptideCardPro
 
 export function PeptideCardSkeleton() {
   return (
-    <div className="bg-[#0B1220] rounded-2xl border border-white/[0.06] border-t-2 border-t-slate-700 p-5 animate-pulse">
+    <div className="lg-surface lg-flat p-4 animate-pulse motion-reduce:animate-none">
       <div className="flex justify-between mb-3">
         <div className="h-2.5 w-24 bg-white/[0.06] rounded" />
         <div className="h-2.5 w-8 bg-white/[0.06] rounded" />
