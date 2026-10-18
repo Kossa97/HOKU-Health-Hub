@@ -30,6 +30,8 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 ### Rechtstexte
 - [ ] Alle gelb markierten Platzhalter in `src/features/compliance/legal/texts.ts` füllen (Name, Anschrift, E-Mail, Aufsichtsbehörde, Vercel-Region, Sentry-Aufbewahrung, AV-Verträge, Anthropic: Aufbewahrung und Übermittlungsgrundlage).
 - [ ] Haftungsklausel und Gerichtsstand rechtlich prüfen lassen.
+- [ ] **Anthropic-Vertrag (Befund-Import und Mahlzeiten-Erkennung):** Speicherdauer und Nutzung der Daten bei Anthropic laut Vertrag in die Datenschutzerklärung eintragen; Grundlage der Übermittlung in die USA klären (EU-US Data Privacy Framework oder Standardvertragsklauseln). Stelle: Abschnitt 5 in `texts.ts`, Platzhalter [[…]].
+- [ ] **Ergänzungen vom 18.10.2026 rechtlich prüfen lassen:** Ernährungsdaten, Kamera (Barcode auf dem Gerät), Mahlzeiten-Erkennung über Anthropic (Foto/Notiz, eigene Einwilligung), Open Food Facts ohne Personenbezug.
 - [ ] Solange Platzhalter drin sind, zeigt jede Seite „Entwurf" — so nicht einreichen.
 
 ### App Store Connect (Apple)
