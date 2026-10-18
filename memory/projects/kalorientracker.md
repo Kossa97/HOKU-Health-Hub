@@ -1,6 +1,6 @@
 # Kalorientracker / Ernährung
 
-**Stand:** 18.10.2026 — Etappe 1 umgesetzt auf `claude/ernaehrung-kalorientracker` (noch nicht gemergt). Spec:
+**Stand:** 18.10.2026 — Etappe 1 gemergt (#28). Nachtrag **Gerichte** auf `claude/ernaehrung-kalorientracker` (Spec 8a). Spec:
 `docs/superpowers/specs/2026-10-18-ernaehrung-kalorientracker-design.md`.
 
 ## Entschieden (Nutzer, 18.10.2026)
@@ -16,6 +16,7 @@
 - Markensuche nur auf „Suchen", nicht beim Tippen (OFF: 10 Suchen/min/IP, rät von Suche-beim-Tippen ab).
 - Schnappschuss der Nährwerte im Eintrag; Korrekturen fremder Einträge werden eigene `food_items`.
 - Keine Streaks, kein Rot, Zielbereich ±10 %, „Kalorien ausblenden".
+- Gerichte (Wunsch Nutzer 18.10.): = `food_items` mit `ingredients` jsonb + `portions`; Eintrag in Gramm, Eingabe in Portionen. Migration als Nachtrag in `supabase-nutrition.sql` (2 Spalten, additiv).
 
 ## Recherche (Agent-Bericht 18.10.2026, nur WebSearch — Primärseiten waren gesperrt)
 Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekundär
@@ -52,4 +53,6 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 | Datenschutzerklärung / Store-Angaben | Ernährungsdaten, Kamera, Weitergabe an OFF (ohne Personenbezug) ergänzen |
 | Skalierung OFF | bei mehr Nutzern OFF-Dump importieren statt live |
 | Gerätetest Scanner iOS/Android | offen |
+| Gerichte: Migration (2 Spalten) gegen Produktion | Trockenlauf ok (2 Läufe, Zeilen unverändert); Produktion wartet auf Freigabe — **vor** dem Merge der App |
+| Gerichte: Gewicht nach dem Kochen | bewusst weggelassen; bei Bedarf optionales Feld |
 | Etappe 2 | Fortschritt-Chart, GLP-1-Hinweise aus Stack, PDF-Protokoll, Health-Aktivitätskalorien |

@@ -1,5 +1,5 @@
--- Ernährung / Kalorientracker (Etappe 1)
--- Rein additiv und idempotent: legt nur neue Tabellen, Indizes und Policies an,
+-- Ernährung / Kalorientracker (Etappe 1, Nachtrag Gerichte)
+-- Rein additiv und idempotent: legt nur neue Tabellen, Spalten, Indizes und Policies an,
 -- ändert und löscht nichts Bestehendes. Kein drop, kein truncate.
 -- Ablauf laut CLAUDE.md: Trockenlauf im Container (zweimal), dann gegen das Projekt.
 --
@@ -127,3 +127,17 @@ begin
       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
   end if;
 end $$;
+
+-- ─── Gerichte (Nachtrag 18.10.2026) ──────────────────────────────────────
+-- Ein Gericht ist ein eigenes Lebensmittel mit Zutaten: Werte je 100 g sind
+-- aus den Zutaten ausgerechnet, die Portion ist Gesamtgewicht / Portionen.
+-- Die Zutaten stehen als Schnappschuss daneben (zum späteren Bearbeiten).
+-- Rein additiv: zwei neue, leere Spalten; bestehende Zeilen bleiben, wie sie sind.
+alter table public.food_items add column if not exists ingredients jsonb
+  check (ingredients is null or (
+    jsonb_typeof(ingredients) = 'array'
+    and jsonb_array_length(ingredients) between 1 and 60
+    and octet_length(ingredients::text) <= 60000
+  ));
+alter table public.food_items add column if not exists portions numeric(5,2)
+  check (portions is null or (portions >= 0.1 and portions <= 50));

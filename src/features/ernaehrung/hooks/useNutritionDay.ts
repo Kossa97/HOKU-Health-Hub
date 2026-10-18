@@ -151,6 +151,16 @@ export function useNutritionDay(userId: string, date: string) {
     return saved
   }, [userId, myFoods])
 
+  /** Eigenes Lebensmittel/Gericht löschen. Einträge behalten ihren Schnappschuss (`on delete set null`). */
+  const removeFood = useCallback(async (itemId: string) => {
+    await store.deleteMyFood(itemId)
+    setMyFoods(list => list.filter(f => f.itemId !== itemId))
+    // Wie in der Datenbank: Einträge zeigen auf nichts mehr — sonst böte „Häufig" das gelöschte Lebensmittel weiter an.
+    const unlink = (e: LogEntry) => (e.itemId === itemId ? { ...e, itemId: null } : e)
+    setRecent(r => r.map(unlink))
+    setDay(d => (d ? { ...d, entries: d.entries.map(unlink) } : d))
+  }, [])
+
   const findByBarcode = useCallback((barcode: string) => {
     return myFoods.find(f => f.barcode === barcode) ?? null
   }, [myFoods])
@@ -161,6 +171,6 @@ export function useNutritionDay(userId: string, date: string) {
 
   return {
     day: current, loadError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
-    add, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, findByBarcode,
+    add, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }
