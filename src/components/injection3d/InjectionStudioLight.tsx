@@ -1,9 +1,9 @@
-// src/components/injection3d/InjectionStageLight.tsx
+// src/components/injection3d/InjectionStudioLight.tsx
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { INJECTION_STAGE_LIGHTS } from '../../lib/injectionStageLook'
+import { INJECTION_STUDIO_LIGHTS } from '../../lib/injectionStudioLook'
 
 function RoomReflections({ intensity }: { intensity: number }) {
   const get = useThree(state => state.get)
@@ -29,15 +29,15 @@ function RoomReflections({ intensity }: { intensity: number }) {
   return null
 }
 
-export function InjectionStageLight() {
-  const { environmentIntensity, top, rimLeft, rimRight, back } = INJECTION_STAGE_LIGHTS
+export function InjectionStudioLight() {
+  const { environmentIntensity, key, fill, rimLeft, rimRight } = INJECTION_STUDIO_LIGHTS
   return (
     <>
       <RoomReflections intensity={environmentIntensity} />
-      <directionalLight position={top.position} intensity={top.intensity} color={top.color} />
+      <directionalLight position={key.position} intensity={key.intensity} color={key.color} />
+      <directionalLight position={fill.position} intensity={fill.intensity} color={fill.color} />
       <directionalLight position={rimLeft.position} intensity={rimLeft.intensity} color={rimLeft.color} />
       <directionalLight position={rimRight.position} intensity={rimRight.intensity} color={rimRight.color} />
-      <directionalLight position={back.position} intensity={back.intensity} color={back.color} />
     </>
   )
 }

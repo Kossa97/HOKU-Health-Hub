@@ -47,13 +47,13 @@ describe('InjectionMapCanvas external assets', () => {
 
   it('keeps explicit rear and rim lighting for the back view', () => {
     const source = readFileSync(new URL('./InjectionMapCanvas.tsx', import.meta.url), 'utf8')
-    const light = readFileSync(new URL('./InjectionStageLight.tsx', import.meta.url), 'utf8')
-    const look = readFileSync(new URL('../../lib/injectionStageLook.ts', import.meta.url), 'utf8')
+    const light = readFileSync(new URL('./InjectionStudioLight.tsx', import.meta.url), 'utf8')
+    const look = readFileSync(new URL('../../lib/injectionStudioLook.ts', import.meta.url), 'utf8')
 
-    expect(source).toContain('<InjectionStageLight />')
+    expect(source).toContain('<InjectionStudioLight />')
     // Die Kantenlichter stehen hinter der Figur und zeichnen so auch die Rückseite.
-    expect(look).toContain('rimLeft: { position: [-3.4, 1.2, -1.6]')
-    expect(look).toContain('rimRight: { position: [3.4, 1.2, -1.6]')
+    expect(look).toContain('rimLeft: { position: [-3.2, 1.6, -2.4]')
+    expect(look).toContain('rimRight: { position: [3.2, 1.6, -2.4]')
     // Spiegelungen aus einer lokal erzeugten Umgebung, keine HDR-Datei aus dem Netz.
     expect(light).toContain('new RoomEnvironment()')
     expect(light).not.toContain('@react-three/drei')

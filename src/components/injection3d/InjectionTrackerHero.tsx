@@ -6,8 +6,8 @@ import * as THREE from 'three'
 import { ArrowUpRight, Rotate3D } from 'lucide-react'
 import type { Vector3Json } from '../../lib/injectionLogTypes'
 import { INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
-import { INJECTION_STAGE_BACKDROP } from '../../lib/injectionStageLook'
-import { InjectionStageLight } from './InjectionStageLight'
+import { INJECTION_STUDIO_BACKDROP } from '../../lib/injectionStudioLook'
+import { InjectionStudioLight } from './InjectionStudioLight'
 
 const MODEL_URL = INJECTION_TORSO_MODEL_URL
 const HERO_MODEL_HEIGHT = 2.85
@@ -77,7 +77,7 @@ useGLTF.preload(MODEL_URL)
 
 function TorsoPreview({ pins }: { pins: InjectionHeroPin[] }) {
   return (
-    <div className="relative min-h-[208px] overflow-hidden rounded-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" style={{ background: INJECTION_STAGE_BACKDROP }} aria-hidden="true">
+    <div className="relative min-h-[208px] overflow-hidden rounded-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" style={{ background: INJECTION_STUDIO_BACKDROP }} aria-hidden="true">
       <div className="absolute inset-0">
         <Canvas
           camera={{ position: [0, 0.22, 3.15], fov: 42, near: 0.05, far: 50 }}
@@ -85,7 +85,7 @@ function TorsoPreview({ pins }: { pins: InjectionHeroPin[] }) {
           frameloop="demand"
           gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
         >
-          <InjectionStageLight />
+          <InjectionStudioLight />
           <Suspense fallback={null}>
             <HeroTorsoModel />
             {pins.map((pin, index) => (
