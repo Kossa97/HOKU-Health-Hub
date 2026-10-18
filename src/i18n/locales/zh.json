@@ -494,6 +494,8 @@
   "stat_study": "今日研究",
   "tile_injektionen": "注射",
   "tile_injektionen_desc": "部位轮换与3D追踪器",
+  "tile_training": "Training",
+  "tile_training_desc": "Strength, cardio, Hyrox",
   "lab_kicker": "研究",
   "lab_title": "Studies",
   "lab_subtitle": "在 PubMed 搜索研究和摘要。",

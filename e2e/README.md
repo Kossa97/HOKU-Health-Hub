@@ -27,6 +27,7 @@ The projects cover Chromium with iPhone 13, iPhone SE and Pixel 7 settings, plus
 | `tagebuch.spec.ts` | Diary editing, search/pagination, intake links and analysis |
 | `ernaehrung.spec.ts` | Nutrition: barcode entry (Open Food Facts via mocked `food-lookup`), checksum typos, unknown product → own food reused on next scan, frequent foods with last amount, copy yesterday, delete/undo, correcting values, brand search only on demand and offline, hiding calories |
 | `intake-journey.spec.ts` | Create plan and stock, confirm on Home, edit without losing strength/solvent/stock, calendar and stock after reload, skip/reopen, undo/reconfirm, failed request, lost response after commit, stock-only retry, double tap, English |
+| `training.spec.ts` | Workout tracker: start a routine with previous values, rest timer, records, save; a running workout survives a reload; log an activity |
 | `intake-timeline.spec.ts` | A future quantity change preserves the old receipt; local midnight on a DST day preserves the intended calendar day and slot |
 
 Assertions check visible results, submitted contracts, saved intake identities and stock. Fixed clocks prevent tests from aging with the real date. Use `test.use({ now: new Date('...'), language: 'en' })` for another date or English; default language is German and default date is September 28, 2026 in Europe/Berlin.

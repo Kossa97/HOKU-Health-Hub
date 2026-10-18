@@ -140,6 +140,7 @@ const EMPTY_OVERVIEW: OverviewStats = {
 const TILE_DEFS: TileDef[] = [
   { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender',             color: '#00ccf5', bg: 'rgba(0,204,245,0.10)'          },
   { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen',          color: '#10b981', bg: 'rgba(16,185,129,0.10)'         },
+  { icon: Dumbbell,     labelKey: 'tile_training',    descKey: 'tile_training_desc',    path: '/training',             color: '#f97316', bg: 'rgba(249,115,22,0.10)', label: 'Training', desc: 'Kraft, Cardio, Hyrox' },
   { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar', color: '#00ccf5', bg: 'rgba(0,204,245,0.10)'         },
   { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack',             color: '#22d3ee', bg: 'rgba(34,211,238,0.10)'         },
   { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner',              color: '#3b82f6', bg: 'rgba(59,130,246,0.10)'         },

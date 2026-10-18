@@ -654,6 +654,8 @@
   "stat_study": "Study of the Day",
   "tile_injektionen": "Injections",
   "tile_injektionen_desc": "Site rotation & 3D tracker",
+  "tile_training": "Training",
+  "tile_training_desc": "Strength, cardio, Hyrox",
   "injection_pro_title": "Injection Tracker Pro",
   "injection_pro_subtitle": "Precise 3D injection tracking",
   "injection_map_title": "3D Injection Map",

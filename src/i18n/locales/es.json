@@ -494,6 +494,8 @@
   "stat_study": "Estudio del día",
   "tile_injektionen": "Inyecciones",
   "tile_injektionen_desc": "Rotación de zonas & tracker 3D",
+  "tile_training": "Training",
+  "tile_training_desc": "Strength, cardio, Hyrox",
   "lab_kicker": "Investigacion",
   "lab_title": "Studies",
   "lab_subtitle": "Busca estudios y resumenes en PubMed.",
