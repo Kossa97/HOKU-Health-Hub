@@ -114,7 +114,8 @@ test('Löschen mit Rückgängig', async ({ page, mock }) => {
   await page.getByRole('button', { name: 'Skyr Natur bearbeiten' }).click()
   await page.getByRole('button', { name: 'Löschen' }).click()
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(0)
-  expect(mock.table('food_logs')).toHaveLength(0)
+  // Die Liste blendet sofort aus (optimistisch); das Löschen beim Server kommt danach.
+  await expect.poll(() => mock.table('food_logs').length).toBe(0)
 
   await page.getByRole('button', { name: 'Rückgängig' }).click()
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
