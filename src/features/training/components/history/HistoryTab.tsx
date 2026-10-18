@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { TrainingSession } from '../../types'
 import { useTrainingText } from '../../i18n'
 import type { TrainingData } from '../../hooks/useTrainingData'
+import { exerciseTracking } from '../../lib/exerciseLookup'
 import { formatDate } from '../../lib/format'
 import { detectRecords, startOfWeek } from '../../lib/stats'
 import { SectionTitle } from '../ui'
@@ -25,10 +26,10 @@ export function HistoryTab({ data, onOpen }: { data: TrainingData; onOpen: (sess
     const map = new Map<string, number>()
     for (const s of data.sessions.slice(0, 60)) {
       if (s.exercises.length === 0) continue
-      map.set(s.id, detectRecords(s, data.sessions).length)
+      map.set(s.id, detectRecords(s, data.sessions, id => exerciseTracking(id, data.customExercises)).length)
     }
     return map
-  }, [data.sessions])
+  }, [data.sessions, data.customExercises])
 
   if (data.sessions.length === 0) {
     return <p style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '40px 16px' }}>{tt('history_empty')}</p>

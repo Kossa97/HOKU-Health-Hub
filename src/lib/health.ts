@@ -371,7 +371,11 @@ async function averageHeartRateIOS(startDate: Date, endDate: Date): Promise<numb
  * ohne catch — der Aufruf antwortet nie bzw. die App stuerzt ab. Deshalb wird
  * hier gar nicht erst gefragt.
  */
-export async function getWorkouts(options?: HealthQueryOptions): Promise<HealthWorkout[]> {
+export async function getWorkouts(
+  options?: HealthQueryOptions,
+  /** Fuer welche Workouts der Durchschnittspuls nachgeschlagen wird (Standard: alle). */
+  { withHeartRate = () => true }: { withHeartRate?: (externalId: string) => boolean } = {},
+): Promise<HealthWorkout[]> {
   if (!isNative) return [];
 
   if (isIOS) {
@@ -395,7 +399,7 @@ export async function getWorkouts(options?: HealthQueryOptions): Promise<HealthW
         durationS: Math.round(sample.duration * 3600),
         distanceM: positiveOrNull(sample.totalDistance),
         kcal: positiveOrNull(sample.totalEnergyBurned),
-        avgHr: await averageHeartRateIOS(start, end),
+        avgHr: withHeartRate(sample.uuid) ? await averageHeartRateIOS(start, end) : null,
         source: getHealthKitSource(sample),
       });
     }

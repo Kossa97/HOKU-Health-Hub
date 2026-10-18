@@ -28,9 +28,18 @@ export interface ActiveWorkout {
 
 export const ACTIVE_WORKOUT_KEY = 'tyd_training_active_v1'
 
-export function loadActiveWorkout(): ActiveWorkout | null {
+/**
+ * Je Konto ein eigener Speicherplatz: meldet sich auf demselben Geraet jemand
+ * anderes an, sieht er das offene Training des Vorgaengers nicht und speichert
+ * es auch nicht unter seinem Konto.
+ */
+export function activeWorkoutKey(userId: string): string {
+  return `${ACTIVE_WORKOUT_KEY}:${userId}`
+}
+
+export function loadActiveWorkout(userId: string): ActiveWorkout | null {
   try {
-    const raw = localStorage.getItem(ACTIVE_WORKOUT_KEY)
+    const raw = localStorage.getItem(activeWorkoutKey(userId))
     if (!raw) return null
     const parsed = JSON.parse(raw) as ActiveWorkout
     if (!parsed || typeof parsed.startedAt !== 'string' || !Array.isArray(parsed.exercises)) return null
@@ -40,10 +49,10 @@ export function loadActiveWorkout(): ActiveWorkout | null {
   }
 }
 
-export function storeActiveWorkout(workout: ActiveWorkout | null) {
+export function storeActiveWorkout(userId: string, workout: ActiveWorkout | null) {
   try {
-    if (workout) localStorage.setItem(ACTIVE_WORKOUT_KEY, JSON.stringify(workout))
-    else localStorage.removeItem(ACTIVE_WORKOUT_KEY)
+    if (workout) localStorage.setItem(activeWorkoutKey(userId), JSON.stringify(workout))
+    else localStorage.removeItem(activeWorkoutKey(userId))
   } catch {
     // Privater Modus oder voller Speicher: das Training laeuft im Speicher weiter.
   }
@@ -196,7 +205,8 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
       const group = current.supersetGroup ?? next.supersetGroup ?? nextSupersetGroup(w)
       const exercises = w.exercises.map((ex, i) =>
         i === action.index || i === action.index + 1 ? { ...ex, supersetGroup: group } : ex)
-      return { ...w, exercises }
+      // Zieht `next` aus einem anderen Supersatz herueber, bleibt dort evtl. eine Uebung allein.
+      return { ...w, exercises: dissolveLoneSupersets(exercises) }
     }
 
     case 'exercise_rest':

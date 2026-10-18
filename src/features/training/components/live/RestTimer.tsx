@@ -18,6 +18,11 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
   const { tt } = useTrainingText()
   const [now, setNow] = useState(() => Date.now())
   const firedRef = useRef<number | null>(null)
+  // Der Elternteil reicht bei jedem Rendern eine neue Funktion herein. Stuende
+  // sie in den Abhaengigkeiten unten, raeumte jedes Neurendern den Zeitgeber
+  // fuers Ausblenden ab, und der Timer bliebe auf 0:00 stehen.
+  const onSkipRef = useRef(onSkip)
+  useEffect(() => { onSkipRef.current = onSkip })
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 250)
@@ -32,9 +37,9 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
     void hapticTick()
     try { navigator.vibrate?.([120, 60, 120]) } catch { /* nicht unterstuetzt */ }
     beep()
-    const id = window.setTimeout(onSkip, 1200)
+    const id = window.setTimeout(() => onSkipRef.current(), 1200)
     return () => window.clearTimeout(id)
-  }, [remainingS, endsAt, onSkip])
+  }, [remainingS, endsAt])
 
   const progress = totalS > 0 ? Math.min(1, Math.max(0, remainingS / totalS)) : 0
 

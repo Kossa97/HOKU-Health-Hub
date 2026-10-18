@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Trophy } from 'lucide-react'
-import type { TrainingSession, TrainingSettings } from '../../types'
+import type { TrackingMode, TrainingSession, TrainingSettings } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { ActiveWorkout } from '../../lib/activeWorkout'
 import { countSets, finishWorkout } from '../../lib/activeWorkout'
@@ -9,11 +9,12 @@ import { detectRecords, sessionVolumeKg, workingSetCount, type PersonalRecord } 
 import { Button, Chip, Stat, TrainingSheet, TRAINING_ACCENT } from '../ui'
 
 /** Abschluss: was war das Training, welche Rekorde, wie hart — dann speichern. */
-export function FinishSheet({ workout, history, settings, nameOf, onSave, onClose }: {
+export function FinishSheet({ workout, history, settings, nameOf, trackingOf, onSave, onClose }: {
   workout: ActiveWorkout
   history: readonly TrainingSession[]
   settings: TrainingSettings
   nameOf: (exerciseId: string) => string
+  trackingOf: (exerciseId: string) => TrackingMode | null
   onSave: (rpe: number | null) => Promise<void>
   onClose: () => void
 }) {
@@ -26,8 +27,8 @@ export function FinishSheet({ workout, history, settings, nameOf, onSave, onClos
   const preview = useMemo(() => {
     const draft = finishWorkout(workout, { now, rpe, previous: editing })
     const session: TrainingSession = { id: workout.sessionId ?? '__draft', ...draft }
-    return { session, records: detectRecords(session, history) }
-  }, [workout, now, rpe, editing, history])
+    return { session, records: detectRecords(session, history, trackingOf) }
+  }, [workout, now, rpe, editing, history, trackingOf])
 
   const { open } = countSets(workout)
   const sets = workingSetCount(preview.session)

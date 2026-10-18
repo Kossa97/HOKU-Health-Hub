@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
-import type { TrainingSession } from '../../types'
+import type { TrainingSession, TrainingSet } from '../../types'
 import { useTrainingText } from '../../i18n'
 import type { ActiveWorkout, WorkoutAction } from '../../lib/activeWorkout'
 import { finishWorkout } from '../../lib/activeWorkout'
-import { exerciseInfo, exerciseName } from '../../lib/exerciseLookup'
+import { exerciseInfo, exerciseName, exerciseTracking } from '../../lib/exerciseLookup'
 import { formatClock } from '../../lib/format'
 import { previousSets } from '../../lib/stats'
 import type { TrainingData } from '../../hooks/useTrainingData'
@@ -31,12 +31,6 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
   const { tt, lang } = useTrainingText()
   const [picker, setPicker] = useState(false)
   const [finishing, setFinishing] = useState(false)
-  const [now, setNow] = useState(() => Date.now())
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000)
-    return () => window.clearInterval(id)
-  }, [])
 
   // Beim Bearbeiten ist „Vorher" das Training davor, nicht das bearbeitete selbst.
   const history = useMemo(
@@ -44,8 +38,17 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
     [data.sessions, workout.sessionId],
   )
   const nameOf = useCallback((id: string) => exerciseName(id, lang, data.customExercises), [lang, data.customExercises])
+  const trackingOf = useCallback((id: string) => exerciseTracking(id, data.customExercises), [data.customExercises])
   const editing = workout.sessionId != null
-  const elapsedS = editing ? null : Math.max(0, (now - Date.parse(workout.startedAt)) / 1000)
+  // „Vorher" je Uebung einmal aus dem Verlauf holen, nicht bei jeder Satzeingabe neu.
+  const exerciseKey = workout.exercises.map(ex => ex.exerciseId).join('|')
+  const previousById = useMemo(() => {
+    const map = new Map<string, TrainingSet[]>()
+    for (const id of exerciseKey ? exerciseKey.split('|') : []) {
+      if (!map.has(id)) map.set(id, previousSets(history, id, editing ? workout.startedAt : undefined))
+    }
+    return map
+  }, [history, exerciseKey, editing, workout.startedAt])
 
   const save = async (rpe: number | null) => {
     const previous = workout.sessionId ? data.sessions.find(s => s.id === workout.sessionId) ?? null : null
@@ -94,11 +97,7 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
             maxLength={80}
             style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 16, fontWeight: 800, padding: 0 }}
           />
-          {elapsedS != null && (
-            <div style={{ fontSize: '0.8rem', color: TRAINING_ACCENT, fontWeight: 750, fontVariantNumeric: 'tabular-nums' }}>
-              {formatClock(elapsedS)}
-            </div>
-          )}
+          {!editing && <ElapsedClock startedAt={workout.startedAt} />}
         </div>
         <Button onClick={() => setFinishing(true)} style={{ minHeight: 40 }}>
           {editing ? tt('save') : tt('finish')}
@@ -117,7 +116,7 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
               info={exerciseInfo(exercise.exerciseId, lang, data.customExercises)}
               index={index}
               total={workout.exercises.length}
-              previous={previousSets(history, exercise.exerciseId, editing ? workout.startedAt : undefined)}
+              previous={previousById.get(exercise.exerciseId) ?? []}
               settings={data.settings}
               supersetNext={exercise.supersetGroup != null && workout.exercises[index + 1]?.supersetGroup === exercise.supersetGroup}
               onSetChange={(setIndex, patch) => dispatch({ type: 'update_set', index, setIndex, patch })}
@@ -179,11 +178,29 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
           history={data.sessions}
           settings={data.settings}
           nameOf={nameOf}
+          trackingOf={trackingOf}
           onClose={() => setFinishing(false)}
           onSave={save}
         />
       )}
     </div>,
     document.body,
+  )
+}
+
+/**
+ * Laufende Dauer im Kopf. Eigene Komponente, damit der Sekundentakt nur diese
+ * Zeile neu zeichnet und nicht alle Uebungen samt Saetzen.
+ */
+function ElapsedClock({ startedAt }: { startedAt: string }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [])
+  return (
+    <div style={{ fontSize: '0.8rem', color: TRAINING_ACCENT, fontWeight: 750, fontVariantNumeric: 'tabular-nums' }}>
+      {formatClock(Math.max(0, (now - Date.parse(startedAt)) / 1000))}
+    </div>
   )
 }

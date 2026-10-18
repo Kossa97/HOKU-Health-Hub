@@ -271,6 +271,8 @@ export async function insertCustomExercise(userId: string, exercise: Omit<Custom
 
 // ─── Einstellungen ──────────────────────────────────────────────────────────
 
+export const MAX_DISMISSED = 100
+
 export function normalizeSettings(raw: unknown): TrainingSettings {
   const value = (raw && typeof raw === 'object' ? raw : {}) as Partial<TrainingSettings>
   const d = DEFAULT_TRAINING_SETTINGS
@@ -286,6 +288,9 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
       : d.platesKg,
     healthImport: value.healthImport === true,
     glp1Mode: value.glp1Mode === true || value.glp1Mode === false ? value.glp1Mode : null,
+    dismissedExternalIds: Array.isArray(value.dismissedExternalIds)
+      ? value.dismissedExternalIds.filter((id): id is string => typeof id === 'string' && id.length <= 200).slice(-MAX_DISMISSED)
+      : [],
   }
 }
 

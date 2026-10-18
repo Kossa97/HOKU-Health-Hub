@@ -176,6 +176,12 @@ export interface TrainingSettings {
   healthImport: boolean
   /** GLP-1-Ansicht: null = automatisch (wenn ein GLP-1-Wirkstoff im Stack ist). */
   glp1Mode: boolean | null
+  /**
+   * Kennungen geloeschter Uhr-Workouts. Ohne sie holte der naechste Abgleich
+   * ein bewusst geloeschtes Workout zurueck. Nur die letzten 100 — der
+   * Abgleich schaut ohnehin nur 30 Tage zurueck.
+   */
+  dismissedExternalIds: string[]
 }
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
@@ -186,4 +192,5 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
   healthImport: false,
   glp1Mode: null,
+  dismissedExternalIds: [],
 }

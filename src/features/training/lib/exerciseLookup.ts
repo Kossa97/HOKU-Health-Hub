@@ -62,6 +62,11 @@ export function exerciseInfo(
   }
 }
 
+/** Erfassungsart einer Uebung, unabhaengig von der Sprache; null = unbekannt. */
+export function exerciseTracking(id: string, custom: readonly CustomExercise[]): TrackingMode | null {
+  return exerciseInfo(id, 'en', custom)?.tracking ?? null
+}
+
 /** Anzeigename; unbekannte Kennungen (geloeschte eigene Uebung) bleiben lesbar. */
 export function exerciseName(id: string, lang: 'de' | 'en', custom: readonly CustomExercise[]): string {
   const info = exerciseInfo(id, lang, custom)

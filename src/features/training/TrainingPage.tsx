@@ -84,7 +84,10 @@ export function TrainingPage() {
       setQuickLog({ session })
       return
     }
-    if (workout && !workout.sessionId && !window.confirm(tt('discard_confirm'))) return
+    // Dieselbe Einheit ist schon offen: weitermachen statt die Aenderungen zu verwerfen.
+    if (workout?.sessionId === session.id) { setLiveOpen(true); return }
+    // Jedes andere offene Training (neu oder in Bearbeitung) nur nach Rueckfrage ersetzen.
+    if (workout && !window.confirm(tt('discard_confirm'))) return
     begin(workoutFromSession(session))
     setLiveOpen(true)
   }

@@ -65,6 +65,18 @@ describe('Verlauf und Rekorde', () => {
     expect(bench).not.toContain('e1rm')
   })
 
+  it('waehlt als besten Satz den mit e1RM vor einem Satz mit vielen Wdh.', () => {
+    const s = session('b', '2026-10-09T10:00:00Z', [{ exerciseId: 'bench', sets: [set(100, 5), set(40, 15)] }])
+    expect(exerciseHistory([s], 'bench')[0].bestSet).toEqual(set(100, 5))
+  })
+
+  it('meldet bei Unterstuetzung keinen Gewichtsrekord fuer mehr Hilfe, nur Wdh.', () => {
+    const a = session('a1', '2026-10-01T10:00:00Z', [{ exerciseId: 'assisted', sets: [set(20, 8)] }])
+    const b = session('a2', '2026-10-05T10:00:00Z', [{ exerciseId: 'assisted', sets: [set(30, 10)] }])
+    const records = detectRecords(b, [a, b], () => 'assisted_reps')
+    expect(records.map(r => r.kind)).toEqual(['reps'])
+  })
+
   it('setzt bei der ersten Einheit einer Uebung keinen Rekord', () => {
     expect(detectRecords(s3, [s1, s2, s3]).some(r => r.exerciseId === 'pullup')).toBe(false)
     expect(detectRecords(s1, [s1])).toEqual([])

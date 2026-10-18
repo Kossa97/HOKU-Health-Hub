@@ -5,7 +5,7 @@ import type { TrainingSession } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { sessionKcal } from '../../lib/energy'
-import { exerciseInfo, exerciseName } from '../../lib/exerciseLookup'
+import { exerciseInfo, exerciseName, exerciseTracking } from '../../lib/exerciseLookup'
 import { formatClock, formatDate, formatDistance, formatNumber, formatVolume } from '../../lib/format'
 import { detectRecords, sessionDurationS, sessionVolumeKg } from '../../lib/stats'
 import { previousLabel, SET_TYPE_COLOR } from '../live/SetRow'
@@ -21,7 +21,10 @@ export function SessionDetailSheet({ session, data, onEdit, onClose }: {
 }) {
   const { tt, lang, locale } = useTrainingText()
   const [busy, setBusy] = useState(false)
-  const records = useMemo(() => detectRecords(session, data.sessions), [session, data.sessions])
+  const records = useMemo(
+    () => detectRecords(session, data.sessions, id => exerciseTracking(id, data.customExercises)),
+    [session, data.sessions, data.customExercises],
+  )
   const kcal = sessionKcal(session, data.context.latestWeightKg)
   const unit = data.settings.unit
   const title = session.title || tt(`kind_${session.kind}` as TrainingTextKey)

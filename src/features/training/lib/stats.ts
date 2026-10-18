@@ -1,4 +1,4 @@
-import type { MuscleGroup, SessionExercise, TrainingSession, TrainingSet } from '../types'
+import type { MuscleGroup, SessionExercise, TrackingMode, TrainingSession, TrainingSet } from '../types'
 
 /**
  * Auswertung des Trainingsverlaufs — reine Funktionen, ohne React und ohne
@@ -74,6 +74,9 @@ function pointFor(session: TrainingSession, exerciseId: string): ExercisePoint |
   let bestDurationS: number | null = null
   let bestDistanceM: number | null = null
   let bestSet: TrainingSet | null = null
+  // Rang zuerst (e1RM > Gewicht > Rest), dann der Wert innerhalb des Rangs —
+  // sonst schluege 40 kg × 15 (kein e1RM, Wert 40 015) jedes 100 kg × 5.
+  let bestRank = -1
   let bestScore = -1
   let volumeKg = 0
 
@@ -85,8 +88,9 @@ function pointFor(session: TrainingSession, exerciseId: string): ExercisePoint |
     if (set.durationS != null && (bestDurationS == null || set.durationS > bestDurationS)) bestDurationS = set.durationS
     if (set.distanceM != null && (bestDistanceM == null || set.distanceM > bestDistanceM)) bestDistanceM = set.distanceM
     volumeKg += setVolumeKg(set)
+    const rank = e1rm != null ? 2 : set.weightKg ? 1 : 0
     const score = e1rm ?? (set.weightKg ?? 0) * 1000 + (set.reps ?? 0) + (set.durationS ?? 0) / 1000
-    if (score > bestScore) { bestScore = score; bestSet = set }
+    if (rank > bestRank || (rank === bestRank && score > bestScore)) { bestRank = rank; bestScore = score; bestSet = set }
   }
 
   return {
@@ -142,7 +146,12 @@ export interface PersonalRecord {
  * Einheiten. Die erste Einheit einer Uebung setzt keinen Rekord — sonst waere
  * jedes neue Training voller Pokale, die nichts bedeuten.
  */
-export function detectRecords(session: TrainingSession, history: readonly TrainingSession[]): PersonalRecord[] {
+export function detectRecords(
+  session: TrainingSession,
+  history: readonly TrainingSession[],
+  /** Erfassungsart je Uebung; bei Unterstuetzung ist weniger Gewicht besser. */
+  trackingOf?: (exerciseId: string) => TrackingMode | null | undefined,
+): PersonalRecord[] {
   const start = Date.parse(session.startedAt)
   const earlier = history.filter(s => s.id !== session.id && Date.parse(s.startedAt) < start)
   const records: PersonalRecord[] = []
@@ -161,6 +170,16 @@ export function detectRecords(session: TrainingSession, history: readonly Traini
         const v = pick(p)
         return v != null && (max == null || v > max) ? v : max
       }, null)
+
+    // Mit Unterstuetzung (Klimmzug-Maschine) waeren e1RM, Gewicht und Volumen
+    // umso hoeher, je mehr geholfen wurde — dort zaehlen nur Wiederholungen.
+    if (trackingOf?.(ex.exerciseId) === 'assisted_reps') {
+      const previous = best(p => p.maxReps)
+      if (current.maxReps != null && previous != null && current.maxReps > previous) {
+        records.push({ exerciseId: ex.exerciseId, kind: 'reps', value: current.maxReps, previous })
+      }
+      continue
+    }
 
     const checks: Array<[RecordKind, number | null, number | null]> = [
       ['e1rm', current.bestE1rm, best(p => p.bestE1rm)],

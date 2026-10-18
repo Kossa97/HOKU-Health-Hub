@@ -7,6 +7,7 @@ import { DEFAULT_TRAINING_SETTINGS } from '../types'
 import * as repo from '../services/trainingRepo'
 import { isGlp1Substance, type WeightPoint } from '../lib/glp1'
 import { dedupeAgainst, mapHealthWorkout } from '../lib/healthImport'
+import { localDateKey } from '../lib/energy'
 import type { ReadinessInput } from '../lib/readiness'
 
 /**
@@ -41,11 +42,8 @@ const EMPTY_CONTEXT: TrainingContext = {
 
 const DAY = 24 * 60 * 60 * 1000
 
-function todayKey(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
+/** Ortsdatum `YYYY-MM-DD` — Nacht und Tag zaehlen nach der Uhr des Nutzers, nicht nach UTC. */
+const dayKey = (date: Date) => localDateKey(date.toISOString())
 
 async function loadContext(userId: string): Promise<TrainingContext> {
   const since180 = new Date(Date.now() - 180 * DAY).toISOString()
@@ -57,7 +55,7 @@ async function loadContext(userId: string): Promise<TrainingContext> {
     supabase.from('stack_items').select('id, display_name').eq('user_id', userId),
     supabase.from('cycles').select('start_date, end_date, name, stack_items(display_name)').eq('user_id', userId),
     supabase.from('bloodwork').select('tested_at').eq('user_id', userId).order('tested_at'),
-    supabase.from('daily_logs').select('schlaf, energie').eq('user_id', userId).eq('log_date', todayKey()).maybeSingle(),
+    supabase.from('daily_logs').select('schlaf, energie').eq('user_id', userId).eq('log_date', dayKey(new Date())).maybeSingle(),
   ])
 
   const weights: WeightPoint[] = (weightsRes.data ?? [])
@@ -116,17 +114,17 @@ async function loadHealthReadiness(): Promise<TrainingContext['health']> {
   const byNight = new Map<string, number>()
   for (const s of sleep) {
     if (s.state && /awake|inbed/i.test(s.state)) continue
-    const key = s.endDate.toISOString().slice(0, 10)
+    const key = dayKey(s.endDate)
     byNight.set(key, (byNight.get(key) ?? 0) + s.durationHours)
   }
-  const today = new Date().toISOString().slice(0, 10)
+  const today = dayKey(new Date())
   const nights = [...byNight.entries()].sort(([a], [b]) => a.localeCompare(b))
   const sleepToday = byNight.get(today) ?? null
   const sleepHistory = nights.filter(([k]) => k !== today).map(([, v]) => v).filter(v => v >= 2 && v <= 14)
 
   const byDay = new Map<string, number[]>()
   for (const r of resting) {
-    const key = r.date.toISOString().slice(0, 10)
+    const key = dayKey(r.date)
     byDay.set(key, [...(byDay.get(key) ?? []), r.bpm])
   }
   const dayAvg = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length
@@ -197,9 +195,20 @@ export function useTrainingData() {
 
   const removeSession = useCallback(async (id: string) => {
     if (!userId) return
+    const removed = sessions.find(s => s.id === id)
     await repo.deleteSession(userId, id)
     setSessions(prev => prev.filter(s => s.id !== id))
-  }, [userId])
+    // Von der Uhr uebernommen? Dann merken, damit der Abgleich es nicht zurueckholt.
+    if (removed?.externalId && (removed.source === 'healthkit' || removed.source === 'health_connect')) {
+      const next = {
+        ...settings,
+        dismissedExternalIds: [...settings.dismissedExternalIds.filter(x => x !== removed.externalId), removed.externalId]
+          .slice(-repo.MAX_DISMISSED),
+      }
+      setSettings(next)
+      await repo.saveSettings(userId, next).catch(() => {})
+    }
+  }, [userId, sessions, settings])
 
   const saveRoutine = useCallback(async (routine: Omit<TrainingRoutine, 'id'> & { id?: string }) => {
     if (!userId) throw new Error('not signed in')
@@ -246,14 +255,23 @@ export function useTrainingData() {
   const syncHealthWorkouts = useCallback(async (): Promise<{ created: number; enriched: number }> => {
     if (!userId || !isNative) return { created: 0, enriched: 0 }
     const platform = isIOS ? 'ios' : 'android'
-    const workouts = await getWorkouts({ startDate: new Date(Date.now() - 30 * DAY) })
-    const result = dedupeAgainst(sessions, workouts.map(w => mapHealthWorkout(w, platform)))
+    // Puls nur fuer Workouts nachschlagen, die noch nicht uebernommen sind —
+    // sonst fragt jeder Seitenaufruf HealthKit fuer alle 30 Tage erneut ab.
+    const known = new Set(sessions.map(s => s.externalId).filter((id): id is string => !!id))
+    const workouts = await getWorkouts(
+      { startDate: new Date(Date.now() - 30 * DAY) },
+      { withHeartRate: id => !known.has(id) },
+    )
+    const dismissed = new Set(settings.dismissedExternalIds)
+    const result = dedupeAgainst(sessions, workouts
+      .map(w => mapHealthWorkout(w, platform))
+      .filter(w => !w.externalId || !dismissed.has(w.externalId)))
     let created = 0
     if (result.create.length) created = await repo.importSessions(userId, result.create)
     for (const patch of result.enrich) await repo.enrichSession(userId, patch.id, patch)
     if (created || result.enrich.length) reload()
     return { created, enriched: result.enrich.length }
-  }, [userId, sessions, reload])
+  }, [userId, sessions, settings.dismissedExternalIds, reload])
 
   useEffect(() => {
     if (state !== 'ready' || !settings.healthImport || syncedRef.current) return

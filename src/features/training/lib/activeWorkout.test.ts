@@ -60,6 +60,17 @@ describe('reduceWorkout', () => {
     expect(w.exercises[0].supersetGroup).toBeNull()
   })
 
+  it('loest beim Verknuepfen zweier Supersaetze den zurueckgebliebenen Rest auf', () => {
+    let w = startWorkout({ history, now })
+    w = reduceWorkout(w, { type: 'add_exercises', exerciseIds: ['a', 'b', 'c', 'd'], history })
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 0 })
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 2 })
+    expect(w.exercises.map(e => e.supersetGroup)).toEqual([1, 1, 2, 2])
+    // b mit c verknuepfen: c wechselt zu Gruppe 1, d bliebe allein in Gruppe 2.
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 1 })
+    expect(w.exercises.map(e => e.supersetGroup)).toEqual([1, 1, 1, null])
+  })
+
   it('wechselt die Satzart reihum und uebernimmt Werte in neue Saetze', () => {
     let w = startWorkout({ routine, history, now })
     w = reduceWorkout(w, { type: 'cycle_set_type', index: 0, setIndex: 1 })
