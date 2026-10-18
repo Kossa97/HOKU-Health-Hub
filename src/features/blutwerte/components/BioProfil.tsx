@@ -142,21 +142,21 @@ export function BioProfilKarte() {
   const { profil, fehler, erneut, speichern } = useBioProfil()
   return (
     <div className="card space-y-3 mb-4" data-bio-profile-card>
-      <h2 className="flex items-center gap-2 font-semibold text-slate-300">
-        <CalendarHeart size={16} className="text-sky-400" aria-hidden="true" /> {t('bw_bio_title')}
+      <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
+        <CalendarHeart size={17} className="text-[var(--lg-accent-text)]" aria-hidden="true" /> {t('bw_bio_title')}
       </h2>
-      <p className="text-sm text-slate-400">{t('bw_bio_desc')}</p>
+      <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{t('bw_bio_desc')}</p>
       {profil
         // key: nach dem Speichern startet der Entwurf vom neuen Stand.
         ? <BioProfilFormular key={`${profil.birthDate}|${profil.sex}`} start={profil} speichern={speichern} idPrefix="profil-bio" />
         : fehler
           ? (
             <div data-bio-load-error>
-              <p className="text-sm text-slate-400">{t('bw_bio_load_error')}</p>
-              <button type="button" onClick={erneut} className="mt-1 min-h-11 text-sm font-semibold text-sky-400">{t('ai_consent_retry')}</button>
+              <p className="text-[15px] text-[var(--lg-text-2)]">{t('bw_bio_load_error')}</p>
+              <button type="button" onClick={erneut} className="mt-1 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)]">{t('ai_consent_retry')}</button>
             </div>
           )
-          : <p className="text-sm text-slate-500">{t('loading')}</p>}
+          : <p className="text-[15px] text-[var(--lg-text-3)]">{t('loading')}</p>}
     </div>
   )
 }

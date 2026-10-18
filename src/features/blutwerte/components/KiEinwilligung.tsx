@@ -87,12 +87,12 @@ export function KiEinwilligungProfil() {
     : null
   return (
     <div className="card space-y-2" data-ai-consent-profile>
-      <h2 className="flex items-center gap-2 font-semibold text-slate-300">
-        <ScanLine size={15} className="text-slate-500" aria-hidden="true" /> {t('ai_consent_profile_title')}
+      <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
+        <ScanLine size={16} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('ai_consent_profile_title')}
       </h2>
-      <p className="text-sm text-slate-400">{datum ? t('ai_consent_profile_on', { date: datum }) : t('ai_consent_profile_off')}</p>
+      <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{datum ? t('ai_consent_profile_on', { date: datum }) : t('ai_consent_profile_off')}</p>
       {datum && (
-        <button type="button" data-ai-consent-withdraw disabled={busy} onClick={() => void widerrufen()} className="min-h-11 text-sm font-semibold text-red-300 disabled:opacity-50">
+        <button type="button" data-ai-consent-withdraw disabled={busy} onClick={() => void widerrufen()} className="min-h-11 text-[15px] font-semibold text-[var(--lg-bad-text)] disabled:opacity-50">
           {t('ai_consent_withdraw')}
         </button>
       )}

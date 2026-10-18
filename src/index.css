@@ -509,13 +509,14 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 13px;
-  background: rgba(0, 204, 245, 0.06);
-  border: 1px solid rgba(0, 204, 245, 0.14);
-  color: rgba(0, 204, 245, 0.8);
-  font-weight: 600;
-  font-size: 0.875rem;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: var(--r-xl);
+  background: var(--lg-surface-2);
+  border: 0;
+  color: var(--lg-accent-text);
+  font-weight: 500;
+  font-size: 16px;
   cursor: pointer;
   text-align: left;
 }

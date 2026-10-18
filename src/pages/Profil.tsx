@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText } from 'lucide-react'
+import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, ChevronDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
@@ -93,9 +93,9 @@ export function Profil() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">{t('mein_profil')}</h1>
-        <button className="btn-danger flex items-center gap-2 text-sm"
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h1 className="lg-large-title min-w-0 truncate">{t('mein_profil')}</h1>
+        <button data-tone="bad" className="lg-gray-btn shrink-0 !min-h-10 !px-3.5 !text-[14px]"
           onClick={() => { if (confirm(t('abmelden_confirm'))) signOut() }}>
           <LogOut size={15} /> {t('abmelden_btn')}
         </button>
@@ -103,33 +103,31 @@ export function Profil() {
 
       {/* Avatar */}
       <div className="flex flex-col items-center mb-6">
-        <div className="bg-sky-500/10 p-5 rounded-full mb-2">
-          <User size={36} className="text-sky-400" />
+        <div className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-[var(--lg-fill)]">
+          <User size={38} className="text-[var(--lg-text-2)]" />
         </div>
-        <p className="text-slate-400 text-sm">{user?.email}</p>
+        <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
       </div>
 
       {/* ── Profil teilen ─────────────────────────────────────────────────── */}
-      <div className={`card mb-4 border transition-colors ${
-        profile.is_public ? 'border-sky-500/30' : 'border-slate-800'
-      }`}>
+      <div className="card mb-4">
         {/* Haupt-Toggle */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             {profile.is_public
-              ? <Globe size={16} className="text-sky-400" />
-              : <Lock size={16} className="text-slate-400" />}
-            <h2 className="font-semibold text-slate-300">{t('profil_teilen')}</h2>
+              ? <Globe size={17} className="text-[var(--lg-accent-text)]" />
+              : <Lock size={17} className="text-[var(--lg-text-2)]" />}
+            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('profil_teilen')}</h2>
           </div>
           <button
+            type="button"
+            role="switch"
+            aria-checked={profile.is_public}
+            aria-label={t('profil_teilen')}
             onClick={() => setProfile(p => ({ ...p, is_public: !p.is_public }))}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              profile.is_public ? 'bg-sky-500' : 'bg-slate-700'
-            }`}
+            className="shrink-0"
           >
-            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
-              profile.is_public ? 'left-7' : 'left-1'
-            }`} />
+            <Schalter an={profile.is_public} />
           </button>
         </div>
 
@@ -137,12 +135,12 @@ export function Profil() {
           <div className="space-y-3">
             {/* Teilen-Link */}
             <div className="flex gap-2">
-              <div className="input flex-1 text-sky-400 text-sm truncate py-2 cursor-default">
+              <div className="input flex-1 !text-[var(--lg-accent-text)] text-sm truncate py-2 cursor-default">
                 {profileUrl}
               </div>
               <button className="btn-secondary px-3 shrink-0" onClick={copyLink}>
                 {copied
-                  ? <Check size={16} className="text-emerald-400" />
+                  ? <Check size={16} className="text-[var(--lg-good-text)]" />
                   : <Copy size={16} />}
               </button>
             </div>
@@ -159,18 +157,18 @@ export function Profil() {
             {/* Was Besucher sehen: nur einzeln freigegebene Bewertungen.
                 Stack, Kalender und Tagebuch sind (noch) nie oeffentlich —
                 die alten Schalter wirkten fuer Besucher nie und sind weg. */}
-            <div data-profile-public-content className="rounded-xl border border-slate-800 bg-slate-950 p-3">
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
+            <div data-profile-public-content className="rounded-[18px] bg-[var(--lg-surface-2)] p-3.5">
+              <p className="flex items-center gap-1.5 text-[15px] font-semibold text-[var(--lg-text)]">
                 <Star size={15} aria-hidden="true" className="text-amber-400" /> {t('review_public_profile_title')}
               </p>
-              <p className="mt-1 text-xs text-slate-400">{t('review_public_profile_desc')}</p>
-              <Link to="/bewertungen" className="mt-2 inline-block text-xs font-semibold text-sky-400">
+              <p className="mt-1 text-[13px] text-[var(--lg-text-2)]">{t('review_public_profile_desc')}</p>
+              <Link to="/bewertungen" className="mt-1 inline-flex min-h-11 items-center text-[15px] font-semibold text-[var(--lg-accent-text)]">
                 {t('review_public_profile_link')}
               </Link>
             </div>
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">
+          <p className="text-[var(--lg-text-2)] text-[15px] leading-snug">
             {t('profil_teilen_hint')}
           </p>
         )}
@@ -179,26 +177,26 @@ export function Profil() {
       {/* ── Sicherheit & Datenschutz ── */}
       <div className="card mb-4 space-y-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck size={16} className="text-amber-400" />
-          <h2 className="font-semibold text-slate-300">{t('profil_safety_title')}</h2>
+          <ShieldCheck size={17} className="text-[var(--lg-warn-text)]" />
+          <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('profil_safety_title')}</h2>
         </div>
         <ResearchDisclaimer
           compact
           title={t('safety_banner_title')}
           body={t('safety_banner_body')}
         />
-        <ul className="space-y-2 text-sm text-slate-400 leading-relaxed">
+        <ul className="space-y-2 text-[15px] text-[var(--lg-text-2)] leading-snug">
           <li className="flex gap-2">
-            <FileText size={14} className="text-sky-400 shrink-0 mt-0.5" />
+            <FileText size={15} className="text-[var(--lg-accent-text)] shrink-0 mt-0.5" />
             <span>{t('profil_safety_export')}</span>
           </li>
           <li className="flex gap-2">
-            <Lock size={14} className="text-sky-400 shrink-0 mt-0.5" />
+            <Lock size={15} className="text-[var(--lg-accent-text)] shrink-0 mt-0.5" />
             <span>{t('profil_safety_data')}</span>
           </li>
           <li>{t('profil_safety_medical')}</li>
         </ul>
-        <Link to="/protokoll" className="btn-secondary w-full flex items-center justify-center gap-2 text-sm">
+        <Link to="/protokoll" data-quiet className="lg-gray-btn w-full">
           <FileText size={15} />
           {t('tile_protokoll')}
         </Link>
@@ -206,13 +204,13 @@ export function Profil() {
 
       {/* ── Account ──────────────────────────────────────────────────────── */}
       <div className="card space-y-4 mb-4">
-        <h2 className="font-semibold text-slate-300">Account</h2>
+        <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">Account</h2>
         <div>
           <label className="label">{t('benutzername_pflicht')}</label>
           <input className="input" placeholder={t('username_placeholder')}
             value={profile.username}
             onChange={e => setProfile(p => ({ ...p, username: e.target.value }))} />
-          <p className="text-slate-600 text-xs mt-1">{t('benutzername_hinweis')}</p>
+          <p className="text-[var(--lg-text-3)] text-xs mt-1.5">{t('benutzername_hinweis')}</p>
         </div>
         <div>
           <label className="label">{t('anzeigename')}</label>
@@ -222,7 +220,7 @@ export function Profil() {
         </div>
       </div>
 
-      <button className="btn-primary w-full flex items-center justify-center gap-2" onClick={save} disabled={saving}>
+      <button className="lg-btn lg-btn-primary w-full" onClick={save} disabled={saving}>
         <Save size={16} /> {saving ? t('saving') : t('profil_speichern')}
       </button>
 
@@ -267,10 +265,11 @@ function LookSwitcher() {
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
   ]
   return (
-    <div className="card" style={{ marginTop: 12 }} data-look-switcher>
-      <p className="label" style={{ marginBottom: 10 }}>
+    <div style={{ marginTop: 24 }} data-look-switcher>
+      <p className="lg-group-title">
         {t('theme_label', { defaultValue: 'Erscheinungsbild' })}
       </p>
+      <div className="card">
       <GlassSegmented
         options={options}
         value={look}
@@ -283,6 +282,7 @@ function LookSwitcher() {
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
         {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.' })}
       </p>
+      </div>
     </div>
   )
 }
@@ -320,20 +320,7 @@ function TiltToggle() {
         <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)' }}>
           {t('look_tilt', { defaultValue: 'Licht folgt dem Kippen' })}
         </span>
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'relative', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
-            background: on ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
-            transition: 'background-color 200ms ease',
-          }}
-        >
-          <span style={{
-            position: 'absolute', top: 2, left: on ? 22 : 2, width: 27, height: 27, borderRadius: '50%',
-            background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
-            transition: 'left 260ms var(--lg-ease-out)',
-          }} />
-        </span>
+        <Schalter an={on} />
       </button>
       {denied && (
         <p role="status" style={{ marginTop: 6, fontSize: 13, color: 'var(--lg-warn-text)' }}>
@@ -402,42 +389,31 @@ function PushSettings() {
     subscribed:          'Aktiv ✓',
   }
   const stateColors: Record<string, string> = {
-    loading:             'var(--text-muted)',
-    unsupported:         'var(--text-muted)',
-    'ios-needs-install': '#f59e0b',
-    'ios-native-app':    '#f59e0b',
-    denied:              '#f43f5e',
-    default:             'var(--text-muted)',
-    subscribed:          '#10b981',
+    loading:             'var(--lg-text-2)',
+    unsupported:         'var(--lg-text-2)',
+    'ios-needs-install': 'var(--lg-warn-text)',
+    'ios-native-app':    'var(--lg-warn-text)',
+    denied:              'var(--lg-bad-text)',
+    default:             'var(--lg-text-2)',
+    subscribed:          'var(--lg-good-text)',
   }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>
+    <div style={{ marginTop: 24 }}>
+      <p className="lg-group-title">
         Benachrichtigungen
       </p>
-      <div style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 18, padding: '14px 16px',
-      }}>
+      <div className="card">
         {/* Status row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 12, flexShrink: 0,
-            background: state === 'subscribed' ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)',
-            border: `1px solid ${stateColors[state] ?? 'rgba(255,255,255,0.08)'}30`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {state === 'subscribed'
-              ? <Bell size={16} color="#10b981" />
-              : <BellOff size={16} color="var(--text-muted)" />}
-          </div>
+          <span className="lg-icon-tile" style={{ background: state === 'subscribed' ? '#30d158' : '#636366' }}>
+            {state === 'subscribed' ? <Bell size={16} /> : <BellOff size={16} />}
+          </span>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
+            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--lg-text)' }}>
               Einnahme-Erinnerungen
             </p>
-            <p style={{ fontSize: '0.62rem', marginTop: 2, color: stateColors[state] ?? 'var(--text-muted)', fontWeight: 700 }}>
+            <p style={{ fontSize: 13, marginTop: 1, color: stateColors[state] ?? 'var(--lg-text-2)', fontWeight: 500 }}>
               {stateLabels[state] ?? state}
             </p>
           </div>
@@ -445,11 +421,8 @@ function PushSettings() {
 
         {/* iOS install hint */}
         {state === 'ios-needs-install' && (
-          <div style={{
-            padding: '10px 12px', borderRadius: 12, marginBottom: 10,
-            background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
-          }}>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(245,158,11,0.9)', lineHeight: 1.5 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 14, marginBottom: 10, background: 'var(--lg-surface-2)' }}>
+            <p style={{ fontSize: 13, color: 'var(--lg-warn-text)', lineHeight: 1.5 }}>
               1. Tippe unten auf das <strong>Teilen-Symbol ↑</strong>{'\n'}
               2. Wähle <strong>„Zum Home-Bildschirm"</strong>{'\n'}
               3. App vom Home-Bildschirm öffnen → Notifications aktivieren
@@ -459,18 +432,15 @@ function PushSettings() {
 
 
         {state === 'ios-native-app' && (
-          <div style={{
-            padding: '10px 12px', borderRadius: 12, marginBottom: 10,
-            background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
-          }}>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(245,158,11,0.9)', lineHeight: 1.5 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 14, marginBottom: 10, background: 'var(--lg-surface-2)' }}>
+            <p style={{ fontSize: 13, color: 'var(--lg-warn-text)', lineHeight: 1.5 }}>
               Store-/Xcode-App: keine Web-Push-Mitteilungszentrale. Safari → <strong>Zum Home-Bildschirm</strong> → Icon-App nutzen.
             </p>
           </div>
         )}
 
         {state === 'subscribed' && (
-          <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.45, marginBottom: 10 }}>
+          <p style={{ fontSize: 13, color: 'var(--lg-text-2)', lineHeight: 1.45, marginBottom: 10 }}>
             iPhone: Einstellungen → Mitteilungen → TYD erlauben. Test mit geschlossener App oder gesperrtem Display.
           </p>
         )}
@@ -481,13 +451,7 @@ function PushSettings() {
             <button
               onClick={handleSubscribe}
               disabled={subscribing}
-              style={{
-                flex: 1, padding: '10px 0', borderRadius: 12,
-                background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-                color: 'var(--accent)', fontSize: '0.76rem', fontWeight: 800,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                opacity: subscribing ? 0.5 : 1,
-              }}
+              className="lg-gray-btn flex-1"
             >
               <Bell size={14} />
               {subscribing ? 'Aktiviere…' : 'Aktivieren'}
@@ -499,13 +463,8 @@ function PushSettings() {
               <button
                 onClick={handleTest}
                 disabled={testing}
-                style={{
-                  flex: 1, padding: '10px 0', borderRadius: 12,
-                  background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)',
-                  color: '#10b981', fontSize: '0.76rem', fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  opacity: testing ? 0.5 : 1,
-                }}
+                data-tone="good"
+                className="lg-gray-btn flex-1"
               >
                 <Send size={14} />
                 {testing ? 'Sende…' : 'Test senden'}
@@ -513,23 +472,14 @@ function PushSettings() {
               <button
                 onClick={handleReconnect}
                 disabled={reconnecting}
-                style={{
-                  padding: '10px 12px', borderRadius: 12,
-                  background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-                  color: 'var(--accent)', fontSize: '0.7rem', fontWeight: 800,
-                  opacity: reconnecting ? 0.5 : 1,
-                }}
+                className="lg-gray-btn !px-3.5"
               >
                 {reconnecting ? '…' : 'Neu'}
               </button>
               <button
                 onClick={handleUnsubscribe}
-                style={{
-                  padding: '10px 14px', borderRadius: 12,
-                  background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.18)',
-                  color: '#f43f5e', fontSize: '0.76rem', fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                }}
+                data-tone="bad"
+                className="lg-gray-btn !px-3.5"
               >
                 <BellOff size={14} />
                 Aus
@@ -538,7 +488,7 @@ function PushSettings() {
           )}
 
           {state === 'denied' && (
-            <p style={{ fontSize: '0.7rem', color: 'rgba(244,63,94,0.7)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--lg-bad-text)', lineHeight: 1.5 }}>
               Notifications in den Browser-Einstellungen erneut erlauben, dann Seite neu laden.
             </p>
           )}
@@ -562,8 +512,8 @@ function LanguageSwitcher() {
   }
 
   return (
-    <div className="mt-4">
-      <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>
+    <div className="mt-6">
+      <p className="lg-group-title">
         {t('language')}
       </p>
 
@@ -571,23 +521,22 @@ function LanguageSwitcher() {
         onClick={() => { setOpen(o => !o); setSelected(i18n.language) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 14px', borderRadius: 13,
-          background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-          color: 'var(--accent)', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+          minHeight: 52, padding: '0 16px', borderRadius: 'var(--r-xl)',
+          background: 'var(--lg-surface-2)', border: 'none',
+          color: 'var(--lg-text)', fontWeight: 500, fontSize: 16, cursor: 'pointer',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Languages size={15} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="lg-icon-tile" style={{ background: '#0a84ff' }}><Languages size={16} /></span>
           <span>{current.flag} {current.name}</span>
         </div>
-        <span style={{ fontSize: 12, opacity: 0.6 }}>{open ? '▲' : '▼'}</span>
+        <ChevronDown size={18} aria-hidden="true" style={{ color: 'var(--lg-text-3)', transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 200ms ease' }} />
       </button>
 
       {open && (
         <div style={{
-          marginTop: 6, borderRadius: 13, overflow: 'hidden',
-          border: '1px solid var(--border)',
-          background: 'var(--surface)',
+          marginTop: 8, borderRadius: 'var(--r-xl)', overflow: 'hidden',
+          background: 'var(--lg-surface-2)',
         }}>
           <div style={{ maxHeight: 300, overflowY: 'auto' }}>
             {LANGUAGES.map(lang => {
@@ -597,8 +546,8 @@ function LanguageSwitcher() {
                   key={lang.code}
                   style={{
                     display: 'flex', alignItems: 'center',
-                    borderBottom: '1px solid var(--border)',
-                    background: isSelected ? 'var(--accent-weak)' : 'transparent',
+                    borderBottom: '0.5px solid var(--lg-separator)',
+                    background: isSelected ? 'rgba(0, 204, 245, 0.10)' : 'transparent',
                   }}
                 >
                   <button
@@ -606,9 +555,10 @@ function LanguageSwitcher() {
                     style={{
                       flex: 1, display: 'flex', alignItems: 'center', gap: 12,
                       padding: '11px 16px', textAlign: 'left', cursor: 'pointer',
-                      color: isSelected ? 'var(--accent)' : 'var(--text-dim)',
-                      fontWeight: isSelected ? 700 : 400,
-                      fontSize: '0.875rem',
+                      minHeight: 48,
+                      color: isSelected ? 'var(--lg-accent-text)' : 'var(--lg-text)',
+                      fontWeight: isSelected ? 600 : 400,
+                      fontSize: 16,
                       background: 'transparent',
                     }}
                   >
@@ -621,14 +571,13 @@ function LanguageSwitcher() {
                       onClick={apply}
                       style={{
                         margin: '6px 10px 6px 0',
-                        padding: '6px 14px',
-                        borderRadius: 8,
-                        background: lang.code !== i18n.language
-                          ? 'linear-gradient(135deg, #00ccf5, #0088dd)'
-                          : 'var(--accent-weak)',
-                        border: '1px solid var(--accent-border)',
-                        color: lang.code !== i18n.language ? '#07091a' : 'var(--accent)',
-                        fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                        minHeight: 34,
+                        padding: '0 14px',
+                        borderRadius: 999,
+                        background: lang.code !== i18n.language ? 'var(--lg-primary-fill)' : 'transparent',
+                        border: 'none',
+                        color: lang.code !== i18n.language ? 'var(--accent-contrast)' : 'var(--lg-accent-text)',
+                        fontSize: 14, fontWeight: 600, cursor: 'pointer',
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -642,5 +591,25 @@ function LanguageSwitcher() {
         </div>
       )}
     </div>
+  )
+}
+
+/** iOS-Schalter (nur die Optik; Rolle und Zustand trägt der Knopf drumherum) */
+function Schalter({ an }: { an: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        position: 'relative', display: 'block', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
+        background: an ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
+        transition: 'background-color 200ms ease',
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: 2, left: an ? 22 : 2, width: 27, height: 27, borderRadius: '50%',
+        background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
+        transition: 'left 260ms var(--lg-ease-out)',
+      }} />
+    </span>
   )
 }
