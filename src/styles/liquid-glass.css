@@ -392,6 +392,10 @@
 /* Sheet mit langem, scrollendem Inhalt: feste Fläche statt Glas —
    Weichzeichner auf einem scrollenden Element stört iOS Safari */
 .lg-sheet-solid { background: var(--lg-sheet-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* Eigene Suchfelder: keine Safari-Suchfeld-Optik, kein zweites ×-Symbol */
+input[type='search'] { -webkit-appearance: none; appearance: none; }
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration { -webkit-appearance: none; display: none; }
 .lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgba(255, 255, 255, 0.25); }
 
 /* Inhaltsfläche mit Ton: eine Haarlinie in der Farbe sagt Erfolg/Fehler,

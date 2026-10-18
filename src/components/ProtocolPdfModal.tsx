@@ -359,49 +359,49 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     <button
       type="button"
       onClick={() => setLang(lang === 'de' ? 'en' : 'de')}
-      className="text-[0.7rem] font-bold tracking-wide text-slate-400 hover:text-white px-1.5 py-1"
+      className="min-h-11 px-2 text-[13px] font-semibold text-[var(--lg-text-2)]"
       aria-label={t.language}
       title={t.language}
     >
-      <span className={lang === 'de' ? 'text-sky-400' : 'text-slate-500'}>DE</span>
-      <span className="text-slate-600 mx-0.5">/</span>
-      <span className={lang === 'en' ? 'text-sky-400' : 'text-slate-500'}>EN</span>
+      <span className={lang === 'de' ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text-3)]'}>DE</span>
+      <span className="text-[var(--lg-text-3)] mx-0.5">/</span>
+      <span className={lang === 'en' ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text-3)]'}>EN</span>
     </button>
   )
 
   return (
     <div
       className={isPage
-        ? 'w-[calc(100%+1.5rem)] -mx-3 -mt-4 flex flex-col min-h-[calc(100dvh-4.5rem)] bg-slate-950'
-        : 'fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center'}
+        ? 'lg-backdrop w-[calc(100%+1.5rem)] -mx-3 -mt-4 flex flex-col min-h-[calc(100dvh-4.5rem)]'
+        : 'fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[calc(0.5rem+env(safe-area-inset-top))]'}
       data-app-modal={isPage ? undefined : true}
       onClick={isPage ? undefined : onClose}
     >
       <div
         className={isPage
-          ? 'bg-slate-950 w-full flex flex-col flex-1 min-h-0'
-          : 'bg-slate-900 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-5xl flex flex-col max-h-[94dvh] pt-[env(safe-area-inset-top)] sm:pt-0'}
+          ? 'w-full flex flex-col flex-1 min-h-0'
+          : 'lg-sheet lg-sheet-solid overflow-hidden w-full sm:max-w-5xl flex flex-col max-h-full'}
         onClick={isPage ? undefined : (e => e.stopPropagation())}
       >
-        <div className={`shrink-0 border-b border-slate-800 flex items-center justify-between gap-2 ${isPage ? 'px-3 py-2.5' : 'px-5 py-4'}`}>
+        <div className={`shrink-0 flex items-center justify-between gap-2 ${isPage ? 'pl-4 pr-1 pt-1 pb-1' : 'pl-5 pr-2 pt-3 pb-1'}`}>
           <div className="flex items-center gap-2 min-w-0">
-            <FileText size={isPage ? 16 : 18} className="text-sky-400 shrink-0" />
-            <h2 className={`font-bold text-white truncate ${isPage ? 'text-base' : 'text-lg'}`}>{t.title}</h2>
+            <FileText size={18} className="text-[var(--lg-accent-text)] shrink-0" aria-hidden="true" />
+            <h2 className="lg-title2 truncate">{t.title}</h2>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center shrink-0">
             {langToggle}
-            <button type="button" onClick={onClose} data-app-back-close className="p-1.5 text-slate-400 hover:text-white">
-              <X size={18} />
+            <button type="button" onClick={onClose} data-app-back-close aria-label={lang === 'de' ? 'Schließen' : 'Close'} className="lg-icon-btn !text-[var(--lg-text-2)]">
+              <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} /></span>
             </button>
           </div>
         </div>
 
         {/* Muster-Tabs + Inhalt darunter — mobil zuerst */}
-        <div className={`shrink-0 border-b border-slate-800 ${isPage ? 'px-3 pt-2 pb-2' : 'px-4 pt-3 pb-2'}`}>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{t.presets}</p>
-          <div className="rounded-xl bg-slate-800/80 p-1">
+        <div className="shrink-0 px-4 pt-2 pb-3">
+          <p className="lg-group-title !mx-1">{t.presets}</p>
+          <div className="rounded-[18px] bg-[var(--lg-fill)] p-0.5">
             <div
-              className="grid grid-cols-3 gap-1"
+              className="grid grid-cols-3"
               role="tablist"
               aria-label={t.presets}
             >
@@ -415,10 +415,10 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                     aria-selected={active}
                     disabled={loading || !data}
                     onClick={() => selectPreset(preset.id)}
-                    className={`rounded-lg px-2 py-2.5 text-center text-sm font-semibold transition-colors disabled:opacity-50 ${
+                    className={`min-h-9 rounded-full px-2 text-center text-[14px] font-semibold transition-colors disabled:opacity-50 ${
                       active
-                        ? 'bg-sky-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                        : 'text-[var(--lg-text-2)]'
                     }`}
                   >
                     {preset.label[lang]}
@@ -427,17 +427,17 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
               })}
             </div>
             <div
-              className={`mt-1 rounded-lg px-2 py-1.5 text-center text-[0.7rem] font-semibold tracking-wide transition-colors ${
+              className={`mt-0.5 rounded-full px-2 py-1.5 text-center text-[12px] font-semibold transition-colors ${
                 activePreset === 'custom'
-                  ? 'bg-amber-500/15 text-amber-300'
-                  : 'text-slate-500'
+                  ? 'bg-[color-mix(in_srgb,var(--lg-warn)_16%,transparent)] text-[var(--lg-warn-text)]'
+                  : 'text-[var(--lg-text-3)]'
               }`}
               aria-live="polite"
             >
               {t.custom}
             </div>
           </div>
-          <p className="mt-2 text-[0.75rem] leading-relaxed text-slate-500">
+          <p className="mt-2 px-1 text-[13px] leading-snug text-[var(--lg-text-2)]">
             {activePreset === 'custom'
               ? t.intro
               : (PRESETS.find(preset => preset.id === activePreset) ?? PRESETS[0]).description[lang]}
@@ -447,10 +447,10 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           <div className={`lg:w-[380px] lg:shrink-0 overflow-y-auto px-4 py-4 space-y-4 ${isPage ? '' : 'max-h-[42vh] lg:max-h-none'}`}>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{t.period}</p>
+            <p className="lg-group-title !mx-1">{t.period}</p>
             <div className="grid grid-cols-2 gap-2">
               <label className="block">
-                <span className="text-[0.7rem] text-slate-500">{t.from}</span>
+                <span className="px-1 text-[13px] text-[var(--lg-text-2)]">{t.from}</span>
                 <input
                   type="date"
                   value={range.from}
@@ -460,7 +460,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                 />
               </label>
               <label className="block">
-                <span className="text-[0.7rem] text-slate-500">{t.to}</span>
+                <span className="px-1 text-[13px] text-[var(--lg-text-2)]">{t.to}</span>
                 <input
                   type="date"
                   value={range.to}
@@ -473,9 +473,9 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{t.sections}</p>
+            <p className="lg-group-title !mx-1">{t.sections}</p>
             {loading ? (
-              <div className="flex items-center gap-2 py-6 justify-center text-slate-400 text-sm">
+              <div className="flex items-center gap-2 py-6 justify-center text-[var(--lg-text-2)] text-sm">
                 <Loader2 size={16} className="animate-spin" /> {t.loading}
               </div>
             ) : (
@@ -490,26 +490,27 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                       {...denyProps(!has, t.emptyClick(s.label[lang]))}
                       title={!has ? t.emptyClick(s.label[lang]) : undefined}
                       onClick={() => toggle(s.id)}
-                      className={`flex min-w-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors ${
+                      aria-pressed={checked && has}
+                      className={`flex min-h-11 min-w-0 items-center gap-2 rounded-[14px] px-2.5 py-2 text-left transition-colors ${
                         !has
-                          ? 'border-slate-800/60 bg-slate-900/40 opacity-45'
+                          ? 'bg-[var(--lg-fill)] opacity-40'
                           : checked
-                            ? 'border-sky-500/40 bg-sky-500/10'
-                            : 'border-slate-800 bg-slate-800/30 hover:border-slate-700'
+                            ? 'bg-[color-mix(in_srgb,var(--accent)_16%,transparent)]'
+                            : 'bg-[var(--lg-fill)]'
                       }`}
                     >
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                          checked && has ? 'border-sky-500 bg-sky-500' : 'border-slate-600 bg-transparent'
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                          checked && has ? 'bg-[var(--lg-accent)]' : 'shadow-[inset_0_0_0_1.5px_var(--lg-text-3)]'
                         }`}
                       >
                         {checked && has && (
-                          <svg viewBox="0 0 12 12" className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <svg viewBox="0 0 12 12" className="h-3 w-3 text-[var(--accent-contrast)]" fill="none" stroke="currentColor" strokeWidth="2.2">
                             <path d="M2.5 6.5l2.2 2.2L9.5 3.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
                       </span>
-                      <span className={`min-w-0 flex-1 break-words text-[0.8rem] font-medium leading-snug ${has ? 'text-slate-200' : 'text-slate-500'}`}>
+                      <span lang={lang} className={`min-w-0 flex-1 hyphens-auto [overflow-wrap:break-word] text-[13px] font-medium leading-snug ${has ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-3)]'}`}>
                         {s.label[lang]}
                       </span>
                     </button>
@@ -517,12 +518,12 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                 })}
               </div>
             )}
-            <p className="mt-2 text-[0.72rem] leading-relaxed text-slate-500">{t.personalHint}</p>
+            <p className="mt-2 px-1 text-[12px] leading-snug text-[var(--lg-text-3)]">{t.personalHint}</p>
           </div>
 
           {showNoteField && (
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{t.note}</p>
+              <p className="lg-group-title !mx-1">{t.note}</p>
               <textarea
                 value={note}
                 onChange={e => setNote(e.target.value)}
@@ -534,16 +535,16 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           )}
         </div>
 
-          <div className={`flex-1 ${isPage ? 'min-h-[50vh]' : 'min-h-[38vh]'} lg:min-h-0 flex flex-col border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950/40`}>
-            <div className="shrink-0 px-4 py-2.5 flex items-center justify-between gap-2 border-b border-slate-800">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t.livePreview}</p>
+          <div className={`flex-1 ${isPage ? 'min-h-[50vh]' : 'min-h-[38vh]'} lg:min-h-0 flex flex-col`}>
+            <div className="shrink-0 px-4 pt-3 pb-1.5 flex items-center justify-between gap-2">
+              <p className="lg-group-title !mx-1 !mb-0">{t.livePreview}</p>
               {previewBusy && (
-                <span className="inline-flex items-center gap-1.5 text-[0.7rem] text-slate-400">
+                <span className="inline-flex items-center gap-1.5 text-[12px] text-[var(--lg-text-2)]">
                   <Loader2 size={12} className="animate-spin" /> {t.previewUpdating}
                 </span>
               )}
             </div>
-            <div className="relative flex-1 min-h-0 bg-slate-300">
+            <div className="relative mx-4 flex-1 min-h-0 overflow-hidden rounded-[18px] bg-[#d1d1d6]">
               {previewUrl ? (
                 <iframe
                   key={previewKey}
@@ -552,7 +553,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                   className="absolute inset-0 h-full w-full border-0 bg-white"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-slate-600">
+                <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-[#3a3a3c]">
                   {previewError ? t.previewError : t.previewEmpty}
                 </div>
               )}
@@ -560,7 +561,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-slate-800 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="shrink-0 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             onClick={() => { void generate() }}
@@ -569,7 +570,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
             // sagt der Knopf, warum er nicht geht.
             disabled={generating || data == null}
             {...denyProps(!isValidRange(range), t.invalidRange)}
-            className="btn-primary w-full flex items-center justify-center gap-2"
+            className="lg-btn lg-btn-primary w-full"
           >
             {generating
               ? <><Loader2 size={16} className="animate-spin" /> {t.generating}</>
