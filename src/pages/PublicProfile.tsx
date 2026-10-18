@@ -83,21 +83,21 @@ export function PublicProfile() {
   const profil = gilt?.profil ?? null
 
   if (zustand === 'laedt') return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
     </div>
   )
 
   // Nicht gefunden und privat sehen gleich aus: von aussen soll man nicht
   // erkennen, ob es ein Konto gibt.
   if (zustand !== 'da' || !profil) return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center text-slate-400">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-[var(--lg-text-2)]">
       <Lock size={40} aria-hidden="true" className="opacity-30" />
-      <p className="text-lg font-semibold text-white">
+      <p className="text-[17px] font-semibold text-[var(--lg-text)]">
         {zustand === 'fehler' ? t('public_profile_error') : t('public_profile_unavailable')}
       </p>
       <p className="text-sm">{zustand === 'fehler' ? null : t('public_profile_unavailable_desc', { name: username })}</p>
-      <Link to="/auth" className="btn-primary mt-2 px-6 py-2">{t('public_profile_to_app')}</Link>
+      <Link to="/auth" className="lg-btn lg-btn-primary mt-2">{t('public_profile_to_app')}</Link>
     </div>
   )
 
@@ -132,11 +132,11 @@ export function PublicProfile() {
   }
 
   if (profil.blocked) return (
-    <div data-profile-blocked className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center text-slate-400">
+    <div data-profile-blocked className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-[var(--lg-text-2)]">
       <Ban size={40} aria-hidden="true" className="opacity-30" />
-      <p className="text-lg font-semibold text-white">{t('blocked_profile_title')}</p>
+      <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('blocked_profile_title')}</p>
       <p className="text-sm">@{profil.username}</p>
-      <button type="button" data-unblock disabled={busy} onClick={() => void setzeBlock(false)} className="min-h-11 rounded-xl border border-slate-700 bg-slate-900 px-5 text-sm font-semibold text-slate-200 disabled:opacity-50">
+      <button type="button" data-unblock disabled={busy} onClick={() => void setzeBlock(false)} data-quiet className="lg-gray-btn">
         {t('unblock_action')}
       </button>
       <LegalLinks className="mt-6" />
@@ -149,22 +149,22 @@ export function PublicProfile() {
     .format(new Date(`${wert}-01T00:00:00.000Z`))
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-black text-[var(--lg-text)]">
       <div className="mx-auto max-w-lg px-4 py-8">
         <header className="mb-8 flex flex-col items-center text-center">
-          <h1 className="text-2xl font-bold">{profil.display_name || profil.username}</h1>
-          <p className="mt-0.5 text-sm text-slate-400">@{profil.username}</p>
-          {profil.public_bio && <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-300">{profil.public_bio}</p>}
-          <p className="mt-4 flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-500">
+          <h1 className="text-[28px] font-bold leading-tight">{profil.display_name || profil.username}</h1>
+          <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">@{profil.username}</p>
+          {profil.public_bio && <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-[var(--lg-text)]">{profil.public_bio}</p>}
+          <p className="mt-4 flex items-center gap-2 rounded-full bg-[var(--lg-fill)] px-3 py-1.5 text-[13px] text-[var(--lg-text-2)]">
             <FlaskConical size={11} aria-hidden="true" /> {t('public_profile_badge')}
           </p>
           {!istEigenes && (
             <div className="mt-3 flex items-center gap-2">
-              <button type="button" data-report-profile onClick={() => meldenOeffnen({ art: 'profil' })} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs text-slate-500 hover:text-amber-300">
+              <button type="button" data-report-profile onClick={() => meldenOeffnen({ art: 'profil' })} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-[13px] text-[var(--lg-text-3)] hover:text-[var(--lg-warn-text)]">
                 <Flag size={12} aria-hidden="true" /> {t('report_profile_action')}
               </button>
               {user && (
-                <button type="button" data-block-open onClick={() => setBlockt(true)} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs text-slate-500 hover:text-red-300">
+                <button type="button" data-block-open onClick={() => setBlockt(true)} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-[13px] text-[var(--lg-text-3)] hover:text-[var(--lg-bad-text)]">
                   <Ban size={12} aria-hidden="true" /> {t('block_action')}
                 </button>
               )}
@@ -173,12 +173,12 @@ export function PublicProfile() {
         </header>
 
         <section aria-labelledby="public-reviews">
-          <h2 id="public-reviews" className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <h2 id="public-reviews" className="mb-3 flex items-center gap-2 px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">
             <Star size={13} aria-hidden="true" /> {t('bewertungen_title')}
           </h2>
-          <p data-review-disclaimer className="-mt-1 mb-3 text-xs text-slate-500">{t('review_disclaimer')}</p>
+          <p data-review-disclaimer className="-mt-1 mb-3 px-1 text-[13px] text-[var(--lg-text-2)]">{t('review_disclaimer')}</p>
           {reviews.length === 0 ? (
-            <p className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-8 text-center text-sm text-slate-500">
+            <p className="lg-surface lg-flat px-4 py-8 text-center text-[15px] text-[var(--lg-text-2)]">
               {t('public_profile_no_reviews')}
             </p>
           ) : (
@@ -190,24 +190,24 @@ export function PublicProfile() {
                   r.wieder_nehmen ? `${t('review_again')} ${t(`review_again_${r.wieder_nehmen}`)}` : null,
                 ].filter(Boolean)
                 return (
-                  <li key={r.id} data-public-review className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3">
+                  <li key={r.id} data-public-review className="lg-surface lg-flat !rounded-[22px] px-4 py-3.5">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="min-w-0 truncate text-sm font-semibold text-sky-400">{r.substanz}</p>
+                      <p className="min-w-0 truncate text-[15px] font-semibold text-[var(--lg-accent-text)]">{r.substanz}</p>
                       <span className="flex shrink-0 gap-0.5" role="img" aria-label={String(t(r.rating === 1 ? 'review_star_one' : 'review_star_many', { n: r.rating }))}>
                         {[1, 2, 3, 4, 5].map(stern => (
-                          <Star key={stern} size={13} aria-hidden="true" className={stern <= r.rating ? 'text-amber-400' : 'text-slate-700'} fill={stern <= r.rating ? 'currentColor' : 'transparent'} />
+                          <Star key={stern} size={13} aria-hidden="true" className={stern <= r.rating ? 'text-amber-400' : 'text-[var(--lg-text-3)]'} fill={stern <= r.rating ? 'currentColor' : 'transparent'} />
                         ))}
                       </span>
                     </div>
-                    {r.title && <p className="mt-1 font-semibold text-white">{r.title}</p>}
-                    {kriterien.length > 0 && <p className="mt-1 text-xs text-slate-400">{kriterien.join(' · ')}</p>}
-                    {r.body && <p className="mt-1.5 text-sm text-slate-300">{r.body}</p>}
-                    {r.pros && <p className="mt-1.5 text-xs"><span className="font-semibold text-emerald-400">+ </span><span className="text-slate-300">{r.pros}</span></p>}
-                    {r.cons && <p className="mt-1 text-xs"><span className="font-semibold text-red-400">− </span><span className="text-slate-300">{r.cons}</span></p>}
+                    {r.title && <p className="mt-1 text-[17px] font-semibold text-[var(--lg-text)]">{r.title}</p>}
+                    {kriterien.length > 0 && <p className="mt-1 text-[13px] text-[var(--lg-text-2)]">{kriterien.join(' · ')}</p>}
+                    {r.body && <p className="mt-1.5 text-[15px] leading-snug text-[var(--lg-text)]">{r.body}</p>}
+                    {r.pros && <p className="mt-1.5 text-[13px]"><span className="font-semibold text-[var(--lg-good-text)]">+ </span><span className="text-[var(--lg-text-2)]">{r.pros}</span></p>}
+                    {r.cons && <p className="mt-1 text-[13px]"><span className="font-semibold text-[var(--lg-bad-text)]">− </span><span className="text-[var(--lg-text-2)]">{r.cons}</span></p>}
                     <div className="mt-1 flex items-center justify-between gap-3">
-                      <p className="text-[11px] text-slate-600">{monat(r.monat)}</p>
+                      <p className="text-[12px] text-[var(--lg-text-3)]">{monat(r.monat)}</p>
                       {!istEigenes && (
-                        <button type="button" data-report-open onClick={() => meldenOeffnen({ art: 'erfahrung', review: r })} className="-mr-2 inline-flex min-h-11 items-center gap-1 px-2 text-[11px] text-slate-500 hover:text-amber-300">
+                        <button type="button" data-report-open onClick={() => meldenOeffnen({ art: 'erfahrung', review: r })} className="-mr-2 inline-flex min-h-11 items-center gap-1 px-2 text-[12px] text-[var(--lg-text-3)] hover:text-[var(--lg-warn-text)]">
                           <Flag size={11} aria-hidden="true" /> {t('report_action')}
                         </button>
                       )}
@@ -219,7 +219,7 @@ export function PublicProfile() {
           )}
         </section>
 
-        <p className="mt-8 text-center text-xs text-slate-600">{t('public_profile_footer')}</p>
+        <p className="mt-8 text-center text-[13px] text-[var(--lg-text-3)]">{t('public_profile_footer')}</p>
         <LegalLinks className="mt-3 pb-4" />
         {meldet && <ReportSheet
           titel={t(meldet.art === 'erfahrung' ? 'report_title' : 'report_profile_title')}

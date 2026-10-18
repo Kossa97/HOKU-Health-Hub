@@ -173,7 +173,6 @@ export function ManualSimulation({ preselectProfileId, startOffen = false }: { p
             onClick={start}
             {...denyProps(!profile, t('pk_select_first'))}
             className="lg-btn lg-btn-primary w-full"
-            style={profile ? undefined : { opacity: 0.4 }}
           >
             <Activity size={18} /> {t('pk_start')}
           </button>

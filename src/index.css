@@ -635,6 +635,7 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
   --lg-card-sheen: radial-gradient(90% 60% at 20% -10%, rgba(255,255,255,0.12), transparent 60%);
   /* Sheets: dichteres Glas, Text und Felder bleiben lesbar */
   --lg-sheet-bg: rgba(30,30,34,0.74);
+  --lg-sheet-solid: #1c1c1e;
   --lg-sheet-blur: blur(40px) saturate(180%);
   --lg-fill: rgba(118,118,128,0.24);
   --lg-fill-selected: #636366;

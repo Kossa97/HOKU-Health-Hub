@@ -32,8 +32,7 @@ const SEVERITY_COLORS: Record<number, string> = {
   1: 'text-[var(--lg-good-text)]', 2: 'text-[var(--lg-good-text)]', 3: 'text-[var(--lg-warn-text)]',
   4: 'text-[var(--lg-warn-text)]', 5: 'text-[var(--lg-bad-text)]',
 }
-/** Fest gefülltes Sheet: Weichzeichner stört das Scrollen in iOS Safari */
-const SHEET_BG = '#1c1c1e'
+
 
 export function Tagebuch() {
   const { user } = useAuth()
@@ -365,9 +364,8 @@ export function Tagebuch() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-dirty-on-interaction
           onClick={dismissForm}>
           <div role="dialog" aria-modal="true" aria-labelledby="tagebuch-form-title"
-            className="lg-sheet w-full max-w-lg px-5 pt-2 space-y-4
+            className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4
             overflow-y-auto overscroll-contain max-h-[90vh] scroll-pb-28" onClick={e => e.stopPropagation()}
-            style={{ background: SHEET_BG, WebkitBackdropFilter: 'none', backdropFilter: 'none' }}
             onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); dismissForm() } }}>
             <span className="lg-grabber !mb-1" aria-hidden="true" />
             <h2 id="tagebuch-form-title" className="lg-title2">{t(editingId ? 'tagebuch_eintrag_bearbeiten' : 'neuer_tagebuch_eintrag')}</h2>
@@ -496,9 +494,9 @@ export function Tagebuch() {
             </div>
 
             {/* Bleibt unten stehen — Speichern ist ohne Scrollen erreichbar */}
-            <div className="sticky bottom-0 -mx-5 flex gap-3 px-5 pt-3 pb-5" style={{ background: SHEET_BG }}>
+            <div className="sticky bottom-0 -mx-5 flex gap-3 bg-[var(--lg-sheet-solid)] px-5 pt-3 pb-5">
               <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" data-app-back-close onClick={closeForm}>{t('cancel')}</button>
-              <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4 disabled:opacity-40" onClick={save} disabled={saving}>
+              <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" onClick={save} disabled={saving}>
                 {saving ? t('saving') : t('save')}
               </button>
             </div>

@@ -68,9 +68,7 @@ export function FilterSheet({
           role="dialog"
           aria-modal="true"
           aria-label={String(t('lab_filter_title'))}
-          // Form des Glas-Sheets, aber fest gefüllt: Weichzeichner bricht hier das Scrollen in iOS Safari
-          className="lg-sheet w-full max-w-lg overflow-hidden pointer-events-auto"
-          style={{ background: '#1c1c1e', WebkitBackdropFilter: 'none', backdropFilter: 'none' }}
+          className="lg-sheet lg-sheet-solid w-full max-w-lg overflow-hidden pointer-events-auto"
         >
           <div className="pt-2 pb-1">
             <span className="lg-grabber" aria-hidden="true" />

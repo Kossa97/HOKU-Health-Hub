@@ -389,6 +389,9 @@
   backdrop-filter: var(--lg-sheet-blur);
   box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
+/* Sheet mit langem, scrollendem Inhalt: feste Fläche statt Glas —
+   Weichzeichner auf einem scrollenden Element stört iOS Safari */
+.lg-sheet-solid { background: var(--lg-sheet-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgba(255, 255, 255, 0.25); }
 
 /* Inhaltsfläche mit Ton: eine Haarlinie in der Farbe sagt Erfolg/Fehler,
@@ -444,6 +447,8 @@ html:not([data-look='licht']) .lg-flat { -webkit-backdrop-filter: none; backdrop
 /* Gesperrt (aria-disabled, damit der Hinweis beim Antippen kommt): kein
    Nachgeben, kein Aufhellen — er soll nicht drückbar aussehen. */
 .lg-btn[aria-disabled='true'] { cursor: default; }
+/* Gesperrt sieht gesperrt aus — einmal hier statt je Aufrufer */
+.lg-btn:disabled, .lg-btn[aria-disabled='true'] { opacity: 0.4; }
 .lg-btn[aria-disabled='true']:active { transform: none; filter: none; }
 @media (hover: hover) and (pointer: fine) {
   .lg-btn[aria-disabled='true']:hover { filter: none; }
