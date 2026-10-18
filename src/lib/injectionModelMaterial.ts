@@ -7,30 +7,42 @@ export const INJECTION_TORSO_MODEL_URL = '/models/torso_hybrid_v1.web.glb'
 // Regionserkennung und Abstand zwischen gespeicherten Pins vergleichbar bleiben.
 export const INJECTION_MODEL_VERSION = 'placeholder-v1'
 
-const FALLBACK_TORSO_COLOR = new THREE.Color('#d9b8a8')
+// „Dunkles Glas“: eine dunkle, klar lackierte Oberfläche. Form und Muskeln
+// liest man an den Spiegelungen und Kantenlichtern (InjectionGlassLight), die
+// farbigen Pins heben sich davon deutlich ab.
+const GLASS_BODY = {
+  color: '#2b2f36',
+  roughness: 0.32,
+  metalness: 0,
+  clearcoat: 1,
+  clearcoatRoughness: 0.18,
+}
 
-function prepareMaterial(material: THREE.Material): THREE.Material {
-  const next = material.clone()
-
-  if (next instanceof THREE.MeshStandardMaterial || next instanceof THREE.MeshPhysicalMaterial) {
-    if (!next.map && next.color.getHSL({ h: 0, s: 0, l: 0 }).l < 0.08) {
-      next.color.copy(FALLBACK_TORSO_COLOR)
-    }
-    next.metalness = Math.min(next.metalness, 0.06)
-    next.roughness = Math.min(next.roughness, 0.78)
-    next.emissiveIntensity = 0
-    next.needsUpdate = true
+// Aus dem Originalmaterial bleiben nur Normal-Map (Hautrelief) und Seite;
+// Farb- und Rauheitstexturen wuerden den Glas-Look wieder aufheben.
+function glassMaterialFor(source: THREE.Material): THREE.MeshPhysicalMaterial {
+  const material = new THREE.MeshPhysicalMaterial(GLASS_BODY)
+  material.side = source.side
+  if (source instanceof THREE.MeshStandardMaterial && source.normalMap) {
+    material.normalMap = source.normalMap
+    material.normalMapType = source.normalMapType
+    material.normalScale.copy(source.normalScale)
   }
-
-  return next
+  return material
 }
 
 export function prepareInjectionTorsoModel(root: THREE.Object3D): void {
+  const converted = new Map<THREE.Material, THREE.MeshPhysicalMaterial>()
+  const convert = (source: THREE.Material) => {
+    let material = converted.get(source)
+    if (!material) {
+      material = glassMaterialFor(source)
+      converted.set(source, material)
+    }
+    return material
+  }
   root.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return
-
-    child.material = Array.isArray(child.material)
-      ? child.material.map(prepareMaterial)
-      : prepareMaterial(child.material)
+    child.material = Array.isArray(child.material) ? child.material.map(convert) : convert(child.material)
   })
 }

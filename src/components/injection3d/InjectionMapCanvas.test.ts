@@ -47,10 +47,17 @@ describe('InjectionMapCanvas external assets', () => {
 
   it('keeps explicit rear and rim lighting for the back view', () => {
     const source = readFileSync(new URL('./InjectionMapCanvas.tsx', import.meta.url), 'utf8')
+    const light = readFileSync(new URL('./InjectionGlassLight.tsx', import.meta.url), 'utf8')
+    const look = readFileSync(new URL('../../lib/injectionGlassLook.ts', import.meta.url), 'utf8')
 
-    expect(source).toContain('INJECTION_MAP_LIGHTS')
-    expect(source).toContain('rearFill')
-    expect(source).toContain('rim')
+    expect(source).toContain('<InjectionGlassLight />')
+    // Die Kantenlichter stehen hinter der Figur und zeichnen so auch die Rückseite.
+    expect(look).toContain('rimLeft: { position: [-3.4, 1.4, -1.8]')
+    expect(look).toContain('rimRight: { position: [3.4, 1.4, -1.8]')
+    // Spiegelungen aus einer lokal erzeugten Umgebung, keine HDR-Datei aus dem Netz.
+    expect(light).toContain('new RoomEnvironment()')
+    expect(light).not.toContain('@react-three/drei')
+    expect(light).not.toContain('preset=')
   })
 
   it('offsets focused injections when a tracker sheet covers the lower map area', () => {
@@ -86,7 +93,6 @@ describe('InjectionMapCanvas external assets', () => {
     expect(source).toContain('enablePan enableZoom enableRotate')
     expect(source).toContain('touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}')
     expect(source).toContain('screenSpacePanning')
-    expect(source).toContain('frames={1}')
     expect(source).toContain('dpr={[1, 1.35]}')
     expect(source).not.toContain('enablePan={false}')
     expect(source).toContain("touchAction: 'none'")

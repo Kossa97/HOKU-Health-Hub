@@ -16,7 +16,8 @@ const TILT = 0.3 // ~17° lean, like a real pushpin
 // Realistic "pushpin" injection marker: a glossy ball head on a thin tapered
 // metallic needle, stuck into the skin and leaning naturally. The active pin is
 // full-size with a saturated blue head; old reference pins are smaller with a
-// muted grey head — distinct by size + colour, not colour alone.
+// muted grey head — distinct by size + colour, not colour alone. The head
+// glows a little so it stays bright against the dark glass body.
 export function InjectionPin({
   position,
   normal,
@@ -70,7 +71,7 @@ export function InjectionPin({
         {/* Glossy ball head */}
         <mesh position={[0, STEM_LENGTH + HEAD_RADIUS * 0.72, 0]}>
           <sphereGeometry args={[HEAD_RADIUS, 32, 32]} />
-          <meshStandardMaterial color={headColor} metalness={0.12} roughness={0.16} envMapIntensity={1.15} />
+          <meshStandardMaterial color={headColor} emissive={headColor} emissiveIntensity={0.35} metalness={0.12} roughness={0.16} envMapIntensity={1.15} />
         </mesh>
       </group>
     </group>
