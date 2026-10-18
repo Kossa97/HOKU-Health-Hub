@@ -3,6 +3,7 @@
  * Ein Lebensmittel trägt seine Werte je 100 g bzw. 100 ml; ein Eintrag im
  * Protokoll trägt die ausgerechneten Werte seiner Menge als Schnappschuss.
  */
+import type { Recipe } from './recipe'
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 export const MEALS: readonly Meal[] = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -35,6 +36,8 @@ export interface Food {
   /** Portion in g/ml, etwa „1 Scheibe = 40 g". */
   serving: { amount: number; label: string | null } | null
   favorite: boolean
+  /** Nur bei Gerichten: Zutaten und Portionen (siehe recipe.ts). */
+  recipe?: Recipe | null
 }
 
 export interface Nutrients {
@@ -78,6 +81,11 @@ const r2 = (n: number) => Math.round(n * 100) / 100
 export function parseAmount(raw: string): number {
   const s = raw.trim().replace(/\s/g, '').replace(',', '.')
   return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN
+}
+
+/** Zahl fürs Eingabefeld: auf Deutsch mit Komma. `parseAmount` liest beides. */
+export function showDecimal(n: number, lang: string): string {
+  return lang.startsWith('de') ? String(n).replace('.', ',') : String(n)
 }
 
 export function amountValid(n: number): boolean {

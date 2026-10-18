@@ -1295,25 +1295,25 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (Oktober 2026): Kachel des Workout-Trackers
 // (`tile_training`, `tile_training_desc`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '531ad58df8e2fda40b80e4080a93ea796ab14fe554bc8cfcabec86faa19f1902',
-  en: '50053fac8378d016e0fc12d5e994395d8ef3d140b06898ffdec840a2ecc03833',
+  de: '3172840df16a1436f87120ab2bd9c8981638368ff322e067f6f15c1d8d004078',
+  en: '750d71e145c71297b5c4648ab3ab2414f9a7c44072df8ba4a8dbdb81530049d9',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '9b714358e95474ac150e18ca33000209e142f4210f4c5cbd6065c97581a605b2',
-  es: '981b889f78379dae69b33ead9f46e8d310bb7ef4527084bd062309af9215d2ed',
-  fr: '5dd10afe64d55afc857f463a69066359b9aa7cbd8b282b88668acbe0c5ae265e',
-  hi: '030ee926cc0f3e04464548be6ab0b6f7d5524efa1e66de4b60fbef2362c436db',
-  id: '6857f8fdd14c173d51670531e61cb75f260bcfbef59fd4056e65ee4f708efa52',
-  it: '16bd698550d69968d124586c01ab49b2fd5488b17634a621521a0f988d326cf6',
-  ja: '14f3b42fc968b436a5c63d04cebff23536588fedbb3fd25259d1109d9cc25bd4',
-  ko: '32db427b2995f732c39af0f306d09617acd4cf4bd6611df14909b6dac5dc9ff8',
-  pt: 'a8c69f215037c1c86bc523220d4eeecf52b42809f2a4bbb464dcba93a40e35a2',
-  ru: '110d1e5d22b4d994a9c4acdbc813b04ab04892e25ed9b868eb1e2f5757091c54',
-  tr: '5b2325ff19031056c3410cd23d9a31726400c74f805a6c4aeea52e5fcad48a7f',
-  zh: 'ebd6600f14d5b4d5bbc7f0c63c0f87f481a83e245529a7504d66d07e0c914d95',
+  ar: '8398762c6f43820e5e5e81699917e454e240c27c90bbd3de8e47ffa6ee191baa',
+  es: 'c1ba0fc5e054deef18f53f9d2651a5b8c758a5950a3c72ba62f60d1a7740b6b4',
+  fr: '245227e5766a2d6b52d689571e9109222d59a8c2ce967232c0d7adcab6842b6a',
+  hi: 'f0629abe7ca6c4809b16df0ae24620b5efccdce3386a08ceadcc35c2fbe95efb',
+  id: 'cd93645582352c01502f236376c0960835713fea3f2c289b8857354066c34f34',
+  it: '6412dc9733907eb40c597806ae6cfa57ef2db4aea2065b518b1aad09afe75608',
+  ja: '20d82e64962d58faaaed07754544ac28ef4631950d4183d11ec38c98fe197547',
+  ko: '74a26086e5794a687426903b9df0b79146adbd26ef60f4ca0f38441a98385487',
+  pt: '1b173f81ab2dd684986e5bc20f6d6cd76c6ec2ab0eaa3a6a55d333fb12d19f22',
+  ru: 'd80edd20807de460cb3b6d81e08f491c6f2dd1985ae7e7a98b32d7e28db15ccb',
+  tr: '83c939706d8240ad9408ed3cf180daebdd4e3a3c17b44fb27c9d0195c465600f',
+  zh: '5776c01a359049be4c8009310d4358781c44dc9df085a401229cf8002df63c42',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

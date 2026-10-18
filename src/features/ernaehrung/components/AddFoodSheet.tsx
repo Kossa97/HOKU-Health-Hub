@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { PenLine, ScanBarcode, Search, Star, Zap } from 'lucide-react'
+import { ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { type FrequentFood, mergeResults } from '../lib/foodSearch'
@@ -9,10 +9,17 @@ import { DIM, MUTED } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
 
-type Tab = 'frequent' | 'mine'
+type Tab = 'frequent' | 'mine' | 'dishes'
 type Remote = { query: string; state: 'loading' | 'done' | 'error'; results: Food[] }
 
+const TAB_LABEL: Record<Tab, string> = { frequent: 'nutr_tab_frequent', mine: 'nutr_tab_mine', dishes: 'nutr_tab_dishes' }
+
 function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; hideKcal: boolean; onPick: () => void }) {
+  const { t } = useTranslation()
+  // Gerichte zeigen Werte je Portion — so trägt man sie auch ein.
+  const portion = food.recipe && food.serving ? food.serving.amount : null
+  const per = portion ?? 100
+  const sub = portion && food.recipe ? t('nutr_dish_ingredient_count', { count: food.recipe.ingredients.length }) : food.brand
   return (
     <li>
       <button type="button" onClick={onPick}
@@ -24,20 +31,27 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
           </span>
           <span className={`mt-0.5 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
             <SourceBadge source={food.source} own={food.itemId !== null} />
-            <span className="truncate">{[food.brand, hint].filter(Boolean).join(' · ')}</span>
+            <span className="truncate">{[sub, hint].filter(Boolean).join(' · ')}</span>
           </span>
         </span>
         <span className={`shrink-0 text-right text-[15px] tabular-nums ${DIM}`}>
-          {hideKcal ? `${Math.round(food.per100.protein)} g P` : `${Math.round(food.per100.kcal)} kcal`}
-          <span className={`block text-[12px] ${MUTED}`}>/ 100 {food.unit}</span>
+          {hideKcal ? `${Math.round(food.per100.protein * per / 100)} g P` : `${Math.round(food.per100.kcal * per / 100)} kcal`}
+          <span className={`block text-[12px] ${MUTED}`}>{portion ? t('nutr_per_portion_short') : `/ 100 ${food.unit}`}</span>
         </span>
       </button>
     </li>
   )
 }
 
-export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan, onCreate, onQuick, onClose }: {
+/**
+ * Lebensmittel suchen und wählen. `ingredient`: Zutat für ein Gericht — ohne
+ * Schnelleintrag und ohne Gerichte-Liste.
+ */
+export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, hideKcal, onPick, onScan, onCreate, onQuick, onNewDish, onClose }: {
   meal: Meal
+  mode?: 'log' | 'ingredient'
+  /** Dieses eigene Lebensmittel nicht anbieten (das Gericht, für das wir Zutaten suchen). */
+  exclude?: string | null
   frequent: FrequentFood[]
   myFoods: Food[]
   hideKcal: boolean
@@ -45,11 +59,17 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
   onPick: (food: Food, amount?: number) => void
   onScan: () => void
   onCreate: (name: string) => void
-  onQuick: (kcal: number, protein: number) => Promise<void>
+  onQuick?: (kcal: number, protein: number) => Promise<void>
+  onNewDish?: () => void
   onClose: () => void
 }) {
   const { t, i18n } = useTranslation()
+  const frequent = useMemo(() => (exclude ? allFrequent.filter(f => f.food.itemId !== exclude) : allFrequent), [allFrequent, exclude])
+  const myFoods = useMemo(() => (exclude ? allMyFoods.filter(f => f.itemId !== exclude) : allMyFoods), [allMyFoods, exclude])
+  const tabs: Tab[] = mode === 'log' ? ['frequent', 'mine', 'dishes'] : ['frequent', 'mine']
   const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : 'mine')
+  const dishes = useMemo(() => myFoods.filter(f => f.recipe), [myFoods])
+  const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe), [myFoods])
   const [query, setQuery] = useState('')
   const [remote, setRemote] = useState<Remote | null>(null)
   const [quick, setQuick] = useState<{ kcal: string; protein: string } | null>(null)
@@ -85,7 +105,7 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
   }
 
   const submitQuick = async () => {
-    if (!quick) return
+    if (!quick || !onQuick) return
     const kcal = parseAmount(quick.kcal)
     const protein = quick.protein.trim() ? parseAmount(quick.protein) : 0
     if (!(kcal >= 0 && kcal <= 10000) || !(protein >= 0 && protein <= 1000) || (kcal === 0 && protein === 0)) return
@@ -99,7 +119,7 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
     <Sheet labelledBy="nutr-add-title" onClose={onClose} tall>
       <div className="flex items-center justify-between gap-2">
         <h2 id="nutr-add-title" className="lg-title2 min-w-0 truncate">
-          {t('nutr_add_to', { meal: t(`nutr_meal_${meal}`) })}
+          {mode === 'ingredient' ? t('nutr_dish_add_ingredient') : t('nutr_add_to', { meal: t(`nutr_meal_${meal}`) })}
         </h2>
         <SheetClose onClick={onClose} />
       </div>
@@ -118,12 +138,12 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
       </form>
 
       {!q && (
-        <div role="tablist" aria-label={t('nutr_lists')} className="mt-3 grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5">
-          {(['frequent', 'mine'] as const).map(id => (
+        <div role="tablist" aria-label={t('nutr_lists')} className={`mt-3 grid rounded-full bg-[var(--lg-fill)] p-0.5 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {tabs.map(id => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
               className={`min-h-9 rounded-full text-[15px] font-semibold transition-colors ${tab === id
                 ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
-                : 'text-[var(--lg-text-2)]'}`}>{t(id === 'frequent' ? 'nutr_tab_frequent' : 'nutr_tab_mine')}</button>
+                : 'text-[var(--lg-text-2)]'}`}>{t(TAB_LABEL[id])}</button>
           ))}
         </div>
       )}
@@ -136,9 +156,26 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
             ))}</ul>
           : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_frequent_empty')}</p>)}
 
-        {!q && tab === 'mine' && (myFoods.length
-          ? <ul className="lg-rows">{sorted(myFoods).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} onPick={() => onPick(f)} />)}</ul>
+        {!q && tab === 'mine' && (plainFoods.length
+          ? <ul className="lg-rows">{sorted(plainFoods).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} onPick={() => onPick(f)} />)}</ul>
           : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_mine_empty')}</p>)}
+
+        {!q && tab === 'dishes' && (
+          <>
+            {onNewDish && (
+              <button type="button" onClick={onNewDish} className="lg-gray-btn mx-5 mb-2 !w-[calc(100%-2.5rem)]">
+                <Plus size={16} aria-hidden="true" />{t('nutr_dish_new')}
+              </button>
+            )}
+            {dishes.length
+              ? <ul className="lg-rows">{sorted(dishes).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} onPick={() => onPick(f)} />)}</ul>
+              : (
+                <p className={`flex flex-col items-center gap-2 px-6 py-6 text-center text-[15px] ${MUTED}`}>
+                  <ChefHat size={28} aria-hidden="true" />{t('nutr_dishes_empty')}
+                </p>
+              )}
+          </>
+        )}
 
         {q && (
           <>
@@ -182,9 +219,11 @@ export function AddFoodSheet({ meal, frequent, myFoods, hideKcal, onPick, onScan
             <button type="button" onClick={() => onCreate(q)} className="lg-gray-btn flex-1">
               <PenLine size={15} aria-hidden="true" />{t('nutr_create')}
             </button>
-            <button type="button" onClick={() => setQuick({ kcal: '', protein: '' })} className="lg-gray-btn flex-1">
-              <Zap size={15} aria-hidden="true" />{t('nutr_quick')}
-            </button>
+            {onQuick && (
+              <button type="button" onClick={() => setQuick({ kcal: '', protein: '' })} className="lg-gray-btn flex-1">
+                <Zap size={15} aria-hidden="true" />{t('nutr_quick')}
+              </button>
+            )}
           </div>
         )}
       </div>

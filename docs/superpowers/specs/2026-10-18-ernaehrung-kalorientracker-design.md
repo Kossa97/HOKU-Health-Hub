@@ -1,6 +1,6 @@
 # Ernährung: Kalorientracker (Etappe 1)
 
-**Status:** Etappe 1 umgesetzt (Branch `claude/ernaehrung-kalorientracker`, noch nicht gemergt); Migration `nutrition_etappe1` und Edge Function `food-lookup` am 18.10.2026 in Produktion
+**Status:** Etappe 1 gemergt (#28); Migration `nutrition_etappe1` und Edge Function `food-lookup` am 18.10.2026 in Produktion. Nachtrag „Gerichte" (Abschnitt 8a) auf `claude/ernaehrung-kalorientracker`
 **Route:** `/ernaehrung`
 **Code:** `src/features/ernaehrung/`, `supabase/functions/food-lookup/`, `supabase-nutrition.sql`
 
@@ -45,7 +45,7 @@ Belege und Zuverlässigkeit siehe `memory/projects/kalorientracker.md`.
 ## 4. Nicht-Ziele Etappe 1
 
 - BLS-Import (Etappe 1b — Datei konnte nicht geladen und ihr Format nicht geprüft werden, siehe 7.)
-- Rezepte, gespeicherte Mahlzeiten, Mikronährstoffe über Ballaststoffe/Zucker/Salz hinaus
+- Mikronährstoffe über Ballaststoffe/Zucker/Salz hinaus
 - Foto-/KI-Erkennung (Foto-Apps unterschätzen 250–345 kcal je Mahlzeit, NIH 2026 — wenn überhaupt, später mit Pflicht-Rückfrage)
 - Aktivitätskalorien aus Apple Health/Health Connect, Schreiben nach Health
 - Verknüpfung mit Dosis, Appetit, Gewichtsverlauf und PDF-Protokoll (Etappe 2)
@@ -119,6 +119,27 @@ Mifflin-St Jeor × Aktivitätsfaktor; Abnehmen −15 %, Zunehmen +10 %; nie unte
 Referenzgewicht (höchstens Gewicht bei BMI 27), damit hohe Körpergewichte
 keine unrealistischen Ziele ergeben. Fett 27 %, Rest Kohlenhydrate. Gewicht aus
 `weight_logs` (neuester Wert), sonst Profil. Immer als Richtwert gekennzeichnet.
+
+## 8a. Gerichte (Nachtrag 18.10.2026)
+
+Eigene Gerichte aus mehreren Zutaten, eingetragen wie ein Lebensmittel in jede Mahlzeit.
+
+- **Datenmodell:** Ein Gericht ist ein `food_items`-Eintrag (`source = 'custom'`)
+  mit zwei neuen Spalten: `ingredients` (jsonb, Schnappschuss der Zutaten mit
+  Menge und Werten je 100 g, 1–60 Stück) und `portions` (0,1–50). Werte je
+  100 g = Summe der Zutaten / Gesamtgewicht; Portion = Gesamtgewicht / Portionen.
+  Dadurch gehen Eintragen, Häufig, Suche, Stern und Schnappschuss ohne Sonderweg.
+  ml zählen beim Gewicht wie g.
+- **Eintragen:** ein Eintrag mit Gramm-Menge; die Eingabe erfolgt in Portionen
+  (½ · 1 · 1½ · 2). Ändert sich das Gericht später, bleiben alte Einträge wahr.
+- **Anlegen:** Tab „Gerichte" → „Neues Gericht" → Zutaten über die gewohnte
+  Suche (Häufig, Meine, Marken, Barcode) → speichern → gleich eine Portion
+  eintragen. Oder „Als Gericht" an einer Mahlzeit mit mindestens zwei Einträgen
+  (Schnelleinträge fallen weg).
+- **Bearbeiten/Löschen:** Stift am Gericht. Löschen lässt Einträge stehen
+  (`on delete set null`). Tippen neben den Editor verwirft ein angefangenes
+  Gericht nicht.
+- Nicht drin: Gewicht nach dem Kochen, Zutaten als eigene Einträge aufklappen.
 
 ## 9. Review-Befunde (behoben vor dem ersten Commit)
 

@@ -10,6 +10,7 @@ import { Sheet } from '../compliance/components/Sheet'
 import { AddFoodSheet } from './components/AddFoodSheet'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { DaySummary } from './components/DaySummary'
+import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
 import { MealSection } from './components/MealSection'
@@ -18,19 +19,29 @@ import { PortionSheet } from './components/PortionSheet'
 import { WaterCard } from './components/WaterCard'
 import { WeekStrip } from './components/WeekStrip'
 import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
+import { type DishDraft, addToDraft, draftFromDish, draftFromIngredients } from './lib/dishDraft'
 import { foodFromEntry } from './lib/foodSearch'
 import { MEALS, type Food, type LogEntry, type Meal, mealForHour } from './lib/nutrition'
+import { type Ingredient, ingredientFromEntry } from './lib/recipe'
 import { LookupUnavailableError, lookupBarcode } from './services/foodLookup'
 import { DIM, MUTED, chip } from './styles'
 
+/**
+ * Gericht bearbeiten. Nach dem Speichern: mit `meal` gleich eintragen, mit
+ * `entry` zurück zu diesem Eintrag, sonst nur speichern. `back` = wohin „Schließen" führt.
+ */
+type DishSheet = { kind: 'dish'; draft: DishDraft; meal: Meal | null; entry?: LogEntry; back: SheetState }
+
+/** `pick`: Wir suchen gerade eine Zutat für dieses Gericht. */
 type SheetState =
   | null
-  | { kind: 'add'; meal: Meal }
-  | { kind: 'scan'; meal: Meal }
-  | { kind: 'portion'; meal: Meal; food: Food; amount?: number }
+  | { kind: 'add'; meal: Meal; pick?: DishSheet }
+  | { kind: 'scan'; meal: Meal; pick?: DishSheet }
+  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: DishSheet }
   | { kind: 'edit'; entry: LogEntry; food: Food }
   | { kind: 'quick'; entry: LogEntry }
-  | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number } }
+  | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: DishSheet }
+  | DishSheet
   | { kind: 'goals' }
 
 export function ErnaehrungPage() {
@@ -66,7 +77,7 @@ export function ErnaehrungPage() {
     const snapshot = foodFromEntry(entry)
     if (!snapshot) { setSheet({ kind: 'quick', entry }); return }
     const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
-    const food = mine ? { ...snapshot, favorite: mine.favorite, serving: mine.serving, barcode: mine.barcode } : snapshot
+    const food = mine ? { ...snapshot, favorite: mine.favorite, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
     setSheet({ kind: 'edit', entry, food })
   }
 
@@ -90,20 +101,20 @@ export function ErnaehrungPage() {
     ), { duration: 6000 })
   })
 
-  const handleBarcode = async (meal: Meal, code: string) => {
+  const handleBarcode = async (meal: Meal, code: string, pick?: DishSheet) => {
     const mine = n.findByBarcode(code)
-    if (mine) { setSheet({ kind: 'portion', meal, food: mine }); return }
+    if (mine) { setSheet({ kind: 'portion', meal, food: mine, pick }); return }
     setBusy(true)
     try {
       const found = await lookupBarcode(code, lang)
-      if (found) setSheet({ kind: 'portion', meal, food: found })
+      if (found) setSheet({ kind: 'portion', meal, food: found, pick })
       else {
         toast(t('nutr_barcode_unknown'))
-        setSheet({ kind: 'editor', meal, base: null, barcode: code, then: {} })
+        setSheet({ kind: 'editor', meal, base: null, barcode: code, then: {}, pick })
       }
     } catch (error) {
       toast.error(t(error instanceof LookupUnavailableError ? 'nutr_lookup_unavailable' : 'nutr_error'))
-      setSheet({ kind: 'add', meal })
+      setSheet({ kind: 'add', meal, pick })
     } finally {
       setBusy(false)
     }
@@ -121,6 +132,18 @@ export function ErnaehrungPage() {
   })
 
   const meal0 = mealForHour(new Date().getHours())
+
+  /** Gericht bearbeiten — immer die gespeicherte Fassung, nie einen alten Schnappschuss. */
+  const openDish = (dish: Food, rest: Omit<DishSheet, 'kind' | 'draft'>) => {
+    const mine = n.myFoods.find(f => f.itemId && f.itemId === dish.itemId) ?? dish
+    setSheet({ kind: 'dish', draft: draftFromDish(mine, lang), ...rest })
+  }
+
+  /** „Als Gericht": die Einträge dieser Mahlzeit als Zutaten. Schnelleinträge haben keine Menge und fallen weg. */
+  const saveMealAsDish = (meal: Meal) => {
+    const ingredients = n.byMeal[meal].map(ingredientFromEntry).filter((i): i is Ingredient => i !== null)
+    setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang), meal: null, back: null })
+  }
 
   return (
     <div className="mx-auto max-w-lg pb-6">
@@ -182,6 +205,7 @@ export function ErnaehrungPage() {
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} busy={busy || !n.day}
             onAdd={() => setSheet({ kind: 'add', meal })}
             onOpen={openEntry}
+            onSaveAsDish={() => saveMealAsDish(meal)}
             onCopyYesterday={() => run(async () => {
               const count = await n.copyFromYesterday(meal)
               toast(count ? t('nutr_copied', { count }) : t('nutr_copy_empty'))
@@ -205,32 +229,48 @@ export function ErnaehrungPage() {
         {' '}{t('nutr_credit_note')}
       </p>
 
-      {sheet?.kind === 'add' && (
+      {sheet?.kind === 'add' && (sheet.pick ? (
+        <AddFoodSheet mode="ingredient" meal={sheet.meal} frequent={n.frequentFor(null)} myFoods={n.myFoods} exclude={sheet.pick.draft.itemId}
+          hideKcal={n.goals.hideKcal}
+          onClose={() => setSheet(sheet.pick!)}
+          onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount, pick: sheet.pick })}
+          onScan={() => setSheet({ kind: 'scan', meal: sheet.meal, pick: sheet.pick })}
+          onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {}, pick: sheet.pick })} />
+      ) : (
         <AddFoodSheet meal={sheet.meal} frequent={n.frequentFor(sheet.meal)} myFoods={n.myFoods} hideKcal={n.goals.hideKcal}
           onClose={() => setSheet(null)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {} })}
+          onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang), meal: sheet.meal, back: sheet })}
           onQuick={async (kcal, protein) => {
             const ok = await run(async () => { await n.addQuick(sheet.meal, t('nutr_quick_name'), kcal, protein) })
             if (ok) { setSheet(null); toast.success(t('nutr_added')) }
           }} />
-      )}
+      ))}
 
       {sheet?.kind === 'scan' && (
-        <BarcodeScanner busy={busy} onClose={() => setSheet({ kind: 'add', meal: sheet.meal })} onCode={code => handleBarcode(sheet.meal, code)} />
+        <BarcodeScanner busy={busy} onClose={() => setSheet({ kind: 'add', meal: sheet.meal, pick: sheet.pick })}
+          onCode={code => handleBarcode(sheet.meal, code, sheet.pick)} />
       )}
 
       {sheet?.kind === 'portion' && (
-        <PortionSheet key={`${sheet.food.sourceRef ?? sheet.food.name}-${JSON.stringify(sheet.food.per100)}`} mode="add" food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
+        <PortionSheet key={`${sheet.food.sourceRef ?? sheet.food.name}-${JSON.stringify(sheet.food.per100)}`} mode={sheet.pick ? 'ingredient' : 'add'}
+          food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
           busy={busy} hideKcal={n.goals.hideKcal}
-          onClose={() => setSheet({ kind: 'add', meal: sheet.meal })}
-          onSave={(amount, meal) => run(async () => {
-            await n.add(meal, sheet.food, amount)
-            setSheet(null)
-            toast.success(t('nutr_added'))
-          })}
-          onCorrect={() => setSheet({ kind: 'editor', meal: sheet.meal, base: sheet.food, barcode: sheet.food.barcode, then: { amount: sheet.amount } })}
+          onClose={() => setSheet({ kind: 'add', meal: sheet.meal, pick: sheet.pick })}
+          onSave={(amount, meal) => {
+            if (sheet.pick) { setSheet({ ...sheet.pick, draft: addToDraft(sheet.pick.draft, sheet.food, amount, lang) }); return }
+            run(async () => {
+              await n.add(meal, sheet.food, amount)
+              setSheet(null)
+              toast.success(t('nutr_added'))
+            })
+          }}
+          // Ein Gericht als Zutat wird hier nicht bearbeitet — die Werte-Korrektur ließe seine Zutaten stehen.
+          onCorrect={sheet.food.recipe && sheet.pick ? undefined : () => (sheet.food.recipe
+            ? openDish(sheet.food, { meal: sheet.meal, back: sheet })
+            : setSheet({ kind: 'editor', meal: sheet.meal, base: sheet.food, barcode: sheet.food.barcode, then: { amount: sheet.amount }, pick: sheet.pick }))}
           onToggleFavorite={() => toggleFavorite(sheet.food, food => ({ ...sheet, food }))} />
       )}
 
@@ -243,11 +283,11 @@ export function ErnaehrungPage() {
             setSheet(null)
           })}
           onDelete={() => removeWithUndo(sheet.entry)}
-          onCorrect={() => setSheet({
+          onCorrect={() => (sheet.food.recipe ? openDish(sheet.food, { meal: null, entry: sheet.entry, back: sheet }) : setSheet({
             kind: 'editor', meal: sheet.entry.meal, barcode: sheet.food.barcode, then: { entry: sheet.entry },
             // Gibt es das Lebensmittel in „Meine", deren aktuelle Werte — nie den alten Schnappschuss zurückschreiben.
             base: n.myFoods.find(f => f.itemId && f.itemId === sheet.food.itemId) ?? sheet.food,
-          })}
+          }))}
           onToggleFavorite={() => toggleFavorite(sheet.food, food => ({ ...sheet, food }))} />
       )}
 
@@ -278,15 +318,33 @@ export function ErnaehrungPage() {
         <FoodEditorSheet base={sheet.base} initialName={sheet.name} barcode={sheet.barcode} busy={busy}
           onClose={() => {
             if (sheet.then.entry && sheet.base) setSheet({ kind: 'edit', entry: sheet.then.entry, food: sheet.base })
-            else if (sheet.base) setSheet({ kind: 'portion', meal: sheet.meal, food: sheet.base, amount: sheet.then.amount })
-            else setSheet({ kind: 'add', meal: sheet.meal })
+            else if (sheet.base) setSheet({ kind: 'portion', meal: sheet.meal, food: sheet.base, amount: sheet.then.amount, pick: sheet.pick })
+            else setSheet({ kind: 'add', meal: sheet.meal, pick: sheet.pick })
           }}
           onSave={food => run(async () => {
             const saved = await n.saveFood(food)
             setSheet(sheet.then.entry
               ? { kind: 'edit', entry: sheet.then.entry, food: saved }
-              : { kind: 'portion', meal: sheet.meal, food: saved, amount: sheet.then.amount })
+              : { kind: 'portion', meal: sheet.meal, food: saved, amount: sheet.then.amount, pick: sheet.pick })
           })} />
+      )}
+
+      {sheet?.kind === 'dish' && (
+        <DishEditorSheet draft={sheet.draft} busy={busy} hideKcal={n.goals.hideKcal}
+          onChange={draft => setSheet({ ...sheet, draft })}
+          onClose={() => setSheet(sheet.back)}
+          onAddIngredient={() => setSheet({ kind: 'add', meal: sheet.meal ?? sheet.entry?.meal ?? meal0, pick: sheet })}
+          onSave={dish => run(async () => {
+            const saved = await n.saveFood(dish)
+            if (sheet.entry) setSheet({ kind: 'edit', entry: sheet.entry, food: saved })
+            else if (sheet.meal) setSheet({ kind: 'portion', meal: sheet.meal, food: saved })
+            else { setSheet(null); toast.success(t('nutr_dish_saved')) }
+          })}
+          onDelete={sheet.draft.itemId ? () => run(async () => {
+            await n.removeFood(sheet.draft.itemId!)
+            setSheet(sheet.meal ? { kind: 'add', meal: sheet.meal } : null)
+            toast(t('nutr_dish_deleted'))
+          }) : undefined} />
       )}
 
       {sheet?.kind === 'goals' && (
