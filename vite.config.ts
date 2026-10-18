@@ -44,6 +44,9 @@ export default defineConfig(({ mode }) => {
         // Der Service Worker entsteht nach dem Sentry-Upload; seine Map
         // wuerde weder hochgeladen noch geloescht.
         sourcemap: false,
+        // Barcode-Leser (ZXing, ~1,1 MB) nicht vorab laden: er kommt erst beim
+        // ersten Scan, sonst laedt jedes Geraet ihn bei jeder neuen Version mit.
+        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm'],
       },
       manifest: {
         name: 'TYD – Track Your Dose',
