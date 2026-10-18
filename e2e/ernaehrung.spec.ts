@@ -390,6 +390,7 @@ test('Essen per Foto: zugeordnete Zutaten als Gericht speichern', async ({ page,
   await page.getByLabel('Portionen').fill('4')
   await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(mealCard(page, 'Abendessen').getByText('Kürbissuppe')).toBeVisible()
 
   const saved = mock.table('food_items').find(r => r.name === 'Kürbissuppe')!
   expect(saved).toMatchObject({ portions: 4, serving_amount: 300 })

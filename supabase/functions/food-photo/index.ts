@@ -22,7 +22,10 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-const MODEL = 'claude-opus-5-5'
+// So günstig wie möglich (Entscheidung Nutzer, 18.10.2026): Die Aufgabe ist
+// nur noch „Gericht und mögliche Zutaten benennen" — dafür reicht Haiku mit
+// wenig Denkaufwand. Haiku hat keinen Server-Fallback bei Ablehnung.
+const MODEL = 'claude-haiku-5-5'
 
 type PhotoRequest = { image?: string; mimeType?: string; hint?: string; lang?: string }
 
@@ -84,16 +87,13 @@ Deno.serve(async (request: Request) => {
     return json({ error: 'rate_limit', resetsAt: resetsAt(recent?.[0]?.created_at ?? null) }, 429)
   }
 
-  let message: Anthropic.Beta.BetaMessage
+  let message: Anthropic.Message
   try {
-    message = await client.beta.messages.create({
+    message = await client.messages.create({
       model: MODEL,
-      // Denken lässt sich auf diesem Modell nicht abschalten und zählt mit.
-      max_tokens: 16000,
-      // Lehnt die Sicherheitsprüfung ab, rechnet ein passendes Modell weiter.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'medium', format: { type: 'json_schema', schema: RESULT_SCHEMA } },
+      // Denken (adaptiv, bei „low" meist keins) zählt mit — Platz für bis zu 20 Zutaten lassen.
+      max_tokens: 4096,
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: RESULT_SCHEMA } },
       messages: [{
         role: 'user',
         content: [

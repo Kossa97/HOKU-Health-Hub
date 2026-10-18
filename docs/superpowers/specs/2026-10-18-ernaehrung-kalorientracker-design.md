@@ -173,10 +173,16 @@ nur nicht-kommerziell (z. B. RecipeNLG) oder Share-Alike lizenziert — vor eine
 Übernahme rechtlich prüfen.
 
 **Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
-SDK, `claude-opus-5-5`, structured outputs: `dish`, `needs_note`, je Zutat
+SDK, `claude-haiku-5-5` mit `effort: low` — „so preiswert wie möglich",
+Entscheidung Nutzer; kein Server-Fallback bei Ablehnung, dann „nicht erkannt"; structured outputs: `dish`, `needs_note`, je Zutat
 `name`, `search`, `kind` visible/usual/alternative/optional, `group`;
 Server-Fallback). Foto optional, dann ist die Notiz Pflicht. Antwort serverseitig
 geprüft (Alternative allein in ihrer Gruppe → optional, höchstens 20 Zutaten).
+Kosten grob: Bild ~1.500 Token + Antwort ~400 Token ≈ 0,04 Cent je Erkennung.
+
+**Datenschutzerklärung** (`src/features/compliance/legal/texts.ts`, de/en)
+ergänzt: Ernährungsdaten, Kamera (Barcode auf dem Gerät), Anthropic für die
+Mahlzeiten-Erkennung, Open Food Facts ohne Personenbezug.
 
 **Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at` (Fotos *und*
 Notizen; Server stempelt; Widerruf im Profil). Foto und Notiz werden nicht
