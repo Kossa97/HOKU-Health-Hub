@@ -17,7 +17,7 @@ const TILT = 0.3 // ~17° lean, like a real pushpin
 // metallic needle, stuck into the skin and leaning naturally. The active pin is
 // full-size with a saturated blue head; old reference pins are smaller with a
 // muted grey head — distinct by size + colour, not colour alone. The head
-// glows a little so it stays bright against the dark glass body.
+// glows a little so it stays bright against the shaded body.
 export function InjectionPin({
   position,
   normal,

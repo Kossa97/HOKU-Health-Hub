@@ -64,12 +64,13 @@ Karte + Stelle + Uhrzeit (einklappbar) + „Hat sich deine Dosis geändert?“ +
 Notiz (einklappbar). Manuell als Link „Ohne Plan eintragen“. Karte/Verlauf:
 7/14/30/Alle.
 
-18.10.2026, Look „Dunkles Glas“ (Variante C aus den Licht-Mockups, Branch
-`claude/injektionstracker-glas`): Körper als dunkle, klar lackierte Figur
-(`prepareInjectionTorsoModel`, Normal-Map des Modells bleibt), Licht in
-`src/lib/injectionGlassLook.ts` + `InjectionGlassLight.tsx`: schwaches
-Licht von vorn oben, zwei kühle Kantenlichter hinten, Spiegelungen aus
-lokal erzeugter RoomEnvironment (kein HDR aus dem Netz). Hintergrund Schwarz
-mit kühlem Schein. Gilt für Karte und Vorschau-Karte auf Home. Pinköpfe
-leuchten leicht. Kontaktschatten entfernt (auf Schwarz unsichtbar).
-Offen: Test auf echtem iPhone (Leistung von MeshPhysicalMaterial + Clearcoat).
+18.10.2026, Look „Bühne“ (Variante B aus den Licht-Mockups, Branch
+`claude/injektionstracker-glas`; C „Dunkles Glas“ war erst umgesetzt und hat
+dem Nutzer nicht gefallen): Haut bleibt im Originalmaterial. Licht in
+`src/lib/injectionStageLook.ts` + `InjectionStageLight.tsx`: schwaches Licht
+von vorn oben, zwei helle Kantenlichter seitlich hinten (zeichnen auch die
+Rückseite), kühles Gegenlicht, schwache Spiegelungen aus lokal erzeugter
+RoomEnvironment (kein HDR aus dem Netz). Hintergrund Schwarz mit Lichtkegel
+von oben. Gilt für Karte und Vorschau-Karte auf Home. Pinköpfe leuchten
+leicht. Kontaktschatten entfernt (auf Schwarz unsichtbar).
+Offen: Test auf echtem iPhone.

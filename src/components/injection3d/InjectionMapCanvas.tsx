@@ -7,8 +7,8 @@ import { inferBodyRegion } from '../../lib/injectionGeometry'
 import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
-import { INJECTION_GLASS_BACKDROP } from '../../lib/injectionGlassLook'
-import { InjectionGlassLight } from './InjectionGlassLight'
+import { INJECTION_STAGE_BACKDROP } from '../../lib/injectionStageLook'
+import { InjectionStageLight } from './InjectionStageLight'
 import { InjectionPin } from './InjectionPin'
 
 const MODEL_VERSION = INJECTION_MODEL_VERSION
@@ -256,7 +256,7 @@ function Scene({
   return (
     <>
       <CameraRig focusRequest={focusRequest} resetRequestId={resetRequestId} />
-      <InjectionGlassLight />
+      <InjectionStageLight />
       <Suspense fallback={null}>
         <Torso onLongPress={handleLongPress} />
       </Suspense>
@@ -347,7 +347,7 @@ export function InjectionMapCanvas({
   }, [])
 
   return (
-    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: INJECTION_GLASS_BACKDROP }}>
+    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: INJECTION_STAGE_BACKDROP }}>
       <Canvas
         camera={{ position: [0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.05, far: 50 }}
         dpr={[1, 1.35]}
