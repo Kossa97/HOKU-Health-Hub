@@ -14,6 +14,7 @@ import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
 import { MealSection } from './components/MealSection'
+import { PhotoSheet } from './components/PhotoSheet'
 import { SheetClose } from '../../components/ui/SheetClose'
 import { PortionSheet } from './components/PortionSheet'
 import { WaterCard } from './components/WaterCard'
@@ -37,6 +38,7 @@ type SheetState =
   | null
   | { kind: 'add'; meal: Meal; pick?: DishSheet }
   | { kind: 'scan'; meal: Meal; pick?: DishSheet }
+  | { kind: 'photo'; meal: Meal }
   | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: DishSheet }
   | { kind: 'edit'; entry: LogEntry; food: Food }
   | { kind: 'quick'; entry: LogEntry }
@@ -241,6 +243,7 @@ export function ErnaehrungPage() {
           onClose={() => setSheet(null)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
+          onPhoto={() => setSheet({ kind: 'photo', meal: sheet.meal })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {} })}
           onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang), meal: sheet.meal, back: sheet })}
           onQuick={async (kcal, protein) => {
@@ -248,6 +251,16 @@ export function ErnaehrungPage() {
             if (ok) { setSheet(null); toast.success(t('nutr_added')) }
           }} />
       ))}
+
+      {sheet?.kind === 'photo' && (
+        <PhotoSheet userId={userId} meal={sheet.meal} hideKcal={n.goals.hideKcal} busy={busy}
+          onClose={() => setSheet({ kind: 'add', meal: sheet.meal })}
+          onLog={(meal, list) => run(async () => {
+            await n.addMany(meal, list)
+            setSheet(null)
+            toast.success(t('nutr_photo_logged', { count: list.length }))
+          })} />
+      )}
 
       {sheet?.kind === 'scan' && (
         <BarcodeScanner busy={busy} onClose={() => setSheet({ kind: 'add', meal: sheet.meal, pick: sheet.pick })}

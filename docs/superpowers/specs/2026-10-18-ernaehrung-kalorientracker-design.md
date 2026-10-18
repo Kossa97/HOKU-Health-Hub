@@ -46,7 +46,7 @@ Belege und Zuverlässigkeit siehe `memory/projects/kalorientracker.md`.
 
 - BLS-Import (Etappe 1b — Datei konnte nicht geladen und ihr Format nicht geprüft werden, siehe 7.)
 - Mikronährstoffe über Ballaststoffe/Zucker/Salz hinaus
-- Foto-/KI-Erkennung (Foto-Apps unterschätzen 250–345 kcal je Mahlzeit, NIH 2026 — wenn überhaupt, später mit Pflicht-Rückfrage)
+- ~~Foto-/KI-Erkennung~~ → nachgereicht als 8b (mit Pflicht-Prüfung)
 - Aktivitätskalorien aus Apple Health/Health Connect, Schreiben nach Health
 - Verknüpfung mit Dosis, Appetit, Gewichtsverlauf und PDF-Protokoll (Etappe 2)
 - Fasten-Timer
@@ -140,6 +140,27 @@ Eigene Gerichte aus mehreren Zutaten, eingetragen wie ein Lebensmittel in jede M
   (`on delete set null`). Tippen neben den Editor verwirft ein angefangenes
   Gericht nicht.
 - Nicht drin: Gewicht nach dem Kochen, Zutaten als eigene Einträge aufklappen.
+
+## 8b. Essen per Foto (Nachtrag 18.10.2026, Wunsch Nutzer: „wie Cal AI")
+
+- **Ablauf:** Kamera-Knopf im Hinzufügen-Sheet → Einwilligung (einmalig) →
+  Foto aufnehmen oder wählen, optional Notiz („in Butter gebraten") →
+  Vorschläge: Positionen mit Menge in g, Werte je Portion, „unsicher"-Marke →
+  Menge/Name ändern, Positionen abwählen, Mahlzeit wählen → eintragen.
+  Nichts wird ohne diese Prüfung eingetragen (Foto-Apps unterschätzen
+  250–345 kcal je Mahlzeit, NIH 2026; der Prompt fragt gezielt nach Fett und Soßen).
+- **Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
+  SDK, `claude-opus-5-5`, structured outputs mit JSON-Schema, Server-Fallback bei
+  Ablehnung). Bild vorher in der App auf 1568 px / JPEG verkleinert. Antwort
+  wird serverseitig auf DB-Grenzen geprüft. Einträge: `source = 'custom'`,
+  ohne `food_item_id`, mit Schnappschuss.
+- **Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at`
+  (Zeitpunkt setzt der Server, Widerruf im Profil), getrennt von der
+  Befund-Einwilligung. Foto wird nicht gespeichert. Notiz als eigener Block,
+  ohne Steuerzeichen; Text im Bild gilt nie als Anweisung.
+- **Kosten/Limit:** 30 Fotos je Nutzer und 24 h (`food_photo_scans`, nur
+  Zeitpunkt; erst eintragen, dann zählen — auch parallel nicht drüber).
+  Opus 5.5 ≈ 1–2 ct je Foto; günstigeres Modell möglich, Entscheidung beim Nutzer.
 
 ## 9. Review-Befunde (behoben vor dem ersten Commit)
 

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
+import { Camera, ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { type FrequentFood, mergeResults } from '../lib/foodSearch'
@@ -47,7 +47,7 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
  * Lebensmittel suchen und wählen. `ingredient`: Zutat für ein Gericht — ohne
  * Schnelleintrag und ohne Gerichte-Liste.
  */
-export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, hideKcal, onPick, onScan, onCreate, onQuick, onNewDish, onClose }: {
+export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, hideKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
   meal: Meal
   mode?: 'log' | 'ingredient'
   /** Dieses eigene Lebensmittel nicht anbieten (das Gericht, für das wir Zutaten suchen). */
@@ -58,6 +58,8 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   /** `amount` = vorgeschlagene Menge (bei „Häufig" die zuletzt gegessene). */
   onPick: (food: Food, amount?: number) => void
   onScan: () => void
+  /** Essen per Foto erkennen lassen (nur beim Eintragen, nicht für Zutaten). */
+  onPhoto?: () => void
   onCreate: (name: string) => void
   onQuick?: (kcal: number, protein: number) => Promise<void>
   onNewDish?: () => void
@@ -132,6 +134,11 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
             aria-label={t('nutr_search_label')} placeholder={t('nutr_search_placeholder')}
             className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" />
         </div>
+        {onPhoto && (
+          <button type="button" onClick={onPhoto} aria-label={t('nutr_photo_title')} className="lg-gray-btn !w-11 shrink-0 !px-0">
+            <Camera size={20} />
+          </button>
+        )}
         <button type="button" onClick={onScan} aria-label={t('nutr_scan')} className="lg-gray-btn !w-11 shrink-0 !px-0">
           <ScanBarcode size={20} />
         </button>

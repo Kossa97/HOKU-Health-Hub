@@ -55,4 +55,6 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 | Gerätetest Scanner iOS/Android | offen |
 | Gerichte: Migration gegen Produktion | **erledigt 18.10.2026** (`nutrition_gerichte`): food_items Spalten 20 → 22, Checks 15 → 17; Zeilen food_items/food_logs/water_logs unverändert, Policies 4 |
 | Gerichte: Gewicht nach dem Kochen | bewusst weggelassen; bei Bedarf optionales Feld |
+| Foto-KI (Spec 8b) | gebaut auf `claude/ernaehrung-foto`; Migration `supabase-nutrition-photo.sql` (Trockenlauf ok) + Edge Function `food-photo` warten auf Freigabe; Modell Opus 5.5 (Kosten ≈1–2 ct/Foto) — Nutzer fragen, ob günstiger |
+| Datenschutzerklärung | zusätzlich: Essensfotos an Anthropic (USA), eigene Einwilligung |
 | Etappe 2 | Fortschritt-Chart, GLP-1-Hinweise aus Stack, PDF-Protokoll, Health-Aktivitätskalorien |

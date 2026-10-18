@@ -375,6 +375,7 @@ export class MockSupabase {
       if (url.pathname.startsWith('/storage/v1/object/')) return await this.handleStorage(route, url)
       if (url.pathname === '/functions/v1/bloodwork-extract') return await this.handleBloodworkExtract(route)
       if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
+      if (url.pathname === '/functions/v1/food-photo') return await this.handleFoodPhoto(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -431,6 +432,27 @@ export class MockSupabase {
     if (body.barcode !== undefined) return route.fulfill({ headers: corsHeaders(), json: { product: this.foodLookup.products[body.barcode] ?? null } })
     const key = String(body.query ?? '').trim().toLowerCase()
     return route.fulfill({ headers: corsHeaders(), json: { results: this.foodLookup.search[key] ?? [] } })
+  }
+
+  /**
+   * Nachbild von supabase/functions/food-photo (Essensfoto → Anthropic): ohne
+   * Einwilligung 403 `consent_required`, sonst `foodPhoto.items`; mit
+   * `foodPhoto.error` dieser Fehlercode.
+   */
+  readonly foodPhoto: {
+    items: Row[]
+    error: { status: number; code: string } | null
+    calls: { mimeType: string; hint: string; lang: string }[]
+  } = { items: [], error: null, calls: [] }
+
+  private async handleFoodPhoto(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!profil?.ai_food_consent_at) return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; hint?: string; lang?: string }
+    this.foodPhoto.calls.push({ mimeType: String(body.mimeType ?? ''), hint: String(body.hint ?? ''), lang: String(body.lang ?? '') })
+    if (this.foodPhoto.error) return route.fulfill({ status: this.foodPhoto.error.status, headers: corsHeaders(), json: { error: this.foodPhoto.error.code } })
+    return route.fulfill({ headers: corsHeaders(), json: { items: this.foodPhoto.items, remaining: 29 } })
   }
 
   /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */

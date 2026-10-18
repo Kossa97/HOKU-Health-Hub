@@ -114,6 +114,19 @@ export async function addEntry(userId: string, date: string, meal: Meal, food: F
   return rowToEntry(data)
 }
 
+/** Mehrere Lebensmittel auf einmal (Foto-Erkennung) — ein Insert, alles oder nichts. */
+export async function addEntries(userId: string, date: string, meal: Meal, list: readonly { food: Food; amount: number }[]): Promise<LogEntry[]> {
+  if (!list.length) return []
+  const { data, error } = await supabase.from('food_logs').insert(list.map(({ food, amount }) => ({
+    user_id: userId, log_date: date, meal,
+    food_item_id: food.itemId, source: food.source, source_ref: food.sourceRef,
+    name: food.name, brand: food.brand, unit: food.unit, amount,
+    ...nutrientColumns(nutrientsFor(food.per100, amount)),
+  }))).select('*')
+  if (error) throw error
+  return (data ?? []).map(rowToEntry)
+}
+
 /** Schnelleintrag: nur Kalorien (und optional Eiweiß), ohne Lebensmittel. */
 export async function addQuickEntry(userId: string, date: string, meal: Meal, name: string, kcal: number, protein: number): Promise<LogEntry> {
   const { data, error } = await supabase.from('food_logs').insert({

@@ -255,3 +255,54 @@ test('Mahlzeit als Gericht speichern — Schnelleinträge fallen weg', async ({ 
   expect(Number(dish.kcal_100)).toBeCloseTo((126 + 186) / 2.5, 0)
   expect(mock.table('food_logs')).toHaveLength(3) // Einträge bleiben, wie sie sind
 })
+
+// 1×1-PNG — die App verkleinert und schickt es als JPEG; der Mock erkennt „Spaghetti".
+const TELLER = { name: 'teller.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') }
+
+test('Essen per Foto: erst Einwilligung, dann prüfen, Mengen ändern, abwählen, eintragen', async ({ page, mock }) => {
+  mock.foodPhoto.items = [
+    { name: 'Spaghetti', grams: 250, confidence: 'high', per100: { kcal: 158, protein: 5.8, carbs: 31, fat: 0.9 } },
+    { name: 'Bolognese-Soße', grams: 150, confidence: 'medium', per100: { kcal: 120, protein: 8, carbs: 5, fat: 7.5 } },
+    { name: 'Parmesan', grams: 10, confidence: 'low', per100: { kcal: 392, protein: 36, carbs: 0, fat: 26 } },
+  ]
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Abendessen').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Essen fotografieren' }).click()
+
+  // Ohne Einwilligung geht kein Foto raus
+  const accept = page.getByRole('button', { name: 'Einwilligen und weiter' })
+  await expect(accept).toBeDisabled()
+  await page.getByText('Ich willige ausdrücklich ein').click()
+  await accept.click()
+  await expect.poll(() => mock.table('profiles').find(r => r.id === TEST_USER.id)?.ai_food_consent_at).toBeTruthy()
+
+  await page.getByLabel('Notiz (optional)').fill('mit Olivenöl')
+  await page.locator('[data-photo-gallery]').setInputFiles(TELLER)
+  await expect(page.getByText('KI-Schätzung')).toBeVisible()
+  expect(mock.foodPhoto.calls).toEqual([{ mimeType: 'image/jpeg', hint: 'mit Olivenöl', lang: 'de' }])
+  await expect(page.getByText('unsicher')).toBeVisible() // Parmesan: geringe Sicherheit
+
+  await page.getByLabel('Menge Spaghetti in g').fill('300')
+  await page.getByLabel('Parmesan eintragen').uncheck()
+  await page.getByRole('button', { name: '2 Positionen eintragen' }).click()
+
+  await expect(mealCard(page, 'Abendessen').getByText('Spaghetti')).toBeVisible()
+  await expect(page.getByText('2 Positionen eingetragen')).toBeVisible()
+  const logs = mock.table('food_logs')
+  expect(logs.map(r => [r.name, r.amount, r.meal, r.source, r.food_item_id])).toEqual([
+    ['Spaghetti', 300, 'dinner', 'custom', null],
+    ['Bolognese-Soße', 150, 'dinner', 'custom', null],
+  ])
+  expect(Number(logs[0].kcal)).toBe(474)
+})
+
+test('Essen per Foto: kein Essen erkannt → verständlicher Hinweis, nichts eingetragen', async ({ page, mock }) => {
+  mock.table('profiles').find(r => r.id === TEST_USER.id)!.ai_food_consent_at = '2026-10-01T10:00:00Z'
+  mock.foodPhoto.error = { status: 422, code: 'not_food' }
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Snacks').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Essen fotografieren' }).click()
+  await page.locator('[data-photo-gallery]').setInputFiles(TELLER)
+  await expect(page.getByText('Auf dem Foto war kein Essen zu erkennen')).toBeVisible()
+  expect(mock.table('food_logs')).toHaveLength(0)
+})
