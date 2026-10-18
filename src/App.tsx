@@ -27,6 +27,7 @@ const TheLab = lazyPage(() => import('./pages/TheLab'), 'TheLab')
 const StudyDetail = lazyPage(() => import('./pages/StudyDetail'), 'StudyDetail')
 const AdminPanel = lazyPage(() => import('./pages/lab/AdminPanel'), 'AdminPanel')
 const InjektionsTracker = lazyPage(() => import('./pages/InjektionsTracker'), 'InjektionsTracker')
+const ErnaehrungPage = lazyPage(() => import('./features/ernaehrung/ErnaehrungPage'), 'ErnaehrungPage')
 const Progress = lazyPage(() => import('./pages/Progress'), 'Progress')
 const PdfProtokoll = lazyPage(() => import('./pages/PdfProtokoll'), 'PdfProtokoll')
 const Protokoll = lazyPage(() => import('./pages/Protokoll'), 'Protokoll')
@@ -89,6 +90,7 @@ function PersonalApp() {
             <Route path="profil" element={<LazyPage><Profil /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
+            <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />
             <Route path="progress" element={<LazyPage><Progress /></LazyPage>} />
             <Route path="simulation" element={<LazyPage><BlutspiegelSimulation /></LazyPage>} />
             <Route path="simulation/neu" element={<LazyPage><BlutspiegelManuell /></LazyPage>} />
