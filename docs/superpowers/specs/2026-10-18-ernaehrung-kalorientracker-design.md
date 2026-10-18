@@ -143,24 +143,30 @@ Eigene Gerichte aus mehreren Zutaten, eingetragen wie ein Lebensmittel in jede M
 
 ## 8b. Essen per Foto (Nachtrag 18.10.2026, Wunsch Nutzer: „wie Cal AI")
 
+**Entscheidung Nutzer:** Eine KI-Erkennung von Essen kann nie genau sein. Die
+KI nennt deshalb **nur die Zutaten** — keine Mengen, keine Nährwerte. Zu jeder
+Zutat wählt der Nutzer Lebensmittel und Menge selbst und bestätigt.
+
 - **Ablauf:** Kamera-Knopf im Hinzufügen-Sheet → Einwilligung (einmalig) →
-  Foto aufnehmen oder wählen, optional Notiz („in Butter gebraten") →
-  Vorschläge: Positionen mit Menge in g, Werte je Portion, „unsicher"-Marke →
-  Menge/Name ändern, Positionen abwählen, Mahlzeit wählen → eintragen.
-  Nichts wird ohne diese Prüfung eingetragen (Foto-Apps unterschätzen
-  250–345 kcal je Mahlzeit, NIH 2026; der Prompt fragt gezielt nach Fett und Soßen).
+  Foto aufnehmen oder wählen, optional Notiz → Prüfliste „Erkannte Zutaten"
+  (Name, „unsicher"-Marke) → Zeile antippen → gewohnte Suche, mit dem
+  Suchbegriff der KI vorbelegt (Meine, Häufig, Marken, Barcode, Neu anlegen) →
+  Menge → „Übernehmen" → zurück zur Liste. Zutaten entfernen oder ergänzen,
+  Mahlzeit wählen, „n Positionen eintragen". Zeilen ohne Lebensmittel werden
+  nicht eingetragen.
+- **Werte:** ausschließlich aus geprüften Quellen (eigene Liste, Open Food
+  Facts, später BLS) mit Schnappschuss — wie jeder andere Eintrag.
 - **Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
-  SDK, `claude-opus-5-5`, structured outputs mit JSON-Schema, Server-Fallback bei
-  Ablehnung). Bild vorher in der App auf 1568 px / JPEG verkleinert. Antwort
-  wird serverseitig auf DB-Grenzen geprüft. Einträge: `source = 'custom'`,
-  ohne `food_item_id`, mit Schnappschuss.
+  SDK, `claude-opus-5-5`, structured outputs: je Zutat `name`, kurzer `search`,
+  `confidence`; Server-Fallback bei Ablehnung). Bild vorher auf 1568 px / JPEG.
 - **Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at`
   (Zeitpunkt setzt der Server, Widerruf im Profil), getrennt von der
   Befund-Einwilligung. Foto wird nicht gespeichert. Notiz als eigener Block,
   ohne Steuerzeichen; Text im Bild gilt nie als Anweisung.
 - **Kosten/Limit:** 30 Fotos je Nutzer und 24 h (`food_photo_scans`, nur
-  Zeitpunkt; erst eintragen, dann zählen — auch parallel nicht drüber).
-  Opus 5.5 ≈ 1–2 ct je Foto; günstigeres Modell möglich, Entscheidung beim Nutzer.
+  Zeitpunkt; erst eintragen, dann zählen). Nur Namen als Antwort → wenige Tokens.
+- **Grenze:** Generische Zutaten („Spaghetti, gekocht") finden ohne BLS oft nur
+  Markenprodukte (roh) — der BLS-Import (Etappe 1b) macht diesen Weg erst rund.
 
 ## 9. Review-Befunde (behoben vor dem ersten Commit)
 

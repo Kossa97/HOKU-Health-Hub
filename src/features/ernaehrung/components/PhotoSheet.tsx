@@ -1,32 +1,40 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Camera, ImageUp, RotateCcw, Sparkles } from 'lucide-react'
+import { Camera, ChevronRight, ImageUp, Info, Plus, RotateCcw, Sparkles, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { useFoodAiConsent } from '../hooks/useFoodAiConsent'
-import { MEALS, type Food, type Meal, amountValid, nutrientsFor, parseAmount, sumNutrients } from '../lib/nutrition'
-import { PhotoError, type PhotoItem, analyzePhoto, photoItemToFood } from '../services/foodPhoto'
-import { DIM, ERROR_TEXT, MUTED, WARN_BOX, chip } from '../styles'
+import { MEALS, type Food, type Meal, nutrientsFor, sumNutrients } from '../lib/nutrition'
+import { type PhotoRow, chosenRows, rowsFromItems } from '../lib/photoRows'
+import { PhotoError, analyzePhoto } from '../services/foodPhoto'
+import { DIM, MUTED, chip } from '../styles'
 import { MacroCells } from './MacroCells'
 
-type Row = { item: PhotoItem; name: string; grams: string; on: boolean }
-type Step =
-  | { kind: 'pick' }
-  | { kind: 'analyzing' }
-  | { kind: 'review'; rows: Row[] }
-  | { kind: 'error'; code: PhotoError['code']; resetsAt: string | null }
+type Step = { kind: 'pick' } | { kind: 'analyzing' } | { kind: 'error'; code: PhotoError['code']; resetsAt: string | null }
 
 /**
- * Essen per Foto (wie Cal AI) — aber als Vorschlag: Die KI schätzt Lebensmittel
- * und Mengen, der Nutzer prüft jede Position, bevor etwas eingetragen wird.
- * Fotos unterschätzen typisch (versteckte Fette, Soßen), darum der Hinweis.
+ * Essen per Foto — die KI erkennt nur, WAS auf dem Teller liegt. Zu jeder
+ * erkannten Zutat wählt der Nutzer Lebensmittel und Menge über die gewohnte
+ * Suche; die Nährwerte kommen aus „Meine", Open Food Facts oder dem Barcode,
+ * nie aus einer KI-Schätzung (Entscheidung Nutzer, 18.10.2026).
+ *
+ * `rows` liegt bei der Seite (überlebt das Suchen eines Lebensmittels);
+ * null = noch kein Foto ausgewertet.
  */
-export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onClose }: {
+export function PhotoSheet({ userId, meal, rows, hint, hideKcal, busy, onRows, onHint, onMeal, onPickRow, onLog, onClose }: {
   userId: string
   meal: Meal
+  rows: PhotoRow[] | null
+  /** Notiz zum Foto — liegt bei der Seite, damit sie für ein neues Foto erhalten bleibt. */
+  hint: string
   hideKcal: boolean
   busy: boolean
+  onRows: (rows: PhotoRow[] | null) => void
+  onHint: (hint: string) => void
+  onMeal: (meal: Meal) => void
+  /** Lebensmittel für Zeile `index` wählen; null = weitere Zutat. */
+  onPickRow: (index: number | null) => void
   onLog: (meal: Meal, list: { food: Food; amount: number }[]) => void
   onClose: () => void
 }) {
@@ -36,8 +44,6 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
   const [agreed, setAgreed] = useState(false)
   const [consentBusy, setConsentBusy] = useState(false)
   const [step, setStep] = useState<Step>({ kind: 'pick' })
-  const [hint, setHint] = useState('')
-  const [meal, setMeal] = useState<Meal>(startMeal)
   const [preview, setPreview] = useState<string | null>(null)
   const camera = useRef<HTMLInputElement>(null)
   const gallery = useRef<HTMLInputElement>(null)
@@ -52,7 +58,8 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
     try {
       const items = await analyzePhoto(file, hint, lang)
       if (mine !== seq.current) return
-      setStep({ kind: 'review', rows: items.map(item => ({ item, name: item.name, grams: String(item.grams), on: true })) })
+      setStep({ kind: 'pick' })
+      onRows(rowsFromItems(items))
     } catch (error) {
       if (mine !== seq.current) return
       const e = error instanceof PhotoError ? error : new PhotoError('unavailable')
@@ -67,52 +74,39 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
     if (file) analyze(file)
   }
 
-  const rows = step.kind === 'review' ? step.rows : []
-  const chosen = rows.filter(r => r.on)
-  const valid = chosen.length > 0 && chosen.every(r => r.name.trim() && amountValid(parseAmount(r.grams)))
-  const total = sumNutrients(chosen.filter(r => amountValid(parseAmount(r.grams)))
-    .map(r => nutrientsFor(photoItemToFood(r.item).per100, parseAmount(r.grams))))
-  const setRow = (k: number, patch: Partial<Row>) => step.kind === 'review' && setStep({ ...step, rows: step.rows.map((r, j) => (j === k ? { ...r, ...patch } : r)) })
-
   const accept = async () => {
     setConsentBusy(true)
     try { await setConsent(true); toast.success(t('nutr_photo_consent_saved')) } catch { toast.error(t('nutr_error')) } finally { setConsentBusy(false) }
   }
 
-  const log = () => {
-    if (!valid) return
-    onLog(meal, chosen.map(r => ({ food: photoItemToFood({ ...r.item, name: r.name }), amount: parseAmount(r.grams) })))
-  }
+  const chosen = rows ? chosenRows(rows) : []
+  const open = rows ? rows.length - chosen.length : 0
+  const total = sumNutrients(chosen.map(c => nutrientsFor(c.food.per100, c.amount)))
+  // Prüfliste unabhängig vom Laden der Einwilligung: Sie wurde fürs Foto schon geprüft,
+  // und nach jeder Lebensmittelwahl wird dieses Sheet neu aufgebaut.
+  const reviewing = rows !== null
 
   const errorText = (s: Extract<Step, { kind: 'error' }>) =>
     s.code === 'rate_limit'
       ? (s.resetsAt ? t('nutr_photo_err_limit_until', { time: new Date(s.resetsAt).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : t('nutr_photo_err_limit'))
       : t(`nutr_photo_err_${s.code}`)
 
-  const fileInputs = (
-    <>
-      <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" aria-hidden="true" tabIndex={-1}
-        data-photo-camera onChange={e => onFile(e.currentTarget)} />
-      <input ref={gallery} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" aria-hidden="true" tabIndex={-1}
-        data-photo-gallery onChange={e => onFile(e.currentTarget)} />
-    </>
-  )
-
   return (
-    <Sheet labelledBy="nutr-photo-title" busy={busy || step.kind === 'analyzing'} onClose={step.kind === 'review' ? () => {} : onClose} tall>
+    // In der Prüfliste schließt nur das X — ein Tipp daneben soll die Zuordnungen nicht verwerfen.
+    <Sheet labelledBy="nutr-photo-title" busy={busy || step.kind === 'analyzing'} onClose={reviewing ? () => {} : onClose} tall>
       <div className="flex items-center justify-between gap-2">
-        <h2 id="nutr-photo-title" className="lg-title2 min-w-0 truncate">{t('nutr_photo_title')}</h2>
+        <h2 id="nutr-photo-title" className="lg-title2 min-w-0 truncate">{t(reviewing ? 'nutr_photo_review_title' : 'nutr_photo_title')}</h2>
         <SheetClose onClick={onClose} disabled={busy || step.kind === 'analyzing'} />
       </div>
 
-      {consentError && (
+      {!reviewing && consentError && (
         <div role="alert" className="mt-3 flex items-center justify-between gap-3 text-[15px] text-[var(--lg-text)]">
           {t('nutr_photo_consent_load_error')}
           <button type="button" data-quiet className="lg-gray-btn shrink-0" onClick={reload}>{t('lab_retry')}</button>
         </div>
       )}
 
-      {consent === null && (
+      {!reviewing && consent === null && (
         <div className="mt-3 flex flex-col gap-3" data-photo-consent>
           <p className={`text-[15px] leading-snug ${DIM}`}>{t('nutr_photo_consent_intro')}</p>
           <ul className={`flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-snug ${DIM}`}>
@@ -128,11 +122,19 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
         </div>
       )}
 
-      {consent && step.kind === 'pick' && (
+      {consent && rows === null && (
+        <>
+          <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" aria-hidden="true" tabIndex={-1}
+            data-photo-camera onChange={e => onFile(e.currentTarget)} />
+          <input ref={gallery} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" aria-hidden="true" tabIndex={-1}
+            data-photo-gallery onChange={e => onFile(e.currentTarget)} />
+        </>
+      )}
+
+      {consent && rows === null && step.kind === 'pick' && (
         <div className="mt-3">
-          {fileInputs}
           <label htmlFor="nutr-photo-hint" className="label">{t('nutr_photo_hint_label')}</label>
-          <input id="nutr-photo-hint" value={hint} maxLength={200} onChange={e => setHint(e.target.value)}
+          <input id="nutr-photo-hint" value={hint} maxLength={200} onChange={e => onHint(e.target.value)}
             placeholder={t('nutr_photo_hint_ph')} className="input" />
           <div className="mt-4 grid grid-cols-2 gap-2">
             <button type="button" className="lg-btn lg-btn-primary !px-3" onClick={() => camera.current?.click()}>
@@ -146,16 +148,15 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
         </div>
       )}
 
-      {consent && step.kind === 'analyzing' && (
+      {consent && rows === null && step.kind === 'analyzing' && (
         <div className="mt-4 flex flex-col items-center gap-3 py-6" aria-live="polite">
           {preview && <img src={preview} alt="" className="h-40 w-40 rounded-[18px] object-cover opacity-80" />}
           <p className={`flex items-center gap-2 text-[15px] ${DIM}`}><Sparkles size={16} aria-hidden="true" className="animate-pulse" />{t('nutr_photo_analyzing')}</p>
         </div>
       )}
 
-      {consent && step.kind === 'error' && (
+      {consent && rows === null && step.kind === 'error' && (
         <div className="mt-4 flex flex-col items-center gap-4 py-4 text-center">
-          {fileInputs}
           <p role="alert" className="text-[15px] leading-snug text-[var(--lg-text)]">{errorText(step)}</p>
           {step.code !== 'rate_limit' && (
             <button type="button" className="lg-gray-btn" onClick={() => setStep({ kind: 'pick' })}>
@@ -165,59 +166,74 @@ export function PhotoSheet({ userId, meal: startMeal, hideKcal, busy, onLog, onC
         </div>
       )}
 
-      {consent && step.kind === 'review' && (
+      {reviewing && (
         <div className="mt-2">
-          <div className={WARN_BOX}>
-            <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--lg-warn-text)]" />
-            <span>{t('nutr_photo_check')}</span>
+          <div className="flex gap-2 rounded-[14px] bg-[var(--lg-surface-2)] p-3 text-[13px] leading-snug text-[var(--lg-text-2)]">
+            <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--lg-accent-text)]" />
+            <span>{t('nutr_photo_review_hint')}</span>
           </div>
+
           <ul className="lg-rows -mx-5 mt-2" aria-label={t('nutr_photo_items')}>
             {rows.map((r, k) => {
-              const grams = parseAmount(r.grams)
-              const ok = amountValid(grams)
-              const nu = ok ? nutrientsFor(photoItemToFood(r.item).per100, grams) : null
+              const nu = r.food && r.amount ? nutrientsFor(r.food.per100, r.amount) : null
               return (
-                <li key={k} className={`flex items-center gap-2 py-2 pl-5 pr-3 ${r.on ? '' : 'opacity-50'}`}>
-                  <input type="checkbox" checked={r.on} onChange={e => setRow(k, { on: e.target.checked })}
-                    aria-label={t('nutr_photo_include', { name: r.name })} className="h-5 w-5 shrink-0 accent-sky-500" />
-                  <span className="min-w-0 flex-1">
-                    <input value={r.name} maxLength={120} onChange={e => setRow(k, { name: e.target.value })}
-                      aria-label={t('nutr_photo_item_name')} aria-invalid={r.on && !r.name.trim()}
-                      className="w-full truncate bg-transparent text-[17px] text-[var(--lg-text)] outline-none focus-visible:underline" />
-                    <span className={`flex items-center gap-1.5 text-[13px] tabular-nums ${MUTED}`}>
-                      {nu ? (hideKcal ? `${Math.round(nu.protein)} g ${t('nutr_protein_short')}` : `${Math.round(nu.kcal)} kcal · ${Math.round(nu.protein)} ${t('nutr_p')}`) : '–'}
-                      {r.item.confidence === 'low' && <span className="rounded-[5px] bg-[color-mix(in_srgb,var(--lg-warn)_18%,transparent)] px-1.5 text-[11px] font-semibold text-[var(--lg-warn-text)]">{t('nutr_photo_unsure')}</span>}
+                <li key={r.id} className="flex items-center">
+                  <button type="button" onClick={() => onPickRow(k)} disabled={busy}
+                    aria-label={r.food ? t('nutr_photo_change', { name: r.food.name }) : t('nutr_photo_choose_for', { name: r.name })}
+                    className="flex min-h-[60px] min-w-0 flex-1 items-center gap-2 py-2 pl-5 pr-1 text-left transition-colors active:bg-[var(--lg-fill)]">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[17px] text-[var(--lg-text)]">{r.food ? r.food.name : r.name}</span>
+                      <span className={`flex items-center gap-1.5 text-[13px] tabular-nums ${r.food ? MUTED : 'text-[var(--lg-accent-text)]'}`}>
+                        <span className="truncate">
+                          {nu && r.amount
+                            ? `${Math.round(r.amount)} ${r.food!.unit} · ${hideKcal ? `${Math.round(nu.protein)} g ${t('nutr_protein_short')}` : `${Math.round(nu.kcal)} kcal`}`
+                            : t('nutr_photo_choose')}
+                        </span>
+                        {!r.food && r.unsure && (
+                          <span className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,var(--lg-warn)_18%,transparent)] px-1.5 text-[11px] font-semibold text-[var(--lg-warn-text)]">{t('nutr_photo_unsure')}</span>
+                        )}
+                      </span>
                     </span>
-                  </span>
-                  <input inputMode="decimal" value={r.grams} onChange={e => setRow(k, { grams: e.target.value })} onFocus={e => e.currentTarget.select()}
-                    aria-label={t('nutr_dish_ingredient_amount', { name: r.name, unit: 'g' })} aria-invalid={r.on && !ok}
-                    className="input !min-h-10 !w-[4.5rem] shrink-0 !px-2.5 text-right tabular-nums" />
-                  <span className={`w-4 shrink-0 text-[15px] ${DIM}`}>g</span>
+                    <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-[var(--lg-text-3)]" />
+                  </button>
+                  <button type="button" onClick={() => onRows(rows.filter((_, j) => j !== k))} disabled={busy}
+                    aria-label={t('nutr_dish_remove_ingredient', { name: r.food?.name ?? r.name })}
+                    className="lg-icon-btn mr-2 shrink-0 !text-[var(--lg-text-3)]">
+                    <X size={18} />
+                  </button>
                 </li>
               )
             })}
           </ul>
+          <button type="button" onClick={() => onPickRow(null)} disabled={busy} className="lg-gray-btn mt-2 w-full">
+            <Plus size={16} aria-hidden="true" />{t('nutr_dish_add_ingredient')}
+          </button>
 
-          <p className="label mt-3">{t('nutr_photo_total')}</p>
-          <MacroCells nutrients={chosen.length ? total : null} hideKcal={hideKcal} />
+          {chosen.length > 0 && (
+            <>
+              <p className="label mt-4">{t('nutr_photo_total')}</p>
+              <MacroCells nutrients={total} hideKcal={hideKcal} />
+            </>
+          )}
 
           <p className="label mt-4" id="nutr-photo-meal">{t('nutr_meal')}</p>
           <div role="radiogroup" aria-labelledby="nutr-photo-meal" className="flex flex-wrap gap-1.5">
             {MEALS.map(m => (
-              <button key={m} type="button" role="radio" aria-checked={meal === m} onClick={() => setMeal(m)} className={chip(meal === m)}>
+              <button key={m} type="button" role="radio" aria-checked={meal === m} onClick={() => onMeal(m)} className={chip(meal === m)}>
                 {t(`nutr_meal_${m}`)}
               </button>
             ))}
           </div>
 
-          {!valid && chosen.length > 0 && <p role="alert" className={`mt-3 px-1 ${ERROR_TEXT}`}>{t('nutr_photo_invalid')}</p>}
+          {open > 0 && chosen.length > 0 && <p className={`mt-3 px-1 text-[13px] ${MUTED}`}>{t('nutr_photo_open', { count: open })}</p>}
 
           <div className="mt-5 flex gap-2">
-            <button type="button" data-quiet aria-label={t('nutr_photo_again')} className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0" disabled={busy} onClick={() => setStep({ kind: 'pick' })}>
+            <button type="button" data-quiet aria-label={t('nutr_photo_again')} className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0" disabled={busy}
+              onClick={() => { setStep({ kind: 'pick' }); onRows(null) }}>
               <RotateCcw size={18} />
             </button>
-            <button type="button" className="lg-btn lg-btn-primary min-w-0 flex-1 !px-4" disabled={!valid || busy} onClick={log}>
-              {t('nutr_photo_log', { count: chosen.length })}
+            <button type="button" className="lg-btn lg-btn-primary min-w-0 flex-1 !px-4" disabled={!chosen.length || busy} onClick={() => onLog(meal, chosen)}>
+              {chosen.length ? t('nutr_photo_log', { count: chosen.length }) : t('nutr_photo_log_none')}
             </button>
           </div>
         </div>

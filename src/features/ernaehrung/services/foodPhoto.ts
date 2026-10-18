@@ -1,17 +1,17 @@
 /**
  * Essen per Foto: Bild verkleinern, an die Edge Function `food-photo` schicken
- * (die fragt Anthropic), Vorschläge zurück. Nichts davon wird gespeichert, bis
- * der Nutzer die Positionen geprüft und eingetragen hat.
+ * (die fragt Anthropic) — zurück kommen nur die Namen der erkannten Zutaten.
+ * Lebensmittel, Menge und damit die Nährwerte wählt der Nutzer selbst.
  */
 import { supabase } from '../../../lib/supabase'
 import { prepareFile } from '../../blutwerte/lib/imageResize'
-import type { Food } from '../lib/nutrition'
 
 export interface PhotoItem {
+  /** Anzeige, z. B. „Spaghetti, gekocht". */
   name: string
-  grams: number
+  /** Kurzer Suchbegriff, z. B. „Spaghetti". */
+  search: string
   confidence: 'low' | 'medium' | 'high'
-  per100: { kcal: number; protein: number; carbs: number; fat: number }
 }
 
 export type PhotoErrorCode = 'consent_required' | 'rate_limit' | 'not_food' | 'too_large' | 'unreadable' | 'unavailable'
@@ -48,16 +48,6 @@ export async function analyzePhoto(file: File, hint: string, lang: 'de' | 'en'):
   const items = (data as { items?: PhotoItem[] } | null)?.items
   if (!Array.isArray(items) || !items.length) throw new PhotoError('not_food')
   return items
-}
-
-/** Eine geprüfte Position als Lebensmittel (ohne eigenen Eintrag in „Meine"). */
-export function photoItemToFood(item: Pick<PhotoItem, 'name' | 'per100'>): Food {
-  return {
-    itemId: null, source: 'custom', sourceRef: null, barcode: null,
-    name: item.name.trim().slice(0, 120), brand: null, unit: 'g',
-    per100: { ...item.per100, fiber: null, sugar: null, salt: null },
-    serving: null, favorite: false,
-  }
 }
 
 // ─── Einwilligung (profiles.ai_food_consent_at) ─────────────────────────

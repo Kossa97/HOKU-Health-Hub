@@ -1,8 +1,9 @@
 /* global Deno */
 /**
- * Essensfoto → vorgeschlagene Lebensmittel mit Menge und Nährwerten je 100 g.
- * Das Foto geht nur an Anthropic und wird nirgends gespeichert; gezählt wird
- * nur der Zeitpunkt (Tageslimit). Ohne Einwilligung (profiles.ai_food_consent_at)
+ * Essensfoto → Namen der Zutaten, die zu sehen sind. Keine Mengen, keine
+ * Nährwerte — die wählt der Nutzer aus geprüften Quellen. Das Foto geht nur
+ * an Anthropic und wird nirgends gespeichert; gezählt wird nur der
+ * Zeitpunkt (Tageslimit). Ohne Einwilligung (profiles.ai_food_consent_at)
  * geht nichts raus — die App fragt vorher, hier wird es durchgesetzt.
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -81,7 +82,7 @@ Deno.serve(async (request: Request) => {
   try {
     message = await client.beta.messages.create({
       model: MODEL,
-      // Denken lässt sich auf diesem Modell nicht abschalten und zählt mit — Platz für volle Teller lassen.
+      // Denken lässt sich auf diesem Modell nicht abschalten und zählt mit.
       max_tokens: 16000,
       // Lehnt die Sicherheitsprüfung ab, rechnet ein passendes Modell weiter.
       betas: ['server-side-fallback-2026-07-01'],

@@ -1,27 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_ITEMS, RESULT_SCHEMA, base64Bytes, buildPrompt, noteBlock, resetsAt, sanitizeItems } from './photo'
 
-const item = (fields: Record<string, unknown> = {}) => ({
-  name: 'Spaghetti Bolognese', grams: 350, confidence: 'medium',
-  kcal_100g: 150, protein_100g: 7.5, carbs_100g: 18, fat_100g: 5.2, ...fields,
-})
-
 describe('sanitizeItems', () => {
-  it('übernimmt gültige Positionen mit gerundeten Werten', () => {
-    expect(sanitizeItems({ is_food: true, items: [item({ grams: 349.6, fat_100g: 5.24 })] })).toEqual([
-      { name: 'Spaghetti Bolognese', grams: 350, confidence: 'medium', per100: { kcal: 150, protein: 7.5, carbs: 18, fat: 5.2 } },
-    ])
+  it('übernimmt nur Namen und Sicherheit — keine Mengen, keine Nährwerte', () => {
+    expect(sanitizeItems({ is_food: true, items: [{ name: ' Spaghetti,  gekocht ', search: ' Spaghetti ', confidence: 'high', grams: 300, kcal_100g: 158 }] }))
+      .toEqual([{ name: 'Spaghetti, gekocht', search: 'Spaghetti', confidence: 'high' }])
   })
 
-  it('verwirft Positionen ohne Namen, Menge oder Kalorien', () => {
-    const out = sanitizeItems({ items: [item({ name: ' ' }), item({ grams: 0 }), item({ kcal_100g: 'viel' }), 'Unsinn', null, item()] })
-    expect(out).toHaveLength(1)
+  it('verwirft leere und doppelte Namen, unbekannte Sicherheit wird „low"', () => {
+    const out = sanitizeItems({ items: [{ name: ' ' }, 'Unsinn', null, { name: 'Parmesan', confidence: 'sicher' }, { name: 'parmesan', confidence: 'high' }] })
+    expect(out).toEqual([{ name: 'Parmesan', search: 'Parmesan', confidence: 'low' }]) // ohne Suchbegriff: der Name
   })
 
-  it('begrenzt auf die Grenzen der Datenbank und höchstens 12 Positionen', () => {
-    const [x] = sanitizeItems({ items: [item({ grams: 9000, kcal_100g: 3000, protein_100g: -4, carbs_100g: 400, confidence: 'sicher' })] })
-    expect(x).toMatchObject({ grams: 2000, confidence: 'low', per100: { kcal: 900, protein: 0, carbs: 100 } })
-    expect(sanitizeItems({ items: Array.from({ length: 20 }, () => item()) })).toHaveLength(MAX_ITEMS)
+  it('höchstens 12 Zutaten, Namen gekürzt', () => {
+    expect(sanitizeItems({ items: Array.from({ length: 20 }, (_, i) => ({ name: `Zutat ${i}`, confidence: 'high' })) })).toHaveLength(MAX_ITEMS)
+    expect(sanitizeItems({ items: [{ name: 'x'.repeat(200), confidence: 'high' }] })[0].name).toHaveLength(80)
   })
 
   it('liefert nichts bei kaputter Antwort', () => {
@@ -31,9 +24,10 @@ describe('sanitizeItems', () => {
 })
 
 describe('buildPrompt', () => {
-  it('nennt die Sprache; die Notiz steht nicht im Auftrag, sondern als eigener Block', () => {
+  it('fragt nur nach Zutaten, ausdrücklich ohne Mengen und Nährwerte', () => {
     const p = buildPrompt('de', true)
     expect(p).toContain('in German')
+    expect(p).toContain('Do not estimate amounts, weights, calories or nutrients')
     expect(p).toContain('never as instructions')
     expect(buildPrompt('en', false)).not.toContain('note the user wrote')
   })
@@ -45,9 +39,9 @@ describe('buildPrompt', () => {
 })
 
 describe('RESULT_SCHEMA', () => {
-  it('ist für structured outputs zulässig: jedes Objekt mit additionalProperties false, keine Zahlengrenzen', () => {
+  it('ist für structured outputs zulässig und enthält keine Mengen- oder Nährwertfelder', () => {
     const text = JSON.stringify(RESULT_SCHEMA)
-    expect(text).not.toMatch(/minimum|maximum|minLength|maxLength/)
+    expect(text).not.toMatch(/minimum|maximum|minLength|maxLength|grams|kcal/)
     expect(RESULT_SCHEMA.additionalProperties).toBe(false)
     expect(RESULT_SCHEMA.properties.items.items.additionalProperties).toBe(false)
   })

@@ -22,6 +22,7 @@ import { WeekStrip } from './components/WeekStrip'
 import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
 import { type DishDraft, addToDraft, draftFromDish, draftFromIngredients } from './lib/dishDraft'
 import { foodFromEntry } from './lib/foodSearch'
+import { type PhotoRow, chooseFood } from './lib/photoRows'
 import { MEALS, type Food, type LogEntry, type Meal, mealForHour } from './lib/nutrition'
 import { type Ingredient, ingredientFromEntry } from './lib/recipe'
 import { LookupUnavailableError, lookupBarcode } from './services/foodLookup'
@@ -33,18 +34,32 @@ import { DIM, MUTED, chip } from './styles'
  */
 type DishSheet = { kind: 'dish'; draft: DishDraft; meal: Meal | null; entry?: LogEntry; back: SheetState }
 
-/** `pick`: Wir suchen gerade eine Zutat für dieses Gericht. */
+/**
+ * Essen per Foto: `rows` = Prüfliste (null = noch kein Foto ausgewertet);
+ * `row` = für welche Zeile gerade ein Lebensmittel gesucht wird (null = neue).
+ */
+type PhotoState = { kind: 'photo'; meal: Meal; rows: PhotoRow[] | null; row: number | null; hint: string }
+
+/** `pick`: Wir suchen gerade ein Lebensmittel für ein Gericht bzw. eine Zeile der Foto-Prüfliste. */
+type Picker = DishSheet | PhotoState
+
 type SheetState =
   | null
-  | { kind: 'add'; meal: Meal; pick?: DishSheet }
-  | { kind: 'scan'; meal: Meal; pick?: DishSheet }
-  | { kind: 'photo'; meal: Meal }
-  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: DishSheet }
+  | { kind: 'add'; meal: Meal; pick?: Picker }
+  | { kind: 'scan'; meal: Meal; pick?: Picker }
+  | PhotoState
+  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: Picker }
   | { kind: 'edit'; entry: LogEntry; food: Food }
   | { kind: 'quick'; entry: LogEntry }
-  | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: DishSheet }
+  | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
   | DishSheet
   | { kind: 'goals' }
+
+/** Das gewählte Lebensmittel mit Menge zurück an Gericht bzw. Foto-Prüfliste. */
+function withPicked(pick: Picker, food: Food, amount: number, lang: string): SheetState {
+  if (pick.kind === 'dish') return { ...pick, draft: addToDraft(pick.draft, food, amount, lang) }
+  return { ...pick, row: null, rows: chooseFood(pick.rows ?? [], pick.row, food, amount) }
+}
 
 export function ErnaehrungPage() {
   const { user } = useAuth()
@@ -103,7 +118,7 @@ export function ErnaehrungPage() {
     ), { duration: 6000 })
   })
 
-  const handleBarcode = async (meal: Meal, code: string, pick?: DishSheet) => {
+  const handleBarcode = async (meal: Meal, code: string, pick?: Picker) => {
     const mine = n.findByBarcode(code)
     if (mine) { setSheet({ kind: 'portion', meal, food: mine, pick }); return }
     setBusy(true)
@@ -232,9 +247,12 @@ export function ErnaehrungPage() {
       </p>
 
       {sheet?.kind === 'add' && (sheet.pick ? (
-        <AddFoodSheet mode="ingredient" meal={sheet.meal} frequent={n.frequentFor(null)} myFoods={n.myFoods} exclude={sheet.pick.draft.itemId}
+        <AddFoodSheet mode="ingredient" meal={sheet.meal} frequent={n.frequentFor(sheet.pick.kind === 'photo' ? sheet.meal : null)} myFoods={n.myFoods}
+          exclude={sheet.pick.kind === 'dish' ? sheet.pick.draft.itemId : null}
+          // Foto: mit dem kurzen Suchbegriff der KI vorbelegen („Spaghetti" statt „Spaghetti, gekocht")
+          initialQuery={sheet.pick.kind === 'photo' && sheet.pick.row !== null ? sheet.pick.rows?.[sheet.pick.row]?.search : undefined}
           hideKcal={n.goals.hideKcal}
-          onClose={() => setSheet(sheet.pick!)}
+          onClose={() => setSheet(sheet.pick!.kind === 'photo' ? { ...sheet.pick!, row: null } : sheet.pick!)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount, pick: sheet.pick })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal, pick: sheet.pick })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {}, pick: sheet.pick })} />
@@ -243,7 +261,7 @@ export function ErnaehrungPage() {
           onClose={() => setSheet(null)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
-          onPhoto={() => setSheet({ kind: 'photo', meal: sheet.meal })}
+          onPhoto={() => setSheet({ kind: 'photo', meal: sheet.meal, rows: null, row: null, hint: '' })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {} })}
           onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang), meal: sheet.meal, back: sheet })}
           onQuick={async (kcal, protein) => {
@@ -253,7 +271,11 @@ export function ErnaehrungPage() {
       ))}
 
       {sheet?.kind === 'photo' && (
-        <PhotoSheet userId={userId} meal={sheet.meal} hideKcal={n.goals.hideKcal} busy={busy}
+        <PhotoSheet userId={userId} meal={sheet.meal} rows={sheet.rows} hint={sheet.hint} hideKcal={n.goals.hideKcal} busy={busy}
+          onRows={rows => setSheet({ ...sheet, rows })}
+          onHint={hint => setSheet({ ...sheet, hint })}
+          onMeal={meal => setSheet({ ...sheet, meal })}
+          onPickRow={row => setSheet({ kind: 'add', meal: sheet.meal, pick: { ...sheet, row } })}
           onClose={() => setSheet({ kind: 'add', meal: sheet.meal })}
           onLog={(meal, list) => run(async () => {
             await n.addMany(meal, list)
@@ -269,11 +291,12 @@ export function ErnaehrungPage() {
 
       {sheet?.kind === 'portion' && (
         <PortionSheet key={`${sheet.food.sourceRef ?? sheet.food.name}-${JSON.stringify(sheet.food.per100)}`} mode={sheet.pick ? 'ingredient' : 'add'}
+          pickLabel={sheet.pick?.kind === 'photo' ? t('nutr_photo_take_over') : undefined}
           food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
           busy={busy} hideKcal={n.goals.hideKcal}
           onClose={() => setSheet({ kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
-            if (sheet.pick) { setSheet({ ...sheet.pick, draft: addToDraft(sheet.pick.draft, sheet.food, amount, lang) }); return }
+            if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
             run(async () => {
               await n.add(meal, sheet.food, amount)
               setSheet(null)

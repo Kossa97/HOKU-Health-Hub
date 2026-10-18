@@ -259,11 +259,13 @@ test('Mahlzeit als Gericht speichern — Schnelleinträge fallen weg', async ({ 
 // 1×1-PNG — die App verkleinert und schickt es als JPEG; der Mock erkennt „Spaghetti".
 const TELLER = { name: 'teller.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') }
 
-test('Essen per Foto: erst Einwilligung, dann prüfen, Mengen ändern, abwählen, eintragen', async ({ page, mock }) => {
+test('Essen per Foto: KI nennt nur Zutaten — Lebensmittel und Menge wählt der Nutzer, Werte aus der eigenen Liste', async ({ page, mock }) => {
+  const spaghetti = ownFood(mock, 'Spaghetti, gekocht', { kcal: 158, protein: 5.8, carbs: 31, fat: 0.9 })
+  const parmesan = ownFood(mock, 'Parmesan', { kcal: 392, protein: 36, carbs: 0, fat: 26 })
   mock.foodPhoto.items = [
-    { name: 'Spaghetti', grams: 250, confidence: 'high', per100: { kcal: 158, protein: 5.8, carbs: 31, fat: 0.9 } },
-    { name: 'Bolognese-Soße', grams: 150, confidence: 'medium', per100: { kcal: 120, protein: 8, carbs: 5, fat: 7.5 } },
-    { name: 'Parmesan', grams: 10, confidence: 'low', per100: { kcal: 392, protein: 36, carbs: 0, fat: 26 } },
+    { name: 'Spaghetti, gekocht', search: 'Spaghetti', confidence: 'high' },
+    { name: 'Bolognese', search: 'Bolognese', confidence: 'medium' },
+    { name: 'Parmesan, gerieben', search: 'Parmesan', confidence: 'low' },
   ]
   await page.goto('/ernaehrung')
   await mealCard(page, 'Abendessen').getByRole('button', { name: 'Hinzufügen' }).click()
@@ -278,21 +280,37 @@ test('Essen per Foto: erst Einwilligung, dann prüfen, Mengen ändern, abwählen
 
   await page.getByLabel('Notiz (optional)').fill('mit Olivenöl')
   await page.locator('[data-photo-gallery]').setInputFiles(TELLER)
-  await expect(page.getByText('KI-Schätzung')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Erkannte Zutaten' })).toBeVisible()
   expect(mock.foodPhoto.calls).toEqual([{ mimeType: 'image/jpeg', hint: 'mit Olivenöl', lang: 'de' }])
-  await expect(page.getByText('unsicher')).toBeVisible() // Parmesan: geringe Sicherheit
+  await expect(page.getByText('unsicher')).toBeVisible() // Parmesan: KI ist sich nicht sicher
+  // Noch nichts gewählt → nichts einzutragen
+  await expect(page.getByRole('button', { name: 'Erst Lebensmittel wählen' })).toBeDisabled()
 
-  await page.getByLabel('Menge Spaghetti in g').fill('300')
-  await page.getByLabel('Parmesan eintragen').uncheck()
+  // Zeile antippen → Suche mit dem erkannten Namen → eigenes Lebensmittel → Menge → zurück zur Liste
+  await page.getByRole('button', { name: 'Lebensmittel für Spaghetti, gekocht wählen' }).click()
+  await expect(page.getByLabel('Lebensmittel suchen')).toHaveValue('Spaghetti')
+  await page.getByRole('button', { name: /Spaghetti, gekocht/ }).first().click()
+  await page.getByLabel('Menge in g').fill('300')
+  await page.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect(page.getByRole('button', { name: 'Spaghetti, gekocht ändern' })).toContainText('300 g · 474 kcal')
+
+  await page.getByRole('button', { name: 'Lebensmittel für Parmesan, gerieben wählen' }).click()
+  await page.getByRole('button', { name: /Parmesan/ }).first().click()
+  await page.getByLabel('Menge in g').fill('10')
+  await page.getByRole('button', { name: 'Übernehmen' }).click()
+
+  await expect(page.getByText('1 Zutat ohne Lebensmittel wird nicht eingetragen.')).toBeVisible()
+  await page.getByRole('button', { name: 'Bolognese entfernen' }).click()
   await page.getByRole('button', { name: '2 Positionen eintragen' }).click()
 
-  await expect(mealCard(page, 'Abendessen').getByText('Spaghetti')).toBeVisible()
+  await expect(mealCard(page, 'Abendessen').getByText('Spaghetti, gekocht')).toBeVisible()
   await expect(page.getByText('2 Positionen eingetragen')).toBeVisible()
   const logs = mock.table('food_logs')
-  expect(logs.map(r => [r.name, r.amount, r.meal, r.source, r.food_item_id])).toEqual([
-    ['Spaghetti', 300, 'dinner', 'custom', null],
-    ['Bolognese-Soße', 150, 'dinner', 'custom', null],
+  expect(logs.map(r => [r.name, r.amount, r.meal, r.food_item_id])).toEqual([
+    ['Spaghetti, gekocht', 300, 'dinner', spaghetti.id],
+    ['Parmesan', 10, 'dinner', parmesan.id],
   ])
+  // Werte aus der eigenen Liste, nicht aus der KI
   expect(Number(logs[0].kcal)).toBe(474)
 })
 

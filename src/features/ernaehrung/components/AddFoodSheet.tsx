@@ -47,11 +47,13 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
  * Lebensmittel suchen und wählen. `ingredient`: Zutat für ein Gericht — ohne
  * Schnelleintrag und ohne Gerichte-Liste.
  */
-export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, hideKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
+export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, initialQuery = '', hideKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
   meal: Meal
   mode?: 'log' | 'ingredient'
   /** Dieses eigene Lebensmittel nicht anbieten (das Gericht, für das wir Zutaten suchen). */
   exclude?: string | null
+  /** Suchfeld vorbelegen (Foto: der erkannte Name). */
+  initialQuery?: string
   frequent: FrequentFood[]
   myFoods: Food[]
   hideKcal: boolean
@@ -72,7 +74,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : 'mine')
   const dishes = useMemo(() => myFoods.filter(f => f.recipe), [myFoods])
   const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe), [myFoods])
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialQuery)
   const [remote, setRemote] = useState<Remote | null>(null)
   const [quick, setQuick] = useState<{ kcal: string; protein: string } | null>(null)
   const [quickBusy, setQuickBusy] = useState(false)
