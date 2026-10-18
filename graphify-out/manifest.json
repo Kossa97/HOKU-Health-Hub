@@ -7056,9 +7056,9 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792323841.6186059,
-    "seen": 1792333905.1718504,
-    "ast_hash": "c7264579da87066ddbab36640592fd7a",
+    "mtime": 1792335250.2165859,
+    "seen": 1792335321.2102063,
+    "ast_hash": "a0b848ed5d371f9ed2bee948bfd58bd4",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
