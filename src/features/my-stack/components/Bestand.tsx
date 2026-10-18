@@ -49,9 +49,9 @@ function zahl(text: string): number | null {
 }
 
 function BarFill({ fraction }: { fraction: number }) {
-  const tone = fraction <= 0.1 ? 'bg-rose-400' : fraction <= 0.3 ? 'bg-amber-300' : 'bg-emerald-400'
+  const tone = fraction <= 0.1 ? 'bg-[#ff453a]' : fraction <= 0.3 ? 'bg-[#ff9f0a]' : 'bg-[var(--lg-good)]'
   return (
-    <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-slate-800" aria-hidden="true">
+    <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]" aria-hidden="true">
       <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.round(Math.min(1, Math.max(0, fraction)) * 100)}%` }} />
     </div>
   )
@@ -342,30 +342,30 @@ export function BestandCard({ dosageForm, inventory, ingredients, timelines, tim
   return (
     <div
       data-stack-detail="bestand"
-      className="mx-1 mt-2 w-[calc(100%-0.5rem)] rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-3"
+      className="lg-surface mt-3 p-4"
     >
       <div className="flex items-center gap-3">
-        <Package size={18} aria-hidden="true" className="shrink-0 text-sky-400" />
+        <span aria-hidden="true" className="lg-icon-tile bg-[#0a84ff]"><Package size={17} /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">{String(t('my_stack_stock_title'))}</span>
+          <span className="block text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">{String(t('my_stack_stock_title'))}</span>
           {zeilen && aktiv ? (
             <>
-              <span className="mt-0.5 block truncate text-sm font-semibold text-white">
-                {zeilen.gross}{zeilen.klein ? <span className="font-normal text-slate-400"> · {zeilen.klein}</span> : null}
+              <span className="mt-0.5 block truncate text-[17px] font-semibold text-[var(--lg-text)]">
+                {zeilen.gross}{zeilen.klein ? <span className="font-normal text-[var(--lg-text-2)]"> · {zeilen.klein}</span> : null}
               </span>
-              {range && <span className="mt-0.5 block truncate text-xs text-slate-400">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
+              {range && <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
               <BarFill fraction={zeilen.anteil} />
-              {!deductsIntakes && <span className="mt-2 block text-xs text-amber-200/90">{String(t('my_stack_stock_needs_strength'))}</span>}
+              {!deductsIntakes && <span className="mt-2 block text-[13px] text-[#ffb340]">{String(t('my_stack_stock_needs_strength'))}</span>}
             </>
           ) : (
-            <span className="mt-0.5 block text-sm text-slate-400">{String(t('my_stack_stock_not_tracked'))}</span>
+            <span className="mt-0.5 block text-[15px] text-[var(--lg-text-2)]">{String(t('my_stack_stock_not_tracked'))}</span>
           )}
         </span>
       </div>
       <button
         type="button"
         onClick={() => onEdit(aktiv ? 'correct' : 'start')}
-        className="mt-3 min-h-11 w-full rounded-xl border border-sky-400/35 bg-sky-400/10 text-[13px] font-semibold text-sky-100 transition-colors hover:border-sky-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className="lg-gray-btn mt-3.5 w-full"
       >
         {String(t(aktiv ? 'my_stack_stock_edit' : 'my_stack_stock_start'))}
       </button>

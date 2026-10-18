@@ -53,16 +53,16 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
       <ReadinessCard result={readiness} />
 
       {planned.length > 0 ? (
-        <Card accent={TRAINING_ACCENT}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: TRAINING_ACCENT, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <Card>
+          <div style={{ fontSize: 13, fontWeight: 600, color: TRAINING_ACCENT, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
             {tt('planned_today')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
             {planned.map(r => (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{tt('exercises_count', { count: r.exercises.length })}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
+                  <div style={{ fontSize: 15, color: 'var(--lg-text-3)' }}>{tt('exercises_count', { count: r.exercises.length })}</div>
                 </div>
                 <Button onClick={() => onStartRoutine(r)}><Play size={16} aria-hidden="true" /> {tt('start')}</Button>
               </div>
@@ -72,11 +72,11 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
       ) : hasPlan && !doneToday ? (
         <Card>
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <Moon size={22} aria-hidden="true" style={{ color: '#8b5cf6', flexShrink: 0, marginTop: 2 }} />
+            <span aria-hidden="true" className="lg-icon-tile" style={{ background: '#5e5ce6' }}><Moon size={17} /></span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('rest_day')}</div>
-              <div style={{ fontWeight: 800, fontSize: '1.05rem', marginTop: 2 }}>{tt('rest_day_title')}</div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 4 }}>{tt('rest_day_hint')}</p>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{tt('rest_day')}</div>
+              <div style={{ fontWeight: 600, fontSize: 17, marginTop: 2 }}>{tt('rest_day_title')}</div>
+              <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 4 }}>{tt('rest_day_hint')}</p>
             </div>
           </div>
           <div style={{ marginTop: 12 }}>
@@ -87,43 +87,43 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <Card onClick={onStartEmpty} style={{ padding: 14 }}>
-          <Play size={20} aria-hidden="true" style={{ color: TRAINING_ACCENT }} />
-          <div style={{ fontWeight: 800, marginTop: 8 }}>{tt('start_empty')}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{tt('kind_strength')}</div>
+          <span aria-hidden="true" className="lg-icon-tile" style={{ background: TRAINING_ACCENT }}><Play size={17} /></span>
+          <div style={{ fontSize: 17, fontWeight: 600, marginTop: 10 }}>{tt('start_empty')}</div>
+          <div style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>{tt('kind_strength')}</div>
         </Card>
         <Card onClick={onLogActivity} style={{ padding: 14 }}>
-          <Timer size={20} aria-hidden="true" style={{ color: '#10b981' }} />
-          <div style={{ fontWeight: 800, marginTop: 8 }}>{tt('log_activity')}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{tt('log_activity_hint')}</div>
+          <span aria-hidden="true" className="lg-icon-tile" style={{ background: '#30d158' }}><Timer size={17} /></span>
+          <div style={{ fontSize: 17, fontWeight: 600, marginTop: 10 }}>{tt('log_activity')}</div>
+          <div style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>{tt('log_activity_hint')}</div>
         </Card>
       </div>
 
       <section>
         <SectionTitle action={
-          <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: TRAINING_ACCENT, fontWeight: 750, fontSize: '0.85rem' }}>
+          <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: 'var(--lg-accent-text)', fontWeight: 500, fontSize: 15, padding: '0 4px' }}>
             <Plus size={16} aria-hidden="true" /> {tt('new_routine')}
           </button>
         }>
           {tt('routines')}
         </SectionTitle>
         {data.routines.length === 0 && (
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', margin: '0 2px 10px' }}>{tt('routines_empty')}</p>
+          <p style={{ fontSize: 15, color: 'var(--lg-text-3)', margin: '0 16px 10px' }}>{tt('routines_empty')}</p>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {data.routines.map(r => (
             <Card key={r.id} style={{ padding: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                  <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>
                     {tt('exercises_count', { count: r.exercises.length })}
                     {r.weekdays.length > 0 && ` · ${r.weekdays.map(d => tt(`weekday_${d}` as TrainingTextKey)).join(', ')}`}
                   </div>
                 </div>
-                <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}>
+                <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="lg-icon-btn" style={{ color: 'var(--lg-text-3)', flexShrink: 0 }}>
                   <Pencil size={18} aria-hidden="true" />
                 </button>
-                <Button onClick={() => onStartRoutine(r)} aria-label={`${r.name} – ${tt('start')}`} style={{ padding: '10px 14px' }}>
+                <Button onClick={() => onStartRoutine(r)} aria-label={`${r.name} – ${tt('start')}`} style={{ padding: 0, width: 44, flexShrink: 0 }}>
                   <Play size={16} aria-hidden="true" />
                 </Button>
               </div>
@@ -146,11 +146,11 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
           </div>
           <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 14 }}>
             {Array.from({ length: Math.max(week.goal, week.sessions) }, (_, i) => (
-              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--surface-raised)' }} />
+              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
             ))}
           </div>
           {week.streakWeeks > 1 && (
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 10 }}>🔥 {tt('streak_weeks', { count: week.streakWeeks })}</div>
+            <div style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 10 }}>🔥 {tt('streak_weeks', { count: week.streakWeeks })}</div>
           )}
         </Card>
       </section>
@@ -159,14 +159,14 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
 
       <section>
         <SectionTitle action={data.sessions.length > 3 ? (
-          <button type="button" onClick={onShowHistory} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 36, color: TRAINING_ACCENT, fontWeight: 750, fontSize: '0.85rem' }}>
+          <button type="button" onClick={onShowHistory} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 36, color: 'var(--lg-accent-text)', fontWeight: 500, fontSize: 15, padding: '0 4px' }}>
             {tt('show_all')} <ChevronRight size={16} aria-hidden="true" />
           </button>
         ) : undefined}>
           {tt('recent')}
         </SectionTitle>
         {data.sessions.length === 0 ? (
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', margin: '0 2px' }}>{tt('no_sessions')}</p>
+          <p style={{ fontSize: 15, color: 'var(--lg-text-3)', margin: '0 16px' }}>{tt('no_sessions')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.sessions.slice(0, 3).map(s => (
@@ -204,17 +204,19 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
   )
 }
 
-const LEVEL_COLOR = { high: '#10b981', normal: '#06b6d4', low: '#f59e0b' } as const
+const LEVEL_COLOR = { high: '#30d158', normal: '#64d2ff', low: '#ff9f0a' } as const
+/** Schrift in der hellen Variante, damit sie auf Schwarz gut lesbar bleibt */
+const LEVEL_TEXT = { high: 'var(--lg-good-text)', normal: 'var(--lg-accent-text)', low: 'var(--lg-warn-text)' } as const
 
 function ReadinessCard({ result }: { result: ReturnType<typeof computeReadiness> }) {
   const { tt, locale } = useTrainingText()
   if (!result) {
     return (
       <Card>
-        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('readiness')}</div>
-        <div style={{ fontWeight: 750, marginTop: 4 }}>{tt('readiness_empty')}</div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 4 }}>{tt('readiness_empty_hint')}</p>
-        <Link to="/progress" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10, minHeight: 36, fontWeight: 750, color: TRAINING_ACCENT, fontSize: '0.88rem' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{tt('readiness')}</div>
+        <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4 }}>{tt('readiness_empty')}</div>
+        <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 4 }}>{tt('readiness_empty_hint')}</p>
+        <Link to="/progress" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, minHeight: 44, fontWeight: 500, color: 'var(--lg-accent-text)', fontSize: 17 }}>
           {tt('readiness_log_today')} <ChevronRight size={16} aria-hidden="true" />
         </Link>
       </Card>
@@ -227,29 +229,26 @@ function ReadinessCard({ result }: { result: ReturnType<typeof computeReadiness>
     average: formatNumber(f.average, locale, 1),
   })
   return (
-    <Card accent={color}>
+    <Card>
       <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
         <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label={`${tt('readiness')} ${result.score}`} style={{ flexShrink: 0 }}>
-          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--surface-raised)" strokeWidth="6" />
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--lg-fill)" strokeWidth="6" />
           <circle
             cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
             strokeDasharray={`${(result.score / 100) * circumference} ${circumference}`}
             transform="rotate(-90 32 32)"
           />
-          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="800" fill="var(--text)">{result.score}</text>
+          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="600" fill="var(--lg-text)">{result.score}</text>
         </svg>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('readiness')}</div>
-          <div style={{ fontWeight: 850, fontSize: '1.05rem', color }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: 2 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{tt('readiness')}</div>
+          <div style={{ fontWeight: 700, fontSize: 20, color: LEVEL_TEXT[result.level] }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
+          <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 2 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
         </div>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
         {result.factors.map(f => (
-          <span key={f.key} style={{
-            fontSize: '0.75rem', fontWeight: 650, padding: '4px 10px', borderRadius: 999,
-            background: 'var(--surface-raised)', color: f.points < -2 ? '#f59e0b' : f.points > 2 ? '#10b981' : 'var(--text-dim)',
-          }}>
+          <span key={f.key} className="lg-tag" data-tone={f.points < -2 ? 'warn' : f.points > 2 ? 'good' : undefined} style={{ whiteSpace: 'normal', lineHeight: 1.25, padding: '4px 10px' }}>
             {factorText(f)}
           </span>
         ))}

@@ -28,8 +28,8 @@ function TrendMark({ trend, label }: { trend: Trend; label: string }) {
       style={{
         width: 24, height: 24, borderRadius: 8, flexShrink: 0,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        color: trend === 'up' ? '#10b981' : 'var(--text-muted)',
-        background: trend === 'up' ? 'rgba(16,185,129,0.12)' : 'var(--surface-raised)',
+        color: trend === 'up' ? 'var(--lg-good-text)' : 'var(--lg-text-3)',
+        background: trend === 'up' ? 'color-mix(in srgb, var(--lg-good) 16%, transparent)' : 'var(--lg-fill)',
       }}
     >
       <Icon size={14} aria-hidden="true" />
@@ -61,15 +61,15 @@ export function ProgressTab({ data }: { data: TrainingData }) {
         <span
           aria-hidden="true"
           style={{
-            width: 48, height: 48, borderRadius: 16, margin: '0 auto 12px',
+            width: 48, height: 48, borderRadius: 13, margin: '0 auto 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `${TRAINING_ACCENT}1f`, color: TRAINING_ACCENT,
+            background: TRAINING_ACCENT, color: '#fff',
           }}
         >
           <LineChartIcon size={24} />
         </span>
-        <h2 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: 6 }}>{tt('progress_empty_title')}</h2>
-        <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', lineHeight: 1.45, maxWidth: 340, margin: '0 auto' }}>{tt('progress_empty_body')}</p>
+        <h2 className="lg-title2" style={{ marginBottom: 6 }}>{tt('progress_empty_title')}</h2>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.45, maxWidth: 340, margin: '0 auto' }}>{tt('progress_empty_body')}</p>
       </Card>
     )
   }
@@ -106,7 +106,7 @@ export function ProgressTab({ data }: { data: TrainingData }) {
             <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>
               {tt('progress_search_label')}
             </span>
-            <Search size={16} aria-hidden="true" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <Search size={16} aria-hidden="true" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--lg-text-3)', pointerEvents: 'none' }} />
             <input
               type="search"
               value={query}
@@ -120,9 +120,9 @@ export function ProgressTab({ data }: { data: TrainingData }) {
         )}
 
         {summaries.length === 0 ? (
-          <Card><p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>{tt('progress_exercises_empty')}</p></Card>
+          <Card><p style={{ fontSize: 15, color: 'var(--lg-text-3)' }}>{tt('progress_exercises_empty')}</p></Card>
         ) : filtered.length === 0 ? (
-          <Card><p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', overflowWrap: 'anywhere' }}>{tt('progress_search_empty', { query: deferredQuery.trim() })}</p></Card>
+          <Card><p style={{ fontSize: 15, color: 'var(--lg-text-3)', overflowWrap: 'anywhere' }}>{tt('progress_search_empty', { query: deferredQuery.trim() })}</p></Card>
         ) : (
           <Card style={{ padding: 0, overflow: 'hidden' }}>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -130,28 +130,28 @@ export function ProgressTab({ data }: { data: TrainingData }) {
                 const best = bestLabel(s)
                 const lastSet = s.last.bestSet ? formatSet(s.last.bestSet, s.tracking, unit, locale, repsUnit) : '—'
                 return (
-                  <li key={s.id} style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
+                  <li key={s.id} style={{ borderTop: i === 0 ? 'none' : '0.5px solid var(--lg-separator)', marginLeft: i === 0 ? 0 : 16 }}>
                     <button
                       type="button"
                       onClick={() => setOpenId(s.id)}
                       className="tyd-train-press"
                       style={{
-                        width: '100%', minHeight: 60, padding: '10px 14px',
+                        width: '100%', minHeight: 60, padding: i === 0 ? '10px 14px 10px 16px' : '10px 14px 10px 0',
                         display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
-                        background: 'transparent', color: 'var(--text)', cursor: 'pointer',
+                        background: 'transparent', color: 'var(--lg-text)', cursor: 'pointer',
                       }}
                     >
                       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontWeight: 750, fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ fontWeight: 400, fontSize: 17, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                        <span style={{ fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                           {tt('progress_last_set', { date: formatDate(s.last.date, locale, { day: 'numeric', month: 'short' }), set: lastSet })}
                         </span>
                         {best && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{best}</span>
+                          <span style={{ fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{best}</span>
                         )}
                       </span>
                       {s.trend && s.metrics[0] && <TrendMark trend={s.trend} label={tt(TREND_KEY[s.trend])} />}
-                      <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                      <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--lg-text-3)', flexShrink: 0 }} />
                     </button>
                   </li>
                 )

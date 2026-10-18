@@ -23,9 +23,9 @@ export interface TabDefinition {
 }
 
 /**
- * Die Reihenfolge ist die Reihenfolge auf dem Schirm. Die mittlere Schaltflaeche
- * steht NICHT hier: sie ist kein Reiter, sondern oeffnet das
- * Schnellzugriff-Menue, und sie fuehrt zu keiner Route.
+ * Die Reihenfolge ist die Reihenfolge auf dem Schirm. Der Plus-Knopf steht
+ * NICHT hier: er ist kein Reiter, sondern oeffnet das Schnellzugriff-Menue,
+ * fuehrt zu keiner Route und sitzt deshalb neben der Kapsel.
  */
 export const TAB_ITEMS: readonly TabDefinition[] = [
   { id: 'home',     route: '/',         labelKey: 'nav_home',     fallbackLabel: 'Home',     obKey: 'nav-home' },
@@ -33,14 +33,6 @@ export const TAB_ITEMS: readonly TabDefinition[] = [
   { id: 'kalender', route: '/kalender', labelKey: 'nav_kalender', fallbackLabel: 'Kalender', obKey: 'nav-kalender' },
   { id: 'profil',   route: '/profil',   labelKey: 'nav_profil',   fallbackLabel: 'Profil' },
 ] as const
-
-/**
- * An welcher Stelle im Streifen die mittlere Schaltflaeche steht.
- *
- * Zwei Reiter links, zwei rechts — die Zahl sagt, nach wie vielen Reitern sie
- * eingeschoben wird, damit die Darstellung sie nicht selbst abzaehlen muss.
- */
-export const CENTER_ACTION_INDEX = 2
 
 /**
  * Welcher Reiter gilt gerade?

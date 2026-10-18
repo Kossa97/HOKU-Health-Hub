@@ -357,9 +357,9 @@ export function PlanManagementSection({
     return (
       <section
         data-testid={`plan-management-${timeline.cycle.id}`}
-        className="rounded-2xl border border-amber-300/25 bg-amber-300/5 p-4 shadow-[0_18px_60px_rgba(2,6,23,0.28)]"
+        className="lg-surface !bg-[rgba(255,159,10,0.10)] p-4"
       >
-        <p className="text-sm font-bold text-amber-100">
+        <p className="text-[17px] font-semibold text-[#ffb340]">
           {t('my_stack_plan_conflict_title', { defaultValue: 'Welcher Plan läuft wirklich?' })}
         </p>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
@@ -377,7 +377,7 @@ export function PlanManagementSection({
           type="button"
           disabled={pending || !onResolveConflict}
           onClick={() => void resolveConflict()}
-          className="mt-4 min-h-11 w-full rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 text-sm font-bold text-amber-100 disabled:opacity-50"
+          className="lg-gray-btn mt-4 w-full !text-[#ffb340]"
         >
           {t('my_stack_plan_conflict_keep', { defaultValue: 'Diesen laufenden Plan behalten' })}
         </button>
@@ -390,23 +390,20 @@ export function PlanManagementSection({
     <section
       data-testid={`plan-management-${timeline.cycle.id}`}
       data-cycle-status={resolved.status}
-      className={`rounded-2xl border p-4 backdrop-blur-xl ${isActive
-        ? 'border-emerald-400/35 bg-emerald-950/20 shadow-[0_18px_60px_rgba(16,185,129,0.10)]'
-        : 'border-white/10 bg-slate-900/55 shadow-[0_18px_60px_rgba(2,6,23,0.28)]'}`}
+      className="lg-surface p-4"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${isActive ? 'text-emerald-300' : 'text-cyan-300'}`}>
+          <p className="text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
             {t('my_stack_plan_management', { defaultValue: 'Einnahmeplan' })}
           </p>
           <span
             role="status"
             aria-label={String(statusCopy)}
-            className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${isActive
-              ? 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200'
-              : 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100'}`}
+            data-tone={isActive ? 'good' : 'accent'}
+            className="lg-tag mt-2"
           >
-            {isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.75)]" />}
+            {isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--lg-good)]" />}
             {statusCopy}
           </span>
         </div>
@@ -415,7 +412,7 @@ export function PlanManagementSection({
       {!isEnded && !displayVersion ? null : (
         <>
           <div className="mt-4 flex items-center gap-2.5">
-            <CalendarDays size={16} aria-hidden="true" className={`shrink-0 ${isActive ? 'text-emerald-300' : 'text-cyan-300'}`} />
+            <span aria-hidden="true" className={`lg-icon-tile ${isActive ? 'bg-[var(--lg-good)]' : 'bg-[#0a84ff]'}`}><CalendarDays size={16} /></span>
             <div className="min-w-0">
               <p className="text-[15px] font-semibold text-white">
                 {dateLabel(`${period.first}|00:00:00`, language, timeZone)}
@@ -448,7 +445,7 @@ export function PlanManagementSection({
           </div>
 
           {panelVersion && (
-            <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-slate-950/45 p-4">
+            <div className="mt-4 rounded-[20px] bg-[#2c2c2e] p-4">
               <div className="flex items-baseline justify-between gap-3">
                 <h3 className="text-sm font-bold text-white">
                   {isEnded
@@ -483,12 +480,12 @@ export function PlanManagementSection({
               {panelSlots.length > 0 && syringe && <div className="mt-2"><SyringeNote syringe={syringe} language={language} t={t} /></div>}
 
               {isEnded ? null : resolved.status === 'paused' ? (
-                <p className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 px-3 py-2.5 text-sm text-amber-100">
+                <p className="mt-4 rounded-2xl bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[15px] text-[#ffb340]">
                   {t('my_stack_plan_pause_neutral', { defaultValue: 'Während der Pause ist keine Einnahme fällig.' })}
                 </p>
               ) : (
-                <div className="mt-3 flex items-start gap-2 rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-2.5">
-                  <Clock size={15} className="mt-0.5 shrink-0 text-cyan-300" />
+                <div className="mt-3 flex items-start gap-2 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-2.5">
+                  <Clock size={15} className="mt-0.5 shrink-0 text-[#64d2ff]" />
                   <div>
                     <p className="text-xs text-slate-500">{t('my_stack_plan_next_intake', { defaultValue: 'Nächste Einnahme' })}</p>
                     <p className="mt-0.5 text-sm font-semibold text-slate-100">
@@ -505,7 +502,7 @@ export function PlanManagementSection({
                   type="button"
                   disabled={pending}
                   onClick={() => onAdjustPlan(currentVersion)}
-                  className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-sm font-semibold text-cyan-100 disabled:opacity-50"
+                  className="lg-gray-btn mt-4 w-full"
                 >
                   <Pencil size={14} aria-hidden="true" />
                   {t('my_stack_plan_adjust_schedule', { defaultValue: 'Plan anpassen' })}
@@ -638,7 +635,7 @@ export function PlanManagementSection({
               type="button"
               disabled={pending}
               onClick={() => onAddStep(addStep.version, addStep.dates)}
-              className={`${showHistory ? 'ml-7 mt-3 w-[calc(100%-1.75rem)]' : 'mt-4 w-full'} flex min-h-11 items-center justify-center gap-2 rounded-xl border border-dashed border-violet-300/30 px-3 text-sm font-semibold text-violet-100 transition-colors hover:border-violet-300/50 hover:bg-violet-300/5 disabled:opacity-50`}
+              className={`${showHistory ? 'ml-7 mt-3 w-[calc(100%-1.75rem)]' : 'mt-4 w-full'} lg-gray-btn !text-[#da8fff]`}
             >
               {t('my_stack_plan_add_step', { defaultValue: 'Stufe hinzufügen' })}
               <Plus size={15} aria-hidden="true" />
@@ -651,7 +648,7 @@ export function PlanManagementSection({
                 type="button"
                 disabled={pending}
                 onClick={() => void restart()}
-                className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 text-sm font-bold text-cyan-100 transition-colors hover:bg-cyan-300/15"
+                className="lg-gray-btn mt-4 w-full"
               >
                 <RotateCcw size={15} /> {t('my_stack_plan_restart', { defaultValue: 'Neu starten' })}
               </button>
@@ -659,14 +656,14 @@ export function PlanManagementSection({
             </>
           ) : (
             <>
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--lg-separator)] pt-4">
                 {resolved.status === 'paused' ? (
                   <>
                     <button
                       type="button"
                       disabled={pending}
                       onClick={() => void resume()}
-                      className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-300/10 px-3 text-sm font-semibold text-emerald-100 disabled:opacity-50"
+                      className="lg-gray-btn flex-1 !text-[var(--lg-good-text)]"
                     >
                       <Play size={14} /> {t('my_stack_plan_resume', { defaultValue: 'Fortsetzen' })}
                     </button>
@@ -674,7 +671,7 @@ export function PlanManagementSection({
                       type="button"
                       disabled={pending}
                       onClick={() => openDialog({ kind: 'pause_end' })}
-                      className="min-h-10 flex-1 rounded-xl border border-amber-300/25 bg-amber-300/10 px-3 text-sm font-semibold text-amber-100 disabled:opacity-50"
+                      className="lg-gray-btn flex-1 !text-[#ffb340]"
                     >
                       {t('my_stack_plan_pause_end', { defaultValue: 'Pausenende festlegen' })}
                     </button>
@@ -684,7 +681,7 @@ export function PlanManagementSection({
                     type="button"
                     disabled={pending}
                     onClick={() => openDialog({ kind: 'pause' })}
-                    className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-amber-300/25 bg-amber-300/10 px-3 text-sm font-semibold text-amber-100 disabled:opacity-50"
+                    className="lg-gray-btn flex-1 !text-[#ffb340]"
                   >
                     <Pause size={14} /> {t('my_stack_plan_pause', { defaultValue: 'Pausieren' })}
                   </button>
@@ -693,7 +690,7 @@ export function PlanManagementSection({
                   type="button"
                   disabled={pending}
                   onClick={() => openDialog({ kind: 'end' })}
-                  className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-rose-300/25 bg-rose-300/10 px-3 text-sm font-semibold text-rose-100 disabled:opacity-50"
+                  className="lg-gray-btn flex-1 !text-[#ff6961]"
                 >
                   <Flag size={14} /> {t('my_stack_plan_end', { defaultValue: 'Beenden' })}
                 </button>
@@ -712,17 +709,17 @@ export function PlanManagementSection({
             aria-modal="true"
             aria-label={String(dialogTitle)}
             tabIndex={-1}
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-4 shadow-2xl"
+            className="w-full max-w-md rounded-[28px] bg-[#1c1c1e] p-5 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-bold text-white">{dialogTitle}</h3>
+              <h3 className="text-[20px] font-bold text-[var(--lg-text)]">{dialogTitle}</h3>
               <button
                 type="button"
                 disabled={pending}
                 onClick={closeDialog}
                 data-app-back-close
                 aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-                className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white disabled:opacity-50"
+                className="lg-icon-btn lg-press -mr-1 -mt-1 bg-[var(--lg-fill)] !text-[var(--lg-text-2)] disabled:opacity-50"
               >
                 <X size={16} />
               </button>
@@ -762,7 +759,7 @@ export function PlanManagementSection({
                 type="button"
                 disabled={pending}
                 onClick={closeDialog}
-                className="min-h-11 flex-1 rounded-xl border border-slate-700 px-3 text-sm font-semibold text-slate-300 disabled:opacity-50"
+                className="lg-gray-btn flex-1" data-quiet
               >
                 {t('cancel', { defaultValue: 'Abbrechen' })}
               </button>
@@ -771,7 +768,7 @@ export function PlanManagementSection({
                 disabled={pending}
                 {...denyProps(dialog.kind === 'pause_end' && !pauseEnd)}
                 onClick={() => { if (dialog.kind !== 'pause_end' || pauseEnd) void submitDialog() }}
-                className="min-h-11 flex-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-sm font-bold text-cyan-100 disabled:opacity-50 aria-disabled:opacity-50"
+                className="lg-btn lg-btn-primary !min-h-11 flex-1 !px-4 !text-[15px] disabled:opacity-50 aria-disabled:opacity-50"
               >
                 {confirmLabel}
               </button>

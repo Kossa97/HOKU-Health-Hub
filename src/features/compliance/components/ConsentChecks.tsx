@@ -14,15 +14,15 @@ import type { ConsentState } from '../lib/consent'
 export function ConsentChecks({ value, onChange }: { value: ConsentState; onChange: (next: ConsentState) => void }) {
   const { t } = useTranslation()
   const [offen, setOffen] = useState<LegalPageKey | null>(null)
-  const linkKlasse = 'font-semibold text-sky-400 underline underline-offset-2'
+  const linkKlasse = 'font-semibold text-[var(--lg-accent-text)] underline underline-offset-2'
   const zeile = (key: keyof ConsentState, label: React.ReactNode) => (
-    <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-slate-300">
+    <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-snug text-[var(--lg-text)]">
       <input
         type="checkbox"
         data-consent={key}
         checked={value[key]}
         onChange={event => onChange({ ...value, [key]: event.target.checked })}
-        className="mt-0.5 h-5 w-5 shrink-0 accent-sky-500"
+        className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--accent)]"
         required
       />
       <span>{label}</span>
@@ -50,7 +50,8 @@ export function ConsentChecks({ value, onChange }: { value: ConsentState; onChan
             autoFocus
             data-app-back-close
             onClick={() => setOffen(null)}
-            className="mt-6 min-h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300"
+            data-quiet
+            className="lg-gray-btn mt-6 w-full !min-h-12 !text-[17px]"
           >
             {t('close')}
           </button>

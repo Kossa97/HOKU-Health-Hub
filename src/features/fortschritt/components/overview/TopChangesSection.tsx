@@ -1,188 +1,129 @@
-import { useRef, type CSSProperties } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MetricChange } from '../../types'
-import { panel, sectionLabel } from '../../styles'
-
-const TOP_CHANGES_MOTION_CSS = `
-  @keyframes fortschritt-change-card-enter {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fortschritt-change-delta-enter {
-    0% { opacity: 0; transform: translateY(4px); text-shadow: 0 0 0 transparent; }
-    65% { opacity: 1; transform: translateY(0); text-shadow: 0 0 10px currentColor; }
-    100% { opacity: 1; transform: translateY(0); text-shadow: 0 0 0 transparent; }
-  }
-
-  @keyframes fortschritt-change-copy-refresh {
-    from { opacity: 0.35; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fortschritt-change-delta-refresh {
-    0% { opacity: 0.45; text-shadow: 0 0 0 transparent; }
-    60% { opacity: 1; text-shadow: 0 0 9px currentColor; }
-    100% { opacity: 1; text-shadow: 0 0 0 transparent; }
-  }
-
-  .fortschritt-change-grid--entry .fortschritt-change-card {
-    animation: fortschritt-change-card-enter 400ms cubic-bezier(.22,1,.36,1) both;
-    animation-delay: var(--change-card-delay);
-  }
-
-  .fortschritt-change-grid--entry .fortschritt-change-delta {
-    animation: fortschritt-change-delta-enter 300ms cubic-bezier(.22,1,.36,1) both;
-    animation-delay: calc(var(--change-card-delay) + 170ms);
-  }
-
-  .fortschritt-change-grid--refresh .fortschritt-change-copy {
-    animation: fortschritt-change-copy-refresh 260ms ease-out both;
-    animation-delay: var(--change-card-delay);
-  }
-
-  .fortschritt-change-grid--refresh .fortschritt-change-delta {
-    animation: fortschritt-change-delta-refresh 280ms cubic-bezier(.22,1,.36,1) both;
-    animation-delay: calc(var(--change-card-delay) + 70ms);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .fortschritt-change-grid *,
-    .fortschritt-change-grid *::before,
-    .fortschritt-change-grid *::after {
-      animation: none !important;
-    }
-  }
-`
+import type { SeriesPoint } from '../../lib/metrics'
+import { metricLabel } from '../../lib/metricLabels'
+import { formatNumber, formatSignedNumber } from '../../lib/dates'
+import { isWellnessMetricKey } from '../../constants'
+import { useReadingZone } from '../../../../components/ambient/context'
 
 interface Props {
   changes: MetricChange[]
   hasAnyData: boolean
   hasEnoughForTrend: boolean
-  animationKey: string
+  /** Verlauf je Messwert im Zeitraum — Hintergrund-Kurve der Karte */
+  seriesFor: (key: string) => SeriesPoint[]
+  colorFor: (key: string) => string
   onSelect?: (key: string) => void
+  /** Nur antippbar, wo das Antippen auch etwas tut — sonst ist die Karte keine Schaltfläche. */
+  canSelect?: (key: string) => boolean
 }
 
-export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, animationKey, onSelect }: Props) {
-  const initialAnimationKey = useRef(animationKey)
-  const hasRefreshed = useRef(false)
-  if (animationKey !== initialAnimationKey.current) hasRefreshed.current = true
-  const motionMode = hasRefreshed.current ? 'refresh' : 'entry'
+const unitText = (unit: string) => (unit === '/10' ? '' : unit === '%' ? ' %' : unit ? ` ${unit}` : '')
+
+/** Tageswerte von 1–10 wären als Kurve nur Zacken: gleitendes 7-Tage-Mittel. */
+function smooth(points: SeriesPoint[], key: string): number[] {
+  const values = points.map(p => p.value)
+  if (!isWellnessMetricKey(key)) return values
+  return values.map((_, i) => {
+    const window = values.slice(Math.max(0, i - 6), i + 1)
+    return window.reduce((s, v) => s + v, 0) / window.length
+  })
+}
+
+function Spark({ values, color }: { values: number[]; color: string }) {
+  if (values.length < 2) return null
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = Math.max(1e-6, max - min)
+  const d = values.map((v, i) => `${i ? 'L' : 'M'}${((i / (values.length - 1)) * 200).toFixed(1)},${(56 - ((v - min) / span) * 46).toFixed(1)}`).join('')
+  return (
+    <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden>
+      <path d={`${d}L200,60L0,60Z`} fill={color} fillOpacity="0.12" />
+      <path d={d} fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
+export function TopChangesSection({ changes, hasAnyData, hasEnoughForTrend, seriesFor, colorFor, onSelect, canSelect }: Props) {
+  const { t } = useTranslation()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [page, setPage] = useState(0)
+  const sectionRef = useRef<HTMLElement>(null)
+  useReadingZone(sectionRef)
+
+  const empty = !hasAnyData
+    ? { title: t('fortschritt_no_values_title'), body: t('fortschritt_no_values_body') }
+    : !hasEnoughForTrend
+      ? { title: t('fortschritt_little_data_title'), body: t('fortschritt_little_data_body') }
+      : changes.length === 0
+        ? { title: t('fortschritt_stable_title'), body: t('fortschritt_stable_body') }
+        : null
+
+  // Karten nur neu bauen, wenn sich ihr Inhalt ändert — nicht bei jedem Wisch-Frame
+  const cards = useMemo(() => changes.map(change => {
+              const label = metricLabel(t, change.key, change.label)
+              const color = colorFor(change.key)
+              const arrow = change.delta > 0 ? '↑' : change.delta < 0 ? '↓' : '→'
+              const body = (
+                <>
+                  <Spark values={smooth(seriesFor(change.key), change.key)} color={color} />
+                  <div className="n">{label}</div>
+                  <div className="big">
+                    <span style={{ color, marginRight: 6 }} aria-hidden>{arrow}</span>
+                    {formatSignedNumber(change.delta)}{unitText(change.unit)}
+                  </div>
+                  <div className="ft">
+                    {formatNumber(change.from)} → {formatNumber(change.to)}{change.unit === '/10' ? ` ${t('fortschritt_values_scale')}` : unitText(change.unit)}
+                  </div>
+                </>
+              )
+              const selectable = onSelect && (canSelect?.(change.key) ?? true)
+              return selectable ? (
+                <button
+                  key={change.key}
+                  type="button"
+                  className="fg-chg lg-surface fortschritt-change-card"
+                  onClick={() => onSelect(change.key)}
+                >
+                  {body}
+                </button>
+              ) : (
+                <div key={change.key} className="fg-chg lg-surface fortschritt-change-card">{body}</div>
+              )
+            }), [changes, seriesFor, colorFor, onSelect, canSelect, t])
+
+  const onScroll = () => {
+    const el = scrollRef.current
+    const card = el?.firstElementChild as HTMLElement | null
+    if (!el || !card) return
+    setPage(Math.round(el.scrollLeft / (card.offsetWidth + 10)))
+  }
 
   return (
-    <section style={{ ...panel, padding: '14px 14px 16px' }}>
-      <p style={{ ...sectionLabel, marginBottom: 2 }}>Größte Veränderungen</p>
-      <style>{TOP_CHANGES_MOTION_CSS}</style>
-      <p style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 12 }}>
-        im gewählten Zeitraum
-      </p>
+    <section ref={sectionRef} aria-labelledby="fg-changes-title">
+      <div className="lg-section-head">
+        <h2 id="fg-changes-title" className="lg-h3">{t('fortschritt_top_changes')}</h2>
+        <span className="lg-meta">{t('fortschritt_top_changes_sub')}</span>
+      </div>
 
-      {!hasAnyData && (
-        <EmptyMessage
-          title="Noch keine Werte erfasst"
-          body="Starte mit + Heute — dauert unter 30 Sekunden."
-        />
-      )}
-
-      {hasAnyData && !hasEnoughForTrend && (
-        <EmptyMessage
-          title="Noch zu wenig Daten"
-          body="Logge ein paar Tage mit + Heute, um Trends zu sehen."
-        />
-      )}
-
-      {hasAnyData && hasEnoughForTrend && changes.length === 0 && (
-        <EmptyMessage
-          title="Alles stabil im Zeitraum"
-          body="Keine Metrik hat sich merklich verändert."
-        />
-      )}
-
-      {changes.length > 0 && (
-        <div
-          key={animationKey}
-          className={`fortschritt-change-grid fortschritt-change-grid--${motionMode}`}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: changes.length === 1 ? '1fr' : '1fr 1fr',
-            gap: 8,
-          }}
-        >
-          {changes.map((change, index) => (
-            <ChangeCard key={change.key} change={change} index={index} onSelect={onSelect} />
-          ))}
+      {empty ? (
+        <div className="lg-empty lg-surface">
+          <p>{empty.title}</p>
+          <p>{empty.body}</p>
         </div>
+      ) : (
+        <>
+          <div ref={scrollRef} className="lg-swipe" onScroll={onScroll}>
+            {cards}
+          </div>
+          {changes.length > 1 && (
+            <div className="lg-dots" aria-hidden>
+              {changes.map((change, i) => <i key={change.key} data-on={i === page} />)}
+            </div>
+          )}
+        </>
       )}
     </section>
-  )
-}
-
-function ChangeCard({
-  change,
-  index,
-  onSelect,
-}: {
-  change: MetricChange
-  index: number
-  onSelect?: (key: string) => void
-}) {
-  const deltaColor = change.delta > 0 ? '#10b981' : change.delta < 0 ? '#f59e0b' : 'var(--text-muted)'
-
-  return (
-    <button
-      type="button"
-      className="fortschritt-change-card"
-      onClick={() => onSelect?.(change.key)}
-      style={{
-        '--change-card-delay': `${index * 90}ms`,
-        display: 'block',
-        width: '100%',
-        textAlign: 'left',
-        padding: '11px 12px',
-        borderRadius: 14,
-        background: 'var(--surface-input)',
-        border: '1px solid var(--border)',
-        cursor: onSelect ? 'pointer' : 'default',
-      } as CSSProperties}
-    >
-      <div className="fortschritt-change-copy">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
-        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)', lineHeight: 1.2 }}>
-          {change.label}
-        </span>
-        <span className="fortschritt-change-delta" style={{ fontSize: '0.75rem', fontWeight: 800, color: deltaColor, flexShrink: 0 }}>
-          {formatDelta(change)}
-        </span>
-      </div>
-      <p style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1.35 }}>
-        {formatValue(change.from, change.unit)} → {formatValue(change.to, change.unit)}
-      </p>
-      </div>
-    </button>
-  )
-}
-
-function formatValue(value: number, unit: string): string {
-  if (unit === 'kg') return `${value} kg`
-  if (unit === '%') return `${value}%`
-  if (unit === '/10') return `${value}/10`
-  if (unit) return `${value} ${unit}`
-  return String(value)
-}
-
-function formatDelta(change: MetricChange): string {
-  const sign = change.delta > 0 ? '↑' : change.delta < 0 ? '↓' : '→'
-  if (change.unit === 'kg') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta} kg`
-  if (change.unit === '%') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta}%`
-  if (change.unit === '/10') return `${sign} ${change.delta > 0 ? '+' : ''}${change.delta}`
-  const abs = Math.abs(change.delta)
-  return `${sign} ${change.delta > 0 ? '+' : ''}${abs}`
-}
-
-function EmptyMessage({ title, body }: { title: string; body: string }) {
-  return (
-    <div style={{ textAlign: 'center', padding: '12px 4px 4px' }}>
-      <p style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 6 }}>{title}</p>
-      <p style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.45 }}>{body}</p>
-    </div>
   )
 }

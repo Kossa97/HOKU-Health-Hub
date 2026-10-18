@@ -144,7 +144,7 @@ export function WellnessSliderRow({ label, value, onChange }: Props) {
         marginBottom: 7,
         gap: 8,
       }}>
-        <label style={{ ...fieldLabel, marginBottom: 0, fontSize: '0.56rem' }}>
+        <label style={{ ...fieldLabel, marginBottom: 0, fontSize: '0.68rem' }}>
           {label}
         </label>
         <span style={{
@@ -153,7 +153,7 @@ export function WellnessSliderRow({ label, value, onChange }: Props) {
           color: isSet ? 'var(--accent)' : 'var(--text-muted)',
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {display}<span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)' }}>/10</span>
+          {display}<span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)' }}>/10</span>
         </span>
       </div>
 

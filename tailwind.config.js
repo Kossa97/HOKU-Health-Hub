@@ -7,19 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Deep biotech darks — slightly blue-tinted blacks
+        // Neutrales Graphit auf reinem Schwarz (Liquid Glass). Textstufen mit
+        // Kontrast auf Schwarz: 300 ≈ 9:1, 400 ≈ 7:1, 500 ≈ 5:1, 600 ≈ 2,8:1
+        // (nur noch für Deaktiviertes). Flächenstufen 700–950 ohne Blaustich.
         slate: {
-          50:  '#f4f6fc',
-          100: '#eaeefc',
-          200: '#c8d2e8',
-          300: '#9aaabf',
-          400: '#687890',
-          500: '#465265',
-          600: '#2c3850',
-          700: '#19223a',
-          800: '#0e1428',
-          900: '#07091a',
-          950: '#020308',
+          50:  '#f5f5f7',
+          100: '#ebebf0',
+          200: '#d1d1d6',
+          300: '#aeaeb2',
+          400: '#98989d',
+          500: '#7c7c82',
+          600: '#545458',
+          700: '#2c2c2e',
+          800: '#1c1c1e',
+          900: '#121214',
+          950: '#050506',
         },
         // Neon cyan — replaces sky
         sky: {
@@ -38,8 +40,8 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Inter', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"',
-          '"Segoe UI"', 'system-ui', 'sans-serif',
+          '-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', 'Inter',
+          '"Segoe UI"', 'Roboto', 'system-ui', 'sans-serif',
         ],
       },
       boxShadow: {

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { addDays, format, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, ScanBarcode, Target, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ScanBarcode, Target, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
+import { Ph, Silhouette, SkelKarte } from '../../components/ui/Silhouette'
 import { getDateLocale } from '../../i18n/dateLocales'
 import { Sheet } from '../compliance/components/Sheet'
 import { AddFoodSheet } from './components/AddFoodSheet'
@@ -12,6 +13,7 @@ import { DaySummary } from './components/DaySummary'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
 import { MealSection } from './components/MealSection'
+import { SheetClose } from '../../components/ui/SheetClose'
 import { PortionSheet } from './components/PortionSheet'
 import { WaterCard } from './components/WaterCard'
 import { WeekStrip } from './components/WeekStrip'
@@ -19,7 +21,7 @@ import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
 import { foodFromEntry } from './lib/foodSearch'
 import { MEALS, type Food, type LogEntry, type Meal, mealForHour } from './lib/nutrition'
 import { LookupUnavailableError, lookupBarcode } from './services/foodLookup'
-import { PRESSABLE, card, chip, dim, muted } from './styles'
+import { DIM, MUTED, chip } from './styles'
 
 type SheetState =
   | null
@@ -80,7 +82,7 @@ export function ErnaehrungPage() {
     toast(tt => (
       <span className="flex items-center gap-3">
         <span>{t('nutr_deleted', { name: entry.name })}</span>
-        <button type="button" className="font-bold" style={{ color: 'var(--accent)' }}
+        <button type="button" className="font-semibold text-[var(--lg-accent-text)]"
           onClick={() => { toast.dismiss(tt.id); n.restore(entry).catch(() => toast.error(t('nutr_error'))) }}>
           {t('nutr_undo')}
         </button>
@@ -121,50 +123,60 @@ export function ErnaehrungPage() {
   const meal0 = mealForHour(new Date().getHours())
 
   return (
-    <div className="mx-auto max-w-lg px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
-      <header className="flex items-center justify-between gap-2">
-        <h1 className="text-[1.45rem] font-extrabold" style={{ color: 'var(--text)' }}>{t('nutr_title')}</h1>
-        <div className="flex gap-1">
+    <div className="mx-auto max-w-lg pb-6">
+      <header className="flex items-center justify-between gap-3">
+        <h1 className="lg-large-title min-w-0 truncate">{t('nutr_title')}</h1>
+        <div className="flex shrink-0 items-center gap-2">
           <button type="button" onClick={() => setSheet({ kind: 'scan', meal: isToday ? meal0 : 'snack' })} aria-label={t('nutr_scan')}
-            className={`grid h-11 w-11 place-items-center rounded-xl ${PRESSABLE}`} style={{ color: 'var(--accent)' }}>
-            <ScanBarcode size={21} />
+            className="lg-glass lg-icon-btn lg-press">
+            <ScanBarcode size={20} />
           </button>
           <button type="button" onClick={() => setSheet({ kind: 'goals' })}
-            className={`flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-[0.86rem] font-bold ${PRESSABLE}`} style={{ color: 'var(--accent)' }}>
-            <Target size={17} aria-hidden="true" />{t('nutr_goals')}
+            className="lg-btn lg-glass lg-btn-glass lg-btn-compact max-[379px]:!w-11 max-[379px]:!px-0">
+            {/* Schmale Geräte: nur das Symbol, sonst wird der Titel abgeschnitten */}
+            <Target size={17} aria-hidden="true" /><span className="max-[379px]:sr-only">{t('nutr_goals')}</span>
           </button>
         </div>
       </header>
 
-      <nav aria-label={t('nutr_day_nav')} className="mt-1 flex items-center justify-between">
+      <nav aria-label={t('nutr_day_nav')} className="mt-3 flex items-center justify-between">
         <button type="button" aria-label={t('nutr_prev_day')} onClick={() => shiftDay(-1)}
-          className={`grid h-11 w-11 place-items-center rounded-xl ${PRESSABLE}`} style={dim}><ChevronLeft size={22} /></button>
+          className="lg-icon-btn !text-[var(--accent)]"><ChevronLeft size={22} /></button>
         <button type="button" onClick={() => setDate(todayKey)} disabled={isToday} aria-live="polite"
-          className="min-h-11 px-3 text-[0.95rem] font-bold disabled:cursor-default" style={{ color: 'var(--text)' }}>
+          className="min-h-11 px-3 text-[17px] font-semibold text-[var(--lg-text)] disabled:cursor-default">
           {isToday ? t('nutr_today') : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMMM', { locale })}
         </button>
         <button type="button" aria-label={t('nutr_next_day')} onClick={() => shiftDay(1)} disabled={isToday}
-          className={`grid h-11 w-11 place-items-center rounded-xl disabled:opacity-30 ${PRESSABLE}`} style={dim}><ChevronRight size={22} /></button>
+          className="lg-icon-btn !text-[var(--accent)] disabled:opacity-30"><ChevronRight size={22} /></button>
       </nav>
 
       {n.loadError && (
-        <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-2xl p-3 text-[0.86rem]"
-          style={{ background: 'color-mix(in srgb, var(--cat-rose) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--cat-rose) 35%, transparent)', color: 'var(--text)' }}>
+        <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] p-3.5 text-[15px] text-[var(--lg-text)]">
           {t('nutr_load_error')}
-          <button type="button" className="btn-secondary shrink-0" onClick={n.reload}>{t('lab_retry')}</button>
+          <button type="button" data-quiet className="lg-gray-btn shrink-0" onClick={n.reload}>{t('lab_retry')}</button>
         </div>
       )}
 
       {n.goalsSet === false && (
         <button type="button" onClick={() => setSheet({ kind: 'goals' })}
-          className={`mt-2 w-full rounded-2xl p-3.5 text-left text-[0.86rem] ${PRESSABLE}`}
-          style={{ background: 'var(--accent-weak)', border: '1px solid var(--accent-border)', color: 'var(--text)' }}>
-          <b>{t('nutr_set_goals')}</b> <span style={dim}>{t('nutr_set_goals_hint')}</span>
+          className="lg-surface lg-flat mt-2 flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors active:bg-[var(--lg-surface-2)]">
+          <span className="lg-icon-tile" style={{ background: 'var(--accent)', color: 'var(--accent-contrast)' }} aria-hidden="true"><Target size={17} /></span>
+          <span className="min-w-0 flex-1 text-[15px] leading-snug">
+            <span className="font-semibold text-[var(--lg-text)]">{t('nutr_set_goals')}</span>{' '}
+            <span className={DIM}>{t('nutr_set_goals_hint')}</span>
+          </span>
         </button>
       )}
 
       <div className="mt-3 space-y-3">
-        {n.day ? <DaySummary total={n.total} goals={n.goals} /> : <div className="h-[164px] animate-pulse" style={card} aria-hidden="true" />}
+        {n.day ? <DaySummary total={n.total} goals={n.goals} /> : (
+          <Silhouette>
+            <SkelKarte className="flex h-[164px] items-center justify-center gap-5 p-4">
+              <Ph w={132} h={132} shape="round" />
+              <div className="flex flex-col gap-2"><Ph w={56} h={11} /><Ph w={72} h={20} /><Ph w={64} h={11} /></div>
+            </SkelKarte>
+          </Silhouette>
+        )}
 
         {MEALS.map(meal => (
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} busy={busy || !n.day}
@@ -186,7 +198,7 @@ export function ErnaehrungPage() {
         )}
       </div>
 
-      <p className="mt-6 px-2 text-center text-[0.7rem] leading-relaxed" style={muted}>
+      <p className={`mt-6 px-4 text-center text-[12px] leading-relaxed ${MUTED}`}>
         {t('nutr_credit_off')}{' '}
         <a href="https://world.openfoodfacts.org" target="_blank" rel="noreferrer" className="underline">Open Food Facts</a>
         {' '}(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer" className="underline">ODbL</a>).
@@ -241,23 +253,22 @@ export function ErnaehrungPage() {
 
       {sheet?.kind === 'quick' && (
         <Sheet labelledBy="nutr-quick-title" busy={busy} onClose={() => setSheet(null)}>
-          <div className="flex items-center justify-between">
-            <h2 id="nutr-quick-title" className="text-lg font-extrabold" style={{ color: 'var(--text)' }}>{sheet.entry.name}</h2>
-            <button type="button" data-app-back-close aria-label={t('close')} onClick={() => setSheet(null)}
-              className={`grid h-11 w-11 place-items-center rounded-xl ${PRESSABLE}`} style={dim}><X size={20} /></button>
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="nutr-quick-title" className="lg-title2 min-w-0 truncate">{sheet.entry.name}</h2>
+            <SheetClose onClick={() => setSheet(null)} />
           </div>
-          <p className="mt-1 text-[0.86rem]" style={dim}>
+          <p className={`mt-1 text-[15px] ${DIM}`}>
             {n.goals.hideKcal ? '' : `${Math.round(sheet.entry.nutrients.kcal)} kcal · `}{Math.round(sheet.entry.nutrients.protein)} g {t('nutr_protein')}
           </p>
           <div role="radiogroup" aria-label={t('nutr_meal')} className="mt-4 flex flex-wrap gap-1.5">
             {MEALS.map(m => (
               <button key={m} type="button" role="radio" aria-checked={sheet.entry.meal === m} disabled={busy}
                 onClick={() => run(async () => { await n.update(sheet.entry, { meal: m }); setSheet(null) })}
-                className={PRESSABLE} style={chip(sheet.entry.meal === m)}>{t(`nutr_meal_${m}`)}</button>
+                className={chip(sheet.entry.meal === m)}>{t(`nutr_meal_${m}`)}</button>
             ))}
           </div>
           <button type="button" disabled={busy} onClick={() => removeWithUndo(sheet.entry)}
-            className={`btn-secondary mt-5 flex w-full items-center justify-center gap-2 ${PRESSABLE}`} style={{ color: 'var(--cat-rose)' }}>
+            data-tone="bad" className="lg-gray-btn mt-5 w-full !min-h-12">
             <Trash2 size={16} aria-hidden="true" />{t('nutr_delete')}
           </button>
         </Sheet>

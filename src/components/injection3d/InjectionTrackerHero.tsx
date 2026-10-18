@@ -120,21 +120,19 @@ export function InjectionTrackerHero({
   return (
     <section
       aria-label={String(t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' }))}
-      className="relative overflow-hidden rounded-[24px] border border-cyan-300/20 p-4 shadow-[0_18px_54px_rgba(0,0,0,0.32)]"
-      style={{ background: 'linear-gradient(145deg, rgba(5,18,30,0.98), rgba(7,14,25,0.97) 48%, rgba(6,27,26,0.96))' }}
+      // Inhalt auf durchscheinendem Glas wie jede Karte; der Torso trägt das Bild
+      className="lg-surface overflow-hidden p-4"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/45 to-transparent" />
-      <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:22px_22px]" />
 
       <div className="relative grid gap-4 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
         <TorsoPreview pins={pins} />
 
         <div className="min-w-0">
-          <div className="mb-1 flex items-center gap-2 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-cyan-300">
-            <Rotate3D size={13} aria-hidden="true" /> {t('injection_hero_kicker', { defaultValue: 'Pro Feature' })}
+          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-cyan-300">
+            <Rotate3D size={14} aria-hidden="true" /> {t('injection_hero_kicker', { defaultValue: 'Pro Feature' })}
           </div>
-          <h2 className="text-xl font-black text-white">{t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' })}</h2>
-          <p className="mt-1 text-sm font-semibold text-cyan-100/80">{t('injection_pro_subtitle', { defaultValue: 'Tracke deine Injektionen präzise und einfach auf einem 3D-Torso' })}</p>
+          <h2 className="text-[20px] font-bold tracking-[0.019em] text-white">{t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' })}</h2>
+          <p className="mt-1 text-[15px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t('injection_pro_subtitle', { defaultValue: 'Tracke deine Injektionen präzise und einfach auf einem 3D-Torso' })}</p>
         </div>
       </div>
 

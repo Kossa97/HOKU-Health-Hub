@@ -12,7 +12,7 @@ import { expiryText } from './model'
  *
  * `tage` kommt aus `haltbarkeitFuer` (Kalendertage, negativ = abgelaufen).
  * `substanzId` laesst den Alarm-Takt je Substanz neu beginnen.
- * Die Farben fuer das helle Design stehen in index.css (`data-haltbarkeit`).
+ * Die Farben stehen bei `.lg-tag` in liquid-glass.css.
  */
 export function HaltbarkeitChip({ tage, substanzId, variante = 'still' }: {
   tage: number | null
@@ -23,13 +23,9 @@ export function HaltbarkeitChip({ tage, substanzId, variante = 'still' }: {
   if (tage !== null && tage < 0) return <ExpiredBadge key={substanzId} daysSince={-tage} variante={variante} />
 
   const ton = tage === null ? 'leer' : tage > ABLAUF_BALD_TAGE ? 'gut' : 'bald'
-  const klasse = {
-    leer: 'border-slate-700 bg-slate-900 text-slate-300',
-    gut: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-    bald: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-  }[ton]
+  const farbton = { leer: undefined, gut: 'good', bald: 'warn' }[ton]
   return (
-    <span data-haltbarkeit={ton} className={`whitespace-nowrap rounded-full border px-2.5 py-1 font-semibold ${klasse}`}>
+    <span data-haltbarkeit={ton} data-tone={farbton} className="lg-tag">
       {tage === null
         ? t('peptide_form_not_set', { defaultValue: 'Nicht gesetzt' })
         : expiryText(t, tage)}

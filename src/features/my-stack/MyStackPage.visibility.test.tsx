@@ -675,10 +675,11 @@ describe('MyStackPage non-vial visibility', () => {
     const stock = dialog.querySelector<HTMLElement>('[data-stack-detail="bestand"]')
     expect(stock).not.toBeNull()
     expect(within(stock!).getAllByRole('button')).toHaveLength(1)
-    expect(substance?.querySelector('[data-stack-detail-field="notizen"]')?.className).toContain('col-span-2')
+    // Die Notiz steht unter ihrem Namen, nicht rechts daneben abgeschnitten.
+    expect(substance?.querySelector('[data-stack-detail-field="notizen"]')?.getAttribute('data-wide')).toBe('true')
   })
 
-  it('shows a set expiry date as the unopened one, full width when it would stand alone', async () => {
+  it('shows a set expiry date as the unopened one', async () => {
     const vial = loadedItems.find(item => item.id === 'vial-1')!
     const vorher = vial.inventory
     vial.inventory = {
@@ -694,8 +695,8 @@ describe('MyStackPage non-vial visibility', () => {
       expect(tile).not.toBeNull()
       expect(within(tile!).getByText('my_stack_stock_expires_unopened')).toBeTruthy()
       expect(tile!.textContent).toContain('01.03.2027')
-      // Sieben halbe Kacheln: die letzte stuende allein — sie wird ganz breit.
-      expect(tile!.className).toContain('col-span-2')
+      // Ein kurzer Wert steht rechts neben seinem Namen.
+      expect(tile!.getAttribute('data-wide')).toBe('false')
     } finally {
       vial.inventory = vorher
     }

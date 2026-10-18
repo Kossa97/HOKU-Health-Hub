@@ -1,7 +1,6 @@
 export interface RouteLayoutMode {
   lockViewport: boolean
   hideBottomNav: boolean
-  hideFloatingFaq: boolean
 }
 
 export function routeLayoutMode(pathname: string): RouteLayoutMode {
@@ -9,6 +8,5 @@ export function routeLayoutMode(pathname: string): RouteLayoutMode {
   return {
     lockViewport: injectionFullscreen || pathname === '/my-stack' || pathname === '/rechner',
     hideBottomNav: injectionFullscreen,
-    hideFloatingFaq: injectionFullscreen || pathname === '/rechner',
   }
 }

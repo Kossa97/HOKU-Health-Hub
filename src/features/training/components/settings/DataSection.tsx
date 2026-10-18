@@ -141,11 +141,11 @@ export function ImportSection({ data, onBusyChange }: { data: TrainingData; onBu
 
         {file && preview && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontWeight: 750 }}>{tt('settings_import_detected', { format: FORMAT_LABEL[file.format] })}</p>
+            <p style={{ fontWeight: 600 }}>{tt('settings_import_detected', { format: FORMAT_LABEL[file.format] })}</p>
 
             {file.needsUnit && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{tt('settings_import_strong_unit')}</span>
+                <span className="label" style={{ marginBottom: 0 }}>{tt('settings_import_strong_unit')}</span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Chip active={strongUnit === 'kg'} onClick={() => setStrongUnit('kg')}>kg</Chip>
                   <Chip active={strongUnit === 'lb'} onClick={() => setStrongUnit('lb')}>lbs</Chip>
@@ -157,7 +157,7 @@ export function ImportSection({ data, onBusyChange }: { data: TrainingData; onBu
               <p style={noteStyle}>{tt('settings_import_empty')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <p style={{ fontSize: '1.1rem', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                <p style={{ fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                   {plural('settings_import_sessions_one', 'settings_import_sessions', preview.sessionCount)}
                 </p>
                 {preview.firstAt && preview.lastAt && (
@@ -176,7 +176,7 @@ export function ImportSection({ data, onBusyChange }: { data: TrainingData; onBu
                 <p style={hintStyle}>
                   {plural('settings_import_unknown_one', 'settings_import_unknown', preview.unknownExercises.length)}
                 </p>
-                <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: '0.85rem', color: 'var(--text)', overflowWrap: 'anywhere' }}>
+                <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 13, color: 'var(--lg-text)', overflowWrap: 'anywhere' }}>
                   {preview.unknownExercises.map(name => <li key={name}>{name}</li>)}
                 </ul>
               </div>

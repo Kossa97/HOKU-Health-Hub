@@ -180,20 +180,21 @@ export function Bewertungen() {
 
   return (
     <div className="pb-14">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">{t('bewertungen_title')}</h1>
-        <button className="btn-primary flex items-center gap-2" onClick={openNew}>
-          <Plus size={16} aria-hidden="true" /> {t('new')}
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h1 className="lg-large-title min-w-0 truncate">{t('bewertungen_title')}</h1>
+        {/* Schmale Geräte: nur das Plus, damit der Titel ganz bleibt */}
+        <button className="lg-btn lg-btn-tint lg-btn-compact shrink-0 max-[379px]:!w-11 max-[379px]:!px-0" onClick={openNew}>
+          <Plus size={18} aria-hidden="true" /> <span className="max-[379px]:sr-only">{t('new')}</span>
         </button>
       </div>
       {/* Persoenliche Notizen, keine Produktbewertung: das steht da, damit
           niemand Sterne als Empfehlung einer Substanz liest. */}
-      <p data-review-disclaimer className="-mt-2 mb-4 text-xs text-slate-500">{t('review_disclaimer')}</p>
+      <p data-review-disclaimer className="mb-5 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('review_disclaimer')}</p>
 
       {ladeZustand === 'fehler' && (
-        <div role="alert" className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3">
-          <p className="text-sm text-red-300">{t('review_load_error')}</p>
-          <button type="button" onClick={() => { setLadeZustand('laedt'); void load() }} className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-red-200">
+        <div role="alert" data-tone="bad" className="lg-surface lg-flat mb-4 flex items-center justify-between gap-3 py-2 pl-4 pr-2">
+          <p className="text-[15px] text-[var(--lg-bad-text)]">{t('review_load_error')}</p>
+          <button type="button" onClick={() => { setLadeZustand('laedt'); void load() }} className="flex min-h-11 shrink-0 items-center gap-1.5 px-2 text-[15px] font-semibold text-[var(--lg-accent-text)]">
             <RefreshCw size={14} aria-hidden="true" /> {t('review_retry')}
           </button>
         </div>
@@ -202,15 +203,15 @@ export function Bewertungen() {
       {/* Erst ab vier Bewertungen — aber nie verschwinden, solange eine Suche
           filtert: sonst bliebe der Filter unsichtbar aktiv. */}
       {offen.length > 0 && ladeZustand === 'fertig' && (
-        <div data-review-unrated className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-          <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-amber-200">
-            <Star size={15} aria-hidden="true" className="shrink-0 text-amber-400" />
+        <div data-review-unrated className="lg-surface lg-flat mb-4 flex items-center justify-between gap-3 py-2.5 pl-4 pr-2.5">
+          <p className="flex min-w-0 items-center gap-2.5 text-[15px] font-semibold text-[var(--lg-text)]">
+            <Star size={16} aria-hidden="true" className="shrink-0 text-amber-400" fill="currentColor" />
             {offen.length === 1 ? t('review_unrated_one') : t('review_unrated_many', { n: offen.length })}
           </p>
           <button
             type="button"
             onClick={() => bewerteZyklus(offen[0].cycle.stack_item_id, offen[0].cycle.id)}
-            className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold text-slate-950"
+            className="lg-gray-btn shrink-0 !min-h-9 !px-3.5 !text-[14px]"
           >
             {t('review_unrated_action')}
           </button>
@@ -220,9 +221,9 @@ export function Bewertungen() {
       {(reviews.length > 3 || suche !== '') && (
         <div className="mb-4 flex gap-2">
           <div className="relative flex-1">
-            <Search size={14} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)]" />
             <input
-              className="input pl-9 text-sm"
+              className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
               aria-label={String(t('bewertung_suchen'))}
               placeholder={String(t('bewertung_suchen'))}
               value={suche}
@@ -230,7 +231,7 @@ export function Bewertungen() {
             />
           </div>
           <select
-            className="select w-auto shrink-0 pr-8 text-sm"
+            className="min-h-11 w-auto shrink-0 cursor-pointer rounded-full border-0 bg-[var(--lg-fill)] pl-4 pr-8 text-[15px] text-[var(--lg-text)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
             aria-label={String(t('review_order'))}
             value={reihenfolge}
             onChange={e => setReihenfolge(e.target.value as Reihenfolge)}
@@ -242,15 +243,15 @@ export function Bewertungen() {
       )}
 
       {ladeZustand === 'fertig' && reviews.length === 0 && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 px-5 py-10 text-center">
-          <Star size={32} aria-hidden="true" className="mx-auto mb-3 text-slate-600" />
-          <p className="font-semibold text-white">{t('noch_keine_bewertungen')}</p>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-slate-400">{t('review_empty_hint')}</p>
+        <div className="lg-surface lg-flat px-5 py-10 text-center">
+          <Star size={32} aria-hidden="true" className="mx-auto mb-3 text-[var(--lg-text-3)]" />
+          <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('noch_keine_bewertungen')}</p>
+          <p className="mx-auto mt-1 max-w-xs text-[15px] text-[var(--lg-text-2)]">{t('review_empty_hint')}</p>
         </div>
       )}
 
       {suche && gruppen.length === 0 && reviews.length > 0 && (
-        <p className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-8 text-center text-sm text-slate-500">
+        <p className="lg-surface lg-flat px-4 py-8 text-center text-[15px] text-[var(--lg-text-2)]">
           {t('nichts_gefunden', { search: suche })}
         </p>
       )}
@@ -259,19 +260,19 @@ export function Bewertungen() {
         {gruppen.map(gruppe => (
           <section key={gruppe.stackItemId} data-review-group={gruppe.stackItemId} aria-labelledby={`review-group-${gruppe.stackItemId}`}>
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-              <h2 id={`review-group-${gruppe.stackItemId}`} className="min-w-0 truncate text-base font-bold text-white">
+              <h2 id={`review-group-${gruppe.stackItemId}`} className="lg-title2 min-w-0 truncate">
                 {gruppe.name}
-                {gruppe.archiviert && <span className="ml-2 text-xs font-medium text-slate-500">{t('review_archived')}</span>}
+                {gruppe.archiviert && <span className="ml-2 text-[13px] font-medium text-[var(--lg-text-3)]">{t('review_archived')}</span>}
               </h2>
-              <p className="flex shrink-0 items-center gap-1 text-xs font-semibold tabular-nums text-slate-400">
+              <p className="flex shrink-0 items-center gap-1 text-[13px] font-semibold tabular-nums text-[var(--lg-text-2)]">
                 <Star size={12} aria-hidden="true" className="text-amber-400" fill="currentColor" />
                 {gruppe.schnitt.toLocaleString(language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                <span className="font-medium text-slate-500">
+                <span className="font-medium text-[var(--lg-text-3)]">
                   · {gruppe.bewertungen.length === 1 ? t('review_count_one') : t('review_count_many', { n: gruppe.bewertungen.length })}
                 </span>
               </p>
             </div>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-2.5">
               {gruppe.bewertungen.map(r => (
                 <ReviewRow
                   key={r.id}
@@ -349,7 +350,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
       ref={zeileRef}
       data-review-row={r.id}
       data-list-open={offen || undefined}
-      className="relative touch-pan-y select-none overflow-hidden rounded-2xl border border-slate-800 bg-slate-950"
+      className="lg-surface lg-flat touch-pan-y select-none overflow-hidden !rounded-[22px]"
     >
       <div
         ref={aktionenRef}
@@ -361,7 +362,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onEdit() }}
           aria-label={String(t('bearbeiten'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-sky-600 text-[11px] font-semibold text-white transition-[flex-grow] duration-300 ease-out group-data-[voll]/aktionen:grow-0"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[#0a84ff] text-[11px] font-semibold text-white transition-[flex-grow] duration-300 ease-out group-data-[voll]/aktionen:grow-0"
         >
           <Pencil size={17} aria-hidden="true" style={AKTION_SYMBOL} />
           <span style={AKTION_TEXT}>{t('bearbeiten')}</span>
@@ -371,7 +372,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onRemove() }}
           aria-label={String(t('loeschen'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-red-600 text-[11px] font-semibold text-white group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[var(--lg-bad)] text-[11px] font-semibold text-white group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7"
         >
           <Trash2 size={17} aria-hidden="true" style={AKTION_SYMBOL} />
           <span style={AKTION_TEXT}>{t('loeschen')}</span>
@@ -387,29 +388,29 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           if (offen) { onOffen(false); return }
           onEdit()
         }}
-        className="relative block w-full touch-pan-y select-none bg-slate-950 px-4 py-3 text-left [-webkit-touch-callout:none] active:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+        className="relative block w-full touch-pan-y select-none px-4 py-3.5 text-left [-webkit-touch-callout:none] active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
       >
         <span className="flex items-center justify-between gap-3">
-          <span data-review-cycle className="min-w-0 truncate text-xs font-semibold text-slate-400">{zyklus}</span>
+          <span data-review-cycle className="min-w-0 truncate text-[13px] font-semibold text-[var(--lg-text-2)]">{zyklus}</span>
           <span className="flex shrink-0 items-center gap-2">
             {r.hidden_by_moderation
-              ? <span data-review-hidden className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">{t('review_hidden_by_moderation')}</span>
-              : r.is_public && <Globe size={13} className="text-slate-500" aria-label={String(t('review_public'))} />}
+              ? <span data-review-hidden className="lg-tag !min-h-[22px] !px-2 !text-[11px]" data-tone="warn">{t('review_hidden_by_moderation')}</span>
+              : r.is_public && <Globe size={13} className="text-[var(--lg-text-3)]" aria-label={String(t('review_public'))} />}
             <Sterne wert={r.rating} />
           </span>
         </span>
-        {r.title && <span className="mt-1 block font-semibold text-white">{r.title}</span>}
+        {r.title && <span className="mt-1 block text-[17px] font-semibold text-[var(--lg-text)]">{r.title}</span>}
         {kriterien.length > 0 && (
-          <span data-review-criteria className="mt-1 block text-xs text-slate-400">{kriterien.join(' · ')}</span>
+          <span data-review-criteria className="mt-1 block text-[13px] text-[var(--lg-text-2)]">{kriterien.join(' · ')}</span>
         )}
-        {r.body && <span className="mt-1.5 line-clamp-2 block text-sm text-slate-300">{r.body}</span>}
+        {r.body && <span className="mt-1.5 line-clamp-2 block text-[15px] leading-snug text-[var(--lg-text)]">{r.body}</span>}
         {(r.pros || r.cons) && (
-          <span className="mt-2 flex flex-col gap-1 text-xs">
-            {r.pros && <span className="line-clamp-1"><span className="font-semibold text-emerald-400">+ </span><span className="text-slate-300">{r.pros}</span></span>}
-            {r.cons && <span className="line-clamp-1"><span className="font-semibold text-red-400">− </span><span className="text-slate-300">{r.cons}</span></span>}
+          <span className="mt-2 flex flex-col gap-1 text-[13px]">
+            {r.pros && <span className="line-clamp-1"><span className="font-semibold text-[var(--lg-good-text)]">+ </span><span className="text-[var(--lg-text-2)]">{r.pros}</span></span>}
+            {r.cons && <span className="line-clamp-1"><span className="font-semibold text-[var(--lg-bad-text)]">− </span><span className="text-[var(--lg-text-2)]">{r.cons}</span></span>}
           </span>
         )}
-        <span className="mt-2 block text-[11px] text-slate-600">{datum}</span>
+        <span className="mt-2 block text-[12px] text-[var(--lg-text-3)]">{datum}</span>
       </button>
     </li>
   )
@@ -424,7 +425,7 @@ function Sterne({ wert }: { wert: number }) {
           key={stern}
           size={13}
           aria-hidden="true"
-          className={stern <= wert ? 'text-amber-400' : 'text-slate-700'}
+          className={stern <= wert ? 'text-amber-400' : 'text-[var(--lg-text-3)]'}
           fill={stern <= wert ? 'currentColor' : 'transparent'}
         />
       ))}

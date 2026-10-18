@@ -32,7 +32,7 @@ export function HistoryTab({ data, onOpen }: { data: TrainingData; onOpen: (sess
   }, [data.sessions, data.customExercises])
 
   if (data.sessions.length === 0) {
-    return <p style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '40px 16px' }}>{tt('history_empty')}</p>
+    return <p style={{ fontSize: 15, color: 'var(--lg-text-3)', textAlign: 'center', padding: '40px 16px' }}>{tt('history_empty')}</p>
   }
 
   return (

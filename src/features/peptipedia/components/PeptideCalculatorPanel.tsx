@@ -4,7 +4,7 @@ import { PEPTIPEDIA_UI_COPY } from '../content/uiCopy'
 import { calculateReconstitution } from '../lib/reconstitution'
 
 const fields = ['vialAmountMg', 'diluentMl', 'targetDose', 'syringeCapacityMl', 'syringeUnits'] as const
-const inputClass = 'mt-1 w-full min-w-0 bg-[#070B11] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-sky-400'
+const inputClass = 'mt-1.5 min-h-11 w-full min-w-0 bg-[var(--lg-fill)] border border-transparent rounded-xl px-3 py-2.5 text-[16px] text-[var(--lg-text)] outline-none focus:border-[var(--lg-accent)]'
 
 export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale }) {
   const copy = PEPTIPEDIA_UI_COPY[locale].calculator
@@ -15,9 +15,9 @@ export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale })
   const labels = { vialAmountMg: `${copy.vialAmount} (mg)`, diluentMl: `${copy.diluent} (ml)`, targetDose: copy.targetDose, syringeCapacityMl: `${copy.syringeCapacity} (ml)`, syringeUnits: copy.syringeUnits }
   const format = (value: number) => new Intl.NumberFormat(locale, { maximumSignificantDigits: 6 }).format(value)
   return (
-    <div className="bg-[#0B1220] border border-white/[0.06] rounded-2xl p-5">
-      <h2 className="text-[0.55rem] font-black uppercase tracking-[0.2em] text-sky-400/55 mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{PEPTIPEDIA_UI_COPY[locale].tabs.calculator}</h2>
-      <p className="text-xs text-slate-400 leading-relaxed mb-4">{copy.disclaimer}</p>
+    <div className="lg-surface lg-flat p-5">
+      <h2 className="lg-title2 mb-2">{PEPTIPEDIA_UI_COPY[locale].tabs.calculator}</h2>
+      <p className="text-[13px] text-[var(--lg-text-2)] leading-snug mb-4">{copy.disclaimer}</p>
       <form className="space-y-4" onSubmit={event => {
         event.preventDefault()
         setResult(null)
@@ -37,20 +37,20 @@ export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale })
         }
       }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {fields.map(field => <label key={field} className="min-w-0 text-xs text-slate-400">{labels[field]}
+          {fields.map(field => <label key={field} className="min-w-0 text-[13px] font-medium text-[var(--lg-text-2)]">{labels[field]}
             <input type="number" inputMode="decimal" step="any" value={values[field]} className={inputClass}
               onChange={event => { setValues({ ...values, [field]: event.target.value }); setResult(null); setError('') }} />
           </label>)}
-          <label className="text-xs text-slate-400">{copy.targetUnit}
+          <label className="text-[13px] font-medium text-[var(--lg-text-2)]">{copy.targetUnit}
             <select value={unit} className={inputClass} onChange={event => { setUnit(event.target.value); setResult(null); setError('') }}>
               <option value="">{locale === 'de' ? 'Bitte wählen' : 'Choose a unit'}</option><option value="mcg">µg (mcg)</option><option value="mg">mg</option>
             </select>
           </label>
         </div>
-        <button type="submit" className="btn-primary w-full">{copy.calculate}</button>
-        {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
-        {result && <div role="status" className="text-sm text-slate-300 space-y-2">
-          <p>{copy.result}: <strong>{format(result.drawMl)} ml</strong> · {format(result.drawUnits)} {locale === 'de' ? 'Skaleneinheiten' : 'scale units'}</p>
+        <button type="submit" className="lg-btn lg-btn-primary w-full">{copy.calculate}</button>
+        {error && <p role="alert" className="text-[15px] text-[var(--lg-bad-text)]">{error}</p>}
+        {result && <div role="status" className="rounded-[16px] bg-[var(--lg-surface-2)] px-4 py-3 text-[15px] text-[var(--lg-text-2)] space-y-2">
+          <p>{copy.result}: <strong className="text-[var(--lg-accent-text)]">{format(result.drawMl)} ml</strong> · {format(result.drawUnits)} {locale === 'de' ? 'Skaleneinheiten' : 'scale units'}</p>
           <p>{format(result.concentrationMcgPerMl)} µg/ml · {result.dosesPerVial} {locale === 'de' ? 'vollständige Zielmengen pro Vial' : 'complete target amounts per vial'}</p>
         </div>}
       </form>

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, PenLine, Star, Trash2, X } from 'lucide-react'
+import { AlertTriangle, PenLine, Star, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { MAX_AMOUNT, MEALS, type Food, type Meal, amountValid, macroMismatch, nutrientsFor, parseAmount } from '../lib/nutrition'
-import { MACRO_COLORS, PRESSABLE, chip, dim, input, label, muted } from '../styles'
+import { ERROR_TEXT, MACRO_COLORS, MUTED, WARN_BOX, chip } from '../styles'
+import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
 
 const PRESETS = [50, 100, 150, 200, 250]
@@ -46,8 +47,8 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, busy, o
     <Sheet labelledBy="nutr-portion-title" busy={busy} onClose={onClose}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h2 id="nutr-portion-title" className="text-lg font-extrabold leading-snug" style={{ color: 'var(--text)' }}>{food.name}</h2>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[0.78rem]" style={muted}>
+          <h2 id="nutr-portion-title" className="lg-title2">{food.name}</h2>
+          <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
             <SourceBadge source={food.source} own={food.itemId !== null} />
             <span className="truncate">
               {[food.brand, hideKcal ? null : t('nutr_per100', { kcal: Math.round(food.per100.kcal), unit: food.unit })].filter(Boolean).join(' · ')}
@@ -58,57 +59,58 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, busy, o
           {onToggleFavorite && (
             <button type="button" onClick={onToggleFavorite} disabled={busy} aria-pressed={food.favorite}
               aria-label={t(food.favorite ? 'nutr_unfavorite' : 'nutr_favorite')}
-              className={`grid h-11 w-11 place-items-center rounded-xl ${PRESSABLE}`}>
-              <Star size={19} style={food.favorite ? { color: 'var(--cat-amber)', fill: 'var(--cat-amber)' } : dim} />
+              className="lg-icon-btn">
+              <Star size={20} className={food.favorite ? 'fill-[#ffd60a] text-[#ffd60a]' : 'text-[var(--lg-text-2)]'} />
             </button>
           )}
-          <button type="button" data-app-back-close aria-label={t('close')} onClick={onClose} disabled={busy}
-            className={`grid h-11 w-11 place-items-center rounded-xl ${PRESSABLE}`} style={dim}><X size={20} /></button>
+          <SheetClose onClick={onClose} disabled={busy} />
         </div>
       </div>
 
       {suspicious && (
-        <div className="mt-3 flex gap-2 rounded-xl p-2.5 text-[0.78rem]" style={{ background: 'color-mix(in srgb, var(--cat-amber) 12%, transparent)', color: 'var(--text-dim)' }}>
-          <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: 'var(--cat-amber)' }} />
+        <div className={`mt-3 ${WARN_BOX}`}>
+          <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--lg-warn-text)]" />
           <span>{t('nutr_mismatch')}</span>
         </div>
       )}
 
-      <label htmlFor="nutr-amount" className="mt-4 block" style={label}>{t('nutr_amount', { unit: food.unit })}</label>
+      <label htmlFor="nutr-amount" className="label mt-4">{t('nutr_amount', { unit: food.unit })}</label>
       <input id="nutr-amount" inputMode="decimal" enterKeyHint="done" value={text} autoFocus={mode === 'add'}
         onChange={e => setText(e.target.value)} onFocus={e => e.currentTarget.select()}
         onKeyDown={e => { if (e.key === 'Enter' && valid && !busy) onSave(amount, meal) }}
         aria-invalid={!valid} aria-describedby={!valid ? 'nutr-amount-error' : undefined}
-        className="mt-1.5" style={{ ...input, fontSize: 20, fontWeight: 800 }} />
+        className="input !text-[20px] font-semibold tabular-nums" />
       {!valid && text.trim() !== '' && (
-        <p id="nutr-amount-error" role="alert" className="mt-1 text-[0.76rem]" style={{ color: 'var(--cat-rose)' }}>
+        <p id="nutr-amount-error" role="alert" className={`mt-1.5 px-1 ${ERROR_TEXT}`}>
           {t('nutr_amount_invalid', { max: MAX_AMOUNT, unit: food.unit })}
         </p>
       )}
       <div className="mt-2 flex flex-wrap gap-1.5">
         {servings.map(s => (
-          <button key="serving" type="button" onClick={() => setText(String(s.amount))} className={PRESSABLE} style={chip(amount === s.amount)}>{s.text}</button>
+          <button key="serving" type="button" onClick={() => setText(String(s.amount))} aria-pressed={amount === s.amount} className={chip(amount === s.amount)}>{s.text}</button>
         ))}
         {PRESETS.filter(p => !servings.some(s => s.amount === p)).map(p => (
-          <button key={p} type="button" onClick={() => setText(String(p))} className={PRESSABLE} style={chip(amount === p)}>{p} {food.unit}</button>
+          <button key={p} type="button" onClick={() => setText(String(p))} aria-pressed={amount === p} className={chip(amount === p)}>{p} {food.unit}</button>
         ))}
       </div>
 
       <div className={`mt-4 grid gap-2 ${cells.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`} aria-live="polite">
         {cells.map(c => (
-          <div key={c.key} className="min-w-0 overflow-hidden rounded-xl pb-2 text-center" style={{ background: 'var(--surface-input)', border: '1px solid var(--border)' }}>
-            <div className="h-[3px]" style={{ background: c.color }} aria-hidden="true" />
-            <div className="mt-1.5 text-[1rem] font-extrabold tabular-nums" style={{ color: 'var(--text)' }}>{c.value == null ? '–' : `${Math.round(c.value)}${c.unit}`}</div>
-            <div className="mt-0.5 px-0.5 text-[0.66rem] font-semibold leading-tight" style={muted}>{c.name}</div>
+          <div key={c.key} className="min-w-0 rounded-[14px] bg-[var(--lg-surface-2)] px-1 py-2.5 text-center">
+            <div className="text-[17px] font-semibold tabular-nums text-[var(--lg-text)]">{c.value == null ? '–' : `${Math.round(c.value)}${c.unit}`}</div>
+            <div className={`mt-0.5 flex items-center justify-center gap-1 text-[12px] leading-tight ${MUTED}`}>
+              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: c.color }} />
+              <span className="truncate">{c.name}</span>
+            </div>
           </div>
         ))}
       </div>
 
-      <p className="mt-4" style={label} id="nutr-meal-label">{t('nutr_meal')}</p>
-      <div role="radiogroup" aria-labelledby="nutr-meal-label" className="mt-1.5 flex flex-wrap gap-1.5">
+      <p className="label mt-4" id="nutr-meal-label">{t('nutr_meal')}</p>
+      <div role="radiogroup" aria-labelledby="nutr-meal-label" className="flex flex-wrap gap-1.5">
         {MEALS.map(m => (
           <button key={m} type="button" role="radio" aria-checked={meal === m} onClick={() => setMeal(m)}
-            className={PRESSABLE} style={chip(meal === m)}>
+            className={chip(meal === m)}>
             {t(`nutr_meal_${m}`)}
           </button>
         ))}
@@ -117,18 +119,17 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, busy, o
       <div className="mt-5 flex gap-2">
         {mode === 'edit' && onDelete && (
           <button type="button" onClick={onDelete} disabled={busy} aria-label={t('nutr_delete')}
-            className={`grid h-11 w-12 shrink-0 place-items-center rounded-xl ${PRESSABLE}`}
-            style={{ border: '1px solid var(--border-strong)', color: 'var(--cat-rose)' }}>
+            data-tone="bad" className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0">
             <Trash2 size={18} />
           </button>
         )}
         {onCorrect && (
           <button type="button" onClick={onCorrect} disabled={busy}
-            className={`btn-secondary flex items-center justify-center gap-1.5 ${suspicious ? 'flex-1' : ''}`}>
+            data-quiet className={`lg-gray-btn !min-h-12 ${suspicious ? 'flex-1' : '!w-12 shrink-0 !px-0'}`}>
             <PenLine size={15} aria-hidden="true" />{suspicious ? t('nutr_correct') : <span className="sr-only">{t('nutr_correct')}</span>}
           </button>
         )}
-        <button type="button" className="btn-primary flex-1" disabled={!valid || busy} onClick={() => onSave(amount, meal)}>
+        <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={!valid || busy} onClick={() => onSave(amount, meal)}>
           {mode === 'edit' ? t('nutr_save') : t('nutr_add')}
         </button>
       </div>

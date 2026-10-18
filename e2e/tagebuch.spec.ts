@@ -23,8 +23,10 @@ test('Bearbeiten: Formular ist vorbefuellt (auch alte Dauer-Texte), Speichern ae
   await expect(page.getByRole('heading', { name: 'Eintrag bearbeiten' })).toBeVisible()
 
   await expect(page.locator('input[value="Kopfschmerz"]')).toBeVisible()
-  await expect(page.getByRole('button', { name: '2 Std', exact: true })).toHaveClass(/bg-sky-500/)
-  await expect(page.locator('select.select').last()).toHaveValue(String(item.id))
+  await expect(page.getByRole('button', { name: '2 Std', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('dialog').getByLabel('Substanz')).toHaveValue(String(item.id))
+  // Der Wert steht sichtbar rechts in der Zeile
+  await expect(page.getByRole('dialog').locator('.lg-form-value')).toHaveText('BPC-157')
 
   await page.locator('input[value="Kopfschmerz"]').fill('Leichter Kopfschmerz')
   await page.getByRole('button', { name: 'Speichern' }).click()
@@ -307,10 +309,7 @@ test('Auswertung: Reiter, Verlauf, Abstand zur Einnahme, Tabelle pro Substanz', 
   if (info.project.name === 'iphone-13') {
     // Balken wachsen animiert ein — erst nach der Animation fotografieren.
     await page.waitForTimeout(1600)
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'))
     await page.screenshot({ path: info.outputPath('auswertung-dunkel.png'), fullPage: true })
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'))
-    await page.screenshot({ path: info.outputPath('auswertung-hell.png'), fullPage: true })
     const graph = panel.getByRole('img').first()
     const box = (await graph.boundingBox())!
     await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.6)

@@ -24,24 +24,24 @@ export function PlanOverviewSheet({
   return (
     <>
       {currentCycleManagerPeptide && FEATURES.planTimelineV2 && (
-        <div className="fixed inset-0 z-50 flex justify-center bg-slate-950" data-app-modal>
-          <div className="flex h-full w-full max-w-lg flex-col overflow-hidden bg-slate-950">
-            <div className="shrink-0 border-b border-slate-800 px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))]">
+        <div className="lg-backdrop fixed inset-0 z-50 flex justify-center" data-app-modal>
+          <div className="flex h-full w-full max-w-lg flex-col overflow-hidden">
+            <div className="shrink-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">
+                  <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">
                     {t('my_stack_plan_management', { defaultValue: 'Einnahmeplan' })}
                   </p>
-                  <h2 className="mt-1 truncate text-lg font-bold text-white">{currentCycleManagerPeptide.name}</h2>
+                  <h2 className="mt-0.5 truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{currentCycleManagerPeptide.name}</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCycleManagerPeptide(null)}
                   data-app-back-close
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition-colors hover:border-slate-600 hover:text-white"
+                  className="lg-glass lg-icon-btn lg-press shrink-0"
                   aria-label={t('close')}
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
             </div>
@@ -51,9 +51,9 @@ export function PlanOverviewSheet({
                 presentedTimelines(currentCycleManagerPeptide, timelinesOf(currentCycleManagerPeptide.id)),
               )}
               {timelinesOf(currentCycleManagerPeptide.id).length === 0 && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-center">
-                  <p className="text-sm font-semibold text-white">{t('noch_kein_zyklus')}</p>
-                  <p className="mt-1 text-xs text-slate-500">{t('noch_kein_zyklus_desc')}</p>
+                <div className="lg-surface p-5 text-center">
+                  <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('noch_kein_zyklus')}</p>
+                  <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">{t('noch_kein_zyklus_desc')}</p>
                 </div>
               )}
             </div>

@@ -23,7 +23,7 @@ export function PdfProtokoll() {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 px-5 py-10 text-center text-sm text-slate-400">
+      <div className="lg-surface lg-flat px-5 py-10 text-center text-[15px] text-[var(--lg-text-2)]">
         Bitte anmelden, um ein PDF zu erstellen.
       </div>
     )

@@ -1,57 +1,34 @@
-import type { CSSProperties } from 'react'
+/**
+ * Gemeinsame Bausteine der Ernährung im Liquid-Glass-Schwarz der App
+ * (src/styles/liquid-glass.css). Klassen statt Inline-Stile, damit Flächen,
+ * Knöpfe und Schrift dieselben sind wie auf den anderen Seiten.
+ */
 
-/** Farben nur über Theme-Variablen (src/index.css), damit Hell und Dunkel stimmen. */
+/** Makro-Farben als iOS-Systemfarben: Ringe und Balken, sonst nichts Buntes. */
 export const MACRO_COLORS = {
   kcal: 'var(--accent)',
-  protein: 'var(--cat-emerald)',
-  carbs: 'var(--cat-violet)',
-  fat: 'var(--cat-amber)',
-  water: '#38bdf8',
+  protein: '#30d158',
+  carbs: '#bf5af2',
+  fat: '#ff9f0a',
+  water: '#64d2ff',
 } as const
 
-export const card: CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--card-border, var(--border))',
-  boxShadow: 'var(--shadow-card)',
-  borderRadius: 20,
-}
+/** Fläche einer Karte (ohne Weichzeichner — auf Schwarz zeigt er nichts). */
+export const CARD = 'lg-surface lg-flat'
 
-export const label: CSSProperties = {
-  fontSize: '0.62rem',
-  fontWeight: 800,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'var(--text-muted)',
-}
+/** Zweite und dritte Schriftebene. */
+export const DIM = 'text-[var(--lg-text-2)]'
+export const MUTED = 'text-[var(--lg-text-3)]'
 
-export const title: CSSProperties = { color: 'var(--text)', fontWeight: 800 }
-export const dim: CSSProperties = { color: 'var(--text-dim)' }
-export const muted: CSSProperties = { color: 'var(--text-muted)' }
+/** Fehlertext unter einem Feld. */
+export const ERROR_TEXT = 'text-[13px] text-[var(--lg-bad-text)]'
 
-export const input: CSSProperties = {
-  width: '100%',
-  minHeight: 44,
-  padding: '10px 14px',
-  borderRadius: 14,
-  background: 'var(--surface-input)',
-  border: '1px solid var(--border-strong)',
-  color: 'var(--text)',
-  fontSize: 16,
-  fontWeight: 600,
-  fontFamily: 'inherit',
-  boxSizing: 'border-box',
-}
+/** Hinweisfläche (Bernstein) mit Symbol. */
+export const WARN_BOX = 'flex gap-2 rounded-[14px] bg-[color-mix(in_srgb,var(--lg-warn)_14%,transparent)] p-3 text-[13px] leading-snug text-[var(--lg-text-2)]'
 
-export const chip = (active: boolean): CSSProperties => ({
-  minHeight: 40,
-  padding: '0 12px',
-  borderRadius: 12,
-  border: `1px solid ${active ? 'var(--accent-border)' : 'var(--border-strong)'}`,
-  background: active ? 'var(--accent-weak)' : 'transparent',
-  color: active ? 'var(--accent)' : 'var(--text-dim)',
-  fontSize: '0.82rem',
-  fontWeight: 700,
-})
+/** Auswahl-Pille (Mahlzeit, Menge, Einheit …): gewählt hell, sonst Füllung. */
+export const chip = (active: boolean) =>
+  `min-h-9 rounded-full px-3.5 text-[15px] font-medium transition-colors ${active
+    ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+    : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`
 
-/** Gemeinsame Klasse für tippbare Flächen: Rückmeldung beim Aufsetzen, nicht erst beim Loslassen. */
-export const PRESSABLE = 'select-none touch-manipulation transition-transform duration-100 ease-out active:scale-[0.97]'
