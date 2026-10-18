@@ -61,7 +61,7 @@ export function InjectionIntakeList({
                 type="button"
                 aria-pressed={active}
                 onClick={() => setSubstanceId(item.id)}
-                className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-bold transition-transform active:scale-[0.97] ${active ? 'border-sky-300/40 bg-sky-400/15 text-sky-200' : 'border-white/10 bg-white/[0.04] text-slate-300'}`}
+                className={`min-h-10 shrink-0 rounded-full px-4 text-[15px] font-semibold transition-colors ${active ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
               >
                 {item.label}
               </button>
@@ -70,12 +70,12 @@ export function InjectionIntakeList({
         </div>
       )}
 
-      <label className="flex items-center justify-between gap-3">
-        <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+      <label className="flex items-center justify-between gap-3 px-1">
+        <span className="text-[15px] font-medium text-[var(--lg-text-2)]">
           {t('injection_filter_period', { defaultValue: 'Zeitraum' })}
         </span>
         <select
-          className="h-10 rounded-xl border border-white/10 bg-black/20 px-2.5 text-sm font-bold text-slate-200 outline-none"
+          className="h-10 rounded-full border-0 bg-[var(--lg-fill)] px-3.5 text-[16px] text-[var(--lg-text)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
           value={days}
           onChange={event => {
             const value = event.target.value
@@ -89,10 +89,10 @@ export function InjectionIntakeList({
       </label>
 
       {visible.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
-          <CheckCircle2 size={22} className="mx-auto mb-2 text-emerald-300" aria-hidden="true" />
-          <p className="text-sm font-black text-white">{t('injection_intakes_empty_title', { defaultValue: 'Keine Einnahmen ohne Stelle' })}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-400">{t('injection_intakes_empty_body', { defaultValue: 'In diesem Zeitraum hat jede Einnahme schon eine Stelle.' })}</p>
+        <div className="lg-surface px-5 py-7 text-center">
+          <CheckCircle2 size={28} className="mx-auto mb-2 text-[var(--lg-good)]" aria-hidden="true" />
+          <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_intakes_empty_title', { defaultValue: 'Keine Einnahmen ohne Stelle' })}</p>
+          <p className="mt-1 text-[15px] leading-5 text-[var(--lg-text-3)]">{t('injection_intakes_empty_body', { defaultValue: 'In diesem Zeitraum hat jede Einnahme schon eine Stelle.' })}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -114,13 +114,13 @@ export function InjectionIntakeSummary({ intake }: { intake: OpenInjectionIntake
   const confirmed = intake.status === 'confirmed'
   return (
     <div className="flex w-full min-w-0 items-center gap-3 overflow-hidden text-left">
-      <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${confirmed ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'}`}>
+      <div className="lg-icon-tile !h-10 !w-10 !rounded-xl" style={{ background: confirmed ? 'var(--lg-good)' : '#ff9f0a' }}>
         {confirmed ? <Check size={16} aria-hidden="true" /> : <Clock size={16} aria-hidden="true" />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-white">{intake.stackItemName}</p>
-        <p className="text-xs text-slate-400">
-          <span className={confirmed ? 'text-emerald-300' : 'text-amber-300'}>
+        <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{intake.stackItemName}</p>
+        <p className="text-[13px] text-[var(--lg-text-3)]">
+          <span className={confirmed ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}>
             {confirmed
               ? t('injection_status_confirmed', { defaultValue: 'Bestätigt' })
               : t('injection_status_open', { defaultValue: 'Offen' })}
@@ -130,8 +130,8 @@ export function InjectionIntakeSummary({ intake }: { intake: OpenInjectionIntake
         </p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-sm font-bold text-sky-300">{intake.dose} {intake.unit}</p>
-        <p className="text-[0.62rem] text-slate-500">{methodLabel(t, intake.method)}</p>
+        <p className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{intake.dose} {intake.unit}</p>
+        <p className="text-[12px] text-[var(--lg-text-3)]">{methodLabel(t, intake.method)}</p>
       </div>
     </div>
   )
@@ -142,7 +142,7 @@ function InjectionIntakeRow({ intake, onSelect }: { intake: OpenInjectionIntake;
     <button
       type="button"
       onClick={onSelect}
-      className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-3 transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+      className="lg-surface w-full cursor-pointer p-3.5 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
     >
       <InjectionIntakeSummary intake={intake} />
     </button>

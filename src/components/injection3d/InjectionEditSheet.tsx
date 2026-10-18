@@ -116,7 +116,7 @@ export function InjectionEditSheet({
             <div className="flex gap-2 rounded-[18px] bg-[var(--lg-surface-2)] p-3.5 text-[13px] leading-5 text-[var(--lg-text-2)]">
               <Info size={15} className="mt-0.5 shrink-0 text-[var(--lg-accent-text)]" aria-hidden="true" />
               <div>
-                <p className="font-bold text-white">
+                <p className="font-semibold text-[var(--lg-text)]">
                   {[log.dose, log.unit].filter(value => value != null && value !== '').join(' ')}
                   {log.method ? ` · ${methodLabel(t, log.method)}` : ''}
                   {' · '}{format(parseISO(log.logged_at), 'dd.MM. HH:mm')}
@@ -201,7 +201,9 @@ export function InjectionEditSheet({
                 type="button"
                 onClick={() => setConfirmDelete(true)}
                 disabled={busy}
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-red-300"
+                data-tone="bad"
+                data-quiet
+                className="lg-gray-btn min-h-11 w-full"
               >
                 <Trash2 size={15} aria-hidden="true" /> {t('injection_delete', { defaultValue: 'Injektion löschen' })}
               </button>

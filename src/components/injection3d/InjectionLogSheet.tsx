@@ -161,22 +161,22 @@ export function InjectionLogSheet({
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-          <h2 id="injection-log-title" className="truncate text-xl font-black text-white">{title}</h2>
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-3">
+          <h2 id="injection-log-title" className="min-w-0 truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{title}</h2>
           <button
             type="button"
             aria-label={String(t('injection_position_cancel', { defaultValue: 'Abbrechen' }))}
             onClick={onCancel}
             data-app-back-close
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400"
+            className="lg-glass lg-icon-btn lg-press shrink-0"
           >
-            <X size={16} aria-hidden="true" />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 py-3">
           {warning.level !== 'none' && (
-            <div className="mb-3 flex gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">
+            <div className="mb-3 flex gap-2 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-3.5 text-[15px] text-[var(--lg-warn-text)]">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
               <p>{warning.level === 'strong'
                 ? t('injection_warning_strong', { defaultValue: 'Sehr nahe an einer kürzlichen Injektion.' })
@@ -192,7 +192,7 @@ export function InjectionLogSheet({
                 <button
                   type="button"
                   onClick={() => setView('manual')}
-                  className="mt-1 min-h-11 w-full rounded-xl text-sm font-bold text-sky-300"
+                  className="mt-1 min-h-11 w-full rounded-full text-[17px] text-[var(--lg-accent-text)]"
                 >
                   {t('injection_manual_entry', { defaultValue: 'Ohne Plan eintragen' })}
                 </button>
@@ -202,18 +202,19 @@ export function InjectionLogSheet({
 
           {view === 'confirm' && intake && (
             <div className="space-y-3">
-              <div className="rounded-2xl border border-sky-400/30 bg-sky-400/10 p-3">
+              <div className="rounded-[20px] bg-[var(--lg-surface-fill)] p-3.5 shadow-[inset_0_0_0_1.5px_rgba(100,210,255,0.55)]">
                 <InjectionIntakeSummary intake={intake} />
               </div>
 
-              <dl className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/[0.03] px-3">
-                <div className="flex min-h-11 items-center justify-between gap-3">
-                  <dt className="text-sm text-slate-400">{t('injection_site_heading', { defaultValue: 'Stelle' })}</dt>
-                  <dd className="text-sm font-bold text-white">{siteText}</dd>
+              <dl className="lg-form-group">
+                <div className="lg-form-row justify-between pr-4">
+                  <dt className="shrink-0 text-[17px] text-[var(--lg-text)]">{t('injection_site_heading', { defaultValue: 'Stelle' })}</dt>
+                  <dd className="min-w-0 truncate text-right text-[16px] text-[var(--lg-text-2)]">{siteText}</dd>
                 </div>
-                <div className="flex min-h-11 items-center justify-between gap-3">
-                  <dt className="text-sm text-slate-400">{t('injection_clock_label', { defaultValue: 'Uhrzeit' })}</dt>
-                  <dd className="flex items-center gap-2">
+                <div className="lg-form-row justify-between pr-4">
+                  <dt className="shrink-0 text-[17px] text-[var(--lg-text)]">{t('injection_clock_label', { defaultValue: 'Uhrzeit' })}</dt>
+                  {/* Darf umbrechen: bei 320 px passen Uhrzeit und „Uhrzeit ändern" nicht nebeneinander */}
+                  <dd className="flex min-w-0 flex-wrap items-center justify-end gap-x-2">
                     {open && timeOpen ? (
                       <input
                         className="input h-9 w-28 py-0"
@@ -224,12 +225,12 @@ export function InjectionLogSheet({
                         autoFocus
                       />
                     ) : (
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-[16px] tabular-nums text-[var(--lg-text-2)]">
                         {format(parseISO(intake.scheduledAt), 'dd.MM.')} {open ? time : format(parseISO(intake.scheduledAt), 'HH:mm')}
                       </span>
                     )}
                     {open && !timeOpen && (
-                      <button type="button" onClick={() => setTimeOpen(true)} className="min-h-11 px-1 text-sm font-bold text-sky-300">
+                      <button type="button" onClick={() => setTimeOpen(true)} className="min-h-11 px-1 text-[16px] text-[var(--lg-accent-text)]">
                         {t('injection_time_change', { defaultValue: 'Uhrzeit ändern' })}
                       </button>
                     )}
@@ -243,7 +244,7 @@ export function InjectionLogSheet({
                   onToggle={() => setDoseChanged(value => !value)}
                   label={String(t('injection_dose_changed_toggle', { defaultValue: 'Hat sich deine Dosis geändert?' }))}
                 >
-                  <div className="grid min-w-0 grid-cols-2 gap-3">
+                  <div className="grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     <label className="min-w-0">
                       <span className="label">{t('injection_dose_label', { defaultValue: 'Dosis' })}</span>
                       <input
@@ -261,14 +262,14 @@ export function InjectionLogSheet({
                       </select>
                     </label>
                   </div>
-                  <p className="mt-2 text-xs text-slate-400">{t('injection_dose_changed_hint', { defaultValue: 'Gilt nur für diese Einnahme.' })}</p>
+                  <p className="mt-2 px-1 text-[13px] text-[var(--lg-text-3)]">{t('injection_dose_changed_hint', { defaultValue: 'Gilt nur für diese Einnahme.' })}</p>
                 </Disclosure>
               )}
 
               <NotesField open={notesOpen} onOpen={() => setNotesOpen(true)} notes={notes} onChange={setNotes} />
 
-              <button type="button" onClick={() => setView('pick')} className="flex min-h-11 items-center gap-1.5 text-sm font-bold text-slate-400">
-                <ArrowLeft size={14} aria-hidden="true" /> {t('injection_back_to_intakes', { defaultValue: 'Andere Einnahme wählen' })}
+              <button type="button" onClick={() => setView('pick')} className="flex min-h-11 items-center gap-1.5 px-1 text-[15px] text-[var(--lg-accent-text)]">
+                <ArrowLeft size={16} aria-hidden="true" /> {t('injection_back_to_intakes', { defaultValue: 'Andere Einnahme wählen' })}
               </button>
             </div>
           )}
@@ -284,7 +285,7 @@ export function InjectionLogSheet({
                   placeholder={String(t('injection_substance_placeholder', { defaultValue: 'z.B. Testosteron Enantat' }))}
                 />
               </label>
-              <div className="grid min-w-0 grid-cols-2 gap-3">
+              <div className="grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                 <label className="min-w-0">
                   <span className="label">{t('injection_dose_label', { defaultValue: 'Dosis' })}</span>
                   <input className="input" value={dose} onChange={event => setDose(event.target.value)} inputMode="decimal" />
@@ -306,13 +307,13 @@ export function InjectionLogSheet({
                 <span className="label">{t('injection_time_label', { defaultValue: 'Zeitpunkt (rückwirkend möglich)' })}</span>
                 <input className="input" type="datetime-local" value={loggedAt} onChange={event => setLoggedAt(event.target.value)} />
               </label>
-              <p className="text-sm text-slate-400">
-                {t('injection_site_heading', { defaultValue: 'Stelle' })}: <span className="font-bold text-white">{siteText}</span>
+              <p className="px-1 text-[15px] text-[var(--lg-text-3)]">
+                {t('injection_site_heading', { defaultValue: 'Stelle' })}: <span className="text-[var(--lg-text)]">{siteText}</span>
               </p>
               <NotesField open={notesOpen} onOpen={() => setNotesOpen(true)} notes={notes} onChange={setNotes} />
               {openIntakes.length > 0 && (
-                <button type="button" onClick={() => setView('pick')} className="flex min-h-11 items-center gap-1.5 text-sm font-bold text-slate-400">
-                  <ArrowLeft size={14} aria-hidden="true" /> {t('injection_tab_intakes', { defaultValue: 'Einnahmen' })}
+                <button type="button" onClick={() => setView('pick')} className="flex min-h-11 items-center gap-1.5 px-1 text-[15px] text-[var(--lg-accent-text)]">
+                  <ArrowLeft size={16} aria-hidden="true" /> {t('injection_tab_intakes', { defaultValue: 'Einnahmen' })}
                 </button>
               )}
             </div>
@@ -320,11 +321,11 @@ export function InjectionLogSheet({
         </div>
 
         {view !== 'pick' && (
-          <div className="flex min-w-0 shrink-0 gap-3 border-t border-white/10 px-4 pt-3 pb-4">
-            <button type="button" className="btn-secondary min-h-11 min-w-0 flex-1" onClick={onCancel}>
+          <div className="flex min-w-0 shrink-0 gap-3 border-t border-[var(--lg-separator)] px-4 pt-3 pb-4">
+            <button type="button" data-quiet className="lg-gray-btn min-h-11 min-w-0 flex-1" onClick={onCancel}>
               {t('injection_position_cancel', { defaultValue: 'Abbrechen' })}
             </button>
-            <button type="button" className="btn-primary min-h-11 min-w-0 flex-1" onClick={save} disabled={saving} {...denyProps(!canSave)}>
+            <button type="button" className="lg-btn lg-btn-primary min-h-11 min-w-0 flex-1 !h-auto !whitespace-normal !px-4 !py-2 leading-tight" onClick={save} disabled={saving} {...denyProps(!canSave)}>
               <Check size={14} aria-hidden="true" /> {saveLabel}
             </button>
           </div>
@@ -346,17 +347,17 @@ function Disclosure({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
+    <div className="overflow-hidden rounded-[20px] bg-[var(--lg-surface-fill)]">
       <button
         type="button"
         aria-expanded={open}
         onClick={onToggle}
-        className="flex min-h-11 w-full items-center justify-between gap-3 px-3 text-left text-sm font-bold text-slate-200"
+        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-[17px] text-[var(--lg-text)]"
       >
         {label}
-        <ChevronDown size={16} aria-hidden="true" className={`shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={18} aria-hidden="true" className={`shrink-0 text-[var(--lg-text-4)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <div className="px-3 pb-3">{children}</div>}
+      {open && <div className="px-4 pb-4">{children}</div>}
     </div>
   )
 }
@@ -375,14 +376,14 @@ function NotesField({
   const { t } = useTranslation()
   if (!open) {
     return (
-      <button type="button" onClick={onOpen} className="min-h-11 text-sm font-bold text-sky-300">
+      <button type="button" onClick={onOpen} className="min-h-11 px-1 text-[15px] text-[var(--lg-accent-text)]">
         + {t('injection_notes_add', { defaultValue: 'Notiz hinzufügen' })}
       </button>
     )
   }
   return (
     <label className="block min-w-0">
-      <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz optional' })}</span>
+      <span className="label">{t('injection_notes_label', { defaultValue: 'Notiz (optional)' })}</span>
       <textarea className="input min-h-16 resize-none" value={notes} onChange={event => onChange(event.target.value)} autoFocus />
     </label>
   )

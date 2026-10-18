@@ -49,30 +49,30 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
       aria-live="off"
       aria-label={`${tt('rest_timer')} ${formatClock(remainingS)}`}
       style={{
-        position: 'relative', overflow: 'hidden', borderRadius: 18,
-        background: 'var(--surface-raised)', border: `1px solid ${TRAINING_ACCENT}55`,
-        padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10,
+        position: 'relative', overflow: 'hidden', borderRadius: 22,
+        background: 'var(--lg-surface-2)',
+        padding: '10px 12px 10px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8,
       }}
     >
       <div
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, transformOrigin: 'left',
-          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}22`,
+          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}2e`,
           transition: 'transform 250ms linear',
         }}
       />
-      <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+      <div style={{ position: 'relative', flex: 1, minWidth: 96 }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--lg-text-2)' }}>
           {remainingS === 0 ? tt('rest_done') : tt('rest_timer')}
         </div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 850, fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
+        <div style={{ fontSize: 28, lineHeight: '34px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text)' }}>
           {formatClock(remainingS)}
         </div>
       </div>
-      <Button tone="ghost" onClick={() => onAdjust(-15)} style={{ position: 'relative', minWidth: 52, padding: '8px 10px' }}>−15</Button>
-      <Button tone="ghost" onClick={() => onAdjust(15)} style={{ position: 'relative', minWidth: 52, padding: '8px 10px' }}>+15</Button>
-      <Button onClick={onSkip} style={{ position: 'relative', padding: '8px 12px' }}>{tt('rest_skip')}</Button>
+      <Button tone="ghost" onClick={() => onAdjust(-15)} style={{ position: 'relative', minWidth: 52, padding: '0 10px' }}>−15</Button>
+      <Button tone="ghost" onClick={() => onAdjust(15)} style={{ position: 'relative', minWidth: 52, padding: '0 10px' }}>+15</Button>
+      <Button onClick={onSkip} style={{ position: 'relative', padding: '0 14px' }}>{tt('rest_skip')}</Button>
     </div>
   )
 }

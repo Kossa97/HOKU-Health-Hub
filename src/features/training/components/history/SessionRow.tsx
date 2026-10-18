@@ -24,19 +24,19 @@ export function SessionRow({ session, data, recordCount = 0, onOpen }: {
   ].filter(Boolean).join(' · ')
 
   return (
-    <Card onClick={onOpen} style={{ padding: 12 }} ariaLabel={[session.title || tt(`kind_${session.kind}` as TrainingTextKey), details, recordCount > 0 ? tt('session_records', { count: recordCount }) : null].filter(Boolean).join(', ')}>
+    <Card onClick={onOpen} style={{ padding: '12px 16px' }} ariaLabel={[session.title || tt(`kind_${session.kind}` as TrainingTextKey), details, recordCount > 0 ? tt('session_records', { count: recordCount }) : null].filter(Boolean).join(', ')}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <KindBadge kind={session.kind} />
+        <KindBadge kind={session.kind} size={34} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {session.title || tt(`kind_${session.kind}` as TrainingTextKey)}
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {details}
           </div>
         </div>
         {recordCount > 0 && (
-          <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#eab308', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>
+          <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#ffd60a', fontWeight: 600, fontSize: 15, flexShrink: 0 }}>
             <Trophy size={14} aria-hidden="true" /> {recordCount}
           </span>
         )}

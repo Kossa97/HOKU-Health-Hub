@@ -49,13 +49,13 @@ export function InjectionHistorySheet({
   }, [])
 
   return (
-    <section className={embedded ? 'space-y-3' : 'rounded-3xl border border-white/10 p-4'} style={embedded ? undefined : { background: 'var(--surface)' }}>
-      {!embedded && <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />}
+    <section className={embedded ? 'space-y-3' : 'lg-surface p-4'}>
+      {!embedded && <div className="lg-grabber mb-3" />}
       {!embedded && (
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <History size={16} color="var(--accent)" aria-hidden="true" />
-            <h2 className="text-sm font-black text-white">{t('injection_history', { defaultValue: 'Historie' })}</h2>
+            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_history', { defaultValue: 'Historie' })}</h2>
           </div>
           <HistoryDaysSelect historyDays={historyDays} onHistoryDaysChange={onHistoryDaysChange} />
         </div>

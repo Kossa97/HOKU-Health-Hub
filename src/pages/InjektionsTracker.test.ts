@@ -121,7 +121,7 @@ describe('InjektionsTracker fullscreen map layout', () => {
 
     expect(logSheet).toContain('overflow-hidden overflow-x-hidden overscroll-y-contain')
     expect(logSheet).toContain('overflow-y-auto overflow-x-hidden overscroll-y-contain')
-    expect(logSheet).toContain('grid min-w-0 grid-cols-2')
+    expect(logSheet).toContain('grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2')
     expect(logSheet).toContain('className="min-w-0"')
     expect(logSheet).toContain('btn-primary min-h-11 min-w-0 flex-1')
   })

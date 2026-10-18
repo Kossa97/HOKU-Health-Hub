@@ -59,11 +59,11 @@ export function SessionDetailSheet({ session, data, onEdit, onClose }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <KindBadge kind={session.kind} size={44} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+            <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>
               {formatDate(session.startedAt, locale, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
             </div>
             {session.source !== 'manual' && session.source !== 'live' && (
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tt(`session_source_${session.source}` as TrainingTextKey)}</div>
+              <div style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>{tt(`session_source_${session.source}` as TrainingTextKey)}</div>
             )}
           </div>
         </div>
@@ -84,12 +84,12 @@ export function SessionDetailSheet({ session, data, onEdit, onClose }: {
 
         {records.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, color: '#eab308', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17, fontWeight: 600, color: '#ffd60a', marginBottom: 6 }}>
               <Trophy size={18} aria-hidden="true" /> {tt('summary_records')}
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {records.map((r, i) => (
-                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: '0.88rem' }}>
+                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 15 }}>
                   <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {exerciseName(r.exerciseId, lang, data.customExercises)} · {tt(`record_${r.kind}` as TrainingTextKey)}
                   </span>
@@ -104,25 +104,25 @@ export function SessionDetailSheet({ session, data, onEdit, onClose }: {
           const info = exerciseInfo(ex.exerciseId, lang, data.customExercises)
           let n = 0
           return (
-            <div key={i} style={{ padding: 12, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--border)' }}>
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>{info?.name ?? exerciseName(ex.exerciseId, lang, data.customExercises)}</div>
+            <div key={i} style={{ padding: 12, borderRadius: 16, background: 'var(--lg-surface-2)' }}>
+              <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>{info?.name ?? exerciseName(ex.exerciseId, lang, data.customExercises)}</div>
               <ol style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {ex.sets.map((set, j) => {
                   const label = set.type === 'warmup' ? tt('set_warmup_short') : set.type === 'drop' ? tt('set_drop_short') : set.type === 'failure' ? tt('set_failure_short') : String(++n)
                   return (
-                    <li key={j} style={{ display: 'flex', gap: 12, fontSize: '0.88rem', fontVariantNumeric: 'tabular-nums' }}>
-                      <span style={{ width: 22, fontWeight: 800, color: SET_TYPE_COLOR[set.type] }}>{label}</span>
+                    <li key={j} style={{ display: 'flex', gap: 12, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ width: 22, fontWeight: 700, color: SET_TYPE_COLOR[set.type] }}>{label}</span>
                       <span>{previousLabel(set, info?.tracking ?? 'weight_reps', unit, locale)}</span>
-                      {set.rpe != null && <span style={{ color: 'var(--text-muted)' }}>@{formatNumber(set.rpe, locale, 1)}</span>}
+                      {set.rpe != null && <span style={{ color: 'var(--lg-text-3)' }}>@{formatNumber(set.rpe, locale, 1)}</span>}
                     </li>
                   )
                 })}
               </ol>
-              {ex.notes && <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 6 }}>{ex.notes}</p>}
+              {ex.notes && <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 6 }}>{ex.notes}</p>}
             </div>
           )
         })}
-        {session.notes && <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)' }}>{session.notes}</p>}
+        {session.notes && <p style={{ fontSize: 15, color: 'var(--lg-text-3)' }}>{session.notes}</p>}
       </div>
     </TrainingSheet>
   )

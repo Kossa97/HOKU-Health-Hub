@@ -13,7 +13,7 @@ import { SetRow, gridColumns } from './SetRow'
 
 const REST_OPTIONS = [0, 30, 45, 60, 90, 120, 150, 180, 240, 300]
 const BARBELL_LIKE = new Set(['barbell', 'smith', 'trap_bar', 'ez_bar'])
-export const SUPERSET_COLORS = ['#f97316', '#06b6d4', '#a855f7', '#10b981', '#eab308', '#f43f5e']
+export const SUPERSET_COLORS = ['#ff9f0a', '#64d2ff', '#bf5af2', '#30d158', '#ffd60a', '#ff453a']
 
 export function ExerciseBlock({
   exercise, info, index, total, previous, settings, onSetChange, onToggleDone, onCycleType, onRemoveSet,
@@ -63,19 +63,20 @@ export function ExerciseBlock({
   return (
     <section
       aria-label={info?.name ?? exercise.exerciseId}
+      className="lg-surface lg-flat"
       style={{
-        padding: '12px 8px 10px', borderRadius: 20, background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderLeft: groupColor ? `4px solid ${groupColor}` : '1px solid var(--border)',
+        padding: '12px 8px 10px',
+        // Supersatz: ein schmaler Farbbalken innen am linken Rand
+        boxShadow: groupColor ? `var(--lg-surface-shadow), inset 4px 0 0 ${groupColor}` : undefined,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px 8px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: TRAINING_ACCENT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h3 style={{ fontSize: 17, fontWeight: 600, color: TRAINING_ACCENT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {info?.name ?? exercise.exerciseId}
           </h3>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {groupColor && <span style={{ color: groupColor, fontWeight: 700 }}>{tt('superset')}</span>}
+          <div style={{ fontSize: 13, color: 'var(--lg-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {groupColor && <span style={{ color: groupColor, fontWeight: 600 }}>{tt('superset')}</span>}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} aria-hidden="true" /> {restS > 0 ? `${restS} s` : tt('rest_off')}</span>
           </div>
         </div>
@@ -83,10 +84,12 @@ export function ExerciseBlock({
           type="button"
           onClick={() => setMenu(true)}
           aria-label={`${info?.name ?? ''} – ${tt('edit')}`}
-          className="tyd-train-press"
-          style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}
+          className="lg-icon-btn"
+          style={{ color: 'var(--lg-text-2)', flexShrink: 0 }}
         >
-          <MoreHorizontal size={22} aria-hidden="true" />
+          <span style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--lg-fill)' }}>
+            <MoreHorizontal size={18} aria-hidden="true" />
+          </span>
         </button>
       </div>
 
@@ -109,7 +112,7 @@ export function ExerciseBlock({
           role="row"
           style={{
             display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, padding: '0 6px 4px',
-            fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center',
+            fontSize: 12, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em', textAlign: 'center',
           }}
         >
           <span role="columnheader">{tt('col_set')}</span>
@@ -147,13 +150,15 @@ export function ExerciseBlock({
         <TrainingSheet title={info?.name ?? ''} onClose={() => setMenu(false)} zIndex={110}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: 8 }}>{tt('rest_time')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', marginBottom: 8 }}>{tt('rest_time')}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {REST_OPTIONS.map(s => (
                   <Chip key={s} active={restS === s} onClick={() => onRest(s)}>{s === 0 ? tt('rest_off') : `${s} s`}</Chip>
                 ))}
               </div>
             </div>
+            {/* Aktionen als gruppierte Liste wie in iOS */}
+            <div className="tyd-train-menu">
             <MenuItem icon={StickyNote} label={tt('notes')} onClick={() => { setNotesOpen(true); setMenu(false) }} />
             {index < total - 1 && (
               <MenuItem icon={Link2} label={supersetNext ? tt('superset_remove') : tt('superset_with_next')} onClick={() => { onToggleSuperset(); setMenu(false) }} />
@@ -164,6 +169,7 @@ export function ExerciseBlock({
             {index > 0 && <MenuItem icon={ArrowUp} label={tt('move_up')} onClick={() => { onMove(-1); setMenu(false) }} />}
             {index < total - 1 && <MenuItem icon={ArrowDown} label={tt('move_down')} onClick={() => { onMove(1); setMenu(false) }} />}
             <MenuItem icon={Trash2} label={tt('remove_exercise')} danger onClick={() => { onRemove(); setMenu(false) }} />
+            </div>
           </div>
         </TrainingSheet>
       )}
@@ -180,7 +186,7 @@ export function ExerciseBlock({
                 {tt(`set_type_${type}`)}
               </Chip>
             ))}
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginTop: 8 }}>{tt('col_rpe')}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('col_rpe')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {[6, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(rpe => (
                 <Chip
@@ -220,11 +226,11 @@ function MenuItem({ icon: Icon, label, onClick, danger }: {
       onClick={onClick}
       className="tyd-train-press"
       style={{
-        minHeight: 48, display: 'flex', alignItems: 'center', gap: 12, padding: '0 4px',
-        fontWeight: 700, color: danger ? '#f43f5e' : 'var(--text)', textAlign: 'left',
+        minHeight: 50, width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
+        fontSize: 17, fontWeight: 400, color: danger ? 'var(--lg-bad-text)' : 'var(--lg-text)', textAlign: 'left',
       }}
     >
-      <Icon size={20} aria-hidden="true" /> {label}
+      <Icon size={20} aria-hidden="true" style={{ color: danger ? 'var(--lg-bad-text)' : 'var(--lg-accent-text)', flexShrink: 0 }} /> {label}
     </button>
   )
 }
@@ -237,14 +243,14 @@ function PlateSheet({ targetKg, settings, onClose }: { targetKg: number; setting
   return (
     <TrainingSheet title={`${tt('plate_calc')} · ${formatWeight(targetKg, settings.unit, locale)}`} onClose={onClose} zIndex={110}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 8 }}>
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+        <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>
           {tt('plates_bar', { kg: formatWeight(settings.barKg, settings.unit, locale) })} · {tt('plates_per_side')}
         </div>
         {plates.length === 0 ? (
-          <p style={{ color: 'var(--text-dim)' }}>{tt('plates_none')}</p>
+          <p style={{ fontSize: 15, color: 'var(--lg-text-3)' }}>{tt('plates_none')}</p>
         ) : (
           <div aria-label={plates.map(p => formatNumber(toDisplayWeight(p, settings.unit), locale, 2)).join(', ')} style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 120 }}>
-            <div style={{ width: 28, height: 10, borderRadius: 3, background: 'var(--text-muted)' }} />
+            <div style={{ width: 28, height: 10, borderRadius: 3, background: 'var(--lg-text-3)' }} />
             {plates.map((p, i) => (
               <div
                 key={i}
@@ -252,7 +258,7 @@ function PlateSheet({ targetKg, settings, onClose }: { targetKg: number; setting
                   width: 22, height: 40 + 80 * (p / maxPlate), borderRadius: 5,
                   background: TRAINING_ACCENT, opacity: 0.55 + 0.45 * (p / maxPlate),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  writingMode: 'vertical-rl', fontSize: '0.7rem', fontWeight: 800, color: '#140800',
+                  writingMode: 'vertical-rl', fontSize: 11, fontWeight: 700, color: '#140800',
                 }}
               >
                 {formatNumber(toDisplayWeight(p, settings.unit), locale, 2)}
@@ -261,7 +267,7 @@ function PlateSheet({ targetKg, settings, onClose }: { targetKg: number; setting
           </div>
         )}
         {restKg > 0 && (
-          <p style={{ color: '#f59e0b', fontSize: '0.85rem' }}>{tt('plates_rest', { kg: formatWeight(restKg, settings.unit, locale) })}</p>
+          <p style={{ color: 'var(--lg-warn-text)', fontSize: 13 }}>{tt('plates_rest', { kg: formatWeight(restKg, settings.unit, locale) })}</p>
         )}
       </div>
     </TrainingSheet>

@@ -14,7 +14,7 @@ import { AXIS_TICK, REST_KEY, weeklyModel, type WeekSeriesKey } from './progress
  * haengt an der Art (KIND_STYLE), nie am Rang.
  */
 
-const REST_COLOR = '#64748b'
+const REST_COLOR = '#636366'
 const GAP = 2
 const RADIUS = 4
 
@@ -92,7 +92,7 @@ export function WeeklyChart({ sessions, unit, now }: { sessions: readonly Traini
         <span id="progress-weekly-title">{tt('progress_weekly_title')}</span>
       </SectionTitle>
       <Card>
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontWeight: 650, marginBottom: 8 }}>{subtitle}</div>
+        <div style={{ fontSize: 13, color: 'var(--lg-text-3)', fontWeight: 500, marginBottom: 8 }}>{subtitle}</div>
 
         {activeMode === 'sessions' && model.series.length >= 2 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 8 }}>
@@ -103,11 +103,11 @@ export function WeeklyChart({ sessions, unit, now }: { sessions: readonly Traini
         <div style={{ width: '100%', height: 184 }} role="img" aria-label={`${tt('progress_weekly_title')}: ${subtitle}`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 6, right: 4, bottom: 0, left: -12 }} barCategoryGap="22%">
-              <CartesianGrid vertical={false} stroke="var(--border)" strokeWidth={1} />
+              <CartesianGrid vertical={false} stroke="var(--lg-separator)" strokeWidth={1} />
               <XAxis
                 dataKey="start"
                 tickFormatter={(value: number) => weekLabel(value)}
-                tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: 'var(--border-strong)' }}
+                tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: 'var(--lg-separator)' }}
                 interval="preserveStartEnd" minTickGap={8}
               />
               <YAxis
@@ -118,7 +118,7 @@ export function WeeklyChart({ sessions, unit, now }: { sessions: readonly Traini
                   : formatNumber(value, locale, 0)}
               />
               <Tooltip
-                cursor={{ fill: 'var(--border)' }}
+                cursor={{ fill: 'var(--lg-separator)' }}
                 isAnimationActive={false}
                 content={({ active, payload }) => {
                   const row = payload?.[0]?.payload as Record<string, number> | undefined
@@ -143,7 +143,7 @@ export function WeeklyChart({ sessions, unit, now }: { sessions: readonly Traini
         </div>
 
         {activeMode === 'volume' && (
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>{tt('progress_weekly_volume_note')}</p>
+          <p style={{ fontSize: 12, color: 'var(--lg-text-3)', marginTop: 4 }}>{tt('progress_weekly_volume_note')}</p>
         )}
 
         <TableView

@@ -2,7 +2,7 @@ import { addDays, format, parseISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { getDateLocale } from '../../../i18n/dateLocales'
 import { share } from '../lib/nutrition'
-import { MACRO_COLORS, card, label, muted } from '../styles'
+import { CARD, MACRO_COLORS, MUTED } from '../styles'
 
 /**
  * Die letzten 7 Tage. Bewusst ein Wochenschnitt statt Tagesnoten: einzelne
@@ -26,11 +26,11 @@ export function WeekStrip({ date, week, goalKcal, goalProtein, hideKcal, onPick 
   const avg = logged.length ? Math.round(logged.reduce((s, d) => s + value(d), 0) / logged.length) : null
 
   return (
-    <section aria-labelledby="nutr-week" className="p-4" style={card}>
-      <div className="flex items-baseline justify-between">
-        <h2 id="nutr-week" style={label}>{t('nutr_week')}</h2>
+    <section aria-labelledby="nutr-week" className={`${CARD} p-4`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="nutr-week" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_week')}</h2>
         {avg != null && (
-          <span className="text-[0.78rem] font-semibold tabular-nums" style={muted}>
+          <span className={`text-right text-[13px] tabular-nums ${MUTED}`}>
             {t(hideKcal ? 'nutr_week_avg_protein' : 'nutr_week_avg_kcal', { value: avg, days: logged.length })}
           </span>
         )}
@@ -46,11 +46,11 @@ export function WeekStrip({ date, week, goalKcal, goalProtein, hideKcal, onPick 
               className="flex h-full flex-1 touch-manipulation select-none flex-col items-center justify-end gap-1">
               <div className="relative w-full flex-1">
                 {/* Ziellinie */}
-                <div className="absolute inset-x-0 border-t border-dashed" style={{ bottom: '100%', borderColor: 'var(--border-strong)' }} aria-hidden="true" />
+                <div className="absolute inset-x-0 border-t border-dashed border-[var(--lg-separator)]" style={{ bottom: '100%' }} aria-hidden="true" />
                 <div className="absolute inset-x-1 bottom-0 rounded-md"
                   style={{ height: `${pct}%`, minHeight: v > 0 ? 3 : 0, background: hideKcal ? MACRO_COLORS.protein : MACRO_COLORS.kcal, opacity: selected ? 1 : 0.55 }} />
               </div>
-              <span className="text-[0.68rem] font-bold" style={{ color: selected ? 'var(--text)' : 'var(--text-muted)' }}>
+              <span className={`text-[12px] font-semibold ${selected ? 'text-[var(--lg-text)]' : MUTED}`}>
                 {format(parseISO(d), 'EEEEEE', { locale })}
               </span>
             </button>

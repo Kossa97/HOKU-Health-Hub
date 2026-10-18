@@ -29,7 +29,9 @@ export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dia
         aria-modal="true"
         aria-labelledby={labelledBy}
         {...data}
-        className={`lg-sheet w-full max-w-md overflow-y-auto overscroll-contain px-5 pb-5 pt-2 ${tall ? 'max-h-[85vh]' : 'max-h-[90vh]'}`}
+        // Hohe Blätter scrollen: dort ohne Weichzeichner (lg-sheet-solid),
+        // sonst hakt das Scrollen in iOS Safari
+        className={`lg-sheet w-full max-w-md overflow-y-auto overscroll-contain px-5 pb-5 pt-2 ${tall ? 'lg-sheet-solid max-h-[85vh]' : 'max-h-[90vh]'}`}
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape' || busy) return

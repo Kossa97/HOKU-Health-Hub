@@ -60,7 +60,8 @@ function PersonalApp() {
         <Toaster
           position="top-center"
           toastOptions={{
-            style: { background: '#07091a', color: '#eaeefc', border: '1px solid rgba(0,204,245,0.15)' },
+            // Wie eine iOS-Meldung: feste dunkle Kapsel, keine farbige Kante
+            style: { background: '#2c2c2e', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 16px', fontSize: 15, boxShadow: '0 8px 30px rgba(0,0,0,0.5)' },
           }}
         />
         <Routes>

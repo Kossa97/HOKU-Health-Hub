@@ -22,9 +22,9 @@ type MarkerKind = ChartMarker['kind']
 
 /** Geprueft mit dem dataviz-Validator (hell und dunkel); Form der Marke traegt zusaetzlich die Bedeutung. */
 const MARKER_COLOR: Record<MarkerKind, string> = {
-  substance_start: '#8b5cf6',
-  substance_end: '#0284c7',
-  bloodwork: '#e11d48',
+  substance_start: '#bf5af2',
+  substance_end: '#0a84ff',
+  bloodwork: '#ff375f',
 }
 
 const MARKER_KINDS: MarkerKind[] = ['substance_start', 'substance_end', 'bloodwork']
@@ -166,7 +166,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
 
         {metric && domain && (
           <Card style={{ padding: '14px 12px 10px' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 650, margin: '0 4px 4px' }}>
+            <div style={{ fontSize: 12, color: 'var(--lg-text-3)', fontWeight: 500, margin: '0 4px 4px' }}>
               {tt(METRIC_KEY[metric])}{axisUnit ? ` (${axisUnit})` : ''}
             </div>
             <div
@@ -176,11 +176,11 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
             >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={points} margin={{ top: topMargin, right: 12, bottom: 0, left: -8 }}>
-                  <CartesianGrid vertical={false} stroke="var(--border)" strokeWidth={1} />
+                  <CartesianGrid vertical={false} stroke="var(--lg-separator)" strokeWidth={1} />
                   <XAxis
                     dataKey="t" type="number" scale="time" domain={domain} ticks={ticks}
                     tickFormatter={tickDate} tick={AXIS_TICK} tickLine={false}
-                    axisLine={{ stroke: 'var(--border-strong)' }} allowDataOverflow
+                    axisLine={{ stroke: 'var(--lg-separator)' }} allowDataOverflow
                   />
                   <YAxis
                     dataKey="v" domain={['auto', 'auto']} tick={AXIS_TICK} tickLine={false} axisLine={false}
@@ -209,7 +209,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                                 <text
                                   x={nearRight ? x - 9 : x + 9} y={y + 10}
                                   textAnchor={nearRight ? 'end' : 'start'}
-                                  fill="var(--text-dim)" fontSize={11} fontWeight={650}
+                                  fill="var(--lg-text-3)" fontSize={11} fontWeight={500}
                                 >
                                   {text}
                                 </text>
@@ -222,7 +222,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                   })}
                   <Tooltip
                     isAnimationActive={false}
-                    cursor={{ stroke: 'var(--border-strong)', strokeWidth: 1 }}
+                    cursor={{ stroke: 'var(--lg-separator)', strokeWidth: 1 }}
                     content={({ active, payload }) => {
                       const p = payload?.[0]?.payload as { raw: number; date: string } | undefined
                       if (!active || !p) return null
@@ -232,15 +232,15 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                   <Line
                     dataKey="v" type="linear" stroke={TRAINING_ACCENT} strokeWidth={2}
                     strokeLinejoin="round" strokeLinecap="round" isAnimationActive={false}
-                    dot={{ r: 4, fill: TRAINING_ACCENT, stroke: 'var(--surface)', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: TRAINING_ACCENT, stroke: 'var(--surface)', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: TRAINING_ACCENT, stroke: 'var(--lg-sheet-solid)', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: TRAINING_ACCENT, stroke: 'var(--lg-sheet-solid)', strokeWidth: 2 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {points.length < 2 && (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 6 }}>{tt('progress_single_point')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 6 }}>{tt('progress_single_point')}</p>
             )}
 
             {presentKinds.length > 0 && (
@@ -259,15 +259,15 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
             {visibleMarkers.length > 0 ? (
               <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {visibleMarkers.map((marker, i) => (
-                  <li key={`${marker.kind}-${marker.date}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', minWidth: 0 }}>
+                  <li key={`${marker.kind}-${marker.date}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, minWidth: 0 }}>
                     <MarkerGlyph kind={marker.kind} />
-                    <span style={{ color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{longDate(marker.date)}</span>
-                    <span style={{ color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{markerText(marker)}</span>
+                    <span style={{ color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{longDate(marker.date)}</span>
+                    <span style={{ color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{markerText(marker)}</span>
                   </li>
                 ))}
               </ul>
             ) : presentKinds.length === 0 && (
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 8 }}>{tt('progress_markers_none')}</p>
+              <p style={{ fontSize: 12, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('progress_markers_none')}</p>
             )}
 
             <TableView
@@ -309,9 +309,9 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
               return (
                 <Card key={point.sessionId} style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, marginBottom: 6 }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.88rem', flexShrink: 0 }}>{formatDate(point.date, locale)}</span>
+                    <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0 }}>{formatDate(point.date, locale)}</span>
                     {session?.title && (
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{session.title}</span>
+                      <span style={{ fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{session.title}</span>
                     )}
                   </div>
                   <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -319,18 +319,18 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                       const warm = set.type === 'warmup'
                       const e1rm = tracking === 'weight_reps' && !warm ? estimateOneRepMax(set.weightKg, set.reps) : null
                       return (
-                        <li key={i} style={{ display: 'grid', gridTemplateColumns: '1.6rem minmax(0, 1fr) auto', gap: 8, alignItems: 'baseline', fontSize: '0.84rem', fontVariantNumeric: 'tabular-nums' }}>
+                        <li key={i} style={{ display: 'grid', gridTemplateColumns: '1.6rem minmax(0, 1fr) auto', gap: 8, alignItems: 'baseline', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
                           <span
                             title={warm ? tt('progress_set_warmup_label') : undefined}
-                            style={{ color: warm ? 'var(--text-muted)' : 'var(--text-dim)', fontWeight: 750 }}
+                            style={{ color: warm ? 'var(--lg-warn-text)' : 'var(--lg-text-3)', fontWeight: 600 }}
                           >
                             {warm ? tt('progress_set_warmup') : numbers[i]}
                           </span>
-                          <span style={{ color: warm ? 'var(--text-dim)' : 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: warm ? 'var(--lg-text-3)' : 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {formatSet(set, tracking, unit, locale, repsUnit)}
-                            {set.rpe != null && <span style={{ color: 'var(--text-muted)' }}> · {tt('progress_set_rpe', { value: formatNumber(set.rpe, locale, 1) })}</span>}
+                            {set.rpe != null && <span style={{ color: 'var(--lg-text-3)' }}> · {tt('progress_set_rpe', { value: formatNumber(set.rpe, locale, 1) })}</span>}
                           </span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--lg-text-3)', fontSize: 12 }}>
                             {e1rm != null ? `e1RM ${formatWeight(e1rm, unit, locale)}` : ''}
                           </span>
                         </li>
@@ -343,7 +343,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
           </div>
         </section>
 
-        <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>{tt('progress_footnote')}</p>
+        <p style={{ fontSize: 12, color: 'var(--lg-text-3)', lineHeight: 1.45 }}>{tt('progress_footnote')}</p>
       </div>
     </TrainingSheet>
   )

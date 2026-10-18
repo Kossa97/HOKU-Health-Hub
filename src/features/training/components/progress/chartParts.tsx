@@ -13,18 +13,18 @@ export function TooltipBox({ title, rows }: {
   return (
     <div
       style={{
-        background: 'var(--surface-raised)', border: '1px solid var(--border-strong)',
-        borderRadius: 12, padding: '8px 10px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-        fontSize: '0.78rem', color: 'var(--text)', minWidth: 120, maxWidth: 220,
+        background: 'var(--lg-sheet-solid)', border: '0.5px solid var(--lg-separator)',
+        borderRadius: 12, padding: '8px 10px', boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        fontSize: 12, color: 'var(--lg-text)', minWidth: 120, maxWidth: 220,
       }}
     >
-      <div style={{ color: 'var(--text-dim)', fontWeight: 650, marginBottom: 4 }}>{title}</div>
+      <div style={{ color: 'var(--lg-text-3)', fontWeight: 500, marginBottom: 4 }}>{title}</div>
       {rows.map(row => (
         <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           {row.color && <span aria-hidden="true" style={{ width: 10, height: 2, borderRadius: 1, background: row.color, flexShrink: 0 }} />}
-          <strong style={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{row.value}</strong>
+          <strong style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{row.value}</strong>
           {row.label && (
-            <span style={{ color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.label}</span>
+            <span style={{ color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.label}</span>
           )}
         </div>
       ))}
@@ -44,17 +44,17 @@ export function TableView({ summary, head, rows }: {
         className="tyd-train-press"
         style={{
           minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer',
-          fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', listStyle: 'revert',
+          fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', listStyle: 'revert',
         }}
       >
         {summary}
       </summary>
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
           <thead>
             <tr>
               {head.map((cell, i) => (
-                <th key={i} scope="col" style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: 'var(--text-dim)', fontWeight: 700, borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{cell}</th>
+                <th key={i} scope="col" style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: 'var(--lg-text-3)', fontWeight: 600, borderBottom: '0.5px solid var(--lg-separator)', whiteSpace: 'nowrap' }}>{cell}</th>
               ))}
             </tr>
           </thead>
@@ -62,7 +62,7 @@ export function TableView({ summary, head, rows }: {
             {rows.map(row => (
               <tr key={row.key}>
                 {row.cells.map((cell, i) => (
-                  <td key={i} style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: i === 0 ? 'var(--text-dim)' : 'var(--text)', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{cell}</td>
+                  <td key={i} style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: i === 0 ? 'var(--lg-text-3)' : 'var(--lg-text)', borderBottom: '0.5px solid var(--lg-separator)', whiteSpace: 'nowrap' }}>{cell}</td>
                 ))}
               </tr>
             ))}
@@ -76,7 +76,7 @@ export function TableView({ summary, head, rows }: {
 /** Legenden-Eintrag: Form wie die Marke (Rechteck fuer Balken, Strich fuer Linien). */
 export function LegendItem({ color, label, shape = 'rect' }: { color: string; label: string; shape?: 'rect' | 'line' }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 650, minWidth: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--lg-text-3)', fontWeight: 500, minWidth: 0 }}>
       <span
         aria-hidden="true"
         style={shape === 'rect'

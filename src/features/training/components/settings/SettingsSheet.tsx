@@ -50,8 +50,8 @@ export function SettingsSheet({ data, onClose }: { data: TrainingData; onClose: 
       <section aria-labelledby="training-settings-privacy">
         <SectionHeading id="training-settings-privacy">{tt('settings_section_privacy')}</SectionHeading>
         <Card style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <ShieldCheck size={20} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-dim)', marginTop: 2 }} />
-          <p style={{ ...hintStyle, color: 'var(--text-dim)' }}>{tt('settings_privacy_text')}</p>
+          <ShieldCheck size={20} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--lg-text-3)', marginTop: 2 }} />
+          <p style={{ ...hintStyle, color: 'var(--lg-text-3)' }}>{tt('settings_privacy_text')}</p>
         </Card>
       </section>
     </TrainingSheet>
@@ -144,9 +144,9 @@ function GeneralSection({ settings, save, locale }: { settings: TrainingSettings
 function ChipGroup({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div role="group" aria-label={label} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{label}</span>
+      <span className="label" style={{ marginBottom: 0 }}>{label}</span>
       <div style={rowStyle}>{children}</div>
-      {hint && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 13, color: 'var(--lg-text-3)', paddingInline: 4 }}>{hint}</span>}
     </div>
   )
 }

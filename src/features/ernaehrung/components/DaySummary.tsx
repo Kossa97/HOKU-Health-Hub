@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { type Goals, type Nutrients, goalBand, share } from '../lib/nutrition'
-import { MACRO_COLORS, card, dim, label, muted } from '../styles'
+import { CARD, DIM, MACRO_COLORS, MUTED } from '../styles'
 
 function Ring({ value, goal, color, center, caption, ariaLabel }: {
   value: number; goal: number; color: string; center: string; caption: string; ariaLabel: string
@@ -11,14 +11,14 @@ function Ring({ value, goal, color, center, caption, ariaLabel }: {
   return (
     <div className="relative grid h-[132px] w-[132px] shrink-0 place-items-center" role="img" aria-label={ariaLabel}>
       <svg viewBox="0 0 120 120" className="absolute inset-0 -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="10" stroke="var(--border-strong)" />
+        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="10" stroke="var(--lg-fill)" />
         <circle cx="60" cy="60" r={r} fill="none" strokeWidth="10" strokeLinecap="round" stroke={color}
           strokeDasharray={c} strokeDashoffset={c * (1 - p)}
           style={{ transition: 'stroke-dashoffset 400ms cubic-bezier(0.23, 1, 0.32, 1)' }} />
       </svg>
       <div className="text-center">
-        <div className="text-[1.6rem] font-extrabold leading-none tabular-nums" style={{ color: 'var(--text)' }}>{center}</div>
-        <div className="mt-1 text-[0.68rem] font-semibold" style={muted}>{caption}</div>
+        <div className="text-[28px] font-bold leading-none tabular-nums text-[var(--lg-text)]">{center}</div>
+        <div className={`mt-1 text-[12px] font-medium ${MUTED}`}>{caption}</div>
       </div>
     </div>
   )
@@ -28,12 +28,12 @@ function Ring({ value, goal, color, center, caption, ariaLabel }: {
 function MacroColumn({ name, value, goal, color }: { name: string; value: number; goal: number; color: string }) {
   return (
     <div className="min-w-0 text-center">
-      <div className="truncate text-[0.74rem] font-semibold" style={dim}>{name}</div>
-      <div className="mx-auto mt-1.5 h-1.5 w-full overflow-hidden rounded-full" style={{ background: 'var(--border-strong)' }}>
+      <div className={`truncate text-[13px] font-medium ${DIM}`}>{name}</div>
+      <div className="mx-auto mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--lg-fill)]">
         <div className="h-full rounded-full" style={{ width: `${Math.min(100, share(value, goal) * 100)}%`, background: color, transition: 'width 400ms cubic-bezier(0.23, 1, 0.32, 1)' }} />
       </div>
-      <div className="mt-1.5 whitespace-nowrap text-[0.78rem] tabular-nums" style={muted}>
-        <b style={{ color: 'var(--text)' }}>{Math.round(value)}</b> / {goal} g
+      <div className={`mt-1.5 whitespace-nowrap text-[13px] tabular-nums ${MUTED}`}>
+        <b className="font-semibold text-[var(--lg-text)]">{Math.round(value)}</b> / {goal} g
       </div>
     </div>
   )
@@ -63,14 +63,14 @@ export function DaySummary({ total, goals }: { total: Nutrients; goals: Goals })
       })()
 
   return (
-    <section aria-label={t('nutr_summary')} className="p-4" style={card}>
+    <section aria-label={t('nutr_summary')} className={`${CARD} p-4`}>
       <div className="flex items-center justify-center gap-5">
         <Ring value={ring.value} goal={ring.goal} color={ring.color} center={ring.center} caption={ring.caption} ariaLabel={ring.aria} />
         {!goals.hideKcal && (
           <div className="min-w-0">
-            <p style={label}>{t('nutr_eaten')}</p>
-            <p className="whitespace-nowrap text-[1.15rem] font-extrabold tabular-nums" style={{ color: 'var(--text)' }}>{kcal}</p>
-            <p className="whitespace-nowrap text-[0.78rem] tabular-nums" style={muted}>{t('nutr_of_goal', { goal: goals.kcal })}</p>
+            <p className={`text-[13px] font-medium ${MUTED}`}>{t('nutr_eaten')}</p>
+            <p className="whitespace-nowrap text-[22px] font-bold leading-tight tabular-nums text-[var(--lg-text)]">{kcal}</p>
+            <p className={`whitespace-nowrap text-[13px] tabular-nums ${MUTED}`}>{t('nutr_of_goal', { goal: goals.kcal })}</p>
           </div>
         )}
       </div>

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { AlertTriangle, X } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { type Food, type FoodUnit, kcalFromMacros, macroMismatch, parseAmount } from '../lib/nutrition'
-import { PRESSABLE, chip, dim, input, label, muted } from '../styles'
+import { DIM, ERROR_TEXT, MUTED, WARN_BOX } from '../styles'
+import { SheetClose } from '../../../components/ui/SheetClose'
 
 type Field = 'kcal' | 'protein' | 'carbs' | 'fat' | 'sugar' | 'fiber' | 'salt'
 const REQUIRED: Field[] = ['kcal', 'protein', 'carbs', 'fat']
@@ -75,11 +76,11 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
   }
 
   const numberField = (f: Field) => (
-    <div key={f}>
-      <label htmlFor={`nutr-f-${f}`} style={label}>{t(LABEL_KEY[f])}{f === 'kcal' ? '' : ' (g)'}</label>
+    <div key={f} className="min-w-0">
+      <label htmlFor={`nutr-f-${f}`} className="label truncate">{t(LABEL_KEY[f])}{f === 'kcal' ? '' : ' (g)'}</label>
       <input id={`nutr-f-${f}`} inputMode="decimal" enterKeyHint="next" value={v[f]} placeholder={OPTIONAL.includes(f) ? '–' : '0'}
         onChange={e => setV({ ...v, [f]: e.target.value })} aria-invalid={tried && !fieldOk(f)}
-        className="mt-1" style={{ ...input, border: tried && !fieldOk(f) ? '1px solid var(--cat-rose)' : input.border }} />
+        className="input" />
     </div>
   )
 
@@ -87,61 +88,63 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
     <Sheet labelledBy="nutr-editor-title" busy={busy} onClose={onClose} tall>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 id="nutr-editor-title" className="text-lg font-extrabold" style={{ color: 'var(--text)' }}>
+          <h2 id="nutr-editor-title" className="lg-title2">
             {isCorrection ? t('nutr_correct_title') : base ? t('nutr_edit_food') : t('nutr_create')}
           </h2>
-          <p className="text-[0.76rem]" style={muted}>
+          <p className={`mt-1 text-[13px] ${MUTED}`}>
             {isCorrection ? t('nutr_correct_hint') : t('nutr_per100_hint', { unit })}{(base?.barcode ?? barcode) ? ` · ${base?.barcode ?? barcode}` : ''}
           </p>
         </div>
-        <button type="button" data-app-back-close aria-label={t('close')} onClick={onClose} disabled={busy}
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${PRESSABLE}`} style={dim}><X size={20} /></button>
+        <SheetClose onClick={onClose} disabled={busy} />
       </div>
 
-      <label htmlFor="nutr-f-name" className="mt-3 block" style={label}>{t('nutr_f_name')}</label>
+      <label htmlFor="nutr-f-name" className="label mt-4">{t('nutr_f_name')}</label>
       <input id="nutr-f-name" value={name} maxLength={120} onChange={e => setName(e.target.value)} autoFocus={!base}
-        enterKeyHint="next" aria-invalid={tried && !name.trim()} className="mt-1" style={input} />
-      <label htmlFor="nutr-f-brand" className="mt-3 block" style={label}>{t('nutr_f_brand')}</label>
-      <input id="nutr-f-brand" value={brand} maxLength={120} onChange={e => setBrand(e.target.value)} enterKeyHint="next" className="mt-1" style={input} />
+        enterKeyHint="next" aria-invalid={tried && !name.trim()} className="input" />
+      <label htmlFor="nutr-f-brand" className="label mt-3">{t('nutr_f_brand')}</label>
+      <input id="nutr-f-brand" value={brand} maxLength={120} onChange={e => setBrand(e.target.value)} enterKeyHint="next" className="input" />
 
-      <p className="mt-3" style={label} id="nutr-unit-label">{t('nutr_f_unit')}</p>
-      <div role="radiogroup" aria-labelledby="nutr-unit-label" className="mt-1 flex gap-2">
+      <p className="label mt-3" id="nutr-unit-label">{t('nutr_f_unit')}</p>
+      <div role="radiogroup" aria-labelledby="nutr-unit-label" className="grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5">
         {(['g', 'ml'] as const).map(u => (
-          <button key={u} type="button" role="radio" aria-checked={unit === u} onClick={() => setUnit(u)} className={PRESSABLE} style={chip(unit === u)}>
+          <button key={u} type="button" role="radio" aria-checked={unit === u} onClick={() => setUnit(u)}
+            className={`min-h-9 rounded-full text-[15px] font-semibold transition-colors ${unit === u
+              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+              : 'text-[var(--lg-text-2)]'}`}>
             {t(u === 'g' ? 'nutr_unit_g' : 'nutr_unit_ml')}
           </button>
         ))}
       </div>
 
-      <p className="mt-4 text-[0.78rem] font-semibold" style={dim}>{t('nutr_per100_hint', { unit })}</p>
-      <div className="mt-1.5 grid grid-cols-2 gap-3">{REQUIRED.map(numberField)}</div>
+      <p className={`mt-5 px-1 text-[13px] ${DIM}`}>{t('nutr_per100_hint', { unit })}</p>
+      <div className="mt-2 grid grid-cols-2 gap-3">{REQUIRED.map(numberField)}</div>
       <div className="mt-3 grid grid-cols-3 gap-3">{OPTIONAL.map(numberField)}</div>
 
       {mismatch && per100 && (
-        <div className="mt-3 flex gap-2 rounded-xl p-2.5 text-[0.78rem]" style={{ background: 'color-mix(in srgb, var(--cat-amber) 12%, transparent)', color: 'var(--text-dim)' }}>
-          <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: 'var(--cat-amber)' }} />
+        <div className={`mt-3 ${WARN_BOX}`}>
+          <AlertTriangle size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--lg-warn-text)]" />
           <span>{t('nutr_mismatch_calc', { calc: Math.round(kcalFromMacros(per100)) })}</span>
         </div>
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="nutr-f-serving" style={label}>{t('nutr_f_serving', { unit })}</label>
+        <div className="min-w-0">
+          <label htmlFor="nutr-f-serving" className="label truncate">{t('nutr_f_serving', { unit })}</label>
           <input id="nutr-f-serving" inputMode="decimal" value={servingAmount} placeholder="–" onChange={e => setServingAmount(e.target.value)}
-            aria-invalid={tried && !servingOk} className="mt-1" style={input} />
+            aria-invalid={tried && !servingOk} className="input" />
         </div>
-        <div>
-          <label htmlFor="nutr-f-serving-label" style={label}>{t('nutr_f_serving_label')}</label>
+        <div className="min-w-0">
+          <label htmlFor="nutr-f-serving-label" className="label truncate">{t('nutr_f_serving_label')}</label>
           <input id="nutr-f-serving-label" value={servingLabel} maxLength={40} placeholder={t('nutr_f_serving_label_ph')}
-            onChange={e => setServingLabel(e.target.value)} className="mt-1" style={input} />
+            onChange={e => setServingLabel(e.target.value)} className="input" />
         </div>
       </div>
 
-      {tried && !valid && <p role="alert" className="mt-3 text-[0.78rem]" style={{ color: 'var(--cat-rose)' }}>{t('nutr_editor_invalid')}</p>}
+      {tried && !valid && <p role="alert" className={`mt-3 px-1 ${ERROR_TEXT}`}>{t('nutr_editor_invalid')}</p>}
 
       <div className="mt-5 flex gap-2">
-        <button type="button" className="btn-secondary flex-1" disabled={busy} onClick={onClose}>{t('cancel')}</button>
-        <button type="button" className="btn-primary flex-1" disabled={busy} onClick={submit}>{t('nutr_save_food')}</button>
+        <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" disabled={busy} onClick={onClose}>{t('cancel')}</button>
+        <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={busy} onClick={submit}>{t('nutr_save_food')}</button>
       </div>
     </Sheet>
   )

@@ -115,15 +115,15 @@ export function RoutineEditor({ routine, data, onClose }: {
         </Field>
 
         <div>
-          {exercises.length === 0 && <p style={{ color: 'var(--text-dim)', padding: '8px 0' }}>{tt('routine_no_exercises')}</p>}
+          {exercises.length === 0 && <p style={{ fontSize: 15, color: 'var(--lg-text-3)', padding: '8px 4px' }}>{tt('routine_no_exercises')}</p>}
           <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {exercises.map((ex, index) => (
-              <li key={`${ex.exerciseId}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 10, borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <li key={`${ex.exerciseId}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 10px 10px 14px', borderRadius: 18, background: 'var(--lg-surface-2)' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 750, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exerciseName(ex.exerciseId, lang, data.customExercises)}</div>
+                  <div style={{ fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exerciseName(ex.exerciseId, lang, data.customExercises)}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
                     <IconButton label={`${tt('routine_sets')} −`} onClick={() => setCount(index, -1)}><Minus size={16} /></IconButton>
-                    <span style={{ minWidth: 64, textAlign: 'center', fontSize: '0.85rem', fontWeight: 700 }}>{tt('sets_count', { count: ex.sets.length })}</span>
+                    <span style={{ minWidth: 64, textAlign: 'center', fontSize: 13, fontWeight: 600 }}>{tt('sets_count', { count: ex.sets.length })}</span>
                     <IconButton label={`${tt('routine_sets')} +`} onClick={() => setCount(index, 1)}><Plus size={16} /></IconButton>
                   </div>
                 </div>
@@ -149,7 +149,7 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
       aria-label={label}
       onClick={onClick}
       className="tyd-train-press"
-      style={{ width: 40, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-raised)', color: 'var(--text-dim)', flexShrink: 0 }}
+      style={{ width: 40, height: 40, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--lg-fill)', color: 'var(--lg-text-2)', flexShrink: 0 }}
     >
       {children}
     </button>

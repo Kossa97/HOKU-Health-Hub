@@ -2044,7 +2044,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <XCircle size={11} aria-hidden="true" /> {t('verpasst', { defaultValue: 'Verpasst' })}
               </span>
             ) : (
-              <span className="flex items-center gap-0.5 text-slate-400 text-xs font-medium">
+              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-text-3)]">
                 <MinusCircle size={11} aria-hidden="true" /> {t('uebersprungen')}
               </span>
             ))}
