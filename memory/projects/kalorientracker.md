@@ -47,8 +47,8 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 |---|---|
 | BLS-Datei laden, Format prüfen, Generator + `food_catalog` | Container-Netz sperrt blsdb.de — Domain freigeben oder Datei ins Repo legen |
 | OFF live testen | Container-Netz sperrt openfoodfacts.org; Tests mit nachgebildeten Antworten |
-| Migration gegen Produktion | Trockenlauf ok (2×, RLS-Fälle, Großmengen) — Zustimmung des Nutzers abwarten |
-| Edge Function deployen | `food-lookup` — Zustimmung abwarten; ohne sie: Markensuche/Scan zeigen „nicht erreichbar", Rest geht |
+| Migration gegen Produktion | **erledigt 18.10.2026** (`nutrition_etappe1`): 4 Tabellen mit RLS, 4 Policies, 7 Indizes, 0 Zeilen; Nutzer 14, weight_logs 645, profiles 13 unverändert. Parallel lief `training_workout_tracker` (andere Sitzung, +4 Tabellen/+16 Policies) |
+| Edge Function deployen | **erledigt 18.10.2026**: `food-lookup` v1 aktiv, verify_jwt an. Rauchtest aus dem Container nicht möglich (supabase.co gesperrt) — erster echter Aufruf aus der App steht aus, dann Logs prüfen |
 | Datenschutzerklärung / Store-Angaben | Ernährungsdaten, Kamera, Weitergabe an OFF (ohne Personenbezug) ergänzen |
 | Skalierung OFF | bei mehr Nutzern OFF-Dump importieren statt live |
 | Gerätetest Scanner iOS/Android | offen |

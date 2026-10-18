@@ -1,6 +1,6 @@
 # Ernährung: Kalorientracker (Etappe 1)
 
-**Status:** Etappe 1 umgesetzt (Branch `claude/ernaehrung-kalorientracker`), Produktiv-Migration und Funktions-Deployment stehen aus
+**Status:** Etappe 1 umgesetzt (Branch `claude/ernaehrung-kalorientracker`, noch nicht gemergt); Migration `nutrition_etappe1` und Edge Function `food-lookup` am 18.10.2026 in Produktion
 **Route:** `/ernaehrung`
 **Code:** `src/features/ernaehrung/`, `supabase/functions/food-lookup/`, `supabase-nutrition.sql`
 
