@@ -3,16 +3,16 @@ import { describe, expect, it } from 'vitest'
 import { routeLayoutMode } from './layoutMode'
 
 describe('Layout injection tracker fullscreen route', () => {
-  it('hides global bottom navigation and floating FAQ button on the injection tracker route', () => {
+  it('hides global bottom navigation on the injection tracker route', () => {
     const source = readFileSync(new URL('./Layout.tsx', import.meta.url), 'utf8')
 
     expect(routeLayoutMode('/injektionen')).toEqual({
       lockViewport: true,
       hideBottomNav: true,
-      hideFloatingFaq: true,
     })
     expect(source).toContain('{!hideBottomNav && (')
-    expect(source).toContain('{!hideFloatingFaq && (')
+    // Kein schwebender FAQ-Knopf mehr: die FAQ steht im Profil
+    expect(source).not.toContain('aria-label="FAQ"')
   })
   it('does not add extra vertical padding on the fullscreen injection route', () => {
     const source = readFileSync(new URL('./Layout.tsx', import.meta.url), 'utf8')
@@ -23,11 +23,10 @@ describe('Layout injection tracker fullscreen route', () => {
 })
 
 describe('Layout viewport ownership', () => {
-  it('gives the calculator its own scrolling area without a floating control over the syringe', () => {
+  it('gives the calculator its own scrolling area', () => {
     expect(routeLayoutMode('/rechner')).toEqual({
       lockViewport: true,
       hideBottomNav: false,
-      hideFloatingFaq: true,
     })
   })
   it('locks My Stack to the app viewport without hiding its bottom navigation', () => {
@@ -36,7 +35,6 @@ describe('Layout viewport ownership', () => {
     expect(routeLayoutMode('/my-stack')).toEqual({
       lockViewport: true,
       hideBottomNav: false,
-      hideFloatingFaq: false,
     })
     expect(routeLayoutMode('/kalender').lockViewport).toBe(false)
 

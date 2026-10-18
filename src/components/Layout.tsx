@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import {
-  CalendarDays, FlaskConical, HelpCircle, Bell, X, Share,
+  CalendarDays, FlaskConical, Bell, X, Share,
   Syringe, Activity, Droplets, Calculator, Microscope, BookHeart, CheckCircle2,
 } from 'lucide-react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Onboarding } from './Onboarding'
 import { LanguageGate } from './LanguageGate'
@@ -84,7 +84,7 @@ export function Layout() {
     navigate(path)
   }
 
-  const { lockViewport, hideBottomNav, hideFloatingFaq } = routeLayoutMode(pathname)
+  const { lockViewport, hideBottomNav } = routeLayoutMode(pathname)
   const ambient = ambientForPath(pathname)
 
   return (
@@ -137,13 +137,7 @@ export function Layout() {
             ? 0
             : lockViewport
               ? 'var(--bottom-nav-height)'
-              // Platz fuer den schwebenden FAQ-Knopf (44 px + 10 px Abstand):
-              // sonst liegt die letzte Zeile einer Seite dauerhaft unter ihm,
-              // und ein Knopf rechts darin (etwa Loeschen) laesst sich nicht
-              // antippen.
-              : hideFloatingFaq
-                ? 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))'
-                : 'calc(var(--bottom-nav-height) + 56px + env(safe-area-inset-bottom))',
+              : 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))',
           paddingTop: hideBottomNav ? 0 : (showPushBanner || showIOSBanner)
             ? 'calc(1rem + 72px + env(safe-area-inset-top))'
             : undefined,
@@ -156,31 +150,6 @@ export function Layout() {
       <Onboarding />
       <PushNotificationListener />
 
-      {/* FAQ Floating Button */}
-      {!hideFloatingFaq && (
-      <NavLink
-        to="/faq"
-        aria-label="FAQ"
-        className="lg-glass lg-press"
-        style={{
-          position: 'fixed',
-          // 10 px über dem Plus-Knopf, an derselben rechten Kante wie die
-          // Andockfläche (die ab 512 px Breite mittig auf 480 px steht)
-          bottom: `calc(var(--bottom-nav-height) + 10px + env(safe-area-inset-bottom))`,
-          right: 'max(16px, env(safe-area-inset-right), calc((100vw - 480px) / 2))',
-          zIndex: 39,
-          width: 44,
-          height: 44,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: pathname === '/faq' ? 'var(--accent)' : 'var(--lg-text-2)',
-        }}
-      >
-        <HelpCircle size={18} style={{ position: 'relative', zIndex: 1 }} />
-      </NavLink>
-      )}
 
       {/* ── Quick-Action backdrop + sheet ──────────────────────────────────── */}
       {!hideBottomNav && showQuickActions && (

@@ -1705,9 +1705,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         key={slot.key}
         data-due-row={slot.key}
         data-due-open={offen ? 'true' : undefined}
-        // Aufgeklappt leicht in der Akzentfarbe getönt: so gehören die
-        // Knöpfe darunter sichtbar zu dieser Einnahme.
-        className={`overflow-hidden transition-colors duration-200 ${offen ? 'bg-[rgba(0,204,245,0.07)]' : ''}`}
+        className="overflow-hidden"
       >
         <div className="flex items-center gap-2 pr-2">
           <button

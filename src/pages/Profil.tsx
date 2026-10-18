@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, ChevronDown } from 'lucide-react'
+import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
@@ -233,7 +233,15 @@ export function Profil() {
       {/* ── Push-Notifications ── */}
       <PushSettings />
 
-      {/* App-Anleitung */}
+      {/* Hilfe: FAQ und App-Anleitung */}
+      <div className="mt-6">
+        <p className="lg-group-title">{t('tile_faq_desc')}</p>
+        <Link to="/faq" data-profile-faq className="flex min-h-[52px] items-center gap-3 rounded-[var(--r-xl)] bg-[var(--lg-surface-2)] px-4 transition-colors active:bg-white/[0.1]">
+          <span className="lg-icon-tile" style={{ background: '#30d158' }}><HelpCircle size={17} aria-hidden="true" /></span>
+          <span className="flex-1 text-[16px] font-medium text-[var(--lg-text)]">{t('tile_faq')}</span>
+          <ChevronRight size={18} aria-hidden="true" className="text-[var(--lg-text-3)]" />
+        </Link>
+      </div>
       <div className="mt-3">
         <OnboardingRestartButton />
       </div>
