@@ -33,14 +33,13 @@
 ## Stand 18.10.2026
 
 v1 gebaut auf `claude/workout-tracker` (nicht gemergt). Trockenlauf der Migration
-bestanden (`scripts/sql/training.test.sql`), **in Prod noch nicht eingespielt**.
+bestanden (`scripts/sql/training.test.sql`). **In Prod eingespielt am 18.10.2026** (Migration `training_workout_tracker`): 4 Tabellen, 4× RLS, 16 Policies, 0 Zeilen; Security-Advisor ohne neuen Befund. Konto löschen erfasst die Tabellen per `on delete cascade` an `auth.users`.
 Gerätetest `e2e/training.spec.ts` (Chromium-Profile grün, WebKit lokal nicht installiert).
 
 ## Offen
 
 | Punkt | Stand |
 |---|---|
-| Migration in Prod | wartet auf Zustimmung des Nutzers |
 | Kalorientracker | nicht im Repo gefunden; GLP-1-Protein (`Glp1Card avgProteinG`) und Trainings-kcal brauchen ihn — Schnittstelle `trainingEnergyForDay` (`lib/energy.ts`) steht bereit |
 | Android-Workouts | `capacitor-health-connect` 0.7 kann keine ExerciseSession lesen; anderes Plugin nötig. AndroidManifest hat bisher **keine** Health-Berechtigungen (betrifft auch Gewicht/Schritte) — bewusst nicht geändert (Play-Erklärung nötig) |
 | iOS HealthKit | Entitlement/Capability fehlt im Xcode-Projekt; Info.plist-Text nennt Workouts/Ruhepuls nicht |
