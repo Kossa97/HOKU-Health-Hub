@@ -10,19 +10,21 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   der Katalog hat zwei Blöcke, mehrdeutige Dinge werden je Block eindeutig
   benannt (z. B. „Weniger Hunger" = Wirkung, „Appetitlosigkeit" = Nebenwirkung).
 - **Titel** steht ganz oben (ersetzt die bisherige Freitext-Beschreibung).
-- **Intensität 1–5 je Chip**, als kleine Zahl dezent am Rahmen des Chips.
-- **Dauer** ohne Chips: Picker-Rad im Apple-Stil (Zahl + Einheit).
+- **Intensität 1–5 und Dauer je Chip.** Antippen eines Chips öffnet den
+  **Chip-Editor** (eigenes kleines Sheet über dem Formular): Intensität 1–5 und
+  Dauer als Picker-Rad im Apple-Stil (Zahl + Einheit, dazu „hält noch an").
+  Die Werte stehen danach am Chip: Intensität als kleine Zahl am Rahmen, Dauer
+  kurz im Chip.
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
 
 ## Offen
 
-- Intensität setzen: Vorschlag — Antippen wählt den Chip und öffnet direkt eine
-  kleine 1–5-Auswahl am Chip; erneutes Antippen ändert oder entfernt.
-- Dauer je Eintrag oder je Chip? Vorschlag: je Eintrag, mit „hält noch an".
+- Chip-Editor im Detail: Pflichtangaben, Verhalten beim Wegwischen, Entfernen
+  (Vorschlag in der Antwort vom 2026-10-18).
 - Titel Pflicht oder optional (Vorschlag: optional, Platzhalter aus Substanz + Datum)?
 - Datenmodell: Kindtabelle für Chips (`effect_id, symptom_key, custom_label,
-  kind, severity`), Dauer in Minuten. Alte Einträge: Beschreibung → Titel, ein
+  kind, severity, duration_minutes, ongoing`). Alte Einträge: Beschreibung → Titel, ein
   eigener Chip mit bisheriger Art und Intensität. Migration nach CLAUDE.md-Ablauf.
 - Auswertung (`src/pages/tagebuch/stats.ts`) zählt dann nach `symptom_key`.
 - Chip-Katalog (Entwurf unten) gegenlesen.
