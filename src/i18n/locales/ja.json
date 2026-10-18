@@ -494,6 +494,8 @@
   "stat_study": "今日の研究",
   "tile_injektionen": "注射",
   "tile_injektionen_desc": "部位ローテーション・3Dトラッカー",
+  "tile_training": "Training",
+  "tile_training_desc": "Strength, cardio, Hyrox",
   "lab_kicker": "研究",
   "lab_title": "Studies",
   "lab_subtitle": "PubMedで研究と抄録を検索します。",

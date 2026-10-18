@@ -1,0 +1,189 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { ChevronDown, Plus } from 'lucide-react'
+import toast from 'react-hot-toast'
+import type { TrainingSession } from '../../types'
+import { useTrainingText } from '../../i18n'
+import type { ActiveWorkout, WorkoutAction } from '../../lib/activeWorkout'
+import { finishWorkout } from '../../lib/activeWorkout'
+import { exerciseInfo, exerciseName } from '../../lib/exerciseLookup'
+import { formatClock } from '../../lib/format'
+import { previousSets } from '../../lib/stats'
+import type { TrainingData } from '../../hooks/useTrainingData'
+import { ExercisePicker } from '../ExercisePicker'
+import { Button, TRAINING_ACCENT } from '../ui'
+import { ExerciseBlock } from './ExerciseBlock'
+import { FinishSheet } from './FinishSheet'
+import { RestTimer } from './RestTimer'
+
+/**
+ * Das laufende Training im Vollbild. Oben Dauer und „Beenden", darunter die
+ * Uebungen, unten der Pausen-Timer — der Daumen bleibt im unteren Drittel.
+ */
+export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, onSaved }: {
+  workout: ActiveWorkout
+  dispatch: (action: WorkoutAction) => void
+  data: TrainingData
+  onMinimize: () => void
+  onDiscard: () => void
+  onSaved: (session: TrainingSession) => void
+}) {
+  const { tt, lang } = useTrainingText()
+  const [picker, setPicker] = useState(false)
+  const [finishing, setFinishing] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  // Beim Bearbeiten ist „Vorher" das Training davor, nicht das bearbeitete selbst.
+  const history = useMemo(
+    () => data.sessions.filter(s => s.id !== workout.sessionId),
+    [data.sessions, workout.sessionId],
+  )
+  const nameOf = useCallback((id: string) => exerciseName(id, lang, data.customExercises), [lang, data.customExercises])
+  const editing = workout.sessionId != null
+  const elapsedS = editing ? null : Math.max(0, (now - Date.parse(workout.startedAt)) / 1000)
+
+  const save = async (rpe: number | null) => {
+    const previous = workout.sessionId ? data.sessions.find(s => s.id === workout.sessionId) ?? null : null
+    try {
+      const saved = await data.saveSession(finishWorkout(workout, { now: new Date(), rpe, previous }))
+      toast.success(tt('saved'))
+      onSaved(saved)
+    } catch {
+      toast.error(tt('save_error'))
+    }
+  }
+
+  return createPortal(
+    <div
+      data-app-modal
+      role="dialog"
+      aria-modal="true"
+      aria-label={workout.title || tt('workout')}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 85, background: 'var(--app-bg)', color: 'var(--text)',
+        display: 'flex', flexDirection: 'column', height: '100dvh',
+      }}
+    >
+      <header
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: 'calc(8px + env(safe-area-inset-top, 0px)) 12px 8px',
+          borderBottom: '1px solid var(--border)', background: 'var(--surface)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={onMinimize}
+          aria-label={tt('back')}
+          className="tyd-train-press"
+          style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}
+        >
+          <ChevronDown size={24} aria-hidden="true" />
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <input
+            value={workout.title}
+            onChange={e => dispatch({ type: 'title', title: e.target.value })}
+            placeholder={tt('workout_title_placeholder')}
+            aria-label={tt('workout_title_placeholder')}
+            maxLength={80}
+            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 16, fontWeight: 800, padding: 0 }}
+          />
+          {elapsedS != null && (
+            <div style={{ fontSize: '0.8rem', color: TRAINING_ACCENT, fontWeight: 750, fontVariantNumeric: 'tabular-nums' }}>
+              {formatClock(elapsedS)}
+            </div>
+          )}
+        </div>
+        <Button onClick={() => setFinishing(true)} style={{ minHeight: 40 }}>
+          {editing ? tt('save') : tt('finish')}
+        </Button>
+      </header>
+
+      <main style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '12px 10px 24px' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {workout.exercises.length === 0 && (
+            <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '32px 0 8px' }}>{tt('empty_workout_hint')}</p>
+          )}
+          {workout.exercises.map((exercise, index) => (
+            <ExerciseBlock
+              key={`${exercise.exerciseId}-${index}`}
+              exercise={exercise}
+              info={exerciseInfo(exercise.exerciseId, lang, data.customExercises)}
+              index={index}
+              total={workout.exercises.length}
+              previous={previousSets(history, exercise.exerciseId, editing ? workout.startedAt : undefined)}
+              settings={data.settings}
+              supersetNext={exercise.supersetGroup != null && workout.exercises[index + 1]?.supersetGroup === exercise.supersetGroup}
+              onSetChange={(setIndex, patch) => dispatch({ type: 'update_set', index, setIndex, patch })}
+              onCycleType={(setIndex, type) => dispatch({ type: 'update_set', index, setIndex, patch: { type } })}
+              onToggleDone={setIndex => dispatch({ type: 'toggle_done', index, setIndex, defaultRestS: data.settings.defaultRestS, now: Date.now() })}
+              onRemoveSet={setIndex => dispatch({ type: 'remove_set', index, setIndex })}
+              onAddSet={() => dispatch({ type: 'add_set', index })}
+              onRemove={() => dispatch({ type: 'remove_exercise', index })}
+              onMove={delta => dispatch({ type: 'move_exercise', index, delta })}
+              onToggleSuperset={() => dispatch({ type: 'toggle_superset', index })}
+              onRest={restS => dispatch({ type: 'exercise_rest', index, restS })}
+              onNotes={notes => dispatch({ type: 'exercise_notes', index, notes })}
+            />
+          ))}
+
+          <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 52, borderStyle: 'dashed', color: TRAINING_ACCENT }}>
+            <Plus size={18} aria-hidden="true" /> {tt('add_exercise')}
+          </Button>
+          <Button
+            tone="danger"
+            block
+            onClick={() => { if (editing || window.confirm(tt('discard_confirm'))) onDiscard() }}
+            style={{ marginTop: 12 }}
+          >
+            {editing ? tt('cancel') : tt('discard')}
+          </Button>
+        </div>
+      </main>
+
+      {workout.restEndsAt != null && (
+        <div style={{ padding: '8px 10px calc(8px + env(safe-area-inset-bottom, 0px))', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+            <RestTimer
+              endsAt={workout.restEndsAt}
+              totalS={workout.restTotalS ?? 0}
+              onAdjust={deltaS => dispatch({ type: 'rest_adjust', deltaS, now: Date.now() })}
+              onSkip={() => dispatch({ type: 'rest_skip' })}
+            />
+          </div>
+        </div>
+      )}
+
+      {picker && (
+        <ExercisePicker
+          sessions={data.sessions}
+          customExercises={data.customExercises}
+          onAddCustom={data.addCustomExercise}
+          onClose={() => setPicker(false)}
+          onPick={ids => {
+            dispatch({ type: 'add_exercises', exerciseIds: ids, history })
+            setPicker(false)
+          }}
+        />
+      )}
+
+      {finishing && (
+        <FinishSheet
+          workout={workout}
+          history={data.sessions}
+          settings={data.settings}
+          nameOf={nameOf}
+          onClose={() => setFinishing(false)}
+          onSave={save}
+        />
+      )}
+    </div>,
+    document.body,
+  )
+}
