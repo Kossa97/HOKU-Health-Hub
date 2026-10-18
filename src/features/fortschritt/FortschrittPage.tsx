@@ -11,6 +11,7 @@ import { hasLogForDate } from './lib/metricDefaults'
 import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verlaufRange'
 import { formatDaySafe } from './lib/dates'
 import './glass.css'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 
 export function FortschrittPage() {
   const { t } = useTranslation()
@@ -53,9 +54,7 @@ export function FortschrittPage() {
       />
 
       {state.loading ? (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--fg-text-3)', fontSize: '0.9rem', fontWeight: 600 }}>
-          {t('fortschritt_loading')}
-        </div>
+        <Silhouette label={t('fortschritt_loading')}><KurvenUmriss /></Silhouette>
       ) : (
         <FortschrittDashboard
           state={state}

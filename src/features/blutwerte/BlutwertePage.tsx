@@ -17,6 +17,8 @@ import { MarkerDetail } from './components/MarkerDetail'
 import { GridControls } from './components/GridControls'
 import { AuffaelligeWerte } from './components/AuffaelligeWerte'
 import { BefundListe } from './components/BefundListe'
+import { MarkerUmriss, Silhouette } from '../../components/ui/Silhouette'
+import { useLadephase } from '../../components/ui/silhouetteTakt'
 import { EntryModal, emptyDraft, refText, sameRef, type EntryDraft, type ParsedEntry } from './components/EntryModal'
 import { AddSheet } from './components/AddSheet'
 import { ImportFlow } from './components/import/ImportFlow'
@@ -214,7 +216,10 @@ export function BlutwertePage() {
 
   const auffaellig = useMemo(() => auffaelligeWerte(summaries), [summaries])
   const ungeprueft = useMemo(() => ungepruefteWerte(summaries).length, [summaries])
-  const erstLaden = loading && !geladen
+  // Erstes Laden: Umriss der Marker statt Text; erschien er, blendet die Liste über
+  const ladephase = useLadephase(loading && !geladen)
+  const erstLaden = ladephase === 'laden'
+  const einblenden = ladephase === 'einblenden' ? 'lg-reveal' : undefined
 
   const latestDate = useMemo(() => {
     if (entries.length === 0) return null
@@ -431,9 +436,9 @@ export function BlutwertePage() {
       />
 
       {erstLaden && (
-        <div className="p-10 text-center" style={{ color: MUTED }}>
-          {t('bw_loading')}
-        </div>
+        <Silhouette label={t('bw_loading')}>
+          <MarkerUmriss />
+        </Silhouette>
       )}
 
       {!erstLaden && zeigeBioHinweis && (
@@ -444,11 +449,13 @@ export function BlutwertePage() {
       )}
 
       {!erstLaden && view === 'befunde' && (
-        <BefundListe reports={reports} entries={entries} profil={bioProfil} onChanged={load} />
+        <div className={einblenden}>
+          <BefundListe reports={reports} entries={entries} profil={bioProfil} onChanged={load} />
+        </div>
       )}
 
       {!erstLaden && view === 'marker' && (
-        <>
+        <div className={einblenden}>
           <GridControls
             kategorie={kategorie}
             auffaellig={auffaellig.length}
@@ -490,7 +497,7 @@ export function BlutwertePage() {
               onSelect={setSelectedMarker}
             />
           )}
-        </>
+        </div>
       )}
 
       {!erstLaden && view !== 'befunde' && (

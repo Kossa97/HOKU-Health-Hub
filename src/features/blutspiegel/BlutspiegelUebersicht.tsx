@@ -5,7 +5,8 @@
  */
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 import { LiveStatus } from './LiveStatus'
 import { behebbar, type EntryCurve, type ReadyEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
@@ -136,10 +137,7 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
     return (
       <div className="flex flex-col gap-4">
         {kopf}
-        <div className="flex min-h-[200px] items-center justify-center gap-2.5">
-          <Loader2 size={18} color="var(--accent)" className="animate-spin" />
-          <span className="text-sm" style={{ color: 'var(--lg-text-2)' }}>{t('pk_live_loading')}</span>
-        </div>
+        <Silhouette label={t('pk_live_loading')}><KurvenUmriss /></Silhouette>
         {children}
       </div>
     )

@@ -64,6 +64,7 @@ import {
 import toast from 'react-hot-toast'
 import { differenceInDays, format, parseISO, startOfDay } from 'date-fns'
 import { getDateLocale } from '../i18n/dateLocales'
+import { Silhouette, Zeilen } from '../components/ui/Silhouette'
 
 const ROUTINE_GROUP_LABELS: Record<RoutineGroupModel['key'], { key: string; defaultValue: string }> = {
   morning: { key: 'my_stack_routine_morning', defaultValue: 'Morgens' },
@@ -1015,16 +1016,16 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </div>
 
         {FEATURES.planTimelineV2 && timelineLoadState !== 'ready' && (
-          <div role={timelineLoadState === 'error' ? 'alert' : 'status'} className="text-sm text-slate-400">
-            {timelineLoadState === 'loading'
-              ? t('loading', { defaultValue: 'Lädt…' })
-              : <>
-                  <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
-                  <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
-                    {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
-                  </button>
-                </>}
-          </div>
+          timelineLoadState === 'loading'
+            ? <Silhouette><Zeilen breiten={['58%']} h={13} /></Silhouette>
+            : (
+              <div role="alert" className="text-sm text-slate-400">
+                <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
+                <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
+                  {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
+                </button>
+              </div>
+            )
         )}
       </section>
 

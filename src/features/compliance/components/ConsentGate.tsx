@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlaskConical } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import { KEINE_ZUSTIMMUNG, vollstaendig, zustimmungAusMetadaten, zustimmungFehlt, zustimmungsZeile, type ConsentRow } from '../lib/consent'
 import { ConsentChecks } from './ConsentChecks'
 import { MedicalNotice } from './MedicalNotice'
 import { LegalLinks } from './LegalLinks'
+import { SilhouettenHuelle } from '../../../components/ui/Silhouette'
 
 /**
  * `profiles.username` ist Pflicht: Gibt es noch keine Profilzeile (etwa
@@ -44,6 +46,7 @@ async function speichereZustimmung(
  */
 export function ConsentGate({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
+  const { pathname } = useLocation()
   const { t } = useTranslation()
   const userId = user?.id ?? null
   const [ergebnis, setErgebnis] = useState<{ fuer: string; fehlt: boolean; profilDa: boolean } | null>(null)
@@ -75,11 +78,7 @@ export function ConsentGate({ children }: { children: ReactNode }) {
   }, [userId, user?.user_metadata])
 
   const gilt = ergebnis && ergebnis.fuer === userId ? ergebnis : null
-  if (!gilt) return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-    </div>
-  )
+  if (!gilt) return <SilhouettenHuelle pfad={pathname} />
   if (!gilt.fehlt) return <>{children}</>
 
   const bestaetigen = async (event: React.FormEvent) => {

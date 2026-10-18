@@ -1,13 +1,16 @@
 // src/components/LabLoader.tsx
-// Cinematic full-screen loading screen for The Lab.
+// Ladebildschirm für den ersten Besuch von My Stack und The Lab: der Umriss
+// der Seite in atmenden Silhouetten, bis die Daten da sind.
 
-import { FlaskConical } from 'lucide-react'
+import { SeitenSilhouette } from './ui/Silhouette'
+import type { SilhouettenArt } from './ui/silhouetteTakt'
 
 interface LabLoaderProps {
   fadingOut?: boolean
+  art: SilhouettenArt
 }
 
-export function LabLoader({ fadingOut = false }: LabLoaderProps) {
+export function LabLoader({ fadingOut = false, art }: LabLoaderProps) {
   return (
     <div
       // z-40 und nicht z-50: die Navigationsleiste (z-41) bleibt SICHTBAR,
@@ -16,25 +19,18 @@ export function LabLoader({ fadingOut = false }: LabLoaderProps) {
       // haben, die App sei weg. Der schwebende Glaskoerper legt sich dabei auf
       // die Ladeflaeche und zeichnet sie weich, was gut aussieht.
       //
-      // Ueber dem FAQ-Knopf (z-39) liegt sie weiterhin: der gehoert zur Seite
-      // und hat auf einem Ladebildschirm nichts zu suchen. Dialoge (z-45
-      // aufwaerts) liegen weiterhin ueber allem.
-      className={`fixed inset-0 z-40 bg-[#070B11] flex flex-col items-center justify-center gap-5 transition-opacity duration-500 ${
+      // Dialoge (z-45 aufwaerts) liegen weiterhin ueber allem.
+      className={`fixed inset-0 z-40 lg-backdrop overflow-hidden transition-opacity duration-500 ${
         fadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
+      // Dieselben Ränder wie die Seite darunter, damit nichts springt
+      style={{
+        paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+        paddingLeft: 'calc(12px + env(safe-area-inset-left))',
+        paddingRight: 'calc(12px + env(safe-area-inset-right))',
+      }}
     >
-      {/* Outer glow ring */}
-      <div className="relative flex items-center justify-center">
-        <div className="absolute w-28 h-28 rounded-full bg-sky-400/8 blur-2xl animate-pulse" />
-        <div className="absolute w-16 h-16 rounded-full bg-sky-400/10 blur-lg animate-pulse" />
-
-        {/* Spinning vial */}
-        <FlaskConical
-          size={48}
-          className="relative text-sky-400 drop-shadow-[0_0_12px_rgba(0,204,245,0.5)]"
-          style={{ animation: 'spin 2s linear infinite' }}
-        />
-      </div>
+      <SeitenSilhouette art={art} />
     </div>
   )
 }

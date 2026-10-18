@@ -24,6 +24,7 @@ export function TheLab() {
 
   const [articles, setArticles]               = useState<PubMedArticle[]>([])
   const [chartData, setChartData]             = useState<ChartEntry[]>([])
+  const [chartLaedt, setChartLaedt]           = useState(true)
   const [loading, setLoading]                 = useState(true)
   const [errorMessage, setErrorMessage]       = useState<string | null>(null)
   const [isTrending, setIsTrending]           = useState(true)
@@ -48,6 +49,7 @@ export function TheLab() {
         fetchChartCounts()
           .then(setChartData)
           .catch(() => { /* chart errors are non-fatal */ })
+          .finally(() => setChartLaedt(false))
       })
   }, [])
 
@@ -87,7 +89,7 @@ export function TheLab() {
   return (
     <>
       {/* Full-screen loader — only on initial page load */}
-      {initialLoad && <LabLoader fadingOut={loaderFading} />}
+      {initialLoad && <LabLoader art="lab" fadingOut={loaderFading} />}
 
       <div className="space-y-4">
         <ResearchDisclaimer
@@ -101,6 +103,7 @@ export function TheLab() {
         {/* Research Snapshot */}
         <ResearchSnapshot
           chartData={chartData}
+          chartLaedt={chartLaedt}
           articles={articles}
           onSearch={query => void runSearch(query, filters)}
         />

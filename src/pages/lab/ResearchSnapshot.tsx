@@ -1,9 +1,12 @@
 // src/pages/lab/ResearchSnapshot.tsx
 import { useTranslation } from 'react-i18next'
 import type { ChartEntry, PubMedArticle } from './pubmed'
+import { Ph } from '../../components/ui/Silhouette'
 
 interface ResearchSnapshotProps {
   chartData: ChartEntry[]
+  /** Zahlen sind unterwegs; schlug der Abruf fehl, bleibt nur „—" */
+  chartLaedt: boolean
   articles: PubMedArticle[]
   onSearch: (query: string) => void
 }
@@ -15,10 +18,12 @@ interface SnapshotCardProps {
   sub: string
   cta?: string
   onCta?: () => void
+  /** Zahlen fehlen noch: Titel und Zeile als Silhouette */
+  laedt?: boolean
 }
 
 function SnapshotCard({
-  kicker, dot, title, sub, cta, onCta,
+  kicker, dot, title, sub, cta, onCta, laedt = false,
 }: SnapshotCardProps) {
   return (
     <div className="lg-surface lg-flat !rounded-[22px] p-4">
@@ -27,9 +32,11 @@ function SnapshotCard({
         {kicker}
       </p>
       <p className="mb-0.5 truncate text-[22px] font-semibold leading-tight text-[var(--lg-text)]">
-        {title}
+        {laedt ? <Ph w="46%" h={22} className="my-[3px]" /> : title}
       </p>
-      <p className="text-[13px] text-[var(--lg-text-2)]">{sub}</p>
+      <p className="text-[13px] text-[var(--lg-text-2)]">
+        {laedt ? <><span className="sr-only">{sub}</span><Ph w="64%" h={12} className="mt-1" /></> : sub}
+      </p>
       {cta && onCta && (
         <button
           type="button"
@@ -43,7 +50,7 @@ function SnapshotCard({
   )
 }
 
-export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnapshotProps) {
+export function ResearchSnapshot({ chartData, chartLaedt, articles, onSearch }: ResearchSnapshotProps) {
   const { t } = useTranslation()
   const top = chartData[0]
   const second = chartData[1]
@@ -56,9 +63,10 @@ export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnap
         title={top?.name ?? '—'}
         sub={top
           ? t('lab_snapshot_studies', { count: top.count.toLocaleString() })
-          : t('lab_snapshot_loading')}
+          : chartLaedt ? t('lab_snapshot_loading') : ''}
         cta={t('lab_snapshot_discover')}
         onCta={() => top && onSearch(top.name)}
+        laedt={!top && chartLaedt}
       />
       <SnapshotCard
         kicker={t('lab_snapshot_top')}
@@ -66,9 +74,10 @@ export function ResearchSnapshot({ chartData, articles, onSearch }: ResearchSnap
         title={second?.name ?? '—'}
         sub={second
           ? t('lab_snapshot_papers', { count: second.count.toLocaleString() })
-          : t('lab_snapshot_loading')}
+          : chartLaedt ? t('lab_snapshot_loading') : ''}
         cta={t('lab_snapshot_discover')}
         onCta={() => second && onSearch(second.name)}
+        laedt={!second && chartLaedt}
       />
       <SnapshotCard
         kicker={t('lab_snapshot_new')}

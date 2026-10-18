@@ -2032,7 +2032,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         data-my-stack-body
         className={`-mx-3 min-h-0 flex-1 px-3 ${viewMode === 'vials' && activePeptide ? 'flex flex-col overflow-hidden overscroll-none' : 'overflow-y-auto overscroll-contain'}`}
       >
-          {initialLoad && <LabLoader fadingOut={!loading} />}
+          {initialLoad && <LabLoader art="stack" fadingOut={!loading} />}
 
           {FEATURES.planTimelineV2 && timelineLoadError && (
             <div role="alert" className="mb-4 rounded-xl border border-rose-300/25 bg-rose-300/10 p-3 text-sm text-rose-100">

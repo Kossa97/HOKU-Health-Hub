@@ -1,9 +1,10 @@
 // src/pages/lab/StudyFeed.tsx
-import { Flame, Loader2, BookOpen, Search } from 'lucide-react'
+import { Flame, BookOpen, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { PubMedArticle, FilterState } from './pubmed'
 import { StudyCard } from './StudyCard'
 import { StudySidebar } from './StudySidebar'
+import { Silhouette, StudienUmriss } from '../../components/ui/Silhouette'
 
 interface StudyFeedProps {
   articles: PubMedArticle[]
@@ -78,12 +79,9 @@ export function StudyFeed({
 
         {/* Loading */}
         {loading && (
-          <div className="lg-surface lg-flat text-center py-10 text-[var(--lg-text-2)]">
-            <Loader2 size={28} className="mx-auto mb-3 text-[var(--lg-accent-text)] animate-spin" />
-            <p className="text-sm">
-              {isTrending ? t('lab_loading_trending') : t('lab_loading_search')}
-            </p>
-          </div>
+          <Silhouette label={isTrending ? t('lab_loading_trending') : t('lab_loading_search')}>
+            <StudienUmriss />
+          </Silhouette>
         )}
 
         {/* Error */}

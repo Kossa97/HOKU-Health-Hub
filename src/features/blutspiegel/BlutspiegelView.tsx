@@ -5,7 +5,8 @@
  */
 import { memo, useCallback, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 import { useTranslation } from 'react-i18next'
 import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import { methodLabel } from '../../lib/intakeMethods'
@@ -354,10 +355,9 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   }
   if (data.loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: compact ? 160 : 280, justifyContent: 'center' }}>
-        <Loader2 size={18} color="var(--accent)" className="animate-spin" />
-        <span style={{ fontSize: 14, ...MUTED }}>{t('pk_live_loading')}</span>
-      </div>
+      <Silhouette label={t('pk_live_loading')}>
+        <KurvenUmriss anzahl={1} hoehe={compact ? 96 : 200} />
+      </Silhouette>
     )
   }
 

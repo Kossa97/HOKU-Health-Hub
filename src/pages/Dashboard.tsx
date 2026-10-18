@@ -54,6 +54,7 @@ import {
 } from '../features/my-stack/services/stackInventory'
 import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDeepLink'
 import { PageShell } from '../components/ui/DesignSystem'
+import { EinnahmenUmriss, Silhouette } from '../components/ui/Silhouette'
 import { denyProps } from '../lib/denyFeedback'
 
 interface DoseLog {
@@ -2169,16 +2170,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </span>
         </div>
 
-        {FEATURES.planTimelineV2 && !timelineReady && (
-          <div role={timelineLoadState === 'error' ? 'alert' : 'status'} className="mb-3 text-sm text-slate-400">
-            {timelineLoadState === 'error' ? <>
-              <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
-              <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
-                {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
-              </button>
-            </> : t('loading', { defaultValue: 'Lädt…' })}
+        {FEATURES.planTimelineV2 && !timelineReady && (timelineLoadState === 'error' ? (
+          <div role="alert" className="mb-3 text-sm text-slate-400">
+            <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
+            <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
+              {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
+            </button>
           </div>
-        )}
+        ) : (
+          // Die Einnahmen des Tages laden: ihr Umriss steht schon da
+          <Silhouette className="mb-3"><EinnahmenUmriss /></Silhouette>
+        ))}
         {FEATURES.planTimelineV2 && timelineReady && timezoneReviewStackItemIds.length > 0 && (
           <div role="alert" className="mb-4 rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4">
             <div className="flex items-start gap-2.5">
