@@ -18,6 +18,7 @@ test('Taschenlampen-Kante: der Glanz zeigt zum Licht und wandert beim Scrollen',
   await expect.poll(() => winkel(1)).toBeCloseTo(0, 0)
 
   // Scrollt die zweite Karte über das Licht hinaus, wandert ihr Glanz nach unten
-  await page.mouse.wheel(0, 320)
+  // Kein Mausrad: mobiles WebKit kennt es nicht
+  await page.evaluate(() => window.scrollBy(0, 320))
   await expect.poll(() => winkel(1)).toBeCloseTo(180, 0)
 })

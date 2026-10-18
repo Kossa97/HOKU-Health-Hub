@@ -602,7 +602,8 @@ function LaufName({ text }: { text: string }) {
   return (
     <h1
       ref={boxRef}
-      className="lg-large-title min-w-0 shrink overflow-hidden whitespace-nowrap"
+      // Unter 360 px etwas kleiner, damit übliche Namen neben der Kategorie stehen bleiben
+      className="lg-large-title min-w-0 shrink overflow-hidden whitespace-nowrap max-[359px]:!text-[28px] max-[359px]:!leading-[34px]"
       style={{
         color: TEXT,
         ...(ruhig ? { textOverflow: 'ellipsis' } : {}),
