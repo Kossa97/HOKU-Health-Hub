@@ -5574,9 +5574,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1791840471.3360794,
-    "seen": 1792324520.2728052,
-    "ast_hash": "369d5b47ec2f00a356db8a18b627f456",
+    "mtime": 1792359002.3030806,
+    "seen": 1792359292.9633405,
+    "ast_hash": "2bd2a9dc8ad4dbf875330fbbb04511d1",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -5706,9 +5706,9 @@
     "semantic_hash": ""
   },
   "docs/store-compliance.md": {
-    "mtime": 1791840469.8131816,
-    "seen": 1792324520.2741208,
-    "ast_hash": "3a54c8dd9555522474f886a81369690c",
+    "mtime": 1792359002.3040237,
+    "seen": 1792359292.9845335,
+    "ast_hash": "ce71fcba829555044c11d42e553f4980",
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
@@ -6912,9 +6912,9 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792355115.5014586,
-    "seen": 1792355775.880897,
-    "ast_hash": "edf3d56e5b73887b579f8670c0d96673",
+    "mtime": 1792359164.8183777,
+    "seen": 1792359292.9567983,
+    "ast_hash": "218fcb39ed3d32998e40e0647d52a7b2",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
@@ -7074,15 +7074,15 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-18-ernaehrung-kalorientracker-design.md": {
-    "mtime": 1792355756.5436492,
-    "seen": 1792355775.9089167,
-    "ast_hash": "9f06a981751f365efe1a8cd6cd095ff7",
+    "mtime": 1792359123.352171,
+    "seen": 1792359292.988952,
+    "ast_hash": "a6f5453876b3a72d9719671ac51a60a6",
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792355756.5440552,
-    "seen": 1792355775.909018,
-    "ast_hash": "493b3c7592ed72bad54d394faacd8a17",
+    "mtime": 1792359164.8191297,
+    "seen": 1792359292.9890645,
+    "ast_hash": "c9fa3f37eb0b94dfaaceb9352a7a3e2a",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7350,9 +7350,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/index.ts": {
-    "mtime": 1792354857.8503847,
-    "seen": 1792355775.904595,
-    "ast_hash": "71004d5dfa8159bf1dae6fcec0d7cf55",
+    "mtime": 1792358962.8443978,
+    "seen": 1792359292.9833038,
+    "ast_hash": "a2859fc36e1274c766d8228d60dbc9b5",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/photo.test.ts": {
