@@ -56,9 +56,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
 
 - Chip-Editor im Detail: Pflichtangaben, Verhalten beim Wegwischen, Entfernen
   (Vorschlag in der Antwort vom 2026-10-18).
-- Datenmodell: Kindtabelle für Chips (`effect_id, symptom_key, custom_label,
-  kind, severity, duration_minutes, ongoing`). Alte Einträge: Beschreibung → Titel, ein
-  eigener Chip mit bisheriger Art und Intensität. Migration nach CLAUDE.md-Ablauf.
+- **Migration Schritt 1 erledigt (2026-10-19):** `supabase-tagebuch-chips.sql` –
+  Tabelle `effect_symptoms` (effect_id, user_id, kind, symptom_key | custom_label,
+  severity 1–5, duration_minutes, ongoing, position) mit RLS „Own effect symptoms",
+  Eigentümer-Trigger (Execute entzogen), Katalog-Chip je Eintrag eindeutig;
+  `effects.type`/`severity` dürfen leer sein. Trockenlauf 2× + Funktionstests OK,
+  in Produktion angewendet: 58 effects unverändert, 0 Chips.
+  `supabase-tagebuch-reset.sql` (löscht alle effects) liegt bereit, **noch nicht
+  ausgeführt** – erst mit neuen Testdaten im neuen Format.
 - Auswertung (`src/pages/tagebuch/stats.ts`) zählt dann nach `symptom_key`.
 - Chip-Katalog (Entwurf unten) gegenlesen.
 - **Symbol-Audit (2026-10-19, design-system):** 43 Health Icons (Fläche, 48er,
