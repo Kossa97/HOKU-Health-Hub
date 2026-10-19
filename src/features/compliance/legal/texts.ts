@@ -41,8 +41,9 @@ const DATENSCHUTZ_DE: LegalDoc = {
       heading: '2. Welche Daten wir verarbeiten',
       paragraphs: [
         'Konto: E-Mail-Adresse, Passwort (nur verschlüsselt gespeichert), Nutzername, freiwillig Anzeigename und Profiltext, Sprache und Einstellungen, Zeitpunkt deiner Zustimmung zu diesen Bedingungen und deiner Altersbestätigung.',
-        'Gesundheitsdaten, die du selbst einträgst: Substanzen in deinem Stack, Einnahmepläne und -protokolle, Bestand, Blutwerte und Befunde, Gewicht und Körpermaße, Fortschrittsfotos, Tagebuch und deine Erfahrungen. Das sind besondere Kategorien personenbezogener Daten nach Art. 9 DSGVO.',
+        'Gesundheitsdaten, die du selbst einträgst: Substanzen in deinem Stack, Einnahmepläne und -protokolle, Bestand, Blutwerte und Befunde, Gewicht und Körpermaße, Ernährung (Mahlzeiten, Lebensmittel und Gerichte, Wasser, Ernährungsziele), Fortschrittsfotos, Tagebuch und deine Erfahrungen. Das sind besondere Kategorien personenbezogener Daten nach Art. 9 DSGVO.',
         'Technische Daten: Fehlerberichte bei Abstürzen (ohne Gesundheitsdaten und ohne IP-Adresse, siehe Abschnitt 5) und, wenn du Erinnerungen einschaltest, die Push-Adresse deines Geräts.',
+        'Kamera: Wenn du einen Barcode scannst, erkennt dein Gerät die Ziffern selbst — das Kamerabild wird dabei weder übertragen noch gespeichert. Fotos für die Erkennung von Mahlzeiten oder das Auslesen von Etiketten verlassen das Gerät nur, wenn du diese Funktionen nutzt (siehe Abschnitt 5).',
       ],
     },
     {
@@ -50,7 +51,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
       paragraphs: [
         'Wir verarbeiten deine Daten nur, um dir die Funktionen der App bereitzustellen: Tracking, Erinnerungen, Auswertungen, Export und — wenn du es einschaltest — dein öffentliches Profil.',
         'Rechtsgrundlage für Kontodaten ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO). Gesundheitsdaten verarbeiten wir auf Grundlage deiner ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO), die du bei der Registrierung erteilst. Du kannst sie jederzeit widerrufen, indem du dein Konto löschst; die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung bleibt unberührt.',
-        'Keine Werbung, kein Tracking, kein Verkauf von Daten. An einen KI-Dienst geht nur dann etwas, wenn du den Befund-Import nutzt und dem vorher gesondert zustimmst (Art. 9 Abs. 2 lit. a DSGVO, siehe Abschnitt 5). Die Einwilligung kannst du im Profil jederzeit widerrufen.',
+        'Keine Werbung, kein Tracking, kein Verkauf von Daten. An einen KI-Dienst geht nur dann etwas, wenn du den Befund-Import, das Auslesen von Etiketten oder die Erkennung von Mahlzeiten nutzt und dem jeweils vorher gesondert zustimmst (Art. 9 Abs. 2 lit. a DSGVO, siehe Abschnitt 5). Beide Einwilligungen kannst du im Profil jederzeit widerrufen.',
       ],
     },
     {
@@ -68,6 +69,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
         'Sentry (Fehlerberichte) — Functional Software Inc., Speicherort EU (Deutschland). Vor dem Senden werden alle Nutzerinhalte entfernt; die IP-Adresse wird nicht gespeichert.',
         'Open Food Facts (Produktdaten beim Barcode-Scan in Ernährung und My Stack) — Open Food Facts, gemeinnütziger Verein, Frankreich. Wenn du einen Barcode scannst oder nach einem Lebensmittel suchst, fragt unser Server dort die Ziffern bzw. den Suchbegriff ab. Open Food Facts sieht weder deine IP-Adresse noch dein Konto; zurück kommen nur Produktname, Marke und Nährwerte.',
         'Anthropic (KI-Auswertung von Laborbefunden und Etiketten, optional) — Anthropic, PBC, USA. Nur wenn du einen Befund importierst oder ein Etikett fotografierst und eingewilligt hast: Das Foto bzw. PDF wird zur Auswertung übertragen, zurück kommen nur die erkannten Laborwerte bzw. Name, Darreichungsform und Stärke der Substanz. Auf einem Befund oder Apothekenetikett können auch Name, Geburtsdatum und Anschrift stehen — die App empfiehlt, sie vorher abzudecken. TYD speichert die Datei nicht. [[Speicherdauer und Nutzung bei Anthropic laut Vertrag eintragen; Grundlage der Übermittlung in die USA (EU-US Data Privacy Framework oder Standardvertragsklauseln) prüfen]]',
+        'Anthropic (KI-Erkennung von Mahlzeiten, optional) — derselbe Dienst. Nur wenn du „Essen fotografieren" nutzt und dafür gesondert eingewilligt hast: Das Foto (verkleinert) und/oder deine Notiz zum Gericht werden übertragen, zurück kommen nur der Name des Gerichts und mögliche Zutaten — keine Mengen und keine Nährwerte; die wählst du selbst aus der Lebensmitteldatenbank. TYD speichert weder Foto noch Notiz, sondern nur den Zeitpunkt der Anfrage (für das Tageslimit). Achte darauf, dass keine Personen auf dem Foto sind. Für Speicherdauer bei Anthropic und Übermittlungsgrundlage gilt dasselbe wie beim Befund-Import.',
         'Push-Dienste — wenn du Erinnerungen einschaltest, stellt der Push-Dienst deines Betriebssystems bzw. Browsers (Apple, Google oder Mozilla) die Benachrichtigung zu. Die Nachricht enthält den Namen der Substanz, die Menge und den Zeitpunkt — sie kann auf dem Sperrbildschirm sichtbar sein.',
         'Mit allen Dienstleistern bestehen Verträge zur Auftragsverarbeitung (Art. 28 DSGVO). [[Prüfen und bestätigen]]',
       ],
@@ -113,8 +115,9 @@ const DATENSCHUTZ_EN: LegalDoc = {
       heading: '2. What data we process',
       paragraphs: [
         'Account: email address, password (stored only in encrypted form), username, optionally display name and bio, language and settings, and when you accepted these terms and confirmed your age.',
-        'Health data you enter yourself: substances in your stack, schedules and intake logs, inventory, blood values and lab reports, weight and body measurements, progress photos, journal and your experiences. These are special categories of personal data under Art. 9 GDPR.',
+        'Health data you enter yourself: substances in your stack, schedules and intake logs, inventory, blood values and lab reports, weight and body measurements, nutrition (meals, foods and recipes, water, nutrition goals), progress photos, journal and your experiences. These are special categories of personal data under Art. 9 GDPR.',
         'Technical data: crash reports (without health data and without IP address, see section 5) and, if you turn on reminders, your device\'s push address.',
+        'Camera: when you scan a barcode, your device reads the digits itself — the camera image is neither sent nor stored. Photos for meal recognition or label reading only leave your device if you use those features (see section 5).',
       ],
     },
     {
@@ -122,7 +125,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
       paragraphs: [
         'We process your data only to provide the app\'s features: tracking, reminders, insights, export and — if you turn it on — your public profile.',
         'The legal basis for account data is performance of the user agreement (Art. 6(1)(b) GDPR). We process health data based on your explicit consent (Art. 9(2)(a) GDPR), which you give when you register. You can withdraw it at any time by deleting your account; this does not affect the lawfulness of processing before withdrawal.',
-        'No advertising, no tracking, no sale of data. Data goes to an AI service only if you use the lab report import and give separate consent beforehand (Art. 9(2)(a) GDPR, see section 5). You can withdraw this consent in your profile at any time.',
+        'No advertising, no tracking, no sale of data. Data goes to an AI service only if you use the lab report import, label reading or meal recognition and give separate consent beforehand (Art. 9(2)(a) GDPR, see section 5). You can withdraw either consent in your profile at any time.',
       ],
     },
     {
@@ -140,6 +143,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
         'Sentry (crash reports) — Functional Software Inc., storage in the EU (Germany). All user content is removed before sending; IP addresses are not stored.',
         'Open Food Facts (product data for barcode scans in Nutrition and My Stack) — Open Food Facts, non-profit association, France. When you scan a barcode or search for a food, our server looks up the digits or the search term there. Open Food Facts sees neither your IP address nor your account; only the product name, brand and nutrition values come back.',
         'Anthropic (AI reading of lab reports and labels, optional) — Anthropic, PBC, USA. Only if you import a lab report or photograph a label and have consented: the photo or PDF is sent for reading, and only the recognised lab values or the substance’s name, dosage form and strength come back. A lab report or pharmacy label may also show your name, date of birth and address — the app recommends covering them first. TYD does not store the file. [[enter retention and use at Anthropic according to the contract; check the basis for the transfer to the USA (EU-US Data Privacy Framework or standard contractual clauses)]]',
+        'Anthropic (AI meal recognition, optional) — the same provider. Only if you use "Snap your meal" and have given separate consent for it: the photo (downscaled) and/or your note about the dish are sent, and only the name of the dish and possible ingredients come back — no amounts and no nutrition values; you choose those yourself from the food database. TYD stores neither the photo nor the note, only the time of the request (for the daily limit). Make sure no people are in the photo. Retention at Anthropic and the basis for the transfer are the same as for the lab report import.',
         'Push services — if you turn on reminders, your operating system\'s or browser\'s push service (Apple, Google or Mozilla) delivers the notification. It contains the substance name, amount and time — it may be visible on your lock screen.',
         'Data processing agreements (Art. 28 GDPR) are in place with all providers. [[check and confirm]]',
       ],

@@ -14,7 +14,7 @@ import { Auswertung } from './tagebuch/Auswertung'
 import { EntryForm } from './tagebuch/EntryForm'
 import { SymptomChip } from './tagebuch/SymptomChip'
 import { ENTRY_SELECT, sortedChips, type DiaryEntry } from './tagebuch/entry'
-import { chipAria, chipLabel, durationText, fromRow } from './tagebuch/chips'
+import { chipAria, chipLabel, durationText, fromRow, kindColor } from './tagebuch/chips'
 
 type Effect = DiaryEntry
 
@@ -202,12 +202,26 @@ export function Tagebuch() {
                 </div>
 
                 {e.effect_symptoms?.length ? (
-                  <div className="mt-1 flex flex-wrap [--tb-base:var(--surface)]">
-                    {sortedChips(e).map(row => {
-                      const chip = fromRow(row)
+                  /* Getrennt nach Art: erst Wirkungen, dann Nebenwirkungen */
+                  <div className="mt-2.5 space-y-2.5 pr-2">
+                    {(['effect', 'side_effect'] as const).map(kind => {
+                      const rows = sortedChips(e).filter(row => row.kind === kind)
+                      if (!rows.length) return null
                       return (
-                        <SymptomChip key={row.id} small selected kind={chip.kind} label={chipLabel(chip, i18n.language)} iconKey={chip.key}
-                          severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true, t, i18n.language)} />
+                        <div key={kind} data-tagebuch-art={kind}>
+                          <p className="mb-1.5 text-[12px] font-semibold" style={{ color: kindColor(kind) }}>
+                            {t(kind === 'effect' ? 'wirkungen' : 'nebenwirkungen')}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {rows.map(row => {
+                              const chip = fromRow(row)
+                              return (
+                                <SymptomChip key={row.id} small selected kind={chip.kind} label={chipLabel(chip, i18n.language)} iconKey={chip.key}
+                                  severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true, t, i18n.language)} />
+                              )
+                            })}
+                          </div>
+                        </div>
                       )
                     })}
                   </div>
@@ -233,7 +247,8 @@ export function Tagebuch() {
                 {e.notes && <p className="text-[var(--lg-text-2)] text-[14px] mt-1">{e.notes}</p>}
               </div>
 
-              <div className="flex shrink-0">
+              {/* Über überstehenden Chip-Badges — die Knöpfe bleiben immer treffbar. */}
+              <div className="relative z-[2] flex shrink-0">
                 <button type="button" aria-label={t('tagebuch_eintrag_bearbeiten')}
                   className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-accent-text)]"
                   onClick={() => openEdit(e)}>

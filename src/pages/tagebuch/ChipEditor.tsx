@@ -132,7 +132,7 @@ export function ChipEditor({ chip, label, isNew, onDone, onRemove, onClose }: {
     <div className="fixed inset-0 z-[80] flex items-end justify-center" data-app-modal>
       <button type="button" tabIndex={-1} aria-label={t('close')} className="absolute inset-0 cursor-default bg-black/50" onClick={onClose} />
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby="chip-editor-title" onKeyDown={onKeyDown}
-        className="lg-sheet lg-sheet-solid relative w-full max-w-lg space-y-[18px] px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] [--tb-base:#2c2c2e] !bg-[#2c2c2e]">
+        className="lg-sheet lg-sheet-solid relative w-full max-w-lg space-y-[18px] px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] !bg-[#2c2c2e]">
         <span className="lg-grabber !mb-1" aria-hidden="true" />
         <div className="flex items-center gap-3.5">
           <span aria-hidden="true" className="flex size-[52px] shrink-0 items-center justify-center rounded-full"

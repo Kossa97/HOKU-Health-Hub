@@ -149,6 +149,9 @@ test('Chip-Editor: Escape schliesst nur den Editor, Fokus zurueck auf den Chip; 
   await dialog.getByRole('button', { name: 'So funktionieren die Chips' }).click()
   const info = page.getByRole('dialog', { name: 'So ist ein Chip aufgebaut' })
   await expect(info).toBeVisible()
+  // Fokus liegt auf „Verstanden", ohne dass der Titel aus dem Bild scrollt.
+  await expect(info.getByRole('button', { name: 'Verstanden' })).toBeFocused()
+  await expect(info.getByRole('heading', { name: 'So ist ein Chip aufgebaut' })).toBeInViewport({ ratio: 1 })
   await info.getByRole('button', { name: 'Verstanden' }).click()
   await expect(info).toBeHidden()
   await expect(dialog).toBeVisible()
@@ -266,8 +269,13 @@ test('Suche und Filter laufen in der Datenbank: Titel oder Substanzname; Filter 
   await expect(page.locator('ul > li')).toHaveCount(2)
   await expect(page.locator('ul > li').first()).toContainText('Besserer Schlaf')
   await expect(page.locator('ul > li').last()).toContainText('Gemischt')
-  // Ein Eintrag mit beiden Arten erscheint einmal, mit allen seinen Chips.
-  await expect(page.locator('ul > li').last()).toContainText('Müdigkeit, Nebenwirkung')
+  // Ein Eintrag mit beiden Arten erscheint einmal, mit allen seinen Chips — getrennt nach Art.
+  const gemischt = page.locator('ul > li').last()
+  await expect(gemischt.locator('[data-tagebuch-art]')).toHaveCount(2)
+  await expect(gemischt.locator('[data-tagebuch-art="effect"]')).toContainText('Wirkungen')
+  await expect(gemischt.locator('[data-tagebuch-art="effect"]')).toContainText('Mehr Energie, Wirkung')
+  await expect(gemischt.locator('[data-tagebuch-art="side_effect"]')).toContainText('Nebenwirkungen')
+  await expect(gemischt.locator('[data-tagebuch-art="side_effect"]')).toContainText('Müdigkeit, Nebenwirkung')
 
   await page.getByRole('button', { name: 'Nebenwirkungen', exact: true }).click()
   await expect(page.locator('ul > li')).toHaveCount(2)
@@ -428,14 +436,15 @@ function auswertungsDaten(mock: MockSupabase) {
   const tage = ['2026-09-02', '2026-09-03', '2026-09-09', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-23', '2026-09-27']
   tage.forEach((tag, i) => {
     const log = einnahme(mock, i % 3 === 0 ? tb.id : bpc.id, `${tag}T06:00:00.000Z`)
+    const severity = 1 + (i % 5)
     eintrag(mock, {
-      description: i % 2 ? 'Rötung' : 'Besserer Schlaf', type: i % 2 ? 'side_effect' : 'effect', severity: 1 + (i % 5),
+      description: i % 2 ? 'Rötung' : 'Besserer Schlaf', type: i % 2 ? 'side_effect' : 'effect', severity,
       stack_item_id: log.stack_item_id, dose_log_id: log.id,
       occurred_at: new Date(Date.parse(`${tag}T06:00:00.000Z`) + [0.5, 2, 6, 18, 30][i % 5] * 3_600_000).toISOString(),
-    })
+    }, [i % 2 ? { symptom_key: 'redness', severity } : { symptom_key: 'slept_better', kind: 'effect', severity }])
   })
-  eintrag(mock, { description: 'Müdigkeit', occurred_at: '2026-09-25T12:00:00.000Z' })
-  eintrag(mock, { description: 'Rötung', type: 'side_effect', stack_item_id: bpc.id, occurred_at: '2026-09-26T12:00:00.000Z' })
+  eintrag(mock, { description: 'Müdigkeit', occurred_at: '2026-09-25T12:00:00.000Z' }, [{ symptom_key: 'fatigue' }])
+  eintrag(mock, { description: 'Rötung', type: 'side_effect', stack_item_id: bpc.id, occurred_at: '2026-09-26T12:00:00.000Z' }, [{ symptom_key: 'redness' }])
 }
 
 test('Auswertung: Reiter, Verlauf, Abstand zur Einnahme, Tabelle pro Substanz', async ({ page, mock }, info) => {
@@ -491,6 +500,25 @@ test('Auswertung: ein neuer Eintrag erscheint sofort, ohne den Reiter zu wechsel
   await expect(page.locator('[data-tagebuch-substanzen] tbody tr')).toContainText('Ohne Substanz')
 })
 
+test('Auswertung: gezaehlt wird je Chip — ein gemischter Eintrag zaehlt als Wirkung und als Nebenwirkung', async ({ page, mock }) => {
+  seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
+  const bpc = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
+  eintrag(mock, { description: 'Nach dem Training', type: null, stack_item_id: bpc.id }, [
+    { symptom_key: 'more_strength', kind: 'effect', severity: 2 },
+    { symptom_key: 'nausea', severity: 4, position: 1 },
+  ])
+  eintrag(mock, { description: 'Abends', stack_item_id: bpc.id, occurred_at: '2026-09-26T08:00:00.000Z' }, [{ symptom_key: 'nausea', severity: 3 }])
+  await page.goto('/tagebuch')
+  await page.getByRole('tab', { name: 'Auswertung' }).click()
+  const panel = page.locator('[data-tagebuch-auswertung]')
+  await expect(panel.getByRole('heading', { name: 'Wirkungen und Nebenwirkungen pro Woche' })).toBeVisible()
+  const zeile = page.locator('[data-tagebuch-substanzen] tbody tr').first()
+  // Wirkungen 1, Nebenwirkungen 2, Ø Intensität (2 + 4 + 3) / 3 = 3
+  await expect(zeile).toContainText('BPC-157')
+  await expect(zeile.locator('td')).toHaveText(['1', '2', '3,0'])
+  await expect(page.locator('[data-tagebuch-substanzen] tbody tr').nth(1)).toHaveText('Häufigste Nebenwirkung: Übelkeit (2×)')
+})
+
 test('Auswertung: ohne Eintraege ein Hinweis statt leerer Diagramme', async ({ page, mock }) => {
   void mock
   await page.goto('/tagebuch')
@@ -513,6 +541,21 @@ test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async
     expect(Math.abs(mitteKarte - mitteKnopf)).toBeLessThan(2)
   }
   if (info.project.name === 'iphone-13') await page.screenshot({ path: info.outputPath('liste.png') })
+})
+
+test('Liste: lange Chips bleiben in ihrer Spalte und verdecken die Knoepfe nicht', async ({ page, mock }, info) => {
+  eintrag(mock, {}, ['headache', 'trouble_falling_asleep', 'breast_tenderness', 'injection_sting', 'tingling_numbness']
+    .map((symptom_key, position) => ({ symptom_key, position, duration_minutes: 2880 })))
+  await page.goto('/tagebuch')
+  const karte = page.locator('ul > li').first()
+  const knoepfe = (await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).boundingBox())!
+  // Rechte Kante jedes Chips links vom ersten Knopf.
+  const rechts = await karte.locator('[data-tagebuch-chip]').evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
+  expect(rechts).toHaveLength(5)
+  expect(Math.max(...rechts)).toBeLessThanOrEqual(knoepfe.x)
+  if (info.project.name === 'iphone-se') await page.screenshot({ path: info.outputPath('liste-lang.png') })
+  await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  await expect(formular(page)).toBeVisible()
 })
 
 test('Formular: Speichern ist ohne Scrollen sichtbar; Suche und Tabs bleiben beim Scrollen oben', async ({ page, mock }, info) => {

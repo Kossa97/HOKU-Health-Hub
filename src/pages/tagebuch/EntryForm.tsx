@@ -26,9 +26,6 @@ interface FormState {
   chips: ChipDraft[]
 }
 
-/** Untergrund der Chip-Gruppen (rgba(118,118,128,.12) auf dem Sheet) — deckend für den Chip-Rahmen. */
-const GROUP_BASE = 'rgb(39 39 42)'
-
 function initialState(entry: DiaryEntry | null): FormState {
   if (!entry) {
     return { title: '', occurred_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"), stack_item_id: '', dose_log_id: '', notes: '', chips: [] }
@@ -331,14 +328,14 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
                 </h3>
               )}
               {section.groups.map(group => (
-                <div key={group.key} className="rounded-2xl bg-[rgba(118,118,128,.12)] px-3.5 pt-3.5 pb-2" style={{ ['--tb-base' as string]: GROUP_BASE }}>
-                  <h4 className="text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{group.name}</h4>
-                  <div className="flex flex-wrap">{group.chips}</div>
+                <div key={group.key} className="rounded-2xl bg-[rgba(118,118,128,.12)] p-3.5">
+                  <h4 className="mb-2.5 text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{group.name}</h4>
+                  <div className="flex flex-wrap gap-2">{group.chips}</div>
                 </div>
               ))}
-              <div className="rounded-2xl bg-[rgba(118,118,128,.12)] px-3.5 pt-3.5 pb-2" style={{ ['--tb-base' as string]: GROUP_BASE }}>
-                <h4 className="text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{t('tagebuch_gruppe_eigene')}</h4>
-                <div className="flex flex-wrap">
+              <div className="rounded-2xl bg-[rgba(118,118,128,.12)] p-3.5">
+                <h4 className="mb-2.5 text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{t('tagebuch_gruppe_eigene')}</h4>
+                <div className="flex flex-wrap gap-2">
                   {section.own.map(({ chip, index }) => (
                     <SymptomChip key={`own-${index}`} kind={chip.kind} label={chipLabel(chip)} iconKey={chip.key} selected
                       severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true)}
