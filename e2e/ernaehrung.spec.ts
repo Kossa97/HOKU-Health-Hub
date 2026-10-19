@@ -301,7 +301,8 @@ test('Essen per Foto: Suppe → Notiz nachreichen → antippen, was drin war (Ko
   mock.foodPhoto.result = { ...KUERBISSUPPE, needsNote: false }
   await page.getByRole('button', { name: 'Mit Notiz neu erkennen' }).click()
   await expect(page.locator('[data-photo-needs-note]')).toHaveCount(0)
-  expect(mock.foodPhoto.calls).toEqual([
+  // Der Hinweis verschwindet schon beim Absenden — auf die Anfrage warten.
+  await expect.poll(() => mock.foodPhoto.calls).toEqual([
     { mimeType: 'image/jpeg', hint: '', lang: 'de' },
     { mimeType: 'image/jpeg', hint: 'Kürbissuppe mit Kokosmilch', lang: 'de' },
   ])
@@ -357,7 +358,7 @@ test('Essen per Foto: ohne Foto beschreiben → eigenes Gericht kommt zuerst', a
   await expect(textOnly).toBeDisabled()
   await page.getByLabel('Was ist es? (empfohlen)').fill('Kürbissuppe')
   await textOnly.click()
-  expect(mock.foodPhoto.calls).toEqual([{ mimeType: null, hint: 'Kürbissuppe', lang: 'de' }])
+  await expect.poll(() => mock.foodPhoto.calls).toEqual([{ mimeType: null, hint: 'Kürbissuppe', lang: 'de' }])
 
   await page.getByRole('button', { name: /Dein Gericht „Kürbissuppe \(meine\)" eintragen/ }).click()
   await expect(page.getByLabel(/Portionen \(1 Portion = 350 g\)/)).toHaveValue('1')
