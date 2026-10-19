@@ -20,6 +20,9 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   zeigt beide Arten. Titel, Substanz und Zeitpunkt in einer Gruppe.
 - **Info-Knopf (i)** öffnet eine Erklärung mit Grafik: Aufbau eines Chips
   (A Name, B Dauer, C Intensität, D Farbe = Art) und Beispielzustände.
+- **Symbole:** jeder Chip hat links ein Lucide-Symbol (die App nutzt
+  `lucide-react`) in einer runden, in der Art-Farbe getönten Scheibe; gewählt
+  kräftiger getönt. Zuordnung im Mockup (`ICON_OF`), erste Fassung.
 - Mockup: https://claude.ai/artifact/1f5afzwrMim3P6FK2xjfM2
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
