@@ -86,7 +86,7 @@ export function InjectionEditSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="injection-edit-title"
-        className="lg-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[92dvh] overflow-y-auto overscroll-contain px-4 pt-2"
+        className="lg-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-4 pt-2"
         style={{
           paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
         }}

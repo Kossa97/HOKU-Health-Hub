@@ -1768,6 +1768,9 @@ main.flex-1 {
 :root {
   --tyd-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --tyd-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Freiraum ueber Popups: nie unter Statusleiste, Notch oder Dynamic Island.
+     Ohne Sicherheitsbereich (Desktop, aeltere Handys) bleiben 2.5rem. */
+  --tyd-popup-top: max(2.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem));
 }
 
 /* Knoepfe geben beim Druck nach — sofort, nicht erst beim Loslassen. */

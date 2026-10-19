@@ -22,7 +22,7 @@ const OPTIONS: Array<{ key: AddChoice; icon: LucideIcon; title: string; desc: st
 export function AddSheet({ onPick, onClose }: Props) {
   const { t } = useTranslation()
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" data-app-modal onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" data-app-modal onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"

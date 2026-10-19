@@ -35,7 +35,7 @@ export function DeleteSubstanceDialog({
     <>
       {deletePromptPeptide && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/80 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-10"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/80 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
           data-app-modal
           data-archive-delete-confirmation={deletePromptFromArchive ? '' : undefined}
           onClick={() => {

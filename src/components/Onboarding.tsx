@@ -598,7 +598,7 @@ export function Onboarding() {
           <div style={{
             position:'fixed', bottom:0, left:0, right:0, zIndex: OB_Z.panel - 1,
             borderRadius:'24px 24px 0 0', border:'1px solid var(--border)',
-            paddingBottom:40, background:'var(--surface)',
+            paddingBottom:'calc(24px + env(safe-area-inset-bottom, 0px))', background:'var(--surface)',
           }}>
             <div style={{ padding:'20px 18px 0' }}>
               <div style={{ margin:'0 auto 20px', height:4, width:40, borderRadius:2, background:'var(--border)' }} />

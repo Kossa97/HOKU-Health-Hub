@@ -361,11 +361,11 @@ export function Tagebuch() {
 
       {/* ══ FORMULAR ══════════════════════════════════════════════════════════ */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-dirty-on-interaction
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" data-app-modal data-app-back-dirty-on-interaction
           onClick={dismissForm}>
           <div role="dialog" aria-modal="true" aria-labelledby="tagebuch-form-title"
             className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4
-            overflow-y-auto overscroll-contain max-h-[90vh] scroll-pb-28" onClick={e => e.stopPropagation()}
+            overflow-y-auto overscroll-contain max-h-full scroll-pb-28" onClick={e => e.stopPropagation()}
             onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); dismissForm() } }}>
             <span className="lg-grabber !mb-1" aria-hidden="true" />
             <h2 id="tagebuch-form-title" className="lg-title2">{t(editingId ? 'tagebuch_eintrag_bearbeiten' : 'neuer_tagebuch_eintrag')}</h2>
