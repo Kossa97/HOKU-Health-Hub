@@ -117,6 +117,43 @@ export function parseSearchResponse(json: unknown, lang: 'de' | 'en', limit = 25
   return out
 }
 
+/**
+ * Ein Produkt ohne Nährwerte — für den Substanz-Scan in My Stack.
+ * Supplements stehen oft ohne Energieangabe in OFF; `mapProduct` würde sie
+ * verwerfen. Hier genügt ein Name.
+ */
+export interface OffItem {
+  barcode: string | null
+  name: string
+  brand: string | null
+  quantity: string | null
+}
+
+export const ITEM_FIELDS = ['code', 'product_name', 'product_name_de', 'product_name_en', 'generic_name', 'brands', 'quantity'].join(',')
+
+export function mapItem(p: Raw, lang: 'de' | 'en'): OffItem | null {
+  const name = text(p[`product_name_${lang}`], 120) ?? text(p.product_name, 120) ?? text(p.generic_name, 120)
+  if (!name) return null
+  return {
+    barcode: normalizeBarcode(p.code),
+    name,
+    brand: text(typeof p.brands === 'string' ? p.brands.split(',')[0] : p.brands, 120),
+    quantity: text(p.quantity, 40),
+  }
+}
+
+export function parseItemResponse(json: unknown, lang: 'de' | 'en'): OffItem | null {
+  if (!json || typeof json !== 'object') return null
+  const j = json as Raw
+  const ok = j.status === 1 || j.status === 'success' || j.status === 'success_with_warnings'
+  if (!ok || !j.product || typeof j.product !== 'object') return null
+  return mapItem({ code: j.code, ...(j.product as Raw) }, lang)
+}
+
+export function itemUrl(barcode: string): string {
+  return `${OFF_PRODUCT_URL}/${barcode}.json?fields=${ITEM_FIELDS}`
+}
+
 export function productUrl(barcode: string): string {
   return `${OFF_PRODUCT_URL}/${barcode}.json?fields=${FIELDS}`
 }

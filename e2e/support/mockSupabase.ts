@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { Page, Route } from '@playwright/test'
 import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
+import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -375,6 +376,7 @@ export class MockSupabase {
       if (url.pathname.startsWith('/storage/v1/object/')) return await this.handleStorage(route, url)
       if (url.pathname === '/functions/v1/bloodwork-extract') return await this.handleBloodworkExtract(route)
       if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
+      if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -413,21 +415,53 @@ export class MockSupabase {
   }
 
   /**
+   * Nachbild von supabase/functions/label-extract (Etikett per Foto, My Stack):
+   * ohne Einwilligung ab dem Etikett-Stichtag 403 `consent_required`, sonst
+   * `labelExtract.label` —
+   * `null` spielt „kein Etikett erkannt" (422) nach.
+   */
+  readonly labelExtract: {
+    label: Row | null
+    calls: { mimeType: string; names: number }[]
+  } = {
+    label: {
+      name: 'BPC-157', brand: 'Testlabor', dosage_form: 'vial',
+      ingredients: [{ name: null, amount: 5, unit: 'mg', per_amount: null, per_unit: null }],
+    },
+    calls: [],
+  }
+
+  private async handleLabelExtract(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!consentCoversLabels(profil?.ai_import_consent_at as string | null | undefined)) {
+      return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    }
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; names?: unknown[] }
+    this.labelExtract.calls.push({ mimeType: String(body.mimeType ?? ''), names: Array.isArray(body.names) ? body.names.length : 0 })
+    if (!this.labelExtract.label) return route.fulfill({ status: 422, headers: corsHeaders(), json: { error: 'no_label_found' } })
+    return route.fulfill({ headers: corsHeaders(), json: { label: this.labelExtract.label } })
+  }
+
+  /**
    * Nachbild von supabase/functions/food-lookup (Open Food Facts). Tests legen
    * Produkte und Suchtreffer im schon verschlankten Format der Funktion an;
    * `foodLookup.down` spielt „OFF nicht erreichbar" (503) nach.
    */
   readonly foodLookup: {
     products: Record<string, Row | null>
+    /** `kind: 'item'` (Substanz-Scan in My Stack): nur Name, Marke, Menge. */
+    items: Record<string, Row | null>
     search: Record<string, Row[]>
     down: boolean
-    calls: { barcode?: string; query?: string }[]
-  } = { products: {}, search: {}, down: false, calls: [] }
+    calls: { barcode?: string; query?: string; kind?: string }[]
+  } = { products: {}, items: {}, search: {}, down: false, calls: [] }
 
   private async handleFoodLookup(route: Route): Promise<void> {
-    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string }
-    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query })
+    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string; kind?: string }
+    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query, ...(body.kind ? { kind: body.kind } : {}) })
     if (this.foodLookup.down) return route.fulfill({ status: 503, headers: corsHeaders(), json: { error: 'upstream_unavailable' } })
+    if (body.barcode !== undefined && body.kind === 'item') return route.fulfill({ headers: corsHeaders(), json: { item: this.foodLookup.items[body.barcode] ?? null } })
     if (body.barcode !== undefined) return route.fulfill({ headers: corsHeaders(), json: { product: this.foodLookup.products[body.barcode] ?? null } })
     const key = String(body.query ?? '').trim().toLowerCase()
     return route.fulfill({ headers: corsHeaders(), json: { results: this.foodLookup.search[key] ?? [] } })

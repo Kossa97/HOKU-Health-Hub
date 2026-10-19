@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  RateLimiter, TtlCache, mapProduct, normalizeBarcode, normalizeQuery, parseProductResponse, parseSearchResponse, productUrl, searchUrl,
+  RateLimiter, TtlCache, itemUrl, mapItem, parseItemResponse, mapProduct, normalizeBarcode, normalizeQuery, parseProductResponse, parseSearchResponse, productUrl, searchUrl,
 } from './off'
 
 const nutella = {
@@ -104,5 +104,23 @@ describe('TtlCache', () => {
     const c = new TtlCache<number | null>(1000)
     c.set('x', null)
     expect(c.get('x')).toBeNull()
+  })
+})
+
+describe('mapItem (Substanz-Scan)', () => {
+  it('braucht nur einen Namen — Supplements ohne Nährwerte bleiben', () => {
+    const p = { code: '4058172312345', product_name: 'Vitamin D3 1000 I.E.', brands: 'Das gesunde Plus, dm', quantity: '100 Tabletten' }
+    expect(mapItem(p, 'de')).toEqual({ barcode: '4058172312345', name: 'Vitamin D3 1000 I.E.', brand: 'Das gesunde Plus', quantity: '100 Tabletten' })
+    expect(mapProduct(p, 'de')).toBeNull()
+  })
+  it('nimmt notfalls die Gattungsbezeichnung, ohne Namen nichts', () => {
+    expect(mapItem({ generic_name: 'Magnesiumcitrat' }, 'de')!.name).toBe('Magnesiumcitrat')
+    expect(mapItem({ brands: 'X' }, 'de')).toBeNull()
+  })
+  it('liest die Produktantwort und fragt nur die nötigen Felder', () => {
+    expect(parseItemResponse({ status: 1, code: '4058172312345', product: { product_name: 'Zink 25 mg' } }, 'de')!.name).toBe('Zink 25 mg')
+    expect(parseItemResponse({ status: 0 }, 'de')).toBeNull()
+    expect(itemUrl('4058172312345')).toContain('fields=code,product_name')
+    expect(itemUrl('4058172312345')).not.toContain('nutriments')
   })
 })
