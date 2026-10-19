@@ -684,86 +684,86 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/ar.json": {
-    "mtime": 1792407485.9759102,
-    "seen": 1792407762.6071162,
+    "mtime": 1792408310.9206424,
+    "seen": 1792408347.8637195,
     "ast_hash": "8d62b27a0dd85ff62cc0fa8c8abae921",
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1792407485.9769495,
-    "seen": 1792407762.607118,
+    "mtime": 1792408310.9246426,
+    "seen": 1792408347.863724,
     "ast_hash": "afd8fce92d5bc9d12846ee8ffa120550",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1792407485.9782007,
-    "seen": 1792407762.607119,
+    "mtime": 1792408310.9246426,
+    "seen": 1792408347.863727,
     "ast_hash": "c30e9c7e9abdff348f6e50e4b553e709",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
-    "mtime": 1792407485.9795063,
-    "seen": 1792407762.6071203,
+    "mtime": 1792408310.9246426,
+    "seen": 1792408347.8637307,
     "ast_hash": "95ab2b78df1eeca31af6e40891090cba",
     "semantic_hash": ""
   },
   "src/i18n/locales/fr.json": {
-    "mtime": 1792407485.9806528,
-    "seen": 1792407762.607122,
+    "mtime": 1792408310.9286425,
+    "seen": 1792408347.8637342,
     "ast_hash": "39483bfe010bbbfae6d35d09cf7fa0fd",
     "semantic_hash": ""
   },
   "src/i18n/locales/hi.json": {
-    "mtime": 1792407485.9817793,
-    "seen": 1792407762.6071231,
+    "mtime": 1792408310.9286425,
+    "seen": 1792408347.8637378,
     "ast_hash": "80f040d383539a58d0a074bb77060706",
     "semantic_hash": ""
   },
   "src/i18n/locales/id.json": {
-    "mtime": 1792407485.983044,
-    "seen": 1792407762.6071246,
+    "mtime": 1792408310.9326425,
+    "seen": 1792408347.8637412,
     "ast_hash": "cad9214de06956c86bd26b89197146ba",
     "semantic_hash": ""
   },
   "src/i18n/locales/it.json": {
-    "mtime": 1792407485.9841838,
-    "seen": 1792407762.6071262,
+    "mtime": 1792408310.9326425,
+    "seen": 1792408347.8637445,
     "ast_hash": "9744188eab2b77acb5d7a5cf63504a2f",
     "semantic_hash": ""
   },
   "src/i18n/locales/ja.json": {
-    "mtime": 1792407485.9854896,
-    "seen": 1792407762.6071272,
+    "mtime": 1792408310.9326425,
+    "seen": 1792408347.863748,
     "ast_hash": "40dee17e843221f5a48b03a4cf4fcdfd",
     "semantic_hash": ""
   },
   "src/i18n/locales/ko.json": {
-    "mtime": 1792407485.986601,
-    "seen": 1792407762.6071286,
+    "mtime": 1792408310.9366424,
+    "seen": 1792408347.863751,
     "ast_hash": "2117bf74976a0fe20a93cd70450dc00f",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.json": {
-    "mtime": 1792407485.9877255,
-    "seen": 1792407762.6071298,
+    "mtime": 1792408310.9366424,
+    "seen": 1792408347.8637547,
     "ast_hash": "0c2aca8dc208953eee16581f5c09a2c4",
     "semantic_hash": ""
   },
   "src/i18n/locales/ru.json": {
-    "mtime": 1792407485.9887872,
-    "seen": 1792407762.6071312,
+    "mtime": 1792408310.9366424,
+    "seen": 1792408347.8637586,
     "ast_hash": "925a83cfc15ea17d57d077397b5818b8",
     "semantic_hash": ""
   },
   "src/i18n/locales/tr.json": {
-    "mtime": 1792407485.9898913,
-    "seen": 1792407762.6071327,
+    "mtime": 1792408310.9406424,
+    "seen": 1792408347.863762,
     "ast_hash": "9e7c9a70f7ab1dc1d3ad8e41067316e1",
     "semantic_hash": ""
   },
   "src/i18n/locales/zh.json": {
-    "mtime": 1792407485.990918,
-    "seen": 1792407762.607134,
+    "mtime": 1792408310.9406424,
+    "seen": 1792408347.8637648,
     "ast_hash": "e0f52b5da1658982f20072d758a0c8a5",
     "semantic_hash": ""
   },
@@ -1032,14 +1032,14 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.test.ts": {
-    "mtime": 1792407485.9919586,
-    "seen": 1792407762.6073377,
+    "mtime": 1792408310.9406424,
+    "seen": 1792408347.8682137,
     "ast_hash": "1149b65ed03127523a48a03914ee37f6",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1792407485.9928517,
-    "seen": 1792407762.6073394,
+    "mtime": 1792408310.9446425,
+    "seen": 1792408347.8682184,
     "ast_hash": "867e78c9a3ed804bea69ca75b06655ef",
     "semantic_hash": ""
   },
@@ -2772,8 +2772,8 @@
     "semantic_hash": ""
   },
   "scripts/my-stack-i18n-source.mjs": {
-    "mtime": 1792407485.9743888,
-    "seen": 1792407762.60582,
+    "mtime": 1792408310.9206424,
+    "seen": 1792408347.8303297,
     "ast_hash": "9a600c363ddcf382c36898c339d9c786",
     "semantic_hash": ""
   },
@@ -3630,8 +3630,8 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1792407485.975603,
-    "seen": 1792407762.6066165,
+    "mtime": 1792408310.9206424,
+    "seen": 1792408347.8502612,
     "ast_hash": "7bd7a559f30068ddd962f6091e6fd65f",
     "semantic_hash": ""
   },
