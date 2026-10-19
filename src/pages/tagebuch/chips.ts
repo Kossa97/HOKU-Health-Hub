@@ -3,31 +3,24 @@
  * Ein Chip ist eine gewählte Wirkung oder Nebenwirkung mit eigener Intensität
  * und Dauer (Tabelle effect_symptoms, supabase-tagebuch-chips.sql).
  */
-import { SYMPTOMS, SYMPTOM_GROUPS, type Symptom, type SymptomKind } from './symptomCatalog.data'
+import {
+  SYMPTOMS, fromMinutes, labelIn, symptomLabel, type Symptom, type SymptomKind, type SymptomRow,
+} from '../../lib/tagebuch/diary'
 
-export { SYMPTOMS, SYMPTOM_GROUPS }
-export type { Symptom, SymptomKind }
-
-const BY_KEY = new Map(SYMPTOMS.map(symptom => [symptom.key, symptom]))
+export {
+  symptomLabel as chipLabel, SYMPTOMS, SYMPTOM_GROUPS, UNIT_MINUTES, WHEEL_MAX, fromMinutes, labelIn, symptomByKey, toMinutes,
+} from '../../lib/tagebuch/diary'
+export type { Symptom, SymptomKind } from '../../lib/tagebuch/diary'
 
 /** Farbe der Art: grün = Wirkung, orange = Nebenwirkung. */
 export const kindColor = (kind: SymptomKind) => kind === 'effect' ? 'var(--lg-good-text)' : 'var(--lg-warn-text)'
 
-export const symptomByKey = (key: string): Symptom | undefined => BY_KEY.get(key)
-
-/** Deutsch für de, sonst Englisch — die übrigen Sprachen folgen später. */
-export const labelIn = (label: { de: string; en: string }, language: string) =>
-  language.startsWith('de') ? label.de : label.en
-
 type Translate = (key: string, options?: Record<string, unknown>) => string
 
-/** Name eines Chips; ein unbekannter Schlüssel zeigt sich selbst statt zu verschwinden. */
-export const chipLabel = (chip: Pick<ChipDraft, 'key' | 'customLabel'>, language: string) =>
-  chip.key ? labelIn(symptomByKey(chip.key)?.label ?? { de: chip.key, en: chip.key }, language) : chip.customLabel ?? ''
 
 /** Vorgelesener Text: „Übelkeit, Nebenwirkung, Intensität 3, Dauer 2 Std." — ohne Auswahl nur Name und Art. */
 export function chipAria(chip: ChipDraft, selected: boolean, t: Translate, language: string) {
-  const parts = [chipLabel(chip, language), t(chip.kind === 'effect' ? 'wirkung' : 'nebenwirkung')]
+  const parts = [symptomLabel(chip, language), t(chip.kind === 'effect' ? 'wirkung' : 'nebenwirkung')]
   if (selected) {
     parts.push(`${t('tagebuch_intensitaet')} ${chip.severity}`)
     const dur = durationText(chip, t)
@@ -50,32 +43,8 @@ export interface ChipDraft {
   ongoing: boolean
 }
 
-export interface ChipRow {
+export interface ChipRow extends SymptomRow {
   id: string
-  symptom_key: string | null
-  custom_label: string | null
-  kind: SymptomKind
-  severity: number
-  duration_minutes: number | null
-  ongoing: boolean
-  position: number
-}
-
-/** Einheiten des Picker-Rads: Minuten, Stunden, Tage, Wochen. */
-export const UNIT_MINUTES = [1, 60, 1440, 10080] as const
-export const WHEEL_MAX = 59
-
-export const toMinutes = (num: number, unit: number) => num * UNIT_MINUTES[unit]
-
-/** Zahl und Einheit zu gespeicherten Minuten — die größte Einheit, die glatt aufgeht. */
-export function fromMinutes(minutes: number): { num: number; unit: number } {
-  for (let unit = UNIT_MINUTES.length - 1; unit >= 0; unit--) {
-    const num = minutes / UNIT_MINUTES[unit]
-    if (Number.isInteger(num) && num >= 1 && num <= WHEEL_MAX) return { num, unit }
-  }
-  // Kommt vom Rad nicht vor (z. B. 90 Min.): auf die größte passende Einheit runden.
-  const unit = Math.max(0, UNIT_MINUTES.findLastIndex(size => minutes >= size))
-  return { num: Math.min(WHEEL_MAX, Math.max(1, Math.round(minutes / UNIT_MINUTES[unit]))), unit }
 }
 
 export const chipId = (chip: Pick<ChipDraft, 'key' | 'customLabel' | 'kind'>) =>

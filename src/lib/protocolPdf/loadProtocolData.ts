@@ -3,6 +3,7 @@
 // vom Dashboard-State in Protokoll.tsx.
 
 import { supabase } from '../supabase'
+import { SYMPTOM_COLUMNS, observationsOf, type SymptomKind, type SymptomRow } from '../tagebuch/diary'
 import { format } from 'date-fns'
 import { alterAm } from '../../features/blutwerte/lib/referenzbereiche'
 import type {
@@ -114,7 +115,7 @@ export async function loadProtocolData(userId: string, range: PdfDateRange): Pro
     supabase.from('dose_logs').select('stack_item_id, logged_at, taken')
       .eq('user_id', userId)
       .gte('logged_at', range.from).lte('logged_at', toBound),
-    supabase.from('effects').select('type, description, severity, occurred_at, stack_items(display_name)')
+    supabase.from('effects').select(`type, description, severity, occurred_at, stack_items(display_name), effect_symptoms(${SYMPTOM_COLUMNS})`)
       .eq('user_id', userId)
       .gte('occurred_at', range.from).lte('occurred_at', toBound)
       .order('occurred_at', { ascending: false }),
@@ -147,11 +148,17 @@ export async function loadProtocolData(userId: string, range: PdfDateRange): Pro
     bloodwork: ((bloodRes.data as { tested_at: string; marker: string; value: number | string; unit: string | null }[] | null) ?? [])
       .map(b => ({ tested_at: b.tested_at, marker: b.marker, value: b.value, unit: b.unit })),
     doseLogs: ((doseRes.data as { stack_item_id: string | null; logged_at: string; taken: boolean | null }[] | null) ?? []),
-    effects: ((effectRes.data as { type: 'effect' | 'side_effect'; description: string; severity: number; occurred_at: string; stack_items: { display_name: string } | { display_name: string }[] | null }[] | null) ?? [])
-      .map(e => ({
-        type: e.type, description: e.description, severity: e.severity,
+    effects: ((effectRes.data as {
+      type: SymptomKind | null; description: string; severity: number | null; occurred_at: string
+      stack_items: { display_name: string } | { display_name: string }[] | null
+      effect_symptoms: SymptomRow[] | null
+    }[] | null) ?? [])
+      .flatMap(e => observationsOf(e).map(observation => ({
+        type: observation.kind, description: e.description, severity: observation.severity,
         occurred_at: e.occurred_at, stack_item_name: embedName(e.stack_items),
-      })),
+        symptom_key: observation.key, custom_label: observation.customLabel,
+        duration_minutes: observation.durationMinutes, ongoing: observation.ongoing,
+      }))),
     reviews: ((reviewRes.data as {
       rating: number; experience: 'gut' | 'mittel' | 'schlecht' | null
       wirkung: number | null; vertraeglichkeit: number | null; wieder_nehmen: 'ja' | 'unsicher' | 'nein' | null

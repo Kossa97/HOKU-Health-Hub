@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { symptomLabel, type SymptomRow } from '../../lib/tagebuch/diary'
 import { bySubstance, gapBins, rangeStart, timeline, type StatsRow } from './stats'
+
+const label = (observation: Parameters<typeof symptomLabel>[0]) => symptomLabel(observation, 'de')
+const chip = (felder: Partial<SymptomRow>): SymptomRow => ({
+  symptom_key: 'nausea', custom_label: null, kind: 'side_effect', severity: 3,
+  duration_minutes: null, ongoing: false, position: 0, ...felder,
+})
 
 // Lokale Zeiten — die Wochen beginnen lokal am Montag.
 const local = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).toISOString()
@@ -82,9 +89,43 @@ describe('Tagebuch-Auswertung', () => {
       row({ ...bpc, type: 'side_effect', description: 'Müdigkeit', severity: 3 }),
       row({ ...bpc, type: 'effect', severity: 5 }),
       row({ type: 'effect' }), row({ type: 'effect' }), row({ type: 'effect' }), row({ type: 'effect' }), row({ type: 'effect' }),
-    ])
+    ], label)
     expect(stats.map(s => s.name)).toEqual(['BPC-157', null])
     expect(stats[0]).toMatchObject({ effects: 1, sideEffects: 3, avgSeverity: 3.5, topSideEffect: { text: 'rötung', count: 2 } })
     expect(stats[1]).toMatchObject({ effects: 5, sideEffects: 0, topSideEffect: null })
+  })
+
+  it('Chips: jeder Chip zaehlt; gemischter Eintrag zaehlt in beide Arten; Ø ueber die Chips', () => {
+    const gemischt = row({
+      type: null, severity: 4, occurred_at: local(2026, 9, 29),
+      effect_symptoms: [chip({ symptom_key: 'more_energy', kind: 'effect', severity: 2 }), chip({ severity: 4, position: 1 })],
+    })
+    const { buckets } = timeline([gemischt], rangeStart('4w', NOW), NOW)
+    expect(buckets[3]).toMatchObject({ effects: 1, sideEffects: 1, avgSeverity: 3 })
+
+    const linked = { ...gemischt, dose_logs: { logged_at: local(2026, 9, 29, 11) } }
+    const { bins, linked: count } = gapBins([linked])
+    expect(count).toBe(1)
+    expect(bins[1]).toMatchObject({ effects: 1, sideEffects: 1 })
+  })
+
+  it('Chips: haeufigste Nebenwirkung nach Chip, eigene nach Name; Titel spielt keine Rolle', () => {
+    const bpc = { stack_item_id: 'a', stack_items: { display_name: 'BPC-157' } }
+    const stats = bySubstance([
+      row({ ...bpc, type: 'side_effect', description: 'Morgens', effect_symptoms: [chip({}), chip({ symptom_key: 'headache', position: 1 })] }),
+      row({ ...bpc, type: 'side_effect', description: 'Abends', effect_symptoms: [chip({})] }),
+      row({ ...bpc, type: 'side_effect', description: 'x', effect_symptoms: [chip({ symptom_key: null, custom_label: 'Ziehen' }), chip({ symptom_key: null, custom_label: 'ziehen ', position: 1 })] }),
+      row({ ...bpc, type: 'side_effect', description: 'y', effect_symptoms: [chip({ symptom_key: null, custom_label: 'Ziehen' })] }),
+    ], label)
+    expect(stats[0]).toMatchObject({ effects: 0, sideEffects: 6, topSideEffect: { count: 3 } })
+    // Übelkeit (2) gegen Ziehen (3, Schreibweise egal): Ziehen gewinnt.
+    expect(stats[0].topSideEffect?.text).toMatch(/^ziehen$/i)
+    const nurUebelkeit = bySubstance([row({ ...bpc, type: 'side_effect', description: 'Titel', effect_symptoms: [chip({})] })], label)
+    expect(nurUebelkeit[0].topSideEffect).toEqual({ text: 'Übelkeit', count: 1 })
+  })
+
+  it('aeltere Eintraege ohne Art und ohne Chips zaehlen nicht', () => {
+    const { buckets } = timeline([row({ type: null, severity: null })], rangeStart('4w', NOW), NOW)
+    expect(buckets.every(bucket => bucket.effects + bucket.sideEffects === 0)).toBe(true)
   })
 })

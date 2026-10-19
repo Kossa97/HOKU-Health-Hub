@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { visibleSections, defaultSelection, resolveSubject } from './sections'
 import { applyPreset, matchPreset } from './presets'
 import { loadPdfExportPrefs, savePdfExportPrefs } from './persistence'
-import { buildProtocolPdf } from './renderProtocolPdf'
+import { buildProtocolPdf, effectTableBody } from './renderProtocolPdf'
 import type { ProtocolData, PdfBuildOptions } from './types'
 
 function makeData(overrides: Partial<ProtocolData> = {}): ProtocolData {
@@ -290,3 +290,29 @@ describe('Presets mit gleichem Layout', () => {
     expect(bytes.byteLength).toBeGreaterThan(2500)
   })
 })
+
+describe('Tagebuch im PDF', () => {
+  const base = { stack_item_name: 'BPC-157', occurred_at: '2026-06-10T08:00:00Z' }
+
+  it('eine Zeile je Chip: Name in der PDF-Sprache, Dauer, Titel und Substanz darunter', () => {
+    const rows = effectTableBody([
+      { ...base, type: 'side_effect', description: 'Morgens', severity: 3, symptom_key: 'nausea', custom_label: null, duration_minutes: 120, ongoing: false },
+      { ...base, type: 'effect', description: 'Morgens', severity: 4, symptom_key: 'more_energy', custom_label: null, duration_minutes: null, ongoing: true },
+    ], 'de')
+    expect(rows).toEqual([
+      ['Nebenwirkung', 'Übelkeit · 2 Std.\n(Morgens · BPC-157)', '3/5', expect.any(String)],
+      ['Wirkung', 'Mehr Energie · hält an\n(Morgens · BPC-157)', '4/5', expect.any(String)],
+    ])
+    expect(effectTableBody([{ ...base, type: 'side_effect', description: 'x', severity: 2, symptom_key: 'nausea', duration_minutes: 1440 }], 'en')[0][1])
+      .toBe('Nausea · 1 day\n(x · BPC-157)')
+  })
+
+  it('aelterer Eintrag ohne Chips: Titel als Name, nicht doppelt', () => {
+    const rows = effectTableBody([{ ...base, type: 'effect', description: 'Bessere Regeneration', severity: 4 }], 'de')
+    expect(rows[0][1]).toBe('Bessere Regeneration\n(BPC-157)')
+    // So liefert ihn loadProtocolData: eigener Name = Titel.
+    const loaded = effectTableBody([{ ...base, stack_item_name: null, type: 'effect', description: 'Ruhig', severity: 2, custom_label: 'Ruhig' }], 'de')
+    expect(loaded[0][1]).toBe('Ruhig')
+  })
+})
+
