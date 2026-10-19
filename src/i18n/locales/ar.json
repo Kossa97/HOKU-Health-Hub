@@ -2421,6 +2421,7 @@
   "nutr_per_portion_short": "/ serving",
   "nutr_portions_amount": "Servings (1 serving = {{amount}} g)",
   "nutr_add_to_dish": "Add to recipe",
+  "pk_scrub_intake": "Dose {{dose}}",
   "my_stack_scan": "Scan",
   "my_stack_scan_hint": "Hold the barcode inside the frame – or take a photo of the label.",
   "my_stack_scan_hint_photo": "Hold the label in view so it is easy to read, then take the photo.",

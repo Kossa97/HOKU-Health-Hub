@@ -2651,6 +2651,7 @@
   "nutr_per_portion_short": "/ Portion",
   "nutr_portions_amount": "Portionen (1 Portion = {{amount}} g)",
   "nutr_add_to_dish": "Zum Gericht",
+  "pk_scrub_intake": "Einnahme {{dose}}",
   "my_stack_scan": "Scannen",
   "my_stack_scan_hint": "Barcode in den Rahmen halten – oder das Etikett fotografieren.",
   "my_stack_scan_hint_photo": "Etikett gut lesbar ins Bild halten und auslösen.",
