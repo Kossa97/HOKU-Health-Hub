@@ -1094,6 +1094,7 @@ export const MY_STACK_EN = {
   bw_entry_open_aria: "{{value}} from {{date}}",
   bw_entry_change: "{{value}} since last",
   bw_edit: "Edit",
+  pk_scrub_intake: "Dose {{dose}}",
 }
 
 export const MY_STACK_DE = {
@@ -2191,6 +2192,7 @@ export const MY_STACK_DE = {
   bw_entry_open_aria: "{{value}} vom {{date}}",
   bw_entry_change: "{{value}} seit der vorigen",
   bw_edit: "Bearbeiten",
+  pk_scrub_intake: "Einnahme {{dose}}",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

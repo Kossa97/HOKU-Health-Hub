@@ -328,7 +328,18 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     [data.entries, compact],
   )
 
-  const scrubLabel = useMemo(() => ({ date: f.scrub, value: (v: number) => `${f.pct(v)} %` }), [f])
+  // Auf einer Einnahme nennt das Schild sie mit Dosis; das Ablesen rastet dort ein.
+  const scrubLabel = useMemo(() => {
+    const doses = new Map((curve?.doses ?? []).map(d => [d.ts, d]))
+    return {
+      date: f.scrub,
+      value: (v: number) => `${f.pct(v)} %`,
+      note: (ts: number) => {
+        const d = doses.get(ts)
+        return d ? f.t('pk_scrub_intake', { dose: `${f.num(d.dose)} ${d.unit}` }) : null
+      },
+    }
+  }, [f, curve?.doses])
   const select = useCallback((key: string) => { setPickedKey(key); setScrub(null); setViewEnd(null) }, [])
   const changeRange = useCallback((r: ChartRange) => { setRange(r); setScrub(null); setViewEnd(null) }, [])
 
@@ -450,7 +461,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
       {!compact && <RangeControl value={range} onChange={changeRange} />}
 
       {/* Fuer Screenreader: der abgelesene Wert (sichtbar steht er im Schild im Graph). */}
-      <p className="sr-only" aria-live="polite">{scrub ? `${scrubLabel.date(scrub.ts)}: ${scrubLabel.value(scrub.level)}` : ''}</p>
+      <p className="sr-only" aria-live="polite" data-bs-scrub-live>{scrub ? [`${scrubLabel.date(scrub.ts)}: ${scrubLabel.value(scrub.level)}`, scrubLabel.note(scrub.ts)].filter(Boolean).join(' · ') : ''}</p>
       {points.length ? (
         <StocksChart
           points={points}
@@ -461,6 +472,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           height={compact ? 210 : 340}
           seriesKey={selected.key}
           intakes={curve?.intakes}
+          snapTimes={curve?.intakes}
           formatTick={f.tick}
           formatValue={f.num}
           onScrub={setScrub}

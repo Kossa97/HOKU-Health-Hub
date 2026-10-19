@@ -2301,5 +2301,6 @@
   "bw_cycle_week": "Wo. {{n}}",
   "bw_entry_open_aria": "{{value}} vom {{date}}",
   "bw_entry_change": "{{value}} seit der vorigen",
-  "bw_edit": "Bearbeiten"
+  "bw_edit": "Bearbeiten",
+  "pk_scrub_intake": "Einnahme {{dose}}"
 }

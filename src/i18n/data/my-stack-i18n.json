@@ -1093,7 +1093,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "es": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -2189,7 +2190,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "fr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -3285,7 +3287,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "hi": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -4381,7 +4384,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "id": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -5477,7 +5481,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "it": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -6573,7 +6578,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "ja": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -7669,7 +7675,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "ko": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -8765,7 +8772,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "pt": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -9861,7 +9869,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "ru": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -10957,7 +10966,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "tr": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -12053,7 +12063,8 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   },
   "zh": {
     "my_stack_course_timezone_review": "The original start and end dates need a timezone. Dues and reminders remain blocked until you confirm it.",
@@ -13149,6 +13160,7 @@
     "bw_cycle_week": "wk {{n}}",
     "bw_entry_open_aria": "{{value}} from {{date}}",
     "bw_entry_change": "{{value}} since last",
-    "bw_edit": "Edit"
+    "bw_edit": "Edit",
+    "pk_scrub_intake": "Dose {{dose}}"
   }
 }
