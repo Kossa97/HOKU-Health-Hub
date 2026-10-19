@@ -49,7 +49,7 @@ export function NasalSprayRenderer({ item, sloshEngine, ...visualProps }: NasalS
   )
 
   return (
-    <div data-stack-renderer="nasal_spray">
+    <div data-stack-renderer="nasal_spray" data-umriss-form="nasal_spray">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{spray}</SloshProvider> : spray}
     </div>
   )

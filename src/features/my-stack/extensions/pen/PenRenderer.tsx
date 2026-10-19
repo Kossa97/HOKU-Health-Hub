@@ -19,7 +19,7 @@ export interface PenRendererProps {
 // Flüssigkeit, die schwappen könnte. Die Eintragsfarbe geht an den Ring.
 export function PenRenderer({ item, ...visualProps }: PenRendererProps) {
   return (
-    <div data-stack-renderer="pen">
+    <div data-stack-renderer="pen" data-umriss-form="pen">
       <PenVisual
         name={item.display_name}
         color={item.color_hex ?? fuellfarbe()}

@@ -3,7 +3,7 @@ import type { CSSProperties, Ref, RefObject } from 'react'
 import { usePrefersReducedMotion } from '../features/my-stack/stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../features/my-stack/stage/useStageLight'
 import { LiquidGraphic, type LiquidGraphicHandle } from '../features/my-stack/stage/LiquidGraphic'
-import { VIAL_INNER_PATH, VIAL_LABEL_INSET_PCT, VIAL_OUTER_PATH, VIAL_SPEC } from '../features/my-stack/extensions/peptide/vialShape'
+import { VIAL_CAP_COLLAR, VIAL_CAP_HEIGHT, VIAL_CAP_TOP_PATH, VIAL_INNER_PATH, VIAL_LABEL_INSET_PCT, VIAL_OUTER_PATH, VIAL_SPEC } from '../features/my-stack/extensions/peptide/vialShape'
 import { StageLabel } from '../features/my-stack/stage/StageLabel'
 
 // Imperative stage-light channel: the carousel pushes focus/lightOffset per
@@ -81,7 +81,7 @@ function VialTop({
   const uid = useId()
   const capSheenOpacity = 0.24 + focus * 0.4
   return (
-    <svg className={`pointer-events-none relative z-20 ${marginClass} block h-auto w-full`} viewBox="0 0 120 58" aria-hidden="true">
+    <svg className={`pointer-events-none relative z-20 ${marginClass} block h-auto w-full`} viewBox={`0 0 120 ${VIAL_CAP_HEIGHT}`} aria-hidden="true">
       <defs>
         <linearGradient id={`${uid}-capSilver`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#f6f9fc" />
@@ -102,9 +102,9 @@ function VialTop({
       </defs>
 
             <g data-vial-detail="cap-collar">
-        <rect data-vial-detail="single-cap" x="17" y="30" width="86" height="27" rx="3" fill={`url(#${uid}-capCollar)`} stroke="#64748b" strokeOpacity="0.5" strokeWidth="1" />
+        <rect data-vial-detail="single-cap" {...VIAL_CAP_COLLAR} fill={`url(#${uid}-capCollar)`} stroke="#64748b" strokeOpacity="0.5" strokeWidth="1" />
       </g>
-      <path data-vial-detail="cap-top" d="M14 32 L14 20 C14 7 106 7 106 20 L106 32 Z" fill={`url(#${uid}-capSilver)`} stroke="#64748b" strokeOpacity="0.5" strokeWidth="1" />
+      <path data-vial-detail="cap-top" d={VIAL_CAP_TOP_PATH} fill={`url(#${uid}-capSilver)`} stroke="#64748b" strokeOpacity="0.5" strokeWidth="1" />
       <line x1="21" y1="32" x2="99" y2="32" stroke="#475569" strokeOpacity="0.35" strokeWidth="1.3" />
       <ellipse
         ref={sheenRef}

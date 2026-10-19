@@ -3,6 +3,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
 import { PeptideVialVisual } from './PeptideVialVisual'
+import { VIAL_CAP_COLLAR } from '../features/my-stack/extensions/peptide/vialShape'
 
 const source = () => readFileSync(new URL('./PeptideVialVisual.tsx', import.meta.url), 'utf8')
 // The imperative stage-light channel is shared with the other stage forms and
@@ -435,7 +436,8 @@ describe('PeptideVialVisual', () => {
 
     expect(text).toContain('data-vial-detail="cap-top"')
     expect(text).toContain('data-vial-detail="cap-collar"')
-    expect(text).toContain('width="86"')
+    expect(text).toContain('{...VIAL_CAP_COLLAR}')
+    expect(VIAL_CAP_COLLAR.width).toBe(86)
     expect(text).toContain('className={`pointer-events-none relative z-20 ${marginClass} block h-auto w-full`}')
     expect(text).toContain('className={`relative z-0 w-full ${shellClass} overflow-visible`}')
   })
