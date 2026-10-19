@@ -1,13 +1,14 @@
 // Silhouetten beim Laden: der Umriss der kommenden Seite in ruhig atmenden
-// grauen Formen (Stil in liquid-glass.css, .lg-skel / .lg-ph). Jede Seite hat
-// ihren eigenen Umriss in den Maßen der echten Seite, damit beim Übergang
-// nichts springt.
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+// grauen Formen (Stil in liquid-glass.css, .lg-skel / .lg-ph). Gezeichnet wird
+// der Abdruck, den die Seite beim letzten Besuch hinterlassen hat
+// (umrissAbdruck.ts) — so, wie sie bei dieser Person gerade aussieht. Gibt es
+// noch keinen, steht der handgezeichnete Umriss in den Maßen der echten Seite.
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getDosageForm } from '../../features/my-stack/lib/dosageForms'
-import { FORM_UMRISSE } from '../../features/my-stack/stage/formUmrisse'
+import { FORM_UMRISSE, type BuehnenForm } from '../../features/my-stack/stage/formUmrisse'
 import type { DosageFormKey } from '../../features/my-stack/types'
-import { leseStackAnsicht, leseStackBild } from './silhouettenBild'
+import { abdruckAb, inhaltsUrsprung, leseAbdruck, type Abdruck } from './umrissAbdruck'
 import { ketteBeenden, kettenStart, SICHTBAR_NACH, silhouetteFuerPfad, type SilhouettenArt } from './silhouetteTakt'
 
 /** Eine Platzhalterform. Breite/Höhe in px oder als CSS-Wert. */
@@ -26,17 +27,36 @@ export function SkelKarte({ children, className = '', style }: { children?: Reac
   return <div aria-hidden="true" className={`lg-skel-card ${className}`} style={style}>{children}</div>
 }
 
-/** Hülle: meldet „Laden" an Screenreader und blendet erst nach 250 ms ein. */
-export function Silhouette({ children, className = '', label }: { children: ReactNode; className?: string; label?: string }) {
+/**
+ * Hülle: meldet „Laden" an Screenreader und blendet erst nach 250 ms ein.
+ *
+ * `abdruck`: die Silhouette steht für den ganzen Rest der Seite (alles darunter
+ * lädt mit). Dann zeigt sie, was der Abdruck der Seite ab ihrer Stelle
+ * festhält, und `children` nur, solange es keinen gibt.
+ */
+export function Silhouette({ children, className = '', label, abdruck = false }: { children: ReactNode; className?: string; label?: string; abdruck?: boolean }) {
   const { t } = useTranslation()
+  const ref = useRef<HTMLDivElement>(null)
+  const [rest, setRest] = useState<Abdruck | null>(null)
+  // Vor dem ersten Bild gemessen; sichtbar wird die Silhouette ohnehin erst nach 250 ms
+  useLayoutEffect(() => {
+    const el = ref.current
+    const seite = abdruck ? el?.closest('main') : null
+    if (!el || !seite) return
+    const gesamt = leseAbdruck(window.location.pathname)
+    if (!gesamt) return
+    const ursprung = inhaltsUrsprung(seite)
+    const kante = el.getBoundingClientRect()
+    setRest(abdruckAb(gesamt, kante.left - ursprung.x, kante.top - ursprung.y))
+  }, [abdruck])
   // Folgt sie direkt auf eine andere, setzt sie deren Einblenden fort
   const [start] = useState(() => kettenStart(performance.now()))
   const [verzoegerung] = useState(() => SICHTBAR_NACH - (performance.now() - start))
   useEffect(() => () => ketteBeenden(start, performance.now()), [start])
   return (
-    <div role="status" aria-busy="true" data-silhouette className={`lg-skel ${className}`} style={{ animationDelay: `${verzoegerung}ms` }}>
+    <div ref={ref} role="status" aria-busy="true" data-silhouette className={`lg-skel ${className}`} style={{ animationDelay: `${verzoegerung}ms` }}>
       <span className="sr-only">{label ?? t('loading', { defaultValue: 'Lädt…' })}</span>
-      {children}
+      {rest ? <AbdruckUmriss abdruck={rest} /> : children}
     </div>
   )
 }
@@ -157,29 +177,19 @@ export function EinnahmenUmriss() {
 // Tab-Leiste (Layout.tsx). Die Bühne darin füllt, was übrig bleibt — wie dort.
 const STACK_HOEHE = 'max(440px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1rem - var(--bottom-nav-height)))'
 
-/**
- * My Stack, so wie es gleich dasteht: Bühne oder Liste, und auf der Bühne die
- * Form, die zuerst kommt — ein Pen als Pen, nicht als Vial (silhouettenBild.ts).
- * Ohne Gemerktes steht ein Vial da, die häufigste Form.
- */
-function Stack() {
-  const [bild] = useState(leseStackBild)
-  const [ansicht] = useState(leseStackAnsicht)
-  if (bild?.gesamt === 0) {
-    return (
-      <>
-        <Kopf titel="40%" knoepfe={3} />
-        <SkelKarte className="flex flex-col items-center gap-5 px-5 py-10">
-          <Ph w="58%" h={14} />
-          <Ph w={150} h={190} style={{ borderRadius: 18 }} />
-        </SkelKarte>
-      </>
-    )
+/** Bühne oder Liste — gemerkt von My Stack selbst. */
+function leseStackAnsicht(): 'vials' | 'list' {
+  try {
+    return localStorage.getItem('tyd_peptide_view') === 'list' ? 'list' : 'vials'
+  } catch {
+    return 'vials'
   }
-  const zeilen = Math.min(bild?.gesamt ?? 4, 8)
-  if (ansicht === 'list') return <StackListe zeilen={zeilen} />
-  // Nichts Darstellbares auf der Bühne: die Seite zeigt Reiter und Zeilen
-  if (bild && bild.form === null) return <StackListe zeilen={zeilen} mitReitern />
+}
+
+/** My Stack vor dem ersten Abdruck: Bühne mit einem Vial, der häufigsten Form, oder die Liste. */
+function Stack() {
+  const [ansicht] = useState(leseStackAnsicht)
+  if (ansicht === 'list') return <StackListe zeilen={4} />
   return (
     <div className="flex flex-col" style={{ height: STACK_HOEHE }}>
       <Kopf titel="40%" knoepfe={3} abstand="mb-4" />
@@ -190,8 +200,8 @@ function Stack() {
         <div className="flex gap-1.5"><Ph w={130} h={32} shape="pill" /><Ph w={66} h={32} shape="pill" /></div>
         <Ph w={44} h={44} shape="round" />
       </div>
-      <BuehnenForm form={bild?.form ?? 'vial'} pegel={bild?.pegel ?? true} />
-      <PositionsZeile anzahl={bild?.buehne ?? 3} />
+      <BuehnenForm form="vial" pegel />
+      <PositionsZeile anzahl={3} />
     </div>
   )
 }
@@ -200,25 +210,30 @@ function StackReiter() {
   return <>{[88, 124, 158, 120].map((w, i) => <Ph key={i} w={w} h={36} shape="pill" />)}</>
 }
 
+/** Eine Bühnenform als graue Fläche, unten mittig in ihrem Kasten. */
+function FormFlaeche({ form, className = '', style }: { form: BuehnenForm; className?: string; style?: CSSProperties }) {
+  const umriss = FORM_UMRISSE[form]
+  return (
+    <svg aria-hidden="true" viewBox={umriss.viewBox} preserveAspectRatio="xMidYMax meet" className={`lg-ph-form absolute ${className}`} style={style}>
+      {/* Deckkraft auf der Gruppe: wo Teile überlappen (Kappe auf Körper), wird es nicht dunkler */}
+      <g>{umriss.pfade.map(({ d, transform }, i) => <path key={i} d={d} transform={transform} />)}</g>
+    </svg>
+  )
+}
+
 /** Die Form auf der Bühne, eingepasst wie StageFit: Anteil der Höhe, höchstens die Breite. */
 function BuehnenForm({ form, pegel }: { form: DosageFormKey; pegel: boolean }) {
   const definition = getDosageForm(form)
-  const umriss = FORM_UMRISSE[definition.stageRenderer ?? 'vial']
   return (
     // pt-2/pb-4: Innenabstand des Eintrags und Unterkante des Streifens (VialCarousel)
     <div className="flex min-h-0 flex-1 flex-col pb-4 pt-2">
       {/* Eintragsbreite min(17rem, 70vw) abzüglich px-2 */}
       <div className="relative mx-auto min-h-0 w-[calc(min(17rem,70vw)-16px)] flex-1">
-        <svg
-          aria-hidden="true"
-          viewBox={umriss.viewBox}
-          preserveAspectRatio="xMidYMax meet"
-          className="lg-ph-form absolute bottom-0 left-1/2 max-w-full -translate-x-1/2"
+        <FormFlaeche
+          form={definition.stageRenderer ?? 'vial'}
+          className="bottom-0 left-1/2 max-w-full -translate-x-1/2"
           style={{ height: `${(definition.stageHeightRatio ?? 1) * 100}%` }}
-        >
-          {/* Deckkraft auf der Gruppe: wo Teile überlappen (Kappe auf Körper), wird es nicht dunkler */}
-          <g>{umriss.pfade.map(({ d, transform }, i) => <path key={i} d={d} transform={transform} />)}</g>
-        </svg>
+        />
       </div>
       <div className="mt-1 flex h-[19px] items-center justify-center">{pegel ? <Ph w={34} h={11} /> : null}</div>
     </div>
@@ -244,11 +259,10 @@ function PositionsZeile({ anzahl }: { anzahl: number }) {
 }
 
 /** Die Liste: eine gruppierte Fläche, je Eintrag Objekt, Name mit Status, Zusammensetzung, Haltbarkeit. */
-function StackListe({ zeilen, mitReitern = false }: { zeilen: number; mitReitern?: boolean }) {
+function StackListe({ zeilen }: { zeilen: number }) {
   return (
     <>
-      <Kopf titel="40%" knoepfe={3} abstand={mitReitern ? 'mb-4' : 'mb-3'} />
-      {mitReitern ? <div className="mb-2 flex gap-2 overflow-hidden py-1"><StackReiter /></div> : null}
+      <Kopf titel="40%" knoepfe={3} abstand="mb-3" />
       <SkelKarte className="flex flex-col">
         {Array.from({ length: zeilen }, (_, i) => (
           <div key={i} className="flex items-center gap-3 py-2.5 pl-3 pr-3">
@@ -388,15 +402,34 @@ const UMRISSE: Record<SilhouettenArt, () => ReactNode> = {
   liste: Liste, lab: Lab, profil: Profil, karten: Karten,
 }
 
-/** Der Umriss einer ganzen Seite. */
-export function SeitenSilhouette({ art, className }: { art: SilhouettenArt; className?: string }) {
+/** Die Kästen eines Abdrucks, an ihren Platz gesetzt; die Breite folgt dem Inhalt (gleiche Ränder). */
+function AbdruckUmriss({ abdruck }: { abdruck: Abdruck }) {
+  const skala = (abdruck.inhalt + window.innerWidth - abdruck.breite) / abdruck.inhalt
+  const hoehe = Math.max(...abdruck.kaesten.map(([, y, , h]) => y + h))
+  return (
+    <div className="relative" style={{ height: hoehe }}>
+      {abdruck.kaesten.map(([x, y, w, h, r, art, form], i) => {
+        const lage = { left: x * skala, top: y, width: w * skala, height: h, borderRadius: r }
+        if (art === 'f' && form) return <FormFlaeche key={i} form={form} style={lage} />
+        return <span key={i} aria-hidden="true" className={`absolute ${art === 'k' ? 'lg-skel-card' : 'lg-ph'}`} style={lage} />
+      })}
+    </div>
+  )
+}
+
+/**
+ * Der Umriss einer ganzen Seite: ihr letzter Abdruck auf diesem Gerät, sonst
+ * der handgezeichnete. `pfad` bestimmt den Abdruck, `art` den Ersatz.
+ */
+export function SeitenSilhouette({ art, pfad, className }: { art: SilhouettenArt; pfad?: string; className?: string }) {
+  const [abdruck] = useState(() => leseAbdruck(pfad ?? window.location.pathname))
   const Umriss = UMRISSE[art]
-  return <Silhouette className={className}><Umriss /></Silhouette>
+  return <Silhouette className={className}>{abdruck ? <AbdruckUmriss abdruck={abdruck} /> : <Umriss />}</Silhouette>
 }
 
 /** Umriss außerhalb des Seitengerüsts (Anmeldung, Zustimmung): dieselben Ränder wie <main>. */
 export function SilhouettenHuelle({ pfad }: { pfad: string }) {
-  return <div className="px-3 pt-4"><SeitenSilhouette art={silhouetteFuerPfad(pfad)} /></div>
+  return <div className="px-3 pt-4"><SeitenSilhouette art={silhouetteFuerPfad(pfad)} pfad={pfad} /></div>
 }
 
 /** Kurvenkarten (Blutspiegel): Name, Kurve, Kennzahlen. */

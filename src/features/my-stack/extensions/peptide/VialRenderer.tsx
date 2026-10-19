@@ -53,7 +53,7 @@ export function VialRenderer({
   )
 
   return (
-    <div data-stack-renderer="vial">
+    <div data-stack-renderer="vial" data-umriss-form="vial">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{vial}</SloshProvider> : vial}
     </div>
   )

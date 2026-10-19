@@ -35,8 +35,6 @@ export function useMyStackData({ stackDataClient, userId }: {
   const [peptides, setPeptides]               = useState<Peptide[]>([])
   const [loading, setLoading]                 = useState(true)
   const [initialLoad, setInitialLoad]         = useState(true)
-  // Ob Eintraege und Plaene wirklich ankamen — `loading` endet auch bei einem Fehler
-  const [stackGeladen, setStackGeladen]       = useState(false)
   const [cycles, setCycles]                   = useState<Cycle[]>([])
   const [cycleTimelines, setCycleTimelines]   = useState<CycleTimeline[]>([])
   const [timelineLoadError, setTimelineLoadError] = useState(false)
@@ -158,7 +156,6 @@ export function useMyStackData({ stackDataClient, userId }: {
       ])
     }
 
-    initialLoadPromiseRef.current.then(() => { if (!cancelled) setStackGeladen(true) }, () => {})
     initialLoadPromiseRef.current
       .finally(() => {
         if (cancelled) return
@@ -175,7 +172,7 @@ export function useMyStackData({ stackDataClient, userId }: {
   }, [])
 
   return {
-    inventory, peptides, setPeptides, loading, initialLoad, stackGeladen,
+    inventory, peptides, setPeptides, loading, initialLoad,
     cycles, cycleTimelines, setCycleTimelines, timelineLoadError,
     timelineLoading, catalogEntries, catalogUnavailable,
     archivedPeptides, escalations,
