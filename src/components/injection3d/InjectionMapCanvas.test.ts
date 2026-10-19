@@ -60,13 +60,12 @@ describe('InjectionMapCanvas external assets', () => {
     expect(light).not.toContain('preset=')
   })
 
-  it('offsets focused injections when a tracker sheet covers the lower map area', () => {
+  it('frames focused injections in the map area left free by overlays and sheets', () => {
     const source = readFileSync(new URL('./InjectionMapCanvas.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain('sheetOpen?: boolean')
-    expect(source).toContain('SHEET_AWARE_FOCUS_Y_OFFSET')
-    expect(source).toContain('focusTargetForRequest')
-    expect(source).toContain('focusRequest.sheetOpen')
+    expect(source).toContain('focusTargetForRequest(point, normal, canvas)')
+    expect(source).toContain('measureFreeViewport(canvas)')
   })
 
   it('renders visible history pins with age colors and selected-pin emphasis', () => {
