@@ -2773,5 +2773,8 @@
   "my_stack_scan_custom": "Not in the catalogue – will be added as your own substance",
   "my_stack_scan_check": "Recognised by scan. Check everything in the next steps before you save.",
   "my_stack_scan_again": "Scan again",
-  "my_stack_scan_apply": "Use"
+  "my_stack_scan_apply": "Use",
+  "day_count_taken": "{{n}} taken",
+  "day_count_skipped": "{{n}} skipped",
+  "day_count_missed": "{{n}} missed"
 }
