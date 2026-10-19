@@ -37,6 +37,7 @@ test('Kalender: Überspringen verbraucht nichts; Wiederöffnen und Bestätigen v
   expect(remainingStock(mock)).toBe(2)
   await page.reload()
   await skipped.click()
+  await page.locator('[data-log-row] button[aria-expanded]').first().click()
   await page.getByRole('button', { name: 'Wieder öffnen', exact: true }).click()
   await expect(page.locator('[data-due-row]')).toHaveCount(1)
   await confirmHomeRoutine(page)

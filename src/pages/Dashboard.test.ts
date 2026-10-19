@@ -18,6 +18,12 @@ function gewaehlterTag() {
   return document.querySelector('[data-calendar-date][aria-pressed="true"]')?.getAttribute('data-calendar-date') ?? null
 }
 
+/** Klappt die (erste) protokollierte Einnahme auf; ihre Aktionen stehen erst danach da. */
+async function protokollZeileOeffnen() {
+  await waitFor(() => expect(document.querySelector('[data-log-row] button[aria-expanded]')).toBeTruthy())
+  fireEvent.click(document.querySelector('[data-log-row] button[aria-expanded]') as HTMLElement)
+}
+
 const BUENDEL_KNOPF = /^Alle Substanzen\s*\d+ bestätigen$/
 async function gruppenBestaetigungOeffnen() {
   fireEvent.click(await screen.findByRole('button', { name: BUENDEL_KNOPF }))
@@ -341,6 +347,7 @@ describe('Dashboard normalized timeline path', () => {
     await screen.findByText('Vitamin D3')
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
 
+    await protokollZeileOeffnen()
     expect(screen.getByRole('button', { name: 'Wieder öffnen' })).toBeTruthy()
     // Was daran vorbeischreiben würde, bleibt zu.
     expect(screen.queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
@@ -365,6 +372,34 @@ describe('Dashboard normalized timeline path', () => {
     // Die Zeile steht im Protokoll — aber ohne Rückweg.
     expect(screen.getByRole('button', { name: /Bereits protokolliert/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    // Ohne Aktion ist die Zeile auch nicht antippbar.
+    expect(document.querySelector('[data-log-row]')).toBeTruthy()
+    expect(document.querySelector('[data-log-row] button')).toBeNull()
+  })
+
+  it('zeigt eine ausgelassene Einnahme als eine Zeile, Aktionen erst nach Antippen', async () => {
+    // Vorher war jede ausgelassene Einnahme eine Karte mit „Wieder öffnen"
+    // und vier Erinnerungsknöpfen — sechs davon füllten drei Bildschirme.
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
+    renderDashboard(createDashboardClient(fixtures))
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+
+    const zeile = await waitFor(() => {
+      const gefunden = document.querySelector('[data-log-row] button[aria-expanded]') as HTMLElement | null
+      if (!gefunden) throw new Error('missing log row')
+      return gefunden
+    })
+    expect(zeile.textContent).toContain('Vitamin D3')
+    expect(zeile.textContent).toContain('uebersprungen')
+    expect(zeile.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    expect(screen.queryByText(/15 min/)).toBeNull()
+
+    fireEvent.click(zeile)
+    expect(zeile.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Wieder öffnen' })).toBeTruthy()
+    expect(screen.queryByText(/15 min/)).toBeNull()
   })
 
   it('räumt beim Wiederöffnen die Auto-Miss-Notiz weg', async () => {
@@ -375,6 +410,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
     fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => {
@@ -392,6 +428,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1683,6 +1720,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.mutations).toContainEqual({
@@ -1724,6 +1762,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1761,6 +1800,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'eintrag_loeschen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1807,6 +1847,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -2011,7 +2052,7 @@ describe('Dashboard intake confirmation actions', () => {
     expect(source).toContain('className="tyd-collapse"')
     expect(source).not.toContain('data-due-hero')
     expect(source).toContain('completedExpanded')
-    expect(source).toContain('renderConfirmedLog')
+    expect(source).toContain('renderLogRow')
   })
 
   it('lässt den Helden so hoch sein wie sein Inhalt', () => {
