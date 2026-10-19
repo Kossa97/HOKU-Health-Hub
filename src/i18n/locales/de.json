@@ -2718,5 +2718,8 @@
   "my_stack_scan_custom": "Nicht im Katalog – wird als eigene Substanz angelegt",
   "my_stack_scan_check": "Per Scan erkannt. Prüfe alles in den nächsten Schritten, bevor du speicherst.",
   "my_stack_scan_again": "Erneut scannen",
-  "my_stack_scan_apply": "Übernehmen"
+  "my_stack_scan_apply": "Übernehmen",
+  "day_count_taken": "{{n}} genommen",
+  "day_count_skipped": "{{n}} übersprungen",
+  "day_count_missed": "{{n}} verpasst"
 }

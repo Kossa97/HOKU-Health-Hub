@@ -1298,6 +1298,9 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_scan_check',
   'my_stack_scan_again',
   'my_stack_scan_apply',
+  'day_count_taken',
+  'day_count_skipped',
+  'day_count_missed',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

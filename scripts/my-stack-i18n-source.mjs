@@ -1289,6 +1289,9 @@ export const MY_STACK_EN = {
   my_stack_scan_check: "Recognised by scan. Check everything in the next steps before you save.",
   my_stack_scan_again: "Scan again",
   my_stack_scan_apply: "Use",
+  day_count_taken: "{{n}} taken",
+  day_count_skipped: "{{n}} skipped",
+  day_count_missed: "{{n}} missed",
 }
 
 export const MY_STACK_DE = {
@@ -2581,6 +2584,9 @@ export const MY_STACK_DE = {
   my_stack_scan_check: "Per Scan erkannt. Prüfe alles in den nächsten Schritten, bevor du speicherst.",
   my_stack_scan_again: "Erneut scannen",
   my_stack_scan_apply: "Übernehmen",
+  day_count_taken: "{{n}} genommen",
+  day_count_skipped: "{{n}} übersprungen",
+  day_count_missed: "{{n}} verpasst",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

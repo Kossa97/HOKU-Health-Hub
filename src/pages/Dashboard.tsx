@@ -359,7 +359,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   useLayoutEffect(() => { sichtbaresFenster.current = timelineContext })
 
   // Einnahme-Bestätigungs-Sheet
-  interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
+  interface ConfirmSheet {
+    cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string
+    /** Die Zeile ist schon entschieden (ausgelassen) und wird erst beim Speichern wieder geoeffnet. */
+    nachtragen?: boolean
+  }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
   // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
@@ -1092,7 +1096,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const genommeneSlots = FEATURES.planTimelineV2 && standHeute
     ? standHeute.genommen
     : completedDaySlots
-  const incompletePastDay = isPastSelected && totalDaySlots > 0 && genommeneSlots < totalDaySlots
+  // Ist alles entschieden, aber nicht alles genommen, sagt die Quittung das
+  // neutral: ausgelassen ist eine Entscheidung, kein Fehler. Nur Verpasstes
+  // (vom Auto-Miss, nicht vom Nutzer) bekommt Bernstein.
+  // Nur Einnahmen mit Platz im Tagesplan zaehlen — sonst passten die Zahlen
+  // nicht zu „geplant" (bei Bedarf, geloeschte Substanz).
+  const ausgelasseneGeplant = unloggedLogs.filter(kannWiederGeoeffnetWerden)
+  const verpassteHeute = ausgelasseneGeplant.filter(log => log.notes === AUTO_MISSED_NOTE).length
+  const uebersprungeneHeute = ausgelasseneGeplant.length - verpassteHeute
+  const alleGenommen = totalDaySlots > 0 && genommeneSlots === totalDaySlots && ausgelasseneGeplant.length === 0
   const dueSlotByKey = new Map(dueSlots.map(slot => [slot.key, slot]))
   const dueRoutineGroups = groupRoutineIntakes(dueSlots.map(slot => {
     const trackingLevel = slot.cycle.stack_items?.tracking_level ?? 'complete'
@@ -1315,6 +1327,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     else toast(t('einnahme_uebersp_toast'), { icon: '⏭️' })
   }
 
+  /** Was eine ausgelassene Zeile beim Oeffnen verliert: die Entscheidung und eine Auto-Miss-Notiz. */
+  const oeffnenAenderung = (log: DoseLog): Pick<DoseLog, 'taken'> & Partial<Pick<DoseLog, 'notes'>> => (
+    log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }
+  )
+
   const undoDose = async (log: DoseLog) => {
     const stackItem = stackItems.find(item => item.id === log.stack_item_id)
     const reversesInventory = log.taken === true
@@ -1332,7 +1349,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       // fuer offen. Nur dieser Zweig kann das treffen: eine auto-verpasste
       // Zeile hat `taken === false` und bucht deshalb keinen Bestand zurueck.
       const { error } = await dashboardDataClient.from('dose_logs')
-        .update(log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null })
+        .update(oeffnenAenderung(log))
         .eq('id', log.id)
       if (error) return toast.error(t('error'))
     }
@@ -1340,11 +1357,39 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // gibt. Blieb er stehen, lief jeder weitere Versuch in den
     // `taken is true`-Filter der RPC und schlug fehl.
     setInventoryRetryIds(current => current.filter(id => id !== log.id))
-    patcheLog(log.id, reversesInventory
-      ? { taken: null }
-      : (log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }))
+    patcheLog(log.id, reversesInventory ? { taken: null } : oeffnenAenderung(log))
     loadStackItems()
     toast.success(t('dose_reopen_success', { defaultValue: 'Einnahme wieder geöffnet' }))
+  }
+
+  /**
+   * „Doch eingenommen" fuer eine ausgelassene Einnahme: dasselbe Blatt wie
+   * fuer eine offene (Uhrzeit, Menge), vorbelegt mit dem geplanten Slot.
+   * Geschrieben wird erst beim Bestaetigen — erst oeffnen, dann ueber
+   * `confirm_intake_group` speichern. Die RPC laesst ein entschiedenes Nein
+   * nicht direkt zum Ja werden; der Weg ueber das Oeffnen haelt ihre
+   * Pruefungen. Bricht man ab, bleibt die Einnahme ausgelassen.
+   */
+  const dochEingenommenFuerSlot = (log: DoseLog) => {
+    const intake = timelineOccurrencesForDay(selectedDay)
+      .find(candidate => candidate.routineSlotKey === log.routine_slot_key)
+    const timeline = intake && timelines.find(candidate => candidate.cycle.id === intake.cycleId)
+    const version = intake && timeline?.versions.find(candidate => candidate.id === intake.planVersionId)
+    if (!intake || !timeline || !version) return null
+    return {
+      cycle: dashboardCycleFromTimeline(timeline, version, stackItemById.get(intake.stackItemId), timeZone),
+      intake,
+    }
+  }
+
+  const dochEingenommen = (log: DoseLog) => {
+    const ziel = dochEingenommenFuerSlot(log)
+    if (!ziel) {
+      toast.error(t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' }))
+      return
+    }
+    openConfirmSheet(ziel.cycle, log, ziel.intake.time || undefined, ziel.intake.dose,
+      ziel.intake.scheduledAt, ziel.intake.routineSlotKey, true)
   }
 
   const confirmCycleDose = async (cycle: Cycle, taken: boolean, loggedAt?: string, slotDose: number | null = null, occurrenceAt?: string, pendingLog?: DoseLog, geplanterSchluessel?: string, tatsaechlicheMenge?: number | null) => {
@@ -1487,7 +1532,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   // ── Bestätigungs-Sheet ───────────────────────────────────────────────────
-  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string) => {
+  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false) => {
     let defaultTime: string
     if (cycle && slotTime) {
       defaultTime = slotTime
@@ -1520,7 +1565,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       setConfirmDoseText('')
       setConfirmUnit(null)
     }
-    setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey })
+    setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey, nachtragen })
   }
 
   const openInjectionTrackerForSlot = (slot: DueSlot) => {
@@ -1545,9 +1590,34 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         const actualAt = new Date(selectedDay)
         actualAt.setHours(hours, minutes, 0, 0)
         if (confirmSheet.cycle) {
-          await confirmCycleDose(confirmSheet.cycle, true, actualAt.toISOString(),
-            confirmSheet.slotDose ?? null, confirmSheet.scheduledAt, confirmSheet.log, confirmSheet.slotKey,
-            confirmUnit != null ? confirmDoseWert : null)
+          const ausgelassen = confirmSheet.nachtragen && confirmSheet.log?.taken === false
+            ? confirmSheet.log : undefined
+          let offeneZeile = confirmSheet.log
+          if (ausgelassen) {
+            // Erst pruefen, dann oeffnen: die gewaehlte Uhrzeit muss in einer
+            // aktiven Planversion liegen, sonst lehnt das Speichern ohnehin ab.
+            const timeline = timelines.find(item => item.cycle.id === confirmSheet.cycle!.id)
+            const resolved = timeline && resolveCycleAt(timeline, actualAt, timeZone)
+            if (!resolved?.planVersion || resolved.status !== 'active') throw new Error('Intake timestamp is not active')
+            const aenderung = oeffnenAenderung(ausgelassen)
+            const { error } = await dashboardDataClient.from('dose_logs').update(aenderung).eq('id', ausgelassen.id)
+            if (error) throw error
+            offeneZeile = { ...ausgelassen, ...aenderung }
+          }
+          try {
+            await confirmCycleDose(confirmSheet.cycle, true, actualAt.toISOString(),
+              confirmSheet.slotDose ?? null, confirmSheet.scheduledAt, offeneZeile, confirmSheet.slotKey,
+              confirmUnit != null ? confirmDoseWert : null)
+          } catch (fehler) {
+            // Gescheitert nach dem Oeffnen: die Zeile zurueck auf „ausgelassen",
+            // so wie sie war — nicht offen und ohne Notiz stehen lassen.
+            if (ausgelassen) {
+              await dashboardDataClient.from('dose_logs')
+                .update({ taken: false, notes: ausgelassen.notes })
+                .eq('id', ausgelassen.id)
+            }
+            throw fehler
+          }
         } else if (confirmSheet.log) {
           await confirmDose(confirmSheet.log, true, actualAt.toISOString())
         }
@@ -2075,16 +2145,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 `confirm_intake_group`, das Herkunft und Lebenszyklus prueft.
                 `reverse_inventory_confirmation('undo')` setzt `taken` auf null
                 und bucht den Bestand in einer Transaktion zurueck. */}
-            {wiederOeffnen && !FEATURES.planTimelineV2 && log.taken === false && (
+            {wiederOeffnen && log.taken === false && (
               <button
                 type="button"
-                onClick={() => openConfirmSheet(undefined, log)}
+                onClick={() => FEATURES.planTimelineV2 ? dochEingenommen(log) : openConfirmSheet(undefined, log)}
                 data-tone="good"
                 className="lg-gray-btn !px-3.5 !text-[13px]">
                 <Check size={14} aria-hidden="true" /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
               </button>
             )}
-            {wiederOeffnen && (
+            {/* Wieder oeffnen heisst: zurueck auf die Liste von heute. Fuer
+                einen vergangenen Tag ist das ein Umweg — dort fuehrt eine
+                ausgelassene Einnahme direkt ueber „Doch eingenommen". Eine
+                genommene laesst sich immer zuruecknehmen. */}
+            {wiederOeffnen && (log.taken === true || !isPastSelected) && (
               <button
                 type="button"
                 onClick={() => undoDose(log)}
@@ -2399,29 +2473,37 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         {dueSlots.length === 0 && totalDaySlots > 0 && (!FEATURES.planTimelineV2 || timelineReady) && (
           <div
             data-due-receipt
-            data-tone={incompletePastDay ? 'bad' : 'good'}
+            data-tone={alleGenommen ? 'good' : undefined}
             className="lg-surface mb-4 flex flex-col items-center gap-2.5 px-6 py-7 text-center"
           >
             <span
               className="flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ background: incompletePastDay ? 'var(--lg-bad)' : 'var(--lg-good)' }}
+              style={{ background: alleGenommen ? 'var(--lg-good)' : verpassteHeute > 0 ? 'var(--lg-warn)' : '#636366' }}
             >
-              {incompletePastDay
-                ? <X size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
-                : <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />}
+              {alleGenommen
+                ? <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
+                : <MinusCircle size={28} strokeWidth={2.4} className="text-white" aria-hidden="true" />}
             </span>
             <h3 className="lg-title2">
-              {incompletePastDay
-                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
-                : genommeneSlots === totalDaySlots
+              {alleGenommen
                 ? t('all_intakes_done', { defaultValue: 'Alle geplanten Einnahmen sind bestätigt.' })
+                // Verpasst hat der Auto-Miss eingetragen, nicht der Nutzer —
+                // „alles protokolliert" stimmte dann nicht.
+                : verpassteHeute > 0
+                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
                 : t('all_intakes_logged', { defaultValue: 'Für diesen Tag ist alles protokolliert.' })}
             </h3>
             <p className="text-[15px] text-[var(--lg-text-3)]">
-              {t('calendar_day_balance', {
-                defaultValue: '{{genommen}} von {{geplant}} bestätigt',
-                genommen: genommeneSlots, geplant: totalDaySlots,
-              })}
+              {alleGenommen
+                ? t('calendar_day_balance', {
+                    defaultValue: '{{genommen}} von {{geplant}} bestätigt',
+                    genommen: genommeneSlots, geplant: totalDaySlots,
+                  })
+                : [
+                    t('day_count_taken', { defaultValue: '{{n}} genommen', n: genommeneSlots }),
+                    uebersprungeneHeute > 0 && t('day_count_skipped', { defaultValue: '{{n}} übersprungen', n: uebersprungeneHeute }),
+                    verpassteHeute > 0 && t('day_count_missed', { defaultValue: '{{n}} verpasst', n: verpassteHeute }),
+                  ].filter(Boolean).join(' · ')}
             </p>
           </div>
         )}
