@@ -15,6 +15,12 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Dauer als Picker-Rad im Apple-Stil (Zahl + Einheit, dazu „hält noch an").
   Die Werte stehen danach am Chip: Intensität als kleine Zahl am Rahmen, Dauer
   kurz im Chip.
+- **Tabs Wirkungen | Nebenwirkungen** über den Chips (mit Zahl der gewählten),
+  zusammen mit Suche und Info-Knopf oben festgehalten beim Scrollen. Suche
+  zeigt beide Arten. Titel, Substanz und Zeitpunkt in einer Gruppe.
+- **Info-Knopf (i)** öffnet eine Erklärung mit Grafik: Aufbau eines Chips
+  (A Name, B Dauer, C Intensität, D Farbe = Art) und Beispielzustände.
+- Mockup: https://claude.ai/artifact/1f5afzwrMim3P6FK2xjfM2
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
 
