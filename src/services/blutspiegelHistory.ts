@@ -506,7 +506,20 @@ function calculateCurveTo(
   const horizonMs = 20 * (Math.LN2 / Math.min(rates.ka, rates.ke)) * 3_600_000
   let oldest = 0
 
-  for (let tMs = start.getTime(); endExclusive ? tMs < endMs : tMs <= endMs; tMs += stepMs) {
+  // Raster plus jede Einnahme als eigener Punkt: sonst laege eine Einnahme
+  // zwischen zwei Rasterpunkten, und die Linie stiege sichtbar schon vorher an.
+  const imBereich = (ms: number) => ms >= start.getTime() && (endExclusive ? ms < endMs : ms <= endMs)
+  const zeiten: number[] = []
+  for (let tMs = start.getTime(); imBereich(tMs); tMs += stepMs) zeiten.push(tMs)
+  const raster = new Set(zeiten)
+  for (const dose of doses) {
+    if (!imBereich(dose.ms) || raster.has(dose.ms)) continue
+    raster.add(dose.ms) // zwei Einnahmen zur selben Zeit: ein Punkt
+    zeiten.push(dose.ms)
+  }
+  zeiten.sort((a, b) => a - b)
+
+  for (const tMs of zeiten) {
     let total = 0
     while (oldest < doses.length && tMs - doses[oldest].ms > horizonMs) oldest++
     for (let i = oldest; i < doses.length && doses[i].ms < tMs; i++) {

@@ -2705,5 +2705,6 @@
   "nutr_photo_continue_one": "Continue with {{count}} ingredient",
   "nutr_photo_continue_other": "Continue with {{count}} ingredients",
   "nutr_photo_back_to_select": "Selection",
-  "nutr_photo_as_dish": "As recipe"
+  "nutr_photo_as_dish": "As recipe",
+  "pk_scrub_intake": "Dose {{dose}}"
 }

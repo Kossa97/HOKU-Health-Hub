@@ -2705,5 +2705,6 @@
   "nutr_photo_continue_one": "Weiter mit {{count}} Zutat",
   "nutr_photo_continue_other": "Weiter mit {{count}} Zutaten",
   "nutr_photo_back_to_select": "Auswahl",
-  "nutr_photo_as_dish": "Als Gericht"
+  "nutr_photo_as_dish": "Als Gericht",
+  "pk_scrub_intake": "Einnahme {{dose}}"
 }

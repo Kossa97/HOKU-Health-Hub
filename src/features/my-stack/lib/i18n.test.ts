@@ -1103,6 +1103,7 @@ const EXPECTED_MY_STACK_KEYS = [
   'bw_entry_open_aria',
   'bw_entry_change',
   'bw_edit',
+  'pk_scrub_intake',
   'injection_edit_action',
   'injection_edit_title',
   'injection_edit_linked_hint',
