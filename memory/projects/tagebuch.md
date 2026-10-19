@@ -66,6 +66,13 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   nicht), Linien-Strich 1,6 → 1,2 (≈1,0 px), Faktor je Symbol (`OPTICAL`,
   0,78–1,28, max. 21 px in der 30-px-Scheibe). Ergebnis: Ausreißer 19 → 1,
   Streuung 37 % → 11 %. Rest: Knötchen (0,55, flaches Motiv) – tauschen?
+- **Barrierefreiheit (2026-10-19, accessibility-review, WCAG 2.1 AA):** Kontraste
+  der Symbole/Chips/Zahlen OK. Offen: Picker-Rad nicht per Tastatur bedienbar
+  (kritisch); Chip-Editor ohne Fokusführung/Escape; Tabs ohne Pfeiltasten und
+  aria-controls; Art nur über Farbe in Liste/Suche – grün/orange bei Rot-Grün-
+  Schwäche ≈ gleich (1,07–1,28:1) → zusätzliches Formzeichen; roter Fleck vs.
+  oranger Linie 1,7:1; Kontrast „sehr leicht/stark“ 3,7:1 und Dauer im gewählten
+  Chip 4,47:1; Tippflächen 34–40 px (< 44).
 
 ## Chip-Katalog — Entwurf (de / en)
 
