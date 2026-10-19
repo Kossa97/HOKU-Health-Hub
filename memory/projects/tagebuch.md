@@ -73,6 +73,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Schwäche ≈ gleich (1,07–1,28:1) → zusätzliches Formzeichen; roter Fleck vs.
   oranger Linie 1,7:1; Kontrast „sehr leicht/stark“ 3,7:1 und Dauer im gewählten
   Chip 4,47:1; Tippflächen 34–40 px (< 44).
+  **Alles umgesetzt im Mockup (2026-10-19):** Picker-Rad als `spinbutton`
+  (Pfeile, Bild auf/ab, Pos1/Ende); Art-Zeichen ＋ (Wirkung) / − (Nebenwirkung)
+  unten links an der Scheibe, Art auch in der Ansage; Editor und Info mit Fokus
+  hinein, Tab-Falle, Escape, Fokus zurück zum Öffner; Tabs mit Pfeiltasten,
+  `aria-controls`/`tabpanel`; Tippflächen 44 px über unsichtbare Fläche
+  (`.tyd-hit`); `aria-haspopup="dialog"` an Chips und „i“; dunkler Ring um den
+  roten Fleck; „sehr leicht/stark“ und Dauer auf 62 % (5,7:1 / 5,2:1).
+  Nicht mit echtem VoiceOver/Gerät getestet.
 
 ## Chip-Katalog — Entwurf (de / en)
 
