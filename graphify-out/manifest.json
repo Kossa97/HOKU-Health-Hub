@@ -5430,9 +5430,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/e2e.yml": {
-    "mtime": 1791840469.8076181,
-    "seen": 1792396924.4250898,
-    "ast_hash": "b2fda88d3fafc2adc309e5212a81c1cf",
+    "mtime": 1792397404.929009,
+    "seen": 1792397424.438504,
+    "ast_hash": "27fe84fb1292f3d98cfb9f96d8dd1bec",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/useMinuteClock.ts": {
@@ -6912,9 +6912,9 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792359164.8183777,
-    "seen": 1792396924.4210534,
-    "ast_hash": "218fcb39ed3d32998e40e0647d52a7b2",
+    "mtime": 1792397285.8299892,
+    "seen": 1792397424.4078538,
+    "ast_hash": "abb35606822e2c78b927db24a3cabd85",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
