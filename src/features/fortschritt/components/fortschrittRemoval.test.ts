@@ -12,7 +12,7 @@ describe('Fortschritt ohne Substanzen-Fokus', () => {
   })
 
   test('rendert Zyklus-Balken ohne Fokus-bedingtes Ausblenden', () => {
-    const source = readSource('./verlauf/MetricChart.tsx')
+    const source = readSource('./verlauf/GlassChart.tsx')
 
     expect(source).not.toContain('focusId')
     expect(source).not.toContain('faded')

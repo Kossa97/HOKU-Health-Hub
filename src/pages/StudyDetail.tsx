@@ -1,6 +1,6 @@
 // src/pages/StudyDetail.tsx
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,22 +22,21 @@ const STUDY_TYPE_STYLES: Record<string, string> = {
   meta:     'bg-blue-500/15 text-blue-400',
   human:    'bg-emerald-500/15 text-emerald-400',
   animal:   'bg-orange-500/15 text-orange-400',
-  study:    'bg-slate-700/40 text-slate-400',
+  study:    'bg-slate-700/40 text-[var(--lg-text-2)]',
 }
 
 const EVIDENCE_STYLES: Record<string, string> = {
   strong:      'bg-emerald-500/15 text-emerald-400',
   moderate:    'bg-yellow-500/15 text-yellow-400',
   preclinical: 'bg-red-500/15 text-red-400',
-  unknown:     'bg-slate-700/40 text-slate-400',
+  unknown:     'bg-slate-700/40 text-[var(--lg-text-2)]',
 }
 
 function SectionCard({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="bg-[#0B1220] border border-white/[0.06] rounded-2xl p-5">
+    <div className="lg-surface lg-flat p-5">
       <p
-        className="text-[0.58rem] font-black uppercase tracking-widest text-sky-400/60 mb-3"
-        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)] mb-3"
       >
         {label}
       </p>
@@ -56,7 +55,7 @@ export function StudyDetail() {
   if (!article) {
     return (
       <div className="text-center py-16">
-        <p className="text-slate-500 text-sm mb-4">{t('lab_study_not_found')}</p>
+        <p className="text-[var(--lg-text-2)] text-sm mb-4">{t('lab_study_not_found')}</p>
         <button type="button" onClick={() => navigate('/lab')} className="btn-secondary text-sm">
           ← {t('lab_back_to_research')}
         </button>
@@ -81,9 +80,9 @@ export function StudyDetail() {
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors"
+        className="lg-glass lg-btn lg-btn-glass lg-btn-compact w-fit !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
       >
-        <ArrowLeft size={14} />
+        <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
         {t('lab_back_to_research')}
       </button>
 
@@ -91,21 +90,18 @@ export function StudyDetail() {
       <div>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span
-            className={`text-[0.6rem] font-black uppercase px-2 py-0.5 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
           >
             {t(getStudyTypeLabel(studyType))}
           </span>
           <span
-            className={`text-[0.6rem] font-black uppercase px-2 py-0.5 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
           >
             {t(getEvidenceLabel(evidenceScore))}
           </span>
           {article.pubdate && (
             <span
-              className="text-[0.6rem] text-slate-600"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              className="text-[11px] text-[var(--lg-text-3)]"
             >
               {article.pubdate}
             </span>
@@ -113,21 +109,20 @@ export function StudyDetail() {
         </div>
 
         <h1
-          className="text-2xl font-black text-white leading-snug mb-2"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          className="text-[26px] font-bold leading-tight tracking-[0.01em] text-[var(--lg-text)] mb-2"
         >
           {article.title}
         </h1>
 
         {(article.authors.length > 0 || article.journal) && (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[var(--lg-text-2)]">
             {article.authors.length > 0 && (
               <span>
                 {article.authors.length === 1 ? article.authors[0] : `${article.authors[0]} et al.`}
               </span>
             )}
             {article.journal && (
-              <span className="text-sky-400/60"> · {article.journal}</span>
+              <span className="text-[var(--lg-accent-text)]"> · {article.journal}</span>
             )}
           </p>
         )}
@@ -135,7 +130,7 @@ export function StudyDetail() {
 
       {/* Summary */}
       <SectionCard label={t('lab_summary_label')}>
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm text-[var(--lg-text)] leading-relaxed">
           {article.abstract || t('lab_no_abstract')}
         </p>
       </SectionCard>
@@ -145,7 +140,7 @@ export function StudyDetail() {
         <SectionCard label={t('lab_key_findings')}>
           <ul className="space-y-2">
             {keyFindings.map((finding, i) => (
-              <li key={i} className="flex gap-3 text-sm text-slate-300">
+              <li key={i} className="flex gap-3 text-sm text-[var(--lg-text)]">
                 <span className="text-sky-400/60 shrink-0 mt-0.5">•</span>
                 <span>{finding.endsWith('.') ? finding : `${finding}.`}</span>
               </li>
@@ -166,7 +161,7 @@ export function StudyDetail() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-400 leading-relaxed">{t(fallbackLimitationKey)}</p>
+          <p className="text-sm text-[var(--lg-text-2)] leading-relaxed">{t(fallbackLimitationKey)}</p>
         )}
       </SectionCard>
 
@@ -174,25 +169,23 @@ export function StudyDetail() {
       <SectionCard label={t('lab_evidence_analysis')}>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">{t('lab_study_type_label')}</span>
+            <span className="text-xs text-[var(--lg-text-2)]">{t('lab_study_type_label')}</span>
             <span
-              className={`text-[0.6rem] font-black uppercase px-2 py-0.5 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
             >
               {t(getStudyTypeLabel(studyType))}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">{t('lab_evidence_level')}</span>
+            <span className="text-xs text-[var(--lg-text-2)]">{t('lab_evidence_level')}</span>
             <span
-              className={`text-[0.6rem] font-black uppercase px-2 py-0.5 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
             >
               {t(getEvidenceLabel(evidenceScore))}
             </span>
           </div>
-          <div className="border-t border-white/[0.06] pt-3">
-            <p className="text-xs text-slate-400 leading-relaxed">
+          <div className="border-t-[0.5px] border-[var(--lg-separator)] pt-3">
+            <p className="text-xs text-[var(--lg-text-2)] leading-relaxed">
               {t(getEvidenceContext(evidenceScore))}
             </p>
           </div>
@@ -200,26 +193,23 @@ export function StudyDetail() {
       </SectionCard>
 
       {/* Abstract Accordion */}
-      <div className="bg-[#0B1220] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="lg-group">
         <button
           type="button"
           onClick={() => setAbstractOpen(o => !o)}
-          className="flex items-center justify-between w-full px-5 py-4 text-left"
+          className="flex items-center justify-between w-full min-h-[52px] px-5 text-left"
         >
-          <span
-            className="text-[0.58rem] font-black uppercase tracking-widest text-slate-500"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
+          <span className="text-[16px] font-semibold text-[var(--lg-text)]">
             {t('lab_original_abstract')}
           </span>
           {abstractOpen
-            ? <ChevronUp size={14} className="text-slate-500" />
-            : <ChevronDown size={14} className="text-slate-500" />
+            ? <ChevronUp size={14} className="text-[var(--lg-text-2)]" />
+            : <ChevronDown size={14} className="text-[var(--lg-text-2)]" />
           }
         </button>
         {abstractOpen && (
-          <div className="px-5 pb-5 border-t border-white/[0.06]">
-            <p className="text-sm text-slate-400 leading-relaxed pt-4">
+          <div className="px-5 pb-5">
+            <p className="text-[15px] text-[var(--lg-text-2)] leading-relaxed">
               {article.abstract || t('lab_no_abstract')}
             </p>
           </div>
@@ -232,7 +222,7 @@ export function StudyDetail() {
           href={article.link}
           target="_blank"
           rel="noreferrer"
-          className="btn-primary w-full flex items-center justify-center gap-2"
+          className="lg-btn lg-btn-primary w-full"
         >
           {t('lab_open_pubmed')} <ExternalLink size={14} />
         </a>

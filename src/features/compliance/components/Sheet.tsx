@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 /**
  * Unteres Sheet fuer Melden, Blockieren, Konto loeschen und Rechtstexte.
- * Gleiches Aussehen wie die Sheets der Erfahrungen; Escape und Tippen auf
+ * Schwebendes Glas-Sheet wie in iOS (.lg-sheet); Escape und Tippen auf
  * den Hintergrund schliessen, ausser waehrend etwas laeuft.
  */
 export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dialog', tall = false, ...data }: {
@@ -16,7 +16,7 @@ export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dia
   return (
     <div
       data-app-modal
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-10"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10"
       onClick={event => {
         // Nicht nach oben durchreichen: liegt das Sheet in einem anderen
         // Dialog, schloesse der Klick sonst auch den.
@@ -29,7 +29,9 @@ export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dia
         aria-modal="true"
         aria-labelledby={labelledBy}
         {...data}
-        className={`w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl ${tall ? 'max-h-[85vh]' : 'max-h-[90vh]'}`}
+        // Hohe Blätter scrollen: dort ohne Weichzeichner (lg-sheet-solid),
+        // sonst hakt das Scrollen in iOS Safari
+        className={`lg-sheet w-full max-w-md overflow-y-auto overscroll-contain px-5 pb-5 pt-2 ${tall ? 'lg-sheet-solid max-h-[85vh]' : 'max-h-[90vh]'}`}
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape' || busy) return
@@ -37,6 +39,7 @@ export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dia
           onClose()
         }}
       >
+        <span className="lg-grabber mb-3" aria-hidden="true" />
         {children}
       </div>
     </div>

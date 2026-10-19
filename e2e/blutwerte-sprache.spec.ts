@@ -75,10 +75,7 @@ test('Marker: Filter „Auffällige" steht vorn und ist vorausgewaehlt, mit Anza
   await expect(liste).toContainText('Kortisol')
   await expect(liste).not.toContainText('Ferritin')
   if (process.env.SCREENSHOT_DIR) {
-    for (const thema of ['dark', 'light']) {
-      await page.evaluate(wert => document.documentElement.setAttribute('data-theme', wert), thema)
-      await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/auffaellig-${thema}.png` })
-    }
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/auffaellig-dark.png` })
   }
   // „Alle" zeigt das Raster ohne den Block
   await page.getByRole('button', { name: 'Alle', exact: true }).click()
@@ -383,10 +380,7 @@ test('Verlauf: Zyklen aus My Stack als Balken hinter dem Verlauf', async ({ page
 
   if (process.env.SCREENSHOT_DIR) {
     await page.waitForTimeout(1600) // Linien-Animation abwarten
-    for (const thema of ['dark', 'light']) {
-      await page.evaluate(wert => document.documentElement.setAttribute('data-theme', wert), thema)
-      await streifen.locator('..').screenshot({ path: `${process.env.SCREENSHOT_DIR}/verlauf-${thema}.png` })
-    }
+    await streifen.locator('..').screenshot({ path: `${process.env.SCREENSHOT_DIR}/verlauf-dark.png` })
   }
 })
 
@@ -466,10 +460,7 @@ test('Detail: „Aktuell“, Wert, Abstand zur Grenze, ohne Kennzahlen, zugeklap
   await expect(detail).toContainText('Erstwert')
   if (process.env.SCREENSHOT_DIR) {
     await page.waitForTimeout(900)
-    for (const thema of ['dark', 'light']) {
-      await page.evaluate(wert => document.documentElement.setAttribute('data-theme', wert), thema)
-      await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/detail-${thema}.png`, fullPage: true })
-    }
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/detail-dark.png`, fullPage: true })
   }
 })
 
@@ -500,11 +491,7 @@ test('Detail: Zeitraum steht ueber dem Graph; Werte ausserhalb rot, innerhalb gr
   if (process.env.SCREENSHOT_DIR) {
     await graph.scrollIntoViewIfNeeded()
     await page.waitForTimeout(900)
-    for (const thema of ['dark', 'light']) {
-      await page.evaluate(wert => document.documentElement.setAttribute('data-theme', wert), thema)
-      await page.waitForTimeout(100)
-      await graph.locator('..').locator('..').screenshot({ path: `${process.env.SCREENSHOT_DIR}/bw-zonen-${thema}.png` })
-    }
+    await graph.locator('..').locator('..').screenshot({ path: `${process.env.SCREENSHOT_DIR}/bw-zonen-dark.png` })
   }
 })
 

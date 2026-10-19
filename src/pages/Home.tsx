@@ -6,10 +6,10 @@ import {
   CalendarDays, FlaskConical, Archive, Calculator,
   BookHeart, Star, HelpCircle, User, ChevronRight,
   Microscope, Library, Droplets, Heart, FileText, type LucideIcon,
-  Activity, ArrowUpRight, CheckCircle2, ClipboardList,
-  Clock3, Package, ShieldCheck, Sparkles,
+  Activity, CheckCircle2,
+  Clock3, Package, ShieldCheck,
   Syringe, TrendingUp, Bell, XCircle, RotateCcw,
-  Dumbbell, Dna, Zap, Moon, Brain, Bandage, HeartPulse, Lightbulb, Leaf, Bone,
+  Dumbbell, Dna, Zap, Moon, Brain, Bandage, HeartPulse, Lightbulb, Leaf, Bone, Utensils,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -64,6 +64,7 @@ import {
 import toast from 'react-hot-toast'
 import { differenceInDays, format, parseISO, startOfDay } from 'date-fns'
 import { getDateLocale } from '../i18n/dateLocales'
+import { Silhouette, Zeilen } from '../components/ui/Silhouette'
 
 const ROUTINE_GROUP_LABELS: Record<RoutineGroupModel['key'], { key: string; defaultValue: string }> = {
   morning: { key: 'my_stack_routine_morning', defaultValue: 'Morgens' },
@@ -97,7 +98,6 @@ interface TileDef {
   desc?: string
   path: string
   color: string
-  bg: string
 }
 
 interface QuickActionDef {
@@ -138,20 +138,22 @@ const EMPTY_OVERVIEW: OverviewStats = {
 }
 
 const TILE_DEFS: TileDef[] = [
-  { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender',             color: '#00ccf5', bg: 'rgba(0,204,245,0.10)'          },
-  { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen',          color: '#10b981', bg: 'rgba(16,185,129,0.10)'         },
-  { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar', color: '#00ccf5', bg: 'rgba(0,204,245,0.10)'         },
-  { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack',             color: '#22d3ee', bg: 'rgba(34,211,238,0.10)'         },
-  { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner',              color: '#3b82f6', bg: 'rgba(59,130,246,0.10)'         },
-  { icon: Droplets,     labelKey: 'tile_blutwerte',   descKey: 'tile_blutwerte_desc',   path: '/blutwerte',            color: '#f43f5e', bg: 'rgba(244,63,94,0.10)', label: 'Blutwerte', desc: 'Laborwerte erfassen' },
-  { icon: Heart,        labelKey: 'tile_health',      descKey: 'tile_health_desc',      path: '/health',               color: '#f43f5e', bg: 'rgba(244,63,94,0.10)'          },
-  { icon: FileText,     labelKey: 'tile_protokoll',   descKey: 'tile_protokoll_desc',   path: '/protokoll',            color: '#00ccf5', bg: 'rgba(0,204,245,0.10)', label: 'PDF-Generator', desc: 'Report mit Live-Vorschau' },
-  { icon: Microscope,   labelKey: 'tile_lab',         descKey: 'tile_lab_desc',         path: '/lab',                  color: '#00ccf5', bg: 'rgba(0,204,245,0.10)'          },
-  { icon: Library,      labelKey: 'tile_bibliothek',  descKey: 'tile_bibliothek_desc',  path: '/lab/peptipedia',        color: '#8b5cf6', bg: 'rgba(139,92,246,0.10)'         },
-  { icon: BookHeart,    labelKey: 'tile_tagebuch',    descKey: 'tile_tagebuch_desc',    path: '/tagebuch',             color: '#8b5cf6', bg: 'rgba(139,92,246,0.10)'         },
-  { icon: Star,         labelKey: 'tile_bewertungen', descKey: 'tile_bewertungen_desc', path: '/bewertungen',          color: '#f59e0b', bg: 'rgba(245,158,11,0.10)'         },
-  { icon: HelpCircle,   labelKey: 'tile_faq',         descKey: 'tile_faq_desc',         path: '/faq',                  color: '#10b981', bg: 'rgba(16,185,129,0.10)'         },
-  { icon: User,         labelKey: 'tile_profil',      descKey: 'tile_profil_desc',      path: '/profil',               color: '#f43f5e', bg: 'rgba(244,63,94,0.10)'          },
+  { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender',             color: '#00ccf5'          },
+  { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen',          color: '#10b981'         },
+  { icon: Dumbbell,     labelKey: 'tile_training',    descKey: 'tile_training_desc',    path: '/training',             color: '#f97316', label: 'Training', desc: 'Kraft, Cardio, Hyrox' },
+  { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar', color: '#00ccf5'         },
+  { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack',             color: '#22d3ee'         },
+  { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner',              color: '#3b82f6'         },
+  { icon: Droplets,     labelKey: 'tile_blutwerte',   descKey: 'tile_blutwerte_desc',   path: '/blutwerte',            color: '#f43f5e', label: 'Blutwerte', desc: 'Laborwerte erfassen' },
+  { icon: Heart,        labelKey: 'tile_health',      descKey: 'tile_health_desc',      path: '/health',               color: '#f43f5e'          },
+  { icon: FileText,     labelKey: 'tile_protokoll',   descKey: 'tile_protokoll_desc',   path: '/protokoll',            color: '#00ccf5', label: 'PDF-Generator', desc: 'Report mit Live-Vorschau' },
+  { icon: Microscope,   labelKey: 'tile_lab',         descKey: 'tile_lab_desc',         path: '/lab',                  color: '#00ccf5'          },
+  { icon: Library,      labelKey: 'tile_bibliothek',  descKey: 'tile_bibliothek_desc',  path: '/lab/peptipedia',        color: '#8b5cf6'         },
+  { icon: Utensils,     labelKey: 'tile_ernaehrung',  descKey: 'tile_ernaehrung_desc',  path: '/ernaehrung',           color: '#f59e0b'         },
+  { icon: BookHeart,    labelKey: 'tile_tagebuch',    descKey: 'tile_tagebuch_desc',    path: '/tagebuch',             color: '#8b5cf6'         },
+  { icon: Star,         labelKey: 'tile_bewertungen', descKey: 'tile_bewertungen_desc', path: '/bewertungen',          color: '#f59e0b'         },
+  { icon: HelpCircle,   labelKey: 'tile_faq',         descKey: 'tile_faq_desc',         path: '/faq',                  color: '#10b981'         },
+  { icon: User,         labelKey: 'tile_profil',      descKey: 'tile_profil_desc',      path: '/profil',               color: '#f43f5e'          },
 ]
 
 const QUICK_ACTIONS: QuickActionDef[] = [
@@ -238,25 +240,61 @@ const FEATURE_CARDS: FeatureDef[] = [
 const pageStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 18,
+  gap: 26,
   paddingBottom: 8,
 }
 
+/** Maße der Karten; das Material (Glas mit Lichtkante) kommt von `.lg-surface`. */
 const panelStyle: CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--card-border)',
-  borderRadius: 24,
-  boxShadow: 'var(--shadow-card)',
+  borderRadius: 'var(--r-xl)',
   position: 'relative',
   overflow: 'hidden',
 }
 
-const labelStyle: CSSProperties = {
-  fontSize: '0.62rem',
-  fontWeight: 800,
-  letterSpacing: '0.13em',
-  textTransform: 'uppercase',
-  color: 'var(--text-muted)',
+/** Großer Titel wie in iOS (34 pt, fett, leicht gesperrt). */
+const largeTitleStyle: CSSProperties = {
+  marginTop: 2,
+  fontSize: 34,
+  lineHeight: '41px',
+  fontWeight: 700,
+  letterSpacing: '0.011em',
+  color: 'var(--text)',
+}
+
+/** Abschnittstitel (Title 3): 20 pt fett. */
+const sectionTitleStyle: CSSProperties = {
+  fontSize: 20,
+  fontWeight: 700,
+  letterSpacing: '0.019em',
+  color: 'var(--text)',
+}
+
+/** Sheets der Startseite: schwebend mit Abstand zum Rand, festes Graphit wie iOS-Sheets. */
+const homeSheetStyle: CSSProperties = {
+  background: 'var(--lg-sheet-bg)',
+  backdropFilter: 'var(--lg-sheet-blur)',
+  WebkitBackdropFilter: 'var(--lg-sheet-blur)',
+  boxShadow: '0 -16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 0 0 1px rgba(255,255,255,0.06)',
+}
+
+/** „Eingenommen": grün getönte Kapsel — Erfolg bleibt grün, wie bisher. */
+const takenStyle: CSSProperties = {
+  background: 'color-mix(in srgb, var(--lg-good) 20%, transparent)',
+  color: 'var(--lg-good-text)',
+}
+
+/** „Alle als eingenommen markieren": grüne Kapsel, 44 px Tippfläche. */
+const confirmAllStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  minHeight: 44,
+  padding: '0 14px',
+  borderRadius: 999,
+  background: 'color-mix(in srgb, var(--lg-good) 16%, transparent)',
+  color: 'var(--lg-good-text)',
+  fontSize: 13,
+  fontWeight: 600,
 }
 
 interface HomeDoseLogPayloadInput {
@@ -387,7 +425,8 @@ const sectionHeaderStyle: CSSProperties = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: 12,
-  marginBottom: 10,
+  minHeight: 44,
+  margin: '0 4px 6px',
 }
 
 interface HomeProps {
@@ -938,88 +977,59 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
 
   return (
     <div style={pageStyle} className="stagger-in">
-      <section style={{ ...panelStyle, padding: 18 }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 88% 10%, rgba(0,204,245,0.22), transparent 32%), radial-gradient(circle at 8% 88%, rgba(139,92,246,0.18), transparent 34%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ ...labelStyle, color: 'var(--accent)', marginBottom: 7 }}>
-                {dateStr}
-              </p>
-              <h1 style={{ fontSize: '1.85rem', fontWeight: 900, letterSpacing: '-0.045em', color: 'var(--text)', lineHeight: 1.04 }}>
-                {greeting}
-              </h1>
-            </div>
-
-            <button
-              onClick={() => navigate('/profil')}
-              aria-label={String(t('tile_profil'))}
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 16,
-                border: '1px solid var(--border)',
-                background: 'rgba(255,255,255,0.045)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                color: 'var(--accent)',
-              }}
-            >
-              <User size={18} />
-            </button>
-          </div>
-
-          <HeroStat
-            icon={Activity}
-            label={String(t('home_completion', { defaultValue: 'Heute erledigt' }))}
-            value={`${completionLevel}%`}
-            hint={`${overview.loggedToday}/${plannedToday} ${t('home_completion_unit', { defaultValue: 'Einnahmen geloggt' })}`}
-            accent="#8b5cf6"
-          />
-
-          {FEATURES.planTimelineV2 && timelineLoadState !== 'ready' && (
-            <div role={timelineLoadState === 'error' ? 'alert' : 'status'} className="text-sm text-slate-400">
-              {timelineLoadState === 'loading'
-                ? t('loading', { defaultValue: 'Lädt…' })
-                : <>
-                    <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
-                    <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
-                      {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
-                    </button>
-                  </>}
-            </div>
-          )}
-          {todayIntakes.length === 0 && (!FEATURES.planTimelineV2 || timelineLoadState === 'ready') && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 12px',
-              borderRadius: 18,
-              background: todayDone ? 'rgba(16,185,129,0.10)' : 'var(--accent-weak)',
-              border: todayDone ? '1px solid rgba(16,185,129,0.22)' : '1px solid var(--accent-border)',
-            }}>
-              <ShieldCheck size={18} color={todayDone ? '#10b981' : 'var(--accent)'} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
-                  {statusLabel}
-                </p>
-                <p style={{ fontSize: '0.66rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                  {t('home_status_hint', { defaultValue: 'Schnellzugriff auf die wichtigsten Schritte.' })}
-                </p>
-              </div>
-              <ChevronRight size={16} color="var(--text-muted)" />
-            </div>
-          )}
+      {/* ── Kopf: großer Titel wie in iOS, Profil als Glas-Knopf ── */}
+      <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, padding: '4px 4px 0' }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text-2)' }}>
+            {dateStr}
+          </p>
+          <h1 style={largeTitleStyle}>
+            {greeting}
+          </h1>
         </div>
-      </section>
+        <button
+          onClick={() => navigate('/profil')}
+          aria-label={String(t('tile_profil'))}
+          className="lg-glass lg-press"
+          style={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0, color: 'var(--lg-text)' }}
+        >
+          <User size={20} />
+        </button>
+      </header>
 
-      <InjectionTrackerHero
-        pins={injectionHero.pins}
-        onOpen={() => navigate('/injektionen')}
-      />
+      {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
+      <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <TodayRing percent={completionLevel} done={completionLevel >= 100} />
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>
+              {t('home_completion', { defaultValue: 'Heute erledigt' })}
+            </p>
+            <p style={{ marginTop: 3, fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)' }}>
+              {`${overview.loggedToday}/${plannedToday} ${t('home_completion_unit', { defaultValue: 'Einnahmen geloggt' })}`}
+            </p>
+            {todayIntakes.length === 0 && (!FEATURES.planTimelineV2 || timelineLoadState === 'ready') && (
+              <p style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: todayDone ? 'var(--lg-good)' : 'var(--accent)' }}>
+                <ShieldCheck size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
+                {statusLabel}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {FEATURES.planTimelineV2 && timelineLoadState !== 'ready' && (
+          timelineLoadState === 'loading'
+            ? <Silhouette><Zeilen breiten={['58%']} h={13} /></Silhouette>
+            : (
+              <div role="alert" className="text-sm text-slate-400">
+                <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
+                <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
+                  {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
+                </button>
+              </div>
+            )
+        )}
+      </section>
 
       {homeInventoryRetryIds.length > 0 && (
         <div role="alert" className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-bold text-amber-200">
@@ -1034,31 +1044,33 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </div>
       )}
 
+      {/* ── Anstehende Einnahmen: je Tageszeit eine Gruppe ── */}
       {homeRoutineGroups.length > 0 && (
-        <section style={{ ...panelStyle, padding: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-            <p style={labelStyle}>{t('home_upcoming_intakes', { defaultValue: 'Anstehende Einnahmen' })}</p>
-            <p style={{ ...labelStyle, fontSize: '0.55rem' }}>{t('home_due_in', { defaultValue: 'fällig in:' })}</p>
+        <section>
+          <div style={sectionHeaderStyle}>
+            <h2 style={sectionTitleStyle}>{t('home_upcoming_intakes', { defaultValue: 'Anstehende Einnahmen' })}</h2>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)' }}>{t('home_due_in', { defaultValue: 'fällig in:' })}</p>
           </div>
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {homeRoutineGroups.map(group => {
               const groupLabel = t(ROUTINE_GROUP_LABELS[group.key].key, ROUTINE_GROUP_LABELS[group.key])
               const groupIntakes = group.items
                 .map(item => todayIntakeByKey.get(item.key))
                 .filter((intake): intake is TodayIntake => Boolean(intake))
               return (
-                <div key={group.key} className="space-y-2 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-cyan-300">
+                <div key={group.key} className="lg-surface" style={{ ...panelStyle, padding: '12px 14px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)' }}>
                       {groupLabel}
                     </p>
                     <button
                       type="button"
                       aria-label={`${t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })} – ${groupLabel}`}
                       onClick={() => { homeRoutineCommitted.current = false; setSelectedHomeRoutine(group) }}
-                      className="flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-xs font-black text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                      className="lg-press"
+                      style={confirmAllStyle}
                     >
-                      <CheckCircle2 size={14} aria-hidden="true" /> {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
+                      <CheckCircle2 size={15} aria-hidden="true" /> {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
                     </button>
                   </div>
                   <TodayIntakeCarousel
@@ -1104,25 +1116,66 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         />
       )}
 
+      {/* ── Überblick: drei Zahlen nebeneinander ── */}
       <section>
-        <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: 'monospace', marginBottom: 8 }}>
-          {t('pk_live_title')}
-        </p>
+        <div style={sectionHeaderStyle}>
+          <h2 style={sectionTitleStyle}>{t('home_overview_title', { defaultValue: 'Heute im Blick' })}</h2>
+          <button
+            onClick={() => navigate('/kalender')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
+          >
+            {t('today')} <ChevronRight size={16} />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <InsightCard
+            icon={CalendarDays}
+            label={String(t('stat_active_cycles'))}
+            value={String(overview.activeCycles)}
+            hint={String(t('home_active_cycles_hint', { defaultValue: 'laufende Pläne' }))}
+            accent="#00ccf5"
+            onClick={() => navigate('/kalender')}
+          />
+          <InsightCard
+            icon={FlaskConical}
+            label={String(t('stat_peptides'))}
+            value={String(overview.peptides)}
+            hint={String(t('home_peptides_hint', { defaultValue: 'rekonstituiert' }))}
+            accent="#8b7cf0"
+            onClick={() => navigate('/my-stack')}
+          />
+          <InsightCard
+            icon={Package}
+            label={String(t('stat_vials'))}
+            value={String(overview.inventoryVials)}
+            hint={overview.lowStock > 0
+              ? String(t('home_low_stock', { defaultValue: '{{count}} niedrig', count: overview.lowStock }))
+              : String(t('home_stock_ok', { defaultValue: 'Vorrat erfasst' }))}
+            accent={overview.lowStock > 0 ? '#ff9f0a' : '#30d158'}
+            onClick={() => navigate('/my-stack?tab=inventar')}
+          />
+        </div>
+      </section>
+
+      <InjectionTrackerHero
+        pins={injectionHero.pins}
+        onOpen={() => navigate('/injektionen')}
+      />
+
+      <section>
+        <div style={sectionHeaderStyle}>
+          <h2 style={sectionTitleStyle}>{t('pk_live_title')}</h2>
+        </div>
         <BlutspiegelView variant="compact" />
         <p className="disclaimer" style={{ marginTop: 8 }}>{t('pk_sim_disclaimer')}</p>
       </section>
 
       <ExpiryWarningBanners alerts={expiryAlerts} />
 
+      {/* ── Direkt loslegen: Kacheln mit farbigem Symbol ── */}
       <section>
         <div style={sectionHeaderStyle}>
-          <div>
-            <p style={labelStyle}>{t('home_quick_actions', { defaultValue: 'Quick Actions' })}</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', marginTop: 2 }}>
-              {t('home_quick_title', { defaultValue: 'Direkt loslegen' })}
-            </h2>
-          </div>
-          <Sparkles size={18} color="var(--accent)" />
+          <h2 style={sectionTitleStyle}>{t('home_quick_title', { defaultValue: 'Direkt loslegen' })}</h2>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {QUICK_ACTIONS
@@ -1144,91 +1197,41 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </div>
       </section>
 
-      <section>
-        <div style={sectionHeaderStyle}>
-          <div>
-            <p style={labelStyle}>{t('home_overview', { defaultValue: 'Übersicht' })}</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', marginTop: 2 }}>
-              {t('home_overview_title', { defaultValue: 'Heute im Blick' })}
-            </h2>
+      {/* ── Studie des Tages ── */}
+      <section className="lg-surface" style={{ ...panelStyle, padding: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+          <span style={{ ...iconTileStyle('#00b4e0'), width: 30, height: 30 }}>
+            {(() => { const StudyIcon = todayStudy.icon; return <StudyIcon size={17} /> })()}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)' }}>{t('stat_study')}</p>
+            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25 }}>
+              {t('home_daily_research', { defaultValue: 'Daily Research' })}
+            </p>
           </div>
+        </div>
+        <p style={{ fontSize: 15, lineHeight: 1.45, color: 'var(--text)' }}>
+          {todayStudy.title}
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginTop: 8 }}>
+          <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>
+            {todayStudy.source}
+          </p>
           <button
-            onClick={() => navigate('/kalender')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--accent)', fontSize: '0.72rem', fontWeight: 750 }}
+            onClick={() => navigate('/lab')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
           >
-            {t('today')} <ArrowUpRight size={13} />
+            {t('lab_snapshot_discover', { defaultValue: 'Entdecken' })} <ChevronRight size={16} />
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <InsightCard
-            icon={CalendarDays}
-            label={String(t('stat_active_cycles'))}
-            value={String(overview.activeCycles)}
-            hint={String(t('home_active_cycles_hint', { defaultValue: 'laufende Pläne' }))}
-            accent="#00ccf5"
-            onClick={() => navigate('/kalender')}
-          />
-          <InsightCard
-            icon={FlaskConical}
-            label={String(t('stat_peptides'))}
-            value={String(overview.peptides)}
-            hint={String(t('home_peptides_hint', { defaultValue: 'rekonstituiert' }))}
-            accent="#22d3ee"
-            onClick={() => navigate('/my-stack')}
-          />
-          <InsightCard
-            icon={Package}
-            label={String(t('stat_vials'))}
-            value={String(overview.inventoryVials)}
-            hint={overview.lowStock > 0
-              ? String(t('home_low_stock', { defaultValue: '{{count}} niedrig', count: overview.lowStock }))
-              : String(t('home_stock_ok', { defaultValue: 'Vorrat erfasst' }))}
-            accent={overview.lowStock > 0 ? '#f59e0b' : '#10b981'}
-            onClick={() => navigate('/my-stack?tab=inventar')}
-          />
-        </div>
       </section>
 
-      <section style={{ ...panelStyle, padding: 14 }}>
-        <div style={{ position: 'absolute', top: -34, right: -28, width: 120, height: 120, borderRadius: '50%', background: 'var(--accent-weak)', filter: 'blur(20px)' }} />
-        <div style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
-            {(() => { const StudyIcon = todayStudy.icon; return <StudyIcon size={22} color="var(--accent)" /> })()}
-            <div>
-              <p style={{ ...labelStyle, color: 'var(--accent)' }}>{t('stat_study')}</p>
-              <p style={{ fontSize: '0.86rem', fontWeight: 850, color: 'var(--text)', lineHeight: 1.25 }}>
-                {t('home_daily_research', { defaultValue: 'Daily Research' })}
-              </p>
-            </div>
-          </div>
-          <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1.45 }}>
-            {todayStudy.title}
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginTop: 10 }}>
-            <p style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-              {todayStudy.source}
-            </p>
-            <button
-              onClick={() => navigate('/lab')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--accent)', fontSize: '0.68rem', fontWeight: 800 }}
-            >
-              {t('lab_snapshot_discover', { defaultValue: 'Entdecken' })} <ChevronRight size={13} />
-            </button>
-          </div>
-        </div>
-      </section>
-
+      {/* ── Mehr aus deinen Daten: wischbare Karten ── */}
       <section>
         <div style={sectionHeaderStyle}>
-          <div>
-            <p style={labelStyle}>{t('home_features', { defaultValue: 'Features' })}</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', marginTop: 2 }}>
-              {t('home_features_title', { defaultValue: 'Mehr aus deinen Daten machen' })}
-            </h2>
-          </div>
-          <ClipboardList size={18} color="var(--text-muted)" />
+          <h2 style={sectionTitleStyle}>{t('home_features_title', { defaultValue: 'Mehr aus deinen Daten machen' })}</h2>
         </div>
-        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2 }}>
+        <div className="lg-swipe">
           {FEATURE_CARDS.map((feature) => (
             <FeatureCard
               key={feature.labelKey}
@@ -1246,73 +1249,84 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
 
       <WorkflowBanner userId={user?.id} />
 
+      {/* ── Alle Bereiche: gruppierte Liste wie in den iOS-Einstellungen ── */}
       <section>
         <div style={sectionHeaderStyle}>
-          <div>
-            <p style={labelStyle}>{t('sections')}</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', marginTop: 2 }}>
-              {t('home_all_tools', { defaultValue: 'Alle Tools' })}
-            </h2>
-          </div>
+          <h2 style={sectionTitleStyle}>{t('home_all_tools', { defaultValue: 'Alle Tools' })}</h2>
         </div>
-        <div className="grid grid-cols-2 gap-3" data-ob="home-tiles">
-          {TILE_DEFS.map((tile, index) => {
-            const stretchLast = TILE_DEFS.length % 2 === 1 && index === TILE_DEFS.length - 1
-            return (
-              <TileButton
-                key={tile.labelKey}
-                icon={tile.icon}
-                label={String(t(tile.labelKey, { defaultValue: tile.label ?? tile.labelKey }))}
-                desc={String(t(tile.descKey, { defaultValue: tile.desc ?? tile.descKey }))}
-                color={tile.color}
-                bg={tile.bg}
-                wide={stretchLast}
-                onClick={() => navigate(tile.path)}
-              />
-            )
-          })}
+        <div className="lg-surface" style={{ ...panelStyle }} data-ob="home-tiles">
+          {TILE_DEFS.map(tile => (
+            <TileButton
+              key={tile.labelKey}
+              icon={tile.icon}
+              label={String(t(tile.labelKey, { defaultValue: tile.label ?? tile.labelKey }))}
+              desc={String(t(tile.descKey, { defaultValue: tile.desc ?? tile.descKey }))}
+              color={tile.color}
+              onClick={() => navigate(tile.path)}
+            />
+          ))}
         </div>
       </section>
     </div>
   )
 }
 
-function HeroStat({
-  icon: Icon,
-  label,
-  value,
-  hint,
-  accent,
-}: {
-  icon: LucideIcon
-  label: string
-  value: ReactNode
-  hint: string
-  accent: string
-}) {
+/** Kontrast nach WCAG zwischen zwei Hex-Farben (#rrggbb). */
+function contrast(a: string, b: string): number {
+  const lum = (hex: string) => {
+    const [r, g, bl] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl
+  }
+  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m)
+  return (x + 0.05) / (y + 0.05)
+}
+
+/**
+ * Symbol-Quadrat wie in den iOS-Einstellungen: volle Farbe, Glyphe in der
+ * lesbareren von Weiß/Dunkel. Erwartet #rrggbb (wie alle Kachel-Farben);
+ * andere Formate bekommen eine weiße Glyphe.
+ */
+function iconTileStyle(color: string): CSSProperties {
+  const glyph = /^#[0-9a-f]{6}$/i.test(color) && contrast(color, '#00141c') > contrast(color, '#ffffff') ? '#00141c' : '#ffffff'
+  return {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    flexShrink: 0,
+    display: 'grid',
+    placeItems: 'center',
+    background: color,
+    color: glyph,
+  }
+}
+
+/** Tagesring wie die Aktivitätsringe: Verlauf entlang des Rings, voll = grün. */
+function TodayRing({ percent, done }: { percent: number; done: boolean }) {
+  const p = Math.max(0, Math.min(100, percent)) / 100
+  const [from, to] = done ? ['#1fae4b', '#a6f36b'] : ['#00a9d4', '#5ae0ff']
+  const ring = 'radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10.5px))'
   return (
-    <div style={{
-      background: 'var(--surface-input)',
-      border: '1px solid var(--border)',
-      borderRadius: 18,
-      padding: '11px 9px',
-      minWidth: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8, color: 'var(--text-muted)' }}>
-        <Icon size={13} color={accent} />
-        <p style={{ fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {label}
-        </p>
-      </div>
-      <p style={{ fontSize: typeof value === 'string' && value.length > 4 ? '1.03rem' : '1.34rem', fontWeight: 900, letterSpacing: '-0.04em', color: accent, lineHeight: 1 }}>
-        {value}
-      </p>
-      <p style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {hint}
-      </p>
+    <div style={{ position: 'relative', width: 76, height: 76, flexShrink: 0 }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          background: `conic-gradient(${from} 0turn, ${to} ${p}turn, ${from}2e ${p}turn)`,
+          WebkitMask: ring,
+          mask: ring,
+        }}
+      />
+      <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
+        {percent}%
+      </span>
     </div>
   )
 }
+
+const ellipsis: CSSProperties = { display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
 
 function QuickAction({
   icon: Icon,
@@ -1332,44 +1346,27 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className={wide ? 'col-span-2 motion-press' : 'motion-press'}
+      className={wide ? 'lg-surface col-span-2 lg-press' : 'lg-surface lg-press'}
       style={{
-        minHeight: 104,
-        padding: '12px 9px',
-        borderRadius: 20,
-        border: `1px solid ${accent}33`,
-        background: `linear-gradient(155deg, ${accent}20, var(--surface))`,
+        ...panelStyle,
+        minHeight: 96,
+        padding: 14,
         display: 'flex',
         flexDirection: wide ? 'row' : 'column',
         alignItems: wide ? 'center' : 'flex-start',
-        gap: wide ? 12 : 9,
+        gap: wide ? 12 : 10,
         textAlign: 'left',
-        position: 'relative',
-        overflow: 'hidden',
       }}
     >
-      <div style={{
-        width: 34,
-        height: 34,
-        borderRadius: 13,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: `${accent}1f`,
-        color: accent,
-        boxShadow: `0 0 20px ${accent}22`,
-      }}>
-        <Icon size={16} />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <p style={{ fontSize: '0.75rem', fontWeight: 850, color: 'var(--text)', lineHeight: 1.15 }}>
+      <span style={iconTileStyle(accent)}><Icon size={17} /></span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25 }}>
           {label}
-        </p>
-        <p style={{ fontSize: '0.59rem', color: 'var(--text-dim)', lineHeight: 1.3, marginTop: 3 }}>
+        </span>
+        <span style={{ display: 'block', marginTop: 2, fontSize: 13, lineHeight: 1.3, color: 'var(--lg-text-3)' }}>
           {desc}
-        </p>
-      </div>
-      <div style={{ position: 'absolute', right: -18, bottom: -18, width: 62, height: 62, borderRadius: '50%', background: accent, opacity: 0.08, filter: 'blur(12px)' }} />
+        </span>
+      </span>
     </button>
   )
 }
@@ -1392,39 +1389,29 @@ function InsightCard({
   return (
     <button
       onClick={onClick}
+      className="lg-surface lg-press"
       style={{
         ...panelStyle,
-        padding: 14,
-        textAlign: 'left',
+        minWidth: 0,
         minHeight: 112,
+        padding: '12px 12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        textAlign: 'left',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, position: 'relative' }}>
-        <div style={{
-          width: 38,
-          height: 38,
-          borderRadius: 14,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: accent,
-          background: `${accent}17`,
-          border: `1px solid ${accent}24`,
-        }}>
-          <Icon size={17} />
-        </div>
-        <ChevronRight size={15} color="var(--text-muted)" />
-      </div>
-      <p style={{ fontSize: '1.55rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 14 }}>
+      <Icon size={18} color={accent} aria-hidden="true" />
+      <span style={{ marginTop: 10, fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
         {value}
-      </p>
-      <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 750, marginTop: 5 }}>
+      </span>
+      {/* Darf umbrechen: drei Spalten sind am iPhone SE nur ~90 px breit */}
+      <span style={{ marginTop: 6, fontSize: 13, fontWeight: 600, lineHeight: 1.25, color: 'var(--lg-text-2)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
         {label}
-      </p>
-      <p style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>
+      </span>
+      <span style={{ marginTop: 2, fontSize: 12, lineHeight: 1.25, color: 'var(--lg-text-3)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
         {hint}
-      </p>
-      <div style={{ position: 'absolute', right: -24, bottom: -28, width: 86, height: 86, borderRadius: '50%', background: accent, opacity: 0.06, filter: 'blur(16px)' }} />
+      </span>
     </button>
   )
 }
@@ -1453,7 +1440,7 @@ function msUntilTime(time: string): number {
 }
 
 // Höhe einer Einnahmen-Zeile (für das vertikale Karussell-Snapping).
-const INTAKE_ROW_H = 46
+const INTAKE_ROW_H = 52
 
 // Text, der nur DANN horizontal durchläuft, wenn er nicht in eine Zeile passt
 // (sonst statisch). So bleibt der gesamte Zeileninhalt lesbar.
@@ -1512,6 +1499,7 @@ function HomeIntakeConfirmSheet({
   onSkipped: () => void
   onInjection?: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <>
       <button
@@ -1520,12 +1508,12 @@ function HomeIntakeConfirmSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-3 bottom-3 z-[60] rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]">
+      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] rounded-[34px] p-5 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-cyan-300">Anstehende Einnahme</p>
-            <h2 className="mt-1 text-lg font-black text-white">Wie möchtest du bestätigen?</h2>
-            <p className="mt-1 truncate text-sm font-semibold text-slate-300">
+            <p className="text-[13px] font-semibold text-cyan-300">Anstehende Einnahme</p>
+            <h2 className="mt-1 text-[20px] font-bold leading-tight text-white">Wie möchtest du bestätigen?</h2>
+            <p className="mt-1 truncate text-[15px] text-slate-300">
               {[intake.substance, intake.dose].filter(Boolean).join(' · ')} · {intake.time}
             </p>
           </div>
@@ -1533,22 +1521,23 @@ function HomeIntakeConfirmSheet({
             type="button"
             onClick={onClose}
             data-app-back-close
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-400"
+            aria-label={String(t('close'))}
+            className="lg-press grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-300" style={{ background: 'var(--lg-fill)' }}
           >
             <XCircle size={17} aria-hidden="true" />
           </button>
         </div>
         <div className="grid gap-2">
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={onTaken} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-black text-emerald-300">
+            <button type="button" onClick={onTaken} className="lg-press flex min-h-12 items-center justify-center gap-2 rounded-full px-3 text-[15px] font-semibold" style={takenStyle}>
               <CheckCircle2 size={16} aria-hidden="true" /> Eingenommen
             </button>
-            <button type="button" onClick={onSkipped} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-red-500/25 bg-red-500/15 px-3 text-sm font-black text-red-300">
+            <button type="button" onClick={onSkipped} className="btn-danger min-h-12">
               <XCircle size={16} aria-hidden="true" /> Übersprungen
             </button>
           </div>
           {onInjection && (
-            <button type="button" onClick={onInjection} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-sky-500/25 bg-sky-500/15 px-3 text-sm font-black text-sky-300">
+            <button type="button" onClick={onInjection} className="btn-secondary min-h-12">
               <Syringe size={16} aria-hidden="true" /> Mit Injektion bestätigen
             </button>
           )}
@@ -1575,6 +1564,7 @@ function HomeIntakeTimeSheet({
   onTimeChange: (value: string) => void
   onSave: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <>
       <button
@@ -1583,32 +1573,33 @@ function HomeIntakeTimeSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-3 bottom-3 z-[60] rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]">
+      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] rounded-[34px] p-5 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-emerald-300">Einnahme bestätigen</p>
-            <h2 className="mt-1 text-lg font-black text-white">Wann hast du tatsächlich eingenommen?</h2>
-            <p className="mt-1 truncate text-sm font-semibold text-slate-300">
+            <p className="text-[13px] font-semibold text-emerald-300">Einnahme bestätigen</p>
+            <h2 className="mt-1 text-[20px] font-bold leading-tight text-white">Wann hast du tatsächlich eingenommen?</h2>
+            <p className="mt-1 truncate text-[15px] text-slate-300">
               {[intake.substance, intake.dose].filter(Boolean).join(' · ')} · geplant {intake.time}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-400"
+            aria-label={String(t('close'))}
+            className="lg-press grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-300" style={{ background: 'var(--lg-fill)' }}
           >
             <XCircle size={17} aria-hidden="true" />
           </button>
         </div>
 
         <div className="mb-2 flex items-center justify-between gap-2">
-          <label className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-slate-500" htmlFor="home-intake-confirm-time">
+          <label className="text-[13px] font-semibold text-slate-400" htmlFor="home-intake-confirm-time">
             Uhrzeit
           </label>
           <button
             type="button"
             onClick={onNow}
-            className="flex items-center gap-1.5 rounded-xl border border-sky-500/25 bg-sky-500/10 px-3 py-1.5 text-xs font-black text-sky-300"
+            className="lg-press flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
           >
             <Clock3 size={13} aria-hidden="true" /> Jetzt
           </button>
@@ -1618,14 +1609,14 @@ function HomeIntakeTimeSheet({
           type="time"
           value={timeValue}
           onChange={event => onTimeChange(event.target.value)}
-          className="mb-4 w-full rounded-2xl border border-white/10 px-4 py-3 text-base font-black text-white outline-none focus:border-sky-500/50"
-          style={{ background: 'var(--surface-input)', colorScheme: 'dark' }}
+          className="input mb-4 font-semibold"
+          style={{ colorScheme: 'dark' }}
         />
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={onBack} data-app-back-close className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-300">
+          <button type="button" onClick={onBack} data-app-back-close className="btn-secondary min-h-12">
             Zurück
           </button>
-          <button type="button" onClick={onSave} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-black text-emerald-300">
+          <button type="button" onClick={onSave} className="btn-primary min-h-12">
             <CheckCircle2 size={16} aria-hidden="true" /> Speichern
           </button>
         </div>
@@ -1655,35 +1646,35 @@ function IntakeRow({
   }, [time])
 
   const due = remaining <= 0
-  const c       = due ? '#f59e0b' : 'var(--accent)'
-  const cWeak   = due ? 'rgba(245,158,11,0.12)' : 'var(--accent-weak)'
-  const cBorder = due ? 'rgba(245,158,11,0.34)' : 'var(--accent-border)'
+  const c = due ? 'var(--lg-warn)' : 'var(--accent)'
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="motion-press"
+      className="lg-press"
       style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%', height: INTAKE_ROW_H, textAlign: 'left', cursor: 'pointer',
-        padding: '0 12px', borderRadius: 14,
-        background: cWeak, border: `1px solid ${cBorder}`,
+        display: 'flex', alignItems: 'center', gap: 12, width: '100%', height: INTAKE_ROW_H, textAlign: 'left', cursor: 'pointer',
+        padding: '0 2px', border: 0, background: 'none',
       }}
     >
-      {due
-        ? <Bell size={16} className="pulse-soft" color={c} style={{ flexShrink: 0 }} />
-        : <Clock3 size={16} color={c} style={{ flexShrink: 0 }} />}
-      <MarqueeText style={{ flex: 1, minWidth: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--text)' }}>
+      <span style={{
+        width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center',
+        background: due ? 'color-mix(in srgb, var(--lg-warn) 18%, transparent)' : 'var(--accent-weak)', color: c,
+      }}>
+        {due ? <Bell size={15} className="pulse-soft" /> : <Clock3 size={15} />}
+      </span>
+      <MarqueeText style={{ flex: 1, minWidth: 0, fontSize: 17, color: 'var(--text)' }}>
         {[substance, dose].filter(Boolean).join(' · ') || t('stat_next_intake', { defaultValue: 'Nächste Einnahme' })}
-        <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{` · ${t('home_at_time', { defaultValue: 'um' })} ${time}`}</span>
+        <span style={{ color: 'var(--lg-text-3)' }}>{` · ${t('home_at_time', { defaultValue: 'um' })} ${time}`}</span>
       </MarqueeText>
       {due ? (
-        <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', fontWeight: 850, color: c }}>
+        <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: c }}>
           <span className="pulse-soft" style={{ width: 7, height: 7, borderRadius: '50%', background: c, display: 'inline-block' }} />
           {t('home_due_label', { defaultValue: 'Jetzt fällig' })}
         </span>
       ) : (
-        <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: '0.95rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+        <span style={{ flexShrink: 0, fontSize: 15, fontWeight: 600, color: 'var(--lg-text-2)', fontVariantNumeric: 'tabular-nums' }}>
           {fmtCountdown(remaining)}
         </span>
       )}
@@ -1706,7 +1697,7 @@ function TodayIntakeCarousel({ intakes, onItemClick }: { intakes: TodayIntake[];
       className="no-scrollbar"
       style={{
         height, overflowY: 'auto', scrollSnapType: 'y mandatory',
-        display: 'flex', flexDirection: 'column', gap: 6,
+        display: 'flex', flexDirection: 'column', gap: 4,
         paddingBlock: padBlock,
         WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%)',
         maskImage: 'linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%)',
@@ -1741,126 +1732,60 @@ function FeatureCard({
   return (
     <button
       onClick={onClick}
+      className="lg-surface lg-press"
       style={{
         ...panelStyle,
-        minWidth: 226,
-        padding: 14,
+        flex: '0 0 74%',
+        maxWidth: 300,
+        scrollSnapAlign: 'start',
+        padding: 16,
         textAlign: 'left',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 15,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `${accent}18`,
-          color: accent,
-          border: `1px solid ${accent}24`,
-        }}>
-          <Icon size={18} />
-        </div>
-        <span style={{
-          padding: '3px 8px',
-          borderRadius: 999,
-          background: `${accent}14`,
-          border: `1px solid ${accent}24`,
-          color: accent,
-          fontSize: '0.58rem',
-          fontWeight: 850,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-        }}>
+      <span style={{ alignSelf: 'stretch', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <span style={iconTileStyle(accent)}><Icon size={17} /></span>
+        <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--lg-fill)', color: 'var(--lg-text-2)', fontSize: 12, fontWeight: 600 }}>
           {metric}
         </span>
-      </div>
-      <p style={{ fontSize: '0.9rem', fontWeight: 850, color: 'var(--text)', marginBottom: 5, position: 'relative' }}>
+      </span>
+      <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>
         {label}
-      </p>
-      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.45, position: 'relative' }}>
+      </span>
+      <span style={{ display: 'block', marginTop: 4, fontSize: 13, lineHeight: 1.4, color: 'var(--lg-text-3)' }}>
         {desc}
-      </p>
-      <div style={{ marginTop: 13, display: 'inline-flex', alignItems: 'center', gap: 5, color: accent, fontSize: '0.66rem', fontWeight: 850, position: 'relative' }}>
-        {cta} <ArrowUpRight size={12} />
-      </div>
+      </span>
+      <span style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}>
+        {cta} <ChevronRight size={16} />
+      </span>
     </button>
   )
 }
 
+/** Eine Zeile der gruppierten Liste „Alle Tools" — wie eine Zeile der iOS-Einstellungen. */
 function TileButton({
   icon: Icon,
   label,
   desc,
   color,
-  bg,
-  wide,
   onClick,
 }: {
   icon: LucideIcon
   label: string
   desc: string
   color: string
-  bg: string
-  wide?: boolean
   onClick: () => void
 }) {
   return (
-    <button
-      onClick={onClick}
-      className={wide ? 'col-span-2 motion-press' : 'motion-press'}
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 22,
-        padding: wide ? '14px 16px' : '15px 13px',
-        textAlign: 'left',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: wide ? 'center' : 'flex-start',
-        flexDirection: wide ? 'row' : 'column',
-        gap: wide ? 13 : 0,
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-      }}
-    >
-      <div style={{
-        width: 42,
-        height: 42,
-        borderRadius: 15,
-        background: bg,
-        border: `1px solid ${color}20`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: wide ? 0 : 12,
-        flexShrink: 0,
-        color,
-      }}>
-        <Icon size={18} />
-      </div>
-
-      <div style={{ flex: wide ? 1 : undefined, minWidth: 0, position: 'relative' }}>
-        <p style={{ fontSize: '0.86rem', fontWeight: 820, color: 'var(--text)', marginBottom: 3 }}>{label}</p>
-        <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{desc}</p>
-      </div>
-
-      {wide && <ChevronRight size={16} color="var(--accent)" style={{ flexShrink: 0 }} />}
-
-      <div style={{
-        position: 'absolute',
-        bottom: -24,
-        right: -24,
-        width: 88,
-        height: 88,
-        borderRadius: '50%',
-        background: color,
-        opacity: 0.055,
-        filter: 'blur(20px)',
-        pointerEvents: 'none',
-      }} />
+    <button onClick={onClick} className="lg-row">
+      <span style={iconTileStyle(color)}><Icon size={17} /></span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 17, color: 'var(--text)' }}>{label}</span>
+        <span style={{ ...ellipsis, marginTop: 1, fontSize: 13, color: 'var(--lg-text-3)' }}>{desc}</span>
+      </span>
+      <ChevronRight size={18} color="var(--lg-text-4)" aria-hidden="true" style={{ flexShrink: 0 }} />
     </button>
   )
 }

@@ -44,7 +44,7 @@ async function loadRows(userId: string, from: Date | null): Promise<StatsRow[]> 
 function Legend() {
   const { t } = useTranslation()
   return (
-    <div className="flex gap-4 text-xs text-slate-400" aria-hidden="true">
+    <div className="flex gap-4 text-xs text-[var(--lg-text-2)]" aria-hidden="true">
       {(['effects', 'sideEffects'] as const).map(key => (
         <span key={key} className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLOR[key] }} />
@@ -154,39 +154,39 @@ export function Auswertung({ userId, refreshKey }: { userId: string; refreshKey:
 
   return (
     <div className="space-y-4" data-tagebuch-auswertung>
-      <div className="flex bg-slate-900 border border-slate-800 rounded-lg p-1 gap-1" role="group" aria-label={t('tagebuch_zeitraum')}>
+      <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5" role="group" aria-label={t('tagebuch_zeitraum')}>
         {RANGES.map(key => (
           <button key={key} type="button" aria-pressed={range === key} onClick={() => setRange(key)}
-            className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              range === key ? 'bg-sky-500 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+              range === key ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'
             }`}>
             {t(RANGE_LABEL[key])}
           </button>
         ))}
       </div>
 
-      <p className="flex gap-2 text-xs text-slate-500">
+      <p className="flex gap-2 text-xs text-[var(--lg-text-3)]">
         <Info size={14} aria-hidden="true" className="mt-0.5 shrink-0" />
         {t('tagebuch_hinweis')}
       </p>
 
       {error ? (
-        <div className="card text-center py-10 text-slate-500" role="alert">
-          <AlertTriangle size={32} aria-hidden="true" className="mx-auto mb-2 text-amber-400 opacity-70" />
+        <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]" role="alert">
+          <AlertTriangle size={30} aria-hidden="true" className="mx-auto mb-2 text-[var(--lg-warn-text)]" />
           <p>{t('tagebuch_auswertung_fehler')}</p>
         </div>
       ) : rows === null ? (
-        <div className="card h-44 animate-pulse" aria-busy="true" />
+        <div className="lg-surface lg-flat h-44 animate-pulse" aria-busy="true" />
       ) : rows.length === 0 ? (
-        <div className="card text-center py-10 text-slate-500">
+        <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]">
           <BarChart3 size={32} aria-hidden="true" className="mx-auto mb-2 opacity-40" />
           <p>{t('tagebuch_auswertung_leer')}</p>
         </div>
       ) : (
         <>
-          <section className="card space-y-3" aria-labelledby="tagebuch-verlauf-titel">
+          <section className="lg-surface lg-flat p-4 space-y-3" aria-labelledby="tagebuch-verlauf-titel">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 id="tagebuch-verlauf-titel" className="font-semibold">
+              <h2 id="tagebuch-verlauf-titel" className="text-[17px] font-semibold text-[var(--lg-text)]">
                 {t(verlauf!.unit === 'week' ? 'tagebuch_verlauf_titel' : 'tagebuch_verlauf_titel_monat')}
               </h2>
               <Legend />
@@ -194,25 +194,25 @@ export function Auswertung({ userId, refreshKey }: { userId: string; refreshKey:
             <StackedBars data={verlauf!.data} caption={t(verlauf!.unit === 'week' ? 'tagebuch_verlauf_titel' : 'tagebuch_verlauf_titel_monat')} />
           </section>
 
-          <section className="card space-y-3" aria-labelledby="tagebuch-abstand-titel">
+          <section className="lg-surface lg-flat p-4 space-y-3" aria-labelledby="tagebuch-abstand-titel">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <h2 id="tagebuch-abstand-titel" className="font-semibold">{t('tagebuch_abstand_titel')}</h2>
-                <p className="text-xs text-slate-500">{t('tagebuch_abstand_untertitel', { n: abstand!.linked })}</p>
+                <h2 id="tagebuch-abstand-titel" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('tagebuch_abstand_titel')}</h2>
+                <p className="text-xs text-[var(--lg-text-3)]">{t('tagebuch_abstand_untertitel', { n: abstand!.linked })}</p>
               </div>
               {abstand!.linked > 0 && <Legend />}
             </div>
             {abstand!.linked > 0
               ? <StackedBars data={abstand!.data} caption={t('tagebuch_abstand_titel')} />
-              : <p className="text-sm text-slate-500">{t('tagebuch_abstand_leer')}</p>}
+              : <p className="text-sm text-[var(--lg-text-3)]">{t('tagebuch_abstand_leer')}</p>}
           </section>
 
-          <section className="card" aria-labelledby="tagebuch-substanz-titel">
-            <h2 id="tagebuch-substanz-titel" className="font-semibold mb-2">{t('tagebuch_substanz_titel')}</h2>
+          <section className="lg-surface lg-flat p-4" aria-labelledby="tagebuch-substanz-titel">
+            <h2 id="tagebuch-substanz-titel" className="text-[17px] font-semibold text-[var(--lg-text)] mb-2">{t('tagebuch_substanz_titel')}</h2>
             <div className="overflow-x-auto -mx-1">
               <table className="w-full text-sm" data-tagebuch-substanzen>
                 <thead>
-                  <tr className="text-left text-xs text-slate-500">
+                  <tr className="text-left text-xs text-[var(--lg-text-3)]">
                     <th scope="col" className="px-1 py-1.5 font-medium">{t('tagebuch_spalte_substanz')}</th>
                     {(['effects', 'sideEffects'] as const).map(key => (
                       <th key={key} scope="col" className="px-1 py-1.5 font-medium text-right whitespace-nowrap">
@@ -229,8 +229,8 @@ export function Auswertung({ userId, refreshKey }: { userId: string; refreshKey:
                 <tbody className="tabular-nums">
                   {substanzen.map(stat => (
                     <Fragment key={stat.id ?? '-'}>
-                      <tr className="border-t border-slate-800 align-top">
-                        <th scope="row" id={`tagebuch-substanz-${stat.id ?? 'ohne'}`} className={`px-1 text-left font-medium text-slate-200 ${stat.topSideEffect ? 'pt-2' : 'py-2'}`}>
+                      <tr className="border-t-[0.5px] border-[var(--lg-separator)] align-top">
+                        <th scope="row" id={`tagebuch-substanz-${stat.id ?? 'ohne'}`} className={`px-1 text-left font-medium text-[var(--lg-text)] ${stat.topSideEffect ? 'pt-2' : 'py-2'}`}>
                           {stat.name ?? t('tagebuch_ohne_substanz')}
                         </th>
                         <td className="px-1 pt-2 text-right">{stat.effects}</td>
@@ -240,7 +240,7 @@ export function Auswertung({ userId, refreshKey }: { userId: string; refreshKey:
                       {/* Häufigste Nebenwirkung über die volle Breite — als eigene Spalte passte sie auf kleinen Handys nicht */}
                       {stat.topSideEffect && (
                         <tr>
-                          <td colSpan={4} headers={`tagebuch-substanz-${stat.id ?? 'ohne'}`} className="px-1 pb-2 text-xs text-slate-400 break-words">
+                          <td colSpan={4} headers={`tagebuch-substanz-${stat.id ?? 'ohne'}`} className="px-1 pb-2 text-xs text-[var(--lg-text-2)] break-words">
                             {t('tagebuch_haeufigste_zeile', { text: stat.topSideEffect.text, count: stat.topSideEffect.count })}
                           </td>
                         </tr>

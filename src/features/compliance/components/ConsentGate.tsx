@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlaskConical } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import { KEINE_ZUSTIMMUNG, vollstaendig, zustimmungAusMetadaten, zustimmungFehlt, zustimmungsZeile, type ConsentRow } from '../lib/consent'
 import { ConsentChecks } from './ConsentChecks'
 import { MedicalNotice } from './MedicalNotice'
 import { LegalLinks } from './LegalLinks'
+import { SilhouettenHuelle } from '../../../components/ui/Silhouette'
 
 /**
  * `profiles.username` ist Pflicht: Gibt es noch keine Profilzeile (etwa
@@ -44,6 +46,7 @@ async function speichereZustimmung(
  */
 export function ConsentGate({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
+  const { pathname } = useLocation()
   const { t } = useTranslation()
   const userId = user?.id ?? null
   const [ergebnis, setErgebnis] = useState<{ fuer: string; fehlt: boolean; profilDa: boolean } | null>(null)
@@ -75,11 +78,7 @@ export function ConsentGate({ children }: { children: ReactNode }) {
   }, [userId, user?.user_metadata])
 
   const gilt = ergebnis && ergebnis.fuer === userId ? ergebnis : null
-  if (!gilt) return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-    </div>
-  )
+  if (!gilt) return <SilhouettenHuelle pfad={pathname} />
   if (!gilt.fehlt) return <>{children}</>
 
   const bestaetigen = async (event: React.FormEvent) => {
@@ -96,20 +95,20 @@ export function ConsentGate({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10" data-consent-gate>
       <form onSubmit={bestaetigen} className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 rounded-2xl bg-sky-500/10 p-4">
-            <FlaskConical className="text-sky-400" size={32} aria-hidden="true" />
+          <div className="mb-3 grid h-16 w-16 place-items-center rounded-[16px] bg-[linear-gradient(180deg,#0a84ff,#00a9d4)]">
+            <FlaskConical className="text-white" size={32} aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-white">{t('consent_title')}</h1>
-          <p className="mt-1 text-sm text-slate-400">{t('consent_desc')}</p>
+          <h1 className="lg-title2 !text-[24px]">{t('consent_title')}</h1>
+          <p className="mt-1 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('consent_desc')}</p>
         </div>
         <div className="card flex flex-col gap-4">
           <ConsentChecks value={auswahl} onChange={setAuswahl} />
           <MedicalNotice />
-          <button type="submit" data-consent-submit className="btn-primary w-full" disabled={speichert}>
+          <button type="submit" data-consent-submit className="lg-btn lg-btn-primary w-full" disabled={speichert}>
             {speichert ? t('loading') : t('consent_continue')}
           </button>
         </div>
-        <button type="button" onClick={() => void signOut()} className="mt-4 w-full text-center text-sm text-slate-500 underline-offset-2 hover:underline">
+        <button type="button" onClick={() => void signOut()} className="mt-3 min-h-11 w-full text-center text-[15px] text-[var(--lg-text-2)] underline-offset-2 hover:underline">
           {t('logout')}
         </button>
         <LegalLinks className="mt-6" />

@@ -1,9 +1,10 @@
 // src/pages/lab/StudyFeed.tsx
-import { Flame, Loader2, BookOpen, Search } from 'lucide-react'
+import { Flame, BookOpen, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { PubMedArticle, FilterState } from './pubmed'
 import { StudyCard } from './StudyCard'
 import { StudySidebar } from './StudySidebar'
+import { Silhouette, StudienUmriss } from '../../components/ui/Silhouette'
 
 interface StudyFeedProps {
   articles: PubMedArticle[]
@@ -41,38 +42,35 @@ export function StudyFeed({
       <div className="flex-1 min-w-0">
         {/* Section label */}
         {!loading && !errorMessage && articles.length > 0 && (
-          <div className="flex items-end justify-between border-b border-white/[0.05] pb-2 mb-4">
+          <div className="flex items-end justify-between border-b border-[var(--lg-separator)] pb-2 mb-4">
             <div>
               {isTrending ? (
                 <div className="flex items-center gap-1.5">
                   <Flame size={13} className="text-orange-400" />
                   <span
-                    className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-white"
-                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                    className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-2)]"
                   >
                     {t('lab_trending_label')}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <Search size={12} className="text-slate-500" />
+                  <Search size={12} className="text-[var(--lg-text-2)]" />
                   <span
-                    className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-white"
-                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                    className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-2)]"
                   >
                     „{lastQuery}"
                   </span>
                 </div>
               )}
-              <p className="text-[0.6rem] text-slate-600 mt-0.5">
+              <p className="text-[11px] text-[var(--lg-text-3)] mt-0.5">
                 {isTrending
                   ? t('lab_trending_sub')
                   : t('lab_results_count', { count: articles.length })}
               </p>
             </div>
             <span
-              className="text-[0.6rem] text-slate-700"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              className="text-[11px] text-[var(--lg-text-3)]"
             >
               {t('lab_source_label')}
             </span>
@@ -81,19 +79,16 @@ export function StudyFeed({
 
         {/* Loading */}
         {loading && (
-          <div className="card text-center py-10 text-slate-500">
-            <Loader2 size={28} className="mx-auto mb-3 text-sky-400/60 animate-spin" />
-            <p className="text-sm">
-              {isTrending ? t('lab_loading_trending') : t('lab_loading_search')}
-            </p>
-          </div>
+          <Silhouette label={isTrending ? t('lab_loading_trending') : t('lab_loading_search')}>
+            <StudienUmriss />
+          </Silhouette>
         )}
 
         {/* Error */}
         {!loading && errorMessage && (
-          <div className="card border border-red-500/20 bg-red-950/20 text-center py-8">
-            <p className="text-sm text-red-300 mb-3">{errorMessage}</p>
-            <button type="button" onClick={onRetry} className="btn-secondary text-sm">
+          <div className="lg-surface lg-flat text-center px-5 py-8" data-tone="bad">
+            <p className="text-[15px] text-[var(--lg-bad-text)] mb-3">{errorMessage}</p>
+            <button type="button" onClick={onRetry} className="lg-gray-btn mx-auto" data-quiet>
               {t('lab_retry')}
             </button>
           </div>
@@ -101,7 +96,7 @@ export function StudyFeed({
 
         {/* Empty */}
         {!loading && !errorMessage && articles.length === 0 && (
-          <div className="card text-center py-10 text-slate-500">
+          <div className="lg-surface lg-flat text-center py-10 text-[var(--lg-text-2)]">
             <BookOpen size={28} className="mx-auto mb-2 opacity-30" />
             <p className="text-sm">
               {isTrending ? t('lab_no_studies') : t('lab_no_results_query', { query: lastQuery })}

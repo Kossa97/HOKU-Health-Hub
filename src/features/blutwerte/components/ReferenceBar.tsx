@@ -49,7 +49,7 @@ export function ReferenceBar({ value, unit, range, inRange }: Props) {
         </p>
       </div>
 
-      <div className="relative h-2.5 rounded-full" style={{ background: 'var(--border)' }}>
+      <div className="relative h-2.5 rounded-full" style={{ background: 'var(--lg-fill)' }}>
         <div
           className="absolute top-0 bottom-0 rounded-full"
           style={{

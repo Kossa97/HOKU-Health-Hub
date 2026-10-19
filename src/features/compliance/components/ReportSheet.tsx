@@ -19,28 +19,28 @@ export function ReportSheet({ titel, betreff, busy, onCancel, onSend }: {
     <Sheet labelledBy="report-title" busy={busy} onClose={onCancel} data-report-sheet>
       <form onSubmit={event => { event.preventDefault(); if (grund) onSend(grund, details) }}>
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-warn)_18%,transparent)] text-[var(--lg-warn-text)]">
             <Flag size={18} aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h2 id="report-title" className="text-lg font-bold text-white">{titel}</h2>
-            <p className="mt-0.5 truncate text-sm text-slate-400">{betreff}</p>
+            <h2 id="report-title" className="lg-title2">{titel}</h2>
+            <p className="mt-0.5 truncate text-[15px] text-[var(--lg-text-2)]">{betreff}</p>
           </div>
         </div>
-        <p className="mt-3 text-sm text-slate-400">{t('report_desc')}</p>
+        <p className="mt-3 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('report_desc')}</p>
         <fieldset className="mt-4 flex flex-col gap-2">
           <legend className="sr-only">{titel}</legend>
           {MELDEGRUENDE.map(key => (
             <label
               key={key}
-              className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3 text-sm ${grund === key ? 'border-sky-500 bg-sky-500/10 text-white' : 'border-slate-800 bg-slate-900 text-slate-300'}`}
+              className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3 text-sm ${grund === key ? 'border-transparent bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] text-[var(--lg-text)]' : 'border-transparent bg-[var(--lg-fill)] text-[var(--lg-text)]'}`}
             >
               <input type="radio" name="report-reason" value={key} data-report-reason={key} checked={grund === key} onChange={() => setGrund(key)} className="accent-sky-500" />
               {t(`report_reason_${key}`)}
             </label>
           ))}
         </fieldset>
-        <label className="mt-4 block text-xs font-semibold text-slate-400" htmlFor="report-details">{t('report_details')}</label>
+        <label className="mt-4 block text-[13px] font-medium text-[var(--lg-text-2)]" htmlFor="report-details">{t('report_details')}</label>
         <textarea
           id="report-details"
           data-report-details
@@ -51,10 +51,10 @@ export function ReportSheet({ titel, betreff, busy, onCancel, onSend }: {
           className="input mt-1 w-full resize-none"
         />
         <div className="mt-5 flex gap-2">
-          <button type="button" data-app-back-close disabled={busy} onClick={onCancel} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 disabled:opacity-50">
+          <button type="button" data-app-back-close disabled={busy} onClick={onCancel} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
             {t('cancel')}
           </button>
-          <button type="submit" data-report-send disabled={busy || !grund} className="min-h-11 flex-1 rounded-xl bg-amber-500 px-4 text-sm font-bold text-slate-950 disabled:opacity-50">
+          <button type="submit" data-report-send disabled={busy || !grund} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
             {busy ? t('report_sending') : t('report_send')}
           </button>
         </div>

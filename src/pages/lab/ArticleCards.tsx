@@ -11,18 +11,18 @@ const KNOWN_PEPTIDES = [
 ]
 
 const PEPTIDE_STYLES: Record<string, { tag: string; accent: string; bar: string }> = {
-  'BPC-157':     { tag: 'bg-sky-500/20 text-sky-400 border border-sky-500/30',         accent: 'border-l-sky-500',     bar: 'bg-sky-500' },
-  'TB-500':      { tag: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', accent: 'border-l-violet-500',  bar: 'bg-violet-500' },
-  'Ipamorelin':  { tag: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', accent: 'border-l-emerald-500', bar: 'bg-emerald-500' },
-  'CJC-1295':    { tag: 'bg-orange-500/20 text-orange-400 border border-orange-500/30', accent: 'border-l-orange-500',  bar: 'bg-orange-500' },
-  'Selank':      { tag: 'bg-pink-500/20 text-pink-400 border border-pink-500/30',       accent: 'border-l-pink-500',    bar: 'bg-pink-500' },
-  'Epithalon':   { tag: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',    accent: 'border-l-amber-500',   bar: 'bg-amber-500' },
-  'Semaglutide': { tag: 'bg-teal-500/20 text-teal-400 border border-teal-500/30',       accent: 'border-l-teal-500',    bar: 'bg-teal-500' },
-  'Tirzepatide': { tag: 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30', accent: 'border-l-indigo-500',  bar: 'bg-indigo-500' },
-  'GLP-1':       { tag: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30',       accent: 'border-l-cyan-500',    bar: 'bg-cyan-500' },
+  'BPC-157':     { tag: 'bg-sky-500/20 text-sky-400',         accent: 'border-l-sky-500',     bar: 'bg-sky-500' },
+  'TB-500':      { tag: 'bg-violet-500/20 text-violet-400', accent: 'border-l-violet-500',  bar: 'bg-violet-500' },
+  'Ipamorelin':  { tag: 'bg-emerald-500/20 text-emerald-400', accent: 'border-l-emerald-500', bar: 'bg-emerald-500' },
+  'CJC-1295':    { tag: 'bg-orange-500/20 text-orange-400', accent: 'border-l-orange-500',  bar: 'bg-orange-500' },
+  'Selank':      { tag: 'bg-pink-500/20 text-pink-400',       accent: 'border-l-pink-500',    bar: 'bg-pink-500' },
+  'Epithalon':   { tag: 'bg-amber-500/20 text-amber-400',    accent: 'border-l-amber-500',   bar: 'bg-amber-500' },
+  'Semaglutide': { tag: 'bg-teal-500/20 text-teal-400',       accent: 'border-l-teal-500',    bar: 'bg-teal-500' },
+  'Tirzepatide': { tag: 'bg-indigo-500/20 text-indigo-400', accent: 'border-l-indigo-500',  bar: 'bg-indigo-500' },
+  'GLP-1':       { tag: 'bg-cyan-500/20 text-cyan-400',       accent: 'border-l-cyan-500',    bar: 'bg-cyan-500' },
 }
 const DEFAULT_STYLE = {
-  tag: 'bg-slate-700/40 text-slate-400 border border-slate-700',
+  tag: 'bg-slate-700/40 text-[var(--lg-text-2)]',
   accent: 'border-l-slate-600',
   bar: 'bg-slate-600',
 }
@@ -53,7 +53,7 @@ function getPeptideStyle(title: string) {
 
 function PeptideTag({ peptide, style }: { peptide: string | null; style: typeof DEFAULT_STYLE }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.58rem] font-black uppercase tracking-wider ${style.tag}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-[0.04em] ${style.tag}`}>
       {peptide ?? 'PEPTIDE'}
     </span>
   )
@@ -61,7 +61,7 @@ function PeptideTag({ peptide, style }: { peptide: string | null; style: typeof 
 
 function NewBadge() {
   return (
-    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.58rem] font-black uppercase tracking-wider bg-orange-500/15 text-orange-400 border border-orange-500/25">
+    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-[0.04em] bg-orange-500/15 text-orange-400">
       <Sparkles size={12} /> NEU
     </span>
   )
@@ -84,22 +84,22 @@ export function ArticleHero({ article }: { article: PubMedArticle }) {
         <PeptideTag peptide={peptide} style={style} />
         {recent && <NewBadge />}
         {article.pubdate && (
-          <span className="ml-auto text-[0.6rem] text-slate-600 font-mono">{article.pubdate}</span>
+          <span className="ml-auto text-[11px] text-[var(--lg-text-3)] font-mono">{article.pubdate}</span>
         )}
       </div>
 
       <h2 className="text-base font-black text-white leading-snug mb-2">{article.title}</h2>
 
       {(article.authors.length > 0 || article.journal) && (
-        <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-3 text-xs text-slate-500">
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-3 text-xs text-[var(--lg-text-2)]">
           {article.authors.length > 0 && <span>{formatAuthors(article.authors)}</span>}
           {article.journal && <span className="text-sky-400/60">{article.journal}</span>}
         </div>
       )}
 
       <div className="rounded-xl border border-slate-800 bg-black/25 p-3 mb-3">
-        <p className="text-[0.6rem] font-bold uppercase tracking-widest text-slate-600 mb-1.5">Abstract</p>
-        <p className="text-sm text-slate-400 leading-relaxed">{visibleAbstract}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--lg-text-3)] mb-1.5">Abstract</p>
+        <p className="text-sm text-[var(--lg-text-2)] leading-relaxed">{visibleAbstract}</p>
         {shouldCollapse && (
           <button
             type="button"
@@ -142,17 +142,17 @@ export function ArticleGridCard({ article }: { article: PubMedArticle }) {
       </h2>
 
       {snippet && (
-        <p className="text-[0.65rem] text-slate-500 leading-relaxed line-clamp-3 mb-2">{snippet}</p>
+        <p className="text-[12px] text-[var(--lg-text-2)] leading-relaxed line-clamp-3 mb-2">{snippet}</p>
       )}
 
       <div className="flex items-center justify-between mt-auto pt-1">
-        <span className="text-[0.6rem] text-slate-600 font-mono">{article.pubdate}</span>
+        <span className="text-[11px] text-[var(--lg-text-3)] font-mono">{article.pubdate}</span>
         {article.link && (
           <a
             href={article.link}
             target="_blank"
             rel="noreferrer"
-            className="text-slate-600 hover:text-sky-400 transition-colors"
+            className="text-[var(--lg-text-3)] hover:text-sky-400 transition-colors"
           >
             <ExternalLink size={12} />
           </a>
@@ -175,11 +175,11 @@ export function ArticleMiniItem({ article }: { article: PubMedArticle }) {
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           <PeptideTag peptide={peptide} style={style} />
           {recent && <NewBadge />}
-          <span className="ml-auto text-[0.6rem] text-slate-600 font-mono">{article.pubdate}</span>
+          <span className="ml-auto text-[11px] text-[var(--lg-text-3)] font-mono">{article.pubdate}</span>
         </div>
         <p className="text-xs font-semibold text-white leading-snug line-clamp-2">{article.title}</p>
         {article.authors.length > 0 && (
-          <p className="text-[0.62rem] text-slate-600 mt-0.5">{formatAuthors(article.authors)}</p>
+          <p className="text-[12px] text-[var(--lg-text-3)] mt-0.5">{formatAuthors(article.authors)}</p>
         )}
       </div>
       {article.link && (
@@ -187,7 +187,7 @@ export function ArticleMiniItem({ article }: { article: PubMedArticle }) {
           href={article.link}
           target="_blank"
           rel="noreferrer"
-          className="shrink-0 text-slate-600 hover:text-sky-400 transition-colors mt-0.5"
+          className="shrink-0 text-[var(--lg-text-3)] hover:text-sky-400 transition-colors mt-0.5"
         >
           <ExternalLink size={13} />
         </a>

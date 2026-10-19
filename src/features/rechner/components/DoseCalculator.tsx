@@ -179,12 +179,12 @@ export function DoseCalculator() {
   ].join('\n') : ''
 
   return <div className="rechner-workspace">
-    <aside className="rechner-syringe-rail" aria-label={t('rechner_syringe_preview')}>
+    <aside className="rechner-syringe-rail lg-surface lg-flat" aria-label={t('rechner_syringe_preview')}>
       <SyringeScale drawUnits={result.drawUnits} capacityMl={capacityMl} capacityUnits={capacityUnits}
         minorStep={scale.minorStep} majorStep={scale.majorStep} />
     </aside>
     <form className="rechner-scroll-form" aria-label={t('rechner_inputs')} onSubmit={event => event.preventDefault()}>
-      <section className="rechner-card" aria-labelledby="dose-solution-title">
+      <section className="rechner-card lg-surface lg-flat" aria-labelledby="dose-solution-title">
         <div className="rechner-card-heading">
           <h2 id="dose-solution-title"><span className="rechner-step-number">1</span><FlaskConical size={18} aria-hidden="true" />{t('rechner_step_solution')}</h2>
           <button type="button" className="rechner-button rechner-reset-button" onClick={reset} aria-label={t('rechner_reset')} title={t('rechner_reset')}>
@@ -266,7 +266,7 @@ export function DoseCalculator() {
           </div>
         </div>
       </section>
-      <section className="rechner-card" aria-labelledby="dose-target-title">
+      <section className="rechner-card lg-surface lg-flat" aria-labelledby="dose-target-title">
         <h2 id="dose-target-title"><span className="rechner-step-number">2</span><Syringe size={18} aria-hidden="true" />{t('rechner_withdrawal')}</h2>
         <div className="rechner-step-content">
           {input('target', targetUnitSelect)}
@@ -277,7 +277,7 @@ export function DoseCalculator() {
             onGraduationChange={setGraduation} />
         </div>
       </section>
-      <section className="rechner-card rechner-result-card" aria-labelledby="dose-result-title">
+      <section className="rechner-card lg-surface lg-flat rechner-result-card" aria-labelledby="dose-result-title">
         <h2 id="dose-result-title"><span className="rechner-step-number">3</span>{t('rechner_result')}</h2>
         {error ? <p className="rechner-error">{error}</p>
           : valid ? <div className="rechner-result" role="status" aria-label={t('rechner_result_label')} aria-live="polite" aria-atomic="true">

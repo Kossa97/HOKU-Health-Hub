@@ -25,7 +25,8 @@ test('Protokoll-Analyse: Linien im Aktienstil, Detail-Graphen lesen gemeinsam ab
   if (process.env.SCREENSHOT_DIR) await prozent.locator('xpath=ancestor::section[1]').screenshot({ path: `${process.env.SCREENSHOT_DIR}/protokoll-prozent.png` })
 
   // Ablesen im Gewicht-Graph zeigt den Tag oben und den IGF-1-Wert des Tags, wenn es einen gibt
-  await igf.scrollIntoViewIfNeeded()
+  // In die Mitte: am unteren Rand läge der Graph unter der Tab-Leiste
+  await igf.evaluate(el => el.scrollIntoView({ block: 'center' }))
   const box = (await igf.boundingBox())!
   await page.mouse.move(box.x + box.width - 4, box.y + box.height / 2)
   await page.mouse.down()

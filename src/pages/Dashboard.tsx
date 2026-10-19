@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -10,8 +11,8 @@ import {
   parseISO, startOfDay,
 } from 'date-fns'
 import {
-  AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardList, Clock,
-  Moon, Pin, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
+  Layers, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -48,12 +49,24 @@ import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
 import { slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
 import {
+  bundleDueIntakes,
+  deleteIntakeBundle,
+  liveBundleItemIds,
+  loadIntakeBundles,
+  saveIntakeBundle,
+  type IntakeBundle,
+  type IntakeBundleClient,
+} from '../features/routines/bundles/intakeBundles'
+import { IntakeBundleSheet } from '../features/routines/bundles/IntakeBundleSheet'
+import {
   applyInventoryConfirmation,
   InventoryConfirmationError,
   reverseInventoryConfirmation,
 } from '../features/my-stack/services/stackInventory'
 import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDeepLink'
-import { GlassPanel, PageShell } from '../components/ui/DesignSystem'
+import { PageShell } from '../components/ui/DesignSystem'
+import { EinnahmenUmriss, Silhouette } from '../components/ui/Silhouette'
+import { useSheetClose } from '../lib/useSheetClose'
 import { denyProps } from '../lib/denyFeedback'
 
 interface DoseLog {
@@ -285,6 +298,13 @@ function cycleLogTimestamp(cycle: Cycle, day: Date): string {
 
 // Minimum horizontal swipe distance to trigger month change
 const SWIPE_THRESHOLD = 80
+// Ab diesem Tempo (px/ms) am ENDE der Geste blaettert auch ein kurzer Wisch.
+// Gemessen ueber die letzten Bewegungen, nicht ueber die ganze Geste: ein
+// langsames Abdriften beim Scrollen ist kein Schnippen.
+const SWIPE_VELOCITY = 0.3
+const SWIPE_FLICK_MIN = 30
+// Dauer, mit der die Nachbarwoche ins Bild gleitet oder zurueckfedert.
+const WISCH_MS = 240
 
 interface DashboardProps {
   dashboardDataClient?: typeof supabase
@@ -351,7 +371,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Einnahme-Bestätigungs-Sheet
   interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<RoutineGroupModel | null>(null)
+  const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
+  // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string }) | null>(null)
+  const [bundles, setBundles] = useState<IntakeBundle[]>([])
+  // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
+  const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
   const [confirmTime, setConfirmTime]   = useState('')
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
@@ -381,11 +406,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
+  const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
   const monatsKnopf = useRef<HTMLButtonElement>(null)
   const monatsBlatt = useRef<HTMLDivElement>(null)
 
   // Horizontal swipe state
-  const calendarSwipeStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+  const calendarSwipeStart = useRef<{ x: number; y: number; t: number; pointerId: number } | null>(null)
   // Ein Wisch endet auf einer Tageszelle und loest dort ein `click` aus. Ohne
   // diesen Merker waehlte das Blaettern den Tag unter dem Finger aus.
   //
@@ -407,10 +433,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       wischMerkerTimer.current = null
     }, 0)
   }
+  // Der Wisch bewegt die Ebenen direkt am Element, nicht ueber State: sonst
+  // rendert jede Fingerbewegung die ganze Seite neu und das Blaettern ruckelt.
+  const streifenRef = useRef<HTMLDivElement>(null)
+  const streifenVorschauRef = useRef<HTMLDivElement>(null)
+  const monatsRasterRef = useRef<HTMLDivElement>(null)
+  const monatsVorschauRef = useRef<HTMLDivElement>(null)
+  const wischRichtung = useRef<-1 | 1>(1)
+  // Die letzten zwei Bewegungen, fuer das Tempo am Ende der Geste.
+  const wischProben = useRef<Array<{ x: number; t: number }>>([])
+  const wischUebergang = useRef<number | null>(null)
+  // Nur waehrend die Nachbarwoche hereingleitet — nicht beim Zurueckfedern.
+  const wischBlaettert = useRef(false)
   useEffect(() => () => {
     if (wischMerkerTimer.current !== null) window.clearTimeout(wischMerkerTimer.current)
+    if (wischUebergang.current !== null) window.clearTimeout(wischUebergang.current)
   }, [])
-  const [calendarDragX, setCalendarDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [peekDir, setPeekDir] = useState<-1 | 0 | 1>(0)
 
@@ -458,6 +496,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Befund: `aria-modal` allein macht keinen Dialog. Escape muss am Dokument
   // haengen (das Blatt selbst bekommt keinen Fokus), und der Fokus muss hinein
   // und danach zurueck auf den Knopf.
+  const requestMonatClose = monatsBlattSchliessen.requestClose
   useEffect(() => {
     if (!monatOffen) return
     const vorher = document.activeElement as HTMLElement | null
@@ -467,7 +506,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const beiTaste = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        setMonatOffen(false)
+        requestMonatClose()
       }
     }
     document.addEventListener('keydown', beiTaste)
@@ -475,11 +514,42 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       document.removeEventListener('keydown', beiTaste)
       ;(knopf ?? vorher)?.focus()
     }
-  }, [monatOffen])
+  }, [monatOffen, requestMonatClose])
+
+  const verschiebeEbenen = (x: number, animiert: boolean) => {
+    const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+    const vorschau = monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current
+    const transition = animiert ? `transform ${WISCH_MS}ms var(--tyd-ease-out)` : 'none'
+    if (haupt) {
+      haupt.style.transition = transition
+      haupt.style.transform = `translateX(${x}px)`
+    }
+    if (vorschau) {
+      vorschau.style.transition = transition
+      vorschau.style.transform = `translateX(calc(${wischRichtung.current === 1 ? '100%' : '-100%'} + ${x}px))`
+    }
+  }
+
+  // Umblaettern, wenn die Nachbarwoche schon ganz im Bild steht: der Tausch
+  // passiert in einem Zug mit dem Zuruecksetzen, sonst blitzte die alte Woche
+  // fuer ein Bild an ihrem alten Platz auf.
+  const wischAbschliessen = (dir: -1 | 1) => {
+    wischUebergang.current = null
+    wischBlaettert.current = false
+    flushSync(() => {
+      if (monatOffen) changeMonth(dir)
+      else changeWeek(dir)
+      setPeekDir(0)
+    })
+    verschiebeEbenen(0, false)
+  }
 
   const handleCalendarPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
-    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
+    // Ein Wisch gleitet noch aus — ein zweiter Finger setzt nicht mittendrin an.
+    if (wischUebergang.current !== null) return
+    calendarSwipeStart.current = { x: event.clientX, y: event.clientY, t: performance.now(), pointerId: event.pointerId }
+    wischProben.current = [{ x: event.clientX, t: performance.now() }]
     wurdeGewischt.current = false
     setIsDragging(true)
   }
@@ -489,23 +559,26 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     if (!start || start.pointerId !== event.pointerId) return
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
+    wischProben.current = [...wischProben.current.slice(-1), { x: event.clientX, t: performance.now() }]
     // Only track if horizontal movement is meaningful and dominant
     if (Math.abs(deltaX) < 6) return
     if (Math.abs(deltaY) > Math.abs(deltaX) * 0.8) return
     merkeWisch()
-    setCalendarDragX(deltaX)
     const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+    wischRichtung.current = dir
     if (peekDir !== dir) setPeekDir(dir)
+    verschiebeEbenen(deltaX, false)
   }
 
   const handleCalendarPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     const start = calendarSwipeStart.current
     calendarSwipeStart.current = null
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
     wischMerkerLoesen()
-    if (!start || start.pointerId !== event.pointerId) return
+    if (!start || start.pointerId !== event.pointerId) {
+      handleCalendarPointerCancel()
+      return
+    }
     const deltaX = event.clientX - start.x
     const deltaY = event.clientY - start.y
 
@@ -513,19 +586,49 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // `<button>` ohne `onClick` ist fuer Tastatur und Screenreader kein Knopf:
     // Enter und der VoiceOver-Doppeltipp senden `click`, nie `pointerup`.
 
-    // Swipe: require horizontal dominance + minimum distance
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      if (monatOffen) changeMonth(deltaX < 0 ? 1 : -1)
-      else changeWeek(deltaX < 0 ? 1 : -1)
+    // Blaettern bei genug Weg ODER genug Schwung: ein kurzer, schneller Wisch
+    // ist genauso gemeint wie ein langer.
+    const jetzt = performance.now()
+    const probe = wischProben.current.find(eintrag => jetzt - eintrag.t <= 100) ?? { x: start.x, t: start.t }
+    const tempo = Math.abs(event.clientX - probe.x) / Math.max(1, jetzt - probe.t)
+    const waagerecht = Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    if (waagerecht && (Math.abs(deltaX) >= SWIPE_THRESHOLD || (tempo > SWIPE_VELOCITY && Math.abs(deltaX) >= SWIPE_FLICK_MIN))) {
+      const dir = (deltaX < 0 ? 1 : -1) as -1 | 1
+      wischRichtung.current = dir
+      const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
+      const breite = haupt?.offsetWidth ?? 0
+      const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+      if (ruhig || breite === 0) {
+        wischAbschliessen(dir)
+        return
+      }
+      // Ein schneller Wisch kann ohne eine einzige gezaehlte Bewegung enden;
+      // dann steht die Nachbarwoche noch nicht im DOM. Erst einhaengen, ihre
+      // Ausgangslage einmal lesen lassen, dann gleiten beide zusammen.
+      if (peekDir !== dir) {
+        flushSync(() => setPeekDir(dir))
+        void (monatOffen ? monatsVorschauRef.current : streifenVorschauRef.current)?.offsetWidth
+      }
+      verschiebeEbenen(-dir * breite, true)
+      wischBlaettert.current = true
+      wischUebergang.current = window.setTimeout(() => wischAbschliessen(dir), WISCH_MS)
+      return
     }
+    handleCalendarPointerCancel()
   }
 
   const handleCalendarPointerCancel = () => {
     calendarSwipeStart.current = null
+    // Ein Tipp ohne Bewegung hat nichts verschoben — nichts zurueckzufedern.
+    const bewegt = wurdeGewischt.current
     wischMerkerLoesen()
     setIsDragging(false)
-    setCalendarDragX(0)
-    setPeekDir(0)
+    if (!bewegt) return
+    verschiebeEbenen(0, true)
+    wischUebergang.current = window.setTimeout(() => {
+      wischUebergang.current = null
+      setPeekDir(0)
+    }, WISCH_MS)
   }
 
   const loadLogSnapshot = useCallback(async function loadSnapshot(): Promise<void> {
@@ -674,6 +777,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const { data } = await dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name')
     if (data) setStackItems(data)
   }, [dashboardDataClient, user])
+
+  // Bündel sind Einstellungen, keine Tagesdaten: einmal je Nutzer laden.
+  // Fehlt die Tabelle noch (Migration nicht eingespielt), bleibt die Liste
+  // leer, und der Kalender funktioniert wie bisher.
+  const bundleClient = dashboardDataClient as unknown as IntakeBundleClient
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    loadIntakeBundles(bundleClient, user.id)
+      .then(rows => { if (!cancelled) setBundles(rows) })
+      .catch(() => { if (!cancelled) setBundles([]) })
+    return () => { cancelled = true }
+  }, [bundleClient, user])
 
   const loadEscalations = useCallback(async () => {
     if (!user) return
@@ -1004,6 +1120,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     })
   }))
   const dueRoutineGroupByKey = new Map(dueRoutineGroups.map(group => [group.key, group]))
+  const dueIntakes = dueRoutineGroups.flatMap(group => group.items)
+  const bundleRows = bundles.map(bundle => {
+    const itemIds = liveBundleItemIds(bundle, stackItemById)
+    return { bundle, itemIds, open: bundleDueIntakes({ stack_item_ids: itemIds }, dueIntakes) }
+  })
   const duePeriodCarousels = PERIOD_ORDER.map(key => {
     const routineGroup = dueRoutineGroupByKey.get(PERIOD_TO_ROUTINE_GROUP[key]) ?? null
     return {
@@ -1470,14 +1591,65 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[]): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
+    // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
+    // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
+    // gilt — dieselbe Regel wie im Einzelweg (`confirmCycleDose`).
+    const mitZeit = time
+      ? entries.map(entry => {
+          if (!entry.selected) return entry
+          const [stunde, minute] = time.split(':').map(Number)
+          const zeitpunkt = new Date(selectedDay)
+          zeitpunkt.setHours(stunde, minute, 0, 0)
+          const actualLoggedAt = zeitpunkt.toISOString()
+          if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
+          const timeline = timelines.find(item => item.cycle.id === entry.cycleId)
+          const resolved = timeline && resolveCycleAt(timeline, zeitpunkt, timeZone)
+          if (!resolved?.planVersion || resolved.status !== 'active') throw new Error('Intake timestamp is not active')
+          return { ...entry, planVersionId: resolved.planVersion.id, actualLoggedAt }
+        })
+      : entries
     const saved = await confirmIntakeGroup(
       dashboardDataClient as unknown as IntakeConfirmationClient,
-      entries,
+      mitZeit,
     )
     routineCommitted.current = true
     return saved.map(row => row.id)
+  }
+
+  /**
+   * Ein Tipp auf das Bündel oeffnet das Bestaetigungsblatt mit je Substanz der
+   * naechsten offenen Einnahme. Die Uhrzeit wird immer abgefragt, vorbelegt
+   * mit der fruehesten geplanten; Mengen und Injektionsstelle wie gewohnt.
+   */
+  const openBundle = (bundle: IntakeBundle, items: RoutineIntake[]) => {
+    if (items.length === 0) return
+    const frueheste = items.reduce((min, item) => item.scheduledAt < min ? item.scheduledAt : min, items[0].scheduledAt)
+    routineCommitted.current = false
+    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime: format(new Date(frueheste), 'HH:mm') })
+  }
+
+  const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
+    if (!user || bundleSheet === undefined) return
+    const saved = await saveIntakeBundle(bundleClient, user.id, {
+      id: bundleSheet?.id,
+      name: draft.name,
+      stackItemIds: draft.stackItemIds,
+      sortOrder: bundleSheet?.sort_order ?? bundles.reduce((max, bundle) => Math.max(max, bundle.sort_order + 1), 0),
+    })
+    setBundles(current => bundleSheet
+      ? current.map(bundle => bundle.id === saved.id ? saved : bundle)
+      : [...current, saved])
+    setBundleSheet(undefined)
+  }
+
+  const removeBundle = async () => {
+    if (!user || !bundleSheet) return
+    const id = bundleSheet.id
+    await deleteIntakeBundle(bundleClient, user.id, id)
+    setBundles(current => current.filter(bundle => bundle.id !== id))
+    setBundleSheet(undefined)
   }
 
   const afterRoutineGroupConfirmed = async (
@@ -1599,7 +1771,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       // Vergangen und entschieden, aber nicht genommen — bewusst ausgelassen.
       : isPastDay ? 'rgba(255,255,255,0.16)'
       // Heute oder kuenftig: steht noch an.
-      : 'var(--accent-weak)'
+      : 'color-mix(in srgb, var(--accent) 35%, transparent)'
 
     const beschriftung = geplant === 0
       ? format(day, 'd. MMMM', { locale })
@@ -1622,48 +1794,39 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         tabIndex={isPeek ? -1 : undefined}
         onClick={() => {
           // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
-          if (wurdeGewischt.current) return
+          // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
+          // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
+          if (wurdeGewischt.current || wischBlaettert.current) return
           selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
         }}
         className={[
-          'relative flex flex-col items-center gap-1.5 border-r border-b last:border-r-0 transition-all duration-150 select-none',
+          'lg-press relative flex flex-col items-center gap-1 select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
-          !inMonth ? 'opacity-20' : '',
+          !inMonth ? 'opacity-25' : '',
           isPeek ? 'pointer-events-none' : '',
         ].filter(Boolean).join(' ')}
-        style={{
-          padding: '9px 0 8px',
-          minHeight: 52,
-          borderColor: 'var(--border)',
-          background: isSelected
-            ? 'linear-gradient(145deg, rgba(0,190,240,0.85), rgba(0,120,210,0.75))'
-            : 'transparent',
-          boxShadow: isSelected
-            ? 'inset 0 1px 0 rgba(255,255,255,0.15), 0 0 16px rgba(0,200,240,0.25)'
-            : undefined,
-        }}
+        style={{ padding: '6px 0 6px', minHeight: 64 }}
       >
-        {/* Heute-Ring */}
-        {isTodayDay && !isSelected && (
-          <span
-            className="absolute inset-0.5 rounded-xl pointer-events-none"
-            style={{ boxShadow: '0 0 0 1.5px rgba(0,204,245,0.60), 0 0 6px rgba(0,204,245,0.12)' }}
-          />
-        )}
-
         {mitWochentag && (
-          <span className={`text-[9.5px] font-bold uppercase leading-none tracking-[0.06em] ${
-            isSelected ? 'text-white/80' : isTodayDay ? 'text-sky-300' : 'text-slate-500'
+          <span className={`text-[11px] font-semibold uppercase leading-none ${
+            isTodayDay ? 'text-[var(--accent)]' : 'text-[var(--lg-text-3)]'
           }`}>
             {format(day, 'EEEEEE', { locale })}
           </span>
         )}
 
-        <span className={`text-sm font-black leading-none ${
-          isSelected ? 'text-white' :
-          isTodayDay ? 'text-sky-400' :
-          inMonth ? 'text-slate-200' : 'text-slate-600'
-        }`}>
+        {/* Die Zahl im Kreis wie im iOS-Kalender: gewählt voll in der
+            Akzentfarbe, heute ohne Auswahl nur die Zahl in Akzentfarbe. */}
+        <span
+          className="grid h-9 w-9 place-items-center rounded-full text-[17px] leading-none tabular-nums transition-[background-color,color] duration-200"
+          style={{
+            background: isSelected ? (isTodayDay ? 'var(--accent)' : 'var(--lg-text)') : 'transparent',
+            color: isSelected
+              ? '#000'
+              : isTodayDay ? 'var(--accent)' : inMonth ? 'var(--lg-text)' : 'var(--lg-text-3)',
+            fontWeight: isSelected || isTodayDay ? 700 : 500,
+          }}
+        >
           {format(day, 'd')}
         </span>
 
@@ -1672,16 +1835,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <span
           aria-hidden="true"
           className="block h-[3px] w-[18px] rounded-full overflow-hidden shrink-0"
-          style={{ background: isSelected && geplant > 0 ? 'rgba(255,255,255,0.28)' : spurFarbe }}
+          style={{ background: spurFarbe }}
         >
           {anteil > 0 && (
             <span
               className="block h-full rounded-full"
-              style={{
-                width: `${Math.round(anteil * 100)}%`,
-                background: isSelected ? 'rgba(255,255,255,0.95)' : '#10b981',
-                boxShadow: isSelected ? undefined : '0 0 4px #10b98155',
-              }}
+              style={{ width: `${Math.round(anteil * 100)}%`, background: 'var(--lg-good)' }}
             />
           )}
         </span>
@@ -1713,20 +1872,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const nurDiese = periode.routineGroup
       ? { ...periode.routineGroup, items: periode.routineGroup.items.filter(item => item.key === slot.key) }
       : null
-    const zweitKnopf = 'flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] text-sm font-semibold text-slate-300 transition-colors hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300'
+    const zweitKnopf = 'lg-gray-btn w-full !min-h-12'
 
     return (
       <div
         key={slot.key}
         data-due-row={slot.key}
         data-due-open={offen ? 'true' : undefined}
-        className="overflow-hidden rounded-2xl border transition-colors duration-200"
-        style={{
-          borderColor: offen ? 'var(--accent-border)' : 'var(--border)',
-          background: offen
-            ? 'linear-gradient(160deg, rgba(0,204,245,0.09), var(--surface) 62%)'
-            : 'var(--surface)',
-        }}
+        className="overflow-hidden"
       >
         <div className="flex items-center gap-2 pr-2">
           <button
@@ -1736,13 +1889,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             onClick={() => setAufgeklappt(offen
               ? { art: 'keiner' }
               : { art: 'slot', key: slot.key, gruppe: periode.key })}
-            className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
+            className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
             <span
-              className="shrink-0 rounded-full transition-all duration-200"
+              className="h-2 w-2 shrink-0 rounded-full transition-[transform,box-shadow] duration-200 motion-reduce:transition-none"
               style={{
-                width: offen ? 10 : 8,
-                height: offen ? 10 : 8,
+                transform: offen ? 'scale(1.25)' : undefined,
                 background: farbe,
                 boxShadow: offen ? `0 0 12px ${farbe}80` : undefined,
               }}
@@ -1752,19 +1904,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   Tageszeit kann das nicht: „morgens" fasst alles vor zwoelf
                   zusammen, also auch 06:00 und 11:00 im selben Block. */}
               {offen && (
-                <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-sky-300">
+                <span className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold tabular-nums text-[var(--accent)]">
                   <PeriodenIcon size={12} aria-hidden="true" />
                   {slot.time || periode.label}
                 </span>
               )}
               <span className={offen
-                ? 'block text-2xl font-black leading-tight tracking-[-0.035em] text-white [overflow-wrap:anywhere]'
-                : 'block truncate text-sm font-semibold text-white'}>
+                ? 'block text-[28px] font-bold leading-[34px] text-[var(--lg-text)] [overflow-wrap:anywhere]'
+                : 'block truncate text-[17px] font-semibold text-[var(--lg-text)]'}>
                 {c.stack_items?.display_name}
               </span>
               <span className={offen
-                ? 'mt-1 block text-base font-semibold text-slate-200'
-                : 'mt-0.5 flex items-center gap-1.5 text-xs text-slate-400'}>
+                ? 'mt-0.5 block text-[17px] text-[var(--lg-text-2)]'
+                : 'mt-0.5 flex items-center gap-1.5 text-[13px] text-[var(--lg-text-3)]'}>
                 {!offen && <PeriodenIcon size={11} className="shrink-0" aria-hidden="true" />}
                 {/* Eine Zeichenkette in EINEM Element: sonst greift `truncate`
                     nicht und die Trennpunkte bekommen doppelten Abstand. */}
@@ -1774,54 +1926,62 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </span>
             </span>
             {!offen && (
-              <span role="presentation" className="shrink-0 text-slate-500">
-                <ChevronDown size={16} aria-hidden="true" />
+              <span role="presentation" className="shrink-0 text-[var(--lg-text-4)]">
+                <ChevronDown size={18} aria-hidden="true" />
               </span>
             )}
           </button>
-          {/* Das gruene Haekchen ist der schnelle Weg fuer den Normalfall:
-              bestaetigen, ohne etwas zu aendern — ein Tap statt zwei.
+          {/* Das gruene Haekchen ist der kurze Weg: es oeffnet direkt das
+              Bestaetigungsblatt, ohne die Zeile erst aufzuklappen. Die Uhrzeit
+              wird dort bewusst immer abgefragt.
               Aufgeklappt waere es doppelt, dort steht „Eingenommen" gross. */}
           {!offen && (
             <button
               type="button"
               aria-label={`${c.stack_items?.display_name} ${String(t('eingenommen'))}`}
               onClick={() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key)}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/[0.14] text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              data-tone="good"
+              className="lg-gray-btn !h-11 !w-11 shrink-0 !p-0"
             >
-              <Check size={18} aria-hidden="true" />
+              <Check size={20} aria-hidden="true" />
             </button>
           )}
         </div>
 
         <div
           data-due-panel
-          className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out motion-reduce:transition-none"
-          style={{ maxHeight: offen ? 420 : 0, opacity: offen ? 1 : 0 }}
+          data-open={offen ? '' : undefined}
+          className="tyd-collapse"
           aria-hidden={!offen}
         >
-          <div className="space-y-2 px-3 pb-3">
+          <div><div className="space-y-2 px-4 pb-4 pt-1">
             <button
               type="button"
               tabIndex={offen ? undefined : -1}
               onClick={() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key)}
-              className="flex min-h-14 w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              data-tone="good"
+              className="lg-gray-btn w-full !min-h-[52px] !text-[17px]"
             >
-              <Check size={19} aria-hidden="true" />
+              <Check size={20} aria-hidden="true" />
               {isPastSelected ? t('dose_mark_taken', { defaultValue: 'Doch eingenommen' }) : t('eingenommen')}
             </button>
 
-            <button
-              type="button"
-              tabIndex={offen ? undefined : -1}
-              onClick={() => {
-                routineCommitted.current = false
-                if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
-              }}
-              className={zweitKnopf}
-            >
-              {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
-            </button>
+            {/* Unter der Zeitleiste hat das Bestaetigungsblatt ein Mengenfeld;
+                ein zweiter Weg zur selben Abweichung waere doppelt. */}
+            {!FEATURES.planTimelineV2 && (
+              <button
+                type="button"
+                tabIndex={offen ? undefined : -1}
+                onClick={() => {
+                  routineCommitted.current = false
+                  if (nurDiese?.items.length) setRoutineGroupSheet(nurDiese)
+                }}
+                className={zweitKnopf}
+                data-quiet
+              >
+                {t('due_dose_override', { defaultValue: 'Einmalige Dosisänderung' })}
+              </button>
+            )}
 
             <button
               type="button"
@@ -1832,6 +1992,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   ? confirmDose(slot.pendingLog, false, undefined, resolveDashboardCycleQuantity(c, selectedDay, escalations, slot.dose))
                   : confirmCycleDose(c, false, slot.scheduledAt, slot.dose, slot.scheduledAt, undefined, slot.key)}
               className={zweitKnopf}
+              data-quiet
             >
               {t('uebersprungen')}
             </button>
@@ -1847,68 +2008,71 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('due_confirm_with_injection', { defaultValue: 'Mit Injektion tracken' })}
               </button>
             )}
-          </div>
+          </div></div>
         </div>
       </div>
     )
   }
 
   const renderConfirmedLog = (log: DoseLog) => (
-    <div key={log.id} className={`px-3 py-2.5 border rounded-xl transition-colors ${
-      log.taken === true
-        ? 'bg-emerald-500/5 border-emerald-500/20'
-        : log.taken === false
-          ? 'bg-red-500/5 border-red-500/20'
-          : 'bg-sky-500/5 border-sky-500/15'
-    }`}>
+    <div key={log.id} className="lg-surface px-4 py-3">
       <div className="flex items-center gap-3">
-        <Syringe size={14} className={`shrink-0 ${
-          log.taken === true ? 'text-emerald-400' :
-          log.taken === false ? 'text-red-400' : 'text-sky-400'
-        }`} />
+        {(() => {
+          // Verpasst: Bernstein wie in der Tageszelle. Bewusst ausgelassen:
+          // neutral — das war eine Entscheidung, kein Fehler. Kein Rot.
+          const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
+          return <Symbol size={16} aria-hidden="true" className={`shrink-0 ${
+            log.taken === true ? 'text-[var(--lg-good-text)]' :
+            log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
+          }`} />
+        })()}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-white text-sm">{log.stack_items?.display_name ?? t('geloeschte_substanz')}</span>
-            <span className={`text-xs font-semibold ${
-              log.taken === true ? 'text-emerald-400' :
-              log.taken === false ? 'text-red-400' : 'text-sky-400'
+            <span className="text-[17px] text-[var(--lg-text)]">{log.stack_items?.display_name ?? t('geloeschte_substanz')}</span>
+            <span className={`text-[13px] font-semibold ${
+              log.taken === true ? 'text-[var(--lg-good-text)]' :
+              log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
             }`}>{formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))}</span>
-            <span className="text-slate-500 text-xs">{log.method}</span>
+            <span className="text-[13px] text-[var(--lg-text-3)]">{log.method}</span>
             {log.taken === true && (
-              <span className="flex items-center gap-0.5 text-emerald-400 text-xs font-medium">
+              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-good-text)]">
                 <Check size={11} /> {t('eingenommen')}
               </span>
             )}
-            {log.taken === false && (
-              <span className="flex items-center gap-0.5 text-red-400 text-xs font-medium">
-                <XCircle size={11} /> {log.notes === AUTO_MISSED_NOTE
-                  ? t('verpasst', { defaultValue: 'Verpasst' })
-                  : t('uebersprungen')}
+            {log.taken === false && (log.notes === AUTO_MISSED_NOTE ? (
+              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-warn-text)]">
+                <XCircle size={11} aria-hidden="true" /> {t('verpasst', { defaultValue: 'Verpasst' })}
               </span>
-            )}
+            ) : (
+              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-text-3)]">
+                <MinusCircle size={11} aria-hidden="true" /> {t('uebersprungen')}
+              </span>
+            ))}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-slate-500 text-xs">{timeLabel(log.logged_at, t)}</span>
-            {log.notes && log.notes !== AUTO_MISSED_NOTE && <span className="text-slate-600 text-xs truncate">· {log.notes}</span>}
+            <span className="text-[13px] text-[var(--lg-text-3)]">{timeLabel(log.logged_at, t)}</span>
+            {log.notes && log.notes !== AUTO_MISSED_NOTE && <span className="truncate text-[13px] text-[var(--lg-text-3)]">· {log.notes}</span>}
           </div>
         </div>
-        {(!FEATURES.planTimelineV2 || log.taken === null) && <button aria-label={t('eintrag_loeschen')} className="p-1.5 text-slate-600 hover:text-red-400 transition-colors shrink-0"
+        {(!FEATURES.planTimelineV2 || log.taken === null) && <button aria-label={t('eintrag_loeschen')} className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)] hover:!text-[var(--lg-bad-text)]"
           onClick={() => deleteLog(log)}>
-          <X size={13} />
+          <X size={16} />
         </button>}
       </div>
 
       {log.taken === null && (
-        <div className="flex gap-2 mt-2 ml-[26px]">
+        <div className="mt-2.5 ml-7 flex gap-2">
           <button
             onClick={() => openConfirmSheet(undefined, log)}
-            className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-colors">
-            <Check size={11} /> {t('eingenommen')}
+            data-tone="good"
+            className="lg-gray-btn !px-3.5 !text-[13px]">
+            <Check size={14} /> {t('eingenommen')}
           </button>
           <button
             onClick={() => confirmDose(log, false)}
-            className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-red-500/15 text-red-400 border border-red-500/25 hover:bg-red-500/25 transition-colors">
-            <XCircle size={11} /> {t('uebersprungen')}
+            data-tone="bad"
+            className="lg-gray-btn !px-3.5 !text-[13px]">
+            <XCircle size={14} /> {t('uebersprungen')}
           </button>
         </div>
       )}
@@ -1924,34 +2088,37 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           wieder genau so da, wie die RPC eine offene Einnahme erwartet — und
           sie taucht oben wieder als faellig auf. */}
       {log.taken !== null && kannWiederGeoeffnetWerden(log) && (
-        <div className="flex gap-2 mt-2 ml-[26px]">
+        <div className="mt-2.5 ml-7 flex gap-2">
           {!FEATURES.planTimelineV2 && log.taken === false && (
             <button
               onClick={() => openConfirmSheet(undefined, log)}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-colors">
-              <Check size={11} /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
+              data-tone="good"
+              className="lg-gray-btn !px-3.5 !text-[13px]">
+              <Check size={14} /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
             </button>
           )}
           <button
             type="button"
             onClick={() => undoDose(log)}
-            className="flex min-h-11 items-center gap-1.5 rounded-lg border border-slate-600/50 bg-slate-700/60 px-3 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
-            <RotateCcw size={12} aria-hidden="true" /> {t('dose_reopen', { defaultValue: 'Wieder öffnen' })}
+            data-quiet
+            className="lg-gray-btn !px-3.5 !text-[13px]">
+            <RotateCcw size={14} aria-hidden="true" /> {t('dose_reopen', { defaultValue: 'Wieder öffnen' })}
           </button>
         </div>
       )}
 
       {log.taken === false && (
-        <div className="mt-2 ml-[26px]">
-          <p className="text-slate-500 text-xs mb-1.5 flex items-center gap-1">
-            <Bell size={10} /> {t('erinnere_nochmal')}
+        <div className="mt-3 ml-7">
+          <p className="mb-2 flex items-center gap-1.5 text-[13px] text-[var(--lg-text-3)]">
+            <Bell size={12} /> {t('erinnere_nochmal')}
           </p>
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {[15, 30, 60, 120].map(min => (
               <button
                 key={min}
                 onClick={() => snoozeDose(log, min)}
-                className="text-xs px-2 py-0.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600/50 hover:bg-slate-600/60 transition-colors">
+                data-quiet
+                className="lg-gray-btn !min-h-9 !px-3 !text-[13px]">
                 {min < 60 ? `${min} min` : `${min / 60} h`}
               </button>
             ))}
@@ -1965,18 +2132,44 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   return (
     <>
     <PageShell>
-      <div className="flex items-center gap-2">
-        <CalendarDays size={18} className="shrink-0 text-sky-400" />
-        <h2 className="font-semibold text-white">{t('nav_kalender')}</h2>
-      </div>
+      {/* Kopf: großer Titel wie in iOS; „Heute" und der Monat als Glas */}
+      <header className="flex min-h-11 items-center justify-between gap-3 px-1">
+        <h2 className="lg-large-title min-w-0 truncate">{t('nav_kalender')}</h2>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* „Heute" nur, wenn man nicht schon dort ist. Vorher stand der
+              Knopf zweimal auf der Seite, einmal hier und einmal im Tag. */}
+          {!isTodaySelected && (
+            <button
+              type="button"
+              className="lg-btn lg-glass lg-btn-glass lg-btn-compact !px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+              onClick={() => { setSelectedDay(new Date()); setCurrentDate(new Date()) }}
+            >
+              {t('heute_link')}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentDate(new Date(selectedDay.getFullYear(), selectedDay.getMonth(), 1))
+              setMonatOffen(true)
+            }}
+            ref={monatsKnopf}
+            aria-label={t('calendar_open_month', { defaultValue: 'Monatsübersicht öffnen' })}
+            aria-haspopup="dialog"
+            className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          >
+            <CalendarDays size={20} />
+          </button>
+        </div>
+      </header>
 
       {inventoryRetryIds.length > 0 && (
-        <div role="alert" className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-bold text-amber-200">
+        <div role="alert" className="rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)]">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"
             onClick={() => void Promise.all(inventoryRetryIds.map(id => applyGenericInventory(id)))}
-            className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/15 px-3 text-sm font-black text-amber-100 transition-colors hover:bg-amber-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+            className="lg-gray-btn mt-3 !text-[var(--lg-warn-text)]"
           >
             <RotateCcw size={15} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
           </button>
@@ -1989,53 +2182,26 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             nicht Inhalt — der Tag darunter ist der Inhalt. */}
         <div className="flex flex-col gap-2">
 
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-0.5">
+          <div className="flex items-center justify-between gap-2 px-1">
+            <h2 className="min-w-0 truncate text-[17px] font-semibold text-[var(--lg-text)]">
+              {weekTitle}
+            </h2>
+            <div className="flex shrink-0 items-center">
               <button
                 type="button"
                 onClick={() => changeWeek(-1)}
                 aria-label={t('prev_week', { defaultValue: 'Vorherige Woche' })}
-                className="shrink-0 rounded-xl p-1.5 text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={22} />
               </button>
-              <h2 className="truncate text-[15px] font-black tracking-[-0.03em] text-white">
-                {weekTitle}
-              </h2>
               <button
                 type="button"
                 onClick={() => changeWeek(1)}
                 aria-label={t('next_week', { defaultValue: 'Nächste Woche' })}
-                className="shrink-0 rounded-xl p-1.5 text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              {/* „Heute" nur, wenn man nicht schon dort ist. Vorher stand der
-                  Knopf zweimal auf der Seite, einmal hier und einmal im Tag. */}
-              {!isTodaySelected && (
-                <button
-                  type="button"
-                  className="rounded-xl border px-2.5 py-1.5 text-xs font-bold text-sky-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                  onClick={() => { setSelectedDay(new Date()); setCurrentDate(new Date()) }}
-                  style={{ borderColor: 'var(--accent-border)', background: 'var(--accent-weak)' }}
-                >
-                  {t('heute_link')}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentDate(new Date(selectedDay.getFullYear(), selectedDay.getMonth(), 1))
-                  setMonatOffen(true)
-                }}
-                ref={monatsKnopf}
-                aria-label={t('calendar_open_month', { defaultValue: 'Monatsübersicht öffnen' })}
-                aria-haspopup="dialog"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-              >
-                <CalendarDays size={17} />
+                <ChevronRight size={22} />
               </button>
             </div>
           </div>
@@ -2049,13 +2215,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             onPointerCancel={handleCalendarPointerCancel}
           >
             <div
+              ref={streifenRef}
               className="grid select-none grid-cols-7 gap-1"
-              style={{
-                // Wischt man IM Blatt, rutschte sonst der Streifen dahinter mit.
-                transform: `translateX(${monatOffen ? 0 : calendarDragX}px)`,
-                transition: isDragging && !monatOffen ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                willChange: 'transform',
-              }}
+              style={{ willChange: 'transform' }}
             >
               {streifenTage.map((day, i) => renderDayCell({
                 day, monatsBezug: selectedDay, key: i, mitWochentag: true,
@@ -2064,12 +2226,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
             {peekDir !== 0 && !monatOffen && (
               <div
+                ref={streifenVorschauRef}
                 className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  willChange: 'transform',
-                }}
+                style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})`, willChange: 'transform' }}
               >
                 {peekCalendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: peekDate!, key: i, vorschau: true, mitWochentag: true,
@@ -2086,8 +2245,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       {monatOffen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/60"
-            onClick={() => setMonatOffen(false)}
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={monatsBlattSchliessen.requestClose}
+            {...monatsBlattSchliessen.closingProps}
             aria-hidden="true"
           />
           <div
@@ -2096,45 +2256,45 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-modal="true"
             aria-label={monthTitle}
             tabIndex={-1}
-            className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border border-b-0 px-4 pb-8 pt-3 focus:outline-none"
-            style={{ borderColor: 'var(--accent-border)', background: 'var(--surface)', boxShadow: '0 -12px 48px rgba(0,0,0,0.8)' }}
+            {...monatsBlattSchliessen.closingProps}
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
           >
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />
+            <div className="lg-grabber mb-2" />
 
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="truncate text-lg font-black tracking-[-0.03em] text-white">{monthTitle}</h2>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="lg-title2 truncate pl-1">{monthTitle}</h2>
               <div className="flex shrink-0 items-center gap-0.5">
                 <button
                   type="button"
                   onClick={() => changeMonth(-1)}
                   aria-label={t('prev_month', { defaultValue: 'Vorheriger Monat' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={22} />
                 </button>
                 <button
                   type="button"
                   onClick={() => changeMonth(1)}
                   aria-label={t('next_month', { defaultValue: 'Nächster Monat' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-sky-400 transition-colors hover:bg-sky-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={22} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMonatOffen(false)}
+                  onClick={monatsBlattSchliessen.requestClose}
                   data-app-back-close
                   aria-label={t('close', { defaultValue: 'Schließen' })}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="lg-icon-btn lg-press ml-1 bg-[var(--lg-fill)] !text-[var(--lg-text-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-7">
               {[t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')].map(d => (
-                <div key={d} className="pb-2 text-center text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-500">{d}</div>
+                <div key={d} className="pb-1 text-center text-[11px] font-semibold uppercase text-[var(--lg-text-3)]">{d}</div>
               ))}
             </div>
 
@@ -2147,11 +2307,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               onPointerCancel={handleCalendarPointerCancel}
             >
               <div
+                ref={monatsRasterRef}
                 className="grid select-none grid-cols-7 gap-1"
-                style={{
-                  transform: `translateX(${calendarDragX}px)`,
-                  transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                }}
               >
                 {calendarDays.map((day, i) => renderDayCell({
                   day, monatsBezug: currentDate, key: i, ohneAnker: true,
@@ -2160,11 +2317,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
               {peekDir !== 0 && (
                 <div
+                  ref={monatsVorschauRef}
                   className="pointer-events-none absolute inset-x-0 top-0 grid select-none grid-cols-7 gap-1"
-                  style={{
-                    transform: `translateX(calc(${peekDir === 1 ? '100%' : '-100%'} + ${calendarDragX}px))`,
-                    transition: isDragging ? 'none' : 'transform 0.26s cubic-bezier(0.4,0,0.2,1)',
-                  }}
+                  style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})` }}
                 >
                   {peekCalendarDays.map((day, i) => renderDayCell({
                     day, monatsBezug: peekDate!, key: i, vorschau: true, ohneAnker: true,
@@ -2177,44 +2332,41 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )}
 
       {/* ── Tages-Panel ───────────────────────────────────────────────────── */}
-      <div id="due-intakes">
-      <GlassPanel accent="#00ccf5" padding="md">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <ClipboardList size={17} color="#00ccf5" />
-            <h2 className="text-base font-extrabold text-white leading-tight truncate">
-              {selectedDayTitle}
-            </h2>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400 tabular-nums">
-              {format(selectedDay, 'dd.MM.yyyy')}
-            </span>
-          </div>
+      {/* Der Tag: Titel über dem Inhalt wie ein Abschnitt in iOS, die
+          Einnahmen darunter auf fester Fläche — kein Glas um alles herum. */}
+      <section id="due-intakes" className="flex flex-col">
+        <div className="mb-3 flex items-baseline justify-between gap-3 px-1">
+          <h2 className="lg-title2 min-w-0 truncate">
+            {selectedDayTitle}
+          </h2>
+          <span className="shrink-0 text-[15px] tabular-nums text-[var(--lg-text-3)]">
+            {format(selectedDay, 'dd.MM.yyyy')}
+          </span>
         </div>
 
-        {FEATURES.planTimelineV2 && !timelineReady && (
-          <div role={timelineLoadState === 'error' ? 'alert' : 'status'} className="mb-3 text-sm text-slate-400">
-            {timelineLoadState === 'error' ? <>
-              <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
-              <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
-                {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
-              </button>
-            </> : t('loading', { defaultValue: 'Lädt…' })}
+        {FEATURES.planTimelineV2 && !timelineReady && (timelineLoadState === 'error' ? (
+          <div role="alert" className="mb-3 text-sm text-slate-400">
+            <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
+            <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
+              {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
+            </button>
           </div>
-        )}
+        ) : (
+          // Die Einnahmen des Tages laden: ihr Umriss steht schon da
+          <Silhouette className="mb-3"><EinnahmenUmriss /></Silhouette>
+        ))}
         {FEATURES.planTimelineV2 && timelineReady && timezoneReviewStackItemIds.length > 0 && (
-          <div role="alert" className="mb-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.07] p-3">
+          <div role="alert" className="mb-4 rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4">
             <div className="flex items-start gap-2.5">
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-5 text-amber-100">
+                <p className="text-[15px] font-semibold leading-5 text-[var(--lg-warn-text)]">
                   {t('my_stack_calendar_timezone_review', { defaultValue: 'Existing intake plans still need a time zone confirmation. They will not appear in the calendar until then.' })}
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate(`/my-stack?review=timezone&stackItem=${encodeURIComponent(timezoneReviewStackItemIds[0])}`)}
-                  className="mt-2 min-h-11 cursor-pointer rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-bold text-amber-200 transition-colors hover:bg-amber-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                  className="lg-gray-btn mt-3 !text-[var(--lg-warn-text)]"
                 >
                   {t('my_stack_calendar_timezone_review_action', { defaultValue: 'Confirm time zone in My Stack' })}
                 </button>
@@ -2223,12 +2375,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
         {selectedPause && (
-          <div className="mb-3 rounded-xl border border-sky-500/20 bg-sky-500/[0.07] px-3 py-2.5">
-            <p className="text-sm font-bold text-sky-200">
+          <div className="lg-surface mb-4 px-4 py-3.5">
+            <p className="text-[15px] font-semibold text-[var(--lg-accent-text)]">
               <span>{t('my_stack_plan_status_paused', { defaultValue: 'Plan pausiert' })}</span>
-              {selectedPauseRange && <span className="font-normal text-sky-300/70"> · {selectedPauseRange}</span>}
+              {selectedPauseRange && <span className="font-normal text-[var(--lg-text-2)]"> · {selectedPauseRange}</span>}
             </p>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-[13px] text-[var(--lg-text-3)]">
               {t('my_stack_plan_pause_neutral', { defaultValue: 'Während der Pause ist keine Einnahme fällig.' })}
             </p>
           </div>
@@ -2240,23 +2392,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         {isPastSelected && dueSlots.length > 0 && (
           <div
             data-due-balance
-            className="mb-3 rounded-2xl border p-4"
-            style={{ borderColor: 'var(--border-strong)', background: 'var(--surface)' }}
+            className="lg-surface mb-4 p-4"
           >
             <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-xl font-black tracking-[-0.03em] text-white">
+              <h3 className="lg-title2">
                 {t('calendar_day_balance', {
                   defaultValue: '{{genommen}} von {{geplant}} bestätigt',
                   genommen: genommeneSlots, geplant: totalDaySlots,
                 })}
               </h3>
-              <span className="shrink-0 text-xs font-semibold text-slate-400 tabular-nums">
+              <span className="shrink-0 text-[13px] tabular-nums text-[var(--lg-text-3)]">
                 {t('due_open_count', { defaultValue: '{{n}} offen', n: dueSlots.length })}
               </span>
             </div>
-            <div className="mt-2.5 h-1 overflow-hidden rounded-full" style={{ background: 'var(--border)' }}>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]">
               <span
-                className="block h-full rounded-full bg-emerald-500"
+                className="block h-full rounded-full bg-[var(--lg-good)]"
                 style={{ width: totalDaySlots > 0 ? `${Math.round((genommeneSlots / totalDaySlots) * 100)}%` : '0%' }}
               />
             </div>
@@ -2267,24 +2418,25 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         {dueSlots.length === 0 && totalDaySlots > 0 && (!FEATURES.planTimelineV2 || timelineReady) && (
           <div
             data-due-receipt
-            className="mb-3 flex flex-col items-center gap-2.5 rounded-2xl border p-6 text-center"
-            style={incompletePastDay
-              ? { borderColor: 'rgba(239,68,68,0.35)', background: 'linear-gradient(160deg, rgba(239,68,68,0.12), var(--surface) 62%)' }
-              : { borderColor: 'rgba(16,185,129,0.24)', background: 'linear-gradient(160deg, rgba(16,185,129,0.10), var(--surface) 62%)' }}
+            data-tone={incompletePastDay ? 'bad' : 'good'}
+            className="lg-surface mb-4 flex flex-col items-center gap-2.5 px-6 py-7 text-center"
           >
-            <span className={`flex h-12 w-12 items-center justify-center rounded-full ${incompletePastDay ? 'bg-red-500/15' : 'bg-emerald-500/15'}`}>
+            <span
+              className="flex h-14 w-14 items-center justify-center rounded-full"
+              style={{ background: incompletePastDay ? 'var(--lg-bad)' : 'var(--lg-good)' }}
+            >
               {incompletePastDay
-                ? <X size={24} className="text-red-300" aria-hidden="true" />
-                : <Check size={24} className="text-emerald-300" aria-hidden="true" />}
+                ? <X size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
+                : <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />}
             </span>
-            <h3 className="text-xl font-black tracking-[-0.035em] text-white">
+            <h3 className="lg-title2">
               {incompletePastDay
                 ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
                 : genommeneSlots === totalDaySlots
                 ? t('all_intakes_done', { defaultValue: 'Alle geplanten Einnahmen sind bestätigt.' })
                 : t('all_intakes_logged', { defaultValue: 'Für diesen Tag ist alles protokolliert.' })}
             </h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-[15px] text-[var(--lg-text-3)]">
               {t('calendar_day_balance', {
                 defaultValue: '{{genommen}} von {{geplant}} bestätigt',
                 genommen: genommeneSlots, geplant: totalDaySlots,
@@ -2293,61 +2445,119 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
 
+        {/* ── Eigene Bündel ──────────────────────────────────────────────
+            Selbst zusammengestellte Gruppen, mit einem Tipp bestaetigt. Sie
+            stehen ueber der Tagesliste, weil sie sie abkuerzen. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
+          <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-6 space-y-2">
+            <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
+              <h3 id="intake-bundles-title" className="flex min-w-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
+                <Layers size={14} aria-hidden="true" />
+                <span className="truncate">{t('bundle_section_title', { defaultValue: 'Meine Bündel' })}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setBundleSheet(null)}
+                data-quiet
+                className="lg-gray-btn shrink-0 !px-3.5 !text-[13px]"
+              >
+                <Plus size={14} aria-hidden="true" />
+                {t('bundle_new', { defaultValue: 'Bündel' })}
+              </button>
+            </div>
+            {bundleRows.map(({ bundle, itemIds, open }) => {
+              const done = open.length === 0
+              return (
+                <div key={bundle.id} className="flex items-stretch gap-2">
+                  <button
+                    type="button"
+                    disabled={done}
+                    onClick={() => openBundle(bundle, open)}
+                    data-tone={done ? undefined : 'good'}
+                    className="lg-surface flex min-h-[60px] min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)] disabled:cursor-default"
+                  >
+                    <span aria-hidden="true" className="lg-icon-tile" style={{ background: done ? '#636366' : 'var(--lg-good)' }}>
+                      <Check size={17} strokeWidth={2.6} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[17px] text-[var(--lg-text)]">{bundle.name}</span>
+                      <span className={`block truncate text-[13px] ${done ? 'text-[var(--lg-text-3)]' : 'text-[var(--lg-good-text)]'}`}>
+                        {itemIds.length === 0
+                          ? t('bundle_no_items', { defaultValue: 'Keine Substanzen mehr im Bündel' })
+                          : done
+                          ? t('bundle_nothing_open', { defaultValue: 'Nichts offen' })
+                          : t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: open.length })}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
+                    onClick={() => setBundleSheet(bundle)}
+                    data-quiet
+                    className="lg-gray-btn !h-auto !w-12 shrink-0 !rounded-[var(--r-xl)] !p-0"
+                  >
+                    <Pencil size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              )
+            })}
+            {bundleRows.length === 0 && (
+              <p className="px-4 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                {t('bundle_empty_hint', { defaultValue: 'Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.' })}
+              </p>
+            )}
+          </section>
+        )}
+
         {/* ── Die offenen Einnahmen ──────────────────────────────────────
             Eine Liste in Tagesordnung. Genau eine ist aufgeklappt — zuerst
             die naechste anstehende, danach die, die man antippt. Aufgeklappt
             wird AN ORT UND STELLE, damit nichts springt. */}
         {offeneGruppen.map(gruppe => (
-          <div key={gruppe.key} className="mb-3 space-y-2">
-            <div className="flex items-center justify-between gap-3 px-1">
-              <p className="flex min-w-0 items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.12em] text-sky-300">
+          <div key={gruppe.key} className="mb-6">
+            {/* Gemeinsam bestaetigt wird ueber die eigenen Bündel oben; die
+                Tageszeit ist hier nur noch Ueberschrift. */}
+            <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
+              <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
                 {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
                 <span className="truncate">{gruppe.label}</span>
               </p>
-              {/* Ab zwei Einnahmen im selben Zeitfenster lohnt der Sammelweg:
-                  sonst druecke man denselben Knopf zehnmal. */}
-              {gruppe.slots.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    routineCommitted.current = false
-                    if (gruppe.routineGroup) setRoutineGroupSheet(gruppe.routineGroup)
-                  }}
-                  className="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.12] px-3 text-[11px] font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-                >
-                  <Check size={13} aria-hidden="true" />
-                  {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
-                </button>
-              )}
             </div>
-            {gruppe.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
+            <div className="lg-group lg-rows">
+              {gruppe.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
+            </div>
           </div>
         ))}
 
         {/* Bestätigte und nicht bestätigte Einnahmen getrennt ausklappen. */}
         {loggedLogs.length > 0 && (
-          <div className="space-y-2">
+          <div className="mb-3 space-y-2">
+            {/* Eine Zeile wie in den iOS-Einstellungen: farbiges Symbol,
+                Titel, Anzahl, Pfeil — darunter klappt die Liste auf. */}
             <button
               type="button"
               onClick={() => setCompletedExpanded(expanded => !expanded)}
               aria-expanded={completedExpanded}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2.5 text-left transition-colors hover:bg-emerald-500/10"
+              data-tone="good"
+              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
             >
-              <div className="min-w-0">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-300/80">
+              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[17px] text-[var(--lg-text)]">
                   {t('completed_intakes_title', { defaultValue: 'Bereits protokolliert' })}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-[13px] text-[var(--lg-text-3)]">
                   {t('completed_intakes_hint', { defaultValue: 'Bestätigte Einnahmen.' })}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-300">
+                <span className="text-[17px] tabular-nums text-[var(--lg-text-3)]">
                   {loggedLogs.length}
                 </span>
                 <ChevronDown
-                  size={16}
-                  className={`text-emerald-300/80 transition-transform duration-200 ${completedExpanded ? 'rotate-180' : ''}`}
+                  size={18}
+                  className={`text-[var(--lg-text-4)] transition-transform duration-200 ${completedExpanded ? 'rotate-180' : ''}`}
                 />
               </div>
             </button>
@@ -2359,28 +2569,30 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
         {unloggedLogs.length > 0 && (
-          <div className="space-y-2">
+          <div className="mb-3 space-y-2">
             <button
               type="button"
               onClick={() => setUnloggedExpanded(expanded => !expanded)}
               aria-expanded={unloggedExpanded}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2.5 text-left transition-colors hover:bg-red-500/10"
+              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
             >
-              <div className="min-w-0">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-red-300/80">
+              {/* Neutral: ausgelassen heisst entschieden, nicht falsch */}
+              <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><MinusCircle size={17} strokeWidth={2.4} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[17px] text-[var(--lg-text)]">
                   {t('unlogged_intakes_title', { defaultValue: 'Nicht protokolliert' })}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-[13px] text-[var(--lg-text-3)]">
                   {t('unlogged_intakes_hint', { defaultValue: 'Übersprungene und verpasste Einnahmen.' })}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300">
+                <span className="text-[17px] tabular-nums text-[var(--lg-text-3)]">
                   {unloggedLogs.length}
                 </span>
                 <ChevronDown
-                  size={16}
-                  className={`text-red-300/80 transition-transform duration-200 ${unloggedExpanded ? 'rotate-180' : ''}`}
+                  size={18}
+                  className={`text-[var(--lg-text-4)] transition-transform duration-200 ${unloggedExpanded ? 'rotate-180' : ''}`}
                 />
               </div>
             </button>
@@ -2393,7 +2605,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         )}
         {loggedLogs.length === 0 && unloggedLogs.length === 0 && dueSlots.length === 0 && selCycles.length === 0 && selOnDemand.length === 0 && !selectedPause
           && timezoneReviewStackItemIds.length === 0 && (!FEATURES.planTimelineV2 || timelineReady) ? (
-          <p className="text-slate-600 text-sm text-center py-4">
+          <p className="py-6 text-center text-[15px] text-[var(--lg-text-3)]">
             {isTodaySelected ? t('noch_nichts_heute') : t('kein_eintrag_tag')}
           </p>
         ) : null}
@@ -2402,10 +2614,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             nichts davon ist faellig, es gibt nichts abzuhaken. Der Knopf traegt
             eine Einnahme ein, die stattgefunden hat. */}
         {selOnDemand.length > 0 && (
-          <div data-on-demand-section className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div data-on-demand-section className="mt-4">
+            <p className="lg-group-title">
               {t('freq_bei_bedarf', { defaultValue: 'Bei Bedarf' })}
             </p>
+            <div className="lg-group lg-rows">
             {selOnDemand.map(cycle => {
               const bereits = selLogs.filter(
                 log => log.stack_item_id === cycle.stack_item_id && log.taken === true,
@@ -2414,12 +2627,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <div
                   key={cycle.id}
                   data-on-demand-cycle={cycle.id}
-                  className="flex min-h-11 flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2"
+                  className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 py-2 pl-4 pr-3"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-200">
+                  <span className="min-w-0 flex-1 truncate text-[17px] text-[var(--lg-text)]">
                     {cycle.stack_items?.display_name ?? cycle.name}
                     {bereits > 0 && (
-                      <span data-on-demand-count className="ml-2 text-xs font-normal text-slate-400">
+                      <span data-on-demand-count className="ml-2 text-[15px] text-[var(--lg-text-3)]">
                         {`×${bereits}`}
                       </span>
                     )}
@@ -2429,23 +2642,25 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     onClick={() => FEATURES.planTimelineV2
                       ? openConfirmSheet(cycle, undefined, format(new Date(), 'HH:mm'))
                       : void confirmCycleDose(cycle, true, new Date().toISOString())}
-                    className="min-h-11 shrink-0 cursor-pointer rounded-xl border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors duration-200 hover:bg-emerald-400/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 motion-reduce:transition-none"
+                    data-tone="good"
+                    className="lg-gray-btn shrink-0"
                   >
                     {t('eingenommen', { defaultValue: 'Eingenommen' })}
                   </button>
                 </div>
               )
             })}
+            </div>
           </div>
         )}
-      </GlassPanel>
-      </div>
+      </section>
 
     </PageShell>
 
       {routineGroupSheet && (
         <RoutineConfirmationSheet
           group={routineGroupSheet}
+          initialTime={routineGroupSheet.initialTime}
           onClose={() => setRoutineGroupSheet(null)}
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
@@ -2453,46 +2668,62 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         />
       )}
 
+      {bundleSheet !== undefined && (
+        <IntakeBundleSheet
+          bundle={bundleSheet}
+          stackItems={stackItems}
+          onClose={() => setBundleSheet(undefined)}
+          onSave={saveBundle}
+          onDelete={bundleSheet ? removeBundle : undefined}
+        />
+      )}
+
       {/* ── Einnahme-Zeitpunkt-Sheet ──────────────────────────────────────── */}
       {confirmSheet && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setConfirmSheet(null)} />
+          <div
+            className="tyd-backdrop fixed inset-0 z-40 bg-black/60"
+            onClick={bestaetigenSchliessen.requestClose}
+            {...bestaetigenSchliessen.closingProps}
+          />
           <div
             data-app-modal
             data-app-back-dirty-on-interaction
             role="dialog"
             aria-modal="true"
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border border-white/10 pb-10"
-            style={{ background: 'var(--surface)' }}
+            aria-labelledby="confirm-sheet-title"
+            {...bestaetigenSchliessen.closingProps}
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
-            <div style={{ padding: '20px 18px 0' }}>
-              <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20" />
-              <div className="flex items-center gap-2 mb-1">
-                <Check size={15} className="text-emerald-400" />
-                <h2 className="text-base font-black text-white">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
+            <div style={{ padding: '8px 18px 0' }}>
+              <div className="lg-grabber mb-4" />
+              <div className="mb-1 flex items-center gap-2.5">
+                <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
+                <h2 id="confirm-sheet-title" className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
               </div>
-              <p className="text-xs text-slate-500 mb-5">
+              <p className="mb-5 mt-1.5 text-[15px] text-[var(--lg-text-2)]">
                 {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen? Vorausgefüllt mit der geplanten Zykluszeit.' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-[0.6rem] font-bold uppercase tracking-widest text-slate-500">
+                <label htmlFor="confirm-sheet-time" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
                   {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                 </label>
                 <button
                   type="button"
                   onClick={() => setConfirmTime(format(new Date(), 'HH:mm'))}
-                  className="flex items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[0.65rem] font-bold text-sky-400 transition-colors hover:bg-sky-500/20"
+                  className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
                 >
-                  <Clock size={11} />
+                  <Clock size={13} />
                   {t('confirm_time_now', { defaultValue: 'Jetzt' })}
                 </button>
               </div>
               <input
+                id="confirm-sheet-time"
                 type="time"
                 value={confirmTime}
                 onChange={e => setConfirmTime(e.target.value)}
-                className={`w-full rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white outline-none focus:border-sky-500/50 transition-colors ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
-                style={{ background: 'var(--surface-input)', colorScheme: 'dark' }}
+                className={`input font-semibold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
+                style={{ colorScheme: 'dark' }}
               />
               {confirmUnit != null && (
                 <>
@@ -2501,7 +2732,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                       „Eingenommen" fuer die Uhrzeit, „Einmalige
                       Dosisaenderung" fuer die Menge, mit dem groesseren
                       Gruppen-Sheet dahinter. */}
-                  <label className="mb-2 block text-[0.6rem] font-bold uppercase tracking-widest text-slate-500">
+                  <label className="mb-2 block text-[13px] font-semibold text-[var(--lg-text-3)]">
                     {t('confirm_sheet_dose_label', { defaultValue: 'Menge' })}
                   </label>
                   <div className="mb-5 flex items-center gap-2">
@@ -2513,23 +2744,24 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                       aria-label={String(t('confirm_sheet_dose_label', { defaultValue: 'Menge' }))}
                       value={confirmDoseText}
                       onChange={e => setConfirmDoseText(e.target.value)}
-                      className="min-w-0 flex-1 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white outline-none focus:border-sky-500/50 transition-colors"
-                      style={{ background: 'var(--surface-input)', colorScheme: 'dark' }}
+                      className="input min-w-0 flex-1 font-semibold"
+                      style={{ colorScheme: 'dark' }}
                     />
-                    <span className="text-sm font-bold text-slate-300">{confirmUnit}</span>
+                    <span className="text-[17px] text-[var(--lg-text-2)]">{confirmUnit}</span>
                   </div>
                 </>
               )}
               <div className="flex gap-3">
-                <button onClick={() => setConfirmSheet(null)} data-app-back-close className="btn-secondary flex-1">
+                <button onClick={bestaetigenSchliessen.requestClose} data-app-back-close data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
                   {t('cancel', { defaultValue: 'Abbrechen' })}
                 </button>
                 <button
                   onClick={() => { if (!confirmDoseUngueltig) void handleConfirmSheet() }}
                   {...denyProps(confirmDoseUngueltig)}
-                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  data-tone="good"
+                  className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
                 >
-                  <Check size={14} /> {t('eingenommen', { defaultValue: 'Eingenommen' })}
+                  <Check size={18} /> {t('eingenommen', { defaultValue: 'Eingenommen' })}
                 </button>
               </div>
             </div>

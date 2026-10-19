@@ -12,11 +12,10 @@ export function BlutspiegelDetail() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
       <Link
         to={UEBERSICHT_PFAD}
-        className="-ml-2 flex min-h-11 w-fit items-center gap-0.5 pr-2 text-[17px] font-medium"
-        style={{ color: 'var(--accent)' }}
+        className="lg-glass lg-btn lg-btn-glass lg-btn-compact w-fit !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         data-bs-back
       >
-        <ChevronLeft size={24} strokeWidth={2.4} aria-hidden="true" />
+        <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
         {t('pk_title')}
       </Link>
       <BlutspiegelView variant="full" initialKey={key ?? null} einzeln key={key} />

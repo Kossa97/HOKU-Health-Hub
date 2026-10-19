@@ -52,7 +52,7 @@ export function StageDetailView({
   // Dasselbe Symbol wie sonst; im Alarm blinkt es im Takt des Abzeichens,
   // und der Knopf pulsiert leicht mit (`.tyd-alarm-knopf` in index.css).
   const knopfSymbol = (alarm: boolean) => (
-    <RefreshCw size={15} aria-hidden="true" className={alarm ? 'tyd-expired-icon shrink-0 text-red-400' : 'shrink-0'} />
+    <RefreshCw size={17} aria-hidden="true" className={alarm ? 'tyd-expired-icon shrink-0 text-[#ff6961]' : 'shrink-0 text-[#64d2ff]'} />
   )
   return (
     <>
@@ -72,7 +72,7 @@ export function StageDetailView({
                 onClick={() => openEditPeptide(activePeptide)}
                 aria-label={String(t('bearbeiten'))}
                 title={String(t('bearbeiten'))}
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-slate-200 transition-colors hover:border-sky-400/40 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
                 <Pencil size={17} aria-hidden="true" />
               </button>
@@ -81,7 +81,7 @@ export function StageDetailView({
                 onClick={() => removePeptide(activePeptide.id)}
                 aria-label={String(t('loeschen'))}
                 title={String(t('loeschen'))}
-                className="grid h-11 w-11 place-items-center rounded-full border border-red-500/20 bg-red-500/5 text-red-300 transition-colors hover:border-red-400/40 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                className="lg-btn-danger lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               >
                 <Trash2 size={17} aria-hidden="true" />
               </button>
@@ -101,7 +101,7 @@ export function StageDetailView({
                   type="button"
                   onClick={() => rekonstitutionWiederholen(activePeptide)}
                   data-anmischen-alarm={anmischenHilft || undefined}
-                  className={`flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${anmischenHilft ? 'tyd-alarm-knopf' : ''}`}
+                  className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${anmischenHilft ? 'tyd-alarm-knopf' : ''}`}
                 >
                   {knopfSymbol(anmischenHilft)}
                   {neuAnbrechenLabel(t, activePeptide.dosage_form)}
@@ -120,7 +120,7 @@ export function StageDetailView({
                   defaultValue: 'Nichts Ungeöffnetes mehr im Bestand.',
                 })))}
                 data-anmischen-alarm={(anmischenHilft && !nichtsZuOeffnen) || undefined}
-                className={`flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 aria-disabled:border-slate-800 aria-disabled:bg-slate-900/60 aria-disabled:text-slate-600 ${anmischenHilft && !nichtsZuOeffnen ? 'tyd-alarm-knopf' : ''}`}
+                className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 aria-disabled:opacity-40 ${anmischenHilft && !nichtsZuOeffnen ? 'tyd-alarm-knopf' : ''}`}
               >
                 {knopfSymbol(anmischenHilft && !nichtsZuOeffnen)}
                 {neuAnbrechenLabel(t, activePeptide.dosage_form)}

@@ -1565,15 +1565,15 @@ export function StackItemWizard({
         aria-labelledby="stack-item-wizard-title"
         aria-describedby="stack-item-wizard-description"
         onKeyDown={handleDialogKeyDown}
-        className="flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-3xl sm:border"
+        className="lg-backdrop flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-[28px] sm:bg-[#1c1c1e]"
       >
-        <header className="shrink-0 border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
+        <header className="shrink-0 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-400">
+              <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">
                 {t('my_stack_title', { defaultValue: 'My Stack' })}
               </p>
-              <h2 id="stack-item-wizard-title" className="mt-1 text-xl font-bold text-white">
+              <h2 id="stack-item-wizard-title" className="mt-0.5 text-[24px] font-bold leading-[30px] tracking-[0.01em] text-[var(--lg-text)]">
                 {planEditContext?.purpose === 'add_step'
                   ? t('my_stack_plan_add_step', { defaultValue: 'Stufe hinzufügen' })
                   : planEditContext?.purpose === 'adjust'
@@ -1582,7 +1582,7 @@ export function StackItemWizard({
                       ? t('my_stack_edit_item', { defaultValue: 'Eintrag bearbeiten' })
                       : t('my_stack_add_item', { defaultValue: 'Substanz hinzufügen' })}
               </h2>
-              <p id="stack-item-wizard-description" className="mt-1 text-sm leading-relaxed text-slate-400">
+              <p id="stack-item-wizard-description" className="mt-1 text-[15px] leading-relaxed text-[var(--lg-text-2)]">
                 {editOverview && state.step === 'review'
                   ? t('my_stack_edit_overview_hint', { defaultValue: 'Was möchtest du ändern?' })
                   : currentSection?.id === 'product'
@@ -1596,7 +1596,7 @@ export function StackItemWizard({
               data-app-back-close
               disabled={saving}
               aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-              className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-xl text-slate-400 transition-colors duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+              className="lg-glass lg-icon-btn lg-press min-h-11 min-w-11 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <X aria-hidden="true" size={20} />
             </button>
@@ -1613,7 +1613,7 @@ export function StackItemWizard({
           {/* Beim Bearbeiten gibt es keinen Weg von vorn nach hinten — die
               Abschnitte werden einzeln geoeffnet. */}
           {!editOverview && <div
-            className="mt-4 flex items-center gap-2"
+            className="mt-4 flex items-center gap-1.5"
             role="progressbar"
             aria-valuemin={1}
             aria-valuenow={currentStepIndex + 1}
@@ -1622,7 +1622,7 @@ export function StackItemWizard({
             {steps.map((step, index) => (
               <span
                 key={step}
-                className={`h-1.5 flex-1 rounded-full ${index <= currentStepIndex ? 'bg-sky-400' : 'bg-white/10'}`}
+                className={`h-[5px] flex-1 rounded-full transition-colors duration-300 ${index <= currentStepIndex ? 'bg-[var(--accent)]' : 'bg-white/[0.14]'}`}
               />
             ))}
           </div>}
@@ -1784,7 +1784,7 @@ export function StackItemWizard({
           )}
         </main>
 
-        <footer className="flex shrink-0 gap-3 border-t border-white/10 bg-slate-950/90 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
+        <footer className="flex shrink-0 gap-3 border-t border-[var(--lg-separator)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
           {/* Auf der Bearbeiten-Uebersicht gibt es kein Zurueck: dort liegen
               alle Aenderungen bis zum Speichern, und ein Pfeil, der schliesst,
               wuerde sie wortlos verwerfen. Schliessen bleibt oben am X. */}
@@ -1792,7 +1792,7 @@ export function StackItemWizard({
             type="button"
             onClick={handleBack}
             disabled={saving}
-            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 font-semibold text-slate-300 transition-colors duration-200 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+            className="lg-btn lg-glass lg-btn-glass min-h-11 min-w-12 !px-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 sm:!px-5"
           >
             <ArrowLeft aria-hidden="true" size={18} />
             <span className="hidden sm:inline">
@@ -1805,7 +1805,7 @@ export function StackItemWizard({
               type="button"
               onClick={() => void handleSave()}
               disabled={saving || Boolean(duplicateCandidate)}
-              className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-3 font-bold text-slate-950 transition-colors duration-200 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+              className="lg-btn lg-btn-primary min-h-11 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? (
                 <LoaderCircle aria-hidden="true" className="animate-spin motion-reduce:animate-none" size={18} />
@@ -1825,7 +1825,7 @@ export function StackItemWizard({
               type="button"
               onClick={handleContinue}
               disabled={saving}
-              className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-3 font-bold text-slate-950 transition-colors duration-200 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+              className="lg-btn lg-btn-primary min-h-11 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {currentStepIndex === steps.length - 2 || lastInSection ? <Check aria-hidden="true" size={18} /> : <ArrowRight aria-hidden="true" size={18} />}
               {lastInSection ? t('my_stack_edit_done', { defaultValue: 'Fertig' }) : t('continue', { defaultValue: 'Weiter' })}

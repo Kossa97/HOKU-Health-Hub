@@ -28,9 +28,10 @@ export function ReviewTable({ rows, onChange }: Props) {
         return (
           <div
             key={index}
-            className="rounded-2xl p-4"
+            className="rounded-[20px] p-4"
             style={{
-              border: `1px solid ${row.selected ? 'var(--accent-border)' : 'var(--border)'}`,
+              background: 'var(--lg-surface-2)',
+              boxShadow: row.selected ? 'inset 0 0 0 1px rgba(0, 204, 245, 0.45)' : undefined,
               opacity: row.selected ? 1 : 0.5,
             }}
           >
@@ -52,11 +53,12 @@ export function ReviewTable({ rows, onChange }: Props) {
               />
 
               {!row.matched && (
-                <span className="badge shrink-0" style={{ background: 'var(--border)', color: MUTED }}>{t('bw_new_marker')}</span>
+                <span className="lg-tag shrink-0">{t('bw_new_marker')}</span>
               )}
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            {/* Unter 360 px zwei Spalten: vier Beschriftungen passen dort nicht nebeneinander */}
+            <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4">
               <div>
                 <label className="label">{t('bw_value')}</label>
                 <input

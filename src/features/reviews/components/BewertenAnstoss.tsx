@@ -16,11 +16,11 @@ export function BewertenAnstoss({ name, onBewerten, onSpaeter }: {
   return (
     <div data-review-prompt className="flex items-center gap-3">
       <Star size={18} aria-hidden="true" className="shrink-0 text-amber-400" fill="currentColor" />
-      <p className="min-w-0 flex-1 text-sm font-semibold">{t('review_prompt_title', { name })}</p>
-      <button type="button" onClick={onSpaeter} className="shrink-0 px-1 text-xs font-semibold text-slate-400">
+      <p className="min-w-0 flex-1 text-[15px] font-semibold text-[var(--lg-text)]">{t('review_prompt_title', { name })}</p>
+      <button type="button" onClick={onSpaeter} className="min-h-11 shrink-0 px-1 text-[14px] font-semibold text-[var(--lg-text-2)]">
         {t('review_prompt_later')}
       </button>
-      <button type="button" onClick={onBewerten} className="shrink-0 rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-bold text-slate-950">
+      <button type="button" onClick={onBewerten} className="lg-gray-btn shrink-0 !min-h-9 !px-3.5 !text-[14px]">
         {t('review_prompt_rate')}
       </button>
     </div>

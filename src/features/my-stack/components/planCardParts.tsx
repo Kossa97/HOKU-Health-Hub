@@ -91,10 +91,10 @@ export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: P
   const dose = slotDoseLabel(slot)
   const hinweis = einnahmeHinweis(slot, syringe, stueck, t, language, false)
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-3">
       <RoutineIcon group={slot.routineGroup} />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-100">
+        <p className="text-[15px] font-semibold text-[var(--lg-text)]">
           {routineLabel(slot, t)} · {slot.time}
         </p>
         {slot.days.length > 0 && (
@@ -103,8 +103,8 @@ export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: P
       </div>
       {dose && (
         <p className="flex flex-col items-end whitespace-nowrap">
-          <span className="text-base font-bold text-white">{dose}</span>
-          {hinweis && <span data-einnahme-hinweis className="text-xs font-semibold text-cyan-300">{hinweis}</span>}
+          <span className="text-[17px] font-bold tabular-nums text-[var(--lg-text)]">{dose}</span>
+          {hinweis && <span data-einnahme-hinweis className="text-[13px] font-semibold text-[#64d2ff]">{hinweis}</span>}
         </p>
       )}
       {slot.days.length > 0 && (

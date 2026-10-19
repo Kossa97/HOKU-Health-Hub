@@ -460,13 +460,13 @@ describe('My Stack page vial view', () => {
     expect(scrollHandler).not.toContain('updateVialFocus()')
   })
 
-  test('zeigt die Angaben als ein Raster, nicht als drei Fassungen derselben Daten', () => {
+  test('zeigt die Angaben als eine gruppierte Liste, nicht als drei Fassungen derselben Daten', () => {
     // Die Angaben stehen in nach Form ausgesuchten Abschnitten; die drei
     // Fassungen derselben Daten (zwei davon `hidden`) sind weg, ebenso die
     // Kachel „Peptidname" — der Name steht auf dem Objekt darüber.
     const text = source()
 
-    expect(text).toContain('grid grid-cols-2 gap-2')
+    expect(text).toContain('className="lg-kv"')
     expect(text).toContain("'my_stack_stock_use_within_vial'")
     expect(text).toContain("'my_stack_stock_mixed_on'")
     expect(text).toContain("'my_stack_stock_document'")
@@ -503,21 +503,25 @@ describe('My Stack page vial view', () => {
     expect(verwalter).toContain('doseAdjustmentIcon(c, e)')
   })
 
-  test('places the archive icon between search and view controls', () => {
+  test('keeps the header to search, menu and add, with the archive once inside the menu', () => {
+    const header = readFileSync(new URL('./page/MyStackHeader.tsx', import.meta.url), 'utf8')
     const text = source()
-    const searchIndex = text.indexOf('aria-label={searchOpen ?')
-    const archiveIndex = text.indexOf("aria-label={t('archiv')}", searchIndex)
-    const filterIndex = text.indexOf("aria-label={t('sort_aria_label')}", searchIndex)
+    const searchIndex = header.indexOf('aria-label={searchOpen ?')
+    const menuIndex = header.indexOf("aria-label={t('my_stack_more_options')}")
+    const archiveIndex = header.indexOf("aria-label={t('archiv')}")
+    const addIndex = header.indexOf('data-my-stack-add')
     const editIndex = text.indexOf('onClick={() => openEditPeptide(activePeptide)}')
     const deleteIndex = text.indexOf('onClick={() => removePeptide(activePeptide.id)}', editIndex)
 
     expect(searchIndex).toBeGreaterThan(-1)
-    expect(archiveIndex).toBeGreaterThan(searchIndex)
-    expect(archiveIndex).toBeLessThan(filterIndex)
-    expect(text.slice(searchIndex, filterIndex)).toContain('setArchiveViewOpen(true)')
-    expect(text.slice(searchIndex, filterIndex)).toContain('loadArchived()')
-    expect(text.slice(searchIndex, filterIndex)).toContain('<Archive size={18} />')
-    expect(text.slice(searchIndex, filterIndex)).toContain('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/70')
+    expect(menuIndex).toBeGreaterThan(searchIndex)
+    expect(archiveIndex).toBeGreaterThan(menuIndex)
+    expect(addIndex).toBeGreaterThan(archiveIndex)
+    // Archiv genau einmal, und nur im Menue
+    expect(header.split("aria-label={t('archiv')}")).toHaveLength(2)
+    expect(header.slice(menuIndex, addIndex)).toContain('{filterOpen && (')
+    expect(header.slice(archiveIndex - 400, archiveIndex)).toContain('setArchiveViewOpen(true)')
+    expect(header).not.toMatch(/>\s*(Ansicht|Vials|Liste)\s*</)
     expect(editIndex).toBeGreaterThan(-1)
     expect(deleteIndex).toBeGreaterThan(editIndex)
     expect(text.slice(editIndex, deleteIndex)).not.toContain("aria-label={t('archiv')}")
@@ -553,14 +557,15 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('data-archive-fullscreen')
     expect(text).toContain('data-archive-row')
-    expect(text).toContain('fixed inset-0 z-50 flex min-h-dvh flex-col bg-slate-950')
+    expect(text).toContain('lg-backdrop fixed inset-0 z-50 flex min-h-dvh flex-col')
     expect(text).toContain('fillPct={0}')
     expect(text).toContain("color_hex: '#64748b'")
     expect(text).toContain('animateOnMount={false}')
     expect(text).toContain('isActive={false}')
     expect(text).toContain('size="compact"')
     expect(text).toContain("t('archiviert_am'")
-    expect(text).toContain('h-11 w-11')
+    // Die Knoepfe der Zeile: 44 px rund (lg-icon-btn).
+    expect(text).toContain('lg-icon-btn lg-press')
     expect(text).toContain('const language = i18n.resolvedLanguage ?? i18n.language')
     expect(text).toContain('formatInstantDay(p.archived_at, language)')
   })
@@ -578,7 +583,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('data-archive-info-button={p.id}')
     expect(text).toContain('setArchiveInfoPeptide(p)')
     expect(text).toContain('data-archive-info-detail={p.id}')
-    expect(text).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-slate-950"')
+    expect(text).toContain('className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col"')
     expect(text).toContain('p.vial_amount_mg')
     expect(text).toContain('p.reconstitution_ml')
     expect(text).toContain('p.syringe_type')

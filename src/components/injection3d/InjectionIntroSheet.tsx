@@ -21,33 +21,32 @@ export function InjectionIntroSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="injection-intro-title"
-        className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-3xl border border-white/10 p-5 pb-8"
-        style={{ background: 'var(--surface)' }}
+        className="lg-sheet fixed bottom-2 left-2 right-2 z-[60] px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2"
       >
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20" />
+        <div className="lg-grabber mb-4" />
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Hand size={17} color="var(--accent)" aria-hidden="true" />
-            <h2 id="injection-intro-title" className="text-base font-black text-white">{t('injection_intro_title', { defaultValue: 'Markierung setzen' })}</h2>
+            <h2 id="injection-intro-title" className="lg-title2">{t('injection_intro_title', { defaultValue: 'Markierung setzen' })}</h2>
           </div>
           <button
             type="button"
             data-app-back-close
             aria-label={String(t('injection_close_hint', { defaultValue: 'Hinweis schließen' }))}
             onClick={onClose}
-            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 text-slate-400"
+            className="lg-icon-btn lg-press shrink-0 bg-[var(--lg-fill)] !text-[var(--lg-text-2)]"
           >
             <X size={16} aria-hidden="true" />
           </button>
         </div>
-        <p className="mb-5 text-sm leading-relaxed text-slate-400">
+        <p className="mb-5 text-[15px] leading-relaxed text-[var(--lg-text-2)]">
           {t('injection_intro_body', { defaultValue: 'Halte eine Stelle auf dem 3D-Torso gedrückt, um einen Pin zu setzen. Danach kannst du die Position feinjustieren.' })}
         </p>
         <div className="flex gap-3">
-          <button type="button" className="btn-secondary min-h-11 flex-1" onClick={onDontShowAgain}>
+          <button type="button" data-quiet className="lg-gray-btn min-h-12 flex-1" onClick={onDontShowAgain}>
             {t('injection_intro_dont_show', { defaultValue: 'Nicht mehr anzeigen' })}
           </button>
-          <button type="button" className="btn-primary min-h-11 flex-1" onClick={onClose}>
+          <button type="button" className="lg-btn lg-btn-primary min-h-12 flex-1 !px-4 !text-[15px]" onClick={onClose}>
             {t('injection_intro_understood', { defaultValue: 'Verstanden' })}
           </button>
         </div>

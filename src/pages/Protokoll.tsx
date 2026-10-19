@@ -362,7 +362,7 @@ function isLogWithinRange(log: DoseLog, range: DateRange) {
 
 function EmptyChart({ label }: { label: string }) {
   return (
-    <div className="h-56 rounded-2xl border border-white/[0.06] bg-white/[0.025] flex items-center justify-center text-sm text-slate-500">
+    <div className="h-56 rounded-[18px] bg-[var(--lg-surface-2)] flex items-center justify-center text-sm text-[var(--lg-text-2)]">
       {label}
     </div>
   )
@@ -372,11 +372,10 @@ function EmptyChart({ label }: { label: string }) {
 
 function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '12px 14px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: color, opacity: 0.7 }} />
-      <p style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#475569', marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', color, lineHeight: 1 }}>{value}</p>
-      {sub && <p style={{ fontSize: 9, color: '#475569', marginTop: 4 }}>{sub}</p>}
+    <div className="lg-surface lg-flat" style={{ borderRadius: 18, padding: '10px 10px 11px', minWidth: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--lg-text-2)', marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+      <p style={{ fontSize: 'clamp(13px, 4vw, 17px)', fontWeight: 700, color, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }} title={value}>{value}</p>
+      {sub && <p style={{ fontSize: 11, color: 'var(--lg-text-3)', marginTop: 4 }}>{sub}</p>}
     </div>
   )
 }
@@ -405,7 +404,7 @@ function SmallMultiples({ series, start, end, language }: { series: SmallMultipl
   const formatTick = useCallback((ts: number) => dayFmt.format(ts), [dayFmt])
   return (
     <>
-      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', minHeight: 18, marginBottom: 4 }} aria-live="polite">
+      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)', minHeight: 18, marginBottom: 4 }} aria-live="polite">
         {syncTs != null ? formatDate(format(new Date(syncTs), 'yyyy-MM-dd'), language) : ''}
       </p>
       {series.map((row, i) => {
@@ -416,13 +415,13 @@ function SmallMultiples({ series, start, end, language }: { series: SmallMultipl
           <div key={row.marker} style={{ marginBottom: isLast ? 0 : 6 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2, paddingLeft: 4 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: row.color }}>{row.marker}</span>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600 }}>{row.unit}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: row.color }}>{row.marker}</span>
+                <span style={{ fontSize: 12, color: 'var(--lg-text-2)' }}>{row.unit}</span>
                 {row.normalMin != null && row.normalMax != null && (
-                  <span style={{ fontSize: 8, color: 'var(--text-muted)' }}>Norm: {row.normalMin}–{row.normalMax}</span>
+                  <span style={{ fontSize: 11, color: 'var(--lg-text-3)' }}>Norm: {row.normalMin}–{row.normalMax}</span>
                 )}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 900, color: row.color, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: row.color, fontVariantNumeric: 'tabular-nums' }}>
                 {shown != null ? `${formatNumber(shown, language, 2)} ${row.unit}` : '–'}
               </span>
             </div>
@@ -858,14 +857,14 @@ export function Protokoll() {
     <div className="space-y-5">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-400/70 mb-1">{copy.subtitle}</p>
-          <h1 className="text-2xl font-black tracking-tight text-white">{copy.title}</h1>
+          <h1 className="lg-large-title">{copy.title}</h1>
+          <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">{copy.subtitle}</p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-secondary flex-1 sm:flex-none" onClick={handleShare}>
+          <button type="button" data-quiet className="lg-gray-btn shrink-0 !min-h-12 !px-3.5 whitespace-nowrap max-[379px]:!text-[14px]" onClick={handleShare}>
             <Link2 size={16} /> {copy.share}
           </button>
-          <button className="btn-primary flex-1 sm:flex-none" onClick={openPdfModal} disabled={loadingBase}>
+          <button type="button" className="lg-btn lg-btn-primary min-w-0 flex-1 sm:flex-none !px-4 max-[379px]:!px-3 max-[379px]:!text-[15px]" onClick={openPdfModal} disabled={loadingBase}>
             <Download size={16} /> {copy.generatePdf}
           </button>
         </div>
@@ -880,21 +879,23 @@ export function Protokoll() {
 
       {/* ── KPI Strip ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        <KpiCard label="Adherence" color="#10b981"
+        <KpiCard label="Adherence" color="var(--lg-good-text)"
           value={kpiValues.adherencePct != null ? `${kpiValues.adherencePct}%` : '—'}
           sub={kpiValues.adherencePct != null && kpiValues.adherencePct >= 80 ? '↑ gut' : undefined} />
-        <KpiCard label="Gewicht Δ" color="#00ccf5"
+        <KpiCard label="Gewicht Δ" color="var(--lg-accent-text)"
           value={kpiValues.weightDelta != null ? `${kpiValues.weightDelta > 0 ? '+' : ''}${formatNumber(kpiValues.weightDelta, language, 1)} kg` : '—'} />
-        <KpiCard label="IGF-1 Δ" color="#8b5cf6"
+        <KpiCard label="IGF-1 Δ" color="#bf5af2"
           value={kpiValues.igf1Delta != null ? `${kpiValues.igf1Delta > 0 ? '+' : ''}${kpiValues.igf1Delta}%` : '—'} />
-        <KpiCard label="CRP Δ" color={kpiValues.crpDelta != null && kpiValues.crpDelta < 0 ? '#10b981' : '#f43f5e'}
+        <KpiCard label="CRP Δ" color={kpiValues.crpDelta != null && kpiValues.crpDelta < 0 ? 'var(--lg-good-text)' : 'var(--lg-bad-text)'}
           value={kpiValues.crpDelta != null ? `${kpiValues.crpDelta > 0 ? '+' : ''}${kpiValues.crpDelta}%` : '—'} />
       </div>
 
-      <section className="card">
-        <div className="grid grid-cols-2 gap-2 mb-4">
+      <section className="lg-surface lg-flat p-4">
+        <div className="grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5 mb-4">
           <button
-            className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${selectorMode === 'current' ? 'bg-sky-400 text-slate-950' : 'bg-white/[0.04] text-slate-400 hover:text-white'}`}
+            type="button"
+            aria-pressed={selectorMode === 'current'}
+            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'current' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => {
               setSelectorMode('current')
               setRange(currentCycleRange)
@@ -904,7 +905,9 @@ export function Protokoll() {
             {copy.currentCycle}
           </button>
           <button
-            className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${selectorMode === 'custom' ? 'bg-sky-400 text-slate-950' : 'bg-white/[0.04] text-slate-400 hover:text-white'}`}
+            type="button"
+            aria-pressed={selectorMode === 'custom'}
+            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'custom' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => setSelectorMode('custom')}
           >
             {copy.customRange}
@@ -912,7 +915,8 @@ export function Protokoll() {
         </div>
 
         {selectorMode === 'custom' ? (
-          <div className="grid grid-cols-2 gap-3">
+          // Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab
+          <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
             <div>
               <label className="label">{copy.from}</label>
               <input
@@ -933,56 +937,54 @@ export function Protokoll() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3">
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">{copy.activeCycles}</p>
+          <div className="rounded-[16px] bg-[var(--lg-surface-2)] p-3">
+            <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.activeCycles}</p>
             {activeCycles.length > 0 ? (
               <div className="space-y-2">
                 {activeCycles.map(cycle => (
                   <div key={cycle.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-white font-semibold">{cycle.stack_items?.display_name ?? cycle.name}</span>
-                    <span className="text-slate-500 text-xs">
+                    <span className="text-[var(--lg-text)] font-semibold">{cycle.stack_items?.display_name ?? cycle.name}</span>
+                    <span className="text-[var(--lg-text-2)] text-[13px]">
                       {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">{copy.noActiveCycle}</p>
+              <p className="text-sm text-[var(--lg-text-2)]">{copy.noActiveCycle}</p>
             )}
           </div>
         )}
 
-        <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-          <CalendarDays size={15} className="text-sky-400" />
+        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--lg-text-2)]">
+          <CalendarDays size={15} className="text-[var(--lg-accent-text)]" />
           <span>
-            {copy.period}: <span className="text-white font-semibold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</span>
+            {copy.period}: <span className="text-[var(--lg-text)] font-semibold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</span>
           </span>
         </div>
       </section>
 
       {(loadingBase || loadingCharts) && (
-        <div className="card text-center py-6 text-slate-500">
+        <div className="lg-surface lg-flat text-center py-6 text-[var(--lg-text-2)]">
           {copy.loading}
         </div>
       )}
 
-      <div className="space-y-4 rounded-[1.5rem] bg-[var(--surface)]">
+      <div className="space-y-4">
 
         {/* ── Schnell-Ansichten ── */}
         <div>
-          <p style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#334155', marginBottom: 8 }}>Schnell-Ansichten</p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+          <p className="lg-group-title !mx-1">Schnell-Ansichten</p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
             {PRESETS.map(p => (
-              <button key={p.key} onClick={() => applyPreset(p.key)} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                padding: '5px 13px', borderRadius: 100, fontSize: 10, fontWeight: 700, letterSpacing: '0.02em',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                border: selectedPreset === p.key ? '1px solid var(--accent-border)' : '1px solid var(--border)',
-                background: selectedPreset === p.key ? 'var(--accent-weak)' : 'var(--surface)',
-                color: selectedPreset === p.key ? 'var(--accent)' : 'var(--text-muted)',
-                boxShadow: selectedPreset === p.key ? '0 0 14px rgba(0,204,245,0.15)' : 'none',
-                transition: 'all 0.18s',
-              }}><p.icon size={12} />{p.label}</button>
+              <button key={p.key} type="button" aria-pressed={selectedPreset === p.key} onClick={() => applyPreset(p.key)} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36,
+                padding: '0 14px', borderRadius: 999, fontSize: 14, fontWeight: 500,
+                cursor: 'pointer', whiteSpace: 'nowrap', border: 'none',
+                background: selectedPreset === p.key ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--lg-fill)',
+                color: selectedPreset === p.key ? 'var(--lg-accent-text)' : 'var(--lg-text-2)',
+                transition: 'background-color 0.18s, color 0.18s',
+              }}><p.icon size={14} />{p.label}</button>
             ))}
           </div>
         </div>
@@ -993,14 +995,13 @@ export function Protokoll() {
             const on = activeMarkers.includes(marker)
             const color = getSeriesColor(marker)
             return (
-              <button key={marker} onClick={() => toggleMarker(marker)} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 10,
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.02em', cursor: 'pointer',
-                border: on ? '1px solid var(--border)' : '1px solid var(--border)',
-                background: on ? 'var(--surface)' : 'var(--surface)',
-                color: on ? 'var(--text-dim)' : 'var(--text-muted)', transition: 'all 0.18s',
+              <button key={marker} type="button" aria-pressed={on} onClick={() => toggleMarker(marker)} style={{
+                display: 'flex', alignItems: 'center', gap: 7, minHeight: 36, padding: '0 13px', borderRadius: 999,
+                fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none',
+                background: on ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
+                color: on ? 'var(--lg-text)' : 'var(--lg-text-2)', transition: 'background-color 0.18s, color 0.18s',
               }}>
-                <span style={{ width: 10, height: 10, borderRadius: 3, background: color, opacity: on ? 1 : 0.3, flexShrink: 0 }} />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: color, opacity: on ? 1 : 0.35, flexShrink: 0 }} />
                 {marker}
               </button>
             )
@@ -1009,22 +1010,22 @@ export function Protokoll() {
 
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500">{copy.period}</p>
-            <p className="text-white font-bold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</p>
+            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.period}</p>
+            <p className="lg-title2">{formatDate(range.from, language)} - {formatDate(range.to, language)}</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-sky-400/10 border border-sky-400/20 flex items-center justify-center">
-            <FileText size={18} className="text-sky-400" />
-          </div>
+          <span className="lg-icon-tile" style={{ background: '#0a84ff' }} aria-hidden="true">
+            <FileText size={17} />
+          </span>
         </div>
 
         {/* ── Chart 1: % Veränderung ── */}
-        <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
+        <section className="lg-surface lg-flat" style={{ padding: 18 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)' }}>Verlauf — % Veränderung</p>
-              <p style={{ fontSize: 9, color: '#334155', marginTop: 2, fontWeight: 600, letterSpacing: '0.04em' }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
+              <p className="lg-title2" style={{ fontSize: 17 }}>Verlauf — % Veränderung</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
             </div>
-            <span style={{ background: 'var(--accent-weak)', border: '1px solid var(--accent-border)', borderRadius: 8, padding: '4px 9px', fontSize: 9, fontWeight: 700, color: 'var(--accent)' }}>% Δ ab Start</span>
+            <span className="lg-tag shrink-0" data-tone="accent">% Δ ab Start</span>
           </div>
           {percentSeries.length > 0 ? (
             <>
@@ -1051,7 +1052,7 @@ export function Protokoll() {
                 xBands={percentChart.xBands}
                 xLines={percentChart.xLines}
               />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', marginTop: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', marginTop: 8, fontSize: 13, fontWeight: 500, color: 'var(--lg-text-2)' }}>
                 {percentSeries.map(series => (
                   <span key={series.marker} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span aria-hidden="true" style={{ width: 10, height: 3, borderRadius: 2, background: series.color }} />
@@ -1067,11 +1068,11 @@ export function Protokoll() {
 
         {/* ── Chart 2: Small Multiples ── */}
         {smallMultiplesData.length > 0 && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)' }}>Detailansicht — echte Einheiten</p>
-                <p style={{ fontSize: 9, color: '#334155', marginTop: 2, fontWeight: 600, letterSpacing: '0.04em' }}>Absolute Werte · Farbband = Normalbereich</p>
+                <p className="lg-title2" style={{ fontSize: 17 }}>Detailansicht — echte Einheiten</p>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Absolute Werte · Farbband = Normalbereich</p>
               </div>
             </div>
             <SmallMultiples series={smallMultiplesData} start={chartWindow.start} end={chartWindow.end} language={language} />
@@ -1080,20 +1081,20 @@ export function Protokoll() {
 
         {/* ── Persönliche Insights ── */}
         {(sideEffectStats.length > 0 || substanceEffectStats.length > 0 || substanceReviewStats.length > 0) && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)', marginBottom: 4 }}>{t('protokoll_insights_title')}</p>
-            <p style={{ fontSize: 9, color: '#334155', fontWeight: 600, letterSpacing: '0.04em', marginBottom: 16 }}>{t('protokoll_insights_sub')}</p>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{t('protokoll_insights_title')}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 16 }}>{t('protokoll_insights_sub')}</p>
 
             {sideEffectStats.length > 0 ? (
               <div style={{ marginBottom: 18 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-warn-text)', marginBottom: 8 }}>
                   {t('protokoll_side_effects_title')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sideEffectStats.map(item => (
                     <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ flex: 1, fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.35 }}>{item.text}</span>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '2px 8px', borderRadius: 8 }}>
+                      <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)', lineHeight: 1.35 }}>{item.text}</span>
+                      <span className="lg-tag" data-tone="warn">
                         ×{item.count}
                       </span>
                     </div>
@@ -1101,19 +1102,19 @@ export function Protokoll() {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 10, color: '#475569', marginBottom: 14 }}>{t('protokoll_side_effects_empty')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 14 }}>{t('protokoll_side_effects_empty')}</p>
             )}
 
             {substanceEffectStats.length > 0 && (
               <div style={{ marginBottom: substanceReviewStats.length > 0 ? 18 : 0 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#8b5cf6', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#bf5af2', marginBottom: 8 }}>
                   {t('protokoll_effects_by_peptide')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {substanceEffectStats.map(row => (
                     <div key={row.name}>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 4 }}>{row.name}</p>
-                      <p style={{ fontSize: 10, color: '#64748b' }}>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)', marginBottom: 2 }}>{row.name}</p>
+                      <p style={{ fontSize: 13, color: 'var(--lg-text-2)' }}>
                         {t('protokoll_effect_count', { effects: row.effects, side: row.sideEffects, severity: row.avgSeverity })}
                       </p>
                     </div>
@@ -1124,14 +1125,14 @@ export function Protokoll() {
 
             {substanceReviewStats.length > 0 && (
               <div>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#10b981', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-good-text)', marginBottom: 8 }}>
                   {t('protokoll_reviews_by_peptide')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {substanceReviewStats.map(row => (
                     <div key={row.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)' }}>{row.name}</span>
-                      <span style={{ fontSize: 10, color: '#64748b', textAlign: 'right' }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)' }}>{row.name}</span>
+                      <span style={{ fontSize: 13, color: 'var(--lg-text-2)', textAlign: 'right' }}>
                         {t('protokoll_review_stat', { rating: row.avgRating, count: row.count })}
                         {/* Bewertungen v2: Kriterien, sobald es welche gibt. */}
                         {(row.avgWirkung !== null || row.avgVertraeglichkeit !== null || row.wiederBeantwortet > 0) && (
@@ -1154,17 +1155,17 @@ export function Protokoll() {
 
         {/* ── Adherence je Substanz ── */}
         {adherencePerSubstance.length > 0 && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)', marginBottom: 4 }}>{copy.adherenceTitle}</p>
-            <p style={{ fontSize: 9, color: '#334155', fontWeight: 600, letterSpacing: '0.04em', marginBottom: 14 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{copy.adherenceTitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 14 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {adherencePerSubstance.map(({ name, pct, color }) => (
                 <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', width: 96, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                  <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden' }}>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-text)', width: 96, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                  <div style={{ flex: 1, height: 6, background: 'var(--lg-fill)', borderRadius: 6, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${pct}%`, borderRadius: 6, background: `linear-gradient(90deg,${color},${color}aa)`, transition: 'width 0.5s cubic-bezier(.4,0,.2,1)' }} />
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, width: 36, textAlign: 'right', flexShrink: 0, color }}>{pct}%</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, width: 40, textAlign: 'right', flexShrink: 0, color }}>{pct}%</span>
                 </div>
               ))}
             </div>
@@ -1174,43 +1175,45 @@ export function Protokoll() {
       </div>
 
       <section>
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500 mb-3">{copy.previousCycles}</p>
+        <p className="lg-group-title">{copy.previousCycles}</p>
         {completedCycles.length === 0 ? (
-          <div className="card text-center py-8 text-slate-500">
+          <div className="lg-surface lg-flat text-center px-5 py-8 text-[15px] text-[var(--lg-text-2)]">
             {copy.noPreviousCycles}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="lg-group lg-rows">
             {completedCycles.map(cycle => {
               const adherence = adherenceForCycle(cycle)
               const selected = selectedCycleId === cycle.id
               return (
                 <button
                   key={cycle.id}
-                  className={`card w-full text-left transition-colors ${selected ? 'border-sky-400/40 bg-sky-400/[0.06]' : 'hover:border-sky-400/20'}`}
+                  type="button"
+                  aria-pressed={selected}
+                  className={`w-full px-4 py-3.5 text-left transition-colors active:bg-white/[0.06] ${selected ? 'bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]' : ''}`}
                   onClick={() => selectCycle(cycle)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-white font-bold truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-[17px] font-semibold text-[var(--lg-text)] truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
+                      <p className="text-[13px] text-[var(--lg-text-2)] mt-0.5">
                         {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="badge bg-sky-500/10 text-sky-400">
+                        <span className="lg-tag" data-tone="accent">
                           {copy.duration}: {cycleDuration(cycle)} {copy.days}
                         </span>
-                        <span className="badge bg-emerald-500/10 text-emerald-400 inline-flex items-center gap-1">
+                        <span className="lg-tag" data-tone="good">
                           <CheckCircle2 size={12} />
                           {copy.adherenceRate}: {adherence == null ? '-' : `${adherence}%`}
                         </span>
-                        <span className="badge bg-rose-500/10 text-rose-400 inline-flex items-center gap-1">
+                        <span className="lg-tag">
                           <XCircle size={12} />
                           inactive
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-sky-400 shrink-0 mt-1" />
+                    <ChevronRight size={18} className="text-[var(--lg-text-3)] shrink-0 mt-1" />
                   </div>
                 </button>
               )
