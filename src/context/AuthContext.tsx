@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { vergissStackBild } from '../components/ui/silhouettenBild'
 import { supabase } from '../lib/supabase'
 
 interface AuthContextType {
@@ -26,7 +27,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Jeder Weg hinaus (Abmelden, Konto gelöscht, Sitzung abgelaufen)
+      if (event === 'SIGNED_OUT') vergissStackBild()
       setSession(session)
     })
 

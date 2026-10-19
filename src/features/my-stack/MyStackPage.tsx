@@ -19,6 +19,7 @@ import { buildDoseAdjustmentBackfillUpdates, type DoseAdjustmentBackfillLog } fr
 import type { VialStageLightHandle } from '../../components/PeptideVialVisual'
 import { useSloshEngine } from '../../components/SloshContext'
 import { LabLoader } from '../../components/LabLoader'
+import { merkeStackBild } from '../../components/ui/silhouettenBild'
 import { StackItemWizard } from './components/StackItemWizard'
 import { hapticTick } from '../../lib/haptics'
 import {
@@ -93,6 +94,7 @@ import {
   NO_TIMELINES,
   ADD_SLOT,
   sortPeptides,
+  zeigtPegel,
   FREQ_KEYS,
   INTAKE_TIME_CONFIG,
   REMINDER_OPTIONS,
@@ -146,7 +148,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // Stack, Zyklen, Zeitleisten, Bestand, Katalog und Dosisanpassungen — samt
   // erstem Laden beim Oeffnen. Siehe page/useMyStackData.ts.
   const {
-    inventory, peptides, setPeptides, loading, initialLoad,
+    inventory, peptides, setPeptides, loading, initialLoad, stackGeladen,
     cycles, cycleTimelines, setCycleTimelines, timelineLoadError,
     timelineLoading, catalogEntries, catalogUnavailable,
     archivedPeptides, escalations,
@@ -386,6 +388,24 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const listPeptides = viewMode === 'list'
     ? displayPeptides
     : displayPeptides.filter(p => !isStageRenderable(p.dosage_form))
+
+  // Was beim naechsten Oeffnen zuerst dasteht — Reiter „Alle", Vorgabe-
+  // sortierung, ohne Suche —, merkt sich die Ladesilhouette: dann steht dort
+  // schon der Pen, wenn ein Pen vorn ist (silhouettenBild.ts).
+  // Nur nach gegluecktem Laden: ein Fehler hinterliesse sonst einen leeren Stack.
+  const stackBild = useMemo(() => {
+    if (!stackGeladen) return null
+    const buehne = sortPeptides(peptides, 'active_name', activePeptideIds).filter(p => isStageRenderable(p.dosage_form))
+    return {
+      form: buehne[0]?.dosage_form ?? null,
+      pegel: !!buehne[0] && zeigtPegel(buehne[0]),
+      buehne: buehne.length,
+      gesamt: peptides.length,
+    }
+  }, [stackGeladen, peptides, activePeptideIds])
+  useEffect(() => {
+    if (stackBild) merkeStackBild(stackBild)
+  }, [stackBild])
 
   const setViewMode = (mode: 'vials' | 'list') => {
     setViewModeState(mode)

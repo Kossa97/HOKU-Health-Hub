@@ -4,6 +4,10 @@
 // nichts springt.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getDosageForm } from '../../features/my-stack/lib/dosageForms'
+import { FORM_UMRISSE } from '../../features/my-stack/stage/formUmrisse'
+import type { DosageFormKey } from '../../features/my-stack/types'
+import { leseStackAnsicht, leseStackBild } from './silhouettenBild'
 import { ketteBeenden, kettenStart, SICHTBAR_NACH, silhouetteFuerPfad, type SilhouettenArt } from './silhouetteTakt'
 
 /** Eine Platzhalterform. Breite/Höhe in px oder als CSS-Wert. */
@@ -37,9 +41,9 @@ export function Silhouette({ children, className = '', label }: { children: Reac
   )
 }
 
-function Kopf({ titel = '46%', knoepfe = 1, knopf }: { titel?: number | string; knoepfe?: number; knopf?: ReactNode }) {
+function Kopf({ titel = '46%', knoepfe = 1, knopf, abstand = 'mb-5' }: { titel?: number | string; knoepfe?: number; knopf?: ReactNode; abstand?: string }) {
   return (
-    <div className="mb-5 flex items-center justify-between gap-3">
+    <div className={`${abstand} flex items-center justify-between gap-3`}>
       <Ph w={titel} h={32} style={{ borderRadius: 9 }} />
       <div className="flex gap-2.5">
         {knopf ?? Array.from({ length: knoepfe }, (_, i) => <Ph key={i} w={44} h={44} shape="round" />)}
@@ -149,22 +153,114 @@ export function EinnahmenUmriss() {
   )
 }
 
+// Die Höhe der echten Seite: Bildschirm ohne Statusleiste, oberen Rand und
+// Tab-Leiste (Layout.tsx). Die Bühne darin füllt, was übrig bleibt — wie dort.
+const STACK_HOEHE = 'max(440px, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1rem - var(--bottom-nav-height)))'
+
+/**
+ * My Stack, so wie es gleich dasteht: Bühne oder Liste, und auf der Bühne die
+ * Form, die zuerst kommt — ein Pen als Pen, nicht als Vial (silhouettenBild.ts).
+ * Ohne Gemerktes steht ein Vial da, die häufigste Form.
+ */
 function Stack() {
+  const [bild] = useState(leseStackBild)
+  const [ansicht] = useState(leseStackAnsicht)
+  if (bild?.gesamt === 0) {
+    return (
+      <>
+        <Kopf titel="40%" knoepfe={3} />
+        <SkelKarte className="flex flex-col items-center gap-5 px-5 py-10">
+          <Ph w="58%" h={14} />
+          <Ph w={150} h={190} style={{ borderRadius: 18 }} />
+        </SkelKarte>
+      </>
+    )
+  }
+  const zeilen = Math.min(bild?.gesamt ?? 4, 8)
+  if (ansicht === 'list') return <StackListe zeilen={zeilen} />
+  // Nichts Darstellbares auf der Bühne: die Seite zeigt Reiter und Zeilen
+  if (bild && bild.form === null) return <StackListe zeilen={zeilen} mitReitern />
+  return (
+    <div className="flex flex-col" style={{ height: STACK_HOEHE }}>
+      <Kopf titel="40%" knoepfe={3} abstand="mb-4" />
+      {/* Reiter: py-1 und mb-2 wie StackTabBar */}
+      <div className="mb-2 flex gap-2 overflow-hidden py-1"><StackReiter /></div>
+      <div className="mb-1 flex items-center justify-between px-1">
+        <Ph w={44} h={44} shape="round" />
+        <div className="flex gap-1.5"><Ph w={130} h={32} shape="pill" /><Ph w={66} h={32} shape="pill" /></div>
+        <Ph w={44} h={44} shape="round" />
+      </div>
+      <BuehnenForm form={bild?.form ?? 'vial'} pegel={bild?.pegel ?? true} />
+      <PositionsZeile anzahl={bild?.buehne ?? 3} />
+    </div>
+  )
+}
+
+function StackReiter() {
+  return <>{[88, 124, 158, 120].map((w, i) => <Ph key={i} w={w} h={36} shape="pill" />)}</>
+}
+
+/** Die Form auf der Bühne, eingepasst wie StageFit: Anteil der Höhe, höchstens die Breite. */
+function BuehnenForm({ form, pegel }: { form: DosageFormKey; pegel: boolean }) {
+  const definition = getDosageForm(form)
+  const umriss = FORM_UMRISSE[definition.stageRenderer ?? 'vial']
+  return (
+    // pt-2/pb-4: Innenabstand des Eintrags und Unterkante des Streifens (VialCarousel)
+    <div className="flex min-h-0 flex-1 flex-col pb-4 pt-2">
+      {/* Eintragsbreite min(17rem, 70vw) abzüglich px-2 */}
+      <div className="relative mx-auto min-h-0 w-[calc(min(17rem,70vw)-16px)] flex-1">
+        <svg
+          aria-hidden="true"
+          viewBox={umriss.viewBox}
+          preserveAspectRatio="xMidYMax meet"
+          className="lg-ph-form absolute bottom-0 left-1/2 max-w-full -translate-x-1/2"
+          style={{ height: `${(definition.stageHeightRatio ?? 1) * 100}%` }}
+        >
+          {/* Deckkraft auf der Gruppe: wo Teile überlappen (Kappe auf Körper), wird es nicht dunkler */}
+          <g>{umriss.pfade.map(({ d, transform }, i) => <path key={i} d={d} transform={transform} />)}</g>
+        </svg>
+      </div>
+      <div className="mt-1 flex h-[19px] items-center justify-center">{pegel ? <Ph w={34} h={11} /> : null}</div>
+    </div>
+  )
+}
+
+/**
+ * „+", ein Punkt je Eintrag (der erste als Strich), ab acht eine Leiste — wie
+ * VialPositionRow. „1 / n" steht dort absolut daneben, die Punkte bleiben mittig.
+ */
+function PositionsZeile({ anzahl }: { anzahl: number }) {
+  return (
+    <div className="mb-2 mt-1 flex h-2.5 items-center justify-center">
+      <div className="relative flex items-center gap-2.5">
+        <Ph w={16} h={16} shape="round" />
+        {anzahl > 7
+          ? <Ph w={96} h={4} shape="pill" />
+          : Array.from({ length: anzahl }, (_, i) => <Ph key={i} w={i === 0 ? 20 : 6} h={6} shape="pill" />)}
+        <Ph w={30} h={11} className="absolute left-full top-1/2 ml-2 -translate-y-1/2" />
+      </div>
+    </div>
+  )
+}
+
+/** Die Liste: eine gruppierte Fläche, je Eintrag Objekt, Name mit Status, Zusammensetzung, Haltbarkeit. */
+function StackListe({ zeilen, mitReitern = false }: { zeilen: number; mitReitern?: boolean }) {
   return (
     <>
-      <Kopf titel="40%" knoepfe={3} />
-      <Chips breiten={[52, 88, 112, 84]} />
-      <div className="flex items-center justify-between">
-        <Ph w={36} h={36} shape="round" />
-        <Ph w={150} h={24} shape="pill" />
-        <Ph w={36} h={36} shape="round" />
-      </div>
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <Ph w={88} h={36} style={{ borderRadius: 12 }} />
-        <Ph w={136} h={210} style={{ borderRadius: 30, marginTop: -12 }} />
-        <Ph w={38} h={11} className="mt-2" />
-        <Ph w={78} h={8} shape="pill" />
-      </div>
+      <Kopf titel="40%" knoepfe={3} abstand={mitReitern ? 'mb-4' : 'mb-3'} />
+      {mitReitern ? <div className="mb-2 flex gap-2 overflow-hidden py-1"><StackReiter /></div> : null}
+      <SkelKarte className="flex flex-col">
+        {Array.from({ length: zeilen }, (_, i) => (
+          <div key={i} className="flex items-center gap-3 py-2.5 pl-3 pr-3">
+            <div className="flex h-14 w-11 shrink-0 items-center justify-center"><Ph w={20} h={46} style={{ borderRadius: 6 }} /></div>
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="flex items-center justify-between gap-3"><Ph w={['46%', '38%', '52%'][i % 3]} h={16} /><Ph w={50} h={20} shape="pill" /></div>
+              <Ph w={['40%', '48%', '36%'][i % 3]} h={12} />
+              <Ph w={92} h={20} shape="pill" />
+            </div>
+          </div>
+        ))}
+      </SkelKarte>
     </>
   )
 }
