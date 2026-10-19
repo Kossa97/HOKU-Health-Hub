@@ -1038,9 +1038,9 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1792408310.9446425,
-    "seen": 1792426774.3988383,
-    "ast_hash": "867e78c9a3ed804bea69ca75b06655ef",
+    "mtime": 1792428570.2163916,
+    "seen": 1792428681.375593,
+    "ast_hash": "edcebde55580c55ee542289349c2f7d8",
     "semantic_hash": ""
   },
   "src/pages/FAQ.tsx": {
