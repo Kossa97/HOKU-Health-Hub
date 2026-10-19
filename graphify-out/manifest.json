@@ -690,15 +690,15 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1792404070.5798955,
-    "seen": 1792404841.7017307,
-    "ast_hash": "ecbaad18826ac75be44639a21c4513a7",
+    "mtime": 1792415356.042238,
+    "seen": 1792416085.5193915,
+    "ast_hash": "401e8d2df9dbf7a51e98e2312cd6e124",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1792404070.5818017,
-    "seen": 1792404841.7017365,
-    "ast_hash": "bb64105a3d75ce3429dd14ab7f2d5503",
+    "mtime": 1792415356.0442262,
+    "seen": 1792416085.5193956,
+    "ast_hash": "34bec94a50c29cfd41b79b0577c7ee19",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
@@ -1128,9 +1128,9 @@
     "semantic_hash": ""
   },
   "src/pages/Tagebuch.tsx": {
-    "mtime": 1792407051.3163447,
-    "seen": 1792407384.169767,
-    "ast_hash": "3720c229f0315cfef6e6d69845625724",
+    "mtime": 1792415356.0270357,
+    "seen": 1792416085.5232894,
+    "ast_hash": "e215cf09120ff45cf956ee5e3d9e1be7",
     "semantic_hash": ""
   },
   "src/pages/TheLab.tsx": {
@@ -3630,9 +3630,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1792404090.9110086,
-    "seen": 1792404841.6908486,
-    "ast_hash": "0d70f55365af8eeadb8fde7e478afac9",
+    "mtime": 1792415425.609574,
+    "seen": 1792416085.5104094,
+    "ast_hash": "d4de8a6a46984e4f937f9581cd3b6062",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -5712,9 +5712,9 @@
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
-    "mtime": 1792407078.1379018,
-    "seen": 1792407384.1428149,
-    "ast_hash": "7113d8a1f70206f8727a7824311f6dea",
+    "mtime": 1792415702.0768814,
+    "seen": 1792416085.4969032,
+    "ast_hash": "5e43b439cd69a3f869472378bed5eb52",
     "semantic_hash": ""
   },
   "scripts/generate-effect-duration-sql.mjs": {
@@ -7392,27 +7392,27 @@
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipEditor.tsx": {
-    "mtime": 1792398711.7778718,
-    "seen": 1792401236.9855957,
-    "ast_hash": "c4d4f0e8960860e68dfa72b70cffccc0",
+    "mtime": 1792415356.0280724,
+    "seen": 1792416085.5238645,
+    "ast_hash": "2a7c8adf74b754432f3a123b3dcfeabc",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipInfo.tsx": {
-    "mtime": 1792397918.5099404,
-    "seen": 1792401236.9855983,
-    "ast_hash": "42dca843e65a4bdeb4a09c74196b285c",
+    "mtime": 1792415634.8027315,
+    "seen": 1792416085.5238674,
+    "ast_hash": "fcbff7d4ba645a8f1a7aece857081733",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/EntryForm.tsx": {
-    "mtime": 1792405863.7456775,
-    "seen": 1792406339.624128,
-    "ast_hash": "c5b274577132597fcb7366da6fcbafdf",
+    "mtime": 1792415356.0258512,
+    "seen": 1792416085.5238705,
+    "ast_hash": "1a5917011684044013735c5e1e061a28",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/SymptomChip.tsx": {
-    "mtime": 1792407154.365988,
-    "seen": 1792407384.1703358,
-    "ast_hash": "c8b54538dddd2d4468728b7f50d96948",
+    "mtime": 1792415277.4177294,
+    "seen": 1792416085.5238738,
+    "ast_hash": "356ea532405498c5e43e5ae61552db0d",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/chips.test.ts": {
