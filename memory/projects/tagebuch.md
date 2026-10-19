@@ -65,7 +65,8 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   auf material-symbols-light (Schneller eingeschlafen, Bessere Haut gibt es dort
   nicht), Linien-Strich 1,6 → 1,2 (≈1,0 px), Faktor je Symbol (`OPTICAL`,
   0,78–1,28, max. 21 px in der 30-px-Scheibe). Ergebnis: Ausreißer 19 → 1,
-  Streuung 37 % → 11 %. Rest: Knötchen (0,55, flaches Motiv) – tauschen?
+  Streuung 37 % → 11 %. Knötchen danach neu: Oberkörper-Grundform mit festem
+  Knoten (Variante K-a, Gewicht 1,07, 0 Ausreißer); Alternative K-b Hautquerschnitt.
 - **Barrierefreiheit (2026-10-19, accessibility-review, WCAG 2.1 AA):** Kontraste
   der Symbole/Chips/Zahlen OK. Offen: Picker-Rad nicht per Tastatur bedienbar
   (kritisch); Chip-Editor ohne Fokusführung/Escape; Tabs ohne Pfeiltasten und
