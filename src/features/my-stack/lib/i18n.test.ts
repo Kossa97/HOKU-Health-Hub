@@ -1274,6 +1274,30 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_nothing_open',
   'bundle_confirm_open',
   'bundle_empty_hint',
+  'my_stack_scan',
+  'my_stack_scan_hint',
+  'my_stack_scan_hint_photo',
+  'my_stack_scan_photo',
+  'my_stack_scan_photo_instead',
+  'my_stack_scan_choose',
+  'my_stack_scan_denied',
+  'my_stack_scan_unavailable',
+  'my_stack_scan_ai_note',
+  'my_stack_scan_searching',
+  'my_stack_scan_reading',
+  'my_stack_scan_barcode_unknown',
+  'my_stack_scan_err_lookup',
+  'my_stack_scan_err',
+  'my_stack_scan_err_limit',
+  'my_stack_scan_no_label',
+  'my_stack_scan_image_only',
+  'my_stack_scan_not_found',
+  'my_stack_scan_strength',
+  'my_stack_scan_brand',
+  'my_stack_scan_custom',
+  'my_stack_scan_check',
+  'my_stack_scan_again',
+  'my_stack_scan_apply',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1295,26 +1319,28 @@ const EXPECTED_MY_STACK_KEYS = [
 // Tracking-Werkzeug" (research_only, safety_banner_* — nur de/en).
 // Bewusst ergaenzt (Oktober 2026): Kachel des Workout-Trackers
 // (`tile_training`, `tile_training_desc`; de/en, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Tagebuch v2 mit Chips (tagebuch_titel_*,
+// tagebuch_chip_*, tagebuch_einheit_*, tagebuch_info_* …; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '257f1e50fcfb5dafd1638489fc32dcef4edc7a710542d5802ddaee1ceb298f8e',
-  en: 'be91903fd6366779bf419f891db301d1e0dd76ae1fe9923d2834677dc8e79347',
+  de: 'bcea53968ddf80984fa30a40f572b2792f58ef57903c0a4a7d5b85cd9f6148a0',
+  en: 'b6f159ad2ba792729b40525d298ecab291b773b30668df6cbbbbc6c263ce7bae',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'c452b4ef245fccfafe00f1d3e26c82f7f2411e18c98a9ab1cd065d23999b6fd8',
-  es: '9e9443b09d32e9bc512abb3eeb170aaf61460d20fef23496ff59e839f9a8c7e1',
-  fr: '394504f8a53349a802bf6d4b7a8434282ac6998c733dd927bf3cbc62d17e79c4',
-  hi: '7ab924e8069cb0580fdb990ffb109804e4edf9d53437bd61308dc2186eba226e',
-  id: '1c57626410717886ce1de32b224972885498b2886198ffa3212433845c303400',
-  it: 'b8819f87da3dbaddc4e9045e4128147477a3d96f1d98db8de7a207277717cfbd',
-  ja: 'c0957e9827344a336ad40538f2e1fa0cac50740db02fa7c6f4142c8412fd4d0f',
-  ko: '0a7770c47371783fe0e2609b057f7085b3045393ff8fdc1d944eee2a1e7e1894',
-  pt: '53536682682890d6e3616a6c601e452d8903a884ff5928ebf4db20b1147f7a80',
-  ru: '9e93bfd664ddf8594ec3127d5d3fef0229f66944a054f99933a32e94fe5f7495',
-  tr: '77dabb17815a85776dabc636a1da34d98146036e3fb583e3a6bec4c3dbab40dc',
-  zh: '7154a70e7d8d7ba7b3823cd5bf9c90570c4ea0ee22eb5d9672d168e131341baf',
+  ar: 'c22d1f8828f26a32889e4f4c758e5ad928c005e9e6319d9bc613eb02ef897229',
+  es: '25897dc1c98e2adf5728ac441f6786da622a3307eb1b1e73f50fbba6f85ab235',
+  fr: 'a30588686b11444fdbbb1267ea34ee1ab8eae3a7f3f04033b828d5c556d87861',
+  hi: 'ac108afca000fd33ce3370db2914af3b1d09414fd9a2645109489404b586aeb5',
+  id: '20a69a769dacd3426315ea94355ac539172c4e131d2cbfa339248dad7f20b34a',
+  it: '5c56c83ccb81ffe0e30d715e5f78260d5ee5aef99d67dc48196e86b8c66d1598',
+  ja: '7038183ccfd261cdea10ecfbe531f5d230db70f988f2dd2c919fa74a16794950',
+  ko: '1681a9502cc012c9147370a0ca590572e741a76b4ed7bc72ad3e7feec4742b21',
+  pt: '87b09fcbf1ed1551adfc0f9a3dbf17f1efd803020f67eee93f85a4010059b66d',
+  ru: 'a1d39f37766958a513e063a6a36abea3c6dbf0886950fc6ab85fbdb70ae25b3d',
+  tr: '50fef8cd7471bc3fe1d75d7bcec97043284727e7db40064b06d726f52f295429',
+  zh: '2e166f0956479689a01f3687ca90a0fd7b889f1db30905cd1570739673fbf8cf',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

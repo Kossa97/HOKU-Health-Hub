@@ -61,6 +61,8 @@ import { ProductInventorySection } from './ProductInventorySection'
 import { StrengthEditor } from './StrengthEditor'
 import { TrackingLevelPicker } from './TrackingLevelPicker'
 import { SubstanceSearch } from './SubstanceSearch'
+import { SubstanzScanner } from './SubstanzScanner'
+import { scanAktionen, type ScanVorschlag } from '../lib/substanzScan'
 import { reportError } from '../../../lib/monitoring'
 import { gueltigeFluessigkeit, gueltigeHaltbarkeit } from '../lib/bestand'
 
@@ -299,6 +301,16 @@ export function StackItemWizard({
   const [pkProfileMethod, setPkProfileMethod] = useState(existingItem?.pk_profile_method ?? null)
   const [pkIntentError, setPkIntentError] = useState<string | null>(null)
   const [showErrors, setShowErrors] = useState(false)
+  // Scannen gibt es nur beim Neuanlegen: beim Bearbeiten wuerde ein Scan die
+  // Identitaet des Eintrags austauschen, statt sie zu pruefen.
+  const [scanOffen, setScanOffen] = useState(false)
+  const scanErlaubt = !existingItem && !planEditContext
+
+  function scanUebernehmen(vorschlag: ScanVorschlag): void {
+    for (const aktion of scanAktionen(vorschlag, catalogEntries, initialColorHex)) dispatch(aktion)
+    setShowErrors(false)
+    setScanOffen(false)
+  }
   const [identityChoiceMade, setIdentityChoiceMade] = useState(false)
   const [identityChoiceError, setIdentityChoiceError] = useState(false)
   const [duplicateCandidate, setDuplicateCandidate] = useState<StackItem | null>(null)
@@ -1092,6 +1104,7 @@ export function StackItemWizard({
             question={editOverview
               ? String(t('my_stack_edit_substance_question', { defaultValue: 'Welche Substanz ist es?' }))
               : undefined}
+            onScan={scanErlaubt ? () => setScanOffen(true) : undefined}
           />
         )
       case 'ingredients':
@@ -1833,6 +1846,15 @@ export function StackItemWizard({
           )}
         </footer>
       </div>
+      {/* Neben dem Dialog, nicht darin: sonst finge die Tab-Schleife des
+          Assistenten den Fokus des Sheets ein. */}
+      {scanOffen && (
+        <SubstanzScanner
+          katalog={catalogEntries}
+          onUebernehmen={scanUebernehmen}
+          onClose={() => setScanOffen(false)}
+        />
+      )}
     </div>
   )
 }

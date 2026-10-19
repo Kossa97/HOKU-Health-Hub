@@ -1,49 +1,215 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
 import { TEST_USER, type MockSupabase } from './support/mockSupabase'
 import { seedPeptide } from './support/myStack'
 
-/** Tagebuch: Eintraege anlegen, bearbeiten, loeschen — und Fehler sichtbar machen. */
+/**
+ * Tagebuch v2: Eintrag mit Titel, optionaler Substanz und Chips (Wirkungen,
+ * Nebenwirkungen) mit eigener Intensitaet und Dauer — Tabelle effect_symptoms.
+ */
 
-function eintrag(mock: MockSupabase, felder: Record<string, unknown>) {
-  return mock.insert('effects', {
-    user_id: TEST_USER.id, type: 'side_effect', description: 'Kopfschmerz', severity: 2,
-    status: 'eingetreten', duration: '2 Std', occurred_at: '2026-09-27T08:00:00.000Z',
+type Felder = Record<string, unknown>
+
+/** Ein Eintrag; ohne Angabe mit einem Chip „Kopfschmerzen", 4 · 2 Std. */
+function eintrag(mock: MockSupabase, felder: Felder, chips: Felder[] = [{}]) {
+  const effect = mock.insert('effects', {
+    user_id: TEST_USER.id, type: 'side_effect', description: 'Kopfschmerz', severity: 4,
+    status: 'eingetreten', duration: null, occurred_at: '2026-09-27T08:00:00.000Z',
     notes: null, stack_item_id: null, dose_log_id: null, ...felder,
   })
+  chips.forEach((chip, position) => mock.insert('effect_symptoms', {
+    user_id: TEST_USER.id, effect_id: effect.id, symptom_key: 'headache', custom_label: null, kind: 'side_effect',
+    severity: 4, duration_minutes: 120, ongoing: false, position, ...chip,
+  }))
+  return effect
 }
 
-test('Bearbeiten: Formular ist vorbefuellt (auch alte Dauer-Texte), Speichern aendert den Eintrag statt einen neuen anzulegen', async ({ page, mock }) => {
+const formular = (page: Page) => page.getByRole('dialog', { name: /^(Neuer Tagebuch-Eintrag|Eintrag bearbeiten)$/ })
+
+/** Chip im Formular antippen, im Editor eine Stufe waehlen, „Fertig". */
+async function waehleChip(page: Page, name: string, stufe: number, art: 'Wirkungen' | 'Nebenwirkungen' = 'Nebenwirkungen') {
+  await formular(page).getByRole('tab', { name: new RegExp(`^${art}`) }).click()
+  await formular(page).getByRole('button', { name: new RegExp(`^${name}, `) }).click()
+  const editor = page.getByRole('dialog', { name, exact: true })
+  await editor.getByRole('button', { name: new RegExp(`^${stufe} – `) }).click()
+  await editor.getByRole('button', { name: 'Fertig' }).click()
+  await expect(editor).toBeHidden()
+}
+
+test('Neu: Titel und ein Chip mit Intensitaet und Dauer — gespeichert in effects und effect_symptoms', async ({ page, mock }) => {
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await expect(dialog.getByLabel('Titel')).toBeFocused()
+  await dialog.getByLabel('Titel').fill('Morgens')
+
+  await dialog.getByRole('button', { name: /^Mehr Energie, / }).click()
+  const editor = page.getByRole('dialog', { name: 'Mehr Energie' })
+  // Ein neuer Chip hat noch keine Intensitaet — „Fertig" wartet darauf.
+  await expect(editor.getByRole('button', { name: 'Fertig' })).toBeDisabled()
+  await expect(editor.getByRole('button', { name: '1 – Sehr leicht' })).toBeFocused()
+  await editor.getByRole('button', { name: '4 – Stark' }).click()
+  await editor.getByRole('group', { name: 'Dauer' }).getByRole('button', { name: 'Dauer' }).click()
+  const zahl = editor.getByRole('spinbutton', { name: 'Dauer, Zahl' })
+  await expect(zahl).toHaveAttribute('aria-valuetext', '1')
+  await zahl.press('ArrowDown')
+  await expect(zahl).toHaveAttribute('aria-valuetext', '2')
+  await expect(editor.getByRole('spinbutton', { name: 'Dauer, Einheit' })).toHaveAttribute('aria-valuetext', 'Std.')
+  await editor.getByRole('button', { name: 'Fertig' }).click()
+
+  await expect(dialog.getByRole('button', { name: 'Mehr Energie, Wirkung, Intensität 4, Dauer 2 Std.' })).toBeFocused()
+  await expect(dialog.getByRole('tab', { name: /^Wirkungen/ })).toContainText('1')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Eintrag gespeichert')).toBeVisible()
+
+  expect(mock.table('effects')).toHaveLength(1)
+  const effect = mock.table('effects')[0]
+  expect(effect).toMatchObject({ description: 'Morgens', type: 'effect', severity: 4, duration: null, stack_item_id: null })
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
+  expect(mock.table('effect_symptoms')[0]).toMatchObject({
+    effect_id: effect.id, symptom_key: 'more_energy', custom_label: null, kind: 'effect',
+    severity: 4, duration_minutes: 120, ongoing: false, position: 0,
+  })
+  await expect(page.locator('ul > li')).toContainText('Mehr Energie, Wirkung, Intensität 4, Dauer 2 Std.')
+})
+
+test('Neu: Speichern erst mit Titel und Chip; der Hinweis sagt, was fehlt', async ({ page, mock }) => {
+  void mock
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  const speichern = dialog.getByRole('button', { name: 'Speichern' })
+  await expect(speichern).toBeDisabled()
+  await expect(dialog).toContainText('Titel eingeben und mindestens eine Wirkung oder Nebenwirkung wählen')
+  await dialog.getByLabel('Titel').fill('Abends')
+  await expect(dialog).toContainText('Mindestens eine Wirkung oder Nebenwirkung wählen')
+  await waehleChip(page, 'Übelkeit', 2)
+  await expect(speichern).toBeEnabled()
+  await dialog.getByLabel('Titel').fill('')
+  await expect(dialog).toContainText('Noch einen Titel eingeben')
+  await expect(speichern).toBeDisabled()
+})
+
+test('Neu: mehrere Chips, eigene Nebenwirkung, „Haelt noch an"; Art am Eintrag nur, wenn einheitlich', async ({ page, mock }) => {
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Nach dem Training')
+  await waehleChip(page, 'Mehr Kraft', 3, 'Wirkungen')
+
+  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
+  await dialog.getByRole('button', { name: '+ Eigene Nebenwirkung' }).click()
+  const editor = page.getByRole('dialog').filter({ has: page.getByLabel('Name', { exact: true }) })
+  await expect(editor.getByLabel('Name', { exact: true })).toBeFocused()
+  await editor.getByLabel('Name', { exact: true }).fill('Ziehen im Nacken')
+  await editor.getByRole('button', { name: '2 – Leicht' }).click()
+  await editor.getByRole('button', { name: 'Hält noch an' }).click()
+  await editor.getByRole('button', { name: 'Fertig' }).click()
+  await expect(dialog.getByRole('button', { name: 'Ziehen im Nacken, Nebenwirkung, Intensität 2, Dauer hält an' })).toBeVisible()
+
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(dialog).toBeHidden()
+  expect(mock.table('effects')[0]).toMatchObject({ type: null, severity: 3 })
+  expect(mock.table('effect_symptoms').map(({ symptom_key, custom_label, kind, severity, duration_minutes, ongoing, position }) =>
+    ({ symptom_key, custom_label, kind, severity, duration_minutes, ongoing, position }))).toEqual([
+    { symptom_key: 'more_strength', custom_label: null, kind: 'effect', severity: 3, duration_minutes: null, ongoing: false, position: 0 },
+    { symptom_key: null, custom_label: 'Ziehen im Nacken', kind: 'side_effect', severity: 2, duration_minutes: null, ongoing: true, position: 1 },
+  ])
+  await expect(page.locator('ul > li')).toContainText('Ziehen im Nacken, Nebenwirkung, Intensität 2, Dauer hält an')
+})
+
+test('Chip-Suche zeigt Wirkungen und Nebenwirkungen; ohne Treffer ein Hinweis', async ({ page, mock }) => {
+  void mock
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await dialog.getByRole('searchbox', { name: 'Wirkung oder Nebenwirkung suchen' }).fill('schlaf')
+  await expect(dialog).toContainText('Die Suche zeigt Wirkungen und Nebenwirkungen.')
+  await expect(dialog.getByRole('button', { name: /^Besser geschlafen, Wirkung/ })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: /^Schlechter geschlafen, Nebenwirkung/ })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: /^Übelkeit, / })).toHaveCount(0)
+  await dialog.getByRole('searchbox').fill('xyz')
+  await expect(dialog).toContainText('Nichts gefunden.')
+})
+
+test('Chip-Editor: Escape schliesst nur den Editor, Fokus zurueck auf den Chip; Info erklaert den Aufbau', async ({ page, mock }) => {
+  void mock
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
+  const chip = dialog.getByRole('button', { name: /^Schwindel, / })
+  await chip.click()
+  await expect(page.getByRole('dialog', { name: 'Schwindel' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Schwindel' })).toBeHidden()
+  await expect(dialog).toBeVisible()
+  await expect(chip).toBeFocused()
+
+  await dialog.getByRole('button', { name: 'So funktionieren die Chips' }).click()
+  const info = page.getByRole('dialog', { name: 'So ist ein Chip aufgebaut' })
+  await expect(info).toBeVisible()
+  await info.getByRole('button', { name: 'Verstanden' }).click()
+  await expect(info).toBeHidden()
+  await expect(dialog).toBeVisible()
+})
+
+test('Bearbeiten: vorbefuellt; Chip aendern, entfernen, hinzufuegen aendert den Eintrag statt einen neuen anzulegen', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const item = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
-  eintrag(mock, { stack_item_id: item.id })
+  eintrag(mock, { stack_item_id: item.id }, [{}, { symptom_key: 'nausea', severity: 2, duration_minutes: null, position: 1 }])
+  const [kopf] = mock.table('effect_symptoms')
   await page.goto('/tagebuch')
 
-  await expect(page.getByText('Kopfschmerz')).toBeVisible()
+  await expect(page.getByText('Kopfschmerz', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
-  await expect(page.getByRole('heading', { name: 'Eintrag bearbeiten' })).toBeVisible()
+  const dialog = formular(page)
+  await expect(dialog.getByRole('heading', { name: 'Eintrag bearbeiten' })).toBeVisible()
+  await expect(dialog.getByLabel('Titel')).toHaveValue('Kopfschmerz')
+  await expect(dialog.getByLabel('Substanz')).toHaveValue(String(item.id))
+  await expect(dialog.locator('.lg-form-value')).toHaveText('BPC-157')
+  await expect(dialog.getByRole('tab', { name: /^Nebenwirkungen/ })).toContainText('2')
 
-  await expect(page.locator('input[value="Kopfschmerz"]')).toBeVisible()
-  await expect(page.getByRole('button', { name: '2 Std', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('dialog').getByLabel('Substanz')).toHaveValue(String(item.id))
-  // Der Wert steht sichtbar rechts in der Zeile
-  await expect(page.getByRole('dialog').locator('.lg-form-value')).toHaveText('BPC-157')
+  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
+  await dialog.getByRole('button', { name: 'Kopfschmerzen, Nebenwirkung, Intensität 4, Dauer 2 Std.' }).click()
+  const editor = page.getByRole('dialog', { name: 'Kopfschmerzen' })
+  await expect(editor.getByRole('button', { name: '4 – Stark' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(editor.getByRole('button', { name: '4 – Stark' })).toBeFocused()
+  await editor.getByRole('button', { name: '1 – Sehr leicht' }).click()
+  await editor.getByRole('button', { name: 'Fertig' }).click()
 
-  await page.locator('input[value="Kopfschmerz"]').fill('Leichter Kopfschmerz')
-  await page.getByRole('button', { name: 'Speichern' }).click()
+  await dialog.getByRole('button', { name: /^Übelkeit, Nebenwirkung, Intensität 2/ }).click()
+  await page.getByRole('dialog', { name: 'Übelkeit' }).getByRole('button', { name: 'Entfernen' }).click()
+  await waehleChip(page, 'Besser geschlafen', 5, 'Wirkungen')
+
+  await dialog.getByLabel('Titel').fill('Kopfschmerz, leichter')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
   await expect(page.getByText('Eintrag aktualisiert')).toBeVisible()
 
   expect(mock.table('effects')).toHaveLength(1)
-  expect(mock.table('effects')[0]).toMatchObject({
-    description: 'Leichter Kopfschmerz', severity: 2, duration: 'std_2', stack_item_id: item.id, status: 'eingetreten',
-  })
-  await expect(page.getByText('Leichter Kopfschmerz')).toBeVisible()
+  expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz, leichter', type: null, severity: 5, stack_item_id: item.id })
+  const chips = mock.table('effect_symptoms')
+  expect(chips).toHaveLength(2)
+  // Der geaenderte Chip behaelt seine Zeile.
+  expect(chips.find(row => row.id === kopf.id)).toMatchObject({ symptom_key: 'headache', severity: 1, duration_minutes: 120, position: 0 })
+  expect(chips.find(row => row.id !== kopf.id)).toMatchObject({ symptom_key: 'slept_better', kind: 'effect', severity: 5, position: 1 })
 })
 
-test('Bearbeiten: eine eigene Dauer erscheint im Freitextfeld', async ({ page, mock }) => {
-  eintrag(mock, { duration: '3 Tage, schwankend' })
+test('Bearbeiten: ein alter Eintrag ohne Chips wird zu einem eigenen Chip', async ({ page, mock }) => {
+  eintrag(mock, { description: 'Unruhig', type: 'side_effect', severity: 2, duration: 'std_2' }, [])
   await page.goto('/tagebuch')
+  // Die Liste zeigt ihn wie bisher: Art, Intensitaet, Dauer.
+  await expect(page.locator('ul > li')).toContainText('Nebenwirkung')
+  await expect(page.locator('ul > li')).toContainText('2 Std')
   await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
-  await expect(page.locator('input[value="3 Tage, schwankend"]')).toBeVisible()
+  const dialog = formular(page)
+  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
+  await expect(dialog.getByRole('button', { name: 'Unruhig, Nebenwirkung, Intensität 2' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(dialog).toBeHidden()
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
+  expect(mock.table('effect_symptoms')[0]).toMatchObject({ symptom_key: null, custom_label: 'Unruhig', kind: 'side_effect', severity: 2 })
+  expect(mock.table('effects')[0]).toMatchObject({ duration: null })
 })
 
 test('Neu nach Bearbeiten: das Formular ist leer und legt einen neuen Eintrag an', async ({ page, mock }) => {
@@ -54,38 +220,18 @@ test('Neu nach Bearbeiten: das Formular ist leer und legt einen neuen Eintrag an
 
   await page.getByRole('button', { name: 'Neu' }).click()
   await expect(page.getByRole('heading', { name: 'Neuer Tagebuch-Eintrag' })).toBeVisible()
-  await expect(page.locator('input[value="Kopfschmerz"]')).toHaveCount(0)
+  await expect(formular(page).getByLabel('Titel')).toHaveValue('')
+  await expect(formular(page).getByRole('tab', { name: /^Nebenwirkungen/ })).not.toContainText(/\d/)
 })
 
-test('Loeschen: der Eintrag ist weg', async ({ page, mock }) => {
+test('Loeschen: der Eintrag und seine Chips sind weg', async ({ page, mock }) => {
   eintrag(mock, {})
   await page.goto('/tagebuch')
   await page.getByRole('button', { name: 'Eintrag löschen?' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Löschen' }).click()
-  await expect(page.getByText('Kopfschmerz')).toHaveCount(0)
+  await expect(page.locator('ul > li')).toHaveCount(0)
   expect(mock.table('effects')).toHaveLength(0)
-})
-
-test('Neu: eine vorgegebene Dauer wird als Schluessel gespeichert und uebersetzt angezeigt', async ({ page, mock }) => {
-  await page.goto('/tagebuch')
-  await page.getByRole('button', { name: 'Neu' }).click()
-  await page.getByLabel('Beschreibung *').fill('Mehr Energie')
-  await page.getByRole('button', { name: '4 Std', exact: true }).click()
-  await page.getByRole('button', { name: 'Speichern' }).click()
-  await expect(page.getByText('Eintrag gespeichert')).toBeVisible()
-
-  expect(mock.table('effects')).toHaveLength(1)
-  expect(mock.table('effects')[0]).toMatchObject({ description: 'Mehr Energie', duration: 'std_4' })
-  await expect(page.getByText('4 Std')).toBeVisible()
-})
-
-test('Anzeige: ein schon umgestellter Eintrag zeigt die Uebersetzung, Freitext bleibt Freitext', async ({ page, mock }) => {
-  eintrag(mock, { description: 'A', duration: 'woche_1', occurred_at: '2026-09-27T08:00:00.000Z' })
-  eintrag(mock, { description: 'B', duration: 'mal so, mal so', occurred_at: '2026-09-26T08:00:00.000Z' })
-  await page.goto('/tagebuch')
-  await expect(page.getByText('1 Woche')).toBeVisible()
-  await expect(page.getByText('mal so, mal so')).toBeVisible()
-  await expect(page.getByText('woche_1')).toHaveCount(0)
+  expect(mock.table('effect_symptoms')).toHaveLength(0)
 })
 
 test('Seitenweise: zuerst 50 Eintraege, „Weitere Eintraege laden" holt den Rest', async ({ page, mock }) => {
@@ -102,12 +248,12 @@ test('Seitenweise: zuerst 50 Eintraege, „Weitere Eintraege laden" holt den Res
   await expect(page.getByRole('button', { name: 'Weitere Einträge laden' })).toHaveCount(0)
 })
 
-test('Suche und Filter laufen in der Datenbank: Beschreibung oder Substanzname', async ({ page, mock }) => {
+test('Suche und Filter laufen in der Datenbank: Titel oder Substanzname; Filter nach Art der Chips', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const item = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
-  eintrag(mock, { description: 'Besserer Schlaf', type: 'effect' })
-  eintrag(mock, { description: 'Rötung', stack_item_id: item.id })
-  eintrag(mock, { description: 'Müdigkeit' })
+  eintrag(mock, { description: 'Besserer Schlaf', type: 'effect', occurred_at: '2026-09-27T09:00:00.000Z' }, [{ symptom_key: 'slept_better', kind: 'effect' }])
+  eintrag(mock, { description: 'Rötung', stack_item_id: item.id, occurred_at: '2026-09-27T08:30:00.000Z' }, [{ symptom_key: 'redness' }])
+  eintrag(mock, { description: 'Gemischt', type: null }, [{ symptom_key: 'more_energy', kind: 'effect' }, { symptom_key: 'fatigue', position: 1 }])
   await page.goto('/tagebuch')
   await expect(page.locator('ul > li')).toHaveCount(3)
 
@@ -117,18 +263,31 @@ test('Suche und Filter laufen in der Datenbank: Beschreibung oder Substanzname',
 
   await page.getByRole('searchbox').fill('')
   await page.getByRole('button', { name: 'Wirkungen', exact: true }).click()
-  await expect(page.locator('ul > li')).toHaveCount(1)
-  await expect(page.locator('ul > li')).toContainText('Besserer Schlaf')
+  await expect(page.locator('ul > li')).toHaveCount(2)
+  await expect(page.locator('ul > li').first()).toContainText('Besserer Schlaf')
+  await expect(page.locator('ul > li').last()).toContainText('Gemischt')
+  // Ein Eintrag mit beiden Arten erscheint einmal, mit allen seinen Chips.
+  await expect(page.locator('ul > li').last()).toContainText('Müdigkeit, Nebenwirkung')
+
+  await page.getByRole('button', { name: 'Nebenwirkungen', exact: true }).click()
+  await expect(page.locator('ul > li')).toHaveCount(2)
+  await expect(page.locator('ul > li').first()).toContainText('Rötung')
 })
 
-test('Barrierefreiheit: Formular ist ein Dialog, Escape schliesst, Felder sind beschriftet', async ({ page, mock }) => {
+test('Barrierefreiheit: Formular ist ein Dialog, Escape schliesst, Tabs per Pfeiltaste', async ({ page, mock }) => {
   void mock
   await page.goto('/tagebuch')
   await page.getByRole('button', { name: 'Neu' }).click()
   const dialog = page.getByRole('dialog', { name: 'Neuer Tagebuch-Eintrag' })
   await expect(dialog).toBeVisible()
-  await expect(dialog.getByLabel('Beschreibung *')).toBeFocused()
-  await expect(dialog.getByRole('button', { name: 'Wirkung', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(dialog.getByLabel('Titel')).toBeFocused()
+  const wirkungen = dialog.getByRole('tab', { name: /^Wirkungen/ })
+  await expect(wirkungen).toHaveAttribute('aria-selected', 'true')
+  await wirkungen.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(dialog.getByRole('tab', { name: /^Nebenwirkungen/ })).toBeFocused()
+  await expect(dialog.getByRole('tab', { name: /^Nebenwirkungen/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(dialog.getByRole('tabpanel')).toContainText('Einstichstelle')
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 })
@@ -150,14 +309,14 @@ test('Escape nach einer Eingabe fragt nach; „Nein" laesst das Formular offen',
   await page.goto('/tagebuch')
   await page.getByRole('button', { name: 'Neu' }).click()
   const dialog = page.getByRole('dialog', { name: 'Neuer Tagebuch-Eintrag' })
-  await dialog.getByLabel('Beschreibung *').fill('Halb getippt')
+  await dialog.getByLabel('Titel').fill('Halb getippt')
 
   let frage = ''
   page.once('dialog', d => { frage = d.message(); void d.dismiss() })
   await page.keyboard.press('Escape')
   await expect.poll(() => frage).toBe('Ungespeicherte Änderungen verwerfen?')
   await expect(dialog).toBeVisible()
-  await expect(dialog.getByLabel('Beschreibung *')).toHaveValue('Halb getippt')
+  await expect(dialog.getByLabel('Titel')).toHaveValue('Halb getippt')
 
   page.once('dialog', d => void d.accept())
   await page.keyboard.press('Escape')
@@ -185,7 +344,8 @@ test('Einnahme: freiwillig, nur bestaetigte der Substanz vor dem Zeitpunkt, wird
   await page.getByRole('button', { name: 'Neu' }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByLabel('Bezug zur Einnahme (optional)')).toHaveCount(0)
-  await dialog.getByLabel('Beschreibung *').fill('Wärme an der Einstichstelle')
+  await dialog.getByLabel('Titel').fill('Wärme an der Einstichstelle')
+  await waehleChip(page, 'Rötung', 2)
   await dialog.getByLabel('Substanz').selectOption({ label: 'BPC-157' })
 
   const auswahl = dialog.getByLabel('Bezug zur Einnahme (optional)')
@@ -208,7 +368,8 @@ test('Einnahme: ohne Wahl wird nichts verknuepft; Substanzwechsel leert die Wahl
 
   await page.getByRole('button', { name: 'Neu' }).click()
   const dialog = page.getByRole('dialog')
-  await dialog.getByLabel('Beschreibung *').fill('Ohne Bezug')
+  await dialog.getByLabel('Titel').fill('Ohne Bezug')
+  await waehleChip(page, 'Rötung', 2)
   await dialog.getByLabel('Substanz').selectOption({ label: 'BPC-157' })
   await dialog.getByLabel('Bezug zur Einnahme (optional)').selectOption(String(log.id))
   await dialog.getByLabel('Substanz').selectOption({ label: 'TB-500' })
@@ -227,9 +388,9 @@ test('Einnahme: ohne Substanz bleibt ein bestehender Verweis beim Speichern erha
   eintrag(mock, { stack_item_id: null, dose_log_id: log.id, occurred_at: '2026-09-28T07:00:00.000Z' })
   await page.goto('/tagebuch')
   await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
-  await page.getByRole('dialog').getByLabel('Beschreibung *').fill('Kopfschmerz, leicht')
-  await page.getByRole('dialog').getByRole('button', { name: 'Speichern' }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
+  await formular(page).getByLabel('Titel').fill('Kopfschmerz, leicht')
+  await formular(page).getByRole('button', { name: 'Speichern' }).click()
+  await expect(formular(page)).toBeHidden()
   expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz, leicht', dose_log_id: log.id })
 })
 
@@ -323,8 +484,9 @@ test('Auswertung: ein neuer Eintrag erscheint sofort, ohne den Reiter zu wechsel
   await page.getByRole('tab', { name: 'Auswertung' }).click()
   await expect(page.getByText('Keine Einträge in diesem Zeitraum.')).toBeVisible()
   await page.getByRole('button', { name: 'Neu' }).click()
-  await page.getByRole('dialog').getByLabel('Beschreibung *').fill('Mehr Energie')
-  await page.getByRole('dialog').getByRole('button', { name: 'Speichern' }).click()
+  await formular(page).getByLabel('Titel').fill('Mehr Energie')
+  await waehleChip(page, 'Mehr Energie', 3, 'Wirkungen')
+  await formular(page).getByRole('button', { name: 'Speichern' }).click()
   await expect(page.locator('[data-tagebuch-substanzen] tbody tr')).toHaveCount(1)
   await expect(page.locator('[data-tagebuch-substanzen] tbody tr')).toContainText('Ohne Substanz')
 })
@@ -339,7 +501,7 @@ test('Auswertung: ohne Eintraege ein Hinweis statt leerer Diagramme', async ({ p
 test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async ({ page, mock }, info) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const bpc = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
-  eintrag(mock, { stack_item_id: bpc.id, notes: 'Eine längere Notiz, die über mehrere Zeilen läuft, damit die Karte deutlich höher wird als die Knöpfe.', duration: 'std_2' })
+  eintrag(mock, { stack_item_id: bpc.id, notes: 'Eine längere Notiz, die über mehrere Zeilen läuft, damit die Karte deutlich höher wird als die Knöpfe.' }, [{}, { symptom_key: 'nausea', position: 1 }, { symptom_key: 'dizziness', position: 2, ongoing: true, duration_minutes: null }])
   eintrag(mock, { description: 'Kurz', occurred_at: '2026-09-26T08:00:00.000Z' })
   await page.goto('/tagebuch')
   await expect(page.locator('ul > li')).toHaveCount(2)
@@ -353,31 +515,35 @@ test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async
   if (info.project.name === 'iphone-13') await page.screenshot({ path: info.outputPath('liste.png') })
 })
 
-test('Formular: Speichern ist ohne Scrollen sichtbar; Intensitaet per Stufe waehlbar', async ({ page, mock }, info) => {
+test('Formular: Speichern ist ohne Scrollen sichtbar; Suche und Tabs bleiben beim Scrollen oben', async ({ page, mock }, info) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   await page.goto('/tagebuch')
   await page.getByRole('button', { name: 'Neu' }).click()
-  const dialog = page.getByRole('dialog')
+  const dialog = formular(page)
   const speichern = dialog.getByRole('button', { name: 'Speichern' })
   await expect(speichern).toBeInViewport({ ratio: 1 })
-
-  const stufen = dialog.getByRole('group', { name: 'Intensität' })
-  await expect(stufen.getByRole('radio', { name: '3 – Mittel' })).toBeChecked()
-  await stufen.getByText('4', { exact: true }).click()
-  await expect(stufen.getByRole('radio', { name: '4 – Stark' })).toBeChecked()
-  await expect(stufen).toContainText('Stark')
 
   // Ein fokussiertes Feld am Ende verschwindet nicht hinter der festen Knopfleiste.
   await dialog.getByLabel('Notizen (optional)').focus()
   const feld = (await dialog.getByLabel('Notizen (optional)').boundingBox())!
   const leiste = (await speichern.boundingBox())!
   expect(feld.y + feld.height).toBeLessThanOrEqual(leiste.y)
+  await expect(dialog.getByRole('searchbox')).toBeInViewport()
+  await expect(dialog.getByRole('tab', { name: /^Wirkungen/ })).toBeInViewport()
 
-  await dialog.getByLabel('Beschreibung *').fill('Unruhe')
+  await dialog.getByLabel('Titel').fill('Unruhe')
+  await waehleChip(page, 'Innere Unruhe', 4)
+  await waehleChip(page, 'Klarer Kopf', 2, 'Wirkungen')
   if (info.project.name === 'iphone-se') await page.screenshot({ path: info.outputPath('form.png') })
+  if (info.project.name === 'iphone-13') {
+    await formular(page).getByRole('button', { name: /^Klarer Kopf, / }).click()
+    await page.screenshot({ path: info.outputPath('chip-editor.png') })
+    await page.keyboard.press('Escape')
+  }
   await speichern.click()
   await expect(dialog).toBeHidden()
   expect(mock.table('effects')[0]).toMatchObject({ description: 'Unruhe', severity: 4 })
+  if (info.project.name === 'iphone-13') await page.screenshot({ path: info.outputPath('liste-chips.png') })
 })
 
 test('Auswertung: Tabellenkopf nennt Wirkung und Nebenwirkung in Worten', async ({ page, mock }, info) => {
