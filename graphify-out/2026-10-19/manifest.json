@@ -5406,9 +5406,9 @@
     "semantic_hash": ""
   },
   "e2e/support/mockSupabase.ts": {
-    "mtime": 1792405878.3840413,
-    "seen": 1792406339.5766454,
-    "ast_hash": "b26886b08596f27a1c1c580523643154",
+    "mtime": 1792406488.9000392,
+    "seen": 1792406622.3038387,
+    "ast_hash": "a039b4c2f02f150c2ac7fad78763196d",
     "semantic_hash": ""
   },
   "e2e/support/myStack.ts": {
@@ -5712,9 +5712,9 @@
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
-    "mtime": 1792405949.069772,
-    "seen": 1792406339.5766995,
-    "ast_hash": "75832c686025c85b9d5b113a8d1c0201",
+    "mtime": 1792406488.901936,
+    "seen": 1792406622.303934,
+    "ast_hash": "ecee881469862e0402d0f04c355f1f35",
     "semantic_hash": ""
   },
   "scripts/generate-effect-duration-sql.mjs": {
@@ -7338,9 +7338,9 @@
     "semantic_hash": ""
   },
   "memory/projects/tagebuch.md": {
-    "mtime": 1792400649.8856437,
-    "seen": 1792401236.9861794,
-    "ast_hash": "0cce62bfb2ceabc87bdfc9ca37a5f264",
+    "mtime": 1792406598.4844062,
+    "seen": 1792406622.3613913,
+    "ast_hash": "04433efea7d03600b158835c5c11acf7",
     "semantic_hash": ""
   },
   "src/lib/injectionFocusFrame.test.ts": {

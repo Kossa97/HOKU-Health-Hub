@@ -1,13 +1,13 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-19)
 
 ## Corpus Check
-- 1209 files · ~1,514,671 words
+- 1209 files · ~1,514,759 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 58 file(s) not represented in the graph (top: (none) 26, .xml 10, .css 7)
 
 ## Summary
-- 8057 nodes · 20518 edges · 419 communities (329 shown, 90 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 728 edges (avg confidence: 0.93)
+- 8057 nodes · 20519 edges · 419 communities (329 shown, 90 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 729 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
@@ -690,8 +690,8 @@ Cohesion: 0.07
 Nodes (38): MuscleRow, healthMock, toastMock, bw(), cardio(), ex(), LEGS_RUN, mob() (+30 more)
 
 ### Community 69 - "diary.ts"
-Cohesion: 0.15
-Nodes (17): EffectRow, effectsByPeptide(), PeptideEffectStat, PeptideReviewStat, ReviewRow, reviewsByPeptide(), SideEffectStat, topSideEffects() (+9 more)
+Cohesion: 0.14
+Nodes (19): EffectRow, effectsByPeptide(), PeptideEffectStat, PeptideReviewStat, ReviewRow, reviewsByPeptide(), SideEffectStat, topSideEffects() (+11 more)
 
 ### Community 73 - "lib/stats.ts"
 Cohesion: 0.12
@@ -874,8 +874,8 @@ Cohesion: 0.22
 Nodes (8): 0. Projektstatus, 11. Häufige Fehler & Fixes, 12. Entwicklungs-Workflow, 1. Tech-Stack, 3. Dateistruktur, 9. Bekannte Limitierungen, TYD — Track Your Dose · Handoff-Dokument, Zugang
 
 ### Community 128 - "EntryForm.tsx"
-Cohesion: 0.15
-Nodes (30): Offen, fromMinutes(), labelIn(), symptomByKey(), toMinutes(), UNIT_MINUTES, WHEEL_MAX, SYMPTOM_GROUPS (+22 more)
+Cohesion: 0.16
+Nodes (28): Offen, fromMinutes(), labelIn(), symptomByKey(), toMinutes(), UNIT_MINUTES, WHEEL_MAX, ChipEditor() (+20 more)
 
 ### Community 129 - "Global Constraints"
 Cohesion: 0.25
@@ -1778,7 +1778,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `renderProtocolPdf.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.10815602836879433 - nodes in this community are weakly interconnected._
 - **Why does `vitest` connect `vitest` to `ref_node_path`, `entries.ts`, `StocksChart.tsx`, `Layout.tsx`, `trainingRepo.ts`, `my-stack/types.ts`, `Tagebuch.tsx`, `Silhouette.tsx`, `fortschritt/types.ts`, `off.ts`, `AmbientLight.tsx`, `planTimeline.js`, `lib/substanzScan.ts`, `IntakePlanEditor.tsx`, `TodayTab.tsx`, `csvImport.ts`, `BlutwertePage.tsx`, `injectionPersistence.ts`, `PowderVisual.tsx`, `react`, `content/types.ts`, `Bewertungen.tsx`, `LiquidGlassTabBar.test.tsx`, `denyProps`, `FotosTab.tsx`, `bloodwork.ts`, `TodayLogSheet.tsx`, `label-extract/prompt.ts`, `InjektionsTracker.tsx`, `package.json`, `chartMath.ts`, `date-fns`, `ColorField.tsx`, `training/types.ts`, `diary.ts`, `lib/stats.ts`, `StackItemWizard.interaction.test.tsx`, `CapsuleVisual.tsx`, `progressModel.ts`, `PatchVisual.tsx`, `PenVisual.tsx`, `injectionLogTypes.ts`, `liquidCalculation.ts`, `useFortschrittData.ts`, `Home.tsx`, `healthImport.ts`, `BefundEditor.tsx`, `bioProfile.ts`, `EntryForm.tsx`, `useStageLight`, `date-fns`, `vialStock.ts`, `EntryModal.tsx`, `activeWorkout.ts`, `MarkerList.tsx`, `batchFiles.ts`, `intakeConfirmation.ts`, `i18n/texts.test.ts`, `planLifecycle.ts`, `monitoring.ts`, `foodSearch.ts`, `liquidGeometry.ts`, `dates.ts`, `planTimeline.ts`, `UnitConverter.test.tsx`, `dosePlan.ts`, `Dashboard.tsx`, `MarkerDetail`, `recipe.ts`, `UnitConverter.tsx`, `SubstanzScanner.tsx`, `FortschrittPage.tsx`, `planLabels.ts`, `intakeSchedule.ts`, `LiveBlutspiegelChart.tsx`, `progress-year-data.ts`, `GelVisual.tsx`, `mockSupabase.ts`, `produktAngaben.ts`, `legacyMyStackPersistence.ts`, `injectionHistory.ts`, `InjectionMapCanvas.tsx`, `dosageForms.ts`, `DropsVisual.tsx`, `Protokoll-PDF — Wohlbefinden über lange Zeiträume`, `SprayVisual.tsx`, `BatchDateiLink.test.tsx`, `LiquidGraphic`, `my-stack/lib/i18n.test.ts`, `nutrition.ts`, `RoutineConfirmationSheet.tsx`, `TubeVisual.tsx`, `markerGuidance.ts`, `audit-peptipedia.ts`, `stage/types.ts`, `NasalSprayVisual.tsx`, `blutspiegelHistory.ts`, `SyringeScale.test.tsx`, `load`, `MyStackPage.visibility.test.tsx`, `wellnessBuckets.ts`, `StageFit.test.tsx`, `react-i18next`, `stackInventory.ts`, `Dashboard.test.ts`, `supabase`, `InjectionIntakeList.tsx`, `StackCategory`, `@testing-library/react`, `blutwerte/lib/format.ts`, `staleChunkReload.ts`, `useAuth`, `useMyStackData.ts`, `main.tsx`, `ProtocolPdfModal.tsx`, `IngredientEditor`, `legacyPlanTimeline.ts`, `ref_node_url`, `trackingDepthSchema.test.ts`, `substanceCatalog.ts`, `StackItemWizard.tsx`, `SubstanceCatalogEntry`, `Home.test.ts`, `bloodwork-extract/index.ts`, `StageDetailSheet.tsx`, `routing.ts`, `ReferenceBar.tsx`, `Einnahmeplan: Enddatum, mehrmals täglich, bei Bedarf`, `stackTabs.ts`, `units.ts`, `stackSources.test.ts`, `doseAdjustmentBackfill.ts`, `StackItemWizard.test.ts`, `Rechner.tsx`, `duration.ts`, `objektSkala`, `PeptideCalculatorPanel.tsx`, `katalogBlaettern.ts`, `substanceCatalogSource.test.ts`, `SyringeFields.tsx`, `inventoryMath.ts`, `chartData.test.ts`, `rechnerVial.ts`, `DoseCalculator.tsx`, `MyStackPage.tsx`, `ManualSimulation.tsx`, `stackItems.ts`, `AppBackNavigation.test.tsx`?**
-  _High betweenness centrality (0.191) - this node is a cross-community bridge._
+  _High betweenness centrality (0.192) - this node is a cross-community bridge._
 - **Should `Animation Recipes` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
 - **Why does `lucide-react` connect `react-i18next` to `useTrainingText`, `EntryForm.tsx`, `faq/types.ts`, `injectionHistory.ts`, `ref_node_path`, `supabase`, `Protokoll.tsx`, `InjectionMapCanvas.tsx`, `Layout.tsx`, `dosageForms.ts`, `my-stack/types.ts`, `StudyCard.tsx`, `EntryModal.tsx`, `PeptideCard.tsx`, `Tagebuch.tsx`, `date-fns`, `MarkerList.tsx`, `IntakePlanEditor.tsx`, `RoutineConfirmationSheet.tsx`, `TodayTab.tsx`, `csvImport.ts`, `BlutwertePage.tsx`, `foodSearch.ts`, `SettingsSheet.tsx`, `react`, `planTimeline.ts`, `Bewertungen.tsx`, `LiquidGlassTabBar.test.tsx`, `WorkflowBanner.tsx`, `denyProps`, `react-i18next`, `FotosTab.tsx`, `ExerciseBlock.tsx`, `pubmed.ts`, `supabase`, `InjectionIntakeList.tsx`, `TodayLogSheet.tsx`, `StackCategory`, `InjektionsTracker.tsx`, `package.json`, `OnboardingContext.tsx`, `@testing-library/react`, `useAuth`, `useMyStackData.ts`, `ProtocolPdfModal.tsx`, `StackItemWizard.tsx`, `SubstanceCatalogEntry`, `BlutspiegelView.tsx`, `DoseCalculator.tsx`, `MyStackPage.tsx`, `progressModel.ts`, `StageDetailSheet.tsx`, `injectionLogTypes.ts`, `useFortschrittData.ts`, `ManualSimulation.tsx`, `Home.tsx`, `DesignSystem.tsx`, `dosePlan.ts`, `Dashboard.tsx`, `MarkerDetail`, `recipe.ts`, `UnitConverter.tsx`, `BefundEditor.tsx`, `SubstanzScanner.tsx`, `FortschrittPage.tsx`, `Rechner.tsx`, `bioProfile.ts`, `PublicProfile.tsx`, `planLabels.ts`, `ArticleCards.tsx`, `Health.tsx`, `Onboarding.tsx`, `ErnaehrungPage.tsx`?**
