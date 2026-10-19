@@ -4,12 +4,20 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
 
 ## Entschieden
 
-- **Ein Eintrag gehört zu einer angelegten Substanz** (Pflicht). Darin werden
+- **Ein Eintrag kann einer angelegten Substanz zugeordnet werden** (freiwillig,
+  Entscheidung 2026-10-19). Darin werden
   mehrere Wirkungen und Nebenwirkungen als Chips gewählt — ein Eintrag, viele Chips.
 - **Umschalter Wirkung/Nebenwirkung entfällt.** Die Art ergibt sich aus dem Chip:
   der Katalog hat zwei Blöcke, mehrdeutige Dinge werden je Block eindeutig
   benannt (z. B. „Weniger Hunger" = Wirkung, „Appetitlosigkeit" = Nebenwirkung).
-- **Titel** steht ganz oben (ersetzt die bisherige Freitext-Beschreibung).
+- **Titel** steht ganz oben und ist **Pflicht** (ersetzt die Freitext-Beschreibung).
+  Speichern braucht Titel + mindestens einen Chip.
+- **Datenmodell:** eigene Tabelle für Chips (eine Zeile pro Chip); Chips als
+  fester Schlüssel (`nausea`), Namen de/en aus der Übersetzung.
+- **Alte Tagebuchdaten sind laut Nutzer simuliert:** keine Migration, sondern
+  löschen und im neuen Format neu simulieren (Zustimmung 2026-10-19). Stand
+  Zählung: 58 Zeilen in `effects` bei 4 von 14 Konten (30/25/2/1), 2025-10-18
+  bis 2026-09-29. Ablauf trotzdem nach CLAUDE.md (Datei, Trockenlauf, zählen).
 - **Intensität 1–5 und Dauer je Chip.** Antippen eines Chips öffnet den
   **Chip-Editor** (eigenes kleines Sheet über dem Formular): Intensität 1–5 und
   Dauer als Picker-Rad im Apple-Stil (Zahl + Einheit, dazu „hält noch an").
@@ -48,7 +56,6 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
 
 - Chip-Editor im Detail: Pflichtangaben, Verhalten beim Wegwischen, Entfernen
   (Vorschlag in der Antwort vom 2026-10-18).
-- Titel Pflicht oder optional (Vorschlag: optional, Platzhalter aus Substanz + Datum)?
 - Datenmodell: Kindtabelle für Chips (`effect_id, symptom_key, custom_label,
   kind, severity, duration_minutes, ongoing`). Alte Einträge: Beschreibung → Titel, ein
   eigener Chip mit bisheriger Art und Intensität. Migration nach CLAUDE.md-Ablauf.
