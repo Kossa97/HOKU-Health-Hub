@@ -85,7 +85,7 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   (Pfeile, Bild auf/ab, Pos1/Ende); Art-Kennzeichen (2026-10-19 nach Skizze des
   Nutzers, ersetzt ＋/−): Symbol oben links über dem Rahmen, Intensität oben rechts
   als geschlossener Kreis auf der Linie, Rahmen wölbt sich unten links zu einem
-  Kreis, innen gefüllt = Wirkung, Ring = Nebenwirkung (`framedChip`); Art auch in der Ansage; Editor und Info mit Fokus
+  Kreis, darin ein Ring mit ＋ (Wirkung) bzw. − (Nebenwirkung) (`framedChip`); Art auch in der Ansage; Editor und Info mit Fokus
   hinein, Tab-Falle, Escape, Fokus zurück zum Öffner; Tabs mit Pfeiltasten,
   `aria-controls`/`tabpanel`; Tippflächen 44 px über unsichtbare Fläche
   (`.tyd-hit`); `aria-haspopup="dialog"` an Chips und „i“; dunkler Ring um den
