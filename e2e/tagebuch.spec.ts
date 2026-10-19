@@ -535,6 +535,21 @@ test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async
   if (info.project.name === 'iphone-13') await page.screenshot({ path: info.outputPath('liste.png') })
 })
 
+test('Liste: lange Chips bleiben in ihrer Spalte und verdecken die Knoepfe nicht', async ({ page, mock }, info) => {
+  eintrag(mock, {}, ['headache', 'trouble_falling_asleep', 'breast_tenderness', 'injection_sting', 'tingling_numbness']
+    .map((symptom_key, position) => ({ symptom_key, position, duration_minutes: 2880 })))
+  await page.goto('/tagebuch')
+  const karte = page.locator('ul > li').first()
+  const knoepfe = (await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).boundingBox())!
+  // Rechte Kante jedes Chips samt Intensitaet links vom ersten Knopf.
+  const rechts = await karte.locator('span.absolute').evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
+  expect(rechts.length).toBeGreaterThanOrEqual(10)
+  expect(Math.max(...rechts)).toBeLessThanOrEqual(knoepfe.x)
+  if (info.project.name === 'iphone-se') await page.screenshot({ path: info.outputPath('liste-lang.png') })
+  await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  await expect(formular(page)).toBeVisible()
+})
+
 test('Formular: Speichern ist ohne Scrollen sichtbar; Suche und Tabs bleiben beim Scrollen oben', async ({ page, mock }, info) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   await page.goto('/tagebuch')

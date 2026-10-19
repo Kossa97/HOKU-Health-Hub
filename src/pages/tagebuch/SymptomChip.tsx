@@ -61,6 +61,8 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
     paddingRight: selected ? (small ? 16 : 20) : 14,
     // Unten Platz für den ＋/−-Kreis, damit er die Scheibe eines Chips darunter nicht berührt.
     margin: small ? '8px 10px 14px 6px' : '10px 12px 16px 8px',
+    // Nie breiter als die Zeile (samt Rand) — ein zu langer Name wird gekürzt statt überzustehen.
+    maxWidth: small ? 'calc(100% - 16px)' : 'calc(100% - 20px)',
     color: accent && !selected ? accent : undefined,
   }
   const content: ReactNode = (
@@ -89,8 +91,12 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
         }}>
         <SymptomIcon iconKey={iconKey} size={small ? 15 : 17} />
       </span>
-      <span className="relative whitespace-nowrap">{label}</span>
-      {duration && <span className={`relative whitespace-nowrap font-normal text-[rgba(235,240,255,.62)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>· {duration}</span>}
+      {/* Eine Zeile: passt die Dauer nicht mehr daneben, rutscht sie in die
+          verborgene zweite Zeile; der Name wird erst gekürzt, wenn er allein nicht passt. */}
+      <span className={`relative flex min-w-0 flex-wrap items-baseline gap-x-1.5 overflow-hidden ${small ? 'h-5 leading-5' : 'h-[22px] leading-[22px]'}`}>
+        <span className="min-w-0 max-w-full truncate">{label}</span>
+        {duration && <span className={`whitespace-nowrap font-normal text-[rgba(235,240,255,.62)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>· {duration}</span>}
+      </span>
       {selected && severity != null && (
         <span aria-hidden="true" className="absolute z-[1] box-border rounded-full px-[5px] text-center text-[11px] font-bold tabular-nums"
           style={{
