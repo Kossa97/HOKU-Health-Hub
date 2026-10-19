@@ -20486,7 +20486,7 @@
       "file_type": "code",
       "norm_label": "computetrend()",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L567"
+      "source_location": "L580"
     },
     {
       "id": "src_services_blutspiegelhistory_cycleintakeminutes",
@@ -20546,7 +20546,7 @@
       "file_type": "code",
       "norm_label": "getcurrentblutspiegellevel()",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L575"
+      "source_location": "L588"
     },
     {
       "id": "src_services_blutspiegelhistory_interruption_test_log",
@@ -20582,7 +20582,7 @@
       "file_type": "code",
       "norm_label": "levelatorbefore()",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L533"
+      "source_location": "L546"
     },
     {
       "id": "src_services_blutspiegelhistory_loaddosehistory",
@@ -20606,7 +20606,7 @@
       "file_type": "code",
       "norm_label": "peakoffsetfromcurve()",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L558"
+      "source_location": "L571"
     },
     {
       "id": "src_services_blutspiegelhistory_sammeldosehistory",
@@ -20630,7 +20630,7 @@
       "file_type": "code",
       "norm_label": "samplesparkdata()",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L543"
+      "source_location": "L556"
     },
     {
       "id": "src_services_blutspiegelhistory_splitquantifieddosehistory",
@@ -28262,7 +28262,7 @@
       "file_type": "code",
       "norm_label": "canonicalhash()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1162"
+      "source_location": "L1163"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_interpolationtokens",
@@ -28274,7 +28274,7 @@
       "file_type": "code",
       "norm_label": "interpolationtokens()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1175"
+      "source_location": "L1176"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_loadlocale",
@@ -28286,7 +28286,7 @@
       "file_type": "code",
       "norm_label": "loadlocale()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1155"
+      "source_location": "L1156"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_loadsource",
@@ -28298,7 +28298,7 @@
       "file_type": "code",
       "norm_label": "loadsource()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1147"
+      "source_location": "L1148"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_withoutmystackoverlay",
@@ -28310,7 +28310,7 @@
       "file_type": "code",
       "norm_label": "withoutmystackoverlay()",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1169"
+      "source_location": "L1170"
     },
     {
       "id": "src_features_my_stack_components_stagedetailsheet_magbewegen",
@@ -63173,7 +63173,7 @@
       "file_type": "code",
       "norm_label": "my_stack_de",
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L1099"
+      "source_location": "L1100"
     },
     {
       "id": "scripts_my_stack_i18n_source_my_stack_en",
@@ -63195,7 +63195,7 @@
       "file_type": "code",
       "norm_label": "my_stack_keys",
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L2196"
+      "source_location": "L2198"
     },
     {
       "id": "docs_superpowers_checklists_my_stack_backup_manifest",
@@ -71870,7 +71870,7 @@
       "file_type": "code",
       "norm_label": "expectedkeyset",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1145"
+      "source_location": "L1146"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_localecodes",
@@ -71892,7 +71892,7 @@
       "file_type": "code",
       "norm_label": "manual_outside_overlay_hashes",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1125"
+      "source_location": "L1126"
     },
     {
       "id": "src_features_my_stack_lib_i18n_test_manuallocalecodes",
@@ -71925,7 +71925,7 @@
       "file_type": "code",
       "norm_label": "translated_outside_overlay_hashes",
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1131"
+      "source_location": "L1132"
     },
     {
       "id": "src_features_my_stack_components_stagedetailsheet",
@@ -90161,7 +90161,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutspiegel/BlutspiegelView.tsx",
-      "source_location": "L339",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -90173,7 +90173,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutspiegel/BlutspiegelView.tsx",
-      "source_location": "L396",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -90185,7 +90185,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/blutspiegel/BlutspiegelView.tsx",
-      "source_location": "L423",
+      "source_location": "L434",
       "weight": 1.0
     },
     {
@@ -114281,7 +114281,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L514",
+      "source_location": "L527",
       "weight": 1.0
     },
     {
@@ -114365,7 +114365,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L585",
+      "source_location": "L598",
       "weight": 1.0
     },
     {
@@ -114377,7 +114377,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L589",
+      "source_location": "L602",
       "weight": 1.0
     },
     {
@@ -114389,7 +114389,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L591",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
@@ -114401,7 +114401,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L593",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -114413,7 +114413,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L593",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -114425,7 +114425,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L595",
+      "source_location": "L608",
       "weight": 1.0
     },
     {
@@ -114437,7 +114437,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L597",
+      "source_location": "L610",
       "weight": 1.0
     },
     {
@@ -114449,7 +114449,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L609",
+      "source_location": "L622",
       "weight": 1.0
     },
     {
@@ -114461,7 +114461,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L631",
+      "source_location": "L644",
       "weight": 1.0
     },
     {
@@ -114473,7 +114473,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L631",
+      "source_location": "L644",
       "weight": 1.0
     },
     {
@@ -114485,7 +114485,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L644",
+      "source_location": "L657",
       "weight": 1.0
     },
     {
@@ -114497,7 +114497,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L651",
+      "source_location": "L664",
       "weight": 1.0
     },
     {
@@ -114509,7 +114509,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L676",
+      "source_location": "L689",
       "weight": 1.0
     },
     {
@@ -223485,7 +223485,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L1099",
+      "source_location": "L1100",
       "weight": 1.0
     },
     {
@@ -223507,7 +223507,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/my-stack-i18n-source.mjs",
-      "source_location": "L2196",
+      "source_location": "L2198",
       "weight": 1.0
     },
     {
@@ -243494,7 +243494,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1125",
+      "source_location": "L1126",
       "weight": 1.0
     },
     {
@@ -243505,7 +243505,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1131",
+      "source_location": "L1132",
       "weight": 1.0
     },
     {
@@ -243516,7 +243516,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1145",
+      "source_location": "L1146",
       "weight": 1.0
     },
     {
@@ -243527,7 +243527,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1147",
+      "source_location": "L1148",
       "weight": 1.0
     },
     {
@@ -243538,7 +243538,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1155",
+      "source_location": "L1156",
       "weight": 1.0
     },
     {
@@ -243549,7 +243549,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1162",
+      "source_location": "L1163",
       "weight": 1.0
     },
     {
@@ -243560,7 +243560,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1169",
+      "source_location": "L1170",
       "weight": 1.0
     },
     {
@@ -243571,7 +243571,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/my-stack/lib/i18n.test.ts",
-      "source_location": "L1175",
+      "source_location": "L1176",
       "weight": 1.0
     },
     {
@@ -262887,18 +262887,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L533",
-      "weight": 1.0
-    },
-    {
-      "source": "src_services_blutspiegelhistory",
-      "target": "src_services_blutspiegelhistory_samplesparkdata",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L543",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -262914,13 +262903,24 @@
     },
     {
       "source": "src_services_blutspiegelhistory",
+      "target": "src_services_blutspiegelhistory_samplesparkdata",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/services/blutspiegelHistory.ts",
+      "source_location": "L556",
+      "weight": 1.0
+    },
+    {
+      "source": "src_services_blutspiegelhistory",
       "target": "src_services_blutspiegelhistory_peakoffsetfromcurve",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L558",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -262931,7 +262931,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L567",
+      "source_location": "L580",
       "weight": 1.0
     },
     {
@@ -262942,7 +262942,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/services/blutspiegelHistory.ts",
-      "source_location": "L575",
+      "source_location": "L588",
       "weight": 1.0
     },
     {
@@ -268999,5 +268999,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e39f0785ac0888809b39608d2f9c37fae0ffe314"
+  "built_at_commit": "250a60a04a27819d2188574a7b056c48ce7962b3"
 }
