@@ -1,12 +1,14 @@
 // src/components/injection3d/InjectionMapCanvas.tsx
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { ContactShadows, OrbitControls, useGLTF } from '@react-three/drei'
+import { OrbitControls, useGLTF } from '@react-three/drei'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import * as THREE from 'three'
 import { inferBodyRegion } from '../../lib/injectionGeometry'
 import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
+import { INJECTION_STUDIO_BACKDROP } from '../../lib/injectionStudioLook'
+import { InjectionStudioLight } from './InjectionStudioLight'
 import { InjectionPin } from './InjectionPin'
 
 const MODEL_VERSION = INJECTION_MODEL_VERSION
@@ -28,17 +30,6 @@ const CAMERA_DISTANCE = 4.85
 const CAMERA_FOV = 48
 const DEFAULT_CAMERA_TARGET_Y = FIT_Y_OFFSET
 const SHEET_AWARE_FOCUS_Y_OFFSET = -0.22
-
-type LightPosition = [number, number, number]
-
-// Local lights keep the model readable from front and back without remote HDR assets.
-const INJECTION_MAP_LIGHTS = {
-  ambient: 1.02,
-  key: { position: [2.5, 3.1, 3] as LightPosition, intensity: 2.05 },
-  rearFill: { position: [-2.6, 2.4, -3.2] as LightPosition, intensity: 1.5, color: '#dff7ff' },
-  rim: { position: [0, 1.4, -4.5] as LightPosition, intensity: 1.15, color: '#7dd3fc' },
-  lowerFill: { position: [0, -0.55, 2.4] as LightPosition, intensity: 0.5, color: '#ffe4c7' },
-}
 
 export interface InjectionFocusRequest {
   // Ein gespeicherter Pin oder eine gerade gewaehlte Stelle (ohne id).
@@ -265,27 +256,7 @@ function Scene({
   return (
     <>
       <CameraRig focusRequest={focusRequest} resetRequestId={resetRequestId} />
-      <ambientLight intensity={INJECTION_MAP_LIGHTS.ambient} />
-      <directionalLight
-        position={INJECTION_MAP_LIGHTS.key.position}
-        intensity={INJECTION_MAP_LIGHTS.key.intensity}
-      />
-      <directionalLight
-        position={INJECTION_MAP_LIGHTS.rearFill.position}
-        intensity={INJECTION_MAP_LIGHTS.rearFill.intensity}
-        color={INJECTION_MAP_LIGHTS.rearFill.color}
-      />
-      <directionalLight
-        position={INJECTION_MAP_LIGHTS.rim.position}
-        intensity={INJECTION_MAP_LIGHTS.rim.intensity}
-        color={INJECTION_MAP_LIGHTS.rim.color}
-      />
-      <pointLight
-        position={INJECTION_MAP_LIGHTS.lowerFill.position}
-        intensity={INJECTION_MAP_LIGHTS.lowerFill.intensity}
-        color={INJECTION_MAP_LIGHTS.lowerFill.color}
-        distance={4}
-      />
+      <InjectionStudioLight />
       <Suspense fallback={null}>
         <Torso onLongPress={handleLongPress} />
       </Suspense>
@@ -301,7 +272,6 @@ function Scene({
         />
       ))}
       {draftPin && <InjectionPin position={draftPin.position} normal={draftPin.normal} active />}
-      <ContactShadows opacity={0.22} scale={4} blur={2.5} far={3} frames={1} position={[0, -1.22, 0]} />
       <OrbitControls makeDefault enablePan enableZoom enableRotate screenSpacePanning touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }} minDistance={0.65} maxDistance={7} target={[0, DEFAULT_CAMERA_TARGET_Y, 0]} />
     </>
   )
@@ -377,7 +347,7 @@ export function InjectionMapCanvas({
   }, [])
 
   return (
-    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: 'radial-gradient(circle at 50% 20%, rgba(0,204,245,0.16), transparent 42%), #07111d' }}>
+    <div ref={huelle} role="img" aria-label={ariaLabel} style={{ position: 'relative', height, minHeight, borderRadius: 24, overflow: 'hidden', touchAction: 'none', overscrollBehavior: 'none', userSelect: 'none', background: INJECTION_STUDIO_BACKDROP }}>
       <Canvas
         camera={{ position: [0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.05, far: 50 }}
         dpr={[1, 1.35]}

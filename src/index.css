@@ -1404,7 +1404,6 @@ main.flex-1 {
     scroll-behavior: auto !important;
   }
 
-  .injection-map-glow,
   .injection-map-pulse {
     animation: none !important;
     transition: none !important;
