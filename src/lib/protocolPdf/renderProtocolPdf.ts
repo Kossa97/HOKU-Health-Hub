@@ -4,9 +4,10 @@
 
 import type { jsPDF } from 'jspdf'
 import type {
-  ProtocolData, PdfBuildOptions, PdfLang, PdfCycle, SectionId,
+  ProtocolData, PdfBuildOptions, PdfLang, PdfCycle, PdfEffect, SectionId,
 } from './types'
 import { SECTIONS, visibleSections, resolveSubject } from './sections'
+import { fromMinutes, symptomLabel } from '../tagebuch/diary'
 import { prepareLongRangePoints, type ChartPoint } from './chartData'
 import {
   aggregate, chooseBucketSize, summarise,
@@ -83,6 +84,8 @@ interface Copy {
   aggDay: string; aggWeek: string; aggMonth: string; aggQuarter: string
   unitDay: string; unitWeek: string; unitMonth: string; unitQuarter: string
   effectType: string; effectDesc: string; effectSeverity: string; effectDate: string; effect: string; sideEffect: string
+  /** Dauer am Chip: Einheiten [Einzahl, Mehrzahl] wie im Picker-Rad, „hält an". */
+  durationUnits: [[string, string], [string, string], [string, string], [string, string]]; ongoing: string
   reviewSubstance: string; reviewRating: string; reviewEffect: string; reviewTolerability: string; reviewAgain: string
   againYes: string; againUnsure: string; againNo: string
   notesEmpty: string
@@ -124,6 +127,7 @@ const COPY: Record<PdfLang, Copy> = {
     unitDay: 'Tage', unitWeek: 'Wochen', unitMonth: 'Monate', unitQuarter: 'Quartale',
     effectType: 'Typ', effectDesc: 'Beschreibung', effectSeverity: 'Stärke', effectDate: 'Datum',
     effect: 'Wirkung', sideEffect: 'Nebenwirkung',
+    durationUnits: [['Min.', 'Min.'], ['Std.', 'Std.'], ['Tag', 'Tage'], ['Woche', 'Wochen']], ongoing: 'hält an',
     reviewSubstance: 'Substanz', reviewRating: 'Bewertung', reviewEffect: 'Wirkung', reviewTolerability: 'Verträglichkeit', reviewAgain: 'Wieder nehmen',
     againYes: 'Ja', againUnsure: 'Unsicher', againNo: 'Nein',
     notesEmpty: '(keine Notiz eingetragen)',
@@ -164,6 +168,7 @@ const COPY: Record<PdfLang, Copy> = {
     unitDay: 'days', unitWeek: 'weeks', unitMonth: 'months', unitQuarter: 'quarters',
     effectType: 'Type', effectDesc: 'Description', effectSeverity: 'Severity', effectDate: 'Date',
     effect: 'Effect', sideEffect: 'Side effect',
+    durationUnits: [['min', 'min'], ['h', 'h'], ['day', 'days'], ['week', 'weeks']], ongoing: 'ongoing',
     reviewSubstance: 'Substance', reviewRating: 'Rating', reviewEffect: 'Effect', reviewTolerability: 'Tolerability', reviewAgain: 'Take again',
     againYes: 'Yes', againUnsure: 'Unsure', againNo: 'No',
     notesEmpty: '(no note entered)',
@@ -964,14 +969,38 @@ function renderWellness(ctx: Ctx, data: ProtocolData) {
   }
 }
 
+/**
+ * Tabellenzeilen der Beobachtungen: Art, Name mit Dauer, darunter Titel des
+ * Eintrags (wenn er etwas anderes sagt) und Substanz, Stärke, Datum.
+ */
+export function effectTableBody(effects: PdfEffect[], lang: PdfLang): string[][] {
+  const c = COPY[lang]
+  return effects.map(e => {
+    const name = e.symptom_key || e.custom_label
+      ? symptomLabel({ key: e.symptom_key ?? null, customLabel: e.custom_label ?? null }, lang)
+      : e.description
+    let duration = ''
+    if (e.ongoing) duration = c.ongoing
+    else if (e.duration_minutes) {
+      const { num, unit } = fromMinutes(e.duration_minutes)
+      duration = `${num} ${c.durationUnits[unit][num === 1 ? 0 : 1]}`
+    }
+    const context = [
+      e.description.trim() && e.description.trim().toLowerCase() !== name.trim().toLowerCase() ? e.description.trim() : '',
+      e.stack_item_name ?? '',
+    ].filter(Boolean).join(' · ')
+    return [
+      e.type === 'effect' ? c.effect : c.sideEffect,
+      (duration ? `${name} · ${duration}` : name) + (context ? `\n(${context})` : ''),
+      `${e.severity}/5`,
+      fmtDate(e.occurred_at, lang),
+    ]
+  })
+}
+
 function renderEffects(ctx: Ctx, data: ProtocolData) {
   const { c, lang } = ctx
-  const body = data.effects.map(e => [
-    e.type === 'effect' ? c.effect : c.sideEffect,
-    e.stack_item_name ? `${e.description}\n(${e.stack_item_name})` : e.description,
-    `${e.severity}/5`,
-    fmtDate(e.occurred_at, lang),
-  ])
+  const body = effectTableBody(data.effects, lang)
   autoTableSafe(ctx, {
     head: [[c.effectType, c.effectDesc, c.effectSeverity, c.effectDate]],
     body,

@@ -202,7 +202,7 @@ export function Tagebuch() {
                 </div>
 
                 {e.effect_symptoms?.length ? (
-                  <div className="mt-1 flex flex-wrap [--tb-base:var(--surface)]">
+                  <div className="mt-1 flex flex-wrap pr-2 [--tb-base:var(--surface)]">
                     {sortedChips(e).map(row => {
                       const chip = fromRow(row)
                       return (
@@ -233,7 +233,8 @@ export function Tagebuch() {
                 {e.notes && <p className="text-[var(--lg-text-2)] text-[14px] mt-1">{e.notes}</p>}
               </div>
 
-              <div className="flex shrink-0">
+              {/* Über überstehenden Chip-Badges — die Knöpfe bleiben immer treffbar. */}
+              <div className="relative z-[2] flex shrink-0">
                 <button type="button" aria-label={t('tagebuch_eintrag_bearbeiten')}
                   className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-accent-text)]"
                   onClick={() => openEdit(e)}>

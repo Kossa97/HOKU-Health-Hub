@@ -5,6 +5,7 @@ import { StocksBars } from '../../features/blutspiegel/chart/StocksBars'
 import { AlertTriangle, BarChart3, Info } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getDateLocale } from '../../i18n/dateLocales'
+import { SYMPTOM_COLUMNS, observationsOf, symptomLabel } from '../../lib/tagebuch/diary'
 import { bySubstance, gapBins, rangeStart, timeline, weekNumber, type RangeKey, type StatsRow } from './stats'
 
 /** Supabase liefert höchstens 1000 Zeilen pro Anfrage — „Alles" lädt seitenweise. */
@@ -28,7 +29,7 @@ async function loadRows(userId: string, from: Date | null): Promise<StatsRow[]> 
   for (let offset = 0; ; offset += FETCH_PAGE) {
     let query = supabase
       .from('effects')
-      .select('type, severity, description, occurred_at, stack_item_id, stack_items(display_name), dose_logs(logged_at)')
+      .select(`type, severity, description, occurred_at, stack_item_id, stack_items(display_name), dose_logs(logged_at), effect_symptoms(${SYMPTOM_COLUMNS})`)
       .eq('user_id', userId)
     if (from) query = query.gte('occurred_at', from.toISOString())
     const { data, error } = await query
@@ -36,7 +37,8 @@ async function loadRows(userId: string, from: Date | null): Promise<StatsRow[]> 
       .order('id', { ascending: true })
       .range(offset, offset + FETCH_PAGE - 1)
     if (error) throw error
-    rows.push(...((data ?? []) as unknown as StatsRow[]))
+    // Ohne Chips und ohne Art gibt es nichts zu zählen — auch kein „leerer" Eintrag im Diagramm.
+    rows.push(...((data ?? []) as unknown as StatsRow[]).filter(row => observationsOf(row).length > 0))
     if (!data || data.length < FETCH_PAGE) return rows
   }
 }
@@ -150,7 +152,7 @@ export function Auswertung({ userId, refreshKey }: { userId: string; refreshKey:
     return { linked, data: bins.map<ChartDatum>(bin => ({ label: t(bin.key), title: t(bin.key), effects: bin.effects, sideEffects: bin.sideEffects })) }
   }, [rows, t])
 
-  const substanzen = useMemo(() => (rows ? bySubstance(rows) : []), [rows])
+  const substanzen = useMemo(() => (rows ? bySubstance(rows, observation => symptomLabel(observation, i18n.language)) : []), [rows, i18n.language])
 
   return (
     <div className="space-y-4" data-tagebuch-auswertung>
