@@ -2747,7 +2747,7 @@
   "tagebuch_info_dauer_text": "how long it lasted; “ongoing” if it isn’t over yet. Optional.",
   "tagebuch_info_intensitaet_text": "from 1 very mild to 5 very strong, the dots at the end",
   "tagebuch_info_art": "Type",
-  "tagebuch_info_art_text": "the shape of the icon: round and green is an effect, square and orange a side effect",
+  "tagebuch_info_art_text": "the color: green is an effect, orange a side effect; the list shows them separately",
   "tagebuch_info_hinweis": "Tap to open the chip editor. A chip counts as chosen once it has an intensity.",
   "tagebuch_info_verstanden": "Got it",
   "my_stack_scan": "Scan",
