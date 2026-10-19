@@ -135,7 +135,7 @@ export function ChipEditor({ chip, label, isNew, onDone, onRemove, onClose }: {
         className="lg-sheet lg-sheet-solid relative w-full max-w-lg space-y-[18px] px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] !bg-[#2c2c2e]">
         <span className="lg-grabber !mb-1" aria-hidden="true" />
         <div className="flex items-center gap-3.5">
-          <span aria-hidden="true" className={`flex size-[52px] shrink-0 items-center justify-center ${chip.kind === 'effect' ? 'rounded-full' : 'rounded-[14px]'}`}
+          <span aria-hidden="true" className="flex size-[52px] shrink-0 items-center justify-center rounded-full"
             style={{ color, background: `color-mix(in srgb, ${color} 28%, transparent)` }}>
             <SymptomIcon iconKey={chip.key} size={26} />
           </span>

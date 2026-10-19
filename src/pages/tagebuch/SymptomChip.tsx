@@ -25,9 +25,9 @@ export function SymptomIcon({ iconKey, size }: { iconKey: string | null; size: n
 
 /**
  * Ein Chip (Variante A, 2026-10-19): eine ruhige Pille, nichts steht über den
- * Rand. Links das Symbol in einer Kachel — rund für eine Wirkung, eckig für
- * eine Nebenwirkung, damit die Art auch ohne Farbe erkennbar ist —, dann
- * Name und Dauer, am Ende die Intensität als fünf Punkte. Ohne Auswahl nur
+ * Rand. Links das Symbol auf einem Kreis in der Farbe der Art, dann Name und
+ * Dauer, am Ende die Intensität als fünf Punkte. Die Art steht ohne Farbe in
+ * der Ansage und in der Gliederung (Tabs im Formular, Abschnitte in der Liste). Ohne Auswahl nur
  * Symbol und Name auf grauer Pille.
  */
 export function SymptomChip({ kind, label, iconKey, selected, severity, duration, small = false, onClick, ariaLabel, accent }: {
@@ -58,7 +58,7 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
   const content: ReactNode = (
     <>
       <span aria-hidden="true"
-        className={`flex shrink-0 items-center justify-center ${kind === 'effect' ? 'rounded-full' : small ? 'rounded-[6px]' : 'rounded-[7px]'}`}
+        className="flex shrink-0 items-center justify-center rounded-full"
         style={{
           width: tile, height: tile,
           color: selected || accent ? color : 'rgba(235,240,255,.72)',

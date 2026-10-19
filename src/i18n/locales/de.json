@@ -2747,7 +2747,7 @@
   "tagebuch_info_dauer_text": "wie lange es anhielt; „hält an“, wenn es noch nicht vorbei ist. Freiwillig.",
   "tagebuch_info_intensitaet_text": "von 1 sehr leicht bis 5 sehr stark, die Punkte am Ende",
   "tagebuch_info_art": "Art",
-  "tagebuch_info_art_text": "die Form des Symbols: rund und grün ist eine Wirkung, eckig und orange eine Nebenwirkung",
+  "tagebuch_info_art_text": "die Farbe: grün ist eine Wirkung, orange eine Nebenwirkung; in der Liste stehen beide getrennt",
   "tagebuch_info_hinweis": "Antippen öffnet den Chip-Editor. Gewählt ist ein Chip, sobald er eine Intensität hat.",
   "tagebuch_info_verstanden": "Verstanden",
   "my_stack_scan": "Scannen",

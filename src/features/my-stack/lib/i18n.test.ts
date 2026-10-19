@@ -1324,10 +1324,10 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst geaendert (Oktober 2026): Die Auswertung zaehlt Chips statt Eintraege —
 // tagebuch_verlauf_titel(_monat) heisst jetzt „Wirkungen und Nebenwirkungen pro …" (nur de/en).
 // Bewusst geaendert (Oktober 2026): neuer Chip (Variante A) — tagebuch_info_art_text und
-// tagebuch_info_intensitaet_text beschreiben Symbolform und Punkte (nur de/en).
+// tagebuch_info_intensitaet_text beschreiben Farbe und Punkte (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '07c63d10566df79cab8f6e3f63567b897d1a1a7f4c6a6ffde2f331c1234adfb2',
-  en: '2d561ce200f1e6e14a205d9ae73de1a215c0a800f471c0dad81061ebed395832',
+  de: 'f60cbbd1aa08f1b4d1d23555c23f0e2064a1cbbd8da07d8d7ea2f63462eb4c87',
+  en: '8ebc6b4d5d697a82231b7668db9e39d17c11fa201e870fbea92514f04076436a',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
