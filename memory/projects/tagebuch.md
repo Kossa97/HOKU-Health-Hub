@@ -54,6 +54,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   eigener Chip mit bisheriger Art und Intensität. Migration nach CLAUDE.md-Ablauf.
 - Auswertung (`src/pages/tagebuch/stats.ts`) zählt dann nach `symptom_key`.
 - Chip-Katalog (Entwurf unten) gegenlesen.
+- **Symbol-Audit (2026-10-19, design-system):** 43 Health Icons (Fläche, 48er,
+  Strich ≈0,9 px), 8 Material Symbols (Fläche, 24er, ≈1,75 px – zu schwer),
+  9 Linien-Symbole (24er, ≈1,3 px). 19 von 60 Ausreißer beim optischen Gewicht
+  (Median ±): zu schwer u. a. Gelenkschmerzen, Mehr Ausdauer, Weniger Libido,
+  Bessere Konzentration, alle Material; zu leicht Knötchen, Besserer Pump,
+  Wassereinlagerung, Schneller satt, Mehr Libido, Hoden kleiner. Maßnahmen:
+  Material → material-symbols-light, Linien-Strich auf ≈1,0 px, Größe je Symbol
+  optisch angleichen, Ausreißer tauschen. Noch nicht umgesetzt.
 
 ## Chip-Katalog — Entwurf (de / en)
 
