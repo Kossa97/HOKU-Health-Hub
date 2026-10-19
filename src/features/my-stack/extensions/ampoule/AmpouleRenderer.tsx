@@ -47,7 +47,7 @@ export function AmpouleRenderer({ item, sloshEngine, ...visualProps }: AmpouleRe
   )
 
   return (
-    <div data-stack-renderer="ampoule">
+    <div data-stack-renderer="ampoule" data-umriss-form="ampoule">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{ampoule}</SloshProvider> : ampoule}
     </div>
   )

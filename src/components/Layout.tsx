@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   CalendarDays, FlaskConical, Bell, X, Share,
   Syringe, Activity, Droplets, Calculator, Microscope, BookHeart, CheckCircle2, Dumbbell, Utensils,
@@ -12,6 +12,7 @@ import { usePushNotifications } from '../lib/usePushNotifications'
 import { PushNotificationListener } from './PushNotificationListener'
 import { BottomNavigation } from './navigation/BottomNavigation'
 import { routeLayoutMode } from './layoutMode'
+import { useAbdruckNehmen } from './ui/umrissAbdruck'
 import { AmbientLightProvider } from './ambient/AmbientLight'
 import { ambientForPath } from './ambient/palettes'
 
@@ -87,6 +88,9 @@ export function Layout() {
   }
 
   const { lockViewport, hideBottomNav } = routeLayoutMode(pathname)
+  // Hat die Seite geladen, merkt sich ihre Silhouette, wie sie aussieht
+  const mainRef = useRef<HTMLElement>(null)
+  useAbdruckNehmen(mainRef, pathname)
   const ambient = ambientForPath(pathname)
 
   return (
@@ -133,6 +137,7 @@ export function Layout() {
       )}
 
       <main
+        ref={mainRef}
         className={`min-h-0 flex-1 w-full overflow-x-hidden ${hideBottomNav ? 'h-dvh px-0 pt-0 overflow-hidden overscroll-none' : lockViewport ? 'overflow-y-hidden px-3 pt-4' : 'px-3 pt-4'}`}
         style={{
           paddingBottom: hideBottomNav

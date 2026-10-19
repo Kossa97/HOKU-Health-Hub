@@ -16,9 +16,8 @@ import { haltbarkeitFuer } from '../lib/listRow'
 import { StageFit } from '../components/StageFit'
 import { StackStage } from '../components/StackStage'
 import { getDosageForm } from '../lib/dosageForms'
-import { anbruchArt } from '../lib/bestand'
 import { getStableStackItemColor } from '../lib/colors'
-import { type Peptide, type Cycle, vialCarouselItemWidth, vialCarouselItemGap, fuellstandFuer } from './model'
+import { type Peptide, type Cycle, vialCarouselItemWidth, vialCarouselItemGap, fuellstandFuer, zeigtPegel } from './model'
 import { AddStageTile } from './stackTiles'
 import { VialPositionRow } from './VialPositionRow'
 
@@ -223,7 +222,7 @@ export function VialCarousel({
                 // verschlossene Ampulle stuende sonst ewig bei „100 %".
                 const pegel = fuellstandFuer(p)
                 const vialPct = Math.round(pegel ?? 100)
-                const showsFillPct = pegel !== null || anbruchArt(p.dosage_form) === 'vial'
+                const showsFillPct = zeigtPegel(p)
 
                 return (
                   <div

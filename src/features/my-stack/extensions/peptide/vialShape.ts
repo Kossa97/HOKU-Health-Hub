@@ -19,6 +19,11 @@ export const VIAL_INNER_PATH = 'M33.6 4 L86.4 4 L86.4 26 C86.4 37 110.4 43.5 110
 
 export const VIAL_VIEWBOX = { x: 0, y: 0, width: 120, height: 294 } as const
 
+// Die Kappe sitzt in einem eigenen Ausschnitt (120 × 58) ueber dem Glas.
+export const VIAL_CAP_HEIGHT = 58
+export const VIAL_CAP_TOP_PATH = 'M14 32 L14 20 C14 7 106 7 106 20 L106 32 Z'
+export const VIAL_CAP_COLLAR = { x: 17, y: 30, width: 86, height: 27, rx: 3 } as const
+
 // Die Kanten des Glaskoerpers, auf dem das Etikett sitzt — dieselben Werte
 // wie im aeusseren Pfad (`L 4 252` und `L 116 56`).
 export const VIAL_BODY = { x: 4, right: 116 } as const
