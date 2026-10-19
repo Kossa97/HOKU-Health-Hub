@@ -87,6 +87,12 @@ export function useNutritionDay(userId: string, date: string) {
     return e
   }, [userId, date, applyAdded])
 
+  const addMany = useCallback(async (meal: Meal, list: { food: Food; amount: number }[]) => {
+    const added = await store.addEntries(userId, date, meal, list)
+    applyAdded(added)
+    return added
+  }, [userId, date, applyAdded])
+
   const addQuick = useCallback(async (meal: Meal, name: string, kcal: number, protein: number) => {
     const e = await store.addQuickEntry(userId, date, meal, name, kcal, protein)
     applyAdded([e])
@@ -171,6 +177,6 @@ export function useNutritionDay(userId: string, date: string) {
 
   return {
     day: current, loadError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
-    add, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, removeFood, findByBarcode,
+    add, addMany, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }
