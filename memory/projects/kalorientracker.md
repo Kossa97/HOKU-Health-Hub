@@ -17,6 +17,7 @@
 - Schnappschuss der Nährwerte im Eintrag; Korrekturen fremder Einträge werden eigene `food_items`.
 - Keine Streaks, kein Rot, Zielbereich ±10 %, „Kalorien ausblenden".
 - Gerichte (Wunsch Nutzer 18.10.): = `food_items` mit `ingredients` jsonb + `portions`; Eintrag in Gramm, Eingabe in Portionen. Migration als Nachtrag in `supabase-nutrition.sql` (2 Spalten, additiv).
+- Kalender (Nutzer 19.10.): **kein gemeinsamer Kalender** mit den Substanzen. Ernährung hat oben eine Wochenleiste (Mo–So) und ein Monatsblatt mit **Ringen je Tag** (außen kcal, dann Eiweiß, KH, Fett; bei „Kalorien ausblenden" ohne kcal-Ring). Der **gewählte Tag** wird zwischen Kalender und Ernährung geteilt (`src/lib/sharedDay.ts`, sessionStorage, verfällt um Mitternacht; geschrieben nur bei Nutzerwahl). Branch `claude/ernaehrung-kalender`, baut auf #35 auf.
 
 ## Recherche (Agent-Bericht 18.10.2026, nur WebSearch — Primärseiten waren gesperrt)
 Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekundär

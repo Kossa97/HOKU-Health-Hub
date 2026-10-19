@@ -8,6 +8,7 @@ import {
   nutrientsFor, scaleNutrients,
 } from '../lib/nutrition'
 import { parseIngredients } from '../lib/recipe'
+import { type DayTotals, EMPTY_TOTALS } from '../lib/dayRings'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
 type Row = Record<string, unknown>
@@ -81,16 +82,18 @@ export async function loadDay(userId: string, date: string): Promise<{ entries: 
   return { entries: (logs.data ?? []).map(rowToEntry), waterMl: num(water.data?.ml) }
 }
 
-/** Kalorien und Eiweiß je Tag (für die Wochenansicht). */
-export async function loadRange(userId: string, from: string, to: string): Promise<Record<string, { kcal: number; protein: number }>> {
-  const { data, error } = await supabase.from('food_logs').select('log_date,kcal,protein_g')
+/** Kalorien und Makros je Tag (für Wochenleiste und Monatsblatt). */
+export async function loadRange(userId: string, from: string, to: string): Promise<Record<string, DayTotals>> {
+  const { data, error } = await supabase.from('food_logs').select('log_date,kcal,protein_g,carbs_g,fat_g')
     .eq('user_id', userId).gte('log_date', from).lte('log_date', to)
   if (error) throw error
-  const out: Record<string, { kcal: number; protein: number }> = {}
+  const out: Record<string, DayTotals> = {}
   for (const r of data ?? []) {
-    const d = (out[r.log_date as string] ??= { kcal: 0, protein: 0 })
+    const d = (out[r.log_date as string] ??= { ...EMPTY_TOTALS })
     d.kcal += num(r.kcal)
     d.protein += num(r.protein_g)
+    d.carbs += num(r.carbs_g)
+    d.fat += num(r.fat_g)
   }
   return out
 }
