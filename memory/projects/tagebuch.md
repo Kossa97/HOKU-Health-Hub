@@ -24,6 +24,12 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   `lucide-react`) in einer runden, in der Art-Farbe getönten Scheibe; gewählt
   kräftiger getönt. Zuordnung im Mockup (`ICON_OF`), erste Fassung.
 - Mockup: https://claude.ai/artifact/1f5afzwrMim3P6FK2xjfM2
+- **Symbolsatz offen:** Lucide oder Health Icons (MIT, healthicons.org). Health
+  Icons decken 38 von 54 Chips ab; 11 weitere aus Material Symbols (Apache 2.0:
+  Schlaf, Haut, Libido) und Health Icons (traumatism, measles, intestinal-pain).
+  Ohne freies Symbol bleiben Rötung, Schwellung, Knötchen, Einschlafprobleme,
+  Aufstoßen → müssten gezeichnet werden. Durchsucht: Health Icons, Material
+  Symbols, Fluent, Phosphor, MDI, Tabler, Medical Icons, IconPark, Streamline.
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
 
