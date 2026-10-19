@@ -32,7 +32,9 @@ as $$
 $$;
 
 revoke all on function public.is_admin() from public;
-grant execute on function public.is_admin() to authenticated, anon;
+-- Nur angemeldete: alle Policies mit is_admin() gelten fuer `authenticated`
+-- (siehe supabase-function-grants.sql). Frueher stand hier auch `anon`.
+grant execute on function public.is_admin() to authenticated;
 
 -- ── pk_profiles: lesen alle, schreiben nur Admins ───────────────────────
 
