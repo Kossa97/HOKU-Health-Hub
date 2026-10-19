@@ -1,23 +1,27 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../features/compliance/components/Sheet'
 import { SymptomChip } from './SymptomChip'
 import { labelIn, symptomByKey } from './chips'
 
-/** „So ist ein Chip aufgebaut" — Beispiel-Chip und die vier Teile erklärt. */
+/** „So ist ein Chip aufgebaut" — Beispiel-Chip und seine vier Teile von links nach rechts. */
 export function ChipInfo({ onClose }: { onClose: () => void }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const label = (key: string) => labelIn(symptomByKey(key)!.label, lang)
+  // Fokus auf „Verstanden", ohne das Blatt dorthin zu scrollen — der Titel bleibt sichtbar.
+  const done = useRef<HTMLButtonElement>(null)
+  useEffect(() => { done.current?.focus({ preventScroll: true }) }, [])
   const rows = [
-    ['A', t('tagebuch_chip_name'), t('tagebuch_info_name_text')],
-    ['B', t('dauer'), t('tagebuch_info_dauer_text')],
-    ['C', t('tagebuch_intensitaet'), t('tagebuch_info_intensitaet_text')],
-    ['D', t('tagebuch_info_art'), t('tagebuch_info_art_text')],
+    ['A', t('tagebuch_info_art'), t('tagebuch_info_art_text')],
+    ['B', t('tagebuch_chip_name'), t('tagebuch_info_name_text')],
+    ['C', t('dauer'), t('tagebuch_info_dauer_text')],
+    ['D', t('tagebuch_intensitaet'), t('tagebuch_info_intensitaet_text')],
   ] as const
   return (
     <Sheet labelledBy="tagebuch-info-title" onClose={onClose} tall data-tagebuch-info>
       <h2 id="tagebuch-info-title" className="lg-title2">{t('tagebuch_info_titel')}</h2>
-      <figure className="mt-4 flex flex-col items-center gap-1 rounded-2xl bg-[rgba(118,118,128,.12)] px-4 py-6 [--tb-base:rgb(39_39_42)]">
+      <figure className="mt-4 flex flex-col items-center gap-1 rounded-2xl bg-[rgba(118,118,128,.12)] px-4 py-6">
         <div className="origin-center scale-[1.3]">
           <SymptomChip kind="side_effect" label={label('nausea')} iconKey="nausea" selected severity={3} duration={`2 ${t('tagebuch_einheit_std', { count: 2 })}`} />
         </div>
@@ -32,12 +36,12 @@ export function ChipInfo({ onClose }: { onClose: () => void }) {
         ))}
       </dl>
       <p className="mt-4 text-[13px] text-[var(--lg-text-2)]">{t('tagebuch_info_hinweis')}</p>
-      <div className="mt-2 flex flex-wrap [--tb-base:var(--lg-sheet-solid)]">
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
         <SymptomChip kind="effect" label={label('more_energy')} iconKey="more_energy" selected severity={4} small />
         <SymptomChip kind="side_effect" label={label('swelling')} iconKey="swelling" selected severity={2} duration={t('tagebuch_haelt_an_kurz')} small />
         <SymptomChip kind="side_effect" label={label('headache')} iconKey="headache" selected={false} small />
       </div>
-      <button type="button" autoFocus data-app-back-close className="lg-btn lg-btn-primary mt-5 w-full" onClick={onClose}>
+      <button ref={done} type="button" data-app-back-close className="lg-btn lg-btn-primary mt-5 w-full" onClick={onClose}>
         {t('tagebuch_info_verstanden')}
       </button>
     </Sheet>

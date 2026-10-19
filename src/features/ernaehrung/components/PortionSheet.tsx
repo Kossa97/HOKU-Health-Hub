@@ -19,11 +19,13 @@ const PORTION_PRESETS = [{ n: 0.5, text: '½' }, { n: 1, text: '1' }, { n: 1.5, 
  * Bei Gerichten steht im Feld die Zahl der Portionen; gespeichert wird immer in Gramm.
  * `ingredient`: Menge einer Zutat fürs Gericht — ohne Mahlzeit.
  */
-export function PortionSheet({ food, meal: startMeal, startAmount, mode, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal }: {
+export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal }: {
   food: Food
   meal: Meal
   startAmount?: number
   mode: 'add' | 'edit' | 'ingredient'
+  /** Beschriftung des Knopfs im Modus `ingredient` (Standard: „Zum Gericht"). */
+  pickLabel?: string
   busy: boolean
   hideKcal: boolean
   onSave: (amount: number, meal: Meal) => void
@@ -141,7 +143,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, busy, o
           </button>
         )}
         <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={!valid || busy} onClick={() => onSave(amount, meal)}>
-          {mode === 'edit' ? t('nutr_save') : mode === 'ingredient' ? t('nutr_add_to_dish') : t('nutr_add')}
+          {mode === 'edit' ? t('nutr_save') : mode === 'ingredient' ? (pickLabel ?? t('nutr_add_to_dish')) : t('nutr_add')}
         </button>
       </div>
     </Sheet>

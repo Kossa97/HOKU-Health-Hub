@@ -3,12 +3,8 @@ import { Tag } from 'lucide-react'
 import { SYMPTOM_ICONS } from './symptomIcons.data'
 import { kindColor, type SymptomKind } from './chips'
 
-/**
- * Deckende Mischung aus Art-Farbe und Untergrund. Der Rahmen liegt über
- * Symbol und Ausbuchtungen und muss deshalb deckend sein; den Untergrund
- * gibt der umgebende Block als `--tb-base` vor.
- */
-const mixed = (color: string, percent: number) => `color-mix(in srgb, ${color} ${percent}%, var(--tb-base, var(--lg-sheet-solid)))`
+/** Getönte Fläche in der Art-Farbe, durchscheinend — passt auf jeden Untergrund. */
+const tint = (color: string, percent: number) => `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 /** Symbol eines Chips; eigene Chips zeigen ein Etikett. */
 export function SymptomIcon({ iconKey, size }: { iconKey: string | null; size: number }) {
@@ -28,10 +24,11 @@ export function SymptomIcon({ iconKey, size }: { iconKey: string | null; size: n
 }
 
 /**
- * Ein Chip nach der Skizze vom 2026-10-19: Symbol oben links über dem Rahmen,
- * Intensität oben rechts als geschlossener Kreis auf der Linie, unten links
- * eine Ausbuchtung mit ＋ (Wirkung) oder − (Nebenwirkung). Ohne Auswahl nur
- * das Symbol auf grauer Pille.
+ * Ein Chip (Variante A, 2026-10-19): eine ruhige Pille, nichts steht über den
+ * Rand. Links das Symbol auf einem Kreis in der Farbe der Art, dann Name und
+ * Dauer, am Ende die Intensität als fünf Punkte. Die Art steht ohne Farbe in
+ * der Ansage und in der Gliederung (Tabs im Formular, Abschnitte in der Liste). Ohne Auswahl nur
+ * Symbol und Name auf grauer Pille.
  */
 export function SymptomChip({ kind, label, iconKey, selected, severity, duration, small = false, onClick, ariaLabel, accent }: {
   kind: SymptomKind
@@ -47,74 +44,57 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
   accent?: string
 }) {
   const color = accent ?? kindColor(kind)
-  const h = small ? 32 : 40
-  const disc = small ? 30 : 38
-  const knob = { cx: small ? 11 : 13, cy: h + 1, r: small ? 9 : 11 }
-  const inner = knob.r - 3.5
-  const half = inner * 0.5
-  const sign = `M${knob.cx - half} ${knob.cy}H${knob.cx + half}` + (kind === 'effect' ? `M${knob.cx} ${knob.cy - half}V${knob.cy + half}` : '')
-  const fill = mixed(color, 15)
-  const ring = mixed(color, 70)
+  const h = small ? 30 : 36
+  const tile = small ? 22 : 26
+  const dot = small ? 4 : 5
   const style: CSSProperties = {
     height: h,
-    paddingLeft: disc + 2,
-    paddingRight: selected ? (small ? 16 : 20) : 14,
-    // Unten Platz für den ＋/−-Kreis, damit er die Scheibe eines Chips darunter nicht berührt.
-    margin: small ? '8px 10px 14px 6px' : '10px 12px 16px 8px',
+    paddingLeft: (h - tile) / 2,
+    paddingRight: small ? 10 : 12,
+    background: selected ? tint(color, 16) : 'var(--lg-fill)',
+    boxShadow: selected ? `inset 0 0 0 1px ${tint(color, 50)}` : undefined,
     color: accent && !selected ? accent : undefined,
   }
   const content: ReactNode = (
     <>
-      {selected && (
-        <svg aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-full w-full overflow-visible">
-          <g fill="none" style={{ stroke: ring }} strokeWidth={3.2}>
-            <rect width="100%" height="100%" rx={h / 2} />
-            <circle cx={knob.cx} cy={knob.cy} r={knob.r} />
-          </g>
-          <g style={{ fill }}>
-            <rect width="100%" height="100%" rx={h / 2} />
-            <circle cx={knob.cx} cy={knob.cy} r={knob.r} />
-          </g>
-          <circle cx={knob.cx} cy={knob.cy} r={inner} fill="none" style={{ stroke: color }} strokeWidth={1.4} />
-          <path d={sign} fill="none" style={{ stroke: color }} strokeWidth={1.6} strokeLinecap="round" />
-        </svg>
-      )}
-      <span aria-hidden="true" className="absolute z-[1] flex items-center justify-center rounded-full"
+      <span aria-hidden="true"
+        className="flex shrink-0 items-center justify-center rounded-full"
         style={{
-          left: small ? -5 : -6, top: small ? -8 : -10, width: disc, height: disc, color,
-          background: mixed(color, selected ? 30 : 16),
-          boxShadow: selected
-            ? `0 0 0 1.6px ${ring}, 0 0 0 4px var(--tb-base, var(--lg-sheet-solid))`
-            : '0 0 0 3px var(--tb-base, var(--lg-sheet-solid))',
+          width: tile, height: tile,
+          color: selected || accent ? color : 'rgba(235,240,255,.72)',
+          background: selected ? tint(color, 28) : 'rgba(255,255,255,.07)',
         }}>
-        <SymptomIcon iconKey={iconKey} size={small ? 15 : 17} />
+        <SymptomIcon iconKey={iconKey} size={small ? 13 : 15} />
       </span>
-      <span className="relative whitespace-nowrap">{label}</span>
-      {duration && <span className={`relative whitespace-nowrap font-normal text-[rgba(235,240,255,.62)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>· {duration}</span>}
+      {/* Eine Zeile: passt die Dauer nicht mehr daneben, rutscht sie in die
+          verborgene zweite Zeile; der Name wird erst gekürzt, wenn er allein nicht passt. */}
+      <span className={`flex min-w-0 flex-wrap items-baseline gap-x-1.5 overflow-hidden ${small ? 'h-5 leading-5' : 'h-[22px] leading-[22px]'}`}>
+        <span className="min-w-0 max-w-full truncate">{label}</span>
+        {duration && <span className={`whitespace-nowrap font-normal text-[rgba(235,240,255,.6)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>{duration}</span>}
+      </span>
       {selected && severity != null && (
-        <span aria-hidden="true" className="absolute z-[1] box-border rounded-full px-[5px] text-center text-[11px] font-bold tabular-nums"
-          style={{
-            top: small ? -8 : -9, right: small ? -7 : -8, minWidth: small ? 18 : 20, height: small ? 18 : 20,
-            lineHeight: `${small ? 18 : 20}px`, background: fill, boxShadow: `0 0 0 1.6px ${ring}`, color,
-          }}>
-          {severity}
+        <span aria-hidden="true" className="ml-0.5 flex shrink-0 items-center" style={{ gap: small ? 2 : 3 }}>
+          {[1, 2, 3, 4, 5].map(level => (
+            <span key={level} className="block rounded-full"
+              style={{ width: dot, height: dot, background: level <= severity ? color : 'rgba(235,240,255,.22)' }} />
+          ))}
         </span>
       )}
     </>
   )
-  const className = `relative inline-flex items-center gap-1.5 rounded-full font-medium text-[var(--lg-text)] ${
-    small ? 'text-[14px]' : 'text-[15px]'} ${selected ? '' : 'bg-[var(--lg-fill)]'}`
+  const className = `relative inline-flex max-w-full items-center rounded-full font-medium text-[var(--lg-text)] ${
+    small ? 'gap-1.5 text-[14px]' : 'gap-2 text-[15px]'}`
   // aria-label gilt auf einem span ohne Rolle nicht — der Wortlaut steht deshalb als verborgener Text da.
   if (!onClick) {
     return (
-      <span className={className} style={style}>
+      <span className={className} style={style} data-tagebuch-chip>
         {ariaLabel ? <><span className="sr-only">{ariaLabel}</span><span aria-hidden="true" className="contents">{content}</span></> : content}
       </span>
     )
   }
   return (
-    <button type="button" onClick={onClick} aria-label={ariaLabel} aria-pressed={selected} aria-haspopup="dialog"
-      className={`${className} cursor-pointer transition-transform active:scale-[0.96] motion-reduce:active:scale-100
+    <button type="button" onClick={onClick} aria-label={ariaLabel} aria-pressed={selected} aria-haspopup="dialog" data-tagebuch-chip
+      className={`${className} cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97] motion-reduce:active:scale-100
         after:absolute after:inset-x-0 after:top-[calc(50%-22px)] after:bottom-[calc(50%-22px)] after:content-['']
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lg-accent)]`}
       style={style}>

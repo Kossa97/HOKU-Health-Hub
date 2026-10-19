@@ -46,7 +46,7 @@ Belege und Zuverlässigkeit siehe `memory/projects/kalorientracker.md`.
 
 - BLS-Import (Etappe 1b — Datei konnte nicht geladen und ihr Format nicht geprüft werden, siehe 7.)
 - Mikronährstoffe über Ballaststoffe/Zucker/Salz hinaus
-- Foto-/KI-Erkennung (Foto-Apps unterschätzen 250–345 kcal je Mahlzeit, NIH 2026 — wenn überhaupt, später mit Pflicht-Rückfrage)
+- ~~Foto-/KI-Erkennung~~ → nachgereicht als 8b (mit Pflicht-Prüfung)
 - Aktivitätskalorien aus Apple Health/Health Connect, Schreiben nach Health
 - Verknüpfung mit Dosis, Appetit, Gewichtsverlauf und PDF-Protokoll (Etappe 2)
 - Fasten-Timer
@@ -140,6 +140,61 @@ Eigene Gerichte aus mehreren Zutaten, eingetragen wie ein Lebensmittel in jede M
   (`on delete set null`). Tippen neben den Editor verwirft ein angefangenes
   Gericht nicht.
 - Nicht drin: Gewicht nach dem Kochen, Zutaten als eigene Einträge aufklappen.
+
+## 8b. Essen per Foto (Nachtrag 18.10.2026, Wunsch Nutzer: „wie Cal AI")
+
+**Entscheidungen Nutzer:** Eine KI-Erkennung von Essen kann nie genau sein.
+Die KI nennt deshalb **nur, was es sein kann** — keine Mengen, keine
+Nährwerte. Bei Gerichten, die man nicht sieht (Beispiel Kürbissuppe), listet
+sie die möglichen Zutaten samt Alternativen (Sahne *oder* Kokosmilch); der
+Nutzer tippt an, was er wirklich genommen hat. Eine Notiz mit dem Namen des
+Gerichts wird empfohlen, weil sie die Zutaten genauer macht.
+
+Ablauf:
+1. **Aufnahme:** Tipp „Schreib dazu, was es ist", Notizfeld (diktieren über das
+   Mikrofon der Tastatur), Kamera / Aus Fotos / „Ohne Foto – nur aus der Beschreibung".
+2. **Auswahl:** Titel = erkanntes Gericht. Passt ein **eigenes Gericht**, steht
+   es ganz oben („mit deinen genauen Zutaten"). Ist das Foto schwer zu deuten
+   (`needs_note`: Suppe, Eintopf, Auflauf, Smoothie …), Bitte um den Namen +
+   „Mit Notiz neu erkennen" (dasselbe Foto). Zutaten in Gruppen: **Drin**
+   (sicher/üblich, vorgewählt), **„Für die Cremigkeit – was hast du genommen?"**
+   (Alternativen, nicht vorgewählt), **Vielleicht auch** (optional).
+3. **Zuordnung:** je Zutat Lebensmittel und Menge über die gewohnte Suche
+   (vorbelegt mit dem kurzen Suchbegriff der KI). Zurück zur Auswahl verliert
+   nichts. Dann „n Positionen eintragen" oder **„Als Gericht"** (Gericht-Editor
+   mit Name und Zutaten vorbelegt → Portionen → eine Portion eintragen; beim
+   nächsten Mal kommt es als eigenes Gericht zuerst).
+
+**Rezeptwissen:** Die möglichen Zutaten kommen aus dem Wissen des Modells
+(deckt sehr viele Gerichte und Varianten ab). Die eigenen Gerichte des Nutzers
+sind die genaue Schicht darüber und wachsen mit jeder Nutzung. Eine eigene
+Rezeptdatenbank ist bewusst nicht gebaut: offene Rezeptsammlungen sind meist
+nur nicht-kommerziell (z. B. RecipeNLG) oder Share-Alike lizenziert — vor einer
+Übernahme rechtlich prüfen.
+
+**Technik:** Edge Function `food-photo` → Anthropic Messages API (offizielles
+SDK, `claude-haiku-5-5` mit `effort: low` — „so preiswert wie möglich",
+Entscheidung Nutzer; kein Server-Fallback bei Ablehnung, dann „nicht erkannt"; structured outputs: `dish`, `needs_note`, je Zutat
+`name`, `search`, `kind` visible/usual/alternative/optional, `group`;
+Server-Fallback). Foto optional, dann ist die Notiz Pflicht. Antwort serverseitig
+geprüft (Alternative allein in ihrer Gruppe → optional, höchstens 20 Zutaten).
+Kosten grob: Bild ~1.500 Token + Antwort ~400 Token ≈ 0,04 Cent je Erkennung.
+
+**Datenschutzerklärung** (`src/features/compliance/legal/texts.ts`, de/en)
+ergänzt: Ernährungsdaten, Kamera (Barcode auf dem Gerät), Anthropic für die
+Mahlzeiten-Erkennung, Open Food Facts ohne Personenbezug.
+
+**Datenschutz:** eigene Einwilligung `profiles.ai_food_consent_at` (Fotos *und*
+Notizen; Server stempelt; Widerruf im Profil). Foto und Notiz werden nicht
+gespeichert. Notiz als eigener Block, ohne Steuerzeichen; Text im Bild gilt nie
+als Anweisung. Keine In-App-Spracherkennung (die Web-Speech-API schickt Audio an
+Google bzw. Apple) — Diktieren über die Tastatur ist Sache des Betriebssystems.
+
+**Kosten/Limit:** 30 Erkennungen je Nutzer und 24 h (`food_photo_scans`, nur
+Zeitpunkt; erst eintragen, dann zählen). Nur Namen als Antwort → wenige Tokens.
+
+**Grenze:** Generische Zutaten finden ohne BLS oft nur Markenprodukte — der
+BLS-Import (Etappe 1b) macht die Zuordnung erst rund.
 
 ## 9. Review-Befunde (behoben vor dem ersten Commit)
 
