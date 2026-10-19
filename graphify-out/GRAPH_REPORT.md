@@ -1,7 +1,7 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-19)
 
 ## Corpus Check
-- 1182 files · ~1,471,701 words
+- 1182 files · ~1,471,753 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 58 file(s) not represented in the graph (top: (none) 26, .xml 10, .css 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e3d236fa`
+- Built from commit: `24d4c0b0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1794,7 +1794,7 @@ Nodes (3): A, GUIDANCE_NIERE, U
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `vitest` connect `vitest` to `Protokoll.tsx`, `ref_node_path`, `blutspiegelHistory.ts`, `StocksChart.tsx`, `Layout.tsx`, `useTrainingData.ts`, `bestand.ts`, `Tagebuch.tsx`, `App.tsx`, `PeptideLibrary.tsx`, `useFortschrittData.ts`, `off.ts`, `AmbientLight.tsx`, `planTimeline.js`, `react`, `IntakePlanEditor.tsx`, `csvImport.ts`, `BefundListe.tsx`, `injectionPersistence.ts`, `PowderVisual.tsx`, `my-stack/types.ts`, `content/types.ts`, `Bewertungen.tsx`, `BottomNavigation.tsx`, `MarkerDetail.tsx`, `monitoring.ts`, `planLifecycle.ts`, `package.json`, `chartMath.ts`, `date-fns`, `ColorField.tsx`, `training/types.ts`, `TodayTab.tsx`, `lib/stats.ts`, `useStageLight`, `@testing-library/react`, `progressModel.ts`, `PatchVisual.tsx`, `PenVisual.tsx`, `injectionLogTypes.ts`, `DoseCalculator.tsx`, `FotosTab.tsx`, `Home.tsx`, `BlutwertePage.tsx`, `healthImport.ts`, `BefundEditor.tsx`, `blutwerte/lib/format.ts`, `metricDefaults.ts`, `bestand.ts`, `planTimeline.ts`, `nutrition.ts`, `features.ts`, `Auswertung.tsx`, `my-stack/lib/i18n.test.ts`, `intakeConfirmation.ts`, `StackListView.tsx`, `react-i18next`, `planAdoption.ts`, `foodSearch.ts`, `StageFormSpec`, `my-stack/lib/colors.ts`, `VerlaufSection.tsx`, `units.ts`, `intakeFrequency.ts`, `useMyStackData.ts`, `unitConversion.ts`, `dosePlan.ts`, `intakeBundles.ts`, `SyringeScale.test.tsx`, `barcodeDetector.ts`, `FortschrittDashboard.tsx`, `monitoring.ts`, `planLabels.ts`, `Dashboard.tsx`, `LiveBlutspiegelChart.tsx`, `progress-year-data.ts`, `GelVisual.tsx`, `mockSupabase.ts`, `produktAngaben.ts`, `Home.test.ts`, `i18n/texts.test.ts`, `legacyMyStackPersistence.ts`, `injectionHistory.ts`, `InjectionMapCanvas.tsx`, `DropsVisual.tsx`, `protocolPdf/types.ts`, `SprayVisual.tsx`, `liquidGeometry.ts`, `stageLightDirection.test.ts`, `vialStock.ts`, `TubeVisual.tsx`, `audit-peptipedia.ts`, `stageLightDirection.test.ts`, `NasalSprayVisual.tsx`, `useBlutspiegelData.ts`, `Profil.tsx`, `trackingDepthSchema.test.ts`, `MyStackPage.visibility.test.tsx`, `wellnessBuckets.ts`, `StageFit.test.tsx`, `texts.ts`, `stackInventory.ts`, `AmpouleVisual.tsx`, `Dashboard.test.ts`, `metrics.ts`, `InjectionLogSheet.tsx`, `SubstanceCatalogEntry`, `react-router-dom`, `Layout.tsx`, `ErnaehrungPage.tsx`, `PeptideCalculatorPanel.tsx`, `denyFeedback.ts`, `injectionSave.ts`, `InjektionsTracker.tsx`, `zyklusZeilen.ts`, `ProtocolPdfModal.tsx`, `WerteCard.tsx`, `legacyPlanTimeline.ts`, `StackItemWizard.interaction.test.tsx`, `duplicateFingerprint.test.ts`, `objektSkala`, `DoseCalculator.tsx`, `konzentrationProMl`, `SyringeFields.tsx`, `bloodwork-extract/index.ts`, `silhouetteTakt.ts`, `BottomNavigation.tsx`, `stackTabs.ts`, `fortschritt/lib/i18n.test.ts`, `StackStage.test.ts`, `substanceCatalogSource.test.ts`, `ExpiredBadge.tsx`, `dosageForms.ts`, `AccountSection.tsx`, `inventoryMath.ts`, `chartData.test.ts`, `@testing-library/react`, `rechnerVial.ts`, `UnitConverter.tsx`, `MyStackPage.tsx`, `ManualSimulation.tsx`, `wizardState.ts`, `stackItems.ts`, `Rechner.tsx`, `AppBackNavigation.test.tsx`, `markerGuidance.ts`?**
-  _High betweenness centrality (0.219) - this node is a cross-community bridge._
+  _High betweenness centrality (0.215) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `MyStackPage()` (e.g. with `Task 8: Bestehende My-Stack-Seite modularisieren und Wizard integrieren` and `Task 9: Farben persistieren und alte Formulargrenze entfernen`) actually correct?**
   _`MyStackPage()` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `../tsconfig.node.json`, `UIKit`, `Capacitor` to the rest of the system?**
