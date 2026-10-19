@@ -83,6 +83,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   eine Beobachtung; eigener Name wie Katalog-Chip zählt zu diesem). PDF: eine Zeile
   je Chip mit Dauer, darunter Titel und Substanz. Verlaufstitel de/en „Wirkungen und
   Nebenwirkungen pro Woche/Monat".
+- **Chip neu gestaltet (2026-10-19, Variante A aus dem Canvas
+  https://claude.ai/artifact/FZoDHpwaugFTRTYivWiZUB):** ruhige Pille ohne Überstände;
+  Symbol in einer Kachel – rund = Wirkung, eckig = Nebenwirkung (Art auch ohne Farbe);
+  Intensität als 5 Punkte am Ende; Dauer fällt weg, wenn sie nicht daneben passt.
+  Ersetzt Scheibe/Badge/Ausbuchtung mit ＋/−. Liste: Chips getrennt in „Wirkungen“ und
+  „Nebenwirkungen“ (Nutzerwunsch). Info-Sheet und Editor-Kopf angepasst. Offen: in der
+  Liste neben den Knöpfen ist es eng (Dauer fällt öfter weg) – Knöpfe nach oben rechts
+  verlegen wäre die Lösung, Entscheidung beim Nutzer.
 - **Atomares Speichern:** `supabase-tagebuch-save-rpc.sql` – `save_diary_entry`
   (security invoker) schreibt Eintrag und ersetzt alle Chips in einer Transaktion,
   Art/Intensität am Eintrag rechnet die Funktion. Trockenlauf 2× + Tests OK

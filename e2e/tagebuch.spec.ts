@@ -149,6 +149,9 @@ test('Chip-Editor: Escape schliesst nur den Editor, Fokus zurueck auf den Chip; 
   await dialog.getByRole('button', { name: 'So funktionieren die Chips' }).click()
   const info = page.getByRole('dialog', { name: 'So ist ein Chip aufgebaut' })
   await expect(info).toBeVisible()
+  // Fokus liegt auf „Verstanden", ohne dass der Titel aus dem Bild scrollt.
+  await expect(info.getByRole('button', { name: 'Verstanden' })).toBeFocused()
+  await expect(info.getByRole('heading', { name: 'So ist ein Chip aufgebaut' })).toBeInViewport({ ratio: 1 })
   await info.getByRole('button', { name: 'Verstanden' }).click()
   await expect(info).toBeHidden()
   await expect(dialog).toBeVisible()
@@ -283,8 +286,13 @@ test('Suche und Filter laufen in der Datenbank: Titel oder Substanzname; Filter 
   await expect(page.locator('ul > li')).toHaveCount(2)
   await expect(page.locator('ul > li').first()).toContainText('Besserer Schlaf')
   await expect(page.locator('ul > li').last()).toContainText('Gemischt')
-  // Ein Eintrag mit beiden Arten erscheint einmal, mit allen seinen Chips.
-  await expect(page.locator('ul > li').last()).toContainText('Müdigkeit, Nebenwirkung')
+  // Ein Eintrag mit beiden Arten erscheint einmal, mit allen seinen Chips — getrennt nach Art.
+  const gemischt = page.locator('ul > li').last()
+  await expect(gemischt.locator('[data-tagebuch-art]')).toHaveCount(2)
+  await expect(gemischt.locator('[data-tagebuch-art="effect"]')).toContainText('Wirkungen')
+  await expect(gemischt.locator('[data-tagebuch-art="effect"]')).toContainText('Mehr Energie, Wirkung')
+  await expect(gemischt.locator('[data-tagebuch-art="side_effect"]')).toContainText('Nebenwirkungen')
+  await expect(gemischt.locator('[data-tagebuch-art="side_effect"]')).toContainText('Müdigkeit, Nebenwirkung')
 
   await page.getByRole('button', { name: 'Nebenwirkungen', exact: true }).click()
   await expect(page.locator('ul > li')).toHaveCount(2)
@@ -558,9 +566,9 @@ test('Liste: lange Chips bleiben in ihrer Spalte und verdecken die Knoepfe nicht
   await page.goto('/tagebuch')
   const karte = page.locator('ul > li').first()
   const knoepfe = (await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).boundingBox())!
-  // Rechte Kante jedes Chips samt Intensitaet links vom ersten Knopf.
-  const rechts = await karte.locator('span.absolute').evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
-  expect(rechts.length).toBeGreaterThanOrEqual(10)
+  // Rechte Kante jedes Chips links vom ersten Knopf.
+  const rechts = await karte.locator('[data-tagebuch-chip]').evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
+  expect(rechts).toHaveLength(5)
   expect(Math.max(...rechts)).toBeLessThanOrEqual(knoepfe.x)
   if (info.project.name === 'iphone-se') await page.screenshot({ path: info.outputPath('liste-lang.png') })
   await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
