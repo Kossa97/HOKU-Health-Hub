@@ -255,6 +255,7 @@ export class MockSupabase {
     this.registerMyStackRpcs()
     this.registerComplianceRpcs()
     this.registerIntakeRpcs()
+    this.registerDiaryRpcs()
     this.seedCatalog()
     this.seedOwnProfile()
   }
@@ -891,6 +892,50 @@ export class MockSupabase {
       const cycle = this.table('cycles').find(row => row.id === cycleId)
       if (cycle) Object.assign(cycle, pickSchedule(snapshot))
       return version
+    })
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tagebuch (supabase-tagebuch-save-rpc.sql): Eintrag und Chips in einem
+  // Aufruf. Nachgebaut: Pflichtangaben, Art/Intensität aus den Chips, Chips
+  // ersetzen; ein Katalog-Chip nur einmal je Eintrag. Alles oder nichts.
+
+  private registerDiaryRpcs(): void {
+    this.onRpc('save_diary_entry', params => {
+      const entry = (params.p_entry ?? {}) as Row
+      const chips = (params.p_chips ?? []) as Row[]
+      const title = String(entry.description ?? '').trim()
+      if (!title) throw new RpcError('diary_title_required')
+      if (!chips.length) throw new RpcError('diary_chips_required')
+      const keys = chips.map(chip => chip.symptom_key).filter(Boolean)
+      if (new Set(keys).size !== keys.length) throw new RpcError('duplicate key value violates unique constraint "effect_symptoms_effect_key_uniq"')
+      const kinds = new Set(chips.map(chip => chip.kind))
+      const fields = {
+        description: title,
+        type: kinds.size === 1 ? chips[0].kind : null,
+        severity: Math.max(...chips.map(chip => Number(chip.severity))),
+        duration: null,
+        occurred_at: entry.occurred_at,
+        stack_item_id: entry.stack_item_id || null,
+        dose_log_id: entry.dose_log_id || null,
+        notes: String(entry.notes ?? '').trim() || null,
+      }
+      let effect: Row
+      if (params.p_effect_id) {
+        const found = this.table('effects').find(row => row.id === params.p_effect_id && row.user_id === TEST_USER.id)
+        if (!found) throw new RpcError('diary_entry_not_found')
+        effect = Object.assign(found, fields)
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => row.effect_id !== effect.id))
+      } else {
+        effect = this.insert('effects', { user_id: TEST_USER.id, status: 'eingetreten', ...fields })
+      }
+      chips.forEach((chip, position) => this.insert('effect_symptoms', {
+        effect_id: effect.id, user_id: TEST_USER.id,
+        symptom_key: chip.symptom_key || null, custom_label: String(chip.custom_label ?? '').trim() || null,
+        kind: chip.kind, severity: chip.severity, duration_minutes: chip.duration_minutes ?? null,
+        ongoing: chip.ongoing === true, position,
+      }))
+      return effect.id
     })
   }
 

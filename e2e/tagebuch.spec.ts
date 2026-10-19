@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
-import { TEST_USER, type MockSupabase } from './support/mockSupabase'
+import { RpcError, TEST_USER, type MockSupabase } from './support/mockSupabase'
 import { seedPeptide } from './support/myStack'
 
 /**
@@ -158,7 +158,6 @@ test('Bearbeiten: vorbefuellt; Chip aendern, entfernen, hinzufuegen aendert den 
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const item = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
   eintrag(mock, { stack_item_id: item.id }, [{}, { symptom_key: 'nausea', severity: 2, duration_minutes: null, position: 1 }])
-  const [kopf] = mock.table('effect_symptoms')
   await page.goto('/tagebuch')
 
   await expect(page.getByText('Kopfschmerz', { exact: true })).toBeVisible()
@@ -190,9 +189,27 @@ test('Bearbeiten: vorbefuellt; Chip aendern, entfernen, hinzufuegen aendert den 
   expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz, leichter', type: null, severity: 5, stack_item_id: item.id })
   const chips = mock.table('effect_symptoms')
   expect(chips).toHaveLength(2)
-  // Der geaenderte Chip behaelt seine Zeile.
-  expect(chips.find(row => row.id === kopf.id)).toMatchObject({ symptom_key: 'headache', severity: 1, duration_minutes: 120, position: 0 })
-  expect(chips.find(row => row.id !== kopf.id)).toMatchObject({ symptom_key: 'slept_better', kind: 'effect', severity: 5, position: 1 })
+  // Ein Aufruf ersetzt alle Chips des Eintrags, in der Reihenfolge des Formulars.
+  expect(mock.rpcCalls.filter(call => call.name === 'save_diary_entry')).toHaveLength(1)
+  expect(chips.map(({ symptom_key, kind, severity, duration_minutes, position }) => ({ symptom_key, kind, severity, duration_minutes, position }))).toEqual([
+    { symptom_key: 'headache', kind: 'side_effect', severity: 1, duration_minutes: 120, position: 0 },
+    { symptom_key: 'slept_better', kind: 'effect', severity: 5, duration_minutes: null, position: 1 },
+  ])
+})
+
+test('Scheitert das Speichern, meldet die App den Fehler und das Formular bleibt offen (Alles-oder-nichts prueft der SQL-Trockenlauf)', async ({ page, mock }) => {
+  eintrag(mock, {})
+  mock.onRpc('save_diary_entry', () => { throw new RpcError('effect_symptoms_symptom_key_check') })
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Geändert')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Fehler beim Speichern', { exact: false })).toBeVisible()
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Speichern' })).toBeEnabled()
+  expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz' })
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
 })
 
 test('Bearbeiten: ein alter Eintrag ohne Chips wird zu einem eigenen Chip', async ({ page, mock }) => {

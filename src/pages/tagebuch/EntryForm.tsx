@@ -11,8 +11,8 @@ import { ChipEditor } from './ChipEditor'
 import { ChipInfo } from './ChipInfo'
 import { sortedChips, type DiaryEntry } from './entry'
 import {
-  SYMPTOM_GROUPS, chipAria as ariaOf, chipId, chipLabel as labelOf, durationText, entrySummary, fromRow, kindColor, labelIn,
-  matchingSymptoms, planChipSave, symptomByKey, type ChipDraft, type SymptomKind,
+  SYMPTOM_GROUPS, chipAria as ariaOf, chipId, chipLabel as labelOf, chipPayload, durationText, fromRow, kindColor, labelIn,
+  matchingSymptoms, symptomByKey, type ChipDraft, type SymptomKind,
 } from './chips'
 
 interface StackItem { id: string; display_name: string }
@@ -121,39 +121,25 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
     }
   }
 
-  /** Eintrag und Chips schreiben; meldet Fehler selbst, `saving` setzt `save` zurück. */
+  /**
+   * Eintrag und Chips in einem Aufruf (eine Transaktion): scheitert etwas,
+   * bleibt alles, wie es war. Meldet Fehler selbst, `saving` setzt `save` zurück.
+   */
   const persist = async () => {
-    const summary = entrySummary(form.chips)
-    const fields = {
-      description: title,
-      type: summary.type,
-      severity: summary.severity,
-      duration: null,
-      occurred_at: new Date(form.occurred_at).toISOString(),
-      stack_item_id: form.stack_item_id || null,
-      // Ohne Substanz bleibt ein bestehender Verweis (Substanz gelöscht); ein Wechsel leert die Wahl schon vorher.
-      dose_log_id: form.dose_log_id || null,
-      notes: form.notes.trim() || null,
-    }
-    // .select() liefert die geänderte Zeile – leer heißt: Eintrag existiert nicht mehr
-    const { data, error } = entry
-      ? await supabase.from('effects').update(fields).eq('id', entry.id).eq('user_id', userId).select('id')
-      : await supabase.from('effects').insert({ ...fields, user_id: userId, status: 'eingetreten' }).select('id')
-    const effectId = data?.[0]?.id as string | undefined
-    if (error || !effectId) {
-      toast.error(t(error?.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
-      return
-    }
-    const plan = planChipSave(entry?.effect_symptoms ?? [], form.chips, effectId, userId)
-    const chipError =
-      (plan.remove.length ? (await supabase.from('effect_symptoms').delete().in('id', plan.remove).eq('user_id', userId)).error : null) ??
-      (await Promise.all(plan.update.map(({ id, ...row }) =>
-        supabase.from('effect_symptoms').update(row).eq('id', id).eq('user_id', userId)))).find(res => res.error)?.error ??
-      (plan.insert.length ? (await supabase.from('effect_symptoms').insert(plan.insert)).error : null)
-    if (chipError) {
-      // Neuer Eintrag ohne Chips wäre unvollständig — wieder entfernen.
-      if (!entry) await supabase.from('effects').delete().eq('id', effectId).eq('user_id', userId)
-      toast.error(t('fehler_speichern'))
+    const { error } = await supabase.rpc('save_diary_entry', {
+      p_effect_id: entry?.id ?? null,
+      p_entry: {
+        description: title,
+        occurred_at: new Date(form.occurred_at).toISOString(),
+        stack_item_id: form.stack_item_id || null,
+        // Ohne Substanz bleibt ein bestehender Verweis (Substanz gelöscht); ein Wechsel leert die Wahl schon vorher.
+        dose_log_id: form.dose_log_id || null,
+        notes: form.notes.trim() || null,
+      },
+      p_chips: chipPayload(form.chips),
+    })
+    if (error) {
+      toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return
     }
     toast.success(t(entry ? 'eintrag_aktualisiert' : 'eintrag_gespeichert'))
