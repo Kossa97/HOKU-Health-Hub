@@ -6,7 +6,25 @@ import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react'
 
 export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: () => void; overlay?: boolean }) {
   const { t } = useTranslation()
+  // Ueber der Karte liest sich weisse Schrift auch auf heller Haut: ein weicher
+  // Verlauf ueber die volle Breite statt eines Textschattens. Ein grosser
+  // Schatten wuerde von `truncate` an der Textbox abgeschnitten und stuende
+  // als dunkles Rechteck hinter der Ueberschrift.
+  const textShadow = overlay ? '0 1px 2px rgba(0,0,0,0.45)' : undefined
   return (
+    <>
+    {overlay && (
+      <div aria-hidden="true" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 'calc(120px + env(safe-area-inset-top))',
+        zIndex: 24,
+        pointerEvents: 'none',
+        background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.22) 55%, rgba(0,0,0,0))',
+      }} />
+    )}
     <div style={{
       display: 'flex',
       alignItems: 'center',
@@ -32,15 +50,16 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
         <p style={{
           fontSize: 13, fontWeight: 600,
           color: 'var(--lg-text-2)',
-          textShadow: overlay ? '0 1px 10px rgba(0,0,0,0.8)' : undefined,
+          textShadow,
         }}>
           {t('injection_pro_title', { defaultValue: 'Injektionstracker Pro' })}
         </p>
-        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--lg-text)', textShadow: overlay ? '0 2px 14px rgba(0,0,0,0.8)' : undefined }}>
+        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--lg-text)', textShadow }}>
           {t('injection_map_title', { defaultValue: '3D Injektionskarte' })}
         </h1>
       </div>
     </div>
+    </>
   )
 }
 
