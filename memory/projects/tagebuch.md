@@ -30,7 +30,10 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Eigene Entwürfe für die Lücken vom Nutzer verworfen. Nachrecherche über alle
   248 Iconify-Sammlungen: Einschlafprobleme = iconoven:insomnia (Auge + Mond),
   Aufstoßen = iconoven:sore-throat, Knötchen = iconoven:acne-spot (alle MIT).
-  Rötung und Schwellung: kein freies Symbol gefunden (Stand 2026-10-19). Durchsucht: Health Icons, Material
+  Rötung und Schwellung: kein freies Symbol gefunden (Stand 2026-10-19).
+  TRT-Nebenwirkungen ergänzt (Ölige Haut, Haarausfall, Brustspannen, Nachtschweiß,
+  Hoden kleiner, Blutdruck erhöht); Vorauswahl O2/H2/B1/N1/T1/D1, Hitzewallung
+  dafür auf healthicons:fever. Ein eigenes Biohacking-/TRT-Symbolset gibt es nicht. Durchsucht: Health Icons, Material
   Symbols, Fluent, Phosphor, MDI, Tabler, Medical Icons, IconPark, Streamline.
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
@@ -69,13 +72,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Aufstoßen / Burping · Blähungen / Bloating · Verstopfung / Constipation ·
   Durchfall / Diarrhea · Appetitlosigkeit / Loss of appetite
 - **Kopf & Kreislauf:** Kopfschmerzen / Headache · Schwindel / Dizziness ·
-  Herzrasen / Racing heart · Hitzewallung / Flushing · Müdigkeit / Fatigue ·
+  Herzrasen / Racing heart · Blutdruck erhöht / High blood pressure · Hitzewallung / Flushing · Müdigkeit / Fatigue ·
   Benommenheit / Brain fog
 - **Schlaf:** Schlechter geschlafen / Slept worse · Einschlafprobleme / Trouble falling asleep ·
-  Lebhafte Träume / Vivid dreams
+  Lebhafte Träume / Vivid dreams · Nachtschweiß / Night sweats
 - **Körper:** Wassereinlagerung / Water retention · Kribbeln oder Taubheit / Tingling or numbness ·
-  Gelenkschmerzen / Joint pain · Muskelkrämpfe / Muscle cramps · Mehr Hunger / Increased hunger
-- **Haut & Stimmung:** Akne / Acne · Hautausschlag / Rash · Gereiztheit / Irritability ·
+  Gelenkschmerzen / Joint pain · Muskelkrämpfe / Muscle cramps · Mehr Hunger / Increased hunger ·
+  Brustspannen / Breast tenderness · Hoden kleiner / Smaller testicles
+- **Haut & Stimmung:** Akne / Acne · Ölige Haut / Oily skin · Haarausfall / Hair loss · Hautausschlag / Rash · Gereiztheit / Irritability ·
   Gedrückte Stimmung / Low mood · Innere Unruhe / Restlessness
 - **Libido:** Weniger Libido / Lower libido
 - Eigene Nebenwirkung … / Custom side effect …
