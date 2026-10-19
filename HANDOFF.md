@@ -12,7 +12,9 @@
 
 Im Assistenten („Substanz hinzufügen", nur beim Neuanlegen) neben der Suche ein Scan-Knopf (`components/SubstanzScanner.tsx`). Zuerst Barcode ohne KI: `food-lookup` mit `kind: 'item'` liefert aus Open Food Facts nur Name, Marke, Menge (auch Supplements ohne Nährwerte); Form und Stärke je Stück kommen aus dem Produktnamen. Sonst Etikett fotografieren oder Foto wählen → neue Edge Function `label-extract` (Claude Haiku 5.5, JSON-Schema, Bild wird nicht gespeichert, Grenze 10 je 10 min / 40 je Tag und Instanz). Abgleich mit dem Katalog und Vorbelegung (Substanz, Form, Stärke, Marke) in `lib/substanzScan.ts` (getestet); ein Scan ersetzt den Entwurf (`draft_restarted`), der Nutzer prüft danach jeden Schritt. Kamera gemeinsam mit der Ernährung (`ernaehrung/lib/useBarcodeKamera.ts`).
 Einwilligung: dieselbe wie für Befunde (`ai_import_consent_at`), Text in de/en erweitert. Für Etiketten zählt sie erst ab `ETIKETT_EINWILLIGUNG_AB` = `LABEL_CONSENT_SINCE` (2026-10-19); ältere werden einmal neu gefragt (zurücknehmen + erteilen, weil der Trigger sonst den alten Zeitpunkt behält). Datenschutzerklärung und `NSCameraUsageDescription` angepasst. Keine DB-Änderung.
-- [ ] **Ausrollen:** `label-extract` neu und `food-lookup` geändert in Supabase deployen (vor dem Frontend). Liegt der Release deutlich nach dem 19.10., den Stichtag in beiden Dateien auf den Release-Tag setzen.
+- [x] `label-extract` in Supabase deployed (19.10.2026, Version 1).
+- [ ] **`food-lookup` deployen** (Barcode-Modus `kind: 'item'`). Bis dahin endet der Barcode-Weg in My Stack bei „Barcode unbekannt, Etikett fotografieren“.
+- [ ] Liegt der Release (Merge von PR #36) deutlich nach dem 19.10., den Stichtag in `aiConsent.ts` und `label-extract/prompt.ts` auf den Release-Tag setzen und `label-extract` neu deployen.
 
 ## Betrieb (Stand 29.09.2026)
 
