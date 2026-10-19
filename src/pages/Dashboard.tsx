@@ -11,7 +11,7 @@ import {
   parseISO, startOfDay,
 } from 'date-fns'
 import {
-  AlertTriangle, Bell, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
+  AlertTriangle, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
   Layers, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -278,16 +278,6 @@ function intakeGroupMeta(key: IntakeGroupKey, t: (key: string) => string): { ico
   return { icon: Pin, label: t('ausstehend') }
 }
 
-function timeLabel(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
-  const date = new Date(dateStr)
-  const h    = date.getHours()
-  const time = format(date, 'HH:mm')
-  if (h >= 5  && h < 12) return t('morgens_uhr', { time })
-  if (h >= 12 && h < 18) return t('mittags_uhr', { time })
-  if (h >= 18)            return t('abends_uhr', { time })
-  return `${time} Uhr`
-}
-
 function cycleLogTimestamp(cycle: Cycle, day: Date): string {
   const date = new Date(day)
   const minutes = cycleIntakeMinutes(cycle, day)
@@ -393,6 +383,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     && (confirmDoseWert == null || !Number.isFinite(confirmDoseWert) || confirmDoseWert <= 0)
   const [completedExpanded, setCompletedExpanded] = useState(false)
   const [unloggedExpanded, setUnloggedExpanded] = useState(false)
+  // Welche protokollierte Einnahme ihre Aktionen zeigt — hoechstens eine.
+  const [aufgeklappterLog, setAufgeklappterLog] = useState<string | null>(null)
   /** Welche Einnahme aufgeklappt ist.
    *
    *  `voreingestellt` heisst: die erste offene. So steht beim Oeffnen der
@@ -1715,16 +1707,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     }))
   }
 
-  const snoozeDose = (log: DoseLog, minutes: number) => {
-    const time = minutes < 60 ? `${minutes} min` : `${minutes / 60} h`
-    toast(t('erinnerung_toast', { time }), { icon: '⏰' })
-    setTimeout(() => {
-      toast(
-        t('dose_nicht_best', { name: log.stack_items?.display_name, dose: log.dose, unit: log.unit }),
-        { icon: <Syringe size={18} />, duration: 10000 }
-      )
-    }, minutes * 60 * 1000)
-  }
 
   // ── Day cell renderer ─────────────────────────────────────────────────────
   const today = new Date()
@@ -2014,119 +1996,118 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     )
   }
 
-  const renderConfirmedLog = (log: DoseLog) => (
-    <div key={log.id} className="lg-surface px-4 py-3">
-      <div className="flex items-center gap-3">
-        {(() => {
-          // Verpasst: Bernstein wie in der Tageszelle. Bewusst ausgelassen:
-          // neutral — das war eine Entscheidung, kein Fehler. Kein Rot.
-          const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
-          return <Symbol size={16} aria-hidden="true" className={`shrink-0 ${
-            log.taken === true ? 'text-[var(--lg-good-text)]' :
-            log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
-          }`} />
-        })()}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[17px] text-[var(--lg-text)]">{log.stack_items?.display_name ?? t('geloeschte_substanz')}</span>
-            <span className={`text-[13px] font-semibold ${
-              log.taken === true ? 'text-[var(--lg-good-text)]' :
-              log.taken === false ? (log.notes === AUTO_MISSED_NOTE ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]') : 'text-[var(--lg-accent-text)]'
-            }`}>{formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))}</span>
-            <span className="text-[13px] text-[var(--lg-text-3)]">{log.method}</span>
-            {log.taken === true && (
-              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-good-text)]">
-                <Check size={11} /> {t('eingenommen')}
-              </span>
-            )}
-            {log.taken === false && (log.notes === AUTO_MISSED_NOTE ? (
-              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-warn-text)]">
-                <XCircle size={11} aria-hidden="true" /> {t('verpasst', { defaultValue: 'Verpasst' })}
-              </span>
-            ) : (
-              <span className="flex items-center gap-0.5 text-[13px] font-medium text-[var(--lg-text-3)]">
-                <MinusCircle size={11} aria-hidden="true" /> {t('uebersprungen')}
-              </span>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[13px] text-[var(--lg-text-3)]">{timeLabel(log.logged_at, t)}</span>
-            {log.notes && log.notes !== AUTO_MISSED_NOTE && <span className="truncate text-[13px] text-[var(--lg-text-3)]">· {log.notes}</span>}
-          </div>
-        </div>
-        {(!FEATURES.planTimelineV2 || log.taken === null) && <button aria-label={t('eintrag_loeschen')} className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)] hover:!text-[var(--lg-bad-text)]"
-          onClick={() => deleteLog(log)}>
-          <X size={16} />
-        </button>}
-      </div>
+  /**
+   * Eine entschiedene Einnahme als Zeile einer gruppierten Liste: Symbol,
+   * Name, darunter Menge · Methode · Uhrzeit, rechts der Status. Die Aktionen
+   * stehen nicht dauerhaft in jeder Zeile — bei sechs ausgelassenen Einnahmen
+   * war die Liste sonst drei Bildschirme lang. Antippen klappt sie auf.
+   */
+  const renderLogRow = (log: DoseLog) => {
+    const verpasst = log.taken === false && log.notes === AUTO_MISSED_NOTE
+    const ton = log.taken === true ? 'text-[var(--lg-good-text)]'
+      : log.taken === false ? (verpasst ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]')
+      : 'text-[var(--lg-accent-text)]'
+    const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
+    const status = log.taken === true ? t('eingenommen')
+      : log.taken === false ? (verpasst ? t('verpasst', { defaultValue: 'Verpasst' }) : t('uebersprungen'))
+      : null
+    const wiederOeffnen = log.taken !== null && kannWiederGeoeffnetWerden(log)
+    const loeschbar = !FEATURES.planTimelineV2 || log.taken === null
+    const hatAktionen = wiederOeffnen || loeschbar || log.taken === null
+    const offen = hatAktionen && aufgeklappterLog === log.id
+    const menge = formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
 
-      {log.taken === null && (
-        <div className="mt-2.5 ml-7 flex gap-2">
-          <button
-            onClick={() => openConfirmSheet(undefined, log)}
-            data-tone="good"
-            className="lg-gray-btn !px-3.5 !text-[13px]">
-            <Check size={14} /> {t('eingenommen')}
-          </button>
-          <button
-            onClick={() => confirmDose(log, false)}
-            data-tone="bad"
-            className="lg-gray-btn !px-3.5 !text-[13px]">
-            <XCircle size={14} /> {t('uebersprungen')}
-          </button>
-        </div>
-      )}
+    const kopf = (
+      <>
+        <Symbol size={18} aria-hidden="true" className={`shrink-0 ${ton}`} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[17px] text-[var(--lg-text)]">
+            {log.stack_items?.display_name ?? t('geloeschte_substanz')}
+          </span>
+          {/* Drei Teile, drei Elemente: einzeln auffindbar, zusammen gekuerzt */}
+          <span className="block truncate text-[13px] text-[var(--lg-text-3)]">
+            <span>{menge}</span>
+            {log.method && <> · <span>{log.method}</span></>}
+            {' · '}<span className="tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
+            {log.notes && log.notes !== AUTO_MISSED_NOTE && <> · <span>{log.notes}</span></>}
+          </span>
+        </span>
+        {status && <span className={`shrink-0 text-[15px] ${ton}`}>{status}</span>}
+      </>
+    )
 
-      {/* Eine entschiedene Einnahme laesst sich wieder oeffnen.
-          NUR oeffnen — nicht an Ort und Stelle umschreiben: unter
-          `planTimelineV2` laeuft jede Entscheidung ueber
-          `confirm_intake_group`, das Herkunft und Lebenszyklus prueft. Ein
-          direktes „doch eingenommen" umginge diese Pruefung.
-          `reverse_inventory_confirmation('undo')` setzt `taken` auf null und
-          bucht den Bestand in einer Transaktion zurueck; Zyklus, Planversion,
-          Slot-Schluessel und Menge bleiben unberuehrt. Damit steht die Zeile
-          wieder genau so da, wie die RPC eine offene Einnahme erwartet — und
-          sie taucht oben wieder als faellig auf. */}
-      {log.taken !== null && kannWiederGeoeffnetWerden(log) && (
-        <div className="mt-2.5 ml-7 flex gap-2">
-          {!FEATURES.planTimelineV2 && log.taken === false && (
-            <button
-              onClick={() => openConfirmSheet(undefined, log)}
-              data-tone="good"
-              className="lg-gray-btn !px-3.5 !text-[13px]">
-              <Check size={14} /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
-            </button>
-          )}
+    return (
+      <div key={log.id} data-log-row={log.id}>
+        {hatAktionen ? (
           <button
             type="button"
-            onClick={() => undoDose(log)}
-            data-quiet
-            className="lg-gray-btn !px-3.5 !text-[13px]">
-            <RotateCcw size={14} aria-hidden="true" /> {t('dose_reopen', { defaultValue: 'Wieder öffnen' })}
+            aria-expanded={offen}
+            onClick={() => setAufgeklappterLog(offen ? null : log.id)}
+            className="flex min-h-[60px] w-full cursor-pointer items-center gap-3.5 px-4 py-2.5 text-left transition-colors duration-150 active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
+          >
+            {kopf}
           </button>
-        </div>
-      )}
+        ) : (
+          <div className="flex min-h-[60px] items-center gap-3.5 px-4 py-2.5">{kopf}</div>
+        )}
 
-      {log.taken === false && (
-        <div className="mt-3 ml-7">
-          <p className="mb-2 flex items-center gap-1.5 text-[13px] text-[var(--lg-text-3)]">
-            <Bell size={12} /> {t('erinnere_nochmal')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {[15, 30, 60, 120].map(min => (
+        {offen && (
+          <div className="flex flex-wrap gap-2 pb-3 pl-[50px] pr-4">
+            {log.taken === null && <>
               <button
-                key={min}
-                onClick={() => snoozeDose(log, min)}
-                data-quiet
-                className="lg-gray-btn !min-h-9 !px-3 !text-[13px]">
-                {min < 60 ? `${min} min` : `${min / 60} h`}
+                type="button"
+                onClick={() => openConfirmSheet(undefined, log)}
+                data-tone="good"
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <Check size={14} aria-hidden="true" /> {t('eingenommen')}
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => confirmDose(log, false)}
+                data-tone="bad"
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <XCircle size={14} aria-hidden="true" /> {t('uebersprungen')}
+              </button>
+            </>}
+            {/* Eine entschiedene Einnahme laesst sich wieder oeffnen.
+                NUR oeffnen — nicht an Ort und Stelle umschreiben: unter
+                `planTimelineV2` laeuft jede Entscheidung ueber
+                `confirm_intake_group`, das Herkunft und Lebenszyklus prueft.
+                `reverse_inventory_confirmation('undo')` setzt `taken` auf null
+                und bucht den Bestand in einer Transaktion zurueck. */}
+            {wiederOeffnen && !FEATURES.planTimelineV2 && log.taken === false && (
+              <button
+                type="button"
+                onClick={() => openConfirmSheet(undefined, log)}
+                data-tone="good"
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <Check size={14} aria-hidden="true" /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
+              </button>
+            )}
+            {wiederOeffnen && (
+              <button
+                type="button"
+                onClick={() => undoDose(log)}
+                data-quiet
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <RotateCcw size={14} aria-hidden="true" /> {t('dose_reopen', { defaultValue: 'Wieder öffnen' })}
+              </button>
+            )}
+            {loeschbar && (
+              <button
+                type="button"
+                aria-label={t('eintrag_loeschen')}
+                onClick={() => deleteLog(log)}
+                data-tone="bad"
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <X size={14} aria-hidden="true" /> {t('loeschen', { defaultValue: 'Löschen' })}
+              </button>
+            )}
           </div>
-        </div>
-      )}
-    </div>
-  )
+        )}
+      </div>
+    )
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -2562,8 +2543,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </div>
             </button>
             {completedExpanded && (
-              <div className="space-y-2">
-                {loggedLogs.map(log => renderConfirmedLog(log))}
+              <div className="lg-group lg-rows">
+                {loggedLogs.map(log => renderLogRow(log))}
               </div>
             )}
           </div>
@@ -2597,8 +2578,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </div>
             </button>
             {unloggedExpanded && (
-              <div className="space-y-2">
-                {unloggedLogs.map(log => renderConfirmedLog(log))}
+              <div className="lg-group lg-rows">
+                {unloggedLogs.map(log => renderLogRow(log))}
               </div>
             )}
           </div>

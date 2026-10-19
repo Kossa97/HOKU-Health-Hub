@@ -1,83 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ScanBarcode } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
-import { cameraAvailable, createDetector } from '../lib/barcodeDetector'
+import { useBarcodeKamera, type KameraStand } from '../lib/useBarcodeKamera'
 import { normalizeBarcode } from '../lib/barcode'
 import { DIM, ERROR_TEXT, MUTED } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 
-type CamState = 'starting' | 'scanning' | 'denied' | 'unavailable' | 'failed'
-
-/** Gleiche Ziffernfolge in zwei Bildern hintereinander — gegen Fehllesungen bei Bewegung. */
-const CONFIRM_FRAMES = 2
-const FRAME_MS = 180
-
 export function BarcodeScanner({ busy, onCode, onClose }: { busy: boolean; onCode: (code: string) => void; onClose: () => void }) {
   const { t } = useTranslation()
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [cam, setCam] = useState<CamState>(cameraAvailable() ? 'starting' : 'unavailable')
+  const { videoRef, cam } = useBarcodeKamera(onCode)
   const [manual, setManual] = useState('')
   const [manualError, setManualError] = useState(false)
-  const onCodeRef = useRef(onCode)
-  useEffect(() => { onCodeRef.current = onCode })
-
-  useEffect(() => {
-    if (!cameraAvailable()) return
-    let stopped = false
-    let stream: MediaStream | null = null
-    let timer: number | undefined
-
-    async function start() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false,
-        })
-      } catch (error) {
-        if (!stopped) setCam(error instanceof DOMException && error.name === 'NotAllowedError' ? 'denied' : 'unavailable')
-        return
-      }
-      const video = videoRef.current
-      if (stopped || !video) { stream.getTracks().forEach(tr => tr.stop()); return }
-      video.srcObject = stream
-      try {
-        await video.play()
-        const detector = await createDetector()
-        if (stopped) return
-        setCam('scanning')
-        let last = ''
-        let seen = 0
-        const tick = async () => {
-          if (stopped) return
-          try {
-            if (video.readyState >= 2) {
-              const found = await detector.detect(video)
-              const code = found.map(f => normalizeBarcode(f.rawValue)).find(Boolean) ?? ''
-              seen = code && code === last ? seen + 1 : code ? 1 : 0
-              last = code
-              if (code && seen >= CONFIRM_FRAMES) {
-                stopped = true
-                navigator.vibrate?.(30)
-                onCodeRef.current(code)
-                return
-              }
-            }
-          } catch { /* einzelnes Bild nicht lesbar — weiter */ }
-          timer = window.setTimeout(tick, FRAME_MS)
-        }
-        tick()
-      } catch {
-        if (!stopped) setCam('failed')
-      }
-    }
-    start()
-    return () => {
-      stopped = true
-      window.clearTimeout(timer)
-      stream?.getTracks().forEach(tr => tr.stop())
-    }
-  }, [])
 
   const submitManual = () => {
     const code = normalizeBarcode(manual)
@@ -85,11 +19,12 @@ export function BarcodeScanner({ busy, onCode, onClose }: { busy: boolean; onCod
     onCode(code)
   }
 
-  const camMessage: Partial<Record<CamState, string>> = {
+  const camMessage: Partial<Record<KameraStand, string>> = {
     starting: t('nutr_scan_starting'),
     denied: t('nutr_scan_denied'),
     unavailable: t('nutr_scan_unavailable'),
     failed: t('nutr_scan_failed'),
+    photo_only: t('nutr_scan_failed'),
   }
 
   return (

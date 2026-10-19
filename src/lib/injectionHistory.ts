@@ -80,7 +80,8 @@ function surfaceLabel(log: InjectionLog3D): string {
 export function formatInjectionSite(log: InjectionLog3D): string {
   if (!hasExactInjectionPosition(log)) return 'Alter Eintrag · keine genaue Position'
 
-  const detail = [verticalLabel(log), lateralLabel(log)].filter(Boolean).join(' ')
+  // Hoehe und Seite koennen beide „mittig“ sein: dann nur einmal.
+  const detail = [...new Set([verticalLabel(log), lateralLabel(log)].filter(Boolean))].join(' ')
   return `${regionLabel(log)} ${sideLabel(log)} · ${detail} · ${surfaceLabel(log)}`
 }
 

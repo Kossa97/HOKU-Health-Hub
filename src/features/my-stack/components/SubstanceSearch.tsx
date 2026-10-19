@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Plus, Search, X } from 'lucide-react'
+import { AlertCircle, Check, Plus, ScanLine, Search, X } from 'lucide-react'
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { STACK_CATEGORIES } from '../lib/categories'
@@ -25,6 +25,8 @@ export interface SubstanceSearchProps {
   onCategoryChange: (category: StackCategory) => void
   /** Die Frage ueber dem Suchfeld — beim Bearbeiten nicht „hinzufuegen". */
   question?: string
+  /** Barcode oder Etikett scannen. Fehlt, wo nicht neu angelegt wird. */
+  onScan?: () => void
 }
 
 export function SubstanceSearch({
@@ -42,6 +44,7 @@ export function SubstanceSearch({
   onDetach,
   onCategoryChange,
   question,
+  onScan,
 }: SubstanceSearchProps) {
   const { t } = useTranslation()
   const hasQuery = query.trim().length > 0
@@ -122,24 +125,37 @@ export function SubstanceSearch({
             </button>
           </div>
         ) : (
-          <div className="relative">
-            <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <input
-              ref={inputRef}
-              id="stack-substance-search"
-              type="search"
-              value={query}
-              onChange={event => {
-                setResultsDismissed(false)
-                onQueryChange(event.target.value)
-              }}
-              data-field="displayName"
-              aria-invalid={nameError || undefined}
-              aria-describedby={nameError ? 'stack-substance-name-error' : undefined}
-              autoComplete="off"
-              className="input min-h-11 w-full pl-11 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-              placeholder={String(t('my_stack_search_placeholder', { defaultValue: 'Substanz oder Produkt suchen' }))}
-            />
+          <div className="flex gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input
+                ref={inputRef}
+                id="stack-substance-search"
+                type="search"
+                value={query}
+                onChange={event => {
+                  setResultsDismissed(false)
+                  onQueryChange(event.target.value)
+                }}
+                data-field="displayName"
+                aria-invalid={nameError || undefined}
+                aria-describedby={nameError ? 'stack-substance-name-error' : undefined}
+                autoComplete="off"
+                className="input min-h-11 w-full pl-11 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                placeholder={String(t('my_stack_search_placeholder', { defaultValue: 'Substanz oder Produkt suchen' }))}
+              />
+            </div>
+            {onScan && (
+              <button
+                type="button"
+                data-substance-scan
+                onClick={onScan}
+                aria-label={String(t('my_stack_scan', { defaultValue: 'Scannen' }))}
+                className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-slate-400/20 bg-slate-400/[0.06] text-slate-200 transition-colors duration-200 hover:border-sky-400/30 hover:bg-sky-400/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+              >
+                <ScanLine aria-hidden="true" size={20} />
+              </button>
+            )}
           </div>
         )}
         {nameError && (

@@ -64,6 +64,8 @@ export async function expectCalendarTaken(page: Page): Promise<void> {
   await expect(page.locator('[data-due-row]')).toHaveCount(0)
   await completed.click()
   await expect(page.getByText('250 mcg', { exact: true })).toBeVisible()
+  // Die Aktionen einer protokollierten Einnahme stehen erst nach Antippen da.
+  await page.locator('[data-log-row] button[aria-expanded]').first().click()
 }
 
 export async function expectStockVisible(page: Page): Promise<void> {
