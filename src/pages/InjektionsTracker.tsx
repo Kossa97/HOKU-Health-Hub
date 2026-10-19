@@ -379,6 +379,7 @@ export function InjektionsTracker() {
 
           {activeLog && visibleLogIds.has(activeLog.id) && (
             <div
+              data-injection-cover="top"
               className="injection-active-pin-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
               style={{ top: 'calc(78px + env(safe-area-inset-top))' }}
             >
@@ -398,6 +399,7 @@ export function InjektionsTracker() {
 
           {activeTargetIntake && !showLogSheet && (
             <div
+              data-injection-cover="top"
               className="injection-selected-intake-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
               style={{ top: 'calc(126px + env(safe-area-inset-top))' }}
             >
@@ -412,6 +414,7 @@ export function InjektionsTracker() {
           )}
           {showPositionActions && (
             <div
+              data-injection-cover="bottom"
               className="lg-sheet absolute left-2 right-2 z-20 p-3"
               style={{ bottom: 'calc(8px + env(safe-area-inset-bottom))' }}
             >

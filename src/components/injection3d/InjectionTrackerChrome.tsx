@@ -25,7 +25,7 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
         background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.22) 55%, rgba(0,0,0,0))',
       }} />
     )}
-    <div style={{
+    <div data-injection-cover={overlay ? 'top' : undefined} style={{
       display: 'flex',
       alignItems: 'center',
       gap: 12,
