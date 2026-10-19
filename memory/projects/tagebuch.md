@@ -35,7 +35,8 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Hoden kleiner, Blutdruck erhöht); Vorauswahl O2/H2/B1/N1/T1/D1, Hitzewallung
   dafür auf healthicons:fever. Brustspannen = hugeicons:body-part-six-pack ohne Bauch
   plus Spannungsstrahlen unter der Brust (Variante Bd), Hoden kleiner = lucide:mars
-  mit kleinerem Kreis (r 3 statt 6, Variante Tb) – beides auf Wunsch abgewandelt. Ein eigenes Biohacking-/TRT-Symbolset gibt es nicht. Durchsucht: Health Icons, Material
+  mit kleinerem Kreis (r 3 statt 6, Variante Tb) – beides auf Wunsch abgewandelt
+  und vom Nutzer abgenommen (2026-10-19). Ein eigenes Biohacking-/TRT-Symbolset gibt es nicht. Durchsucht: Health Icons, Material
   Symbols, Fluent, Phosphor, MDI, Tabler, Medical Icons, IconPark, Streamline.
 - Stimmung/Energie/Libido als Tageswert bleiben in `daily_logs`; im Tagebuch
   nur als Wirkung einer Substanz.
