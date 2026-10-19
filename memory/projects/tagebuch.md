@@ -61,7 +61,11 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Bessere Konzentration, alle Material; zu leicht Knötchen, Besserer Pump,
   Wassereinlagerung, Schneller satt, Mehr Libido, Hoden kleiner. Maßnahmen:
   Material → material-symbols-light, Linien-Strich auf ≈1,0 px, Größe je Symbol
-  optisch angleichen, Ausreißer tauschen. Noch nicht umgesetzt.
+  optisch angleichen, Ausreißer tauschen. Umgesetzt im Mockup: 6 Material-Symbole
+  auf material-symbols-light (Schneller eingeschlafen, Bessere Haut gibt es dort
+  nicht), Linien-Strich 1,6 → 1,2 (≈1,0 px), Faktor je Symbol (`OPTICAL`,
+  0,78–1,28, max. 21 px in der 30-px-Scheibe). Ergebnis: Ausreißer 19 → 1,
+  Streuung 37 % → 11 %. Rest: Knötchen (0,55, flaches Motiv) – tauschen?
 
 ## Chip-Katalog — Entwurf (de / en)
 
