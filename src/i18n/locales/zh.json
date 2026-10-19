@@ -2415,5 +2415,6 @@
   "nutr_save_as_dish_aria": "Save {{meal}} as a recipe",
   "nutr_per_portion_short": "/ serving",
   "nutr_portions_amount": "Servings (1 serving = {{amount}} g)",
-  "nutr_add_to_dish": "Add to recipe"
+  "nutr_add_to_dish": "Add to recipe",
+  "pk_scrub_intake": "Dose {{dose}}"
 }
