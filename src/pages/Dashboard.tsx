@@ -1787,7 +1787,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     key: number
     /** Vorschau beim Wischen: nicht anklickbar, ohne Balken. */
     vorschau?: boolean
-    /** Im Streifen steht der Wochentag in der Zelle; im Monatsblatt ueber dem Raster. */
+    /** Zelle des Wochenstreifens: Balken, Zahl, Wochentag, gewaehlt auf grauer Kachel.
+     *  Ohne: Zelle des Monatsblatts, Zahl im Kreis, Wochentage stehen ueber dem Raster. */
     mitWochentag?: boolean
     /** Der Onboarding-Anker fuer „heute" darf es nur einmal geben. */
     ohneAnker?: boolean
@@ -1834,39 +1835,91 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           geplant,
         })
 
+    // Der Balken IST die Legende: halb gefuellt heisst halb erledigt.
+    // Deshalb gibt es darunter keine mehr.
+    const balken = (
+      <span
+        aria-hidden="true"
+        className={`block overflow-hidden rounded-full shrink-0 ${mitWochentag ? 'h-1 w-[22px]' : 'h-[3px] w-[18px]'}`}
+        style={{ background: spurFarbe }}
+      >
+        {anteil > 0 && (
+          <span
+            className="block h-full rounded-full"
+            style={{ width: `${Math.round(anteil * 100)}%`, background: 'var(--lg-good)' }}
+          />
+        )}
+      </span>
+    )
+
+    // Fokusring und Vorschau gelten fuer beide Zellenformen gleich.
+    const grundKlassen = [
+      'relative flex flex-col items-center',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
+      isPeek ? 'pointer-events-none' : '',
+    ]
+
+    const zelleProps = {
+      type: 'button' as const,
+      'data-calendar-date': !isPeek ? dayKey : undefined,
+      ...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {}),
+      'aria-label': beschriftung,
+      'aria-pressed': !isPeek ? isSelected : undefined,
+      'aria-current': isTodayDay && !isPeek ? 'date' as const : undefined,
+      tabIndex: isPeek ? -1 : undefined,
+      onClick: () => {
+        // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
+        // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
+        // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
+        if (wurdeGewischt.current || wischBlaettert.current) return
+        selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
+      },
+    }
+
+    // Im Streifen von oben nach unten: Stand, Zahl, Wochentag. Der gewaehlte
+    // Tag liegt auf einer grauen Kachel, sein Name steht in der Akzentfarbe.
+    // Heute erkennt man an der Zahl in Akzentfarbe — gewaehlt oder nicht.
+    if (mitWochentag) {
+      return (
+        <button
+          key={key}
+          {...zelleProps}
+          className={['tyd-press gap-[7px] rounded-[16px]', ...grundKlassen].filter(Boolean).join(' ')}
+          style={{
+            padding: '9px 0 10px',
+            minHeight: 72,
+            background: isSelected ? 'var(--lg-fill)' : 'transparent',
+          }}
+        >
+          {balken}
+          <span
+            className="text-[21px] font-bold leading-none tabular-nums tracking-[-0.02em] transition-colors duration-150"
+            style={{
+              fontFamily: 'var(--lg-display)',
+              color: isTodayDay ? 'var(--accent)'
+                : isSelected ? 'var(--lg-text)'
+                : isPastDay ? 'var(--lg-text-3)' : 'var(--lg-text-2)',
+            }}
+          >
+            {format(day, 'd')}
+          </span>
+          <span
+            className="text-[11px] font-bold uppercase leading-none tracking-[0.08em] transition-colors duration-150"
+            style={{ color: isSelected ? 'var(--accent)' : 'var(--lg-text-3)' }}
+          >
+            {format(day, 'EEEEEE', { locale })}
+          </span>
+        </button>
+      )
+    }
+
     return (
       <button
         key={key}
-        type="button"
-        data-calendar-date={!isPeek ? dayKey : undefined}
-        {...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {})}
-        aria-label={beschriftung}
-        aria-pressed={!isPeek ? isSelected : undefined}
-        aria-current={isTodayDay && !isPeek ? 'date' : undefined}
-        tabIndex={isPeek ? -1 : undefined}
-        onClick={() => {
-          // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
-          // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
-          // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
-          if (wurdeGewischt.current || wischBlaettert.current) return
-          selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
-        }}
-        className={[
-          'lg-press relative flex flex-col items-center gap-1 select-none',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
-          !inMonth ? 'opacity-25' : '',
-          isPeek ? 'pointer-events-none' : '',
-        ].filter(Boolean).join(' ')}
+        {...zelleProps}
+        className={['lg-press gap-1 select-none', ...grundKlassen, !inMonth ? 'opacity-25' : ''].filter(Boolean).join(' ')}
         style={{ padding: '6px 0 6px', minHeight: 64 }}
       >
-        {mitWochentag && (
-          <span className={`text-[11px] font-semibold uppercase leading-none ${
-            isTodayDay ? 'text-[var(--accent)]' : 'text-[var(--lg-text-3)]'
-          }`}>
-            {format(day, 'EEEEEE', { locale })}
-          </span>
-        )}
-
         {/* Die Zahl im Kreis wie im iOS-Kalender: gewählt voll in der
             Akzentfarbe, heute ohne Auswahl nur die Zahl in Akzentfarbe. */}
         <span
@@ -1882,20 +1935,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           {format(day, 'd')}
         </span>
 
-        {/* Der Balken IST die Legende: halb gefuellt heisst halb erledigt.
-            Deshalb gibt es darunter keine mehr. */}
-        <span
-          aria-hidden="true"
-          className="block h-[3px] w-[18px] rounded-full overflow-hidden shrink-0"
-          style={{ background: spurFarbe }}
-        >
-          {anteil > 0 && (
-            <span
-              className="block h-full rounded-full"
-              style={{ width: `${Math.round(anteil * 100)}%`, background: 'var(--lg-good)' }}
-            />
-          )}
-        </span>
+        {balken}
       </button>
     )
   }
