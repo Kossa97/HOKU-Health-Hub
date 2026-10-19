@@ -30,7 +30,10 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Eigene Entwürfe für die Lücken vom Nutzer verworfen. Nachrecherche über alle
   248 Iconify-Sammlungen: Einschlafprobleme = iconoven:insomnia (Auge + Mond),
   Aufstoßen = iconoven:sore-throat, Knötchen = iconoven:acne-spot (alle MIT).
-  Rötung und Schwellung: kein freies Symbol gefunden (Stand 2026-10-19).
+  Rötung und Schwellung: kein freies Symbol gefunden; auf Nutzerwunsch eigene
+  Varianten auf der Oberkörper-Grundform (wie Brustspannen) mit Nabel: Rötung mit
+  echtem rotem Fleck (#ff5c50, Hof 30 %), Schwellung mit getönter Wölbung.
+  Schulter-Varianten liegen als Alternative vor.
   TRT-Nebenwirkungen ergänzt (Ölige Haut, Haarausfall, Brustspannen, Nachtschweiß,
   Hoden kleiner, Blutdruck erhöht); Vorauswahl O2/H2/B1/N1/T1/D1, Hitzewallung
   dafür auf healthicons:fever. Brustspannen = hugeicons:body-part-six-pack ohne Bauch
