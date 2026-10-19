@@ -68,6 +68,7 @@ const RELATIONS: Record<string, Record<string, Relation>> = {
   effects: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
     dose_logs: { table: 'dose_logs', kind: 'one', local: 'dose_log_id', foreign: 'id' },
+    effect_symptoms: { table: 'effect_symptoms', kind: 'many', local: 'id', foreign: 'effect_id' },
   },
   cycles: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
@@ -103,9 +104,10 @@ function parseSelect(select: string): SelectField[] {
         if (depth > 0) inner += text[i]
         i++
       }
-      const [alias, table] = token.includes(':') ? token.split(':') : [token, token]
-      if (table.includes('!')) throw new Error(`Einbettung mit Hinweis ${table} nicht nachgebildet`)
-      fields.push({ alias, table, children: parseSelect(inner) })
+      const [alias, hinted] = token.includes(':') ? token.split(':') : [token, token]
+      const [table, hint] = hinted.split('!')
+      if (hint && hint !== 'inner') throw new Error(`Einbettung mit Hinweis ${hinted} nicht nachgebildet`)
+      fields.push({ alias: alias === hinted ? table : alias, table, children: parseSelect(inner) })
     } else if (token) {
       fields.push({ alias: token })
     }
@@ -508,9 +510,18 @@ export class MockSupabase {
     const prefer = headers.prefer ?? ''
     const filters = [...url.searchParams.entries()].filter(([key]) => !RESERVED_PARAMS.has(key))
     const rows = this.table(tableName)
+    // Filter auf eine eingebettete Spalte (`art.kind=eq.effect`) nur fuer
+    // `!inner`-Einbettungen: die Zeile bleibt, wenn mindestens ein Kind passt.
+    const embedded = new Map(parseSelect(url.searchParams.get('select') ?? '*').filter(field => field.children).map(field => [field.alias, field.table!]))
+    const embeddedMatch = (row: Row, column: string, filter: string) => {
+      const [alias, childColumn] = column.split('.')
+      const relation = RELATIONS[tableName]?.[embedded.get(alias) ?? '']
+      if (!relation || relation.kind !== 'many') throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      return this.table(relation.table).some(child => child[relation.foreign] === row[relation.local] && matches(child, childColumn, filter))
+    }
     const selected = () => rows.filter(row => filters.every(([column, filter]) => {
       if (column === 'or' || column === 'and') return logicalMatch(row, column, filter)
-      if (column.includes('.')) throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      if (column.includes('.')) return embeddedMatch(row, column, filter)
       return matches(row, column, filter)
     }))
 
@@ -577,6 +588,11 @@ export class MockSupabase {
     if (method === 'DELETE') {
       const doomed = new Set(selected())
       this.tables.set(tableName, rows.filter(row => !doomed.has(row)))
+      // on delete cascade aus supabase-tagebuch-chips.sql
+      if (tableName === 'effects') {
+        const gone = new Set([...doomed].map(row => row.id))
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => !gone.has(row.effect_id)))
+      }
       return returnRows ? respond([...doomed]) : route.fulfill({ status: 204, headers: corsHeaders() })
     }
 

@@ -64,7 +64,25 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   in Produktion angewendet: 58 effects unverändert, 0 Chips.
   `supabase-tagebuch-reset.sql` (löscht alle effects) liegt bereit, **noch nicht
   ausgeführt** – erst mit neuen Testdaten im neuen Format.
-- Auswertung (`src/pages/tagebuch/stats.ts`) zählt dann nach `symptom_key`.
+- **Schritt 2 erledigt (2026-10-19): Formular in der App.** `src/pages/tagebuch/`:
+  `EntryForm` (Titel Pflicht, Substanz freiwillig, Zeitpunkt, Einnahme-Bezug,
+  Suche + Info-Knopf, Tabs mit Anzahl, Chip-Gruppen, „+ Eigene …", Notizen),
+  `ChipEditor` (Intensität 1–5, Dauer/Hält an/Keine Angabe, Picker-Rad),
+  `ChipInfo`, `SymptomChip`, Logik in `chips.ts` (Speicherplan schreibt nur
+  geänderte Chips). Liste zeigt kleine Chips; Filter Wirkungen/Nebenwirkungen über
+  `art:effect_symptoms!inner(kind)`. Am Eintrag: `type` nur bei einheitlicher Art,
+  `severity` = stärkster Chip. Alte Einträge ohne Chips: Liste wie bisher, beim
+  Bearbeiten ein eigener Chip (alte Dauer-Texte gehen dabei verloren – egal, Daten
+  werden ersetzt). Abweichung vom Mockup: Info-Knopf neben der Suche statt neben den
+  Tabs (Tabs sonst auf iPhone SE zu schmal). e2e `tagebuch.spec.ts` neu, Mock kennt
+  `effect_symptoms`, `!inner` und Filter auf eingebettete Spalten.
+  Bekannt, offen: Speichern sind mehrere Anfragen ohne Transaktion (Eintrag zuerst,
+  dann Chips; neuer Eintrag wird bei Chip-Fehler wieder gelöscht) – sauber wäre eine
+  RPC. Alias-/`!inner`-Filter nur gegen den Mock geprüft (Supabase-REST aus dem
+  Container gesperrt). Alte Einträge ohne Chips fallen aus dem Art-Filter.
+- **Schritt 3:** Auswertung (`src/pages/tagebuch/stats.ts`, `Auswertung.tsx`) und
+  Protokoll-PDF (`loadProtocolData.ts`, `Protokoll.tsx`) auf `effect_symptoms`
+  umstellen – bis dahin zählt ein gemischter Eintrag (type leer) als Nebenwirkung.
 - Chip-Katalog (Entwurf unten) gegenlesen.
 - **Symbol-Audit (2026-10-19, design-system):** 43 Health Icons (Fläche, 48er,
   Strich ≈0,9 px), 8 Material Symbols (Fläche, 24er, ≈1,75 px – zu schwer),
