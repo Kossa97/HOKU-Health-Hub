@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
-import { TEST_USER, type MockSupabase } from './support/mockSupabase'
+import { RpcError, TEST_USER, type MockSupabase } from './support/mockSupabase'
 import { seedPeptide } from './support/myStack'
 
 /**
@@ -152,6 +152,11 @@ test('Chip-Editor: Escape schliesst nur den Editor, Fokus zurueck auf den Chip; 
   // Fokus liegt auf „Verstanden", ohne dass der Titel aus dem Bild scrollt.
   await expect(info.getByRole('button', { name: 'Verstanden' })).toBeFocused()
   await expect(info.getByRole('heading', { name: 'So ist ein Chip aufgebaut' })).toBeInViewport({ ratio: 1 })
+  // Die Grafik markiert die vier Teile des Beispiel-Chips A–D, von links nach rechts.
+  const marken = info.locator('figure > span[aria-hidden="true"]')
+  await expect(marken).toHaveText(['A', 'B', 'C', 'D'])
+  const xs = await marken.evaluateAll(els => els.map(el => el.getBoundingClientRect().left))
+  expect(xs).toEqual([...xs].sort((a, b) => a - b))
   await info.getByRole('button', { name: 'Verstanden' }).click()
   await expect(info).toBeHidden()
   await expect(dialog).toBeVisible()
@@ -161,7 +166,6 @@ test('Bearbeiten: vorbefuellt; Chip aendern, entfernen, hinzufuegen aendert den 
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const item = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
   eintrag(mock, { stack_item_id: item.id }, [{}, { symptom_key: 'nausea', severity: 2, duration_minutes: null, position: 1 }])
-  const [kopf] = mock.table('effect_symptoms')
   await page.goto('/tagebuch')
 
   await expect(page.getByText('Kopfschmerz', { exact: true })).toBeVisible()
@@ -193,9 +197,53 @@ test('Bearbeiten: vorbefuellt; Chip aendern, entfernen, hinzufuegen aendert den 
   expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz, leichter', type: null, severity: 5, stack_item_id: item.id })
   const chips = mock.table('effect_symptoms')
   expect(chips).toHaveLength(2)
-  // Der geaenderte Chip behaelt seine Zeile.
-  expect(chips.find(row => row.id === kopf.id)).toMatchObject({ symptom_key: 'headache', severity: 1, duration_minutes: 120, position: 0 })
-  expect(chips.find(row => row.id !== kopf.id)).toMatchObject({ symptom_key: 'slept_better', kind: 'effect', severity: 5, position: 1 })
+  // Ein Aufruf ersetzt alle Chips des Eintrags, in der Reihenfolge des Formulars.
+  expect(mock.rpcCalls.filter(call => call.name === 'save_diary_entry')).toHaveLength(1)
+  expect(chips.map(({ symptom_key, kind, severity, duration_minutes, position }) => ({ symptom_key, kind, severity, duration_minutes, position }))).toEqual([
+    { symptom_key: 'headache', kind: 'side_effect', severity: 1, duration_minutes: 120, position: 0 },
+    { symptom_key: 'slept_better', kind: 'effect', severity: 5, duration_minutes: null, position: 1 },
+  ])
+})
+
+test('Scheitert das Speichern, meldet die App den Fehler und das Formular bleibt offen (Alles-oder-nichts prueft der SQL-Trockenlauf)', async ({ page, mock }) => {
+  eintrag(mock, {})
+  mock.onRpc('save_diary_entry', () => { throw new RpcError('effect_symptoms_symptom_key_check') })
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Geändert')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Fehler beim Speichern', { exact: false })).toBeVisible()
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Speichern' })).toBeEnabled()
+  expect(mock.table('effects')[0]).toMatchObject({ description: 'Kopfschmerz' })
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
+})
+
+test('Ohne save_diary_entry in der Datenbank speichert die App auf dem Uebergangsweg', async ({ page, mock }) => {
+  mock.missingRpcs.add('save_diary_entry')
+  eintrag(mock, {}, [{}, { symptom_key: 'nausea', position: 1 }])
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  const dialog = formular(page)
+  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
+  await dialog.getByRole('button', { name: /^Übelkeit, Nebenwirkung/ }).click()
+  await page.getByRole('dialog', { name: 'Übelkeit' }).getByRole('button', { name: 'Entfernen' }).click()
+  await waehleChip(page, 'Mehr Energie', 2, 'Wirkungen')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Eintrag aktualisiert')).toBeVisible()
+  expect(mock.table('effects')).toHaveLength(1)
+  expect(mock.table('effects')[0]).toMatchObject({ type: null, severity: 4 })
+  expect(mock.table('effect_symptoms').map(row => [row.symptom_key, row.position])).toEqual([['headache', 0], ['more_energy', 1]])
+
+  // Neu anlegen geht ebenso.
+  await page.getByRole('button', { name: 'Neu' }).click()
+  await formular(page).getByLabel('Titel').fill('Abends')
+  await waehleChip(page, 'Schwindel', 3)
+  await formular(page).getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Eintrag gespeichert')).toBeVisible()
+  expect(mock.table('effects')).toHaveLength(2)
+  expect(mock.table('effect_symptoms')).toHaveLength(3)
 })
 
 test('Bearbeiten: ein alter Eintrag ohne Chips wird zu einem eigenen Chip', async ({ page, mock }) => {
@@ -526,7 +574,7 @@ test('Auswertung: ohne Eintraege ein Hinweis statt leerer Diagramme', async ({ p
   await expect(page.getByText('Keine Einträge in diesem Zeitraum.')).toBeVisible()
 })
 
-test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async ({ page, mock }, info) => {
+test('Liste: Bearbeiten und Loeschen sitzen oben rechts auf Hoehe des Titels', async ({ page, mock }, info) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   const bpc = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
   eintrag(mock, { stack_item_id: bpc.id, notes: 'Eine längere Notiz, die über mehrere Zeilen läuft, damit die Karte deutlich höher wird als die Knöpfe.' }, [{}, { symptom_key: 'nausea', position: 1 }, { symptom_key: 'dizziness', position: 2, ongoing: true, duration_minutes: null }])
@@ -534,25 +582,29 @@ test('Liste: Bearbeiten und Loeschen sitzen vertikal mittig in der Karte', async
   await page.goto('/tagebuch')
   await expect(page.locator('ul > li')).toHaveCount(2)
   for (const karte of await page.locator('ul > li').all()) {
-    const box = (await karte.boundingBox())!
+    const titel = (await karte.locator('p').first().boundingBox())!
     const knopf = (await karte.getByRole('button', { name: 'Eintrag löschen?' }).boundingBox())!
-    const mitteKarte = box.y + box.height / 2
-    const mitteKnopf = knopf.y + knopf.height / 2
-    expect(Math.abs(mitteKarte - mitteKnopf)).toBeLessThan(2)
+    expect(Math.abs((titel.y + titel.height / 2) - (knopf.y + knopf.height / 2))).toBeLessThan(6)
+    // Die Chips beginnen unter den Knöpfen.
+    const ersterChip = (await karte.locator('[data-tagebuch-chip]').first().boundingBox())!
+    expect(ersterChip.y).toBeGreaterThanOrEqual(knopf.y + knopf.height - 4)
   }
   if (info.project.name === 'iphone-13') await page.screenshot({ path: info.outputPath('liste.png') })
 })
 
-test('Liste: lange Chips bleiben in ihrer Spalte und verdecken die Knoepfe nicht', async ({ page, mock }, info) => {
+test('Liste: Chips nutzen die volle Kartenbreite; Namen bleiben auf dem iPhone SE ganz', async ({ page, mock }, info) => {
   eintrag(mock, {}, ['headache', 'trouble_falling_asleep', 'breast_tenderness', 'injection_sting', 'tingling_numbness']
     .map((symptom_key, position) => ({ symptom_key, position, duration_minutes: 2880 })))
   await page.goto('/tagebuch')
   const karte = page.locator('ul > li').first()
-  const knoepfe = (await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).boundingBox())!
-  // Rechte Kante jedes Chips links vom ersten Knopf.
-  const rechts = await karte.locator('[data-tagebuch-chip]').evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
-  expect(rechts).toHaveLength(5)
-  expect(Math.max(...rechts)).toBeLessThanOrEqual(knoepfe.x)
+  const kante = await karte.evaluate(el => el.getBoundingClientRect().right)
+  const chips = karte.locator('[data-tagebuch-chip]')
+  await expect(chips).toHaveCount(5)
+  const rechts = await chips.evaluateAll(els => els.map(el => el.getBoundingClientRect().right))
+  expect(Math.max(...rechts)).toBeLessThanOrEqual(kante)
+  // Kein Name ist abgeschnitten.
+  const gekuerzt = await karte.locator('[data-part="name"]').evaluateAll(els => els.filter(el => el.scrollWidth > el.clientWidth + 1).length)
+  expect(gekuerzt).toBe(0)
   if (info.project.name === 'iphone-se') await page.screenshot({ path: info.outputPath('liste-lang.png') })
   await karte.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
   await expect(formular(page)).toBeVisible()

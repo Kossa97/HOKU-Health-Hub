@@ -184,8 +184,9 @@ export function Tagebuch() {
       <ul className="space-y-3">
         {effects.map(e => (
           <li key={e.id} className="lg-surface lg-flat !rounded-[22px] py-3.5 pl-4 pr-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
+            {/* Kopf: Titel und Meta links, Bearbeiten/Löschen oben rechts — darunter haben die Chips die volle Breite */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0 pt-0.5">
                 <p className="text-[17px] font-semibold text-[var(--lg-text)]">{e.description}</p>
 
                 {/* Meta */}
@@ -200,55 +201,8 @@ export function Tagebuch() {
                     )
                   })()}
                 </div>
-
-                {e.effect_symptoms?.length ? (
-                  /* Getrennt nach Art: erst Wirkungen, dann Nebenwirkungen */
-                  <div className="mt-2.5 space-y-2.5 pr-2">
-                    {(['effect', 'side_effect'] as const).map(kind => {
-                      const rows = sortedChips(e).filter(row => row.kind === kind)
-                      if (!rows.length) return null
-                      return (
-                        <div key={kind} data-tagebuch-art={kind}>
-                          <p className="mb-1.5 text-[12px] font-semibold" style={{ color: kindColor(kind) }}>
-                            {t(kind === 'effect' ? 'wirkungen' : 'nebenwirkungen')}
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {rows.map(row => {
-                              const chip = fromRow(row)
-                              return (
-                                <SymptomChip key={row.id} small selected kind={chip.kind} label={chipLabel(chip, i18n.language)} iconKey={chip.key}
-                                  severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true, t, i18n.language)} />
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : e.type && e.severity ? (
-                  /* Ältere Einträge ohne Chips: Art und Intensität wie bisher */
-                  <div className="flex items-center gap-2 mt-1 flex-wrap text-[13px] font-medium">
-                    {e.type === 'effect'
-                      ? <Zap size={14} aria-hidden="true" className="text-[var(--lg-good-text)] shrink-0" />
-                      : <AlertTriangle size={14} aria-hidden="true" className="text-[var(--lg-warn-text)] shrink-0" />}
-                    <span className={e.type === 'effect' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}>
-                      {e.type === 'effect' ? t('wirkung') : t('nebenwirkung')}
-                    </span>
-                    <span className={SEVERITY_COLORS[e.severity]}>{severityLabel(e.severity)}</span>
-                    {e.duration && (
-                      <span className="flex items-center gap-1 text-[var(--lg-text-2)] font-normal">
-                        <Clock size={11} aria-hidden="true" />
-                        {durationLabel(e.duration, t)}
-                      </span>
-                    )}
-                  </div>
-                ) : null}
-
-                {e.notes && <p className="text-[var(--lg-text-2)] text-[14px] mt-1">{e.notes}</p>}
               </div>
-
-              {/* Über überstehenden Chip-Badges — die Knöpfe bleiben immer treffbar. */}
-              <div className="relative z-[2] flex shrink-0">
+              <div className="relative z-[2] -mt-1.5 flex shrink-0">
                 <button type="button" aria-label={t('tagebuch_eintrag_bearbeiten')}
                   className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-accent-text)]"
                   onClick={() => openEdit(e)}>
@@ -260,6 +214,52 @@ export function Tagebuch() {
                   <Trash2 size={15} aria-hidden="true" />
                 </button>
               </div>
+            </div>
+            <div className="pr-2">
+              {e.effect_symptoms?.length ? (
+                /* Getrennt nach Art: erst Wirkungen, dann Nebenwirkungen */
+                <div className="mt-2.5 space-y-2.5">
+                  {(['effect', 'side_effect'] as const).map(kind => {
+                    const rows = sortedChips(e).filter(row => row.kind === kind)
+                    if (!rows.length) return null
+                    return (
+                      <div key={kind} data-tagebuch-art={kind}>
+                        <p className="mb-1.5 text-[12px] font-semibold" style={{ color: kindColor(kind) }}>
+                          {t(kind === 'effect' ? 'wirkungen' : 'nebenwirkungen')}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {rows.map(row => {
+                            const chip = fromRow(row)
+                            return (
+                              <SymptomChip key={row.id} small selected kind={chip.kind} label={chipLabel(chip, i18n.language)} iconKey={chip.key}
+                                severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true, t, i18n.language)} />
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : e.type && e.severity ? (
+                /* Ältere Einträge ohne Chips: Art und Intensität wie bisher */
+                <div className="flex items-center gap-2 mt-1 flex-wrap text-[13px] font-medium">
+                  {e.type === 'effect'
+                    ? <Zap size={14} aria-hidden="true" className="text-[var(--lg-good-text)] shrink-0" />
+                    : <AlertTriangle size={14} aria-hidden="true" className="text-[var(--lg-warn-text)] shrink-0" />}
+                  <span className={e.type === 'effect' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}>
+                    {e.type === 'effect' ? t('wirkung') : t('nebenwirkung')}
+                  </span>
+                  <span className={SEVERITY_COLORS[e.severity]}>{severityLabel(e.severity)}</span>
+                  {e.duration && (
+                    <span className="flex items-center gap-1 text-[var(--lg-text-2)] font-normal">
+                      <Clock size={11} aria-hidden="true" />
+                      {durationLabel(e.duration, t)}
+                    </span>
+                  )}
+                </div>
+              ) : null}
+
+              {e.notes && <p className="text-[var(--lg-text-2)] text-[14px] mt-1">{e.notes}</p>}
             </div>
           </li>
         ))}

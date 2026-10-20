@@ -1062,6 +1062,22 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     transition: box-shadow var(--t-fast), background-color var(--t-fast);
   }
   .select { cursor: pointer; }
+  /* Datum und Uhrzeit: iOS Safari gibt diesen Feldern eine eigene Mindest-
+     breite und übergeht width: 100% — im Bestätigungs-Sheet ragte das
+     Uhrzeitfeld rechts über den Rand. Ohne native Erscheinung und mit
+     min-width: 0 füllt es die Zeile wie jedes andere Feld. Der Wert steht
+     links wie in den Nachbarfeldern; die Mindesthöhe hält ein leeres Feld
+     davon ab, zusammenzufallen. */
+  .input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+  }
+  .input::-webkit-date-and-time-value {
+    min-height: 1.4em;
+    text-align: left;
+  }
   .input::placeholder { color: var(--text-muted); }
   .input:focus,
   .select:focus {

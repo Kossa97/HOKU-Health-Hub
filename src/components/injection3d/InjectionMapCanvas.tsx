@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { inferBodyRegion } from '../../lib/injectionGeometry'
 import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
-import { focusTargetDrop, measureFreeViewport } from '../../lib/injectionFocusFrame'
+import { FOCUS_FLIGHT_MS, focusFlightEase, focusTargetDrop, measureFreeViewport } from '../../lib/injectionFocusFrame'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
 import { INJECTION_STUDIO_BACKDROP } from '../../lib/injectionStudioLook'
 import { InjectionStudioLight } from './InjectionStudioLight'
@@ -153,7 +153,8 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     toPosition: THREE.Vector3
     fromTarget: THREE.Vector3
     toTarget: THREE.Vector3
-    progress: number
+    // Gesetzt im ersten Bild der Fahrt, nicht beim Anstossen.
+    startedAt: number | null
   } | null>(null)
 
   useLayoutEffect(() => {
@@ -197,20 +198,22 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       toPosition: target.clone().addScaledVector(normal, FOCUS_DISTANCE),
       fromTarget: controls.target.clone(),
       toTarget: target,
-      progress: 0,
+      startedAt: null,
     }
     invalidate()
   }, [camera, canvas, controls, focusRequest, invalidate])
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     const active = animation.current
     if (active) {
-      active.progress = Math.min(1, active.progress + delta / 0.55)
-      const t = active.progress * active.progress * (3 - 2 * active.progress)
+      const now = performance.now()
+      active.startedAt ??= now
+      const elapsed = now - active.startedAt
+      const t = focusFlightEase(elapsed)
       camera.position.lerpVectors(active.fromPosition, active.toPosition, t)
       controls?.target.lerpVectors(active.fromTarget, active.toTarget, t)
       controls?.update()
-      if (active.progress >= 1) animation.current = null
+      if (elapsed >= FOCUS_FLIGHT_MS) animation.current = null
       else invalidate()
       return
     }
