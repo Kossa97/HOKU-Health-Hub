@@ -252,7 +252,7 @@ function nullableText(value: string): string | null {
 function ingredientForSave(ingredient: StackItemIngredient): SaveStackItemIngredient {
   return {
     catalog_substance_id: nullableText(ingredient.catalog_substance_id ?? ''),
-    custom_name: ingredient.custom_name.trim(),
+    custom_name: (ingredient.custom_name ?? '').trim(),
     amount_value: ingredient.amount_value,
     amount_unit: nullableText(ingredient.amount_unit ?? ''),
     basis_value: ingredient.basis_value,
@@ -494,7 +494,13 @@ export async function loadStackItems(
     .order('created_at', { ascending: false })
 
   throwIfError(error)
-  return data ?? []
+  // In der Datenbank ist `custom_name` bei Katalog-Zutaten oft NULL (aeltere
+  // Eintraege, Migrationen). Der Client rechnet ueberall mit Text — ein NULL
+  // liess das Speichern nach dem Bearbeiten abstuerzen (JAVASCRIPT-REACT-5).
+  return (data ?? []).map(item => ({
+    ...item,
+    ingredients: (item.ingredients ?? []).map(zutat => ({ ...zutat, custom_name: zutat.custom_name ?? '' })),
+  }))
 }
 
 /**

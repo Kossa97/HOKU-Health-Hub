@@ -141,7 +141,8 @@ export function asPeptide(item: LoadedStackItem): Peptide {
   const peptide: Peptide = {
     ...legacy,
     name: item.display_name,
-    default_method: legacy.default_method ?? 'Andere',
+    // Keine erfundene Methode: leer heisst „nicht gesetzt", nicht „Andere".
+    default_method: legacy.default_method ?? '',
     vial_amount_mg: legacy.vial_amount_mg ?? null,
     vial_amount_unit: legacy.vial_amount_unit ?? null,
     reconstitution_ml: legacy.reconstitution_ml ?? null,

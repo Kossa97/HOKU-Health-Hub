@@ -40,6 +40,7 @@ import {
   type PlanEditContext,
   type PlanEffectiveDraft,
   type LaterStepChange,
+  istPulverVial,
 } from '../lib/wizardState'
 import { bestandteileAufloesen } from '../lib/kombination'
 import { buildReview, carryOverReview, planBaseAt, reviewedSnapshot, reviewStepChanged, stepsAround, type LaterPlanStep, type ReviewStep } from '../lib/planAdoption'
@@ -58,6 +59,7 @@ import { IngredientEditor } from './IngredientEditor'
 import { IntakePlanEditor } from './IntakePlanEditor'
 import { PlannedStepsReview, type ReviewStepErrors } from './PlannedStepsReview'
 import { ProductInventorySection } from './ProductInventorySection'
+import { AnmischAngaben } from './AnmischAngaben'
 import { StrengthEditor } from './StrengthEditor'
 import { TrackingLevelPicker } from './TrackingLevelPicker'
 import { SubstanceSearch } from './SubstanceSearch'
@@ -566,6 +568,11 @@ export function StackItemWizard({
     })))
   }
 
+  // Anmischen (Datum, Haltbarkeit) steht beim Vial unter dem Loesungsmittel
+  // im Schritt „Staerke" — sonst, ohne diesen Schritt, beim Produkt.
+  // Nur beim Pulver-Vial: dort steht das Loesungsmittel im Schritt „Staerke".
+  const anmischenImStaerkeSchritt = istPulverVial(state.draft) && steps.includes('strength')
+
   function selectStep(step: WizardStep): void {
     dispatch({ type: 'step_selected', step })
     setShowErrors(false)
@@ -786,14 +793,17 @@ export function StackItemWizard({
     }
 
     // Angaben zur Packung, die die Datenbank ablehnen wuerde — vorher sagen.
-    if (!planEditContext && existingItem) {
+    // Auch beim Anlegen: seit Anmischen und Haltbarkeit dort gefragt werden.
+    if (!planEditContext) {
       const field = !gueltigeFluessigkeit(state.draft.inventory.reconstitutionMl)
         ? 'inventory.reconstitutionMl'
         : !gueltigeHaltbarkeit(state.draft.inventory.useWithinDays) ? 'inventory.useWithinDays' : null
       if (field) {
-        if (editOverview && state.step !== 'plan') selectStep('plan')
+        const schritt: WizardStep = anmischenImStaerkeSchritt ? 'strength' : 'plan'
+        if (state.step !== schritt && steps.includes(schritt)) selectStep(schritt)
         setSaveError(String(t(field === 'inventory.reconstitutionMl' ? 'my_stack_stock_liquid_invalid' : 'my_stack_stock_days_invalid')))
-        focusField(field)
+        // Beim Pulver-Vial ist die Fluessigkeit der Bezug der Zutat.
+        focusField(field === 'inventory.reconstitutionMl' && anmischenImStaerkeSchritt ? 'ingredients.0.basisValue' : field)
         return
       }
     }
@@ -1013,16 +1023,36 @@ export function StackItemWizard({
             )}
           </>
         )
-      case 'composition':
-        return draft.ingredients.map((ingredient, index) => {
-          const name = ingredientName(ingredient, index)
-          const staerke = ingredientStrength(ingredient)
-          return (
-            <span key={ingredient.position} className="block break-words text-sm font-semibold text-slate-100">
-              {draft.ingredients.length > 1 && staerke ? `${name} · ${staerke}` : staerke || name}
-            </span>
-          )
-        })
+      case 'composition': {
+        // Beim Vial gehoert das Anmischen zur Zusammensetzung — auch in der
+        // Uebersicht, sonst sucht man es unter „Produkt".
+        const anmischen = anmischenImStaerkeSchritt
+          ? [
+              draft.inventory.openedAt
+                ? `${t('my_stack_stock_mixed_on')} ${formatLocalDay(draft.inventory.openedAt, i18n?.language || 'de')}`
+                : '',
+              draft.inventory.useWithinDays != null
+                ? `${t('my_stack_stock_use_within_vial')} ${t('my_stack_stock_days_multiple', { n: draft.inventory.useWithinDays })}`
+                : '',
+            ].filter(Boolean)
+          : []
+        return (
+          <>
+            {draft.ingredients.map((ingredient, index) => {
+              const name = ingredientName(ingredient, index)
+              const staerke = ingredientStrength(ingredient)
+              return (
+                <span key={ingredient.position} className="block break-words text-sm font-semibold text-slate-100">
+                  {draft.ingredients.length > 1 && staerke ? `${name} · ${staerke}` : staerke || name}
+                </span>
+              )
+            })}
+            {anmischen.length > 0 && (
+              <span data-edit-summary-anmischen className="block break-words text-sm text-slate-400">{anmischen.join(' · ')}</span>
+            )}
+          </>
+        )
+      }
       case 'product': {
         const angaben = [
           draft.brand.trim(),
@@ -1171,6 +1201,12 @@ export function StackItemWizard({
                 onChange={changes => dispatch({ type: 'ingredient_changed', index, changes })}
               />
             ))}
+            {anmischenImStaerkeSchritt && (
+              <AnmischAngaben
+                inventory={state.draft.inventory}
+                onChange={changes => dispatch({ type: 'inventory_changed', changes })}
+              />
+            )}
             {/* Die Tuer steht genau dort, wo der Zutatenschritt fehlt.
                 Wer manuell anlegt, geht ohnehin durch ihn und hat den Knopf
                 dort; wer einen Katalogeintrag gewaehlt hat, saesse ohne das
@@ -1342,12 +1378,22 @@ export function StackItemWizard({
             {!planEditContext && (
             <ProductInventorySection
               showInventory={!existingItem}
+              anmischenAnderswo={anmischenImStaerkeSchritt}
               brand={state.draft.brand}
               inventory={state.draft.inventory}
               dosageForm={state.draft.dosageForm}
               onBrandChange={brand => dispatch({ type: 'details_changed', changes: { brand } })}
               onInventoryChange={changes => dispatch({ type: 'inventory_changed', changes })}
             />
+            )}
+            {/* Beim Anlegen eines Vials ohne Staerke-Schritt (andere
+                Tracking-Tiefe, fertige Loesung) gehoert das Anmischen hierher —
+                beim Bearbeiten steht es dann unter „Produkt". */}
+            {!planEditContext && !existingItem && state.draft.dosageForm === 'vial' && !anmischenImStaerkeSchritt && (
+              <AnmischAngaben
+                inventory={state.draft.inventory}
+                onChange={changes => dispatch({ type: 'inventory_changed', changes })}
+              />
             )}
 
             {!planEditContext && (

@@ -526,7 +526,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     // fuer eine neue Variante, die aus einem bestehenden Eintrag entsteht.
     // Der Eintrag selbst steht dann schon; scheitert nur das, sagt es eine
     // eigene Meldung, statt „Speichern fehlgeschlagen" fuer alles.
-    if ((editedFrom || inventoryDraft.reconstitutionMl != null) && user) {
+    if ((editedFrom || inventoryDraft.reconstitutionMl != null || inventoryDraft.openedAt || inventoryDraft.useWithinDays != null) && user) {
       try {
         await saveInventoryDetails(stackDataClient as never, {
           userId: user.id,
