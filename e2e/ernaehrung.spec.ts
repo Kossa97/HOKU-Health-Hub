@@ -452,3 +452,36 @@ test('Kalorien-Kugel: Zahl, Rest und Makros; Legende holt den Mond nach vorn; Ü
   await protein.click()
   await expect(summary.getByRole('status')).toBeEmpty()
 })
+
+test('Mini-Kugel: weggescrollt schwebt sie oben ein und führt zurück; Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  const mini = page.getByRole('button', { name: 'Zur Tagesübersicht: 126 von 2000 kcal gegessen' })
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  await expect(mini).toHaveCount(0) // versteckt: aria-hidden, nicht im Barrierebaum
+
+  await mealCard(page, 'Snacks').scrollIntoViewIfNeeded()
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await expect(mini).toBeVisible()
+  await mini.click()
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeInViewport()
+  await expect(mini).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Ziele', exact: true }).click()
+  await page.getByLabel('Töne der Kalorien-Kugel').check()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('tyd.orbSounds'))).toBe('on')
+})
+
+test('Portions-Blatt: Kugel zeigt den Tag mit dieser Portion als Vorschau, die Menge ändert sie mit', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Skyr Natur/ }).first().click()
+  const preview = page.getByRole('dialog').getByRole('img', { name: /^Mit dieser Portion:/ })
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 252 von 2000 kcal')
+  await page.getByLabel('Menge in g').fill('100')
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 189 von 2000 kcal')
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
+})
