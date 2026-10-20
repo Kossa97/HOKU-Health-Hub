@@ -69,6 +69,12 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
       },
       pour: (leaveMs, backAfterMs) => {
         cancelAnimationFrame(raf.current)
+        // „Bewegung reduzieren“: nichts fließt, die Kugel bleibt voll.
+        if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          keep.current = 1
+          draw.current()
+          return
+        }
         const t0 = performance.now()
         const step = () => {
           const t = performance.now() - t0
