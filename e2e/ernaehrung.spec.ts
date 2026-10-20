@@ -408,3 +408,47 @@ test('Essen per Foto: kein Essen erkannt → verständlicher Hinweis, nichts ein
   await expect(page.getByText('Auf dem Foto war kein Essen zu erkennen')).toBeVisible()
   expect(mock.table('food_logs')).toHaveLength(0)
 })
+
+test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros je Tag; der gewählte Tag gilt auch im Kalender', async ({ page, mock }) => {
+  logEntry(mock, {})
+  logEntry(mock, { log_date: '2026-09-21', kcal: 500, protein_g: 40, carbs_g: 50, fat_g: 10 })
+  await page.goto('/ernaehrung')
+
+  const week = page.getByRole('region', { name: 'Woche' })
+  await expect(week.getByRole('button', { name: 'Montag, 28. September 2026: 126 kcal, 22 g Eiweiß, 8 g Kohlenhydrate, 0 g Fett' }))
+    .toHaveAttribute('aria-pressed', 'true')
+  await expect(week.getByRole('button', { name: 'Dienstag, 29. September 2026: nichts eingetragen' })).toBeDisabled()
+
+  await week.getByRole('button', { name: 'Monatsübersicht öffnen' }).click()
+  const month = page.locator('[data-nutr-month]')
+  await expect(month.getByRole('button', { name: /^Nächster Monat/ })).toHaveCount(0)
+  await month.getByRole('button', { name: 'Vorheriger Monat: August' }).click()
+  await expect(month.getByRole('heading', { name: 'August 2026' })).toBeVisible()
+  await month.getByRole('button', { name: 'Nächster Monat: September' }).click()
+  await month.getByRole('button', { name: 'Montag, 21. September 2026: 500 kcal, 40 g Eiweiß, 50 g Kohlenhydrate, 10 g Fett' }).click()
+  await expect(month).toBeHidden()
+  await expect(page.getByRole('navigation', { name: 'Tag wählen' })).toContainText('Montag, 21. September')
+
+  // Derselbe Tag im Kalender
+  await page.getByRole('link', { name: 'Kalender', exact: true }).click()
+  await expect(page.getByText('Montag, 21. September').first()).toBeVisible()
+})
+
+test('Kalorien-Kugel: Zahl, Rest und Makros; Legende holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
+  logEntry(mock, {})
+  logEntry(mock, { name: 'Steak', kcal: 900, protein_g: 120, carbs_g: 0, fat_g: 60 })
+  await page.goto('/ernaehrung')
+
+  const summary = page.getByRole('region', { name: 'Tagesübersicht' })
+  await expect(summary.getByRole('img', { name: '1026 von 2000 kcal gegessen' })).toBeVisible()
+  await expect(summary.getByText('974 kcal übrig')).toBeVisible()
+  await expect(summary.getByText('1 Punkt = 1 kcal · 1 g')).toBeVisible()
+
+  const protein = summary.getByRole('button', { name: /^Eiweiß/ })
+  await expect(protein).toContainText('142 / 110 g · +32')
+  await protein.click()
+  await expect(protein).toHaveAttribute('aria-pressed', 'true')
+  await expect(summary.getByRole('status')).toContainText('Eiweiß 142 / 110 g · +32')
+  await protein.click()
+  await expect(summary.getByRole('status')).toBeEmpty()
+})

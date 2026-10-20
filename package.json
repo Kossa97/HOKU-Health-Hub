@@ -56,6 +56,7 @@
     "react-is": "^19.2.6",
     "react-router-dom": "^7.15.0",
     "recharts": "^3.8.1",
+    "thinking-orbs": "0.3.2",
     "three": "^0.184.0",
     "web-push": "^3.6.7",
     "zxing-wasm": "3.1.3"
