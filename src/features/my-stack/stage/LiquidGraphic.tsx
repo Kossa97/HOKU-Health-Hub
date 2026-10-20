@@ -2,16 +2,15 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, u
 import type { Ref } from 'react'
 import { buildLiquid, LIQUID_VB_H, LIQUID_VB_W } from './liquidGeometry'
 import { useSloshSubscribe } from '../../../components/SloshContext'
-import type { SloshState } from '../../../components/sloshEngine'
+import { REST_ENERGY, type SloshState } from '../../../components/sloshEngine'
 
 function clamp01(wert: number): number {
   return Number.isFinite(wert) ? Math.max(0, Math.min(1, wert)) : 0
 }
 
-/** Ueberlappt das Element seinen Rahmen (null: den Bildschirm)? */
-function imRahmen(element: Element | null, rahmen: Element | null): boolean {
-  if (!element) return false
-  const r = element.getBoundingClientRect()
+/** Ueberlappt das Rechteck seinen Rahmen (null: den Bildschirm)? */
+function imRahmen(r: DOMRect | null, rahmen: Element | null): boolean {
+  if (!r) return false
   const b = rahmen
     ? rahmen.getBoundingClientRect()
     : { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }
@@ -26,6 +25,15 @@ function scrollContainer(element: Element): Element | null {
   }
   return null
 }
+
+/**
+ * Die Ruhewellen bewegen die Oberflaeche um hoechstens 2,3 viewBox-Einheiten
+ * (1,15 nach oben und unten).
+ * Ist das Vial so klein, dass das unter einem halben Bildpunkt bleibt (die
+ * Zeilen der Liste), sieht niemand sie — dann zeichnet es in Ruhe nicht neu.
+ */
+const RUHEWELLE_EINHEITEN = 2.3
+const RUHEWELLE_MIN_PX = 0.5
 
 /** Wie oft ein Vial selbst nachsieht, ob es im Bild steht (s). */
 const LAGE_PRUEFEN_ALLE_S = 0.3
@@ -122,6 +130,8 @@ export function LiquidGraphic({
   // wann ein Vial zuletzt selbst nachgesehen hat.
   const rahmenRef = useRef<Element | null>(null)
   const lageGeprueftRef = useRef(-Infinity)
+  const ruhewelleSichtbarRef = useRef(true)
+  const ruhendGezeichnetRef = useRef(false)
   const bodyRef = useRef<SVGPathElement | null>(null)
   const surfaceRef = useRef<SVGPathElement | null>(null)
   const glowRef = useRef<SVGPathElement | null>(null)
@@ -143,13 +153,22 @@ export function LiquidGraphic({
       // und herausgerollte wieder anhalten.
       if (typeof IntersectionObserver !== 'undefined' && s.time - lageGeprueftRef.current >= LAGE_PRUEFEN_ALLE_S) {
         lageGeprueftRef.current = s.time
-        const sichtbar = imRahmen(svgRef.current, rahmenRef.current)
+        const rect = svgRef.current?.getBoundingClientRect() ?? null
+        const sichtbar = imRahmen(rect, rahmenRef.current)
+        const hoehe = rect?.height ?? 0
+        ruhewelleSichtbarRef.current = hoehe === 0 || RUHEWELLE_EINHEITEN * (hoehe / LIQUID_VB_H) >= RUHEWELLE_MIN_PX
         if (sichtbar !== visibleRef.current) {
           visibleRef.current = sichtbar
           setVisible(sichtbar)
         }
       }
-      if (!visibleRef.current) return
+      if (!visibleRef.current) return false
+      // Kleines Vial in Ruhe: die Wellen laegen unter einem halben Bildpunkt.
+      // Einmal im Ruhestand gezeichnet, bleibt es stehen, bis wieder etwas
+      // schwappt oder der Fuellstand gleitet.
+      const ruhig = s.energy < REST_ENERGY && fillTweenRef.current === null
+      if (ruhig && !ruhewelleSichtbarRef.current && ruhendGezeichnetRef.current) return false
+      ruhendGezeichnetRef.current = ruhig
       const stage = stageRef.current
       const stageFocus = stage.focus
       const stageShift = stage.lightOffset * 10
@@ -181,12 +200,17 @@ export function LiquidGraphic({
       specCoreRef.current?.setAttribute('opacity', core)
       leftGlintRef.current?.setAttribute('cy', g.leftWallY.toFixed(2))
       rightGlintRef.current?.setAttribute('cy', g.rightWallY.toFixed(2))
+      // Waehrend der Fuellstand gleitet, braucht er jedes Bild — auch wenn die
+      // Fluessigkeit selbst ruht und die Maschine sonst nur halb so oft zeichnet.
+      return fillTweenRef.current !== null
     },
     [fill, chamberAspect],
   )
 
   useEffect(() => {
     if (!subscribe) return
+    // Neu gebaut (Fuellstand, Kammerform): einmal ganz zeichnen, auch in Ruhe.
+    ruhendGezeichnetRef.current = false
     return subscribe(draw)
   }, [subscribe, draw])
 
@@ -232,6 +256,9 @@ export function LiquidGraphic({
 
   const applyStageLight = useCallback((focus: number, lightOffset: number) => {
     stageRef.current = { focus, lightOffset }
+    // Das Glanzlicht folgt dem Licht erst beim naechsten Zeichnen — auch ein
+    // kleines Vial in Ruhe zeichnet deshalb einmal neu.
+    ruhendGezeichnetRef.current = false
     refractLeftRef.current?.setAttribute('x', (5 + lightOffset * 8).toFixed(2))
     refractLeftRef.current?.setAttribute('opacity', (0.46 + focus * 0.22).toFixed(3))
     refractRightRef.current?.setAttribute('x', (99 + lightOffset * 5).toFixed(2))
@@ -330,11 +357,21 @@ export function LiquidGraphic({
     <rect ref={refractLeftRef} x={5 + seedLightOffset * 8} y="0" width="16" height={LIQUID_VB_H} fill={`url(#${uid}-refract)`} opacity={0.46 + seedFocus * 0.22} />
     <rect ref={refractRightRef} x={99 + seedLightOffset * 5} y="0" width="10" height={LIQUID_VB_H} fill={`url(#${uid}-refract)`} opacity={0.14 + seedFocus * 0.16} />
     <path ref={glowRef} data-vial-detail="liquid-glow" d={geom.glow} fill={`url(#${uid}-glow)`} />
+    {/* Blasen als CSS-Animation (`.tyd-liquid-bubble` in index.css), nicht
+        als SMIL: SMIL rechnete in jedem Bild den Stil der ganzen Seite neu —
+        in der Liste mit allen Vials lastete das allein den Haupt-Thread aus.
+        Gleicher Weg (von 192 nach 30), gleiche Deckkraft, gleicher Takt. */}
     {bubbles && !reducedMotion && visible && LIQUID_BUBBLES.map((b, i) => (
-    <circle key={i} data-vial-detail="liquid-bubble" cx={b.cx} cy="0" r={b.r} fill="rgba(255,255,255,0.55)">
-      <animateTransform attributeName="transform" type="translate" from="0 192" to="0 30" dur={`${b.dur}s`} begin={`${-(b.dur * b.phase).toFixed(2)}s`} repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0;0.5;0.5;0" keyTimes="0;0.18;0.72;1" dur={`${b.dur}s`} begin={`${-(b.dur * b.phase).toFixed(2)}s`} repeatCount="indefinite" />
-    </circle>
+    <circle
+      key={i}
+      data-vial-detail="liquid-bubble"
+      className="tyd-liquid-bubble"
+      cx={b.cx}
+      cy="0"
+      r={b.r}
+      fill="rgba(255,255,255,0.55)"
+      style={{ animationDuration: `${b.dur}s`, animationDelay: `${-(b.dur * b.phase).toFixed(2)}s` }}
+    />
     ))}
     </g>
     <path ref={surfaceRef} data-vial-detail="liquid-surface" d={geom.surface} fill={`url(#${uid}-surface)`} opacity={0.4 + seedFocus * 0.14} />
