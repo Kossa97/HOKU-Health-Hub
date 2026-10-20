@@ -292,27 +292,58 @@
 .lg-seg > button::after { content: ''; position: absolute; inset: -4px 0; }
 .lg-seg > button[aria-pressed='true'] { color: var(--lg-text); }
 .lg-seg > button[aria-disabled='true'] { opacity: 0.4; }
-/* Viele Einträge: eine Glas-Kapsel innerhalb des Kartenrands; was nicht
-   passt, scrollt in der Kapsel und wird an ihrer runden Kante abgeschnitten. */
-.lg-seg-scroll {
+/* Viele Einträge (GlassSegmented scroll): die Kapsel steht fest im
+   Kartenrand, nur die Spur darin scrollt — und nur seitlich. Die Tippflächen
+   der Knöpfe ragen über die Spur hinaus; ohne overflow-y: hidden würde sie
+   dadurch auch senkrecht scrollbar und ließe sich in jede Richtung ziehen.
+   Wo noch Einträge folgen, blendet die Spur weich aus statt hart abzuschneiden. */
+@property --lg-seg-fade-s { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --lg-seg-fade-e { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.lg-seg-scroll { border-radius: 999px; }
+.lg-seg-scroller {
+  --lg-seg-fade-s: 0px;
+  --lg-seg-fade-e: 0px;
   overflow-x: auto;
-  border-radius: 999px;
-  scrollbar-width: none;
+  overflow-y: hidden;
+  /* Platz für die überstehenden Tippflächen, ohne die Kapsel zu vergrößern */
+  margin-block: -6px;
+  padding-block: 6px;
   overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--lg-seg-fade-s), #000 calc(100% - var(--lg-seg-fade-e)), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 var(--lg-seg-fade-s), #000 calc(100% - var(--lg-seg-fade-e)), transparent);
+  transition: --lg-seg-fade-s 200ms ease, --lg-seg-fade-e 200ms ease;
 }
-.lg-seg-scroll::-webkit-scrollbar { display: none; }
-.lg-seg-scroll .lg-seg { display: inline-flex; min-width: 100%; vertical-align: top; }
-/* Im Inhalt kein Glas: iOS-Segment — eingelassene Füllung, die Wahl als
-   fester grauer Stein (wie UISegmentedControl im Dunkeln) */
-.lg-seg-fill { padding: 2px; background: var(--lg-fill); }
+.lg-seg-scroller::-webkit-scrollbar { display: none; }
+.lg-seg-scroller[data-fade-start='true'] { --lg-seg-fade-s: 28px; }
+.lg-seg-scroller[data-fade-end='true'] { --lg-seg-fade-e: 28px; }
+.lg-seg-scroller > .lg-seg { width: max-content; min-width: 100%; }
+.lg-seg-scroll.lg-seg-fill > .lg-seg-scroller > .lg-seg { padding: 2px; }
+/* Im Inhalt kein schwebendes Glas: iOS-Segment — eingelassene Füllung, die
+   Wahl als Glasstein darauf (Lichtkante oben, Glanz, weicher Schatten). */
+.lg-seg-fill {
+  padding: 2px;
+  background: var(--lg-fill);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 -0.5px 0 rgba(255, 255, 255, 0.06);
+}
+.lg-seg-scroll.lg-seg-fill { padding: 0; }
 .lg-seg-fill .lg-seg-pill {
   top: 2px;
   bottom: 2px;
-  background: var(--lg-fill-selected);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  background:
+    radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 70%),
+    var(--lg-fill-selected);
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.10),
+    inset 0 -0.5px 0 rgba(255, 255, 255, 0.12),
+    0 3px 10px rgba(0, 0, 0, 0.32);
 }
-.lg-seg-fill > button { min-height: 32px; }
-.lg-seg-fill > button::after { inset: -6px 0; }
+.lg-seg-fill > button,
+.lg-seg-scroll.lg-seg-fill .lg-seg > button { min-height: 32px; }
+.lg-seg-fill > button::after,
+.lg-seg-scroll.lg-seg-fill .lg-seg > button::after { inset: -6px 0; }
 
 /* ── Chips (an/aus, mit Farbpunkt --cc) ─────────────────────────────── */
 .lg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }

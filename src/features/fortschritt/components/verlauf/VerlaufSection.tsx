@@ -172,15 +172,14 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
     >
       <div className="fg-hero-in">
         {options.length > 1 && (
-          <div className="lg-seg-scroll">
-            <GlassSegmented
-              ariaLabel={t('fortschritt_metric_switch_aria')}
-              options={options}
-              value={metric.key}
-              material="fill"
-              onChange={key => { setScrub(null); setMetricKey(key) }}
-            />
-          </div>
+          <GlassSegmented
+            ariaLabel={t('fortschritt_metric_switch_aria')}
+            options={options}
+            value={metric.key}
+            material="fill"
+            scroll
+            onChange={key => { setScrub(null); setMetricKey(key) }}
+          />
         )}
 
         {series.length === 0 ? (
