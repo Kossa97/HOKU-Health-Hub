@@ -1857,7 +1857,8 @@ main.flex-1 {
 .pdf-viewer.is-shown .pdf-viewer-scrim,
 .pdf-viewer.is-shown .pdf-viewer-top,
 .pdf-viewer.is-shown .pdf-viewer-body { opacity: 1; }
-.pdf-viewer-body { touch-action: pan-x pan-y pinch-zoom; }
+/* Zwei-Finger-Zoom macht die Ansicht selbst (PdfPageViewer), nicht der Browser. */
+.pdf-viewer-body { touch-action: pan-x pan-y; }
 .pdf-viewer-scrim,
 .pdf-viewer-top { transition: opacity 200ms ease; }
 .pdf-viewer-body { transition: opacity 120ms ease; }
@@ -1867,4 +1868,27 @@ main.flex-1 {
     transition: opacity 200ms ease, transform 300ms var(--tyd-ease-drawer);
   }
   .pdf-viewer.is-shown .pdf-viewer-body { transform: none; }
+}
+
+/* PDF-Generator als Seite: „Teilen" schwebt über der Tab-Leiste (.tyd-tabdock),
+   der Verlauf dahinter blendet den Inhalt aus, statt eine harte Kante zu ziehen. */
+.pdf-share-dock {
+  position: fixed;
+  left: max(var(--bottom-nav-inset), env(safe-area-inset-left));
+  right: max(var(--bottom-nav-inset), env(safe-area-inset-right));
+  bottom: calc(env(safe-area-inset-bottom) + var(--bottom-nav-gap) + var(--bottom-nav-capsule) + 12px);
+  z-index: 40;
+  max-width: 480px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.pdf-share-dock::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * max(var(--bottom-nav-inset), env(safe-area-inset-left)));
+  right: calc(-1 * max(var(--bottom-nav-inset), env(safe-area-inset-right)));
+  top: -40px;
+  bottom: calc(-1 * (env(safe-area-inset-bottom) + var(--bottom-nav-gap) + var(--bottom-nav-capsule) + 12px));
+  z-index: -1;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--app-bg) 88%, transparent) 30%, var(--app-bg));
 }

@@ -11,8 +11,6 @@ export interface PdfPreset {
   id: PresetId
   label: Record<PdfLang, string>
   description: Record<PdfLang, string>
-  /** Eine knappe Zeile fuer die Muster-Karte. */
-  short: Record<PdfLang, string>
   /** Gewünschte Sektionen (Reihenfolge egal; PDF-Reihenfolge kommt aus SECTIONS). */
   sections: SectionId[]
 }
@@ -30,7 +28,6 @@ export const PRESETS: PdfPreset[] = [
       de: 'Labor, Protokoll und Nebenwirkungen — fürs Gespräch mit dem Arzt.',
       en: 'Labs, protocol and side effects — for your doctor visit.',
     },
-    short: { de: 'Labor & Neben\u00ADwirkungen', en: 'Labs & side effects' },
     sections: ['personal', 'summary', 'cycles', 'adherence', 'bloodwork', 'weight', 'effects', 'notes'],
   },
   {
@@ -40,7 +37,6 @@ export const PRESETS: PdfPreset[] = [
       de: 'Adherence, Wohlbefinden und Feedback — ohne Laborwerte.',
       en: 'Adherence, well-being and feedback — without lab values.',
     },
-    short: { de: 'Wohlbefinden & Feedback', en: 'Well-being & feedback' },
     sections: ['personal', 'summary', 'cycles', 'adherence', 'weight', 'wellness', 'effects', 'reviews', 'notes'],
   },
   {
@@ -50,7 +46,6 @@ export const PRESETS: PdfPreset[] = [
       de: 'Anonym, ohne Labor und ohne Namen — zum Teilen online.',
       en: 'Anonymous, no labs and no name — safe to share online.',
     },
-    short: { de: 'Anonym zum Teilen', en: 'Anonymous to share' },
     sections: ['summary', 'cycles', 'adherence', 'weight', 'wellness', 'effects', 'reviews'],
   },
 ]

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, X } from 'lucide-react'
 import { rasterizePdf, revokeRasterPages, type RasterPage } from '../../lib/protocolPdf/rasterizePdf'
 
@@ -13,6 +13,7 @@ export interface PdfPagesPreviewLabels {
   prev: string
   next: string
   close: string
+  zoomHint: string
 }
 
 interface Props {
@@ -33,6 +34,8 @@ const MAX_PIXEL_WIDTH = 1600
 const DOUBLE_TAP_MS = 280
 const DOUBLE_TAP_SLOP_PX = 24
 const ZOOM = 2.2
+const MAX_ZOOM = 3
+const HINT_MS = 2600
 
 function pixelWidthFor(cssWidth: number): number {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
@@ -136,11 +139,11 @@ export function PdfPagesPreview({ bytes, building, failed, notice, labels }: Pro
     <div className="flex flex-col">
       <div className="shrink-0 px-4 pt-3 pb-1.5 flex items-center justify-between gap-2">
         <p className="lg-group-title !mx-1 !mb-0">{labels.title}</p>
-        <span
-          className={`inline-flex items-center gap-1.5 text-[12px] text-[var(--lg-text-2)] transition-opacity duration-200 ${busy && total > 0 ? 'opacity-100' : 'opacity-0'}`}
-          aria-live="polite"
-        >
-          <Loader2 size={12} className="animate-spin" aria-hidden="true" /> {busy && total > 0 ? labels.updating : ''}
+        {/* Rechts: die Seitenzahl — während des Neuzeichnens der Hinweis darauf. */}
+        <span className="inline-flex items-center gap-1.5 text-[12px] tabular-nums text-[var(--lg-text-2)]" aria-live="polite">
+          {busy && total > 0
+            ? <><Loader2 size={12} className="animate-spin" aria-hidden="true" /> {labels.updating}</>
+            : total > 0 ? labels.pageOf(shownPage + 1, total) : null}
         </span>
       </div>
 
@@ -217,19 +220,14 @@ export function PdfPagesPreview({ bytes, building, failed, notice, labels }: Pro
         )}
       </div>
 
-      {total > 0 && (
-        <div className="flex items-center justify-center gap-3 pt-1.5" aria-live="polite">
-          {!single && total <= 12 && (
-            <div className="flex items-center gap-1.5" aria-hidden="true">
-              {pages.map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1.5 rounded-full transition-[width,background-color] duration-200 ${i === shownPage ? 'w-4 bg-[var(--lg-text)]' : 'w-1.5 bg-[var(--lg-text-3)]'}`}
-                />
-              ))}
-            </div>
-          )}
-          <span className="text-[12px] tabular-nums text-[var(--lg-text-2)]">{labels.pageOf(shownPage + 1, total)}</span>
+      {!single && total <= 12 && (
+        <div className="flex items-center justify-center gap-1.5 pt-1.5" aria-hidden="true">
+          {pages.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-[width,background-color] duration-200 ${i === shownPage ? 'w-4 bg-[var(--lg-text)]' : 'w-1.5 bg-[var(--lg-text-3)]'}`}
+            />
+          ))}
         </div>
       )}
 
@@ -283,11 +281,16 @@ interface ViewerProps {
   onClose: (currentPage: number) => void
 }
 
-/** Vollansicht: Seiten untereinander, Doppeltippen vergroessert an der Stelle. */
+/** Vollansicht: Seiten untereinander; Doppeltippen oder zwei Finger vergroessern an der Stelle. */
 function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
-  const [zoomed, setZoomed] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const zoomRef = useRef(1)
+  // Den Hinweis nur zeigen, wo es Finger gibt; mit der Maus geht Doppelklick.
+  const [hint, setHint] = useState(() => window.matchMedia('(pointer: coarse)').matches)
+  /** Wann zuletzt zwei Finger lagen — deren Loslassen ist kein Doppeltippen. */
+  const lastPinch = useRef(0)
   const [current, setCurrent] = useState(initialPage)
   const lastTap = useRef<{ t: number; x: number; y: number } | null>(null)
   const lastPointerType = useRef('mouse')
@@ -319,6 +322,90 @@ function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
   }, [onClose, current])
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setHint(false), HINT_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  /**
+   * Zoomt so, dass die Stelle `fx`/`fy` (Anteil der Seite) unter dem Punkt
+   * `clientX`/`clientY` liegt — gemessen an der Seite selbst, nicht am Rand
+   * der Ansicht (der Inhalt ist zentriert und hat feste Abstaende).
+   */
+  const zoomTo = useCallback((next: number, page: HTMLElement | null, fx: number, fy: number, clientX: number, clientY: number) => {
+    const el = scrollRef.current
+    if (!el) return
+    zoomRef.current = next
+    // Synchron rendern, damit die neue Groesse schon steht, wenn gescrollt wird.
+    flushSync(() => setZoom(next))
+    if (!page) return
+    const after = page.getBoundingClientRect()
+    el.scrollLeft += after.left + fx * after.width - clientX
+    el.scrollTop += after.top + fy * after.height - clientY
+  }, [])
+
+  // Zwei Finger: eigene Geste statt Seiten-Zoom des Browsers (der wuerde die
+  // ganze App vergroessern). Nicht passiv, sonst greift preventDefault nicht.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    let pinch: { dist: number; zoom: number; page: HTMLElement | null; fx: number; fy: number } | null = null
+    // Höchstens ein Zoomschritt pro Bild: touchmove kommt öfter, als gezeichnet wird.
+    let frame = 0
+    let pending: { zoom: number; x: number; y: number } | null = null
+    const spread = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
+    const middle = (t: TouchList) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 })
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return
+      e.preventDefault()
+      lastTap.current = null
+      lastPinch.current = performance.now()
+      const m = middle(e.touches)
+      const page = document.elementFromPoint(m.x, m.y)?.closest<HTMLElement>('.pdf-viewer-page') ?? null
+      const r = page?.getBoundingClientRect()
+      pinch = {
+        dist: spread(e.touches),
+        zoom: zoomRef.current,
+        page,
+        fx: r ? (m.x - r.left) / r.width : 0.5,
+        fy: r ? (m.y - r.top) / r.height : 0.5,
+      }
+      setHint(false)
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!pinch || e.touches.length !== 2) return
+      e.preventDefault()
+      lastPinch.current = performance.now()
+      const m = middle(e.touches)
+      pending = { zoom: Math.min(MAX_ZOOM, Math.max(1, pinch.zoom * spread(e.touches) / pinch.dist)), x: m.x, y: m.y }
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        if (pinch && pending) zoomTo(pending.zoom, pinch.page, pinch.fx, pinch.fy, pending.x, pending.y)
+      })
+    }
+    const onEnd = (e: TouchEvent) => {
+      if (!pinch) return
+      lastPinch.current = performance.now()
+      if (e.touches.length < 2) pinch = null
+    }
+    // iOS Safari meldet die Geste zusaetzlich so — auch die nicht durchlassen.
+    const stopGesture = (e: Event) => e.preventDefault()
+    el.addEventListener('touchstart', onStart, { passive: false })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd)
+    el.addEventListener('touchcancel', onEnd)
+    el.addEventListener('gesturestart', stopGesture)
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+      el.removeEventListener('touchcancel', onEnd)
+      el.removeEventListener('gesturestart', stopGesture)
+      cancelAnimationFrame(frame)
+    }
+  }, [zoomTo])
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -335,27 +422,21 @@ function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
   }
 
   const toggleZoom = (target: EventTarget, clientX: number, clientY: number) => {
-    const el = scrollRef.current
-    if (!el) return
-    // Die Stelle auf der Seite unter dem Finger bleibt nach dem Zoom unter
-    // dem Finger — gemessen an der Seite selbst, nicht am Rand der Ansicht
-    // (der Inhalt ist zentriert und hat feste Abstaende).
     const page = target instanceof Element ? target.closest<HTMLElement>('.pdf-viewer-page') : null
     const before = page?.getBoundingClientRect()
     const fx = before ? (clientX - before.left) / before.width : 0.5
     const fy = before ? (clientY - before.top) / before.height : 0.5
-    setZoomed(z => !z)
-    requestAnimationFrame(() => {
-      if (!page) return
-      const after = page.getBoundingClientRect()
-      el.scrollLeft += after.left + fx * after.width - clientX
-      el.scrollTop += after.top + fy * after.height - clientY
-    })
+    setHint(false)
+    zoomTo(zoomRef.current > 1.05 ? 1 : ZOOM, page, fx, fy, clientX, clientY)
   }
 
   const onPointerUp = (e: ReactPointerEvent) => {
     if (e.pointerType === 'mouse') return
     const now = performance.now()
+    if (now - lastPinch.current < 400) {
+      lastTap.current = null
+      return
+    }
     const prev = lastTap.current
     if (prev && now - prev.t < DOUBLE_TAP_MS && Math.hypot(e.clientX - prev.x, e.clientY - prev.y) < DOUBLE_TAP_SLOP_PX) {
       lastTap.current = null
@@ -401,7 +482,7 @@ function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
       >
         <div
           className="mx-auto flex flex-col gap-3"
-          style={{ width: zoomed ? `${ZOOM * 100}%` : '100%', maxWidth: zoomed ? `${ZOOM * 860}px` : '860px' }}
+          style={{ width: `${zoom * 100}%`, maxWidth: `${zoom * 860}px` }}
         >
           {pages.map((page, i) => (
             <div
@@ -414,6 +495,12 @@ function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
           ))}
         </div>
       </div>
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute bottom-[max(1.75rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-[rgba(44,44,48,0.92)] px-3.5 py-2 text-[12px] text-white/85 transition-opacity duration-300 ${hint ? 'opacity-100' : 'opacity-0'}`}
+      >
+        {labels.zoomHint}
+      </span>
     </div>,
     document.body,
   )

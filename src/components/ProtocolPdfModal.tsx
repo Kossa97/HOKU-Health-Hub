@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Download, Dumbbell, FileText, Loader2, Stethoscope, Users, X, type LucideIcon } from 'lucide-react'
+import { format, subDays } from 'date-fns'
+import { Download, Dumbbell, FileText, Loader2, Share, SlidersHorizontal, Stethoscope, Users, X, type LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { denyProps } from '../lib/denyFeedback'
 import { loadProtocolData } from '../lib/protocolPdf/loadProtocolData'
 import { SECTIONS } from '../lib/protocolPdf/sections'
 import { PRESETS, applyPreset, matchPreset, type ActivePreset, type PresetId } from '../lib/protocolPdf/presets'
 import { loadPdfExportPrefs, savePdfExportPrefs } from '../lib/protocolPdf/persistence'
-import { buildProtocolPdf, downloadProtocolPdf } from '../lib/protocolPdf/renderProtocolPdf'
+import { buildProtocolPdf, pdfFileName } from '../lib/protocolPdf/renderProtocolPdf'
+import { canSharePdf, handOffPdf } from '../lib/protocolPdf/sharePdf'
 import { PdfPagesPreview, type PdfPagesPreviewLabels } from './protocolPdf/PdfPagesPreview'
+import { PdfInfoSheet } from './protocolPdf/PdfInfoSheet'
 import type { ProtocolData, PdfLang, PdfDateRange, SectionId } from '../lib/protocolPdf/types'
 
 interface Props {
@@ -26,27 +29,34 @@ type UILang = PdfLang
 const T: Record<UILang, {
   title: string; titleShort: string; presets: string; custom: string; sections: string
   period: string; from: string; to: string
-  note: string; notePlaceholder: string; language: string; download: string; generating: string
+  note: string; notePlaceholder: string; language: string; download: string; share: string; generating: string
+  info: string; days: (n: number) => string; rangeCustom: string; customDesc: string; shareRetry: string
   loading: string; noneSelected: string; empty: string; emptyClick: (label: string) => string
   invalidRange: string
   loadError: string; genError: string
   personalHint: string
   livePreview: string; previewUpdating: string; previewEmpty: string; previewError: string
   pageOf: (page: number, total: number) => string; enlarge: (page: number) => string
-  prevPage: string; nextPage: string; close: string
+  prevPage: string; nextPage: string; close: string; zoomHint: string
 }> = {
   de: {
     title: 'PDF-Protokoll erstellen',
     titleShort: 'PDF-Protokoll',
     presets: 'Muster',
-    custom: 'Eigene Auswahl',
+    custom: 'Eigene',
     sections: 'Inhalte',
     period: 'Zeitraum',
     from: 'Von', to: 'Bis',
     note: 'Notizen / Fragen',
     notePlaceholder: 'z. B. Fragen an den Arzt oder Coach …',
-    language: 'Sprache',
+    language: 'Sprache des PDFs',
     download: 'PDF herunterladen',
+    share: 'PDF teilen',
+    info: 'So funktioniert der PDF-Generator',
+    days: n => `${n} Tage`,
+    rangeCustom: 'Eigener',
+    customDesc: 'Häkchen selbst setzen.',
+    shareRetry: 'Das PDF ist fertig — tippe noch einmal auf „Teilen“.',
     generating: 'PDF wird erstellt …',
     loading: 'Daten werden geladen …',
     noneSelected: 'Wähle mindestens einen Inhalt aus.',
@@ -65,19 +75,26 @@ const T: Record<UILang, {
     prevPage: 'Vorherige Seite',
     nextPage: 'Nächste Seite',
     close: 'Schließen',
+    zoomHint: 'Doppeltippen oder mit zwei Fingern zoomen',
   },
   en: {
     title: 'Create PDF report',
     titleShort: 'PDF report',
     presets: 'Templates',
-    custom: 'Custom selection',
+    custom: 'Custom',
     sections: 'Contents',
     period: 'Period',
     from: 'From', to: 'To',
     note: 'Notes / questions',
     notePlaceholder: 'e.g. questions for your doctor or coach …',
-    language: 'Language',
+    language: 'PDF language',
     download: 'Download PDF',
+    share: 'Share PDF',
+    info: 'How the PDF generator works',
+    days: n => `${n} days`,
+    rangeCustom: 'Custom',
+    customDesc: 'Tick the boxes yourself.',
+    shareRetry: 'The PDF is ready — tap “Share” once more.',
     generating: 'Generating PDF …',
     loading: 'Loading data …',
     noneSelected: 'Select at least one section.',
@@ -96,11 +113,26 @@ const T: Record<UILang, {
     prevPage: 'Previous page',
     nextPage: 'Next page',
     close: 'Close',
+    zoomHint: 'Double-tap or pinch to zoom',
   },
 }
 
 const DEFAULT_PRESET: PresetId = 'arzt'
-const PRESET_ICONS: Record<PresetId, LucideIcon> = { arzt: Stethoscope, coach: Dumbbell, forum: Users }
+const PRESET_ICONS: Record<ActivePreset, LucideIcon> = { arzt: Stethoscope, coach: Dumbbell, forum: Users, custom: SlidersHorizontal }
+const QUICK_RANGES = [7, 30, 90] as const
+
+/** Die letzten `days` Tage bis heute. */
+function lastDays(days: number): PdfDateRange {
+  const to = new Date()
+  return { from: format(subDays(to, days - 1), 'yyyy-MM-dd'), to: format(to, 'yyyy-MM-dd') }
+}
+
+function quickRangeOf(range: PdfDateRange): number | null {
+  return QUICK_RANGES.find(days => {
+    const r = lastDays(days)
+    return r.from === range.from && r.to === range.to
+  }) ?? null
+}
 const DATE_INPUT_CLASS = 'input block min-w-0 appearance-none text-left [&::-webkit-date-and-time-value]:text-left'
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -167,16 +199,24 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
   const [pdfBytes, setPdfBytes] = useState<ArrayBuffer | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [previewError, setPreviewError] = useState(false)
-  const t = T[lang]
+  /** „Eigene" angetippt: bleibt aktiv, auch wenn die Häkchen gerade einem Muster gleichen. */
+  const [pinCustom, setPinCustom] = useState(false)
+  /** „Eigener" Zeitraum angetippt: die Datumsfelder sind dran. */
+  const [pinCustomRange, setPinCustomRange] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
+  const shareable = useMemo(() => canSharePdf(), [])
+  // `lang` ist die Sprache des PDFs; die Seite selbst spricht die App-Sprache.
+  const uiL = initialLang(uiLang)
+  const t = T[uiL]
+  // Nur für die Fehlermeldung beim Laden — keine Abhängigkeit des Ladens,
+  // sonst lädt ein Sprachwechsel neu und setzt die Häkchen zurück.
+  const uiLRef = useRef(uiL)
+  uiLRef.current = uiL
   const prefsReady = useRef(false)
   const initialLoadDone = useRef(false)
   const loadGenRef = useRef(0)
   const previewGenRef = useRef(0)
 
-  // Sprache nur für Fehlermeldungen — nicht als load-Dependency, sonst setzt ein
-  // Sprachwechsel die Häkchen-Auswahl durch einen Reload zurück.
-  const langRef = useRef(lang)
-  langRef.current = lang
 
   // Daten laden: Zeitraum debouncen, Prefs nur beim ersten Load anwenden.
   // Bei späteren Range-Änderungen Auswahl nur auf verfügbare Sektionen beschneiden
@@ -199,6 +239,8 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
             const prefs = loadPdfExportPrefs(userId)
             const restored = restoreSelection(d, prefs)
             setSelected(restored.selected)
+            // „Eigene" nur, wenn die eigene Auswahl wirklich zurückkam (nicht der Arzt-Ersatz).
+            if (prefs?.preset === 'custom' && pruneSelection(prefs.sections, d).size > 0) setPinCustom(true)
             if (restored.lang) setLang(restored.lang)
             initialLoadDone.current = true
             prefsReady.current = true
@@ -214,7 +256,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           }
         } catch {
           if (!cancelled && gen === loadGenRef.current) {
-            toast.error(T[langRef.current].loadError)
+            toast.error(T[uiLRef.current].loadError)
           }
         } finally {
           if (!cancelled && gen === loadGenRef.current) setLoading(false)
@@ -228,9 +270,11 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     }
   }, [userId, range, previewData])
 
-  const activePreset: ActivePreset = data
-    ? matchPreset([...selected], data)
-    : DEFAULT_PRESET
+  const activePreset: ActivePreset = pinCustom
+    ? 'custom'
+    : data
+      ? matchPreset([...selected], data)
+      : DEFAULT_PRESET
 
   useEffect(() => {
     if (!prefsReady.current || loading || !data) return
@@ -249,8 +293,13 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     return map
   }, [data])
 
-  const selectPreset = (id: PresetId) => {
+  const selectPreset = (id: ActivePreset) => {
     if (!data) return
+    if (id === 'custom') {
+      setPinCustom(true)
+      return
+    }
+    setPinCustom(false)
     setSelected(new Set(applyPreset(id, data)))
   }
 
@@ -261,12 +310,25 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     // „geht nicht"-Hinweis ab (src/lib/denyFeedback.ts). Das hier ist nur
     // die Absicherung.
     if (!(availability.get(id) ?? false)) return
+    // Wie im Mockup: gleicht die neue Auswahl einem Muster, springt die Karte dorthin.
+    setPinCustom(false)
     setSelected(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
+  }
+
+  const quickRange = pinCustomRange ? null : quickRangeOf(range)
+  const rangeIndex = quickRange == null ? QUICK_RANGES.length : QUICK_RANGES.indexOf(quickRange as typeof QUICK_RANGES[number])
+  const pickRange = (days: number | null) => {
+    if (days == null) {
+      setPinCustomRange(true)
+      return
+    }
+    setPinCustomRange(false)
+    setRange(lastDays(days))
   }
 
   const updateRange = (patch: Partial<PdfDateRange>) => {
@@ -305,7 +367,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
             range,
             sections: [...selected],
             note,
-            preset: activePreset === 'custom' ? undefined : activePreset,
+            preset: activePreset,
           })
           if (cancelled || gen !== previewGenRef.current) return
 
@@ -325,19 +387,23 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     }
   }, [data, selectedKey, lang, range, note, activePreset, selected])
 
+  const pdfOptions = () => ({ lang, range, sections: [...selected], note, preset: activePreset })
 
+
+  // Steht die Vorschau, ist das PDF schon fertig: dann geht das Teilen-Menü
+  // sofort auf, solange die Geste noch frisch ist (iOS verlangt das).
   const generate = async () => {
     if (!data || !isValidRange(range)) return
     setGenerating(true)
     try {
-      await downloadProtocolPdf(data, {
-        lang,
-        range,
-        sections: [...selected],
-        note,
-        preset: activePreset,
-      })
-      if (!isPage) onClose()
+      const opts = pdfOptions()
+      const ready = pdfBytes && !previewBusy && !previewError && !loading
+      const blob = ready
+        ? new Blob([pdfBytes], { type: 'application/pdf' })
+        : (await buildProtocolPdf(data, opts)).output('blob')
+      const outcome = await handOffPdf(blob, pdfFileName(opts))
+      if (outcome === 'retry') toast(t.shareRetry)
+      else if (!isPage && outcome !== 'cancelled') onClose()
     } catch {
       toast.error(t.genError)
     } finally {
@@ -369,6 +435,17 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     </div>
   )
 
+  // Die Karten zeigen nur den Namen; die Beschreibung steht im „i" und hier für Screenreader.
+  const presetCards: { id: ActivePreset; label: string; description: string }[] = [
+    ...PRESETS.map(p => ({ id: p.id, label: p.label[uiL], description: p.description[uiL] })),
+    { id: 'custom', label: t.custom, description: t.customDesc },
+  ]
+
+  const rangeOptions = [
+    ...QUICK_RANGES.map(days => ({ key: String(days), label: t.days(days), days: days as number | null })),
+    { key: 'custom', label: t.rangeCustom, days: null },
+  ]
+
   const previewLabels: PdfPagesPreviewLabels = {
     title: t.livePreview,
     updating: t.previewUpdating,
@@ -379,6 +456,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
     prev: t.prevPage,
     next: t.nextPage,
     close: t.close,
+    zoomHint: t.zoomHint,
   }
 
   return (
@@ -403,51 +481,59 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
               <span className="sm:hidden">{t.titleShort}</span>
               <span className="hidden sm:inline">{t.title}</span>
             </h2>
+            <button
+              type="button"
+              onClick={() => setInfoOpen(true)}
+              aria-label={t.info}
+              title={t.info}
+              className="tyd-press -ml-1 grid h-11 w-9 shrink-0 place-items-center"
+            >
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--lg-fill)] text-[var(--lg-text-2)]">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+                  <path d="M12 11v6" /><path d="M12 7h.01" />
+                </svg>
+              </span>
+            </button>
           </div>
           <div className="flex items-center shrink-0">
             {langToggle}
-            <button type="button" onClick={onClose} data-app-back-close aria-label={lang === 'de' ? 'Schließen' : 'Close'} className="lg-icon-btn !text-[var(--lg-text-2)]">
+            <button type="button" onClick={onClose} data-app-back-close aria-label={t.close} className="lg-icon-btn !text-[var(--lg-text-2)]">
               <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} /></span>
             </button>
           </div>
         </div>
 
-        {/* Muster als Karten — ein Tipp setzt die Häkchen. Eigene Häkchen = keine Karte aktiv. */}
+        {/* Muster als Karten — ein Tipp setzt die Häkchen; „Eigene" lässt sie, wie sie sind. */}
         <div className="shrink-0 px-4 pt-2 pb-1">
           <p className="lg-group-title !mx-1">{t.presets}</p>
-          <div className="grid grid-cols-3 gap-2" role="group" aria-label={t.presets}>
-            {PRESETS.map(preset => {
-              const active = activePreset === preset.id
-              const Icon = PRESET_ICONS[preset.id]
+          <div className="grid grid-cols-4 gap-2" role="group" aria-label={t.presets}>
+            {presetCards.map(card => {
+              const active = activePreset === card.id
+              const Icon = PRESET_ICONS[card.id]
               return (
                 <button
-                  key={preset.id}
+                  key={card.id}
                   type="button"
                   aria-pressed={active}
-                  aria-description={preset.description[lang]}
+                  aria-description={card.description}
                   disabled={loading || !data}
-                  onClick={() => selectPreset(preset.id)}
-                  className={`tyd-press flex min-w-0 flex-col items-start gap-2 rounded-[16px] p-3 text-left disabled:opacity-50 ${
+                  onClick={() => selectPreset(card.id)}
+                  className={`tyd-press flex min-h-[84px] min-w-0 flex-col items-center justify-center gap-2 rounded-[16px] px-1 disabled:opacity-50 ${
                     active
                       ? 'bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] shadow-[inset_0_0_0_1.5px_var(--lg-accent)]'
                       : 'bg-[var(--lg-fill)]'
                   }`}
                 >
                   <span
-                    className={`grid h-8 w-8 place-items-center rounded-full transition-colors duration-150 ${
+                    className={`grid h-9 w-9 place-items-center rounded-full transition-colors duration-150 ${
                       active ? 'bg-[var(--lg-accent)] text-[var(--accent-contrast)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
                     }`}
                     aria-hidden="true"
                   >
-                    <Icon size={16} strokeWidth={2.2} />
+                    <Icon size={18} strokeWidth={2.2} />
                   </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-[var(--lg-text)]">
-                      {preset.label[lang]}
-                    </span>
-                    <span lang={lang} className="mt-0.5 block text-[12px] leading-[15px] text-[var(--lg-text-2)]">
-                      {preset.short[lang]}
-                    </span>
+                  <span className="max-w-full truncate text-[13px] font-semibold tracking-[-0.01em] text-[var(--lg-text)]">
+                    {card.label}
                   </span>
                 </button>
               )
@@ -459,6 +545,25 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           <div className={`lg:w-[380px] lg:shrink-0 overflow-y-auto px-4 py-4 space-y-4 ${isPage ? '' : 'max-h-[42vh] lg:max-h-none'}`}>
           <div>
             <p className="lg-group-title !mx-1">{t.period}</p>
+            {/* Schnellwahl als Segment; der Daumen gleitet zur Wahl. */}
+            <div role="group" aria-label={t.period} className="relative mb-2 grid grid-cols-4 rounded-[12px] bg-[var(--lg-fill)] p-0.5">
+              <span
+                aria-hidden="true"
+                className="absolute left-0.5 top-0.5 h-8 w-[calc((100%-4px)/4)] rounded-[10px] bg-[var(--lg-fill-selected)] shadow-[0_3px_8px_rgba(0,0,0,0.28)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.32,0.72,0,1)]"
+                style={{ transform: `translateX(${rangeIndex * 100}%)` }}
+              />
+              {rangeOptions.map((opt, i) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  aria-pressed={rangeIndex === i}
+                  onClick={() => pickRange(opt.days)}
+                  className={`relative h-8 text-[13px] font-semibold transition-colors ${rangeIndex === i ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             {/* Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab */}
             {/* iOS gibt Datumsfeldern eine Eigenbreite: ohne min-w-0/appearance
                 ragt „Bis" über den Rand hinaus. */}
@@ -470,7 +575,8 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                   value={range.from}
                   max={range.to}
                   onChange={e => updateRange({ from: e.target.value })}
-                  className={DATE_INPUT_CLASS}
+                  onFocus={() => setPinCustomRange(true)}
+                  className={`${DATE_INPUT_CLASS} ${quickRange == null ? 'shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--accent)_70%,transparent)]' : ''}`}
                 />
               </label>
               <label className="block min-w-0">
@@ -480,21 +586,15 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                   value={range.to}
                   min={range.from}
                   onChange={e => updateRange({ to: e.target.value })}
-                  className={DATE_INPUT_CLASS}
+                  onFocus={() => setPinCustomRange(true)}
+                  className={`${DATE_INPUT_CLASS} ${quickRange == null ? 'shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--accent)_70%,transparent)]' : ''}`}
                 />
               </label>
             </div>
           </div>
 
           <div>
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="lg-group-title !mx-1">{t.sections}</p>
-              {!loading && activePreset === 'custom' && (
-                <span className="mb-1.5 mr-1 rounded-full bg-[var(--lg-fill)] px-2 py-0.5 text-[12px] font-medium text-[var(--lg-text-2)]">
-                  {t.custom}
-                </span>
-              )}
-            </div>
+            <p className="lg-group-title !mx-1">{t.sections}</p>
             {loading ? (
               <div className="flex items-center gap-2 py-6 justify-center text-[var(--lg-text-2)] text-sm">
                 <Loader2 size={16} className="animate-spin" /> {t.loading}
@@ -509,11 +609,11 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                     <button
                       key={s.id}
                       type="button"
-                      {...denyProps(!has, t.emptyClick(s.label[lang]))}
-                      title={!has ? t.emptyClick(s.label[lang]) : undefined}
+                      {...denyProps(!has, t.emptyClick(s.label[uiL]))}
+                      title={!has ? t.emptyClick(s.label[uiL]) : undefined}
                       onClick={() => toggle(s.id)}
                       aria-pressed={checked && has}
-                      className={`flex min-h-11 min-w-0 items-center gap-2 rounded-[14px] px-2.5 py-2 text-left transition-colors ${
+                      className={`tyd-press flex min-h-11 min-w-0 items-center gap-2 rounded-[14px] px-2.5 py-2 text-left ${
                         !has
                           ? 'bg-[var(--lg-fill)] opacity-40'
                           : checked
@@ -532,8 +632,9 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                           </svg>
                         )}
                       </span>
-                      <span lang={lang} className={`min-w-0 flex-1 hyphens-auto [overflow-wrap:break-word] text-[13px] font-medium leading-snug ${has ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-3)]'}`}>
-                        {s.label[lang]}
+                      {/* Trennen nur im Deutschen (lange Komposita); Englisch bricht an Leerzeichen. */}
+                      <span lang={uiL} className={`min-w-0 flex-1 ${uiL === 'de' ? 'hyphens-auto' : 'hyphens-manual'} [overflow-wrap:break-word] text-[13px] font-medium leading-snug ${has ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-3)]'}`}>
+                        {s.label[uiL]}
                       </span>
                     </button>
                   )
@@ -569,22 +670,30 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           </div>
         </div>
 
-        <div className="shrink-0 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {/* Als Seite schwebt der Knopf über der Tab-Leiste, darunter blendet der Inhalt aus. */}
+        {isPage && <div aria-hidden="true" className="h-28 shrink-0" />}
+        <div className={isPage ? 'pdf-share-dock' : 'shrink-0 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]'}>
           <button
             type="button"
             onClick={() => { void generate() }}
             // Laden und Erstellen sind gleich vorbei — dort bleibt der Knopf
             // stumm. Ein falscher Zeitraum bleibt, bis man ihn aendert: dort
             // sagt der Knopf, warum er nicht geht.
-            disabled={generating || data == null}
+            // Während ein neuer Zeitraum lädt, wäre das PDF noch das alte.
+            disabled={generating || data == null || loading}
             {...denyProps(!isValidRange(range), t.invalidRange)}
-            className="lg-btn lg-btn-primary w-full"
+            className="lg-btn lg-btn-primary pointer-events-auto w-full"
           >
             {generating
               ? <><Loader2 size={16} className="animate-spin" /> {t.generating}</>
-              : <><Download size={16} /> {t.download}</>}
+              : shareable
+                ? <><Share size={16} /> {t.share}</>
+                : <><Download size={16} /> {t.download}</>}
           </button>
         </div>
+        {/* Im Inneren, nicht daneben: das Portal reicht Klicks im React-Baum
+            nach oben weiter, außen würde der Modal-Hintergrund schließen. */}
+        {infoOpen && <PdfInfoSheet lang={uiL} onClose={() => setInfoOpen(false)} />}
       </div>
     </div>
   )
