@@ -23,7 +23,7 @@ const mealCard = (page: import('@playwright/test').Page, name: string) => page.g
 // Die Kugel steht fest oben und dreht sich ständig; auf vollen Test-Rechnern (WebGL ohne Grafikkarte)
 // bremste das jeden Klick um Sekunden. Hier zählt das Verhalten: „Bewegung reduzieren“ — die Kugel
 // zeichnet nur bei Änderungen. Die Kugel-Tests unten schalten die Bewegung wieder ein.
-test.use({ reducedMotion: 'reduce' })
+test.use({ contextOptions: { reducedMotion: 'reduce' } })
 /** Für die Kugel-Tests: volle Bewegung (Drehen, Flüge). */
 const withMotion = (page: import('@playwright/test').Page) => page.emulateMedia({ reducedMotion: 'no-preference' })
 
