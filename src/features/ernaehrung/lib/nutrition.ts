@@ -19,6 +19,8 @@ export interface Per100 {
   fat: number
   fiber: number | null
   sugar: number | null
+  /** Gesättigte Fettsäuren — für die Nährwert-Punkte; ältere Daten haben keinen Wert. */
+  satFat: number | null
   salt: number | null
 }
 
@@ -38,6 +40,8 @@ export interface Food {
   favorite: boolean
   /** Nur bei Gerichten: Zutaten und Portionen (siehe recipe.ts). */
   recipe?: Recipe | null
+  /** Nur bei Gerichten: passt zu dieser Mahlzeit (steht dort beim Hinzufügen oben). */
+  meal?: Meal | null
 }
 
 export interface Nutrients {
@@ -47,6 +51,7 @@ export interface Nutrients {
   fat: number
   fiber: number | null
   sugar: number | null
+  satFat: number | null
   salt: number | null
 }
 
@@ -67,7 +72,7 @@ export interface LogEntry {
 }
 
 export const MAX_AMOUNT = 5000
-export const EMPTY_NUTRIENTS: Nutrients = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: null, sugar: null, salt: null }
+export const EMPTY_NUTRIENTS: Nutrients = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: null, sugar: null, satFat: null, salt: null }
 
 const r1 = (n: number) => Math.round(n * 10) / 10
 const r2 = (n: number) => Math.round(n * 100) / 100
@@ -104,6 +109,7 @@ export function nutrientsFor(per100: Per100, amount: number): Nutrients {
     fat: r1(per100.fat * f),
     fiber: opt(per100.fiber),
     sugar: opt(per100.sugar),
+    satFat: opt(per100.satFat),
     salt: opt(per100.salt, r2),
   }
 }
@@ -114,6 +120,7 @@ export function scaleNutrients(n: Nutrients, factor: number): Nutrients {
   return {
     kcal: r(n.kcal), protein: r(n.protein), carbs: r(n.carbs), fat: r(n.fat),
     fiber: n.fiber == null ? null : r(n.fiber), sugar: n.sugar == null ? null : r(n.sugar),
+    satFat: n.satFat == null ? null : r(n.satFat),
     salt: n.salt == null ? null : r(n.salt, 100),
   }
 }
@@ -126,22 +133,23 @@ export function per100FromEntry(e: Pick<LogEntry, 'amount' | 'nutrients'>): Per1
   return {
     kcal: r1(e.nutrients.kcal * f), protein: r1(e.nutrients.protein * f),
     carbs: r1(e.nutrients.carbs * f), fat: r1(e.nutrients.fat * f),
-    fiber: opt(e.nutrients.fiber), sugar: opt(e.nutrients.sugar), salt: opt(e.nutrients.salt, r2),
+    fiber: opt(e.nutrients.fiber), sugar: opt(e.nutrients.sugar), satFat: opt(e.nutrients.satFat), salt: opt(e.nutrients.salt, r2),
   }
 }
 
 const addOpt = (a: number | null, b: number | null) => (a == null && b == null ? null : (a ?? 0) + (b ?? 0))
 
-/** Summe; Ballaststoffe/Zucker/Salz bleiben null, solange kein Eintrag einen Wert kennt. */
+/** Summe; Ballaststoffe/Zucker/gesättigte Fette/Salz bleiben null, solange kein Eintrag einen Wert kennt. */
 export function sumNutrients(list: readonly Nutrients[]): Nutrients {
   const t = list.reduce<Nutrients>((a, n) => ({
     kcal: a.kcal + n.kcal, protein: a.protein + n.protein, carbs: a.carbs + n.carbs, fat: a.fat + n.fat,
-    fiber: addOpt(a.fiber, n.fiber), sugar: addOpt(a.sugar, n.sugar), salt: addOpt(a.salt, n.salt),
+    fiber: addOpt(a.fiber, n.fiber), sugar: addOpt(a.sugar, n.sugar), satFat: addOpt(a.satFat, n.satFat), salt: addOpt(a.salt, n.salt),
   }), EMPTY_NUTRIENTS)
   return {
     kcal: r1(t.kcal), protein: r1(t.protein), carbs: r1(t.carbs), fat: r1(t.fat),
     fiber: t.fiber == null ? null : r1(t.fiber),
     sugar: t.sugar == null ? null : r1(t.sugar),
+    satFat: t.satFat == null ? null : r1(t.satFat),
     salt: t.salt == null ? null : r2(t.salt),
   }
 }

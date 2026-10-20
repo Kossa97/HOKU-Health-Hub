@@ -4,7 +4,7 @@ import { candidatesFrom, chooseFood, chosenRows, groupCandidates, rowsFromSelect
 
 const food = (name: string): Food => ({
   itemId: name, source: 'custom', sourceRef: null, barcode: null, name, brand: null, unit: 'g',
-  per100: { kcal: 100, protein: 1, carbs: 1, fat: 1, fiber: null, sugar: null, salt: null }, serving: null, favorite: false,
+  per100: { kcal: 100, protein: 1, carbs: 1, fat: 1, fiber: null, sugar: null, satFat: null, salt: null }, serving: null, favorite: false,
 })
 
 const soup = candidatesFrom([

@@ -8,6 +8,7 @@ import { searchBrands } from '../services/foodLookup'
 import { DIM, MUTED } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
+import { ScoreBadge } from './ScoreBadge'
 
 type Tab = 'frequent' | 'mine' | 'dishes'
 type Remote = { query: string; state: 'loading' | 'done' | 'error'; results: Food[] }
@@ -34,9 +35,12 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
             <span className="truncate">{[sub, hint].filter(Boolean).join(' · ')}</span>
           </span>
         </span>
-        <span className={`shrink-0 text-right text-[15px] tabular-nums ${DIM}`}>
+        <span className="flex shrink-0 items-center gap-2.5">
+        <ScoreBadge per100={food.per100} unit={food.unit} />
+        <span className={`text-right text-[15px] tabular-nums ${DIM}`}>
           {hideKcal ? `${Math.round(food.per100.protein * per / 100)} g P` : `${Math.round(food.per100.kcal * per / 100)} kcal`}
           <span className={`block text-[12px] ${MUTED}`}>{portion ? t('nutr_per_portion_short') : `/ 100 ${food.unit}`}</span>
+        </span>
         </span>
       </button>
     </li>
@@ -72,7 +76,8 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   const myFoods = useMemo(() => (exclude ? allMyFoods.filter(f => f.itemId !== exclude) : allMyFoods), [allMyFoods, exclude])
   const tabs: Tab[] = mode === 'log' ? ['frequent', 'mine', 'dishes'] : ['frequent', 'mine']
   const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : 'mine')
-  const dishes = useMemo(() => myFoods.filter(f => f.recipe), [myFoods])
+  // Gerichte, die zu dieser Mahlzeit passen („Passt zu“), stehen oben; sonst bleibt die Reihenfolge.
+  const dishes = useMemo(() => myFoods.filter(f => f.recipe).sort((a, b) => Number(b.meal === meal) - Number(a.meal === meal)), [myFoods, meal])
   const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe), [myFoods])
   const [query, setQuery] = useState(initialQuery)
   const [remote, setRemote] = useState<Remote | null>(null)

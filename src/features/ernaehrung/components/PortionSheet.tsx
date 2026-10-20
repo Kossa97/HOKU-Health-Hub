@@ -10,6 +10,7 @@ import { MacroCells } from './MacroCells'
 import { PortionOrb, type PortionOrbHandle } from './PortionOrb'
 import type { DayTotals } from '../lib/dayRings'
 import { SourceBadge } from './SourceBadge'
+import { ScoreBadge } from './ScoreBadge'
 
 const PRESETS = [50, 100, 150, 200, 250]
 /** Bei Gerichten wählt man Portionen statt Gramm. */
@@ -76,7 +77,11 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       )}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h2 id="nutr-portion-title" className="lg-title2">{food.name}</h2>
+          {/* Abzeichen neben, nicht in der Überschrift: sie benennt das Blatt. */}
+          <div className="flex items-center gap-2.5">
+            <h2 id="nutr-portion-title" className="lg-title2 min-w-0">{food.name}</h2>
+            <ScoreBadge per100={food.per100} unit={food.unit} size="lg" />
+          </div>
           <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
             <SourceBadge source={food.source} own={food.itemId !== null} />
             <span className="truncate">

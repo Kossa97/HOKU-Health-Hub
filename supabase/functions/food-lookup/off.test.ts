@@ -6,16 +6,23 @@ import {
 const nutella = {
   code: '3017620422003', product_name: 'Nutella', product_name_de: 'Nutella Nuss-Nougat-Creme', brands: 'Ferrero, Nutella',
   serving_size: '15 g', serving_quantity: '15', quantity: '400 g',
-  nutriments: { 'energy-kcal_100g': 539, proteins_100g: 6.3, carbohydrates_100g: 57.5, fat_100g: 30.9, sugars_100g: 56.3, salt_100g: 0.107 },
+  nutriments: { 'energy-kcal_100g': 539, proteins_100g: 6.3, carbohydrates_100g: 57.5, fat_100g: 30.9, sugars_100g: 56.3, 'saturated-fat_100g': 10.6, salt_100g: 0.107 },
 }
 
 describe('mapProduct', () => {
   it('nimmt den Namen in der Sprache der Oberfläche, Werte je 100 g, erste Marke', () => {
     const f = mapProduct(nutella, 'de')!
     expect(f).toMatchObject({ barcode: '3017620422003', name: 'Nutella Nuss-Nougat-Creme', brand: 'Ferrero', unit: 'g' })
-    expect(f.per100).toEqual({ kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null, sugar: 56.3, salt: 0.11 })
+    expect(f.per100).toEqual({ kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null, sugar: 56.3, satFat: 10.6, salt: 0.11 })
     expect(f.serving).toEqual({ amount: 15, label: '15 g' })
     expect(mapProduct(nutella, 'en')!.name).toBe('Nutella')
+  })
+  it('gesättigte Fettsäuren: fehlen → null, mehr als das Fett → verworfen', () => {
+    const base = { product_name: 'X', nutriments: { 'energy-kcal_100g': 100, fat_100g: 5 } }
+    expect(mapProduct(base, 'de')!.per100.satFat).toBeNull()
+    expect(mapProduct({ ...base, nutriments: { ...base.nutriments, 'saturated-fat_100g': 2.04 } }, 'de')!.per100.satFat).toBe(2)
+    expect(mapProduct({ ...base, nutriments: { ...base.nutriments, 'saturated-fat_100g': 9 } }, 'de')!.per100.satFat).toBeNull()
+    expect(mapProduct({ product_name: 'X', nutriments: { 'energy-kcal_100g': 100, 'saturated-fat_100g': 0.4 } }, 'de')!.per100.satFat).toBe(0.4)
   })
   it('rechnet kJ um, wenn kcal fehlt', () => {
     expect(mapProduct({ product_name: 'X', nutriments: { 'energy-kj_100g': 418.4 } }, 'de')!.per100.kcal).toBe(100)
