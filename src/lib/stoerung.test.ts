@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   cacheSchluessel, dienstFetch, istDienstAnfrage, nutzerAusToken,
@@ -11,35 +12,30 @@ function token(sub: string) {
   return `${teil({ alg: 'HS256' })}.${teil({ sub })}.signatur`
 }
 
-/** Cache Storage im Speicher — genug für open/put/match/delete. */
-function speicherCaches() {
-  const ablagen = new Map<string, Map<string, Response>>()
-  return {
-    ablagen,
-    open: async (name: string) => {
-      if (!ablagen.has(name)) ablagen.set(name, new Map())
-      const ablage = ablagen.get(name)!
-      return {
-        put: async (key: string, antwort: Response) => { ablage.set(key, antwort) },
-        match: async (key: string) => ablage.get(key)?.clone(),
-      }
-    },
-    delete: async (name: string) => ablagen.delete(name),
-  }
+/** Wie viele Antworten gemerkt sind (dieselbe IndexedDB, die die App nutzt). */
+function anzahl(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const offen = indexedDB.open('tyd-offline-daten', 1)
+    offen.onsuccess = () => {
+      const zaehlen = offen.result.transaction('antworten').objectStore('antworten').count()
+      zaehlen.onsuccess = () => { offen.result.close(); resolve(zaehlen.result) }
+      zaehlen.onerror = () => reject(zaehlen.error)
+    }
+    offen.onerror = () => reject(offen.error)
+  })
 }
 
 const leseKopf = (nutzer: string) => ({ headers: new Headers({ Authorization: `Bearer ${token(nutzer)}`, Accept: 'application/json' }) })
-const warte = () => new Promise(r => setTimeout(r, 0))
+// IndexedDB schreibt nach der Antwort im Hintergrund
+const warte = () => new Promise(r => setTimeout(r, 30))
 
 describe('Störung und Offline-Lesecache', () => {
-  let caches: ReturnType<typeof speicherCaches>
   let netz: ReturnType<typeof vi.fn>
 
-  beforeEach(() => {
-    caches = speicherCaches()
+  beforeEach(async () => {
+    await vergissOfflineDaten()
     netz = vi.fn()
     vi.stubGlobal('location', { origin: 'https://app.test', href: 'https://app.test/' })
-    vi.stubGlobal('caches', caches)
     vi.stubGlobal('fetch', netz)
     setzeStoerungSimuliert(false)
     setzeAngemeldetenNutzer(null)
@@ -86,7 +82,7 @@ describe('Störung und Offline-Lesecache', () => {
     netz.mockResolvedValueOnce(new Response('{}', { status: 201 }))
     await dienstFetch(url, { ...leseKopf('nutzer-1'), method: 'POST', body: '{}' })
     await warte()
-    expect(caches.ablagen.get('tyd-offline-daten-v1')?.size ?? 0).toBe(0)
+    expect(await anzahl()).toBe(0)
   })
 
   it('simuliert den Ausfall für jeden Dienst, lässt eigene Programmteile durch', async () => {
@@ -119,9 +115,9 @@ describe('Störung und Offline-Lesecache', () => {
     netz.mockResolvedValueOnce(new Response('[1]', { status: 200 }))
     await dienstFetch(`${SUPABASE}/rest/v1/x`, leseKopf('nutzer-1'))
     await warte()
-    expect(caches.ablagen.has('tyd-offline-daten-v1')).toBe(true)
+    expect(await anzahl()).toBe(1)
     await vergissOfflineDaten()
-    expect(caches.ablagen.has('tyd-offline-daten-v1')).toBe(false)
+    expect(await anzahl()).toBe(0)
   })
 
   it('fängt einen Ausfall hinter Cloudflare (503/522) wie fehlendes Netz ab', async () => {
@@ -160,7 +156,7 @@ describe('Störung und Offline-Lesecache', () => {
     netz.mockResolvedValueOnce(new Response('[]', { status: 200 }))
     await dienstFetch(`${SUPABASE}/rest/v1/neu`, oeffentlich)
     await warte()
-    expect(caches.ablagen.get('tyd-offline-daten-v1')?.size).toBe(1)
+    expect(await anzahl()).toBe(1)
   })
 
   it('merkt nichts mehr, was vor dem Abmelden losging', async () => {
@@ -171,6 +167,16 @@ describe('Störung und Offline-Lesecache', () => {
     antworte(new Response('[1]', { status: 200 }))
     await laeuft
     await warte()
-    expect(caches.ablagen.get('tyd-offline-daten-v1')?.size ?? 0).toBe(0)
+    expect(await anzahl()).toBe(0)
+  })
+
+  it('hält höchstens 400 Antworten vor und wirft die ältesten zuerst raus', async () => {
+    netz.mockImplementation(async () => new Response('[1]', { status: 200 }))
+    for (let i = 0; i < 405; i++) await dienstFetch(`${SUPABASE}/rest/v1/x?i=${i}`, leseKopf('nutzer-1'))
+    await vi.waitFor(async () => expect(await anzahl()).toBe(400))
+
+    netz.mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(dienstFetch(`${SUPABASE}/rest/v1/x?i=0`, leseKopf('nutzer-1'))).rejects.toThrow()
+    expect(await (await dienstFetch(`${SUPABASE}/rest/v1/x?i=404`, leseKopf('nutzer-1'))).json()).toEqual([1])
   })
 })

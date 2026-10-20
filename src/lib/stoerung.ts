@@ -8,7 +8,7 @@ import { useSyncExternalStore } from 'react'
  * Speichern scheitert mit einer Meldung statt eines weißen Bildschirms.
  *
  * Dafür läuft jede Anfrage an einen Dienst durch `dienstFetch`:
- * - Lesen (GET auf /rest/v1/) wird bei Erfolg je Nutzer im Cache Storage
+ * - Lesen (GET auf /rest/v1/) wird bei Erfolg je Nutzer in IndexedDB
  *   abgelegt und bei Netzfehler von dort beantwortet.
  * - Der Schalter „Störung simulieren“ lässt jede Dienst-Anfrage scheitern
  *   wie bei einem echten Ausfall (TypeError wie bei fehlendem Netz).
@@ -19,7 +19,8 @@ import { useSyncExternalStore } from 'react'
  */
 
 const SCHALTER_KEY = 'tyd_stoerung'
-const CACHE_NAME = 'tyd-offline-daten-v1'
+const DB_NAME = 'tyd-offline-daten'
+const STORE = 'antworten'
 const NUTZER_PARAM = '__tyd_u'
 
 export type Verbindung = 'online' | 'offline'
@@ -156,13 +157,47 @@ function istLesbar(url: URL, methode: string): boolean {
 
 const MAX_EINTRAEGE = 400
 
-async function oeffneCache(): Promise<Cache | null> {
-  try {
-    if (typeof caches === 'undefined') return null
-    return await caches.open(CACHE_NAME)
-  } catch {
-    return null
-  }
+/**
+ * Ablage: IndexedDB statt Cache Storage — die gibt es auch in WebKit unter
+ * http://localhost und in der iOS-App (capacitor://), wo Cache Storage fehlt.
+ */
+interface Eintrag {
+  schluessel: string
+  zeit: number
+  status: number
+  statusText: string
+  kopf: [string, string][]
+  inhalt: string
+}
+
+let db: Promise<IDBDatabase | null> | null = null
+// Reihenfolge innerhalb derselben Millisekunde
+let folge = 0
+
+function oeffneDb(): Promise<IDBDatabase | null> {
+  db ??= new Promise(resolve => {
+    try {
+      const anfrage = indexedDB.open(DB_NAME, 1)
+      anfrage.onupgradeneeded = () => {
+        anfrage.result.createObjectStore(STORE, { keyPath: 'schluessel' }).createIndex('zeit', 'zeit')
+      }
+      anfrage.onsuccess = () => resolve(anfrage.result)
+      anfrage.onerror = () => resolve(null)
+    } catch {
+      resolve(null)
+    }
+  })
+  const offen = db
+  // Ohne IndexedDB (z. B. gesperrt): beim nächsten Mal neu versuchen
+  void offen.then(ergebnis => { if (!ergebnis && db === offen) db = null })
+  return offen
+}
+
+function fertig(tx: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = tx.onabort = () => reject(tx.error)
+  })
 }
 
 /**
@@ -179,21 +214,53 @@ export function setzeAngemeldetenNutzer(nutzer: string | null): void {
 }
 
 async function merke(schluessel: string, antwort: Response, gen: number): Promise<void> {
-  const cache = await oeffneCache()
-  if (!cache || gen !== generation) return
-  await cache.put(schluessel, antwort)
-  // Ältestes zuerst; ein erneutes put hängt den Eintrag hinten an
-  const schluesselListe = await cache.keys()
-  for (const alt of schluesselListe.slice(0, Math.max(0, schluesselListe.length - MAX_EINTRAEGE))) {
-    await cache.delete(alt)
+  const eintrag: Eintrag = {
+    schluessel,
+    zeit: Date.now() + (folge++ % 1000) / 1000,
+    status: antwort.status,
+    statusText: antwort.statusText,
+    kopf: [...antwort.headers],
+    inhalt: await antwort.text(),
   }
+  const ablage = await oeffneDb()
+  // Erst hier prüfen: zwischen Prüfen und Schreiben liegt kein await, und
+  // IndexedDB führt das Leeren beim Abmelden danach aus
+  if (!ablage || gen !== generation) return
+  const tx = ablage.transaction(STORE, 'readwrite')
+  const store = tx.objectStore(STORE)
+  store.put(eintrag)
+  // Zu viele? Die ältesten gehen.
+  const anzahl = store.count()
+  anzahl.onsuccess = () => {
+    let zuViel = anzahl.result - MAX_EINTRAEGE
+    if (zuViel <= 0) return
+    store.index('zeit').openCursor().onsuccess = ev => {
+      const cursor = (ev.target as IDBRequest<IDBCursorWithValue | null>).result
+      if (!cursor || zuViel-- <= 0) return
+      cursor.delete()
+      cursor.continue()
+    }
+  }
+  await fertig(tx)
 }
 
 async function ausDemCache(schluessel: string | null): Promise<Response | undefined> {
   if (!schluessel) return undefined
-  const gemerkt = await (await oeffneCache())?.match(schluessel).catch(() => undefined)
-  if (gemerkt) setze({ ausCache: true })
-  return gemerkt ?? undefined
+  const ablage = await oeffneDb()
+  if (!ablage) return undefined
+  const eintrag = await new Promise<Eintrag | undefined>(resolve => {
+    try {
+      const anfrage = ablage.transaction(STORE).objectStore(STORE).get(schluessel)
+      anfrage.onsuccess = () => resolve(anfrage.result as Eintrag | undefined)
+      anfrage.onerror = () => resolve(undefined)
+    } catch {
+      resolve(undefined)
+    }
+  })
+  if (!eintrag) return undefined
+  setze({ ausCache: true })
+  // 204/205 dürfen keinen Inhalt tragen
+  return new Response(eintrag.status === 204 || eintrag.status === 205 ? null : eintrag.inhalt, { status: eintrag.status, statusText: eintrag.statusText, headers: eintrag.kopf })
 }
 
 let echtesFetch: typeof fetch | null = null
@@ -260,7 +327,11 @@ export async function vergissOfflineDaten(): Promise<void> {
   generation += 1
   angemeldet = null
   try {
-    if (typeof caches !== 'undefined') await caches.delete(CACHE_NAME)
+    const ablage = await oeffneDb()
+    if (!ablage) return
+    const tx = ablage.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).clear()
+    await fertig(tx)
   } catch {
     // Nichts gemerkt, nichts zu vergessen
   }

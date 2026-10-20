@@ -1,5 +1,23 @@
 import { expect, test } from './support/fixtures'
+import type { Page } from '@playwright/test'
 import { seedBpc157 } from './support/myStack'
+
+function gemerkteAntworten(page: Page): Promise<number> {
+  return page.evaluate(async () => {
+    // Nicht selbst anlegen — sonst fehlte der App beim ersten Öffnen die Tabelle
+    if (!(await indexedDB.databases()).some(d => d.name === 'tyd-offline-daten')) return 0
+    return new Promise<number>(resolve => {
+      const offen = indexedDB.open('tyd-offline-daten')
+      offen.onsuccess = () => {
+        if (!offen.result.objectStoreNames.contains('antworten')) return resolve(0)
+        const zaehlen = offen.result.transaction('antworten').objectStore('antworten').count()
+        zaehlen.onsuccess = () => { offen.result.close(); resolve(zaehlen.result) }
+        zaehlen.onerror = () => resolve(-1)
+      }
+      offen.onerror = () => resolve(-1)
+    })
+  })
+}
 
 /**
  * Störung: Supabase und andere Dienste fallen aus (Schalter im Profil bzw.
@@ -11,6 +29,9 @@ test('simulierte Störung: nach dem Neuladen kein weißer Bildschirm, Daten aus 
   seedBpc157(mock, { startDate: '2026-09-20' })
   await page.goto('/my-stack')
   await expect(page.getByText('BPC-157').first()).toBeVisible()
+
+  // Erst neu laden, wenn die Antworten im Offline-Speicher liegen
+  await expect.poll(() => gemerkteAntworten(page), { message: 'Antworten im Offline-Speicher (IndexedDB)' }).toBeGreaterThan(0)
 
   await page.evaluate(() => localStorage.setItem('tyd_stoerung', '1'))
   const anfragenVorher = mock.rpcCalls.length
