@@ -318,9 +318,9 @@
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.test.ts": {
-    "mtime": 1792495050.0145278,
-    "seen": 1792495627.6539462,
-    "ast_hash": "b91b29827ea378dee7ef3a378b9ae8ea",
+    "mtime": 1792518981.9858725,
+    "seen": 1792520166.2070484,
+    "ast_hash": "5a49560c3da6ff95beab5b3471f56789",
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.tsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "src/components/SloshContext.tsx": {
-    "mtime": 1791840471.322098,
-    "seen": 1792477819.7206197,
-    "ast_hash": "078f8a453a50c0ea8e42e5743820bc6b",
+    "mtime": 1792518981.9858725,
+    "seen": 1792520166.2071812,
+    "ast_hash": "2c7d9323da44b1af54955948858a52fe",
     "semantic_hash": ""
   },
   "src/components/WorkflowBanner.tsx": {
@@ -444,15 +444,15 @@
     "semantic_hash": ""
   },
   "src/components/sloshEngine.test.ts": {
-    "mtime": 1791840471.3250873,
-    "seen": 1792477819.7207122,
-    "ast_hash": "a3ff78b51c781f84c2c0c26a40d5ecee",
+    "mtime": 1792518981.9858725,
+    "seen": 1792520166.2088234,
+    "ast_hash": "e24989d28271e4b9419d6dd03d8d4396",
     "semantic_hash": ""
   },
   "src/components/sloshEngine.ts": {
-    "mtime": 1791840471.3250873,
-    "seen": 1792477819.7207146,
-    "ast_hash": "d404edadf78e6168adfb6068b4a3bd85",
+    "mtime": 1792518981.9898725,
+    "seen": 1792520166.2088275,
+    "ast_hash": "9c03565a8621b7ee7517a983beff1211",
     "semantic_hash": ""
   },
   "src/components/ui/DesignSystem.tsx": {
@@ -3930,9 +3930,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/LiquidGraphic.tsx": {
-    "mtime": 1791840471.3629808,
-    "seen": 1792477819.7216575,
-    "ast_hash": "751d2e2a879ba9989c634e08d10bd8fd",
+    "mtime": 1792518981.9898725,
+    "seen": 1792520166.225945,
+    "ast_hash": "2337f1be3b3ca545506d36c9df22244f",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/StageLabel.test.ts": {
@@ -5394,9 +5394,9 @@
     "semantic_hash": ""
   },
   "e2e/my-stack.spec.ts": {
-    "mtime": 1791840469.8255975,
-    "seen": 1792477819.7204275,
-    "ast_hash": "5e1c0c2d4a1837e5e876559d52c6347a",
+    "mtime": 1792518981.9858725,
+    "seen": 1792520166.204034,
+    "ast_hash": "e754fe1c15d9bbb07c15490eaef56e04",
     "semantic_hash": ""
   },
   "e2e/support/fixtures.ts": {
@@ -7080,9 +7080,9 @@
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792501649.7923288,
-    "seen": 1792501686.8223064,
-    "ast_hash": "ffd0dbf0e288c74f5a32d4515994c9bf",
+    "mtime": 1792520108.9266677,
+    "seen": 1792520166.2478411,
+    "ast_hash": "79da17d8547f765b126ed5794927a54d",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
