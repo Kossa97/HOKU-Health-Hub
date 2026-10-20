@@ -1938,3 +1938,22 @@ main.flex-1 {
 @media (prefers-reduced-motion: no-preference) {
   .tyd-active-dot::after { animation: tyd-active-ping 2s cubic-bezier(0.23, 1, 0.32, 1) infinite; }
 }
+
+/* Blasen in der Vial-Fluessigkeit (LiquidGraphic). Frueher SMIL — das zwang
+   Chrome in jedem Bild zur Stilberechnung der ganzen Seite. Jetzt nur
+   transform und opacity. In SVG gelten px als Einheiten des viewBox:
+   derselbe Weg von 192 nach 30 wie vorher. */
+@keyframes tyd-liquid-bubble {
+  0% { transform: translateY(192px); opacity: 0; }
+  18% { opacity: 0.5; }
+  72% { opacity: 0.5; }
+  100% { transform: translateY(30px); opacity: 0; }
+}
+.tyd-liquid-bubble { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-liquid-bubble {
+    animation-name: tyd-liquid-bubble;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}
