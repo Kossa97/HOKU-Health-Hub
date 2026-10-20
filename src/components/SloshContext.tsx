@@ -32,6 +32,6 @@ export function SloshProvider({ engine, children }: { engine: SloshEngine; child
   return <SloshContext.Provider value={engine}>{children}</SloshContext.Provider>
 }
 
-export function useSloshSubscribe(): ((cb: (state: SloshState) => void) => () => void) | null {
+export function useSloshSubscribe(): ((cb: (state: SloshState) => boolean | void) => () => void) | null {
   return useContext(SloshContext)?.subscribe ?? null
 }

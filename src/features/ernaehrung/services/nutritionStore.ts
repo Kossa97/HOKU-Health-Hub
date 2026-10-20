@@ -4,7 +4,7 @@
  */
 import { supabase } from '../../../lib/supabase'
 import {
-  type EntrySource, type Food, type FoodUnit, type Goals, type LogEntry, type Meal, type Nutrients, type Per100,
+  type EntrySource, type Food, type FoodUnit, type Goals, type LogEntry, type Meal, type Nutrients, type Per100, MEALS,
   nutrientsFor, scaleNutrients,
 } from '../lib/nutrition'
 import { parseIngredients } from '../lib/recipe'
@@ -30,11 +30,13 @@ export function rowToEntry(r: Row): LogEntry {
     amount: opt(r.amount),
     nutrients: {
       kcal: num(r.kcal), protein: num(r.protein_g), carbs: num(r.carbs_g), fat: num(r.fat_g),
-      fiber: opt(r.fiber_g), sugar: opt(r.sugar_g), salt: opt(r.salt_g),
+      fiber: opt(r.fiber_g), sugar: opt(r.sugar_g), satFat: opt(r.sat_fat_g), salt: opt(r.salt_g),
     },
     createdAt: r.created_at as string,
   }
 }
+
+const isMeal = (v: unknown): v is Meal => (MEALS as readonly unknown[]).includes(v)
 
 export function rowToFood(r: Row): Food {
   const ingredients = parseIngredients(r.ingredients)
@@ -48,25 +50,26 @@ export function rowToFood(r: Row): Food {
     unit: (r.unit as FoodUnit) ?? 'g',
     per100: {
       kcal: num(r.kcal_100), protein: num(r.protein_100), carbs: num(r.carbs_100), fat: num(r.fat_100),
-      fiber: opt(r.fiber_100), sugar: opt(r.sugar_100), salt: opt(r.salt_100),
+      fiber: opt(r.fiber_100), sugar: opt(r.sugar_100), satFat: opt(r.sat_fat_100), salt: opt(r.salt_100),
     },
     serving: r.serving_amount == null ? null : { amount: num(r.serving_amount), label: str(r.serving_label) },
     favorite: r.favorite === true,
     recipe: ingredients?.length ? { portions: num(r.portions) || 1, ingredients } : null,
+    meal: isMeal(r.meal) ? r.meal : null,
   }
 }
 
 function nutrientColumns(n: Nutrients) {
   return {
     kcal: n.kcal, protein_g: n.protein, carbs_g: n.carbs, fat_g: n.fat,
-    fiber_g: n.fiber, sugar_g: n.sugar, salt_g: n.salt,
+    fiber_g: n.fiber, sugar_g: n.sugar, sat_fat_g: n.satFat, salt_g: n.salt,
   }
 }
 
 function per100Columns(p: Per100) {
   return {
     kcal_100: p.kcal, protein_100: p.protein, carbs_100: p.carbs, fat_100: p.fat,
-    fiber_100: p.fiber, sugar_100: p.sugar, salt_100: p.salt,
+    fiber_100: p.fiber, sugar_100: p.sugar, sat_fat_100: p.satFat, salt_100: p.salt,
   }
 }
 
@@ -215,7 +218,7 @@ export async function saveMyFood(userId: string, food: Food): Promise<Food> {
     serving_amount: food.serving?.amount ?? null, serving_label: food.serving?.label ?? null,
     favorite: food.favorite, updated_at: new Date().toISOString(),
     // Spalten nur bei Gerichten schicken: gewöhnliche Lebensmittel brauchen sie nicht.
-    ...(food.recipe ? { ingredients: food.recipe.ingredients, portions: food.recipe.portions } : {}),
+    ...(food.recipe ? { ingredients: food.recipe.ingredients, portions: food.recipe.portions, meal: food.meal ?? null } : {}),
   }
   const query = food.itemId
     ? supabase.from('food_items').update(row).eq('id', food.itemId)

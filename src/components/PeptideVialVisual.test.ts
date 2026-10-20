@@ -334,7 +334,9 @@ describe('PeptideVialVisual', () => {
 
     // Ambient life: rising bubbles rendered as animated SVG circles.
     expect(html).toContain('data-vial-detail="liquid-bubble"')
-    expect(html).toContain('<animateTransform')
+    expect(html).toContain('tyd-liquid-bubble')
+    // Kein SMIL: es rechnete in jedem Bild den Stil der ganzen Seite neu.
+    expect(html).not.toContain('<animateTransform')
 
     const text = source()
     // Surface is redrawn imperatively from the shared slosh engine each frame.

@@ -151,13 +151,14 @@ test('Reiter wechseln: der aktive Eintrag bleibt, wo er dabei ist — und steht 
 })
 
 test('Karussell: nur sichtbare Vials lassen Blasen aufsteigen', async ({ page, mock }) => {
-  // Die Blasen sind SMIL-Animationen und kosteten, fuer alle Vials zugleich,
-  // im Ruhezustand mehr Stilberechnung als alles andere auf der Seite.
+  // Die Blasen waren SMIL-Animationen und kosteten, fuer alle Vials zugleich,
+  // im Ruhezustand mehr Stilberechnung als alles andere auf der Seite. Heute
+  // sind sie CSS-Animationen — nur sichtbare Vials tragen sie trotzdem.
   for (const name of ['BPC-157', 'CJC-1295', 'GHK-Cu', 'Ipamorelin', 'KPV', 'TB-500']) {
     seedPeptide(mock, name, { startDate: '2026-09-01' })
   }
   await page.goto('/my-stack')
-  const blasen = (index: number) => page.locator(`[data-vial-index="${index}"] animateTransform`).count()
+  const blasen = (index: number) => page.locator(`[data-vial-index="${index}"] [data-vial-detail="liquid-bubble"]`).count()
   await expect.poll(() => blasen(0)).toBeGreaterThan(0)
   await expect.poll(() => blasen(5)).toBe(0)
 

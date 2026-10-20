@@ -30,11 +30,14 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
   await page.getByRole('button', { name: 'Suchen', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Skyr Natur' })).toBeVisible()
+  // Nährwert-Punkte je 100 g: wenig Zucker und Salz, viel Eiweiß
+  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
   // Portion des Produkts ist vorgewählt
   await expect(page.getByLabel('Menge in g')).toHaveValue('150')
   await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
+  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
   expect(mock.foodLookup.calls).toEqual([{ barcode: '4002671157751', query: undefined }])
   expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({
@@ -197,6 +200,8 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   await page.getByRole('button', { name: 'Neues Gericht' }).click()
   await page.getByLabel('Name', { exact: true }).fill('Quark-Porridge')
   await page.getByLabel('Portionen').fill('2')
+  // „Passt zu“: vorgeschlagen ist die Mahlzeit, für die man gerade einträgt
+  await expect(page.getByRole('button', { name: 'Frühstück', exact: true })).toHaveAttribute('aria-pressed', 'true')
 
   for (const [name, amount] of [['Haferflocken', '80'], ['Magerquark', '250']] as const) {
     await page.getByRole('button', { name: 'Zutat hinzufügen' }).click()
@@ -220,7 +225,7 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   await expect(mealCard(page, 'Frühstück').getByText('Quark-Porridge')).toBeVisible()
 
   const dish = mock.table('food_items').find(r => r.name === 'Quark-Porridge')!
-  expect(dish).toMatchObject({ portions: 2, serving_amount: 140, source: 'custom' })
+  expect(dish).toMatchObject({ portions: 2, serving_amount: 140, source: 'custom', meal: 'breakfast' })
   expect((dish.ingredients as { name: string; amount: number }[]).map(i => [i.name, i.amount])).toEqual([['Haferflocken', 80], ['Magerquark', 200]])
   const log = mock.table('food_logs')[0]
   expect(log).toMatchObject({ food_item_id: dish.id, amount: 70 })
@@ -451,4 +456,37 @@ test('Kalorien-Kugel: Zahl, Rest und Makros; Legende holt den Mond nach vorn; Ü
   await expect(summary.getByRole('status')).toContainText('Eiweiß 142 / 110 g · +32')
   await protein.click()
   await expect(summary.getByRole('status')).toBeEmpty()
+})
+
+test('Mini-Kugel: weggescrollt schwebt sie oben ein und führt zurück; Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  const mini = page.getByRole('button', { name: 'Zur Tagesübersicht: 126 von 2000 kcal gegessen' })
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  await expect(mini).toHaveCount(0) // versteckt: aria-hidden, nicht im Barrierebaum
+
+  await mealCard(page, 'Snacks').scrollIntoViewIfNeeded()
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await expect(mini).toBeVisible()
+  await mini.click()
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeInViewport()
+  await expect(mini).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Ziele', exact: true }).click()
+  await page.getByLabel('Töne der Kalorien-Kugel').check()
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('tyd.orbSounds'))).toBe('on')
+})
+
+test('Portions-Blatt: Kugel zeigt den Tag mit dieser Portion als Vorschau, die Menge ändert sie mit', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Skyr Natur/ }).first().click()
+  const preview = page.getByRole('dialog').getByRole('img', { name: /^Mit dieser Portion:/ })
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 252 von 2000 kcal')
+  await page.getByLabel('Menge in g').fill('100')
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 189 von 2000 kcal')
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
 })

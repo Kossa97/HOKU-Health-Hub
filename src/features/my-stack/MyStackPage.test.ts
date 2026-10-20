@@ -278,7 +278,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('<AddStageTile')
     expect(text).toContain('active={addTileActive}')
     // Steht die Kachel in der Mitte, ist keine Substanz zugleich aktiv.
-    expect(text).toContain('const isActive = !addTileActive && p.id === activePeptide.id')
+    expect(text).toContain('isActive={!addTileActive && p.id === activePeptide.id}')
   })
 
   test('shows the fill percentage directly under the active vial in My Stack', () => {
@@ -376,7 +376,10 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('pushVialSlosh')
     expect(text).toContain('vialLastScrollLeftRef')
     expect(text).toContain("const vialSnapClassName = isVialCarouselDragging ? 'snap-none' : 'snap-x snap-mandatory'")
-    expect(text).toContain("const vialItemSnapClassName = isVialCarouselDragging ? '' : 'snap-center snap-always'")
+    // Waehrend des Ziehens kein Einrasten am Platz — per CSS am Streifen,
+    // damit Druck und Loslassen nicht alle Objekte neu rendern.
+    expect(text).toContain('data-dragging={isVialCarouselDragging || undefined}')
+    expect(text).toContain('snap-center snap-always transition-all duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none')
     expect(text).toContain('onPointerDown={handleVialCarouselPointerDown}')
     expect(text).toContain('onPointerMove={handleVialCarouselPointerMove}')
     expect(text).toContain('onPointerUp={handleVialCarouselPointerUp}')
@@ -443,7 +446,8 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('vialStageLightHandlesRef')
     expect(text).toContain('setStageLight')
-    expect(text).toContain('stageLightRef={handle =>')
+    expect(text).toContain('stageLightRef={stageLightRef}')
+    expect(text).toContain('const stageLightRef = useCallback((handle: StageLightHandle | null) =>')
     // the old per-scroll-frame state update must stay gone — it re-rendered
     // the whole page on every swipe frame
     expect(text).not.toContain('vialFocusByIndex')

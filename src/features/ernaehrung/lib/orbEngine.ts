@@ -11,11 +11,12 @@
  * - Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus;
  * - „Bewegung reduzieren": nichts dreht, nichts fliegt, neue Plätze leuchten nur auf.
  */
-import { type MacroKey, type OrbLayout, dotScale, fillChange, spherePoints } from './orb'
+import { type Fill, type MacroKey, type OrbLayout, dotScale, fill, fillChange, spherePoints } from './orb'
 import {
   type ColorIndex, DotRenderer, type Flash, type Mat3, type Quat,
   drawSphere, easeInOut, qAxis, qMat, qMul, qNorm, sprite,
 } from './orbDraw'
+import { hapticGoal, hapticSelect, hapticTick, soundArrive, soundFall, soundGoal } from './orbFeedback'
 
 /** Radius der großen Kugel in CSS-Pixeln. */
 export const ORB_RADIUS = 70
@@ -27,6 +28,11 @@ const TRAVEL = 560
 const SPREAD = 420
 
 const MOON_COLOR: Record<MacroKey, ColorIndex> = { protein: 2, carbs: 3, fat: 4 }
+/** Punkte der Mini-Kugel oben (wenn die große außer Sicht ist). */
+const MINI_N = 300
+/** Höchstens so viele Ticks (Haptik/Ton) je Eintrag bzw. beim Entfernen. */
+const TICKS_IN = 10
+const TICKS_OUT = 4
 
 type Kind = 'core' | 'halo' | 'moonCore' | 'moonHalo'
 
@@ -48,6 +54,9 @@ interface Particle {
   out: boolean
   dx: number
   fall: number
+  /** Haptik/Ton, wenn der Punkt ankommt (bzw. unten herausfällt): Füllstand 0–1 für die Tonhöhe. */
+  tick?: { level: number; last: boolean; goal: boolean }
+  ticked?: boolean
 }
 
 /** Wo ein Mond gerade steht (Canvas-Pixel) — für Antippen, Etikett und Flüge. */
@@ -104,9 +113,20 @@ export class OrbEngine {
   private geo: { M: Mat3; cx: number; cy: number; R: number } | null = null
   private moonGeo: Partial<Record<MacroKey, MoonGeo>> = {}
   private particles: Particle[] = []
+  private mini: { canvas: HTMLCanvasElement; renderer: DotRenderer } | null = null
+  private miniFlash: Flash | null = null
+  private miniDrawn = 0
+  /** Radius der großen Kugel in CSS-Pixeln (im Portions-Blatt kleiner). */
+  private readonly radius: number
+  /** Portions-Blatt: so sähe der Tag mit dieser Portion aus — die neuen Punkte pulsieren. */
+  private preview: OrbLayout | null = null
+  /** Geglättete Rechenzeit je Bild (ms) und wann zuletzt gezeichnet wurde — für die Bremse in der Schleife. */
+  private cost = 0
+  private workedAt = 0
 
-  constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void }) {
+  constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void; radius?: number }) {
     this.canvas = canvas
+    this.radius = opts.radius ?? ORB_RADIUS
     this.renderer = new DotRenderer(canvas)
     this.reduce = opts.reduce
     this.onFocus = opts.onFocus
@@ -120,6 +140,7 @@ export class OrbEngine {
     if (rgb === this.palette) return
     this.palette = rgb
     this.renderer.setPalette(rgb)
+    this.mini?.renderer.setPalette(rgb)
     this.fxSprites = rgb.map(sprite)
     this.needsDraw = true
   }
@@ -135,6 +156,26 @@ export class OrbEngine {
     this.layout = layout
     this.needsDraw = true
     if (this.focusKey && !layout.moons.some(m => m.key === this.focusKey)) this.clearFocus()
+  }
+
+  /** Vorschau zeigen (`null` = keine). Gleiche Ziele wie das aktuelle Layout vorausgesetzt. */
+  setPreview(after: OrbLayout | null) {
+    this.preview = after
+    this.needsDraw = true
+  }
+
+  /**
+   * „Hinzufügen" im Portions-Blatt: die Vorschau rastet ein — Aufleuchten,
+   * Haptik und Ton an Ort und Stelle. Löst auf, wenn man es gesehen hat.
+   */
+  settle(): Promise<void> {
+    const before = this.layout
+    const after = this.preview
+    if (!before || !after) return Promise.resolve()
+    this.preview = null
+    this.launch({ x: 0, y: 0 }, before, after)
+    this.setLayout(after)
+    return new Promise(resolve => setTimeout(resolve, this.reduce ? 150 : 420))
   }
 
   setReduce(reduce: boolean) {
@@ -167,7 +208,32 @@ export class OrbEngine {
     if (fx.height !== h) fx.height = h
   }
 
-  setVisible(v: boolean) { this.visible = v }
+  setVisible(v: boolean) {
+    this.visible = v
+    this.needsDraw = true
+  }
+
+  /**
+   * Kleine Kugel oben (Canvas 2D): steht für die große, solange diese außer
+   * Sicht ist. Punkte fliegen dann dorthin.
+   */
+  setMini(canvas: HTMLCanvasElement | null) {
+    this.mini?.renderer.destroy()
+    this.mini = null
+    if (!canvas) return
+    const renderer = new DotRenderer(canvas, { webgl: false })
+    if (!renderer.mode) return
+    if (this.palette) renderer.setPalette(this.palette)
+    this.mini = { canvas, renderer }
+  }
+
+  /** Die Mini-Kugel ist dran: große außer Sicht. */
+  private get miniActive() { return !this.visible && !!this.mini }
+
+  /** Füllstand der großen Kugel, auf die Plätze der Mini-Kugel umgerechnet. */
+  private miniFill(f: Fill, n: number): Fill {
+    return fill(MINI_N, (f.filled + f.extra) / n)
+  }
 
   start() {
     if (!this.raf) this.raf = requestAnimationFrame(this.loop)
@@ -178,11 +244,14 @@ export class OrbEngine {
     this.raf = 0
     this.clearFx()
     this.renderer.destroy()
+    this.mini?.renderer.destroy()
+    this.mini = null
   }
 
   cancelFlights() {
     this.particles = []
     this.flash = null
+    this.miniFlash = null
     this.moonFlash = {}
     this.clearFx()
   }
@@ -195,6 +264,7 @@ export class OrbEngine {
     this.focusUntil = performance.now() + 2800
     if (this.reduce) for (const k of Object.keys(this.focusA) as MacroKey[]) this.focusA[k] = k === key ? 1 : 0
     this.needsDraw = true
+    hapticSelect()
     this.onFocus({ key, ...this.labelAt(key) })
   }
 
@@ -288,9 +358,16 @@ export class OrbEngine {
     })
     const flashOf = (ch: { from: number; to: number }, t0: number, hide: boolean): Flash | null =>
       ch.to > ch.from ? { from: ch.from, to: ch.to, t0, spread: SPREAD, hide } : null
+    const n = after.main.n
+    const share = (f: Fill) => (f.filled + f.extra) / n
+    const goal = before.main.fill.filled < n && after.main.fill.filled >= n
+    const miniCh = main?.grew ? fillChange(this.miniFill(before.main.fill, n), this.miniFill(after.main.fill, n)) : null
     if (this.reduce || !this.fxCtx) {
       if (main?.grew) this.flash = flashOf(main, now, false)
+      if (miniCh) this.miniFlash = flashOf(miniCh, now, false)
       for (const { key, ch } of moonCh) if (ch?.grew) this.moonFlash[key] = flashOf(ch, now, false) ?? undefined
+      // Ohne Flug: einmal Rückmeldung, sofort.
+      if (main?.grew || moonCh.some(m => m.ch?.grew)) this.feedbackIn(share(after.main.fill), true, goal)
       return
     }
     const list: Omit<Particle, 'sx' | 'sy' | 'delay' | 'dur' | 't0' | 'ox' | 'oy' | 'lift' | 'side' | 'out' | 'dx' | 'fall'>[] = []
@@ -316,24 +393,27 @@ export class OrbEngine {
       const hc = Math.min(12, ch.extra)
       for (let h = 0; h < hc; h++) list.push({ kind: 'moonHalo', moon: key, f: (cnt ? 0.5 : 0) + (cnt ? 0.5 : 1) * (hc > 1 ? h / (hc - 1) : 0), ci: MOON_COLOR[key] })
     }
-    for (const p of list) {
-      this.particles.push({
-        ...p,
-        sx: from.x + (Math.random() - 0.5) * 60,
-        sy: from.y + (Math.random() - 0.5) * 12,
-        delay: p.f * SPREAD + Math.random() * 40,
-        dur: TRAVEL + Math.random() * 120,
-        t0: now,
-        ox: (Math.random() - 0.5) * 0.9,
-        oy: (Math.random() - 0.5) * 0.9,
-        lift: 90 + Math.random() * 70,
-        side: (Math.random() - 0.5) * 120,
-        out: false, dx: 0, fall: 0,
-      })
-    }
+    const flying = list.map((p): Particle => ({
+      ...p,
+      sx: from.x + (Math.random() - 0.5) * 60,
+      sy: from.y + (Math.random() - 0.5) * 12,
+      delay: p.f * SPREAD + Math.random() * 40,
+      dur: TRAVEL + Math.random() * 120,
+      t0: now,
+      ox: (Math.random() - 0.5) * 0.9,
+      oy: (Math.random() - 0.5) * 0.9,
+      lift: 90 + Math.random() * 70,
+      side: (Math.random() - 0.5) * 120,
+      out: false, dx: 0, fall: 0,
+    }))
+    // Ticks in der echten Ankunftsreihenfolge; Tonhöhe steigt mit dem Füllstand, der letzte ist der kräftige.
+    const b0 = share(before.main.fill), b1 = share(after.main.fill)
+    assignTicks(flying, p => p.delay + p.dur, TICKS_IN, pr => ({ level: b0 + (b1 - b0) * pr, last: pr === 1, goal }))
+    this.particles.push(...flying)
     // Die neuen Plätze leuchten auf, wenn ihre Punkte ankommen — bis dahin bleiben sie grau.
     const t0 = now + TRAVEL + 60
     if (main?.grew) this.flash = flashOf(main, t0, true)
+    if (miniCh) this.miniFlash = flashOf(miniCh, t0, true)
     for (const { key, ch } of moonCh) if (ch?.grew) this.moonFlash[key] = flashOf(ch, t0, true) ?? undefined
   }
 
@@ -346,7 +426,13 @@ export class OrbEngine {
       return { key: m.key, ch: b ? fillChange(b.fill, m.fill) : null }
     })
     for (const { key, ch } of moonCh) if (ch && !ch.grew) delete this.moonFlash[key]
-    if (this.reduce || !this.fxCtx || !this.geo) return
+    if (main && !main.grew) this.miniFlash = null
+    const level = (after.main.fill.filled + after.main.fill.extra) / after.main.n
+    const fromMini = this.miniActive
+    if (this.reduce || !this.fxCtx || (!this.geo && !fromMini)) {
+      if (main && !main.grew) this.feedbackOut(level)
+      return
+    }
     const now = performance.now()
     const rect = this.canvas.getBoundingClientRect()
     const mainColor: ColorIndex = after.main.key === 'kcal' ? 1 : 2
@@ -372,22 +458,28 @@ export class OrbEngine {
         list.push({ kind: 'moonCore', moon: key, rank: Math.max(ch.from, Math.round(ch.to - 1 - f * (span - 1))), f: (hc ? 0.4 : 0) + (hc ? 0.6 : 1) * f, ci: MOON_COLOR[key] })
       }
     }
+    const falling: Particle[] = []
     for (const p of list) {
       const pt: Particle = {
         ...p, sx: 0, sy: 0, t0: now, delay: p.f * 260 + Math.random() * 30, dur: 560 + Math.random() * 100,
         ox: (Math.random() - 0.5) * 0.9, oy: (Math.random() - 0.5) * 0.9, lift: 0, side: 0, out: true,
-        dx: (Math.random() - 0.5) * 16, fall: (p.moon ? 40 : 70) + Math.random() * 40,
+        dx: (Math.random() - 0.5) * 16, fall: (p.moon || fromMini ? 40 : 70) + Math.random() * 40,
       }
       const start = this.target(pt, rect)
       if (!start) continue
       pt.sx = start.x
       pt.sy = start.y
-      this.particles.push(pt)
+      falling.push(pt)
     }
+    // Ticks, wenn die Punkte den Pol verlassen (ease-in-out: etwa nach 52 % der Dauer); Tonhöhe sinkt.
+    assignTicks(falling, p => p.delay + p.dur * 0.52, TICKS_OUT, pr => ({ level: level + (1 - pr) * 0.08, last: pr === 1, goal: false }))
+    this.particles.push(...falling)
   }
 
   /** Zielpunkt eines Partikels in Bildschirm-Pixeln, in jedem Bild neu — die Kugel dreht sich ja. */
   private target(pt: Particle, rect: DOMRect): { x: number; y: number; size: number } | null {
+    // Ziel je Bild neu: scrollt man während des Flugs zurück, landen die Punkte in der großen Kugel.
+    if (this.miniActive) return this.miniTarget(pt)
     const g = this.geo
     if (!g) return null
     const k = this.dpr
@@ -413,8 +505,29 @@ export class OrbEngine {
     return at(mg.cx + (M[0] * x + M[1] * y + M[2] * z) * mg.R, mg.cy - (M[3] * x + M[4] * y + M[5] * z) * mg.R, 2.2)
   }
 
+  /** Ziel in der Mini-Kugel: Kalorienpunkte auf ihre Plätze, Mond- und Hüllenpunkte in die Mitte. */
+  private miniTarget(pt: Particle): { x: number; y: number; size: number } | null {
+    const m = this.mini
+    if (!m || !this.layout) return null
+    const r = m.canvas.getBoundingClientRect()
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width * 0.36
+    if (pt.kind === 'core') {
+      const p = spherePoints(MINI_N)
+      const rank = Math.min(MINI_N - 1, Math.round(((pt.rank ?? 0) * MINI_N) / this.layout.main.n))
+      const i = MINI_N - 1 - rank, M = qMat(this.q)
+      const x = p[i * 4], y = p[i * 4 + 1], z = p[i * 4 + 2]
+      return { x: cx + (M[0] * x + M[1] * y + M[2] * z) * R, y: cy - (M[3] * x + M[4] * y + M[5] * z) * R, size: 2 }
+    }
+    const s = pt.kind === 'halo' || pt.kind === 'moonHalo' ? 1.25 : 0.7
+    return { x: cx + pt.ox * R * s, y: cy + pt.oy * R * s, size: 1.8 }
+  }
+
   /** Unterster Punkt der Kugel bzw. des Mondes, aus dem entfernte Punkte fallen. */
   private pole(pt: Particle, rect: DOMRect): { x: number; y: number } | null {
+    if (this.miniActive && this.mini) {
+      const r = this.mini.canvas.getBoundingClientRect()
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 + r.width * 0.36 }
+    }
     const k = this.dpr
     if (pt.moon) {
       const mg = this.moonGeo[pt.moon]
@@ -422,6 +535,22 @@ export class OrbEngine {
     }
     const g = this.geo
     return g ? { x: rect.left + g.cx / k, y: rect.top + (g.cy + g.R) / k } : null
+  }
+
+  private feedbackIn(level: number, last: boolean, goal: boolean) {
+    if (last && goal) {
+      hapticGoal()
+      soundGoal()
+      return
+    }
+    hapticTick(last)
+    soundArrive(level)
+  }
+
+  /** Herausfallen: immer leicht und leiser als beim Eintragen. */
+  private feedbackOut(level: number) {
+    hapticTick(false)
+    soundFall(level)
   }
 
   private clearFx() {
@@ -450,6 +579,11 @@ export class OrbEngine {
     }
     for (const pt of this.particles) {
       const t = (now - pt.t0 - pt.delay) / pt.dur
+      // Ankunft (Eintragen): Rückmeldung genau im Bild, in dem der Punkt seinen Platz erreicht.
+      if (t >= 1 && pt.tick && !pt.ticked && !pt.out) {
+        pt.ticked = true
+        this.feedbackIn(pt.tick.level, pt.tick.last, pt.tick.goal)
+      }
       if (t >= 1) continue
       keep.push(pt)
       if (t < 0) continue
@@ -469,6 +603,11 @@ export class OrbEngine {
             a = 0.9
             sz = 2.6
           } else {
+            // Der Punkt verlässt die Kugel: leiser Tick.
+            if (tr === 0 && pt.tick && !pt.ticked) {
+              pt.ticked = true
+              this.feedbackOut(pt.tick.level)
+            }
             const v = (e - SPLIT) / (1 - SPLIT)
             x = P.x + pt.dx * v
             y = P.y + pt.fall * v
@@ -500,14 +639,19 @@ export class OrbEngine {
 
   private readonly loop = (ts: number) => {
     this.raf = requestAnimationFrame(this.loop)
-    if (!this.visible || document.hidden || !this.layout || !this.renderer.mode || this.renderer.lost) {
+    const mini = this.miniActive
+    if ((!this.visible && !mini && !this.particles.length) || document.hidden || !this.layout || !this.renderer.mode || this.renderer.lost) {
       this.last = 0
       return
     }
-    // Immer volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht steht die Schleife.
+    // Volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht (ohne Mini-Kugel) steht die Schleife.
+    // Ist ein Bild teuer (schwaches Gerät, WebGL ohne Grafikkarte), höchstens ein Drittel der Zeit
+    // zeichnen: sonst blockiert die Kugel Tippen, Scrollen und den Rest der Seite.
+    const now = performance.now()
+    if (this.cost > 6 && now - this.workedAt < this.cost * 3) return
+    this.workedAt = now
     const dt = this.last ? Math.min(0.1, (ts - this.last) / 1000) : 0
     this.last = ts
-    const now = performance.now()
 
     if (this.focusKey && now > this.focusUntil) this.clearFocus()
     if (!this.reduce) {
@@ -535,9 +679,16 @@ export class OrbEngine {
     }
     const flashing = (f: Flash | null | undefined) => !!f && now - f.t0 < f.spread + 750
     const easing = (Object.keys(this.focusA) as MacroKey[]).some(k => Math.abs((this.focusKey === k ? 1 : 0) - this.focusA[k]) > 0.003)
-    if (!this.reduce || this.needsDraw || this.particles.length || easing || flashing(this.flash)
-      || Object.values(this.moonFlash).some(flashing)) {
+    if (this.visible && (!this.reduce || this.needsDraw || this.particles.length || easing || flashing(this.flash)
+      || Object.values(this.moonFlash).some(flashing))) {
       this.draw(now)
+      this.needsDraw = false
+    }
+    // Mini-Kugel: ruhig mit 30 Bildern (Akku), bei Flügen und Aufleuchten volle Rate; reduziert nur bei Änderung.
+    const miniBusy = this.needsDraw || this.particles.length > 0 || flashing(this.miniFlash)
+    if (mini && (miniBusy || (!this.reduce && now - this.miniDrawn > 32))) {
+      this.drawMini(now)
+      this.miniDrawn = now
       this.needsDraw = false
     }
     if (this.focusKey && this.label) {
@@ -546,6 +697,22 @@ export class OrbEngine {
       this.label.style.top = `${p.y}px`
     }
     this.drawParticles(now)
+    this.cost = this.cost * 0.85 + (performance.now() - now) * 0.15
+  }
+
+  private drawMini(now: number) {
+    const m = this.mini!
+    const layout = this.layout!
+    const c = m.canvas
+    const px = Math.round(c.clientWidth * this.dpr)
+    if (c.width !== px) { c.width = px; c.height = px }
+    const R = px * 0.36
+    m.renderer.begin()
+    drawSphere(m.renderer, MINI_N, this.miniFill(layout.main.fill, layout.main.n), {
+      M: qMat(this.q), HM: qMat(qMul(this.q, qAxis(0, 1, 0, this.haloA))), cx: px / 2, cy: px / 2, R,
+      px: 1.5 * this.dpr, color: layout.main.key === 'kcal' ? 1 : 2, now, live: !this.reduce, flash: this.miniFlash,
+    })
+    m.renderer.end()
   }
 
   private draw(now: number) {
@@ -555,14 +722,16 @@ export class OrbEngine {
     const live = !this.reduce
     const cx = (this.cssW / 2) * k
     const cy = this.centerY * k
-    const R = ORB_RADIUS * k
+    const R = this.radius * k
     const dens = dotScale(layout.main.n)
     const M = qMat(this.q)
     r.begin()
     this.drawMoons(0, cx, cy, R, now, dens)
-    drawSphere(r, layout.main.n, layout.main.fill, {
+    const pv = this.preview
+    drawSphere(r, layout.main.n, pv ? pv.main.fill : layout.main.fill, {
       M, HM: qMat(qMul(this.q, qAxis(0, 1, 0, this.haloA))), cx, cy, R,
       px: DOT_MAIN * k * dens, color: layout.main.key === 'kcal' ? 1 : 2, now, live, flash: this.flash,
+      preview: pv ? previewRange(layout.main.fill, pv.main.fill) : null,
     })
     this.geo = { M, cx, cy, R }
     this.drawMoons(1, cx, cy, R, now, dens)
@@ -596,7 +765,9 @@ export class OrbEngine {
       const behind = !front && vx * vx + vy * vy < 1.05
       const Mm = qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : now * 0.0005) + o.phase)))
       const mcx = cx + vx * R, mcy = cy - vy * R, mR = R * m.r * scale
-      drawSphere(r, m.n, m.fill, {
+      const pm = this.preview?.moons.find(x => x.key === m.key)
+      drawSphere(r, m.n, pm ? pm.fill : m.fill, {
+        preview: pm ? previewRange(m.fill, pm.fill) : null,
         M: Mm, HM: qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : -now * 0.0003) + o.phase))),
         cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * scale, color: MOON_COLOR[m.key],
         now, live: !this.reduce, alpha: behind ? 0.3 : 0.6 + 0.4 * d, flash: this.moonFlash[m.key] ?? null,
@@ -611,3 +782,32 @@ export class OrbEngine {
   }
 }
 
+/** Höchstens `count` Ticks gleichmäßig über die Punkte, in der Reihenfolge ihres Eintreffens (`when`). */
+function assignTicks(parts: Particle[], when: (p: Particle) => number, count: number, make: (progress: number) => NonNullable<Particle['tick']>) {
+  const order = [...parts].sort((a, b) => when(a) - when(b))
+  const ticks = Math.min(count, order.length)
+  for (let j = 0; j < ticks; j++) {
+    const pr = ticks > 1 ? j / (ticks - 1) : 1
+    order[Math.round(pr * (order.length - 1))].tick = make(pr)
+  }
+}
+
+/** Was die Vorschau dazubringt: Plätze `from`–`to` und Hüllenpunkte ab `extraFrom`. */
+function previewRange(now: Fill, then: Fill): { from: number; to: number; extraFrom: number } {
+  return { from: now.filled, to: Math.max(now.filled, then.filled), extraFrom: now.extra }
+}
+
+let settledAt = 0
+
+/** Das Portions-Blatt hat das Eintragen schon gezeigt — die Tagesübersicht fliegt dann nicht noch einmal. */
+export function markSettled() { settledAt = performance.now() }
+
+/** Speichern gescheitert: die Tagesübersicht soll beim nächsten Mal wieder fliegen. */
+export function clearSettled() { settledAt = 0 }
+
+/** Einmal abholen: kam die Änderung gerade aus dem Portions-Blatt? */
+export function takeSettled(): boolean {
+  const hit = settledAt > 0 && performance.now() - settledAt < 5000
+  settledAt = 0
+  return hit
+}

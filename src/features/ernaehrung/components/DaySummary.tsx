@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { type MacroKey, type OrbLayout, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
-import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
+import { type OrbFocus, OrbEngine, takeSettled } from '../lib/orbEngine'
+import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import type { Goals, Nutrients } from '../lib/nutrition'
 import { CARD, MACRO_COLORS, MUTED } from '../styles'
 
@@ -43,6 +44,9 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
   const engineRef = useRef<OrbEngine | null>(null)
   const [fx, setFx] = useState<HTMLCanvasElement | null>(null)
   const [focus, setFocus] = useState<OrbFocus | null>(null)
+  /** Große Kugel weggescrollt: oben schwebt die Mini-Kugel ein, die Punkte fliegen dorthin. */
+  const [away, setAway] = useState(false)
+  const [miniCv, setMiniCv] = useState<HTMLCanvasElement | null>(null)
 
   const { kcal, protein, carbs, fat } = total
   const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, goals), [kcal, protein, carbs, fat, goals])
@@ -65,14 +69,21 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
     window.addEventListener('resize', size)
     // Außer Sicht (weggescrollt) steht die Schleife.
     const io = typeof IntersectionObserver === 'function'
-      ? new IntersectionObserver(([e]) => engine.setVisible(e.isIntersecting))
+      ? new IntersectionObserver(([e]) => { engine.setVisible(e.isIntersecting); setAway(!e.isIntersecting) })
       : null
     io?.observe(canvas)
     // Akzentfarbe oder Aussehen gewechselt.
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
     engine.start()
+    // Töne: Browser spielen erst nach einer Geste — beim ersten Tippen freischalten
+    // (pointerdown zählt bei Touch nicht als Geste, touchend und click schon).
+    const unlock = () => { if (soundsWanted()) unlockAudio() }
+    document.addEventListener('touchend', unlock, { capture: true, passive: true })
+    document.addEventListener('click', unlock, { capture: true, passive: true })
     return () => {
+      document.removeEventListener('touchend', unlock, { capture: true })
+      document.removeEventListener('click', unlock, { capture: true })
       ro.disconnect()
       io?.disconnect()
       mo.disconnect()
@@ -86,6 +97,7 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
 
   useEffect(() => { engineRef.current?.setReduce(reduce) }, [reduce])
   useEffect(() => { engineRef.current?.setFx(fx) }, [fx])
+  useEffect(() => { engineRef.current?.setMini(miniCv) }, [miniCv])
 
   // Neue Werte: am selben Tag mit denselben Zielen fliegen die Punkte, sonst springt die Kugel still um.
   useEffect(() => {
@@ -94,7 +106,8 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
     const p = prev.current
     if (p && p.date === date && p.goals === goalsKey) {
       engine.release(p.layout, layout)
-      engine.launch({ x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
+      // Kam der Eintrag aus dem Portions-Blatt, hat die Kugel dort schon eingerastet: kein zweiter Flug.
+      if (!takeSettled()) engine.launch({ x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
     } else if (p) {
       engine.cancelFlights()
     }
@@ -164,7 +177,23 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
         <p className={`pointer-events-none relative z-[1] text-[12px] ${MUTED}`}>{t('nutr_orb_unit', { kcal: unitText })}</p>
       )}
       {typeof document !== 'undefined' && createPortal(
-        <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
+        <>
+          {/* Mini-Kugel: wächst aus der Ecke oben rechts (200 ms, ease-out), nur solange die große außer Sicht ist. */}
+          {/* Eigener fester Rahmen: .lg-glass setzt position: relative. */}
+          <div className={`fixed right-4 z-[55] origin-top-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-opacity ${
+            away ? 'opacity-100' : 'pointer-events-none scale-[0.92] opacity-0 motion-reduce:scale-100'}`}
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}>
+            <button type="button" aria-hidden={!away} tabIndex={away ? 0 : -1}
+              aria-label={`${t('nutr_orb_mini')}: ${aria}`}
+              onClick={() => boxRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })}
+              className="lg-glass lg-press flex h-12 items-center gap-1.5 rounded-full pl-1 pr-3.5">
+              <canvas ref={setMiniCv} aria-hidden="true" className="block h-10 w-10" />
+              <span className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{bigValue}</span>
+              <span className={`text-[13px] ${MUTED}`}>{goals.hideKcal ? 'g' : 'kcal'}</span>
+            </button>
+          </div>
+          <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />
+        </>,
         document.body,
       )}
     </section>
