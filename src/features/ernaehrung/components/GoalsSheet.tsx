@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { alterAm } from '../../blutwerte/lib/referenzbereiche'
-import { type Activity, GOAL_LIMITS, type GoalKind, type Goals, parseAmount, suggestGoals } from '../lib/nutrition'
+import { type Activity, DEFAULT_GOALS, GOAL_LIMITS, type GoalKind, type Goals, parseAmount, suggestGoals } from '../lib/nutrition'
+import { orbLayout } from '../lib/orb'
 import { type BodyData, loadBodyData } from '../services/nutritionStore'
 import { setSoundsWanted, soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
@@ -24,7 +25,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
   onSave: (g: Goals) => Promise<boolean> | void
   onClose: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [v, setV] = useState<Record<Key, string>>(() => Object.fromEntries(KEYS.map(k => [k, String(current[k])])) as Record<Key, string>)
   const [hideKcal, setHideKcal] = useState(current.hideKcal)
   // Töne gelten für dieses Gerät (nicht in der Datenbank), gespeichert mit „Speichern“.
@@ -117,6 +118,11 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
 
       <SwitchRow label={t('nutr_hide_kcal')} hint={t('nutr_hide_kcal_hint')} checked={hideKcal} onChange={setHideKcal} />
       <SwitchRow label={t('nutr_orb_sounds')} hint={t('nutr_orb_sounds_hint')} checked={sounds} onChange={setSounds} />
+      {/* Maßstab der Kugel: stand früher unter ihr, jetzt hier (oben ist nur Zahl und Makros). */}
+      {!hideKcal && <p className={`mt-3 px-1 text-[12px] ${MUTED}`}>
+        {t('nutr_orb_unit', { kcal: (valid && nums.kcal > 0 ? orbLayout({ kcal: 0, protein: 0, carbs: 0, fat: 0 }, { ...DEFAULT_GOALS, kcal: nums.kcal }).main.unit : 1)
+          .toLocaleString(i18n.language, { maximumFractionDigits: 1 }) })}
+      </p>}
 
       <div className="mt-5 flex gap-2">
         <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" disabled={busy} onClick={onClose}>{t('cancel')}</button>

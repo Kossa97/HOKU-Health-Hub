@@ -20,6 +20,29 @@ function logEntry(mock: MockSupabase, fields: Record<string, unknown>) {
 
 const mealCard = (page: import('@playwright/test').Page, name: string) => page.getByRole('region', { name })
 
+// Die Kugel steht fest oben und dreht sich ständig. Mit der Test-Uhr (page.clock) läuft jedes
+// Animationsbild durch, bevor ein Timer feuert — in WebKit ohne Grafikkarte wurde aus der Sperre
+// nach „Hinzufügen“ (1,2 s) so über 20 s. Hier zählt das Verhalten: „Bewegung reduzieren“.
+// Die Tests zu Drehen und Mond schalten die Bewegung wieder ein (ohne Flug).
+test.use({ contextOptions: { reducedMotion: 'reduce' } })
+/** Für die Kugel-Tests: volle Bewegung (Drehen, Flüge). */
+const withMotion = (page: import('@playwright/test').Page) => page.emulateMedia({ reducedMotion: 'no-preference' })
+
+/**
+ * Bis die Sperre nach „Hinzufügen“ endet: 1,2 s Uhrzeit — aber mit der Test-Uhr (page.clock) läuft
+ * vorher jedes Bild des Aufleuchtens durch, und WebKit im CI zeichnet ohne Grafikkarte.
+ */
+const AFTER_FLIGHT = 20_000
+
+/** Eintragen: Die Punkte fliegen in die Kugel, das Formular bleibt offen — wieder frei, dann schließen. */
+async function addAndClose(page: import('@playwright/test').Page) {
+  const dialog = page.getByRole('dialog')
+  // Genau dieser Name: sonst träfe der Klick auf langsamen Geräten noch „Zutat hinzufügen“ im Gericht-Editor.
+  await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+}
+
 test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetragen mit Schnappschuss der Werte', async ({ page, mock }) => {
   mock.foodLookup.products[SKYR.barcode] = SKYR
   await page.goto('/ernaehrung')
@@ -34,7 +57,7 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
   await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
   // Portion des Produkts ist vorgewählt
   await expect(page.getByLabel('Menge in g')).toHaveValue('150')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
   await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
@@ -47,7 +70,8 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
 
 test('Tippfehler im Barcode wird abgefangen, ohne den Server zu fragen', async ({ page, mock }) => {
   await page.goto('/ernaehrung')
-  await page.getByRole('button', { name: 'Barcode scannen' }).first().click()
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Barcode scannen' }).click()
   await page.getByLabel('Ziffern unter dem Barcode').fill('4002671157752')
   await page.getByRole('button', { name: 'Suchen', exact: true }).click()
   await expect(page.getByText('Diese Ziffern sind kein gültiger Barcode')).toBeVisible()
@@ -71,7 +95,7 @@ test('Unbekannter Barcode → selbst anlegen → beim nächsten Scan kommt die e
 
   await expect(page.getByLabel('Menge in g')).toBeVisible()
   await page.getByLabel('Menge in g').fill('60')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
   await expect(mealCard(page, 'Snacks').getByText('Proteinriegel Haselnuss')).toBeVisible()
 
   expect(mock.table('food_items')[0]).toMatchObject({ barcode: '4006381333931', kcal_100: 380, source: 'custom' })
@@ -94,7 +118,7 @@ test('Häufig: zuletzt gegessene Menge ist vorgeschlagen — zwei Taps', async (
   await expect(page.getByRole('tab', { name: 'Häufig' })).toHaveAttribute('aria-selected', 'true')
   await page.getByRole('button', { name: /Skyr Natur/ }).click()
   await expect(page.getByLabel('Menge in g')).toHaveValue('200')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
   const today = mock.table('food_logs').filter(r => r.log_date === '2026-09-28')
@@ -221,7 +245,7 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   await expect(page.getByRole('heading', { name: 'Quark-Porridge' })).toBeVisible()
   await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('1')
   await page.getByRole('button', { name: '½', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
   await expect(mealCard(page, 'Frühstück').getByText('Quark-Porridge')).toBeVisible()
 
   const dish = mock.table('food_items').find(r => r.name === 'Quark-Porridge')!
@@ -367,7 +391,7 @@ test('Essen per Foto: ohne Foto beschreiben → eigenes Gericht kommt zuerst', a
 
   await page.getByRole('button', { name: /Dein Gericht „Kürbissuppe \(meine\)" eintragen/ }).click()
   await expect(page.getByLabel(/Portionen \(1 Portion = 350 g\)/)).toHaveValue('1')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
   await expect(mealCard(page, 'Abendessen').getByText('Kürbissuppe (meine)')).toBeVisible()
   expect(mock.table('food_logs')[0]).toMatchObject({ food_item_id: dish.id, amount: 350 })
 })
@@ -395,7 +419,7 @@ test('Essen per Foto: zugeordnete Zutaten als Gericht speichern', async ({ page,
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Kürbissuppe')
   await page.getByLabel('Portionen').fill('4')
   await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await addAndClose(page)
   await expect(mealCard(page, 'Abendessen').getByText('Kürbissuppe')).toBeVisible()
 
   const saved = mock.table('food_items').find(r => r.name === 'Kürbissuppe')!
@@ -432,25 +456,27 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
   await month.getByRole('button', { name: 'Nächster Monat: September' }).click()
   await month.getByRole('button', { name: 'Montag, 21. September 2026: 500 kcal, 40 g Eiweiß, 50 g Kohlenhydrate, 10 g Fett' }).click()
   await expect(month).toBeHidden()
-  await expect(page.getByRole('navigation', { name: 'Tag wählen' })).toContainText('Montag, 21. September')
+  // Der gewählte Tag steht oben in der Kugel-Zone (antippen öffnet den Monat).
+  await expect(page.getByRole('region', { name: 'Tagesübersicht' }).getByRole('button', { name: /^Montag, 21\. Sep/ })).toBeVisible()
 
   // Derselbe Tag im Kalender
   await page.getByRole('link', { name: 'Kalender', exact: true }).click()
   await expect(page.getByText('Montag, 21. September').first()).toBeVisible()
 })
 
-test('Kalorien-Kugel: Zahl, Rest und Makros; Legende holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
+test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
+  await withMotion(page)
   logEntry(mock, {})
   logEntry(mock, { name: 'Steak', kcal: 900, protein_g: 120, carbs_g: 0, fat_g: 60 })
   await page.goto('/ernaehrung')
 
   const summary = page.getByRole('region', { name: 'Tagesübersicht' })
   await expect(summary.getByRole('img', { name: '1026 von 2000 kcal gegessen' })).toBeVisible()
-  await expect(summary.getByText('974 kcal übrig')).toBeVisible()
-  await expect(summary.getByText('1 Punkt = 1 kcal · 1 g')).toBeVisible()
+  await expect(summary.getByText('/ 2000 kcal')).toBeVisible()
 
   const protein = summary.getByRole('button', { name: /^Eiweiß/ })
-  await expect(protein).toContainText('142 / 110 g · +32')
+  await expect(protein).toContainText('Eiweiß 142/110g')
+  await expect(protein).toHaveAccessibleName('Eiweiß 142 / 110 g · +32')
   await protein.click()
   await expect(protein).toHaveAttribute('aria-pressed', 'true')
   await expect(summary.getByRole('status')).toContainText('Eiweiß 142 / 110 g · +32')
@@ -458,19 +484,16 @@ test('Kalorien-Kugel: Zahl, Rest und Makros; Legende holt den Mond nach vorn; Ü
   await expect(summary.getByRole('status')).toBeEmpty()
 })
 
-test('Mini-Kugel: weggescrollt schwebt sie oben ein und führt zurück; Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+  await withMotion(page)
   logEntry(mock, {})
   await page.goto('/ernaehrung')
-  const mini = page.getByRole('button', { name: 'Zur Tagesübersicht: 126 von 2000 kcal gegessen' })
-  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
-  await expect(mini).toHaveCount(0) // versteckt: aria-hidden, nicht im Barrierebaum
-
+  const orb = page.getByRole('img', { name: '126 von 2000 kcal gegessen' })
+  await expect(orb).toBeVisible()
   await mealCard(page, 'Snacks').scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-  await expect(mini).toBeVisible()
-  await mini.click()
-  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeInViewport()
-  await expect(mini).toHaveCount(0)
+  await expect(orb).toBeInViewport()
+  await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '240px')
 
   await page.getByRole('button', { name: 'Ziele', exact: true }).click()
   await page.getByLabel('Töne der Kalorien-Kugel').check()
@@ -478,15 +501,29 @@ test('Mini-Kugel: weggescrollt schwebt sie oben ein und führt zurück; Töne sc
   await expect.poll(() => page.evaluate(() => localStorage.getItem('tyd.orbSounds'))).toBe('on')
 })
 
-test('Portions-Blatt: Kugel zeigt den Tag mit dieser Portion als Vorschau, die Menge ändert sie mit', async ({ page, mock }) => {
+test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nach dem Flug noch einmal oder schließen', async ({ page, mock }) => {
   logEntry(mock, {})
   await page.goto('/ernaehrung')
   await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
   await page.getByRole('dialog').getByRole('button', { name: /Skyr Natur/ }).first().click()
-  const preview = page.getByRole('dialog').getByRole('img', { name: /^Mit dieser Portion:/ })
-  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 252 von 2000 kcal')
+  const summary = page.getByRole('region', { name: 'Tagesübersicht' })
+  await expect(summary.getByText('252', { exact: true })).toBeVisible()
+  await expect(summary.getByText('+126')).toBeVisible()
   await page.getByLabel('Menge in g').fill('100')
-  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 189 von 2000 kcal')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(summary.getByText('189', { exact: true })).toBeVisible()
+  await expect(summary.getByText('+63')).toBeVisible()
+
+  // Hinzufügen: gesperrt, bis die Punkte angekommen sind; das Formular bleibt offen.
+  const dialog = page.getByRole('dialog')
+  // Den Zustand gleich nach dem Klick im Browser lesen: die Sperre dauert nur ~1,2 s, langsame Läufe verpassten sie sonst.
+  const during = await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).evaluate(async (b: HTMLButtonElement) => {
+    b.click()
+    await new Promise(r => setTimeout(r, 0))
+    return { text: b.textContent, disabled: b.disabled }
+  })
+  expect(during).toEqual({ text: 'Wird hinzugefügt …', disabled: true })
   await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+  await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(2)
 })

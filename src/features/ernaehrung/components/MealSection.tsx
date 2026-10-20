@@ -1,13 +1,16 @@
 import { ChefHat, Copy, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type LogEntry, type Meal, per100FromEntry, sumNutrients } from '../lib/nutrition'
+import { FoodOrb } from './FoodOrb'
 import { ScoreBadge } from './ScoreBadge'
 import { CARD, DIM, MUTED } from '../styles'
 
-export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCopyYesterday, onSaveAsDish }: {
+export function MealSection({ meal, entries, hideKcal, goalKcal, busy, onAdd, onOpen, onCopyYesterday, onSaveAsDish }: {
   meal: Meal
   entries: LogEntry[]
   hideKcal: boolean
+  /** Tagesziel: Größe der Essens-Kugeln im Verhältnis zur Tageskugel. */
+  goalKcal: number
   busy: boolean
   onAdd: () => void
   onOpen: (entry: LogEntry) => void
@@ -38,8 +41,9 @@ export function MealSection({ meal, entries, hideKcal, busy, onAdd, onOpen, onCo
             <li key={e.id}>
               <button type="button" onClick={() => onOpen(e)}
                 aria-label={t('nutr_entry_open', { name: e.name })}
-                className="flex min-h-[56px] w-full items-center justify-between gap-3 px-4 py-2 text-left transition-colors active:bg-[var(--lg-fill)]">
-                <span className="min-w-0">
+                className="flex min-h-[56px] w-full items-center justify-between gap-3 py-2 pl-2 pr-4 text-left transition-colors active:bg-[var(--lg-fill)]">
+                <FoodOrb values={e.nutrients} goalKcal={goalKcal} size={44} />
+                <span className="min-w-0 flex-1">
                   <span className="block truncate text-[17px] text-[var(--lg-text)]">{e.name}</span>
                   <span className={`block truncate text-[13px] tabular-nums ${MUTED}`}>
                     {e.amount != null ? `${Math.round(e.amount)} ${e.unit} · ` : ''}
