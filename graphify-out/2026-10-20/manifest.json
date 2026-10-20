@@ -5142,9 +5142,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/components/ExpiredBadge.tsx": {
-    "mtime": 1792467180.2583148,
-    "seen": 1792473641.5119004,
-    "ast_hash": "52056123ba74e154cd52aba0e7c33f6b",
+    "mtime": 1792473664.7243123,
+    "seen": 1792473923.7047153,
+    "ast_hash": "f62cf939215a1c4d1e404817f62a580f",
     "semantic_hash": ""
   },
   "src/lib/peptideExpiryDays.test.ts": {
@@ -5340,9 +5340,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/page/VialCarousel.tsx": {
-    "mtime": 1792467180.2829993,
-    "seen": 1792473641.5124862,
-    "ast_hash": "43d7c9302532187a1df523b68c04eb64",
+    "mtime": 1792473664.7243123,
+    "seen": 1792473923.709609,
+    "ast_hash": "3a8c9878e742d18089e2ff017ab8dd80",
     "semantic_hash": ""
   },
   "src/features/my-stack/page/VialPositionRow.tsx": {
