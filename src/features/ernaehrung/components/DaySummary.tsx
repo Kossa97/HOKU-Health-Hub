@@ -2,33 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Target } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { type MacroKey, type OrbLayout, gramText, orbLayout } from '../lib/orb'
+import { type OrbLayout, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
 import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
 import { takeOrbOrigin, useOrbPreview } from '../lib/orbBridge'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
+import { ZONE_BELOW as BELOW, ZONE_MAX, trackZone, usePrefersReducedMotion } from '../lib/orbZone'
 import type { Goals, Nutrients } from '../lib/nutrition'
-import { MACRO_COLORS, MUTED } from '../styles'
-
-/** Höhe der Kugel-Zone oben; beim Scrollen schrumpft sie auf MIN (Kugel höchstens auf 80 %). */
-export const ZONE_MAX = 300
-const ZONE_MIN = 240
-/** So weit reicht die Zeichenfläche unter die Zone: Monde und Flüge schweben dort nur noch zart über den Formularen. */
-const BELOW = 120
-
-const MACRO_NAME: Record<MacroKey, string> = { protein: 'nutr_protein', carbs: 'nutr_carbs', fat: 'nutr_fat' }
-
-function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(() => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
-  useEffect(() => {
-    if (typeof matchMedia !== 'function') return
-    const mq = matchMedia('(prefers-reduced-motion: reduce)')
-    const on = () => setReduce(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return reduce
-}
+import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
 
 /**
  * Tagesübersicht als Kalorien-Kugel, fest oben auf der Seite: Alles andere
@@ -76,26 +57,8 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
     engineRef.current = engine
     const palette = () => engine.setPalette(orbPalette(zone))
     palette()
-    // Scrollen: Zone und Kugel schrumpfen bis auf 80 %, Werte direkt am Element (kein Neuzeichnen von React).
-    let lastH = -1
-    const onScroll = () => {
-      const h = Math.max(ZONE_MIN, ZONE_MAX - Math.max(0, window.scrollY))
-      if (h === lastH) return
-      lastH = h
-      zone.style.height = `${h}px`
-      engine.setStage(h * 0.4, 0.8 + (0.2 * (h - ZONE_MIN)) / (ZONE_MAX - ZONE_MIN))
-      // Unterhalb der Zone sind Kugel und Monde nur noch ein Hauch.
-      const mask = `linear-gradient(to bottom, #000 0px, #000 ${h - 20}px, rgba(0,0,0,0.28) ${h + 26}px, rgba(0,0,0,0.28) 100%)`
-      canvas.style.maskImage = mask
-      canvas.style.webkitMaskImage = mask
-    }
-    // Neue Größe setzt die Mitte zurück — danach den Scroll-Stand wieder anwenden.
-    const size = () => { engine.resize(zone.clientWidth, ZONE_MAX + BELOW, ZONE_MAX * 0.4); lastH = -1; onScroll() }
-    size()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    const ro = new ResizeObserver(size)
-    ro.observe(zone)
-    window.addEventListener('resize', size)
+    // Scrollen: Zone und Kugel schrumpfen bis auf 80 %.
+    const untrack = trackZone(zone, canvas, w => engine.resize(w, ZONE_MAX + BELOW, ZONE_MAX * 0.4), (h, scale) => engine.setStage(h * 0.4, scale))
     // Akzentfarbe oder Aussehen gewechselt.
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
@@ -108,10 +71,8 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
     return () => {
       document.removeEventListener('touchend', unlock, { capture: true })
       document.removeEventListener('click', unlock, { capture: true })
-      window.removeEventListener('scroll', onScroll)
-      ro.disconnect()
+      untrack()
       mo.disconnect()
-      window.removeEventListener('resize', size)
       engine.destroy()
       engineRef.current = null
     }

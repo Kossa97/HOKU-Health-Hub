@@ -20,12 +20,13 @@ import { hapticGoal, hapticSelect, hapticTick, soundArrive, soundFall, soundGoal
 
 /** Radius der großen Kugel in CSS-Pixeln. */
 export const ORB_RADIUS = 70
-const DOT_MAIN = 1.86
+/** Punktdurchmesser (CSS-Pixel) und Flug — auch für die Gericht-Kugel (components/DishStage.tsx). */
+export const DOT_MAIN = 1.86
 const DOT_MOON = 1.67
-const DOT_TRAIL = 1.4
+export const DOT_TRAIL = 1.4
 const TILT = 0.22
-const TRAVEL = 560
-const SPREAD = 420
+export const TRAVEL = 560
+export const SPREAD = 420
 
 const MOON_COLOR: Record<MacroKey, ColorIndex> = { protein: 2, carbs: 3, fat: 4 }
 /** Höchstens so viele Ticks (Haptik/Ton) je Eintrag bzw. beim Entfernen. */
