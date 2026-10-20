@@ -116,6 +116,9 @@ export class OrbEngine {
   private mini: { canvas: HTMLCanvasElement; renderer: DotRenderer } | null = null
   private miniFlash: Flash | null = null
   private miniDrawn = 0
+  /** Geglättete Rechenzeit je Bild (ms) und wann zuletzt gezeichnet wurde — für die Bremse in der Schleife. */
+  private cost = 0
+  private workedAt = 0
 
   constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void }) {
     this.canvas = canvas
@@ -616,10 +619,14 @@ export class OrbEngine {
       this.last = 0
       return
     }
-    // Immer volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht (ohne Mini-Kugel) steht die Schleife.
+    // Volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht (ohne Mini-Kugel) steht die Schleife.
+    // Ist ein Bild teuer (schwaches Gerät, WebGL ohne Grafikkarte), höchstens ein Drittel der Zeit
+    // zeichnen: sonst blockiert die Kugel Tippen, Scrollen und den Rest der Seite.
+    const now = performance.now()
+    if (this.cost > 6 && now - this.workedAt < this.cost * 3) return
+    this.workedAt = now
     const dt = this.last ? Math.min(0.1, (ts - this.last) / 1000) : 0
     this.last = ts
-    const now = performance.now()
 
     if (this.focusKey && now > this.focusUntil) this.clearFocus()
     if (!this.reduce) {
@@ -665,6 +672,7 @@ export class OrbEngine {
       this.label.style.top = `${p.y}px`
     }
     this.drawParticles(now)
+    this.cost = this.cost * 0.85 + (performance.now() - now) * 0.15
   }
 
   private drawMini(now: number) {
