@@ -110,6 +110,7 @@ export function installFlashlight(): () => void {
   let neutral: { beta: number; gamma: number } | null = null
   let frame = 0
   let dirty = true
+  const geschrieben = new WeakMap<HTMLElement, string>()
 
   const active = () => document.documentElement.getAttribute('data-look') === 'schwarz'
 
@@ -128,7 +129,14 @@ export function installFlashlight(): () => void {
       const r = card.getBoundingClientRect()
       if (r.width === 0) continue
       const edge = edgeLight(r, point, viewport)
-      card.style.setProperty('--la', `${edge.angle.toFixed(1)}deg`)
+      const winkel = `${edge.angle.toFixed(1)}deg`
+      const werte = `${winkel}|${edge.spread.toFixed(0)}|${edge.intensity.toFixed(2)}|${edge.glow.x.toFixed(0)}|${edge.glow.y.toFixed(0)}`
+      // Unveraendert nicht neu schreiben: die Variablen erben, jedes Setzen
+      // berechnet den Stil der ganzen Karte samt Inhalt neu. Hat jemand den
+      // Inline-Stil ersetzt, fehlt der Winkel — dann doch schreiben.
+      if (geschrieben.get(card) === werte && card.style.getPropertyValue('--la') === winkel) continue
+      geschrieben.set(card, werte)
+      card.style.setProperty('--la', winkel)
       card.style.setProperty('--lw', `${edge.spread.toFixed(0)}deg`)
       card.style.setProperty('--li', edge.intensity.toFixed(2))
       card.style.setProperty('--gx', `${edge.glow.x.toFixed(0)}%`)
@@ -196,7 +204,21 @@ export function installFlashlight(): () => void {
     }
   }
 
-  window.addEventListener('scroll', touch, { capture: true, passive: true })
+  // Scrollt nur ein Bereich, in dem keine Karte liegt (das Karussell, eine
+  // Reiterleiste), bewegt sich keine Karte: nichts zu rechnen. Sonst laese das
+  // Licht bei jedem Wisch-Bild die Lage aller Karten neu — mitten im Bild, in
+  // dem das Vial schon gezeichnet hat, also mit erzwungenem Layout.
+  const onScroll = (event: Event) => {
+    const quelle = event.target
+    if (quelle instanceof Element) {
+      let betroffen = false
+      // Die scrollende Karte selbst bewegt sich nicht — nur, was in ihr liegt.
+      for (const card of visible) if (card !== quelle && quelle.contains(card)) { betroffen = true; break }
+      if (!betroffen) return
+    }
+    touch()
+  }
+  window.addEventListener('scroll', onScroll, { capture: true, passive: true })
   window.addEventListener('resize', touch, { passive: true })
   window.addEventListener('deviceorientation', onOrientation)
   window.addEventListener('tyd-tilt-change', onTiltChange)
@@ -208,7 +230,7 @@ export function installFlashlight(): () => void {
     io?.disconnect()
     mo.disconnect()
     lookObserver.disconnect()
-    window.removeEventListener('scroll', touch, { capture: true })
+    window.removeEventListener('scroll', onScroll, { capture: true })
     window.removeEventListener('resize', touch)
     window.removeEventListener('deviceorientation', onOrientation)
     window.removeEventListener('tyd-tilt-change', onTiltChange)
