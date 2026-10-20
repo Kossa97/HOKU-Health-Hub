@@ -336,9 +336,9 @@
     "semantic_hash": ""
   },
   "src/components/ProtocolPdfModal.tsx": {
-    "mtime": 1792469161.311925,
-    "seen": 1792469540.7929406,
-    "ast_hash": "aa21bfbdd87c06d38353da3b6891a1cd",
+    "mtime": 1792472928.5197654,
+    "seen": 1792473214.5157225,
+    "ast_hash": "170c5d230e7d132c10b95d6804349cc8",
     "semantic_hash": ""
   },
   "src/components/PushNotificationListener.tsx": {
@@ -954,9 +954,9 @@
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/renderProtocolPdf.ts": {
-    "mtime": 1792467180.3491454,
-    "seen": 1792469540.7948437,
-    "ast_hash": "068c8b51aba082d0517f8968eff16816",
+    "mtime": 1792472928.518447,
+    "seen": 1792473214.5478466,
+    "ast_hash": "3a27c9af5d86f0bd9e4c6145dd1810b4",
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/sections.ts": {
@@ -2550,9 +2550,9 @@
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/presets.ts": {
-    "mtime": 1792468966.221347,
-    "seen": 1792469540.794836,
-    "ast_hash": "3bf4890a305b4e89e8d9dee7d2535ddd",
+    "mtime": 1792472315.0631175,
+    "seen": 1792473214.547778,
+    "ast_hash": "76fd1b2fdfd699efc684034114fd65c2",
     "semantic_hash": ""
   },
   ".superpowers/brainstorm/1918-1779323004/content/charts-options.html": {
@@ -7566,15 +7566,27 @@
     "semantic_hash": ""
   },
   "src/components/protocolPdf/PdfPagesPreview.tsx": {
-    "mtime": 1792469269.9839005,
-    "seen": 1792469540.7930455,
-    "ast_hash": "adfe67ccaadaf8310c185e55021e55f8",
+    "mtime": 1792472928.5202916,
+    "seen": 1792473214.5173254,
+    "ast_hash": "69c63b93784391d0ab4370c258f9354e",
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/rasterizePdf.ts": {
     "mtime": 1792469126.7226398,
     "seen": 1792469540.7948406,
     "ast_hash": "8e63d3551405a115de0f5aa0b4111250",
+    "semantic_hash": ""
+  },
+  "src/components/protocolPdf/PdfInfoSheet.tsx": {
+    "mtime": 1792472646.3102012,
+    "seen": 1792473214.5173206,
+    "ast_hash": "09e18e634808ee7e432874f68f66625b",
+    "semantic_hash": ""
+  },
+  "src/lib/protocolPdf/sharePdf.ts": {
+    "mtime": 1792472928.5189884,
+    "seen": 1792473214.54789,
+    "ast_hash": "d811d75666a8b69750c9ff846d848916",
     "semantic_hash": ""
   }
 }
