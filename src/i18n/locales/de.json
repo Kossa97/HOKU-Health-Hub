@@ -2745,9 +2745,9 @@
   "tagebuch_info_beispiel": "Beispiel: Übelkeit, Nebenwirkung, Intensität 3, Dauer 2 Stunden",
   "tagebuch_info_name_text": "was du bemerkst",
   "tagebuch_info_dauer_text": "wie lange es anhielt; „hält an“, wenn es noch nicht vorbei ist. Freiwillig.",
-  "tagebuch_info_intensitaet_text": "von 1 sehr leicht bis 5 sehr stark, die Zahl oben rechts",
+  "tagebuch_info_intensitaet_text": "von 1 sehr leicht bis 5 sehr stark, die Punkte am Ende",
   "tagebuch_info_art": "Art",
-  "tagebuch_info_art_text": "Kreis unten links: ＋ und grün ist eine Wirkung, − und orange eine Nebenwirkung",
+  "tagebuch_info_art_text": "die Farbe: grün ist eine Wirkung, orange eine Nebenwirkung; in der Liste stehen beide getrennt",
   "tagebuch_info_hinweis": "Antippen öffnet den Chip-Editor. Gewählt ist ein Chip, sobald er eine Intensität hat.",
   "tagebuch_info_verstanden": "Verstanden",
   "my_stack_scan": "Scannen",
@@ -2773,5 +2773,8 @@
   "my_stack_scan_custom": "Nicht im Katalog – wird als eigene Substanz angelegt",
   "my_stack_scan_check": "Per Scan erkannt. Prüfe alles in den nächsten Schritten, bevor du speicherst.",
   "my_stack_scan_again": "Erneut scannen",
-  "my_stack_scan_apply": "Übernehmen"
+  "my_stack_scan_apply": "Übernehmen",
+  "day_count_taken": "{{n}} genommen",
+  "day_count_skipped": "{{n}} übersprungen",
+  "day_count_missed": "{{n}} verpasst"
 }

@@ -786,13 +786,16 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
 }
 .lg-ph[data-shape='round'] { border-radius: 50%; }
 .lg-ph[data-shape='pill'] { border-radius: 999px; }
+/* Eine Bühnenform als Umriss (Silhouette.tsx): dieselbe Fläche wie .lg-ph */
+.lg-ph-form { display: block; fill: rgb(235, 240, 255); animation: lg-atmen 1.6s ease-in-out infinite; }
+.lg-ph-form > g { opacity: 0.10; }
 @keyframes lg-atmen { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 /* Inhalt, der eine sichtbare Silhouette ablöst, blendet über. „backwards"
    statt „both": nach dem Einblenden bleibt keine Deckkraft stehen, die einen
    Stapelkontext bildet und feste Dialoge darin unter die Tab-Leiste sperrt. */
 .lg-reveal { animation: lg-fade-in 280ms var(--lg-ease-out) backwards; }
 @media (prefers-reduced-motion: reduce) {
-  .lg-ph { animation: none; opacity: 0.8; }
+  .lg-ph, .lg-ph-form { animation: none; opacity: 0.8; }
 }
 
 /* ── Statusleiste ───────────────────────────────────────────────────────

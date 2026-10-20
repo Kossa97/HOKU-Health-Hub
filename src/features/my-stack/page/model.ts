@@ -215,6 +215,11 @@ export function fuellstandFuer(p: Peptide): number | null {
   return Math.min(1, teile.rest / groesse) * 100
 }
 
+/** Ob unter dem Objekt auf der Buehne ein Fuellstand steht: mit Pegel, und beim Vial immer. */
+export function zeigtPegel(p: Peptide): boolean {
+  return fuellstandFuer(p) !== null || anbruchArt(p.dosage_form) === 'vial'
+}
+
 function compareNullableNum(a: number | null | undefined, b: number | null | undefined, asc: boolean): number {
   const av = a ?? null
   const bv = b ?? null
