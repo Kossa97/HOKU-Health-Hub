@@ -2541,5 +2541,10 @@
   "my_stack_scan_apply": "Use",
   "day_count_taken": "{{n}} taken",
   "day_count_skipped": "{{n}} skipped",
-  "day_count_missed": "{{n}} missed"
+  "day_count_missed": "{{n}} missed",
+  "my_stack_shelf_life": "Shelf life",
+  "my_stack_shelf_life_days_left": "{{n}} days left",
+  "my_stack_shelf_life_day_left": "1 day left",
+  "my_stack_shelf_life_today": "expires today",
+  "my_stack_shelf_life_not_set": "not specified"
 }
