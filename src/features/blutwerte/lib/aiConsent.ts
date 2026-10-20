@@ -48,3 +48,16 @@ export async function setzeKiEinwilligung(client: ConsentClient, userId: string,
 
 /** Der Fehlercode der Edge Function, wenn die Einwilligung fehlt. */
 export const EINWILLIGUNG_FEHLT = 'consent_required'
+
+/**
+ * Ab hier nennt der Einwilligungstext auch Etikettfotos (Substanz-Scan in My
+ * Stack). Eine aeltere Einwilligung galt nur Befunden: fuer den Scan wird neu
+ * gefragt. Gleicher Wert in `supabase/functions/label-extract/prompt.ts`
+ * (`LABEL_CONSENT_SINCE`) — die Funktion setzt ihn durch, die App fragt vorher.
+ */
+export const ETIKETT_EINWILLIGUNG_AB = '2026-10-19T00:00:00.000Z'
+
+/** Deckt die Einwilligung (Zeitpunkt oder null) auch Etikettfotos? */
+export function giltFuerEtiketten(einwilligung: string | null): boolean {
+  return einwilligung !== null && Date.parse(einwilligung) >= Date.parse(ETIKETT_EINWILLIGUNG_AB)
+}

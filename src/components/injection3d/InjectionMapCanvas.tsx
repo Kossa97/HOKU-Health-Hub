@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { inferBodyRegion } from '../../lib/injectionGeometry'
 import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
+import { FOCUS_FLIGHT_MS, focusFlightEase, focusTargetDrop, measureFreeViewport } from '../../lib/injectionFocusFrame'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
 import { INJECTION_STUDIO_BACKDROP } from '../../lib/injectionStudioLook'
 import { InjectionStudioLight } from './InjectionStudioLight'
@@ -29,12 +30,15 @@ const FIT_Y_OFFSET = 0.12
 const CAMERA_DISTANCE = 4.85
 const CAMERA_FOV = 48
 const DEFAULT_CAMERA_TARGET_Y = FIT_Y_OFFSET
-const SHEET_AWARE_FOCUS_Y_OFFSET = -0.22
+// Abstand der Kamera zum Pin beim Fokus.
+const FOCUS_DISTANCE = 0.82
 
 export interface InjectionFocusRequest {
   // Ein gespeicherter Pin oder eine gerade gewaehlte Stelle (ohne id).
   log: Pick<InjectionLog3D, 'position' | 'normal'> & { id?: string }
   requestId: number
+  // Nur Ausloeser: oeffnet/schliesst ein Sheet, wird neu eingepasst. Wie viel
+  // frei bleibt, misst die Kamera an den data-injection-cover-Elementen.
   sheetOpen?: boolean
 }
 
@@ -128,10 +132,13 @@ function resetCameraFrame(
   }
 }
 
-function focusTargetForRequest(point: THREE.Vector3, sheetOpen = false) {
-  const target = point.clone()
-  if (sheetOpen) target.y += SHEET_AWARE_FOCUS_Y_OFFSET
-  return target
+// Ziel so unter den Pin legen (senkrecht zur Blickrichtung), dass der Pin in
+// der Mitte des freien Bereichs erscheint und nicht unter einem Overlay.
+function focusTargetForRequest(point: THREE.Vector3, normal: THREE.Vector3, canvas: Element) {
+  const drop = focusTargetDrop(measureFreeViewport(canvas), FOCUS_DISTANCE, CAMERA_FOV)
+  const screenUp = new THREE.Vector3(0, 1, 0).addScaledVector(normal, -normal.y)
+  if (screenUp.lengthSq() < 0.001) return point.clone()
+  return point.clone().addScaledVector(screenUp.normalize(), -drop)
 }
 
 function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFocusRequest | null; resetRequestId: number }) {
@@ -139,13 +146,15 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
   const controls = useThree((s) => s.controls) as OrbitControlsApi | null
   const invalidate = useThree((s) => s.invalidate)
   const frameloop = useThree((s) => s.frameloop)
+  const canvas = useThree((s) => s.gl.domElement)
   const warmupFrames = useRef(0)
   const animation = useRef<{
     fromPosition: THREE.Vector3
     toPosition: THREE.Vector3
     fromTarget: THREE.Vector3
     toTarget: THREE.Vector3
-    progress: number
+    // Gesetzt im ersten Bild der Fahrt, nicht beim Anstossen.
+    startedAt: number | null
   } | null>(null)
 
   useLayoutEffect(() => {
@@ -182,27 +191,29 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     if (normal.lengthSq() < 0.001) normal.set(0, 0, 1)
     normal.normalize()
 
-    const target = focusTargetForRequest(point, focusRequest.sheetOpen)
+    const target = focusTargetForRequest(point, normal, canvas)
 
     animation.current = {
       fromPosition: camera.position.clone(),
-      toPosition: target.clone().addScaledVector(normal, 0.82),
+      toPosition: target.clone().addScaledVector(normal, FOCUS_DISTANCE),
       fromTarget: controls.target.clone(),
       toTarget: target,
-      progress: 0,
+      startedAt: null,
     }
     invalidate()
-  }, [camera, controls, focusRequest, invalidate])
+  }, [camera, canvas, controls, focusRequest, invalidate])
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     const active = animation.current
     if (active) {
-      active.progress = Math.min(1, active.progress + delta / 0.55)
-      const t = active.progress * active.progress * (3 - 2 * active.progress)
+      const now = performance.now()
+      active.startedAt ??= now
+      const elapsed = now - active.startedAt
+      const t = focusFlightEase(elapsed)
       camera.position.lerpVectors(active.fromPosition, active.toPosition, t)
       controls?.target.lerpVectors(active.fromTarget, active.toTarget, t)
       controls?.update()
-      if (active.progress >= 1) animation.current = null
+      if (elapsed >= FOCUS_FLIGHT_MS) animation.current = null
       else invalidate()
       return
     }

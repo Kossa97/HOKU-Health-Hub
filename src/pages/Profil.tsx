@@ -14,6 +14,7 @@ import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmen
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
+import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
 
@@ -254,6 +255,7 @@ export function Profil() {
       {/* ── Einwilligung KI-Auswertung von Befunden (Widerruf) ── */}
       <div>
         <KiEinwilligungProfil />
+        <PhotoConsentProfile />
       </div>
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}

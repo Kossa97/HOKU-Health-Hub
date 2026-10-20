@@ -1103,6 +1103,7 @@ const EXPECTED_MY_STACK_KEYS = [
   'bw_entry_open_aria',
   'bw_entry_change',
   'bw_edit',
+  'pk_scrub_intake',
   'injection_edit_action',
   'injection_edit_title',
   'injection_edit_linked_hint',
@@ -1273,6 +1274,33 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_nothing_open',
   'bundle_confirm_open',
   'bundle_empty_hint',
+  'my_stack_scan',
+  'my_stack_scan_hint',
+  'my_stack_scan_hint_photo',
+  'my_stack_scan_photo',
+  'my_stack_scan_photo_instead',
+  'my_stack_scan_choose',
+  'my_stack_scan_denied',
+  'my_stack_scan_unavailable',
+  'my_stack_scan_ai_note',
+  'my_stack_scan_searching',
+  'my_stack_scan_reading',
+  'my_stack_scan_barcode_unknown',
+  'my_stack_scan_err_lookup',
+  'my_stack_scan_err',
+  'my_stack_scan_err_limit',
+  'my_stack_scan_no_label',
+  'my_stack_scan_image_only',
+  'my_stack_scan_not_found',
+  'my_stack_scan_strength',
+  'my_stack_scan_brand',
+  'my_stack_scan_custom',
+  'my_stack_scan_check',
+  'my_stack_scan_again',
+  'my_stack_scan_apply',
+  'day_count_taken',
+  'day_count_skipped',
+  'day_count_missed',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1294,26 +1322,32 @@ const EXPECTED_MY_STACK_KEYS = [
 // Tracking-Werkzeug" (research_only, safety_banner_* — nur de/en).
 // Bewusst ergaenzt (Oktober 2026): Kachel des Workout-Trackers
 // (`tile_training`, `tile_training_desc`; de/en, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Tagebuch v2 mit Chips (tagebuch_titel_*,
+// tagebuch_chip_*, tagebuch_einheit_*, tagebuch_info_* …; de/en, sonst englischer Platzhalter).
+// Bewusst geaendert (Oktober 2026): Die Auswertung zaehlt Chips statt Eintraege —
+// tagebuch_verlauf_titel(_monat) heisst jetzt „Wirkungen und Nebenwirkungen pro …" (nur de/en).
+// Bewusst geaendert (Oktober 2026): neuer Chip (Variante A) — tagebuch_info_art_text und
+// tagebuch_info_intensitaet_text beschreiben Farbe und Punkte (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '3172840df16a1436f87120ab2bd9c8981638368ff322e067f6f15c1d8d004078',
-  en: '750d71e145c71297b5c4648ab3ab2414f9a7c44072df8ba4a8dbdb81530049d9',
+  de: 'f60cbbd1aa08f1b4d1d23555c23f0e2064a1cbbd8da07d8d7ea2f63462eb4c87',
+  en: '8ebc6b4d5d697a82231b7668db9e39d17c11fa201e870fbea92514f04076436a',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '8398762c6f43820e5e5e81699917e454e240c27c90bbd3de8e47ffa6ee191baa',
-  es: 'c1ba0fc5e054deef18f53f9d2651a5b8c758a5950a3c72ba62f60d1a7740b6b4',
-  fr: '245227e5766a2d6b52d689571e9109222d59a8c2ce967232c0d7adcab6842b6a',
-  hi: 'f0629abe7ca6c4809b16df0ae24620b5efccdce3386a08ceadcc35c2fbe95efb',
-  id: 'cd93645582352c01502f236376c0960835713fea3f2c289b8857354066c34f34',
-  it: '6412dc9733907eb40c597806ae6cfa57ef2db4aea2065b518b1aad09afe75608',
-  ja: '20d82e64962d58faaaed07754544ac28ef4631950d4183d11ec38c98fe197547',
-  ko: '74a26086e5794a687426903b9df0b79146adbd26ef60f4ca0f38441a98385487',
-  pt: '1b173f81ab2dd684986e5bc20f6d6cd76c6ec2ab0eaa3a6a55d333fb12d19f22',
-  ru: 'd80edd20807de460cb3b6d81e08f491c6f2dd1985ae7e7a98b32d7e28db15ccb',
-  tr: '83c939706d8240ad9408ed3cf180daebdd4e3a3c17b44fb27c9d0195c465600f',
-  zh: '5776c01a359049be4c8009310d4358781c44dc9df085a401229cf8002df63c42',
+  ar: 'c22d1f8828f26a32889e4f4c758e5ad928c005e9e6319d9bc613eb02ef897229',
+  es: '25897dc1c98e2adf5728ac441f6786da622a3307eb1b1e73f50fbba6f85ab235',
+  fr: 'a30588686b11444fdbbb1267ea34ee1ab8eae3a7f3f04033b828d5c556d87861',
+  hi: 'ac108afca000fd33ce3370db2914af3b1d09414fd9a2645109489404b586aeb5',
+  id: '20a69a769dacd3426315ea94355ac539172c4e131d2cbfa339248dad7f20b34a',
+  it: '5c56c83ccb81ffe0e30d715e5f78260d5ee5aef99d67dc48196e86b8c66d1598',
+  ja: '7038183ccfd261cdea10ecfbe531f5d230db70f988f2dd2c919fa74a16794950',
+  ko: '1681a9502cc012c9147370a0ca590572e741a76b4ed7bc72ad3e7feec4742b21',
+  pt: '87b09fcbf1ed1551adfc0f9a3dbf17f1efd803020f67eee93f85a4010059b66d',
+  ru: 'a1d39f37766958a513e063a6a36abea3c6dbf0886950fc6ab85fbdb70ae25b3d',
+  tr: '50fef8cd7471bc3fe1d75d7bcec97043284727e7db40064b06d726f52f295429',
+  zh: '2e166f0956479689a01f3687ca90a0fd7b889f1db30905cd1570739673fbf8cf',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

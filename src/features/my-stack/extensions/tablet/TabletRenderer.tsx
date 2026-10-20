@@ -30,7 +30,7 @@ export function TabletRenderer({ item, sloshEngine, ...visualProps }: TabletRend
   )
 
   return (
-    <div data-stack-renderer="tablet">
+    <div data-stack-renderer="tablet" data-umriss-form="tablet">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{tablet}</SloshProvider> : tablet}
     </div>
   )

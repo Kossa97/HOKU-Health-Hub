@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ladeKiEinwilligung, setzeKiEinwilligung, type ConsentClient } from './aiConsent'
+import { ETIKETT_EINWILLIGUNG_AB, giltFuerEtiketten, ladeKiEinwilligung, setzeKiEinwilligung, type ConsentClient } from './aiConsent'
 
 function nachbild(start: string | null, fehler: string | null = null, keinProfil = false) {
   const zeile = { ai_import_consent_at: start }
@@ -44,5 +44,14 @@ describe('KI-Einwilligung', () => {
   it('wirft bei Fehlern statt still „nicht erteilt“ zu melden', async () => {
     await expect(ladeKiEinwilligung(nachbild(null, 'offline').client, 'u1')).rejects.toThrow('offline')
     await expect(setzeKiEinwilligung(nachbild(null, 'offline').client, 'u1', new Date())).rejects.toThrow('offline')
+  })
+})
+
+describe('giltFuerEtiketten', () => {
+  it('eine Einwilligung von vor dem Etikett-Text galt nur Befunden', () => {
+    expect(giltFuerEtiketten(null)).toBe(false)
+    expect(giltFuerEtiketten('2026-10-06T12:00:00.000Z')).toBe(false)
+    expect(giltFuerEtiketten(ETIKETT_EINWILLIGUNG_AB)).toBe(true)
+    expect(giltFuerEtiketten('2026-10-20T08:00:00+00:00')).toBe(true)
   })
 })

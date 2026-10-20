@@ -1,6 +1,6 @@
 # Kalorientracker / Ernährung
 
-**Stand:** 18.10.2026 — Etappe 1 gemergt (#28). Nachtrag **Gerichte** auf `claude/ernaehrung-kalorientracker` (Spec 8a). Spec:
+**Stand:** 18.10.2026 — Etappe 1 gemergt (#28), **Gerichte** gemergt (#30, Spec 8a). **Foto-KI** auf `claude/ernaehrung-foto` (Spec 8b). Spec:
 `docs/superpowers/specs/2026-10-18-ernaehrung-kalorientracker-design.md`.
 
 ## Entschieden (Nutzer, 18.10.2026)
@@ -50,9 +50,13 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 | OFF live testen | Container-Netz sperrt openfoodfacts.org; Tests mit nachgebildeten Antworten |
 | Migration gegen Produktion | **erledigt 18.10.2026** (`nutrition_etappe1`): 4 Tabellen mit RLS, 4 Policies, 7 Indizes, 0 Zeilen; Nutzer 14, weight_logs 645, profiles 13 unverändert. Parallel lief `training_workout_tracker` (andere Sitzung, +4 Tabellen/+16 Policies) |
 | Edge Function deployen | **erledigt 18.10.2026**: `food-lookup` v1 aktiv, verify_jwt an. Rauchtest aus dem Container nicht möglich (supabase.co gesperrt) — erster echter Aufruf aus der App steht aus, dann Logs prüfen |
-| Datenschutzerklärung / Store-Angaben | Ernährungsdaten, Kamera, Weitergabe an OFF (ohne Personenbezug) ergänzen |
+| Datenschutzerklärung / Store-Angaben | ergänzt (siehe unten); Store-Angaben in `docs/store-compliance.md` nachgezogen |
 | Skalierung OFF | bei mehr Nutzern OFF-Dump importieren statt live |
 | Gerätetest Scanner iOS/Android | offen |
 | Gerichte: Migration gegen Produktion | **erledigt 18.10.2026** (`nutrition_gerichte`): food_items Spalten 20 → 22, Checks 15 → 17; Zeilen food_items/food_logs/water_logs unverändert, Policies 4 |
 | Gerichte: Gewicht nach dem Kochen | bewusst weggelassen; bei Bedarf optionales Feld |
+| Foto-KI (Spec 8b) | Nutzer 18.10.: KI nennt **nur Zutaten** (Gericht + mögliche Zutaten mit Alternativen, Nutzer tippt an), Notiz empfohlen, auch ohne Foto; Lebensmittel/Menge wählt der Nutzer. Rezeptwissen = Modell + eigene Gerichte (keine eigene Rezept-DB: Lizenzen). Gebaut auf `claude/ernaehrung-foto`; **Produktion 19.10.2026:** Migration `nutrition_photo_ai` (profiles Spalten 24 → 25, Trigger 3 → 4, Profile 13 und Befund-Einwilligungen 1 unverändert; `food_photo_scans` neu, RLS an, 1 Policy, 0 Zeilen) und Edge Function `food-photo` v1 (verify_jwt an). Erster echter Aufruf aus der App steht aus — dann Logs prüfen; Modell: **Haiku 5.5, effort low** (Nutzer: „so preiswert wie möglich“) |
+| BLS-Import | wird mit Foto-KI wichtiger: generische Zutaten finden sonst nur Markenprodukte |
+| Datenschutzerklärung | **ergänzt** auf `claude/ernaehrung-foto` (Ernährung, Kamera, OFF, Anthropic-Mahlzeiten); geht mit dem Foto-PR live |
+| **Nutzer kümmert sich (gemerkt 18.10.2026)** | 1. Anthropic-Vertrag: Speicherdauer/Nutzung und Übermittlungsgrundlage USA in die Platzhalter [[…]] der Datenschutzerklärung (Abschnitt 5). 2. Ergänzte Rechtstexte rechtlich prüfen lassen. Beides auch in der Checkliste `docs/store-compliance.md` → „Vor dem Einreichen — von dir“. Bei jedem Ernährungs-/Store-Thema daran erinnern |
 | Etappe 2 | Fortschritt-Chart, GLP-1-Hinweise aus Stack, PDF-Protokoll, Health-Aktivitätskalorien |

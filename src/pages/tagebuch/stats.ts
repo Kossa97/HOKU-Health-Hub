@@ -1,17 +1,22 @@
 /**
  * Auswertung des Tagebuchs: reine Rechnungen, ohne React und ohne Datenbank.
  * Sie zeigen Häufungen in den eigenen Einträgen — keine Ursachen.
+ * Gezählt wird je Beobachtung (Chip): ein Eintrag mit „Übelkeit" und
+ * „Kopfschmerzen" zählt zwei Nebenwirkungen.
  */
 import { addMonths, addWeeks, getISOWeek, startOfMonth, startOfWeek } from 'date-fns'
+import { observationGroup, observationsOf, type Observation, type SymptomKind, type SymptomRow } from '../../lib/tagebuch/diary'
 
 export interface StatsRow {
-  type: 'effect' | 'side_effect'
-  severity: number
+  /** Nur bei älteren Einträgen ohne Chips maßgeblich. */
+  type: SymptomKind | null
+  severity: number | null
   description: string
   occurred_at: string
   stack_item_id: string | null
   stack_items: { display_name: string } | null
   dose_logs: { logged_at: string } | null
+  effect_symptoms?: SymptomRow[] | null
 }
 
 export type RangeKey = '4w' | '12w' | 'all'
@@ -24,7 +29,7 @@ export interface Bucket {
   start: Date
   effects: number
   sideEffects: number
-  /** Ø Intensität aller Einträge im Zeitraum; `null` ohne Einträge. */
+  /** Ø Intensität aller Beobachtungen im Zeitraum; `null` ohne. */
   avgSeverity: number | null
 }
 
@@ -73,9 +78,11 @@ export function timeline(rows: StatsRow[], from: Date | null, now: Date): Timeli
   for (const row of rows) {
     const group = groups.get(bucketOf(new Date(row.occurred_at)).getTime())
     if (!group) continue
-    if (row.type === 'effect') group.effects += 1
-    else group.sideEffects += 1
-    group.severities.push(row.severity)
+    for (const observation of observationsOf(row)) {
+      if (observation.kind === 'effect') group.effects += 1
+      else group.sideEffects += 1
+      group.severities.push(observation.severity)
+    }
   }
   return {
     unit,
@@ -109,6 +116,7 @@ export interface GapBin {
 /**
  * Abstand zwischen Einnahme und Eintrag, nur für verknüpfte Einträge.
  * Dieselbe Minute zählt als 0 (das Formular kennt keine Sekunden).
+ * `linked` zählt Einträge, die Fächer zählen Beobachtungen.
  */
 export function gapBins(rows: StatsRow[]): { bins: GapBin[]; linked: number } {
   const bins: GapBin[] = GAP_BINS.map(bin => ({ key: bin.key, effects: 0, sideEffects: 0 }))
@@ -120,8 +128,12 @@ export function gapBins(rows: StatsRow[]): { bins: GapBin[]; linked: number } {
     const hours = Math.max(0, ms) / 3_600_000
     const index = GAP_BINS.findIndex(bin => hours < bin.upToHours)
     const bin = bins[index]
-    if (row.type === 'effect') bin.effects += 1
-    else bin.sideEffects += 1
+    const observations = observationsOf(row)
+    if (!observations.length) continue
+    for (const observation of observations) {
+      if (observation.kind === 'effect') bin.effects += 1
+      else bin.sideEffects += 1
+    }
     linked += 1
   }
   return { bins, linked }
@@ -134,33 +146,36 @@ export interface SubstanceStat {
   effects: number
   sideEffects: number
   avgSeverity: number
-  /** Häufigste Nebenwirkung (gleiche Beschreibung, Groß/Klein egal); bei Gleichstand die jüngste. */
+  /** Häufigste Nebenwirkung (gleicher Chip; eigene nach Name, Groß/Klein egal); bei Gleichstand die jüngste. */
   topSideEffect: { text: string; count: number } | null
 }
 
-export function bySubstance(rows: StatsRow[]): SubstanceStat[] {
+/** `label`: Anzeigename einer Beobachtung in der aktuellen Sprache. */
+export function bySubstance(rows: StatsRow[], label: (observation: Observation) => string): SubstanceStat[] {
   type Group = {
     name: string | null; effects: number; sideEffects: number; severities: number[]
     side: Map<string, { text: string; count: number; last: number }>
   }
   const groups = new Map<string | null, Group>()
   for (const row of rows) {
+    const observations = observationsOf(row)
+    if (!observations.length) continue
     const id = row.stack_item_id
     const group: Group = groups.get(id) ?? {
       name: row.stack_items?.display_name?.trim() || null, effects: 0, sideEffects: 0, severities: [], side: new Map(),
     }
-    group.severities.push(row.severity)
-    if (row.type === 'effect') group.effects += 1
-    else {
+    const at = new Date(row.occurred_at).getTime()
+    for (const observation of observations) {
+      group.severities.push(observation.severity)
+      if (observation.kind === 'effect') { group.effects += 1; continue }
       group.sideEffects += 1
-      const key = row.description.trim().toLowerCase()
-      if (key) {
-        const at = new Date(row.occurred_at).getTime()
-        const entry = group.side.get(key) ?? { text: row.description.trim(), count: 0, last: at }
-        entry.count += 1
-        if (at >= entry.last) { entry.last = at; entry.text = row.description.trim() }
-        group.side.set(key, entry)
-      }
+      const text = label(observation).trim()
+      if (!text) continue
+      const key = observationGroup(observation)
+      const entry = group.side.get(key) ?? { text, count: 0, last: at }
+      entry.count += 1
+      if (at >= entry.last) { entry.last = at; entry.text = text }
+      group.side.set(key, entry)
     }
     groups.set(id, group)
   }

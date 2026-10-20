@@ -19,7 +19,7 @@ export interface TubeRendererProps {
 // das Unterscheiden.
 export function TubeRenderer({ item, ...visualProps }: TubeRendererProps) {
   return (
-    <div data-stack-renderer="tube">
+    <div data-stack-renderer="tube" data-umriss-form="tube">
       <TubeVisual name={item.display_name} {...visualProps} />
     </div>
   )

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { Page, Route } from '@playwright/test'
 import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
+import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -68,6 +69,7 @@ const RELATIONS: Record<string, Record<string, Relation>> = {
   effects: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
     dose_logs: { table: 'dose_logs', kind: 'one', local: 'dose_log_id', foreign: 'id' },
+    effect_symptoms: { table: 'effect_symptoms', kind: 'many', local: 'id', foreign: 'effect_id' },
   },
   cycles: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
@@ -103,9 +105,10 @@ function parseSelect(select: string): SelectField[] {
         if (depth > 0) inner += text[i]
         i++
       }
-      const [alias, table] = token.includes(':') ? token.split(':') : [token, token]
-      if (table.includes('!')) throw new Error(`Einbettung mit Hinweis ${table} nicht nachgebildet`)
-      fields.push({ alias, table, children: parseSelect(inner) })
+      const [alias, hinted] = token.includes(':') ? token.split(':') : [token, token]
+      const [table, hint] = hinted.split('!')
+      if (hint && hint !== 'inner') throw new Error(`Einbettung mit Hinweis ${hinted} nicht nachgebildet`)
+      fields.push({ alias: alias === hinted ? table : alias, table, children: parseSelect(inner) })
     } else if (token) {
       fields.push({ alias: token })
     }
@@ -252,6 +255,7 @@ export class MockSupabase {
     this.registerMyStackRpcs()
     this.registerComplianceRpcs()
     this.registerIntakeRpcs()
+    this.registerDiaryRpcs()
     this.seedCatalog()
     this.seedOwnProfile()
   }
@@ -332,6 +336,9 @@ export class MockSupabase {
     this.rpcFailures.set(name, message)
   }
 
+  /** Diese RPC gibt es (noch) nicht in der Datenbank — antwortet wie PostgREST mit PGRST202. */
+  readonly missingRpcs = new Set<string>()
+
   onRpc(name: string, handler: (params: Record<string, unknown>) => unknown): void {
     this.rpcHandlers.set(name, handler)
   }
@@ -375,6 +382,8 @@ export class MockSupabase {
       if (url.pathname.startsWith('/storage/v1/object/')) return await this.handleStorage(route, url)
       if (url.pathname === '/functions/v1/bloodwork-extract') return await this.handleBloodworkExtract(route)
       if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
+      if (url.pathname === '/functions/v1/food-photo') return await this.handleFoodPhoto(route)
+      if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -413,24 +422,77 @@ export class MockSupabase {
   }
 
   /**
+   * Nachbild von supabase/functions/label-extract (Etikett per Foto, My Stack):
+   * ohne Einwilligung ab dem Etikett-Stichtag 403 `consent_required`, sonst
+   * `labelExtract.label` —
+   * `null` spielt „kein Etikett erkannt" (422) nach.
+   */
+  readonly labelExtract: {
+    label: Row | null
+    calls: { mimeType: string; names: number }[]
+  } = {
+    label: {
+      name: 'BPC-157', brand: 'Testlabor', dosage_form: 'vial',
+      ingredients: [{ name: null, amount: 5, unit: 'mg', per_amount: null, per_unit: null }],
+    },
+    calls: [],
+  }
+
+  private async handleLabelExtract(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!consentCoversLabels(profil?.ai_import_consent_at as string | null | undefined)) {
+      return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    }
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; names?: unknown[] }
+    this.labelExtract.calls.push({ mimeType: String(body.mimeType ?? ''), names: Array.isArray(body.names) ? body.names.length : 0 })
+    if (!this.labelExtract.label) return route.fulfill({ status: 422, headers: corsHeaders(), json: { error: 'no_label_found' } })
+    return route.fulfill({ headers: corsHeaders(), json: { label: this.labelExtract.label } })
+  }
+
+  /**
    * Nachbild von supabase/functions/food-lookup (Open Food Facts). Tests legen
    * Produkte und Suchtreffer im schon verschlankten Format der Funktion an;
    * `foodLookup.down` spielt „OFF nicht erreichbar" (503) nach.
    */
   readonly foodLookup: {
     products: Record<string, Row | null>
+    /** `kind: 'item'` (Substanz-Scan in My Stack): nur Name, Marke, Menge. */
+    items: Record<string, Row | null>
     search: Record<string, Row[]>
     down: boolean
-    calls: { barcode?: string; query?: string }[]
-  } = { products: {}, search: {}, down: false, calls: [] }
+    calls: { barcode?: string; query?: string; kind?: string }[]
+  } = { products: {}, items: {}, search: {}, down: false, calls: [] }
 
   private async handleFoodLookup(route: Route): Promise<void> {
-    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string }
-    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query })
+    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string; kind?: string }
+    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query, ...(body.kind ? { kind: body.kind } : {}) })
     if (this.foodLookup.down) return route.fulfill({ status: 503, headers: corsHeaders(), json: { error: 'upstream_unavailable' } })
+    if (body.barcode !== undefined && body.kind === 'item') return route.fulfill({ headers: corsHeaders(), json: { item: this.foodLookup.items[body.barcode] ?? null } })
     if (body.barcode !== undefined) return route.fulfill({ headers: corsHeaders(), json: { product: this.foodLookup.products[body.barcode] ?? null } })
     const key = String(body.query ?? '').trim().toLowerCase()
     return route.fulfill({ headers: corsHeaders(), json: { results: this.foodLookup.search[key] ?? [] } })
+  }
+
+  /**
+   * Nachbild von supabase/functions/food-photo (Foto/Notiz → Anthropic): ohne
+   * Einwilligung 403 `consent_required`, sonst `foodPhoto.result` (Gericht,
+   * needsNote, Zutaten); mit `foodPhoto.error` dieser Fehlercode.
+   */
+  readonly foodPhoto: {
+    result: Row
+    error: { status: number; code: string } | null
+    calls: { mimeType: string | null; hint: string; lang: string }[]
+  } = { result: { dish: '', needsNote: false, ingredients: [] }, error: null, calls: [] }
+
+  private async handleFoodPhoto(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!profil?.ai_food_consent_at) return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; hint?: string; lang?: string }
+    this.foodPhoto.calls.push({ mimeType: body.mimeType ?? null, hint: String(body.hint ?? ''), lang: String(body.lang ?? '') })
+    if (this.foodPhoto.error) return route.fulfill({ status: this.foodPhoto.error.status, headers: corsHeaders(), json: { error: this.foodPhoto.error.code } })
+    return route.fulfill({ headers: corsHeaders(), json: { ...this.foodPhoto.result, remaining: 29 } })
   }
 
   /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */
@@ -485,6 +547,9 @@ export class MockSupabase {
     const name = url.pathname.slice('/rest/v1/rpc/'.length)
     const params = (route.request().postDataJSON() ?? {}) as Record<string, unknown>
     this.rpcCalls.push({ name, params })
+    if (this.missingRpcs.has(name)) {
+      return route.fulfill({ status: 404, headers: corsHeaders(), json: { code: 'PGRST202', message: `Could not find the function public.${name}`, details: null, hint: null } })
+    }
     const handler = this.rpcHandlers.get(name)
     if (!handler) {
       this.unhandled.push(`RPC ${name}`)
@@ -508,9 +573,18 @@ export class MockSupabase {
     const prefer = headers.prefer ?? ''
     const filters = [...url.searchParams.entries()].filter(([key]) => !RESERVED_PARAMS.has(key))
     const rows = this.table(tableName)
+    // Filter auf eine eingebettete Spalte (`art.kind=eq.effect`) nur fuer
+    // `!inner`-Einbettungen: die Zeile bleibt, wenn mindestens ein Kind passt.
+    const embedded = new Map(parseSelect(url.searchParams.get('select') ?? '*').filter(field => field.children).map(field => [field.alias, field.table!]))
+    const embeddedMatch = (row: Row, column: string, filter: string) => {
+      const [alias, childColumn] = column.split('.')
+      const relation = RELATIONS[tableName]?.[embedded.get(alias) ?? '']
+      if (!relation || relation.kind !== 'many') throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      return this.table(relation.table).some(child => child[relation.foreign] === row[relation.local] && matches(child, childColumn, filter))
+    }
     const selected = () => rows.filter(row => filters.every(([column, filter]) => {
       if (column === 'or' || column === 'and') return logicalMatch(row, column, filter)
-      if (column.includes('.')) throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      if (column.includes('.')) return embeddedMatch(row, column, filter)
       return matches(row, column, filter)
     }))
 
@@ -577,6 +651,11 @@ export class MockSupabase {
     if (method === 'DELETE') {
       const doomed = new Set(selected())
       this.tables.set(tableName, rows.filter(row => !doomed.has(row)))
+      // on delete cascade aus supabase-tagebuch-chips.sql
+      if (tableName === 'effects') {
+        const gone = new Set([...doomed].map(row => row.id))
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => !gone.has(row.effect_id)))
+      }
       return returnRows ? respond([...doomed]) : route.fulfill({ status: 204, headers: corsHeaders() })
     }
 
@@ -841,6 +920,50 @@ export class MockSupabase {
       const cycle = this.table('cycles').find(row => row.id === cycleId)
       if (cycle) Object.assign(cycle, pickSchedule(snapshot))
       return version
+    })
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tagebuch (supabase-tagebuch-save-rpc.sql): Eintrag und Chips in einem
+  // Aufruf. Nachgebaut: Pflichtangaben, Art/Intensität aus den Chips, Chips
+  // ersetzen; ein Katalog-Chip nur einmal je Eintrag. Alles oder nichts.
+
+  private registerDiaryRpcs(): void {
+    this.onRpc('save_diary_entry', params => {
+      const entry = (params.p_entry ?? {}) as Row
+      const chips = (params.p_chips ?? []) as Row[]
+      const title = String(entry.description ?? '').trim()
+      if (!title) throw new RpcError('diary_title_required')
+      if (!chips.length) throw new RpcError('diary_chips_required')
+      const keys = chips.map(chip => chip.symptom_key).filter(Boolean)
+      if (new Set(keys).size !== keys.length) throw new RpcError('duplicate key value violates unique constraint "effect_symptoms_effect_key_uniq"')
+      const kinds = new Set(chips.map(chip => chip.kind))
+      const fields = {
+        description: title,
+        type: kinds.size === 1 ? chips[0].kind : null,
+        severity: Math.max(...chips.map(chip => Number(chip.severity))),
+        duration: null,
+        occurred_at: entry.occurred_at,
+        stack_item_id: entry.stack_item_id || null,
+        dose_log_id: entry.dose_log_id || null,
+        notes: String(entry.notes ?? '').trim() || null,
+      }
+      let effect: Row
+      if (params.p_effect_id) {
+        const found = this.table('effects').find(row => row.id === params.p_effect_id && row.user_id === TEST_USER.id)
+        if (!found) throw new RpcError('diary_entry_not_found')
+        effect = Object.assign(found, fields)
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => row.effect_id !== effect.id))
+      } else {
+        effect = this.insert('effects', { user_id: TEST_USER.id, status: 'eingetreten', ...fields })
+      }
+      chips.forEach((chip, position) => this.insert('effect_symptoms', {
+        effect_id: effect.id, user_id: TEST_USER.id,
+        symptom_key: chip.symptom_key || null, custom_label: String(chip.custom_label ?? '').trim() || null,
+        kind: chip.kind, severity: chip.severity, duration_minutes: chip.duration_minutes ?? null,
+        ongoing: chip.ongoing === true, position,
+      }))
+      return effect.id
     })
   }
 

@@ -1835,7 +1835,9 @@ describe('Füllstandsanzeige im Karussell', () => {
       .join('\n')
 
     expect(source).toContain('hasMeaningfulFill')
-    expect(source).toContain("const showsFillPct = pegel !== null || anbruchArt(p.dosage_form) === 'vial'")
+    // Eine Regel fuer Karussell und Ladesilhouette (zeigtPegel in model.ts)
+    expect(source).toContain("return fuellstandFuer(p) !== null || anbruchArt(p.dosage_form) === 'vial'")
+    expect(source).toContain('const showsFillPct = zeigtPegel(p)')
     expect(source).toContain('isActive && showsFillPct')
     // no branching on the dosage form itself — a new form must only have to
     // declare its capabilities, not be added here as well

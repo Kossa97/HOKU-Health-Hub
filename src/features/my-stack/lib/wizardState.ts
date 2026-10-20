@@ -253,6 +253,12 @@ export type WizardAction =
   /** Den ganzen Plan neu vorbelegen (Id des Zyklus bleibt). */
   | { type: 'plan_replaced'; plan: IntakePlanDraft }
   | { type: 'save_mode_selected'; mode: Extract<WizardSaveMode, 'update' | 'duplicate'> }
+  /**
+   * Leerer Entwurf, gleicher Schritt — vor einem Scan. Der Scan ersetzt den
+   * Eintrag; Reste eines frueheren Scans (Marke, Form, Zeilen) blieben sonst
+   * stehen und mischten zwei Produkte.
+   */
+  | { type: 'draft_restarted'; colorHex: string }
 
 function emptyIngredient(position: number): StackItemIngredient {
   return {
@@ -504,6 +510,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
   switch (action.type) {
     case 'step_selected':
       return { ...state, step: action.step }
+    case 'draft_restarted':
+      return { ...initialWizardState(undefined, action.colorHex), step: state.step }
     case 'catalog_selected': {
       // Die Kategorie des NEUEN Eintrags, nicht die alte: sie entscheidet beim
       // Vial, ob dort ein Pulver liegt oder eine fertige Loesung.

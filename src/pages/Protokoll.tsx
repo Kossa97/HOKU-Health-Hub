@@ -30,6 +30,7 @@ import {
   type EffectRow,
   type ReviewRow,
 } from '../lib/insights'
+import { SYMPTOM_COLUMNS, symptomLabel } from '../lib/tagebuch/diary'
 import {
   isWellnessMarker,
   wellnessMarkersWithData,
@@ -656,7 +657,7 @@ export function Protokoll() {
       .sort((a, b) => b.pct - a.pct)
   }, [doseLogs, activeCycles, completedCycles])
 
-  const sideEffectStats = useMemo(() => topSideEffects(effects), [effects])
+  const sideEffectStats = useMemo(() => topSideEffects(effects, observation => symptomLabel(observation, language)), [effects, language])
   const substanceEffectStats = useMemo(() => effectsBySubstance(effects), [effects])
   const substanceReviewStats = useMemo(() => reviewsBySubstance(reviews), [reviews])
 
@@ -739,7 +740,7 @@ export function Protokoll() {
         .order('logged_at', { ascending: true }),
       supabase
         .from('effects')
-        .select('id, type, description, severity, stack_item_id, occurred_at, stack_items(display_name)')
+        .select(`id, type, description, severity, stack_item_id, occurred_at, stack_items(display_name), effect_symptoms(${SYMPTOM_COLUMNS})`)
         .eq('user_id', user.id)
         .gte('occurred_at', `${range.from}T00:00:00`)
         .lte('occurred_at', `${range.to}T23:59:59`)

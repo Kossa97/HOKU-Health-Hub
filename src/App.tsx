@@ -44,7 +44,7 @@ const DevPreviews = import.meta.env.DEV ? lazyPage(() => import('./pages/__DevPr
 // Während der Code einer Seite lädt, steht ihr Umriss da
 function RouteFallback() {
   const { pathname } = useLocation()
-  return <SeitenSilhouette art={silhouetteFuerPfad(pathname)} />
+  return <SeitenSilhouette art={silhouetteFuerPfad(pathname)} pfad={pathname} />
 }
 
 function LazyPage({ children, oeffentlich = false }: { children: ReactNode; oeffentlich?: boolean }) {

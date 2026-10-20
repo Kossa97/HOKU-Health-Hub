@@ -54,6 +54,7 @@ export function InjectionTrackerTabs({
   return (
     <>
       <div
+        data-injection-cover="bottom"
         className="injection-floating-actions pointer-events-none absolute left-4 right-4 z-30 flex items-center justify-between gap-3"
         style={{ bottom: 'calc(14px + env(safe-area-inset-bottom))' }}
       >
@@ -112,6 +113,7 @@ export function InjectionTrackerTabs({
 
       {activeSheet === 'history' && (
         <section
+          data-injection-cover="bottom"
           data-app-modal
           role="dialog"
           aria-modal="true"

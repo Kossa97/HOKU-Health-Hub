@@ -1021,7 +1021,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           timelineLoadState === 'loading'
             ? <Silhouette><Zeilen breiten={['58%']} h={13} /></Silhouette>
             : (
-              <div role="alert" className="text-sm text-slate-400">
+              <div role="alert" data-umriss-nicht-merken className="text-sm text-slate-400">
                 <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
                 <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
                   {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}

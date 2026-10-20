@@ -57,6 +57,23 @@ const DEMO_DATA: ProtocolData = {
 
 export function PdfPreview() {
   const [open, setOpen] = useState(true)
+  // ?variant=page zeigt die Vollseite wie unter /protokoll statt des Modals.
+  const asPage = new URLSearchParams(window.location.search).get('variant') === 'page'
+
+  if (asPage) {
+    return (
+      <div className="min-h-screen px-3 pt-4">
+        <ProtocolPdfModal
+          userId="__pdf_preview__"
+          initialRange={{ from: '2026-06-01', to: '2026-06-30' }}
+          uiLang="de"
+          previewData={DEMO_DATA}
+          variant="page"
+          onClose={() => {}}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 p-6 text-slate-200">

@@ -1,5 +1,6 @@
 /* global Deno */
-// Lebensmittel aus Open Food Facts — per Barcode oder Suche.
+// Lebensmittel aus Open Food Facts — per Barcode oder Suche. Mit `kind: 'item'`
+// nur Name und Marke eines Produkts (Substanz-Scan in My Stack).
 // Läuft über uns, nicht direkt aus dem Browser: OFF verlangt einen eigenen
 // User-Agent, die Antwort wird verschlankt und zwischengespeichert, und OFF
 // sieht weder IP noch Suchbegriffe einzelner Nutzer.
@@ -11,11 +12,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {
   type OffFood,
+  type OffItem,
   RateLimiter,
   TtlCache,
   USER_AGENT,
+  itemUrl,
   normalizeBarcode,
   normalizeQuery,
+  parseItemResponse,
   parseProductResponse,
   parseSearchResponse,
   productUrl,
@@ -32,6 +36,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
 const productCache = new TtlCache<OffFood | null>(24 * 60 * 60 * 1000)
+const itemCache = new TtlCache<OffItem | null>(24 * 60 * 60 * 1000)
 const searchCache = new TtlCache<OffFood[]>(60 * 60 * 1000)
 const perUser = new RateLimiter(30, 60 * 1000)
 // Unter den OFF-Grenzen bleiben (15 bzw. 10 je Minute), mit Abstand.
@@ -74,6 +79,17 @@ Deno.serve(async (request: Request) => {
     if (body.barcode !== undefined) {
       const barcode = normalizeBarcode(body.barcode)
       if (!barcode) return json({ error: 'invalid_barcode' }, 400)
+      // My Stack: Substanz per Barcode. Nur Name und Marke, ohne Nährwerte.
+      if (body.kind === 'item') {
+        const key = `${lang}:${barcode}`
+        let item = itemCache.get(key)
+        if (item === undefined) {
+          if (!upstreamProducts.take('all')) return json({ error: 'rate_limited' }, 429)
+          item = parseItemResponse(await fetchOff(itemUrl(barcode)), lang)
+          itemCache.set(key, item)
+        }
+        return json({ item })
+      }
       const key = `${lang}:${barcode}`
       let product = productCache.get(key)
       if (product === undefined) {

@@ -49,7 +49,7 @@ export function DropsRenderer({ item, sloshEngine, ...visualProps }: DropsRender
   )
 
   return (
-    <div data-stack-renderer="drops">
+    <div data-stack-renderer="drops" data-umriss-form="drops">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{flasche}</SloshProvider> : flasche}
     </div>
   )

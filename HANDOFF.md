@@ -8,6 +8,14 @@
 - [ ] **Store-Einreichung:** Checkliste `docs/store-compliance.md` (Platzhalter in den Rechtstexten, Konsolen-Angaben, Demo-Konto).
 - [ ] **Vercel: `VITE_ANTHROPIC_KEY` → `ANTHROPIC_API_KEY`.** Nicht dringend: der Schlüssel wird nur serverseitig in `api/peptide-ai.js` gelesen (liest `ANTHROPIC_API_KEY` schon zuerst). Aber `VITE_`-Variablen landen im Browser-Bundle, sobald App-Code sie anfasst. Weg: in Vercel neuen Eintrag `ANTHROPIC_API_KEY` (Secret, Production + Preview) mit dem Schlüssel anlegen — der alte ist „Sensitive" und nicht mehr auslesbar, ggf. in console.anthropic.com einen neuen erzeugen —, dann `VITE_ANTHROPIC_KEY` löschen, neu deployen, alten Schlüssel bei Anthropic widerrufen.
 
+## Substanz-Scan in My Stack (Stand 19.10.2026)
+
+Im Assistenten („Substanz hinzufügen", nur beim Neuanlegen) neben der Suche ein Scan-Knopf (`components/SubstanzScanner.tsx`). Zuerst Barcode ohne KI: `food-lookup` mit `kind: 'item'` liefert aus Open Food Facts nur Name, Marke, Menge (auch Supplements ohne Nährwerte); Form und Stärke je Stück kommen aus dem Produktnamen. Sonst Etikett fotografieren oder Foto wählen → neue Edge Function `label-extract` (Claude Haiku 5.5, JSON-Schema, Bild wird nicht gespeichert, Grenze 10 je 10 min / 40 je Tag und Instanz). Abgleich mit dem Katalog und Vorbelegung (Substanz, Form, Stärke, Marke) in `lib/substanzScan.ts` (getestet); ein Scan ersetzt den Entwurf (`draft_restarted`), der Nutzer prüft danach jeden Schritt. Kamera gemeinsam mit der Ernährung (`ernaehrung/lib/useBarcodeKamera.ts`).
+Einwilligung: dieselbe wie für Befunde (`ai_import_consent_at`), Text in de/en erweitert. Für Etiketten zählt sie erst ab `ETIKETT_EINWILLIGUNG_AB` = `LABEL_CONSENT_SINCE` (2026-10-19); ältere werden einmal neu gefragt (zurücknehmen + erteilen, weil der Trigger sonst den alten Zeitpunkt behält). Datenschutzerklärung und `NSCameraUsageDescription` angepasst. Keine DB-Änderung.
+- [x] `label-extract` in Supabase deployed (19.10.2026, Version 1).
+- [ ] **`food-lookup` deployen** (Barcode-Modus `kind: 'item'`). Bis dahin endet der Barcode-Weg in My Stack bei „Barcode unbekannt, Etikett fotografieren“.
+- [ ] Liegt der Release (Merge von PR #36) deutlich nach dem 19.10., den Stichtag in `aiConsent.ts` und `label-extract/prompt.ts` auf den Release-Tag setzen und `label-extract` neu deployen.
+
 ## Betrieb (Stand 29.09.2026)
 
 - **Fehler-Monitoring: Sentry**, Organisation `devin-koslowski`, Projekt `javascript-react`, Region EU (`de.sentry.io`). `VITE_SENTRY_DSN` und `SENTRY_AUTH_TOKEN` stehen in Vercel. Filter vor dem Senden: `src/lib/monitoring.ts` (nur bekannte Fehlertexte, keine Nutzerdaten; bei Updates des Sentry-Pakets prüfen, ob neue Standardwerte Daten sammeln). IP-Speicherung in Sentry ausgeschaltet. Source-Maps lädt der Build hoch (`vite.config.ts`) und löscht sie danach. Der Sentry-Connector ist mit Claude verbunden: „schau in Sentry" genügt.
