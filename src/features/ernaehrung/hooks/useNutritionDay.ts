@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { addDays, format, parseISO } from 'date-fns'
+import { addDays, parseISO } from 'date-fns'
+import { dayKey } from '../../../lib/sharedDay'
 import { frequentFoods } from '../lib/foodSearch'
 import { DEFAULT_GOALS, type Food, type Goals, type LogEntry, type Meal, groupByMeal, sumNutrients } from '../lib/nutrition'
 import * as store from '../services/nutritionStore'
+import { type DayTotals, EMPTY_TOTALS, addTotals, weekRange } from '../lib/dayRings'
 
-export const toDateKey = (d: Date) => format(d, 'yyyy-MM-dd')
+export const toDateKey = dayKey
 
 export interface DayState {
   /** Für welchen Tag die Daten gelten — beim Tageswechsel wird nichts vom alten Tag angezeigt. */
   date: string
   entries: LogEntry[]
   waterMl: number
-  week: Record<string, { kcal: number; protein: number }>
 }
 
 /**
@@ -26,18 +27,30 @@ export function useNutritionDay(userId: string, date: string) {
   const [goalsSet, setGoalsSet] = useState<boolean | null>(null)
   const [myFoods, setMyFoods] = useState<Food[]>([])
   const [recent, setRecent] = useState<LogEntry[]>([])
+  /** Summen je Tag der Kalenderwoche (Mo–So). Eigener Stand: bleibt beim Tageswechsel innerhalb der Woche stehen. */
+  const [week, setWeek] = useState<{ from: string; totals: Record<string, DayTotals> } | null>(null)
+  const [weekError, setWeekError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
   const dateRef = useRef(date)
   useEffect(() => { dateRef.current = date }, [date])
+  const { from: weekFrom, to: weekTo } = weekRange(date)
 
   useEffect(() => {
     let cancelled = false
-    const from = toDateKey(addDays(parseISO(date), -6))
-    Promise.all([store.loadDay(userId, date), store.loadRange(userId, from, date)])
-      .then(([d, week]) => { if (!cancelled) { setDay({ ...d, week, date }); setLoadError(false) } })
+    store.loadDay(userId, date)
+      .then(d => { if (!cancelled) { setDay({ ...d, date }); setLoadError(false) } })
       .catch(() => { if (!cancelled) setLoadError(true) })
     return () => { cancelled = true }
   }, [userId, date, reloadToken])
+
+  // Die Woche nur neu laden, wenn sie wechselt — nicht bei jedem Tag darin.
+  useEffect(() => {
+    let cancelled = false
+    store.loadRange(userId, weekFrom, weekTo)
+      .then(totals => { if (!cancelled) { setWeek({ from: weekFrom, totals }); setWeekError(false) } })
+      .catch(() => { if (!cancelled) setWeekError(true) })
+    return () => { cancelled = true }
+  }, [userId, weekFrom, weekTo, reloadToken])
 
   // Gehört der geladene Stand nicht zum gewählten Tag (Wechsel läuft oder scheiterte), gibt es keinen.
   const current = day?.date === date ? day : null
@@ -58,25 +71,25 @@ export function useNutritionDay(userId: string, date: string) {
   const applyAdded = useCallback((added: LogEntry[]) => {
     setDay(d => {
       if (!d || d.date !== dateRef.current) return d
-      const today = added.filter(e => e.date === dateRef.current)
-      const week = { ...d.week }
+      return { ...d, entries: [...d.entries, ...added.filter(e => e.date === dateRef.current)] }
+    })
+    setWeek(w => {
+      if (!w) return w
+      const totals = { ...w.totals }
       for (const e of added) {
-        if (!(e.date in week) && e.date !== dateRef.current) continue
-        const w = week[e.date] ?? { kcal: 0, protein: 0 }
-        week[e.date] = { kcal: w.kcal + e.nutrients.kcal, protein: w.protein + e.nutrients.protein }
+        if (e.date >= w.from && e.date <= weekRange(w.from).to) totals[e.date] = addTotals(totals[e.date] ?? EMPTY_TOTALS, e.nutrients)
       }
-      return { ...d, entries: [...d.entries, ...today], week }
+      return { ...w, totals }
     })
     const ids = new Set(added.map(e => e.id))
     setRecent(r => [...[...added].reverse(), ...r.filter(e => !ids.has(e.id))].slice(0, 200))
   }, [])
 
   const applyRemoved = useCallback((removed: LogEntry) => {
-    setDay(d => {
-      if (!d) return d
-      const w = d.week[removed.date]
-      const week = w ? { ...d.week, [removed.date]: { kcal: w.kcal - removed.nutrients.kcal, protein: w.protein - removed.nutrients.protein } } : d.week
-      return { ...d, entries: d.entries.filter(e => e.id !== removed.id), week }
+    setDay(d => (d ? { ...d, entries: d.entries.filter(e => e.id !== removed.id) } : d))
+    setWeek(w => {
+      const t = w?.totals[removed.date]
+      return w && t ? { ...w, totals: { ...w.totals, [removed.date]: addTotals(t, removed.nutrients, -1) } } : w
     })
     setRecent(r => r.filter(e => e.id !== removed.id))
   }, [])
@@ -176,7 +189,7 @@ export function useNutritionDay(userId: string, date: string) {
   const frequentFor = useCallback((meal: Meal | null) => frequentFoods(recent, meal, myFoods), [recent, myFoods])
 
   return {
-    day: current, loadError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
+    day: current, week: week?.from === weekFrom ? week.totals : null, loadError: loadError || weekError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
     add, addMany, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }

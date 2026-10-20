@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ScanBarcode, Target, Trash2 } from 'lucide-r
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
+import { readSharedDay, writeSharedDay } from '../../lib/sharedDay'
 import { Ph, Silhouette, SkelKarte } from '../../components/ui/Silhouette'
 import { getDateLocale } from '../../i18n/dateLocales'
 import { Sheet } from '../compliance/components/Sheet'
@@ -13,6 +14,7 @@ import { DaySummary } from './components/DaySummary'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
+import { MonthSheet } from './components/MonthSheet'
 import { MealSection } from './components/MealSection'
 import { PhotoSheet } from './components/PhotoSheet'
 import { SheetClose } from '../../components/ui/SheetClose'
@@ -54,6 +56,7 @@ type SheetState =
   | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
   | DishSheet
   | { kind: 'goals' }
+  | { kind: 'month' }
 
 /** Das gewählte Lebensmittel mit Menge zurück an Gericht bzw. Foto-Prüfliste. */
 function withPicked(pick: Picker, food: Food, amount: number, lang: string): SheetState {
@@ -67,7 +70,17 @@ export function ErnaehrungPage() {
   const locale = getDateLocale()
   const userId = user!.id
   const todayKey = toDateKey(new Date())
-  const [date, setDate] = useState(todayKey)
+  // Gemeinsamer Tag mit dem Kalender (siehe sharedDay.ts), nie in der Zukunft.
+  const [date, setDate] = useState(() => {
+    const shared = readSharedDay(todayKey)
+    return shared && shared < todayKey ? shared : todayKey
+  })
+  /** Tag wechseln — nur hier wird der gemeinsame Tag geschrieben, nicht beim Öffnen (sonst ginge ein im Kalender gewählter künftiger Tag verloren). */
+  const pickDate = (d: string) => {
+    const next = d > todayKey ? todayKey : d
+    setDate(next)
+    writeSharedDay(next, todayKey)
+  }
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
   const [sheet, setSheet] = useState<SheetState>(null)
@@ -80,10 +93,7 @@ export function ErnaehrungPage() {
     try { await fn(); return true } catch { toast.error(t('nutr_error')); return false } finally { setBusy(false) }
   }
 
-  const shiftDay = (days: number) => setDate(d => {
-    const next = toDateKey(addDays(parseISO(d), days))
-    return next > todayKey ? todayKey : next
-  })
+  const shiftDay = (days: number) => pickDate(toDateKey(addDays(parseISO(date), days)))
 
   /**
    * Ein Eintrag zeigt beim Bearbeiten SEINE Werte (Schnappschuss), nicht die
@@ -183,7 +193,7 @@ export function ErnaehrungPage() {
       <nav aria-label={t('nutr_day_nav')} className="mt-3 flex items-center justify-between">
         <button type="button" aria-label={t('nutr_prev_day')} onClick={() => shiftDay(-1)}
           className="lg-icon-btn !text-[var(--accent)]"><ChevronLeft size={22} /></button>
-        <button type="button" onClick={() => setDate(todayKey)} disabled={isToday} aria-live="polite"
+        <button type="button" onClick={() => pickDate(todayKey)} disabled={isToday} aria-live="polite"
           className="min-h-11 px-3 text-[17px] font-semibold text-[var(--lg-text)] disabled:cursor-default">
           {isToday ? t('nutr_today') : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMMM', { locale })}
         </button>
@@ -210,11 +220,15 @@ export function ErnaehrungPage() {
       )}
 
       <div className="mt-3 space-y-3">
-        {n.day ? <DaySummary total={n.total} goals={n.goals} /> : (
+        {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
+        <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
+          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
+
+        {n.day ? <DaySummary total={n.total} goals={n.goals} date={date} /> : (
           <Silhouette>
-            <SkelKarte className="flex h-[164px] items-center justify-center gap-5 p-4">
-              <Ph w={132} h={132} shape="round" />
-              <div className="flex flex-col gap-2"><Ph w={56} h={11} /><Ph w={72} h={20} /><Ph w={64} h={11} /></div>
+            <SkelKarte className="flex h-[452px] flex-col items-center justify-center gap-3 p-4">
+              <Ph w={140} h={140} shape="round" />
+              <div className="mt-16 flex flex-col items-center gap-2"><Ph w={120} h={28} /><Ph w={96} h={12} /><Ph w={220} h={12} /></div>
             </SkelKarte>
           </Silhouette>
         )}
@@ -234,8 +248,6 @@ export function ErnaehrungPage() {
           <>
             <WaterCard ml={n.day.waterMl} goalMl={n.goals.waterMl}
               onChange={ml => { n.setWater(ml).catch(() => toast.error(t('nutr_error'))) }} />
-            <WeekStrip date={date} week={n.day.week} goalKcal={n.goals.kcal} goalProtein={n.goals.proteinG}
-              hideKcal={n.goals.hideKcal} onPick={setDate} />
           </>
         )}
       </div>
@@ -392,6 +404,11 @@ export function ErnaehrungPage() {
       {sheet?.kind === 'goals' && (
         <GoalsSheet userId={userId} today={todayKey} current={n.goals} busy={busy} onClose={() => setSheet(null)}
           onSave={g => run(async () => { await n.saveGoals(g); setSheet(null); toast.success(t('nutr_goals_saved')) })} />
+      )}
+
+      {sheet?.kind === 'month' && (
+        <MonthSheet userId={userId} date={date} today={todayKey} goals={n.goals} live={n.total}
+          onPick={pickDate} onClose={() => setSheet(null)} />
       )}
     </div>
   )

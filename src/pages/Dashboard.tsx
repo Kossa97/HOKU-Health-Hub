@@ -68,6 +68,7 @@ import { PageShell } from '../components/ui/DesignSystem'
 import { EinnahmenUmriss, Silhouette } from '../components/ui/Silhouette'
 import { useSheetClose } from '../lib/useSheetClose'
 import { denyProps } from '../lib/denyFeedback'
+import { dayKey, readSharedDay, writeSharedDay } from '../lib/sharedDay'
 
 interface DoseLog {
   id: string
@@ -300,13 +301,21 @@ interface DashboardProps {
   dashboardDataClient?: typeof supabase
 }
 
+/** Startet auf dem Tag, der zuletzt in Kalender oder Ernährung gewählt war (siehe sharedDay.ts). */
+function initialDay(): Date {
+  const shared = readSharedDay(dayKey(new Date()))
+  return shared ? parseISO(shared) : new Date()
+}
+
 export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {}) {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const locale = getDateLocale()
   const { user } = useAuth()
-  const [currentDate, setCurrentDate] = useState(new Date())
+  // Einmal bestimmen und beiden Zuständen geben — sonst könnten sie um Mitternacht auseinanderfallen.
+  const [startDay] = useState(initialDay)
+  const [currentDate, setCurrentDate] = useState(startDay)
   const [logs, setLogs] = useState<DoseLog[]>([])
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [timelines, setTimelines] = useState<CycleTimeline[]>([])
@@ -320,7 +329,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [stackItems, setStackItems] = useState<StackItem[]>([])
   const [escalations, setEscalations] = useState<Escalation[]>([])
 
-  const [selectedDay, setSelectedDay] = useState<Date>(new Date())
+  const [selectedDay, setSelectedDay] = useState<Date>(startDay)
+  useEffect(() => {
+    writeSharedDay(dayKey(selectedDay), dayKey(new Date()))
+  }, [selectedDay])
   const timelineSelection = FEATURES.planTimelineV2 ? format(selectedDay, 'yyyy-MM-dd') : ''
 
   // Der Ausschnitt, den die Abfrage wirklich liest -- als Text, nicht als
