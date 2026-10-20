@@ -224,11 +224,11 @@ export function ErnaehrungPage() {
         <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
           onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
 
-        {n.day ? <DaySummary total={n.total} goals={n.goals} /> : (
+        {n.day ? <DaySummary total={n.total} goals={n.goals} date={date} /> : (
           <Silhouette>
-            <SkelKarte className="flex h-[164px] items-center justify-center gap-5 p-4">
-              <Ph w={132} h={132} shape="round" />
-              <div className="flex flex-col gap-2"><Ph w={56} h={11} /><Ph w={72} h={20} /><Ph w={64} h={11} /></div>
+            <SkelKarte className="flex h-[452px] flex-col items-center justify-center gap-3 p-4">
+              <Ph w={140} h={140} shape="round" />
+              <div className="mt-16 flex flex-col items-center gap-2"><Ph w={120} h={28} /><Ph w={96} h={12} /><Ph w={220} h={12} /></div>
             </SkelKarte>
           </Silhouette>
         )}

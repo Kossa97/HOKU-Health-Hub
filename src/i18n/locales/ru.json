@@ -2550,5 +2550,6 @@
   "nutr_kcal_short": "Calories",
   "nutr_week_avg_kcal_one": "Avg {{value}} kcal on 1 day",
   "nutr_week_avg_protein_one": "Avg {{value}} g protein on 1 day",
-  "nutr_week_calendar": "Week"
+  "nutr_week_calendar": "Week",
+  "nutr_orb_unit": "1 dot = {{kcal}} kcal · 1 g"
 }

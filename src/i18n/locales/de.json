@@ -2782,5 +2782,6 @@
   "nutr_kcal_short": "Kalorien",
   "nutr_week_avg_kcal_one": "Ø {{value}} kcal an 1 Tag",
   "nutr_week_avg_protein_one": "Ø {{value}} g Eiweiß an 1 Tag",
-  "nutr_week_calendar": "Woche"
+  "nutr_week_calendar": "Woche",
+  "nutr_orb_unit": "1 Punkt = {{kcal}} kcal · 1 g"
 }

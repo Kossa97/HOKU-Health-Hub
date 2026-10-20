@@ -2,13 +2,14 @@ import { format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getDateLocale } from '../../../i18n/dateLocales'
-import { type DayTotals, EMPTY_TOTALS, dayAria, dayRings, weekDays } from '../lib/dayRings'
+import { type DayTotals, EMPTY_TOTALS, dayAria, weekDays } from '../lib/dayRings'
 import type { Goals } from '../lib/nutrition'
 import { CARD, MUTED } from '../styles'
-import { DayRings } from './DayRings'
+import { DayOrb } from './DayOrb'
 
 /**
- * Die Woche (Mo–So) mit Ringen je Tag: Kalorien und Makros auf einen Blick.
+ * Die Woche (Mo–So) mit einer Mini-Kalorien-Kugel je Tag; Reihenfolge
+ * Kugel – Zahl – Wochentag, der gewählte Tag auf grauer Fläche.
  * Bewusst ein Wochenschnitt statt Tagesnoten: einzelne Ausreißer zählen
  * weniger, und leere Tage sind einfach leer — kein Streak, keine Lücke, die
  * bestraft wird. Künftige Tage lassen sich nicht wählen.
@@ -51,15 +52,16 @@ export function WeekStrip({ date, today, week, goals, onPick, onOpenMonth }: {
           return (
             <button key={d} type="button" onClick={() => onPick(d)} disabled={future} aria-pressed={selected}
               aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goals, t)} data-nutr-day={d}
-              className="flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[14px] py-1.5 disabled:cursor-default">
-              <span className={`text-[12px] font-semibold ${selected ? 'text-[var(--lg-text)]' : MUTED}`}>
-                {format(parseISO(d), 'EEEEEE', { locale })}
-              </span>
-              <DayRings rings={dayRings(week[d] ?? EMPTY_TOTALS, goals)} size={38} dim={future} />
-              <span className={`grid h-6 min-w-6 place-items-center rounded-full px-1 text-[13px] font-semibold tabular-nums ${
-                selected ? 'bg-[var(--accent)] text-[var(--accent-contrast)]' : d === today ? 'text-[var(--accent)]' : 'text-[var(--lg-text)]'
+              className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1.5 rounded-[16px] pb-2 pt-1.5 transition-colors duration-200 disabled:cursor-default ${
+                selected ? 'bg-[var(--lg-fill)]' : ''}`}>
+              <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goals} size={38} dim={future} />
+              <span className={`text-[17px] leading-none tabular-nums ${
+                d === today ? 'font-bold text-[var(--accent)]' : selected ? 'font-bold text-[var(--lg-text)]' : 'font-medium text-[var(--lg-text)]'
               } ${future ? 'opacity-35' : ''}`}>
                 {format(parseISO(d), 'd')}
+              </span>
+              <span className={`text-[11px] font-semibold uppercase leading-none tracking-[0.4px] ${d === today ? 'text-[var(--accent)]' : MUTED}`}>
+                {format(parseISO(d), 'EEEEEE', { locale })}
               </span>
             </button>
           )

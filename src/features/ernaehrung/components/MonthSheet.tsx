@@ -5,21 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { getDateLocale } from '../../../i18n/dateLocales'
-import { type DayTotals, EMPTY_TOTALS, type RingKey, dayAria, dayRings, monthGrid, monthRange, weekDays } from '../lib/dayRings'
+import { type DayTotals, EMPTY_TOTALS, dayAria, monthGrid, monthRange, weekDays } from '../lib/dayRings'
 import type { Goals } from '../lib/nutrition'
 import { loadRange } from '../services/nutritionStore'
-import { ERROR_TEXT, MACRO_COLORS, MUTED } from '../styles'
-import { DayRings } from './DayRings'
-
-const LEGEND: { key: RingKey; label: string }[] = [
-  { key: 'kcal', label: 'nutr_kcal_short' },
-  { key: 'protein', label: 'nutr_protein' },
-  { key: 'carbs', label: 'nutr_carbs' },
-  { key: 'fat', label: 'nutr_fat' },
-]
+import { ERROR_TEXT, MUTED } from '../styles'
+import { DayOrb } from './DayOrb'
 
 /**
- * Monatsblatt der Ernährung: je Tag die Ringe für Kalorien und Makros.
+ * Monatsblatt der Ernährung: je Tag eine Mini-Kalorien-Kugel; die Makros stehen im aria-label.
  * Ein Tipp auf einen Tag wählt ihn und schließt das Blatt. Der laufende Tag
  * kommt aus der Seite (`live`), damit gerade Eingetragenes sofort stimmt.
  */
@@ -50,8 +43,6 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
   const totals = data && data !== 'error' && data.month === month ? { ...data.totals, [date]: live } : null
   const isCurrentMonth = month.slice(0, 7) >= today.slice(0, 7)
   const shift = (n: number) => { setData(null); setMonth(m => format(addMonths(parseISO(m), n), 'yyyy-MM-dd')) }
-  const rings = (d: string) => dayRings(totals?.[d] ?? EMPTY_TOTALS, goals)
-  const legend = LEGEND.filter(l => !(goals.hideKcal && l.key === 'kcal'))
 
   return (
     <Sheet labelledBy="nutr-month-title" onClose={onClose} tall data-nutr-month>
@@ -103,21 +94,12 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
                 } ${future ? 'opacity-35' : ''}`}>
                   {format(parseISO(d), 'd')}
                 </span>
-                <DayRings rings={rings(d)} size={30} dim={future || !totals} />
+                <DayOrb totals={totals?.[d] ?? EMPTY_TOTALS} goals={goals} size={30} dim={future || !totals} />
               </button>
             )
           })}
         </div>
       )}
-
-      <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label={t('nutr_rings_legend')}>
-        {legend.map(l => (
-          <li key={l.key} className={`flex items-center gap-1.5 text-[13px] ${MUTED}`}>
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: MACRO_COLORS[l.key] }} aria-hidden="true" />
-            {t(l.label)}
-          </li>
-        ))}
-      </ul>
     </Sheet>
   )
 }

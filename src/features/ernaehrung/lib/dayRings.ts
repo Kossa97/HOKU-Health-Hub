@@ -2,7 +2,7 @@ import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOf
 import type { TFunction } from 'i18next'
 import { getDateLocale } from '../../../i18n/dateLocales'
 import { dayKey } from '../../../lib/sharedDay'
-import { type Goals, share } from './nutrition'
+import type { Goals } from './nutrition'
 
 /** Summen eines Tages für Wochenleiste und Monatsblatt. */
 export interface DayTotals {
@@ -13,30 +13,6 @@ export interface DayTotals {
 }
 
 export const EMPTY_TOTALS: DayTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0 }
-
-export type RingKey = keyof DayTotals
-
-export interface Ring {
-  key: RingKey
-  /** 0–1; ein überschrittenes Ziel ist ein voller Ring, nicht mehr. */
-  fraction: number
-}
-
-/**
- * Ringe von außen nach innen: Kalorien, Eiweiß, Kohlenhydrate, Fett.
- * Kalorien ausgeblendet: kein Kalorienring, Eiweiß wird der äußere.
- */
-export function dayRings(totals: DayTotals, goals: Goals): Ring[] {
-  const rings: Ring[] = [
-    { key: 'kcal', fraction: share(totals.kcal, goals.kcal) },
-    { key: 'protein', fraction: share(totals.protein, goals.proteinG) },
-    { key: 'carbs', fraction: share(totals.carbs, goals.carbsG) },
-    { key: 'fat', fraction: share(totals.fat, goals.fatG) },
-  ]
-  return rings
-    .filter(r => !(goals.hideKcal && r.key === 'kcal'))
-    .map(r => ({ ...r, fraction: Math.min(1, Math.max(0, r.fraction)) }))
-}
 
 export function addTotals(a: DayTotals, b: DayTotals, sign: 1 | -1 = 1): DayTotals {
   return {

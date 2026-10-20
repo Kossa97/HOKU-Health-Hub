@@ -1,28 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_GOALS } from './nutrition'
-import { addTotals, dayRings, monthGrid, monthRange, weekDays, weekRange } from './dayRings'
-
-describe('dayRings', () => {
-  it('außen Kalorien, dann Eiweiß, Kohlenhydrate, Fett — Anteil am Ziel, höchstens voll', () => {
-    const rings = dayRings({ kcal: 1000, protein: 220, carbs: 0, fat: 32.5 }, DEFAULT_GOALS)
-    expect(rings).toEqual([
-      { key: 'kcal', fraction: 0.5 },
-      { key: 'protein', fraction: 1 },
-      { key: 'carbs', fraction: 0 },
-      { key: 'fat', fraction: 0.5 },
-    ])
-  })
-
-  it('Kalorien ausgeblendet: kein Kalorienring', () => {
-    const rings = dayRings({ kcal: 1000, protein: 55, carbs: 0, fat: 0 }, { ...DEFAULT_GOALS, hideKcal: true })
-    expect(rings.map(r => r.key)).toEqual(['protein', 'carbs', 'fat'])
-  })
-
-  it('Ziel 0 oder negative Summe (nach Löschen gerundet) ergibt einen leeren Ring', () => {
-    const rings = dayRings({ kcal: -0.1, protein: 10, carbs: 0, fat: 0 }, { ...DEFAULT_GOALS, proteinG: 0 })
-    expect(rings.slice(0, 2).map(r => r.fraction)).toEqual([0, 0])
-  })
-})
+import { addTotals, monthGrid, monthRange, weekDays, weekRange } from './dayRings'
 
 describe('addTotals', () => {
   it('addiert und zieht ab, nur die vier Summen', () => {
