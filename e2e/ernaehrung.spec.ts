@@ -23,8 +23,9 @@ const mealCard = (page: import('@playwright/test').Page, name: string) => page.g
 /** Eintragen: Die Punkte fliegen in die Kugel, das Formular bleibt offen — wieder frei, dann schließen. */
 async function addAndClose(page: import('@playwright/test').Page) {
   const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'Hinzufügen' }).click()
-  await expect(dialog.getByRole('button', { name: 'Hinzufügen' })).toBeEnabled()
+  // Genau dieser Name: sonst träfe der Klick auf langsamen Geräten noch „Zutat hinzufügen“ im Gericht-Editor.
+  await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled()
   await dialog.getByRole('button', { name: 'Schließen' }).click()
 }
 
@@ -510,10 +511,15 @@ test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nac
 
   // Hinzufügen: gesperrt, bis die Punkte angekommen sind; das Formular bleibt offen.
   const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'Hinzufügen' }).click()
-  await expect(dialog.getByRole('button', { name: 'Wird hinzugefügt …' })).toBeDisabled()
+  // Den Zustand gleich nach dem Klick im Browser lesen: die Sperre dauert nur ~1,2 s, langsame Läufe verpassten sie sonst.
+  const during = await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).evaluate(async (b: HTMLButtonElement) => {
+    b.click()
+    await new Promise(r => setTimeout(r, 0))
+    return { text: b.textContent, disabled: b.disabled }
+  })
+  expect(during).toEqual({ text: 'Wird hinzugefügt …', disabled: true })
   await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Hinzufügen' })).toBeEnabled()
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled()
   await dialog.getByRole('button', { name: 'Schließen' }).click()
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(2)
 })
