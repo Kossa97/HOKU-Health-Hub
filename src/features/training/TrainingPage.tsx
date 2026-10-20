@@ -136,10 +136,10 @@ export function TrainingPage() {
       {workout && !liveOpen && <RunningBanner startedAt={workout.startedAt} title={workout.title} editing={!!workout.sessionId} onResume={() => setLiveOpen(true)} />}
 
       {/* Laden: der Umriss der Karten statt eines Textes (wie überall in der App) */}
-      {data.state === 'loading' && <Silhouette label={tt('loading')}><KurvenUmriss /></Silhouette>}
+      {data.state === 'loading' && <Silhouette label={tt('loading')} abdruck><KurvenUmriss /></Silhouette>}
       {(data.state === 'error' || data.state === 'missing') && (
         <Card>
-          <p style={{ fontSize: 17, fontWeight: 600 }}>{data.state === 'missing' ? tt('setup_missing') : tt('load_error')}</p>
+          <p data-umriss-nicht-merken style={{ fontSize: 17, fontWeight: 600 }}>{data.state === 'missing' ? tt('setup_missing') : tt('load_error')}</p>
           <div style={{ marginTop: 12 }}><Button tone="ghost" onClick={data.reload}>{tt('retry')}</Button></div>
         </Card>
       )}

@@ -76,13 +76,33 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   werden ersetzt). Abweichung vom Mockup: Info-Knopf neben der Suche statt neben den
   Tabs (Tabs sonst auf iPhone SE zu schmal). e2e `tagebuch.spec.ts` neu, Mock kennt
   `effect_symptoms`, `!inner` und Filter auf eingebettete Spalten.
-  Bekannt, offen: Speichern sind mehrere Anfragen ohne Transaktion (Eintrag zuerst,
-  dann Chips; neuer Eintrag wird bei Chip-Fehler wieder gelöscht) – sauber wäre eine
-  RPC. Alias-/`!inner`-Filter nur gegen den Mock geprüft (Supabase-REST aus dem
-  Container gesperrt). Alte Einträge ohne Chips fallen aus dem Art-Filter.
-- **Schritt 3:** Auswertung (`src/pages/tagebuch/stats.ts`, `Auswertung.tsx`) und
-  Protokoll-PDF (`loadProtocolData.ts`, `Protokoll.tsx`) auf `effect_symptoms`
-  umstellen – bis dahin zählt ein gemischter Eintrag (type leer) als Nebenwirkung.
+  Bekannt, offen: Alias-/`!inner`-Filter nur gegen den Mock geprüft (Supabase-REST
+  aus dem Container gesperrt). Alte Einträge ohne Chips fallen aus dem Art-Filter.
+- **Schritt 3 erledigt (2026-10-19):** Auswertung, Protokoll-Einblicke und PDF zählen
+  je Chip (`src/lib/tagebuch/diary.ts`: `observationsOf`, Altfall = Eintrag als
+  eine Beobachtung; eigener Name wie Katalog-Chip zählt zu diesem). PDF: eine Zeile
+  je Chip mit Dauer, darunter Titel und Substanz. Verlaufstitel de/en „Wirkungen und
+  Nebenwirkungen pro Woche/Monat".
+- **Chip neu gestaltet (2026-10-19, Variante A aus dem Canvas
+  https://claude.ai/artifact/FZoDHpwaugFTRTYivWiZUB):** ruhige Pille ohne Überstände;
+  Symbol in einer Kachel – rund = Wirkung, eckig = Nebenwirkung (Art auch ohne Farbe);
+  Intensität als 5 Punkte am Ende; Dauer fällt weg, wenn sie nicht daneben passt.
+  Ersetzt Scheibe/Badge/Ausbuchtung mit ＋/−. Liste: Chips getrennt in „Wirkungen“ und
+  „Nebenwirkungen“ (Nutzerwunsch). Info-Sheet und Editor-Kopf angepasst. Offen: in der
+  Liste neben den Knöpfen ist es eng (Dauer fällt öfter weg) – Knöpfe nach oben rechts
+  verlegen wäre die Lösung, Entscheidung beim Nutzer.
+- **Atomares Speichern:** `supabase-tagebuch-save-rpc.sql` – `save_diary_entry`
+  (security invoker) schreibt Eintrag und ersetzt alle Chips in einer Transaktion,
+  Art/Intensität am Eintrag rechnet die Funktion. Trockenlauf 2× + Tests OK
+  (Rücknahme bei Fehler, fremder Eintrag nicht gefunden, anon ohne Recht, langer
+  Alt-Titel speicherbar). **Produktion (2026-10-20): noch nicht angewendet** – alle
+  schreibenden Supabase-Aufrufe aus der Sitzung brechen nach 60 s ab (5 Versuche,
+  Bestätigung erscheint nicht). Nutzer soll die Datei im SQL-Editor ausführen.
+  Übergang: App ruft die Funktion auf; fehlt sie (PGRST202), speichert sie wie früher
+  in mehreren Schritten (`persistStepwise`, nicht atomar). Danach entfernen.
+- **Liste (2026-10-20):** Bearbeiten/Löschen oben rechts auf Höhe des Titels (Nutzerwunsch),
+  Chips darunter in voller Kartenbreite – auf dem iPhone SE wird nichts mehr gekürzt.
+  Info-Sheet: Grafik markiert die Teile des Chips mit A–D.
 - Chip-Katalog (Entwurf unten) gegenlesen.
 - **Symbol-Audit (2026-10-19, design-system):** 43 Health Icons (Fläche, 48er,
   Strich ≈0,9 px), 8 Material Symbols (Fläche, 24er, ≈1,75 px – zu schwer),

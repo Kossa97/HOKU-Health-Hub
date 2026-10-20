@@ -1,6 +1,6 @@
 // src/lib/injectionFocusFrame.test.ts
 import { describe, expect, it } from 'vitest'
-import { focusTargetDrop, freeViewportFromRects } from './injectionFocusFrame'
+import { FOCUS_FLIGHT_MS, focusFlightEase, focusTargetDrop, freeViewportFromRects } from './injectionFocusFrame'
 
 const canvas = { top: 0, bottom: 1000, height: 1000 }
 const box = (top: number, bottom: number) => ({ top, bottom, height: bottom - top })
@@ -40,5 +40,23 @@ describe('focusTargetDrop', () => {
     // Bildposition des Pins (0 = oben): Mitte minus Versatz in Bildanteilen.
     expect(0.5 - drop / visibleHeight).toBeCloseTo((viewport.top + viewport.bottom) / 2)
     expect(drop).toBeGreaterThan(0)
+  })
+})
+
+describe('focusFlightEase', () => {
+  it('beginnt im ersten Bild am Start -- egal wie lange die Karte vorher stand', () => {
+    expect(focusFlightEase(0)).toBe(0)
+  })
+
+  it('laeuft weich und stetig bis zum Ziel', () => {
+    const samples = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map(f => focusFlightEase(f * FOCUS_FLIGHT_MS))
+    for (let i = 1; i < samples.length; i++) expect(samples[i]).toBeGreaterThan(samples[i - 1])
+    expect(samples[3]).toBeCloseTo(0.5)
+    expect(samples[1]).toBeLessThan(0.1)
+  })
+
+  it('bleibt nach Ende der Fahrt am Ziel', () => {
+    expect(focusFlightEase(FOCUS_FLIGHT_MS)).toBe(1)
+    expect(focusFlightEase(60_000)).toBe(1)
   })
 })

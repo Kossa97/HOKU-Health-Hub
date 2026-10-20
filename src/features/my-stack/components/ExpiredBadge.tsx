@@ -23,10 +23,11 @@ function expiredSinceLabel(t: Translate, daysSince: number): string {
  * `still` (Liste, Vollbild): ein blinkendes Warnsymbol und dahinter der
  * ganze Satz. Kein Rahmen, kein Gluehen, kein Textwechsel.
  *
- * `wechsel` (Karussell): das rote Abzeichen mit Rand. Endlos im
+ * `wechsel` (Karussell): das rote Abzeichen mit duennem Rand, so hoch wie
+ * das „Aktiv"-Abzeichen daneben (26 px, 13 px Schrift). Endlos im
  * 6-Sekunden-Takt: 3 s „Abgelaufen!" mit blinkendem Symbol und gluehendem
- * Rand, dann 3 s „seit X Tagen". Beide Texte liegen uebereinander, das
- * Abzeichen springt beim Wechsel nicht; vorgelesen wird beides zusammen.
+ * Rand, dann 3 s „seit X Tagen". Beide Texte liegen uebereinander und
+ * mittig, das Abzeichen springt beim Wechsel nicht; vorgelesen wird beides zusammen.
  * Bei „weniger Bewegung" steht still „seit X Tagen".
  *
  * Der Takt steht allein im CSS (`.tyd-expired-*` in `index.css`). Der
@@ -42,11 +43,11 @@ export function ExpiredBadge({ daysSince, variante = 'still' }: { daysSince: num
     return (
       <span
         data-expired-badge="wechsel"
-        className="tyd-expired-badge inline-flex items-center gap-1.5 rounded-full border border-red-500/35 bg-red-500/10 px-2.5 py-1 font-semibold text-red-300"
+        className="tyd-expired-badge inline-flex min-h-[26px] items-center gap-1.5 rounded-full border border-red-500/35 bg-red-500/10 px-2.5 text-[13px] font-semibold leading-none text-red-300"
       >
-        <AlertTriangle size={13} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
+        <AlertTriangle size={12} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
         <span className="sr-only">{String(t('my_stack_expired_aria', { since }))}</span>
-        <span aria-hidden="true" className="grid">
+        <span aria-hidden="true" className="grid justify-items-center text-center">
           <span className={`${text} tyd-expired-text-alarm`}>{String(t('my_stack_expired'))}</span>
           <span className={`${text} tyd-expired-text-since tabular-nums`}>{since}</span>
         </span>

@@ -1021,7 +1021,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           timelineLoadState === 'loading'
             ? <Silhouette><Zeilen breiten={['58%']} h={13} /></Silhouette>
             : (
-              <div role="alert" className="text-sm text-slate-400">
+              <div role="alert" data-umriss-nicht-merken className="text-sm text-slate-400">
                 <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
                 <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => setHomeReloadKey(value => value + 1)}>
                   {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
@@ -1508,7 +1508,7 @@ function HomeIntakeConfirmSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] rounded-[34px] p-5 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-cyan-300">Anstehende Einnahme</p>
@@ -1573,7 +1573,7 @@ function HomeIntakeTimeSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] rounded-[34px] p-5 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-emerald-300">Einnahme bestätigen</p>

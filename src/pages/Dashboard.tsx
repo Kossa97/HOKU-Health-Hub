@@ -371,7 +371,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   useLayoutEffect(() => { sichtbaresFenster.current = timelineContext })
 
   // Einnahme-Bestätigungs-Sheet
-  interface ConfirmSheet { cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string }
+  interface ConfirmSheet {
+    cycle?: Cycle; log?: DoseLog; slotDose?: number | null; scheduledAt?: string; slotKey?: string
+    /** Die Zeile ist schon entschieden (ausgelassen) und wird erst beim Speichern wieder geoeffnet. */
+    nachtragen?: boolean
+  }
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
   // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
@@ -1104,7 +1108,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const genommeneSlots = FEATURES.planTimelineV2 && standHeute
     ? standHeute.genommen
     : completedDaySlots
-  const incompletePastDay = isPastSelected && totalDaySlots > 0 && genommeneSlots < totalDaySlots
+  // Ist alles entschieden, aber nicht alles genommen, sagt die Quittung das
+  // neutral: ausgelassen ist eine Entscheidung, kein Fehler. Nur Verpasstes
+  // (vom Auto-Miss, nicht vom Nutzer) bekommt Bernstein.
+  // Nur Einnahmen mit Platz im Tagesplan zaehlen — sonst passten die Zahlen
+  // nicht zu „geplant" (bei Bedarf, geloeschte Substanz).
+  const ausgelasseneGeplant = unloggedLogs.filter(kannWiederGeoeffnetWerden)
+  const verpassteHeute = ausgelasseneGeplant.filter(log => log.notes === AUTO_MISSED_NOTE).length
+  const uebersprungeneHeute = ausgelasseneGeplant.length - verpassteHeute
+  const alleGenommen = totalDaySlots > 0 && genommeneSlots === totalDaySlots && ausgelasseneGeplant.length === 0
   const dueSlotByKey = new Map(dueSlots.map(slot => [slot.key, slot]))
   const dueRoutineGroups = groupRoutineIntakes(dueSlots.map(slot => {
     const trackingLevel = slot.cycle.stack_items?.tracking_level ?? 'complete'
@@ -1327,6 +1339,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     else toast(t('einnahme_uebersp_toast'), { icon: '⏭️' })
   }
 
+  /** Was eine ausgelassene Zeile beim Oeffnen verliert: die Entscheidung und eine Auto-Miss-Notiz. */
+  const oeffnenAenderung = (log: DoseLog): Pick<DoseLog, 'taken'> & Partial<Pick<DoseLog, 'notes'>> => (
+    log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }
+  )
+
   const undoDose = async (log: DoseLog) => {
     const stackItem = stackItems.find(item => item.id === log.stack_item_id)
     const reversesInventory = log.taken === true
@@ -1344,7 +1361,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       // fuer offen. Nur dieser Zweig kann das treffen: eine auto-verpasste
       // Zeile hat `taken === false` und bucht deshalb keinen Bestand zurueck.
       const { error } = await dashboardDataClient.from('dose_logs')
-        .update(log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null })
+        .update(oeffnenAenderung(log))
         .eq('id', log.id)
       if (error) return toast.error(t('error'))
     }
@@ -1352,11 +1369,39 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // gibt. Blieb er stehen, lief jeder weitere Versuch in den
     // `taken is true`-Filter der RPC und schlug fehl.
     setInventoryRetryIds(current => current.filter(id => id !== log.id))
-    patcheLog(log.id, reversesInventory
-      ? { taken: null }
-      : (log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }))
+    patcheLog(log.id, reversesInventory ? { taken: null } : oeffnenAenderung(log))
     loadStackItems()
     toast.success(t('dose_reopen_success', { defaultValue: 'Einnahme wieder geöffnet' }))
+  }
+
+  /**
+   * „Doch eingenommen" fuer eine ausgelassene Einnahme: dasselbe Blatt wie
+   * fuer eine offene (Uhrzeit, Menge), vorbelegt mit dem geplanten Slot.
+   * Geschrieben wird erst beim Bestaetigen — erst oeffnen, dann ueber
+   * `confirm_intake_group` speichern. Die RPC laesst ein entschiedenes Nein
+   * nicht direkt zum Ja werden; der Weg ueber das Oeffnen haelt ihre
+   * Pruefungen. Bricht man ab, bleibt die Einnahme ausgelassen.
+   */
+  const dochEingenommenFuerSlot = (log: DoseLog) => {
+    const intake = timelineOccurrencesForDay(selectedDay)
+      .find(candidate => candidate.routineSlotKey === log.routine_slot_key)
+    const timeline = intake && timelines.find(candidate => candidate.cycle.id === intake.cycleId)
+    const version = intake && timeline?.versions.find(candidate => candidate.id === intake.planVersionId)
+    if (!intake || !timeline || !version) return null
+    return {
+      cycle: dashboardCycleFromTimeline(timeline, version, stackItemById.get(intake.stackItemId), timeZone),
+      intake,
+    }
+  }
+
+  const dochEingenommen = (log: DoseLog) => {
+    const ziel = dochEingenommenFuerSlot(log)
+    if (!ziel) {
+      toast.error(t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' }))
+      return
+    }
+    openConfirmSheet(ziel.cycle, log, ziel.intake.time || undefined, ziel.intake.dose,
+      ziel.intake.scheduledAt, ziel.intake.routineSlotKey, true)
   }
 
   const confirmCycleDose = async (cycle: Cycle, taken: boolean, loggedAt?: string, slotDose: number | null = null, occurrenceAt?: string, pendingLog?: DoseLog, geplanterSchluessel?: string, tatsaechlicheMenge?: number | null) => {
@@ -1499,7 +1544,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   // ── Bestätigungs-Sheet ───────────────────────────────────────────────────
-  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string) => {
+  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false) => {
     let defaultTime: string
     if (cycle && slotTime) {
       defaultTime = slotTime
@@ -1532,7 +1577,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       setConfirmDoseText('')
       setConfirmUnit(null)
     }
-    setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey })
+    setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey, nachtragen })
   }
 
   const openInjectionTrackerForSlot = (slot: DueSlot) => {
@@ -1557,9 +1602,34 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         const actualAt = new Date(selectedDay)
         actualAt.setHours(hours, minutes, 0, 0)
         if (confirmSheet.cycle) {
-          await confirmCycleDose(confirmSheet.cycle, true, actualAt.toISOString(),
-            confirmSheet.slotDose ?? null, confirmSheet.scheduledAt, confirmSheet.log, confirmSheet.slotKey,
-            confirmUnit != null ? confirmDoseWert : null)
+          const ausgelassen = confirmSheet.nachtragen && confirmSheet.log?.taken === false
+            ? confirmSheet.log : undefined
+          let offeneZeile = confirmSheet.log
+          if (ausgelassen) {
+            // Erst pruefen, dann oeffnen: die gewaehlte Uhrzeit muss in einer
+            // aktiven Planversion liegen, sonst lehnt das Speichern ohnehin ab.
+            const timeline = timelines.find(item => item.cycle.id === confirmSheet.cycle!.id)
+            const resolved = timeline && resolveCycleAt(timeline, actualAt, timeZone)
+            if (!resolved?.planVersion || resolved.status !== 'active') throw new Error('Intake timestamp is not active')
+            const aenderung = oeffnenAenderung(ausgelassen)
+            const { error } = await dashboardDataClient.from('dose_logs').update(aenderung).eq('id', ausgelassen.id)
+            if (error) throw error
+            offeneZeile = { ...ausgelassen, ...aenderung }
+          }
+          try {
+            await confirmCycleDose(confirmSheet.cycle, true, actualAt.toISOString(),
+              confirmSheet.slotDose ?? null, confirmSheet.scheduledAt, offeneZeile, confirmSheet.slotKey,
+              confirmUnit != null ? confirmDoseWert : null)
+          } catch (fehler) {
+            // Gescheitert nach dem Oeffnen: die Zeile zurueck auf „ausgelassen",
+            // so wie sie war — nicht offen und ohne Notiz stehen lassen.
+            if (ausgelassen) {
+              await dashboardDataClient.from('dose_logs')
+                .update({ taken: false, notes: ausgelassen.notes })
+                .eq('id', ausgelassen.id)
+            }
+            throw fehler
+          }
         } else if (confirmSheet.log) {
           await confirmDose(confirmSheet.log, true, actualAt.toISOString())
         }
@@ -1729,7 +1799,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     key: number
     /** Vorschau beim Wischen: nicht anklickbar, ohne Balken. */
     vorschau?: boolean
-    /** Im Streifen steht der Wochentag in der Zelle; im Monatsblatt ueber dem Raster. */
+    /** Zelle des Wochenstreifens: Balken, Zahl, Wochentag, gewaehlt auf grauer Kachel.
+     *  Ohne: Zelle des Monatsblatts, Zahl im Kreis, Wochentage stehen ueber dem Raster. */
     mitWochentag?: boolean
     /** Der Onboarding-Anker fuer „heute" darf es nur einmal geben. */
     ohneAnker?: boolean
@@ -1776,39 +1847,91 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           geplant,
         })
 
+    // Der Balken IST die Legende: halb gefuellt heisst halb erledigt.
+    // Deshalb gibt es darunter keine mehr.
+    const balken = (
+      <span
+        aria-hidden="true"
+        className={`block overflow-hidden rounded-full shrink-0 ${mitWochentag ? 'h-1 w-[22px]' : 'h-[3px] w-[18px]'}`}
+        style={{ background: spurFarbe }}
+      >
+        {anteil > 0 && (
+          <span
+            className="block h-full rounded-full"
+            style={{ width: `${Math.round(anteil * 100)}%`, background: 'var(--lg-good)' }}
+          />
+        )}
+      </span>
+    )
+
+    // Fokusring und Vorschau gelten fuer beide Zellenformen gleich.
+    const grundKlassen = [
+      'relative flex flex-col items-center',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
+      isPeek ? 'pointer-events-none' : '',
+    ]
+
+    const zelleProps = {
+      type: 'button' as const,
+      'data-calendar-date': !isPeek ? dayKey : undefined,
+      ...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {}),
+      'aria-label': beschriftung,
+      'aria-pressed': !isPeek ? isSelected : undefined,
+      'aria-current': isTodayDay && !isPeek ? 'date' as const : undefined,
+      tabIndex: isPeek ? -1 : undefined,
+      onClick: () => {
+        // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
+        // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
+        // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
+        if (wurdeGewischt.current || wischBlaettert.current) return
+        selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
+      },
+    }
+
+    // Im Streifen von oben nach unten: Stand, Zahl, Wochentag. Der gewaehlte
+    // Tag liegt auf einer grauen Kachel, sein Name steht in der Akzentfarbe.
+    // Heute erkennt man an der Zahl in Akzentfarbe — gewaehlt oder nicht.
+    if (mitWochentag) {
+      return (
+        <button
+          key={key}
+          {...zelleProps}
+          className={['tyd-press gap-[7px] rounded-[16px]', ...grundKlassen].filter(Boolean).join(' ')}
+          style={{
+            padding: '9px 0 10px',
+            minHeight: 72,
+            background: isSelected ? 'var(--lg-fill)' : 'transparent',
+          }}
+        >
+          {balken}
+          <span
+            className="text-[21px] font-bold leading-none tabular-nums tracking-[-0.02em] transition-colors duration-150"
+            style={{
+              fontFamily: 'var(--lg-display)',
+              color: isTodayDay ? 'var(--accent)'
+                : isSelected ? 'var(--lg-text)'
+                : isPastDay ? 'var(--lg-text-3)' : 'var(--lg-text-2)',
+            }}
+          >
+            {format(day, 'd')}
+          </span>
+          <span
+            className="text-[11px] font-bold uppercase leading-none tracking-[0.08em] transition-colors duration-150"
+            style={{ color: isSelected ? 'var(--accent)' : 'var(--lg-text-3)' }}
+          >
+            {format(day, 'EEEEEE', { locale })}
+          </span>
+        </button>
+      )
+    }
+
     return (
       <button
         key={key}
-        type="button"
-        data-calendar-date={!isPeek ? dayKey : undefined}
-        {...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {})}
-        aria-label={beschriftung}
-        aria-pressed={!isPeek ? isSelected : undefined}
-        aria-current={isTodayDay && !isPeek ? 'date' : undefined}
-        tabIndex={isPeek ? -1 : undefined}
-        onClick={() => {
-          // Ein Wisch endet mit einem `click` auf der Zelle unter dem Finger.
-          // Waehrend die Woche noch gleitet, gilt ein Tipp auch nicht: er traefe
-          // die alte Woche, und das Umblaettern schoebe die Wahl danach weiter.
-          if (wurdeGewischt.current || wischBlaettert.current) return
-          selectCalendarDay(new Date(day.getFullYear(), day.getMonth(), day.getDate()))
-        }}
-        className={[
-          'lg-press relative flex flex-col items-center gap-1 select-none',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300',
-          !inMonth ? 'opacity-25' : '',
-          isPeek ? 'pointer-events-none' : '',
-        ].filter(Boolean).join(' ')}
+        {...zelleProps}
+        className={['lg-press gap-1 select-none', ...grundKlassen, !inMonth ? 'opacity-25' : ''].filter(Boolean).join(' ')}
         style={{ padding: '6px 0 6px', minHeight: 64 }}
       >
-        {mitWochentag && (
-          <span className={`text-[11px] font-semibold uppercase leading-none ${
-            isTodayDay ? 'text-[var(--accent)]' : 'text-[var(--lg-text-3)]'
-          }`}>
-            {format(day, 'EEEEEE', { locale })}
-          </span>
-        )}
-
         {/* Die Zahl im Kreis wie im iOS-Kalender: gewählt voll in der
             Akzentfarbe, heute ohne Auswahl nur die Zahl in Akzentfarbe. */}
         <span
@@ -1824,20 +1947,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           {format(day, 'd')}
         </span>
 
-        {/* Der Balken IST die Legende: halb gefuellt heisst halb erledigt.
-            Deshalb gibt es darunter keine mehr. */}
-        <span
-          aria-hidden="true"
-          className="block h-[3px] w-[18px] rounded-full overflow-hidden shrink-0"
-          style={{ background: spurFarbe }}
-        >
-          {anteil > 0 && (
-            <span
-              className="block h-full rounded-full"
-              style={{ width: `${Math.round(anteil * 100)}%`, background: 'var(--lg-good)' }}
-            />
-          )}
-        </span>
+        {balken}
       </button>
     )
   }
@@ -2087,16 +2197,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 `confirm_intake_group`, das Herkunft und Lebenszyklus prueft.
                 `reverse_inventory_confirmation('undo')` setzt `taken` auf null
                 und bucht den Bestand in einer Transaktion zurueck. */}
-            {wiederOeffnen && !FEATURES.planTimelineV2 && log.taken === false && (
+            {wiederOeffnen && log.taken === false && (
               <button
                 type="button"
-                onClick={() => openConfirmSheet(undefined, log)}
+                onClick={() => FEATURES.planTimelineV2 ? dochEingenommen(log) : openConfirmSheet(undefined, log)}
                 data-tone="good"
                 className="lg-gray-btn !px-3.5 !text-[13px]">
                 <Check size={14} aria-hidden="true" /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
               </button>
             )}
-            {wiederOeffnen && (
+            {/* Wieder oeffnen heisst: zurueck auf die Liste von heute. Fuer
+                einen vergangenen Tag ist das ein Umweg — dort fuehrt eine
+                ausgelassene Einnahme direkt ueber „Doch eingenommen". Eine
+                genommene laesst sich immer zuruecknehmen. */}
+            {wiederOeffnen && (log.taken === true || !isPastSelected) && (
               <button
                 type="button"
                 onClick={() => undoDose(log)}
@@ -2250,7 +2364,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-label={monthTitle}
             tabIndex={-1}
             {...monatsBlattSchliessen.closingProps}
-            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
           >
             <div className="lg-grabber mb-2" />
 
@@ -2338,7 +2452,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         </div>
 
         {FEATURES.planTimelineV2 && !timelineReady && (timelineLoadState === 'error' ? (
-          <div role="alert" className="mb-3 text-sm text-slate-400">
+          <div role="alert" data-umriss-nicht-merken className="mb-3 text-sm text-slate-400">
             <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Deine übrigen Daten bleiben verfügbar.' })}</p>
             <button type="button" className="mt-2 min-h-11 text-sky-400" onClick={() => void loadLogs()}>
               {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
@@ -2346,7 +2460,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         ) : (
           // Die Einnahmen des Tages laden: ihr Umriss steht schon da
-          <Silhouette className="mb-3"><EinnahmenUmriss /></Silhouette>
+          <Silhouette className="mb-3" abdruck><EinnahmenUmriss /></Silhouette>
         ))}
         {FEATURES.planTimelineV2 && timelineReady && timezoneReviewStackItemIds.length > 0 && (
           <div role="alert" className="mb-4 rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4">
@@ -2411,29 +2525,37 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         {dueSlots.length === 0 && totalDaySlots > 0 && (!FEATURES.planTimelineV2 || timelineReady) && (
           <div
             data-due-receipt
-            data-tone={incompletePastDay ? 'bad' : 'good'}
+            data-tone={alleGenommen ? 'good' : undefined}
             className="lg-surface mb-4 flex flex-col items-center gap-2.5 px-6 py-7 text-center"
           >
             <span
               className="flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ background: incompletePastDay ? 'var(--lg-bad)' : 'var(--lg-good)' }}
+              style={{ background: alleGenommen ? 'var(--lg-good)' : verpassteHeute > 0 ? 'var(--lg-warn)' : '#636366' }}
             >
-              {incompletePastDay
-                ? <X size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
-                : <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />}
+              {alleGenommen
+                ? <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
+                : <MinusCircle size={28} strokeWidth={2.4} className="text-white" aria-hidden="true" />}
             </span>
             <h3 className="lg-title2">
-              {incompletePastDay
-                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
-                : genommeneSlots === totalDaySlots
+              {alleGenommen
                 ? t('all_intakes_done', { defaultValue: 'Alle geplanten Einnahmen sind bestätigt.' })
+                // Verpasst hat der Auto-Miss eingetragen, nicht der Nutzer —
+                // „alles protokolliert" stimmte dann nicht.
+                : verpassteHeute > 0
+                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
                 : t('all_intakes_logged', { defaultValue: 'Für diesen Tag ist alles protokolliert.' })}
             </h3>
             <p className="text-[15px] text-[var(--lg-text-3)]">
-              {t('calendar_day_balance', {
-                defaultValue: '{{genommen}} von {{geplant}} bestätigt',
-                genommen: genommeneSlots, geplant: totalDaySlots,
-              })}
+              {alleGenommen
+                ? t('calendar_day_balance', {
+                    defaultValue: '{{genommen}} von {{geplant}} bestätigt',
+                    genommen: genommeneSlots, geplant: totalDaySlots,
+                  })
+                : [
+                    t('day_count_taken', { defaultValue: '{{n}} genommen', n: genommeneSlots }),
+                    uebersprungeneHeute > 0 && t('day_count_skipped', { defaultValue: '{{n}} übersprungen', n: uebersprungeneHeute }),
+                    verpassteHeute > 0 && t('day_count_missed', { defaultValue: '{{n}} verpasst', n: verpassteHeute }),
+                  ].filter(Boolean).join(' · ')}
             </p>
           </div>
         )}
@@ -2686,7 +2808,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-modal="true"
             aria-labelledby="confirm-sheet-title"
             {...bestaetigenSchliessen.closingProps}
-            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
             <div style={{ padding: '8px 18px 0' }}>
               <div className="lg-grabber mb-4" />

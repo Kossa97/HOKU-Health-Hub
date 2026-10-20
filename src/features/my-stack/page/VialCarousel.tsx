@@ -16,9 +16,8 @@ import { haltbarkeitFuer } from '../lib/listRow'
 import { StageFit } from '../components/StageFit'
 import { StackStage } from '../components/StackStage'
 import { getDosageForm } from '../lib/dosageForms'
-import { anbruchArt } from '../lib/bestand'
 import { getStableStackItemColor } from '../lib/colors'
-import { type Peptide, type Cycle, vialCarouselItemWidth, vialCarouselItemGap, fuellstandFuer } from './model'
+import { type Peptide, type Cycle, vialCarouselItemWidth, vialCarouselItemGap, fuellstandFuer, zeigtPegel } from './model'
 import { AddStageTile } from './stackTiles'
 import { VialPositionRow } from './VialPositionRow'
 
@@ -122,9 +121,16 @@ export function VialCarousel({
                 return (
                   <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
                     <HaltbarkeitChip tage={days} substanzId={activePeptide.id} variante="wechsel" />
-                    <span className="lg-tag" data-tone={hasActive ? 'good' : undefined}>
-                      {hasActive ? t('aktiv_badge') : t('inaktiv_badge')}
-                    </span>
+                    {/* Aktiv: duenner gruener Rand wie beim Abgelaufen-Abzeichen,
+                        dazu ein pulsierender Punkt — die Substanz laeuft. */}
+                    {hasActive ? (
+                      <span data-active-badge className="inline-flex min-h-[26px] items-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2.5 text-[13px] font-semibold leading-none text-emerald-300">
+                        <span aria-hidden="true" className="tyd-active-dot" />
+                        {t('aktiv_badge')}
+                      </span>
+                    ) : (
+                      <span className="lg-tag">{t('inaktiv_badge')}</span>
+                    )}
                   </div>
                 )
               })()}
@@ -223,7 +229,7 @@ export function VialCarousel({
                 // verschlossene Ampulle stuende sonst ewig bei „100 %".
                 const pegel = fuellstandFuer(p)
                 const vialPct = Math.round(pegel ?? 100)
-                const showsFillPct = pegel !== null || anbruchArt(p.dosage_form) === 'vial'
+                const showsFillPct = zeigtPegel(p)
 
                 return (
                   <div

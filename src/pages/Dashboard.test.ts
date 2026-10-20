@@ -351,8 +351,10 @@ describe('Dashboard normalized timeline path', () => {
 
     await protokollZeileOeffnen()
     expect(screen.getByRole('button', { name: 'Wieder öffnen' })).toBeTruthy()
-    // Was daran vorbeischreiben würde, bleibt zu.
-    expect(screen.queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
+    // „Doch eingenommen" gibt es nur für eine ausgelassene — und auch das
+    // schreibt nicht vorbei: es öffnet erst und speichert dann über die RPC.
+    if (taken) expect(screen.queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
+    else expect(screen.getByRole('button', { name: 'Doch eingenommen' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'eintrag_loeschen' })).toBeNull()
   })
 
@@ -969,31 +971,96 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(tagesBalken('2026-09-18')).toBe('50%'))
     // … und die Tagesmeldung behauptet nicht, alles sei bestätigt worden.
     expect(screen.queryByText('Alle geplanten Einnahmen sind bestätigt.')).toBeNull()
-    expect(screen.getByText('Dieser Tag ist nicht vollständig protokolliert.')).toBeTruthy()
-    expect(screen.getByText('1 von 2 bestätigt')).toBeTruthy()
+    expect(screen.getByText('Für diesen Tag ist alles protokolliert.')).toBeTruthy()
+    expect(screen.getByText('1 genommen · 1 übersprungen')).toBeTruthy()
   })
 
-  it('zeigt einen vergangenen Tag ohne bestätigte Einnahme rot mit X statt grünem Haken', async () => {
+  it('zeigt einen Tag mit lauter ausgelassenen Einnahmen neutral, nicht grün und nicht rot', async () => {
+    // Ausgelassen ist entschieden, nicht falsch — und nicht „alles bestätigt".
+    // Vorher stand hier ein grüner Haken mit „0 von 2 bestätigt" (heute) oder
+    // ein rotes X „nicht vollständig protokolliert" (gestern), obwohl alles
+    // protokolliert war.
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: false, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
-      { ...pendingLog(), id: 'pending-abend', taken: false,
+      { ...pendingLog(), id: 'pending-abend', taken: false, notes: 'auto-missed',
         routine_slot_key: 'timeline-cycle@2026-09-18T20:00' },
     ]
     vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
     renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
 
+    // Verpasst hat der Auto-Miss eingetragen — dann heißt der Tag nicht
+    // „alles protokolliert", aber auch nicht rot.
     const receipt = await screen.findByText('Dieser Tag ist nicht vollständig protokolliert.')
     const card = receipt.closest('[data-due-receipt]') as HTMLElement
-    expect(card).toBeTruthy()
-    expect(card.textContent).toContain('0 von 2 bestätigt')
-    expect(card.querySelector('.lucide-x')).toBeTruthy()
+    expect(card.textContent).toContain('0 genommen · 1 übersprungen · 1 verpasst')
     expect(card.querySelector('.lucide-check')).toBeNull()
-    expect(card.getAttribute('data-tone')).toBe('bad')
+    expect(card.getAttribute('data-tone')).toBeNull()
     expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
-    // Die Liste selbst ist neutral: ausgelassen heisst entschieden, nicht falsch.
     expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).getAttribute('data-tone')).not.toBe('bad')
+  })
+
+  it('trägt eine gestern ausgelassene Einnahme mit „Doch eingenommen" direkt nach', async () => {
+    // Für einen vergangenen Tag war „Wieder öffnen" ein Umweg: die Einnahme
+    // stand danach wieder als offen da und musste dort noch bestätigt werden.
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+
+    // Nur der direkte Weg; „Wieder öffnen" gibt es für gestern nicht mehr.
+    expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+
+    // Abbrechen ändert nichts — die Einnahme bleibt ausgelassen.
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(client.mutations.filter(m => m.table === 'dose_logs')).toHaveLength(0)
+
+    // Bestätigen: erst öffnen (samt Auto-Miss-Notiz), dann über die RPC speichern.
+    // Die Zeile ist noch aufgeklappt.
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
+    expect(client.mutations).toContainEqual({
+      table: 'dose_logs', kind: 'update', values: { taken: null, notes: null },
+    })
+    const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
+      p_entries: Array<{ dose_log_id: string; slot_key: string; taken: boolean }>
+    }
+    expect(params.p_entries).toEqual([expect.objectContaining({
+      dose_log_id: 'pending-exact', slot_key: 'timeline-cycle@2026-09-18T08:00', taken: true,
+    })])
+  })
+
+  it('lässt eine nachgetragene Einnahme ausgelassen, wenn das Speichern scheitert', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const client = createDashboardClient(fixtures, async name => (
+      name === 'confirm_intake_group'
+        ? { data: null, error: { message: 'kaputt' } }
+        : { data: [], error: null }
+    ), { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
+
+    await waitFor(() => expect(client.mutations.filter(m => m.table === 'dose_logs')).toHaveLength(2))
+    const [geoeffnet, zurueck] = client.mutations.filter(m => m.table === 'dose_logs')
+    expect(geoeffnet.values).toEqual({ taken: null, notes: null })
+    // Zurück, wie es war: ausgelassen, mit der Auto-Miss-Notiz.
+    expect(zurueck.values).toEqual({ taken: false, notes: 'auto-missed' })
   })
 
   it('trennt bestätigte und übersprungene Einnahmen in grüne und neutrale Bereiche', async () => {

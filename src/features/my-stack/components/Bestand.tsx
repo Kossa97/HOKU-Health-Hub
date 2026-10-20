@@ -235,12 +235,12 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
   return (
     // Liegt ueber dem Vollbild: Zurueck (Geste, Android) und Escape schliessen
     // nur dieses Fenster, nicht das Vollbild darunter.
-    <div data-app-modal className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 sm:items-end" onClick={event => { event.stopPropagation(); onClose() }}>
+    <div data-app-modal className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 pt-[var(--tyd-popup-top)] sm:items-end" onClick={event => { event.stopPropagation(); onClose() }}>
       <form
         role="dialog"
         aria-modal="true"
         aria-label={TITEL[editor]}
-        className="flex w-full flex-col rounded-t-2xl border-t border-slate-700/60 bg-slate-900 sm:max-w-lg"
+        className="flex max-h-full w-full flex-col rounded-t-2xl border-t border-slate-700/60 bg-slate-900 sm:max-w-lg"
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape') return
@@ -258,7 +258,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
             <X size={18} aria-hidden="true" />
           </button>
         </div>
-        <div className="px-5 py-5">{body}</div>
+        <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-5">{body}</div>
         <div className="border-t border-slate-800 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button type="submit" className="btn-primary w-full" disabled={busy} {...denyProps(!busy && !gueltig)}>
             {String(t('my_stack_stock_save'))}

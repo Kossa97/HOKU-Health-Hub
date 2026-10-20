@@ -48,6 +48,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^3.8.4",
     "lucide-react": "^1.14.0",
+    "pdfjs-dist": "6.4.299",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",

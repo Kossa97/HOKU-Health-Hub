@@ -2035,7 +2035,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           {initialLoad && <LabLoader art="stack" fadingOut={!loading} />}
 
           {FEATURES.planTimelineV2 && timelineLoadError && (
-            <div role="alert" className="mb-4 rounded-xl border border-rose-300/25 bg-rose-300/10 p-3 text-sm text-rose-100">
+            <div role="alert" data-umriss-nicht-merken className="mb-4 rounded-xl border border-rose-300/25 bg-rose-300/10 p-3 text-sm text-rose-100">
               <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Die übrigen Daten bleiben sichtbar.' })}</p>
               <button
                 type="button"

@@ -30,9 +30,9 @@ export function EscalationFormSheet({
   return (
     <>
       {showEscForm && eForm && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center" data-app-modal data-app-back-dirty-on-interaction
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center pt-[var(--tyd-popup-top)]" data-app-modal data-app-back-dirty-on-interaction
           onClick={() => setShowEscForm(false)}>
-          <div className="bg-slate-900 rounded-t-2xl w-full max-w-lg p-6 pb-8 space-y-4 overflow-y-auto max-h-[90vh]"
+          <div className="bg-slate-900 rounded-t-2xl w-full max-w-lg p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] space-y-4 overflow-y-auto overscroll-contain max-h-full"
             onClick={e => e.stopPropagation()}>
 
             <div>

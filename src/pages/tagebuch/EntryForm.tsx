@@ -11,8 +11,8 @@ import { ChipEditor } from './ChipEditor'
 import { ChipInfo } from './ChipInfo'
 import { sortedChips, type DiaryEntry } from './entry'
 import {
-  SYMPTOM_GROUPS, chipAria as ariaOf, chipId, chipLabel as labelOf, durationText, entrySummary, fromRow, kindColor, labelIn,
-  matchingSymptoms, planChipSave, symptomByKey, type ChipDraft, type SymptomKind,
+  SYMPTOM_GROUPS, chipAria as ariaOf, chipId, chipLabel as labelOf, chipPayload, durationText, fromRow, kindColor, labelIn,
+  matchingSymptoms, symptomByKey, type ChipDraft, type SymptomKind,
 } from './chips'
 
 interface StackItem { id: string; display_name: string }
@@ -25,9 +25,6 @@ interface FormState {
   notes: string
   chips: ChipDraft[]
 }
-
-/** Untergrund der Chip-Gruppen (rgba(118,118,128,.12) auf dem Sheet) — deckend für den Chip-Rahmen. */
-const GROUP_BASE = 'rgb(39 39 42)'
 
 function initialState(entry: DiaryEntry | null): FormState {
   if (!entry) {
@@ -121,43 +118,53 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
     }
   }
 
-  /** Eintrag und Chips schreiben; meldet Fehler selbst, `saving` setzt `save` zurück. */
+  /**
+   * Eintrag und Chips in einem Aufruf (eine Transaktion): scheitert etwas,
+   * bleibt alles, wie es war. Meldet Fehler selbst, `saving` setzt `save` zurück.
+   */
   const persist = async () => {
-    const summary = entrySummary(form.chips)
     const fields = {
       description: title,
-      type: summary.type,
-      severity: summary.severity,
-      duration: null,
       occurred_at: new Date(form.occurred_at).toISOString(),
       stack_item_id: form.stack_item_id || null,
       // Ohne Substanz bleibt ein bestehender Verweis (Substanz gelöscht); ein Wechsel leert die Wahl schon vorher.
       dose_log_id: form.dose_log_id || null,
       notes: form.notes.trim() || null,
     }
-    // .select() liefert die geänderte Zeile – leer heißt: Eintrag existiert nicht mehr
-    const { data, error } = entry
-      ? await supabase.from('effects').update(fields).eq('id', entry.id).eq('user_id', userId).select('id')
-      : await supabase.from('effects').insert({ ...fields, user_id: userId, status: 'eingetreten' }).select('id')
-    const effectId = data?.[0]?.id as string | undefined
-    if (error || !effectId) {
-      toast.error(t(error?.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
-      return
-    }
-    const plan = planChipSave(entry?.effect_symptoms ?? [], form.chips, effectId, userId)
-    const chipError =
-      (plan.remove.length ? (await supabase.from('effect_symptoms').delete().in('id', plan.remove).eq('user_id', userId)).error : null) ??
-      (await Promise.all(plan.update.map(({ id, ...row }) =>
-        supabase.from('effect_symptoms').update(row).eq('id', id).eq('user_id', userId)))).find(res => res.error)?.error ??
-      (plan.insert.length ? (await supabase.from('effect_symptoms').insert(plan.insert)).error : null)
-    if (chipError) {
-      // Neuer Eintrag ohne Chips wäre unvollständig — wieder entfernen.
-      if (!entry) await supabase.from('effects').delete().eq('id', effectId).eq('user_id', userId)
-      toast.error(t('fehler_speichern'))
+    const chips = chipPayload(form.chips)
+    const saved = await supabase.rpc('save_diary_entry', { p_effect_id: entry?.id ?? null, p_entry: fields, p_chips: chips })
+    let error: { message: string; code?: string } | null = saved.error
+    // Funktion noch nicht in der Datenbank (supabase-tagebuch-save-rpc.sql): Übergangsweg.
+    if (error?.code === 'PGRST202') error = await persistStepwise(fields, chips)
+    if (error) {
+      toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return
     }
     toast.success(t(entry ? 'eintrag_aktualisiert' : 'eintrag_gespeichert'))
     onSaved()
+  }
+
+  /**
+   * Übergang, solange `save_diary_entry` fehlt: Eintrag, dann Chips ersetzen —
+   * mehrere Aufrufe ohne Transaktion. Ein neuer Eintrag, dessen Chips scheitern,
+   * wird wieder gelöscht. Fällt weg, sobald die Funktion überall da ist.
+   */
+  const persistStepwise = async (fields: Record<string, unknown>, chips: ReturnType<typeof chipPayload>) => {
+    const kinds = new Set(chips.map(chip => chip.kind))
+    const row = { ...fields, type: kinds.size === 1 ? chips[0].kind : null, severity: Math.max(...chips.map(chip => chip.severity)), duration: null }
+    const { data, error } = entry
+      ? await supabase.from('effects').update(row).eq('id', entry.id).eq('user_id', userId).select('id')
+      : await supabase.from('effects').insert({ ...row, user_id: userId, status: 'eingetreten' }).select('id')
+    const effectId = data?.[0]?.id as string | undefined
+    if (error || !effectId) return error ?? { message: 'diary_entry_not_found' }
+    if (entry) {
+      const removed = await supabase.from('effect_symptoms').delete().eq('effect_id', effectId).eq('user_id', userId)
+      if (removed.error) return removed.error
+    }
+    const added = await supabase.from('effect_symptoms')
+      .insert(chips.map((chip, position) => ({ ...chip, effect_id: effectId, user_id: userId, position })))
+    if (added.error && !entry) await supabase.from('effects').delete().eq('id', effectId).eq('user_id', userId)
+    return added.error
   }
 
   const dismiss = () => {
@@ -225,10 +232,10 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-dirty-on-interaction
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" data-app-modal data-app-back-dirty-on-interaction
       onClick={dismiss}>
       <div role="dialog" aria-modal="true" aria-labelledby="tagebuch-form-title"
-        className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-[90vh] scroll-pb-28"
+        className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full scroll-pb-28"
         onClick={e => e.stopPropagation()}
         onKeyDown={e => { if (e.key === 'Escape' && !editing && !infoOpen) { e.stopPropagation(); dismiss() } }}>
         <span className="lg-grabber !mb-1" aria-hidden="true" />
@@ -331,14 +338,14 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
                 </h3>
               )}
               {section.groups.map(group => (
-                <div key={group.key} className="rounded-2xl bg-[rgba(118,118,128,.12)] px-3.5 pt-3.5 pb-2" style={{ ['--tb-base' as string]: GROUP_BASE }}>
-                  <h4 className="text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{group.name}</h4>
-                  <div className="flex flex-wrap">{group.chips}</div>
+                <div key={group.key} className="rounded-2xl bg-[rgba(118,118,128,.12)] p-3.5">
+                  <h4 className="mb-2.5 text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{group.name}</h4>
+                  <div className="flex flex-wrap gap-2">{group.chips}</div>
                 </div>
               ))}
-              <div className="rounded-2xl bg-[rgba(118,118,128,.12)] px-3.5 pt-3.5 pb-2" style={{ ['--tb-base' as string]: GROUP_BASE }}>
-                <h4 className="text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{t('tagebuch_gruppe_eigene')}</h4>
-                <div className="flex flex-wrap">
+              <div className="rounded-2xl bg-[rgba(118,118,128,.12)] p-3.5">
+                <h4 className="mb-2.5 text-[15px] font-semibold text-[rgba(235,240,255,.86)]">{t('tagebuch_gruppe_eigene')}</h4>
+                <div className="flex flex-wrap gap-2">
                   {section.own.map(({ chip, index }) => (
                     <SymptomChip key={`own-${index}`} kind={chip.kind} label={chipLabel(chip)} iconKey={chip.key} selected
                       severity={chip.severity} duration={durationText(chip, t)} ariaLabel={chipAria(chip, true)}

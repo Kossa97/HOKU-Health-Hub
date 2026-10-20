@@ -436,7 +436,7 @@ export function BlutwertePage() {
       />
 
       {erstLaden && (
-        <Silhouette label={t('bw_loading')}>
+        <Silhouette label={t('bw_loading')} abdruck>
           <MarkerUmriss />
         </Silhouette>
       )}
@@ -470,7 +470,7 @@ export function BlutwertePage() {
 
           {ladeFehler && entries.length === 0 ? (
             // Nie „keine Werte“ zeigen, wenn nur das Laden scheiterte — unter keinem Filter.
-            <div className="py-8 mb-4 text-center" data-bw-load-error>
+            <div className="py-8 mb-4 text-center" data-bw-load-error data-umriss-nicht-merken>
               <p className="text-sm" style={{ color: TEXT }}>{t('bw_load_error')}</p>
               <button type="button" className="mt-3 min-h-11 px-3 text-sm font-semibold" style={{ color: CYAN }} onClick={() => void load()}>
                 {t('ai_consent_retry')}

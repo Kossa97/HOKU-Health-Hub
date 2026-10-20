@@ -1298,6 +1298,14 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_scan_check',
   'my_stack_scan_again',
   'my_stack_scan_apply',
+  'day_count_taken',
+  'day_count_skipped',
+  'day_count_missed',
+  'my_stack_shelf_life',
+  'my_stack_shelf_life_days_left',
+  'my_stack_shelf_life_day_left',
+  'my_stack_shelf_life_today',
+  'my_stack_shelf_life_not_set',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1323,9 +1331,11 @@ const EXPECTED_MY_STACK_KEYS = [
 // tagebuch_chip_*, tagebuch_einheit_*, tagebuch_info_* …; de/en, sonst englischer Platzhalter).
 // Bewusst geaendert (Oktober 2026): Die Auswertung zaehlt Chips statt Eintraege —
 // tagebuch_verlauf_titel(_monat) heisst jetzt „Wirkungen und Nebenwirkungen pro …" (nur de/en).
+// Bewusst geaendert (Oktober 2026): neuer Chip (Variante A) — tagebuch_info_art_text und
+// tagebuch_info_intensitaet_text beschreiben Farbe und Punkte (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '0396940ce3b21831bf6e730d0bce1df19383f6aeb88b57082747e99545064d05',
-  en: '4aa4edad9946a053a30cf70fdb810ca72059e28c9e76d3d00a5be0a7b45d6264',
+  de: 'ff850aba7f060eab57c9745262f8475c24c8df44f68fd372dbe1601eb0a85f46',
+  en: '8dbd0701ffbb2c17201907067eafb17ff5c574c21280393fb70618e6a2766c3e',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

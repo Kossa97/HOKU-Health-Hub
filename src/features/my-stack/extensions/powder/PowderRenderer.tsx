@@ -23,7 +23,7 @@ export interface PowderRendererProps {
 // als bei der Tube, die ganz ohne auskommt.
 export function PowderRenderer({ item, ...visualProps }: PowderRendererProps) {
   return (
-    <div data-stack-renderer="powder">
+    <div data-stack-renderer="powder" data-umriss-form="powder">
       <PowderVisual
         name={item.display_name}
         color={item.color_hex ?? fuellfarbe()}

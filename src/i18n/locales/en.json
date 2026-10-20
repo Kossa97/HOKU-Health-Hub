@@ -2745,9 +2745,9 @@
   "tagebuch_info_beispiel": "Example: nausea, side effect, intensity 3, duration 2 hours",
   "tagebuch_info_name_text": "what you notice",
   "tagebuch_info_dauer_text": "how long it lasted; “ongoing” if it isn’t over yet. Optional.",
-  "tagebuch_info_intensitaet_text": "from 1 very mild to 5 very strong, the number at the top right",
+  "tagebuch_info_intensitaet_text": "from 1 very mild to 5 very strong, the dots at the end",
   "tagebuch_info_art": "Type",
-  "tagebuch_info_art_text": "circle at the bottom left: ＋ and green is an effect, − and orange a side effect",
+  "tagebuch_info_art_text": "the color: green is an effect, orange a side effect; the list shows them separately",
   "tagebuch_info_hinweis": "Tap to open the chip editor. A chip counts as chosen once it has an intensity.",
   "tagebuch_info_verstanden": "Got it",
   "my_stack_scan": "Scan",
@@ -2783,5 +2783,13 @@
   "nutr_week_avg_kcal_one": "Avg {{value}} kcal on 1 day",
   "nutr_week_avg_protein_one": "Avg {{value}} g protein on 1 day",
   "nutr_week_calendar": "Week",
-  "nutr_orb_unit": "1 dot = {{kcal}} kcal · 1 g"
+  "nutr_orb_unit": "1 dot = {{kcal}} kcal · 1 g",
+  "day_count_taken": "{{n}} taken",
+  "day_count_skipped": "{{n}} skipped",
+  "day_count_missed": "{{n}} missed",
+  "my_stack_shelf_life": "Shelf life",
+  "my_stack_shelf_life_days_left": "{{n}} days left",
+  "my_stack_shelf_life_day_left": "1 day left",
+  "my_stack_shelf_life_today": "expires today",
+  "my_stack_shelf_life_not_set": "not specified"
 }

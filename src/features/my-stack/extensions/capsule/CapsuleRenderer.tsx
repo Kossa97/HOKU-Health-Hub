@@ -19,7 +19,7 @@ export interface CapsuleRendererProps {
 // wandernden Licht.
 export function CapsuleRenderer({ item, ...visualProps }: CapsuleRendererProps) {
   return (
-    <div data-stack-renderer="capsule">
+    <div data-stack-renderer="capsule" data-umriss-form="capsule">
       <CapsuleVisual
         name={item.display_name}
         color={item.color_hex ?? fuellfarbe()}

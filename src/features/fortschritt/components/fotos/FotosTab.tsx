@@ -267,7 +267,7 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
       <div className="fs-sheet" data-shown={sheetOpen} inert={!sheetOpen} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px 24px 0 0',
-        padding: '0 18px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: '92dvh', overflowY: 'auto',
+        padding: '0 18px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: 'calc(100dvh - var(--tyd-popup-top))', overflowY: 'auto',
         overscrollBehavior: 'contain',
       }}>
         <div style={{ position: 'sticky', top: 0, paddingTop: 16, paddingBottom: 14, background: 'inherit', zIndex: 1 }}>

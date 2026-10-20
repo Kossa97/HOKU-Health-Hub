@@ -46,3 +46,17 @@ export function focusTargetDrop(viewport: FreeViewport, distance: number, fovDeg
   const visibleHeight = 2 * distance * Math.tan((fovDeg * Math.PI) / 360)
   return (0.5 - center) * visibleHeight
 }
+
+export const FOCUS_FLIGHT_MS = 550
+
+/**
+ * Fortschritt der Kamerafahrt (0..1, weich an- und auslaufend) nach
+ * `elapsedMs` seit ihrem ersten Bild. Bewusst an der Uhr statt am
+ * Bild-Abstand gemessen: Die Karte zeichnet nur bei Bedarf, das erste Bild
+ * nach einer Pause meldet sonst die ganze Pause als Abstand -- die Fahrt
+ * waere sofort fertig und die Kamera spraenge.
+ */
+export function focusFlightEase(elapsedMs: number, durationMs = FOCUS_FLIGHT_MS): number {
+  const p = Math.min(1, Math.max(0, elapsedMs / durationMs))
+  return p * p * (3 - 2 * p)
+}

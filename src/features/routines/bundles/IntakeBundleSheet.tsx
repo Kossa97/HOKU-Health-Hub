@@ -66,7 +66,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         data-app-back-dirty-on-interaction
         aria-labelledby={titleId}
         {...closingProps}
-        className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+        className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
       >
         <span className="lg-grabber mb-3" aria-hidden="true" />
         <header className="mb-4 flex items-start justify-between gap-3">

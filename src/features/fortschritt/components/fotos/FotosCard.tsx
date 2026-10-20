@@ -131,7 +131,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
               <X size={18} />
             </button>
           </div>
-          <div style={{ padding: '0 12px 24px', flex: 1 }}>
+          <div style={{ padding: '0 12px calc(24px + env(safe-area-inset-bottom, 0px))', flex: 1 }}>
             <FotosTab
               key={openCount}
               photos={photos}

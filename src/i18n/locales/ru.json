@@ -2551,5 +2551,13 @@
   "nutr_week_avg_kcal_one": "Avg {{value}} kcal on 1 day",
   "nutr_week_avg_protein_one": "Avg {{value}} g protein on 1 day",
   "nutr_week_calendar": "Week",
-  "nutr_orb_unit": "1 dot = {{kcal}} kcal · 1 g"
+  "nutr_orb_unit": "1 dot = {{kcal}} kcal · 1 g",
+  "day_count_taken": "{{n}} taken",
+  "day_count_skipped": "{{n}} skipped",
+  "day_count_missed": "{{n}} missed",
+  "my_stack_shelf_life": "Shelf life",
+  "my_stack_shelf_life_days_left": "{{n}} days left",
+  "my_stack_shelf_life_day_left": "1 day left",
+  "my_stack_shelf_life_today": "expires today",
+  "my_stack_shelf_life_not_set": "not specified"
 }

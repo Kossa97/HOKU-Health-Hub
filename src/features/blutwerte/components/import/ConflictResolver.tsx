@@ -23,9 +23,9 @@ export function ConflictResolver({ conflicts, onResolve, onCancel }: Props) {
     onResolve(Object.fromEntries(conflicts.map(c => [c.key, choices[c.key] ?? false])))
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[60] flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-close data-app-back-dirty-on-interaction onClick={onCancel}>
+    <div className="fixed inset-0 bg-black/60 z-[60] flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" data-app-modal data-app-back-close data-app-back-dirty-on-interaction onClick={onCancel}>
       <div
-        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-[90vh]"
+        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full"
         onClick={e => e.stopPropagation()}
       >
         <span className="lg-grabber !mb-1" aria-hidden="true" />

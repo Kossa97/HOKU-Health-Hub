@@ -3,12 +3,18 @@
   "2": "faq/types.ts",
   "8": "write-json.mjs",
   "9": "Worst-Case Catalog",
+<<<<<<< HEAD
   "13": "StudyCard.tsx",
   "17": "dependencies",
   "18": "Animation Standards Reference",
   "20": "AmbientLight.tsx",
   "21": "Animation Audit Playbook",
   "22": "planTimeline.js",
+=======
+  "17": "dependencies",
+  "18": "Animation Standards Reference",
+  "21": "Animation Audit Playbook",
+>>>>>>> origin/main
   "23": "devDependencies",
   "25": "Design system (dark neon-cyan tokens, index.css)",
   "26": "seed-test-data.ts",
@@ -32,7 +38,10 @@
   "63": "Field-by-Field Onboarding Guidance",
   "64": "Apple Design",
   "65": "Zyklus Planung Versionierung Plan",
+<<<<<<< HEAD
   "66": "ColorField.tsx",
+=======
+>>>>>>> origin/main
   "68": "MainActivity.java",
   "70": "tsconfig.json",
   "71": "vercel.json",
@@ -48,7 +57,10 @@
   "84": "postcss.config.js",
   "86": "Öffentliche Peptipedia mit horizontaler Tab-Navigation",
   "87": "The Fixes",
+<<<<<<< HEAD
   "90": "PatchVisual.tsx",
+=======
+>>>>>>> origin/main
   "91": "PenVisual.tsx",
   "92": "tailwind.config.js",
   "98": "Design",
@@ -89,7 +101,10 @@
   "148": "Tech stack (React 18 + Vite + Supabase + Vercel)",
   "149": "CapApp-SPM/README.md",
   "153": "compute-injection-site-presets.mjs",
+<<<<<<< HEAD
   "161": "Einnahmerhythmus: drei Achsen statt einer Liste",
+=======
+>>>>>>> origin/main
   "169": "graphify skill trigger (/graphify)",
   "170": "Project graphify usage rules",
   "171": "The Lab Premium Redesign Plan",
@@ -151,7 +166,10 @@
   "227": "Trunk-based development (push to main)",
   "228": "React + TypeScript + Vite template README",
   "237": "Active Add-Vial Glow",
+<<<<<<< HEAD
   "244": "LiveBlutspiegelChart.tsx",
+=======
+>>>>>>> origin/main
   "245": "Global Constraints",
   "246": "progress-year-data.ts",
   "247": "Sichtfenstergebundene Chart-Animation",
@@ -160,9 +178,13 @@
   "252": "mockSupabase.ts",
   "257": "Glossary",
   "258": "legacyMyStackPersistence.ts",
+<<<<<<< HEAD
   "259": "injectionHistory.ts",
   "260": "Wertevergleich: metrikspezifischer Fallback",
   "261": "sw.ts",
+=======
+  "260": "Wertevergleich: metrikspezifischer Fallback",
+>>>>>>> origin/main
   "262": "Fortschritt-Chart: Ruhige 3M-Ansicht für Gewicht und KFA",
   "263": "Legacy My Stack – Kompatibilität mit dem neuen Schema",
   "266": "Testaccount-Jahresverlauf: Design",
@@ -170,18 +192,27 @@
   "270": "My Stack — Substanzkatalog, Welle 1: Fundament und Ernte",
   "275": "Legacy My Stack Schema Compatibility Implementation Plan",
   "279": "Animation Performance",
+<<<<<<< HEAD
   "281": "Ernährung: Kalorientracker (Etappe 1)",
+=======
+>>>>>>> origin/main
   "282": "Peptipedia: Fakten- und Aktualitätsaudit des Gesamtkatalogs",
   "287": "audit-peptipedia.ts",
   "292": "My Stack: Tracking-Tiefe, Routinen und Dosierungsverlauf",
   "294": "generate-faq-locales.mjs",
+<<<<<<< HEAD
   "295": "Der Befund",
+=======
+>>>>>>> origin/main
   "296": "MyStackPage.visibility.test.tsx",
   "297": "wellnessBuckets.ts",
   "303": "e2e/tsconfig.json",
   "306": "Dashboard.test.ts",
   "309": "Peptipedia Publication Readiness",
+<<<<<<< HEAD
   "312": "Einnahmezeitpunkte je Wochentag",
+=======
+>>>>>>> origin/main
   "318": "Die Entscheidungen",
   "338": "generate-pk-profiles-sql.mjs",
   "341": "Peptipedia Catalogue Implementation Plan",
@@ -190,10 +221,15 @@
   "352": "fixtures.ts",
   "355": "Peptipedia — externe medizinische und juristische Prüfung",
   "356": "Public Peptipedia — implementation handoff",
+<<<<<<< HEAD
   "359": "Einnahmeplan: Enddatum, mehrmals täglich, bei Bedarf",
   "388": "Finding Animation Opportunities",
   "389": "NewDot.tsx",
   "392": "inventoryMath.ts",
+=======
+  "388": "Finding Animation Opportunities",
+  "389": "NewDot.tsx",
+>>>>>>> origin/main
   "401": "gradlew",
   "402": "The list",
   "469": "rechnerVial.ts",

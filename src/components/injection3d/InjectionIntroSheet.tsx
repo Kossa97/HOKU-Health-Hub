@@ -21,7 +21,7 @@ export function InjectionIntroSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="injection-intro-title"
-        className="lg-sheet fixed bottom-2 left-2 right-2 z-[60] px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2"
+        className="lg-sheet fixed bottom-2 left-2 right-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2"
       >
         <div className="lg-grabber mb-4" />
         <div className="mb-3 flex items-center justify-between gap-3">
