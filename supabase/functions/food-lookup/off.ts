@@ -19,7 +19,7 @@ export interface OffFood {
   name: string
   brand: string | null
   unit: 'g' | 'ml'
-  per100: { kcal: number; protein: number; carbs: number; fat: number; fiber: number | null; sugar: number | null; salt: number | null }
+  per100: { kcal: number; protein: number; carbs: number; fat: number; fiber: number | null; sugar: number | null; satFat: number | null; salt: number | null }
   serving: { amount: number; label: string | null } | null
 }
 
@@ -66,9 +66,16 @@ export function mapProduct(p: Raw, lang: 'de' | 'en'): OffFood | null {
   if (!name || kcal == null || kcal > 900) return null
   const protein = num(n.proteins_100g) ?? 0
   const carbs = num(n.carbohydrates_100g) ?? 0
-  const fat = num(n.fat_100g) ?? 0
+  const fatRaw = num(n.fat_100g)
+  const fat = fatRaw ?? 0
   if (protein > 100 || carbs > 100 || fat > 100 || protein + carbs + fat > 105) return null
   const salt = num(n.salt_100g)
+  // Gesättigte Fettsäuren: mehr als das Fett insgesamt ist unmöglich → verwerfen statt das Produkt
+  // (bis 0,5 g Rundung auf der Packung wird auf das Fett gekappt). Ohne Fettangabe gilt der Wert, wie er ist.
+  const satRaw = num(n['saturated-fat_100g'])
+  const satFat = satRaw == null || satRaw > 100 ? null
+    : fatRaw == null ? satRaw
+      : satRaw <= fatRaw + 0.5 ? Math.min(satRaw, fatRaw) : null
   const unitRaw = String(p.product_quantity_unit ?? '').toLowerCase()
   const unit = unitRaw === 'ml' || /\d\s*(ml|l|cl)\b/i.test(String(p.quantity ?? '')) ? 'ml' : 'g'
   const serving = num(p.serving_quantity)
@@ -82,6 +89,7 @@ export function mapProduct(p: Raw, lang: 'de' | 'en'): OffFood | null {
       kcal: r1(kcal), protein: r1(protein), carbs: r1(carbs), fat: r1(fat),
       fiber: num(n.fiber_100g) == null ? null : r1(num(n.fiber_100g)!),
       sugar: num(n.sugars_100g) == null ? null : r1(num(n.sugars_100g)!),
+      satFat: satFat == null ? null : r1(satFat),
       salt: salt == null ? null : Math.round(salt * 100) / 100,
     },
     serving: serving != null && serving > 0 && serving <= 2000

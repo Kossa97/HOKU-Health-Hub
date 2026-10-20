@@ -3,11 +3,12 @@ import { Plus, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../compliance/components/Sheet'
 import { type DishDraft, dishFromDraft } from '../lib/dishDraft'
-import { MAX_AMOUNT, type Food, amountValid, nutrientsFor, parseAmount } from '../lib/nutrition'
+import { MAX_AMOUNT, MEALS, type Food, amountValid, nutrientsFor, parseAmount } from '../lib/nutrition'
 import { MAX_INGREDIENTS, portionsValid } from '../lib/recipe'
-import { DIM, ERROR_TEXT, MUTED } from '../styles'
+import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { MacroCells } from './MacroCells'
+import { ScoreBadge } from './ScoreBadge'
 
 /**
  * Gericht anlegen oder bearbeiten: Name, Portionen, Zutaten mit Menge.
@@ -46,7 +47,11 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
     // Ein versehentlicher Tipp daneben soll kein halb gebautes Gericht verwerfen: dann schließt nur das X.
     <Sheet labelledBy="nutr-dish-title" busy={busy} onClose={draft.name.trim() || draft.items.length ? () => {} : onClose} tall>
       <div className="flex items-center justify-between gap-2">
-        <h2 id="nutr-dish-title" className="lg-title2 min-w-0 truncate">{t(draft.itemId ? 'nutr_dish_edit' : 'nutr_dish_new')}</h2>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <h2 id="nutr-dish-title" className="lg-title2 min-w-0 truncate">{t(draft.itemId ? 'nutr_dish_edit' : 'nutr_dish_new')}</h2>
+          {/* Punkte des ganzen Gerichts (je 100 g, wie bei jedem Lebensmittel). */}
+          {dish && <ScoreBadge per100={dish.per100} unit="g" size="lg" />}
+        </div>
         <SheetClose onClick={onClose} disabled={busy} />
       </div>
 
@@ -65,6 +70,20 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
         </div>
       </div>
 
+      <div className="mt-4 flex items-baseline justify-between gap-2">
+        <p className="label !mb-0" id="nutr-dish-meal">{t('nutr_dish_meal')}</p>
+        <span className={`text-[12px] ${MUTED}`}>{t('nutr_dish_meal_hint')}</span>
+      </div>
+      {/* Umschalter statt Radio: erneutes Antippen hebt die Zuordnung auf. */}
+      <div role="group" aria-labelledby="nutr-dish-meal" className="mt-1.5 flex flex-wrap gap-1.5">
+        {MEALS.map(m => (
+          <button key={m} type="button" aria-pressed={draft.meal === m}
+            onClick={() => onChange({ ...draft, meal: draft.meal === m ? null : m })} className={chip(draft.meal === m)}>
+            {t(`nutr_meal_${m}`)}
+          </button>
+        ))}
+      </div>
+
       <p className="label mt-4" id="nutr-dish-ingredients">{t('nutr_dish_ingredients')}</p>
       {draft.items.length > 0 ? (
         <ul aria-labelledby="nutr-dish-ingredients" className="lg-rows -mx-5">
@@ -74,7 +93,7 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
             return (
               <li key={k} className="flex min-h-[56px] items-center gap-2 py-1.5 pl-5 pr-2">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[17px] text-[var(--lg-text)]">{ing.name}</span>
+                  <span className="flex items-center gap-2"><span className="truncate text-[17px] text-[var(--lg-text)]">{ing.name}</span><ScoreBadge per100={ing.per100} unit={ing.unit} /></span>
                   <span className={`block truncate text-[13px] tabular-nums ${MUTED}`}>
                     {ok ? (hideKcal
                       ? `${Math.round(nutrientsFor(ing.per100, amount).protein)} g ${t('nutr_protein_short')}`

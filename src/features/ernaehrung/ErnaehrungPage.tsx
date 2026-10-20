@@ -170,7 +170,7 @@ export function ErnaehrungPage() {
   /** „Als Gericht": die Einträge dieser Mahlzeit als Zutaten. Schnelleinträge haben keine Menge und fallen weg. */
   const saveMealAsDish = (meal: Meal) => {
     const ingredients = n.byMeal[meal].map(ingredientFromEntry).filter((i): i is Ingredient => i !== null)
-    setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang), meal: null, back: null })
+    setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang, undefined, meal), meal: null, back: null })
   }
 
   return (
@@ -276,7 +276,7 @@ export function ErnaehrungPage() {
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
           onPhoto={() => setSheet({ kind: 'photo', meal: sheet.meal, flow: EMPTY_FLOW, row: null })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {} })}
-          onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang), meal: sheet.meal, back: sheet })}
+          onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang, undefined, sheet.meal), meal: sheet.meal, back: sheet })}
           onQuick={async (kcal, protein) => {
             const ok = await run(async () => { await n.addQuick(sheet.meal, t('nutr_quick_name'), kcal, protein) })
             if (ok) { setSheet(null); toast.success(t('nutr_added')) }
@@ -290,7 +290,7 @@ export function ErnaehrungPage() {
           onLogDish={dish => setSheet({ kind: 'portion', meal: sheet.meal, food: dish, back: sheet })}
           onSaveAsDish={(name, list) => setSheet({
             kind: 'dish', meal: sheet.meal, back: sheet,
-            draft: { ...draftFromIngredients(list.map(c => ingredientFromFood(c.food, c.amount)), lang), name },
+            draft: { ...draftFromIngredients(list.map(c => ingredientFromFood(c.food, c.amount)), lang, undefined, sheet.meal), name },
           })}
           onMeal={meal => setSheet({ ...sheet, meal })}
           onPickRow={row => setSheet({ kind: 'add', meal: sheet.meal, pick: { ...sheet, row } })}

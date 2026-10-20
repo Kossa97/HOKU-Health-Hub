@@ -10,7 +10,7 @@
  * Zutaten in ml zählen beim Gewicht wie Gramm (Milch, Brühe: Abweichung
  * wenige Prozent).
  */
-import { type Food, type FoodSource, type FoodUnit, type LogEntry, type Nutrients, type Per100, MAX_AMOUNT, nutrientsFor, per100FromEntry, sumNutrients } from './nutrition'
+import { type Food, type FoodSource, type FoodUnit, type LogEntry, type Meal, type Nutrients, type Per100, MAX_AMOUNT, nutrientsFor, per100FromEntry, sumNutrients } from './nutrition'
 
 export interface Ingredient {
   name: string
@@ -62,7 +62,7 @@ export function recipeTotals(ingredients: readonly Ingredient[]): { weight: numb
  * Das Gericht als Lebensmittel. null, wenn es nichts wiegt oder eine Portion
  * schwerer wäre, als ein Eintrag sein darf.
  */
-export function recipeFood(d: { itemId: string | null; name: string; portions: number; ingredients: Ingredient[]; favorite: boolean }): Food | null {
+export function recipeFood(d: { itemId: string | null; name: string; portions: number; ingredients: Ingredient[]; favorite: boolean; meal?: Meal | null }): Food | null {
   const { weight, nutrients: n } = recipeTotals(d.ingredients)
   if (!(weight > 0) || !portionsValid(d.portions)) return null
   const portions = r2(d.portions)
@@ -75,11 +75,12 @@ export function recipeFood(d: { itemId: string | null; name: string; portions: n
     name: d.name.trim().slice(0, 120), brand: null, unit: 'g',
     per100: {
       kcal: r1(n.kcal * f), protein: r1(n.protein * f), carbs: r1(n.carbs * f), fat: r1(n.fat * f),
-      fiber: opt(n.fiber), sugar: opt(n.sugar), salt: opt(n.salt, r2),
+      fiber: opt(n.fiber), sugar: opt(n.sugar), satFat: opt(n.satFat), salt: opt(n.salt, r2),
     },
     serving: { amount: portion, label: null },
     favorite: d.favorite,
     recipe: { portions, ingredients: d.ingredients },
+    meal: d.meal ?? null,
   }
 }
 
@@ -104,7 +105,7 @@ export function parseIngredients(raw: unknown): Ingredient[] | null {
       amount: o.amount,
       per100: {
         kcal: p.kcal, protein: optNum(p.protein) ?? 0, carbs: optNum(p.carbs) ?? 0, fat: optNum(p.fat) ?? 0,
-        fiber: optNum(p.fiber), sugar: optNum(p.sugar), salt: optNum(p.salt),
+        fiber: optNum(p.fiber), sugar: optNum(p.sugar), satFat: optNum(p.satFat), salt: optNum(p.salt),
       },
     })
   }
