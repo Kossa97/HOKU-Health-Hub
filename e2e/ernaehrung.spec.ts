@@ -20,6 +20,13 @@ function logEntry(mock: MockSupabase, fields: Record<string, unknown>) {
 
 const mealCard = (page: import('@playwright/test').Page, name: string) => page.getByRole('region', { name })
 
+// Die Kugel steht fest oben und dreht sich ständig; auf vollen Test-Rechnern (WebGL ohne Grafikkarte)
+// bremste das jeden Klick um Sekunden. Hier zählt das Verhalten: „Bewegung reduzieren“ — die Kugel
+// zeichnet nur bei Änderungen. Die Kugel-Tests unten schalten die Bewegung wieder ein.
+test.use({ reducedMotion: 'reduce' })
+/** Für die Kugel-Tests: volle Bewegung (Drehen, Flüge). */
+const withMotion = (page: import('@playwright/test').Page) => page.emulateMedia({ reducedMotion: 'no-preference' })
+
 /** Eintragen: Die Punkte fliegen in die Kugel, das Formular bleibt offen — wieder frei, dann schließen. */
 async function addAndClose(page: import('@playwright/test').Page) {
   const dialog = page.getByRole('dialog')
@@ -451,6 +458,7 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
 })
 
 test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
+  await withMotion(page)
   logEntry(mock, {})
   logEntry(mock, { name: 'Steak', kcal: 900, protein_g: 120, carbs_g: 0, fat_g: 60 })
   await page.goto('/ernaehrung')
@@ -470,6 +478,7 @@ test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den
 })
 
 test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+  await withMotion(page)
   logEntry(mock, {})
   await page.goto('/ernaehrung')
   const orb = page.getByRole('img', { name: '126 von 2000 kcal gegessen' })
@@ -486,6 +495,7 @@ test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne scha
 })
 
 test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nach dem Flug noch einmal oder schließen', async ({ page, mock }) => {
+  await withMotion(page)
   logEntry(mock, {})
   await page.goto('/ernaehrung')
   await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
@@ -507,7 +517,8 @@ test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nac
   })
   expect(during).toEqual({ text: 'Wird hinzugefügt …', disabled: true })
   await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled()
+  // Mit Bewegung zeichnet WebKit im CI ohne Grafikkarte jedes Bild in Software — der Flug braucht dort länger.
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: 20_000 })
   await dialog.getByRole('button', { name: 'Schließen' }).click()
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(2)
 })

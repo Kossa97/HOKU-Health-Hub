@@ -96,6 +96,12 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
     const ro = new ResizeObserver(size)
     ro.observe(zone)
     window.addEventListener('resize', size)
+    // Was ins Bild gescrollt wird (Fokus, Tastatur, scrollIntoView), landet zwischen Zone und Tab-Leiste,
+    // nicht darunter — auf kleinen Geräten (iPhone SE) blieb sonst nur ein schmaler Streifen frei.
+    const root = document.documentElement.style
+    const padBefore = [root.scrollPaddingTop, root.scrollPaddingBottom]
+    root.scrollPaddingTop = `calc(env(safe-area-inset-top, 0px) + ${ZONE_MIN + 8}px)`
+    root.scrollPaddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + var(--bottom-nav-gap, 10px) + var(--bottom-nav-height, 66px) + 8px)'
     // Akzentfarbe oder Aussehen gewechselt.
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
@@ -112,6 +118,7 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
       ro.disconnect()
       mo.disconnect()
       window.removeEventListener('resize', size)
+      ;[root.scrollPaddingTop, root.scrollPaddingBottom] = padBefore
       engine.destroy()
       engineRef.current = null
     }
