@@ -57,7 +57,7 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
   }
   const content: ReactNode = (
     <>
-      <span aria-hidden="true"
+      <span aria-hidden="true" data-part="art"
         className="flex shrink-0 items-center justify-center rounded-full"
         style={{
           width: tile, height: tile,
@@ -69,11 +69,11 @@ export function SymptomChip({ kind, label, iconKey, selected, severity, duration
       {/* Eine Zeile: passt die Dauer nicht mehr daneben, rutscht sie in die
           verborgene zweite Zeile; der Name wird erst gekürzt, wenn er allein nicht passt. */}
       <span className={`flex min-w-0 flex-wrap items-baseline gap-x-1.5 overflow-hidden ${small ? 'h-5 leading-5' : 'h-[22px] leading-[22px]'}`}>
-        <span className="min-w-0 max-w-full truncate">{label}</span>
-        {duration && <span className={`whitespace-nowrap font-normal text-[rgba(235,240,255,.6)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>{duration}</span>}
+        <span data-part="name" className="min-w-0 max-w-full truncate">{label}</span>
+        {duration && <span data-part="dauer" className={`whitespace-nowrap font-normal text-[rgba(235,240,255,.6)] ${small ? 'text-[12px]' : 'text-[13px]'}`}>{duration}</span>}
       </span>
       {selected && severity != null && (
-        <span aria-hidden="true" className="ml-0.5 flex shrink-0 items-center" style={{ gap: small ? 2 : 3 }}>
+        <span aria-hidden="true" data-part="intensitaet" className="ml-0.5 flex shrink-0 items-center" style={{ gap: small ? 2 : 3 }}>
           {[1, 2, 3, 4, 5].map(level => (
             <span key={level} className="block rounded-full"
               style={{ width: dot, height: dot, background: level <= severity ? color : 'rgba(235,240,255,.22)' }} />

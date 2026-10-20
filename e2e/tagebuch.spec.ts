@@ -152,6 +152,11 @@ test('Chip-Editor: Escape schliesst nur den Editor, Fokus zurueck auf den Chip; 
   // Fokus liegt auf „Verstanden", ohne dass der Titel aus dem Bild scrollt.
   await expect(info.getByRole('button', { name: 'Verstanden' })).toBeFocused()
   await expect(info.getByRole('heading', { name: 'So ist ein Chip aufgebaut' })).toBeInViewport({ ratio: 1 })
+  // Die Grafik markiert die vier Teile des Beispiel-Chips A–D, von links nach rechts.
+  const marken = info.locator('figure > span[aria-hidden="true"]')
+  await expect(marken).toHaveText(['A', 'B', 'C', 'D'])
+  const xs = await marken.evaluateAll(els => els.map(el => el.getBoundingClientRect().left))
+  expect(xs).toEqual([...xs].sort((a, b) => a - b))
   await info.getByRole('button', { name: 'Verstanden' }).click()
   await expect(info).toBeHidden()
   await expect(dialog).toBeVisible()
