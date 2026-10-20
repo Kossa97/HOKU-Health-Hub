@@ -504,9 +504,17 @@ export function initialWizardState(
   }
 }
 
+/**
+ * Pulver-Vial: ein Peptid, eine Zutat, Bezug „ml". Dann ist der Bezug der
+ * Zutat das zugefuegte Loesungsmittel und laeuft in den Bestand mit.
+ */
+export function istPulverVial(draft: Pick<StackItemDraft, 'category' | 'dosageForm' | 'ingredients'>): boolean {
+  return draft.category === 'peptide' && draft.dosageForm === 'vial'
+    && draft.ingredients.length === 1 && draft.ingredients[0].basis_unit === 'ml'
+}
+
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
-  const powderVial = state.draft.category === 'peptide' && state.draft.dosageForm === 'vial'
-    && state.draft.ingredients.length === 1 && state.draft.ingredients[0].basis_unit === 'ml'
+  const powderVial = istPulverVial(state.draft)
   switch (action.type) {
     case 'step_selected':
       return { ...state, step: action.step }

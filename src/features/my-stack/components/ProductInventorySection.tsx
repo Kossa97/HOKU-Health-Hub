@@ -11,6 +11,11 @@ interface ProductInventorySectionProps {
    * stehen dann die Angaben zur Packung (Charge, Anmischen, Haltbarkeit).
    */
   showInventory?: boolean
+  /**
+   * Beim Vial stehen Fluessigkeit, Anmischdatum und Haltbarkeit schon im
+   * Schritt „Staerke" — dann hier nicht noch einmal.
+   */
+  anmischenAnderswo?: boolean
   brand: string
   inventory: InventoryDraft
   dosageForm?: DosageFormKey | null
@@ -36,6 +41,7 @@ function numberValue(value: string): number | null {
 
 export function ProductInventorySection({
   showInventory = true,
+  anmischenAnderswo = false,
   brand,
   inventory,
   dosageForm,
@@ -172,7 +178,7 @@ export function ProductInventorySection({
 
           {!showInventory && (
             <div data-product-details className="grid gap-4 sm:grid-cols-2">
-              {art && (
+              {art && !(anmischenAnderswo && art === 'vial') && (
                 <>
                   {art === 'vial' && (
                     <div>
