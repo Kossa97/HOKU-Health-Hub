@@ -35,7 +35,7 @@ export function GelRenderer({ item, sloshEngine, ...visualProps }: GelRendererPr
   )
 
   return (
-    <div data-stack-renderer="gel">
+    <div data-stack-renderer="gel" data-umriss-form="gel">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{jar}</SloshProvider> : jar}
     </div>
   )

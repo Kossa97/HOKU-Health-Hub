@@ -54,7 +54,7 @@ export function FortschrittPage() {
       />
 
       {state.loading ? (
-        <Silhouette label={t('fortschritt_loading')}><KurvenUmriss /></Silhouette>
+        <Silhouette label={t('fortschritt_loading')} abdruck><KurvenUmriss /></Silhouette>
       ) : (
         <FortschrittDashboard
           state={state}
