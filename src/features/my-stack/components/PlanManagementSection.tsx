@@ -702,14 +702,14 @@ export function PlanManagementSection({
       )}
 
       {dialog && createPortal((
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/75 p-4 sm:items-center" data-app-modal>
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/75 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)] sm:items-center" data-app-modal>
           <div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label={String(dialogTitle)}
             tabIndex={-1}
-            className="w-full max-w-md rounded-[28px] bg-[#1c1c1e] p-5 shadow-2xl"
+            className="max-h-full w-full max-w-md overflow-y-auto overscroll-contain rounded-[28px] bg-[#1c1c1e] p-5 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-[20px] font-bold text-[var(--lg-text)]">{dialogTitle}</h3>

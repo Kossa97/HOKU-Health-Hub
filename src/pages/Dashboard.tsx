@@ -2352,7 +2352,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-label={monthTitle}
             tabIndex={-1}
             {...monatsBlattSchliessen.closingProps}
-            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
           >
             <div className="lg-grabber mb-2" />
 
@@ -2796,7 +2796,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             aria-modal="true"
             aria-labelledby="confirm-sheet-title"
             {...bestaetigenSchliessen.closingProps}
-            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+            className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
             <div style={{ padding: '8px 18px 0' }}>
               <div className="lg-grabber mb-4" />

@@ -17,7 +17,7 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
   return (
     <div
       data-app-modal
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
       onClick={() => { if (!busy) onCancel() }}
     >
       <div

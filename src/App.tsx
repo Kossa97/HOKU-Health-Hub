@@ -68,6 +68,8 @@ function PersonalApp() {
         <OnboardingProvider>
         <Toaster
           position="top-center"
+          // Unter Statusleiste und Dynamic Island, nicht dahinter
+          containerStyle={{ top: 'max(16px, calc(env(safe-area-inset-top, 0px) + 8px))' }}
           toastOptions={{
             // Wie eine iOS-Meldung: feste dunkle Kapsel, keine farbige Kante
             style: { background: '#2c2c2e', color: '#fff', border: 'none', borderRadius: 999, padding: '10px 16px', fontSize: 15, boxShadow: '0 8px 30px rgba(0,0,0,0.5)' },

@@ -1176,8 +1176,3 @@ export function pdfFileName(opts: PdfBuildOptions): string {
   }
   return `TYD-${opts.lang === 'de' ? 'Protokoll' : 'Protocol'}-${opts.range.to}.pdf`
 }
-
-export async function downloadProtocolPdf(data: ProtocolData, opts: PdfBuildOptions): Promise<void> {
-  const doc = await buildProtocolPdf(data, opts)
-  doc.save(pdfFileName(opts))
-}

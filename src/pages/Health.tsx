@@ -440,7 +440,7 @@ export function Health() {
       {/* ── Gewicht-Modal ────────────────────────────────────────────────── */}
       {showWeightForm && (
         <div className="fixed inset-0 z-50 bg-black/60" data-app-modal onClick={() => setShowWeightForm(false)}>
-          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[90dvh] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
+          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
             <div className="lg-grabber mb-3" />
             <h2 className="lg-title2">Neues Gewicht</h2>
             <div>
@@ -466,7 +466,7 @@ export function Health() {
       {/* ── Körperprofil-Modal ───────────────────────────────────────────── */}
       {showProfileForm && (
         <div className="fixed inset-0 z-50 bg-black/60" data-app-modal onClick={() => setShowProfileForm(false)}>
-          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[90dvh] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
+          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
             <div className="lg-grabber mb-3" />
             <h2 className="lg-title2">Körperprofil bearbeiten</h2>
             {/* Unter 380 px untereinander: Datum und Auswahl wären sonst abgeschnitten */}
