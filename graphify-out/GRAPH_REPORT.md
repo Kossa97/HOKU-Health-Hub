@@ -1,17 +1,17 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-20)
 
 ## Corpus Check
-- 1252 files · ~1,570,065 words
+- 1252 files · ~1,570,337 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 58 file(s) not represented in the graph (top: (none) 26, .xml 10, .css 7)
 
 ## Summary
-- 8408 nodes · 21702 edges · 419 communities (326 shown, 93 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 765 edges (avg confidence: 0.92)
+- 8408 nodes · 21705 edges · 419 communities (326 shown, 93 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 768 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5902f01b`
+- Built from commit: `036e932f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -765,8 +765,8 @@ Cohesion: 0.17
 Nodes (11): Abgenommene Darstellung, Energie, Schlaf, Wohlbefinden und Libido, KFA, Mindestdaten und Leerzustände, Nicht in diesem Umfang, Statusfarben, Technischer Zuschnitt, Tests und Verifikation (+3 more)
 
 ### Community 102 - "GoalsSheet.tsx"
-Cohesion: 0.14
-Nodes (23): Key, KEYS, LABEL, SwitchRow(), Activity, DEFAULT_GOALS, GOAL_LIMITS, GoalKind (+15 more)
+Cohesion: 0.15
+Nodes (22): Key, KEYS, LABEL, SwitchRow(), Activity, GOAL_LIMITS, GoalKind, audio() (+14 more)
 
 ### Community 103 - "The Lab — Redesign Spec"
 Cohesion: 0.11
@@ -957,8 +957,8 @@ Cohesion: 0.14
 Nodes (9): box, center, io, out, rc, root, size, targets (+1 more)
 
 ### Community 154 - "date-fns"
-Cohesion: 0.19
-Nodes (22): date-fns, DayOrb(), VIEW, MonthSheet(), WeekStrip(), toDateKey, useNutritionDay(), addTotals() (+14 more)
+Cohesion: 0.18
+Nodes (23): date-fns, DayOrb(), VIEW, MonthSheet(), WeekStrip(), toDateKey, useNutritionDay(), addTotals() (+15 more)
 
 ### Community 155 - "seed-health-data.mjs"
 Cohesion: 0.40
