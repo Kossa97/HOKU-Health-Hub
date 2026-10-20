@@ -156,8 +156,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1792468966.2164426,
-    "seen": 1792473641.5110836,
+    "mtime": 1792474175.9290144,
+    "seen": 1792474673.6684272,
     "ast_hash": "1759efa3c7fdc2cb868656f107ac891f",
     "semantic_hash": ""
   },
@@ -336,8 +336,8 @@
     "semantic_hash": ""
   },
   "src/components/ProtocolPdfModal.tsx": {
-    "mtime": 1792472928.5197654,
-    "seen": 1792473641.5113127,
+    "mtime": 1792474175.9290144,
+    "seen": 1792474673.6705766,
     "ast_hash": "170c5d230e7d132c10b95d6804349cc8",
     "semantic_hash": ""
   },
@@ -384,8 +384,8 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionMapCanvas.tsx": {
-    "mtime": 1792473226.9459574,
-    "seen": 1792473641.5113528,
+    "mtime": 1792474175.9290144,
+    "seen": 1792474673.6711152,
     "ast_hash": "2718c07cb3d3e7ab789eab03ee58f3b8",
     "semantic_hash": ""
   },
@@ -954,8 +954,8 @@
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/renderProtocolPdf.ts": {
-    "mtime": 1792472928.518447,
-    "seen": 1792473641.5134265,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.6994212,
     "ast_hash": "3a27c9af5d86f0bd9e4c6145dd1810b4",
     "semantic_hash": ""
   },
@@ -1128,8 +1128,8 @@
     "semantic_hash": ""
   },
   "src/pages/Tagebuch.tsx": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5135503,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.7013907,
     "ast_hash": "e1ad3f9183dd54fc1c0be9fbed0f62bf",
     "semantic_hash": ""
   },
@@ -1236,8 +1236,8 @@
     "semantic_hash": ""
   },
   "src/sw.ts": {
-    "mtime": 1792469118.3605545,
-    "seen": 1792473641.5136437,
+    "mtime": 1792474175.9410143,
+    "seen": 1792474673.702744,
     "ast_hash": "1013d78a2a34d73725ae552737d0ff83",
     "semantic_hash": ""
   },
@@ -1422,8 +1422,8 @@
     "semantic_hash": ""
   },
   "vite.config.ts": {
-    "mtime": 1792468972.4946334,
-    "seen": 1792473641.5136895,
+    "mtime": 1792474175.9410143,
+    "seen": 1792474673.7034364,
     "ast_hash": "0f220b69eb4e4b63e1ba93f55a9dbe00",
     "semantic_hash": ""
   },
@@ -1998,9 +1998,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/verlauf/VerlaufSection.tsx": {
-    "mtime": 1792467180.2529593,
-    "seen": 1792473641.5118024,
-    "ast_hash": "46aa7e45a49dd720f0a288896214b581",
+    "mtime": 1792474344.3679264,
+    "seen": 1792474673.6790447,
+    "ast_hash": "29d3769390654bf5667415aab6c62d9a",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/dates.ts": {
@@ -2550,8 +2550,8 @@
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/presets.ts": {
-    "mtime": 1792472315.0631175,
-    "seen": 1792473641.5134177,
+    "mtime": 1792467180.3491454,
+    "seen": 1792474673.6993816,
     "ast_hash": "76fd1b2fdfd699efc684034114fd65c2",
     "semantic_hash": ""
   },
@@ -2586,8 +2586,8 @@
     "semantic_hash": ""
   },
   "src/pages/__PdfPreview.tsx": {
-    "mtime": 1792468966.221347,
-    "seen": 1792473641.5135584,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.7015328,
     "ast_hash": "d836af528cb174ced481d8c88ef2be2f",
     "semantic_hash": ""
   },
@@ -5142,8 +5142,8 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/components/ExpiredBadge.tsx": {
-    "mtime": 1792473664.7243123,
-    "seen": 1792473923.7047153,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.6811213,
     "ast_hash": "f62cf939215a1c4d1e404817f62a580f",
     "semantic_hash": ""
   },
@@ -5340,8 +5340,8 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/page/VialCarousel.tsx": {
-    "mtime": 1792473664.7243123,
-    "seen": 1792473923.709609,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.6882524,
     "ast_hash": "3a8c9878e742d18089e2ff017ab8dd80",
     "semantic_hash": ""
   },
@@ -5406,8 +5406,8 @@
     "semantic_hash": ""
   },
   "e2e/support/mockSupabase.ts": {
-    "mtime": 1792473226.7453244,
-    "seen": 1792473641.51105,
+    "mtime": 1792474175.1970143,
+    "seen": 1792474673.6679578,
     "ast_hash": "be7f74c38fef9b7736d1706e1dac6ca1",
     "semantic_hash": ""
   },
@@ -5712,8 +5712,8 @@
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
-    "mtime": 1792473226.7453244,
-    "seen": 1792473641.5110583,
+    "mtime": 1792474175.1970143,
+    "seen": 1792474673.6680229,
     "ast_hash": "22b51f17dca49733e8f9a96cab66bb70",
     "semantic_hash": ""
   },
@@ -7152,9 +7152,9 @@
     "semantic_hash": ""
   },
   "src/components/ui/GlassSegmented.tsx": {
-    "mtime": 1792467180.2307448,
-    "seen": 1792473641.5114286,
-    "ast_hash": "96d69114541fcde8367a9590bfe0c7c6",
+    "mtime": 1792474525.040962,
+    "seen": 1792474673.672073,
+    "ast_hash": "89fcd9ac1ca04522d589e84e235b0e8a",
     "semantic_hash": ""
   },
   "src/components/ui/SheetClose.tsx": {
@@ -7338,20 +7338,20 @@
     "semantic_hash": ""
   },
   "memory/projects/tagebuch.md": {
-    "mtime": 1792473226.9434252,
-    "seen": 1792473641.5140262,
+    "mtime": 1792474175.9210143,
+    "seen": 1792474673.7091193,
     "ast_hash": "c71da7843f4da8274588737244baa78d",
     "semantic_hash": ""
   },
   "src/lib/injectionFocusFrame.test.ts": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5132203,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.6975946,
     "ast_hash": "64f293c8357283b3cc5d65363ff6d623",
     "semantic_hash": ""
   },
   "src/lib/injectionFocusFrame.ts": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5132232,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.697599,
     "ast_hash": "cbc0681e582dd957985c5282817d93e0",
     "semantic_hash": ""
   },
@@ -7398,32 +7398,32 @@
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipInfo.tsx": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5135944,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.702072,
     "ast_hash": "ec12eafdba1f06e1d17c4e8eee82afb0",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/EntryForm.tsx": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5135968,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.7020764,
     "ast_hash": "e285f10e4ec7dd08fa258f89c11d2b98",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/SymptomChip.tsx": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5135992,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.7020812,
     "ast_hash": "1a51a4db18483718598134b600b2e168",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/chips.test.ts": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5136018,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.7020845,
     "ast_hash": "2c70e8e28b9b6bdd22bcb76f43488c95",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/chips.ts": {
-    "mtime": 1792473226.9471202,
-    "seen": 1792473641.5136044,
+    "mtime": 1792474175.9410143,
+    "seen": 1792474673.7020895,
     "ast_hash": "fa7da2b4892b4b86cdfe0e414e9723cf",
     "semantic_hash": ""
   },
@@ -7566,26 +7566,26 @@
     "semantic_hash": ""
   },
   "src/components/protocolPdf/PdfInfoSheet.tsx": {
-    "mtime": 1792472646.3102012,
-    "seen": 1792473641.5114138,
+    "mtime": 1792474175.9290144,
+    "seen": 1792474673.6719344,
     "ast_hash": "09e18e634808ee7e432874f68f66625b",
     "semantic_hash": ""
   },
   "src/components/protocolPdf/PdfPagesPreview.tsx": {
-    "mtime": 1792472928.5202916,
-    "seen": 1792473641.5114157,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.67194,
     "ast_hash": "69c63b93784391d0ab4370c258f9354e",
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/rasterizePdf.ts": {
-    "mtime": 1792469126.7226398,
-    "seen": 1792473641.513423,
+    "mtime": 1792474175.9361954,
+    "seen": 1792474673.699418,
     "ast_hash": "8e63d3551405a115de0f5aa0b4111250",
     "semantic_hash": ""
   },
   "src/lib/protocolPdf/sharePdf.ts": {
-    "mtime": 1792472928.5189884,
-    "seen": 1792473641.5134306,
+    "mtime": 1792474175.9370143,
+    "seen": 1792474673.6994567,
     "ast_hash": "d811d75666a8b69750c9ff846d848916",
     "semantic_hash": ""
   }
