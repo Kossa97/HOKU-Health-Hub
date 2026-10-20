@@ -275,7 +275,12 @@ export interface SphereOpts {
   alpha?: number
   dim?: boolean
   flash?: Flash | null
+  /** Vorschau (Portions-Blatt): diese Plätze und Hüllenpunkte ab `extraFrom` kämen dazu — sie pulsieren. */
+  preview?: { from: number; to: number; extraFrom: number } | null
 }
+
+/** Pulsieren der Vorschau: ruhig, gut eine Sekunde je Zug. */
+const pulse = (now: number) => 0.55 + 0.25 * Math.sin(now * 0.0055)
 
 /**
  * Eine Punkt-Kugel: hintere Hälfte zuerst, dann die vordere; gefüllte Plätze
@@ -300,6 +305,10 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
       let size = o.px * (0.5 + 0.75 * d)
       let alpha = (ci ? 0.32 + 0.68 * d : 0.07 + 0.26 * d) * am
       if (o.dim) alpha *= 0.5
+      if (o.preview && rank >= o.preview.from && rank < o.preview.to) {
+        alpha *= pulse(o.now)
+        size *= 1.12
+      }
       if (fl && rank >= fl.from && rank < fl.to) {
         const delay = ((rank - fl.from) / Math.max(1, fl.to - fl.from)) * fl.spread
         const age = o.now - fl.t0 - delay
@@ -328,7 +337,8 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
     const hvx = H[0] * hx + H[1] * hy + H[2] * hz
     const hvy = H[3] * hx + H[4] * hy + H[5] * hz
     const hd = (H[6] * hx + H[7] * hy + H[8] * hz + 1) / 2
-    r.dot(o.color, o.cx + hvx * o.R * rad, o.cy - hvy * o.R * rad, o.px * (0.45 + 0.6 * hd), (0.2 + 0.5 * hd) * am * (o.dim ? 0.5 : 1))
+    const pv = o.preview && j >= o.preview.extraFrom ? pulse(o.now) : 1
+    r.dot(o.color, o.cx + hvx * o.R * rad, o.cy - hvy * o.R * rad, o.px * (0.45 + 0.6 * hd), (0.2 + 0.5 * hd) * am * pv * (o.dim ? 0.5 : 1))
   }
 }
 

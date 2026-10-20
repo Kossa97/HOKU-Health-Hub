@@ -312,10 +312,12 @@ export function ErnaehrungPage() {
           pickLabel={sheet.pick?.kind === 'photo' ? t('nutr_photo_take_over') : undefined}
           food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
           busy={busy} hideKcal={n.goals.hideKcal}
+          // Kugel mit Vorschau nur für den gerade gezeigten Tag (dort wird eingetragen).
+          day={!sheet.pick && n.day ? { total: n.total, goals: n.goals } : undefined}
           onClose={() => setSheet(sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
             if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
-            run(async () => {
+            return run(async () => {
               await n.add(meal, sheet.food, amount)
               setSheet(null)
               toast.success(t('nutr_added'))

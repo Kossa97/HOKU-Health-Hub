@@ -472,3 +472,16 @@ test('Mini-Kugel: weggescrollt schwebt sie oben ein und führt zurück; Töne sc
   await page.getByRole('button', { name: 'Speichern', exact: true }).click()
   await expect.poll(() => page.evaluate(() => localStorage.getItem('tyd.orbSounds'))).toBe('on')
 })
+
+test('Portions-Blatt: Kugel zeigt den Tag mit dieser Portion als Vorschau, die Menge ändert sie mit', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Skyr Natur/ }).first().click()
+  const preview = page.getByRole('dialog').getByRole('img', { name: /^Mit dieser Portion:/ })
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 252 von 2000 kcal')
+  await page.getByLabel('Menge in g').fill('100')
+  await expect(preview).toHaveAttribute('aria-label', 'Mit dieser Portion: 189 von 2000 kcal')
+  await page.getByRole('dialog').getByRole('button', { name: 'Hinzufügen' }).click()
+  await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
+})

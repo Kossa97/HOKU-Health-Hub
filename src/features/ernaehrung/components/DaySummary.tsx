@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { type MacroKey, type OrbLayout, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
-import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
+import { type OrbFocus, OrbEngine, takeSettled } from '../lib/orbEngine'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import type { Goals, Nutrients } from '../lib/nutrition'
 import { CARD, MACRO_COLORS, MUTED } from '../styles'
@@ -106,7 +106,8 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
     const p = prev.current
     if (p && p.date === date && p.goals === goalsKey) {
       engine.release(p.layout, layout)
-      engine.launch({ x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
+      // Kam der Eintrag aus dem Portions-Blatt, hat die Kugel dort schon eingerastet: kein zweiter Flug.
+      if (!takeSettled()) engine.launch({ x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
     } else if (p) {
       engine.cancelFlights()
     }

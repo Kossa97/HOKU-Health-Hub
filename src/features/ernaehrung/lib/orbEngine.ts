@@ -116,12 +116,17 @@ export class OrbEngine {
   private mini: { canvas: HTMLCanvasElement; renderer: DotRenderer } | null = null
   private miniFlash: Flash | null = null
   private miniDrawn = 0
+  /** Radius der großen Kugel in CSS-Pixeln (im Portions-Blatt kleiner). */
+  private readonly radius: number
+  /** Portions-Blatt: so sähe der Tag mit dieser Portion aus — die neuen Punkte pulsieren. */
+  private preview: OrbLayout | null = null
   /** Geglättete Rechenzeit je Bild (ms) und wann zuletzt gezeichnet wurde — für die Bremse in der Schleife. */
   private cost = 0
   private workedAt = 0
 
-  constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void }) {
+  constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void; radius?: number }) {
     this.canvas = canvas
+    this.radius = opts.radius ?? ORB_RADIUS
     this.renderer = new DotRenderer(canvas)
     this.reduce = opts.reduce
     this.onFocus = opts.onFocus
@@ -151,6 +156,26 @@ export class OrbEngine {
     this.layout = layout
     this.needsDraw = true
     if (this.focusKey && !layout.moons.some(m => m.key === this.focusKey)) this.clearFocus()
+  }
+
+  /** Vorschau zeigen (`null` = keine). Gleiche Ziele wie das aktuelle Layout vorausgesetzt. */
+  setPreview(after: OrbLayout | null) {
+    this.preview = after
+    this.needsDraw = true
+  }
+
+  /**
+   * „Hinzufügen" im Portions-Blatt: die Vorschau rastet ein — Aufleuchten,
+   * Haptik und Ton an Ort und Stelle. Löst auf, wenn man es gesehen hat.
+   */
+  settle(): Promise<void> {
+    const before = this.layout
+    const after = this.preview
+    if (!before || !after) return Promise.resolve()
+    this.preview = null
+    this.launch({ x: 0, y: 0 }, before, after)
+    this.setLayout(after)
+    return new Promise(resolve => setTimeout(resolve, this.reduce ? 150 : 420))
   }
 
   setReduce(reduce: boolean) {
@@ -697,14 +722,16 @@ export class OrbEngine {
     const live = !this.reduce
     const cx = (this.cssW / 2) * k
     const cy = this.centerY * k
-    const R = ORB_RADIUS * k
+    const R = this.radius * k
     const dens = dotScale(layout.main.n)
     const M = qMat(this.q)
     r.begin()
     this.drawMoons(0, cx, cy, R, now, dens)
-    drawSphere(r, layout.main.n, layout.main.fill, {
+    const pv = this.preview
+    drawSphere(r, layout.main.n, pv ? pv.main.fill : layout.main.fill, {
       M, HM: qMat(qMul(this.q, qAxis(0, 1, 0, this.haloA))), cx, cy, R,
       px: DOT_MAIN * k * dens, color: layout.main.key === 'kcal' ? 1 : 2, now, live, flash: this.flash,
+      preview: pv ? previewRange(layout.main.fill, pv.main.fill) : null,
     })
     this.geo = { M, cx, cy, R }
     this.drawMoons(1, cx, cy, R, now, dens)
@@ -738,7 +765,9 @@ export class OrbEngine {
       const behind = !front && vx * vx + vy * vy < 1.05
       const Mm = qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : now * 0.0005) + o.phase)))
       const mcx = cx + vx * R, mcy = cy - vy * R, mR = R * m.r * scale
-      drawSphere(r, m.n, m.fill, {
+      const pm = this.preview?.moons.find(x => x.key === m.key)
+      drawSphere(r, m.n, pm ? pm.fill : m.fill, {
+        preview: pm ? previewRange(m.fill, pm.fill) : null,
         M: Mm, HM: qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : -now * 0.0003) + o.phase))),
         cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * scale, color: MOON_COLOR[m.key],
         now, live: !this.reduce, alpha: behind ? 0.3 : 0.6 + 0.4 * d, flash: this.moonFlash[m.key] ?? null,
@@ -761,4 +790,24 @@ function assignTicks(parts: Particle[], when: (p: Particle) => number, count: nu
     const pr = ticks > 1 ? j / (ticks - 1) : 1
     order[Math.round(pr * (order.length - 1))].tick = make(pr)
   }
+}
+
+/** Was die Vorschau dazubringt: Plätze `from`–`to` und Hüllenpunkte ab `extraFrom`. */
+function previewRange(now: Fill, then: Fill): { from: number; to: number; extraFrom: number } {
+  return { from: now.filled, to: Math.max(now.filled, then.filled), extraFrom: now.extra }
+}
+
+let settledAt = 0
+
+/** Das Portions-Blatt hat das Eintragen schon gezeigt — die Tagesübersicht fliegt dann nicht noch einmal. */
+export function markSettled() { settledAt = performance.now() }
+
+/** Speichern gescheitert: die Tagesübersicht soll beim nächsten Mal wieder fliegen. */
+export function clearSettled() { settledAt = 0 }
+
+/** Einmal abholen: kam die Änderung gerade aus dem Portions-Blatt? */
+export function takeSettled(): boolean {
+  const hit = settledAt > 0 && performance.now() - settledAt < 5000
+  settledAt = 0
+  return hit
 }

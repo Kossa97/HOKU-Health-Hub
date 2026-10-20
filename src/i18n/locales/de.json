@@ -2787,6 +2787,8 @@
   "nutr_orb_mini": "Zur Tagesübersicht",
   "nutr_orb_sounds": "Töne der Kalorien-Kugel",
   "nutr_orb_sounds_hint": "Leise Klänge beim Eintragen und Entfernen. Gilt für dieses Gerät.",
+  "nutr_orb_preview": "Mit dieser Portion: {{value}} von {{goal}} kcal",
+  "nutr_orb_preview_protein": "Mit dieser Portion: {{value}} von {{goal}} g Eiweiß",
   "day_count_taken": "{{n}} genommen",
   "day_count_skipped": "{{n}} übersprungen",
   "day_count_missed": "{{n}} verpasst",
