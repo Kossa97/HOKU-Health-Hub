@@ -2776,5 +2776,10 @@
   "my_stack_scan_apply": "Übernehmen",
   "day_count_taken": "{{n}} genommen",
   "day_count_skipped": "{{n}} übersprungen",
-  "day_count_missed": "{{n}} verpasst"
+  "day_count_missed": "{{n}} verpasst",
+  "my_stack_shelf_life": "Haltbarkeit",
+  "my_stack_shelf_life_days_left": "noch {{n}} Tage",
+  "my_stack_shelf_life_day_left": "noch 1 Tag",
+  "my_stack_shelf_life_today": "läuft heute ab",
+  "my_stack_shelf_life_not_set": "nicht angegeben"
 }
