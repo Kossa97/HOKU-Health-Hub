@@ -1,5 +1,6 @@
 import { expect, test } from './support/fixtures'
 import type { Page } from '@playwright/test'
+import { SUPABASE_ORIGIN } from './support/mockSupabase'
 import { seedBpc157 } from './support/myStack'
 
 function gemerkteAntworten(page: Page): Promise<number> {
@@ -57,15 +58,19 @@ test('ohne Netz: Hinweis erscheint, Seitenwechsel zeigt gemerkte Daten', async (
   await page.locator('a[href="/kalender"]').first().click()
   await expect(page).toHaveURL(/\/kalender$/)
 
+  // Netz weg. Die Nachbildung antwortet sonst auch offline — also jede
+  // Supabase-Anfrage ausdrücklich scheitern lassen (zuletzt angemeldet, gewinnt)
+  await page.route(`${SUPABASE_ORIGIN}/**`, route => route.abort('internetdisconnected'))
   await context.setOffline(true)
-  await expect(page.locator('[data-verbindungs-hinweis="offline"]')).toBeVisible()
 
-  // Zurück zu My Stack: die Daten kommen aus dem Cache
+  // Zurück zu My Stack: die Daten kommen aus dem Offline-Speicher
   await page.locator('a[href="/my-stack"]').first().click()
   await expect(page).toHaveURL(/\/my-stack$/)
+  await expect(page.locator('[data-verbindungs-hinweis="offline"]')).toBeVisible()
   await expect(page.getByText('BPC-157').first()).toBeVisible()
   await expect(page.locator('[data-fehler-grenze]')).toHaveCount(0)
 
+  await page.unroute(`${SUPABASE_ORIGIN}/**`)
   await context.setOffline(false)
   await expect(page.locator('[data-verbindungs-hinweis]')).toBeHidden()
 })
