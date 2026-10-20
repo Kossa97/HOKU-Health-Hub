@@ -96,7 +96,7 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
         aria-modal="true"
         aria-labelledby={titleId}
         {...closingProps}
-        className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-0 bottom-0 z-[71] mx-auto flex max-h-[calc(100dvh-3rem)] max-w-[560px] flex-col !rounded-b-none"
+        className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-0 bottom-0 z-[71] mx-auto flex max-h-[calc(100dvh-var(--tyd-popup-top))] max-w-[560px] flex-col !rounded-b-none"
       >
         <span aria-hidden="true" className="mx-auto mt-2 h-[5px] w-9 shrink-0 rounded-full bg-[var(--lg-text-3)] opacity-60" />
         <div className="flex shrink-0 items-center justify-between pl-5 pr-2 pt-1">
