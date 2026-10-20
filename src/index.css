@@ -1818,3 +1818,30 @@ main.flex-1 {
 @media (prefers-reduced-motion: no-preference) {
   .tyd-collapse { transition: grid-template-rows 220ms var(--tyd-ease-out), opacity 180ms ease; }
 }
+
+/* My Stack: „Aktiv"-Punkt im Karussell. Ein ruhiger Ring geht vom Punkt aus
+   und verblasst — wie ein Herzschlag, alle 2 s. Nur transform und opacity.
+   Wer Bewegung abbestellt hat, sieht den Punkt still. */
+.tyd-active-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgb(52, 211, 153);
+}
+.tyd-active-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(52, 211, 153);
+  opacity: 0;
+}
+@keyframes tyd-active-ping {
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-active-dot::after { animation: tyd-active-ping 2s cubic-bezier(0.23, 1, 0.32, 1) infinite; }
+}
