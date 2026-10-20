@@ -121,9 +121,16 @@ export function VialCarousel({
                 return (
                   <div className="flex min-w-0 flex-wrap items-center justify-center gap-1.5">
                     <HaltbarkeitChip tage={days} substanzId={activePeptide.id} variante="wechsel" />
-                    <span className="lg-tag" data-tone={hasActive ? 'good' : undefined}>
-                      {hasActive ? t('aktiv_badge') : t('inaktiv_badge')}
-                    </span>
+                    {/* Aktiv: duenner gruener Rand wie beim Abgelaufen-Abzeichen,
+                        dazu ein pulsierender Punkt — die Substanz laeuft. */}
+                    {hasActive ? (
+                      <span data-active-badge className="inline-flex min-h-[26px] items-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2.5 text-[13px] font-semibold leading-none text-emerald-300">
+                        <span aria-hidden="true" className="tyd-active-dot" />
+                        {t('aktiv_badge')}
+                      </span>
+                    ) : (
+                      <span className="lg-tag">{t('inaktiv_badge')}</span>
+                    )}
                   </div>
                 )
               })()}
