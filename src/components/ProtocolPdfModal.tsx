@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Download, FileText, Loader2, X } from 'lucide-react'
+import { Download, Dumbbell, FileText, Loader2, Stethoscope, Users, X, type LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { denyProps } from '../lib/denyFeedback'
 import { loadProtocolData } from '../lib/protocolPdf/loadProtocolData'
@@ -7,6 +7,7 @@ import { SECTIONS } from '../lib/protocolPdf/sections'
 import { PRESETS, applyPreset, matchPreset, type ActivePreset, type PresetId } from '../lib/protocolPdf/presets'
 import { loadPdfExportPrefs, savePdfExportPrefs } from '../lib/protocolPdf/persistence'
 import { buildProtocolPdf, downloadProtocolPdf } from '../lib/protocolPdf/renderProtocolPdf'
+import { PdfPagesPreview, type PdfPagesPreviewLabels } from './protocolPdf/PdfPagesPreview'
 import type { ProtocolData, PdfLang, PdfDateRange, SectionId } from '../lib/protocolPdf/types'
 
 interface Props {
@@ -23,7 +24,7 @@ interface Props {
 type UILang = PdfLang
 
 const T: Record<UILang, {
-  title: string; titleShort: string; intro: string; presets: string; custom: string; sections: string
+  title: string; titleShort: string; presets: string; custom: string; sections: string
   period: string; from: string; to: string
   note: string; notePlaceholder: string; language: string; download: string; generating: string
   loading: string; noneSelected: string; empty: string; emptyClick: (label: string) => string
@@ -31,13 +32,14 @@ const T: Record<UILang, {
   loadError: string; genError: string
   personalHint: string
   livePreview: string; previewUpdating: string; previewEmpty: string; previewError: string
+  pageOf: (page: number, total: number) => string; enlarge: (page: number) => string
+  prevPage: string; nextPage: string; close: string
 }> = {
   de: {
     title: 'PDF-Protokoll erstellen',
     titleShort: 'PDF-Protokoll',
-    intro: 'Wähle ein Muster oder setze die Häkchen selbst. Die Vorschau aktualisiert sich live.',
     presets: 'Muster',
-    custom: 'Benutzerdefiniert',
+    custom: 'Eigene Auswahl',
     sections: 'Inhalte',
     period: 'Zeitraum',
     from: 'Von', to: 'Bis',
@@ -58,13 +60,17 @@ const T: Record<UILang, {
     previewUpdating: 'Vorschau wird aktualisiert …',
     previewEmpty: 'Wähle Inhalte, um die Vorschau zu sehen.',
     previewError: 'Vorschau konnte nicht erzeugt werden.',
+    pageOf: (page, total) => `Seite ${page} von ${total}`,
+    enlarge: page => `Seite ${page} vergrößern`,
+    prevPage: 'Vorherige Seite',
+    nextPage: 'Nächste Seite',
+    close: 'Schließen',
   },
   en: {
     title: 'Create PDF report',
     titleShort: 'PDF report',
-    intro: 'Pick a template or tick the boxes yourself. The preview updates live.',
     presets: 'Templates',
-    custom: 'Custom',
+    custom: 'Custom selection',
     sections: 'Contents',
     period: 'Period',
     from: 'From', to: 'To',
@@ -85,10 +91,17 @@ const T: Record<UILang, {
     previewUpdating: 'Updating preview …',
     previewEmpty: 'Select contents to see the preview.',
     previewError: 'Could not generate preview.',
+    pageOf: (page, total) => `Page ${page} of ${total}`,
+    enlarge: page => `Enlarge page ${page}`,
+    prevPage: 'Previous page',
+    nextPage: 'Next page',
+    close: 'Close',
   },
 }
 
 const DEFAULT_PRESET: PresetId = 'arzt'
+const PRESET_ICONS: Record<PresetId, LucideIcon> = { arzt: Stethoscope, coach: Dumbbell, forum: Users }
+const DATE_INPUT_CLASS = 'input block min-w-0 appearance-none text-left [&::-webkit-date-and-time-value]:text-left'
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 function initialLang(uiLang: string): UILang {
@@ -139,10 +152,6 @@ function restoreSelection(
   return { selected: new Set(restored), lang: prefs.lang }
 }
 
-function revokePreviewUrl(url: string | null | undefined) {
-  if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
-}
-
 export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previewData, variant = 'modal' }: Props) {
   const isPage = variant === 'page'
   const [lang, setLang] = useState<UILang>(() => {
@@ -155,14 +164,12 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
   const [selected, setSelected] = useState<Set<SectionId>>(new Set())
   const [note, setNote] = useState('')
   const [generating, setGenerating] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [previewKey, setPreviewKey] = useState(0)
+  const [pdfBytes, setPdfBytes] = useState<ArrayBuffer | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [previewError, setPreviewError] = useState(false)
   const t = T[lang]
   const prefsReady = useRef(false)
   const initialLoadDone = useRef(false)
-  const previewUrlRef = useRef<string | null>(null)
   const loadGenRef = useRef(0)
   const previewGenRef = useRef(0)
 
@@ -275,16 +282,13 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
 
   const selectedKey = useMemo(() => [...selected].sort().join('|'), [selected])
 
-  // Live-Vorschau: Blob-URL + iframe-Remount (data:-URIs werden in Chrome oft weiß
-  // und aktualisieren sich nach Range-Wechseln nicht mehr).
+  // Live-Vorschau: das PDF bauen; PdfPagesPreview rastert die Seiten mit pdf.js.
   // Auch ohne Häkchen: Cover + Disclaimer rendern (leerer Zeitraum / Forum ohne Daten).
+  // Bei ungültigem Zeitraum bleibt die letzte Vorschau stehen.
   useEffect(() => {
     if (!data || !isValidRange(range)) {
       setPreviewBusy(false)
       setPreviewError(false)
-      revokePreviewUrl(previewUrlRef.current)
-      previewUrlRef.current = null
-      setPreviewUrl(null)
       return
     }
 
@@ -305,20 +309,10 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           })
           if (cancelled || gen !== previewGenRef.current) return
 
-          const blob = doc.output('blob')
-          const url = URL.createObjectURL(blob)
-          revokePreviewUrl(previewUrlRef.current)
-          previewUrlRef.current = url
-          setPreviewUrl(url)
-          setPreviewKey(k => k + 1)
+          setPdfBytes(doc.output('arraybuffer'))
         } catch (err) {
           console.error('[pdf-preview]', err)
-          if (!cancelled && gen === previewGenRef.current) {
-            setPreviewError(true)
-            revokePreviewUrl(previewUrlRef.current)
-            previewUrlRef.current = null
-            setPreviewUrl(null)
-          }
+          if (!cancelled && gen === previewGenRef.current) setPreviewError(true)
         } finally {
           if (!cancelled && gen === previewGenRef.current) setPreviewBusy(false)
         }
@@ -330,10 +324,6 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
       window.clearTimeout(timer)
     }
   }, [data, selectedKey, lang, range, note, activePreset, selected])
-
-  useEffect(() => () => {
-    revokePreviewUrl(previewUrlRef.current)
-  }, [])
 
 
   const generate = async () => {
@@ -357,19 +347,39 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
 
   const showNoteField = selected.has('notes')
 
+  // Sprache des PDFs: kleiner Umschalter wie ein iOS-Segment.
   const langToggle = (
-    <button
-      type="button"
-      onClick={() => setLang(lang === 'de' ? 'en' : 'de')}
-      className="min-h-11 px-2 text-[13px] font-semibold text-[var(--lg-text-2)]"
-      aria-label={t.language}
-      title={t.language}
-    >
-      <span className={lang === 'de' ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text-3)]'}>DE</span>
-      <span className="text-[var(--lg-text-3)] mx-0.5">/</span>
-      <span className={lang === 'en' ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text-3)]'}>EN</span>
-    </button>
+    <div role="group" aria-label={t.language} title={t.language} className="mr-1 flex rounded-full bg-[var(--lg-fill)] p-0.5">
+      {(['de', 'en'] as const).map(l => (
+        <button
+          key={l}
+          type="button"
+          aria-pressed={lang === l}
+          onClick={() => setLang(l)}
+          // Sichtbar 28 px hoch, getroffen wird auf 44 px.
+          className={`tyd-press relative h-7 min-w-10 rounded-full px-2.5 text-[12px] font-semibold tracking-[0.02em] before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] ${
+            lang === l
+              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_2px_6px_rgba(0,0,0,0.25)]'
+              : 'text-[var(--lg-text-3)]'
+          }`}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
   )
+
+  const previewLabels: PdfPagesPreviewLabels = {
+    title: t.livePreview,
+    updating: t.previewUpdating,
+    empty: t.previewEmpty,
+    error: t.previewError,
+    pageOf: t.pageOf,
+    enlarge: t.enlarge,
+    prev: t.prevPage,
+    next: t.nextPage,
+    close: t.close,
+  }
 
   return (
     <div
@@ -402,52 +412,47 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           </div>
         </div>
 
-        {/* Muster-Tabs + Inhalt darunter — mobil zuerst */}
-        <div className="shrink-0 px-4 pt-2 pb-3">
+        {/* Muster als Karten — ein Tipp setzt die Häkchen. Eigene Häkchen = keine Karte aktiv. */}
+        <div className="shrink-0 px-4 pt-2 pb-1">
           <p className="lg-group-title !mx-1">{t.presets}</p>
-          <div className="rounded-[18px] bg-[var(--lg-fill)] p-0.5">
-            <div
-              className="grid grid-cols-3"
-              role="tablist"
-              aria-label={t.presets}
-            >
-              {PRESETS.map(preset => {
-                const active = activePreset === preset.id
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    disabled={loading || !data}
-                    onClick={() => selectPreset(preset.id)}
-                    className={`min-h-9 rounded-full px-2 text-center text-[14px] font-semibold transition-colors disabled:opacity-50 ${
-                      active
-                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
-                        : 'text-[var(--lg-text-2)]'
+          <div className="grid grid-cols-3 gap-2" role="group" aria-label={t.presets}>
+            {PRESETS.map(preset => {
+              const active = activePreset === preset.id
+              const Icon = PRESET_ICONS[preset.id]
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={active}
+                  aria-description={preset.description[lang]}
+                  disabled={loading || !data}
+                  onClick={() => selectPreset(preset.id)}
+                  className={`tyd-press flex min-w-0 flex-col items-start gap-2 rounded-[16px] p-3 text-left disabled:opacity-50 ${
+                    active
+                      ? 'bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] shadow-[inset_0_0_0_1.5px_var(--lg-accent)]'
+                      : 'bg-[var(--lg-fill)]'
+                  }`}
+                >
+                  <span
+                    className={`grid h-8 w-8 place-items-center rounded-full transition-colors duration-150 ${
+                      active ? 'bg-[var(--lg-accent)] text-[var(--accent-contrast)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
                     }`}
+                    aria-hidden="true"
                   >
-                    {preset.label[lang]}
-                  </button>
-                )
-              })}
-            </div>
-            <div
-              className={`mt-0.5 rounded-full px-2 py-1.5 text-center text-[12px] font-semibold transition-colors ${
-                activePreset === 'custom'
-                  ? 'bg-[color-mix(in_srgb,var(--lg-warn)_16%,transparent)] text-[var(--lg-warn-text)]'
-                  : 'text-[var(--lg-text-3)]'
-              }`}
-              aria-live="polite"
-            >
-              {t.custom}
-            </div>
+                    <Icon size={16} strokeWidth={2.2} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-[var(--lg-text)]">
+                      {preset.label[lang]}
+                    </span>
+                    <span lang={lang} className="mt-0.5 block text-[12px] leading-[15px] text-[var(--lg-text-2)]">
+                      {preset.short[lang]}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
           </div>
-          <p className="mt-2 px-1 text-[13px] leading-snug text-[var(--lg-text-2)]">
-            {activePreset === 'custom'
-              ? t.intro
-              : (PRESETS.find(preset => preset.id === activePreset) ?? PRESETS[0]).description[lang]}
-          </p>
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
@@ -455,32 +460,41 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           <div>
             <p className="lg-group-title !mx-1">{t.period}</p>
             {/* Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab */}
+            {/* iOS gibt Datumsfeldern eine Eigenbreite: ohne min-w-0/appearance
+                ragt „Bis" über den Rand hinaus. */}
             <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
-              <label className="block">
+              <label className="block min-w-0">
                 <span className="label !mb-1">{t.from}</span>
                 <input
                   type="date"
                   value={range.from}
                   max={range.to}
                   onChange={e => updateRange({ from: e.target.value })}
-                  className="input"
+                  className={DATE_INPUT_CLASS}
                 />
               </label>
-              <label className="block">
+              <label className="block min-w-0">
                 <span className="label !mb-1">{t.to}</span>
                 <input
                   type="date"
                   value={range.to}
                   min={range.from}
                   onChange={e => updateRange({ to: e.target.value })}
-                  className="input"
+                  className={DATE_INPUT_CLASS}
                 />
               </label>
             </div>
           </div>
 
           <div>
-            <p className="lg-group-title !mx-1">{t.sections}</p>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="lg-group-title !mx-1">{t.sections}</p>
+              {!loading && activePreset === 'custom' && (
+                <span className="mb-1.5 mr-1 rounded-full bg-[var(--lg-fill)] px-2 py-0.5 text-[12px] font-medium text-[var(--lg-text-2)]">
+                  {t.custom}
+                </span>
+              )}
+            </div>
             {loading ? (
               <div className="flex items-center gap-2 py-6 justify-center text-[var(--lg-text-2)] text-sm">
                 <Loader2 size={16} className="animate-spin" /> {t.loading}
@@ -543,29 +557,15 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           )}
         </div>
 
-          <div className={`flex-1 ${isPage ? 'min-h-[50vh]' : 'min-h-[38vh]'} lg:min-h-0 flex flex-col`}>
-            <div className="shrink-0 px-4 pt-3 pb-1.5 flex items-center justify-between gap-2">
-              <p className="lg-group-title !mx-1 !mb-0">{t.livePreview}</p>
-              {previewBusy && (
-                <span className="inline-flex items-center gap-1.5 text-[12px] text-[var(--lg-text-2)]">
-                  <Loader2 size={12} className="animate-spin" /> {t.previewUpdating}
-                </span>
-              )}
-            </div>
-            <div className="relative mx-4 flex-1 min-h-0 overflow-hidden rounded-[18px] bg-[#d1d1d6]">
-              {previewUrl ? (
-                <iframe
-                  key={previewKey}
-                  title={t.livePreview}
-                  src={previewUrl}
-                  className="absolute inset-0 h-full w-full border-0 bg-white"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-[#3a3a3c]">
-                  {previewError ? t.previewError : t.previewEmpty}
-                </div>
-              )}
-            </div>
+          {/* Die Seiten haben ihre eigene Höhe (A4); im Modal und am Desktop scrollt die Spalte. */}
+          <div className={`flex-1 min-h-0 pb-1 lg:overflow-y-auto ${isPage ? '' : 'min-h-[38vh] overflow-y-auto'}`}>
+            <PdfPagesPreview
+              bytes={data ? pdfBytes : null}
+              building={previewBusy}
+              failed={previewError}
+              notice={isValidRange(range) ? null : t.invalidRange}
+              labels={previewLabels}
+            />
           </div>
         </div>
 
