@@ -3,6 +3,11 @@ import type { ReactNode } from 'react'
 import type { SloshEngine } from '../../../components/sloshEngine'
 import type { RefObject } from 'react'
 import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type UIEvent as ReactUIEvent,
@@ -20,6 +25,20 @@ import { getStableStackItemColor } from '../lib/colors'
 import { type Peptide, type Cycle, vialCarouselItemWidth, vialCarouselItemGap, fuellstandFuer, zeigtPegel } from './model'
 import { AddStageTile } from './stackTiles'
 import { VialPositionRow } from './VialPositionRow'
+
+/**
+ * Einrasten und Uebergang eines Platzes im Streifen (Neu-Kachel und Objekte).
+ *
+ * `snap-always`: ein Wisch geht genau einen Eintrag weit. Ohne das setzt
+ * der Browser den Schwung fort, bis die Reibung ihn aufbraucht — ein kurzer
+ * Stups trug den Streifen ueber drei, vier Objekte, weil der Schwung nur das
+ * Tempo kennt und nicht die Absicht. Wer weiter will, zieht weiter: beim
+ * Ziehen gilt die Regel nicht, nur beim Ausrollen danach. Waehrend die Maus den
+ * Streifen zieht (`data-dragging` am Streifen), gilt weder Einrasten noch
+ * Uebergang. Das steht im CSS und nicht als Prop: sonst renderte jeder
+ * Druck und jedes Loslassen alle Objekte samt Zeichnung neu.
+ */
+const PLATZ_BEWEGUNG = 'snap-center snap-always transition-all duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none'
 
 /**
  * Die Buehne: Reiter, Kopfzeile mit Haltbarkeit und Status, das Karussell mit Neu-Kachel und Objekten, darunter die Positionszeile.
@@ -80,18 +99,19 @@ export function VialCarousel({
   selectPeptideIndex: (index: number) => void
 }) {
   const { t } = useTranslation()
+  // Die Seite baut ihre Handler bei jedem Rendern neu. Damit die Eintraege
+  // trotzdem stabil bleiben (memo), reichen wir feste Funktionen durch, die
+  // immer den neuesten Handler aufrufen.
+  const handlersRef = useRef({ handleVialCarouselItemClick, handleVialCarouselItemKeyDown })
+  useLayoutEffect(() => {
+    handlersRef.current = { handleVialCarouselItemClick, handleVialCarouselItemKeyDown }
+  })
+  const onItemClick = useCallback((index: number) => handlersRef.current.handleVialCarouselItemClick(index), [])
+  const onItemKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>, index: number) => handlersRef.current.handleVialCarouselItemKeyDown(e, index),
+    [],
+  )
   const vialSnapClassName = isVialCarouselDragging ? 'snap-none' : 'snap-x snap-mandatory'
-  /**
-   * `snap-always`: ein Wisch geht genau einen Eintrag weit.
-   *
-   * Ohne das setzt der Browser den Schwung fort, bis die Reibung ihn
-   * aufbraucht — ein kurzer Stups trug den Streifen ueber drei, vier Objekte,
-   * weil der Schwung nur das Tempo kennt und nicht die Absicht.
-   * `scroll-snap-stop: always` verbietet ihm, einen Standplatz zu
-   * ueberfliegen. Wer weiter will, zieht weiter: beim Ziehen gilt die Regel
-   * nicht, nur beim Ausrollen danach.
-   */
-  const vialItemSnapClassName = isVialCarouselDragging ? '' : 'snap-center snap-always'
   return (
     <>
       {!loading && viewMode === 'vials' && activePeptide && (
@@ -170,7 +190,8 @@ export function VialCarousel({
               onPointerUp={handleVialCarouselPointerUp}
               onPointerCancel={handleVialCarouselPointerUp}
               onWheel={handleVialCarouselWheel}
-              className={`relative z-10 flex min-h-0 flex-1 ${vialSnapClassName} overflow-x-auto overflow-y-hidden overscroll-none touch-pan-x pb-2 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+              data-dragging={isVialCarouselDragging || undefined}
+              className={`group relative z-10 flex min-h-0 flex-1 ${vialSnapClassName} overflow-x-auto overflow-y-hidden overscroll-none touch-pan-x pb-2 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
                 isVialCarouselDragging ? 'cursor-grabbing' : 'cursor-grab'
               }`}
               style={{
@@ -202,9 +223,7 @@ export function VialCarousel({
                 // Wie ein Nachbar-Objekt gedimmt, nicht staerker: der Rand
                 // der Karte soll links hereinlugen und zeigen, dass dort
                 // noch etwas steht.
-                className={`${vialItemSnapClassName} flex h-full min-h-0 origin-bottom shrink-0 flex-col rounded-2xl px-2 py-2 ${
-                  isVialCarouselDragging ? 'transition-none' : 'transition-all duration-300'
-                } ${addTileActive ? 'scale-100' : 'scale-[0.88] opacity-65'}`}
+                className={`${PLATZ_BEWEGUNG} flex h-full min-h-0 origin-bottom shrink-0 flex-col rounded-2xl px-2 py-2 ${addTileActive ? 'scale-100' : 'scale-[0.88] opacity-65'}`}
                 style={{ width: vialCarouselItemWidth }}
               >
                 <AddStageTile
@@ -219,96 +238,18 @@ export function VialCarousel({
                   }}
                 />
               </div>
-              {stagePeptides.map((p, index) => {
-                // Steht die Kachel in der Mitte, ist keine Substanz aktiv.
-                const isActive = !addTileActive && p.id === activePeptide.id
-                const peptideColor = p.color_hex ?? getStableStackItemColor(p.id)
-                // Der Pegel aus dem Bestand — beim Vial wie bisher (ohne
-                // Angaben „100 %"), bei Spray und Tropfflasche der geoeffnete
-                // Behaelter, und nur mit gefuehrtem Bestand. Eine
-                // verschlossene Ampulle stuende sonst ewig bei „100 %".
-                const pegel = fuellstandFuer(p)
-                const vialPct = Math.round(pegel ?? 100)
-                const showsFillPct = zeigtPegel(p)
-
-                return (
-                  <div
-                    key={p.id}
-                    data-vial-index={index}
-                    // `origin-bottom`: alle Objekte stehen auf DERSELBEN
-                    // Standlinie. Ohne das skaliert jedes um seine eigene
-                    // Mitte, also schrumpfen die Nachbarn nach oben UND
-                    // unten weg und schweben ueber dem Boden. Beim
-                    // Formular-Karussell war das laengst entschieden; hier
-                    // fehlte es, und bei 70 % Breite faellt es auf.
-                    className={`${vialItemSnapClassName} flex h-full min-h-0 origin-bottom shrink-0 flex-col rounded-2xl px-2 py-2 ${
-                      isVialCarouselDragging ? 'transition-none' : 'transition-all duration-300'
-                    } ${
-                      isActive ? 'scale-100' : 'scale-[0.88] opacity-65 saturate-75'
-                    }`}
-                    style={{ width: vialCarouselItemWidth }}
-                    aria-label={p.name}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleVialCarouselItemClick(index)}
-                    onKeyDown={e => handleVialCarouselItemKeyDown(e, index)}
-                  >
-                    {/* Eingepasst statt fest bemessen: jede Form bringt
-                        eigene Pixelmasse mit — ein Pen ist 589 px hoch,
-                        eine Kapsel 364 px breit. `StageFit` misst und
-                        skaliert, damit beide die Flaeche fuellen, ohne
-                        dass in elf Dateien elf neue Zahlen stehen.
-
-                        `size="large"` und nicht `carousel`: die Buehne ist
-                        gross, also muss die GEZEICHNETE Vorlage gross
-                        sein. Mit `carousel` (80–125 px) lag der Faktor bei
-                        rund 3 — und eine CSS-Skalierung vergroessert nicht
-                        die Zeichnung, sondern das fertige Bild: laufende
-                        Animationen und SVG-Filter (`feGaussianBlur` in
-                        Vial und Tube) legen die Form auf eine eigene
-                        Ebene, die in ihrer Layoutgroesse gerastert und
-                        danach hochgezogen wird. Dazu ist die kleine
-                        Zeichnung fuer klein entworfen: 1-px-Linien werden
-                        zu 3-px-Balken, der Schriftanteil ist zu fett. Mit
-                        `large` liegt der Faktor zwischen 0,64 (Pen) und
-                        1,3 (Vial) — meist also VERKLEINERN, und das ist
-                        immer scharf. Die Groesse auf dem Schirm aendert
-                        sich nicht: eingepasst wird in dieselbe Flaeche. */}
-                    <StageFit
-                      className="min-h-0 w-full flex-1"
-                      maxScale={1.6}
-                      targetHeightRatio={getDosageForm(p.dosage_form).stageHeightRatio ?? 1}
-                    >
-                      <StackStage
-                        key={animationEpoch}
-                        item={{ ...p, color_hex: peptideColor }}
-                        fillPct={vialPct}
-                        animateOnMount={true}
-                        isActive={isActive}
-                        size="large"
-                        stageLightRef={handle => {
-                          const handles = vialStageLightHandlesRef.current
-                          if (handle) handles.set(index, handle)
-                          else handles.delete(index)
-                        }}
-                      />
-                    </StageFit>
-                    {/* Die Zeile steht IMMER, auch wenn nichts darin steht.
-                        Sonst waere jeder Eintrag ohne Fuellstand — ein
-                        Spray, ein Pflaster — eine Zeile kuerzer als einer
-                        mit, und die Positionsleiste darunter huepfte bei
-                        jedem Wisch mit. Reserviert wird der Platz mit
-                        einem geschuetzten Leerzeichen; fuer die Vorlesung
-                        ist die leere Zeile ausgeblendet. */}
-                    <p
-                      className="mt-1 shrink-0 text-center text-[13px] font-semibold tabular-nums text-[var(--lg-text-3)]"
-                      aria-hidden={isActive && showsFillPct ? undefined : true}
-                    >
-                      {isActive && showsFillPct ? `${Math.round(vialPct)}%` : '\u00a0'}
-                    </p>
-                  </div>
-                )
-              })}
+              {stagePeptides.map((p, index) => (
+                <CarouselItem
+                  key={p.id}
+                  peptide={p}
+                  index={index}
+                  isActive={!addTileActive && p.id === activePeptide.id}
+                  animationEpoch={animationEpoch}
+                  onItemClick={onItemClick}
+                  onItemKeyDown={onItemKeyDown}
+                  vialStageLightHandlesRef={vialStageLightHandlesRef}
+                />
+              ))}
             </div>
             </SloshProvider>
             </div>
@@ -327,3 +268,89 @@ export function VialCarousel({
     </>
   )
 }
+
+/**
+ * Ein Objekt im Karussell. `memo`: wechselt beim Wischen die aktive Substanz,
+ * rendern nur die zwei Eintraege neu, deren `isActive` sich aendert — nicht
+ * alle Vials samt Zeichnung. Vorher entstand bei jedem Rendern ein neues
+ * `item`-Objekt und eine neue Ref-Funktion, und jedes Vial baute sich mitten
+ * im Wisch neu auf.
+ */
+const CarouselItem = memo(function CarouselItem({
+  peptide: p,
+  index,
+  isActive,
+  animationEpoch,
+  onItemClick,
+  onItemKeyDown,
+  vialStageLightHandlesRef,
+}: {
+  peptide: Peptide
+  index: number
+  isActive: boolean
+  animationEpoch: number
+  onItemClick: (index: number) => void
+  onItemKeyDown: (e: ReactKeyboardEvent<HTMLDivElement>, index: number) => void
+  vialStageLightHandlesRef: RefObject<Map<number, StageLightHandle>>
+}) {
+  const peptideColor = p.color_hex ?? getStableStackItemColor(p.id)
+  const item = useMemo(() => ({ ...p, color_hex: peptideColor }), [p, peptideColor])
+  // Der Pegel aus dem Bestand — beim Vial wie bisher (ohne Angaben „100 %"),
+  // bei Spray und Tropfflasche der geoeffnete Behaelter, und nur mit
+  // gefuehrtem Bestand. Eine verschlossene Ampulle stuende sonst ewig bei
+  // „100 %".
+  const pegel = fuellstandFuer(p)
+  const vialPct = Math.round(pegel ?? 100)
+  const showsFillPct = zeigtPegel(p)
+  const stageLightRef = useCallback((handle: StageLightHandle | null) => {
+    const handles = vialStageLightHandlesRef.current
+    if (handle) handles.set(index, handle)
+    else handles.delete(index)
+  }, [vialStageLightHandlesRef, index])
+
+  return (
+    <div
+      data-vial-index={index}
+      // `origin-bottom`: alle Objekte stehen auf DERSELBEN Standlinie. Ohne
+      // das skaliert jedes um seine eigene Mitte, also schrumpfen die
+      // Nachbarn nach oben UND unten weg und schweben ueber dem Boden.
+      className={`${PLATZ_BEWEGUNG} flex h-full min-h-0 origin-bottom shrink-0 flex-col rounded-2xl px-2 py-2 ${
+        isActive ? 'scale-100' : 'scale-[0.88] opacity-65 saturate-75'
+      }`}
+      style={{ width: vialCarouselItemWidth }}
+      aria-label={p.name}
+      role="button"
+      tabIndex={0}
+      onClick={() => onItemClick(index)}
+      onKeyDown={e => onItemKeyDown(e, index)}
+    >
+      {/* Eingepasst statt fest bemessen: jede Form bringt eigene Pixelmasse
+          mit. `size="large"`: die Buehne ist gross, also muss die
+          GEZEICHNETE Vorlage gross sein — meist wird dann verkleinert, und
+          das ist immer scharf. */}
+      <StageFit
+        className="min-h-0 w-full flex-1"
+        maxScale={1.6}
+        targetHeightRatio={getDosageForm(p.dosage_form).stageHeightRatio ?? 1}
+      >
+        <StackStage
+          key={animationEpoch}
+          item={item}
+          fillPct={vialPct}
+          animateOnMount={true}
+          isActive={isActive}
+          size="large"
+          stageLightRef={stageLightRef}
+        />
+      </StageFit>
+      {/* Die Zeile steht IMMER, auch wenn nichts darin steht — sonst huepfte
+          die Positionsleiste darunter bei jedem Wisch mit. */}
+      <p
+        className="mt-1 shrink-0 text-center text-[13px] font-semibold tabular-nums text-[var(--lg-text-3)]"
+        aria-hidden={isActive && showsFillPct ? undefined : true}
+      >
+        {isActive && showsFillPct ? `${Math.round(vialPct)}%` : '\u00a0'}
+      </p>
+    </div>
+  )
+})
