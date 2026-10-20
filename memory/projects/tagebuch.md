@@ -95,9 +95,14 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   (security invoker) schreibt Eintrag und ersetzt alle Chips in einer Transaktion,
   Art/Intensität am Eintrag rechnet die Funktion. Trockenlauf 2× + Tests OK
   (Rücknahme bei Fehler, fremder Eintrag nicht gefunden, anon ohne Recht, langer
-  Alt-Titel speicherbar). App ruft nur noch die Funktion auf. **Produktion:** noch
-  nicht angewendet – `apply_migration` wartet auf Bestätigung durch den Nutzer
-  (Funktion enthält ein `delete … where`). App-Code erst nach der Migration pushen.
+  Alt-Titel speicherbar). **Produktion (2026-10-20): noch nicht angewendet** – alle
+  schreibenden Supabase-Aufrufe aus der Sitzung brechen nach 60 s ab (5 Versuche,
+  Bestätigung erscheint nicht). Nutzer soll die Datei im SQL-Editor ausführen.
+  Übergang: App ruft die Funktion auf; fehlt sie (PGRST202), speichert sie wie früher
+  in mehreren Schritten (`persistStepwise`, nicht atomar). Danach entfernen.
+- **Liste (2026-10-20):** Bearbeiten/Löschen oben rechts auf Höhe des Titels (Nutzerwunsch),
+  Chips darunter in voller Kartenbreite – auf dem iPhone SE wird nichts mehr gekürzt.
+  Info-Sheet: Grafik markiert die Teile des Chips mit A–D.
 - Chip-Katalog (Entwurf unten) gegenlesen.
 - **Symbol-Audit (2026-10-19, design-system):** 43 Health Icons (Fläche, 48er,
   Strich ≈0,9 px), 8 Material Symbols (Fläche, 24er, ≈1,75 px – zu schwer),

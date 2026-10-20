@@ -123,24 +123,48 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
    * bleibt alles, wie es war. Meldet Fehler selbst, `saving` setzt `save` zurück.
    */
   const persist = async () => {
-    const { error } = await supabase.rpc('save_diary_entry', {
-      p_effect_id: entry?.id ?? null,
-      p_entry: {
-        description: title,
-        occurred_at: new Date(form.occurred_at).toISOString(),
-        stack_item_id: form.stack_item_id || null,
-        // Ohne Substanz bleibt ein bestehender Verweis (Substanz gelöscht); ein Wechsel leert die Wahl schon vorher.
-        dose_log_id: form.dose_log_id || null,
-        notes: form.notes.trim() || null,
-      },
-      p_chips: chipPayload(form.chips),
-    })
+    const fields = {
+      description: title,
+      occurred_at: new Date(form.occurred_at).toISOString(),
+      stack_item_id: form.stack_item_id || null,
+      // Ohne Substanz bleibt ein bestehender Verweis (Substanz gelöscht); ein Wechsel leert die Wahl schon vorher.
+      dose_log_id: form.dose_log_id || null,
+      notes: form.notes.trim() || null,
+    }
+    const chips = chipPayload(form.chips)
+    const saved = await supabase.rpc('save_diary_entry', { p_effect_id: entry?.id ?? null, p_entry: fields, p_chips: chips })
+    let error: { message: string; code?: string } | null = saved.error
+    // Funktion noch nicht in der Datenbank (supabase-tagebuch-save-rpc.sql): Übergangsweg.
+    if (error?.code === 'PGRST202') error = await persistStepwise(fields, chips)
     if (error) {
       toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return
     }
     toast.success(t(entry ? 'eintrag_aktualisiert' : 'eintrag_gespeichert'))
     onSaved()
+  }
+
+  /**
+   * Übergang, solange `save_diary_entry` fehlt: Eintrag, dann Chips ersetzen —
+   * mehrere Aufrufe ohne Transaktion. Ein neuer Eintrag, dessen Chips scheitern,
+   * wird wieder gelöscht. Fällt weg, sobald die Funktion überall da ist.
+   */
+  const persistStepwise = async (fields: Record<string, unknown>, chips: ReturnType<typeof chipPayload>) => {
+    const kinds = new Set(chips.map(chip => chip.kind))
+    const row = { ...fields, type: kinds.size === 1 ? chips[0].kind : null, severity: Math.max(...chips.map(chip => chip.severity)), duration: null }
+    const { data, error } = entry
+      ? await supabase.from('effects').update(row).eq('id', entry.id).eq('user_id', userId).select('id')
+      : await supabase.from('effects').insert({ ...row, user_id: userId, status: 'eingetreten' }).select('id')
+    const effectId = data?.[0]?.id as string | undefined
+    if (error || !effectId) return error ?? { message: 'diary_entry_not_found' }
+    if (entry) {
+      const removed = await supabase.from('effect_symptoms').delete().eq('effect_id', effectId).eq('user_id', userId)
+      if (removed.error) return removed.error
+    }
+    const added = await supabase.from('effect_symptoms')
+      .insert(chips.map((chip, position) => ({ ...chip, effect_id: effectId, user_id: userId, position })))
+    if (added.error && !entry) await supabase.from('effects').delete().eq('id', effectId).eq('user_id', userId)
+    return added.error
   }
 
   const dismiss = () => {
