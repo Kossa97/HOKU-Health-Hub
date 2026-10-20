@@ -20,19 +20,26 @@ function logEntry(mock: MockSupabase, fields: Record<string, unknown>) {
 
 const mealCard = (page: import('@playwright/test').Page, name: string) => page.getByRole('region', { name })
 
-// Die Kugel steht fest oben und dreht sich ständig; auf vollen Test-Rechnern (WebGL ohne Grafikkarte)
-// bremste das jeden Klick um Sekunden. Hier zählt das Verhalten: „Bewegung reduzieren“ — die Kugel
-// zeichnet nur bei Änderungen. Die Kugel-Tests unten schalten die Bewegung wieder ein.
+// Die Kugel steht fest oben und dreht sich ständig. Mit der Test-Uhr (page.clock) läuft jedes
+// Animationsbild durch, bevor ein Timer feuert — in WebKit ohne Grafikkarte wurde aus der Sperre
+// nach „Hinzufügen“ (1,2 s) so über 20 s. Hier zählt das Verhalten: „Bewegung reduzieren“.
+// Die Tests zu Drehen und Mond schalten die Bewegung wieder ein (ohne Flug).
 test.use({ contextOptions: { reducedMotion: 'reduce' } })
 /** Für die Kugel-Tests: volle Bewegung (Drehen, Flüge). */
 const withMotion = (page: import('@playwright/test').Page) => page.emulateMedia({ reducedMotion: 'no-preference' })
+
+/**
+ * Bis die Sperre nach „Hinzufügen“ endet: 1,2 s Uhrzeit — aber mit der Test-Uhr (page.clock) läuft
+ * vorher jedes Bild des Aufleuchtens durch, und WebKit im CI zeichnet ohne Grafikkarte.
+ */
+const AFTER_FLIGHT = 20_000
 
 /** Eintragen: Die Punkte fliegen in die Kugel, das Formular bleibt offen — wieder frei, dann schließen. */
 async function addAndClose(page: import('@playwright/test').Page) {
   const dialog = page.getByRole('dialog')
   // Genau dieser Name: sonst träfe der Klick auf langsamen Geräten noch „Zutat hinzufügen“ im Gericht-Editor.
   await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
-  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled()
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
   await dialog.getByRole('button', { name: 'Schließen' }).click()
 }
 
@@ -507,7 +514,6 @@ test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne scha
 })
 
 test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nach dem Flug noch einmal oder schließen', async ({ page, mock }) => {
-  await withMotion(page)
   logEntry(mock, {})
   await page.goto('/ernaehrung')
   await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
@@ -529,8 +535,7 @@ test('Portion: die Kugel oben zeigt den Tag mit dieser Portion als Vorschau; nac
   })
   expect(during).toEqual({ text: 'Wird hinzugefügt …', disabled: true })
   await expect(page.getByRole('img', { name: '189 von 2000 kcal gegessen' })).toBeVisible()
-  // Mit Bewegung zeichnet WebKit im CI ohne Grafikkarte jedes Bild in Software — der Flug braucht dort länger.
-  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: 20_000 })
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
   await dialog.getByRole('button', { name: 'Schließen' }).click()
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(2)
 })
