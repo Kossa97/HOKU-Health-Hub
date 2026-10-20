@@ -97,12 +97,10 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
         {/* Die Kugel dieses Essens: gleiche Punktdichte wie die Tageskugel (ein ganzer Tag wäre so groß wie sie). */}
         <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={96} fullFrac={0.73} />
         <div className="min-w-0 flex-1 self-center">
-          {/* Abzeichen neben, nicht in der Überschrift: sie benennt das Blatt. */}
-          <div className="flex items-center gap-2.5">
-            <h2 id="nutr-portion-title" className="lg-title2 min-w-0">{food.name}</h2>
-            <ScoreBadge per100={food.per100} unit={food.unit} size="lg" />
-          </div>
+          {/* Abzeichen unter, nicht in der Überschrift: sie benennt das Blatt und darf umbrechen. */}
+          <h2 id="nutr-portion-title" className="lg-title2 min-w-0 [overflow-wrap:anywhere]">{food.name}</h2>
           <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
+            <ScoreBadge per100={food.per100} unit={food.unit} />
             <SourceBadge source={food.source} own={food.itemId !== null} />
             <span className="truncate">
               {portion && food.recipe
