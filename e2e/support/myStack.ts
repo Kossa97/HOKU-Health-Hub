@@ -62,7 +62,9 @@ export function seedPeptide(
   const ingredients = [options.form
     ? { catalog_substance_id: null, custom_name: name, ...options.form.zutat, position: 0 }
     : {
-      catalog_substance_id: mock.catalogId(name), custom_name: name,
+      // Wie in der Produktion: Katalog-Zutaten tragen keinen eigenen Namen
+      // (NULL). Mit `name` hier fiel nicht auf, dass Bearbeiten daran abstuerzte.
+      catalog_substance_id: mock.catalogId(name), custom_name: null,
       amount_value: 5, amount_unit: 'mg', basis_value: 2, basis_unit: 'ml', position: 0,
     }]
   if (options.plan === false) {

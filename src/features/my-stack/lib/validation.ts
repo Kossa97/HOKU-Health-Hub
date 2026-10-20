@@ -124,7 +124,7 @@ function validateIngredient(
   const errors: IngredientValidationErrors = {}
   const catalogSubstanceId = ingredient.catalog_substance_id?.trim()
 
-  if (!catalogSubstanceId && !ingredient.custom_name.trim()) errors.name = 'required'
+  if (!catalogSubstanceId && !(ingredient.custom_name ?? '').trim()) errors.name = 'required'
   if (trackingCapabilities(level).productStrength) {
     if (
       ingredient.amount_value === null
