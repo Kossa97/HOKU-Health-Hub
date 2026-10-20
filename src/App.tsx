@@ -13,6 +13,8 @@ import { ConsentGate } from './features/compliance/components/ConsentGate'
 import { AppBackNavigation } from './components/navigation/AppBackNavigation'
 import { SeitenSilhouette } from './components/ui/Silhouette'
 import { silhouetteFuerPfad } from './components/ui/silhouetteTakt'
+import { FehlerGrenze } from './components/FehlerGrenze'
+import { VerbindungsHinweis } from './components/VerbindungsHinweis'
 
 const Home = lazyPage(() => import('./pages/Home'), 'Home')
 const Dashboard = lazyPage(() => import('./pages/Dashboard'), 'Dashboard')
@@ -48,9 +50,16 @@ function RouteFallback() {
 }
 
 function LazyPage({ children, oeffentlich = false }: { children: ReactNode; oeffentlich?: boolean }) {
+  const { pathname } = useLocation()
   // Öffentliche Seiten (Rechtstexte, geteilte Profile) haben kein App-Gerüst:
-  // dort kein App-Umriss, nur der ruhige schwarze Grund
-  return <Suspense fallback={oeffentlich ? null : <RouteFallback />}>{children}</Suspense>
+  // dort kein App-Umriss, nur der ruhige schwarze Grund.
+  // Stürzt eine Seite ab, bleibt die Navigation stehen; der nächste
+  // Seitenwechsel setzt die Grenze zurück.
+  return (
+    <FehlerGrenze ort="seite" schluessel={pathname}>
+      <Suspense fallback={oeffentlich ? null : <RouteFallback />}>{children}</Suspense>
+    </FehlerGrenze>
+  )
 }
 
 function PersonalApp() {
@@ -108,8 +117,9 @@ function PersonalApp() {
 }
 
 export default function App() {
-  return <BrowserRouter><ReloadOnUpdate /><AppBackNavigation><Routes>
+  // Äußerste Grenze: was keine Seite abfängt, endet hier statt weiß
+  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><VerbindungsHinweis /><AppBackNavigation><Routes>
       {publicPeptipediaRoutes()}
       <Route path="*" element={<PersonalApp />} />
-    </Routes></AppBackNavigation></BrowserRouter>
+    </Routes></AppBackNavigation></BrowserRouter></FehlerGrenze>
 }

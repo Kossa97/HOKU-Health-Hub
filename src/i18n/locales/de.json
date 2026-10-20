@@ -2776,5 +2776,15 @@
   "my_stack_scan_apply": "Übernehmen",
   "day_count_taken": "{{n}} genommen",
   "day_count_skipped": "{{n}} übersprungen",
-  "day_count_missed": "{{n}} verpasst"
+  "day_count_missed": "{{n}} verpasst",
+  "stoerung_banner_simuliert": "Störung simuliert",
+  "stoerung_banner_offline": "Offline – zuletzt geladene Daten",
+  "stoerung_beenden": "Beenden",
+  "stoerung_test_titel": "Test",
+  "stoerung_schalter": "Störung simulieren",
+  "stoerung_schalter_hinweis": "Supabase und alle anderen Dienste gelten als ausgefallen. Zum Prüfen, ob die App ohne Verbindung weiterläuft.",
+  "fehler_titel": "Hier ist etwas schiefgelaufen",
+  "fehler_text": "Gespeicherte Daten sind nicht betroffen. Lade die Seite neu oder geh zurück zum Start.",
+  "fehler_neu_laden": "Neu laden",
+  "fehler_zum_start": "Zum Start"
 }

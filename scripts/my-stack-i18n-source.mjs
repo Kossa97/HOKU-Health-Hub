@@ -1292,6 +1292,16 @@ export const MY_STACK_EN = {
   day_count_taken: "{{n}} taken",
   day_count_skipped: "{{n}} skipped",
   day_count_missed: "{{n}} missed",
+  stoerung_banner_simuliert: "Simulated outage",
+  stoerung_banner_offline: "Offline – last loaded data",
+  stoerung_beenden: "End",
+  stoerung_test_titel: "Testing",
+  stoerung_schalter: "Simulate outage",
+  stoerung_schalter_hinweis: "Supabase and all other services count as down. For checking that the app keeps running without a connection.",
+  fehler_titel: "Something went wrong here",
+  fehler_text: "Your saved data is not affected. Reload the page or go back to the start.",
+  fehler_neu_laden: "Reload",
+  fehler_zum_start: "Go to start",
 }
 
 export const MY_STACK_DE = {
@@ -2587,6 +2597,16 @@ export const MY_STACK_DE = {
   day_count_taken: "{{n}} genommen",
   day_count_skipped: "{{n}} übersprungen",
   day_count_missed: "{{n}} verpasst",
+  stoerung_banner_simuliert: "Störung simuliert",
+  stoerung_banner_offline: "Offline – zuletzt geladene Daten",
+  stoerung_beenden: "Beenden",
+  stoerung_test_titel: "Test",
+  stoerung_schalter: "Störung simulieren",
+  stoerung_schalter_hinweis: "Supabase und alle anderen Dienste gelten als ausgefallen. Zum Prüfen, ob die App ohne Verbindung weiterläuft.",
+  fehler_titel: "Hier ist etwas schiefgelaufen",
+  fehler_text: "Gespeicherte Daten sind nicht betroffen. Lade die Seite neu oder geh zurück zum Start.",
+  fehler_neu_laden: "Neu laden",
+  fehler_zum_start: "Zum Start",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

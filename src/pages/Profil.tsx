@@ -17,6 +17,7 @@ import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwill
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
+import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
 
 interface Profile {
   username: string; display_name: string; age: number | null
@@ -43,9 +44,11 @@ export function Profil() {
   const [profile, setProfile] = useState<Profile>(defaultProfile())
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', user!.id).single().then(({ data }) => {
+      if (data) setIsAdmin(data.is_admin === true)
       if (data) setProfile({
         username: data.username ?? '', display_name: data.display_name ?? '',
         age: data.age, weight_kg: data.weight_kg, height_cm: data.height_cm,
@@ -260,6 +263,9 @@ export function Profil() {
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
+
+      {/* ── Nur Admins und Entwicklung: Ausfall der Dienste nachstellen ── */}
+      {(isAdmin || import.meta.env.DEV) && <StoerungsSchalter />}
     </div>
   )
 }
@@ -337,6 +343,34 @@ function TiltToggle() {
           {t('look_tilt_denied', { defaultValue: 'Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte.' })}
         </p>
       )}
+    </div>
+  )
+}
+
+// ── StoerungsSchalter ────────────────────────────────────────────────────────
+
+/** Lässt Supabase und alle anderen Dienste ausfallen (lib/stoerung.ts). */
+function StoerungsSchalter() {
+  const { t } = useTranslation()
+  const { simuliert } = useStoerung()
+  return (
+    <div className="mt-6" data-stoerungs-schalter>
+      <p className="lg-group-title">{t('stoerung_test_titel')}</p>
+      <div className="card">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={simuliert}
+          onClick={() => setzeStoerungSimuliert(!simuliert)}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 44, background: 'none', border: 0, padding: 0, cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)' }}>{t('stoerung_schalter')}</span>
+          <Schalter an={simuliert} />
+        </button>
+        <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+          {t('stoerung_schalter_hinweis')}
+        </p>
+      </div>
     </div>
   )
 }

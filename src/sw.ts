@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+import { precacheAndRoute, cleanupOutdatedCaches, matchPrecache } from 'workbox-precaching'
+import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { clientsClaim } from 'workbox-core'
 
 declare const self: ServiceWorkerGlobalScope
@@ -10,6 +11,19 @@ clientsClaim()
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 precacheAndRoute((self as any).__WB_MANIFEST ?? [])
 cleanupOutdatedCaches()
+
+// ── Seitenaufrufe ohne Netz: App-Gerüst aus dem Vorab-Cache ─────────────────
+// Mit Netz unverändert vom Server (auch die vorgerenderten Peptipedia-Seiten,
+// die erst nach dem Manifest entstehen). Ohne Netz startet die App aus dem
+// Cache und zeigt die zuletzt geladenen Daten (src/lib/stoerung.ts) — statt
+// der Offline-Seite des Browsers.
+registerRoute(new NavigationRoute(async ({ request }) => {
+  try {
+    return await fetch(request)
+  } catch {
+    return (await matchPrecache('/index.html')) ?? Response.error()
+  }
+}, { denylist: [/^\/api\//] }))
 
 // ── Activate new SW immediately so Home/features updates reach PWA users ───
 self.addEventListener('install', () => {

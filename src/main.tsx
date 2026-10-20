@@ -10,6 +10,11 @@ import { installUpdateWatch } from './lib/staleChunkReload'
 import { applyLook, getLook } from './lib/look'
 import { installReflex } from './lib/reflex'
 import { installFlashlight } from './lib/flashlight'
+import { installStoerungsFetch } from './lib/stoerung'
+
+// Vor allem anderen: jede Dienst-Anfrage läuft ab jetzt über lib/stoerung.ts
+// (Offline-Lesecache, Störungsschalter)
+installStoerungsFetch()
 
 // Falls das Startskript in index.html nicht lief (Tests, alte Seiten-Caches)
 applyLook(getLook())
