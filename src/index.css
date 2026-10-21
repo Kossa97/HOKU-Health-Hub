@@ -1957,3 +1957,48 @@ main.flex-1 {
     animation-iteration-count: infinite;
   }
 }
+
+/* Farbwahl wie in Erinnerungen/Kalender: runde Felder, das gewaehlte mit
+   Ring im Abstand. Druck gibt sofort nach (scale), der Ring kommt mit
+   leichtem ease-out. Tippflaeche 44 px, sichtbar 30 px. */
+.stack-swatch {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  -webkit-tap-highlight-color: transparent;
+}
+.stack-swatch:focus-visible { outline: none; }
+.stack-swatch:focus-visible .stack-swatch-dot { box-shadow: 0 0 0 3px #000, 0 0 0 5px rgba(255, 255, 255, 0.7); }
+.stack-swatch-dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--swatch);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.45);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.stack-swatch-dot[data-checked] {
+  box-shadow: 0 0 0 3px #000, 0 0 0 5.5px var(--swatch);
+}
+.stack-swatch-custom {
+  background: conic-gradient(#ff453a, #ffd60a, #30d158, #64d2ff, #0a84ff, #bf5af2, #ff375f, #ff453a);
+}
+.stack-swatch-custom-core {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--swatch);
+  box-shadow: 0 0 0 2px #000;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stack-swatch:active .stack-swatch-dot { transform: scale(0.88); }
+  .stack-color-custom { animation: stack-color-custom-in 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+}
+@keyframes stack-color-custom-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}

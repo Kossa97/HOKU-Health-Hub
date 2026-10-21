@@ -138,7 +138,7 @@ describe('My Stack page vial view', () => {
     const text = source()
 
     expect(text).toContain('detailAbschnitte, LEER_AUSBLENDEN, wirkstoffBezug,')
-    expect(text).toContain('detailAbschnitte(form).map(abschnitt => (')
+    expect(text).toContain('detailAbschnitte(form).map(abschnitt => {')
     expect(text).toContain('data-stack-detail={abschnitt.id}')
     expect(text).toContain('data-stack-detail-field={feld}')
     // Und die Stärke heißt, wie die Form sie misst — „pro Vial" stimmt beim
@@ -862,8 +862,9 @@ describe('My Stack page vial view', () => {
   test('assigns a random palette color when creating a peptide', () => {
     const text = source()
 
-    expect(text).toContain('getRandomStackItemColor')
-    expect(text).toContain('setWizardInitialColor(getRandomStackItemColor())')
+    // Eine der Systemfarben der Farbwahl — so steht sie dort sichtbar gewaehlt.
+    expect(text).toContain('getRandomSwatchColor')
+    expect(text).toContain('setWizardInitialColor(getRandomSwatchColor())')
     expect(text).toContain('initialColorHex={wizardInitialColor}')
   })
 })

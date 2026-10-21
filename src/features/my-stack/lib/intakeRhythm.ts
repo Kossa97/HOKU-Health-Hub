@@ -45,6 +45,18 @@ export const RHYTHM_FREQUENCY = {
 
 export const WEEKDAY_KEYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as const
 
+/**
+ * Wochentage in Wochenfolge: „Mo, Fr" statt in der Reihenfolge, in der sie
+ * angetippt wurden. Unbekannte Werte bleiben am Ende erhalten.
+ */
+export function inWochenfolge(tage: readonly string[]): string[] {
+  const rang = (tag: string) => {
+    const index = (WEEKDAY_KEYS as readonly string[]).indexOf(tag)
+    return index < 0 ? WEEKDAY_KEYS.length : index
+  }
+  return [...tage].sort((a, b) => rang(a) - rang(b))
+}
+
 export function emptyRhythm(): IntakeRhythm {
   return {
     kind: 'daily',
@@ -176,7 +188,7 @@ export function rhythmSummary(rhythm: IntakeRhythm): RhythmSatz {
       return { key: 'my_stack_rhythm_on_demand', defaultValue: 'Nur bei Bedarf' }
     case 'weekdays':
       return rhythm.weekdays.length > 0
-        ? { key: 'my_stack_rhythm_summary_weekdays', defaultValue: '{{tage}}', values: { tage: rhythm.weekdays.join(', ') } }
+        ? { key: 'my_stack_rhythm_summary_weekdays', defaultValue: '{{tage}}', values: { tage: inWochenfolge(rhythm.weekdays).join(', ') } }
         : { key: 'my_stack_rhythm_weekdays', defaultValue: 'Wochentage' }
     case 'interval': {
       const n = rhythm.intervalValue ?? 0

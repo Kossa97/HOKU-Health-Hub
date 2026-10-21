@@ -213,16 +213,26 @@ const METHOD_CHOICES: Partial<Record<DosageFormKey, readonly string[]>> = {
   tube: ['Transdermal'],
   tablet: ['Oral'],
   capsule: ['Oral'],
-  drops: ['Oral'],
+  // Tropfen gehen auch in die Nase (Semax, Selank als Nasentropfen).
+  drops: ['Oral', 'Nasal'],
   powder: ['Oral'],
   // Ein Spray kann ein Rachenspray sein oder ein Dosieraerosol. Die Liste
   // kennt keine Inhalation, deshalb bleibt hier die Wahl offen.
   spray: ['Oral', 'Nasal', 'Andere'],
 }
 
-/** Die Routen, die zu dieser Form ueberhaupt in Frage kommen. */
-export function methodChoicesFor(key: DosageFormKey): readonly string[] {
-  return METHOD_CHOICES[key] ?? INTAKE_METHODS
+/**
+ * Die Routen, die zu dieser Form ueberhaupt in Frage kommen.
+ *
+ * `zusaetzlich`: Wege, die trotzdem dazugehoeren — die Routen aus dem
+ * PK-Profil der Substanz (NA-Semax aus dem Vial geht in die Nase).
+ */
+export function methodChoicesFor(key: DosageFormKey, zusaetzlich: readonly (string | null | undefined)[] = []): readonly string[] {
+  const basis = METHOD_CHOICES[key] ?? INTAKE_METHODS
+  const extra = zusaetzlich.filter((route): route is string => (
+    Boolean(route) && (INTAKE_METHODS as readonly string[]).includes(route!) && !basis.includes(route!)
+  ))
+  return extra.length > 0 ? [...basis, ...new Set(extra)] : basis
 }
 
 /** Die Route, die vorbelegt wird — leer, wo die Form nichts hergibt. */

@@ -149,8 +149,11 @@ function advanceToReview(): void {
 }
 
 function setMethodIfAsked(value = 'Oral'): void {
-  const select = screen.queryByLabelText('my_stack_plan_method') as HTMLSelectElement | null
-  if (select) fireEvent.change(select, { target: { value } })
+  // Die Methode ist eine Knopfgruppe; gefragt wird sie nur, wo die Form mehrere Wege kennt.
+  const gruppe = screen.queryByRole('radiogroup', { name: 'my_stack_plan_method' })
+  if (!gruppe) return
+  const knopf = within(gruppe).queryAllByRole('radio').find(radio => radio.textContent?.toLowerCase().includes(value.toLowerCase().slice(0, 4)))
+  fireEvent.click(knopf ?? within(gruppe).getAllByRole('radio')[0])
 }
 
 function continueWizard(): void {
@@ -296,30 +299,31 @@ describe('StackItemWizard — Vorschau der Darreichungsform', () => {
     expect(document.querySelector('[data-wizard-preview]')).toBeNull()
   })
 
-  it('gibt der Vorschau ein Farbfeld zum Ziehen, kein Hex-Feld', () => {
-    // Der Nutzer waehlt seine Farbe, nicht eine aus zwoelf. Und das Objekt
-    // darueber faerbt sich sofort mit, ohne einen Schritt weiterzugehen.
+  it('gibt der Vorschau zwoelf Systemfarben und „Eigene Farbe" mit Farbflaeche, kein Hex-Feld', () => {
+    // Wie in den Apple-Apps: ein Tipp genuegt; wer eine bestimmte Farbe will,
+    // klappt die freie Flaeche auf. Das Objekt faerbt sich sofort mit.
     renderWizard()
     startCustom('Kreatin')
     fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
     continueWizard()
 
     const vorschau = document.querySelector('[data-wizard-preview]')!
-    const flaeche = vorschau.querySelector('[data-color-field="area"]')
-    const schiene = vorschau.querySelector('[data-color-field="hue"]')
-    expect(flaeche).not.toBeNull()
-    expect(schiene).not.toBeNull()
+    expect(vorschau.querySelectorAll('[data-swatch]').length).toBe(13)
     expect(vorschau.querySelector('input[type="text"]')).toBeNull()
 
-    // Ziehen laesst sich in jsdom nicht messen (getBoundingClientRect ist
-    // ueberall null), die Pfeiltasten schon — sie gehen durch dieselbe
-    // Meldefunktion.
-    const vorher = vorschau.querySelector('[data-powder-detail="lid"]')?.getAttribute('fill')
-    fireEvent.keyDown(schiene as HTMLElement, { key: 'ArrowRight' })
-    const nachher = document.querySelector('[data-wizard-preview] [data-powder-detail="lid"]')?.getAttribute('fill')
+    const lid = () => document.querySelector('[data-wizard-preview] [data-powder-detail="lid"]')?.getAttribute('fill')
+    fireEvent.click(vorschau.querySelector('[data-swatch="#0a84ff"]')!)
+    expect(vorschau.querySelector('[data-swatch="#0a84ff"]')!.getAttribute('aria-checked')).toBe('true')
+    expect(lid()).toBe('#0a84ff')
 
-    expect(nachher).not.toBe(vorher)
-    expect(nachher).toMatch(/^#[0-9a-f]{6}$/)
+    // „Eigene Farbe": die Flaeche erscheint, die Pfeiltasten gehen durch
+    // dieselbe Meldefunktion wie das Ziehen.
+    fireEvent.click(vorschau.querySelector('[data-swatch="custom"]')!)
+    const schiene = document.querySelector('[data-wizard-preview] [data-color-field="hue"]')
+    expect(document.querySelector('[data-wizard-preview] [data-color-field="area"]')).not.toBeNull()
+    fireEvent.keyDown(schiene as HTMLElement, { key: 'ArrowRight' })
+    expect(lid()).not.toBe('#0a84ff')
+    expect(lid()).toMatch(/^#[0-9a-f]{6}$/)
   })
 
   it('nennt die Schrittzahl von Anfang an, weil die Tiefe vorgewaehlt ist', () => {
@@ -357,14 +361,14 @@ describe('StackItemWizard — Vorschau der Darreichungsform', () => {
 
     const vorschau = () => document.querySelector('[data-wizard-preview]')!
     expect(vorschau().hasAttribute('data-wizard-preview-compact')).toBe(false)
-    expect(vorschau().querySelector('[data-color-field="area"]')).not.toBeNull()
+    expect(vorschau().querySelector('[data-color-swatches]')).not.toBeNull()
 
     continueWizard()
 
     // Danach nur noch die Zeile: Objekt, Name, Darreichungsform — kein
     // Farbfeld, das jeden weiteren Schritt nach unten schiebt.
     expect(vorschau().hasAttribute('data-wizard-preview-compact')).toBe(true)
-    expect(vorschau().querySelector('[data-color-field="area"]')).toBeNull()
+    expect(vorschau().querySelector('[data-color-swatches]')).toBeNull()
     expect(vorschau().textContent).toContain('Kreatin')
   })
 

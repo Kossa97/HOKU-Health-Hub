@@ -18,7 +18,8 @@ import {
   versionSlots,
   type Translate,
 } from '../lib/planLabels'
-import { CurrentSlotRow, SyringeNote } from './planCardParts'
+import { SlotList, SyringeNote } from './planCardParts'
+import { planTage } from '../lib/planCard'
 import { aufzuziehendeEinheiten, stueckZahl, type SpritzenRechnung, type StueckRechnung } from '../lib/bestand'
 import { formatAmount, stockAmountLabel } from '../lib/bestandLabels'
 
@@ -234,9 +235,7 @@ export function PlanSummaryCard({
           {slotCountSuffix(slots.length, tr)}
         </p>
         {slots.length > 0 && (
-          <ul className="mt-2 space-y-1.5">
-            {slots.map(slot => <CurrentSlotRow key={slot.id} slot={slot} language={language} t={tr} syringe={syringe} stueck={stueck} />)}
-          </ul>
+          <SlotList className="mt-2 space-y-1.5" slots={slots} planDays={planTage(version)} language={language} t={tr} syringe={syringe} stueck={stueck} />
         )}
         {slots.length > 0 && syringe && <div className="mt-2"><SyringeNote syringe={syringe} language={language} t={tr} /></div>}
       </div>

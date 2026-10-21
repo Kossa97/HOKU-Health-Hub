@@ -26,7 +26,8 @@ import {
   type DetailFeld,
 } from './lib/stackDetailSections'
 import { BestandCard, BestandEditorHost, type BestandActions, type BestandEditorArt } from './components/Bestand'
-import { anbruchArt, spritzenRechnung, stueckRechnung, vialBuchtUeberBestand } from './lib/bestand'
+import { anbruchArt, buchtEinnahmenAb, istLoesungsVial, spritzenRechnung, stueckRechnung } from './lib/bestand'
+import { inWochenfolge } from './lib/intakeRhythm'
 import {
   openInventoryContainer,
   startInventory,
@@ -48,7 +49,7 @@ import { filterByTab, tabCounts, type StackTabKey } from './lib/stackTabs'
 import { sortAbilities } from './lib/stackSort'
 import { planSegments, planVersionSegments, stufenText } from './lib/planSegments'
 import { cyclePeriod } from './lib/planCard'
-import { getRandomStackItemColor } from './lib/colors'
+import { getRandomSwatchColor } from './lib/colors'
 import { backfillMessageKey, buildTitrationStep, dosePlanCapabilities, dosePlanQuantitiesForDay } from './lib/dosePlan'
 import { FEATURES } from '../../config/features'
 import { reportError } from '../../lib/monitoring'
@@ -310,7 +311,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardCycleId(null)
     setPlanEditContext(null)
     setWizardIntent(undefined)
-    setWizardInitialColor(getRandomStackItemColor())
+    setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
     navigate(location.pathname, { replace: true })
   }, [location.hash, location.pathname, navigate])
@@ -488,7 +489,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardNeuerZyklus(false)
     setPlanEditContext(null)
     setWizardIntent(undefined)
-    setWizardInitialColor(getRandomStackItemColor())
+    setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
   }
 
@@ -1233,7 +1234,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (c.frequency === 'Alle X Tage' && c.x_days_interval)
       return `${t('alle_prefix')} ${c.x_days_interval} ${t('tage_suffix')}`
     if (c.frequency === 'Wochentage wählen' && c.schedule_days?.length)
-      return c.schedule_days.join(', ')
+      return inWochenfolge(c.schedule_days).join(', ')
     return t(FREQ_KEYS[c.frequency] ?? c.frequency)
   }
   const escalationStartDate = (c: Cycle, e: Escalation) => {
@@ -1844,7 +1845,8 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   // „Haltbar danach" zaehlt ab dem Anmischen, „Haltbar bis"
                   // steht auf der Packung. Welche der beiden es ist, sagt die
                   // Angabe selbst — nicht die Form.
-                  const art = anbruchArt(eintrag.dosage_form)
+                  // Ein Vial mit fertiger Loesung wird angebrochen, nicht angemischt.
+                  const art = istLoesungsVial(eintrag.dosage_form, eintrag.category) ? 'flasche' : anbruchArt(eintrag.dosage_form)
                   const haltbarkeitLabel = String(t(art === 'vial' ? 'my_stack_stock_use_within_vial' : 'my_stack_stock_use_within'))
                   const FELD_LABEL: Record<DetailFeld, string> = {
                     wirkstoff: wirkstoffLabel,
@@ -1926,14 +1928,18 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                       ingredients={eintrag.ingredients}
                       timelines={timelinesOf(eintrag.id)}
                       timeZone={timeZone}
-                      // Vials bucht die Datenbank ueber den Bestand ab, wenn die
-                      // Umrechnung eindeutig ist, alle anderen nur mit Staerke.
-                      deductsIntakes={art === 'vial'
-                        ? vialBuchtUeberBestand(eintrag.inventory, eintrag.ingredients)
-                        : eintrag.tracking_level === 'complete'}
+                      // Dieselbe Regel wie beim Abbuchen in der Datenbank.
+                      deductsIntakes={buchtEinnahmenAb(eintrag)}
                       onEdit={editor => setBestandEdit({ peptideId: eintrag.id, editor })}
                     />
-                    {detailAbschnitte(form).map(abschnitt => (
+                    {/* Nur, was gesetzt ist. „Nicht gesetzt" in jeder zweiten
+                        Zeile war Rauschen — das Vollbild sagt, was man WEISS.
+                        Was fehlt, zaehlt der Knopf darunter und fuehrt direkt
+                        ins Bearbeiten. Ein Abschnitt ganz ohne Angabe faellt weg. */}
+                    {detailAbschnitte(form).map(abschnitt => {
+                      const felder = abschnitt.felder.filter(feld => angaben[feld].art !== 'leer')
+                      if (felder.length === 0) return null
+                      return (
                       // Gruppierte Liste wie in den iOS-Einstellungen: Name links,
                       // Wert rechts; was dort abgeschnitten waere, steht darunter.
                       <section key={abschnitt.id} data-stack-detail={abschnitt.id} className="mt-7">
@@ -1941,13 +1947,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           {ABSCHNITT_TITEL[abschnitt.id]}
                         </h3>
                         <div className="lg-group">
-                          {abschnitt.felder
-                            // Leer ohne Zeile, was `LEER_AUSBLENDEN` nennt.
-                            .filter(feld => !LEER_AUSBLENDEN.has(feld) || angaben[feld].art !== 'leer')
-                            .map(feld => {
+                          {felder.map(feld => {
                             const zeile = zeileFuer(feld)
                             return (
-                              <div key={feld} data-stack-detail-field={feld} data-wide={Boolean(zeile.wide)} data-empty={angaben[feld].art === 'leer' || undefined} className="lg-kv">
+                              <div key={feld} data-stack-detail-field={feld} data-wide={Boolean(zeile.wide)} className="lg-kv">
                                 <p>{zeile.label}</p>
                                 <div>
                                   {'valueNode' in zeile ? zeile.valueNode : zeile.value}
@@ -1957,7 +1960,24 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           })}
                         </div>
                       </section>
-                    ))}
+                      )
+                    })}
+                    {(() => {
+                      const fehlend = detailAbschnitte(form)
+                        .flatMap(abschnitt => abschnitt.felder)
+                        .filter(feld => !LEER_AUSBLENDEN.has(feld) && angaben[feld].art === 'leer').length
+                      return fehlend > 0 ? (
+                        <button
+                          type="button"
+                          data-stack-detail-missing={fehlend}
+                          onClick={() => openEditPeptide(eintrag)}
+                          className="mt-5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl text-[15px] font-semibold text-[#64d2ff] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                        >
+                          <Plus size={16} aria-hidden="true" />
+                          {String(t('my_stack_detail_missing', { defaultValue: 'Fehlende Angaben ergänzen ({{n}})', n: fehlend }))}
+                        </button>
+                      ) : null
+                    })()}
 
                     {/* Alter Datenpfad: der Zyklus als Knopf nach den Angaben.
                         Mit der Plan-Zeitleiste steht stattdessen die
@@ -2226,6 +2246,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         <BestandEditorHost
           editor={bestandEdit.editor}
           dosageForm={bestandPeptide.dosage_form}
+          category={bestandPeptide.category}
           inventory={bestandPeptide.inventory ?? null}
           ingredients={bestandPeptide.ingredients}
           onClose={() => setBestandEdit(null)}

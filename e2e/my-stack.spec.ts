@@ -27,7 +27,7 @@ test('Anlegen: BPC-157 aus dem Katalog, mit Plan, steht danach auf der Bühne', 
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
-  await wizard.getByRole('combobox', { name: 'Methode' }).selectOption('Subkutan')
+  await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
   await wizard.getByRole('combobox', { name: 'Einheit' }).fill('mcg')
   await next(wizard, 'Zusammenfassung')
@@ -72,7 +72,7 @@ test('Anlegen: Anmischen und Haltbarkeit stehen bei der Stärke und danach im Vo
   await wizard.getByLabel(/^Rekonstituiert am/).fill('2026-09-25')
   await wizard.getByLabel(/^Haltbar danach/).fill('28')
   await next(wizard, 'Einnahmeplan')
-  await wizard.getByRole('combobox', { name: 'Methode' }).selectOption('Subkutan')
+  await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
   await wizard.getByRole('combobox', { name: 'Einheit' }).fill('mcg')
   await next(wizard, 'Zusammenfassung')
@@ -263,7 +263,7 @@ test('Speichern scheitert: Meldung mit Grund, Assistent bleibt offen, nichts ang
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
-  await wizard.getByRole('combobox', { name: 'Methode' }).selectOption('Subkutan')
+  await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
   await next(wizard, 'Zusammenfassung')
 
@@ -341,4 +341,66 @@ test('Vollbild der Substanz: der Schließen-Knopf liegt unter der Statuszeile', 
   await expect(schliessen).toBeVisible()
   const box = await schliessen.boundingBox()
   expect(box?.y).toBeGreaterThanOrEqual(47)
+})
+
+test('Testosteron Enantat: intramuskulär, Mo/Fr je eigene Tageszeit, Bestand in ml wird abgebucht', async ({ page, mock }) => {
+  test.setTimeout(120_000)
+  await page.goto('/my-stack')
+  await page.getByRole('button', { name: 'Neue Substanz' }).click()
+  const wizard = page.getByRole('dialog', { name: 'Substanz hinzufügen' })
+  await wizard.getByRole('searchbox').fill('Testosteron Enantat')
+  await wizard.getByRole('option').first().click()
+
+  const schritt = async () => (await wizard.locator('p').nth(1).innerText()).trim()
+  for (let i = 0; i < 12 && await schritt() !== 'Einnahmeplan'; i++) {
+    if (await schritt() === 'Stärke') {
+      const felder = wizard.getByRole('spinbutton')
+      await felder.nth(0).fill('250')
+      await felder.nth(1).fill('1')
+    }
+    await next(wizard)
+  }
+  await wizard.getByRole('radio', { name: 'Intramuskulär' }).click()
+  await wizard.getByRole('button', { name: /Wochentage/ }).click()
+  // Absichtlich Fr zuerst: angezeigt wird trotzdem in Wochenfolge.
+  await wizard.getByRole('button', { name: 'Fr', exact: true }).click()
+  await wizard.getByRole('button', { name: 'Mo', exact: true }).click()
+  await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('125')
+  await wizard.getByRole('combobox', { name: 'Einheit' }).fill('mg')
+  await wizard.getByRole('tab', { name: /Fr/ }).click()
+  await wizard.getByText('Abends', { exact: true }).click()
+  await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('125')
+  // Fertige Loesung: geoeffnet, nicht angemischt.
+  await expect(wizard.getByText('Geöffnet am (optional)')).toBeVisible()
+  await next(wizard, 'Zusammenfassung')
+  await expect(wizard.locator('[data-review-method]')).toHaveText('Intramuskulär')
+  await expect(wizard.locator('[data-review-slot="0"] dt')).toHaveText('Mo')
+  await wizard.getByRole('button', { name: 'Speichern' }).click()
+  await expect(wizard).toBeHidden()
+  expect(mock.table('cycles').map(cycle => cycle.method)).toEqual(['Intramuskulär'])
+
+  await page.locator('[data-vial-index="0"]').click()
+  const detail = page.getByRole('dialog', { name: 'Testosteron Enantat' })
+  const tage = detail.locator('[data-plan-days] li')
+  await expect(tage).toHaveCount(2)
+  await expect(tage.nth(0)).toContainText('Mo')
+  await expect(tage.nth(0)).toContainText('Morgens')
+  await expect(tage.nth(1)).toContainText('Fr')
+  await expect(tage.nth(1)).toContainText('Abends')
+
+  await detail.getByRole('button', { name: 'Bestand verfolgen' }).click()
+  const start = page.getByRole('dialog', { name: 'Bestand verfolgen' })
+  await start.getByLabel('Packungsgröße').fill('10')
+  await start.getByLabel('Gezählt in').selectOption('ml')
+  await start.getByLabel('Aktueller Bestand').fill('8')
+  await start.getByRole('button', { name: 'Speichern' }).click()
+  await expect(start).toBeHidden()
+  await expect(detail.getByText('Neues Vial anbrechen')).toBeVisible()
+  await expect(detail.getByText('Einnahmen werden nur abgebucht', { exact: false })).toHaveCount(0)
+
+  // Heute ist Montag: die Morgens-Einnahme bestaetigen bucht 0,5 ml ab.
+  await page.goto('/')
+  await page.getByRole('button', { name: /Alle als eingenommen markieren/ }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Alle als eingenommen markieren' }).click()
+  await expect.poll(() => mock.table('stack_item_inventory')[0]?.remaining_quantity).toBe(7.5)
 })

@@ -484,6 +484,32 @@ describe('PlanManagementSection', () => {
     expect(screen.queryByText('Dosisverlauf')).toBeNull()
   })
 
+  it('zeigt bei bestimmten Wochentagen je Tag eine Zeile, der Tag zuerst', () => {
+    // TestoE: Montag abends, Freitag morgens. Vorher stand die Tageszeit
+    // zuerst und der Tag als Leiste darunter.
+    const proTag = timeline({
+      versions: [version('version-current', 125, '2026-09-01', {
+        frequency: 'weekdays',
+        schedule_days: ['Mo', 'Fr'],
+        intake_time: 'abends,morgens',
+        intake_time_custom: ',',
+        slot_doses: '125,125',
+        slot_days: 'Mo,Fr',
+        unit: 'mg',
+      })],
+    })
+    render(<PlanManagementSection {...callbacks({ timeline: proTag })} />)
+
+    const section = screen.getByTestId('plan-management-cycle-1')
+    const tage = [...section.querySelectorAll('[data-plan-day]')]
+    expect(tage.map(tag => tag.getAttribute('data-plan-day'))).toEqual(['Mo', 'Fr'])
+    expect(tage[0].textContent).toContain('Abends')
+    expect(tage[1].textContent).toContain('Morgens')
+    // Ohne eigene Uhrzeit keine erfundene Standardzeit.
+    expect(tage[0].textContent).not.toMatch(/\d{2}:\d{2}/)
+    expect(tage[1].textContent).toContain('125 mg')
+  })
+
   it('shows the whole plan in every step and marks what changed', () => {
     const slots = {
       intake_time: 'morgens,abends',
