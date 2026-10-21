@@ -11,20 +11,19 @@
  * - Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus;
  * - „Bewegung reduzieren": nichts dreht, nichts fliegt, neue Plätze leuchten nur auf.
  */
-import { type Fill, type MacroKey, type OrbLayout, dotScale, fillChange, spherePoints } from './orb'
+import { type Fill, type MacroKey, type OrbLayout, ORB_TILT as TILT, dotScale, fillChange, spherePoints } from './orb'
 import {
   type ColorIndex, DotRenderer, type Flash, type Mat3, type Quat,
   drawSphere, easeInOut, qAxis, qMat, qMul, qNorm, sprite,
 } from './orbDraw'
 import { hapticGoal, hapticSelect, hapticTick, soundArrive, soundFall, soundGoal } from './orbFeedback'
 
-/** Radius der großen Kugel in CSS-Pixeln. */
-export const ORB_RADIUS = 70
+/** Bezugsgröße der großen Kugel in CSS-Pixeln (die tatsächliche setzt `setStage`, siehe `fitOrb`). */
+export const ORB_RADIUS = 86
 /** Punktdurchmesser (CSS-Pixel) und Flug — auch für die Gericht-Kugel (components/DishStage.tsx). */
 export const DOT_MAIN = 1.86
 const DOT_MOON = 1.67
 export const DOT_TRAIL = 1.4
-const TILT = 0.22
 export const TRAVEL = 560
 export const SPREAD = 420
 
@@ -112,7 +111,7 @@ export class OrbEngine {
   private geo: { M: Mat3; cx: number; cy: number; R: number } | null = null
   private moonGeo: Partial<Record<MacroKey, MoonGeo>> = {}
   private particles: Particle[] = []
-  /** Radius der großen Kugel in CSS-Pixeln; `setStage` verkleinert sie beim Scrollen (höchstens auf 80 %). */
+  /** Radius der großen Kugel in CSS-Pixeln; `setStage` passt ihn an die Zone an (beim Scrollen kleiner). */
   private readonly baseRadius: number
   private radius: number
   /** Portions-Blatt: so sähe der Tag mit dieser Portion aus — die neuen Punkte pulsieren. */
@@ -195,8 +194,8 @@ export class OrbEngine {
    * Feste Kugel oben: Mitte (CSS-Pixel von oben) und Größe ändern sich beim Scrollen.
    * Nur Werte — die Zeichenfläche bleibt, gezeichnet wird im nächsten Bild.
    */
-  setStage(centerY: number, scale: number) {
-    const r = this.baseRadius * scale
+  setStage(centerY: number, radius: number) {
+    const r = radius
     if (r === this.radius && centerY === this.centerY) return
     this.radius = r
     this.centerY = centerY

@@ -460,7 +460,7 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
     .toHaveAttribute('aria-pressed', 'true')
   await expect(week.getByRole('button', { name: 'Dienstag, 29. September 2026: nichts eingetragen' })).toBeDisabled()
 
-  await week.getByRole('button', { name: 'Monatsübersicht öffnen' }).click()
+  await page.getByRole('button', { name: /Monatsübersicht öffnen/ }).click()
   const month = page.locator('[data-nutr-month]')
   await expect(month.getByRole('button', { name: /^Nächster Monat/ })).toHaveCount(0)
   await month.getByRole('button', { name: 'Vorheriger Monat: August' }).click()
@@ -505,7 +505,7 @@ test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne scha
   await mealCard(page, 'Snacks').scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect(orb).toBeInViewport()
-  await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '240px')
+  await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '250px')
 
   await page.getByRole('button', { name: 'Ziele', exact: true }).click()
   await page.getByLabel('Töne der Kalorien-Kugel').check()

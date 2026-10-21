@@ -210,7 +210,7 @@ export function ErnaehrungPage() {
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
         <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
-          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
+          onPick={pickDate} />
 
         {MEALS.map(meal => (
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}

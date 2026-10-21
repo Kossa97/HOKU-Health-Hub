@@ -6,8 +6,8 @@
 import { useEffect, useState } from 'react'
 
 /** Höhe der Kugel-Zone oben; beim Scrollen schrumpft sie auf ZONE_MIN. */
-export const ZONE_MAX = 300
-export const ZONE_MIN = 240
+export const ZONE_MAX = 316
+export const ZONE_MIN = 250
 /** So weit reicht die Zeichenfläche unter die Zone: Monde und Flüge schweben dort nur noch zart über den Formularen. */
 export const ZONE_BELOW = 120
 
