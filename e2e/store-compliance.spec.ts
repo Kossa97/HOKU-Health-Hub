@@ -108,8 +108,9 @@ test('Eigenes öffentliches Profil: weder Melden noch Blockieren', async ({ page
 test('Öffentliche Erfahrung mit Link: Filter sagt warum, das Sheet bleibt offen', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-08-12' })
   await page.goto('/bewertungen')
-  await page.getByRole('button', { name: 'Neu' }).click()
+  await page.getByRole('button', { name: 'Neu', exact: true }).click()
   const sheet = page.getByRole('dialog', { name: 'Neue Erfahrung' })
+  await sheet.getByRole('combobox', { name: 'Substanz' }).selectOption({ label: 'BPC-157' })
   await sheet.getByRole('radio', { name: '4 Sterne' }).click()
   await sheet.getByLabel('Notiz', { exact: true }).fill('Mehr unter https://example.test')
   await sheet.locator('[data-review-public]').check()

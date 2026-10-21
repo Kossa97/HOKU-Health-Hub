@@ -10,14 +10,17 @@ import { useSheetDrag } from '../../lib/useSheetDrag'
  * `onClose` ist derselbe Weg wie Kreuz oder Hintergrund. Solange `disabled`
  * gilt (etwa beim Speichern), bleibt das Blatt stehen.
  */
-export function SheetGriff({ onClose, disabled = false, className = '', style }: {
+export function SheetGriff({ onClose, disabled = false, festhalten, beiFesthalten, className = '', style }: {
   onClose: () => void
   disabled?: boolean
+  /** Siehe useSheetDrag: gibt nur zaeh nach und federt zurueck. */
+  festhalten?: () => boolean
+  beiFesthalten?: () => void
   /** Abstaende der Pille, wie vorher an `.lg-grabber`. */
   className?: string
   style?: CSSProperties
 }) {
-  const { griffe } = useSheetDrag<HTMLElement>(() => { if (!disabled) onClose() })
+  const { griffe } = useSheetDrag<HTMLElement>(() => { if (!disabled) onClose() }, { festhalten, beiFesthalten })
   // Die Flaeche bleibt auch gesperrt im DOM: verschwaende sie mitten im Ziehen,
   // kaemen Loslassen und Abbruch nie an. Gesperrt beginnt nur kein neues Ziehen.
   // Seitlich so breit wie der Inhalt — breiter liesse das Blatt seitwaerts

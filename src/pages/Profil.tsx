@@ -11,6 +11,7 @@ import { LANGUAGES, applyDirection } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
+import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
@@ -635,25 +636,5 @@ function LanguageSwitcher() {
         </div>
       )}
     </div>
-  )
-}
-
-/** iOS-Schalter (nur die Optik; Rolle und Zustand trägt der Knopf drumherum) */
-function Schalter({ an }: { an: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: 'relative', display: 'block', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
-        background: an ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
-        transition: 'background-color 200ms ease',
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 2, left: an ? 22 : 2, width: 27, height: 27, borderRadius: '50%',
-        background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
-        transition: 'left 260ms var(--lg-ease-out)',
-      }} />
-    </span>
   )
 }

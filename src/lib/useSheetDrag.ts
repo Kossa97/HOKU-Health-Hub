@@ -10,6 +10,8 @@ const WURF_MIN = 24
 /** Erst ab diesem Weg ist es ein Ziehen und kein Tipp. */
 const ZIEH_START = 6
 const ZURUECK_MS = 300
+/** Wie zaeh ein festgehaltenes Blatt nach unten nachgibt (Apple-Gummiband). */
+const ZAEH = 0.15
 /** Was in einer Zone selbst angetippt wird und den Zeiger behalten muss. */
 const BEDIENBAR = 'button, a, input, select, textarea, label, summary, [role="button"], [role="tab"], '
   + '[role="switch"], [role="checkbox"], [role="radio"], [tabindex]:not([tabindex="-1"])'
@@ -32,8 +34,16 @@ const BEDIENBAR = 'button, a, input, select, textarea, label, summary, [role="bu
  * Die Ein- und Ausfahrt des Blatts laeuft als CSS-Animation, und die schlaegt
  * jedes Inline-`transform`; `data-gezogen` schaltet sie deshalb ab (src/index.css).
  * Nach oben gibt das Blatt nur zaeh nach — es steht schon am Anschlag.
+ *
+ * `festhalten`: solange es `true` liefert (etwa bei ungespeicherten
+ * Eingaben), gibt das Blatt auch nach unten nur zaeh nach und federt
+ * zurueck, statt wegzufahren; ein Zug, der sonst geschlossen haette,
+ * meldet sich stattdessen bei `beiFesthalten`.
  */
-export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
+export function useSheetDrag<T extends HTMLElement>(
+  schliessen: () => void,
+  { festhalten, beiFesthalten }: { festhalten?: () => boolean; beiFesthalten?: () => void } = {},
+) {
   /** Kommt ans Blatt selbst; der Rest sind die Griffe fuer die Zone. */
   const blatt = useRef<T>(null)
   /** Das Blatt dieses Zugs — `blatt` oder das naechste Blatt ueber der Zone. */
@@ -118,7 +128,11 @@ export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
     proben.current = [...proben.current.slice(-4), { y: event.clientY, t: performance.now() }]
     // Nach oben mit wachsendem Widerstand statt hart am Anschlag.
     const weg = s.basis + dy
-    setze(weg >= 0 ? weg : -Math.sqrt(-weg) * 2, null)
+    if (weg < 0) setze(-Math.sqrt(-weg) * 2, null)
+    else if (festhalten?.()) {
+      const hoehe = ziel.current?.offsetHeight || 600
+      setze((weg * hoehe * ZAEH) / (hoehe + ZAEH * weg), null)
+    } else setze(weg, null)
   }
 
   const onPointerUp = (event: PointerEvent<HTMLElement>) => {
@@ -134,6 +148,11 @@ export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
     const tempo = probe ? (event.clientY - probe.y) / Math.max(1, jetzt - probe.t) : 0
     const el = ziel.current
     if (el && (s.basis + dy >= WEG_SCHWELLE || (tempo > WURF_TEMPO && dy >= WURF_MIN))) {
+      if (festhalten?.()) {
+        zurueck()
+        beiFesthalten?.()
+        return
+      }
       const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
       if (!ruhig) {
         // Aus der Hand weiter nach unten; der Hintergrund blendet ueber das
