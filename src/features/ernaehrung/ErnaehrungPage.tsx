@@ -182,10 +182,6 @@ export function ErnaehrungPage() {
       <h1 className="sr-only">{t('nutr_title')}</h1>
       {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
       {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
-        dayLabel={isToday
-          ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
-          : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
-        onOpenMonth={() => setSheet(s => (s?.kind === 'month' ? null : { kind: 'month' }))}
         onOpenGoals={() => setSheet({ kind: 'goals' })} />}
 
       {!sheet && (<>
@@ -210,7 +206,10 @@ export function ErnaehrungPage() {
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
         <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
-          onPick={pickDate} />
+          dayLabel={isToday
+            ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
+            : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
+          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
 
         {MEALS.map(meal => (
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}
