@@ -6960,9 +6960,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/PortionSheet.tsx": {
-    "mtime": 1792540631.8613327,
-    "seen": 1792540724.6778023,
-    "ast_hash": "b9a49e1d6796f9087b2b1ad0b8062554",
+    "mtime": 1792552274.626249,
+    "seen": 1792552826.9825125,
+    "ast_hash": "706ff8fc3ec39183d05f97fbcedf5809",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/SourceBadge.tsx": {
@@ -7080,9 +7080,9 @@
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792540631.8601072,
-    "seen": 1792540724.709551,
-    "ast_hash": "9649ce88d5e26dd7ef3c668c1bf96b6d",
+    "mtime": 1792552796.7135248,
+    "seen": 1792552827.0252225,
+    "ast_hash": "d292f5b52bb627f6c22d342614fac548",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7674,9 +7674,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/FoodOrb.tsx": {
-    "mtime": 1792538199.4392223,
-    "seen": 1792538234.3937027,
-    "ast_hash": "6048c50731ece99d06d76a2f8c1ee879",
+    "mtime": 1792552694.369123,
+    "seen": 1792552826.981924,
+    "ast_hash": "37080222062e5a3514bd010ff9271b68",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/Panel.tsx": {
