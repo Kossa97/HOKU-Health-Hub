@@ -83,3 +83,10 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - **Kugel fest, Woche mit Zeitraum (21.10., Nutzer: „Wochenzeile von der Anordnung so wie vorher, darüber klein der Zeitraum, Kalender-Symbol dazu; oben links das Datum weg; Orbs immer gleich groß und fix im Hintergrund, kein Verkleinern beim Wischen“):** Zone fest 316 px, kein Schrumpfen beim Scrollen (`trackZone` ohne Scroll-Listener). Datum oben links entfällt; Tageswechsel wird in der Woche für Vorleser angesagt. Woche: Kopfzeile klein „28. Sept.–4. Okt.“ (Intl formatRange) + Kalender-Knopf rechts (Monat), darunter je Tag Kugel 28 px – Zahl – Wochentag.
 - **Monde hinter der Kugel gleich hell (21.10., Nutzer: „werden dunkler, fixen, sollen gleich bleiben“):** Kein Abdunkeln mehr (vorher 0,3 hinter der Kugel, sonst 0,6–1 nach Tiefe); die Punkte der Kugel davor überdecken sie natürlich. Größe nach Tiefe (0,85–1,15) bleibt.
 - **Ernährung ohne Leiste, Mond abwählen, Monat ausgeschrieben (21.10., Nutzer):** Mond auf der Kugel noch einmal antippen wählt ihn wieder ab (Makro-Knopf tat das schon). Zeitraum der Woche mit ausgeschriebenem Monat („28. September – 4. Oktober“). `/ernaehrung` ohne Tab-Leiste und Schnellaktionen (`routeLayoutMode().hideTabBar`; Seite scrollt normal, unten 1rem + Safe Area). Oben links ein X („Ernährung schließen“, `data-app-page-close`): zurück, woher man kam, direkt eingestiegen zur Startseite. Die Zurück-Geste (vom linken Rand nach rechts, AppBackNavigation) löst diesen Knopf aus, wenn kein Formular offen ist — offene Formulare schließt sie zuerst.
+
+## Monatsblatt passt ohne Scrollen (21.10.2026)
+- Kartenstil bleibt (Mockups randlos/Bänder verworfen).
+- Kopfzeile: „‹ Vormonat" links neben dem Titel, Folgemonat als Pfeil dahinter, X rechts — eine Zeile.
+- Raster misst den Platz bis zum unteren Rand (offsetTop, nicht Bildschirm-Rect) und rechnet die
+  Mini-Kugeln herunter (max. 30 px); reicht die Höhe nicht für Datum über der Kugel, steht das Datum auf der Kugel.
+- Playwright „iPhone SE" (320×568) ist kleiner als jedes echte Zielgerät: dort darf es scrollen.
