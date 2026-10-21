@@ -67,6 +67,9 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   1–3 Katalog-Chips, ~70 % mit passender bestätigter Einnahme, 12 Wochen.
   Trockenlauf 2× OK (57 Einträge, 118 Chips, alle Prüfungen grün). Enthält
   `delete` → läuft über MCP nicht, der Nutzer führt sie im SQL-Editor aus.
+  **In Produktion ausgeführt 2026-10-21:** 57 Einträge (30/26/1), 124 Chips
+  (67 Wirkung, 57 Nebenwirkung), 0 ohne Chips, 38 mit Einnahme – alle
+  Konsistenzprüfungen nachgezählt und grün.
 - **Schritt 2 erledigt (2026-10-19): Formular in der App.** `src/pages/tagebuch/`:
   `EntryForm` (Titel Pflicht, Substanz freiwillig, Zeitpunkt, Einnahme-Bezug,
   Suche + Info-Knopf, Tabs mit Anzahl, Chip-Gruppen, „+ Eigene …", Notizen),

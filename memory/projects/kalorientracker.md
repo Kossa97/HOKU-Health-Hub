@@ -90,3 +90,6 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - Raster misst den Platz bis zum unteren Rand (offsetTop, nicht Bildschirm-Rect) und rechnet die
   Mini-Kugeln herunter (max. 30 px); reicht die Höhe nicht für Datum über der Kugel, steht das Datum auf der Kugel.
 - Playwright „iPhone SE" (320×568) ist kleiner als jedes echte Zielgerät: dort darf es scrollen.
+- Nachtrag: Am Gerät ließ sich das Blatt trotzdem etwas verschieben — der body hat oben/unten
+  Polster für den sicheren Bereich, die Seite ist dadurch höher als der Bildschirm. Solange das
+  Blatt passt, setzt MonthSheet html/body auf overflow hidden + overscroll none (beim Schließen zurück).
