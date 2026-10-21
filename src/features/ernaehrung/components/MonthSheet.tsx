@@ -81,6 +81,20 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
   // Datum über der Kugel, solange die Kugel dann noch gut erkennbar ist; sonst auf der Kugel.
   const stacked = rowH >= NUM_H + 22
   const orb = Math.floor(Math.max(16, Math.min(ORB_MAX, (space ? space.w / 7 : 44) - 6, stacked ? rowH - NUM_H : rowH)))
+  const fits = !!space && orb <= (stacked ? rowH - NUM_H : rowH)
+
+  // Passt das Blatt, steht die Seite still: kein Scrollen, kein Nachfedern. Unter dem Inhalt liegt sonst
+  // noch der sichere Bereich (Polster am body), um den die Seite sich verschieben ließe.
+  useEffect(() => {
+    if (!fits) return
+    const root = document.documentElement
+    const before = [root.style.overflow, root.style.overscrollBehavior, document.body.style.overflow]
+    window.scrollTo({ top: 0 })
+    root.style.overflow = 'hidden'
+    root.style.overscrollBehavior = 'none'
+    document.body.style.overflow = 'hidden'
+    return () => { [root.style.overflow, root.style.overscrollBehavior, document.body.style.overflow] = before }
+  }, [fits])
 
   return (
     <Sheet labelledBy="nutr-month-title" onClose={onClose} tall data-nutr-month>

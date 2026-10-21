@@ -500,13 +500,18 @@ test('Monatsblatt passt ganz auf den Bildschirm, auch mit sechs Wochen; Vormonat
   // Das erste SE im Browser (320 × 568) ist kleiner als jedes Gerät, auf dem die App läuft (ab 375 × 667):
   // Unter der festen Kugel-Zone (316 px) bleibt dort kein Platz für sechs Wochen, und der Titel wird gekürzt.
   if (viewport.width >= 375) expect(await title.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  await expect(month.getByRole('button', { name: 'Nächster Monat: September' })).toBeInViewport()
   if (viewport.height >= 600) {
     const box = (await month.boundingBox())!
     expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
-    // Ohne Scrollen: die Seite ist nicht höher als der Bildschirm.
+    // Ohne Scrollen: die Seite ist nicht höher als der Bildschirm und steht still, solange das Blatt offen ist.
     expect(await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)).toBeLessThanOrEqual(0)
+    const overflow = () => page.evaluate(() => [getComputedStyle(document.documentElement).overflowY, getComputedStyle(document.body).overflowY].join())
+    expect(await overflow()).toBe('hidden,hidden')
+    await month.getByRole('button', { name: 'Schließen', exact: true }).click()
+    await expect(month).toBeHidden()
+    expect(await overflow()).not.toContain('hidden')
   }
-  await expect(month.getByRole('button', { name: 'Nächster Monat: September' })).toBeInViewport()
 })
 
 test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
