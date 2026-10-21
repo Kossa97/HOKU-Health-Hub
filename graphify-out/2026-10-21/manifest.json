@@ -6912,15 +6912,15 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792554039.4631827,
-    "seen": 1792554566.6759682,
-    "ast_hash": "1efd8b9386e24508accded9dafc3b7a9",
+    "mtime": 1792555485.287733,
+    "seen": 1792555702.971254,
+    "ast_hash": "6f5a806d3eecdbd232f878a3aa5195fc",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1792554039.4624038,
-    "seen": 1792554566.6951926,
-    "ast_hash": "b0085eee1d13e48ff3297f8ea4868008",
+    "mtime": 1792555155.2084816,
+    "seen": 1792555702.9804885,
+    "ast_hash": "7b768a07a1cdb38f170d26c0018ee8d0",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6936,9 +6936,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/DaySummary.tsx": {
-    "mtime": 1792554265.7148752,
-    "seen": 1792554566.6955104,
-    "ast_hash": "9b7f2c78012631b95a33c6108432c366",
+    "mtime": 1792555171.878281,
+    "seen": 1792555702.9806015,
+    "ast_hash": "08fee7fd9526eaa28e1aad6768faf5d0",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/FoodEditorSheet.tsx": {
@@ -6978,9 +6978,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/WeekStrip.tsx": {
-    "mtime": 1792554039.4617453,
-    "seen": 1792554566.6965642,
-    "ast_hash": "aab9b727c14af4010b403c3c7000d4df",
+    "mtime": 1792555171.878849,
+    "seen": 1792555702.9813666,
+    "ast_hash": "df9a22015ddb14c4028c9807f1f15485",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useNutritionDay.ts": {
@@ -7080,9 +7080,9 @@
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792554536.003058,
-    "seen": 1792554566.7637491,
-    "ast_hash": "c3c6bcd47f4accaec24832f00297c1d1",
+    "mtime": 1792555672.0151,
+    "seen": 1792555703.0132616,
+    "ast_hash": "a5828ddde8e1ef1ac5d2e176c25c2935",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7722,9 +7722,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbZone.ts": {
-    "mtime": 1792553934.744887,
-    "seen": 1792554566.6981807,
-    "ast_hash": "4401c27a59fd177f927aa9218af1bc8d",
+    "mtime": 1792555134.6745188,
+    "seen": 1792555702.9821982,
+    "ast_hash": "f64959c751e0f15988553d77021af1a5",
     "semantic_hash": ""
   }
 }
