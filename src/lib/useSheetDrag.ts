@@ -10,14 +10,23 @@ const WURF_MIN = 24
 /** Erst ab diesem Weg ist es ein Ziehen und kein Tipp. */
 const ZIEH_START = 6
 const ZURUECK_MS = 300
+/** Was in einer Zone selbst angetippt wird und den Zeiger behalten muss. */
+const BEDIENBAR = 'button, a, input, select, textarea, label, summary, [role="button"], [role="tab"], '
+  + '[role="switch"], [role="checkbox"], [role="radio"], [tabindex]:not([tabindex="-1"])'
 
 /**
  * Ein Blatt nach unten wegziehen, wie in iOS.
  *
- * `blatt` kommt ans Blatt, `griffe` auf eine Zone (Griff, Kopfzeile), nicht
- * aufs ganze Blatt: darunter wischt das Raster seitwaerts und das Blatt scrollt
- * senkrecht, beides soll bleiben. Die Zone braucht `touch-action: none`, sonst nimmt der Browser
- * das Ziehen als Scrollen und bricht den Zeiger ab.
+ * `griffe` kommen auf eine Zone (Griff, Kopfzeile), nicht aufs ganze Blatt:
+ * darunter scrollt das Blatt oder wischt ein Raster seitwaerts, das soll
+ * bleiben. Die Zone braucht `touch-action: none`, sonst nimmt der Browser das
+ * Ziehen als Scrollen und bricht den Zeiger ab. Das Blatt ist `blatt`, wenn es
+ * daran haengt, sonst das naechste Blatt (`.lg-sheet` oder Dialog) ueber der
+ * Zone — so braucht ein
+ * Blatt nur den Griff (src/components/ui/SheetGriff.tsx).
+ *
+ * Schliesst das Blatt ohne eigene Ausfahrt (ohne `tyd-sheet`), wartet
+ * `schliessen`, bis es aus dem Bild geglitten ist.
  *
  * Waehrend des Ziehens folgt das Blatt dem Finger direkt ueber `transform`.
  * Die Ein- und Ausfahrt des Blatts laeuft als CSS-Animation, und die schlaegt
@@ -27,11 +36,13 @@ const ZURUECK_MS = 300
 export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
   /** Kommt ans Blatt selbst; der Rest sind die Griffe fuer die Zone. */
   const blatt = useRef<T>(null)
+  /** Das Blatt dieses Zugs — `blatt` oder das naechste Blatt ueber der Zone. */
+  const ziel = useRef<HTMLElement | null>(null)
   const start = useRef<{ y: number; id: number; gezogen: boolean; basis: number } | null>(null)
   const proben = useRef<{ y: number; t: number }[]>([])
 
   const setze = (versatz: number, uebergang: string | null) => {
-    const el = blatt.current
+    const el = ziel.current
     if (!el) return
     el.style.transition = uebergang ?? 'none'
     el.style.transform = versatz === 0 ? '' : `translateY(${versatz}px)`
@@ -41,14 +52,41 @@ export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
     setze(0, `transform ${ZURUECK_MS}ms var(--tyd-ease-drawer)`)
   }
 
+  /** Lehnt das Blatt das Schliessen ab (ungespeicherte Aenderungen, Speichern
+   *  laeuft), kommt es zurueck, statt unsichtbar stehen zu bleiben. */
+  const fallsEsBleibt = (el: HTMLElement, runden = 3) => {
+    window.setTimeout(() => {
+      if (!el.isConnected) return
+      // Faehrt es gerade aus, noch einmal nachsehen: wird es dabei wieder
+      // geoeffnet, steht es sonst unsichtbar und taub da.
+      if (el.hasAttribute('data-closing')) {
+        if (runden > 1) fallsEsBleibt(el, runden - 1)
+        return
+      }
+      // Hat der Finger es schon wieder gegriffen, gehoert es ihm.
+      if (start.current?.gezogen) return
+      ziel.current = el
+      el.dataset.gezogen = ''
+      el.style.pointerEvents = ''
+      zurueck()
+    }, SHEET_CLOSE_MS + 150)
+  }
+
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
     // Ein zweiter Finger setzt nicht mitten im Ziehen neu an. Ein Tipp, dessen
     // Loslassen ausserhalb der Zone lag, blockiert dagegen nichts — und ebenso
     // wenig ein Ziehen, dessen Blatt inzwischen auf anderem Weg zuging: ein
     // frisch geoeffnetes Blatt traegt `data-gezogen` noch nicht.
-    if (start.current?.gezogen && blatt.current?.dataset.gezogen !== undefined) return
+    if (start.current?.gezogen && ziel.current?.isConnected && ziel.current.dataset.gezogen !== undefined) return
+    ziel.current = blatt.current ?? event.currentTarget.closest<HTMLElement>('.lg-sheet, [role="dialog"], [role="alertdialog"]')
     start.current = { y: event.clientY, id: event.pointerId, gezogen: false, basis: 0 }
+    // Den Zeiger gleich festhalten, sonst verlaesst eine Maus den schmalen Griff,
+    // bevor das Ziehen erkannt ist. Nur nicht auf einem Knopf in der Zone: dort
+    // landete der Klick sonst auf der Zone statt auf dem Knopf (Finger halten
+    // ihr Ziel ohnehin selbst fest).
+    const knopf = (event.target as Element).closest(BEDIENBAR)
+    if (!knopf || !event.currentTarget.contains(knopf)) event.currentTarget.setPointerCapture?.(event.pointerId)
     proben.current = [{ y: event.clientY, t: performance.now() }]
   }
 
@@ -68,7 +106,7 @@ export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
       // Erst ab hier gehoert der Zeiger dem Ziehen: ein Tipp auf das Kreuz
       // oder die Pfeile in der Kopfzeile bleibt ein Tipp.
       event.currentTarget.setPointerCapture?.(event.pointerId)
-      const el = blatt.current
+      const el = ziel.current
       if (el) {
         // Faehrt das Blatt gerade noch ein, uebernimmt der Finger es dort,
         // wo es steht, statt es ans Ende springen zu lassen.
@@ -94,17 +132,29 @@ export function useSheetDrag<T extends HTMLElement>(schliessen: () => void) {
     // Stand der Finger zuletzt still, ist das Tempo null — kein Wurf.
     const probe = proben.current.find(p => jetzt - p.t <= 100)
     const tempo = probe ? (event.clientY - probe.y) / Math.max(1, jetzt - probe.t) : 0
-    const el = blatt.current
+    const el = ziel.current
     if (el && (s.basis + dy >= WEG_SCHWELLE || (tempo > WURF_TEMPO && dy >= WURF_MIN))) {
       const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
       if (!ruhig) {
         // Aus der Hand weiter nach unten; der Hintergrund blendet ueber das
         // normale Schliessen aus, das Blatt faehrt nicht noch einmal ein.
         el.dataset.gezogen = 'weg'
+        el.style.pointerEvents = 'none'
         setze(el.offsetHeight + 24, `transform ${SHEET_CLOSE_MS}ms var(--tyd-ease-out)`)
+        // Ohne eigene Ausfahrt verschwaende das Blatt sofort; erst gleiten lassen.
+        if (!el.classList.contains('tyd-sheet')) {
+          window.setTimeout(() => {
+            // Ging es inzwischen ueber Hintergrund oder Escape zu, nicht noch einmal.
+            if (!el.isConnected) return
+            schliessen()
+            fallsEsBleibt(el)
+          }, SHEET_CLOSE_MS)
+          return
+        }
       }
       // Mit reduzierter Bewegung blendet es dort aus, wo der Finger es liess.
       schliessen()
+      fallsEsBleibt(el)
       return
     }
     zurueck()

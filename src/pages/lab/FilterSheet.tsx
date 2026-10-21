@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { DEFAULT_FILTER_STATE } from './pubmed'
 import type { FilterState, SortMode, YearFilter } from './pubmed'
+import { SheetGriff } from '../../components/ui/SheetGriff'
 
 const ALL_PEPTIDES = [
   'BPC-157', 'TB-500', 'Ipamorelin', 'CJC-1295',
@@ -71,7 +72,7 @@ export function FilterSheet({
           className="lg-sheet lg-sheet-solid w-full max-w-lg overflow-hidden pointer-events-auto"
         >
           <div className="pt-2 pb-1">
-            <span className="lg-grabber" aria-hidden="true" />
+            <SheetGriff onClose={onClose} />
           </div>
 
           {/* Header */}

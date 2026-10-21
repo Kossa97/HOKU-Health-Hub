@@ -70,6 +70,7 @@ import { useSheetClose } from '../lib/useSheetClose'
 import { useSheetDrag } from '../lib/useSheetDrag'
 import { denyProps } from '../lib/denyFeedback'
 import { dayKey, readSharedDay, writeSharedDay } from '../lib/sharedDay'
+import { SheetGriff } from '../components/ui/SheetGriff'
 
 interface DoseLog {
   id: string
@@ -2816,7 +2817,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
             <div style={{ padding: '8px 18px 0' }}>
-              <div className="lg-grabber mb-4" />
+              <SheetGriff className="mb-4" onClose={bestaetigenSchliessen.requestClose} />
               <div className="mb-1 flex items-center gap-2.5">
                 <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
                 <h2 id="confirm-sheet-title" className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>

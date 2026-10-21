@@ -14,6 +14,7 @@ import {
   parseInjectionDose,
   toLocalDateTimeInput,
 } from '../../lib/injectionLogSheetState'
+import { SheetGriff } from '../ui/SheetGriff'
 
 export function InjectionEditSheet({
   log,
@@ -91,7 +92,7 @@ export function InjectionEditSheet({
           paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
-        <div className="lg-grabber mb-3" />
+        <SheetGriff className="mb-3" onClose={onCancel} disabled={busy} />
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id="injection-edit-title" className="lg-title2 truncate">

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 /**
  * Unteres Sheet fuer Melden, Blockieren, Konto loeschen und Rechtstexte.
@@ -39,7 +40,7 @@ export function Sheet({ labelledBy, busy = false, onClose, children, role = 'dia
           onClose()
         }}
       >
-        <span className="lg-grabber mb-3" aria-hidden="true" />
+        <SheetGriff className="mb-3" onClose={onClose} disabled={busy} />
         {children}
       </div>
     </div>

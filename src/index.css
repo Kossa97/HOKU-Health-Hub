@@ -1823,7 +1823,7 @@ main.flex-1 {
    Inline-transform. Eine Animation schluege es — also keine mehr, ausser beim
    Schliessen ueber Kreuz oder Hintergrund danach. Weggezogen (`weg`) faehrt es
    aus der Hand hinaus und braucht auch dafuer keine. */
-.tyd-sheet[data-gezogen] { animation: none; }
+.lg-sheet[data-gezogen], .tyd-sheet[data-gezogen], [role="dialog"][data-gezogen], [role="alertdialog"][data-gezogen] { animation: none; }
 .tyd-sheet[data-gezogen]:not([data-gezogen="weg"])[data-closing] { animation: tyd-fade-out 150ms ease both; }
 
 @media (prefers-reduced-motion: no-preference) {
