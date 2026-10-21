@@ -54,14 +54,21 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
 
   await expect(page.getByRole('heading', { name: 'Skyr Natur' })).toBeVisible()
   // Nährwert-Punkte je 100 g: wenig Zucker und Salz, viel Eiweiß
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
-  // Portion des Produkts ist vorgewählt — mit Namen („1 Becher“) zählt man Portionen statt Gramm.
-  await expect(page.getByRole('radio', { name: 'Portionen' })).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte: 5 von 5' })).toBeVisible()
+  // Portion des Produkts ist vorgewählt — beide Felder: Menge in g und Anzahl („1 Becher“).
+  await expect(page.getByLabel('Menge in g')).toHaveValue('150')
+  await expect(page.getByLabel('Anzahl (1 Becher ≈ 150 g)')).toHaveValue('1')
+  // Die Punkte erklärt das „i“ daneben: Stufe, Skala, was Punkte bringt und kostet.
+  await page.getByRole('button', { name: 'Was bedeuten die Nährwert-Punkte?' }).click()
+  await expect(page.getByRole('heading', { name: 'Nährwert-Punkte' })).toBeVisible()
+  await expect(page.getByText('Bringt Punkte')).toBeVisible()
+  await expect(page.getByText('Kostet Punkte')).toBeVisible()
+  await page.getByRole('button', { name: 'Zurück', exact: true }).click()
   await expect(page.getByLabel('Anzahl (1 Becher ≈ 150 g)')).toHaveValue('1')
   await addAndClose(page)
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
-  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
+  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte: 5 von 5' })).toBeVisible()
   expect(mock.foodLookup.calls).toEqual([{ barcode: '4002671157751', query: undefined }])
   expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({
@@ -173,7 +180,7 @@ test('Mahlzeit: Hinzufügen steht im Kopf; Zeile nach links wischen → Bearbeit
   expect(mock.table('food_logs')).toHaveLength(0)
 })
 
-test('Zählbares in Stück: Eier zählt man statt sie zu wiegen; umschalten auf g; die Zeile nennt die Anzahl', async ({ page, mock }) => {
+test('Zählbares: Menge und Anzahl in einem Formular, verbunden; Einheit am Feld; die Zeile nennt die Anzahl', async ({ page, mock }) => {
   mock.foodLookup.products['4000000000013'] = {
     barcode: '4000000000013', name: 'Hühnerei', brand: null, unit: 'g',
     per100: { kcal: 137, protein: 11.9, carbs: 1.5, fat: 9.3, fiber: null, sugar: null, salt: 0.3 }, serving: null,
@@ -185,21 +192,34 @@ test('Zählbares in Stück: Eier zählt man statt sie zu wiegen; umschalten auf 
   await page.getByRole('button', { name: 'Suchen', exact: true }).click()
 
   const dialog = page.getByRole('dialog')
-  await expect(dialog.getByRole('radio', { name: 'Stück', exact: true })).toHaveAttribute('aria-checked', 'true')
   const count = dialog.getByLabel('Anzahl (1 Stück ≈ 55 g)')
   await expect(count).toHaveValue('1')
+  await expect(dialog.getByLabel('Menge in g')).toHaveValue('55')
   await dialog.getByRole('button', { name: 'Eins mehr' }).click()
   await expect(count).toHaveValue('2')
-  await expect(dialog.getByText('= 110 g')).toBeVisible()
-  await addAndClose(page)
+  await expect(dialog.getByLabel('Menge in g')).toHaveValue('110')
+  // Gramm tippen rechnet die Anzahl mit.
+  await dialog.getByLabel('Menge in g').fill('82,5')
+  await expect(count).toHaveValue('1,5')
+  await dialog.getByRole('button', { name: 'Eins mehr' }).click()
+  await expect(count).toHaveValue('2')
+  // Ganz unten gescrollt (kleine Geräte): vor dem Flug gleitet die Seite nach oben, damit man die Tageskugel sieht.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+  expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({ name: 'Hühnerei', amount: 110 })
 
   const card = mealCard(page, 'Frühstück')
   await expect(card.getByText(/^2 Stück ·/)).toBeVisible()
   await card.getByRole('button', { name: 'Hühnerei bearbeiten' }).click()
   await expect(dialog.getByLabel('Anzahl (1 Stück ≈ 55 g)')).toHaveValue('2')
-  await dialog.getByRole('radio', { name: 'g', exact: true }).click()
   await expect(dialog.getByLabel('Menge in g')).toHaveValue('110')
+  // Einheit am Feld: kg zeigt dieselbe Menge
+  await dialog.getByLabel('Menge angeben in').selectOption('kg')
+  await expect(dialog.getByLabel('Menge in kg')).toHaveValue('0,11')
 })
 
 test('Löschen mit Rückgängig', async ({ page, mock }) => {
@@ -323,7 +343,8 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   // gleich weiter zum Eintragen, eine Portion vorgewählt
   await expect(page.getByRole('heading', { name: 'Quark-Porridge' })).toBeVisible()
   await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('1')
-  await page.getByRole('button', { name: '½', exact: true }).click()
+  await page.getByRole('button', { name: 'Eins weniger' }).click()
+  await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('0,5')
   await addAndClose(page)
   await expect(mealCard(page, 'Frühstück').getByText('Quark-Porridge')).toBeVisible()
 

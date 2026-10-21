@@ -103,3 +103,16 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - lib/pieces.ts: zählbar über Produktportion mit Namen („1 Becher“) oder Namenstabelle (Ei 55 g,
   Scheibe Brot 45 g, Apfel 180 g …; Getränke: Tasse/Glas). PortionSheet: Umschalter Stück | g,
   Stepper, gespeichert weiter in g/ml. Zeile zeigt „2 Stück“, wenn die Menge eine runde Anzahl ist.
+
+## Mengenblatt C.1 + Nährwert-Punkte in 5 Stufen (21.10.2026)
+- Entschieden per Live-Mockups (Canvas „Mengenblatt kompakt“): Variante C.1.
+- Kopf ausgeschrieben: Name bis 3 Zeilen (SE: volle Breite darunter), Punkte + ⓘ, Herkunft lang
+  („Eigenes Lebensmittel“, „Open Food Facts“, „Bundeslebensmittelschlüssel“), Marke, „68 kcal je 100 g · 1 Flasche = 330 g“.
+- Menge: „Menge [Zahl] [g|kg bzw. ml|l]“ und, wo zählbar, „Portion/Stück … à 330 g [−][Zahl][+]“ —
+  verbunden über eine Menge in g/ml; wer tippt, behält seinen Text. Keine Vorauswahl-Chips mehr.
+- Makros als flache Kacheln; Mahlzeit als Knopf mit Auswahl links neben Hinzufügen.
+  Korrigieren beim Hinzufügen als Stift-Knopf (bei auffälligen Werten auch im Hinweis), beim Bearbeiten
+  Korrigieren/Löschen ausgeschrieben darunter.
+- Vor dem Flug gleitet die Seite nach oben (max. 0,9 s, dann Sprung), erst dann wird der Startpunkt gemessen.
+- Nährwert-Punkte: gerechnet weiter 0–10, gezeigt als 5 Stufen (≥8/6/4/2) mit 5 Punkten; ⓘ öffnet
+  ScoreInfo (Skala 1–5, „Bringt Punkte“/„Kostet Punkte“ mit Balken je 100 g, Fußnote). Keine Kommazahl mehr.

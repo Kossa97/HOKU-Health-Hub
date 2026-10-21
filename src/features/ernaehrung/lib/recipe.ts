@@ -111,8 +111,3 @@ export function parseIngredients(raw: unknown): Ingredient[] | null {
   }
   return out
 }
-
-/** Gramm als Portionen, höchstens zwei Nachkommastellen (Komma ist Sache der Anzeige). */
-export function portionsText(amount: number, portion: number): number {
-  return Math.round((amount / portion) * 100) / 100
-}

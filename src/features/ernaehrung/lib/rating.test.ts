@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Per100 } from './nutrition'
-import { formatScore, nutritionScore, scoreTone } from './rating'
+import { nutritionScore, scoreLevel, scoreParts, scoreTone } from './rating'
 
 const per = (p: Partial<Per100>): Per100 =>
   ({ kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: null, sugar: null, satFat: null, salt: null, ...p })
@@ -54,17 +54,28 @@ describe('nutritionScore', () => {
   })
 })
 
-describe('scoreTone / formatScore', () => {
-  it('Stufen ohne Rot', () => {
-    expect(scoreTone(9.7)).toBe('good')
-    expect(scoreTone(7)).toBe('good')
-    expect(scoreTone(4.7)).toBe('mid')
-    expect(scoreTone(0.3)).toBe('low')
+describe('scoreLevel / scoreTone', () => {
+  it('fünf Stufen aus 0–10', () => {
+    expect([9.7, 8, 7.9, 6, 5.9, 4, 3.9, 2, 1.9, 0].map(scoreLevel)).toEqual([5, 5, 4, 4, 3, 3, 2, 2, 1, 1])
   })
 
-  it('Komma auf Deutsch, Punkt auf Englisch, immer eine Stelle', () => {
-    expect(formatScore(9.7, 'de')).toBe('9,7')
-    expect(formatScore(10, 'de')).toBe('10,0')
-    expect(formatScore(4, 'en')).toBe('4.0')
+  it('Farbe je Stufe, ohne Rot', () => {
+    expect(scoreTone(5)).toBe('good')
+    expect(scoreTone(4)).toBe('good')
+    expect(scoreTone(3)).toBe('mid')
+    expect(scoreTone(2)).toBe('low')
+    expect(scoreTone(1)).toBe('low')
+  })
+})
+
+describe('scoreParts', () => {
+  it('nennt die Teile der Rechnung — Pizza: Eiweiß zählt ab 11 Minuspunkten nicht', () => {
+    expect(scoreParts(per({ kcal: 250, protein: 11, carbs: 30, fat: 9, sugar: 3.5, satFat: 4.5, salt: 1.3, fiber: 2 }))).toEqual({
+      energy: 3, sugar: 0, satFat: 4, salt: 5, fiber: 2, protein: 5, proteinCounts: false,
+    })
+  })
+
+  it('ohne genug Angaben: null (wie nutritionScore)', () => {
+    expect(scoreParts(per({ kcal: 100, protein: 5, fiber: 3 }))).toBeNull()
   })
 })

@@ -35,3 +35,10 @@ export const chip = (active: boolean) =>
     ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
     : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`
 
+
+/** Farbe je Stufe der Nährwert-Punkte (gut · mittel · niedrig) — nie rot. */
+export const SCORE_COLOR = {
+  good: 'var(--lg-good-text)',
+  mid: '#ffd60a',
+  low: '#ff9f0a',
+} as const
