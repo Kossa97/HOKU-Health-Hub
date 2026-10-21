@@ -481,6 +481,34 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
   await expect(page.getByText('Montag, 21. September').first()).toBeVisible()
 })
 
+test('Monatsblatt passt ganz auf den Bildschirm, auch mit sechs Wochen; Vormonat steht neben dem Titel', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await page.getByRole('region', { name: 'Woche' }).getByRole('button', { name: 'Monatsübersicht öffnen' }).click()
+  const month = page.locator('[data-nutr-month]')
+  // August 2026 beginnt am Samstag: sechs Wochenzeilen.
+  await month.getByRole('button', { name: 'Vorheriger Monat: August' }).click()
+  const title = month.getByRole('heading', { name: 'August 2026' })
+  await expect(title).toBeVisible()
+  await expect(month.locator('[data-nutr-month-day="2026-08-31"]')).toBeEnabled()
+
+  const viewport = page.viewportSize()!
+  const prev = (await month.getByRole('button', { name: 'Vorheriger Monat: Juli' }).boundingBox())!
+  const titleBox = (await title.boundingBox())!
+  // Vormonat, Titel und Folgemonat in einer Zeile.
+  expect(Math.abs(prev.y + prev.height / 2 - (titleBox.y + titleBox.height / 2))).toBeLessThan(4)
+  // Das erste SE im Browser (320 × 568) ist kleiner als jedes Gerät, auf dem die App läuft (ab 375 × 667):
+  // Unter der festen Kugel-Zone (316 px) bleibt dort kein Platz für sechs Wochen, und der Titel wird gekürzt.
+  if (viewport.width >= 375) expect(await title.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  if (viewport.height >= 600) {
+    const box = (await month.boundingBox())!
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+    // Ohne Scrollen: die Seite ist nicht höher als der Bildschirm.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)).toBeLessThanOrEqual(0)
+  }
+  await expect(month.getByRole('button', { name: 'Nächster Monat: September' })).toBeInViewport()
+})
+
 test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
   await withMotion(page)
   logEntry(mock, {})
