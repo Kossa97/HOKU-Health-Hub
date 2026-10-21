@@ -1,8 +1,12 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { DotRenderer, drawSphere, orbPalette, qAxis, qMat, qMul } from '../lib/orbDraw'
 import { type FoodOrbValues, macroMix } from '../lib/foodOrb'
+import { usePrefersReducedMotion } from '../lib/orbZone'
 
-const VIEW = qMat(qMul(qAxis(1, 0, 0, 0.22), qAxis(0, 1, 0, 0.6)))
+/** Lage wie die Tageskugel: leicht von oben, `yaw` dreht um die senkrechte Achse. */
+const view = (yaw: number) => qMat(qMul(qAxis(1, 0, 0, 0.22), qAxis(0, 1, 0, 0.6 + yaw)))
+/** Eigendrehung in rad/s — das ruhige Grundtempo der Tageskugel. */
+const SPIN = 0.16
 
 export interface FoodOrbHandle {
   /** Die Punkte verlassen die Kugel von oben nach unten (Flug in die Tageskugel), danach füllt sie sich wieder. */
@@ -14,14 +18,21 @@ export interface FoodOrbHandle {
 /**
  * Kugel eines Essens: 1 Punkt = 1 kcal, gleiche Punktdichte wie die Tageskugel —
  * der Radius wächst mit √kcal, ein ganzer Tag (`goalKcal`) füllt `fullFrac` der
- * Fläche. Farben gemischt nach Makro-Anteil. Canvas 2D und still: Listen haben
- * viele davon. Rein grafisch; Zahlen stehen daneben.
+ * Fläche. Farben gemischt nach Makro-Anteil. Canvas 2D; in Listen still (dort sind
+ * es viele), mit `spin` dreht sie sich wie die Tageskugel (Portion). Rein grafisch;
+ * Zahlen stehen daneben.
  */
-export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKcal: number; size: number; fullFrac?: number }>(
-  function FoodOrb({ values, goalKcal, size, fullFrac = 0.46 }, ref) {
+export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKcal: number; size: number; fullFrac?: number; spin?: boolean }>(
+  function FoodOrb({ values, goalKcal, size, fullFrac = 0.46, spin = false }, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const keep = useRef(1)
     const raf = useRef(0)
+    const reduce = usePrefersReducedMotion()
+    const turning = spin && !reduce
+    /** Drehwinkel und Zeit des letzten Bildes; Ausgießen: Start und Dauern. */
+    const anim = useRef<{ yaw: number; last: number; pour: { t0: number; leave: number; back: number } | null; turning: boolean; reduce: boolean }>({ yaw: 0, last: 0, pour: null, turning, reduce })
+    anim.current.turning = turning
+    anim.current.reduce = reduce
     const geo = useRef<{ R: number; n: number } | null>(null)
     const renderer = useRef<DotRenderer | null>(null)
     const { kcal, protein, carbs, fat } = values
@@ -47,18 +58,47 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
         const n = Math.max(12, Math.min(1500, Math.round(kcal), Math.round(4 * R * R / (dpr * dpr) * 1.4)))
         geo.current = { R: R / dpr, n }
         const left = Math.round(n * keep.current)
+        const M = view(anim.current.yaw)
         r.begin()
         if (kcal > 0) {
           drawSphere(r, n, { filled: left, extra: 0 }, {
-            M: VIEW, HM: VIEW, cx: W / 2, cy: W / 2, R: Math.max(2 * dpr, R),
-            px: Math.max(1.6, Math.min(4.4, R / dpr / 5)) * dpr, color: 1, mix: macroMix(values), now: 0, live: false,
+            M, HM: M, cx: W / 2, cy: W / 2, R: Math.max(2 * dpr, R),
+            px: Math.max(1.6, Math.min(4.4, R / dpr / 5)) * dpr, color: 1, mix: macroMix(values),
+            now: anim.current.last, live: anim.current.turning,
           })
         }
         r.end()
       }
     })
     useEffect(() => { draw.current() }, [kcal, protein, carbs, fat, goalKcal, size, fullFrac])
-    useEffect(() => () => { cancelAnimationFrame(raf.current); renderer.current?.destroy(); renderer.current = null }, [])
+
+    /** Eine Schleife für Drehen und Ausgießen; sie läuft nur, solange eins von beiden ansteht. */
+    const loop = useRef<(ts: number) => void>(() => {})
+    loop.current = (ts: number) => {
+      const a = anim.current
+      const dt = a.last ? Math.min(0.1, (ts - a.last) / 1000) : 0
+      a.last = ts
+      if (a.turning) a.yaw += dt * SPIN
+      if (a.pour) {
+        const t = performance.now() - a.pour.t0
+        // Erst leeren (Punkte gehen von oben), am Ende weich wieder füllen.
+        if (t < a.pour.leave) keep.current = 1 - t / a.pour.leave
+        else if (t < a.pour.back) keep.current = 0
+        else { const u = Math.min(1, (t - a.pour.back) / 380); keep.current = u * u * (3 - 2 * u) }
+        if (t >= a.pour.back + 380) { keep.current = 1; a.pour = null }
+      }
+      draw.current()
+      raf.current = a.turning || a.pour ? requestAnimationFrame(t2 => loop.current(t2)) : 0
+    }
+    const run = () => {
+      if (raf.current) return
+      anim.current.last = 0
+      raf.current = requestAnimationFrame(t => loop.current(t))
+    }
+    useEffect(() => {
+      if (turning) run()
+    }, [turning])
+    useEffect(() => () => { cancelAnimationFrame(raf.current); raf.current = 0; renderer.current?.destroy(); renderer.current = null }, [])
 
     useImperativeHandle(ref, () => ({
       origin: () => {
@@ -68,25 +108,14 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
         return { x: b.left + b.width / 2, y: b.top + b.height / 2, r: geo.current.R }
       },
       pour: (leaveMs, backAfterMs) => {
-        cancelAnimationFrame(raf.current)
         // „Bewegung reduzieren“: nichts fließt, die Kugel bleibt voll.
-        if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (anim.current.reduce) {
           keep.current = 1
           draw.current()
           return
         }
-        const t0 = performance.now()
-        const step = () => {
-          const t = performance.now() - t0
-          // Erst leeren (Punkte gehen von oben), am Ende weich wieder füllen.
-          if (t < leaveMs) keep.current = 1 - t / leaveMs
-          else if (t < backAfterMs) keep.current = 0
-          else { const u = Math.min(1, (t - backAfterMs) / 380); keep.current = u * u * (3 - 2 * u) }
-          draw.current()
-          if (t < backAfterMs + 380) raf.current = requestAnimationFrame(step)
-          else keep.current = 1
-        }
-        raf.current = requestAnimationFrame(step)
+        anim.current.pour = { t0: performance.now(), leave: leaveMs, back: backAfterMs }
+        run()
       },
     }), [])
 

@@ -82,6 +82,16 @@ function swipe(startX: number, endX: number, startY = 160, endY = 166) {
   fireEvent.pointerUp(window, { pointerId: 1, pointerType: 'touch', clientX: endX, clientY: endY })
 }
 
+function PageCloseApp({ onClose }: { onClose: () => void }) {
+  return (
+    <AppBackNavigation>
+      <LocationProbe />
+      <button type="button" data-app-page-close onClick={onClose}>Schließen</button>
+      <Routes><Route path="/ernaehrung" element={<p>Ernährung</p>} /></Routes>
+    </AppBackNavigation>
+  )
+}
+
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
@@ -110,6 +120,19 @@ describe('app-wide edge swipe back', () => {
     swipe(12, 58, 80, 190)
 
     expect(screen.getByLabelText('location').textContent).toBe('/second')
+  })
+
+  it('triggers the page close control of a page without tab bar, even without history', () => {
+    const onClose = vi.fn()
+    render(
+      <MemoryRouter initialEntries={['/ernaehrung']}>
+        <PageCloseApp onClose={onClose} />
+      </MemoryRouter>,
+    )
+
+    swipe(12, 104)
+
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('closes the top app window before changing the route', () => {

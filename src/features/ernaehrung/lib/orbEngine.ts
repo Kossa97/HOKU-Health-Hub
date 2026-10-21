@@ -11,20 +11,19 @@
  * - Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus;
  * - „Bewegung reduzieren": nichts dreht, nichts fliegt, neue Plätze leuchten nur auf.
  */
-import { type Fill, type MacroKey, type OrbLayout, dotScale, fillChange, spherePoints } from './orb'
+import { type Fill, type MacroKey, type OrbLayout, ORB_TILT as TILT, dotScale, fillChange, spherePoints } from './orb'
 import {
   type ColorIndex, DotRenderer, type Flash, type Mat3, type Quat,
   drawSphere, easeInOut, qAxis, qMat, qMul, qNorm, sprite,
 } from './orbDraw'
 import { hapticGoal, hapticSelect, hapticTick, soundArrive, soundFall, soundGoal } from './orbFeedback'
 
-/** Radius der großen Kugel in CSS-Pixeln. */
-export const ORB_RADIUS = 70
+/** Bezugsgröße der großen Kugel in CSS-Pixeln (die tatsächliche setzt `setStage`, siehe `fitOrb`). */
+export const ORB_RADIUS = 86
 /** Punktdurchmesser (CSS-Pixel) und Flug — auch für die Gericht-Kugel (components/DishStage.tsx). */
 export const DOT_MAIN = 1.86
 const DOT_MOON = 1.67
 export const DOT_TRAIL = 1.4
-const TILT = 0.22
 export const TRAVEL = 560
 export const SPREAD = 420
 
@@ -112,7 +111,7 @@ export class OrbEngine {
   private geo: { M: Mat3; cx: number; cy: number; R: number } | null = null
   private moonGeo: Partial<Record<MacroKey, MoonGeo>> = {}
   private particles: Particle[] = []
-  /** Radius der großen Kugel in CSS-Pixeln; `setStage` verkleinert sie beim Scrollen (höchstens auf 80 %). */
+  /** Radius der großen Kugel in CSS-Pixeln; `setStage` passt ihn an die Zone an (beim Scrollen kleiner). */
   private readonly baseRadius: number
   private radius: number
   /** Portions-Blatt: so sähe der Tag mit dieser Portion aus — die neuen Punkte pulsieren. */
@@ -195,8 +194,8 @@ export class OrbEngine {
    * Feste Kugel oben: Mitte (CSS-Pixel von oben) und Größe ändern sich beim Scrollen.
    * Nur Werte — die Zeichenfläche bleibt, gezeichnet wird im nächsten Bild.
    */
-  setStage(centerY: number, scale: number) {
-    const r = this.baseRadius * scale
+  setStage(centerY: number, radius: number) {
+    const r = radius
     if (r === this.radius && centerY === this.centerY) return
     this.radius = r
     this.centerY = centerY
@@ -315,7 +314,8 @@ export class OrbEngine {
       const score = d - (g.front ? 20 * this.dpr : 0)
       if (d < g.R + 12 * this.dpr && score < bestD) { bestD = score; best = key }
     }
-    this.focus(best)
+    // Derselbe Mond noch einmal: wieder abwählen (wie der Knopf in der Makrozeile).
+    this.focus(best !== null && best === this.focusKey ? null : best)
   }
 
   // ─── Flüge ────────────────────────────────────────────────────────────
@@ -694,7 +694,6 @@ export class OrbEngine {
       const depth = (vz / o.rad + 1) / 2
       const d = foc > 0.01 ? Math.max(depth, foc) : depth
       const scale = (0.85 + 0.3 * d) * (1 + 0.38 * foc)
-      const behind = !front && vx * vx + vy * vy < 1.05
       const Mm = qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : now * 0.0005) + o.phase)))
       const mcx = cx + vx * R, mcy = cy - vy * R, mR = R * m.r * scale
       const pm = this.preview?.moons.find(x => x.key === m.key)
@@ -702,7 +701,7 @@ export class OrbEngine {
         preview: pm ? previewRange(m.fill, pm.fill) : null,
         M: Mm, HM: qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : -now * 0.0003) + o.phase))),
         cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * scale, color: MOON_COLOR[m.key],
-        now, live: !this.reduce, alpha: behind ? 0.3 : 0.6 + 0.4 * d, flash: this.moonFlash[m.key] ?? null,
+        now, live: !this.reduce, flash: this.moonFlash[m.key] ?? null,
       })
       this.moonGeo[m.key] = { M: Mm, n: m.n, cx: mcx, cy: mcy, R: mR, front }
     }

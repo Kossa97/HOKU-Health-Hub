@@ -220,32 +220,6 @@ test('Scheitert das Speichern, meldet die App den Fehler und das Formular bleibt
   expect(mock.table('effect_symptoms')).toHaveLength(1)
 })
 
-test('Ohne save_diary_entry in der Datenbank speichert die App auf dem Uebergangsweg', async ({ page, mock }) => {
-  mock.missingRpcs.add('save_diary_entry')
-  eintrag(mock, {}, [{}, { symptom_key: 'nausea', position: 1 }])
-  await page.goto('/tagebuch')
-  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
-  const dialog = formular(page)
-  await dialog.getByRole('tab', { name: /^Nebenwirkungen/ }).click()
-  await dialog.getByRole('button', { name: /^Übelkeit, Nebenwirkung/ }).click()
-  await page.getByRole('dialog', { name: 'Übelkeit' }).getByRole('button', { name: 'Entfernen' }).click()
-  await waehleChip(page, 'Mehr Energie', 2, 'Wirkungen')
-  await dialog.getByRole('button', { name: 'Speichern' }).click()
-  await expect(page.getByText('Eintrag aktualisiert')).toBeVisible()
-  expect(mock.table('effects')).toHaveLength(1)
-  expect(mock.table('effects')[0]).toMatchObject({ type: null, severity: 4 })
-  expect(mock.table('effect_symptoms').map(row => [row.symptom_key, row.position])).toEqual([['headache', 0], ['more_energy', 1]])
-
-  // Neu anlegen geht ebenso.
-  await page.getByRole('button', { name: 'Neu' }).click()
-  await formular(page).getByLabel('Titel').fill('Abends')
-  await waehleChip(page, 'Schwindel', 3)
-  await formular(page).getByRole('button', { name: 'Speichern' }).click()
-  await expect(page.getByText('Eintrag gespeichert')).toBeVisible()
-  expect(mock.table('effects')).toHaveLength(2)
-  expect(mock.table('effect_symptoms')).toHaveLength(3)
-})
-
 test('Bearbeiten: ein alter Eintrag ohne Chips wird zu einem eigenen Chip', async ({ page, mock }) => {
   eintrag(mock, { description: 'Unruhig', type: 'side_effect', severity: 2, duration: 'std_2' }, [])
   await page.goto('/tagebuch')

@@ -62,8 +62,11 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Eigentümer-Trigger (Execute entzogen), Katalog-Chip je Eintrag eindeutig;
   `effects.type`/`severity` dürfen leer sein. Trockenlauf 2× + Funktionstests OK,
   in Produktion angewendet: 58 effects unverändert, 0 Chips.
-  `supabase-tagebuch-reset.sql` (löscht alle effects) liegt bereit, **noch nicht
-  ausgeführt** – erst mit neuen Testdaten im neuen Format.
+  Testdaten: `supabase-tagebuch-neu-simulieren.sql` (2026-10-21, ersetzt die
+  alte reset-Datei) löscht alle effects und legt je Konto gleich viele neue an,
+  1–3 Katalog-Chips, ~70 % mit passender bestätigter Einnahme, 12 Wochen.
+  Trockenlauf 2× OK (57 Einträge, 118 Chips, alle Prüfungen grün). Enthält
+  `delete` → läuft über MCP nicht, der Nutzer führt sie im SQL-Editor aus.
 - **Schritt 2 erledigt (2026-10-19): Formular in der App.** `src/pages/tagebuch/`:
   `EntryForm` (Titel Pflicht, Substanz freiwillig, Zeitpunkt, Einnahme-Bezug,
   Suche + Info-Knopf, Tabs mit Anzahl, Chip-Gruppen, „+ Eigene …", Notizen),
@@ -95,11 +98,10 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   (security invoker) schreibt Eintrag und ersetzt alle Chips in einer Transaktion,
   Art/Intensität am Eintrag rechnet die Funktion. Trockenlauf 2× + Tests OK
   (Rücknahme bei Fehler, fremder Eintrag nicht gefunden, anon ohne Recht, langer
-  Alt-Titel speicherbar). **Produktion (2026-10-20): noch nicht angewendet** – alle
-  schreibenden Supabase-Aufrufe aus der Sitzung brechen nach 60 s ab (5 Versuche,
-  Bestätigung erscheint nicht). Nutzer soll die Datei im SQL-Editor ausführen.
-  Übergang: App ruft die Funktion auf; fehlt sie (PGRST202), speichert sie wie früher
-  in mehreren Schritten (`persistStepwise`, nicht atomar). Danach entfernen.
+  Alt-Titel speicherbar). **Produktion: am 2026-10-21 vom Nutzer im SQL-Editor
+  ausgeführt** (schreibende Aufrufe aus der Sitzung blieben an der Bestätigung für
+  `delete` hängen). Nachgezählt: Funktion da, invoker, anon nein, authenticated ja;
+  57 Einträge, 4 Chips. Übergangsweg in der App wieder entfernt.
 - **Liste (2026-10-20):** Bearbeiten/Löschen oben rechts auf Höhe des Titels (Nutzerwunsch),
   Chips darunter in voller Kartenbreite – auf dem iPhone SE wird nichts mehr gekürzt.
   Info-Sheet: Grafik markiert die Teile des Chips mit A–D.

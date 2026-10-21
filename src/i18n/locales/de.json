@@ -2812,6 +2812,7 @@
   "nutr_dish_orb_unit": "{{unit}} je Portion",
   "nutr_dish_orb_share": "{{pct}} % deines Tagesziels",
   "nutr_dish_orb_empty": "Füge Zutaten hinzu – die Kugel entsteht",
+  "nutr_close_page": "Ernährung schließen",
   "stoerung_banner_simuliert": "Störung simuliert",
   "stoerung_banner_offline": "Offline – zuletzt geladene Daten",
   "stoerung_beenden": "Beenden",
