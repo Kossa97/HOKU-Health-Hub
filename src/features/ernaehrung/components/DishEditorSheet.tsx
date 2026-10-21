@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { type DishDraft, dishFromDraft } from '../lib/dishDraft'
 import { MAX_AMOUNT, MEALS, type Food, amountValid, nutrientsFor, parseAmount } from '../lib/nutrition'
 import { MAX_INGREDIENTS, portionsValid } from '../lib/recipe'

@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react'
 import { addDays, format, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, ScanBarcode, Target, Trash2 } from 'lucide-react'
+import { Target, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { readSharedDay, writeSharedDay } from '../../lib/sharedDay'
-import { Ph, Silhouette, SkelKarte } from '../../components/ui/Silhouette'
 import { getDateLocale } from '../../i18n/dateLocales'
-import { Sheet } from '../compliance/components/Sheet'
+import { Sheet } from './components/Panel'
 import { AddFoodSheet } from './components/AddFoodSheet'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { DaySummary } from './components/DaySummary'
@@ -50,7 +49,8 @@ type SheetState =
   | { kind: 'add'; meal: Meal; pick?: Picker }
   | { kind: 'scan'; meal: Meal; pick?: Picker }
   | PhotoState
-  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: Picker; back?: SheetState }
+  /** `done`: hier wurde schon eingetragen — Schließen führt dann zurück zum Tag statt zur Suche. */
+  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: Picker; back?: SheetState; done?: boolean }
   | { kind: 'edit'; entry: LogEntry; food: Food }
   | { kind: 'quick'; entry: LogEntry }
   | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
@@ -92,8 +92,6 @@ export function ErnaehrungPage() {
     setBusy(true)
     try { await fn(); return true } catch { toast.error(t('nutr_error')); return false } finally { setBusy(false) }
   }
-
-  const shiftDay = (days: number) => pickDate(toDateKey(addDays(parseISO(date), days)))
 
   /**
    * Ein Eintrag zeigt beim Bearbeiten SEINE Werte (Schnappschuss), nicht die
@@ -175,32 +173,16 @@ export function ErnaehrungPage() {
 
   return (
     <div className="mx-auto max-w-lg pb-6">
-      <header className="flex items-center justify-between gap-3">
-        <h1 className="lg-large-title min-w-0 truncate">{t('nutr_title')}</h1>
-        <div className="flex shrink-0 items-center gap-2">
-          <button type="button" onClick={() => setSheet({ kind: 'scan', meal: isToday ? meal0 : 'snack' })} aria-label={t('nutr_scan')}
-            className="lg-glass lg-icon-btn lg-press">
-            <ScanBarcode size={20} />
-          </button>
-          <button type="button" onClick={() => setSheet({ kind: 'goals' })}
-            className="lg-btn lg-glass lg-btn-glass lg-btn-compact max-[379px]:!w-11 max-[379px]:!px-0">
-            {/* Schmale Geräte: nur das Symbol, sonst wird der Titel abgeschnitten */}
-            <Target size={17} aria-hidden="true" /><span className="max-[379px]:sr-only">{t('nutr_goals')}</span>
-          </button>
-        </div>
-      </header>
+      <h1 className="sr-only">{t('nutr_title')}</h1>
+      {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. */}
+      <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
+        dayLabel={isToday
+          ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
+          : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
+        onOpenMonth={() => setSheet(s => (s?.kind === 'month' ? null : { kind: 'month' }))}
+        onOpenGoals={() => setSheet({ kind: 'goals' })} />
 
-      <nav aria-label={t('nutr_day_nav')} className="mt-3 flex items-center justify-between">
-        <button type="button" aria-label={t('nutr_prev_day')} onClick={() => shiftDay(-1)}
-          className="lg-icon-btn !text-[var(--accent)]"><ChevronLeft size={22} /></button>
-        <button type="button" onClick={() => pickDate(todayKey)} disabled={isToday} aria-live="polite"
-          className="min-h-11 px-3 text-[17px] font-semibold text-[var(--lg-text)] disabled:cursor-default">
-          {isToday ? t('nutr_today') : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMMM', { locale })}
-        </button>
-        <button type="button" aria-label={t('nutr_next_day')} onClick={() => shiftDay(1)} disabled={isToday}
-          className="lg-icon-btn !text-[var(--accent)] disabled:opacity-30"><ChevronRight size={22} /></button>
-      </nav>
-
+      {!sheet && (<>
       {n.loadError && (
         <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] p-3.5 text-[15px] text-[var(--lg-text)]">
           {t('nutr_load_error')}
@@ -224,17 +206,8 @@ export function ErnaehrungPage() {
         <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
           onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
 
-        {n.day ? <DaySummary total={n.total} goals={n.goals} date={date} /> : (
-          <Silhouette>
-            <SkelKarte className="flex h-[452px] flex-col items-center justify-center gap-3 p-4">
-              <Ph w={140} h={140} shape="round" />
-              <div className="mt-16 flex flex-col items-center gap-2"><Ph w={120} h={28} /><Ph w={96} h={12} /><Ph w={220} h={12} /></div>
-            </SkelKarte>
-          </Silhouette>
-        )}
-
         {MEALS.map(meal => (
-          <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} busy={busy || !n.day}
+          <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}
             onAdd={() => setSheet({ kind: 'add', meal })}
             onOpen={openEntry}
             onSaveAsDish={() => saveMealAsDish(meal)}
@@ -258,9 +231,10 @@ export function ErnaehrungPage() {
         {' '}(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer" className="underline">ODbL</a>).
         {' '}{t('nutr_credit_note')}
       </p>
+      </>)}
 
       {sheet?.kind === 'add' && (sheet.pick ? (
-        <AddFoodSheet mode="ingredient" meal={sheet.meal} frequent={n.frequentFor(sheet.pick.kind === 'photo' ? sheet.meal : null)} myFoods={n.myFoods}
+        <AddFoodSheet mode="ingredient" goalKcal={n.goals.kcal} meal={sheet.meal} frequent={n.frequentFor(sheet.pick.kind === 'photo' ? sheet.meal : null)} myFoods={n.myFoods}
           exclude={sheet.pick.kind === 'dish' ? sheet.pick.draft.itemId : null}
           // Foto: mit dem kurzen Suchbegriff der KI vorbelegen („Spaghetti" statt „Spaghetti, gekocht")
           initialQuery={sheet.pick.kind === 'photo' && sheet.pick.row !== null ? sheet.pick.flow.rows?.[sheet.pick.row]?.search : undefined}
@@ -270,7 +244,7 @@ export function ErnaehrungPage() {
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal, pick: sheet.pick })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {}, pick: sheet.pick })} />
       ) : (
-        <AddFoodSheet meal={sheet.meal} frequent={n.frequentFor(sheet.meal)} myFoods={n.myFoods} hideKcal={n.goals.hideKcal}
+        <AddFoodSheet goalKcal={n.goals.kcal} meal={sheet.meal} frequent={n.frequentFor(sheet.meal)} myFoods={n.myFoods} hideKcal={n.goals.hideKcal}
           onClose={() => setSheet(null)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
@@ -311,16 +285,17 @@ export function ErnaehrungPage() {
         <PortionSheet key={`${sheet.food.sourceRef ?? sheet.food.name}-${JSON.stringify(sheet.food.per100)}`} mode={sheet.pick ? 'ingredient' : 'add'}
           pickLabel={sheet.pick?.kind === 'photo' ? t('nutr_photo_take_over') : undefined}
           food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
-          busy={busy} hideKcal={n.goals.hideKcal}
-          // Kugel mit Vorschau nur für den gerade gezeigten Tag (dort wird eingetragen).
-          day={!sheet.pick && n.day ? { total: n.total, goals: n.goals } : undefined}
-          onClose={() => setSheet(sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
+          busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
+          // Vorschau in der Tageskugel nur beim Eintragen (nicht als Zutat) und wenn der Tag geladen ist.
+          preview={!sheet.pick && !!n.day}
+          onClose={() => setSheet(sheet.done ? null : sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
             if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
+            // Das Formular bleibt offen: Punkte fliegen in die Kugel, danach noch einmal oder schließen.
             return run(async () => {
               await n.add(meal, sheet.food, amount)
-              setSheet(null)
-              toast.success(t('nutr_added'))
+              setSheet(s => (s?.kind === 'portion' ? { ...s, done: true } : s))
+              toast.success(t('nutr_added_to', { meal: t(`nutr_meal_${meal}`) }))
             })
           }}
           // Ein Gericht als Zutat wird hier nicht bearbeitet — die Werte-Korrektur ließe seine Zutaten stehen.
@@ -332,7 +307,7 @@ export function ErnaehrungPage() {
 
       {sheet?.kind === 'edit' && (
         <PortionSheet key={`${sheet.entry.id}-${JSON.stringify(sheet.food.per100)}`} mode="edit" food={sheet.food} meal={sheet.entry.meal}
-          startAmount={sheet.entry.amount ?? undefined} busy={busy} hideKcal={n.goals.hideKcal}
+          startAmount={sheet.entry.amount ?? undefined} busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
           onClose={() => setSheet(null)}
           onSave={(amount, meal) => run(async () => {
             await n.update(sheet.entry, { amount, meal, food: entryFoodChanged(sheet.entry, sheet.food) ? sheet.food : undefined })

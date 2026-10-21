@@ -11,7 +11,7 @@
  * - Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus;
  * - „Bewegung reduzieren": nichts dreht, nichts fliegt, neue Plätze leuchten nur auf.
  */
-import { type Fill, type MacroKey, type OrbLayout, dotScale, fill, fillChange, spherePoints } from './orb'
+import { type Fill, type MacroKey, type OrbLayout, dotScale, fillChange, spherePoints } from './orb'
 import {
   type ColorIndex, DotRenderer, type Flash, type Mat3, type Quat,
   drawSphere, easeInOut, qAxis, qMat, qMul, qNorm, sprite,
@@ -28,8 +28,6 @@ const TRAVEL = 560
 const SPREAD = 420
 
 const MOON_COLOR: Record<MacroKey, ColorIndex> = { protein: 2, carbs: 3, fat: 4 }
-/** Punkte der Mini-Kugel oben (wenn die große außer Sicht ist). */
-const MINI_N = 300
 /** Höchstens so viele Ticks (Haptik/Ton) je Eintrag bzw. beim Entfernen. */
 const TICKS_IN = 10
 const TICKS_OUT = 4
@@ -113,11 +111,9 @@ export class OrbEngine {
   private geo: { M: Mat3; cx: number; cy: number; R: number } | null = null
   private moonGeo: Partial<Record<MacroKey, MoonGeo>> = {}
   private particles: Particle[] = []
-  private mini: { canvas: HTMLCanvasElement; renderer: DotRenderer } | null = null
-  private miniFlash: Flash | null = null
-  private miniDrawn = 0
-  /** Radius der großen Kugel in CSS-Pixeln (im Portions-Blatt kleiner). */
-  private readonly radius: number
+  /** Radius der großen Kugel in CSS-Pixeln; `setStage` verkleinert sie beim Scrollen (höchstens auf 80 %). */
+  private readonly baseRadius: number
+  private radius: number
   /** Portions-Blatt: so sähe der Tag mit dieser Portion aus — die neuen Punkte pulsieren. */
   private preview: OrbLayout | null = null
   /** Geglättete Rechenzeit je Bild (ms) und wann zuletzt gezeichnet wurde — für die Bremse in der Schleife. */
@@ -126,7 +122,8 @@ export class OrbEngine {
 
   constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void; radius?: number }) {
     this.canvas = canvas
-    this.radius = opts.radius ?? ORB_RADIUS
+    this.baseRadius = opts.radius ?? ORB_RADIUS
+    this.radius = this.baseRadius
     this.renderer = new DotRenderer(canvas)
     this.reduce = opts.reduce
     this.onFocus = opts.onFocus
@@ -140,7 +137,6 @@ export class OrbEngine {
     if (rgb === this.palette) return
     this.palette = rgb
     this.renderer.setPalette(rgb)
-    this.mini?.renderer.setPalette(rgb)
     this.fxSprites = rgb.map(sprite)
     this.needsDraw = true
   }
@@ -162,20 +158,6 @@ export class OrbEngine {
   setPreview(after: OrbLayout | null) {
     this.preview = after
     this.needsDraw = true
-  }
-
-  /**
-   * „Hinzufügen" im Portions-Blatt: die Vorschau rastet ein — Aufleuchten,
-   * Haptik und Ton an Ort und Stelle. Löst auf, wenn man es gesehen hat.
-   */
-  settle(): Promise<void> {
-    const before = this.layout
-    const after = this.preview
-    if (!before || !after) return Promise.resolve()
-    this.preview = null
-    this.launch({ x: 0, y: 0 }, before, after)
-    this.setLayout(after)
-    return new Promise(resolve => setTimeout(resolve, this.reduce ? 150 : 420))
   }
 
   setReduce(reduce: boolean) {
@@ -208,31 +190,21 @@ export class OrbEngine {
     if (fx.height !== h) fx.height = h
   }
 
-  setVisible(v: boolean) {
-    this.visible = v
+  /**
+   * Feste Kugel oben: Mitte (CSS-Pixel von oben) und Größe ändern sich beim Scrollen.
+   * Nur Werte — die Zeichenfläche bleibt, gezeichnet wird im nächsten Bild.
+   */
+  setStage(centerY: number, scale: number) {
+    const r = this.baseRadius * scale
+    if (r === this.radius && centerY === this.centerY) return
+    this.radius = r
+    this.centerY = centerY
     this.needsDraw = true
   }
 
-  /**
-   * Kleine Kugel oben (Canvas 2D): steht für die große, solange diese außer
-   * Sicht ist. Punkte fliegen dann dorthin.
-   */
-  setMini(canvas: HTMLCanvasElement | null) {
-    this.mini?.renderer.destroy()
-    this.mini = null
-    if (!canvas) return
-    const renderer = new DotRenderer(canvas, { webgl: false })
-    if (!renderer.mode) return
-    if (this.palette) renderer.setPalette(this.palette)
-    this.mini = { canvas, renderer }
-  }
-
-  /** Die Mini-Kugel ist dran: große außer Sicht. */
-  private get miniActive() { return !this.visible && !!this.mini }
-
-  /** Füllstand der großen Kugel, auf die Plätze der Mini-Kugel umgerechnet. */
-  private miniFill(f: Fill, n: number): Fill {
-    return fill(MINI_N, (f.filled + f.extra) / n)
+  setVisible(v: boolean) {
+    this.visible = v
+    this.needsDraw = true
   }
 
   start() {
@@ -244,14 +216,11 @@ export class OrbEngine {
     this.raf = 0
     this.clearFx()
     this.renderer.destroy()
-    this.mini?.renderer.destroy()
-    this.mini = null
   }
 
   cancelFlights() {
     this.particles = []
     this.flash = null
-    this.miniFlash = null
     this.moonFlash = {}
     this.clearFx()
   }
@@ -290,7 +259,9 @@ export class OrbEngine {
 
   pointerDown(e: PointerEvent) {
     // Festhalten: auch beim Loslassen außerhalb der Kugel kommt pointerup hier an.
-    try { this.canvas.setPointerCapture(e.pointerId) } catch { /* Zeiger schon weg */ }
+    // Gesten können von einer eigenen Fläche über der Kugel kommen (die Zeichenfläche selbst lässt Taps durch).
+    const target = e.target instanceof Element ? e.target : this.canvas
+    try { target.setPointerCapture(e.pointerId) } catch { /* Zeiger schon weg */ }
     this.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, t0: performance.now(), t: performance.now() }
     this.wy = 0
   }
@@ -348,8 +319,12 @@ export class OrbEngine {
 
   // ─── Flüge ────────────────────────────────────────────────────────────
 
-  /** Eintragen: Punkte fliegen von `from` (Bildschirm-Pixel) in die neuen Plätze. */
-  launch(from: { x: number; y: number }, before: OrbLayout, after: OrbLayout) {
+  /**
+   * Eintragen: Punkte fliegen von `from` (Bildschirm-Pixel) in die neuen Plätze.
+   * Mit `from.r` kommen sie aus einer Essens-Kugel dieses Radius: Start überall auf
+   * ihrer Fläche, früher abfliegende von oben (dort leert sie sich zuerst).
+   */
+  launch(from: { x: number; y: number; r?: number }, before: OrbLayout, after: OrbLayout) {
     const now = performance.now()
     const main = fillChange(before.main.fill, after.main.fill)
     const moonCh = after.moons.map(m => {
@@ -361,10 +336,8 @@ export class OrbEngine {
     const n = after.main.n
     const share = (f: Fill) => (f.filled + f.extra) / n
     const goal = before.main.fill.filled < n && after.main.fill.filled >= n
-    const miniCh = main?.grew ? fillChange(this.miniFill(before.main.fill, n), this.miniFill(after.main.fill, n)) : null
     if (this.reduce || !this.fxCtx) {
       if (main?.grew) this.flash = flashOf(main, now, false)
-      if (miniCh) this.miniFlash = flashOf(miniCh, now, false)
       for (const { key, ch } of moonCh) if (ch?.grew) this.moonFlash[key] = flashOf(ch, now, false) ?? undefined
       // Ohne Flug: einmal Rückmeldung, sofort.
       if (main?.grew || moonCh.some(m => m.ch?.grew)) this.feedbackIn(share(after.main.fill), true, goal)
@@ -393,10 +366,16 @@ export class OrbEngine {
       const hc = Math.min(12, ch.extra)
       for (let h = 0; h < hc; h++) list.push({ kind: 'moonHalo', moon: key, f: (cnt ? 0.5 : 0) + (cnt ? 0.5 : 1) * (hc > 1 ? h / (hc - 1) : 0), ci: MOON_COLOR[key] })
     }
+    const disk = (f: number) => {
+      // Punkt auf der Kugelfläche; f = Abflugreihenfolge 0…1 → von oben nach unten.
+      const r = from.r ?? 0
+      const y = (-1 + 2 * Math.min(1, Math.max(0, f + (Math.random() - 0.5) * 0.25))) * r
+      const w = Math.sqrt(Math.max(0, r * r - y * y))
+      return { x: from.x + (Math.random() * 2 - 1) * w, y: from.y + y }
+    }
     const flying = list.map((p): Particle => ({
       ...p,
-      sx: from.x + (Math.random() - 0.5) * 60,
-      sy: from.y + (Math.random() - 0.5) * 12,
+      ...(from.r ? (({ x, y }) => ({ sx: x, sy: y }))(disk(p.f)) : { sx: from.x + (Math.random() - 0.5) * 60, sy: from.y + (Math.random() - 0.5) * 12 }),
       delay: p.f * SPREAD + Math.random() * 40,
       dur: TRAVEL + Math.random() * 120,
       t0: now,
@@ -413,7 +392,6 @@ export class OrbEngine {
     // Die neuen Plätze leuchten auf, wenn ihre Punkte ankommen — bis dahin bleiben sie grau.
     const t0 = now + TRAVEL + 60
     if (main?.grew) this.flash = flashOf(main, t0, true)
-    if (miniCh) this.miniFlash = flashOf(miniCh, t0, true)
     for (const { key, ch } of moonCh) if (ch?.grew) this.moonFlash[key] = flashOf(ch, t0, true) ?? undefined
   }
 
@@ -426,10 +404,8 @@ export class OrbEngine {
       return { key: m.key, ch: b ? fillChange(b.fill, m.fill) : null }
     })
     for (const { key, ch } of moonCh) if (ch && !ch.grew) delete this.moonFlash[key]
-    if (main && !main.grew) this.miniFlash = null
     const level = (after.main.fill.filled + after.main.fill.extra) / after.main.n
-    const fromMini = this.miniActive
-    if (this.reduce || !this.fxCtx || (!this.geo && !fromMini)) {
+    if (this.reduce || !this.fxCtx || !this.geo) {
       if (main && !main.grew) this.feedbackOut(level)
       return
     }
@@ -463,7 +439,7 @@ export class OrbEngine {
       const pt: Particle = {
         ...p, sx: 0, sy: 0, t0: now, delay: p.f * 260 + Math.random() * 30, dur: 560 + Math.random() * 100,
         ox: (Math.random() - 0.5) * 0.9, oy: (Math.random() - 0.5) * 0.9, lift: 0, side: 0, out: true,
-        dx: (Math.random() - 0.5) * 16, fall: (p.moon || fromMini ? 40 : 70) + Math.random() * 40,
+        dx: (Math.random() - 0.5) * 16, fall: (p.moon ? 40 : 70) + Math.random() * 40,
       }
       const start = this.target(pt, rect)
       if (!start) continue
@@ -478,8 +454,6 @@ export class OrbEngine {
 
   /** Zielpunkt eines Partikels in Bildschirm-Pixeln, in jedem Bild neu — die Kugel dreht sich ja. */
   private target(pt: Particle, rect: DOMRect): { x: number; y: number; size: number } | null {
-    // Ziel je Bild neu: scrollt man während des Flugs zurück, landen die Punkte in der großen Kugel.
-    if (this.miniActive) return this.miniTarget(pt)
     const g = this.geo
     if (!g) return null
     const k = this.dpr
@@ -505,29 +479,8 @@ export class OrbEngine {
     return at(mg.cx + (M[0] * x + M[1] * y + M[2] * z) * mg.R, mg.cy - (M[3] * x + M[4] * y + M[5] * z) * mg.R, 2.2)
   }
 
-  /** Ziel in der Mini-Kugel: Kalorienpunkte auf ihre Plätze, Mond- und Hüllenpunkte in die Mitte. */
-  private miniTarget(pt: Particle): { x: number; y: number; size: number } | null {
-    const m = this.mini
-    if (!m || !this.layout) return null
-    const r = m.canvas.getBoundingClientRect()
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width * 0.36
-    if (pt.kind === 'core') {
-      const p = spherePoints(MINI_N)
-      const rank = Math.min(MINI_N - 1, Math.round(((pt.rank ?? 0) * MINI_N) / this.layout.main.n))
-      const i = MINI_N - 1 - rank, M = qMat(this.q)
-      const x = p[i * 4], y = p[i * 4 + 1], z = p[i * 4 + 2]
-      return { x: cx + (M[0] * x + M[1] * y + M[2] * z) * R, y: cy - (M[3] * x + M[4] * y + M[5] * z) * R, size: 2 }
-    }
-    const s = pt.kind === 'halo' || pt.kind === 'moonHalo' ? 1.25 : 0.7
-    return { x: cx + pt.ox * R * s, y: cy + pt.oy * R * s, size: 1.8 }
-  }
-
   /** Unterster Punkt der Kugel bzw. des Mondes, aus dem entfernte Punkte fallen. */
   private pole(pt: Particle, rect: DOMRect): { x: number; y: number } | null {
-    if (this.miniActive && this.mini) {
-      const r = this.mini.canvas.getBoundingClientRect()
-      return { x: r.left + r.width / 2, y: r.top + r.height / 2 + r.width * 0.36 }
-    }
     const k = this.dpr
     if (pt.moon) {
       const mg = this.moonGeo[pt.moon]
@@ -639,12 +592,11 @@ export class OrbEngine {
 
   private readonly loop = (ts: number) => {
     this.raf = requestAnimationFrame(this.loop)
-    const mini = this.miniActive
-    if ((!this.visible && !mini && !this.particles.length) || document.hidden || !this.layout || !this.renderer.mode || this.renderer.lost) {
+    if ((!this.visible && !this.particles.length) || document.hidden || !this.layout || !this.renderer.mode || this.renderer.lost) {
       this.last = 0
       return
     }
-    // Volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht (ohne Mini-Kugel) steht die Schleife.
+    // Volle Bildrate des Displays — Flüssigkeit geht vor; außer Sicht steht die Schleife.
     // Ist ein Bild teuer (schwaches Gerät, WebGL ohne Grafikkarte), höchstens ein Drittel der Zeit
     // zeichnen: sonst blockiert die Kugel Tippen, Scrollen und den Rest der Seite.
     const now = performance.now()
@@ -684,13 +636,6 @@ export class OrbEngine {
       this.draw(now)
       this.needsDraw = false
     }
-    // Mini-Kugel: ruhig mit 30 Bildern (Akku), bei Flügen und Aufleuchten volle Rate; reduziert nur bei Änderung.
-    const miniBusy = this.needsDraw || this.particles.length > 0 || flashing(this.miniFlash)
-    if (mini && (miniBusy || (!this.reduce && now - this.miniDrawn > 32))) {
-      this.drawMini(now)
-      this.miniDrawn = now
-      this.needsDraw = false
-    }
     if (this.focusKey && this.label) {
       const p = this.labelAt(this.focusKey)
       this.label.style.left = `${p.x}px`
@@ -698,21 +643,6 @@ export class OrbEngine {
     }
     this.drawParticles(now)
     this.cost = this.cost * 0.85 + (performance.now() - now) * 0.15
-  }
-
-  private drawMini(now: number) {
-    const m = this.mini!
-    const layout = this.layout!
-    const c = m.canvas
-    const px = Math.round(c.clientWidth * this.dpr)
-    if (c.width !== px) { c.width = px; c.height = px }
-    const R = px * 0.36
-    m.renderer.begin()
-    drawSphere(m.renderer, MINI_N, this.miniFill(layout.main.fill, layout.main.n), {
-      M: qMat(this.q), HM: qMat(qMul(this.q, qAxis(0, 1, 0, this.haloA))), cx: px / 2, cy: px / 2, R,
-      px: 1.5 * this.dpr, color: layout.main.key === 'kcal' ? 1 : 2, now, live: !this.reduce, flash: this.miniFlash,
-    })
-    m.renderer.end()
   }
 
   private draw(now: number) {
@@ -723,7 +653,8 @@ export class OrbEngine {
     const cx = (this.cssW / 2) * k
     const cy = this.centerY * k
     const R = this.radius * k
-    const dens = dotScale(layout.main.n)
+    // Beim Verkleinern (Scrollen) werden die Punkte halb so stark mit kleiner, damit sie lesbar bleiben.
+    const dens = dotScale(layout.main.n) * (0.5 + 0.5 * (this.radius / this.baseRadius))
     const M = qMat(this.q)
     r.begin()
     this.drawMoons(0, cx, cy, R, now, dens)
@@ -751,7 +682,7 @@ export class OrbEngine {
         const ox = Math.cos(th) * o.rad, oz = Math.sin(th) * o.rad
         const ovz = Q[6] * ox + Q[8] * oz
         if ((pass === 0) !== (ovz < 0)) continue
-        r.dot(0, cx + (Q[0] * ox + Q[2] * oz) * R, cy - (Q[3] * ox + Q[5] * oz) * R, DOT_TRAIL * k, 0.07 + 0.06 * (ovz / o.rad + 1) / 2)
+        r.dot(0, cx + (Q[0] * ox + Q[2] * oz) * R, cy - (Q[3] * ox + Q[5] * oz) * R, DOT_TRAIL * k, 0.1 + 0.08 * (ovz / o.rad + 1) / 2)
       }
       const th = this.phase[m.key]
       const foc = this.focusA[m.key]
@@ -795,19 +726,4 @@ function assignTicks(parts: Particle[], when: (p: Particle) => number, count: nu
 /** Was die Vorschau dazubringt: Plätze `from`–`to` und Hüllenpunkte ab `extraFrom`. */
 function previewRange(now: Fill, then: Fill): { from: number; to: number; extraFrom: number } {
   return { from: now.filled, to: Math.max(now.filled, then.filled), extraFrom: now.extra }
-}
-
-let settledAt = 0
-
-/** Das Portions-Blatt hat das Eintragen schon gezeigt — die Tagesübersicht fliegt dann nicht noch einmal. */
-export function markSettled() { settledAt = performance.now() }
-
-/** Speichern gescheitert: die Tagesübersicht soll beim nächsten Mal wieder fliegen. */
-export function clearSettled() { settledAt = 0 }
-
-/** Einmal abholen: kam die Änderung gerade aus dem Portions-Blatt? */
-export function takeSettled(): boolean {
-  const hit = settledAt > 0 && performance.now() - settledAt < 5000
-  settledAt = 0
-  return hit
 }

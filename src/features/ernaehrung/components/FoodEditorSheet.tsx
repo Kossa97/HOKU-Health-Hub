@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { type Food, type FoodUnit, kcalFromMacros, macroMismatch, parseAmount } from '../lib/nutrition'
 import { DIM, ERROR_TEXT, MUTED, WARN_BOX } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'

@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ChevronDown, Target } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type MacroKey, type OrbLayout, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
-import { type OrbFocus, OrbEngine, takeSettled } from '../lib/orbEngine'
+import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
+import { takeOrbOrigin, useOrbPreview } from '../lib/orbBridge'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import type { Goals, Nutrients } from '../lib/nutrition'
-import { CARD, MACRO_COLORS, MUTED } from '../styles'
+import { MACRO_COLORS, MUTED } from '../styles'
 
-/** Höhe des Platzes für die Kugel; die Zeichenfläche ragt darüber hinaus (siehe unten). */
-const BOX = 316
-/** So weit reicht die Zeichenfläche unter den Platz — Monde und Hüllen schweben frei über Zahl und Legende. */
+/** Höhe der Kugel-Zone oben; beim Scrollen schrumpft sie auf MIN (Kugel höchstens auf 80 %). */
+export const ZONE_MAX = 300
+const ZONE_MIN = 240
+/** So weit reicht die Zeichenfläche unter die Zone: Monde und Flüge schweben dort nur noch zart über den Formularen. */
 const BELOW = 120
-/** Innenabstand der Karte (p-4): die Zeichenfläche reicht bis an ihre Ränder. */
-const PAD = 16
 
 const MACRO_NAME: Record<MacroKey, string> = { protein: 'nutr_protein', carbs: 'nutr_carbs', fat: 'nutr_fat' }
 
@@ -30,48 +31,77 @@ function usePrefersReducedMotion() {
 }
 
 /**
- * Tagesübersicht als Kalorien-Kugel: 1 Punkt = 1 kcal, von unten gefüllt,
- * Makros als Monde (1 Punkt = 1 g). Über dem Ziel eine Hülle in derselben
- * Farbe, ohne Wertung. Seitlich wischen dreht, ein Mond (oder sein Eintrag
- * in der Legende) lässt sich antippen. Kommt etwas dazu, fliegen Punkte in die
- * Kugel; wird etwas entfernt, fallen sie unten heraus.
+ * Tagesübersicht als Kalorien-Kugel, fest oben auf der Seite: Alles andere
+ * (Woche, Mahlzeiten, Formulare) läuft darunter. Beim Scrollen wird sie kleiner,
+ * höchstens auf 80 %. 1 Punkt = 1 kcal, von unten gefüllt, Makros als Monde
+ * (1 Punkt = 1 g); über dem Ziel eine Hülle in derselben Farbe, ohne Wertung.
+ * Seitlich wischen dreht, ein Mond (oder sein Eintrag darunter) lässt sich
+ * antippen. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
+ * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Goals; date: string }) {
-  const { t, i18n } = useTranslation()
+export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, onOpenGoals }: {
+  total: Nutrients
+  goals: Goals
+  date: string
+  /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
+  ready: boolean
+  dayLabel: string
+  onOpenMonth: () => void
+  onOpenGoals: () => void
+}) {
+  const { t } = useTranslation()
   const reduce = usePrefersReducedMotion()
+  const zoneRef = useRef<HTMLElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const boxRef = useRef<HTMLDivElement>(null)
   const engineRef = useRef<OrbEngine | null>(null)
   const [fx, setFx] = useState<HTMLCanvasElement | null>(null)
   const [focus, setFocus] = useState<OrbFocus | null>(null)
-  /** Große Kugel weggescrollt: oben schwebt die Mini-Kugel ein, die Punkte fliegen dorthin. */
-  const [away, setAway] = useState(false)
-  const [miniCv, setMiniCv] = useState<HTMLCanvasElement | null>(null)
+  const add = useOrbPreview()
 
   const { kcal, protein, carbs, fat } = total
   const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, goals), [kcal, protein, carbs, fat, goals])
+  const previewLayout = useMemo(
+    () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, goals) : null),
+    [add, kcal, protein, carbs, fat, goals],
+  )
   const prev = useRef<{ date: string; goals: string; layout: OrbLayout } | null>(null)
   const goalsKey = `${goals.kcal}|${goals.proteinG}|${goals.carbsG}|${goals.fatG}|${goals.hideKcal}`
 
-  // Kugel anlegen, Größe und Sichtbarkeit verfolgen.
+  // Kugel anlegen; Größe, Scrollen und Farben verfolgen.
   useEffect(() => {
     const canvas = canvasRef.current
-    const box = boxRef.current
-    if (!canvas || !box) return
+    const zone = zoneRef.current
+    if (!canvas || !zone) return
     const engine = new OrbEngine(canvas, { reduce, onFocus: setFocus })
     engineRef.current = engine
-    const palette = () => engine.setPalette(orbPalette(box))
+    const palette = () => engine.setPalette(orbPalette(zone))
     palette()
-    const size = () => engine.resize(box.clientWidth + 2 * PAD, BOX + PAD + BELOW, PAD + BOX / 2)
+    // Scrollen: Zone und Kugel schrumpfen bis auf 80 %, Werte direkt am Element (kein Neuzeichnen von React).
+    let lastH = -1
+    const onScroll = () => {
+      const h = Math.max(ZONE_MIN, ZONE_MAX - Math.max(0, window.scrollY))
+      if (h === lastH) return
+      lastH = h
+      zone.style.height = `${h}px`
+      engine.setStage(h * 0.4, 0.8 + (0.2 * (h - ZONE_MIN)) / (ZONE_MAX - ZONE_MIN))
+      // Unterhalb der Zone sind Kugel und Monde nur noch ein Hauch.
+      const mask = `linear-gradient(to bottom, #000 0px, #000 ${h - 20}px, rgba(0,0,0,0.28) ${h + 26}px, rgba(0,0,0,0.28) 100%)`
+      canvas.style.maskImage = mask
+      canvas.style.webkitMaskImage = mask
+    }
+    // Neue Größe setzt die Mitte zurück — danach den Scroll-Stand wieder anwenden.
+    const size = () => { engine.resize(zone.clientWidth, ZONE_MAX + BELOW, ZONE_MAX * 0.4); lastH = -1; onScroll() }
     size()
+    window.addEventListener('scroll', onScroll, { passive: true })
     const ro = new ResizeObserver(size)
-    ro.observe(box)
+    ro.observe(zone)
     window.addEventListener('resize', size)
-    // Außer Sicht (weggescrollt) steht die Schleife.
-    const io = typeof IntersectionObserver === 'function'
-      ? new IntersectionObserver(([e]) => { engine.setVisible(e.isIntersecting); setAway(!e.isIntersecting) })
-      : null
-    io?.observe(canvas)
+    // Was ins Bild gescrollt wird (Fokus, Tastatur, scrollIntoView), landet zwischen Zone und Tab-Leiste,
+    // nicht darunter — auf kleinen Geräten (iPhone SE) blieb sonst nur ein schmaler Streifen frei.
+    const root = document.documentElement.style
+    const padBefore = [root.scrollPaddingTop, root.scrollPaddingBottom]
+    root.scrollPaddingTop = `calc(env(safe-area-inset-top, 0px) + ${ZONE_MIN + 8}px)`
+    root.scrollPaddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + var(--bottom-nav-gap, 10px) + var(--bottom-nav-height, 66px) + 8px)'
     // Akzentfarbe oder Aussehen gewechselt.
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
@@ -84,10 +114,11 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
     return () => {
       document.removeEventListener('touchend', unlock, { capture: true })
       document.removeEventListener('click', unlock, { capture: true })
+      window.removeEventListener('scroll', onScroll)
       ro.disconnect()
-      io?.disconnect()
       mo.disconnect()
       window.removeEventListener('resize', size)
+      ;[root.scrollPaddingTop, root.scrollPaddingBottom] = padBefore
       engine.destroy()
       engineRef.current = null
     }
@@ -97,49 +128,81 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
 
   useEffect(() => { engineRef.current?.setReduce(reduce) }, [reduce])
   useEffect(() => { engineRef.current?.setFx(fx) }, [fx])
-  useEffect(() => { engineRef.current?.setMini(miniCv) }, [miniCv])
 
   // Neue Werte: am selben Tag mit denselben Zielen fliegen die Punkte, sonst springt die Kugel still um.
   useEffect(() => {
     const engine = engineRef.current
     if (!engine) return
+    if (!ready) {
+      engine.setLayout(layout)
+      prev.current = null
+      return
+    }
     const p = prev.current
     if (p && p.date === date && p.goals === goalsKey) {
       engine.release(p.layout, layout)
-      // Kam der Eintrag aus dem Portions-Blatt, hat die Kugel dort schon eingerastet: kein zweiter Flug.
-      if (!takeSettled()) engine.launch({ x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
+      engine.launch(takeOrbOrigin() ?? { x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
     } else if (p) {
       engine.cancelFlights()
     }
     engine.setLayout(layout)
     prev.current = { date, goals: goalsKey, layout }
-  }, [layout, date, goalsKey])
+  }, [layout, date, goalsKey, ready])
 
-  const bigValue = goals.hideKcal ? Math.round(protein) : Math.round(kcal)
-  const left = goals.kcal - Math.round(kcal)
+  // Vorschau aus dem offenen Formular (Portion, Schnelleintrag): die neuen Punkte pulsieren.
+  useEffect(() => {
+    const engine = engineRef.current
+    if (!engine) return
+    const same = previewLayout && previewLayout.main.n === layout.main.n && previewLayout.moons.length === layout.moons.length
+    engine.setPreview(same ? previewLayout : null)
+  }, [previewLayout, layout])
+
+  const shown = add ? { kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat } : total
+  const bigValue = goals.hideKcal ? Math.round(shown.protein) : Math.round(shown.kcal)
+  const plus = add ? Math.round(goals.hideKcal ? add.protein : add.kcal) : 0
   const aria = goals.hideKcal
     ? t('nutr_protein_aria', { value: Math.round(protein), goal: goals.proteinG })
     : t('nutr_kcal_aria', { value: Math.round(kcal), goal: goals.kcal })
-  const unit = layout.main.unit
-  const unitText = unit === 1 ? '1' : unit.toLocaleString(i18n.language, { maximumFractionDigits: 1 })
-  // Alle Makros in der Legende, auch mit Ziel 0 g — dann ohne Mond und nicht antippbar.
+  // Alle Makros in der Zeile, auch mit Ziel 0 g — dann ohne Mond und nicht antippbar.
   const macros = (goals.hideKcal ? ['carbs', 'fat'] as const : ['protein', 'carbs', 'fat'] as const).map(key => ({
-    key, value: total[key], goal: key === 'protein' ? goals.proteinG : key === 'carbs' ? goals.carbsG : goals.fatG,
+    key, value: shown[key], goal: key === 'protein' ? goals.proteinG : key === 'carbs' ? goals.carbsG : goals.fatG,
     moon: layout.moons.some(m => m.key === key),
   }))
   const focused = focus ? macros.find(m => m.key === focus.key) : undefined
+  const g = (v: number) => Math.round(v)
+  // Sehr große Werte: eine Spur kleiner, damit die Zeile nie umbricht.
+  const digits = macros.reduce((s, m) => s + String(g(m.value)).length + String(m.goal).length, 0)
 
   return (
-    <section aria-label={t('nutr_summary')} className={`${CARD} flex flex-col items-center p-4`}>
-      <div ref={boxRef} className="relative w-full" style={{ height: BOX }}>
+    <>
+      {/* Platzhalter im Fluss: der Inhalt beginnt unter der Zone. */}
+      <div aria-hidden="true" style={{ height: ZONE_MAX }} />
+      <section ref={zoneRef} aria-label={t('nutr_summary')}
+        className="fixed inset-x-0 z-[30] mx-auto max-w-lg bg-[var(--c-bg)] px-3 shadow-[0_6px_12px_4px_var(--c-bg)]"
+        style={{ top: 'env(safe-area-inset-top, 0px)', height: ZONE_MAX }}>
         <canvas ref={canvasRef} role="img" aria-label={aria}
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
+          style={{ height: ZONE_MAX + BELOW }} />
+        {/* Gesten auf der Kugel; die Zeichenfläche selbst lässt Taps auf die Formulare darunter durch. */}
+        <div aria-hidden="true" className="absolute inset-x-0 top-11 bottom-[76px] z-[1] cursor-grab touch-pan-y"
           onPointerDown={e => engineRef.current?.pointerDown(e.nativeEvent)}
           onPointerMove={e => engineRef.current?.pointerMove(e.nativeEvent)}
           onPointerUp={e => engineRef.current?.pointerUp(e.nativeEvent)}
-          onPointerCancel={() => engineRef.current?.pointerCancel()}
-          className="absolute z-0 block cursor-grab touch-pan-y select-none"
-          style={{ left: -PAD, top: -PAD, width: `calc(100% + ${2 * PAD}px)`, height: BOX + PAD + BELOW }} />
-        <div role="status" aria-live="polite" className="pointer-events-none absolute z-[3] h-0 w-0 overflow-visible" style={{ left: -PAD, top: -PAD }}>
+          onPointerCancel={() => engineRef.current?.pointerCancel()} />
+        <button type="button" onClick={onOpenMonth} aria-label={`${dayLabel} · ${t('nutr_month_open')}`}
+          className="absolute left-1 top-1 z-[2] flex min-h-11 items-center gap-1 px-2 text-[15px] font-semibold text-[var(--lg-text-2)]">
+          {dayLabel}<ChevronDown size={14} strokeWidth={2.6} aria-hidden="true" />
+        </button>
+        {/* Tageswechsel ansagen (der Knopf selbst ist kein Live-Bereich). */}
+        <span className="sr-only" aria-live="polite">{dayLabel}</span>
+        {/* Eigener Rahmen: .lg-glass setzt position: relative. */}
+        <div className="absolute right-3 top-1.5 z-[2]">
+          <button type="button" onClick={onOpenGoals}
+            className="lg-glass lg-press flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-[var(--lg-text)]">
+            <Target size={14} aria-hidden="true" />{t('nutr_goals')}
+          </button>
+        </div>
+        <div role="status" aria-live="polite" className="pointer-events-none absolute left-0 top-0 z-[3] h-0 w-0 overflow-visible">
           {focus && focused && (
             <div ref={el => engineRef.current?.setLabel(el)} className="absolute flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-[12px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] px-2.5 py-1.5 text-[13px] font-medium tabular-nums text-[var(--lg-text)] shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
               style={{ left: focus.x, top: focus.y, transform: 'translate(-50%, calc(-100% - 10px))' }}>
@@ -148,54 +211,33 @@ export function DaySummary({ total, goals, date }: { total: Nutrients; goals: Go
             </div>
           )}
         </div>
-      </div>
 
-      {/* Der Text liegt über der Zeichenfläche und lässt Gesten durch; nur die Legende ist tippbar. */}
-      <div className="pointer-events-none relative z-[1] -mt-1.5 flex items-baseline gap-1.5">
-        <span className="text-[34px] font-bold leading-none tabular-nums text-[var(--lg-text)]">{bigValue}</span>
-        <span className={`text-[15px] tabular-nums ${MUTED}`}>
-          {goals.hideKcal ? t('nutr_protein_of', { goal: goals.proteinG }) : t('nutr_of_goal', { goal: goals.kcal })}
-        </span>
-      </div>
-      {!goals.hideKcal && (
-        <p className={`pointer-events-none relative z-[1] mt-1 text-[13px] tabular-nums ${MUTED}`}>
-          {left >= 0 ? `${left} ${t('nutr_kcal_left')}` : `${-left} ${t('nutr_kcal_above')}`}
-        </p>
-      )}
-      <div className="relative z-[1] mt-1 flex flex-wrap justify-center gap-x-3">
-        {macros.map(m => (
-          <button key={m.key} type="button" aria-pressed={focus?.key === m.key} disabled={!m.moon}
-            onClick={() => engineRef.current?.focus(focus?.key === m.key ? null : m.key)}
-            className="flex min-h-11 items-center gap-1.5 px-0.5 text-[13px] tabular-nums text-[var(--lg-text-2)]">
-            <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ background: MACRO_COLORS[m.key] }} />
-            {t(m.key === 'carbs' ? 'nutr_carbs_short' : MACRO_NAME[m.key])}
-            <b className="font-semibold text-[var(--lg-text)]">{gramText(m.value, m.goal)}</b>
-          </button>
-        ))}
-      </div>
-      {!goals.hideKcal && (
-        <p className={`pointer-events-none relative z-[1] text-[12px] ${MUTED}`}>{t('nutr_orb_unit', { kcal: unitText })}</p>
-      )}
-      {typeof document !== 'undefined' && createPortal(
-        <>
-          {/* Mini-Kugel: wächst aus der Ecke oben rechts (200 ms, ease-out), nur solange die große außer Sicht ist. */}
-          {/* Eigener fester Rahmen: .lg-glass setzt position: relative. */}
-          <div className={`fixed right-4 z-[55] origin-top-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-opacity ${
-            away ? 'opacity-100' : 'pointer-events-none scale-[0.92] opacity-0 motion-reduce:scale-100'}`}
-            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}>
-            <button type="button" aria-hidden={!away} tabIndex={away ? 0 : -1}
-              aria-label={`${t('nutr_orb_mini')}: ${aria}`}
-              onClick={() => boxRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })}
-              className="lg-glass lg-press flex h-12 items-center gap-1.5 rounded-full pl-1 pr-3.5">
-              <canvas ref={setMiniCv} aria-hidden="true" className="block h-10 w-10" />
-              <span className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{bigValue}</span>
-              <span className={`text-[13px] ${MUTED}`}>{goals.hideKcal ? 'g' : 'kcal'}</span>
-            </button>
+        {/* Zwei Zeilen: Zahl mit Ziel, darunter die Makros über die ganze Breite. */}
+        <div className="absolute inset-x-0 bottom-1 z-[2] flex flex-col items-center px-4">
+          <p className="pointer-events-none flex items-baseline gap-1.5">
+            <span className="text-[28px] font-bold leading-none tabular-nums text-[var(--lg-text)]">{bigValue}</span>
+            <span className={`text-[14px] tabular-nums ${MUTED}`}>
+              {t('nutr_slash_goal', { goal: goals.hideKcal ? goals.proteinG : goals.kcal, unit: goals.hideKcal ? 'g' : 'kcal' })}
+            </span>
+            {plus > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plus}</span>}
+          </p>
+          <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[11px]' : 'text-[12px]'}`}>
+            {macros.map(m => (
+              <button key={m.key} type="button" aria-pressed={focus?.key === m.key} disabled={!m.moon}
+                aria-label={`${t(MACRO_NAME[m.key])} ${gramText(m.value, m.goal)}`}
+                onClick={() => engineRef.current?.focus(focus?.key === m.key ? null : m.key)}
+                className="flex min-h-8 items-center gap-1.5 whitespace-nowrap tabular-nums text-[var(--lg-text-2)]">
+                <span aria-hidden="true" className="h-[7px] w-[7px] shrink-0 rounded-full" style={{ background: MACRO_COLORS[m.key] }} />
+                {t(MACRO_NAME[m.key])} <b className="font-semibold text-[var(--lg-text)]">{g(m.value)}/{m.goal}g</b>
+              </button>
+            ))}
           </div>
-          <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />
-        </>,
+        </div>
+      </section>
+      {typeof document !== 'undefined' && createPortal(
+        <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
         document.body,
       )}
-    </section>
+    </>
   )
 }

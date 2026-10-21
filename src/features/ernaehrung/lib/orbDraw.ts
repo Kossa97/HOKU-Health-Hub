@@ -277,6 +277,17 @@ export interface SphereOpts {
   flash?: Flash | null
   /** Vorschau (Portions-Blatt): diese Plätze und Hüllenpunkte ab `extraFrom` kämen dazu — sie pulsieren. */
   preview?: { from: number; to: number; extraFrom: number } | null
+  /**
+   * Essens-Kugel: gefüllte Punkte gemischt nach Anteil statt in einer Farbe —
+   * [Farbe, Anteil bis hier] aufsteigend, der letzte Anteil ist 1.
+   */
+  mix?: readonly (readonly [ColorIndex, number])[] | null
+}
+
+/** Farbe eines Punktes nach seinem Zufallswert `s` (0–1) — so mischen sich die Anteile gleichmäßig. */
+function mixColor(mix: readonly (readonly [ColorIndex, number])[], s: number): ColorIndex {
+  for (const [ci, upTo] of mix) if (s < upTo) return ci
+  return mix[mix.length - 1][0]
 }
 
 /** Pulsieren der Vorschau: ruhig, gut eine Sekunde je Zug. */
@@ -301,9 +312,10 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
       const rr = 1 + (o.live ? 0.024 * Math.sin(o.now * 0.0012 + s * 6.283) : 0)
       const d = (vz + 1) / 2
       const rank = n - 1 - i
-      let ci: ColorIndex = rank < f.filled ? o.color : 0
+      let ci: ColorIndex = rank < f.filled ? (o.mix ? mixColor(o.mix, s) : o.color) : 0
       let size = o.px * (0.5 + 0.75 * d)
-      let alpha = (ci ? 0.32 + 0.68 * d : 0.07 + 0.26 * d) * am
+      // Offene Plätze auf schwarzem Grund gut sichtbar, aber klar hinter den gefüllten.
+      let alpha = (ci ? 0.32 + 0.68 * d : 0.14 + 0.36 * d) * am
       if (o.dim) alpha *= 0.5
       if (o.preview && rank >= o.preview.from && rank < o.preview.to) {
         alpha *= pulse(o.now)
@@ -314,7 +326,7 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
         const age = o.now - fl.t0 - delay
         if (age < 0 && fl.hide) {
           ci = 0
-          alpha = (0.07 + 0.26 * d) * am
+          alpha = (0.14 + 0.36 * d) * am
         } else if (age >= 0 && age < 750) {
           const b = (1 - age / 750) ** 2
           size *= 1 + 1.1 * b
