@@ -54,7 +54,7 @@ describe('createSloshEngine', () => {
   test('setEnabled(false) snaps the liquid back to rest', () => {
     const engine = createSloshEngine()
     const states: Array<{ tilt: number; energy: number; time: number }> = []
-    engine.subscribe(s => states.push(s))
+    engine.subscribe(s => { states.push(s) })
     engine.pushImpulse(1)
     engine.setEnabled(false)
     expect(states[states.length - 1]).toEqual({ tilt: 0, energy: 0, time: 0 })
@@ -66,5 +66,67 @@ describe('createSloshEngine', () => {
     expect(text).toContain('const STIFFNESS = 135')
     expect(text).toContain('const DAMPING = 6.2')
     expect(text).toContain('const IMPULSE_GAIN = 6.2')
+  })
+})
+
+describe('rest throttling', () => {
+  type Frame = (ts: number) => void
+  function withFakeFrames(run: (step: (ms: number) => void) => void) {
+    const g = globalThis as unknown as { requestAnimationFrame?: unknown; cancelAnimationFrame?: unknown }
+    const prevRaf = g.requestAnimationFrame
+    const prevCancel = g.cancelAnimationFrame
+    let queued: Frame | null = null
+    let now = 0
+    g.requestAnimationFrame = (cb: Frame) => { queued = cb; return 1 }
+    g.cancelAnimationFrame = () => { queued = null }
+    try {
+      run((ms: number) => {
+        now += ms
+        const cb = queued
+        queued = null
+        cb?.(now)
+      })
+    } finally {
+      g.requestAnimationFrame = prevRaf
+      g.cancelAnimationFrame = prevCancel
+    }
+  }
+
+  test('at rest the ripple is redrawn about 30 times a second, not every frame', () => {
+    withFakeFrames(step => {
+      const engine = createSloshEngine()
+      let calls = 0
+      engine.subscribe(() => { calls++ })
+      calls = 0
+      for (let i = 0; i < 60; i++) step(1000 / 60)
+      expect(calls).toBeGreaterThanOrEqual(28)
+      expect(calls).toBeLessThanOrEqual(32)
+      engine.destroy()
+    })
+  })
+
+  test('an impulse redraws every frame while the liquid sloshes', () => {
+    withFakeFrames(step => {
+      const engine = createSloshEngine()
+      let calls = 0
+      engine.subscribe(() => { calls++ })
+      engine.pushImpulse(1)
+      calls = 0
+      for (let i = 0; i < 30; i++) step(1000 / 60)
+      expect(calls).toBe(30)
+      engine.destroy()
+    })
+  })
+
+  test('a subscriber that animates on its own keeps every frame', () => {
+    withFakeFrames(step => {
+      const engine = createSloshEngine()
+      let calls = 0
+      engine.subscribe(() => { calls++; return true })
+      calls = 0
+      for (let i = 0; i < 30; i++) step(1000 / 60)
+      expect(calls).toBe(30)
+      engine.destroy()
+    })
   })
 })

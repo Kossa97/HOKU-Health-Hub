@@ -265,6 +265,8 @@ function renderDashboard(client: ReturnType<typeof createDashboardClient>) {
 
 afterEach(() => {
   cleanup()
+  // Der gewählte Tag wird für die Ernährung gemerkt (sharedDay) — nicht in den nächsten Test tragen.
+  sessionStorage.clear()
   ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = false
   vi.clearAllMocks()
   vi.unstubAllGlobals()

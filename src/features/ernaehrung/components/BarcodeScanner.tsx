@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ScanBarcode } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { useBarcodeKamera, type KameraStand } from '../lib/useBarcodeKamera'
 import { normalizeBarcode } from '../lib/barcode'
 import { DIM, ERROR_TEXT, MUTED } from '../styles'

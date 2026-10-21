@@ -5,6 +5,9 @@
  */
 
 /** Makro-Farben als iOS-Systemfarben: Ringe und Balken, sonst nichts Buntes. */
+/** Übersetzungsschlüssel der Makro-Namen. */
+export const MACRO_NAME = { protein: 'nutr_protein', carbs: 'nutr_carbs', fat: 'nutr_fat' } as const
+
 export const MACRO_COLORS = {
   kcal: 'var(--accent)',
   protein: '#30d158',

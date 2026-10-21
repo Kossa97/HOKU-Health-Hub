@@ -1,56 +1,69 @@
-import { addDays, format, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { CalendarDays } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getDateLocale } from '../../../i18n/dateLocales'
-import { share } from '../lib/nutrition'
-import { CARD, MACRO_COLORS, MUTED } from '../styles'
+import { type DayTotals, EMPTY_TOTALS, dayAria, weekDays } from '../lib/dayRings'
+import type { Goals } from '../lib/nutrition'
+import { CARD, MUTED } from '../styles'
+import { DayOrb } from './DayOrb'
+
+/** „19.–25. Okt.“ bzw. „Oct 19 – 25“; ohne formatRange (alte Browser) beide Tage ausgeschrieben. */
+function rangeText(from: string, to: string, lang: string): string {
+  const f = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short' })
+  const a = parseISO(from), b = parseISO(to)
+  return typeof f.formatRange === 'function' ? f.formatRange(a, b) : `${f.format(a)} – ${f.format(b)}`
+}
 
 /**
- * Die letzten 7 Tage. Bewusst ein Wochenschnitt statt Tagesnoten: einzelne
- * Ausreißer zählen weniger, und leere Tage sind einfach leer — kein Streak,
- * keine Lücke, die bestraft wird.
+ * Die Woche (Mo–So), schmal: darüber klein der Zeitraum und der Knopf zum Monat,
+ * darunter je Tag Mini-Kugel – Zahl – Wochentag, der gewählte Tag auf grauer Fläche.
+ * Bewusst ein Wochenschnitt statt Tagesnoten: einzelne Ausreißer zählen
+ * weniger, und leere Tage sind einfach leer — kein Streak, keine Lücke, die
+ * bestraft wird. Künftige Tage lassen sich nicht wählen.
  */
-export function WeekStrip({ date, week, goalKcal, goalProtein, hideKcal, onPick }: {
+export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onOpenMonth }: {
   date: string
-  week: Record<string, { kcal: number; protein: number }>
-  goalKcal: number
-  goalProtein: number
-  hideKcal: boolean
+  today: string
+  week: Record<string, DayTotals>
+  goals: Goals
+  /** Der gewählte Tag in Worten — für Vorleser bei jedem Wechsel angesagt. */
+  dayLabel: string
   onPick: (date: string) => void
+  onOpenMonth: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const locale = getDateLocale()
-  const days = Array.from({ length: 7 }, (_, i) => format(addDays(parseISO(date), i - 6), 'yyyy-MM-dd'))
-  const value = (d: string) => (hideKcal ? week[d]?.protein ?? 0 : week[d]?.kcal ?? 0)
-  const goal = hideKcal ? goalProtein : goalKcal
-  const logged = days.filter(d => value(d) > 0)
-  const avg = logged.length ? Math.round(logged.reduce((s, d) => s + value(d), 0) / logged.length) : null
+  const days = weekDays(date)
 
   return (
-    <section aria-labelledby="nutr-week" className={`${CARD} p-4`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="nutr-week" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_week')}</h2>
-        {avg != null && (
-          <span className={`text-right text-[13px] tabular-nums ${MUTED}`}>
-            {t(hideKcal ? 'nutr_week_avg_protein' : 'nutr_week_avg_kcal', { value: avg, days: logged.length })}
-          </span>
-        )}
+    <section aria-labelledby="nutr-week" className={`${CARD} px-2 pb-1.5 pt-1`}>
+      <div className="flex items-center justify-between gap-2 pl-2">
+        <h2 id="nutr-week" className={`text-[12px] font-semibold tabular-nums ${MUTED}`}>
+          <span className="sr-only">{t('nutr_week_calendar')}: </span>{rangeText(days[0], days[6], i18n.language ?? 'de')}
+        </h2>
+        <button type="button" onClick={onOpenMonth} aria-label={t('nutr_month_open')} aria-haspopup="dialog"
+          className="lg-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--lg-text-2)]">
+          <CalendarDays size={17} aria-hidden="true" />
+        </button>
       </div>
-      <div className="mt-3 flex h-24 items-end gap-1.5">
+      {/* Tageswechsel ansagen (die Tage selbst sind keine Live-Bereiche). */}
+      <span className="sr-only" aria-live="polite">{dayLabel}</span>
+      <div className="grid grid-cols-7 gap-0.5">
         {days.map(d => {
-          const v = value(d)
-          const pct = Math.min(100, share(v, goal) * 100)
           const selected = d === date
+          const future = d > today
           return (
-            <button key={d} type="button" onClick={() => onPick(d)} aria-pressed={selected}
-              aria-label={`${format(parseISO(d), 'EEEE, d. MMMM', { locale })}: ${Math.round(v)} ${hideKcal ? 'g' : 'kcal'}`}
-              className="flex h-full flex-1 touch-manipulation select-none flex-col items-center justify-end gap-1">
-              <div className="relative w-full flex-1">
-                {/* Ziellinie */}
-                <div className="absolute inset-x-0 border-t border-dashed border-[var(--lg-separator)]" style={{ bottom: '100%' }} aria-hidden="true" />
-                <div className="absolute inset-x-1 bottom-0 rounded-md"
-                  style={{ height: `${pct}%`, minHeight: v > 0 ? 3 : 0, background: hideKcal ? MACRO_COLORS.protein : MACRO_COLORS.kcal, opacity: selected ? 1 : 0.55 }} />
-              </div>
-              <span className={`text-[12px] font-semibold ${selected ? 'text-[var(--lg-text)]' : MUTED}`}>
+            <button key={d} type="button" onClick={() => onPick(d)} disabled={future} aria-pressed={selected}
+              aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goals, t)} data-nutr-day={d}
+              className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[12px] pb-1.5 pt-1 transition-colors duration-200 disabled:cursor-default ${
+                selected ? 'bg-[var(--lg-fill)]' : ''}`}>
+              <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goals} size={28} dim={future} />
+              <span className={`text-[14px] leading-none tabular-nums ${
+                d === today ? 'font-bold text-[var(--accent)]' : selected ? 'font-bold text-[var(--lg-text)]' : 'font-medium text-[var(--lg-text)]'
+              } ${future ? 'opacity-35' : ''}`}>
+                {format(parseISO(d), 'd')}
+              </span>
+              <span className={`text-[10px] font-semibold uppercase leading-none tracking-[0.3px] ${d === today ? 'text-[var(--accent)]' : MUTED}`}>
                 {format(parseISO(d), 'EEEEEE', { locale })}
               </span>
             </button>

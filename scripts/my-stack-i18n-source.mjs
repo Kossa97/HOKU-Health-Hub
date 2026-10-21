@@ -1292,6 +1292,11 @@ export const MY_STACK_EN = {
   day_count_taken: "{{n}} taken",
   day_count_skipped: "{{n}} skipped",
   day_count_missed: "{{n}} missed",
+  my_stack_shelf_life: 'Shelf life',
+  my_stack_shelf_life_days_left: '{{n}} days left',
+  my_stack_shelf_life_day_left: '1 day left',
+  my_stack_shelf_life_today: 'expires today',
+  my_stack_shelf_life_not_set: 'not specified',
 }
 
 export const MY_STACK_DE = {
@@ -2587,6 +2592,11 @@ export const MY_STACK_DE = {
   day_count_taken: "{{n}} genommen",
   day_count_skipped: "{{n}} übersprungen",
   day_count_missed: "{{n}} verpasst",
+  my_stack_shelf_life: 'Haltbarkeit',
+  my_stack_shelf_life_days_left: 'noch {{n}} Tage',
+  my_stack_shelf_life_day_left: 'noch 1 Tag',
+  my_stack_shelf_life_today: 'läuft heute ab',
+  my_stack_shelf_life_not_set: 'nicht angegeben',
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

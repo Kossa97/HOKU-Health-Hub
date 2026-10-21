@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, PenLine, Star, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { MAX_AMOUNT, MEALS, type Food, type Meal, amountValid, macroMismatch, nutrientsFor, parseAmount, showDecimal } from '../lib/nutrition'
 import { portionsText } from '../lib/recipe'
 import { ERROR_TEXT, MUTED, WARN_BOX, chip } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { MacroCells } from './MacroCells'
+import { FoodOrb, type FoodOrbHandle } from './FoodOrb'
+import { FLIGHT_MS, setOrbOrigin, setOrbPreview } from '../lib/orbBridge'
 import { SourceBadge } from './SourceBadge'
+import { ScoreBadge } from './ScoreBadge'
 
 const PRESETS = [50, 100, 150, 200, 250]
 /** Bei Gerichten wählt man Portionen statt Gramm. */
@@ -19,7 +22,7 @@ const PORTION_PRESETS = [{ n: 0.5, text: '½' }, { n: 1, text: '1' }, { n: 1.5, 
  * Bei Gerichten steht im Feld die Zahl der Portionen; gespeichert wird immer in Gramm.
  * `ingredient`: Menge einer Zutat fürs Gericht — ohne Mahlzeit.
  */
-export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal }: {
+export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal, goalKcal, preview = false }: {
   food: Food
   meal: Meal
   startAmount?: number
@@ -28,12 +31,17 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
   pickLabel?: string
   busy: boolean
   hideKcal: boolean
-  onSave: (amount: number, meal: Meal) => void
+  /** Gibt false zurück, wenn das Speichern scheiterte (dann bleibt die Essens-Kugel voll und es fliegt nichts). */
+  onSave: (amount: number, meal: Meal) => Promise<boolean> | void
   onClose: () => void
   onDelete?: () => void
   /** Werte dieses Lebensmittels korrigieren (wird zur eigenen Fassung) bzw. das Gericht bearbeiten. */
   onCorrect?: () => void
   onToggleFavorite?: () => void
+  /** Tagesziel: Größe der Essens-Kugel im Verhältnis zur Tageskugel. */
+  goalKcal: number
+  /** Nur beim Eintragen für den gezeigten Tag: die Tageskugel oben zeigt diese Portion als Vorschau. */
+  preview?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language ?? 'de'
@@ -50,14 +58,55 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
   const nu = useMemo(() => (valid ? nutrientsFor(food.per100, amount) : null), [food, amount, valid])
   // Bei Gerichten stammen die Werte aus den Zutaten — dort gäbe es keine Packung zum Vergleichen.
   const suspicious = !food.recipe && macroMismatch(food.per100)
+  const orb = useRef<FoodOrbHandle>(null)
+  /** Punkte fliegen gerade aus der Essens-Kugel in die Tageskugel: erst danach wieder schließen oder hinzufügen. */
+  const [flying, setFlying] = useState(false)
+  const flyTimer = useRef(0)
+  useEffect(() => () => window.clearTimeout(flyTimer.current), [])
+
+  // Vorschau in der Tageskugel oben; während des Flugs und beim Schließen aus.
+  useEffect(() => {
+    setOrbPreview(preview && nu && !flying ? { kcal: nu.kcal, protein: nu.protein, carbs: nu.carbs, fat: nu.fat } : null)
+  }, [preview, nu, flying])
+  useEffect(() => () => setOrbPreview(null), [])
+
+  /**
+   * Eintragen: Die Punkte fliegen aus der Essens-Kugel (sie leert sich von oben)
+   * in die Tageskugel. Das Formular bleibt offen; bis alle angekommen sind, sind
+   * Hinzufügen und Schließen gesperrt — danach noch einmal oder schließen.
+   */
+  const save = async () => {
+    if (!valid || busy || flying) return
+    if (mode !== 'add') {
+      // Zutat für ein Gericht (mit Vorschau oben): ihre Punkte fliegen gleich in die Gericht-Kugel.
+      if (mode === 'ingredient' && preview) setOrbOrigin(orb.current?.origin() ?? null)
+      await onSave(amount, meal)
+      return
+    }
+    setOrbOrigin(orb.current?.origin() ?? null)
+    setFlying(true)
+    if ((await onSave(amount, meal)) === false) {
+      setOrbOrigin(null)
+      setFlying(false)
+      return
+    }
+    // Gespeichert: jetzt startet der Flug oben — die Essens-Kugel leert sich im selben Takt.
+    orb.current?.pour(460, FLIGHT_MS)
+    flyTimer.current = window.setTimeout(() => setFlying(false), FLIGHT_MS)
+  }
   const servings = portion ? [] : food.serving ? [{ amount: food.serving.amount, text: food.serving.label ? `${food.serving.label}` : `1 × ${food.serving.amount} ${food.unit}` }] : []
 
   return (
-    <Sheet labelledBy="nutr-portion-title" busy={busy} onClose={onClose}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 id="nutr-portion-title" className="lg-title2">{food.name}</h2>
+    <Sheet labelledBy="nutr-portion-title" busy={busy || flying} onClose={onClose}>
+      {/* Kugel · Name · Knöpfe; auf schmalen Geräten (iPhone SE) steht der Name darunter in voller Breite. */}
+      <div className="grid grid-cols-[auto_1fr_auto] items-start gap-x-2">
+        {/* Die Kugel dieses Essens: gleiche Punktdichte wie die Tageskugel (ein ganzer Tag wäre so groß wie sie). */}
+        <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={96} fullFrac={0.73} spin />
+        <div className="col-start-2 row-start-1 min-w-0 self-center max-[379px]:col-span-3 max-[379px]:col-start-1 max-[379px]:row-start-2 max-[379px]:mt-2">
+          {/* Abzeichen unter, nicht in der Überschrift: sie benennt das Blatt und darf umbrechen. */}
+          <h2 id="nutr-portion-title" lang={lang} className="lg-title2 min-w-0 hyphens-auto [overflow-wrap:anywhere]">{food.name}</h2>
           <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
+            <ScoreBadge per100={food.per100} unit={food.unit} />
             <SourceBadge source={food.source} own={food.itemId !== null} />
             <span className="truncate">
               {portion && food.recipe
@@ -66,7 +115,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             </span>
           </p>
         </div>
-        <div className="flex shrink-0">
+        <div className="col-start-3 row-start-1 flex shrink-0">
           {onToggleFavorite && (
             <button type="button" onClick={onToggleFavorite} disabled={busy} aria-pressed={food.favorite}
               aria-label={t(food.favorite ? 'nutr_unfavorite' : 'nutr_favorite')}
@@ -74,7 +123,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
               <Star size={20} className={food.favorite ? 'fill-[#ffd60a] text-[#ffd60a]' : 'text-[var(--lg-text-2)]'} />
             </button>
           )}
-          <SheetClose onClick={onClose} disabled={busy} />
+          <SheetClose onClick={onClose} disabled={busy || flying} />
         </div>
       </div>
 
@@ -90,7 +139,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       </label>
       <input id="nutr-amount" inputMode="decimal" enterKeyHint="done" value={text} autoFocus={mode !== 'edit'}
         onChange={e => setText(e.target.value)} onFocus={e => e.currentTarget.select()}
-        onKeyDown={e => { if (e.key === 'Enter' && valid && !busy) onSave(amount, meal) }}
+        onKeyDown={e => { if (e.key === 'Enter') void save() }}
         aria-invalid={!valid} aria-describedby={!valid ? 'nutr-amount-error' : undefined}
         className="input !text-[20px] font-semibold tabular-nums" />
       {!valid && text.trim() !== '' && (
@@ -142,8 +191,8 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             {suspicious ? t('nutr_correct') : <span className="sr-only">{t(portion ? 'nutr_dish_edit' : 'nutr_correct')}</span>}
           </button>
         )}
-        <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={!valid || busy} onClick={() => onSave(amount, meal)}>
-          {mode === 'edit' ? t('nutr_save') : mode === 'ingredient' ? (pickLabel ?? t('nutr_add_to_dish')) : t('nutr_add')}
+        <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={!valid || busy || flying} onClick={() => void save()}>
+          {flying ? t('nutr_adding') : mode === 'edit' ? t('nutr_save') : mode === 'ingredient' ? (pickLabel ?? t('nutr_add_to_dish')) : t('nutr_add')}
         </button>
       </div>
     </Sheet>

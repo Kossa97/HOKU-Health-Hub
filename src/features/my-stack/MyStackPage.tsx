@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -192,6 +192,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // handle and the scroll rAF pushes focus/lightOffset straight into the DOM.
   const vialStageLightHandlesRef = useRef(new Map<number, VialStageLightHandle>())
   const vialFocusFrameRef = useRef<number | null>(null)
+  const vialGeometryRef = useRef<{ width: number; items: Array<{ slot: number; center: number }> } | null>(null)
   const sloshEngine = useSloshEngine()
   const vialCarouselRef = useRef<HTMLDivElement | null>(null)
   const vialScrollFrameRef = useRef<number | null>(null)
@@ -525,7 +526,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     // fuer eine neue Variante, die aus einem bestehenden Eintrag entsteht.
     // Der Eintrag selbst steht dann schon; scheitert nur das, sagt es eine
     // eigene Meldung, statt „Speichern fehlgeschlagen" fuer alles.
-    if ((editedFrom || inventoryDraft.reconstitutionMl != null) && user) {
+    if ((editedFrom || inventoryDraft.reconstitutionMl != null || inventoryDraft.openedAt || inventoryDraft.useWithinDays != null) && user) {
       try {
         await saveInventoryDetails(stackDataClient as never, {
           userId: user.id,
@@ -1408,6 +1409,23 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // Mitte. Sonst stuende ein anderer Eintrag dort, als die Zeile darueber
   // beschreibt: die Scrollposition kennt nur Pixel, keine Eintraege.
   const stageKey = stagePeptides.map(p => p.id).join('|')
+  // Die gemerkte Lage der Plaetze gilt, bis sich Liste oder Groessen aendern:
+  // der Streifen selbst, ein Platz (Schriftgroesse, rem) oder das Fenster.
+  useLayoutEffect(() => {
+    vialGeometryRef.current = null
+    const vergessen = () => { vialGeometryRef.current = null }
+    window.addEventListener('resize', vergessen)
+    const strip = vialCarouselRef.current
+    const observer = strip && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(vergessen) : null
+    if (strip && observer) {
+      observer.observe(strip)
+      for (const platz of strip.querySelectorAll('[data-vial-index], [data-vial-add]')) observer.observe(platz)
+    }
+    return () => {
+      window.removeEventListener('resize', vergessen)
+      observer?.disconnect()
+    }
+  }, [stageKey, viewMode, loading])
   useEffect(() => {
     if (viewMode !== 'vials' || loading || addTileActive || stagePeptides.length === 0) return
     zentriereSlot(activeIndex)
@@ -1435,23 +1453,40 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   }, [neuZentrieren, stageKey])
   // Feed carousel interaction velocity into the shared liquid physics engine.
   const pushVialSlosh = (velocity: number) => sloshEngine.pushImpulse(velocity)
-  const updateVialFocus = () => {
+  /**
+   * Wo die Plaetze im Streifen stehen. Das aendert sich nur mit der Liste oder
+   * der Breite, nicht beim Scrollen — das Verkleinern der Nachbarn ist ein
+   * `transform`, kein Layout. Vorher las jedes Scroll-Bild `offsetLeft` aller
+   * Eintraege, und weil die Fluessigkeit im selben Bild schon gezeichnet
+   * hatte, erzwang jeder Lesezugriff eine Layout-Berechnung.
+   */
+  const measureVialGeometry = (carousel: HTMLDivElement) => {
+    const items: Array<{ slot: number; center: number }> = []
+    for (const item of carousel.querySelectorAll<HTMLElement>('[data-vial-index], [data-vial-add]')) {
+      const slot = item.hasAttribute('data-vial-add') ? ADD_SLOT : Number(item.dataset.vialIndex)
+      if (!Number.isFinite(slot)) continue
+      items.push({ slot, center: item.offsetLeft + item.offsetWidth / 2 })
+    }
+    vialGeometryRef.current = { width: carousel.clientWidth, items }
+    return vialGeometryRef.current
+  }
+  const vialGeometry = (carousel: HTMLDivElement) => vialGeometryRef.current ?? measureVialGeometry(carousel)
+  const updateVialFocus = (scrollLeft?: number) => {
     const carousel = vialCarouselRef.current
     if (!carousel) return
 
-    const center = carousel.scrollLeft + carousel.clientWidth / 2
-    const maxDistance = Math.max(1, carousel.clientWidth * 0.48)
+    const geometry = vialGeometry(carousel)
+    const center = (scrollLeft ?? carousel.scrollLeft) + geometry.width / 2
+    const maxDistance = Math.max(1, geometry.width * 0.48)
 
     // measure every item first, then write, so layout reads never interleave
     // with the imperative attribute writes below
     const measured: Array<{ handle: VialStageLightHandle; normalized: number }> = []
-    for (const item of carousel.querySelectorAll<HTMLElement>('[data-vial-index]')) {
-      const index = Number(item.dataset.vialIndex)
-      if (!Number.isFinite(index)) continue
+    for (const { slot: index, center: itemCenter } of geometry.items) {
+      if (index === ADD_SLOT) continue
       const handle = vialStageLightHandlesRef.current.get(index)
       if (!handle) continue
 
-      const itemCenter = item.offsetLeft + item.offsetWidth / 2
       const distance = itemCenter - center
       measured.push({ handle, normalized: Math.max(-1, Math.min(1, distance / maxDistance)) })
     }
@@ -1469,7 +1504,9 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (vialFocusFrameRef.current !== null) return
     vialFocusFrameRef.current = window.requestAnimationFrame(() => {
       vialFocusFrameRef.current = null
-      updateVialFocus()
+      // Der Stand aus dem letzten Scroll-Ereignis: im Bild selbst hat die
+      // Fluessigkeit schon gezeichnet, ein frisches `scrollLeft` kostete Layout.
+      updateVialFocus(vialLastScrollLeftRef.current)
     })
   }
   /**
@@ -1519,7 +1556,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     vialCarouselRef.current
       ?.querySelector<HTMLElement>(slotSelector(slot))
       ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-    window.requestAnimationFrame(updateVialFocus)
+    window.requestAnimationFrame(() => updateVialFocus())
   }
   const selectSlot = (slot: number) => {
     if (slot !== ADD_SLOT && !stagePeptides[slot]) return
@@ -1530,17 +1567,15 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const selectPeptideIndex = (index: number) => selectSlot(index)
   const selectAddTile = () => selectSlot(ADD_SLOT)
   const currentSlot = addTileActive ? ADD_SLOT : activeIndex
-  const getClosestSlot = (carousel: HTMLDivElement) => {
-    const items = Array.from(carousel.querySelectorAll<HTMLElement>('[data-vial-index], [data-vial-add]'))
-    const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2
+  const getClosestSlot = (carousel: HTMLDivElement, scrollLeft = carousel.scrollLeft) => {
+    const geometry = vialGeometry(carousel)
+    const carouselCenter = scrollLeft + geometry.width / 2
     let closestSlot = currentSlot
     let closestDistance = Number.POSITIVE_INFINITY
 
-    for (const item of items) {
-      const slot = item.hasAttribute('data-vial-add') ? ADD_SLOT : Number(item.dataset.vialIndex)
-      const itemCenter = item.offsetLeft + item.offsetWidth / 2
+    for (const { slot, center: itemCenter } of geometry.items) {
       const distance = Math.abs(itemCenter - carouselCenter)
-      if (Number.isFinite(slot) && distance < closestDistance) {
+      if (distance < closestDistance) {
         closestDistance = distance
         closestSlot = slot
       }
@@ -1553,19 +1588,20 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (!carousel) return
 
     const now = e.timeStamp
+    const scrollLeft = carousel.scrollLeft
     if (vialLastScrollTimeRef.current > 0) {
-      const delta = carousel.scrollLeft - vialLastScrollLeftRef.current
+      const delta = scrollLeft - vialLastScrollLeftRef.current
       const dt = Math.max(16, now - vialLastScrollTimeRef.current)
       if (Math.abs(delta) > 0.5) pushVialSlosh((delta / dt) * 2.6)
     }
-    vialLastScrollLeftRef.current = carousel.scrollLeft
+    vialLastScrollLeftRef.current = scrollLeft
     vialLastScrollTimeRef.current = now
     scheduleVialFocusUpdate()
 
     if (vialScrollFrameRef.current !== null) window.cancelAnimationFrame(vialScrollFrameRef.current)
 
     vialScrollFrameRef.current = window.requestAnimationFrame(() => {
-      const closestSlot = getClosestSlot(carousel)
+      const closestSlot = getClosestSlot(carousel, vialLastScrollLeftRef.current)
       const next = stagePeptides[closestSlot]
       if (next && next.id !== activePeptideId) {
         // Ein Klick je Eintrag, den das Karussell passiert — wie am Rad einer

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { entryKey, frequentFoods, matchScore, mergeResults } from './foodSearch'
 import { type Food, type LogEntry, nutrientsFor } from './nutrition'
 
-const per100 = { kcal: 100, protein: 10, carbs: 10, fat: 2, fiber: null, sugar: null, salt: null }
+const per100 = { kcal: 100, protein: 10, carbs: 10, fat: 2, fiber: null, sugar: null, satFat: null, salt: null }
 
 const food = (name: string, over: Partial<Food> = {}): Food => ({
   itemId: null, source: 'off', sourceRef: null, barcode: null, name, brand: null, unit: 'g',

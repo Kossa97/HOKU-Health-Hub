@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { type Food, type FoodUnit, kcalFromMacros, macroMismatch, parseAmount } from '../lib/nutrition'
 import { DIM, ERROR_TEXT, MUTED, WARN_BOX } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
+import { ScoreBadge } from './ScoreBadge'
 
-type Field = 'kcal' | 'protein' | 'carbs' | 'fat' | 'sugar' | 'fiber' | 'salt'
+type Field = 'kcal' | 'protein' | 'carbs' | 'fat' | 'sugar' | 'satFat' | 'fiber' | 'salt'
 const REQUIRED: Field[] = ['kcal', 'protein', 'carbs', 'fat']
-const OPTIONAL: Field[] = ['sugar', 'fiber', 'salt']
-const MAX: Record<Field, number> = { kcal: 900, protein: 100, carbs: 100, fat: 100, sugar: 100, fiber: 100, salt: 100 }
+const OPTIONAL: Field[] = ['sugar', 'satFat', 'fiber', 'salt']
+const MAX: Record<Field, number> = { kcal: 900, protein: 100, carbs: 100, fat: 100, sugar: 100, satFat: 100, fiber: 100, salt: 100 }
 const LABEL_KEY: Record<Field, string> = {
   kcal: 'nutr_f_kcal', protein: 'nutr_protein', carbs: 'nutr_carbs', fat: 'nutr_fat',
-  sugar: 'nutr_f_sugar', fiber: 'nutr_f_fiber', salt: 'nutr_f_salt',
+  sugar: 'nutr_f_sugar', satFat: 'nutr_f_sat_fat', fiber: 'nutr_f_fiber', salt: 'nutr_f_salt',
 }
 
 const show = (n: number | null | undefined) => (n == null ? '' : String(n).replace('.', ','))
@@ -38,7 +39,8 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
   const [servingLabel, setServingLabel] = useState(base?.serving?.label ?? '')
   const [v, setV] = useState<Record<Field, string>>({
     kcal: show(base?.per100.kcal), protein: show(base?.per100.protein ?? 0), carbs: show(base?.per100.carbs ?? 0),
-    fat: show(base?.per100.fat ?? 0), sugar: show(base?.per100.sugar), fiber: show(base?.per100.fiber), salt: show(base?.per100.salt),
+    fat: show(base?.per100.fat ?? 0), sugar: show(base?.per100.sugar), satFat: show(base?.per100.satFat),
+    fiber: show(base?.per100.fiber), salt: show(base?.per100.salt),
   })
   const [tried, setTried] = useState(false)
 
@@ -46,14 +48,17 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
   const fieldOk = (f: Field) => {
     const n = value(f)
     if (n == null) return !REQUIRED.includes(f)
+    // Gesättigte Fettsäuren sind ein Teil des Fetts.
+    if (f === 'satFat') { const fat = value('fat'); if (fat != null && n > fat) return false }
     return n >= 0 && n <= MAX[f]
   }
+  const satFatTooHigh = (value('satFat') ?? 0) > (value('fat') ?? Infinity)
   const serving = servingAmount.trim() === '' ? null : parseAmount(servingAmount)
   const servingOk = serving === null || (serving > 0 && serving <= 5000)
   const valid = name.trim().length > 0 && [...REQUIRED, ...OPTIONAL].every(fieldOk) && servingOk
   const per100 = valid ? {
     kcal: value('kcal')!, protein: value('protein')!, carbs: value('carbs')!, fat: value('fat')!,
-    sugar: value('sugar'), fiber: value('fiber'), salt: value('salt'),
+    sugar: value('sugar'), satFat: value('satFat'), fiber: value('fiber'), salt: value('salt'),
   } : null
   const mismatch = per100 ? macroMismatch(per100) : false
   const isCorrection = base !== null && base.itemId === null
@@ -116,9 +121,14 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
         ))}
       </div>
 
-      <p className={`mt-5 px-1 text-[13px] ${DIM}`}>{t('nutr_per100_hint', { unit })}</p>
+      <div className="mt-5 flex items-center justify-between gap-2 px-1">
+        <p className={`text-[13px] ${DIM}`}>{t('nutr_per100_hint', { unit })}</p>
+        <ScoreBadge per100={per100} unit={unit} />
+      </div>
       <div className="mt-2 grid grid-cols-2 gap-3">{REQUIRED.map(numberField)}</div>
-      <div className="mt-3 grid grid-cols-3 gap-3">{OPTIONAL.map(numberField)}</div>
+      <div className="mt-3 grid grid-cols-2 gap-3">{OPTIONAL.map(numberField)}</div>
+
+      {satFatTooHigh && <p role="alert" className={`mt-2 px-1 ${ERROR_TEXT}`}>{t('nutr_sat_fat_invalid')}</p>}
 
       {mismatch && per100 && (
         <div className={`mt-3 ${WARN_BOX}`}>

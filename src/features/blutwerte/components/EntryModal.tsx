@@ -145,12 +145,12 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10"
+      className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
       data-app-modal
       onClick={onCancel}
     >
       <div
-        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-[90vh]"
+        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full"
         onClick={e => e.stopPropagation()}
       >
         <span className="lg-grabber !mb-1" aria-hidden="true" />

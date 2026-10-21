@@ -71,7 +71,7 @@ export function ReviewSheet({
   return (
     // Liegt ueber der Seite: Zurueck (Geste, Android) und Escape schliessen
     // nur dieses Fenster.
-    <div data-app-modal data-app-back-dirty-on-interaction className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" onClick={event => { event.stopPropagation(); onClose() }}>
+    <div data-app-modal data-app-back-dirty-on-interaction className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" onClick={event => { event.stopPropagation(); onClose() }}>
       <form
         role="dialog"
         aria-modal="true"
@@ -79,7 +79,7 @@ export function ReviewSheet({
         data-review-sheet
         // Form des Glas-Sheets, fest gefüllt: langer Inhalt scrollt darin, und
         // ein Weichzeichner am scrollenden Fenster stört das Scrollen in iOS Safari
-        className="lg-sheet lg-sheet-solid flex max-h-[90dvh] w-full flex-col overflow-hidden sm:max-w-lg"
+        className="lg-sheet lg-sheet-solid flex max-h-full w-full flex-col overflow-hidden sm:max-w-lg"
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape') return

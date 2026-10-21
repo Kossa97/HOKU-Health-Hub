@@ -48,6 +48,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^3.8.4",
     "lucide-react": "^1.14.0",
+    "pdfjs-dist": "6.4.299",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",
@@ -55,6 +56,7 @@
     "react-is": "^19.2.6",
     "react-router-dom": "^7.15.0",
     "recharts": "^3.8.1",
+    "thinking-orbs": "0.3.2",
     "three": "^0.184.0",
     "web-push": "^3.6.7",
     "zxing-wasm": "3.1.3"

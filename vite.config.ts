@@ -46,7 +46,8 @@ export default defineConfig(({ mode }) => {
         sourcemap: false,
         // Barcode-Leser (ZXing, ~1,1 MB) nicht vorab laden: er kommt erst beim
         // ersten Scan, sonst laedt jedes Geraet ihn bei jeder neuen Version mit.
-        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm'],
+        // Dasselbe fuer pdf.js (~490 KB + Worker): nur die PDF-Vorschau braucht es.
+        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*'],
       },
       manifest: {
         name: 'TYD – Track Your Dose',

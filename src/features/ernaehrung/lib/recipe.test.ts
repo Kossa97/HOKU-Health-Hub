@@ -3,7 +3,7 @@ import { nutrientsFor, type LogEntry, type Per100 } from './nutrition'
 import { type Ingredient, ingredientFromEntry, parseIngredients, portionsText, recipeFood, recipeTotals } from './recipe'
 
 const per = (kcal: number, protein: number, carbs: number, fat: number, extra: Partial<Per100> = {}): Per100 =>
-  ({ kcal, protein, carbs, fat, fiber: null, sugar: null, salt: null, ...extra })
+  ({ kcal, protein, carbs, fat, fiber: null, sugar: null, satFat: null, salt: null, ...extra })
 
 const oats: Ingredient = { name: 'Haferflocken', brand: null, source: 'custom', sourceRef: null, unit: 'g', amount: 60, per100: per(372, 13.5, 58.7, 7, { fiber: 10 }) }
 const skyr: Ingredient = { name: 'Skyr', brand: 'Ehrmann', source: 'off', sourceRef: '4002671157751', unit: 'g', amount: 150, per100: per(63, 11, 4, 0.2) }
@@ -49,7 +49,7 @@ describe('ingredientFromEntry', () => {
   const entry = (fields: Partial<LogEntry>): LogEntry => ({
     id: '1', date: '2026-10-18', meal: 'breakfast', itemId: null, source: 'off', sourceRef: '4002671157751',
     name: 'Skyr', brand: 'Ehrmann', unit: 'g', amount: 200,
-    nutrients: { kcal: 126, protein: 22, carbs: 8, fat: 0.4, fiber: null, sugar: 8, salt: 0.2 }, createdAt: '', ...fields,
+    nutrients: { kcal: 126, protein: 22, carbs: 8, fat: 0.4, fiber: null, sugar: 8, satFat: null, salt: 0.2 }, createdAt: '', ...fields,
   })
 
   it('macht aus einem Eintrag eine Zutat mit Werten je 100 g', () => {

@@ -1,18 +1,20 @@
 import { useMemo, useState } from 'react'
 import { addDays, format, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, ScanBarcode, Target, Trash2 } from 'lucide-react'
+import { Target, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
-import { Ph, Silhouette, SkelKarte } from '../../components/ui/Silhouette'
+import { readSharedDay, writeSharedDay } from '../../lib/sharedDay'
 import { getDateLocale } from '../../i18n/dateLocales'
-import { Sheet } from '../compliance/components/Sheet'
+import { Sheet } from './components/Panel'
 import { AddFoodSheet } from './components/AddFoodSheet'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { DaySummary } from './components/DaySummary'
+import { DishStage } from './components/DishStage'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
+import { MonthSheet } from './components/MonthSheet'
 import { MealSection } from './components/MealSection'
 import { PhotoSheet } from './components/PhotoSheet'
 import { SheetClose } from '../../components/ui/SheetClose'
@@ -48,12 +50,14 @@ type SheetState =
   | { kind: 'add'; meal: Meal; pick?: Picker }
   | { kind: 'scan'; meal: Meal; pick?: Picker }
   | PhotoState
-  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: Picker; back?: SheetState }
+  /** `done`: hier wurde schon eingetragen — Schließen führt dann zurück zum Tag statt zur Suche. */
+  | { kind: 'portion'; meal: Meal; food: Food; amount?: number; pick?: Picker; back?: SheetState; done?: boolean }
   | { kind: 'edit'; entry: LogEntry; food: Food }
   | { kind: 'quick'; entry: LogEntry }
   | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
   | DishSheet
   | { kind: 'goals' }
+  | { kind: 'month' }
 
 /** Das gewählte Lebensmittel mit Menge zurück an Gericht bzw. Foto-Prüfliste. */
 function withPicked(pick: Picker, food: Food, amount: number, lang: string): SheetState {
@@ -67,7 +71,17 @@ export function ErnaehrungPage() {
   const locale = getDateLocale()
   const userId = user!.id
   const todayKey = toDateKey(new Date())
-  const [date, setDate] = useState(todayKey)
+  // Gemeinsamer Tag mit dem Kalender (siehe sharedDay.ts), nie in der Zukunft.
+  const [date, setDate] = useState(() => {
+    const shared = readSharedDay(todayKey)
+    return shared && shared < todayKey ? shared : todayKey
+  })
+  /** Tag wechseln — nur hier wird der gemeinsame Tag geschrieben, nicht beim Öffnen (sonst ginge ein im Kalender gewählter künftiger Tag verloren). */
+  const pickDate = (d: string) => {
+    const next = d > todayKey ? todayKey : d
+    setDate(next)
+    writeSharedDay(next, todayKey)
+  }
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
   const [sheet, setSheet] = useState<SheetState>(null)
@@ -79,11 +93,6 @@ export function ErnaehrungPage() {
     setBusy(true)
     try { await fn(); return true } catch { toast.error(t('nutr_error')); return false } finally { setBusy(false) }
   }
-
-  const shiftDay = (days: number) => setDate(d => {
-    const next = toDateKey(addDays(parseISO(d), days))
-    return next > todayKey ? todayKey : next
-  })
 
   /**
    * Ein Eintrag zeigt beim Bearbeiten SEINE Werte (Schnappschuss), nicht die
@@ -157,40 +166,25 @@ export function ErnaehrungPage() {
     setSheet({ kind: 'dish', draft: draftFromDish(mine, lang), ...rest })
   }
 
+  /** Gericht in Arbeit — im Editor oder beim Suchen einer Zutat dafür. */
+  const dishOpen = sheet?.kind === 'dish' ? sheet : sheet && 'pick' in sheet && sheet.pick?.kind === 'dish' ? sheet.pick : null
+  /** Aufgeklappte Zutat im Editor (ihre Punkte pulsieren oben); beim Zutat-Suchen zu. */
+  const [dishFocus, setDishFocus] = useState<number | null>(null)
+
   /** „Als Gericht": die Einträge dieser Mahlzeit als Zutaten. Schnelleinträge haben keine Menge und fallen weg. */
   const saveMealAsDish = (meal: Meal) => {
     const ingredients = n.byMeal[meal].map(ingredientFromEntry).filter((i): i is Ingredient => i !== null)
-    setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang), meal: null, back: null })
+    setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang, undefined, meal), meal: null, back: null })
   }
 
   return (
     <div className="mx-auto max-w-lg pb-6">
-      <header className="flex items-center justify-between gap-3">
-        <h1 className="lg-large-title min-w-0 truncate">{t('nutr_title')}</h1>
-        <div className="flex shrink-0 items-center gap-2">
-          <button type="button" onClick={() => setSheet({ kind: 'scan', meal: isToday ? meal0 : 'snack' })} aria-label={t('nutr_scan')}
-            className="lg-glass lg-icon-btn lg-press">
-            <ScanBarcode size={20} />
-          </button>
-          <button type="button" onClick={() => setSheet({ kind: 'goals' })}
-            className="lg-btn lg-glass lg-btn-glass lg-btn-compact max-[379px]:!w-11 max-[379px]:!px-0">
-            {/* Schmale Geräte: nur das Symbol, sonst wird der Titel abgeschnitten */}
-            <Target size={17} aria-hidden="true" /><span className="max-[379px]:sr-only">{t('nutr_goals')}</span>
-          </button>
-        </div>
-      </header>
+      <h1 className="sr-only">{t('nutr_title')}</h1>
+      {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
+      {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
+        onOpenGoals={() => setSheet({ kind: 'goals' })} />}
 
-      <nav aria-label={t('nutr_day_nav')} className="mt-3 flex items-center justify-between">
-        <button type="button" aria-label={t('nutr_prev_day')} onClick={() => shiftDay(-1)}
-          className="lg-icon-btn !text-[var(--accent)]"><ChevronLeft size={22} /></button>
-        <button type="button" onClick={() => setDate(todayKey)} disabled={isToday} aria-live="polite"
-          className="min-h-11 px-3 text-[17px] font-semibold text-[var(--lg-text)] disabled:cursor-default">
-          {isToday ? t('nutr_today') : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMMM', { locale })}
-        </button>
-        <button type="button" aria-label={t('nutr_next_day')} onClick={() => shiftDay(1)} disabled={isToday}
-          className="lg-icon-btn !text-[var(--accent)] disabled:opacity-30"><ChevronRight size={22} /></button>
-      </nav>
-
+      {!sheet && (<>
       {n.loadError && (
         <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] p-3.5 text-[15px] text-[var(--lg-text)]">
           {t('nutr_load_error')}
@@ -210,17 +204,15 @@ export function ErnaehrungPage() {
       )}
 
       <div className="mt-3 space-y-3">
-        {n.day ? <DaySummary total={n.total} goals={n.goals} /> : (
-          <Silhouette>
-            <SkelKarte className="flex h-[164px] items-center justify-center gap-5 p-4">
-              <Ph w={132} h={132} shape="round" />
-              <div className="flex flex-col gap-2"><Ph w={56} h={11} /><Ph w={72} h={20} /><Ph w={64} h={11} /></div>
-            </SkelKarte>
-          </Silhouette>
-        )}
+        {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
+        <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
+          dayLabel={isToday
+            ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
+            : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
+          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
 
         {MEALS.map(meal => (
-          <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} busy={busy || !n.day}
+          <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}
             onAdd={() => setSheet({ kind: 'add', meal })}
             onOpen={openEntry}
             onSaveAsDish={() => saveMealAsDish(meal)}
@@ -234,8 +226,6 @@ export function ErnaehrungPage() {
           <>
             <WaterCard ml={n.day.waterMl} goalMl={n.goals.waterMl}
               onChange={ml => { n.setWater(ml).catch(() => toast.error(t('nutr_error'))) }} />
-            <WeekStrip date={date} week={n.day.week} goalKcal={n.goals.kcal} goalProtein={n.goals.proteinG}
-              hideKcal={n.goals.hideKcal} onPick={setDate} />
           </>
         )}
       </div>
@@ -246,9 +236,10 @@ export function ErnaehrungPage() {
         {' '}(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer" className="underline">ODbL</a>).
         {' '}{t('nutr_credit_note')}
       </p>
+      </>)}
 
       {sheet?.kind === 'add' && (sheet.pick ? (
-        <AddFoodSheet mode="ingredient" meal={sheet.meal} frequent={n.frequentFor(sheet.pick.kind === 'photo' ? sheet.meal : null)} myFoods={n.myFoods}
+        <AddFoodSheet mode="ingredient" goalKcal={n.goals.kcal} meal={sheet.meal} frequent={n.frequentFor(sheet.pick.kind === 'photo' ? sheet.meal : null)} myFoods={n.myFoods}
           exclude={sheet.pick.kind === 'dish' ? sheet.pick.draft.itemId : null}
           // Foto: mit dem kurzen Suchbegriff der KI vorbelegen („Spaghetti" statt „Spaghetti, gekocht")
           initialQuery={sheet.pick.kind === 'photo' && sheet.pick.row !== null ? sheet.pick.flow.rows?.[sheet.pick.row]?.search : undefined}
@@ -258,13 +249,13 @@ export function ErnaehrungPage() {
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal, pick: sheet.pick })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {}, pick: sheet.pick })} />
       ) : (
-        <AddFoodSheet meal={sheet.meal} frequent={n.frequentFor(sheet.meal)} myFoods={n.myFoods} hideKcal={n.goals.hideKcal}
+        <AddFoodSheet goalKcal={n.goals.kcal} meal={sheet.meal} frequent={n.frequentFor(sheet.meal)} myFoods={n.myFoods} hideKcal={n.goals.hideKcal}
           onClose={() => setSheet(null)}
           onPick={(food, amount) => setSheet({ kind: 'portion', meal: sheet.meal, food, amount })}
           onScan={() => setSheet({ kind: 'scan', meal: sheet.meal })}
           onPhoto={() => setSheet({ kind: 'photo', meal: sheet.meal, flow: EMPTY_FLOW, row: null })}
           onCreate={name => setSheet({ kind: 'editor', meal: sheet.meal, base: null, name, barcode: null, then: {} })}
-          onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang), meal: sheet.meal, back: sheet })}
+          onNewDish={() => setSheet({ kind: 'dish', draft: draftFromIngredients([], lang, undefined, sheet.meal), meal: sheet.meal, back: sheet })}
           onQuick={async (kcal, protein) => {
             const ok = await run(async () => { await n.addQuick(sheet.meal, t('nutr_quick_name'), kcal, protein) })
             if (ok) { setSheet(null); toast.success(t('nutr_added')) }
@@ -278,7 +269,7 @@ export function ErnaehrungPage() {
           onLogDish={dish => setSheet({ kind: 'portion', meal: sheet.meal, food: dish, back: sheet })}
           onSaveAsDish={(name, list) => setSheet({
             kind: 'dish', meal: sheet.meal, back: sheet,
-            draft: { ...draftFromIngredients(list.map(c => ingredientFromFood(c.food, c.amount)), lang), name },
+            draft: { ...draftFromIngredients(list.map(c => ingredientFromFood(c.food, c.amount)), lang, undefined, sheet.meal), name },
           })}
           onMeal={meal => setSheet({ ...sheet, meal })}
           onPickRow={row => setSheet({ kind: 'add', meal: sheet.meal, pick: { ...sheet, row } })}
@@ -299,14 +290,17 @@ export function ErnaehrungPage() {
         <PortionSheet key={`${sheet.food.sourceRef ?? sheet.food.name}-${JSON.stringify(sheet.food.per100)}`} mode={sheet.pick ? 'ingredient' : 'add'}
           pickLabel={sheet.pick?.kind === 'photo' ? t('nutr_photo_take_over') : undefined}
           food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
-          busy={busy} hideKcal={n.goals.hideKcal}
-          onClose={() => setSheet(sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
+          busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
+          // Vorschau oben: in der Tageskugel beim Eintragen (Tag geladen), in der Gericht-Kugel bei einer Zutat dafür.
+          preview={sheet.pick ? sheet.pick.kind === 'dish' : !!n.day}
+          onClose={() => setSheet(sheet.done ? null : sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
             if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
-            run(async () => {
+            // Das Formular bleibt offen: Punkte fliegen in die Kugel, danach noch einmal oder schließen.
+            return run(async () => {
               await n.add(meal, sheet.food, amount)
-              setSheet(null)
-              toast.success(t('nutr_added'))
+              setSheet(s => (s?.kind === 'portion' ? { ...s, done: true } : s))
+              toast.success(t('nutr_added_to', { meal: t(`nutr_meal_${meal}`) }))
             })
           }}
           // Ein Gericht als Zutat wird hier nicht bearbeitet — die Werte-Korrektur ließe seine Zutaten stehen.
@@ -318,7 +312,7 @@ export function ErnaehrungPage() {
 
       {sheet?.kind === 'edit' && (
         <PortionSheet key={`${sheet.entry.id}-${JSON.stringify(sheet.food.per100)}`} mode="edit" food={sheet.food} meal={sheet.entry.meal}
-          startAmount={sheet.entry.amount ?? undefined} busy={busy} hideKcal={n.goals.hideKcal}
+          startAmount={sheet.entry.amount ?? undefined} busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
           onClose={() => setSheet(null)}
           onSave={(amount, meal) => run(async () => {
             await n.update(sheet.entry, { amount, meal, food: entryFoodChanged(sheet.entry, sheet.food) ? sheet.food : undefined })
@@ -372,18 +366,20 @@ export function ErnaehrungPage() {
       )}
 
       {sheet?.kind === 'dish' && (
-        <DishEditorSheet draft={sheet.draft} busy={busy} hideKcal={n.goals.hideKcal}
+        <DishEditorSheet draft={sheet.draft} busy={busy} hideKcal={n.goals.hideKcal} focus={dishFocus} onFocus={setDishFocus}
           onChange={draft => setSheet({ ...sheet, draft })}
-          onClose={() => setSheet(sheet.back)}
-          onAddIngredient={() => setSheet({ kind: 'add', meal: sheet.meal ?? sheet.entry?.meal ?? meal0, pick: sheet })}
+          onClose={() => { setDishFocus(null); setSheet(sheet.back) }}
+          onAddIngredient={() => { setDishFocus(null); setSheet({ kind: 'add', meal: sheet.meal ?? sheet.entry?.meal ?? meal0, pick: sheet }) }}
           onSave={dish => run(async () => {
             const saved = await n.saveFood(dish)
+            setDishFocus(null)
             if (sheet.entry) setSheet({ kind: 'edit', entry: sheet.entry, food: saved })
             else if (sheet.meal) setSheet({ kind: 'portion', meal: sheet.meal, food: saved })
             else { setSheet(null); toast.success(t('nutr_dish_saved')) }
           })}
           onDelete={sheet.draft.itemId ? () => run(async () => {
             await n.removeFood(sheet.draft.itemId!)
+            setDishFocus(null)
             setSheet(sheet.meal ? { kind: 'add', meal: sheet.meal } : null)
             toast(t('nutr_dish_deleted'))
           }) : undefined} />
@@ -392,6 +388,11 @@ export function ErnaehrungPage() {
       {sheet?.kind === 'goals' && (
         <GoalsSheet userId={userId} today={todayKey} current={n.goals} busy={busy} onClose={() => setSheet(null)}
           onSave={g => run(async () => { await n.saveGoals(g); setSheet(null); toast.success(t('nutr_goals_saved')) })} />
+      )}
+
+      {sheet?.kind === 'month' && (
+        <MonthSheet userId={userId} date={date} today={todayKey} goals={n.goals} live={n.total}
+          onPick={pickDate} onClose={() => setSheet(null)} />
       )}
     </div>
   )

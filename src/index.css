@@ -1062,6 +1062,22 @@ body.onboarding-active [data-ob="ob-cal-today"][data-ob-active] {
     transition: box-shadow var(--t-fast), background-color var(--t-fast);
   }
   .select { cursor: pointer; }
+  /* Datum und Uhrzeit: iOS Safari gibt diesen Feldern eine eigene Mindest-
+     breite und übergeht width: 100% — im Bestätigungs-Sheet ragte das
+     Uhrzeitfeld rechts über den Rand. Ohne native Erscheinung und mit
+     min-width: 0 füllt es die Zeile wie jedes andere Feld. Der Wert steht
+     links wie in den Nachbarfeldern; die Mindesthöhe hält ein leeres Feld
+     davon ab, zusammenzufallen. */
+  .input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+  }
+  .input::-webkit-date-and-time-value {
+    min-height: 1.4em;
+    text-align: left;
+  }
   .input::placeholder { color: var(--text-muted); }
   .input:focus,
   .select:focus {
@@ -1768,6 +1784,9 @@ main.flex-1 {
 :root {
   --tyd-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --tyd-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Freiraum ueber Popups: nie unter Statusleiste, Notch oder Dynamic Island.
+     Ohne Sicherheitsbereich (Desktop, aeltere Handys) bleiben 2.5rem. */
+  --tyd-popup-top: max(2.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem));
 }
 
 /* Knoepfe geben beim Druck nach — sofort, nicht erst beim Loslassen. */
@@ -1817,4 +1836,124 @@ main.flex-1 {
 .tyd-collapse > * { min-height: 0; overflow: hidden; }
 @media (prefers-reduced-motion: no-preference) {
   .tyd-collapse { transition: grid-template-rows 220ms var(--tyd-ease-out), opacity 180ms ease; }
+}
+
+/* PDF-Generator: Live-Vorschau (PdfPagesPreview). Druck auf Karten: .tyd-press. */
+.pdf-pager { scrollbar-width: none; }
+.pdf-pager::-webkit-scrollbar { display: none; }
+.pdf-page {
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22), 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pdf-page { transition: transform 140ms var(--tyd-ease-out); }
+  .pdf-page:active { transform: scale(0.985); }
+}
+
+/* Pfeile nur mit Maus/Trackpad — auf dem Handy wischt man. */
+.pdf-pager-arrow {
+  position: absolute;
+  top: 50%;
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  transform: translateY(-50%);
+  transition: opacity 150ms ease;
+}
+.pdf-pager-arrow:disabled { opacity: 0; pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pdf-pager-arrow { display: grid; }
+}
+
+/* Vollansicht: Abdunkeln + die Seiten wachsen aus der Vorschau heraus. */
+.pdf-viewer-scrim,
+.pdf-viewer-top,
+.pdf-viewer-body { opacity: 0; }
+.pdf-viewer.is-shown .pdf-viewer-scrim,
+.pdf-viewer.is-shown .pdf-viewer-top,
+.pdf-viewer.is-shown .pdf-viewer-body { opacity: 1; }
+/* Zwei-Finger-Zoom macht die Ansicht selbst (PdfPageViewer), nicht der Browser. */
+.pdf-viewer-body { touch-action: pan-x pan-y; }
+.pdf-viewer-scrim,
+.pdf-viewer-top { transition: opacity 200ms ease; }
+.pdf-viewer-body { transition: opacity 120ms ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .pdf-viewer-body {
+    transform: scale(0.94);
+    transition: opacity 200ms ease, transform 300ms var(--tyd-ease-drawer);
+  }
+  .pdf-viewer.is-shown .pdf-viewer-body { transform: none; }
+}
+
+/* PDF-Generator als Seite: „Teilen" schwebt über der Tab-Leiste (.tyd-tabdock),
+   der Verlauf dahinter blendet den Inhalt aus, statt eine harte Kante zu ziehen. */
+.pdf-share-dock {
+  position: fixed;
+  left: max(var(--bottom-nav-inset), env(safe-area-inset-left));
+  right: max(var(--bottom-nav-inset), env(safe-area-inset-right));
+  bottom: calc(env(safe-area-inset-bottom) + var(--bottom-nav-gap) + var(--bottom-nav-capsule) + 12px);
+  z-index: 40;
+  max-width: 480px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.pdf-share-dock::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * max(var(--bottom-nav-inset), env(safe-area-inset-left)));
+  right: calc(-1 * max(var(--bottom-nav-inset), env(safe-area-inset-right)));
+  top: -40px;
+  bottom: calc(-1 * (env(safe-area-inset-bottom) + var(--bottom-nav-gap) + var(--bottom-nav-capsule) + 12px));
+  z-index: -1;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--app-bg) 88%, transparent) 30%, var(--app-bg));
+}
+
+/* My Stack: „Aktiv"-Punkt im Karussell. Ein ruhiger Ring geht vom Punkt aus
+   und verblasst — wie ein Herzschlag, alle 2 s. Nur transform und opacity.
+   Wer Bewegung abbestellt hat, sieht den Punkt still. */
+.tyd-active-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgb(52, 211, 153);
+}
+.tyd-active-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(52, 211, 153);
+  opacity: 0;
+}
+@keyframes tyd-active-ping {
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-active-dot::after { animation: tyd-active-ping 2s cubic-bezier(0.23, 1, 0.32, 1) infinite; }
+}
+
+/* Blasen in der Vial-Fluessigkeit (LiquidGraphic). Frueher SMIL — das zwang
+   Chrome in jedem Bild zur Stilberechnung der ganzen Seite. Jetzt nur
+   transform und opacity. In SVG gelten px als Einheiten des viewBox:
+   derselbe Weg von 192 nach 30 wie vorher. */
+@keyframes tyd-liquid-bubble {
+  0% { transform: translateY(192px); opacity: 0; }
+  18% { opacity: 0.5; }
+  72% { opacity: 0.5; }
+  100% { transform: translateY(30px); opacity: 0; }
+}
+.tyd-liquid-bubble { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .tyd-liquid-bubble {
+    animation-name: tyd-liquid-bubble;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
 }

@@ -136,7 +136,7 @@ export function RoutineConfirmationSheet({
         data-app-back-dirty-on-interaction
         aria-labelledby={titleId}
         {...closingProps}
-        className="tyd-sheet fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+        className="tyd-sheet fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-0.75rem-var(--tyd-popup-top))] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
       >
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">

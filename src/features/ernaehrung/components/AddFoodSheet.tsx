@@ -1,20 +1,22 @@
 import { useMemo, useRef, useState } from 'react'
 import { Camera, ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from '../../compliance/components/Sheet'
+import { Sheet } from './Panel'
 import { type FrequentFood, mergeResults } from '../lib/foodSearch'
-import { type Food, type Meal, parseAmount } from '../lib/nutrition'
+import { type Food, type Meal, nutrientsFor, parseAmount } from '../lib/nutrition'
 import { searchBrands } from '../services/foodLookup'
 import { DIM, MUTED } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
+import { FoodOrb } from './FoodOrb'
+import { ScoreBadge } from './ScoreBadge'
 
 type Tab = 'frequent' | 'mine' | 'dishes'
 type Remote = { query: string; state: 'loading' | 'done' | 'error'; results: Food[] }
 
 const TAB_LABEL: Record<Tab, string> = { frequent: 'nutr_tab_frequent', mine: 'nutr_tab_mine', dishes: 'nutr_tab_dishes' }
 
-function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; hideKcal: boolean; onPick: () => void }) {
+function FoodRow({ food, hint, hideKcal, goalKcal, onPick }: { food: Food; hint?: string; hideKcal: boolean; goalKcal: number; onPick: () => void }) {
   const { t } = useTranslation()
   // Gerichte zeigen Werte je Portion — so trägt man sie auch ein.
   const portion = food.recipe && food.serving ? food.serving.amount : null
@@ -23,8 +25,9 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
   return (
     <li>
       <button type="button" onClick={onPick}
-        className="flex min-h-[56px] w-full items-center justify-between gap-3 px-4 py-2 text-left transition-colors active:bg-[var(--lg-fill)]">
-        <span className="min-w-0">
+        className="flex min-h-[56px] w-full items-center justify-between gap-3 py-2 pl-2 pr-4 text-left transition-colors active:bg-[var(--lg-fill)]">
+        <FoodOrb values={nutrientsFor(food.per100, per)} goalKcal={goalKcal} size={40} />
+        <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
             {food.favorite && <Star size={13} aria-hidden="true" className="shrink-0 fill-[#ffd60a] text-[#ffd60a]" />}
             <span className="truncate text-[17px] text-[var(--lg-text)]">{food.name}</span>
@@ -34,9 +37,12 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
             <span className="truncate">{[sub, hint].filter(Boolean).join(' · ')}</span>
           </span>
         </span>
-        <span className={`shrink-0 text-right text-[15px] tabular-nums ${DIM}`}>
+        <span className="flex shrink-0 items-center gap-2.5">
+        <ScoreBadge per100={food.per100} unit={food.unit} />
+        <span className={`text-right text-[15px] tabular-nums ${DIM}`}>
           {hideKcal ? `${Math.round(food.per100.protein * per / 100)} g P` : `${Math.round(food.per100.kcal * per / 100)} kcal`}
           <span className={`block text-[12px] ${MUTED}`}>{portion ? t('nutr_per_portion_short') : `/ 100 ${food.unit}`}</span>
+        </span>
         </span>
       </button>
     </li>
@@ -47,7 +53,7 @@ function FoodRow({ food, hint, hideKcal, onPick }: { food: Food; hint?: string; 
  * Lebensmittel suchen und wählen. `ingredient`: Zutat für ein Gericht — ohne
  * Schnelleintrag und ohne Gerichte-Liste.
  */
-export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, initialQuery = '', hideKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
+export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, initialQuery = '', hideKcal, goalKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
   meal: Meal
   mode?: 'log' | 'ingredient'
   /** Dieses eigene Lebensmittel nicht anbieten (das Gericht, für das wir Zutaten suchen). */
@@ -57,6 +63,8 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   frequent: FrequentFood[]
   myFoods: Food[]
   hideKcal: boolean
+  /** Tagesziel: Größe der Essens-Kugeln im Verhältnis zur Tageskugel. */
+  goalKcal: number
   /** `amount` = vorgeschlagene Menge (bei „Häufig" die zuletzt gegessene). */
   onPick: (food: Food, amount?: number) => void
   onScan: () => void
@@ -72,7 +80,8 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   const myFoods = useMemo(() => (exclude ? allMyFoods.filter(f => f.itemId !== exclude) : allMyFoods), [allMyFoods, exclude])
   const tabs: Tab[] = mode === 'log' ? ['frequent', 'mine', 'dishes'] : ['frequent', 'mine']
   const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : 'mine')
-  const dishes = useMemo(() => myFoods.filter(f => f.recipe), [myFoods])
+  // Gerichte, die zu dieser Mahlzeit passen („Passt zu“), stehen oben; sonst bleibt die Reihenfolge.
+  const dishes = useMemo(() => myFoods.filter(f => f.recipe).sort((a, b) => Number(b.meal === meal) - Number(a.meal === meal)), [myFoods, meal])
   const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe), [myFoods])
   const [query, setQuery] = useState(initialQuery)
   const [remote, setRemote] = useState<Remote | null>(null)
@@ -160,13 +169,13 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
       <div className="-mx-5 mt-2 min-h-[180px]" aria-live="polite">
         {!q && tab === 'frequent' && (frequent.length
           ? <ul className="lg-rows">{frequent.map(f => (
-              <FoodRow key={`${f.food.itemId ?? f.food.sourceRef ?? f.food.name}`} food={f.food} hideKcal={hideKcal}
+              <FoodRow key={`${f.food.itemId ?? f.food.sourceRef ?? f.food.name}`} food={f.food} hideKcal={hideKcal} goalKcal={goalKcal}
                 hint={`${Math.round(f.lastAmount)} ${f.food.unit}`} onPick={() => onPick(f.food, f.lastAmount)} />
             ))}</ul>
           : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_frequent_empty')}</p>)}
 
         {!q && tab === 'mine' && (plainFoods.length
-          ? <ul className="lg-rows">{sorted(plainFoods).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} onPick={() => onPick(f)} />)}</ul>
+          ? <ul className="lg-rows">{sorted(plainFoods).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} goalKcal={goalKcal} onPick={() => onPick(f)} />)}</ul>
           : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_mine_empty')}</p>)}
 
         {!q && tab === 'dishes' && (
@@ -177,7 +186,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
               </button>
             )}
             {dishes.length
-              ? <ul className="lg-rows">{sorted(dishes).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} onPick={() => onPick(f)} />)}</ul>
+              ? <ul className="lg-rows">{sorted(dishes).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} goalKcal={goalKcal} onPick={() => onPick(f)} />)}</ul>
               : (
                 <p className={`flex flex-col items-center gap-2 px-6 py-6 text-center text-[15px] ${MUTED}`}>
                   <ChefHat size={28} aria-hidden="true" />{t('nutr_dishes_empty')}
@@ -190,7 +199,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
           <>
             {merged.length > 0 && (
               <ul className="lg-rows">{merged.map((f, i) => (
-                <FoodRow key={`${f.source}:${f.itemId ?? f.sourceRef ?? f.name}:${i}`} food={f} hideKcal={hideKcal}
+                <FoodRow key={`${f.source}:${f.itemId ?? f.sourceRef ?? f.name}:${i}`} food={f} hideKcal={hideKcal} goalKcal={goalKcal}
                   onPick={() => onPick(f, lastAmount(f))} />
               ))}</ul>
             )}

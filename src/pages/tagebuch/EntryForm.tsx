@@ -206,10 +206,10 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-10" data-app-modal data-app-back-dirty-on-interaction
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]" data-app-modal data-app-back-dirty-on-interaction
       onClick={dismiss}>
       <div role="dialog" aria-modal="true" aria-labelledby="tagebuch-form-title"
-        className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-[90vh] scroll-pb-28"
+        className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full scroll-pb-28"
         onClick={e => e.stopPropagation()}
         onKeyDown={e => { if (e.key === 'Escape' && !editing && !infoOpen) { e.stopPropagation(); dismiss() } }}>
         <span className="lg-grabber !mb-1" aria-hidden="true" />

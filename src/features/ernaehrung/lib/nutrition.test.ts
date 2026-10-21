@@ -4,7 +4,7 @@ import {
   parseAmount, per100FromEntry, proteinReferenceKg, scaleNutrients, suggestGoals, sumNutrients, type LogEntry, type Per100,
 } from './nutrition'
 
-const oats: Per100 = { kcal: 372, protein: 13.5, carbs: 58.7, fat: 7, fiber: 10, sugar: 1.2, salt: 0.02 }
+const oats: Per100 = { kcal: 372, protein: 13.5, carbs: 58.7, fat: 7, fiber: 10, sugar: 1.2, satFat: null, salt: 0.02 }
 
 const entry = (over: Partial<LogEntry> = {}): LogEntry => ({
   id: '1', date: '2026-10-18', meal: 'breakfast', itemId: null, source: 'custom', sourceRef: null,
@@ -30,7 +30,7 @@ describe('Eingabe', () => {
 
 describe('Rechnen', () => {
   it('skaliert je 100 g auf die Menge', () => {
-    expect(nutrientsFor(oats, 50)).toEqual({ kcal: 186, protein: 6.8, carbs: 29.4, fat: 3.5, fiber: 5, sugar: 0.6, salt: 0.01 })
+    expect(nutrientsFor(oats, 50)).toEqual({ kcal: 186, protein: 6.8, carbs: 29.4, fat: 3.5, fiber: 5, sugar: 0.6, satFat: null, salt: 0.01 })
   })
   it('unbekannt bleibt unbekannt (null statt 0)', () => {
     expect(nutrientsFor({ ...oats, fiber: null }, 50).fiber).toBeNull()
@@ -40,7 +40,7 @@ describe('Rechnen', () => {
     expect(per100FromEntry(entry({ amount: null }))).toBeNull()
   })
   it('Menge ändern skaliert den Schnappschuss mit einer Rundung (kein Umweg über gerundete 100-g-Werte)', () => {
-    const n = { kcal: 1234.5, protein: 10, carbs: 0, fat: 3.3, fiber: 0.07, sugar: null, salt: 0.03 }
+    const n = { kcal: 1234.5, protein: 10, carbs: 0, fat: 3.3, fiber: 0.07, sugar: null, satFat: null, salt: 0.03 }
     expect(scaleNutrients(n, 1)).toMatchObject({ kcal: 1234.5, fat: 3.3 })
     expect(scaleNutrients(n, 40).fiber).toBe(2.8)
     expect(scaleNutrients(n, 2).sugar).toBeNull()
