@@ -101,7 +101,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       {/* Kugel · Name · Knöpfe; auf schmalen Geräten (iPhone SE) steht der Name darunter in voller Breite. */}
       <div className="grid grid-cols-[auto_1fr_auto] items-start gap-x-2">
         {/* Die Kugel dieses Essens: gleiche Punktdichte wie die Tageskugel (ein ganzer Tag wäre so groß wie sie). */}
-        <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={96} fullFrac={0.73} />
+        <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={96} fullFrac={0.73} spin />
         <div className="col-start-2 row-start-1 min-w-0 self-center max-[379px]:col-span-3 max-[379px]:col-start-1 max-[379px]:row-start-2 max-[379px]:mt-2">
           {/* Abzeichen unter, nicht in der Überschrift: sie benennt das Blatt und darf umbrechen. */}
           <h2 id="nutr-portion-title" lang={lang} className="lg-title2 min-w-0 hyphens-auto [overflow-wrap:anywhere]">{food.name}</h2>

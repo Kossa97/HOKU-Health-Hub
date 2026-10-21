@@ -2812,6 +2812,7 @@
   "nutr_dish_orb_unit": "{{unit}} per serving",
   "nutr_dish_orb_share": "{{pct}} % of your daily goal",
   "nutr_dish_orb_empty": "Add ingredients – the orb takes shape",
+  "nutr_close_page": "Close nutrition",
   "my_stack_plan_time_clear": "Remove time",
   "my_stack_detail_missing": "Add missing details ({{n}})",
   "my_stack_color_custom": "Custom color",

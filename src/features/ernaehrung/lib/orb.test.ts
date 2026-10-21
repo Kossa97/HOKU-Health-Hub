@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_GOALS } from './nutrition'
-import { dotScale, fill, fillChange, gramText, orbLayout, spherePoints } from './orb'
+import { ORB_TILT, dotScale, fill, fillChange, fitOrb, gramText, orbLayout, spherePoints } from './orb'
+import { qAxis, qMat, qMul } from './orbDraw'
 
 describe('spherePoints', () => {
   it('liegen auf der Einheitskugel, oben beginnend, und werden zwischengespeichert', () => {
@@ -81,5 +82,55 @@ describe('gramText', () => {
   it('Überschuss als Zahl', () => {
     expect(gramText(64.4, 150)).toBe('64 / 150 g')
     expect(gramText(180, 150)).toBe('180 / 150 g · +30')
+  })
+})
+
+describe('fitOrb', () => {
+  const empty = { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+
+  // Wie der Zeichner (orbEngine): Kugel geneigt und um die senkrechte Achse gedreht, Bahn geneigt.
+  const reach = (layout: ReturnType<typeof orbLayout>, R: number, cy: number, w: number) => {
+    let left = Infinity, right = -Infinity, top = Infinity
+    for (const m of layout.moons) {
+      const o = m.orbit
+      for (let i = 0; i < 36; i++) {
+        const q = qMul(qAxis(1, 0, 0, ORB_TILT), qAxis(0, 1, 0, (i / 36) * Math.PI * 2))
+        const Q = qMat(qMul(q, qMul(qAxis(0, 0, 1, o.tiltZ), qAxis(1, 0, 0, o.tiltX))))
+        for (let j = 0; j < 36; j++) {
+          const th = (j / 36) * Math.PI * 2
+          const lx = Math.cos(th) * o.rad, lz = Math.sin(th) * o.rad
+          const x = w / 2 + (Q[0] * lx + Q[2] * lz) * R, y = cy - (Q[3] * lx + Q[5] * lz) * R
+          const mr = R * m.r * 1.15 * 1.38
+          left = Math.min(left, x - mr); right = Math.max(right, x + mr); top = Math.min(top, y - mr)
+        }
+      }
+    }
+    return { left, right, top }
+  }
+
+  it('macht die Kugel so groß wie möglich, ohne dass ein Mond aus dem Bild läuft (iPhone 13 und SE, oben und gescrollt)', () => {
+    const layout = orbLayout(empty, DEFAULT_GOALS)
+    for (const [w, h] of [[390, 316], [390, 250], [320, 316], [320, 250]]) {
+      const { R, cy } = fitOrb(layout, w, h)
+      const r = reach(layout, R, cy, w)
+      expect(r.left).toBeGreaterThanOrEqual(0)
+      expect(r.right).toBeLessThanOrEqual(w)
+      expect(r.top).toBeGreaterThanOrEqual(0)
+      // Unten bleibt Platz für die zwei Textzeilen.
+      expect(cy + R).toBeLessThanOrEqual(h - 80 + 0.5)
+    }
+    // iPhone 13 oben: deutlich größer als die alten 70 px.
+    expect(fitOrb(layout, 390, 316).R).toBeGreaterThan(84)
+  })
+
+  it('große Monde (hohes Ziel) machen die Kugel kleiner statt sie hinausragen zu lassen', () => {
+    const big = orbLayout(empty, { ...DEFAULT_GOALS, carbsG: 900 })
+    const normal = orbLayout(empty, DEFAULT_GOALS)
+    expect(fitOrb(big, 390, 316).R).toBeLessThan(fitOrb(normal, 390, 316).R)
+    const { R, cy } = fitOrb(big, 390, 316)
+    const r = reach(big, R, cy, 390)
+    expect(r.left).toBeGreaterThanOrEqual(0)
+    expect(r.right).toBeLessThanOrEqual(390)
+    expect(r.top).toBeGreaterThanOrEqual(0)
   })
 })

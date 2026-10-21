@@ -2812,6 +2812,7 @@
   "nutr_dish_orb_unit": "{{unit}} je Portion",
   "nutr_dish_orb_share": "{{pct}} % deines Tagesziels",
   "nutr_dish_orb_empty": "Füge Zutaten hinzu – die Kugel entsteht",
+  "nutr_close_page": "Ernährung schließen",
   "my_stack_plan_time_clear": "Uhrzeit entfernen",
   "my_stack_detail_missing": "Fehlende Angaben ergänzen ({{n}})",
   "my_stack_color_custom": "Eigene Farbe",

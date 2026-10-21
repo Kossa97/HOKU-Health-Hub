@@ -336,9 +336,6 @@ export class MockSupabase {
     this.rpcFailures.set(name, message)
   }
 
-  /** Diese RPC gibt es (noch) nicht in der Datenbank — antwortet wie PostgREST mit PGRST202. */
-  readonly missingRpcs = new Set<string>()
-
   onRpc(name: string, handler: (params: Record<string, unknown>) => unknown): void {
     this.rpcHandlers.set(name, handler)
   }
@@ -547,9 +544,6 @@ export class MockSupabase {
     const name = url.pathname.slice('/rest/v1/rpc/'.length)
     const params = (route.request().postDataJSON() ?? {}) as Record<string, unknown>
     this.rpcCalls.push({ name, params })
-    if (this.missingRpcs.has(name)) {
-      return route.fulfill({ status: 404, headers: corsHeaders(), json: { code: 'PGRST202', message: `Could not find the function public.${name}`, details: null, hint: null } })
-    }
     const handler = this.rpcHandlers.get(name)
     if (!handler) {
       this.unhandled.push(`RPC ${name}`)

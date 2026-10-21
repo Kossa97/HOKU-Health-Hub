@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, Target } from 'lucide-react'
+import { Target, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { type OrbLayout, gramText, orbLayout } from '../lib/orb'
+import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
 import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
 import { takeOrbOrigin, useOrbPreview } from '../lib/orbBridge'
@@ -13,22 +13,22 @@ import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
 
 /**
  * Tagesübersicht als Kalorien-Kugel, fest oben auf der Seite: Alles andere
- * (Woche, Mahlzeiten, Formulare) läuft darunter. Beim Scrollen wird sie kleiner,
- * höchstens auf 80 %. 1 Punkt = 1 kcal, von unten gefüllt, Makros als Monde
+ * (Woche, Mahlzeiten, Formulare) läuft darunter; sie bleibt beim Scrollen gleich
+ * groß im Hintergrund. 1 Punkt = 1 kcal, von unten gefüllt, Makros als Monde
  * (1 Punkt = 1 g); über dem Ziel eine Hülle in derselben Farbe, ohne Wertung.
  * Seitlich wischen dreht, ein Mond (oder sein Eintrag darunter) lässt sich
  * antippen. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
  * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, onOpenGoals }: {
+export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: {
   total: Nutrients
   goals: Goals
   date: string
   /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
   ready: boolean
-  dayLabel: string
-  onOpenMonth: () => void
   onOpenGoals: () => void
+  /** Seite schließen (oben links; die Zurück-Geste löst denselben Knopf aus). */
+  onClose: () => void
 }) {
   const { t } = useTranslation()
   const reduce = usePrefersReducedMotion()
@@ -41,6 +41,11 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
 
   const { kcal, protein, carbs, fat } = total
   const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, goals), [kcal, protein, carbs, fat, goals])
+  const layoutRef = useRef(layout)
+  /** Breite und Höhe der Zone (CSS-Pixel) und die Anpassung der Kugel daran. */
+  const zoneSize = useRef({ w: 390, h: ZONE_MAX, fit: () => {} })
+  // Andere Ziele → andere Mondgrößen → Kugel neu einpassen.
+  useEffect(() => { layoutRef.current = layout; zoneSize.current.fit() }, [layout])
   const previewLayout = useMemo(
     () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, goals) : null),
     [add, kcal, protein, carbs, fat, goals],
@@ -58,7 +63,15 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
     const palette = () => engine.setPalette(orbPalette(zone))
     palette()
     // Scrollen: Zone und Kugel schrumpfen bis auf 80 %.
-    const untrack = trackZone(zone, canvas, w => engine.resize(w, ZONE_MAX + BELOW, ZONE_MAX * 0.4), (h, scale) => engine.setStage(h * 0.4, scale))
+    // Größe und Lage aus dem Platz: so groß wie möglich, ohne dass ein Mond aus dem Bild läuft (fitOrb).
+    const stage = zoneSize.current
+    stage.fit = () => {
+      const { R, cy } = fitOrb(layoutRef.current, stage.w, stage.h)
+      engine.setStage(cy, R)
+    }
+    const untrack = trackZone(zone, canvas,
+      w => { stage.w = w; engine.resize(w, ZONE_MAX + BELOW, ZONE_MAX * 0.4) },
+      h => { stage.h = h; stage.fit() })
     // Akzentfarbe oder Aussehen gewechselt.
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
@@ -138,17 +151,18 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
           className="pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
           style={{ height: ZONE_MAX + BELOW }} />
         {/* Gesten auf der Kugel; die Zeichenfläche selbst lässt Taps auf die Formulare darunter durch. */}
-        <div aria-hidden="true" className="absolute inset-x-0 top-11 bottom-[76px] z-[1] cursor-grab touch-pan-y"
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 bottom-[76px] z-[1] cursor-grab touch-pan-y"
           onPointerDown={e => engineRef.current?.pointerDown(e.nativeEvent)}
           onPointerMove={e => engineRef.current?.pointerMove(e.nativeEvent)}
           onPointerUp={e => engineRef.current?.pointerUp(e.nativeEvent)}
           onPointerCancel={() => engineRef.current?.pointerCancel()} />
-        <button type="button" onClick={onOpenMonth} aria-label={`${dayLabel} · ${t('nutr_month_open')}`}
-          className="absolute left-1 top-1 z-[2] flex min-h-11 items-center gap-1 px-2 text-[15px] font-semibold text-[var(--lg-text-2)]">
-          {dayLabel}<ChevronDown size={14} strokeWidth={2.6} aria-hidden="true" />
-        </button>
-        {/* Tageswechsel ansagen (der Knopf selbst ist kein Live-Bereich). */}
-        <span className="sr-only" aria-live="polite">{dayLabel}</span>
+        {/* Ohne Leiste: oben links schließen (die Zurück-Geste löst denselben Knopf aus). */}
+        <div className="absolute left-1 top-1 z-[2]">
+          <button type="button" data-app-page-close onClick={onClose} aria-label={t('nutr_close_page')}
+            className="lg-icon-btn !text-[var(--lg-text-2)]">
+            <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
+          </button>
+        </div>
         {/* Eigener Rahmen: .lg-glass setzt position: relative. */}
         <div className="absolute right-3 top-1.5 z-[2]">
           <button type="button" onClick={onOpenGoals}
@@ -175,14 +189,17 @@ export function DaySummary({ total, goals, date, ready, dayLabel, onOpenMonth, o
             </span>
             {plus > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plus}</span>}
           </p>
-          <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[11px]' : 'text-[12px]'}`}>
+          <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[clamp(9px,2.8vw,11px)]' : 'text-[clamp(10px,3.1vw,12px)]'}`}>
             {macros.map(m => (
               <button key={m.key} type="button" aria-pressed={focus?.key === m.key} disabled={!m.moon}
                 aria-label={`${t(MACRO_NAME[m.key])} ${gramText(m.value, m.goal)}`}
                 onClick={() => engineRef.current?.focus(focus?.key === m.key ? null : m.key)}
                 className="flex min-h-8 items-center gap-1.5 whitespace-nowrap tabular-nums text-[var(--lg-text-2)]">
                 <span aria-hidden="true" className="h-[7px] w-[7px] shrink-0 rounded-full" style={{ background: MACRO_COLORS[m.key] }} />
-                {t(MACRO_NAME[m.key])} <b className="font-semibold text-[var(--lg-text)]">{g(m.value)}/{m.goal}g</b>
+                {m.key === 'carbs' ? (
+                  // Schmale Geräte (iPhone SE): „Kohlenh.“, sonst passt die Zeile nicht.
+                  <><span className="max-[359px]:hidden">{t(MACRO_NAME.carbs)}</span><span className="min-[360px]:hidden">{t('nutr_carbs_short')}</span></>
+                ) : t(MACRO_NAME[m.key])} <b className="font-semibold text-[var(--lg-text)]">{g(m.value)}/{m.goal}g</b>
               </button>
             ))}
           </div>
