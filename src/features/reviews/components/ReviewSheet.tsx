@@ -13,6 +13,7 @@ import {
   type ReviewDraft,
   type WiederNehmen,
 } from '../lib/reviewModel'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 export interface ReviewSubstanz {
   id: string
@@ -92,7 +93,7 @@ export function ReviewSheet({
         }}
       >
         <div className="pt-2">
-          <span className="lg-grabber" aria-hidden="true" />
+          <SheetGriff onClose={onClose} />
         </div>
         <div className="flex items-center justify-between pl-5 pr-2 pt-1 pb-1">
           <h3 className="lg-title2">{titel}</h3>

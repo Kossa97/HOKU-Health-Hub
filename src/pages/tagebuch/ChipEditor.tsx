@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { useTranslation } from 'react-i18next'
 import { SymptomIcon } from './SymptomChip'
 import { UNIT_MINUTES, WHEEL_MAX, fromMinutes, kindColor, toMinutes, unitLabel, type ChipDraft, type DurationMode } from './chips'
+import { SheetGriff } from '../../components/ui/SheetGriff'
 
 const ITEM = 34
 const NUMS = Array.from({ length: WHEEL_MAX }, (_, i) => i + 1)
@@ -171,7 +172,7 @@ export function ChipEditor({ chip, label, isNew, onDone, onRemove, onClose }: {
       <button type="button" tabIndex={-1} aria-label={t('close')} className="absolute inset-0 cursor-default bg-black/50" onClick={onClose} />
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby="chip-editor-title" onKeyDown={onKeyDown}
         className="lg-sheet lg-sheet-solid relative max-h-full w-full max-w-lg space-y-[18px] overflow-y-auto overscroll-contain px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] !bg-[#2c2c2e]">
-        <span className="lg-grabber !mb-1" aria-hidden="true" />
+        <SheetGriff className="!mb-1" onClose={onClose} />
         <div className="flex items-center gap-3.5">
           <span aria-hidden="true" className="flex size-[52px] shrink-0 items-center justify-center rounded-full"
             style={{ color, background: `color-mix(in srgb, ${color} 28%, transparent)` }}>

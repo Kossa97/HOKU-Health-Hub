@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useSheetClose } from '../../../lib/useSheetClose'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { BUNDLE_NAME_MAX, normalizeBundleName, type IntakeBundle } from './intakeBundles'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 interface BundleSheetItem {
   id: string
@@ -68,7 +69,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         {...closingProps}
         className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
       >
-        <span className="lg-grabber mb-3" aria-hidden="true" />
+        <SheetGriff className="mb-3" onClose={requestClose} disabled={saving} />
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id={titleId} className="lg-title2">

@@ -5,6 +5,7 @@
 import { useTranslation } from 'react-i18next'
 import { Camera, ChevronRight, FileText, PenLine, Sparkles, type LucideIcon } from 'lucide-react'
 import { CYAN, MUTED, TEXT } from '../styles'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 export type AddChoice = 'document' | 'photo' | 'manual'
 
@@ -30,7 +31,7 @@ export function AddSheet({ onPick, onClose }: Props) {
         className="lg-sheet w-full max-w-lg px-4 pb-4 pt-2"
         onClick={e => e.stopPropagation()}
       >
-        <span className="lg-grabber mb-3" aria-hidden="true" />
+        <SheetGriff className="mb-3" onClose={onClose} />
         <h2 id="bw-add-title" className="lg-title2 mb-3 px-1">{t('bw_add_title')}</h2>
         <div className="lg-group lg-rows">
           {OPTIONS.map(({ key, icon: Icon, title, desc, ki }) => (

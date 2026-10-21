@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { INJECTION_SITE_PRESETS, injectionSitePresetKey, type InjectionSitePreset } from '../../lib/injectionSitePresets'
+import { SheetGriff } from '../ui/SheetGriff'
 
 const REGION_ORDER = ['abdomen', 'thigh', 'glute', 'deltoid', 'upper_arm'] as const
 
@@ -41,7 +42,7 @@ export function InjectionSitePickerSheet({
           paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
-        <div className="lg-grabber mb-3" aria-hidden="true" />
+        <SheetGriff className="mb-3" onClose={onClose} />
         <div className="mb-2 flex items-start justify-between gap-3">
           <h2 id="injection-site-picker-title" className="lg-title2">
             {t('injection_pick_site_title', { defaultValue: 'Injektionsstelle wählen' })}

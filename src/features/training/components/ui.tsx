@@ -7,6 +7,7 @@ import {
 import type { SessionKind } from '../types'
 import { useTrainingText } from '../i18n'
 import { SheetClose } from '../../../components/ui/SheetClose'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 /**
  * Bausteine des Workout-Trackers im Liquid-Glass-Schwarz der App: Flächen
@@ -235,7 +236,7 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
           color: 'var(--lg-text)',
         }}
       >
-        <span className="lg-grabber" aria-hidden="true" style={{ marginTop: 8 }} />
+        <SheetGriff style={{ marginTop: 8 }} onClose={onClose} disabled={busy} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px 8px 20px' }}>
           <h2 id={titleId} className="lg-title2" style={{ flex: 1, minWidth: 0 }}>{title}</h2>
           <SheetClose onClick={onClose} disabled={busy} label={closeLabel} />
