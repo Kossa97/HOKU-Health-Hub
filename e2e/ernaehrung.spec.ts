@@ -54,7 +54,7 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
 
   await expect(page.getByRole('heading', { name: 'Skyr Natur' })).toBeVisible()
   // Nährwert-Punkte je 100 g: wenig Zucker und Salz, viel Eiweiß
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte: 5 von 5' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte: 4,9 von 5' })).toBeVisible()
   // Portion des Produkts ist vorgewählt — beide Felder: Menge in g und Anzahl („1 Becher“).
   await expect(page.getByLabel('Menge in g')).toHaveValue('150')
   await expect(page.getByLabel('Anzahl (1 Becher ≈ 150 g)')).toHaveValue('1')
@@ -68,7 +68,7 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
   await addAndClose(page)
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
-  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte: 5 von 5' })).toBeVisible()
+  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte: 4,9 von 5' })).toBeVisible()
   expect(mock.foodLookup.calls).toEqual([{ barcode: '4002671157751', query: undefined }])
   expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({
