@@ -1819,10 +1819,18 @@ main.flex-1 {
 .tyd-sheet[data-closing], .tyd-backdrop[data-closing] { pointer-events: none; }
 .tyd-backdrop { animation: tyd-fade-in 200ms ease both; }
 .tyd-backdrop[data-closing] { animation: tyd-fade-out 200ms ease both; }
+/* Ein gezogenes Blatt (src/lib/useSheetDrag.ts) folgt dem Finger ueber ein
+   Inline-transform. Eine Animation schluege es — also keine mehr, ausser beim
+   Schliessen ueber Kreuz oder Hintergrund danach. Weggezogen (`weg`) faehrt es
+   aus der Hand hinaus und braucht auch dafuer keine. */
+.tyd-sheet[data-gezogen] { animation: none; }
+.tyd-sheet[data-gezogen]:not([data-gezogen="weg"])[data-closing] { animation: tyd-fade-out 150ms ease both; }
 
 @media (prefers-reduced-motion: no-preference) {
   .tyd-sheet { animation: tyd-sheet-in 320ms var(--tyd-ease-drawer) both; }
   .tyd-sheet[data-closing] { animation: tyd-sheet-out 200ms var(--tyd-ease-out) both; }
+  .tyd-sheet[data-gezogen] { animation: none; }
+  .tyd-sheet[data-gezogen]:not([data-gezogen="weg"])[data-closing] { animation: tyd-sheet-out 200ms var(--tyd-ease-out) both; }
 }
 
 /* Aufklappen einer Einnahme: Hoehe ueber das Raster (0fr → 1fr) statt

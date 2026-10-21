@@ -67,6 +67,7 @@ import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDe
 import { PageShell } from '../components/ui/DesignSystem'
 import { EinnahmenUmriss, Silhouette } from '../components/ui/Silhouette'
 import { useSheetClose } from '../lib/useSheetClose'
+import { useSheetDrag } from '../lib/useSheetDrag'
 import { denyProps } from '../lib/denyFeedback'
 import { dayKey, readSharedDay, writeSharedDay } from '../lib/sharedDay'
 
@@ -416,7 +417,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [monatOffen, setMonatOffen] = useState(false)
   const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
   const monatsKnopf = useRef<HTMLButtonElement>(null)
-  const monatsBlatt = useRef<HTMLDivElement>(null)
+  const { blatt: monatsBlatt, griffe: monatsBlattZiehen } = useSheetDrag<HTMLDivElement>(monatsBlattSchliessen.requestClose)
 
   // Horizontal swipe state
   const calendarSwipeStart = useRef<{ x: number; y: number; t: number; pointerId: number } | null>(null)
@@ -522,7 +523,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       document.removeEventListener('keydown', beiTaste)
       ;(knopf ?? vorher)?.focus()
     }
-  }, [monatOffen, requestMonatClose])
+  }, [monatOffen, requestMonatClose, monatsBlatt])
 
   const verschiebeEbenen = (x: number, animiert: boolean) => {
     const haupt = monatOffen ? monatsRasterRef.current : streifenRef.current
@@ -2366,43 +2367,47 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {...monatsBlattSchliessen.closingProps}
             className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2 focus:outline-none"
           >
-            <div className="lg-grabber mb-2" />
+            {/* Griff, Kopfzeile und Wochentage ziehen das Blatt nach unten weg.
+                Darunter bleibt das Raster beim seitlichen Blaettern. */}
+            <div {...monatsBlattZiehen} className="-mx-4 -mt-2 px-4 pt-2" style={{ touchAction: 'none' }}>
+              <div className="lg-grabber mb-2" />
 
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="lg-title2 truncate pl-1">{monthTitle}</h2>
-              <div className="flex shrink-0 items-center gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => changeMonth(-1)}
-                  aria-label={t('prev_month', { defaultValue: 'Vorheriger Monat' })}
-                  className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                >
-                  <ChevronLeft size={22} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeMonth(1)}
-                  aria-label={t('next_month', { defaultValue: 'Nächster Monat' })}
-                  className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                >
-                  <ChevronRight size={22} />
-                </button>
-                <button
-                  type="button"
-                  onClick={monatsBlattSchliessen.requestClose}
-                  data-app-back-close
-                  aria-label={t('close', { defaultValue: 'Schließen' })}
-                  className="lg-icon-btn lg-press ml-1 bg-[var(--lg-fill)] !text-[var(--lg-text-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                >
-                  <X size={20} />
-                </button>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 className="lg-title2 truncate pl-1">{monthTitle}</h2>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(-1)}
+                    aria-label={t('prev_month', { defaultValue: 'Vorheriger Monat' })}
+                    className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(1)}
+                    aria-label={t('next_month', { defaultValue: 'Nächster Monat' })}
+                    className="lg-icon-btn !text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={monatsBlattSchliessen.requestClose}
+                    data-app-back-close
+                    aria-label={t('close', { defaultValue: 'Schließen' })}
+                    className="lg-icon-btn lg-press ml-1 bg-[var(--lg-fill)] !text-[var(--lg-text-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-7">
-              {[t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')].map(d => (
-                <div key={d} className="pb-1 text-center text-[11px] font-semibold uppercase text-[var(--lg-text-3)]">{d}</div>
-              ))}
+              <div className="grid grid-cols-7">
+                {[t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')].map(d => (
+                  <div key={d} className="pb-1 text-center text-[11px] font-semibold uppercase text-[var(--lg-text-3)]">{d}</div>
+                ))}
+              </div>
             </div>
 
             <div
