@@ -468,8 +468,9 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
   await month.getByRole('button', { name: 'Nächster Monat: September' }).click()
   await month.getByRole('button', { name: 'Montag, 21. September 2026: 500 kcal, 40 g Eiweiß, 50 g Kohlenhydrate, 10 g Fett' }).click()
   await expect(month).toBeHidden()
-  // Der gewählte Tag steht oben in der Kugel-Zone (antippen öffnet den Monat).
-  await expect(page.getByRole('region', { name: 'Tagesübersicht' }).getByRole('button', { name: /^Montag, 21\. Sep/ })).toBeVisible()
+  // Die Woche zeigt jetzt diese Woche (Zeitraum oben), der Tag ist gewählt.
+  await expect(week.getByRole('heading', { name: /21\.\s*[–-]\s*27\. Sept?\./ })).toBeVisible()
+  await expect(week.getByRole('button', { name: /^Montag, 21\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
 
   // Derselbe Tag im Kalender
   await page.getByRole('link', { name: 'Kalender', exact: true }).click()
@@ -496,7 +497,7 @@ test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den
   await expect(summary.getByRole('status')).toBeEmpty()
 })
 
-test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
+test('Kugel bleibt oben: beim Scrollen sichtbar und gleich groß; Töne schaltet man in den Zielen ein', async ({ page, mock }) => {
   await withMotion(page)
   logEntry(mock, {})
   await page.goto('/ernaehrung')
@@ -505,7 +506,7 @@ test('Kugel bleibt oben: beim Scrollen sichtbar (höchstens kleiner); Töne scha
   await mealCard(page, 'Snacks').scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect(orb).toBeInViewport()
-  await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '240px')
+  await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '316px')
 
   await page.getByRole('button', { name: 'Ziele', exact: true }).click()
   await page.getByLabel('Töne der Kalorien-Kugel').check()

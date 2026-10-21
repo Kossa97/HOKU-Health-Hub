@@ -63,10 +63,66 @@ export interface Orbit {
   speed: number
 }
 
+// Flach gekippte Bahnen: Die Monde ziehen vor allem seitlich vorbei, nicht hoch über die Kugel
+// (steile Bahnen reichten beim Drehen bis 1,7 Kugelradien nach oben und liefen aus dem Bild).
 const ORBITS: Record<MacroKey, Orbit> = {
-  protein: { rad: 1.52, tiltX: 1.16, tiltZ: 0.4, phase: 0.4, speed: 0.00016 },
-  carbs: { rad: 1.72, tiltX: 1.3, tiltZ: -0.55, phase: 2.5, speed: -0.00012 },
-  fat: { rad: 1.62, tiltX: 1.04, tiltZ: 1.2, phase: 4.4, speed: 0.0001 },
+  protein: { rad: 1.45, tiltX: 0.3, tiltZ: 0.15, phase: 0.4, speed: 0.00016 },
+  carbs: { rad: 1.6, tiltX: 0.4, tiltZ: -0.2, phase: 2.5, speed: -0.00012 },
+  fat: { rad: 1.52, tiltX: 0.25, tiltZ: 0.35, phase: 4.4, speed: 0.0001 },
+}
+
+/** Neigung der ganzen Kugel nach vorn (rad) — dieselbe wie in der Zeichnung (orbEngine). */
+export const ORB_TILT = 0.22
+
+/**
+ * Wie weit die Mitte eines Mondes höchstens reicht (in Kugelradien), seitlich und nach oben —
+ * über alle Bahnpositionen und jede Drehung der Kugel um die senkrechte Achse.
+ */
+const ORBIT_EXTENT: Record<MacroKey, { x: number; y: number }> = (() => {
+  const out = {} as Record<MacroKey, { x: number; y: number }>
+  const STEPS = 48
+  for (const key of Object.keys(ORBITS) as MacroKey[]) {
+    const o = ORBITS[key]
+    let x = 0, y = 0
+    for (let i = 0; i < STEPS; i++) {
+      // Drehung um y, dann Neigung um x, dann die Bahn selbst (z, dann x) — wie im Zeichner.
+      const yaw = (i / STEPS) * Math.PI * 2
+      for (let j = 0; j < STEPS; j++) {
+        const th = (j / STEPS) * Math.PI * 2
+        let px = Math.cos(th) * o.rad, py = 0, pz = Math.sin(th) * o.rad
+        ;[py, pz] = [py * Math.cos(o.tiltX) - pz * Math.sin(o.tiltX), py * Math.sin(o.tiltX) + pz * Math.cos(o.tiltX)]
+        ;[px, py] = [px * Math.cos(o.tiltZ) - py * Math.sin(o.tiltZ), px * Math.sin(o.tiltZ) + py * Math.cos(o.tiltZ)]
+        ;[px, pz] = [px * Math.cos(yaw) + pz * Math.sin(yaw), -px * Math.sin(yaw) + pz * Math.cos(yaw)]
+        py = py * Math.cos(ORB_TILT) - pz * Math.sin(ORB_TILT)
+        x = Math.max(x, Math.abs(px))
+        y = Math.max(y, Math.abs(py))
+      }
+    }
+    out[key] = { x, y }
+  }
+  return out
+})()
+
+/** Ein Mond wird vorn bis 15 % größer, angetippt noch einmal 38 %. */
+const MOON_GROW = 1.15 * 1.38
+
+/**
+ * Größe und Lage der Tageskugel in der Zone (CSS-Pixel): so groß, wie Breite und Höhe
+ * es zulassen, ohne dass ein Mond — auch angetippt und vorn — aus dem Bild läuft.
+ * Unten bleibt Platz für die zwei Textzeilen; oben dürfen Monde hinter Tag und „Ziele“ ziehen.
+ */
+export function fitOrb(layout: OrbLayout, width: number, height: number): { R: number; cy: number } {
+  const TOP = 4, SIDE = 6, TEXT = 80
+  let extX = 1, extUp = 1
+  for (const m of layout.moons) {
+    const e = ORBIT_EXTENT[m.key]
+    extX = Math.max(extX, e.x + m.r * MOON_GROW)
+    extUp = Math.max(extUp, e.y + m.r * MOON_GROW)
+  }
+  const room = height - TEXT - TOP
+  const R = Math.max(24, Math.min((width / 2 - SIDE) / extX, room / (extUp + 1)))
+  // Begrenzt die Breite (schmale Geräte), steht die Kugel mittig im übrigen Platz.
+  return { R, cy: TOP + extUp * R + Math.max(0, room - (extUp + 1) * R) / 2 }
 }
 
 export interface Sphere {
