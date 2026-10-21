@@ -1306,6 +1306,16 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_shelf_life_day_left',
   'my_stack_shelf_life_today',
   'my_stack_shelf_life_not_set',
+  'stoerung_banner_simuliert',
+  'stoerung_banner_offline',
+  'stoerung_beenden',
+  'stoerung_test_titel',
+  'stoerung_schalter',
+  'stoerung_schalter_hinweis',
+  'fehler_titel',
+  'fehler_text',
+  'fehler_neu_laden',
+  'fehler_zum_start',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
