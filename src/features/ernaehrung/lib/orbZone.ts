@@ -26,12 +26,12 @@ export function trackZone(zone: HTMLElement, canvas: HTMLCanvasElement, resize: 
   const ro = new ResizeObserver(size)
   ro.observe(zone)
   window.addEventListener('resize', size)
-  // Was ins Bild gescrollt wird (Fokus, Tastatur, scrollIntoView), landet zwischen Zone und Tab-Leiste,
-  // nicht darunter — auf kleinen Geräten (iPhone SE) blieb sonst nur ein schmaler Streifen frei.
+  // Was ins Bild gescrollt wird (Fokus, Tastatur, scrollIntoView), landet unter der Zone und über
+  // dem unteren Rand — nicht darunter (auf kleinen Geräten blieb sonst nur ein schmaler Streifen frei).
   const root = document.documentElement.style
   const padBefore = [root.scrollPaddingTop, root.scrollPaddingBottom]
   root.scrollPaddingTop = `calc(env(safe-area-inset-top, 0px) + ${ZONE_MAX + 8}px)`
-  root.scrollPaddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + var(--bottom-nav-gap, 10px) + var(--bottom-nav-height, 66px) + 8px)'
+  root.scrollPaddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)'
   return () => {
     ro.disconnect()
     window.removeEventListener('resize', size)

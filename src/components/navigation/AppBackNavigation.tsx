@@ -82,6 +82,14 @@ export function AppBackNavigation({ children }: { children: ReactNode }) {
       return
     }
 
+    // Seiten ohne Leiste (Ernährung) haben einen eigenen Schließen-Knopf: die Geste löst ihn aus —
+    // so schließt sie auch, wenn man direkt dort eingestiegen ist.
+    const pageClose = document.querySelector<HTMLElement>('[data-app-page-close]')
+    if (pageClose) {
+      pageClose.click()
+      return
+    }
+
     if (location.pathname === '/' || location.pathname === '/auth') return
     const historyIndex = window.history.state?.idx
     if (typeof historyIndex === 'number' && historyIndex <= 0) return

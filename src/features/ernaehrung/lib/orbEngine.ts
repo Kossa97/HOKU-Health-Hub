@@ -314,7 +314,8 @@ export class OrbEngine {
       const score = d - (g.front ? 20 * this.dpr : 0)
       if (d < g.R + 12 * this.dpr && score < bestD) { bestD = score; best = key }
     }
-    this.focus(best)
+    // Derselbe Mond noch einmal: wieder abwählen (wie der Knopf in der Makrozeile).
+    this.focus(best !== null && best === this.focusKey ? null : best)
   }
 
   // ─── Flüge ────────────────────────────────────────────────────────────
