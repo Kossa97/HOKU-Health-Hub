@@ -93,3 +93,13 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - Nachtrag: Am Gerät ließ sich das Blatt trotzdem etwas verschieben — der body hat oben/unten
   Polster für den sicheren Bereich, die Seite ist dadurch höher als der Bildschirm. Solange das
   Blatt passt, setzt MonthSheet html/body auf overflow hidden + overscroll none (beim Schließen zurück).
+
+## Mahlzeit-Zeilen, Wischen, Stück (21.10.2026)
+- „Wie gestern“ entfernt (Knopf, copyFromYesterday, loadEntriesOn, Texte in allen Sprachen).
+- Kopfzeile der Mahlzeit: Titel · kcal · „+ Hinzufügen“ in einer Zeile; „Als Gericht“ nur noch darunter, wenn möglich.
+- SwipeRow: nach links wischen → Bearbeiten (grau) / Löschen (rot), ganz durchwischen löscht
+  (Schwelle max(55 % Breite, 192 px)); Feder kritisch gedämpft, greifbar; eine Zeile offen zur Zeit.
+  Löschen läuft über removeWithUndo (Rückgängig-Toast).
+- lib/pieces.ts: zählbar über Produktportion mit Namen („1 Becher“) oder Namenstabelle (Ei 55 g,
+  Scheibe Brot 45 g, Apfel 180 g …; Getränke: Tasse/Glas). PortionSheet: Umschalter Stück | g,
+  Stepper, gespeichert weiter in g/ml. Zeile zeigt „2 Stück“, wenn die Menge eine runde Anzahl ist.

@@ -184,13 +184,6 @@ export async function insertCopies(userId: string, entries: readonly LogEntry[],
   return (data ?? []).map(rowToEntry)
 }
 
-export async function loadEntriesOn(userId: string, date: string, meal: Meal): Promise<LogEntry[]> {
-  const { data, error } = await supabase.from('food_logs').select('*')
-    .eq('user_id', userId).eq('log_date', date).eq('meal', meal).order('created_at')
-  if (error) throw error
-  return (data ?? []).map(rowToEntry)
-}
-
 // ─── Meine Lebensmittel ─────────────────────────────────────────────────
 
 export async function loadMyFoods(userId: string): Promise<Food[]> {
