@@ -693,7 +693,6 @@ export class OrbEngine {
       const depth = (vz / o.rad + 1) / 2
       const d = foc > 0.01 ? Math.max(depth, foc) : depth
       const scale = (0.85 + 0.3 * d) * (1 + 0.38 * foc)
-      const behind = !front && vx * vx + vy * vy < 1.05
       const Mm = qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : now * 0.0005) + o.phase)))
       const mcx = cx + vx * R, mcy = cy - vy * R, mR = R * m.r * scale
       const pm = this.preview?.moons.find(x => x.key === m.key)
@@ -701,7 +700,7 @@ export class OrbEngine {
         preview: pm ? previewRange(m.fill, pm.fill) : null,
         M: Mm, HM: qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : -now * 0.0003) + o.phase))),
         cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * scale, color: MOON_COLOR[m.key],
-        now, live: !this.reduce, alpha: behind ? 0.3 : 0.6 + 0.4 * d, flash: this.moonFlash[m.key] ?? null,
+        now, live: !this.reduce, flash: this.moonFlash[m.key] ?? null,
       })
       this.moonGeo[m.key] = { M: Mm, n: m.n, cx: mcx, cy: mcy, R: mR, front }
     }
