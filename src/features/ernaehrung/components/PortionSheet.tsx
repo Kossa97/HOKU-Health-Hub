@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, PenLine, Star, Trash2 } from 'lucide-react'
+import { AlertTriangle, Minus, PenLine, Plus, Star, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { MAX_AMOUNT, MEALS, type Food, type Meal, amountValid, macroMismatch, nutrientsFor, parseAmount, showDecimal } from '../lib/nutrition'
 import { portionsText } from '../lib/recipe'
+import { countFor, halves, pieceFor } from '../lib/pieces'
 import { ERROR_TEXT, MUTED, WARN_BOX, chip } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { MacroCells } from './MacroCells'
@@ -15,11 +16,14 @@ import { ScoreBadge } from './ScoreBadge'
 const PRESETS = [50, 100, 150, 200, 250]
 /** Bei Gerichten wählt man Portionen statt Gramm. */
 const PORTION_PRESETS = [{ n: 0.5, text: '½' }, { n: 1, text: '1' }, { n: 1.5, text: '1½' }, { n: 2, text: '2' }]
+/** Gezähltes (Eier, Scheiben, Gläser): Anzahl statt Gramm. */
+const COUNT_PRESETS = [{ n: 1, text: '1' }, { n: 2, text: '2' }, { n: 3, text: '3' }, { n: 4, text: '4' }]
 
 /**
  * Menge wählen. Das Feld hält Text und wird erst beim Speichern geprüft — ein
  * halb getipptes „2," setzt nichts zurück (Klage über Yazio: Menge springt zurück).
- * Bei Gerichten steht im Feld die Zahl der Portionen; gespeichert wird immer in Gramm.
+ * Bei Gerichten steht im Feld die Zahl der Portionen, bei Zählbarem (Eier, Brot, Getränke)
+ * wahlweise die Anzahl; gespeichert wird immer in Gramm bzw. Milliliter.
  * `ingredient`: Menge einer Zutat fürs Gericht — ohne Mahlzeit.
  */
 export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal, goalKcal, preview = false }: {
@@ -46,14 +50,31 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
   const { t, i18n } = useTranslation()
   const lang = i18n.language ?? 'de'
   const portion = food.recipe && food.serving ? food.serving.amount : null
-  const [initialText] = useState(() => portion
-    ? showDecimal(startAmount ? portionsText(startAmount, portion) : 1, lang)
-    : String(startAmount ?? food.serving?.amount ?? 100))
-  const [text, setText] = useState(initialText)
+  const piece = useMemo(() => (portion ? null : pieceFor(food)), [food, portion])
+  /** Zu Beginn: Anzahl, wenn zählbar — beim Bearbeiten nur, wenn die Menge eine runde Zahl Stücke ist. */
+  const [initial] = useState(() => {
+    if (portion) return { byCount: false, text: showDecimal(startAmount ? portionsText(startAmount, portion) : 1, lang) }
+    const n = piece ? (startAmount ? countFor(startAmount, piece.grams) : 1) : null
+    return n ? { byCount: true, text: showDecimal(n, lang) } : { byCount: false, text: String(startAmount ?? food.serving?.amount ?? 100) }
+  })
+  const [byCount, setByCount] = useState(initial.byCount)
+  const [text, setText] = useState(initial.text)
   const [meal, setMeal] = useState<Meal>(startMeal)
   const typed = parseAmount(text)
+  // Kommt ein anderes Lebensmittel herein (Korrigieren, Merken) und das Stück ändert sich, gilt die
+  // gezählte Menge in g/ml weiter — nie „2“ als 2 g.
+  const [seen, setSeen] = useState(piece)
+  if (piece?.grams !== seen?.grams || piece?.kind !== seen?.kind) {
+    setSeen(piece)
+    if (byCount && seen) {
+      setByCount(false)
+      setText(String(Math.round((Number.isFinite(typed) ? typed : 1) * seen.grams)))
+    }
+  }
+  /** g/ml je Einheit im Feld: Portion des Gerichts, ein Stück — oder null (Feld in g/ml). */
+  const per = portion ?? (byCount && piece ? piece.grams : null)
   // Unverändert gelassen: genau die alte Menge — „0,33 Portionen" zurückgerechnet wären 99 statt 100 g.
-  const amount = !portion ? typed : startAmount && text === initialText ? startAmount : Math.round(typed * portion * 10) / 10
+  const amount = !per ? typed : startAmount && text === initial.text && byCount === initial.byCount ? startAmount : Math.round(typed * per * 10) / 10
   const valid = amountValid(amount)
   const nu = useMemo(() => (valid ? nutrientsFor(food.per100, amount) : null), [food, amount, valid])
   // Bei Gerichten stammen die Werte aus den Zutaten — dort gäbe es keine Packung zum Vergleichen.
@@ -93,6 +114,18 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
     // Gespeichert: jetzt startet der Flug oben — die Essens-Kugel leert sich im selben Takt.
     orb.current?.pour(460, FLIGHT_MS)
     flyTimer.current = window.setTimeout(() => setFlying(false), FLIGHT_MS)
+  }
+  const pieceOne = piece ? (piece.label ?? t(`nutr_piece_${piece.kind}`, { count: 1, n: '1' })) : ''
+  const switchTo = (count: boolean) => {
+    if (!piece || count === byCount) return
+    if (count) setText(showDecimal(valid ? Math.max(0.5, halves(amount / piece.grams)) : 1, lang))
+    else setText(String(valid ? Math.round(amount) : piece.grams))
+    setByCount(count)
+  }
+  const step = (dir: 1 | -1) => {
+    // Leeres Feld: „+“ und „−“ fangen bei 1 an.
+    if (!Number.isFinite(typed)) { setText('1'); return }
+    setText(showDecimal(dir > 0 ? (typed < 1 ? 1 : Math.floor(typed) + 1) : (typed > 1 ? Math.ceil(typed) - 1 : 0.5), lang))
   }
   const servings = portion ? [] : food.serving ? [{ amount: food.serving.amount, text: food.serving.label ? `${food.serving.label}` : `1 × ${food.serving.amount} ${food.unit}` }] : []
 
@@ -134,29 +167,53 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
         </div>
       )}
 
-      <label htmlFor="nutr-amount" className="label mt-4">
-        {portion ? t('nutr_portions_amount', { amount: Math.round(portion) }) : t('nutr_amount', { unit: food.unit })}
+      {piece && (
+        <div role="radiogroup" aria-label={t('nutr_amount_unit')} className="mt-4 flex gap-1.5">
+          <button type="button" role="radio" aria-checked={byCount} onClick={() => switchTo(true)} className={chip(byCount)}>{t(`nutr_unit_${piece.kind}`)}</button>
+          <button type="button" role="radio" aria-checked={!byCount} onClick={() => switchTo(false)} className={chip(!byCount)}>{food.unit}</button>
+        </div>
+      )}
+      <label htmlFor="nutr-amount" className={`label ${piece ? 'mt-3' : 'mt-4'}`}>
+        {portion ? t('nutr_portions_amount', { amount: Math.round(portion) })
+          : per && piece ? t('nutr_count_amount', { one: pieceOne, amount: Math.round(piece.grams), unit: food.unit })
+            : t('nutr_amount', { unit: food.unit })}
       </label>
-      <input id="nutr-amount" inputMode="decimal" enterKeyHint="done" value={text} autoFocus={mode !== 'edit'}
-        onChange={e => setText(e.target.value)} onFocus={e => e.currentTarget.select()}
-        onKeyDown={e => { if (e.key === 'Enter') void save() }}
-        aria-invalid={!valid} aria-describedby={!valid ? 'nutr-amount-error' : undefined}
-        className="input !text-[20px] font-semibold tabular-nums" />
+      <div className="flex items-center gap-2">
+        {byCount && piece && (
+          <button type="button" onClick={() => step(-1)} disabled={Number.isFinite(typed) && typed <= 0.5} aria-label={t('nutr_count_less')}
+            className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0"><Minus size={18} aria-hidden="true" /></button>
+        )}
+        <input id="nutr-amount" inputMode="decimal" enterKeyHint="done" value={text} autoFocus={mode !== 'edit' && !(byCount && piece)}
+          onChange={e => setText(e.target.value)} onFocus={e => e.currentTarget.select()}
+          onKeyDown={e => { if (e.key === 'Enter') void save() }}
+          aria-invalid={!valid} aria-describedby={!valid ? 'nutr-amount-error' : undefined}
+          className={`input !text-[20px] font-semibold tabular-nums ${byCount && piece ? 'min-w-0 flex-1 text-center' : ''}`} />
+        {byCount && piece && (
+          <button type="button" onClick={() => step(1)} aria-label={t('nutr_count_more')}
+            className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0"><Plus size={18} aria-hidden="true" /></button>
+        )}
+      </div>
+      {byCount && piece && valid && (
+        <p className={`mt-1.5 px-1 text-center text-[13px] tabular-nums ${MUTED}`}>= {showDecimal(Math.round(amount), lang)} {food.unit}</p>
+      )}
       {!valid && text.trim() !== '' && (
         <p id="nutr-amount-error" role="alert" className={`mt-1.5 px-1 ${ERROR_TEXT}`}>
-          {portion
-            ? t('nutr_amount_invalid', { max: Math.floor((MAX_AMOUNT / portion) * 10) / 10, unit: t('nutr_dish_portions') })
+          {per
+            ? t('nutr_amount_invalid', { max: Math.floor((MAX_AMOUNT / per) * 10) / 10, unit: portion ? t('nutr_dish_portions') : t(`nutr_unit_${piece!.kind}`) })
             : t('nutr_amount_invalid', { max: MAX_AMOUNT, unit: food.unit })}
         </p>
       )}
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {servings.map(s => (
+        {!per && servings.map(s => (
           <button key="serving" type="button" onClick={() => setText(String(s.amount))} aria-pressed={amount === s.amount} className={chip(amount === s.amount)}>{s.text}</button>
         ))}
         {portion && PORTION_PRESETS.map(p => (
           <button key={p.text} type="button" onClick={() => setText(showDecimal(p.n, lang))} aria-pressed={typed === p.n} className={chip(typed === p.n)}>{p.text}</button>
         ))}
-        {!portion && PRESETS.filter(p => !servings.some(s => s.amount === p)).map(p => (
+        {byCount && piece && COUNT_PRESETS.map(p => (
+          <button key={p.text} type="button" onClick={() => setText(showDecimal(p.n, lang))} aria-pressed={typed === p.n} className={chip(typed === p.n)}>{p.text}</button>
+        ))}
+        {!per && PRESETS.filter(p => !servings.some(s => s.amount === p)).map(p => (
           <button key={p} type="button" onClick={() => setText(String(p))} aria-pressed={amount === p} className={chip(amount === p)}>{p} {food.unit}</button>
         ))}
       </div>

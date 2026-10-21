@@ -15,6 +15,7 @@ import { DishStage } from './components/DishStage'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
+import { pieceFor } from './lib/pieces'
 import { MonthSheet } from './components/MonthSheet'
 import { MealSection } from './components/MealSection'
 import { PhotoSheet } from './components/PhotoSheet'
@@ -107,6 +108,12 @@ export function ErnaehrungPage() {
     const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
     const food = mine ? { ...snapshot, favorite: mine.favorite, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
     setSheet({ kind: 'edit', entry, food })
+  }
+
+  /** Zählbar wie beim Bearbeiten: Portion aus „Meine Lebensmittel“, sonst nach dem Namen. */
+  const pieceOf = (entry: LogEntry) => {
+    const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
+    return pieceFor({ name: entry.name, unit: entry.unit, serving: mine?.serving ?? null, recipe: mine?.recipe ?? null })
   }
 
   /** Hat der Nutzer im Bearbeiten die Werte korrigiert oder das Lebensmittel gemerkt? */
@@ -219,11 +226,9 @@ export function ErnaehrungPage() {
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}
             onAdd={() => setSheet({ kind: 'add', meal })}
             onOpen={openEntry}
-            onSaveAsDish={() => saveMealAsDish(meal)}
-            onCopyYesterday={() => run(async () => {
-              const count = await n.copyFromYesterday(meal)
-              toast(count ? t('nutr_copied', { count }) : t('nutr_copy_empty'))
-            })} />
+            pieceOf={pieceOf}
+            onDelete={removeWithUndo}
+            onSaveAsDish={() => saveMealAsDish(meal)} />
         ))}
 
         {n.day && (

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { addDays, parseISO } from 'date-fns'
 import { dayKey } from '../../../lib/sharedDay'
 import { frequentFoods } from '../lib/foodSearch'
 import { DEFAULT_GOALS, type Food, type Goals, type LogEntry, type Meal, groupByMeal, sumNutrients } from '../lib/nutrition'
@@ -136,15 +135,6 @@ export function useNutritionDay(userId: string, date: string) {
     if (copy) applyAdded([copy])
   }, [userId, applyAdded])
 
-  /** Mahlzeit vom Vortag übernehmen. Liefert die Zahl der übernommenen Einträge. */
-  const copyFromYesterday = useCallback(async (meal: Meal) => {
-    const yesterday = toDateKey(addDays(parseISO(date), -1))
-    const source = await store.loadEntriesOn(userId, yesterday, meal)
-    const copies = await store.insertCopies(userId, source, { date, meal })
-    applyAdded(copies)
-    return copies.length
-  }, [userId, date, applyAdded])
-
   const setWater = useCallback(async (ml: number) => {
     const prev = current?.waterMl ?? 0
     setDay(d => (d ? { ...d, waterMl: ml } : d))
@@ -190,6 +180,6 @@ export function useNutritionDay(userId: string, date: string) {
 
   return {
     day: current, week: week?.from === weekFrom ? week.totals : null, loadError: loadError || weekError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
-    add, addMany, addQuick, update, remove, restore, copyFromYesterday, setWater, saveGoals, saveFood, removeFood, findByBarcode,
+    add, addMany, addQuick, update, remove, restore, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }
