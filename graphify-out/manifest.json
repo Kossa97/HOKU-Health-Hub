@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionIntroSheet.tsx": {
-    "mtime": 1792561811.0979505,
-    "seen": 1792562554.709955,
-    "ast_hash": "90cf45a7c2c8c3106d1604014068ed13",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.566387,
+    "ast_hash": "cf830b127a4678b151fd36c906f486bd",
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionLogSheet.tsx": {
@@ -1038,9 +1038,9 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1792562117.83233,
-    "seen": 1792562554.711379,
-    "ast_hash": "f50289ab956451941ca8bd0166e048d6",
+    "mtime": 1792568618.7331228,
+    "seen": 1792569581.6047204,
+    "ast_hash": "d6f5fc93629b270576d7d5f2a8fadd34",
     "semantic_hash": ""
   },
   "src/pages/FAQ.tsx": {
@@ -1050,9 +1050,9 @@
     "semantic_hash": ""
   },
   "src/pages/Health.tsx": {
-    "mtime": 1792561811.1698525,
-    "seen": 1792562554.711381,
-    "ast_hash": "2561418d7fa871c241d502298d158073",
+    "mtime": 1792568618.734006,
+    "seen": 1792569581.6047595,
+    "ast_hash": "86fbdfbd824130ffa698d1865dd23a1a",
     "semantic_hash": ""
   },
   "src/pages/Home.test.ts": {
@@ -1062,9 +1062,9 @@
     "semantic_hash": ""
   },
   "src/pages/Home.tsx": {
-    "mtime": 1792561811.1738524,
-    "seen": 1792562554.7113836,
-    "ast_hash": "2320fd5e30c35bfe79de41bac7d7ddef",
+    "mtime": 1792568618.734256,
+    "seen": 1792569581.6047986,
+    "ast_hash": "6d03fb210c643f03d47b9a84a8de8538",
     "semantic_hash": ""
   },
   "src/pages/InjektionsTracker.test.ts": {
@@ -1158,9 +1158,9 @@
     "semantic_hash": ""
   },
   "src/pages/lab/FilterSheet.tsx": {
-    "mtime": 1792472165.4733582,
-    "seen": 1792562554.7114189,
-    "ast_hash": "ec0daf7d051b9124c32dd6cacf76b5e8",
+    "mtime": 1792568618.7347367,
+    "seen": 1792569581.605922,
+    "ast_hash": "e479ac7446826f860a92b30e2b8607c3",
     "semantic_hash": ""
   },
   "src/pages/lab/LabHero.tsx": {
@@ -2118,9 +2118,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/EntryModal.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.7101462,
-    "ast_hash": "66b3d5a8b971c7a20ffb8b830e4f750d",
+    "mtime": 1792568618.7312977,
+    "seen": 1792569581.569331,
+    "ast_hash": "17f1ac75130d618cda271a7de58c4e7e",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/GridControls.tsx": {
@@ -2310,9 +2310,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ImportFlow.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.7101648,
-    "ast_hash": "5521179d77077a078ce47e553abbce18",
+    "mtime": 1792568618.7315462,
+    "seen": 1792569581.5696602,
+    "ast_hash": "dcbfda0421afa05cd0d5d7629513afba",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ReviewTable.tsx": {
@@ -2424,15 +2424,15 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/BefundEditor.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.71014,
-    "ast_hash": "2824e556dc7fcee86924e04fd8a2231b",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.5692337,
+    "ast_hash": "101f2b243b61bbda114262e80337650a",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ConflictResolver.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.7101629,
-    "ast_hash": "80623c4f92f6e198641b85e756e3d38a",
+    "mtime": 1792568618.7312977,
+    "seen": 1792569581.5696564,
+    "ast_hash": "647ed0f2c981db1aab736cf8c5064684",
     "semantic_hash": ""
   },
   "src/features/blutwerte/lib/conversionHint.test.ts": {
@@ -5562,9 +5562,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/components/Sheet.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.7102895,
-    "ast_hash": "fd117dd99317068ac416dc1dea9f3312",
+    "mtime": 1792568618.7315462,
+    "seen": 1792569581.5729613,
+    "ast_hash": "a28f56663379582b3dae0333ef643e57",
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.test.ts": {
@@ -5628,15 +5628,15 @@
     "semantic_hash": ""
   },
   "src/features/reviews/components/ReviewDeleteSheet.tsx": {
-    "mtime": 1792561811.1258523,
-    "seen": 1792562554.7110388,
-    "ast_hash": "c72d8caa246629116769696940e5c2ff",
+    "mtime": 1792568618.7315462,
+    "seen": 1792569581.5939243,
+    "ast_hash": "489fb473b66702123984de042a50cfb3",
     "semantic_hash": ""
   },
   "src/features/reviews/components/ReviewSheet.tsx": {
-    "mtime": 1792561811.1258523,
-    "seen": 1792562554.7110403,
-    "ast_hash": "92feb060e2f884040f6c950ce62aab51",
+    "mtime": 1792568618.7319024,
+    "seen": 1792569581.5939288,
+    "ast_hash": "5636f1c8cd4d658d11f86a0f5b627cfb",
     "semantic_hash": ""
   },
   "src/features/reviews/lib/reviewModel.test.ts": {
@@ -6072,9 +6072,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/AddSheet.tsx": {
-    "mtime": 1792561811.1018524,
-    "seen": 1792562554.7101352,
-    "ast_hash": "12ad723eb21211b6973a6960a71a5eec",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.5691721,
+    "ast_hash": "005870eb18a8b9fe1a05be9483d48edf",
     "semantic_hash": ""
   },
   "src/features/blutwerte/lib/markerGuidance.test.ts": {
@@ -6450,9 +6450,9 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionEditSheet.tsx": {
-    "mtime": 1792561811.0979505,
-    "seen": 1792562554.7099502,
-    "ast_hash": "41fae4ed394f334e7862b6d7df85aa83",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.5662842,
+    "ast_hash": "d073aaf832e1db99762f15a2cdc80dc0",
     "semantic_hash": ""
   },
   "src/lib/injectionLogEdit.test.ts": {
@@ -6468,9 +6468,9 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionSitePickerSheet.tsx": {
-    "mtime": 1792472164.8141851,
-    "seen": 1792562554.7099638,
-    "ast_hash": "4cab9b1fd9134eb247523fd75789b856",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.5666234,
+    "ast_hash": "14d1a782be1c8fd3fc9b3e74bd12244c",
     "semantic_hash": ""
   },
   "src/lib/injectionSitePresets.test.ts": {
@@ -6522,9 +6522,9 @@
     "semantic_hash": ""
   },
   "src/features/routines/bundles/IntakeBundleSheet.tsx": {
-    "mtime": 1792561811.1258523,
-    "seen": 1792562554.7110465,
-    "ast_hash": "75f6c8f64223c8adab87e75ec3fb50d6",
+    "mtime": 1792568618.7319024,
+    "seen": 1792569581.5941432,
+    "ast_hash": "e8d67d92d6309e78f792d389dcfe3554",
     "semantic_hash": ""
   },
   "src/features/routines/bundles/intakeBundles.test.ts": {
@@ -6720,9 +6720,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/ui.tsx": {
-    "mtime": 1792472165.2021658,
-    "seen": 1792562554.7111092,
-    "ast_hash": "00fb33b2892bebabc7fb745ff7ef88e0",
+    "mtime": 1792568618.732232,
+    "seen": 1792569581.5963814,
+    "ast_hash": "7699c743717f0864cc4d8dd455cabb03",
     "semantic_hash": ""
   },
   "src/features/training/data/exercises.test.ts": {
@@ -7392,9 +7392,9 @@
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipEditor.tsx": {
-    "mtime": 1792561811.1755884,
-    "seen": 1792562554.7114358,
-    "ast_hash": "f820e09357754095c15452e2c89c977a",
+    "mtime": 1792568618.7348964,
+    "seen": 1792569581.6064217,
+    "ast_hash": "50c9c4325d67a23cf23547b3829cd868",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipInfo.tsx": {
@@ -7404,9 +7404,9 @@
     "semantic_hash": ""
   },
   "src/pages/tagebuch/EntryForm.tsx": {
-    "mtime": 1792561811.1755884,
-    "seen": 1792562554.711439,
-    "ast_hash": "df9ef6b83a9e98e325bd7c84e842366c",
+    "mtime": 1792568618.7350636,
+    "seen": 1792569581.6064847,
+    "ast_hash": "9db1d11cf7e7a1a0cafb2ecb76d1b8fb",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/SymptomChip.tsx": {
@@ -7566,9 +7566,9 @@
     "semantic_hash": ""
   },
   "src/components/protocolPdf/PdfInfoSheet.tsx": {
-    "mtime": 1792561811.0979505,
-    "seen": 1792562554.7100618,
-    "ast_hash": "e3b19707f73b93d910248a53bec3b1ff",
+    "mtime": 1792568618.727614,
+    "seen": 1792569581.56759,
+    "ast_hash": "6badfea92102e03c92ee34858be1e273",
     "semantic_hash": ""
   },
   "src/components/protocolPdf/PdfPagesPreview.tsx": {
@@ -7734,9 +7734,21 @@
     "semantic_hash": ""
   },
   "src/lib/useSheetDrag.ts": {
-    "mtime": 1792562380.2953258,
-    "seen": 1792562554.7113662,
-    "ast_hash": "8ce771683788cf2f91d4518970254dbf",
+    "mtime": 1792569008.834955,
+    "seen": 1792569581.6044233,
+    "ast_hash": "3c2f4b5ad91f461a16112fd0e2f0b879",
+    "semantic_hash": ""
+  },
+  "e2e/sheet-wegziehen.spec.ts": {
+    "mtime": 1792569085.4473064,
+    "seen": 1792569581.5626438,
+    "ast_hash": "2c8a6d4339bc2a8ed6be038c8755e861",
+    "semantic_hash": ""
+  },
+  "src/components/ui/SheetGriff.tsx": {
+    "mtime": 1792569008.8391156,
+    "seen": 1792569581.5679152,
+    "ast_hash": "d919ce683e87b8f384fa11df6558ea2f",
     "semantic_hash": ""
   }
 }
