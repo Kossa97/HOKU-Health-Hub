@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Target } from 'lucide-react'
+import { Target, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
@@ -20,13 +20,15 @@ import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
  * antippen. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
  * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, date, ready, onOpenGoals }: {
+export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: {
   total: Nutrients
   goals: Goals
   date: string
   /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
   ready: boolean
   onOpenGoals: () => void
+  /** Seite schließen (oben links; die Zurück-Geste löst denselben Knopf aus). */
+  onClose: () => void
 }) {
   const { t } = useTranslation()
   const reduce = usePrefersReducedMotion()
@@ -154,6 +156,13 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals }: {
           onPointerMove={e => engineRef.current?.pointerMove(e.nativeEvent)}
           onPointerUp={e => engineRef.current?.pointerUp(e.nativeEvent)}
           onPointerCancel={() => engineRef.current?.pointerCancel()} />
+        {/* Ohne Leiste: oben links schließen (die Zurück-Geste löst denselben Knopf aus). */}
+        <div className="absolute left-1 top-1 z-[2]">
+          <button type="button" data-app-page-close onClick={onClose} aria-label={t('nutr_close_page')}
+            className="lg-icon-btn !text-[var(--lg-text-2)]">
+            <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
+          </button>
+        </div>
         {/* Eigener Rahmen: .lg-glass setzt position: relative. */}
         <div className="absolute right-3 top-1.5 z-[2]">
           <button type="button" onClick={onOpenGoals}

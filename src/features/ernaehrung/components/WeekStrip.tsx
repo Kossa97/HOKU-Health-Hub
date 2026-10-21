@@ -7,9 +7,9 @@ import type { Goals } from '../lib/nutrition'
 import { CARD, MUTED } from '../styles'
 import { DayOrb } from './DayOrb'
 
-/** „19.–25. Okt.“ bzw. „Oct 19 – 25“; ohne formatRange (alte Browser) beide Tage ausgeschrieben. */
+/** „19.–25. Oktober“ bzw. „October 19 – 25“; ohne formatRange (alte Browser) beide Tage ausgeschrieben. */
 function rangeText(from: string, to: string, lang: string): string {
-  const f = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short' })
+  const f = new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'long' })
   const a = parseISO(from), b = parseISO(to)
   return typeof f.formatRange === 'function' ? f.formatRange(a, b) : `${f.format(a)} – ${f.format(b)}`
 }

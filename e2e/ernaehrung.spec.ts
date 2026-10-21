@@ -469,12 +469,49 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
   await month.getByRole('button', { name: 'Montag, 21. September 2026: 500 kcal, 40 g Eiweiß, 50 g Kohlenhydrate, 10 g Fett' }).click()
   await expect(month).toBeHidden()
   // Die Woche zeigt jetzt diese Woche (Zeitraum oben), der Tag ist gewählt.
-  await expect(week.getByRole('heading', { name: /21\.\s*[–-]\s*27\. Sept?\./ })).toBeVisible()
+  await expect(week.getByRole('heading', { name: /21\.\s*[–-]\s*27\. September/ })).toBeVisible()
   await expect(week.getByRole('button', { name: /^Montag, 21\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
 
   // Derselbe Tag im Kalender
+  // Ernährung hat keine Leiste: oben links schließen (direkt eingestiegen → Startseite), dann zum Kalender.
+  await expect(page.getByRole('navigation', { name: 'Navigation' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Ernährung schließen' }).click()
+  await expect(page).toHaveURL(/\/$/)
   await page.getByRole('link', { name: 'Kalender', exact: true }).click()
   await expect(page.getByText('Montag, 21. September').first()).toBeVisible()
+})
+
+test('Monatsblatt passt ganz auf den Bildschirm, auch mit sechs Wochen; Vormonat steht neben dem Titel', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await page.getByRole('region', { name: 'Woche' }).getByRole('button', { name: 'Monatsübersicht öffnen' }).click()
+  const month = page.locator('[data-nutr-month]')
+  // August 2026 beginnt am Samstag: sechs Wochenzeilen.
+  await month.getByRole('button', { name: 'Vorheriger Monat: August' }).click()
+  const title = month.getByRole('heading', { name: 'August 2026' })
+  await expect(title).toBeVisible()
+  await expect(month.locator('[data-nutr-month-day="2026-08-31"]')).toBeEnabled()
+
+  const viewport = page.viewportSize()!
+  const prev = (await month.getByRole('button', { name: 'Vorheriger Monat: Juli' }).boundingBox())!
+  const titleBox = (await title.boundingBox())!
+  // Vormonat, Titel und Folgemonat in einer Zeile.
+  expect(Math.abs(prev.y + prev.height / 2 - (titleBox.y + titleBox.height / 2))).toBeLessThan(4)
+  // Das erste SE im Browser (320 × 568) ist kleiner als jedes Gerät, auf dem die App läuft (ab 375 × 667):
+  // Unter der festen Kugel-Zone (316 px) bleibt dort kein Platz für sechs Wochen, und der Titel wird gekürzt.
+  if (viewport.width >= 375) expect(await title.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  await expect(month.getByRole('button', { name: 'Nächster Monat: September' })).toBeInViewport()
+  if (viewport.height >= 600) {
+    const box = (await month.boundingBox())!
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+    // Ohne Scrollen: die Seite ist nicht höher als der Bildschirm und steht still, solange das Blatt offen ist.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)).toBeLessThanOrEqual(0)
+    const overflow = () => page.evaluate(() => [getComputedStyle(document.documentElement).overflowY, getComputedStyle(document.body).overflowY].join())
+    expect(await overflow()).toBe('hidden,hidden')
+    await month.getByRole('button', { name: 'Schließen', exact: true }).click()
+    await expect(month).toBeHidden()
+    expect(await overflow()).not.toContain('hidden')
+  }
 })
 
 test('Kalorien-Kugel: Zahl mit Ziel und Makros in einer Zeile; antippen holt den Mond nach vorn; Überschuss als +g', async ({ page, mock }) => {
