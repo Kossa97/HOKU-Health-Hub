@@ -9,8 +9,9 @@ describe('Layout injection tracker fullscreen route', () => {
     expect(routeLayoutMode('/injektionen')).toEqual({
       lockViewport: true,
       hideBottomNav: true,
+      hideTabBar: true,
     })
-    expect(source).toContain('{!hideBottomNav && (')
+    expect(source).toContain('{!hideTabBar && (')
     // Kein schwebender FAQ-Knopf mehr: die FAQ steht im Profil
     expect(source).not.toContain('aria-label="FAQ"')
   })
@@ -22,11 +23,24 @@ describe('Layout injection tracker fullscreen route', () => {
   })
 })
 
+describe('Layout Ernährung ohne Leiste', () => {
+  it('blendet nur die Leiste aus; die Seite scrollt normal und hat unten etwas Luft', () => {
+    expect(routeLayoutMode('/ernaehrung')).toEqual({
+      lockViewport: false,
+      hideBottomNav: false,
+      hideTabBar: true,
+    })
+    const source = readFileSync(new URL('./Layout.tsx', import.meta.url), 'utf8')
+    expect(source).toContain("hideTabBar\n              ? 'calc(1rem + env(safe-area-inset-bottom))'")
+  })
+})
+
 describe('Layout viewport ownership', () => {
   it('gives the calculator its own scrolling area', () => {
     expect(routeLayoutMode('/rechner')).toEqual({
       lockViewport: true,
       hideBottomNav: false,
+      hideTabBar: false,
     })
   })
   it('locks My Stack to the app viewport without hiding its bottom navigation', () => {
@@ -35,6 +49,7 @@ describe('Layout viewport ownership', () => {
     expect(routeLayoutMode('/my-stack')).toEqual({
       lockViewport: true,
       hideBottomNav: false,
+      hideTabBar: false,
     })
     expect(routeLayoutMode('/kalender').lockViewport).toBe(false)
 

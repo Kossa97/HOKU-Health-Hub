@@ -469,10 +469,14 @@ test('Kalender mit Mini-Kugeln: Woche und Monatsblatt nennen Kalorien und Makros
   await month.getByRole('button', { name: 'Montag, 21. September 2026: 500 kcal, 40 g Eiweiß, 50 g Kohlenhydrate, 10 g Fett' }).click()
   await expect(month).toBeHidden()
   // Die Woche zeigt jetzt diese Woche (Zeitraum oben), der Tag ist gewählt.
-  await expect(week.getByRole('heading', { name: /21\.\s*[–-]\s*27\. Sept?\./ })).toBeVisible()
+  await expect(week.getByRole('heading', { name: /21\.\s*[–-]\s*27\. September/ })).toBeVisible()
   await expect(week.getByRole('button', { name: /^Montag, 21\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
 
   // Derselbe Tag im Kalender
+  // Ernährung hat keine Leiste: oben links schließen (direkt eingestiegen → Startseite), dann zum Kalender.
+  await expect(page.getByRole('navigation', { name: 'Navigation' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Ernährung schließen' }).click()
+  await expect(page).toHaveURL(/\/$/)
   await page.getByRole('link', { name: 'Kalender', exact: true }).click()
   await expect(page.getByText('Montag, 21. September').first()).toBeVisible()
 })

@@ -87,7 +87,7 @@ export function Layout() {
     navigate(path)
   }
 
-  const { lockViewport, hideBottomNav } = routeLayoutMode(pathname)
+  const { lockViewport, hideBottomNav, hideTabBar } = routeLayoutMode(pathname)
   // Hat die Seite geladen, merkt sich ihre Silhouette, wie sie aussieht
   const mainRef = useRef<HTMLElement>(null)
   useAbdruckNehmen(mainRef, pathname)
@@ -142,9 +142,11 @@ export function Layout() {
         style={{
           paddingBottom: hideBottomNav
             ? 0
-            : lockViewport
-              ? 'var(--bottom-nav-height)'
-              : 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))',
+            : hideTabBar
+              ? 'calc(1rem + env(safe-area-inset-bottom))'
+              : lockViewport
+                ? 'var(--bottom-nav-height)'
+                : 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))',
           paddingTop: hideBottomNav ? 0 : (showPushBanner || showIOSBanner)
             ? 'calc(1rem + 72px + env(safe-area-inset-top))'
             : undefined,
@@ -161,7 +163,7 @@ export function Layout() {
 
 
       {/* ── Quick-Action backdrop + sheet ──────────────────────────────────── */}
-      {!hideBottomNav && showQuickActions && (
+      {!hideTabBar && showQuickActions && (
         <>
           <div
             onClick={() => setShowQuickActions(false)}
@@ -233,7 +235,7 @@ export function Layout() {
           Die Leiste selbst liegt in `navigation/`: Modell, Optik und
           Verdrahtung getrennt, damit im nativen iOS-Bau Apples echte Tab-Bar
           an die Stelle der Web-Nachbildung treten kann. */}
-      {!hideBottomNav && (
+      {!hideTabBar && (
         <BottomNavigation
           pathname={pathname}
           quickActionsOpen={showQuickActions}

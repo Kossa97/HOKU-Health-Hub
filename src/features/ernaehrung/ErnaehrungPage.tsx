@@ -3,6 +3,7 @@ import { addDays, format, parseISO } from 'date-fns'
 import { Target, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { readSharedDay, writeSharedDay } from '../../lib/sharedDay'
 import { getDateLocale } from '../../i18n/dateLocales'
@@ -67,6 +68,7 @@ function withPicked(pick: Picker, food: Food, amount: number, lang: string): She
 
 export function ErnaehrungPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const locale = getDateLocale()
   const userId = user!.id
@@ -182,7 +184,9 @@ export function ErnaehrungPage() {
       <h1 className="sr-only">{t('nutr_title')}</h1>
       {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
       {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
-        onOpenGoals={() => setSheet({ kind: 'goals' })} />}
+        onOpenGoals={() => setSheet({ kind: 'goals' })}
+        // Zurück, woher man kam; direkt eingestiegen (kein Verlauf) zur Startseite.
+        onClose={() => (typeof window.history.state?.idx === 'number' && window.history.state.idx > 0 ? navigate(-1) : navigate('/'))} />}
 
       {!sheet && (<>
       {n.loadError && (

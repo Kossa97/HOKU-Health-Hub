@@ -2811,5 +2811,6 @@
   "nutr_dish_orb_ring": "Kreis = ganzer Tag",
   "nutr_dish_orb_unit": "{{unit}} je Portion",
   "nutr_dish_orb_share": "{{pct}} % deines Tagesziels",
-  "nutr_dish_orb_empty": "Füge Zutaten hinzu – die Kugel entsteht"
+  "nutr_dish_orb_empty": "Füge Zutaten hinzu – die Kugel entsteht",
+  "nutr_close_page": "Ernährung schließen"
 }
