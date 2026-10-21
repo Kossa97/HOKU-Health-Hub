@@ -2828,5 +2828,15 @@
   "nutr_dish_orb_unit": "{{unit}} per serving",
   "nutr_dish_orb_share": "{{pct}} % of your daily goal",
   "nutr_dish_orb_empty": "Add ingredients – the orb takes shape",
-  "nutr_close_page": "Close nutrition"
+  "nutr_close_page": "Close nutrition",
+  "stoerung_banner_simuliert": "Simulated outage",
+  "stoerung_banner_offline": "Offline – last loaded data",
+  "stoerung_beenden": "End",
+  "stoerung_test_titel": "Testing",
+  "stoerung_schalter": "Simulate outage",
+  "stoerung_schalter_hinweis": "Supabase and all other services count as down. For checking that the app keeps running without a connection.",
+  "fehler_titel": "Something went wrong here",
+  "fehler_text": "Your saved data is not affected. Reload the page or go back to the start.",
+  "fehler_neu_laden": "Reload",
+  "fehler_zum_start": "Go to start"
 }
