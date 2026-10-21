@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Plus, Trash2, X } from 'lucide-react'
+import { ChevronDown, Plus, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { type DishDraft, dishFromDraft } from '../lib/dishDraft'
-import { MAX_AMOUNT, MEALS, type Food, amountValid, nutrientsFor, parseAmount } from '../lib/nutrition'
+import { MAX_AMOUNT, MEALS, type Food, amountValid, nutrientsFor, parseAmount, showDecimal } from '../lib/nutrition'
 import { MAX_INGREDIENTS, portionsValid } from '../lib/recipe'
 import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
@@ -13,18 +13,23 @@ import { ScoreBadge } from './ScoreBadge'
 /**
  * Gericht anlegen oder bearbeiten: Name, Portionen, Zutaten mit Menge.
  * Zutaten kommen über die gewohnte Suche (Häufig, Meine, Marken, Barcode).
+ * Die Gericht-Kugel oben (DishStage) zeigt eine Portion; eine aufgeklappte
+ * Zutat (`focus`) zeigt ihre Nährwerte, und ihre Punkte pulsieren oben.
  */
-export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredient, onSave, onDelete, onClose }: {
+export function DishEditorSheet({ draft, busy, hideKcal, focus, onFocus, onChange, onAddIngredient, onSave, onDelete, onClose }: {
   draft: DishDraft
   busy: boolean
   hideKcal: boolean
+  focus: number | null
+  onFocus: (k: number | null) => void
   onChange: (d: DishDraft) => void
   onAddIngredient: () => void
   onSave: (dish: Food) => void
   onDelete?: () => void
   onClose: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language ?? 'de'
   const [tried, setTried] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const dish = dishFromDraft(draft)
@@ -36,7 +41,10 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
   const tooHeavy = portionsOk && weight / portions > MAX_AMOUNT
 
   const setItem = (k: number, text: string) => onChange({ ...draft, items: draft.items.map((i, j) => (j === k ? { ...i, text } : i)) })
-  const removeItem = (k: number) => onChange({ ...draft, items: draft.items.filter((_, j) => j !== k) })
+  const removeItem = (k: number) => {
+    onFocus(null)
+    onChange({ ...draft, items: draft.items.filter((_, j) => j !== k) })
+  }
 
   const submit = () => {
     setTried(true)
@@ -47,11 +55,8 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
     // Ein versehentlicher Tipp daneben soll kein halb gebautes Gericht verwerfen: dann schließt nur das X.
     <Sheet labelledBy="nutr-dish-title" busy={busy} onClose={draft.name.trim() || draft.items.length ? () => {} : onClose} tall>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h2 id="nutr-dish-title" className="lg-title2 min-w-0 truncate">{t(draft.itemId ? 'nutr_dish_edit' : 'nutr_dish_new')}</h2>
-          {/* Punkte des ganzen Gerichts (je 100 g, wie bei jedem Lebensmittel). */}
-          {dish && <ScoreBadge per100={dish.per100} unit="g" size="lg" />}
-        </div>
+        {/* Punkte des ganzen Gerichts stehen oben an der Gericht-Kugel. */}
+        <h2 id="nutr-dish-title" className="lg-title2 min-w-0 truncate">{t(draft.itemId ? 'nutr_dish_edit' : 'nutr_dish_new')}</h2>
         <SheetClose onClick={onClose} disabled={busy} />
       </div>
 
@@ -90,17 +95,31 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
           {draft.items.map(({ ing, text }, k) => {
             const amount = parseAmount(text)
             const ok = amountValid(amount)
+            const nu = ok ? nutrientsFor(ing.per100, amount) : null
+            const open = focus === k
+            const extras = nu ? ([['nutr_f_sugar', nu.sugar], ['nutr_f_sat_fat', nu.satFat], ['nutr_f_fiber', nu.fiber], ['nutr_f_salt', nu.salt]] as const)
+              .filter(([, v]) => v != null).map(([key, v]) => `${t(key)} ${showDecimal(Math.round(v! * 10) / 10, lang)} g`) : []
             return (
-              <li key={k} className="flex min-h-[56px] items-center gap-2 py-1.5 pl-5 pr-2">
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2"><span className="truncate text-[17px] text-[var(--lg-text)]">{ing.name}</span><ScoreBadge per100={ing.per100} unit={ing.unit} /></span>
-                  <span className={`block truncate text-[13px] tabular-nums ${MUTED}`}>
-                    {ok ? (hideKcal
-                      ? `${Math.round(nutrientsFor(ing.per100, amount).protein)} g ${t('nutr_protein_short')}`
-                      : `${Math.round(nutrientsFor(ing.per100, amount).kcal)} kcal`) : '–'}
-                    {ing.brand ? ` · ${ing.brand}` : ''}
+              <li key={k} className="py-1.5 pl-5 pr-2">
+                <div className="flex min-h-[44px] items-center gap-2">
+                {/* Antippen klappt die Nährwerte auf; oben pulsieren die Punkte dieser Zutat. */}
+                <button type="button" aria-expanded={open} aria-controls={open ? `nutr-dish-ing-${k}` : undefined} onClick={() => onFocus(open ? null : k)}
+                  className="min-w-0 flex-1 text-left">
+                  <span className="flex items-center gap-1">
+                    <span className="truncate text-[17px] text-[var(--lg-text)]">{ing.name}</span>
+                    <ChevronDown size={14} aria-hidden="true" className={`shrink-0 text-[var(--lg-text-3)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                   </span>
-                </span>
+                  {/* Punkte in der zweiten Zeile: Der Name braucht den Platz. */}
+                  <span className={`flex items-center gap-1.5 text-[13px] tabular-nums ${MUTED}`}>
+                    <ScoreBadge per100={ing.per100} unit={ing.unit} />
+                    <span className="truncate">
+                      {nu ? (hideKcal
+                        ? `${Math.round(nu.protein)} g ${t('nutr_protein_short')}`
+                        : `${Math.round(nu.kcal)} kcal`) : '–'}
+                      {ing.brand ? ` · ${ing.brand}` : ''}
+                    </span>
+                  </span>
+                </button>
                 <input inputMode="decimal" value={text} onChange={e => setItem(k, e.target.value)} onFocus={e => e.currentTarget.select()}
                   aria-label={t('nutr_dish_ingredient_amount', { name: ing.name, unit: ing.unit })} aria-invalid={!ok}
                   className="input !min-h-10 !w-[4.5rem] shrink-0 !px-2.5 text-right tabular-nums" />
@@ -109,6 +128,13 @@ export function DishEditorSheet({ draft, busy, hideKcal, onChange, onAddIngredie
                   className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)]">
                   <X size={18} />
                 </button>
+                </div>
+                {open && (
+                  <div id={`nutr-dish-ing-${k}`} className="pb-2 pr-3 pt-1.5">
+                    <MacroCells nutrients={nu} hideKcal={hideKcal} />
+                    {extras.length > 0 && <p className={`mt-1.5 px-1 text-[12px] tabular-nums ${MUTED}`}>{extras.join(' · ')}</p>}
+                  </div>
+                )}
               </li>
             )
           })}

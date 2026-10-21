@@ -277,6 +277,8 @@ export interface SphereOpts {
   flash?: Flash | null
   /** Vorschau (Portions-Blatt): diese Plätze und Hüllenpunkte ab `extraFrom` kämen dazu — sie pulsieren. */
   preview?: { from: number; to: number; extraFrom: number } | null
+  /** Hervorheben (Zutat im Gericht): diese Plätze hell und leicht pulsierend, alle anderen treten zurück. */
+  focus?: { from: number; to: number } | null
   /**
    * Essens-Kugel: gefüllte Punkte gemischt nach Anteil statt in einer Farbe —
    * [Farbe, Anteil bis hier] aufsteigend, der letzte Anteil ist 1.
@@ -285,7 +287,7 @@ export interface SphereOpts {
 }
 
 /** Farbe eines Punktes nach seinem Zufallswert `s` (0–1) — so mischen sich die Anteile gleichmäßig. */
-function mixColor(mix: readonly (readonly [ColorIndex, number])[], s: number): ColorIndex {
+export function mixColor(mix: readonly (readonly [ColorIndex, number])[], s: number): ColorIndex {
   for (const [ci, upTo] of mix) if (s < upTo) return ci
   return mix[mix.length - 1][0]
 }
@@ -320,6 +322,14 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
       if (o.preview && rank >= o.preview.from && rank < o.preview.to) {
         alpha *= pulse(o.now)
         size *= 1.12
+      }
+      if (o.focus) {
+        if (rank >= o.focus.from && rank < o.focus.to) {
+          alpha = Math.min(1, alpha * (0.85 + 0.15 * Math.sin(o.now * 0.0055)) + 0.15)
+          size *= 1.15
+        } else {
+          alpha *= 0.28
+        }
       }
       if (fl && rank >= fl.from && rank < fl.to) {
         const delay = ((rank - fl.from) / Math.max(1, fl.to - fl.from)) * fl.spread
