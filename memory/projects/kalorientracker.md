@@ -116,3 +116,5 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - Vor dem Flug gleitet die Seite nach oben (max. 0,9 s, dann Sprung), erst dann wird der Startpunkt gemessen.
 - Nährwert-Punkte: gerechnet weiter 0–10, gezeigt als 5 Stufen (≥8/6/4/2) mit 5 Punkten; ⓘ öffnet
   ScoreInfo (Skala 1–5, „Bringt Punkte“/„Kostet Punkte“ mit Balken je 100 g, Fußnote). Keine Kommazahl mehr.
+- Nachtrag: Nährwert-Punkte doch als Zahl „4,9 /5“ (0,0–5,0, eine Stelle = 0–10 halbiert), nicht fünf Punkte.
+  Farben: ab 3,5 grün, ab 2,0 gelb, darunter orange. Erklärung: durchgehender Balken 0–5 mit Markierung.

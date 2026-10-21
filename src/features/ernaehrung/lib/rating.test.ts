@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Per100 } from './nutrition'
-import { nutritionScore, scoreLevel, scoreParts, scoreTone } from './rating'
+import { formatScore, nutritionScore, scoreOutOf5, scoreParts, scoreTone } from './rating'
 
 const per = (p: Partial<Per100>): Per100 =>
   ({ kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: null, sugar: null, satFat: null, salt: null, ...p })
@@ -54,17 +54,23 @@ describe('nutritionScore', () => {
   })
 })
 
-describe('scoreLevel / scoreTone', () => {
-  it('fünf Stufen aus 0–10', () => {
-    expect([9.7, 8, 7.9, 6, 5.9, 4, 3.9, 2, 1.9, 0].map(scoreLevel)).toEqual([5, 5, 4, 4, 3, 3, 2, 2, 1, 1])
+describe('scoreOutOf5 / scoreTone / formatScore', () => {
+  it('halbiert auf 0–5 mit einer Stelle, ohne Gleitkomma-Ausrutscher', () => {
+    expect([9.7, 10, 4.7, 0.3, 0].map(scoreOutOf5)).toEqual([4.9, 5, 2.4, 0.2, 0])
   })
 
-  it('Farbe je Stufe, ohne Rot', () => {
-    expect(scoreTone(5)).toBe('good')
-    expect(scoreTone(4)).toBe('good')
-    expect(scoreTone(3)).toBe('mid')
-    expect(scoreTone(2)).toBe('low')
-    expect(scoreTone(1)).toBe('low')
+  it('Farbe: ab 3,5 gut, ab 2,0 mittel, darunter niedrig — ohne Rot', () => {
+    expect(scoreTone(4.9)).toBe('good')
+    expect(scoreTone(3.5)).toBe('good')
+    expect(scoreTone(3.4)).toBe('mid')
+    expect(scoreTone(2)).toBe('mid')
+    expect(scoreTone(1.9)).toBe('low')
+  })
+
+  it('Komma auf Deutsch, Punkt auf Englisch, immer eine Stelle', () => {
+    expect(formatScore(4.9, 'de')).toBe('4,9')
+    expect(formatScore(5, 'de')).toBe('5,0')
+    expect(formatScore(2, 'en')).toBe('2.0')
   })
 })
 

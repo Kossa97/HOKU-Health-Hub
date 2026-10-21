@@ -1,6 +1,6 @@
 /**
  * Nährwert-Punkte — wie „gut zusammengesetzt" ein Lebensmittel je 100 g ist. Gerechnet
- * wird auf 0–10, gezeigt in fünf Stufen (`scoreLevel`).
+ * wird auf 0–10, gezeigt als 0,0–5,0 (`scoreOutOf5`) — vertraut wie eine Bewertung „4,8 von 5“.
  *
  * Angelehnt an die öffentliche Rechnung hinter dem Nutri-Score (Fassung 2017):
  * Energie, Zucker, gesättigte Fettsäuren und Salz zählen dagegen, Ballaststoffe und
@@ -77,18 +77,22 @@ export function nutritionScore(p: Per100, unit: FoodUnit = 'g'): number | null {
 }
 
 /**
- * Gezeigt werden fünf Stufen, keine Kommazahl: Die Rechnung ist grob (Obst-/Gemüseanteil
- * fehlt, Lücken werden abgeschätzt) — „9,7“ wirkte genauer, als sie ist.
+ * Gezeigt auf 0,0–5,0 mit einer Stelle: halb so fein wie 0–10 — die Rechnung ist grob
+ * (Obst-/Gemüseanteil fehlt, Lücken werden abgeschätzt). Das kleine Plus fängt
+ * Gleitkomma ab (9,7 / 2 = 4,85 → 4,9, nicht 4,8).
  */
-export type ScoreLevel = 1 | 2 | 3 | 4 | 5
-
-export function scoreLevel(score: number): ScoreLevel {
-  return score >= 8 ? 5 : score >= 6 ? 4 : score >= 4 ? 3 : score >= 2 ? 2 : 1
+export function scoreOutOf5(score: number): number {
+  return Math.round(score * 5 + 1e-9) / 10
 }
 
 export type ScoreTone = 'good' | 'mid' | 'low'
 
-/** Farbe der Stufe: 4–5 gut, 3 mittel, 1–2 niedrig (orange, nie rot). */
-export function scoreTone(level: ScoreLevel): ScoreTone {
-  return level >= 4 ? 'good' : level === 3 ? 'mid' : 'low'
+/** Farbe auf der 5er-Skala: ab 3,5 gut, ab 2,0 mittel, darunter niedrig (orange, nie rot). */
+export function scoreTone(score5: number): ScoreTone {
+  return score5 >= 3.5 ? 'good' : score5 >= 2 ? 'mid' : 'low'
+}
+
+/** „4,8" / „4.8" je nach Sprache, immer eine Stelle. */
+export function formatScore(score5: number, lang: string): string {
+  return score5.toLocaleString(lang.startsWith('de') ? 'de-DE' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }

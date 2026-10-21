@@ -1,23 +1,23 @@
 import { ChevronLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { FoodUnit, Per100 } from '../lib/nutrition'
-import { MAX_MINUS, MAX_PLUS, type ScoreLevel, nutritionScore, scoreLevel, scoreParts, scoreTone } from '../lib/rating'
+import { MAX_MINUS, MAX_PLUS, formatScore, nutritionScore, scoreOutOf5, scoreParts, scoreTone } from '../lib/rating'
 import { MUTED, SCORE_COLOR as TONE_COLOR } from '../styles'
 
-const LEVELS: ScoreLevel[] = [1, 2, 3, 4, 5]
 const VERDICT = { good: 'nutr_score_good', mid: 'nutr_score_mid', low: 'nutr_score_low' } as const
 
 /**
  * Was die Nährwert-Punkte bedeuten — an der Stelle des Formulars, mit „Zurück“.
- * Oben die Stufe auf der Skala, darunter, was Punkte bringt und was sie kostet (je 100 g/ml).
+ * Oben der Wert auf der Skala 0–5, darunter, was Punkte bringt und was sie kostet (je 100 g/ml).
  */
 export function ScoreInfo({ per100, unit, name, onBack }: { per100: Per100; unit: FoodUnit; name: string; onBack: () => void }) {
   const { t, i18n } = useTranslation()
   const score = nutritionScore(per100, unit)
   const parts = scoreParts(per100, unit)
   if (score == null || !parts) return null
-  const level = scoreLevel(score)
-  const tone = scoreTone(level)
+  const score5 = scoreOutOf5(score)
+  const tone = scoreTone(score5)
+  const text = formatScore(score5, i18n.language ?? 'de')
   const num = (n: number | null, digits = 1) => (n == null ? '–' : n.toLocaleString(i18n.language?.startsWith('de') ? 'de-DE' : 'en-US', { maximumFractionDigits: digits }))
   const plus = [
     { key: 'p', label: t('nutr_protein'), amount: `${num(per100.protein)} g`, value: parts.proteinCounts ? parts.protein : 0, off: !parts.proteinCounts },
@@ -49,19 +49,27 @@ export function ScoreInfo({ per100, unit, name, onBack }: { per100: Per100; unit
       </div>
 
       <p className="mt-1 flex items-baseline gap-2">
-        <span className="text-[34px] font-bold tabular-nums" style={{ color: TONE_COLOR[tone] }}>{level}</span>
+        <span className="text-[34px] font-bold tabular-nums" style={{ color: TONE_COLOR[tone] }}>{text}</span>
         <span className={`text-[15px] ${MUTED}`}>{t('nutr_score_of_five')} · {t(VERDICT[tone])}</span>
       </p>
       <p className={`text-[13px] ${MUTED}`}>{t('nutr_score_basis', { name, unit })}</p>
 
-      <div className="mt-3" role="img" aria-label={t('nutr_score_level_aria', { level })}>
-        <div className="grid grid-cols-5 gap-1">
-          {LEVELS.map(n => (
-            <span key={n} className={`grid h-7 place-items-center rounded-[8px] text-[13px] font-bold ${n === level ? 'text-black outline outline-2 outline-offset-1 outline-[var(--lg-text)]' : 'text-black/60 opacity-35'}`}
-              style={{ background: TONE_COLOR[scoreTone(n)] }}>{n}</span>
-          ))}
+      {/* Skala 0–5: orange bis 2, gelb bis 3,5, grün darüber; der Punkt zeigt dieses Lebensmittel. */}
+      <div className="mt-3" role="img" aria-label={t('nutr_score_level_aria', { level: text })}>
+        <div className="relative flex h-3 rounded-full">
+          <span className="rounded-l-full" style={{ flex: 2, background: TONE_COLOR.low }} />
+          <span style={{ flex: 1.5, background: TONE_COLOR.mid }} />
+          <span className="rounded-r-full" style={{ flex: 1.5, background: TONE_COLOR.good }} />
+          <span aria-hidden="true" className="absolute -top-[5px] h-[22px] w-[22px] -translate-x-1/2 rounded-full border-[3px] border-[var(--lg-sheet-solid)] bg-[var(--lg-text)] shadow-[0_2px_6px_rgba(0,0,0,0.45)]"
+            style={{ left: `${(score5 / 5) * 100}%` }} />
         </div>
-        <div className={`mt-1 flex justify-between text-[12px] ${MUTED}`}>
+        <div className={`relative mt-1.5 h-4 text-[11px] tabular-nums ${MUTED}`} aria-hidden="true">
+          <span className="absolute left-0">0</span>
+          <span className="absolute left-[40%] -translate-x-1/2">2</span>
+          <span className="absolute left-[70%] -translate-x-1/2">{formatScore(3.5, i18n.language ?? 'de')}</span>
+          <span className="absolute right-0">5</span>
+        </div>
+        <div className={`flex justify-between text-[12px] ${MUTED}`}>
           <span>{t('nutr_score_low')}</span><span>{t('nutr_score_good')}</span>
         </div>
       </div>
