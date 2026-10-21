@@ -10,6 +10,7 @@ import { Sheet } from './components/Panel'
 import { AddFoodSheet } from './components/AddFoodSheet'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { DaySummary } from './components/DaySummary'
+import { DishStage } from './components/DishStage'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
@@ -165,6 +166,11 @@ export function ErnaehrungPage() {
     setSheet({ kind: 'dish', draft: draftFromDish(mine, lang), ...rest })
   }
 
+  /** Gericht in Arbeit — im Editor oder beim Suchen einer Zutat dafür. */
+  const dishOpen = sheet?.kind === 'dish' ? sheet : sheet && 'pick' in sheet && sheet.pick?.kind === 'dish' ? sheet.pick : null
+  /** Aufgeklappte Zutat im Editor (ihre Punkte pulsieren oben); beim Zutat-Suchen zu. */
+  const [dishFocus, setDishFocus] = useState<number | null>(null)
+
   /** „Als Gericht": die Einträge dieser Mahlzeit als Zutaten. Schnelleinträge haben keine Menge und fallen weg. */
   const saveMealAsDish = (meal: Meal) => {
     const ingredients = n.byMeal[meal].map(ingredientFromEntry).filter((i): i is Ingredient => i !== null)
@@ -174,13 +180,13 @@ export function ErnaehrungPage() {
   return (
     <div className="mx-auto max-w-lg pb-6">
       <h1 className="sr-only">{t('nutr_title')}</h1>
-      {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. */}
-      <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
+      {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
+      {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
         dayLabel={isToday
           ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
           : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
         onOpenMonth={() => setSheet(s => (s?.kind === 'month' ? null : { kind: 'month' }))}
-        onOpenGoals={() => setSheet({ kind: 'goals' })} />
+        onOpenGoals={() => setSheet({ kind: 'goals' })} />}
 
       {!sheet && (<>
       {n.loadError && (
@@ -286,8 +292,8 @@ export function ErnaehrungPage() {
           pickLabel={sheet.pick?.kind === 'photo' ? t('nutr_photo_take_over') : undefined}
           food={sheet.food} meal={sheet.meal} startAmount={sheet.amount}
           busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
-          // Vorschau in der Tageskugel nur beim Eintragen (nicht als Zutat) und wenn der Tag geladen ist.
-          preview={!sheet.pick && !!n.day}
+          // Vorschau oben: in der Tageskugel beim Eintragen (Tag geladen), in der Gericht-Kugel bei einer Zutat dafür.
+          preview={sheet.pick ? sheet.pick.kind === 'dish' : !!n.day}
           onClose={() => setSheet(sheet.done ? null : sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
             if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
@@ -361,18 +367,20 @@ export function ErnaehrungPage() {
       )}
 
       {sheet?.kind === 'dish' && (
-        <DishEditorSheet draft={sheet.draft} busy={busy} hideKcal={n.goals.hideKcal}
+        <DishEditorSheet draft={sheet.draft} busy={busy} hideKcal={n.goals.hideKcal} focus={dishFocus} onFocus={setDishFocus}
           onChange={draft => setSheet({ ...sheet, draft })}
-          onClose={() => setSheet(sheet.back)}
-          onAddIngredient={() => setSheet({ kind: 'add', meal: sheet.meal ?? sheet.entry?.meal ?? meal0, pick: sheet })}
+          onClose={() => { setDishFocus(null); setSheet(sheet.back) }}
+          onAddIngredient={() => { setDishFocus(null); setSheet({ kind: 'add', meal: sheet.meal ?? sheet.entry?.meal ?? meal0, pick: sheet }) }}
           onSave={dish => run(async () => {
             const saved = await n.saveFood(dish)
+            setDishFocus(null)
             if (sheet.entry) setSheet({ kind: 'edit', entry: sheet.entry, food: saved })
             else if (sheet.meal) setSheet({ kind: 'portion', meal: sheet.meal, food: saved })
             else { setSheet(null); toast.success(t('nutr_dish_saved')) }
           })}
           onDelete={sheet.draft.itemId ? () => run(async () => {
             await n.removeFood(sheet.draft.itemId!)
+            setDishFocus(null)
             setSheet(sheet.meal ? { kind: 'add', meal: sheet.meal } : null)
             toast(t('nutr_dish_deleted'))
           }) : undefined} />

@@ -2573,5 +2573,11 @@
   "my_stack_shelf_life_days_left": "{{n}} days left",
   "my_stack_shelf_life_day_left": "1 day left",
   "my_stack_shelf_life_today": "expires today",
-  "my_stack_shelf_life_not_set": "not specified"
+  "my_stack_shelf_life_not_set": "not specified",
+  "nutr_dish_orb_label": "Recipe orb",
+  "nutr_dish_orb_aria": "One serving as an orb: {{kcal}} kcal",
+  "nutr_dish_orb_ring": "Circle = full day",
+  "nutr_dish_orb_unit": "{{unit}} per serving",
+  "nutr_dish_orb_share": "{{pct}} % of your daily goal",
+  "nutr_dish_orb_empty": "Add ingredients – the orb takes shape"
 }

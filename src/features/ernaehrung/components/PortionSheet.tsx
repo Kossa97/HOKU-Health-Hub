@@ -77,7 +77,12 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
    */
   const save = async () => {
     if (!valid || busy || flying) return
-    if (mode !== 'add') { await onSave(amount, meal); return }
+    if (mode !== 'add') {
+      // Zutat für ein Gericht (mit Vorschau oben): ihre Punkte fliegen gleich in die Gericht-Kugel.
+      if (mode === 'ingredient' && preview) setOrbOrigin(orb.current?.origin() ?? null)
+      await onSave(amount, meal)
+      return
+    }
     setOrbOrigin(orb.current?.origin() ?? null)
     setFlying(true)
     if ((await onSave(amount, meal)) === false) {
@@ -93,12 +98,13 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
 
   return (
     <Sheet labelledBy="nutr-portion-title" busy={busy || flying} onClose={onClose}>
-      <div className="flex items-start justify-between gap-2">
+      {/* Kugel · Name · Knöpfe; auf schmalen Geräten (iPhone SE) steht der Name darunter in voller Breite. */}
+      <div className="grid grid-cols-[auto_1fr_auto] items-start gap-x-2">
         {/* Die Kugel dieses Essens: gleiche Punktdichte wie die Tageskugel (ein ganzer Tag wäre so groß wie sie). */}
         <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={96} fullFrac={0.73} />
-        <div className="min-w-0 flex-1 self-center">
+        <div className="col-start-2 row-start-1 min-w-0 self-center max-[379px]:col-span-3 max-[379px]:col-start-1 max-[379px]:row-start-2 max-[379px]:mt-2">
           {/* Abzeichen unter, nicht in der Überschrift: sie benennt das Blatt und darf umbrechen. */}
-          <h2 id="nutr-portion-title" className="lg-title2 min-w-0 [overflow-wrap:anywhere]">{food.name}</h2>
+          <h2 id="nutr-portion-title" lang={lang} className="lg-title2 min-w-0 hyphens-auto [overflow-wrap:anywhere]">{food.name}</h2>
           <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
             <ScoreBadge per100={food.per100} unit={food.unit} />
             <SourceBadge source={food.source} own={food.itemId !== null} />
@@ -109,7 +115,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             </span>
           </p>
         </div>
-        <div className="flex shrink-0">
+        <div className="col-start-3 row-start-1 flex shrink-0">
           {onToggleFavorite && (
             <button type="button" onClick={onToggleFavorite} disabled={busy} aria-pressed={food.favorite}
               aria-label={t(food.favorite ? 'nutr_unfavorite' : 'nutr_favorite')}

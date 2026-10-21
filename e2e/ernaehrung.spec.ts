@@ -224,6 +224,9 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   await page.getByRole('button', { name: 'Neues Gericht' }).click()
   await page.getByLabel('Name', { exact: true }).fill('Quark-Porridge')
   await page.getByLabel('Portionen').fill('2')
+  // Oben steht statt der Tageskugel die Gericht-Kugel (eine Portion), noch leer
+  const orb = page.getByRole('region', { name: 'Gericht-Kugel' })
+  await expect(orb.getByText('Füge Zutaten hinzu – die Kugel entsteht')).toBeVisible()
   // „Passt zu“: vorgeschlagen ist die Mahlzeit, für die man gerade einträgt
   await expect(page.getByRole('button', { name: 'Frühstück', exact: true })).toHaveAttribute('aria-pressed', 'true')
 
@@ -232,13 +235,22 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
     await page.getByRole('tab', { name: 'Meine' }).click()
     await page.getByRole('button', { name: new RegExp(name) }).click()
     await page.getByLabel('Menge in g').fill(amount)
+    // Vorschau in der Gericht-Kugel: was die Zutat je Portion dazubringt (250 g Quark = 170 kcal / 2)
+    if (name === 'Magerquark') await expect(orb.getByText('+85', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Zum Gericht' }).click()
   }
+  await expect(orb.getByText('234', { exact: true })).toBeVisible() // (297,6 + 170) / 2
   // Eingaben überstehen das Zutat-Suchen; Menge lässt sich in der Liste ändern
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Quark-Porridge')
   await page.getByLabel('Menge Magerquark in g').fill('200')
   // je Portion: (80 g Hafer 297,6 + 200 g Quark 136) / 2
   await expect(page.getByText('Je Portion (140 g)')).toBeVisible()
+  await expect(orb.getByText('217', { exact: true })).toBeVisible()
+  await expect(orb.getByText('11 % deines Tagesziels')).toBeVisible()
+  // Zutat aufklappen: ihre Nährwerte für die eingegebene Menge
+  await page.getByRole('button', { name: 'Haferflocken 298 kcal' }).click()
+  await expect(page.getByRole('button', { name: 'Haferflocken 298 kcal' })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#nutr-dish-ing-0').getByText('298', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Gericht speichern', exact: true }).click()
 
   // gleich weiter zum Eintragen, eine Portion vorgewählt

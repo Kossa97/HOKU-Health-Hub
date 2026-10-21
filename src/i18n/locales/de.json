@@ -2805,5 +2805,11 @@
   "my_stack_shelf_life_days_left": "noch {{n}} Tage",
   "my_stack_shelf_life_day_left": "noch 1 Tag",
   "my_stack_shelf_life_today": "läuft heute ab",
-  "my_stack_shelf_life_not_set": "nicht angegeben"
+  "my_stack_shelf_life_not_set": "nicht angegeben",
+  "nutr_dish_orb_label": "Gericht-Kugel",
+  "nutr_dish_orb_aria": "Eine Portion als Kugel: {{kcal}} kcal",
+  "nutr_dish_orb_ring": "Kreis = ganzer Tag",
+  "nutr_dish_orb_unit": "{{unit}} je Portion",
+  "nutr_dish_orb_share": "{{pct}} % deines Tagesziels",
+  "nutr_dish_orb_empty": "Füge Zutaten hinzu – die Kugel entsteht"
 }
