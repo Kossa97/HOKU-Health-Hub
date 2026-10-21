@@ -62,8 +62,11 @@ Stand: 2026-10-18. Vorbild: Chip-Auswahl wie in Zyklus-Apps (Flo), angepasst.
   Eigentümer-Trigger (Execute entzogen), Katalog-Chip je Eintrag eindeutig;
   `effects.type`/`severity` dürfen leer sein. Trockenlauf 2× + Funktionstests OK,
   in Produktion angewendet: 58 effects unverändert, 0 Chips.
-  `supabase-tagebuch-reset.sql` (löscht alle effects) liegt bereit, **noch nicht
-  ausgeführt** – erst mit neuen Testdaten im neuen Format.
+  Testdaten: `supabase-tagebuch-neu-simulieren.sql` (2026-10-21, ersetzt die
+  alte reset-Datei) löscht alle effects und legt je Konto gleich viele neue an,
+  1–3 Katalog-Chips, ~70 % mit passender bestätigter Einnahme, 12 Wochen.
+  Trockenlauf 2× OK (57 Einträge, 118 Chips, alle Prüfungen grün). Enthält
+  `delete` → läuft über MCP nicht, der Nutzer führt sie im SQL-Editor aus.
 - **Schritt 2 erledigt (2026-10-19): Formular in der App.** `src/pages/tagebuch/`:
   `EntryForm` (Titel Pflicht, Substanz freiwillig, Zeitpunkt, Einnahme-Bezug,
   Suche + Info-Knopf, Tabs mit Anzahl, Chip-Gruppen, „+ Eigene …", Notizen),
