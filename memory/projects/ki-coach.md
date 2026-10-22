@@ -103,6 +103,11 @@ vom Style her auch wie Siri, passend zur App“.
   - Zu Hause: Logo pulsiert (1,7 s), leuchtet (Schein cyan/violett) und wackelt
     unregelmäßig (2,3 s). Ein Tipp darauf ist die Klingel. Draußen schickt ein Tipp
     aufs Logo ihn heim.
+  - **Eingang dezent (Nutzer 22.10.: „Tür viel zu extrem“):** keine Lichtsäule mehr.
+    Der Lichtrand der Kapsel öffnet sich oben in Eingangsbreite (Lücke wächst mit
+    `easeOut3`), die beiden Enden biegen sich ~2 px auf und fangen Licht; darüber
+    nur ein leiser Schein (~26 px hoch, Alpha 0,16) und fünf feine, leicht
+    schwankende Strahlen (1 px, Alpha 0,2). Nähert sich Dot, etwas heller.
   - Für die App: die mittlere Schaltfläche (`art: 'aktion'`) ist im Code schon
     vorgesehen (`LiquidGlassTabBar`); dort käme das Logo hin.
 
