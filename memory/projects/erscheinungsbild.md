@@ -9,6 +9,12 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
 - **Nacht** (22.10.2026): Umgebungslicht bei 55 %, leise getönte Kante,
   Prismasaum (cyan oben, magenta unten), Korn auf dem Grund.
 
+Injektionstracker (22.10.2026): bei Nacht Kantenlichter der Figur links
+cyan, rechts violett (Hauptlicht und Haut wie „Studio“), Bühne als
+`--inj-backdrop` mit kühlem Schein, Grün/Violett und Korn. Blätter
+(`.lg-sheet`) bekommen app-weit die getönte Kante. Kantenlicht vom Nutzer
+bewusst dezent gelassen.
+
 ## Warum Nacht
 
 Auf reinem Schwarz hat der Weichzeichner nichts zu brechen, übrig bleibt nur

@@ -75,3 +75,7 @@ RoomEnvironment (kein HDR aus dem Netz). Hintergrund Schwarz mit warmem
 Schein. Gilt für Karte und Vorschau-Karte auf Home. Pinköpfe leuchten
 leicht. Kontaktschatten entfernt (auf Schwarz unsichtbar).
 Offen: Test auf echtem iPhone.
+
+22.10.2026, Look „Nacht“: nur die Kantenlichter getönt (links cyan, rechts
+violett), Bühne über `--inj-backdrop` in liquid-glass.css. Details in
+`erscheinungsbild.md`.
