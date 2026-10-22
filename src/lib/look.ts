@@ -11,13 +11,15 @@ import { useCallback, useEffect, useState } from 'react'
  *   gebrochen (der Stand von Fortschritt im Schwarzglas-Entwurf)
  * - `nacht`: Schwarz mit gedämpftem Umgebungslicht, klares Glas mit leiser,
  *   getönter Kante und Prismasaum, feines Korn auf dem Grund
+ * - `instrument`: wie ein Messgerät — reines Schwarz, feste Flächen mit
+ *   Haarlinie, kein Glas, weißer Hauptknopf, Cyan nur für Daten
  *
  * Gesetzt wird nur `data-look` am `<html>`; was sich ändert, steht in
  * liquid-glass.css unter `html[data-look='…']`.
  */
-export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht'
+export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument'
 
-export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht']
+export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument']
 
 const STORAGE_KEY = 'tyd_look'
 
