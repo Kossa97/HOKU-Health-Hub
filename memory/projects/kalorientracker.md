@@ -136,3 +136,9 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
   Der gezeigte Tag lädt trotzdem frisch; versions je Tag verhindern, dass ein älterer Serverstand lokale
   Änderungen überschreibt. Wochensummen werden aus days gerechnet (kein loadRange mehr für die Woche).
   Nur die aktuelle Woche bleibt im Speicher; Kontowechsel leert ihn.
+
+## Wochenleiste wischen, Punkte-Flug zwischen Tagen (2026-10-22)
+- Wochenleiste: drei Wochen nebeneinander (Nachbarn `inert`), folgt dem Finger 1:1, Schwung-Projektion, kritisch gedämpfte Feder (0,38 s), Gummiband in die Zukunft. Gleicher Wochentag beim Blättern, gekappt auf heute. Optik unverändert.
+- `useNutritionDay` lädt Vor- und Folgewoche mit (21 Tage je Wochenwechsel) — bewusst einfach; ließe sich auf „nur die neue Woche nachladen“ verfeinern.
+- Gestenrechnung (`SLOP`, `rubber`, `project`, `releaseVelocity`) liegt in `lib/gesture.ts`, geteilt mit SwipeRow.
+- Verschieben auf einen Tag: `lib/dotFlight.ts` (WAAPI, DOM-Punkte). Punkte sinken unten aus der Kugel des alten Tages, Bogen unter der Leiste, steigen von unten in die neue; Zieltag zeigt alten Stand bis zur Landung (`held` je Flug), dann kurzes Aufatmen. Auch bei Rückgängig und Speicherfehler (zurück). Ohne Flug bei „Bewegung reduzieren“.
