@@ -188,6 +188,20 @@ vom Style her auch wie Siri, passend zur App“.
     einmal, `drawImage`) statt einzeln gefüllter Kreise. Gemessen headless: 1,5 ms je
     Bild im Mittel, 95 % unter 2,4 ms.
 
+- **Runde Ecken und Leistung (Nutzer 22.10.: „unten in der runden Ecke passt er sich
+  nicht an“, „Performance gefühlt schlechter“), v15:**
+  - Bildschirmecken unten als echte Rundung (Radius aus `border-radius` des Rahmens
+    − 5 px): als Körper für Rand-Strahlen, Mitte und Ziehen; jeder Punkt, der
+    außerhalb des Bogens landen würde, wird auf den Bogen geschoben. Geprüft: links und
+    rechts unten liegt er als Streifen entlang der Rundung.
+  - Messung mit 6-fach gebremstem Prozessor (Handy-Tempo), je Bild Physik + Zeichnen:
+    vorher angedockt 8,5 ms Mittel / 13,4 ms (95 %), Ziehen 7,3 / 20,8 ms;
+    nachher angedockt 3,3 / 6,6 ms, Ziehen 3,4 / 9,5 ms.
+  - Dafür: Punkte per WebGL (`gl.POINTS`, ein Auftrag, weicher Kreis im Shader,
+    additiv; Rückfall Canvas 2D), Physik 120 Hz statt 240 Hz (stabil), Formabtastung
+    grob + 4× halbieren statt 110 kleiner Schritte, Oberfläche runder Körper je Bild an
+    64 Stellen vorberechnet statt je Punkt.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
