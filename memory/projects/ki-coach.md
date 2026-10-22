@@ -319,6 +319,12 @@ vom Style her auch wie Siri, passend zur App“.
   der Berührstelle. Löst v19 „bis an den Rand" ab. Uhr: nur ein Wurf, dessen
   Bahn die Wand unter der Uhr trifft (oder Anschlag > 180 px/s), schickt ihn
   einmal herum; danach liegt er unter der Wand rechts neben der Uhr.
+- **Herauskommen an zufälligen Platz (Nutzer 22.10., gegen Feststecken):** Jede
+  Art herauszukommen fliegt ihn an eine zufällige freie Stelle (frei schwebend
+  oder links/rechts an der Seite, nicht in `data-dot-avoid`, mindestens 30 %
+  der Bildschirmbreite vom letzten Platz, über der Leiste). Der gespeicherte
+  Platz wird damit bei jedem Herauskommen neu gesetzt. Ausnahme: Seiten ohne
+  Leiste — dort weiter als Streifen an den Rand.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
 

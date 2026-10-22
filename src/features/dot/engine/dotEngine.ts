@@ -653,9 +653,27 @@ export function createDot(host: DotHost): DotApi {
     if (B.enterKind === 'bounce') { B.vy = -clamp(Math.abs(B.vy) * 0.45, 380, 700); B.vx *= 0.4 }
     melde(); laufen()
   }
+  // Beim Herauskommen fliegt er an eine zufällige freie Stelle: frei schwebend
+  // oder an einer Seite, nicht in Ausweichzonen und weg vom letzten Platz. Ein
+  // gespeicherter Platz, an dem er feststeckte, kehrt so nicht wieder.
+  function zufallsPlatz(): { dock: { x: DockX; y: DockY }; along: { x: number; y: number } } {
+    const b = bounds(), r = B.size, Z = zonen(), floor = navOn() ? TAB : b.b
+    const yLo = b.t + r * 1.5, yHi = Math.max(yLo, floor - r * 3.2), alt = spotFor(B.dock, B.along)
+    for (let i = 0; i < 24; i++) {
+      const s = Math.random(), dock = { x: (s < 0.2 ? 'left' : s < 0.4 ? 'right' : null) as DockX, y: null as DockY }
+      const along = { x: b.l + r * 1.5 + Math.random() * Math.max(0, b.r - b.l - r * 3), y: yLo + Math.random() * (yHi - yLo) }
+      const p = spotFor(dock, along)
+      if (ueberlappt(p, Z)) continue
+      if (i < 16 && Math.hypot(p.x - alt.x, p.y - alt.y) < Math.min(W, H) * 0.3) continue
+      return { dock, along }
+    }
+    return { dock: { x: 'right', y: null }, along: { x: b.r - r, y: (yLo + yHi) / 2 } }
+  }
   function ring(kind?: string) {
     if (B.mode !== 'house') return false
     vermessen()
+    // auf Seiten ohne Leiste legt er sich als Streifen an den Rand (toStrip), sonst zufällig
+    if (!B.autoOut) { const p = zufallsPlatz(); B.dock = p.dock; B.along = p.along; B.squeezed = false; speichern() }
     B.exitKind = pickKind(EXITS, B.lastExit, kind); B.lastExit = B.exitKind; B.popped = false; B.lean = 0
     B.mode = 'exit'; B.te = 0
     B.x = ENT.x; B.y = TAB + B.size * 1.1; B.lx = B.x; B.ly = B.y; B.vx = B.vy = B.lvx = B.lvy = 0; B.r = B.size; B.doorFlash = 1
