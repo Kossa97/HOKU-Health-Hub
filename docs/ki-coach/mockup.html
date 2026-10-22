@@ -1,0 +1,1972 @@
+<title>KI-Coach Dot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: Telefonrahmen links (echte App-Optik), Dot schwebt als eigene Ebene darüber, die Tab-Leiste ist sein Haus; rechts Bedienung und Regler; schmal untereinander. */
+@property --edge-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+:root {
+  color-scheme: dark;
+  --bg: #050506;
+  --panel: #121214;
+  --surface: #1c1c1e;
+  --fill: rgba(120,120,128,0.24);
+  --line: rgba(255,255,255,0.08);
+  --text: #f5f5f7;
+  --muted: #98989d;
+  --accent: #00ccf5;
+  --accent-soft: rgba(0,204,245,0.16);
+  --ok: #30d158;
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 15px/1.45 var(--ui); }
+.page {
+  max-width: 1080px; margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px;
+}
+header h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 66ch; }
+.grid { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Telefon ─────────────────────────────── */
+.phone {
+  position: relative; width: 100%; max-width: 390px; height: 780px; margin: 0 auto;
+  border-radius: 46px; overflow: hidden; background: #000;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 0 0 9px #0d0d0f, 0 0 0 10px rgba(255,255,255,0.08), 0 30px 80px rgba(0,0,0,0.7);
+  isolation: isolate; user-select: none; -webkit-user-select: none; touch-action: pan-y;
+}
+@media (max-width: 430px) { .phone { height: 720px; border-radius: 34px; } }
+.phone[data-look="nacht"] { background:
+  radial-gradient(70% 40% at 10% 0%, rgba(40,160,220,0.20), transparent 70%),
+  radial-gradient(60% 40% at 100% 100%, rgba(140,90,255,0.18), transparent 70%), #04040a; }
+.statusbar { position: absolute; inset: 0 0 auto; height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; font-weight: 600; font-size: 15px; z-index: 16; pointer-events: none; }
+.badge { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); background: var(--fill); padding: 2px 8px; border-radius: 99px; }
+
+.home { position: absolute; inset: 0; padding: 60px 16px 110px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; scrollbar-width: none; }
+.home::-webkit-scrollbar { display: none; }
+.home > * { flex: none; }
+/* Seiten: die neue gleitet unter Dot durch, die alte tritt zurück */
+.pg { transition: opacity 260ms var(--ease-out), transform 320ms var(--ease-out), visibility 0s; }
+.pg:not(.on) { opacity: 0; transform: translateX(var(--from, 24px)); visibility: hidden; pointer-events: none; transition: opacity 200ms ease, transform 320ms var(--ease-out), visibility 0s linear 320ms; }
+.feature { padding: 104px 16px 40px; }
+.card.link { cursor: pointer; grid-template-columns: 1fr auto; align-items: center; }
+.card.link .chev { grid-row: 1 / span 3; grid-column: 2; color: var(--muted); font-size: 20px; }
+.row2 { display: flex; justify-content: space-between; align-items: center; }
+.search { display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 12px; background: var(--fill); padding: 0 12px; color: var(--muted); }
+.search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--text); font: 16px var(--ui); outline: none; }
+.fab { position: absolute; right: 16px; bottom: 96px; z-index: 2; border: 0; border-radius: 999px; padding: 12px 16px; font: 600 15px var(--ui); color: #00141c; background: linear-gradient(180deg, #4fe2ff, #00c2ec 55%, #00a9d4); box-shadow: 0 8px 24px rgba(0,204,245,0.3); cursor: pointer; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 12px; color: var(--muted); }
+.week span { padding: 8px 0; border-radius: 10px; background: var(--surface); }
+.week span.on { background: var(--accent-soft); color: var(--accent); }
+.week span.miss { box-shadow: inset 0 0 0 1px rgba(255,120,120,0.45); }
+.toprow { position: absolute; top: 52px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 2; }
+.toprow .ttl { font-weight: 700; font-size: 17px; }
+.scanbtn { position: absolute; right: 16px; bottom: 30px; z-index: 2; }
+.cam { position: absolute; inset: 0; background: radial-gradient(80% 60% at 50% 45%, #1d2428, #060708 75%); }
+.frame { position: absolute; left: 50%; top: 42%; width: 240px; height: 150px; transform: translate(-50%, -50%); border-radius: 18px; box-shadow: 0 0 0 2px rgba(255,255,255,0.85), 0 0 0 999px rgba(0,0,0,0.35); overflow: hidden; }
+.frame::after { content: ""; position: absolute; left: 8%; right: 8%; height: 2px; top: 10%; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: scan 1.8s ease-in-out infinite alternate; }
+@keyframes scan { to { top: 88%; } }
+.camhint { position: absolute; left: 0; right: 0; top: calc(42% + 100px); text-align: center; color: rgba(255,255,255,0.8); font-size: 14px; }
+.dock { transition: transform 340ms var(--ease-drawer); }
+.phone[data-nonav] .dock { transform: translateY(130px); }
+.slot.tab { cursor: pointer; }
+.pill { transition: transform 420ms cubic-bezier(0.34, 1.32, 0.52, 1); }
+/* Blatt (Schnellzugriff) und Tastatur */
+.scrim { position: absolute; inset: 0; z-index: 13; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 260ms ease; }
+.scrim.show { opacity: 1; pointer-events: auto; }
+.sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 14; border-radius: 28px; padding: 10px 16px 18px; background: rgba(28,28,32,0.96); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -10px 40px rgba(0,0,0,0.5); transform: translateY(110%); transition: transform 420ms var(--ease-drawer); display: grid; gap: 8px; }
+.sheet.show { transform: translateY(0); }
+.sheet .grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.25); margin: 0 auto 6px; }
+.sheet h4 { margin: 0 0 4px; font-size: 17px; }
+.sheet .act { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: var(--fill); color: var(--text); border: 0; font: 15px var(--ui); text-align: left; cursor: pointer; }
+.kbd { position: absolute; left: 0; right: 0; bottom: 0; height: 262px; z-index: 15; background: rgba(40,40,44,0.97); transform: translateY(100%); transition: transform 300ms var(--ease-out); padding: 8px 4px 30px; display: grid; gap: 10px; align-content: start; }
+.kbd.show { transform: translateY(0); }
+.phone[data-sheet] #dotHit { pointer-events: none; }
+.chip.ctx { color: var(--accent); box-shadow: inset 0 0 0 1px rgba(0,204,245,0.45); }
+.search.focus { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.kbd .krow { display: flex; justify-content: center; gap: 6px; }
+.kbd .krow span { width: 32px; height: 42px; border-radius: 6px; background: rgba(120,120,128,0.42); display: grid; place-items: center; font-size: 18px; color: var(--text); }
+.kbd .krow .wide { width: 90px; background: var(--accent); color: #00141c; font-weight: 600; font-size: 15px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .pg, .pg:not(.on) { transform: none; } .frame::after { animation: none; } }
+.home h2 { margin: 6px 0 4px; font-size: 34px; line-height: 41px; letter-spacing: 0.011em; }
+.card { background: var(--surface); border-radius: 18px; padding: 14px 16px; display: grid; gap: 4px; }
+.phone[data-look="nacht"] .card { background: rgba(255,255,255,0.045); box-shadow: inset 0 1px 0 rgba(110,230,255,0.18), inset 0 -1px 0 rgba(255,105,190,0.12); }
+.card .eyebrow { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+.card .big { font-size: 20px; font-weight: 700; }
+.card .sub { font-size: 13px; color: var(--muted); }
+.spark { height: 46px; width: 100%; }
+
+/* Andockfläche wie in der App (iOS 26): Glas-Kapsel mit Symbolen, daneben der Plus-Knopf.
+   Neu: Dot als Logo in der Mitte der Kapsel; über ihm liegt sein Eingang. */
+.dock { position: absolute; left: 16px; right: 16px; bottom: 26px; height: 56px; display: flex; gap: 10px; align-items: center; z-index: 11; }
+.capsule { position: relative; flex: 1 1 auto; min-width: 0; height: 56px; border-radius: 999px; display: flex; align-items: stretch; isolation: isolate;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 46%, rgba(255,255,255,0.015) 100%), rgba(18,18,20,0.30);
+  -webkit-backdrop-filter: blur(26px) saturate(180%); backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.16); }
+.capsule::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(155deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.07) 28%, rgba(255,255,255,0.03) 56%, rgba(255,255,255,0.18) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.pill { position: absolute; top: 5px; bottom: 5px; left: 6px; width: 46px; border-radius: 23px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.04) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.12); }
+.slot { position: relative; z-index: 1; flex: 1 1 0; min-width: 0; display: grid; place-items: center; color: rgba(235,235,245,0.62); border: 0; background: none; padding: 0; }
+.slot svg { width: 25px; height: 25px; }
+.slot.on { color: var(--accent); }
+/* Der Rahmen öffnet sich: ein Stück des Lichtrands oben verschwindet */
+.gap { position: absolute; top: -0.5px; left: 0; height: 2px; width: 0; z-index: 2; pointer-events: none; background: #141417; border-radius: 1px; }
+.plus { flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0; display: grid; place-items: center; color: #00141c;
+  background: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 6px 20px rgba(0,204,245,0.28); }
+.plus svg { width: 26px; height: 26px; }
+
+/* Dots Logo: drin pulsiert, leuchtet und wackelt es; draußen ruht es gedimmt */
+.logo { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.logo svg { width: 30px; height: 30px; overflow: visible; }
+.logo .glow { transform-box: fill-box; transform-origin: center; opacity: 0.55; transition: opacity 300ms ease; }
+.logo .wob { transform-box: fill-box; transform-origin: center; }
+.phone[data-in] .logo .glow { opacity: 1; animation: logo-pulse 1.7s ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(0,204,245,0.9)) drop-shadow(0 0 10px rgba(140,110,255,0.5)); }
+.phone[data-in] .logo .wob { animation: logo-wobble 2.3s ease-in-out infinite; }
+.logo.bump .glow { animation: logo-bump 520ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes logo-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.13); } }
+@keyframes logo-wobble { 0% { transform: rotate(0) scale(1, 1); } 18% { transform: rotate(6deg) scale(1.07, 0.94); } 41% { transform: rotate(-5deg) scale(0.95, 1.06); } 63% { transform: rotate(3deg) scale(1.04, 0.97); } 82% { transform: rotate(-2deg) scale(0.98, 1.02); } 100% { transform: rotate(0) scale(1, 1); } }
+@keyframes logo-bump { 0% { transform: scale(1); } 35% { transform: scale(1.32, 0.8); } 70% { transform: scale(0.9, 1.12); } 100% { transform: scale(1); } }
+.logo:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: 999px; }
+@media (prefers-reduced-motion: reduce) {
+  .phone[data-in] .logo .glow, .phone[data-in] .logo .wob, .logo.bump .glow { animation: none; }
+}
+
+/* Dot: eigene Ebene über allem, nur die Trefferfläche nimmt Gesten an */
+#dotCanvas, #dotGL { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 12; pointer-events: none; }
+/* beim Flug um die Uhr: vorne über der Uhrzeit, hinten darunter */
+.phone[data-front] #dotCanvas, .phone[data-front] #dotGL { z-index: 17; }
+#dotHit { position: absolute; left: 0; top: 0; z-index: 13; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
+#dotHit:active { cursor: grabbing; }
+#dotHit[hidden] { display: none !important; }
+#dotHit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Chat öffnet sich als Kreis von der Stelle, an der Dot gerade ist */
+.coach {
+  position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background: #000;
+  --ox: 50%; --oy: 100%;
+  clip-path: circle(0px at var(--ox) var(--oy)); visibility: hidden;
+  transition: clip-path 520ms var(--ease-drawer), visibility 0s linear 520ms;
+}
+.phone[data-look="nacht"] .coach { background:
+  radial-gradient(80% 35% at 50% 12%, rgba(60,150,255,0.14), transparent 70%),
+  radial-gradient(60% 40% at 100% 100%, rgba(140,90,255,0.12), transparent 70%), #03030a; }
+.coach.open { clip-path: circle(160% at var(--ox) var(--oy)); visibility: visible; transition: clip-path 560ms var(--ease-drawer), visibility 0s; }
+.coach-top { padding: 52px 12px 0; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 14; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--fill); color: var(--text); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
+.coach-top .name { font-weight: 700; font-size: 17px; }
+.stage { position: relative; height: 220px; flex: none; transition: height 400ms var(--ease-in-out); cursor: pointer; }
+.coach.chatting .stage { height: 150px; }
+.status { text-align: center; font-size: 13px; color: var(--muted); min-height: 18px; margin-top: -6px; }
+.thread { flex: 1; overflow-y: auto; padding: 10px 16px 8px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; position: relative; z-index: 14; }
+.thread::-webkit-scrollbar { display: none; }
+.intro { color: var(--muted); font-size: 14px; text-align: center; padding: 6px 12px; text-wrap: balance; }
+.msg { max-width: 86%; padding: 9px 13px; border-radius: 18px; font-size: 15px; line-height: 1.4; animation: msg-in 240ms var(--ease-out) both; user-select: text; -webkit-user-select: text; }
+.msg.me { align-self: flex-end; background: var(--accent); color: #00222c; border-bottom-right-radius: 6px; }
+.msg.dot { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
+.phone[data-look="nacht"] .msg.dot { background: rgba(255,255,255,0.07); }
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.confirm { align-self: stretch; background: var(--surface); border-radius: 18px; padding: 12px 14px; display: grid; gap: 8px; animation: msg-in 260ms var(--ease-out) both; box-shadow: inset 0 0 0 1px rgba(0,204,245,0.28); }
+.phone[data-look="nacht"] .confirm { background: rgba(255,255,255,0.06); }
+.confirm h4 { margin: 0; font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 0.02em; }
+.confirm dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 14px; }
+.confirm dt { color: var(--muted); }
+.confirm dd { margin: 0; font-variant-numeric: tabular-nums; }
+.confirm input { width: 80px; font: inherit; color: var(--text); background: var(--fill); border: 0; border-radius: 8px; padding: 2px 8px; }
+.row-btns { display: flex; gap: 8px; }
+.btn { flex: 1; min-height: 40px; border: 0; border-radius: 999px; font: 600 15px/1 var(--ui); cursor: pointer; background: var(--fill); color: var(--accent); transition: transform 120ms var(--ease-out); touch-action: manipulation; }
+.btn.primary { background: var(--accent); color: #00222c; }
+.btn:active { transform: scale(0.97); }
+.done { font-size: 14px; color: var(--ok); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.done button { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 4px; }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 8px; scrollbar-width: none; flex: none; position: relative; z-index: 14; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 0; border-radius: 999px; padding: 8px 13px; background: var(--fill); color: var(--text); font: 14px/1.2 var(--ui); cursor: pointer; white-space: nowrap; transition: transform 120ms var(--ease-out); }
+.chip.cmd { color: var(--accent); }
+.chip:active { transform: scale(0.97); }
+.composer { flex: none; display: flex; gap: 8px; align-items: center; padding: 6px 12px 10px; position: relative; z-index: 14; }
+.composer input { flex: 1; min-width: 0; height: 40px; border-radius: 20px; border: 0; background: var(--fill); color: var(--text); font: 16px var(--ui); padding: 0 14px; }
+.composer input::placeholder { color: var(--muted); }
+.send { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--accent); color: #00222c; font-size: 18px; font-weight: 700; cursor: pointer; }
+.mic { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--fill); color: var(--muted); opacity: 0.5; cursor: not-allowed; font-size: 14px; }
+.fine { flex: none; text-align: center; font-size: 11px; color: var(--muted); padding: 0 16px 26px; }
+.toast { position: absolute; top: 54px; left: 50%; z-index: 20; background: rgba(44,44,46,0.96); color: var(--text); padding: 8px 14px; border-radius: 99px; font-size: 14px; font-weight: 600; transform: translate(-50%, -12px); opacity: 0; transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out); pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+.edge { position: absolute; inset: 0; z-index: 15; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 400ms ease; }
+.edge i { position: absolute; inset: 0; border-radius: inherit; padding: 3px;
+  background: conic-gradient(from var(--edge-a), #6ee6ff, #af87ff, #ff78c8, #6ee6ff);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: edge-spin 4s linear infinite; }
+.edge i + i { padding: 12px; filter: blur(14px); opacity: 0.7; }
+.phone[data-edge="on"][data-busy] .edge { opacity: 1; }
+@keyframes edge-spin { to { --edge-a: 360deg; } }
+
+/* Sprechblase: kurz, aus Dots Richtung, verschwindet von selbst */
+.bubble { position: absolute; left: 0; top: 0; z-index: 14; max-width: 220px; padding: 8px 12px; border-radius: 16px; font-size: 13px; line-height: 1.35; color: var(--text); pointer-events: none;
+  background: rgba(30,30,36,0.78); -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(170,235,255,0.22), inset 0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.45);
+  opacity: 0; scale: 0.92; transition: opacity 180ms var(--ease-out), scale 220ms var(--ease-out); }
+.bubble.show { opacity: 1; scale: 1; }
+@media (prefers-reduced-motion: reduce) { .bubble { scale: 1; transition: opacity 180ms ease; } }
+
+/* ── Steuerung ─────────────────────────────── */
+.side { display: grid; gap: 24px; min-width: 0; }
+.block { display: grid; gap: 10px; }
+.block h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.gestures { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.gestures li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; }
+.gestures b { font-weight: 600; }
+.gestures span { color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .plain-btn { border: 0; border-radius: 10px; padding: 8px 12px; background: var(--panel); color: var(--text); font: 14px var(--ui); cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(0,204,245,0.5); }
+.seg button .later { color: var(--muted); font-size: 12px; }
+.slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13px; color: var(--muted); }
+.slider input { width: 100%; accent-color: var(--accent); }
+.readout { font-size: 13px; color: var(--muted); }
+.limits { background: var(--panel); border-radius: 16px; padding: 14px 16px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; box-shadow: inset 0 0 0 1px var(--line); }
+.limits b { color: var(--text); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .coach, .coach.open { transition: opacity 200ms ease, visibility 0s; clip-path: none; opacity: 0; }
+  .coach.open { opacity: 1; }
+  .stage { transition: none; }
+  .msg, .confirm { animation: none; }
+  .toast { transition: opacity 200ms ease; transform: translate(-50%, 0); }
+  .edge i { animation: none; }
+}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Dot, der KI-Coach</h1>
+    <p>Dot aus Punkten, ganz weich, schwebt frei über der App. Zieh und wirf ihn, er klebt am Rand und erholt sich in Ruhe. Er wohnt in der Leiste der App: Sein Logo sitzt in der Mitte, darüber ist der Rahmen der Leiste einen Spalt offen. Wirf oder drück ihn dort hinein, tipp aufs Logo, und er klettert wieder heraus. Antippen öffnet den Chat. Alle Werte sind Beispieldaten.</p>
+  </header>
+
+  <div class="grid">
+    <div class="phone" id="phone" data-look="nacht" data-edge="on">
+      <div class="statusbar"><span id="clock">9:41</span><span class="badge">Beispieldaten</span></div>
+
+      <section class="home pg on" data-page="home" aria-label="Startseite">
+        <h2>Heute</h2>
+        <div class="card">
+          <span class="eyebrow">Nächste Dosis</span>
+          <span class="big">BPC-157 · 250 mcg</span>
+          <span class="sub">heute 18:00 · subkutan</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Blutspiegel BPC-157</span>
+          <svg class="spark" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 40 C30 8 50 8 70 22 S110 38 130 30 S150 6 170 10 S220 34 250 30 S285 18 300 16" fill="none" stroke="#00ccf5" stroke-width="2"/>
+          </svg>
+          <span class="sub">jetzt 62 % vom Höchstwert</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Bestand</span>
+          <span class="big">reicht 9 Tage</span>
+          <span class="sub">BPC-157 · 1 Vial offen</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Tagebuch</span>
+          <span class="big">Schlaf 7 h 40</span>
+          <span class="sub">Stimmung gut · Energie hoch</span>
+        </div>
+        <div class="card link" data-go="ernaehrung" role="button" tabindex="0">
+          <span class="eyebrow">Ernährung</span>
+          <span class="big">873 / 2000 kcal</span>
+          <span class="sub">Eiweiß 66 g · Kohlenhydrate 123 g · Fett 28 g</span>
+          <span class="chev" aria-hidden="true">›</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Training</span>
+          <span class="big">Oberkörper · 52 min</span>
+          <span class="sub">gestern · 14 Sätze</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Blutwerte</span>
+          <span class="big">Ferritin 38 ng/ml</span>
+          <span class="sub">2. Oktober · im Referenzbereich</span>
+        </div>
+      </section>
+
+      <section class="home pg" data-page="mystack" aria-label="My Stack">
+        <h2>My Stack</h2>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="search" readonly placeholder="Substanz suchen" aria-label="Substanz suchen"></label>
+        <div class="card"><span class="eyebrow">Peptid · täglich</span><span class="big">BPC-157 · 250 mcg</span><span class="sub">Vial zu 62 % · reicht 9 Tage</span></div>
+        <div class="card"><span class="eyebrow">Peptid · 2× pro Woche</span><span class="big">TB-500 · 2 mg</span><span class="sub">nächste Einnahme Freitag</span></div>
+        <div class="card"><span class="eyebrow">Supplement · abends</span><span class="big">Magnesium · 400 mg</span><span class="sub">heute noch offen</span></div>
+        <div class="card"><span class="eyebrow">Supplement · morgens</span><span class="big">Vitamin D3 · 5000 IE</span><span class="sub">heute eingetragen</span></div>
+        <button class="fab" type="button" data-dot-avoid>＋ Substanz</button>
+      </section>
+
+      <section class="home pg" data-page="kalender" aria-label="Kalender">
+        <div class="row2"><h2>Kalender</h2><button class="plain-btn" type="button" data-dot-avoid>Heute</button></div>
+        <div class="week"><span>Mo<br>20</span><span class="miss">Di<br>21</span><span class="on">Mi<br>22</span><span>Do<br>23</span><span>Fr<br>24</span><span>Sa<br>25</span><span>So<br>26</span></div>
+        <div class="card"><span class="eyebrow">Heute, 18:00</span><span class="big">BPC-157 · 250 mcg</span><span class="sub">geplant</span></div>
+        <div class="card"><span class="eyebrow">Heute, 08:00</span><span class="big">Vitamin D3</span><span class="sub">eingetragen 08:12</span></div>
+        <div class="card"><span class="eyebrow">Dienstag</span><span class="big">TB-500 · 2 mg</span><span class="sub">nicht eingetragen</span></div>
+      </section>
+
+      <section class="home pg" data-page="profil" aria-label="Profil">
+        <h2>Profil</h2>
+        <div class="card"><span class="eyebrow">Konto</span><span class="big">Sam</span><span class="sub">Beispielkonto</span></div>
+        <div class="card"><span class="eyebrow">Dot</span><span class="big">KI-Coach an</span><span class="sub">Einwilligung erteilt am 22. Oktober</span></div>
+        <div class="card"><span class="eyebrow">Look</span><span class="big">Nacht</span><span class="sub">Umgebungslicht 55 %</span></div>
+        <button class="plain-btn" type="button" data-dot-avoid style="align-self:flex-end">Abmelden</button>
+      </section>
+
+      <section class="home pg feature" data-page="ernaehrung" aria-label="Ernährung">
+        <div class="toprow"><button class="icon-btn" type="button" data-back data-dot-avoid aria-label="Ernährung schließen">✕</button><span class="ttl">Ernährung</span><span style="width:36px"></span></div>
+        <div class="card"><span class="eyebrow">Heute</span><span class="big">873 / 2000 kcal</span><span class="sub">Eiweiß 66 / 150 g · KH 123 / 250 g · Fett 28 / 67 g</span></div>
+        <div class="card"><span class="eyebrow">Frühstück</span><span class="big">noch nichts</span><span class="sub">„Wie gestern“: Skyr mit Beeren · 255 kcal</span></div>
+        <div class="card"><span class="eyebrow">Mittag</span><span class="big">Reis, Hähnchen, Brokkoli</span><span class="sub">618 kcal</span></div>
+        <div class="card"><span class="eyebrow">Snack</span><span class="big">Proteinshake</span><span class="sub">255 kcal</span></div>
+        <button class="fab scanbtn" type="button" data-go="scanner" data-dot-avoid>Scannen</button>
+      </section>
+
+      <section class="pg feature" data-page="scanner" aria-label="Scanner" style="position:absolute;inset:0">
+        <div class="cam"></div><div class="frame"></div><div class="camhint">Barcode in den Rahmen halten</div>
+        <div class="toprow"><button class="icon-btn" type="button" data-back aria-label="Scanner schließen">✕</button><span class="ttl">Scannen</span><span style="width:36px"></span></div>
+      </section>
+
+      <div class="dock" id="dock">
+        <nav class="capsule" id="capsule" aria-label="Navigation">
+          <span class="pill" id="pill" aria-hidden="true"></span>
+          <span class="gap" id="gap" aria-hidden="true"></span>
+          <button type="button" class="slot tab on" data-tab="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
+          <button type="button" class="slot tab" data-tab="mystack" aria-label="My Stack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg></button>
+          <button class="slot logo" id="logo" type="button" aria-label="Dot nach Hause schicken"><svg viewBox="-15 -15 30 30" aria-hidden="true"><g class="glow"><g class="wob" id="logoDots"></g></g></svg></button>
+          <button type="button" class="slot tab" data-tab="kalender" aria-label="Kalender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg></button>
+          <button type="button" class="slot tab" data-tab="profil" aria-label="Profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+        </nav>
+        <button class="plus" id="plusBtn" type="button" aria-label="Schnellzugriff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+      </div>
+
+      <section class="coach" id="coach" aria-label="Dot">
+        <div class="coach-top">
+          <button class="icon-btn" id="close" aria-label="Dot schließen">✕</button>
+          <span class="name">Dot</span>
+          <button class="icon-btn" id="reset" aria-label="Verlauf leeren">↺</button>
+        </div>
+        <div class="stage" id="stage" aria-label="Dot antippen"></div>
+        <div class="status" id="status" aria-live="polite"></div>
+        <div class="thread" id="thread" aria-live="polite">
+          <p class="intro" id="intro">Hi, ich bin Dot. Ich kenne deinen Stack, deine Einträge und Blutwerte und erkläre sie dir. Eintragen kann ich auch, du bestätigst jedes Mal.</p>
+        </div>
+        <div class="chips" id="chips"></div>
+        <form class="composer" id="composer">
+          <button type="button" class="mic" aria-label="Sprechen (kommt später)" title="Sprache kommt in einem späteren Schritt">🎙</button>
+          <input id="input" type="text" placeholder="Frag Dot …" autocomplete="off" aria-label="Nachricht an Dot">
+          <button class="send" aria-label="Senden">↑</button>
+        </form>
+        <p class="fine">Dot erklärt deine Daten. Keine Dosis- oder Therapieempfehlung.</p>
+      </section>
+
+      <canvas id="dotCanvas" aria-hidden="true"></canvas>
+      <canvas id="dotGL" aria-hidden="true"></canvas>
+      <button id="dotHit" aria-label="Dot öffnen. Ziehen zum Verschieben."></button>
+      <div class="edge" aria-hidden="true"><i></i><i></i></div>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-label="Schnellzugriff">
+        <div class="grab"></div><h4>Schnellzugriff</h4>
+        <button class="act" type="button">💉 Einnahme eintragen</button><button class="act" type="button">🍽 Mahlzeit eintragen</button>
+        <button class="act" type="button">🏋 Training starten</button><button class="act" type="button">📓 Tagebuch</button>
+      </div>
+      <div class="kbd" id="kbd" aria-hidden="true">
+        <div class="krow"><span>q</span><span>w</span><span>e</span><span>r</span><span>t</span><span>z</span><span>u</span><span>i</span><span>o</span><span>p</span></div>
+        <div class="krow"><span>a</span><span>s</span><span>d</span><span>f</span><span>g</span><span>h</span><span>j</span><span>k</span><span>l</span></div>
+        <div class="krow"><span>y</span><span>x</span><span>c</span><span>v</span><span>b</span><span>n</span><span>m</span></div>
+        <div class="krow"><span class="wide" id="kbdDone">Fertig</span></div>
+      </div>
+      <div class="toast" id="toast" role="status"></div>
+      <div class="bubble" id="bubble" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="side">
+      <div class="block">
+        <h3>So bedienst du Dot</h3>
+        <ul class="gestures">
+          <li><b>Ziehen</b><span>Dot folgt dem Finger. Drückst du ihn gegen den Rand, quetscht er sich platt.</span></li>
+          <li><b>Loslassen</b><span>Dicht am Rand wird er angezogen und streckt sich der Wand entgegen. Angedockt zerfließt er langsam zu einer flachen, unregelmäßigen Pfütze entlang der Wand, in der Ecke an beiden Wänden. So verdeckt er kaum etwas, und nur seine flache Form nimmt Fingertipps an. Sonst bleibt er da, wo du ihn lässt.</span></li>
+          <li><b>Werfen</b><span>Ein kräftiger Wurf trägt ihn bis zur Kante. Je schneller, desto stärker die Verformung.</span></li>
+          <li><b>Wackeln</b><span>Schüttel ihn beim Ziehen. Er schwingt je nach Tempo und Richtung anders.</span></li>
+          <li><b>Erholen</b><span>Aus der Ecke kommt er eckig heraus und rundet sich in Ruhe nach und nach, die Ecken zuerst.</span></li>
+          <li><b>Größe</b><span>Fest, 56 px. Kein Zoomen: So läuft er überall gleich flüssig. Stört er, schieb ihn an den Rand, dort wird er flach.</span></li>
+          <li><b>Eingang</b><span>Über seinem Logo ist der Rahmen der Leiste offen, aus dem Spalt kommt leises Licht. Wirf ihn hinein oder drück ihn mit dem Finger von oben hinein. Er wird hineingesogen, der Rahmen schließt sich.</span></li>
+          <li><b>Zu Hause</b><span>Dann pulsiert, leuchtet und wackelt sein Logo leise.</span></li>
+          <li><b>Die Leiste</b><span>Fest sind nur die Glas-Kapsel und der Plus-Knopf, mit ihrer runden Form. Wo er sie berührt, leuchtet ihr Rahmen leicht. Wirfst du ihn dagegen, prallt er ab; ziehst du ihn hinein, gleitet er an ihr entlang, statt hindurchzurutschen. Darunter und daneben ist frei: Mit dem Finger kannst du ihn seitlich vorbei und unter die Leiste quetschen. Dort liegt er platt im Spalt, bis du ihn wieder herausziehst.</span></li>
+          <li><b>Klingel</b><span>Tipp auf das Logo: Der Rahmen öffnet sich, er klettert heraus, hält sich mit beiden Händen an der Kante fest, zieht sich hoch und springt an seinen Platz. Ist er draußen, schickt ihn ein Tipp aufs Logo heim.</span></li>
+          <li><b>Antippen</b><span>Der Chat öffnet sich von Dot aus, er fliegt nach oben. Beim Schließen fliegt er zurück.</span></li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>Beim Navigieren</h3>
+        <ul class="gestures">
+          <li><b>Tab wechseln</b><span>Dot bleibt, wo er ist. Die neue Seite gleitet unter ihm durch, er wabbelt träge nach.</span></li>
+          <li><b>Ausweichen</b><span>Liegt er auf einem Knopf der neuen Seite (My Stack: „＋ Substanz“), rutscht er an der Wand entlang zum nächsten freien Platz. Auf der nächsten Seite kehrt er an seinen Platz zurück.</span></li>
+          <li><b>Chat je Seite</b><span>Öffnest du ihn auf My Stack, Kalender oder Ernährung, passen Begrüßung und erster Vorschlag zur Seite.</span></li>
+          <li><b>Ohne Leiste</b><span>Ernährung (Karte auf Home): Ist er zu Hause, kommt er beim Hineinnavigieren heraus, dann gleitet die Leiste weg. Er zieht sich als schmaler Streifen an den Rand zurück. Tippen holt ihn, nach 6 Sekunden Ruhe wird er wieder zum Streifen. Zurück auf Home geht er wieder hinein.</span></li>
+          <li><b>Kamera</b><span>„Scannen“: Er zerstiebt in Funken und ist ganz weg. Beim Schließen setzt er sich wieder zusammen.</span></li>
+          <li><b>Blatt</b><span>Plus-Knopf: Er tritt zurück, gedimmt unter dem Schleier, und kommt danach wieder.</span></li>
+          <li><b>Tastatur</b><span>Suchfeld auf My Stack: Die Tastatur schiebt ihn nach oben aus dem Weg, danach sinkt er zurück.</span></li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>Persönlichkeit</h3>
+        <ul class="gestures">
+          <li><b>Begrüßung</b><span>Beim Start winkt er und sagt passend zur Tageszeit, was heute ansteht.</span></li>
+          <li><b>Müde</b><span>Lässt du ihn 12 Sekunden in Ruhe (in der App länger), gähnt er, wird dunkler und döst; kleine Punkte steigen auf. Berühren, Scrollen oder der Chat wecken ihn mit einem Zucken.</span></li>
+          <li><b>Kitzeln</b><span>Reib ihn beim Ziehen schnell auf kleinem Raum hin und her: Er kichert und zappelt.</span></li>
+          <li><b>Schwindelig</b><span>Schleuder ihn wild über den Schirm: Danach eiert er eine Weile, die Farben drehen sich.</span></li>
+          <li><b>Neugierig</b><span>Scrollst du die Seite, lehnt er sich in die Richtung, aus der neuer Inhalt kommt.</span></li>
+          <li><b>Uhr</b><span>Wirf oder schieb ihn gegen die Uhrzeit oben links: Er fliegt klein um sie herum, mal vor, mal hinter den Ziffern, dockt rechts daneben an und erinnert dich an etwas mit Zeit (nächste Dosis, was heute noch offen ist).</span></li>
+        </ul>
+        <div class="seg" id="moods">
+          <button type="button" data-mood="greet">Begrüßen</button>
+          <button type="button" data-mood="yawn">Müde werden</button>
+          <button type="button" data-mood="giggle">Kitzeln</button>
+          <button type="button" data-mood="dizzy">Schwindelig</button>
+          <button type="button" data-mood="clock">Gegen die Uhr</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Herauskommen</h3>
+        <div class="seg" id="exits">
+          <button type="button" data-kind="" aria-pressed="true">Zufall</button>
+          <button type="button" data-kind="climb" aria-pressed="false">Klettern</button>
+          <button type="button" data-kind="pop" aria-pressed="false">Ploppen</button>
+          <button type="button" data-kind="peek" aria-pressed="false">Spähen</button>
+          <button type="button" data-kind="stream" aria-pressed="false">Punkte-Strom</button>
+        </div>
+        <h3>Hineingehen</h3>
+        <div class="seg" id="enters">
+          <button type="button" data-kind="" aria-pressed="true">Zufall</button>
+          <button type="button" data-kind="suck" aria-pressed="false">Sog</button>
+          <button type="button" data-kind="dive" aria-pressed="false">Kopfsprung</button>
+          <button type="button" data-kind="dissolve" aria-pressed="false">Auflösen</button>
+          <button type="button" data-kind="wave" aria-pressed="false">Winken</button>
+        </div>
+        <h3>Hineinwerfen</h3>
+        <div class="seg" id="throws">
+          <button type="button" data-kind="" aria-pressed="true">Passend zum Wurf</button>
+          <button type="button" data-kind="suck" aria-pressed="false">Sog</button>
+          <button type="button" data-kind="splat" aria-pressed="false">Platsch</button>
+          <button type="button" data-kind="rim" aria-pressed="false">Randtreffer</button>
+          <button type="button" data-kind="bounce" aria-pressed="false">Abpraller</button>
+          <button type="button" data-kind="swirl" aria-pressed="false">Strudel</button>
+        </div>
+        <span class="readout">Ohne Auswahl wechselt er jedes Mal, nie zweimal dasselbe hintereinander. Eine Art antippen zeigt sie sofort, wenn Dot gerade passend drinnen oder draußen ist. Beim Hineinwerfen richtet sich die Art nach dem Wurf: sanft eher Sog, Randtreffer oder Strudel, kräftig eher Platsch oder Abpraller, seitlich getroffen eher Randtreffer. Antippen wirft ihn zur Probe.</span>
+      </div>
+
+      <div class="block">
+        <h3>Weichheit</h3>
+        <label class="slider" for="soft"><span>fest</span><input id="soft" type="range" min="0" max="1" step="0.01" value="1"><span>Gelee</span></label>
+        <span class="readout" id="readout"></span>
+      </div>
+
+      <div class="block">
+        <h3>Zustand</h3>
+        <div class="seg" id="states">
+          <button data-state="idle" aria-pressed="true">Ruhe · Kugel</button>
+          <button data-state="think" aria-pressed="false">Denken · Ringe</button>
+          <button data-state="speak" aria-pressed="false">Sprechen · Welle</button>
+          <button data-state="joy" aria-pressed="false">Freude · Haken</button>
+          <button data-state="listen" aria-pressed="false">Zuhören <span class="later">später</span></button>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Look und Randleuchten</h3>
+        <div class="seg" id="looks">
+          <button data-look="schwarz" aria-pressed="false">Schwarz</button>
+          <button data-look="nacht" aria-pressed="true">Nacht</button>
+        </div>
+        <div class="seg" id="edges">
+          <button data-edge="on" aria-pressed="true">Rand leuchtet beim Denken</button>
+          <button data-edge="off" aria-pressed="false">Ohne Rand</button>
+        </div>
+        <div><button class="plain-btn" id="resetDot" type="button">Dot zurück in die Ecke</button></div>
+      </div>
+
+      <div class="limits">
+        <b>Variante</b>
+        <span>Die frühere Fassung mit eigener Leiste und Haustür in der Mitte: <a href="https://claude.ai/artifact/1gDYarWaYbiC1ond9Xhrhb" style="color: var(--accent)">Dot · Variante Haustür</a></span>
+      </div>
+
+      <div class="limits">
+        <b>In der App dazu</b>
+        <span>Haptik passend zum Aufprall: leicht beim Andocken, kräftiger bei einem harten Wurf, ein weiches Klopfen beim Betreten des Hauses.</span>
+        <span>Sein Platz wird je Gerät gemerkt. Welche Knöpfe er freihält, markiert jede Seite selbst.</span>
+        <span>Grenzen bleiben: keine Dosisempfehlung, keine Diagnose, Eintragen nur über eine Karte, die du bestätigst.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const TAU = Math.PI * 2;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const clamp01 = x => clamp(x, 0, 1);
+const easeOut3 = x => 1 - Math.pow(1 - x, 3);
+const angDiff = (a, b) => { let d = (a - b) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
+const easeIO = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+const TARGETS = {
+  idle:   { spin: 0.16, bright: 0.85, glow: 0.4,  hue: 0.45 },
+  think:  { spin: 0.9,  bright: 0.95, glow: 0.6,  hue: 0.8 },
+  speak:  { spin: 0.28, bright: 1,    glow: 0.65, hue: 0.4 },
+  listen: { spin: 0.2,  bright: 0.9,  glow: 0.5,  hue: 0.3 },
+  joy:    { spin: 0.5,  bright: 1.1,  glow: 0.9,  hue: 0.25 },
+};
+const SHAPE = { idle: 'sphere', think: 'rings', speak: 'wave', joy: 'check', listen: 'circle' };
+const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200];
+const mix3 = (a, b, m) => [a[0] + (b[0] - a[0]) * m, a[1] + (b[1] - a[1]) * m, a[2] + (b[2] - a[2]) * m];
+function dotColor(X, Y, hue) {
+  let c = mix3(CYAN, VIOLET, clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7));
+  if (Y > 0.55) c = mix3(c, PINK, Math.min(1, (Y - 0.55) * 1.4));
+  return c;
+}
+
+/* Grenzen und Physik */
+const R_MIN = 24, R_MAX = 84;
+const soft = $('#soft');
+function phys() {
+  const s = +soft.value, K = 150 - 105 * s;
+  return {
+    rest: 0.92 - 0.1 * s,           // wie platt Dot an der Kante klebt, gleich nach dem Andocken
+    restFlat: 0.3 - 0.1 * s,         // wie nah die Mitte an die Wand rückt, wenn er sich flach verteilt hat
+    kw: 3000 - 2000 * s,            // Härte der Kante
+    K,                              // Rückstellkraft des Rands
+    T: 420,                         // Spannung zwischen Nachbarn: Wellen laufen um den Rand
+    C: 2 * Math.sqrt(K) * (0.14 - 0.07 * s), // Dämpfung (klein = wackelt lange)
+    Cv: 14,                         // innere Reibung: feine Wellen sterben schneller
+    G: 0.0011 + 0.0016 * s,         // Trägheit: Beschleunigung verformt
+    V: 0.0022 + 0.003 * s,          // Strecken in Flugrichtung
+    thr: 0.2 - 0.12 * s,            // ab hier bleibt eine Delle
+    plastic: 1.5 + 5 * s,           // wie viel einer starken Verformung bleibt
+    yieldR: 0.4 + 1.4 * s,          // wie schnell er die Form der Ecke annimmt
+    regen: 0.9 - 0.45 * s,          // Erholung je Sekunde, wenn er ruhig ist
+    diff: 3 + 4 * s,                // Ecken runden sich zuerst
+    breath: 0.006 + 0.014 * s,      // leises, unregelmäßiges Atmen
+  };
+}
+
+/* Weicher Rand: 96 Punkte mit Auslenkung U, Geschwindigkeit WV, Formgedächtnis M */
+const RK = 96, U = new Float32Array(RK), UR = new Float32Array(RK), WV = new Float32Array(RK), M = new Float32Array(RK), HEAL = new Float32Array(RK);
+const SH = new Float32Array(RK); // Form, die eine Animation vorgibt (Hände, Strecken, Sog)
+const KF = new Float32Array(RK), GF = new Float32Array(RK), DX = new Float32Array(RK), DY = new Float32Array(RK), CL = new Uint8Array(RK);
+const PH = Array.from({ length: 8 }, () => Math.random() * TAU);
+for (let k = 0; k < RK; k++) {
+  const th = k / RK * TAU; DX[k] = Math.cos(th); DY[k] = Math.sin(th);
+  // unregelmäßig: jede Stelle ist etwas anders steif und träge
+  KF[k] = 1 + 0.22 * Math.sin(2 * th + PH[0]) + 0.14 * Math.sin(3 * th + PH[1]) + 0.08 * Math.sin(5 * th + PH[2]);
+  GF[k] = 1 + 0.25 * Math.sin(2 * th + PH[3]) + 0.15 * Math.sin(4 * th + PH[4]);
+}
+const ringAt = (arr, th) => { const f = ((th / TAU) % 1 + 1) % 1 * RK, i = f | 0, q = f - i; return arr[i % RK] * (1 - q) + arr[(i + 1) % RK] * q; };
+function ringStep(h, ax, ay, P, t, ws) {
+  const r = B.r, vs = Math.hypot(B.vx, B.vy), ux = vs > 1 ? B.vx / vs : 0, uy = vs > 1 ? B.vy / vs : 0;
+  for (let k = 0; k < RK; k++) {
+    const kp = (k + 1) % RK, km = (k + RK - 1) % RK, th = k / RK * TAU;
+    // Trägheit: die vordere Seite wird gestaucht, die hintere quillt nach
+    let f = -(DX[k] * ax + DY[k] * ay) * P.G * GF[k];
+    const al = DX[k] * ux + DY[k] * uy; f += vs * P.V * (al * al - 0.5);
+    const sag = B.sag * Math.pow(Math.max(0, DY[k]), 2);
+    const breath = reduce ? 0 : P.breath * (Math.sin(2 * th + t * 0.9 + PH[5]) + 0.7 * Math.sin(3 * th - t * 1.3 + PH[6]) + 0.4 * Math.sin(5 * th + t * 2.1 + PH[7]));
+    const acc = -P.K * (1 + 2.5 * B.script) * KF[k] * (U[k] - M[k] - sag - breath - SH[k]) + P.T * (U[km] + U[kp] - 2 * U[k]) - P.C * WV[k] + P.Cv * (WV[km] + WV[kp] - 2 * WV[k]) + f;
+    WV[k] += acc * h;
+  }
+  for (let k = 0; k < RK; k++) { U[k] = clamp(U[k] + WV[k] * h, -0.92, 3.4); CL[k] = 0; }
+  // Wände: jeder Randpunkt stößt einzeln an, so entstehen echte flache Seiten
+  let contact = false;
+  for (const w of ws) {
+    if (w.d > r * 2.2) continue;
+    if (w.sdf) {
+      for (let k = 0; k < RK; k++) {
+        const maxT = r * (1 + U[k]); let tt = 0, hitT = -1;
+        for (let it = 0; it < 16 && tt < maxT; it++) { const o = w.fn(B.x + DX[k] * tt, B.y + DY[k] * tt); if (o.d < 0.4) { hitT = tt; break; } tt += Math.max(o.d, 0.6); }
+        if (hitT >= 0) { const mu = hitT / r - 1; if (U[k] > mu) { U[k] = Math.max(-0.92, mu); if (WV[k] > 0) WV[k] *= -0.1; CL[k] = 1; contact = true; } }
+      }
+      continue;
+    }
+    for (let k = 0; k < RK; k++) {
+      const c = -(DX[k] * w.nx + DY[k] * w.ny); if (c < 0.06) continue;
+      const maxU = w.d / (r * c) - 1;
+      if (U[k] > maxU) { U[k] = maxU; if (WV[k] > 0) WV[k] *= -0.1; CL[k] = 1; contact = true; }
+    }
+  }
+  // Fläche bleibt gleich: sanft als Kraft auf die freien Stellen (kein Springen, kein Zucken)
+  let sum = 0, free = 0;
+  for (let k = 0; k < RK; k++) { sum += (1 + U[k]) * (1 + U[k]); if (!CL[k]) free += 1 + U[k]; }
+  if (free > 0) { const dd = (RK - sum) / (2 * free); for (let k = 0; k < RK; k++) if (!CL[k]) { WV[k] += dd * 60 * h * (1 - 0.85 * B.flat); U[k] += dd * 0.06 * (1 - 0.85 * B.flat); } }
+  // Formgedächtnis: Ecke prägt sich ein, starke Dellen bleiben, Ruhe heilt
+  const calm = Math.pow(1 - clamp01(vs / 380), 2) * (contact ? 0.12 : 1) * (B.drag ? 0.5 : 1);
+  for (let k = 0; k < RK; k++) {
+    const e = U[k] - M[k];
+    if (CL[k]) M[k] += e * P.yieldR * h;
+    else if (e < -P.thr) M[k] += (e + P.thr) * P.plastic * h;
+  }
+  for (let k = 0; k < RK; k++) {
+    const kp = (k + 1) % RK, km = (k + RK - 1) % RK;
+    const dm = (-M[k] * P.regen + P.diff * (M[km] + M[kp] - 2 * M[k])) * calm * h;
+    M[k] = clamp(M[k] + dm, -0.5, 0.6);
+    HEAL[k] = Math.max(HEAL[k] * Math.exp(-h * 3), Math.min(1, Math.abs(dm) / h * 6));
+  }
+  return contact;
+}
+function rubber(over, dim) { return (over * dim * 0.55) / (dim + 0.55 * Math.abs(over)); }
+// Apples Projektion des Endpunkts (Designing Fluid Interfaces), etwas kürzer für weniger Sog zum Rand
+const project = v => (v / 1000) * 0.993 / (1 - 0.993);
+
+const phone = $('#phone'), canvas = $('#dotCanvas'), ctx = canvas.getContext('2d'), hit = $('#dotHit');
+const stage = $('#stage'), coach = $('#coach'), logo = $('#logo'), capsule = $('#capsule');
+// TAB = Oberkante der Kapsel (die einzige Kante in der App, gegen die Dot prallt), ENT = sein Eingang darüber
+let CLK = { x: 40, y: 24, w: 34, h: 18 };
+let CR = 41, W = 0, H = 0, dpr = 1, TAB = 0, CAPX = 0, ENT = { x: 0, w: 44 }, CAP = { l: 0, r: 0, t: 0, b: 0 }, PLUS = { x: 0, y: 0, rad: 28 };
+const gapEl = $('#gap');
+function resize() {
+  const r = phone.getBoundingClientRect(); W = r.width; H = r.height; dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  CR = Math.max(10, (parseFloat(getComputedStyle(phone).borderBottomLeftRadius) || 46) - 5);
+  if (typeof glResize === 'function') glResize();
+  // Lage der Leiste ohne ihr Wegschieben (ohne Leiste ist sie nach unten verschoben)
+  const sh = new DOMMatrix(getComputedStyle($('#dock')).transform).m42, top = r.top + sh;
+  const cr = capsule.getBoundingClientRect(), pr = $('.plus').getBoundingClientRect();
+  TAB = cr.top - top; CAPX = cr.left - r.left;
+  CAP = { l: cr.left - r.left, r: cr.right - r.left, t: cr.top - top, b: cr.bottom - top };
+  PLUS = { x: pr.left - r.left + pr.width / 2, y: pr.top - top + pr.height / 2, rad: pr.width / 2 };
+  const l = logo.getBoundingClientRect(); ENT = { x: l.left - r.left + l.width / 2, w: Math.min(46, l.width - 8) };
+  placePill();
+  const ck = $('#clock').getBoundingClientRect();
+  CLK = { x: ck.left - r.left + ck.width / 2, y: ck.top - r.top + ck.height / 2, w: ck.width, h: ck.height };
+}
+function placePill() {
+  const pill = $('#pill'), first = capsule.querySelector('.slot'), on = capsule.querySelector('.slot.tab.on') || first;
+  if (!first) return;
+  const c = capsule.getBoundingClientRect(), f = first.getBoundingClientRect(), o = on.getBoundingClientRect();
+  pill.style.left = (f.left - c.left + f.width / 2 - 23) + 'px'; pill.style.transform = `translateX(${(o.left - f.left).toFixed(1)}px)`;
+}
+resize(); addEventListener('resize', resize);
+// Wände: der Bildschirmrand. Dazu als Körper nur die Leiste selbst (Kapsel und Plus-Knopf),
+// darunter und daneben ist frei: dorthin quetscht man ihn nur mit dem Finger.
+// Navigation ändert die Wände: ohne Leiste (Ernährung, Scanner) ist unten nur der Rand,
+// bei offener Tastatur ist deren Oberkante der Boden.
+const NAV = { on: true, kb: 0, kbT: 0 };
+const navOn = () => NAV.on && NAV.kb < 1 && !NAV.kbT;
+const bounds = () => ({ l: 4, t: 4, r: W - 4, b: H - 6 - NAV.kb });
+// alle vier Ecken des Bildschirms sind rund: außerhalb des Bogens ist kein Platz
+// (über der Tastatur ist die Kante gerade)
+const FAR = { d: 999, nx: 0, ny: -1 };
+function cornerSdf(px, py) {
+  const b = bounds(); let cy;
+  if (py < b.t + CR) cy = b.t + CR; else if (py > b.b - CR && !(NAV.kb > 0.5 || NAV.kbT)) cy = b.b - CR; else return FAR;
+  let cx; if (px < b.l + CR) cx = b.l + CR; else if (px > b.r - CR) cx = b.r - CR; else return FAR;
+  const dx = px - cx, dy = py - cy, l = Math.hypot(dx, dy) || 1e-6;
+  return { d: CR - l, nx: -dx / l, ny: -dy / l };
+}
+// Der ganze Bildschirmrand als eine Fläche (abgerundetes Rechteck): in der Ecke läuft die
+// flache Form so um den Bogen herum, statt an ihm zu enden. d > 0 innen, n zeigt nach innen.
+function frameSdf(px, py) {
+  const b = bounds(), kb = NAV.kb > 0.5 || NAV.kbT, cx = (b.l + b.r) / 2, cy = (b.t + b.b) / 2;
+  const R = py < cy ? CR : kb ? 0 : CR, sx = px < cx ? -1 : 1, sy = py < cy ? -1 : 1;
+  const qx = Math.abs(px - cx) - ((b.r - b.l) / 2 - R), qy = Math.abs(py - cy) - ((b.b - b.t) / 2 - R);
+  if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy) || 1e-6; return { d: R - l, nx: -sx * qx / l, ny: -sy * qy / l }; }
+  return qx > qy ? { d: R - qx, nx: -sx, ny: 0 } : { d: R - qy, nx: 0, ny: -sy };
+}
+function obstacle(px, py) {
+  const rad = (CAP.b - CAP.t) / 2, yc = CAP.t + rad, qx = clamp(px, CAP.l + rad, CAP.r - rad);
+  let dx = px - qx, dy = py - yc, l = Math.hypot(dx, dy) || 1e-6;
+  let o = { d: l - rad, nx: dx / l, ny: dy / l };
+  const ex = px - PLUS.x, ey = py - PLUS.y, el = Math.hypot(ex, ey) || 1e-6, pd = el - PLUS.rad;
+  if (pd < o.d) o = { d: pd, nx: ex / el, ny: ey / el };
+  return o;
+}
+
+function logoDots() {
+  const g = $('#logoDots'), ns = 'http://www.w3.org/2000/svg', n = 46, ga = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < n; i++) {
+    const y = 1 - 2 * (i + 0.5) / n, rr = Math.sqrt(1 - y * y), th = ga * i, x = Math.cos(th) * rr, z = Math.sin(th) * rr;
+    const Y = y * Math.cos(0.38) - z * Math.sin(0.38), Z = y * Math.sin(0.38) + z * Math.cos(0.38), f = (Z + 1) / 2;
+    const c = dotColor(x, Y, 0.45), el = document.createElementNS(ns, 'circle');
+    el.setAttribute('cx', (x * 11).toFixed(2)); el.setAttribute('cy', (Y * 11).toFixed(2)); el.setAttribute('r', (0.55 + 0.7 * f).toFixed(2));
+    el.setAttribute('fill', `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`); el.setAttribute('opacity', (0.15 + 0.85 * f * f).toFixed(2));
+    g.append(el);
+  }
+}
+logoDots();
+
+function fib(n) {
+  const pts = [], ga = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < n; i++) {
+    const y = 1 - 2 * (i + 0.5) / n, r = Math.sqrt(1 - y * y), th = ga * i;
+    pts.push({ i, u: i / n, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random() });
+  }
+  return pts;
+}
+
+// Feste Größe: 56 px Durchmesser. Kein Zoomen; Punktzahl und -größe sind genau darauf abgestimmt.
+const DOT_R = 28;
+const B = {
+  x: 0, y: 0, vx: 0, vy: 0, r: DOT_R, rv: 0, size: DOT_R,
+  lx: 0, ly: 0, lvx: 0, lvy: 0, ax: 0, ay: 0, fax: 0, fay: 0,
+  dock: { x: 'right', y: 'nav' }, along: { x: 0, y: 0 }, squeezed: false,
+  mode: 'house', forceThrow: '', lastThrow: '', rimA: 0, exitKind: 'climb', enterKind: 'suck', lastExit: '', lastEnter: '', forceExit: '', forceEnter: '', popped: false, splashed: false, lean: 0, holdX: 0, holdY: 0, waveAt: -1, flat: 0, drag: null, idleT: 0, mood: 'awake', sleepAmt: 0, yawnT: -1, waveT: -1, waveSide: 1, giggleT: -1, dizzyT: -1, gcool: 0, zz: [], zzT: 0, peek: 0, greeted: false, door: 0, doorFlash: 0, script: 0, te: 0, near: 0, motes: [], resizing: false, ringT: 0, contact: {}, sag: 0, flash: 0, navFlash: 0, sparks: [],
+  state: 'idle', cur: { ...TARGETS.idle }, voice: 0, voiceAuto: false, joyT: 9, poke: 9, rot: 0,
+  pts: fib(460), shape: 'sphere', trans: 9, pos: null, from: null,
+  orbit: null, orbitCool: 0, tipI: 0,
+  pref: null, displaced: false, autoOut: false, hideOnLand: false, thin: 0, thinT: 0, kx: 0, recede: 0,
+};
+B.pos = B.pts.map(() => [0, 0, 0]); B.from = B.pos.map(p => p.slice());
+
+const SAVE = 'tyd.dot.place.v3';
+function save() { B.pref = { dock: { ...B.dock }, along: { ...B.along } }; B.displaced = false; try { localStorage.setItem(SAVE, JSON.stringify({ dock: B.dock, along: B.along, size: B.size })); } catch (e) {} }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(SAVE) || 'null'); if (s && s.dock && s.along) { B.dock = s.dock; B.along = s.along; B.size = DOT_R; B.r = DOT_R; } } catch (e) {}
+}
+load();
+B.pref = { dock: { ...B.dock }, along: { ...B.along } };
+
+function walls() {
+  const b = bounds();
+  return [
+    { id: 'left', d: B.x - b.l, nx: 1, ny: 0 },
+    { id: 'right', d: b.r - B.x, nx: -1, ny: 0 },
+    { id: 'top', d: B.y - b.t, nx: 0, ny: 1 },
+    { id: 'bottom', d: b.b - B.y, nx: 0, ny: -1 },
+    ...(navOn() ? [{ id: 'nav', sdf: true, fn: obstacle, ...obstacle(B.x, B.y) }] : []),
+    { id: 'corner', sdf: true, fn: cornerSdf, ...cornerSdf(B.x, B.y) },
+  ];
+}
+// Andocken an die Leiste heißt ohne Leiste: unten am Rand. Und unten ohne Quetschen heißt: auf der Leiste.
+function dockY() {
+  const y = B.dock.y;
+  if (y === 'nav' && !navOn()) return 'bottom';
+  if (y === 'bottom' && navOn() && !B.squeezed) return 'nav';
+  return y;
+}
+const docked = id => B.dock.x === id || dockY() === id;
+const restNow = P => P.rest + (P.restFlat - P.rest) * B.flat;
+const atEntrance = (x, r) => Math.abs(x - ENT.x) < ENT.w / 2 + r * 0.45;
+
+function stageCenter() {
+  const p = phone.getBoundingClientRect(), s = stage.getBoundingClientRect();
+  return { x: s.left - p.left + s.width / 2, y: s.top - p.top + s.height / 2 };
+}
+const stageR = () => clamp(40 + B.size * 0.55, 52, 86) * (coach.classList.contains('chatting') ? 0.8 : 1);
+function homeTarget() {
+  const b = bounds(), r = B.size, rest = restNow(phys());
+  const x = B.dock.x === 'left' ? b.l + r * rest : B.dock.x === 'right' ? b.r - r * rest : clamp(B.along.x, b.l + r, b.r - r);
+  const floor = B.squeezed || !navOn() ? b.b : TAB, dy = dockY();
+  const y = dy === 'top' ? b.t + r * rest : dy === 'nav' ? TAB - r * rest : dy === 'bottom' ? b.b - r * rest : clamp(B.along.y, b.t + r, floor - r);
+  return { x, y };
+}
+function target() {
+  if (B.mode === 'stage') return stageCenter();
+  if (B.mode === 'enter') {
+    const kind = B.enterKind, te = B.te;
+    if (kind === 'dissolve') return { x: B.holdX, y: B.holdY };
+    if (kind === 'dive' && te < 0.28) return { x: B.holdX + (ENT.x - B.holdX) * 0.3, y: Math.min(B.holdY, TAB - B.r * 1.6) - 55 };
+    if (kind === 'wave' && (B.waveAt < 0 || te < B.waveAt + 1.3)) return { x: ENT.x, y: TAB - B.r * 0.95 };
+    if (kind === 'splat' && te < 0.32) return { x: ENT.x, y: TAB - B.r * 0.3 };
+    if (kind === 'rim' && te < 1.0) return { x: ENT.x + B.rimA * Math.exp(-te * 2.6) * Math.cos(te * 11), y: TAB - B.r * 0.72 };
+    if (kind === 'bounce' && te < 0.34) return { x: ENT.x, y: TAB - B.r * 2.3 };
+    if (kind === 'swirl') return { x: ENT.x, y: TAB - B.r * 0.9 };
+    return { x: ENT.x, y: TAB + B.r * 1.4 };
+  }
+  return homeTarget();
+}
+function radiusTarget() {
+  if (B.mode === 'stage') return stageR();
+  if (B.mode === 'enter') return B.size * 0.8;
+  if (B.mode === 'orbit') return B.size * (0.42 + 0.1 * B.orbit.depth);
+  return B.size * (1 - 0.14 * B.recede);
+}
+
+/* Loslassen: Endpunkt projizieren, dann Kante, Ecke, Haus oder frei */
+function release(vx, vy) {
+  const b = bounds(), r = B.size, speed = Math.hypot(vx, vy);
+  // unter oder neben die Leiste gequetscht? Dann ist der Bildschirmrand der Boden, sonst die Leiste
+  const nav = navOn(), under = nav && B.y > TAB - r * 0.3; B.squeezed = under;
+  const floor = nav && !under ? TAB : b.b, floorId = nav && !under ? 'nav' : 'bottom';
+  B.thinT = 0; B.autoOut = false;
+  let px = B.x + project(vx), py = B.y + project(vy);
+  // in die Tür geworfen oder gedrückt?
+  // in den Lichtschein geworfen? (nach unten, auf den Eingang zu, nicht zu weit weg)
+  // a) Bahn trifft die Kante im Bereich des Eingangs
+  if (nav && !under && vy > 180) { const tH = (TAB - r * 0.5 - B.y) / vy, xH = B.x + vx * tH; if (tH > 0 && tH < 0.6 && Math.abs(xH - ENT.x) < ENT.w / 2 + r * 0.8) { B.vx = vx; B.vy = vy; goHome(pickThrow(vx, vy, xH)); return; } }
+  // b) im Lichtschein losgelassen und nicht nach oben gezogen
+  if (nav && !under && vy > -60 && Math.abs(B.x - ENT.x) < ENT.w / 2 + r * 0.35 && B.y > TAB - 95 - r) { B.vx = vx; B.vy = Math.max(vy, 200); goHome('suck'); return; }
+  if (speed > 1500) {
+    // sehr kräftiger Wurf: bis zur ersten Kante in Wurfrichtung
+    let t = Infinity;
+    if (vx < 0) t = Math.min(t, (b.l + r - B.x) / vx); if (vx > 0) t = Math.min(t, (b.r - r - B.x) / vx);
+    if (vy < 0) t = Math.min(t, (b.t + r - B.y) / vy); if (vy > 0) t = Math.min(t, (floor - r - B.y) / vy);
+    if (isFinite(t) && t > 0) { px = B.x + vx * t; py = B.y + vy * t; }
+  }
+  px = clamp(px, b.l + r, b.r - r); py = under ? B.y : clamp(py, b.t + r, floor - r);
+  const snap = Math.max(34, r * 0.9);
+  const dl = px - b.l - r, dr = b.r - r - px, dt = py - b.t - r, db = under ? 0 : floor - r - py;
+  let dx = Math.min(dl, dr) < snap ? (dl < dr ? 'left' : 'right') : null;
+  let dy = Math.min(dt, db) < snap ? (dt < db ? 'top' : floorId) : null;
+  if (dx && dy && !(Math.min(dl, dr) < snap * 0.6 && Math.min(dt, db) < snap * 0.6)) { if (Math.min(dl, dr) < Math.min(dt, db)) dy = null; else dx = null; }
+  if (speed < 300 && !dx && !dy) { px = B.x; py = B.y; }
+  B.dock = { x: dx, y: dy }; B.along = { x: px, y: py };
+  B.vx = vx; B.vy = vy;
+  save();
+}
+
+/* Aufprall: Licht und Funken an der Kontaktstelle; die Verformung entsteht aus der Bremsung */
+function impact(w, speed) {
+  if (B.mode !== 'home') return;
+  if (w.id === 'nav' && speed > 150 && atEntrance(B.x, B.r) && B.y < TAB && !B.drag) { goHome(pickThrow(B.vx, B.vy, B.x)); return; }
+  if (speed < 70) return;
+  const nx = w.nx, ny = w.ny;
+  B.flash = Math.min(0.8, B.flash + speed / 2600);
+  if (w.id === 'nav') B.navFlash = Math.min(1, B.navFlash + speed / 1500);
+  if (reduce) return;
+  const n = Math.min(28, speed / 55 | 0), cx = B.x - nx * w.d, cy = B.y - ny * w.d;
+  for (let i = 0; i < n; i++) {
+    const out = (0.15 + Math.random() * 0.4) * speed * 0.45, tan = (Math.random() - 0.5) * speed * 0.7;
+    B.sparks.push({ x: cx + -ny * (Math.random() - 0.5) * B.r, y: cy + nx * (Math.random() - 0.5) * B.r, vx: nx * out - ny * tan, vy: ny * out + nx * tan, t: 0, life: 0.35 + Math.random() * 0.4 });
+  }
+}
+
+function physics(dt, t) {
+  const P = phys(), steps = Math.max(1, Math.ceil(dt * 120)), h = dt / steps, home = homeish();
+  NAV.kb += (NAV.kbT - NAV.kb) * (1 - Math.exp(-dt * 16)); if (!NAV.kbT && NAV.kb < 0.5) NAV.kb = 0;
+  B.thin += (B.thinT - B.thin) * (1 - Math.exp(-dt * (B.thinT > B.thin ? 2.2 : 5)));
+  B.recede += ((phone.dataset.sheet != null ? 1 : 0) - B.recede) * (1 - Math.exp(-dt * 8));
+  // ohne Leiste: lässt man ihn eine Weile in Ruhe, zieht er sich wieder als Streifen an den Rand zurück
+  if (!NAV.on && B.mode === 'home' && !B.drag && B.idleT > 6 && (B.dock.x || B.dock.y)) B.thinT = 1;
+  if (B.mode === 'away' || B.mode === 'gather') { B.te += dt; if (B.mode === 'gather' && B.te > 1) { B.mode = 'home'; B.contact = {}; hit.hidden = false; } }
+  // Schwerkraft an der Kante: oben Tropfen, seitlich leicht durchhängen
+  // angedockt = nah an einer Andockwand (nicht der Kontakt-Schalter: der kippt, während die Mitte näher rückt)
+  const dockedNow = home && !B.drag && (B.dock.x || B.dock.y) && walls().some(w => docked(w.id) && w.d < B.r * 1.15);
+  const flatT = dockedNow ? (B.state === 'idle' ? 1 : 0.35) : 0;
+  B.flat += (flatT - B.flat) * (1 - Math.exp(-dt * (flatT > B.flat ? 1.4 : 5)));
+  const sagT = home && !B.drag ? (B.dock.y === 'top' ? 0.22 : (B.dock.x && !B.dock.y) ? 0.09 : 0) * (0.6 + +soft.value * 0.6) : 0;
+  B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3));
+  if (B.mode === 'exit') climb(dt);
+  B.orbitCool = Math.max(0, B.orbitCool - dt);
+  if (B.mode === 'home' && !B.drag && !B.orbitCool && nearClock(B.x, B.y, B.r * 0.75)) startOrbit();
+  if (B.mode === 'orbit') orbitStep(dt);
+  if (B.squeezed && !NAV.kbT && B.y < TAB - B.r * 0.5) B.squeezed = false;
+  moods(dt);
+  shapeScript(dt);
+  const scripted = B.drag || B.mode === 'exit' || B.mode === 'house' || B.mode === 'orbit';
+  if (scripted && dt > 0) {
+    // Beim Ziehen (oder Klettern) kommt die Beschleunigung von der Hand bzw. vom Drehbuch
+    const vx = (B.x - B.lx) / dt, vy = (B.y - B.ly) / dt;
+    B.ax += (clamp((vx - B.lvx) / dt, -30000, 30000) - B.ax) * 0.4; B.ay += (clamp((vy - B.lvy) / dt, -30000, 30000) - B.ay) * 0.4;
+    B.lvx = vx; B.lvy = vy;
+  }
+  for (let s = 0; s < steps; s++) {
+    const pvx = B.vx, pvy = B.vy;
+    if (!scripted) {
+      const T = target();
+      const k = home ? 90 : B.mode === 'enter' ? enterK() : 120, c = 2 * Math.sqrt(k) * (reduce ? 1 : 0.85);
+      let ax = k * (T.x - B.x) - c * B.vx, ay = k * (T.y - B.y) - c * B.vy;
+      if (home) for (const w of walls()) {
+        const rest = (docked(w.id) ? restNow(P) : 1) * B.r, vn = B.vx * w.nx + B.vy * w.ny;
+        if (w.d < rest) {
+          if (!B.contact[w.id]) { B.contact[w.id] = true; impact(w, -vn); }
+          // kritisch gedämpfte Wand: hält ihn fest, ohne zu flattern
+          const pen = rest - w.d, cw = 2 * Math.sqrt(P.kw) * 0.95, f = P.kw * pen - cw * vn;
+          ax += w.nx * f; ay += w.ny * f;
+        } else if (w.d > rest + 1.5) B.contact[w.id] = false;
+      }
+      B.vx += ax * h; B.vy += ay * h; B.x += B.vx * h; B.y += B.vy * h;
+      if (home) for (const w of walls()) {
+        const min = B.r * (w.id === 'nav' && !B.squeezed ? 0.6 : 0.2);
+        if (w.d < min) { B.x += w.nx * (min - w.d); B.y += w.ny * (min - w.d); const vn = B.vx * w.nx + B.vy * w.ny; if (vn < 0) { B.vx -= vn * w.nx; B.vy -= vn * w.ny; } }
+      }
+    }
+    if (!B.resizing) {
+      const rt = radiusTarget(), k = 200, c = 2 * Math.sqrt(k) * (reduce ? 1 : 0.8);
+      B.rv += (k * (rt - B.r) - c * B.rv) * h; B.r += B.rv * h;
+    }
+    // Beschleunigung geglättet (~30 ms): kleines Flattern der Mitte zuckt nicht mehr in die Punkte
+    let ax = B.ax, ay = B.ay;
+    if (!scripted) { ax = clamp((B.vx - pvx) / h, -40000, 40000); ay = clamp((B.vy - pvy) / h, -40000, 40000); }
+    const lp = 1 - Math.exp(-h / 0.03);
+    B.fax += (ax - B.fax) * lp; B.fay += (ay - B.fay) * lp;
+    const ws = home ? walls() : [];
+    ringStep(h, reduce ? 0 : B.fax + B.kx, reduce ? 0 : B.fay, P, t, ws);
+  }
+  if (!scripted) { B.ax *= 0.5; B.ay *= 0.5; }
+  B.kx *= Math.exp(-dt * 14);
+  B.lx = B.x; B.ly = B.y; if (!scripted) { B.lvx = B.vx; B.lvy = B.vy; }
+  B.flash *= Math.exp(-dt * 4); B.navFlash *= Math.exp(-dt * 3); B.ringT = Math.max(0, B.ringT - dt);
+  // Eingang: offen, solange Dot draußen ist; nähert er sich, leuchtet er auf
+  const doorT = B.mode === 'house' ? 0 : B.mode === 'exit' ? (B.te > 0.05 ? 1 : 0) : 1;
+  B.door += (doorT - B.door) * (1 - Math.exp(-dt * (doorT > B.door ? 7 : 5)));
+  B.doorFlash *= Math.exp(-dt * 2.5);
+  const nearT = B.mode === 'home' || B.mode === 'enter' ? clamp01(1 - (Math.hypot(B.x - ENT.x, B.y - TAB) - B.r) / 140) : 0;
+  B.near += (nearT - B.near) * (1 - Math.exp(-dt * 6));
+  // ganz durch die Tür: drinnen, Licht geht aus, Logo nimmt ihn auf
+  if (B.mode === 'enter') {
+    const kind = B.enterKind, te = B.te;
+    // Winken: am Eingang angekommen, winkt er und sagt tschüss, dann sinkt er langsam
+    if (kind === 'wave' && B.waveAt < 0 && (te > 1.1 || (Math.hypot(B.x - ENT.x, B.y - (TAB - B.r * 0.95)) < B.r * 0.3 && te > 0.4))) {
+      B.waveAt = te; B.waveT = 0; B.waveSide = ENT.x < W / 2 ? 1 : -1; say('Bis gleich!', 1300);
+    }
+    // Kopfsprung: Spritzer, wenn er die Kante durchstößt
+    if (kind === 'dive' && !B.splashed && B.y > TAB - B.r * 0.4 && te > 0.28) { B.splashed = true; burst(false); }
+    if (kind === 'bounce' && !B.splashed && B.y > TAB - B.r * 0.4 && te > 0.34) { B.splashed = true; burst(false); }
+    if (kind === 'splat' && !B.splashed && B.y > TAB - B.r * 0.6) { B.splashed = true; burst(false); B.navFlash = 1; }
+  }
+  if (B.mode === 'enter' && (B.enterKind === 'dissolve' ? B.te > 1.35 : B.enterKind === 'swirl' ? B.te > 1.5 : B.y > TAB + B.r * 0.95)) {
+    B.mode = 'house'; phone.dataset.in = '1'; logoUI();
+    logo.classList.remove('bump'); void logo.offsetWidth; logo.classList.add('bump');
+    setTimeout(() => logo.classList.remove('bump'), 560);
+  }
+}
+
+/* Die Uhr oben links: wirft oder schiebt man ihn dagegen, fliegt er klein um sie herum
+   (vorne über, hinten unter der Uhrzeit) und erinnert danach an etwas, das mit der Zeit zu tun hat */
+const nearClock = (x, y, pad) => Math.abs(x - CLK.x) < CLK.w / 2 + pad && Math.abs(y - CLK.y) < CLK.h / 2 + pad;
+const ORBIT_T = 1.9;
+function startOrbit() {
+  const a = CLK.w / 2 + 16, b = 11, th0 = Math.atan2((B.y - CLK.y) / b, (B.x - CLK.x) / a);
+  // Drehsinn aus der Anflugrichtung; enden soll er rechts neben der Uhr (Winkel 0)
+  const cross = (B.x - CLK.x) * B.vy - (B.y - CLK.y) * B.vx, dir = cross >= 0 ? 1 : -1;
+  const rest = ((dir * (0 - th0)) % TAU + TAU) % TAU;
+  B.orbit = { x0: B.x, y0: B.y, a, b, th0, total: dir * (TAU + rest), depth: 0 };
+  B.mode = 'orbit'; B.te = 0; hit.hidden = true; wake(true); bubbleEl.classList.remove('show');
+}
+function orbitStep(dt) {
+  const O = B.orbit; B.te += dt;
+  const q = clamp01(B.te / ORBIT_T), th = O.th0 + O.total * easeIO(q), mix = easeOut3(clamp01(B.te / 0.35));
+  const ex = CLK.x + O.a * Math.cos(th), ey = CLK.y + 2 + O.b * Math.sin(th);
+  const x = O.x0 + (ex - O.x0) * mix, y = O.y0 + (ey - O.y0) * mix;
+  O.depth = Math.sin(th) * mix;
+  if (O.depth > 0.05) phone.dataset.front = ''; else delete phone.dataset.front;
+  B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3); B.x = x; B.y = y;
+  if (q >= 1) {
+    delete phone.dataset.front;
+    // rechts neben der Uhr oben andocken und erzählen
+    B.mode = 'home'; B.contact = {}; hit.hidden = false; B.orbitCool = 2; B.idleT = 0;
+    B.dock = { x: null, y: 'top' }; B.along = { x: CLK.x + CLK.w / 2 + B.size * 2.2, y: B.y }; save();
+    say(clockTip(), 4200);
+  }
+}
+const CLOCK_TIPS = [
+  () => `Es ist ${clockNow()}. In ${until(18, 0)} ist BPC-157 dran, um 18:00.`,
+  () => 'Heute Abend ist noch Magnesium dran, 400 mg.',
+  () => 'TB-500 ist übermorgen wieder dran, am Freitag.',
+  () => 'Vitamin D3 hast du heute um 08:12 eingetragen.',
+  () => `Es ist ${clockNow()} und dein Frühstück fehlt noch. Soll ich „wie gestern“ eintragen?`,
+];
+function clockNow() { return $('#clock').textContent.trim(); }
+function until(h, m) {
+  const [ch, cm] = clockNow().split(':').map(Number), d = (h * 60 + m) - (ch * 60 + cm);
+  if (d <= 0) return 'gleich';
+  return (d >= 60 ? Math.floor(d / 60) + ' Std. ' : '') + (d % 60 ? d % 60 + ' Min.' : '');
+}
+function clockTip() { const t = CLOCK_TIPS[B.tipI % CLOCK_TIPS.length](); B.tipI++; return t; }
+
+/* Persönlichkeit: Begrüßen, Gähnen und Dösen, Kichern, Schwindel, Neugier */
+const IDLE = 12;
+function moods(dt) {
+  const home = B.mode === 'home';
+  if (home && !B.drag) B.idleT += dt; else B.idleT = 0;
+  if (home && !B.drag && B.mood === 'awake' && B.idleT > IDLE && B.giggleT < 0 && B.dizzyT < 0 && B.waveT < 0 && working === false) startYawn();
+  if (B.yawnT >= 0) { B.yawnT += dt; if (B.yawnT > 2.4) { B.yawnT = -1; B.mood = 'asleep'; } }
+  B.sleepAmt += ((B.mood === 'asleep' ? 1 : B.yawnT >= 0 ? 0.4 : 0) - B.sleepAmt) * (1 - Math.exp(-dt * (B.mood === 'asleep' ? 0.8 : 6)));
+  if (B.waveT >= 0) { B.waveT += dt; if (B.waveT > 1.5) B.waveT = -1; }
+  if (B.giggleT >= 0) {
+    B.giggleT += dt;
+    if (!reduce) for (let k = 0; k < RK; k++) WV[k] += (Math.random() - 0.5) * 9 * Math.min(1, dt * 60) * (1 - B.giggleT / 1.4);
+    if (B.giggleT > 1.4) B.giggleT = -1;
+  }
+  if (B.dizzyT >= 0) { B.dizzyT += dt; if (B.dizzyT > 3.2) B.dizzyT = -1; }
+  B.gcool = Math.max(0, B.gcool - dt);
+  B.peek *= Math.exp(-dt * 3);
+  // Schlaf-Pünktchen steigen auf
+  if (B.mood === 'asleep' && home && !reduce) { B.zzT += dt; if (B.zzT > 1.2) { B.zzT = 0; B.zz.push({ t: 0, s: B.x > W / 2 ? -1 : 1 }); } }
+  for (const z of B.zz) z.t += dt; B.zz = B.zz.filter(z => z.t < 2.2);
+}
+function say(text, ms = 2600) {
+  bubbleText = text; bubbleEl.textContent = text; bubbleEl.classList.add('show');
+  clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => bubbleEl.classList.remove('show'), ms);
+}
+let bubbleText = '', bubbleTimer;
+function placeBubble() {
+  if (!bubbleEl.classList.contains('show')) return;
+  if (B.mode !== 'home') { bubbleEl.classList.remove('show'); return; }
+  const bw = bubbleEl.offsetWidth, bh = bubbleEl.offsetHeight;
+  const above = B.y - B.r - 14 - bh > 56;
+  const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14;
+  bubbleEl.style.transformOrigin = `${(B.x - x).toFixed(0)}px ${above ? '100%' : '0%'}`;
+  bubbleEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+}
+function wake(silent) {
+  B.idleT = 0;
+  if (B.mood === 'asleep' || B.yawnT >= 0) {
+    B.mood = 'awake'; B.yawnT = -1;
+    if (!reduce) for (let k = 0; k < RK; k++) WV[k] += (Math.random() - 0.5) * 2.5;
+    B.poke = 0;
+    if (!silent) say('Oh! Bin wach.', 1500);
+  }
+}
+function startYawn() { if (B.mode !== 'home') return; B.yawnT = 0; B.mood = 'yawning'; }
+function greetText() {
+  const h = new Date().getHours();
+  const hi = h >= 5 && h < 11 ? 'Guten Morgen!' : h < 17 && h >= 11 ? 'Hallo!' : h >= 17 && h < 22 ? 'Guten Abend!' : 'Noch wach?';
+  return hi + ' Heute um 18:00 ist BPC-157 dran.';
+}
+function greet() {
+  if (B.mode !== 'home') return;
+  wake(true); B.waveT = 0; B.waveSide = B.x < W / 2 ? 1 : -1; say(greetText(), 3400);
+}
+function giggle() {
+  if (B.mode !== 'home') return;
+  wake(true); B.giggleT = 0; B.gcool = 3; B.flash = Math.min(0.8, B.flash + 0.4); say('Hihi, das kitzelt!', 1800);
+}
+function startDizzy() {
+  if (B.mode !== 'home') return;
+  wake(true); B.dizzyT = 0; say('Uff … alles dreht sich.', 2400);
+}
+
+function enterK() {
+  const kind = B.enterKind, te = B.te;
+  if (kind === 'dive') return te < 0.28 ? 110 : 260;
+  if (kind === 'wave') return B.waveAt >= 0 && te > B.waveAt + 1.3 ? 30 : 150;
+  if (kind === 'splat') return te < 0.32 ? 260 : 45;          // klatscht hart auf, läuft dann langsam ab
+  if (kind === 'rim') return te < 1.0 ? 170 : 200;
+  if (kind === 'bounce') return te < 0.34 ? 120 : 280;
+  return 150;
+}
+
+/* Herausklettern: Tür auf, Kopf heraus, Hände greifen die Kante, hochziehen, Absprung */
+const EXITS = ['climb', 'pop', 'peek', 'stream'], ENTERS = ['suck', 'dive', 'dissolve', 'wave'];
+// Hineinwerfen: was passt, hängt vom Wurf ab (Tempo, wie mittig er trifft)
+const THROWS = ['suck', 'splat', 'rim', 'bounce', 'swirl'];
+function pickThrow(vx, vy, xHit) {
+  if (B.forceThrow) return B.forceThrow;
+  const sp = Math.hypot(vx, vy), off = Math.abs(xHit - ENT.x);
+  let c = sp < 700 ? ['suck', 'rim', 'swirl'] : sp > 1400 ? ['splat', 'bounce', 'swirl', 'suck'] : THROWS.slice();
+  if (off > ENT.w * 0.3) c.push('rim', 'rim');
+  c = c.filter(k => k !== B.lastThrow); const k = c[Math.random() * c.length | 0] || 'suck';
+  B.lastThrow = k; return k;
+}
+function pickKind(list, last, forced) { if (forced) return forced; const c = list.filter(k => k !== last); return c[Math.random() * c.length | 0]; }
+function burst(up) {
+  B.doorFlash = 1; B.navFlash = 1; B.flash = Math.min(0.8, B.flash + 0.4);
+  if (reduce) return;
+  for (let i = 0; i < 18; i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2; const v = 140 + Math.random() * 260;
+    B.sparks.push({ x: ENT.x + (Math.random() - 0.5) * ENT.w * 0.8, y: TAB - 2, vx: Math.cos(a) * v, vy: Math.sin(a) * v * (up ? 1.2 : 0.8), t: 0, life: 0.4 + Math.random() * 0.35 }); }
+}
+const homeish = () => B.mode === 'home' || B.mode === 'away' || B.mode === 'gather';
+function landed(vx, vy) {
+  B.mode = 'home'; B.contact = {}; hit.hidden = false; logoUI(); B.idleT = 0; B.lean = 0;
+  // auf dem Weg in eine Seite ohne Leiste herausgekommen: jetzt geht die Leiste
+  if (B.hideOnLand) { B.hideOnLand = false; if (!PAGES[page].nav) hideNav(); }
+  B.vx = vx; B.vy = vy; B.lvx = vx; B.lvy = vy;
+  if (!B.greeted) { B.greeted = true; setTimeout(greet, 900); }
+}
+function climb(dt) {
+  B.te += dt; const te = B.te, r = B.size, kind = B.exitKind; B.r = r;
+  let y, x = ENT.x;
+  if (kind === 'stream') {
+    // Punkte strömen einzeln heraus und setzen sich an seinem Platz zusammen
+    const T = homeTarget(); B.x = T.x; B.y = T.y; B.vx = B.vy = 0;
+    if (te > 1.5) landed(0, 0);
+    return;
+  }
+  if (kind === 'climb') {
+    if (te < 0.32) y = TAB + r * 1.1;
+    else if (te < 0.95) y = TAB + r * 1.1 - r * 1.45 * easeOut3((te - 0.32) / 0.63);
+    else if (te < 1.5) y = TAB - r * 0.35 - r * 0.6 * easeIO((te - 0.95) / 0.55);
+    else { const T = homeTarget(); landed((T.x - B.x) * 0.9, -520); return; }
+    if (te > 0.32) x += Math.sin(te * 9) * r * 0.04;
+  } else if (kind === 'pop') {
+    // drückt sich schmal durch den Spalt, dann ploppt er rund heraus
+    if (te < 0.3) y = TAB + r * 1.1;
+    else if (te < 1.05) y = TAB + r * 1.1 - r * 1.25 * Math.pow((te - 0.3) / 0.75, 1.7);
+    else if (te < 1.17) { y = TAB - r * 0.15 - r * 0.95 * easeOut3((te - 1.05) / 0.12); if (!B.popped) { B.popped = true; burst(true); } }
+    else { const T = homeTarget(); landed((T.x - B.x) * 1.1, -720); return; }
+  } else {
+    // spähen: halb heraus, nach links und rechts schauen, ducken, Sprung
+    if (te < 0.3) y = TAB + r * 1.1;
+    else if (te < 0.8) y = TAB + r * 1.1 - r * 1.2 * easeOut3((te - 0.3) / 0.5);
+    else if (te < 2.0) { y = TAB - r * 0.1; const lt = (te - 0.8) / 1.2; B.lean = Math.sin(lt * Math.PI * 2) * Math.sin(lt * Math.PI); x += r * 0.3 * B.lean; }
+    else if (te < 2.25) { y = TAB - r * 0.1 + r * 0.2 * Math.sin(Math.PI * (te - 2.0) / 0.25); B.lean = 0; }
+    else { const T = homeTarget(); landed((T.x - B.x) * 1.7, -980); return; }
+  }
+  B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3);
+  B.x = x; B.y = y;
+}
+/* Formen aus dem Drehbuch: Hände an der Kante, Strecken beim Hochziehen, Sog in den Eingang */
+function shapeScript(dt) {
+  let grip = 0, stretch = 0, suck = 0, squeeze = 0, popOut = 0, duck = 0, hop = 0, dive = 0, splatF = 0, teeter = 0, swirlF = 0;
+  if (B.mode === 'exit') {
+    const te = B.te, kind = B.exitKind;
+    if (kind === 'climb') {
+      grip = te < 0.6 ? 0 : te < 0.85 ? (te - 0.6) / 0.25 : te < 1.38 ? 1 : Math.max(0, 1 - (te - 1.38) / 0.12);
+      stretch = te > 0.95 && te < 1.5 ? Math.sin(Math.PI * (te - 0.95) / 0.55) : 0;
+    } else if (kind === 'pop') {
+      squeeze = te > 0.3 && te < 1.05 ? Math.min(1, (te - 0.3) / 0.25) : 0;
+      popOut = te >= 1.05 && te < 1.4 ? Math.sin(Math.PI * (te - 1.05) / 0.35) : 0;
+    } else if (kind === 'peek') duck = te > 2.0 && te < 2.25 ? Math.sin(Math.PI * (te - 2.0) / 0.25) : 0;
+  }
+  if (B.mode === 'enter') {
+    B.te += dt; const te = B.te, kind = B.enterKind;
+    if (kind === 'suck') suck = clamp01(te / 0.22);
+    if (kind === 'dive') { hop = te < 0.28 ? Math.sin(Math.PI * te / 0.28) : 0; dive = te >= 0.28 ? Math.min(1, (te - 0.28) / 0.12) : 0; }
+    if (kind === 'wave') suck = B.waveAt >= 0 && te > B.waveAt + 1.3 ? 0.6 : 0;
+    if (kind === 'splat') { splatF = te < 0.32 ? Math.min(1, te / 0.08) : Math.max(0, 1 - (te - 0.32) / 0.35); suck = te > 0.32 ? Math.min(1, (te - 0.32) / 0.3) : 0; }
+    if (kind === 'rim') { teeter = te < 1.0 ? Math.exp(-te * 2.6) * Math.cos(te * 11) * Math.sign(B.rimA) : 0; suck = te > 1.0 ? Math.min(1, (te - 1.0) / 0.15) : 0; }
+    if (kind === 'bounce') { hop = te < 0.34 ? Math.sin(Math.PI * te / 0.34) : 0; dive = te >= 0.34 ? Math.min(1, (te - 0.34) / 0.1) : 0; }
+    if (kind === 'swirl') swirlF = Math.min(1, te * 3);
+  }
+  // Stimmungen
+  const yawn = B.yawnT >= 0 ? B.yawnT / 2.4 : -1;
+  const inhale = yawn >= 0 ? (yawn < 0.45 ? easeIO(yawn / 0.45) : yawn < 0.62 ? 1 : Math.max(0, 1 - (yawn - 0.62) / 0.2)) : 0;
+  const exhale = yawn >= 0.62 ? Math.sin(Math.PI * clamp01((yawn - 0.62) / 0.38)) : 0;
+  const wave = B.waveT >= 0 ? Math.sin(Math.PI * clamp01(B.waveT / 1.5)) : 0;
+  const waveTh = (B.waveSide > 0 ? -0.75 : Math.PI + 0.75) + 0.4 * Math.sin(B.waveT * 13) * B.waveSide;
+  const dizzy = B.dizzyT >= 0 ? Math.min(1, B.dizzyT * 4) * clamp01((3.2 - B.dizzyT) / 0.8) : 0;
+  const tNow = performance.now() / 1000, breathe = B.sleepAmt * Math.sin(tNow * 1.25);
+  const on = grip + stretch + suck + wave + squeeze + popOut + duck + hop + dive + splatF + Math.abs(teeter) + swirlF + Math.abs(B.lean) > 0.001 ? 1 : 0;
+  const wl = homeish() ? walls() : [];
+  const rr0 = B.r, bb = bounds();
+  for (const w of wl) {
+    w.dock = docked(w.id) ? B.flat : 0;
+    w.pull = docked(w.id) || w.id === 'corner' || (w.id === 'nav' && B.squeezed) ? 0 : clamp01(1 - (w.d - rr0) / 34);
+    if (w.dock > 0.001) {
+      // Pfannkuchen auf der Wand: Höhe T, halbe Länge L; im Spalt so hoch wie der Spalt, dafür länger
+      // als Streifen (ohne Leiste) noch dünner, dafür länger
+      let T = rr0 * (0.5 - 0.32 * B.thin);
+      if (B.squeezed && navOn() && w.id === 'bottom') T = Math.min(T, Math.max(4, obstacle(B.x, bb.b).d * 0.92));
+      w.T = T; w.L = clamp(0.8 * rr0 * rr0 / T, rr0 * 1.3, rr0 * (4.2 - 1.6 * B.thin)); w.hc = Math.min(w.d, T * 0.6);
+    }
+  }
+  let domes = wl.filter(w => w.dock > 0.001);
+  // in einer Bildschirmecke: eine einzige, gebogene Auflage entlang des Rahmens
+  const dyc = dockY();
+  if (domes.length && B.dock.x && (dyc === 'top' || dyc === 'bottom')) {
+    const f = frameSdf(B.x, B.y), d0 = domes[0];
+    domes = [{ id: 'frame', sdf: true, fn: frameSdf, ...f, dock: B.flat, T: d0.T, L: d0.L * 1.15, hc: Math.min(f.d, d0.T * 0.6) }];
+  }
+  B.pan = null; if (!domes.length) B.panId = '';
+  if (domes.length) {
+    // Hauptwand für die Punkte: in der Ecke sind beide Wände fast gleich nah. Ohne Hysterese
+    // kippt die Wahl hin und her und alle Punkte springen (das Zucken). Gewechselt wird nur
+    // bei deutlichem Abstand.
+    let w = domes.slice().sort((a, b) => a.d - b.d)[0];
+    const keep = B.panId && domes.find(o => o.id === B.panId);
+    if (keep && keep !== w && keep.d < w.d + rr0 * 0.35) w = keep;
+    B.panId = w.id;
+    const tx = -w.ny, ty = w.nx;
+    let lo = -w.L, hi = w.L;
+    for (const o of domes) if (o !== w) {
+      const pr = tx * o.nx + ty * o.ny; if (Math.abs(pr) < 0.5) continue;
+      const aw = -o.d / pr;                                  // dort liegt die andere Wand entlang der Hauptwand
+      if (pr > 0) lo = Math.max(lo, aw + 2); else hi = Math.min(hi, aw - 2);
+    }
+    // die Länge bleibt: was die Ecke abschneidet, wächst auf der anderen Seite an
+    if (hi - lo < 2 * w.L) { if (lo > -w.L) hi = Math.min(hi === w.L ? lo + 2 * w.L : hi, lo + 2 * w.L); else lo = Math.max(lo, hi - 2 * w.L); }
+    B.pan = { w, T: w.T, base: Math.max(0, w.d - 0.5), lo, hi };
+  }
+  // Länge des Strahls aus der Mitte bis zum Rand der Pfannkuchen (Vereinigung, in der Ecke ein L)
+  const inDome = (w, px, py) => {
+    const a = px * -w.ny + py * w.nx, hh = w.hc + px * w.nx + py * w.ny;
+    if (hh < 0) return 1;                                   // Wand erreicht: Auflagefläche
+    const q = Math.abs(a) / (w.L * (1 + 0.06 * Math.sin(tNow * 0.4 + PH[3]))); if (q >= 1) return 0;
+    const top = w.T * Math.cbrt(1 - q * q * q) * (1 + 0.14 * Math.sin(a / rr0 * 2.2 + tNow * 0.5 + PH[2]) + 0.07 * Math.sin(a / rr0 * 4.3 - tNow * 0.8 + PH[6]));
+    return hh <= top ? 2 : 0;
+  };
+  const domeAt = (k, tt) => { let inside = 0; for (const w of domes) { const r = inDome(w, DX[k] * tt, DY[k] * tt); if (r === 1) return 1; if (r) inside = 2; } return inside; };
+  const domeLen = (k) => {
+    let tt = 0, last = 0; const st = rr0 * 0.14;
+    for (let n = 0; n < 40; n++) {
+      tt += st; const r = domeAt(k, tt);
+      if (r !== 2) { let lo = last, hi = tt; for (let j = 0; j < 4; j++) { const m = (lo + hi) / 2; if (domeAt(k, m) === 2) lo = m; else hi = m; } return r === 1 ? hi : lo; }
+      last = tt;
+    }
+    return last;
+  };
+  B.script += (on - B.script) * (1 - Math.exp(-dt * 10));
+  const k = 1 - Math.exp(-dt * 14);
+  for (let i = 0; i < RK; i++) {
+    const dx = DX[i], dy = DY[i], th = i / RK * TAU;
+    let v = 0;
+    if (grip) {
+      const dL = angDiff(th, Math.PI / 2 + 1.05), dR = angDiff(th, Math.PI / 2 - 1.05);
+      v += grip * 0.62 * (Math.exp(-((dL / 0.3) ** 2)) + Math.exp(-((dR / 0.3) ** 2))) - grip * 0.18 * Math.pow(Math.max(0, dy), 6);
+    }
+    if (stretch) v += stretch * (0.34 * Math.pow(Math.max(0, -dy), 2) - 0.12 * dx * dx);
+    if (suck) v += suck * (0.55 * Math.pow(Math.max(0, dy), 3) - 0.2 * dx * dx);
+    if (squeeze) v += squeeze * (0.5 * Math.pow(Math.max(0, -dy), 2) + 0.3 * Math.pow(Math.max(0, dy), 2) - 0.45 * dx * dx);
+    if (popOut) v += popOut * (0.28 * dx * dx - 0.2 * dy * dy);
+    if (duck) v += duck * (0.25 * dx * dx - 0.18 * Math.pow(Math.max(0, -dy), 2));
+    if (B.lean && B.mode === 'exit') v += 0.24 * Math.abs(B.lean) * Math.pow(Math.max(0, dx * Math.sign(B.lean)), 2);
+    if (hop) v += hop * (0.22 * dx * dx - 0.2 * dy * dy);
+    if (splatF) v += splatF * (0.9 * dx * dx - 0.55 * dy * dy);                   // flach aufgeklatscht
+    if (teeter) v += 0.3 * teeter * dx + 0.12 * Math.abs(teeter) * dy * dy;        // eiert auf dem Rand
+    if (swirlF) v += swirlF * 0.22 * Math.cos(th * 2 - tNow * 14);                 // wirbelt wie im Abfluss
+    if (dive) v += dive * (0.6 * Math.pow(Math.max(0, dy), 2) + 0.15 * Math.pow(Math.max(0, -dy), 2) - 0.32 * dx * dx);
+    if (inhale) v += inhale * (0.3 * Math.pow(Math.max(0, -dy), 2) - 0.09 * dx * dx);
+    if (exhale) v += exhale * (0.12 * dx * dx - 0.1 * Math.pow(Math.max(0, -dy), 2));
+    if (wave) v += wave * 0.5 * Math.exp(-((angDiff(th, waveTh) / 0.3) ** 2));
+    if (dizzy) v += dizzy * 0.16 * Math.cos(th * 2 - tNow * 5);
+    for (const w of wl) {
+      // nah an der Wand: streckt sich ihr entgegen
+      if (w.pull > 0.001) { const c = -(dx * w.nx + dy * w.ny); v += w.pull * 0.42 * Math.pow(Math.max(0, c), 4); }
+    }
+    // angedockt: fließt in die Pfannkuchen-Form, ganze Unterseite auf der Wand
+    if (domes.length) v += (domeLen(i) / rr0 - 1 - v) * B.flat;
+    if (B.peek) v += 0.16 * Math.abs(B.peek) * Math.pow(Math.max(0, dy * Math.sign(B.peek)), 2);
+    if (B.sleepAmt) v += B.sleepAmt * (0.06 * Math.pow(Math.max(0, dy), 2) + 0.04 * breathe * Math.max(0, -dy));
+    SH[i] += (v - SH[i]) * (inhale || exhale || B.sleepAmt ? 1 - Math.exp(-dt * 6) : k);
+  }
+}
+/* Der Eingang: der Rahmen der Leiste öffnet sich, aus dem Spalt kommt dezentes Licht */
+function drawBeam(t) {
+  const open = B.door, ow = ENT.w * easeOut3(clamp01(open));
+  gapEl.style.width = ow.toFixed(1) + 'px';
+  gapEl.style.transform = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`;
+  if (open < 0.01 || !NAV.on) return;
+  const a = clamp01(open * (0.75 + 0.08 * Math.sin(t * 2.1) + 0.3 * B.near) + B.doorFlash * 0.35);
+  const ex = ENT.x, bh = (26 + 14 * B.near + 10 * B.doorFlash) * open;
+  ctx.globalCompositeOperation = 'lighter';
+  // leiser Schein direkt über dem Spalt
+  ctx.save(); ctx.translate(ex, TAB); ctx.scale(ow * 0.62 + 4, bh);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, `rgba(110,220,255,${(0.16 * a).toFixed(3)})`); g.addColorStop(1, 'rgba(110,220,255,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, Math.PI, TAU); ctx.fill(); ctx.restore();
+  // ein paar feine Strahlen, leicht schwankend
+  if (ow > 4) for (let i = 0; i < 5; i++) {
+    const u = (i + 0.5) / 5 - 0.5, x = ex + u * ow * 0.8 + Math.sin(t * 0.9 + i * 2.3) * 1.5;
+    const len = bh * (0.9 + 0.5 * Math.sin(t * 1.3 + i * 1.7)), lean = u * 6;
+    const gr = ctx.createLinearGradient(0, TAB, 0, TAB - len);
+    gr.addColorStop(0, `rgba(170,240,255,${(0.2 * a).toFixed(3)})`); gr.addColorStop(1, 'rgba(170,240,255,0)');
+    ctx.strokeStyle = gr; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, TAB - 0.5); ctx.lineTo(x + lean, TAB - len); ctx.stroke();
+  }
+  // die beiden Enden des Rahmens biegen sich ein wenig auf und fangen Licht
+  ctx.lineWidth = 1.2; ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(200,245,255,${(0.55 * a).toFixed(3)})`;
+  for (const sd of [-1, 1]) {
+    const x0 = ex + sd * ow / 2;
+    ctx.beginPath(); ctx.moveTo(x0 + sd * 7, TAB + 0.3); ctx.quadraticCurveTo(x0 + sd * 1.5, TAB + 0.3, x0, TAB - 2.2 * open); ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/* Punkte auf der Grafikkarte: ein Auftrag für alle (wie die Kalorien-Kugel), sonst Canvas 2D */
+const SURF = { a0: 0, da: 1, v: new Float32Array(64 * 4) };
+let ROT_C = 1, ROT_S = 0; const CB = [0, 0, 0];
+// Farbe ohne neue Arrays: schreibt in CB
+function dotColorInto(X, Y, hue, heal) {
+  const m = clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7);
+  let r = CYAN[0] + (VIOLET[0] - CYAN[0]) * m, g = CYAN[1] + (VIOLET[1] - CYAN[1]) * m, b = CYAN[2] + (VIOLET[2] - CYAN[2]) * m;
+  if (Y > 0.55) { const q = Math.min(1, (Y - 0.55) * 1.4); r += (PINK[0] - r) * q; g += (PINK[1] - g) * q; b += (PINK[2] - b) * q; }
+  if (heal > 0.01) { const q = Math.min(0.7, heal); r += (225 - r) * q; g += (250 - g) * q; b += (255 - b) * q; }
+  CB[0] = r; CB[1] = g; CB[2] = b; return CB;
+}
+var glc = document.getElementById('dotGL'), GL = null, GLU = null, GLB = null; const GLD = new Float32Array(900 * 7);
+function glInit() {
+  const gl = glc.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
+  if (!gl) return null;
+  const sh = (t, src) => { const x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); return gl.getShaderParameter(x, gl.COMPILE_STATUS) ? x : null; };
+  const vs = sh(gl.VERTEX_SHADER, 'attribute vec2 aP; attribute float aS; attribute vec4 aC; uniform vec2 uR; uniform float uD; varying vec4 vC; void main(){ vec2 p = aP / uR * 2.0 - 1.0; gl_Position = vec4(p.x, -p.y, 0.0, 1.0); gl_PointSize = aS * uD; vC = aC; }');
+  const fs = sh(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec4 vC; uniform float uK; void main(){ if (gl_FragCoord.y < uK) discard; float d = length(gl_PointCoord - 0.5) * 2.0; float a = d < 0.42 ? 1.0 : (d < 0.62 ? mix(0.95, 0.4, (d - 0.42) / 0.2) : max(0.0, 0.4 * (1.0 - (d - 0.62) / 0.38))); a *= vC.a; gl_FragColor = vec4(vC.rgb * a, a); }');
+  if (!vs || !fs) return null;
+  const pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+  gl.useProgram(pr); GLB = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, GLB);
+  const at = (n, size, off) => { const l = gl.getAttribLocation(pr, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, gl.FLOAT, false, 28, off); };
+  at('aP', 2, 0); at('aS', 1, 8); at('aC', 4, 12);
+  GLU = { r: gl.getUniformLocation(pr, 'uR'), d: gl.getUniformLocation(pr, 'uD'), k: gl.getUniformLocation(pr, 'uK') };
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE); gl.clearColor(0, 0, 0, 0);
+  glc.addEventListener('webglcontextlost', e => { e.preventDefault(); GL = null; });
+  return gl;
+}
+function glResize() {
+  if (!GL) return;
+  glc.width = Math.round(W * dpr); glc.height = Math.round(H * dpr); GL.viewport(0, 0, glc.width, glc.height);
+}
+function glDraw(n, clipY) {
+  const gl = GL; gl.clear(gl.COLOR_BUFFER_BIT); if (!n) return;
+  gl.uniform2f(GLU.r, W, H); gl.uniform1f(GLU.d, dpr); gl.uniform1f(GLU.k, clipY < 0 ? -1 : (H - clipY) * dpr);
+  gl.bufferData(gl.ARRAY_BUFFER, GLD.subarray(0, n * 7), gl.DYNAMIC_DRAW); gl.drawArrays(gl.POINTS, 0, n);
+}
+GL = glInit(); glResize();
+
+/* Der Rahmen der Leiste leuchtet leicht dort, wo Dot ihn berührt, entlang seiner echten Form */
+function drawRimGlow() {
+  if (!(B.mode === 'home' || B.mode === 'enter') || !navOn()) return;
+  const o = obstacle(B.x, B.y), prox = clamp01(1 - (o.d - B.r * 0.55) / (B.r * 1.1));
+  const a = Math.min(1, prox * 0.5 + B.navFlash * 0.6); if (a < 0.02) return;
+  const sx = B.x - o.nx * o.d, sy = B.y - o.ny * o.d, R = B.r * 1.7, rad = (CAP.b - CAP.t) / 2;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const [lw, k] of [[6, 0.2], [1.3, 0.85]]) {
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, R);
+    g.addColorStop(0, `rgba(160,238,255,${(k * a).toFixed(3)})`); g.addColorStop(0.55, `rgba(140,170,255,${(k * a * 0.3).toFixed(3)})`); g.addColorStop(1, 'rgba(140,170,255,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = lw; ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(CAP.l + 0.5, CAP.t + 0.5, CAP.r - CAP.l - 1, CAP.b - CAP.t - 1, rad); else ctx.rect(CAP.l + 0.5, CAP.t + 0.5, CAP.r - CAP.l - 1, CAP.b - CAP.t - 1);
+    ctx.moveTo(PLUS.x + PLUS.rad - 0.5, PLUS.y); ctx.arc(PLUS.x, PLUS.y, PLUS.rad - 0.5, 0, TAU);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+/* Weiche Leuchtpunkte, einmal je Farbe vorgezeichnet: schneller und weicher als einzeln gefüllte Kreise */
+const spriteCache = new Map();
+function sprite(c) {
+  const key = ((c[0] >> 3) << 10) | ((c[1] >> 3) << 5) | (c[2] >> 3);
+  let sp = spriteCache.get(key);
+  if (!sp) {
+    const S = 32, col = `${(key >> 10) << 3},${((key >> 5) & 31) << 3},${(key & 31) << 3}`;
+    sp = document.createElement('canvas'); sp.width = sp.height = S;
+    const g = sp.getContext('2d'), gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    gr.addColorStop(0, `rgba(${col},1)`); gr.addColorStop(0.42, `rgba(${col},0.95)`); gr.addColorStop(0.62, `rgba(${col},0.4)`); gr.addColorStop(1, `rgba(${col},0)`);
+    g.fillStyle = gr; g.fillRect(0, 0, S, S); spriteCache.set(key, sp);
+  }
+  return sp;
+}
+
+/* Zustände: Kugel → Ringe → Welle → Haken */
+function setState(s) {
+  if (s === 'joy') B.joyT = 0;
+  B.state = s; B.from = B.pos.map(p => p.slice()); B.shape = SHAPE[s]; B.trans = reduce ? 9 : 0;
+  busy(s);
+}
+function shapeTarget(p, t) {
+  const v = clamp01(B.voice), n = B.pts.length;
+  switch (B.shape) {
+    case 'rings': {
+      const ring = p.i % 2, th = p.u * TAU * 2 + t * (ring ? 2.4 : -1.9), rr = 1 + (p.k - 0.5) * 0.08;
+      const x = Math.cos(th) * rr, y = Math.sin(th) * rr * Math.cos(1.15), z = Math.sin(th) * rr * Math.sin(1.15);
+      const g = ring ? 0.55 : -0.55;
+      return [x * Math.cos(g) - y * Math.sin(g), x * Math.sin(g) + y * Math.cos(g), 0.25 + 0.75 * (z + 1) / 2];
+    }
+    case 'wave': {
+      const band = p.i % 3, u = Math.floor(p.i / 3) / (n / 3), x = (u * 2 - 1) * 1.3, env = Math.exp(-x * x * 1.4);
+      const y = env * (0.14 + 0.6 * v) * [1, 0.7, 0.45][band] * Math.sin(x * 5.5 + t * 7 + band * 2.1) + (p.k - 0.5) * 0.03;
+      return [x, y, 0.9 - band * 0.15];
+    }
+    case 'check': {
+      const L1 = 0.566, L2 = 1.13, s = p.u * (L1 + L2), j = (p.k - 0.5) * 0.12, j2 = Math.sin(p.s) * 0.03;
+      let x, y;
+      if (s < L1) { const q = s / L1; x = -0.55 + 0.4 * q + j * 0.7; y = 0.4 * q - j * 0.7; }
+      else { const q = (s - L1) / L2; x = -0.15 + 0.77 * q + j * 0.55; y = 0.4 - 0.82 * q + j * 0.83; }
+      return [x + j2, y - 0.02 + j2, 1];
+    }
+    case 'circle': {
+      const th = p.u * TAU + t * 0.4, rr = 1 + 0.06 * Math.sin(th * 8 + t * 6) + (p.k - 0.5) * 0.05;
+      return [Math.cos(th) * rr, Math.sin(th) * rr, 0.85];
+    }
+    default: {
+      const ca = ROT_C, sa = ROT_S;
+      const X = p.x * ca + p.z * sa, Z0 = -p.x * sa + p.z * ca, ct = Math.cos(0.38), st = Math.sin(0.38);
+      const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2;
+      return [X, Y, 0.1 + 0.85 * f * f];
+    }
+  }
+}
+
+function render(t, dt) {
+  const tg = TARGETS[B.state], cur = B.cur, k = 1 - Math.exp(-dt * 6);
+  for (const key in tg) cur[key] += (tg[key] - cur[key]) * k;
+  B.joyT += dt; B.poke += dt; B.trans += dt;
+  if (B.state === 'joy' && B.joyT > 1.9) setState('idle');
+  if (B.voiceAuto) B.voice = 0.55 + 0.3 * Math.sin(t * 7.3) * Math.sin(t * 2.1) + 0.15 * Math.sin(t * 13); else B.voice *= Math.exp(-dt * 3);
+  const sleeping = B.mode === 'house';
+  if (!reduce) B.rot += cur.spin * dt * (sleeping ? 0.4 : 1) * (1 - 0.7 * B.sleepAmt) * (B.dizzyT >= 0 ? 3 : 1);
+  // Anzeige folgt dem Rand mit ~25 ms Verzögerung: glatt, aber ohne Nachziehen
+  const lp = 1 - Math.exp(-dt / 0.025);
+  for (let i = 0; i < RK; i++) UR[i] += (U[i] - UR[i]) * lp;
+
+  ctx.clearRect(0, 0, W, H);
+  drawBeam(t);
+  const m = reduce ? 0 : 1, pk = B.poke;
+  const pulse = 1 + m * ((sleeping ? 0.06 * Math.sin(t * 1.1) : 0.018 * Math.sin(t * 1.6)) + (pk < 0.6 ? -Math.exp(-pk * 8) * Math.cos(pk * 22) * 0.07 : 0) + (B.joyT < 1.3 ? Math.exp(-B.joyT * 4.2) * Math.sin(B.joyT * 13) * 0.12 : 0));
+  const dz = B.dizzyT >= 0 && !reduce ? Math.min(1, B.dizzyT * 4) * clamp01((3.2 - B.dizzyT) / 0.8) : 0;
+  const r = B.r * pulse, cx = B.x + dz * Math.cos(t * 5.5) * B.r * 0.12, cy = B.y + dz * Math.sin(t * 5.5) * B.r * 0.08;
+  const bright = (cur.bright + B.flash * 0.6) * (sleeping ? 0.75 : 1) * (1 - 0.4 * B.sleepAmt) * (1 - 0.25 * B.thin) * (1 - 0.3 * B.recede) * (B.mode === 'orbit' ? 0.75 + 0.25 * B.orbit.depth : 1) + (B.giggleT >= 0 ? 0.15 * Math.sin(t * 40) : 0);
+  const hueShift = dz * 0.5 * Math.sin(t * 3);
+
+  drawRimGlow();
+
+  // Beim Hinein- und Herauskommen sieht man ihn nur über der Kante; drinnen gar nicht
+  const swirling = B.mode === 'enter' && B.enterKind === 'swirl';
+  const streaming = (B.mode === 'exit' && B.exitKind === 'stream') || (B.mode === 'enter' && B.enterKind === 'dissolve');
+  // Kamera: er zerstiebt in Funken und setzt sich danach wieder zusammen
+  const away = B.mode === 'away', gather = B.mode === 'gather', scatter = away || gather;
+  const hidden = sleeping || (B.mode === 'exit' && B.te < (B.exitKind === 'stream' ? 0.22 : 0.3)) || (away && B.te > 0.95);
+  const clipped = B.mode === 'enter' || B.mode === 'exit';
+  if (clipped) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, TAB); ctx.clip(); }
+
+  const g = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 2);
+  g.addColorStop(0, `rgba(70,170,255,${0.18 * cur.glow})`); g.addColorStop(0.5, `rgba(150,110,255,${0.08 * cur.glow})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+  const glowA = scatter ? (away ? clamp01(1 - B.te / 0.5) : clamp01((B.te - 0.35) / 0.6)) : swirling ? clamp01(1 - B.te / 1.1) : !streaming ? 1 : B.mode === 'exit' ? clamp01((B.te - 0.6) / 0.8) : clamp01(1 - B.te / 0.9);
+  ctx.fillStyle = g; if (!hidden && glowA > 0.01) { ctx.globalAlpha = glowA; ctx.fillRect(cx - r * 2, cy - r * 2, r * 4, r * 4); ctx.globalAlpha = 1; }
+
+  let nPts = 0; ROT_C = Math.cos(B.rot); ROT_S = Math.sin(B.rot);
+  if (B.pan && B.pan.w.sdf && B.flat > 0.01) {
+    const P2 = B.pan, w = P2.w, tx = -w.ny, ty = w.nx, half = (P2.hi - P2.lo) / 2, mid = (P2.lo + P2.hi) / 2;
+    SURF.a0 = mid - half * 1.6; SURF.da = (half * 3.2) / 63;
+    for (let i = 0; i < 64; i++) {
+      const a = SURF.a0 + i * SURF.da; let qx = B.x - w.nx * P2.base + tx * a, qy = B.y - w.ny * P2.base + ty * a;
+      for (let it = 0; it < 2; it++) { const o = w.fn(qx, qy); qx -= o.nx * o.d; qy -= o.ny * o.d; }
+      const o = w.fn(qx, qy), j = i * 4; SURF.v[j] = qx; SURF.v[j + 1] = qy; SURF.v[j + 2] = o.nx; SURF.v[j + 3] = o.ny;
+    }
+  }
+  const dotR = clamp(B.r * 0.034, sleeping ? 0.55 : 0.75, 1.75), tt = reduce ? 0 : t;
+  ctx.globalCompositeOperation = 'lighter';
+  if (!hidden) for (const p of B.pts) {
+    const tgt = shapeTarget(p, tt), cp = B.pos[p.i], fr = B.from[p.i];
+    const q = easeIO(clamp01((B.trans - p.k * 0.35) / 0.7));
+    cp[0] = fr[0] + (tgt[0] - fr[0]) * q; cp[1] = fr[1] + (tgt[1] - fr[1]) * q; cp[2] = fr[2] + (tgt[2] - fr[2]) * q;
+    // jeder Punkt folgt dem weichen Rand in seiner Richtung
+    const th = Math.atan2(cp[1], cp[0]), rho = Math.hypot(cp[0], cp[1]);
+    const rf = (th / TAU + 1) % 1 * RK, ri = rf | 0, rq = rf - ri, rj = (ri + 1) % RK, ra = ri % RK;
+    const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = 1 + ur;
+    let dx = cp[0] * r * s, dy = cp[1] * r * s;
+    if (B.pan && B.flat > 0.01) {
+      const P2 = B.pan, w = P2.w, tx = -w.ny, ty = w.nx, mid = (P2.lo + P2.hi) / 2, half = (P2.hi - P2.lo) / 2;
+      // Wackeln vom weichen Rand bleibt sichtbar. Punkte nah der Mitte haben keine stabile
+      // Richtung (atan2 eines winzigen Vektors springt): dort ausblenden, sonst zucken sie.
+      const dev = clamp(ur - (SH[ra] * (1 - rq) + SH[rj] * rq), -0.5, 0.5) * Math.min(1, rho / 0.35);
+      const u = cp[0] * tx + cp[1] * ty, vv = cp[0] * w.nx + cp[1] * w.ny;
+      const a = (mid + clamp(u, -1.25, 1.25) * half) * (1 + 0.25 * dev), q = Math.min(1, Math.abs(a - mid) / half);
+      const top = P2.T * Math.cbrt(1 - q * q * q) * (1 + 0.14 * Math.sin(a / B.r * 2.2 + t * 0.5 + PH[2]) + 0.07 * Math.sin(a / B.r * 4.3 - t * 0.8 + PH[6])) * (1 + dev);
+      const hg = top * (clamp(vv, -1, 1) + 1) / 2;
+      let px = -w.nx * P2.base + tx * a + w.nx * hg, py = -w.ny * P2.base + ty * a + w.ny * hg;
+      if (w.sdf) {
+        // Oberfläche einmal je Bild an 64 Stellen vorberechnet (SURF), hier nur nachgeschlagen
+        const f = clamp((a - SURF.a0) / SURF.da, 0, 63), i0 = Math.min(62, f | 0), q2 = f - i0, S = SURF.v, j = i0 * 4;
+        const sxp = S[j] + (S[j + 4] - S[j]) * q2, syp = S[j + 1] + (S[j + 5] - S[j + 1]) * q2;
+        const snx = S[j + 2] + (S[j + 6] - S[j + 2]) * q2, sny = S[j + 3] + (S[j + 7] - S[j + 3]) * q2;
+        px = sxp + snx * hg - B.x; py = syp + sny * hg - B.y;
+      }
+      dx += (px * pulse - dx) * B.flat; dy += (py * pulse - dy) * B.flat;
+    }
+    const heal = B.flat > 0.99 ? 0 : (HEAL[ra] * (1 - rq) + HEAL[rj] * rq) * Math.min(1, rho) * 0.5 * (1 - B.flat);
+    const dens = clamp(0.3 + 0.7 * s, 0.3, 1) * (1 - B.flat) + B.flat;
+    const c = dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal);
+    let alpha = clamp01(cp[2] * (bright + heal) * dens);
+    let X = cx + dx, Y = cy + dy, aMul = 1;
+    if (streaming) {
+      // jeder Punkt auf eigener Bahn zwischen Eingang und Dot, gestaffelt
+      const sx = ENT.x + (p.k - 0.5) * ENT.w * 0.8, sy = TAB + 2;
+      let qi = B.mode === 'exit' ? clamp01((B.te - 0.25 - p.k * 0.6) / 0.6) : 1 - clamp01((B.te - p.k * 0.6) / 0.55);
+      if (qi <= 0.001) continue;
+      qi = B.mode === 'exit' ? easeOut3(qi) : 1 - easeOut3(1 - qi);
+      const mx = (sx + X) / 2 + (p.s - Math.PI) * 5, my = Math.min(sy, Y) - 40 - p.k * 50;
+      const u1 = 1 - qi; X = u1 * u1 * sx + 2 * u1 * qi * mx + qi * qi * X; Y = u1 * u1 * sy + 2 * u1 * qi * my + qi * qi * Y;
+      aMul = 0.6 + 0.4 * qi;
+    }
+    if (swirling) {
+      const ex = ENT.x, ey = TAB - 3, u = clamp01((B.te - 0.15 - p.k * 0.55) / 0.75);
+      if (u >= 0.999) continue;
+      const vx0 = X - ex, vy0 = Y - ey, R0 = Math.hypot(vx0, vy0), A = Math.atan2(vy0, vx0) + easeIO(u) * Math.PI * 3.2;
+      const Rr = R0 * Math.pow(1 - u, 1.3); X = ex + Math.cos(A) * Rr; Y = ey + Math.sin(A) * Rr * 0.7 + u * u * 8;
+      aMul = 1 - 0.4 * u;
+    }
+    if (scatter) {
+      // gestaffelt: jeder Punkt fliegt auf eigener Bahn hinaus (oder zurück), leicht nach oben
+      let u = away ? clamp01((B.te - p.k * 0.3) / 0.55) : 1 - clamp01((B.te - p.k * 0.35) / 0.6);
+      if (u >= 0.999) continue;
+      const e = away ? u * u : u * u * (3 - 2 * u), d = (34 + 70 * p.k) * e;
+      X += (X - cx) * 0.9 * e + Math.cos(p.s) * d; Y += (Y - cy) * 0.9 * e + Math.sin(p.s) * d * 0.8 - 26 * e;
+      aMul = 1 - u;
+    }
+    if (aMul !== 1) alpha = clamp01(alpha * aMul + (streaming ? 0.25 : 0));
+    const sz = dotR * (0.55 + 0.6 * cp[2]) * 3;
+    if (B.mode === 'home') { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d; } }
+    if (GL) { const o = nPts * 7; GLD[o] = X; GLD[o + 1] = Y; GLD[o + 2] = sz; GLD[o + 3] = c[0] / 255; GLD[o + 4] = c[1] / 255; GLD[o + 5] = c[2] / 255; GLD[o + 6] = alpha; nPts++; }
+    else { ctx.globalAlpha = alpha; ctx.drawImage(sprite(c), X - sz / 2, Y - sz / 2, sz, sz); }
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if (clipped) ctx.restore();
+  if (GL) glDraw(nPts, clipped ? TAB : -1);
+
+  ctx.globalCompositeOperation = 'lighter';
+  for (const s of B.sparks) {
+    s.t += dt; s.vy += 900 * dt; s.vx *= Math.exp(-dt * 2); s.x += s.vx * dt; s.y += s.vy * dt;
+    const q = s.t / s.life; if (q >= 1 || s.y > TAB) { s.t = s.life; continue; }
+    ctx.fillStyle = `rgba(170,240,255,${(1 - q).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(s.x, s.y, dotR * 1.3 * (1 - q * 0.5), 0, TAU); ctx.fill();
+  }
+  B.sparks = B.sparks.filter(s => s.t < s.life);
+  // Schlaf-Pünktchen: drei werdende Punkte steigen schräg auf
+  for (const z of B.zz) {
+    const q = z.t / 2.2, a = Math.sin(Math.PI * q) * 0.7;
+    for (let j = 0; j < 3; j++) {
+      const qq = clamp01(q * 1.3 - j * 0.12); if (qq <= 0) continue;
+      ctx.fillStyle = `rgba(190,230,255,${(a * (0.5 + j * 0.25)).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(B.x + z.s * (B.r * 0.7 + qq * 26 + j * 6), B.y - B.r * 0.7 - qq * 34 - j * 7, 1 + j * 0.7, 0, TAU); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Größenring nur beim Zoomen mit zwei Fingern, Mausrad oder Befehl, dazu leise die Grenzen
+  if ((B.resizing || B.ringT > 0) && B.mode === 'home') {
+    const a = B.resizing ? 1 : B.ringT / 0.8;
+    ctx.lineWidth = 1.2; ctx.strokeStyle = `rgba(255,255,255,${(0.4 * a).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(cx, cy, B.r + 8, 0, TAU); ctx.stroke();
+    ctx.setLineDash([3, 5]); ctx.strokeStyle = `rgba(255,255,255,${(0.14 * a).toFixed(3)})`;
+    for (const lim of [R_MIN, R_MAX]) { ctx.beginPath(); ctx.arc(cx, cy, lim, 0, TAU); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  placeBubble();
+  // Trefferfläche folgt dem Umriss: flach an der Wand nimmt er auch nur flach Fingertipps an
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i < RK; i += 4) { const rr = B.r * (1 + UR[i]), px = B.x + DX[i] * rr, py = B.y + DY[i] * rr; x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py); }
+  const pad = 10;
+  hit.style.width = (x1 - x0 + 2 * pad).toFixed(1) + 'px'; hit.style.height = (y1 - y0 + 2 * pad).toFixed(1) + 'px';
+  hit.style.borderRadius = Math.min(x1 - x0, y1 - y0) / 2 + pad + 'px';
+  hit.style.transform = `translate(${(x0 - pad).toFixed(1)}px, ${(y0 - pad).toFixed(1)}px)`;
+}
+
+/* Gesten: ein Finger verschiebt, nur zwei Finger zoomen */
+const pointers = new Map();
+const local = e => { const p = phone.getBoundingClientRect(); return { x: e.clientX - p.left, y: e.clientY - p.top }; };
+function rubberRadius(raw) {
+  if (raw > R_MAX) return R_MAX + rubber(raw - R_MAX, R_MAX);
+  if (raw < R_MIN) return R_MIN - rubber(R_MIN - raw, R_MIN);
+  return raw;
+}
+function dragTo(fx, fy) {
+  const b = bounds(), r = B.r;
+  const lx = b.l + r, hx = b.r - r, ly = b.t + r, hy = b.b - r;
+  const wasAbove = B.y < TAB;
+  let x = fx < lx ? lx - rubber(lx - fx, r) : fx > hx ? hx + rubber(fx - hx, r) : fx;
+  let y = fy < ly ? ly - rubber(ly - fy, r) : fy > hy ? hy + rubber(fy - hy, r) : fy;
+  // über dem Eingang fest nach unten gedrückt oder gewischt: hinein
+  if (wasAbove && atEntrance(x, r) && fy - (TAB - r) > r * 0.7) { endDrag(); B.vy = Math.max(B.vy, 400); goHome('suck'); return; }
+  // die Leiste ist ein Körper: in kleinen Schritten von der alten zur neuen Lage, an jeder Stelle
+  // aus der Leiste geschoben. So rutscht er an ihr entlang und kann nicht hindurchspringen.
+  // Wie nah er heran darf, bestimmt, wie weit der Finger ihn zieht: leicht = berührt nur, kräftig = quetscht.
+  // Je Bewegung höchstens ~60 px Weg, so gleitet er sichtbar statt zu springen.
+  let qx = B.x, qy = B.y;
+  for (let it = 0; it < 24; it++) {
+    const ddx = x - qx, ddy = y - qy, L = Math.hypot(ddx, ddy); if (L < 0.4) break;
+    const allow = r * (0.2 + 0.8 * clamp01(1 - L / (1.2 * r)));
+    const st = Math.min(2.5, L); qx += ddx / L * st; qy += ddy / L * st;
+    const o = obstacle(qx, qy); if (o.d < allow) { qx += o.nx * (allow - o.d); qy += o.ny * (allow - o.d); }
+    qx = clamp(qx, b.l + r * 0.2, b.r - r * 0.2); qy = clamp(qy, b.t + r * 0.2, b.b - r * 0.2);
+    const o2 = obstacle(qx, qy); if (o2.d < r * 0.2) { qx += o2.nx * (r * 0.2 - o2.d); qy += o2.ny * (r * 0.2 - o2.d); }
+    const oc = cornerSdf(qx, qy); if (oc.d < r * 0.2) { qx += oc.nx * (r * 0.2 - oc.d); qy += oc.ny * (r * 0.2 - oc.d); }
+  }
+  B.x = qx; B.y = qy;
+}
+function startPinch() {
+  const [a, b] = [...pointers.values()];
+  B.drag = { pinch: true, d0: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), r0: B.r, ox: B.x - (a.x + b.x) / 2, oy: B.y - (a.y + b.y) / 2, moved: 99 };
+  B.resizing = true;
+}
+function endDrag() {
+  for (const id of pointers.keys()) { try { hit.releasePointerCapture(id); } catch (e) {} }
+  pointers.clear(); B.drag = null; B.resizing = false;
+}
+hit.addEventListener('pointerdown', e => {
+  if (B.mode !== 'home') return;
+  e.preventDefault(); hit.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, local(e));
+  if (pointers.size > 1) { pointers.delete(e.pointerId); return; }   // ein Finger reicht, gezoomt wird nicht
+  const pt = local(e), now = performance.now();
+  B.drag = { ox: pt.x - B.x, oy: pt.y - B.y, sx: pt.x, sy: pt.y, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }] };
+  B.drag.trail = [{ x: pt.x, y: pt.y, t: now }]; B.drag.rev = []; B.drag.sx0 = 0;
+  B.vx = 0; B.vy = 0; B.poke = 0; wake();
+});
+hit.addEventListener('pointermove', e => {
+  if (!B.drag || !pointers.has(e.pointerId)) return;
+  const pt = local(e); pointers.set(e.pointerId, pt);
+  const D = B.drag, now = performance.now();
+  if (D.pinch) {
+    if (pointers.size < 2) return;
+    const [a, b] = [...pointers.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    const raw = D.r0 * d / D.d0; B.r = rubberRadius(raw); B.size = clamp(raw, R_MIN, R_MAX);
+    dragTo((a.x + b.x) / 2 + D.ox, (a.y + b.y) / 2 + D.oy);
+    return;
+  }
+  D.moved = Math.max(D.moved, Math.hypot(pt.x - D.sx, pt.y - D.sy));
+  if (D.moved < 4) return;
+  dragTo(pt.x - D.ox, pt.y - D.oy);
+  if (!B.drag) return;
+  // Richtungswechsel zählen: schnell auf kleinem Raum = Kitzeln, weit und wild = Schütteln
+  const tr = D.trail, lastP = tr[tr.length - 1], ddx = pt.x - lastP.x;
+  tr.push({ x: pt.x, y: pt.y, t: now }); while (tr.length && now - tr[0].t > 1100) tr.shift();
+  if (Math.abs(ddx) > 3) { const sg = Math.sign(ddx); if (D.sx0 && sg !== D.sx0) D.rev.push(now); D.sx0 = sg; }
+  D.rev = D.rev.filter(tt => now - tt < 1000);
+  const xs = tr.map(q => q.x), ys = tr.map(q => q.y), rx = Math.max(...xs) - Math.min(...xs), ry = Math.max(...ys) - Math.min(...ys);
+  if (D.rev.length >= 4 && rx < 80 && ry < 80 && B.gcool === 0 && B.giggleT < 0) giggle();
+  if (D.rev.length >= 4 && Math.max(rx, ry) > 130) D.dizzy = true;
+  D.hist.push({ x: B.x, y: B.y, t: now }); while (D.hist.length > 6) D.hist.shift();
+  const h0 = D.hist[0], dtv = Math.max(8, now - h0.t) / 1000;
+  B.vx = (B.x - h0.x) / dtv; B.vy = (B.y - h0.y) / dtv;
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  const D = B.drag; if (!D) return;
+  if (D.pinch) { if (pointers.size === 0) { B.drag = null; B.resizing = false; B.ringT = 0.8; settleAfterResize(); } return; }
+  B.drag = null;
+  const now = performance.now();
+  if (D.moved < 8 && now - D.t0 < 350) { if (B.thin > 0.5) fetchDot(); else openCoach(); return; }
+  const last = D.hist[D.hist.length - 1], stale = now - last.t > 90;
+  release(stale ? 0 : B.vx, stale ? 0 : B.vy);
+  if (D.dizzy && B.mode === 'home') startDizzy();
+}
+function settleAfterResize() { if (!B.dock.x && !B.dock.y) B.along = { x: B.x, y: B.y }; save(); }
+hit.addEventListener('pointerup', endPointer);
+hit.addEventListener('pointercancel', endPointer);
+hit.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (B.thin > 0.5) fetchDot(); else openCoach(); } });
+function fetchDot() { B.thinT = 0; B.idleT = 0; wake(true); if (!reduce) for (let k = 0; k < RK; k++) WV[k] += (Math.random() - 0.5) * 3; say('Da bin ich. Tipp mich an, dann reden wir.', 2200); }
+
+/* Haus, Eingang und Klingel: das Logo in der Leiste */
+function logoUI() { logo.setAttribute('aria-label', B.mode === 'house' ? 'Bei Dot klingeln, er kommt heraus' : 'Dot nach Hause schicken'); }
+function goHome(kind) {
+  if (B.mode !== 'home') return;
+  B.enterKind = pickKind(ENTERS, B.lastEnter, kind || B.forceEnter); B.lastEnter = B.enterKind;
+  B.mode = 'enter'; B.te = 0; hit.hidden = true; B.contact = {}; B.doorFlash = 1;
+  B.holdX = B.x; B.holdY = B.y; B.splashed = false; B.waveAt = -1;
+  if (B.enterKind === 'suck' && B.vy < 250) B.vy = 250;
+  if (B.enterKind === 'dive') B.vy = Math.min(B.vy, -260);
+  if (B.enterKind === 'dissolve') { B.vx = B.vy = 0; }
+  if (B.enterKind === 'rim') B.rimA = clamp(B.x - ENT.x, -B.r, B.r) || B.r * 0.6 * (Math.random() < 0.5 ? -1 : 1);
+  if (B.enterKind === 'bounce') { B.vy = -clamp(Math.abs(B.vy) * 0.45, 380, 700); B.vx *= 0.4; }
+}
+function ring(kind) {
+  if (B.mode !== 'house') return;
+  B.exitKind = pickKind(EXITS, B.lastExit, kind || B.forceExit); B.lastExit = B.exitKind; B.popped = false; B.lean = 0;
+  B.mode = 'exit'; B.te = 0; delete phone.dataset.in; logoUI();
+  B.x = ENT.x; B.y = TAB + B.size * 1.1; B.lx = B.x; B.ly = B.y; B.vx = B.vy = B.lvx = B.lvy = 0; B.r = B.size; B.doorFlash = 1;
+  WV.fill(0);
+}
+logo.addEventListener('click', () => {
+  wake(true);
+  if (B.mode === 'house') ring();
+  else if (B.mode === 'home') goHome();
+});
+
+/* Start: Dot schläft zu Hause und klettert nach einem Moment heraus */
+B.x = ENT.x; B.y = TAB + B.size * 1.2; B.r = B.size; hit.hidden = true; phone.dataset.in = '1'; logoUI();
+setTimeout(ring, 1100);
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  physics(dt, now / 1000); render(now / 1000, dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+document.addEventListener('visibilitychange', () => { last = performance.now(); });
+
+/* Steuerung */
+function pressed(group, btn) { group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn))); }
+function busy(s) { if (s === 'think' || s === 'speak') phone.dataset.busy = s; else delete phone.dataset.busy; }
+function readout() { const s = +soft.value; $('#readout').textContent = s < 0.33 ? 'Fest: kaum Verformung, Dellen verschwinden sofort.' : s < 0.66 ? 'Mittel: wackelt nach, Ecken bleiben kurz.' : s < 0.9 ? 'Weich: wabbelt unregelmäßig, Ecken und Dellen bleiben eine Weile.' : 'Gelee: sehr träge, prägt sich stark ein, heilt langsam.'; }
+soft.addEventListener('input', readout); readout();
+$('#states').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  wake(true); pressed($('#states'), btn); B.voiceAuto = btn.dataset.state === 'speak'; setState(btn.dataset.state);
+  if (btn.dataset.state === 'joy') setTimeout(() => pressed($('#states'), $('#states [data-state="idle"]')), 1900);
+});
+$('#looks').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressed($('#looks'), b); phone.dataset.look = b.dataset.look; });
+$('#edges').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressed($('#edges'), b); phone.dataset.edge = b.dataset.edge; });
+$('#resetDot').addEventListener('click', () => {
+  if (B.mode === 'stage') closeCoach();
+  if (B.mode === 'house' || B.mode === 'enter') ring();
+  B.dock = { x: 'right', y: 'nav' }; B.squeezed = false; save();
+});
+
+/* Arten des Herauskommens und Hineingehens */
+$('#exits').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; pressed($('#exits'), b); B.forceExit = b.dataset.kind;
+  if (B.mode === 'house') ring(b.dataset.kind || undefined); else if (b.dataset.kind) toast('Beim nächsten Herauskommen');
+});
+$('#throws').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; pressed($('#throws'), b); B.forceThrow = b.dataset.kind;
+  if (B.mode === 'home' && !B.drag) {
+    // Probewurf: von seinem Platz in hohem Bogen auf den Eingang
+    B.vx = (ENT.x - B.x) * 2.2; B.vy = -700;
+    goHome(b.dataset.kind || pickThrow(B.vx, 1100, ENT.x + (Math.random() - 0.5) * ENT.w));
+  } else toast('Erst Dot herausholen: Logo antippen');
+});
+$('#enters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; pressed($('#enters'), b); B.forceEnter = b.dataset.kind;
+  if (B.mode === 'home' && !B.drag) goHome(b.dataset.kind || undefined); else if (b.dataset.kind) toast('Beim nächsten Hineingehen');
+});
+
+/* Neugier beim Scrollen und Knöpfe für die Persönlichkeit */
+const bubbleEl = $('#bubble');
+let lastScroll = 0, lastScrollT = performance.now();
+for (const pg of document.querySelectorAll('.home')) pg.addEventListener('scroll', () => {
+  const now = performance.now(), dy = pg.scrollTop - lastScroll, v = dy / Math.max(8, now - lastScrollT) * 1000;
+  lastScroll = pg.scrollTop; lastScrollT = now;
+  if (B.mode !== 'home') return;
+  wake(false);
+  B.peek = clamp(B.peek + v / 4000, -1, 1);
+  if (!B.drag && !reduce) B.fax += -v * 0.6;
+}, { passive: true });
+$('#moods').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (B.mode !== 'home') { toast(B.mode === 'house' ? 'Erst Dot herausholen: Logo antippen' : 'Erst den Chat schließen'); return; }
+  ({ greet, yawn: () => { wake(true); startYawn(); }, giggle, dizzy: startDizzy, clock: () => {
+    // Probewurf: frei fliegen lassen, Ziel ist die Uhr
+    wake(true); B.dock = { x: null, y: null }; B.along = { x: CLK.x, y: CLK.y + 30 }; B.vx = (CLK.x - B.x) * 2.4; B.vy = (CLK.y - B.y) * 2.4;
+  } })[b.dataset.mood]();
+});
+
+/* App */
+const thread = $('#thread'), statusEl = $('#status'), toastEl = $('#toast'), introEl = $('#intro');
+function openCoach() {
+  chipsFor(page);
+  coach.style.setProperty('--ox', B.x.toFixed(1) + 'px'); coach.style.setProperty('--oy', B.y.toFixed(1) + 'px');
+  B.mode = 'stage'; hit.hidden = true; coach.classList.add('open');
+}
+function closeCoach() {
+  B.mode = 'home'; hit.hidden = false; B.contact = {};
+  const T = homeTarget(); coach.style.setProperty('--ox', T.x.toFixed(1) + 'px'); coach.style.setProperty('--oy', T.y.toFixed(1) + 'px');
+  coach.classList.remove('open');
+}
+$('#close').addEventListener('click', closeCoach);
+stage.addEventListener('click', () => { B.poke = 0; });
+$('#reset').addEventListener('click', () => { thread.replaceChildren(introEl); coach.classList.remove('chatting'); });
+
+let toastTimer;
+function toast(text) { toastEl.textContent = text; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800); }
+function setOrb(s) { B.voiceAuto = false; setState(s); }
+function setStatus(s) { statusEl.textContent = s; }
+
+/* Befehle an Dot selbst: Größe und Haus */
+function command(low) {
+  if (/(geh|ab).*(haus|heim)|schlafen|nach hause/.test(low) && !NAV.on) return { a: 'Hier gibt es keine Leiste, also auch kein Haus. Ich warte am Rand. Wenn du zurück bist, gehe ich hinein.', run: () => { B.autoOut = true; } };
+  if (/(geh|ab).*(haus|heim)|schlafen|nach hause/.test(low)) return { a: 'Bis später. Klingel einfach an meiner Tür, wenn du mich brauchst.', run: () => setTimeout(() => { closeCoach(); setTimeout(goHome, 450); }, 700) };
+  if (/größer|groesser|kleiner|schrumpf|wachs|zoom/.test(low)) return { a: 'Ich habe eine feste Größe, damit ich überall gleich flüssig laufe. Wenn ich störe: schieb mich an den Rand, dort mache ich mich flach.', run: () => {} };
+  return null;
+}
+const SCRIPT = [
+  { q: 'Wann ist meine nächste Dosis?', keys: ['nächste', 'wann', 'dosis'],
+    a: 'Heute um 18:00: BPC-157, 250 mcg subkutan. Für die Stelle passt Bauch rechts, links war gestern dran. Dein Bestand reicht noch 9 Tage.' },
+  { q: 'Trag meine Morgendosis ein', keys: ['trag', 'morgen', 'eingenommen', 'gespritzt'],
+    a: 'Laut Plan war heute früh BPC-157 dran. So würde ich es eintragen:',
+    card: { title: 'Einnahme eintragen', rows: [['Substanz', 'BPC-157'], ['Menge', '250 mcg · 0,1 ml', 'edit'], ['Stelle', 'Bauch links · s.c.'], ['Zeit', 'heute, 08:00']], done: 'Eingetragen · Bestand jetzt 8 Tage' } },
+  { q: 'Ich hatte Skyr mit Beeren', keys: ['skyr', 'gegessen', 'hatte', 'beeren'],
+    a: 'Klingt nach Frühstück. Ich habe die Mengen geschätzt, prüf sie kurz:',
+    card: { title: 'Mahlzeit eintragen', rows: [['Frühstück', 'Skyr 250 g · Heidelbeeren 100 g'], ['Energie', '255 kcal'], ['Eiweiß', '28 g']], done: 'Eingetragen · noch 1745 kcal heute' } },
+  { q: 'Was heißt mein Ferritin-Wert?', keys: ['ferritin', 'blutwert', 'wert'],
+    a: 'Dein letzter Ferritin-Wert vom 2. Oktober: 38 ng/ml. Er liegt im Referenzbereich deines Labors (30 bis 400 ng/ml), im unteren Teil. Ferritin zeigt, wie viel Eisen dein Körper gespeichert hat. Was der Wert für dich bedeutet, besprich bitte mit deiner Ärztin oder deinem Arzt.' },
+  { page: 'mystack', q: 'Was steht heute an?', keys: ['heute an', 'heute dran', 'ansteht'],
+    a: 'Heute noch offen: BPC-157, 250 mcg um 18:00, und Magnesium am Abend. Vitamin D3 hast du schon eingetragen, um 08:12.' },
+  { page: 'kalender', q: 'Was habe ich diese Woche verpasst?', keys: ['verpasst', 'vergessen', 'diese woche'],
+    a: 'Eine Lücke: TB-500 am Dienstag ist nicht eingetragen. Wenn du es genommen hast, trage ich es nach:',
+    card: { title: 'Einnahme nachtragen', rows: [['Substanz', 'TB-500'], ['Menge', '2 mg', 'edit'], ['Zeit', 'Dienstag, 21. Okt.']], done: 'Nachgetragen · keine Lücke mehr diese Woche' } },
+  { page: 'ernaehrung', q: 'Trag mein Frühstück ein', keys: ['frühstück', 'fruehstueck'],
+    a: 'Heute ist noch kein Frühstück eingetragen. Gestern hattest du Skyr mit Beeren, soll ich das nehmen?',
+    card: { title: 'Mahlzeit eintragen', rows: [['Frühstück', 'Skyr 250 g · Heidelbeeren 100 g', 'edit'], ['Energie', '255 kcal'], ['Eiweiß', '28 g']], done: 'Eingetragen · noch 1127 kcal heute' } },
+  { q: 'Wie viel soll ich nehmen?', keys: ['wie viel', 'soll ich', 'empfiehl', 'erhöhen'],
+    a: 'Dosierungen empfehle ich nicht, das gehört in ärztliche Hand. Ich kann dir zeigen, was in deinem Plan steht, und in der Peptipedia nachschlagen, welche Mengen in Studien untersucht wurden.' },
+];
+const CMDS = ['Geh in dein Haus'];
+const chips = $('#chips');
+// Begrüßung und Vorschläge passen zur Seite, von der aus man Dot öffnet
+const INTRO = {
+  home: introEl.textContent,
+  mystack: 'Du bist in deinem Stack. Ich sage dir, was heute ansteht, und trage Einnahmen ein. Du bestätigst jedes Mal.',
+  kalender: 'Ich sehe, was geplant war und was eingetragen ist. Frag mich nach Lücken.',
+  ernaehrung: 'Sag mir, was du gegessen hast. Ich schätze die Mengen, du bestätigst sie.',
+};
+function chip(q, cls) { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = q; b.addEventListener('click', () => ask(q)); chips.append(b); }
+function chipsFor(pg) {
+  chips.replaceChildren(); introEl.textContent = INTRO[pg] || INTRO.home;
+  SCRIPT.filter(s => s.page === pg).forEach(s => chip(s.q, 'chip ctx'));
+  CMDS.forEach(q => chip(q, 'chip cmd'));
+  SCRIPT.filter(s => !s.page).forEach(s => chip(s.q, 'chip'));
+  chips.scrollLeft = 0;
+}
+
+let working = false;
+function bubble(cls, text) { const el = document.createElement('div'); el.className = 'msg ' + cls; el.textContent = text; thread.append(el); thread.scrollTop = thread.scrollHeight; return el; }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function ask(text) {
+  if (working || !text.trim()) return;
+  working = true; wake(true); introEl.remove(); coach.classList.add('chatting');
+  bubble('me', text);
+  const low = text.toLowerCase(), cmd = command(low);
+  const hit2 = cmd ? null : (SCRIPT.find(s => s.q === text) || SCRIPT.find(s => s.keys.some(k => low.includes(k))));
+  setOrb('think'); setStatus('Dot denkt nach …');
+  await wait(reduce ? 300 : cmd ? 600 : 1400);
+  if (cmd) cmd.run();
+  const answer = cmd ? cmd.a : hit2 ? hit2.a : 'Im Mockup kenne ich nur die Beispielfragen unten. In der App beantworte ich alles rund um deinen Stack, deine Einträge und Blutwerte.';
+  setOrb('speak'); setStatus('');
+  const el = bubble('dot', '');
+  if (reduce) el.textContent = answer;
+  else for (let i = 0; i < answer.length; i += 2) {
+    el.textContent = answer.slice(0, i + 2);
+    B.voice = Math.min(1, B.voice + (/[ .,]/.test(answer[i]) ? 0.05 : 0.22));
+    thread.scrollTop = thread.scrollHeight;
+    await wait(32);
+  }
+  setOrb('idle');
+  if (hit2 && hit2.card) { await wait(150); thread.append(card(hit2.card)); thread.scrollTop = thread.scrollHeight; }
+  working = false;
+}
+function card(c) {
+  const el = document.createElement('div'); el.className = 'confirm';
+  const h = document.createElement('h4'); h.textContent = c.title; el.append(h);
+  const dl = document.createElement('dl');
+  c.rows.forEach(([k, v, edit]) => {
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v; if (edit) dd.dataset.edit = '1';
+    dl.append(dt, dd);
+  });
+  el.append(dl);
+  const btns = document.createElement('div'); btns.className = 'row-btns';
+  const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn primary'; ok.textContent = 'Eintragen';
+  const change = document.createElement('button'); change.type = 'button'; change.className = 'btn'; change.textContent = 'Ändern';
+  btns.append(ok, change); el.append(btns);
+  change.addEventListener('click', () => {
+    const dd = dl.querySelector('[data-edit]') || dl.querySelectorAll('dd')[0];
+    if (dd.querySelector('input')) return;
+    const unit = /mcg/.test(dd.textContent) ? ' mcg' : '';
+    const val = parseFloat(dd.textContent.replace(',', '.'));
+    dd.textContent = '';
+    const inp = document.createElement('input'); inp.type = unit ? 'number' : 'text'; inp.value = isNaN(val) ? '' : val;
+    inp.id = 'edit-' + Math.random().toString(36).slice(2, 7); inp.setAttribute('aria-label', 'Menge ändern');
+    dd.append(inp); if (unit) dd.append(unit); inp.focus();
+  });
+  ok.addEventListener('click', () => {
+    dl.querySelectorAll('input').forEach(i => { const dd = i.parentElement; const rest = dd.textContent.trim(); dd.textContent = i.value + (rest ? ' ' + rest : ''); });
+    btns.remove();
+    const done = document.createElement('div'); done.className = 'done';
+    const label = document.createElement('span'); label.textContent = '✓ ' + c.done;
+    const undo = document.createElement('button'); undo.type = 'button'; undo.textContent = 'Rückgängig';
+    undo.addEventListener('click', () => { done.remove(); el.append(btns); toast('Rückgängig gemacht'); });
+    done.append(label, undo); el.append(done);
+    setOrb('joy'); toast('Eingetragen');
+  });
+  return el;
+}
+/* Navigation: Seiten wechseln unter Dot hindurch, er reagiert auf das, was die Seite braucht */
+const PAGES = {
+  home: { nav: true }, mystack: { nav: true }, kalender: { nav: true }, profil: { nav: true },
+  ernaehrung: { nav: false, back: 'home' }, scanner: { nav: false, cam: true, back: 'ernaehrung' },
+};
+const ORDER = ['home', 'mystack', 'kalender', 'profil', 'ernaehrung', 'scanner'];
+let page = 'home', syncT = 0, avoidT = 0;
+const pageEl = id => $(`.pg[data-page="${id}"]`);
+function go(to) {
+  if (to === page || !PAGES[to] || B.drag) return;
+  if (B.mode === 'stage') closeCoach();
+  closeSheet(); closeKbd();
+  const from = page, dir = ORDER.indexOf(to) > ORDER.indexOf(from) ? 1 : -1, a = pageEl(from), b = pageEl(to);
+  // die neue Seite gleitet aus der Laufrichtung herein, die alte weicht zur anderen Seite aus
+  b.style.transition = 'none'; b.style.setProperty('--from', dir * 40 + 'px'); void b.offsetWidth; b.style.transition = '';
+  a.style.setProperty('--from', -dir * 40 + 'px');
+  a.classList.remove('on'); b.classList.add('on'); b.scrollTop = 0; lastScroll = 0;
+  page = to;
+  if (PAGES[to].nav) {
+    capsule.querySelectorAll('.slot.tab').forEach(t => { const on = t.dataset.tab === to; t.classList.toggle('on', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+    placePill();
+  }
+  // 1. er bleibt, wo er ist: nur die Trägheit lässt ihn gegen die Laufrichtung nachwabbeln
+  if (B.mode === 'home' && !reduce) { B.kx = -dir * 5200; B.vx -= dir * 70; wake(true); }
+  syncDot();
+}
+function hideNav() { NAV.on = false; phone.dataset.nonav = ''; }
+function showNav() {
+  NAV.on = true; delete phone.dataset.nonav; B.thinT = 0;
+  // lag er unten am Rand, liegt er jetzt unter der Leiste
+  if (B.mode === 'home' && B.y > TAB - B.r * 0.3) { B.squeezed = true; B.dock = { x: B.dock.x, y: 'bottom' }; }
+}
+// 4. ohne Leiste: als schmaler Streifen an den Rand
+function toStrip() {
+  const side = B.dock.x || (B.x < W / 2 ? 'left' : 'right');
+  B.dock = { x: side, y: null }; B.along = { x: B.x, y: clamp(B.mode === 'house' ? H * 0.5 : B.y, H * 0.3, H * 0.6) };
+  B.squeezed = false; B.thinT = 1; B.displaced = true;
+}
+function syncDot() {
+  clearTimeout(syncT);
+  const P = PAGES[page];
+  // mitten in einer Bewegung: erst fertig werden lassen
+  if (B.mode === 'exit' || B.mode === 'enter' || B.mode === 'orbit' || B.mode === 'gather' || (B.mode === 'away' && B.te < 0.95)) { syncT = setTimeout(syncDot, 150); return; }
+  // 5. Kamera: verschwindet ganz, immer animiert
+  if (P.cam) { if (B.mode === 'home') { B.mode = 'away'; B.te = 0; hit.hidden = true; bubbleEl.classList.remove('show'); } return; }
+  if (B.mode === 'away') { B.mode = 'gather'; B.te = 0; syncT = setTimeout(syncDot, 1050); return; }
+  if (!P.nav) {
+    // Seite ohne Leiste: ist er zu Hause, kommt er beim Hineinnavigieren heraus, dann geht die Leiste
+    if (B.mode === 'house') { toStrip(); B.autoOut = true; B.hideOnLand = true; ring(pickKind(['pop', 'stream', 'climb'], B.lastExit, B.forceExit)); return; }
+    if (B.mode === 'home' && NAV.on) { toStrip(); hideNav(); }
+    return;
+  }
+  if (!NAV.on) showNav();
+  if (B.mode !== 'home') return;
+  if (B.displaced && B.pref && !B.squeezed) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along }; B.displaced = false; }
+  // kam er nur wegen der Seite ohne Leiste heraus, geht er jetzt wieder hinein
+  if (B.autoOut) { B.autoOut = false; setTimeout(() => { if (NAV.on && B.mode === 'home' && !B.drag && PAGES[page].nav) goHome(); }, 420); return; }
+  clearTimeout(avoidT); avoidT = setTimeout(avoid, 360);
+}
+
+/* 2. Knöpfe und Eingaben der Seite freihalten: an der Wand entlang zum nächsten freien Platz */
+function zones() {
+  const pr = phone.getBoundingClientRect();
+  return [...pageEl(page).querySelectorAll('[data-dot-avoid]')].map(el => { const r = el.getBoundingClientRect(); return { l: r.left - pr.left - 8, r: r.right - pr.left + 8, t: r.top - pr.top - 8, b: r.bottom - pr.top + 8 }; });
+}
+function spotFor(d, a) {
+  const keep = [B.dock, B.along]; B.dock = d; B.along = a;
+  const T = homeTarget(), dy = dockY(); [B.dock, B.along] = keep;
+  const r = B.size, hx = d.x && !dy ? r * 0.9 : r * 1.75, hy = dy && !d.x ? r * 0.9 : r * 1.75;
+  return { x: T.x, y: T.y, l: T.x - hx, r: T.x + hx, t: T.y - hy, b: T.y + hy };
+}
+const overlaps = (s, Z) => Z.some(z => s.l < z.r && s.r > z.l && s.t < z.b && s.b > z.t);
+function avoid() {
+  if (B.mode !== 'home' || B.drag) return;
+  const Z = zones(), cur = spotFor(B.dock, B.along); if (!overlaps(cur, Z)) return;
+  const b = bounds(), r = B.size, dy = dockY(), c = [];
+  if (B.dock.x || !dy) for (let y = b.t + r; y <= b.b - r; y += 6) c.push({ dock: { x: B.dock.x, y: null }, along: { x: cur.x, y } });
+  if (dy) for (let x = b.l + r; x <= b.r - r; x += 6) c.push({ dock: { x: null, y: B.dock.y }, along: { x, y: cur.y } });
+  let best = null, bd = Infinity;
+  for (const k of c) { const s = spotFor(k.dock, k.along); if (overlaps(s, Z)) continue; const d = Math.hypot(s.x - cur.x, s.y - cur.y); if (d < bd) { bd = d; best = k; } }
+  if (best) { B.dock = best.dock; B.along = best.along; B.displaced = true; }
+}
+
+/* 6. Blatt: Dot tritt zurück, gedimmt unter dem Schleier, und kommt danach wieder */
+const sheet = $('#sheet'), scrim = $('#scrim');
+function openSheet() { phone.dataset.sheet = ''; sheet.classList.add('show'); scrim.classList.add('show'); closeKbd(); }
+function closeSheet() { delete phone.dataset.sheet; sheet.classList.remove('show'); scrim.classList.remove('show'); }
+$('#plusBtn').addEventListener('click', () => { if (phone.dataset.sheet != null) closeSheet(); else openSheet(); });
+scrim.addEventListener('click', closeSheet);
+sheet.querySelectorAll('.act').forEach(b => b.addEventListener('click', () => { closeSheet(); toast('Im Mockup nicht verbunden'); }));
+
+/* 7. Tastatur: Dot rückt nach oben aus dem Weg */
+const kbd = $('#kbd'), search = $('#search');
+function openKbd() { kbd.classList.add('show'); kbd.setAttribute('aria-hidden', 'false'); search.parentElement.classList.add('focus'); NAV.kbT = kbd.offsetHeight; }
+function closeKbd() { if (!NAV.kbT) return; kbd.classList.remove('show'); kbd.setAttribute('aria-hidden', 'true'); search.parentElement.classList.remove('focus'); NAV.kbT = 0; }
+search.addEventListener('click', e => { e.stopPropagation(); openKbd(); });
+$('#kbdDone').addEventListener('click', closeKbd);
+pageEl('mystack').addEventListener('click', e => { if (!e.target.closest('.search')) closeKbd(); });
+
+/* Tabs und Verweise */
+capsule.querySelectorAll('.slot.tab').forEach(t => t.addEventListener('click', () => go(t.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(el => {
+  el.addEventListener('click', () => go(el.dataset.go));
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(el.dataset.go); } });
+});
+document.querySelectorAll('[data-back]').forEach(el => el.addEventListener('click', () => go(PAGES[page].back)));
+document.querySelector('[data-dot-avoid].fab:not(.scanbtn)').addEventListener('click', () => toast('Im Mockup nicht verbunden'));
+
+$('#composer').addEventListener('submit', e => { e.preventDefault(); const i = $('#input'); const v = i.value; i.value = ''; ask(v); });
+})();
+</script>
