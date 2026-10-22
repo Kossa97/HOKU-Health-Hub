@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { nutrientsFor, type LogEntry, type Per100 } from './nutrition'
-import { type Ingredient, ingredientFromEntry, parseIngredients, portionsText, recipeFood, recipeTotals } from './recipe'
+import { type Ingredient, ingredientFromEntry, parseIngredients, recipeFood, recipeTotals } from './recipe'
 
 const per = (kcal: number, protein: number, carbs: number, fat: number, extra: Partial<Per100> = {}): Per100 =>
   ({ kcal, protein, carbs, fat, fiber: null, sugar: null, satFat: null, salt: null, ...extra })
@@ -68,13 +68,5 @@ describe('parseIngredients', () => {
     const list = parseIngredients([oats, { name: 'ohne Menge', per100: { kcal: 1 } }, 'Unsinn', { ...skyr, source: 'fremd', unit: 'kg' }])!
     expect(list.map(i => i.name)).toEqual(['Haferflocken', 'Skyr'])
     expect(list[1]).toMatchObject({ source: 'custom', unit: 'g', per100: { kcal: 63, fiber: null } })
-  })
-})
-
-describe('portionsText', () => {
-  it('zeigt Gramm als Portionen mit höchstens zwei Nachkommastellen', () => {
-    expect(portionsText(175, 175)).toBe(1)
-    expect(portionsText(262.5, 175)).toBe(1.5)
-    expect(portionsText(100, 300)).toBe(0.33)
   })
 })

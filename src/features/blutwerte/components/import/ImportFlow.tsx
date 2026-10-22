@@ -15,6 +15,7 @@ import { EINWILLIGUNG_FEHLT } from '../../lib/aiConsent'
 import { beschreibeExtraktionsFehler } from '../../lib/extractError'
 import { KiEinwilligung } from '../KiEinwilligung'
 import { useKiEinwilligung } from '../useKiEinwilligung'
+import { SheetGriff } from '../../../../components/ui/SheetGriff'
 
 type Phase = 'idle' | 'extracting' | 'review' | 'saving'
 
@@ -230,7 +231,7 @@ export function ImportFlow({ mode, onClose, onSaved }: Props) {
         className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full"
         onClick={e => e.stopPropagation()}
       >
-        <span className="lg-grabber !mb-1" aria-hidden="true" />
+        <SheetGriff className="!mb-1" onClose={onClose} disabled={saving} />
         <h2 className="lg-title2" style={{ color: TEXT }}>{t('bw_import_title')}</h2>
 
         {phase === 'idle' && einwilligung === undefined && !einwilligungFehler && (

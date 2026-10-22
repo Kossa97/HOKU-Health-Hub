@@ -1,6 +1,7 @@
 // src/components/injection3d/InjectionIntroSheet.tsx
 import { Hand, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { SheetGriff } from '../ui/SheetGriff'
 
 export const INJECTION_INTRO_VERSION = 1
 
@@ -23,7 +24,7 @@ export function InjectionIntroSheet({
         aria-labelledby="injection-intro-title"
         className="lg-sheet fixed bottom-2 left-2 right-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2"
       >
-        <div className="lg-grabber mb-4" />
+        <SheetGriff className="mb-4" onClose={onClose} />
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Hand size={17} color="var(--accent)" aria-hidden="true" />

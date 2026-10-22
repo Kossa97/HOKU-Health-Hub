@@ -11,6 +11,7 @@ import { conversionHint } from '../lib/conversionHint'
 import { formatEingabe, formatRange } from '../lib/format'
 import { unitChoices } from '../lib/unitConversion'
 import { CYAN, MUTED, TEXT } from '../styles'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 export interface EntryDraft {
   /** Gesetzt, wenn ein bestehender Wert bearbeitet wird. */
@@ -153,7 +154,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
         className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full"
         onClick={e => e.stopPropagation()}
       >
-        <span className="lg-grabber !mb-1" aria-hidden="true" />
+        <SheetGriff className="!mb-1" onClose={onCancel} />
         <h2 className="lg-title2" style={{ color: TEXT }}>{t(draft.id ? 'bw_edit_title' : 'bw_entry_title')}</h2>
 
         <div>

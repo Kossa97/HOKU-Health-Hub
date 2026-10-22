@@ -65,6 +65,7 @@ import toast from 'react-hot-toast'
 import { differenceInDays, format, parseISO, startOfDay } from 'date-fns'
 import { getDateLocale } from '../i18n/dateLocales'
 import { Silhouette, Zeilen } from '../components/ui/Silhouette'
+import { SheetGriff } from '../components/ui/SheetGriff'
 
 const ROUTINE_GROUP_LABELS: Record<RoutineGroupModel['key'], { key: string; defaultValue: string }> = {
   morning: { key: 'my_stack_routine_morning', defaultValue: 'Morgens' },
@@ -1509,6 +1510,7 @@ function HomeIntakeConfirmSheet({
         className="fixed inset-0 z-50 bg-black/70"
       />
       <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+        <SheetGriff className="-mt-3 mb-3" onClose={onClose} />
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-cyan-300">Anstehende Einnahme</p>
@@ -1574,6 +1576,7 @@ function HomeIntakeTimeSheet({
         className="fixed inset-0 z-50 bg-black/70"
       />
       <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+        <SheetGriff className="-mt-3 mb-3" onClose={onClose} />
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-emerald-300">Einnahme bestätigen</p>

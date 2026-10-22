@@ -5,6 +5,7 @@ import { PRESETS } from '../../lib/protocolPdf/presets'
 import { SECTIONS } from '../../lib/protocolPdf/sections'
 import type { PdfLang } from '../../lib/protocolPdf/types'
 import { useSheetClose } from '../../lib/useSheetClose'
+import { SheetGriff } from '../ui/SheetGriff'
 
 const T: Record<PdfLang, {
   title: string; close: string; intro: string
@@ -98,7 +99,7 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
         {...closingProps}
         className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-0 bottom-0 z-[71] mx-auto flex max-h-[calc(100dvh-var(--tyd-popup-top))] max-w-[560px] flex-col !rounded-b-none"
       >
-        <span aria-hidden="true" className="mx-auto mt-2 h-[5px] w-9 shrink-0 rounded-full bg-[var(--lg-text-3)] opacity-60" />
+        <SheetGriff className="mt-2 shrink-0" onClose={requestClose} />
         <div className="flex shrink-0 items-center justify-between pl-5 pr-2 pt-1">
           <h2 id={titleId} className="text-[20px] font-bold tracking-[-0.01em] text-[var(--lg-text)]">{t.title}</h2>
           <button ref={closeRef} type="button" data-app-back-close onClick={requestClose} aria-label={t.close} className="lg-icon-btn !text-[var(--lg-text-2)]">

@@ -54,13 +54,21 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
 
   await expect(page.getByRole('heading', { name: 'Skyr Natur' })).toBeVisible()
   // Nährwert-Punkte je 100 g: wenig Zucker und Salz, viel Eiweiß
-  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
-  // Portion des Produkts ist vorgewählt
+  await expect(page.getByRole('dialog').getByRole('img', { name: 'Nährwert-Punkte: 4,9 von 5' })).toBeVisible()
+  // Portion des Produkts ist vorgewählt — beide Felder: Menge in g und Anzahl („1 Becher“).
   await expect(page.getByLabel('Menge in g')).toHaveValue('150')
+  await expect(page.getByLabel('Anzahl (1 Becher ≈ 150 g)')).toHaveValue('1')
+  // Die Punkte erklärt das „i“ daneben: Stufe, Skala, was Punkte bringt und kostet.
+  await page.getByRole('button', { name: 'Was bedeuten die Nährwert-Punkte?' }).click()
+  await expect(page.getByRole('heading', { name: 'Nährwert-Punkte' })).toBeVisible()
+  await expect(page.getByText('Bringt Punkte')).toBeVisible()
+  await expect(page.getByText('Kostet Punkte')).toBeVisible()
+  await page.getByRole('button', { name: 'Zurück', exact: true }).click()
+  await expect(page.getByLabel('Anzahl (1 Becher ≈ 150 g)')).toHaveValue('1')
   await addAndClose(page)
 
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
-  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte 9,7 von 10' })).toBeVisible()
+  await expect(mealCard(page, 'Frühstück').getByRole('img', { name: 'Nährwert-Punkte: 4,9 von 5' })).toBeVisible()
   expect(mock.foodLookup.calls).toEqual([{ barcode: '4002671157751', query: undefined }])
   expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({
@@ -126,13 +134,92 @@ test('Häufig: zuletzt gegessene Menge ist vorgeschlagen — zwei Taps', async (
   expect(today[0]).toMatchObject({ amount: 200, kcal: 126 })
 })
 
-test('Wie gestern: Mahlzeit vom Vortag übernehmen', async ({ page, mock }) => {
-  logEntry(mock, { log_date: '2026-09-27', meal: 'lunch', name: 'Reis', source: 'custom', source_ref: null, amount: 150, kcal: 195 })
+test('Mahlzeit: Hinzufügen steht im Kopf; Zeile nach links wischen → Bearbeiten oder Löschen, ganz durchwischen löscht', async ({ page, mock }) => {
+  logEntry(mock, {})
+  logEntry(mock, { name: 'Haferflocken', source: 'custom', source_ref: null, amount: 50, kcal: 186 })
   await page.goto('/ernaehrung')
-  await mealCard(page, 'Mittagessen').getByRole('button', { name: 'Wie gestern' }).click()
-  await expect(mealCard(page, 'Mittagessen').getByText('Reis')).toBeVisible()
-  await expect(page.getByText('1 Eintrag von gestern übernommen')).toBeVisible()
-  expect(mock.table('food_logs').filter(r => r.log_date === '2026-09-28')).toHaveLength(1)
+  const card = mealCard(page, 'Frühstück')
+  await expect(card.getByRole('button', { name: 'Wie gestern' })).toHaveCount(0)
+  await expect(card.getByText('Haferflocken')).toBeVisible()
+  // Beides im selben Bild messen: Nachladendes darüber (Ziele-Hinweis) verschiebt sonst zwischen zwei Messungen.
+  const offset = await card.evaluate(el => {
+    const mid = (n: Element | null) => { const r = n!.getBoundingClientRect(); return r.top + r.height / 2 }
+    const add = [...el.querySelectorAll('button')].find(b => b.textContent === 'Hinzufügen') ?? null
+    return Math.abs(mid(add) - mid(el.querySelector('h2')))
+  })
+  expect(offset).toBeLessThan(4)
+
+  const swipe = async (name: string, dx: number) => {
+    const row = card.getByRole('button', { name: `${name} bearbeiten` })
+    // Unter die feste Kugel-Zone holen (kleine Geräte): dort wischt man.
+    await row.scrollIntoViewIfNeeded()
+    const box = (await row.boundingBox())!
+    const x = box.x + box.width - 30
+    const y = box.y + box.height / 2
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    for (let i = 1; i <= 8; i++) await page.mouse.move(x + (dx * i) / 8, y)
+    await page.mouse.up()
+  }
+
+  await swipe('Skyr Natur', -120)
+  await card.getByRole('button', { name: 'Bearbeiten', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Skyr Natur' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+
+  await swipe('Skyr Natur', -120)
+  await card.getByRole('button', { name: 'Löschen', exact: true }).click()
+  await expect(card.getByText('Skyr Natur')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Rückgängig' })).toBeVisible()
+
+  // Ganz durchwischen löscht ohne weiteren Tipp.
+  const row = (await card.getByRole('button', { name: 'Haferflocken bearbeiten' }).boundingBox())!
+  await swipe('Haferflocken', -(row.width * 0.8))
+  await expect(card.getByText('Haferflocken')).toHaveCount(0)
+  expect(mock.table('food_logs')).toHaveLength(0)
+})
+
+test('Zählbares: Menge und Anzahl in einem Formular, verbunden; Einheit am Feld; die Zeile nennt die Anzahl', async ({ page, mock }) => {
+  mock.foodLookup.products['4000000000013'] = {
+    barcode: '4000000000013', name: 'Hühnerei', brand: null, unit: 'g',
+    per100: { kcal: 137, protein: 11.9, carbs: 1.5, fat: 9.3, fiber: null, sugar: null, salt: 0.3 }, serving: null,
+  }
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Barcode scannen' }).click()
+  await page.getByLabel('Ziffern unter dem Barcode').fill('4000000000013')
+  await page.getByRole('button', { name: 'Suchen', exact: true }).click()
+
+  const dialog = page.getByRole('dialog')
+  const count = dialog.getByLabel('Anzahl (1 Stück ≈ 55 g)')
+  await expect(count).toHaveValue('1')
+  await expect(dialog.getByLabel('Menge in g')).toHaveValue('55')
+  await dialog.getByRole('button', { name: 'Eins mehr' }).click()
+  await expect(count).toHaveValue('2')
+  await expect(dialog.getByLabel('Menge in g')).toHaveValue('110')
+  // Gramm tippen rechnet die Anzahl mit.
+  await dialog.getByLabel('Menge in g').fill('82,5')
+  await expect(count).toHaveValue('1,5')
+  await dialog.getByRole('button', { name: 'Eins mehr' }).click()
+  await expect(count).toHaveValue('2')
+  // Ganz unten gescrollt (kleine Geräte): vor dem Flug gleitet die Seite nach oben, damit man die Tageskugel sieht.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+  await dialog.getByRole('button', { name: 'Hinzufügen', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+  await expect(dialog.getByRole('button', { name: 'Hinzufügen', exact: true })).toBeEnabled({ timeout: AFTER_FLIGHT })
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+  expect(mock.table('food_logs')).toHaveLength(1)
+  expect(mock.table('food_logs')[0]).toMatchObject({ name: 'Hühnerei', amount: 110 })
+
+  const card = mealCard(page, 'Frühstück')
+  await expect(card.getByText(/^2 Stück ·/)).toBeVisible()
+  await card.getByRole('button', { name: 'Hühnerei bearbeiten' }).click()
+  await expect(dialog.getByLabel('Anzahl (1 Stück ≈ 55 g)')).toHaveValue('2')
+  await expect(dialog.getByLabel('Menge in g')).toHaveValue('110')
+  // Einheit am Feld: kg zeigt dieselbe Menge
+  await dialog.getByLabel('Menge angeben in').selectOption('kg')
+  await expect(dialog.getByLabel('Menge in kg')).toHaveValue('0,11')
 })
 
 test('Löschen mit Rückgängig', async ({ page, mock }) => {
@@ -256,7 +343,8 @@ test('Gericht anlegen: Zutaten suchen, Portionen festlegen, dann eine Portion ei
   // gleich weiter zum Eintragen, eine Portion vorgewählt
   await expect(page.getByRole('heading', { name: 'Quark-Porridge' })).toBeVisible()
   await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('1')
-  await page.getByRole('button', { name: '½', exact: true }).click()
+  await page.getByRole('button', { name: 'Eins weniger' }).click()
+  await expect(page.getByLabel(/Portionen \(1 Portion = 140 g\)/)).toHaveValue('0,5')
   await addAndClose(page)
   await expect(mealCard(page, 'Frühstück').getByText('Quark-Porridge')).toBeVisible()
 

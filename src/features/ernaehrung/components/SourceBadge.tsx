@@ -2,9 +2,12 @@ import { useTranslation } from 'react-i18next'
 import type { FoodSource } from '../lib/nutrition'
 
 /** Herkunft sichtbar machen: wer wissen will, woher eine Zahl kommt, sieht es. */
-export function SourceBadge({ source, own }: { source: FoodSource; own: boolean }) {
+export function SourceBadge({ source, own, long = false }: { source: FoodSource; own: boolean; long?: boolean }) {
   const { t } = useTranslation()
-  const text = own ? t('nutr_src_mine') : source === 'bls' ? 'BLS' : source === 'off' ? 'OFF' : t('nutr_src_mine')
+  // `long`: ausgeschrieben (Kopf des Mengenblatts), sonst kurz für Listen.
+  const text = own || source === 'custom'
+    ? t(long ? 'nutr_src_mine_long' : 'nutr_src_mine')
+    : source === 'bls' ? (long ? t('nutr_src_bls_long') : 'BLS') : (long ? 'Open Food Facts' : 'OFF')
   const title = own ? t('nutr_src_mine_title') : source === 'bls' ? t('nutr_src_bls_title') : t('nutr_src_off_title')
   return (
     <span title={title} className={`shrink-0 rounded-[5px] px-1.5 py-px text-[11px] font-semibold ${own

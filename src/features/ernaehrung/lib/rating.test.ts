@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Per100 } from './nutrition'
-import { formatScore, nutritionScore, scoreTone } from './rating'
+import { formatScore, nutritionScore, scoreOutOf5, scoreParts, scoreTone } from './rating'
 
 const per = (p: Partial<Per100>): Per100 =>
   ({ kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: null, sugar: null, satFat: null, salt: null, ...p })
@@ -54,17 +54,34 @@ describe('nutritionScore', () => {
   })
 })
 
-describe('scoreTone / formatScore', () => {
-  it('Stufen ohne Rot', () => {
-    expect(scoreTone(9.7)).toBe('good')
-    expect(scoreTone(7)).toBe('good')
-    expect(scoreTone(4.7)).toBe('mid')
-    expect(scoreTone(0.3)).toBe('low')
+describe('scoreOutOf5 / scoreTone / formatScore', () => {
+  it('halbiert auf 0–5 mit einer Stelle, ohne Gleitkomma-Ausrutscher', () => {
+    expect([9.7, 10, 4.7, 0.3, 0].map(scoreOutOf5)).toEqual([4.9, 5, 2.4, 0.2, 0])
+  })
+
+  it('Farbe: ab 3,5 gut, ab 2,0 mittel, darunter niedrig — ohne Rot', () => {
+    expect(scoreTone(4.9)).toBe('good')
+    expect(scoreTone(3.5)).toBe('good')
+    expect(scoreTone(3.4)).toBe('mid')
+    expect(scoreTone(2)).toBe('mid')
+    expect(scoreTone(1.9)).toBe('low')
   })
 
   it('Komma auf Deutsch, Punkt auf Englisch, immer eine Stelle', () => {
-    expect(formatScore(9.7, 'de')).toBe('9,7')
-    expect(formatScore(10, 'de')).toBe('10,0')
-    expect(formatScore(4, 'en')).toBe('4.0')
+    expect(formatScore(4.9, 'de')).toBe('4,9')
+    expect(formatScore(5, 'de')).toBe('5,0')
+    expect(formatScore(2, 'en')).toBe('2.0')
+  })
+})
+
+describe('scoreParts', () => {
+  it('nennt die Teile der Rechnung — Pizza: Eiweiß zählt ab 11 Minuspunkten nicht', () => {
+    expect(scoreParts(per({ kcal: 250, protein: 11, carbs: 30, fat: 9, sugar: 3.5, satFat: 4.5, salt: 1.3, fiber: 2 }))).toEqual({
+      energy: 3, sugar: 0, satFat: 4, salt: 5, fiber: 2, protein: 5, proteinCounts: false,
+    })
+  })
+
+  it('ohne genug Angaben: null (wie nutritionScore)', () => {
+    expect(scoreParts(per({ kcal: 100, protein: 5, fiber: 3 }))).toBeNull()
   })
 })

@@ -171,6 +171,27 @@ describe('app-wide edge swipe back', () => {
     expect(screen.getByText('Schließen')).not.toBeNull()
   })
 
+  it('leaves the question to a modal that confirms by itself', () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const close = vi.fn()
+    render(
+      <MemoryRouter initialEntries={['/second']}>
+        <AppBackNavigation>
+          <div data-app-modal data-app-back-self-confirm>
+            <input aria-label="Notiz" defaultValue="" />
+            <button type="button" data-app-back-close onClick={close}>Schließen</button>
+          </div>
+        </AppBackNavigation>
+      </MemoryRouter>,
+    )
+    fireEvent.input(screen.getByLabelText('Notiz'), { target: { value: 'x' } })
+
+    swipe(12, 104)
+
+    expect(confirm).not.toHaveBeenCalled()
+    expect(close).toHaveBeenCalledTimes(1)
+  })
+
   it('tracks edited fields in semantic dialogs without a wrapper attribute', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     render(

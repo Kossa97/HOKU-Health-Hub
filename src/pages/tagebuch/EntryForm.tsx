@@ -14,6 +14,7 @@ import {
   SYMPTOM_GROUPS, chipAria as ariaOf, chipId, chipLabel as labelOf, chipPayload, durationText, fromRow, kindColor, labelIn,
   matchingSymptoms, symptomByKey, type ChipDraft, type SymptomKind,
 } from './chips'
+import { SheetGriff } from '../../components/ui/SheetGriff'
 
 interface StackItem { id: string; display_name: string }
 
@@ -212,7 +213,7 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
         className="lg-sheet lg-sheet-solid w-full max-w-lg px-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full scroll-pb-28"
         onClick={e => e.stopPropagation()}
         onKeyDown={e => { if (e.key === 'Escape' && !editing && !infoOpen) { e.stopPropagation(); dismiss() } }}>
-        <span className="lg-grabber !mb-1" aria-hidden="true" />
+        <SheetGriff className="!mb-1" onClose={dismiss} />
         <h2 id="tagebuch-form-title" className="lg-title2">{t(entry ? 'tagebuch_eintrag_bearbeiten' : 'neuer_tagebuch_eintrag')}</h2>
 
         {/* Titel, Substanz, Zeitpunkt: eine Gruppe */}

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Trash2 } from 'lucide-react'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 /**
  * Loeschen einer Bewertung — ein eigenes Sheet statt des Browser-Fensters.
@@ -34,7 +35,7 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
           onCancel()
         }}
       >
-        <span className="lg-grabber mb-3" aria-hidden="true" />
+        <SheetGriff className="mb-3" onClose={onCancel} disabled={busy} />
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_18%,transparent)] text-[var(--lg-bad-text)]">
             <Trash2 size={18} aria-hidden="true" />

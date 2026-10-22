@@ -11,12 +11,14 @@ import { LANGUAGES, applyDirection } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
+import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
+import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
 
 interface Profile {
   username: string; display_name: string; age: number | null
@@ -43,9 +45,11 @@ export function Profil() {
   const [profile, setProfile] = useState<Profile>(defaultProfile())
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', user!.id).single().then(({ data }) => {
+      if (data) setIsAdmin(data.is_admin === true)
       if (data) setProfile({
         username: data.username ?? '', display_name: data.display_name ?? '',
         age: data.age, weight_kg: data.weight_kg, height_cm: data.height_cm,
@@ -260,6 +264,9 @@ export function Profil() {
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
+
+      {/* ── Nur Admins und Entwicklung: Ausfall der Dienste nachstellen ── */}
+      {(isAdmin || import.meta.env.DEV) && <StoerungsSchalter />}
     </div>
   )
 }
@@ -337,6 +344,34 @@ function TiltToggle() {
           {t('look_tilt_denied', { defaultValue: 'Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte.' })}
         </p>
       )}
+    </div>
+  )
+}
+
+// ── StoerungsSchalter ────────────────────────────────────────────────────────
+
+/** Lässt Supabase und alle anderen Dienste ausfallen (lib/stoerung.ts). */
+function StoerungsSchalter() {
+  const { t } = useTranslation()
+  const { simuliert } = useStoerung()
+  return (
+    <div className="mt-6" data-stoerungs-schalter>
+      <p className="lg-group-title">{t('stoerung_test_titel')}</p>
+      <div className="card">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={simuliert}
+          onClick={() => setzeStoerungSimuliert(!simuliert)}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 44, background: 'none', border: 0, padding: 0, cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)' }}>{t('stoerung_schalter')}</span>
+          <Schalter an={simuliert} />
+        </button>
+        <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+          {t('stoerung_schalter_hinweis')}
+        </p>
+      </div>
     </div>
   )
 }
@@ -601,25 +636,5 @@ function LanguageSwitcher() {
         </div>
       )}
     </div>
-  )
-}
-
-/** iOS-Schalter (nur die Optik; Rolle und Zustand trägt der Knopf drumherum) */
-function Schalter({ an }: { an: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: 'relative', display: 'block', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
-        background: an ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
-        transition: 'background-color 200ms ease',
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 2, left: an ? 22 : 2, width: 27, height: 27, borderRadius: '50%',
-        background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
-        transition: 'left 260ms var(--lg-ease-out)',
-      }} />
-    </span>
   )
 }
