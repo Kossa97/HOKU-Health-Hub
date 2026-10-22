@@ -141,4 +141,7 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
 - Wochenleiste: drei Wochen nebeneinander (Nachbarn `inert`), folgt dem Finger 1:1, Schwung-Projektion, kritisch gedämpfte Feder (0,38 s), Gummiband in die Zukunft. Gleicher Wochentag beim Blättern, gekappt auf heute. Optik unverändert.
 - `useNutritionDay` lädt Vor- und Folgewoche mit (21 Tage je Wochenwechsel) — bewusst einfach; ließe sich auf „nur die neue Woche nachladen“ verfeinern.
 - Gestenrechnung (`SLOP`, `rubber`, `project`, `releaseVelocity`) liegt in `lib/gesture.ts`, geteilt mit SwipeRow.
-- Verschieben auf einen Tag: `lib/dotFlight.ts` (WAAPI, DOM-Punkte). Punkte sinken unten aus der Kugel des alten Tages, Bogen unter der Leiste, steigen von unten in die neue; Zieltag zeigt alten Stand bis zur Landung (`held` je Flug), dann kurzes Aufatmen. Auch bei Rückgängig und Speicherfehler (zurück). Ohne Flug bei „Bewegung reduzieren“.
+- Verschieben auf einen Tag (Nutzerwunsch: große **und** kleine Kugel geben ab, je nach Fall):
+  - Fall A, direkt auf den Tag der Leiste gelegt (offener Tag verliert): Punkte fallen unten aus der großen Kugel und fliegen in die kleine des Zieltags (`OrbEngine.release(…, to)`, Ziel über `setOrbTarget`, 1 s gültig) — dazu `lib/dotFlight.ts` (WAAPI) aus der kleinen Kugel des alten Tages.
+  - Fall B, Tag geöffnet und in eine Mahlzeit gelegt (offener Tag bekommt): der Hinzufügen-Flug der großen Kugel startet an der kleinen des alten Tages (`setOrbOrigin`), dazu klein → klein.
+  - Kleine Zielkugel zeigt alten Stand bis zur Landung (`held` je Flug), dann kurzes Aufatmen. Rückgängig und Speicherfehler fliegen zurück, nach derselben Regel. Ohne Flug bei „Bewegung reduzieren“.

@@ -27,6 +27,7 @@ import { WaterCard } from './components/WaterCard'
 import { WeekStrip } from './components/WeekStrip'
 import { type DayTotals, EMPTY_TOTALS } from './lib/dayRings'
 import { flyDots } from './lib/dotFlight'
+import { RELEASE_FLIGHT_MS, setOrbOrigin, setOrbTarget } from './lib/orbBridge'
 import { orbPalette } from './lib/orbDraw'
 import { usePrefersReducedMotion } from './lib/orbZone'
 import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
@@ -168,9 +169,12 @@ export function ErnaehrungPage() {
     if (to.date !== back.date) void moved.then(ok => { if (!ok) flyRef.current(to.date, back.date, entry) })
   }
   /**
-   * Auf einen anderen Tag verschoben: Punkte rieseln unten aus der Kugel des alten Tages und
-   * fliegen in die des neuen (Wochenleiste). Der neue Tag zeigt seinen alten Stand, bis sie
-   * angekommen sind — so sieht man, wohin sie gehen. Nur, wenn beide Kugeln zu sehen sind.
+   * Auf einen anderen Tag verschoben: die Punkte gehen sichtbar vom alten in den neuen Tag.
+   * - Kleine Kugeln (Wochenleiste): unten aus der des alten Tages, im Bogen in die des neuen.
+   * - Große Kugel (der offene Tag): verliert er den Eintrag (auf einen Tag der Leiste gelegt),
+   *   fliegen ihre herausfallenden Punkte mit in die kleine Kugel des neuen Tages; bekommt er ihn
+   *   (Tag geöffnet, in eine Mahlzeit gelegt), startet ihr Flug an der kleinen des alten Tages.
+   * Die kleine Kugel des neuen Tages zeigt ihren alten Stand, bis alle Punkte angekommen sind.
    */
   const reduceMotion = usePrefersReducedMotion()
   /** Haltepunkte je Tag; `flight` gehört zu genau einem Flug (ein zweiter zum selben Tag löst ihn ab). */
@@ -188,7 +192,10 @@ export function ErnaehrungPage() {
     }
     const a = orbOf(fromDate)
     const b = orbOf(toDate)
-    if (!a || !b) return
+    if (toDate === date && a) setOrbOrigin(a.orb)
+    const fromBig = fromDate === date
+    if (!b || (!a && !fromBig)) return
+    if (fromBig) setOrbTarget(b.orb)
     // So viele Punkte, wie der Eintrag in der Kugel ausmacht (150 = Tagesziel), gut sichtbar begrenzt.
     const hide = n.goals.hideKcal
     const goal = hide ? n.goals.proteinG : n.goals.kcal
@@ -201,7 +208,11 @@ export function ErnaehrungPage() {
     const flight = ++flights.current
     setHeld(h => ({ ...h, [toDate]: { totals: before, flight } }))
     const seed = [...entry.id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7)
-    void flyDots(a.orb, b.orb, count, color, seed).then(() => {
+    const landed = Promise.all([
+      a ? flyDots(a.orb, b.orb, count, color, seed) : null,
+      fromBig ? new Promise(done => window.setTimeout(done, RELEASE_FLIGHT_MS)) : null,
+    ])
+    void landed.then(() => {
       // Nur den eigenen Haltepunkt lösen (ein zweiter Flug zum selben Tag hält weiter).
       setHeld(h => {
         if (h[toDate]?.flight !== flight) return h

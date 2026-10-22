@@ -302,16 +302,18 @@ test('Wochenleiste wischen: zur Vorwoche und zurück; in die Zukunft gibt sie nu
   const title = week.getByRole('heading')
   await expect(title).toContainText('28. September')
   // Wischen beginnt auf einem Tag — das Loslassen darüber wählt ihn nicht (der Wisch war kein Tipp).
-  const swipe = async (dx: number) => {
-    // Mittwoch der gezeigten Woche (die Nachbarwochen liegen außerhalb, inert).
-    const { x, y } = await center(week.locator(':not([inert]) > [data-nutr-day]').nth(2))
+  const swipe = async (dir: 1 | -1) => {
+    // Donnerstag (Mitte) der gezeigten Woche — die Nachbarwochen liegen außerhalb, inert.
+    // Gut die halbe Breite weit, auch auf dem kleinsten Bildschirm innerhalb des Fensters.
+    const { x, y } = await center(week.locator(':not([inert]) > [data-nutr-day]').nth(3))
+    const dx = dir * page.viewportSize()!.width * 0.42
     await page.mouse.move(x, y)
     await page.mouse.down()
     for (let i = 1; i <= 10; i++) await page.mouse.move(x + (dx * i) / 10, y + i)
     await page.mouse.up()
   }
 
-  await swipe(220)
+  await swipe(1)
   await expect(title).toContainText('21.')
   // Gleicher Wochentag (Montag); die Vorwoche ist schon geladen.
   await expect(week.getByRole('button', { name: /^Montag, 21\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
@@ -319,12 +321,12 @@ test('Wochenleiste wischen: zur Vorwoche und zurück; in die Zukunft gibt sie nu
   // Nur die gezeigte Woche ist bedienbar.
   await expect(week.getByRole('button', { name: /September 2026|Oktober 2026/ })).toHaveCount(7)
 
-  await swipe(-220)
+  await swipe(-1)
   await expect(title).toContainText('28. September')
   await expect(week.getByRole('button', { name: /^Montag, 28\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
 
   // Die nächste Woche liegt ganz in der Zukunft: die Leiste gibt nach und federt zurück.
-  await swipe(-220)
+  await swipe(-1)
   await expect(title).toContainText('28. September')
   await expect(week.getByRole('button', { name: /^Montag, 28\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
 })

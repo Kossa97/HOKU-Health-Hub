@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
 import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
-import { takeOrbOrigin, useOrbPreview } from '../lib/orbBridge'
+import { takeOrbOrigin, takeOrbTarget, useOrbPreview } from '../lib/orbBridge'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { ZONE_BELOW as BELOW, ZONE_MAX, trackZone, usePrefersReducedMotion } from '../lib/orbZone'
 import type { Goals, Nutrients } from '../lib/nutrition'
@@ -107,7 +107,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
     }
     const p = prev.current
     if (p && p.date === date && p.goals === goalsKey) {
-      engine.release(p.layout, layout)
+      engine.release(p.layout, layout, takeOrbTarget())
       engine.launch(takeOrbOrigin() ?? { x: window.innerWidth / 2, y: window.innerHeight - 80 }, p.layout, layout)
     } else if (p) {
       engine.cancelFlights()
