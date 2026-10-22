@@ -6882,15 +6882,15 @@
     "semantic_hash": ""
   },
   "e2e/ernaehrung.spec.ts": {
-    "mtime": 1792659343.2956822,
-    "seen": 1792659749.733721,
-    "ast_hash": "196917f70e9efc56de4b0d0bde21b640",
+    "mtime": 1792671007.5349422,
+    "seen": 1792671453.335339,
+    "ast_hash": "212100d30459d3f8630e86c1c195a7e2",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1792659943.104348,
-    "seen": 1792660230.1445203,
-    "ast_hash": "b887de77d016907b9b8fcac1213e1263",
+    "mtime": 1792670641.0015972,
+    "seen": 1792671453.343772,
+    "ast_hash": "7070275a8939c3b5769d2321949771de",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6906,9 +6906,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/DaySummary.tsx": {
-    "mtime": 1792658761.495667,
-    "seen": 1792659749.7343447,
-    "ast_hash": "879f5cd6620562b52505110bdd0ce6c2",
+    "mtime": 1792670611.6332967,
+    "seen": 1792671453.3438706,
+    "ast_hash": "12efa3410cec024162084d661991a614",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/FoodEditorSheet.tsx": {
@@ -7050,9 +7050,9 @@
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1792658761.333536,
-    "seen": 1792659749.7361052,
-    "ast_hash": "c0ed344cd7dab599e7874fc10604584e",
+    "mtime": 1792671423.0454862,
+    "seen": 1792671453.380807,
+    "ast_hash": "866c486486f8849409e9082ebdc222a7",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7626,9 +7626,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbBridge.ts": {
-    "mtime": 1792658761.5036628,
-    "seen": 1792659749.734433,
-    "ast_hash": "455df797c8458a31a10a21f72a564827",
+    "mtime": 1792671007.5339258,
+    "seen": 1792671453.3451622,
+    "ast_hash": "5e9a55c049ba738561d04c80016f24a7",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbDraw.ts": {
@@ -7638,9 +7638,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbEngine.ts": {
-    "mtime": 1792658761.5045848,
-    "seen": 1792659749.7344365,
-    "ast_hash": "0ce43264261276dfad59379e9d7e0f79",
+    "mtime": 1792670623.3763597,
+    "seen": 1792671453.3451922,
+    "ast_hash": "8dd25087a1bb1bb5db7b35872046fce8",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbFeedback.ts": {
