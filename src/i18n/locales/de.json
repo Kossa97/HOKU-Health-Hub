@@ -2827,7 +2827,7 @@
   "tagebuch_info_hinweis": "Antippen öffnet den Chip-Editor. Gewählt ist ein Chip, sobald er eine Intensität hat.",
   "tagebuch_info_verstanden": "Verstanden",
   "my_stack_scan": "Scannen",
-  "my_stack_scan_hint": "Barcode in den Rahmen halten – oder das Etikett fotografieren.",
+  "my_stack_scan_hint": "Barcode – oder den quadratischen Code auf Medikamenten – in den Rahmen halten, oder das Etikett fotografieren.",
   "my_stack_scan_hint_photo": "Etikett gut lesbar ins Bild halten und auslösen.",
   "my_stack_scan_photo": "Etikett fotografieren",
   "my_stack_scan_photo_instead": "Etikett fotografieren",
@@ -2932,5 +2932,11 @@
   "my_stack_inventory_needs_strength": "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab.",
   "my_stack_form_recommended": "Empfohlen",
   "my_stack_custom_substance": "Eigene Substanz",
-  "my_stack_preview": "Vorschau"
+  "my_stack_preview": "Vorschau",
+  "my_stack_scan_which": "Welche genau?",
+  "my_stack_scan_which_hint": "Auf dem Etikett steht nicht, welche es ist.",
+  "my_stack_scan_pack_read": "Packungscode gelesen. Jetzt das Etikett fotografieren – der Code enthält keinen Namen.",
+  "my_stack_scan_expiry": "Verfall",
+  "my_stack_scan_batch": "Charge",
+  "my_stack_scan_pzn": "PZN"
 }

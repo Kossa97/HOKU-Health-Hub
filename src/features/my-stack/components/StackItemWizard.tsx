@@ -312,7 +312,7 @@ export function StackItemWizard({
   // Bearbeiten einer solchen) fragt die Seite nach Kategorie und Form.
   // Getippter Text allein waehlt nichts.
   const [eigeneBestaetigt, setEigeneBestaetigt] = useState(() => !state.draft.catalogEntryId
-    && !state.draft.ingredients.some(ingredient => ingredient.catalog_substance_id)
+    && !(state.draft.ingredients.length === 1 && state.draft.ingredients[0].catalog_substance_id)
     && Boolean(state.draft.category))
   // Scannen gibt es nur beim Neuanlegen: beim Bearbeiten wuerde ein Scan die
   // Identitaet des Eintrags austauschen, statt sie zu pruefen.
@@ -402,13 +402,24 @@ export function StackItemWizard({
       ? catalogById.get(state.draft.catalogEntryId)
       : undefined
     if (gewaehlt) return gewaehlt
-    return [...state.draft.ingredients]
-      .sort((a, b) => a.position - b.position)
-      .map(ingredient => ingredient.catalog_substance_id
-        ? catalogById.get(ingredient.catalog_substance_id)
-        : undefined)
-      .find((entry): entry is SubstanceCatalogEntry => Boolean(entry))
-  }, [catalogEntries, state.draft.catalogEntryId, state.draft.ingredients])
+    // Gespeicherte Eintraege tragen die Wahl nicht mit. Ein Name aus dem
+    // Katalog ist dieser Eintrag (auch ein Kombipraeparat); sonst die einzige
+    // Zutat. Bei mehreren ist es ein eigenes Produkt, dessen Zutaten am
+    // Katalog haengen — etwa ein gescannter „Zink Komplex" mit Zink und
+    // Vitamin C —, nicht sein erster Wirkstoff.
+    // Geloest ist geloest: ohne Verknuepfung an den Zutaten zaehlt der Name nicht.
+    const name = state.draft.ingredients.some(ingredient => ingredient.catalog_substance_id)
+      ? state.draft.displayName.trim().toLocaleLowerCase()
+      : ''
+    const nachName = name ? catalogEntries.find(entry => entry.canonical_name.toLocaleLowerCase() === name) : undefined
+    // Nur wenn die Zutaten dazu passen: ein Kombipraeparat, oder alle Zeilen
+    // sind dieser Eintrag. Ein „Zink" mit Zink und Vitamin C ist ein eigenes Produkt.
+    const passt = nachName && (nachName.component_names?.length
+      || state.draft.ingredients.every(ingredient => ingredient.catalog_substance_id === nachName.id))
+    if (nachName && passt) return nachName
+    const [einzige, ...weitere] = state.draft.ingredients
+    return einzige?.catalog_substance_id && weitere.length === 0 ? catalogById.get(einzige.catalog_substance_id) : undefined
+  }, [catalogEntries, state.draft.catalogEntryId, state.draft.ingredients, state.draft.displayName])
   // Steht fest, was es ist? Ein Katalogeintrag — oder eine bestaetigte eigene
   // Substanz mit Namen und Kategorie. Erst dann zeigt die Seite Form und Buehne.
   const eigeneFeststeht = eigeneBestaetigt && Boolean(state.draft.displayName.trim())

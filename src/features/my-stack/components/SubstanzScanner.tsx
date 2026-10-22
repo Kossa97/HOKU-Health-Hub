@@ -10,6 +10,8 @@ import { EINWILLIGUNG_FEHLT, giltFuerEtiketten } from '../../blutwerte/lib/aiCon
 import { prepareFile, targetSize } from '../../blutwerte/lib/imageResize'
 import { useBarcodeKamera, type KameraStand } from '../../ernaehrung/lib/useBarcodeKamera'
 import { reportError } from '../../../lib/monitoring'
+import { formatLocalDay } from '../lib/localDays'
+import { parsePackungscode, type Packungscode } from '../lib/packungscode'
 import { vorschlagAusEtikett, vorschlagAusProdukt, type ScanStaerke, type ScanVorschlag } from '../lib/substanzScan'
 import { ScanFehler, liesEtikett, sucheBarcode } from '../services/substanzScan'
 import type { SubstanceCatalogEntry } from '../types'
@@ -41,6 +43,8 @@ function fotoAusVideo(video: HTMLVideoElement): Foto | null {
   return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/jpeg' }
 }
 
+const istPackungscode = (raw: string) => parsePackungscode(raw) !== null
+
 /** Kamerabild mit Barcode-Erkennung und Ausloeser. Wird je Versuch neu eingesetzt. */
 function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
   hinweis?: string
@@ -49,7 +53,7 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
   onFoto: (foto: Foto) => void
 }) {
   const { t } = useTranslation()
-  const { videoRef, cam } = useBarcodeKamera(onCode)
+  const { videoRef, cam } = useBarcodeKamera(onCode, istPackungscode)
   // Ohne Barcode-Leser (nicht ladbar) bleibt das Foto.
   const bildLaeuft = cam === 'scanning' || cam === 'photo_only'
   const camMessage: Partial<Record<KameraStand, string>> = {
@@ -106,6 +110,9 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
   const { t, i18n } = useTranslation()
   const [phase, setPhase] = useState<Phase>({ art: 'kamera' })
   const [versuch, setVersuch] = useState(0)
+  // Der Data-Matrix-Code einer Arzneimittelpackung: Charge und Verfall, aber
+  // kein Name — den liefert das Etikettfoto danach.
+  const [packung, setPackung] = useState<Packungscode | null>(null)
   const dateiRef = useRef<HTMLInputElement>(null)
   const { einwilligung, fehler: einwilligungFehler, setze, vergessen, neuLaden } = useKiEinwilligung()
   const lang = (i18n.resolvedLanguage ?? i18n.language).startsWith('de') ? 'de' : 'en'
@@ -114,11 +121,21 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
   const laeuft = phase.art === 'laeuft'
 
   const zurKamera = (hinweis?: string, nurFoto = false) => {
+    // Neu anfangen heisst auch: der gelesene Packungscode gehoert nicht zum
+    // naechsten Produkt. Nur fuers Etikett derselben Packung bleibt er.
+    if (!nurFoto) setPackung(null)
     setVersuch(n => n + 1)
     setPhase({ art: 'kamera', hinweis, nurFoto })
   }
 
   const barcodeGefunden = async (code: string) => {
+    const gelesen = parsePackungscode(code)
+    if (gelesen) {
+      setPackung(gelesen)
+      zurKamera(t('my_stack_scan_pack_read'), true)
+      return
+    }
+    setPackung(null)
     setPhase({ art: 'laeuft', was: 'barcode' })
     try {
       const produkt = await sucheBarcode(code, lang)
@@ -133,7 +150,8 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
     setPhase({ art: 'laeuft', was: 'foto' })
     try {
       const etikett = await liesEtikett(foto.base64, foto.mimeType, katalog.map(e => e.canonical_name))
-      setPhase({ art: 'ergebnis', vorschlag: vorschlagAusEtikett(etikett, katalog) })
+      const vorschlag = vorschlagAusEtikett(etikett, katalog)
+      setPhase({ art: 'ergebnis', vorschlag: packung ? { ...vorschlag, packung } : vorschlag })
     } catch (error) {
       if (error instanceof ScanFehler && error.code === EINWILLIGUNG_FEHLT) {
         // Inzwischen widerrufen (etwa auf einem anderen Geraet): neu fragen.
@@ -222,9 +240,9 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
       {phase.art === 'ergebnis' && (
         <ScanErgebnis
           vorschlag={phase.vorschlag}
-          onUebernehmen={() => onUebernehmen(phase.vorschlag)}
+          onUebernehmen={onUebernehmen}
           // Nach einem Barcode heisst „nochmal" fast immer: das Etikett lesen.
-          onNochmal={() => zurKamera(undefined, phase.vorschlag.quelle === 'barcode')}
+          onNochmal={() => zurKamera(undefined, phase.vorschlag.quelle === 'barcode' && !phase.vorschlag.packung)}
         />
       )}
     </Sheet>
@@ -238,26 +256,59 @@ function staerkeText(staerke: ScanStaerke, sprache: string): string {
   return `${staerke.name ? `${staerke.name} · ` : ''}${menge}${bezug}`
 }
 
-function ScanErgebnis({ vorschlag, onUebernehmen, onNochmal }: {
+function ScanErgebnis({ vorschlag: gelesen, onUebernehmen, onNochmal }: {
   vorschlag: ScanVorschlag
-  onUebernehmen: () => void
+  onUebernehmen: (vorschlag: ScanVorschlag) => void
   onNochmal: () => void
 }) {
   const { t, i18n } = useTranslation()
   const sprache = i18n.resolvedLanguage ?? i18n.language
+  // Offen, welcher aus einer Familie es ist: erst waehlen, dann uebernehmen.
+  const kandidaten = gelesen.kandidaten ?? []
+  const [gewaehlt, setGewaehlt] = useState<SubstanceCatalogEntry | null>(null)
+  const offen = kandidaten.length > 0 && !gewaehlt
+  const vorschlag: ScanVorschlag = gewaehlt
+    ? { ...gelesen, entry: gewaehlt, name: gewaehlt.canonical_name, kandidaten: [] }
+    : gelesen
   const zeilen: [string, string][] = [
     [t('my_stack_step_dosage_form'), vorschlag.dosageForm ? t(`dosage_form_${vorschlag.dosageForm}`) : t('my_stack_scan_not_found')],
     [t('my_stack_scan_strength'), vorschlag.staerken.length > 0 ? vorschlag.staerken.map(s => staerkeText(s, sprache)).join('\n') : t('my_stack_scan_not_found')],
   ]
   if (vorschlag.brand) zeilen.push([t('my_stack_scan_brand'), vorschlag.brand])
+  const { packung } = vorschlag
+  if (packung?.verfall) zeilen.push([t('my_stack_scan_expiry'), formatLocalDay(packung.verfall, sprache)])
+  if (packung?.charge) zeilen.push([t('my_stack_scan_batch'), packung.charge])
+  if (packung?.pzn) zeilen.push([t('my_stack_scan_pzn'), packung.pzn])
 
   return (
     <div data-scan-result className="mt-3 space-y-3">
       <div className="rounded-[18px] bg-[var(--lg-surface-2)] p-4">
         <p data-scan-result-name className="break-words text-[17px] font-semibold text-[var(--lg-text)]">{vorschlag.name}</p>
-        <p className="mt-0.5 text-[13px] text-[var(--lg-text-2)]">
-          {vorschlag.entry ? t('my_stack_from_catalog') : t('my_stack_scan_custom')}
-        </p>
+        {kandidaten.length > 0 && (
+          <fieldset data-scan-candidates className="mt-3">
+            <legend className="text-[15px] font-semibold text-[var(--lg-text)]">{t('my_stack_scan_which')}</legend>
+            <p className="mt-0.5 text-[13px] text-[var(--lg-text-2)]">{t('my_stack_scan_which_hint')}</p>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {kandidaten.map(kandidat => (
+                <button
+                  key={kandidat.id}
+                  type="button"
+                  aria-pressed={gewaehlt?.id === kandidat.id}
+                  data-scan-candidate={kandidat.id}
+                  onClick={() => setGewaehlt(kandidat)}
+                  className={`min-h-11 rounded-xl px-3 text-left text-[15px] transition-colors ${gewaehlt?.id === kandidat.id ? 'bg-[var(--lg-fill)] font-semibold text-[var(--lg-text)] ring-2 ring-[var(--lg-accent)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
+                >
+                  {kandidat.canonical_name}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {!offen && (
+          <p className="mt-0.5 text-[13px] text-[var(--lg-text-2)]">
+            {vorschlag.entry ? t('my_stack_from_catalog') : t('my_stack_scan_custom')}
+          </p>
+        )}
         <dl className="mt-3 space-y-2 text-[15px]">
           {zeilen.map(([label, wert]) => (
             <div key={label} className="flex gap-3">
@@ -272,7 +323,7 @@ function ScanErgebnis({ vorschlag, onUebernehmen, onNochmal }: {
         <button type="button" className="btn-secondary flex-1" data-scan-again onClick={onNochmal}>
           {t(vorschlag.quelle === 'barcode' ? 'my_stack_scan_photo_instead' : 'my_stack_scan_again')}
         </button>
-        <button type="button" className="btn-primary flex-1" data-scan-apply onClick={onUebernehmen}>{t('my_stack_scan_apply')}</button>
+        <button type="button" className="btn-primary flex-1" data-scan-apply disabled={offen} onClick={() => onUebernehmen(vorschlag)}>{t('my_stack_scan_apply')}</button>
       </div>
     </div>
   )

@@ -2698,5 +2698,11 @@
   "my_stack_inventory_needs_strength": "Stock needs the strength. Enter it under composition, then every intake is deducted.",
   "my_stack_form_recommended": "Recommended",
   "my_stack_custom_substance": "Custom substance",
-  "my_stack_preview": "Preview"
+  "my_stack_preview": "Preview",
+  "my_stack_scan_which": "Which one exactly?",
+  "my_stack_scan_which_hint": "The label doesn't say which one it is.",
+  "my_stack_scan_pack_read": "Pack code read. Now take a photo of the label – the code doesn't contain the name.",
+  "my_stack_scan_expiry": "Expiry",
+  "my_stack_scan_batch": "Batch",
+  "my_stack_scan_pzn": "PZN"
 }

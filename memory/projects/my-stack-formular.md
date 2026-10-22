@@ -27,7 +27,7 @@ https://claude.ai/artifact/Rsk8kmpGcyxdryt1594NBJ
   Tag eigene Liste.
 - **Überblick:** alle Angaben antippbar, Bestand als Schalter.
 
-## Scan (danach)
+## Scan (umgesetzt, Oktober 2026)
 
 - Name und Wirkstoffe gemeinsam abgleichen, der genauere Treffer gewinnt
   (Fehler: „Testosteron" statt „Testosteron Enantat").
@@ -36,3 +36,8 @@ https://claude.ai/artifact/Rsk8kmpGcyxdryt1594NBJ
 - Barcode Protein/Supplements: Open Food Facts mit Nährwerten (Protein je Portion).
 - Medikamente: Data-Matrix (PZN, Charge, Verfall) lesen + Etikettfoto. Keine
   kostenpflichtige PZN-Datenbank (ABDA) — Entscheidung des Nutzers.
+
+Umsetzung: `lib/substanzScan.ts` (Abgleich, Familie, Zeilen, Eiweiß),
+`lib/packungscode.ts` (IFA- und GS1-Data-Matrix), Auswahl im Ergebnis
+(`SubstanzScanner.tsx`). Eiweiß braucht die neue `food-lookup`-Version
+(Edge Function deployen); ohne sie bleibt die Stärke leer.

@@ -2827,7 +2827,7 @@
   "tagebuch_info_hinweis": "Tap to open the chip editor. A chip counts as chosen once it has an intensity.",
   "tagebuch_info_verstanden": "Got it",
   "my_stack_scan": "Scan",
-  "my_stack_scan_hint": "Hold the barcode inside the frame – or take a photo of the label.",
+  "my_stack_scan_hint": "Hold the barcode – or the square code on medicine packs – inside the frame, or take a photo of the label.",
   "my_stack_scan_hint_photo": "Hold the label in view so it is easy to read, then take the photo.",
   "my_stack_scan_photo": "Photograph label",
   "my_stack_scan_photo_instead": "Photograph label",
@@ -2932,5 +2932,11 @@
   "my_stack_inventory_needs_strength": "Stock needs the strength. Enter it under composition, then every intake is deducted.",
   "my_stack_form_recommended": "Recommended",
   "my_stack_custom_substance": "Custom substance",
-  "my_stack_preview": "Preview"
+  "my_stack_preview": "Preview",
+  "my_stack_scan_which": "Which one exactly?",
+  "my_stack_scan_which_hint": "The label doesn't say which one it is.",
+  "my_stack_scan_pack_read": "Pack code read. Now take a photo of the label – the code doesn't contain the name.",
+  "my_stack_scan_expiry": "Expiry",
+  "my_stack_scan_batch": "Batch",
+  "my_stack_scan_pzn": "PZN"
 }
