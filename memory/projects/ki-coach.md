@@ -202,6 +202,21 @@ vom Style her auch wie Siri, passend zur App“.
     grob + 4× halbieren statt 110 kleiner Schritte, Oberfläche runder Körper je Bild an
     64 Stellen vorberechnet statt je Punkt.
 
+- **Hineinwerfen mit Vielfalt (Nutzer 22.10.), v16:** fünf Arten, gewählt nach dem
+  Wurf (nie zweimal dieselbe hintereinander): sanft (< 700 px/s) Sog / Randtreffer /
+  Strudel; kräftig (> 1400 px/s) Platsch / Abpraller / Strudel / Sog; dazwischen alle;
+  seitlich getroffen (> 0,3 × Eingangsbreite neben der Mitte) häufiger Randtreffer.
+  - Platsch: klatscht flach auf den Spalt (harte Feder, breit), Spritzer, läuft dann
+    langsam wie durch einen Trichter ab.
+  - Randtreffer: eiert über dem Eingang hin und her (gedämpft, ~1 s) wie ein Ball auf
+    dem Korbrand, kippt dabei, plumpst dann hinein.
+  - Abpraller: prallt ab, hüpft hoch (bis 2,3 r über die Kante), taucht gestreckt mit
+    Spritzern ein.
+  - Strudel: wirbelt über dem Eingang, Punkte kreisen spiralförmig (1,6 Umdrehungen)
+    in den Spalt, 1,5 s.
+  - Mit dem Finger hineingedrückt: weiter Sog. Im Mockup fest wählbar, Antippen wirft
+    zur Probe (Bogen nach oben, dann auf den Eingang).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
