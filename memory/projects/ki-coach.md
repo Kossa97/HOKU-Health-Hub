@@ -336,6 +336,9 @@ vom Style her auch wie Siri, passend zur App“.
   kurz getippt = Chat. Ein Zug, der Dot gehört, löst nie Zurück aus
   (`stopPropagation` beim Loslassen). Gilt für das Wischen der App; das
   System-Wischen von Safari im Browser lässt sich von der Seite nicht steuern.
+  Dazu (Nutzer): an der linken Wand nur gut halb so flach (`flatT` × 0,45,
+  Fladen 0,85 r dick statt 0,5 r) und die Trefferfläche 14 px weiter nach innen
+  — so greift man ihn neben der Randzone, ohne Zurück.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
 

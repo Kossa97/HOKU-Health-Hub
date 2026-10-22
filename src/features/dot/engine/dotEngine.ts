@@ -416,7 +416,9 @@ export function createDot(host: DotHost): DotApi {
       if (B.mode === 'gather' && B.te > 1) { B.mode = 'home'; B.contact = {}; zeigeTreffer(); melde() }
     }
     const dockedNow = home && !B.drag && (B.dock.x || B.dock.y) && walls().some(w => docked(w.id) && w.d < B.r * 1.15)
-    const flatT = dockedNow ? (B.state === 'idle' ? 1 : 0.35) : 0
+    // Links wird er nur halb so flat: sein Körper ragt so aus der Randzone des
+    // Zurück-Wischens (24 px) heraus und lässt sich dort greifen
+    const flatT = dockedNow ? (B.state === 'idle' ? 1 : 0.35) * (B.dock.x === 'left' ? 0.45 : 1) : 0
     B.flat += (flatT - B.flat) * (1 - Math.exp(-dt * (flatT > B.flat ? 1.4 : 5)))
     const sagT = home && !B.drag ? (B.dock.y === 'top' ? 0.22 : B.dock.x && !B.dock.y ? 0.09 : 0) * P.sagMul : 0
     B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3))
@@ -726,7 +728,8 @@ export function createDot(host: DotHost): DotApi {
       w.dock = docked(w.id) ? B.flat : 0
       w.pull = docked(w.id) || w.id === 'corner' || (w.id === 'nav' && B.squeezed) ? 0 : clamp01(1 - (w.d - rr0) / 34)
       if (w.dock > 0.001) {
-        let T = rr0 * (0.5 - 0.32 * B.thin)
+        // links dicker (siehe flatT): greifbar neben der Randzone des Zurück-Wischens
+        let T = rr0 * ((w.id === 'left' ? 0.85 : 0.5) - 0.32 * B.thin)
         if (B.squeezed && navOn() && w.id === 'bottom') T = Math.min(T, Math.max(4, obstacle(B.x, bb.b).d * 0.92))
         w.T = T; w.L = clamp((0.8 * rr0 * rr0) / T, rr0 * 1.3, rr0 * (4.2 - 1.6 * B.thin)); w.hc = Math.min(w.d, T * 0.6)
       }
@@ -1134,6 +1137,8 @@ export function createDot(host: DotHost): DotApi {
       x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py)
     }
     const pad = 10
+    // an der linken Wand nach innen großzügiger: dort greift man ihn neben der Randzone
+    if (B.dock.x === 'left' && B.mode === 'home') x1 += 14
     hit.style.width = (x1 - x0 + 2 * pad).toFixed(1) + 'px'; hit.style.height = (y1 - y0 + 2 * pad).toFixed(1) + 'px'
     hit.style.borderRadius = Math.min(x1 - x0, y1 - y0) / 2 + pad + 'px'
     hit.style.transform = `translate(${(x0 - pad).toFixed(1)}px, ${(y0 - pad).toFixed(1)}px)`

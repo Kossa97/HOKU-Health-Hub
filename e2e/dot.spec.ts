@@ -19,8 +19,9 @@ test('ohne Pro bleibt Dot im Haus und sagt, dass es Pro braucht', async ({ page,
   await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await logo(page).click()
-  await lassLaufen(page, 600)
-  await expect(page.getByText('Dot kommt mit Pro heraus')).toBeVisible()
+  // die Uhr der Seite steht: beim Warten weiterlaufen lassen
+  const hinweis = page.getByText('Dot kommt mit Pro heraus')
+  await expect.poll(async () => { await page.clock.runFor(100); return hinweis.isVisible() }).toBe(true)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   expect(mock.coach.calls).toEqual([])
 })
