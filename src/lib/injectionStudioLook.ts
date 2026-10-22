@@ -1,4 +1,5 @@
 // src/lib/injectionStudioLook.ts
+import type { Look } from './look'
 
 type LightPosition = [number, number, number]
 
@@ -16,6 +17,18 @@ export const INJECTION_STUDIO_LIGHTS = {
   rimRight: { position: [3.2, 1.6, -2.4] as LightPosition, intensity: 2.6, color: '#e8f2ff' },
 }
 
-// Hintergrund hinter dem Canvas: Schwarz mit einem weichen, warmen Schein um die Figur.
-export const INJECTION_STUDIO_BACKDROP =
-  'radial-gradient(ellipse 60% 48% at 50% 46%, rgba(255,244,230,0.10), rgba(255,244,230,0) 70%), #000'
+// „Nacht": dieselben Lichter, nur die beiden Kantenlichter getönt — links
+// cyan, rechts violett, wie die Glaskanten der Karten (kühl oben links,
+// violett unten rechts). Hauptlicht und Haut bleiben wie bei „Studio".
+const NACHT_RIMS = {
+  rimLeft: { ...INJECTION_STUDIO_LIGHTS.rimLeft, intensity: 3.0, color: '#7fe3ff' },
+  rimRight: { ...INJECTION_STUDIO_LIGHTS.rimRight, intensity: 3.0, color: '#b7a3ff' },
+}
+
+export function injectionStudioLightsFor(look: Look) {
+  return look === 'nacht' ? { ...INJECTION_STUDIO_LIGHTS, ...NACHT_RIMS } : INJECTION_STUDIO_LIGHTS
+}
+
+// Hintergrund hinter dem Canvas: hängt am Look und steht deshalb als
+// --inj-backdrop in liquid-glass.css (Studio: Schwarz mit warmem Schein).
+export const INJECTION_STUDIO_BACKDROP = 'var(--inj-backdrop)'
