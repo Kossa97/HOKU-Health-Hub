@@ -7878,14 +7878,14 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-    "mtime": 1792697331.119568,
-    "seen": 1792697419.7495725,
-    "ast_hash": "6d87ad9ae87ed330b4942cc62bddb5ff",
+    "mtime": 1792701508.8098354,
+    "seen": 1792701541.2731216,
+    "ast_hash": "780db984f9cfcd0c8ef41462bd753614",
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
-    "mtime": 1792685421.291097,
-    "seen": 1792692240.6051836,
+    "mtime": 1792701508.7945201,
+    "seen": 1792701541.2787151,
     "ast_hash": "4e04a5516fdf29a70d1dfbad7532d75a",
     "semantic_hash": ""
   },
@@ -7908,8 +7908,8 @@
     "semantic_hash": ""
   },
   "src/features/dot/dotStore.ts": {
-    "mtime": 1792685484.6221483,
-    "seen": 1792692240.6052468,
+    "mtime": 1792701508.7920258,
+    "seen": 1792701541.278783,
     "ast_hash": "7c6c0d11875482cc2f7b0b7a164e92a3",
     "semantic_hash": ""
   },
