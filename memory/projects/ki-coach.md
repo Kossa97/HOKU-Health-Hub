@@ -111,6 +111,30 @@ vom Style her auch wie Siri, passend zur App“.
   - Für die App: die mittlere Schaltfläche (`art: 'aktion'`) ist im Code schon
     vorgesehen (`LiquidGlassTabBar`); dort käme das Logo hin.
 
+- **Persönlichkeit (Nutzer 22.10. gewählt), Mockup v9:** Sprechblase (Glas, kurz,
+  wächst aus Dots Richtung, über ihm, sonst darunter).
+  - Begrüßung nach dem ersten Herausklettern: winkt (Randbeule oben zur
+    Bildschirmmitte, schwingt) + Tageszeit-Gruß mit dem, was heute ansteht.
+  - Müde: nach 12 s ohne Berührung (in der App länger, z. B. 60 s) gähnt er (2,4 s:
+    streckt sich hoch, atmet breit aus), dann dösen: dunkler, dreht langsamer, sackt,
+    tiefes Atmen, drei Schlafpünktchen steigen schräg auf. Wecken durch Berührung,
+    Scrollen, Chat, Logo: kurzes Zucken + „Oh! Bin wach.“ (Scrollen).
+  - Kitzeln: ≥ 4 Richtungswechsel in 1 s auf < 80 px → zappelt 1,4 s, flackert,
+    „Hihi, das kitzelt!“, 3 s Pause bis zum nächsten Mal.
+  - Schwindelig: ≥ 4 Richtungswechsel über > 130 px beim Ziehen → nach dem Loslassen
+    3,2 s taumeln (Mitte kreist), Rand eiert, Farben drehen sich, „Uff … alles dreht
+    sich.“
+  - Neugierig: Scrollen lässt ihn in Scrollrichtung lehnen und kurz nachschwingen.
+  - Knöpfe im Mockup zum Auslösen (Begrüßen, Müde werden, Kitzeln, Schwindelig).
+
+## Name der App (Überlegung, 22.10.2026)
+- Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
+  Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
+  Fruchtbarkeits-App von Cycle Technologies (eingetragen 2015); USA „DOT.“ Anmeldung
+  97923907, Klasse 42 (Labor/Gesundheitsakten). DPMA/EUIPO: nichts gefunden, nicht
+  geprüft. Vor einer Entscheidung: TMview-Suche + Ähnlichkeitsrecherche (Markenrecht).
+  Maskottchenname „Dot“ ist davon unberührt.
+
 ## Offen
 - Randleuchten anpassen (wie genau: offen). Name „Dot“ bestätigen.
 - Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
