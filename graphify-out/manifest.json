@@ -2880,9 +2880,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/BottomNavigation.tsx": {
-    "mtime": 1792685282.0991228,
-    "seen": 1792685381.2630553,
-    "ast_hash": "6c9b473af3ca60b29dad43a9c5bac962",
+    "mtime": 1792685484.622462,
+    "seen": 1792692240.6017516,
+    "ast_hash": "55d66f4dc84c8709196fad3cafdab8bf",
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.test.tsx": {
@@ -7878,15 +7878,15 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-    "mtime": 1792684832.3371196,
-    "seen": 1792685381.2627559,
-    "ast_hash": "95305e2e32233122544a78ce670b133c",
+    "mtime": 1792685484.6227283,
+    "seen": 1792692240.5991259,
+    "ast_hash": "c5f8edf7f9fb18f348c0811a5093bc11",
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
-    "mtime": 1792685282.0987473,
-    "seen": 1792685381.263346,
-    "ast_hash": "906a8a70e7bb26555223e8fd3478ed5c",
+    "mtime": 1792685421.291097,
+    "seen": 1792692240.6051836,
+    "ast_hash": "4e04a5516fdf29a70d1dfbad7532d75a",
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
@@ -7896,9 +7896,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/CoachPanel.tsx": {
-    "mtime": 1792685282.0981753,
-    "seen": 1792685381.2633495,
-    "ast_hash": "562fbfd2e799f25f23054dcbb3f1df15",
+    "mtime": 1792685875.3076892,
+    "seen": 1792692240.605214,
+    "ast_hash": "6c4ed5ecdfc89b5ffa4eb330db2a82e0",
     "semantic_hash": ""
   },
   "src/features/dot/chat/coachService.ts": {
@@ -7908,9 +7908,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/dotStore.ts": {
-    "mtime": 1792685282.098509,
-    "seen": 1792685381.2633522,
-    "ast_hash": "764dfe775bb41a8e6b19918450f32385",
+    "mtime": 1792685484.6221483,
+    "seen": 1792692240.6052468,
+    "ast_hash": "7c6c0d11875482cc2f7b0b7a164e92a3",
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
