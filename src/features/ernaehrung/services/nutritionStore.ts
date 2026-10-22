@@ -2,7 +2,9 @@
  * Supabase-Zugriff der Ernährung. Wirft bei Fehlern — die Seite zeigt sie an,
  * statt still leere Listen anzuzeigen.
  */
+import { addDays, parseISO } from 'date-fns'
 import { supabase } from '../../../lib/supabase'
+import { dayKey } from '../../../lib/sharedDay'
 import {
   type EntrySource, type Food, type FoodUnit, type Goals, type LogEntry, type Meal, type Nutrients, type Per100, MEALS,
   nutrientsFor, scaleNutrients,
@@ -84,6 +86,24 @@ export async function loadDay(userId: string, date: string): Promise<{ entries: 
   if (logs.error) throw logs.error
   if (water.error) throw water.error
   return { entries: (logs.data ?? []).map(rowToEntry), waterMl: num(water.data?.ml) }
+}
+
+/**
+ * Mehrere Tage auf einmal (eine Woche): Einträge und Wasser je Tag; Tage ohne Einträge sind leer.
+ * Zum Vorladen — ein Tageswechsel in der Woche braucht dann keine Anfrage mehr.
+ */
+export async function loadDays(userId: string, from: string, to: string): Promise<Record<string, { entries: LogEntry[]; waterMl: number }>> {
+  const [logs, water] = await Promise.all([
+    supabase.from('food_logs').select('*').eq('user_id', userId).gte('log_date', from).lte('log_date', to).order('created_at'),
+    supabase.from('water_logs').select('log_date,ml').eq('user_id', userId).gte('log_date', from).lte('log_date', to),
+  ])
+  if (logs.error) throw logs.error
+  if (water.error) throw water.error
+  const out: Record<string, { entries: LogEntry[]; waterMl: number }> = {}
+  for (let d = parseISO(from); dayKey(d) <= to; d = addDays(d, 1)) out[dayKey(d)] = { entries: [], waterMl: 0 }
+  for (const r of logs.data ?? []) out[r.log_date as string]?.entries.push(rowToEntry(r))
+  for (const r of water.data ?? []) if (out[r.log_date as string]) out[r.log_date as string].waterMl = num(r.ml)
+  return out
 }
 
 /** Kalorien und Makros je Tag (für Wochenleiste und Monatsblatt). */
