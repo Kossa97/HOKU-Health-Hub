@@ -6888,9 +6888,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1792659091.2287927,
-    "seen": 1792659749.734335,
-    "ast_hash": "8844f2e923676c38d7675a31f239d9bb",
+    "mtime": 1792659943.104348,
+    "seen": 1792660230.1445203,
+    "ast_hash": "b887de77d016907b9b8fcac1213e1263",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6948,9 +6948,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/WeekStrip.tsx": {
-    "mtime": 1792659376.0721347,
-    "seen": 1792659749.7343836,
-    "ast_hash": "75629c014870e2df991c993b864a951b",
+    "mtime": 1792659931.1607869,
+    "seen": 1792660230.1452413,
+    "ast_hash": "03507dfde37cc02a5e6fcb0e1ced4d1f",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useNutritionDay.ts": {
@@ -7692,9 +7692,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/SwipeRow.tsx": {
-    "mtime": 1792658761.500058,
-    "seen": 1792659749.7343802,
-    "ast_hash": "c6e28c4519c0809f1dbeba5e528067a8",
+    "mtime": 1792659931.15998,
+    "seen": 1792660230.1452088,
+    "ast_hash": "fb31a1aa9f78034ec469542aedfedcfb",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/pieces.test.ts": {
@@ -7863,6 +7863,18 @@
     "mtime": 1792659203.4126403,
     "seen": 1792659749.7344124,
     "ast_hash": "a06b407901f91f238f82a48347876d80",
+    "semantic_hash": ""
+  },
+  "src/features/ernaehrung/lib/gesture.test.ts": {
+    "mtime": 1792659931.1384327,
+    "seen": 1792660230.1458092,
+    "ast_hash": "34c1e855664c21f2d6f5b13255694a0c",
+    "semantic_hash": ""
+  },
+  "src/features/ernaehrung/lib/gesture.ts": {
+    "mtime": 1792659931.1315591,
+    "seen": 1792660230.1458118,
+    "ast_hash": "37f44ae5baefceb447d68f5f23fbe93b",
     "semantic_hash": ""
   }
 }
