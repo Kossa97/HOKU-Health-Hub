@@ -325,6 +325,17 @@ vom Style her auch wie Siri, passend zur App“.
   der Bildschirmbreite vom letzten Platz, über der Leiste). Der gespeicherte
   Platz wird damit bei jedem Herauskommen neu gesetzt. Ausnahme: Seiten ohne
   Leiste — dort weiter als Streifen an den Rand.
+- **Rufen (Nutzer 22.10.):** Dreimal wirklich schnell auf dieselbe Stelle tippen
+  (je Tipp ≤ 220 ms, Pause ≤ 260 ms, ≤ 28 px auseinander) ruft ihn dorthin, frei
+  schwebend; ein Ring zeigt die Stelle. Nur draußen, nicht bei offenem Blatt,
+  Kamera oder auf der Leiste. Die Tipps erreichen trotzdem, was darunter liegt
+  (ein Knopf dort löst also auch aus); die iOS-Textauswahl wird gelöscht.
+- **Linker Rand und Zurück-Wischen (Nutzer 22.10.):** Beginnt der Finger auf Dot
+  in den linken 24 px (Randzone von `AppBackNavigation`): nach rechts gewischt =
+  Zurück, Dot lässt los; nach oben/unten gezogen oder ≥ 220 ms gehalten = Dot;
+  kurz getippt = Chat. Ein Zug, der Dot gehört, löst nie Zurück aus
+  (`stopPropagation` beim Loslassen). Gilt für das Wischen der App; das
+  System-Wischen von Safari im Browser lässt sich von der Seite nicht steuern.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
 

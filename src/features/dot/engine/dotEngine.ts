@@ -96,6 +96,11 @@ const IDLE = 25
 const SPEICHER = 'tyd.dot.platz.v1'
 const DRAUSSEN = 'tyd.dot.draussen'
 
+// Zurück-Wischen der App (AppBackNavigation): Start in den linken 24 px
+const RAND_ZURUECK = 24
+// Rufen: dreimal schnell auf dieselbe Stelle
+const RUF = { tippMs: 220, abstandMs: 260, px: 28 }
+
 const EXITS = ['climb', 'pop', 'peek', 'stream'], ENTERS = ['suck', 'dive', 'dissolve', 'wave']
 const THROWS = ['suck', 'splat', 'rim', 'bounce', 'swirl']
 
@@ -200,12 +205,13 @@ export function createDot(host: DotHost): DotApi {
     mode: 'house' as DotModus, lastThrow: '', rimA: 0, exitKind: 'climb', enterKind: 'suck', lastExit: '', lastEnter: '',
     popped: false, splashed: false, lean: 0, holdX: 0, holdY: 0, waveAt: -1, flat: 0,
     drag: null as null | {
+      rand: boolean
       ox: number; oy: number; sx: number; sy: number; t0: number; moved: number
       hist: { x: number; y: number; t: number }[]; trail: { x: number; y: number; t: number }[]
       rev: number[]; sx0: number; dizzy?: boolean
     },
     idleT: 0, mood: 'awake' as 'awake' | 'yawning' | 'asleep', sleepAmt: 0, yawnT: -1, waveT: -1, waveSide: 1,
-    giggleT: -1, dizzyT: -1, gcool: 0, zz: [] as { t: number; s: number }[], zzT: 0, peek: 0, greeted: false,
+    giggleT: -1, dizzyT: -1, gcool: 0, zz: [] as { t: number; s: number }[], rufe: [] as { x: number; y: number; t: number }[], zzT: 0, peek: 0, greeted: false,
     door: 0, doorFlash: 0, script: 0, te: 0, near: 0, contact: {} as Record<string, boolean>, sag: 0,
     flash: 0, navFlash: 0, topFlash: 0, sparks: [] as Funke[],
     state: 'idle' as DotStimmung, cur: { ...TARGETS.idle }, voice: 0, joyT: 9, poke: 9, rot: 0,
@@ -1102,6 +1108,14 @@ export function createDot(host: DotHost): DotApi {
       ctx.fillStyle = `rgba(170,240,255,${(1 - q).toFixed(3)})`
       ctx.beginPath(); ctx.arc(s.x, s.y, dotR * 1.3 * (1 - q * 0.5), 0, TAU); ctx.fill()
     }
+    // Ruf: ein Ring, wo getippt wurde
+    for (const z of B.rufe) {
+      z.t += dt
+      const q = clamp01(z.t / 0.55); if (q >= 1) continue
+      ctx.strokeStyle = `rgba(160,238,255,${(0.7 * (1 - q)).toFixed(3)})`; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.arc(z.x, z.y, 6 + 26 * easeOut3(q), 0, TAU); ctx.stroke()
+    }
+    B.rufe = B.rufe.filter(z => z.t < 0.55)
     B.sparks = B.sparks.filter(s => s.t < s.life)
     for (const z of B.zz) {
       const q = z.t / 2.2, a = Math.sin(Math.PI * q) * 0.7
@@ -1160,7 +1174,7 @@ export function createDot(host: DotHost): DotApi {
     zeiger = e.pointerId
     const now = performance.now()
     B.zurUhr = false
-    B.drag = { ox: e.clientX - B.x, oy: e.clientY - B.y, sx: e.clientX, sy: e.clientY, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }], trail: [{ x: e.clientX, y: e.clientY, t: now }], rev: [], sx0: 0 }
+    B.drag = { rand: e.pointerType !== 'mouse' && e.clientX <= RAND_ZURUECK, ox: e.clientX - B.x, oy: e.clientY - B.y, sx: e.clientX, sy: e.clientY, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }], trail: [{ x: e.clientX, y: e.clientY, t: now }], rev: [], sx0: 0 }
     B.vx = 0; B.vy = 0; B.poke = 0; wake(false); laufen()
   }
   const beiBewegung = (e: PointerEvent) => {
@@ -1168,6 +1182,14 @@ export function createDot(host: DotHost): DotApi {
     if (!D || e.pointerId !== zeiger) return
     const now = performance.now()
     D.moved = Math.max(D.moved, Math.hypot(e.clientX - D.sx, e.clientY - D.sy))
+    // Am linken Rand begonnen: nach rechts gewischt ist das „Zurück" der App, Dot
+    // lässt los. Nach oben/unten gezogen oder kurz gehalten gehört der Finger Dot.
+    if (D.rand) {
+      const dx = e.clientX - D.sx, dy = Math.abs(e.clientY - D.sy)
+      if (dx > 10 && dx > dy * 1.25) { endDrag(); return }
+      if (dy > 10 || now - D.t0 > 220) D.rand = false
+      else return
+    }
     if (D.moved < 4) return
     dragTo(e.clientX - D.ox, e.clientY - D.oy)
     if (!B.drag) return
@@ -1188,6 +1210,8 @@ export function createDot(host: DotHost): DotApi {
   }
   const beiAuf = (e: PointerEvent) => {
     if (e.pointerId !== zeiger) return
+    // Was Dot gehört, löst kein Zurück-Wischen aus (die App hört auf window)
+    e.stopPropagation()
     const D = B.drag
     endDrag()
     if (!D) return
@@ -1208,6 +1232,36 @@ export function createDot(host: DotHost): DotApi {
   hit.addEventListener('pointerup', beiAuf)
   hit.addEventListener('pointercancel', beiAbbruch)
   hit.addEventListener('keydown', beiTaste)
+  /* ── Rufen: dreimal schnell auf dieselbe Stelle ────────────────────────── */
+  let tipps: { x: number; y: number; t: number }[] = [], tippAb: { id: number; x: number; y: number; t: number } | null = null
+  const rufAb = (e: PointerEvent) => {
+    tippAb = e.isPrimary ? { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() } : null
+  }
+  const rufAuf = (e: PointerEvent) => {
+    const a = tippAb; tippAb = null
+    if (!a || a.id !== e.pointerId) return
+    const now = performance.now()
+    if (now - a.t > RUF.tippMs || Math.hypot(e.clientX - a.x, e.clientY - a.y) > 10) { tipps = []; return }
+    const last = tipps[tipps.length - 1]
+    if (last && (now - last.t > RUF.abstandMs || Math.hypot(a.x - tipps[0].x, a.y - tipps[0].y) > RUF.px)) tipps = []
+    tipps.push({ x: a.x, y: a.y, t: now })
+    if (tipps.length < 3) return
+    const p = tipps[0]; tipps = []
+    rufen(p.x, p.y)
+  }
+  function rufen(x: number, y: number) {
+    if (B.mode !== 'home' || B.drag || NAV.cam || B.recedeT > 0) return
+    if (navOn() && y > TAB - 4) return
+    // Dreifachtippen markiert unter iOS sonst einen Absatz
+    try { window.getSelection()?.removeAllRanges() } catch { /* ohne Auswahl */ }
+    const b = bounds(), r = B.size, floor = navOn() ? TAB : b.b
+    B.dock = { x: null, y: null }; B.along = { x: clamp(x, b.l + r, b.r - r), y: clamp(y, b.t + r, floor - r) }
+    B.squeezed = false; B.thinT = 0; B.idleT = 0; speichern()
+    B.rufe.push({ x, y, t: 0 })
+    wake(true); laufen()
+  }
+  window.addEventListener('pointerdown', rufAb, { capture: true, passive: true })
+  window.addEventListener('pointerup', rufAuf, { capture: true, passive: true })
   function fetchDot() {
     B.thinT = 0; B.idleT = 0; wake(true)
     if (!weniger) for (let k = 0; k < RK; k++) WV[k] += (Math.random() - 0.5) * 3
@@ -1376,6 +1430,8 @@ export function createDot(host: DotHost): DotApi {
       hit.removeEventListener('pointerup', beiAuf)
       hit.removeEventListener('pointercancel', beiAbbruch)
       hit.removeEventListener('keydown', beiTaste)
+      window.removeEventListener('pointerdown', rufAb, true)
+      window.removeEventListener('pointerup', rufAuf, true)
       glCanvas.removeEventListener('webglcontextlost', kontextWeg)
       sonde.remove()
     },
