@@ -172,6 +172,22 @@ vom Style her auch wie Siri, passend zur App“.
   - Hineingeworfen oder -gedrückt geht er immer per Sog; die Vielfalt gilt, wenn er
     von selbst geht (Logo, Chat-Befehl).
 
+- **Feinschliff nach iPhone-Screenshot (Nutzer 22.10.), v14:**
+  - Gerade Leuchtlinie auf Höhe der Leiste entfernt. Stattdessen leuchtet der Rahmen
+    von Kapsel und Plus-Knopf leicht an der Berührstelle, entlang der echten Form
+    (radialer Verlauf um den nächsten Punkt der Leiste, zwei Striche 6 px / 1,3 px).
+  - Flach an runden Flächen (Plus-Knopf, Kapselenden): Pfannkuchen schmiegt sich an
+    (jeder Punkt der Länge wird auf die Oberfläche projiziert, Höhe entlang deren
+    Normale) statt als schräger Strich in die Luft zu ragen.
+  - Kein Durchrutschen beim Ziehen: Dot bewegt sich in 2,5-px-Schritten von der alten
+    zur neuen Lage und wird an jeder Stelle aus der Leiste geschoben; je Bewegung
+    höchstens ~60 px. Wie nah er heran darf, hängt davon ab, wie weit der Finger zieht
+    (leicht = berührt, kräftig = quetscht). Geprüft: quer durch die Kapsel gezogen bleibt
+    er darüber (y 692, Kapsel ab 698); seitlich vorbei kommt er weiterhin darunter.
+  - Flüssiger/hochwertiger: Punkte als vorgezeichnete weiche Leuchtpunkte (je Farbe
+    einmal, `drawImage`) statt einzeln gefüllter Kreise. Gemessen headless: 1,5 ms je
+    Bild im Mittel, 95 % unter 2,4 ms.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
