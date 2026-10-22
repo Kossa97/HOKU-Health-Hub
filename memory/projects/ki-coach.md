@@ -160,6 +160,18 @@ vom Style her auch wie Siri, passend zur App“.
   (Abweichung Rand − Formziel verändert Höhe und Länge). Rand (Physik, Trefferfläche)
   folgt derselben Form als Ziel.
 
+- **Vielfalt beim Herauskommen und Hineingehen (Nutzer 22.10.), v13:** je vier Arten,
+  zufällig, nie zweimal dieselbe hintereinander; im Mockup auch fest wählbar.
+  - Heraus: Klettern (wie gehabt) · Ploppen (drückt sich schmal hoch, ploppt rund mit
+    Funken, 1,2 s) · Spähen (halb heraus, schaut links/rechts, duckt sich, weiter
+    Sprung, 2,3 s) · Punkte-Strom (Punkte fliegen gestaffelt auf Bögen aus dem Spalt
+    und setzen sich am Platz zusammen, 1,5 s).
+  - Hinein: Sog (wie gehabt) · Kopfsprung (Hüpfer hoch, gestreckt kopfüber hinein,
+    Spritzer an der Kante) · Auflösen (Punkte fließen einzeln in den Spalt, 1,35 s) ·
+    Winken (zum Eingang, winkt „Bis gleich!“, sinkt langsam).
+  - Hineingeworfen oder -gedrückt geht er immer per Sog; die Vielfalt gilt, wenn er
+    von selbst geht (Logo, Chat-Befehl).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
