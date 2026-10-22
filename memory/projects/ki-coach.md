@@ -147,6 +147,19 @@ vom Style her auch wie Siri, passend zur App“.
   quetschen (geprüft: liegt danach platt im 20-px-Spalt, Andockung „unten“).
   Andocken auf der Leiste heißt jetzt „nav“ (Oberkante), im Spalt „bottom“.
 
+- **Flach aufliegen statt Fliege (Nutzer 22.10. mit Screenshots vom iPhone), v12:**
+  Ursachen: (1) „angedockt“ hing am Kontakt-Schalter; je flacher er wurde, desto
+  näher rückte das Ziel → Kontakt kippte → wieder rund → Dauerschleife in einer
+  Zwischenform. Jetzt: angedockt = Abstand zur Andockwand < 1,15 r. (2) Punkte
+  wurden strahlenförmig um die Mitte verteilt → bei flacher Form drängen sie sich auf
+  den kurzen Strahlen (helle Taille, „Fliege“). Jetzt: angedockt wird die Kugel auf
+  einen Pfannkuchen abgebildet (Breite → Länge entlang der Wand, Höhe → Höhe über der
+  Wand, Unterseite auf der Wand), Höhe T = 0,5 r, Länge so, dass die Fläche ungefähr
+  bleibt; im Spalt T = Spalthöhe, dafür länger; in der Ecke von der anderen Wand
+  begrenzt und zur freien Seite verlängert. Wackeln vom weichen Rand bleibt sichtbar
+  (Abweichung Rand − Formziel verändert Höhe und Länge). Rand (Physik, Trefferfläche)
+  folgt derselben Form als Ziel.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
