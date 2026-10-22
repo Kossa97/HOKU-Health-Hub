@@ -1371,6 +1371,9 @@ export const MY_STACK_EN = {
   my_stack_shelf_use_by: "Use by",
   my_stack_shelf_ampoule_hint: "An ampoule is opened once and used up completely, so only the expiry date counts.",
   my_stack_inventory_needs_strength: "Stock needs the strength. Enter it under composition, then every intake is deducted.",
+  my_stack_form_recommended: "Recommended",
+  my_stack_custom_substance: "Custom substance",
+  my_stack_preview: "Preview",
 }
 
 export const MY_STACK_DE = {
@@ -2745,6 +2748,9 @@ export const MY_STACK_DE = {
   my_stack_shelf_use_by: "Aufbrauchen bis",
   my_stack_shelf_ampoule_hint: "Eine Ampulle wird einmal geöffnet und ganz verwendet. Deshalb zählt nur das Ablaufdatum.",
   my_stack_inventory_needs_strength: "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab.",
+  my_stack_form_recommended: "Empfohlen",
+  my_stack_custom_substance: "Eigene Substanz",
+  my_stack_preview: "Vorschau",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

@@ -165,15 +165,15 @@ describe('StackItemWizard', () => {
     for (const source of componentSources) expect(source).toContain('min-h-11')
   })
 
-  it('gibt dem Objekt in der Vorschauzeile keine feste Hoehe', () => {
-    // Der Kasten stand auf 100 px, weil ein Pen in Miniaturgroesse so hoch
-    // ist. Gemessen: eine Kapsel misst 21 px und schwamm in 97 px Leere, der
-    // Name stand daneben in der Mitte von nichts. Die Zeile umschliesst ihr
-    // Objekt, sie gibt ihm keine Buehne.
+  it('gibt der Buehne eine feste Hoehe und haelt die Form in Bewegung', () => {
+    // Die gewaehlte Form steht oben in der Mitte, waehrend der Rest des
+    // Formulars ausgefuellt wird. Sie springt nicht in der Groesse, wenn die
+    // Seite wechselt, und die Fluessigkeit schwappt weiter (Wunsch des Nutzers).
     const wizardSource = readFileSync(new URL('./StackItemWizard.tsx', import.meta.url), 'utf8')
-    const zeile = wizardSource.slice(wizardSource.indexOf('data-wizard-preview-compact'))
+    const buehne = wizardSource.slice(wizardSource.indexOf('data-wizard-stage'))
+    const bisVorschau = buehne.slice(0, buehne.indexOf('</section>'))
 
-    expect(zeile).toContain('size="mini"')
-    expect(zeile.slice(0, zeile.indexOf('size="mini"'))).not.toMatch(/h-\[\d+px\]/)
+    expect(bisVorschau).toMatch(/\bh-44\b/)
+    expect(bisVorschau).toContain('sloshEngine={sloshEngine}')
   })
 })

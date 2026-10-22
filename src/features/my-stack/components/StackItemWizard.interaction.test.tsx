@@ -160,16 +160,18 @@ function continueWizard(): void {
   fireEvent.click(screen.getByRole('button', { name: 'continue' }))
 }
 
-/** Name und Kategorie — Form und Farbe stehen danach auf derselben Seite. */
-function startCustom(name: string): void {
+/**
+ * Eigene Substanz: Name tippen, als eigene bestaetigen, Kategorie waehlen —
+ * Form und Farbe stehen danach auf derselben Seite.
+ */
+function startCustom(name: string, category = 'supplement'): void {
   fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: name } })
-  fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
+  fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
+  fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: category } })
 }
 
-/** Eine Form im Karussell der Substanzseite; „Andere Form" klappt die uebrigen auf. */
+/** Eine Form im Karussell der Substanzseite — dort stehen immer alle. */
 function waehleForm(form: string): void {
-  const karte = screen.queryByRole('radio', { name: `dosage_form_${form}` })
-  if (!karte) fireEvent.click(screen.getByRole('button', { name: 'my_stack_form_more' }))
   fireEvent.click(screen.getByRole('radio', { name: `dosage_form_${form}` }))
 }
 
@@ -193,7 +195,11 @@ describe('StackItemWizard — Substanzseite mit Form und Farbe', () => {
     renderWizard()
     fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Kreatin' } })
     expect(document.querySelector('[data-form-carousel]')).toBeNull()
+    // Getippter Text allein waehlt nichts — auch keine Kategorie.
+    expect(screen.queryByLabelText('my_stack_category')).toBeNull()
 
+    fireEvent.click(screen.getByText('my_stack_add_custom'))
+    expect(document.querySelector('[data-form-carousel]')).toBeNull()
     fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
     expect(document.querySelector('[data-form-carousel]')).not.toBeNull()
     expect(document.querySelector('[data-form-color]')).toBeNull()
@@ -217,40 +223,46 @@ describe('StackItemWizard — Substanzseite mit Form und Farbe', () => {
     expect(deckel()).toMatch(/^#[0-9a-f]{6}$/)
   })
 
-  it('waehlt die einzige Form, die der Katalog kennt, und bietet die uebrigen an', () => {
+  it('zeigt alle Formen und waehlt die empfohlene vor', () => {
     renderWizard()
     fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
     fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
 
-    expect(screen.getByRole('radio', { name: 'dosage_form_capsule' }).getAttribute('aria-checked')).toBe('true')
-    expect(screen.queryByRole('radio', { name: 'dosage_form_drops' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'my_stack_form_more' }))
-    expect(screen.getByRole('radio', { name: 'dosage_form_drops' })).toBeTruthy()
+    const kapsel = screen.getByRole('radio', { name: 'dosage_form_capsule' })
+    expect(kapsel.getAttribute('aria-checked')).toBe('true')
+    expect(kapsel.querySelector('[data-form-recommended]')).not.toBeNull()
+    const tropfen = screen.getByRole('radio', { name: 'dosage_form_drops' })
+    expect(tropfen.getAttribute('aria-checked')).toBe('false')
+    expect(tropfen.querySelector('[data-form-recommended]')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'my_stack_form_more' })).toBeNull()
   })
 
   it('geht ohne Form nicht weiter und sagt es am Karussell', () => {
     renderWizard()
     startCustom('Kreatin')
     continueWizard()
-    expect(screen.getByLabelText('my_stack_question')).toBeTruthy()
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
     expect(screen.getByRole('alert').textContent).toContain('my_stack_dosage_form_required')
   })
 
-  it('zeigt die Vorschauzeile erst ab der Zusammensetzung und nicht beim Zurueckgehen', () => {
+  it('stellt die gewaehlte Form oben auf die Buehne und laesst sie dort', () => {
     renderWizard()
     startCustom('Kreatin Monohydrat')
+    expect(document.querySelector('[data-wizard-stage]')).toBeNull()
+
     waehleForm('powder')
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
+    const buehne = () => document.querySelector('[data-wizard-stage]')
+    expect(buehne()).not.toBeNull()
+    expect(buehne()!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
+    expect(buehne()!.textContent).toContain('dosage_form_powder')
 
     continueWizard()
-    const vorschau = document.querySelector('[data-wizard-preview-compact]')
-    expect(vorschau).not.toBeNull()
-    expect(vorschau!.textContent).toContain('Kreatin Monohydrat')
-    expect(vorschau!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
+    expect(buehne()!.textContent).toContain('Kreatin Monohydrat')
+    expect(buehne()!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'back' }))
-    expect(screen.getByLabelText('my_stack_question')).toBeTruthy()
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
+    expect(buehne()).not.toBeNull()
   })
 
   it('zeigt fuer Formen ohne Buehnengrafik keine Vorschau und keine Farbe', () => {
@@ -259,7 +271,20 @@ describe('StackItemWizard — Substanzseite mit Form und Farbe', () => {
     waehleForm('other')
     expect(document.querySelector('[data-form-color]')).toBeNull()
     continueWizard()
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
+    expect(document.querySelector('[data-wizard-stage]')).toBeNull()
+  })
+
+  it('geht nach dem Loesen vom Katalog nicht im selben Tipp weiter', () => {
+    renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
+    fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_detach_catalog' }))
+    continueWizard()
+
+    // Erst Kategorie und Form sehen — beide stehen noch vom Katalog da.
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
+    expect((screen.getByLabelText('my_stack_category') as HTMLSelectElement).value).toBe('vitamin')
+    expect(screen.getByRole('radio', { name: 'dosage_form_capsule' }).getAttribute('aria-checked')).toBe('true')
   })
 
   it('hat vier Seiten fuer eine Katalogsubstanz', () => {
@@ -303,8 +328,7 @@ describe('StackItemWizard — Zusammensetzung', () => {
     cleanup()
 
     renderWizard()
-    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'BPC' } })
-    fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'peptide' } })
+    startCustom('BPC', 'peptide')
     waehleForm('vial')
     advanceTo('[data-haltbarkeit]')
     expect(document.querySelector('[data-haltbarkeit]')!.getAttribute('data-haltbarkeit')).toBe('angemischt')
@@ -1009,18 +1033,17 @@ describe('StackItemWizard interactions', () => {
   it('preserves raw multi-word typing and a chosen custom category', () => {
     renderWizard()
     const input = screen.getByLabelText('my_stack_question') as HTMLInputElement
-    const category = screen.getByLabelText('my_stack_category') as HTMLSelectElement
 
-    fireEvent.change(input, { target: { value: 'Vitamin' } })
-    fireEvent.change(category, { target: { value: 'supplement' } })
     fireEvent.change(input, { target: { value: 'Vitamin ' } })
-
     expect(input.value).toBe('Vitamin ')
-    expect(category.value).toBe('supplement')
-
     fireEvent.change(input, { target: { value: 'Vitamin D' } })
     expect(input.value).toBe('Vitamin D')
+
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
+    const category = screen.getByLabelText('my_stack_category') as HTMLSelectElement
+    fireEvent.change(category, { target: { value: 'supplement' } })
     expect(category.value).toBe('supplement')
+    expect(document.querySelector('[data-substance-custom]')!.textContent).toContain('Vitamin D')
   })
 
   it('bietet „Sonstiges" als letzte Kategorie an und laesst weitergehen', () => {
@@ -1029,13 +1052,13 @@ describe('StackItemWizard interactions', () => {
     // Faechern zwingen — und jede dieser Wahlen ist eine Behauptung, die die
     // App spaeter auswertet. „Sonstiges" ist die ehrliche Antwort darauf.
     renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Rotlichtlampe' } })
+    fireEvent.click(screen.getByText('my_stack_add_custom'))
     const kategorie = screen.getByLabelText('my_stack_category') as HTMLSelectElement
 
     const werte = Array.from(kategorie.options).map(option => option.value)
     expect(werte).toEqual(['', 'peptide', 'medication', 'hormone', 'supplement', 'vitamin', 'other'])
 
-    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Rotlichtlampe' } })
-    fireEvent.click(screen.getByText('my_stack_add_custom'))
     fireEvent.change(kategorie, { target: { value: 'other' } })
     expect(kategorie.value).toBe('other')
     waehleForm('other')
@@ -1126,8 +1149,9 @@ describe('StackItemWizard interactions', () => {
     const { onSave } = renderWizard()
     const input = screen.getByLabelText('my_stack_question') as HTMLInputElement
 
-    // Vor der Wahl steht das Kategoriefeld da — es gilt der freien Eingabe.
-    expect(screen.getByLabelText('my_stack_category')).toBeTruthy()
+    // Vor der Wahl fehlt das Kategoriefeld: es gehoert zur eigenen Substanz,
+    // und getippter Text allein ist noch keine.
+    expect(screen.queryByLabelText('my_stack_category')).toBeNull()
 
     fireEvent.change(input, { target: { value: 'Vitamin' } })
     fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
@@ -1139,11 +1163,12 @@ describe('StackItemWizard interactions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'my_stack_detach_catalog' }))
 
-    // Suchfeld wieder da, Name erhalten, Kategorie erhalten — und das
-    // Kategoriefeld auch, denn ohne Katalogeintrag wird es wieder gebraucht.
-    // Weg ist nur die Verknuepfung, und zwar weil jemand darauf geklickt hat.
+    // Suchfeld wieder da, Name erhalten, Kategorie erhalten — sie zeigt sich,
+    // sobald daraus eine eigene Substanz wird. Weg ist nur die Verknuepfung,
+    // und zwar weil jemand darauf geklickt hat.
     const wieder = screen.getByLabelText('my_stack_question') as HTMLInputElement
     expect(wieder.value).toBe('Vitamin D3')
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
     expect((screen.getByLabelText('my_stack_category') as HTMLSelectElement).value).toBe('vitamin')
 
     // Die Kapsel bleibt gewaehlt; die Staerke wird uebersprungen.
@@ -1213,7 +1238,6 @@ describe('StackItemWizard interactions', () => {
     renderWizard()
     const suche = screen.getByLabelText('my_stack_question') as HTMLInputElement
     fireEvent.change(suche, { target: { value: 'Custom Product' } })
-    fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
     fireEvent.change(suche, { target: { value: '' } })
     continueWizard()
 
@@ -1444,11 +1468,10 @@ describe('StackItemWizard interactions', () => {
     expect(onClose).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: 'Multi Word Product' })).toBeTruthy()
 
-    while (!screen.queryByLabelText('my_stack_question')) {
+    while (!document.querySelector('[data-substance-custom]')) {
       fireEvent.click(screen.getByRole('button', { name: 'back' }))
     }
-    expect((screen.getByLabelText('my_stack_question') as HTMLInputElement).value)
-      .toBe('Multi Word Product')
+    expect(document.querySelector('[data-substance-custom]')!.textContent).toContain('Multi Word Product')
   })
 })
 

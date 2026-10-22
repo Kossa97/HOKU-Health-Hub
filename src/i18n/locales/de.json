@@ -2929,5 +2929,8 @@
   "my_stack_shelf_expiry": "Ablaufdatum der Packung",
   "my_stack_shelf_use_by": "Aufbrauchen bis",
   "my_stack_shelf_ampoule_hint": "Eine Ampulle wird einmal geöffnet und ganz verwendet. Deshalb zählt nur das Ablaufdatum.",
-  "my_stack_inventory_needs_strength": "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab."
+  "my_stack_inventory_needs_strength": "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab.",
+  "my_stack_form_recommended": "Empfohlen",
+  "my_stack_custom_substance": "Eigene Substanz",
+  "my_stack_preview": "Vorschau"
 }
