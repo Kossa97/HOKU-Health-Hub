@@ -278,6 +278,7 @@ function LookSwitcher() {
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
+    { key: 'instrument', label: String(t('look_instrument', { defaultValue: 'Instrument' })) },
     { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
     { key: 'nacht', label: String(t('look_night', { defaultValue: 'Nacht' })) },
@@ -293,12 +294,12 @@ function LookSwitcher() {
         value={look}
         onChange={setLook}
         ariaLabel={String(t('theme_label', { defaultValue: 'Erscheinungsbild' }))}
-        equal
         material="fill"
+        scroll
       />
       {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät.' })}
       </p>
       </div>
     </div>
