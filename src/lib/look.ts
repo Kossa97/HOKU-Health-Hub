@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
  * Das Erscheinungsbild der App, auf diesem Gerät gespeichert.
@@ -48,4 +48,20 @@ export function useLook() {
   }, [])
 
   return { look, setLook }
+}
+
+function documentLook(): Look {
+  const current = document.documentElement.getAttribute('data-look')
+  return LOOKS.find(look => look === current) ?? 'schwarz'
+}
+
+/** Der gerade gezeigte Look; folgt jedem Wechsel am `<html>` (z. B. für 3D-Licht). */
+export function useActiveLook(): Look {
+  const [look, setLook] = useState<Look>(documentLook)
+  useEffect(() => {
+    const observer = new MutationObserver(() => setLook(documentLook()))
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-look'] })
+    return () => observer.disconnect()
+  }, [])
+  return look
 }

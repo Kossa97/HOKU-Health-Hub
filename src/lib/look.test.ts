@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import { applyLook, getLook, useLook } from './look'
+import { applyLook, getLook, useActiveLook, useLook } from './look'
 
 afterEach(() => {
   localStorage.clear()
@@ -39,5 +39,13 @@ describe('Erscheinungsbild', () => {
   it('nimmt unbekannte Werte als schwarz', () => {
     localStorage.setItem('tyd_look', 'neon')
     expect(getLook()).toBe('schwarz')
+  })
+
+  it('folgt dem Look am html', async () => {
+    applyLook('schwarz')
+    const { result } = renderHook(() => useActiveLook())
+    expect(result.current).toBe('schwarz')
+    await act(async () => { applyLook('nacht') })
+    expect(result.current).toBe('nacht')
   })
 })
