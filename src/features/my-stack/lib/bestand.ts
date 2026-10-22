@@ -79,6 +79,39 @@ export function istLoesungsVial(form: DosageFormKey | null | undefined, category
 }
 
 /**
+ * Wie die Haltbarkeit nach dem ersten Oeffnen heisst — oder `null`, wenn nur
+ * das Ablaufdatum der Packung zaehlt. Ein Pulver-Vial wird angemischt, eine
+ * fertige Loesung angebrochen, ein Pen ist ab der ersten Benutzung in Gebrauch,
+ * Flaschen, Tuben und Dosen werden geoeffnet. Ampulle, Kapsel, Tablette und
+ * Pflaster nicht: eine Ampulle wird einmal geoeffnet und ganz verwendet, der
+ * Rest ist einzeln verpackt.
+ */
+export type HaltbarkeitArt = 'angemischt' | 'angebrochen' | 'benutzung' | 'geoeffnet'
+
+export function haltbarkeitArt(form: DosageFormKey | null | undefined, category: string | null | undefined): HaltbarkeitArt | null {
+  switch (form) {
+    case 'vial': return istLoesungsVial(form, category) ? 'angebrochen' : 'angemischt'
+    case 'pen': return 'benutzung'
+    case 'drops':
+    case 'spray':
+    case 'nasal_spray':
+    case 'gel':
+    case 'tube':
+    case 'powder':
+      return 'geoeffnet'
+    default:
+      return null
+  }
+}
+
+/** Bis wann aufbrauchen: Oeffnen plus Haltbarkeit, hoechstens bis zum Ablaufdatum. */
+export function aufbrauchenBis(openedAt: string | null | undefined, useWithinDays: number | null | undefined, expiresAt?: string | null): string | null {
+  if (!openedAt || useWithinDays == null || !gueltigeHaltbarkeit(useWithinDays)) return null
+  const ende = format(addDays(parseISO(openedAt), useWithinDays), 'yyyy-MM-dd')
+  return expiresAt && expiresAt < ende ? expiresAt : ende
+}
+
+/**
  * Bucht die Datenbank bestaetigte Einnahmen von diesem Bestand ab? Dieselbe
  * Regel wie `apply_inventory_confirmation`: ein in Vials gefuehrtes Vial ueber
  * `vialBuchtUeberBestand`, ein in ml (o. ae.) gefuehrtes wie jede andere Form
@@ -212,10 +245,13 @@ export function gueltigeHaltbarkeit(tage: number | null | undefined): boolean {
   return tage == null || (Number.isInteger(tage) && tage >= 1 && tage <= 3650)
 }
 
-/** Bis wann der angebrochene Behaelter haelt (`YYYY-MM-DD`), oder null. */
+/**
+ * Bis wann der angebrochene Behaelter haelt (`YYYY-MM-DD`), oder null — ohne
+ * das Ablaufdatum: `haltbarkeitFuer` unterscheidet „Anbruch vorbei" von
+ * „Packung abgelaufen" und nimmt selbst die fruehere Frist.
+ */
 export function haltbarBis(inventory: StackItemInventory): string | null {
-  if (!inventory.opened_at || !inventory.use_within_days) return null
-  return format(addDays(parseISO(inventory.opened_at), inventory.use_within_days), 'yyyy-MM-dd')
+  return aufbrauchenBis(inventory.opened_at, inventory.use_within_days)
 }
 
 /**
