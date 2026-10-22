@@ -2024,9 +2024,13 @@ main.flex-1 {
    springen. Nur Deckkraft und Verschiebung: beides laeuft auf dem Compositor. */
 @media (prefers-reduced-motion: no-preference) {
   .stack-reveal { animation: stack-reveal-in 280ms cubic-bezier(0.23, 1, 0.32, 1); }
-  .stack-form-card { transition-property: color, background-color, border-color, transform; }
-  .stack-form-card:active { transform: scale(0.96); }
+  .stack-form-art { transition: filter 240ms cubic-bezier(0.23, 1, 0.32, 1), opacity 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .stack-form-option { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .stack-form-option:active { transform: scale(0.96); }
 }
+/* Nicht gewaehlte Formen grau und leiser — gewaehlt in Farbe. */
+.stack-form-art:not([data-gewaehlt]) { filter: grayscale(1); opacity: 0.55; }
+
 @keyframes stack-reveal-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
