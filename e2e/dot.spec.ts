@@ -7,13 +7,16 @@ import { expect, test } from './support/fixtures'
  */
 
 const logo = (page: import('@playwright/test').Page) => page.locator('[data-tyd-slot="dot"]')
+const bereit = async (page: import('@playwright/test').Page) => {
+  await expect(logo(page)).toHaveAttribute('data-dot-bereit', 'true')
+}
 const lassLaufen = async (page: import('@playwright/test').Page, ms: number) => {
   for (let t = 0; t < ms; t += 100) await page.clock.runFor(100)
 }
 
 test('ohne Pro bleibt Dot im Haus und sagt, dass es Pro braucht', async ({ page, mock }) => {
   await page.goto('/')
-  await expect(logo(page)).toBeVisible()
+  await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await logo(page).click()
   await lassLaufen(page, 600)
@@ -27,6 +30,7 @@ test('mit Pro: herausholen, einwilligen, fragen, zurück ins Haus', async ({ pag
   profil.pro_until = '2099-01-01T00:00:00.000Z'
   mock.coach.antwort = 'Heute ist nichts geplant. Genieß den Tag.'
   await page.goto('/')
+  await bereit(page)
   await logo(page).click()
   await lassLaufen(page, 3000)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')

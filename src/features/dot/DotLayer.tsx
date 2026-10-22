@@ -56,7 +56,9 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
   const hit = useRef<HTMLButtonElement>(null)
   const blase = useRef<HTMLDivElement>(null)
   const [dot, setDot] = useState<DotApi | null>(null)
-  const [chat, setChat] = useState<{ offen: boolean; x: number; y: number }>({ offen: false, x: 0, y: 0 })
+  // `inhalt`: der Chat steht im DOM, solange er offen ist und noch kurz beim Schließen (Kreis zieht sich zu)
+  const [chat, setChat] = useState<{ offen: boolean; inhalt: boolean; x: number; y: number }>({ offen: false, inhalt: false, x: 0, y: 0 })
+  const zuT = useRef(0)
   const kontext = useRef<{ wert: DotKontext | null; zeit: number }>({ wert: null, zeit: 0 })
   const dtRef = useRef(dt)
   useEffect(() => { dtRef.current = dt }, [dt])
@@ -132,7 +134,8 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
       },
       beiAntippen: () => {
         const r = hit.current?.getBoundingClientRect()
-        setChat({ offen: true, x: r ? r.left + r.width / 2 : window.innerWidth / 2, y: r ? r.top + r.height / 2 : window.innerHeight / 2 })
+        window.clearTimeout(zuT.current)
+        setChat({ offen: true, inhalt: true, x: r ? r.left + r.width / 2 : window.innerWidth / 2, y: r ? r.top + r.height / 2 : window.innerHeight / 2 })
       },
       beiZustand: z => dotStore.melde(z),
     })
@@ -190,11 +193,15 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
     return () => vv.removeEventListener('resize', messe)
   }, [dot])
 
-  const schliessen = useCallback(() => setChat(c => ({ ...c, offen: false })), [])
-  const heim = useCallback(() => {
+  const schliessen = useCallback(() => {
     setChat(c => ({ ...c, offen: false }))
+    window.clearTimeout(zuT.current)
+    zuT.current = window.setTimeout(() => setChat(c => (c.offen ? c : { ...c, inhalt: false })), 500)
+  }, [])
+  const heim = useCallback(() => {
+    schliessen()
     window.setTimeout(() => dot?.heimgehen(), 480)
-  }, [dot])
+  }, [dot, schliessen])
 
   return (
     <>
@@ -206,6 +213,7 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
       </div>
       <CoachPanel
         offen={chat.offen}
+        inhalt={chat.inhalt}
         ursprung={{ x: chat.x, y: chat.y }}
         seite={seiteVon(pathname)}
         einwilligung={zugang.einwilligung}

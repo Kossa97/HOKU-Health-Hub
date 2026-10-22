@@ -18,9 +18,11 @@ interface DotStand {
   darfRaus: boolean
   /** Ist der Zugang schon geladen? Vorher wird ein Tipp aufs Logo aufgehoben. */
   geladen: boolean
+  /** Engine da und Zugang geladen. */
+  bereit: boolean
 }
 
-let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false }
+let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false, bereit: false }
 let tippWartet = false
 const hoerer = new Set<() => void>()
 let engine: DotApi | null = null
@@ -37,15 +39,19 @@ export const dotStore = {
   melde(z: { modus: DotModus; drinnen: boolean; stoss: boolean }) {
     setze({ modus: z.modus, drinnen: z.drinnen, stoss: stand.stoss + (z.stoss ? 1 : 0) })
   },
-  verbinde(e: DotApi | null, gesperrt: (() => void) | null) { engine = e; beiGesperrt = gesperrt },
+  verbinde(e: DotApi | null, gesperrt: (() => void) | null) {
+    engine = e; beiGesperrt = gesperrt
+    setze({ bereit: !!e && stand.geladen })
+    if (e && stand.geladen && tippWartet) { tippWartet = false; dotStore.logoTipp() }
+  },
   setZugang(darfRaus: boolean, geladen: boolean) {
-    if (darfRaus !== stand.darfRaus || geladen !== stand.geladen) setze({ darfRaus, geladen })
-    if (geladen && tippWartet) { tippWartet = false; dotStore.logoTipp() }
+    if (darfRaus !== stand.darfRaus || geladen !== stand.geladen) setze({ darfRaus, geladen, bereit: geladen && !!engine })
+    if (geladen && engine && tippWartet) { tippWartet = false; dotStore.logoTipp() }
   },
   /** Tipp aufs Logo: rufen, heimschicken, oder sagen, dass es Pro braucht. */
   logoTipp() {
-    if (!engine) return
-    if (!stand.geladen) { tippWartet = true; return }
+    // Noch nicht bereit (Engine oder Zugang lädt): der Tipp wird aufgehoben
+    if (!engine || !stand.geladen) { tippWartet = true; return }
     const was = engine.logoTipp(stand.darfRaus)
     if (was === 'gesperrt') beiGesperrt?.()
   },

@@ -73,6 +73,7 @@ export function BottomNavigation({
         type="button"
         className={`${className} tyd-dot-slot`}
         data-dot-drinnen={dot.drinnen ? 'true' : 'false'}
+        data-dot-bereit={dot.bereit ? 'true' : 'false'}
         onClick={() => dotStore.logoTipp()}
         {...rest}
       >

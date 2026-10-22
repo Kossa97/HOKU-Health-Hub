@@ -32,6 +32,8 @@ const FEHLER: Record<CoachFehler, DotTextKey> = {
 
 export interface CoachPanelProps {
   offen: boolean
+  /** Steht der Inhalt im DOM? Nur offen und kurz beim Schließen. */
+  inhalt: boolean
   ursprung: { x: number; y: number }
   seite: DotSeite
   einwilligung: string | null
@@ -44,7 +46,7 @@ export interface CoachPanelProps {
 
 const warte = (ms: number) => new Promise(r => setTimeout(r, ms))
 
-export function CoachPanel({ offen, ursprung, seite, einwilligung, setEinwilligung, kontext, dot, onSchliessen, onHeim }: CoachPanelProps) {
+export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEinwilligung, kontext, dot, onSchliessen, onHeim }: CoachPanelProps) {
   const { user } = useAuth()
   const { dt, lang } = useDotText()
   const [verlauf, setVerlauf] = useState<CoachNachricht[]>(() => (user ? ladeVerlauf(user.id) : []))
@@ -155,52 +157,57 @@ export function CoachPanel({ offen, ursprung, seite, einwilligung, setEinwilligu
           )}
         </div>
       </header>
-
-      <div ref={buehne} className="tyd-dot-buehne" aria-hidden="true" />
-      <p className="tyd-dot-status" aria-live="polite">{denkt ? dt('chat_denkt') : ''}</p>
-
-      <div ref={faden} className="tyd-dot-faden">
-        {verlauf.length === 0 && !laufend && <p className="tyd-dot-intro">{intro}</p>}
-        {verlauf.map((n, i) => <div key={i} className="tyd-dot-msg" data-rolle={n.rolle}>{n.text}</div>)}
-        {laufend && <div className="tyd-dot-msg" data-rolle="dot" aria-hidden="true">{laufend}</div>}
-      </div>
-
-      {einwilligung ? (
+      {inhalt && (
         <>
-          <div className="tyd-dot-chips">
-            {CHIPS[seite].map((k, i) => (
-              <button key={k} type="button" className="tyd-dot-chip" data-erster={i === 0 && seite !== 'home' && seite !== 'sonst' ? 'true' : undefined} onClick={() => void fragen(dt(k))}>{dt(k)}</button>
-            ))}
-            <button type="button" className="tyd-dot-chip" data-befehl="true" onClick={() => void fragen(dt('chip_heim'))}>{dt('chip_heim')}</button>
-          </div>
-          <form className="tyd-dot-eingabe" onSubmit={e => { e.preventDefault(); void fragen(eingabe) }}>
-            <input
-              value={eingabe}
-              onChange={e => setEingabe(e.target.value)}
-              placeholder={dt('chat_platzhalter')}
-              aria-label={dt('chat_platzhalter')}
-              maxLength={500}
-              enterKeyHint="send"
-            />
-            <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
-          </form>
-          <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>
+          <div ref={buehne} className="tyd-dot-buehne" aria-hidden="true" />
+          <p className="tyd-dot-status" aria-live="polite">{denkt ? dt('chat_denkt') : ''}</p>
+
+          {einwilligung && (
+            <div ref={faden} className="tyd-dot-faden">
+              {verlauf.length === 0 && !laufend && <p className="tyd-dot-intro">{intro}</p>}
+              {verlauf.map((n, i) => <div key={i} className="tyd-dot-msg" data-rolle={n.rolle}>{n.text}</div>)}
+              {laufend && <div className="tyd-dot-msg" data-rolle="dot" aria-hidden="true">{laufend}</div>}
+            </div>
+          )}
+
+          {einwilligung ? (
+            <>
+              <div className="tyd-dot-chips">
+                {CHIPS[seite].map((k, i) => (
+                  <button key={k} type="button" className="tyd-dot-chip" data-erster={i === 0 && seite !== 'home' && seite !== 'sonst' ? 'true' : undefined} onClick={() => void fragen(dt(k))}>{dt(k)}</button>
+                ))}
+                <button type="button" className="tyd-dot-chip" data-befehl="true" onClick={() => void fragen(dt('chip_heim'))}>{dt('chip_heim')}</button>
+              </div>
+              <form className="tyd-dot-eingabe" onSubmit={e => { e.preventDefault(); void fragen(eingabe) }}>
+                <input
+                  value={eingabe}
+                  onChange={e => setEingabe(e.target.value)}
+                  placeholder={dt('chat_platzhalter')}
+                  aria-label={dt('chat_platzhalter')}
+                  maxLength={500}
+                  enterKeyHint="send"
+                />
+                <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+              </form>
+              <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>
+            </>
+          ) : (
+            <div className="tyd-dot-einw">
+              <h2>{dt('einw_titel')}</h2>
+              <p>{dt('einw_text')}</p>
+              <ul>
+                <li>{dt('einw_punkt_1')}</li>
+                <li>{dt('einw_punkt_2')}</li>
+                <li>{dt('einw_punkt_3')}</li>
+              </ul>
+              {einwFehler && <p className="tyd-dot-fehler" role="alert">{dt('einw_fehler')}</p>}
+              <div className="tyd-dot-einw-knoepfe">
+                <button type="button" className="tyd-dot-knopf" onClick={schliessen}>{dt('einw_nein')}</button>
+                <button type="button" className="tyd-dot-knopf" data-haupt="true" onClick={() => void einwilligen(true)}>{dt('einw_ja')}</button>
+              </div>
+            </div>
+          )}
         </>
-      ) : (
-        <div className="tyd-dot-einw">
-          <h2>{dt('einw_titel')}</h2>
-          <p>{dt('einw_text')}</p>
-          <ul>
-            <li>{dt('einw_punkt_1')}</li>
-            <li>{dt('einw_punkt_2')}</li>
-            <li>{dt('einw_punkt_3')}</li>
-          </ul>
-          {einwFehler && <p className="tyd-dot-fehler" role="alert">{dt('einw_fehler')}</p>}
-          <div className="tyd-dot-einw-knoepfe">
-            <button type="button" className="tyd-dot-knopf" onClick={schliessen}>{dt('einw_nein')}</button>
-            <button type="button" className="tyd-dot-knopf" data-haupt="true" onClick={() => void einwilligen(true)}>{dt('einw_ja')}</button>
-          </div>
-        </div>
       )}
     </section>
   )
