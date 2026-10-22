@@ -45,6 +45,23 @@ vom Style her auch wie Siri, passend zur App“.
   - Regler „Weichheit“ (fest ↔ weich) zum Abstimmen; Standard 0,55.
   - In der App dazu: Haptik nach Aufprallstärke, Ausweichen vor der Tastatur.
 
+- **Weicher Körper mit Formgedächtnis (Nutzer 22.10.: „noch weicher, organischer,
+  unregelmäßiger; aus der Ecke erst eckig, dann nach und nach rund; Wackeln je nach
+  Tempo und Richtung; erholt sich, wenn er langsamer wird oder steht“).** Mockup v4:
+  - Rand aus 72 Punkten (Auslenkung, Geschwindigkeit), gekoppelt über Spannung →
+    Wellen laufen um den Rand; innere Reibung dämpft feine Wellen schneller als grobe.
+  - Trägheit: Beschleunigung (beim Ziehen aus der Hand, sonst aus der Physik) staucht
+    die Vorderseite und lässt die Rückseite nachquellen; im Flug längs gestreckt.
+  - Unregelmäßig: jede Stelle eigene Steifigkeit und Trägheit, dazu leises Atmen aus
+    drei überlagerten Wellen.
+  - Wände begrenzen jeden Randpunkt einzeln (echte flache Seite, Ecke = eckig), Fläche
+    bleibt erhalten (quillt an freien Stellen heraus).
+  - Gedächtnis: an der Wand nimmt Dot die Form an (Ecke prägt sich ein), harte
+    Stauchung hinterlässt Dellen. Erholung nur in Ruhe: Tempo unter ~380 px/s, an der
+    Wand kaum, beim Ziehen halb; Ecken runden sich zuerst (Diffusion). Heilende Stellen
+    leuchten leise auf.
+  - Regler Standard 0,72 (Stufen fest / mittel / weich / Gelee).
+
 ## Offen
 - Weichheit festlegen; Randleuchten behalten?; Name bestätigen.
 - Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
