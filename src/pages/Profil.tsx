@@ -280,6 +280,7 @@ function LookSwitcher() {
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
     { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
+    { key: 'nacht', label: String(t('look_night', { defaultValue: 'Nacht' })) },
   ]
   return (
     <div style={{ marginTop: 24 }} data-look-switcher>
@@ -297,7 +298,7 @@ function LookSwitcher() {
       />
       {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum.' })}
       </p>
       </div>
     </div>
