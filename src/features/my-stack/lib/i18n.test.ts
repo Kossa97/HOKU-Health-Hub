@@ -1360,6 +1360,26 @@ const EXPECTED_MY_STACK_KEYS = [
   'fehler_text',
   'fehler_neu_laden',
   'fehler_zum_start',
+  'my_stack_form_question',
+  'my_stack_form_more',
+  'my_stack_color_of_liquid',
+  'my_stack_color_hint',
+  'my_stack_strength_skip',
+  'my_stack_strength_skipped_title',
+  'my_stack_strength_skipped_text',
+  'my_stack_strength_unskip',
+  'my_stack_shelf_opened_angemischt',
+  'my_stack_shelf_opened_angebrochen',
+  'my_stack_shelf_opened_benutzung',
+  'my_stack_shelf_opened_geoeffnet',
+  'my_stack_shelf_within_angemischt',
+  'my_stack_shelf_within_angebrochen',
+  'my_stack_shelf_within_benutzung',
+  'my_stack_shelf_within_geoeffnet',
+  'my_stack_shelf_expiry',
+  'my_stack_shelf_use_by',
+  'my_stack_shelf_ampoule_hint',
+  'my_stack_inventory_needs_strength',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1387,26 +1407,28 @@ const EXPECTED_MY_STACK_KEYS = [
 // tagebuch_verlauf_titel(_monat) heisst jetzt „Wirkungen und Nebenwirkungen pro …" (nur de/en).
 // Bewusst geaendert (Oktober 2026): neuer Chip (Variante A) — tagebuch_info_art_text und
 // tagebuch_info_intensitaet_text beschreiben Farbe und Punkte (nur de/en).
+// Bewusst geaendert (Oktober 2026): Erscheinungsbild „Nacht" — look_hint nennt
+// den vierten Look (nur de/en); look_night ist neu (englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'b4990cf4f37cb779e02dcf8c72feb56b128eddfe492c7af9ba04071cb8ac505f',
-  en: 'da90ca7335d56050262b5c16c32c0e58e8de412fdd732a6e396158b968460964',
+  de: '04dec887fc7400db5b55585f40d0c3b0e36d33256fa4f5682539cc1b4f264210',
+  en: '82b8adf101d237f711c79756312fb42559255b60172e1ffa23fd3546fcdd4930',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'e24d134f813700c100e714ec07fe5182d0e547074435cfbb98b30e8723de4e96',
-  es: 'ece7ce12021db87616c67ebf864abf639f2a9b858296907bbb3452eaad08b05a',
-  fr: 'a69d290be5af3a81e537ad7b77c466d7a891d84b53fe742fd1a3cf6609818740',
-  hi: '6010f50c692eacbfb36b2ecc43f6d63813d4dc85bac1aab81cea27476ec3d1cb',
-  id: '619079bd454acccd55068b954af7409014759b397a5c74af88b60b52130243e0',
-  it: 'e486312d79151dc2369b0347a861f5fc16769d07c31cf96ac8e92f9caba0faf5',
-  ja: '5a10f22adb08bff08939866566413c95cc1c5f78b7fd9f9d1b48ffe9a6effab7',
-  ko: '202ce164c6aaf61f62e249a04367539548eb82b844c3cab48bb9fb3e8c4bb4f1',
-  pt: '3da43027b3da7eb0fe1fbf26aba68372b2aeb7b6f1e58f28873d8559a4cd5e70',
-  ru: 'ef0b9a5274c1a5ae1a16361c1421ae60506038123217b9bedbd519d5d5d71fa4',
-  tr: 'cea29efa419bdcf7904d055cbb9a342940480dba74b19b3eee2f17bce9e915be',
-  zh: '9f570893e6976f6ccc73b717d6800115a7ce82d891c0111105d342d8765498c1',
+  ar: '0eb167251ccb2dc98b683307bb20cadf6a1db036a4ce9f4ecaf0030a3a2b4027',
+  es: 'cadb95a6229967f025062540f1216be70a35b6ff580578c47d973d749b11ad34',
+  fr: 'ade21283e2026c632dd05c65a2a0448fb0e335206f03e374f92e62cd93aaa9b4',
+  hi: 'ef49c74d32fe3398362fdc33ab3c94b2d120b4ceff882a3a5e20acb6691b7c5f',
+  id: 'a518cc9e699494063979fcf9665b05b982cb536e037d1f7515da1c385c0cd04b',
+  it: '2810cd7c79b671b210f16b486b3bb2de5be245aeb42d88bc5c4cc016b47fa42d',
+  ja: '985daefbf9f9de72fee5c1b61087917a11be4713d96fa48a4d475d95719ddb44',
+  ko: '68f920907ecd101df074ab2826a36bc755b1458c7f3b25f4a6a8c8c2b2b22526',
+  pt: '4f8ee7e197ef9a9c49764201ab383a5f12b412df960e943246ec952182254069',
+  ru: '2033203083967f8a3c04abb5b6ef61f56cd9e9ad18117ae8afe3aab2462314b6',
+  tr: 'f028b1d329164f810478ce8579dc94cba974b911b8e8c094fe5357231b2a2ea7',
+  zh: '9ae45070af9121a6195d3f71f75d5fb3359d709eea5555fd070f1996f80bc2f7',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

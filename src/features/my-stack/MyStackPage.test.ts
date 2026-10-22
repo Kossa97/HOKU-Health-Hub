@@ -471,8 +471,9 @@ describe('My Stack page vial view', () => {
     const text = source()
 
     expect(text).toContain('className="lg-kv"')
-    expect(text).toContain("'my_stack_stock_use_within_vial'")
-    expect(text).toContain("'my_stack_stock_mixed_on'")
+    // Haltbarkeit mit denselben Woertern wie im Assistenten (`haltbarkeitArt`).
+    expect(text).toContain('`my_stack_shelf_within_${haltbarArt}`')
+    expect(text).toContain('`my_stack_shelf_opened_${haltbarArt}`')
     expect(text).toContain("'my_stack_stock_document'")
     expect(text).not.toContain('Peptidname')
     expect(text).not.toContain('Rohe Vials in Reserve')

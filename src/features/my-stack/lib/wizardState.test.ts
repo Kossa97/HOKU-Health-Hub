@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bestandteileAufloesen } from './kombination'
 import { naechsterSlot } from './wizardState'
 import { emptyRhythm } from './intakeRhythm'
-import type { DosageFormKey, IntakePlanDraft, StackItem, StackItemIngredient, SubstanceCatalogEntry } from '../types'
+import type { IntakePlanDraft, StackItem, StackItemIngredient, SubstanceCatalogEntry } from '../types'
 import type { PlanScheduleSnapshot } from '../../../lib/planTimeline'
 import {
   canContinue,
@@ -180,9 +180,11 @@ describe('wizard state', () => {
   })
 
   it.each([
-    ['intake_only', ['substance', 'dosage_form', 'color', 'tracking_level', 'plan', 'review']],
-    ['with_amount', ['substance', 'dosage_form', 'color', 'tracking_level', 'plan', 'review']],
-    ['complete', ['substance', 'dosage_form', 'color', 'tracking_level', 'ingredients', 'strength', 'plan', 'review']],
+    // Vier Seiten; die Zusammensetzung steht immer da (mit Haltbarkeit und
+    // „Doch angeben"), die Zutatennamen nur mit Staerke.
+    ['intake_only', ['substance', 'strength', 'plan', 'review']],
+    ['with_amount', ['substance', 'strength', 'plan', 'review']],
+    ['complete', ['substance', 'ingredients', 'strength', 'plan', 'review']],
   ] as const)('builds the %s path', (trackingLevel, expected) => {
     const state = wizardReducer(
       initialWizardState(),
@@ -192,27 +194,24 @@ describe('wizard state', () => {
     expect(wizardSteps(state)).toEqual(expected)
   })
 
-  it('laesst den Farbschritt weg, wo die Form die Farbe nicht zeigt', () => {
-    // `color_hex` wird ausschliesslich von der Buehnengrafik gezeigt. Pflaster
-    // und Tube zeigen sie bewusst nicht (hautfarben, Aluminium), `other` hat
-    // gar keine Grafik. Vorher stand der Schritt trotzdem da: man zog an der
-    // Farbflaeche, und nichts nahm die Farbe an — bei `other` war der Schritt
-    // sogar voellig leer.
-    const mitForm = (dosageForm: DosageFormKey) => wizardSteps(wizardReducer(
-      initialWizardState(),
-      { type: 'dosage_form_selected', dosageForm },
-    ))
+  it('vergisst Oeffnungsdatum und Haltbarkeit, wenn die neue Form keine kennt', () => {
+    const tropfen = wizardReducer(initialWizardState(), { type: 'dosage_form_selected', dosageForm: 'drops' })
+    const eingetragen = wizardReducer(tropfen, { type: 'inventory_changed', changes: { openedAt: '2026-10-20', useWithinDays: 30, expiresAt: '2027-01-01' } })
+    const kapsel = wizardReducer(eingetragen, { type: 'dosage_form_selected', dosageForm: 'capsule' })
+    expect(kapsel.draft.inventory).toMatchObject({ openedAt: null, useWithinDays: null, expiresAt: '2027-01-01' })
+    const spray = wizardReducer(eingetragen, { type: 'dosage_form_selected', dosageForm: 'spray' })
+    expect(spray.draft.inventory).toMatchObject({ openedAt: '2026-10-20', useWithinDays: 30 })
+  })
 
-    for (const ohneFarbe of ['patch', 'tube', 'other'] as const) {
-      expect(mitForm(ohneFarbe), ohneFarbe).not.toContain('color')
+  it('fragt Form, Farbe und Tracking-Tiefe nicht mehr in eigenen Schritten', () => {
+    // Form und Farbe stehen auf der Substanzseite, die Tiefe ergibt sich aus
+    // der Zusammensetzung (ueberspringen = mit Menge).
+    for (const dosageForm of ['patch', 'vial', 'tube', 'capsule', 'other'] as const) {
+      const steps = wizardSteps(wizardReducer(initialWizardState(), { type: 'dosage_form_selected', dosageForm }))
+      expect(steps, dosageForm).not.toContain('dosage_form')
+      expect(steps, dosageForm).not.toContain('color')
+      expect(steps, dosageForm).not.toContain('tracking_level')
     }
-    for (const mitFarbe of ['vial', 'ampoule', 'pen', 'tablet', 'capsule', 'drops', 'powder', 'nasal_spray', 'spray', 'gel'] as const) {
-      expect(mitForm(mitFarbe), mitFarbe).toContain('color')
-    }
-
-    // Solange keine Form feststeht, bleibt der Schritt drin — er kommt
-    // ohnehin erst nach dem Formschritt.
-    expect(wizardSteps(initialWizardState())).toContain('color')
   })
 
   it('laesst den Zutatenschritt weg, wo der Katalog die Namen schon kennt', () => {
@@ -268,12 +267,11 @@ describe('wizard state', () => {
     // Schrittzahl, solange sie fehlte. Jetzt steht sie von Anfang an fest,
     // und damit auch die Schrittliste.
     const initial = initialWizardState()
-    const trackingStep = { ...initial, step: 'tracking_level' as const }
+    const trackingStep = { ...initial, step: 'plan' as const }
 
     expect(initial.draft.trackingLevel).toBe('complete')
-    expect(firstInvalidField(trackingStep)).toBeNull()
     expect(wizardSteps(initial)).toEqual([
-      'substance', 'dosage_form', 'color', 'tracking_level', 'ingredients', 'strength', 'plan', 'review',
+      'substance', 'ingredients', 'strength', 'plan', 'review',
     ])
 
     // Zuruecknehmen bleibt moeglich, und die Schrittliste folgt.
@@ -282,9 +280,8 @@ describe('wizard state', () => {
       { type: 'tracking_level_selected', trackingLevel: 'intake_only' },
     )
     expect(flacher.draft.trackingLevel).toBe('intake_only')
-    expect(firstInvalidField(flacher)).toBeNull()
     expect(wizardSteps(flacher)).toEqual([
-      'substance', 'dosage_form', 'color', 'tracking_level', 'plan', 'review',
+      'substance', 'strength', 'plan', 'review',
     ])
 
     // Ein bestehender Eintrag bringt seine eigene Stufe mit.
@@ -316,7 +313,7 @@ describe('wizard state', () => {
     expect(next.draft.inventory).toEqual(completeDraft.inventory)
     expect(next.draft.pkProfileMethod).toBe('oral')
     expect(wizardSteps(next)).toEqual([
-      'substance', 'dosage_form', 'color', 'tracking_level', 'plan', 'review',
+      'substance', 'strength', 'plan', 'review',
     ])
   })
 
@@ -844,7 +841,10 @@ describe('wizard state', () => {
     expect(firstInvalidField(initial)).toBe('displayName')
     expect(canContinue(custom)).toBe(false)
     expect(firstInvalidField(custom)).toBe('category')
-    expect(canContinue(wizardReducer(custom, { type: 'category_selected', category: 'supplement' })))
+    // Die Form steht auf derselben Seite — ohne sie geht es nicht weiter.
+    const mitKategorie = wizardReducer(custom, { type: 'category_selected', category: 'supplement' })
+    expect(firstInvalidField(mitKategorie)).toBe('dosageForm')
+    expect(canContinue(wizardReducer(mitKategorie, { type: 'dosage_form_selected', dosageForm: 'capsule' })))
       .toBe(true)
   })
 
@@ -866,7 +866,7 @@ describe('wizard state', () => {
     })
     const dosageFormStep = wizardReducer(catalogState, {
       type: 'step_selected',
-      step: 'dosage_form',
+      step: 'substance',
     })
     const withDosageForm = wizardReducer(dosageFormStep, {
       type: 'dosage_form_selected',
