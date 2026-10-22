@@ -16,11 +16,11 @@ import type { PlanChangeKind, PlanScheduleSnapshot } from '../../../lib/planTime
 import { format } from 'date-fns'
 import { buildDuplicateFingerprint } from './duplicateFingerprint'
 import { powderVialIngredientsForEdit } from './vialStrength'
+import { haltbarkeitArt } from './bestand'
 import {
   defaultIntakeUnitFor,
   defaultMethodFor,
   getIntakePlanUnitSuggestions,
-  showsColor,
   strengthBasisDefault,
 } from './dosageForms'
 import { WEEKDAY_KEYS, emptyRhythm, isOnDemandRhythm } from './intakeRhythm'
@@ -33,10 +33,7 @@ import type { AltSpalten } from './produktAngaben'
 export type WizardStep =
   | 'substance'
   | 'ingredients'
-  | 'dosage_form'
-  | 'color'
   | 'strength'
-  | 'tracking_level'
   | 'plan'
   | 'review'
 
@@ -161,38 +158,32 @@ export function zutatenAusDemKatalog(ingredients: readonly StackItemIngredient[]
 }
 
 export function wizardSteps(state: WizardState): WizardStep[] {
-  // Die Farbe wird ausschliesslich von der Buehnengrafik gezeigt. Pflaster
-  // und Tube zeigen sie bewusst nicht (hautfarben, Aluminium), `other` hat gar
-  // keine Grafik — dort ging die Wahl ins Leere: man zog an der Flaeche, und
-  // nichts nahm die Farbe an. Ein Schritt, dessen Antwort nirgends ankommt,
-  // wird nicht gestellt. Solange keine Form feststeht, bleibt er drin: er
-  // kommt ohnehin erst nach dem Formschritt.
-  const farbeZeigtSich = state.draft.dosageForm === null || showsColor(state.draft.dosageForm)
-  const gemeinsam: WizardStep[] = farbeZeigtSich
-    ? ['substance', 'dosage_form', 'color', 'tracking_level']
-    : ['substance', 'dosage_form', 'tracking_level']
-
-  // Frueher stand hier ein Sonderfall fuer „Tiefe noch nicht gewaehlt": dann
-  // war die Schrittzahl offen. Seit der Entwurf mit „Gruendlich" startet,
-  // steht immer eine Tiefe fest — und damit auch, welche Schritte folgen.
-  const kann = trackingCapabilities(state.draft.trackingLevel)
+  // Vier Seiten: Substanz (mit Form und Farbe), Zusammensetzung, Einnahme,
+  // Ueberblick. Form, Farbe und Tracking-Tiefe hatten frueher je einen
+  // eigenen Schritt — sieben Seiten fuer eine Substanz. Die Form waehlt man
+  // jetzt im kleinen Karussell unter dem Treffer, die Farbe gleich darunter,
+  // und die Tiefe ergibt sich: wer die Staerke eintraegt, trackt gruendlich,
+  // wer sie ueberspringt, mit Menge (`tracking_level_selected`).
+  //
   // Der Zutatenschritt fragt nur nach NAMEN — die Mengen stehen im Schritt
   // danach, und der zeigt ohnehin je Zutat eine eigene Karte mit ihrem Namen
   // als Ueberschrift. Haengt jede Zutat an einer Katalogsubstanz, sind die
   // Namen also schon entschieden: bei einem Kombipraeparat hat der
   // Katalogeintrag sie mitgebracht, bei einer einzelnen Substanz ist es der
-  // Eintrag selbst. Dann bestaetigt der Schritt nur noch, was feststeht — und
-  // die Pruefung dort kann gar nicht mehr ausschlagen (`validateIngredient`
-  // verlangt einen Namen nur ohne Katalog-id).
-  const wirkstoffSchritte: WizardStep[] = kann.productStrength
-    ? (zutatenAusDemKatalog(state.draft.ingredients) ? ['strength'] : ['ingredients', 'strength'])
+  // Eintrag selbst. Ohne Staerke braucht es die Namen gar nicht.
+  //
+  // Die Zusammensetzung steht immer da, auch uebersprungen: sie traegt
+  // zugleich die Haltbarkeit, und „Doch angeben" muss erreichbar bleiben.
+  const kann = trackingCapabilities(state.draft.trackingLevel)
+  const zutaten: WizardStep[] = kann.productStrength && !zutatenAusDemKatalog(state.draft.ingredients)
+    ? ['ingredients']
     : []
 
-  return [...gemeinsam, ...wirkstoffSchritte, 'plan', 'review']
+  return ['substance', ...zutaten, 'strength', 'plan', 'review']
 }
 
 /** Abschnitte der Bearbeiten-Uebersicht. */
-export type EditSectionId = 'substance' | 'form' | 'tracking' | 'composition' | 'product'
+export type EditSectionId = 'substance' | 'composition' | 'product'
 
 export interface EditSection {
   id: EditSectionId
@@ -202,8 +193,6 @@ export interface EditSection {
 
 const EDIT_SECTION_STEPS: ReadonlyArray<readonly [EditSectionId, readonly WizardStep[]]> = [
   ['substance', ['substance']],
-  ['form', ['dosage_form', 'color']],
-  ['tracking', ['tracking_level']],
   ['composition', ['ingredients', 'strength']],
   ['product', ['plan']],
 ]
@@ -211,8 +200,8 @@ const EDIT_SECTION_STEPS: ReadonlyArray<readonly [EditSectionId, readonly Wizard
 /**
  * „Bearbeiten" fuehrt nicht noch einmal durch alle Schritte, sondern zeigt
  * eine Uebersicht. Jede Zeile oeffnet einen Abschnitt aus einem oder zwei
- * Schritten; Farbe gehoert zur Form, die Zutaten zur Staerke. Ob es sie gibt,
- * haengt wie beim Anlegen an Form und Tracking-Tiefe.
+ * Schritten; Form und Farbe gehoeren zur Substanz, die Zutaten zur Staerke.
+ * Ob es den Zutatenschritt gibt, haengt wie beim Anlegen an der Tracking-Tiefe.
  */
 export function editSections(steps: readonly WizardStep[]): EditSection[] {
   return EDIT_SECTION_STEPS
@@ -719,6 +708,12 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
             ...ingredient,
             ...basis,
           })),
+          // Kennt die neue Form keine Haltbarkeit nach dem Oeffnen (Kapsel,
+          // Ampulle), fallen Datum und Tage weg — die Felder stehen dann
+          // nirgends mehr, gespeichert wuerden sie trotzdem.
+          inventory: haltbarkeitArt(action.dosageForm, state.draft.category)
+            ? state.draft.inventory
+            : { ...state.draft.inventory, openedAt: null, useWithinDays: null },
         },
       }
     }
@@ -786,13 +781,15 @@ export function firstInvalidField(state: WizardState, validatePlan = true): stri
     if (nameError) return nameError
   }
 
-  if (state.step === 'dosage_form' || state.step === 'strength' || state.step === 'review') {
+  // Die Form waehlt man auf der Substanzseite — weiter geht es erst mit ihr.
+  if (state.step === 'substance' || state.step === 'strength' || state.step === 'review') {
     if (errors.dosageForm) return 'dosageForm'
   }
 
+  // Uebersprungen (Tiefe „mit Menge") fragt die Zusammensetzung keine Staerke ab.
   if (
-    state.step === 'strength'
-    || (state.step === 'review' && state.draft.trackingLevel === 'complete')
+    (state.step === 'strength' || state.step === 'review')
+    && state.draft.trackingLevel === 'complete'
   ) {
     const strengthError = firstIngredientError(
       state,

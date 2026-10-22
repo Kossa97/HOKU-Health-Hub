@@ -12,7 +12,6 @@ import {
   X,
 } from 'lucide-react'
 import {
-  useCallback,
   useEffect,
   useMemo,
   useReducer,
@@ -49,25 +48,21 @@ import { fuehrendeMenge, inWochenfolge, rhythmSummary, rhythmText } from '../lib
 import { weekdayLabel } from '../lib/planLabels'
 import { validateIntakePlan, validateStackItemDraft } from '../lib/validation'
 import { evaluatePkReadiness, pkRouteAccepted, pkRouteStatus, toPkMilligrams } from '../lib/pkReadiness'
-import { useSloshEngine } from '../../../components/SloshContext'
-import { isStageRenderable } from '../lib/dosageForms'
+import { isStageRenderable, showsColor } from '../lib/dosageForms'
 import { methodLabel } from '../../../lib/intakeMethods'
-import { objektSkala } from '../lib/objektSkala'
-import { DosageFormPicker } from './DosageFormPicker'
 import { DosageFormPreview } from './DosageFormPreview'
-import { ColorSwatchPicker } from '../../../components/ColorSwatchPicker'
 import { IngredientEditor } from './IngredientEditor'
 import { IntakePlanEditor } from './IntakePlanEditor'
 import { PlannedStepsReview, type ReviewStepErrors } from './PlannedStepsReview'
 import { ProductInventorySection } from './ProductInventorySection'
-import { AnmischAngaben } from './AnmischAngaben'
+import { FormUndFarbe } from './FormUndFarbe'
+import { HaltbarkeitAngaben } from './HaltbarkeitAngaben'
 import { StrengthEditor } from './StrengthEditor'
-import { TrackingLevelPicker } from './TrackingLevelPicker'
 import { SubstanceSearch } from './SubstanceSearch'
 import { SubstanzScanner } from './SubstanzScanner'
 import { scanAktionen, type ScanVorschlag } from '../lib/substanzScan'
 import { reportError } from '../../../lib/monitoring'
-import { gueltigeFluessigkeit, gueltigeHaltbarkeit, istLoesungsVial } from '../lib/bestand'
+import { aufbrauchenBis, gueltigeFluessigkeit, gueltigeHaltbarkeit, haltbarkeitArt } from '../lib/bestand'
 
 /**
  * Der Plan, der am Stichtag bisher gilt (`planBaseAt`). Null, solange bei
@@ -197,8 +192,10 @@ function pkIntentSteps(
   pkRoutes: readonly string[] = [],
 ): WizardStep[] {
   const steps: WizardStep[] = []
-  if (item.tracking_level !== 'complete') steps.push('tracking_level')
-  const strengthMissing = item.ingredients.some(ingredient => (
+  // Ohne Staerke (Tiefe unter „gruendlich") geht es ueber die
+  // Zusammensetzung: dort steht „Doch angeben" — und der Assistent startet
+  // fuer „PK vervollstaendigen" ohnehin gruendlich (siehe unten).
+  const strengthMissing = item.tracking_level !== 'complete' || item.ingredients.some(ingredient => (
     ingredient.amount_value == null
     || !Number.isFinite(ingredient.amount_value)
     || ingredient.amount_value <= 0
@@ -234,10 +231,7 @@ const FOCUSABLE_SELECTOR = [
 const STEP_LABELS: Record<WizardStep, { key: string; defaultValue: string }> = {
   substance: { key: 'my_stack_step_substance', defaultValue: 'Substanz' },
   ingredients: { key: 'my_stack_step_ingredients', defaultValue: 'Inhaltsstoffe' },
-  dosage_form: { key: 'my_stack_step_dosage_form', defaultValue: 'Darreichungsform' },
-  color: { key: 'my_stack_step_color', defaultValue: 'Farbe' },
-  tracking_level: { key: 'my_stack_step_tracking_level', defaultValue: 'Tracking-Tiefe' },
-  strength: { key: 'my_stack_step_strength', defaultValue: 'Stärke' },
+  strength: { key: 'my_stack_edit_section_composition', defaultValue: 'Zusammensetzung' },
   plan: { key: 'my_stack_step_plan', defaultValue: 'Einnahmeplan' },
   review: { key: 'my_stack_step_review', defaultValue: 'Zusammenfassung' },
 }
@@ -251,8 +245,10 @@ function fehlerText(error: unknown): string {
 
 function stepForInvalidField(field: string): WizardStep {
   if (field === 'displayName' || field === 'category') return 'substance'
-  if (field === 'dosageForm') return 'dosage_form'
-  if (field === 'trackingLevel') return 'tracking_level'
+  if (field === 'dosageForm') return 'substance'
+  // Haltbarkeit und Fluessigkeit stehen in der Zusammensetzung, der Bestand im Ueberblick.
+  if (field === 'trackingLevel' || ['inventory.openedAt', 'inventory.useWithinDays', 'inventory.expiresAt', 'inventory.reconstitutionMl'].includes(field)) return 'strength'
+  if (field === 'inventory' || field.startsWith('inventory.')) return 'review'
   if (field.startsWith('plan.')) return 'plan'
   if (field.endsWith('.name')) return 'ingredients'
   return 'strength'
@@ -297,7 +293,11 @@ export function StackItemWizard({
       const initial = initialWizardState(existingItem, initialColorHex, selectedPlan)
       if (intent === 'plan') initial.step = 'plan'
       if (editOverview) initial.step = 'review'
-      if (pkIntentStepList) initial.step = pkIntentStepList[0]
+      if (pkIntentStepList) {
+        initial.step = pkIntentStepList[0]
+        // Das PK-Profil braucht die Staerke — wer es vervollstaendigt, trackt gruendlich.
+        initial.draft = { ...initial.draft, trackingLevel: 'complete' }
+      }
       return initial
     },
   )
@@ -350,114 +350,6 @@ export function StackItemWizard({
   const dialogRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const duplicateActionRef = useRef<HTMLButtonElement>(null)
-
-  // Dieselbe Physik wie im Stack und im Karussell: eine Engine je Ansicht.
-  // Ohne sie ueberspringen die Renderer ihren `SloshProvider` und jede Form
-  // steht still — kein Nachschwappen, kein Rollen der Tablette und auch nicht
-  // die leise Daueroberflaeche, die die Fluessigkeit ueberhaupt lebendig
-  // aussehen laesst. Auf dem Farbschritt ist das Objekt das Hauptbild des
-  // Schritts; dort ist Stillstand am auffaelligsten.
-  const sloshEngine = useSloshEngine()
-
-  // Wie gross das Objekt auf dem Farbschritt steht: die Flaeche darueber ist
-  // `flex-1` und je nach Bildschirm und Darreichungsform unterschiedlich
-  // gross — eine feste Skala fuellte sie mal aus, mal liess sie halb leer.
-  //
-  // Vergroessert wird mit `zoom`, nicht mit einem CSS-Transform. Ein
-  // Transform skaliert nur das schon fertig gemalte Bild: die Buehnenformen
-  // haben feste Pixelwerte fuer Schatten, Kanten-Weichzeichner und das
-  // Glasetikett (`backdrop-blur`, `box-shadow`) — bei einem groesseren
-  // Transform (hier bis zu 4x) blieben die auf ihrer urspruenglichen, kleinen
-  // Groesse und wurden mit hochskaliert: weich, verwaschen, das Etikett nicht
-  // mehr das, was gebaut wurde. `zoom` aendert stattdessen die tatsaechlichen
-  // Layout-Masse — der Browser rechnet SVG, Schrift, Schatten und
-  // Weichzeichner beim neuen, groesseren Wert neu, genau wie beim „echten"
-  // Groesserwerden.
-  //
-  // `farbschrittPlatzRef` misst die Flaeche, `farbschrittVorschauRef` das
-  // Objekt darin. Anders als bei einem Transform aendert `zoom` aber genau
-  // die Masse, die `offsetHeight`/`offsetWidth` liefern — deshalb wird der
-  // Zoom vor jeder Messung erst auf 1 zurueckgesetzt, sonst maesse die
-  // naechste Messung die vorherige Vergroesserung mit und schaukelte sich
-  // auf (dieselbe Falle wie im Karussell, nur an einer anderen Stelle).
-  const farbschrittPlatzRef = useRef<HTMLDivElement | null>(null)
-  const farbschrittVorschauRef = useRef<HTMLSpanElement | null>(null)
-  // `null` heisst „noch nicht gemessen". Nicht 1: 1 hiesse „native Groesse",
-  // und die ist beim Pen 589 px hoch — in einer 420 px hohen Flaeche waere das
-  // ein abgeschnittenes Objekt, sei es auch nur fuer ein paar Bilder.
-  const [farbschrittSkala, setFarbschrittSkala] = useState<number | null>(null)
-
-  const farbschrittSkalaMessen = useCallback(() => {
-    const platz = farbschrittPlatzRef.current
-    const wrapper = farbschrittVorschauRef.current
-    const objekt = wrapper?.querySelector<HTMLElement>('[data-dosage-form-preview]')
-    if (!platz || !wrapper || !objekt) return false
-
-    // Zum Messen muss der Zoom kurz weg — sonst misst man das Ergebnis der
-    // letzten Messung mit. Der alte Wert wird gemerkt, damit ein Abbruch ihn
-    // nicht auf 1 stehen laesst: 1 heisst „native Groesse", und beim Pen sind
-    // das 589 px in einer 420 px hohen Flaeche, oben und unten abgeschnitten.
-    const vorher = wrapper.style.zoom
-    wrapper.style.zoom = '1'
-    const masse = {
-      hoehe: objekt.offsetHeight,
-      breite: objekt.offsetWidth,
-      platzHoehe: platz.clientHeight,
-      platzBreite: platz.clientWidth,
-    }
-    // Noch nichts zu messen — der Aufrufer kommt im naechsten Bild wieder.
-    if (masse.hoehe <= 0 || masse.breite <= 0 || masse.platzHoehe <= 0 || masse.platzBreite <= 0) {
-      wrapper.style.zoom = vorher
-      return false
-    }
-
-    const skala = objektSkala(masse)
-    // Das Ergebnis geht SOFORT an den DOM und erst danach an React. Ohne die
-    // erste Zeile bliebe die 1 von oben stehen, sobald derselbe Wert
-    // herauskommt, den der Zustand schon traegt: dann rendert React nicht neu,
-    // und der Stil, den es geschrieben haette, bleibt aus. Der Zustand bleibt
-    // trotzdem noetig — er ueberlebt Renderrunden, die nichts mit der Groesse
-    // zu tun haben.
-    wrapper.style.zoom = String(skala)
-    setFarbschrittSkala(skala)
-    return true
-  }, [])
-
-  // Zwei Ausloeser, weil die Rechnung zwei Seiten hat.
-  //
-  // Die FLAECHE meldet sich selbst: `observe()` liefert ihre Groesse sofort und
-  // bei jeder Aenderung (Tastatur, Drehung, Adressleiste).
-  //
-  // Das OBJEKT meldet sich nicht — und seine native Groesse steht nicht
-  // zwingend schon fest, wenn die Flaeche zum ersten Mal misst (SVG-Layout,
-  // Schrift). Genau dort stand der Pen ungeschrumpft: die eine Messung lief
-  // mit Hoehe 0, `objektSkala` gab seinen Rueckfall 1 zurueck, und weil sich
-  // die Flaeche danach nicht mehr aenderte, kam nie eine zweite. Deshalb
-  // zusaetzlich Bild fuer Bild nachfassen, bis eine Messung wirklich zustande
-  // kommt. Kein Beobachter auf dem Objekt: dessen Groesse haengt an `zoom`,
-  // und das schriebe sich im Kreis.
-  useEffect(() => {
-    if (state.step !== 'color') return
-    let laeuft = true
-    let bild = 0
-    const nachfassen = () => {
-      if (!laeuft) return
-      if (farbschrittSkalaMessen()) return
-      if (++bild > 60) return
-      window.requestAnimationFrame(nachfassen)
-    }
-    window.requestAnimationFrame(nachfassen)
-
-    if (typeof ResizeObserver === 'undefined') return () => { laeuft = false }
-    const platz = farbschrittPlatzRef.current
-    if (!platz) return () => { laeuft = false }
-    const beobachter = new ResizeObserver(() => { farbschrittSkalaMessen() })
-    beobachter.observe(platz)
-    return () => {
-      laeuft = false
-      beobachter.disconnect()
-    }
-  }, [state.step, state.draft.dosageForm, farbschrittSkalaMessen])
 
   const steps = intent === 'plan'
     ? (['plan'] as WizardStep[])
@@ -572,7 +464,10 @@ export function StackItemWizard({
   // Anmischen (Datum, Haltbarkeit) steht beim Vial unter dem Loesungsmittel
   // im Schritt „Staerke" — sonst, ohne diesen Schritt, beim Produkt.
   // Nur beim Pulver-Vial: dort steht das Loesungsmittel im Schritt „Staerke".
+  // Uebersprungen steht die Fluessigkeit nicht in der Zusammensetzung — dann
+  // beim Bearbeiten unter Produkt.
   const anmischenImStaerkeSchritt = istPulverVial(state.draft) && steps.includes('strength')
+    && state.draft.trackingLevel === 'complete'
 
   function selectStep(step: WizardStep): void {
     dispatch({ type: 'step_selected', step })
@@ -800,7 +695,9 @@ export function StackItemWizard({
         ? 'inventory.reconstitutionMl'
         : !gueltigeHaltbarkeit(state.draft.inventory.useWithinDays) ? 'inventory.useWithinDays' : null
       if (field) {
-        const schritt: WizardStep = anmischenImStaerkeSchritt ? 'strength' : 'plan'
+        // Die Haltbarkeit steht in der Zusammensetzung, die Fluessigkeit beim
+        // Pulver-Vial auch; beim Bearbeiten einer fertigen Loesung unter Produkt.
+        const schritt: WizardStep = field === 'inventory.useWithinDays' || anmischenImStaerkeSchritt ? 'strength' : 'plan'
         if (state.step !== schritt && steps.includes(schritt)) selectStep(schritt)
         setSaveError(String(t(field === 'inventory.reconstitutionMl' ? 'my_stack_stock_liquid_invalid' : 'my_stack_stock_days_invalid')))
         // Beim Pulver-Vial ist die Fluessigkeit der Bezug der Zutat.
@@ -952,16 +849,6 @@ export function StackItemWizard({
     }
   }
 
-  function trackingLevelLabel(): string {
-    // Die Bezeichnung, nicht das Adjektiv: „Gründlich“ allein sagt in einer
-    // Zusammenfassung nichts darüber, was gespeichert wird.
-    return String(state.draft.trackingLevel === 'intake_only'
-      ? t('my_stack_tracking_intake_only_subtitle', { defaultValue: 'Nur Einnahme' })
-      : state.draft.trackingLevel === 'with_amount'
-        ? t('my_stack_tracking_with_amount_subtitle', { defaultValue: 'Mit Menge' })
-        : t('my_stack_tracking_complete_subtitle', { defaultValue: 'Mit Wirkstärke' }))
-  }
-
   function ingredientName(ingredient: StackItemSetupDraft['ingredients'][number], index: number): string {
     const fallback = String(t(`my_stack_ingredient_${index + 1}`))
     return ingredient.catalog_substance_id
@@ -980,13 +867,25 @@ export function StackItemWizard({
     return menge && basis ? `${menge} / ${basis}` : menge
   }
 
+  /** „Angebrochen am 20.10. · haltbar bis 17.11." — oder leer, wenn nichts eingetragen ist. */
+  function haltbarkeitZeile(): string {
+    const { dosageForm, category, inventory } = state.draft
+    const sprache = i18n?.language || 'de'
+    const art = haltbarkeitArt(dosageForm, category)
+    const bis = art ? aufbrauchenBis(inventory.openedAt, inventory.useWithinDays, inventory.expiresAt) : null
+    return [
+      art && inventory.openedAt ? `${t(`my_stack_shelf_opened_${art}`)} ${formatLocalDay(inventory.openedAt, sprache)}` : '',
+      art && !bis && inventory.useWithinDays != null
+        ? `${t(`my_stack_shelf_within_${art}`)} ${t('my_stack_stock_days_multiple', { n: inventory.useWithinDays })}`
+        : '',
+      bis ? `${t('my_stack_shelf_use_by')} ${formatLocalDay(bis, sprache)}` : '',
+      !bis && inventory.expiresAt ? `${t('my_stack_shelf_expiry')} ${formatLocalDay(inventory.expiresAt, sprache)}` : '',
+    ].filter(Boolean).join(' · ')
+  }
+
   function editSectionLabel(section: EditSection): string {
     switch (section.id) {
       case 'substance': return String(t('my_stack_step_substance', { defaultValue: 'Substanz' }))
-      case 'form': return section.steps.includes('color')
-        ? String(t('my_stack_edit_section_form_color', { defaultValue: 'Form & Farbe' }))
-        : String(t('my_stack_step_dosage_form', { defaultValue: 'Darreichungsform' }))
-      case 'tracking': return String(t('my_stack_step_tracking_level', { defaultValue: 'Tracking-Tiefe' }))
       case 'composition': return String(t('my_stack_edit_section_composition', { defaultValue: 'Zusammensetzung' }))
       case 'product': return String(t('my_stack_edit_section_product', { defaultValue: 'Produkt & Notizen' }))
     }
@@ -996,47 +895,23 @@ export function StackItemWizard({
     const { draft } = state
     switch (section.id) {
       case 'substance':
+        // Form und Farbe waehlt man auf derselben Seite — sie stehen hier mit.
         return (
           <>
             <span className="block break-words text-sm font-semibold text-slate-100">{draft.displayName}</span>
-            {draft.category && <span className="block text-sm text-slate-400">{t(`stack_category_${draft.category}`)}</span>}
-          </>
-        )
-      case 'form':
-        return (
-          <span className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-            {section.steps.includes('color') && draft.colorHex && (
-              <span aria-hidden="true" className="size-3.5 shrink-0 rounded-full border border-white/20" style={{ backgroundColor: draft.colorHex }} />
-            )}
-            {draft.dosageForm && t(`dosage_form_${draft.dosageForm}`)}
-          </span>
-        )
-      case 'tracking':
-        return (
-          <>
-            <span className="block text-sm font-semibold text-slate-100">{trackingLevelLabel()}</span>
-            {draft.trackingLevel === 'complete' && (
-              <span className="block text-sm text-slate-400">
-                {selectedPkCatalogEntry?.pk_profile_id
-                  ? t('my_stack_pk_available', { defaultValue: 'PK-Profil verfügbar; Kurve abhängig von vollständigen Angaben' })
-                  : t('my_stack_pk_unavailable', { defaultValue: 'Kein PK-Profil hinterlegt' })}
-              </span>
-            )}
+            <span className="flex items-center gap-2 text-sm text-slate-400">
+              {showsColor(draft.dosageForm ?? 'other') && draft.colorHex && (
+                <span aria-hidden="true" className="size-3 shrink-0 rounded-full border border-white/20" style={{ backgroundColor: draft.colorHex }} />
+              )}
+              {[draft.category ? t(`stack_category_${draft.category}`) : '', draft.dosageForm ? t(`dosage_form_${draft.dosageForm}`) : '']
+                .filter(Boolean).join(' · ')}
+            </span>
           </>
         )
       case 'composition': {
-        // Beim Vial gehoert das Anmischen zur Zusammensetzung — auch in der
-        // Uebersicht, sonst sucht man es unter „Produkt".
-        const anmischen = anmischenImStaerkeSchritt
-          ? [
-              draft.inventory.openedAt
-                ? `${t('my_stack_stock_mixed_on')} ${formatLocalDay(draft.inventory.openedAt, i18n?.language || 'de')}`
-                : '',
-              draft.inventory.useWithinDays != null
-                ? `${t('my_stack_stock_use_within_vial')} ${t('my_stack_stock_days_multiple', { n: draft.inventory.useWithinDays })}`
-                : '',
-            ].filter(Boolean)
-          : []
+        // Die Haltbarkeit gehoert zur Zusammensetzung — auch in der
+        // Uebersicht, sonst sucht man sie unter „Produkt".
+        const haltbarkeit = haltbarkeitZeile()
         return (
           <>
             {draft.ingredients.map((ingredient, index) => {
@@ -1048,8 +923,11 @@ export function StackItemWizard({
                 </span>
               )
             })}
-            {anmischen.length > 0 && (
-              <span data-edit-summary-anmischen className="block break-words text-sm text-slate-400">{anmischen.join(' · ')}</span>
+            {draft.trackingLevel !== 'complete' && (
+              <span className="block text-sm text-slate-400">{t('my_stack_strength_skipped_title')}</span>
+            )}
+            {haltbarkeit && (
+              <span data-edit-summary-haltbarkeit className="block break-words text-sm text-slate-400">{haltbarkeit}</span>
             )}
           </>
         )
@@ -1103,8 +981,12 @@ export function StackItemWizard({
 
   function renderStep() {
     switch (state.step) {
-      case 'substance':
+      case 'substance': {
+        // Form und Farbe stehen unter dem Treffer, sobald feststeht, WAS es
+        // ist: ein Katalogeintrag oder ein eigener Name mit Kategorie.
+        const identitaet = Boolean(state.draft.displayName.trim() && state.draft.category)
         return (
+          <div className="space-y-6">
           <SubstanceSearch
             query={state.draft.displayName}
             entries={matchingEntries}
@@ -1124,6 +1006,11 @@ export function StackItemWizard({
                 entry,
                 components: bestandteileAufloesen(entry, catalogEntries),
               })
+              // Kennt der Katalog genau eine Form, ist sie gewaehlt.
+              const formen = Array.from(new Set(entry.suggested_dosage_forms ?? []))
+              if (formen.length === 1) {
+                dispatch({ type: 'dosage_form_selected', dosageForm: formen[0], catalogSuggestedUnits: entry.suggested_units })
+              }
               setShowErrors(false)
             }}
             onAddCustom={name => {
@@ -1137,7 +1024,28 @@ export function StackItemWizard({
               : undefined}
             onScan={scanErlaubt ? () => setScanOffen(true) : undefined}
           />
+          {identitaet && (
+            <FormUndFarbe
+              key={selectedCatalogEntry?.id ?? 'eigen'}
+              value={state.draft.dosageForm}
+              suggestedForms={selectedCatalogEntry?.suggested_dosage_forms ?? []}
+              colorHex={state.draft.colorHex}
+              displayName={state.draft.displayName}
+              error={showErrors && Boolean(validationErrors.dosageForm)}
+              onSelect={dosageForm => {
+                dispatch({
+                  type: 'dosage_form_selected',
+                  dosageForm,
+                  catalogSuggestedUnits: selectedCatalogEntry?.suggested_units,
+                })
+                setShowErrors(false)
+              }}
+              onColorChange={colorHex => dispatch({ type: 'details_changed', changes: { colorHex } })}
+            />
+          )}
+          </div>
         )
+      }
       case 'ingredients':
         return (
           <IngredientEditor
@@ -1150,44 +1058,29 @@ export function StackItemWizard({
             onRemoveIngredient={index => dispatch({ type: 'ingredient_removed', index })}
           />
         )
-      case 'dosage_form':
-        return (
-          <DosageFormPicker
-            value={state.draft.dosageForm}
-            suggestedForms={selectedCatalogEntry?.suggested_dosage_forms ?? []}
-            error={showErrors && Boolean(validationErrors.dosageForm)}
-            onSelect={dosageForm => dispatch({
-              type: 'dosage_form_selected',
-              dosageForm,
-              catalogSuggestedUnits: selectedCatalogEntry?.suggested_units,
-            })}
-          />
-        )
-      case 'color':
-        // Kein eigener Inhalt hier — das Objekt und das Farbfeld stehen
-        // schon im gemeinsamen Vorschaublock ueber diesem Schritt (weiter
-        // unten in der Datei), gross statt in Miniatur, weil hier nichts
-        // anderes zu sehen ist.
-        return null
-      case 'tracking_level':
-        return (
-          <TrackingLevelPicker
-            // Immer eine Stufe: der Entwurf startet auf „Gruendlich".
-            // Deshalb auch kein Fehlerzustand mehr — es gibt nichts, was der
-            // Nutzer hier vergessen koennte.
-            value={state.draft.trackingLevel}
-            substanceName={state.draft.displayName}
-            dosageForm={state.draft.dosageForm}
-            pkProfileAvailable={Boolean(selectedPkCatalogEntry?.pk_profile_id)}
-            onChange={trackingLevel => {
-              dispatch({ type: 'tracking_level_selected', trackingLevel })
-              setShowErrors(false)
-            }}
-          />
-        )
       case 'strength':
         return state.draft.dosageForm ? (
           <div className="space-y-4">
+            {state.draft.trackingLevel !== 'complete' ? (
+              <div data-strength-skipped className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-sm text-slate-300">
+                  <span className="font-semibold text-white">{t('my_stack_strength_skipped_title')}</span>{' '}
+                  {/* Aeltere Eintraege haken nur ab — dort wird auch keine Menge gefuehrt. */}
+                  {state.draft.trackingLevel === 'intake_only'
+                    ? t('my_stack_tracking_intake_only_subtitle', { defaultValue: 'Nur Einnahme' })
+                    : t('my_stack_strength_skipped_text')}
+                </p>
+                <button
+                  type="button"
+                  data-strength-unskip
+                  onClick={() => dispatch({ type: 'tracking_level_selected', trackingLevel: 'complete' })}
+                  className="min-h-11 text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                >
+                  {t('my_stack_strength_unskip')}
+                </button>
+              </div>
+            ) : (
+            <>
             {state.draft.ingredients.map((ingredient, index) => (
               <StrengthEditor
                 key={`${ingredient.position}-${ingredient.catalog_substance_id ?? 'custom'}`}
@@ -1202,12 +1095,6 @@ export function StackItemWizard({
                 onChange={changes => dispatch({ type: 'ingredient_changed', index, changes })}
               />
             ))}
-            {anmischenImStaerkeSchritt && (
-              <AnmischAngaben
-                inventory={state.draft.inventory}
-                onChange={changes => dispatch({ type: 'inventory_changed', changes })}
-              />
-            )}
             {/* Die Tuer steht genau dort, wo der Zutatenschritt fehlt.
                 Wer manuell anlegt, geht ohnehin durch ihn und hat den Knopf
                 dort; wer einen Katalogeintrag gewaehlt hat, saesse ohne das
@@ -1229,6 +1116,27 @@ export function StackItemWizard({
                 {t('my_stack_strength_add_ingredient', { defaultValue: 'Weiterer Wirkstoff' })}
               </button>
             )}
+            {/* Wer die Staerke nicht kennt, trackt mit Menge — frueher eine
+                eigene Frage nach der Tracking-Tiefe. */}
+            <button
+              type="button"
+              data-strength-skip
+              onClick={() => {
+                dispatch({ type: 'tracking_level_selected', trackingLevel: 'with_amount' })
+                setShowErrors(false)
+              }}
+              className="min-h-11 text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+            >
+              {t('my_stack_strength_skip')}
+            </button>
+            </>
+            )}
+            <HaltbarkeitAngaben
+              dosageForm={state.draft.dosageForm}
+              category={state.draft.category}
+              inventory={state.draft.inventory}
+              onChange={changes => dispatch({ type: 'inventory_changed', changes })}
+            />
           </div>
         ) : null
       case 'plan':
@@ -1363,22 +1271,18 @@ export function StackItemWizard({
               </fieldset>
             )}
 
-            {/* Produkt & Bestand steht hier und nicht in einem eigenen Schritt
-                hinter „Vollstaendig“: ob jemand Vorraete fuehrt, hat mit der
-                Messgenauigkeit nichts zu tun. Wer nur abhakt, will trotzdem
-                wissen, wann die Packung leer ist — und was verbraucht wird,
-                steht im Plan darueber. Der Abschnitt ist zugeklappt, kostet
-                also eine Zeile, wenn er niemanden interessiert. */}
-            {/* Beim Bearbeiten die Marke und die Angaben zur Packung
+            {/* Beim Anlegen stehen Marke und Bestand im Ueberblick.
+                Beim Bearbeiten die Marke und die Angaben zur Packung
                 (Charge, Anmischen, Haltbarkeit) — die Mengen aendert
                 „Bestand aendern" im Vollbild.
                 Wer nur den Plan aendert (Stufe hinzufuegen, Plan anpassen),
                 sieht weder Produkt noch Notizen — die gehoeren zur Substanz,
                 nicht zu einer Dosisstufe; gespeichert wird dort ohnehin nur
                 der Plan. */}
-            {!planEditContext && (
+            {!planEditContext && existingItem && (
             <ProductInventorySection
-              showInventory={!existingItem}
+              showInventory={false}
+              haltbarkeitAnderswo
               anmischenAnderswo={anmischenImStaerkeSchritt}
               brand={state.draft.brand}
               inventory={state.draft.inventory}
@@ -1387,16 +1291,6 @@ export function StackItemWizard({
               onBrandChange={brand => dispatch({ type: 'details_changed', changes: { brand } })}
               onInventoryChange={changes => dispatch({ type: 'inventory_changed', changes })}
             />
-            )}
-            {/* Beim Anlegen eines Vials ohne Staerke-Schritt (andere
-                Tracking-Tiefe, fertige Loesung) gehoert das Anmischen hierher —
-                beim Bearbeiten steht es dann unter „Produkt". */}
-            {!planEditContext && !existingItem && state.draft.dosageForm === 'vial' && !anmischenImStaerkeSchritt && (
-              <AnmischAngaben
-                loesung={istLoesungsVial(state.draft.dosageForm, state.draft.category)}
-                inventory={state.draft.inventory}
-                onChange={changes => dispatch({ type: 'inventory_changed', changes })}
-              />
             )}
 
             {!planEditContext && (
@@ -1415,7 +1309,8 @@ export function StackItemWizard({
             )}
           </div>
         ) : null
-      case 'review':
+      case 'review': {
+        const haltbarkeit = haltbarkeitZeile()
         return (
           <div className="space-y-5">
             {identityChanged && (
@@ -1462,10 +1357,6 @@ export function StackItemWizard({
                 <div className="flex flex-wrap justify-between gap-2">
                   <dt className="text-slate-400">{t('my_stack_category', { defaultValue: 'Kategorie' })}</dt>
                   <dd className="font-medium text-slate-200">{state.draft.category && t(`stack_category_${state.draft.category}`)}</dd>
-                </div>
-                <div className="flex flex-wrap justify-between gap-2">
-                  <dt className="text-slate-400">{t('my_stack_tracking_level', { defaultValue: 'Tracking-Tiefe' })}</dt>
-                  <dd className="font-medium text-slate-200">{trackingLevelLabel()}</dd>
                 </div>
                 <div className="flex flex-wrap justify-between gap-2">
                   <dt className="text-slate-400">{t('my_stack_daily_behavior', { defaultValue: 'Im Alltag' })}</dt>
@@ -1574,8 +1465,34 @@ export function StackItemWizard({
                     <dd className="mt-1 break-words font-medium text-slate-200">{ingredientStrength(ingredient)}</dd>
                   </div>
                 ))}
+                {haltbarkeit && (
+                  <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 pt-3">
+                    <dt className="text-slate-400">{t('my_stack_shelf_life', { defaultValue: 'Haltbarkeit' })}</dt>
+                    <dd data-review-haltbarkeit className="text-right font-medium text-slate-200">{haltbarkeit}</dd>
+                  </div>
+                )}
               </dl>
             </div>
+            )}
+
+            {/* Beim Anlegen: Marke und Bestand hier, offen — wer Vorraete
+                fuehrt, schaltet es mit einem Tipp an. Ob jemand Vorraete
+                fuehrt, hat mit der Messgenauigkeit nichts zu tun. */}
+            {!existingItem && !planEditContext && !editOverview && (
+              <ProductInventorySection
+                haltbarkeitAnderswo
+                anfangsOffen
+                // Bestand bucht nur mit Staerke ab (`apply_inventory_confirmation`)
+                // und wird auch nur dann gespeichert — ohne sie ein Hinweis
+                // statt Feldern, die beim Speichern still wegfielen.
+                bestandOhneStaerke={state.draft.trackingLevel !== 'complete'}
+                brand={state.draft.brand}
+                inventory={state.draft.inventory}
+                dosageForm={state.draft.dosageForm}
+                category={state.draft.category}
+                onBrandChange={brand => dispatch({ type: 'details_changed', changes: { brand } })}
+                onInventoryChange={changes => dispatch({ type: 'inventory_changed', changes })}
+              />
             )}
 
             {duplicateCandidate && (
@@ -1625,6 +1542,7 @@ export function StackItemWizard({
             )}
           </div>
         )
+      }
     }
   }
 
@@ -1701,114 +1619,17 @@ export function StackItemWizard({
         </header>
 
         <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6" data-step-autofocus tabIndex={-1}>
-          {/* Ab hier ist der Eintrag ein Gegenstand und keine Formularzeile
-              mehr. Die Vorschau steht ueber jedem Schritt ab der Formauswahl:
-              Name, Farbe und Wirkstoffmenge kommen aus spaeteren Schritten,
-              und man soll sehen, was man gerade aendert.
-              Nicht im Substanz-Schritt: dort entscheidet man, WAS das Ding
-              ist: das Objekt waere ein Vorgriff auf den naechsten Schritt,
-              und beim Zurueckgehen tauchte es dort ploetzlich auf, wo vorher
-              nichts stand. Den Namen zeigte es obendrein doppelt — er steht
-              im Feld direkt darunter.
-              Auch nicht (mehr) im Formschritt selbst: die zwei Karussells
-              dort brauchen den ganzen Bildschirm, eine zweite Vorschau
-              darueber wuerde ihnen den Platz nehmen, den sie gerade bekommen
-              haben. Das Faerben ist deshalb ein eigener Schritt danach.
-              `liquid` und `other` haben keine Buehnengrafik — dort faellt auch
-              der Rahmen weg. Ein leerer Kasten sieht aus wie ein Fehler. */}
-          {state.step !== 'substance' && state.step !== 'dosage_form' && state.draft.dosageForm && isStageRenderable(state.draft.dosageForm) && (
-            state.step === 'color' ? (
-            /* Kein Rahmen, kein Radius: derselbe durchgehende dunkle Grund
-               wie im Formschritt davor (siehe DosageFormPicker), nicht eine
-               eingerahmte Karte mittendrin. `-mx-4`/`sm:-mx-6` holt die
-               Flaeche bis an den Rand des Dialogs.
-               Die Spalte fuellt die ganze verfuegbare Hoehe (`h-full`), und
-               die Skala des Objekts (`farbschrittSkala`) ist keine feste
-               Zahl mehr, sondern gemessen: `objektSkala` passt es an das ein,
-               was die Flaeche gerade hergibt — ohne die eigenen Proportionen
-               zu verlieren (dieselbe Idee wie `object-fit: contain`). Eine
-               liegende Kapsel wird dadurch breiter skaliert als ein Pen, weil
-               bei ihr die Breite der Flaschenhals ist, nicht die Hoehe.
-               Angewendet ueber `zoom`, nicht `transform`: ein Transform
-               skaliert nur das fertige Bild und lies Schatten, Weichzeichner
-               und das Glasetikett verwaschen zurueck. `zoom` laesst den
-               Browser bei der neuen Groesse neu rechnen — genauso scharf wie
-               beim „echten" Groesserwerden.
-               Die Farbe steht unten, nicht in der Mitte: das Feld ist die
-               Bedienfläche dieses Schritts, und unten liegt sie dem Daumen am
-               naechsten — direkt ueber dem „Weiter"-Knopf im Footer. */
-            <div
-              data-wizard-preview
-              className="-mx-4 flex h-full min-h-0 flex-col bg-slate-950/60 px-4 py-4 sm:-mx-6 sm:px-6"
-            >
-              {/* Mittig, nicht am Boden: hier steht IMMER nur ein Objekt, und die
-                  Bodenlinie der Buehne (die mehrere Formen nebeneinander auf
-                  dieselbe Hoehe stellt) hat allein keinen Sinn. Eine liegende
-                  Kapsel ist 128 px hoch in 366 px Flaeche — am Boden klebend
-                  liess sie 238 px Leere ueber sich stehen. Gemessen. */}
-              <div ref={farbschrittPlatzRef} className="flex min-h-0 flex-1 items-center justify-center pb-3">
-                <span
-                  ref={farbschrittVorschauRef}
-                  className="inline-block"
-                  // Unsichtbar, solange die Skala nicht steht — aber im Layout,
-                  // denn genau dort wird sie gemessen.
-                  style={{
-                    zoom: farbschrittSkala ?? 1,
-                    visibility: farbschrittSkala === null ? 'hidden' : undefined,
-                  }}
-                >
-                  {/* `large` ist die Stufe, die fuer Detailansichten gebaut
-                      wurde — mit ihrem eigenen Etikettenmass, ihrer eigenen
-                      Schriftgroesse und ihren eigenen Innenabstaenden.
-                      `compact` ist die Stufe fuer Miniaturen: bei ihr sind
-                      `px-1`/`py-1` absolute 4px, die auf einem 64px breiten
-                      Vial ein Vielfaches dessen ausmachen, was sie auf einem
-                      144px breiten ausmachen. Gezoomt blieb dieses Verhaeltnis
-                      stehen — das Band wurde hoeher, die Aufschrift brach an
-                      einer anderen Stelle um und schnitt frueher ab. Deshalb
-                      hier die Detailstufe, und `zoom` passt sie nur noch in
-                      die Flaeche ein (bei einem Pen nach unten, bei einer
-                      Tablette nach oben). */}
-                  <DosageFormPreview
-                    dosageForm={state.draft.dosageForm}
-                    displayName={state.draft.displayName}
-                    colorHex={state.draft.colorHex}
-                    ingredients={state.draft.ingredients}
-                    size="large"
-                    sloshEngine={sloshEngine}
-                  />
-                </span>
-              </div>
-              {/* Die Farbe steht direkt unter dem Objekt, das sie faerbt.
-                  Zwoelf abgestimmte Systemfarben wie in den Apple-Apps — ein
-                  Tipp genuegt —, und „Eigene Farbe" klappt die freie Flaeche
-                  auf. Das Objekt darueber faerbt sich sofort mit. */}
-              <div role="group" aria-labelledby="stack-color-label" className="shrink-0 border-t border-white/[0.07] pt-4">
-                <p id="stack-color-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  {t('my_stack_color_optional', { defaultValue: 'Farbe (optional)' })}
-                </p>
-                <ColorSwatchPicker
-                  value={state.draft.colorHex}
-                  onChange={colorHex => dispatch({ type: 'details_changed', changes: { colorHex } })}
-                />
-              </div>
-            </div>
-            ) : (
-              /* Auf allen weiteren Schritten nur noch eine Zeile. Der grosse
-                 Block nahm 368 von 687 px Inhaltsflaeche — auf dem
-                 Tiefenschritt war dadurch keine einzige der drei Karten
-                 vollstaendig sichtbar. Gemessen bei 430 px Fensterbreite.
-                 Das Objekt bleibt sichtbar, damit man weiss, woran man
-                 arbeitet; gefaerbt wird auf dem eigenen Farbschritt davor. */
+          {/* Ab der Zusammensetzung steht oben eine Zeile mit dem Objekt und
+              seinem Namen, damit man weiss, woran man arbeitet. Nicht auf der
+              Substanzseite: dort stehen Form und Farbe im Karussell selbst.
+              Formen ohne Buehnengrafik (`other`) bekommen keinen leeren Kasten.
+              Ohne feste Hoehe: eine Kapsel misst 21 px, ein Pen 100 px. */}
+          {state.step !== 'substance' && state.draft.dosageForm && isStageRenderable(state.draft.dosageForm) && (
               <div
                 data-wizard-preview
                 data-wizard-preview-compact
                 className="mb-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-3 py-2"
               >
-                {/* Ohne feste Hoehe: der Kasten war auf 100 px gestellt, weil
-                    ein Pen in Miniaturgroesse so hoch ist. Eine Kapsel misst
-                    21 px — die schwamm dann in 97 px Leere, und der Name
-                    stand daneben in der Mitte von nichts. Gemessen. */}
                 <span className="flex w-[76px] shrink-0 items-end justify-center">
                   <DosageFormPreview
                     dosageForm={state.draft.dosageForm}
@@ -1824,7 +1645,6 @@ export function StackItemWizard({
                   {state.draft.displayName.trim() || t('my_stack_this_substance', { defaultValue: 'diese Substanz' })}
                 </span>
               </div>
-            )
           )}
           {review && reviewOpen && planEditContext ? (
             <PlannedStepsReview

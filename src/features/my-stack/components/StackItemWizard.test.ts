@@ -144,10 +144,8 @@ describe('StackItemWizard', () => {
       wizardSource,
       searchSource,
       readFileSync(new URL('./IngredientEditor.tsx', import.meta.url), 'utf8'),
-      // Die Tippziele der Formauswahl stehen in der Karussell-Reihe, nicht
-      // mehr im Picker darum: der reicht nur noch Ueberschriften und Formen
-      // durch.
-      readFileSync(new URL('./DosageFormCarousel.tsx', import.meta.url), 'utf8'),
+      // Die Formauswahl steht im kleinen Karussell der Substanzseite.
+      readFileSync(new URL('./FormUndFarbe.tsx', import.meta.url), 'utf8'),
       readFileSync(new URL('./StrengthEditor.tsx', import.meta.url), 'utf8'),
     ]
 

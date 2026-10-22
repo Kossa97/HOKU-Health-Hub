@@ -26,7 +26,7 @@ import {
   type DetailFeld,
 } from './lib/stackDetailSections'
 import { BestandCard, BestandEditorHost, type BestandActions, type BestandEditorArt } from './components/Bestand'
-import { anbruchArt, buchtEinnahmenAb, istLoesungsVial, spritzenRechnung, stueckRechnung } from './lib/bestand'
+import { anbruchArt, buchtEinnahmenAb, haltbarkeitArt, istLoesungsVial, spritzenRechnung, stueckRechnung } from './lib/bestand'
 import { inWochenfolge } from './lib/intakeRhythm'
 import {
   openInventoryContainer,
@@ -527,7 +527,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     // fuer eine neue Variante, die aus einem bestehenden Eintrag entsteht.
     // Der Eintrag selbst steht dann schon; scheitert nur das, sagt es eine
     // eigene Meldung, statt „Speichern fehlgeschlagen" fuer alles.
-    if ((editedFrom || inventoryDraft.reconstitutionMl != null || inventoryDraft.openedAt || inventoryDraft.useWithinDays != null) && user) {
+    if ((editedFrom || inventoryDraft.reconstitutionMl != null || inventoryDraft.openedAt || inventoryDraft.useWithinDays != null || inventoryDraft.expiresAt) && user) {
       try {
         await saveInventoryDetails(stackDataClient as never, {
           userId: user.id,
@@ -1847,17 +1847,20 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   // Angabe selbst — nicht die Form.
                   // Ein Vial mit fertiger Loesung wird angebrochen, nicht angemischt.
                   const art = istLoesungsVial(eintrag.dosage_form, eintrag.category) ? 'flasche' : anbruchArt(eintrag.dosage_form)
-                  const haltbarkeitLabel = String(t(art === 'vial' ? 'my_stack_stock_use_within_vial' : 'my_stack_stock_use_within'))
+                  // Dieselben Woerter wie im Assistenten: angemischt, angebrochen,
+                  // in Benutzung, geoeffnet (`haltbarkeitArt`).
+                  const haltbarArt = haltbarkeitArt(eintrag.dosage_form, eintrag.category)
+                  const haltbarkeitLabel = String(t(haltbarArt ? `my_stack_shelf_within_${haltbarArt}` : 'my_stack_stock_use_within'))
                   const FELD_LABEL: Record<DetailFeld, string> = {
                     wirkstoff: wirkstoffLabel,
                     kategorie: 'Kategorie',
                     marke: 'Marke',
                     fluessigkeit: String(t('my_stack_stock_liquid')),
-                    rekonstituiert_am: String(t(art === 'vial' ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on')),
+                    rekonstituiert_am: String(t(haltbarArt ? `my_stack_shelf_opened_${haltbarArt}` : 'my_stack_stock_opened_on')),
                     haltbarkeit: haltbarkeitLabel,
                     // Wo angemischt oder geoeffnet wird, gilt das Datum dem
                     // UNgeoeffneten — sonst klingt es wie „Haltbar danach".
-                    ablauf: String(t(art ? 'my_stack_stock_expires_unopened' : 'my_stack_stock_expires')),
+                    ablauf: String(t(art || haltbarArt ? 'my_stack_stock_expires_unopened' : 'my_stack_stock_expires')),
                     vorrat: 'Vorrat',
                     // „Methode" und nicht „Applikationsart": im Zyklusknopf
                     // steht dasselbe Feld unter demselben Namen.

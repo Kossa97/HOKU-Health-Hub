@@ -55,11 +55,10 @@ test('Etikett per Foto: erst Einwilligung, dann Vorschlag, dann vorbelegter Assi
   await expect(scanner).toBeHidden()
   await expect(wizard.locator(`[data-substance-selected="${mock.catalogId('BPC-157')}"]`)).toBeVisible()
 
-  await next(wizard, 'Darreichungsform')
-  await expect(wizard.getByRole('button', { name: 'Vial' })).toHaveAttribute('aria-pressed', 'true')
-  await next(wizard, 'Farbe')
-  await next(wizard, 'Tracking-Tiefe')
-  await next(wizard, 'Stärke')
+  // Form und Farbe stehen auf der Substanzseite.
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
+  await expect(wizard.getByRole('radio', { name: 'Vial' })).toHaveAttribute('aria-checked', 'true')
+  await next(wizard, 'Zusammensetzung')
   await expect(wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' })).toHaveValue('5')
 })
 

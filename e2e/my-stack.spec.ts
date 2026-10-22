@@ -19,11 +19,10 @@ test('Anlegen: BPC-157 aus dem Katalog, mit Plan, steht danach auf der Bühne', 
   await wizard.getByRole('searchbox').fill('BPC-157')
   await wizard.getByRole('option', { name: /^BPC-157 Body/ }).click()
 
-  await next(wizard, 'Darreichungsform')
-  await expect(wizard.getByRole('button', { name: 'Vial' })).toHaveAttribute('aria-pressed', 'true')
-  await next(wizard, 'Farbe')
-  await next(wizard, 'Tracking-Tiefe')
-  await next(wizard, 'Stärke')
+  // Form und Farbe stehen auf der Substanzseite.
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
+  await expect(wizard.getByRole('radio', { name: 'Vial' })).toHaveAttribute('aria-checked', 'true')
+  await next(wizard, 'Zusammensetzung')
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
@@ -55,22 +54,20 @@ test('Anlegen: BPC-157 aus dem Katalog, mit Plan, steht danach auf der Bühne', 
   expect(overflow).toBeLessThanOrEqual(0)
 })
 
-test('Anlegen: Anmischen und Haltbarkeit stehen bei der Stärke und danach im Vollbild', async ({ page, mock }) => {
+test('Anlegen: Anmischen und Haltbarkeit stehen in der Zusammensetzung und danach im Vollbild', async ({ page, mock }) => {
   // Vorher fragte der Assistent beim Anlegen nie danach — im Vollbild blieb
-  // „Rekonstituiert am" leer, und die Methode stand auf „Andere".
+  // „Angemischt am" leer, und die Methode stand auf „Andere".
   await page.goto('/my-stack')
   await page.getByRole('button', { name: 'Neue Substanz' }).click()
   const wizard = page.getByRole('dialog', { name: 'Substanz hinzufügen' })
   await wizard.getByRole('searchbox').fill('BPC-157')
   await wizard.getByRole('option', { name: /^BPC-157 Body/ }).click()
-  await next(wizard, 'Darreichungsform')
-  await next(wizard, 'Farbe')
-  await next(wizard, 'Tracking-Tiefe')
-  await next(wizard, 'Stärke')
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
+  await next(wizard, 'Zusammensetzung')
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
-  await wizard.getByLabel(/^Rekonstituiert am/).fill('2026-09-25')
-  await wizard.getByLabel(/^Haltbar danach/).fill('28')
+  await wizard.getByLabel(/^Angemischt am/).fill('2026-09-25')
+  await wizard.getByLabel(/^Haltbar nach Anmischen/).fill('28')
   await next(wizard, 'Einnahmeplan')
   await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
@@ -83,7 +80,7 @@ test('Anlegen: Anmischen und Haltbarkeit stehen bei der Stärke und danach im Vo
 
   await stageObject(page, 'BPC-157').click()
   const detail = page.getByRole('dialog', { name: 'BPC-157' })
-  await expect(detail.locator('[data-stack-detail]').filter({ hasText: 'Rekonstituiert am' })).toContainText('25.09.2026')
+  await expect(detail.locator('[data-stack-detail]').filter({ hasText: 'Angemischt am' })).toContainText('25.09.2026')
   await expect(detail).toContainText('28 Tage')
   await expect(detail).toContainText('Subkutan')
   await expect(detail).not.toContainText('Andere')
@@ -91,7 +88,7 @@ test('Anlegen: Anmischen und Haltbarkeit stehen bei der Stärke und danach im Vo
   // Beim Bearbeiten stehen die Angaben unter „Zusammensetzung", dort wo die Flüssigkeit steht.
   await detail.getByRole('button', { name: 'Bearbeiten' }).click()
   const edit = page.getByRole('dialog', { name: 'Eintrag bearbeiten' })
-  await expect(edit.locator('[data-edit-summary-anmischen]')).toContainText('25.09.2026')
+  await expect(edit.locator('[data-edit-summary-haltbarkeit]')).toContainText('25.09.2026')
 })
 
 test('Bearbeiten: Notiz ergänzen speichert nur den Eintrag', async ({ page, mock }) => {
@@ -256,10 +253,8 @@ test('Speichern scheitert: Meldung mit Grund, Assistent bleibt offen, nichts ang
   const wizard = page.getByRole('dialog', { name: 'Substanz hinzufügen' })
   await wizard.getByRole('searchbox').fill('BPC-157')
   await wizard.getByRole('option', { name: /^BPC-157 Body/ }).click()
-  await next(wizard, 'Darreichungsform')
-  await next(wizard, 'Farbe')
-  await next(wizard, 'Tracking-Tiefe')
-  await next(wizard, 'Stärke')
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
+  await next(wizard, 'Zusammensetzung')
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
@@ -351,9 +346,12 @@ test('Testosteron Enantat: intramuskulär, Mo/Fr je eigene Tageszeit, Bestand in
   await wizard.getByRole('searchbox').fill('Testosteron Enantat')
   await wizard.getByRole('option').first().click()
 
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
   const schritt = async () => (await wizard.locator('p').nth(1).innerText()).trim()
   for (let i = 0; i < 12 && await schritt() !== 'Einnahmeplan'; i++) {
-    if (await schritt() === 'Stärke') {
+    if (await schritt() === 'Zusammensetzung') {
+      // Fertige Loesung: angebrochen, nicht angemischt.
+      await expect(wizard.getByText('Angebrochen am (optional)')).toBeVisible()
       const felder = wizard.getByRole('spinbutton')
       await felder.nth(0).fill('250')
       await felder.nth(1).fill('1')
@@ -370,8 +368,6 @@ test('Testosteron Enantat: intramuskulär, Mo/Fr je eigene Tageszeit, Bestand in
   await wizard.getByRole('tab', { name: /Fr/ }).click()
   await wizard.getByText('Abends', { exact: true }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('125')
-  // Fertige Loesung: geoeffnet, nicht angemischt.
-  await expect(wizard.getByText('Geöffnet am (optional)')).toBeVisible()
   await next(wizard, 'Zusammenfassung')
   await expect(wizard.locator('[data-review-method]')).toHaveText('Intramuskulär')
   await expect(wizard.locator('[data-review-slot="0"] dt')).toHaveText('Mo')
