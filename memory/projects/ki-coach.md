@@ -62,8 +62,31 @@ vom Style her auch wie Siri, passend zur App“.
     leuchten leise auf.
   - Regler Standard 0,72 (Stufen fest / mittel / weich / Gelee).
 
+- **Runde 5 (Nutzer 22.10.):** Mockup v5.
+  - **Ganz weich gewählt** (Regler „Gelee“ = 1 als Standard).
+  - **Randleuchten bleibt**, wird später noch angepasst.
+  - **Chat öffnet sich von Dots Platz aus** (Kreis wächst per `clip-path` von Dots
+    Mitte, 560 ms, iOS-Kurve) und schließt sich zu dem Platz, an den er zurückfliegt.
+  - **Zucken in der Ecke behoben.** Ursachen: ungeglättete Beschleunigung aus dem
+    Flattern der Mitte an zwei Wänden, Flächenausgleich als harter Sprung. Jetzt:
+    Beschleunigung ~30 ms geglättet, Wand kritisch gedämpft, Flächenausgleich als
+    sanfte Kraft, Anzeige ~25 ms geglättet, 96 Randpunkte. Gemessen in beiden Ecken
+    höchstens 0,13 px Änderung je Bild (nur das Atmen).
+  - **Anziehung gedämpft:** Projektion 0,993 statt 0,996, Fangbereich max(34, 0,9 r)
+    statt max(64, 1,5 r), Durchwurf bis zur Kante erst ab 1500 px/s, weichere Feder
+    (90 statt 150), weniger platt an der Kante.
+  - **Zoomen nur mit zwei Fingern** (der zweite darf irgendwo landen), am Rechner
+    Mausrad. Kein Größe-Ziehen am Rand mehr. Per Befehl im Chat: „Mach dich größer“,
+    „kleiner“, „so groß/klein wie möglich“ (später auch per Sprache).
+  - **Tab-Leiste = Dots Haus:** einziges Ding, gegen das er prallt (Oberkante
+    leuchtet, wo er sie berührt). Mitte ist eine Tür; über der Tür öffnet sie sich
+    beim Ziehen, fest hineingedrückt oder hineingeworfen geht er hinein (sichtbar nur
+    über der Leiste und in der Tür) und schläft dort klein. Tür antippen schickt ihn
+    heim; ist er drin, wird sie zur **Klingel** („Ding-dong“) und er springt oben
+    heraus zurück an seinen Platz. Chat-Befehl „Geh in dein Haus“.
+
 ## Offen
-- Weichheit festlegen; Randleuchten behalten?; Name bestätigen.
+- Randleuchten anpassen (wie genau: offen). Name „Dot“ bestätigen.
 - Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
   die unter ihm liegen, oder beim Scrollen kleiner werden)
 
