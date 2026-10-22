@@ -65,16 +65,18 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
                 aria-checked={gewaehlt}
                 data-form-option={key}
                 onClick={() => onSelect(key)}
-                className={`stack-form-card flex w-[6.75rem] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border px-2 pb-3 pt-3 text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${
-                  gewaehlt ? 'border-sky-400/80 bg-sky-400/[0.08]' : 'border-white/10 bg-white/[0.03] hover:border-white/20'
-                }`}
+                // Keine Karte drumherum: die Form steht frei. Gewaehlt ist sie
+                // farbig und hell, die anderen grau — auch das Pflaster, das
+                // seine Hautfarbe sonst immer mitbringt.
+                className="stack-form-option flex w-[5.75rem] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl px-1 pb-2 pt-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
-                <span aria-hidden="true" className="flex h-24 w-full items-end justify-center overflow-hidden text-slate-400">
+                <span aria-hidden="true" data-gewaehlt={gewaehlt || undefined} className="stack-form-art flex h-24 w-full items-end justify-center overflow-hidden text-slate-400">
                   {isStageRenderable(key)
                     ? <DosageFormPreview dosageForm={key} colorHex={gewaehlt && farbe ? farbe : NEUTRAL} size="mini" showLabel={false} />
                     : <DosageFormIcon form={key} size={34} />}
                 </span>
-                <span className={`text-sm font-semibold ${gewaehlt ? 'text-white' : 'text-slate-300'}`}>{t(form.labelKey)}</span>
+                <span className={`text-sm font-semibold transition-colors duration-200 ${gewaehlt ? 'text-white' : 'text-slate-500'}`}>{t(form.labelKey)}</span>
+                <span aria-hidden="true" className={`size-1.5 rounded-full transition-colors duration-200 ${gewaehlt ? 'bg-sky-400' : 'bg-transparent'}`} />
               </button>
             )
           })}
@@ -83,7 +85,7 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
               type="button"
               data-form-more
               onClick={() => setAlle(true)}
-              className="flex min-h-11 w-[6.75rem] shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 px-2 py-3 text-center text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+              className="flex min-h-11 w-[5.75rem] shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-2xl px-2 py-3 text-center text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
             >
               {t('my_stack_form_more', { defaultValue: 'Andere Form' })}
             </button>
