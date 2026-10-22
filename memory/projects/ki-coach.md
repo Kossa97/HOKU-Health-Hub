@@ -226,6 +226,38 @@ vom Style her auch wie Siri, passend zur App“.
   messbar kaum etwas (der große Sprung kam mit WebGL in v15). Pro Punkt jetzt ohne
   neue Arrays, Drehung einmal je Bild, Rand nur einmal nachgeschlagen.
 
+- **Verhalten beim Navigieren (Nutzer 22.10.: alle sieben bestätigt, „Alles so
+  bauen“), v18:** Mockup hat jetzt Seiten Home, My Stack, Kalender, Profil (mit
+  Leiste), Ernährung (ohne Leiste, über die Home-Karte) und Scanner (Kamera).
+  1. Tab-Wechsel: Dot bleibt stehen, die Seite gleitet 40 px aus der Laufrichtung
+     herein; Trägheitsstoß in den Rand (abklingend ~70 ms), kleiner Schubs.
+  2. Ausweichen: Seiten markieren Knöpfe/Eingaben mit `data-dot-avoid`. Nach dem
+     Wechsel (360 ms) prüft er seine grobe Fläche (angedockt flach: 1,75 r entlang,
+     0,9 r quer) gegen diese Flächen (+8 px) und sucht entlang seiner Wand(e) in 6-px-
+     Schritten den nächsten freien Platz. Sein gewählter Platz (`pref`, beim
+     Loslassen gesetzt) bleibt; auf der nächsten Seite kehrt er dorthin zurück.
+  3. Chat je Seite: Begrüßung und erster Chip (Akzentrahmen) passend: My Stack „Was
+     steht heute an?“, Kalender „Was habe ich diese Woche verpasst?“ (Karte zum
+     Nachtragen), Ernährung „Trag mein Frühstück ein“ (Karte „wie gestern“).
+  4. Ohne Leiste: Ist er zu Hause, kommt er beim Hineinnavigieren heraus (schnelle
+     Arten: Ploppen, Strömen, Klettern), erst nach der Landung gleitet die Leiste weg.
+     Dann schmaler Streifen am Rand (Höhe 0,18 r statt 0,5 r, Länge bis 2,6 r je
+     Seite, 25 % dunkler), mittig zwischen 30 und 60 % Höhe. Tippen holt ihn (normal
+     flach, „Da bin ich“), nach 6 s Ruhe wieder Streifen. Zurück auf einer Seite mit
+     Leiste geht er wieder hinein, falls er nur deswegen herauskam (nicht, wenn man
+     ihn inzwischen gezogen hat). „Geh in dein Haus“ ohne Leiste: er geht hinein,
+     sobald die Leiste wieder da ist.
+  5. Kamera: zerstiebt gestaffelt in Funken (~0,9 s), ganz weg; beim Schließen setzt
+     er sich wieder zusammen (~1 s). Immer animiert.
+  6. Blatt (Plus-Knopf, Schnellzugriff): unter dem Schleier gedimmt (−30 %), 14 %
+     kleiner, nimmt keine Berührung an; kommt danach zurück.
+  7. Tastatur (Suchfeld My Stack): ihre Oberkante wird zum Boden, sie schiebt ihn
+     mit nach oben; danach sinkt er zurück. Lag er unter der Leiste, setzt er sich
+     danach auf die Leiste.
+  - Technik: Wände hängen an `navOn()` (Leiste sichtbar und keine Tastatur);
+    „an der Leiste“ heißt ohne Leiste „unten am Rand“, „unten“ ohne Quetschen heißt
+    „auf der Leiste“. Messung unverändert (~3,2–3,6 ms je Bild, CPU 6× gebremst).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
@@ -236,8 +268,10 @@ vom Style her auch wie Siri, passend zur App“.
 
 ## Offen
 - Randleuchten anpassen (wie genau: offen). Name „Dot“ bestätigen.
-- Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
-  die unter ihm liegen, oder beim Scrollen kleiner werden)
+- Ausweichen beim Scrollen (Knöpfe, die unter ihm durchscrollen): noch nicht
+  gebaut, bisher nur nach Seitenwechsel und Tastatur.
+- In der App: welche Elemente `data-dot-avoid` bekommen (Speichern-Knöpfe, FABs,
+  Eingaben), festlegen je Feature.
 
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
