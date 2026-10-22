@@ -2309,6 +2309,8 @@
   "nutr_added_to": "Added to {{meal}}",
   "nutr_entry_open": "Edit {{name}}",
   "nutr_delete": "Delete",
+  "nutr_moved": "Moved to {{meal}}",
+  "nutr_moved_day": "Moved to {{day}}",
   "nutr_amount_label": "Amount",
   "nutr_count_word_piece_one": "Piece",
   "nutr_count_word_piece_other": "Pieces",

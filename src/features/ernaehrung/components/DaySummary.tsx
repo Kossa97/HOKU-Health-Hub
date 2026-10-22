@@ -144,7 +144,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
     <>
       {/* Platzhalter im Fluss: der Inhalt beginnt unter der Zone. */}
       <div aria-hidden="true" style={{ height: ZONE_MAX }} />
-      <section ref={zoneRef} aria-label={t('nutr_summary')}
+      <section ref={zoneRef} aria-label={t('nutr_summary')} data-nutr-zone
         className="fixed inset-x-0 z-[30] mx-auto max-w-lg bg-[var(--c-bg)] px-3 shadow-[0_6px_12px_4px_var(--c-bg)]"
         style={{ top: 'env(safe-area-inset-top, 0px)', height: ZONE_MAX }}>
         <canvas ref={canvasRef} role="img" aria-label={aria}

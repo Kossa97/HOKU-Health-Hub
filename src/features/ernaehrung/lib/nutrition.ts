@@ -4,6 +4,7 @@
  * Protokoll trägt die ausgerechneten Werte seiner Menge als Schnappschuss.
  */
 import type { Recipe } from './recipe'
+import { byEntryOrder } from './entryOrder'
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 export const MEALS: readonly Meal[] = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -69,6 +70,8 @@ export interface LogEntry {
   amount: number | null
   nutrients: Nutrients
   createdAt: string
+  /** Platz in der Mahlzeit (siehe entryOrder.ts); null = nach Zeitpunkt. */
+  sortKey: number | null
 }
 
 export const MAX_AMOUNT = 5000
@@ -157,6 +160,7 @@ export function sumNutrients(list: readonly Nutrients[]): Nutrients {
 export function groupByMeal(entries: readonly LogEntry[]): Record<Meal, LogEntry[]> {
   const out: Record<Meal, LogEntry[]> = { breakfast: [], lunch: [], dinner: [], snack: [] }
   for (const e of entries) out[e.meal].push(e)
+  for (const m of MEALS) out[m].sort(byEntryOrder)
   return out
 }
 

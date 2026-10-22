@@ -33,6 +33,7 @@ export function rowToEntry(r: Row): LogEntry {
       fiber: opt(r.fiber_g), sugar: opt(r.sugar_g), satFat: opt(r.sat_fat_g), salt: opt(r.salt_g),
     },
     createdAt: r.created_at as string,
+    sortKey: r.sort_key == null ? null : Number(r.sort_key),
   }
 }
 
@@ -172,12 +173,29 @@ export async function deleteEntry(id: string): Promise<void> {
 }
 
 /** Einträge wieder anlegen (Rückgängig, Kopieren). Neue IDs, gleicher Inhalt. */
+/** Verschieben: andere Mahlzeit, anderer Tag und/oder neuer Platz — nur diese Zeile ändert sich. */
+export async function moveEntry(entry: LogEntry, to: { date: string; meal: Meal; sortKey: number }): Promise<LogEntry> {
+  const { data, error } = await supabase.from('food_logs')
+    .update({ log_date: to.date, meal: to.meal, sort_key: to.sortKey }).eq('id', entry.id).select('*').single()
+  if (error) throw error
+  return rowToEntry(data)
+}
+
+/** Neue Plätze für mehrere Einträge (Mahlzeit neu verteilt, siehe entryOrder.renumber). */
+export async function setSortKeys(updates: readonly { id: string; sortKey: number }[]): Promise<void> {
+  const results = await Promise.all(updates.map(u => supabase.from('food_logs').update({ sort_key: u.sortKey }).eq('id', u.id)))
+  const failed = results.find(r => r.error)
+  if (failed?.error) throw failed.error
+}
+
 export async function insertCopies(userId: string, entries: readonly LogEntry[], target?: { date: string; meal?: Meal }): Promise<LogEntry[]> {
   if (!entries.length) return []
   const rows = entries.map(e => ({
     user_id: userId, log_date: target?.date ?? e.date, meal: target?.meal ?? e.meal,
     food_item_id: e.itemId, source: e.source, source_ref: e.sourceRef,
     name: e.name, brand: e.brand, unit: e.unit, amount: e.amount, ...nutrientColumns(e.nutrients),
+    // Rückgängig nach dem Löschen: an denselben Platz; kopiert in einen anderen Tag/Mahlzeit: nach Zeitpunkt.
+    ...(!target && e.sortKey != null ? { sort_key: e.sortKey } : {}),
   }))
   const { data, error } = await supabase.from('food_logs').insert(rows).select('*')
   if (error) throw error

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { addDays, format, parseISO } from 'date-fns'
 import { Target, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -17,7 +17,9 @@ import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { GoalsSheet } from './components/GoalsSheet'
 import { pieceFor } from './lib/pieces'
 import { MonthSheet } from './components/MonthSheet'
-import { MealSection } from './components/MealSection'
+import { EntryRowContent, MealSection } from './components/MealSection'
+import { type DropTarget, useEntryDrag } from './components/EntryDrag'
+import { entryKey, keyAt, renumber } from './lib/entryOrder'
 import { PhotoSheet } from './components/PhotoSheet'
 import { SheetClose } from '../../components/ui/SheetClose'
 import { PortionSheet } from './components/PortionSheet'
@@ -114,6 +116,62 @@ export function ErnaehrungPage() {
   const pieceOf = (entry: LogEntry) => {
     const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
     return pieceFor({ name: entry.name, unit: entry.unit, serving: mine?.serving ?? null, recipe: mine?.recipe ?? null })
+  }
+
+  /**
+   * Halten und Verschieben: an einen Platz einer Mahlzeit (gezeigter Tag) oder auf einen
+   * Tag der Woche (dort ans Ende derselben Mahlzeit). Mahlzeit- oder Tageswechsel lassen
+   * sich rückgängig machen; nur umsortiert gibt es keinen Hinweis.
+   */
+  const dropEntry = (entry: LogEntry, target: DropTarget) => {
+    const list = target.kind === 'meal' ? n.byMeal[target.meal].filter(e => e.id !== entry.id) : []
+    const key = target.kind === 'meal' ? keyAt(list, target.index) : keyAt([], 0)
+    // Kein Platz zwischen den Nachbarn: die Mahlzeit bekommt neue, gleichmäßige Plätze.
+    const spread = key == null && target.kind === 'meal' ? renumber(list, entry, target.index) : []
+    const to = target.kind === 'meal'
+      ? { date, meal: target.meal, sortKey: key ?? spread.find(u => u.id === entry.id)!.sortKey }
+      // Auf einen anderen Tag: ans Ende derselben Mahlzeit (Schlüssel „jetzt“).
+      : { date: target.date, meal: entry.meal, sortKey: key! }
+    if (to.date === entry.date && to.meal === entry.meal && target.kind === 'day') return
+    const back = { date: entry.date, meal: entry.meal, sortKey: entryKey(entry) }
+    void run(async () => {
+      const saved = await n.move(entry, to)
+      const others = spread.filter(u => u.id !== entry.id)
+      if (others.length) await n.setOrder(others)
+      if (to.date === back.date && to.meal === back.meal) return
+      const where = to.date !== back.date
+        ? t('nutr_moved_day', { day: format(parseISO(to.date), 'EEEE, d. MMMM', { locale }) })
+        : t('nutr_moved', { meal: t(`nutr_meal_${to.meal}`) })
+      toast(tt => (
+        <span className="flex items-center gap-3">
+          <span>{where}</span>
+          <button type="button" className="font-semibold text-[var(--lg-accent-text)]"
+            onClick={() => {
+              toast.dismiss(tt.id)
+              // Den aktuellen Stand zurückschieben (falls inzwischen bearbeitet), sonst den gespeicherten.
+              const now = entriesRef.current.find(e => e.id === saved.id) ?? saved
+              n.move(now, back).catch(() => toast.error(t('nutr_error')))
+            }}>
+            {t('nutr_undo')}
+          </button>
+        </span>
+      ), { duration: 6000 })
+    })
+  }
+  const entriesRef = useRef<LogEntry[]>([])
+  useEffect(() => { entriesRef.current = n.day?.entries ?? [] })
+  const entryDrag = useEntryDrag({
+    date,
+    onDrop: dropEntry,
+    onSpringDay: pickDate,
+    renderGhost: entry => <EntryRowContent entry={entry} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} pieceOf={pieceOf} />,
+  })
+  const liftEntry = (entry: LogEntry, index: number, at: Parameters<typeof entryDrag.start>[2]) =>
+    entryDrag.start(entry, { meal: entry.meal, index, date }, at)
+  const dragFor = (meal: Meal) => entryDrag.drag && {
+    id: entryDrag.drag.entry.id,
+    height: entryDrag.drag.height,
+    index: entryDrag.drag.target.kind === 'meal' && entryDrag.drag.target.meal === meal ? entryDrag.drag.target.index : null,
   }
 
   /** Hat der Nutzer im Bearbeiten die Werte korrigiert oder das Lebensmittel gemerkt? */
@@ -220,7 +278,8 @@ export function ErnaehrungPage() {
           dayLabel={isToday
             ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
             : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
-          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })} />
+          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })}
+          dropDay={entryDrag.drag?.target.kind === 'day' ? entryDrag.drag.target.date : null} />
 
         {MEALS.map(meal => (
           <MealSection key={meal} meal={meal} entries={n.byMeal[meal]} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal} busy={busy || !n.day}
@@ -228,7 +287,8 @@ export function ErnaehrungPage() {
             onOpen={openEntry}
             pieceOf={pieceOf}
             onDelete={removeWithUndo}
-            onSaveAsDish={() => saveMealAsDish(meal)} />
+            onSaveAsDish={() => saveMealAsDish(meal)}
+            drag={dragFor(meal)} onLift={liftEntry} ready={!!n.day} />
         ))}
 
         {n.day && (
@@ -398,6 +458,8 @@ export function ErnaehrungPage() {
         <GoalsSheet userId={userId} today={todayKey} current={n.goals} busy={busy} onClose={() => setSheet(null)}
           onSave={g => run(async () => { await n.saveGoals(g); setSheet(null); toast.success(t('nutr_goals_saved')) })} />
       )}
+
+      {entryDrag.ghost}
 
       {sheet?.kind === 'month' && (
         <MonthSheet userId={userId} date={date} today={todayKey} goals={n.goals} live={n.total}

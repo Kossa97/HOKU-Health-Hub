@@ -49,7 +49,7 @@ describe('ingredientFromEntry', () => {
   const entry = (fields: Partial<LogEntry>): LogEntry => ({
     id: '1', date: '2026-10-18', meal: 'breakfast', itemId: null, source: 'off', sourceRef: '4002671157751',
     name: 'Skyr', brand: 'Ehrmann', unit: 'g', amount: 200,
-    nutrients: { kcal: 126, protein: 22, carbs: 8, fat: 0.4, fiber: null, sugar: 8, satFat: null, salt: 0.2 }, createdAt: '', ...fields,
+    nutrients: { kcal: 126, protein: 22, carbs: 8, fat: 0.4, fiber: null, sugar: 8, satFat: null, salt: 0.2 }, createdAt: '', sortKey: null, ...fields,
   })
 
   it('macht aus einem Eintrag eine Zutat mit Werten je 100 g', () => {

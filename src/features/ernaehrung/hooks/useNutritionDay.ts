@@ -118,6 +118,52 @@ export function useNutritionDay(userId: string, date: string) {
     return next
   }, [applyAdded, applyRemoved])
 
+  /**
+   * Verschieben (Halten und Ziehen): sofort anzeigen, dann speichern; schlägt es fehl,
+   * steht der Eintrag wieder am alten Platz. Ein anderer Tag zählt in der Woche mit.
+   */
+  const applyMoved = useCallback((from: LogEntry, to: LogEntry) => {
+    // Wie Entfernen + Hinzufügen, aber „Häufig“ bleibt unberührt: Verschieben ist kein neues Essen.
+    setDay(d => {
+      if (!d) return d
+      const rest = d.entries.filter(e => e.id !== from.id)
+      return { ...d, entries: to.date === d.date ? [...rest, to] : rest }
+    })
+    setWeek(w => {
+      if (!w || from.date === to.date) return w
+      const totals = { ...w.totals }
+      if (totals[from.date]) totals[from.date] = addTotals(totals[from.date], from.nutrients, -1)
+      if (to.date >= w.from && to.date <= weekRange(w.from).to) totals[to.date] = addTotals(totals[to.date] ?? EMPTY_TOTALS, to.nutrients)
+      return { ...w, totals }
+    })
+  }, [])
+
+  const move = useCallback(async (entry: LogEntry, to: { date: string; meal: Meal; sortKey: number }) => {
+    const moved: LogEntry = { ...entry, date: to.date, meal: to.meal, sortKey: to.sortKey }
+    applyMoved(entry, moved)
+    try {
+      const saved = await store.moveEntry(entry, to)
+      setDay(d => (d ? { ...d, entries: d.entries.map(e => (e.id === saved.id ? saved : e)) } : d))
+      return saved
+    } catch (error) {
+      applyMoved(moved, entry)
+      throw error
+    }
+  }, [applyMoved])
+
+  /** Plätze in einer Mahlzeit neu verteilen (wenn zwischen zwei Nachbarn kein Platz mehr ist). */
+  const setOrder = useCallback(async (updates: readonly { id: string; sortKey: number }[]) => {
+    const before = new Map((current?.entries ?? []).map(e => [e.id, e.sortKey]))
+    const keys = new Map(updates.map(u => [u.id, u.sortKey]))
+    setDay(d => (d ? { ...d, entries: d.entries.map(e => (keys.has(e.id) ? { ...e, sortKey: keys.get(e.id)! } : e)) } : d))
+    try {
+      await store.setSortKeys(updates)
+    } catch (error) {
+      setDay(d => (d ? { ...d, entries: d.entries.map(e => (before.has(e.id) && keys.has(e.id) ? { ...e, sortKey: before.get(e.id)! } : e)) } : d))
+      throw error
+    }
+  }, [current?.entries])
+
   /** Löschen sofort anzeigen; schlägt es fehl, kommt der Eintrag zurück. */
   const remove = useCallback(async (entry: LogEntry) => {
     applyRemoved(entry)
@@ -180,6 +226,6 @@ export function useNutritionDay(userId: string, date: string) {
 
   return {
     day: current, week: week?.from === weekFrom ? week.totals : null, loadError: loadError || weekError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
-    add, addMany, addQuick, update, remove, restore, setWater, saveGoals, saveFood, removeFood, findByBarcode,
+    add, addMany, addQuick, update, remove, restore, move, setOrder, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }

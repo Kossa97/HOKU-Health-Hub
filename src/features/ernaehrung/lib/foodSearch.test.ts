@@ -12,7 +12,7 @@ const food = (name: string, over: Partial<Food> = {}): Food => ({
 let n = 0
 const entry = (name: string, over: Partial<LogEntry> = {}): LogEntry => ({
   id: String(++n), date: '2026-10-18', meal: 'breakfast', itemId: null, source: 'off', sourceRef: null,
-  name, brand: null, unit: 'g', amount: 150, createdAt: '', ...over,
+  name, brand: null, unit: 'g', amount: 150, createdAt: '', sortKey: null, ...over,
   nutrients: nutrientsFor(per100, over.amount ?? 150),
 })
 
