@@ -9,10 +9,14 @@ import type { InventoryDraft } from '../types'
  * die Fluessigkeit eintraegt, weiss in dem Moment auch, wann er gemischt hat.
  * Vorher stand beides nur beim Bearbeiten, eingeklappt unter „Produkt"; beim
  * Anlegen fragte niemand danach, und im Vollbild blieb es „Nicht gesetzt".
+ * Bei fertiger Loesung (Hormon-Vial) heisst es „Geöffnet am" — gemischt wird
+ * dort nichts.
  */
-export function AnmischAngaben({ inventory, onChange }: {
+export function AnmischAngaben({ inventory, onChange, loesung = false }: {
   inventory: InventoryDraft
   onChange: (changes: Partial<InventoryDraft>) => void
+  /** Fertige Loesung: das Vial wird angebrochen, nicht angemischt. */
+  loesung?: boolean
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -25,7 +29,7 @@ export function AnmischAngaben({ inventory, onChange }: {
     <div data-anmisch-angaben className="grid gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 sm:grid-cols-2">
       <div>
         <label htmlFor={`${id}-opened`} className={beschriftung}>
-          {t('my_stack_stock_mixed_on')} ({optional})
+          {t(loesung ? 'my_stack_stock_opened_on' : 'my_stack_stock_mixed_on')} ({optional})
         </label>
         <input
           id={`${id}-opened`}
@@ -38,7 +42,7 @@ export function AnmischAngaben({ inventory, onChange }: {
       </div>
       <div>
         <label htmlFor={`${id}-within`} className={beschriftung}>
-          {t('my_stack_stock_use_within_vial')} ({t('my_stack_stock_days_multiple', { n: '' }).trim()}, {optional})
+          {t(loesung ? 'my_stack_stock_use_within' : 'my_stack_stock_use_within_vial')} ({t('my_stack_stock_days_multiple', { n: '' }).trim()}, {optional})
         </label>
         <input
           id={`${id}-within`}

@@ -1031,7 +1031,11 @@ export class MockSupabase {
       if (!item) throw new RpcError('Stack item not found')
       const inventory = this.table('stack_item_inventory').find(row => row.stack_item_id === item.id && row.user_id === TEST_USER.id)
       const vialInventory = vialUsesInventory(item, inventory)
-      const legacyVial = item.dosage_form === 'vial' && !vialInventory
+      // Vial mit fertiger Loesung, Bestand in ml: der allgemeine Weg (wie in
+      // supabase-vial-bestand-ml.sql), solange keine alte Vial-Buchung besteht.
+      const genericVial = item.dosage_form === 'vial' && !!inventory?.enabled && inventory.package_unit != null && inventory.package_unit !== 'vial'
+        && !this.table('vial_stock_movements').some(row => row.source_dose_log_id === log.id && row.user_id === TEST_USER.id)
+      const legacyVial = item.dosage_form === 'vial' && !vialInventory && !genericVial
       if (!legacyVial && !vialInventory && item.tracking_level !== 'complete') return null
       if (!legacyVial && !inventory) return null
       if (!legacyVial && !inventory!.enabled) return inventory!.remaining_quantity

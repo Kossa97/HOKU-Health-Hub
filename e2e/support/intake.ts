@@ -28,7 +28,7 @@ export async function createTrackedIntake(page: Page): Promise<void> {
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
-  await wizard.getByRole('combobox', { name: 'Methode' }).selectOption('Subkutan')
+  await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
   await wizard.getByRole('combobox', { name: 'Einheit' }).fill('mcg')
   await next(wizard, 'Zusammenfassung')

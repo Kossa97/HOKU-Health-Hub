@@ -59,3 +59,14 @@ function hexFarbton(hex: string): number {
     : max === g ? (b - r) / d + 2 : (r - g) / d + 4
   return h * 60
 }
+
+describe('swatch colors', () => {
+  test('sind die zwoelf Systemfarben, und die Vorbelegung kommt aus ihnen', async () => {
+    const { SWATCH_COLORS, getRandomSwatchColor } = await import('./colors')
+    expect(SWATCH_COLORS).toHaveLength(12)
+    expect(new Set(SWATCH_COLORS.map(farbe => farbe.hex)).size).toBe(12)
+    const hexe = SWATCH_COLORS.map(farbe => farbe.hex)
+    expect(hexe).toContain(getRandomSwatchColor(() => 0))
+    expect(hexe).toContain(getRandomSwatchColor(() => 0.999))
+  })
+})

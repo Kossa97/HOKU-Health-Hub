@@ -1,7 +1,7 @@
 import { ChevronDown, FileUp, Package } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { anbruchArt, gueltigeFluessigkeit, gueltigeHaltbarkeit } from '../lib/bestand'
+import { anbruchArt, gueltigeFluessigkeit, gueltigeHaltbarkeit, istLoesungsVial } from '../lib/bestand'
 import type { DosageFormKey, InventoryDraft } from '../types'
 
 interface ProductInventorySectionProps {
@@ -19,6 +19,8 @@ interface ProductInventorySectionProps {
   brand: string
   inventory: InventoryDraft
   dosageForm?: DosageFormKey | null
+  /** Fuer das Vial mit fertiger Loesung: geoeffnet statt angemischt, ohne Fluessigkeit. */
+  category?: string | null
   onBrandChange: (brand: string) => void
   onInventoryChange: (changes: Partial<InventoryDraft>) => void
 }
@@ -45,13 +47,15 @@ export function ProductInventorySection({
   brand,
   inventory,
   dosageForm,
+  category,
   onBrandChange,
   onInventoryChange,
 }: ProductInventorySectionProps) {
   const { t } = useTranslation()
   const contentId = useId()
   const [expanded, setExpanded] = useState(false)
-  const art = anbruchArt(dosageForm)
+  // Ein Vial mit fertiger Loesung wird geoeffnet wie eine Flasche.
+  const art = istLoesungsVial(dosageForm, category) ? 'flasche' : anbruchArt(dosageForm)
   const eingabe = 'input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400'
   const beschriftung = 'mb-2 block text-sm font-semibold text-slate-200'
   const fluessigkeitFalsch = !gueltigeFluessigkeit(inventory.reconstitutionMl)

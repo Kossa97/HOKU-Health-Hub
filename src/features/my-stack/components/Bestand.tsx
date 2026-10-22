@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { CycleTimeline } from '../../../lib/planTimeline'
 import {
   anbruchArt,
+  istLoesungsVial,
   behaelterArt,
   bestandAufteilen,
   bestandZusammensetzen,
@@ -32,7 +33,8 @@ export interface BestandActions {
 }
 
 /**
- * „Bestand verfolgen", „Bestand aendern" und „Neu rekonstituieren". Die
+ * „Bestand verfolgen", „Bestand aendern" und „Neu rekonstituieren" bzw.
+ * „Neues Vial anbrechen". Die
  * Angaben zur Packung (Charge, Anmischdatum, Haltbarkeit) aendert man ueber
  * „Bearbeiten" (`ProductInventorySection`), nicht hier.
  */
@@ -61,6 +63,8 @@ interface EditorProps {
   editor: BestandEditorArt
   art: AnbruchArt | null
   form: DosageFormKey
+  /** Vial mit fertiger Loesung: angebrochen, nicht angemischt — keine Fluessigkeit. */
+  loesung: boolean
   inventory: StackItemInventory | null
   /** Ein ausgeschalteter Bestand: seine Zahlen fuellen „Bestand verfolgen" vor. */
   fallback: StackItemInventory | null
@@ -72,7 +76,7 @@ interface EditorProps {
   actions: BestandActions
 }
 
-function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, language, onClose, onSubmit, actions }: EditorProps) {
+function BestandEditor({ editor, art, form, loesung, inventory, fallback, choices, busy, language, onClose, onSubmit, actions }: EditorProps) {
   const { t } = useTranslation()
   const id = useId()
   const inv = inventory ?? fallback
@@ -104,10 +108,11 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
   const TITEL: Record<BestandEditorArt, string> = {
     start: String(t('my_stack_stock_start')),
     correct: String(t('my_stack_stock_edit')),
-    open_new: neuAnbrechenLabel(t, form),
+    open_new: neuAnbrechenLabel(t, form, loesung),
   }
 
   const zahlWert = zahl(menge)
+  const anmischen = art === 'vial' && !loesung
   let gueltig = true
   let speichern: (() => Promise<void>) | null = null
   switch (editor) {
@@ -132,11 +137,11 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
       }
       break
     case 'open_new':
-      gueltig = Boolean(text) && (art !== 'vial' || menge.trim() === '' || (zahlWert != null && gueltigeFluessigkeit(zahlWert)))
+      gueltig = Boolean(text) && (!anmischen || menge.trim() === '' || (zahlWert != null && gueltigeFluessigkeit(zahlWert)))
       speichern = () => actions.openContainer({
         openedAt: text,
         discardRest: Boolean(teile?.angebrochen) && verwerfen,
-        reconstitutionMl: art === 'vial' ? zahlWert : null,
+        reconstitutionMl: anmischen ? zahlWert : null,
       })
       break
   }
@@ -178,7 +183,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
               </label>
               <div className="grid gap-1.5">
                 <label htmlFor={`${id}-prozent`} className="text-sm font-semibold text-slate-200">
-                  {String(t(`my_stack_stock_opened_${behaelter}`))}
+                  {String(t(loesung ? 'my_stack_stock_opened_solution_vial' : `my_stack_stock_opened_${behaelter}`))}
                 </label>
                 <span className="relative">
                   <input id={`${id}-prozent`} className={`${eingabe} pr-8`} inputMode="decimal" value={geteilt.prozent} onChange={event => setGeteilt(g => ({ ...g, prozent: event.target.value }))} />
@@ -208,10 +213,10 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
       body = (
         <div className="grid gap-3">
           <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
-            {String(t(art === 'vial' ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on'))}
+            {String(t(anmischen ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on'))}
             <input type="date" className={eingabe} value={text} onChange={event => setText(event.target.value)} />
           </label>
-          {art === 'vial' && (
+          {anmischen && (
             <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
               {String(t('my_stack_stock_liquid'))} (ml)
               <input className={eingabe} inputMode="decimal" value={menge} onChange={event => setMenge(event.target.value)} />
@@ -272,6 +277,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
 export interface BestandEditorHostProps {
   editor: BestandEditorArt
   dosageForm: DosageFormKey
+  category?: string | null
   inventory: StackItemInventory | null
   ingredients: StackItemIngredient[]
   onClose(): void
@@ -284,7 +290,7 @@ export interface BestandEditorHostProps {
  * Nach dem Speichern schliesst es; bei einem Fehler bleibt es offen (die
  * Meldung zeigt der Aufrufer).
  */
-export function BestandEditorHost({ editor, dosageForm, inventory, ingredients, onClose, actions }: BestandEditorHostProps) {
+export function BestandEditorHost({ editor, dosageForm, category, inventory, ingredients, onClose, actions }: BestandEditorHostProps) {
   const { i18n } = useTranslation()
   const language = i18n.resolvedLanguage ?? i18n.language
   const [busy, setBusy] = useState(false)
@@ -304,6 +310,7 @@ export function BestandEditorHost({ editor, dosageForm, inventory, ingredients, 
       editor={editor}
       art={anbruchArt(dosageForm)}
       form={dosageForm}
+      loesung={istLoesungsVial(dosageForm, category)}
       inventory={inventory?.enabled ? inventory : null}
       fallback={inventory}
       choices={stockUnitChoices(dosageForm, ingredients)}

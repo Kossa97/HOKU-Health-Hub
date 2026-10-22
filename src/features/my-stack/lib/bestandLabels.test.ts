@@ -21,6 +21,16 @@ function inventory(changes: Partial<StackItemInventory> = {}): StackItemInventor
 }
 
 describe('vorratZeilen', () => {
+  it('Vial mit fertiger Loesung in ml: Menge vorn, dahinter die Vials', () => {
+    const ml = { package_unit: 'ml', package_quantity: 10 }
+    expect(vorratZeilen(t, inventory({ ...ml, remaining_quantity: 8 }), 'vial', 'de').klein)
+      .toBe('my_stack_stock_solution_vial_size(amount=my_stack_stock_unit_ml_multiple(n=10))')
+    expect(vorratZeilen(t, inventory({ ...ml, remaining_quantity: 18, opened_at: '2026-09-20' }), 'vial', 'de').klein)
+      .toBe('my_stack_stock_solution_vial_extra(n=1,percent=80)')
+    expect(vorratZeilen(t, inventory({ ...ml, remaining_quantity: 8, opened_at: '2026-09-20' }), 'vial', 'de').klein)
+      .toBe('my_stack_stock_solution_vial_opened(n=0,percent=80)')
+  })
+
   it('zeigt Sprays in Behaeltern, nicht in Spruehstoessen', () => {
     const zeilen = vorratZeilen(t, inventory({ opened_at: '2026-09-20' }), 'nasal_spray', 'de')
     expect(zeilen.gross).toBe('my_stack_stock_container_spray_multiple(n=2)')
@@ -54,6 +64,13 @@ describe('vorratZeilen', () => {
   it('ohne Behaeltergroesse bleibt es bei der Packungseinheit', () => {
     const zeilen = vorratZeilen(t, inventory({ package_quantity: null, remaining_quantity: 240 }), 'nasal_spray', 'de')
     expect(zeilen.gross).toBe('my_stack_stock_unit_spray_multiple(n=240)')
+  })
+})
+
+describe('neuAnbrechenLabel bei fertiger Loesung', () => {
+  it('bricht an statt zu rekonstituieren', () => {
+    expect(neuAnbrechenLabel(t, 'vial', true)).toBe('my_stack_stock_open_new_vial')
+    expect(neuAnbrechenLabel(t, 'vial')).toBe('my_stack_stock_mix_new')
   })
 })
 

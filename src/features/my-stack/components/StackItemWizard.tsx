@@ -45,7 +45,8 @@ import {
 import { bestandteileAufloesen } from '../lib/kombination'
 import { buildReview, carryOverReview, planBaseAt, reviewedSnapshot, reviewStepChanged, stepsAround, type LaterPlanStep, type ReviewStep } from '../lib/planAdoption'
 import { formatLocalDay, laterLocalDay, shiftLocalDay } from '../lib/localDays'
-import { fuehrendeMenge, rhythmSummary, rhythmText } from '../lib/intakeRhythm'
+import { fuehrendeMenge, inWochenfolge, rhythmSummary, rhythmText } from '../lib/intakeRhythm'
+import { weekdayLabel } from '../lib/planLabels'
 import { validateIntakePlan, validateStackItemDraft } from '../lib/validation'
 import { evaluatePkReadiness, pkRouteAccepted, pkRouteStatus, toPkMilligrams } from '../lib/pkReadiness'
 import { useSloshEngine } from '../../../components/SloshContext'
@@ -54,7 +55,7 @@ import { methodLabel } from '../../../lib/intakeMethods'
 import { objektSkala } from '../lib/objektSkala'
 import { DosageFormPicker } from './DosageFormPicker'
 import { DosageFormPreview } from './DosageFormPreview'
-import { ColorField } from '../../../components/ColorField'
+import { ColorSwatchPicker } from '../../../components/ColorSwatchPicker'
 import { IngredientEditor } from './IngredientEditor'
 import { IntakePlanEditor } from './IntakePlanEditor'
 import { PlannedStepsReview, type ReviewStepErrors } from './PlannedStepsReview'
@@ -66,7 +67,7 @@ import { SubstanceSearch } from './SubstanceSearch'
 import { SubstanzScanner } from './SubstanzScanner'
 import { scanAktionen, type ScanVorschlag } from '../lib/substanzScan'
 import { reportError } from '../../../lib/monitoring'
-import { gueltigeFluessigkeit, gueltigeHaltbarkeit } from '../lib/bestand'
+import { gueltigeFluessigkeit, gueltigeHaltbarkeit, istLoesungsVial } from '../lib/bestand'
 
 /**
  * Der Plan, der am Stichtag bisher gilt (`planBaseAt`). Null, solange bei
@@ -1382,6 +1383,7 @@ export function StackItemWizard({
               brand={state.draft.brand}
               inventory={state.draft.inventory}
               dosageForm={state.draft.dosageForm}
+              category={state.draft.category}
               onBrandChange={brand => dispatch({ type: 'details_changed', changes: { brand } })}
               onInventoryChange={changes => dispatch({ type: 'inventory_changed', changes })}
             />
@@ -1391,6 +1393,7 @@ export function StackItemWizard({
                 beim Bearbeiten steht es dann unter „Produkt". */}
             {!planEditContext && !existingItem && state.draft.dosageForm === 'vial' && !anmischenImStaerkeSchritt && (
               <AnmischAngaben
+                loesung={istLoesungsVial(state.draft.dosageForm, state.draft.category)}
                 inventory={state.draft.inventory}
                 onChange={changes => dispatch({ type: 'inventory_changed', changes })}
               />
@@ -1478,7 +1481,13 @@ export function StackItemWizard({
                   <dt className="text-slate-400">{t('my_stack_dosage_form', { defaultValue: 'Darreichungsform' })}</dt>
                   <dd className="font-medium text-slate-200">{state.draft.dosageForm && t(`dosage_form_${state.draft.dosageForm}`)}</dd>
                 </div>
-                {!metadataOnly && <><div className="flex flex-wrap justify-between gap-2">
+                {!metadataOnly && <>{state.draft.plan.method && (
+                <div className="flex flex-wrap justify-between gap-2">
+                  <dt className="text-slate-400">{t('methode')}</dt>
+                  <dd data-review-method className="font-medium text-slate-200">{methodLabel(t, state.draft.plan.method)}</dd>
+                </div>
+                )}
+                <div className="flex flex-wrap justify-between gap-2">
                   <dt className="text-slate-400">{t('my_stack_plan_rhythm', { defaultValue: 'An welchen Tagen?' })}</dt>
                   <dd data-review-rhythm className="font-medium text-slate-200">{rhythmText(rhythmSummary(state.draft.plan.rhythm), t)}</dd>
                 </div>
@@ -1503,9 +1512,13 @@ export function StackItemWizard({
                 ) : state.draft.plan.slots.map((slot, index) => (
                   <div key={index} data-review-slot={index} className="flex flex-wrap justify-between gap-2">
                     <dt className="text-slate-400">
-                      {state.draft.plan.slots.length > 1
-                        ? t('einnahme_nr', { defaultValue: `Einnahme ${index + 1}`, n: index + 1 })
-                        : t('my_stack_plan_routine_group', { defaultValue: 'Tageszeit' })}
+                      {/* An bestimmten Wochentagen sagt der Tag mehr als die
+                          Nummer: „Mo" statt „Einnahme 1". */}
+                      {state.draft.plan.rhythm.kind === 'weekdays' && slot.weekdays.length > 0
+                        ? inWochenfolge(slot.weekdays).map(tag => weekdayLabel(tag, i18n?.language || 'de')).join(', ')
+                        : state.draft.plan.slots.length > 1
+                          ? t('einnahme_nr', { defaultValue: `Einnahme ${index + 1}`, n: index + 1 })
+                          : t('my_stack_plan_routine_group', { defaultValue: 'Tageszeit' })}
                     </dt>
                     <dd className="font-medium text-slate-200">
                       {slot.routineGroup === 'morning'
@@ -1767,14 +1780,14 @@ export function StackItemWizard({
                 </span>
               </div>
               {/* Die Farbe steht direkt unter dem Objekt, das sie faerbt.
-                  Eine Flaeche zum Ziehen statt fertiger Felder: der Nutzer
-                  waehlt seine Farbe, nicht eine aus zwoelf. Waehrend des
-                  Ziehens faerbt sich das Objekt darueber mit. */}
+                  Zwoelf abgestimmte Systemfarben wie in den Apple-Apps — ein
+                  Tipp genuegt —, und „Eigene Farbe" klappt die freie Flaeche
+                  auf. Das Objekt darueber faerbt sich sofort mit. */}
               <div role="group" aria-labelledby="stack-color-label" className="shrink-0 border-t border-white/[0.07] pt-4">
                 <p id="stack-color-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                   {t('my_stack_color_optional', { defaultValue: 'Farbe (optional)' })}
                 </p>
-                <ColorField
+                <ColorSwatchPicker
                   value={state.draft.colorHex}
                   onChange={colorHex => dispatch({ type: 'details_changed', changes: { colorHex } })}
                 />

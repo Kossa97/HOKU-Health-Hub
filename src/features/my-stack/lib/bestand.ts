@@ -70,6 +70,37 @@ export function vialBuchtUeberBestand(
 }
 
 /**
+ * Ein Vial mit fertiger Loesung (Testosteron, 250 mg/ml): es wird angebrochen,
+ * nicht angemischt. Pulver-Vials gibt es nur bei Peptiden (wie
+ * `istPulverVial` im Formular).
+ */
+export function istLoesungsVial(form: DosageFormKey | null | undefined, category: string | null | undefined): boolean {
+  return form === 'vial' && category != null && category !== 'peptide'
+}
+
+/**
+ * Bucht die Datenbank bestaetigte Einnahmen von diesem Bestand ab? Dieselbe
+ * Regel wie `apply_inventory_confirmation`: ein in Vials gefuehrtes Vial ueber
+ * `vialBuchtUeberBestand`, ein in ml (o. ae.) gefuehrtes wie jede andere Form
+ * nur mit erfasster Staerke. Ein in Vials gefuehrtes ohne eindeutige
+ * Umrechnung bleibt beim alten Weg — der Bestand hier aendert sich dann nicht.
+ */
+export function buchtEinnahmenAb(item: {
+  dosage_form: DosageFormKey
+  tracking_level: string
+  inventory?: StackItemInventory | null
+  ingredients: readonly StackItemIngredient[]
+}): boolean {
+  if (item.dosage_form === 'vial') {
+    const einheit = item.inventory?.package_unit
+    if (einheit === 'vial') return vialBuchtUeberBestand(item.inventory, item.ingredients)
+    // Ohne Packungseinheit nimmt die Datenbank den alten Weg.
+    if (!einheit || !item.inventory?.enabled) return false
+  }
+  return item.tracking_level === 'complete'
+}
+
+/**
  * Wie viel ein einzelner Behaelter fasst, in Packungseinheiten. Beim Vial ist
  * die Packungseinheit das Vial selbst; sonst beschreibt die Packungsgroesse
  * einen Behaelter („eine Flasche mit 30 ml").

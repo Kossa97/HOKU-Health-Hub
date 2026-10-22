@@ -662,12 +662,14 @@ describe('MyStackPage non-vial visibility', () => {
 
     expect(substance?.querySelector('[data-stack-detail-field="wirkstoff"]')).toBeNull()
     expect(within(product!).getByRole('heading', { name: 'Zusammensetzung' })).not.toBeNull()
-    for (const feld of ['wirkstoff', 'fluessigkeit', 'rekonstituiert_am', 'haltbarkeit']) {
-      expect(product?.querySelector(`[data-stack-detail-field="${feld}"]`), feld).not.toBeNull()
+    // Nur Gesetztes bekommt eine Zeile; was fehlt, zaehlt der Knopf darunter.
+    expect(product?.querySelector('[data-stack-detail-field="wirkstoff"]')).not.toBeNull()
+    for (const feld of ['fluessigkeit', 'rekonstituiert_am', 'haltbarkeit', 'batch', 'quelle', 'analyse']) {
+      const zeile = dialog.querySelector<HTMLElement>(`[data-stack-detail-field="${feld}"]`)
+      if (zeile) expect(zeile.textContent, feld).not.toContain('Nicht gesetzt')
     }
-    for (const feld of ['batch', 'quelle', 'analyse']) {
-      expect(substance?.querySelector(`[data-stack-detail-field="${feld}"]`), feld).not.toBeNull()
-    }
+    expect(dialog.textContent).not.toContain('Nicht gesetzt')
+    expect(Number(dialog.querySelector('[data-stack-detail-missing]')?.getAttribute('data-stack-detail-missing'))).toBeGreaterThan(0)
     // Ohne Ablaufdatum keine Kachel „Nicht gesetzt".
     expect(dialog.querySelector('[data-stack-detail-field="ablauf"]')).toBeNull()
     // Den Vorrat zeigt die Bestand-Anzeige, keine Kachel — und kein eigenes Fenster.
@@ -676,7 +678,9 @@ describe('MyStackPage non-vial visibility', () => {
     expect(stock).not.toBeNull()
     expect(within(stock!).getAllByRole('button')).toHaveLength(1)
     // Die Notiz steht unter ihrem Namen, nicht rechts daneben abgeschnitten.
-    expect(substance?.querySelector('[data-stack-detail-field="notizen"]')?.getAttribute('data-wide')).toBe('true')
+    // (Leer steht sie gar nicht da.)
+    const notiz = substance?.querySelector('[data-stack-detail-field="notizen"]')
+    if (notiz) expect(notiz.getAttribute('data-wide')).toBe('true')
   })
 
   it('shows a set expiry date as the unopened one', async () => {

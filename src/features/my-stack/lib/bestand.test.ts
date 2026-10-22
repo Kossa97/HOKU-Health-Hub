@@ -6,8 +6,10 @@ import {
   aufzuziehendeEinheiten,
   bestandAufteilen,
   bestandZusammensetzen,
+  buchtEinnahmenAb,
   dosisInPackungseinheit,
   haltbarBis,
+  istLoesungsVial,
   reichweite,
   spritzenEinheitenProMl,
   spritzenRechnung,
@@ -216,6 +218,36 @@ describe('vialBuchtUeberBestand', () => {
     expect(vialBuchtUeberBestand(inventory({ package_unit: 'ml' }), [ingredient()])).toBe(false)
     expect(vialBuchtUeberBestand(inventory(), [ingredient(), ingredient({ amount_value: 5 })])).toBe(false)
     expect(vialBuchtUeberBestand(null, [ingredient()])).toBe(false)
+  })
+})
+
+describe('buchtEinnahmenAb', () => {
+  const item = (changes: Partial<Parameters<typeof buchtEinnahmenAb>[0]> = {}) => ({
+    dosage_form: 'vial' as const,
+    tracking_level: 'complete',
+    inventory: inventory(),
+    ingredients: [ingredient()],
+    ...changes,
+  })
+
+  it('in Vials gefuehrt: nur mit eindeutiger Umrechnung, unabhaengig von der Erfassungstiefe', () => {
+    expect(buchtEinnahmenAb(item({ tracking_level: 'basic' }))).toBe(true)
+    expect(buchtEinnahmenAb(item({ ingredients: [ingredient(), ingredient({ amount_value: 5 })] }))).toBe(false)
+  })
+
+  it('fertige Loesung in ml: wie jede andere Form mit erfasster Staerke', () => {
+    const ml = inventory({ package_unit: 'ml', package_quantity: 10, remaining_quantity: 8 })
+    expect(buchtEinnahmenAb(item({ inventory: ml }))).toBe(true)
+    expect(buchtEinnahmenAb(item({ inventory: ml, tracking_level: 'basic' }))).toBe(false)
+  })
+})
+
+describe('istLoesungsVial', () => {
+  it('nur Peptid-Vials werden angemischt', () => {
+    expect(istLoesungsVial('vial', 'hormone')).toBe(true)
+    expect(istLoesungsVial('vial', 'peptide')).toBe(false)
+    expect(istLoesungsVial('pen', 'hormone')).toBe(false)
+    expect(istLoesungsVial('vial', null)).toBe(false)
   })
 })
 

@@ -11,8 +11,8 @@ import {
 import { planVersionSegments } from '../lib/planSegments'
 import { isOnDemandRhythm } from '../lib/intakeRhythm'
 import { laterLocalDay, shiftLocalDay } from '../lib/localDays'
-import { cyclePeriod, inclusiveDayCount, planStepRows } from '../lib/planCard'
-import { CurrentSlotRow, StepSlotRow, SyringeNote } from './planCardParts'
+import { cyclePeriod, inclusiveDayCount, planStepRows, planTage } from '../lib/planCard'
+import { SlotList, StepSlotRow, SyringeNote } from './planCardParts'
 import type { SpritzenRechnung, StueckRechnung } from '../lib/bestand'
 import {
   dateLabel,
@@ -471,11 +471,7 @@ export function PlanManagementSection({
                 {slotCountSuffix(panelSlots.length, t)}
               </p>
               {panelSlots.length > 0 && (
-                <ul className="mt-3 space-y-2">
-                  {panelSlots.map(slot => (
-                    <CurrentSlotRow key={slot.id} slot={slot} language={language} t={t} syringe={syringe} stueck={stueck} />
-                  ))}
-                </ul>
+                <SlotList className="mt-3 space-y-2" slots={panelSlots} planDays={planTage(panelVersion)} language={language} t={t} syringe={syringe} stueck={stueck} />
               )}
               {panelSlots.length > 0 && syringe && <div className="mt-2"><SyringeNote syringe={syringe} language={language} t={t} /></div>}
 

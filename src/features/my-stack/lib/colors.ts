@@ -44,3 +44,30 @@ export function getStableStackItemColor(id: string): string {
   }
   return STACK_ITEM_COLORS[(hash >>> 0) % STACK_ITEM_COLORS.length]
 }
+
+/**
+ * Die Systemfarben von iOS im dunklen Erscheinungsbild — dieselben zwoelf,
+ * die Erinnerungen und Kalender zur Wahl stellen. Aufeinander abgestimmt
+ * (gleiche Leuchtkraft auf Schwarz). Aus ihnen waehlt das Formular; die
+ * Palette oben bleibt der Ersatz fuer Eintraege ohne eigene Farbe.
+ */
+export const SWATCH_COLORS = [
+  { hex: '#ff453a', name: 'red' },
+  { hex: '#ff9f0a', name: 'orange' },
+  { hex: '#ffd60a', name: 'yellow' },
+  { hex: '#30d158', name: 'green' },
+  { hex: '#66d4cf', name: 'mint' },
+  { hex: '#40c8e0', name: 'teal' },
+  { hex: '#64d2ff', name: 'cyan' },
+  { hex: '#0a84ff', name: 'blue' },
+  { hex: '#5e5ce6', name: 'indigo' },
+  { hex: '#bf5af2', name: 'purple' },
+  { hex: '#ff375f', name: 'pink' },
+  { hex: '#ac8e68', name: 'brown' },
+] as const
+
+/** Eine Vorbelegung fuers Formular — eine der Systemfarben, damit sie gewaehlt aussieht. */
+export function getRandomSwatchColor(random: () => number = Math.random): string {
+  const index = Math.min(SWATCH_COLORS.length - 1, Math.max(0, Math.floor(random() * SWATCH_COLORS.length)))
+  return SWATCH_COLORS[index].hex
+}

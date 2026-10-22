@@ -6,7 +6,7 @@ import { Trash2, Pencil, RefreshCw } from 'lucide-react'
 import { SloshProvider } from '../../../components/SloshContext'
 import { StageDetailSheet } from '../components/StageDetailSheet'
 import { type BestandEditorArt } from '../components/Bestand'
-import { anbruchArt, vorratTeile } from '../lib/bestand'
+import { anbruchArt, istLoesungsVial, vorratTeile } from '../lib/bestand'
 import { StackStage } from '../components/StackStage'
 import { denyProps } from '../../../lib/denyFeedback'
 import { getStableStackItemColor } from '../lib/colors'
@@ -104,7 +104,7 @@ export function StageDetailView({
                   className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${anmischenHilft ? 'tyd-alarm-knopf' : ''}`}
                 >
                   {knopfSymbol(anmischenHilft)}
-                  {neuAnbrechenLabel(t, activePeptide.dosage_form)}
+                  {neuAnbrechenLabel(t, activePeptide.dosage_form, istLoesungsVial(activePeptide.dosage_form, activePeptide.category))}
                 </button>
               )
             }
@@ -123,7 +123,7 @@ export function StageDetailView({
                 className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 aria-disabled:opacity-40 ${anmischenHilft && !nichtsZuOeffnen ? 'tyd-alarm-knopf' : ''}`}
               >
                 {knopfSymbol(anmischenHilft && !nichtsZuOeffnen)}
-                {neuAnbrechenLabel(t, activePeptide.dosage_form)}
+                {neuAnbrechenLabel(t, activePeptide.dosage_form, istLoesungsVial(activePeptide.dosage_form, activePeptide.category))}
               </button>
             )
           })()}
