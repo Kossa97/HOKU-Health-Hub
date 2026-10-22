@@ -217,6 +217,15 @@ vom Style her auch wie Siri, passend zur App“.
   - Mit dem Finger hineingedrückt: weiter Sog. Im Mockup fest wählbar, Antippen wirft
     zur Probe (Bogen nach oben, dann auf den Eingang).
 
+- **Feste Größe (Nutzer 22.10.: „perfekte flüssige Größe, kein Zoomen“), v17:**
+  56 px Durchmesser (`DOT_R = 28`), 460 Punkte (vorher 620), Punktgröße darauf
+  abgestimmt. Zoomen entfernt (zweiter Finger, Mausrad, Chat-Befehle; „mach dich
+  größer“ erklärt jetzt freundlich die feste Größe). Messung (CPU 6× gebremst, je
+  Bild): ~3,5 ms gesamt, Physik ~1,2 (Form ~0,6), Punkte ~1,0, GPU-Aufruf ~0,5,
+  Hintergrund ~0,5; Schwankung zwischen Läufen ±20 %. Die feste Größe allein brachte
+  messbar kaum etwas (der große Sprung kam mit WebGL in v15). Pro Punkt jetzt ohne
+  neue Arrays, Drehung einmal je Bild, Rand nur einmal nachgeschlagen.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
