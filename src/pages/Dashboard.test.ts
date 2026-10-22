@@ -667,8 +667,10 @@ describe('Dashboard normalized timeline path', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect((document.activeElement as HTMLElement)?.getAttribute('aria-label'))
-      .toBe('Monatsübersicht öffnen')
+    // Der Fokus kommt im Aufräumen des Effekts zurück, also nach dem Entfernen
+    // des Blatts; unter Last (CI) liegt dazwischen ein Takt.
+    await waitFor(() => expect((document.activeElement as HTMLElement)?.getAttribute('aria-label'))
+      .toBe('Monatsübersicht öffnen'))
   })
 
   it('schließt das Monatsblatt, sobald ein Tag gewählt ist', async () => {
