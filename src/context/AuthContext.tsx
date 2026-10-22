@@ -3,6 +3,7 @@ import { isAuthRetryableFetchError, type Session, type User } from '@supabase/su
 import { vergissAbdruecke } from '../components/ui/umrissAbdruck'
 import { AUTH_STORAGE_KEY, supabase } from '../lib/supabase'
 import { setzeAngemeldetenNutzer, vergissOfflineDaten } from '../lib/stoerung'
+import { vergissDotVerlauf } from '../features/dot/chat/coachService'
 
 interface AuthContextType {
   session: Session | null
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Jeder Weg hinaus (Abmelden, Konto gelöscht, Sitzung abgelaufen)
       if (event === 'SIGNED_OUT') {
         vergissAbdruecke()
+        vergissDotVerlauf()
         void vergissOfflineDaten()
       }
       setSession(session)
@@ -73,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error && isAuthRetryableFetchError(error)) {
       try { localStorage.removeItem(AUTH_STORAGE_KEY) } catch { /* kein Speicher */ }
       vergissAbdruecke()
+      vergissDotVerlauf()
       await vergissOfflineDaten()
       setSession(null)
     }

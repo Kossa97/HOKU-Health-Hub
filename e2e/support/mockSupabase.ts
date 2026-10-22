@@ -3,6 +3,7 @@ import type { Page, Route } from '@playwright/test'
 import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
+import { hatZugang } from '../../supabase/functions/coach/prompt'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -381,6 +382,7 @@ export class MockSupabase {
       if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
       if (url.pathname === '/functions/v1/food-photo') return await this.handleFoodPhoto(route)
       if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
+      if (url.pathname === '/functions/v1/coach') return await this.handleCoach(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -492,7 +494,32 @@ export class MockSupabase {
     return route.fulfill({ headers: corsHeaders(), json: { ...this.foodPhoto.result, remaining: 29 } })
   }
 
-  /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */
+  /**
+   * Nachbild von supabase/functions/coach (Dot, der KI-Coach): ohne Zugang
+   * (Pro oder Tester) 403 `no_access`, ohne Einwilligung 403
+   * `consent_required`, sonst `coach.antwort`. Festgehalten wird, was die App
+   * schickt (Verlauf, Kontext, Seite, Sprache).
+   */
+  readonly coach: {
+    antwort: string
+    error: { status: number; code: string } | null
+    calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
+  } = { antwort: 'Heute ist nichts geplant.', error: null, calls: [] }
+
+  private async handleCoach(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id) ?? null
+    if (!hatZugang(profil as { pro_until?: string | null; is_admin?: boolean | null } | null, this.now())) {
+      return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'no_access' } })
+    }
+    if (!profil?.coach_consent_at) return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    const body = (route.request().postDataJSON() ?? {}) as MockSupabase['coach']['calls'][number]
+    this.coach.calls.push(body)
+    if (this.coach.error) return route.fulfill({ status: this.coach.error.status, headers: corsHeaders(), json: { error: this.coach.error.code } })
+    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, verbleibend: 39 } })
+  }
+
+    /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */
   private async handleStorage(route: Route, url: URL): Promise<void> {
     const method = route.request().method()
     const rest = url.pathname.slice('/storage/v1/object/'.length)

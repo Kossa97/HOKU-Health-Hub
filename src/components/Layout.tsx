@@ -15,6 +15,7 @@ import { routeLayoutMode } from './layoutMode'
 import { useAbdruckNehmen } from './ui/umrissAbdruck'
 import { AmbientLightProvider } from './ambient/AmbientLight'
 import { ambientForPath } from './ambient/palettes'
+import { DotLayer } from '../features/dot/DotLayer'
 
 const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
@@ -230,6 +231,9 @@ export function Layout() {
           </div>
         </>
       )}
+
+      {/* Dot, der KI-Coach: wohnt in der Leiste, schwebt über allem */}
+      <DotLayer pathname={pathname} mitLeiste={!hideTabBar} schnellzugriffOffen={showQuickActions} />
 
       {/* ── Bottom nav ─────────────────────────────────────────────────────
           Die Leiste selbst liegt in `navigation/`: Modell, Optik und

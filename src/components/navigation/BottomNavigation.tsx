@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { hapticTick } from '../../lib/haptics'
 import { TAB_ITEMS, resolveActiveTabId, type TabId } from './tabModel'
 import { LiquidGlassTabBar, type GlassTabItem } from './LiquidGlassTabBar'
+import { DotLogo } from '../../features/dot/DotLogo'
+import { dotStore, useDotStand } from '../../features/dot/dotStore'
+import { useDotText } from '../../features/dot/texte'
 
 /**
  * Die Naht zwischen Navigation und Darstellung.
@@ -36,6 +39,8 @@ export function BottomNavigation({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const activeId = resolveActiveTabId(pathname)
+  const dot = useDotStand()
+  const { dt } = useDotText()
 
   const reiter: GlassTabItem[] = TAB_ITEMS.map(tab => {
     const Icon = ICONS[tab.id]
@@ -56,6 +61,26 @@ export function BottomNavigation({
     }
   })
 
+  // Dots Haus: sein Logo in der Mitte der Kapsel. Kein Reiter — es führt zu
+  // keiner Seite, sondern ruft ihn heraus oder schickt ihn heim.
+  reiter.splice(2, 0, {
+    id: 'dot',
+    art: 'aktion',
+    label: dot.drinnen ? dt(dot.darfRaus || !dot.geladen ? 'logo_drinnen' : 'logo_gesperrt') : dt('logo_draussen'),
+    icon: <span key={dot.stoss} className="tyd-dot-huepf" data-stoss={dot.stoss > 0 ? 'true' : undefined}><DotLogo /></span>,
+    render: ({ className, children, ...rest }) => (
+      <button
+        type="button"
+        className={`${className} tyd-dot-slot`}
+        data-dot-drinnen={dot.drinnen ? 'true' : 'false'}
+        onClick={() => dotStore.logoTipp()}
+        {...rest}
+      >
+        {children}
+      </button>
+    ),
+  })
+
   /**
    * Halten und schieben endet hier: der Reiter unter dem Finger wird beim
    * Loslassen geöffnet. Ein einfacher Tipp läuft nicht hierüber — den
@@ -69,6 +94,8 @@ export function BottomNavigation({
 
   return (
     <div className="tyd-tabdock" data-open={quickActionsOpen}>
+      {/* Sein Eingang: hier öffnet sich der Rahmen der Kapsel, solange Dot draußen ist */}
+      <span className="tyd-dot-spalt" aria-hidden="true" />
       <LiquidGlassTabBar
         items={reiter}
         activeId={activeId}
