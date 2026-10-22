@@ -6,6 +6,7 @@ import { getDateLocale } from '../../../i18n/dateLocales'
 import { dayKey } from '../../../lib/sharedDay'
 import { type DayTotals, EMPTY_TOTALS, dayAria, weekDays } from '../lib/dayRings'
 import type { Goals } from '../lib/nutrition'
+import { SLOP, project, releaseVelocity, rubber } from '../lib/gesture'
 import { usePrefersReducedMotion } from '../lib/orbZone'
 import { CARD, MUTED } from '../styles'
 import { DayOrb } from './DayOrb'
@@ -17,12 +18,6 @@ function rangeText(from: string, to: string, lang: string): string {
   return typeof f.formatRange === 'function' ? f.formatRange(a, b) : `${f.format(a)} – ${f.format(b)}`
 }
 
-/** Ab wie viel Weg der Finger sich für eine Richtung entschieden hat (px). */
-const SLOP = 10
-/** Wohin ein Wisch mit diesem Tempo (px/s) ausliefe — Apples Abklingformel, etwas straffer als Scrollen. */
-const project = (v: number) => (v / 1000) * 0.99 / (1 - 0.99)
-/** Widerstand hinter dem Rand: je weiter, desto zäher (wie auf dem iPhone). */
-const rubber = (over: number, dim: number) => (over * dim * 0.55) / (dim + 0.55 * Math.abs(over))
 
 /**
  * Die Woche (Mo–So), schmal: darüber klein der Zeitraum und der Knopf zum Monat,
@@ -134,14 +129,18 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, 
     if (!d.dir) {
       if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return
       d.dir = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-      if (d.dir === 'x') viewRef.current?.setPointerCapture(e.pointerId)
+      if (d.dir === 'x') {
+        viewRef.current?.setPointerCapture(e.pointerId)
+        // Ab der Schwelle weich weiter, statt um die Schwelle zu springen.
+        d.x0 += Math.sign(dx) * SLOP
+      }
     }
     if (d.dir !== 'x') return
     d.hist.push({ x: e.clientX, t: e.timeStamp })
     if (d.hist.length > 6) d.hist.shift()
     const width = viewRef.current?.clientWidth ?? 0
     const min = pick.current.canNext ? -width : 0
-    const raw = d.base + dx
+    const raw = d.base + e.clientX - d.x0
     s.x = raw < min ? min + rubber(raw - min, width) : raw > width ? width + rubber(raw - width, width) : raw
     paint()
   }
@@ -162,10 +161,7 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, 
     }
     // Der Wisch war kein Tipp: den folgenden Klick auf einen Tag schlucken.
     s.swallowUntil = performance.now() + 400
-    const first = d.hist[0]
-    const lastP = d.hist[d.hist.length - 1]
-    const dt = (lastP.t - first.t) / 1000
-    const v = e.type === 'pointercancel' || dt <= 0 ? 0 : (lastP.x - first.x) / dt
+    const v = e.type === 'pointercancel' ? 0 : releaseVelocity(d.hist, e.timeStamp)
     const width = viewRef.current?.clientWidth ?? 0
     const end = s.x + project(v)
     const target = end < -width / 2 && pick.current.canNext ? -width : end > width / 2 ? width : 0

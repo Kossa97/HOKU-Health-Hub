@@ -139,7 +139,7 @@ export function ErnaehrungPage() {
     if (to.date === entry.date && to.meal === entry.meal && target.kind === 'day') return
     const back = { date: entry.date, meal: entry.meal, sortKey: entryKey(entry) }
     if (to.date !== back.date) flyBetween(back.date, to.date, entry)
-    void run(async () => {
+    const moved = run(async () => {
       const saved = await n.move(entry, to)
       const others = spread.filter(u => u.id !== entry.id)
       if (others.length) await n.setOrder(others)
@@ -155,7 +155,8 @@ export function ErnaehrungPage() {
               toast.dismiss(tt.id)
               // Den aktuellen Stand zurückschieben (falls inzwischen bearbeitet), sonst den gespeicherten.
               const now = entriesRef.current.find(e => e.id === saved.id) ?? saved
-              if (now.date !== back.date) flyBetween(now.date, back.date, now)
+              // Die neueste Fassung (aktuelle Woche, Ziele), nicht die vom Ablegen.
+              if (now.date !== back.date) flyRef.current(now.date, back.date, now)
               n.move(now, back).catch(() => toast.error(t('nutr_error')))
             }}>
             {t('nutr_undo')}
@@ -163,6 +164,8 @@ export function ErnaehrungPage() {
         </span>
       ), { duration: 6000 })
     })
+    // Speichern gescheitert: der Eintrag steht wieder am alten Tag — die Punkte fliegen zurück.
+    if (to.date !== back.date) void moved.then(ok => { if (!ok) flyRef.current(to.date, back.date, entry) })
   }
   /**
    * Auf einen anderen Tag verschoben: Punkte rieseln unten aus der Kugel des alten Tages und
@@ -170,7 +173,9 @@ export function ErnaehrungPage() {
    * angekommen sind — so sieht man, wohin sie gehen. Nur, wenn beide Kugeln zu sehen sind.
    */
   const reduceMotion = usePrefersReducedMotion()
-  const [held, setHeld] = useState<Record<string, DayTotals>>({})
+  /** Haltepunkte je Tag; `flight` gehört zu genau einem Flug (ein zweiter zum selben Tag löst ihn ab). */
+  const [held, setHeld] = useState<Record<string, { totals: DayTotals; flight: number }>>({})
+  const flights = useRef(0)
   const stripWeek: Record<string, DayTotals> = { ...n.week, ...(n.day ? { [date]: n.total } : {}) }
   const flyBetween = (fromDate: string, toDate: string, entry: LogEntry) => {
     if (reduceMotion) return
@@ -191,13 +196,15 @@ export function ErnaehrungPage() {
     const count = Math.max(8, Math.min(36, Math.round(150 * (goal > 0 ? amount / goal : 0))))
     const rgb = orbPalette(b.el.parentElement ?? document.documentElement)[hide ? 2 : 1]
     const color = `rgb(${rgb.map(c => Math.round(c * 255)).join(',')})`
-    const before = stripWeek[toDate] ?? EMPTY_TOTALS
-    setHeld(h => ({ ...h, [toDate]: before }))
+    // Was der Tag gerade zeigt (auch einen noch laufenden Haltepunkt) — bis zur Landung.
+    const before = held[toDate]?.totals ?? stripWeek[toDate] ?? EMPTY_TOTALS
+    const flight = ++flights.current
+    setHeld(h => ({ ...h, [toDate]: { totals: before, flight } }))
     const seed = [...entry.id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7)
     void flyDots(a.orb, b.orb, count, color, seed).then(() => {
       // Nur den eigenen Haltepunkt lösen (ein zweiter Flug zum selben Tag hält weiter).
       setHeld(h => {
-        if (h[toDate] !== before) return h
+        if (h[toDate]?.flight !== flight) return h
         const rest = { ...h }
         delete rest[toDate]
         return rest
@@ -209,6 +216,8 @@ export function ErnaehrungPage() {
       )
     })
   }
+  const flyRef = useRef(flyBetween)
+  useEffect(() => { flyRef.current = flyBetween })
   const entriesRef = useRef<LogEntry[]>([])
   useEffect(() => { entriesRef.current = n.day?.entries ?? [] })
   const entryDrag = useEntryDrag({
@@ -325,7 +334,7 @@ export function ErnaehrungPage() {
 
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
-        <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...held }} goals={n.goals}
+        <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...Object.fromEntries(Object.entries(held).map(([d, h]) => [d, h.totals])) }} goals={n.goals}
           dayLabel={isToday
             ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
             : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
