@@ -127,6 +127,16 @@ vom Style her auch wie Siri, passend zur App“.
   - Neugierig: Scrollen lässt ihn in Scrollrichtung lehnen und kurz nachschwingen.
   - Knöpfe im Mockup zum Auslösen (Begrüßen, Müde werden, Kitzeln, Schwindelig).
 
+- **Flach an der Wand (Nutzer 22.10.), Mockup v10:** Nah an einer Wand (Abstand
+  Rand–Wand < 34 px) streckt er sich ihr entgegen (Beule zur Wand). Angedockt und in
+  Ruhe zerfließt er in ~1 s zu einer flachen Pfütze: Formziel je angedockter Wand
+  „entlang der Wand +0,95, von der Wand weg −0,62“ plus zwei langsame Unregelmäßig-
+  keitswellen; Mitte rückt bis 0,28 r an die Wand; Flächenausgleich dabei fast aus.
+  Ecke: entlang der jeweils anderen Wand nicht niedrig → Fächer/L-Form. Beim Denken/
+  Sprechen hebt er sich etwas ab (Flachheit 0,35). Weggezogen bleibt er erst flach
+  (Formgedächtnis) und rundet sich in Ruhe. Trefferfläche = Umriss (gemessen: an der
+  linken Wand 51 × 110 px statt Kreis).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
