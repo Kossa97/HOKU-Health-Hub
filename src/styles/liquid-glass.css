@@ -437,9 +437,9 @@ input[type='search']::-webkit-search-decoration { -webkit-appearance: none; disp
 /* ── Grund für Vollbilder: dasselbe reine Schwarz wie die Seiten ───────── */
 .lg-backdrop { background-color: #000; }
 /* Viele Glasflächen auf einer Seite: auf Schwarz zeigt der Weichzeichner
-   nichts, kostet aber je Fläche GPU — dort weglassen. Nur „Licht" hat
-   farbiges Umgebungslicht dahinter und behält ihn. */
-html:not([data-look='licht']) .lg-flat { -webkit-backdrop-filter: none; backdrop-filter: none; }
+   nichts, kostet aber je Fläche GPU — dort weglassen. Nur „Licht" und
+   „Nacht" haben Umgebungslicht dahinter und behalten ihn. */
+html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Umgebungslicht vorerst aus: reines Schwarz, das Glas lebt von seiner
    Lichtkante. Die Logik läuft weiter (Rahmen, Tönung, Ausweichen) — wieder
    einschalten heißt nur diese Regel entfernen. */
@@ -723,6 +723,55 @@ html[data-look='licht'] .lg-backdrop {
     radial-gradient(70% 42% at -6% 6%, rgba(0, 204, 245, 0.17), transparent 70%),
     radial-gradient(70% 42% at 106% 46%, rgba(139, 124, 240, 0.17), transparent 70%),
     radial-gradient(70% 40% at -8% 104%, rgba(48, 209, 88, 0.14), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* ── Erscheinungsbild „Nacht" ───────────────────────────────────────────
+   Der Eindruck bleibt Schwarz, aber hinter dem Glas liegt wieder Licht:
+   dieselben Farben je Bereich wie bei „Licht", gut halb so hell. Erst
+   dadurch hat das Glas etwas zu brechen und liest sich als Glas statt als
+   Lack. Die Kante ist leise und nimmt die Farbe des Lichts auf (kühl oben
+   links, violett unten rechts); innen liegt ein haarfeiner Prismasaum,
+   cyan oben, magenta unten — Glas zerlegt Licht, Lack spiegelt es nur.
+   Auf dem Grund liegt feines Korn: es bricht die Stufen in den dunklen
+   Verläufen, das Glas darüber verwischt es und bleibt glatt. */
+html[data-look='nacht'] {
+  --lg-surface-fill: rgba(255,255,255,0.035);
+  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012));
+  --lg-surface-blur: blur(30px) saturate(170%);
+  --lg-surface-shadow:
+    inset 0 2px 0 rgba(110,230,255,0.20),
+    inset 0 -2px 0 rgba(255,105,190,0.14),
+    inset 2px 0 0 rgba(110,230,255,0.06),
+    inset -2px 0 0 rgba(255,105,190,0.06),
+    inset 0 0 28px rgba(120,190,255,0.035),
+    0 18px 40px rgba(0,0,0,0.6);
+  --lg-card-rim: linear-gradient(140deg, rgba(170,235,255,0.42), rgba(170,235,255,0.10) 28%, rgba(255,255,255,0.03) 55%, rgba(190,170,255,0.10) 80%, rgba(190,170,255,0.30));
+  --lg-card-sheen: radial-gradient(90% 50% at 20% -10%, rgba(160,220,255,0.07), transparent 60%);
+  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.025) 100%);
+  --lg-glass-shadow:
+    inset 0 1px 0 rgba(180,235,255,0.30),
+    inset 0 0 0 1px rgba(170,200,255,0.08),
+    inset 0 -1px 0 rgba(200,170,255,0.10),
+    inset 0 2px 0 rgba(110,230,255,0.14),
+    inset 0 -2px 0 rgba(255,105,190,0.12),
+    0 12px 40px rgba(0,0,0,0.6);
+  --lg-sheen: radial-gradient(120% 70% at 18% 0%, rgba(170,230,255,0.12), transparent 55%);
+}
+html[data-look='nacht'] .lg-ambient { visibility: visible; opacity: 0.55; }
+html[data-look='nacht'] .lg-ambient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+html[data-look='nacht'] .lg-backdrop {
+  background-image:
+    radial-gradient(70% 42% at -6% 6%, rgba(0, 204, 245, 0.09), transparent 70%),
+    radial-gradient(70% 42% at 106% 46%, rgba(139, 124, 240, 0.09), transparent 70%),
+    radial-gradient(70% 40% at -8% 104%, rgba(48, 209, 88, 0.08), transparent 70%);
   background-repeat: no-repeat;
 }
 

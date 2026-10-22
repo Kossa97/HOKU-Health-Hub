@@ -2233,6 +2233,7 @@
   "look_light": "Glow",
   "look_hint": "Black: glass with a lit edge on pure black. Glow: coloured light shines through the glass.",
   "look_satin": "Satin",
+  "look_night": "Night",
   "look_tilt": "Light follows tilt",
   "look_tilt_denied": "Motion access not granted. The light stays above the centre of the screen.",
   "bw_view_aria": "View",

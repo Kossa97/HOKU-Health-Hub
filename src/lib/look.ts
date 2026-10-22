@@ -9,13 +9,15 @@ import { useCallback, useState } from 'react'
  *   (src/lib/reflex.ts)
  * - `licht`: farbiges Umgebungslicht hinter der Seite, das Glas zeigt es
  *   gebrochen (der Stand von Fortschritt im Schwarzglas-Entwurf)
+ * - `nacht`: Schwarz mit gedämpftem Umgebungslicht, klares Glas mit leiser,
+ *   getönter Kante und Prismasaum, feines Korn auf dem Grund
  *
  * Gesetzt wird nur `data-look` am `<html>`; was sich ändert, steht in
  * liquid-glass.css unter `html[data-look='…']`.
  */
-export type Look = 'schwarz' | 'satin' | 'licht'
+export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht'
 
-export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht']
+export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht']
 
 const STORAGE_KEY = 'tyd_look'
 
