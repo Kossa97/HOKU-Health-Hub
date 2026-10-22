@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { readSharedDay, writeSharedDay } from '../../lib/sharedDay'
+import { dayKey, readSharedDay, writeSharedDay } from '../../lib/sharedDay'
 import { getDateLocale } from '../../i18n/dateLocales'
 import { Sheet } from './components/Panel'
 import { AddFoodSheet } from './components/AddFoodSheet'
@@ -25,6 +25,11 @@ import { SheetClose } from '../../components/ui/SheetClose'
 import { PortionSheet } from './components/PortionSheet'
 import { WaterCard } from './components/WaterCard'
 import { WeekStrip } from './components/WeekStrip'
+import { type DayTotals, EMPTY_TOTALS } from './lib/dayRings'
+import { flyDots } from './lib/dotFlight'
+import { RELEASE_FLIGHT_MS, setOrbOrigin, setOrbTarget } from './lib/orbBridge'
+import { orbPalette } from './lib/orbDraw'
+import { usePrefersReducedMotion } from './lib/orbZone'
 import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
 import { type DishDraft, addToDraft, draftFromDish, draftFromIngredients } from './lib/dishDraft'
 import { foodFromEntry } from './lib/foodSearch'
@@ -134,7 +139,8 @@ export function ErnaehrungPage() {
       : { date: target.date, meal: entry.meal, sortKey: key! }
     if (to.date === entry.date && to.meal === entry.meal && target.kind === 'day') return
     const back = { date: entry.date, meal: entry.meal, sortKey: entryKey(entry) }
-    void run(async () => {
+    if (to.date !== back.date) flyBetween(back.date, to.date, entry)
+    const moved = run(async () => {
       const saved = await n.move(entry, to)
       const others = spread.filter(u => u.id !== entry.id)
       if (others.length) await n.setOrder(others)
@@ -150,6 +156,8 @@ export function ErnaehrungPage() {
               toast.dismiss(tt.id)
               // Den aktuellen Stand zurückschieben (falls inzwischen bearbeitet), sonst den gespeicherten.
               const now = entriesRef.current.find(e => e.id === saved.id) ?? saved
+              // Die neueste Fassung (aktuelle Woche, Ziele), nicht die vom Ablegen.
+              if (now.date !== back.date) flyRef.current(now.date, back.date, now)
               n.move(now, back).catch(() => toast.error(t('nutr_error')))
             }}>
             {t('nutr_undo')}
@@ -157,7 +165,70 @@ export function ErnaehrungPage() {
         </span>
       ), { duration: 6000 })
     })
+    // Speichern gescheitert: der Eintrag steht wieder am alten Tag — die Punkte fliegen zurück.
+    if (to.date !== back.date) void moved.then(ok => { if (!ok) flyRef.current(to.date, back.date, entry) })
   }
+  /**
+   * Auf einen anderen Tag verschoben: die Punkte gehen sichtbar vom alten in den neuen Tag.
+   * - Kleine Kugeln (Wochenleiste): unten aus der des alten Tages, im Bogen in die des neuen.
+   * - Große Kugel (der offene Tag): verliert er den Eintrag (auf einen Tag der Leiste gelegt),
+   *   fliegen ihre herausfallenden Punkte mit in die kleine Kugel des neuen Tages; bekommt er ihn
+   *   (Tag geöffnet, in eine Mahlzeit gelegt), startet ihr Flug an der kleinen des alten Tages.
+   * Die kleine Kugel des neuen Tages zeigt ihren alten Stand, bis alle Punkte angekommen sind.
+   */
+  const reduceMotion = usePrefersReducedMotion()
+  /** Haltepunkte je Tag; `flight` gehört zu genau einem Flug (ein zweiter zum selben Tag löst ihn ab). */
+  const [held, setHeld] = useState<Record<string, { totals: DayTotals; flight: number }>>({})
+  const flights = useRef(0)
+  const stripWeek: Record<string, DayTotals> = { ...n.week, ...(n.day ? { [date]: n.total } : {}) }
+  const flyBetween = (fromDate: string, toDate: string, entry: LogEntry) => {
+    if (reduceMotion) return
+    const zoneBottom = document.querySelector('[data-nutr-zone]')?.getBoundingClientRect().bottom ?? 0
+    const orbOf = (d: string) => {
+      const c = document.querySelector<HTMLCanvasElement>(`[data-nutr-day="${d}"] canvas`)
+      const r = c?.getBoundingClientRect()
+      const seen = c && r && !c.closest('[inert]') && r.top >= zoneBottom - 1 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth
+      return seen ? { el: c, orb: { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width * 0.42 } } : null
+    }
+    const a = orbOf(fromDate)
+    const b = orbOf(toDate)
+    if (toDate === date && a) setOrbOrigin(a.orb)
+    const fromBig = fromDate === date
+    if (!b || (!a && !fromBig)) return
+    if (fromBig) setOrbTarget(b.orb)
+    // So viele Punkte, wie der Eintrag in der Kugel ausmacht (150 = Tagesziel), gut sichtbar begrenzt.
+    const hide = n.goals.hideKcal
+    const goal = hide ? n.goals.proteinG : n.goals.kcal
+    const amount = hide ? entry.nutrients.protein : entry.nutrients.kcal
+    const count = Math.max(8, Math.min(36, Math.round(150 * (goal > 0 ? amount / goal : 0))))
+    const rgb = orbPalette(b.el.parentElement ?? document.documentElement)[hide ? 2 : 1]
+    const color = `rgb(${rgb.map(c => Math.round(c * 255)).join(',')})`
+    // Was der Tag gerade zeigt (auch einen noch laufenden Haltepunkt) — bis zur Landung.
+    const before = held[toDate]?.totals ?? stripWeek[toDate] ?? EMPTY_TOTALS
+    const flight = ++flights.current
+    setHeld(h => ({ ...h, [toDate]: { totals: before, flight } }))
+    const seed = [...entry.id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7)
+    const landed = Promise.all([
+      a ? flyDots(a.orb, b.orb, count, color, seed) : null,
+      fromBig ? new Promise(done => window.setTimeout(done, RELEASE_FLIGHT_MS)) : null,
+    ])
+    void landed.then(() => {
+      // Nur den eigenen Haltepunkt lösen (ein zweiter Flug zum selben Tag hält weiter).
+      setHeld(h => {
+        if (h[toDate]?.flight !== flight) return h
+        const rest = { ...h }
+        delete rest[toDate]
+        return rest
+      })
+      // Angekommen: die Kugel nimmt die Punkte mit einem kurzen Aufatmen auf.
+      document.querySelector(`[data-nutr-day="${toDate}"] canvas`)?.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.18)', offset: 0.35 }, { transform: 'scale(1)' }],
+        { duration: 340, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' },
+      )
+    })
+  }
+  const flyRef = useRef(flyBetween)
+  useEffect(() => { flyRef.current = flyBetween })
   const entriesRef = useRef<LogEntry[]>([])
   useEffect(() => { entriesRef.current = n.day?.entries ?? [] })
   const entryDrag = useEntryDrag({
@@ -274,11 +345,12 @@ export function ErnaehrungPage() {
 
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
-        <WeekStrip date={date} today={todayKey} week={{ ...n.week, ...(n.day ? { [date]: n.total } : {}) }} goals={n.goals}
+        <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...Object.fromEntries(Object.entries(held).map(([d, h]) => [d, h.totals])) }} goals={n.goals}
           dayLabel={isToday
             ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
             : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
-          onPick={pickDate} onOpenMonth={() => setSheet({ kind: 'month' })}
+          onPick={pickDate} onWeek={step => pickDate(dayKey(addDays(parseISO(date), step * 7)))}
+          onOpenMonth={() => setSheet({ kind: 'month' })}
           dropDay={entryDrag.drag?.target.kind === 'day' ? entryDrag.drag.target.date : null} />
 
         {MEALS.map(meal => (

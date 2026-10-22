@@ -1380,6 +1380,9 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_shelf_use_by',
   'my_stack_shelf_ampoule_hint',
   'my_stack_inventory_needs_strength',
+  'my_stack_form_recommended',
+  'my_stack_custom_substance',
+  'my_stack_preview',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1409,26 +1412,28 @@ const EXPECTED_MY_STACK_KEYS = [
 // tagebuch_info_intensitaet_text beschreiben Farbe und Punkte (nur de/en).
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Nacht" — look_hint nennt
 // den vierten Look (nur de/en); look_night ist neu (englischer Platzhalter).
+// Bewusst geaendert (Oktober 2026): Erscheinungsbild „Instrument" — look_hint
+// nennt den fuenften Look (nur de/en); look_instrument ist neu.
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '04dec887fc7400db5b55585f40d0c3b0e36d33256fa4f5682539cc1b4f264210',
-  en: '82b8adf101d237f711c79756312fb42559255b60172e1ffa23fd3546fcdd4930',
+  de: '43f7ea722af43fbba71827c942413b21553be54c8022d7fd15c5bfd2fdafa541',
+  en: 'a175022b211533b46059887876523f13808d05995efda09710ab81fd4ad55b1d',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '0eb167251ccb2dc98b683307bb20cadf6a1db036a4ce9f4ecaf0030a3a2b4027',
-  es: 'cadb95a6229967f025062540f1216be70a35b6ff580578c47d973d749b11ad34',
-  fr: 'ade21283e2026c632dd05c65a2a0448fb0e335206f03e374f92e62cd93aaa9b4',
-  hi: 'ef49c74d32fe3398362fdc33ab3c94b2d120b4ceff882a3a5e20acb6691b7c5f',
-  id: 'a518cc9e699494063979fcf9665b05b982cb536e037d1f7515da1c385c0cd04b',
-  it: '2810cd7c79b671b210f16b486b3bb2de5be245aeb42d88bc5c4cc016b47fa42d',
-  ja: '985daefbf9f9de72fee5c1b61087917a11be4713d96fa48a4d475d95719ddb44',
-  ko: '68f920907ecd101df074ab2826a36bc755b1458c7f3b25f4a6a8c8c2b2b22526',
-  pt: '4f8ee7e197ef9a9c49764201ab383a5f12b412df960e943246ec952182254069',
-  ru: '2033203083967f8a3c04abb5b6ef61f56cd9e9ad18117ae8afe3aab2462314b6',
-  tr: 'f028b1d329164f810478ce8579dc94cba974b911b8e8c094fe5357231b2a2ea7',
-  zh: '9ae45070af9121a6195d3f71f75d5fb3359d709eea5555fd070f1996f80bc2f7',
+  ar: 'cb95086d8726afe0525e219fd9637f13662e7bd5b61e1b5590dc3394871aec83',
+  es: '5e12af1d6ac5b09a79b86500d399540f3c319531f296dc0e70b9140103065368',
+  fr: '0b62e9caec8f9a9955806551db09bfc4ba7ef86abde5688c3a3687cbffb531f5',
+  hi: '22d0d6e62156aeb3f5a553455bba705c93024dbfc251b52048c5433249fd02ab',
+  id: '6f5d40a79ee22105d958146e1175941582619f7e69a0f6d6806c4cb53f35a8e0',
+  it: '3edbc43fc16c71087b0c9bb519a6c23a07d2fc5479c7c0e7d0fcb34729aaf857',
+  ja: 'b5ee5fa28b2532ca2295d9e6be3e30a2b6dd348c79a52263e0142246b7c89e2a',
+  ko: '91531faa0cd8ab2dbefbe5f52cca1acab185b37bf78d35070ef234cfb6f8f83b',
+  pt: '6c631726827f0675d132f62d1f5e16c23034e13ba89903d2942ba16e1fd0be65',
+  ru: 'daea6ff44ca9480f1b57868d3d749fdd206122bfa7f8fb1015afffd9daaa61a0',
+  tr: '58605a05f2c23e6ceda0df885e6b745ad133befa2d9a6b411d6ce4928a70818f',
+  zh: '944b747d99b3a3a8379434a892fcd2c6fe556af2f1956514aa39b79a4074cd14',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

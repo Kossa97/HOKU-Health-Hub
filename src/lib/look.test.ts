@@ -36,6 +36,11 @@ describe('Erscheinungsbild', () => {
     expect(getLook()).toBe('nacht')
   })
 
+  it('kennt Instrument', () => {
+    localStorage.setItem('tyd_look', 'instrument')
+    expect(getLook()).toBe('instrument')
+  })
+
   it('nimmt unbekannte Werte als schwarz', () => {
     localStorage.setItem('tyd_look', 'neon')
     expect(getLook()).toBe('schwarz')

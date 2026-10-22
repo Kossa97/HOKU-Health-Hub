@@ -11,6 +11,7 @@
  * - Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus;
  * - „Bewegung reduzieren": nichts dreht, nichts fliegt, neue Plätze leuchten nur auf.
  */
+import { RELEASE_FLY_MS } from './orbBridge'
 import { type Fill, type MacroKey, type OrbLayout, ORB_TILT as TILT, dotScale, fillChange, spherePoints } from './orb'
 import {
   type ColorIndex, DotRenderer, type Flash, type Mat3, type Quat,
@@ -52,6 +53,8 @@ interface Particle {
   out: boolean
   dx: number
   fall: number
+  /** Beim Verschieben auf einen anderen Tag: statt herauszufallen dorthin fliegen (Bildschirm-px). */
+  to?: { x: number; y: number }
   /** Haptik/Ton, wenn der Punkt ankommt (bzw. unten herausfällt): Füllstand 0–1 für die Tonhöhe. */
   tick?: { level: number; last: boolean; goal: boolean }
   ticked?: boolean
@@ -396,8 +399,12 @@ export class OrbEngine {
     for (const { key, ch } of moonCh) if (ch?.grew) this.moonFlash[key] = flashOf(ch, t0, true) ?? undefined
   }
 
-  /** Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus. */
-  release(before: OrbLayout, after: OrbLayout) {
+  /**
+   * Entfernen: Punkte wandern zum untersten Punkt ihrer Kugel und fallen dort heraus.
+   * Mit `to` (Eintrag auf einen anderen Tag verschoben) fliegen die Punkte der Kugel von dort
+   * weiter in die Kugel dieses Tages (Wochenleiste) — die Monde fallen wie sonst.
+   */
+  release(before: OrbLayout, after: OrbLayout, to: { x: number; y: number; r: number } | null = null) {
     const main = fillChange(before.main.fill, after.main.fill)
     if (main && !main.grew) this.flash = null
     const moonCh = after.moons.map(m => {
@@ -437,10 +444,14 @@ export class OrbEngine {
     }
     const falling: Particle[] = []
     for (const p of list) {
+      // Landung in der unteren Hälfte der Zielkugel: dort steigen die Punkte von unten hinein.
+      const a = Math.PI * (0.2 + 0.6 * Math.random())
+      const d = to ? to.r * (0.2 + 0.5 * Math.random()) : 0
+      const fly = to && !p.moon ? { x: to.x + Math.cos(a) * d, y: to.y + Math.sin(a) * d } : undefined
       const pt: Particle = {
-        ...p, sx: 0, sy: 0, t0: now, delay: p.f * 260 + Math.random() * 30, dur: 560 + Math.random() * 100,
-        ox: (Math.random() - 0.5) * 0.9, oy: (Math.random() - 0.5) * 0.9, lift: 0, side: 0, out: true,
-        dx: (Math.random() - 0.5) * 16, fall: (p.moon ? 40 : 70) + Math.random() * 40,
+        ...p, sx: 0, sy: 0, t0: now, delay: p.f * 260 + Math.random() * 30, dur: fly ? RELEASE_FLY_MS + Math.random() * 100 : 560 + Math.random() * 100,
+        ox: (Math.random() - 0.5) * 0.9, oy: (Math.random() - 0.5) * 0.9, lift: 0, side: (Math.random() - 0.5) * 30, out: true,
+        dx: (Math.random() - 0.5) * 16, fall: (p.moon ? 40 : 70) + Math.random() * 40, to: fly,
       }
       const start = this.target(pt, rect)
       if (!start) continue
@@ -544,7 +555,8 @@ export class OrbEngine {
       if (pt.out) {
         const P = this.pole(pt, rect)
         if (!P) continue
-        const SPLIT = 0.55
+        // Mit Ziel ist der Weg länger: der Gang zum Pol dauert gleich lang, der Rest ist Flug.
+        const SPLIT = pt.to ? 0.32 : 0.55
         for (let tr = 2; tr >= 0; tr--) {
           const e = easeInOut(Math.max(0, t - tr * 0.03))
           let x: number, y: number, a: number, sz: number
@@ -563,10 +575,21 @@ export class OrbEngine {
               this.feedbackOut(pt.tick.level)
             }
             const v = (e - SPLIT) / (1 - SPLIT)
-            x = P.x + pt.dx * v
-            y = P.y + pt.fall * v
-            a = 0.9 * (1 - v)
-            sz = 2.6 * (1 - 0.35 * v)
+            if (pt.to) {
+              // Aus dem Pol nach unten, im Bogen unter die Zielkugel und von unten hinein.
+              const T = pt.to
+              const cx = (P.x + T.x) / 2 + pt.side, cy = Math.max(P.y, T.y) + 34
+              x = (1 - v) ** 2 * P.x + 2 * (1 - v) * v * cx + v * v * T.x
+              y = (1 - v) ** 2 * P.y + 2 * (1 - v) * v * cy + v * v * T.y
+              const q = Math.max(0, (v - 0.85) / 0.15)
+              a = 0.95 * (1 - q)
+              sz = 2.8 * (1 - 0.5 * q)
+            } else {
+              x = P.x + pt.dx * v
+              y = P.y + pt.fall * v
+              a = 0.9 * (1 - v)
+              sz = 2.6 * (1 - 0.35 * v)
+            }
           }
           put(pt.ci, x, y, sz, a * (tr === 0 ? 1 : tr === 1 ? 0.4 : 0.18))
         }

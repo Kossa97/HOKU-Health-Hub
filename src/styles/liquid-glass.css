@@ -801,6 +801,73 @@ html[data-look='nacht'] .lg-backdrop {
   background-repeat: no-repeat;
 }
 
+/* ── Erscheinungsbild „Instrument" ──────────────────────────────────────
+   Wie ein Messgerät statt wie Glas: reines Schwarz, Flächen fest und eine
+   Stufe heller mit Haarlinie, kein Weichzeichner, kein Glanz, kein Glow.
+   Der Hauptknopf ist weiß; Cyan bleibt den Daten vorbehalten. Titel in
+   Space Grotesk 500, Abschnittstitel klein und gesperrt.
+   Mockup: https://claude.ai/artifact/QWVFNb3XebtLZUf72NoPZK */
+html[data-look='instrument'] {
+  --lg-surface-fill: #0b0c0e;
+  --lg-surface-bg: #0b0c0e;
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  --lg-card-rim: none;
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(255,255,255,0.05);
+  --lg-glass-fill: #0b0c0e;
+  --lg-glass-filter: none;
+  --lg-glass-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: #f2f2f2;
+  --shadow-btn-primary: none;
+  --lg-danger-fill: rgba(255,69,58,0.14);
+  --lg-pill-fill: rgba(255,255,255,0.10);
+  --lg-pill-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+  --lg-sheet-bg: #0b0c0e;
+  --lg-sheet-blur: none;
+}
+html[data-look='instrument'] :is(.lg-btn-primary, .btn-primary) { color: #000; }
+/* Getönter Knopf: Umriss statt Cyan-Glas, ohne Atmen */
+html[data-look='instrument'] .lg-btn-tint {
+  color: var(--lg-text);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+  animation: none;
+}
+html[data-look='instrument'] .lg-seg-fill { background: #0b0c0e; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
+html[data-look='instrument'] .lg-seg-fill .lg-seg-pill { background: rgba(255,255,255,0.12); box-shadow: none; }
+html[data-look='instrument'] .lg-sheet {
+  box-shadow: 0 -16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+html[data-look='instrument'] .lg-large-title {
+  font-family: var(--lg-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+html[data-look='instrument'] .lg-group-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #8a8a8f;
+}
+/* Leiste: feste Kapsel mit Haarlinie, kein Glas, kein Schimmer; aktiv weiß */
+html[data-look='instrument'] .tyd-tabbar {
+  background: #0b0c0e;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.6);
+}
+html[data-look='instrument'] .tyd-tabbar::before,
+html[data-look='instrument'] .tyd-tabbar::after { display: none; }
+html[data-look='instrument'] .tyd-tabbar-pill {
+  background: rgba(255,255,255,0.08);
+  box-shadow: none;
+}
+html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
+
 /* ── Erscheinungsbild „Satin" ───────────────────────────────────────────
    Schwarzer Grund wie „Schwarz", aber die Kante ist ein gewölbter Glasrand:
    2,5 px, gleichmäßig satiniert statt einer scharfen Linie; direkt dahinter

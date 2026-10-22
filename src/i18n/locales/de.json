@@ -2461,9 +2461,10 @@
   "fortschritt_chart_value_of": "{{metric}} vom {{date}}",
   "look_black": "Schwarz",
   "look_light": "Licht",
-  "look_hint": "Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum.",
+  "look_hint": "Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät.",
   "look_satin": "Satin",
   "look_night": "Nacht",
+  "look_instrument": "Instrument",
   "look_tilt": "Licht folgt dem Kippen",
   "look_tilt_denied": "Bewegungssensor nicht freigegeben. Das Licht bleibt über der Bildschirmmitte.",
   "bw_view_aria": "Ansicht",
@@ -2928,5 +2929,8 @@
   "my_stack_shelf_expiry": "Ablaufdatum der Packung",
   "my_stack_shelf_use_by": "Aufbrauchen bis",
   "my_stack_shelf_ampoule_hint": "Eine Ampulle wird einmal geöffnet und ganz verwendet. Deshalb zählt nur das Ablaufdatum.",
-  "my_stack_inventory_needs_strength": "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab."
+  "my_stack_inventory_needs_strength": "Bestand braucht die Stärke. Gib sie in der Zusammensetzung an, dann zieht jede Einnahme ab.",
+  "my_stack_form_recommended": "Empfohlen",
+  "my_stack_custom_substance": "Eigene Substanz",
+  "my_stack_preview": "Vorschau"
 }

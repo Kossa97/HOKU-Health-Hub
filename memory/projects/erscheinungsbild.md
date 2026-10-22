@@ -8,6 +8,10 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
 - **Licht**: farbiges Umgebungslicht, Karten ohne Kante.
 - **Nacht** (22.10.2026): Umgebungslicht bei 55 %, leise getönte Kante,
   Prismasaum (cyan oben, magenta unten), Korn auf dem Grund.
+- **Instrument** (22.10.2026, mein Vorschlag nach drei Clean-Dark-Richtungen):
+  wie ein Messgerät — reines Schwarz, feste Flächen #0b0c0e mit Haarlinie,
+  kein Glas/Glanz/Glow, weißer Hauptknopf, Cyan nur für Daten („jetzt").
+  Mockup: https://claude.ai/artifact/QWVFNb3XebtLZUf72NoPZK
 
 Injektionstracker (22.10.2026): bei Nacht Kantenlichter der Figur links
 cyan, rechts violett (Hauptlicht und Haut wie „Studio“), Bühne als
@@ -24,6 +28,10 @@ Mockup (Schwarz/Licht/Nacht nebeneinander):
 https://claude.ai/artifact/GESYSbSrfeoXxYuE8BZpa6
 
 ## Offen
+
+- Instrument ist bisher nur der CSS-Teil. Noch nicht umgesetzt: leichtere
+  Überschriften überall (viele Titel nutzen eigene Klassen), große dünne
+  Zahlen, Skalen (Tagesskala, Zielbereich, Referenzskala bei Blutwerten).
 
 - **Datenlicht** (eigener Schritt, vom Nutzer so gewünscht): Licht folgt dem
   Blutspiegel, Lichtimpuls beim Eintragen einer Dosis. Technik dafür steht in

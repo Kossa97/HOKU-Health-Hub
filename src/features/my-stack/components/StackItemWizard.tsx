@@ -48,13 +48,14 @@ import { fuehrendeMenge, inWochenfolge, rhythmSummary, rhythmText } from '../lib
 import { weekdayLabel } from '../lib/planLabels'
 import { validateIntakePlan, validateStackItemDraft } from '../lib/validation'
 import { evaluatePkReadiness, pkRouteAccepted, pkRouteStatus, toPkMilligrams } from '../lib/pkReadiness'
-import { isStageRenderable, showsColor } from '../lib/dosageForms'
+import { DOSAGE_FORMS, isStageRenderable, showsColor } from '../lib/dosageForms'
 import { methodLabel } from '../../../lib/intakeMethods'
 import { DosageFormPreview } from './DosageFormPreview'
 import { IngredientEditor } from './IngredientEditor'
 import { IntakePlanEditor } from './IntakePlanEditor'
 import { PlannedStepsReview, type ReviewStepErrors } from './PlannedStepsReview'
 import { ProductInventorySection } from './ProductInventorySection'
+import { useSloshEngine } from '../../../components/SloshContext'
 import { FormUndFarbe } from './FormUndFarbe'
 import { HaltbarkeitAngaben } from './HaltbarkeitAngaben'
 import { StrengthEditor } from './StrengthEditor'
@@ -304,6 +305,15 @@ export function StackItemWizard({
   const [pkProfileMethod, setPkProfileMethod] = useState(existingItem?.pk_profile_method ?? null)
   const [pkIntentError, setPkIntentError] = useState<string | null>(null)
   const [showErrors, setShowErrors] = useState(false)
+  // Eine Physik-Engine fuer die Buehne: ohne sie steht die Form still — kein
+  // Schwappen, kein Rollen.
+  const sloshEngine = useSloshEngine()
+  // Eigene Substanz: erst nach „Als eigene Substanz hinzufuegen" (oder beim
+  // Bearbeiten einer solchen) fragt die Seite nach Kategorie und Form.
+  // Getippter Text allein waehlt nichts.
+  const [eigeneBestaetigt, setEigeneBestaetigt] = useState(() => !state.draft.catalogEntryId
+    && !state.draft.ingredients.some(ingredient => ingredient.catalog_substance_id)
+    && Boolean(state.draft.category))
   // Scannen gibt es nur beim Neuanlegen: beim Bearbeiten wuerde ein Scan die
   // Identitaet des Eintrags austauschen, statt sie zu pruefen.
   const [scanOffen, setScanOffen] = useState(false)
@@ -311,6 +321,7 @@ export function StackItemWizard({
 
   function scanUebernehmen(vorschlag: ScanVorschlag): void {
     for (const aktion of scanAktionen(vorschlag, catalogEntries, initialColorHex)) dispatch(aktion)
+    setEigeneBestaetigt(!vorschlag.entry)
     setShowErrors(false)
     setScanOffen(false)
   }
@@ -398,6 +409,10 @@ export function StackItemWizard({
         : undefined)
       .find((entry): entry is SubstanceCatalogEntry => Boolean(entry))
   }, [catalogEntries, state.draft.catalogEntryId, state.draft.ingredients])
+  // Steht fest, was es ist? Ein Katalogeintrag — oder eine bestaetigte eigene
+  // Substanz mit Namen und Kategorie. Erst dann zeigt die Seite Form und Buehne.
+  const eigeneFeststeht = eigeneBestaetigt && Boolean(state.draft.displayName.trim())
+  const identitaetFeststeht = Boolean(selectedCatalogEntry) || (eigeneFeststeht && Boolean(state.draft.category))
   const selectedPkCatalogEntry = useMemo(() => {
     const catalogById = new Map(catalogEntries.map(entry => [entry.id, entry]))
     return [...state.draft.ingredients]
@@ -508,6 +523,14 @@ export function StackItemWizard({
   }
 
   function handleContinue(): void {
+    // Weiter mit getipptem Namen ohne Wahl: dann ist es die eigene Substanz —
+    // die Kategorie erscheint und wird als Naechstes verlangt.
+    if (state.step === 'substance' && !selectedCatalogEntry && state.draft.displayName.trim() && !eigeneBestaetigt) {
+      setEigeneBestaetigt(true)
+      // Ist die Kategorie schon da (etwa nach dem Loesen vom Katalog), geht es
+      // trotzdem nicht im selben Tipp weiter: erst Kategorie und Form sehen.
+      if (state.draft.category) return
+    }
     const invalidField = firstInvalidField(state, !metadataOnly)
     if (invalidField) {
       setShowErrors(true)
@@ -984,7 +1007,7 @@ export function StackItemWizard({
       case 'substance': {
         // Form und Farbe stehen unter dem Treffer, sobald feststeht, WAS es
         // ist: ein Katalogeintrag oder ein eigener Name mit Kategorie.
-        const identitaet = Boolean(state.draft.displayName.trim() && state.draft.category)
+        const identitaet = identitaetFeststeht
         return (
           <div className="space-y-6">
           <SubstanceSearch
@@ -1006,18 +1029,30 @@ export function StackItemWizard({
                 entry,
                 components: bestandteileAufloesen(entry, catalogEntries),
               })
-              // Kennt der Katalog genau eine Form, ist sie gewaehlt.
-              const formen = Array.from(new Set(entry.suggested_dosage_forms ?? []))
-              if (formen.length === 1) {
-                dispatch({ type: 'dosage_form_selected', dosageForm: formen[0], catalogSuggestedUnits: entry.suggested_units })
+              // Die erste Form, die der Katalog kennt, ist vorausgewaehlt —
+              // alle anderen stehen trotzdem in der Reihe.
+              // Eine schon gewaehlte, ebenfalls empfohlene Form bleibt.
+              const vorschlaege = (entry.suggested_dosage_forms ?? []).filter(form => DOSAGE_FORMS.some(bekannt => bekannt.key === form))
+              const empfohlen = state.draft.dosageForm && vorschlaege.includes(state.draft.dosageForm) ? null : vorschlaege[0]
+              if (empfohlen) {
+                dispatch({ type: 'dosage_form_selected', dosageForm: empfohlen, catalogSuggestedUnits: entry.suggested_units })
               }
+              setEigeneBestaetigt(false)
               setShowErrors(false)
             }}
             onAddCustom={name => {
               dispatch({ type: 'custom_started', name })
+              setEigeneBestaetigt(true)
               setShowErrors(false)
             }}
-            onDetach={() => dispatch({ type: 'catalog_detached' })}
+            onDetach={() => {
+              // Nach dem Loesen steht wieder die Suche da, mit dem Namen —
+              // eigene Substanz wird es erst auf ausdruecklichen Wunsch.
+              setEigeneBestaetigt(false)
+              dispatch({ type: 'catalog_detached' })
+            }}
+            customConfirmed={eigeneFeststeht}
+            onUndoCustom={() => setEigeneBestaetigt(false)}
             onCategoryChange={category => dispatch({ type: 'category_selected', category })}
             question={editOverview
               ? String(t('my_stack_edit_substance_question', { defaultValue: 'Welche Substanz ist es?' }))
@@ -1546,6 +1581,10 @@ export function StackItemWizard({
     }
   }
 
+  // Auf der Substanzseite erst, wenn feststeht, was es ist.
+  const buehneZeigen = Boolean(state.draft.dosageForm && isStageRenderable(state.draft.dosageForm))
+    && (state.step !== 'substance' || identitaetFeststeht)
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden bg-black/80 p-0 sm:items-center sm:p-3" data-app-modal data-app-back-dirty-on-interaction>
       <div
@@ -1618,34 +1657,37 @@ export function StackItemWizard({
           </div>}
         </header>
 
-        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6" data-step-autofocus tabIndex={-1}>
-          {/* Ab der Zusammensetzung steht oben eine Zeile mit dem Objekt und
-              seinem Namen, damit man weiss, woran man arbeitet. Nicht auf der
-              Substanzseite: dort stehen Form und Farbe im Karussell selbst.
-              Formen ohne Buehnengrafik (`other`) bekommen keinen leeren Kasten.
-              Ohne feste Hoehe: eine Kapsel misst 21 px, ein Pen 100 px. */}
-          {state.step !== 'substance' && state.draft.dosageForm && isStageRenderable(state.draft.dosageForm) && (
-              <div
-                data-wizard-preview
-                data-wizard-preview-compact
-                className="mb-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-3 py-2"
-              >
-                <span className="flex w-[76px] shrink-0 items-end justify-center">
-                  <DosageFormPreview
-                    dosageForm={state.draft.dosageForm}
-                    colorHex={state.draft.colorHex}
-                    size="mini"
-                    showLabel={false}
-                  />
-                </span>
-                {/* Nur der Name. Welche Darreichungsform es ist, sagt das
-                    Objekt daneben — ihn danebenzuschreiben waere dieselbe
-                    Doppelung, die aus den Auswahlkacheln geflogen ist. */}
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-                  {state.draft.displayName.trim() || t('my_stack_this_substance', { defaultValue: 'diese Substanz' })}
-                </span>
-              </div>
-          )}
+        {/* Die Buehne: ist eine Form gewaehlt, steht sie oben mittig — in fester
+            Groesse auf jeder Seite, mit ihrer eigenen Bewegung (Schwappen,
+            Rollen). Darunter laeuft der Inhalt weich aus statt an einer Kante
+            (wie unter der Kugel im Kalorientracker); die Maske liegt auf dem
+            Inhalt, damit es auf jedem Erscheinungsbild passt. Formen ohne
+            Grafik (`other`) bekommen keine Buehne. */}
+        {buehneZeigen && (
+          <section data-wizard-stage aria-label={String(t('my_stack_preview', { defaultValue: 'Vorschau' }))} className="pointer-events-none flex h-44 shrink-0 flex-col items-center justify-end gap-1 px-4 pb-2">
+            <span key={state.draft.dosageForm} className="stack-reveal flex min-h-0 flex-1 items-end justify-center" style={{ zoom: 1.55 }}>
+              <DosageFormPreview
+                dosageForm={state.draft.dosageForm!}
+                colorHex={state.draft.colorHex}
+                size="mini"
+                showLabel={false}
+                sloshEngine={sloshEngine}
+              />
+            </span>
+            <span className="max-w-full truncate text-sm font-semibold text-white">
+              {state.step === 'substance'
+                ? t(`dosage_form_${state.draft.dosageForm}`)
+                : state.draft.displayName.trim() || t('my_stack_this_substance', { defaultValue: 'diese Substanz' })}
+            </span>
+          </section>
+        )}
+
+        <main
+          className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6"
+          style={buehneZeigen ? { maskImage: 'linear-gradient(to bottom, transparent 0, #000 28px)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 28px)' } : undefined}
+          data-step-autofocus
+          tabIndex={-1}
+        >
           {review && reviewOpen && planEditContext ? (
             <PlannedStepsReview
               steps={review}

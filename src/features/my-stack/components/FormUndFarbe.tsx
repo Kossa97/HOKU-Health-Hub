@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ColorSwatchPicker } from '../../../components/ColorSwatchPicker'
 import { DOSAGE_FORMS, getDosageForm, isStageRenderable, showsColor } from '../lib/dosageForms'
@@ -10,12 +10,12 @@ import { DosageFormPreview } from './DosageFormPreview'
 const NEUTRAL = '#5b6068'
 
 /**
- * Form und Farbe auf der Substanzseite. Unter dem Treffer erscheint ein
- * kleines Karussell mit den Formen, die der Katalog fuer diese Substanz kennt
- * — „Andere Form" haengt die uebrigen an. Ist eine Form gewaehlt, erscheint
- * darunter die Farbe; die Karte im Karussell faerbt sich mit.
+ * Form und Farbe auf der Substanzseite. Unter dem Treffer steht eine Reihe mit
+ * ALLEN Darreichungsformen der App — die der Katalog kennt, tragen
+ * „Empfohlen", und die erste davon ist vorausgewaehlt. Ist eine Form gewaehlt,
+ * erscheint darunter die Farbe; die Form faerbt sich mit.
  * Frueher waren Form und Farbe je ein eigener Schritt mit zwei grossen
- * Karussells; fuer die meisten Substanzen gibt es aber nur zwei, drei Formen.
+ * Karussells.
  */
 export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, error = false, onSelect, onColorChange }: {
   value: DosageFormKey | null
@@ -27,13 +27,22 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
   onColorChange: (colorHex: string) => void
 }) {
   const { t } = useTranslation()
-  const vorschlag = Array.from(new Set(suggestedForms)).filter(key => DOSAGE_FORMS.some(form => form.key === key))
-  const [alle, setAlle] = useState(vorschlag.length === 0)
-  // Die gewaehlte Form steht immer in der Reihe, auch wenn der Katalog sie
-  // nicht vorschlaegt (beim Bearbeiten, nach einem Scan).
-  const sichtbar = alle
-    ? [...vorschlag, ...DOSAGE_FORMS.map(form => form.key).filter(key => !vorschlag.includes(key))]
-    : value && !vorschlag.includes(value) ? [...vorschlag, value] : vorschlag
+  const vorschlag = new Set(suggestedForms)
+  const reiheRef = useRef<HTMLDivElement>(null)
+  const getippt = useRef(false)
+  // Die gewaehlte Form steht in der Mitte der Reihe — beim Erscheinen und
+  // wenn sie von aussen kommt (Katalogwahl, Scan). Nicht animiert: das ist
+  // ein Ausgangszustand, keine Bewegung. Ein Tipp in der Reihe springt nicht.
+  useEffect(() => {
+    if (getippt.current) {
+      getippt.current = false
+      return
+    }
+    const reihe = reiheRef.current
+    const karte = value ? reihe?.querySelector<HTMLElement>(`[data-form-option="${value}"]`) : null
+    if (!reihe || !karte) return
+    reihe.scrollLeft = karte.offsetLeft - (reihe.clientWidth - karte.clientWidth) / 2
+  }, [value])
   const farbe = colorHex || null
 
   return (
@@ -51,11 +60,12 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
         <div
           role="radiogroup"
           aria-label={String(t('my_stack_dosage_form', { defaultValue: 'Darreichungsform' }))}
+          ref={reiheRef}
           data-form-carousel
-          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 sm:scroll-px-6 [scrollbar-width:none] sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden"
+          className="relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 sm:scroll-px-6 [scrollbar-width:none] sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden"
         >
-          {sichtbar.map(key => {
-            const form = DOSAGE_FORMS.find(entry => entry.key === key)!
+          {DOSAGE_FORMS.map(form => {
+            const key = form.key
             const gewaehlt = value === key
             return (
               <button
@@ -64,30 +74,29 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
                 role="radio"
                 aria-checked={gewaehlt}
                 data-form-option={key}
-                onClick={() => onSelect(key)}
-                className={`stack-form-card flex w-[6.75rem] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border px-2 pb-3 pt-3 text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${
-                  gewaehlt ? 'border-sky-400/80 bg-sky-400/[0.08]' : 'border-white/10 bg-white/[0.03] hover:border-white/20'
-                }`}
+                aria-label={String(t(form.labelKey))}
+                aria-description={vorschlag.has(key) ? String(t('my_stack_form_recommended', { defaultValue: 'Empfohlen' })) : undefined}
+                onClick={() => {
+                  getippt.current = key !== value
+                  onSelect(key)
+                }}
+                // Keine Karte drumherum: die Form steht frei. Gewaehlt ist sie
+                // farbig und hell, die anderen grau — auch das Pflaster, das
+                // seine Hautfarbe sonst immer mitbringt.
+                className="stack-form-option flex min-h-11 w-[5.75rem] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl px-1 pb-2 pt-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
-                <span aria-hidden="true" className="flex h-24 w-full items-end justify-center overflow-hidden text-slate-400">
+                <span aria-hidden="true" data-gewaehlt={gewaehlt || undefined} className="stack-form-art flex h-24 w-full items-end justify-center overflow-hidden text-slate-400">
                   {isStageRenderable(key)
                     ? <DosageFormPreview dosageForm={key} colorHex={gewaehlt && farbe ? farbe : NEUTRAL} size="mini" showLabel={false} />
                     : <DosageFormIcon form={key} size={34} />}
                 </span>
-                <span className={`text-sm font-semibold ${gewaehlt ? 'text-white' : 'text-slate-300'}`}>{t(form.labelKey)}</span>
+                <span className={`text-sm font-semibold transition-colors duration-200 ${gewaehlt ? 'text-white' : 'text-slate-500'}`}>{t(form.labelKey)}</span>
+                {vorschlag.has(key)
+                  ? <span data-form-recommended className="text-[10.5px] font-bold tracking-[0.02em] text-sky-300">{t('my_stack_form_recommended', { defaultValue: 'Empfohlen' })}</span>
+                  : <span aria-hidden="true" className={`size-1.5 rounded-full transition-colors duration-200 ${gewaehlt ? 'bg-sky-400' : 'bg-transparent'}`} />}
               </button>
             )
           })}
-          {!alle && (
-            <button
-              type="button"
-              data-form-more
-              onClick={() => setAlle(true)}
-              className="flex min-h-11 w-[6.75rem] shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 px-2 py-3 text-center text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-            >
-              {t('my_stack_form_more', { defaultValue: 'Andere Form' })}
-            </button>
-          )}
         </div>
         {error && (
           <p id="stack-dosage-form-error" role="alert" className="mt-3 text-sm text-rose-300">
