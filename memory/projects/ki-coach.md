@@ -258,6 +258,25 @@ vom Style her auch wie Siri, passend zur App“.
     „an der Leiste“ heißt ohne Leiste „unten am Rand“, „unten“ ohne Quetschen heißt
     „auf der Leiste“. Messung unverändert (~3,2–3,6 ms je Bild, CPU 6× gebremst).
 
+- **Rand oben, Ecken, Zucken, Uhr (Nutzer 22.10.), v19:**
+  - Oben bis an den Bildschirmrand (vorher Grenze bei 54 px unter der Statusleiste);
+    alle vier Ecken rund (vorher nur unten).
+  - In einer Bildschirmecke liegt die flache Form jetzt auf einer einzigen gebogenen
+    Auflage entlang des Rahmens (`frameSdf`, abgerundetes Rechteck) und läuft um den
+    Bogen herum, statt vor ihm zu enden.
+  - Zucken, Ursache 1: In Ecken kippte die „Hauptwand“ der flachen Form zwischen beiden
+    Wänden hin und her (bis 18 Wechsel in 2 s), alle Punkte sprangen. Jetzt Hysterese
+    (Wechsel erst bei 0,35 r Unterschied). Ursache 2: Punkte nah der Mitte haben keine
+    stabile Richtung (atan2 eines winzigen Vektors); ihr Wackel-Anteil sprang bis 5 px.
+    Jetzt dort ausgeblendet. Gemessen in Ruhe: vorher 8 Sprünge > 2,5 px in 7 Lagen,
+    jetzt 0.
+  - Uhr: Wirft oder schiebt man ihn gegen die Uhrzeit oben links, fliegt er klein
+    (0,42 r) in 1,9 s eine gut volle Runde um sie herum, vorne über den Ziffern,
+    hinten darunter (Ebene wechselt), dockt rechts daneben oben an und sagt reihum
+    etwas mit Zeit: Countdown bis zur nächsten Dosis, Magnesium heute Abend, TB-500
+    übermorgen, Vitamin D3 schon eingetragen, Frühstück fehlt noch. 2 s Pause bis
+    zum nächsten Mal. Die Ecke oben links gehört damit der Uhr.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
