@@ -24,8 +24,31 @@ vom Style her auch wie Siri, passend zur App“.
   F Lichtring. Dazu Randleuchten am Bildschirmrand beim Denken/Sprechen
   (Apple-Intelligence-Stil, abschaltbar). Standard im Mockup: B.
 
+- **Gewählt (Nutzer 22.10.): Mischung aus A und C** — Punkt-Kugel in Ruhe, dieselben
+  Punkte werden beim Denken zu Ringen, beim Sprechen zur Welle, bei Freude zum Haken.
+- **Dot schwebt frei über der App (Nutzer 22.10.):** klebt an Kante oder Ecke, lässt sich
+  überall hinstellen, Größe ziehbar mit Grenzen, Verformung je nach Rand und Aufprall,
+  „organisch und physikalisch“. Mockup v3 unter derselben Adresse:
+  - Ziehen 1:1 mit Griffpunkt, gegen den Rand gedrückt quetscht er sich (Gummiband).
+  - Loslassen: Endpunkt nach Apples Projektion (Verzögerung 0,996); schneller Wurf
+    (> 900 px/s) fliegt bis zur Kante in Wurfrichtung. Nah an einer Kante → klebt dort,
+    nah an zwei → Ecke, langsam in der Mitte → bleibt frei stehen.
+  - Grenzen: unter der Statusleiste, über der Tab-Leiste, 4 px vom Bildschirmrand.
+  - Feder je Achse (Dämpfung 0,8), Kante als harte Feder; Aufprall stößt eine
+    Form-Feder an (quer platt, längs breit) → Nachwackeln, Funken an der Kontaktstelle.
+    Im Flug längs gestreckt. An der Kante abgeflacht (klebt), oben hängt er als Tropfen,
+    seitlich sackt er leicht, unten sitzt er auf.
+  - Größe: Rand ziehen, zwei Finger oder Mausrad, Durchmesser 48–168 px, darüber
+    Gummiband und Zurückfedern. Ring zeigt beim Ziehen die Grenzen.
+  - Antippen: Coach öffnet, Dot fliegt in die Bühne oben (Durchmesser 132), beim
+    Schließen zurück an seinen Platz. Platz und Größe gemerkt (localStorage im Mockup).
+  - Regler „Weichheit“ (fest ↔ weich) zum Abstimmen; Standard 0,55.
+  - In der App dazu: Haptik nach Aufprallstärke, Ausweichen vor der Tastatur.
+
 ## Offen
-- Darstellung wählen (A–F, auch Mischungen) und ob das Randleuchten bleibt; Name bestätigen.
+- Weichheit festlegen; Randleuchten behalten?; Name bestätigen.
+- Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
+  die unter ihm liegen, oder beim Scrollen kleiner werden)
 
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
