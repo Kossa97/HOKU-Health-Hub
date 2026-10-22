@@ -85,6 +85,27 @@ vom Style her auch wie Siri, passend zur App“.
     heim; ist er drin, wird sie zur **Klingel** („Ding-dong“) und er springt oben
     heraus zurück an seinen Platz. Chat-Befehl „Geh in dein Haus“.
 
+- **Runde 6 (Nutzer 22.10.):** eigene Leiste mit Haustür bleibt als **Variante**:
+  https://claude.ai/artifact/1gDYarWaYbiC1ond9Xhrhb. Hauptfassung (v6, gleiche
+  Adresse) nutzt die **echte Leiste der App** (`LiquidGlassTabBar`: Glas-Kapsel 56 px,
+  nur Symbole Home / My Stack / Kalender / Profil, aktive Pille, daneben runder
+  Plus-Knopf) mit **Dot als Logo in der Mitte der Kapsel** (Punkt-Kugel als SVG).
+  - Eingang: über dem Logo ein cyanfarbener Lichtschein aus der Kapselkante, so breit
+    wie der Eingang (Spalt auf der Kante, weiche Säule, aufsteigende Lichtpunkte).
+    Bleibt offen, solange Dot draußen ist; wird heller, wenn er sich nähert.
+  - Herausklettern (Logo antippen, beim Start automatisch): Tür öffnet sich (0,3 s),
+    Kopf kommt hoch, zwei „Hände“ (Randbeulen unten links/rechts) greifen die Kante,
+    er zieht sich gestreckt hoch, Absprung (vy −520) und fliegt an seinen Platz.
+  - Hineingehen: Wurf, dessen Bahn die Kante im Eingangsbereich trifft; im Schein
+    loslassen; mit dem Finger von oben hineindrücken/-wischen; Aufprall auf die Kante
+    über dem Eingang. Er wird hineingesogen (unten tropfenförmig, seitlich schmal),
+    nur über der Kante sichtbar, Tür schließt sich, Logo macht einen kleinen Hüpfer.
+  - Zu Hause: Logo pulsiert (1,7 s), leuchtet (Schein cyan/violett) und wackelt
+    unregelmäßig (2,3 s). Ein Tipp darauf ist die Klingel. Draußen schickt ein Tipp
+    aufs Logo ihn heim.
+  - Für die App: die mittlere Schaltfläche (`art: 'aktion'`) ist im Code schon
+    vorgesehen (`LiquidGlassTabBar`); dort käme das Logo hin.
+
 ## Offen
 - Randleuchten anpassen (wie genau: offen). Name „Dot“ bestätigen.
 - Ausweichen „wo er gerade nicht stört“: weiter als Tastatur? (z. B. vor Knöpfen,
