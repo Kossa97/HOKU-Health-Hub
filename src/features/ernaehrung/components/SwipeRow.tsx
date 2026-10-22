@@ -1,12 +1,11 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { PenLine, Trash2 } from 'lucide-react'
+import { SLOP, project, releaseVelocity, rubber } from '../lib/gesture'
 import { usePrefersReducedMotion } from '../lib/orbZone'
 
 /** Breite je Aktion, wenn die Zeile offen steht. */
 const ACTION_W = 76
 const OPEN = -2 * ACTION_W
-/** Ab hier gilt die Bewegung als Wischen, nicht als Tippen oder Scrollen. */
-const SLOP = 10
 /** Eine Zeile offen zur Zeit: öffnet eine, schließen die anderen. */
 const OPEN_EVENT = 'nutr-swipe-open'
 /** So lange halten, bis die Zeile sich zum Verschieben löst (wie in iOS-Listen). */
@@ -17,11 +16,6 @@ export const HOLD_MS = 420
  * Element — an ihm kommen die weiteren Touch-Ereignisse an, auch wenn die Zeile verschwindet.
  */
 export interface LiftStart { x: number; y: number; rect: DOMRect; touchTarget: EventTarget | null }
-
-/** Weicher Rand: je weiter über die Grenze, desto weniger folgt die Zeile. */
-const rubber = (over: number, size: number) => (over * size * 0.55) / (size + 0.55 * Math.abs(over))
-/** Wohin der Schwung trägt (Abbremsen wie beim Scrollen). */
-const project = (v: number) => (v / 1000) * 0.99 / (1 - 0.99)
 
 /**
  * Zeile wie in iOS-Listen: nach links wischen zeigt Bearbeiten und Löschen; ganz
@@ -241,9 +235,7 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
         s.drag = null
         if (!d || e.pointerId !== d.id || !d.dir) return
         s.swallowUntil = performance.now() + 400
-        const a = d.hist[0]
-        const b = d.hist[d.hist.length - 1]
-        const v = b.t > a.t ? ((b.x - a.x) / (b.t - a.t)) * 1000 : 0
+        const v = releaseVelocity(d.hist, e.timeStamp)
         if (s.armed) { remove(v); return }
         settle(s.x + project(v) < OPEN / 2 ? OPEN : 0, v)
       }}

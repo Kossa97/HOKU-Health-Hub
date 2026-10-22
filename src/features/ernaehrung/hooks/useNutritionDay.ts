@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { addDays, parseISO } from 'date-fns'
 import { dayKey } from '../../../lib/sharedDay'
 import { frequentFoods } from '../lib/foodSearch'
 import { DEFAULT_GOALS, type Food, type Goals, type LogEntry, type Meal, groupByMeal, sumNutrients } from '../lib/nutrition'
@@ -45,6 +46,9 @@ export function useNutritionDay(userId: string, date: string) {
   const [recent, setRecent] = useState<LogEntry[]>([])
   const [reloadToken, setReloadToken] = useState(0)
   const { from: weekFrom, to: weekTo } = weekRange(date)
+  // Vor- und Folgewoche mit: beim Wischen der Wochenleiste stehen deren Kugeln schon da.
+  const loadFrom = dayKey(addDays(parseISO(weekFrom), -7))
+  const loadTo = dayKey(addDays(parseISO(weekTo), 7))
 
   /** Einen Tag ändern (nur, wenn er geladen ist) und seinen Stand hochzählen. */
   const updateDay = useCallback((key: string, fn: (d: DayData) => DayData) => {
@@ -67,11 +71,11 @@ export function useNutritionDay(userId: string, date: string) {
     return () => { cancelled = true }
   }, [userId, date, reloadToken])
 
-  // Die Woche vorladen (und beim Neuladen auffrischen). Nur die Woche bleibt im Speicher.
+  // Die Woche samt Nachbarwochen vorladen (und beim Neuladen auffrischen). Nur diese bleiben im Speicher.
   useEffect(() => {
     let cancelled = false
     const before = { ...versions.current }
-    store.loadDays(userId, weekFrom, weekTo)
+    store.loadDays(userId, loadFrom, loadTo)
       .then(loaded => {
         if (cancelled) return
         setWeekError(null)
@@ -85,18 +89,16 @@ export function useNutritionDay(userId: string, date: string) {
       })
       .catch(() => { if (!cancelled) setWeekError(weekFrom) })
     return () => { cancelled = true }
-  }, [userId, weekFrom, weekTo, reloadToken])
+  }, [userId, weekFrom, loadFrom, loadTo, reloadToken])
 
   const cached = days[date]
   const current = useMemo<DayState | null>(() => (cached ? { date, ...cached } : null), [cached, date])
-  /** Summen je Tag der Woche — aus den geladenen Tagen, so stimmen sie nach jeder Änderung. */
+  /** Summen je geladenem Tag (Woche und Nachbarwochen) — aus den Einträgen, so stimmen sie nach jeder Änderung. */
   const week = useMemo(() => {
     const out: Record<string, DayTotals> = {}
-    for (const [k, d] of Object.entries(days)) {
-      if (k >= weekFrom && k <= weekTo) out[k] = d.entries.reduce((t, e) => addTotals(t, e.nutrients), EMPTY_TOTALS)
-    }
+    for (const [k, d] of Object.entries(days)) out[k] = d.entries.reduce((t, e) => addTotals(t, e.nutrients), EMPTY_TOTALS)
     return Object.keys(out).length ? out : null
-  }, [days, weekFrom, weekTo])
+  }, [days])
 
   useEffect(() => {
     let cancelled = false
