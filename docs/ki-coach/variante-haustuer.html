@@ -1,0 +1,945 @@
+<title>Dot Variante Haustür</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: Telefonrahmen links (echte App-Optik), Dot schwebt als eigene Ebene darüber, die Tab-Leiste ist sein Haus; rechts Bedienung und Regler; schmal untereinander. */
+@property --edge-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+:root {
+  color-scheme: dark;
+  --bg: #050506;
+  --panel: #121214;
+  --surface: #1c1c1e;
+  --fill: rgba(120,120,128,0.24);
+  --line: rgba(255,255,255,0.08);
+  --text: #f5f5f7;
+  --muted: #98989d;
+  --accent: #00ccf5;
+  --accent-soft: rgba(0,204,245,0.16);
+  --ok: #30d158;
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 15px/1.45 var(--ui); }
+.page {
+  max-width: 1080px; margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px;
+}
+header h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 66ch; }
+.grid { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Telefon ─────────────────────────────── */
+.phone {
+  position: relative; width: 100%; max-width: 390px; height: 780px; margin: 0 auto;
+  border-radius: 46px; overflow: hidden; background: #000;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 0 0 9px #0d0d0f, 0 0 0 10px rgba(255,255,255,0.08), 0 30px 80px rgba(0,0,0,0.7);
+  isolation: isolate; user-select: none; -webkit-user-select: none; touch-action: pan-y;
+}
+@media (max-width: 430px) { .phone { height: 720px; border-radius: 34px; } }
+.phone[data-look="nacht"] { background:
+  radial-gradient(70% 40% at 10% 0%, rgba(40,160,220,0.20), transparent 70%),
+  radial-gradient(60% 40% at 100% 100%, rgba(140,90,255,0.18), transparent 70%), #04040a; }
+.statusbar { position: absolute; inset: 0 0 auto; height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; font-weight: 600; font-size: 15px; z-index: 16; pointer-events: none; }
+.badge { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); background: var(--fill); padding: 2px 8px; border-radius: 99px; }
+
+.home { position: absolute; inset: 0; padding: 60px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+.home h2 { margin: 6px 0 4px; font-size: 34px; line-height: 41px; letter-spacing: 0.011em; }
+.card { background: var(--surface); border-radius: 18px; padding: 14px 16px; display: grid; gap: 4px; }
+.phone[data-look="nacht"] .card { background: rgba(255,255,255,0.045); box-shadow: inset 0 1px 0 rgba(110,230,255,0.18), inset 0 -1px 0 rgba(255,105,190,0.12); }
+.card .eyebrow { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+.card .big { font-size: 20px; font-weight: 700; }
+.card .sub { font-size: 13px; color: var(--muted); }
+.spark { height: 46px; width: 100%; }
+
+/* Tab-Leiste = Dots Haus: feste Oberkante, an der er abprallt, in der Mitte die Tür */
+.tabbar { position: absolute; inset: auto 0 0; height: 84px; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; background: rgba(14,14,18,0.94); font-size: 10px; color: var(--muted); z-index: 11; }
+.tabbar::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, rgba(110,230,255,0.08), rgba(110,230,255,0.35) 30%, rgba(175,135,255,0.35) 70%, rgba(175,135,255,0.08)); }
+.tab { display: grid; justify-items: center; gap: 4px; width: 56px; }
+.tab::before { content: ""; width: 22px; height: 22px; border-radius: 7px; background: rgba(255,255,255,0.12); }
+.tab.on { color: var(--accent); }
+.tab.on::before { background: var(--accent-soft); }
+.house { width: 72px; display: grid; justify-items: center; gap: 4px; margin-top: -10px; padding: 0; border: 0; background: none; color: var(--muted); font: 10px var(--ui); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.door { width: 58px; height: 34px; border-radius: 0 0 18px 18px; background: radial-gradient(70% 90% at 50% 0%, rgba(80,160,255,0.16), transparent 70%), #030307;
+  box-shadow: inset 0 -1px 0 rgba(110,230,255,0.22), inset 1px 0 0 rgba(110,230,255,0.10), inset -1px 0 0 rgba(175,135,255,0.10), 0 6px 16px rgba(0,0,0,0.5);
+  transition: box-shadow 220ms ease, transform 160ms var(--ease-out); display: grid; place-items: end center; padding-bottom: 3px; }
+.house:active .door { transform: scale(0.96); }
+.door svg { width: 12px; height: 12px; opacity: 0; transition: opacity 200ms ease; }
+.phone[data-in] .door svg { opacity: 0.8; }
+.phone[data-door="open"] .door { box-shadow: inset 0 -1px 0 rgba(110,230,255,0.5), inset 0 0 18px rgba(110,230,255,0.35), 0 0 20px rgba(110,200,255,0.35); }
+.phone[data-in] .house { color: var(--accent); }
+.house:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+
+/* Dot: eigene Ebene über allem, nur die Trefferfläche nimmt Gesten an */
+#dotCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 12; pointer-events: none; }
+#dotHit { position: absolute; left: 0; top: 0; z-index: 13; border-radius: 50%; border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
+#dotHit:active { cursor: grabbing; }
+#dotHit[hidden] { display: none !important; }
+#dotHit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Chat öffnet sich als Kreis von der Stelle, an der Dot gerade ist */
+.coach {
+  position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background: #000;
+  --ox: 50%; --oy: 100%;
+  clip-path: circle(0px at var(--ox) var(--oy)); visibility: hidden;
+  transition: clip-path 520ms var(--ease-drawer), visibility 0s linear 520ms;
+}
+.phone[data-look="nacht"] .coach { background:
+  radial-gradient(80% 35% at 50% 12%, rgba(60,150,255,0.14), transparent 70%),
+  radial-gradient(60% 40% at 100% 100%, rgba(140,90,255,0.12), transparent 70%), #03030a; }
+.coach.open { clip-path: circle(160% at var(--ox) var(--oy)); visibility: visible; transition: clip-path 560ms var(--ease-drawer), visibility 0s; }
+.coach-top { padding: 52px 12px 0; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 14; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--fill); color: var(--text); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
+.coach-top .name { font-weight: 700; font-size: 17px; }
+.stage { position: relative; height: 220px; flex: none; transition: height 400ms var(--ease-in-out); cursor: pointer; }
+.coach.chatting .stage { height: 150px; }
+.status { text-align: center; font-size: 13px; color: var(--muted); min-height: 18px; margin-top: -6px; }
+.thread { flex: 1; overflow-y: auto; padding: 10px 16px 8px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; position: relative; z-index: 14; }
+.thread::-webkit-scrollbar { display: none; }
+.intro { color: var(--muted); font-size: 14px; text-align: center; padding: 6px 12px; text-wrap: balance; }
+.msg { max-width: 86%; padding: 9px 13px; border-radius: 18px; font-size: 15px; line-height: 1.4; animation: msg-in 240ms var(--ease-out) both; user-select: text; -webkit-user-select: text; }
+.msg.me { align-self: flex-end; background: var(--accent); color: #00222c; border-bottom-right-radius: 6px; }
+.msg.dot { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 6px; }
+.phone[data-look="nacht"] .msg.dot { background: rgba(255,255,255,0.07); }
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.confirm { align-self: stretch; background: var(--surface); border-radius: 18px; padding: 12px 14px; display: grid; gap: 8px; animation: msg-in 260ms var(--ease-out) both; box-shadow: inset 0 0 0 1px rgba(0,204,245,0.28); }
+.phone[data-look="nacht"] .confirm { background: rgba(255,255,255,0.06); }
+.confirm h4 { margin: 0; font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 0.02em; }
+.confirm dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 14px; }
+.confirm dt { color: var(--muted); }
+.confirm dd { margin: 0; font-variant-numeric: tabular-nums; }
+.confirm input { width: 80px; font: inherit; color: var(--text); background: var(--fill); border: 0; border-radius: 8px; padding: 2px 8px; }
+.row-btns { display: flex; gap: 8px; }
+.btn { flex: 1; min-height: 40px; border: 0; border-radius: 999px; font: 600 15px/1 var(--ui); cursor: pointer; background: var(--fill); color: var(--accent); transition: transform 120ms var(--ease-out); touch-action: manipulation; }
+.btn.primary { background: var(--accent); color: #00222c; }
+.btn:active { transform: scale(0.97); }
+.done { font-size: 14px; color: var(--ok); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.done button { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 4px; }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 8px; scrollbar-width: none; flex: none; position: relative; z-index: 14; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 0; border-radius: 999px; padding: 8px 13px; background: var(--fill); color: var(--text); font: 14px/1.2 var(--ui); cursor: pointer; white-space: nowrap; transition: transform 120ms var(--ease-out); }
+.chip.cmd { color: var(--accent); }
+.chip:active { transform: scale(0.97); }
+.composer { flex: none; display: flex; gap: 8px; align-items: center; padding: 6px 12px 10px; position: relative; z-index: 14; }
+.composer input { flex: 1; min-width: 0; height: 40px; border-radius: 20px; border: 0; background: var(--fill); color: var(--text); font: 16px var(--ui); padding: 0 14px; }
+.composer input::placeholder { color: var(--muted); }
+.send { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--accent); color: #00222c; font-size: 18px; font-weight: 700; cursor: pointer; }
+.mic { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--fill); color: var(--muted); opacity: 0.5; cursor: not-allowed; font-size: 14px; }
+.fine { flex: none; text-align: center; font-size: 11px; color: var(--muted); padding: 0 16px 26px; }
+.toast { position: absolute; top: 54px; left: 50%; z-index: 20; background: rgba(44,44,46,0.96); color: var(--text); padding: 8px 14px; border-radius: 99px; font-size: 14px; font-weight: 600; transform: translate(-50%, -12px); opacity: 0; transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out); pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+.edge { position: absolute; inset: 0; z-index: 15; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 400ms ease; }
+.edge i { position: absolute; inset: 0; border-radius: inherit; padding: 3px;
+  background: conic-gradient(from var(--edge-a), #6ee6ff, #af87ff, #ff78c8, #6ee6ff);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: edge-spin 4s linear infinite; }
+.edge i + i { padding: 12px; filter: blur(14px); opacity: 0.7; }
+.phone[data-edge="on"][data-busy] .edge { opacity: 1; }
+@keyframes edge-spin { to { --edge-a: 360deg; } }
+
+/* ── Steuerung ─────────────────────────────── */
+.side { display: grid; gap: 24px; min-width: 0; }
+.block { display: grid; gap: 10px; }
+.block h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.gestures { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.gestures li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; }
+.gestures b { font-weight: 600; }
+.gestures span { color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .plain-btn { border: 0; border-radius: 10px; padding: 8px 12px; background: var(--panel); color: var(--text); font: 14px var(--ui); cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(0,204,245,0.5); }
+.seg button .later { color: var(--muted); font-size: 12px; }
+.slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13px; color: var(--muted); }
+.slider input { width: 100%; accent-color: var(--accent); }
+.readout { font-size: 13px; color: var(--muted); }
+.limits { background: var(--panel); border-radius: 16px; padding: 14px 16px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; box-shadow: inset 0 0 0 1px var(--line); }
+.limits b { color: var(--text); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .coach, .coach.open { transition: opacity 200ms ease, visibility 0s; clip-path: none; opacity: 0; }
+  .coach.open { opacity: 1; }
+  .stage { transition: none; }
+  .msg, .confirm { animation: none; }
+  .toast { transition: opacity 200ms ease; transform: translate(-50%, 0); }
+  .edge i { animation: none; }
+}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Dot · Variante Haustür</h1>
+    <p>Dot aus Punkten, ganz weich, schwebt frei über der App. Zieh und wirf ihn, er klebt am Rand und erholt sich in Ruhe. Die Tab-Leiste ist sein Haus: Schieb ihn von oben durch die Tür hinein, mit der Klingel kommt er wieder heraus. Antippen öffnet den Chat. Alle Werte sind Beispieldaten.</p>
+  </header>
+
+  <div class="grid">
+    <div class="phone" id="phone" data-look="nacht" data-edge="on">
+      <div class="statusbar"><span>9:41</span><span class="badge">Beispieldaten</span></div>
+
+      <section class="home" aria-label="Startseite">
+        <h2>Heute</h2>
+        <div class="card">
+          <span class="eyebrow">Nächste Dosis</span>
+          <span class="big">BPC-157 · 250 mcg</span>
+          <span class="sub">heute 18:00 · subkutan</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Blutspiegel BPC-157</span>
+          <svg class="spark" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 40 C30 8 50 8 70 22 S110 38 130 30 S150 6 170 10 S220 34 250 30 S285 18 300 16" fill="none" stroke="#00ccf5" stroke-width="2"/>
+          </svg>
+          <span class="sub">jetzt 62 % vom Höchstwert</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Bestand</span>
+          <span class="big">reicht 9 Tage</span>
+          <span class="sub">BPC-157 · 1 Vial offen</span>
+        </div>
+        <div class="card">
+          <span class="eyebrow">Tagebuch</span>
+          <span class="big">Schlaf 7 h 40</span>
+          <span class="sub">Stimmung gut · Energie hoch</span>
+        </div>
+      </section>
+
+      <nav class="tabbar" id="tabbar" aria-label="Navigation">
+        <span class="tab on">Heute</span><span class="tab">Stack</span>
+        <button class="house" id="house" type="button" aria-label="Dot nach Hause schicken">
+          <span class="door" id="door"><svg viewBox="0 0 24 24" fill="none" stroke="#6ee6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span>
+          <span id="houseLabel">Dots Haus</span>
+        </button>
+        <span class="tab">Wissen</span><span class="tab">Profil</span>
+      </nav>
+
+      <section class="coach" id="coach" aria-label="Dot">
+        <div class="coach-top">
+          <button class="icon-btn" id="close" aria-label="Dot schließen">✕</button>
+          <span class="name">Dot</span>
+          <button class="icon-btn" id="reset" aria-label="Verlauf leeren">↺</button>
+        </div>
+        <div class="stage" id="stage" aria-label="Dot antippen"></div>
+        <div class="status" id="status" aria-live="polite"></div>
+        <div class="thread" id="thread" aria-live="polite">
+          <p class="intro" id="intro">Hi, ich bin Dot. Ich kenne deinen Stack, deine Einträge und Blutwerte und erkläre sie dir. Eintragen kann ich auch, du bestätigst jedes Mal.</p>
+        </div>
+        <div class="chips" id="chips"></div>
+        <form class="composer" id="composer">
+          <button type="button" class="mic" aria-label="Sprechen (kommt später)" title="Sprache kommt in einem späteren Schritt">🎙</button>
+          <input id="input" type="text" placeholder="Frag Dot oder sag „mach dich größer“ …" autocomplete="off" aria-label="Nachricht an Dot">
+          <button class="send" aria-label="Senden">↑</button>
+        </form>
+        <p class="fine">Dot erklärt deine Daten. Keine Dosis- oder Therapieempfehlung.</p>
+      </section>
+
+      <canvas id="dotCanvas" aria-hidden="true"></canvas>
+      <button id="dotHit" aria-label="Dot öffnen. Ziehen zum Verschieben, zwei Finger für die Größe."></button>
+      <div class="edge" aria-hidden="true"><i></i><i></i></div>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+
+    <div class="side">
+      <div class="block">
+        <h3>So bedienst du Dot</h3>
+        <ul class="gestures">
+          <li><b>Ziehen</b><span>Dot folgt dem Finger. Drückst du ihn gegen den Rand, quetscht er sich platt.</span></li>
+          <li><b>Loslassen</b><span>Dicht am Rand klebt er an der Kante oder in der Ecke, sonst bleibt er da, wo du ihn lässt.</span></li>
+          <li><b>Werfen</b><span>Ein kräftiger Wurf trägt ihn bis zur Kante. Je schneller, desto stärker die Verformung.</span></li>
+          <li><b>Wackeln</b><span>Schüttel ihn beim Ziehen. Er schwingt je nach Tempo und Richtung anders.</span></li>
+          <li><b>Erholen</b><span>Aus der Ecke kommt er eckig heraus und rundet sich in Ruhe nach und nach, die Ecken zuerst.</span></li>
+          <li><b>Größe</b><span>Nur mit zwei Fingern (am Rechner: Mausrad), oder im Chat: „Mach dich größer“, „kleiner“, „so groß wie möglich“.</span></li>
+          <li><b>Haus</b><span>Die Tab-Leiste ist das Einzige, woran er abprallt. Über der Tür leuchtet sie auf. Schieb ihn dort fest hinein, oder wirf ihn hinein. Die Tür antippen schickt ihn auch heim.</span></li>
+          <li><b>Klingel</b><span>Ist Dot zu Hause, zeigt die Tür eine Glocke. Antippen, und er springt oben heraus und kehrt an seinen Platz zurück.</span></li>
+          <li><b>Antippen</b><span>Der Chat öffnet sich von Dot aus, er fliegt nach oben. Beim Schließen fliegt er zurück.</span></li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>Weichheit</h3>
+        <label class="slider" for="soft"><span>fest</span><input id="soft" type="range" min="0" max="1" step="0.01" value="1"><span>Gelee</span></label>
+        <span class="readout" id="readout"></span>
+      </div>
+
+      <div class="block">
+        <h3>Zustand</h3>
+        <div class="seg" id="states">
+          <button data-state="idle" aria-pressed="true">Ruhe · Kugel</button>
+          <button data-state="think" aria-pressed="false">Denken · Ringe</button>
+          <button data-state="speak" aria-pressed="false">Sprechen · Welle</button>
+          <button data-state="joy" aria-pressed="false">Freude · Haken</button>
+          <button data-state="listen" aria-pressed="false">Zuhören <span class="later">später</span></button>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Look und Randleuchten</h3>
+        <div class="seg" id="looks">
+          <button data-look="schwarz" aria-pressed="false">Schwarz</button>
+          <button data-look="nacht" aria-pressed="true">Nacht</button>
+        </div>
+        <div class="seg" id="edges">
+          <button data-edge="on" aria-pressed="true">Rand leuchtet beim Denken</button>
+          <button data-edge="off" aria-pressed="false">Ohne Rand</button>
+        </div>
+        <div><button class="plain-btn" id="resetDot" type="button">Dot zurück in die Ecke</button></div>
+      </div>
+
+      <div class="limits">
+        <b>In der App dazu</b>
+        <span>Haptik passend zum Aufprall: leicht beim Andocken, kräftiger bei einem harten Wurf, ein weiches Klopfen beim Betreten des Hauses.</span>
+        <span>Platz und Größe werden je Gerät gemerkt. Öffnet sich die Tastatur, weicht Dot nach oben aus.</span>
+        <span>Grenzen bleiben: keine Dosisempfehlung, keine Diagnose, Eintragen nur über eine Karte, die du bestätigst.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const TAU = Math.PI * 2;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const clamp01 = x => clamp(x, 0, 1);
+const easeIO = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+const TARGETS = {
+  idle:   { spin: 0.16, bright: 0.85, glow: 0.4,  hue: 0.45 },
+  think:  { spin: 0.9,  bright: 0.95, glow: 0.6,  hue: 0.8 },
+  speak:  { spin: 0.28, bright: 1,    glow: 0.65, hue: 0.4 },
+  listen: { spin: 0.2,  bright: 0.9,  glow: 0.5,  hue: 0.3 },
+  joy:    { spin: 0.5,  bright: 1.1,  glow: 0.9,  hue: 0.25 },
+};
+const SHAPE = { idle: 'sphere', think: 'rings', speak: 'wave', joy: 'check', listen: 'circle' };
+const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200];
+const mix3 = (a, b, m) => [a[0] + (b[0] - a[0]) * m, a[1] + (b[1] - a[1]) * m, a[2] + (b[2] - a[2]) * m];
+function dotColor(X, Y, hue) {
+  let c = mix3(CYAN, VIOLET, clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7));
+  if (Y > 0.55) c = mix3(c, PINK, Math.min(1, (Y - 0.55) * 1.4));
+  return c;
+}
+
+/* Grenzen und Physik */
+const R_MIN = 24, R_MAX = 84, HOUSE_R = 9;
+const soft = $('#soft');
+function phys() {
+  const s = +soft.value, K = 150 - 105 * s;
+  return {
+    rest: 0.92 - 0.1 * s,           // wie platt Dot an der Kante klebt
+    kw: 3000 - 2000 * s,            // Härte der Kante
+    K,                              // Rückstellkraft des Rands
+    T: 420,                         // Spannung zwischen Nachbarn: Wellen laufen um den Rand
+    C: 2 * Math.sqrt(K) * (0.14 - 0.07 * s), // Dämpfung (klein = wackelt lange)
+    Cv: 14,                         // innere Reibung: feine Wellen sterben schneller
+    G: 0.0011 + 0.0016 * s,         // Trägheit: Beschleunigung verformt
+    V: 0.0022 + 0.003 * s,          // Strecken in Flugrichtung
+    thr: 0.2 - 0.12 * s,            // ab hier bleibt eine Delle
+    plastic: 1.5 + 5 * s,           // wie viel einer starken Verformung bleibt
+    yieldR: 0.4 + 1.4 * s,          // wie schnell er die Form der Ecke annimmt
+    regen: 0.9 - 0.45 * s,          // Erholung je Sekunde, wenn er ruhig ist
+    diff: 3 + 4 * s,                // Ecken runden sich zuerst
+    breath: 0.006 + 0.014 * s,      // leises, unregelmäßiges Atmen
+  };
+}
+
+/* Weicher Rand: 96 Punkte mit Auslenkung U, Geschwindigkeit WV, Formgedächtnis M */
+const RK = 96, U = new Float32Array(RK), UR = new Float32Array(RK), WV = new Float32Array(RK), M = new Float32Array(RK), HEAL = new Float32Array(RK);
+const KF = new Float32Array(RK), GF = new Float32Array(RK), DX = new Float32Array(RK), DY = new Float32Array(RK), CL = new Uint8Array(RK);
+const PH = Array.from({ length: 8 }, () => Math.random() * TAU);
+for (let k = 0; k < RK; k++) {
+  const th = k / RK * TAU; DX[k] = Math.cos(th); DY[k] = Math.sin(th);
+  // unregelmäßig: jede Stelle ist etwas anders steif und träge
+  KF[k] = 1 + 0.22 * Math.sin(2 * th + PH[0]) + 0.14 * Math.sin(3 * th + PH[1]) + 0.08 * Math.sin(5 * th + PH[2]);
+  GF[k] = 1 + 0.25 * Math.sin(2 * th + PH[3]) + 0.15 * Math.sin(4 * th + PH[4]);
+}
+const ringAt = (arr, th) => { const f = ((th / TAU) % 1 + 1) % 1 * RK, i = f | 0, q = f - i; return arr[i % RK] * (1 - q) + arr[(i + 1) % RK] * q; };
+function ringStep(h, ax, ay, P, t, ws) {
+  const r = B.r, vs = Math.hypot(B.vx, B.vy), ux = vs > 1 ? B.vx / vs : 0, uy = vs > 1 ? B.vy / vs : 0;
+  for (let k = 0; k < RK; k++) {
+    const kp = (k + 1) % RK, km = (k + RK - 1) % RK, th = k / RK * TAU;
+    // Trägheit: die vordere Seite wird gestaucht, die hintere quillt nach
+    let f = -(DX[k] * ax + DY[k] * ay) * P.G * GF[k];
+    const al = DX[k] * ux + DY[k] * uy; f += vs * P.V * (al * al - 0.5);
+    const sag = B.sag * Math.pow(Math.max(0, DY[k]), 2);
+    const breath = reduce ? 0 : P.breath * (Math.sin(2 * th + t * 0.9 + PH[5]) + 0.7 * Math.sin(3 * th - t * 1.3 + PH[6]) + 0.4 * Math.sin(5 * th + t * 2.1 + PH[7]));
+    const acc = -P.K * KF[k] * (U[k] - M[k] - sag - breath) + P.T * (U[km] + U[kp] - 2 * U[k]) - P.C * WV[k] + P.Cv * (WV[km] + WV[kp] - 2 * WV[k]) + f;
+    WV[k] += acc * h;
+  }
+  for (let k = 0; k < RK; k++) { U[k] = clamp(U[k] + WV[k] * h, -0.55, 0.9); CL[k] = 0; }
+  // Wände: jeder Randpunkt stößt einzeln an, so entstehen echte flache Seiten
+  let contact = false;
+  for (const w of ws) {
+    if (w.d > r * 1.95) continue;
+    for (let k = 0; k < RK; k++) {
+      const c = -(DX[k] * w.nx + DY[k] * w.ny); if (c < 0.06) continue;
+      const maxU = w.d / (r * c) - 1;
+      if (U[k] > maxU) { U[k] = maxU; if (WV[k] > 0) WV[k] *= -0.1; CL[k] = 1; contact = true; }
+    }
+  }
+  // Fläche bleibt gleich: sanft als Kraft auf die freien Stellen (kein Springen, kein Zucken)
+  let sum = 0, free = 0;
+  for (let k = 0; k < RK; k++) { sum += (1 + U[k]) * (1 + U[k]); if (!CL[k]) free += 1 + U[k]; }
+  if (free > 0) { const dd = (RK - sum) / (2 * free); for (let k = 0; k < RK; k++) if (!CL[k]) { WV[k] += dd * 60 * h; U[k] += dd * 0.06; } }
+  // Formgedächtnis: Ecke prägt sich ein, starke Dellen bleiben, Ruhe heilt
+  const calm = Math.pow(1 - clamp01(vs / 380), 2) * (contact ? 0.12 : 1) * (B.drag ? 0.5 : 1);
+  for (let k = 0; k < RK; k++) {
+    const e = U[k] - M[k];
+    if (CL[k]) M[k] += e * P.yieldR * h;
+    else if (e < -P.thr) M[k] += (e + P.thr) * P.plastic * h;
+  }
+  for (let k = 0; k < RK; k++) {
+    const kp = (k + 1) % RK, km = (k + RK - 1) % RK;
+    const dm = (-M[k] * P.regen + P.diff * (M[km] + M[kp] - 2 * M[k])) * calm * h;
+    M[k] = clamp(M[k] + dm, -0.5, 0.6);
+    HEAL[k] = Math.max(HEAL[k] * Math.exp(-h * 3), Math.min(1, Math.abs(dm) / h * 6));
+  }
+  return contact;
+}
+function rubber(over, dim) { return (over * dim * 0.55) / (dim + 0.55 * Math.abs(over)); }
+// Apples Projektion des Endpunkts (Designing Fluid Interfaces), etwas kürzer für weniger Sog zum Rand
+const project = v => (v / 1000) * 0.993 / (1 - 0.993);
+
+const phone = $('#phone'), canvas = $('#dotCanvas'), ctx = canvas.getContext('2d'), hit = $('#dotHit');
+const stage = $('#stage'), coach = $('#coach'), doorEl = $('#door'), house = $('#house'), tabbar = $('#tabbar');
+let W = 0, H = 0, dpr = 1, TAB = 0, DOOR = { cx: 0, cy: 0, w: 58, h: 34, x: 0, y: 0 };
+function resize() {
+  const r = phone.getBoundingClientRect(); W = r.width; H = r.height; dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  TAB = tabbar.getBoundingClientRect().top - r.top;
+  const d = doorEl.getBoundingClientRect();
+  DOOR = { x: d.left - r.left, y: d.top - r.top, w: d.width, h: d.height, cx: d.left - r.left + d.width / 2, cy: d.top - r.top + d.height * 0.45 };
+}
+resize(); addEventListener('resize', resize);
+// Wände: Bildschirmrand und die Oberkante der Tab-Leiste (das einzige Ding, gegen das er prallt)
+const bounds = () => ({ l: 4, t: 54, r: W - 4, b: TAB });
+
+function fib(n) {
+  const pts = [], ga = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < n; i++) {
+    const y = 1 - 2 * (i + 0.5) / n, r = Math.sqrt(1 - y * y), th = ga * i;
+    pts.push({ i, u: i / n, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random() });
+  }
+  return pts;
+}
+
+const B = {
+  x: 0, y: 0, vx: 0, vy: 0, r: 30, rv: 0, size: 30,
+  lx: 0, ly: 0, lvx: 0, lvy: 0, ax: 0, ay: 0, fax: 0, fay: 0,
+  dock: { x: 'right', y: 'bottom' }, along: { x: 0, y: 0 },
+  mode: 'home', drag: null, resizing: false, ringT: 0, contact: {}, sag: 0, flash: 0, navFlash: 0, sparks: [],
+  state: 'idle', cur: { ...TARGETS.idle }, voice: 0, voiceAuto: false, joyT: 9, poke: 9, rot: 0,
+  pts: fib(620), shape: 'sphere', trans: 9, pos: null, from: null,
+};
+B.pos = B.pts.map(() => [0, 0, 0]); B.from = B.pos.map(p => p.slice());
+
+const SAVE = 'tyd.dot.place.v2';
+function save() { try { localStorage.setItem(SAVE, JSON.stringify({ dock: B.dock, along: B.along, size: B.size })); } catch (e) {} }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(SAVE) || 'null'); if (s && s.dock && s.along) { B.dock = s.dock; B.along = s.along; B.size = clamp(+s.size || 30, R_MIN, R_MAX); B.r = B.size; } } catch (e) {}
+}
+load();
+
+function walls() {
+  const b = bounds();
+  return [
+    { id: 'left', d: B.x - b.l, nx: 1, ny: 0 },
+    { id: 'right', d: b.r - B.x, nx: -1, ny: 0 },
+    { id: 'top', d: B.y - b.t, nx: 0, ny: 1 },
+    { id: 'bottom', d: b.b - B.y, nx: 0, ny: -1 },
+  ];
+}
+const docked = id => B.dock.x === id || B.dock.y === id;
+const inDoor = x => Math.abs(x - DOOR.cx) < DOOR.w / 2 + 6;
+
+function stageCenter() {
+  const p = phone.getBoundingClientRect(), s = stage.getBoundingClientRect();
+  return { x: s.left - p.left + s.width / 2, y: s.top - p.top + s.height / 2 };
+}
+const stageR = () => clamp(40 + B.size * 0.55, 52, 86) * (coach.classList.contains('chatting') ? 0.8 : 1);
+function homeTarget() {
+  const b = bounds(), r = B.size, rest = phys().rest;
+  const x = B.dock.x === 'left' ? b.l + r * rest : B.dock.x === 'right' ? b.r - r * rest : clamp(B.along.x, b.l + r, b.r - r);
+  const y = B.dock.y === 'top' ? b.t + r * rest : B.dock.y === 'bottom' ? b.b - r * rest : clamp(B.along.y, b.t + r, b.b - r);
+  return { x, y };
+}
+function target() {
+  if (B.mode === 'stage') return stageCenter();
+  if (B.mode === 'enter' || B.mode === 'house') return { x: DOOR.cx, y: DOOR.cy };
+  return homeTarget();
+}
+function radiusTarget() {
+  if (B.mode === 'stage') return stageR();
+  if (B.mode === 'enter' || B.mode === 'house') return HOUSE_R;
+  return B.size;
+}
+
+/* Loslassen: Endpunkt projizieren, dann Kante, Ecke, Haus oder frei */
+function release(vx, vy) {
+  const b = bounds(), r = B.size, speed = Math.hypot(vx, vy);
+  let px = B.x + project(vx), py = B.y + project(vy);
+  // in die Tür geworfen oder gedrückt?
+  if (vy > 650 && inDoor(px) && py > b.b - r * 0.6 && B.y > b.b - r * 3.2) { B.vx = vx; B.vy = vy; goHome(); return; }
+  if (speed > 1500) {
+    // sehr kräftiger Wurf: bis zur ersten Kante in Wurfrichtung
+    let t = Infinity;
+    if (vx < 0) t = Math.min(t, (b.l + r - B.x) / vx); if (vx > 0) t = Math.min(t, (b.r - r - B.x) / vx);
+    if (vy < 0) t = Math.min(t, (b.t + r - B.y) / vy); if (vy > 0) t = Math.min(t, (b.b - r - B.y) / vy);
+    if (isFinite(t) && t > 0) { px = B.x + vx * t; py = B.y + vy * t; }
+  }
+  px = clamp(px, b.l + r, b.r - r); py = clamp(py, b.t + r, b.b - r);
+  const snap = Math.max(34, r * 0.9);
+  const dl = px - b.l - r, dr = b.r - r - px, dt = py - b.t - r, db = b.b - r - py;
+  let dx = Math.min(dl, dr) < snap ? (dl < dr ? 'left' : 'right') : null;
+  let dy = Math.min(dt, db) < snap ? (dt < db ? 'top' : 'bottom') : null;
+  if (dx && dy && !(Math.min(dl, dr) < snap * 0.6 && Math.min(dt, db) < snap * 0.6)) { if (Math.min(dl, dr) < Math.min(dt, db)) dy = null; else dx = null; }
+  if (speed < 300 && !dx && !dy) { px = B.x; py = B.y; }
+  B.dock = { x: dx, y: dy }; B.along = { x: px, y: py };
+  B.vx = vx; B.vy = vy;
+  save();
+}
+
+/* Aufprall: Licht und Funken an der Kontaktstelle; die Verformung entsteht aus der Bremsung */
+function impact(w, speed) {
+  if (speed < 70 || B.mode !== 'home') return;
+  const nx = w.nx, ny = w.ny;
+  B.flash = Math.min(0.8, B.flash + speed / 2600);
+  if (w.id === 'bottom') B.navFlash = Math.min(1, B.navFlash + speed / 1500);
+  if (reduce) return;
+  const n = Math.min(28, speed / 55 | 0), cx = B.x - nx * w.d, cy = B.y - ny * w.d;
+  for (let i = 0; i < n; i++) {
+    const out = (0.15 + Math.random() * 0.4) * speed * 0.45, tan = (Math.random() - 0.5) * speed * 0.7;
+    B.sparks.push({ x: cx + -ny * (Math.random() - 0.5) * B.r, y: cy + nx * (Math.random() - 0.5) * B.r, vx: nx * out - ny * tan, vy: ny * out + nx * tan, t: 0, life: 0.35 + Math.random() * 0.4 });
+  }
+}
+
+function physics(dt, t) {
+  const P = phys(), steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps, home = B.mode === 'home';
+  // Schwerkraft an der Kante: oben Tropfen, seitlich leicht durchhängen
+  const sagT = home && !B.drag ? (B.dock.y === 'top' ? 0.22 : (B.dock.x && !B.dock.y) ? 0.09 : 0) * (0.6 + +soft.value * 0.6) : 0;
+  B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3));
+  if (B.drag && dt > 0) {
+    // Beim Ziehen kommt die Beschleunigung von der Hand
+    const vx = (B.x - B.lx) / dt, vy = (B.y - B.ly) / dt;
+    B.ax += (clamp((vx - B.lvx) / dt, -30000, 30000) - B.ax) * 0.4; B.ay += (clamp((vy - B.lvy) / dt, -30000, 30000) - B.ay) * 0.4;
+    B.lvx = vx; B.lvy = vy;
+  }
+  for (let s = 0; s < steps; s++) {
+    const pvx = B.vx, pvy = B.vy;
+    if (!B.drag) {
+      const T = target();
+      const k = home ? 90 : B.mode === 'exit' ? 70 : 120, c = 2 * Math.sqrt(k) * (reduce ? 1 : 0.85);
+      let ax = k * (T.x - B.x) - c * B.vx, ay = k * (T.y - B.y) - c * B.vy;
+      if (home) for (const w of walls()) {
+        const rest = (docked(w.id) ? P.rest : 1) * B.r, vn = B.vx * w.nx + B.vy * w.ny;
+        if (w.d < rest) {
+          if (!B.contact[w.id]) { B.contact[w.id] = true; impact(w, -vn); }
+          // kritisch gedämpfte Wand: hält ihn fest, ohne zu flattern
+          const pen = rest - w.d, cw = 2 * Math.sqrt(P.kw) * 0.95, f = P.kw * pen - cw * vn;
+          ax += w.nx * f; ay += w.ny * f;
+        } else if (w.d > rest + 1.5) B.contact[w.id] = false;
+      }
+      B.vx += ax * h; B.vy += ay * h; B.x += B.vx * h; B.y += B.vy * h;
+      if (home) for (const w of walls()) {
+        const min = B.r * 0.42;
+        if (w.d < min) { B.x += w.nx * (min - w.d); B.y += w.ny * (min - w.d); const vn = B.vx * w.nx + B.vy * w.ny; if (vn < 0) { B.vx -= vn * w.nx; B.vy -= vn * w.ny; } }
+      }
+    }
+    if (!B.resizing) {
+      const rt = radiusTarget(), k = 200, c = 2 * Math.sqrt(k) * (reduce ? 1 : 0.8);
+      B.rv += (k * (rt - B.r) - c * B.rv) * h; B.r += B.rv * h;
+    }
+    // Beschleunigung geglättet (~30 ms): kleines Flattern der Mitte zuckt nicht mehr in die Punkte
+    let ax = B.ax, ay = B.ay;
+    if (!B.drag) { ax = clamp((B.vx - pvx) / h, -40000, 40000); ay = clamp((B.vy - pvy) / h, -40000, 40000); }
+    const lp = 1 - Math.exp(-h / 0.03);
+    B.fax += (ax - B.fax) * lp; B.fay += (ay - B.fay) * lp;
+    const ws = home ? walls() : [];
+    ringStep(h, reduce ? 0 : B.fax, reduce ? 0 : B.fay, P, t, ws);
+  }
+  if (!B.drag) { B.ax *= 0.5; B.ay *= 0.5; }
+  B.lx = B.x; B.ly = B.y; if (!B.drag) { B.lvx = B.vx; B.lvy = B.vy; }
+  B.flash *= Math.exp(-dt * 4); B.navFlash *= Math.exp(-dt * 3); B.ringT = Math.max(0, B.ringT - dt);
+  // Übergänge ins Haus und heraus
+  if (B.mode === 'enter' && Math.hypot(B.x - DOOR.cx, B.y - DOOR.cy) < 3 && B.r < HOUSE_R + 2) { B.mode = 'house'; phone.dataset.in = '1'; houseUI(); }
+  if (B.mode === 'exit' && B.y < TAB - B.r * 1.05) { B.mode = 'home'; B.contact = {}; hit.hidden = false; }
+}
+
+/* Zustände: Kugel → Ringe → Welle → Haken */
+function setState(s) {
+  if (s === 'joy') B.joyT = 0;
+  B.state = s; B.from = B.pos.map(p => p.slice()); B.shape = SHAPE[s]; B.trans = reduce ? 9 : 0;
+  busy(s);
+}
+function shapeTarget(p, t) {
+  const v = clamp01(B.voice), n = B.pts.length;
+  switch (B.shape) {
+    case 'rings': {
+      const ring = p.i % 2, th = p.u * TAU * 2 + t * (ring ? 2.4 : -1.9), rr = 1 + (p.k - 0.5) * 0.08;
+      const x = Math.cos(th) * rr, y = Math.sin(th) * rr * Math.cos(1.15), z = Math.sin(th) * rr * Math.sin(1.15);
+      const g = ring ? 0.55 : -0.55;
+      return [x * Math.cos(g) - y * Math.sin(g), x * Math.sin(g) + y * Math.cos(g), 0.25 + 0.75 * (z + 1) / 2];
+    }
+    case 'wave': {
+      const band = p.i % 3, u = Math.floor(p.i / 3) / (n / 3), x = (u * 2 - 1) * 1.3, env = Math.exp(-x * x * 1.4);
+      const y = env * (0.14 + 0.6 * v) * [1, 0.7, 0.45][band] * Math.sin(x * 5.5 + t * 7 + band * 2.1) + (p.k - 0.5) * 0.03;
+      return [x, y, 0.9 - band * 0.15];
+    }
+    case 'check': {
+      const L1 = 0.566, L2 = 1.13, s = p.u * (L1 + L2), j = (p.k - 0.5) * 0.12, j2 = Math.sin(p.s) * 0.03;
+      let x, y;
+      if (s < L1) { const q = s / L1; x = -0.55 + 0.4 * q + j * 0.7; y = 0.4 * q - j * 0.7; }
+      else { const q = (s - L1) / L2; x = -0.15 + 0.77 * q + j * 0.55; y = 0.4 - 0.82 * q + j * 0.83; }
+      return [x + j2, y - 0.02 + j2, 1];
+    }
+    case 'circle': {
+      const th = p.u * TAU + t * 0.4, rr = 1 + 0.06 * Math.sin(th * 8 + t * 6) + (p.k - 0.5) * 0.05;
+      return [Math.cos(th) * rr, Math.sin(th) * rr, 0.85];
+    }
+    default: {
+      const a = B.rot, ca = Math.cos(a), sa = Math.sin(a);
+      const X = p.x * ca + p.z * sa, Z0 = -p.x * sa + p.z * ca, ct = Math.cos(0.38), st = Math.sin(0.38);
+      const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2;
+      return [X, Y, 0.1 + 0.85 * f * f];
+    }
+  }
+}
+
+function render(t, dt) {
+  const tg = TARGETS[B.state], cur = B.cur, k = 1 - Math.exp(-dt * 6);
+  for (const key in tg) cur[key] += (tg[key] - cur[key]) * k;
+  B.joyT += dt; B.poke += dt; B.trans += dt;
+  if (B.state === 'joy' && B.joyT > 1.9) setState('idle');
+  if (B.voiceAuto) B.voice = 0.55 + 0.3 * Math.sin(t * 7.3) * Math.sin(t * 2.1) + 0.15 * Math.sin(t * 13); else B.voice *= Math.exp(-dt * 3);
+  const sleeping = B.mode === 'house';
+  if (!reduce) B.rot += cur.spin * dt * (sleeping ? 0.4 : 1);
+  // Anzeige folgt dem Rand mit ~25 ms Verzögerung: glatt, aber ohne Nachziehen
+  const lp = 1 - Math.exp(-dt / 0.025);
+  for (let i = 0; i < RK; i++) UR[i] += (U[i] - UR[i]) * lp;
+
+  ctx.clearRect(0, 0, W, H);
+  const m = reduce ? 0 : 1, pk = B.poke;
+  const pulse = 1 + m * ((sleeping ? 0.06 * Math.sin(t * 1.1) : 0.018 * Math.sin(t * 1.6)) + (pk < 0.6 ? -Math.exp(-pk * 8) * Math.cos(pk * 22) * 0.07 : 0) + (B.joyT < 1.3 ? Math.exp(-B.joyT * 4.2) * Math.sin(B.joyT * 13) * 0.12 : 0));
+  const r = B.r * pulse, cx = B.x, cy = B.y, bright = (cur.bright + B.flash * 0.6) * (sleeping ? 0.75 : 1);
+
+  // Leiste reagiert, wenn Dot sie berührt; über der Tür öffnet sie sich
+  if (B.mode === 'home' || B.mode === 'enter' || B.mode === 'exit') {
+    const db = TAB - B.y, prox = clamp01(1 - (db - B.r * 0.75) / (B.r * 1.4));
+    const a = Math.min(1, prox * 0.7 + B.navFlash);
+    if (a > 0.02) {
+      const g2 = ctx.createLinearGradient(cx - r * 2.2, 0, cx + r * 2.2, 0);
+      g2.addColorStop(0, 'rgba(110,230,255,0)'); g2.addColorStop(0.5, `rgba(170,240,255,${(0.9 * a).toFixed(3)})`); g2.addColorStop(1, 'rgba(175,135,255,0)');
+      ctx.fillStyle = g2; ctx.fillRect(cx - r * 2.2, TAB - 1, r * 4.4, 2);
+      const g3 = ctx.createRadialGradient(cx, TAB, 0, cx, TAB, r * 1.6);
+      g3.addColorStop(0, `rgba(110,200,255,${(0.22 * a).toFixed(3)})`); g3.addColorStop(1, 'rgba(110,200,255,0)');
+      ctx.fillStyle = g3; ctx.fillRect(cx - r * 1.6, TAB - r * 1.6, r * 3.2, r * 3.2);
+    }
+  }
+
+  // Beim Hinein- und Herauskommen sieht man ihn nur über der Leiste und in der Tür
+  const clipped = B.mode === 'enter' || B.mode === 'exit' || sleeping;
+  if (clipped) {
+    ctx.save(); ctx.beginPath();
+    if (!sleeping) ctx.rect(0, 0, W, TAB);
+    ctx.roundRect ? ctx.roundRect(DOOR.x, DOOR.y, DOOR.w, DOOR.h, [0, 0, 18, 18]) : ctx.rect(DOOR.x, DOOR.y, DOOR.w, DOOR.h);
+    ctx.clip();
+  }
+
+  const g = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 2);
+  g.addColorStop(0, `rgba(70,170,255,${0.18 * cur.glow})`); g.addColorStop(0.5, `rgba(150,110,255,${0.08 * cur.glow})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(cx - r * 2, cy - r * 2, r * 4, r * 4);
+
+  const dotR = clamp(B.r * 0.028, sleeping ? 0.55 : 0.75, 1.75), tt = reduce ? 0 : t;
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of B.pts) {
+    if (sleeping && p.i % 3) continue;
+    const tgt = shapeTarget(p, tt), cp = B.pos[p.i], fr = B.from[p.i];
+    const q = easeIO(clamp01((B.trans - p.k * 0.35) / 0.7));
+    cp[0] = fr[0] + (tgt[0] - fr[0]) * q; cp[1] = fr[1] + (tgt[1] - fr[1]) * q; cp[2] = fr[2] + (tgt[2] - fr[2]) * q;
+    // jeder Punkt folgt dem weichen Rand in seiner Richtung
+    const th = Math.atan2(cp[1], cp[0]), rho = Math.hypot(cp[0], cp[1]), s = 1 + ringAt(UR, th);
+    const dx = cp[0] * r * s, dy = cp[1] * r * s;
+    const heal = ringAt(HEAL, th) * Math.min(1, rho) * 0.5;
+    let c = dotColor(cp[0], cp[1], cur.hue); if (heal > 0.01) c = mix3(c, [225, 250, 255], Math.min(0.7, heal));
+    ctx.fillStyle = `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${clamp01(cp[2] * (bright + heal)).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(cx + dx, cy + dy, dotR * (0.55 + 0.6 * cp[2]), 0, TAU); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  if (clipped) ctx.restore();
+
+  ctx.globalCompositeOperation = 'lighter';
+  for (const s of B.sparks) {
+    s.t += dt; s.vy += 900 * dt; s.vx *= Math.exp(-dt * 2); s.x += s.vx * dt; s.y += s.vy * dt;
+    const q = s.t / s.life; if (q >= 1 || s.y > TAB) { s.t = s.life; continue; }
+    ctx.fillStyle = `rgba(170,240,255,${(1 - q).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(s.x, s.y, dotR * 1.3 * (1 - q * 0.5), 0, TAU); ctx.fill();
+  }
+  B.sparks = B.sparks.filter(s => s.t < s.life);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Größenring nur beim Zoomen mit zwei Fingern, Mausrad oder Befehl, dazu leise die Grenzen
+  if ((B.resizing || B.ringT > 0) && B.mode === 'home') {
+    const a = B.resizing ? 1 : B.ringT / 0.8;
+    ctx.lineWidth = 1.2; ctx.strokeStyle = `rgba(255,255,255,${(0.4 * a).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(cx, cy, B.r + 8, 0, TAU); ctx.stroke();
+    ctx.setLineDash([3, 5]); ctx.strokeStyle = `rgba(255,255,255,${(0.14 * a).toFixed(3)})`;
+    for (const lim of [R_MIN, R_MAX]) { ctx.beginPath(); ctx.arc(cx, cy, lim, 0, TAU); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  const pad = 14, hs = (B.r + pad) * 2;
+  hit.style.width = hs + 'px'; hit.style.height = hs + 'px';
+  hit.style.transform = `translate(${(B.x - B.r - pad).toFixed(1)}px, ${(B.y - B.r - pad).toFixed(1)}px)`;
+}
+
+/* Gesten: ein Finger verschiebt, nur zwei Finger zoomen */
+const pointers = new Map();
+const local = e => { const p = phone.getBoundingClientRect(); return { x: e.clientX - p.left, y: e.clientY - p.top }; };
+function rubberRadius(raw) {
+  if (raw > R_MAX) return R_MAX + rubber(raw - R_MAX, R_MAX);
+  if (raw < R_MIN) return R_MIN - rubber(R_MIN - raw, R_MIN);
+  return raw;
+}
+function dragTo(fx, fy) {
+  const b = bounds(), r = B.r;
+  const lx = b.l + r, hx = b.r - r, ly = b.t + r, hy = b.b - r;
+  B.x = fx < lx ? lx - rubber(lx - fx, r) : fx > hx ? hx + rubber(fx - hx, r) : fx;
+  B.y = fy < ly ? ly - rubber(ly - fy, r) : fy > hy ? hy + rubber(fy - hy, r) : fy;
+  // über der Tür: Tür öffnet sich; fest hineingedrückt, geht er hinein
+  const over = fy - hy, nearDoor = inDoor(B.x);
+  if (nearDoor && over > 0) phone.dataset.door = 'open'; else delete phone.dataset.door;
+  if (nearDoor && over > r * 1.1) { endDrag(); goHome(); }
+}
+function startPinch() {
+  const [a, b] = [...pointers.values()];
+  B.drag = { pinch: true, d0: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), r0: B.r, ox: B.x - (a.x + b.x) / 2, oy: B.y - (a.y + b.y) / 2, moved: 99 };
+  B.resizing = true;
+}
+function endDrag() {
+  for (const id of pointers.keys()) { try { hit.releasePointerCapture(id); } catch (e) {} }
+  pointers.clear(); B.drag = null; B.resizing = false; delete phone.dataset.door;
+}
+hit.addEventListener('pointerdown', e => {
+  if (B.mode !== 'home') return;
+  e.preventDefault(); hit.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, local(e));
+  if (pointers.size === 2) { startPinch(); return; }
+  const pt = local(e), now = performance.now();
+  B.drag = { ox: pt.x - B.x, oy: pt.y - B.y, sx: pt.x, sy: pt.y, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }] };
+  B.vx = 0; B.vy = 0; B.poke = 0;
+});
+// Der zweite Finger darf irgendwo auf dem Bildschirm landen
+phone.addEventListener('pointerdown', e => {
+  if (e.target === hit || !B.drag || B.drag.pinch || B.mode !== 'home' || pointers.has(e.pointerId) || e.pointerType === 'mouse') return;
+  e.preventDefault(); e.stopPropagation();
+  try { hit.setPointerCapture(e.pointerId); } catch (err) {}
+  pointers.set(e.pointerId, local(e)); startPinch();
+}, true);
+hit.addEventListener('pointermove', e => {
+  if (!B.drag || !pointers.has(e.pointerId)) return;
+  const pt = local(e); pointers.set(e.pointerId, pt);
+  const D = B.drag, now = performance.now();
+  if (D.pinch) {
+    if (pointers.size < 2) return;
+    const [a, b] = [...pointers.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    const raw = D.r0 * d / D.d0; B.r = rubberRadius(raw); B.size = clamp(raw, R_MIN, R_MAX);
+    dragTo((a.x + b.x) / 2 + D.ox, (a.y + b.y) / 2 + D.oy);
+    return;
+  }
+  D.moved = Math.max(D.moved, Math.hypot(pt.x - D.sx, pt.y - D.sy));
+  if (D.moved < 4) return;
+  dragTo(pt.x - D.ox, pt.y - D.oy);
+  if (!B.drag) return;
+  D.hist.push({ x: B.x, y: B.y, t: now }); while (D.hist.length > 6) D.hist.shift();
+  const h0 = D.hist[0], dtv = Math.max(8, now - h0.t) / 1000;
+  B.vx = (B.x - h0.x) / dtv; B.vy = (B.y - h0.y) / dtv;
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  const D = B.drag; if (!D) return;
+  if (D.pinch) { if (pointers.size === 0) { B.drag = null; B.resizing = false; B.ringT = 0.8; settleAfterResize(); } return; }
+  B.drag = null; delete phone.dataset.door;
+  const now = performance.now();
+  if (D.moved < 8 && now - D.t0 < 350) { openCoach(); return; }
+  const last = D.hist[D.hist.length - 1], stale = now - last.t > 90;
+  release(stale ? 0 : B.vx, stale ? 0 : B.vy);
+}
+function settleAfterResize() { if (!B.dock.x && !B.dock.y) B.along = { x: B.x, y: B.y }; save(); }
+hit.addEventListener('pointerup', endPointer);
+hit.addEventListener('pointercancel', endPointer);
+hit.addEventListener('wheel', e => {
+  if (B.mode !== 'home') return; e.preventDefault();
+  B.size = clamp(B.size * Math.exp(-e.deltaY * 0.0018), R_MIN, R_MAX); B.ringT = 0.8; settleAfterResize();
+}, { passive: false });
+hit.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCoach(); } });
+
+/* Haus und Klingel */
+function houseUI() {
+  const inside = B.mode === 'house';
+  $('#houseLabel').textContent = inside ? 'Klingeln' : 'Dots Haus';
+  house.setAttribute('aria-label', inside ? 'Bei Dot klingeln' : 'Dot nach Hause schicken');
+}
+function goHome() {
+  if (B.mode === 'stage') return;
+  B.mode = 'enter'; hit.hidden = true; delete phone.dataset.door; B.contact = {};
+  if (B.vy < 300) B.vy = 300;
+}
+function ring() {
+  B.mode = 'exit'; delete phone.dataset.in; houseUI();
+  B.x = DOOR.cx; B.y = DOOR.cy; B.vx = 0; B.vy = reduce ? -300 : -1150; B.rv = 120;
+  toast('Ding-dong');
+}
+house.addEventListener('click', () => {
+  if (B.mode === 'house') ring();
+  else if (B.mode === 'home') { const b = bounds(); B.vx = (DOOR.cx - B.x) * 2; B.vy = 600; goHome(); }
+});
+
+/* Start: in der Ecke über der Tab-Leiste */
+const T0 = homeTarget(); B.x = T0.x; B.y = T0.y; B.r = B.size;
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  physics(dt, now / 1000); render(now / 1000, dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+document.addEventListener('visibilitychange', () => { last = performance.now(); });
+
+/* Steuerung */
+function pressed(group, btn) { group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn))); }
+function busy(s) { if (s === 'think' || s === 'speak') phone.dataset.busy = s; else delete phone.dataset.busy; }
+function readout() { const s = +soft.value; $('#readout').textContent = s < 0.33 ? 'Fest: kaum Verformung, Dellen verschwinden sofort.' : s < 0.66 ? 'Mittel: wackelt nach, Ecken bleiben kurz.' : s < 0.9 ? 'Weich: wabbelt unregelmäßig, Ecken und Dellen bleiben eine Weile.' : 'Gelee: sehr träge, prägt sich stark ein, heilt langsam.'; }
+soft.addEventListener('input', readout); readout();
+$('#states').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  pressed($('#states'), btn); B.voiceAuto = btn.dataset.state === 'speak'; setState(btn.dataset.state);
+  if (btn.dataset.state === 'joy') setTimeout(() => pressed($('#states'), $('#states [data-state="idle"]')), 1900);
+});
+$('#looks').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressed($('#looks'), b); phone.dataset.look = b.dataset.look; });
+$('#edges').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressed($('#edges'), b); phone.dataset.edge = b.dataset.edge; });
+$('#resetDot').addEventListener('click', () => {
+  if (B.mode === 'stage') closeCoach();
+  if (B.mode === 'house' || B.mode === 'enter') ring();
+  B.dock = { x: 'right', y: 'bottom' }; B.size = 30; save();
+});
+
+/* App */
+const thread = $('#thread'), statusEl = $('#status'), toastEl = $('#toast'), introEl = $('#intro');
+function openCoach() {
+  coach.style.setProperty('--ox', B.x.toFixed(1) + 'px'); coach.style.setProperty('--oy', B.y.toFixed(1) + 'px');
+  B.mode = 'stage'; hit.hidden = true; coach.classList.add('open');
+}
+function closeCoach() {
+  B.mode = 'home'; hit.hidden = false; B.contact = {};
+  const T = homeTarget(); coach.style.setProperty('--ox', T.x.toFixed(1) + 'px'); coach.style.setProperty('--oy', T.y.toFixed(1) + 'px');
+  coach.classList.remove('open');
+}
+$('#close').addEventListener('click', closeCoach);
+stage.addEventListener('click', () => { B.poke = 0; });
+$('#reset').addEventListener('click', () => { thread.replaceChildren(introEl); coach.classList.remove('chatting'); });
+
+let toastTimer;
+function toast(text) { toastEl.textContent = text; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800); }
+function setOrb(s) { B.voiceAuto = false; setState(s); }
+function setStatus(s) { statusEl.textContent = s; }
+
+/* Befehle an Dot selbst: Größe und Haus */
+function command(low) {
+  if (/(geh|ab).*(haus|heim)|schlafen|nach hause/.test(low)) return { a: 'Bis später. Klingel einfach an meiner Tür, wenn du mich brauchst.', run: () => setTimeout(() => { closeCoach(); setTimeout(goHome, 450); }, 700) };
+  if (/(so groß|größte|maximal|ganz groß)/.test(low)) return { a: 'So groß wie es geht. Mit zwei Fingern kannst du mich jederzeit wieder kleiner machen.', run: () => { B.size = R_MAX; save(); } };
+  if (/(so klein|kleinste|minimal|ganz klein)/.test(low)) return { a: 'Ganz klein. Ich bin trotzdem da.', run: () => { B.size = R_MIN; save(); } };
+  if (/größer|groesser|wachs/.test(low)) return { a: 'Etwas größer. So bleibe ich auch draußen auf dem Bildschirm.', run: () => { B.size = clamp(B.size * 1.35, R_MIN, R_MAX); save(); } };
+  if (/kleiner|schrumpf/.test(low)) return { a: 'Etwas kleiner. So störe ich weniger.', run: () => { B.size = clamp(B.size / 1.35, R_MIN, R_MAX); save(); } };
+  return null;
+}
+const SCRIPT = [
+  { q: 'Wann ist meine nächste Dosis?', keys: ['nächste', 'wann', 'dosis'],
+    a: 'Heute um 18:00: BPC-157, 250 mcg subkutan. Für die Stelle passt Bauch rechts, links war gestern dran. Dein Bestand reicht noch 9 Tage.' },
+  { q: 'Trag meine Morgendosis ein', keys: ['trag', 'morgen', 'eingenommen', 'gespritzt'],
+    a: 'Laut Plan war heute früh BPC-157 dran. So würde ich es eintragen:',
+    card: { title: 'Einnahme eintragen', rows: [['Substanz', 'BPC-157'], ['Menge', '250 mcg · 0,1 ml', 'edit'], ['Stelle', 'Bauch links · s.c.'], ['Zeit', 'heute, 08:00']], done: 'Eingetragen · Bestand jetzt 8 Tage' } },
+  { q: 'Ich hatte Skyr mit Beeren', keys: ['skyr', 'gegessen', 'hatte', 'beeren'],
+    a: 'Klingt nach Frühstück. Ich habe die Mengen geschätzt, prüf sie kurz:',
+    card: { title: 'Mahlzeit eintragen', rows: [['Frühstück', 'Skyr 250 g · Heidelbeeren 100 g'], ['Energie', '255 kcal'], ['Eiweiß', '28 g']], done: 'Eingetragen · noch 1745 kcal heute' } },
+  { q: 'Was heißt mein Ferritin-Wert?', keys: ['ferritin', 'blutwert', 'wert'],
+    a: 'Dein letzter Ferritin-Wert vom 2. Oktober: 38 ng/ml. Er liegt im Referenzbereich deines Labors (30 bis 400 ng/ml), im unteren Teil. Ferritin zeigt, wie viel Eisen dein Körper gespeichert hat. Was der Wert für dich bedeutet, besprich bitte mit deiner Ärztin oder deinem Arzt.' },
+  { q: 'Wie viel soll ich nehmen?', keys: ['wie viel', 'soll ich', 'empfiehl', 'erhöhen'],
+    a: 'Dosierungen empfehle ich nicht, das gehört in ärztliche Hand. Ich kann dir zeigen, was in deinem Plan steht, und in der Peptipedia nachschlagen, welche Mengen in Studien untersucht wurden.' },
+];
+const CMDS = ['Mach dich größer', 'Mach dich kleiner', 'Geh in dein Haus'];
+const chips = $('#chips');
+for (const q of CMDS) { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip cmd'; b.textContent = q; b.addEventListener('click', () => ask(q)); chips.append(b); }
+SCRIPT.forEach(s => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = s.q; b.addEventListener('click', () => ask(s.q)); chips.append(b); });
+
+let working = false;
+function bubble(cls, text) { const el = document.createElement('div'); el.className = 'msg ' + cls; el.textContent = text; thread.append(el); thread.scrollTop = thread.scrollHeight; return el; }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function ask(text) {
+  if (working || !text.trim()) return;
+  working = true; introEl.remove(); coach.classList.add('chatting');
+  bubble('me', text);
+  const low = text.toLowerCase(), cmd = command(low);
+  const hit2 = cmd ? null : (SCRIPT.find(s => s.q === text) || SCRIPT.find(s => s.keys.some(k => low.includes(k))));
+  setOrb('think'); setStatus('Dot denkt nach …');
+  await wait(reduce ? 300 : cmd ? 600 : 1400);
+  if (cmd) cmd.run();
+  const answer = cmd ? cmd.a : hit2 ? hit2.a : 'Im Mockup kenne ich nur die Beispielfragen unten. In der App beantworte ich alles rund um deinen Stack, deine Einträge und Blutwerte.';
+  setOrb('speak'); setStatus('');
+  const el = bubble('dot', '');
+  if (reduce) el.textContent = answer;
+  else for (let i = 0; i < answer.length; i += 2) {
+    el.textContent = answer.slice(0, i + 2);
+    B.voice = Math.min(1, B.voice + (/[ .,]/.test(answer[i]) ? 0.05 : 0.22));
+    thread.scrollTop = thread.scrollHeight;
+    await wait(32);
+  }
+  setOrb('idle');
+  if (hit2 && hit2.card) { await wait(150); thread.append(card(hit2.card)); thread.scrollTop = thread.scrollHeight; }
+  working = false;
+}
+function card(c) {
+  const el = document.createElement('div'); el.className = 'confirm';
+  const h = document.createElement('h4'); h.textContent = c.title; el.append(h);
+  const dl = document.createElement('dl');
+  c.rows.forEach(([k, v, edit]) => {
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v; if (edit) dd.dataset.edit = '1';
+    dl.append(dt, dd);
+  });
+  el.append(dl);
+  const btns = document.createElement('div'); btns.className = 'row-btns';
+  const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn primary'; ok.textContent = 'Eintragen';
+  const change = document.createElement('button'); change.type = 'button'; change.className = 'btn'; change.textContent = 'Ändern';
+  btns.append(ok, change); el.append(btns);
+  change.addEventListener('click', () => {
+    const dd = dl.querySelector('[data-edit]') || dl.querySelectorAll('dd')[0];
+    if (dd.querySelector('input')) return;
+    const unit = /mcg/.test(dd.textContent) ? ' mcg' : '';
+    const val = parseFloat(dd.textContent.replace(',', '.'));
+    dd.textContent = '';
+    const inp = document.createElement('input'); inp.type = unit ? 'number' : 'text'; inp.value = isNaN(val) ? '' : val;
+    inp.id = 'edit-' + Math.random().toString(36).slice(2, 7); inp.setAttribute('aria-label', 'Menge ändern');
+    dd.append(inp); if (unit) dd.append(unit); inp.focus();
+  });
+  ok.addEventListener('click', () => {
+    dl.querySelectorAll('input').forEach(i => { const dd = i.parentElement; const rest = dd.textContent.trim(); dd.textContent = i.value + (rest ? ' ' + rest : ''); });
+    btns.remove();
+    const done = document.createElement('div'); done.className = 'done';
+    const label = document.createElement('span'); label.textContent = '✓ ' + c.done;
+    const undo = document.createElement('button'); undo.type = 'button'; undo.textContent = 'Rückgängig';
+    undo.addEventListener('click', () => { done.remove(); el.append(btns); toast('Rückgängig gemacht'); });
+    done.append(label, undo); el.append(done);
+    setOrb('joy'); toast('Eingetragen');
+  });
+  return el;
+}
+$('#composer').addEventListener('submit', e => { e.preventDefault(); const i = $('#input'); const v = i.value; i.value = ''; ask(v); });
+})();
+</script>
