@@ -277,6 +277,58 @@ test('Halten und direkt auf einen Tag fallen lassen: derselbe Platz am anderen T
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
 })
 
+test('Auf einen anderen Tag gelegt: Punkte fliegen aus der Kugel des alten Tages in die des neuen', async ({ page, mock }) => {
+  await page.setViewportSize({ width: 390, height: 1500 })
+  logEntry(mock, { log_date: '2026-09-24' })
+  await page.goto('/ernaehrung')
+  await openDay(page, '2026-09-24')
+  await withMotion(page)
+  const saturday = page.getByRole('region', { name: 'Woche' }).locator('[data-nutr-day="2026-09-26"]')
+  await expect(saturday).toHaveAttribute('aria-label', /nichts eingetragen/)
+  await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' }), await center(saturday))
+  // Unterwegs: einzelne Punkte; der Samstag zeigt noch seinen alten Stand, bis sie ankommen.
+  const dots = page.locator('div[aria-hidden="true"][style*="z-index: 75"] > div')
+  await expect.poll(() => dots.count()).toBeGreaterThanOrEqual(8)
+  await expect(saturday).toHaveAttribute('aria-label', /nichts eingetragen/)
+  // Angekommen: Ebene weg, der Samstag zählt den Eintrag.
+  await expect(dots).toHaveCount(0, { timeout: 10_000 })
+  await expect(saturday).toHaveAttribute('aria-label', /126 kcal/)
+})
+
+test('Wochenleiste wischen: zur Vorwoche und zurück; in die Zukunft gibt sie nur nach', async ({ page, mock }) => {
+  logEntry(mock, { log_date: '2026-09-23' })
+  await page.goto('/ernaehrung')
+  const week = page.getByRole('region', { name: 'Woche' })
+  const title = week.getByRole('heading')
+  await expect(title).toContainText('28. September')
+  // Wischen beginnt auf einem Tag — das Loslassen darüber wählt ihn nicht (der Wisch war kein Tipp).
+  const swipe = async (dx: number) => {
+    // Mittwoch der gezeigten Woche (die Nachbarwochen liegen außerhalb, inert).
+    const { x, y } = await center(week.locator(':not([inert]) > [data-nutr-day]').nth(2))
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    for (let i = 1; i <= 10; i++) await page.mouse.move(x + (dx * i) / 10, y + i)
+    await page.mouse.up()
+  }
+
+  await swipe(220)
+  await expect(title).toContainText('21.')
+  // Gleicher Wochentag (Montag); die Vorwoche ist schon geladen.
+  await expect(week.getByRole('button', { name: /^Montag, 21\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
+  await expect(week.locator('[data-nutr-day="2026-09-23"]')).toHaveAttribute('aria-label', /126 kcal/)
+  // Nur die gezeigte Woche ist bedienbar.
+  await expect(week.getByRole('button', { name: /September 2026|Oktober 2026/ })).toHaveCount(7)
+
+  await swipe(-220)
+  await expect(title).toContainText('28. September')
+  await expect(week.getByRole('button', { name: /^Montag, 28\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
+
+  // Die nächste Woche liegt ganz in der Zukunft: die Leiste gibt nach und federt zurück.
+  await swipe(-220)
+  await expect(title).toContainText('28. September')
+  await expect(week.getByRole('button', { name: /^Montag, 28\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
+})
+
 test('Zählbares: Menge und Anzahl in einem Formular, verbunden; Einheit am Feld; die Zeile nennt die Anzahl', async ({ page, mock }) => {
   mock.foodLookup.products['4000000000013'] = {
     barcode: '4000000000013', name: 'Hühnerei', brand: null, unit: 'g',
