@@ -277,6 +277,45 @@ vom Style her auch wie Siri, passend zur App“.
     übermorgen, Vitamin D3 schon eingetragen, Frühstück fehlt noch. 2 s Pause bis
     zum nächsten Mal. Die Ecke oben links gehört damit der Uhr.
 
+## In der App (22.10.2026, Nutzer: „in die echte App einbauen", „KI-Chat direkt mit einbauen")
+
+- **Zugang (Nutzer):** Dot ist für alle sichtbar (Logo in der Mitte der
+  Kapsel), heraus kommt er nur mit Pro. Es gibt noch kein Abo-System
+  (`FEATURES.PAYWALL` aus) — Pro ist `profiles.pro_until` (aus der App nicht
+  setzbar, Trigger `protect_profile_pro_until`). Zum Testen: Admins
+  (`is_admin`) und der Entwicklungs-Build. Nicht über die E-Mail-Domain
+  `@trackyourdose.test` (Review: Registrierung ist offen). Testkonto
+  freischalten: `update profiles set pro_until = '2099-01-01' where id = …`.
+  Ohne Pro: Tipp aufs Logo zeigt einen Hinweis („Dot kommt mit Pro heraus").
+- **Code:** `src/features/dot/` — `engine/dotEngine.ts` (Port des Mockups,
+  Weichheit fest „Gelee", ohne Zoom/Bedienfeld), `engine/geometry.ts` (SDFs,
+  getestet), `DotLayer.tsx` (Ebene im Layout, z 44; Chat 60, Dot auf der
+  Bühne 61), `DotLogo.tsx`, `dotStore.ts` (Naht Logo ↔ Ebene, Kamera-Zähler),
+  `useDotWeg.ts` (in `useBarcodeKamera`), `lib/dotKontext.ts`,
+  `lib/zugang.ts`, `chat/`, `texte.ts` (de/en eigener Namensraum wie Training,
+  Locale-Dateien unberührt).
+- **Navigation in der App:** Seiten ohne Leiste = `hideTabBar` (Ernährung,
+  Injektionen); die Leiste wird dort ausgehängt, darum kommt er beim
+  Hineinnavigieren vom unteren Rand (wo die Leiste war) heraus. Blätter =
+  jedes `[data-app-modal]` oder der Schnellzugriff. Tastatur über
+  `visualViewport`. Ausweichen über `data-dot-avoid` (noch an keinem
+  Element der App gesetzt — offen). Uhr: geschätzte Lage links neben der
+  Kamera-Insel (nur bei `safe-area-inset-top` > 30).
+- **Chat:** Edge Function `coach` (`claude-opus-5-5`, Aufwand `low`,
+  `fallbacks: 'default'`, System-Prompt mit Cache-Marke), Tageslimit 40
+  (`coach_usage`, atomar über `coach_zaehlen`, nur service_role). Einwilligung
+  `profiles.coach_consent_at` (Trigger stempelt `now()`), Widerruf im Chat-Menü.
+  Kontext baut die App (Plan 7 Tage mit Status, Stack mit Bestand, jüngster
+  Wert je Blutmarker, heutige Ernährung) und schickt ihn mit; der Server
+  speichert nichts außer der Zahl. Verlauf nur auf dem Gerät, beim Abmelden
+  gelöscht. Datenschutzerklärung de/en ergänzt.
+- **Migration** `supabase-coach.sql`: Trockenlauf PG 16 (2×, 13 Profile wie
+  Produktion), dann im Projekt angewendet. Nachzählung: 13 Profile, neue Felder
+  leer, 6 Trigger auf profiles, coach_usage leer mit RLS, `coach_zaehlen` nur
+  für service_role.
+- **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
+  Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
@@ -291,6 +330,10 @@ vom Style her auch wie Siri, passend zur App“.
   gebaut, bisher nur nach Seitenwechsel und Tastatur.
 - In der App: welche Elemente `data-dot-avoid` bekommen (Speichern-Knöpfe, FABs,
   Eingaben), festlegen je Feature.
+- Eintragen per Chat (Bestätigungskarte) ist noch nicht gebaut — Dot sagt, wo
+  man es in der App macht.
+- Echtes Abo (Kauf, Abgleich setzt `pro_until`).
+- WebKit-Gerätetests liefen im Container nicht (WebKit fehlt), nur Chromium.
 
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
