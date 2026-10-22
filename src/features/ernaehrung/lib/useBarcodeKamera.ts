@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cameraAvailable, createDetector } from './barcodeDetector'
 import { normalizeBarcode } from './barcode'
+import { useDotWeg } from '../../dot/useDotWeg'
 
 /** `photo_only`: Kamerabild laeuft, aber der Barcode-Leser liess sich nicht laden. */
 export type KameraStand = 'starting' | 'scanning' | 'photo_only' | 'denied' | 'unavailable' | 'failed'
@@ -18,6 +19,8 @@ const FRAME_MS = 180
 export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cam, setCam] = useState<KameraStand>(cameraAvailable() ? 'starting' : 'unavailable')
+  // Solange ein Kamerabild läuft, ist Dot ganz weg
+  useDotWeg(cam === 'starting' || cam === 'scanning' || cam === 'photo_only')
   const onCodeRef = useRef(onCode)
   useEffect(() => { onCodeRef.current = onCode })
   // Beim Start festgelegt: ein Wechsel mitten im Lauf hiesse, den Leser
