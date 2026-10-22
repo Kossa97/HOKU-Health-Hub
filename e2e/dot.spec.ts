@@ -38,7 +38,9 @@ test('mit Pro: herausholen, einwilligen, fragen, zurück ins Haus', async ({ pag
 
   const figur = page.getByRole('button', { name: /Dot, dein KI-Coach/ })
   await expect(figur).toBeVisible()
-  await figur.click()
+  // Seine Trefferfläche folgt dem atmenden Umriss und steht nie ganz still;
+  // WebKit wartet sonst vergeblich auf ein „stabiles" Element
+  await figur.click({ force: true })
   await lassLaufen(page, 600)
 
   const chat = page.getByRole('dialog', { name: 'Dot' })
