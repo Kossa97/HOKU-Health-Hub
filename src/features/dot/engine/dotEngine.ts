@@ -133,7 +133,7 @@ export function createDot(host: DotHost): DotApi {
   }
 
   /* ── Geometrie der Umgebung ───────────────────────────────────────────── */
-  let W = 0, H = 0, dpr = 1, CR = 0, TAB = 0, CAPX = 0
+  let W = 0, H = 0, dpr = 1, CR = 0, TAB = 0, CAPX = 0, OBEN = 0
   let ENT = { x: window.innerWidth / 2, w: 44 }
   let CAP: Kapsel = { l: 0, r: 0, t: 0, b: 0 }
   let PLUS: Knopf | null = null
@@ -142,9 +142,10 @@ export function createDot(host: DotHost): DotApi {
   const NAV = { on: true, kb: 0, kbT: 0, cam: false, darfRaus: false }
   const navOn = () => NAV.on && !!leiste && NAV.kb < 1 && !NAV.kbT
   const ueberTastatur = () => NAV.kb > 0.5 || NAV.kbT > 0
-  const bounds = () => ({ l: 4, t: 4, r: W - 4, b: H - 6 - NAV.kb })
-  const cornerSdf = (x: number, y: number) => eckenAbstand(x, y, bounds(), CR, ueberTastatur())
-  const frameSdf = (x: number, y: number) => rahmenAbstand(x, y, bounds(), CR, ueberTastatur())
+  // Oben ist die Statusleiste (Uhr, Kamera-Insel) eine Wand wie die Leiste unten
+  const bounds = () => ({ l: 4, t: Math.max(4, OBEN), r: W - 4, b: H - 6 - NAV.kb })
+  const cornerSdf = (x: number, y: number) => eckenAbstand(x, y, bounds(), CR, ueberTastatur(), OBEN > 0)
+  const frameSdf = (x: number, y: number) => rahmenAbstand(x, y, bounds(), CR, ueberTastatur(), OBEN > 0)
   const obstacle = (x: number, y: number) => leistenAbstand(x, y, CAP, PLUS)
 
   const sonde = document.createElement('div')
@@ -161,6 +162,7 @@ export function createDot(host: DotHost): DotApi {
     // Moderne iPhones haben runde Bildschirmecken (erkennbar am Streifen unten);
     // ein Browserfenster ist eckig.
     CR = unten > 0 ? 44 : 0
+    OBEN = oben > 0 ? oben + 2 : 0
     // Die Uhr der Statusleiste sitzt links neben der Kamera-Insel. Ohne Insel
     // (kein Abstand oben) gibt es keine Uhr im Bild.
     CLK = oben > 30 ? { x: Math.max(40, (W / 2 - 64) / 2 + 6), y: oben * 0.5, w: 46, h: 18 } : null
@@ -205,11 +207,11 @@ export function createDot(host: DotHost): DotApi {
     idleT: 0, mood: 'awake' as 'awake' | 'yawning' | 'asleep', sleepAmt: 0, yawnT: -1, waveT: -1, waveSide: 1,
     giggleT: -1, dizzyT: -1, gcool: 0, zz: [] as { t: number; s: number }[], zzT: 0, peek: 0, greeted: false,
     door: 0, doorFlash: 0, script: 0, te: 0, near: 0, contact: {} as Record<string, boolean>, sag: 0,
-    flash: 0, navFlash: 0, sparks: [] as Funke[],
+    flash: 0, navFlash: 0, topFlash: 0, sparks: [] as Funke[],
     state: 'idle' as DotStimmung, cur: { ...TARGETS.idle }, voice: 0, joyT: 9, poke: 9, rot: 0,
     pts: fib(PUNKTE), shape: 'sphere', trans: 9, pos: [] as number[][], from: [] as number[][],
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
-    orbitCool: 0,
+    orbitCool: 0, zurUhr: false,
     pref: null as null | { dock: { x: DockX; y: DockY }; along: { x: number; y: number } },
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
@@ -346,6 +348,9 @@ export function createDot(host: DotHost): DotApi {
     B.squeezed = under
     const floor = nav && !under ? TAB : b.b, floorId: DockY = nav && !under ? 'nav' : 'bottom'
     B.thinT = 0; B.autoOut = false
+    // Bahn trifft die Statusleiste unter der Uhr: beim Anschlag geht es um die Uhr herum
+    const tU = vy < -250 ? (b.t + r - B.y) / vy : -1
+    B.zurUhr = tU > 0 && tU < 0.8 && underClock(B.x + vx * tU, r)
     let px = B.x + projektion(vx), py = B.y + projektion(vy)
     // in den Eingang geworfen: Bahn trifft die Kante dort, oder im Lichtschein losgelassen
     if (nav && !under && vy > 180) {
@@ -376,10 +381,15 @@ export function createDot(host: DotHost): DotApi {
   function impact(w: Wand, speed: number) {
     if (B.mode !== 'home') return
     if (w.id === 'nav' && speed > 150 && atEntrance(B.x, B.r) && B.y < TAB && !B.drag) { goHome(pickThrow(B.vx, B.vy, B.x)); return }
+    // gegen die Statusleiste unter der Uhr geworfen: einmal um die Uhr herum
+    // (die Wurfbahn gilt nur für den ersten Anschlag, egal an welcher Wand)
+    const zurUhr = B.zurUhr; B.zurUhr = false
+    if (w.id === 'top' && (zurUhr || speed > 180) && !B.drag && !B.orbitCool && underClock(B.x, B.r)) { startOrbit(); return }
     if (speed < 70) return
     const nx = w.nx, ny = w.ny
     B.flash = Math.min(0.8, B.flash + speed / 2600)
     if (w.id === 'nav') B.navFlash = Math.min(1, B.navFlash + speed / 1500)
+    if (w.id === 'top' && OBEN > 0) B.topFlash = Math.min(1, B.topFlash + speed / 1500)
     if (weniger) return
     const n = Math.min(28, (speed / 55) | 0), cx = B.x - nx * w.d, cy = B.y - ny * w.d
     for (let i = 0; i < n; i++) {
@@ -406,7 +416,6 @@ export function createDot(host: DotHost): DotApi {
     B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3))
     if (B.mode === 'exit') climb(dt)
     B.orbitCool = Math.max(0, B.orbitCool - dt)
-    if (B.mode === 'home' && !B.drag && !B.orbitCool && nearClock(B.x, B.y, B.r * 0.75)) startOrbit()
     if (B.mode === 'orbit') orbitStep(dt)
     if (B.squeezed && !NAV.kbT && B.y < TAB - B.r * 0.5) B.squeezed = false
     moods(dt)
@@ -454,7 +463,7 @@ export function createDot(host: DotHost): DotApi {
     B.kx *= Math.exp(-dt * 14)
     B.lx = B.x; B.ly = B.y
     if (!scripted) { B.lvx = B.vx; B.lvy = B.vy }
-    B.flash *= Math.exp(-dt * 4); B.navFlash *= Math.exp(-dt * 3)
+    B.flash *= Math.exp(-dt * 4); B.navFlash *= Math.exp(-dt * 3); B.topFlash *= Math.exp(-dt * 3)
     const doorT = B.mode === 'house' ? 0 : B.mode === 'exit' ? (B.te > 0.05 ? 1 : 0) : 1
     B.door += (doorT - B.door) * (1 - Math.exp(-dt * (doorT > B.door ? 7 : 5)))
     B.doorFlash *= Math.exp(-dt * 2.5)
@@ -475,8 +484,7 @@ export function createDot(host: DotHost): DotApi {
   }
 
   /* ── Uhr ──────────────────────────────────────────────────────────────── */
-  const nearClock = (x: number, y: number, pad: number) =>
-    !!CLK && Math.abs(x - CLK.x) < CLK.w / 2 + pad && Math.abs(y - CLK.y) < CLK.h / 2 + pad
+  const underClock = (x: number, pad: number) => !!CLK && Math.abs(x - CLK.x) < CLK.w / 2 + pad
   function startOrbit() {
     if (!CLK) return
     const a = CLK.w / 2 + 16, b = 11, th0 = Math.atan2((B.y - CLK.y) / b, (B.x - CLK.x) / a)
@@ -491,12 +499,14 @@ export function createDot(host: DotHost): DotApi {
     B.te += dt
     const q = clamp01(B.te / ORBIT_T), th = O.th0 + O.total * easeIO(q), mix = easeOut3(clamp01(B.te / 0.35))
     const ex = CLK.x + O.a * Math.cos(th), ey = CLK.y + 2 + O.b * Math.sin(th)
-    const x = O.x0 + (ex - O.x0) * mix, y = O.y0 + (ey - O.y0) * mix
-    O.depth = Math.sin(th) * mix
+    // am Ende zurück unter die Statusleiste, neben die Uhr
+    const out = easeIO(clamp01((q - 0.75) / 0.25)), hx = CLK.x + CLK.w / 2 + B.size * 2.2, hy = bounds().t + B.size * restNow()
+    const x = (O.x0 + (ex - O.x0) * mix) * (1 - out) + hx * out, y = (O.y0 + (ey - O.y0) * mix) * (1 - out) + hy * out
+    O.depth = Math.sin(th) * mix * (1 - out)
     B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3); B.x = x; B.y = y
     if (q >= 1) {
       B.mode = 'home'; B.contact = {}; zeigeTreffer(); B.orbitCool = 2; B.idleT = 0
-      B.dock = { x: null, y: 'top' }; B.along = { x: CLK.x + CLK.w / 2 + B.size * 2.2, y: B.y }; speichern()
+      B.dock = { x: null, y: 'top' }; B.along = { x: hx, y: hy }; speichern()
       sag(texte.uhr(), 4200); melde()
     }
   }
@@ -534,7 +544,7 @@ export function createDot(host: DotHost): DotApi {
     if (blase.dataset.zeigen !== 'true') return
     if (B.mode !== 'home') { versteckeBlase(); return }
     const bw = blase.offsetWidth, bh = blase.offsetHeight
-    const above = B.y - B.r - 14 - bh > 56
+    const above = B.y - B.r - 14 - bh > Math.max(56, OBEN + 8)
     const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14
     blase.style.transformOrigin = `${(B.x - x).toFixed(0)}px ${above ? '100%' : '0%'}`
     blase.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
@@ -810,6 +820,20 @@ export function createDot(host: DotHost): DotApi {
     }
     ctx.globalCompositeOperation = 'source-over'
   }
+  // Die Statusleiste leuchtet an der Berührstelle, wie die Leiste unten
+  function drawTopGlow() {
+    if (B.mode !== 'home' || OBEN <= 0) return
+    const y = bounds().t, prox = clamp01(1 - (B.y - y - B.r * 0.55) / (B.r * 1.1))
+    const a = Math.min(1, prox * 0.5 + B.topFlash * 0.6); if (a < 0.02) return
+    const R = B.r * 1.7
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'
+    for (const [lw, k] of [[6, 0.2], [1.3, 0.85]]) {
+      const g = ctx.createRadialGradient(B.x, y, 0, B.x, y, R)
+      g.addColorStop(0, `rgba(160,238,255,${(k * a).toFixed(3)})`); g.addColorStop(0.55, `rgba(140,170,255,${(k * a * 0.3).toFixed(3)})`); g.addColorStop(1, 'rgba(140,170,255,0)')
+      ctx.strokeStyle = g; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(B.x - R, y - 0.5); ctx.lineTo(B.x + R, y - 0.5); ctx.stroke()
+    }
+    ctx.restore()
+  }
   function drawRimGlow() {
     if (!(B.mode === 'home' || B.mode === 'enter') || !navOn()) return
     const o = obstacle(B.x, B.y), prox = clamp01(1 - (o.d - B.r * 0.55) / (B.r * 1.1))
@@ -953,7 +977,7 @@ export function createDot(host: DotHost): DotApi {
     const bright = (cur.bright + B.flash * 0.6) * (1 - 0.4 * B.sleepAmt) * (1 - 0.25 * B.thin) * (1 - 0.3 * B.recede) * (B.mode === 'orbit' && B.orbit ? 0.75 + 0.25 * B.orbit.depth : 1) + (B.giggleT >= 0 ? 0.15 * Math.sin(t * 40) : 0)
     const hueShift = dz * 0.5 * Math.sin(t * 3)
 
-    drawRimGlow()
+    drawRimGlow(); drawTopGlow()
 
     const swirling = B.mode === 'enter' && B.enterKind === 'swirl'
     const streaming = (B.mode === 'exit' && B.exitKind === 'stream') || (B.mode === 'enter' && B.enterKind === 'dissolve')
@@ -1117,6 +1141,7 @@ export function createDot(host: DotHost): DotApi {
     try { hit.setPointerCapture(e.pointerId) } catch { /* ohne Fang */ }
     zeiger = e.pointerId
     const now = performance.now()
+    B.zurUhr = false
     B.drag = { ox: e.clientX - B.x, oy: e.clientY - B.y, sx: e.clientX, sy: e.clientY, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }], trail: [{ x: e.clientX, y: e.clientY, t: now }], rev: [], sx0: 0 }
     B.vx = 0; B.vy = 0; B.poke = 0; wake(false); laufen()
   }

@@ -25,6 +25,16 @@ describe('Dot: Geometrie', () => {
     expect(ecke.nx).toBeCloseTo(ecke.ny)
   })
 
+  it('Unter der Statusleiste ist die Kante oben gerade, unten bleibt die Rundung', () => {
+    const unter = { ...rand, t: 61 }
+    expect(eckenAbstand(66, 66, unter, 44, false, true)).toBe(FERN)
+    expect(eckenAbstand(6, 836, unter, 44, false, true).d).toBeLessThan(0)
+    // die Ecke oben ist eckig: Abstand zur näheren der beiden Kanten
+    const ecke = rahmenAbstand(10, 70, unter, 44, false, true)
+    expect(ecke.d).toBeCloseTo(6)
+    expect(ecke.nx).toBe(1)
+  })
+
   it('Leiste: Kapsel und Plus-Knopf als Körper', () => {
     const kapsel = { l: 16, r: 300, t: 760, b: 816 }
     expect(leistenAbstand(150, 700, kapsel, null).d).toBeCloseTo(60)

@@ -313,6 +313,12 @@ vom Style her auch wie Siri, passend zur App“.
   Produktion), dann im Projekt angewendet. Nachzählung: 13 Profile, neue Felder
   leer, 6 Trigger auf profiles, coach_usage leer mit RLS, `coach_zaehlen` nur
   für service_role.
+- **Statusleiste als Wand (Nutzer 22.10., Screenshot: „ist sonst im Weg"):**
+  Oben endet sein Raum an `safe-area-inset-top` (+2 px), wie unten an der
+  Leiste; die Kante dort ist gerade (keine runden Ecken oben), sie leuchtet an
+  der Berührstelle. Löst v19 „bis an den Rand" ab. Uhr: nur ein Wurf, dessen
+  Bahn die Wand unter der Uhr trifft (oder Anschlag > 180 px/s), schickt ihn
+  einmal herum; danach liegt er unter der Wand rechts neben der Uhr.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
 
