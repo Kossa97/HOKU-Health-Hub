@@ -177,7 +177,9 @@ test('Mahlzeit: Hinzufügen steht im Kopf; Zeile nach links wischen → Bearbeit
   const row = (await card.getByRole('button', { name: 'Haferflocken bearbeiten' }).boundingBox())!
   await swipe('Haferflocken', -(row.width * 0.8))
   await expect(card.getByText('Haferflocken')).toHaveCount(0)
-  expect(mock.table('food_logs')).toHaveLength(0)
+  // Gelöscht wird nach dem Wegwischen, nicht im selben Bild: abwarten, wie
+  // bei den anderen Tabellenprüfungen hier.
+  await expect.poll(() => mock.table('food_logs')).toHaveLength(0)
 })
 
 type Point = { x: number; y: number }
