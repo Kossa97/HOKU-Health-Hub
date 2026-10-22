@@ -137,6 +137,16 @@ vom Style her auch wie Siri, passend zur App“.
   (Formgedächtnis) und rundet sich in Ruhe. Trefferfläche = Umriss (gemessen: an der
   linken Wand 51 × 110 px statt Kreis).
 
+- **Nur die Leiste ist fest (Nutzer 22.10.), Mockup v11:** Der Bereich unter der
+  Leiste ist nicht mehr gesperrt; Boden ist der Bildschirmrand. Körper sind nur Kapsel
+  (Stadion-Form) und Plus-Knopf (Kreis), als Abstandsfeld; jeder Randpunkt wird per
+  Strahl gegen die runde Form begrenzt. Eingang bleibt offen (Hineingehen wie gehabt,
+  nur von oben). Geworfen prallt er ab (Mitte ≥ 0,6 r von der Leiste; geprüft: Wurf
+  auf Kapsel und in den seitlichen Spalt bleibt oberhalb). Mit dem Finger: Widerstand
+  (Gummiband), Mitte darf bis 0,2 r heran → seitlich vorbei und unter die Kapsel
+  quetschen (geprüft: liegt danach platt im 20-px-Spalt, Andockung „unten“).
+  Andocken auf der Leiste heißt jetzt „nav“ (Oberkante), im Spalt „bottom“.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
