@@ -16,8 +16,16 @@ vom Style her auch wie Siri, passend zur App“.
   Mahlzeit, Blutwert, Dosis-Frage abgelehnt), Bestätigungskarte mit Ändern und
   Rückgängig, Vergleich A/B, Schalter für Zustände und Look (Schwarz/Nacht).
 
+- **Augen verworfen** (Nutzer 22.10.: „mit Augen ist komisch“). Mockup v2 unter
+  derselben Adresse zeigt sechs Darstellungen mit denselben Zuständen: A Punkt-Kugel,
+  B Plasma-Glas (WebGL, fließendes Licht in einer Glaskugel), C Punkte formen
+  (Kugel → zwei Ringe beim Denken → Welle beim Sprechen → Haken bei Freude),
+  D Flüssiges Chrom (WebGL, schillernder Tropfen), E Lichtwellen (Siri bis iOS 13),
+  F Lichtring. Dazu Randleuchten am Bildschirmrand beim Denken/Sprechen
+  (Apple-Intelligence-Stil, abschaltbar). Standard im Mockup: B.
+
 ## Offen
-- Am Mockup wählen: A (Kugel) oder B (Kugel mit Augen); Name bestätigen.
+- Darstellung wählen (A–F, auch Mischungen) und ob das Randleuchten bleibt; Name bestätigen.
 
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
