@@ -7,6 +7,9 @@ import { type DayTotals, EMPTY_TOTALS, addTotals, weekRange } from '../lib/dayRi
 
 export const toDateKey = dayKey
 
+/** Ein Tag im Speicher (ohne Datum — das ist der Schlüssel). */
+type DayData = Omit<DayState, 'date'>
+
 export interface DayState {
   /** Für welchen Tag die Daten gelten — beim Tageswechsel wird nichts vom alten Tag angezeigt. */
   date: string
@@ -20,39 +23,80 @@ export interface DayState {
  * sofort und nehmen die Änderung bei einem Fehler zurück.
  */
 export function useNutritionDay(userId: string, date: string) {
-  const [day, setDay] = useState<DayState | null>(null)
-  const [loadError, setLoadError] = useState(false)
+  /**
+   * Geladene Tage (Einträge, Wasser) der Woche, zwischengespeichert: ein Tageswechsel darin ist
+   * sofort da; der gezeigte Tag wird trotzdem frisch nachgeladen. Wochensummen kommen von hier.
+   */
+  const [days, setDays] = useState<Record<string, DayData>>({})
+  // Anderes Konto: nichts vom vorigen zeigen.
+  const [owner, setOwner] = useState(userId)
+  if (owner !== userId) {
+    setOwner(userId)
+    setDays({})
+  }
+  /** Stand je Tag: jede Änderung hier zählt hoch — ein älterer Serverstand überschreibt sie nicht. */
+  const versions = useRef<Record<string, number>>({})
+  useEffect(() => { versions.current = {} }, [userId])
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [weekError, setWeekError] = useState<string | null>(null)
   const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS)
   const [goalsSet, setGoalsSet] = useState<boolean | null>(null)
   const [myFoods, setMyFoods] = useState<Food[]>([])
   const [recent, setRecent] = useState<LogEntry[]>([])
-  /** Summen je Tag der Kalenderwoche (Mo–So). Eigener Stand: bleibt beim Tageswechsel innerhalb der Woche stehen. */
-  const [week, setWeek] = useState<{ from: string; totals: Record<string, DayTotals> } | null>(null)
-  const [weekError, setWeekError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
-  const dateRef = useRef(date)
-  useEffect(() => { dateRef.current = date }, [date])
   const { from: weekFrom, to: weekTo } = weekRange(date)
+
+  /** Einen Tag ändern (nur, wenn er geladen ist) und seinen Stand hochzählen. */
+  const updateDay = useCallback((key: string, fn: (d: DayData) => DayData) => {
+    versions.current[key] = (versions.current[key] ?? 0) + 1
+    setDays(all => (all[key] ? { ...all, [key]: fn(all[key]) } : all))
+  }, [])
 
   useEffect(() => {
     let cancelled = false
+    const v = versions.current[date] ?? 0
     store.loadDay(userId, date)
-      .then(d => { if (!cancelled) { setDay({ ...d, date }); setLoadError(false) } })
-      .catch(() => { if (!cancelled) setLoadError(true) })
+      .then(d => {
+        if (cancelled) return
+        setLoadError(null)
+        // Inzwischen hier geändert (Eintrag, Wasser …): die Anzeige ist neuer als diese Antwort.
+        // Noch gar nicht geladen: die Antwort nehmen (sonst bliebe der Tag leer).
+        setDays(all => (all[date] && (versions.current[date] ?? 0) !== v ? all : { ...all, [date]: d }))
+      })
+      .catch(() => { if (!cancelled) setLoadError(date) })
     return () => { cancelled = true }
   }, [userId, date, reloadToken])
 
-  // Die Woche nur neu laden, wenn sie wechselt — nicht bei jedem Tag darin.
+  // Die Woche vorladen (und beim Neuladen auffrischen). Nur die Woche bleibt im Speicher.
   useEffect(() => {
     let cancelled = false
-    store.loadRange(userId, weekFrom, weekTo)
-      .then(totals => { if (!cancelled) { setWeek({ from: weekFrom, totals }); setWeekError(false) } })
-      .catch(() => { if (!cancelled) setWeekError(true) })
+    const before = { ...versions.current }
+    store.loadDays(userId, weekFrom, weekTo)
+      .then(loaded => {
+        if (cancelled) return
+        setWeekError(null)
+        setDays(all => {
+          const next: Record<string, DayData> = {}
+          for (const [k, v] of Object.entries(loaded)) {
+            next[k] = all[k] && (versions.current[k] ?? 0) !== (before[k] ?? 0) ? all[k] : v
+          }
+          return next
+        })
+      })
+      .catch(() => { if (!cancelled) setWeekError(weekFrom) })
     return () => { cancelled = true }
   }, [userId, weekFrom, weekTo, reloadToken])
 
-  // Gehört der geladene Stand nicht zum gewählten Tag (Wechsel läuft oder scheiterte), gibt es keinen.
-  const current = day?.date === date ? day : null
+  const cached = days[date]
+  const current = useMemo<DayState | null>(() => (cached ? { date, ...cached } : null), [cached, date])
+  /** Summen je Tag der Woche — aus den geladenen Tagen, so stimmen sie nach jeder Änderung. */
+  const week = useMemo(() => {
+    const out: Record<string, DayTotals> = {}
+    for (const [k, d] of Object.entries(days)) {
+      if (k >= weekFrom && k <= weekTo) out[k] = d.entries.reduce((t, e) => addTotals(t, e.nutrients), EMPTY_TOTALS)
+    }
+    return Object.keys(out).length ? out : null
+  }, [days, weekFrom, weekTo])
 
   useEffect(() => {
     let cancelled = false
@@ -66,32 +110,17 @@ export function useNutritionDay(userId: string, date: string) {
 
   const reload = useCallback(() => setReloadToken(n => n + 1), [])
 
-  /** Eintrag lokal einsortieren (Tag + Wochenwert + „Häufig"). */
+  /** Einträge lokal einsortieren — jeweils in ihren Tag (falls geladen) — und in „Häufig". */
   const applyAdded = useCallback((added: LogEntry[]) => {
-    setDay(d => {
-      if (!d || d.date !== dateRef.current) return d
-      return { ...d, entries: [...d.entries, ...added.filter(e => e.date === dateRef.current)] }
-    })
-    setWeek(w => {
-      if (!w) return w
-      const totals = { ...w.totals }
-      for (const e of added) {
-        if (e.date >= w.from && e.date <= weekRange(w.from).to) totals[e.date] = addTotals(totals[e.date] ?? EMPTY_TOTALS, e.nutrients)
-      }
-      return { ...w, totals }
-    })
+    for (const e of added) updateDay(e.date, d => ({ ...d, entries: [...d.entries.filter(x => x.id !== e.id), e] }))
     const ids = new Set(added.map(e => e.id))
     setRecent(r => [...[...added].reverse(), ...r.filter(e => !ids.has(e.id))].slice(0, 200))
-  }, [])
+  }, [updateDay])
 
   const applyRemoved = useCallback((removed: LogEntry) => {
-    setDay(d => (d ? { ...d, entries: d.entries.filter(e => e.id !== removed.id) } : d))
-    setWeek(w => {
-      const t = w?.totals[removed.date]
-      return w && t ? { ...w, totals: { ...w.totals, [removed.date]: addTotals(t, removed.nutrients, -1) } } : w
-    })
+    updateDay(removed.date, d => ({ ...d, entries: d.entries.filter(e => e.id !== removed.id) }))
     setRecent(r => r.filter(e => e.id !== removed.id))
-  }, [])
+  }, [updateDay])
 
   const add = useCallback(async (meal: Meal, food: Food, amount: number) => {
     const e = await store.addEntry(userId, date, meal, food, amount)
@@ -124,45 +153,36 @@ export function useNutritionDay(userId: string, date: string) {
    */
   const applyMoved = useCallback((from: LogEntry, to: LogEntry) => {
     // Wie Entfernen + Hinzufügen, aber „Häufig“ bleibt unberührt: Verschieben ist kein neues Essen.
-    setDay(d => {
-      if (!d) return d
-      const rest = d.entries.filter(e => e.id !== from.id)
-      return { ...d, entries: to.date === d.date ? [...rest, to] : rest }
-    })
-    setWeek(w => {
-      if (!w || from.date === to.date) return w
-      const totals = { ...w.totals }
-      if (totals[from.date]) totals[from.date] = addTotals(totals[from.date], from.nutrients, -1)
-      if (to.date >= w.from && to.date <= weekRange(w.from).to) totals[to.date] = addTotals(totals[to.date] ?? EMPTY_TOTALS, to.nutrients)
-      return { ...w, totals }
-    })
-  }, [])
+    // Beide Tage, soweit geladen — so stimmt auch ein Tag, auf den man gerade verschoben hat.
+    updateDay(from.date, d => ({ ...d, entries: d.entries.filter(e => e.id !== from.id) }))
+    updateDay(to.date, d => ({ ...d, entries: [...d.entries.filter(e => e.id !== to.id), to] }))
+  }, [updateDay])
 
   const move = useCallback(async (entry: LogEntry, to: { date: string; meal: Meal; sortKey: number }) => {
     const moved: LogEntry = { ...entry, date: to.date, meal: to.meal, sortKey: to.sortKey }
     applyMoved(entry, moved)
     try {
       const saved = await store.moveEntry(entry, to)
-      setDay(d => (d ? { ...d, entries: d.entries.map(e => (e.id === saved.id ? saved : e)) } : d))
+      updateDay(saved.date, d => ({ ...d, entries: d.entries.map(e => (e.id === saved.id ? saved : e)) }))
       return saved
     } catch (error) {
       applyMoved(moved, entry)
       throw error
     }
-  }, [applyMoved])
+  }, [applyMoved, updateDay])
 
   /** Plätze in einer Mahlzeit neu verteilen (wenn zwischen zwei Nachbarn kein Platz mehr ist). */
   const setOrder = useCallback(async (updates: readonly { id: string; sortKey: number }[]) => {
     const before = new Map((current?.entries ?? []).map(e => [e.id, e.sortKey]))
     const keys = new Map(updates.map(u => [u.id, u.sortKey]))
-    setDay(d => (d ? { ...d, entries: d.entries.map(e => (keys.has(e.id) ? { ...e, sortKey: keys.get(e.id)! } : e)) } : d))
+    updateDay(date, d => ({ ...d, entries: d.entries.map(e => (keys.has(e.id) ? { ...e, sortKey: keys.get(e.id)! } : e)) }))
     try {
       await store.setSortKeys(updates)
     } catch (error) {
-      setDay(d => (d ? { ...d, entries: d.entries.map(e => (before.has(e.id) && keys.has(e.id) ? { ...e, sortKey: before.get(e.id)! } : e)) } : d))
+      updateDay(date, d => ({ ...d, entries: d.entries.map(e => (before.has(e.id) && keys.has(e.id) ? { ...e, sortKey: before.get(e.id)! } : e)) }))
       throw error
     }
-  }, [current?.entries])
+  }, [current?.entries, date, updateDay])
 
   /** Löschen sofort anzeigen; schlägt es fehl, kommt der Eintrag zurück. */
   const remove = useCallback(async (entry: LogEntry) => {
@@ -183,14 +203,14 @@ export function useNutritionDay(userId: string, date: string) {
 
   const setWater = useCallback(async (ml: number) => {
     const prev = current?.waterMl ?? 0
-    setDay(d => (d ? { ...d, waterMl: ml } : d))
+    updateDay(date, d => ({ ...d, waterMl: ml }))
     try {
       await store.saveWater(userId, date, ml)
     } catch (error) {
-      setDay(d => (d ? { ...d, waterMl: prev } : d))
+      updateDay(date, d => ({ ...d, waterMl: prev }))
       throw error
     }
-  }, [userId, date, current?.waterMl])
+  }, [userId, date, current?.waterMl, updateDay])
 
   const saveGoals = useCallback(async (g: Goals) => {
     await store.saveGoals(userId, g)
@@ -213,7 +233,10 @@ export function useNutritionDay(userId: string, date: string) {
     // Wie in der Datenbank: Einträge zeigen auf nichts mehr — sonst böte „Häufig" das gelöschte Lebensmittel weiter an.
     const unlink = (e: LogEntry) => (e.itemId === itemId ? { ...e, itemId: null } : e)
     setRecent(r => r.map(unlink))
-    setDay(d => (d ? { ...d, entries: d.entries.map(unlink) } : d))
+    setDays(all => {
+      for (const k of Object.keys(all)) versions.current[k] = (versions.current[k] ?? 0) + 1
+      return Object.fromEntries(Object.entries(all).map(([k, d]) => [k, { ...d, entries: d.entries.map(unlink) }]))
+    })
   }, [])
 
   const findByBarcode = useCallback((barcode: string) => {
@@ -225,7 +248,7 @@ export function useNutritionDay(userId: string, date: string) {
   const frequentFor = useCallback((meal: Meal | null) => frequentFoods(recent, meal, myFoods), [recent, myFoods])
 
   return {
-    day: current, week: week?.from === weekFrom ? week.totals : null, loadError: loadError || weekError, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
+    day: current, week, loadError: loadError === date || weekError === weekFrom, reload, goals, goalsSet, myFoods, total, byMeal, frequentFor,
     add, addMany, addQuick, update, remove, restore, move, setOrder, setWater, saveGoals, saveFood, removeFood, findByBarcode,
   }
 }

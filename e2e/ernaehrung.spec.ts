@@ -272,6 +272,9 @@ test('Halten und direkt auf einen Tag fallen lassen: derselbe Platz am anderen T
   await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' }), await center(saturday))
   await expect.poll(() => mock.table('food_logs')[0]).toMatchObject({ log_date: '2026-09-26', meal: 'breakfast' })
   await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(0)
+  // Die Woche ist vorgeladen: der Samstag zeigt den Eintrag gleich.
+  await saturday.click()
+  await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
 })
 
 test('Zählbares: Menge und Anzahl in einem Formular, verbunden; Einheit am Feld; die Zeile nennt die Anzahl', async ({ page, mock }) => {

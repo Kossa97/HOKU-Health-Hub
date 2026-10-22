@@ -131,3 +131,8 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
   Tag = gleiche Mahlzeit dort ans Ende. Abbruch durch das System ändert nie etwas.
   Mahlzeit-/Tageswechsel mit „Rückgängig“-Hinweis; Umsortieren ohne. „Häufig“ bleibt unberührt.
 - Bekannt: Am Montag zeigt die Woche keinen vergangenen Tag → dorthin geht es nur über Bearbeiten.
+- Nachtrag Tageswechsel schneller: useNutritionDay hält die Tage der Woche (days) im Speicher —
+  store.loadDays lädt die ganze Woche (Einträge + Wasser) in zwei Anfragen, Tageswechsel darin sofort.
+  Der gezeigte Tag lädt trotzdem frisch; versions je Tag verhindern, dass ein älterer Serverstand lokale
+  Änderungen überschreibt. Wochensummen werden aus days gerechnet (kein loadRange mehr für die Woche).
+  Nur die aktuelle Woche bleibt im Speicher; Kontowechsel leert ihn.
