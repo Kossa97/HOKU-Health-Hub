@@ -11,6 +11,15 @@
 }
 
 /* ── Keyframes ───────────────────────────────────────────────────────────── */
+/* Ernährung, Halten und Verschieben: die Zeile hebt sich (leicht federnd), am Ziel geht eine Lücke auf. */
+@keyframes nutr-lift {
+  from { transform: scale(1); }
+  to { transform: scale(1.04); }
+}
+@keyframes nutr-gap {
+  from { height: 0; opacity: 0; }
+}
+
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }

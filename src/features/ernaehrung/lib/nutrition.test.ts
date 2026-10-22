@@ -8,7 +8,7 @@ const oats: Per100 = { kcal: 372, protein: 13.5, carbs: 58.7, fat: 7, fiber: 10,
 
 const entry = (over: Partial<LogEntry> = {}): LogEntry => ({
   id: '1', date: '2026-10-18', meal: 'breakfast', itemId: null, source: 'custom', sourceRef: null,
-  name: 'Haferflocken', brand: null, unit: 'g', amount: 50, nutrients: nutrientsFor(oats, 50), createdAt: '', ...over,
+  name: 'Haferflocken', brand: null, unit: 'g', amount: 50, nutrients: nutrientsFor(oats, 50), createdAt: '', sortKey: null, ...over,
 })
 
 describe('Eingabe', () => {

@@ -180,6 +180,100 @@ test('Mahlzeit: Hinzufügen steht im Kopf; Zeile nach links wischen → Bearbeit
   expect(mock.table('food_logs')).toHaveLength(0)
 })
 
+type Point = { x: number; y: number }
+/**
+ * Halten (bis die Zeile sich löst), dann über Zwischenpunkte ziehen und loslassen. Ein Punkt
+ * kann eine Funktion sein (erst unterwegs messen: aufgehende Lücken verschieben die Ziele) und
+ * eine Pause haben (z. B. über einem Tag, bis er sich öffnet).
+ */
+async function holdAndDrag(page: import('@playwright/test').Page, row: import('@playwright/test').Locator,
+  ...stops: (Point | { to: () => Promise<Point>; pause?: number })[]) {
+  const b = (await row.boundingBox())!
+  let at = { x: b.x + b.width / 2, y: b.y + b.height / 2 }
+  await page.mouse.move(at.x, at.y)
+  await page.mouse.down()
+  await page.waitForTimeout(600)
+  for (const stop of stops) {
+    const to = 'to' in stop ? await stop.to() : stop
+    for (let i = 1; i <= 10; i++) await page.mouse.move(at.x + ((to.x - at.x) * i) / 10, at.y + ((to.y - at.y) * i) / 10)
+    at = to
+    if ('pause' in stop && stop.pause) await page.waitForTimeout(stop.pause)
+  }
+  await page.mouse.up()
+}
+const center = async (l: import('@playwright/test').Locator) => {
+  const b = (await l.boundingBox())!
+  return { x: b.x + b.width / 2, y: b.y + b.height / 2 }
+}
+/** Einen Tag über das Monatsblatt öffnen. */
+async function openDay(page: import('@playwright/test').Page, day: string) {
+  await page.getByRole('region', { name: 'Woche' }).getByRole('button', { name: 'Monatsübersicht öffnen' }).click()
+  await page.locator(`[data-nutr-month-day="${day}"]`).click()
+  await expect(page.locator('[data-nutr-month]')).toHaveCount(0)
+}
+const rowNames = (page: import('@playwright/test').Page, meal: string) =>
+  mealCard(page, meal).locator('[data-swipe-row]').evaluateAll(els => els.map(e => e.getAttribute('aria-label')))
+
+test('Halten und Verschieben: in eine andere Mahlzeit (mit Rückgängig) und innerhalb einer Mahlzeit', async ({ page, mock }) => {
+  await page.setViewportSize({ width: 390, height: 1500 })
+  logEntry(mock, { created_at: '2026-09-28T07:00:00Z' })
+  logEntry(mock, { name: 'Haferflocken', source: 'custom', source_ref: null, amount: 50, kcal: 186, created_at: '2026-09-28T07:05:00Z' })
+  await page.goto('/ernaehrung')
+  await expect.poll(() => rowNames(page, 'Frühstück')).toEqual(['Skyr Natur bearbeiten', 'Haferflocken bearbeiten'])
+
+  // Innerhalb: Haferflocken über den Skyr ziehen.
+  const skyr = mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' })
+  const top = (await skyr.boundingBox())!
+  await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Haferflocken bearbeiten' }), { x: top.x + top.width / 2, y: top.y + 6 })
+  await expect.poll(() => rowNames(page, 'Frühstück')).toEqual(['Haferflocken bearbeiten', 'Skyr Natur bearbeiten'])
+  await expect.poll(() => mock.table('food_logs').find(r => r.name === 'Haferflocken')?.sort_key).toBeLessThan(Date.parse('2026-09-28T07:00:00Z'))
+  // Kein Tipp ausgelöst: das Mengenblatt ist zu.
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  // In eine andere Mahlzeit: Skyr ins Abendessen.
+  await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' }), await center(mealCard(page, 'Abendessen')))
+  await expect(mealCard(page, 'Abendessen').getByText('Skyr Natur')).toBeVisible()
+  await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(0)
+  await expect.poll(() => mock.table('food_logs').find(r => r.name === 'Skyr Natur')?.meal).toBe('dinner')
+  await expect(page.getByText('Verschoben nach Abendessen')).toBeVisible()
+  await page.getByRole('button', { name: 'Rückgängig' }).click()
+  await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toBeVisible()
+  await expect.poll(() => mock.table('food_logs').find(r => r.name === 'Skyr Natur')?.meal).toBe('breakfast')
+})
+
+test('Halten und Verschieben auf einen anderen Tag: über dem Tag halten öffnet ihn, dann in eine Mahlzeit legen', async ({ page, mock }) => {
+  await page.setViewportSize({ width: 390, height: 1500 })
+  // Donnerstag der Vorwoche (der Testtag ist ein Montag — seine Woche hat keinen vergangenen Tag).
+  logEntry(mock, { log_date: '2026-09-24' })
+  await page.goto('/ernaehrung')
+  await openDay(page, '2026-09-24')
+  const week = page.getByRole('region', { name: 'Woche' })
+  const tuesday = week.locator('[data-nutr-day="2026-09-22"]')
+  await expect(tuesday).toBeVisible()
+
+  // Erst über den Dienstag halten (öffnet ihn), dann ins Mittagessen dieses Tages. Unterwegs geht
+  // im Frühstück eine Lücke auf und schiebt das Mittagessen nach unten: dort zweimal messen.
+  const lunch = () => center(mealCard(page, 'Mittagessen'))
+  await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' }),
+    { to: () => center(tuesday), pause: 900 }, { to: lunch }, { to: lunch })
+  await expect(week.getByRole('button', { name: /^Dienstag, 22\. September 2026/ })).toHaveAttribute('aria-pressed', 'true')
+
+  await expect.poll(() => mock.table('food_logs')[0]).toMatchObject({ log_date: '2026-09-22', meal: 'lunch' })
+  await expect(mealCard(page, 'Mittagessen').getByText('Skyr Natur')).toBeVisible()
+  await expect(page.getByText('Verschoben auf Dienstag, 22. September')).toBeVisible()
+})
+
+test('Halten und direkt auf einen Tag fallen lassen: derselbe Platz am anderen Tag', async ({ page, mock }) => {
+  await page.setViewportSize({ width: 390, height: 1500 })
+  logEntry(mock, { log_date: '2026-09-24' })
+  await page.goto('/ernaehrung')
+  await openDay(page, '2026-09-24')
+  const saturday = page.getByRole('region', { name: 'Woche' }).locator('[data-nutr-day="2026-09-26"]')
+  await holdAndDrag(page, mealCard(page, 'Frühstück').getByRole('button', { name: 'Skyr Natur bearbeiten' }), await center(saturday))
+  await expect.poll(() => mock.table('food_logs')[0]).toMatchObject({ log_date: '2026-09-26', meal: 'breakfast' })
+  await expect(mealCard(page, 'Frühstück').getByText('Skyr Natur')).toHaveCount(0)
+})
+
 test('Zählbares: Menge und Anzahl in einem Formular, verbunden; Einheit am Feld; die Zeile nennt die Anzahl', async ({ page, mock }) => {
   mock.foodLookup.products['4000000000013'] = {
     barcode: '4000000000013', name: 'Hühnerei', brand: null, unit: 'g',

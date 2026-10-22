@@ -9,6 +9,14 @@ const OPEN = -2 * ACTION_W
 const SLOP = 10
 /** Eine Zeile offen zur Zeit: öffnet eine, schließen die anderen. */
 const OPEN_EVENT = 'nutr-swipe-open'
+/** So lange halten, bis die Zeile sich zum Verschieben löst (wie in iOS-Listen). */
+export const HOLD_MS = 420
+
+/**
+ * Gelöst zum Verschieben: Fingerposition, Lage der Zeile beim Anheben und das berührte
+ * Element — an ihm kommen die weiteren Touch-Ereignisse an, auch wenn die Zeile verschwindet.
+ */
+export interface LiftStart { x: number; y: number; rect: DOMRect; touchTarget: EventTarget | null }
 
 /** Weicher Rand: je weiter über die Grenze, desto weniger folgt die Zeile. */
 const rubber = (over: number, size: number) => (over * size * 0.55) / (size + 0.55 * Math.abs(over))
@@ -20,8 +28,9 @@ const project = (v: number) => (v / 1000) * 0.99 / (1 - 0.99)
  * durchwischen löscht. Antippen öffnet (bzw. schließt die offene Zeile). Folgt dem
  * Finger 1:1, lässt sich jederzeit wieder greifen und federt (kritisch gedämpft)
  * mit dem Tempo des Fingers aus. Ohne Wischen erreicht man beides über das Antippen.
+ * Halten (`onLift`, ohne zu bewegen) löst die Zeile zum Verschieben; das Ziehen verfolgt die Seite.
  */
-export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled, onTap, onEdit, onDelete }: {
+export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled, onTap, onEdit, onDelete, onLift }: {
   id: string
   children: ReactNode
   /** Name der Zeile für Screenreader. */
@@ -33,6 +42,7 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
   onEdit: () => void
   /** Gibt false zurück, wenn das Löschen scheiterte — dann kommt die Zeile zurück. */
   onDelete: () => Promise<boolean> | void
+  onLift?: (start: LiftStart) => void
 }) {
   const rowRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLButtonElement>(null)
@@ -45,7 +55,11 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
     /** Bis wann ein Klick noch zum Wischen gehört (danach wieder ein echter Tipp). */
     swallowUntil: 0,
     drag: null as null | { id: number; x0: number; y0: number; base: number; dir: 'x' | null; hist: { x: number; t: number }[] },
+    /** Halten läuft (Timer) bzw. Zeile ist gelöst; letzte Fingerposition. */
+    hold: 0, lifted: false, p0: { x: 0, y: 0 }, last: { x: 0, y: 0 }, touchTarget: null as EventTarget | null,
   })
+  const liftRef = useRef(onLift)
+  useEffect(() => { liftRef.current = onLift })
 
   const paint = () => {
     const s = st.current
@@ -101,6 +115,43 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
       })
     })
   }
+  /** Losgelassen: die Seite beendet das Verschieben selbst (EntryDrag); hier nur aufräumen. */
+  const finishLift = () => {
+    const s = st.current
+    if (!s.lifted) return
+    s.lifted = false
+    // Der Klick nach dem Loslassen gehört noch zur Geste.
+    s.swallowUntil = performance.now() + 400
+  }
+  const finishLiftRef = useRef(finishLift)
+  useEffect(() => { finishLiftRef.current = finishLift })
+
+  // Gelöst folgt die Zeile dem Finger, die Seite scrollt nicht mit: Touch-Bewegungen hier abfangen
+  // (nicht passiv, an der Zeile selbst — so kennt der Browser den Handler schon bei Berührung).
+  useEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+    // Nur abfangen; die Bewegung selbst verfolgt die Seite am berührten Element (siehe LiftStart).
+    const move = (e: TouchEvent) => { if (st.current.lifted) e.preventDefault() }
+    const touchStart = (e: TouchEvent) => { st.current.touchTarget = e.target }
+    const end = () => finishLiftRef.current()
+    // Langes Drücken öffnet sonst das Kontextmenü (Android) bzw. die Auswahl.
+    const menu = (e: Event) => { if (st.current.hold || st.current.lifted) e.preventDefault() }
+    row.addEventListener('touchstart', touchStart, { passive: true })
+    row.addEventListener('touchmove', move, { passive: false })
+    row.addEventListener('touchend', end)
+    row.addEventListener('touchcancel', end)
+    row.addEventListener('contextmenu', menu)
+    return () => {
+      row.removeEventListener('touchstart', touchStart)
+      row.removeEventListener('touchmove', move)
+      row.removeEventListener('touchend', end)
+      row.removeEventListener('touchcancel', end)
+      row.removeEventListener('contextmenu', menu)
+    }
+  }, [])
+  useEffect(() => () => window.clearTimeout(st.current.hold), [])
+
   const settleRef = useRef(settle)
   useEffect(() => { settleRef.current = settle })
 
@@ -116,7 +167,7 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
   useEffect(() => () => cancelAnimationFrame(st.current.raf), [])
 
   return (
-    <div ref={rowRef} className="relative overflow-hidden" style={{ touchAction: 'pan-y' }}
+    <div ref={rowRef} className="relative select-none overflow-hidden" style={{ touchAction: 'pan-y', WebkitTouchCallout: 'none' }}
       // Am Zeilen-div, nicht am Inhalt: nach dem Wischen (Zeiger eingefangen) geht der Klick hierher.
       onClickCapture={e => {
         const s = st.current
@@ -130,13 +181,36 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
       }}
       onPointerDown={e => {
         const s = st.current
+        if (e.pointerType !== 'touch') s.touchTarget = null
         if (disabled || s.deleting || e.button !== 0) return
         // Greifen, wo sie gerade ist — auch mitten in der Feder.
         cancelAnimationFrame(s.raf)
         s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, base: s.x, dir: null, hist: [{ x: e.clientX, t: e.timeStamp }] }
+        // Halten ohne Bewegung löst die (geschlossene) Zeile zum Verschieben.
+        window.clearTimeout(s.hold)
+        s.hold = 0
+        if (liftRef.current && s.x === 0) {
+          s.p0 = { x: e.clientX, y: e.clientY }
+          s.last = { x: e.clientX, y: e.clientY }
+          const pointerId = e.pointerId
+          s.hold = window.setTimeout(() => {
+            s.hold = 0
+            const rect = contentRef.current?.getBoundingClientRect()
+            if (!rect || !liftRef.current) return
+            s.drag = null
+            s.lifted = true
+            s.swallowUntil = Infinity
+            try { rowRef.current?.setPointerCapture(pointerId) } catch { /* Zeiger schon weg */ }
+            liftRef.current({ x: s.last.x, y: s.last.y, rect, touchTarget: s.touchTarget })
+          }, HOLD_MS)
+        }
       }}
       onPointerMove={e => {
         const s = st.current
+        s.last = { x: e.clientX, y: e.clientY }
+        if (s.lifted) return
+        // Bewegt, bevor die Zeile sich löst: Scrollen oder Wischen, kein Verschieben.
+        if (s.hold && Math.hypot(e.clientX - s.p0.x, e.clientY - s.p0.y) > SLOP) { window.clearTimeout(s.hold); s.hold = 0 }
         const d = s.drag
         if (!d || e.pointerId !== d.id) return
         if (!d.dir) {
@@ -160,6 +234,9 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
       }}
       onPointerUp={e => {
         const s = st.current
+        window.clearTimeout(s.hold)
+        s.hold = 0
+        if (s.lifted) { finishLift(); return }
         const d = s.drag
         s.drag = null
         if (!d || e.pointerId !== d.id || !d.dir) return
@@ -172,6 +249,10 @@ export function SwipeRow({ id, children, label, editLabel, deleteLabel, disabled
       }}
       onPointerCancel={() => {
         const s = st.current
+        window.clearTimeout(s.hold)
+        s.hold = 0
+        // Gelöst: das Ziehen läuft über Touch-Ereignisse weiter (touchend beendet es).
+        if (s.lifted) return
         if (s.drag?.dir) settle(s.x < OPEN / 2 ? OPEN : 0)
         s.drag = null
       }}>

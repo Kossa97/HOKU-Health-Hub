@@ -21,7 +21,7 @@ function rangeText(from: string, to: string, lang: string): string {
  * weniger, und leere Tage sind einfach leer — kein Streak, keine Lücke, die
  * bestraft wird. Künftige Tage lassen sich nicht wählen.
  */
-export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onOpenMonth }: {
+export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onOpenMonth, dropDay = null }: {
   date: string
   today: string
   week: Record<string, DayTotals>
@@ -29,6 +29,8 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onOpenMo
   /** Der gewählte Tag in Worten — für Vorleser bei jedem Wechsel angesagt. */
   dayLabel: string
   onPick: (date: string) => void
+  /** Beim Verschieben: über diesem Tag hält der Finger gerade einen Eintrag. */
+  dropDay?: string | null
   onOpenMonth: () => void
 }) {
   const { t, i18n } = useTranslation()
@@ -56,7 +58,7 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onOpenMo
             <button key={d} type="button" onClick={() => onPick(d)} disabled={future} aria-pressed={selected}
               aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goals, t)} data-nutr-day={d}
               className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[12px] pb-1.5 pt-1 transition-colors duration-200 disabled:cursor-default ${
-                selected ? 'bg-[var(--lg-fill)]' : ''}`}>
+                selected ? 'bg-[var(--lg-fill)]' : ''} ${dropDay === d ? 'scale-110 bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] ring-2 ring-[var(--accent)] transition-transform' : ''}`}>
               <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goals} size={28} dim={future} />
               <span className={`text-[14px] leading-none tabular-nums ${
                 d === today ? 'font-bold text-[var(--accent)]' : selected ? 'font-bold text-[var(--lg-text)]' : 'font-medium text-[var(--lg-text)]'

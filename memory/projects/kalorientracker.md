@@ -118,3 +118,16 @@ Legende: [B] belegt, [H] Hersteller, [K] Konkurrenz-Blog, [E] Einzelstimme/Sekun
   ScoreInfo (Skala 1–5, „Bringt Punkte“/„Kostet Punkte“ mit Balken je 100 g, Fußnote). Keine Kommazahl mehr.
 - Nachtrag: Nährwert-Punkte doch als Zahl „4,9 /5“ (0,0–5,0, eine Stelle = 0–10 halbiert), nicht fünf Punkte.
   Farben: ab 3,5 grün, ab 2,0 gelb, darunter orange. Erklärung: durchgehender Balken 0–5 mit Markierung.
+
+## Halten und Verschieben (22.10.2026)
+- food_logs.sort_key (double, leer = created_at in ms): supabase-nutrition-order.sql; Trockenlauf 2×,
+  im Projekt angewandt (12 Zeilen vorher/nachher, kcal-Summe gleich, 0 Schlüssel gesetzt).
+- lib/entryOrder.ts: entryKey/byEntryOrder (groupByMeal sortiert so), keyAt = Mitte der Nachbarn;
+  kein Platz (gleiche Zeit, zu oft halbiert) → renumber verteilt die Mahlzeit neu.
+- Geste: SwipeRow löst nach 420 ms Halten ohne Bewegung (onLift, mit touchTarget). EntryDrag (useEntryDrag)
+  verfolgt am berührten Element (Touch, auch wenn die Zeile verschwindet) und am Fenster (Maus):
+  Kopie folgt dem Finger, Lücke an der Zielstelle, Autoscroll an den Rändern (unter der festen Kugel),
+  über einem Tag 650 ms halten öffnet ihn (Tag muss geladen sein: data-drop-ready), Ablegen auf einem
+  Tag = gleiche Mahlzeit dort ans Ende. Abbruch durch das System ändert nie etwas.
+  Mahlzeit-/Tageswechsel mit „Rückgängig“-Hinweis; Umsortieren ohne. „Häufig“ bleibt unberührt.
+- Bekannt: Am Montag zeigt die Woche keinen vergangenen Tag → dorthin geht es nur über Bearbeiten.

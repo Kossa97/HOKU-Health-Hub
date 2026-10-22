@@ -2541,6 +2541,8 @@
   "nutr_added_to": "Zu {{meal}} hinzugefügt",
   "nutr_entry_open": "{{name}} bearbeiten",
   "nutr_delete": "Löschen",
+  "nutr_moved": "Verschoben nach {{meal}}",
+  "nutr_moved_day": "Verschoben auf {{day}}",
   "nutr_amount_label": "Menge",
   "nutr_count_word_piece_one": "Stück",
   "nutr_count_word_piece_other": "Stück",
