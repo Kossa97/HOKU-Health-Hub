@@ -313,12 +313,14 @@ vom Style her auch wie Siri, passend zur App“.
   Produktion), dann im Projekt angewendet. Nachzählung: 13 Profile, neue Felder
   leer, 6 Trigger auf profiles, coach_usage leer mit RLS, `coach_zaehlen` nur
   für service_role.
-- **Statusleiste als Wand (Nutzer 22.10., Screenshot: „ist sonst im Weg"):**
-  Oben endet sein Raum an `safe-area-inset-top` (+2 px), wie unten an der
-  Leiste; die Kante dort ist gerade (keine runden Ecken oben), sie leuchtet an
-  der Berührstelle. Löst v19 „bis an den Rand" ab. Uhr: nur ein Wurf, dessen
-  Bahn die Wand unter der Uhr trifft (oder Anschlag > 180 px/s), schickt ihn
-  einmal herum; danach liegt er unter der Wand rechts neben der Uhr.
+- **Mitte der Statusleiste als Wand (Nutzer 22.10., ersetzt „ganze Statusleiste"):**
+  Nur der mittlere Bereich mit Kamera-Insel bzw. Notch ist ein Körper (Kasten mit
+  runden Ecken, 126 px + 2×6 breit bei Abstand oben ≥ 51 px, sonst 200 px), von
+  oben bis zur Unterkante der Statusleiste; er leuchtet an der Berührstelle.
+  Links (Uhr) und rechts geht Dot wieder bis an den runden Bildschirmrand wie in
+  v19 — die eckige Kante, an der er oben rechts zuckte, ist weg. Uhr wie v19
+  (heranschieben oder -werfen), Landung danach unter der Uhr, weil rechts daneben
+  die Wand ist. Unter der Mitte losgelassen bleibt er an deren Unterkante.
 - **Herauskommen an zufälligen Platz (Nutzer 22.10., gegen Feststecken):** Jede
   Art herauszukommen fliegt ihn an eine zufällige freie Stelle (frei schwebend
   oder links/rechts an der Seite, nicht in `data-dot-avoid`, mindestens 30 %

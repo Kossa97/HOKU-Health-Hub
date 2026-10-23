@@ -28,12 +28,11 @@ export function winkelAbstand(a: number, b: number) {
 /**
  * Die runden Ecken des Bildschirms: außerhalb des Bogens ist kein Platz.
  * `untenGerade` gilt über der Tastatur — deren Kante hat keine Rundung.
- * `obenGerade` gilt unter der Statusleiste: deren Unterkante ist gerade.
  */
-export function eckenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean, obenGerade = false): Abstand {
+export function eckenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean): Abstand {
   if (radius <= 0) return FERN
   let cy: number
-  if (py < b.t + radius && !obenGerade) cy = b.t + radius
+  if (py < b.t + radius) cy = b.t + radius
   else if (py > b.b - radius && !untenGerade) cy = b.b - radius
   else return FERN
   let cx: number
@@ -48,9 +47,9 @@ export function eckenAbstand(px: number, py: number, b: Rand, radius: number, un
  * Der ganze Bildschirmrand als eine Fläche (abgerundetes Rechteck). In einer
  * Ecke läuft die flache Form so um den Bogen herum, statt an ihm zu enden.
  */
-export function rahmenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean, obenGerade = false): Abstand {
+export function rahmenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean): Abstand {
   const cx = (b.l + b.r) / 2, cy = (b.t + b.b) / 2
-  const R = py < cy ? (obenGerade ? 0 : radius) : untenGerade ? 0 : radius
+  const R = py < cy ? radius : untenGerade ? 0 : radius
   const sx = px < cx ? -1 : 1, sy = py < cy ? -1 : 1
   const qx = Math.abs(px - cx) - ((b.r - b.l) / 2 - R), qy = Math.abs(py - cy) - ((b.b - b.t) / 2 - R)
   if (qx > 0 && qy > 0) {
@@ -70,6 +69,21 @@ export function leistenAbstand(px: number, py: number, kapsel: Kapsel, plus: Kno
     if (pd < o.d) o = { d: pd, nx: ex / el, ny: ey / el }
   }
   return o
+}
+
+/**
+ * Ein Kasten mit runden Ecken als Körper (die Mitte der Statusleiste mit der
+ * Kamera-Insel). d > 0 außerhalb, die Normale zeigt vom Kasten weg.
+ */
+export function kastenAbstand(px: number, py: number, k: Rand, radius: number): Abstand {
+  const cx = (k.l + k.r) / 2, cy = (k.t + k.b) / 2, sx = px < cx ? -1 : 1, sy = py < cy ? -1 : 1
+  const R = Math.min(radius, (k.r - k.l) / 2, (k.b - k.t) / 2)
+  const qx = Math.abs(px - cx) - ((k.r - k.l) / 2 - R), qy = Math.abs(py - cy) - ((k.b - k.t) / 2 - R)
+  if (qx > 0 && qy > 0) {
+    const l = Math.hypot(qx, qy) || 1e-6
+    return { d: l - R, nx: (sx * qx) / l, ny: (sy * qy) / l }
+  }
+  return qx > qy ? { d: qx - R, nx: sx, ny: 0 } : { d: qy - R, nx: 0, ny: sy }
 }
 
 /** Apples Projektion des Endpunkts (Designing Fluid Interfaces), etwas kürzer. */
