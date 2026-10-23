@@ -305,10 +305,11 @@ test('Wochenleiste wischen: zur Vorwoche und zurück; in die Zukunft gibt sie nu
   await expect(title).toContainText('28. September')
   // Wischen beginnt auf einem Tag — das Loslassen darüber wählt ihn nicht (der Wisch war kein Tipp).
   const swipe = async (dir: 1 | -1) => {
-    // Donnerstag (Mitte) der gezeigten Woche — die Nachbarwochen liegen außerhalb, inert.
-    // Gut die halbe Breite weit, auch auf dem kleinsten Bildschirm innerhalb des Fensters.
-    const { x, y } = await center(week.locator(':not([inert]) > [data-nutr-day]').nth(3))
-    const dx = dir * page.viewportSize()!.width * 0.42
+    // Vom Dienstag bzw. Samstag der gezeigten Woche aus (die Nachbarwochen liegen außerhalb,
+    // inert) gut über die halbe Breite: das Blättern hängt so nicht vom Tempo ab, das unter
+    // Last schwankt (es zählt die echte Zeit der Ereignisse), und bleibt im Fenster.
+    const { x, y } = await center(week.locator(':not([inert]) > [data-nutr-day]').nth(dir > 0 ? 1 : 5))
+    const dx = dir * page.viewportSize()!.width * 0.58
     await page.mouse.move(x, y)
     await page.mouse.down()
     for (let i = 1; i <= 10; i++) await page.mouse.move(x + (dx * i) / 10, y + i)
