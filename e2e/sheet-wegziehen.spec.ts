@@ -24,7 +24,9 @@ test('Blatt ohne eigene Ausfahrt (Tagebuch): am Griff wegziehen schliesst es, ku
 
   await zieheAmGriff(page, formular, 40, 30)
   await expect(formular).toBeVisible()
-  await expect.poll(() => formular.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBe(0)
+  // Die Uhr der Seite steht (Fixture); das Zurueckfedern ist ein CSS-Uebergang,
+  // den WebKit erst weiterlaufen laesst, wenn sie weitergeht
+  await expect.poll(async () => { await page.clock.runFor(100); return formular.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
 
   await zieheAmGriff(page, formular, 240)
   await expect(formular).toBeHidden()
@@ -39,7 +41,7 @@ test('Lehnt das Blatt das Schliessen ab (ungespeicherte Aenderungen), kommt es z
   // „Änderungen verwerfen?" — nein.
   page.once('dialog', dialog => void dialog.dismiss())
   await zieheAmGriff(page, formular, 240)
-  await expect.poll(() => formular.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBe(0)
+  await expect.poll(async () => { await page.clock.runFor(100); return formular.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
   await expect(formular).toBeVisible()
   await expect(formular.getByLabel('Titel')).toHaveValue('Morgens')
   // Und es laesst sich weiter bedienen.
