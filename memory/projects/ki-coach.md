@@ -321,6 +321,10 @@ vom Style her auch wie Siri, passend zur App“.
   v19 — die eckige Kante, an der er oben rechts zuckte, ist weg. Uhr wie v19
   (heranschieben oder -werfen), Landung danach unter der Uhr, weil rechts daneben
   die Wand ist. Unter der Mitte losgelassen bleibt er an deren Unterkante.
+- **Nach dem Flug um die Uhr zurück (Nutzer 23.10.):** Er fliegt ungefähr dorthin
+  zurück, wo er losgelassen bzw. gerufen wurde (mit Schwung, Rest macht die
+  Feder). Lag dieser Punkt schon an der Uhr oder ist er älter als 5 s, landet er
+  wie bisher unter der Uhr.
 - **Herauskommen an zufälligen Platz (Nutzer 22.10., gegen Feststecken):** Jede
   Art herauszukommen fliegt ihn an eine zufällige freie Stelle (frei schwebend
   oder links/rechts an der Seite, nicht in `data-dot-avoid`, mindestens 30 %

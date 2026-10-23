@@ -223,7 +223,7 @@ export function createDot(host: DotHost): DotApi {
     state: 'idle' as DotStimmung, cur: { ...TARGETS.idle }, voice: 0, joyT: 9, poke: 9, rot: 0,
     pts: fib(PUNKTE), shape: 'sphere', trans: 9, pos: [] as number[][], from: [] as number[][],
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
-    orbitCool: 0,
+    orbitCool: 0, herkunft: null as null | { x: number; y: number; t: number },
     pref: null as null | { dock: { x: DockX; y: DockY }; along: { x: number; y: number } },
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
@@ -364,6 +364,8 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Loslassen, Aufprall ──────────────────────────────────────────────── */
   function release(vx: number, vy: number) {
+    // von hier geworfen: nach dem Flug um die Uhr kommt er ungefähr hierher zurück
+    B.herkunft = { x: B.x, y: B.y, t: performance.now() }
     const b = bounds(), r = B.size, speed = Math.hypot(vx, vy)
     const nav = navOn(), under = nav && B.y > TAB - r * 0.3
     B.squeezed = under
@@ -519,14 +521,20 @@ export function createDot(host: DotHost): DotApi {
     B.te += dt
     const q = clamp01(B.te / ORBIT_T), th = O.th0 + O.total * easeIO(q), mix = easeOut3(clamp01(B.te / 0.35))
     const ex = CLK.x + O.a * Math.cos(th), ey = CLK.y + 2 + O.b * Math.sin(th)
-    // am Ende unter die Uhr (rechts daneben liegt die Mitte der Statusleiste)
-    const out = easeIO(clamp01((q - 0.75) / 0.25)), hx = CLK.x, hy = Math.max(OBEN, CLK.y + CLK.h) + B.size + 10
-    const x = (O.x0 + (ex - O.x0) * mix) * (1 - out) + hx * out, y = (O.y0 + (ey - O.y0) * mix) * (1 - out) + hy * out
-    O.depth = Math.sin(th) * mix * (1 - out)
+    const x = O.x0 + (ex - O.x0) * mix, y = O.y0 + (ey - O.y0) * mix
+    O.depth = Math.sin(th) * mix
     B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3); B.x = x; B.y = y
     if (q >= 1) {
+      // zurück, ungefähr dorthin, von wo er geworfen wurde; lag das schon an der
+      // Uhr (nur herangeschoben), dann unter die Uhr
+      // (nur frisch: ein alter Wurf zählt nicht, wenn er später anders hinkam)
+      const h = B.herkunft, zurueck = h && performance.now() - h.t < 5000 && !nearClock(h.x, h.y, B.size * 2)
+      const hx = zurueck ? h.x : CLK.x, hy = zurueck ? h.y : Math.max(OBEN, CLK.y + CLK.h) + B.size + 10
+      B.herkunft = null
       B.mode = 'home'; B.contact = {}; zeigeTreffer(); B.orbitCool = 2; B.idleT = 0
       B.dock = { x: null, y: null }; B.along = { x: hx, y: hy }; speichern()
+      // mit Schwung losfliegen, den Rest macht die Feder
+      B.vx = (hx - B.x) * 1.6; B.vy = (hy - B.y) * 1.6
       sag(texte.uhr(), 4200); melde()
     }
   }
@@ -1275,6 +1283,7 @@ export function createDot(host: DotHost): DotApi {
     // Dreifachtippen markiert unter iOS sonst einen Absatz
     try { window.getSelection()?.removeAllRanges() } catch { /* ohne Auswahl */ }
     const b = bounds(), r = B.size, floor = navOn() ? TAB : b.b
+    B.herkunft = { x: B.x, y: B.y, t: performance.now() }
     B.dock = { x: null, y: null }; B.along = { x: clamp(x, b.l + r, b.r - r), y: clamp(y, b.t + r, floor - r) }
     B.squeezed = false; B.thinT = 0; B.idleT = 0; speichern()
     B.rufe.push({ x, y, t: 0 })
