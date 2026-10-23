@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1792699885.5287411,
-    "seen": 1792700050.0343075,
-    "ast_hash": "7aa360fb1cf9d075c01c8ad875822df4",
+    "mtime": 1792717560.786155,
+    "seen": 1792717628.869518,
+    "ast_hash": "a26b557d839806fec11eedba46e062ae",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8010,9 +8010,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1792700033.3117523,
-    "seen": 1792700050.0538964,
-    "ast_hash": "2fdef31e5c4bb1d5190ecd8e1f8a819b",
+    "mtime": 1792717611.873482,
+    "seen": 1792717628.8892636,
+    "ast_hash": "bc07560aea5bc79d7e742cd175a6ab1c",
     "semantic_hash": ""
   }
 }
