@@ -21,12 +21,12 @@ test('mit Pro und Schalter: Dot trägt fällige Einnahmen ein, markiert und buch
   mock.table('stack_items')[0].auto_log_since = '2026-09-27T05:00:00.000Z'
 
   await page.goto('/kalender?date=2026-09-28#due-intakes')
-  await expect.poll(() => mock.table('dose_logs').length).toBe(2)
+  await expect.poll(() => mock.table('dose_logs').filter(l => l.auto_logged).length).toBe(2)
   const logs = mock.table('dose_logs')
   expect(logs.map(l => l.routine_slot_key).sort()).toEqual([`${cycleId}@2026-09-27T08:00`, `${cycleId}@2026-09-28T08:00`])
   for (const log of logs) expect(log).toMatchObject({ taken: true, auto_logged: true, dose: 250, unit: 'mcg' })
   // Bestand wie nach dem Haken
-  expect(mock.rpcCalls.filter(c => c.name === 'apply_inventory_confirmation')).toHaveLength(2)
+  await expect.poll(() => mock.rpcCalls.filter(c => c.name === 'apply_inventory_confirmation').length).toBe(2)
   // Im Kalender als „automatisch" erkennbar
   await page.getByRole('button', { name: /Bereits protokolliert/ }).click()
   await expect(page.locator('[data-auto-logged]').first()).toBeVisible()

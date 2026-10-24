@@ -359,6 +359,15 @@ Reihenfolge-Vorschlag: Phase 1 Auto-Tracking + Plausibilität + Bestand; Phase 2
 Blutwerte, FAQ, Lob; Phase 3 Erinnerungen, Workout; Phase 4 Kosmetik, Bewegung.
 Preis/Paywall/Abo: ausgelagert in ein anderes Gespräch (Nutzer).
 
+## Zug am Griffpunkt (Nutzer 24.10.2026)
+
+Beim Ziehen folgt die Stelle unter dem Finger sofort, der Rest hängt nach (je weiter
+vom Griff und je schneller, desto mehr; `ZUG_TRAEGHEIT` 0,055 s). Mitte gegriffen:
+Ei nach hinten; oben gegriffen und nach unten gezogen: unterer Teil staucht hoch;
+unten gegriffen: oberer Teil zieht sich lang. Losgelassen fällt der Zug weg, kleiner
+Stoß, der Rand federt nach (stärker nach schnellem Ziehen). Das Nachhängen ist
+elastisch und prägt sich nicht ins Formgedächtnis ein. Gefühl am Gerät prüfen.
+
 ## Phase 1: Dot trägt automatisch ein (24.10.2026, Nutzer: „Schalter an Substanz oder Bündel“)
 
 - **Schalter:** an der Substanz (My Stack, unter Bestand) und im Bündel-Blatt
