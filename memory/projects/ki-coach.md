@@ -348,6 +348,17 @@ vom Style her auch wie Siri, passend zur App“.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
 
+## Funktionsumfang (Nutzer 23./24.10.2026)
+
+Alle acht Punkte des Nutzers sind übernommen, Spezifikation in
+`docs/ki-coach/funktionen.md`: Hinweise bei hohen Eingaben (Kalorien, Plausibilität
+gegen eigenen Plan), Lob und Kritik (Ton einstellbar), automatisches Tracking mit
+Ausnahmen per Satz, Überwachung von Werten, Erinnern auf Zuruf, Workout (Stoppuhr,
+Übungen, Motivation), FAQ und Führung durch die App, Skins/Effekte/Emotes/Battle Pass.
+Reihenfolge-Vorschlag: Phase 1 Auto-Tracking + Plausibilität + Bestand; Phase 2
+Blutwerte, FAQ, Lob; Phase 3 Erinnerungen, Workout; Phase 4 Kosmetik, Bewegung.
+Preis/Paywall/Abo: ausgelagert in ein anderes Gespräch (Nutzer).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
