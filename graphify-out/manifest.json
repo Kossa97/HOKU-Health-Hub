@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1792717560.786155,
-    "seen": 1792717628.869518,
-    "ast_hash": "a26b557d839806fec11eedba46e062ae",
+    "mtime": 1792880087.1282728,
+    "seen": 1792880350.9645507,
+    "ast_hash": "ac0ed1f1bc3f45f1809f4197dd66bbb1",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8010,15 +8010,15 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1792879407.366012,
-    "seen": 1792879426.847846,
-    "ast_hash": "d657f2e45147c184afa00f5c2cdb859b",
+    "mtime": 1792880335.423429,
+    "seen": 1792880350.9840975,
+    "ast_hash": "3f7a419b88aecd0d6c7641d54bf8c917",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
-    "mtime": 1792856752.2027452,
-    "seen": 1792879426.8227668,
-    "ast_hash": "d2d9795ab5eb2af6cb8acf021355ed18",
+    "mtime": 1792880253.8138497,
+    "seen": 1792880350.9586234,
+    "ast_hash": "4a284051753fda76f417fec765734df2",
     "semantic_hash": ""
   },
   "src/features/dot/autoTracking/DotAutoSchalter.tsx": {
