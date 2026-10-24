@@ -60,6 +60,10 @@ interface StackItemReconstitutionUpdate {
   vials_initial: number
 }
 
+interface StackItemAutoLogUpdate {
+  auto_log_since: string | null
+}
+
 interface SaveStackItemIngredient {
   catalog_substance_id: string | null
   custom_name: string
@@ -173,7 +177,7 @@ export interface StackItemQueryClient {
 
 export interface StackItemMutationClient {
   from(table: 'stack_items'): {
-    update(values: StackItemArchiveUpdate | StackItemReconstitutionUpdate): {
+    update(values: StackItemArchiveUpdate | StackItemReconstitutionUpdate | StackItemAutoLogUpdate): {
       eq(column: 'id', value: string): PromiseLike<StackItemMutationResult>
     }
     delete(): {
@@ -625,6 +629,20 @@ export async function restoreStackItem(
   const { error } = await client
     .from('stack_items')
     .update({ archived: false, archived_at: null })
+    .eq('id', id)
+
+  throwIfError(error)
+}
+
+/** Dot trägt die Einnahmen automatisch ein (seit `seit`), oder nicht mehr (null). */
+export async function setStackItemAutoLog(
+  client: StackItemMutationClient,
+  id: string,
+  seit: string | null,
+): Promise<void> {
+  const { error } = await client
+    .from('stack_items')
+    .update({ auto_log_since: seit })
     .eq('id', id)
 
   throwIfError(error)

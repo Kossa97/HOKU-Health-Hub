@@ -127,6 +127,8 @@ export function createDot(host: DotHost): DotApi {
   /* ── Weicher Rand ─────────────────────────────────────────────────────── */
   const U = new Float32Array(RK), UR = new Float32Array(RK), WV = new Float32Array(RK), M = new Float32Array(RK)
   const HEAL = new Float32Array(RK), SH = new Float32Array(RK)
+  // Zug am Griffpunkt: wie weit jede Stelle beim Ziehen nachhängt (siehe `zug`)
+  const PULL = new Float32Array(RK)
   const KF = new Float32Array(RK), GF = new Float32Array(RK), DX = new Float32Array(RK), DY = new Float32Array(RK)
   const CL = new Uint8Array(RK)
   const PH = Array.from({ length: 8 }, () => Math.random() * TAU)
@@ -319,7 +321,7 @@ export function createDot(host: DotHost): DotApi {
       f += vs * P.V * (al * al - 0.5)
       const sag = B.sag * Math.pow(Math.max(0, DY[k]), 2)
       const breath = weniger ? 0 : P.breath * (Math.sin(2 * th + t * 0.9 + PH[5]) + 0.7 * Math.sin(3 * th - t * 1.3 + PH[6]) + 0.4 * Math.sin(5 * th + t * 2.1 + PH[7]))
-      const acc = -P.K * (1 + 2.5 * B.script) * KF[k] * (U[k] - M[k] - sag - breath - SH[k]) + P.T * (U[km] + U[kp] - 2 * U[k]) - P.C * WV[k] + P.Cv * (WV[km] + WV[kp] - 2 * WV[k]) + f
+      const acc = -P.K * (1 + 2.5 * B.script) * KF[k] * (U[k] - M[k] - sag - breath - SH[k] - PULL[k]) + P.T * (U[km] + U[kp] - 2 * U[k]) - P.C * WV[k] + P.Cv * (WV[km] + WV[kp] - 2 * WV[k]) + f
       WV[k] += acc * h
     }
     for (let k = 0; k < RK; k++) { U[k] = clamp(U[k] + WV[k] * h, -0.92, 3.4); CL[k] = 0 }
@@ -350,7 +352,8 @@ export function createDot(host: DotHost): DotApi {
     // Formgedächtnis: Ecken prägen sich ein, Ruhe heilt
     const calm = Math.pow(1 - clamp01(vs / 380), 2) * (contact ? 0.12 : 1) * (B.drag ? 0.5 : 1)
     for (let k = 0; k < RK; k++) {
-      const e = U[k] - M[k]
+      // Das Nachhängen beim Ziehen ist elastisch: es prägt sich nicht ein
+      const e = U[k] - M[k] - PULL[k]
       if (CL[k]) M[k] += e * P.yieldR * h
       else if (e < -P.thr) M[k] += (e + P.thr) * P.plastic * h
     }
@@ -359,6 +362,32 @@ export function createDot(host: DotHost): DotApi {
       const dm = (-M[k] * P.regen + P.diff * (M[km] + M[kp] - 2 * M[k])) * calm * h
       M[k] = clamp(M[k] + dm, -0.5, 0.6)
       HEAL[k] = Math.max(HEAL[k] * Math.exp(-h * 3), Math.min(1, (Math.abs(dm) / h) * 6))
+    }
+  }
+
+  /* ── Zug am Griffpunkt ────────────────────────────────────────────────── */
+  // Beim Ziehen folgt die Stelle unter dem Finger sofort, der Rest hängt nach:
+  // je weiter vom Griff und je schneller gezogen, desto mehr. Gegriffen in der
+  // Mitte wird er zum Ei nach hinten; oben gegriffen und nach unten gezogen
+  // staucht sich der untere Teil hoch, unten gegriffen zieht sich der obere lang.
+  // Losgelassen fällt der Zug weg und der Rand federt zurück (Nachwabbeln).
+  const ZUG_TRAEGHEIT = 0.055 // s: so lange hängt die dem Griff gegenüberliegende Stelle nach
+  function zug(dt: number) {
+    const D = B.drag
+    const r = Math.max(B.r, 1)
+    let vx = 0, vy = 0, gx = 0, gy = 0
+    if (D && !weniger && D.moved >= 4) {
+      // Steht der Finger, hängt nichts mehr nach
+      if (performance.now() - D.hist[D.hist.length - 1].t < 60) { vx = B.vx; vy = B.vy }
+      const gl = Math.hypot(D.ox, D.oy), s = gl > r ? r / gl : 1
+      gx = D.ox * s; gy = D.oy * s
+    }
+    const a = 1 - Math.exp(-dt * 16)
+    for (let k = 0; k < RK; k++) {
+      if (!D) { PULL[k] = 0; continue }
+      const w = clamp01(Math.hypot(DX[k] * r - gx, DY[k] * r - gy) / (2 * r))
+      const ziel = clamp(-(vx * DX[k] + vy * DY[k]) * ZUG_TRAEGHEIT * w / r, -0.5, 1.2)
+      PULL[k] += (ziel - PULL[k]) * a
     }
   }
 
@@ -434,6 +463,7 @@ export function createDot(host: DotHost): DotApi {
     B.flat += (flatT - B.flat) * (1 - Math.exp(-dt * (flatT > B.flat ? 1.4 : 5)))
     const sagT = home && !B.drag ? (B.dock.y === 'top' ? 0.22 : B.dock.x && !B.dock.y ? 0.09 : 0) * P.sagMul : 0
     B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3))
+    zug(dt)
     if (B.mode === 'exit') climb(dt)
     B.orbitCool = Math.max(0, B.orbitCool - dt)
     if (B.mode === 'home' && !B.drag && !B.orbitCool && nearClock(B.x, B.y, B.r * 0.75)) startOrbit()
@@ -1195,6 +1225,8 @@ export function createDot(host: DotHost): DotApi {
   function endDrag() {
     if (zeiger !== null) { try { hit.releasePointerCapture(zeiger) } catch { /* schon frei */ } }
     zeiger = null; B.drag = null
+    // Der nachhängende Teil schnellt nach: ein kleiner Stoß zum Zug, dann federt der Rand aus
+    if (!weniger) for (let k = 0; k < RK; k++) WV[k] -= PULL[k] * 3
   }
   const beiAb = (e: PointerEvent) => {
     if (B.mode !== 'home' || zeiger !== null) return

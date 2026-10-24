@@ -12,6 +12,8 @@ export interface IntakeBundle {
   stack_item_ids: string[]
   sort_order: number
   created_at: string
+  /** Seit wann Dot die Einnahmen des Bündels automatisch einträgt (Pro); null = aus. */
+  auto_log_since?: string | null
 }
 
 export const BUNDLE_NAME_MAX = 60
@@ -88,7 +90,7 @@ export interface IntakeBundleClient {
   }
 }
 
-const COLUMNS = 'id, name, stack_item_ids, sort_order, created_at'
+const COLUMNS = 'id, name, stack_item_ids, sort_order, created_at, auto_log_since'
 
 export async function loadIntakeBundles(client: IntakeBundleClient, userId: string): Promise<IntakeBundle[]> {
   const { data, error } = await client.from('intake_bundles').select(COLUMNS)
@@ -119,6 +121,25 @@ export async function saveIntakeBundle(
   if (error) throw new Error(error.message)
   if (!data) throw new Error('intake_bundles returned no row')
   return data
+}
+
+/** Dot trägt die Einnahmen des Bündels automatisch ein (seit `seit`), oder nicht mehr (null). */
+export async function setIntakeBundleAutoLog(
+  client: IntakeBundleAutoClient,
+  userId: string,
+  id: string,
+  seit: string | null,
+): Promise<void> {
+  const { error } = await client.from('intake_bundles').update({ auto_log_since: seit }).eq('id', id).eq('user_id', userId)
+  if (error) throw new Error(error.message)
+}
+
+export interface IntakeBundleAutoClient {
+  from(table: 'intake_bundles'): {
+    update(row: { auto_log_since: string | null }): {
+      eq(column: 'id', value: string): { eq(column: 'user_id', value: string): PromiseLike<{ error: ServiceError | null }> }
+    }
+  }
 }
 
 export async function deleteIntakeBundle(client: IntakeBundleClient, userId: string, id: string): Promise<void> {
