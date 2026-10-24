@@ -59,14 +59,20 @@ test('Monatsblatt: noch tief beim Greifen — ein kurzes Ziehen schickt es nicht
   // zieht nur 40 px — das ist kein Wegwischen. Frueher zaehlte die Lage
   // (140 px ≥ 110) und es ging zu; halb aus dem Bild ist es dabei nicht
   // (auf dem iPhone ist das Blatt rund 400 px hoch).
-  await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transform = 'translateY(100px)' })
+  await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transition = 'none'; el.style.transform = 'translateY(100px)' })
   await ziehe(page, blatt, 40, 30)
   await federtZurueck(blatt)
   await expect(blatt).toBeVisible()
 
-  // Steht es nach dem Zug mehr als halb aus dem Bild, geht es zu.
+})
+
+test('Monatsblatt: steht es nach dem Zug mehr als halb aus dem Bild, geht es zu', async ({ page, mock }) => {
+  seedBpc157(mock, { startDate: '2026-09-01' })
+  const blatt = await oeffneMonatsblatt(page)
+  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
+  // Schon halb unten gegriffen (wie mitten in der Einfahrt), 40 px weiter: zu.
   const hoehe = await blatt.evaluate(el => (el as HTMLElement).offsetHeight)
-  await blatt.evaluate((el, tief) => { el.style.transform = `translateY(${tief}px)` }, Math.round(hoehe / 2))
+  await blatt.evaluate((el, tief) => { el.style.animation = 'none'; el.style.transition = 'none'; el.style.transform = `translateY(${tief}px)` }, Math.round(hoehe / 2))
   await ziehe(page, blatt, 40, 30)
   await expect(blatt).toBeHidden()
 })
