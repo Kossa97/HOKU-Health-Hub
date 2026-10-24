@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
+import { AUTO_EREIGNIS } from './autoTracking/autoTracking'
+import { useDotAutoTracking } from './autoTracking/useDotAutoTracking'
 import { TAB_ITEMS } from '../../components/navigation/tabModel'
 import { createDot, warDraussen, type DotApi } from './engine/dotEngine'
 import { dauerText } from './engine/geometry'
@@ -62,6 +64,9 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
   const kontext = useRef<{ wert: DotKontext | null; zeit: number }>({ wert: null, zeit: 0 })
   const dtRef = useRef(dt)
   useEffect(() => { dtRef.current = dt }, [dt])
+
+  // Dot trägt fällige Einnahmen ein (Pro) und sagt es, wenn er draußen ist
+  useDotAutoTracking(user?.id, zugang.geladen && zugang.darfRaus)
 
   // Kontext für Sprechblasen: höchstens alle 2 Minuten neu. Der Chat lädt
   // immer frisch — er soll nie eine gerade eingetragene Einnahme als offen nennen.
@@ -151,6 +156,16 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
 
   // Kontext vorladen, sobald er heraus darf (für den Gruß)
   useEffect(() => { if (zugang.darfRaus) void holeKontext().catch(() => null) }, [zugang.darfRaus, holeKontext, pathname])
+  useEffect(() => {
+    if (!dot) return
+    const beiAuto = (e: Event) => {
+      const anzahl = (e as CustomEvent<{ anzahl: number }>).detail?.anzahl ?? 0
+      kontext.current.zeit = 0
+      if (anzahl > 0 && dot.modus() === 'home') dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
+    }
+    window.addEventListener(AUTO_EREIGNIS, beiAuto)
+    return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
+  }, [dot])
 
   // War er beim letzten Mal draußen, kommt er beim Start wieder heraus
   const gestartet = useRef(false)

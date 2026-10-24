@@ -1044,6 +1044,17 @@ export class MockSupabase {
       return validated.map(({ saved, fields }) => saved ? saved.taken == null ? Object.assign(saved, fields) : saved : this.insert('dose_logs', fields))
     })
 
+    // Dot: bestätigen und als „automatisch“ markieren in einem Schritt (supabase-auto-tracking.sql).
+    // Markiert wird nur, was vorher offen war.
+    this.onRpc('confirm_intake_group_auto', params => {
+      const schon = new Set(this.table('dose_logs').filter(log => log.user_id === TEST_USER.id && log.taken != null).map(log => log.routine_slot_key))
+      const saved = this.callRpc('confirm_intake_group', params) as Row[]
+      return saved.map(row => {
+        if (row.taken === true && !schon.has(row.routine_slot_key)) row.auto_logged = true
+        return row
+      })
+    })
+
     const ingredientsFor = (item: Row) => this.table('stack_item_ingredients').filter(row => row.stack_item_id === item.id)
     const vialUsesInventory = (item: Row, inventory: Row | undefined) => {
       const ingredients = ingredientsFor(item)

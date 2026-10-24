@@ -875,6 +875,41 @@ describe('Home normalized timeline path', () => {
     expect(client.mutationCalls.filter(call => call.table === 'dose_logs')).toHaveLength(0)
   })
 
+  it('marks nothing as missed that Dot logs automatically', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const now = new Date()
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayKey = [
+      yesterday.getFullYear(),
+      String(yesterday.getMonth() + 1).padStart(2, '0'),
+      String(yesterday.getDate()).padStart(2, '0'),
+    ].join('-')
+    localStorage.setItem('tyd_automiss_since', yesterdayKey)
+    const cycle = normalizedCycle()
+    cycle.start_date = yesterdayKey
+    cycle.started_at = new Date(now.getTime() - 2 * 86_400_000).toISOString()
+    cycle.versions[0].effective_local_date = yesterdayKey
+    const client = createHomeClient({
+      cycles: [cycle],
+      dose_logs: [],
+      stack_items: [{
+        id: 'stack-1', display_name: 'Vitamin D3', tracking_level: 'complete',
+        dosage_form: 'capsule', vials_in_stock: 3,
+      }],
+      // Das Bündel mit Vitamin D3 trägt seit vorgestern automatisch ein
+      intake_bundles: [{ stack_item_ids: ['stack-1'], auto_log_since: cycle.started_at }],
+      inventory_items: [],
+      injection_logs: [],
+    })
+    const TestHome = Home as ComponentType<{ homeDataClient: unknown }>
+    render(createElement(MemoryRouter, null, createElement(TestHome, { homeDataClient: client })))
+
+    await screen.findAllByText(/Vitamin D3/)
+    await new Promise(resolve => setTimeout(resolve, 50))
+    expect(client.rpc).not.toHaveBeenCalledWith('confirm_intake_group', expect.anything())
+  })
+
   it('bounds dose history and defers auto-miss until after today is painted', () => {
     const source = readFileSync('src/pages/Home.tsx', 'utf8')
     const loader = source.slice(source.indexOf('async function load()'), source.indexOf('void load()'))

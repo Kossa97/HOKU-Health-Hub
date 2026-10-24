@@ -78,6 +78,17 @@ const de = {
   einw_widerrufen: 'Einwilligung widerrufen',
   einw_widerrufen_fertig: 'Einwilligung widerrufen. Dot schickt nichts mehr an Anthropic.',
   einw_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
+
+  // Dot trägt automatisch ein (Pro)
+  auto_eingetragen: 'Ich habe {{anzahl}} Einnahmen für dich eingetragen. Sag mir, wenn etwas anders war.',
+  auto_eingetragen_one: 'Ich habe eine Einnahme für dich eingetragen. Sag mir, wenn etwas anders war.',
+  auto_titel: 'Dot trägt automatisch ein',
+  auto_text: 'Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist. Du sagst Dot nur, was anders war.',
+  auto_text_buendel: 'Gilt für alle Substanzen in diesem Bündel. Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist.',
+  auto_pro: 'Mit Pro',
+  auto_marke: 'automatisch',
+  auto_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
+  auto_ueber_buendel: 'Läuft auch über dein Bündel „{{name}}“: solange es an ist, trägt Dot hier ein.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -144,6 +155,16 @@ const en: Record<keyof typeof de, string> = {
   einw_widerrufen: 'Withdraw consent',
   einw_widerrufen_fertig: 'Consent withdrawn. Dot no longer sends anything to Anthropic.',
   einw_fehler: 'Could not be saved. Please try again.',
+
+  auto_eingetragen: 'I logged {{anzahl}} intakes for you. Tell me if anything was different.',
+  auto_eingetragen_one: 'I logged one intake for you. Tell me if anything was different.',
+  auto_titel: 'Dot logs automatically',
+  auto_text: 'Planned intakes count as taken once their time is 30 minutes past. You only tell Dot what was different.',
+  auto_text_buendel: 'Applies to every substance in this bundle. Planned intakes count as taken once their time is 30 minutes past.',
+  auto_pro: 'With Pro',
+  auto_marke: 'automatic',
+  auto_fehler: 'Could not be saved. Please try again.',
+  auto_ueber_buendel: 'Also on through your bundle “{{name}}”: while it is on, Dot logs this one.',
 }
 
 export const DOT_TEXTE = { de, en }
@@ -162,7 +183,8 @@ export function dotText(lang: DotSprache, key: DotTextKey, vars?: Record<string,
 
 export function useDotText() {
   const { i18n } = useTranslation()
-  const lang = dotSprache(i18n.resolvedLanguage ?? i18n.language)
+  // Ohne i18n-Instanz (Tests mit gemocktem useTranslation) gilt Englisch
+  const lang = dotSprache(i18n?.resolvedLanguage ?? i18n?.language)
   const dt = useCallback((key: DotTextKey, vars?: Record<string, string | number>) => dotText(lang, key, vars), [lang])
   return { dt, lang }
 }

@@ -1,3 +1,4 @@
+import { SubstanzAutoSchalter } from '../dot/autoTracking/SubstanzAutoSchalter'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -38,7 +39,7 @@ import {
 import { produktAngaben, type Angabe, type Zutat } from './lib/produktAngaben'
 import { StackStage } from './components/StackStage'
 import { StackArchive } from './components/StackArchive'
-import { archiveStackItem, deleteStackItem, reconstituteStackItem, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
+import { archiveStackItem, deleteStackItem, reconstituteStackItem, setStackItemAutoLog, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
 import { powderVialForSave } from './lib/vialStrength'
 import type { StackItem, StackItemSetupDraft } from './types'
 import { getDosageForm, intakeUnitLabelKey, isStageRenderable } from './lib/dosageForms'
@@ -1935,6 +1936,18 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                       deductsIntakes={buchtEinnahmenAb(eintrag)}
                       onEdit={editor => setBestandEdit({ peptideId: eintrag.id, editor })}
                     />
+                    {/* Dot trägt die geplanten Einnahmen dieser Substanz selbst ein (Pro) */}
+                    {FEATURES.planTimelineV2 && (
+                      <SubstanzAutoSchalter
+                        key={eintrag.id}
+                        stackItemId={eintrag.id}
+                        seit={eintrag.auto_log_since}
+                        speichern={async seit => {
+                          await setStackItemAutoLog(supabase as never, eintrag.id, seit)
+                          setPeptides(prev => prev.map(pp => pp.id === eintrag.id ? { ...pp, auto_log_since: seit } : pp))
+                        }}
+                      />
+                    )}
                     {/* Nur, was gesetzt ist. „Nicht gesetzt" in jeder zweiten
                         Zeile war Rauschen — das Vollbild sagt, was man WEISS.
                         Was fehlt, zaehlt der Knopf darunter und fuehrt direkt

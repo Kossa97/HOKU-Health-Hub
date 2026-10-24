@@ -359,6 +359,27 @@ Reihenfolge-Vorschlag: Phase 1 Auto-Tracking + Plausibilität + Bestand; Phase 2
 Blutwerte, FAQ, Lob; Phase 3 Erinnerungen, Workout; Phase 4 Kosmetik, Bewegung.
 Preis/Paywall/Abo: ausgelagert in ein anderes Gespräch (Nutzer).
 
+## Phase 1: Dot trägt automatisch ein (24.10.2026, Nutzer: „Schalter an Substanz oder Bündel“)
+
+- **Schalter:** an der Substanz (My Stack, unter Bestand) und im Bündel-Blatt
+  (Kalender, nur gespeichertes Bündel). `auto_log_since` = seit wann an; nichts
+  davor wird nachgetragen. Ohne Pro sichtbar mit „Mit Pro“, nicht einschaltbar.
+  Steckt eine Substanz in einem Bündel mit Schalter, sagt der Substanz-Schalter das.
+- **Automatik** (`src/features/dot/autoTracking/`): beim Start, alle 5 min und beim
+  Zurückkommen in die App, nur mit Pro. Fällig = geplante Zeit + 30 min vorbei,
+  höchstens 14 Tage zurück. Bestätigt über `confirm_intake_group_auto` (Hülle um
+  `confirm_intake_group`: bestätigen und `dose_logs.auto_logged` in EINER Transaktion,
+  nur vorher offene Plätze), danach Bestand wie nach dem Haken. Wieder geöffnete
+  Einträge (taken null) füllt Dot nicht erneut; Trigger löscht dabei die Markierung.
+- **Kalender:** Einträge von Dot zeigen „automatisch“. Dot sagt in einer Blase, wie
+  viele er eingetragen hat. Die Rückschau „Verpasst“ (Home) lässt Einnahmen aus,
+  die Dot einträgt (nur mit Pro und innerhalb von 14 Tagen).
+- **Migration** `supabase-auto-tracking.sql`: Trockenlauf PG 16 (2×, Ist-Zahlen
+  nachgestellt, Trigger und Hülle geprüft), dann Produktion. Nachzählung nach dem
+  Lauf: 29 Substanzen, 2 Bündel, 16.333 Einträge unverändert, neue Felder leer;
+  Hülle nur für authenticated ausführbar.
+- **Offen:** Markierung auch im PDF/Export; Ausnahmen per Satz im Chat (nächster Schritt).
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
