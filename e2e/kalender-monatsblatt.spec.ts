@@ -42,6 +42,25 @@ test('Monatsblatt: nach unten ziehen schliesst es, ein kurzes Ziehen federt zuru
   await expect(page.getByRole('dialog', { name: 'September 2026' })).toBeVisible()
 })
 
+test('Monatsblatt: noch tief beim Greifen — ein kurzes Ziehen schickt es nicht weg', async ({ page, mock }) => {
+  seedBpc157(mock, { startDate: '2026-09-01' })
+  const blatt = await oeffneMonatsblatt(page)
+  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
+  // Wie mitten in der Einfahrt: das Blatt steht noch 160 px tiefer. Der Finger
+  // zieht nur 40 px — das ist kein Wegwischen, auch wenn das Blatt dann 200 px
+  // tief steht.
+  await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transform = 'translateY(160px)' })
+  await ziehe(page, blatt, 40, 30)
+  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
+  await expect(blatt).toBeVisible()
+
+  // Steht es nach dem Zug mehr als halb aus dem Bild, geht es zu.
+  const hoehe = await blatt.evaluate(el => el.offsetHeight)
+  await blatt.evaluate((el, tief) => { el.style.transform = `translateY(${tief}px)` }, Math.round(hoehe / 2))
+  await ziehe(page, blatt, 40, 30)
+  await expect(blatt).toBeHidden()
+})
+
 test('Monatsblatt: ein kurzer schneller Wurf nach unten schliesst es auch', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   const blatt = await oeffneMonatsblatt(page)

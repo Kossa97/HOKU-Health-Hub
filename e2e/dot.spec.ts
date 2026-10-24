@@ -15,7 +15,11 @@ const lassLaufen = async (page: import('@playwright/test').Page, ms: number) => 
 }
 
 test('ohne Pro bleibt Dot im Haus und sagt, dass es Pro braucht', async ({ page, mock }) => {
-  await page.goto('/')
+  // Nicht auf Home: dort baut direkt nach dem Laden die 3D-Torso-Vorschau auf,
+  // mit Software-WebGL mehrere Sekunden, in denen nichts gezeichnet wird — der
+  // Hinweis (4,5 s ab dem Tipp) war dann abgelaufen, bevor er erschien.
+  // Dot wohnt auf jeder Seite mit Leiste.
+  await page.goto('/kalender')
   await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await logo(page).click()
