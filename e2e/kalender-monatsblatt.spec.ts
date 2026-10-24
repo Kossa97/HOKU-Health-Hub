@@ -21,6 +21,17 @@ async function ziehe(page: Page, blatt: ReturnType<Page['getByRole']>, weg: numb
   await page.mouse.up()
 }
 
+/**
+ * Federt das Blatt zurueck? Geprueft wird das Ziel, das der Zug setzt (kein
+ * Inline-`transform` mehr), nicht der laufende Uebergang: den laesst WebKit
+ * unter der festen Testuhr nicht verlaesslich weiterlaufen, dort blieb das
+ * Blatt dann bei 40 oder 140 px stehen, obwohl es zurueckfederte.
+ */
+async function federtZurueck(blatt: ReturnType<Page['getByRole']>) {
+  await expect.poll(() => blatt.evaluate(el => (el as HTMLElement).style.transform)).toBe('')
+  await expect(blatt).toBeVisible()
+}
+
 test('Monatsblatt: nach unten ziehen schliesst es, ein kurzes Ziehen federt zurueck', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   const blatt = await oeffneMonatsblatt(page)
@@ -29,9 +40,7 @@ test('Monatsblatt: nach unten ziehen schliesst es, ein kurzes Ziehen federt zuru
   // steht wieder — auch wenn es beim Zugreifen noch einfuhr.
   await ziehe(page, blatt, 40, 30)
   await expect(blatt).toBeVisible()
-  // Die Uhr der Seite steht (Fixture); das Zurueckfedern ist ein CSS-Uebergang,
-  // den WebKit erst weiterlaufen laesst, wenn sie weitergeht
-  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
+  await federtZurueck(blatt)
 
   // Weit genug nach unten: es geht zu.
   await ziehe(page, blatt, 220)
@@ -52,7 +61,7 @@ test('Monatsblatt: noch tief beim Greifen — ein kurzes Ziehen schickt es nicht
   // (auf dem iPhone ist das Blatt rund 400 px hoch).
   await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transform = 'translateY(100px)' })
   await ziehe(page, blatt, 40, 30)
-  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
+  await federtZurueck(blatt)
   await expect(blatt).toBeVisible()
 
   // Steht es nach dem Zug mehr als halb aus dem Bild, geht es zu.
