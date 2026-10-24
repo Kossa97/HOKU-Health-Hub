@@ -10,14 +10,28 @@ async function oeffneMonatsblatt(page: Page) {
   return blatt
 }
 
-/** Am Griff des Blatts ziehen, in Schritten wie ein Finger. */
+/**
+ * Am Griff des Blatts ziehen, in Schritten wie ein Finger — beim langsamen
+ * Ziehen je Schritt ein Bild (16 ms) Seitenzeit. Das Blatt misst das Tempo des Zugs; ohne die Uhr
+ * weiterzustellen kaemen alle Schritte im selben Augenblick an (WebKit unter
+ * der festen Testuhr), und jedes langsame Ziehen waere ein Wurf.
+ */
 async function ziehe(page: Page, blatt: ReturnType<Page['getByRole']>, weg: number, schritte = 12) {
   const box = (await blatt.boundingBox())!
   const x = box.x + box.width / 2
   const y = box.y + 12
   await page.mouse.move(x, y)
   await page.mouse.down()
-  await page.mouse.move(x, y + weg, { steps: schritte })
+  // Ein Wurf (wenige Schritte) bleibt so schnell, wie der Browser ihn schickt.
+  if (schritte <= 2) {
+    await page.mouse.move(x, y + weg, { steps: schritte })
+    await page.mouse.up()
+    return
+  }
+  for (let i = 1; i <= schritte; i++) {
+    await page.clock.runFor(16)
+    await page.mouse.move(x, y + (weg * i) / schritte)
+  }
   await page.mouse.up()
 }
 
