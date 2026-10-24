@@ -46,10 +46,11 @@ test('Monatsblatt: noch tief beim Greifen — ein kurzes Ziehen schickt es nicht
   seedBpc157(mock, { startDate: '2026-09-01' })
   const blatt = await oeffneMonatsblatt(page)
   await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
-  // Wie mitten in der Einfahrt: das Blatt steht noch 160 px tiefer. Der Finger
-  // zieht nur 40 px — das ist kein Wegwischen, auch wenn das Blatt dann 200 px
-  // tief steht.
-  await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transform = 'translateY(160px)' })
+  // Wie mitten in der Einfahrt: das Blatt steht noch 100 px tiefer. Der Finger
+  // zieht nur 40 px — das ist kein Wegwischen. Frueher zaehlte die Lage
+  // (140 px ≥ 110) und es ging zu; halb aus dem Bild ist es dabei nicht
+  // (auf dem iPhone ist das Blatt rund 400 px hoch).
+  await blatt.evaluate(el => { el.style.animation = 'none'; el.style.transform = 'translateY(100px)' })
   await ziehe(page, blatt, 40, 30)
   await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
   await expect(blatt).toBeVisible()
