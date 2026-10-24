@@ -55,7 +55,7 @@ test('Monatsblatt: noch tief beim Greifen — ein kurzes Ziehen schickt es nicht
   await expect(blatt).toBeVisible()
 
   // Steht es nach dem Zug mehr als halb aus dem Bild, geht es zu.
-  const hoehe = await blatt.evaluate(el => el.offsetHeight)
+  const hoehe = await blatt.evaluate(el => (el as HTMLElement).offsetHeight)
   await blatt.evaluate((el, tief) => { el.style.transform = `translateY(${tief}px)` }, Math.round(hoehe / 2))
   await ziehe(page, blatt, 40, 30)
   await expect(blatt).toBeHidden()
