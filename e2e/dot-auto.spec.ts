@@ -2,6 +2,8 @@ import { TEST_USER } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 import { seedBpc157, stageObject } from './support/myStack'
 
+test.use({ dotFrei: true })
+
 /**
  * Dot trägt automatisch ein (Pro): ist der Schalter an der Substanz an, gilt
  * jede geplante Einnahme als genommen, sobald ihre Zeit vorbei ist — auf

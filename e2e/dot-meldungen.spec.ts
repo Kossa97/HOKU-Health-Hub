@@ -2,6 +2,8 @@ import { TEST_USER } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 import { seedBpc157 } from './support/myStack'
 
+test.use({ dotFrei: true })
+
 /**
  * Dot trägt per Satz ein: der Nutzer sagt „BPC heute vergessen", Claude meldet
  * das über sein Werkzeug, die App trägt es ein wie der Kalender und bietet
