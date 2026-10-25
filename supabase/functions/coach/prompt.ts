@@ -47,12 +47,18 @@ export function pruefeAnfrage(body: unknown): Anfrage | null {
 }
 
 /**
+ * Braucht Dot Pro? Vorerst nicht: bis Pro startet, ist er für alle frei.
+ * Gleicher Schalter in der App: `PRO_PFLICHT` in src/features/dot/lib/zugang.ts.
+ */
+export const PRO_PFLICHT = false
+
+/**
  * Darf dieses Konto mit Dot reden? Pro (bis in die Zukunft) oder Admin.
  * Bewusst nicht an der E-Mail-Adresse festgemacht: die Registrierung ist
  * offen, eine Domain bewiese nichts. Testkonten bekommen `pro_until` per SQL.
  */
-export function hatZugang(profil: { pro_until?: string | null; is_admin?: boolean | null } | null, jetzt = new Date()) {
-  if (profil?.is_admin === true) return true
+export function hatZugang(profil: { pro_until?: string | null; is_admin?: boolean | null } | null, jetzt = new Date(), proPflicht = PRO_PFLICHT) {
+  if (!proPflicht || profil?.is_admin === true) return true
   const bis = profil?.pro_until ? Date.parse(profil.pro_until) : NaN
   return Number.isFinite(bis) && bis > jetzt.getTime()
 }

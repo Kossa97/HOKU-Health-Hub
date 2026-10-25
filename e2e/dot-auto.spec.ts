@@ -33,27 +33,24 @@ test('mit Pro und Schalter: Dot trägt fällige Einnahmen ein, markiert und buch
   await expect(page.locator('[data-auto-logged]').first()).toHaveText('automatisch')
 })
 
-test('ohne Pro trägt Dot nichts ein, auch wenn der Schalter an ist', async ({ page, mock }) => {
+test('bis Pro startet, trägt Dot auch ohne Pro ein', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   mock.table('stack_items')[0].auto_log_since = '2026-09-27T05:00:00.000Z'
   await page.goto('/kalender?date=2026-09-28#due-intakes')
-  await expect(page.locator('[data-calendar-date="2026-09-28"][aria-pressed="true"]').first()).toBeVisible()
-  await page.clock.runFor(2000)
-  expect(mock.table('dose_logs')).toHaveLength(0)
+  await expect.poll(() => mock.table('dose_logs').filter(l => l.auto_logged).length).toBe(2)
 })
 
-test('der Schalter an der Substanz setzt den Zeitpunkt; ohne Pro ist er gesperrt', async ({ page, mock }) => {
+test('bis Pro startet, ist der Schalter an der Substanz ohne Pro frei', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   await page.goto('/my-stack')
   await stageObject(page, 'BPC-157').click()
   const detail = page.getByRole('dialog', { name: 'BPC-157', exact: true })
   const schalter = detail.getByRole('switch', { name: 'Dot trägt automatisch ein' })
   await expect(schalter).toHaveAttribute('aria-checked', 'false')
-  await expect(detail.getByText('Mit Pro')).toBeVisible()
-  await expect(schalter).toHaveAttribute('aria-disabled', 'true')
-  await schalter.click({ force: true })
-  await expect(schalter).toHaveAttribute('aria-checked', 'false')
-  expect(mock.table('stack_items')[0].auto_log_since ?? null).toBeNull()
+  await expect(detail.getByText('Mit Pro')).toHaveCount(0)
+  await expect(schalter).not.toHaveAttribute('aria-disabled', 'true')
+  await schalter.click()
+  await expect.poll(() => mock.table('stack_items')[0].auto_log_since).toBeTruthy()
 })
 
 test('mit Pro: Schalter an der Substanz ein und wieder aus', async ({ page, mock }) => {
