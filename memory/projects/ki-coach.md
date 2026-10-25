@@ -389,6 +389,16 @@ elastisch und prägt sich nicht ins Formgedächtnis ein. Gefühl am Gerät prüf
   Hülle nur für authenticated ausführbar.
 - **Offen:** Markierung auch im PDF/Export; Ausnahmen per Satz im Chat (nächster Schritt).
 
+## Vorerst für alle frei (Nutzer 25.10.2026)
+
+„Schalte Dot erstmal für jeden frei, das nur für Pro erst wenn es so weit ist."
+Schalter `PRO_PFLICHT = false` an zwei Stellen, die gleich stehen müssen (Test
+in `zugang.test.ts`): `src/features/dot/lib/zugang.ts` (App) und
+`supabase/functions/coach/prompt.ts` (Server, danach `coach` neu deployen).
+Frei sind damit Herauskommen, Chat und automatisches Eintragen; das Tageslimit
+von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Tests
+„bis Pro startet …" in `dot.spec.ts`/`dot-auto.spec.ts` zurück auf „ohne Pro gesperrt".
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
