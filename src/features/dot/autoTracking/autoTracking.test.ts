@@ -70,6 +70,19 @@ describe('Dot trägt automatisch ein', () => {
     expect(dotTraegtEin(karte, 'andere', '2026-10-23T06:00:00Z', jetzt, pro as never)).toBe(false)
   })
 
+  it('„erst um 22 Uhr": wartet bis zur genannten Zeit, dann auch ohne Puffer und wenn wieder geöffnet', () => {
+    const karte = autoKarte([{ id: 'item', auto_log_since: '2026-10-24T00:00:00Z' }], [])
+    const logs: IntakeLog[] = [
+      { id: 'offen', stack_item_id: 'item', logged_at: '2026-10-24T18:00:00Z', taken: null, cycle_id: 'c1', routine_slot_key: 'c1@2026-10-24T20:00' },
+    ]
+    // 22:00 Berlin = 20:00 UTC
+    const vormerkungen = new Map([['c1@2026-10-24T20:00', Date.parse('2026-10-24T20:00:00Z')]])
+    const vorher = faelligeAutoEinnahmen({ timelines: [timeline('c1', 'item')], logs, karte, jetzt, timeZone: TZ, vormerkungen })
+    expect(vorher.map(i => i.routineSlotKey)).toEqual(['c1@2026-10-24T08:00'])
+    const danach = faelligeAutoEinnahmen({ timelines: [timeline('c1', 'item')], logs, karte, jetzt: new Date('2026-10-24T20:01:00Z'), timeZone: TZ, vormerkungen })
+    expect(danach.map(i => i.routineSlotKey)).toEqual(['c1@2026-10-24T08:00', 'c1@2026-10-24T20:00'])
+  })
+
   it('höchstens 14 Tage zurück', () => {
     const karte = autoKarte([{ id: 'item', auto_log_since: '2026-01-01T00:00:00Z' }], [])
     const faellig = faelligeAutoEinnahmen({ timelines: [timeline('c1', 'item')], logs: [], karte, jetzt, timeZone: TZ })

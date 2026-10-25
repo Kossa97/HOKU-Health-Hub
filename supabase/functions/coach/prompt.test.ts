@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, SYSTEM_PROMPT, hatZugang, kontextText, pruefeAnfrage, rahmen } from './prompt'
+import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, SYSTEM_PROMPT, WERKZEUGE, hatZugang, kontextText, pruefeAnfrage, pruefeMeldungen, rahmen } from './prompt'
 
 describe('coach: Anfrage prüfen', () => {
   it('nimmt einen gültigen Verlauf und kürzt lange Fragen', () => {
@@ -57,5 +57,41 @@ describe('coach: Nutzerdaten im Prompt', () => {
     expect(r).toContain('Kalender')
     expect(SYSTEM_PROMPT).toMatch(/Never recommend a dose/)
     expect(SYSTEM_PROMPT).not.toMatch(/\d{4}-\d{2}-\d{2}/)
+  })
+})
+
+describe('coach: Meldungen per Satz', () => {
+  const werkzeug = (meldungen: unknown) => ({ type: 'tool_use', name: 'einnahmen_melden', input: { meldungen } })
+  it('nimmt gültige Meldungen, Uhrzeit nur als HH:MM', () => {
+    expect(pruefeMeldungen([
+      { type: 'text' },
+      werkzeug([
+        { ref: 'e3', art: 'vergessen', uhrzeit: '' },
+        { ref: 'e4', art: 'spaeter', uhrzeit: '22:00' },
+        { ref: 'e5', art: 'genommen', uhrzeit: '7:5' },
+      ]),
+    ])).toEqual([
+      { ref: 'e3', art: 'vergessen', uhrzeit: null },
+      { ref: 'e4', art: 'spaeter', uhrzeit: '22:00' },
+      { ref: 'e5', art: 'genommen', uhrzeit: null },
+    ])
+  })
+  it('verwirft Fremdes: falsches Werkzeug, Verweis, Art, „später" ohne Zeit, doppelte', () => {
+    expect(pruefeMeldungen([
+      { type: 'tool_use', name: 'anderes', input: { meldungen: [{ ref: 'e1', art: 'genommen', uhrzeit: '' }] } },
+      werkzeug([
+        { ref: 'cycle-uuid@2026', art: 'genommen', uhrzeit: '' },
+        { ref: 'e2', art: 'loeschen', uhrzeit: '' },
+        { ref: 'e3', art: 'spaeter', uhrzeit: '' },
+        { ref: 'e4', art: 'genommen', uhrzeit: '' },
+        { ref: 'e4', art: 'vergessen', uhrzeit: '' },
+      ]),
+      werkzeug('kein array'),
+    ])).toEqual([{ ref: 'e4', art: 'genommen', uhrzeit: null }])
+  })
+  it('das Werkzeug ist streng und der Prompt nennt es', () => {
+    expect(WERKZEUGE[0].strict).toBe(true)
+    expect(WERKZEUGE[0].input_schema.additionalProperties).toBe(false)
+    expect(SYSTEM_PROMPT).toContain('einnahmen_melden')
   })
 })

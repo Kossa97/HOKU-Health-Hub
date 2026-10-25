@@ -1,18 +1,25 @@
 import { supabase } from '../../../lib/supabase'
 import type { DotKontext } from '../lib/dotKontext'
+import type { Meldung } from './meldungen'
 
 /**
  * Der Draht zur Edge Function `coach`. Sie prüft Anmeldung, Zugang (Pro oder
- * Tester), Einwilligung und Tageslimit und fragt dann Claude. Gespeichert wird
+ * Tester), Einwilligung und Tageslimit und fragt dann Claude; zurück kommen
+ * Antwort und Meldungen zu Einnahmen. Gespeichert wird
  * auf dem Server nur die Zahl der Fragen je Tag.
  */
 
 /** `lokal`: von der App selbst (Fehler, Hinweise) — geht nie als Antwort an Claude. */
-export interface CoachNachricht { rolle: 'ich' | 'dot'; text: string; lokal?: boolean }
+export interface CoachNachricht {
+  rolle: 'ich' | 'dot'; text: string; lokal?: boolean
+  /** Karte einer ausgeführten Meldung mit „Rückgängig" (nur im Speicher, nie gesichert). */
+  karte?: string
+}
 
 export type CoachFehler = 'consent_required' | 'no_access' | 'limit_reached' | 'offline' | 'server_error'
 
-export type CoachAntwort = { ok: true; text: string } | { ok: false; fehler: CoachFehler }
+/** `meldungen`: was der Nutzer über Einnahmen gesagt hat, zum Ausführen in der App (`meldungen.ts`). */
+export type CoachAntwort = { ok: true; text: string; meldungen: Meldung[] } | { ok: false; fehler: CoachFehler }
 
 /** Höchstens so viele Nachrichten gehen als Verlauf mit (die letzten). */
 export const VERLAUF_MAX = 12
@@ -38,7 +45,19 @@ export async function frageCoach(
     return { ok: false, fehler: navigator.onLine === false ? 'offline' : 'server_error' }
   }
   const text = typeof data?.antwort === 'string' ? data.antwort.trim() : ''
-  return text ? { ok: true, text } : { ok: false, fehler: 'server_error' }
+  const meldungen = liesMeldungen(data?.meldungen)
+  return text || meldungen.length ? { ok: true, text, meldungen } : { ok: false, fehler: 'server_error' }
+}
+
+/** Nimmt vom Server nur, was die Form hat; geprüft hat er schon, hier zählt nur der Typ. */
+export function liesMeldungen(roh: unknown): Meldung[] {
+  if (!Array.isArray(roh)) return []
+  return roh.flatMap(m => {
+    if (!m || typeof m !== 'object') return []
+    const { ref, art, uhrzeit } = m as Record<string, unknown>
+    if (typeof ref !== 'string' || (art !== 'genommen' && art !== 'vergessen' && art !== 'spaeter')) return []
+    return [{ ref, art, uhrzeit: typeof uhrzeit === 'string' ? uhrzeit : null }]
+  })
 }
 
 /** Einwilligung setzen (Zeitpunkt setzt der Server) oder widerrufen (null). */
@@ -65,7 +84,7 @@ export function ladeVerlauf(userId: string): CoachNachricht[] {
   } catch { return [] }
 }
 export function speichereVerlauf(userId: string, verlauf: CoachNachricht[]) {
-  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40))) } catch { /* kein Speicher */ }
+  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40).map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}) })))) } catch { /* kein Speicher */ }
 }
 export function loescheVerlauf(userId: string) {
   try { localStorage.removeItem(verlaufSchluessel(userId)) } catch { /* kein Speicher */ }

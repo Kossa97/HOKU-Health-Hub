@@ -21,6 +21,7 @@ import { applyInventoryConfirmation } from '../../my-stack/services/stackInvento
 import type { TrackingLevel } from '../../my-stack/types'
 import { buildConfirmationEntry, routineGroupFromMinutes, type RoutineConfirmationEntry } from '../../routines/intakeGroups'
 import { buildIntakeRpcEntries, type SavedDoseLog } from '../../routines/services/intakeConfirmation'
+import { ladeVormerkungen, setzeVormerkung } from './vormerkungen'
 
 type AutoLog = SavedDoseLog & { auto_logged?: boolean }
 
@@ -82,6 +83,8 @@ export function faelligeAutoEinnahmen(p: {
   timeZone: string
   pufferMin?: number
   maxTage?: number
+  /** „Erst um 22 Uhr": je Platz die neue Zeit (ms); bis dahin wartet Dot, dann trägt er auch Wiedergeöffnetes ein. */
+  vormerkungen?: ReadonlyMap<string, number>
 }): ResolvedTimelineIntake[] {
   if (p.karte.size === 0) return []
   const grenze = p.jetzt.getTime() - (p.pufferMin ?? PUFFER_MIN) * 60_000
@@ -97,8 +100,15 @@ export function faelligeAutoEinnahmen(p: {
     tage.add(tag)
     for (const intake of collectOpenTimelineIntakes(timelines, logs, new Date(t), p.timeZone)) {
       const zeit = Date.parse(intake.scheduledAt)
-      if (zeit > grenze || zeit < fruehestens) continue
+      if (zeit < fruehestens) continue
       if (!istAutoGetrackt(p.karte, intake.stackItemId, intake.scheduledAt)) continue
+      const vorgemerkt = p.vormerkungen?.get(intake.routineSlotKey)
+      if (vorgemerkt !== undefined) {
+        // Der Nutzer hat Dot die Zeit selbst gesagt: ab dann, ohne Puffer
+        if (vorgemerkt <= p.jetzt.getTime()) faellig.push(intake)
+        continue
+      }
+      if (zeit > grenze) continue
       // Wieder geöffnet (taken null): das hat der Nutzer in der Hand, Dot füllt es nicht erneut
       if (intake.pendingLogId) continue
       faellig.push(intake)
@@ -190,8 +200,12 @@ async function autoTracking(client: Client, userId: string, jetzt: Date): Promis
     .filter(item => !item.archived)
     .map(item => [item.id, item]))
 
-  const faellig = faelligeAutoEinnahmen({ timelines, logs: (logs.data ?? []) as IntakeLog[], karte, jetzt, timeZone })
-  const eintraege = autoEintraege(faellig, itemById)
+  const vormerkungen = ladeVormerkungen(userId, jetzt.getTime())
+  const faellig = faelligeAutoEinnahmen({ timelines, logs: (logs.data ?? []) as IntakeLog[], karte, jetzt, timeZone, vormerkungen })
+  const eintraege = autoEintraege(faellig, itemById).map(eintrag => {
+    const um = vormerkungen.get(eintrag.key)
+    return um === undefined ? eintrag : { ...eintrag, actualLoggedAt: new Date(um).toISOString() }
+  })
   if (eintraege.length === 0) return 0
 
   // Bestätigen und als „automatisch" markieren in einer Transaktion (supabase-auto-tracking.sql);
@@ -213,6 +227,7 @@ async function autoTracking(client: Client, userId: string, jetzt: Date): Promis
       }
     }
   }
+  for (const log of gespeichert) if (log.taken === true && log.routine_slot_key && vormerkungen.has(log.routine_slot_key)) setzeVormerkung(userId, log.routine_slot_key, null)
   const neu = gespeichert.filter(log => log.taken === true && log.auto_logged === true)
   if (neu.length === 0) return 0
 
