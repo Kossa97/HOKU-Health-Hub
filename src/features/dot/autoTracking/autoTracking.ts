@@ -201,6 +201,10 @@ async function autoTracking(client: Client, userId: string, jetzt: Date): Promis
     .map(item => [item.id, item]))
 
   const vormerkungen = ladeVormerkungen(userId, jetzt.getTime())
+  // Selbst entschieden (Haken, Auslassen): die Vormerkung ist erledigt
+  for (const log of (logs.data ?? []) as IntakeLog[]) {
+    if (log.taken != null && log.routine_slot_key && vormerkungen.delete(log.routine_slot_key)) setzeVormerkung(userId, log.routine_slot_key, null)
+  }
   const faellig = faelligeAutoEinnahmen({ timelines, logs: (logs.data ?? []) as IntakeLog[], karte, jetzt, timeZone, vormerkungen })
   const eintraege = autoEintraege(faellig, itemById).map(eintrag => {
     const um = vormerkungen.get(eintrag.key)

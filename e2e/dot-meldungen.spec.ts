@@ -97,3 +97,20 @@ test('automatisch eingetragen, dann „heute vergessen": umentschieden samt Best
   await expect.poll(() => heute(mock).map(l => [l.taken, l.auto_logged])).toEqual([[true, true]])
   await expect.poll(() => mock.rpcCalls.filter(c => c.name === 'apply_inventory_confirmation').length).toBe(3)
 })
+
+test('eine überholte Karte nimmt nichts zurück, was danach entschieden wurde', async ({ page, mock }) => {
+  seedBpc157(mock, { startDate: '2026-09-01' })
+  mock.coach.antwort = ''
+  mock.coach.meldungen = kontext => [{ ref: heutigeRef(kontext), art: 'vergessen', uhrzeit: null }]
+  const chat = await chatOeffnen(page)
+  await sagen(page, chat, 'BPC heute vergessen')
+  await expect.poll(() => heute(mock).map(l => l.taken)).toEqual([false])
+  mock.coach.meldungen = kontext => [{ ref: heutigeRef(kontext), art: 'genommen', uhrzeit: '09:00' }]
+  await sagen(page, chat, 'doch, um 9 genommen')
+  await expect.poll(() => heute(mock).map(l => l.taken)).toEqual([true])
+
+  // Rückgängig auf der ersten Karte: der Platz ist inzwischen genommen, das bleibt
+  await chat.getByRole('button', { name: 'Rückgängig' }).first().click()
+  await expect(chat.getByText('Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.')).toBeVisible()
+  expect(heute(mock).map(l => l.taken)).toEqual([true])
+})

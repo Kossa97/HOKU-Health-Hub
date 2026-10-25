@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
-import { AUTO_EREIGNIS } from '../autoTracking/autoTracking'
+import { AUTO_EREIGNIS, ladeAutoKarte } from '../autoTracking/autoTracking'
 import type { DotApi } from '../engine/dotEngine'
 import { einnahmeZuRef, type DotKontext } from '../lib/dotKontext'
 import { useDotText, type DotTextKey } from '../texte'
@@ -9,7 +9,7 @@ import {
   frageCoach, ladeVerlauf, loescheVerlauf, setzeCoachEinwilligung, speichereVerlauf,
   type CoachFehler, type CoachNachricht,
 } from './coachService'
-import { fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
+import { Veraendert, fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
 
 /**
  * Das Chatfenster. Es öffnet sich als Kreis genau dort, wo Dot gerade ist,
@@ -144,11 +144,12 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
   async function fuehreAus(meldungen: Meldung[], k: DotKontext | null): Promise<CoachNachricht[]> {
     if (!user) return []
     const karten: CoachNachricht[] = []
+    const karte = await ladeAutoKarte(supabase, user.id).catch(() => new Map<string, number>())
     for (const m of meldungen) {
       const intake = k ? einnahmeZuRef(k, m.ref) : null
       const einnahme = k?.einnahmen.find(e => e.ref === m.ref)
       if (!intake || !einnahme || !k) { karten.push({ rolle: 'dot', text: dt('melde_unbekannt') }); continue }
-      const ergebnis = await fuehreMeldungAus(supabase, user.id, m, intake)
+      const ergebnis = await fuehreMeldungAus(supabase, user.id, m, intake, karte)
       const id = `karte-${++kartenZaehler.current}`
       if (ergebnis.rueckgaengig) zurueck.current.set(id, ergebnis.rueckgaengig)
       karten.push({
@@ -165,11 +166,14 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     const tun = zurueck.current.get(id)
     if (!tun || karteLaeuft) return
     setKarteLaeuft(id)
-    let ok = true
-    try { await tun() } catch (e) { ok = false; console.error('[Dot] Rückgängig:', e) }
+    let ergebnis: DotTextKey = 'melde_zurueck_fertig'
+    try { await tun() } catch (e) {
+      ergebnis = e instanceof Veraendert ? 'melde_zurueck_veraendert' : 'melde_zurueck_fehler'
+      if (!(e instanceof Veraendert)) console.error('[Dot] Rückgängig:', e)
+    }
     zurueck.current.delete(id)
     setKarteLaeuft(null)
-    setVerlauf(v => v.map(n => (n.karte === id ? { ...n, karte: undefined } : n)).concat({ rolle: 'dot', text: dt(ok ? 'melde_zurueck_fertig' : 'melde_zurueck_fehler') }))
+    setVerlauf(v => v.map(n => (n.karte === id ? { ...n, karte: undefined } : n)).concat({ rolle: 'dot', text: dt(ergebnis) }))
     window.dispatchEvent(new CustomEvent(AUTO_EREIGNIS, { detail: { anzahl: 0 } }))
   }
 

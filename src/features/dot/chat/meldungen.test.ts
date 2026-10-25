@@ -45,6 +45,12 @@ describe('Dot: Meldungen per Satz', () => {
       .toEqual({ tun: 'nehmen', um: um('2026-10-24T18:30:00Z') })
   })
 
+  it('„erst um 0:30" für eine Einnahme um 23 Uhr meint die Nacht danach', () => {
+    const spaet = { localDate: '2026-10-24', scheduledAt: '2026-10-24T21:00:00.000Z', routineSlotKey: 'c1@2026-10-24T23:00' } as ResolvedTimelineIntake
+    expect(plane({ art: 'spaeter', uhrzeit: '00:30', intake: spaet, eintrag: null, jetzt: um('2026-10-24T20:00:00Z'), timeZone: TZ, auto: true }))
+      .toEqual({ tun: 'vormerken', um: um('2026-10-24T22:30:00Z') })
+  })
+
   it('der entscheidende Eintrag: genommen vor ausgelassen vor offen', () => {
     const offen: Eintrag = { ...genommen, id: 'o', taken: null }
     const aus: Eintrag = { ...genommen, id: 'a', taken: false }

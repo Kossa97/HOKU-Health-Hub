@@ -104,6 +104,7 @@ const de = {
   melde_zurueck: 'Rückgängig',
   melde_zurueck_fertig: 'Rückgängig gemacht.',
   melde_zurueck_fehler: 'Rückgängig ging nicht. Bitte im Kalender.',
+  melde_zurueck_veraendert: 'Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -195,6 +196,7 @@ const en: Record<keyof typeof de, string> = {
   melde_zurueck: 'Undo',
   melde_zurueck_fertig: 'Undone.',
   melde_zurueck_fehler: 'Undo did not work. Please use the calendar.',
+  melde_zurueck_veraendert: 'That has changed since, so I am leaving it. Please check the calendar.',
 }
 
 export const DOT_TEXTE = { de, en }

@@ -16,7 +16,7 @@ import { AUTO_MISSED_NOTE, type ResolvedTimelineIntake } from '../../../lib/inta
 import { localSlotInstant } from '../../../lib/planTimeline'
 import { applyInventoryConfirmation, reverseInventoryConfirmation } from '../../my-stack/services/stackInventory'
 import { buildIntakeRpcEntries, type SavedDoseLog } from '../../routines/services/intakeConfirmation'
-import { autoEintraege, brauchtBestand, istAutoGetrackt, ladeAutoKarte, type AutoItem } from '../autoTracking/autoTracking'
+import { autoEintraege, brauchtBestand, istAutoGetrackt, ladeAutoKarte, type AutoItem, type AutoKarte } from '../autoTracking/autoTracking'
 import { setzeVormerkung } from '../autoTracking/vormerkungen'
 
 export type MeldungArt = 'genommen' | 'vergessen' | 'spaeter'
@@ -133,7 +133,9 @@ export function plane(p: {
 }): { tun: 'nehmen'; um: Date } | { tun: 'auslassen' } | { tun: 'vormerken'; um: Date } | { tun: 'selbst'; um: Date } | { tun: 'nichts'; status: MeldungStatus } {
   const geplant = new Date(p.intake.scheduledAt)
   if (p.art === 'vergessen') return p.eintrag?.taken === false ? { tun: 'nichts', status: 'schon_vergessen' } : { tun: 'auslassen' }
-  const um = p.uhrzeit ? zeitpunkt(p.intake, p.uhrzeit, p.timeZone) : (geplant > p.jetzt ? p.jetzt : geplant)
+  let um = p.uhrzeit ? zeitpunkt(p.intake, p.uhrzeit, p.timeZone) : (geplant > p.jetzt ? p.jetzt : geplant)
+  // „Erst um 0:30" für 23 Uhr meint die Nacht danach, nicht den Morgen davor
+  if (p.art === 'spaeter' && um < geplant) um = new Date(um.getTime() + 86_400_000)
   // Eine Zeit in der Zukunft ist „später", wie auch immer sie gemeint war
   if (um > p.jetzt) return p.auto ? { tun: 'vormerken', um } : { tun: 'selbst', um }
   if (p.art === 'spaeter' && !p.uhrzeit) return { tun: 'nichts', status: 'fehler' }
@@ -141,58 +143,84 @@ export function plane(p: {
   return { tun: 'nehmen', um }
 }
 
-/** Führt eine Meldung aus. Fehler werden zum Status, nie zur Ausnahme. */
+/** Die Karte gilt nicht mehr: der Platz wurde seitdem anders entschieden. */
+export class Veraendert extends Error {}
+
+/** Stellt den Stand vor der Meldung wieder her: leer, offen oder entschieden. */
+async function stelleHer(client: Client, intake: ResolvedTimelineIntake, item: AutoItem, vorher: Eintrag | null, aktuell: Eintrag | null) {
+  if (!aktuell) return
+  if (!vorher) return entferne(client, aktuell, item)
+  if (aktuell.taken != null) await oeffne(client, aktuell, item)
+  if (vorher.taken != null) await entscheide(client, intake, item, vorher.taken, vorher.logged_at, aktuell.id, vorher.auto_logged === true)
+}
+
+/**
+ * Führt eine Meldung aus. Fehler werden zum Status, nie zur Ausnahme.
+ * `karte`: wer automatisch getrackt wird; bei mehreren Meldungen einmal geladen.
+ */
 export async function fuehreMeldungAus(
-  client: Client, userId: string, meldung: Meldung, intake: ResolvedTimelineIntake, jetzt = new Date(),
+  client: Client, userId: string, meldung: Meldung, intake: ResolvedTimelineIntake,
+  karte?: AutoKarte, jetzt = new Date(),
 ): Promise<MeldungErgebnis> {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   const slot = intake.routineSlotKey
+  const fehler = (substanz: string): MeldungErgebnis => ({ status: 'fehler', substanz, uhrzeit: null, rueckgaengig: null })
   let substanz = ''
+  let geoeffnet = false
+  let item: AutoItem | null = null
+  let eintrag: Eintrag | null = null
   try {
-    const [item, eintrag, karte] = await Promise.all([
-      ladeItem(client, userId, intake.stackItemId),
-      ladeEintrag(client, userId, slot),
-      ladeAutoKarte(client, userId),
-    ])
-    if (!item) return { status: 'fehler', substanz, uhrzeit: null, rueckgaengig: null }
+    ;[item, eintrag] = await Promise.all([ladeItem(client, userId, intake.stackItemId), ladeEintrag(client, userId, slot)])
+    if (!item) return fehler(substanz)
     substanz = String(item.display_name ?? '')
-    const plan = plane({ art: meldung.art, uhrzeit: meldung.uhrzeit, intake, eintrag, jetzt, timeZone, auto: istAutoGetrackt(karte, item.id, intake.scheduledAt) })
+    const auto = istAutoGetrackt(karte ?? await ladeAutoKarte(client, userId), item.id, intake.scheduledAt)
+    const plan = plane({ art: meldung.art, uhrzeit: meldung.uhrzeit, intake, eintrag, jetzt, timeZone, auto })
     if (plan.tun === 'nichts') return { status: plan.status, substanz, uhrzeit: null, rueckgaengig: null }
     if (plan.tun === 'selbst') return { status: 'selbst', substanz, uhrzeit: hhmm(plan.um, timeZone), rueckgaengig: null }
+    // Ohne geplante Menge lässt sich nichts entscheiden; dann gar nicht erst anfassen
+    if (autoEintraege([intake], new Map([[item.id, item]])).length === 0) return fehler(substanz)
+    const it = item
+    const vorher = eintrag
 
     if (plan.tun === 'vormerken') {
-      // Erst vormerken, dann öffnen: dazwischen darf das automatische Eintragen nicht zuschlagen
-      setzeVormerkung(userId, slot, plan.um.getTime())
-      if (eintrag?.taken != null) await oeffne(client, eintrag, item)
-      const vorher = eintrag
+      // Erst vormerken, dann öffnen: dazwischen darf das automatische Eintragen nicht zuschlagen.
+      // Ohne Gerätespeicher keine Vormerkung, und dann auch nichts öffnen
+      if (!setzeVormerkung(userId, slot, plan.um.getTime())) return fehler(substanz)
+      if (vorher?.taken != null) { geoeffnet = true; await oeffne(client, vorher, it) }
+      const um = plan.um.toISOString()
       return {
         status: 'vorgemerkt', substanz, uhrzeit: hhmm(plan.um, timeZone),
         rueckgaengig: async () => {
-          setzeVormerkung(userId, slot, null)
           const aktuell = await ladeEintrag(client, userId, slot)
-          if (vorher?.taken == null || !aktuell || aktuell.taken != null) return
-          await entscheide(client, intake, item, vorher.taken, vorher.logged_at, aktuell.id, vorher.auto_logged === true)
+          // Noch offen, oder von Dot zur vorgemerkten Zeit eingetragen: das war diese Karte
+          const vonDieserKarte = !aktuell || aktuell.taken == null || (aktuell.taken === true && Date.parse(aktuell.logged_at) === Date.parse(um))
+          if (!vonDieserKarte) throw new Veraendert()
+          setzeVormerkung(userId, slot, null)
+          if (vorher?.taken != null || aktuell?.taken != null) await stelleHer(client, intake, it, vorher, aktuell)
         },
       }
     }
 
     setzeVormerkung(userId, slot, null)
     const nehmen = plan.tun === 'nehmen'
-    if (eintrag?.taken != null) await oeffne(client, eintrag, item)
-    const zeile = await entscheide(client, intake, item, nehmen, nehmen ? plan.um.toISOString() : intake.scheduledAt, eintrag?.id ?? null)
-    const vorher = eintrag
+    if (vorher?.taken != null) { geoeffnet = true; await oeffne(client, vorher, it) }
+    const zeile = await entscheide(client, intake, it, nehmen, nehmen ? plan.um.toISOString() : intake.scheduledAt, vorher?.id ?? null)
     return {
       status: nehmen ? 'genommen' : 'vergessen', substanz,
       uhrzeit: nehmen ? hhmm(plan.um, timeZone) : null,
       rueckgaengig: async () => {
-        const aktuell = (await ladeEintrag(client, userId, slot)) ?? { id: zeile.id, taken: zeile.taken ?? null, notes: null, logged_at: zeile.logged_at ?? '' }
-        if (!vorher) return entferne(client, aktuell, item)
-        if (aktuell.taken != null) await oeffne(client, aktuell, item)
-        if (vorher.taken != null) await entscheide(client, intake, item, vorher.taken, vorher.logged_at, aktuell.id, vorher.auto_logged === true)
+        const aktuell = await ladeEintrag(client, userId, slot)
+        // Nur zurücknehmen, was diese Karte geschrieben hat; seitdem Geändertes bleibt
+        if (!aktuell || aktuell.id !== zeile.id || aktuell.taken !== nehmen) throw new Veraendert()
+        await stelleHer(client, intake, it, vorher, aktuell)
       },
     }
   } catch (e) {
     console.error('[Dot] Meldung:', e)
-    return { status: 'fehler', substanz, uhrzeit: null, rueckgaengig: null }
+    // Schon geöffnet, aber nicht neu entschieden: den alten Stand zurück, so gut es geht
+    if (geoeffnet && item && eintrag) {
+      try { await stelleHer(client, intake, item, eintrag, await ladeEintrag(client, userId, slot)) } catch (e2) { console.error('[Dot] Wiederherstellen:', e2) }
+    }
+    return fehler(substanz)
   }
 }
