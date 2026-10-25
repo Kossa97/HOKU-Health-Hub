@@ -28,11 +28,11 @@ describe('coach: Anfrage prüfen', () => {
 describe('coach: Zugang', () => {
   const jetzt = new Date('2026-10-22T12:00:00Z')
   it('Pro nur bis zum Ablauf, Admins immer — die E-Mail-Adresse zählt nicht', () => {
-    expect(hatZugang({ pro_until: '2026-11-01T00:00:00Z' }, jetzt)).toBe(true)
-    expect(hatZugang({ pro_until: '2026-10-01T00:00:00Z' }, jetzt)).toBe(false)
-    expect(hatZugang({ pro_until: null }, jetzt)).toBe(false)
-    expect(hatZugang(null, jetzt)).toBe(false)
-    expect(hatZugang({ is_admin: true }, jetzt)).toBe(true)
+    expect(hatZugang({ pro_until: '2026-11-01T00:00:00Z' }, jetzt, true)).toBe(true)
+    expect(hatZugang({ pro_until: '2026-10-01T00:00:00Z' }, jetzt, true)).toBe(false)
+    expect(hatZugang({ pro_until: null }, jetzt, true)).toBe(false)
+    expect(hatZugang(null, jetzt, true)).toBe(false)
+    expect(hatZugang({ is_admin: true }, jetzt, true)).toBe(true)
   })
 })
 
