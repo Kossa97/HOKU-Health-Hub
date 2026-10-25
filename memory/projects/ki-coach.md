@@ -399,6 +399,23 @@ Frei sind damit Herauskommen, Chat und automatisches Eintragen; das Tageslimit
 von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Tests
 „bis Pro startet …" in `dot.spec.ts`/`dot-auto.spec.ts` zurück auf „ohne Pro gesperrt".
 
+## Eintragen per Satz (25.10.2026, Nutzer wählte es als nächste Fähigkeit)
+
+„GHK heute vergessen", „BPC um 9 genommen", „Tesa heute erst um 22 Uhr".
+- Claude bekommt ein striktes Werkzeug `einnahmen_melden` (prompt.ts `WERKZEUGE`),
+  meldet nur Verweise `e1…` auf Einnahmen aus dem Kontext (7 Tage). Die Edge
+  Function prüft (`pruefeMeldungen`) und schreibt nichts; die App führt aus
+  (`src/features/dot/chat/meldungen.ts`) mit der Sitzung des Nutzers, auf dem
+  Kalenderweg: öffnen vor dem Umentscheiden, `confirm_intake_group`, Bestand.
+- Je Meldung eine Karte mit „Rückgängig" (nur bis zum Neustart; prüft, ob der
+  Platz noch so steht, sonst bleibt er). Per Satz Eingetragenes ist nicht
+  „automatisch" markiert (der Nutzer hat es gesagt).
+- „Erst um 22 Uhr" mit Schalter: Vormerkung auf dem Gerät
+  (`autoTracking/vormerkungen.ts`), das automatische Eintragen wartet bis dahin.
+  Nur dieses Gerät. Ohne Schalter: Dot sagt „selbst abhaken".
+- Noch nicht: Planänderung „ab jetzt immer 21 Uhr" (mit Bestätigung),
+  Einstichstelle „Bauch links".
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
