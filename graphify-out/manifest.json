@@ -5370,9 +5370,9 @@
     "semantic_hash": ""
   },
   "e2e/support/fixtures.ts": {
-    "mtime": 1792570284.956544,
-    "seen": 1792685381.2628098,
-    "ast_hash": "052b41c0dc7748727ff1d0d7084b1311",
+    "mtime": 1792898676.9941194,
+    "seen": 1792899318.5488198,
+    "ast_hash": "bebf0c883b69dafbd770a640c2f6d99f",
     "semantic_hash": ""
   },
   "e2e/support/mockSupabase.ts": {
@@ -7878,9 +7878,9 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-    "mtime": 1792891276.2524142,
-    "seen": 1792891393.9684699,
-    "ast_hash": "697b55a4e010766fe9cb4d5bf31b4828",
+    "mtime": 1792898676.9949052,
+    "seen": 1792899318.548536,
+    "ast_hash": "d9a2fbf1c821bc46cd76891de35c65ea",
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
@@ -7914,8 +7914,8 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1792880087.1282728,
-    "seen": 1792880350.9645507,
+    "mtime": 1792898598.583385,
+    "seen": 1792899318.554077,
     "ast_hash": "ac0ed1f1bc3f45f1809f4197dd66bbb1",
     "semantic_hash": ""
   },
@@ -7950,9 +7950,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.ts": {
-    "mtime": 1792891259.2259386,
-    "seen": 1792891393.9742005,
-    "ast_hash": "2421f9763484879d4a71e272fbca081d",
+    "mtime": 1792898676.994541,
+    "seen": 1792899318.554183,
+    "ast_hash": "4c9e7c110afb32e59cae9f859dd0deff",
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
@@ -7986,8 +7986,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/coach/prompt.ts": {
-    "mtime": 1792896923.8783267,
-    "seen": 1792898243.5312572,
+    "mtime": 1792898466.829146,
+    "seen": 1792899318.5693321,
     "ast_hash": "cc0ba5104ade4f96439b2d17fdaa7c33",
     "semantic_hash": ""
   },
@@ -8010,15 +8010,15 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1792893066.4508095,
-    "seen": 1792898243.5346339,
-    "ast_hash": "b13ef5af041380384065988e34b5378d",
+    "mtime": 1792898258.6700807,
+    "seen": 1792899318.5727646,
+    "ast_hash": "b426feefea1ed77b7c853c7eac4c3109",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
-    "mtime": 1792891276.2527375,
-    "seen": 1792891393.9684653,
-    "ast_hash": "83d93b56ecfa1e80df8efe79e9c562a9",
+    "mtime": 1792898676.995252,
+    "seen": 1792899318.5485306,
+    "ast_hash": "f1024067f833631b57af181c36d310f1",
     "semantic_hash": ""
   },
   "src/features/dot/autoTracking/DotAutoSchalter.tsx": {
@@ -8058,9 +8058,9 @@
     "semantic_hash": ""
   },
   "e2e/dot-meldungen.spec.ts": {
-    "mtime": 1792898129.021161,
-    "seen": 1792898243.5104103,
-    "ast_hash": "cd754a0410dfd570839d7315ad36dc54",
+    "mtime": 1792898676.9955432,
+    "seen": 1792899318.5485332,
+    "ast_hash": "f1ca0ec22d7c2e79a0eea49c4ac285ff",
     "semantic_hash": ""
   },
   "src/features/dot/autoTracking/vormerkungen.ts": {
