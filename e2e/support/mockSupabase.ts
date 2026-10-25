@@ -497,14 +497,16 @@ export class MockSupabase {
   /**
    * Nachbild von supabase/functions/coach (Dot, der KI-Coach): ohne Zugang
    * (Pro oder Tester) 403 `no_access`, ohne Einwilligung 403
-   * `consent_required`, sonst `coach.antwort`. Festgehalten wird, was die App
+   * `consent_required`, sonst `coach.antwort` und `coach.meldungen`. Festgehalten wird, was die App
    * schickt (Verlauf, Kontext, Seite, Sprache).
    */
   readonly coach: {
     antwort: string
+    /** Meldungen per Satz, wie das Werkzeug `einnahmen_melden` sie liefert; als Funktion bekommt sie den gesendeten Kontext. */
+    meldungen: unknown[] | ((kontext: unknown) => unknown[])
     error: { status: number; code: string } | null
     calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
-  } = { antwort: 'Heute ist nichts geplant.', error: null, calls: [] }
+  } = { antwort: 'Heute ist nichts geplant.', meldungen: [], error: null, calls: [] }
 
   private async handleCoach(route: Route): Promise<void> {
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
@@ -516,7 +518,8 @@ export class MockSupabase {
     const body = (route.request().postDataJSON() ?? {}) as MockSupabase['coach']['calls'][number]
     this.coach.calls.push(body)
     if (this.coach.error) return route.fulfill({ status: this.coach.error.status, headers: corsHeaders(), json: { error: this.coach.error.code } })
-    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, verbleibend: 39 } })
+    const meldungen = typeof this.coach.meldungen === 'function' ? this.coach.meldungen(body.kontext) : this.coach.meldungen
+    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, meldungen, verbleibend: 39 } })
   }
 
     /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */

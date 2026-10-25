@@ -16,6 +16,14 @@ import { supabase } from '../../../lib/supabase'
 /** Gleicher Schalter auf dem Server: `PRO_PFLICHT` in supabase/functions/coach/prompt.ts. */
 export const PRO_PFLICHT = false
 
+/**
+ * Nur für Browser-Tests, die nicht von Dot handeln (`e2e/support/fixtures.ts`):
+ * dort bleibt er im Haus, wie früher ohne Pro.
+ */
+export function imHausFuerTests() {
+  try { return localStorage.getItem('tyd.e2e.dot-im-haus') === '1' } catch { return false }
+}
+
 export function istTester(istAdmin: boolean, entwicklung: boolean) {
   return entwicklung || istAdmin
 }
@@ -46,7 +54,7 @@ export function useDotZugang(): DotZugang {
     void supabase.from('profiles').select('*').eq('id', user.id).maybeSingle().then(({ data }) => {
       if (aus) return
       const p = (data ?? {}) as Record<string, unknown>
-      const darfRaus = !PRO_PFLICHT || hatPro(p.pro_until as string | null) || istTester(p.is_admin === true, import.meta.env.DEV)
+      const darfRaus = !imHausFuerTests() && (!PRO_PFLICHT || hatPro(p.pro_until as string | null) || istTester(p.is_admin === true, import.meta.env.DEV))
       setStand({ fuer: user.id, darfRaus, einwilligung: (p.coach_consent_at as string | null) ?? null })
     })
     return () => { aus = true }

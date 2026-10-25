@@ -1,6 +1,8 @@
 import { TEST_USER } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 
+test.use({ dotFrei: true })
+
 /**
  * Dot, der KI-Coach: wohnt für alle in der Leiste. Bis Pro startet, kommt er
  * für alle heraus (PRO_PFLICHT aus). Chat nur mit Einwilligung.

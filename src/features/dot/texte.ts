@@ -89,6 +89,22 @@ const de = {
   auto_marke: 'automatisch',
   auto_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
   auto_ueber_buendel: 'Läuft auch über dein Bündel „{{name}}“: solange es an ist, trägt Dot hier ein.',
+
+  // Eintragen per Satz (Karten im Chat)
+  melde_genommen: '{{substanz}}, {{wann}}: als genommen eingetragen ({{uhrzeit}}).',
+  melde_vergessen: '{{substanz}}, {{wann}}: als vergessen eingetragen.',
+  melde_vorgemerkt: '{{substanz}}, {{wann}}: ich trage sie um {{uhrzeit}} als genommen ein.',
+  melde_selbst: '{{substanz}}, {{wann}}: notiert. Hak sie um {{uhrzeit}} selbst ab, automatisch trage ich nur mit dem Schalter an der Substanz ein.',
+  melde_schon_genommen: '{{substanz}}, {{wann}}: war schon als genommen eingetragen.',
+  melde_schon_vergessen: '{{substanz}}, {{wann}}: war schon als vergessen eingetragen.',
+  melde_fehler: '{{substanz}}, {{wann}}: konnte ich nicht eintragen. Bitte im Kalender.',
+  melde_unbekannt: 'Diese Einnahme finde ich gerade nicht. Sag es mir bitte noch einmal.',
+  melde_heute: 'heute',
+  melde_gestern: 'gestern',
+  melde_zurueck: 'Rückgängig',
+  melde_zurueck_fertig: 'Rückgängig gemacht.',
+  melde_zurueck_fehler: 'Rückgängig ging nicht. Bitte im Kalender.',
+  melde_zurueck_veraendert: 'Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -165,6 +181,22 @@ const en: Record<keyof typeof de, string> = {
   auto_marke: 'automatic',
   auto_fehler: 'Could not be saved. Please try again.',
   auto_ueber_buendel: 'Also on through your bundle “{{name}}”: while it is on, Dot logs this one.',
+
+  // Logging by sentence (cards in the chat)
+  melde_genommen: '{{substanz}}, {{wann}}: logged as taken ({{uhrzeit}}).',
+  melde_vergessen: '{{substanz}}, {{wann}}: logged as forgotten.',
+  melde_vorgemerkt: '{{substanz}}, {{wann}}: I will log it as taken at {{uhrzeit}}.',
+  melde_selbst: '{{substanz}}, {{wann}}: noted. Tick it off yourself at {{uhrzeit}}; I only log automatically with the switch on the substance.',
+  melde_schon_genommen: '{{substanz}}, {{wann}}: was already logged as taken.',
+  melde_schon_vergessen: '{{substanz}}, {{wann}}: was already logged as forgotten.',
+  melde_fehler: '{{substanz}}, {{wann}}: I could not log that. Please use the calendar.',
+  melde_unbekannt: 'I cannot find that intake right now. Please tell me again.',
+  melde_heute: 'today',
+  melde_gestern: 'yesterday',
+  melde_zurueck: 'Undo',
+  melde_zurueck_fertig: 'Undone.',
+  melde_zurueck_fehler: 'Undo did not work. Please use the calendar.',
+  melde_zurueck_veraendert: 'That has changed since, so I am leaving it. Please check the calendar.',
 }
 
 export const DOT_TEXTE = { de, en }
