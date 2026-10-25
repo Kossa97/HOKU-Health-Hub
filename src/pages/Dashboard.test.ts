@@ -1614,7 +1614,9 @@ describe('Dashboard normalized timeline path', () => {
     })
     renderDashboard(client)
 
-    expect(await screen.findByText('Plan pausiert')).toBeTruthy()
+    // Unter CI-Last braucht der erste Aufbau des Kalenders länger als die
+    // Standard-Sekunde (rot am 24.10.2026 nach 1035 ms)
+    expect(await screen.findByText('Plan pausiert', {}, { timeout: 5000 })).toBeTruthy()
     expect(screen.getAllByText('Während der Pause ist keine Einnahme fällig.')).toHaveLength(1)
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
   })
