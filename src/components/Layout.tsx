@@ -5,7 +5,6 @@ import {
 } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Onboarding } from './Onboarding'
 import { LanguageGate } from './LanguageGate'
 import { useAuth } from '../context/AuthContext'
 import { usePushNotifications } from '../lib/usePushNotifications'
@@ -142,7 +141,6 @@ export function Layout() {
       </main>
 
       <LanguageGate />
-      <Onboarding />
       <PushNotificationListener />
 
       {/* FAQ Floating Button */}

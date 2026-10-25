@@ -3,7 +3,6 @@ import { lazyPage, ReloadOnUpdate } from './lib/staleChunkReload'
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
-import { OnboardingProvider } from './context/OnboardingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
 import { Auth } from './pages/Auth'
@@ -50,7 +49,6 @@ function LazyPage({ children }: { children: ReactNode }) {
 function PersonalApp() {
   return (
       <AuthProvider>
-        <OnboardingProvider>
         <Toaster
           position="top-center"
           toastOptions={{
@@ -91,7 +89,6 @@ function PersonalApp() {
             <Route path="simulation" element={<LazyPage><BlutspiegelSimulation /></LazyPage>} />
           </Route>
         </Routes>
-        </OnboardingProvider>
       </AuthProvider>
   )
 }

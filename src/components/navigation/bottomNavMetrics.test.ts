@@ -9,21 +9,11 @@ const wert = (name: string) => {
 
 describe('Maße der Bottom-Navigation', () => {
   it('reserviert genau so viel Platz, wie die Kapsel samt Abstand belegt', () => {
-    // Sieben Stellen rechnen mit `--bottom-nav-height`: Inhaltspolster,
-    // FAQ-Knopf, Schnellzugriff, Onboarding (zweimal), `onboardingPlacement`
-    // und die My-Stack-Bühne. Stimmt die Summe nicht, verdeckt die Leiste
+    // Mehrere Stellen rechnen mit `--bottom-nav-height`: Inhaltspolster,
+    // FAQ-Knopf, Schnellzugriff und die My-Stack-Bühne. Stimmt die Summe nicht, verdeckt die Leiste
     // Inhalt oder es bleibt ein toter Streifen darunter.
     expect(wert('bottom-nav-capsule')! + wert('bottom-nav-gap')!)
       .toBe(wert('bottom-nav-height'))
-  })
-
-  it('hält die Höhe als glatte Zahl, nicht als Rechnung', () => {
-    // `onboardingPlacement.ts` liest sie mit `parseInt`, und eigene
-    // Eigenschaften werden nicht ausgerechnet: `parseInt('calc(62px + 12px)')`
-    // wäre NaN und die Einblendungen säßen falsch.
-    expect(css()).toMatch(/--bottom-nav-height:\s*\d+px/)
-    const platzierung = readFileSync(new URL('../onboardingPlacement.ts', import.meta.url), 'utf8')
-    expect(platzierung).toContain("getPropertyValue('--bottom-nav-height')")
   })
 
   it('lässt der Kapsel Abstand zur Sicherheitszone und zu den Rändern', () => {

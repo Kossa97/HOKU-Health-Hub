@@ -50,8 +50,8 @@ export function EscalationFormSheet({
               </p>
             </div>
 
-            <div data-ob="esc-core" className="space-y-4">
-            <div data-ob="esc-amount">
+            <div className="space-y-4">
+            <div>
               <label className="label">Absolute Zieldosis</label>
               <div className="flex gap-2">
                 <input className="input flex-1" type="number"
@@ -68,7 +68,7 @@ export function EscalationFormSheet({
               </div>
             </div>
 
-            <div data-ob="esc-when">
+            <div>
               <label className="label">{t('ab_wann_label')}</label>
               <div className="grid grid-cols-3 gap-2">
                 {([
@@ -91,7 +91,7 @@ export function EscalationFormSheet({
             </div>
 
             {eForm.start_type === 'date' && (
-              <div data-ob="esc-when-detail">
+              <div>
                 <label className="label">{t('datum_label')}</label>
                 <input className="input" type="date" value={eForm.start_date}
                   onChange={e => setEForm(f => {
@@ -101,7 +101,7 @@ export function EscalationFormSheet({
               </div>
             )}
             {eForm.start_type === 'after_days' && (
-              <div data-ob="esc-when-detail">
+              <div>
                 <label className="label">{t('tage_nach_start')}</label>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-400 text-sm shrink-0">{t('nach_prefix')}</span>
@@ -116,7 +116,7 @@ export function EscalationFormSheet({
               </div>
             )}
             {eForm.start_type === 'after_weeks' && (
-              <div data-ob="esc-when-detail">
+              <div>
                 <label className="label">{t('wochen_nach_start')}</label>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-400 text-sm shrink-0">{t('nach_prefix')}</span>
@@ -131,7 +131,7 @@ export function EscalationFormSheet({
               </div>
             )}
 
-            <div data-ob="esc-notes">
+            <div>
               <label className="label">{t('notizen_optional')}</label>
               <textarea className="input resize-none" rows={2}
                 placeholder={t('esc_notes_placeholder')}
@@ -143,7 +143,7 @@ export function EscalationFormSheet({
 
             <div className="flex gap-3 pt-2">
               <button className="btn-secondary flex-1" data-app-back-close onClick={() => setShowEscForm(false)}>{t('cancel')}</button>
-              <button data-ob="btn-esc-save" className="btn-primary flex-1" onClick={saveEsc} disabled={savingEsc}>
+              <button className="btn-primary flex-1" onClick={saveEsc} disabled={savingEsc}>
                 {savingEsc ? t('loading') : t('save')}
               </button>
             </div>

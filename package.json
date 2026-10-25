@@ -19,8 +19,6 @@
     "seed:test": "tsx scripts/seed-test-data.ts",
     "faq:export": "tsx scripts/export-faq-en.ts",
     "faq:generate": "node scripts/generate-faq-locales.mjs",
-    "i18n:onboarding:merge": "node scripts/merge-onboarding-i18n.mjs",
-    "i18n:onboarding:generate": "node scripts/generate-onboarding-i18n.mjs",
     "catalog:sql": "node scripts/generate-substance-catalog-sql.mjs",
     "pk:sql": "node scripts/generate-pk-profiles-sql.mjs",
     "effects:duration:sql": "node scripts/generate-effect-duration-sql.mjs",

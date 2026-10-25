@@ -56,7 +56,6 @@ export function BottomNavigation({
         <NavLink
           to={tab.route}
           className={className}
-          {...(tab.obKey ? { 'data-ob': tab.obKey } : {})}
           {...rest}
         >
           {children}

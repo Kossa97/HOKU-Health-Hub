@@ -1254,7 +1254,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
             </h2>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3" data-ob="home-tiles">
+        <div className="grid grid-cols-2 gap-3">
           {TILE_DEFS.map((tile, index) => {
             const stretchLast = TILE_DEFS.length % 2 === 1 && index === TILE_DEFS.length - 1
             return (

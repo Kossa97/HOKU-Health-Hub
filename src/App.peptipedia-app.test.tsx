@@ -10,7 +10,6 @@ vi.mock('./context/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: () => ({ session: state.signedIn ? { user: { id: 'test-user' } } : null, loading: false }),
 }))
-vi.mock('./context/OnboardingContext', () => ({ OnboardingProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock('./components/Layout', () => ({ Layout: () => <Outlet /> }))
 vi.mock('./features/compliance/components/ConsentGate', () => ({ ConsentGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock('./pages/Auth', () => ({ Auth: () => <h1>Sign in</h1> }))

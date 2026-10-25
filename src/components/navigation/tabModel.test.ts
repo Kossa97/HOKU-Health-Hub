@@ -44,19 +44,6 @@ describe('tabModel', () => {
     expect(resolveActiveTabId('/my-stack/irgendwas')).toBeNull()
   })
 
-  it('behält die Anker, auf die das Onboarding zielt', () => {
-    // `onboardingSteps.ts` sucht diese Elemente per Attribut. Fällt ein Anker
-    // weg, bleibt der jeweilige Schritt ohne Ziel stehen.
-    const schritte = readFileSync(new URL('../onboardingSteps.ts', import.meta.url), 'utf8')
-    for (const tab of TAB_ITEMS) {
-      if (!tab.obKey) continue
-      if (!schritte.includes(`[data-ob="${tab.obKey}"]`)) continue
-      expect(tab.obKey, `${tab.id} wird vom Onboarding angesteuert`).toBeTruthy()
-    }
-    expect(TAB_ITEMS.find(t => t.id === 'my-stack')?.obKey).toBe('nav-peptide')
-    expect(TAB_ITEMS.find(t => t.id === 'kalender')?.obKey).toBe('nav-kalender')
-  })
-
   it('findet die Position eines Reiters', () => {
     expect(tabIndex('home')).toBe(0)
     expect(tabIndex('profil')).toBe(3)

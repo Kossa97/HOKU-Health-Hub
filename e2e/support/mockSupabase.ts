@@ -346,7 +346,6 @@ export class MockSupabase {
       localStorage.setItem(key, value)
       localStorage.setItem('tyd_lang', lang)
       localStorage.setItem(`tyd_lang_picked_${userId}`, '1')
-      localStorage.setItem(`_ob_done_${userId}`, '1')
       localStorage.setItem('tyd_stack_colors_migrated_v1', '1')
       localStorage.setItem('tyd_push_dismissed', 'true')
       localStorage.setItem('tyd_ios_install_shown', 'true')

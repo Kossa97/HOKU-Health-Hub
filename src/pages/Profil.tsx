@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, Monitor, Sun, Moon } from 'lucide-react'
+import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, Monitor, Sun, Moon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
-import { OnboardingRestartButton } from '../components/Onboarding'
-import { LANGUAGES, applyDirection } from '../i18n'
+import { LANGUAGES, setLanguage } from '../i18n'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { useTheme, type ThemeMode } from '../lib/theme'
 import { AccountSection } from '../features/compliance/components/AccountSection'
@@ -229,11 +228,6 @@ export function Profil() {
 
       {/* ── Push-Notifications ── */}
       <PushSettings />
-
-      {/* App-Anleitung */}
-      <div className="mt-3">
-        <OnboardingRestartButton />
-      </div>
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
@@ -489,97 +483,35 @@ function PushSettings() {
 
 function LanguageSwitcher() {
   const { i18n, t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState(i18n.language)
-  const current = LANGUAGES.find(l => l.code === i18n.language) ?? LANGUAGES[0]
-
-  function apply() {
-    i18n.changeLanguage(selected)
-    localStorage.setItem('tyd_lang', selected)
-    applyDirection(selected)
-    setOpen(false)
-  }
-
+  const current = i18n.language?.split('-')[0]
   return (
-    <div className="mt-4">
-      <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>
+    <div className="card" style={{ marginTop: 12 }}>
+      <p className="label" style={{ marginBottom: 10 }}>
         {t('language')}
       </p>
-
-      <button
-        onClick={() => { setOpen(o => !o); setSelected(i18n.language) }}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 14px', borderRadius: 13,
-          background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-          color: 'var(--accent)', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Languages size={15} />
-          <span>{current.flag} {current.name}</span>
-        </div>
-        <span style={{ fontSize: 12, opacity: 0.6 }}>{open ? '▲' : '▼'}</span>
-      </button>
-
-      {open && (
-        <div style={{
-          marginTop: 6, borderRadius: 13, overflow: 'hidden',
-          border: '1px solid var(--border)',
-          background: 'var(--surface)',
-        }}>
-          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-            {LANGUAGES.map(lang => {
-              const isSelected = lang.code === selected
-              return (
-                <div
-                  key={lang.code}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    borderBottom: '1px solid var(--border)',
-                    background: isSelected ? 'var(--accent-weak)' : 'transparent',
-                  }}
-                >
-                  <button
-                    onClick={() => setSelected(lang.code)}
-                    style={{
-                      flex: 1, display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '11px 16px', textAlign: 'left', cursor: 'pointer',
-                      color: isSelected ? 'var(--accent)' : 'var(--text-dim)',
-                      fontWeight: isSelected ? 700 : 400,
-                      fontSize: '0.875rem',
-                      background: 'transparent',
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>{lang.flag}</span>
-                    <span>{lang.name}</span>
-                  </button>
-
-                  {isSelected && (
-                    <button
-                      onClick={apply}
-                      style={{
-                        margin: '6px 10px 6px 0',
-                        padding: '6px 14px',
-                        borderRadius: 8,
-                        background: lang.code !== i18n.language
-                          ? 'linear-gradient(135deg, #00ccf5, #0088dd)'
-                          : 'var(--accent-weak)',
-                        border: '1px solid var(--accent-border)',
-                        color: lang.code !== i18n.language ? '#07091a' : 'var(--accent)',
-                        fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {lang.code !== i18n.language ? t('apply') : <Check size={14} />}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      <div className="rounded-xl p-1" style={{ display: 'flex', gap: 4 }}>
+        {LANGUAGES.map(lang => {
+          const active = current === lang.code
+          return (
+            <button
+              key={lang.code}
+              lang={lang.code}
+              onClick={() => setLanguage(lang.code)}
+              aria-pressed={active}
+              className={active ? 'bg-sky-500' : ''}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 8, padding: '10px 6px', borderRadius: 9, cursor: 'pointer',
+                color: active ? 'var(--accent-contrast)' : 'var(--text-dim)',
+                fontSize: '0.8rem', fontWeight: 700,
+              }}
+            >
+              <span style={{ fontSize: 18 }} aria-hidden="true">{lang.flag}</span>
+              {lang.name}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
