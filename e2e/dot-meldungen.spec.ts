@@ -1,6 +1,6 @@
 import { TEST_USER } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
-import { seedBpc157 } from './support/myStack'
+import { next, seedBpc157 } from './support/myStack'
 
 test.use({ dotFrei: true })
 
@@ -115,4 +115,38 @@ test('eine überholte Karte nimmt nichts zurück, was danach entschieden wurde',
   await chat.getByRole('button', { name: 'Rückgängig' }).first().click()
   await expect(chat.getByText('Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.')).toBeVisible()
   expect(heute(mock).map(l => l.taken)).toEqual([true])
+})
+
+test('„leg BPC-157 an, Vial, 250 mcg morgens": Dot bereitet vor, der Assistent öffnet sich vorbefüllt, gespeichert wird dort', async ({ page, mock }) => {
+  mock.coach.antwort = 'Mach ich.'
+  mock.coach.anlagen = [{
+    name: 'BPC-157', form: 'vial', menge: 250, einheit: 'mcg',
+    zeiten: [{ tageszeit: 'morning', uhrzeit: null }], rhythmus: 'taeglich', wochentage: [], alleNTage: null,
+  }]
+  const chat = await chatOeffnen(page)
+  await sagen(page, chat, 'Leg BPC-157 an, Vial, 250 mcg morgens')
+  await expect(chat.getByText('BPC-157 · 250 mcg · morgens: Ich habe alles für dich vorbereitet.', { exact: false })).toBeVisible()
+  // Noch nichts gespeichert
+  expect(mock.rpcCalls.filter(c => c.name === 'save_stack_item_with_plan')).toHaveLength(0)
+
+  await chat.getByRole('button', { name: 'Ansehen und speichern' }).click()
+  await lassLaufen(page, 1500)
+  await expect(page).toHaveURL(/\/my-stack/)
+  const wizard = page.getByRole('dialog', { name: 'Substanz hinzufügen' })
+  await expect(wizard.getByRole('radio', { name: 'Vial' })).toHaveAttribute('aria-checked', 'true')
+  await next(wizard, 'Zusammensetzung')
+  await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
+  await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
+  await next(wizard, 'Einnahmeplan')
+  await expect(wizard.getByRole('spinbutton', { name: /^Menge/ })).toHaveValue('250')
+  await expect(wizard.getByRole('combobox', { name: 'Einheit' })).toHaveValue('mcg')
+  await next(wizard, 'Zusammenfassung')
+  await expect(wizard.getByText('Morgens · 250 mcg')).toBeVisible()
+  await wizard.getByRole('button', { name: 'Speichern' }).click()
+  await expect(wizard).toBeHidden()
+  const save = mock.rpcCalls.find(call => call.name === 'save_stack_item_with_plan')
+  expect(save?.params).toMatchObject({
+    p_item: { display_name: 'BPC-157', dosage_form: 'vial' },
+    p_plan: { dose: 250, unit: 'mcg', intake_time: 'morgens' },
+  })
 })

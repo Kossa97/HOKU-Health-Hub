@@ -105,6 +105,13 @@ const de = {
   melde_zurueck_fertig: 'Rückgängig gemacht.',
   melde_zurueck_fehler: 'Rückgängig ging nicht. Bitte im Kalender.',
   melde_zurueck_veraendert: 'Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.',
+
+  // Substanz anlegen per Satz
+  anlage_vorbereitet: '{{was}}: Ich habe alles für dich vorbereitet. Schau es dir an und speichere es.',
+  anlage_oeffnen: 'Ansehen und speichern',
+  anlage_morgens: 'morgens',
+  anlage_mittags: 'mittags',
+  anlage_abends: 'abends',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -197,6 +204,13 @@ const en: Record<keyof typeof de, string> = {
   melde_zurueck_fertig: 'Undone.',
   melde_zurueck_fehler: 'Undo did not work. Please use the calendar.',
   melde_zurueck_veraendert: 'That has changed since, so I am leaving it. Please check the calendar.',
+
+  // Adding a substance by sentence
+  anlage_vorbereitet: '{{was}}: I have prepared everything for you. Take a look and save it.',
+  anlage_oeffnen: 'Review and save',
+  anlage_morgens: 'morning',
+  anlage_mittags: 'midday',
+  anlage_abends: 'evening',
 }
 
 export const DOT_TEXTE = { de, en }

@@ -1,6 +1,7 @@
 import { supabase } from '../../../lib/supabase'
 import type { DotKontext } from '../lib/dotKontext'
 import type { Meldung } from './meldungen'
+import { liesAnlagen, type DotAnlage } from '../../my-stack/lib/dotAnlage'
 
 /**
  * Der Draht zur Edge Function `coach`. Sie prüft Anmeldung, Zugang (Pro oder
@@ -14,12 +15,14 @@ export interface CoachNachricht {
   rolle: 'ich' | 'dot'; text: string; lokal?: boolean
   /** Karte einer ausgeführten Meldung mit „Rückgängig" (nur im Speicher, nie gesichert). */
   karte?: string
+  /** Von Dot vorbereitete Substanz mit „Ansehen und speichern" (nur im Speicher). */
+  anlage?: DotAnlage
 }
 
 export type CoachFehler = 'consent_required' | 'no_access' | 'limit_reached' | 'offline' | 'server_error'
 
 /** `meldungen`: was der Nutzer über Einnahmen gesagt hat, zum Ausführen in der App (`meldungen.ts`). */
-export type CoachAntwort = { ok: true; text: string; meldungen: Meldung[] } | { ok: false; fehler: CoachFehler }
+export type CoachAntwort = { ok: true; text: string; meldungen: Meldung[]; anlagen: DotAnlage[] } | { ok: false; fehler: CoachFehler }
 
 /** Höchstens so viele Nachrichten gehen als Verlauf mit (die letzten). */
 export const VERLAUF_MAX = 12
@@ -46,7 +49,8 @@ export async function frageCoach(
   }
   const text = typeof data?.antwort === 'string' ? data.antwort.trim() : ''
   const meldungen = liesMeldungen(data?.meldungen)
-  return text || meldungen.length ? { ok: true, text, meldungen } : { ok: false, fehler: 'server_error' }
+  const anlagen = liesAnlagen(data?.anlagen)
+  return text || meldungen.length || anlagen.length ? { ok: true, text, meldungen, anlagen } : { ok: false, fehler: 'server_error' }
 }
 
 /** Nimmt vom Server nur, was die Form hat; geprüft hat er schon, hier zählt nur der Typ. */

@@ -62,6 +62,7 @@ import { StrengthEditor } from './StrengthEditor'
 import { SubstanceSearch } from './SubstanceSearch'
 import { SubstanzScanner } from './SubstanzScanner'
 import { scanAktionen, type ScanVorschlag } from '../lib/substanzScan'
+import { anlageAktionen, type DotAnlage } from '../lib/dotAnlage'
 import { reportError } from '../../../lib/monitoring'
 import { aufbrauchenBis, gueltigeFluessigkeit, gueltigeHaltbarkeit, haltbarkeitArt } from '../lib/bestand'
 
@@ -162,6 +163,8 @@ interface StackItemWizardBaseProps {
    */
   intent?: 'pk' | 'plan'
   metadataOnly?: boolean
+  /** Von Dot vorbereitet („leg BPC-157 an, 250 mcg morgens"): nur beim Neuanlegen. */
+  dotAnlage?: DotAnlage
 }
 
 export type StackItemWizardProps = StackItemWizardBaseProps & (
@@ -273,6 +276,7 @@ export function StackItemWizard({
   planEditContext,
   intent,
   metadataOnly = false,
+  dotAnlage,
 }: StackItemWizardProps) {
   const { t, i18n } = useTranslation()
   const selectedPlan = planEditContext?.snapshot ?? existingPlan
@@ -298,6 +302,10 @@ export function StackItemWizard({
         initial.step = pkIntentStepList[0]
         // Das PK-Profil braucht die Staerke — wer es vervollstaendigt, trackt gruendlich.
         initial.draft = { ...initial.draft, trackingLevel: 'complete' }
+      }
+      // Von Dot vorbereitet: wie nach einem Scan, dazu Menge, Zeiten und Tage
+      if (dotAnlage && !existingItem && !planEditContext) {
+        return anlageAktionen(dotAnlage, catalogEntries, initialColorHex).reduce(wizardReducer, initial)
       }
       return initial
     },

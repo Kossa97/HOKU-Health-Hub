@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, SYSTEM_PROMPT, WERKZEUGE, hatZugang, kontextText, pruefeAnfrage, pruefeMeldungen, rahmen } from './prompt'
+import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, SYSTEM_PROMPT, WERKZEUGE, hatZugang, kontextText, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, rahmen } from './prompt'
 
 describe('coach: Anfrage prüfen', () => {
   it('nimmt einen gültigen Verlauf und kürzt lange Fragen', () => {
@@ -93,5 +93,29 @@ describe('coach: Meldungen per Satz', () => {
     expect(WERKZEUGE[0].strict).toBe(true)
     expect(WERKZEUGE[0].input_schema.additionalProperties).toBe(false)
     expect(SYSTEM_PROMPT).toContain('einnahmen_melden')
+  })
+})
+
+describe('coach: Substanz anlegen per Satz', () => {
+  const werkzeug = (input: Record<string, unknown>) => ({ type: 'tool_use', name: 'substanz_anlegen', input })
+  const voll = { name: 'BPC-157', form: 'vial', menge: '250', einheit: 'mcg', zeiten: ['morgens', '20:00', 'nachts'], rhythmus: 'taeglich', wochentage: [], alle_n_tage: '' }
+  it('nimmt Name, Form, Menge, Einheit, Zeiten und Tage; Unbekanntes bleibt leer', () => {
+    expect(pruefeAnlagen([werkzeug(voll)])).toEqual([{
+      name: 'BPC-157', form: 'vial', menge: 250, einheit: 'mcg',
+      zeiten: [{ tageszeit: 'morning', uhrzeit: null }, { tageszeit: null, uhrzeit: '20:00' }],
+      rhythmus: 'taeglich', wochentage: [], alleNTage: null,
+    }])
+    expect(pruefeAnlagen([werkzeug({ ...voll, form: 'rakete', menge: 'viel', einheit: '' })])[0]).toMatchObject({ form: null, menge: null, einheit: null })
+  })
+  it('Wochentage und „alle N Tage" nur mit ihren Tagen; ohne Name nichts', () => {
+    expect(pruefeAnlagen([werkzeug({ ...voll, rhythmus: 'wochentage', wochentage: ['Do', 'Mo', 'Xy'] })])[0]).toMatchObject({ rhythmus: 'wochentage', wochentage: ['Mo', 'Do'] })
+    expect(pruefeAnlagen([werkzeug({ ...voll, rhythmus: 'wochentage', wochentage: [] })])[0].rhythmus).toBeNull()
+    expect(pruefeAnlagen([werkzeug({ ...voll, rhythmus: 'alle_n_tage', alle_n_tage: '3' })])[0]).toMatchObject({ rhythmus: 'alle_n_tage', alleNTage: 3 })
+    expect(pruefeAnlagen([werkzeug({ ...voll, rhythmus: 'alle_n_tage', alle_n_tage: '1' })])[0].rhythmus).toBeNull()
+    expect(pruefeAnlagen([werkzeug({ ...voll, name: '  ' })])).toEqual([])
+  })
+  it('das Werkzeug ist streng, und der Prompt verbietet ausgedachte Mengen', () => {
+    expect(WERKZEUGE[1].strict).toBe(true)
+    expect(SYSTEM_PROMPT).toContain('Never fill in an amount')
   })
 })

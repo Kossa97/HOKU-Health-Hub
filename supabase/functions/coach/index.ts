@@ -2,13 +2,14 @@
 /**
  * Dot, der KI-Coach (siehe prompt.ts). Prüft Anmeldung, Zugang (Pro oder
  * Tester), Einwilligung (profiles.coach_consent_at) und Tageslimit, dann
- * fragt Claude. Meldungen zu Einnahmen („vergessen", „erst um 22 Uhr")
- * gibt sie geprüft an die App weiter, die sie ausführt. Frage, Antwort und Nutzerdaten werden nirgends gespeichert;
- * gezählt wird nur die Zahl der Fragen je Tag (coach_usage).
+ * fragt Claude. Meldungen zu Einnahmen („vergessen", „erst um 22 Uhr") und
+ * vorbereitete Substanzen gibt sie geprüft an die App weiter, die sie
+ * ausführt bzw. zum Bestätigen öffnet. Frage, Antwort und Nutzerdaten werden
+ * nirgends gespeichert; gezählt wird nur die Zahl der Fragen je Tag (coach_usage).
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'npm:@anthropic-ai/sdk@0.135.0'
-import { DAILY_LIMIT, SYSTEM_PROMPT, WERKZEUGE, hatZugang, pruefeAnfrage, pruefeMeldungen, rahmen } from './prompt.ts'
+import { DAILY_LIMIT, SYSTEM_PROMPT, WERKZEUGE, hatZugang, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, rahmen } from './prompt.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -94,7 +95,8 @@ Deno.serve(async (request: Request) => {
   if (message.stop_reason === 'refusal') return json({ error: 'refused' }, 422)
   const antwort = message.content.flatMap(b => (b.type === 'text' ? [b.text] : [])).join('').trim()
   const meldungen = pruefeMeldungen(message.content)
-  if (!antwort && meldungen.length === 0) return json({ error: 'server_error' }, 502)
+  const anlagen = pruefeAnlagen(message.content)
+  if (!antwort && meldungen.length === 0 && anlagen.length === 0) return json({ error: 'server_error' }, 502)
 
-  return json({ antwort, meldungen, verbleibend: Math.max(0, DAILY_LIMIT - Number(zaehler)) })
+  return json({ antwort, meldungen, anlagen, verbleibend: Math.max(0, DAILY_LIMIT - Number(zaehler)) })
 })

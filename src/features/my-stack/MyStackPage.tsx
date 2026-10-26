@@ -2,6 +2,7 @@ import { SubstanzAutoSchalter } from '../dot/autoTracking/SubstanzAutoSchalter'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
+import type { DotAnlage } from './lib/dotAnlage'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -170,6 +171,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const lifecycleIdempotencyKeysRef = useRef(new Map<string, RecoverableMutation>())
   // Ein zweiter Plan statt einer Aenderung am bestehenden.
   const [wizardNeuerZyklus, setWizardNeuerZyklus] = useState(false)
+  const [wizardDotAnlage, setWizardDotAnlage] = useState<DotAnlage | undefined>()
   const [search, setSearch]                   = useState('')
   const [searchOpen, setSearchOpen]           = useState(false)
   const [filterOpen, setFilterOpen]           = useState(false)
@@ -308,6 +310,9 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
 
   useEffect(() => {
     if (location.hash !== '#new-substance') return
+    // Von Dot vorbereitet: der Assistent öffnet sich damit vorbefüllt
+    const anlage = historyStateRecord(location.state).dotAnlage
+    setWizardDotAnlage(anlage && typeof anlage === 'object' ? anlage as DotAnlage : undefined)
     setEditingPeptideId(null)
     setWizardCycleId(null)
     setPlanEditContext(null)
@@ -315,7 +320,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
     navigate(location.pathname, { replace: true })
-  }, [location.hash, location.pathname, navigate])
+  }, [location.hash, location.pathname, location.state, navigate])
 
   useEffect(() => {
     if (loading) return
@@ -2215,7 +2220,8 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         eintragDetails={eintragDetails}
       />
 
-      {showPeptideForm && (
+      {/* Von Dot vorbereitet: erst öffnen, wenn der Katalog da ist — sonst fände er die Substanz nicht */}
+      {showPeptideForm && (!wizardDotAnlage || catalogEntries.length > 0 || catalogUnavailable) && (
         <StackItemWizard
           catalogEntries={catalogEntries}
           catalogUnavailable={catalogUnavailable}
@@ -2245,8 +2251,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               })}
           initialColorHex={wizardInitialColor}
           intent={wizardIntent}
+          dotAnlage={wizardDotAnlage}
           onClose={() => {
             setShowPeptideForm(false)
+            setWizardDotAnlage(undefined)
             setWizardIntent(undefined)
             setWizardNeuerZyklus(false)
             setWizardCycleId(null)
