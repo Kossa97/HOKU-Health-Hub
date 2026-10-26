@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, Camera, ChefHat, ChevronRight, ImageUp, Info, Lightbulb, Plus, RotateCcw, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Camera, ChefHat, ChevronRight, ImageUp, Info, Lightbulb, Plus, RotateCcw, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
@@ -11,6 +11,7 @@ import { type Candidate, type PhotoFlow, candidatesFrom, chosenRows, groupCandid
 import { PhotoError, analyzeMeal } from '../services/foodPhoto'
 import { DIM, MUTED, chip } from '../styles'
 import { MacroCells } from './MacroCells'
+import { DotArbeitet, DotZeichen } from '../../dot/DotZeichen'
 
 type Step = { kind: 'idle' } | { kind: 'analyzing' } | { kind: 'error'; code: PhotoError['code']; resetsAt: string | null }
 
@@ -183,9 +184,9 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
       )}
 
       {step.kind === 'analyzing' && (
-        <div className="mt-4 flex flex-col items-center gap-3 py-6" aria-live="polite">
+        <div className="mt-4 flex flex-col items-center">
           {preview && <img src={preview} alt="" className="h-40 w-40 rounded-[18px] object-cover opacity-80" />}
-          <p className={`flex items-center gap-2 text-[15px] ${DIM}`}><Sparkles size={16} aria-hidden="true" className="animate-pulse" />{t('nutr_photo_analyzing')}</p>
+          <DotArbeitet text={t('nutr_photo_analyzing')} />
         </div>
       )}
 
@@ -240,7 +241,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
               <p className="text-[13px] leading-snug text-[var(--lg-text-2)]">{t('nutr_photo_needs_note')}</p>
               <div className="mt-2">{noteField('nutr-photo-hint-again', !flow.hint)}</div>
               <button type="button" className="lg-gray-btn mt-2 w-full" disabled={!flow.hint.trim() || busy} onClick={() => analyze(flow.file)}>
-                <Sparkles size={15} aria-hidden="true" />{t('nutr_photo_reanalyze')}
+                <DotZeichen groesse={18} />{t('nutr_photo_reanalyze')}
               </button>
             </div>
           )}

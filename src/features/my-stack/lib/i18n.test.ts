@@ -1415,8 +1415,8 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Instrument" — look_hint
 // nennt den fuenften Look (nur de/en); look_instrument ist neu.
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '43f7ea722af43fbba71827c942413b21553be54c8022d7fd15c5bfd2fdafa541',
-  en: 'a175022b211533b46059887876523f13808d05995efda09710ab81fd4ad55b1d',
+  de: 'bbb0abc55dbae30156f991186809d59830e40213b92f63cb00cef99d3081f899',
+  en: 'fed1678b900daa9ad1e9e20dced70fb952476a45c31f29dab982c5f2aa60be41',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

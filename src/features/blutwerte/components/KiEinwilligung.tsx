@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
-import { ScanLine } from 'lucide-react'
+import { DotZeichen } from '../../dot/DotZeichen'
 import { useKiEinwilligung } from './useKiEinwilligung'
 
 /**
@@ -30,8 +30,8 @@ export function KiEinwilligung({ onErteilt, onAbbrechen }: { onErteilt: () => Pr
   return (
     <div data-ai-consent className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
-        <span className="lg-icon-tile mt-0.5 !h-9 !w-9" style={{ background: '#0a84ff' }}>
-          <ScanLine size={18} aria-hidden="true" />
+        <span className="lg-icon-tile mt-0.5 !h-9 !w-9" style={{ background: 'rgba(0, 204, 245, 0.15)' }}>
+          <DotZeichen groesse={22} />
         </span>
         <div className="min-w-0">
           <h3 id="ai-consent-title" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('ai_consent_title')}</h3>
@@ -88,7 +88,7 @@ export function KiEinwilligungProfil() {
   return (
     <div className="card space-y-2" data-ai-consent-profile>
       <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
-        <ScanLine size={16} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('ai_consent_profile_title')}
+        <DotZeichen groesse={16} /> {t('ai_consent_profile_title')}
       </h2>
       <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{datum ? t('ai_consent_profile_on', { date: datum }) : t('ai_consent_profile_off')}</p>
       {datum && (
