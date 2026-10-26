@@ -26,6 +26,13 @@ async function render(p, opts, size) {
   W(`${K}/dot-icon-1024.png`, icon1024)
   W('public/icon-512.png', await render(p, big, 512))
   W('public/icon-192.png', await render(p, big, 192))
+  // Home-Bildschirm (Web-App): eigene Dateinamen, damit iOS und der Service Worker kein altes Icon zeigen.
+  // iOS rundet selbst, darum eckig und deckend. Die Kugel (66 %) liegt in der sicheren Zone fuer maskable (80 %).
+  W('public/icons/dot-180.png', await render(p, big, 180))
+  W('public/icons/dot-192.png', await render(p, big, 192))
+  W('public/icons/dot-512.png', await render(p, big, 512))
+  W('public/icons/dot-maskable-512.png', await render(p, { ...big, radius: 0.30 }, 512))
+  W('public/icons/dot-32.png', await render(p, { ...big, radius: 0.44, bright: 1.3, glow: 1.0 }, 32))
   W(`${K}/favicon-64.png`, await render(p, { ...big, radius: 0.42, bright: 1.2, glow: 1.0 }, 64))
   W(`${K}/favicon-32.png`, await render(p, { ...big, radius: 0.44, bright: 1.3, glow: 1.0 }, 32))
   // Ebenen fuer Icon Composer (iOS 26)
