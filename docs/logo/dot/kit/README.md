@@ -9,7 +9,9 @@ Dot, wie er in der App lebt: eine Kugel aus leuchtenden Punkten, ohne Augen. Vor
 Kugel als Körper, nicht als Scheibe. Punktgrößen stark gestreut (Nutzer 26.10.: „mehr
 Ungleichmäßigkeit“): Faktor 0,5–1,6 mit Potenzverteilung, viele kleine, wenige große.
 Jeder Punkt ist ein Leuchtpunkt wie `gl.POINTS` im Shader: voller Kern, kurzer weicher
-Abfall, leichte Aufhellung in der Mitte; dazu ein weiter Schein (Weichzeichner 46). Farben wie in `dotEngine.ts`: Cyan → Violett
+Abfall, leichte Aufhellung in der Mitte; dazu ein weiter Schein (Weichzeichner 46).
+Verworfen (Nutzer 26.10.): eine Kontrast-Fassung mit fast schwarzem Grund und zum Rand
+abgedunkelten Punkten – diese Fassung hier ist die gültige. Farben wie in `dotEngine.ts`: Cyan → Violett
 diagonal, Pink unten. Dunkle Kachel wie der Look „Nacht“.
 
 ## Dateien
