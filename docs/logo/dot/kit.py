@@ -3,7 +3,7 @@ Android-Vordergrund, Favicon. Aufruf: python3 -I docs/logo/dot/kit.py docs/logo/
 import math, sys, os
 OUT = sys.argv[1]
 C = 128.0
-CYAN, VIOLET, PINK = (110, 230, 255), (175, 135, 255), (255, 120, 200)
+CYAN, VIOLET, PINK = (92, 236, 255), (168, 118, 255), (255, 104, 196)
 def mix(a, b, m): return tuple(a[i] + (b[i] - a[i]) * m for i in range(3))
 def hexc(c): return "#%02x%02x%02x" % tuple(int(round(v)) for v in c)
 def farbe(x, y):  # wie dotEngine.ts / DotLogo.tsx, x,y in -1..1, y nach unten
@@ -88,7 +88,7 @@ _gid = [0]
 def glow_dot(x, y, r, col, o=1.0, soft=0.12):
     """Leuchtpunkt wie gl.POINTS im Shader: Kern voll, dann weicher Abfall. r = Kernradius."""
     _gid[0] += 1; g = f"d{_gid[0]}"
-    c = hexc(col); hi = hexc(mix(col, (255, 255, 255), 0.10))
+    c = hexc(col); hi = hexc(mix(col, (255, 255, 255), 0.34))
     R2 = r * (1 + soft)
     k = r / R2
     grad = (f'<radialGradient id="{g}"><stop offset="0" stop-color="{hi}" stop-opacity="{o:.2f}"/>'
@@ -102,8 +102,8 @@ def marke(front, name, title):
     write(name, f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>{title}</title>{body}</svg>')
 
 DEFS = ('<defs>'
-        '<radialGradient id="gBg" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#141c33"/><stop offset="1" stop-color="#05060a"/></radialGradient>'
-        '<radialGradient id="gGlow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#46aaff" stop-opacity="0.40"/><stop offset="0.5" stop-color="#966eff" stop-opacity="0.14"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
+        '<radialGradient id="gBg" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#0b1020"/><stop offset="0.7" stop-color="#04050a"/><stop offset="1" stop-color="#020306"/></radialGradient>'
+        '<radialGradient id="gGlow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#46aaff" stop-opacity="0.22"/><stop offset="0.45" stop-color="#966eff" stop-opacity="0.07"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
         '<filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>'
         '<filter id="blurW" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="46"/></filter>'
         '</defs>')
@@ -113,15 +113,15 @@ def layers(front, back, S=4.0, scale=0.84, glow=True):
     tr = f'transform="translate(512 512) scale({scale}) translate(-512 -512)"'
     defs, h, v, vflat = [], [], [], []
     for x, y, r, Z, X, Y in back:
-        g, c = glow_dot(x * S, y * S, r * S, mix(farbe(X, Y), (30, 45, 95), 0.5), 0.38 + 0.3 * ((Z + 1) / 2), soft=0.5)
+        g, c = glow_dot(x * S, y * S, r * S, mix(farbe(X, Y), (18, 28, 70), 0.62), 0.22 + 0.26 * ((Z + 1) / 2), soft=0.5)
         defs.append(g); h.append(c)
     for x, y, r, Z, X, Y in front:
-        g, c = glow_dot(x * S, y * S, r * S, farbe(X, Y), 0.82 + 0.18 * Z)
+        g, c = glow_dot(x * S, y * S, r * S, mix((26, 36, 88), farbe(X, Y), 0.58 + 0.42 * Z), 1.0)
         defs.append(g); v.append(c)
         vflat.append(circ(x * S, y * S, r * S, hexc(farbe(X, Y))))
     hinten = "".join(h); vorn = "".join(v); flach = "".join(vflat)
     schein = (f'<rect x="60" y="60" width="904" height="904" fill="url(#gGlow)"/>'
-              f'<g filter="url(#blurW)" opacity="0.38">{flach}</g>') if glow else ""
+              f'<g filter="url(#blurW)" opacity="0.26">{flach}</g>') if glow else ""
     return {
         "defs": "".join(defs),
         "hintergrund": '<rect width="1024" height="1024" fill="url(#gBg)"/>',
