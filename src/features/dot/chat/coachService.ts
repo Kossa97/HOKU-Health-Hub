@@ -15,7 +15,7 @@ export interface CoachNachricht {
   rolle: 'ich' | 'dot'; text: string; lokal?: boolean
   /** Karte einer ausgeführten Meldung mit „Rückgängig" (nur im Speicher, nie gesichert). */
   karte?: string
-  /** Von Dot vorbereitete Substanz mit „Ansehen und speichern" (nur im Speicher). */
+  /** Von Dot vorbereitete Substanz mit „Ansehen und speichern" (reine Daten, wird mitgesichert). */
   anlage?: DotAnlage
 }
 
@@ -83,12 +83,15 @@ export function ladeVerlauf(userId: string): CoachNachricht[] {
     const roh = JSON.parse(localStorage.getItem(verlaufSchluessel(userId)) || '[]')
     return Array.isArray(roh)
       ? roh.filter(n => n && (n.rolle === 'ich' || n.rolle === 'dot') && typeof n.text === 'string')
-        .map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}) })).slice(-40)
+        .map(n => {
+          const anlage = n.rolle === 'dot' ? liesAnlagen([n.anlage])[0] : undefined
+          return { rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(anlage ? { anlage } : {}) }
+        }).slice(-40)
       : []
   } catch { return [] }
 }
 export function speichereVerlauf(userId: string, verlauf: CoachNachricht[]) {
-  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40).map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}) })))) } catch { /* kein Speicher */ }
+  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40).map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(n.anlage ? { anlage: n.anlage } : {}) })))) } catch { /* kein Speicher */ }
 }
 export function loescheVerlauf(userId: string) {
   try { localStorage.removeItem(verlaufSchluessel(userId)) } catch { /* kein Speicher */ }

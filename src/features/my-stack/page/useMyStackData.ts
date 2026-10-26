@@ -41,6 +41,8 @@ export function useMyStackData({ stackDataClient, userId }: {
   const [timelineLoading, setTimelineLoading] = useState(false)
   const [catalogEntries, setCatalogEntries] = useState<SubstanceCatalogEntry[]>([])
   const [catalogUnavailable, setCatalogUnavailable] = useState(false)
+  /** Die Katalogsuche ist zurück (mit oder ohne Treffer). */
+  const [catalogLoaded, setCatalogLoaded] = useState(false)
   const initialLoadPromiseRef = useRef<Promise<void> | null>(null)
   const [archivedPeptides, setArchivedPeptides]   = useState<Peptide[]>([])
   const [escalations, setEscalations]             = useState<Escalation[]>([])
@@ -152,7 +154,7 @@ export function useMyStackData({ stackDataClient, userId }: {
         searchSubstanceCatalog(supabase as never, '').then(result => {
           setCatalogEntries(current => mergeCatalogEntries(current, result.entries))
           setCatalogUnavailable(result.unavailable)
-        }),
+        }).finally(() => setCatalogLoaded(true)),
       ])
     }
 
@@ -174,7 +176,7 @@ export function useMyStackData({ stackDataClient, userId }: {
   return {
     inventory, peptides, setPeptides, loading, initialLoad,
     cycles, cycleTimelines, setCycleTimelines, timelineLoadError,
-    timelineLoading, catalogEntries, catalogUnavailable,
+    timelineLoading, catalogEntries, catalogUnavailable, catalogLoaded,
     archivedPeptides, escalations,
     loadInventory, loadPeptides, loadArchived, loadCycles, loadTimelines, loadEscalations,
     reloadTimelinesAndPeptides,

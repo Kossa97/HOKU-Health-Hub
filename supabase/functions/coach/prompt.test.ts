@@ -98,7 +98,7 @@ describe('coach: Meldungen per Satz', () => {
 
 describe('coach: Substanz anlegen per Satz', () => {
   const werkzeug = (input: Record<string, unknown>) => ({ type: 'tool_use', name: 'substanz_anlegen', input })
-  const voll = { name: 'BPC-157', form: 'vial', menge: '250', einheit: 'mcg', zeiten: ['morgens', '20:00', 'nachts'], rhythmus: 'taeglich', wochentage: [], alle_n_tage: '' }
+  const voll = { name: 'BPC-157', form: 'vial', menge: '250', einheit: 'mcg', zeiten: ['morgens', '20:00', 'lunchtime'], rhythmus: 'taeglich', wochentage: [], alle_n_tage: '' }
   it('nimmt Name, Form, Menge, Einheit, Zeiten und Tage; Unbekanntes bleibt leer', () => {
     expect(pruefeAnlagen([werkzeug(voll)])).toEqual([{
       name: 'BPC-157', form: 'vial', menge: 250, einheit: 'mcg',
@@ -106,6 +106,8 @@ describe('coach: Substanz anlegen per Satz', () => {
       rhythmus: 'taeglich', wochentage: [], alleNTage: null,
     }])
     expect(pruefeAnlagen([werkzeug({ ...voll, form: 'rakete', menge: 'viel', einheit: '' })])[0]).toMatchObject({ form: null, menge: null, einheit: null })
+    // Englisch wie Deutsch; nachts zählt zum Abend
+    expect(pruefeAnlagen([werkzeug({ ...voll, zeiten: ['morning', 'noon', 'night'] })])[0].zeiten.map(z => z.tageszeit)).toEqual(['morning', 'midday', 'evening'])
   })
   it('Wochentage und „alle N Tage" nur mit ihren Tagen; ohne Name nichts', () => {
     expect(pruefeAnlagen([werkzeug({ ...voll, rhythmus: 'wochentage', wochentage: ['Do', 'Mo', 'Xy'] })])[0]).toMatchObject({ rhythmus: 'wochentage', wochentage: ['Mo', 'Do'] })

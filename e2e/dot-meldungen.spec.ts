@@ -23,7 +23,7 @@ const heute = (mock: import('./support/mockSupabase').MockSupabase) =>
 
 async function chatOeffnen(page: import('@playwright/test').Page) {
   await page.goto('/')
-  await expect(logo(page)).toHaveAttribute('data-dot-bereit', 'true')
+  await expect(logo(page)).toHaveAttribute('data-dot-bereit', 'true', { timeout: 15_000 })
   await logo(page).click()
   await lassLaufen(page, 3000)
   await page.getByRole('button', { name: /Dot, dein KI-Coach/ }).click({ force: true })

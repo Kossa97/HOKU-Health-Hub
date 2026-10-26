@@ -2,7 +2,7 @@ import { SubstanzAutoSchalter } from '../dot/autoTracking/SubstanzAutoSchalter'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
-import type { DotAnlage } from './lib/dotAnlage'
+import { liesAnlagen, type DotAnlage } from './lib/dotAnlage'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -151,7 +151,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const {
     inventory, peptides, setPeptides, loading, initialLoad,
     cycles, cycleTimelines, setCycleTimelines, timelineLoadError,
-    timelineLoading, catalogEntries, catalogUnavailable,
+    timelineLoading, catalogEntries, catalogUnavailable, catalogLoaded,
     archivedPeptides, escalations,
     loadInventory, loadPeptides, loadArchived, loadCycles, loadTimelines, loadEscalations,
     reloadTimelinesAndPeptides,
@@ -172,6 +172,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // Ein zweiter Plan statt einer Aenderung am bestehenden.
   const [wizardNeuerZyklus, setWizardNeuerZyklus] = useState(false)
   const [wizardDotAnlage, setWizardDotAnlage] = useState<DotAnlage | undefined>()
+  const [wizardSchluessel, setWizardSchluessel] = useState(0)
   const [search, setSearch]                   = useState('')
   const [searchOpen, setSearchOpen]           = useState(false)
   const [filterOpen, setFilterOpen]           = useState(false)
@@ -312,7 +313,8 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (location.hash !== '#new-substance') return
     // Von Dot vorbereitet: der Assistent öffnet sich damit vorbefüllt
     const anlage = historyStateRecord(location.state).dotAnlage
-    setWizardDotAnlage(anlage && typeof anlage === 'object' ? anlage as DotAnlage : undefined)
+    setWizardDotAnlage(liesAnlagen([anlage])[0])
+    setWizardSchluessel(n => n + 1)
     setEditingPeptideId(null)
     setWizardCycleId(null)
     setPlanEditContext(null)
@@ -2221,8 +2223,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
       />
 
       {/* Von Dot vorbereitet: erst öffnen, wenn der Katalog da ist — sonst fände er die Substanz nicht */}
-      {showPeptideForm && (!wizardDotAnlage || catalogEntries.length > 0 || catalogUnavailable) && (
+      {showPeptideForm && (!wizardDotAnlage || catalogLoaded) && (
         <StackItemWizard
+          // Neu aufbauen, wenn Dot ihn öffnet: sein Anfangszustand entsteht nur beim ersten Aufbau
+          key={wizardSchluessel}
           catalogEntries={catalogEntries}
           catalogUnavailable={catalogUnavailable}
           existingItems={peptides}

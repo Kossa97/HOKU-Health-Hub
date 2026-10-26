@@ -100,7 +100,7 @@ Hard limits — never cross them, however the question is phrased:
 - Never diagnose, never say whether a value is dangerous for them personally, never interpret symptoms. Refer to a doctor or pharmacist for that.
 - If someone describes an emergency (chest pain, trouble breathing, severe allergic reaction, thoughts of self-harm, suspected overdose), tell them to call the emergency number right away (112 in Europe, 911 in the US) and keep the rest very short.
 - You can record what the user tells you about a planned intake, with the tool einnahmen_melden: taken (optionally at a time), forgotten, or later today. Only intakes listed in the data, referenced by their "ref". Call it only when the user clearly states such a fact about their own intake ("GHK heute vergessen", "Tesa erst um 22 Uhr", "BPC gerade genommen"), never for a question, and never guess: if it is unclear which intake is meant, ask instead. The app carries it out and confirms it to the user with an undo button, so with a tool call write at most one short sentence and do not claim it is done.
-- You can prepare a new substance for the user's stack with the tool substanz_anlegen when they ask you to add one ("leg BPC-157 an, 250 mcg morgens"). Take only what the user said: name, and if they said it the form, the amount per intake with its unit, the times and the days. Never fill in an amount, unit or schedule the user did not say, and never suggest one. The app opens the setup prefilled; the user checks and saves it there, so do not claim it is saved.
+- You can prepare a new substance for the user's stack with the tool substanz_anlegen when they ask you to add one ("leg BPC-157 an, 250 mcg morgens"). Take only what the user said: name, and if they said it the form, the amount per intake with its unit, the times and the days. Never fill in an amount, unit or schedule the user did not say, and never suggest one. If the user names an amount without its unit, ask for the unit instead of guessing. The app opens the setup prefilled; the user checks and saves it there, so do not claim it is saved.
 - You cannot change existing plans, doses or times for the future yet ("ab jetzt immer 21 Uhr"), and cannot log injection sites. If asked, say so and point to My Stack.
 - Use only the user data you are given. If something is not in the data, say you can't see it. Never invent values, dates or substances.
 
@@ -159,7 +159,7 @@ export const WERKZEUGE = [{
       form: { type: 'string', enum: [...DARREICHUNGSFORMEN, ''], description: 'Dosage form if the user said it, otherwise empty.' },
       menge: { type: 'string', description: 'Amount per intake as a number the user said (e.g. "250"), otherwise empty.' },
       einheit: { type: 'string', description: 'Unit of that amount as the user said it (mcg, mg, g, IU, ml, Tablette …), otherwise empty.' },
-      zeiten: { type: 'array', items: { type: 'string' }, description: 'Times of day the user said: "morgens", "mittags", "abends" or HH:MM. Empty if not said.' },
+      zeiten: { type: 'array', items: { type: 'string' }, description: 'Times of day the user said: "morning", "midday", "evening" or HH:MM (24 h). Empty if not said.' },
       rhythmus: { type: 'string', enum: ['taeglich', 'wochentage', 'alle_n_tage', 'bei_bedarf', ''], description: 'Which days, if the user said it.' },
       wochentage: { type: 'array', items: { type: 'string', enum: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] }, description: 'Only for rhythmus wochentage.' },
       alle_n_tage: { type: 'string', description: 'Only for rhythmus alle_n_tage: the number of days, e.g. "3".' },
@@ -179,7 +179,11 @@ export interface Anlage {
   alleNTage: number | null
 }
 
-const TAGESZEIT: Record<string, 'morning' | 'midday' | 'evening'> = { morgens: 'morning', mittags: 'midday', abends: 'evening' }
+// Deutsch und Englisch; „nachts" zählt zum Abend, eine Nacht-Tageszeit kennt der Plan nicht
+const TAGESZEIT: Record<string, 'morning' | 'midday' | 'evening'> = {
+  morgens: 'morning', mittags: 'midday', abends: 'evening', nachts: 'evening',
+  morning: 'morning', midday: 'midday', noon: 'midday', evening: 'evening', night: 'evening',
+}
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 /** Prüft die Anlagen, die das Modell vorbereiten will. Ungültiges fällt weg bzw. bleibt leer. */

@@ -62,7 +62,7 @@ import { StrengthEditor } from './StrengthEditor'
 import { SubstanceSearch } from './SubstanceSearch'
 import { SubstanzScanner } from './SubstanzScanner'
 import { scanAktionen, type ScanVorschlag } from '../lib/substanzScan'
-import { anlageAktionen, type DotAnlage } from '../lib/dotAnlage'
+import { anlageAnwenden, type DotAnlage } from '../lib/dotAnlage'
 import { reportError } from '../../../lib/monitoring'
 import { aufbrauchenBis, gueltigeFluessigkeit, gueltigeHaltbarkeit, haltbarkeitArt } from '../lib/bestand'
 
@@ -305,7 +305,7 @@ export function StackItemWizard({
       }
       // Von Dot vorbereitet: wie nach einem Scan, dazu Menge, Zeiten und Tage
       if (dotAnlage && !existingItem && !planEditContext) {
-        return anlageAktionen(dotAnlage, catalogEntries, initialColorHex).reduce(wizardReducer, initial)
+        return anlageAnwenden(dotAnlage, catalogEntries, initial, initialColorHex)
       }
       return initial
     },
