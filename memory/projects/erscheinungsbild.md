@@ -37,3 +37,22 @@ https://claude.ai/artifact/GESYSbSrfeoXxYuE8BZpa6
   Blutspiegel, Lichtimpuls beim Eintragen einer Dosis. Technik dafür steht in
   `src/components/ambient/` (Claims für Farbe und Helligkeit je Licht).
 - Entscheiden, ob Nacht Schwarz als Standard ablöst.
+
+## App-Icon (26.10.2026)
+
+Nutzer: Icon soll Dot sein; aus drei Konzepten (Kugel, Punkt, Bahn) **A · Kugel**
+gewählt („A ist schon am besten"). Kugel aus 71 Punkten vorn + 79 gedämpften hinten (Größen stark gestreut, Leuchtpunkte wie im Shader; Nutzer 26.10.: „mehr Ungleichmäßigkeit, bessere Qualität"; eine Kontrast-Fassung mit fast schwarzem Grund und abgedunkelten Randpunkten lehnte der Nutzer ab: „Das davor war doch besser" – Stand 68eef72 gilt),
+Dots Farben (Cyan → Violett, Pink unten), dunkle Kachel `#05060a` → `#141c33`.
+Quelle `docs/logo/dot/kit.py`, Kit und Regeln in `docs/logo/dot/kit/README.md`.
+Eingebaut: iOS `AppIcon-512@2x.png`, Android `mipmap-*` + Hintergrundfarbe, Web
+`public/icon.svg`, `favicon.svg`, `icon-192/512.png`. Die alten Icons (iOS blaues
+Kreuz auf Weiß, Web Durchstechflasche) sind damit abgelöst.
+Offen: iOS-26-Ebenen in Icon Composer (`kit/ebenen/`), Gerätetest, getönte Icons.
+`scripts/gen-icons.cjs` braucht `@resvg/resvg-js` (nicht installiert) — PNGs kamen
+aus Playwright.
+
+**Fassung 2 (26.10.2026, Nutzer: „Das Logo soll ihn nachahmen“):** Icon ist Dot selbst,
+gerendert mit dem Zeichenweg der Engine (`docs/logo/dot/echt/dot-icon.html`, Export
+`export.cjs`): 460 Punkte, Shader, Farben und Schein wie in `dotEngine.ts`, Zustand
+„Sprechen“ für mehr Präsenz. Ersetzt die gezeichnete Kugel (Fassung 1, Commit 68eef72).
+Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/README.md`.
