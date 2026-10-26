@@ -125,3 +125,17 @@
   .tyd-dot-chat, .tyd-dot-chat[data-offen='true'] { transition: visibility 0s; }
   .tyd-dot-blase { transition: opacity 150ms ease; scale: 1; }
 }
+
+/* ── Dot im Kleinen (DotZeichen.tsx) ──────────────────────────────────────── */
+/* Arbeitet: langsam drehen (gleichmäßig) und atmen; einzelne Punkte funkeln. */
+.tyd-dot-arbeitet { display: inline-flex; animation: tyd-dot-atmen 1.6s cubic-bezier(0.77, 0, 0.175, 1) infinite alternate; }
+.tyd-dot-arbeitet .tyd-dot-kugel { animation: tyd-dot-drehen 3.2s linear infinite; }
+.tyd-dot-arbeitet .tyd-dot-funke { animation: tyd-dot-funkeln 0.9s ease-in-out infinite alternate; }
+@keyframes tyd-dot-drehen { to { transform: rotate(360deg); } }
+@keyframes tyd-dot-atmen { from { transform: scale(0.94); opacity: 0.8; } to { transform: scale(1.04); opacity: 1; } }
+@keyframes tyd-dot-funkeln { from { opacity: 0.25; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .tyd-dot-arbeitet { animation: tyd-dot-puls 1.6s ease-in-out infinite alternate; }
+  .tyd-dot-arbeitet .tyd-dot-kugel, .tyd-dot-arbeitet .tyd-dot-funke { animation: none; }
+}
+@keyframes tyd-dot-puls { from { opacity: 0.55; } to { opacity: 1; } }
