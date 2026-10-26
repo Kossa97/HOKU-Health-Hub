@@ -14,6 +14,7 @@ FONTS = {
     "id-semibold": INTER + "InterDisplay-SemiBold.otf",
     "id-medium": INTER + "InterDisplay-Medium.otf",
     "id-regular": INTER + "InterDisplay-Regular.otf",
+    "id-light": INTER + "InterDisplay-Light.otf",
     "sg-500": os.path.join(SG, "SpaceGrotesk-500.ttf"),
 }
 _cache = {}
@@ -111,30 +112,34 @@ def bauen(name, title, parts, w, h):
     save(f"{name}.svg", svg(w, h, "".join(schwarz), title))
     save(f"{name}-farbe.svg", svg(w, h, "".join(farbe), title, bg="#05060a"))
 
-H = 256
-# ---- A: „dot“ mit Dot als Schlusspunkt (Inter Display SemiBold) ----
-k = "id-semibold"; upm, xh, cap = metrics(k); size = 150; base = 150
-d1, x_end = text(k, "dot", size, 24, base, track=-0.035)
-xhpx = xh * size / upm
-r = xhpx * 0.25; kx = x_end + size * 0.035 + r; ky = base - r
-d2, x2 = text("id-medium", "Health Tracker", size * 0.19, 30, base + 52, track=0.0)
-bauen("a-schlusspunkt", "Dot: Health Tracker – Schlusspunkt", [("text", (d1, "name")), ("kugel", (kx, ky, r)), ("text", (d2, "zusatz"))], max(kx + r + 24, x2 + 24), H)
+def konzepte():
+    H = 256
+    # ---- A: „dot“ mit Dot als Schlusspunkt (Inter Display SemiBold) ----
+    k = "id-semibold"; upm, xh, cap = metrics(k); size = 150; base = 150
+    d1, x_end = text(k, "dot", size, 24, base, track=-0.035)
+    xhpx = xh * size / upm
+    r = xhpx * 0.25; kx = x_end + size * 0.035 + r; ky = base - r
+    d2, x2 = text("id-medium", "Health Tracker", size * 0.19, 30, base + 52, track=0.0)
+    bauen("a-schlusspunkt", "Dot: Health Tracker – Schlusspunkt", [("text", (d1, "name")), ("kugel", (kx, ky, r)), ("text", (d2, "zusatz"))], max(kx + r + 24, x2 + 24), H)
 
-# ---- B: Das o ist Dot (Space Grotesk 500) ----
-k = "sg-500"; upm, xh, cap = metrics(k); size = 150; base = 150
-dD, xD = text(k, "D", size, 24, base)
-xhpx = xh * size / upm; r = xhpx * 0.53
-ox = xD + size * 0.012 + r; oy = base - xhpx / 2
-dT, xT = text(k, "t", size, ox + r + size * 0.018, base)
-d2, x2 = text("id-medium", "Health Tracker", size * 0.19, 30, base + 52)
-bauen("b-o-ist-dot", "Dot: Health Tracker – das o ist Dot", [("text", (dD, "name")), ("kugel", (ox, oy, r)), ("text", (dT, "name")), ("text", (d2, "zusatz"))], max(xT, x2) + 24, H)
+    # ---- B: Das o ist Dot (Space Grotesk 500) ----
+    k = "sg-500"; upm, xh, cap = metrics(k); size = 150; base = 150
+    dD, xD = text(k, "D", size, 24, base)
+    xhpx = xh * size / upm; r = xhpx * 0.53
+    ox = xD + size * 0.012 + r; oy = base - xhpx / 2
+    dT, xT = text(k, "t", size, ox + r + size * 0.018, base)
+    d2, x2 = text("id-medium", "Health Tracker", size * 0.19, 30, base + 52)
+    bauen("b-o-ist-dot", "Dot: Health Tracker – das o ist Dot", [("text", (dD, "name")), ("kugel", (ox, oy, r)), ("text", (dT, "name")), ("text", (d2, "zusatz"))], max(xT, x2) + 24, H)
 
-# ---- C: Zeichen + Wortmarke + Zusatz (Inter Display Medium / Regular) ----
-k = "id-medium"; upm, xh, cap = metrics(k); size = 132; capx = cap * size / upm
-zs = size * 0.3; base1 = 128 - 4; base2 = base1 + zs * 1.45
-blockTop = base1 - capx; blockBot = base2
-r = (blockBot - blockTop) / 2 * 1.06; kcx = 48 + r; kcy = (blockTop + blockBot) / 2
-tx = kcx + r + r * 0.42
-d1, x1 = text(k, "Dot", size, tx, base1, track=-0.03)
-d2, x2 = text("id-regular", "Health Tracker", zs, tx + size * 0.012, base2, track=0.005)
-bauen("c-lockup", "Dot: Health Tracker – Zeichen und Wortmarke", [("kugel", (kcx, kcy, r)), ("text", (d1, "name")), ("text", (d2, "zusatz"))], max(x1, x2) + 48, H)
+    # ---- C: Zeichen + Wortmarke + Zusatz (Inter Display Medium / Regular) ----
+    k = "id-medium"; upm, xh, cap = metrics(k); size = 132; capx = cap * size / upm
+    zs = size * 0.3; base1 = 128 - 4; base2 = base1 + zs * 1.45
+    blockTop = base1 - capx; blockBot = base2
+    r = (blockBot - blockTop) / 2 * 1.06; kcx = 48 + r; kcy = (blockTop + blockBot) / 2
+    tx = kcx + r + r * 0.42
+    d1, x1 = text(k, "Dot", size, tx, base1, track=-0.03)
+    d2, x2 = text("id-regular", "Health Tracker", zs, tx + size * 0.012, base2, track=0.005)
+    bauen("c-lockup", "Dot: Health Tracker – Zeichen und Wortmarke", [("kugel", (kcx, kcy, r)), ("text", (d1, "name")), ("text", (d2, "zusatz"))], max(x1, x2) + 48, H)
+
+if __name__ == "__main__":
+    konzepte()

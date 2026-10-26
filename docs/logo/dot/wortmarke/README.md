@@ -21,3 +21,17 @@ Neu erzeugen: `PYTHONPATH=<fonttools> python3 bauen.py . <ordner mit SpaceGrotes
 
 Prüfung (`svg_audit`): alle drei 82–83/100; Warnungen nur für die vielen kleinen Punkte der Kugel (gehört zu Dot).
 Unter 32 px trägt die Kugel keine Punkte mehr → dort nur das App-Icon verwenden, nicht den Schriftzug.
+
+## Varianten zu C (Runde 2, Nutzer wählte C)
+
+`varianten.py` baut sieben Fassungen, je schwarz und `-farbe`; Übersicht `varianten-farbe.png`, `varianten-schwarz.png`.
+
+| Datei | Unterschied |
+|---|---|
+| `c1-basis` | Inter Display Medium / Regular, Kugel über beide Zeilen |
+| `c2-kraeftig` | „Dot“ SemiBold, Zusatz in Versalien mit Sperrung |
+| `c3-leicht` | „Dot“ Light, eleganter, bei kleinen Größen schwächer |
+| `c4-zeile` | alles in einer Zeile, für breite Banner und Kopfzeilen |
+| `c5-kompakt` | Kugel nur so hoch wie der Name, Zusatz darunter |
+| `c6-gestapelt` | Kugel oben, Text zentriert darunter, für quadratische Formate |
+| `c7-app-schrift` | „Dot“ in Space Grotesk, der Überschriftenschrift der App |
