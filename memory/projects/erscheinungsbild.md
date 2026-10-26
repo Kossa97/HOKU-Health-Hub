@@ -41,7 +41,7 @@ https://claude.ai/artifact/GESYSbSrfeoXxYuE8BZpa6
 ## App-Icon (26.10.2026)
 
 Nutzer: Icon soll Dot sein; aus drei Konzepten (Kugel, Punkt, Bahn) **A · Kugel**
-gewählt („A ist schon am besten"). Kugel aus 71 Punkten vorn + 79 gedämpften hinten (Größen stark gestreut, Leuchtpunkte wie im Shader; Nutzer 26.10.: „mehr Ungleichmäßigkeit, bessere Qualität", dann „mehr Kontrast": Grund fast schwarz, Punkte nach Tiefe abgedunkelt, Palette satter),
+gewählt („A ist schon am besten"). Kugel aus 71 Punkten vorn + 79 gedämpften hinten (Größen stark gestreut, Leuchtpunkte wie im Shader; Nutzer 26.10.: „mehr Ungleichmäßigkeit, bessere Qualität"),
 Dots Farben (Cyan → Violett, Pink unten), dunkle Kachel `#05060a` → `#141c33`.
 Quelle `docs/logo/dot/kit.py`, Kit und Regeln in `docs/logo/dot/kit/README.md`.
 Eingebaut: iOS `AppIcon-512@2x.png`, Android `mipmap-*` + Hintergrundfarbe, Web
