@@ -32,13 +32,14 @@ const FS = 'precision highp float; varying vec4 vC; void main(){ float d = lengt
 
 // opts: size, radius (Anteil der Kantenlänge), rot, tilt, hue, bright, glow, breath, phases, layers: {tile, glow, points}
 window.renderDot = function (o) {
-  const S = o.size, R = S * o.radius, cx = S / 2, cy = S / 2 + (o.dy || 0) * S
-  const out = document.createElement('canvas'); out.width = out.height = S
+  const S = o.size, Wd = o.w || S, Ht = o.h || S, R = Math.min(Wd, Ht) * o.radius, cx = Wd / 2, cy = Ht / 2 + (o.dy || 0) * Ht
+  const out = document.createElement('canvas'); out.width = Wd; out.height = Ht
   const ctx = out.getContext('2d')
   if (o.layers.tile) {
-    const g = ctx.createRadialGradient(S * 0.5, S * 0.4, 0, S * 0.5, S * 0.4, S * 0.62 * 1.414)
+    const M = Math.max(Wd, Ht), gy = Wd === Ht ? Ht * 0.4 : cy - R * 0.3
+    const g = ctx.createRadialGradient(Wd * 0.5, gy, 0, Wd * 0.5, gy, M * 0.62 * 1.414)
     g.addColorStop(0, '#141c33'); g.addColorStop(1, '#05060a')
-    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S)
+    ctx.fillStyle = g; ctx.fillRect(0, 0, Wd, Ht)
   }
   if (o.layers.glow) {
     const g = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2)
@@ -46,8 +47,9 @@ window.renderDot = function (o) {
     ctx.fillStyle = g; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4)
   }
   if (o.layers.points) {
-    const gc = document.createElement('canvas'); gc.width = gc.height = S
-    const gl = gc.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: true, preserveDrawingBuffer: true })
+    const gc = document.createElement('canvas'); gc.width = Wd; gc.height = Ht
+    const gl = gc.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: Wd * Ht <= 4096 * 4096, preserveDrawingBuffer: true })
+    if (!gl) throw new Error('WebGL nicht verfügbar für ' + Wd + 'x' + Ht)
     const sh = (t, src) => { const x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); return x }
     const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr)
     const pts = fib(o.n || 460), data = []
@@ -69,8 +71,8 @@ window.renderDot = function (o) {
     const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
     const at = (n, k, off) => { const l = gl.getAttribLocation(pr, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, k, gl.FLOAT, false, 28, off) }
     at('aP', 2, 0); at('aS', 1, 8); at('aC', 4, 12)
-    gl.uniform2f(gl.getUniformLocation(pr, 'uR'), S, S)
-    gl.viewport(0, 0, S, S); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.uniform2f(gl.getUniformLocation(pr, 'uR'), Wd, Ht)
+    gl.viewport(0, 0, Wd, Ht); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT)
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE)
     gl.drawArrays(gl.POINTS, 0, pts.length)
     ctx.globalCompositeOperation = 'source-over'
@@ -92,16 +94,17 @@ window.dotSvg = function (o) {
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>TYD – Dot</title><g fill="${o.fill || '#000'}">${out.join('')}</g></svg>`
 }
-// Hochwertig verkleinern: schrittweise halbieren
+// Hochwertig verkleinern: schrittweise halbieren (size = Breite; Höhe folgt dem Seitenverhältnis)
 window.downscale = function (src, size) {
+  const ar = src.height / src.width
   let c = src
   while (c.width / 2 >= size) {
-    const n = document.createElement('canvas'); n.width = n.height = c.width / 2
+    const n = document.createElement('canvas'); n.width = Math.round(c.width / 2); n.height = Math.round(c.width / 2 * ar)
     const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, n.width, n.height); c = n
   }
   if (c.width !== size) {
-    const n = document.createElement('canvas'); n.width = n.height = size
-    const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, size, size); c = n
+    const n = document.createElement('canvas'); n.width = size; n.height = Math.round(size * ar)
+    const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, n.width, n.height); c = n
   }
   return c
 }
