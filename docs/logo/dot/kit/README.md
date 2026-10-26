@@ -1,36 +1,44 @@
-# Dot-Kugel – App-Icon-Kit (26.10.2026)
+# Dot – App-Icon-Kit (26.10.2026, Fassung 2: „Dot, wie er ist“)
 
-Gewählte Richtung: **A · Kugel** (Nutzer: „A ist schon am besten“). Alles hier erzeugt
-`kit.py` (`python3 -I docs/logo/dot/kit.py docs/logo/dot/kit`), gerastert mit Playwright.
+Nutzer: „Das Logo soll ihn nachahmen.“ Das Icon ist deshalb kein gezeichnetes Zeichen
+mehr, sondern Dot selbst, gerendert mit demselben Zeichenweg wie
+`src/features/dot/engine/dotEngine.ts`. Fassung 1 (gezeichnete Kugel mit 71 + 79 Punkten)
+liegt in der Git-Geschichte (Commit 68eef72).
 
-## Idee
-Dot, wie er in der App lebt: eine Kugel aus leuchtenden Punkten, ohne Augen. Vorderseite
-71 Punkte (groß, hell), Rückseite 79 Punkte (klein, gedämpft) – dadurch liest sich die
-Kugel als Körper, nicht als Scheibe. Punktgrößen stark gestreut (Nutzer 26.10.: „mehr
-Ungleichmäßigkeit“): Faktor 0,5–1,6 mit Potenzverteilung, viele kleine, wenige große.
-Jeder Punkt ist ein Leuchtpunkt wie `gl.POINTS` im Shader: voller Kern, kurzer weicher
-Abfall, leichte Aufhellung in der Mitte; dazu ein weiter Schein (Weichzeichner 46).
-Verworfen (Nutzer 26.10.): eine Kontrast-Fassung mit fast schwarzem Grund und zum Rand
-abgedunkelten Punkten – diese Fassung hier ist die gültige. Farben wie in `dotEngine.ts`: Cyan → Violett
-diagonal, Pink unten. Dunkle Kachel wie der Look „Nacht“.
+## Wie es entsteht
+- `docs/logo/dot/echt/dot-icon.html` – Renderer: 460 Punkte als Fibonacci-Kugel, Neigung
+  0,38, Drehung 0,6, Tiefe z = 0,1 + 0,85·f², Punktgröße 0,034·r·(0,55 + 0,6·z)·3,
+  Farbe Cyan → Violett diagonal mit Pink unten (Farbton 0,45), WebGL-Punkte mit dem
+  Shader der Engine (Kern bis 0,42, Abfall bis 0,62, Saum bis 1,0), additiv; Schein
+  rgba(70,170,255) / rgba(150,110,255) von 0,2·r bis 2·r; Rand atmet leicht (3 Wellen,
+  Stärke 0,02 wie „Gelee“). Gerendert auf 2048, dann schrittweise verkleinert.
+- `docs/logo/dot/echt/export.cjs` – schreibt alle Dateien (`node docs/logo/dot/echt/export.cjs $PWD`).
+- Werte: Zustand „Sprechen“ (Helligkeit 1,0, Schein 0,65) statt „Ruhe“ (0,85 / 0,4),
+  weil er auf dem Home-Bildschirm sonst zu blass ist. Kugeldurchmesser 66 % der Kachel.
+- Abgleich mit dem echten Dot auf der Chat-Bühne des Mockups: gleiche Punktanordnung,
+  Größen, Farben und Weichheit.
 
 ## Dateien
 | Datei | Zweck |
 |---|---|
-| `dot-kugel.svg` | Marke schwarz, 256er Raster, Vorderseite (Master für Druck/Einfarbig) |
-| `dot-kugel-klein-marke.svg` | Marke mit 27 Punkten für ≤ 32 px |
-| `dot-kugel-icon.svg` / `-1024.png` | App-Icon 1024, deckend, ohne Transparenz (App Store) |
-| `ebenen/*.svg` + `.png` | Vier Ebenen für Icon Composer (iOS 26): Hintergrund (deckend), Schein, Punkte hinten, Punkte vorn (transparent) |
-| `android-foreground.svg` | Vordergrund des adaptiven Icons, Kugel in der sicheren Zone (66 dp) |
-| `dot-kugel-klein.svg` / `favicon-64.png` | Favicon-Fassung, ohne Weichzeichner |
-| `varianten/` | einfarbig schwarz, weiß, Cyan `#6ee6ff` |
+| `dot-icon-1024.png` | App-Store-Icon, deckend |
+| `ebenen/hintergrund.png`, `schein.png`, `punkte.png` | Ebenen für Icon Composer (iOS 26) |
+| `favicon-64.png`, `favicon-32.png` | Kleinfassung: Kugel größer und heller, sonst zerfällt sie unter 32 px |
+| `dot-marke.svg` | einfarbige Vektor-Fassung (Vorderseite, 315 Punkte) für Druck, Prägung, Einfarbig |
+| `varianten/` | Marke schwarz, weiß, Cyan `#6ee6ff` (aus `export_variants.py` des Skills) |
+| `eingebaut.png` | Übersicht aller eingebauten Dateien |
 
 ## Eingebaut
-- iOS: `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` (1024, deckend).
-- Android: `mipmap-*/ic_launcher.png` (abgerundet), `ic_launcher_round.png`,
-  `ic_launcher_foreground.png` (108 dp Raster), Hintergrund `#05060a`.
-- Web/PWA: `public/icon.svg`, `public/favicon.svg`, `icon-192.png`, `icon-512.png`
-  (über `node scripts/gen-icons.cjs`).
+- iOS `AppIcon-512@2x.png` (1024, deckend).
+- Android `mipmap-*`: `ic_launcher` (abgerundet), `ic_launcher_round`, `ic_launcher_foreground`
+  (108 dp, Kugel in der sicheren Zone), Hintergrund `#05060a`.
+- Web: `icon-192.png`, `icon-512.png`; `icon.svg` und `favicon.svg` betten das Raster ein
+  (additive Leuchtpunkte gibt es in SVG nicht). `scripts/gen-icons.cjs` wird nicht mehr gebraucht.
+
+## Geprüft (Testblatt des Skills `logo-design`)
+- Marke: hält Schwarz, Weiß, Markenfarbe, Foto, Muster, Spiegeln, 180°, Unschärfe.
+- Farb-Icon: ab 40 px als Dots Kugel lesbar; bei 16–24 px nur noch leuchtender Ball → Kleinfassung.
+- `svg_audit`: Marke 92/100, einzige Warnung: 630 Ankerpunkte. Das ist Dot (460 Punkte) und bewusst so.
 
 ## Farben
 | | RGB | HEX |
@@ -40,13 +48,6 @@ diagonal, Pink unten. Dunkle Kachel wie der Look „Nacht“.
 | Pink | 255 120 200 | `#ff78c8` |
 | Kachel | 5 6 10 → 20 28 51 (radial) | `#05060a` → `#141c33` |
 
-## Regeln
-- Mindestgröße der Vollfassung 40 px; darunter `dot-kugel-klein`.
-- Schutzzone um die Kugel: ein Punktdurchmesser (≈ 10 % der Kugel).
-- Nicht: Augen, Umriss, andere Farben, auf hellem Grund ohne Kachel (dort die schwarze Marke).
-- Keine Transparenz im App-Store-Export; iOS maskiert selbst.
-
 ## Offen
-- iOS 26: Ebenen in Icon Composer zu einem `.icon` zusammensetzen (Xcode 26); bis dahin gilt das flache 1024er.
-- Android: alte Launcher zeigen `ic_launcher.png` abgerundet; neuere maskieren Vorder-/Hintergrund.
+- iOS 26: Ebenen in Icon Composer zu einem `.icon` zusammensetzen; bis dahin gilt das flache 1024er.
 - Gerätetest: Home-Bildschirm hell/dunkel, getönte Icons (iOS 18+), Spotlight.

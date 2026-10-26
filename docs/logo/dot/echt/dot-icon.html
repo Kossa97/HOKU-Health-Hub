@@ -1,0 +1,108 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Dot – Icon-Renderer</title>
+<!--
+  Zeichnet Dot so, wie src/features/dot/engine/dotEngine.ts ihn in Ruhe zeichnet:
+  460 Punkte als Fibonacci-Kugel, Neigung 0,38, Tiefe z = 0,1 + 0,85·f², Helligkeit 0,85,
+  Punktgröße 0,034·r·(0,55 + 0,6·z)·3, Farbe Cyan→Violett diagonal mit Pink unten,
+  Shader wie dort (Kern bis 0,42, Abfall bis 0,62, Saum bis 1,0), additiv; Schein
+  rgba(70,170,255) / rgba(150,110,255) von 0,2·r bis 2·r; Rand atmet leicht (3 Wellen).
+  Aufruf über window.renderDot(opts) → Canvas; benutzt von render.cjs.
+-->
+<body style="margin:0;background:#000">
+<script>
+const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200]
+const clamp01 = v => Math.max(0, Math.min(1, v))
+function dotColor(X, Y, hue) {
+  const m = clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7)
+  let r = CYAN[0] + (VIOLET[0] - CYAN[0]) * m, g = CYAN[1] + (VIOLET[1] - CYAN[1]) * m, b = CYAN[2] + (VIOLET[2] - CYAN[2]) * m
+  if (Y > 0.55) { const q = Math.min(1, (Y - 0.55) * 1.4); r += (PINK[0] - r) * q; g += (PINK[1] - g) * q; b += (PINK[2] - b) * q }
+  return [r, g, b]
+}
+function fib(n) {
+  const pts = [], ga = Math.PI * (3 - Math.sqrt(5))
+  for (let i = 0; i < n; i++) {
+    const y = 1 - (2 * (i + 0.5)) / n, r = Math.sqrt(1 - y * y), th = ga * i
+    pts.push({ x: Math.cos(th) * r, y, z: Math.sin(th) * r })
+  }
+  return pts
+}
+const VS = 'attribute vec2 aP; attribute float aS; attribute vec4 aC; uniform vec2 uR; varying vec4 vC; void main(){ vec2 p = aP / uR * 2.0 - 1.0; gl_Position = vec4(p.x, -p.y, 0.0, 1.0); gl_PointSize = aS; vC = aC; }'
+const FS = 'precision highp float; varying vec4 vC; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = d < 0.42 ? 1.0 : (d < 0.62 ? mix(0.95, 0.4, (d - 0.42) / 0.2) : max(0.0, 0.4 * (1.0 - (d - 0.62) / 0.38))); a *= vC.a; gl_FragColor = vec4(vC.rgb * a, a); }'
+
+// opts: size, radius (Anteil der Kantenlänge), rot, tilt, hue, bright, glow, breath, phases, layers: {tile, glow, points}
+window.renderDot = function (o) {
+  const S = o.size, R = S * o.radius, cx = S / 2, cy = S / 2 + (o.dy || 0) * S
+  const out = document.createElement('canvas'); out.width = out.height = S
+  const ctx = out.getContext('2d')
+  if (o.layers.tile) {
+    const g = ctx.createRadialGradient(S * 0.5, S * 0.4, 0, S * 0.5, S * 0.4, S * 0.62 * 1.414)
+    g.addColorStop(0, '#141c33'); g.addColorStop(1, '#05060a')
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S)
+  }
+  if (o.layers.glow) {
+    const g = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2)
+    g.addColorStop(0, `rgba(70,170,255,${0.18 * o.glow})`); g.addColorStop(0.5, `rgba(150,110,255,${0.08 * o.glow})`); g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4)
+  }
+  if (o.layers.points) {
+    const gc = document.createElement('canvas'); gc.width = gc.height = S
+    const gl = gc.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: true, preserveDrawingBuffer: true })
+    const sh = (t, src) => { const x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); return x }
+    const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr)
+    const pts = fib(o.n || 460), data = []
+    const rc = Math.cos(o.rot), rs = Math.sin(o.rot), ct = Math.cos(o.tilt), st = Math.sin(o.tilt)
+    const ph = o.phases, br = o.breath
+    const dotR = 0.034 * R
+    for (const p of pts) {
+      const X = p.x * rc + p.z * rs, Z0 = -p.x * rs + p.z * rc
+      const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2
+      const z = 0.1 + 0.85 * f * f
+      const th = Math.atan2(Y, X)
+      const ur = br * (Math.sin(2 * th + ph[0]) + 0.7 * Math.sin(3 * th + ph[1]) + 0.4 * Math.sin(5 * th + ph[2]))
+      const s = 1 + ur
+      const c = dotColor(X, Y, o.hue)
+      const alpha = clamp01(z * o.bright)
+      const sz = dotR * (0.55 + 0.6 * z) * 3 * (o.sizeMul || 1)
+      data.push(cx + X * R * s, cy + Y * R * s, sz, c[0] / 255, c[1] / 255, c[2] / 255, alpha)
+    }
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
+    const at = (n, k, off) => { const l = gl.getAttribLocation(pr, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, k, gl.FLOAT, false, 28, off) }
+    at('aP', 2, 0); at('aS', 1, 8); at('aC', 4, 12)
+    gl.uniform2f(gl.getUniformLocation(pr, 'uR'), S, S)
+    gl.viewport(0, 0, S, S); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE)
+    gl.drawArrays(gl.POINTS, 0, pts.length)
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.drawImage(gc, 0, 0)
+  }
+  return out
+}
+// Einfarbige Vektor-Fassung: Vorderseite (z > 0,35) als volle Kreise, Groesse wie in der Engine
+window.dotSvg = function (o) {
+  const S = 256, R = S * o.radius, cx = S / 2, cy = S / 2, out = []
+  const rc = Math.cos(o.rot), rs = Math.sin(o.rot), ct = Math.cos(o.tilt), st = Math.sin(o.tilt), ph = o.phases
+  for (const p of fib(o.n || 460)) {
+    const X = p.x * rc + p.z * rs, Z0 = -p.x * rs + p.z * rc
+    const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2, z = 0.1 + 0.85 * f * f
+    if (z < 0.35) continue
+    const th = Math.atan2(Y, X), s = 1 + o.breath * (Math.sin(2 * th + ph[0]) + 0.7 * Math.sin(3 * th + ph[1]) + 0.4 * Math.sin(5 * th + ph[2]))
+    const r = 0.034 * R * (0.55 + 0.6 * z) * 3 * 0.42 * (o.dotMul || 1)
+    out.push(`<circle cx="${(cx + X * R * s).toFixed(2)}" cy="${(cy + Y * R * s).toFixed(2)}" r="${r.toFixed(2)}"/>`)
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>TYD – Dot</title><g fill="${o.fill || '#000'}">${out.join('')}</g></svg>`
+}
+// Hochwertig verkleinern: schrittweise halbieren
+window.downscale = function (src, size) {
+  let c = src
+  while (c.width / 2 >= size) {
+    const n = document.createElement('canvas'); n.width = n.height = c.width / 2
+    const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, n.width, n.height); c = n
+  }
+  if (c.width !== size) {
+    const n = document.createElement('canvas'); n.width = n.height = size
+    const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, size, size); c = n
+  }
+  return c
+}
+</script>

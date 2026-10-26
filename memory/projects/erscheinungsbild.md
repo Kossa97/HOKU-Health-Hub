@@ -50,3 +50,9 @@ Kreuz auf Weiß, Web Durchstechflasche) sind damit abgelöst.
 Offen: iOS-26-Ebenen in Icon Composer (`kit/ebenen/`), Gerätetest, getönte Icons.
 `scripts/gen-icons.cjs` braucht `@resvg/resvg-js` (nicht installiert) — PNGs kamen
 aus Playwright.
+
+**Fassung 2 (26.10.2026, Nutzer: „Das Logo soll ihn nachahmen“):** Icon ist Dot selbst,
+gerendert mit dem Zeichenweg der Engine (`docs/logo/dot/echt/dot-icon.html`, Export
+`export.cjs`): 460 Punkte, Shader, Farben und Schein wie in `dotEngine.ts`, Zustand
+„Sprechen“ für mehr Präsenz. Ersetzt die gezeichnete Kugel (Fassung 1, Commit 68eef72).
+Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/README.md`.
