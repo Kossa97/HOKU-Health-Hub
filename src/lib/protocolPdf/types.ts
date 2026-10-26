@@ -13,8 +13,12 @@ export interface PdfDateRange {
 export interface PdfProfile {
   display_name: string | null
   username: string | null
+  /** Aus dem Geburtsdatum berechnet; sonst die alte Angabe `profiles.age`. */
   age: number | null
+  /** Alte Freitext-Angabe (`profiles.gender`), nur wenn bio_sex fehlt. */
   gender: string | null
+  /** Biologisches Geschlecht — dieselbe Angabe wie bei den Blutwerten. */
+  bio_sex?: 'male' | 'female' | null
   height_cm: number | null
   weight_kg: number | null
 }
@@ -50,12 +54,19 @@ export interface PdfBloodwork {
   unit: string | null
 }
 
+/** Eine Zeile je Beobachtung (Chip); ältere Einträge ohne Chips als Ganzes. */
 export interface PdfEffect {
   type: 'effect' | 'side_effect'
+  /** Titel des Eintrags. */
   description: string
   severity: number
   stack_item_name: string | null
   occurred_at: string
+  /** Chip: Katalog-Schlüssel oder eigener Name — fehlen beide, gilt der Titel. */
+  symptom_key?: string | null
+  custom_label?: string | null
+  duration_minutes?: number | null
+  ongoing?: boolean
 }
 
 export interface PdfReview {

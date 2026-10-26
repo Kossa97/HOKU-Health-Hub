@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FEATURES } from '../../../config/features'
 import type { CycleTimeline } from '../../../lib/planTimeline'
 vi.mock('../../../config/features', () => ({ FEATURES: { planTimelineV2: false } }))
-import { evaluatePkReadiness, mgPerMlFromStrength, resolvePkScheduleForDay, toPkMilligrams } from './pkReadiness'
+import { evaluatePkReadiness, mgPerMlFromStrength, pkRouteStatus, resolvePkScheduleForDay, toPkMilligrams } from './pkReadiness'
 import type { EscalationRow, ScheduleCycle } from '../../../lib/intakeSchedule'
 
 const readyInput = {
@@ -284,5 +284,38 @@ describe('evaluatePkReadiness — in Millilitern geplant', () => {
     const inMl = { ...readyInput, dose: 0.2, unit: 'ml' }
     expect(evaluatePkReadiness(inMl).status).toBe('unsupported')
     expect(evaluatePkReadiness({ ...inMl, mgPerMl: 2.5 }).status).toBe('ready')
+  })
+})
+
+describe('PK-Route aus dem Profil', () => {
+  it('nimmt eine Route, die das Profil nennt, ohne Bestaetigung', () => {
+    expect(pkRouteStatus('subkutan ', null, ['Subkutan'])).toBe('covered')
+    expect(evaluatePkReadiness({ ...readyInput, pkProfileMethod: null, pkProfileRoutes: ['Intramuskulär', 'Subkutan'] }))
+      .toEqual({ status: 'ready' })
+  })
+
+  it('zeigt keine Kurve fuer eine Route, die das Profil nicht nennt', () => {
+    expect(pkRouteStatus('Oral', null, ['Subkutan'])).toBe('mismatch')
+    expect(evaluatePkReadiness({ ...readyInput, pkProfileMethod: null, method: 'Oral', pkProfileRoutes: ['Subkutan'] }))
+      .toEqual({ status: 'unsupported', reason: 'route' })
+  })
+
+  it('verlangt die Bestaetigung nur, wenn das Profil keine Route nennt', () => {
+    expect(pkRouteStatus('Subkutan', null, [])).toBe('unconfirmed')
+    expect(evaluatePkReadiness({ ...readyInput, pkProfileMethod: null, pkProfileRoutes: [] }))
+      .toEqual({ status: 'missing', missing: ['method'] })
+    expect(evaluatePkReadiness({ ...readyInput, pkProfileRoutes: [] })).toEqual({ status: 'ready' })
+  })
+
+  it('laesst keine fruehere Bestaetigung gegen die Routen des Profils gelten', () => {
+    expect(pkRouteStatus('Oral', 'Oral', ['Subkutan'])).toBe('mismatch')
+    expect(evaluatePkReadiness({ ...readyInput, pkProfileMethod: 'Oral', method: 'Oral', pkProfileRoutes: ['Subkutan'] }))
+      .toEqual({ status: 'unsupported', reason: 'route' })
+  })
+
+  it('braucht eine Route im Plan', () => {
+    expect(pkRouteStatus('  ', 'Subkutan', ['Subkutan'])).toBe('no_method')
+    expect(evaluatePkReadiness({ ...readyInput, method: null, pkProfileRoutes: ['Subkutan'] }))
+      .toEqual({ status: 'missing', missing: ['method'] })
   })
 })

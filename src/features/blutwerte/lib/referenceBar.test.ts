@@ -36,6 +36,14 @@ describe('referenceBarGeometry', () => {
     expect(einseitig.valuePercent).toBeCloseTo(beidseitig.valuePercent, 5)
   })
 
+  it('beginnt links nie unter 0, wenn der Bereich nicht negativ ist', () => {
+    const geo = referenceBarGeometry(14, { min: 5, max: 25, source: 'lab' })!
+    expect(geo.scaleMin).toBe(0)
+    expect(geo.scaleMax).toBe(35)
+    expect(geo.zoneStartPercent).toBeCloseTo((5 / 35) * 100, 5)
+    expect(referenceBarGeometry(0.5, { min: null, max: 1, source: 'catalog' })!.scaleMin).toBe(0)
+  })
+
   it('gibt null bei einem nicht-numerischen Wert zurück', () => {
     expect(referenceBarGeometry(Number.NaN, { min: 400, max: 900, source: 'catalog' })).toBeNull()
   })

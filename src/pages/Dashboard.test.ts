@@ -9,17 +9,24 @@ import { FEATURES } from '../config/features'
 import { Dashboard, buildDashboardRoutineIntake } from './Dashboard'
 
 /**
- * Der Weg in die Gruppenbestaetigung. Der Knopf heisst je nach Lage anders:
- * bei mehreren Einnahmen „Alle als eingenommen markieren", bei einer einzelnen
- * „Einmalige Dosisaenderung" — „alle" waere dort sinnloser Text. Welcher
- * von beiden, ist fuer diese Faelle egal; sie pruefen, was danach zur
- * Datenbank geht.
+ * Der Weg in die Gruppenbestaetigung: das Bündel. Jeder Test-Client bekommt
+ * eines mit allen Substanzen der Fixture (siehe `createDashboardClient`).
+ * Diese Faelle pruefen, was danach zur Datenbank geht.
  */
+/** Der gewaehlte Tag, abgelesen an der gedrueckten Tageszelle. */
+function gewaehlterTag() {
+  return document.querySelector('[data-calendar-date][aria-pressed="true"]')?.getAttribute('data-calendar-date') ?? null
+}
+
+/** Klappt die (erste) protokollierte Einnahme auf; ihre Aktionen stehen erst danach da. */
+async function protokollZeileOeffnen() {
+  await waitFor(() => expect(document.querySelector('[data-log-row] button[aria-expanded]')).toBeTruthy())
+  fireEvent.click(document.querySelector('[data-log-row] button[aria-expanded]') as HTMLElement)
+}
+
+const BUENDEL_KNOPF = /^Alle Substanzen\s*\d+ bestätigen$/
 async function gruppenBestaetigungOeffnen() {
-  const knopf = await screen.findByRole('button', {
-    name: /^(Alle als eingenommen markieren|Einmalige Dosisänderung)$/,
-  })
-  fireEvent.click(knopf)
+  fireEvent.click(await screen.findByRole('button', { name: BUENDEL_KNOPF }))
 }
 
 const pageMocks = vi.hoisted(() => {
@@ -181,11 +188,19 @@ function createDashboardClient(
   const mutations: RecordedMutation[] = []
   const logQueries: ReturnType<typeof resolvedQuery>[] = []
   const rpc = vi.fn(aufgeloesteRpcImplementation)
+  // Ein Bündel mit allen Substanzen: der Sammelweg im Kalender.
+  const buendel = fixtures.intake_bundles ?? [{
+    id: 'bundle-all',
+    name: 'Alle Substanzen',
+    stack_item_ids: (fixtures.stack_items ?? []).map(item => (item as { id: string }).id),
+    sort_order: 0,
+    created_at: '2026-01-01T00:00:00Z',
+  }]
   const from = vi.fn((table: string) => ({
     select: vi.fn((columns: string) => {
       selectCounts.set(table, (selectCounts.get(table) ?? 0) + 1)
       selectCalls.push({ table, columns })
-      const query = resolvedQuery(fixtures[table] ?? [], options.errors?.[table] ?? null,
+      const query = resolvedQuery(table === 'intake_bundles' ? buendel : fixtures[table] ?? [], options.errors?.[table] ?? null,
         table === 'dose_logs' && options.filterLogs, table === 'dose_logs' ? options.logReadGate : undefined)
       if (table === 'dose_logs') logQueries.push(query)
       return query
@@ -250,6 +265,8 @@ function renderDashboard(client: ReturnType<typeof createDashboardClient>) {
 
 afterEach(() => {
   cleanup()
+  // Der gewählte Tag wird für die Ernährung gemerkt (sharedDay) — nicht in den nächsten Test tragen.
+  sessionStorage.clear()
   ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = false
   vi.clearAllMocks()
   vi.unstubAllGlobals()
@@ -332,9 +349,12 @@ describe('Dashboard normalized timeline path', () => {
     await screen.findByText('Vitamin D3')
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
 
+    await protokollZeileOeffnen()
     expect(screen.getByRole('button', { name: 'Wieder öffnen' })).toBeTruthy()
-    // Was daran vorbeischreiben würde, bleibt zu.
-    expect(screen.queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
+    // „Doch eingenommen" gibt es nur für eine ausgelassene — und auch das
+    // schreibt nicht vorbei: es öffnet erst und speichert dann über die RPC.
+    if (taken) expect(screen.queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
+    else expect(screen.getByRole('button', { name: 'Doch eingenommen' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'eintrag_loeschen' })).toBeNull()
   })
 
@@ -356,6 +376,34 @@ describe('Dashboard normalized timeline path', () => {
     // Die Zeile steht im Protokoll — aber ohne Rückweg.
     expect(screen.getByRole('button', { name: /Bereits protokolliert/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    // Ohne Aktion ist die Zeile auch nicht antippbar.
+    expect(document.querySelector('[data-log-row]')).toBeTruthy()
+    expect(document.querySelector('[data-log-row] button')).toBeNull()
+  })
+
+  it('zeigt eine ausgelassene Einnahme als eine Zeile, Aktionen erst nach Antippen', async () => {
+    // Vorher war jede ausgelassene Einnahme eine Karte mit „Wieder öffnen"
+    // und vier Erinnerungsknöpfen — sechs davon füllten drei Bildschirme.
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
+    renderDashboard(createDashboardClient(fixtures))
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+
+    const zeile = await waitFor(() => {
+      const gefunden = document.querySelector('[data-log-row] button[aria-expanded]') as HTMLElement | null
+      if (!gefunden) throw new Error('missing log row')
+      return gefunden
+    })
+    expect(zeile.textContent).toContain('Vitamin D3')
+    expect(zeile.textContent).toContain('uebersprungen')
+    expect(zeile.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    expect(screen.queryByText(/15 min/)).toBeNull()
+
+    fireEvent.click(zeile)
+    expect(zeile.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Wieder öffnen' })).toBeTruthy()
+    expect(screen.queryByText(/15 min/)).toBeNull()
   })
 
   it('räumt beim Wiederöffnen die Auto-Miss-Notiz weg', async () => {
@@ -366,6 +414,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
     fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => {
@@ -383,6 +432,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -402,7 +452,7 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(client.selectCounts.get('cycles')).toBe(2))
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
     expect(screen.queryAllByRole('button', { name: 'eingenommen' })).toHaveLength(0)
-    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     page.unmount()
     vi.setSystemTime(new Date('2026-09-18T08:05:00Z'))
     const selected = normalizedCycle()
@@ -452,7 +502,7 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Nächster Monat' }))
     fireEvent.click(screen.getByRole('button', { name: 'Nächster Monat' }))
     expect(screen.getByRole('heading', { name: 'November 2026' })).toBeTruthy()
-    expect(screen.getByText('18.09.2026')).toBeTruthy()
+    expect(gewaehlterTag()).toBe('2026-09-18')
   }
 
   it('lädt beim Ausklappen nicht neu, solange derselbe Monat sichtbar bleibt', async () => {
@@ -485,13 +535,13 @@ describe('Dashboard normalized timeline path', () => {
       logged_at: kind === 'keyed' ? '2026-07-01T06:00:00.000Z' : '2026-09-17T22:30:00.000Z' }]
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
-    await waitFor(() => expect(screen.queryByRole('button', { name: /Alle als eingenommen/ })).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull())
     await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Bereits protokolliert')
     const initialQueries = client.logQueries.length
     browseToNovember()
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(initialQueries))
     await waitFor(() => expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(false))
-    expect(screen.queryByRole('button', { name: /Alle als eingenommen/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     const queries = client.logQueries.slice(initialQueries)
     // Dieselbe Zusage wie vorher, nur anders formuliert: der gewaehlte Tag im
     // September bleibt abgedeckt, waehrend man den November ansieht. Frueher
@@ -566,7 +616,7 @@ describe('Dashboard normalized timeline path', () => {
 
     // Nur ein `click`, keine Zeigerereignisse.
     fireEvent.click(zelle)
-    expect(screen.getByText('19.09.2026')).toBeTruthy()
+    expect(gewaehlterTag()).toBe('2026-09-19')
     expect(zelle.getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -585,17 +635,19 @@ describe('Dashboard normalized timeline path', () => {
     vi.stubGlobal('PointerEvent', MouseEvent)
     const zelle = document.querySelector('[data-calendar-date="2026-09-19"]') as HTMLElement
     fireEvent.pointerDown(zelle, { clientX: 200, clientY: 40, pointerId: 1 })
-    fireEvent.pointerMove(zelle, { clientX: 140, clientY: 42, pointerId: 1 })
-    fireEvent.pointerUp(zelle, { clientX: 140, clientY: 42, pointerId: 1 })
+    // 20 px: genug, um als Wisch zu gelten, zu wenig zum Blaettern — auch
+    // nicht ueber das Tempo (ab 24 px).
+    fireEvent.pointerMove(zelle, { clientX: 180, clientY: 42, pointerId: 1 })
+    fireEvent.pointerUp(zelle, { clientX: 180, clientY: 42, pointerId: 1 })
 
     // Der `click`, den der Wisch selbst auslöst, wird geschluckt.
     fireEvent.click(zelle)
-    expect(screen.queryByText('19.09.2026')).toBeNull()
+    expect(gewaehlterTag()).not.toBe('2026-09-19')
 
     // Eine Runde später ist der Merker gelöst.
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)) })
     fireEvent.click(zelle)
-    expect(screen.getByText('19.09.2026')).toBeTruthy()
+    expect(gewaehlterTag()).toBe('2026-09-19')
   })
 
   async function blattOeffnen(client: ReturnType<typeof createDashboardClient>) {
@@ -615,8 +667,10 @@ describe('Dashboard normalized timeline path', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect((document.activeElement as HTMLElement)?.getAttribute('aria-label'))
-      .toBe('Monatsübersicht öffnen')
+    // Der Fokus kommt im Aufräumen des Effekts zurück, also nach dem Entfernen
+    // des Blatts; unter Last (CI) liegt dazwischen ein Takt.
+    await waitFor(() => expect((document.activeElement as HTMLElement)?.getAttribute('aria-label'))
+      .toBe('Monatsübersicht öffnen'))
   })
 
   it('schließt das Monatsblatt, sobald ein Tag gewählt ist', async () => {
@@ -628,7 +682,7 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(zelle)
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(screen.getByText('22.09.2026')).toBeTruthy()
+    expect(gewaehlterTag()).toBe('2026-09-22')
   })
 
   it('holt den Monat zurück zum gewählten Tag, wenn das Blatt ohne Auswahl zugeht', async () => {
@@ -821,7 +875,8 @@ describe('Dashboard normalized timeline path', () => {
     // Knöpfe dürfen weder sichtbar noch für Screenreader oder Tab erreichbar
     // sein. Das Attribut allein zu prüfen ließe einen Fehler in der Höhe durch.
     const feld = (zeile: Element) => zeile.querySelector('[data-due-panel]') as HTMLElement
-    expect(feld(zeilen()[0]).style.maxHeight).toBe('0px')
+    expect(feld(zeilen()[0]).hasAttribute('data-open')).toBe(false)
+    expect(feld(zeilen()[1]).hasAttribute('data-open')).toBe(true)
     expect(feld(zeilen()[0]).getAttribute('aria-hidden')).toBe('true')
     expect(feld(zeilen()[1]).getAttribute('aria-hidden')).toBe('false')
     // Für Screenreader existiert der Knopf der zugeklappten Zeile nicht …
@@ -835,7 +890,7 @@ describe('Dashboard normalized timeline path', () => {
       .getByRole('button', { name: 'uebersprungen' })).toBeTruthy()
   })
 
-  it('zeigt in der aufgeklappten Einnahme alle vier Wege damit umzugehen', async () => {
+  it('zeigt in der aufgeklappten Einnahme die drei Wege damit umzugehen', async () => {
     const fixtures = startFixFixture()
     fixtures.cycles[0].versions[0].method = 'Subkutan'
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
@@ -844,23 +899,46 @@ describe('Dashboard normalized timeline path', () => {
 
     const offen = document.querySelector('[data-due-open]') as HTMLElement
     expect(within(offen).getByRole('button', { name: 'eingenommen' })).toBeTruthy()
-    expect(within(offen).getByRole('button', { name: 'Einmalige Dosisänderung' })).toBeTruthy()
+    // Die Menge aendert man im Bestaetigungsblatt; ein eigener Knopf dafuer
+    // waere ein zweiter Weg zur selben Abweichung.
+    expect(within(offen).queryByRole('button', { name: 'Einmalige Dosisänderung' })).toBeNull()
     expect(within(offen).getByRole('button', { name: 'uebersprungen' })).toBeTruthy()
     expect(within(offen).getByRole('button', { name: 'Mit Injektion tracken' })).toBeTruthy()
   })
 
-  it('legt aus einer aufgeklappten Einnahme nur diese eine zur Bestätigung vor', async () => {
-    // Der Knopf öffnete die GANZE Tageszeit, jeden Eintrag vorausgewählt —
-    // er hätte damit Einnahmen bestätigt, die niemand gesehen hat.
+  it('bestätigt gemeinsam nur über die eigenen Bündel, nicht je Tageszeit', async () => {
+    // Die Tageszeit ist nur noch Ueberschrift. Der Sammelweg ist das Bündel,
+    // und dessen Blatt fragt die Uhrzeit immer ab.
     const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true })
     renderDashboard(client)
-    await waitFor(() => expect(document.querySelector('[data-due-open]')).toBeTruthy())
+    await waitFor(() => expect(document.querySelectorAll('[data-due-row]').length).toBe(2))
+    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
 
-    const offen = document.querySelector('[data-due-open]') as HTMLElement
-    fireEvent.click(within(offen).getByRole('button', { name: 'Einmalige Dosisänderung' }))
-
+    await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).queryAllByText(/Vitamin D3|Magnesium/)).toHaveLength(1)
+    expect(within(dialog).getByText('Alle Substanzen')).toBeTruthy()
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/)
+  })
+
+  it('speichert die im Bündel abgefragte Uhrzeit für alle gewählten Einnahmen', async () => {
+    const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true })
+    renderDashboard(client)
+    await gruppenBestaetigungOeffnen()
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('Uhrzeit'), { target: { value: '09:30' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
+
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
+    const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
+      p_entries: Array<{ logged_at: string; slot_key: string }>
+    }
+    expect(params.p_entries.length).toBeGreaterThan(0)
+    for (const entry of params.p_entries) {
+      const zeitpunkt = new Date(entry.logged_at)
+      expect([zeitpunkt.getHours(), zeitpunkt.getMinutes()]).toEqual([9, 30])
+      // Die Uhrzeit aendert, wann genommen wurde — nicht, welcher Platz im Plan.
+      expect(entry.slot_key).not.toContain('09:30')
+    }
   })
 
   it('zeigt jede offene Einnahme, auch die derselben Tageszeit', async () => {
@@ -895,33 +973,99 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(tagesBalken('2026-09-18')).toBe('50%'))
     // … und die Tagesmeldung behauptet nicht, alles sei bestätigt worden.
     expect(screen.queryByText('Alle geplanten Einnahmen sind bestätigt.')).toBeNull()
-    expect(screen.getByText('Dieser Tag ist nicht vollständig protokolliert.')).toBeTruthy()
-    expect(screen.getByText('1 von 2 bestätigt')).toBeTruthy()
+    expect(screen.getByText('Für diesen Tag ist alles protokolliert.')).toBeTruthy()
+    expect(screen.getByText('1 genommen · 1 übersprungen')).toBeTruthy()
   })
 
-  it('zeigt einen vergangenen Tag ohne bestätigte Einnahme rot mit X statt grünem Haken', async () => {
+  it('zeigt einen Tag mit lauter ausgelassenen Einnahmen neutral, nicht grün und nicht rot', async () => {
+    // Ausgelassen ist entschieden, nicht falsch — und nicht „alles bestätigt".
+    // Vorher stand hier ein grüner Haken mit „0 von 2 bestätigt" (heute) oder
+    // ein rotes X „nicht vollständig protokolliert" (gestern), obwohl alles
+    // protokolliert war.
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: false, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
-      { ...pendingLog(), id: 'pending-abend', taken: false,
+      { ...pendingLog(), id: 'pending-abend', taken: false, notes: 'auto-missed',
         routine_slot_key: 'timeline-cycle@2026-09-18T20:00' },
     ]
     vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
     renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
 
+    // Verpasst hat der Auto-Miss eingetragen — dann heißt der Tag nicht
+    // „alles protokolliert", aber auch nicht rot.
     const receipt = await screen.findByText('Dieser Tag ist nicht vollständig protokolliert.')
     const card = receipt.closest('[data-due-receipt]') as HTMLElement
-    expect(card).toBeTruthy()
-    expect(card.textContent).toContain('0 von 2 bestätigt')
-    expect(card.querySelector('.lucide-x')).toBeTruthy()
+    expect(card.textContent).toContain('0 genommen · 1 übersprungen · 1 verpasst')
     expect(card.querySelector('.lucide-check')).toBeNull()
-    expect(card.style.borderColor).toBe('rgba(239, 68, 68, 0.35)')
+    expect(card.getAttribute('data-tone')).toBeNull()
     expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
-    expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).className).toContain('border-red-500')
+    expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).getAttribute('data-tone')).not.toBe('bad')
   })
 
-  it('trennt bestätigte und übersprungene Einnahmen in grüne und rote Bereiche', async () => {
+  it('trägt eine gestern ausgelassene Einnahme mit „Doch eingenommen" direkt nach', async () => {
+    // Für einen vergangenen Tag war „Wieder öffnen" ein Umweg: die Einnahme
+    // stand danach wieder als offen da und musste dort noch bestätigt werden.
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+
+    // Nur der direkte Weg; „Wieder öffnen" gibt es für gestern nicht mehr.
+    expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+
+    // Abbrechen ändert nichts — die Einnahme bleibt ausgelassen.
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(client.mutations.filter(m => m.table === 'dose_logs')).toHaveLength(0)
+
+    // Bestätigen: erst öffnen (samt Auto-Miss-Notiz), dann über die RPC speichern.
+    // Die Zeile ist noch aufgeklappt.
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
+    expect(client.mutations).toContainEqual({
+      table: 'dose_logs', kind: 'update', values: { taken: null, notes: null },
+    })
+    const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
+      p_entries: Array<{ dose_log_id: string; slot_key: string; taken: boolean }>
+    }
+    expect(params.p_entries).toEqual([expect.objectContaining({
+      dose_log_id: 'pending-exact', slot_key: 'timeline-cycle@2026-09-18T08:00', taken: true,
+    })])
+  })
+
+  it('lässt eine nachgetragene Einnahme ausgelassen, wenn das Speichern scheitert', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const client = createDashboardClient(fixtures, async name => (
+      name === 'confirm_intake_group'
+        ? { data: null, error: { message: 'kaputt' } }
+        : { data: [], error: null }
+    ), { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
+
+    await waitFor(() => expect(client.mutations.filter(m => m.table === 'dose_logs')).toHaveLength(2))
+    const [geoeffnet, zurueck] = client.mutations.filter(m => m.table === 'dose_logs')
+    expect(geoeffnet.values).toEqual({ taken: null, notes: null })
+    // Zurück, wie es war: ausgelassen, mit der Auto-Miss-Notiz.
+    expect(zurueck.values).toEqual({ taken: false, notes: 'auto-missed' })
+  })
+
+  it('trennt bestätigte und übersprungene Einnahmen in grüne und neutrale Bereiche', async () => {
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
@@ -932,8 +1076,8 @@ describe('Dashboard normalized timeline path', () => {
 
     const logged = await screen.findByRole('button', { name: /Bereits protokolliert/ })
     const unlogged = screen.getByRole('button', { name: /Nicht protokolliert/ })
-    expect(logged.className).toContain('border-emerald-500')
-    expect(unlogged.className).toContain('border-red-500')
+    expect(logged.getAttribute('data-tone')).toBe('good')
+    expect(unlogged.getAttribute('data-tone')).not.toBe('bad')
     expect(logged.textContent).toContain('1')
     expect(unlogged.textContent).toContain('1')
 
@@ -962,12 +1106,12 @@ describe('Dashboard normalized timeline path', () => {
     const options: { filterLogs: boolean; logReadGate?: Promise<void> } = { filterLogs: true }
     const client = createDashboardClient(fixtures, undefined, options)
     renderDashboard(client)
-    await screen.findByRole('button', { name: /^(Alle als eingenommen markieren|Einmalige Dosisänderung)$/ })
+    await screen.findByRole('button', { name: BUENDEL_KNOPF })
 
     const abfragen = client.logQueries.length
     const nextDay = document.querySelector('[data-calendar-date="2026-09-19"]')!
     fireEvent.click(nextDay)
-    expect(screen.getByText('19.09.2026')).toBeTruthy()
+    expect(gewaehlterTag()).toBe('2026-09-19')
     expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(false)
     expect(client.logQueries.length).toBe(abfragen)
 
@@ -976,7 +1120,7 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Monatsübersicht öffnen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Nächster Monat' }))
     expect(screen.getByRole('heading', { name: 'October 2026' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(true)
     await act(async () => { release() })
     await waitFor(() => expect(screen.getAllByRole('status')
@@ -1001,17 +1145,17 @@ describe('Dashboard normalized timeline path', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
     } else {
       await gruppenBestaetigungOeffnen()
-      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     }
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
     browseToNovember()
-    await screen.findByRole('button', { name: /^(Alle als eingenommen markieren|Einmalige Dosisänderung)$/ })
+    await screen.findByRole('button', { name: BUENDEL_KNOPF })
     const queriesBeforeCompletion = client.logQueries.length
     await act(async () => { finish() })
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(queriesBeforeCompletion))
     await waitFor(() => expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(false))
     expect(await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Alle als eingenommen/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     const refreshedKeys: string[] = client.logQueries.slice(queriesBeforeCompletion)
       .flatMap(query => (query.or as ReturnType<typeof vi.fn>).mock.calls.map(call => call[0] as string))
     expect(faengtSchluessel(refreshedKeys, 'timeline-cycle@2026-11-18T08:00')).toBe(true)
@@ -1035,7 +1179,7 @@ describe('Dashboard normalized timeline path', () => {
     }, { filterLogs: true })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
-    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     await screen.findByText('Routine gespeichert')
     browseToNovember()
     await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')
@@ -1053,7 +1197,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
-    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({ dose_log_id: 'pending-exact',
         slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T06:00:00.000Z' })],
@@ -1290,10 +1434,10 @@ describe('Dashboard normalized timeline path', () => {
     }, { errors })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
-    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     expect(await screen.findByRole('alert')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'eingenommen' })).toBeNull()
-    expect(screen.queryByRole('button', { name: /Alle als eingenommen/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
   })
 
   it('fetches keyed coverage independently when actual time moved outside the month', async () => {
@@ -1316,7 +1460,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     expect(await screen.findByText('Bereits protokolliert')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Alle als eingenommen/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(client.logQueries[0].gte).toHaveBeenCalledWith('logged_at', '2026-08-30T22:00:00.000Z')
     expect(client.logQueries[0].lt).toHaveBeenCalledWith('logged_at', '2026-10-04T22:00:00.000Z')
   })
@@ -1417,7 +1561,7 @@ describe('Dashboard normalized timeline path', () => {
 
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({
@@ -1449,7 +1593,7 @@ describe('Dashboard normalized timeline path', () => {
       return row as HTMLElement
     })
     expect(prn.textContent).toContain('Ibuprofen')
-    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
   })
 
   it('renders one neutral message for a fully paused selected day', async () => {
@@ -1470,9 +1614,11 @@ describe('Dashboard normalized timeline path', () => {
     })
     renderDashboard(client)
 
-    expect(await screen.findByText('Plan pausiert')).toBeTruthy()
+    // Unter CI-Last braucht der erste Aufbau des Kalenders länger als die
+    // Standard-Sekunde (rot am 24.10.2026 nach 1035 ms)
+    expect(await screen.findByText('Plan pausiert', {}, { timeout: 5000 })).toBeTruthy()
     expect(screen.getAllByText('Während der Pause ist keine Einnahme fällig.')).toHaveLength(1)
-    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
   })
 })
 
@@ -1524,7 +1670,7 @@ describe('Dashboard intake confirmation actions', () => {
     expect(zeile.textContent).toContain('Ibuprofen')
 
     // Kein „fällig", kein „verpasst": es steht keine geplante Einnahme da.
-    expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+    expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
 
     fireEvent.click(within(zeile).getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(
@@ -1547,7 +1693,7 @@ describe('Dashboard intake confirmation actions', () => {
 
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
 
     expect(await within(dialog).findByText('Routine gespeichert')).toBeTruthy()
     expect(client.rpc).toHaveBeenCalledTimes(1)
@@ -1647,6 +1793,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.mutations).toContainEqual({
@@ -1688,6 +1835,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1725,6 +1873,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'eintrag_loeschen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1771,6 +1920,7 @@ describe('Dashboard intake confirmation actions', () => {
     renderDashboard(client)
 
     fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('reverse_inventory_confirmation', {
@@ -1909,7 +2059,7 @@ describe('Dashboard intake confirmation actions', () => {
 
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
 
     const retry = await within(dialog).findByRole('button', { name: 'Bestand erneut versuchen' })
     expect(client.rpc.mock.calls.filter(([name]) => name === 'confirm_intake_group')).toHaveLength(1)
@@ -1948,7 +2098,7 @@ describe('Dashboard intake confirmation actions', () => {
 
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Alle als eingenommen markieren' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
 
     const retry = await within(dialog).findByRole('button', { name: 'Bestand erneut versuchen' })
     expect(client.rpc.mock.calls.filter(([name]) => name === 'confirm_intake_group')).toHaveLength(1)
@@ -1972,10 +2122,10 @@ describe('Dashboard intake confirmation actions', () => {
     // wo die Einnahme steht, nicht auf einer Bühne oben.
     expect(source).toContain("const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })")
     expect(source).toContain('slot.key === offenerSlot')
-    expect(source).toContain('transition-[max-height,opacity]')
+    expect(source).toContain('className="tyd-collapse"')
     expect(source).not.toContain('data-due-hero')
     expect(source).toContain('completedExpanded')
-    expect(source).toContain('renderConfirmedLog')
+    expect(source).toContain('renderLogRow')
   })
 
   it('lässt den Helden so hoch sein wie sein Inhalt', () => {

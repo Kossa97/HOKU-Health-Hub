@@ -20,7 +20,7 @@ const log = (overrides: Partial<InjectionLog3D> = {}): InjectionLog3D => ({
   model_version: overrides.model_version ?? 'placeholder-v1',
   body_region: overrides.body_region ?? 'abdomen',
   body_side: overrides.body_side ?? 'right',
-  position: overrides.position ?? { x: 0.38, y: 0.32, z: 0.2 },
+  position: overrides.position ?? { x: 0.32, y: 0.8, z: 0.12 },
   normal: overrides.normal ?? { x: 0.1, y: 0, z: 0.95 },
   uv: null,
   camera_state: null,
@@ -53,9 +53,18 @@ describe('formatInjectionSite', () => {
     expect(formatInjectionSite(log({
       body_region: 'glute',
       body_side: 'center',
-      position: { x: 0.12, y: -0.2, z: -0.2 },
+      position: { x: 0.12, y: 0.42, z: -0.2 },
       normal: { x: 0, y: 0, z: -0.95 },
     }))).toBe('Gesäß mittig · oben innen · Rückseite')
+  })
+
+  it('says „mittig“ only once when height and side are both in the middle', () => {
+    expect(formatInjectionSite(log({
+      body_region: 'thigh',
+      body_side: 'right',
+      position: { x: 0.2, y: -0.1, z: 0.12 },
+      normal: { x: 0, y: -0.2, z: 0.97 },
+    }))).toBe('Oberschenkel rechts · mittig · Vorderseite')
   })
 
   it('does not invent a position for legacy entries', () => {

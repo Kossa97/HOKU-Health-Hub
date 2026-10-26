@@ -24,6 +24,7 @@ export function TheLab() {
 
   const [articles, setArticles]               = useState<PubMedArticle[]>([])
   const [chartData, setChartData]             = useState<ChartEntry[]>([])
+  const [chartLaedt, setChartLaedt]           = useState(true)
   const [loading, setLoading]                 = useState(true)
   const [errorMessage, setErrorMessage]       = useState<string | null>(null)
   const [isTrending, setIsTrending]           = useState(true)
@@ -48,6 +49,7 @@ export function TheLab() {
         fetchChartCounts()
           .then(setChartData)
           .catch(() => { /* chart errors are non-fatal */ })
+          .finally(() => setChartLaedt(false))
       })
   }, [])
 
@@ -87,7 +89,7 @@ export function TheLab() {
   return (
     <>
       {/* Full-screen loader — only on initial page load */}
-      {initialLoad && <LabLoader fadingOut={loaderFading} />}
+      {initialLoad && <LabLoader art="lab" fadingOut={loaderFading} />}
 
       <div className="space-y-4">
         <ResearchDisclaimer
@@ -101,25 +103,25 @@ export function TheLab() {
         {/* Research Snapshot */}
         <ResearchSnapshot
           chartData={chartData}
+          chartLaedt={chartLaedt}
           articles={articles}
           onSearch={query => void runSearch(query, filters)}
         />
 
         {/* Mobile filter button */}
-        <div className="flex items-center justify-between mb-4 md:hidden">
-          <span className="text-xs text-slate-500">
+        <div className="flex items-center justify-between mb-3 md:hidden">
+          <span className="lg-group-title !mx-1 !mb-0">
             {isTrending ? t('lab_trending_mobile') : `„${lastQuery}"`}
           </span>
           <button
             type="button"
             onClick={() => setFilterSheetOpen(true)}
-            className={`relative btn-secondary text-xs px-3 py-2 ${
-              activeFilterCount > 0 ? 'border-sky-500/50 text-sky-400' : ''
-            }`}
+            data-quiet={activeFilterCount === 0 || undefined}
+            className="lg-gray-btn relative !min-h-9 !px-3.5 !text-[14px]"
           >
             {t('lab_filter_button')}
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-sky-500 text-[0.55rem] font-black text-white flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--lg-accent)] px-1 text-[11px] font-bold text-black">
                 {activeFilterCount}
               </span>
             )}

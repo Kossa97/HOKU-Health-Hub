@@ -36,7 +36,7 @@ const approxEqual = (a: number, b: number): boolean =>
 /** Gleich, wenn der eingehende Wert – in die vorhandene Einheit umgerechnet – dem
  *  vorhandenen entspricht. Nicht umrechenbar: nur bei identischer Einheit und Wert. */
 function sameValue(existing: MergeItem, incoming: MergeItem): boolean {
-  const converted = convert(incoming.value, incoming.unit, existing.unit)
+  const converted = convert(incoming.value, incoming.unit, existing.unit, normalizeMarker(incoming.marker)?.name)
   if (converted == null) {
     return (
       normalizeUnitString(existing.unit) === normalizeUnitString(incoming.unit) &&

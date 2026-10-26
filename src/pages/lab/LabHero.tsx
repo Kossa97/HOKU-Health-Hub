@@ -34,90 +34,63 @@ export function LabHero({ onSearch, loading }: LabHeroProps) {
   }
 
   return (
-    <div className="relative -mx-4 px-4 pb-8 pt-6 mb-6 overflow-hidden">
-      {/* Dot-grid background */}
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #1e293b 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-      {/* Fade-out gradient at bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#070B11] to-transparent pointer-events-none" />
+    <div className="pb-2 pt-1">
+      <p className="mb-0.5 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">
+        {t('lab_kicker')}
+      </p>
+      <h1 className="lg-large-title">{t('lab_title')}</h1>
+      <p className="mb-4 mt-0.5 text-[15px] leading-snug text-[var(--lg-text-2)]">
+        {t('lab_subtitle')}
+      </p>
 
-      <div className="relative">
-        {/* Kicker */}
-        <p
-          className="text-[0.58rem] font-black uppercase tracking-[0.2em] text-sky-400/65 mb-3"
-          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-        >
-          {t('lab_kicker')}
-        </p>
-
-        {/* Title */}
-        <h1
-          className="text-3xl font-black text-white mb-1 leading-tight"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          {t('lab_title')}
-        </h1>
-        <p className="text-sm text-slate-400 mb-5">
-          {t('lab_subtitle')}
-        </p>
-
-        {/* Search bar */}
-        <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search
-              size={16}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-            />
-            <input
-              value={query}
-              onChange={e => { setQuery(e.target.value); setActiveTag('') }}
-              disabled={loading}
-              placeholder={t('lab_search_placeholder')}
-              className="w-full bg-[#0B1220] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-600 outline-none transition-all duration-300 focus:border-sky-500/50 focus:shadow-[0_0_30px_rgba(0,204,245,0.12)]"
-            />
-          </div>
-          <button type="submit" disabled={loading} className="btn-primary shrink-0">
-            {loading ? '…' : t('lab_search_button')}
-          </button>
-        </form>
-
-        {/* Quick tags + Library link */}
-        <div className="flex flex-wrap gap-2 items-center">
-          {QUICK_TAGS.map(tag => (
-            <button
-              key={tag}
-              type="button"
-              disabled={loading}
-              onClick={() => handleTag(tag)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                activeTag === tag
-                  ? 'bg-sky-500 border-transparent text-white'
-                  : 'border-white/10 text-slate-400 hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-400'
-              }`}
-            >
-              {tag}
-            </button>
-          ))}
-
-          {/* Separator */}
-          <span className="text-slate-700 text-xs">·</span>
-
-          {/* Library entry */}
-          <button
-            type="button"
-            onClick={() => navigate('/lab/peptipedia')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-violet-500/25 text-violet-300/70 hover:bg-violet-500/10 hover:border-violet-500/40 hover:text-violet-300 transition-all duration-200"
-          >
-            <FlaskConical size={11} />
-            Peptipedia
-            <ArrowRight size={10} className="opacity-60" />
-          </button>
+      {/* Suche wie in iOS: eingelassene Füllung, Lupe links */}
+      <form onSubmit={handleSubmit} className="mb-3 flex gap-2">
+        <div className="relative flex-1">
+          <Search
+            size={17}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)]"
+          />
+          <input
+            value={query}
+            onChange={e => { setQuery(e.target.value); setActiveTag('') }}
+            disabled={loading}
+            placeholder={t('lab_search_placeholder')}
+            className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
+          />
         </div>
+        <button type="submit" disabled={loading} className="lg-btn lg-btn-primary lg-btn-compact shrink-0 !px-4">
+          {loading ? '…' : t('lab_search_button')}
+        </button>
+      </form>
+
+      {/* Schnellsuche + Peptipedia */}
+      <div className="flex flex-wrap items-center gap-2">
+        {QUICK_TAGS.map(tag => (
+          <button
+            key={tag}
+            type="button"
+            disabled={loading}
+            aria-pressed={activeTag === tag}
+            onClick={() => handleTag(tag)}
+            className={`min-h-9 rounded-full px-3.5 text-[14px] font-medium transition-colors duration-150 ${
+              activeTag === tag
+                ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
+                : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => navigate('/lab/peptipedia')}
+          className="flex min-h-9 items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-3.5 text-[14px] font-semibold text-[var(--lg-accent-text)] transition-colors duration-150"
+        >
+          <FlaskConical size={14} />
+          Peptipedia
+          <ArrowRight size={13} className="opacity-70" />
+        </button>
       </div>
     </div>
   )

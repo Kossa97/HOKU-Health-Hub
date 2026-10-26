@@ -12,20 +12,31 @@ alter table peptides
 alter table dose_logs
   add column if not exists taken boolean default null;
 
--- Storage-Bucket für Batch-Dateien (PDF/Bilder)
+-- Storage-Bucket für Batch-Dateien (PDF/Bilder) — privat; die App zeigt
+-- die Dateien über signierte Links (src/lib/batchFiles.ts).
+-- Stand wie in supabase-storage-batch-files.sql und
+-- supabase-storage-batch-files-private.sql (dort für bestehende Projekte).
 insert into storage.buckets (id, name, public)
-values ('batch-files', 'batch-files', true)
+values ('batch-files', 'batch-files', false)
 on conflict do nothing;
 
--- Jeder eingeloggte User darf in seinem Ordner Dateien hochladen/lesen/löschen
+-- Nur angemeldet, nur im eigenen Ordner (`<id>/…`; alte Fotos `progress/<id>/…`)
 create policy "Batch upload" on storage.objects
-  for insert with check (bucket_id = 'batch-files' and auth.uid() is not null);
+  for insert to authenticated
+  with check (bucket_id = 'batch-files' and (storage.foldername(name))[1] = (select auth.uid())::text);
 
 create policy "Batch read" on storage.objects
-  for select using (bucket_id = 'batch-files');
+  for select to authenticated using (
+    bucket_id = 'batch-files' and (
+      (storage.foldername(name))[1] = (select auth.uid())::text
+      or ((storage.foldername(name))[1] = 'progress' and (storage.foldername(name))[2] = (select auth.uid())::text)
+    )
+  );
 
 create policy "Batch delete" on storage.objects
-  for delete using (
-    bucket_id = 'batch-files' and
-    auth.uid()::text = (storage.foldername(name))[1]
+  for delete to authenticated using (
+    bucket_id = 'batch-files' and (
+      (storage.foldername(name))[1] = (select auth.uid())::text
+      or ((storage.foldername(name))[1] = 'progress' and (storage.foldername(name))[2] = (select auth.uid())::text)
+    )
   );

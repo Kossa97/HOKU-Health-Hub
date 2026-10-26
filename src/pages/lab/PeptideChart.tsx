@@ -20,7 +20,7 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
           <div className="text-lg font-black text-sky-400">
             {totalFound > 0 ? totalFound : '—'}
           </div>
-          <div className="text-[0.55rem] uppercase tracking-[0.1em] text-slate-600 mt-0.5">
+          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
             Treffer
           </div>
         </div>
@@ -28,13 +28,13 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
           <div className="text-lg font-black text-emerald-400">
             {chartLoading ? '…' : activePeptides || '—'}
           </div>
-          <div className="text-[0.55rem] uppercase tracking-[0.1em] text-slate-600 mt-0.5">
+          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
             Peptide
           </div>
         </div>
         <div className="flex-1 bg-black/25 rounded-xl p-3 text-center">
           <div className="text-lg font-black text-orange-400">{currentYear}</div>
-          <div className="text-[0.55rem] uppercase tracking-[0.1em] text-slate-600 mt-0.5">
+          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
             Aktuell
           </div>
         </div>
@@ -99,7 +99,7 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
 
       {/* Empty */}
       {!chartLoading && chartData.length === 0 && (
-        <p className="text-xs text-slate-600 text-center py-3">Keine Chart-Daten verfügbar</p>
+        <p className="text-xs text-[var(--lg-text-3)] text-center py-3">Keine Chart-Daten verfügbar</p>
       )}
     </div>
   )

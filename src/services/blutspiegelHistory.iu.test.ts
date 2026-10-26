@@ -6,7 +6,7 @@ import { calculateHistoryBlutspiegelCurve } from './blutspiegelHistory'
 // HCG und HGH haben ein PK-Profil, werden aber in IU dosiert. `toPkMilligrams`
 // kannte nur mg und mcg und gab null zurueck; die Schleife in der Kurve
 // uebersprang die Einnahme mit `continue`, die Summe blieb bei null, und
-// `BlutspiegelCarousel` machte aus der leeren Kurve ein `return null`. Die
+// Das fruehere `BlutspiegelCarousel` machte aus der leeren Kurve ein `return null`. Die
 // Substanz verschwand wortlos aus dem Blutspiegel — korrekt ausgefuellt, kein
 // Hinweis, einfach weg.
 

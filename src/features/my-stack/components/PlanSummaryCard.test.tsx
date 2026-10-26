@@ -74,7 +74,7 @@ describe('PlanSummaryCard', () => {
     expect(card.textContent).toContain('2 Einnahmezeiten')
     expect(card.textContent).toContain('Morgens · 08:00')
     expect(card.textContent).toContain('100 mcg')
-    expect(card.textContent).toContain('22.09.2026 · 20:00')
+    expect(card.textContent).toContain('Heute · 20:00')
     // Ohne geplante Stufe kein Kasten dafür.
     expect(card.textContent).not.toContain('Nächste Stufe')
 

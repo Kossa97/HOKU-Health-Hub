@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import i18n from 'i18next'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import type {
@@ -18,6 +19,14 @@ import { normalizeCycles, rangeFromActiveSubstances } from '../lib/substances'
 import { numeric } from '../lib/metrics'
 import { collectPagedRows } from '../lib/pagination'
 import { PHOTO_BUCKET, SIGNED_URL_TTL_SECONDS } from '../constants'
+import { BATCH_LINK_ERNEUERN_MS, istAdresse, signiereBatchDateien } from '../../../lib/batchFiles'
+import { reportError } from '../../../lib/monitoring'
+
+/**
+ * Dauerhafte Substanzen (ohne Zyklus) haben noch keine Datenquelle — die
+ * Anzeige dafür ist vorbereitet, bekommt aber bis dahin eine feste leere Liste.
+ */
+const ONGOING_SUBSTANCES = Object.freeze([]) as unknown as OngoingSubstance[]
 
 function mapDailyLogs(rows: Record<string, unknown>[] | null): DailyLogEntry[] {
   return (rows ?? []).map(row => ({
@@ -32,25 +41,32 @@ function mapDailyLogs(rows: Record<string, unknown>[] | null): DailyLogEntry[] {
 
 /** Legacy-Fotos tragen eine volle Public-URL; neue Fotos nur den Storage-Pfad. */
 export function isLegacyPhotoUrl(photoUrl: string): boolean {
-  return photoUrl.startsWith('http://') || photoUrl.startsWith('https://')
+  return istAdresse(photoUrl)
 }
 
 async function resolvePhotoDisplayUrls(
   photos: Omit<ProgressPhotoEntry, 'display_url'>[],
 ): Promise<ProgressPhotoEntry[]> {
   const paths = photos.filter(p => !isLegacyPhotoUrl(p.photo_url)).map(p => p.photo_url)
+  const legacy = photos.filter(p => isLegacyPhotoUrl(p.photo_url)).map(p => p.photo_url)
   const signed = new Map<string, string>()
-  if (paths.length > 0) {
-    const { data } = await supabase.storage
-      .from(PHOTO_BUCKET)
-      .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS)
-    for (const entry of data ?? []) {
-      if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl)
-    }
-  }
+  // Alte Fotos liegen im ebenfalls privaten `batch-files` — auch signiert.
+  const [, legacySigned] = await Promise.all([
+    paths.length > 0
+      ? supabase.storage.from(PHOTO_BUCKET).createSignedUrls(paths, SIGNED_URL_TTL_SECONDS).then(({ data }) => {
+        for (const entry of data ?? []) {
+          if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl)
+        }
+      })
+      : undefined,
+    signiereBatchDateien(supabase as never, legacy, SIGNED_URL_TTL_SECONDS).catch(error => {
+      reportError(error, 'fortschritt.legacy-photos')
+      return new Map<string, string>()
+    }),
+  ])
   return photos.map(p => ({
     ...p,
-    display_url: isLegacyPhotoUrl(p.photo_url) ? p.photo_url : (signed.get(p.photo_url) ?? ''),
+    display_url: isLegacyPhotoUrl(p.photo_url) ? (legacySigned.get(p.photo_url) ?? '') : (signed.get(p.photo_url) ?? ''),
   }))
 }
 
@@ -60,17 +76,19 @@ export function useFortschrittData() {
   const [dataReady, setDataReady] = useState(false)
   const initialLoadedRef = useRef(false)
   const [cycleSubstances, setCycleSubstances] = useState<CycleSubstance[]>([])
-  const [ongoingSubstances] = useState<OngoingSubstance[]>([])
   const [dailyLogs, setDailyLogs] = useState<DailyLogEntry[]>([])
   const [weightLogs, setWeightLogs] = useState<WeightLogEntry[]>([])
   const [bloodwork, setBloodwork] = useState<BloodworkEntry[]>([])
   const [photos, setPhotos] = useState<ProgressPhotoEntry[]>([])
+  const photosSignedAtRef = useRef(0)
+  const photosRef = useRef<ProgressPhotoEntry[]>([])
+  useEffect(() => { photosRef.current = photos }, [photos])
   const [doseLogs, setDoseLogs] = useState<DoseLogEntry[]>([])
   const [stackItemNames, setStackItemNames] = useState<Map<string, string>>(new Map())
 
   const range = useMemo<DateRange>(
-    () => rangeFromActiveSubstances(cycleSubstances, ongoingSubstances),
-    [cycleSubstances, ongoingSubstances],
+    () => rangeFromActiveSubstances(cycleSubstances, ONGOING_SUBSTANCES),
+    [cycleSubstances],
   )
 
   // Volle Historie: ältester Substanz-Start oder ältester Datenpunkt → heute.
@@ -84,31 +102,45 @@ export function useFortschrittData() {
       if (day < from) from = day
     }
     for (const c of cycleSubstances) consider(c.startDate)
-    for (const o of ongoingSubstances) consider(o.startDate)
+    for (const o of ONGOING_SUBSTANCES) consider(o.startDate)
     for (const l of dailyLogs) consider(l.log_date)
     for (const w of weightLogs) consider(w.logged_at)
     for (const b of bloodwork) consider(b.tested_at)
     for (const p of photos) consider(p.taken_at)
     return { from, to: range.to }
-  }, [range, cycleSubstances, ongoingSubstances, dailyLogs, weightLogs, bloodwork, photos])
+  }, [range, cycleSubstances, dailyLogs, weightLogs, bloodwork, photos])
 
   const load = useCallback(async () => {
     if (!user) return
     if (!initialLoadedRef.current) setLoading(true)
 
+    // Jede Tabelle seitenweise: Supabase liefert pro Abfrage hoechstens 1000
+    // Zeilen, sonst fehlte bei langer Historie still der Rest. Die `id` als
+    // zweiter Sortierschluessel haelt die Seitengrenzen stabil.
     const [cyclesRes, stackItemsRes] = await Promise.all([
-      supabase
-        .from('cycles')
-        .select('id, stack_item_id, name, start_date, end_date, active, stack_items(display_name)')
-        .eq('user_id', user.id)
-        .order('start_date', { ascending: true }),
-      supabase.from('stack_items').select('id, display_name').eq('user_id', user.id),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('cycles')
+          .select('id, stack_item_id, name, start_date, end_date, active, stack_items(display_name)')
+          .eq('user_id', user.id)
+          .order('start_date', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('stack_items')
+          .select('id, display_name')
+          .eq('user_id', user.id)
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
     ])
 
     const cycles = normalizeCycles(cyclesRes.data as unknown as CycleRow[])
     setCycleSubstances(cycles)
 
-    const activeRange = rangeFromActiveSubstances(cycles, ongoingSubstances)
+    const activeRange = rangeFromActiveSubstances(cycles, ONGOING_SUBSTANCES)
     const toBound = `${activeRange.to}T23:59:59`
 
     const [dailyRes, weightRes, bloodRes, photoRes, doseRes] = await Promise.all([
@@ -121,29 +153,46 @@ export function useFortschrittData() {
           .order('log_date', { ascending: true })
           .range(from, to),
       ),
-      supabase
-        .from('weight_logs')
-        .select('id, logged_at, weight_kg')
-        .eq('user_id', user.id)
-        .lte('logged_at', toBound)
-        .order('logged_at', { ascending: true }),
-      supabase
-        .from('bloodwork')
-        .select('id, marker, value, unit, tested_at')
-        .eq('user_id', user.id)
-        .lte('tested_at', activeRange.to)
-        .order('tested_at', { ascending: false }),
-      supabase
-        .from('progress_photos')
-        .select('id, photo_url, taken_at, weight_kg, notes')
-        .eq('user_id', user.id)
-        .lte('taken_at', activeRange.to)
-        .order('taken_at', { ascending: false }),
-      supabase
-        .from('dose_logs')
-        .select('stack_item_id, logged_at, taken')
-        .eq('user_id', user.id)
-        .lte('logged_at', toBound),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('weight_logs')
+          .select('id, logged_at, weight_kg')
+          .eq('user_id', user.id)
+          .lte('logged_at', toBound)
+          .order('logged_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('bloodwork')
+          .select('id, marker, value, unit, tested_at')
+          .eq('user_id', user.id)
+          .lte('tested_at', activeRange.to)
+          .order('tested_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('progress_photos')
+          .select('id, photo_url, taken_at, weight_kg, notes')
+          .eq('user_id', user.id)
+          .lte('taken_at', activeRange.to)
+          .order('taken_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
+          .from('dose_logs')
+          .select('stack_item_id, logged_at, taken')
+          .eq('user_id', user.id)
+          .lte('logged_at', toBound)
+          .order('logged_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
     ])
 
     const errors = [cyclesRes, stackItemsRes, dailyRes, weightRes, bloodRes, photoRes, doseRes]
@@ -151,7 +200,7 @@ export function useFortschrittData() {
       .filter(Boolean)
     if (errors.length > 0) {
       console.error('Fortschritt: Daten laden fehlgeschlagen', errors)
-      toast.error('Fortschritt-Daten konnten nicht vollständig geladen werden')
+      toast.error(i18n.t('fortschritt_load_failed'))
     }
 
     setDailyLogs(mapDailyLogs(dailyRes.data))
@@ -184,6 +233,7 @@ export function useFortschrittData() {
       notes: row.notes ?? null,
     }))
     setPhotos(await resolvePhotoDisplayUrls(rawPhotos))
+    photosSignedAtRef.current = Date.now()
 
     setDoseLogs((doseRes.data ?? []) as DoseLogEntry[])
 
@@ -195,11 +245,27 @@ export function useFortschrittData() {
     initialLoadedRef.current = true
     setDataReady(true)
     setLoading(false)
-  }, [ongoingSubstances, user])
+  }, [user])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  // Signierte Foto-Links laufen nach einer Stunde ab. Kommt die Seite nach
+  // laengerer Pause wieder in den Vordergrund (Geraet geschlafen, Tab im
+  // Hintergrund — Timer liefen dann nicht), werden sie neu geholt.
+  useEffect(() => {
+    const auffrischen = () => {
+      if (document.visibilityState !== 'visible') return
+      if (Date.now() - photosSignedAtRef.current < BATCH_LINK_ERNEUERN_MS) return
+      const current = photosRef.current
+      if (current.length === 0) return
+      photosSignedAtRef.current = Date.now()
+      void resolvePhotoDisplayUrls(current).then(setPhotos)
+    }
+    document.addEventListener('visibilitychange', auffrischen)
+    return () => document.removeEventListener('visibilitychange', auffrischen)
+  }, [])
 
   // Stabile Referenz: die Felder sind schon stabil, ein neues Objektliteral pro
   // Render würde aber jeden `useMemo` der Konsumenten mit `state` in den Deps
@@ -210,7 +276,7 @@ export function useFortschrittData() {
     range,
     fullRange,
     cycleSubstances,
-    ongoingSubstances,
+    ongoingSubstances: ONGOING_SUBSTANCES,
     dailyLogs,
     weightLogs,
     bloodwork,
@@ -223,7 +289,6 @@ export function useFortschrittData() {
     range,
     fullRange,
     cycleSubstances,
-    ongoingSubstances,
     dailyLogs,
     weightLogs,
     bloodwork,

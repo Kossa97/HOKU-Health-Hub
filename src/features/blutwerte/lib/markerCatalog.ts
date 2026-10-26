@@ -162,8 +162,9 @@ export const MARKER_CATALOG: MarkerDef[] = [
     synonyme: ['Progesteron gesamt'],
     kategorie: 'Hormone',
     einheit: 'ng/mL',
-    refMax: 0.5,
-    lowerIsBetter: true,
+    // Kein Standardbereich: bei Frauen haengt er vom Zyklustag ab (zweite Haelfte
+    // und Schwangerschaft deutlich hoeher), bei Maennern liegt er sehr niedrig.
+    // Gilt der Bereich des Labors aus dem Befund.
     erklaerung:
       'Ein Sexualhormon, das bei Frauen den Zyklus steuert. Bei Männern liegt es normalerweise sehr niedrig.',
   },
@@ -365,7 +366,9 @@ export const MARKER_CATALOG: MarkerDef[] = [
     synonyme: ['GFR', 'Glomeruläre Filtrationsrate'],
     kategorie: 'Niere',
     einheit: 'mL/min/1.73m²',
-    refMin: 90,
+    // Unter 60 gilt die Nierenfunktion als eingeschraenkt; 60–90 ist im Alter
+    // haeufig normal (mit 70 Jahren etwa 75).
+    refMin: 60,
     erklaerung:
       'Ein aus dem Kreatinin berechneter Schätzwert für die Filterleistung der Nieren. Je höher, desto besser.',
   },
@@ -469,7 +472,9 @@ export const MARKER_CATALOG: MarkerDef[] = [
     synonyme: ['C-reaktives Protein', 'hs-CRP', 'CRP hochsensitiv'],
     kategorie: 'Entzündung',
     einheit: 'mg/L',
-    refMax: 1.0,
+    // Standard-CRP: bis 5 mg/L unauffaellig. Der hochsensitive Test (hs-CRP)
+    // bewertet kleinere Werte anders — dann gilt der Laborbereich aus dem Befund.
+    refMax: 5,
     lowerIsBetter: true,
     erklaerung:
       'Der wichtigste Entzündungsmarker. Er steigt bei akuten Infekten stark an; leicht erhöhte Dauerwerte deuten auf stille Entzündungsprozesse hin.',
@@ -559,7 +564,8 @@ export const MARKER_CATALOG: MarkerDef[] = [
     synonyme: ['TSAT', 'Transferrin-Sättigung'],
     kategorie: 'Vitamine & Mineralstoffe',
     einheit: '%',
-    refMin: 20,
+    // IQWiG (gesundheitsinformation.de): 16–45 % für Frauen und Männer.
+    refMin: 16,
     refMax: 45,
     erklaerung: 'Zeigt, wie gut das Eisentransportprotein beladen ist, und ergänzt die Beurteilung des Eisenstatus.',
   },

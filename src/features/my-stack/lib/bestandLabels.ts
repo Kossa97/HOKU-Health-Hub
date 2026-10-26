@@ -73,8 +73,12 @@ export function stockUnitChoices(form: DosageFormKey, ingredients: readonly Stac
   return [...new Set([...ausZutaten, ...getDosageForm(form).basisUnits])]
 }
 
-/** Der Knopf, der einen neuen Behaelter anbricht — je Form ein eigenes Wort. */
-export function neuAnbrechenLabel(t: Translate, form: DosageFormKey | null | undefined): string {
+/**
+ * Der Knopf, der einen neuen Behaelter anbricht — je Form ein eigenes Wort.
+ * Ein Vial mit fertiger Loesung wird angebrochen, nicht rekonstituiert.
+ */
+export function neuAnbrechenLabel(t: Translate, form: DosageFormKey | null | undefined, loesung = false): string {
+  if (form === 'vial' && loesung) return String(t('my_stack_stock_open_new_vial'))
   const key = {
     vial: 'my_stack_stock_mix_new',
     pen: 'my_stack_stock_open_new_pen',
@@ -112,6 +116,20 @@ export function vorratZeilen(
     }
   }
   const groesse = behaelterGroesse(inventory)
+  // Vial mit fertiger Loesung, gezaehlt in ml: die Menge vorn, dahinter die
+  // Vials — „18 ml · 1 ungeöffnet + 1 angebrochen · 80 %".
+  if (art === 'vial' && einheit && groesse) {
+    return {
+      gross: stockAmountLabel(t, teile.rest, einheit, language),
+      klein: teile.angebrochenAnteil != null
+        ? String(t(teile.voll > 0 ? 'my_stack_stock_solution_vial_extra' : 'my_stack_stock_solution_vial_opened', {
+          n: teile.voll,
+          percent: Math.max(1, Math.round(teile.angebrochenAnteil * 100)),
+        }))
+        : String(t('my_stack_stock_solution_vial_size', { amount: stockAmountLabel(t, groesse, einheit, language) })),
+      anteil,
+    }
+  }
   if (behaelter && behaelter !== 'vial' && groesse && einheit) {
     const behaelterText = (anzahl: number) => String(t(
       `my_stack_stock_container_${behaelter}_${anzahl === 1 ? 'single' : 'multiple'}`,

@@ -1,7 +1,11 @@
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { InjectionLog3D } from './injectionLogTypes'
+import { BODY_LANDMARKS as L } from './injectionGeometry'
 
-export type InjectionHistoryDays = 7 | 14 | 30 | 60 | 90 | 'all'
+// Karte und Verlauf. 30 Tage reichen auch fuer woechentliche Spritzen (die
+// letzten 4 Stellen); fuer alles Aeltere gibt es „Alle“.
+export const INJECTION_HISTORY_DAY_OPTIONS = [7, 14, 30] as const
+export type InjectionHistoryDays = typeof INJECTION_HISTORY_DAY_OPTIONS[number] | 'all'
 
 export function filterInjectionHistory(
   logs: InjectionLog3D[],
@@ -44,19 +48,19 @@ function sideLabel(log: InjectionLog3D): string {
   return 'mittig'
 }
 
+function thirds(y: number, bottom: number, top: number): string {
+  const third = (top - bottom) / 3
+  if (y > top - third) return 'oben'
+  if (y < bottom + third) return 'unten'
+  return 'mittig'
+}
+
+// Drittel bzw. Haelften der jeweiligen Region, aus BODY_LANDMARKS.
 function verticalLabel(log: InjectionLog3D): string {
   const y = log.position.y
-  if (log.body_region === 'abdomen') {
-    if (y > 0.2) return 'oben'
-    if (y < -0.05) return 'unten'
-    return 'mittig'
-  }
-  if (log.body_region === 'thigh') {
-    if (y > -0.38) return 'oben'
-    if (y < -0.65) return 'unten'
-    return 'mittig'
-  }
-  if (log.body_region === 'glute') return y > -0.42 ? 'oben' : 'unten'
+  if (log.body_region === 'abdomen') return thirds(y, L.crotchY, L.ribY)
+  if (log.body_region === 'thigh') return thirds(y, L.kneeY, L.crotchY)
+  if (log.body_region === 'glute') return y > (L.gluteFoldY + L.hipY) / 2 ? 'oben' : 'unten'
   return ''
 }
 
@@ -76,7 +80,8 @@ function surfaceLabel(log: InjectionLog3D): string {
 export function formatInjectionSite(log: InjectionLog3D): string {
   if (!hasExactInjectionPosition(log)) return 'Alter Eintrag · keine genaue Position'
 
-  const detail = [verticalLabel(log), lateralLabel(log)].filter(Boolean).join(' ')
+  // Hoehe und Seite koennen beide „mittig“ sein: dann nur einmal.
+  const detail = [...new Set([verticalLabel(log), lateralLabel(log)].filter(Boolean))].join(' ')
   return `${regionLabel(log)} ${sideLabel(log)} · ${detail} · ${surfaceLabel(log)}`
 }
 

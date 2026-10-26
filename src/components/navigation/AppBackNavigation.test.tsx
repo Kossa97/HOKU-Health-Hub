@@ -82,6 +82,16 @@ function swipe(startX: number, endX: number, startY = 160, endY = 166) {
   fireEvent.pointerUp(window, { pointerId: 1, pointerType: 'touch', clientX: endX, clientY: endY })
 }
 
+function PageCloseApp({ onClose }: { onClose: () => void }) {
+  return (
+    <AppBackNavigation>
+      <LocationProbe />
+      <button type="button" data-app-page-close onClick={onClose}>Schließen</button>
+      <Routes><Route path="/ernaehrung" element={<p>Ernährung</p>} /></Routes>
+    </AppBackNavigation>
+  )
+}
+
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
@@ -110,6 +120,19 @@ describe('app-wide edge swipe back', () => {
     swipe(12, 58, 80, 190)
 
     expect(screen.getByLabelText('location').textContent).toBe('/second')
+  })
+
+  it('triggers the page close control of a page without tab bar, even without history', () => {
+    const onClose = vi.fn()
+    render(
+      <MemoryRouter initialEntries={['/ernaehrung']}>
+        <PageCloseApp onClose={onClose} />
+      </MemoryRouter>,
+    )
+
+    swipe(12, 104)
+
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('closes the top app window before changing the route', () => {
@@ -146,6 +169,27 @@ describe('app-wide edge swipe back', () => {
 
     expect(confirm).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Schließen')).not.toBeNull()
+  })
+
+  it('leaves the question to a modal that confirms by itself', () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const close = vi.fn()
+    render(
+      <MemoryRouter initialEntries={['/second']}>
+        <AppBackNavigation>
+          <div data-app-modal data-app-back-self-confirm>
+            <input aria-label="Notiz" defaultValue="" />
+            <button type="button" data-app-back-close onClick={close}>Schließen</button>
+          </div>
+        </AppBackNavigation>
+      </MemoryRouter>,
+    )
+    fireEvent.input(screen.getByLabelText('Notiz'), { target: { value: 'x' } })
+
+    swipe(12, 104)
+
+    expect(confirm).not.toHaveBeenCalled()
+    expect(close).toHaveBeenCalledTimes(1)
   })
 
   it('tracks edited fields in semantic dialogs without a wrapper attribute', () => {

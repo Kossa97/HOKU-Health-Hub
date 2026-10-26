@@ -1,218 +1,620 @@
-import { useState } from 'react'
-import { format } from 'date-fns'
-import { ArrowLeft, Info, Plus, Trash2 } from 'lucide-react'
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceArea,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+/**
+ * Detailseite eines Blutwerts — aufgebaut wie eine Aktie in der Aktien-App:
+ * Name, Kasten mit Wert und Referenzbereich, Verlauf (derselbe Graph
+ * wie im Blutspiegel), Zeitraum, Kennzahlen, Einordnung und die Messungen.
+ */
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { format, subMonths, subYears } from 'date-fns'
+import { ChevronDown, ChevronLeft, Plus } from 'lucide-react'
+import { KATEGORIE_KEY, markerErklaerung, markerName } from '../lib/markerCatalog.en'
 import type { MarkerSummary } from '../lib/bloodwork'
-import { toNumber } from '../lib/bloodwork'
-import type { BloodworkEntry } from '../types'
-import { formatChartDate, formatDisplayDate, formatNumber } from '../lib/format'
-import { CYAN, DISCLAIMER, GREEN, MUTED, PANEL_STYLE, RED, TEXT } from '../styles'
-import { TrendIcon, trendColor } from './MarkerGrid'
+import { abstandZurGrenze, chooseDisplayUnit, entryInRange, entryRange, roundConverted, toNumber } from '../lib/bloodwork'
+import type { BioProfile } from '../lib/bioProfile'
+import { unitChoices, type UnitSystem } from '../lib/unitConversion'
+import { GUIDANCE_STAND, markerGuidance, type GuidanceItem } from '../lib/markerGuidance'
+import type { BloodworkEntry, BloodworkReport } from '../types'
+import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
+import { CYAN, GREEN, MUTED, PILL_GRAY, PILL_GREEN, PILL_RED, RED, TEXT } from '../styles'
+import { GlassSegmented } from '../../../components/ui/GlassSegmented'
 import { ReferenceBar } from './ReferenceBar'
+import { MessungDetail } from './MessungDetail'
+import { ZyklusAuswahl } from './ZyklusAuswahl'
+import { TrendIcon, trendColor } from './trend'
+import { StocksChart, type LaneBand } from '../../blutspiegel/chart/StocksChart'
+import { timeStep, timeTicks, type LevelPoint } from '../../blutspiegel/chart/stocksChartMath'
+import type { CycleTimeline } from '../../../lib/planTimeline'
+import { TAG_MS, aktiveZyklen, msTag, tagMs, zyklusBalken, zyklusBalkenLayout, zyklusBalkenUnten, zyklusZeilen } from '../lib/zyklusZeilen'
 
-export type RangeFilter = '3M' | '6M' | '1J' | 'ALL'
+export type RangeFilter = '3M' | '6M' | '1J' | '2J' | 'ALL'
+
+const RANGES: Array<[RangeFilter, string]> = [
+  ['3M', 'bw_range_3m'], ['6M', 'bw_range_6m'], ['1J', 'bw_range_1y'], ['2J', 'bw_range_2y'], ['ALL', 'bw_range_all'],
+]
+
+/** Messpunkt in der Mitte seines Tags — dort, wo der Tag auch in den Zyklus-Zeilen liegt. */
+const HALBER_TAG = TAG_MS / 2
+const CHART_H = 250
+/** Linienfarbe ohne Referenzbereich (Hex, der Graph mischt Transparenz hinein). */
+const NEUTRAL_LINE = '#22c3e6'
 
 interface Props {
   summary: MarkerSummary
+  /** Zyklen aus My Stack fuer die Zeitstreifen unter dem Verlauf. */
+  zyklen?: { timelines: CycleTimeline[]; namen: ReadonlyMap<string, string> }
+  /** Befunde — fuer die Herkunft einer Messung (Labor). */
+  reports?: BloodworkReport[]
   onBack: () => void
   onAdd: () => void
-  onDelete: (entry: BloodworkEntry) => void
+  onEdit: (entry: BloodworkEntry) => void
+  /** Einheitensystem aller Marker; markerUnit ueberschreibt es fuer diesen. */
+  unitSystem?: UnitSystem
+  markerUnit?: string | null
+  onMarkerUnit?: (unit: string | null) => void
+  /** Geschlecht/Alter für den Bereich je Messung, wenn sie keinen Laborbereich hat. */
+  profil?: BioProfile | null
 }
 
-export function MarkerDetail({ summary, onBack, onAdd, onDelete }: Props) {
+/** Monats-Ticks (1., 2., 3., 6. oder 12. Monat), so fein, wie die Breite erlaubt. */
+function monthTicks(start: number, end: number, widthPx: number): { ticks: number[]; step: number } {
+  if (end - start < 75 * TAG_MS) {
+    const step = timeStep(start, end, widthPx)
+    return { step, ticks: timeTicks(start, end, step) }
+  }
+  const months = (end - start) / (30.4 * TAG_MS)
+  const maxTicks = Math.max(1, Math.floor(widthPx / 52))
+  const every = [1, 2, 3, 6, 12, 24].find(n => months / n <= maxTicks) ?? 24
+  const d = new Date(start)
+  d.setDate(1); d.setHours(0, 0, 0, 0)
+  if (d.getTime() < start) d.setMonth(d.getMonth() + 1)
+  // Auf ein Vielfaches ausrichten, damit die Ticks beim Zeitraumwechsel nicht springen.
+  while (d.getMonth() % Math.min(every, 12) !== 0) d.setMonth(d.getMonth() + 1)
+  const ticks: number[] = []
+  while (d.getTime() <= end) {
+    ticks.push(d.getTime())
+    d.setMonth(d.getMonth() + every)
+  }
+  return { ticks, step: every * 30 * TAG_MS }
+}
+
+
+/** „3,49–11,1 µg/l“, „< 25 mg/l“, „> 40 mg/dl“ — der Bereich, wie das Labor ihn angibt. */
+function bereichText(min: number | null, max: number | null, einheit: string): string {
+  const text = min != null && max != null ? `${formatNumber(min)}–${formatNumber(max)}`
+    : max != null ? `< ${formatNumber(max)}` : `> ${formatNumber(min as number)}`
+  return `${text} ${einheit}`.trim()
+}
+
+export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onEdit, unitSystem = 'konventionell', markerUnit = null, onMarkerUnit, profil }: Props) {
+  const { t, i18n } = useTranslation()
+  const sprache = i18n.resolvedLanguage ?? i18n.language
   const [rangeFilter, setRangeFilter] = useState<RangeFilter>('1J')
+  const [offen, setOffen] = useState<'niedrig' | 'hoch' | null>(null)
+  // Messungen: anfangs zugeklappt; darin hoechstens eine Messung aufgeklappt
+  const [messungenOffen, setMessungenOffen] = useState(false)
+  const [offeneMessung, setOffeneMessung] = useState<string | null>(null)
 
-  const { name, entries, latest, range, inRange, trend, diff } = summary
-  const shownValue = summary.displayValue ?? (latest ? latest.value : null)
-  const shownUnit = summary.displayValue != null ? summary.displayUnit : (latest?.unit ?? '')
+  const { name, latest, range, inRange, def, trend } = summary
+  const unit = summary.displayUnit
+  const anzeigeName = markerName(name, sprache)
+  const shownValue = summary.displayValue ?? (latest ? toNumber(latest.value) : null)
+  const shownUnit = summary.displayValue != null ? unit : (latest?.unit ?? '')
 
-  const now = new Date()
-  const cutoff = (() => {
-    const d = new Date(now)
-    if (rangeFilter === '3M') d.setMonth(d.getMonth() - 3)
-    else if (rangeFilter === '6M') d.setMonth(d.getMonth() - 6)
-    else if (rangeFilter === '1J') d.setFullYear(d.getFullYear() - 1)
-    else return null
-    return format(d, 'yyyy-MM-dd')
-  })()
+  const lineColor = inRange === false ? RED : inRange === true ? GREEN : NEUTRAL_LINE
 
-  // oldest -> newest for the chart
-  const windowPoints = summary.points.filter(p => (cutoff ? p.entry.tested_at >= cutoff : true))
-  const chartData = windowPoints
+  // Alle umrechenbaren Messungen, alt → neu
+  const allPoints: LevelPoint[] = useMemo(() => summary.points
     .filter(p => p.value != null)
-    .slice()
-    .sort((a, b) => a.entry.tested_at.localeCompare(b.entry.tested_at))
-    .map(p => ({
-      date_label: formatChartDate(p.entry.tested_at),
-      value: p.value as number,
-    }))
+    .map(p => ({ ts: tagMs(p.entry.tested_at) + HALBER_TAG, level: p.value as number }))
+    .sort((a, b) => a.ts - b.ts), [summary.points])
 
-  const excludedCount = windowPoints.filter(p => p.value == null).length
+  // Zeitfenster: endet heute (oder beim spaeteren Messdatum)
+  const heute = format(new Date(), 'yyyy-MM-dd')
+  const lastDay = allPoints.length ? msTag(allPoints[allPoints.length - 1].ts) : heute
+  const bisTag = lastDay > heute ? lastDay : heute
+  const end = tagMs(bisTag) + TAG_MS
+  const start = useMemo(() => {
+    const endDate = new Date(end)
+    if (rangeFilter === '3M') return subMonths(endDate, 3).getTime()
+    if (rangeFilter === '6M') return subMonths(endDate, 6).getTime()
+    if (rangeFilter === '1J') return subYears(endDate, 1).getTime()
+    if (rangeFilter === '2J') return subYears(endDate, 2).getTime()
+    // Alles: ab dem ersten Wert, mit etwas Luft links
+    const first = allPoints[0]?.ts ?? end - 90 * TAG_MS
+    return first - Math.max(7 * TAG_MS, (end - first) * 0.04)
+  }, [rangeFilter, end, allPoints])
+
+  const von = msTag(start)
+  const fenster = useMemo(() => ({ von, bis: bisTag }), [von, bisTag])
+  const streifen = useMemo(() => zyklen
+    ? zyklusZeilen(zyklen.timelines, zyklen.namen, fenster, heute, Intl.DateTimeFormat().resolvedOptions().timeZone)
+    : { zeilen: [] }, [zyklen, fenster, heute])
+
+  // Zyklen als dezente Balken unter der Kurve: parallele untereinander,
+  // aufeinanderfolgende nebeneinander, alle unter der untersten Wertelinie.
+  // Angewaehlte Substanzen (stackItemId); anfangs keine. Bis zum ersten Tippen
+  // weist der erste Chip mit einem Puls darauf hin — je Besuch der Detailansicht.
+  const [an, setAn] = useState<ReadonlySet<string>>(() => new Set())
+  const [angetippt, setAngetippt] = useState(false)
+  const toggleZyklus = useCallback((id: string) => {
+    setAngetippt(true)
+    setAn(alt => {
+      const neu = new Set(alt)
+      if (!neu.delete(id)) neu.add(id)
+      return neu
+    })
+  }, [])
+  const gewaehlt = useMemo(() => streifen.zeilen.filter(zeile => an.has(zeile.stackItemId)), [streifen, an])
+  const balken = useMemo(() => zyklusBalken(gewaehlt, fenster), [gewaehlt, fenster])
+  const lanes = useMemo(() => ({
+    items: balken.balken.map((b): LaneBand => ({
+      id: b.key, color: `var(--cycle-${b.farbe + 1})`, filled: !b.laeuft,
+      x1: b.x1, x2: b.x2, lane: b.reihe, start: b.start, label: b.substanz,
+    })),
+    count: balken.reihen,
+    layout: zyklusBalkenLayout,
+    // Die Balken haengen unter der untersten Wertelinie; der Graph waechst um sie
+    below: zyklusBalkenUnten(balken.reihen),
+  }), [balken])
+
+  const inWindow = allPoints.filter(p => p.ts >= start && p.ts <= end)
+  const excludedCount = summary.points.filter(p => {
+    if (p.value != null) return false
+    const ts = tagMs(p.entry.tested_at) + HALBER_TAG
+    return ts >= start && ts <= end
+  }).length
+
+  // Graph-Formatierung
+  const monthFmt = useMemo(() => new Intl.DateTimeFormat(sprache, { month: 'short' }), [sprache])
+  const dayFmt = useMemo(() => new Intl.DateTimeFormat(sprache, { day: 'numeric', month: 'short' }), [sprache])
+  const formatTick = useCallback((ts: number, step: number) => {
+    if (step < 28 * TAG_MS) return dayFmt.format(ts)
+    const d = new Date(ts)
+    return d.getMonth() === 0 || step >= 360 * TAG_MS ? String(d.getFullYear()) : monthFmt.format(ts)
+  }, [dayFmt, monthFmt])
+  const scrubLabel = useMemo(() => ({
+    date: (ts: number) => formatDisplayDate(msTag(ts)),
+    value: (v: number) => `${formatNumber(v)} ${unit}`,
+    // Was an dem Tag lief, mit Zykluswoche
+    note: (ts: number) => {
+      const aktiv = aktiveZyklen(gewaehlt, fenster, ts)
+      return aktiv.length ? aktiv.map(({ zeile, woche }) => `${zeile.substanz} ${t('bw_cycle_week', { n: woche })}`).join(' · ') : null
+    },
+  }), [unit, gewaehlt, fenster, t])
+  const formatValue = useCallback((v: number) => formatNumber(v), [])
+  // Das Band folgt der Quelle, nicht dem Labor: es wechselt nur, wo sich die
+  // Gruppe aendert (neue Altersgruppe, Wechseljahre). Gilt mangels Quelle der
+  // Laborbereich, steht fuer den ganzen Verlauf der der neuesten Messung —
+  // sonst sprang das Band bei jedem Laborwechsel.
+  const steps = useMemo(() => {
+    const mitWert = summary.points.filter(p => p.value != null)
+    const neuesteMitLabor = mitWert
+      .filter(p => entryRange(p.entry, def, unit, profil).source === 'lab')
+      .sort((a, b) => b.entry.tested_at.localeCompare(a.entry.tested_at))[0]
+    const laborBereich = neuesteMitLabor ? entryRange(neuesteMitLabor.entry, def, unit, profil) : null
+    const roh = mitWert
+      .map(p => {
+        // Gerundet wie der Bereich im Kasten, damit Band und Text uebereinstimmen
+        const eigen = entryRange(p.entry, def, unit, profil)
+        const r = eigen.source === 'lab' && laborBereich ? laborBereich : eigen
+        return { from: tagMs(p.entry.tested_at) + HALBER_TAG, lo: r.min, hi: r.max }
+      })
+      .sort((a, b) => a.from - b.from)
+    const zusammen = roh.filter((st, i) => i === 0 || st.lo !== roh[i - 1].lo || st.hi !== roh[i - 1].hi)
+    return zusammen.length > 1 ? zusammen : undefined
+  }, [summary.points, def, unit, profil])
+  const band = useMemo(() => (range.source !== 'none' || steps
+    ? { lo: range.min, hi: range.max, color: '#10b981', steps }
+    : undefined), [range, steps])
+  // Im Referenzbereich gruen, darueber und darunter rot — Linie, Punkte und Ablesen
+  const zoneColors = useMemo(() => (range.source !== 'none' || steps
+    ? { lo: range.min, hi: range.max, inside: '#10b981', outside: '#ef4444', steps, neutral: NEUTRAL_LINE }
+    : undefined), [range, steps])
+  // Nur der aktuelle Bereich: alte Bereiche ausserhalb des Fensters sollen die Achse nicht strecken
+  const yInclude = [range.min, range.max].filter((v): v is number => v != null)
+  const values = allPoints.map(p => p.level)
+  // Mindesthoehe der Achse: 10 % des groessten Werts, damit Rauschen flach bleibt.
+  const groesster = values.length ? Math.max(...values.map(Math.abs)) : 0
+  const minSpan = groesster > 0 ? groesster * 0.1 : 1
+
+  // Abstand zur naeheren Grenze fuer die Plakette. Richtung nach der naeheren
+  // Grenze: das Urteil kommt aus ungerundeten Werten, ein gerundeter Wert kann
+  // genau auf der Grenze liegen.
+  const abstand = abstandZurGrenze(summary.displayValue, range, inRange)
+  const monthYear = useMemo(() => new Intl.DateTimeFormat(sprache, { month: '2-digit', year: 'numeric' }), [sprache])
+
+  const guidance = def ? markerGuidance(def.name, sprache) : null
+  const labNamen = useMemo(() => new Map(reports.map(r => [r.id, r.lab_name])), [reports])
+  const standDatum = monthYear.format(new Date(`${GUIDANCE_STAND}-01T00:00:00`))
+
+  const sectionTitle = 'lg-title2'
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="flex flex-col gap-6 pb-4">
+      {/* Kopf */}
+      <div className="flex items-center justify-between">
         <button
-          className="p-2 -ml-2 transition-colors"
-          style={{ color: MUTED }}
+          type="button"
           onClick={onBack}
-          aria-label="Zurück"
+          className="lg-glass lg-btn lg-btn-glass lg-btn-compact !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          aria-label={t('back')}
         >
-          <ArrowLeft size={20} />
+          <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+          {t('bw_title')}
         </button>
-        <h1 className="text-lg font-bold" style={{ color: TEXT }}>{name}</h1>
-        <button className="btn-primary flex items-center gap-1.5 text-sm" onClick={onAdd}>
-          <Plus size={15} /> Eintrag
+        <button
+          type="button"
+          onClick={onAdd}
+          aria-label={t('bw_add_value_aria')}
+          className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+        >
+          <Plus size={22} aria-hidden="true" />
         </button>
       </div>
 
-      {/* Hero */}
-      <div className="p-5 mb-4" style={PANEL_STYLE}>
-        {latest ? (
-          <>
-            <div className="flex items-end justify-between">
-              <p className="text-3xl font-bold" style={{ color: inRange === false ? RED : CYAN }}>
-                {formatNumber(shownValue!)}
-                <span className="text-base font-semibold ml-1.5" style={{ color: MUTED }}>{shownUnit}</span>
+      {/* Name und Kategorie */}
+      <div className="-mt-2 flex flex-col gap-1">
+        {/* Eine Zeile: Name links (laeuft durch, wenn er nicht passt), Kategorie rechts */}
+        <div className="flex items-baseline gap-2">
+          <LaufName text={anzeigeName} />
+          <p className="shrink-0 text-[15px]" style={{ color: MUTED }} data-bw-kategorie>{t(KATEGORIE_KEY[summary.kategorie])}</p>
+        </div>
+        {def && <KurzErklaerung text={markerErklaerung(def, sprache)} />}
+      </div>
+
+      {/* Wert, Einheit und Referenzbereich — der Kasten wie in der ersten Fassung */}
+      <div className="lg-surface p-5" data-bw-hero>
+        {latest && shownValue != null ? (
+          <div className="flex flex-col gap-3">
+            <p className="-mb-2 text-sm font-semibold" style={{ color: MUTED }} data-bw-hero-label>{t('bw_current_label')}</p>
+            <div className="flex items-end justify-between gap-3">
+              <p className="text-[34px] font-bold leading-tight tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-hero-value>
+                {formatNumber(shownValue)}
+                <span className="ml-1.5 text-base font-semibold" style={{ color: MUTED }}>{shownUnit}</span>
               </p>
               {trend && (
-                <div className="flex items-center gap-1 text-sm font-semibold" style={{ color: trendColor(summary) }}>
+                <div className="flex items-center gap-1 text-sm font-semibold tabular-nums" style={{ color: trendColor(summary) }}>
                   <TrendIcon trend={trend} />
-                  {trend === 'same' ? 'gleich' : formatNumber(Math.abs(diff))}
+                  {trend === 'same' ? t('bw_trend_same') : formatNumber(Math.abs(summary.diff))}
                 </div>
               )}
             </div>
+            {(() => {
+              // Einheit nur fuer diesen Marker; „Automatisch" folgt dem Schalter in der Uebersicht.
+              const katalog = def?.einheit ?? ''
+              const units = [...(markerUnit ? [markerUnit] : []), ...summary.entries.map(e => e.unit)]
+              const choices = onMarkerUnit ? unitChoices(def?.name ?? name, katalog, units) : []
+              if (choices.length < 2 || !onMarkerUnit) return null
+              // Was ohne eigene Wahl tatsaechlich gezeigt wuerde — samt Rueckfall.
+              const automatisch = chooseDisplayUnit(def, name, latest.value, latest.unit, { system: unitSystem })
+              return (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: MUTED }} htmlFor="bw-marker-unit">{t('bw_unit_label')}</label>
+                  <select
+                    id="bw-marker-unit"
+                    className="min-h-9 cursor-pointer rounded-full border-0 pl-3 pr-2 text-[13px] font-semibold"
+                    style={{ color: TEXT, background: 'var(--lg-fill)' }}
+                    value={markerUnit && choices.includes(markerUnit) ? markerUnit : ''}
+                    onChange={e => onMarkerUnit(e.target.value || null)}
+                  >
+                    <option value="">{t('bw_unit_auto', { unit: automatisch })}</option>
+                    {choices.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              )
+            })()}
             {range.source !== 'none' ? (
-              <div className="mt-4">
-                <ReferenceBar
-                  value={summary.displayValue ?? toNumber(latest.value)}
-                  unit={shownUnit}
-                  range={range}
-                  inRange={inRange}
-                />
-              </div>
+              <ReferenceBar value={shownValue} unit={shownUnit} range={range} inRange={inRange} />
             ) : (
-              <p className="text-xs mt-2" style={{ color: MUTED }}>Kein Referenzbereich hinterlegt</p>
+              <p className="text-xs" style={{ color: MUTED }} data-bw-no-range>
+                {range.keinStandard ? t('bw_range_no_standard_women') : t('bw_no_reference_set')}
+              </p>
             )}
-            <div className="mt-3">
-              {inRange === true && (
-                <span className="badge" style={{ background: 'rgba(16,185,129,0.12)', color: GREEN }}>Im Normalbereich</span>
-              )}
+            <div data-bw-status>
+              {inRange === true && <span className="lg-tag" data-tone="good">{t('bw_in_range')}</span>}
               {inRange === false && (
-                <span className="badge" style={{ background: 'rgba(239,68,68,0.12)', color: RED }}>Außerhalb</span>
+                <span className="lg-tag" data-tone="bad">
+                  {abstand ? t(abstand.key, { value: `${formatNumber(roundConverted(abstand.wert))} ${shownUnit}` }) : t('bw_out_range')}
+                </span>
               )}
-              {inRange === null && (
-                <span className="badge" style={{ background: 'var(--border)', color: MUTED }}>Kein Referenzbereich</span>
-              )}
+              {inRange === null && <span className="lg-tag">{t('bw_no_reference')}</span>}
+            </div>
+          </div>
+        ) : (
+          <p style={{ color: MUTED }}>{t('bw_no_test_for', { name: anzeigeName })}</p>
+        )}
+      </div>
+
+      {/* Verlauf */}
+      {allPoints.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          {/* Zeitraum ueber dem Graph */}
+          <GlassSegmented
+            className="mb-1.5"
+            material="fill"
+            equal
+            ariaLabel={t('bw_period_aria')}
+            value={rangeFilter}
+            onChange={setRangeFilter}
+            options={RANGES.map(([key, label]) => ({ key, label: t(label) }))}
+          />
+          {inWindow.length > 0 ? (
+            <StocksChart
+              points={allPoints}
+              start={start}
+              end={end}
+              accent={lineColor}
+              height={CHART_H + lanes.below}
+              seriesKey={`${name}|${unit}`}
+              formatTick={formatTick}
+              xTicks={monthTicks}
+              formatValue={formatValue}
+              scrubLabel={scrubLabel}
+              ariaLabel={t('bw_chart_aria', { name: anzeigeName })}
+              band={band}
+              dots
+              yInclude={yInclude}
+              percentCap={false}
+              minSpan={minSpan}
+              intakeStrip={false}
+              zoneColors={zoneColors}
+              lanes={lanes}
+            />
+          ) : (
+            <div className="flex items-center justify-center text-center text-sm" style={{ height: CHART_H, color: MUTED }}>
+              {t('bw_no_values_period')}
+            </div>
+          )}
+          {inWindow.length > 0 && (
+            <ZyklusAuswahl zeilen={streifen.zeilen} an={id => an.has(id)} hinweis={!angetippt} onToggle={toggleZyklus} />
+          )}
+          {excludedCount > 0 && (
+            <p className="text-xs" style={{ color: MUTED }}>
+              {excludedCount === 1 ? t('bw_excluded_one') : t('bw_excluded_many', { count: excludedCount })}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Hinweise und Ursachen */}
+      <section aria-labelledby="bw-meaning-title" className="flex flex-col gap-2.5">
+        <h2 id="bw-meaning-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_assessment_title')}</h2>
+        {/* Die Kurzerklaerung steht oben unter dem Namen. */}
+        {!def && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>{t('bw_no_explanation')}</p>}
+        {guidance && (
+          <>
+            <p className="text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>{guidance.text.hinweis}</p>
+            {/* Immer zugeklappt: nie nach dem eigenen Wert ausgewaehlt. */}
+            <div className="lg-group lg-rows" data-bw-guidance>
+              {([
+                ['niedrig', 'bw_guidance_low', guidance.text.niedrig],
+                ['hoch', 'bw_guidance_high', guidance.text.hoch],
+              ] as const).map(([key, label, items]) => {
+                const auf = offen === key
+                const panelId = `bw-guidance-${key}`
+                return (
+                  <div key={key}>
+                    <button
+                      type="button"
+                      aria-expanded={auf}
+                      aria-controls={panelId}
+                      onClick={() => setOffen(auf ? null : key)}
+                      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left text-[16px] font-semibold"
+                      style={{ color: TEXT }}
+                    >
+                      <span className="flex-1">{t(label)}</span>
+                      <ChevronDown
+                        size={18}
+                        strokeWidth={2.2}
+                        aria-hidden="true"
+                        className="transition-transform"
+                        style={{ color: MUTED, transform: auf ? 'rotate(180deg)' : undefined }}
+                      />
+                    </button>
+                    {auf && (
+                      <div id={panelId} className="flex flex-col gap-2.5 px-4 pb-4 text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>
+                        {items.map((item: GuidanceItem, j: number) => (
+                          <p key={j} style={item.label ? undefined : { color: TEXT }}>
+                            {item.label && <><strong style={{ color: TEXT }}>{item.label}</strong><br /></>}
+                            {item.text}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </>
-        ) : (
-          <p style={{ color: MUTED }}>Noch kein Test für {name}.</p>
         )}
-      </div>
+        {!guidance && <p className="text-xs" style={{ color: MUTED }}>{t('bw_disclaimer')}</p>}
+      </section>
 
-      {/* Was ist das? */}
-      <div className="p-5 mb-4" style={PANEL_STYLE}>
-        <div className="flex items-center gap-2 mb-2">
-          <Info size={15} style={{ color: CYAN }} />
-          <p className="text-sm font-bold" style={{ color: TEXT }}>Was ist das?</p>
-        </div>
-        {summary.def ? (
-          <p className="text-sm leading-relaxed" style={{ color: MUTED }}>{summary.def.erklaerung}</p>
-        ) : (
-          <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-            Für diesen Marker ist keine Erklärung hinterlegt. Er wurde aus einem importierten Befund übernommen.
-          </p>
-        )}
-        <p className="text-xs mt-3" style={{ color: MUTED, opacity: 0.8 }}>{DISCLAIMER}</p>
-      </div>
-
-      {/* Range filter */}
-      <div className="flex gap-2 mb-4">
-        {([['3M', '3M'], ['6M', '6M'], ['1J', '1J'], ['ALL', 'Alles']] as [RangeFilter, string][]).map(([key, label]) => (
+      {/* Messungen — einklappbar; eine Messung antippen zeigt sie im Detail, dort Bearbeiten */}
+      <section aria-labelledby="bw-history-title" className="flex flex-col gap-1">
+        <h2 className={sectionTitle} style={{ color: TEXT }}>
           <button
-            key={key}
-            onClick={() => setRangeFilter(key)}
-            className="px-3 py-1.5 rounded-full text-sm font-semibold transition-colors"
-            style={
-              rangeFilter === key
-                ? { background: 'var(--accent-weak)', color: CYAN, border: '1px solid var(--accent-border)' }
-                : { color: MUTED, border: '1px solid var(--border)' }
-            }
+            type="button"
+            aria-expanded={messungenOffen}
+            aria-controls="bw-history-list"
+            onClick={() => setMessungenOffen(o => !o)}
+            className="flex min-h-11 w-full items-center gap-2 text-left"
+            data-bw-history-toggle
           >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Chart */}
-      {chartData.length > 0 ? (
-        <div className="p-4 mb-4" style={PANEL_STYLE}>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="date_label" tick={{ fill: 'rgba(154,170,191,0.55)', fontSize: 10 }} />
-              <YAxis tick={{ fill: 'rgba(154,170,191,0.55)', fontSize: 10 }} />
-              <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--accent-border)', borderRadius: 12, color: 'var(--text)' }} />
-              {range.min != null && range.max != null && (
-                <ReferenceArea y1={range.min} y2={range.max} fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.2)" />
-              )}
-              <Line type="monotone" dataKey="value" stroke="#00ccf5" strokeWidth={2} dot={{ fill: '#00ccf5', r: 3 }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <div className="p-6 mb-4 text-center text-sm" style={{ ...PANEL_STYLE, color: MUTED }}>
-          Keine Werte im gewählten Zeitraum.
-        </div>
-      )}
-
-      {excludedCount > 0 && (
-        <p className="text-xs mb-4 -mt-2" style={{ color: MUTED }}>
-          {excludedCount === 1 ? '1 Wert mit abweichender Einheit ist nicht im Diagramm.' : `${excludedCount} Werte mit abweichender Einheit sind nicht im Diagramm.`}
-        </p>
-      )}
-
-      {/* Entry list */}
-      <div style={PANEL_STYLE}>
-        {entries.length === 0 && (
-          <p className="p-5 text-sm text-center" style={{ color: MUTED }}>Noch keine Einträge.</p>
-        )}
-        {summary.points.map((p, i) => {
-          const e = p.entry
-          const v = p.value != null ? p.value : e.value
-          const u = p.value != null ? summary.displayUnit : e.unit
-          return (
-            <div
-              key={e.id}
-              className="flex items-center justify-between px-5 py-3.5"
-              style={i > 0 ? { borderTop: '1px solid var(--border)' } : undefined}
+            <span id="bw-history-title">{t('bw_measurements')}</span>
+            {/* Anzahl als Plakette wie bei „Auffällige", nur neutral */}
+            <span
+              data-bw-measurement-count
+              className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
+              style={{ background: 'var(--lg-fill)', color: TEXT }}
             >
-              <span className="text-sm" style={{ color: MUTED }}>{formatDisplayDate(e.tested_at)}</span>
-              <span className="text-sm font-semibold flex-1 text-right mr-3" style={{ color: TEXT }}>
-                {formatNumber(v)} {u}
-              </span>
-              <button
-                className="p-1.5 transition-colors hover:text-red-400"
-                style={{ color: MUTED }}
-                onClick={() => onDelete(e)}
-                aria-label="Löschen"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          )
-        })}
-      </div>
+              {summary.entries.length}
+            </span>
+            <ChevronDown
+              size={20}
+              strokeWidth={2.2}
+              aria-hidden="true"
+              className="ml-auto transition-transform duration-200"
+              style={{ color: MUTED, transform: messungenOffen ? 'rotate(180deg)' : undefined }}
+            />
+          </button>
+        </h2>
+        {messungenOffen && summary.entries.length === 0 && (
+          <p className="py-4 text-sm" style={{ color: MUTED }}>{t('bw_no_entries')}</p>
+        )}
+        {messungenOffen && (
+        <ul id="bw-history-list" className="lg-group lg-rows mt-1">
+          {summary.points.map((p, i) => {
+            const e = p.entry
+            const v = p.value != null ? p.value : toNumber(e.value)
+            const u = p.value != null ? unit : e.unit
+            // Veraenderung zum naechstaelteren umrechenbaren Wert
+            const older = p.value != null ? summary.points.slice(i + 1).find(o => o.value != null) : undefined
+            const diff = older && p.value != null ? p.value - (older.value as number) : null
+            const status = entryInRange(e, def, unit, profil)
+            const pillColor = status === false ? PILL_RED : status === true ? PILL_GREEN : PILL_GRAY
+            const lab = e.report_id ? labNamen.get(e.report_id) : null
+            // Der Bereich des Labors bleibt an der Messung sichtbar, auch wenn die
+            // Bewertung dem Bereich aus der Quelle folgt.
+            const laborBereich = e.ref_min != null || e.ref_max != null
+              ? t('bw_lab_range_note', { range: bereichText(e.ref_min, e.ref_max, e.unit) })
+              : null
+            const source = [e.report_id ? [t('bw_source_report'), lab].filter(Boolean).join(' · ') : t('bw_source_manual'), laborBereich]
+              .filter(Boolean).join(' · ')
+            const auf = offeneMessung === e.id
+            const detailId = `bw-entry-${e.id}`
+            return (
+              <li key={e.id}>
+                <button
+                  type="button"
+                  onClick={() => setOffeneMessung(auf ? null : e.id)}
+                  aria-expanded={auf}
+                  aria-controls={detailId}
+                  aria-label={t('bw_entry_open_aria', { value: `${formatNumber(e.value)} ${e.unit}`, date: formatDisplayDate(e.tested_at) })}
+                  data-bw-entry
+                  className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
+                  style={{ color: TEXT }}
+                >
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-[16px] font-semibold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
+                    <span className="truncate text-[13px]" style={{ color: MUTED }}>{source}</span>
+                  </span>
+                  <span className="text-right tabular-nums">
+                    <span className="block text-[16px] font-semibold">{formatNumber(v)}</span>
+                    <span className="block text-xs" style={{ color: MUTED }}>{u}</span>
+                  </span>
+                  <span
+                    className="min-w-[62px] rounded-[7px] px-2 py-[5px] text-right text-[13px] font-bold tabular-nums text-white"
+                    style={{ background: pillColor }}
+                  >
+                    {diff != null ? signed(diff) : p.value != null ? t('bw_first_value') : '–'}
+                  </span>
+                </button>
+                {auf && (
+                  <MessungDetail
+                    id={detailId}
+                    entry={e}
+                    value={v}
+                    unit={u}
+                    diff={diff}
+                    range={p.value != null ? entryRange(e, def, unit, profil) : null}
+                    inRange={status}
+                    onEdit={() => onEdit(e)}
+                  />
+                )}
+              </li>
+            )
+          })}
+        </ul>
+        )}
+      </section>
+
+      {/* Quellen ganz unten, gebuendelt und eingeklappt */}
+      {guidance && (
+        <details className="text-xs leading-relaxed" style={{ color: MUTED }} data-bw-sources>
+          <summary className="min-h-9 cursor-pointer py-2 font-semibold" style={{ color: CYAN }}>
+            {t('bw_sources_count', { count: guidance.quellen.length })}
+          </summary>
+          <ul className="flex flex-col gap-1.5 pb-2">
+            {guidance.quellen.map(q => (
+              <li key={q.url}>
+                <a href={q.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline" style={{ color: CYAN }}>{q.label}</a>
+              </li>
+            ))}
+          </ul>
+          <p>{t('bw_guidance_footer', { date: standDatum })}</p>
+        </details>
+      )}
     </div>
+  )
+}
+
+/** Kurzerklaerung unter dem Namen, immer ganz ausgeschrieben. */
+function KurzErklaerung({ text }: { text: string }) {
+  return (
+    <p className="mt-1 text-sm leading-relaxed" style={{ color: MUTED }} data-bw-intro>{text}</p>
+  )
+}
+
+/**
+ * Markername als Ueberschrift in einer Zeile. Passt er nicht, laeuft er
+ * langsam hin und zurueck (mit Pausen an den Enden); bei „weniger Bewegung“
+ * wird er stattdessen mit „…“ gekuerzt.
+ */
+function LaufName({ text }: { text: string }) {
+  const boxRef = useRef<HTMLHeadingElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  const [ueber, setUeber] = useState(0)
+  const ruhig = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+  useLayoutEffect(() => {
+    const box = boxRef.current
+    const inner = textRef.current
+    if (!box || !inner) return
+    const messen = () => setUeber(Math.max(0, Math.ceil(inner.scrollWidth - box.clientWidth)))
+    messen()
+    const ro = new ResizeObserver(messen)
+    ro.observe(box)
+    return () => ro.disconnect()
+  }, [text])
+
+  useLayoutEffect(() => {
+    const inner = textRef.current
+    if (!inner || ueber <= 0 || ruhig) return
+    // ~35 px/s, je 1,5 s Pause an beiden Enden
+    const fahrt = (ueber / 35) * 1000
+    const pause = 1500
+    const dauer = 2 * (fahrt + pause)
+    const a = pause / dauer
+    const b = (pause + fahrt) / dauer
+    const c = (2 * pause + fahrt) / dauer
+    const anim = inner.animate([
+      { transform: 'translateX(0)', offset: 0 },
+      { transform: 'translateX(0)', offset: a, easing: 'ease-in-out' },
+      { transform: `translateX(${-ueber}px)`, offset: b },
+      { transform: `translateX(${-ueber}px)`, offset: c, easing: 'ease-in-out' },
+      { transform: 'translateX(0)', offset: 1 },
+    ], { duration: dauer, iterations: Infinity })
+    return () => anim.cancel()
+  }, [ueber, ruhig])
+
+  const laeuft = ueber > 0 && !ruhig
+  return (
+    <h1
+      ref={boxRef}
+      // Unter 360 px etwas kleiner, damit übliche Namen neben der Kategorie stehen bleiben
+      className="lg-large-title min-w-0 shrink overflow-hidden whitespace-nowrap max-[359px]:!text-[28px] max-[359px]:!leading-[34px]"
+      style={{
+        color: TEXT,
+        ...(ruhig ? { textOverflow: 'ellipsis' } : {}),
+        // Weiche Kante rechts, damit der laufende Name nicht hart abgeschnitten wirkt
+        ...(laeuft ? { maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' } : {}),
+      }}
+      title={ueber > 0 ? text : undefined}
+      data-bw-name
+      data-bw-name-laeuft={laeuft || undefined}
+    >
+      <span ref={textRef} className={ruhig ? '' : 'inline-block'}>{text}</span>
+    </h1>
   )
 }

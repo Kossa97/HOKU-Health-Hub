@@ -19,20 +19,8 @@ import {
   Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import {
-  Area,
-  CartesianGrid,
-  ComposedChart,
-  Legend,
-  Line,
-  LineChart,
-  ReferenceArea,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { StocksChart, type ExtraSeries } from '../features/blutspiegel/chart/StocksChart'
+import { levelAt, type LevelPoint } from '../features/blutspiegel/chart/stocksChartMath'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -42,6 +30,7 @@ import {
   type EffectRow,
   type ReviewRow,
 } from '../lib/insights'
+import { SYMPTOM_COLUMNS, symptomLabel } from '../lib/tagebuch/diary'
 import {
   isWellnessMarker,
   wellnessMarkersWithData,
@@ -285,23 +274,7 @@ function toPercentChange(entries: { date: string; value: number }[]): { date: st
   }))
 }
 
-function interpolatePct(date: string, anchors: { date: string; pct: number }[]): number | undefined {
-  if (anchors.length === 0) return undefined
-  if (date <= anchors[0].date) return anchors[0].pct
-  if (date >= anchors[anchors.length - 1].date) return anchors[anchors.length - 1].pct
-  for (let i = 0; i < anchors.length - 1; i++) {
-    if (date >= anchors[i].date && date <= anchors[i + 1].date) {
-      const span = anchors[i + 1].date.localeCompare(anchors[i].date)
-      const t = span > 0 ? date.localeCompare(anchors[i].date) / span : 0
-      return Math.round((anchors[i].pct + t * (anchors[i + 1].pct - anchors[i].pct)) * 10) / 10
-    }
-  }
-  return undefined
-}
 
-function gradId(marker: string): string {
-  return `grad-${marker.replace(/[^a-zA-Z0-9]/g, '')}`
-}
 
 const SHARE_URL = 'https://tyd-track-your-dose.vercel.app/protokoll?ref=share'
 
@@ -390,7 +363,7 @@ function isLogWithinRange(log: DoseLog, range: DateRange) {
 
 function EmptyChart({ label }: { label: string }) {
   return (
-    <div className="h-56 rounded-2xl border border-white/[0.06] bg-white/[0.025] flex items-center justify-center text-sm text-slate-500">
+    <div className="h-56 rounded-[18px] bg-[var(--lg-surface-2)] flex items-center justify-center text-sm text-[var(--lg-text-2)]">
       {label}
     </div>
   )
@@ -400,104 +373,87 @@ function EmptyChart({ label }: { label: string }) {
 
 function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '12px 14px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: color, opacity: 0.7 }} />
-      <p style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#475569', marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', color, lineHeight: 1 }}>{value}</p>
-      {sub && <p style={{ fontSize: 9, color: '#475569', marginTop: 4 }}>{sub}</p>}
+    <div className="lg-surface lg-flat" style={{ borderRadius: 18, padding: '10px 10px 11px', minWidth: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--lg-text-2)', marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+      <p style={{ fontSize: 'clamp(13px, 4vw, 17px)', fontWeight: 700, color, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }} title={value}>{value}</p>
+      {sub && <p style={{ fontSize: 11, color: 'var(--lg-text-3)', marginTop: 4 }}>{sub}</p>}
     </div>
   )
 }
 
-function NormalizedChartDefs({ markers }: { markers: string[] }) {
-  return (
-    <defs>
-      {markers.map(marker => {
-        const color = getSeriesColor(marker)
-        const id = gradId(marker)
-        return (
-          <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={color} stopOpacity={0.22} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        )
-      })}
-    </defs>
-  )
-}
+/** Ein Kalendertag als Zeitpunkt (Tagesmitte) fuer die Zeitachse. */
+const dayTs = (date: string) => parseISO(`${date}T12:00:00`).getTime()
 
-function NormalizedTooltip({ active, payload, label }: {
-  active?: boolean
-  payload?: { name: string; value: number; color: string }[]
-  label?: string
-}) {
-  if (!active || !payload?.length) return null
-  const visible = payload.filter(p => p.value != null && !p.name.endsWith('-glow') && !p.name.endsWith('-area'))
-  if (!visible.length) return null
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', fontSize: 11 }}>
-      <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#475569', marginBottom: 6 }}>{label}</p>
-      {visible.map(p => (
-        <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, fontWeight: 700, color: p.color }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-          <span>{p.name}: {p.value > 0 ? '+' : ''}{p.value}%</span>
-        </div>
-      ))}
-    </div>
-  )
-}
+const signedPct = (v: number, language: string) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${formatNumber(Math.abs(v), language, 1)} %`
 
 interface SmallMultipleSeriesProps {
   marker: string; unit: string; color: string
   normalMin: number | null; normalMax: number | null
-  yDomain: [number, number]
-  data: { date: string; label: string; value: number | null }[]
+  points: LevelPoint[]
   lastValue: number | null
 }
 
-function SmallMultipleRow({ series, isLast, language }: { series: SmallMultipleSeriesProps; isLast: boolean; language: string }) {
-  const { marker, unit, color, normalMin, normalMax, yDomain, data, lastValue } = series
+/**
+ * Detailansicht: je Marker ein kleiner Graph auf derselben Zeitachse. Die
+ * Graphen sind gekoppelt — wer einen abliest, sieht in allen denselben Tag;
+ * der Wert steht dann in der Kopfzeile der Reihe.
+ */
+function SmallMultiples({ series, start, end, language }: { series: SmallMultipleSeriesProps[]; start: number; end: number; language: string }) {
+  const [syncTs, setSyncTs] = useState<number | null>(null)
+  const dayFmt = useMemo(() => new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short' }), [language])
+  const onScrub = useCallback((p: LevelPoint | null) => setSyncTs(p ? p.ts : null), [])
+  const formatTick = useCallback((ts: number) => dayFmt.format(ts), [dayFmt])
   return (
-    <div style={{ marginBottom: isLast ? 0 : 4 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2, paddingLeft: 4 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color }}>{marker}</span>
-          <span style={{ fontSize: 9, color: '#334155', fontWeight: 600 }}>{unit}</span>
-          {normalMin != null && normalMax != null && (
-            <span style={{ fontSize: 8, color: '#334155' }}>Norm: {normalMin}–{normalMax}</span>
-          )}
-        </div>
-        {lastValue != null && (
-          <span style={{ fontSize: 12, fontWeight: 900, color, letterSpacing: '-0.02em' }}>
-            {formatNumber(lastValue, language, 2)} {unit}
-          </span>
-        )}
-      </div>
-      <ResponsiveContainer width="100%" height={isLast ? 75 : 65}>
-        <LineChart data={data} margin={{ top: 4, right: 50, bottom: 0, left: 0 }} syncId="protokoll-small">
-          {normalMin != null && normalMax != null && (
-            <ReferenceArea y1={normalMin} y2={normalMax} fill={color} fillOpacity={0.08} strokeOpacity={0} />
-          )}
-          {normalMax != null && <ReferenceLine y={normalMax} stroke={color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="2 3" />}
-          {normalMin != null && normalMin > 0 && <ReferenceLine y={normalMin} stroke={color} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="2 3" />}
-          <CartesianGrid stroke="rgba(255,255,255,0.03)" vertical={false} />
-          <YAxis domain={yDomain} tick={{ fill: '#334155', fontSize: 9, fontWeight: 600 }} tickLine={false} axisLine={false} width={38} tickCount={3} />
-          {isLast && <XAxis dataKey="label" tick={{ fill: '#334155', fontSize: 9, fontWeight: 600 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />}
-          <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 11 }} labelStyle={{ color: '#475569', fontSize: 9 }}
-            formatter={(value: unknown) => [`${typeof value === 'number' ? formatNumber(value, language, 2) : value} ${unit}`, marker]} />
-          <Line dataKey="value" stroke={color} strokeWidth={6} strokeOpacity={0.12} dot={false} activeDot={false} connectNulls isAnimationActive={false} legendType="none" name="glow" />
-          <Line dataKey="value" stroke={color} strokeWidth={2.5} strokeLinecap="round" connectNulls isAnimationActive={false} name={marker}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            dot={(props: any) => props.payload?.value != null
-              ? <circle key={`${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={4} fill="#07091a" stroke={color} strokeWidth={2} />
-              : <g key="empty" />}
-            activeDot={{ r: 6, fill: color, stroke: '#07091a', strokeWidth: 2 }} />
-        </LineChart>
-      </ResponsiveContainer>
-      {!isLast && <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />}
-    </div>
+    <>
+      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)', minHeight: 18, marginBottom: 4 }} aria-live="polite">
+        {syncTs != null ? formatDate(format(new Date(syncTs), 'yyyy-MM-dd'), language) : ''}
+      </p>
+      {series.map((row, i) => {
+        const isLast = i === series.length - 1
+        // Beim Ablesen der Wert der Linie an diesem Tag (wie der Punkt im Graph)
+        const shown = syncTs != null ? levelAt(row.points, syncTs) : row.lastValue
+        return (
+          <div key={row.marker} style={{ marginBottom: isLast ? 0 : 6 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2, paddingLeft: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: row.color }}>{row.marker}</span>
+                <span style={{ fontSize: 12, color: 'var(--lg-text-2)' }}>{row.unit}</span>
+                {row.normalMin != null && row.normalMax != null && (
+                  <span style={{ fontSize: 11, color: 'var(--lg-text-3)' }}>Norm: {row.normalMin}–{row.normalMax}</span>
+                )}
+              </div>
+              <span style={{ fontSize: 14, fontWeight: 600, color: row.color, fontVariantNumeric: 'tabular-nums' }}>
+                {shown != null ? `${formatNumber(shown, language, 2)} ${row.unit}` : '–'}
+              </span>
+            </div>
+            <StocksChart
+              points={row.points}
+              start={start}
+              end={end}
+              accent={row.color}
+              height={isLast ? 96 : 74}
+              seriesKey={row.marker}
+              formatTick={formatTick}
+              formatValue={v => formatNumber(v, language, 1)}
+              onScrub={onScrub}
+              syncTs={syncTs}
+              ariaLabel={`${row.marker}: Verlauf`}
+              band={row.normalMin != null || row.normalMax != null ? { lo: row.normalMin, hi: row.normalMax, color: row.color } : undefined}
+              yInclude={[row.normalMin, row.normalMax].filter((v): v is number => v != null)}
+              dots
+              percentCap={false}
+              minSpan={Math.max(0.5, Math.max(...row.points.map(p => Math.abs(p.level)), 1) * 0.1)}
+              intakeStrip={false}
+              xAxis={isLast}
+              yTicks={2}
+            />
+          </div>
+        )
+      })}
+    </>
   )
 }
+
 
 export function Protokoll() {
   const { user } = useAuth()
@@ -585,55 +541,61 @@ export function Protokoll() {
     }
   }, [doseLogs, weightLogs, bloodwork])
 
-  const normalizedChartData = useMemo(() => {
-    const weightSorted = [...weightLogs]
-      .map(l => ({ date: dateKey(l.logged_at), value: numericValue(l.weight_kg) }))
-      .filter((e): e is { date: string; value: number } => e.value != null)
-      .sort((a, b) => a.date.localeCompare(b.date))
-    const weightPcts = toPercentChange(weightSorted)
-
-    const bloodPcts = new Map<string, { date: string; pct: number }[]>()
-    const wellnessPcts = new Map<string, { date: string; pct: number }[]>()
+  // % Veraenderung ab Start, je Marker eine Linie auf der Zeitachse
+  const percentSeries = useMemo(() => {
+    const out: Array<{ marker: string; color: string; points: LevelPoint[] }> = []
+    const toPoints = (pcts: { date: string; pct: number }[]) => pcts.map(p => ({ ts: dayTs(p.date), level: p.pct }))
     for (const marker of activeMarkers) {
-      if (marker === 'Gewicht' || isWellnessMarker(marker)) continue
-      const entries = bloodwork
-        .filter(e => e.marker === marker)
-        .map(e => ({ date: e.tested_at, value: numericValue(e.value) }))
-        .filter((e): e is { date: string; value: number } => e.value != null)
-        .sort((a, b) => a.date.localeCompare(b.date))
-      bloodPcts.set(marker, toPercentChange(entries))
+      let pcts: { date: string; pct: number }[]
+      if (marker === 'Gewicht') {
+        const weightSorted = [...weightLogs]
+          .map(l => ({ date: dateKey(l.logged_at), value: numericValue(l.weight_kg) }))
+          .filter((e): e is { date: string; value: number } => e.value != null)
+          .sort((a, b) => a.date.localeCompare(b.date))
+        pcts = toPercentChange(weightSorted)
+      } else if (isWellnessMarker(marker)) {
+        pcts = toPercentChange(wellnessSeries(dailyLogs, marker))
+      } else {
+        const entries = bloodwork
+          .filter(e => e.marker === marker)
+          .map(e => ({ date: e.tested_at, value: numericValue(e.value) }))
+          .filter((e): e is { date: string; value: number } => e.value != null)
+          .sort((a, b) => a.date.localeCompare(b.date))
+        pcts = toPercentChange(entries)
+      }
+      if (pcts.length) out.push({ marker, color: getSeriesColor(marker), points: toPoints(pcts) })
     }
-    for (const marker of activeMarkers) {
-      if (!isWellnessMarker(marker)) continue
-      wellnessPcts.set(marker, toPercentChange(wellnessSeries(dailyLogs, marker)))
+    return out
+  }, [activeMarkers, weightLogs, bloodwork, dailyLogs])
+
+  // Gemeinsame Zeitachse: gewaehlter Zeitraum, erweitert um Werte ausserhalb
+  const chartWindow = useMemo(() => {
+    // Ein geleertes Datumsfeld zaehlt nicht — sonst wird die ganze Achse NaN.
+    const bounds = [range.from, range.to].map(dayTs).filter(Number.isFinite)
+    const all = [...percentSeries.flatMap(series => series.points.map(p => p.ts)), ...bounds]
+    // Ohne Daten zeigt die Seite keine Graphen — der Wert ist dann egal.
+    if (!all.length) all.push(0)
+    const from = Math.min(...all)
+    const to = Math.max(...all)
+    const pad = Math.max(12 * 3_600_000, (to - from) * 0.02)
+    return { start: from - pad, end: to + pad }
+  }, [percentSeries, range])
+
+  // Fuer den Graph einmal je Datenstand — sonst zeichnet jeder Render den Canvas neu.
+  const percentChart = useMemo(() => {
+    const dateLabel = (ts: number) => formatDate(format(new Date(ts), 'yyyy-MM-dd'), language)
+    const pct = (v: number) => signedPct(v, language)
+    return {
+      formatTick: dateLabel,
+      formatValue: pct,
+      scrubLabel: { date: dateLabel, value: pct },
+      others: percentSeries.slice(1).map((series): ExtraSeries => ({ key: series.marker, name: series.marker, points: series.points, color: series.color })),
+      yInclude: [0, ...percentSeries.flatMap(series => series.points.map(p => p.level))],
+      snapTimes: percentSeries.slice(1).flatMap(series => series.points.map(p => p.ts)),
+      xBands: cycleBands.map(band => ({ x1: dayTs(band.x1) - 12 * 3_600_000, x2: dayTs(band.x2) + 12 * 3_600_000, color: band.color, label: band.name })),
+      xLines: bloodTestDates.map((date, i) => ({ ts: dayTs(date), color: '#00ccf5', label: i === 0 ? 'Bluttest' : undefined })),
     }
-
-    const allDates = new Set<string>()
-    if (activeMarkers.includes('Gewicht')) weightSorted.forEach(e => allDates.add(e.date))
-    bloodPcts.forEach(arr => arr.forEach(p => allDates.add(p.date)))
-    wellnessPcts.forEach(arr => arr.forEach(p => allDates.add(p.date)))
-    const sortedDates = Array.from(allDates).sort()
-
-    return sortedDates.map(date => {
-      const row: Record<string, string | number | null> = {
-        date,
-        label: formatDate(date, language),
-      }
-      if (activeMarkers.includes('Gewicht')) {
-        const exact = weightPcts.find(p => p.date === date)
-        row['Gewicht'] = exact ? exact.pct : (interpolatePct(date, weightPcts) ?? null)
-      }
-      for (const [marker, pcts] of bloodPcts) {
-        const exact = pcts.find(p => p.date === date)
-        row[marker] = exact ? exact.pct : null
-      }
-      for (const [marker, pcts] of wellnessPcts) {
-        const exact = pcts.find(p => p.date === date)
-        row[marker] = exact ? exact.pct : (interpolatePct(date, pcts) ?? null)
-      }
-      return row
-    })
-  }, [activeMarkers, weightLogs, bloodwork, dailyLogs, language])
+  }, [percentSeries, cycleBands, bloodTestDates, language])
 
   interface SmallMultipleSeries {
     marker: string
@@ -641,8 +603,7 @@ export function Protokoll() {
     color: string
     normalMin: number | null
     normalMax: number | null
-    yDomain: [number, number]
-    data: { date: string; label: string; value: number | null }[]
+    points: LevelPoint[]
     lastValue: number | null
   }
 
@@ -668,16 +629,13 @@ export function Protokoll() {
         data = entries.map(e => ({ date: e.tested_at, label: formatDate(e.tested_at, language), value: numericValue(e.value) }))
       }
 
-      const nums = data.map(d => d.value).filter((v): v is number => v != null)
-      const dataMin = nums.length > 0 ? Math.min(...nums) : 0
-      const dataMax = nums.length > 0 ? Math.max(...nums) : 1
-      const pad = (dataMax - dataMin) * 0.2 || dataMax * 0.2 || 1
-      const yMin = normalMin != null ? Math.min(normalMin, dataMin - pad) : dataMin - pad
-      const yMax = normalMax != null ? Math.max(normalMax, dataMax + pad) : dataMax + pad
-      const lastValue = [...data].reverse().find(d => d.value != null)?.value ?? null
+      const points = data
+        .filter((d): d is { date: string; label: string; value: number } => d.value != null)
+        .map(d => ({ ts: dayTs(d.date), level: d.value }))
+      const lastValue = points.length ? points[points.length - 1].level : null
 
-      return { marker, unit, color, normalMin, normalMax, yDomain: [Math.round(yMin * 10) / 10, Math.round(yMax * 10) / 10], data, lastValue }
-    })
+      return { marker, unit, color, normalMin, normalMax, points, lastValue }
+    }).filter(series => series.points.length > 0)
   ), [activeMarkers, weightLogs, bloodwork, dailyLogs, language])
 
   const adherencePerSubstance = useMemo(() => {
@@ -699,7 +657,7 @@ export function Protokoll() {
       .sort((a, b) => b.pct - a.pct)
   }, [doseLogs, activeCycles, completedCycles])
 
-  const sideEffectStats = useMemo(() => topSideEffects(effects), [effects])
+  const sideEffectStats = useMemo(() => topSideEffects(effects, observation => symptomLabel(observation, language)), [effects, language])
   const substanceEffectStats = useMemo(() => effectsBySubstance(effects), [effects])
   const substanceReviewStats = useMemo(() => reviewsBySubstance(reviews), [reviews])
 
@@ -782,7 +740,7 @@ export function Protokoll() {
         .order('logged_at', { ascending: true }),
       supabase
         .from('effects')
-        .select('id, type, description, severity, stack_item_id, occurred_at, stack_items(display_name)')
+        .select(`id, type, description, severity, stack_item_id, occurred_at, stack_items(display_name), effect_symptoms(${SYMPTOM_COLUMNS})`)
         .eq('user_id', user.id)
         .gte('occurred_at', `${range.from}T00:00:00`)
         .lte('occurred_at', `${range.to}T23:59:59`)
@@ -900,14 +858,14 @@ export function Protokoll() {
     <div className="space-y-5">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-400/70 mb-1">{copy.subtitle}</p>
-          <h1 className="text-2xl font-black tracking-tight text-white">{copy.title}</h1>
+          <h1 className="lg-large-title">{copy.title}</h1>
+          <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">{copy.subtitle}</p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-secondary flex-1 sm:flex-none" onClick={handleShare}>
+          <button type="button" data-quiet className="lg-gray-btn shrink-0 !min-h-12 !px-3.5 whitespace-nowrap max-[379px]:!text-[14px]" onClick={handleShare}>
             <Link2 size={16} /> {copy.share}
           </button>
-          <button className="btn-primary flex-1 sm:flex-none" onClick={openPdfModal} disabled={loadingBase}>
+          <button type="button" className="lg-btn lg-btn-primary min-w-0 flex-1 sm:flex-none !px-4 max-[379px]:!px-3 max-[379px]:!text-[15px]" onClick={openPdfModal} disabled={loadingBase}>
             <Download size={16} /> {copy.generatePdf}
           </button>
         </div>
@@ -922,21 +880,23 @@ export function Protokoll() {
 
       {/* ── KPI Strip ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        <KpiCard label="Adherence" color="#10b981"
+        <KpiCard label="Adherence" color="var(--lg-good-text)"
           value={kpiValues.adherencePct != null ? `${kpiValues.adherencePct}%` : '—'}
           sub={kpiValues.adherencePct != null && kpiValues.adherencePct >= 80 ? '↑ gut' : undefined} />
-        <KpiCard label="Gewicht Δ" color="#00ccf5"
+        <KpiCard label="Gewicht Δ" color="var(--lg-accent-text)"
           value={kpiValues.weightDelta != null ? `${kpiValues.weightDelta > 0 ? '+' : ''}${formatNumber(kpiValues.weightDelta, language, 1)} kg` : '—'} />
-        <KpiCard label="IGF-1 Δ" color="#8b5cf6"
+        <KpiCard label="IGF-1 Δ" color="#bf5af2"
           value={kpiValues.igf1Delta != null ? `${kpiValues.igf1Delta > 0 ? '+' : ''}${kpiValues.igf1Delta}%` : '—'} />
-        <KpiCard label="CRP Δ" color={kpiValues.crpDelta != null && kpiValues.crpDelta < 0 ? '#10b981' : '#f43f5e'}
+        <KpiCard label="CRP Δ" color={kpiValues.crpDelta != null && kpiValues.crpDelta < 0 ? 'var(--lg-good-text)' : 'var(--lg-bad-text)'}
           value={kpiValues.crpDelta != null ? `${kpiValues.crpDelta > 0 ? '+' : ''}${kpiValues.crpDelta}%` : '—'} />
       </div>
 
-      <section className="card">
-        <div className="grid grid-cols-2 gap-2 mb-4">
+      <section className="lg-surface lg-flat p-4">
+        <div className="grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5 mb-4">
           <button
-            className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${selectorMode === 'current' ? 'bg-sky-400 text-slate-950' : 'bg-white/[0.04] text-slate-400 hover:text-white'}`}
+            type="button"
+            aria-pressed={selectorMode === 'current'}
+            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'current' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => {
               setSelectorMode('current')
               setRange(currentCycleRange)
@@ -946,7 +906,9 @@ export function Protokoll() {
             {copy.currentCycle}
           </button>
           <button
-            className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${selectorMode === 'custom' ? 'bg-sky-400 text-slate-950' : 'bg-white/[0.04] text-slate-400 hover:text-white'}`}
+            type="button"
+            aria-pressed={selectorMode === 'custom'}
+            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'custom' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => setSelectorMode('custom')}
           >
             {copy.customRange}
@@ -954,7 +916,8 @@ export function Protokoll() {
         </div>
 
         {selectorMode === 'custom' ? (
-          <div className="grid grid-cols-2 gap-3">
+          // Unter 360 px untereinander, sonst schneidet das Feld die Jahreszahl ab
+          <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
             <div>
               <label className="label">{copy.from}</label>
               <input
@@ -975,56 +938,54 @@ export function Protokoll() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3">
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">{copy.activeCycles}</p>
+          <div className="rounded-[16px] bg-[var(--lg-surface-2)] p-3">
+            <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.activeCycles}</p>
             {activeCycles.length > 0 ? (
               <div className="space-y-2">
                 {activeCycles.map(cycle => (
                   <div key={cycle.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-white font-semibold">{cycle.stack_items?.display_name ?? cycle.name}</span>
-                    <span className="text-slate-500 text-xs">
+                    <span className="text-[var(--lg-text)] font-semibold">{cycle.stack_items?.display_name ?? cycle.name}</span>
+                    <span className="text-[var(--lg-text-2)] text-[13px]">
                       {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">{copy.noActiveCycle}</p>
+              <p className="text-sm text-[var(--lg-text-2)]">{copy.noActiveCycle}</p>
             )}
           </div>
         )}
 
-        <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-          <CalendarDays size={15} className="text-sky-400" />
+        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--lg-text-2)]">
+          <CalendarDays size={15} className="text-[var(--lg-accent-text)]" />
           <span>
-            {copy.period}: <span className="text-white font-semibold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</span>
+            {copy.period}: <span className="text-[var(--lg-text)] font-semibold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</span>
           </span>
         </div>
       </section>
 
       {(loadingBase || loadingCharts) && (
-        <div className="card text-center py-6 text-slate-500">
+        <div className="lg-surface lg-flat text-center py-6 text-[var(--lg-text-2)]">
           {copy.loading}
         </div>
       )}
 
-      <div className="space-y-4 rounded-[1.5rem] bg-[var(--surface)]">
+      <div className="space-y-4">
 
         {/* ── Schnell-Ansichten ── */}
         <div>
-          <p style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#334155', marginBottom: 8 }}>Schnell-Ansichten</p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+          <p className="lg-group-title !mx-1">Schnell-Ansichten</p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
             {PRESETS.map(p => (
-              <button key={p.key} onClick={() => applyPreset(p.key)} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                padding: '5px 13px', borderRadius: 100, fontSize: 10, fontWeight: 700, letterSpacing: '0.02em',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                border: selectedPreset === p.key ? '1px solid var(--accent-border)' : '1px solid var(--border)',
-                background: selectedPreset === p.key ? 'var(--accent-weak)' : 'var(--surface)',
-                color: selectedPreset === p.key ? 'var(--accent)' : 'var(--text-muted)',
-                boxShadow: selectedPreset === p.key ? '0 0 14px rgba(0,204,245,0.15)' : 'none',
-                transition: 'all 0.18s',
-              }}><p.icon size={12} />{p.label}</button>
+              <button key={p.key} type="button" aria-pressed={selectedPreset === p.key} onClick={() => applyPreset(p.key)} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36,
+                padding: '0 14px', borderRadius: 999, fontSize: 14, fontWeight: 500,
+                cursor: 'pointer', whiteSpace: 'nowrap', border: 'none',
+                background: selectedPreset === p.key ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--lg-fill)',
+                color: selectedPreset === p.key ? 'var(--lg-accent-text)' : 'var(--lg-text-2)',
+                transition: 'background-color 0.18s, color 0.18s',
+              }}><p.icon size={14} />{p.label}</button>
             ))}
           </div>
         </div>
@@ -1035,14 +996,13 @@ export function Protokoll() {
             const on = activeMarkers.includes(marker)
             const color = getSeriesColor(marker)
             return (
-              <button key={marker} onClick={() => toggleMarker(marker)} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 10,
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.02em', cursor: 'pointer',
-                border: on ? '1px solid var(--border)' : '1px solid var(--border)',
-                background: on ? 'var(--surface)' : 'var(--surface)',
-                color: on ? 'var(--text-dim)' : 'var(--text-muted)', transition: 'all 0.18s',
+              <button key={marker} type="button" aria-pressed={on} onClick={() => toggleMarker(marker)} style={{
+                display: 'flex', alignItems: 'center', gap: 7, minHeight: 36, padding: '0 13px', borderRadius: 999,
+                fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none',
+                background: on ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
+                color: on ? 'var(--lg-text)' : 'var(--lg-text-2)', transition: 'background-color 0.18s, color 0.18s',
               }}>
-                <span style={{ width: 10, height: 10, borderRadius: 3, background: color, opacity: on ? 1 : 0.3, flexShrink: 0 }} />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: color, opacity: on ? 1 : 0.35, flexShrink: 0 }} />
                 {marker}
               </button>
             )
@@ -1051,55 +1011,57 @@ export function Protokoll() {
 
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500">{copy.period}</p>
-            <p className="text-white font-bold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</p>
+            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.period}</p>
+            <p className="lg-title2">{formatDate(range.from, language)} - {formatDate(range.to, language)}</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-sky-400/10 border border-sky-400/20 flex items-center justify-center">
-            <FileText size={18} className="text-sky-400" />
-          </div>
+          <span className="lg-icon-tile" style={{ background: '#0a84ff' }} aria-hidden="true">
+            <FileText size={17} />
+          </span>
         </div>
 
         {/* ── Chart 1: % Veränderung ── */}
-        <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
+        <section className="lg-surface lg-flat" style={{ padding: 18 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)' }}>Verlauf — % Veränderung</p>
-              <p style={{ fontSize: 9, color: '#334155', marginTop: 2, fontWeight: 600, letterSpacing: '0.04em' }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
+              <p className="lg-title2" style={{ fontSize: 17 }}>Verlauf — % Veränderung</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
             </div>
-            <span style={{ background: 'var(--accent-weak)', border: '1px solid var(--accent-border)', borderRadius: 8, padding: '4px 9px', fontSize: 9, fontWeight: 700, color: 'var(--accent)' }}>% Δ ab Start</span>
+            <span className="lg-tag shrink-0" data-tone="accent">% Δ ab Start</span>
           </div>
-          {normalizedChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <ComposedChart data={normalizedChartData} margin={{ top: 10, right: 50, bottom: 0, left: -10 }}>
-                <NormalizedChartDefs markers={activeMarkers} />
-                {cycleBands.map((band, i) => (
-                  <ReferenceArea key={i} x1={band.x1} x2={band.x2} fill={band.color} fillOpacity={0.06} strokeOpacity={0}
-                    label={{ value: band.name, position: 'insideTopLeft', fontSize: 8, fill: band.color, opacity: 0.55, fontWeight: 700 }} />
+          {percentSeries.length > 0 ? (
+            <>
+              <StocksChart
+                points={percentSeries[0].points}
+                seriesName={percentSeries[0].marker}
+                others={percentChart.others}
+                start={chartWindow.start}
+                end={chartWindow.end}
+                accent={percentSeries[0].color}
+                height={300}
+                seriesKey={percentSeries.map(series => series.marker).join('|')}
+                formatTick={percentChart.formatTick}
+                formatValue={percentChart.formatValue}
+                scrubLabel={percentChart.scrubLabel}
+                ariaLabel="Verlauf — % Veränderung"
+                axisWidth={50}
+                dots
+                percentCap={false}
+                minSpan={10}
+                yInclude={percentChart.yInclude}
+                snapTimes={percentChart.snapTimes}
+                intakeStrip={false}
+                xBands={percentChart.xBands}
+                xLines={percentChart.xLines}
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', marginTop: 8, fontSize: 13, fontWeight: 500, color: 'var(--lg-text-2)' }}>
+                {percentSeries.map(series => (
+                  <span key={series.marker} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span aria-hidden="true" style={{ width: 10, height: 3, borderRadius: 2, background: series.color }} />
+                    {series.marker}
+                  </span>
                 ))}
-                {bloodTestDates.map((date, i) => (
-                  <ReferenceLine key={date} x={date} stroke="rgba(0,204,245,0.25)" strokeWidth={1} strokeDasharray="2 5"
-                    label={i === 0 ? { value: 'Bluttest', position: 'top', fontSize: 8, fill: 'rgba(0,204,245,0.55)', fontWeight: 700 } : undefined} />
-                ))}
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="label" tick={{ fill: '#334155', fontSize: 10, fontWeight: 700 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tickFormatter={v => `${v > 0 ? '+' : ''}${v}%`} tick={{ fill: '#334155', fontSize: 10, fontWeight: 700 }} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
-                <Tooltip content={<NormalizedTooltip />} />
-                {activeMarkers.map(marker => {
-                  const color = getSeriesColor(marker)
-                  return [
-                    <Line key={`${marker}-glow`} dataKey={marker} stroke={color} strokeWidth={7} strokeOpacity={0.12} dot={false} activeDot={false} connectNulls legendType="none" name={`${marker}-glow`} isAnimationActive={false} />,
-                    <Area key={`${marker}-area`} dataKey={marker} stroke="none" fill={`url(#${gradId(marker)})`} connectNulls legendType="none" name={`${marker}-area`} isAnimationActive={false} activeDot={false} />,
-                    <Line key={marker} dataKey={marker} stroke={color} strokeWidth={2.5} strokeLinecap="round" connectNulls name={marker} isAnimationActive={false}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      dot={(props: any) => props.payload?.[marker] != null && props.cx != null
-                        ? <circle key={`${props.cx}-${props.cy}`} cx={props.cx} cy={props.cy} r={4} fill="#07091a" stroke={color} strokeWidth={2} />
-                        : <g key="empty" />}
-                      activeDot={{ r: 6, fill: color, stroke: '#07091a', strokeWidth: 2 }} />,
-                  ]
-                })}
-                <Legend wrapperStyle={{ fontSize: 10, fontWeight: 700, paddingTop: 8 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
+              </div>
+            </>
           ) : (
             <EmptyChart label={copy.emptyChart} />
           )}
@@ -1107,35 +1069,33 @@ export function Protokoll() {
 
         {/* ── Chart 2: Small Multiples ── */}
         {smallMultiplesData.length > 0 && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)' }}>Detailansicht — echte Einheiten</p>
-                <p style={{ fontSize: 9, color: '#334155', marginTop: 2, fontWeight: 600, letterSpacing: '0.04em' }}>Absolute Werte · Farbband = Normalbereich</p>
+                <p className="lg-title2" style={{ fontSize: 17 }}>Detailansicht — echte Einheiten</p>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Absolute Werte · Farbband = Normalbereich</p>
               </div>
             </div>
-            {smallMultiplesData.map((series, i) => (
-              <SmallMultipleRow key={series.marker} series={series} isLast={i === smallMultiplesData.length - 1} language={language} />
-            ))}
+            <SmallMultiples series={smallMultiplesData} start={chartWindow.start} end={chartWindow.end} language={language} />
           </section>
         )}
 
         {/* ── Persönliche Insights ── */}
         {(sideEffectStats.length > 0 || substanceEffectStats.length > 0 || substanceReviewStats.length > 0) && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)', marginBottom: 4 }}>{t('protokoll_insights_title')}</p>
-            <p style={{ fontSize: 9, color: '#334155', fontWeight: 600, letterSpacing: '0.04em', marginBottom: 16 }}>{t('protokoll_insights_sub')}</p>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{t('protokoll_insights_title')}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 16 }}>{t('protokoll_insights_sub')}</p>
 
             {sideEffectStats.length > 0 ? (
               <div style={{ marginBottom: 18 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-warn-text)', marginBottom: 8 }}>
                   {t('protokoll_side_effects_title')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sideEffectStats.map(item => (
                     <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ flex: 1, fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.35 }}>{item.text}</span>
-                      <span style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '2px 8px', borderRadius: 8 }}>
+                      <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)', lineHeight: 1.35 }}>{item.text}</span>
+                      <span className="lg-tag" data-tone="warn">
                         ×{item.count}
                       </span>
                     </div>
@@ -1143,19 +1103,19 @@ export function Protokoll() {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 10, color: '#475569', marginBottom: 14 }}>{t('protokoll_side_effects_empty')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 14 }}>{t('protokoll_side_effects_empty')}</p>
             )}
 
             {substanceEffectStats.length > 0 && (
               <div style={{ marginBottom: substanceReviewStats.length > 0 ? 18 : 0 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#8b5cf6', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#bf5af2', marginBottom: 8 }}>
                   {t('protokoll_effects_by_peptide')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {substanceEffectStats.map(row => (
                     <div key={row.name}>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 4 }}>{row.name}</p>
-                      <p style={{ fontSize: 10, color: '#64748b' }}>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)', marginBottom: 2 }}>{row.name}</p>
+                      <p style={{ fontSize: 13, color: 'var(--lg-text-2)' }}>
                         {t('protokoll_effect_count', { effects: row.effects, side: row.sideEffects, severity: row.avgSeverity })}
                       </p>
                     </div>
@@ -1166,14 +1126,14 @@ export function Protokoll() {
 
             {substanceReviewStats.length > 0 && (
               <div>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#10b981', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-good-text)', marginBottom: 8 }}>
                   {t('protokoll_reviews_by_peptide')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {substanceReviewStats.map(row => (
                     <div key={row.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)' }}>{row.name}</span>
-                      <span style={{ fontSize: 10, color: '#64748b', textAlign: 'right' }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)' }}>{row.name}</span>
+                      <span style={{ fontSize: 13, color: 'var(--lg-text-2)', textAlign: 'right' }}>
                         {t('protokoll_review_stat', { rating: row.avgRating, count: row.count })}
                         {/* Bewertungen v2: Kriterien, sobald es welche gibt. */}
                         {(row.avgWirkung !== null || row.avgVertraeglichkeit !== null || row.wiederBeantwortet > 0) && (
@@ -1196,17 +1156,17 @@ export function Protokoll() {
 
         {/* ── Adherence je Substanz ── */}
         {adherencePerSubstance.length > 0 && (
-          <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 18 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-dim)', marginBottom: 4 }}>{copy.adherenceTitle}</p>
-            <p style={{ fontSize: 9, color: '#334155', fontWeight: 600, letterSpacing: '0.04em', marginBottom: 14 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
+          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{copy.adherenceTitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 14 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {adherencePerSubstance.map(({ name, pct, color }) => (
                 <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', width: 96, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                  <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden' }}>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-text)', width: 96, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                  <div style={{ flex: 1, height: 6, background: 'var(--lg-fill)', borderRadius: 6, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${pct}%`, borderRadius: 6, background: `linear-gradient(90deg,${color},${color}aa)`, transition: 'width 0.5s cubic-bezier(.4,0,.2,1)' }} />
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, width: 36, textAlign: 'right', flexShrink: 0, color }}>{pct}%</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, width: 40, textAlign: 'right', flexShrink: 0, color }}>{pct}%</span>
                 </div>
               ))}
             </div>
@@ -1216,43 +1176,45 @@ export function Protokoll() {
       </div>
 
       <section>
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500 mb-3">{copy.previousCycles}</p>
+        <p className="lg-group-title">{copy.previousCycles}</p>
         {completedCycles.length === 0 ? (
-          <div className="card text-center py-8 text-slate-500">
+          <div className="lg-surface lg-flat text-center px-5 py-8 text-[15px] text-[var(--lg-text-2)]">
             {copy.noPreviousCycles}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="lg-group lg-rows">
             {completedCycles.map(cycle => {
               const adherence = adherenceForCycle(cycle)
               const selected = selectedCycleId === cycle.id
               return (
                 <button
                   key={cycle.id}
-                  className={`card w-full text-left transition-colors ${selected ? 'border-sky-400/40 bg-sky-400/[0.06]' : 'hover:border-sky-400/20'}`}
+                  type="button"
+                  aria-pressed={selected}
+                  className={`w-full px-4 py-3.5 text-left transition-colors active:bg-white/[0.06] ${selected ? 'bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]' : ''}`}
                   onClick={() => selectCycle(cycle)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-white font-bold truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-[17px] font-semibold text-[var(--lg-text)] truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
+                      <p className="text-[13px] text-[var(--lg-text-2)] mt-0.5">
                         {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="badge bg-sky-500/10 text-sky-400">
+                        <span className="lg-tag" data-tone="accent">
                           {copy.duration}: {cycleDuration(cycle)} {copy.days}
                         </span>
-                        <span className="badge bg-emerald-500/10 text-emerald-400 inline-flex items-center gap-1">
+                        <span className="lg-tag" data-tone="good">
                           <CheckCircle2 size={12} />
                           {copy.adherenceRate}: {adherence == null ? '-' : `${adherence}%`}
                         </span>
-                        <span className="badge bg-rose-500/10 text-rose-400 inline-flex items-center gap-1">
+                        <span className="lg-tag">
                           <XCircle size={12} />
                           inactive
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-sky-400 shrink-0 mt-1" />
+                    <ChevronRight size={18} className="text-[var(--lg-text-3)] shrink-0 mt-1" />
                   </div>
                 </button>
               )

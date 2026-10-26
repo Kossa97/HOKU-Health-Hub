@@ -48,6 +48,17 @@ Deno.serve(async (request: Request) => {
   if (userError || !userData.user) return json({ error: 'unauthorized' }, 401)
   const userId = userData.user.id
 
+  // Ohne ausdrueckliche Einwilligung (profiles.ai_import_consent_at) geht keine
+  // Datei an Anthropic — Apple 5.1.2(i), Art. 9 DSGVO. Die App fragt vorher;
+  // hier wird es durchgesetzt, auch fuer alte App-Versionen.
+  const { data: profil, error: profilError } = await supabase
+    .from('profiles')
+    .select('ai_import_consent_at')
+    .eq('id', userId)
+    .maybeSingle()
+  if (profilError) return json({ error: 'server_error' }, 500)
+  if (!profil?.ai_import_consent_at) return json({ error: 'consent_required' }, 403)
+
   let body: ExtractRequest
   try {
     body = await request.json()

@@ -1,4 +1,4 @@
-import { BellRing, CalendarDays, CalendarRange, Check, Clock, HandHelping, Minus, Moon, Plus, Repeat, Sun, Sunrise, Trash2 } from 'lucide-react'
+import { BellRing, CalendarDays, CalendarRange, Check, Clock, HandHelping, Minus, Moon, Plus, Repeat, Sun, Sunrise, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -12,6 +12,7 @@ import {
   INTERVAL_BOUNDS,
   INTERVAL_UNITS,
   WEEKDAY_KEYS,
+  inWochenfolge,
   emptyRhythm,
   rhythmSummary,
   rhythmText,
@@ -137,7 +138,7 @@ export function IntakePlanEditor({
   const canSuggestFractions = dosageForm === 'tablet' && form.capabilities.includes('divisible')
   const rhythm = plan.rhythm
   const onDemand = rhythm.kind === 'on_demand'
-  const methodChoices = methodChoicesFor(dosageForm)
+  const methodChoices = methodChoicesFor(dosageForm, catalogEntry?.pk_profiles?.routes ?? [])
   const einheit = plan.unit?.trim() ?? ''
   const [scheduleOpen, setScheduleOpen] = useState(!compactSchedule)
   // Ein Fehler in Tagen oder Methode oeffnet den Abschnitt — und er bleibt
@@ -244,7 +245,7 @@ export function IntakePlanEditor({
     changeRhythm({
       weekdays: rhythm.weekdays.includes(day)
         ? rhythm.weekdays.filter(value => value !== day)
-        : [...rhythm.weekdays, day],
+        : inWochenfolge([...rhythm.weekdays, day]),
     })
   }
 
@@ -379,46 +380,54 @@ export function IntakePlanEditor({
         </div>
   )
 
+  // Die Route folgt fast immer aus der Form — eine Tablette wird geschluckt.
+  // Nur wo es wirklich mehrere gibt (was man spritzt), bleibt die Wahl — als
+  // sichtbare Knoepfe, nicht als Auswahlliste: die stand frueher zugeklappt
+  // unter „Tage & Methode", und auf dem iPhone fand man „Intramuskulaer" nicht.
+  const methodeBereich = methodChoices.length > 1 ? (
+    <section data-plan-method className="min-w-0">
+      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        {t('my_stack_plan_section_how', { defaultValue: 'Wie' })}
+      </h3>
+      <div
+        role="radiogroup"
+        aria-label={String(t('my_stack_plan_method', { defaultValue: 'Methode' }))}
+        aria-invalid={Boolean(errors.method) || undefined}
+        aria-describedby={errors.method ? 'stack-plan-method-error' : undefined}
+        data-field="plan.method"
+        tabIndex={-1}
+        className="flex min-w-0 gap-1 rounded-xl border border-white/10 bg-white/[0.035] p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+      >
+        {methodChoices.map(method => {
+          const gewaehlt = plan.method === method
+          return (
+            <button
+              key={method}
+              type="button"
+              role="radio"
+              aria-checked={gewaehlt}
+              onClick={() => onChange({ method })}
+              className={`min-h-10 min-w-0 flex-1 truncate rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+                gewaehlt ? 'bg-white text-black shadow-sm' : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              {methodLabel(t, method)}
+            </button>
+          )
+        })}
+      </div>
+      {errors.method && (
+        <p id="stack-plan-method-error" role="alert" className="mt-2 text-sm text-rose-300">
+          {t('my_stack_plan_method_required', { defaultValue: 'Bitte wähle eine Methode.' })}
+        </p>
+      )}
+    </section>
+  ) : null
+
   // Tage und Methode — beim Aendern eines laufenden Plans stehen sie fest
   // und liegen zugeklappt unter den Tageszeiten (siehe `compactSchedule`).
   const zeitplanBereich = (
     <>
-        {/* Die Route folgt fast immer aus der Form — eine Tablette wird
-            geschluckt. Nur wo es wirklich mehrere gibt (was man spritzt, kann
-            subkutan, intramuskulaer oder intravenoes gehen), bleibt die Wahl. */}
-        {methodChoices.length > 1 && (
-          <section className="min-w-0">
-            <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              {t('my_stack_plan_section_how', { defaultValue: 'Wie' })}
-            </h3>
-            {/* Die Aufschrift steht schon im Abschnittskopf. Fuer Screenreader
-                braucht das Feld sie trotzdem — sichtbar waere sie doppelt. */}
-            <label htmlFor="stack-plan-method" className="sr-only">
-              {t('my_stack_plan_method', { defaultValue: 'Methode' })}
-            </label>
-            <select
-              id="stack-plan-method"
-              value={plan.method}
-              onChange={event => onChange({ method: event.target.value })}
-              data-field="plan.method"
-              aria-invalid={Boolean(errors.method) || undefined}
-              aria-describedby={errors.method ? 'stack-plan-method-error' : undefined}
-              required
-              className="select min-h-11 w-full min-w-0 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-            >
-              <option value="">{t('my_stack_plan_method_placeholder', { defaultValue: 'Methode wählen' })}</option>
-              {methodChoices.map(method => (
-                <option key={method} value={method}>{methodLabel(t, method)}</option>
-              ))}
-            </select>
-            {errors.method && (
-              <p id="stack-plan-method-error" role="alert" className="mt-2 text-sm text-rose-300">
-                {t('my_stack_plan_method_required', { defaultValue: 'Bitte wähle eine Methode.' })}
-              </p>
-            )}
-          </section>
-        )}
-
         {/* ── AN WELCHEN TAGEN ────────────────────────────────────────────── */}
         <section className="min-w-0 space-y-4">
         <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -798,13 +807,29 @@ export function IntakePlanEditor({
                     {t('my_stack_plan_optional', { defaultValue: 'optional' })}
                   </span>
                 </label>
-                <input
-                  id={`stack-plan-time-${index}`}
-                  type="time"
-                  value={slot.time ?? ''}
-                  onChange={event => changeSlot(index, { time: event.target.value || null })}
-                  className="input block min-h-11 w-full min-w-0 max-w-full appearance-none px-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 [@media(pointer:coarse)]:[&::-webkit-calendar-picker-indicator]:hidden"
-                />
+                {/* Die Tageszeit reicht; die Uhrzeit ist ein Zusatz. iOS bietet im
+                    Uhrzeitfeld kein Leeren an — einmal gewaehlt, liess sie sich
+                    nicht mehr entfernen. Das „×" nimmt sie wieder heraus. */}
+                <div className="relative min-w-0">
+                  <input
+                    id={`stack-plan-time-${index}`}
+                    type="time"
+                    value={slot.time ?? ''}
+                    onChange={event => changeSlot(index, { time: event.target.value || null })}
+                    className={`input block min-h-11 w-full min-w-0 max-w-full appearance-none px-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 [@media(pointer:coarse)]:[&::-webkit-calendar-picker-indicator]:hidden ${slot.time ? 'pr-9' : ''}`}
+                  />
+                  {slot.time && (
+                    <button
+                      type="button"
+                      data-plan-time-clear
+                      onClick={() => changeSlot(index, { time: null })}
+                      aria-label={String(t('my_stack_plan_time_clear', { defaultValue: 'Uhrzeit entfernen' }))}
+                      className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {tracksQuantity && mengeUndEinheit(index, true)}
@@ -824,11 +849,10 @@ export function IntakePlanEditor({
     <section data-plan-schedule-summary className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          {t('my_stack_plan_schedule_title', { defaultValue: 'Tage & Methode' })}
+          {t('my_stack_plan_section_when', { defaultValue: 'An welchen Tagen' })}
         </p>
         <p className="mt-0.5 truncate text-sm font-semibold text-slate-200">
-          {[rhythmText(rhythmSummary(rhythm), t), methodChoices.length > 1 && plan.method ? methodLabel(t, plan.method) : null]
-            .filter(Boolean).join(' · ')}
+          {rhythmText(rhythmSummary(rhythm), t)}
         </p>
       </div>
       <button
@@ -843,6 +867,7 @@ export function IntakePlanEditor({
 
   return (
     <div className="min-w-0 space-y-5">
+      {methodeBereich}
       {compactSchedule ? (
         <>
           {tageszeitenBereich}

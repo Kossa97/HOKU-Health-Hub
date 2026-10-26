@@ -13,6 +13,11 @@ export interface BloodworkEntry {
   ref_min: number | null
   /** Referenz-Obergrenze des Labors, falls im Befund angegeben. */
   ref_max: number | null
+  /**
+   * Nur Oestradiol, LH, FSH bei Frauen: vor ('pre') oder nach ('post') den
+   * Wechseljahren zum Zeitpunkt der Messung. Null = nicht angegeben.
+   */
+  menopause?: 'pre' | 'post' | null
 }
 
 export interface BloodworkReport {

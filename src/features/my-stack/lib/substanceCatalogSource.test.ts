@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { STACK_CATEGORIES } from './categories'
+import { INTAKE_METHODS } from '../../../lib/intakeMethods'
 import { DOSAGE_FORMS, getDosageForm } from './dosageForms'
 import type { DosageFormKey, StackCategory } from '../types'
 
@@ -357,6 +358,34 @@ describe('PK-Profile (Quelldatei)', () => {
     const profilNamen = new Set(PK_ERWEITERUNG.map(profil => profil.name))
     for (const name of ausgelassen) {
       expect(profilNamen.has(name), `${name} hat ein PK-Profil bekommen`).toBe(false)
+    }
+  })
+})
+
+const pkRouten = await import(
+  pathToFileURL(resolve('scripts/pk-profile-routes.mjs')).href
+) as { PK_ROUTEN: Record<string, string[]>; ROUTEN: string[] }
+
+describe('PK-Routen (Quelldatei)', () => {
+  it('nennt fuer jedes Profil seine Routen — und nur fuer Profile, die es gibt', () => {
+    const profile = PK_ALLE.map(profil => profil.name).sort()
+    expect(Object.keys(pkRouten.PK_ROUTEN).sort()).toEqual(profile)
+  })
+
+  it('kennt dieselben Routen wie die App — daraus entsteht die Pruefung in der Datenbank', () => {
+    expect(pkRouten.ROUTEN).toEqual([...INTAKE_METHODS])
+  })
+
+  it('nennt nur Routen, die die App kennt, jede hoechstens einmal', () => {
+    for (const [name, routen] of Object.entries(pkRouten.PK_ROUTEN)) {
+      for (const route of routen) expect(INTAKE_METHODS, `${name}: „${route}"`).toContain(route)
+      expect(new Set(routen).size, `${name}: Route doppelt`).toBe(routen.length)
+    }
+  })
+
+  it('haelt orale Profile (Peak-Skalierung unter 1) bei oral', () => {
+    for (const profil of PK_ALLE.filter(p => p.bioavailability_sc < 1)) {
+      expect(pkRouten.PK_ROUTEN[profil.name], profil.name).toEqual(['Oral'])
     }
   })
 })

@@ -325,22 +325,3 @@ export function passtZurSuche(review: Review, suche: string): boolean {
   return [review.stack_items?.display_name, review.title, review.body, review.pros, review.cons]
     .some(text => (text ?? '').toLowerCase().includes(s))
 }
-
-/**
- * Beendete Zyklen ohne Bewertung, zuletzt beendet zuerst — fuer die Zeile
- * „2 Zyklen noch nicht bewertet". Archivierte Substanzen zaehlen nicht mit:
- * wer etwas weggelegt hat, soll nicht daran erinnert werden.
- */
-export function unbewerteteZyklen(
-  timelines: readonly CycleTimeline[],
-  reviews: readonly Pick<Review, 'cycle_id'>[],
-  aktiveSubstanzen: ReadonlySet<string>,
-  now: Date,
-): CycleTimeline[] {
-  const bewertet = new Set(reviews.map(review => review.cycle_id).filter(Boolean))
-  return timelines
-    .filter(timeline => istBeendet(timeline, now)
-      && !bewertet.has(timeline.cycle.id)
-      && aktiveSubstanzen.has(timeline.cycle.stack_item_id))
-    .sort((a, b) => b.cycle.ended_at!.localeCompare(a.cycle.ended_at!))
-}

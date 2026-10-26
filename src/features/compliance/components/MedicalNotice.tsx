@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next'
 export function MedicalNotice({ className = '' }: { className?: string }) {
   const { t } = useTranslation()
   return (
-    <p data-medical-notice className={`flex items-start gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs leading-relaxed text-slate-400 ${className}`}>
-      <Info size={14} aria-hidden="true" className="mt-px shrink-0 text-slate-500" />
+    <p data-medical-notice className={`flex items-start gap-2.5 rounded-[18px] bg-[var(--lg-surface-2)] px-3.5 py-2.5 text-[13px] leading-snug text-[var(--lg-text-2)] ${className}`}>
+      <Info size={15} aria-hidden="true" className="mt-px shrink-0 text-[var(--lg-text-3)]" />
       <span>{t('medical_notice')}</span>
     </p>
   )

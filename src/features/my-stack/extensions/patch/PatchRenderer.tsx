@@ -19,7 +19,7 @@ export interface PatchRendererProps {
 // wäre der einzige Fremdkörper im Bild. Diese Form zeigt color_hex nicht.
 export function PatchRenderer({ item, ...visualProps }: PatchRendererProps) {
   return (
-    <div data-stack-renderer="patch">
+    <div data-stack-renderer="patch" data-umriss-form="patch">
       <PatchVisual name={item.display_name} {...visualProps} />
     </div>
   )

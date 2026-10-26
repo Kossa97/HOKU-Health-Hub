@@ -8,7 +8,10 @@ import {
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { alterAm } from '../features/blutwerte/lib/referenzbereiche'
+import { altfelderAus, geburtsdatumGueltig, geschlechtAusAltangabe, type BioSex } from '../features/blutwerte/lib/bioProfile'
 import { getHeartRate, getSleep, getSteps, isNative, requestPermissions } from '../lib/health'
+import { SheetGriff } from '../components/ui/SheetGriff'
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -20,9 +23,16 @@ interface WeightLog {
   created_at: string | null
 }
 
+/**
+ * Alter und Geschlecht kommen aus Geburtsdatum und biologischem Geschlecht —
+ * dieselben Angaben wie bei den Blutwerten. Die alten Felder `age`/`gender`
+ * werden nur noch gelesen, solange die neuen fehlen.
+ */
 interface HealthProfile {
-  age: number | null
-  gender: string
+  birthDate: string | null
+  sex: BioSex | null
+  legacyAge: number | null
+  legacyGender: string
   height_cm: number | null
   notes: string
 }
@@ -33,8 +43,8 @@ interface WeightForm {
 }
 
 interface ProfileForm {
-  age: string
-  gender: string
+  birthDate: string
+  sex: '' | BioSex
   height_cm: string
   notes: string
 }
@@ -62,32 +72,30 @@ function calcBMI(weightKg: number, heightCm: number): number {
 }
 
 function bmiLabel(bmi: number): { text: string; color: string } {
-  if (bmi < 18.5) return { text: 'Untergewicht',  color: '#f59e0b' }
-  if (bmi < 25)   return { text: 'Normalgewicht', color: '#10b981' }
-  if (bmi < 30)   return { text: 'Übergewicht',   color: '#f59e0b' }
-  return           { text: 'Adipositas',           color: '#f43f5e' }
+  if (bmi < 18.5) return { text: 'Untergewicht',  color: 'var(--lg-warn-text)' }
+  if (bmi < 25)   return { text: 'Normalgewicht', color: 'var(--lg-good-text)' }
+  if (bmi < 30)   return { text: 'Übergewicht',   color: 'var(--lg-warn-text)' }
+  return           { text: 'Adipositas',           color: 'var(--lg-bad-text)' }
 }
 
 // Deurenberg-Formel: Körperfett % aus BMI + Alter + Geschlecht
-function estimateBodyFat(bmi: number, age: number, gender: string): number | null {
-  if (!age || !gender) return null
-  const sexFactor = gender === 'weiblich' ? 1 : 0
+function estimateBodyFat(bmi: number, age: number, sex: BioSex | null): number | null {
+  if (!age || !sex) return null
+  const sexFactor = sex === 'female' ? 1 : 0
   return 1.20 * bmi + 0.23 * age - 10.8 * (1 - sexFactor) - 5.4
 }
 
 // Idealgewicht nach Devine-Formel
-function idealWeightRange(heightCm: number, gender: string): { min: number; max: number } | null {
-  if (!heightCm || !gender) return null
+function idealWeightRange(heightCm: number, sex: BioSex | null): { min: number; max: number } | null {
+  if (!heightCm || !sex) return null
   const over152 = Math.max(0, heightCm - 152.4)
-  const base = gender === 'weiblich' ? 45.5 : 50.0
+  const base = sex === 'female' ? 45.5 : 50.0
   const mid  = base + 0.906 * over152
   return { min: Math.round((mid - 5) * 10) / 10, max: Math.round((mid + 5) * 10) / 10 }
 }
 
-const cardStyle = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-}
+/** Feldbeschriftung im Sheet: 13 px, ohne Versalien wie in iOS */
+const fieldLabel = 'mb-1.5 block pl-1 text-[13px] text-[var(--lg-text-3)]'
 
 // ─── Sparkline ───────────────────────────────────────────────────────────────
 
@@ -107,7 +115,7 @@ function WeightSparkline({ entries }: { entries: WeightLog[] }) {
   }, [entries])
 
   if (!points) return (
-    <div className="h-20 rounded-2xl border border-white/[0.06] bg-white/[0.025] flex items-center justify-center text-xs text-slate-500">
+    <div className="flex h-20 items-center justify-center text-[13px] text-[var(--lg-text-3)]">
       Noch keine Verlaufdaten
     </div>
   )
@@ -120,13 +128,11 @@ function WeightSparkline({ entries }: { entries: WeightLog[] }) {
           <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.9" />
         </linearGradient>
       </defs>
-      <path d="M8 74 H132" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-      <path d="M8 50 H132" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <path d="M8 26 H132" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+      <path d="M8 74 H132" stroke="var(--lg-separator)" strokeWidth="0.5" />
       <polyline points={points} fill="none" stroke="url(#weightLine)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       {points.split(' ').map(point => {
         const [x, y] = point.split(',')
-        return <circle key={point} cx={x} cy={y} r="3.5" fill="var(--surface)" stroke="var(--accent)" strokeWidth="2" />
+        return <circle key={point} cx={x} cy={y} r="3.5" fill="#000" stroke="var(--accent)" strokeWidth="2" />
       })}
     </svg>
   )
@@ -136,19 +142,18 @@ function WeightSparkline({ entries }: { entries: WeightLog[] }) {
 
 function DeviceCard({ metric }: { metric: DeviceMetric }) {
   return (
-    <div className="rounded-2xl p-4 min-h-[128px] flex flex-col justify-between" style={cardStyle}>
+    <div className="lg-surface flex min-h-[124px] flex-col justify-between gap-3 p-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: `${metric.color}1A`, border: `1px solid ${metric.color}33` }}>
-          <metric.icon size={18} color={metric.color} />
-        </div>
-        {!isNative && <Shield size={14} className="text-slate-600" />}
+        <span className="lg-icon-tile" style={{ background: metric.color }}>
+          <metric.icon size={17} strokeWidth={2.4} aria-hidden="true" />
+        </span>
+        {!isNative && <Shield size={14} className="text-[var(--lg-text-4)]" aria-hidden="true" />}
       </div>
       <div>
-        <p className="text-xl font-bold text-white leading-tight">
+        <p className={`font-semibold leading-tight ${!isNative ? 'text-[15px] text-[var(--lg-text-2)]' : 'text-[22px] text-[var(--lg-text)]'}`}>
           {!isNative ? 'Nur in der App verfügbar' : metric.loading ? '...' : metric.value}
         </p>
-        <p className="text-[0.68rem] uppercase tracking-[0.08em] text-slate-500 mt-1">{metric.label}</p>
+        <p className="mt-1 text-[13px] text-[var(--lg-text-3)]">{metric.label}</p>
       </div>
     </div>
   )
@@ -167,9 +172,9 @@ export function Health() {
   const [savingWeight,  setSavingWeight]  = useState(false)
 
   // Körperprofil
-  const [healthProfile, setHealthProfile] = useState<HealthProfile>({ age: null, gender: '', height_cm: null, notes: '' })
+  const [healthProfile, setHealthProfile] = useState<HealthProfile>({ birthDate: null, sex: null, legacyAge: null, legacyGender: '', height_cm: null, notes: '' })
   const [showProfileForm, setShowProfileForm] = useState(false)
-  const [profileForm,   setProfileForm]   = useState<ProfileForm>({ age: '', gender: '', height_cm: '', notes: '' })
+  const [profileForm,   setProfileForm]   = useState<ProfileForm>({ birthDate: '', sex: '', height_cm: '', notes: '' })
   const [savingProfile, setSavingProfile] = useState(false)
 
   // Device
@@ -192,10 +197,12 @@ export function Health() {
   // ── Profil laden ─────────────────────────────────────────────────────────
   const loadProfile = useCallback(async () => {
     if (!user) return
-    const { data } = await supabase.from('profiles').select('age, gender, height_cm, notes').eq('id', user.id).single()
+    const { data } = await supabase.from('profiles').select('birth_date, bio_sex, age, gender, height_cm, notes').eq('id', user.id).single()
     if (data) setHealthProfile({
-      age: data.age ?? null,
-      gender: data.gender ?? '',
+      birthDate: data.birth_date ?? null,
+      sex: data.bio_sex === 'male' || data.bio_sex === 'female' ? data.bio_sex : null,
+      legacyAge: data.age ?? null,
+      legacyGender: data.gender ?? '',
       height_cm: data.height_cm ?? null,
       notes: data.notes ?? '',
     })
@@ -244,24 +251,36 @@ export function Health() {
   }
 
   // ── Profil speichern ─────────────────────────────────────────────────────
+  // Schreibt Geburtsdatum und biologisches Geschlecht; die alten Felder
+  // age/gender werden passend mitgeschrieben, damit ein Leeren auch leer bleibt.
   const saveProfile = async () => {
     if (!user) return
+    if (profileForm.birthDate && !geburtsdatumGueltig(profileForm.birthDate, todayStr())) {
+      return toast.error('Bitte ein gültiges Geburtsdatum eintragen')
+    }
     setSavingProfile(true)
-    const { error } = await supabase.from('profiles').update({
-      age:       profileForm.age       ? parseInt(profileForm.age)       : null,
-      gender:    profileForm.gender    || null,
+    const bio = { birthDate: profileForm.birthDate || null, sex: profileForm.sex || null }
+    const alt = altfelderAus(bio, todayStr())
+    const next = {
+      birth_date: bio.birthDate,
+      bio_sex: bio.sex,
+      ...alt,
       height_cm: profileForm.height_cm ? parseFloat(profileForm.height_cm) : null,
-      notes:     profileForm.notes     || null,
-    }).eq('id', user.id)
+      notes: profileForm.notes || null,
+    }
+    const { error } = await supabase.from('profiles').update(next).eq('id', user.id)
     if (error) toast.error('Konnte nicht gespeichert werden')
     else {
       toast.success('Körperprofil aktualisiert')
-      setHealthProfile({
-        age:       profileForm.age       ? parseInt(profileForm.age)       : null,
-        gender:    profileForm.gender,
-        height_cm: profileForm.height_cm ? parseFloat(profileForm.height_cm) : null,
-        notes:     profileForm.notes,
-      })
+      setHealthProfile(p => ({
+        ...p,
+        birthDate: next.birth_date,
+        sex: next.bio_sex,
+        legacyAge: alt.age,
+        legacyGender: alt.gender ?? '',
+        height_cm: next.height_cm,
+        notes: profileForm.notes,
+      }))
       setShowProfileForm(false)
     }
     setSavingProfile(false)
@@ -269,10 +288,11 @@ export function Health() {
 
   const openProfileForm = () => {
     setProfileForm({
-      age:       healthProfile.age       != null ? String(healthProfile.age)       : '',
-      gender:    healthProfile.gender    ?? '',
+      birthDate: healthProfile.birthDate ?? '',
+      // Ohne neue Angabe die alte vorschlagen; gespeichert wird erst beim Speichern.
+      sex: healthProfile.sex ?? geschlechtAusAltangabe(healthProfile.legacyGender) ?? '',
       height_cm: healthProfile.height_cm != null ? String(healthProfile.height_cm) : '',
-      notes:     healthProfile.notes     ?? '',
+      notes: healthProfile.notes ?? '',
     })
     setShowProfileForm(true)
   }
@@ -282,185 +302,161 @@ export function Health() {
   const currentKg    = latestWeight ? Number(latestWeight.weight_kg) : null
   const bmi          = currentKg && healthProfile.height_cm ? calcBMI(currentKg, healthProfile.height_cm) : null
   const bmiInfo      = bmi ? bmiLabel(bmi) : null
-  const bodyFat      = bmi && healthProfile.age && healthProfile.gender
-    ? estimateBodyFat(bmi, healthProfile.age, healthProfile.gender) : null
-  const idealRange   = healthProfile.height_cm && healthProfile.gender
-    ? idealWeightRange(healthProfile.height_cm, healthProfile.gender) : null
+  // Neue Angaben zuerst, sonst die alten (bis jemand das Profil neu speichert)
+  const age          = alterAm(healthProfile.birthDate, todayStr()) ?? healthProfile.legacyAge
+  const sex          = healthProfile.sex ?? geschlechtAusAltangabe(healthProfile.legacyGender)
+  const sexLabel     = sex === 'male' ? 'Männlich' : sex === 'female' ? 'Weiblich'
+    : healthProfile.legacyGender === 'divers' ? 'Divers' : null
+  const bodyFat      = bmi && age ? estimateBodyFat(bmi, age, sex) : null
+  const idealRange   = healthProfile.height_cm ? idealWeightRange(healthProfile.height_cm, sex) : null
 
   const deviceMetrics: DeviceMetric[] = [
-    { key: 'steps', icon: Footprints, value: stepsToday,  label: 'Schritte heute',    color: '#00ccf5', loading: loadingDevice },
-    { key: 'heart', icon: HeartPulse, value: heartRate,   label: 'Herzrate',          color: '#f43f5e', loading: loadingDevice },
-    { key: 'sleep', icon: BedDouble,  value: sleepHours,  label: 'Schlaf letzte Nacht', color: '#8b5cf6', loading: loadingDevice },
-    { key: 'hrv',   icon: Activity,   value: '—',         label: 'HRV',               color: '#10b981', loading: false },
+    { key: 'steps', icon: Footprints, value: stepsToday,  label: 'Schritte heute',    color: '#0a84ff', loading: loadingDevice },
+    { key: 'heart', icon: HeartPulse, value: heartRate,   label: 'Herzrate',          color: '#ff375f', loading: loadingDevice },
+    { key: 'sleep', icon: BedDouble,  value: sleepHours,  label: 'Schlaf letzte Nacht', color: '#5e5ce6', loading: loadingDevice },
+    { key: 'hrv',   icon: Activity,   value: '—',         label: 'HRV',               color: '#30d158', loading: false },
   ]
 
+  const openWeightForm = () => {
+    setWeightForm({ logged_at: todayStr(), weight_kg: latestWeight ? String(latestWeight.weight_kg) : '' })
+    setShowWeightForm(true)
+  }
+
   return (
-    <div className="space-y-5 pb-4">
+    <div className="space-y-7 pb-4">
       <header>
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-400/70 mb-1">Deine Körperdaten</p>
-        <h1 className="text-2xl font-black tracking-tight text-white">Health</h1>
+        <h1 className="lg-large-title">Health</h1>
+        <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">Deine Körperdaten</p>
       </header>
 
       {/* ── Gewicht ──────────────────────────────────────────────────────── */}
-      <section className="rounded-[1.5rem] p-5 overflow-hidden relative" style={cardStyle}>
-        <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />
-        <div className="flex items-start justify-between gap-4 mb-4 relative">
-          <div>
-            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-[0.12em] mb-2">
-              <Scale size={15} className="text-sky-400" />
+      <section className="lg-surface p-5">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[15px] font-semibold text-[var(--lg-text-2)]">
+              <Scale size={16} className="text-[var(--lg-accent-text)]" aria-hidden="true" />
               Gewicht
             </div>
             {loadingWeight ? (
-              <p className="text-3xl font-black text-white">...</p>
+              <p className="text-[34px] font-bold leading-tight text-[var(--lg-text-3)]">...</p>
             ) : latestWeight ? (
               <>
-                <p className="text-5xl font-black tracking-[-0.06em] text-white leading-none">
-                  {fmtNum(latestWeight.weight_kg)} <span className="text-lg text-slate-400 tracking-normal">kg</span>
+                <p className="text-[44px] font-bold leading-none tracking-[-0.03em] text-[var(--lg-text)] tabular-nums">
+                  {fmtNum(latestWeight.weight_kg)} <span className="text-[17px] font-semibold tracking-normal text-[var(--lg-text-2)]">kg</span>
                 </p>
-                <p className="text-xs text-slate-500 mt-2">Letzter Eintrag {fmtDate(latestWeight.logged_at)}</p>
+                <p className="mt-2 text-[13px] text-[var(--lg-text-3)]">Letzter Eintrag {fmtDate(latestWeight.logged_at)}</p>
               </>
             ) : (
-              <p className="text-3xl font-black text-slate-500">Noch kein Wert</p>
+              <p className="text-[28px] font-bold leading-tight text-[var(--lg-text-3)]">Noch kein Wert</p>
             )}
           </div>
           <button
-            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: 'var(--accent)', color: 'var(--accent-contrast)', boxShadow: '0 0 24px rgba(0,204,245,0.25)' }}
-            onClick={() => { setWeightForm({ logged_at: todayStr(), weight_kg: latestWeight ? String(latestWeight.weight_kg) : '' }); setShowWeightForm(true) }}
+            type="button"
+            aria-label="Gewicht eintragen"
+            className="lg-btn lg-btn-tint !min-h-11 !w-11 shrink-0 !rounded-full !p-0"
+            onClick={openWeightForm}
           >
-            <Plus size={22} strokeWidth={3} />
+            <Plus size={22} strokeWidth={2.6} />
           </button>
         </div>
         <WeightSparkline entries={weightLogs} />
 
-        {/* Mini-Verlauf Gewicht → idealRange */}
         {idealRange && (
-          <p className="text-[0.68rem] text-slate-500 mt-3">
-            Idealgewicht ({healthProfile.gender}): {fmtNum(idealRange.min)} – {fmtNum(idealRange.max)} kg
+          <p className="mt-3 text-[13px] text-[var(--lg-text-3)]">
+            Idealgewicht ({sexLabel}): {fmtNum(idealRange.min)} – {fmtNum(idealRange.max)} kg
           </p>
         )}
       </section>
 
       {/* ── Körperprofil + Berechnungen ──────────────────────────────────── */}
-      <section className="rounded-[1.5rem] p-5 relative" style={cardStyle}>
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Körperprofil</p>
+      <section>
+        <div className="mb-[7px] flex items-end justify-between gap-3 pr-1">
+          <p className="lg-group-title !mb-0">Körperprofil</p>
           <button
-            className="flex items-center gap-1.5 text-sky-400 text-xs font-semibold"
+            type="button"
+            className="-my-2 flex min-h-11 items-center gap-1.5 px-2 text-[15px] font-semibold text-[var(--lg-accent-text)]"
             onClick={openProfileForm}
           >
-            <Pencil size={13} /> Bearbeiten
+            <Pencil size={14} aria-hidden="true" /> Bearbeiten
           </button>
         </div>
 
-        {/* Stats-Grid */}
-        <div className="grid grid-cols-2 gap-3">
-
-          {/* Alter */}
-          <StatCell
-            label="Alter"
-            value={healthProfile.age ? `${healthProfile.age} J.` : '—'}
-            color="#00ccf5"
-          />
-
-          {/* Geschlecht */}
-          <StatCell
-            label="Geschlecht"
-            value={
-              healthProfile.gender === 'männlich' ? 'Männlich' :
-              healthProfile.gender === 'weiblich' ? 'Weiblich' :
-              healthProfile.gender === 'divers'   ? 'Divers'   : '—'
-            }
-            color="#00ccf5"
-          />
-
-          {/* Größe */}
-          <StatCell
-            label="Größe"
-            value={healthProfile.height_cm ? `${healthProfile.height_cm} cm` : '—'}
-            color="#00ccf5"
-          />
-
-          {/* BMI */}
-          <div className="rounded-2xl p-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-slate-500 mb-1">BMI</p>
-            {bmi && bmiInfo ? (
+        <div className="lg-group">
+          <ProfileRow label="Alter" value={age ? `${age} J.` : null} />
+          <ProfileRow label="Geschlecht" value={sexLabel} />
+          <ProfileRow label="Größe" value={healthProfile.height_cm ? `${healthProfile.height_cm} cm` : null} />
+          <ProfileRow
+            label="BMI"
+            value={bmi && bmiInfo ? (
               <>
-                <p className="text-xl font-black text-white leading-tight">{fmtNum(bmi, 1)}</p>
-                <p className="text-[0.68rem] font-semibold mt-0.5" style={{ color: bmiInfo.color }}>{bmiInfo.text}</p>
+                <span className="tabular-nums">{fmtNum(bmi, 1)}</span>
+                <span className="block text-[13px] font-semibold" style={{ color: bmiInfo.color }}>{bmiInfo.text}</span>
               </>
-            ) : (
-              <p className="text-xl font-black text-slate-500">—</p>
-            )}
-          </div>
-
-          {/* Körperfett (geschätzt) */}
-          <StatCell
+            ) : null}
+          />
+          <ProfileRow
             label="Körperfett (est.)"
-            value={bodyFat != null ? `≈ ${fmtNum(Math.max(0, bodyFat), 1)} %` : '—'}
-            color="#8b5cf6"
             note="Deurenberg-Formel"
+            value={bodyFat != null ? `≈ ${fmtNum(Math.max(0, bodyFat), 1)} %` : null}
           />
-
-          {/* Idealgewicht */}
-          <StatCell
+          <ProfileRow
             label="Idealgewicht"
-            value={idealRange ? `${fmtNum(idealRange.min)}–${fmtNum(idealRange.max)} kg` : '—'}
-            color="#10b981"
             note="Devine-Formel"
+            value={idealRange ? `${fmtNum(idealRange.min)}–${fmtNum(idealRange.max)} kg` : null}
           />
+          {healthProfile.notes && (
+            <div className="lg-kv" data-wide="true">
+              <span>Notizen</span>
+              <span>{healthProfile.notes}</span>
+            </div>
+          )}
         </div>
 
-        {/* Notizen */}
-        {healthProfile.notes && (
-          <div className="mt-3 rounded-xl p-3" style={{ background: 'rgba(0,204,245,0.04)', border: '1px solid rgba(0,204,245,0.10)' }}>
-            <p className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-sky-400/60 mb-1">Notizen</p>
-            <p className="text-sm text-slate-300 leading-relaxed">{healthProfile.notes}</p>
-          </div>
-        )}
-
-        {!healthProfile.height_cm && !healthProfile.age && (
-          <p className="text-xs text-slate-500 mt-3 text-center">
-            Trage Alter, Geschlecht und Größe ein um BMI & Co. zu berechnen.
+        {!healthProfile.height_cm && !age && (
+          <p className="mx-4 mt-2 text-[13px] leading-snug text-[var(--lg-text-3)]">
+            Trage Geburtsdatum, Geschlecht und Größe ein, um BMI & Co. zu berechnen.
           </p>
         )}
       </section>
 
       {/* ── Device Health ────────────────────────────────────────────────── */}
       <section>
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500 mb-3">Device Health</p>
+        <p className="lg-group-title">Device Health</p>
         <div className="grid grid-cols-2 gap-3">
           {deviceMetrics.map(m => <DeviceCard key={m.key} metric={m} />)}
         </div>
       </section>
 
       {/* ── Schnellzugriff ───────────────────────────────────────────────── */}
-      <section className="space-y-3">
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-slate-500">Schnellzugriff</p>
-        <QuickLink to="/blutwerte" icon={<Droplets size={18} color="#f43f5e" />} bg="rgba(244,63,94,0.10)" border="rgba(244,63,94,0.18)"
-          title="Blutwerte" sub="Labormarker · IGF-1 · Hormone · CRP" />
-        <QuickLink to="/protokoll" icon={<FileText size={18} color="#8b5cf6" />} bg="rgba(139,92,246,0.10)" border="rgba(139,92,246,0.18)"
-          title="Protokoll" sub="PDF-Report · Adherence-Auswertung · Charts" />
+      <section>
+        <p className="lg-group-title">Schnellzugriff</p>
+        <div className="lg-group lg-rows">
+          <QuickLink to="/blutwerte" icon={<Droplets size={17} strokeWidth={2.4} />} color="#ff375f"
+            title="Blutwerte" sub="Labormarker · IGF-1 · Hormone · CRP" />
+          <QuickLink to="/protokoll" icon={<FileText size={17} strokeWidth={2.4} />} color="#5e5ce6"
+            title="Protokoll" sub="PDF-Report · Adherence-Auswertung · Charts" />
+        </div>
       </section>
 
       {/* ── Gewicht-Modal ────────────────────────────────────────────────── */}
       {showWeightForm && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" data-app-modal onClick={() => setShowWeightForm(false)}>
-          <div className="bg-slate-900 rounded-t-2xl w-full max-w-lg p-6 pb-8 space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold">Neues Gewicht</h2>
+        <div className="fixed inset-0 z-50 bg-black/60" data-app-modal onClick={() => setShowWeightForm(false)}>
+          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
+            <SheetGriff className="mb-3" onClose={() => setShowWeightForm(false)} />
+            <h2 className="lg-title2">Neues Gewicht</h2>
             <div>
-              <label className="label">Datum</label>
-              <input className="input" type="date" value={weightForm.logged_at}
+              <label className={fieldLabel} htmlFor="health-weight-date">Datum</label>
+              <input id="health-weight-date" className="input" type="date" value={weightForm.logged_at}
                 onChange={e => setWeightForm(f => ({ ...f, logged_at: e.target.value }))} />
             </div>
             <div>
-              <label className="label">Gewicht (kg)</label>
-              <input className="input" inputMode="decimal" placeholder="82,5" value={weightForm.weight_kg}
+              <label className={fieldLabel} htmlFor="health-weight-kg">Gewicht (kg)</label>
+              <input id="health-weight-kg" className="input" inputMode="decimal" placeholder="82,5" value={weightForm.weight_kg}
                 onChange={e => setWeightForm(f => ({ ...f, weight_kg: e.target.value }))} />
             </div>
             <div className="flex gap-3 pt-2">
-              <button className="btn-secondary flex-1" data-app-back-close onClick={() => setShowWeightForm(false)}>Abbrechen</button>
-              <button className="btn-primary flex-1" onClick={saveWeight} disabled={savingWeight}>
+              <button type="button" className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" data-quiet data-app-back-close onClick={() => setShowWeightForm(false)}>Abbrechen</button>
+              <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" onClick={saveWeight} disabled={savingWeight}>
                 {savingWeight ? 'Speichern...' : 'Speichern'}
               </button>
             </div>
@@ -470,39 +466,41 @@ export function Health() {
 
       {/* ── Körperprofil-Modal ───────────────────────────────────────────── */}
       {showProfileForm && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" data-app-modal onClick={() => setShowProfileForm(false)}>
-          <div className="bg-slate-900 rounded-t-2xl w-full max-w-lg p-6 pb-8 space-y-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold">Körperprofil bearbeiten</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Alter</label>
-                <input className="input" type="number" placeholder="Jahre" value={profileForm.age}
-                  onChange={e => setProfileForm(f => ({ ...f, age: e.target.value }))} />
+        <div className="fixed inset-0 z-50 bg-black/60" data-app-modal onClick={() => setShowProfileForm(false)}>
+          <div className="lg-sheet fixed inset-x-2 bottom-2 mx-auto max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] max-w-lg space-y-4 overflow-y-auto overscroll-contain px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2" onClick={e => e.stopPropagation()}>
+            <SheetGriff className="mb-3" onClose={() => setShowProfileForm(false)} />
+            <h2 className="lg-title2">Körperprofil bearbeiten</h2>
+            {/* Unter 380 px untereinander: Datum und Auswahl wären sonst abgeschnitten */}
+            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
+              <div className="min-w-0">
+                <label className={fieldLabel} htmlFor="health-birth">Geburtsdatum</label>
+                <input id="health-birth" className="input" type="date" min="1900-01-01" max={todayStr()} value={profileForm.birthDate}
+                  onChange={e => setProfileForm(f => ({ ...f, birthDate: e.target.value }))} />
               </div>
-              <div>
-                <label className="label">Geschlecht</label>
-                <select className="select" value={profileForm.gender}
-                  onChange={e => setProfileForm(f => ({ ...f, gender: e.target.value }))}>
-                  <option value="">—</option>
-                  <option value="männlich">Männlich</option>
-                  <option value="weiblich">Weiblich</option>
-                  <option value="divers">Divers</option>
+              <div className="min-w-0">
+                <label className={fieldLabel} htmlFor="health-sex">Biologisches Geschlecht</label>
+                <select id="health-sex" className="select" value={profileForm.sex}
+                  onChange={e => setProfileForm(f => ({ ...f, sex: e.target.value as ProfileForm['sex'] }))}>
+                  <option value="">Keine Angabe</option>
+                  <option value="male">Männlich</option>
+                  <option value="female">Weiblich</option>
                 </select>
               </div>
-              <div className="col-span-2">
-                <label className="label">Größe (cm)</label>
-                <input className="input" type="number" placeholder="181" value={profileForm.height_cm}
+              <p className="-mt-1 px-1 text-[13px] min-[380px]:col-span-2 leading-snug text-[var(--lg-text-3)]">Dieselben Angaben wie bei den Blutwerten – sie bestimmen dort auch die Referenzbereiche.</p>
+              <div className="min-[380px]:col-span-2">
+                <label className={fieldLabel} htmlFor="health-height">Größe (cm)</label>
+                <input id="health-height" className="input" type="number" placeholder="181" value={profileForm.height_cm}
                   onChange={e => setProfileForm(f => ({ ...f, height_cm: e.target.value }))} />
               </div>
             </div>
             <div>
-              <label className="label">Persönliche Notizen</label>
-              <textarea className="input resize-none" rows={3} placeholder="Vorerkrankungen, Ziele, Anmerkungen..."
+              <label className={fieldLabel} htmlFor="health-notes">Persönliche Notizen</label>
+              <textarea id="health-notes" className="input resize-none" rows={3} placeholder="Vorerkrankungen, Ziele, Anmerkungen..."
                 value={profileForm.notes} onChange={e => setProfileForm(f => ({ ...f, notes: e.target.value }))} />
             </div>
             <div className="flex gap-3 pt-2">
-              <button className="btn-secondary flex-1" data-app-back-close onClick={() => setShowProfileForm(false)}>Abbrechen</button>
-              <button className="btn-primary flex-1" onClick={saveProfile} disabled={savingProfile}>
+              <button type="button" className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" data-quiet data-app-back-close onClick={() => setShowProfileForm(false)}>Abbrechen</button>
+              <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" onClick={saveProfile} disabled={savingProfile}>
                 {savingProfile ? 'Speichern...' : 'Speichern'}
               </button>
             </div>
@@ -515,33 +513,30 @@ export function Health() {
 
 // ─── Sub-Komponenten ──────────────────────────────────────────────────────────
 
-function StatCell({ label, value, color, note }: { label: string; value: string; color: string; note?: string }) {
+/** Angabe im Körperprofil: Name links (mit Formel darunter), Wert rechts; fehlt er, ein Strich. */
+function ProfileRow({ label, value, note }: { label: string; value: React.ReactNode; note?: string }) {
   return (
-    <div className="rounded-2xl p-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-      <p className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-slate-500 mb-1">{label}</p>
-      <p className="text-xl font-black leading-tight" style={{ color: value === '—' ? 'var(--text-muted)' : color }}>{value}</p>
-      {note && <p className="text-[0.58rem] text-slate-600 mt-0.5">{note}</p>}
+    <div className="lg-kv" data-empty={value == null ? '' : undefined}>
+      <span>
+        {label}
+        {note && <span className="block text-[12px] text-[var(--lg-text-3)]">{note}</span>}
+      </span>
+      <span className="tabular-nums">{value ?? '—'}</span>
     </div>
   )
 }
 
-function QuickLink({ to, icon, bg, border, title, sub }: {
-  to: string; icon: React.ReactNode; bg: string; border: string; title: string; sub: string
+function QuickLink({ to, icon, color, title, sub }: {
+  to: string; icon: React.ReactNode; color: string; title: string; sub: string
 }) {
   return (
-    <Link to={to} className="rounded-2xl p-4 flex items-center justify-between gap-3 transition-opacity hover:opacity-85"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: bg, border: `1px solid ${border}` }}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-white font-bold text-sm">{title}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{sub}</p>
-        </div>
-      </div>
-      <ChevronRight size={18} className="text-slate-600 shrink-0" />
+    <Link to={to} className="flex min-h-[60px] items-center gap-3.5 px-4 py-2.5 transition-colors active:bg-white/[0.06]">
+      <span className="lg-icon-tile" style={{ background: color }} aria-hidden="true">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[17px] text-[var(--lg-text)]">{title}</span>
+        <span className="mt-0.5 block text-[13px] leading-snug text-[var(--lg-text-3)]">{sub}</span>
+      </span>
+      <ChevronRight size={18} className="shrink-0 text-[var(--lg-text-4)]" aria-hidden="true" />
     </Link>
   )
 }

@@ -17,35 +17,23 @@ import { denyProps } from '../../lib/denyFeedback'
 
 interface StudyTypeConfig {
   badge:     string
-  topBorder: string
-  hoverGlow: string
 }
 
 const STUDY_TYPE_CONFIG: Record<StudyType, StudyTypeConfig> = {
   clinical: {
-    badge:     'bg-violet-500/15 text-violet-300 border border-violet-500/25',
-    topBorder: 'border-t-violet-500',
-    hoverGlow: 'hover:shadow-[0_16px_48px_rgba(139,92,246,0.10)]',
+    badge:     'bg-violet-500/15 text-violet-300',
   },
   meta: {
-    badge:     'bg-blue-500/15 text-blue-300 border border-blue-500/25',
-    topBorder: 'border-t-blue-500',
-    hoverGlow: 'hover:shadow-[0_16px_48px_rgba(59,130,246,0.10)]',
+    badge:     'bg-blue-500/15 text-blue-300',
   },
   human: {
-    badge:     'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25',
-    topBorder: 'border-t-emerald-500',
-    hoverGlow: 'hover:shadow-[0_16px_48px_rgba(16,185,129,0.10)]',
+    badge:     'bg-emerald-500/15 text-emerald-300',
   },
   animal: {
-    badge:     'bg-orange-500/15 text-orange-300 border border-orange-500/25',
-    topBorder: 'border-t-orange-500',
-    hoverGlow: 'hover:shadow-[0_16px_48px_rgba(249,115,22,0.10)]',
+    badge:     'bg-orange-500/15 text-orange-300',
   },
   study: {
-    badge:     'bg-slate-700/50 text-slate-400 border border-slate-600/30',
-    topBorder: 'border-t-slate-600',
-    hoverGlow: 'hover:shadow-[0_16px_48px_rgba(0,0,0,0.25)]',
+    badge:     'bg-slate-700/50 text-[var(--lg-text-2)]',
   },
 }
 
@@ -59,70 +47,51 @@ interface EvidenceConfig {
 
 const EVIDENCE_CONFIG: Record<EvidenceScore, EvidenceConfig> = {
   strong: {
-    badge:     'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25',
+    badge:     'bg-emerald-500/15 text-emerald-300',
     textColor: 'text-emerald-300',
     barColor:  'bg-emerald-500',
     barWidth:  'w-full',
-    dotGlow:   'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]',
+    dotGlow:   'bg-emerald-400',
   },
   moderate: {
-    badge:     'bg-amber-500/15 text-amber-300 border border-amber-500/25',
+    badge:     'bg-amber-500/15 text-amber-300',
     textColor: 'text-amber-300',
     barColor:  'bg-amber-500',
     barWidth:  'w-2/3',
-    dotGlow:   'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]',
+    dotGlow:   'bg-amber-400',
   },
   preclinical: {
-    badge:     'bg-rose-500/15 text-rose-300 border border-rose-500/25',
+    badge:     'bg-rose-500/15 text-rose-300',
     textColor: 'text-rose-300',
     barColor:  'bg-rose-500',
     barWidth:  'w-1/3',
-    dotGlow:   'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]',
+    dotGlow:   'bg-rose-400',
   },
   unknown: {
-    badge:     'bg-slate-700/40 text-slate-500 border border-slate-600/25',
-    textColor: 'text-slate-500',
+    badge:     'bg-slate-700/40 text-[var(--lg-text-2)]',
+    textColor: 'text-[var(--lg-text-2)]',
     barColor:  'bg-slate-600',
     barWidth:  'w-1/4',
     dotGlow:   'bg-slate-500',
   },
 }
 
-// Peptide left-border accent
-const PEPTIDE_LEFT_BORDER: Record<string, string> = {
-  'BPC-157':    'border-l-sky-500',
-  'TB-500':     'border-l-violet-500',
-  'Ipamorelin': 'border-l-emerald-500',
-  'CJC-1295':   'border-l-orange-500',
-  'Semaglutide':'border-l-teal-500',
-  'Tirzepatide':'border-l-indigo-500',
-  'Selank':     'border-l-pink-500',
-  'Epithalon':  'border-l-amber-500',
-}
-
 // Peptide pill tag colors
 const PEPTIDE_TAG_COLORS: Record<string, string> = {
-  'BPC-157':    'bg-sky-500/10 text-sky-300 border-sky-500/20',
-  'TB-500':     'bg-violet-500/10 text-violet-300 border-violet-500/20',
-  'Ipamorelin': 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
-  'CJC-1295':   'bg-orange-500/10 text-orange-300 border-orange-500/20',
-  'Semaglutide':'bg-teal-500/10 text-teal-300 border-teal-500/20',
-  'Tirzepatide':'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
-  'Selank':     'bg-pink-500/10 text-pink-300 border-pink-500/20',
-  'Epithalon':  'bg-amber-500/10 text-amber-300 border-amber-500/20',
+  'BPC-157':    'bg-sky-500/10 text-sky-300',
+  'TB-500':     'bg-violet-500/10 text-violet-300',
+  'Ipamorelin': 'bg-emerald-500/10 text-emerald-300',
+  'CJC-1295':   'bg-orange-500/10 text-orange-300',
+  'Semaglutide':'bg-teal-500/10 text-teal-300',
+  'Tirzepatide':'bg-indigo-500/10 text-indigo-300',
+  'Selank':     'bg-pink-500/10 text-pink-300',
+  'Epithalon':  'bg-amber-500/10 text-amber-300',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function detectLeftBorder(title: string): string {
-  const found = Object.keys(PEPTIDE_LEFT_BORDER).find(p =>
-    title.toUpperCase().includes(p.toUpperCase())
-  )
-  return PEPTIDE_LEFT_BORDER[found ?? ''] ?? 'border-l-slate-700/50'
-}
-
 function detectTags(title: string): string[] {
-  return Object.keys(PEPTIDE_LEFT_BORDER).filter(p =>
+  return Object.keys(PEPTIDE_TAG_COLORS).filter(p =>
     title.toUpperCase().includes(p.toUpperCase())
   )
 }
@@ -138,8 +107,7 @@ function StudyTypeBadge({ type }: { type: StudyType }) {
   const { t } = useTranslation()
   return (
     <span
-      className={`inline-flex items-center text-[0.58rem] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${STUDY_TYPE_CONFIG[type].badge}`}
-      style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+      className={`inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-md ${STUDY_TYPE_CONFIG[type].badge}`}
     >
       {t(getStudyTypeLabel(type))}
     </span>
@@ -151,8 +119,7 @@ function EvidencePill({ score }: { score: EvidenceScore }) {
   const c = EVIDENCE_CONFIG[score]
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${c.badge}`}
-      style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full ${c.badge}`}
     >
       <span className={`w-1 h-1 rounded-full shrink-0 ${c.dotGlow}`} />
       {t(getEvidenceLabel(score))}
@@ -166,8 +133,7 @@ function EvidenceBar({ score }: { score: EvidenceScore }) {
   return (
     <div className="flex items-center gap-3">
       <span
-        className="text-[0.52rem] uppercase tracking-[0.18em] text-slate-600 shrink-0"
-        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        className="text-[11px] uppercase tracking-[0.04em] text-[var(--lg-text-3)] shrink-0"
       >
         {t('lab_evidence_bar_label')}
       </span>
@@ -177,8 +143,7 @@ function EvidenceBar({ score }: { score: EvidenceScore }) {
       <div className={`flex items-center gap-1.5 ${c.textColor}`}>
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dotGlow}`} />
         <span
-          className="text-[0.58rem] font-black uppercase tracking-wider"
-          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+          className="text-[11px] font-semibold uppercase tracking-[0.04em]"
         >
           {t(getEvidenceLabel(score))}
         </span>
@@ -194,8 +159,8 @@ function PeptideTags({ tags }: { tags: string[] }) {
       {tags.map(tag => (
         <span
           key={tag}
-          className={`text-[0.6rem] font-semibold px-2 py-0.5 rounded-full border ${
-            PEPTIDE_TAG_COLORS[tag] ?? 'bg-slate-700/40 text-slate-400 border-slate-600/25'
+          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+            PEPTIDE_TAG_COLORS[tag] ?? 'bg-slate-700/40 text-[var(--lg-text-2)]'
           }`}
         >
           {tag}
@@ -209,16 +174,14 @@ function SectionDivider({ label, suffix }: { label: string; suffix?: string }) {
   return (
     <div className="flex items-center gap-2">
       <span
-        className="text-[0.52rem] font-black uppercase tracking-[0.2em] text-sky-400/55 shrink-0"
-        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        className="text-[11px] font-semibold uppercase tracking-[0.04em] text-sky-400/55 shrink-0"
       >
         {label}
       </span>
       <div className="flex-1 h-px bg-white/[0.05]" />
       {suffix && (
         <span
-          className="text-[0.48rem] text-slate-700 uppercase tracking-[0.15em] shrink-0"
-          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+          className="text-[11px] text-[var(--lg-text-3)] uppercase tracking-[0.04em] shrink-0"
         >
           {suffix}
         </span>
@@ -240,9 +203,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
   const studyType     = getStudyType(article.title, article.abstract)
   const evidenceScore = getEvidenceScore(article.title, article.abstract)
   const keyFindings   = getKeyFindings(article.abstract)
-  const leftBorder    = detectLeftBorder(article.title)
   const tags          = detectTags(article.title)
-  const typeConfig    = STUDY_TYPE_CONFIG[studyType]
 
   const openDetail = () => navigate(`/lab/study/${article.id}`, { state: { article } })
 
@@ -256,18 +217,9 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
     return (
       <article
-        className={[
-          'group relative bg-[#0B1220] rounded-2xl overflow-hidden mb-5',
-          'border border-white/[0.07]',
-          `border-t-2 ${typeConfig.topBorder}`,
-          `border-l-2 ${leftBorder}`,
-          'cursor-pointer transition-all duration-300',
-          `hover:border-white/[0.14] ${typeConfig.hoverGlow}`,
-        ].join(' ')}
+        className="group lg-surface lg-flat mb-5 cursor-pointer overflow-hidden transition-transform duration-200 active:scale-[0.99]"
         onClick={openDetail}
       >
-        {/* Subtle inner gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.018] via-transparent to-transparent pointer-events-none" />
 
         <div className="relative p-5 space-y-4">
 
@@ -279,8 +231,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
             </div>
             {article.pubdate && (
               <span
-                className="text-[0.58rem] text-slate-700 shrink-0 mt-0.5"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                className="text-[11px] text-[var(--lg-text-3)] shrink-0 mt-0.5"
               >
                 {article.pubdate}
               </span>
@@ -290,13 +241,12 @@ export function StudyCard({ article, variant }: StudyCardProps) {
           {/* ── Title + Authors ───────────────────────────────────────────── */}
           <div>
             <h2
-              className="text-lg font-black text-white leading-snug mb-1.5 group-hover:text-sky-50 transition-colors duration-200"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="text-[19px] font-semibold text-[var(--lg-text)] leading-snug mb-1.5 group-hover:text-sky-50 transition-colors duration-200"
             >
               {article.title}
             </h2>
             {(article.authors.length > 0 || article.journal) && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[var(--lg-text-2)]">
                 {article.authors.length > 0 && formatAuthors(article.authors)}
                 {article.journal && (
                   <span className="text-sky-400/50"> · {article.journal}</span>
@@ -308,7 +258,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
           {/* ── AI Summary ───────────────────────────────────────────────── */}
           <div>
             <SectionDivider label={t('lab_summary')} suffix="AI" />
-            <p className="text-sm text-slate-300 leading-relaxed mt-2">{snippet}</p>
+            <p className="text-sm text-[var(--lg-text)] leading-relaxed mt-2">{snippet}</p>
           </div>
 
           {/* ── Key Findings ─────────────────────────────────────────────── */}
@@ -317,7 +267,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
               <SectionDivider label={t('lab_key_findings')} />
               <ul className="space-y-2 mt-2">
                 {keyFindings.slice(0, 3).map((f, i) => (
-                  <li key={i} className="flex gap-2.5 text-xs text-slate-400 leading-relaxed">
+                  <li key={i} className="flex gap-2.5 text-xs text-[var(--lg-text-2)] leading-relaxed">
                     <ArrowRight size={11} className="text-sky-400/40 shrink-0 mt-0.5" />
                     <span>{f.endsWith('.') ? f : `${f}.`}</span>
                   </li>
@@ -365,10 +315,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
   // ── Compact Card ──────────────────────────────────────────────────────────
   return (
     <article
-      className="group bg-[#0B1220] border border-white/[0.06] rounded-xl p-4 cursor-pointer
-        hover:bg-[#0d1525] hover:border-white/[0.12]
-        hover:shadow-[0_4px_24px_rgba(0,0,0,0.45)]
-        transition-all duration-200"
+      className="group lg-surface lg-flat !rounded-[22px] p-4 cursor-pointer transition-transform duration-200 active:scale-[0.99]"
       onClick={openDetail}
     >
       {/* Badges + Date */}
@@ -382,8 +329,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
         </div>
         {article.pubdate && (
           <span
-            className="text-[0.56rem] text-slate-700 shrink-0"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+            className="text-[11px] text-[var(--lg-text-3)] shrink-0"
           >
             {article.pubdate}
           </span>
@@ -392,16 +338,15 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
       {/* Title */}
       <h2
-        className="text-sm font-bold text-white leading-snug line-clamp-2 mb-2
+        className="text-[16px] font-semibold text-[var(--lg-text)] leading-snug line-clamp-2 mb-2
           group-hover:text-sky-50 transition-colors duration-200"
-        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
       >
         {article.title}
       </h2>
 
       {/* Abstract snippet */}
       {article.abstract && (
-        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2.5">
+        <p className="text-xs text-[var(--lg-text-2)] line-clamp-2 leading-relaxed mb-2.5">
           {article.abstract.length > 130
             ? `${article.abstract.slice(0, 130).trim()}…`
             : article.abstract}
@@ -412,7 +357,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
       {keyFindings.length > 0 && (
         <ul className="space-y-1 mb-3">
           {keyFindings.slice(0, 2).map((f, i) => (
-            <li key={i} className="flex gap-1.5 text-xs text-slate-600 leading-snug">
+            <li key={i} className="flex gap-1.5 text-xs text-[var(--lg-text-3)] leading-snug">
               <ArrowRight size={9} className="text-sky-400/35 shrink-0 mt-0.5" />
               <span className="line-clamp-1">{f}</span>
             </li>
@@ -429,12 +374,12 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
       {/* Footer: Save + PubMed */}
       <div
-        className="flex items-center justify-between pt-2.5 border-t border-white/[0.05]"
+        className="flex items-center justify-between pt-2.5 border-t border-[var(--lg-separator)]"
         onClick={e => e.stopPropagation()}
       >
         <button
           type="button"
-          className="flex items-center gap-1.5 text-xs text-slate-700 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-[var(--lg-text-3)] transition-colors"
           {...denyProps(true, String(t('lab_save_soon', { defaultValue: 'Studien merken kommt bald.' })))}
         >
           <Bookmark size={11} />
@@ -445,12 +390,11 @@ export function StudyCard({ article, variant }: StudyCardProps) {
             href={article.link}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-slate-600 hover:text-sky-400 transition-colors duration-150"
+            className="flex items-center gap-1.5 text-[var(--lg-text-3)] hover:text-sky-400 transition-colors duration-150"
           >
             <ExternalLink size={12} />
             <span
-              className="text-[0.56rem] opacity-0 group-hover:opacity-60 transition-opacity duration-200"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              className="text-[11px] opacity-0 group-hover:opacity-60 transition-opacity duration-200"
             >
               PubMed
             </span>

@@ -14,6 +14,7 @@ describe('InjektionsTracker fullscreen map layout', () => {
 
   it('keeps the fullscreen map fixed to the viewport with safe-area overlay spacing', () => {
     const source = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
+      + readFileSync(new URL('../components/injection3d/InjectionTrackerChrome.tsx', import.meta.url), 'utf8')
 
     expect(source).not.toContain("marginTop: 'calc(-1 * env(safe-area-inset-top))'")
     expect(source).toContain("top: 'calc(16px + env(safe-area-inset-top))'")
@@ -42,16 +43,17 @@ describe('InjektionsTracker fullscreen map layout', () => {
     expect(source).toContain('max-h-[48dvh]')
     expect(source).toContain('InjectionHistorySheet')
   })
-  it('opens open intakes as a fullscreen workflow with filters and selection', () => {
+  it('opens all intakes without a site as a fullscreen list with substance and period filters', () => {
     const tabs = readFileSync(new URL('../components/injection3d/InjectionTrackerTabs.tsx', import.meta.url), 'utf8')
+    const list = readFileSync(new URL('../components/injection3d/InjectionIntakeList.tsx', import.meta.url), 'utf8')
     const tracker = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
 
     expect(tabs).toContain("activeSheet === 'open'")
-    expect(tabs).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"')
-    expect(tabs).toContain('openCycleFilter')
-    expect(tabs).toContain('openDaysFilter')
-    expect(tabs).toContain('OPEN_DAYS_OPTIONS')
-    expect(tabs).toContain('onSelectOpenIntake(intake)')
+    expect(tabs).toContain('className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"')
+    expect(tabs).toContain('<InjectionIntakeList intakes={openIntakes}')
+    expect(list).toContain("status: 'all'")
+    expect(list).toContain('stackItemId:')
+    expect(list).toContain('INTAKE_DAY_OPTIONS')
     expect(tracker).toContain('selectedTargetIntakeKey')
     expect(tracker).toContain('onSelectOpenIntake={selectOpenIntakeForInjection}')
   })
@@ -119,7 +121,7 @@ describe('InjektionsTracker fullscreen map layout', () => {
 
     expect(logSheet).toContain('overflow-hidden overflow-x-hidden overscroll-y-contain')
     expect(logSheet).toContain('overflow-y-auto overflow-x-hidden overscroll-y-contain')
-    expect(logSheet).toContain('grid min-w-0 grid-cols-2')
+    expect(logSheet).toContain('grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2')
     expect(logSheet).toContain('className="min-w-0"')
     expect(logSheet).toContain('btn-primary min-h-11 min-w-0 flex-1')
   })
@@ -154,13 +156,12 @@ describe('InjektionsTracker fullscreen map layout', () => {
     expect(source).toContain('activeTargetIntake.stackItemName')
   })
 
-  it('skips cycle/manual selection and the intake list for a fixed target intake', () => {
+  it('goes straight to the short confirmation for a fixed target intake', () => {
     const logSheet = readFileSync(new URL('../components/injection3d/InjectionLogSheet.tsx', import.meta.url), 'utf8')
 
-    expect(logSheet).toContain('hasFixedTargetIntake')
-    expect(logSheet).toContain('{!hasFixedTargetIntake && (')
-    expect(logSheet).toContain("{mode === 'intake' && !hasFixedTargetIntake && (")
-    expect(logSheet).toContain('selectedIntakeCard')
+    expect(logSheet).toContain("useState<SheetView>(() => targetIntake ? 'confirm'")
+    expect(logSheet).toContain("{view === 'pick' && (")
+    expect(logSheet).toContain('<InjectionIntakeSummary intake={intake} />')
   })
 
   it('adds a camera reset button for the default full-torso view', () => {

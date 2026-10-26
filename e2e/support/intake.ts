@@ -21,14 +21,12 @@ export async function createTrackedIntake(page: Page): Promise<void> {
   const wizard = page.getByRole('dialog', { name: 'Substanz hinzufügen' })
   await wizard.getByRole('searchbox').fill('BPC-157')
   await wizard.getByRole('option', { name: /^BPC-157 Body/ }).click()
-  await next(wizard, 'Darreichungsform')
-  await next(wizard, 'Farbe')
-  await next(wizard, 'Tracking-Tiefe')
-  await next(wizard, 'Stärke')
+  await wizard.getByRole('radio', { name: 'Vial' }).click()
+  await next(wizard, 'Zusammensetzung')
   await wizard.getByRole('spinbutton', { name: 'Wirkstoff im Vial' }).fill('5')
   await wizard.getByRole('spinbutton', { name: 'Lösungsmittel' }).fill('2')
   await next(wizard, 'Einnahmeplan')
-  await wizard.getByRole('combobox', { name: 'Methode' }).selectOption('Subkutan')
+  await wizard.getByRole('radio', { name: 'Subkutan' }).click()
   await wizard.getByRole('spinbutton', { name: /^Menge/ }).fill('250')
   await wizard.getByRole('combobox', { name: 'Einheit' }).fill('mcg')
   await next(wizard, 'Zusammenfassung')
@@ -64,6 +62,8 @@ export async function expectCalendarTaken(page: Page): Promise<void> {
   await expect(page.locator('[data-due-row]')).toHaveCount(0)
   await completed.click()
   await expect(page.getByText('250 mcg', { exact: true })).toBeVisible()
+  // Die Aktionen einer protokollierten Einnahme stehen erst nach Antippen da.
+  await page.locator('[data-log-row] button[aria-expanded]').first().click()
 }
 
 export async function expectStockVisible(page: Page): Promise<void> {

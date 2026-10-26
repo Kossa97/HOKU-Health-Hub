@@ -662,12 +662,14 @@ describe('MyStackPage non-vial visibility', () => {
 
     expect(substance?.querySelector('[data-stack-detail-field="wirkstoff"]')).toBeNull()
     expect(within(product!).getByRole('heading', { name: 'Zusammensetzung' })).not.toBeNull()
-    for (const feld of ['wirkstoff', 'fluessigkeit', 'rekonstituiert_am', 'haltbarkeit']) {
-      expect(product?.querySelector(`[data-stack-detail-field="${feld}"]`), feld).not.toBeNull()
+    // Nur Gesetztes bekommt eine Zeile; was fehlt, zaehlt der Knopf darunter.
+    expect(product?.querySelector('[data-stack-detail-field="wirkstoff"]')).not.toBeNull()
+    for (const feld of ['fluessigkeit', 'rekonstituiert_am', 'haltbarkeit', 'batch', 'quelle', 'analyse']) {
+      const zeile = dialog.querySelector<HTMLElement>(`[data-stack-detail-field="${feld}"]`)
+      if (zeile) expect(zeile.textContent, feld).not.toContain('Nicht gesetzt')
     }
-    for (const feld of ['batch', 'quelle', 'analyse']) {
-      expect(substance?.querySelector(`[data-stack-detail-field="${feld}"]`), feld).not.toBeNull()
-    }
+    expect(dialog.textContent).not.toContain('Nicht gesetzt')
+    expect(Number(dialog.querySelector('[data-stack-detail-missing]')?.getAttribute('data-stack-detail-missing'))).toBeGreaterThan(0)
     // Ohne Ablaufdatum keine Kachel „Nicht gesetzt".
     expect(dialog.querySelector('[data-stack-detail-field="ablauf"]')).toBeNull()
     // Den Vorrat zeigt die Bestand-Anzeige, keine Kachel — und kein eigenes Fenster.
@@ -675,10 +677,13 @@ describe('MyStackPage non-vial visibility', () => {
     const stock = dialog.querySelector<HTMLElement>('[data-stack-detail="bestand"]')
     expect(stock).not.toBeNull()
     expect(within(stock!).getAllByRole('button')).toHaveLength(1)
-    expect(substance?.querySelector('[data-stack-detail-field="notizen"]')?.className).toContain('col-span-2')
+    // Die Notiz steht unter ihrem Namen, nicht rechts daneben abgeschnitten.
+    // (Leer steht sie gar nicht da.)
+    const notiz = substance?.querySelector('[data-stack-detail-field="notizen"]')
+    if (notiz) expect(notiz.getAttribute('data-wide')).toBe('true')
   })
 
-  it('shows a set expiry date as the unopened one, full width when it would stand alone', async () => {
+  it('shows a set expiry date as the unopened one', async () => {
     const vial = loadedItems.find(item => item.id === 'vial-1')!
     const vorher = vial.inventory
     vial.inventory = {
@@ -694,8 +699,8 @@ describe('MyStackPage non-vial visibility', () => {
       expect(tile).not.toBeNull()
       expect(within(tile!).getByText('my_stack_stock_expires_unopened')).toBeTruthy()
       expect(tile!.textContent).toContain('01.03.2027')
-      // Sieben halbe Kacheln: die letzte stuende allein — sie wird ganz breit.
-      expect(tile!.className).toContain('col-span-2')
+      // Ein kurzer Wert steht rechts neben seinem Namen.
+      expect(tile!.getAttribute('data-wide')).toBe('false')
     } finally {
       vial.inventory = vorher
     }
@@ -1834,7 +1839,9 @@ describe('Füllstandsanzeige im Karussell', () => {
       .join('\n')
 
     expect(source).toContain('hasMeaningfulFill')
-    expect(source).toContain("const showsFillPct = pegel !== null || anbruchArt(p.dosage_form) === 'vial'")
+    // Eine Regel fuer Karussell und Ladesilhouette (zeigtPegel in model.ts)
+    expect(source).toContain("return fuellstandFuer(p) !== null || anbruchArt(p.dosage_form) === 'vial'")
+    expect(source).toContain('const showsFillPct = zeigtPegel(p)')
     expect(source).toContain('isActive && showsFillPct')
     // no branching on the dosage form itself — a new form must only have to
     // declare its capabilities, not be added here as well

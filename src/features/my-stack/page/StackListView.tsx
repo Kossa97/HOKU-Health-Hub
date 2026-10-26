@@ -133,19 +133,24 @@ export function StackListView({
       data-stack-list
       // `pb-14`: Platz fuer den schwebenden „?"-Knopf ueber der Tabbar —
       // ohne ihn lag er auf der letzten Zeile, und ihr Pfeil war verdeckt.
-      className={`flex flex-col gap-2 pb-14 ${!loading && listPeptides.length > 0 ? '' : 'hidden'}`}
+      className={`stack-list flex flex-col pb-14 ${!loading && listPeptides.length > 0 ? '' : 'hidden'}`}
     >
       {/* Dieselbe Physik wie die Seite: die Oberflaeche atmet, schwappt aber
           nie — hier stoesst niemand etwas an. */}
       <SloshProvider engine={sloshEngine}>
         {zeilen.map(({ p, aktiv, haltbar, gruppe }, index) => {
           const ersteDerGruppe = index === 0 || zeilen[index - 1].gruppe !== gruppe
+          const letzteDerGruppe = index === zeilen.length - 1 || zeilen[index + 1].gruppe !== gruppe
+          // Ohne Ueberschriften ist die ganze Liste eine Gruppe — sonst
+          // stuenden zwei gerundete Flaechen ohne Titel aneinander.
+          const rundOben = mitUeberschrift ? ersteDerGruppe : index === 0
+          const rundUnten = mitUeberschrift ? letzteDerGruppe : index === zeilen.length - 1
           return [
             mitUeberschrift && ersteDerGruppe && (
-              <li key={`gruppe-${gruppe}`} role="presentation" className={index === 0 ? '' : 'pt-3'}>
+              <li key={`gruppe-${gruppe}`} role="presentation" className={index === 0 ? 'pt-1' : 'pt-7'}>
                 <h3
                   data-list-group-title={gruppe}
-                  className={`px-1 text-[11px] font-bold uppercase tracking-wider ${gruppe === 'achtung' ? 'text-red-300' : 'text-slate-500'}`}
+                  className={`lg-group-title ${gruppe === 'achtung' ? '!text-[#ff6961]' : ''}`}
                 >
                   {gruppenTitel(tr, gruppe)}
                 </h3>
@@ -155,6 +160,8 @@ export function StackListView({
               key={p.id}
               p={p}
               gruppe={gruppe}
+              rundOben={rundOben}
+              rundUnten={rundUnten}
               aktiv={aktiv}
               haltbar={haltbar}
               animationEpoch={animationEpoch}
@@ -250,6 +257,8 @@ const AKTION_TEXT: CSSProperties = {
 function StackListRow({
   p,
   gruppe,
+  rundOben,
+  rundUnten,
   aktiv,
   haltbar,
   animationEpoch,
@@ -262,6 +271,9 @@ function StackListRow({
 }: {
   p: Peptide
   gruppe: Gruppe
+  /** Erste bzw. letzte Zeile ihrer Flaeche: dort ist sie gerundet. */
+  rundOben: boolean
+  rundUnten: boolean
   /** null, solange die Plaene laden — dann sagt die Zeile nichts dazu. */
   aktiv: boolean | null
   haltbar: Haltbarkeit | null
@@ -291,11 +303,12 @@ function StackListRow({
       data-list-group={gruppe}
       data-list-active={aktiv === null ? undefined : String(aktiv)}
       data-list-open={offen || undefined}
-      // Keine `bg-slate-900/…`-Klasse, auch nicht als hover-Variante: das
-      // helle Design faerbt jede Klasse mit diesem Wortlaut dauerhaft ein.
-      className={`relative touch-pan-y select-none overflow-hidden rounded-2xl border bg-slate-950 transition-[border-color,box-shadow] duration-500 ${hervorgehoben
-        ? 'border-cyan-300/60 shadow-[0_0_0_3px_rgba(103,232,249,0.15)]'
-        : 'border-slate-800'}`}
+      // Gruppierte Liste wie in iOS: eine Flaeche je Gruppe, gerundet an
+      // ihrer ersten und letzten Zeile, Trennlinien dazwischen (stack-glass.css).
+      data-list-first={rundOben || undefined}
+      data-list-last={rundUnten || undefined}
+      data-list-highlight={hervorgehoben || undefined}
+      className="stack-list-row relative touch-pan-y select-none overflow-hidden"
     >
       {/* Unter der Zeile: die beiden Aktionen. Ihre Breite folgt dem Finger
           (gesetzt in `useWischZeile`), Symbol und Text blenden mit dem
@@ -313,7 +326,7 @@ function StackListRow({
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onEdit() }}
           aria-label={String(t('bearbeiten'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-sky-600 text-[11px] font-semibold text-white transition-[flex-grow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white group-data-[voll]/aktionen:grow-0"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[#0a84ff] text-[12px] font-semibold text-white transition-[flex-grow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white group-data-[voll]/aktionen:grow-0"
         >
           <span className="flex flex-col items-center gap-1">
             <Pencil size={17} aria-hidden="true" style={AKTION_SYMBOL} />
@@ -328,7 +341,7 @@ function StackListRow({
           data-list-delete
           // Ganz durchgewischt wandert die Aufschrift an die linke Kante —
           // dorthin, wo der Finger ist.
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7 overflow-hidden whitespace-nowrap bg-red-600 text-[11px] font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7 overflow-hidden whitespace-nowrap bg-[#ff453a] text-[12px] font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
         >
           <span className="flex flex-col items-center gap-1">
             <Trash2 size={17} aria-hidden="true" style={AKTION_SYMBOL} />
@@ -349,7 +362,7 @@ function StackListRow({
         }}
         // `select-none` und kein Callout: langes Halten beim Wischen markiert
         // nichts und oeffnet kein Menue.
-        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-slate-950 py-2.5 pl-2 pr-2 text-left [-webkit-touch-callout:none] active:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-[var(--lg-surface-fill)] py-2.5 pl-3 pr-3 text-left [-webkit-touch-callout:none] active:bg-[#2c2c2e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
       >
         {/* Feste Flaeche: das Objekt wird hineingepasst, nicht umgekehrt. */}
         <span ref={objektRef} data-list-object className="flex h-14 w-11 shrink-0">
@@ -366,7 +379,7 @@ function StackListRow({
               />
             </Eingepasst>
           ) : (
-            <span className="m-auto grid h-10 w-10 place-items-center rounded-xl border border-slate-800 bg-slate-800 text-slate-500">
+            <span className="m-auto grid h-10 w-10 place-items-center rounded-xl bg-[var(--lg-fill)] text-[var(--lg-text-3)]">
               <Package size={18} aria-hidden="true" />
             </span>
           )}
@@ -374,28 +387,27 @@ function StackListRow({
 
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex min-w-0 items-center gap-2">
-            <span className="truncate font-semibold text-white">{p.name}</span>
+            <span className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{p.name}</span>
             {aktiv !== null && (
               <span
                 data-list-status={aktiv ? 'aktiv' : 'inaktiv'}
-                className={`ml-auto shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold leading-tight ${aktiv
-                  ? 'border-emerald-400/35 bg-emerald-500/10 text-emerald-300'
-                  : 'border-slate-700 bg-slate-800 text-slate-400'}`}
+                data-tone={aktiv ? 'good' : undefined}
+                className="lg-tag ml-auto shrink-0"
               >
                 {aktiv ? t('aktiv_badge') : t('inaktiv_badge')}
               </span>
             )}
           </span>
           {zusammensetzung && (
-            <span className="line-clamp-2 text-xs text-slate-300">{zusammensetzung}</span>
+            <span className="line-clamp-2 text-[14px] text-[var(--lg-text-2)]">{zusammensetzung}</span>
           )}
           {/* Wie im Karussell: dasselbe Abzeichen, dieselbe Frist. */}
-          <span className="mt-1 flex text-xs">
+          <span className="mt-0.5 flex">
             <HaltbarkeitChip tage={haltbar?.tage ?? null} substanzId={p.id} />
           </span>
         </span>
 
-        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-600" />
+        <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-[var(--lg-text-4)]" />
       </button>
     </li>
   )

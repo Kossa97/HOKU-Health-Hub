@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { Fragment, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
-import { Globe, Pencil, Plus, RefreshCw, Search, Star, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Check, Globe, Info, Pencil, Plus, RefreshCw, Search, Star, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import type { CycleTimeline } from '../lib/planTimeline'
@@ -17,8 +17,6 @@ import {
   gruppiereBewertungen,
   leererEntwurf,
   passtZurSuche,
-  unbewerteteZyklen,
-  vorgeschlagenerZyklus,
   zyklusKurz,
   zyklusZumDatum,
   type Reihenfolge,
@@ -55,6 +53,8 @@ export function Bewertungen() {
   const [loescht, setLoescht] = useState(false)
   const [offeneZeile, setOffeneZeile] = useState<string | null>(null)
   const [kontextGeladen, setKontextGeladen] = useState(false)
+  /** Was gerade aufgeklappt ist: die Erklaerung hinter dem ⓘ oder das Reihenfolge-Menue. */
+  const [aufgeklappt, setAufgeklappt] = useState<'info' | 'reihenfolge' | null>(null)
   // Aus „Plan beenden" kommend: ?bewerten=<Substanz>&zyklus=<Zyklus>.
   const [parameter, setParameter] = useSearchParams()
 
@@ -92,6 +92,22 @@ export function Bewertungen() {
     return () => document.removeEventListener('pointerdown', schliessen)
   }, [offeneZeile])
 
+  // Aufgeklapptes schliesst ein Tipp daneben oder Escape — wie ein iOS-Menue.
+  useEffect(() => {
+    if (!aufgeklappt) return
+    const tipp = (event: PointerEvent) => {
+      if ((event.target as Element | null)?.closest?.(`[data-aufklapper="${aufgeklappt}"]`)) return
+      setAufgeklappt(null)
+    }
+    const taste = (event: KeyboardEvent) => { if (event.key === 'Escape') setAufgeklappt(null) }
+    document.addEventListener('pointerdown', tipp)
+    document.addEventListener('keydown', taste)
+    return () => {
+      document.removeEventListener('pointerdown', tipp)
+      document.removeEventListener('keydown', taste)
+    }
+  }, [aufgeklappt])
+
   const zyklusVon = useMemo(() => new Map(timelines.map(timeline => [timeline.cycle.id, timeline])), [timelines])
   /** Zyklen mit Bewertung — ohne die gerade bearbeitete. */
   const bewertet = useMemo(() => new Set(
@@ -102,11 +118,10 @@ export function Bewertungen() {
     [reviews, suche, timelines, reihenfolge],
   )
 
+  /** Neu: nichts vorbelegt — die Substanz ist Pflicht und wird bewusst gewaehlt. */
   const openNew = () => {
-    const erste = stackItems.find(item => !item.archived)
-    if (!erste) return toast.error(t('zuerst_peptid'))
-    const belegt = new Set(reviews.filter(r => r.cycle_id).map(r => r.cycle_id!))
-    setSheet({ id: null, start: leererEntwurf(erste.id, vorgeschlagenerZyklus(timelines, erste.id, belegt, now)) })
+    if (!stackItems.some(item => !item.archived)) return toast.error(t('zuerst_peptid'))
+    setSheet({ id: null, start: leererEntwurf('', null) })
   }
 
   const openEdit = (r: Review) => {
@@ -120,9 +135,6 @@ export function Bewertungen() {
     }
     setSheet({ id: r.id, start })
   }
-
-  const aktiveSubstanzen = useMemo(() => new Set(stackItems.filter(item => !item.archived).map(item => item.id)), [stackItems])
-  const offen = useMemo(() => unbewerteteZyklen(timelines, reviews, aktiveSubstanzen, now), [timelines, reviews, aktiveSubstanzen, now])
 
   /** Einen bestimmten Zyklus bewerten — oder, ist er schon bewertet, die Bewertung oeffnen. */
   const bewerteZyklus = (stackItemId: string, cycleId: string | null) => {
@@ -180,77 +192,117 @@ export function Bewertungen() {
 
   return (
     <div className="pb-14">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">{t('bewertungen_title')}</h1>
-        <button className="btn-primary flex items-center gap-2" onClick={openNew}>
-          <Plus size={16} aria-hidden="true" /> {t('new')}
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div data-aufklapper="info" className="relative flex min-w-0 items-center gap-0.5">
+          {/* Schmale Geraete: etwas kleiner, damit „Erfahrungen" neben ⓘ und Plus ganz bleibt */}
+          <h1 className="lg-large-title min-w-0 truncate max-[379px]:!text-[30px]">{t('bewertungen_title')}</h1>
+          {/* Persoenliche Notizen, keine Produktbewertung: die Erklaerung dazu
+              steckt im ⓘ, damit niemand Sterne als Empfehlung einer Substanz liest. */}
+          <button
+            type="button"
+            aria-label={String(t('review_info'))}
+            aria-expanded={aufgeklappt === 'info'}
+            onClick={() => setAufgeklappt(aufgeklappt === 'info' ? null : 'info')}
+            className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)] max-[379px]:!w-9"
+          >
+            <Info size={22} aria-hidden="true" />
+          </button>
+          {aufgeklappt === 'info' && (
+            <div
+              role="dialog"
+              aria-label={String(t('review_info'))}
+              data-review-disclaimer
+              className="lg-glass lg-menu !absolute left-0 top-full z-30 mt-1 w-[min(300px,calc(100vw-32px))] rounded-[16px] !bg-[rgba(44,44,46,0.97)] px-4 py-3.5 backdrop-blur-xl"
+              style={{ transformOrigin: 'top left' }}
+            >
+              <p className="text-[15px] font-semibold text-[var(--lg-text)]">{t('review_info')}</p>
+              <p className="mt-1.5 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('review_disclaimer')}</p>
+            </div>
+          )}
+        </div>
+        {/* Schmale Geräte: nur das Plus, damit der Titel ganz bleibt */}
+        <button className="lg-btn lg-btn-tint lg-btn-compact shrink-0 max-[379px]:!w-11 max-[379px]:!px-0" onClick={openNew}>
+          <Plus size={18} aria-hidden="true" /> <span className="max-[379px]:sr-only">{t('new')}</span>
         </button>
       </div>
-      {/* Persoenliche Notizen, keine Produktbewertung: das steht da, damit
-          niemand Sterne als Empfehlung einer Substanz liest. */}
-      <p data-review-disclaimer className="-mt-2 mb-4 text-xs text-slate-500">{t('review_disclaimer')}</p>
 
       {ladeZustand === 'fehler' && (
-        <div role="alert" className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3">
-          <p className="text-sm text-red-300">{t('review_load_error')}</p>
-          <button type="button" onClick={() => { setLadeZustand('laedt'); void load() }} className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-red-200">
+        <div role="alert" data-tone="bad" className="lg-surface lg-flat mb-4 flex items-center justify-between gap-3 py-2 pl-4 pr-2">
+          <p className="text-[15px] text-[var(--lg-bad-text)]">{t('review_load_error')}</p>
+          <button type="button" onClick={() => { setLadeZustand('laedt'); void load() }} className="flex min-h-11 shrink-0 items-center gap-1.5 px-2 text-[15px] font-semibold text-[var(--lg-accent-text)]">
             <RefreshCw size={14} aria-hidden="true" /> {t('review_retry')}
           </button>
         </div>
       )}
 
       {/* Erst ab vier Bewertungen — aber nie verschwinden, solange eine Suche
-          filtert: sonst bliebe der Filter unsichtbar aktiv. */}
-      {offen.length > 0 && ladeZustand === 'fertig' && (
-        <div data-review-unrated className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-          <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-amber-200">
-            <Star size={15} aria-hidden="true" className="shrink-0 text-amber-400" />
-            {offen.length === 1 ? t('review_unrated_one') : t('review_unrated_many', { n: offen.length })}
-          </p>
-          <button
-            type="button"
-            onClick={() => bewerteZyklus(offen[0].cycle.stack_item_id, offen[0].cycle.id)}
-            className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold text-slate-950"
-          >
-            {t('review_unrated_action')}
-          </button>
-        </div>
-      )}
-
+          filtert: sonst bliebe der Filter unsichtbar aktiv. Die Reihenfolge
+          sitzt als Menue am Knopf daneben, die Suche behaelt die Breite. */}
       {(reviews.length > 3 || suche !== '') && (
         <div className="mb-4 flex gap-2">
-          <div className="relative flex-1">
-            <Search size={14} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <div className="relative min-w-0 flex-1">
+            <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)]" />
             <input
-              className="input pl-9 text-sm"
+              type="search"
+              enterKeyHint="search"
+              className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
               aria-label={String(t('bewertung_suchen'))}
               placeholder={String(t('bewertung_suchen'))}
               value={suche}
               onChange={e => setSuche(e.target.value)}
             />
           </div>
-          <select
-            className="select w-auto shrink-0 pr-8 text-sm"
-            aria-label={String(t('review_order'))}
-            value={reihenfolge}
-            onChange={e => setReihenfolge(e.target.value as Reihenfolge)}
-          >
-            <option value="neueste">{t('neueste')}</option>
-            <option value="beste">{t('review_order_best')}</option>
-          </select>
+          <div data-aufklapper="reihenfolge" className="relative shrink-0">
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={aufgeklappt === 'reihenfolge'}
+              aria-label={`${t('review_order')}: ${reihenfolge === 'beste' ? t('review_order_best') : t('review_order_newest')}`}
+              onClick={() => setAufgeklappt(aufgeklappt === 'reihenfolge' ? null : 'reihenfolge')}
+              className="flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--lg-fill)] px-3.5 text-[15px] text-[var(--lg-text)] transition-transform duration-100 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
+            >
+              <ArrowUpDown size={16} aria-hidden="true" className="text-[var(--lg-text-2)]" />
+              {reihenfolge === 'beste' ? t('review_order_best_short') : t('neueste')}
+            </button>
+            {aufgeklappt === 'reihenfolge' && (
+              <div
+                role="menu"
+                aria-label={String(t('review_order'))}
+                className="lg-glass lg-menu !absolute right-0 top-full z-30 mt-1.5 w-[250px] overflow-hidden rounded-[14px] !bg-[rgba(44,44,46,0.97)] py-1.5 backdrop-blur-xl"
+                style={{ transformOrigin: 'top right' }}
+              >
+                <p className="px-4 pb-1.5 pt-1 text-[13px] text-[var(--lg-text-3)]">{t('review_order')}</p>
+                {(['neueste', 'beste'] as Reihenfolge[]).map(wert => (
+                  <button
+                    key={wert}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={reihenfolge === wert}
+                    onClick={() => { setReihenfolge(wert); setAufgeklappt(null) }}
+                    className="flex min-h-11 w-full items-center gap-2.5 px-4 text-left text-[17px] text-[var(--lg-text)] active:bg-white/[0.08]"
+                  >
+                    <span className="grid w-[18px] place-items-center">
+                      {reihenfolge === wert && <Check size={17} strokeWidth={2.6} aria-hidden="true" />}
+                    </span>
+                    {wert === 'beste' ? t('review_order_best') : t('review_order_newest')}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {ladeZustand === 'fertig' && reviews.length === 0 && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 px-5 py-10 text-center">
-          <Star size={32} aria-hidden="true" className="mx-auto mb-3 text-slate-600" />
-          <p className="font-semibold text-white">{t('noch_keine_bewertungen')}</p>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-slate-400">{t('review_empty_hint')}</p>
+        <div className="lg-surface lg-flat px-5 py-10 text-center">
+          <Star size={32} aria-hidden="true" className="mx-auto mb-3 text-[var(--lg-text-3)]" />
+          <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('noch_keine_bewertungen')}</p>
+          <p className="mx-auto mt-1 max-w-xs text-[15px] text-[var(--lg-text-2)]">{t('review_empty_hint')}</p>
         </div>
       )}
 
       {suche && gruppen.length === 0 && reviews.length > 0 && (
-        <p className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-8 text-center text-sm text-slate-500">
+        <p className="lg-surface lg-flat px-4 py-8 text-center text-[15px] text-[var(--lg-text-2)]">
           {t('nichts_gefunden', { search: suche })}
         </p>
       )}
@@ -259,19 +311,19 @@ export function Bewertungen() {
         {gruppen.map(gruppe => (
           <section key={gruppe.stackItemId} data-review-group={gruppe.stackItemId} aria-labelledby={`review-group-${gruppe.stackItemId}`}>
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-              <h2 id={`review-group-${gruppe.stackItemId}`} className="min-w-0 truncate text-base font-bold text-white">
+              <h2 id={`review-group-${gruppe.stackItemId}`} className="lg-title2 min-w-0 truncate">
                 {gruppe.name}
-                {gruppe.archiviert && <span className="ml-2 text-xs font-medium text-slate-500">{t('review_archived')}</span>}
+                {gruppe.archiviert && <span className="ml-2 text-[13px] font-medium text-[var(--lg-text-3)]">{t('review_archived')}</span>}
               </h2>
-              <p className="flex shrink-0 items-center gap-1 text-xs font-semibold tabular-nums text-slate-400">
+              <p className="flex shrink-0 items-center gap-1 text-[13px] font-semibold tabular-nums text-[var(--lg-text-2)]">
                 <Star size={12} aria-hidden="true" className="text-amber-400" fill="currentColor" />
                 {gruppe.schnitt.toLocaleString(language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                <span className="font-medium text-slate-500">
+                <span className="font-medium text-[var(--lg-text-3)]">
                   · {gruppe.bewertungen.length === 1 ? t('review_count_one') : t('review_count_many', { n: gruppe.bewertungen.length })}
                 </span>
               </p>
             </div>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-2.5">
               {gruppe.bewertungen.map(r => (
                 <ReviewRow
                   key={r.id}
@@ -349,7 +401,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
       ref={zeileRef}
       data-review-row={r.id}
       data-list-open={offen || undefined}
-      className="relative touch-pan-y select-none overflow-hidden rounded-2xl border border-slate-800 bg-slate-950"
+      className="lg-surface lg-flat touch-pan-y select-none overflow-hidden !rounded-[22px]"
     >
       <div
         ref={aktionenRef}
@@ -361,7 +413,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onEdit() }}
           aria-label={String(t('bearbeiten'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-sky-600 text-[11px] font-semibold text-white transition-[flex-grow] duration-300 ease-out group-data-[voll]/aktionen:grow-0"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[#0a84ff] text-[11px] font-semibold text-white transition-[flex-grow] duration-300 ease-out group-data-[voll]/aktionen:grow-0"
         >
           <Pencil size={17} aria-hidden="true" style={AKTION_SYMBOL} />
           <span style={AKTION_TEXT}>{t('bearbeiten')}</span>
@@ -371,7 +423,7 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onRemove() }}
           aria-label={String(t('loeschen'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-red-600 text-[11px] font-semibold text-white group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[var(--lg-bad)] text-[11px] font-semibold text-white group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7"
         >
           <Trash2 size={17} aria-hidden="true" style={AKTION_SYMBOL} />
           <span style={AKTION_TEXT}>{t('loeschen')}</span>
@@ -387,29 +439,34 @@ function ReviewRow({ review: r, zyklus, datum, offen, onOffen, onEdit, onRemove 
           if (offen) { onOffen(false); return }
           onEdit()
         }}
-        className="relative block w-full touch-pan-y select-none bg-slate-950 px-4 py-3 text-left [-webkit-touch-callout:none] active:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+        className="relative block w-full touch-pan-y select-none px-4 py-3.5 text-left [-webkit-touch-callout:none] active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
       >
         <span className="flex items-center justify-between gap-3">
-          <span data-review-cycle className="min-w-0 truncate text-xs font-semibold text-slate-400">{zyklus}</span>
+          <span data-review-cycle className="min-w-0 truncate text-[13px] font-semibold text-[var(--lg-text-2)]">{zyklus}</span>
           <span className="flex shrink-0 items-center gap-2">
             {r.hidden_by_moderation
-              ? <span data-review-hidden className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">{t('review_hidden_by_moderation')}</span>
-              : r.is_public && <Globe size={13} className="text-slate-500" aria-label={String(t('review_public'))} />}
+              ? <span data-review-hidden className="lg-tag !min-h-[22px] !px-2 !text-[11px]" data-tone="warn">{t('review_hidden_by_moderation')}</span>
+              : r.is_public && <Globe size={13} className="text-[var(--lg-text-3)]" aria-label={String(t('review_public'))} />}
             <Sterne wert={r.rating} />
           </span>
         </span>
-        {r.title && <span className="mt-1 block font-semibold text-white">{r.title}</span>}
+        {r.title && <span className="mt-1 block text-[17px] font-semibold text-[var(--lg-text)]">{r.title}</span>}
         {kriterien.length > 0 && (
-          <span data-review-criteria className="mt-1 block text-xs text-slate-400">{kriterien.join(' · ')}</span>
-        )}
-        {r.body && <span className="mt-1.5 line-clamp-2 block text-sm text-slate-300">{r.body}</span>}
-        {(r.pros || r.cons) && (
-          <span className="mt-2 flex flex-col gap-1 text-xs">
-            {r.pros && <span className="line-clamp-1"><span className="font-semibold text-emerald-400">+ </span><span className="text-slate-300">{r.pros}</span></span>}
-            {r.cons && <span className="line-clamp-1"><span className="font-semibold text-red-400">− </span><span className="text-slate-300">{r.cons}</span></span>}
+          <span data-review-criteria className="mt-1 block text-[13px] text-[var(--lg-text-2)]">
+            {kriterien.map((teil, index) => (
+              // Umbruch nur zwischen den Angaben: „Wieder nehmen? Ja" bleibt am Stueck.
+              <Fragment key={index}>{index > 0 && ' · '}<span className="whitespace-nowrap">{teil}</span></Fragment>
+            ))}
           </span>
         )}
-        <span className="mt-2 block text-[11px] text-slate-600">{datum}</span>
+        {r.body && <span className="mt-1.5 line-clamp-2 block text-[15px] leading-snug text-[var(--lg-text)]">{r.body}</span>}
+        {(r.pros || r.cons) && (
+          <span className="mt-2 flex flex-col gap-1 text-[13px]">
+            {r.pros && <span className="line-clamp-1"><span className="font-semibold text-[var(--lg-good-text)]">+ </span><span className="text-[var(--lg-text-2)]">{r.pros}</span></span>}
+            {r.cons && <span className="line-clamp-1"><span className="font-semibold text-[var(--lg-bad-text)]">− </span><span className="text-[var(--lg-text-2)]">{r.cons}</span></span>}
+          </span>
+        )}
+        <span data-review-date className="mt-2 block text-right text-[12px] text-[var(--lg-text-3)]">{t('review_written_on', { date: datum })}</span>
       </button>
     </li>
   )
@@ -424,7 +481,7 @@ function Sterne({ wert }: { wert: number }) {
           key={stern}
           size={13}
           aria-hidden="true"
-          className={stern <= wert ? 'text-amber-400' : 'text-slate-700'}
+          className={stern <= wert ? 'text-amber-400' : 'text-[var(--lg-text-3)]'}
           fill={stern <= wert ? 'currentColor' : 'transparent'}
         />
       ))}

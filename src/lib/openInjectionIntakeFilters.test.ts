@@ -45,6 +45,11 @@ describe('filterOpenInjectionIntakes', () => {
     ])
   })
 
+  it('filters by substance across cycles', () => {
+    expect(filterOpenInjectionIntakes(intakes, { stackItemId: 'stack-item-cycle-b', days: 'all' })
+      .map(item => item.cycleId)).toEqual(['cycle-b'])
+  })
+
   it('filters open and confirmed intakes by status', () => {
     expect(filterOpenInjectionIntakes(intakes, { status: 'open' }).map(item => item.status)).toEqual([
       'open',

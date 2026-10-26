@@ -18,8 +18,12 @@ describe('conversionHint', () => {
     expect(conversionHint('Gesamttestosteron', 'µg/l', 6.12)).toBe('≈ 612 ng/dL')
   })
 
-  it('gibt null für molare (nicht sicher umrechenbare) Einheiten zurück', () => {
-    expect(conversionHint('Testosteron', 'nmol/L', 20)).toBeNull()
+  it('gibt null für nicht sicher umrechenbare Einheiten zurück', () => {
+    expect(conversionHint('Prolaktin', 'mU/L', 306)).toBeNull()
+  })
+
+  it('rechnet molare Einheiten mit veroeffentlichtem Faktor um', () => {
+    expect(conversionHint('Testosteron', 'nmol/L', 20)).toMatch(/^≈ 576[,.]\d* ng\/dL$/)
   })
 
   it('gibt null für unbekannte Marker zurück', () => {

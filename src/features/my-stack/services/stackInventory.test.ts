@@ -6,6 +6,7 @@ import {
   reverseInventoryConfirmation,
   saveInventoryDetails,
   saveStackItemInventory,
+  uploadBatchDocument,
 } from './stackInventory'
 
 const inventory: InventoryDraft = {
@@ -178,5 +179,18 @@ describe('stack inventory service', () => {
     expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ batch_number: 'A-42', stack_item_id: 'stack-1' }), { onConflict: 'stack_item_id' })
     // Nie abschalten: gibt es die Zeile inzwischen doch, bleibt sie, wie sie ist.
     expect(upsert.mock.calls[0]).not.toHaveProperty('0.enabled')
+  })
+})
+
+describe('Analyse-Dokument hochladen', () => {
+  it('legt im eigenen Ordner ab und gibt den Pfad zurueck, keine oeffentliche URL', async () => {
+    const upload = vi.fn(async () => ({ error: null }))
+    const from = vi.fn(() => ({ upload }))
+    vi.spyOn(Date, 'now').mockReturnValue(1730000000000)
+    const pfad = await uploadBatchDocument({ storage: { from } }, 'user-1', new File(['x'], 'Zertifikat.PDF'))
+    expect(from).toHaveBeenCalledWith('batch-files')
+    expect(upload).toHaveBeenCalledWith('user-1/1730000000000.pdf', expect.any(File))
+    expect(pfad).toBe('user-1/1730000000000.pdf')
+    vi.restoreAllMocks()
   })
 })

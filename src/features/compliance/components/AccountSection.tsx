@@ -54,17 +54,17 @@ export function AccountSection() {
   return (
     <div className="mt-6 flex flex-col gap-4" data-account-section>
       <div className="card space-y-2">
-        <h2 className="flex items-center gap-2 font-semibold text-slate-300">
-          <Ban size={15} className="text-slate-500" aria-hidden="true" /> {t('blocked_list_title')}
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
+          <Ban size={16} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('blocked_list_title')}
         </h2>
         {blockiert === null ? null : blockiert.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('blocked_list_empty')}</p>
+          <p className="text-[15px] text-[var(--lg-text-2)]">{t('blocked_list_empty')}</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-slate-800" data-blocked-list>
+          <ul className="flex flex-col divide-y divide-[var(--lg-separator)]" data-blocked-list>
             {blockiert.map(eintrag => (
               <li key={eintrag.username} className="flex min-h-11 items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-sm text-slate-300">@{eintrag.username}</span>
-                <button type="button" data-unblock={eintrag.username} onClick={() => void entblocken(eintrag.username)} className="min-h-11 shrink-0 px-2 text-xs font-semibold text-sky-400">
+                <span className="min-w-0 truncate text-[16px] text-[var(--lg-text)]">@{eintrag.username}</span>
+                <button type="button" data-unblock={eintrag.username} onClick={() => void entblocken(eintrag.username)} className="min-h-11 shrink-0 px-2 text-[15px] font-semibold text-[var(--lg-accent-text)]">
                   {t('unblock_action')}
                 </button>
               </li>
@@ -77,7 +77,8 @@ export function AccountSection() {
         type="button"
         data-account-delete-open
         onClick={() => { setEingabe(''); setLoeschen(true) }}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/5 text-sm font-semibold text-red-300"
+        data-tone="bad"
+        className="lg-gray-btn w-full !min-h-12"
       >
         <Trash2 size={15} aria-hidden="true" /> {t('account_delete_title')}
       </button>
@@ -88,13 +89,13 @@ export function AccountSection() {
         <Sheet labelledBy="account-delete-title" busy={busy} onClose={() => setLoeschen(false)} role="alertdialog" data-account-delete-sheet>
           <form onSubmit={event => { event.preventDefault(); void kontoLoeschen() }}>
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_18%,transparent)] text-[var(--lg-bad-text)]">
                 <Trash2 size={18} aria-hidden="true" />
               </span>
-              <h2 id="account-delete-title" className="pt-2 text-lg font-bold text-white">{t('account_delete_title')}</h2>
+              <h2 id="account-delete-title" className="lg-title2 pt-2">{t('account_delete_title')}</h2>
             </div>
-            <p className="mt-3 text-sm text-slate-400">{t('account_delete_desc')}</p>
-            <label htmlFor="account-delete-confirm" className="mt-4 block text-xs font-semibold text-slate-400">
+            <p className="mt-3 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('account_delete_desc')}</p>
+            <label htmlFor="account-delete-confirm" className="mt-4 block text-[13px] font-medium text-[var(--lg-text-2)]">
               {t('account_delete_confirm_label', { word: wort })}
             </label>
             <input
@@ -107,14 +108,15 @@ export function AccountSection() {
               className="input mt-1 w-full"
             />
             <div className="mt-5 flex gap-2">
-              <button type="button" autoFocus data-app-back-close disabled={busy} onClick={() => setLoeschen(false)} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 disabled:opacity-50">
+              <button type="button" autoFocus data-app-back-close disabled={busy} onClick={() => setLoeschen(false)} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
                 {t('cancel')}
               </button>
               <button
                 type="submit"
                 data-account-delete-confirm
                 disabled={busy || eingabe.trim().toUpperCase() !== wort.toUpperCase()}
-                className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-50"
+                data-tone="bad"
+                className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
               >
                 {busy ? t('account_deleting') : t('account_delete_action')}
               </button>

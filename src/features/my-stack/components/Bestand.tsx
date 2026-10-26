@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { CycleTimeline } from '../../../lib/planTimeline'
 import {
   anbruchArt,
+  istLoesungsVial,
   behaelterArt,
   bestandAufteilen,
   bestandZusammensetzen,
@@ -32,7 +33,8 @@ export interface BestandActions {
 }
 
 /**
- * „Bestand verfolgen", „Bestand aendern" und „Neu rekonstituieren". Die
+ * „Bestand verfolgen", „Bestand aendern" und „Neu rekonstituieren" bzw.
+ * „Neues Vial anbrechen". Die
  * Angaben zur Packung (Charge, Anmischdatum, Haltbarkeit) aendert man ueber
  * „Bearbeiten" (`ProductInventorySection`), nicht hier.
  */
@@ -49,9 +51,9 @@ function zahl(text: string): number | null {
 }
 
 function BarFill({ fraction }: { fraction: number }) {
-  const tone = fraction <= 0.1 ? 'bg-rose-400' : fraction <= 0.3 ? 'bg-amber-300' : 'bg-emerald-400'
+  const tone = fraction <= 0.1 ? 'bg-[#ff453a]' : fraction <= 0.3 ? 'bg-[#ff9f0a]' : 'bg-[var(--lg-good)]'
   return (
-    <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-slate-800" aria-hidden="true">
+    <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]" aria-hidden="true">
       <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.round(Math.min(1, Math.max(0, fraction)) * 100)}%` }} />
     </div>
   )
@@ -61,6 +63,8 @@ interface EditorProps {
   editor: BestandEditorArt
   art: AnbruchArt | null
   form: DosageFormKey
+  /** Vial mit fertiger Loesung: angebrochen, nicht angemischt — keine Fluessigkeit. */
+  loesung: boolean
   inventory: StackItemInventory | null
   /** Ein ausgeschalteter Bestand: seine Zahlen fuellen „Bestand verfolgen" vor. */
   fallback: StackItemInventory | null
@@ -72,7 +76,7 @@ interface EditorProps {
   actions: BestandActions
 }
 
-function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, language, onClose, onSubmit, actions }: EditorProps) {
+function BestandEditor({ editor, art, form, loesung, inventory, fallback, choices, busy, language, onClose, onSubmit, actions }: EditorProps) {
   const { t } = useTranslation()
   const id = useId()
   const inv = inventory ?? fallback
@@ -104,10 +108,11 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
   const TITEL: Record<BestandEditorArt, string> = {
     start: String(t('my_stack_stock_start')),
     correct: String(t('my_stack_stock_edit')),
-    open_new: neuAnbrechenLabel(t, form),
+    open_new: neuAnbrechenLabel(t, form, loesung),
   }
 
   const zahlWert = zahl(menge)
+  const anmischen = art === 'vial' && !loesung
   let gueltig = true
   let speichern: (() => Promise<void>) | null = null
   switch (editor) {
@@ -132,11 +137,11 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
       }
       break
     case 'open_new':
-      gueltig = Boolean(text) && (art !== 'vial' || menge.trim() === '' || (zahlWert != null && gueltigeFluessigkeit(zahlWert)))
+      gueltig = Boolean(text) && (!anmischen || menge.trim() === '' || (zahlWert != null && gueltigeFluessigkeit(zahlWert)))
       speichern = () => actions.openContainer({
         openedAt: text,
         discardRest: Boolean(teile?.angebrochen) && verwerfen,
-        reconstitutionMl: art === 'vial' ? zahlWert : null,
+        reconstitutionMl: anmischen ? zahlWert : null,
       })
       break
   }
@@ -178,7 +183,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
               </label>
               <div className="grid gap-1.5">
                 <label htmlFor={`${id}-prozent`} className="text-sm font-semibold text-slate-200">
-                  {String(t(`my_stack_stock_opened_${behaelter}`))}
+                  {String(t(loesung ? 'my_stack_stock_opened_solution_vial' : `my_stack_stock_opened_${behaelter}`))}
                 </label>
                 <span className="relative">
                   <input id={`${id}-prozent`} className={`${eingabe} pr-8`} inputMode="decimal" value={geteilt.prozent} onChange={event => setGeteilt(g => ({ ...g, prozent: event.target.value }))} />
@@ -208,10 +213,10 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
       body = (
         <div className="grid gap-3">
           <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
-            {String(t(art === 'vial' ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on'))}
+            {String(t(anmischen ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on'))}
             <input type="date" className={eingabe} value={text} onChange={event => setText(event.target.value)} />
           </label>
-          {art === 'vial' && (
+          {anmischen && (
             <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
               {String(t('my_stack_stock_liquid'))} (ml)
               <input className={eingabe} inputMode="decimal" value={menge} onChange={event => setMenge(event.target.value)} />
@@ -235,12 +240,12 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
   return (
     // Liegt ueber dem Vollbild: Zurueck (Geste, Android) und Escape schliessen
     // nur dieses Fenster, nicht das Vollbild darunter.
-    <div data-app-modal className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 sm:items-end" onClick={event => { event.stopPropagation(); onClose() }}>
+    <div data-app-modal className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 pt-[var(--tyd-popup-top)] sm:items-end" onClick={event => { event.stopPropagation(); onClose() }}>
       <form
         role="dialog"
         aria-modal="true"
         aria-label={TITEL[editor]}
-        className="flex w-full flex-col rounded-t-2xl border-t border-slate-700/60 bg-slate-900 sm:max-w-lg"
+        className="flex max-h-full w-full flex-col rounded-t-2xl border-t border-slate-700/60 bg-slate-900 sm:max-w-lg"
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape') return
@@ -258,7 +263,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
             <X size={18} aria-hidden="true" />
           </button>
         </div>
-        <div className="px-5 py-5">{body}</div>
+        <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-5">{body}</div>
         <div className="border-t border-slate-800 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button type="submit" className="btn-primary w-full" disabled={busy} {...denyProps(!busy && !gueltig)}>
             {String(t('my_stack_stock_save'))}
@@ -272,6 +277,7 @@ function BestandEditor({ editor, art, form, inventory, fallback, choices, busy, 
 export interface BestandEditorHostProps {
   editor: BestandEditorArt
   dosageForm: DosageFormKey
+  category?: string | null
   inventory: StackItemInventory | null
   ingredients: StackItemIngredient[]
   onClose(): void
@@ -284,7 +290,7 @@ export interface BestandEditorHostProps {
  * Nach dem Speichern schliesst es; bei einem Fehler bleibt es offen (die
  * Meldung zeigt der Aufrufer).
  */
-export function BestandEditorHost({ editor, dosageForm, inventory, ingredients, onClose, actions }: BestandEditorHostProps) {
+export function BestandEditorHost({ editor, dosageForm, category, inventory, ingredients, onClose, actions }: BestandEditorHostProps) {
   const { i18n } = useTranslation()
   const language = i18n.resolvedLanguage ?? i18n.language
   const [busy, setBusy] = useState(false)
@@ -304,6 +310,7 @@ export function BestandEditorHost({ editor, dosageForm, inventory, ingredients, 
       editor={editor}
       art={anbruchArt(dosageForm)}
       form={dosageForm}
+      loesung={istLoesungsVial(dosageForm, category)}
       inventory={inventory?.enabled ? inventory : null}
       fallback={inventory}
       choices={stockUnitChoices(dosageForm, ingredients)}
@@ -342,30 +349,30 @@ export function BestandCard({ dosageForm, inventory, ingredients, timelines, tim
   return (
     <div
       data-stack-detail="bestand"
-      className="mx-1 mt-2 w-[calc(100%-0.5rem)] rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-3"
+      className="lg-surface mt-3 p-4"
     >
       <div className="flex items-center gap-3">
-        <Package size={18} aria-hidden="true" className="shrink-0 text-sky-400" />
+        <span aria-hidden="true" className="lg-icon-tile bg-[#0a84ff]"><Package size={17} /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">{String(t('my_stack_stock_title'))}</span>
+          <span className="block text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">{String(t('my_stack_stock_title'))}</span>
           {zeilen && aktiv ? (
             <>
-              <span className="mt-0.5 block truncate text-sm font-semibold text-white">
-                {zeilen.gross}{zeilen.klein ? <span className="font-normal text-slate-400"> · {zeilen.klein}</span> : null}
+              <span className="mt-0.5 block truncate text-[17px] font-semibold text-[var(--lg-text)]">
+                {zeilen.gross}{zeilen.klein ? <span className="font-normal text-[var(--lg-text-2)]"> · {zeilen.klein}</span> : null}
               </span>
-              {range && <span className="mt-0.5 block truncate text-xs text-slate-400">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
+              {range && <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
               <BarFill fraction={zeilen.anteil} />
-              {!deductsIntakes && <span className="mt-2 block text-xs text-amber-200/90">{String(t('my_stack_stock_needs_strength'))}</span>}
+              {!deductsIntakes && <span className="mt-2 block text-[13px] text-[#ffb340]">{String(t('my_stack_stock_needs_strength'))}</span>}
             </>
           ) : (
-            <span className="mt-0.5 block text-sm text-slate-400">{String(t('my_stack_stock_not_tracked'))}</span>
+            <span className="mt-0.5 block text-[15px] text-[var(--lg-text-2)]">{String(t('my_stack_stock_not_tracked'))}</span>
           )}
         </span>
       </div>
       <button
         type="button"
         onClick={() => onEdit(aktiv ? 'correct' : 'start')}
-        className="mt-3 min-h-11 w-full rounded-xl border border-sky-400/35 bg-sky-400/10 text-[13px] font-semibold text-sky-100 transition-colors hover:border-sky-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className="lg-gray-btn mt-3.5 w-full"
       >
         {String(t(aktiv ? 'my_stack_stock_edit' : 'my_stack_stock_start'))}
       </button>

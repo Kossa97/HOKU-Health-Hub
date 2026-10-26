@@ -31,9 +31,27 @@ ist typischerweise `graphify` (orientieren) → arbeiten → `graphify update .`
 | neuen Skill bauen oder verbessern | `anthropic-skills:skill-creator` |
 | Startup-Hook für Web-Sessions | `session-start-hook` |
 | CLAUDE.md neu anlegen | `init` |
+| Animation bauen (Übergang, Bewegung, Feder, Geste) | `animate`, Grundhaltung aus `emil-design-eng` |
+| Animation ruckelt, Frames fallen, welche Eigenschaft animieren | `animation-performance` |
+| Wo lohnt sich Bewegung, wo nicht | `find-animation-opportunities` |
+| alle Animationen prüfen und Pläne schreiben | `improve-animations` |
+| UI-Feinschliff, Gesten, Sheets, Federn, Apple-Gefühl | `emil-design-eng`, `apple-design` |
+| Web-App soll sich auf dem Handy nativ anfühlen (100vh, Tap-Highlight, Safe Area, Zoom bei Eingaben) | `mobile-native` |
+| Komponente mit Extremdaten testen (lange Namen, leere Listen, große Zahlen) | `break-ui` |
+| Bewegung benennen („wie heißt das …“) | `animation-vocabulary` |
+| nur auf ausdrücklichen Aufruf: Animation-Diff streng prüfen / Varianten bauen / Bibliothek wählen | `review-animations` / `prototype` / `pick-ui-library` |
 
 Die Liste ist nicht abschließend. Steht ein Skill in der Sitzungsliste und passt
 er auf die Aufgabe, wird er benutzt, auch wenn er hier fehlt.
+
+## Design- und Animations-Skills (Emil Kowalski)
+
+Übernommen aus https://github.com/emilkowalski/skills (MIT, Stand Commit
+2d228630, 2026-10-11), Lizenz liegt in jedem Ordner. Nicht übernommen:
+`write-swift`, `animate-expo` (kein Swift/React Native im Projekt) und
+`ask-sonner` (die App nutzt react-hot-toast). Die Skills sind Ratgeber, keine
+Projektregeln: Wo sie etwas empfehlen, das hier anders entschieden ist (z. B.
+eine neue Bibliothek), gilt das Projekt. Sprache der App-Texte bleibt de/en.
 
 ## graphify
 

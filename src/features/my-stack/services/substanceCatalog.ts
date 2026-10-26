@@ -30,6 +30,7 @@ const CATALOG_COLUMNS = [
   'suggested_units',
   'suggested_dosage_forms',
   'pk_profile_id',
+  'pk_profiles(routes)',
   'component_names',
   'active',
 ].join(', ')

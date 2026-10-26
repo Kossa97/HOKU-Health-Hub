@@ -40,6 +40,8 @@ describe('Maße der Bottom-Navigation', () => {
     // verdecken — ein Dialog ist kein Ladezustand.
     const loader = readFileSync(new URL('../LabLoader.tsx', import.meta.url), 'utf8')
 
+    // Die feste Hülle trägt die Stapelordnung; die Kapsel darin ebenfalls.
+    expect(css()).toMatch(/\.tyd-tabdock\s*\{[^}]*z-index:\s*41;/)
     expect(css()).toMatch(/\.tyd-tabbar\s*\{[\s\S]*?z-index:\s*41;/)
     const klassen = loader.match(/className=\{`fixed[^`]*`/)![0]
     expect(klassen).toContain('z-40')
@@ -53,9 +55,14 @@ describe('Maße der Bottom-Navigation', () => {
   it('nimmt die Wege heraus, wenn jemand Bewegung abbestellt hat', () => {
     // Die Datei hat mehrere solche Blöcke; gemeint ist der der Leiste.
     const block = css().slice(css().lastIndexOf('@media (prefers-reduced-motion: reduce)'))
-    const bis = block.match(
-      /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\}\s*(?=\/\* Im hellen Thema)/,
-    )?.[0] ?? ''
+    // Bis zur schließenden Klammer des Blocks zählen
+    let tiefe = 0
+    let ende = block.length
+    for (let i = 0; i < block.length; i++) {
+      if (block[i] === '{') tiefe++
+      else if (block[i] === '}' && --tiefe === 0) { ende = i + 1; break }
+    }
+    const bis = block.slice(0, ende)
 
     expect(bis).toContain('.tyd-tabbar-pill')
     // Auch das Anheben beim Drücken und das Aufblähen der Blase.

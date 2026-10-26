@@ -149,26 +149,35 @@ function advanceToReview(): void {
 }
 
 function setMethodIfAsked(value = 'Oral'): void {
-  const select = screen.queryByLabelText('my_stack_plan_method') as HTMLSelectElement | null
-  if (select) fireEvent.change(select, { target: { value } })
+  // Die Methode ist eine Knopfgruppe; gefragt wird sie nur, wo die Form mehrere Wege kennt.
+  const gruppe = screen.queryByRole('radiogroup', { name: 'my_stack_plan_method' })
+  if (!gruppe) return
+  const knopf = within(gruppe).queryAllByRole('radio').find(radio => radio.textContent?.toLowerCase().includes(value.toLowerCase().slice(0, 4)))
+  fireEvent.click(knopf ?? within(gruppe).getAllByRole('radio')[0])
 }
 
 function continueWizard(): void {
   fireEvent.click(screen.getByRole('button', { name: 'continue' }))
 }
 
-function startCustom(name: string): void {
+/**
+ * Eigene Substanz: Name tippen, als eigene bestaetigen, Kategorie waehlen —
+ * Form und Farbe stehen danach auf derselben Seite.
+ */
+function startCustom(name: string, category = 'supplement'): void {
   fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: name } })
-  fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
-  continueWizard()
+  fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
+  fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: category } })
+}
+
+/** Eine Form im Karussell der Substanzseite — dort stehen immer alle. */
+function waehleForm(form: string): void {
+  fireEvent.click(screen.getByRole('radio', { name: `dosage_form_${form}` }))
 }
 
 function completeCustomFlow(name = 'Custom Product'): void {
   startCustom(name)
-  fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-  continueWizard()
-  continueWizard()
-  fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
+  waehleForm('capsule')
   continueWizard()
   continueWizard()
   fireEvent.change(screen.getByLabelText('my_stack_strength_value'), { target: { value: '100' } })
@@ -181,213 +190,176 @@ function completeCustomFlow(name = 'Custom Product'): void {
   advanceToReview()
 }
 
-/**
- * Misst wie ein Browser: jsdom meldet sonst ueberall 0 — und genau dieser Fall
- * ist der Fehler, um den es hier geht. `offset*` bekommt nur das Objekt,
- * `client*` die Flaeche.
- */
-function masseStellen(masse: null | { objekt: [number, number]; platz: [number, number] }) {
-  const setzen = (name: string, wert: (el: HTMLElement) => number) => {
-    Object.defineProperty(HTMLElement.prototype, name, {
-      configurable: true,
-      get(this: HTMLElement) { return masse ? wert(this) : 0 },
-    })
-  }
-  const istObjekt = (el: HTMLElement) => el.hasAttribute('data-dosage-form-preview')
-  setzen('offsetWidth', el => (istObjekt(el) ? masse!.objekt[0] : 0))
-  setzen('offsetHeight', el => (istObjekt(el) ? masse!.objekt[1] : 0))
-  setzen('clientWidth', () => masse!.platz[0])
-  setzen('clientHeight', () => masse!.platz[1])
-}
-
-describe('Farbschritt — die Groesse des Objekts', () => {
-  afterEach(() => {
-    for (const name of ['offsetWidth', 'offsetHeight', 'clientWidth', 'clientHeight']) {
-      Reflect.deleteProperty(HTMLElement.prototype, name)
-    }
-  })
-
-  async function zumFarbschritt(): Promise<HTMLElement> {
+describe('StackItemWizard — Substanzseite mit Form und Farbe', () => {
+  it('zeigt die Formen erst, wenn feststeht, was es ist, und die Farbe erst nach der Form', () => {
     renderWizard()
-    startCustom('Semaglutid')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_pen' }))
-    continueWizard()
-    // Die Messung faellt Bild fuer Bild nach, bis sie zustande kommt —
-    // jsdom braucht dafuer ein paar Zeitscheiben.
-    await act(async () => { await new Promise(aufloesen => setTimeout(aufloesen, 80)) })
-    return document.querySelector<HTMLElement>('[data-wizard-preview] span.inline-block')!
-  }
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Kreatin' } })
+    expect(document.querySelector('[data-form-carousel]')).toBeNull()
+    // Getippter Text allein waehlt nichts — auch keine Kategorie.
+    expect(screen.queryByLabelText('my_stack_category')).toBeNull()
 
-  it('laesst das Objekt ungezoomt, solange nichts zu messen ist', async () => {
-    // Der Fehler, den der Pen zeigte: die einzige Messung lief, bevor die
-    // native Groesse feststand. `objektSkala` gab seinen Rueckfall 1 zurueck —
-    // und 1 heisst beim Pen 589 px in einer 420 px hohen Flaeche, oben und
-    // unten abgeschnitten. Ohne Masse wird deshalb GAR NICHTS gesetzt, statt
-    // den Rueckfall festzuschreiben.
-    masseStellen(null)
-    const wrapper = await zumFarbschritt()
-    // Unsichtbar statt in voller Groesse: solange die Skala nicht steht, gibt
-    // es keine richtige Groesse, und die native ist die falsche.
-    expect(wrapper.style.visibility).toBe('hidden')
+    fireEvent.click(screen.getByText('my_stack_add_custom'))
+    expect(document.querySelector('[data-form-carousel]')).toBeNull()
+    fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
+    expect(document.querySelector('[data-form-carousel]')).not.toBeNull()
+    expect(document.querySelector('[data-form-color]')).toBeNull()
+
+    waehleForm('powder')
+    const farbe = document.querySelector('[data-form-color]')!
+    expect(farbe.querySelectorAll('[data-swatch]').length).toBe(13)
+    expect(farbe.querySelector('input[type="text"]')).toBeNull()
+
+    // Die gewaehlte Karte im Karussell faerbt sich mit.
+    const deckel = () => document.querySelector('[data-form-option="powder"] [data-powder-detail="lid"]')?.getAttribute('fill')
+    fireEvent.click(farbe.querySelector('[data-swatch="#0a84ff"]')!)
+    expect(farbe.querySelector('[data-swatch="#0a84ff"]')!.getAttribute('aria-checked')).toBe('true')
+    expect(deckel()).toBe('#0a84ff')
+
+    // „Eigene Farbe": die Flaeche erscheint, die Pfeiltasten faerben.
+    fireEvent.click(farbe.querySelector('[data-swatch="custom"]')!)
+    expect(document.querySelector('[data-form-color] [data-color-field="area"]')).not.toBeNull()
+    fireEvent.keyDown(document.querySelector('[data-form-color] [data-color-field="hue"]') as HTMLElement, { key: 'ArrowRight' })
+    expect(deckel()).not.toBe('#0a84ff')
+    expect(deckel()).toMatch(/^#[0-9a-f]{6}$/)
   })
 
-  it('schrumpft ein Objekt, das groesser ist als die Flaeche', async () => {
-    // Der Pen: 589 px nativ in 420 px Flaeche, bei 94 % Deckung also 0,67.
-    masseStellen({ objekt: [77, 589], platz: [485, 420] })
-    const wrapper = await zumFarbschritt()
-    expect(wrapper.style.visibility).not.toBe('hidden')
-    const skala = Number(wrapper.style.zoom)
-    expect(skala).toBeGreaterThan(0)
-    expect(skala).toBeLessThan(1)
-    expect(skala * 589).toBeLessThanOrEqual(420)
-  })
-})
+  it('zeigt alle Formen und waehlt die empfohlene vor', () => {
+    renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
+    fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
 
-describe('StackItemWizard — Vorschau der Darreichungsform', () => {
-  it('zeigt erst ab der gewaehlten Form ein Objekt', () => {
+    const kapsel = screen.getByRole('radio', { name: 'dosage_form_capsule' })
+    expect(kapsel.getAttribute('aria-checked')).toBe('true')
+    expect(kapsel.querySelector('[data-form-recommended]')).not.toBeNull()
+    const tropfen = screen.getByRole('radio', { name: 'dosage_form_drops' })
+    expect(tropfen.getAttribute('aria-checked')).toBe('false')
+    expect(tropfen.querySelector('[data-form-recommended]')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'my_stack_form_more' })).toBeNull()
+  })
+
+  it('geht ohne Form nicht weiter und sagt es am Karussell', () => {
     renderWizard()
     startCustom('Kreatin')
-
-    // Auf dem Schritt davor gibt es noch keine Form und damit nichts zu zeigen.
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
-
-    // Auch auf dem Formschritt selbst noch nichts: die zwei Karussells
-    // brauchen den ganzen Platz, das Objekt kommt erst auf dem Farbschritt.
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
-
     continueWizard()
-
-    const vorschau = document.querySelector('[data-wizard-preview]')
-    expect(vorschau).not.toBeNull()
-    expect(vorschau!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
+    expect(screen.getByRole('alert').textContent).toContain('my_stack_dosage_form_required')
   })
 
-  it('bleibt ueber allen weiteren Schritten stehen und uebernimmt den Namen', () => {
-    // Farbe und Menge kommen aus spaeteren Schritten. Stuende die Vorschau nur
-    // ueber der Formauswahl, saehe man genau die Aenderungen nicht, die man
-    // gerade macht.
+  it('stellt die gewaehlte Form oben auf die Buehne und laesst sie dort', () => {
     renderWizard()
     startCustom('Kreatin Monohydrat')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
-    continueWizard()
+    expect(document.querySelector('[data-wizard-stage]')).toBeNull()
 
-    const vorschau = document.querySelector('[data-wizard-preview]')
-    expect(vorschau).not.toBeNull()
-    expect(vorschau!.textContent).toContain('Kreatin Monohydrat')
-  })
+    waehleForm('powder')
+    const buehne = () => document.querySelector('[data-wizard-stage]')
+    expect(buehne()).not.toBeNull()
+    expect(buehne()!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
+    expect(buehne()!.textContent).toContain('dosage_form_powder')
 
-  it('zeigt im Substanz-Schritt kein Objekt, auch nicht beim Zurueckgehen', () => {
-    // Gefunden beim Durchklicken: wer eine Form gewaehlt hatte und
-    // zurueckging, fand im ersten Schritt ploetzlich eine Kapsel vor, wo
-    // vorher nichts stand. Dort entscheidet man, WAS das Ding ist — das
-    // Objekt ist ein Vorgriff, und den Namen zeigte es doppelt.
-    renderWizard()
-    startCustom('Kreatin')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
     continueWizard()
-    expect(document.querySelector('[data-wizard-preview]')).not.toBeNull()
+    expect(buehne()!.textContent).toContain('Kreatin Monohydrat')
+    expect(buehne()!.querySelector('[data-stack-renderer="powder"]')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'back' }))
-    fireEvent.click(screen.getByRole('button', { name: 'back' }))
-
-    expect(screen.getByLabelText('my_stack_question')).toBeTruthy()
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
+    expect(buehne()).not.toBeNull()
   })
 
-  it('gibt der Vorschau ein Farbfeld zum Ziehen, kein Hex-Feld', () => {
-    // Der Nutzer waehlt seine Farbe, nicht eine aus zwoelf. Und das Objekt
-    // darueber faerbt sich sofort mit, ohne einen Schritt weiterzugehen.
-    renderWizard()
-    startCustom('Kreatin')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
-    continueWizard()
-
-    const vorschau = document.querySelector('[data-wizard-preview]')!
-    const flaeche = vorschau.querySelector('[data-color-field="area"]')
-    const schiene = vorschau.querySelector('[data-color-field="hue"]')
-    expect(flaeche).not.toBeNull()
-    expect(schiene).not.toBeNull()
-    expect(vorschau.querySelector('input[type="text"]')).toBeNull()
-
-    // Ziehen laesst sich in jsdom nicht messen (getBoundingClientRect ist
-    // ueberall null), die Pfeiltasten schon — sie gehen durch dieselbe
-    // Meldefunktion.
-    const vorher = vorschau.querySelector('[data-powder-detail="lid"]')?.getAttribute('fill')
-    fireEvent.keyDown(schiene as HTMLElement, { key: 'ArrowRight' })
-    const nachher = document.querySelector('[data-wizard-preview] [data-powder-detail="lid"]')?.getAttribute('fill')
-
-    expect(nachher).not.toBe(vorher)
-    expect(nachher).toMatch(/^#[0-9a-f]{6}$/)
-  })
-
-  it('nennt die Schrittzahl von Anfang an, weil die Tiefe vorgewaehlt ist', () => {
-    // Frueher war die Zahl anfangs offen, weil die Tiefe es war — der Balken
-    // haette sonst auf dem Tiefenschritt „3 von 3" angezeigt und waere nach
-    // der Wahl auf „3 von 8" zurueckgesprungen. Mit „Gruendlich" als Start
-    // steht die Zahl sofort fest.
-    renderWizard()
-    startCustom('Kreatin')
-
-    const balken = () => document.querySelector('[role="progressbar"]')!
-    expect(balken().getAttribute('aria-valuemax')).toBe('8')
-    expect(balken().querySelector('[data-progress-open]')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
-    continueWizard()
-    continueWizard()
-
-    // Eine flachere Stufe macht den Balken voller, nicht leerer: weniger
-    // Schritte bei gleichem Stand.
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_intake_only_title/ }))
-    expect(balken().getAttribute('aria-valuemax')).toBe('6')
-    expect(balken().getAttribute('aria-valuenow')).toBe('4')
-  })
-
-  it('zeigt das Objekt gross nur dort, wo man sein Aussehen waehlt', () => {
-    // Der grosse Block nahm 368 von 687 px Inhaltsflaeche; auf dem
-    // Tiefenschritt war dadurch keine der drei Karten vollstaendig sichtbar.
-    renderWizard()
-    startCustom('Kreatin')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_powder' }))
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
-
-    continueWizard()
-
-    const vorschau = () => document.querySelector('[data-wizard-preview]')!
-    expect(vorschau().hasAttribute('data-wizard-preview-compact')).toBe(false)
-    expect(vorschau().querySelector('[data-color-field="area"]')).not.toBeNull()
-
-    continueWizard()
-
-    // Danach nur noch die Zeile: Objekt, Name, Darreichungsform — kein
-    // Farbfeld, das jeden weiteren Schritt nach unten schiebt.
-    expect(vorschau().hasAttribute('data-wizard-preview-compact')).toBe(true)
-    expect(vorschau().querySelector('[data-color-field="area"]')).toBeNull()
-    expect(vorschau().textContent).toContain('Kreatin')
-  })
-
-  it('zeigt fuer Formen ohne Buehnengrafik gar nichts', () => {
+  it('zeigt fuer Formen ohne Buehnengrafik keine Vorschau und keine Farbe', () => {
     renderWizard()
     startCustom('Saft')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_other' }))
+    waehleForm('other')
+    expect(document.querySelector('[data-form-color]')).toBeNull()
+    continueWizard()
+    expect(document.querySelector('[data-wizard-stage]')).toBeNull()
+  })
 
-    // Kein Rahmen, keine erfundene Grafik. Ein leerer Kasten saehe aus wie ein
-    // Fehler.
-    expect(document.querySelector('[data-wizard-preview]')).toBeNull()
+  it('geht nach dem Loesen vom Katalog nicht im selben Tipp weiter', () => {
+    renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
+    fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_detach_catalog' }))
+    continueWizard()
+
+    // Erst Kategorie und Form sehen — beide stehen noch vom Katalog da.
+    expect(document.querySelector('[data-substance-custom]')).not.toBeNull()
+    expect((screen.getByLabelText('my_stack_category') as HTMLSelectElement).value).toBe('vitamin')
+    expect(screen.getByRole('radio', { name: 'dosage_form_capsule' }).getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('hat vier Seiten fuer eine Katalogsubstanz', () => {
+    renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
+    fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
+    expect(document.querySelector('[role="progressbar"]')!.getAttribute('aria-valuemax')).toBe('4')
   })
 })
+
+describe('StackItemWizard — Zusammensetzung', () => {
+  function zurZusammensetzung(): void {
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
+    fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
+    continueWizard()
+  }
+
+  it('laesst die Staerke ueberspringen und zuruecknehmen', () => {
+    renderWizard()
+    zurZusammensetzung()
+    expect(screen.getByLabelText('my_stack_strength_value')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_skip' }))
+    expect(document.querySelector('[data-strength-skipped]')).not.toBeNull()
+    expect(screen.queryByLabelText('my_stack_strength_value')).toBeNull()
+    // Ohne Staerke geht es trotzdem weiter.
+    continueWizard()
+    expect(document.querySelector('[data-field="plan.frequency"]')).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'back' }))
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_unskip' }))
+    expect(screen.getByLabelText('my_stack_strength_value')).toBeTruthy()
+  })
+
+  it('fragt bei der Kapsel nur das Ablaufdatum, beim Pulver-Vial nach dem Anmischen', () => {
+    renderWizard()
+    zurZusammensetzung()
+    expect(document.querySelector('[data-haltbarkeit]')!.getAttribute('data-haltbarkeit')).toBe('ablauf')
+    expect(document.querySelector('[data-haltbarkeit] [data-field="inventory.openedAt"]')).toBeNull()
+    expect(document.querySelector('[data-haltbarkeit] [data-field="inventory.expiresAt"]')).not.toBeNull()
+    cleanup()
+
+    renderWizard()
+    startCustom('BPC', 'peptide')
+    waehleForm('vial')
+    advanceTo('[data-haltbarkeit]')
+    expect(document.querySelector('[data-haltbarkeit]')!.getAttribute('data-haltbarkeit')).toBe('angemischt')
+    expect(screen.getByLabelText(/my_stack_shelf_opened_angemischt/)).toBeTruthy()
+  })
+
+  it('rechnet aus Anbruch und Haltbarkeit das Aufbrauchen-bis-Datum', () => {
+    renderWizard()
+    startCustom('Testo')
+    waehleForm('vial')
+    advanceTo('[data-haltbarkeit]')
+    expect(document.querySelector('[data-haltbarkeit]')!.getAttribute('data-haltbarkeit')).toBe('angebrochen')
+    fireEvent.change(document.querySelector('[data-field="inventory.openedAt"]')!, { target: { value: '2026-10-20' } })
+    fireEvent.change(document.querySelector('[data-field="inventory.useWithinDays"]')!, { target: { value: '28' } })
+    expect(document.querySelector('[data-haltbarkeit-bis]')!.textContent).toContain('17.11.2026')
+  })
+})
+
+/** Weiterklicken, bis ein Element da ist. */
+function advanceTo(selektor: string): void {
+  for (let i = 0; i < 10; i += 1) {
+    if (document.querySelector(selektor)) return
+    continueWizard()
+  }
+  throw new Error(`${selektor} nicht erreicht`)
+}
 
 function completeCatalogFlow(): void {
   fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Vitamin' } })
   fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
-  continueWizard()
-  fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-  continueWizard()
-  continueWizard()
-  fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
-  continueWizard()
+  // Der Katalog kennt fuer D3 nur die Kapsel — sie ist schon gewaehlt.
   continueWizard()
   fireEvent.change(screen.getByLabelText('my_stack_strength_value'), { target: { value: '5000' } })
   fireEvent.change(screen.getByLabelText('my_stack_basis_value'), { target: { value: '1' } })
@@ -399,11 +371,7 @@ function completeCatalogFlow(): void {
 }
 
 function reachExistingReview(changeForm = false): void {
-  continueWizard()
-  if (changeForm) {
-    // Kein Aufklappen mehr noetig: beide Reihen stehen immer da.
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_drops' }))
-  }
+  if (changeForm) waehleForm('drops')
   advanceToPlanStep()
   setMethodIfAsked()
   fireEvent.change(screen.getByLabelText(/my_stack_plan_quantity$/), { target: { value: '1' } })
@@ -950,9 +918,7 @@ describe('StackItemWizard interactions', () => {
       intent: 'pk',
     })
 
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
-    continueWizard()
-
+    // „PK vervollstaendigen" startet gruendlich auf der Zusammensetzung.
     expect(screen.getByLabelText('my_stack_strength_value')).toBeTruthy()
     expect(screen.queryByLabelText('my_stack_question')).toBeNull()
   })
@@ -975,11 +941,10 @@ describe('StackItemWizard interactions', () => {
       intent: 'pk',
     })
 
-    expect(screen.getByRole('group', { name: 'my_stack_tracking_question' })).toBeTruthy()
+    expect(screen.getByLabelText('my_stack_strength_value')).toBeTruthy()
     expect(screen.queryByLabelText('my_stack_question')).toBeNull()
     expect(document.querySelector('[data-rhythm-kind="daily"]')).toBeNull()
 
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
     fireEvent.click(screen.getByRole('button', { name: 'save' }))
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
@@ -1020,21 +985,65 @@ describe('StackItemWizard interactions', () => {
     })
   })
 
+  it('verknuepft das Profil ohne Haekchen, wenn es fuer die Route im Plan gilt', async () => {
+    const pkItem: StackItem = { ...existingVitaminD, pk_profile_method: null }
+    const pkPlan: IntakePlanDraft = {
+      ...existingPlan,
+      unit: 'mg',
+      slots: [{ routineGroup: 'morning', time: '08:30', dose: 1, weekdays: [] }],
+    }
+    const { onSave } = renderWizard({
+      catalogEntries: [{ ...pkVitaminD3, pk_profiles: { routes: ['Oral'] } }],
+      existingItem: pkItem,
+      existingPlan: pkPlan,
+      intent: 'pk',
+    })
+
+    expect(screen.queryByRole('checkbox', { name: 'my_stack_pk_method_confirm' })).toBeNull()
+    expect(document.querySelector('[data-pk-route="covered"]')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'save' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+    // Die Deckung durch das Profil wird nicht als Bestaetigung gespeichert.
+    expect(onSave.mock.calls[0][0].pkProfileMethod).toBeNull()
+  })
+
+  it('sagt es, wenn das Profil nicht fuer die Route im Plan gilt, und speichert nicht', async () => {
+    const pkItem: StackItem = { ...existingVitaminD, pk_profile_method: null }
+    const pkPlan: IntakePlanDraft = {
+      ...existingPlan,
+      unit: 'mg',
+      slots: [{ routineGroup: 'morning', time: '08:30', dose: 1, weekdays: [] }],
+    }
+    const { onSave } = renderWizard({
+      catalogEntries: [{ ...pkVitaminD3, pk_profiles: { routes: ['Subkutan'] } }],
+      existingItem: pkItem,
+      existingPlan: pkPlan,
+      intent: 'pk',
+    })
+
+    expect(screen.queryByRole('checkbox', { name: 'my_stack_pk_method_confirm' })).toBeNull()
+    expect(document.querySelector('[data-pk-route="mismatch"]')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'save' }))
+
+    expect(await screen.findByText('my_stack_pk_route_mismatch_save')).toBeTruthy()
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
   it('preserves raw multi-word typing and a chosen custom category', () => {
     renderWizard()
     const input = screen.getByLabelText('my_stack_question') as HTMLInputElement
-    const category = screen.getByLabelText('my_stack_category') as HTMLSelectElement
 
-    fireEvent.change(input, { target: { value: 'Vitamin' } })
-    fireEvent.change(category, { target: { value: 'supplement' } })
     fireEvent.change(input, { target: { value: 'Vitamin ' } })
-
     expect(input.value).toBe('Vitamin ')
-    expect(category.value).toBe('supplement')
-
     fireEvent.change(input, { target: { value: 'Vitamin D' } })
     expect(input.value).toBe('Vitamin D')
+
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
+    const category = screen.getByLabelText('my_stack_category') as HTMLSelectElement
+    fireEvent.change(category, { target: { value: 'supplement' } })
     expect(category.value).toBe('supplement')
+    expect(document.querySelector('[data-substance-custom]')!.textContent).toContain('Vitamin D')
   })
 
   it('bietet „Sonstiges" als letzte Kategorie an und laesst weitergehen', () => {
@@ -1043,15 +1052,16 @@ describe('StackItemWizard interactions', () => {
     // Faechern zwingen — und jede dieser Wahlen ist eine Behauptung, die die
     // App spaeter auswertet. „Sonstiges" ist die ehrliche Antwort darauf.
     renderWizard()
+    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Rotlichtlampe' } })
+    fireEvent.click(screen.getByText('my_stack_add_custom'))
     const kategorie = screen.getByLabelText('my_stack_category') as HTMLSelectElement
 
     const werte = Array.from(kategorie.options).map(option => option.value)
     expect(werte).toEqual(['', 'peptide', 'medication', 'hormone', 'supplement', 'vitamin', 'other'])
 
-    fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'Rotlichtlampe' } })
-    fireEvent.click(screen.getByText('my_stack_add_custom'))
     fireEvent.change(kategorie, { target: { value: 'other' } })
     expect(kategorie.value).toBe('other')
+    waehleForm('other')
     continueWizard()
 
     // Der Schritt ist beantwortet: keine Pflichtmeldung, und die Frage nach
@@ -1075,10 +1085,7 @@ describe('StackItemWizard interactions', () => {
     expect(document.querySelector('[data-substance-selected-hint]')?.textContent)
       .toBe('my_stack_combination · Vitamin D3 + Vitamin K2')
 
-    continueWizard()
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()  // Farbe
-    continueWizard()  // Tracking-Tiefe (startet auf „Gründlich")
+    // Die Kapsel ist die einzige Form des Eintrags und schon gewaehlt.
     continueWizard()
 
     // Kein Zutatenschritt mehr: beide Namen kommen aus dem Katalog, dort
@@ -1099,10 +1106,7 @@ describe('StackItemWizard interactions', () => {
 
     fireEvent.change(screen.getByLabelText('my_stack_question'), { target: { value: 'D3 +' } })
     fireEvent.click(screen.getByRole('option', { name: /Vitamin D3 \+ K2/ }))
-    continueWizard()
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()  // Farbe
-    continueWizard()  // Tracking-Tiefe
+    // Die Kapsel ist die einzige Form des Eintrags und schon gewaehlt.
     continueWizard()
 
     fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_add_ingredient' }))
@@ -1145,8 +1149,9 @@ describe('StackItemWizard interactions', () => {
     const { onSave } = renderWizard()
     const input = screen.getByLabelText('my_stack_question') as HTMLInputElement
 
-    // Vor der Wahl steht das Kategoriefeld da — es gilt der freien Eingabe.
-    expect(screen.getByLabelText('my_stack_category')).toBeTruthy()
+    // Vor der Wahl fehlt das Kategoriefeld: es gehoert zur eigenen Substanz,
+    // und getippter Text allein ist noch keine.
+    expect(screen.queryByLabelText('my_stack_category')).toBeNull()
 
     fireEvent.change(input, { target: { value: 'Vitamin' } })
     fireEvent.click(screen.getByRole('option', { name: /Vitamin D3/ }))
@@ -1158,21 +1163,22 @@ describe('StackItemWizard interactions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'my_stack_detach_catalog' }))
 
-    // Suchfeld wieder da, Name erhalten, Kategorie erhalten — und das
-    // Kategoriefeld auch, denn ohne Katalogeintrag wird es wieder gebraucht.
-    // Weg ist nur die Verknuepfung, und zwar weil jemand darauf geklickt hat.
+    // Suchfeld wieder da, Name erhalten, Kategorie erhalten — sie zeigt sich,
+    // sobald daraus eine eigene Substanz wird. Weg ist nur die Verknuepfung,
+    // und zwar weil jemand darauf geklickt hat.
     const wieder = screen.getByLabelText('my_stack_question') as HTMLInputElement
     expect(wieder.value).toBe('Vitamin D3')
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_add_custom' }))
     expect((screen.getByLabelText('my_stack_category') as HTMLSelectElement).value).toBe('vitamin')
 
-    continueWizard()
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-    continueWizard()
-    fireEvent.click(screen.getByRole('radio', { name: /^my_stack_tracking_intake_only_title/ }))
-    continueWizard()
+    // Die Kapsel bleibt gewaehlt; die Staerke wird uebersprungen.
+    advanceTo('[data-strength-skip]')
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_skip' }))
+    advanceToPlanStep()
     setMethodIfAsked()
-    continueWizard()
+    fireEvent.change(screen.getByLabelText(/my_stack_plan_quantity$/), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText('my_stack_plan_unit'), { target: { value: 'capsule' } })
+    advanceToReview()
     fireEvent.click(screen.getByRole('button', { name: 'save' }))
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
@@ -1232,7 +1238,6 @@ describe('StackItemWizard interactions', () => {
     renderWizard()
     const suche = screen.getByLabelText('my_stack_question') as HTMLInputElement
     fireEvent.change(suche, { target: { value: 'Custom Product' } })
-    fireEvent.change(screen.getByLabelText('my_stack_category'), { target: { value: 'supplement' } })
     fireEvent.change(suche, { target: { value: '' } })
     continueWizard()
 
@@ -1263,85 +1268,52 @@ describe('StackItemWizard interactions', () => {
     opener.remove()
   })
 
-  it('startet auf der tiefsten Stufe und laesst ohne Zwischenfrage weiter', () => {
-    // Frueher war die Tiefe eine Pflichtwahl: wer auf „Weiter" tippte, ohne
-    // etwas anzutippen, bekam eine Fehlermeldung. Das fragte nach einer
-    // Entscheidung, bevor der Schritt erklaert hatte, was die Stufen
-    // bedeuten. Jetzt steht „Gruendlich" schon da — wer weniger will, stellt
-    // zurueck.
+  it('startet gruendlich: nach der Form kommen die Wirkstoffnamen', () => {
+    // Die Tiefe wird nicht mehr gefragt. Wer weniger will, ueberspringt die
+    // Staerke in der Zusammensetzung.
     renderWizard()
     startCustom('Choice Required')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
+    waehleForm('capsule')
     continueWizard()
-    continueWizard()
-
-    const gewaehlt = screen.getAllByRole('radio').filter(radio => (radio as HTMLInputElement).checked)
-    expect(gewaehlt).toHaveLength(1)
-    expect(gewaehlt[0].getAttribute('value')).toBe('complete')
-
-    // Und die Stufe traegt weiter: nach der Wirkstoffstrecke steht der Plan.
-    continueWizard()
-    expect(screen.queryByText('my_stack_tracking_level_required')).toBeNull()
+    expect(screen.queryByRole('radio', { name: /my_stack_tracking_/ })).toBeNull()
     expect(screen.getByLabelText('my_stack_ingredient_1')).toBeTruthy()
   })
 
-  it('laesst die vorgewaehlte Stufe zuruecknehmen', () => {
+  it('geht nach dem Ueberspringen der Staerke direkt zum Plan', () => {
     renderWizard()
     startCustom('Choice Required')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-    continueWizard()
-
-    // „Genau" kennt keine Wirkstaerke — der Wirkstoffschritt faellt weg und
-    // der Plan kommt direkt.
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_with_amount_title/ }))
+    waehleForm('capsule')
+    advanceTo('[data-strength-skip]')
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_skip' }))
     continueWizard()
     expect(document.querySelector('[data-rhythm-kind="daily"]')).not.toBeNull()
   })
 
-  it('follows the lower-depth path and reviews an intake without quantity', () => {
-    renderWizard()
-    startCustom('Simple Product')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-  continueWizard()
-  fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_intake_only_title/ }))
-  continueWizard()
-
-  expect(screen.queryByLabelText(/my_stack_plan_quantity$/)).toBeNull()
-  setMethodIfAsked()
-  continueWizard()
-
-    expect(screen.getByText('my_stack_tracking_intake_only_subtitle')).toBeTruthy()
-    expect(screen.getByText('my_stack_quantity_not_tracked')).toBeTruthy()
-    expect(screen.getByText('dosage_form_capsule')).toBeTruthy()
-    // Der Rhythmus steht jetzt als Schlüssel da, nicht als deutscher Text:
-    // die Zusammenfassung wird übersetzt, nicht zusammengebaut.
-    expect(document.querySelector('[data-review-rhythm]')?.textContent)
-      .toBe('my_stack_rhythm_daily')
-  })
-
-  it('saves intake-only from review with null quantity instead of redirecting to hidden strength', async () => {
+  it('speichert ohne Staerke mit Menge und ohne Umweg zurueck zur Staerke', async () => {
     const { onSave } = renderWizard()
     startCustom('Simple Product')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-    continueWizard()
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_intake_only_title/ }))
-    continueWizard()
+    waehleForm('capsule')
+    advanceTo('[data-strength-skip]')
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_skip' }))
+    advanceToPlanStep()
     setMethodIfAsked()
-    continueWizard()
+    fireEvent.change(screen.getByLabelText(/my_stack_plan_quantity$/), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText('my_stack_plan_unit'), { target: { value: 'capsule' } })
+    advanceToReview()
+
+    expect(screen.getByText('my_stack_daily_with_amount')).toBeTruthy()
+    expect(screen.getByText('dosage_form_capsule')).toBeTruthy()
+    // Der Rhythmus steht als Schlüssel da: die Zusammenfassung wird übersetzt, nicht zusammengebaut.
+    expect(document.querySelector('[data-review-rhythm]')?.textContent).toBe('my_stack_rhythm_daily')
 
     fireEvent.click(screen.getByRole('button', { name: 'save' }))
-
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
-    expect(onSave.mock.calls[0][0].trackingLevel).toBe('intake_only')
-    // Die Einheit ist aus der Form vorbelegt — gespeichert wird sie für
-    // `intake_only` trotzdem nicht (das prüft `stackItems.test.ts`).
-    expect(onSave.mock.calls[0][0].plan.slots[0].dose).toBeNull()
+    expect(onSave.mock.calls[0][0].trackingLevel).toBe('with_amount')
+    expect(onSave.mock.calls[0][0].plan.slots[0].dose).toBe(1)
     expect(onSave.mock.calls[0][1]).toBe('create')
     expect(screen.queryByLabelText('my_stack_strength_value')).toBeNull()
   })
+
   it('hydrates the active plan and clears its id only when creating a duplicate', async () => {
     const updateRun = renderWizard({ existingItem: existingVitaminD, existingPlan })
     reachExistingReview()
@@ -1368,7 +1340,7 @@ describe('StackItemWizard interactions', () => {
     renderWizard({ existingItem: existingVitaminD })
     reachExistingReview()
 
-    expect(screen.getByText('my_stack_tracking_complete_subtitle')).toBeTruthy()
+    expect(screen.getByText('my_stack_daily_complete')).toBeTruthy()
     // Die Zusammenfassung nennt Tageszeit, Uhrzeit UND Menge in einer Zeile,
     // damit bei mehreren Einnahmen am Tag nichts verschwiegen wird.
     expect(document.querySelector('[data-review-slot="0"]')?.textContent)
@@ -1381,74 +1353,41 @@ describe('StackItemWizard interactions', () => {
     expect(screen.getByText('my_stack_pk_unavailable')).toBeTruthy()
     expect(screen.getByText('Example Brand')).toBeTruthy()
   })
-  it('keeps generic inventory opt-in collapsed and reviews enabled stock', () => {
+  it('fuehrt Marke und Bestand im Ueberblick, aufgeklappt', () => {
     renderWizard()
-    startCustom('Inventory Product')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-    continueWizard()
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
-    continueWizard()
-    continueWizard()
-    fireEvent.change(screen.getByLabelText('my_stack_strength_value'), { target: { value: '100' } })
-    fireEvent.change(screen.getByLabelText('my_stack_strength_unit'), { target: { value: 'mg' } })
-    fireEvent.change(screen.getByLabelText('my_stack_basis_value'), { target: { value: '1' } })
-    continueWizard()
+    completeCustomFlow('Inventory Product')
 
     const disclosure = screen.getByRole('button', { name: 'my_stack_product_inventory' })
-    expect(disclosure.getAttribute('aria-expanded')).toBe('false')
+    expect(disclosure.getAttribute('aria-expanded')).toBe('true')
     expect(screen.queryByLabelText('my_stack_package_quantity')).toBeNull()
-    fireEvent.click(disclosure)
-    fireEvent.change(screen.getByLabelText('my_stack_brand_optional'), {
-      target: { value: 'Example Brand' },
-    })
-    expect(screen.queryByLabelText('my_stack_package_quantity')).toBeNull()
+    fireEvent.change(screen.getByLabelText('my_stack_brand_optional'), { target: { value: 'Example Brand' } })
     fireEvent.click(screen.getByRole('checkbox', { name: 'my_stack_inventory_enabled' }))
     fireEvent.change(screen.getByLabelText('my_stack_package_quantity'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('my_stack_package_unit'), { target: { value: 'capsule' } })
     fireEvent.change(screen.getByLabelText('my_stack_remaining_quantity'), { target: { value: '42' } })
-
-    continueWizard()
-    setMethodIfAsked()
-    fireEvent.change(screen.getByLabelText(/my_stack_plan_quantity$/), { target: { value: '1' } })
-    fireEvent.change(screen.getByLabelText('my_stack_plan_unit'), { target: { value: 'capsule' } })
-    continueWizard()
+    // Das Ablaufdatum steht in der Zusammensetzung, hier nicht noch einmal.
+    expect(screen.queryByLabelText(/my_stack_stock_expires_unopened|my_stack_expires_at_optional/)).toBeNull()
 
     expect(screen.getByText('42 capsule')).toBeTruthy()
-    expect(screen.getByText('Example Brand')).toBeTruthy()
+    expect(screen.getAllByText('Example Brand').length).toBeGreaterThan(0)
   })
 
-  it('behaelt den Bestand, wenn die Tracking-Stufe sinkt', async () => {
-    // Frueher wurde er hier weggeworfen: der Bestand hing an 'complete'. Ob
-    // jemand Vorraete fuehrt, hat mit der Messgenauigkeit aber nichts zu tun
-    // — wer die Stufe senkt, will nicht seine Packungsangaben verlieren.
+  it('behaelt den Bestand, wenn die Staerke spaeter uebersprungen wird', async () => {
+    // Ob jemand Vorraete fuehrt, hat mit der Messgenauigkeit nichts zu tun.
     const { onSave } = renderWizard()
-    startCustom('Lower Depth Product')
-    fireEvent.click(screen.getByRole('button', { name: 'dosage_form_capsule' }))
-    continueWizard()
-    continueWizard()
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_complete_title/ }))
-    continueWizard()
-    continueWizard()
-    fireEvent.change(screen.getByLabelText('my_stack_strength_value'), { target: { value: '100' } })
-    fireEvent.change(screen.getByLabelText('my_stack_strength_unit'), { target: { value: 'mg' } })
-    fireEvent.change(screen.getByLabelText('my_stack_basis_value'), { target: { value: '1' } })
-    continueWizard()
-    fireEvent.click(screen.getByRole('button', { name: 'my_stack_product_inventory' }))
+    completeCustomFlow('Lower Depth Product')
     fireEvent.click(screen.getByRole('checkbox', { name: 'my_stack_inventory_enabled' }))
     fireEvent.change(screen.getByLabelText('my_stack_package_quantity'), { target: { value: '60' } })
     fireEvent.change(screen.getByLabelText('my_stack_package_unit'), { target: { value: 'capsule' } })
     fireEvent.change(screen.getByLabelText('my_stack_remaining_quantity'), { target: { value: '42' } })
 
-    for (let index = 0; index < 3; index += 1) {
-      fireEvent.click(screen.getByRole('button', { name: 'back' }))
-    }
-    fireEvent.click(screen.getByRole('radio', { name: /my_stack_tracking_with_amount_title/ }))
-    continueWizard()
-    setMethodIfAsked()
-    fireEvent.change(screen.getByLabelText(/my_stack_plan_quantity$/), { target: { value: '1' } })
-    fireEvent.change(screen.getByLabelText('my_stack_plan_unit'), { target: { value: 'capsule' } })
-    continueWizard()
+    while (!document.querySelector('[data-strength-skip]')) fireEvent.click(screen.getByRole('button', { name: 'back' }))
+    fireEvent.click(screen.getByRole('button', { name: 'my_stack_strength_skip' }))
+    advanceToReview()
+    // Ohne Staerke bucht nichts ab: ein Hinweis statt der Felder. Der Entwurf
+    // behaelt die Angaben fuer „Doch angeben".
+    expect(document.querySelector('[data-inventory-needs-strength]')).not.toBeNull()
+    expect(screen.queryByRole('checkbox', { name: 'my_stack_inventory_enabled' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'save' }))
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
@@ -1529,11 +1468,10 @@ describe('StackItemWizard interactions', () => {
     expect(onClose).not.toHaveBeenCalled()
     expect(screen.getByRole('heading', { name: 'Multi Word Product' })).toBeTruthy()
 
-    for (let index = 0; index < 7; index += 1) {
+    while (!document.querySelector('[data-substance-custom]')) {
       fireEvent.click(screen.getByRole('button', { name: 'back' }))
     }
-    expect((screen.getByLabelText('my_stack_question') as HTMLInputElement).value)
-      .toBe('Multi Word Product')
+    expect(document.querySelector('[data-substance-custom]')!.textContent).toContain('Multi Word Product')
   })
 })
 
@@ -1546,7 +1484,7 @@ describe('StackItemWizard — Bearbeiten-Übersicht', () => {
     const { onClose } = renderWizard({ existingItem: existingVitaminD, existingPlan, metadataOnly: true })
 
     expect(screen.getByText('my_stack_edit_overview_hint')).toBeTruthy()
-    expect(editSections()).toEqual(['substance', 'form', 'tracking', 'composition', 'product'])
+    expect(editSections()).toEqual(['substance', 'composition', 'product'])
     expect(screen.queryByRole('progressbar')).toBeNull()
     expect(document.querySelector('[data-review-rhythm]')).toBeNull()
     expect(screen.getByText('With breakfast')).toBeTruthy()
@@ -1572,15 +1510,13 @@ describe('StackItemWizard — Bearbeiten-Übersicht', () => {
   it('führt aus einem Abschnitt mit „Fertig" zurück zur Übersicht, nicht zum nächsten Schritt', async () => {
     renderWizard({ existingItem: existingVitaminD, existingPlan, metadataOnly: true })
 
-    fireEvent.click(document.querySelector('[data-edit-section="form"]')!)
-    expect(screen.getByRole('button', { name: 'dosage_form_capsule' })).toBeTruthy()
-    // Form und Farbe sind ein Abschnitt: erst weiter zur Farbe, dann fertig.
-    continueWizard()
-    expect(screen.queryByRole('button', { name: 'my_stack_edit_done' })).not.toBeNull()
+    // Form und Farbe stehen im Substanz-Abschnitt — einmal „Fertig" genuegt.
+    fireEvent.click(document.querySelector('[data-edit-section="substance"]')!)
+    expect(screen.getByRole('radio', { name: 'dosage_form_capsule' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'my_stack_edit_done' }))
 
-    expect(editSections()).toHaveLength(5)
-    await waitFor(() => expect(document.activeElement?.getAttribute('data-edit-section')).toBe('form'))
+    expect(editSections()).toHaveLength(3)
+    await waitFor(() => expect(document.activeElement?.getAttribute('data-edit-section')).toBe('substance'))
   })
 
   it('fragt im Substanz-Abschnitt nicht nach „hinzufügen" und geht mit Zurück zur Übersicht', () => {
@@ -1591,7 +1527,7 @@ describe('StackItemWizard — Bearbeiten-Übersicht', () => {
     expect(screen.getByText('my_stack_edit_substance_question')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'back' }))
-    expect(editSections()).toHaveLength(5)
+    expect(editSections()).toHaveLength(3)
   })
 
   it('speichert eine Änderung einmal auf der Übersicht', async () => {

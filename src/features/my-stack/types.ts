@@ -48,6 +48,8 @@ export interface SubstanceCatalogEntry {
   suggested_units: string[]
   suggested_dosage_forms: DosageFormKey[]
   pk_profile_id: string | null
+  /** Eingebettet aus `pk_profiles`: fuer welche Routen das Profil gilt. */
+  pk_profiles?: { routes?: string[] | null } | null
   active: boolean
   // Ein Kombipraeparat nennt hier die kanonischen Namen seiner Bestandteile —
   // „CJC-1295 ohne DAC + Ipamorelin" also die beiden Peptide. Leer oder
@@ -102,6 +104,8 @@ export interface StackItem {
   tracking_level: TrackingLevel
   pk_profile_method: string | null
   archived_at: string | null
+  /** Seit wann Dot die Einnahmen automatisch einträgt (Pro); null = aus. */
+  auto_log_since?: string | null
   created_at: string
   updated_at: string
   ingredients: StackItemIngredient[]

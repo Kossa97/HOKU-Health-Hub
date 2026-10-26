@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>TYD nutzt die Kamera zum Scannen von Barcodes auf Lebensmitteln und Produkten sowie – nach deiner Einwilligung – zum Fotografieren von Etiketten, die zum Auslesen übertragen werden. Es werden keine Bilder gespeichert.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>TYD liest Gesundheitsdaten, um Gewicht, Schritte, Schlaf und Herzfrequenz in deiner Dokumentation anzuzeigen.</string>
 	<key>NSHealthUpdateUsageDescription</key>

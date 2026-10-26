@@ -52,7 +52,9 @@ export function AppBackNavigation({ children }: { children: ReactNode }) {
   const requestBack = useCallback(() => {
     const modal = topmostModal()
     if (modal) {
-      if (dirtyModals.current.has(modal)) {
+      // data-app-back-self-confirm: das Fenster fragt beim Schliessen selbst
+      // nach (eigenes Sheet) — dann kein zweites Browser-Fenster davor.
+      if (dirtyModals.current.has(modal) && !modal.hasAttribute('data-app-back-self-confirm')) {
         const german = (document.documentElement.lang || navigator.language || 'de').toLowerCase().startsWith('de')
         const confirmed = window.confirm(german
           ? 'Ungespeicherte Änderungen verwerfen?'
@@ -79,6 +81,14 @@ export function AppBackNavigation({ children }: { children: ReactNode }) {
         bubbles: true,
         cancelable: true,
       }))
+      return
+    }
+
+    // Seiten ohne Leiste (Ernährung) haben einen eigenen Schließen-Knopf: die Geste löst ihn aus —
+    // so schließt sie auch, wenn man direkt dort eingestiegen ist.
+    const pageClose = document.querySelector<HTMLElement>('[data-app-page-close]')
+    if (pageClose) {
+      pageClose.click()
       return
     }
 

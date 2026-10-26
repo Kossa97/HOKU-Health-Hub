@@ -16,7 +16,8 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 /**
  * Die Skala umfasst den Referenzbereich plus 50% Puffer auf beiden Seiten, damit
- * die grüne Zone mittig sitzt und Ausreißer sichtbar am Rand kleben.
+ * die grüne Zone mittig sitzt und Ausreißer sichtbar am Rand kleben — links
+ * aber nie unter 0.
  * Ohne Obergrenze ist keine sinnvolle Skala bestimmbar — dann kein Balken.
  */
 export function referenceBarGeometry(value: number, range: EffectiveRange): ReferenceBarGeometry | null {
@@ -28,7 +29,9 @@ export function referenceBarGeometry(value: number, range: EffectiveRange): Refe
   if (!(max > min)) return null
 
   const puffer = (max - min) * 0.5
-  const scaleMin = min - puffer
+  // Laborwerte sind nicht negativ: beginnt der Bereich bei 0 oder darueber,
+  // endet die Skala links bei 0 statt bei einer negativen Zahl.
+  const scaleMin = min >= 0 ? Math.max(0, min - puffer) : min - puffer
   const scaleMax = max + puffer
   const spanne = scaleMax - scaleMin
 

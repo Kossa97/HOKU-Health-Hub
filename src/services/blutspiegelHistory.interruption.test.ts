@@ -51,6 +51,25 @@ describe('normalized PK history and projection', () => {
     expect(history.events).toHaveLength(1)
     expect(history.events[0]).toMatchObject({ method: 'Subkutan', dose: 1 })
   })
+  it('folgt ohne Bestaetigung den Routen des Profils und bricht bei einer fremden ab', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const vorher = zyklus.stack_items
+    ;(zyklus as { stack_items: unknown }).stack_items = { pk_profile_method: null, ingredients: [
+      { position: 1, substance_catalog: null },
+      { position: 0, substance_catalog: { pk_profiles: { routes: ['Intramuskulär', 'Subkutan'] } } },
+    ] }
+    try {
+      const row = { stack_item_id: 's1', cycle_id: 'c1', plan_version_id: 'v1', logged_at: '2026-09-18T08:00:00.000Z', dose: 1, unit: 'mg', taken: true, method: 'Subkutan' }
+      historyDb.logs = [row, { ...row, logged_at: '2026-09-18T09:00:00.000Z', method: 'Intramuskulär' },
+        { ...row, logged_at: '2026-09-18T10:00:00.000Z', method: 'Transdermal' }]
+      const history = await loadDoseHistory('c1')
+      expect(history.events.map(e => e.method)).toEqual(['Subkutan', 'Intramuskulär'])
+      expect(history.interruptedAt).toBe('2026-09-18T10:00:00.000Z')
+    } finally {
+      ;(zyklus as { stack_items: unknown }).stack_items = vorher
+    }
+  })
   afterEach(() => { (FEATURES as { planTimelineV2: boolean }).planTimelineV2 = false; vi.useRealTimers(); historyDb.error = null })
   const timeline: CycleTimeline = { cycle: { id: 'c1', stack_item_id: 's1', started_at: '2026-09-01T00:00:00Z', ended_at: null },
     versions: [{ id: 'v1', cycle_id: 'c1', effective_kind: 'local_date', effective_at: null, effective_local_date: '2026-09-01',
@@ -312,5 +331,33 @@ describe('findNextPkDose', () => {
       dose: null,
       unit: null,
     })
+  })
+})
+
+describe('calculateHistoryBlutspiegelCurve: Einnahme zwischen zwei Rasterpunkten', () => {
+  it('steigt erst ab der Einnahme an, nicht schon am Rasterpunkt davor', () => {
+    // Raster ab 00:00 alle 15 min; die zweite Einnahme um 06:13 liegt dazwischen.
+    const curve = calculateHistoryBlutspiegelCurve([
+      { timestamp: new Date('2026-07-20T00:00:00.000Z'), dose: 0, unit: 'mg', status: 'skipped' },
+      { timestamp: new Date('2026-07-20T06:13:00.000Z'), dose: 1, unit: 'mg', status: 'taken' },
+    ], 4, 0.5, 1, 15, new Date('2026-07-20T09:00:00.000Z'))
+    const ms = (iso: string) => new Date(iso).getTime()
+    const punkt = curve.find(p => p.time.getTime() === ms('2026-07-20T06:13:00.000Z'))
+    // genau an der Einnahme ein Punkt, und dort noch 0
+    expect(punkt?.level).toBe(0)
+    expect(curve.filter(p => p.time.getTime() <= ms('2026-07-20T06:13:00.000Z')).every(p => p.level === 0)).toBe(true)
+    expect(curve.some(p => p.time.getTime() > ms('2026-07-20T06:13:00.000Z') && p.level > 0)).toBe(true)
+    // das Raster bleibt erhalten, sortiert
+    expect(curve.some(p => p.time.getTime() === ms('2026-07-20T06:15:00.000Z'))).toBe(true)
+    expect(curve.every((p, i) => i === 0 || p.time.getTime() > curve[i - 1].time.getTime())).toBe(true)
+  })
+
+  it('zwei Einnahmen zur selben Zeit ergeben einen Punkt', () => {
+    const zweimal = { timestamp: new Date('2026-07-20T06:13:00.000Z'), dose: 1, unit: 'mg', status: 'taken' as const }
+    const curve = calculateHistoryBlutspiegelCurve([
+      { timestamp: new Date('2026-07-20T00:00:00.000Z'), dose: 0, unit: 'mg', status: 'skipped' },
+      zweimal, { ...zweimal },
+    ], 4, 0.5, 1, 15, new Date('2026-07-20T09:00:00.000Z'))
+    expect(curve.filter(p => p.time.getTime() === zweimal.timestamp.getTime())).toHaveLength(1)
   })
 })

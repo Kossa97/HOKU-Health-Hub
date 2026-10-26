@@ -178,6 +178,17 @@ describe('produktAngaben', () => {
       .toEqual({ art: 'leer', grund: 'nicht_gesetzt' })
   })
 
+  test('der laufende Plan schlaegt die Altspalte — auch ihr Ersatzwert „Andere"', () => {
+    // Die Seite fuellt eine leere Altspalte mit „Andere"; das stand im
+    // Vollbild ueber „Subkutan" aus dem Plan.
+    const angaben = produktAngaben({
+      ...ausDemAssistenten(),
+      item: { ...ausDemAssistenten().item, default_method: 'Andere' },
+      zyklusMethode: 'Subkutan',
+    })
+    expect(angaben.applikation).toEqual({ art: 'text', text: 'Subkutan', herkunft: 'zyklus' })
+  })
+
   test('führt ein Kombipräparat mit allen Zutaten', () => {
     const kombi = ausDemAssistenten()
     kombi.item.ingredients = [

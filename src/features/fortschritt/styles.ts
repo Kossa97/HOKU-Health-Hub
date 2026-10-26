@@ -7,9 +7,9 @@ export const panel: CSSProperties = {
 }
 
 export const sectionLabel: CSSProperties = {
-  fontSize: '0.62rem',
+  fontSize: '0.68rem',
   fontWeight: 800,
-  letterSpacing: '0.13em',
+  letterSpacing: '0.1em',
   textTransform: 'uppercase',
   color: 'var(--text-muted)',
 }
@@ -53,9 +53,9 @@ export const inputStyle: CSSProperties = {
 }
 
 export const fieldLabel: CSSProperties = {
-  fontSize: '0.6rem',
+  fontSize: '0.68rem',
   fontWeight: 800,
-  letterSpacing: '0.12em',
+  letterSpacing: '0.08em',
   textTransform: 'uppercase',
   color: 'var(--text-muted)',
   display: 'block',

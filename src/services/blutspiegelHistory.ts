@@ -5,6 +5,8 @@ import { addDays, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import {
+  pkRouteAccepted,
+  pkRouteStatus,
   resolvePkScheduleForDay,
   toPkMilligrams,
   type PkScheduleCycle,
@@ -12,6 +14,7 @@ import {
 } from '../features/my-stack/lib/pkReadiness'
 import { cycleAppliesToDay, findNextTimelineIntake, type EscalationRow } from '../lib/intakeSchedule'
 import { resolveCycleAt } from '../lib/planTimeline'
+import { pkRates, singleDoseLevel } from '../lib/pkModel'
 
 export type BlutspiegelTrend = 'rising' | 'falling' | 'stable'
 
@@ -21,7 +24,8 @@ export interface CurrentBlutspiegelLevel {
   sparkData: number[]
   nextDoseIn: string
   levelAfterNextDose: number | null
-  peakLabel: string
+  /** Abstand des hoechsten Spiegels zum Berechnungszeitpunkt (ms, negativ = vorbei); null ohne Kurve. Formatiert wird in der Oberflaeche. */
+  peakInMs: number | null
   unit: string
   interruptedAt: string | null
 }
@@ -228,26 +232,40 @@ interface NormalisierteZeile {
 function zuEreignissen(
   zeilen: NormalisierteZeile[],
   profileMethod: string | undefined,
+  profileRoutes: readonly string[] | null = null,
 ): DoseHistory {
   const events: DoseEvent[] = []
   for (const row of zeilen) {
     const dose = row.dose == null ? null : Number(row.dose)
-    if (!row.method?.trim() || !profileMethod?.trim()
-      || row.method.trim().toLocaleLowerCase() !== profileMethod.trim().toLocaleLowerCase()) {
+    // Eine Einnahme ueber eine Route, fuer die das Profil nicht gilt, beendet
+    // die Kurve — bestaetigt oder vom Profil abgedeckt muss sie sein.
+    if (!pkRouteAccepted(pkRouteStatus(row.method, profileMethod, profileRoutes))) {
       return { events, interruptedAt: row.logged_at }
     }
     if (dose == null || !Number.isFinite(dose) || !row.unit?.trim()) {
       return { events, interruptedAt: row.logged_at }
     }
     events.push({ timestamp: new Date(row.logged_at), dose, unit: row.unit, status: 'taken',
-      cycleId: row.cycle_id, planVersionId: row.plan_version_id, method: row.method })
+      cycleId: row.cycle_id, planVersionId: row.plan_version_id, method: row.method ?? undefined })
   }
   return { events, interruptedAt: null }
 }
 
+interface ZyklusSubstanz {
+  pk_profile_method?: string | null
+  ingredients?: Array<{ position: number; substance_catalog: { pk_profiles: { routes?: string[] | null } | null } | null }> | null
+}
+
+/** Routen des ersten verknuepften Profils — dasselbe Profil, das die Bereitschaft prueft. */
+function ersteProfilRouten(item: ZyklusSubstanz | null): string[] | null {
+  const zutaten = (item?.ingredients ?? []).slice().sort((a, b) => a.position - b.position)
+  return zutaten.find(z => z.substance_catalog?.pk_profiles)?.substance_catalog?.pk_profiles?.routes ?? null
+}
+
 async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHistory>> {
   const { data: cycleRows, error } = await supabase.from('cycles')
-    .select('id, stack_item_id, started_at, ended_at, start_local_date, end_local_date, stack_items(pk_profile_method)')
+    .select(`id, stack_item_id, started_at, ended_at, start_local_date, end_local_date,
+      stack_items(pk_profile_method, ingredients:stack_item_ingredients(position, substance_catalog(pk_profiles(routes))))`)
     .in('id', cycleIds)
   if (error) throw error
 
@@ -303,8 +321,8 @@ async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHi
     )
     const zeilen = [...(exaktNachZyklus.get(zyklus.id) ?? []), ...alt]
       .sort((a, b) => a.logged_at.localeCompare(b.logged_at))
-    const profileMethod = (zyklus.stack_items as unknown as { pk_profile_method?: string } | null)?.pk_profile_method
-    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, profileMethod))
+    const item = zyklus.stack_items as unknown as ZyklusSubstanz | null
+    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, item?.pk_profile_method ?? undefined, ersteProfilRouten(item)))
   }
   return ergebnisse
 }
@@ -315,23 +333,6 @@ export interface BlutspiegelCurvePoint {
   status: 'actual' | 'planned'
 }
 
-function doseContributionAt(
-  dose: number,
-  bioavailability: number,
-  deltaTHours: number,
-  ke: number,
-  ka: number,
-): number {
-  if (deltaTHours <= 0) return 0
-
-  const scaled = dose * bioavailability
-  if (Math.abs(ka - ke) < 1e-8) {
-    return scaled * ka * deltaTHours * Math.exp(-ke * deltaTHours)
-  }
-  return scaled * (ka / (ka - ke)) * (Math.exp(-ke * deltaTHours) - Math.exp(-ka * deltaTHours))
-}
-
-/** Berechnet den Blutspiegel-Verlauf basierend auf echten Einnahme-Events. */
 /**
  * Was eine geplante Menge in Milligramm uebersetzt.
  *
@@ -352,6 +353,7 @@ export interface DoseUmrechnung {
   mgPerMl?: number | null
 }
 
+/** Berechnet den Blutspiegel-Verlauf basierend auf echten Einnahme-Events. */
 export function calculateHistoryBlutspiegelCurve(
   events: DoseEvent[],
   halfLifeHours: number,
@@ -364,55 +366,17 @@ export function calculateHistoryBlutspiegelCurve(
   // verschwinden, und dasselbe gilt fuer ein in Millilitern geplantes Vial.
   umrechnung: DoseUmrechnung = {},
 ): BlutspiegelCurvePoint[] {
-  if (events.length === 0 || halfLifeHours <= 0 || tmaxHours <= 0 || resolutionMinutes <= 0) {
-    return []
-  }
-
-  const ke = Math.LN2 / halfLifeHours
-  const ka = Math.LN2 / tmaxHours
-  const start = events[0].timestamp
-  const end = interruptedAt ?? new Date()
-
-  if (start.getTime() > end.getTime()) return []
-
-  const stepMs = resolutionMinutes * 60_000
-  const raw: BlutspiegelCurvePoint[] = []
-
-  const latestActualTimestamp = Math.max(...events
-    .filter(event => event.status === 'taken')
-    .map(event => event.timestamp.getTime()))
-  const withinEnd = interruptedAt
-    ? (timestamp: number) => timestamp < end.getTime()
-    : (timestamp: number) => timestamp <= end.getTime()
-
-  for (let tMs = start.getTime(); withinEnd(tMs); tMs += stepMs) {
-    let total = 0
-
-    for (const event of events) {
-      if (event.status === 'skipped') continue
-      const doseMg = toPkMilligrams(event.dose, event.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null)
-      if (doseMg == null) continue
-      const deltaTHours = (tMs - event.timestamp.getTime()) / 3_600_000
-      total += doseContributionAt(doseMg, bioavailability, deltaTHours, ke, ka)
-    }
-
-    raw.push({
-      time: new Date(tMs),
-      level: Math.max(0, total),
-      status: tMs <= latestActualTimestamp ? 'actual' : 'planned',
-    })
-  }
-
-  const peak = Math.max(...raw.map(p => p.level), 0)
-  if (peak <= 0) {
-    return raw.map(p => ({ ...p, level: 0 }))
-  }
-
-  return raw.map(p => ({
-    time: p.time,
-    level: (p.level / peak) * 100,
-    status: p.status,
-  }))
+  return calculateCurveTo(
+    events,
+    interruptedAt ?? new Date(),
+    halfLifeHours,
+    tmaxHours,
+    bioavailability,
+    resolutionMinutes,
+    umrechnung,
+    // Bei einer Unterbrechung endet die Kurve VOR der unbrauchbaren Einnahme.
+    interruptedAt != null,
+  )
 }
 
 // ─── Aktueller Spiegel (Live) ────────────────────────────────────────────────
@@ -429,7 +393,7 @@ const EMPTY_CURRENT_LEVEL: CurrentBlutspiegelLevel = {
   sparkData: Array(20).fill(0),
   nextDoseIn: '—',
   levelAfterNextDose: 0,
-  peakLabel: '—',
+  peakInMs: null,
   unit: 'mcg',
   interruptedAt: null,
 }
@@ -513,30 +477,54 @@ function calculateCurveTo(
   bioavailability: number,
   resolutionMinutes: number,
   umrechnung: DoseUmrechnung = {},
+  endExclusive = false,
 ): BlutspiegelCurvePoint[] {
-  if (events.length === 0 || halfLifeHours <= 0 || tmaxHours <= 0 || resolutionMinutes <= 0) {
-    return []
-  }
+  const rates = pkRates(halfLifeHours, tmaxHours)
+  if (events.length === 0 || !rates || resolutionMinutes <= 0) return []
 
-  const ke = Math.LN2 / halfLifeHours
-  const ka = Math.LN2 / tmaxHours
   const start = events[0].timestamp
   if (start.getTime() > end.getTime()) return []
 
   const stepMs = resolutionMinutes * 60_000
+  const endMs = end.getTime()
   const raw: BlutspiegelCurvePoint[] = []
   const latestActualTimestamp = Math.max(...events
     .filter(event => event.status === 'taken')
     .map(event => event.timestamp.getTime()))
+  // Umrechnung einmal je Einnahme statt je Kurvenpunkt.
+  const doses = events
+    .filter(event => event.status !== 'skipped')
+    .map(event => ({
+      ms: event.timestamp.getTime(),
+      mg: toPkMilligrams(event.dose, event.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null),
+    }))
+    .filter((dose): dose is { ms: number; mg: number } => dose.mg != null)
+    .sort((a, b) => a.ms - b.ms)
+  // Nach 20 Halbwertszeiten der langsameren Konstante bleibt weniger als ein
+  // Millionstel einer Dosis — sie faellt aus der Summe. Bei langen Verlaeufen
+  // spart das den Grossteil der Rechnung (nur die juengeren Dosen zaehlen).
+  const horizonMs = 20 * (Math.LN2 / Math.min(rates.ka, rates.ke)) * 3_600_000
+  let oldest = 0
 
-  for (let tMs = start.getTime(); tMs <= end.getTime(); tMs += stepMs) {
+  // Raster plus jede Einnahme als eigener Punkt: sonst laege eine Einnahme
+  // zwischen zwei Rasterpunkten, und die Linie stiege sichtbar schon vorher an.
+  const imBereich = (ms: number) => ms >= start.getTime() && (endExclusive ? ms < endMs : ms <= endMs)
+  const zeiten: number[] = []
+  for (let tMs = start.getTime(); imBereich(tMs); tMs += stepMs) zeiten.push(tMs)
+  const raster = new Set(zeiten)
+  for (const dose of doses) {
+    if (!imBereich(dose.ms) || raster.has(dose.ms)) continue
+    raster.add(dose.ms) // zwei Einnahmen zur selben Zeit: ein Punkt
+    zeiten.push(dose.ms)
+  }
+  zeiten.sort((a, b) => a - b)
+
+  for (const tMs of zeiten) {
     let total = 0
-    for (const event of events) {
-      if (event.status === 'skipped') continue
-      const doseMg = toPkMilligrams(event.dose, event.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null)
-      if (doseMg == null) continue
-      const deltaTHours = (tMs - event.timestamp.getTime()) / 3_600_000
-      total += doseContributionAt(doseMg, bioavailability, deltaTHours, ke, ka)
+    while (oldest < doses.length && tMs - doses[oldest].ms > horizonMs) oldest++
+    for (let i = oldest; i < doses.length && doses[i].ms < tMs; i++) {
+      const dose = doses[i]
+      total += singleDoseLevel(dose.mg, bioavailability, (tMs - dose.ms) / 3_600_000, rates)
     }
     raw.push({
       time: new Date(tMs),
@@ -580,25 +568,13 @@ function sampleSparkData(curve: BlutspiegelCurvePoint[], count = 10): number[] {
   return result
 }
 
-function peakLabelFromCurve(curve: BlutspiegelCurvePoint[], now: Date): string {
-  if (!curve.length) return '—'
-
+function peakOffsetFromCurve(curve: BlutspiegelCurvePoint[], now: Date): number | null {
+  if (!curve.length) return null
   let peakPoint = curve[0]
   for (const p of curve) {
     if (p.level >= peakPoint.level) peakPoint = p
   }
-
-  const diffMs = peakPoint.time.getTime() - now.getTime()
-  const absH = Math.abs(diffMs) / 3_600_000
-
-  if (diffMs < 0) {
-    if (absH < 1) return 'vor <1h'
-    if (absH < 24) return `vor ${Math.round(absH)}h`
-    return `vor ${Math.round(absH / 24)}T`
-  }
-  if (absH < 1) return 'in <1h'
-  if (absH < 24) return `in ${Math.round(absH)}h`
-  return `in ${Math.round(absH / 24)}T`
+  return peakPoint.time.getTime() - now.getTime()
 }
 
 function computeTrend(current: number, previous: number): BlutspiegelTrend {
@@ -617,6 +593,7 @@ export async function getCurrentBlutspiegelLevel(
   bioavailability: number = 1.0,
   umrechnung: DoseUmrechnung = {},
   pkProfileMethod: string | null = null,
+  pkProfileRoutes: readonly string[] | null = null,
 ): Promise<CurrentBlutspiegelLevel> {
   const history = await loadDoseHistory(cycle.id)
   const { events, interruptedAt } = history
@@ -626,8 +603,7 @@ export async function getCurrentBlutspiegelLevel(
   const cycleUnit = schedule ? schedule.unit ?? 'mcg' : '—'
   const nextDose = findNextPkDose(cycle, escalations, now)
   const canProject = Boolean(nextDose && (!FEATURES.planTimelineV2 || (
-    schedule && pkProfileMethod?.trim()
-    && nextDose.method?.trim().toLocaleLowerCase() === pkProfileMethod.trim().toLocaleLowerCase()
+    schedule && pkRouteAccepted(pkRouteStatus(nextDose.method, pkProfileMethod, pkProfileRoutes))
     && nextDose.dose != null && nextDose.dose > 0 && nextDose.unit
     && toPkMilligrams(nextDose.dose, nextDose.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null) != null
   )))
@@ -710,7 +686,7 @@ export async function getCurrentBlutspiegelLevel(
     sparkData,
     nextDoseIn,
     levelAfterNextDose,
-    peakLabel: peakLabelFromCurve(curve, now),
+    peakInMs: peakOffsetFromCurve(curve, now),
     unit: cycleUnit,
     interruptedAt,
   }

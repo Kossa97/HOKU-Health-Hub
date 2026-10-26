@@ -35,7 +35,7 @@ export function DeleteSubstanceDialog({
     <>
       {deletePromptPeptide && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/80 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-10"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/80 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
           data-app-modal
           data-archive-delete-confirmation={deletePromptFromArchive ? '' : undefined}
           onClick={() => {
@@ -46,38 +46,38 @@ export function DeleteSubstanceDialog({
           }}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl"
+            className="w-full max-w-md rounded-[28px] bg-[#1c1c1e] p-5 shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-peptide-title"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+              <span className="lg-icon-tile !h-10 !w-10 !rounded-xl bg-[#ff9f0a]">
                 <AlertTriangle size={20} />
               </span>
               <div className="min-w-0">
-                <h2 id="delete-peptide-title" className="text-lg font-bold text-white">{t('substanz_entfernen_title')}</h2>
-                <p className="mt-0.5 truncate text-sm text-slate-400">{deletePromptPeptide.name}</p>
+                <h2 id="delete-peptide-title" className="text-[20px] font-bold text-[var(--lg-text)]">{t('substanz_entfernen_title')}</h2>
+                <p className="mt-0.5 truncate text-[15px] text-[var(--lg-text-3)]">{deletePromptPeptide.name}</p>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 overflow-hidden rounded-[20px] bg-[#2c2c2e] [&>*+*]:border-t [&>*+*]:border-[var(--lg-separator)]">
               {!deletePromptFromArchive && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-                  <p className="flex items-center gap-1.5 text-sm font-semibold text-cyan-300">
+                <div className="px-4 py-3">
+                  <p className="flex items-center gap-1.5 text-[15px] font-semibold text-[#64d2ff]">
                     <Archive size={15} /> {t('archivieren_behalten')}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">{t('archivieren_behalten_desc')}</p>
+                  <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-2)]">{t('archivieren_behalten_desc')}</p>
                 </div>
               )}
-              <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-red-300">
+              <div className="px-4 py-3">
+                <p className="flex items-center gap-1.5 text-[15px] font-semibold text-[#ff6961]">
                   <Trash2 size={15} /> {t('endgueltig_loeschen')}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">{t('endgueltig_loeschen_desc')}</p>
+                <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-2)]">{t('endgueltig_loeschen_desc')}</p>
                 {bewertungen !== null && bewertungen > 0 && (
-                  <p data-delete-reviews className="mt-1 text-xs font-semibold text-red-300">
+                  <p data-delete-reviews className="mt-1 text-[13px] font-semibold text-[#ff6961]">
                     {bewertungen === 1
                       ? t('review_substance_delete_one')
                       : t('review_substance_delete_many', { n: bewertungen })}
@@ -92,7 +92,7 @@ export function DeleteSubstanceDialog({
                   type="button"
                   onClick={() => archivePeptide(deletePromptPeptide)}
                   disabled={deletingPeptide}
-                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/15 px-4 text-sm font-bold text-cyan-200 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/25 disabled:opacity-50"
+                  className="lg-btn lg-btn-primary w-full disabled:opacity-50"
                 >
                   <Archive size={16} /> {t('archivieren_behalten')}
                 </button>
@@ -102,7 +102,7 @@ export function DeleteSubstanceDialog({
                 autoFocus={deletePromptFromArchive}
                 onClick={() => hardDeletePeptide(deletePromptPeptide)}
                 disabled={deletingPeptide}
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/15 px-4 text-sm font-bold text-red-200 transition-colors hover:border-red-400/60 hover:bg-red-500/25 disabled:opacity-50"
+                className="lg-btn lg-btn-danger w-full disabled:opacity-50"
               >
                 <Trash2 size={16} /> {t('endgueltig_loeschen')}
               </button>
@@ -111,7 +111,7 @@ export function DeleteSubstanceDialog({
                 onClick={() => { setDeletePromptFromArchive(false); setDeletePromptPeptide(null); window.requestAnimationFrame(() => archiveCloseButtonRef.current?.focus()) }}
                 data-app-back-close
                 disabled={deletingPeptide}
-                className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-white disabled:opacity-50"
+                className="lg-gray-btn w-full !min-h-12 !text-[17px] disabled:opacity-50" data-quiet
               >
                 {t('cancel')}
               </button>

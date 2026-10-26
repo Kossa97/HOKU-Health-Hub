@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { BloodworkEntry } from '../types'
 import { normalizeMarker } from './markerCatalog'
 import {
+  AUFFAELLIG,
   auffaelligeWerte,
   buildMarkerSummaries,
+  roundConverted,
   computeTrend,
   effectiveRange,
+  entryInRange,
   filterByKategorie,
   isInRange,
   sortSummaries,
   toNumber,
+  ungepruefteWerte,
 } from './bloodwork'
 
 const entry = (over: Partial<BloodworkEntry> = {}): BloodworkEntry => ({
@@ -68,7 +72,7 @@ describe('effectiveRange', () => {
 
   it('übernimmt einen einseitigen Katalog-Bereich', () => {
     const range = effectiveRange(entry({ marker: 'CRP' }), normalizeMarker('CRP'))
-    expect(range).toEqual({ min: null, max: 1.0, source: 'catalog' })
+    expect(range).toEqual({ min: null, max: 5, source: 'catalog' })
   })
 
   it('meldet "none" ohne Eintrag und ohne Katalog-Definition', () => {
@@ -233,6 +237,22 @@ describe('auffaelligeWerte', () => {
     expect(auffaelligeWerte(summaries)).toEqual([])
   })
 
+  it('der Filter „Auffällige“ liefert genau die auffaelligen Marker', () => {
+    const summaries = buildMarkerSummaries([
+      entry({ id: 'hoch', marker: 'Testosteron', value: 1200 }),
+      entry({ id: 'ok', marker: 'Ferritin', value: 100, unit: 'ng/mL' }),
+    ])
+    expect(filterByKategorie(summaries, AUFFAELLIG).map(s => s.name)).toEqual(['Testosteron'])
+  })
+
+  it('zaehlt Gemessenes ohne Referenzbereich als ungeprueft — nicht als „im Bereich"', () => {
+    const summaries = buildMarkerSummaries([
+      entry({ id: 'frei', marker: 'Phantasiewert', value: 999 }),
+      entry({ id: 'ok', marker: 'Ferritin', value: 100, unit: 'ng/mL' }),
+    ])
+    expect(ungepruefteWerte(summaries).map(s => s.name)).toEqual(['Phantasiewert'])
+  })
+
   it('ignoriert ungetestete Marker', () => {
     expect(auffaelligeWerte(buildMarkerSummaries([]))).toEqual([])
   })
@@ -273,15 +293,15 @@ describe('buildMarkerSummaries – Einheiten-Umrechnung', () => {
   })
 
   it('lässt einen Punkt weg, der nicht in die Anzeige-Einheit passt', () => {
-    // Neuester Wert in ng/dL -> displayUnit ng/dL; der ältere molare Wert (nmol/L)
-    // ist nicht umrechenbar und wird als null-Punkt markiert.
+    // Prolaktin: neuester Wert in ng/mL; der aeltere in mU/L (biologische IE)
+    // ist ohne Stoffwissen nicht umrechenbar und wird als null-Punkt markiert.
     const summaries = buildMarkerSummaries([
-      entry({ id: 'a', tested_at: '2026-07-15', value: 738, unit: 'ng/dL' }),
-      entry({ id: 'b', tested_at: '2026-02-22', value: 20, unit: 'nmol/L' }),
+      entry({ id: 'a', marker: 'Prolaktin', tested_at: '2026-07-15', value: 12, unit: 'ng/mL' }),
+      entry({ id: 'b', marker: 'Prolaktin', tested_at: '2026-02-22', value: 306, unit: 'mU/L' }),
     ])
-    const t = summaries.find(s => s.name === 'Testosteron')!
-    expect(t.displayUnit).toBe('ng/dL')
-    expect(t.points.find(p => p.entry.id === 'a')!.value).toBeCloseTo(738, 3)
+    const t = summaries.find(s => s.name === 'Prolaktin')!
+    expect(t.displayUnit).toBe('ng/mL')
+    expect(t.points.find(p => p.entry.id === 'a')!.value).toBeCloseTo(12, 3)
     expect(t.points.find(p => p.entry.id === 'b')!.value).toBeNull()
   })
 
@@ -305,14 +325,25 @@ describe('buildMarkerSummaries – Einheiten-Umrechnung', () => {
     expect(t.range.source).toBe('lab')
   })
 
-  it('zeigt einen molaren Wert in seiner Einheit, meldet inRange aber als unbekannt', () => {
-    // Testosteron in nmol/L: nicht in die ng/dL-Katalog-Einheit umrechenbar, daher
-    // wird der Wert in nmol/L angezeigt und gegen den ng/dL-Katalogbereich nicht beurteilt.
-    const summaries = buildMarkerSummaries([entry({ value: 20, unit: 'nmol/L' })])
-    const t = summaries.find(s => s.name === 'Testosteron')!
-    expect(t.displayUnit).toBe('nmol/L')
-    expect(t.displayValue).toBe(20)
+  it('zeigt einen nicht umrechenbaren Wert in seiner Einheit, meldet inRange aber als unbekannt', () => {
+    // Prolaktin in mU/L: nicht in die ng/mL-Katalog-Einheit umrechenbar, daher
+    // wird der Wert in mU/L angezeigt und gegen den ng/mL-Katalogbereich nicht beurteilt.
+    const summaries = buildMarkerSummaries([entry({ marker: 'Prolaktin', value: 306, unit: 'mU/L' })])
+    const t = summaries.find(s => s.name === 'Prolaktin')!
+    expect(t.displayUnit).toBe('mU/L')
+    expect(t.displayValue).toBe(306)
     expect(t.inRange).toBeNull()
+  })
+
+  it('rechnet Testosteron in nmol/L mit dem veroeffentlichten Faktor in ng/dL um', () => {
+    const summaries = buildMarkerSummaries([
+      entry({ id: 'a', tested_at: '2026-07-15', value: 738, unit: 'ng/dL' }),
+      entry({ id: 'b', tested_at: '2026-02-22', value: 20, unit: 'nmol/L' }),
+    ])
+    const t = summaries.find(s => s.name === 'Testosteron')!
+    expect(t.displayUnit).toBe('ng/dL')
+    expect(t.points.find(p => p.entry.id === 'b')!.value).toBe(576)
+    expect(t.trend).toBe('up')
   })
 
   it('prüft einen molaren Wert gegen eine gleich-einheitige Labor-Referenz', () => {
@@ -321,8 +352,82 @@ describe('buildMarkerSummaries – Einheiten-Umrechnung', () => {
       entry({ value: 35, unit: 'nmol/L', ref_min: 12, ref_max: 30 }),
     ])
     const t = summaries.find(s => s.name === 'Testosteron')!
-    expect(t.displayUnit).toBe('nmol/L')
-    expect(t.displayValue).toBe(35)
+    // angezeigt in ng/dL, die Labor-Referenz wird mit demselben Faktor umgerechnet
+    expect(t.displayUnit).toBe('ng/dL')
+    expect(t.displayValue).toBe(1009)
+    expect(t.range.min).toBe(346)
     expect(t.inRange).toBe(false)
+  })
+})
+
+describe('roundConverted', () => {
+  it('rundet laborueblich nach Groessenordnung', () => {
+    expect(roundConverted(733.631)).toBe(734)
+    expect(roundConverted(45.457)).toBe(45.5)
+    expect(roundConverted(1.2345)).toBe(1.23)
+    expect(roundConverted(0.012345)).toBe(0.0123)
+    expect(roundConverted(-5.554)).toBe(-5.55)
+  })
+})
+
+describe('buildMarkerSummaries – gewaehlte Einheiten', () => {
+  const daten = [
+    entry({ id: 'a', tested_at: '2026-07-15', value: 1310, unit: 'ng/dL', ref_min: 349, ref_max: 1110 }),
+    entry({ id: 'b', tested_at: '2026-02-22', value: 25, unit: 'nmol/L' }),
+  ]
+
+  it('zeigt im SI-System nmol/L, samt Bereich und Veraenderung', () => {
+    const t = buildMarkerSummaries(daten, { system: 'si' }).find(s => s.name === 'Testosteron')!
+    expect(t.displayUnit).toBe('nmol/L')
+    // gerundet wie im Labor: 45,457 → 45,5; 38,517 → 38,5
+    expect(t.displayValue).toBe(45.5)
+    expect(t.range.max).toBe(38.5)
+    expect(t.inRange).toBe(false)
+    expect(t.diff).toBeCloseTo(20.5, 9)
+  })
+
+  it('eine Wahl je Marker gilt vor dem System', () => {
+    const t = buildMarkerSummaries(daten, { system: 'si', marker: { Testosteron: 'ng/mL' } }).find(s => s.name === 'Testosteron')!
+    expect(t.displayUnit).toBe('ng/mL')
+    expect(t.displayValue).toBeCloseTo(13.1, 6)
+  })
+
+  it('faellt auf die Katalog-Einheit zurueck, wenn die Wahl nicht umrechenbar ist', () => {
+    const t = buildMarkerSummaries(daten, { marker: { Testosteron: 'mU/L' } }).find(s => s.name === 'Testosteron')!
+    expect(t.displayUnit).toBe('ng/dL')
+  })
+
+  it('urteilt mit ungerundeten Werten: knapp ueber der Grenze bleibt auffaellig, auch in SI', () => {
+    const knapp = [entry({ value: 1110.5, unit: 'ng/dL', ref_min: 349, ref_max: 1110 })]
+    const si = buildMarkerSummaries(knapp, { system: 'si' }).find(s => s.name === 'Testosteron')!
+    // angezeigt beide als 38,5 — das Urteil bleibt trotzdem „ausserhalb"
+    expect(si.displayValue).toBe(38.5)
+    expect(si.range.max).toBe(38.5)
+    expect(si.inRange).toBe(false)
+  })
+
+  it('zeigt Werte ohne Einheit weiterhin an', () => {
+    const h = buildMarkerSummaries([entry({ marker: 'HOMA-Index', value: 1.4, unit: '' })]).find(s => s.name === 'HOMA-Index')!
+    expect(h.displayValue).toBe(1.4)
+  })
+
+  it('Marker ohne SI-Faktor bleiben im SI-System in ihrer Einheit', () => {
+    const p = buildMarkerSummaries([entry({ marker: 'Prolaktin', value: 12, unit: 'ng/mL' })], { system: 'si' })
+      .find(s => s.name === 'Prolaktin')!
+    expect(p.displayUnit).toBe('ng/mL')
+  })
+})
+
+describe('entryInRange', () => {
+  const testo = normalizeMarker('Testosteron')
+  it('nimmt den Laborbereich des Eintrags, sonst den Katalog', () => {
+    expect(entryInRange(entry({ marker: 'Testosteron', value: 950, unit: 'ng/dL', ref_min: 300, ref_max: 1000 }), testo, 'ng/dL')).toBe(true)
+    expect(entryInRange(entry({ marker: 'Testosteron', value: 950, unit: 'ng/dL', ref_min: null, ref_max: null }), testo, 'ng/dL')).toBe(false)
+  })
+  it('rechnet Wert und Bereich in die Anzeige-Einheit', () => {
+    expect(entryInRange(entry({ marker: 'Testosteron', value: 20, unit: 'nmol/L', ref_min: 10, ref_max: 30 }), testo, 'ng/dL')).toBe(true)
+  })
+  it('ohne Bereich kein Urteil', () => {
+    expect(entryInRange(entry({ marker: 'Eigenwert', value: 5, unit: 'x', ref_min: null, ref_max: null }), null, 'x')).toBeNull()
   })
 })

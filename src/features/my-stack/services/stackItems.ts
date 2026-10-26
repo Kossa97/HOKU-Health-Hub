@@ -60,6 +60,10 @@ interface StackItemReconstitutionUpdate {
   vials_initial: number
 }
 
+interface StackItemAutoLogUpdate {
+  auto_log_since: string | null
+}
+
 interface SaveStackItemIngredient {
   catalog_substance_id: string | null
   custom_name: string
@@ -173,7 +177,7 @@ export interface StackItemQueryClient {
 
 export interface StackItemMutationClient {
   from(table: 'stack_items'): {
-    update(values: StackItemArchiveUpdate | StackItemReconstitutionUpdate): {
+    update(values: StackItemArchiveUpdate | StackItemReconstitutionUpdate | StackItemAutoLogUpdate): {
       eq(column: 'id', value: string): PromiseLike<StackItemMutationResult>
     }
     delete(): {
@@ -252,7 +256,7 @@ function nullableText(value: string): string | null {
 function ingredientForSave(ingredient: StackItemIngredient): SaveStackItemIngredient {
   return {
     catalog_substance_id: nullableText(ingredient.catalog_substance_id ?? ''),
-    custom_name: ingredient.custom_name.trim(),
+    custom_name: (ingredient.custom_name ?? '').trim(),
     amount_value: ingredient.amount_value,
     amount_unit: nullableText(ingredient.amount_unit ?? ''),
     basis_value: ingredient.basis_value,
@@ -494,7 +498,13 @@ export async function loadStackItems(
     .order('created_at', { ascending: false })
 
   throwIfError(error)
-  return data ?? []
+  // In der Datenbank ist `custom_name` bei Katalog-Zutaten oft NULL (aeltere
+  // Eintraege, Migrationen). Der Client rechnet ueberall mit Text — ein NULL
+  // liess das Speichern nach dem Bearbeiten abstuerzen (JAVASCRIPT-REACT-5).
+  return (data ?? []).map(item => ({
+    ...item,
+    ingredients: (item.ingredients ?? []).map(zutat => ({ ...zutat, custom_name: zutat.custom_name ?? '' })),
+  }))
 }
 
 /**
@@ -619,6 +629,20 @@ export async function restoreStackItem(
   const { error } = await client
     .from('stack_items')
     .update({ archived: false, archived_at: null })
+    .eq('id', id)
+
+  throwIfError(error)
+}
+
+/** Dot trägt die Einnahmen automatisch ein (seit `seit`), oder nicht mehr (null). */
+export async function setStackItemAutoLog(
+  client: StackItemMutationClient,
+  id: string,
+  seit: string | null,
+): Promise<void> {
+  const { error } = await client
+    .from('stack_items')
+    .update({ auto_log_since: seit })
     .eq('id', id)
 
   throwIfError(error)

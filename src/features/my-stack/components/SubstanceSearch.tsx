@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Plus, Search, X } from 'lucide-react'
+import { AlertCircle, Check, Plus, ScanLine, Search, X } from 'lucide-react'
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { STACK_CATEGORIES } from '../lib/categories'
@@ -25,6 +25,16 @@ export interface SubstanceSearchProps {
   onCategoryChange: (category: StackCategory) => void
   /** Die Frage ueber dem Suchfeld — beim Bearbeiten nicht „hinzufuegen". */
   question?: string
+  /** Barcode oder Etikett scannen. Fehlt, wo nicht neu angelegt wird. */
+  onScan?: () => void
+  /**
+   * Als eigene Substanz bestaetigt. Erst dann fragt die Seite nach der
+   * Kategorie — getippter Text allein waehlt noch nichts, und ein Treffer
+   * bringt seine Kategorie mit.
+   */
+  customConfirmed?: boolean
+  /** Eigene Substanz zuruecknehmen: wieder suchen. */
+  onUndoCustom?: () => void
 }
 
 export function SubstanceSearch({
@@ -42,6 +52,9 @@ export function SubstanceSearch({
   onDetach,
   onCategoryChange,
   question,
+  onScan,
+  customConfirmed = false,
+  onUndoCustom,
 }: SubstanceSearchProps) {
   const { t } = useTranslation()
   const hasQuery = query.trim().length > 0
@@ -59,7 +72,7 @@ export function SubstanceSearch({
   // kein zweiter Weg daneben. Genau das fehlte — der Zustand „gewaehlt“ hatte
   // kein Aussehen, deshalb liess er sich mit einem Tastendruck zerstoeren,
   // ohne dass jemand es sah.
-  const showResults = !selectedEntry && hasQuery && entries.length > 0 && !resultsDismissed
+  const showResults = !selectedEntry && !customConfirmed && hasQuery && entries.length > 0 && !resultsDismissed
 
   function handleResultsKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
     if (event.key === 'Escape') {
@@ -121,25 +134,59 @@ export function SubstanceSearch({
               <X aria-hidden="true" size={18} />
             </button>
           </div>
+        ) : customConfirmed ? (
+          <div
+            data-substance-custom
+            className="flex min-h-11 items-center gap-3 rounded-xl border border-[color:var(--accent-border)] bg-[color:var(--accent-weak)] px-3 py-2"
+          >
+            <Check aria-hidden="true" size={18} className="shrink-0 text-[color:var(--accent)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-semibold text-white">{query}</span>
+              <span className="block truncate text-[12px] text-slate-400">{t('my_stack_custom_substance', { defaultValue: 'Eigene Substanz' })}</span>
+            </span>
+            {onUndoCustom && (
+              <button
+                type="button"
+                onClick={onUndoCustom}
+                aria-label={String(t('my_stack_detach_catalog', { defaultValue: 'Auswahl lösen' }))}
+                className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-lg text-slate-400 transition-colors duration-200 hover:bg-white/[0.08] hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+              >
+                <X aria-hidden="true" size={18} />
+              </button>
+            )}
+          </div>
         ) : (
-          <div className="relative">
-            <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <input
-              ref={inputRef}
-              id="stack-substance-search"
-              type="search"
-              value={query}
-              onChange={event => {
-                setResultsDismissed(false)
-                onQueryChange(event.target.value)
-              }}
-              data-field="displayName"
-              aria-invalid={nameError || undefined}
-              aria-describedby={nameError ? 'stack-substance-name-error' : undefined}
-              autoComplete="off"
-              className="input min-h-11 w-full pl-11 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-              placeholder={String(t('my_stack_search_placeholder', { defaultValue: 'Substanz oder Produkt suchen' }))}
-            />
+          <div className="flex gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input
+                ref={inputRef}
+                id="stack-substance-search"
+                type="search"
+                value={query}
+                onChange={event => {
+                  setResultsDismissed(false)
+                  onQueryChange(event.target.value)
+                }}
+                data-field="displayName"
+                aria-invalid={nameError || undefined}
+                aria-describedby={nameError ? 'stack-substance-name-error' : undefined}
+                autoComplete="off"
+                className="input min-h-11 w-full pl-11 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                placeholder={String(t('my_stack_search_placeholder', { defaultValue: 'Substanz oder Produkt suchen' }))}
+              />
+            </div>
+            {onScan && (
+              <button
+                type="button"
+                data-substance-scan
+                onClick={onScan}
+                aria-label={String(t('my_stack_scan', { defaultValue: 'Scannen' }))}
+                className="grid min-h-11 min-w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-slate-400/20 bg-slate-400/[0.06] text-slate-200 transition-colors duration-200 hover:border-sky-400/30 hover:bg-sky-400/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+              >
+                <ScanLine aria-hidden="true" size={20} />
+              </button>
+            )}
           </div>
         )}
         {nameError && (
@@ -191,11 +238,11 @@ export function SubstanceSearch({
       {/* Blaettern statt tippen. Nur solange nichts gewaehlt und nichts
           getippt ist: wer schon sucht, will Treffer sehen, keine Liste
           daneben. */}
-      {!selectedEntry && !hasQuery && allEntries.length > 0 && (
+      {!selectedEntry && !customConfirmed && !hasQuery && allEntries.length > 0 && (
         <SubstanceBrowser entries={allEntries} onSelect={onSelect} />
       )}
 
-      {!selectedEntry && hasQuery && (
+      {!selectedEntry && !customConfirmed && hasQuery && (
         <button
           type="button"
           onClick={() => onAddCustom(query)}
@@ -213,11 +260,11 @@ export function SubstanceSearch({
         </p>
       )}
 
-      {/* Das Kategoriefeld gilt nur der freien Eingabe. Ein Katalogeintrag
-          bringt seine Kategorie mit (`catalog_selected` setzt sie), und ein
-          Pflichtfeld, dessen Antwort schon feststeht, ist eines zu viel.
-          Sichtbar bleibt sie in der Zusammenfassung. */}
-      {!selectedEntry && (
+      {/* Das Kategoriefeld gilt nur der eigenen Substanz — und erst, wenn sie
+          als solche bestaetigt ist. Ein Katalogeintrag bringt seine Kategorie
+          mit (`catalog_selected` setzt sie), und getippter Text ist noch keine
+          Wahl. Sichtbar bleibt sie in der Zusammenfassung. */}
+      {!selectedEntry && customConfirmed && (
       <div>
         <label htmlFor="stack-category" className="mb-2 block text-sm font-semibold text-slate-200">
           {t('my_stack_category', { defaultValue: 'Kategorie' })}

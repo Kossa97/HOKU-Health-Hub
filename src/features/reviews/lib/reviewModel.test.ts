@@ -4,9 +4,9 @@ import {
   entwurfAus,
   gruppiereBewertungen,
   passtZurSuche,
-  unbewerteteZyklen,
   entwurfGueltig,
   erfahrungAusSternen,
+  istBeendet,
   leererEntwurf,
   vorgeschlagenerZyklus,
   zeileAus,
@@ -193,17 +193,9 @@ describe('Uebersicht', () => {
 describe('noch nicht bewertet', () => {
   it('ein Plan mit festem Ende in der Zukunft laeuft noch — nicht „beendet", nicht vorgeschlagen als beendet', () => {
     const geplant = zyklus('geplant', 'bpc', '2026-09-20', '2026-10-30')
-    expect(unbewerteteZyklen([geplant], [], new Set(['bpc']), now)).toEqual([])
+    expect(istBeendet(geplant, now)).toBe(false)
     expect(zyklusKontext(geplant, now, timeZone, 'de', t).laeuft).toBe(true)
     expect(zyklusKontext(geplant, now, timeZone, 'de', t).zeitraum).toBe('seit 20.09.2026')
     expect(vorgeschlagenerZyklus([...zyklen, geplant], 'bpc', new Set(['neu', 'alt', 'laeuft']), now)).toBe('geplant')
-  })
-
-  it('nur beendete Zyklen ohne Bewertung, aktiver Substanzen, zuletzt beendet zuerst', () => {
-    const aktiv = new Set(['bpc', 'tb'])
-    expect(unbewerteteZyklen(zyklen, [], aktiv, now).map(z => z.cycle.id)).toEqual(['neu', 'alt'])
-    expect(unbewerteteZyklen(zyklen, [{ cycle_id: 'neu' }, { cycle_id: null }], aktiv, now).map(z => z.cycle.id)).toEqual(['alt'])
-    // Archiviert: zaehlt nicht.
-    expect(unbewerteteZyklen(zyklen, [], new Set(['tb']), now)).toEqual([])
   })
 })

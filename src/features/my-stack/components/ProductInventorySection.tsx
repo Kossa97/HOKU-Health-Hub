@@ -1,7 +1,7 @@
 import { ChevronDown, FileUp, Package } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { anbruchArt, gueltigeFluessigkeit, gueltigeHaltbarkeit } from '../lib/bestand'
+import { anbruchArt, gueltigeFluessigkeit, gueltigeHaltbarkeit, istLoesungsVial } from '../lib/bestand'
 import type { DosageFormKey, InventoryDraft } from '../types'
 
 interface ProductInventorySectionProps {
@@ -11,9 +11,28 @@ interface ProductInventorySectionProps {
    * stehen dann die Angaben zur Packung (Charge, Anmischen, Haltbarkeit).
    */
   showInventory?: boolean
+  /**
+   * Beim Vial stehen Fluessigkeit, Anmischdatum und Haltbarkeit schon im
+   * Schritt „Staerke" — dann hier nicht noch einmal.
+   */
+  anmischenAnderswo?: boolean
+  /**
+   * Oeffnen, Haltbarkeit und Ablaufdatum stehen in der Zusammensetzung
+   * (`HaltbarkeitAngaben`) — dann hier nicht noch einmal.
+   */
+  haltbarkeitAnderswo?: boolean
+  /** Beim Anlegen im Ueberblick aufgeklappt: der Bestand ist dort ein Tipp. */
+  anfangsOffen?: boolean
+  /**
+   * Ohne Staerke bucht nichts ab und gespeichert wird der Bestand auch nicht
+   * — dann ein Hinweis statt der Felder.
+   */
+  bestandOhneStaerke?: boolean
   brand: string
   inventory: InventoryDraft
   dosageForm?: DosageFormKey | null
+  /** Fuer das Vial mit fertiger Loesung: geoeffnet statt angemischt, ohne Fluessigkeit. */
+  category?: string | null
   onBrandChange: (brand: string) => void
   onInventoryChange: (changes: Partial<InventoryDraft>) => void
 }
@@ -36,16 +55,22 @@ function numberValue(value: string): number | null {
 
 export function ProductInventorySection({
   showInventory = true,
+  anmischenAnderswo = false,
+  haltbarkeitAnderswo = false,
+  anfangsOffen = false,
+  bestandOhneStaerke = false,
   brand,
   inventory,
   dosageForm,
+  category,
   onBrandChange,
   onInventoryChange,
 }: ProductInventorySectionProps) {
   const { t } = useTranslation()
   const contentId = useId()
-  const [expanded, setExpanded] = useState(false)
-  const art = anbruchArt(dosageForm)
+  const [expanded, setExpanded] = useState(anfangsOffen)
+  // Ein Vial mit fertiger Loesung wird geoeffnet wie eine Flasche.
+  const art = istLoesungsVial(dosageForm, category) ? 'flasche' : anbruchArt(dosageForm)
   const eingabe = 'input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400'
   const beschriftung = 'mb-2 block text-sm font-semibold text-slate-200'
   const fluessigkeitFalsch = !gueltigeFluessigkeit(inventory.reconstitutionMl)
@@ -87,7 +112,11 @@ export function ProductInventorySection({
             />
           </div>
 
-          {showInventory && <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-slate-200">
+          {showInventory && bestandOhneStaerke && (
+            <p data-inventory-needs-strength className="text-sm text-slate-400">{t('my_stack_inventory_needs_strength')}</p>
+          )}
+
+          {showInventory && !bestandOhneStaerke && <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-slate-200">
             <input
               type="checkbox"
               aria-label={String(t('my_stack_inventory_enabled', { defaultValue: 'Bestand mitverfolgen' }))}
@@ -98,7 +127,7 @@ export function ProductInventorySection({
             {t('my_stack_inventory_enabled', { defaultValue: 'Bestand mitverfolgen' })}
           </label>}
 
-          {showInventory && inventory.enabled && (
+          {showInventory && !bestandOhneStaerke && inventory.enabled && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor={`${contentId}-package-quantity`} className="mb-2 block text-sm font-semibold text-slate-200">
@@ -153,6 +182,7 @@ export function ProductInventorySection({
                   className="input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                 />
               </div>
+{!haltbarkeitAnderswo && (
               <div className="sm:col-span-2">
                 <label htmlFor={`${contentId}-expires`} className="mb-2 block text-sm font-semibold text-slate-200">
                   {art
@@ -167,12 +197,13 @@ export function ProductInventorySection({
                   className="input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                 />
               </div>
+              )}
             </div>
           )}
 
           {!showInventory && (
             <div data-product-details className="grid gap-4 sm:grid-cols-2">
-              {art && (
+              {art && !(anmischenAnderswo && art === 'vial') && (
                 <>
                   {art === 'vial' && (
                     <div>
@@ -192,6 +223,7 @@ export function ProductInventorySection({
                       {fluessigkeitFalsch && <p role="alert" className="mt-1.5 text-sm text-rose-300">{t('my_stack_stock_liquid_invalid')}</p>}
                     </div>
                   )}
+                  {!haltbarkeitAnderswo && <>
                   <div>
                     <label htmlFor={`${contentId}-opened`} className={beschriftung}>
                       {t(art === 'vial' ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on')}
@@ -222,6 +254,7 @@ export function ProductInventorySection({
                     />
                     {haltbarkeitFalsch && <p role="alert" className="mt-1.5 text-sm text-rose-300">{t('my_stack_stock_days_invalid')}</p>}
                   </div>
+                  </>}
                 </>
               )}
               <div>
@@ -242,6 +275,7 @@ export function ProductInventorySection({
                   className={eingabe}
                 />
               </div>
+              {!haltbarkeitAnderswo && (
               <div>
                 <label htmlFor={`${contentId}-expires-edit`} className={beschriftung}>
                   {t(art ? 'my_stack_stock_expires_unopened' : 'my_stack_stock_expires')}
@@ -254,6 +288,7 @@ export function ProductInventorySection({
                   className={eingabe}
                 />
               </div>
+              )}
               <div className="sm:col-span-2">
                 <span className={beschriftung}>{t('my_stack_stock_document')}</span>
                 {/* Hochgeladen wird erst beim Speichern: wer abbricht oder

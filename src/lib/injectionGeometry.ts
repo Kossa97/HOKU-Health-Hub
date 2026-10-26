@@ -25,15 +25,58 @@ function sideFromX(x: number): BodySide {
   return 'center'
 }
 
+// Merkmale des Modells (placeholder-v1) im eingepassten Koordinatenraum,
+// am Modell gemessen (scripts/compute-injection-site-presets.mjs) und am
+// eingefaerbten Modell geprueft. Die frueheren Schwellen lagen rund 0.3-0.4
+// zu tief: ein Pin oben am Oberschenkel hiess „Bauch“, der Unterbauch
+// „Brust“, und Gesaess kam praktisch nicht vor.
+//
+// Achtung: supabase-injection-regions-v2.sql rechnet dieselben Regeln in SQL
+// nach (fuer gespeicherte Pins). Aenderungen hier nur zusammen mit dort.
+export const BODY_LANDMARKS = {
+  neckY: 1.32,        // darueber und schmal: Hals
+  neckHalfWidth: 0.15,
+  armpitY: 0.94,      // Achsel: darueber Brust/Schulter
+  ribY: 0.86,         // Rippenbogen: vorn darueber Brust, nicht Bauch
+  chestHalfWidth: 0.31, // weiter aussen ueber der Achsel: Schulter
+  armHalfWidth: 0.38, // unter der Achsel weiter aussen: Arm
+  elbowY: 0.62,
+  wristY: 0.36,       // darunter am Arm: Hand
+  hipY: 0.56,         // Hosenbund
+  crotchY: 0.2,
+  groinHalfWidth: 0.12,
+  groinY: 0.32,
+  gluteFoldY: 0.05,   // Unterkante Gesaess hinten
+  kneeY: -0.47,
+  ankleY: -1.12,
+  backNormalZ: -0.35, // Normale zeigt nach hinten: Rueckseite
+} as const
+
 function regionFromPoint(point: Vector3Json, normal?: Vector3Json): BodyRegion {
-  const isRearSurface = (normal?.z ?? 0) < -0.35
-  const distanceFromCenter = Math.abs(point.x)
-  if (point.y > 0.58) return distanceFromCenter > 0.38 ? 'deltoid' : 'chest'
-  if (distanceFromCenter > 0.5) return point.y > 0.15 ? 'upper_arm' : 'forearm'
-  if (isRearSurface && point.y <= -0.15 && point.y > -0.58) return 'glute'
-  if (point.y > -0.2) return 'abdomen'
-  if (point.y > -0.78) return 'thigh'
-  if (point.y > -1.24) return 'lower_leg'
+  const L = BODY_LANDMARKS
+  const back = (normal?.z ?? 0) < L.backNormalZ
+  const ax = Math.abs(point.x)
+  const y = point.y
+
+  if (y > L.neckY && ax < L.neckHalfWidth) return 'outside_typical'
+  if (y > L.armpitY) {
+    if (ax > L.chestHalfWidth) return 'deltoid'
+    return back ? 'torso' : 'chest'
+  }
+  if (ax > L.armHalfWidth) {
+    if (y > L.elbowY) return 'upper_arm'
+    return y > L.wristY ? 'forearm' : 'outside_typical'
+  }
+  if (y > L.ribY) return back ? 'torso' : 'chest'
+  if (y > L.hipY) return back ? 'torso' : 'abdomen'
+  if (y > L.crotchY) {
+    if (back) return 'glute'
+    if (ax < L.groinHalfWidth && y < L.groinY) return 'outside_typical'
+    return 'abdomen'
+  }
+  if (back && y > L.gluteFoldY) return 'glute'
+  if (y > L.kneeY) return 'thigh'
+  if (y > L.ankleY) return 'lower_leg'
   return 'outside_typical'
 }
 

@@ -216,9 +216,11 @@ export function produktAngaben(q: AngabenQuellen): Record<DetailFeld, Angabe> {
       ? { art: 'datum', iso: item.inventory.expires_at, herkunft: 'neu' }
       : leer('ablauf'),
     vorrat: vorrat(q),
-    // Die Methode steht alt am Eintrag, neu am Zyklus. Ohne Zyklus gibt es
-    // sie im neuen Modell nicht — dann ist sie leer und nicht geraten.
-    applikation: text(item.default_method, 'alt') ?? text(q.zyklusMethode, 'zyklus') ?? leer('applikation'),
+    // Die Methode steht neu am Zyklus, alt am Eintrag. Der laufende Plan
+    // gilt zuerst: die Altspalte bekommt in der Seite ersatzweise „Andere"
+    // (`asPeptide`), und das stand sonst ueber „Subkutan" aus dem Plan.
+    // Ohne beides bleibt sie leer und wird nicht geraten.
+    applikation: text(q.zyklusMethode, 'zyklus') ?? text(item.default_method, 'alt') ?? leer('applikation'),
     batch: text(item.inventory?.batch_number, 'neu') ?? text(item.batch_number, 'alt') ?? leer('batch'),
     quelle: text(item.inventory?.batch_source, 'neu') ?? text(item.batch_source, 'alt') ?? leer('quelle'),
     analyse: item.inventory?.batch_file_url

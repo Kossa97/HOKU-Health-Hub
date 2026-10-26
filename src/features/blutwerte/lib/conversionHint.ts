@@ -13,7 +13,7 @@ export function conversionHint(marker: string, unit: string, value: number): str
   if (!def || !def.einheit) return null
   if (!unit.trim()) return null
   if (normalizeUnitString(unit) === normalizeUnitString(def.einheit)) return null
-  const converted = convert(value, unit, def.einheit)
+  const converted = convert(value, unit, def.einheit, def.name)
   if (converted == null) return null
   return `≈ ${formatNumber(converted)} ${def.einheit}`
 }

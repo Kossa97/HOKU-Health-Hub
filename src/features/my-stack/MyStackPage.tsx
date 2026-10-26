@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
+import { SubstanzAutoSchalter } from '../dot/autoTracking/SubstanzAutoSchalter'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -26,7 +27,8 @@ import {
   type DetailFeld,
 } from './lib/stackDetailSections'
 import { BestandCard, BestandEditorHost, type BestandActions, type BestandEditorArt } from './components/Bestand'
-import { anbruchArt, spritzenRechnung, stueckRechnung, vialBuchtUeberBestand } from './lib/bestand'
+import { anbruchArt, buchtEinnahmenAb, haltbarkeitArt, istLoesungsVial, spritzenRechnung, stueckRechnung } from './lib/bestand'
+import { inWochenfolge } from './lib/intakeRhythm'
 import {
   openInventoryContainer,
   startInventory,
@@ -37,7 +39,7 @@ import {
 import { produktAngaben, type Angabe, type Zutat } from './lib/produktAngaben'
 import { StackStage } from './components/StackStage'
 import { StackArchive } from './components/StackArchive'
-import { archiveStackItem, deleteStackItem, reconstituteStackItem, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
+import { archiveStackItem, deleteStackItem, reconstituteStackItem, setStackItemAutoLog, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
 import { powderVialForSave } from './lib/vialStrength'
 import type { StackItem, StackItemSetupDraft } from './types'
 import { getDosageForm, intakeUnitLabelKey, isStageRenderable } from './lib/dosageForms'
@@ -48,7 +50,7 @@ import { filterByTab, tabCounts, type StackTabKey } from './lib/stackTabs'
 import { sortAbilities } from './lib/stackSort'
 import { planSegments, planVersionSegments, stufenText } from './lib/planSegments'
 import { cyclePeriod } from './lib/planCard'
-import { getRandomStackItemColor } from './lib/colors'
+import { getRandomSwatchColor } from './lib/colors'
 import { backfillMessageKey, buildTitrationStep, dosePlanCapabilities, dosePlanQuantitiesForDay } from './lib/dosePlan'
 import { FEATURES } from '../../config/features'
 import { reportError } from '../../lib/monitoring'
@@ -117,6 +119,8 @@ import { MyStackHeader } from './page/MyStackHeader'
 import { LegacyCycleManager } from './page/LegacyCycleManager'
 import { RekonstitutionDialog } from './page/RekonstitutionDialog'
 import { EscalationFormSheet } from './page/EscalationFormSheet'
+import { BatchDateiLink } from '../../components/BatchDateiLink'
+import './page/stack-glass.css'
 
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
@@ -190,6 +194,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // handle and the scroll rAF pushes focus/lightOffset straight into the DOM.
   const vialStageLightHandlesRef = useRef(new Map<number, VialStageLightHandle>())
   const vialFocusFrameRef = useRef<number | null>(null)
+  const vialGeometryRef = useRef<{ width: number; items: Array<{ slot: number; center: number }> } | null>(null)
   const sloshEngine = useSloshEngine()
   const vialCarouselRef = useRef<HTMLDivElement | null>(null)
   const vialScrollFrameRef = useRef<number | null>(null)
@@ -307,7 +312,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardCycleId(null)
     setPlanEditContext(null)
     setWizardIntent(undefined)
-    setWizardInitialColor(getRandomStackItemColor())
+    setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
     navigate(location.pathname, { replace: true })
   }, [location.hash, location.pathname, navigate])
@@ -485,7 +490,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardNeuerZyklus(false)
     setPlanEditContext(null)
     setWizardIntent(undefined)
-    setWizardInitialColor(getRandomStackItemColor())
+    setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
   }
 
@@ -523,7 +528,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     // fuer eine neue Variante, die aus einem bestehenden Eintrag entsteht.
     // Der Eintrag selbst steht dann schon; scheitert nur das, sagt es eine
     // eigene Meldung, statt „Speichern fehlgeschlagen" fuer alles.
-    if ((editedFrom || inventoryDraft.reconstitutionMl != null) && user) {
+    if ((editedFrom || inventoryDraft.reconstitutionMl != null || inventoryDraft.openedAt || inventoryDraft.useWithinDays != null || inventoryDraft.expiresAt) && user) {
       try {
         await saveInventoryDetails(stackDataClient as never, {
           userId: user.id,
@@ -1230,7 +1235,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (c.frequency === 'Alle X Tage' && c.x_days_interval)
       return `${t('alle_prefix')} ${c.x_days_interval} ${t('tage_suffix')}`
     if (c.frequency === 'Wochentage wählen' && c.schedule_days?.length)
-      return c.schedule_days.join(', ')
+      return inWochenfolge(c.schedule_days).join(', ')
     return t(FREQ_KEYS[c.frequency] ?? c.frequency)
   }
   const escalationStartDate = (c: Cycle, e: Escalation) => {
@@ -1406,6 +1411,23 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   // Mitte. Sonst stuende ein anderer Eintrag dort, als die Zeile darueber
   // beschreibt: die Scrollposition kennt nur Pixel, keine Eintraege.
   const stageKey = stagePeptides.map(p => p.id).join('|')
+  // Die gemerkte Lage der Plaetze gilt, bis sich Liste oder Groessen aendern:
+  // der Streifen selbst, ein Platz (Schriftgroesse, rem) oder das Fenster.
+  useLayoutEffect(() => {
+    vialGeometryRef.current = null
+    const vergessen = () => { vialGeometryRef.current = null }
+    window.addEventListener('resize', vergessen)
+    const strip = vialCarouselRef.current
+    const observer = strip && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(vergessen) : null
+    if (strip && observer) {
+      observer.observe(strip)
+      for (const platz of strip.querySelectorAll('[data-vial-index], [data-vial-add]')) observer.observe(platz)
+    }
+    return () => {
+      window.removeEventListener('resize', vergessen)
+      observer?.disconnect()
+    }
+  }, [stageKey, viewMode, loading])
   useEffect(() => {
     if (viewMode !== 'vials' || loading || addTileActive || stagePeptides.length === 0) return
     zentriereSlot(activeIndex)
@@ -1433,23 +1455,40 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   }, [neuZentrieren, stageKey])
   // Feed carousel interaction velocity into the shared liquid physics engine.
   const pushVialSlosh = (velocity: number) => sloshEngine.pushImpulse(velocity)
-  const updateVialFocus = () => {
+  /**
+   * Wo die Plaetze im Streifen stehen. Das aendert sich nur mit der Liste oder
+   * der Breite, nicht beim Scrollen — das Verkleinern der Nachbarn ist ein
+   * `transform`, kein Layout. Vorher las jedes Scroll-Bild `offsetLeft` aller
+   * Eintraege, und weil die Fluessigkeit im selben Bild schon gezeichnet
+   * hatte, erzwang jeder Lesezugriff eine Layout-Berechnung.
+   */
+  const measureVialGeometry = (carousel: HTMLDivElement) => {
+    const items: Array<{ slot: number; center: number }> = []
+    for (const item of carousel.querySelectorAll<HTMLElement>('[data-vial-index], [data-vial-add]')) {
+      const slot = item.hasAttribute('data-vial-add') ? ADD_SLOT : Number(item.dataset.vialIndex)
+      if (!Number.isFinite(slot)) continue
+      items.push({ slot, center: item.offsetLeft + item.offsetWidth / 2 })
+    }
+    vialGeometryRef.current = { width: carousel.clientWidth, items }
+    return vialGeometryRef.current
+  }
+  const vialGeometry = (carousel: HTMLDivElement) => vialGeometryRef.current ?? measureVialGeometry(carousel)
+  const updateVialFocus = (scrollLeft?: number) => {
     const carousel = vialCarouselRef.current
     if (!carousel) return
 
-    const center = carousel.scrollLeft + carousel.clientWidth / 2
-    const maxDistance = Math.max(1, carousel.clientWidth * 0.48)
+    const geometry = vialGeometry(carousel)
+    const center = (scrollLeft ?? carousel.scrollLeft) + geometry.width / 2
+    const maxDistance = Math.max(1, geometry.width * 0.48)
 
     // measure every item first, then write, so layout reads never interleave
     // with the imperative attribute writes below
     const measured: Array<{ handle: VialStageLightHandle; normalized: number }> = []
-    for (const item of carousel.querySelectorAll<HTMLElement>('[data-vial-index]')) {
-      const index = Number(item.dataset.vialIndex)
-      if (!Number.isFinite(index)) continue
+    for (const { slot: index, center: itemCenter } of geometry.items) {
+      if (index === ADD_SLOT) continue
       const handle = vialStageLightHandlesRef.current.get(index)
       if (!handle) continue
 
-      const itemCenter = item.offsetLeft + item.offsetWidth / 2
       const distance = itemCenter - center
       measured.push({ handle, normalized: Math.max(-1, Math.min(1, distance / maxDistance)) })
     }
@@ -1467,7 +1506,9 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (vialFocusFrameRef.current !== null) return
     vialFocusFrameRef.current = window.requestAnimationFrame(() => {
       vialFocusFrameRef.current = null
-      updateVialFocus()
+      // Der Stand aus dem letzten Scroll-Ereignis: im Bild selbst hat die
+      // Fluessigkeit schon gezeichnet, ein frisches `scrollLeft` kostete Layout.
+      updateVialFocus(vialLastScrollLeftRef.current)
     })
   }
   /**
@@ -1517,7 +1558,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     vialCarouselRef.current
       ?.querySelector<HTMLElement>(slotSelector(slot))
       ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-    window.requestAnimationFrame(updateVialFocus)
+    window.requestAnimationFrame(() => updateVialFocus())
   }
   const selectSlot = (slot: number) => {
     if (slot !== ADD_SLOT && !stagePeptides[slot]) return
@@ -1528,17 +1569,15 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const selectPeptideIndex = (index: number) => selectSlot(index)
   const selectAddTile = () => selectSlot(ADD_SLOT)
   const currentSlot = addTileActive ? ADD_SLOT : activeIndex
-  const getClosestSlot = (carousel: HTMLDivElement) => {
-    const items = Array.from(carousel.querySelectorAll<HTMLElement>('[data-vial-index], [data-vial-add]'))
-    const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2
+  const getClosestSlot = (carousel: HTMLDivElement, scrollLeft = carousel.scrollLeft) => {
+    const geometry = vialGeometry(carousel)
+    const carouselCenter = scrollLeft + geometry.width / 2
     let closestSlot = currentSlot
     let closestDistance = Number.POSITIVE_INFINITY
 
-    for (const item of items) {
-      const slot = item.hasAttribute('data-vial-add') ? ADD_SLOT : Number(item.dataset.vialIndex)
-      const itemCenter = item.offsetLeft + item.offsetWidth / 2
+    for (const { slot, center: itemCenter } of geometry.items) {
       const distance = Math.abs(itemCenter - carouselCenter)
-      if (Number.isFinite(slot) && distance < closestDistance) {
+      if (distance < closestDistance) {
         closestDistance = distance
         closestSlot = slot
       }
@@ -1551,19 +1590,20 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (!carousel) return
 
     const now = e.timeStamp
+    const scrollLeft = carousel.scrollLeft
     if (vialLastScrollTimeRef.current > 0) {
-      const delta = carousel.scrollLeft - vialLastScrollLeftRef.current
+      const delta = scrollLeft - vialLastScrollLeftRef.current
       const dt = Math.max(16, now - vialLastScrollTimeRef.current)
       if (Math.abs(delta) > 0.5) pushVialSlosh((delta / dt) * 2.6)
     }
-    vialLastScrollLeftRef.current = carousel.scrollLeft
+    vialLastScrollLeftRef.current = scrollLeft
     vialLastScrollTimeRef.current = now
     scheduleVialFocusUpdate()
 
     if (vialScrollFrameRef.current !== null) window.cancelAnimationFrame(vialScrollFrameRef.current)
 
     vialScrollFrameRef.current = window.requestAnimationFrame(() => {
-      const closestSlot = getClosestSlot(carousel)
+      const closestSlot = getClosestSlot(carousel, vialLastScrollLeftRef.current)
       const next = stagePeptides[closestSlot]
       if (next && next.id !== activePeptideId) {
         // Ein Klick je Eintrag, den das Karussell passiert — wie am Rad einer
@@ -1806,18 +1846,22 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   // „Haltbar danach" zaehlt ab dem Anmischen, „Haltbar bis"
                   // steht auf der Packung. Welche der beiden es ist, sagt die
                   // Angabe selbst — nicht die Form.
-                  const art = anbruchArt(eintrag.dosage_form)
-                  const haltbarkeitLabel = String(t(art === 'vial' ? 'my_stack_stock_use_within_vial' : 'my_stack_stock_use_within'))
+                  // Ein Vial mit fertiger Loesung wird angebrochen, nicht angemischt.
+                  const art = istLoesungsVial(eintrag.dosage_form, eintrag.category) ? 'flasche' : anbruchArt(eintrag.dosage_form)
+                  // Dieselben Woerter wie im Assistenten: angemischt, angebrochen,
+                  // in Benutzung, geoeffnet (`haltbarkeitArt`).
+                  const haltbarArt = haltbarkeitArt(eintrag.dosage_form, eintrag.category)
+                  const haltbarkeitLabel = String(t(haltbarArt ? `my_stack_shelf_within_${haltbarArt}` : 'my_stack_stock_use_within'))
                   const FELD_LABEL: Record<DetailFeld, string> = {
                     wirkstoff: wirkstoffLabel,
                     kategorie: 'Kategorie',
                     marke: 'Marke',
                     fluessigkeit: String(t('my_stack_stock_liquid')),
-                    rekonstituiert_am: String(t(art === 'vial' ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on')),
+                    rekonstituiert_am: String(t(haltbarArt ? `my_stack_shelf_opened_${haltbarArt}` : 'my_stack_stock_opened_on')),
                     haltbarkeit: haltbarkeitLabel,
                     // Wo angemischt oder geoeffnet wird, gilt das Datum dem
                     // UNgeoeffneten — sonst klingt es wie „Haltbar danach".
-                    ablauf: String(t(art ? 'my_stack_stock_expires_unopened' : 'my_stack_stock_expires')),
+                    ablauf: String(t(art || haltbarArt ? 'my_stack_stock_expires_unopened' : 'my_stack_stock_expires')),
                     vorrat: 'Vorrat',
                     // „Methode" und nicht „Applikationsart": im Zyklusknopf
                     // steht dasselbe Feld unter demselben Namen.
@@ -1830,17 +1874,18 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   const zeileFuer = (feld: DetailFeld): InfoRow => {
                     const a = angaben[feld]
                     const wert = angabeText(feld, a)
-                    // Ueber zwei Spalten, wo eine Zeile sonst abgeschnitten
+                    // Wert unter dem Namen, wo er rechts daneben abgeschnitten
                     // waere: ein Kombipraeparat, ein Dateiname, eine Notiz.
                     const wide = feld === 'notizen'
+                      || a.art === 'datei'
                       || (a.art === 'zutaten' && a.zutaten.length > 1)
                     if (a.art === 'datei') {
                       return {
                         label: FELD_LABEL[feld], wide,
                         valueNode: (
-                          <a className="truncate text-cyan-300 hover:text-cyan-200" href={a.url} target="_blank" rel="noopener noreferrer">
+                          <BatchDateiLink className="text-[#64d2ff] hover:text-cyan-200" wert={a.url}>
                             {wert}
-                          </a>
+                          </BatchDateiLink>
                         ),
                       }
                     }
@@ -1887,51 +1932,73 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                       ingredients={eintrag.ingredients}
                       timelines={timelinesOf(eintrag.id)}
                       timeZone={timeZone}
-                      // Vials bucht die Datenbank ueber den Bestand ab, wenn die
-                      // Umrechnung eindeutig ist, alle anderen nur mit Staerke.
-                      deductsIntakes={art === 'vial'
-                        ? vialBuchtUeberBestand(eintrag.inventory, eintrag.ingredients)
-                        : eintrag.tracking_level === 'complete'}
+                      // Dieselbe Regel wie beim Abbuchen in der Datenbank.
+                      deductsIntakes={buchtEinnahmenAb(eintrag)}
                       onEdit={editor => setBestandEdit({ peptideId: eintrag.id, editor })}
                     />
-                    {detailAbschnitte(form).map(abschnitt => (
-                      <section key={abschnitt.id} data-stack-detail={abschnitt.id} className="mx-1 mt-2 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50">
-                        <h3 className="border-b border-slate-800 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    {/* Dot trägt die geplanten Einnahmen dieser Substanz selbst ein (Pro) */}
+                    {FEATURES.planTimelineV2 && (
+                      <SubstanzAutoSchalter
+                        key={eintrag.id}
+                        stackItemId={eintrag.id}
+                        seit={eintrag.auto_log_since}
+                        speichern={async seit => {
+                          await setStackItemAutoLog(supabase as never, eintrag.id, seit)
+                          setPeptides(prev => prev.map(pp => pp.id === eintrag.id ? { ...pp, auto_log_since: seit } : pp))
+                        }}
+                      />
+                    )}
+                    {/* Nur, was gesetzt ist. „Nicht gesetzt" in jeder zweiten
+                        Zeile war Rauschen — das Vollbild sagt, was man WEISS.
+                        Was fehlt, zaehlt der Knopf darunter und fuehrt direkt
+                        ins Bearbeiten. Ein Abschnitt ganz ohne Angabe faellt weg. */}
+                    {detailAbschnitte(form).map(abschnitt => {
+                      const felder = abschnitt.felder.filter(feld => angaben[feld].art !== 'leer')
+                      if (felder.length === 0) return null
+                      return (
+                      // Gruppierte Liste wie in den iOS-Einstellungen: Name links,
+                      // Wert rechts; was dort abgeschnitten waere, steht darunter.
+                      <section key={abschnitt.id} data-stack-detail={abschnitt.id} className="mt-7">
+                        <h3 className="lg-group-title">
                           {ABSCHNITT_TITEL[abschnitt.id]}
                         </h3>
-                        <div className="grid grid-cols-2 gap-2 p-2 text-xs">
-                          {(() => {
-                            // Leer ohne Kachel, was `LEER_AUSBLENDEN` nennt.
-                            const felder = abschnitt.felder.filter(feld => !LEER_AUSBLENDEN.has(feld) || angaben[feld].art !== 'leer')
-                            // Bleibt eine halbe Kachel allein in ihrer Zeile, wird
-                            // sie ganz breit: bei der Zusammensetzung der Wirkstoff
-                            // vorn, sonst die letzte halbe.
-                            const halbe = felder.filter(feld => !zeileFuer(feld).wide)
-                            const einzeln = halbe.length % 2 === 1
-                              ? abschnitt.id === 'produkt' && halbe.includes('wirkstoff') ? 'wirkstoff' : halbe.at(-1)
-                              : null
-                            return felder.map(feld => {
+                        <div className="lg-group">
+                          {felder.map(feld => {
                             const zeile = zeileFuer(feld)
-                            const vollbreit = Boolean(zeile.wide) || feld === einzeln
-                            const kachel = `min-h-14 rounded-lg border border-slate-800 bg-slate-900/55 px-2.5 py-2 ${vollbreit ? 'col-span-2' : ''}`
                             return (
-                              <div key={feld} data-stack-detail-field={feld} className={kachel}>
-                                <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500">{zeile.label}</p>
-                                <div className="mt-1 truncate text-sm font-semibold text-slate-200">
+                              <div key={feld} data-stack-detail-field={feld} data-wide={Boolean(zeile.wide)} className="lg-kv">
+                                <p>{zeile.label}</p>
+                                <div>
                                   {'valueNode' in zeile ? zeile.valueNode : zeile.value}
                                 </div>
                               </div>
                             )
-                          })
-                          })()}
+                          })}
                         </div>
                       </section>
-                    ))}
+                      )
+                    })}
+                    {(() => {
+                      const fehlend = detailAbschnitte(form)
+                        .flatMap(abschnitt => abschnitt.felder)
+                        .filter(feld => !LEER_AUSBLENDEN.has(feld) && angaben[feld].art === 'leer').length
+                      return fehlend > 0 ? (
+                        <button
+                          type="button"
+                          data-stack-detail-missing={fehlend}
+                          onClick={() => openEditPeptide(eintrag)}
+                          className="mt-5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl text-[15px] font-semibold text-[#64d2ff] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                        >
+                          <Plus size={16} aria-hidden="true" />
+                          {String(t('my_stack_detail_missing', { defaultValue: 'Fehlende Angaben ergänzen ({{n}})', n: fehlend }))}
+                        </button>
+                      ) : null
+                    })()}
 
                     {/* Alter Datenpfad: der Zyklus als Knopf nach den Angaben.
                         Mit der Plan-Zeitleiste steht stattdessen die
                         Plan-Karte oben (PlanSummaryCard). */}
-                    {!FEATURES.planTimelineV2 && <div data-stack-detail="zyklus" className="mx-1 mt-2">
+                    {!FEATURES.planTimelineV2 && <div data-stack-detail="zyklus" className="mt-3">
                       {activeCycle ? (
                         <button
                           type="button"
@@ -2023,6 +2090,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         setFilterOpen={setFilterOpen}
         setArchiveViewOpen={setArchiveViewOpen}
         loadArchived={loadArchived}
+        archivedCount={archivedPeptides.length}
         filterOpen={filterOpen}
         setViewMode={setViewMode}
         viewMode={viewMode}
@@ -2036,10 +2104,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         data-my-stack-body
         className={`-mx-3 min-h-0 flex-1 px-3 ${viewMode === 'vials' && activePeptide ? 'flex flex-col overflow-hidden overscroll-none' : 'overflow-y-auto overscroll-contain'}`}
       >
-          {initialLoad && <LabLoader fadingOut={!loading} />}
+          {initialLoad && <LabLoader art="stack" fadingOut={!loading} />}
 
           {FEATURES.planTimelineV2 && timelineLoadError && (
-            <div role="alert" className="mb-4 rounded-xl border border-rose-300/25 bg-rose-300/10 p-3 text-sm text-rose-100">
+            <div role="alert" data-umriss-nicht-merken className="mb-4 rounded-xl border border-rose-300/25 bg-rose-300/10 p-3 text-sm text-rose-100">
               <p>{t('my_stack_plan_load_error', { defaultValue: 'Die Einnahmepläne konnten nicht geladen werden. Die übrigen Daten bleiben sichtbar.' })}</p>
               <button
                 type="button"
@@ -2194,6 +2262,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         <BestandEditorHost
           editor={bestandEdit.editor}
           dosageForm={bestandPeptide.dosage_form}
+          category={bestandPeptide.category}
           inventory={bestandPeptide.inventory ?? null}
           ingredients={bestandPeptide.ingredients}
           onClose={() => setBestandEdit(null)}
@@ -2219,24 +2288,24 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           ref={archiveDialogRef}
           labelledBy="archive-title"
         >
-          <header className="shrink-0 border-b border-slate-800 bg-slate-950/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+          <header className="shrink-0 pt-[env(safe-area-inset-top)]">
             <div className="mx-auto flex min-h-16 w-full max-w-3xl items-center justify-between gap-3 px-4">
               <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--lg-text-3)]">
                   <Archive size={13} /> {t('archiv')}
                 </p>
-                <h2 id="archive-title" className="mt-1 truncate text-lg font-bold text-white">{t('archiv_title')}</h2>
+                <h2 id="archive-title" className="mt-0.5 truncate text-[24px] font-bold leading-[30px] text-[var(--lg-text)]">{t('archiv_title')}</h2>
               </div>
               <button
                 type="button"
                 ref={archiveCloseButtonRef}
                 onClick={() => setArchiveViewOpen(false)}
                 data-app-back-close
-                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition-colors hover:border-slate-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                 aria-label={t('close')}
                 title={t('close')}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
           </header>
@@ -2244,22 +2313,22 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-3xl px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3">
               {archivedPeptides.length === 0 && (
-                <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center">
-                  <Archive size={22} className="mx-auto mb-2 text-slate-600" />
-                  <p className="text-sm font-semibold text-white">{t('archiv_leer')}</p>
-                  <p className="mt-1 text-xs text-slate-500">{t('archiv_leer_desc')}</p>
+                <div className="lg-surface mt-3 px-6 py-8 text-center">
+                  <span aria-hidden="true" className="lg-icon-tile mx-auto mb-3 !h-11 !w-11 !rounded-xl bg-[#8e8e93]"><Archive size={22} /></span>
+                  <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('archiv_leer')}</p>
+                  <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">{t('archiv_leer_desc')}</p>
                 </div>
               )}
 
               {archivedPeptides.length > 0 && (
-                <div className="divide-y divide-slate-800/80 border-y border-slate-800/80">
+                <div className="lg-group mt-3">
                   {archivedPeptides.map(p => {
                     const archivedDate = p.archived_at
                       ? formatInstantDay(p.archived_at, language)
                       : ''
 
                     return (
-                      <div key={p.id} data-archive-row className="flex min-h-28 items-center gap-3 py-3">
+                      <div key={p.id} data-archive-row className="lg-kv !items-center !justify-start !gap-3 !py-3 !pl-2">
                         <div className="flex w-16 shrink-0 justify-center opacity-75" aria-hidden="true">
                           <StackStage
                             item={{ ...p, color_hex: '#64748b' }}
@@ -2271,9 +2340,9 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-white">{p.name}</p>
+                          <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{p.name}</p>
                           {p.archived_at && (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-0.5 text-[13px] text-[var(--lg-text-3)]">
                               {t('archiviert_am', { date: archivedDate })}
                             </p>
                           )}
@@ -2284,7 +2353,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                             type="button"
                             data-archive-info-button={p.id}
                             onClick={() => openArchiveInfo(p)}
-                            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-300 transition-colors hover:border-cyan-400/45 hover:bg-cyan-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                            className="lg-icon-btn lg-press bg-[var(--lg-fill)] !text-[#64d2ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                             aria-label={t('infos')}
                             title={t('infos')}
                           >
@@ -2293,7 +2362,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           <button
                             type="button"
                             onClick={() => restorePeptide(p)}
-                            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 transition-colors hover:border-emerald-400/50 hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                            className="lg-icon-btn lg-press bg-[rgba(48,209,88,0.16)] !text-[var(--lg-good-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
                             aria-label={t('wiederherstellen')}
                             title={t('wiederherstellen')}
                           >
@@ -2302,7 +2371,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           <button
                             type="button"
                             onClick={() => { setDeletePromptFromArchive(true); setDeletePromptPeptide(p) }}
-                            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-300 transition-colors hover:border-red-400/45 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+                            className="lg-icon-btn lg-press bg-[rgba(255,69,58,0.18)] !text-[#ff6961] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
                             aria-label={t('endgueltig_loeschen')}
                             title={t('endgueltig_loeschen')}
                           >
@@ -2371,29 +2440,28 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                 wide: true,
                 valueNode: p.batch_file_url
                   ? (
-                    <a
-                      href={p.batch_file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex max-w-full items-center gap-2 text-cyan-300 hover:text-cyan-200"
+                    <BatchDateiLink
+                      wert={p.batch_file_url}
+                      className="inline-flex max-w-full items-center gap-2 text-[#64d2ff] hover:text-cyan-200"
                     >
                       <span className="truncate">{p.batch_file_url.split('/').pop() || t('dokument_oeffnen')}</span>
                       <ExternalLink size={14} className="shrink-0" />
-                    </a>
+                    </BatchDateiLink>
                   )
                   : <span>-</span>,
               },
               { label: t('notizen_section'), value: p.notes || '-', wide: true },
             ]
             const renderInfoRows = (rows: InfoRow[]) => (
-              <dl className="grid grid-cols-1 gap-x-5 sm:grid-cols-2">
+              <dl className="lg-group">
                 {rows.map(row => (
                   <div
                     key={row.label}
-                    className={`min-w-0 border-b border-slate-800/70 py-3 ${row.wide ? 'sm:col-span-2' : ''}`}
+                    data-wide={Boolean(row.wide)}
+                    className="lg-kv"
                   >
-                    <dt className="text-xs font-medium text-slate-500">{row.label}</dt>
-                    <dd className="mt-1 break-words text-sm font-semibold text-slate-200">
+                    <dt>{row.label}</dt>
+                    <dd>
                       {row.valueNode ?? row.value ?? '-'}
                     </dd>
                   </div>
@@ -2405,12 +2473,12 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               <div
                 data-archive-info-detail={p.id}
                 data-app-modal
-                className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-slate-950"
+                className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="archive-info-title"
               >
-                <header className="shrink-0 border-b border-slate-800 bg-slate-950/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+                <header className="shrink-0 pt-[env(safe-area-inset-top)]">
                   <div className="mx-auto flex min-h-16 w-full max-w-3xl items-center gap-3 px-4">
                     <button
                       type="button"
@@ -2422,15 +2490,15 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         })
                       }}
                       data-app-back-close
-                      className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-300 transition-colors hover:border-slate-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                      className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                       aria-label={t('back')}
                       title={t('back')}
                     >
-                      <ChevronLeft size={19} />
+                      <ChevronLeft size={22} />
                     </button>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('archiv')}</p>
-                      <h2 id="archive-info-title" className="truncate text-lg font-bold text-white">{p.name}</h2>
+                      <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">{t('archiv')}</p>
+                      <h2 id="archive-info-title" className="truncate text-[24px] font-bold leading-[30px] text-[var(--lg-text)]">{p.name}</h2>
                     </div>
                   </div>
                 </header>
@@ -2448,91 +2516,91 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         />
                       </div>
                       <div className="min-w-0">
-                        <p className="break-words text-xl font-bold text-white">{p.name}</p>
+                        <p className="break-words text-[22px] font-bold text-[var(--lg-text)]">{p.name}</p>
                         {p.archived_at && (
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">
                             {t('archiviert_am', { date: archivedDate })}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <section className="border-t border-slate-800 py-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+                    <section className="pt-6">
+                      <h3 className="lg-group-title">
                         {t('wirkstoff_rekonstitution')}
                       </h3>
                       {renderInfoRows(applicationRows)}
                     </section>
 
-                    <section className="border-t border-slate-800 py-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+                    <section className="pt-6">
+                      <h3 className="lg-group-title">
                         {t('haltbarkeit_section_info')} &amp; {t('bestand_section')}
                       </h3>
                       {renderInfoRows(stockRows)}
                     </section>
 
-                    <section className="border-t border-slate-800 py-4">
-                      <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+                    <section className="pt-6">
+                      <h3 className="lg-group-title">
                         {t('batch_herkunft_section')}
                       </h3>
                       {renderInfoRows(documentationRows)}
                     </section>
 
-                    <section className="border-t border-slate-800 py-4">
+                    <section className="pt-6">
                       <button
                         type="button"
                         onClick={() => setArchiveCyclesOpen(open => !open)}
                         aria-expanded={archiveCyclesOpen}
                         aria-controls="archive-cycle-list"
-                        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                        className="lg-group flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
                       >
-                        <span className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+                        <span className="text-[16px] text-[var(--lg-text)]">
                           {t('zyklen_header')}
                         </span>
                         <span className="flex shrink-0 items-center gap-2">
-                          <span className="text-xs font-medium text-slate-500">
+                          <span className="text-[15px] text-[var(--lg-text-3)]">
                             {t(archivedCycles.length === 1 ? 'zyklus_count_one' : 'zyklus_count_many', { n: archivedCycles.length })}
                           </span>
                           {archiveCyclesOpen
-                            ? <ChevronUp size={16} className="text-slate-400" />
-                            : <ChevronDown size={16} className="text-slate-400" />}
+                            ? <ChevronUp size={16} className="text-[var(--lg-text-4)]" />
+                            : <ChevronDown size={16} className="text-[var(--lg-text-4)]" />}
                         </span>
                       </button>
 
                       {archiveCyclesOpen && (
                         <div id="archive-cycle-list">
                       {archivedCycles.length === 0 ? (
-                        <p className="py-6 text-center text-sm text-slate-500">{t('keine_zyklen')}</p>
+                        <p className="py-6 text-center text-[15px] text-[var(--lg-text-3)]">{t('keine_zyklen')}</p>
                       ) : (
-                        <div className="mt-2 divide-y divide-slate-800/80">
+                        <div className="lg-group mt-3 divide-y divide-[var(--lg-separator)]">
                           {archivedCycles.map(c => (
-                            <article key={c.id} data-archive-cycle className="py-4">
+                            <article key={c.id} data-archive-cycle className="p-4">
                               <div className="flex items-start justify-between gap-3">
-                                <p className="min-w-0 break-words text-sm font-bold text-white">{c.name}</p>
-                                <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold ${c.active ? 'bg-emerald-500/10 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
+                                <p className="min-w-0 break-words text-[17px] font-semibold text-[var(--lg-text)]">{c.name}</p>
+                                <span className="lg-tag shrink-0" data-tone={c.active ? 'good' : undefined}>
                                   {t(c.active ? 'aktiv_badge' : 'inaktiv_badge')}
                                 </span>
                               </div>
                               <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
                                 <div className="col-span-2 sm:col-span-3">
-                                  <dt className="text-xs text-slate-500">{t('obx_cycdates_title')}</dt>
-                                  <dd className="mt-0.5 text-sm font-medium text-slate-200">
+                                  <dt className="text-[13px] text-[var(--lg-text-3)]">{t('obx_cycdates_title')}</dt>
+                                  <dd className="mt-0.5 text-[15px] text-[var(--lg-text)]">
                                     {formatStoredDate(c.start_date)} - {c.end_date ? formatStoredDate(c.end_date) : t('ende_offen')}
                                   </dd>
                                 </div>
                                 {dosePlanCapabilities(p.tracking_level).permanent && (
                                   <div>
-                                    <dt className="text-xs text-slate-500">{t('dosis_label')}</dt>
-                                    <dd className="mt-0.5 text-sm font-medium text-slate-200">{currentQuantityLabel(c)}</dd>
+                                    <dt className="text-[13px] text-[var(--lg-text-3)]">{t('dosis_label')}</dt>
+                                    <dd className="mt-0.5 text-[15px] text-[var(--lg-text)]">{currentQuantityLabel(c)}</dd>
                                   </div>
                                 )}
                                 <div>
-                                  <dt className="text-xs text-slate-500">{t('frequenz')}</dt>
-                                  <dd className="mt-0.5 text-sm font-medium text-slate-200">{freqLabel(c)}</dd>
+                                  <dt className="text-[13px] text-[var(--lg-text-3)]">{t('frequenz')}</dt>
+                                  <dd className="mt-0.5 text-[15px] text-[var(--lg-text)]">{freqLabel(c)}</dd>
                                 </div>
                                 <div>
-                                  <dt className="text-xs text-slate-500">{t('methode')}</dt>
-                                  <dd className="mt-0.5 text-sm font-medium text-slate-200">
+                                  <dt className="text-[13px] text-[var(--lg-text-3)]">{t('methode')}</dt>
+                                  <dd className="mt-0.5 text-[15px] text-[var(--lg-text)]">
                                     {methodLabel(t, c.method)}
                                   </dd>
                                 </div>

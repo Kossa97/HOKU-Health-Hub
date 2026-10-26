@@ -277,12 +277,15 @@ interface BatchStorageClient {
   storage: {
     from(bucket: 'batch-files'): {
       upload(path: string, file: File): PromiseLike<{ error: ServiceError | null }>
-      getPublicUrl(path: string): { data: { publicUrl: string } }
     }
   }
 }
 
-/** Analyse-Dokument hochladen; gleicher Ablageort wie bisher. */
+/**
+ * Analyse-Dokument hochladen; gleicher Ablageort wie bisher. Gespeichert wird
+ * der Pfad, nicht mehr eine oeffentliche URL — angezeigt wird ueber einen
+ * signierten Link (`BatchDateiLink`).
+ */
 export async function uploadBatchDocument(
   client: BatchStorageClient,
   userId: string,
@@ -290,8 +293,7 @@ export async function uploadBatchDocument(
 ): Promise<string> {
   const extension = file.name.split('.').pop()?.toLowerCase() || 'bin'
   const path = `${userId}/${Date.now()}.${extension}`
-  const bucket = client.storage.from('batch-files')
-  const { error } = await bucket.upload(path, file)
+  const { error } = await client.storage.from('batch-files').upload(path, file)
   throwIfError(error)
-  return bucket.getPublicUrl(path).data.publicUrl
+  return path
 }

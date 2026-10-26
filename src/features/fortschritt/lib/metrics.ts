@@ -75,7 +75,7 @@ function labSeries(
   for (const b of inRange) {
     const raw = numeric(b.value)
     if (raw == null) continue
-    const converted = convert(raw, b.unit, displayUnit)
+    const converted = convert(raw, b.unit, displayUnit, normalizeMarker(marker)?.name)
     if (converted == null) continue
     points.push({ date: b.tested_at, value: converted })
   }
