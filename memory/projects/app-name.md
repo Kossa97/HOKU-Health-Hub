@@ -1,11 +1,18 @@
 # App-Name
 
-**Wieder offen (27.10.2026): „Health Hub" fällt wegen Markentreffer** (Nutzer,
+**Korrektur (Nutzer 27.10.2026): Das Problem war wohl „Dot", nicht „Health Hub".**
+Bekannte „Dot"-Kollisionen im Gesundheitsbereich: App „Dot: Period & Pill
+Tracker" (live), Zyklus-App „Dot™" von Cycle Technologies (seit 2015),
+US-Anmeldungen „DOT." (Labor-/Patientenakten-SaaS, Serial 97923907) und
+„THE DOT" (Teletherapie-App, Serial 97392868), „Dose Dot" (Injektionen).
+„Dot" ist als Figurenname auf main breit verbaut (46 Dateien, je 21 Texte
+in de/en). Offen: nur App-Name ohne „Dot", oder auch die Figur umbenennen.
+
+**Zuerst vermutet (27.10.2026): „Health Hub" fällt wegen Markentreffer** (Nutzer,
 aus einem anderen Gespräch). Gefunden: US-Anmeldung HEALTHHUB von CVS Pharmacy,
 Serial 88312236, Klasse 9, umfasst Software für Gesundheits- und Wellness-Infos
 und Fitness-Messdaten. Dazu Singapurs staatliche App „HealthHub" (MOH/Synapxe).
-EU/DE-Treffer nicht selbst geprüft. „Dot" als Markenname bleibt; gesucht wird
-nur ein neuer Zusatz.
+EU/DE-Treffer nicht selbst geprüft.
 
 **Zuvor entschieden (Nutzer 26.10.2026): „Dot: Health Hub".** Dot (die Coach-Figur,
 siehe `ki-coach.md`) wird Markenname, „Health Hub" der erklärende Zusatz.
