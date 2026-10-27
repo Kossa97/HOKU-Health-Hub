@@ -875,8 +875,11 @@ export function createDot(host: DotHost): DotApi {
       spalt.style.width = ow.toFixed(1) + 'px'
       spalt.style.transform = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
     }
-    if (open < 0.01 || !navOn()) return
-    const a = clamp01(open * (0.75 + 0.08 * Math.sin(t * 2.1) + 0.3 * B.near) + B.doorFlash * 0.35)
+    // Der Strahl gehört zur Leiste: über dem Chat (Bühne) und unter einem Blatt
+    // oder Dialog (er tritt zurück) liegt die Zeichenfläche über dem Fenster
+    const frei = B.mode === 'stage' ? 0 : 1 - B.recede
+    if (open < 0.01 || !navOn() || frei < 0.02) return
+    const a = frei * clamp01(open * (0.75 + 0.08 * Math.sin(t * 2.1) + 0.3 * B.near) + B.doorFlash * 0.35)
     const ex = ENT.x, bh = (26 + 14 * B.near + 10 * B.doorFlash) * open
     ctx.globalCompositeOperation = 'lighter'
     ctx.save(); ctx.translate(ex, TAB); ctx.scale(ow * 0.62 + 4, bh)
