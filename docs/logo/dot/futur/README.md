@@ -36,3 +36,20 @@ Neu erzeugen: `PYTHONPATH=<fonttools>:../wortmarke python3 futur.py . <font-ordn
 mehr Luft um Dot; in Farbe sind die Linien leises Weiß (38 %), nur Dot und ein Akzentpunkt leuchten.
 Mission (Ring, Text oben und unten), Radar (Ring, vier Marken, leiser Suchstrahl), Orbit (eine Bahn, ein Satellit),
 Staubring (feiner Teilchenring), Rahmen (vier Eckwinkel, Kennung darunter), Fortschritt (ein Bogen mit Endpunkt).
+
+## Siegel „TRACKED BY · DOT · Health Hub“ (27.10.2026)
+
+Nutzer: „TRACKED BY“ und „DOT · Health Hub“ sollen dabei sein, Dot immer sichtbar, vielfältige Möglichkeiten.
+`tracked.py`, Übersicht `tracked-uebersicht.png` (Farbe, schwarz, weiß auf Foto). Klarer Stil aus `siegel_clean.py`.
+
+| Datei | Form |
+|---|---|
+| `tracked-1-klassisch` | Ring, oben TRACKED BY, unten DOT · HEALTH HUB |
+| `tracked-2-stempel` | Doppelring, Kreisschrift zweimal rundum (Gummistempel) |
+| `tracked-3-medaille` | Ring, Dot oben, darunter TRACKED BY / DOT (Michroma) / Health Hub (Inter) |
+| `tracked-4-fortschritt` | Bogen mit Endpunkt, Text oben und unten |
+| `tracked-5-orbit` | eine Bahn mit Satellit, Text oben und unten |
+| `tracked-6-sucher` | Eckwinkel, Dot oben, Namensblock darunter |
+| `tracked-7-kapsel` | waagerechte Kapsel, Dot links – für Beiträge und Bildecken |
+| `tracked-8-ticket` | Rahmen mit Abrisslinie, Dot links, Namensblock rechts |
+| `tracked-9-staubring` | Teilchenring, Text oben und unten |
