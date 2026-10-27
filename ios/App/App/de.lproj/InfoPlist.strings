@@ -1,0 +1,6 @@
+/* Texte für die Erlaubnisabfragen von iOS (Deutsch). Englisch in en.lproj. */
+"NSCameraUsageDescription" = "TYD nutzt die Kamera zum Scannen von Barcodes auf Lebensmitteln und Produkten sowie – nach deiner Einwilligung – zum Fotografieren von Etiketten, die zum Auslesen übertragen werden. Es werden keine Bilder gespeichert.";
+"NSMicrophoneUsageDescription" = "Dot hört zu, wenn du im Chat auf das Mikrofon tippst, und schreibt das Gesagte in das Eingabefeld. Es wird nichts aufgenommen oder gespeichert.";
+"NSSpeechRecognitionUsageDescription" = "Die Spracherkennung von Apple wandelt das, was du Dot im Chat sagst, in Text um. TYD speichert keine Aufnahmen.";
+"NSHealthShareUsageDescription" = "TYD liest Gesundheitsdaten, um Gewicht, Schritte, Schlaf und Herzfrequenz in deiner Dokumentation anzuzeigen.";
+"NSHealthUpdateUsageDescription" = "TYD kann ausgewählte Gesundheitsdaten speichern, wenn du diese Funktion aktiv nutzt.";
