@@ -112,6 +112,14 @@ const de = {
   anlage_morgens: 'morgens',
   anlage_mittags: 'mittags',
   anlage_abends: 'abends',
+
+  // Dot hört zu
+  mikro_start: 'Sprechen',
+  mikro_fertig: 'Fertig gesprochen',
+  mikro_hoert: 'Ich höre zu …',
+  mikro_verweigert: 'Ich darf das Mikrofon nicht benutzen. Du kannst es in den Einstellungen erlauben – oder tipp auf das Mikrofon deiner Tastatur.',
+  mikro_nichts: 'Ich habe nichts gehört. Tipp noch einmal aufs Mikrofon und sprich los.',
+  mikro_fehler: 'Zuhören klappt gerade nicht. Das Mikrofon deiner Tastatur geht immer.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -211,6 +219,14 @@ const en: Record<keyof typeof de, string> = {
   anlage_morgens: 'morning',
   anlage_mittags: 'midday',
   anlage_abends: 'evening',
+
+  // Dot listens
+  mikro_start: 'Speak',
+  mikro_fertig: 'Done speaking',
+  mikro_hoert: 'Listening …',
+  mikro_verweigert: 'I am not allowed to use the microphone. You can allow it in Settings – or tap the microphone on your keyboard.',
+  mikro_nichts: 'I did not hear anything. Tap the microphone again and start speaking.',
+  mikro_fehler: 'Listening does not work right now. The microphone on your keyboard always does.',
 }
 
 export const DOT_TEXTE = { de, en }
