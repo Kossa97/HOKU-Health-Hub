@@ -42,11 +42,11 @@ def lockup(name, title, nk, nsize, ntrack, dk, dsize, dtext, dtrack, layout="rec
     parts = [("kugel", (kcx, kcy, r)), ("text", (d1, "name")), ("text", (d2, "zusatz"))]
     b.bauen(name, title, parts, w, h)
 
-T = "Dot: Health Tracker – "
-lockup("c1-basis", T + "C1 Basis", "id-medium", 132, -0.03, "id-regular", 132 * 0.3, "Health Tracker", 0.005)
-lockup("c2-kraeftig", T + "C2 Kräftig", "id-semibold", 132, -0.035, "id-medium", 132 * 0.2, "HEALTH TRACKER", 0.14)
-lockup("c3-leicht", T + "C3 Leicht", "id-light", 140, -0.02, "id-regular", 140 * 0.27, "Health Tracker", 0.01)
-lockup("c4-zeile", T + "C4 Eine Zeile", "id-medium", 132, -0.03, "id-regular", 132, "Health Tracker", -0.02, layout="zeile")
-lockup("c5-kompakt", T + "C5 Kompakt", "id-semibold", 132, -0.035, "id-regular", 132 * 0.26, "Health Tracker", 0.005, layout="kompakt")
-lockup("c6-gestapelt", T + "C6 Gestapelt", "id-medium", 104, -0.03, "id-regular", 104 * 0.3, "Health Tracker", 0.005, layout="gestapelt")
-lockup("c7-app-schrift", T + "C7 Schrift der App", "sg-500", 132, -0.02, "id-regular", 132 * 0.28, "Health Tracker", 0.005)
+T = "Dot: Health Hub – "
+lockup("c1-basis", T + "C1 Basis", "id-medium", 132, -0.03, "id-regular", 132 * 0.3, "Health Hub", 0.005)
+lockup("c2-kraeftig", T + "C2 Kräftig", "id-semibold", 132, -0.035, "id-medium", 132 * 0.2, "HEALTH HUB", 0.14)
+lockup("c3-leicht", T + "C3 Leicht", "id-light", 140, -0.02, "id-regular", 140 * 0.27, "Health Hub", 0.01)
+lockup("c4-zeile", T + "C4 Eine Zeile", "id-medium", 132, -0.03, "id-regular", 132, "Health Hub", -0.02, layout="zeile")
+lockup("c5-kompakt", T + "C5 Kompakt", "id-semibold", 132, -0.035, "id-regular", 132 * 0.26, "Health Hub", 0.005, layout="kompakt")
+lockup("c6-gestapelt", T + "C6 Gestapelt", "id-medium", 104, -0.03, "id-regular", 104 * 0.3, "Health Hub", 0.005, layout="gestapelt")
+lockup("c7-app-schrift", T + "C7 Schrift der App", "sg-500", 132, -0.02, "id-regular", 132 * 0.28, "Health Hub", 0.005)

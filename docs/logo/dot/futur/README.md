@@ -1,8 +1,9 @@
 # Dot – futuristische Richtung (Runde 3, 27.10.2026)
 
+Name (Nutzer 27.10.): **„Dot: Health Hub“** – vorher versehentlich „Health Tracker“, alles neu gebaut.
 Nutzer: Varianten zu C „zu wenig sci-fi/futuristisch“; dazu ein Stempel/Wasserzeichen für geteilte Erfolge,
 Beiträge und PDFs. Schriftstudie mit 14 offenen Schriften (alle SIL OFL); gewählt: **Michroma** (breit, ruhig),
-**Syncopate Bold** (breit, kräftig), **IBM Plex Mono** gesperrt in Versalien für den Zusatz (die App nutzt Plex Mono
+**Syncopate Bold** (breit, kräftig), **IBM Plex Mono** in Versalien für den Zusatz (feste Sperrung 0,5 em; die Größe passt sich an, bis der Zusatz so breit wie „DOT“ ist, begrenzt) (die App nutzt Plex Mono
 schon). Orbitron und Audiowide verworfen (Klischee). Alle Schriften als Pfade, Dot schwarz/weiß als Vektor,
 in Farbe aus dem Renderer.
 
@@ -15,7 +16,7 @@ Neu erzeugen: `PYTHONPATH=<fonttools>:../wortmarke python3 futur.py . <font-ordn
 | `f2-punktschrift` | D und T aus Punkten (Syncopate gerastert), das O ist Dot |
 | `f3-umlaufbahn` | Dot im Ring mit Skala und einem kreisenden Punkt, „DOT“ in Syncopate |
 | `s1-siegel` | rundes Siegel: Kreisschrift, Skala, Dot – für Zertifikate, besondere Erfolge |
-| `s2-kennung` | kleine Zeile Dot · DOT · HEALTH TRACKER – für Ecken, Fußzeilen, PDFs |
+| `s2-kennung` | kleine Zeile Dot · DOT · HEALTH HUB – für Ecken, Fußzeilen, PDFs |
 | `s3-erfolg` | „TRACKED WITH DOT“ – für geteilte Erfolge und Beiträge |
 
 `uebersicht.png` zeigt alles auf Dunkel, auf einem Foto und im PDF.

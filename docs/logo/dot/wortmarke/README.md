@@ -1,9 +1,9 @@
-# Schriftzug „Dot: Health Tracker“ – Konzepte (Runde 1, 26.10.2026)
+# Schriftzug „Dot: Health Hub“ – Konzepte (Runde 1, 26.10.2026)
 
 Mit dem Skill `logo-design` (Schriftstudie, drei Konzepte, Prüfung, Konzeptblatt), Typografie nach
 `references/typography.md` und `apple-design` §15 (große Schrift enger laufen lassen, Hierarchie über Gewicht und Größe).
 
-- **Name und Zusatz:** Marke ist „Dot“, „Health Tracker“ ist der Zusatz. „Dot: Health Tracker“ mit Doppelpunkt
+- **Name und Zusatz:** Marke ist „Dot“, „Health Hub“ ist der Zusatz. „Dot: Health Hub“ mit Doppelpunkt
   ist die Schreibweise für den Store-Titel, nicht für das Logo.
 - **Schriften:** Inter Display (SIL OFL) und Space Grotesk (SIL OFL, Überschriftenschrift der App), beide als
   Pfade umgewandelt, im Logo braucht man die Schrift also nicht mehr.
@@ -14,7 +14,7 @@ Mit dem Skill `logo-design` (Schriftstudie, drei Konzepte, Prüfung, Konzeptblat
 |---|---|
 | `a-schlusspunkt` | „dot“ (Inter Display SemiBold) mit Dot als Schlusspunkt |
 | `b-o-ist-dot` | „D●t“ in Space Grotesk 500, Dot ersetzt das o |
-| `c-lockup` | Dot links, „Dot“ (Inter Display Medium) und „Health Tracker“ (Regular) rechts – Empfehlung |
+| `c-lockup` | Dot links, „Dot“ (Inter Display Medium) und „Health Hub“ (Regular) rechts – Empfehlung |
 
 Jeweils `.svg` schwarz und `-farbe.svg` auf `#05060a`. `konzepte.png` (grau, mit 64/32/16 px) und `farbe.png`.
 Neu erzeugen: `PYTHONPATH=<fonttools> python3 bauen.py . <ordner mit SpaceGrotesk-500.ttf> dot-hell-1024.png`.

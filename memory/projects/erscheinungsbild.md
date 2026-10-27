@@ -56,3 +56,12 @@ gerendert mit dem Zeichenweg der Engine (`docs/logo/dot/echt/dot-icon.html`, Exp
 `export.cjs`): 460 Punkte, Shader, Farben und Schein wie in `dotEngine.ts`, Zustand
 „Sprechen“ für mehr Präsenz. Ersetzt die gezeichnete Kugel (Fassung 1, Commit 68eef72).
 Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/README.md`.
+
+## Name, Schriftzug und Stempel (26./27.10.2026)
+
+- **Name der App: „Dot: Health Hub“** (Nutzer 27.10.; „Health Tracker“ war ein Versehen). Marke ist „Dot“,
+  „Health Hub“ der Zusatz; der Doppelpunkt gehört nur in den Store-Titel.
+- Schriftzug: erst ruhig (Inter Display, `docs/logo/dot/wortmarke`), Nutzer wollte es futuristischer →
+  `docs/logo/dot/futur`: F1 Weit (Michroma), F2 Punktschrift, F3 Umlaufbahn; Zusatz IBM Plex Mono in Versalien.
+  Stempel für geteilte Erfolge, Beiträge, PDFs: S1 Siegel, S2 Kennung, S3 „TRACKED WITH DOT“ – je schwarz, weiß, farbig.
+  Nutzer findet alle gut; Auswahl offen.
