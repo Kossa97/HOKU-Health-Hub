@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
+import { DotLayer } from './features/dot/DotLayer'
 import { Auth } from './pages/Auth'
 import { publicPeptipediaRoutes } from './features/peptipedia/publicRoutes'
 import { PeptipediaAppPage } from './features/peptipedia/PeptipediaAppPage'
@@ -111,6 +112,8 @@ function PersonalApp() {
             <Route path="simulation/:key" element={<LazyPage><BlutspiegelDetail /></LazyPage>} />
           </Route>
         </Routes>
+        {/* Dot über den Routen: derselbe auf der Anmeldung und in der App */}
+        <DotLayer />
       </AuthProvider>
   )
 }

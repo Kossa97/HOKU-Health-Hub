@@ -64,6 +64,10 @@ const de = {
   chip_bestand: 'Wie lange reicht mein Bestand?',
   chip_ernaehrung: 'Wie sieht meine Ernährung heute aus?',
   chip_heim: 'Geh in dein Haus',
+  // Anmeldung: Dot schreibt diese Zeilen mit seinen Punkten (Zeilenumbruch = neue Zeile)
+  login_hub: 'Willkommen im\nHealth Hub',
+  login_zurueck: 'Willkommen\nzurück',
+  login_hey: 'Hey, ich\nbin Dot',
   heim_antwort: 'Bis später. Tipp auf mein Logo in der Leiste, wenn du mich brauchst.',
   hinweis_unten: 'Dot ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
@@ -158,6 +162,9 @@ const en: Record<keyof typeof de, string> = {
   chip_bestand: 'How long will my supply last?',
   chip_ernaehrung: 'How is my nutrition today?',
   chip_heim: 'Go to your house',
+  login_hub: 'Welcome to\nHealth Hub',
+  login_zurueck: 'Welcome\nback',
+  login_hey: "Hey, I'm\nDot",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Dot is an AI and can be wrong. No diagnosis, no dose recommendations.',
 

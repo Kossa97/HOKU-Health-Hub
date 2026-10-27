@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dauerText, eckenAbstand, FERN, kastenAbstand, leistenAbstand, rahmenAbstand, ueberlappt } from './geometry'
+import { dauerText, eckenAbstand, FERN, kastenAbstand, leistenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt } from './geometry'
 
 const rand = { l: 4, t: 4, r: 394, b: 838 }
 
@@ -55,5 +55,18 @@ describe('Dot: Geometrie', () => {
     expect(dauerText(499, 'Std.', 'Min.')).toBe('8 Std. 19 Min.')
     expect(dauerText(60, 'Std.', 'Min.')).toBe('1 Std.')
     expect(dauerText(5, 'Std.', 'Min.')).toBe('5 Min.')
+  })
+  it('Rahmenpunkt: läuft im Uhrzeigersinn um den Umriss, ab der Mitte oben', () => {
+    expect(rahmenPunkt(rand, 44, 0)).toEqual([199, 4])
+    const [rx, ry] = rahmenPunkt(rand, 44, 0.25)
+    expect(rx).toBeCloseTo(394)
+    expect(ry).toBeGreaterThan(4 + 44)
+    const [, unten] = rahmenPunkt(rand, 44, 0.5)
+    expect(unten).toBeCloseTo(838)
+    // jeder Punkt liegt auf dem Umriss: Abstand zur Kante 0
+    for (let s = 0; s < 1; s += 0.037) {
+      const [x, y] = rahmenPunkt(rand, 44, s)
+      expect(Math.abs(rahmenAbstand(x, y, rand, 44, false).d)).toBeLessThan(0.01)
+    }
   })
 })

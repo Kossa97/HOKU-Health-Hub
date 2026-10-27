@@ -14,7 +14,9 @@ import { routeLayoutMode } from './layoutMode'
 import { useAbdruckNehmen } from './ui/umrissAbdruck'
 import { AmbientLightProvider } from './ambient/AmbientLight'
 import { ambientForPath } from './ambient/palettes'
-import { DotLayer } from '../features/dot/DotLayer'
+import { dotStore } from '../features/dot/dotStore'
+import { PASSKEY_AN } from '../features/auth/lib/passkey'
+import { PasskeyNachfrage } from '../features/auth/components/PasskeyNachfrage'
 
 const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
@@ -92,9 +94,14 @@ export function Layout() {
   const mainRef = useRef<HTMLElement>(null)
   useAbdruckNehmen(mainRef, pathname)
   const ambient = ambientForPath(pathname)
+  // Dot lebt über den Routen (App.tsx); hier sagt das Gerüst nur, wie die Seite aussieht
+  useEffect(() => { dotStore.setApp({ mitLeiste: !hideTabBar, schnellzugriff: showQuickActions }) }, [hideTabBar, showQuickActions])
+  useEffect(() => () => dotStore.setApp(null), [])
 
   return (
-    // Umgebungslicht hinter allen Seiten — Farbe und Stärke je Bereich
+    // Umgebungslicht hinter allen Seiten — Farbe und Stärke je Bereich.
+    // Die Hülle ist das Portal nach der Anmeldung: Dot schneidet sie Bild für Bild frei.
+    <div data-dot-portal>
     <AmbientLightProvider palette={ambient.palette} level={ambient.level} off={hideBottomNav}>
     <div
       className={`flex w-full flex-col overflow-x-hidden ${lockViewport ? 'overflow-y-hidden' : 'min-h-dvh'}`}
@@ -158,6 +165,7 @@ export function Layout() {
       {!hideBottomNav && <div aria-hidden="true" className="lg-statusbar-scrim" />}
 
       <LanguageGate />
+      {PASSKEY_AN && <PasskeyNachfrage />}
       <PushNotificationListener />
 
 
@@ -230,9 +238,6 @@ export function Layout() {
         </>
       )}
 
-      {/* Dot, der KI-Coach: wohnt in der Leiste, schwebt über allem */}
-      <DotLayer pathname={pathname} mitLeiste={!hideTabBar} schnellzugriffOffen={showQuickActions} />
-
       {/* ── Bottom nav ─────────────────────────────────────────────────────
           Die Leiste selbst liegt in `navigation/`: Modell, Optik und
           Verdrahtung getrennt, damit im nativen iOS-Bau Apples echte Tab-Bar
@@ -246,6 +251,7 @@ export function Layout() {
       )}
     </div>
     </AmbientLightProvider>
+    </div>
   )
 }
 

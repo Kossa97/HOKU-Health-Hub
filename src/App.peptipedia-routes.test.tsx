@@ -7,6 +7,7 @@ import App from './App'
 vi.mock('./context/AuthContext', () => ({ AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock('./components/ProtectedRoute', () => ({ ProtectedRoute: () => <div>PROTECTED_GATE</div> }))
 vi.mock('./components/Layout', () => ({ Layout: () => null }))
+vi.mock('./features/dot/DotLayer', () => ({ DotLayer: () => null }))
 vi.mock('./pages/Auth', () => ({ Auth: () => <div>AUTH</div> }))
 vi.mock('./pages/__VialPreview', () => ({ VialPreview: () => null }))
 afterEach(cleanup)

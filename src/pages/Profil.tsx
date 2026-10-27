@@ -13,6 +13,8 @@ import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmen
 import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
+import { PASSKEY_AN } from '../features/auth/lib/passkey'
+import { PasskeyEinstellung } from '../features/auth/components/PasskeyEinstellung'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
@@ -257,6 +259,9 @@ export function Profil() {
         <KiEinwilligungProfil />
         <PhotoConsentProfile />
       </div>
+
+      {/* ── Face ID / Passkeys ── */}
+      {PASSKEY_AN && <PasskeyEinstellung />}
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
