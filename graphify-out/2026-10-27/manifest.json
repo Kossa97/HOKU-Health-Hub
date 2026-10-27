@@ -7896,9 +7896,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/CoachPanel.tsx": {
-    "mtime": 1793065465.3239415,
-    "seen": 1793065896.0065594,
-    "ast_hash": "98efba4b57f4ddc87150475b97ac04bc",
+    "mtime": 1793065999.3961058,
+    "seen": 1793066259.5878558,
+    "ast_hash": "3dc3dde4d898298e13f9646c1ef4e157",
     "semantic_hash": ""
   },
   "src/features/dot/chat/coachService.ts": {
@@ -8058,9 +8058,9 @@
     "semantic_hash": ""
   },
   "e2e/dot-meldungen.spec.ts": {
-    "mtime": 1793065556.6726081,
-    "seen": 1793065896.000801,
-    "ast_hash": "e9a03cc10c802f7061cb7ef43b707c6d",
+    "mtime": 1793066036.2350805,
+    "seen": 1793066259.582056,
+    "ast_hash": "4610f81216324aeadbf66c0d0068f2e7",
     "semantic_hash": ""
   },
   "src/features/dot/autoTracking/vormerkungen.ts": {
@@ -8196,9 +8196,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/useSpracheingabe.ts": {
-    "mtime": 1793065391.4231093,
-    "seen": 1793065896.0066288,
-    "ast_hash": "d08dc956f4619c85ff7a13b2fac60901",
+    "mtime": 1793065991.5710824,
+    "seen": 1793066259.5879283,
+    "ast_hash": "89df44e1eba1a82e8303fefaf9ff3a51",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/SKILL.md": {
