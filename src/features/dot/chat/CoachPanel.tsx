@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { AUTO_EREIGNIS, ladeAutoKarte } from '../autoTracking/autoTracking'
@@ -10,6 +11,7 @@ import {
   type CoachFehler, type CoachNachricht,
 } from './coachService'
 import { Veraendert, fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
+import type { DotAnlage } from '../../my-stack/lib/dotAnlage'
 
 /**
  * Das Chatfenster. Es öffnet sich als Kreis genau dort, wo Dot gerade ist,
@@ -66,6 +68,7 @@ function wann(datum: string, zeit: string, heute: string, dt: (k: DotTextKey) =>
 export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEinwilligung, kontext, dot, onSchliessen, onHeim }: CoachPanelProps) {
   const { user } = useAuth()
   const { dt, lang } = useDotText()
+  const navigate = useNavigate()
   const [verlauf, setVerlauf] = useState<CoachNachricht[]>(() => (user ? ladeVerlauf(user.id) : []))
   const [laufend, setLaufend] = useState<string | null>(null)
   const [denkt, setDenkt] = useState(false)
@@ -120,6 +123,7 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     const antwort = await frageCoach(neu, k, seite, lang)
     if (!antwort.ok && antwort.fehler === 'consent_required') setEinwilligung(null)
     const karten = antwort.ok && antwort.meldungen.length ? await fuehreAus(antwort.meldungen, k) : []
+    if (antwort.ok) for (const anlage of antwort.anlagen) karten.push({ rolle: 'dot', text: anlageText(anlage), anlage })
     setDenkt(false)
     const text = antwort.ok ? antwort.text : dt(FEHLER[antwort.fehler])
     const lokal = !antwort.ok
@@ -160,6 +164,19 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     }
     window.dispatchEvent(new CustomEvent(AUTO_EREIGNIS, { detail: { anzahl: 0 } }))
     return karten
+  }
+
+  /** Was Dot vorbereitet hat, in einem Satz: „BPC-157 · 250 mcg · morgens". */
+  function anlageText(a: DotAnlage) {
+    const zeiten = a.zeiten.map(z => (z.uhrzeit ?? dt(z.tageszeit === 'morning' ? 'anlage_morgens' : z.tageszeit === 'midday' ? 'anlage_mittags' : 'anlage_abends')))
+    const teile = [a.name, a.menge !== null ? `${a.menge.toLocaleString(lang)} ${a.einheit ?? ''}`.trim() : null, zeiten.join(', ') || null].filter(Boolean)
+    return dt('anlage_vorbereitet', { was: teile.join(' · ') })
+  }
+
+  /** Zum Assistenten in My Stack, vorbefüllt. Gespeichert wird erst dort. */
+  function oeffneAnlage(anlage: DotAnlage) {
+    onSchliessen()
+    navigate('/my-stack#new-substance', { state: { dotAnlage: anlage } })
   }
 
   async function machRueckgaengig(id: string) {
@@ -227,8 +244,11 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
             <div ref={faden} className="tyd-dot-faden">
               {verlauf.length === 0 && !laufend && <p className="tyd-dot-intro">{intro}</p>}
               {verlauf.map((n, i) => (
-                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte ? 'true' : undefined}>
+                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte || n.anlage ? 'true' : undefined}>
                   {n.text}
+                  {n.anlage && (
+                    <button type="button" className="tyd-dot-zurueck" onClick={() => oeffneAnlage(n.anlage!)}>{dt('anlage_oeffnen')}</button>
+                  )}
                   {n.karte && (
                     <button type="button" className="tyd-dot-zurueck" disabled={karteLaeuft === n.karte} onClick={() => void machRueckgaengig(n.karte!)}>{dt('melde_zurueck')}</button>
                   )}
