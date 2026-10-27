@@ -90,10 +90,17 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     text => { void fragen(text) },
     f => setVerlauf(v => [...v, { rolle: 'dot', text: dt(SPRACHE_FEHLER[f]), lokal: true }]),
   )
+  // Nur beim Wechsel: zuhören → listen, danach zurück (antwortet er schon, setzt fragen die Stimmung)
+  const hoerteVorher = useRef(false)
   useEffect(() => {
+    if (hoerteVorher.current === sprache.hoert) return
+    hoerteVorher.current = sprache.hoert
     if (!dot || arbeitet.current) return
     dot.setStimmung(sprache.hoert ? 'listen' : 'idle')
   }, [dot, sprache.hoert])
+  // Chat zu: nicht weiter zuhören, nichts schicken
+  const { abbrechen: zuhoerenAbbrechen } = sprache
+  useEffect(() => { if (!offen) zuhoerenAbbrechen() }, [offen, zuhoerenAbbrechen])
   const [karteLaeuft, setKarteLaeuft] = useState<string | null>(null)
   const weniger = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -292,8 +299,11 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
                 {/* Leeres Feld: Mikrofon (wo der Browser Sprache erkennt), sonst Senden */}
                 {sprache.verfuegbar && (sprache.hoert || !eingabe.trim()) ? (
                   <button
+                    key="mikro"
                     type="button"
                     className="tyd-dot-senden"
+                    // Während Dot antwortet, kein neuer Satz: er ginge verloren
+                    disabled={!sprache.hoert && (denkt || laufend !== null)}
                     data-mikro={sprache.hoert ? 'an' : 'aus'}
                     aria-label={dt(sprache.hoert ? 'mikro_fertig' : 'mikro_start')}
                     aria-pressed={sprache.hoert}
@@ -305,7 +315,7 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
                     </svg>
                   </button>
                 ) : (
-                  <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                  <button key="senden" type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
                 )}
               </form>
               <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>

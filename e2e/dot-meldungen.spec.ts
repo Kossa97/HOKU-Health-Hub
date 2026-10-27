@@ -189,3 +189,26 @@ test('ohne Spracherkennung im Browser gibt es keinen Mikrofon-Knopf', async ({ p
   await expect(chat.getByRole('button', { name: 'Sprechen' })).toHaveCount(0)
   await expect(chat.getByRole('button', { name: 'Senden' })).toBeVisible()
 })
+
+test('Chat zu, während Dot zuhört: das halb Gehörte geht nicht ab', async ({ page, mock }) => {
+  // Spricht und hört nicht von selbst auf; abort() endet wie im Standard: erst „aborted", dann „end"
+  await page.addInitScript(() => {
+    class Erkennung {
+      lang = ''; continuous = false; interimResults = false
+      onresult: ((e: unknown) => void) | null = null
+      onerror: ((e: unknown) => void) | null = null
+      onend: (() => void) | null = null
+      start() { setTimeout(() => this.onresult?.({ results: [[{ transcript: 'Wie viel' }]] }), 50) }
+      stop() { this.onend?.() }
+      abort() { this.onerror?.({ error: 'aborted' }); this.onend?.() }
+    }
+    Object.assign(window, { SpeechRecognition: Erkennung, webkitSpeechRecognition: Erkennung })
+  })
+  const chat = await chatOeffnen(page)
+  await chat.getByRole('button', { name: 'Sprechen' }).click()
+  await lassLaufen(page, 300)
+  await expect(chat.getByRole('textbox')).toHaveValue('Wie viel')
+  await chat.getByRole('button', { name: 'Chat schließen' }).click()
+  await lassLaufen(page, 1500)
+  expect(mock.coach.calls).toHaveLength(0)
+})
