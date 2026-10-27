@@ -428,7 +428,13 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
   im History-State; der Assistent wendet `anlageAktionen` (lib/dotAnlage.ts)
   im Reducer-Start an, erst wenn der Katalog geladen ist. Gespeichert wird
   nur im Assistenten.
-- Schritt 3 offen: Mikrofon im Chat (vorerst iPhone-Diktat).
+- Schritt 3: Mikrofon im Chat (`chat/useSpracheingabe.ts`): Web Speech API des
+  Browsers (Safari: `webkitSpeechRecognition`, Erkennung bei Apple). Knopf nur,
+  wo es sie gibt; das Tastatur-Diktat geht immer. Das native Community-Plugin
+  (`@capacitor-community/speech-recognition` 7.0.1) hat kein Package.swift und
+  passt nicht zum SPM-Projekt der iOS-App. Info.plist hat Mikrofon- und
+  Spracherkennungs-Texte; in der nativen App erst mit dem nächsten Build. Ob
+  WKWebView die Erkennung anbietet, auf dem Gerät prüfen.
 
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine

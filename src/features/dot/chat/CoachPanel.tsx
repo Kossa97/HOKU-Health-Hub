@@ -12,6 +12,7 @@ import {
 } from './coachService'
 import { Veraendert, fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
 import type { DotAnlage } from '../../my-stack/lib/dotAnlage'
+import { useSpracheingabe, type SpracheFehler } from './useSpracheingabe'
 
 /**
  * Das Chatfenster. Es öffnet sich als Kreis genau dort, wo Dot gerade ist,
@@ -58,6 +59,8 @@ const ERGEBNIS: Record<MeldungErgebnis['status'], DotTextKey> = {
   schon_genommen: 'melde_schon_genommen', schon_vergessen: 'melde_schon_vergessen', fehler: 'melde_fehler',
 }
 
+const SPRACHE_FEHLER: Record<SpracheFehler, DotTextKey> = { verweigert: 'mikro_verweigert', nichts: 'mikro_nichts', fehler: 'mikro_fehler' }
+
 /** „heute 08:00", „gestern 20:00", sonst „19.10. 08:00". */
 function wann(datum: string, zeit: string, heute: string, dt: (k: DotTextKey) => string) {
   const tage = Math.round((Date.parse(`${heute}T12:00:00Z`) - Date.parse(`${datum}T12:00:00Z`)) / 86_400_000)
@@ -81,6 +84,16 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
   /** Rückgängig je Karte, nur im Speicher: gesichert wird nur der Text (`speichereVerlauf`), nach einem Neustart fehlt der Knopf. */
   const zurueck = useRef(new Map<string, () => Promise<void>>())
   const kartenZaehler = useRef(0)
+  // Dot hört zu: das Gehörte geht ab wie getippt
+  const sprache = useSpracheingabe(
+    lang,
+    text => { void fragen(text) },
+    f => setVerlauf(v => [...v, { rolle: 'dot', text: dt(SPRACHE_FEHLER[f]), lokal: true }]),
+  )
+  useEffect(() => {
+    if (!dot || arbeitet.current) return
+    dot.setStimmung(sprache.hoert ? 'listen' : 'idle')
+  }, [dot, sprache.hoert])
   const [karteLaeuft, setKarteLaeuft] = useState<string | null>(null)
   const weniger = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -268,14 +281,32 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
               </div>
               <form className="tyd-dot-eingabe" onSubmit={e => { e.preventDefault(); void fragen(eingabe) }}>
                 <input
-                  value={eingabe}
+                  value={sprache.hoert ? sprache.zwischen : eingabe}
                   onChange={e => setEingabe(e.target.value)}
-                  placeholder={dt('chat_platzhalter')}
+                  placeholder={dt(sprache.hoert ? 'mikro_hoert' : 'chat_platzhalter')}
                   aria-label={dt('chat_platzhalter')}
                   maxLength={500}
                   enterKeyHint="send"
+                  readOnly={sprache.hoert}
                 />
-                <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                {/* Leeres Feld: Mikrofon (wo der Browser Sprache erkennt), sonst Senden */}
+                {sprache.verfuegbar && (sprache.hoert || !eingabe.trim()) ? (
+                  <button
+                    type="button"
+                    className="tyd-dot-senden"
+                    data-mikro={sprache.hoert ? 'an' : 'aus'}
+                    aria-label={dt(sprache.hoert ? 'mikro_fertig' : 'mikro_start')}
+                    aria-pressed={sprache.hoert}
+                    onClick={() => (sprache.hoert ? sprache.beenden() : sprache.starten())}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="3" width="6" height="11" rx="3" />
+                      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                )}
               </form>
               <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>
             </>

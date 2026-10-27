@@ -26,6 +26,10 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>TYD nutzt die Kamera zum Scannen von Barcodes auf Lebensmitteln und Produkten sowie – nach deiner Einwilligung – zum Fotografieren von Etiketten, die zum Auslesen übertragen werden. Es werden keine Bilder gespeichert.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dot hört zu, wenn du im Chat auf das Mikrofon tippst, und schreibt das Gesagte in das Eingabefeld. Es wird nichts aufgenommen oder gespeichert.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Die Spracherkennung von Apple wandelt das, was du Dot im Chat sagst, in Text um. TYD speichert keine Aufnahmen.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>TYD liest Gesundheitsdaten, um Gewicht, Schritte, Schlaf und Herzfrequenz in deiner Dokumentation anzuzeigen.</string>
 	<key>NSHealthUpdateUsageDescription</key>

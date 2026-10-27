@@ -150,3 +150,42 @@ test('„leg BPC-157 an, Vial, 250 mcg morgens": Dot bereitet vor, der Assistent
     p_plan: { dose: 250, unit: 'mcg', intake_time: 'morgens' },
   })
 })
+
+test('Dot hört zu: Mikrofon tippen, sprechen, das Gehörte geht ab wie getippt', async ({ page, mock }) => {
+  // Nachgebildete Spracherkennung des Browsers: erst ein Zwischenstand, dann der Satz
+  await page.addInitScript(() => {
+    class Erkennung {
+      lang = ''; continuous = false; interimResults = false
+      onresult: ((e: unknown) => void) | null = null
+      onerror: ((e: unknown) => void) | null = null
+      onend: (() => void) | null = null
+      start() {
+        (window as unknown as { __sprache: string }).__sprache = this.lang
+        const ergebnis = (text: string, isFinal: boolean) => ({ resultIndex: 0, results: [Object.assign([{ transcript: text }], { isFinal })] })
+        setTimeout(() => this.onresult?.(ergebnis('Wie viel', false)), 50)
+        setTimeout(() => this.onresult?.(ergebnis('Wie viel BPC habe ich noch?', true)), 120)
+        setTimeout(() => this.onend?.(), 200)
+      }
+      stop() { this.onend?.() }
+      abort() {}
+    }
+    Object.assign(window, { SpeechRecognition: Erkennung, webkitSpeechRecognition: Erkennung })
+  })
+  mock.coach.antwort = 'Du hast noch zwei Vials.'
+  const chat = await chatOeffnen(page)
+  await chat.getByRole('button', { name: 'Sprechen' }).click()
+  await lassLaufen(page, 3000)
+  await expect(chat.getByText('Du hast noch zwei Vials.')).toBeVisible()
+  expect(mock.coach.calls[0].nachrichten.at(-1)).toEqual({ rolle: 'ich', text: 'Wie viel BPC habe ich noch?' })
+  expect(await page.evaluate(() => (window as unknown as { __sprache: string }).__sprache)).toBe('de-DE')
+})
+
+test('ohne Spracherkennung im Browser gibt es keinen Mikrofon-Knopf', async ({ page }) => {
+  await page.addInitScript(() => {
+    delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+    delete (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition
+  })
+  const chat = await chatOeffnen(page)
+  await expect(chat.getByRole('button', { name: 'Sprechen' })).toHaveCount(0)
+  await expect(chat.getByRole('button', { name: 'Senden' })).toBeVisible()
+})
