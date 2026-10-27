@@ -504,9 +504,11 @@ export class MockSupabase {
     antwort: string
     /** Meldungen per Satz, wie das Werkzeug `einnahmen_melden` sie liefert; als Funktion bekommt sie den gesendeten Kontext. */
     meldungen: unknown[] | ((kontext: unknown) => unknown[])
+    /** Von Dot vorbereitete Substanzen, wie das Werkzeug `substanz_anlegen` sie liefert. */
+    anlagen: unknown[]
     error: { status: number; code: string } | null
     calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
-  } = { antwort: 'Heute ist nichts geplant.', meldungen: [], error: null, calls: [] }
+  } = { antwort: 'Heute ist nichts geplant.', meldungen: [], anlagen: [], error: null, calls: [] }
 
   /**
    * Nachbild von supabase/functions/login-name: Name (Groß/klein egal) und
@@ -536,7 +538,7 @@ export class MockSupabase {
     this.coach.calls.push(body)
     if (this.coach.error) return route.fulfill({ status: this.coach.error.status, headers: corsHeaders(), json: { error: this.coach.error.code } })
     const meldungen = typeof this.coach.meldungen === 'function' ? this.coach.meldungen(body.kontext) : this.coach.meldungen
-    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, meldungen, verbleibend: 39 } })
+    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, meldungen, anlagen: this.coach.anlagen, verbleibend: 39 } })
   }
 
     /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */

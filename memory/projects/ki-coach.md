@@ -416,6 +416,26 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Noch nicht: Planänderung „ab jetzt immer 21 Uhr" (mit Bestätigung),
   Einstichstelle „Bauch links".
 
+## Dot statt „KI" und Substanz anlegen per Satz (26.10.2026, Nutzer)
+
+„Alle mit-KI-Buttons bekommen einen Dot-Button, als würde Dot es tun."
+- Schritt 1 (#87): Befund, Essensfoto, Etikett zeigen Dots Zeichen
+  (`src/features/dot/DotZeichen.tsx`: `DotZeichen`, `DotArbeitet`), Texte
+  de/en in Dots Stimme, Einwilligungen bleiben getrennt und nennen Dot als KI.
+- Schritt 2: „leg BPC-157 an, 250 mcg morgens" — Werkzeug `substanz_anlegen`
+  (nur, was der Nutzer sagt, nie eine ausgedachte Menge), Karte im Chat
+  „Ansehen und speichern" öffnet `/my-stack#new-substance` mit `dotAnlage`
+  im History-State; der Assistent wendet `anlageAktionen` (lib/dotAnlage.ts)
+  im Reducer-Start an, erst wenn der Katalog geladen ist. Gespeichert wird
+  nur im Assistenten.
+- Schritt 3: Mikrofon im Chat (`chat/useSpracheingabe.ts`): Web Speech API des
+  Browsers (Safari: `webkitSpeechRecognition`, Erkennung bei Apple). Knopf nur,
+  wo es sie gibt; das Tastatur-Diktat geht immer. Das native Community-Plugin
+  (`@capacitor-community/speech-recognition` 7.0.1) hat kein Package.swift und
+  passt nicht zum SPM-Projekt der iOS-App. Info.plist hat Mikrofon- und
+  Spracherkennungs-Texte; in der nativen App erst mit dem nächsten Build. Ob
+  WKWebView die Erkennung anbietet, auf dem Gerät prüfen.
+
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine
   Registerprüfung, Register im Container gesperrt): USA „DOT“ Nr. 4860730, Klasse 9,
