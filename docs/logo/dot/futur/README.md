@@ -20,3 +20,12 @@ Neu erzeugen: `PYTHONPATH=<fonttools>:../wortmarke python3 futur.py . <font-ordn
 | `s3-erfolg` | „TRACKED WITH DOT“ – für geteilte Erfolge und Beiträge |
 
 `uebersicht.png` zeigt alles auf Dunkel, auf einem Foto und im PDF.
+
+## Favorit und Siegel-Varianten (27.10.2026)
+
+- **S2 · Kennung ist der Favorit des Nutzers** (Stempel/Wasserzeichen).
+- „Nur aus Neugier“: sechs abgespacete Siegel zu S1, `siegel.py`, Übersicht `siegel-uebersicht.png`
+  (Farbe, schwarz, weiß auf Foto): `siegel-1-mission` (Raumfahrt-Patch, EST · 2026), `siegel-2-radar`
+  (Fadenkreuz, Gradzahlen, Suchstrahl), `siegel-3-orbits` (drei Bahnen, hinter Dot ausgeblendet),
+  `siegel-4-galaxie` (Teilchenring), `siegel-5-hud` (Sechseck mit Eckwinkeln, N° 0001 – Platz für eine
+  laufende Nummer je Erfolg), `siegel-6-fortschritt` (segmentierter Ring wie eine Ladeanzeige).

@@ -64,4 +64,5 @@ Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/RE
 - Schriftzug: erst ruhig (Inter Display, `docs/logo/dot/wortmarke`), Nutzer wollte es futuristischer →
   `docs/logo/dot/futur`: F1 Weit (Michroma), F2 Punktschrift, F3 Umlaufbahn; Zusatz IBM Plex Mono in Versalien.
   Stempel für geteilte Erfolge, Beiträge, PDFs: S1 Siegel, S2 Kennung, S3 „TRACKED WITH DOT“ – je schwarz, weiß, farbig.
-  Nutzer findet alle gut; Auswahl offen.
+  Nutzer findet alle gut. **Favorit Stempel: S2 Kennung** (27.10.). Dazu sechs Siegel-Varianten
+  „aus Neugier“ (`futur/siegel.py`). Hauptschriftzug noch offen (Vorschlag F1).

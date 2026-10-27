@@ -89,6 +89,8 @@ def schreiben(name, title, w, h, teile):
                 col = {"schwarz": "#000", "weiss": "#fff"}.get(modus) or CYAN
                 op = "" if modus != "farbe" else ' stroke-opacity="0.55"'
                 out.append(f'<path d="{t[1]}" fill="none" stroke="{col}" stroke-width="{t[2]}" stroke-linecap="round"{op}/>')
+            elif art == "roh":
+                out.append(t[1][modus])
             elif art == "punkte":
                 for (x, y, r) in t[1]:
                     if modus == "farbe":
@@ -98,60 +100,64 @@ def schreiben(name, title, w, h, teile):
                         out.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{r:.2f}" fill="{"#000" if modus == "schwarz" else "#fff"}"/>')
         b.save(f"{name}-{modus}.svg", b.svg(w, h, "".join(out), title, bg=bg))
 
-T = "Dot: Health Hub – "
-ZUSATZ = "HEALTH HUB"
-# ---------- F1 · Weit: Michroma, gesperrter Mono-Zusatz ----------
-upm, xh, cap = b.metrics("michroma"); size = 96; capx = cap * size / upm
-ds = 15; base1 = 128 + (capx - ds * 2.1) / 2; base2 = base1 + ds * 2.1
-r = (base2 - (base1 - capx)) / 2 * 1.1; kcx = 52 + r; kcy = (base1 - capx + base2) / 2
-tx = kcx + r + r * 0.5
-d1, x1 = b.text("michroma", "DOT", size, tx, base1, track=0.16)
-ds = groesse_auf("mono", ZUSATZ, x1 - tx - 4, 13, 19)
-d2, x2 = b.text("mono", ZUSATZ, ds, tx + 2, base2, track=SPERRUNG)
-schreiben("f1-weit", T + "F1 Weit", max(x1, x2) + 52, 256, [("kugel", kcx, kcy, r), ("text", d1, "name"), ("text", d2, "zusatz")])
+def alles():
+    T = "Dot: Health Hub – "
+    ZUSATZ = "HEALTH HUB"
+    # ---------- F1 · Weit: Michroma, gesperrter Mono-Zusatz ----------
+    upm, xh, cap = b.metrics("michroma"); size = 96; capx = cap * size / upm
+    ds = 15; base1 = 128 + (capx - ds * 2.1) / 2; base2 = base1 + ds * 2.1
+    r = (base2 - (base1 - capx)) / 2 * 1.1; kcx = 52 + r; kcy = (base1 - capx + base2) / 2
+    tx = kcx + r + r * 0.5
+    d1, x1 = b.text("michroma", "DOT", size, tx, base1, track=0.16)
+    ds = groesse_auf("mono", ZUSATZ, x1 - tx - 4, 13, 19)
+    d2, x2 = b.text("mono", ZUSATZ, ds, tx + 2, base2, track=SPERRUNG)
+    schreiben("f1-weit", T + "F1 Weit", max(x1, x2) + 52, 256, [("kugel", kcx, kcy, r), ("text", d1, "name"), ("text", d2, "zusatz")])
 
-# ---------- F2 · Punktschrift: D und T aus Punkten, das O ist Dot ----------
-hoehe = 104; base = 128 + hoehe / 2 - 12; step = 8.2
-dD, xD = matrix_buchstaben("D", "sync", hoehe, 52, base, step)
-ro = hoehe / 2 * 1.08; ox = xD + hoehe * 0.16 + ro; oy = base - hoehe / 2
-dT, xT = matrix_buchstaben("T", "sync", hoehe, ox + ro + hoehe * 0.16, base, step)
-ds = groesse_auf("mono", ZUSATZ, xT - 56, 13, 19)
-d2, x2 = b.text("mono", ZUSATZ, ds, 54, base + 40, track=SPERRUNG)
-w = max(xT, x2) + 52; fx = lambda x: (x - w / 2) / (w / 2) * 0.9; fy = lambda y: (y - oy) / (hoehe / 2) * 0.8
-schreiben("f2-punktschrift", T + "F2 Punktschrift", w, 256, [("punkte", dD + dT, fx, fy), ("kugel", ox, oy, ro), ("text", d2, "zusatz")])
+    # ---------- F2 · Punktschrift: D und T aus Punkten, das O ist Dot ----------
+    hoehe = 104; base = 128 + hoehe / 2 - 12; step = 8.2
+    dD, xD = matrix_buchstaben("D", "sync", hoehe, 52, base, step)
+    ro = hoehe / 2 * 1.08; ox = xD + hoehe * 0.16 + ro; oy = base - hoehe / 2
+    dT, xT = matrix_buchstaben("T", "sync", hoehe, ox + ro + hoehe * 0.16, base, step)
+    ds = groesse_auf("mono", ZUSATZ, xT - 56, 13, 19)
+    d2, x2 = b.text("mono", ZUSATZ, ds, 54, base + 40, track=SPERRUNG)
+    w = max(xT, x2) + 52; fx = lambda x: (x - w / 2) / (w / 2) * 0.9; fy = lambda y: (y - oy) / (hoehe / 2) * 0.8
+    schreiben("f2-punktschrift", T + "F2 Punktschrift", w, 256, [("punkte", dD + dT, fx, fy), ("kugel", ox, oy, ro), ("text", d2, "zusatz")])
 
-# ---------- F3 · Umlaufbahn: Dot im Ring mit Skala, Syncopate ----------
-upm, xh, cap = b.metrics("sync"); size = 70; capx = cap * size / upm
-R = 86; kcx = 52 + R; kcy = 128
-ring = f"M{kcx} {kcy - R}A{R} {R} 0 1 1 {kcx - 0.01} {kcy - R}"
-sk = ticks(kcx, kcy, R + 7, R + 13, 72) + ticks(kcx, kcy, R + 7, R + 19, 8)
-sat_th = math.radians(52); sx, sy = kcx + R * math.sin(sat_th), kcy - R * math.cos(sat_th)
-tx = kcx + R + 52; base1 = kcy + capx / 2 - 10; base2 = base1 + 32
-d1, x1 = b.text("sync", "DOT", size, tx, base1, track=0.14)
-ds = groesse_auf("mono", ZUSATZ, x1 - tx - 4, 12, 18)
-d2, x2 = b.text("mono", ZUSATZ, ds, tx + 2, base2, track=SPERRUNG)
-schreiben("f3-umlaufbahn", T + "F3 Umlaufbahn", max(x1, x2) + 52, 256,
-          [("strich", ring, 1.4), ("strich", sk, 1.2), ("kugel", kcx, kcy, R * 0.66), ("punkte", [(sx, sy, 5.5)], lambda x: 0.6, lambda y: -0.4), ("text", d1, "name"), ("text", d2, "zusatz")])
+    # ---------- F3 · Umlaufbahn: Dot im Ring mit Skala, Syncopate ----------
+    upm, xh, cap = b.metrics("sync"); size = 70; capx = cap * size / upm
+    R = 86; kcx = 52 + R; kcy = 128
+    ring = f"M{kcx} {kcy - R}A{R} {R} 0 1 1 {kcx - 0.01} {kcy - R}"
+    sk = ticks(kcx, kcy, R + 7, R + 13, 72) + ticks(kcx, kcy, R + 7, R + 19, 8)
+    sat_th = math.radians(52); sx, sy = kcx + R * math.sin(sat_th), kcy - R * math.cos(sat_th)
+    tx = kcx + R + 52; base1 = kcy + capx / 2 - 10; base2 = base1 + 32
+    d1, x1 = b.text("sync", "DOT", size, tx, base1, track=0.14)
+    ds = groesse_auf("mono", ZUSATZ, x1 - tx - 4, 12, 18)
+    d2, x2 = b.text("mono", ZUSATZ, ds, tx + 2, base2, track=SPERRUNG)
+    schreiben("f3-umlaufbahn", T + "F3 Umlaufbahn", max(x1, x2) + 52, 256,
+              [("strich", ring, 1.4), ("strich", sk, 1.2), ("kugel", kcx, kcy, R * 0.66), ("punkte", [(sx, sy, 5.5)], lambda x: 0.6, lambda y: -0.4), ("text", d1, "name"), ("text", d2, "zusatz")])
 
-# ---------- S1 · Siegel: Kreisschrift + Skala + Dot ----------
-W = 256; c = 128
-rt = ring_text("mono6", "DOT · HEALTH HUB · DOT · HEALTH HUB · DOT · HEALTH HUB · ", 13.5, c, c, 98, start=0)
-sk = ticks(c, c, 80, 86, 96) + ticks(c, c, 78, 88, 8)
-schreiben("s1-siegel", T + "S1 Siegel", W, W, [("text", rt, "zusatz"), ("strich", sk, 1.1), ("strich", f"M{c} {c - 112}A112 112 0 1 1 {c - 0.01} {c - 112}", 1.2), ("kugel", c, c, 58)])
+    # ---------- S1 · Siegel: Kreisschrift + Skala + Dot ----------
+    W = 256; c = 128
+    rt = ring_text("mono6", "DOT · HEALTH HUB · DOT · HEALTH HUB · DOT · HEALTH HUB · ", 13.5, c, c, 98, start=0)
+    sk = ticks(c, c, 80, 86, 96) + ticks(c, c, 78, 88, 8)
+    schreiben("s1-siegel", T + "S1 Siegel", W, W, [("text", rt, "zusatz"), ("strich", sk, 1.1), ("strich", f"M{c} {c - 112}A112 112 0 1 1 {c - 0.01} {c - 112}", 1.2), ("kugel", c, c, 58)])
 
-# ---------- S2 · Kennung: kleine Zeile für Ecken und Fußzeilen ----------
-size = 40; upm, xh, cap = b.metrics("michroma"); capx = cap * size / upm
-r = capx * 0.78; kcx = 24 + r; kcy = 64
-d1, x1 = b.text("michroma", "DOT", size, kcx + r + 16, kcy + capx / 2, track=0.16)
-lx = x1 + 18
-d2, x2 = b.text("mono", "HEALTH", 11, lx + 16, kcy - 3, track=0.38)
-d3, x3 = b.text("mono", "HUB", 11, lx + 16, kcy + 12, track=0.38)
-schreiben("s2-kennung", T + "S2 Kennung", max(x2, x3) + 24, 128,
-          [("kugel", kcx, kcy, r), ("text", d1, "name"), ("strich", f"M{lx} {kcy - capx / 2 - 2}L{lx} {kcy + capx / 2 + 2}", 1.2), ("text", d2, "zusatz"), ("text", d3, "zusatz")])
+    # ---------- S2 · Kennung: kleine Zeile für Ecken und Fußzeilen ----------
+    size = 40; upm, xh, cap = b.metrics("michroma"); capx = cap * size / upm
+    r = capx * 0.78; kcx = 24 + r; kcy = 64
+    d1, x1 = b.text("michroma", "DOT", size, kcx + r + 16, kcy + capx / 2, track=0.16)
+    lx = x1 + 18
+    d2, x2 = b.text("mono", "HEALTH", 11, lx + 16, kcy - 3, track=0.38)
+    d3, x3 = b.text("mono", "HUB", 11, lx + 16, kcy + 12, track=0.38)
+    schreiben("s2-kennung", T + "S2 Kennung", max(x2, x3) + 24, 128,
+              [("kugel", kcx, kcy, r), ("text", d1, "name"), ("strich", f"M{lx} {kcy - capx / 2 - 2}L{lx} {kcy + capx / 2 + 2}", 1.2), ("text", d2, "zusatz"), ("text", d3, "zusatz")])
 
-# ---------- S3 · Erfolg: „TRACKED WITH DOT“ für geteilte Erfolge ----------
-r = 30; kcx = 24 + r; kcy = 64
-d1, x1 = b.text("mono", "TRACKED WITH", 12, kcx + r + 18, kcy - 10, track=0.38)
-d2, x2 = b.text("michroma", "DOT", 30, kcx + r + 18, kcy + 24, track=0.18)
-klammer = f"M{kcx + r + 8} {kcy - 26}L{kcx + r + 4} {kcy - 26}L{kcx + r + 4} {kcy + 26}L{kcx + r + 8} {kcy + 26}"
-schreiben("s3-erfolg", T + "S3 Erfolg", max(x1, x2) + 24, 128, [("kugel", kcx, kcy, r), ("text", d1, "zusatz"), ("text", d2, "name")])
+    # ---------- S3 · Erfolg: „TRACKED WITH DOT“ für geteilte Erfolge ----------
+    r = 30; kcx = 24 + r; kcy = 64
+    d1, x1 = b.text("mono", "TRACKED WITH", 12, kcx + r + 18, kcy - 10, track=0.38)
+    d2, x2 = b.text("michroma", "DOT", 30, kcx + r + 18, kcy + 24, track=0.18)
+    klammer = f"M{kcx + r + 8} {kcy - 26}L{kcx + r + 4} {kcy - 26}L{kcx + r + 4} {kcy + 26}L{kcx + r + 8} {kcy + 26}"
+    schreiben("s3-erfolg", T + "S3 Erfolg", max(x1, x2) + 24, 128, [("kugel", kcx, kcy, r), ("text", d1, "zusatz"), ("text", d2, "name")])
+
+if __name__ == "__main__":
+    alles()
