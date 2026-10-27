@@ -29,3 +29,10 @@ Neu erzeugen: `PYTHONPATH=<fonttools>:../wortmarke python3 futur.py . <font-ordn
   (Fadenkreuz, Gradzahlen, Suchstrahl), `siegel-3-orbits` (drei Bahnen, hinter Dot ausgeblendet),
   `siegel-4-galaxie` (Teilchenring), `siegel-5-hud` (Sechseck mit Eckwinkeln, N° 0001 – Platz für eine
   laufende Nummer je Erfolg), `siegel-6-fortschritt` (segmentierter Ring wie eine Ladeanzeige).
+
+## Siegel, reduziert (27.10.2026, Nutzer: „ästhetischer, cleaner, simpler“)
+
+`siegel_clean.py`, Übersicht `siegel-clean-uebersicht.png`. Eine Idee je Siegel, eine Linienstärke (1 px auf 256),
+mehr Luft um Dot; in Farbe sind die Linien leises Weiß (38 %), nur Dot und ein Akzentpunkt leuchten.
+Mission (Ring, Text oben und unten), Radar (Ring, vier Marken, leiser Suchstrahl), Orbit (eine Bahn, ein Satellit),
+Staubring (feiner Teilchenring), Rahmen (vier Eckwinkel, Kennung darunter), Fortschritt (ein Bogen mit Endpunkt).
