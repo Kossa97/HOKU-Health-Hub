@@ -53,3 +53,22 @@ Nutzer: „TRACKED BY“ und „DOT · Health Hub“ sollen dabei sein, Dot imme
 | `tracked-7-kapsel` | waagerechte Kapsel, Dot links – für Beiträge und Bildecken |
 | `tracked-8-ticket` | Rahmen mit Abrisslinie, Dot links, Namensblock rechts |
 | `tracked-9-staubring` | Teilchenring, Text oben und unten |
+
+## Kapsel und Ticket – Varianten (27.10.2026, Nutzer wählte diese beiden)
+
+`kapsel_ticket.py`, Übersicht `kapsel-ticket-uebersicht.png` (Farbe, schwarz, weiß auf Foto).
+
+| Datei | Variante |
+|---|---|
+| `kapsel-1-linie` | Umriss, Dot links, TRACKED BY / DOT Health Hub |
+| `kapsel-2-gefuellt` | Glas in Farbe; einfarbig volle Fläche mit ausgesparter Schrift |
+| `kapsel-3-ausbruch` | Dot größer als die Kapsel, die Linie beginnt an seinem Rand |
+| `kapsel-4-kompakt` | nur Mono: TRACKED BY / DOT · HEALTH HUB |
+| `kapsel-5-einzeilig` | schmal, alles in einer Zeile |
+| `kapsel-6-geteilt` | Segmente mit Trennlinien, Rand im Verlauf Cyan → Violett → Pink |
+| `ticket-1-linie` | Rahmen, gestrichelte Abrisslinie |
+| `ticket-2-kerben` | halbrunde Kerben an der Abrisslinie |
+| `ticket-3-hochformat` | hochkant, Dot oben, Kerben seitlich |
+| `ticket-4-boarding` | Boarding Pass mit Feldern NO. und DATE (Platzhalter für Nummer und Datum je Erfolg) |
+| `ticket-5-gefuellt` | gefüllt mit Kerben und runden Ecken |
+| `ticket-6-punktcode` | Abschnitt mit einem Code aus Punkten, Rand im Verlauf |
