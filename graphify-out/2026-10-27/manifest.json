@@ -5544,9 +5544,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793002453.837973,
-    "seen": 1793002832.7373474,
-    "ast_hash": "ddf38e615d409a725c64bc26ec3397dc",
+    "mtime": 1793067159.5958538,
+    "seen": 1793067285.6045485,
+    "ast_hash": "4283b6c82398ccbc45b083b0b2c87c84",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
