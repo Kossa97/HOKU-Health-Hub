@@ -1,6 +1,13 @@
 # App-Name
 
-**Entschieden (Nutzer 26.10.2026): „Dot: Health Hub".** Dot (die Coach-Figur,
+**Wieder offen (27.10.2026): „Health Hub" fällt wegen Markentreffer** (Nutzer,
+aus einem anderen Gespräch). Gefunden: US-Anmeldung HEALTHHUB von CVS Pharmacy,
+Serial 88312236, Klasse 9, umfasst Software für Gesundheits- und Wellness-Infos
+und Fitness-Messdaten. Dazu Singapurs staatliche App „HealthHub" (MOH/Synapxe).
+EU/DE-Treffer nicht selbst geprüft. „Dot" als Markenname bleibt; gesucht wird
+nur ein neuer Zusatz.
+
+**Zuvor entschieden (Nutzer 26.10.2026): „Dot: Health Hub".** Dot (die Coach-Figur,
 siehe `ki-coach.md`) wird Markenname, „Health Hub" der erklärende Zusatz.
 „Meet Dot" bleibt als Onboarding-Zeile. „TrackYourDose" / „TYD" wird nur noch
 intern geführt (Repo, `tyd_`-Präfixe, App-ID `com.kossa97.tyd`).
@@ -23,13 +30,16 @@ intern geführt (Repo, `tyd_`-Präfixe, App-ID `com.kossa97.tyd`).
 
 ## Store-Felder (Vorschlag)
 
-- Name: `Dot: Health Hub` (15 Zeichen)
+- Name: ~~`Dot: Health Hub`~~ (Markentreffer, s. o.), Zusatz neu wählen
 - Untertitel: `Peptides, Stack, Labs, Workouts` (30)
 - Keywords (iOS, 100 Zeichen, je Land): biohacking, peptide, glp-1,
   supplement, injection, bloodwork, longevity, stack, Blutwerte
 - In-App-Kauf-Namen werden mitindexiert („Dot Pro …").
 
 ## Offen
+
+- Neuer Zusatz nach „Dot:". Die Siegel und Logo-Varianten in `docs/logo/dot/futur`
+  (andere Sitzung) tragen noch „DOT · Health Hub" und müssen nachgezogen werden.
 
 - Markenprüfung „Dot" / „Health Hub" in EUIPO eSearch und DPMAregister,
   Klassen 9, 42, 44. Aus dem Container nicht erreichbar (Netzregel), Websuche
