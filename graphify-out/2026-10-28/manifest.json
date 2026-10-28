@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793122193.467338,
-    "seen": 1793123583.7611234,
-    "ast_hash": "325ab9a7fa5a38d1d2c1169385068eaa",
+    "mtime": 1793193301.0991025,
+    "seen": 1793193909.0499425,
+    "ast_hash": "c01626e31b3c6ab6db4480dc7d35cb34",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793154769.3195844,
-    "seen": 1793154997.2858331,
+    "mtime": 1793193404.1772518,
+    "seen": 1793193909.0501275,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793158577.7215412,
-    "seen": 1793158671.4415367,
-    "ast_hash": "4e15c478d5736615269a51d07b64ca8d",
+    "mtime": 1793193196.6594055,
+    "seen": 1793193909.0490785,
+    "ast_hash": "3ef6c89f906fca8a01939607de399e12",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8130,9 +8130,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/formen.ts": {
-    "mtime": 1793063547.662006,
-    "seen": 1793064264.779842,
-    "ast_hash": "5ab2aa557ea4a017828c8d6f11d53da0",
+    "mtime": 1793193246.610417,
+    "seen": 1793193909.0490801,
+    "ast_hash": "6bcca647a3caaf354895feb1bb8e6cfc",
     "semantic_hash": ""
   },
   "supabase-auto-tracking.sql": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793155224.7040975,
-    "seen": 1793155649.6644173,
-    "ast_hash": "4f28cae68be2a8e7d94337de766a3d95",
+    "mtime": 1793193469.1767597,
+    "seen": 1793193909.0486224,
+    "ast_hash": "2ccbce4715cb42b796c0bd6b96faa635",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -17397,6 +17397,18 @@
     "mtime": 1793135686.913349,
     "seen": 1793136185.6310685,
     "ast_hash": "fc6ad32e0636a3d0cfb2437d83478a04",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/gesten.test.ts": {
+    "mtime": 1793193400.5237348,
+    "seen": 1793193909.0490835,
+    "ast_hash": "a76df2880b0fd95e0c8a9ef4fc2b235b",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/gesten.ts": {
+    "mtime": 1793193361.2643325,
+    "seen": 1793193909.0490847,
+    "ast_hash": "2828dc5ba5fcaffa91e1e685c0a9ed4c",
     "semantic_hash": ""
   }
 }
