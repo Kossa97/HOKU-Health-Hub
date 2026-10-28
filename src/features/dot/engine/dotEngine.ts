@@ -137,7 +137,7 @@ const EROEFFNUNG = { rand: 1.9, dunkel: 1.6, ringe: 1.6 }
 // Erfolg (Nutzer 28.10.2026, Mockup „Dots Auftritte" S9), Zeiten in s: Haken wird Kugel, Brodeln baut
 // sich auf, Explosion zum Portal (unruhiger, durchgehender Rahmen), Ruhe am Rand, Sammeln in der Mitte
 // des Displays, Heimflug im Bogen wie S2. Radien in px.
-const ERFOLG = { kugel: 0.35, brodeln: 0.55, explosion: 0.4, ruhe: 0.25, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
+const ERFOLG = { kugel: 0.35, brodeln: 0.55, explosion: 0.4, ruhe: 0.6, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
 /** So lange nach `erfolg()` geht das Portal auf (ms); bis dahin kann die Anmeldung stehen bleiben. */
 export const PORTAL_AUF = (ERFOLG.kugel + ERFOLG.brodeln) * 1000
 type Variante = keyof typeof EROEFFNUNG
@@ -1278,17 +1278,20 @@ export function createDot(host: DotHost): DotApi {
       }
       case 'frame': {
         // Portal: sein Ring aus 460 Punkten wächst vom Kreis zum Umriss des Displays
-        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r, ins = 12 * fe
+        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r, ins = 2 * fe
         const L = B.x - R0 + (ins - (B.x - R0)) * fe, T = B.y - R0 + (ins - (B.y - R0)) * fe
         const Rr = B.x + R0 + (W - ins - (B.x + R0)) * fe, Bt = B.y + R0 + (H - ins - (B.y + R0)) * fe
         const box = { l: L, t: T, r: Rr, b: Bt }, rad = R0 + (ERFOLG.rahmenR - ins - R0) * fe, u = p.i / PUNKTE
-        // Unruhig, aber durchgehend (Nutzer 28.10.2026): jeder Punkt behält seinen Platz entlang des
-        // Umrisses, eine weiche Welle quer dazu und wechselnde Dicke machen ihn lebendig
+        // Wie lebender Schleim am Rand (Nutzer 28.10.2026): gleichmäßig verteilt, jeder Punkt haftet an
+        // seinem Platz und bewegt sich nur leicht auf der Stelle; dickere Stellen schwellen an und ab,
+        // ohne zu wandern. Nur nach innen, nie über den Rand.
         const [x, y] = rahmenPunkt(box, rad, u), [x2, y2] = rahmenPunkt(box, rad, u + 0.002)
-        const tl = Math.hypot(x2 - x, y2 - y) || 1, nx = -(y2 - y) / tl, ny = (x2 - x) / tl
-        const welle = fe * (6 * Math.sin(u * TAU * 5 + t * 3 + 1) + 4 * Math.sin(u * TAU * 11 - t * 4.5))
-          + (p.k - 0.5) * 2 * (2.5 + 2 * (1 + Math.sin(u * TAU * 3 + t * 1.5)))
-        return ziel((x + nx * welle - B.x) / B.r, (y + ny * welle - B.y) / B.r, 0.9, 0.8 + 0.2 * (1 + Math.sin(u * TAU * 7 + t * 2)))
+        const tl = Math.hypot(x2 - x, y2 - y) || 1, sx = (x2 - x) / tl, sy = (y2 - y) / tl
+        const innen = (L + Rr) / 2 - x, innenY = (T + Bt) / 2 - y, sg = -sy * innen + sx * innenY > 0 ? 1 : -1
+        const nx = -sy * sg, ny = sx * sg
+        const tief = fe * (1.5 + 2 * (0.5 + 0.5 * Math.sin(t * 1.7 + p.s * 6)) + 3 * (0.5 + 0.5 * Math.sin(u * TAU * 6 + 1)) * (0.6 + 0.4 * Math.sin(t * 0.8 + u * 9)))
+        const quer = fe * 1.2 * Math.sin(t * 2.3 + p.s * 4)
+        return ziel((x + nx * tief + sx * quer - B.x) / B.r, (y + ny * tief + sy * quer - B.y) / B.r, 0.9, 0.95 + 0.1 * Math.sin(t * 1.3 + p.s * 3))
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum

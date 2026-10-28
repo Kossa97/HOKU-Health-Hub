@@ -157,6 +157,8 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   ab erfolg(). Die Anmeldung bleibt stehen, bis das Portal aufgeht (`PORTAL_AUF`, 0,9 s). Gefunden:
   das „Konfetti“ der alten Fassung waren die Punkte auf dem Weg vom Rand zur Mitte, in voller Größe
   und mit hochgerechneter Farbe (rosa); jetzt klein und in Dots Farben, ohne Schweif.
+  Danach (Nutzer): die Punkte haften **gleichmäßig am Rand wie lebender Schleim**, bewegen sich nur
+  leicht auf der Stelle, nur nach innen; Ruhe am Rand 0,6 s statt 0,25 s, damit man es sieht.
 
 ## Offen
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
