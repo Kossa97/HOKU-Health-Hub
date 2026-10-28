@@ -137,7 +137,7 @@ const EROEFFNUNG = { rand: 1.9, dunkel: 1.6, ringe: 1.6 }
 // Erfolg (Nutzer 28.10.2026, Mockup „Dots Auftritte" S9), Zeiten in s: Haken wird Kugel, Brodeln baut
 // sich auf, Explosion zum Portal (unruhiger, durchgehender Rahmen), Ruhe am Rand, Sammeln in der Mitte
 // des Displays, Heimflug im Bogen wie S2. Radien in px.
-const ERFOLG = { kugel: 0.35, brodeln: 0.55, explosion: 0.4, ruhe: 0.6, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
+const ERFOLG = { kugel: 0.35, brodeln: 0.55, explosion: 0.4, ruhe: 0.9, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
 /** So lange nach `erfolg()` geht das Portal auf (ms); bis dahin kann die Anmeldung stehen bleiben. */
 export const PORTAL_AUF = (ERFOLG.kugel + ERFOLG.brodeln) * 1000
 type Variante = keyof typeof EROEFFNUNG
@@ -1227,10 +1227,10 @@ export function createDot(host: DotHost): DotApi {
       QZ[i] = TZ[i] = OZ[i] = 0; VX[i] = VY[i] = 0; SZ[i] = SZ[q]
     }
   }
-  /** Kinder rechnen nur, solange Schrift läuft (und kurz danach, bis sie verblasst sind). */
+  /** Kinder rechnen nur, solange Schrift oder der Portal-Rahmen steht (und kurz danach, bis sie verblasst sind). */
   function kinderAktiv() {
     const jetzt = performance.now()
-    if (B.shape === 'text') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
+    if (B.shape === 'text' || B.shape === 'frame') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
     if (B.kinderAn && jetzt < B.kinderBis) return true
     B.kinderAn = false
     return false
@@ -1277,21 +1277,24 @@ export function createDot(host: DotHost): DotApi {
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
       case 'frame': {
-        // Portal: sein Ring aus 460 Punkten wächst vom Kreis zum Umriss des Displays
-        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r, ins = 2 * fe
-        const L = B.x - R0 + (ins - (B.x - R0)) * fe, T = B.y - R0 + (ins - (B.y - R0)) * fe
-        const Rr = B.x + R0 + (W - ins - (B.x + R0)) * fe, Bt = B.y + R0 + (H - ins - (B.y + R0)) * fe
-        const box = { l: L, t: T, r: Rr, b: Bt }, rad = R0 + (ERFOLG.rahmenR - ins - R0) * fe, u = p.i / PUNKTE
-        // Wie lebender Schleim am Rand (Nutzer 28.10.2026): gleichmäßig verteilt, jeder Punkt haftet an
-        // seinem Platz und bewegt sich nur leicht auf der Stelle; dickere Stellen schwellen an und ab,
-        // ohne zu wandern. Nur nach innen, nie über den Rand.
-        const [x, y] = rahmenPunkt(box, rad, u), [x2, y2] = rahmenPunkt(box, rad, u + 0.002)
+        // Portal: Dot wird zum Rahmen (Nutzer 28./29.10.2026). Alle seine Punkte, mit den Kindern 2760,
+        // legen sich als dicke, ungleichmäßige Schicht an den äußersten Rand des Displays und leben dort:
+        // Beulen schwellen langsam an und ab, jeder Punkt bewegt sich ein wenig auf seinem Platz.
+        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r
+        const L = (B.x - R0) * (1 - fe), T = (B.y - R0) * (1 - fe)
+        const Rr = B.x + R0 + (W - (B.x + R0)) * fe, Bt = B.y + R0 + (H - (B.y + R0)) * fe
+        const box = { l: L, t: T, r: Rr, b: Bt }, rad = R0 + (ERFOLG.rahmenR - R0) * fe
+        // goldener Schnitt: jeder Punkt hat seinen eigenen Platz entlang des Umrisses, gleich dicht, ohne Muster
+        const u = (p.i * 0.618033988749895) % 1
+        const [x, y] = rahmenPunkt(box, rad, u), [x2, y2] = rahmenPunkt(box, rad, u + 0.001)
         const tl = Math.hypot(x2 - x, y2 - y) || 1, sx = (x2 - x) / tl, sy = (y2 - y) / tl
-        const innen = (L + Rr) / 2 - x, innenY = (T + Bt) / 2 - y, sg = -sy * innen + sx * innenY > 0 ? 1 : -1
-        const nx = -sy * sg, ny = sx * sg
-        const tief = fe * (1.5 + 2 * (0.5 + 0.5 * Math.sin(t * 1.7 + p.s * 6)) + 3 * (0.5 + 0.5 * Math.sin(u * TAU * 6 + 1)) * (0.6 + 0.4 * Math.sin(t * 0.8 + u * 9)))
-        const quer = fe * 1.2 * Math.sin(t * 2.3 + p.s * 4)
-        return ziel((x + nx * tief + sx * quer - B.x) / B.r, (y + ny * tief + sy * quer - B.y) / B.r, 0.9, 0.95 + 0.1 * Math.sin(t * 1.3 + p.s * 3))
+        const sg = -sy * ((L + Rr) / 2 - x) + sx * ((T + Bt) / 2 - y) > 0 ? 1 : -1, nx = -sy * sg, ny = sx * sg
+        const dicke = 10 + 26 * clamp01(0.5 + 0.35 * Math.sin(u * TAU * 3 + 1 + 0.7 * Math.sin(t * 0.5))
+          + 0.25 * Math.sin(u * TAU * 7 + 2 - t * 0.35) + 0.15 * Math.sin(u * TAU * 13 + t * 0.6))
+        const tief = fe * Math.max(1, 1.5 + dicke * Math.pow(p.k, 0.85) + 2 * Math.sin(t * 1.3 + p.s * 3))
+        const quer = fe * 3 * Math.sin(t * 0.9 + p.s * 5)
+        return ziel((x + nx * tief + sx * quer - B.x) / B.r, (y + ny * tief + sy * quer - B.y) / B.r,
+          0.55 + 0.4 * (0.5 + 0.5 * Math.sin(p.s * 7)), 0.9 + 0.15 * Math.sin(t * 1.1 + p.s * 2))
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum
@@ -1329,9 +1332,9 @@ export function createDot(host: DotHost): DotApi {
     const tempo2 = FEDER.tempo * FEDER.tempo, dBase = 0.58 + 0.24 * FEDER.nachschwingen
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
-    const sparse = B.shape !== 'text'
-    // auf dem Rahmen und auf dem Weg von dort in die Mitte bleiben die Punkte klein, sonst wirken sie wie Konfetti über der App
-    const klein = B.shape === 'frame' || (B.portal?.phase === 'sammeln' && B.trans < 0.45)
+    const sparse = B.shape !== 'text' && B.shape !== 'frame'
+    // auf dem Weg vom Rahmen in die Mitte bleiben die Punkte klein, sonst wirken sie wie Konfetti über der App
+    const klein = B.portal?.phase === 'sammeln' && B.trans < 0.45
     const groesse = B.shape === 'text' ? TEXT.groesse : klein ? 3 / 4.3 : 1
     const zA = 1 - Math.pow(0.86, f), sA = 1 - Math.pow(0.9, f), R = Math.max(B.r, 1)
     // nach dem Portal sehr weiche Federn, die sich zurück auf normal steigern
@@ -1342,7 +1345,7 @@ export function createDot(host: DotHost): DotApi {
       const p = B.pts[i], kind = i >= PUNKTE
       let tx: number, ty: number, tz: number, licht = 1, rosa = 0
       if (kind && sparse) {
-        // Kinder folgen ihren Eltern und verblassen, sobald die Schrift geht
+        // Kinder folgen ihren Eltern und verblassen, sobald Schrift oder Rahmen gehen
         const q = p.par
         tx = TX[q] + ((p.k - 0.5) * 1.5) / R; ty = TY[q] + (Math.sin(p.s) * 0.75) / R; tz = 0
       } else {
@@ -1393,8 +1396,10 @@ export function createDot(host: DotHost): DotApi {
       else {
         // Explosion: der Rahmen schießt hinaus, die Punkte folgen fast gleichzeitig und straff
         P0.amp = 0; P0.phase = 'rahmen'; P0.t0 = jetzt; P0.r0 = B.r
+        // die Kinder treten aus ihren Eltern heraus und fliegen mit
+        kinderAnsetzen(); B.kinderAn = true
         B.shape = 'frame'; wechsel()
-        for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.05
+        for (let i = 0; i < ALLE; i++) DEL[i] = B.pts[i].k * 0.05
         B.kMul = 1.6
       }
     } else if (P0.phase === 'rahmen') {

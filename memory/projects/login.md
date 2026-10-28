@@ -159,6 +159,9 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   und mit hochgerechneter Farbe (rosa); jetzt klein und in Dots Farben, ohne Schweif.
   Danach (Nutzer): die Punkte haften **gleichmäßig am Rand wie lebender Schleim**, bewegen sich nur
   leicht auf der Stelle, nur nach innen; Ruhe am Rand 0,6 s statt 0,25 s, damit man es sieht.
+  Danach (Nutzer 29.10.): zu dünn. Jetzt **Dot wird der Rahmen**: alle 2760 Punkte (mit den Kindern)
+  als dicke, ungleichmäßige Schicht (10–36 px, Beulen schwellen langsam) am äußersten Rand, jeder
+  Punkt bewegt sich leicht auf der Stelle; Ruhe am Rand 0,9 s. Beim Sammeln verblassen die Kinder.
 
 ## Offen
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
