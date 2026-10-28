@@ -5,7 +5,7 @@
  * 28.10.2026: Begrüßung D1 (ein Arm winkt) und D4 (beide Arme winken) im Wechsel, die
  * Arme dick und ohne Hand (Version 8, F1/F3), Herz C (Herz in Dot),
  * Fehler A und C (Kugel schüttelt sich, X aus Balken; das flache X macht die Engine),
- * Kein Netz B (Dot sucht), Erfolg A (Haken zeichnet sich und wird grün).
+ * Kein Netz A und B im Wechsel (Bögen im Raum, Dot sucht), Erfolg A (Haken zeichnet sich und wird grün).
  *
  * Jede Geste schreibt je Punkt Lage (Einheit: Dots Radius, y nach unten, z zum
  * Betrachter), Licht und Rosa-Anteil für den Zeitpunkt t seit ihrem Beginn.
@@ -29,8 +29,10 @@ export function naechsterFehler(letzte: Fehler | null, zufall: () => number = Ma
   const andere = FEHLER.filter(v => v !== letzte)
   return andere[Math.min(andere.length - 1, Math.floor(zufall() * andere.length))]
 }
+/** Kein Netz: A WLAN-Bögen im Raum, B Dot sucht; im Wechsel (Nutzer 28.10.2026). */
+export type Netz = 'boegen' | 'sucht'
 /** Welche Variante einer Geste läuft; `fehler` null = noch keiner gezeigt. */
-export interface GestenWahl { gruss: Gruss; fehler: Fehler | null }
+export interface GestenWahl { gruss: Gruss; fehler: Fehler | null; netz: Netz }
 /** So lange dauert die Begrüßung, bis die Arme wieder in Dot stecken (s). */
 export const GRUSS_DAUER = 3.9
 /** Ab hier ist der Haken gezeichnet und färbt sich grün (s), so lange dauert das. */
@@ -98,16 +100,43 @@ function segAbstand(p: number[], a: V3, b: V3) {
   const t = l ? clamp01(((p[0] - a[0]) * abx + (p[1] - a[1]) * aby + (p[2] - a[2]) * abz) / l) : 0
   return Math.hypot(p[0] - a[0] - abx * t, p[1] - a[1] - aby * t, p[2] - a[2] - abz * t)
 }
-// Runde Balken (Kapseln), ohne Punkte, die in einem anderen Balken liegen
-function kapselPunkte(teile: { a: V3; b: V3; r: number }[], n: number) {
-  const fl = teile.map(k => TAU * k.r * Math.hypot(k.b[0] - k.a[0], k.b[1] - k.a[1], k.b[2] - k.a[2]) + 2 * TAU * k.r * k.r)
+// Körper: runde Balken (Kapseln), Röhren entlang eines Kreisbogens in der Bildebene, Kugeln.
+// `luecke` hält um einen Teil einen Spalt frei (der Schrägstrich durchs WLAN).
+type Teil =
+  | { art?: 'kapsel'; a: V3; b: V3; r: number; luecke?: number }
+  | { art: 'bogen'; c: V3; R: number; r: number; a0: number; a1: number; luecke?: number }
+  | { art: 'kugel'; c: V3; r: number; luecke?: number }
+function flaeche(k: Teil) {
+  if (k.art === 'bogen') return TAU * k.r * k.R * (k.a1 - k.a0)
+  if (k.art === 'kugel') return 2 * TAU * k.r * k.r
+  return TAU * k.r * Math.hypot(k.b[0] - k.a[0], k.b[1] - k.a[1], k.b[2] - k.a[2]) + 2 * TAU * k.r * k.r
+}
+function punkt(k: Teil, rnd: () => number) {
+  if (k.art === 'bogen') {
+    const a = misch(k.a0, k.a1, rnd()), f = rnd() * TAU
+    return [k.c[0] + Math.cos(a) * (k.R + Math.cos(f) * k.r), k.c[1] + Math.sin(a) * (k.R + Math.cos(f) * k.r), k.c[2] + Math.sin(f) * k.r]
+  }
+  if (k.art === 'kugel') { const u = richtung(rnd); return [k.c[0] + u[0] * k.r, k.c[1] + u[1] * k.r, k.c[2] + u[2] * k.r] }
+  const t = rnd(), u = richtung(rnd)
+  return [k.a[0] + (k.b[0] - k.a[0]) * t + u[0] * k.r, k.a[1] + (k.b[1] - k.a[1]) * t + u[1] * k.r, k.a[2] + (k.b[2] - k.a[2]) * t + u[2] * k.r]
+}
+function abstand(k: Teil, p: number[]) {
+  if (k.art === 'bogen') {
+    const a = Math.max(k.a0, Math.min(k.a1, Math.atan2(p[1] - k.c[1], p[0] - k.c[0])))
+    return Math.hypot(p[0] - k.c[0] - Math.cos(a) * k.R, p[1] - k.c[1] - Math.sin(a) * k.R, p[2] - k.c[2]) - k.r
+  }
+  if (k.art === 'kugel') return Math.hypot(p[0] - k.c[0], p[1] - k.c[1], p[2] - k.c[2]) - k.r
+  return segAbstand(p, k.a, k.b) - k.r
+}
+// Gleichmäßig auf der Oberfläche, ohne Punkte, die in einem anderen Teil liegen
+function flaechenPunkte(teile: Teil[], n: number) {
+  const fl = teile.map(flaeche)
   const summe = fl.reduce((a, b) => a + b, 0), kand: number[] = [], marke: number[] = [], rnd = zufall(11)
   while (kand.length < 3600 * 3) {
     let w = rnd() * summe, j = 0
     while (w > fl[j] && j < teile.length - 1) { w -= fl[j]; j++ }
-    const k = teile[j], t = rnd(), u = richtung(rnd)
-    const p = [k.a[0] + (k.b[0] - k.a[0]) * t + u[0] * k.r, k.a[1] + (k.b[1] - k.a[1]) * t + u[1] * k.r, k.a[2] + (k.b[2] - k.a[2]) * t + u[2] * k.r]
-    if (teile.some((o, oi) => oi !== j && segAbstand(p, o.a, o.b) - o.r < -0.012)) continue
+    const p = punkt(teile[j], rnd)
+    if (teile.some((o, oi) => { if (oi === j) return false; const d = abstand(o, p); return d < -0.012 || (!!o.luecke && d < o.luecke) })) continue
     kand.push(p[0], p[1], p[2]); marke.push(j)
   }
   return auswahl(new Float32Array(kand), marke, n)
@@ -283,11 +312,35 @@ function herz(t: number, out: GestenBild) {
 /* ── Fehler (das Schütteln zur Seite macht die Engine) ─────────────────────────
    A: Dot bleibt Kugel und dreht leicht. C: ein X aus zwei runden Balken im Raum. */
 let balken: Float32Array | null = null
-const baueBalken = () => kapselPunkte([{ a: [-0.92, -0.92, 0], b: [0.92, 0.92, 0], r: 0.26 }, { a: [0.92, -0.92, 0], b: [-0.92, 0.92, 0], r: 0.26 }], N).p
+const baueBalken = () => flaechenPunkte([{ a: [-0.92, -0.92, 0], b: [0.92, 0.92, 0], r: 0.26 }, { a: [0.92, -0.92, 0], b: [-0.92, 0.92, 0], r: 0.26 }], N).p
 function fehler(t: number, art: Fehler | null, out: GestenBild) {
   if (art === 'balken') drehe((balken ??= baueBalken()), out.P, { yaw: 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.95 })
   else drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 })
   out.L.fill(1); out.H.fill(0)
+}
+
+/* ── Kein Netz A: WLAN aus Röhren mit Schrägstrich; ein Suchlicht läuft nach außen und erlischt vor dem letzten Bogen ── */
+const WLAN_M: V3 = [0, 0.66, 0]
+let wlan: { p: Float32Array; m: Int16Array } | null = null
+// drei Bögen, der Punkt darunter, zuletzt der Schrägstrich
+const WLAN_TEILE: Teil[] = [
+  ...[0.5, 0.98, 1.46].map((R): Teil => ({ art: 'bogen', c: WLAN_M, R, r: 0.1, a0: -Math.PI / 2 - 0.85, a1: -Math.PI / 2 + 0.85 })),
+  { art: 'kugel', c: WLAN_M, r: 0.17 },
+  { a: [-1.0, -1.06, 0.06], b: [1.0, 0.94, 0.06], r: 0.1, luecke: 0.16 },
+]
+const WLAN_STRICH = WLAN_TEILE.length - 1
+const baueWlan = () => flaechenPunkte(WLAN_TEILE, N)
+function boegen(t: number, out: GestenBild) {
+  const f = (wlan ??= baueWlan())
+  drehe(f.p, out.P, { yaw: 0.35 * Math.sin(TAU * 0.3 * t), pitch: 0.12, s: 0.9 })
+  const rw = 0.25 + ((t * 0.75) % 1) * 1.5, aus = rw < 1.2 ? 1 : clamp01(1 - (rw - 1.2) * 4)
+  for (let i = 0; i < N; i++) {
+    // der Schrägstrich leuchtet ruhig, die Bögen nur dort, wo das Suchlicht gerade ist
+    if (f.m[i] === WLAN_STRICH) { out.L[i] = 1.05; continue }
+    const d = Math.hypot(f.p[i * 3] - WLAN_M[0], f.p[i * 3 + 1] - WLAN_M[1])
+    out.L[i] = 0.55 + 0.95 * Math.exp(-Math.pow(d - rw, 2) / 0.02) * aus
+  }
+  out.H.fill(0)
 }
 
 /* ── Kein Netz B: kleiner Dot sendet Schalen aus seinen Punkten nach oben ────── */
@@ -317,7 +370,7 @@ function sucht(t: number, out: GestenBild) {
 const HA: V3 = [-0.8, 0.02, 0], HB: V3 = [-0.22, 0.6, 0], HC: V3 = [0.92, -0.64, 0]
 let haken: { p: Float32Array; lauf: Float32Array } | null = null
 function baueHaken() {
-  const f = kapselPunkte([{ a: HA, b: HB, r: 0.17 }, { a: HB, b: HC, r: 0.17 }], N)
+  const f = flaechenPunkte([{ a: HA, b: HB, r: 0.17 }, { a: HB, b: HC, r: 0.17 }], N)
   const l1 = Math.hypot(HB[0] - HA[0], HB[1] - HA[1]), l2 = Math.hypot(HC[0] - HB[0], HC[1] - HB[1]), lauf = new Float32Array(N)
   for (let i = 0; i < N; i++) {
     const x = f.p[i * 3], y = f.p[i * 3 + 1]
@@ -343,6 +396,7 @@ export function gestenVorbereiten() {
   herzKugel ??= baueHerzKugel()
   haken ??= baueHaken()
   balken ??= baueBalken()
+  wlan ??= baueWlan()
   EIN.kp ??= kappe(EIN.arm.s, false)
   BEIDE.kp ??= kappe(-1, true)
 }
@@ -352,7 +406,7 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
   if (form === 'hand') (v.gruss === 'beideArme' ? beideArme : einArm)(t, out)
   else if (form === 'heart') herz(t, out)
   else if (form === 'cross') fehler(t, v.fehler, out)
-  else if (form === 'wifi') sucht(t, out)
+  else if (form === 'wifi') (v.netz === 'boegen' ? boegen : sucht)(t, out)
   else hakenBild(t, out)
 }
 

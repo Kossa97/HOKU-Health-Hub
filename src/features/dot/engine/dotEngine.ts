@@ -314,7 +314,7 @@ export function createDot(host: DotHost): DotApi {
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
-    form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null } as GestenWahl,
+    form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
     login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck', still: 0, neigung: 0, n: 0 },
   }
   // Je Punkt, in Dots Formraum (Einheit: sein Radius, Mitte 0): Lage Q und Tempo V
@@ -1193,6 +1193,8 @@ export function createDot(host: DotHost): DotApi {
     }
     // Fehler: das flache X, die Kugel (A) und das X aus Balken (C) zufällig im Wechsel
     if (f === 'cross') B.wahl.fehler = naechsterFehler(B.wahl.fehler)
+    // Kein Netz: Bögen (A) und Dot sucht (B) im Wechsel, die erste zufällig
+    if (f === 'wifi') B.wahl.netz = B.wahl.netz === 'boegen' ? 'sucht' : 'boegen'
     B.shape = f ?? SHAPE[B.state]; B.form = f; B.text = null; B.textF = null; B.formT = 0
     wechsel()
   }

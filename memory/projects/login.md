@@ -136,9 +136,13 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Login-Größe. Danach (Nutzer): **Hand weg, nur der Arm** — eingebaut ist der Kegelarm ohne
   Hand (Mockup V8 F1/F3): 20 Ringe à 4 Punkte, an der Schulter dick, runde Kuppe, Ende schwingt
   beim Winken nach, schräg nach oben statt steil (sonst wirken zwei Arme wie Hörner).
+- **Auswahl bestätigt (Nutzer 28.10.2026, abends):** F1 und F3; Fehler Heute, A und C; **Kein Netz
+  A und B im Wechsel** (A: WLAN aus Röhren mit Schrägstrich, Suchlicht läuft nach außen; erste
+  Variante zufällig); Erfolg A. Nicht zufrieden auf dem Handy: die **Animation nach dem Erfolg**
+  (Portal/Heimflug) und die **Eröffnung** — beide sollen noch einmal überarbeitet werden.
 
 ## Offen
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
-- Dauer des Erfolgs (Tempo 0,6 ≈ 9 s) prüft der Nutzer auf dem Gerät.
+- Animation nach dem Erfolg (Portal, Heimflug) und Eröffnung überarbeiten (Nutzer: gefällt auf dem Handy nicht).
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.
