@@ -455,6 +455,26 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Echtes Abo (Kauf, Abgleich setzt `pro_until`).
 - WebKit-Gerätetests liefen im Container nicht (WebKit fehlt), nur Chromium.
 
+## DSGVO-Stand (28.10.2026)
+- Geprüft an den Quellen von Anthropic: Auftragsverarbeitungsvertrag ist über die
+  Commercial Terms einbezogen; Übermittlung in die USA per Standardvertragsklauseln
+  (Modul 2/3); kein Training auf Kundendaten; markierte Missbrauchsfälle bis 2 Jahre.
+  In die Datenschutzerklärung eingetragen. Ob Anthropic DPF-zertifiziert ist, war
+  nicht prüfbar — deshalb nur SCC genannt.
+- Unsere Modelle sind keine „Covered Models“ (die mit 30 Tagen Pflicht-Aufbewahrung
+  sind Fable 5/5.1, Mythos 5/5.1). Dots Ausweichmodelle bei Ablehnung: Opus 5 / 4.8.
+  Kein Fable einbauen, ohne die Datenschutzerklärung anzupassen.
+- Offen: Speicherdauer (Zero Data Retention beim Anthropic-Vertrieb beantragen —
+  Messages, PDF, Bilder, Werkzeuge sind ZDR-fähig), AV-Verträge bestätigen
+  (Supabase im Dashboard, Vercel-Tarif gewerblich?), Hinweis vor der ersten
+  Spracheingabe (Apple/Google).
+- Edge Functions fest in `eu-west-1` (`FUNKTIONS_REGION`, jedes `functions.invoke`
+  gibt `region` mit; CORS erlaubt `x-region` — neue Functions brauchen beides).
+- Vercel-Funktionen laufen fest in `dub1` (Irland, `vercel.json`), vorher Standard
+  `iad1` (USA).
+- Folgenabschätzung: `docs/datenschutz/dsfa-ki.md` (Entwurf). Vor
+  „Blutwerte-Hinweisen“ MDR neu prüfen.
+
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
 - Zustände: Ruhe (Drehen, Atmen), Zuhören, Denken (Wirbeln), Sprechen (Pulsieren),

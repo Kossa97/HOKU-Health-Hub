@@ -17,7 +17,7 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 | Apple 5.1.1(v) / Google „Account deletion" | Profil → Konto löschen (sobald `supabase-store-compliance-sql-editor.sql` ausgeführt ist) |
 | Apple 5.1.1 / Google User Data: Datenschutzerklärung | `/datenschutz`, `/impressum`, `/nutzungsbedingungen`, ohne Anmeldung erreichbar |
 | Alter 18+ | Pflicht-Häkchen bei der Registrierung |
-| Apple 5.1.2(i): Daten an Drittanbieter-KI nur mit Zustimmung | Befund-Import fragt vorher ausdrücklich (Anthropic, USA); gespeichert in `profiles.ai_import_consent_at`, Widerruf im Profil; die Edge Function `bloodwork-extract` sendet ohne Einwilligung nichts. Ebenso die Mahlzeiten-Erkennung („Essen fotografieren"): eigene Einwilligung `profiles.ai_food_consent_at`, Edge Function `food-photo` |
+| Apple 5.1.2(i): Daten an Drittanbieter-KI nur mit Zustimmung | Befund-Import fragt vorher ausdrücklich (Anthropic, USA); gespeichert in `profiles.ai_import_consent_at`, Widerruf im Profil; die Edge Function `bloodwork-extract` sendet ohne Einwilligung nichts. Ebenso die Mahlzeiten-Erkennung („Dot erkennt dein Essen"): eigene Einwilligung `profiles.ai_food_consent_at`, Edge Function `food-photo`; und Dot, der Chat: eigene Einwilligung `profiles.coach_consent_at`, Edge Function `coach` |
 | Apple 2.3.1: keine versteckten Funktionen | Vorschau-Routen nur noch in der Entwicklung |
 
 ## Vor dem Einreichen — von dir
@@ -28,9 +28,12 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 - [ ] Prüfen, ob das eine Admin-Konto deins ist.
 
 ### Rechtstexte
-- [ ] Alle gelb markierten Platzhalter in `src/features/compliance/legal/texts.ts` füllen (Name, Anschrift, E-Mail, Aufsichtsbehörde, Vercel-Region, Sentry-Aufbewahrung, AV-Verträge, Anthropic: Aufbewahrung und Übermittlungsgrundlage).
+- [ ] Alle gelb markierten Platzhalter in `src/features/compliance/legal/texts.ts` füllen (Name, Anschrift, E-Mail, Aufsichtsbehörde, Sentry-Aufbewahrung, AV-Verträge, Anthropic: Aufbewahrung).
 - [ ] Haftungsklausel und Gerichtsstand rechtlich prüfen lassen.
-- [ ] **Anthropic-Vertrag (Befund-Import und Mahlzeiten-Erkennung):** Speicherdauer und Nutzung der Daten bei Anthropic laut Vertrag in die Datenschutzerklärung eintragen; Grundlage der Übermittlung in die USA klären (EU-US Data Privacy Framework oder Standardvertragsklauseln). Stelle: Abschnitt 5 in `texts.ts`, Platzhalter [[…]].
+- [x] **Anthropic: Übermittlungsgrundlage** eingetragen (28.10.2026): Standardvertragsklauseln aus dem Auftragsverarbeitungsvertrag von Anthropic, kein Training, Missbrauchsfälle bis 2 Jahre.
+- [ ] **Anthropic: Speicherdauer.** Zero Data Retention beim Vertrieb von Anthropic beantragen oder die Standardfrist (privacy.claude.com) eintragen. Stelle: Abschnitt 5 in `texts.ts`, Platzhalter [[…]].
+- [ ] **Auftragsverarbeitungsverträge bestätigen:** Supabase (im Dashboard abschließen), Vercel (Tarif muss gewerbliche Nutzung erlauben), Sentry, Anthropic (über die Commercial Terms einbezogen). Dann den Platzhalter „Prüfen und bestätigen" entfernen.
+- [ ] **Datenschutz-Folgenabschätzung** `docs/datenschutz/dsfa-ki.md` prüfen lassen und freigeben.
 - [ ] **Ergänzungen vom 18.10.2026 rechtlich prüfen lassen:** Ernährungsdaten, Kamera (Barcode auf dem Gerät), Mahlzeiten-Erkennung über Anthropic (Foto/Notiz, eigene Einwilligung), Open Food Facts ohne Personenbezug.
 - [ ] Solange Platzhalter drin sind, zeigt jede Seite „Entwurf" — so nicht einreichen.
 

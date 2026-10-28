@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
-import { supabase } from '../../../../lib/supabase'
+import { FUNKTIONS_REGION, supabase } from '../../../../lib/supabase'
 import { useAuth } from '../../../../context/AuthContext'
 import { MAX_UPLOAD_BYTES, prepareFile } from '../../lib/imageResize'
 import { parseExtractResult, type ExtractResult } from '../../lib/extractResult'
@@ -65,6 +65,7 @@ export function ImportFlow({ mode, onClose, onSaved }: Props) {
     }
     const prepared = await prepareFile(file)
     const { data, error, response } = await supabase.functions.invoke('bloodwork-extract', {
+      region: FUNKTIONS_REGION,
       body: { file: prepared.base64, mimeType: prepared.mimeType, markerNames: CATALOG_MARKER_NAMES },
     })
 
