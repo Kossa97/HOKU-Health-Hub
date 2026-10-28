@@ -1,10 +1,11 @@
 /**
  * Dots Gesten auf der Anmeldung, ganz aus seinen 460 Punkten im Raum.
  *
- * Aus dem Gesten-Mockup (Artefakt „Dots Gesten fürs Login", Version 6), Auswahl des
- * Nutzers 28.10.2026: Begrüßung D1 (ein Arm winkt) und D4 (beide Hände winken) im
- * Wechsel, Herz C (Herz in Dot), Fehler A (Kugel schüttelt sich), Kein Netz B (Dot
- * sucht), Erfolg A (Haken zeichnet sich und wird grün).
+ * Aus dem Gesten-Mockup (Artefakt „Dots Gesten fürs Login"), Auswahl des Nutzers
+ * 28.10.2026: Begrüßung D1 (ein Arm winkt) und D4 (beide Arme winken) im Wechsel, die
+ * Arme dick und ohne Hand (Version 8, F1/F3), Herz C (Herz in Dot),
+ * Fehler A und C (Kugel schüttelt sich, X aus Balken; das flache X macht die Engine),
+ * Kein Netz B (Dot sucht), Erfolg A (Haken zeichnet sich und wird grün).
  *
  * Jede Geste schreibt je Punkt Lage (Einheit: Dots Radius, y nach unten, z zum
  * Betrachter), Licht und Rosa-Anteil für den Zeitpunkt t seit ihrem Beginn.
@@ -112,44 +113,23 @@ function kapselPunkte(teile: { a: V3; b: V3; r: number }[], n: number) {
   return auswahl(new Float32Array(kand), marke, n)
 }
 
-/* ── Begrüßung: Arme mit Händen ─────────────────────────────────────────────
-   Dünne Gummiarme mit runder Comic-Hand (Daumen und drei Finger). Eine Kappe seiner
-   Haut an der Schulter liefert die Punkte; die übrige Haut rückt gleichmäßig nach. */
-interface HandPunkt { t: number; u: number; v: number; w: number; s: number; o: number; bu: number; bv: number; a: number; len: number }
-// Hand im eigenen Rahmen, Handgelenk im Ursprung: u entlang der Finger, v quer (Daumen bei +v), w zum Betrachter
-const HAND: HandPunkt[] = (() => {
-  const p: HandPunkt[] = [], h = 0.085
-  for (let i = 0; ; i++) {
-    const u = 0.03 + i * h * 0.866
-    if (u > 0.53) break
-    for (let v = -0.3 + (i % 2) * h / 2; v <= 0.3; v += h) {
-      const eu = (u - 0.27) / 0.25, ev = v / 0.23, e = eu * eu + ev * ev
-      if (e <= 1) p.push({ t: 0, u, v, w: 0.08 * (1 - e), s: 0, o: 0, bu: 0, bv: 0, a: 0, len: 0 })
-    }
-  }
-  // Finger: Ansatz [u, v], Richtung zu u (+ zum Daumen), Länge; zuletzt der Daumen. Je Finger ein
-  // Zickzack quer zur Richtung: so wird er dick und rund wie ein Handschuhfinger, die Spitze sitzt mittig
-  const finger = [[0.45, -0.16, -0.46, 0.32], [0.5, 0, -0.04, 0.36], [0.45, 0.16, 0.36, 0.32], [0.2, 0.21, 1.15, 0.26]]
-  finger.forEach((f, k) => {
-    const n = Math.round(f[3] / 0.036)
-    for (let j = 1; j <= n; j++) p.push({ t: k + 1, s: j / n, o: j === n ? 0 : (j % 2 ? 0.042 : -0.042), bu: f[0], bv: f[1], a: f[2], len: f[3], u: f[0] + Math.cos(f[2]) * f[3] * j / n, v: 0, w: 0 })
-  })
-  return p.sort((a, b) => a.u - b.u) // vom Handgelenk zu den Fingerspitzen
-})()
-const HL = [0, 0, 0]
-function handLage(q: HandPunkt) {
-  if (!q.t) { HL[0] = q.u; HL[1] = q.v; HL[2] = q.w; return }
-  const la = q.s * q.len
-  HL[0] = q.bu + Math.cos(q.a) * la - Math.sin(q.a) * q.o; HL[1] = q.bv + Math.sin(q.a) * la + Math.cos(q.a) * q.o; HL[2] = 0.05
-}
-const ARM_N = 16, ARM_M = ARM_N + HAND.length, LOCH = Math.cos(0.17), HAND_LP = 0.8, HAND_LF = 0.85
-const BZ = new Float32Array(25 * 2), LANG = new Float32Array(25)
+/* ── Begrüßung: Arme ohne Hand ──────────────────────────────────────────────
+   Ein Kegelarm (Nutzer 28.10.2026: dick, ohne Hand): an der Schulter breit, zur runden
+   Spitze schmaler. Eine Kappe seiner Haut an der Schulter liefert die Punkte; die übrige
+   Haut rückt gleichmäßig nach. */
+// Ringe entlang des Arms, je Ring vier Punkte; Längen von Ober- und Unterarm und dem Ende, das beim Winken nachschwingt
+const ARM = { ringe: 20, je: 4, ober: 0.5, unter: 0.62, ende: 0.42, schulter: 0.13, spitze: 0.075 }
+const ARM_M = ARM.ringe * ARM.je, LOCH = Math.cos(0.17)
+// Kurve: 25 Stützstellen bis zum Handgelenk, 8 für das Ende
+const BZ = new Float32Array(33 * 2), LANG = new Float32Array(33)
+// Radius ab Schulter (u 0) bis zur Spitze (u 1); das letzte Sechstel läuft rund zu wie eine Kuppe
+const armRadius = (u: number) => misch(ARM.schulter, ARM.spitze, u) * (u < 0.84 ? 1 : Math.sqrt(Math.max(0, 1 - Math.pow((u - 0.84) / 0.16, 2))))
 
-/** Ein Arm: Seite (−1 links, +1 rechts), Oberarm, Unterarm, Finger-Richtung, Drehung der Hand um ihre Längsachse. */
-interface Arm { s: number; a1: number; a2: number; b: number; dreh: number; ziel: Float32Array; licht: Float32Array }
-const neuerArm = (s: number): Arm => ({ s, a1: 0, a2: 0, b: 0, dreh: 0, ziel: new Float32Array(ARM_M * 3), licht: new Float32Array(ARM_M) })
+/** Ein Arm: Seite (−1 links, +1 rechts), Oberarm, Unterarm und Richtung seines Endes (Winkel im Bild). */
+interface Arm { s: number; a1: number; a2: number; b: number; ziel: Float32Array }
+const neuerArm = (s: number): Arm => ({ s, a1: 0, a2: 0, b: 0, ziel: new Float32Array(ARM_M * 3) })
 interface Kappe { wer: Int16Array; cA: number; ax: number }
-// Die Punkte, die der Schulter am nächsten liegen, werden Arm (Wurzel zuerst) und Hand; bei zwei Armen auch die gegenüber
+// Die Punkte, die der Schulter am nächsten liegen, werden Arm (Wurzel zuerst); bei zwei Armen auch die gegenüber
 function kappe(ax: number, zwei: boolean): Kappe {
   const idx = Array.from({ length: N }, (_, i) => i).sort((p, q) => (KUGEL_FEST[q * 3] - KUGEL_FEST[p * 3]) * ax)
   const wer = new Int16Array(N).fill(-1)
@@ -161,37 +141,43 @@ interface Rahmen { g: number; neig: number; sc: number; ox?: number; oy: number;
 function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
   const g = Math.max(0, k.g), gl = clamp01(g * 1.3), gk = Math.min(1, g), zwei = arme.length > 1
   for (const a of arme) {
-    const Sx = 0.96, Cx = Sx + Math.cos(a.a1) * 0.42 * g, Cy = Math.sin(a.a1) * 0.42 * g
-    const Wx = Cx + Math.cos(a.a2) * 0.5 * g, Wy = Cy + Math.sin(a.a2) * 0.5 * g
-    // Gummiarm: weiche Kurve über den Ellbogen, nach Bogenlänge gleichmäßig besetzt
-    for (let j = 0; j <= 24; j++) {
-      const tau = j / 24, u1 = 1 - tau
-      BZ[j * 2] = u1 * u1 * Sx + 2 * u1 * tau * Cx + tau * tau * Wx; BZ[j * 2 + 1] = 2 * u1 * tau * Cy + tau * tau * Wy
+    const Sx = 0.96, l1 = ARM.ober * g, l2 = ARM.unter * g, e = ARM.ende * g
+    const Cx = Sx + Math.cos(a.a1) * l1, Cy = Math.sin(a.a1) * l1, Wx = Cx + Math.cos(a.a2) * l2, Wy = Cy + Math.sin(a.a2) * l2
+    // Gummiarm: weiche Kurve über den Ellbogen; danach läuft er weiter, erst in Richtung des Unterarms, dann in Richtung b
+    const Qx = Wx + (Math.cos(a.a2) * e) / 2, Qy = Wy + (Math.sin(a.a2) * e) / 2, Ex = Qx + (Math.cos(a.b) * e) / 2, Ey = Qy + (Math.sin(a.b) * e) / 2
+    for (let j = 0; j <= 32; j++) {
+      if (j <= 24) {
+        const tau = j / 24, u1 = 1 - tau
+        BZ[j * 2] = u1 * u1 * Sx + 2 * u1 * tau * Cx + tau * tau * Wx; BZ[j * 2 + 1] = 2 * u1 * tau * Cy + tau * tau * Wy
+      } else {
+        const tau = (j - 24) / 8, u1 = 1 - tau
+        BZ[j * 2] = u1 * u1 * Wx + 2 * u1 * tau * Qx + tau * tau * Ex; BZ[j * 2 + 1] = u1 * u1 * Wy + 2 * u1 * tau * Qy + tau * tau * Ey
+      }
       LANG[j] = j ? LANG[j - 1] + Math.hypot(BZ[j * 2] - BZ[j * 2 - 2], BZ[j * 2 + 1] - BZ[j * 2 - 1]) : 0
     }
-    for (let j = 0; j < ARM_N; j++) {
-      const bis = ((j + 0.5) / ARM_N) * LANG[24]
+    // nach Bogenlänge in Ringen besetzt, jeder Ring quer zum Arm und zum nächsten versetzt, damit er rund wirkt
+    for (let j = 0; j < ARM.ringe; j++) {
+      const bis = ((j + 0.5) / ARM.ringe) * LANG[32]
       let b = 0
-      while (b < 23 && LANG[b + 1] < bis) b++
+      while (b < 31 && LANG[b + 1] < bis) b++
       const fr = (bis - LANG[b]) / (LANG[b + 1] - LANG[b] || 1)
-      a.ziel[j * 3] = a.s * (BZ[b * 2] + (BZ[b * 2 + 2] - BZ[b * 2]) * fr); a.ziel[j * 3 + 1] = BZ[b * 2 + 1] + (BZ[b * 2 + 3] - BZ[b * 2 + 1]) * fr
-      a.ziel[j * 3 + 2] = 0.1 + (0.2 * j) / ARM_N; a.licht[j] = 1
-    }
-    const hs = 1.4 * g, dx = Math.cos(a.b), dy = Math.sin(a.b), cd = Math.cos(a.dreh), sd = Math.sin(a.dreh)
-    for (let j = 0; j < HAND.length; j++) {
-      handLage(HAND[j])
-      const o = (ARM_N + j) * 3, vv = HL[1] * cd
-      a.ziel[o] = a.s * (Wx + (dx * HL[0] - dy * vv) * hs); a.ziel[o + 1] = Wy + (dy * HL[0] + dx * vv) * hs; a.ziel[o + 2] = 0.3 + (HL[1] * sd + HL[2]) * hs
-      a.licht[ARM_N + j] = HAND[j].t ? HAND_LF : HAND_LP
+      const px = BZ[b * 2] + (BZ[b * 2 + 2] - BZ[b * 2]) * fr, py = BZ[b * 2 + 1] + (BZ[b * 2 + 3] - BZ[b * 2 + 1]) * fr
+      const tx = BZ[b * 2 + 2] - BZ[b * 2], ty = BZ[b * 2 + 3] - BZ[b * 2 + 1], tl = Math.hypot(tx, ty) || 1
+      // Radius an derselben Stelle wie die Lage; so endet die Kuppe klein, aber nicht in einem Punkt
+      const rad = armRadius((j + 0.5) / ARM.ringe) * g, z0 = 0.1 + (0.2 * j) / ARM.ringe
+      for (let q = 0; q < ARM.je; q++) {
+        const ph = (q / ARM.je + (j % 2) / (2 * ARM.je)) * TAU, o = (j * ARM.je + q) * 3, cq = Math.cos(ph) * rad
+        a.ziel[o] = a.s * (px - (ty / tl) * cq); a.ziel[o + 1] = py + (tx / tl) * cq; a.ziel[o + 2] = z0 + Math.sin(ph) * rad
+      }
     }
   }
   const cl = Math.cos(k.neig), sl = Math.sin(k.neig), sx = k.sx ?? 1, sy = k.sy ?? 1, { P, L, H } = out
   for (let i = 0; i < N; i++) {
     const q = i * 3, w = kp.wer[i]
-    let x = KUGEL_FEST[q], y = KUGEL_FEST[q + 1], z = KUGEL_FEST[q + 2], li = 1
+    let x = KUGEL_FEST[q], y = KUGEL_FEST[q + 1], z = KUGEL_FEST[q + 2]
     if (w >= 0) {
-      const a = arme[(w / ARM_M) | 0], n = w % ARM_M, o = n * 3
-      x += (a.ziel[o] - x) * gl; y += (a.ziel[o + 1] - y) * gl; z += (a.ziel[o + 2] - z) * gl; li = 1 + (a.licht[n] - 1) * gl
+      const a = arme[(w / ARM_M) | 0], o = (w % ARM_M) * 3
+      x += (a.ziel[o] - x) * gl; y += (a.ziel[o + 1] - y) * gl; z += (a.ziel[o + 2] - z) * gl
     } else {
       // Haut rückt nach, gleichmäßig: entlang der Schulterachse linear in der Höhe, so bleibt die Dichte überall gleich
       const c = x * kp.ax, c2 = zwei ? (c * LOCH) / kp.cA : -1 + ((c + 1) * (LOCH + 1)) / (kp.cA + 1), cg = c + (c2 - c) * gk
@@ -199,29 +185,29 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
       x = kp.ax * cg; y *= f; z *= f
     }
     x *= sx; y *= sy
-    P[q] = (x * cl - y * sl) * k.sc + (k.ox ?? 0); P[q + 1] = (x * sl + y * cl) * k.sc + k.oy; P[q + 2] = z * k.sc; L[i] = li; H[i] = 0
+    P[q] = (x * cl - y * sl) * k.sc + (k.ox ?? 0); P[q + 1] = (x * sl + y * cl) * k.sc + k.oy; P[q + 2] = z * k.sc; L[i] = 1; H[i] = 0
   }
 }
 
-// D1: ein Arm wächst aus der Seite, geht im Bogen hoch, der Unterarm schwingt; die Hand schwingt nach und dreht sich leicht
+// D1: ein Arm wächst aus der Seite, geht schräg nach oben und winkt; sein Ende schwingt nach
 const EIN = { kp: null as Kappe | null, arm: neuerArm(-1) }
 function einArm(t: number, out: GestenBild) {
   const r = hinaus((t - 0.25) / 0.55) * (1 - weich((t - 2.85) / 0.45)), ak = clamp01((t - 0.7) / 0.3) * clamp01((2.95 - t) / 0.3)
   const ph = TAU * 1.6 * (t - 0.7), w = Math.sin(ph) * ak, e = rein(t), a = EIN.arm
-  a.a1 = misch(0.55, -0.2, r) - 0.06 * w; a.a2 = misch(1.25, -1.3, r) + 0.38 * w
-  a.b = a.a2 - 0.1 * r + 0.3 * Math.sin(ph - 0.9) * ak; a.dreh = 0.3 * Math.sin(ph - 0.4) * ak
+  a.a1 = misch(0.55, -0.2, r) - 0.06 * w; a.a2 = misch(1.25, -1.0, r) + 0.38 * w
+  a.b = a.a2 - 0.1 * r + 0.3 * Math.sin(ph - 0.9) * ak
   EIN.kp ??= kappe(a.s, false)
   armeBild(EIN.kp, [a], { g: wachsen(t, 0.45, 3.3), neig: (-0.05 * r - 0.02 * w) * e, sc: misch(1, 0.74, e), ox: 0.4 * e, oy: 0.36 * e }, out)
 }
-// D4: beide Arme gehen hoch und winken im Gleichtakt in dieselbe Richtung; Dot hüpft dazu
+// D4: beide Arme gehen schräg nach oben und winken im Gleichtakt in dieselbe Richtung; Dot hüpft dazu
 const BEIDE = { kp: null as Kappe | null, arme: [neuerArm(-1), neuerArm(1)] }
 function beideArme(t: number, out: GestenBild) {
   const r = hinaus((t - 0.25) / 0.55) * (1 - weich((t - 2.85) / 0.45)), ak = clamp01((t - 0.7) / 0.3) * clamp01((2.95 - t) / 0.3)
   const ph = TAU * 1.5 * (t - 0.7), w = Math.sin(ph) * ak, e = rein(t)
   for (const a of BEIDE.arme) {
-    const ww = w * a.s // gespiegelt, damit beide Hände in dieselbe Richtung schwingen
-    a.a1 = misch(0.55, -0.3, r) - 0.06 * ww; a.a2 = misch(1.25, -1.35, r) + 0.36 * ww
-    a.b = a.a2 - 0.1 * r + 0.3 * a.s * Math.sin(ph - 0.9) * ak; a.dreh = 0.3 * a.s * Math.sin(ph - 0.4) * ak
+    const ww = w * a.s // gespiegelt, damit beide Arme in dieselbe Richtung schwingen
+    a.a1 = misch(0.55, -0.3, r) - 0.06 * ww; a.a2 = misch(1.25, -1.0, r) + 0.36 * ww
+    a.b = a.a2 - 0.1 * r + 0.3 * a.s * Math.sin(ph - 0.9) * ak
   }
   const hop = Math.pow(Math.abs(Math.sin(ph / 2)), 0.8) * ak, sq = (1 - hop) * 0.06 * ak
   BEIDE.kp ??= kappe(-1, true)

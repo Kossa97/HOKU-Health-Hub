@@ -25,7 +25,7 @@ describe('Dot: Gesten', () => {
     }
   })
 
-  it('Begrüßung: beim Winken stehen Arm und Hand weit aus Dot heraus, bei beiden Armen auf beiden Seiten', () => {
+  it('Begrüßung: beim Winken steht der Arm weit aus Dot heraus, bei beiden Armen auf beiden Seiten', () => {
     const ein = bild(), beide = bild()
     gestenBild('hand', 1.5, { gruss: 'einArm', fehler: 'kugel' }, ein)
     gestenBild('hand', 1.5, { gruss: 'beideArme', fehler: 'kugel' }, beide)
@@ -36,8 +36,14 @@ describe('Dot: Gesten', () => {
     expect(draussen(ein, 0.4, 0.74, 1)).toBe(0)
     expect(draussen(beide, 0, 0.64, -1)).toBeGreaterThan(20)
     expect(draussen(beide, 0, 0.64, 1)).toBeGreaterThan(20)
-    // die Hand ist oben: höher als Dots Scheitel
-    expect(Math.min(...Array.from({ length: GESTE_N }, (_, i) => ein.P[i * 3 + 1]))).toBeLessThan(0.36 - 0.74 - 0.2)
+    // beim Winken reicht das Ende des Arms bis auf Höhe von Dots Scheitel (Mitte 0,36, Radius 0,74)
+    let hoechste = 9
+    for (let t = 1; t <= 2.5; t += 0.05) {
+      const b = bild()
+      gestenBild('hand', t, { gruss: 'einArm', fehler: null }, b)
+      for (let i = 0; i < GESTE_N; i++) hoechste = Math.min(hoechste, b.P[i * 3 + 1])
+    }
+    expect(hoechste).toBeLessThan(0.36 - 0.74 + 0.05)
   })
 
   it('Herz: ein Teil der Punkte ist rosa, die Kontur leuchtet am hellsten', () => {

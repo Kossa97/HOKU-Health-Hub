@@ -133,10 +133,11 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Schweif, Wirbel 0,35, Startschwung 0,4; unter der Bühne (über dem Formular) verblassen die
   Partikel auf 18 px. Arme: Nutzer will dickere Arme und weniger detaillierte Hände — Mockup
   Version 7 zeigt E1–E5 (Schlauch/Kegel × Fäustling/drei Finger/Kugelhand/Umriss), Punkte dort in
-  Login-Größe. Wahl offen, eingebaut ist noch der dünne Arm.
+  Login-Größe. Danach (Nutzer): **Hand weg, nur der Arm** — eingebaut ist der Kegelarm ohne
+  Hand (Mockup V8 F1/F3): 20 Ringe à 4 Punkte, an der Schulter dick, runde Kuppe, Ende schwingt
+  beim Winken nach, schräg nach oben statt steil (sonst wirken zwei Arme wie Hörner).
 
 ## Offen
-- Arm-/Handtyp aus Mockup V7 (E1–E5) wählen, dann in `gesten.ts` übernehmen.
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
 - Dauer des Erfolgs (Tempo 0,6 ≈ 9 s) prüft der Nutzer auf dem Gerät.
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
