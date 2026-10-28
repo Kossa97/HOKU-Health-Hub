@@ -106,6 +106,10 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Login-Seite hebt den Safe-Area-Abstand von body auf (stand doppelt, Seite war höher als das
   Display). Dabei gefunden: negativer Bildschritt (rAF-Zeitstempel vor `performance.now()` aus
   `laufen`) ließ Dot unter Last explodieren — dt jetzt ≥ 0. E2E „Wurf" in `e2e/login.spec.ts`.
+- **Eröffnung nur oberhalb des Formulars (Nutzer 28.10.):** Partikel kommen von links, oben und
+  rechts nur bis zur Unterkante der Bühne. Vollbild: in Safari bleibt die Statusleiste Safaris
+  eigener Streifen; ganz bis oben nur als installierte Web-App (Home-Bildschirm).
+  Vorschau zum Testen: Branch `login-dot-wand` auf Vercel (geschützt, Vercel-Anmeldung nötig).
 - Docker Desktop startete nicht (verwaiste Unix-Sockets in `%LOCALAPPDATA%\Docker\run`, beim
   zweiten Mal auch `%LOCALAPPDATA%\docker-secrets-engine`); Ordner umbenannt (`*.alt*`), danach
   lief es. Docker nach dem Start nicht hart beenden, sonst verwaisen die Sockets wieder.

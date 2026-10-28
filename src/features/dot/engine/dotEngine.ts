@@ -1437,9 +1437,10 @@ export function createDot(host: DotHost): DotApi {
     messeBuehne()
     setState('idle')
     B.r = radiusTarget(); B.rv = 0
-    const b = loginGrenzen(), rad = Math.max(CR, 48) - 4, unten = b.b - rad, Z = loginZiel(), R = B.r
+    // Die Seitenwände nur bis zur Unterkante der Bühne: neben dem Formular kommt nichts (Nutzer 28.10.2026)
+    const b = loginGrenzen(), rad = Math.max(CR, 48) - 4, unten = Math.min(b.b - rad, BUEHNE ? BUEHNE.bottom : b.b), Z = loginZiel(), R = B.r
     for (let i = 0; i < ALLE; i++) {
-      // Regen nur oben, die anderen links, oben und rechts, nie unten, wo das Formular steht
+      // Regen nur oben, die anderen links, oben und rechts oberhalb des Formulars
       let x = 0, y = 0
       for (let n = 0; n < 30; n++) {
         [x, y] = rahmenPunkt(b, rad, Math.random())
