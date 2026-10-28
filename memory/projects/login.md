@@ -141,8 +141,17 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Variante zufällig); Erfolg A. Nicht zufrieden auf dem Handy: die **Animation nach dem Erfolg**
   (Portal/Heimflug) und die **Eröffnung** — beide sollen noch einmal überarbeitet werden.
 
+- **Eröffnung neu (Nutzer 28.10.2026, nachts):** Aufnahme vom iPhone zeigte nach dem Erfolg einen
+  schwarzen Moment, einen körnigen Rahmen, Konfetti über der App und Dot groß auf „Guten Abend“;
+  die Eröffnung war zu übertrieben. Mockup „Dots Auftritte“ mit E1–E6 und S1–S8. Gewählt für die
+  Eröffnung: **E1 (vom Rand), E2 (aus dem Dunkel), E5 (Ringe) im Zufall**, wieder schnell (1,6–1,9 s);
+  E3 Spirale, E4 Aufblühen, E6 Abtasten bleiben für spätere Updates. In der Engine laufen die Punkte
+  auf festen Bahnen (`bahn`), ohne Federn und ohne Kinder; die alten vier Feder-Varianten sind weg.
+  Gefunden: die erste Eröffnung schloss die Start-Variante aus (E1 bzw. früher „strudel“ kam beim
+  ersten Besuch nie), jetzt beginnt die Wahl bei null.
+
 ## Offen
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
-- Animation nach dem Erfolg (Portal, Heimflug) und Eröffnung überarbeiten (Nutzer: gefällt auf dem Handy nicht).
+- Animation nach dem Erfolg wählen: Mockup „Dots Auftritte“ (https://claude.ai/artifact/Ab6uRmqzVNDBHgBDRYbnS5) S1–S8; Nutzer wünschte zuletzt ein schnelles, ungleichmäßiges Portal, Punkte sammeln sich in der Mitte, dann Heimflug wie S2 (S5).
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.
