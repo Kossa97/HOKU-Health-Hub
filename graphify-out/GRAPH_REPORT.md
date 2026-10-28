@@ -1,7 +1,7 @@
 # Graph Report - peptid-tracker  (2026-10-28)
 
 ## Corpus Check
-- 1374 files · ~2,883,199 words
+- 1374 files · ~2,883,305 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2e15667c`
+- Built from commit: `e5b213ba`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

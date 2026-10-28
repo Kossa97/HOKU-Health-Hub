@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793194014.9316776,
-    "seen": 1793194335.0421498,
-    "ast_hash": "ea91fd04ce12df8ceaf6972f52c3fb3d",
+    "mtime": 1793225859.410727,
+    "seen": 1793226272.914376,
+    "ast_hash": "48a6f71ee3fae44d12df8ca44c0f7dab",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793225010.1176202,
-    "seen": 1793225154.0485053,
+    "mtime": 1793226125.2211795,
+    "seen": 1793226272.914574,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793225072.7596152,
-    "seen": 1793225154.0479808,
-    "ast_hash": "6de969d30cda38d049d239a5c392928d",
+    "mtime": 1793226204.9940069,
+    "seen": 1793226272.9137824,
+    "ast_hash": "60c4fa447f852f3ae1a26bf5b6d8fed8",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8478,9 +8478,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793225114.7477875,
-    "seen": 1793225154.048666,
-    "ast_hash": "9a1d38e0a1b57e8249c100870d347a7d",
+    "mtime": 1793226239.6040723,
+    "seen": 1793226272.914908,
+    "ast_hash": "df5a65cc68c04058ac18d1fe4e7f536d",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793193469.1767597,
-    "seen": 1793193909.0486224,
-    "ast_hash": "2ccbce4715cb42b796c0bd6b96faa635",
+    "mtime": 1793225855.1935508,
+    "seen": 1793226272.9135606,
+    "ast_hash": "19f5d98aa96f6c46dcb411838416c74d",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -17409,12 +17409,6 @@
     "mtime": 1793219922.6979697,
     "seen": 1793219990.6656015,
     "ast_hash": "c51195f5dedbdf68b6d498d08f933248",
-    "semantic_hash": ""
-  },
-  ".video.tmp.mjs": {
-    "mtime": 1793221414.9185448,
-    "seen": 1793225154.0477164,
-    "ast_hash": "db00650a9bcdfaf99e3acb8ec715c990",
     "semantic_hash": ""
   }
 }
