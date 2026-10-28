@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793203426.453823,
-    "seen": 1793203516.983605,
+    "mtime": 1793225010.1176202,
+    "seen": 1793225154.0485053,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793219670.1909933,
-    "seen": 1793219990.6655974,
-    "ast_hash": "79a0be0ff14078c0bc80382f120cf580",
+    "mtime": 1793225072.7596152,
+    "seen": 1793225154.0479808,
+    "ast_hash": "6de969d30cda38d049d239a5c392928d",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8478,9 +8478,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793219957.7703092,
-    "seen": 1793219990.6662917,
-    "ast_hash": "bbbeab78dcc3e91f71a1821c8c277593",
+    "mtime": 1793225114.7477875,
+    "seen": 1793225154.048666,
+    "ast_hash": "9a1d38e0a1b57e8249c100870d347a7d",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -17409,6 +17409,12 @@
     "mtime": 1793219922.6979697,
     "seen": 1793219990.6656015,
     "ast_hash": "c51195f5dedbdf68b6d498d08f933248",
+    "semantic_hash": ""
+  },
+  ".video.tmp.mjs": {
+    "mtime": 1793221414.9185448,
+    "seen": 1793225154.0477164,
+    "ast_hash": "db00650a9bcdfaf99e3acb8ec715c990",
     "semantic_hash": ""
   }
 }
