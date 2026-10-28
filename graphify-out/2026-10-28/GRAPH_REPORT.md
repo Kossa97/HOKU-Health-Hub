@@ -1,7 +1,7 @@
 # Graph Report - peptid-tracker  (2026-10-28)
 
 ## Corpus Check
-- 1374 files · ~2,881,521 words
+- 1374 files · ~2,881,561 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
