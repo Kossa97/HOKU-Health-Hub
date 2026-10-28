@@ -5,14 +5,18 @@
  * über allem; die Bühne ist nur der Platz, an dem er steht.
  */
 
-/* Über das ganze Display, unter Statusleiste und Home-Strich: body hält dort schon
-   Abstand (index.css), die Seite hebt ihn auf und rechnet ihn selbst ein — sonst
-   stünde er doppelt da und die Seite wäre höher als das Display. */
+/* body hält schon Abstand zu Statusleiste und Home-Strich (index.css); die Seite
+   rechnet ihn nicht noch einmal ein, sonst wäre sie höher als das Display. */
 .tyd-auth {
-  min-height: 100dvh; max-width: 440px; box-sizing: border-box;
-  margin: calc(-1 * env(safe-area-inset-top, 0px)) auto calc(-1 * env(safe-area-inset-bottom, 0px));
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-width: 440px; margin: 0 auto; box-sizing: border-box;
   display: flex; flex-direction: column;
-  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 16px) max(16px, env(safe-area-inset-left, 0px));
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+}
+/* Der Hintergrund liegt fest über dem ganzen Display, auch unter der Statusleiste:
+   #root schneidet oben ab (overflow-x: hidden), die Seite selbst kann nicht dorthin. */
+.tyd-auth::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(120% 50% at 50% 0%, rgba(30, 60, 90, 0.35), transparent 60%);
 }
 .tyd-auth-top { display: flex; justify-content: flex-end; min-height: 30px; }

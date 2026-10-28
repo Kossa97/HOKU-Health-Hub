@@ -933,7 +933,8 @@ export function createDot(host: DotHost): DotApi {
     const dizzy = B.dizzyT >= 0 ? Math.min(1, B.dizzyT * 4) * clamp01((3.2 - B.dizzyT) / 0.8) : 0
     const tNow = performance.now() / 1000, breathe = B.sleepAmt * Math.sin(tNow * 1.25)
     const on = grip + stretch + suck + wave + squeeze + popOut + duck + hop + dive + splatF + Math.abs(teeter) + swirlF + Math.abs(B.lean) > 0.001 ? 1 : 0
-    const wl = homeish() ? walls() : []
+    // Auf der Anmeldung dieselbe Wandform wie in der App (Ecken, Hysterese), sonst zuckt er in den Ecken
+    const wl = homeish() || loginWand() ? walls() : []
     const rr0 = B.r, bb = bounds()
     for (const w of wl) {
       w.dock = docked(w.id) ? B.flat : 0
@@ -1604,8 +1605,9 @@ export function createDot(host: DotHost): DotApi {
       const sp = (Math.abs(VX[i]) + Math.abs(VY[i])) * r
       const sz = dotR * (0.55 + 0.6 * cp[2]) * 3 * SZ[i] * (1 + Math.min(sp * 0.05, 0.6))
       if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
-      // Auf der Anmeldung verlässt kein Punkt das Display
-      if (imDisplay) { const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b) }
+      // Bei der Eröffnung verlässt kein Punkt das Display. Sonst halten ihn die Wände wie in
+      // der App; eine rechteckige Grenze gäbe oben in den runden Ecken eine Kante, an der er zuckt.
+      if (B.intro.an) { const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b) }
       if (GL) {
         const o = nPts * 7
         GLD[o] = X; GLD[o + 1] = Y; GLD[o + 2] = sz; GLD[o + 3] = c[0] / 255; GLD[o + 4] = c[1] / 255; GLD[o + 5] = c[2] / 255; GLD[o + 6] = alpha
