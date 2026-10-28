@@ -36,6 +36,57 @@ v1 auf `main` (PR #27, Merge 6522945, 18.10.2026). Trockenlauf der Migration
 bestanden (`scripts/sql/training.test.sql`). **In Prod eingespielt am 18.10.2026** (Migration `training_workout_tracker`): 4 Tabellen, 4× RLS, 16 Policies, 0 Zeilen; Security-Advisor ohne neuen Befund. Konto löschen erfasst die Tabellen per `on delete cascade` an `auth.users`.
 Gerätetest `e2e/training.spec.ts` (Chromium-Profile grün, WebKit lokal nicht installiert).
 
+## v2: Logger + Editor (Konzept 28.10.2026, Branch `claude/workout-tracker-v2`)
+
+Grundlage: Recherche `reports/Workout Tracker Apps und Schwächen.md` (lokal, nicht im
+Repo). Kernaussage: Die Logger sehen bei allen gleich aus; verloren wird an den
+Übergängen (Hintergrund, Vorlage, Update) und an Fairness. Nutzer wollen Automatik,
+die sich erklärt und sich übersteuern lässt (Alpha Progression am nächsten dran).
+
+**Entschieden (Claude, Nutzer verbessert nach Belieben):**
+
+Logger (Live-Training)
+- Satzzeile: `Nr/Typ · Vorher · [kg] [Wdh] · ✓`. Felder sind mit dem **Vorschlag**
+  vorbelegt (Akzentfarbe, kursiv-leicht), bis der Nutzer tippt oder abhakt. Nie
+  automatisch überschreiben, was der Nutzer eingetragen hat.
+- **Vorschlag mit Begründung** je Übung, eine Zeile unter dem Kopf:
+  „Letztes Mal 3 × 10 @ 80 kg, RPE ≤ 8 → heute 82,5 kg". Regeln in
+  `lib/progression.ts` (Doppelprogression, Sprung je Gerät, max. +10 %, bei zu
+  großem Sprung erst +1 Wdh., nach verfehlten Sätzen Gewicht halten).
+- Pausentimer: Zeitstempel-basiert (ist so). Neu: zeigt den **nächsten Satz**
+  („Satz 3 · 82,5 × 10"); Benachrichtigung bei Pausenende im Hintergrund;
+  Bearbeiten/Abhaken eines **früheren** Satzes startet keine neue Pause; ±15 s;
+  Ton+Vibration abschaltbar.
+- Löschen (Satz, Übung) mit **Rückgängig** im Toast (Reducer: `undo`-Snapshot).
+- Supersatz: nach dem Haken springt die Ansicht zur nächsten Übung der Gruppe.
+- Nächster offener Satz ist markiert (Ring in Akzentfarbe).
+- Kopf: Sicherungsstatus „Auf dem Gerät gesichert" (jeder Satz sofort lokal, ist so).
+- Minimiert: Leiste mit Dauer **und** Pausen-Countdown.
+- Abschluss: Dauer, Volumen, Sätze, Rekorde, RPE; wenn das Training von der
+  Routine abweicht (Übungen/Satzzahl/Reihenfolge/Gewichtsziele): Schalter
+  **„Änderungen in die Routine übernehmen"** (`lib/routineDiff.ts`).
+
+Editor (Routine)
+- Routine = Name · Ordner (Plan) · Wochentage · Übungen; je Übung Satzzeilen mit
+  **Wdh.-Bereich** (min–max), optional Zielgewicht/RPE, Satztyp; Pause je Übung;
+  Supersatz; Notiz. Drag-Reorder per Griff (Pointer), dazu ↑↓ für Tastatur.
+- **Sätze je Muskel** als Balken im Editor (direkt + ½ indirekt), Richtwert 10–20
+  pro Woche über alle Routinen eines Ordners × Wochentage.
+- **Ordner = Plan**: Routinen gruppiert; „Als Nächstes" = Routine nach der zuletzt
+  trainierten im Ordner (Rotation aus dem Verlauf, kein Zustand). Wochen/Deload
+  bleiben v3.
+- Vorlagen (Code, `data/plans.ts`): Ganzkörper 3×, Ober/Unter 4×, Push/Pull/Beine
+  6×, Hyrox (bestehend). Ein Tipp legt Ordner + Routinen an, alles editierbar.
+- Speichern beim Schließen (implizit), Toast „Gespeichert"; keine Obergrenze.
+- Nichts davon hinter einer Bezahlschranke; Bearbeiten und Tausch nie.
+
+Daten
+- `RoutineExercise.sets[]`: zusätzlich `repsMin`, `repsMax`, `rpe` (jsonb, keine
+  Migration). `TrainingRoutine.folder: string | null` → Migration
+  `supabase-training-v2.sql` (`add column if not exists folder text`), Trockenlauf
+  nach CLAUDE.md, erst dann Prod.
+- Settings: `restSound: boolean`, `restNotify: boolean`.
+
 ## Offen
 
 | Punkt | Stand |

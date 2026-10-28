@@ -53,6 +53,7 @@ export function RoutineEditor({ routine, data, onClose }: {
         weekdays,
         exercises,
         sortOrder: routine?.sortOrder ?? data.routines.length,
+        folder: routine?.folder ?? null,
       })
       toast.success(tt('saved'))
       onClose()

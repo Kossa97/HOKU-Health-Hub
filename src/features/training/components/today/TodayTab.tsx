@@ -191,6 +191,7 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
                     weekdays: [],
                     exercises: hyroxRoutine(id),
                     sortOrder: data.routines.length,
+                    folder: null,
                   })
                 }}
               >

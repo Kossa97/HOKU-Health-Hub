@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { TrainingRoutine, TrainingSession } from '../types'
-import { countSets, finishWorkout, reduceWorkout, startWorkout, workoutFromSession } from './activeWorkout'
+import { countSets, finishWorkout, nextOpenSet, reduceWorkout, startWorkout, supersetPartnerIndex, workoutFromSession } from './activeWorkout'
+import type { Suggestion } from './progression'
 
 const history: TrainingSession[] = [{
   id: 'old', kind: 'strength', title: 'Push', startedAt: '2026-10-10T10:00:00Z', endedAt: '2026-10-10T11:00:00Z',
@@ -13,7 +14,7 @@ const history: TrainingSession[] = [{
 }]
 
 const routine: TrainingRoutine = {
-  id: 'r1', name: 'Push', kind: 'strength', weekdays: [1], sortOrder: 0,
+  id: 'r1', name: 'Push', kind: 'strength', weekdays: [1], sortOrder: 0, folder: null,
   exercises: [
     { exerciseId: 'bench', restS: 120, sets: [{ type: 'warmup' }, { type: 'normal' }, { type: 'normal' }] },
     { exerciseId: 'fly', sets: [{ type: 'normal', weightKg: 12, reps: 12 }] },
@@ -78,6 +79,102 @@ describe('reduceWorkout', () => {
     w = reduceWorkout(w, { type: 'add_set', index: 0 })
     expect(w.exercises[0].sets).toHaveLength(4)
     expect(w.exercises[0].sets[3]).toMatchObject({ weightKg: 80, reps: 6, done: false, type: 'normal' })
+  })
+
+  it('startet keine neue Pause, wenn ein frueherer Satz nachtraeglich abgehakt wird', () => {
+    let w = startWorkout({ routine, history, now })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 1, defaultRestS: 90, now: 1000 })
+    expect(w.restEndsAt).toBe(1000 + 120_000)
+    w = reduceWorkout(w, { type: 'rest_skip' })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 0, defaultRestS: 90, now: 5000 })
+    expect(w.exercises[0].sets[0].done).toBe(true)
+    expect(w.restEndsAt).toBeNull()
+    // Abhaken rueckgaengig laesst eine laufende Pause in Ruhe
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 2, defaultRestS: 90, now: 9000 })
+    expect(w.restEndsAt).toBe(9000 + 120_000)
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 1, defaultRestS: 90, now: 9500 })
+    expect(w.restEndsAt).toBe(9000 + 120_000)
+  })
+
+  it('macht das Entfernen von Satz und Uebung rueckgaengig', () => {
+    let w = startWorkout({ routine, history, now })
+    expect(w.undo).toBeNull()
+    w = reduceWorkout(w, { type: 'remove_set', index: 0, setIndex: 2 })
+    expect(w.exercises[0].sets).toHaveLength(2)
+    expect(w.undo?.label).toBe('set')
+    w = reduceWorkout(w, { type: 'title', title: 'x' })
+    expect(w.undo?.label).toBe('set')
+    w = reduceWorkout(w, { type: 'undo' })
+    expect(w.exercises[0].sets).toHaveLength(3)
+    expect(w.undo).toBeNull()
+    expect(reduceWorkout(w, { type: 'undo' })).toBe(w)
+    w = reduceWorkout(w, { type: 'remove_exercise', index: 1 })
+    expect(w.exercises).toHaveLength(1)
+    expect(w.undo?.label).toBe('exercise')
+    w = reduceWorkout(w, { type: 'undo' })
+    expect(w.exercises.map(e => e.exerciseId)).toEqual(['bench', 'fly'])
+    expect(reduceWorkout(w, { type: 'remove_set', index: 5, setIndex: 0 })).toBe(w)
+  })
+
+  it('tauscht eine Uebung und behaelt Satzzahl, Satzarten, Pause und Supersatz', () => {
+    let w = startWorkout({ routine, history, now })
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 0 })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 1, defaultRestS: 90, now: 0 })
+    w = reduceWorkout(w, { type: 'replace_exercise', index: 0, exerciseId: 'incline', history })
+    expect(w.exercises[0]).toMatchObject({ exerciseId: 'incline', restS: 120, supersetGroup: 1 })
+    expect(w.exercises[0].sets.map(s => [s.type, s.weightKg, s.done])).toEqual([
+      ['warmup', null, false], ['normal', null, false], ['normal', null, false],
+    ])
+  })
+
+  it('schreibt einen Vorschlag nur in offene, nicht getippte Saetze', () => {
+    let w = startWorkout({ routine, history, now })
+    w = reduceWorkout(w, { type: 'update_set', index: 0, setIndex: 1, patch: { weightKg: 85 } })
+    w = reduceWorkout(w, { type: 'update_set', index: 0, setIndex: 2, patch: { rpe: 8 } })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 0, defaultRestS: 90, now: 0 })
+    expect(w.exercises[0].sets[1].touched).toBe(true)
+    expect(w.exercises[0].sets[2].touched).toBeUndefined()
+    w = reduceWorkout(w, {
+      type: 'apply_suggestion', index: 0,
+      sets: [{ type: 'warmup', weightKg: 50, reps: 10 }, { type: 'normal', weightKg: 82.5, reps: 6 }, { type: 'normal', weightKg: 82.5, reps: 6 }],
+    })
+    expect(w.exercises[0].sets.map(s => s.weightKg)).toEqual([40, 85, 82.5])
+    expect(w.exercises[0].sets[2].rpe).toBe(8)
+    // `touched` wird nicht gespeichert
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 1, defaultRestS: 90, now: 0 })
+    const saved = finishWorkout(w, { now, rpe: null })
+    expect(saved.exercises[0].sets.every(s => !('touched' in s))).toBe(true)
+  })
+
+  it('belegt Saetze mit dem Vorschlag vor, wenn es einen gibt', () => {
+    const suggest = (id: string): Suggestion | null => id === 'bench'
+      ? { sets: [{ type: 'warmup', weightKg: 40, reps: 10 }, { type: 'normal', weightKg: 82.5, reps: 6 }, { type: 'normal', weightKg: 82.5, reps: 6 }], reasonKey: 'progress_up', reasonVars: {}, change: 'weight_up' }
+      : null
+    let w = startWorkout({ routine, history, suggest, now })
+    expect(w.exercises[0].sets.map(s => [s.weightKg, s.reps, s.done])).toEqual([[40, 10, false], [82.5, 6, false], [82.5, 6, false]])
+    expect(w.exercises[0].sets.every(s => !s.touched)).toBe(true)
+    // ohne Vorschlag: wie bisher aus der Routine
+    expect(w.exercises[1].sets[0]).toMatchObject({ weightKg: 12, reps: 12 })
+    w = reduceWorkout(w, { type: 'add_exercises', exerciseIds: ['bench'], history, suggest })
+    expect(w.exercises[2].sets).toHaveLength(3)
+    expect(w.exercises[2].sets[1].weightKg).toBe(82.5)
+  })
+
+  it('findet den naechsten offenen Satz und den Partner im Supersatz', () => {
+    let w = startWorkout({ routine, history, now })
+    expect(nextOpenSet(w)).toEqual({ index: 0, setIndex: 0 })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 0, defaultRestS: 0, now: 0 })
+    w = reduceWorkout(w, { type: 'toggle_done', index: 0, setIndex: 1, defaultRestS: 0, now: 0 })
+    expect(nextOpenSet(w)).toEqual({ index: 0, setIndex: 2 })
+    expect(supersetPartnerIndex(w, 0)).toBeNull()
+    w = reduceWorkout(w, { type: 'add_exercises', exerciseIds: ['c'], history })
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 0 })
+    w = reduceWorkout(w, { type: 'toggle_superset', index: 1 })
+    expect(w.exercises.map(e => e.supersetGroup)).toEqual([1, 1, 1])
+    expect(supersetPartnerIndex(w, 0)).toBe(1)
+    expect(supersetPartnerIndex(w, 2)).toBe(0)
+    for (const [i, k] of [[0, 2], [1, 0], [2, 0]]) w = reduceWorkout(w, { type: 'toggle_done', index: i, setIndex: k, defaultRestS: 0, now: 0 })
+    expect(nextOpenSet(w)).toBeNull()
   })
 
   it('verschiebt Uebungen nur innerhalb der Liste', () => {

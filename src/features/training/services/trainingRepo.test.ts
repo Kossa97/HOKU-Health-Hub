@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../../lib/supabase', () => ({ supabase: {} }))
 
-const { MAX_DISMISSED, isMissingTable, normalizeSettings, sessionFromRow } = await import('./trainingRepo')
+const { MAX_DISMISSED, isMissingTable, normalizeFolder, normalizeSettings, routineFromRow, sessionFromRow } = await import('./trainingRepo')
 
 describe('trainingRepo', () => {
   it('fuellt fehlende Einstellungen mit Standardwerten und verwirft Unsinn', () => {
@@ -13,6 +13,20 @@ describe('trainingRepo', () => {
     expect(s.platesKg[0]).toBe(25)
     expect(s.glp1Mode).toBeNull()
     expect(s.dismissedExternalIds).toEqual([])
+    // v1-Einstellungen ohne die Pausen-Schalter: beide an
+    expect(s.restSound).toBe(true)
+    expect(s.restNotify).toBe(true)
+    expect(normalizeSettings({ restSound: false, restNotify: false }).restSound).toBe(false)
+    expect(normalizeSettings({ restSound: false, restNotify: false }).restNotify).toBe(false)
+  })
+
+  it('liest den Ordner einer Routine, auch wenn die Spalte noch fehlt', () => {
+    const base = { id: 'r', name: 'Push', kind: 'strength' as const, exercises: null, weekdays: null, sort_order: 2 }
+    expect(routineFromRow(base).folder).toBeNull()
+    expect(routineFromRow({ ...base, folder: '  PPL ' }).folder).toBe('PPL')
+    expect(routineFromRow({ ...base, folder: '   ' }).folder).toBeNull()
+    expect(normalizeFolder('x'.repeat(50))).toHaveLength(40)
+    expect(normalizeFolder(7)).toBeNull()
   })
 
   it('behaelt nur die letzten geloeschten Uhr-Workouts', () => {
