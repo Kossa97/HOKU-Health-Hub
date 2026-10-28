@@ -1,12 +1,20 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
+import { hapticTick } from '../../../../lib/haptics'
 import type { TrackingMode, TrainingSet, WeightUnit } from '../../types'
 import { useTrainingText } from '../../i18n'
 import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exerciseLookup'
 import { formatClock, formatNumber, parseDecimal, parseStopwatchDigits, stopwatchDigits } from '../../lib/format'
 import { fromDisplayWeight, toDisplayWeight } from '../../lib/stats'
+import { TRAINING_ACCENT } from '../ui'
 
-/** Eine Satzzeile im Logger: Nummer/Art · Vorher · Werte · Haken. */
+/**
+ * Eine Satzzeile im Logger: Nummer/Art · Vorher · Werte · Haken.
+ *
+ * Der naechste offene Satz traegt einen Ring in Akzentfarbe. Werte, die noch
+ * vom Vorschlag stammen (nicht getippt, nicht abgehakt), stehen kursiv in
+ * Akzentfarbe — sobald der Nutzer tippt oder abhakt, werden sie zu seinen.
+ */
 
 export const DONE_TINT = 'rgba(16,185,129,0.14)'
 const DONE_COLOR = '#10b981'
@@ -82,13 +90,15 @@ function parseCell(kind: CellKind, text: string, unit: WeightUnit): Partial<Trai
  * Zahl) und erst gueltige Werte nach oben gibt. Ohne Fokus zeigt es den
  * gespeicherten Wert; leer zeigt es grau den Wert vom letzten Mal.
  */
-function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
+function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange }: {
   kind: CellKind
   set: TrainingSet
   unit: WeightUnit
   locale: string
   placeholder: string
   label: string
+  /** Wert stammt noch vom Vorschlag: Akzentfarbe, leicht kursiv. */
+  suggested: boolean
   onChange: (patch: Partial<TrainingSet>) => void
 }) {
   const [focused, setFocused] = useState(false)
@@ -96,7 +106,7 @@ function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
 
   return (
     <input
-      className="tyd-train-input"
+      className={suggested ? 'tyd-train-input sug' : 'tyd-train-input'}
       aria-label={label}
       value={focused ? text : displayValue(kind, set, unit, locale)}
       placeholder={placeholder}
@@ -120,24 +130,31 @@ function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
         fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
         background: set.done ? 'transparent' : 'var(--surface-input)',
         border: `1px solid ${set.done ? 'transparent' : 'var(--border-strong)'}`,
-        color: 'var(--text)', padding: '0 4px',
+        color: suggested && !set.done ? TRAINING_ACCENT : 'var(--text)', padding: '0 4px',
+        transition: 'background 160ms ease-out',
       }}
     />
   )
 }
 
-export function SetRow({ set, number, previous, tracking, unit, onChange, onToggleDone, onOpenSetMenu }: {
+export function SetRow({ set, number, previous, tracking, unit, isNext = false, suggested = false, onChange, onToggleDone, onOpenSetMenu }: {
   set: TrainingSet
   /** Laufende Nummer der Arbeitssaetze; Aufwaermsaetze zaehlen nicht mit. */
   number: number
   previous: TrainingSet | undefined
   tracking: TrackingMode
   unit: WeightUnit
+  /** Der naechste offene Satz des Trainings: bekommt den Ring. */
+  isNext?: boolean
+  /** Die Werte stammen noch vom Vorschlag. */
+  suggested?: boolean
   onChange: (patch: Partial<TrainingSet>) => void
   onToggleDone: () => void
   onOpenSetMenu: () => void
 }) {
   const { tt, locale } = useTrainingText()
+  // Der Haken federt nur beim Abhaken, nicht beim ersten Zeichnen eines schon erledigten Satzes.
+  const [popping, setPopping] = useState(false)
   const label = set.type === 'warmup' ? tt('set_warmup_short')
     : set.type === 'drop' ? tt('set_drop_short')
     : set.type === 'failure' ? tt('set_failure_short')
@@ -152,6 +169,7 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
         display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, alignItems: 'center',
         padding: '4px 6px', borderRadius: 12,
         background: set.done ? DONE_TINT : 'transparent',
+        boxShadow: isNext && !set.done ? `inset 0 0 0 1.5px ${TRAINING_ACCENT}99` : undefined,
         transition: 'background 160ms ease-out',
       }}
     >
@@ -167,10 +185,10 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {previousLabel(previous, tracking, unit, locale)}
       </span>
-      {usesWeight(tracking) && <Cell kind="weight" set={set} unit={unit} locale={locale} placeholder={ph('weight')} label={weightLabel} onChange={onChange} />}
-      {usesReps(tracking) && <Cell kind="reps" set={set} unit={unit} locale={locale} placeholder={ph('reps')} label={tt('col_reps')} onChange={onChange} />}
-      {usesDistance(tracking) && <Cell kind="distance" set={set} unit={unit} locale={locale} placeholder={ph('distance')} label={tt('col_distance')} onChange={onChange} />}
-      {usesDuration(tracking) && <Cell kind="duration" set={set} unit={unit} locale={locale} placeholder={ph('duration')} label={tt('col_time')} onChange={onChange} />}
+      {usesWeight(tracking) && <Cell kind="weight" set={set} unit={unit} locale={locale} placeholder={ph('weight')} label={weightLabel} suggested={suggested} onChange={onChange} />}
+      {usesReps(tracking) && <Cell kind="reps" set={set} unit={unit} locale={locale} placeholder={ph('reps')} label={tt('col_reps')} suggested={suggested} onChange={onChange} />}
+      {usesDistance(tracking) && <Cell kind="distance" set={set} unit={unit} locale={locale} placeholder={ph('distance')} label={tt('col_distance')} suggested={suggested} onChange={onChange} />}
+      {usesDuration(tracking) && <Cell kind="duration" set={set} unit={unit} locale={locale} placeholder={ph('duration')} label={tt('col_time')} suggested={suggested} onChange={onChange} />}
       <button
         type="button"
         role="checkbox"
@@ -186,9 +204,12 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
             if (usesDuration(tracking) && set.durationS == null && previous.durationS != null) fill.durationS = previous.durationS
             if (Object.keys(fill).length) onChange(fill)
           }
+          void hapticTick()
+          setPopping(!set.done)
           onToggleDone()
         }}
-        className="tyd-train-press"
+        onAnimationEnd={() => setPopping(false)}
+        className={`tyd-train-press tyd-train-check${popping && set.done ? ' is-popping' : ''}`}
         style={{
           width: 44, height: 40, borderRadius: 12,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

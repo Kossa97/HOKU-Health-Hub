@@ -37,7 +37,8 @@ export function showPageNotification(
   body = TEST_BODY,
   url = '/kalender',
 ): boolean {
-  if (Notification.permission !== 'granted') return false
+  // iOS-Safari (nicht als PWA) kennt `Notification` nicht.
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return false
   try {
     const n = new Notification(title, {
       body,

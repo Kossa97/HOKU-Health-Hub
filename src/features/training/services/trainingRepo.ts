@@ -173,11 +173,19 @@ interface RoutineRow {
   exercises: TrainingRoutine['exercises'] | null
   weekdays: number[] | null
   sort_order: number
-  /** Fehlt, solange die v2-Migration (`supabase-training-v2.sql`) nicht eingespielt ist. */
   folder?: string | null
 }
 
+/**
+ * `folder` kommt mit `supabase-training-v2.sql`; die Migration gehoert VOR das
+ * Frontend-Deploy. Fehlt sie doch, liest `loadRoutines` ohne die Spalte weiter,
+ * `saveRoutine` scheitert (Fehler-Toast in der Oberflaeche).
+ */
 const ROUTINE_COLUMNS = 'id, name, kind, exercises, weekdays, sort_order, folder'
+const ROUTINE_COLUMNS_V1 = 'id, name, kind, exercises, weekdays, sort_order'
+
+/** Postgres 42703: Spalte gibt es nicht. */
+export const isUndefinedColumn = (error: { code?: string } | null | undefined): boolean => error?.code === '42703'
 
 export const routineFromRow = (row: RoutineRow): TrainingRoutine => ({
   id: row.id,
@@ -197,14 +205,17 @@ export function normalizeFolder(value: unknown): string | null {
 }
 
 export async function loadRoutines(userId: string): Promise<TrainingRoutine[]> {
-  const { data, error } = await supabase
+  const select = (columns: string) => supabase
     .from('training_routines')
-    .select(ROUTINE_COLUMNS)
+    .select(columns)
     .eq('user_id', userId)
     .order('sort_order')
     .order('created_at')
+  let { data, error } = await select(ROUTINE_COLUMNS)
+  // Frontend vor der v2-Migration ausgerollt: Routinen trotzdem zeigen, Ordner leer.
+  if (isUndefinedColumn(error)) ({ data, error } = await select(ROUTINE_COLUMNS_V1))
   if (error) throw error
-  return ((data ?? []) as RoutineRow[]).map(routineFromRow)
+  return ((data ?? []) as unknown as RoutineRow[]).map(routineFromRow)
 }
 
 export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine, 'id'> & { id?: string }): Promise<TrainingRoutine> {

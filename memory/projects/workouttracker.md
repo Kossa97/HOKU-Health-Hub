@@ -84,8 +84,19 @@ Daten
 - `RoutineExercise.sets[]`: zusätzlich `repsMin`, `repsMax`, `rpe` (jsonb, keine
   Migration). `TrainingRoutine.folder: string | null` → Migration
   `supabase-training-v2.sql` (`add column if not exists folder text`), Trockenlauf
-  nach CLAUDE.md, erst dann Prod.
+  nach CLAUDE.md, erst dann Prod. **Die v2-Migration muss VOR dem Frontend-Deploy in
+  Prod sein:** `ROUTINE_COLUMNS` selektiert `folder`; `loadRoutines` faellt bei
+  fehlender Spalte (42703) auf ein Select ohne `folder` zurueck, `saveRoutine` nicht
+  (Fehler-Toast). Review-Befund 28.10.2026.
 - Settings: `restSound: boolean`, `restNotify: boolean`.
+
+**Stand 28.10.2026:** v2 gebaut auf `claude/workout-tracker-v2` (Logger, Editor,
+Pläne, Vorlagen), Live-Mockup https://claude.ai/artifact/Rg8Myea78FVk1qbp4JvLvX.
+Prüfungen grün: tsc, eslint (0 Fehler), 3165 Unit-Tests, e2e Training (iPhone 13,
+Pixel 7), Build. Code-Review (10 Punkte) eingearbeitet. **Noch nicht auf main,
+Migration v2 noch nicht in Prod** (Reihenfolge: erst Migration, dann Deploy).
+Nutzer wollte alles selbst nachbessern. Übungsmedien (Gym Visual) und 3D-Körper
+(anatomy-models, Demo https://claude.ai/artifact/Lt3V66ArqPxMnTjHQPznE1) offen.
 
 ## Offen
 

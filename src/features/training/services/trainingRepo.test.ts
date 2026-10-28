@@ -1,8 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../../lib/supabase', () => ({ supabase: {} }))
+/**
+ * Supabase-Attrappe: `from(...).select(columns)...` liefert, was `respond`
+ * fuer die Spaltenliste zurueckgibt; die Kettenglieder (eq, order) reichen durch.
+ */
+const fake = vi.hoisted(() => {
+  const state = { respond: (_columns: string): { data: unknown[] | null; error: { code?: string } | null } => ({ data: [], error: null }), selects: [] as string[] }
+  const chain = (columns: string) => {
+    const q = {
+      eq: () => q, order: () => q,
+      then: (resolve: (v: unknown) => void) => resolve(state.respond(columns)),
+    }
+    return q
+  }
+  return { state, supabase: { from: () => ({ select: (columns: string) => { state.selects.push(columns); return chain(columns) } }) } }
+})
 
-const { MAX_DISMISSED, isMissingTable, normalizeFolder, normalizeSettings, routineFromRow, sessionFromRow } = await import('./trainingRepo')
+vi.mock('../../../lib/supabase', () => ({ supabase: fake.supabase }))
+
+const { MAX_DISMISSED, isMissingTable, isUndefinedColumn, loadRoutines, normalizeFolder, normalizeSettings, routineFromRow, sessionFromRow } = await import('./trainingRepo')
 
 describe('trainingRepo', () => {
   it('fuellt fehlende Einstellungen mit Standardwerten und verwirft Unsinn', () => {
@@ -27,6 +43,30 @@ describe('trainingRepo', () => {
     expect(routineFromRow({ ...base, folder: '   ' }).folder).toBeNull()
     expect(normalizeFolder('x'.repeat(50))).toHaveLength(40)
     expect(normalizeFolder(7)).toBeNull()
+  })
+
+  it('liest Routinen ohne die Spalte folder, solange die v2-Migration fehlt', async () => {
+    const row = { id: 'r', name: 'Push', kind: 'strength', exercises: [], weekdays: [1], sort_order: 0 }
+    fake.state.selects = []
+    fake.state.respond = columns => columns.includes('folder')
+      ? { data: null, error: { code: '42703' } }
+      : { data: [row], error: null }
+    const routines = await loadRoutines('u1')
+    expect(routines).toEqual([{ id: 'r', name: 'Push', kind: 'strength', exercises: [], weekdays: [1], sortOrder: 0, folder: null }])
+    expect(fake.state.selects).toHaveLength(2)
+    expect(fake.state.selects[1]).not.toContain('folder')
+
+    // mit Spalte: ein Select, Ordner kommt mit
+    fake.state.selects = []
+    fake.state.respond = () => ({ data: [{ ...row, folder: 'PPL' }], error: null })
+    expect((await loadRoutines('u1'))[0].folder).toBe('PPL')
+    expect(fake.state.selects).toHaveLength(1)
+
+    // andere Fehler werden nicht verschluckt
+    fake.state.respond = () => ({ data: null, error: { code: 'PGRST301' } })
+    await expect(loadRoutines('u1')).rejects.toMatchObject({ code: 'PGRST301' })
+    expect(isUndefinedColumn({ code: '42703' })).toBe(true)
+    expect(isUndefinedColumn(null)).toBe(false)
   })
 
   it('behaelt nur die letzten geloeschten Uhr-Workouts', () => {

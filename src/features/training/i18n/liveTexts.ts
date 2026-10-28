@@ -23,6 +23,9 @@ const de = {
 
   // Pause und Satzfolge
   next_set: 'Nächster Satz',
+  rest_then_set: 'Pause · dann Satz {{set}}',
+  rest_continue: 'Weiter',
+  banner_rest: 'Pause {{clock}} · dann Satz {{set}}',
   rest_notify_title: 'Pause vorbei',
   rest_notify_body: '{{exercise}} · Satz {{set}} · {{target}}',
   rest_sound: 'Ton am Pausenende',
@@ -32,6 +35,7 @@ const de = {
   undo: 'Rückgängig',
   set_removed: 'Satz entfernt',
   exercise_removed: 'Übung entfernt',
+  exercise_replaced: 'Übung getauscht',
   replace_exercise: 'Übung tauschen',
   saved_on_device: 'Auf dem Gerät gesichert',
 
@@ -42,6 +46,9 @@ const de = {
   diff_removed: '{{name}} entfernt',
   diff_reordered: 'Reihenfolge geändert',
   diff_sets: '{{name}}: {{from}} → {{to}} Sätze',
+  save_hint: 'Jeder Satz lag schon auf dem Gerät. Jetzt wird die Einheit in dein Konto geschrieben.',
+  saved_routine_updated: 'Gespeichert · Routine aktualisiert',
+  routine_update_error: 'Gespeichert, aber die Routine konnte nicht aktualisiert werden.',
 
   // Routine-Editor
   routine_folder: 'Plan',
@@ -82,6 +89,9 @@ const en: Record<keyof typeof de, string> = {
   progress_from_template: 'Starting values from the routine',
 
   next_set: 'Next set',
+  rest_then_set: 'Rest · then set {{set}}',
+  rest_continue: 'Continue',
+  banner_rest: 'Rest {{clock}} · then set {{set}}',
   rest_notify_title: 'Rest over',
   rest_notify_body: '{{exercise}} · Set {{set}} · {{target}}',
   rest_sound: 'Sound when rest ends',
@@ -90,6 +100,7 @@ const en: Record<keyof typeof de, string> = {
   undo: 'Undo',
   set_removed: 'Set removed',
   exercise_removed: 'Exercise removed',
+  exercise_replaced: 'Exercise replaced',
   replace_exercise: 'Replace exercise',
   saved_on_device: 'Saved on this device',
 
@@ -99,6 +110,9 @@ const en: Record<keyof typeof de, string> = {
   diff_removed: '{{name}} removed',
   diff_reordered: 'Order changed',
   diff_sets: '{{name}}: {{from}} → {{to}} sets',
+  save_hint: 'Every set was already saved on this device. Now the workout is written to your account.',
+  saved_routine_updated: 'Saved · routine updated',
+  routine_update_error: 'Saved, but the routine could not be updated.',
 
   routine_folder: 'Plan',
   routine_folder_none: 'No plan',

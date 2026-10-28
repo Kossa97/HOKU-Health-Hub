@@ -40,7 +40,33 @@ function keyed<T extends { exerciseId: string }>(items: readonly T[]): Array<{ k
   })
 }
 
-function proposeExercise(ex: ActiveWorkout['exercises'][number], template: RoutineExercise | undefined): RoutineExercise {
+/**
+ * Vorkommen der Trainingsuebungen nummerieren: erst die mit mindestens einem
+ * Haken (sie bekommen die ersten Nummern und damit die Vorlagen der Routine),
+ * ausgelassene danach. So verschiebt eine ausgelassene Dublette vor der
+ * eigentlich trainierten nicht deren Zuordnung; eine ausgelassene Uebung, die
+ * in der Routine noch ein Vorkommen frei hat, zaehlt weiter als „ausgelassen"
+ * (bleibt, wie sie ist), nicht als entfernt.
+ */
+function keyedWorkout(items: readonly WorkoutExercise[]): Array<{ key: string; item: WorkoutExercise; trained: boolean }> {
+  const isTrained = (ex: WorkoutExercise) => ex.sets.some(s => s.done)
+  const trainedTotal = new Map<string, number>()
+  for (const ex of items) if (isTrained(ex)) trainedTotal.set(ex.exerciseId, (trainedTotal.get(ex.exerciseId) ?? 0) + 1)
+  const seenTrained = new Map<string, number>()
+  const seenSkipped = new Map<string, number>()
+  return items.map(item => {
+    const trained = isTrained(item)
+    const seen = trained ? seenTrained : seenSkipped
+    const n = seen.get(item.exerciseId) ?? 0
+    seen.set(item.exerciseId, n + 1)
+    const offset = trained ? 0 : trainedTotal.get(item.exerciseId) ?? 0
+    return { key: `${item.exerciseId}#${offset + n}`, item, trained }
+  })
+}
+
+type WorkoutExercise = ActiveWorkout['exercises'][number]
+
+function proposeExercise(ex: WorkoutExercise, template: RoutineExercise | undefined): RoutineExercise {
   const done = ex.sets.filter(s => s.done)
   const working = done.filter(isWorking)
   const heaviest = working.reduce<number | null>((max, s) =>
@@ -78,9 +104,7 @@ function proposeExercise(ex: ActiveWorkout['exercises'][number], template: Routi
 export function routineDiff(workout: ActiveWorkout, routine: TrainingRoutine): RoutineDiff | null {
   const routineKeyed = keyed(routine.exercises)
   const templates = new Map(routineKeyed.map(r => [r.key, r.item]))
-  // Uebungen des Trainings, die zaehlen: abgehakt oder in der Routine vorhanden.
-  const trained = keyed(workout.exercises).filter(({ key, item }) =>
-    item.sets.some(s => s.done) || templates.has(key))
+  const trained = keyedWorkout(workout.exercises).filter(({ key, trained }) => trained || templates.has(key))
 
   const added = trained.filter(t => !templates.has(t.key)).map(t => t.item.exerciseId)
   const trainedKeys = new Set(trained.map(t => t.key))

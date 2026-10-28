@@ -72,6 +72,25 @@ describe('routineDiff', () => {
     expect(updated.exercises).toHaveLength(3)
   })
 
+  it('laesst eine ausgelassene Dublette die spaetere nicht verschieben', () => {
+    const squats: TrainingRoutine = { ...routine, exercises: [{ exerciseId: 'squat', sets: [{ type: 'normal', repsMin: 5, repsMax: 5 }] }] }
+    let w = startWorkout({ routine: squats, history: [], now })
+    // zweimal Kniebeuge im Training, nur die zweite abgehakt
+    w = reduceWorkout(w, { type: 'add_exercises', exerciseIds: ['squat'], history: [] })
+    w = reduceWorkout(w, { type: 'update_set', index: 1, setIndex: 0, patch: { weightKg: 100, reps: 5 } })
+    w = done(w, 1, 0)
+    expect(routineDiff(w, squats)).toBeNull()
+    // beide abgehakt: die zweite ist tatsaechlich neu
+    w = done(w, 0, 0)
+    expect(routineDiff(w, squats)).toMatchObject({ added: ['squat'], removed: [], reordered: false })
+    // Routine mit der Uebung zweimal, nur eine trainiert: die andere gilt als ausgelassen, nicht entfernt
+    const twice: TrainingRoutine = { ...squats, exercises: [squats.exercises[0], { exerciseId: 'squat', sets: [{ type: 'normal', repsMin: 8, repsMax: 8 }] }] }
+    let v = startWorkout({ routine: twice, history: [], now })
+    v = reduceWorkout(v, { type: 'update_set', index: 1, setIndex: 0, patch: { weightKg: 100, reps: 5 } })
+    v = done(v, 1, 0)
+    expect(routineDiff(v, twice)).toMatchObject({ added: [], removed: [] })
+  })
+
   it('meldet Entfernen und neue Reihenfolge', () => {
     let w = trainedAsPlanned()
     w = reduceWorkout(w, { type: 'move_exercise', index: 0, delta: 1 })

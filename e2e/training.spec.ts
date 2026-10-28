@@ -44,13 +44,15 @@ test('Training: Routine starten, Vorher-Werte, Rekord, speichern', async ({ page
   await expect(live).toBeVisible()
   await expect(live.getByText('80 × 5').first()).toBeVisible()
 
-  // Erster Satz: 85 kg statt 80 — dann abhaken, die Pause startet
+  // Der Vorschlag: 80 × 5 zweimal geschafft → heute 82,5 kg (Langhantel-Schritt)
+  await expect(live.getByText(/Vorschlag 82,5 × 5/).first()).toBeVisible()
+  // Erster Satz: 85 kg statt 82,5 — dann abhaken, die Pause startet
   const weight = live.getByRole('textbox', { name: 'kg' }).first()
   await weight.fill('85')
   await live.getByRole('checkbox', { name: 'Satz abhaken' }).first().click()
   await expect(page.getByRole('timer')).toBeVisible()
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/training-logger.png` })
-  await page.getByRole('button', { name: 'Überspringen' }).click()
+  await page.getByRole('button', { name: 'Weiter' }).click()
   await live.getByRole('checkbox', { name: 'Satz abhaken' }).nth(1).click()
 
   await live.getByRole('button', { name: 'Beenden' }).click()
@@ -65,7 +67,8 @@ test('Training: Routine starten, Vorher-Werte, Rekord, speichern', async ({ page
   expect(saved).toBeTruthy()
   expect(saved!.rpe).toBe(8)
   const sets = (saved!.exercises as Array<{ sets: Array<{ weightKg: number; reps: number; done: boolean }> }>)[0].sets
-  expect(sets.map(s => [s.weightKg, s.reps, s.done])).toEqual([[85, 5, true], [80, 5, true]])
+  // Satz 2 blieb beim Vorschlag (82,5 × 5)
+  expect(sets.map(s => [s.weightKg, s.reps, s.done])).toEqual([[85, 5, true], [82.5, 5, true]])
 
   // Nach dem Neuladen ist nichts mehr „laufend", der Verlauf zeigt die Einheit mit Rekord
   await page.reload()

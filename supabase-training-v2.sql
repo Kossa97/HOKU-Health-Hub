@@ -6,8 +6,10 @@
 -- (Wdh.-Bereich, Ziel-RPE je Satz) liegen im jsonb `exercises` und brauchen
 -- keine Migration.
 --
--- Nur eine neue Spalte, keine bestehende Zeile wird veraendert; die App liest
--- `folder` als null, solange die Spalte fehlt.
+-- Nur eine neue Spalte, keine bestehende Zeile wird veraendert.
+-- Reihenfolge beim Ausrollen: diese Migration VOR dem Frontend-Deploy in Prod —
+-- das v2-Frontend liest und schreibt `folder`; nur das Lesen kommt ohne die
+-- Spalte aus (Fallback in `trainingRepo.loadRoutines`), Speichern nicht.
 -- Idempotent: zweimal ausfuehren aendert nichts.
 
 alter table public.training_routines

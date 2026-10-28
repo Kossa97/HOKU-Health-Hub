@@ -173,7 +173,8 @@ export function suggestNextSets(input: SuggestionInput): Suggestion | null {
   })
 
   if (allReached && (maxRpe == null || maxRpe <= 8.5)) {
-    const jumpTooBig = increment != null && hasWeight && increment > prevWeight * 0.1 && firstReps < range.max + 2
+    // Bei Unterstuetzung ist der Schritt weniger Hilfe, kein Sprung nach oben — die 10-%-Regel gilt dort nicht.
+    const jumpTooBig = dir > 0 && increment != null && hasWeight && increment > prevWeight * 0.1 && firstReps < range.max + 2
     if (increment != null && hasWeight && !jumpTooBig) {
       const next = roundWeightKg(prevWeight + dir * increment, unit)
       change = 'weight_up'

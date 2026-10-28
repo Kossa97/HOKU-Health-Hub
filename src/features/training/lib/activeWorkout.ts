@@ -3,6 +3,9 @@ import type {
 } from '../types'
 import type { Suggestion } from './progression'
 import { previousSets } from './stats'
+import { continuesSuperset, dissolveLoneSupersets, toggleSupersetAt } from './supersets'
+
+export { continuesSuperset } from './supersets'
 
 /**
  * Das laufende Training.
@@ -25,8 +28,19 @@ export interface ActiveWorkout {
   restEndsAt: number | null
   restTotalS: number | null
   notes: string | null
-  /** Stand vor dem letzten Entfernen (Satz oder Uebung) — fuer „Rückgängig" im Toast. */
-  undo?: { exercises: SessionExercise[]; label: 'set' | 'exercise' } | null
+  /**
+   * Stand vor dem letzten Entfernen (Satz oder Uebung) oder Tausch — fuer
+   * „Rückgängig" im Toast. Jede andere Bedienung verwirft ihn. `id` ist je
+   * Schnappschuss neu; nur ein `undo` mit derselben Kennung stellt ihn wieder
+   * her, damit ein liegengebliebener Toast nicht einen spaeteren Stand loescht.
+   */
+  undo?: UndoSnapshot | null
+}
+
+export interface UndoSnapshot {
+  id: number
+  exercises: SessionExercise[]
+  label: 'set' | 'exercise'
 }
 
 /** Vorschlag je Uebung (`suggestNextSets`), vom Aufrufer mit Katalog und Verlauf versorgt. */
@@ -165,10 +179,13 @@ export type WorkoutAction =
   | { type: 'title'; title: string }
   | { type: 'add_exercises'; exerciseIds: string[]; history: readonly TrainingSession[]; suggest?: SuggestFn }
   | { type: 'remove_exercise'; index: number }
-  /** Uebung tauschen: Satzzahl, Satzarten, Supersatz, Pause und Notiz bleiben; Werte neu fuer die neue Uebung. */
+  /**
+   * Uebung tauschen: Satzzahl, Satzarten, Supersatz, Pause und Notiz bleiben;
+   * abgehakte Saetze bleiben, wie sie sind, offene bekommen die Werte der neuen Uebung.
+   */
   | { type: 'replace_exercise'; index: number; exerciseId: string; history: readonly TrainingSession[]; suggest?: SuggestFn }
-  /** Stand vor dem letzten `remove_set`/`remove_exercise` zurueckholen. */
-  | { type: 'undo' }
+  /** Stand vor dem letzten `remove_set`/`remove_exercise`/`replace_exercise` zurueckholen — nur mit passender Kennung. */
+  | { type: 'undo'; id: number }
   /** Vorschlag in die offenen, nicht getippten Saetze schreiben. */
   | { type: 'apply_suggestion'; index: number; sets: Suggestion['sets'] }
   | { type: 'move_exercise'; index: number; delta: -1 | 1 }
@@ -191,17 +208,43 @@ function updateExercise(w: ActiveWorkout, index: number, fn: (ex: SessionExercis
   return { ...w, exercises: w.exercises.map((ex, i) => i === index ? fn(ex) : ex) }
 }
 
-function nextSupersetGroup(w: ActiveWorkout): number {
-  return w.exercises.reduce((max, ex) => Math.max(max, ex.supersetGroup ?? 0), 0) + 1
+/**
+ * Kennung fuer einen neuen Schnappschuss: die Uhrzeit, aber immer groesser als
+ * die des vorigen — zwei Entfernen in derselben Millisekunde bleiben unterscheidbar.
+ */
+// Kennungen steigen streng, auch wenn zwei Schnappschuesse in derselben
+// Millisekunde entstehen oder dazwischen ein Rueckgaengig den alten geloescht hat.
+let lastUndoId = 0
+function undoSnapshot(w: ActiveWorkout, label: UndoSnapshot['label']): UndoSnapshot {
+  lastUndoId = Math.max(Date.now(), lastUndoId + 1, (w.undo?.id ?? 0) + 1)
+  return { id: lastUndoId, exercises: w.exercises, label }
 }
 
-/** Gehoert die Uebung zu einem Supersatz und ist sie nicht die letzte darin? */
-function continuesSuperset(w: ActiveWorkout, index: number): boolean {
-  const group = w.exercises[index]?.supersetGroup
-  return group != null && w.exercises[index + 1]?.supersetGroup === group
+/** Bedienungen, die den Rueckgaengig-Schnappschuss setzen oder brauchen; alle anderen verwerfen ihn. */
+const KEEPS_UNDO: ReadonlySet<WorkoutAction['type']> = new Set(['undo', 'remove_set', 'remove_exercise', 'replace_exercise'])
+
+/**
+ * Was nach dem Haken an Satz `setIndex` folgt: nichts (Haken weg, oder ein
+ * spaeterer Satz war schon erledigt), die Partneruebung im Supersatz (Pause
+ * erst nach der letzten Uebung der Runde) oder die Pause. Reducer und Logger
+ * entscheiden damit nach derselben Regel.
+ */
+export function afterToggleDone(w: Pick<ActiveWorkout, 'exercises'>, index: number, setIndex: number): 'none' | 'partner' | 'rest' {
+  const ex = w.exercises[index]
+  const set = ex?.sets[setIndex]
+  if (!ex || !set || set.done) return 'none'
+  // Einen frueheren Satz nachtraeglich abhaken startet keine neue Pause.
+  if (ex.sets.some((s, i) => i > setIndex && s.done)) return 'none'
+  return continuesSuperset(w.exercises, index) ? 'partner' : 'rest'
 }
 
 export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWorkout {
+  const next = applyAction(w, action)
+  if (KEEPS_UNDO.has(action.type) || !next.undo) return next
+  return { ...next, undo: null }
+}
+
+function applyAction(w: ActiveWorkout, action: WorkoutAction): ActiveWorkout {
   switch (action.type) {
     case 'title':
       return { ...w, title: action.title.slice(0, 80) }
@@ -221,16 +264,19 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
     case 'remove_exercise': {
       if (!w.exercises[action.index]) return w
       const exercises = w.exercises.filter((_, i) => i !== action.index)
-      return { ...w, exercises: dissolveLoneSupersets(exercises), undo: { exercises: w.exercises, label: 'exercise' } }
+      return { ...w, exercises: dissolveLoneSupersets(exercises), undo: undoSnapshot(w, 'exercise') }
     }
 
-    case 'replace_exercise':
-      return updateExercise(w, action.index, ex => {
+    case 'replace_exercise': {
+      if (!w.exercises[action.index]) return w
+      const next = updateExercise(w, action.index, ex => {
         const fresh = initialSets(action.exerciseId, action.history, undefined, action.suggest)
         return {
           ...ex,
           exerciseId: action.exerciseId,
           sets: ex.sets.map((s, i) => {
+            // Was schon abgehakt ist, wurde so gemacht — das bleibt samt Werten.
+            if (s.done) return s
             const value = fresh[i] ?? fresh[fresh.length - 1]
             return {
               type: s.type,
@@ -243,9 +289,11 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
           }),
         }
       })
+      return { ...next, undo: undoSnapshot(w, 'exercise') }
+    }
 
     case 'undo':
-      if (!w.undo) return w
+      if (!w.undo || w.undo.id !== action.id) return w
       return { ...w, exercises: w.undo.exercises, undo: null }
 
     case 'apply_suggestion':
@@ -273,21 +321,8 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
     }
 
     case 'toggle_superset': {
-      const current = w.exercises[action.index]
-      const next = w.exercises[action.index + 1]
-      if (!current) return w
-      if (current.supersetGroup != null && next?.supersetGroup === current.supersetGroup) {
-        // Aufloesen: die Kette ab hier abtrennen.
-        const exercises = w.exercises.map((ex, i) => i > action.index && ex.supersetGroup === current.supersetGroup
-          ? { ...ex, supersetGroup: null } : ex)
-        return { ...w, exercises: dissolveLoneSupersets(exercises) }
-      }
-      if (!next) return w
-      const group = current.supersetGroup ?? next.supersetGroup ?? nextSupersetGroup(w)
-      const exercises = w.exercises.map((ex, i) =>
-        i === action.index || i === action.index + 1 ? { ...ex, supersetGroup: group } : ex)
-      // Zieht `next` aus einem anderen Supersatz herueber, bleibt dort evtl. eine Uebung allein.
-      return { ...w, exercises: dissolveLoneSupersets(exercises) }
+      const exercises = toggleSupersetAt(w.exercises, action.index)
+      return exercises === w.exercises ? w : { ...w, exercises }
     }
 
     case 'exercise_rest':
@@ -308,7 +343,7 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
     case 'remove_set': {
       if (!w.exercises[action.index]?.sets[action.setIndex]) return w
       const next = updateExercise(w, action.index, ex => ({ ...ex, sets: ex.sets.filter((_, i) => i !== action.setIndex) }))
-      return { ...next, undo: { exercises: w.exercises, label: 'set' } }
+      return { ...next, undo: undoSnapshot(w, 'set') }
     }
 
     case 'update_set': {
@@ -336,11 +371,10 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
       const next = updateExercise(w, action.index, e => ({
         ...e, sets: e.sets.map((s, i) => i === action.setIndex ? { ...s, done } : s),
       }))
-      if (!done) return next
-      // Einen frueheren Satz nachtraeglich abhaken startet keine neue Pause.
-      if (ex.sets.some((s, i) => i > action.setIndex && s.done)) return next
+      const follow = afterToggleDone(w, action.index, action.setIndex)
+      if (follow === 'none') return next
       // Im Supersatz startet die Pause erst nach der letzten Uebung der Runde.
-      if (continuesSuperset(w, action.index)) return { ...next, restEndsAt: null, restTotalS: null }
+      if (follow === 'partner') return { ...next, restEndsAt: null, restTotalS: null }
       const restS = ex.restS ?? action.defaultRestS
       if (!restS || restS <= 0) return { ...next, restEndsAt: null, restTotalS: null }
       return { ...next, restEndsAt: action.now + restS * 1000, restTotalS: restS }
@@ -355,15 +389,6 @@ export function reduceWorkout(w: ActiveWorkout, action: WorkoutAction): ActiveWo
     case 'rest_skip':
       return { ...w, restEndsAt: null, restTotalS: null }
   }
-}
-
-/** Ein Supersatz mit nur noch einer Uebung ist keiner mehr. */
-function dissolveLoneSupersets(exercises: SessionExercise[]): SessionExercise[] {
-  return exercises.map((ex, i) => {
-    if (ex.supersetGroup == null) return ex
-    const neighbour = exercises[i - 1]?.supersetGroup === ex.supersetGroup || exercises[i + 1]?.supersetGroup === ex.supersetGroup
-    return neighbour ? ex : { ...ex, supersetGroup: null }
-  })
 }
 
 /**
@@ -434,14 +459,10 @@ export function nextOpenSet(w: Pick<ActiveWorkout, 'exercises'>): { index: numbe
 }
 
 /**
- * Die naechste Uebung derselben Supersatz-Gruppe; am Ende der Gruppe wieder
- * die erste. null, wenn die Uebung in keinem Supersatz ist.
+ * Die naechste Uebung derselben Supersatz-Gruppe — dieselbe Regel wie fuer die
+ * Pause (`continuesSuperset`). null fuer die letzte Uebung der Runde und
+ * ausserhalb eines Supersatzes: am Rundenende springt die Ansicht nicht.
  */
 export function supersetPartnerIndex(w: Pick<ActiveWorkout, 'exercises'>, index: number): number | null {
-  const group = w.exercises[index]?.supersetGroup
-  if (group == null) return null
-  const members = w.exercises.map((ex, i) => ex.supersetGroup === group ? i : -1).filter(i => i >= 0)
-  if (members.length < 2) return null
-  const pos = members.indexOf(index)
-  return members[(pos + 1) % members.length]
+  return continuesSuperset(w.exercises, index) ? index + 1 : null
 }

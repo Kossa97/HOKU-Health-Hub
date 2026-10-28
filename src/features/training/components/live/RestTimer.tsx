@@ -1,28 +1,56 @@
 import { useEffect, useRef, useState } from 'react'
 import { hapticTick } from '../../../../lib/haptics'
+import { showPageNotification } from '../../../../lib/pushLocal'
 import { useTrainingText } from '../../i18n'
 import { formatClock } from '../../lib/format'
 import { Button, TRAINING_ACCENT } from '../ui'
+import type { NextSetInfo } from './nextSet'
 
 /**
  * Pausen-Timer am unteren Rand. Er rechnet vom Endzeitpunkt aus, nicht durch
  * Herunterzaehlen — so stimmt er auch, wenn das Handy zwischendurch gesperrt
- * war. Am Ende: Vibration und ein kurzer Ton, dann verschwindet er.
+ * war. Er zeigt, welcher Satz als Naechstes kommt („Pause · dann Satz 3",
+ * „Bankdrücken · 82,5 × 8"). Am Ende: Vibration immer, Ton nur mit
+ * `restSound`, und wenn die App im Hintergrund ist, mit `restNotify` eine
+ * Systembenachrichtigung. Dann verschwindet er.
  */
-export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
+
+/** Die Berechtigung wird nur einmal je Sitzung angefragt — und nie blockierend. */
+let permissionAsked = false
+
+function askNotificationPermission() {
+  if (permissionAsked || typeof Notification === 'undefined') return
+  permissionAsked = true
+  try {
+    if (Notification.permission === 'default') void Notification.requestPermission().catch(() => {})
+  } catch {
+    // kein Notification-API (z. B. iOS-Browser ohne Home-Bildschirm)
+  }
+}
+
+export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSkip }: {
   endsAt: number
   totalS: number
+  next: NextSetInfo | null
+  /** Ton am Ende (Einstellung `restSound`). */
+  sound: boolean
+  /** Systembenachrichtigung am Ende, wenn die App im Hintergrund ist (`restNotify`). */
+  notify: boolean
   onAdjust: (deltaS: number) => void
   onSkip: () => void
 }) {
   const { tt } = useTrainingText()
   const [now, setNow] = useState(() => Date.now())
   const firedRef = useRef<number | null>(null)
-  // Der Elternteil reicht bei jedem Rendern eine neue Funktion herein. Stuende
-  // sie in den Abhaengigkeiten unten, raeumte jedes Neurendern den Zeitgeber
-  // fuers Ausblenden ab, und der Timer bliebe auf 0:00 stehen.
-  const onSkipRef = useRef(onSkip)
-  useEffect(() => { onSkipRef.current = onSkip })
+  // Der Elternteil reicht bei jedem Rendern neue Funktionen und Werte herein.
+  // Stuenden sie in den Abhaengigkeiten unten, raeumte jedes Neurendern den
+  // Zeitgeber fuers Ausblenden ab, und der Timer bliebe auf 0:00 stehen.
+  const latest = useRef({ onSkip, next, sound, notify, tt })
+  useEffect(() => { latest.current = { onSkip, next, sound, notify, tt } })
+
+  useEffect(() => {
+    if (notify) askNotificationPermission()
+  }, [notify])
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 250)
@@ -34,14 +62,32 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
   useEffect(() => {
     if (remainingS > 0 || firedRef.current === endsAt) return
     firedRef.current = endsAt
+    const current = latest.current
     void hapticTick()
     try { navigator.vibrate?.([120, 60, 120]) } catch { /* nicht unterstuetzt */ }
-    beep()
-    const id = window.setTimeout(() => onSkipRef.current(), 1200)
+    if (current.sound) beep()
+    // iOS-Safari ohne Home-Bildschirm hat kein Notification-API — der Effekt darf daran nie scheitern.
+    try {
+      if (current.notify && document.hidden && typeof Notification !== 'undefined') {
+        const n = current.next
+        showPageNotification(
+          current.tt('rest_notify_title'),
+          n ? current.tt('rest_notify_body', { exercise: n.exercise, set: n.set, target: n.target }) : current.tt('rest_done'),
+          '/training',
+        )
+      }
+    } catch {
+      // ohne Benachrichtigung
+    }
+    const id = window.setTimeout(() => latest.current.onSkip(), 1200)
     return () => window.clearTimeout(id)
   }, [remainingS, endsAt])
 
   const progress = totalS > 0 ? Math.min(1, Math.max(0, remainingS / totalS)) : 0
+  const title = remainingS === 0
+    ? tt('rest_done')
+    : next ? tt('rest_then_set', { set: next.set }) : tt('rest_timer')
+  const targetLine = next ? [next.exercise, next.target].filter(Boolean).join(' · ') : ''
 
   return (
     <div
@@ -50,8 +96,8 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
       aria-label={`${tt('rest_timer')} ${formatClock(remainingS)}`}
       style={{
         position: 'relative', overflow: 'hidden', borderRadius: 18,
-        background: 'var(--surface-raised)', border: `1px solid ${TRAINING_ACCENT}55`,
-        padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10,
+        background: 'var(--surface-raised)', border: `1px solid ${TRAINING_ACCENT}66`,
+        padding: '10px 12px', display: 'flex', alignItems: 'center',
       }}
     >
       <div
@@ -62,17 +108,24 @@ export function RestTimer({ endsAt, totalS, onAdjust, onSkip }: {
           transition: 'transform 250ms linear',
         }}
       />
-      <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-          {remainingS === 0 ? tt('rest_done') : tt('rest_timer')}
+      <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, fontSize: '0.7rem', fontWeight: 800 }}>
+          <span style={{ flexShrink: 0, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{title}</span>
+          {targetLine && (
+            <span style={{ flex: 1, minWidth: 0, color: TRAINING_ACCENT, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {targetLine}
+            </span>
+          )}
         </div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 850, fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
-          {formatClock(remainingS)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ flex: 1, fontSize: '1.6rem', lineHeight: 1.15, fontWeight: 850, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--text)' }}>
+            {formatClock(remainingS)}
+          </span>
+          <Button tone="ghost" onClick={() => onAdjust(-15)} aria-label="−15 s" style={{ minWidth: 46, minHeight: 40, padding: '8px 6px', borderRadius: 999, fontSize: '0.85rem' }}>−15</Button>
+          <Button tone="ghost" onClick={() => onAdjust(15)} aria-label="+15 s" style={{ minWidth: 46, minHeight: 40, padding: '8px 6px', borderRadius: 999, fontSize: '0.85rem' }}>+15</Button>
+          <Button onClick={onSkip} style={{ minHeight: 40, padding: '8px 12px' }}>{tt('rest_continue')}</Button>
         </div>
       </div>
-      <Button tone="ghost" onClick={() => onAdjust(-15)} style={{ position: 'relative', minWidth: 52, padding: '8px 10px' }}>−15</Button>
-      <Button tone="ghost" onClick={() => onAdjust(15)} style={{ position: 'relative', minWidth: 52, padding: '8px 10px' }}>+15</Button>
-      <Button onClick={onSkip} style={{ position: 'relative', padding: '8px 12px' }}>{tt('rest_skip')}</Button>
     </div>
   )
 }

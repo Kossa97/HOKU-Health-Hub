@@ -101,6 +101,8 @@ function GeneralSection({ settings, save, locale }: { settings: TrainingSettings
             </Chip>
           ))}
         </ChipGroup>
+        <Switch checked={settings.restSound} onChange={next => void save({ restSound: next })} label={tt('rest_sound')} />
+        <Switch checked={settings.restNotify} onChange={next => void save({ restNotify: next })} label={tt('rest_notify')} />
 
         <ChipGroup
           label={tt('settings_weekly_goal')}

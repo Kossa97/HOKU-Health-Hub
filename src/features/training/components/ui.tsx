@@ -8,6 +8,7 @@ import { X } from 'lucide-react'
 import type { SessionKind } from '../types'
 import { useTrainingText } from '../i18n'
 
+
 /**
  * Bausteine des Workout-Trackers. Farben kommen aus den App-Variablen
  * (`--surface`, `--text` …), damit helles und dunkles Thema stimmen.
@@ -266,15 +267,27 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
   )
 }
 
-/** Druck-Rueckmeldung beim Aufsetzen des Fingers, Hover nur mit Maus (mobile-native). */
+/**
+ * Druck-Rueckmeldung beim Aufsetzen des Fingers, Hover nur mit Maus
+ * (mobile-native). Animiert werden nur transform, opacity und background;
+ * `tyd-train-pop` laesst Vorschlag und Pausen-Timer von unten einschweben,
+ * `tyd-train-check` federt den Haken beim Abhaken kurz.
+ */
 export const TRAINING_CSS = `
-.tyd-train-press { touch-action: manipulation; -webkit-user-select: none; user-select: none; transition: transform 120ms cubic-bezier(0.22,1,0.36,1), opacity 120ms; }
+.tyd-train-press { touch-action: manipulation; -webkit-user-select: none; user-select: none; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), opacity 140ms ease-out; }
 .tyd-train-press:active:not(:disabled) { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .tyd-train-press:hover:not(:disabled) { opacity: 0.85; } }
 .tyd-train-sheet { animation: tydTrainSheetIn 260ms cubic-bezier(0.32,0.72,0,1); }
 @keyframes tydTrainSheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.tyd-train-pop { animation: tydTrainPop 220ms cubic-bezier(0.23,1,0.32,1) both; }
+@keyframes tydTrainPop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.tyd-train-check { transition: transform 140ms cubic-bezier(0.23,1,0.32,1), background 160ms ease-out, opacity 140ms ease-out; }
+.tyd-train-check.is-popping { animation: tydTrainCheckPop 240ms cubic-bezier(0.23,1,0.32,1); }
+@keyframes tydTrainCheckPop { 0% { transform: scale(0.92); } 55% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
-  .tyd-train-sheet { animation: none; }
+  .tyd-train-sheet, .tyd-train-pop, .tyd-train-check.is-popping { animation: none; }
   .tyd-train-press:active:not(:disabled) { transform: none; opacity: 0.7; }
 }
 .tyd-train-input::-webkit-outer-spin-button, .tyd-train-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tyd-train-input.sug { font-style: italic; }
 `

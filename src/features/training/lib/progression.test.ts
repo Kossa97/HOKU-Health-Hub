@@ -79,6 +79,15 @@ describe('suggestNextSets', () => {
     expect(down?.sets[0].weightKg).toBe(32.5)
   })
 
+  it('kennt bei Unterstuetzung keinen zu grossen Sprung — weniger Hilfe ist immer der naechste Schritt', () => {
+    // 5 kg Hilfe an der Maschine: der 2,5-kg-Schritt waere +50 %, bei Gewicht erst eine Wdh. mehr
+    const assisted = suggestNextSets(base([set(5, 10), set(5, 10)], { equipment: 'machine', tracking: 'assisted_reps', template: range(8, 10, 2) }))
+    expect(assisted).toMatchObject({ change: 'weight_up', reasonKey: 'progress_up' })
+    expect(assisted?.sets.map(s => [s.weightKg, s.reps])).toEqual([[2.5, 8], [2.5, 8]])
+    const weighted = suggestNextSets(base([set(5, 10), set(5, 10)], { equipment: 'machine', tracking: 'weight_reps', template: range(8, 10, 2) }))
+    expect(weighted).toMatchObject({ change: 'reps_up', reasonKey: 'progress_jump_too_big' })
+  })
+
   it('nimmt ab 50 kg an der Maschine 5-kg-Schritte und rundet in lb auf Viertel-Pfund', () => {
     expect(weightIncrementKg('machine', 'kg', 40)).toBe(2.5)
     expect(weightIncrementKg('machine', 'kg', 50)).toBe(5)

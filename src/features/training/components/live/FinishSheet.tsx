@@ -1,21 +1,31 @@
 import { useMemo, useState } from 'react'
 import { Trophy } from 'lucide-react'
-import type { TrackingMode, TrainingSession, TrainingSettings } from '../../types'
+import type { TrackingMode, TrainingRoutine, TrainingSession, TrainingSettings } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { ActiveWorkout } from '../../lib/activeWorkout'
 import { countSets, finishWorkout } from '../../lib/activeWorkout'
 import { formatClock, formatDistance, formatNumber, formatVolume, formatWeight } from '../../lib/format'
+import { routineDiff, type RoutineDiff } from '../../lib/routineDiff'
 import { detectRecords, sessionVolumeKg, workingSetCount, type PersonalRecord } from '../../lib/stats'
 import { Button, Chip, Stat, TrainingSheet, TRAINING_ACCENT } from '../ui'
 
-/** Abschluss: was war das Training, welche Rekorde, wie hart — dann speichern. */
-export function FinishSheet({ workout, history, settings, nameOf, trackingOf, onSave, onClose }: {
+/**
+ * Abschluss: was war das Training, welche Rekorde, wie hart — dann speichern.
+ * Weicht ein Live-Training von seiner Routine ab, fragt die App, ob die
+ * Routine nachgezogen werden soll (Haken, voreingestellt an). Beim Bearbeiten
+ * einer alten Einheit nicht: die Routine ist seitdem weitergezogen, ein alter
+ * Stand soll sie nicht zuruecksetzen.
+ */
+export function FinishSheet({ workout, history, routine, settings, nameOf, trackingOf, onSave, onClose }: {
   workout: ActiveWorkout
   history: readonly TrainingSession[]
+  /** Die Routine, aus der das Training gestartet wurde; null ohne. */
+  routine: TrainingRoutine | null
   settings: TrainingSettings
   nameOf: (exerciseId: string) => string
   trackingOf: (exerciseId: string) => TrackingMode | null
-  onSave: (rpe: number | null) => Promise<void>
+  /** `diff` ist gesetzt, wenn die Routine die Aenderungen uebernehmen soll. */
+  onSave: (rpe: number | null, diff: RoutineDiff | null) => Promise<void>
   onClose: () => void
 }) {
   const { tt, locale } = useTrainingText()
@@ -23,6 +33,23 @@ export function FinishSheet({ workout, history, settings, nameOf, trackingOf, on
   const [rpe, setRpe] = useState<number | null>(editing?.rpe ?? null)
   const [busy, setBusy] = useState(false)
   const [now] = useState(() => new Date())
+  const [updateRoutine, setUpdateRoutine] = useState(true)
+
+  // Nur fuer Live-Trainings; eine bearbeitete alte Einheit bietet den Abgleich nicht an.
+  const diff = useMemo(
+    () => routine && workout.sessionId == null ? routineDiff(workout, routine) : null,
+    [workout, routine],
+  )
+  const diffText = useMemo(() => {
+    if (!diff) return ''
+    const parts = [
+      ...diff.added.map(id => tt('diff_added', { name: nameOf(id) })),
+      ...diff.removed.map(id => tt('diff_removed', { name: nameOf(id) })),
+      ...diff.setChanges.map(c => tt('diff_sets', { name: nameOf(c.exerciseId), from: c.from, to: c.to })),
+      ...(diff.reordered ? [tt('diff_reordered')] : []),
+    ]
+    return parts.join(' · ')
+  }, [diff, nameOf, tt])
 
   const preview = useMemo(() => {
     const draft = finishWorkout(workout, { now, rpe, previous: editing })
@@ -42,16 +69,22 @@ export function FinishSheet({ workout, history, settings, nameOf, trackingOf, on
       tall
       zIndex={110}
       footer={
-        <Button
-          block
-          disabled={busy || nothing}
-          onClick={async () => {
-            setBusy(true)
-            try { await onSave(rpe) } finally { setBusy(false) }
-          }}
-        >
-          {busy ? tt('saving') : tt('summary_save')}
-        </Button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Button
+            block
+            disabled={busy || nothing}
+            style={{ minHeight: 52 }}
+            onClick={async () => {
+              setBusy(true)
+              try { await onSave(rpe, updateRoutine ? diff : null) } finally { setBusy(false) }
+            }}
+          >
+            {busy ? tt('saving') : tt('summary_save')}
+          </Button>
+          {!editing && (
+            <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--text-muted)' }}>{tt('save_hint')}</p>
+          )}
+        </div>
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -93,6 +126,30 @@ export function FinishSheet({ workout, history, settings, nameOf, trackingOf, on
             ))}
           </div>
         </div>
+
+        {diff && routine && (
+          <label
+            className="tyd-train-pop"
+            style={{
+              display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer',
+              padding: '12px 14px', borderRadius: 16, background: 'var(--surface)',
+              border: `1px solid ${TRAINING_ACCENT}55`,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={updateRoutine}
+              onChange={event => setUpdateRoutine(event.target.checked)}
+              style={{ width: 22, height: 22, margin: 2, flexShrink: 0, accentColor: TRAINING_ACCENT }}
+            />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontWeight: 800 }}>{tt('update_routine_question')}</span>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.4 }}>
+                {routine.name} · {tt('update_routine_hint', { changes: diffText })}
+              </span>
+            </span>
+          </label>
+        )}
       </div>
     </TrainingSheet>
   )
