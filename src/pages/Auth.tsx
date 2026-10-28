@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { LANGUAGES, setLanguage } from '../i18n'
 import { dotStore, useDotStand } from '../features/dot/dotStore'
 import { useDotText, type DotTextKey } from '../features/dot/texte'
+import { GRUSS_DAUER } from '../features/dot/engine/gesten'
 import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
@@ -34,13 +35,15 @@ interface Meldung { feld: Feld | null; text: string; art: 'fehler' | 'info' }
 
 // Zeiten aus dem Mockup: Denken vor dem Urteil des Servers, Dauer der Fehler
 const DENKEN: Record<NamensFehler | 'erfolg', number> = { falsch: 900, viele: 900, fehler: 900, netz: 1400, erfolg: 1000 }
-const ZEIGEN = { fehler: 1300, netz: 2500, haken: 800 }
+// Haken: zeichnet sich in 0,55 s, ist nach 1 s grün (Gesten-Mockup, Erfolg A)
+const ZEIGEN = { fehler: 1300, netz: 2500, haken: 1200 }
 // So lange blendet die Anmeldung aus, bevor das Portal die App zeigt
 const VERLASSEN = 450
 // So lange steht der Hinweis, dass der Name später gewählt wird
 const HINWEIS = 3500
-// Begrüßung (Mockup „Feinschliff"): Hand 2,6 s, Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s
-const GRUSS = { hand: 2600, text: 2200, herz: 2400 }
+// Begrüßung (Mockup „Feinschliff"): Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s. Das Winken
+// dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
+const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
 const SAETZE: DotTextKey[] = ['login_hub', 'login_zurueck', 'login_hey']
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
@@ -220,7 +223,7 @@ export function Auth() {
     if (gen !== lauf.current) return
     setGeschafft(true)
     fuehlen(true)
-    dot()?.setStimmung('joy')
+    dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
     await warte(ZEIGEN.haken)
     if (gen !== lauf.current) return
     // Die Karte blendet aus, dann wechselt die Seite; das Portal zeigt die App (bei weniger Bewegung schlicht)
@@ -301,8 +304,11 @@ export function Auth() {
     if (gen !== lauf.current) return
     setHalten(false); setLaeuft(false)
     fuehlen(true)
-    dot()?.setStimmung('joy')
+    // derselbe Haken wie nach dem Anmelden, danach wieder Dot
+    dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
     setMeldung({ feld: null, text: 'account_created', art: 'info' })
+    await warte(ZEIGEN.haken + 600)
+    if (gen === lauf.current) dot()?.zeigeForm(null)
   }
 
   const fehlerAn = (feld: Feld) => meldung?.art === 'fehler' && meldung.feld === feld

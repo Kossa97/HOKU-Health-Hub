@@ -116,7 +116,19 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
 - Prüfen ohne Fenster: Ausschnitt-Screenshots bei deviceScaleFactor 2 zeigen die WebGL-Ebene falsch
   skaliert (Artefakt von Edge/Playwright, nicht der App). Ganze Seite oder Faktor 1/3 nehmen.
 
+- **Gesten im Raum (Nutzer 28.10.2026):** Auswahl im Gesten-Mockup (Artefakt
+  https://claude.ai/artifact/8MhVn2TeEV7YVvEZRZQSvN, Version 6): Begrüßung **D1 (ein Arm winkt)
+  und D4 (beide Hände winken) im Wechsel** (`tyd.dot.gruss` im localStorage, auch über Besuche),
+  Herz C (Herz in Dot, rosa), Fehler A (Kugel schüttelt sich, rot), Kein Netz B (Dot sucht, Schalen,
+  orange), Erfolg A (Haken zeichnet sich, wird grün; auch nach dem Registrieren). Arme: dünne
+  Gummiarme mit Comic-Hand (Daumen + drei Finger) aus Dots eigenen 460 Punkten, die Kugel schließt
+  sich gleichmäßig darüber (Nutzer verwarf vorher Stummelarme und die flache Hand).
+  Code: `engine/gesten.ts` (aus dem Mockup portiert), Engine liest je Bild Lage/Licht/Rosa;
+  `formen.ts` nur noch Schrift und Herzschlag. Winken 3,9 s (`GRUSS_DAUER`), Haken 1,2 s.
+  Gefunden: die runden Enden des Hakens blieben dunkel (Lauf > 1), behoben.
+
 ## Offen
+- Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
 - Dauer des Erfolgs (Tempo 0,6 ≈ 9 s) prüft der Nutzer auf dem Gerät.
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.
