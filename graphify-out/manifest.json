@@ -6714,9 +6714,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/RoutineEditor.tsx": {
-    "mtime": 1792324101.9932938,
-    "seen": 1792324520.273526,
-    "ast_hash": "6f4fdc825e940fd46f6444d9f0f759e2",
+    "mtime": 1793200389.1072009,
+    "seen": 1793200714.1162732,
+    "ast_hash": "8fb27488beca50b64ec092e93df107c1",
     "semantic_hash": ""
   },
   "src/features/training/components/history/HistoryTab.tsx": {
@@ -6858,9 +6858,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/today/TodayTab.tsx": {
-    "mtime": 1792323671.132227,
-    "seen": 1792324520.2735617,
-    "ast_hash": "175fb210949d7b3f15614b41d8d7c185",
+    "mtime": 1793200389.1077933,
+    "seen": 1793200714.117094,
+    "ast_hash": "3317b99d23723f83675dcd836c8cf105",
     "semantic_hash": ""
   },
   "src/features/training/components/ui.tsx": {
@@ -7032,27 +7032,51 @@
     "semantic_hash": ""
   },
   "src/features/training/services/trainingRepo.ts": {
-    "mtime": 1792325112.711498,
-    "seen": 1792325237.769596,
-    "ast_hash": "8f188a161888e654d689793bb375e338",
+    "mtime": 1793200378.5782237,
+    "seen": 1793200714.1202712,
+    "ast_hash": "2cd5e550dda9c52279976f3e1c775f64",
     "semantic_hash": ""
   },
   "src/features/training/types.ts": {
-    "mtime": 1792325112.710815,
-    "seen": 1792325237.7695992,
-    "ast_hash": "ee290bda67d1efcb39995adfb6842c71",
+    "mtime": 1793200357.362948,
+    "seen": 1793200714.1202753,
+    "ast_hash": "207671f8eb8717544c41be358c4b160e",
     "semantic_hash": ""
   },
   "memory/projects/workouttracker.md": {
-    "mtime": 1792322688.1606004,
-    "seen": 1792324520.2743442,
-    "ast_hash": "df6c62eb028e8f3c87078ae75d746e9c",
+    "mtime": 1793200222.290446,
+    "seen": 1793200714.1408286,
+    "ast_hash": "10112c18fafbeda8609d82808eff4329",
     "semantic_hash": ""
   },
   "src/features/training/services/trainingRepo.test.ts": {
-    "mtime": 1792325161.3165438,
-    "seen": 1792325237.7695916,
-    "ast_hash": "af08885c4d899d00b3e32ae7bdd223c6",
+    "mtime": 1793200378.5787027,
+    "seen": 1793200714.1202667,
+    "ast_hash": "53f902cc6370f76cffd89d804466da35",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/progression.test.ts": {
+    "mtime": 1793200583.8429961,
+    "seen": 1793200714.1201265,
+    "ast_hash": "4ecbb4005225c6bec8af82f5707d4db3",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/progression.ts": {
+    "mtime": 1793200583.8360775,
+    "seen": 1793200714.1201293,
+    "ast_hash": "8f11f469dd01c7d6e8bf03d33beb2753",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/routineDiff.test.ts": {
+    "mtime": 1793200665.738436,
+    "seen": 1793200714.1201928,
+    "ast_hash": "d6149053c2ce5276d82c34f70f49ebf0",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/routineDiff.ts": {
+    "mtime": 1793200625.6944368,
+    "seen": 1793200714.1201952,
+    "ast_hash": "ad25f67346fbdb5c058acc78652cb0df",
     "semantic_hash": ""
   }
 }
