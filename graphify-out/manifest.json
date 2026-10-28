@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   "src/lib/supabase.ts": {
-    "mtime": 1792659817.9605763,
-    "seen": 1792685381.2647398,
-    "ast_hash": "f43fda1b2545719c4e44eb5aec47a5be",
+    "mtime": 1793195248.8611047,
+    "seen": 1793199553.8451748,
+    "ast_hash": "de4516cef7357976d2ad21d16041a66a",
     "semantic_hash": ""
   },
   "src/lib/useMediaQuery.ts": {
@@ -1416,9 +1416,9 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1792570286.0739324,
-    "seen": 1792685381.264946,
-    "ast_hash": "bffe895c1bb38dd3cf1967d5d66ff231",
+    "mtime": 1793195092.414517,
+    "seen": 1793199553.8471546,
+    "ast_hash": "d94f0fd735ec6f1ba5ebfad1ab404a22",
     "semantic_hash": ""
   },
   "vite.config.ts": {
@@ -2310,9 +2310,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ImportFlow.tsx": {
-    "mtime": 1793002453.8339722,
-    "seen": 1793002832.7358992,
-    "ast_hash": "58dfc00761606c58d4f338d828b6301d",
+    "mtime": 1793195248.8619852,
+    "seen": 1793199553.8287337,
+    "ast_hash": "3d14e4057e82a4219d584a5770d518c3",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ReviewTable.tsx": {
@@ -2370,9 +2370,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/bloodwork-extract/index.ts": {
-    "mtime": 1792570286.0731337,
-    "seen": 1792685381.264905,
-    "ast_hash": "95a5f7e5b1fa8aaea5e2380714b2fb10",
+    "mtime": 1793195248.863151,
+    "seen": 1793199553.8468275,
+    "ast_hash": "5b4b005b7005075d0cf0076993c37a0f",
     "semantic_hash": ""
   },
   "supabase/functions/bloodwork-extract/prompt.test.ts": {
@@ -2424,9 +2424,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/BefundEditor.tsx": {
-    "mtime": 1792659817.9125762,
-    "seen": 1792685381.2631638,
-    "ast_hash": "101f2b243b61bbda114262e80337650a",
+    "mtime": 1793195248.8616276,
+    "seen": 1793199553.8284905,
+    "ast_hash": "f11e20ca40bb1422a479de1e7f60032d",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ConflictResolver.tsx": {
@@ -5544,9 +5544,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793067159.5958538,
-    "seen": 1793067285.6045485,
-    "ast_hash": "4283b6c82398ccbc45b083b0b2c87c84",
+    "mtime": 1793195293.6873887,
+    "seen": 1793199553.8302326,
+    "ast_hash": "7a89f31d96c146044fcd7fb4590fbc7f",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -5676,9 +5676,9 @@
     "semantic_hash": ""
   },
   "docs/store-compliance.md": {
-    "mtime": 1792570284.944232,
-    "seen": 1792685381.2650194,
-    "ast_hash": "1012f0a63b71126f950ff5dbd91d1931",
+    "mtime": 1793195143.2935262,
+    "seen": 1793199553.84838,
+    "ast_hash": "410f1cf4ba7257e63e090b70cedef409",
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
@@ -7008,9 +7008,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/foodLookup.ts": {
-    "mtime": 1792570285.9816337,
-    "seen": 1792685381.2635067,
-    "ast_hash": "b529329254e463bd0ed181a97c19b28c",
+    "mtime": 1793195248.8624978,
+    "seen": 1793199553.8323252,
+    "ast_hash": "f596dd86021f441042818cedddd22507",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/nutritionStore.ts": {
@@ -7026,9 +7026,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/food-lookup/index.ts": {
-    "mtime": 1792570286.0732346,
-    "seen": 1792685381.2649164,
-    "ast_hash": "f2e7f372430c6abd0bfc2ded6db1c12f",
+    "mtime": 1793195248.8639708,
+    "seen": 1793199553.8469253,
+    "ast_hash": "a589a631bd62e2fadc89794a7c5f111f",
     "semantic_hash": ""
   },
   "supabase/functions/food-lookup/off.test.ts": {
@@ -7356,9 +7356,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/services/substanzScan.ts": {
-    "mtime": 1792570286.012245,
-    "seen": 1792685381.264103,
-    "ast_hash": "80b1a41c936d214284d979adbb2d5df1",
+    "mtime": 1793195248.8629217,
+    "seen": 1793199553.8386726,
+    "ast_hash": "100fb7ee42b56a5935f41eb4ba0367b4",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipEditor.tsx": {
@@ -7410,9 +7410,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/label-extract/index.ts": {
-    "mtime": 1792570286.0737593,
-    "seen": 1792685381.2649295,
-    "ast_hash": "295275f6a019828d89ce422ff8570be1",
+    "mtime": 1793195248.863771,
+    "seen": 1793199553.8470185,
+    "ast_hash": "d381052ae014cf840e7bcef39deb2fba",
     "semantic_hash": ""
   },
   "supabase/functions/label-extract/prompt.test.ts": {
@@ -7482,15 +7482,15 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/foodPhoto.ts": {
-    "mtime": 1792570285.9834888,
-    "seen": 1792685381.2635093,
-    "ast_hash": "cbe9f40b166a86f70921eaeccefd3c4a",
+    "mtime": 1793195248.8626747,
+    "seen": 1793199553.8323276,
+    "ast_hash": "b89d77d62df3a12891ddae1e93c64b2a",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/index.ts": {
-    "mtime": 1792570286.0734277,
-    "seen": 1792685381.264923,
-    "ast_hash": "a2859fc36e1274c766d8228d60dbc9b5",
+    "mtime": 1793195248.863553,
+    "seen": 1793199553.846972,
+    "ast_hash": "e31c4cfa84a6dc4adbb710422c72e237",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/photo.test.ts": {
@@ -7902,9 +7902,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/coachService.ts": {
-    "mtime": 1793039103.878615,
-    "seen": 1793039545.9120302,
-    "ast_hash": "5dde2b13656a0e24b4f1c0daee6e48cb",
+    "mtime": 1793195248.8622904,
+    "seen": 1793199553.8305736,
+    "ast_hash": "677e22a5c2078e78ec7575099d6f7b89",
     "semantic_hash": ""
   },
   "src/features/dot/dotStore.ts": {
@@ -7974,9 +7974,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/coach/index.ts": {
-    "mtime": 1793038147.072028,
-    "seen": 1793038885.255875,
-    "ast_hash": "668caafe2698dc0767f69a6a5999a427",
+    "mtime": 1793195248.8633678,
+    "seen": 1793199553.8468788,
+    "ast_hash": "3b37de01461d31c1c33196f5bc5720ca",
     "semantic_hash": ""
   },
   "supabase/functions/coach/prompt.test.ts": {
@@ -8010,9 +8010,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793065874.9115717,
-    "seen": 1793065896.026165,
-    "ast_hash": "1f786e60896010c2fde414b6c93511a8",
+    "mtime": 1793195293.6881597,
+    "seen": 1793199553.8509657,
+    "ast_hash": "ff0657ea3338167e07b1e51aeefd81e8",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -17091,6 +17091,12 @@
     "mtime": 1793065338.5066886,
     "seen": 1793065896.0287654,
     "ast_hash": "39f4e5e7f1a380016701943c85b33be1",
+    "semantic_hash": ""
+  },
+  "docs/datenschutz/dsfa-ki.md": {
+    "mtime": 1793195293.6877663,
+    "seen": 1793199553.848164,
+    "ast_hash": "6d72e87d537783235e0c186d626ed346",
     "semantic_hash": ""
   }
 }
