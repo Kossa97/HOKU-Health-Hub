@@ -72,9 +72,10 @@ export interface DotApi {
   /** Eröffnung auf der Anmeldung: Partikel vom Display-Rand sammeln sich zu Dot. Dauer in Sekunden, 0 = keine. */
   eroeffnung(): number
   /**
-   * Erfolg der Anmeldung: sein Ring wächst zum Display-Umriss (das Portal; innerhalb
-   * wird `[data-dot-portal]` sichtbar), die Punkte finden langsam zu ihm zurück und
-   * er fliegt in seinen Platz in der Leiste. `false` = keine Animation (weniger Bewegung).
+   * Erfolg der Anmeldung: der Haken wird wieder Dot, Dot brodelt und explodiert nach
+   * `PORTAL_AUF` ms zum Portal am Display-Umriss (innerhalb wird `[data-dot-portal]`
+   * sichtbar), die Punkte sammeln sich in der Mitte und er fliegt in seinen Platz in
+   * der Leiste. `false` = keine Animation (weniger Bewegung).
    */
   erfolg(): boolean
   /** Anmeldung: Dot steht auf dieser Bühne, lässt sich ziehen und werfen und kehrt zurück. */
@@ -133,9 +134,12 @@ const TEXT = { dichte: 5.5, groesse: 1.6 / 4.3, licht: 1, funkeln: 0.4 }
 // dem Dunkel, E5 Ringe; Länge je Variante in s. Jeder Punkt folgt einer festen Bahn, ohne Federn und
 // ohne Kinder, nichts über dem Formular. E3, E4 und E6 aus dem Mockup bleiben für später.
 const EROEFFNUNG = { rand: 1.9, dunkel: 1.6, ringe: 1.6 }
-// Erfolg (Mockup „portalheim"): Zeiten in ms bei Tempo 1, durch das Tempo geteilt.
-// Vorlauf bis das Portal wächst, Portal, Ruhe am Rand, Zusammenfinden, Heimflug.
-const ERFOLG = { tempo: 0.6, vorlauf: 300, portal: 900, ruhe: 350, sammeln: 1900, flug: 900, logoR: 13, rahmenR: 48 }
+// Erfolg (Nutzer 28.10.2026, Mockup „Dots Auftritte" S9), Zeiten in s: Haken wird Kugel, Brodeln baut
+// sich auf, Explosion zum Portal (unruhiger, durchgehender Rahmen), Ruhe am Rand, Sammeln in der Mitte
+// des Displays, Heimflug im Bogen wie S2. Radien in px.
+const ERFOLG = { kugel: 0.35, brodeln: 0.55, explosion: 0.4, ruhe: 0.25, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
+/** So lange nach `erfolg()` geht das Portal auf (ms); bis dahin kann die Anmeldung stehen bleiben. */
+export const PORTAL_AUF = (ERFOLG.kugel + ERFOLG.brodeln) * 1000
 type Variante = keyof typeof EROEFFNUNG
 const VARIANTEN = Object.keys(EROEFFNUNG) as Variante[]
 const weich = (x: number) => { x = clamp01(x); return x * x * (3 - 2 * x) }
@@ -306,7 +310,7 @@ export function createDot(host: DotHost): DotApi {
     // v: zuletzt gezeigte Eröffnung; null = noch keine, dann ist jede möglich
     intro: { an: false, t0: 0, v: null as Variante | null },
     // Erfolg: Phase, Start der Phase, Fortschritt des Rahmens, Flugbahn; kMul macht die Federn weich
-    portal: null as null | { phase: 'rahmen' | 'rand' | 'sammeln' | 'flug'; t0: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
+    portal: null as null | { phase: 'kugel' | 'brodeln' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; t0: number; fe: number; amp: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
     kMul: 1,
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
     orbitCool: 0, herkunft: null as null | { x: number; y: number; t: number },
@@ -1274,12 +1278,17 @@ export function createDot(host: DotHost): DotApi {
       }
       case 'frame': {
         // Portal: sein Ring aus 460 Punkten wächst vom Kreis zum Umriss des Displays
-        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r, ins = 5 * fe
+        const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r, ins = 12 * fe
         const L = B.x - R0 + (ins - (B.x - R0)) * fe, T = B.y - R0 + (ins - (B.y - R0)) * fe
         const Rr = B.x + R0 + (W - ins - (B.x + R0)) * fe, Bt = B.y + R0 + (H - ins - (B.y + R0)) * fe
-        const rad = R0 + (ERFOLG.rahmenR - ins - R0) * fe
-        const [x, y] = rahmenPunkt({ l: L, t: T, r: Rr, b: Bt }, rad, p.i / PUNKTE)
-        return ziel((x - B.x) / B.r, (y - B.y) / B.r, 0.9)
+        const box = { l: L, t: T, r: Rr, b: Bt }, rad = R0 + (ERFOLG.rahmenR - ins - R0) * fe, u = p.i / PUNKTE
+        // Unruhig, aber durchgehend (Nutzer 28.10.2026): jeder Punkt behält seinen Platz entlang des
+        // Umrisses, eine weiche Welle quer dazu und wechselnde Dicke machen ihn lebendig
+        const [x, y] = rahmenPunkt(box, rad, u), [x2, y2] = rahmenPunkt(box, rad, u + 0.002)
+        const tl = Math.hypot(x2 - x, y2 - y) || 1, nx = -(y2 - y) / tl, ny = (x2 - x) / tl
+        const welle = fe * (6 * Math.sin(u * TAU * 5 + t * 3 + 1) + 4 * Math.sin(u * TAU * 11 - t * 4.5))
+          + (p.k - 0.5) * 2 * (2.5 + 2 * (1 + Math.sin(u * TAU * 3 + t * 1.5)))
+        return ziel((x + nx * welle - B.x) / B.r, (y + ny * welle - B.y) / B.r, 0.9, 0.8 + 0.2 * (1 + Math.sin(u * TAU * 7 + t * 2)))
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum
@@ -1295,8 +1304,12 @@ export function createDot(host: DotHost): DotApi {
         const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2
         // frei schwebend atmet jeder Punkt und ein Lichtschein zieht über die Kugel
         const kq = weniger ? 0 : B.kugel, atmen = KUGEL.atmen * kq, licht = KUGEL.licht * kq
-        const rj = 1 + atmen * (0.022 * Math.sin(t * 2.1 + p.s) + 0.012 * Math.sin(t * 3.7 + p.s * 2.3))
-        return ziel(X * rj, Y * rj, 0.1 + 0.85 * f * f, 1 + 0.18 * licht * Math.max(0, Math.sin(t * 0.9 + X * 1.6 + Y * 0.8)) * f)
+        // vor dem Portal brodelt er immer stärker und zittert leicht (Erfolg)
+        const br = B.portal ? B.portal.amp : 0
+        const rj = (1 + atmen * (0.022 * Math.sin(t * 2.1 + p.s) + 0.012 * Math.sin(t * 3.7 + p.s * 2.3)))
+          * (1 + br * (0.1 * Math.sin(t * 17 + p.s * 20) + 0.07 * Math.sin(t * 23 + X * 5 + Y * 4)))
+        const jx = (br * 2.2 * Math.sin(t * 61)) / B.r, jy = (br * 2.2 * Math.cos(t * 53)) / B.r
+        return ziel(X * rj + jx, Y * rj + jy, 0.1 + 0.85 * f * f, (1 + 0.18 * licht * Math.max(0, Math.sin(t * 0.9 + X * 1.6 + Y * 0.8)) * f) * (1 + 0.5 * br))
       }
     }
   }
@@ -1314,7 +1327,9 @@ export function createDot(host: DotHost): DotApi {
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
     const sparse = B.shape !== 'text'
-    const groesse = B.shape === 'text' ? TEXT.groesse : B.shape === 'frame' ? 3 / 4.3 : 1
+    // auf dem Rahmen und auf dem Weg von dort in die Mitte bleiben die Punkte klein, sonst wirken sie wie Konfetti über der App
+    const klein = B.shape === 'frame' || (B.portal?.phase === 'sammeln' && B.trans < 0.45)
+    const groesse = B.shape === 'text' ? TEXT.groesse : klein ? 3 / 4.3 : 1
     const zA = 1 - Math.pow(0.86, f), sA = 1 - Math.pow(0.9, f), R = Math.max(B.r, 1)
     // nach dem Portal sehr weiche Federn, die sich zurück auf normal steigern
     B.kMul += (1 - B.kMul) * Math.min(1, 0.005 * f)
@@ -1355,8 +1370,9 @@ export function createDot(host: DotHost): DotApi {
     if (weniger || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
     appPlatz()
-    B.portal = { phase: 'rahmen', t0: performance.now(), fe: 0, r0: B.r }
-    B.state = 'idle'; B.shape = 'frame'; B.form = null; B.text = null; B.textF = null
+    B.portal = { phase: 'kugel', t0: performance.now(), fe: 0, amp: 0, r0: B.r }
+    // der Haken wird wieder Kugel
+    B.state = 'idle'; B.shape = 'sphere'; B.form = null; B.text = null; B.textF = null
     wechsel()
     versteckeTreffer(); versteckeBlase(); melde(); laufen()
     return true
@@ -1364,24 +1380,40 @@ export function createDot(host: DotHost): DotApi {
   function portalSchritt(dt: number) {
     const P0 = B.portal
     if (!P0) return
-    const tp = ERFOLG.tempo, jetzt = performance.now(), te = jetzt - P0.t0
+    const jetzt = performance.now(), te = (jetzt - P0.t0) / 1000, el = portalFlaeche()
     B.vx = B.vy = 0
-    if (P0.phase === 'rahmen') {
+    if (P0.phase === 'kugel' || P0.phase === 'brodeln') {
+      // die App bleibt verborgen, bis das Portal aufgeht
+      if (el) el.style.clipPath = 'circle(0px)'
+      if (P0.phase === 'kugel') { if (te > ERFOLG.kugel) { P0.phase = 'brodeln'; P0.t0 = jetzt } }
+      else if (te < ERFOLG.brodeln) P0.amp = Math.pow(te / ERFOLG.brodeln, 3)
+      else {
+        // Explosion: der Rahmen schießt hinaus, die Punkte folgen fast gleichzeitig und straff
+        P0.amp = 0; P0.phase = 'rahmen'; P0.t0 = jetzt; P0.r0 = B.r
+        B.shape = 'frame'; wechsel()
+        for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.05
+        B.kMul = 1.6
+      }
+    } else if (P0.phase === 'rahmen') {
       // Innerhalb genau dieser Form wird die App sichtbar
-      const fe = easeIO(clamp01((te - ERFOLG.vorlauf / tp) / (ERFOLG.portal / tp)))
+      const fe = easeOut3(clamp01(te / ERFOLG.explosion))
       P0.fe = fe
-      const R0 = P0.r0, el = portalFlaeche()
+      const R0 = P0.r0
       if (el) {
         const l = (B.x - R0) * (1 - fe), t = (B.y - R0) * (1 - fe), r = (W - B.x - R0) * (1 - fe), b = (H - B.y - R0) * (1 - fe), rad = R0 + (ERFOLG.rahmenR - R0) * fe
         el.style.clipPath = fe >= 1 ? 'none' : `inset(${t.toFixed(1)}px ${r.toFixed(1)}px ${b.toFixed(1)}px ${l.toFixed(1)}px round ${rad.toFixed(1)}px)`
       }
       if (fe >= 1) { P0.phase = 'rand'; P0.t0 = jetzt }
-    } else if (P0.phase === 'rand' && te > ERFOLG.ruhe / tp) {
-      // Die Kugeln bleiben kurz am Rand, dann finden sie langsam zu Dot zusammen
+    } else if (P0.phase === 'rand' && te > ERFOLG.ruhe) {
+      // Kurz am Rand, dann sammeln sich die Punkte in der Mitte des Displays: Dots Mitte springt
+      // dorthin, die Punkte bleiben auf dem Bildschirm, wo sie sind
+      const nx = W / 2, ny = H / 2, R = Math.max(B.r, 1)
+      for (let i = 0; i < ALLE; i++) { QX[i] -= (nx - B.x) / R; QY[i] -= (ny - B.y) / R }
+      B.x = B.lx = nx; B.y = B.ly = ny
       setState('idle')
-      for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.5
-      B.kMul = 0.05; P0.phase = 'sammeln'; P0.t0 = jetzt
-    } else if (P0.phase === 'sammeln' && te > ERFOLG.sammeln / tp) {
+      for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.12
+      B.kMul = 0.9; P0.phase = 'sammeln'; P0.t0 = jetzt
+    } else if (P0.phase === 'sammeln' && te > ERFOLG.sammeln) {
       vermessen()
       const l = host.leiste()
       if (!l || !l.logo.isConnected) { portalEnde(false); return }
@@ -1389,9 +1421,9 @@ export function createDot(host: DotHost): DotApi {
       P0.flug = { sx: B.x, sy: B.y, ex: lr.left + lr.width / 2, ey: lr.top + lr.height / 2 }
       P0.phase = 'flug'; P0.t0 = jetzt
     } else if (P0.phase === 'flug' && P0.flug) {
-      // Bogen in den Platz in der Leiste, dabei auf Logo-Größe schrumpfen
-      const F = P0.flug, u = clamp01(te / (ERFOLG.flug / tp)), e = easeIO(u)
-      const mx = (F.sx + F.ex) / 2 + (F.ex - F.sx) * 0.15, my = Math.min(F.sy, F.ey) + (F.ey - F.sy) * 0.18 - 40
+      // Bogen nach rechts außen in den Platz in der Leiste, dabei auf Logo-Größe schrumpfen (wie S2)
+      const F = P0.flug, u = clamp01(te / ERFOLG.flug), e = easeIO(u)
+      const mx = F.sx + W * 0.27, my = F.sy + (F.ey - F.sy) * 0.64
       B.x = (1 - e) * (1 - e) * F.sx + 2 * (1 - e) * e * mx + e * e * F.ex
       B.y = (1 - e) * (1 - e) * F.sy + 2 * (1 - e) * e * my + e * e * F.ey
       B.r = P0.r0 + (ERFOLG.logoR - P0.r0) * e; B.rv = 0
@@ -1572,7 +1604,8 @@ export function createDot(host: DotHost): DotApi {
       // auf dem Rahmen läuft die Farbe über das Display: oben links Cyan, Violett, unten Pink
       const c = B.shape === 'frame' && B.portal && B.portal.fe > 0.02
         ? dotColorInto((cx + cp[0] * r - W / 2) / (W / 2), ((cy + cp[1] * r - H / 2) / (H / 2)) * 1.1, cur.hue + hueShift, heal)
-        : dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal)
+        : B.portal && rho > 1 ? dotColorInto(cp[0] / rho, cp[1] / rho, cur.hue + hueShift, heal) // weit draußen (Sammeln): Dots Farben, nicht hochgerechnet
+          : dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal)
       // Rosa je Punkt (Herz in Dot)
       const ro = ROSA[i]
       if (ro > 0.01) { c[0] += (PINK[0] - c[0]) * ro; c[1] += (PINK[1] - c[1]) * ro; c[2] += (PINK[2] - c[2]) * ro }
@@ -1610,8 +1643,8 @@ export function createDot(host: DotHost): DotApi {
         aMul = 1 - u
       }
       if (aMul !== 1) alpha = clamp01(alpha * aMul + (streaming ? 0.25 : 0))
-      // schnelle Punkte werden etwas größer und ziehen einen Schweif; bei der Eröffnung nicht, dort bleiben sie klar
-      const sp = B.intro.an ? 0 : (Math.abs(VX[i]) + Math.abs(VY[i])) * r
+      // schnelle Punkte werden etwas größer und ziehen einen Schweif; bei Eröffnung und Portal nicht, dort bleiben sie klar
+      const sp = B.intro.an || B.portal ? 0 : (Math.abs(VX[i]) + Math.abs(VY[i])) * r
       const sz = dotR * (0.55 + 0.6 * cp[2]) * 3 * SZ[i] * (1 + Math.min(sp * 0.05, 0.6))
       if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
       // Bei der Eröffnung verlässt kein Punkt das Display. Sonst halten ihn die Wände wie in

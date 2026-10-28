@@ -150,8 +150,15 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Gefunden: die erste Eröffnung schloss die Start-Variante aus (E1 bzw. früher „strudel“ kam beim
   ersten Besuch nie), jetzt beginnt die Wahl bei null.
 
+- **Erfolg neu (Nutzer 28.10.2026, nachts):** S5 mit Änderung, im Mockup als S9 (S5 bleibt daneben):
+  grüner Haken → wird Dot → brodelt immer stärker (0,55 s) → Explosion zum Portal, Rahmen unruhig, aber
+  durchgehend (jeder Punkt hat seinen Platz am Umriss, eine weiche Welle und wechselnde Dicke) →
+  kurz am Rand → Punkte sammeln sich in der Mitte des Displays → Heimflug im Bogen wie S2. Rund 3,4 s
+  ab erfolg(). Die Anmeldung bleibt stehen, bis das Portal aufgeht (`PORTAL_AUF`, 0,9 s). Gefunden:
+  das „Konfetti“ der alten Fassung waren die Punkte auf dem Weg vom Rand zur Mitte, in voller Größe
+  und mit hochgerechneter Farbe (rosa); jetzt klein und in Dots Farben, ohne Schweif.
+
 ## Offen
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
-- Animation nach dem Erfolg wählen: Mockup „Dots Auftritte“ (https://claude.ai/artifact/Ab6uRmqzVNDBHgBDRYbnS5) S1–S8; Nutzer wünschte zuletzt ein schnelles, ungleichmäßiges Portal, Punkte sammeln sich in der Mitte, dann Heimflug wie S2 (S5).
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.

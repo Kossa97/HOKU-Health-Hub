@@ -9,6 +9,7 @@ import { LANGUAGES, setLanguage } from '../i18n'
 import { dotStore, useDotStand } from '../features/dot/dotStore'
 import { useDotText, type DotTextKey } from '../features/dot/texte'
 import { GRUSS_DAUER } from '../features/dot/engine/gesten'
+import { PORTAL_AUF } from '../features/dot/engine/dotEngine'
 import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
@@ -37,7 +38,7 @@ interface Meldung { feld: Feld | null; text: string; art: 'fehler' | 'info' }
 const DENKEN: Record<NamensFehler | 'erfolg', number> = { falsch: 900, viele: 900, fehler: 900, netz: 1400, erfolg: 1000 }
 // Haken: zeichnet sich in 0,55 s, ist nach 1 s grün (Gesten-Mockup, Erfolg A)
 const ZEIGEN = { fehler: 1300, netz: 2500, haken: 1200 }
-// So lange blendet die Anmeldung aus, bevor das Portal die App zeigt
+// So lange blendet die Anmeldung aus, bevor das Portal die App zeigt; sie geht, während Dot brodelt
 const VERLASSEN = 450
 // So lange steht der Hinweis, dass der Name später gewählt wird
 const HINWEIS = 3500
@@ -226,8 +227,11 @@ export function Auth() {
     dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
     await warte(ZEIGEN.haken)
     if (gen !== lauf.current) return
-    // Die Karte blendet aus, dann wechselt die Seite; das Portal zeigt die App (bei weniger Bewegung schlicht)
+    // Dot wird Kugel und brodelt, die Karte blendet aus, dann wechselt die Seite genau, wenn das Portal
+    // aufgeht (bei weniger Bewegung schlicht)
     if (dot()?.erfolg()) {
+      await warte(PORTAL_AUF - VERLASSEN)
+      if (gen !== lauf.current) return
       setVerlassen(true)
       await warte(VERLASSEN)
       if (gen !== lauf.current) return
