@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793154198.4243672,
-    "seen": 1793154281.9119608,
+    "mtime": 1793154769.3195844,
+    "seen": 1793154997.2858331,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793154314.7180305,
-    "seen": 1793154418.3444276,
-    "ast_hash": "067cc1da8b29654459d0e144f7a7f3f3",
+    "mtime": 1793154647.17062,
+    "seen": 1793154997.2842352,
+    "ast_hash": "3d1fb14e89e0bfeaaeb9e52464114fbd",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8478,9 +8478,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793123515.6732688,
-    "seen": 1793123583.7613645,
-    "ast_hash": "03537b124f247f7fd3768156ccd64e1d",
+    "mtime": 1793154771.2821066,
+    "seen": 1793154997.2864158,
+    "ast_hash": "7f0d5229594aad345717ae90c42fe4a1",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793154126.158882,
-    "seen": 1793154281.911102,
-    "ast_hash": "cb2a1a3d9a8a946bb500f355247907d5",
+    "mtime": 1793155224.7040975,
+    "seen": 1793155649.6644173,
+    "ast_hash": "4f28cae68be2a8e7d94337de766a3d95",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {

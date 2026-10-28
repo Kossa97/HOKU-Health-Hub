@@ -15076,7 +15076,7 @@
       "file_type": "code",
       "norm_label": "laufen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1888"
+      "source_location": "L1889"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_loginbetreten",
@@ -15136,7 +15136,7 @@
       "file_type": "code",
       "norm_label": "loslassen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1759"
+      "source_location": "L1760"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_pickthrow",
@@ -15232,7 +15232,7 @@
       "file_type": "code",
       "norm_label": "rufen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1791"
+      "source_location": "L1792"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_setform",
@@ -15316,7 +15316,7 @@
       "file_type": "code",
       "norm_label": "sync()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1851"
+      "source_location": "L1852"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_target",
@@ -15340,7 +15340,7 @@
       "file_type": "code",
       "norm_label": "tostrip()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1812"
+      "source_location": "L1813"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_vermessen",
@@ -38392,7 +38392,7 @@
       "file_type": "code",
       "norm_label": "ausweichen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1834"
+      "source_location": "L1835"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_docky",
@@ -38428,7 +38428,7 @@
       "file_type": "code",
       "norm_label": "spotfor()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1826"
+      "source_location": "L1827"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_zonen",
@@ -38440,7 +38440,7 @@
       "file_type": "code",
       "norm_label": "zonen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1818"
+      "source_location": "L1819"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_zufallsplatz",
@@ -39892,7 +39892,7 @@
       "file_type": "code",
       "norm_label": "fetchdot()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1805"
+      "source_location": "L1806"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_giggle",
@@ -42136,7 +42136,7 @@
       "file_type": "code",
       "norm_label": "dragto()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1669"
+      "source_location": "L1670"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_drawbeam",
@@ -42184,7 +42184,7 @@
       "file_type": "code",
       "norm_label": "enddrag()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1690"
+      "source_location": "L1691"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_enterk",
@@ -42280,7 +42280,7 @@
       "file_type": "code",
       "norm_label": "render()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1461"
+      "source_location": "L1462"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_ringstep",
@@ -42304,7 +42304,7 @@
       "file_type": "code",
       "norm_label": "schritt()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1893"
+      "source_location": "L1894"
     },
     {
       "id": "src_features_dot_engine_dotengine_createdot_shapescript",
@@ -42724,7 +42724,7 @@
       "file_type": "code",
       "norm_label": "wardraussen()",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1995"
+      "source_location": "L1996"
     },
     {
       "id": "src_features_dot_lib_dotkontext_heuteoffen",
@@ -105778,7 +105778,7 @@
       "node_kind": "heading",
       "norm_label": "offen",
       "source_file": "memory/projects/login.md",
-      "source_location": "L115"
+      "source_location": "L119"
     },
     {
       "id": "memory_projects_login_umsetzung_27_10_2026",
@@ -128287,7 +128287,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1748",
+      "source_location": "L1749",
       "weight": 1.0
     },
     {
@@ -128299,7 +128299,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1965",
+      "source_location": "L1966",
       "weight": 1.0
     },
     {
@@ -128311,7 +128311,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1965",
+      "source_location": "L1966",
       "weight": 1.0
     },
     {
@@ -128383,7 +128383,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1836",
+      "source_location": "L1837",
       "weight": 1.0
     },
     {
@@ -128395,7 +128395,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1836",
+      "source_location": "L1837",
       "weight": 1.0
     },
     {
@@ -128407,7 +128407,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1837",
+      "source_location": "L1838",
       "weight": 1.0
     },
     {
@@ -128419,7 +128419,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1838",
+      "source_location": "L1839",
       "weight": 1.0
     },
     {
@@ -128503,7 +128503,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1673",
+      "source_location": "L1674",
       "weight": 1.0
     },
     {
@@ -128515,7 +128515,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1675",
+      "source_location": "L1676",
       "weight": 1.0
     },
     {
@@ -128527,7 +128527,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1675",
+      "source_location": "L1676",
       "weight": 1.0
     },
     {
@@ -128539,7 +128539,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1680",
+      "source_location": "L1681",
       "weight": 1.0
     },
     {
@@ -128551,7 +128551,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1683",
+      "source_location": "L1684",
       "weight": 1.0
     },
     {
@@ -128671,7 +128671,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1440",
+      "source_location": "L1441",
       "weight": 1.0
     },
     {
@@ -128683,7 +128683,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1445",
+      "source_location": "L1446",
       "weight": 1.0
     },
     {
@@ -128719,7 +128719,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1806",
+      "source_location": "L1807",
       "weight": 1.0
     },
     {
@@ -128731,7 +128731,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1808",
+      "source_location": "L1809",
       "weight": 1.0
     },
     {
@@ -128743,7 +128743,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1808",
+      "source_location": "L1809",
       "weight": 1.0
     },
     {
@@ -129007,7 +129007,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1760",
+      "source_location": "L1761",
       "weight": 1.0
     },
     {
@@ -129487,7 +129487,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1475",
+      "source_location": "L1476",
       "weight": 1.0
     },
     {
@@ -129499,7 +129499,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1483",
+      "source_location": "L1484",
       "weight": 1.0
     },
     {
@@ -129511,7 +129511,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1486",
+      "source_location": "L1487",
       "weight": 1.0
     },
     {
@@ -129523,7 +129523,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1491",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -129535,7 +129535,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1491",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -129547,7 +129547,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1502",
+      "source_location": "L1503",
       "weight": 1.0
     },
     {
@@ -129559,7 +129559,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1529",
+      "source_location": "L1530",
       "weight": 1.0
     },
     {
@@ -129571,7 +129571,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1532",
+      "source_location": "L1533",
       "weight": 1.0
     },
     {
@@ -129583,7 +129583,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1533",
+      "source_location": "L1534",
       "weight": 1.0
     },
     {
@@ -129595,7 +129595,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1566",
+      "source_location": "L1567",
       "weight": 1.0
     },
     {
@@ -129607,7 +129607,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1580",
+      "source_location": "L1581",
       "weight": 1.0
     },
     {
@@ -129619,7 +129619,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1589",
+      "source_location": "L1590",
       "weight": 1.0
     },
     {
@@ -129631,7 +129631,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1618",
+      "source_location": "L1619",
       "weight": 1.0
     },
     {
@@ -129643,7 +129643,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1622",
+      "source_location": "L1623",
       "weight": 1.0
     },
     {
@@ -129655,7 +129655,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1650",
+      "source_location": "L1651",
       "weight": 1.0
     },
     {
@@ -129739,7 +129739,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1798",
+      "source_location": "L1799",
       "weight": 1.0
     },
     {
@@ -129751,7 +129751,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1799",
+      "source_location": "L1800",
       "weight": 1.0
     },
     {
@@ -129763,7 +129763,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1801",
+      "source_location": "L1802",
       "weight": 1.0
     },
     {
@@ -129775,7 +129775,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1801",
+      "source_location": "L1802",
       "weight": 1.0
     },
     {
@@ -129787,7 +129787,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1896",
+      "source_location": "L1897",
       "weight": 1.0
     },
     {
@@ -129799,7 +129799,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1899",
+      "source_location": "L1900",
       "weight": 1.0
     },
     {
@@ -129811,7 +129811,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1900",
+      "source_location": "L1901",
       "weight": 1.0
     },
     {
@@ -129823,7 +129823,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1905",
+      "source_location": "L1906",
       "weight": 1.0
     },
     {
@@ -129835,7 +129835,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1906",
+      "source_location": "L1907",
       "weight": 1.0
     },
     {
@@ -130051,7 +130051,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1829",
+      "source_location": "L1830",
       "weight": 1.0
     },
     {
@@ -130063,7 +130063,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1829",
+      "source_location": "L1830",
       "weight": 1.0
     },
     {
@@ -130135,7 +130135,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1858",
+      "source_location": "L1859",
       "weight": 1.0
     },
     {
@@ -130147,7 +130147,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1858",
+      "source_location": "L1859",
       "weight": 1.0
     },
     {
@@ -130159,7 +130159,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1862",
+      "source_location": "L1863",
       "weight": 1.0
     },
     {
@@ -130171,7 +130171,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1867",
+      "source_location": "L1868",
       "weight": 1.0
     },
     {
@@ -130183,7 +130183,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1868",
+      "source_location": "L1869",
       "weight": 1.0
     },
     {
@@ -130195,7 +130195,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1879",
+      "source_location": "L1880",
       "weight": 1.0
     },
     {
@@ -130243,7 +130243,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1815",
+      "source_location": "L1816",
       "weight": 1.0
     },
     {
@@ -163075,7 +163075,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1669",
+      "source_location": "L1670",
       "weight": 1.0
     },
     {
@@ -163087,7 +163087,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1690",
+      "source_location": "L1691",
       "weight": 1.0
     },
     {
@@ -163099,7 +163099,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1759",
+      "source_location": "L1760",
       "weight": 1.0
     },
     {
@@ -163111,7 +163111,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1791",
+      "source_location": "L1792",
       "weight": 1.0
     },
     {
@@ -163123,7 +163123,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1805",
+      "source_location": "L1806",
       "weight": 1.0
     },
     {
@@ -163135,7 +163135,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1888",
+      "source_location": "L1889",
       "weight": 1.0
     },
     {
@@ -314450,7 +314450,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "memory/projects/login.md",
-      "source_location": "L115",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
@@ -329080,7 +329080,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1995",
+      "source_location": "L1996",
       "weight": 1.0
     },
     {
@@ -329322,7 +329322,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1461",
+      "source_location": "L1462",
       "weight": 1.0
     },
     {
@@ -329333,7 +329333,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1812",
+      "source_location": "L1813",
       "weight": 1.0
     },
     {
@@ -329344,7 +329344,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1818",
+      "source_location": "L1819",
       "weight": 1.0
     },
     {
@@ -329355,7 +329355,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1826",
+      "source_location": "L1827",
       "weight": 1.0
     },
     {
@@ -329366,7 +329366,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1834",
+      "source_location": "L1835",
       "weight": 1.0
     },
     {
@@ -329377,7 +329377,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1893",
+      "source_location": "L1894",
       "weight": 1.0
     },
     {
@@ -381155,7 +381155,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1948",
+      "source_location": "L1949",
       "weight": 1.0
     },
     {
@@ -381179,7 +381179,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1891",
+      "source_location": "L1892",
       "weight": 1.0
     },
     {
@@ -381203,7 +381203,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "src/features/dot/engine/dotEngine.ts",
-      "source_location": "L1883",
+      "source_location": "L1884",
       "weight": 1.0
     },
     {
@@ -382549,5 +382549,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1a45ae64a15489f47aa1d4ad0d21d1a6b6adf362"
+  "built_at_commit": "1f5de3f942e42bb9856db4b6e60986ce816fb05c"
 }
