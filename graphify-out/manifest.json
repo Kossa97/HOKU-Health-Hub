@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793158577.7215412,
-    "seen": 1793158671.4415367,
-    "ast_hash": "4e15c478d5736615269a51d07b64ca8d",
+    "mtime": 1793160556.573279,
+    "seen": 1793160687.753257,
+    "ast_hash": "ca3beebcb548cd6afb7ff80646eea3ad",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
