@@ -1,18 +1,28 @@
 /**
- * Schrift aus Dots Punkten und sein Herzschlag.
+ * Schrift und das flache X aus Dots Punkten, dazu sein Herzschlag.
  *
- * Text wird einmal auf einer Offscreen-Canvas (640 px, Maßstab 2) gezeichnet und
- * mit einem Sechseck-Gitter abgetastet. Die Gesten (Winken, Herz, Fehler, Kein
- * Netz, Haken) liegen im Raum und stehen in `gesten.ts`.
+ * Text und X werden einmal auf einer Offscreen-Canvas (640 px, Maßstab 2)
+ * gezeichnet und mit einem Sechseck-Gitter abgetastet. Die übrigen Gesten
+ * (Winken, Herz, Fehler im Raum, Kein Netz, Haken) stehen in `gesten.ts`.
  *
  * Koordinaten sind in Mockup-Pixeln bei Radius 66; die Engine teilt durch
  * `FORM_R` und skaliert mit ihrem eigenen Radius.
  */
 
-/** Radius, für den die Schrift gezeichnet ist. */
+/** Radius, für den Schrift und X gezeichnet sind. */
 export const FORM_R = 66
 
 type Zeichnung = (c: CanvasRenderingContext2D) => void
+
+function abgerundet(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  r = Math.min(r, w / 2, h / 2)
+  c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r)
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); c.fill()
+}
+// Das flache X (Fehler „Heute"): zwei abgerundete Balken über Kreuz
+const kreuz: Zeichnung = c => {
+  for (const a of [Math.PI / 4, -Math.PI / 4]) { c.save(); c.rotate(a); abgerundet(c, -80, -18, 160, 36, 18); c.restore() }
+}
 
 /**
  * Silhouette gleichmäßig mit höchstens `anzahl` Punkten füllen. Mit `gitter`
@@ -93,6 +103,13 @@ export function textForm(text: string, anzahl: number, dichte: number): Float32A
   let f = texte.get(key)
   if (!f) { f = abtasten(zeilen(text.split('\n'), 64), anzahl, dichte); texte.set(key, f) }
   return f
+}
+
+let flachesX: { anzahl: number; f: Float32Array } | null = null
+/** Das flache X: je Punkt x, y (Mockup-Pixel) und Dicke (0…1; < 0 = unsichtbar), einmal abgetastet. */
+export function kreuzFlach(anzahl: number): Float32Array {
+  if (!flachesX || flachesX.anzahl !== anzahl) flachesX = { anzahl, f: abtasten(kreuz, anzahl) }
+  return flachesX.f
 }
 
 /** Die Schrift laden, bevor Text abgetastet wird (sonst misst die Canvas die Ersatzschrift). */

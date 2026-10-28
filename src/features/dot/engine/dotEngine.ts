@@ -15,8 +15,8 @@ import {
   kastenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt, winkelAbstand,
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
-import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
-import { GESTE_N, HAKEN_GRUEN, STILL, gestenBild, gestenVorbereiten, type DotForm, type GestenBild, type Gruss } from './gesten'
+import { FORM_R, herzSchlag, kreuzFlach, ladeSchrift, textForm } from './formen'
+import { GESTE_N, HAKEN_GRUEN, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
 
@@ -129,8 +129,9 @@ const LOGIN = { warten: 0.45, haften: 1.2, loesen: 1.4, rueckK: 16.2 }
 const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
 // Schrift: Gitterabstand 5,5, Punktgröße 1,6 statt 4,3; Lichtlauf 100 %, Flackern 40 %
 const TEXT = { dichte: 5.5, groesse: 1.6 / 4.3, licht: 1, funkeln: 0.4 }
-// Eröffnung: Dauer 1, Wirbel 1, Punktgröße 2 statt 4,3 solange die Partikel fliegen
-const EROEFFNUNG = { dauer: 1, wirbel: 1, groesse: 2 / 4.3 }
+// Eröffnung (Nutzer 28.10.2026: klarere Partikel, ruhiger, nichts über dem Formular): ein Kind je Punkt
+// statt fünf, Punkte fast so groß wie Dots eigene, ohne Schweif; Wirbel und Startschwung auf ein Drittel
+const EROEFFNUNG = { dauer: 1, wirbel: 0.35, groesse: 0.8, kinder: 1, schwung: 0.4 }
 // Erfolg (Mockup „portalheim"): Zeiten in ms bei Tempo 1, durch das Tempo geteilt.
 // Vorlauf bis das Portal wächst, Portal, Ruhe am Rand, Zusammenfinden, Heimflug.
 const ERFOLG = { tempo: 0.6, vorlauf: 300, portal: 900, ruhe: 350, sammeln: 1900, flug: 900, logoR: 13, rahmenR: 48 }
@@ -313,7 +314,7 @@ export function createDot(host: DotHost): DotApi {
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
-    form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, gruss: 'einArm' as Gruss,
+    form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null } as GestenWahl,
     login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck', still: 0, neigung: 0, n: 0 },
   }
   // Je Punkt, in Dots Formraum (Einheit: sein Radius, Mitte 0): Lage Q und Tempo V
@@ -696,8 +697,9 @@ export function createDot(host: DotHost): DotApi {
     setState('idle'); arbeitet = false
     versteckeBlase(); zeigeTreffer(); melde(); laufen()
     // Gesten im Leerlauf vorab bauen, nicht im ersten Bild von Herz oder Haken
-    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(gestenVorbereiten, { timeout: 1500 })
-    else setTimeout(gestenVorbereiten, 300)
+    const vorbereiten = () => { gestenVorbereiten(); kreuzFlach(PUNKTE) }
+    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(vorbereiten, { timeout: 1500 })
+    else setTimeout(vorbereiten, 300)
   }
   function loginVerlassen() {
     if (B.mode !== 'login') return
@@ -1186,9 +1188,11 @@ export function createDot(host: DotHost): DotApi {
     if (f === 'hand') {
       let letzte: string | null = null
       try { letzte = localStorage.getItem(GRUSS_FOLGE) } catch { /* kein Speicher */ }
-      B.gruss = letzte === 'einArm' ? 'beideArme' : 'einArm'
-      try { localStorage.setItem(GRUSS_FOLGE, B.gruss) } catch { /* kein Speicher */ }
+      B.wahl.gruss = letzte === 'einArm' ? 'beideArme' : 'einArm'
+      try { localStorage.setItem(GRUSS_FOLGE, B.wahl.gruss) } catch { /* kein Speicher */ }
     }
+    // Fehler: das flache X, die Kugel (A) und das X aus Balken (C) zufällig im Wechsel
+    if (f === 'cross') B.wahl.fehler = naechsterFehler(B.wahl.fehler)
     B.shape = f ?? SHAPE[B.state]; B.form = f; B.text = null; B.textF = null; B.formT = 0
     wechsel()
   }
@@ -1258,6 +1262,11 @@ export function createDot(host: DotHost): DotApi {
       case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
         if (p.i >= GESTE_N) return ziel(0, 0, 0)
+        if (B.form === 'cross' && B.wahl.fehler === 'heute') {
+          // das flache X wie bisher, dicke Stellen heller
+          const f = kreuzFlach(PUNKTE), j = p.i * 3
+          return ziel(f[j] / FORM_R, f[j + 1] / FORM_R, f[j + 2] < 0 ? 0 : 0.6 + 0.4 * f[j + 2])
+        }
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
@@ -1323,7 +1332,7 @@ export function createDot(host: DotHost): DotApi {
         // Kinder folgen ihren Eltern; sichtbar nur während der Eröffnung, dann verblassen sie
         const q = p.par
         tx = TX[q] + ((p.k - 0.5) * 1.5) / R; ty = TY[q] + (Math.sin(p.s) * 0.75) / R
-        tz = I.an ? 0.75 * Math.max(0, 1 - (ti - REL[i] - fadeAt) / 0.6) : 0
+        tz = I.an && i < PUNKTE * (1 + EROEFFNUNG.kinder) ? 0.75 * Math.max(0, 1 - (ti - REL[i] - fadeAt) / 0.6) : 0
       } else {
         const z = shapeTarget(p, t)
         tx = z[0]; ty = z[1]; tz = z[2]; licht = z[3]; rosa = z[4]
@@ -1339,14 +1348,15 @@ export function createDot(host: DotHost): DotApi {
           // Startschwung je Variante: einwärts, fallend oder tangential
           RAUS[i] = 1
           const rl = Math.hypot(QX[i], QY[i]) || 1, ux = QX[i] / rl, uy = QY[i] / rl
-          if (I.v === 'implosion') { VX[i] = (-ux * 3) / R; VY[i] = (-uy * 3) / R }
-          else if (I.v === 'regen') { VX[i] = ((Math.random() - 0.5) * 0.6) / R; VY[i] = (1.2 + Math.random()) / R }
+          const sch = EROEFFNUNG.schwung
+          if (I.v === 'implosion') { VX[i] = (-ux * 3 * sch) / R; VY[i] = (-uy * 3 * sch) / R }
+          else if (I.v === 'regen') { VX[i] = ((Math.random() - 0.5) * 0.6 * sch) / R; VY[i] = ((1.2 + Math.random()) * sch) / R }
           else { const tv = ((I.v === 'galaxie' ? 10 : 7) * EROEFFNUNG.wirbel) / R; VX[i] = -uy * tv; VY[i] = ux * tv }
         }
         const q = clamp01((ti - REL[i] - iv.a0) / iv.a1)
         kf = I.v === 'implosion' ? 0.45 + 0.55 * q : 0.12 + 0.88 * q
         sw = Math.max(sw, iv.sw * EROEFFNUNG.wirbel * (1 - q))
-        if (I.v === 'regen') grav = (0.2 * (1 - q)) / R
+        if (I.v === 'regen') grav = (0.2 * EROEFFNUNG.schwung * (1 - q)) / R
       }
       const k = (0.1 + 0.07 * KR[i]) * tempo2 * kf * B.kMul, dh = Math.pow(Math.min(0.9, dBase + (DR[i] - 0.5) * 0.1), h)
       for (let n = 0; n < schritte; n++) {
@@ -1518,8 +1528,11 @@ export function createDot(host: DotHost): DotApi {
     const dotR = clamp(B.r * 0.034, 0.75, 1.75), tt = weniger ? 0 : t
     const buehne = B.mode === 'login' ? BUEHNE : null
     TEXT_SC = buehne ? Math.min(buehne.width / 340, buehne.height / 280, 1.15) : B.r / FORM_R
-    const anzahl = kinderAktiv() ? ALLE : PUNKTE
-    if (B.form) gestenBild(B.form, weniger ? STILL[B.form] : B.formT, B.gruss, GB)
+    // bei der Eröffnung rechnen nur die Kinder, die sichtbar sind; Schrift braucht alle
+    const anzahl = !kinderAktiv() ? PUNKTE : B.intro.an && B.shape !== 'text' ? PUNKTE * (1 + EROEFFNUNG.kinder) : ALLE
+    if (B.form && !(B.form === 'cross' && B.wahl.fehler === 'heute')) gestenBild(B.form, weniger ? STILL[B.form] : B.formT, B.wahl, GB)
+    // die Grenze zum Formular folgt der Bühne, falls die Seite sich während der Eröffnung verschiebt
+    if (B.intro.an) messeBuehne()
     federSchritt(dt, tt, anzahl)
     const imDisplay = loginWand() || B.intro.an, cp = [0, 0, 0]
     ctx.globalCompositeOperation = 'lighter'
@@ -1592,13 +1605,17 @@ export function createDot(host: DotHost): DotApi {
         aMul = 1 - u
       }
       if (aMul !== 1) alpha = clamp01(alpha * aMul + (streaming ? 0.25 : 0))
-      // schnelle Punkte werden etwas größer und ziehen einen Schweif
-      const sp = (Math.abs(VX[i]) + Math.abs(VY[i])) * r
+      // schnelle Punkte werden etwas größer und ziehen einen Schweif; bei der Eröffnung nicht, dort bleiben sie klar
+      const sp = B.intro.an ? 0 : (Math.abs(VX[i]) + Math.abs(VY[i])) * r
       const sz = dotR * (0.55 + 0.6 * cp[2]) * 3 * SZ[i] * (1 + Math.min(sp * 0.05, 0.6))
       if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
       // Bei der Eröffnung verlässt kein Punkt das Display. Sonst halten ihn die Wände wie in
       // der App; eine rechteckige Grenze gäbe oben in den runden Ecken eine Kante, an der er zuckt.
-      if (B.intro.an) { const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b) }
+      if (B.intro.an) {
+        const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b)
+        // über dem Formular nichts: unterhalb der Bühne verblassen die Partikel auf 18 px
+        if (BUEHNE && Y > BUEHNE.bottom) { alpha *= clamp01(1 - (Y - BUEHNE.bottom) / 18); if (alpha < 0.01) continue }
+      }
       if (GL) {
         const o = nPts * 7
         GLD[o] = X; GLD[o + 1] = Y; GLD[o + 2] = sz; GLD[o + 3] = c[0] / 255; GLD[o + 4] = c[1] / 255; GLD[o + 5] = c[2] / 255; GLD[o + 6] = alpha

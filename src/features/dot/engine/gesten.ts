@@ -17,6 +17,19 @@ export const GESTE_N = 460
 export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array }
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
 export type Gruss = 'einArm' | 'beideArme'
+/**
+ * Fehler: „Heute" das flache X, A die Kugel schüttelt sich, C ein X aus zwei runden Balken im Raum.
+ * Das flache X zeichnet die Engine aus seiner Abtastung (`kreuzFlach`), die beiden anderen stehen hier.
+ */
+export type Fehler = 'heute' | 'kugel' | 'balken'
+export const FEHLER: readonly Fehler[] = ['heute', 'kugel', 'balken']
+/** Nächster Fehler: zufällig, aber nie zweimal derselbe hintereinander (Nutzer 28.10.2026). */
+export function naechsterFehler(letzte: Fehler | null, zufall: () => number = Math.random): Fehler {
+  const andere = FEHLER.filter(v => v !== letzte)
+  return andere[Math.min(andere.length - 1, Math.floor(zufall() * andere.length))]
+}
+/** Welche Variante einer Geste läuft; `fehler` null = noch keiner gezeigt. */
+export interface GestenWahl { gruss: Gruss; fehler: Fehler | null }
 /** So lange dauert die Begrüßung, bis die Arme wieder in Dot stecken (s). */
 export const GRUSS_DAUER = 3.9
 /** Ab hier ist der Haken gezeichnet und färbt sich grün (s), so lange dauert das. */
@@ -281,9 +294,13 @@ function herz(t: number, out: GestenBild) {
   drehe(TMP, out.P, { yaw: 0.22 * Math.sin(0.5 * t), pitch: 0.06 })
 }
 
-/* ── Fehler A: Dot bleibt Kugel, dreht leicht (das Schütteln macht die Engine) ── */
-function fehler(t: number, out: GestenBild) {
-  drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 })
+/* ── Fehler (das Schütteln zur Seite macht die Engine) ─────────────────────────
+   A: Dot bleibt Kugel und dreht leicht. C: ein X aus zwei runden Balken im Raum. */
+let balken: Float32Array | null = null
+const baueBalken = () => kapselPunkte([{ a: [-0.92, -0.92, 0], b: [0.92, 0.92, 0], r: 0.26 }, { a: [0.92, -0.92, 0], b: [-0.92, 0.92, 0], r: 0.26 }], N).p
+function fehler(t: number, art: Fehler | null, out: GestenBild) {
+  if (art === 'balken') drehe((balken ??= baueBalken()), out.P, { yaw: 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.95 })
+  else drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 })
   out.L.fill(1); out.H.fill(0)
 }
 
@@ -339,15 +356,16 @@ function hakenBild(t: number, out: GestenBild) {
 export function gestenVorbereiten() {
   herzKugel ??= baueHerzKugel()
   haken ??= baueHaken()
+  balken ??= baueBalken()
   EIN.kp ??= kappe(EIN.arm.s, false)
   BEIDE.kp ??= kappe(-1, true)
 }
 
 /** Ein Bild der Geste zum Zeitpunkt t (s seit ihrem Beginn). */
-export function gestenBild(form: DotForm, t: number, gruss: Gruss, out: GestenBild) {
-  if (form === 'hand') (gruss === 'beideArme' ? beideArme : einArm)(t, out)
+export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenBild) {
+  if (form === 'hand') (v.gruss === 'beideArme' ? beideArme : einArm)(t, out)
   else if (form === 'heart') herz(t, out)
-  else if (form === 'cross') fehler(t, out)
+  else if (form === 'cross') fehler(t, v.fehler, out)
   else if (form === 'wifi') sucht(t, out)
   else hakenBild(t, out)
 }

@@ -127,7 +127,16 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   `formen.ts` nur noch Schrift und Herzschlag. Winken 3,9 s (`GRUSS_DAUER`), Haken 1,2 s.
   Gefunden: die runden Enden des Hakens blieben dunkel (Lauf > 1), behoben.
 
+- **Überarbeitung (Nutzer 28.10.2026, später):** Fehler zeigt **Heute (flaches X), A (Kugel) und C
+  (X aus Balken) zufällig im Wechsel**, nie zweimal dasselbe hintereinander (`naechsterFehler`).
+  Eröffnung ruhiger und klarer: ein Kind je Punkt statt fünf, Punkte 0,8 statt 0,47 groß, kein
+  Schweif, Wirbel 0,35, Startschwung 0,4; unter der Bühne (über dem Formular) verblassen die
+  Partikel auf 18 px. Arme: Nutzer will dickere Arme und weniger detaillierte Hände — Mockup
+  Version 7 zeigt E1–E5 (Schlauch/Kegel × Fäustling/drei Finger/Kugelhand/Umriss), Punkte dort in
+  Login-Größe. Wahl offen, eingebaut ist noch der dünne Arm.
+
 ## Offen
+- Arm-/Handtyp aus Mockup V7 (E1–E5) wählen, dann in `gesten.ts` übernehmen.
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
 - Dauer des Erfolgs (Tempo 0,6 ≈ 9 s) prüft der Nutzer auf dem Gerät.
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
