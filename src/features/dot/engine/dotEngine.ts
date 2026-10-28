@@ -115,9 +115,10 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
 const HAND = { freq: 1.44, ausschlag: 19 }
 const HERZ = { bpm: 72, schlag: 0.3, licht: 1.5 }
 const SCHUETTELN = { start: 0.35, dauer: 0.8, staerke: 24, schwingungen: 3.5 }
-// Anmeldung: Ziehen und Werfen wie im Mockup (Rückkehr nach 450 ms Ruhe,
-// Abprall 0,42 am Rand, Wurf höchstens 2600 px/s)
-const LOGIN = { warten: 0.45, abprall: 0.42, maxWurf: 2600, rueckK: 16.2, reibung: 0.993 }
+// Anmeldung: Ziehen und Werfen wie in der App, über das ganze Display (Nutzer 28.10.2026).
+// An der Wand klebt er 1,2 s, löst sich dann langsam (Tempo, mit dem er sich entfaltet)
+// und federt zur Bühne zurück wie im Mockup; ohne Wand nach 450 ms Ruhe.
+const LOGIN = { warten: 0.45, haften: 1.2, loesen: 1.4, rueckK: 16.2 }
 // Formwechsel als Feder je Punkt (Mockup „trans"): Tempo, Nachschwingen, Staffel, Wirbel
 const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
 // Schrift: Gitterabstand 5,5, Punktgröße 1,6 statt 4,3; Lichtlauf 100 %, Flackern 40 %
@@ -307,7 +308,7 @@ export function createDot(host: DotHost): DotApi {
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
     form: null as DotForm | null, formT: 0, tint: 0, warm: false, kugel: 1, shakeX: 0,
-    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'zurueck', still: 0, neigung: 0, n: 0 },
+    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck', still: 0, neigung: 0, n: 0 },
   }
   // Je Punkt, in Dots Formraum (Einheit: sein Radius, Mitte 0): Lage Q und Tempo V
   // (pro 1/60 s, wie im Mockup), Ziel T, Ziel beim letzten Wechsel O, Verzögerung DEL.
@@ -364,8 +365,11 @@ export function createDot(host: DotHost): DotApi {
     const s = BUEHNE
     return s ? { x: s.left + s.width / 2, y: s.top + s.height / 2 } : { x: W / 2, y: H * 0.3 }
   }
+  // Auf der Anmeldung behält er auch an der Wand seine Bühnengröße
+  const loginRadius = () => BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
+  const koerper = () => B.mode === 'login' ? loginRadius() : B.size
   function homeTarget() {
-    const b = bounds(), r = B.size, rest = restNow()
+    const b = bounds(), r = koerper(), rest = restNow()
     let x = B.dock.x === 'left' ? b.l + r * rest : B.dock.x === 'right' ? b.r - r * rest : clamp(B.along.x, b.l + r, b.r - r)
     const floor = B.squeezed || !navOn() ? b.b : TAB, dy = dockY()
     let y = dy === 'top' ? b.t + r * rest : dy === 'nav' ? TAB - r * rest : dy === 'bottom' ? b.b - r * rest : clamp(B.along.y, b.t + r, floor - r)
@@ -381,6 +385,7 @@ export function createDot(host: DotHost): DotApi {
   }
   function target() {
     if (B.mode === 'stage') return stageCenter()
+    if (B.mode === 'login') return B.login.phase === 'zurueck' ? loginZiel() : homeTarget()
     if (B.mode === 'enter') {
       const kind = B.enterKind, te = B.te
       if (kind === 'dissolve') return { x: B.holdX, y: B.holdY }
@@ -397,7 +402,7 @@ export function createDot(host: DotHost): DotApi {
   function radiusTarget() {
     if (B.mode === 'stage') return 46
     if (B.mode === 'portal') return B.r
-    if (B.mode === 'login') return BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
+    if (B.mode === 'login') return loginRadius()
     if (B.mode === 'enter') return B.size * 0.8
     if (B.mode === 'orbit' && B.orbit) return B.size * (0.42 + 0.1 * B.orbit.depth)
     return B.size * (1 - 0.14 * B.recede)
@@ -487,7 +492,7 @@ export function createDot(host: DotHost): DotApi {
   function release(vx: number, vy: number) {
     // von hier geworfen: nach dem Flug um die Uhr kommt er ungefähr hierher zurück
     B.herkunft = { x: B.x, y: B.y, t: performance.now() }
-    const b = bounds(), r = B.size, speed = Math.hypot(vx, vy)
+    const b = bounds(), r = koerper(), speed = Math.hypot(vx, vy)
     const nav = navOn(), under = nav && B.y > TAB - r * 0.3
     B.squeezed = under
     const floor = nav && !under ? TAB : b.b, floorId: DockY = nav && !under ? 'nav' : 'bottom'
@@ -518,11 +523,12 @@ export function createDot(host: DotHost): DotApi {
     if (speed < 300 && !dx && !dy) { px = B.x; py = B.y }
     B.dock = { x: dx, y: dy }; B.along = { x: px, y: py }
     B.vx = vx; B.vy = vy
-    speichern()
+    // Würfe auf der Anmeldung ändern nicht seinen Platz in der App
+    if (B.mode !== 'login') speichern()
   }
 
   function impact(w: Wand, speed: number) {
-    if (B.mode !== 'home') return
+    if (B.mode !== 'home' && B.mode !== 'login') return
     if (w.id === 'nav' && speed > 150 && atEntrance(B.x, B.r) && B.y < TAB && !B.drag) { goHome(pickThrow(B.vx, B.vy, B.x)); return }
     if (speed < 70) return
     const nx = w.nx, ny = w.ny
@@ -540,6 +546,8 @@ export function createDot(host: DotHost): DotApi {
   /* ── Physik je Bild ───────────────────────────────────────────────────── */
   function physics(dt: number, t: number) {
     const steps = Math.max(1, Math.ceil(dt * 120)), h = dt / steps, home = homeish()
+    // Wände, Andocken und Abplatten wie in der App: dort und auf der Anmeldung, solange er frei ist
+    const wand = home || loginWand()
     NAV.kb += (NAV.kbT - NAV.kb) * (1 - Math.exp(-dt * 16)); if (!NAV.kbT && NAV.kb < 0.5) NAV.kb = 0
     B.thin += (B.thinT - B.thin) * (1 - Math.exp(-dt * (B.thinT > B.thin ? 2.2 : 5)))
     B.recede += (B.recedeT - B.recede) * (1 - Math.exp(-dt * 8))
@@ -548,12 +556,14 @@ export function createDot(host: DotHost): DotApi {
       B.te += dt
       if (B.mode === 'gather' && B.te > 1) { B.mode = 'home'; B.contact = {}; zeigeTreffer(); melde() }
     }
-    const dockedNow = home && !B.drag && (B.dock.x || B.dock.y) && walls().some(w => docked(w.id) && w.d < B.r * 1.15)
+    const dockedNow = wand && !B.drag && (B.dock.x || B.dock.y) && walls().some(w => docked(w.id) && w.d < B.r * 1.15)
+    // Auf der Anmeldung löst er sich nach dem Kleben langsam von der Wand
+    const loesen = B.mode === 'login' && B.login.phase === 'loesen'
     // Links wird er nur halb so flat: sein Körper ragt so aus der Randzone des
     // Zurück-Wischens (24 px) heraus und lässt sich dort greifen
-    const flatT = dockedNow ? (B.state === 'idle' && !B.form && !B.text ? 1 : 0.35) * (B.dock.x === 'left' ? 0.45 : 1) : 0
-    B.flat += (flatT - B.flat) * (1 - Math.exp(-dt * (flatT > B.flat ? 1.4 : 5)))
-    const sagT = home && !B.drag ? (B.dock.y === 'top' ? 0.22 : B.dock.x && !B.dock.y ? 0.09 : 0) * P.sagMul : 0
+    const flatT = dockedNow && !loesen ? (B.state === 'idle' && !B.form && !B.text ? 1 : 0.35) * (B.dock.x === 'left' ? 0.45 : 1) : 0
+    B.flat += (flatT - B.flat) * (1 - Math.exp(-dt * (flatT > B.flat ? 1.4 : loesen ? LOGIN.loesen : 5)))
+    const sagT = wand && !B.drag ? (B.dock.y === 'top' ? 0.22 : B.dock.x && !B.dock.y ? 0.09 : 0) * P.sagMul : 0
     B.sag += (sagT - B.sag) * (1 - Math.exp(-dt * 3))
     zug(dt)
     if (B.mode === 'exit') climb(dt)
@@ -565,7 +575,7 @@ export function createDot(host: DotHost): DotApi {
     if (B.squeezed && !NAV.kbT && B.y < TAB - B.r * 0.5) B.squeezed = false
     moods(dt)
     shapeScript(dt)
-    const scripted = !!B.drag || B.mode === 'exit' || B.mode === 'house' || B.mode === 'orbit' || B.mode === 'login' || B.mode === 'portal'
+    const scripted = !!B.drag || B.mode === 'exit' || B.mode === 'house' || B.mode === 'orbit' || (B.mode === 'login' && B.login.phase === 'ruhe') || B.mode === 'portal'
     if (scripted && dt > 0) {
       const vx = (B.x - B.lx) / dt, vy = (B.y - B.ly) / dt
       B.ax += (clamp((vx - B.lvx) / dt, -30000, 30000) - B.ax) * 0.4
@@ -576,9 +586,12 @@ export function createDot(host: DotHost): DotApi {
       const pvx = B.vx, pvy = B.vy
       if (!scripted) {
         const T = target()
-        const k = home ? 90 : B.mode === 'enter' ? enterK() : 120, c = 2 * Math.sqrt(k) * (weniger ? 1 : 0.85)
+        // zurück zur Bühne federt er weich und ohne Überschwingen (Mockup)
+        const heim = B.mode === 'login' && B.login.phase === 'zurueck'
+        const k = wand ? 90 : heim ? LOGIN.rueckK : B.mode === 'enter' ? enterK() : 120
+        const c = 2 * Math.sqrt(k) * (weniger ? 1 : heim ? 1.05 : 0.85)
         let ax = k * (T.x - B.x) - c * B.vx, ay = k * (T.y - B.y) - c * B.vy
-        if (home) for (const w of walls()) {
+        if (wand) for (const w of walls()) {
           const rest = (docked(w.id) ? restNow() : 1) * B.r, vn = B.vx * w.nx + B.vy * w.ny
           if (w.d < rest) {
             if (!B.contact[w.id]) { B.contact[w.id] = true; impact(w, -vn) }
@@ -587,7 +600,7 @@ export function createDot(host: DotHost): DotApi {
           } else if (w.d > rest + 1.5) B.contact[w.id] = false
         }
         B.vx += ax * h; B.vy += ay * h; B.x += B.vx * h; B.y += B.vy * h
-        if (home) for (const w of walls()) {
+        if (wand) for (const w of walls()) {
           const min = B.r * (w.id === 'nav' && !B.squeezed ? 0.6 : 0.2)
           if (w.d < min) {
             B.x += w.nx * (min - w.d); B.y += w.ny * (min - w.d)
@@ -602,7 +615,7 @@ export function createDot(host: DotHost): DotApi {
       if (!scripted) { ax = clamp((B.vx - pvx) / h, -40000, 40000); ay = clamp((B.vy - pvy) / h, -40000, 40000) }
       const lp = 1 - Math.exp(-h / 0.03)
       B.fax += (ax - B.fax) * lp; B.fay += (ay - B.fay) * lp
-      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, home ? walls() : loginFrei() ? loginWaende() : [])
+      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, wand ? walls() : [])
     }
     if (!scripted) { B.ax *= 0.5; B.ay *= 0.5 }
     B.kx *= Math.exp(-dt * 14)
@@ -629,27 +642,20 @@ export function createDot(host: DotHost): DotApi {
   }
 
   /* ── Anmeldung ────────────────────────────────────────────────────────── */
-  // Gezogen oder geworfen bleibt er ganz im Display: unter der Statusleiste,
-  // über der Tastatur; die Mitte hält einen vollen Radius Abstand, gegen den
-  // Rand gedrückt plattet er sich ab. In Ruhe gehört er zur Bühne und scrollt
-  // mit ihr, auch aus dem Bild (die Registrierung ist länger als ein Bildschirm).
-  const loginFrei = () => B.mode === 'login' && (!!B.drag || B.login.phase === 'frei')
+  // Gezogen und geworfen ist er derselbe Dot wie in der App, über das ganze Display:
+  // Wurf zur Wand, dort klebt er und plattet sich ab (frei). Dann löst er sich
+  // langsam (loesen) und federt zur Bühne zurück (zurueck). In Ruhe gehört er zur
+  // Bühne und scrollt mit ihr, auch aus dem Bild (die Registrierung ist länger
+  // als ein Bildschirm); auf dem Rückweg gelten deshalb keine Wände.
+  const loginWand = () => B.mode === 'login' && (!!B.drag || B.login.phase === 'frei' || B.login.phase === 'loesen')
+  // Die Eröffnung kommt vom Rand unter der Statusleiste
   const loginGrenzen = () => { const b = bounds(); return { ...b, t: b.t + OBEN } }
-  function loginWaende(): Wand[] {
-    const b = loginGrenzen()
-    const ws: Wand[] = [
-      { id: 'left', d: B.x - b.l, nx: 1, ny: 0 },
-      { id: 'right', d: b.r - B.x, nx: -1, ny: 0 },
-      { id: 'top', d: B.y - b.t, nx: 0, ny: 1 },
-      { id: 'bottom', d: b.b - B.y, nx: 0, ny: -1 },
-    ]
-    if (CR > 0) ws.push({ id: 'corner', sdf: true, fn: cornerSdf, ...cornerSdf(B.x, B.y) })
-    return ws
-  }
   function loginZiel() {
     const S = stageCenter()
     return { x: S.x, y: S.y + B.login.n }
   }
+  // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
+  const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
   function loginStep(dt: number) {
     const L = B.login
     // die Neigung zum Formular weich, das Scrollen der Seite sofort
@@ -658,31 +664,16 @@ export function createDot(host: DotHost): DotApi {
     // In Ruhe ist er Teil der Seite: Scrollen und Layoutsprünge tragen ihn mit,
     // ohne Trägheit (sonst würde jeder Sprung den weichen Rand aufschaukeln)
     if (L.phase === 'ruhe') { B.x = B.lx = Z.x; B.y = B.ly = Z.y; B.vx = B.vy = B.lvx = B.lvy = 0; return }
-    if (L.phase === 'zurueck') {
-      const k = LOGIN.rueckK, c = 2 * Math.sqrt(k) * 1.05
-      B.vx += ((Z.x - B.x) * k - B.vx * c) * dt; B.vy += ((Z.y - B.y) * k - B.vy * c) * dt
-    } else {
-      const f = Math.pow(LOGIN.reibung, dt * 60); B.vx *= f; B.vy *= f
-    }
-    B.x += B.vx * dt; B.y += B.vy * dt
-    if (L.phase === 'frei') loginAbprall()
     const sp = Math.hypot(B.vx, B.vy)
     if (L.phase === 'frei') {
-      if (sp < 14) { L.still += dt; if (L.still > LOGIN.warten) { L.phase = 'zurueck'; L.still = 0 } } else L.still = 0
+      const gedockt = !!(B.dock.x || B.dock.y)
+      if (sp < 14) {
+        L.still += dt
+        if (L.still > (gedockt ? LOGIN.haften : LOGIN.warten)) { L.phase = gedockt ? 'loesen' : 'zurueck'; L.still = 0 }
+      } else L.still = 0
+    } else if (L.phase === 'loesen') {
+      if (B.flat < 0.06) { B.dock = { x: null, y: null }; L.phase = 'zurueck' }
     } else if (Math.hypot(Z.x - B.x, Z.y - B.y) < 0.4 && sp < 2) L.phase = 'ruhe'
-  }
-  // Geworfen prallt er am Rand ab; auf dem Rückweg zur Bühne nicht (sie kann aus dem Bild gescrollt sein)
-  function loginAbprall() {
-    const b = loginGrenzen(), r = B.r + 2
-    const prall = (v: number) => { B.flash = Math.min(0.8, B.flash + Math.abs(v) / 2600); return -v * LOGIN.abprall }
-    if (B.x < b.l + r) { B.x = b.l + r; if (B.vx < 0) B.vx = prall(B.vx) } else if (B.x > b.r - r) { B.x = b.r - r; if (B.vx > 0) B.vx = prall(B.vx) }
-    if (B.y < b.t + r) { B.y = b.t + r; if (B.vy < 0) B.vy = prall(B.vy) } else if (B.y > b.b - r) { B.y = b.b - r; if (B.vy > 0) B.vy = prall(B.vy) }
-  }
-  function loginZiehen(fx: number, fy: number) {
-    const b = loginGrenzen(), r = B.r + 2
-    const lx = b.l + r, hx = b.r - r, ly = b.t + r, hy = b.b - r
-    B.x = fx < lx ? lx - gummi(lx - fx, r) : fx > hx ? hx + gummi(fx - hx, r) : fx
-    B.y = fy < ly ? ly - gummi(ly - fy, r) : fy > hy ? hy + gummi(fy - hy, r) : fy
   }
   function loginBetreten(el: HTMLElement) {
     B.stage = el; messeBuehne()
@@ -700,6 +691,7 @@ export function createDot(host: DotHost): DotApi {
   function loginVerlassen() {
     if (B.mode !== 'login') return
     B.mode = 'house'; B.stage = null; B.drag = null; B.login.neigung = 0
+    appPlatz()
     setState('idle'); versteckeTreffer(); versteckeBlase(); melde(); laufen()
   }
 
@@ -1384,6 +1376,7 @@ export function createDot(host: DotHost): DotApi {
   function erfolg(): boolean {
     if (weniger || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
+    appPlatz()
     B.portal = { phase: 'rahmen', t0: performance.now(), fe: 0, r0: B.r }
     B.state = 'idle'; B.shape = 'frame'; B.form = null; B.text = null; B.textF = null
     wechsel()
@@ -1538,7 +1531,7 @@ export function createDot(host: DotHost): DotApi {
     TEXT_SC = buehne ? Math.min(buehne.width / 340, buehne.height / 280, 1.15) : B.r / FORM_R
     const anzahl = kinderAktiv() ? ALLE : PUNKTE
     federSchritt(dt, tt, anzahl)
-    const imDisplay = loginFrei() || B.intro.an, cp = [0, 0, 0]
+    const imDisplay = loginWand() || B.intro.an, cp = [0, 0, 0]
     ctx.globalCompositeOperation = 'lighter'
     if (!hidden) for (let i = 0; i < anzahl; i++) {
       // unsichtbar (Kinder in ihren Eltern, ungenutzte Formpunkte): nichts zu zeichnen
@@ -1611,7 +1604,7 @@ export function createDot(host: DotHost): DotApi {
       const sz = dotR * (0.55 + 0.6 * cp[2]) * 3 * SZ[i] * (1 + Math.min(sp * 0.05, 0.6))
       if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
       // Auf der Anmeldung verlässt kein Punkt das Display
-      if (imDisplay) { const lb = loginGrenzen(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b) }
+      if (imDisplay) { const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b) }
       if (GL) {
         const o = nPts * 7
         GLD[o] = X; GLD[o + 1] = Y; GLD[o + 2] = sz; GLD[o + 3] = c[0] / 255; GLD[o + 4] = c[1] / 255; GLD[o + 5] = c[2] / 255; GLD[o + 6] = alpha
@@ -1723,11 +1716,9 @@ export function createDot(host: DotHost): DotApi {
       else return
     }
     if (D.moved < 4) return
-    if (B.mode === 'login') {
-      // Wer ihn greift, beendet eine gezeigte Form
-      if (B.form || B.text) setState(B.state)
-      loginZiehen(e.clientX - D.ox, e.clientY - D.oy)
-    } else dragTo(e.clientX - D.ox, e.clientY - D.oy)
+    // Wer ihn auf der Anmeldung greift, beendet eine gezeigte Form
+    if (B.mode === 'login' && (B.form || B.text)) setState(B.state)
+    dragTo(e.clientX - D.ox, e.clientY - D.oy)
     if (!B.drag) return
     // Richtungswechsel: schnell auf kleinem Raum = Kitzeln, weit und wild = Schütteln
     const tr = D.trail, lastP = tr[tr.length - 1], ddx = e.clientX - lastP.x
@@ -1757,19 +1748,18 @@ export function createDot(host: DotHost): DotApi {
       if (B.thin > 0.5) fetchDot(); else host.beiAntippen(); return
     }
     const last = D.hist[D.hist.length - 1], stale = now - last.t > 90
-    if (B.mode === 'login') {
-      const vx = stale ? 0 : B.vx, vy = stale ? 0 : B.vy, sp = Math.hypot(vx, vy), k = sp > LOGIN.maxWurf ? LOGIN.maxWurf / sp : 1
-      B.vx = vx * k; B.vy = vy * k; B.login.phase = 'frei'; B.login.still = 0
-      return
-    }
-    release(stale ? 0 : B.vx, stale ? 0 : B.vy)
+    loslassen(stale ? 0 : B.vx, stale ? 0 : B.vy)
     if (D.dizzy && B.mode === 'home') startDizzy()
   }
   const beiAbbruch = (e: PointerEvent) => {
     if (e.pointerId !== zeiger) return
     const D = B.drag; endDrag()
-    if (D && B.mode === 'login') { B.login.phase = 'zurueck'; return }
-    if (D) release(0, 0)
+    if (D) loslassen(0, 0)
+  }
+  function loslassen(vx: number, vy: number) {
+    release(vx, vy)
+    // Kontakte der letzten Wand gelten nicht mehr: sonst bliebe der Aufprall an derselben Wand ohne Lichtblitz
+    if (B.mode === 'login') { B.login.phase = 'frei'; B.login.still = 0; B.contact = {} }
   }
   const beiTaste = (e: KeyboardEvent) => {
     if (e.key !== 'Enter' && e.key !== ' ') return
@@ -1901,7 +1891,9 @@ export function createDot(host: DotHost): DotApi {
     raf = requestAnimationFrame(schritt)
   }
   function schritt(now: number) {
-    const dt = Math.min(0.05, (now - last) / 1000)
+    // Der Zeitstempel des Bildes kann vor `last` aus laufen() liegen (Beginn des Bildes);
+    // ein negativer Schritt würde jede Dämpfung zur Verstärkung machen
+    const dt = clamp((now - last) / 1000, 0, 0.05)
     last = now
     messeBuehne()
     physics(dt, now / 1000)

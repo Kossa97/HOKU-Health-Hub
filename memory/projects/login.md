@@ -98,6 +98,14 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   - Trockenlauf PG 16 2× (Verhalten, Rechte, Rollback bei vorhandenen Doppeln), dann Produktion.
     Nachzählung: 14 Konten, 13 Profile, Versuche 0, Index da, Rauchtest (1 Fehlversuch gezählt,
     wieder entfernt).
+- **Login-Dot wie in der App (Nutzer 28.10.2026):** Ziehen/Werfen über die App-Physik (`dragTo`,
+  `release`, Wände mit Andocken und Abplatten), über das ganze Display inkl. Insel und Ecken.
+  Geworfen klebt er an der Wand (1,2 s Ruhe), löst sich langsam (`loesen`, Abplattung baut sich
+  mit Tempo 1,4 ab) und federt dann zur Bühne zurück (rueckK 16,2). Ohne Wand nach 0,45 s zurück.
+  Eröffnung aus Partikeln bleibt (Nutzer). Würfe ändern seinen App-Platz nicht (`appPlatz`).
+  Login-Seite hebt den Safe-Area-Abstand von body auf (stand doppelt, Seite war höher als das
+  Display). Dabei gefunden: negativer Bildschritt (rAF-Zeitstempel vor `performance.now()` aus
+  `laufen`) ließ Dot unter Last explodieren — dt jetzt ≥ 0. E2E „Wurf" in `e2e/login.spec.ts`.
 - Docker Desktop startete nicht (verwaiste Unix-Sockets in `%LOCALAPPDATA%\Docker\run`, beim
   zweiten Mal auch `%LOCALAPPDATA%\docker-secrets-engine`); Ordner umbenannt (`*.alt*`), danach
   lief es. Docker nach dem Start nicht hart beenden, sonst verwaisen die Sockets wieder.

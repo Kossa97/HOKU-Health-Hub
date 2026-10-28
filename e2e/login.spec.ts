@@ -54,6 +54,36 @@ test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page
   expect(mock.log.filter(z => z.includes('/auth/v1/token')).length).toBe(1)
 })
 
+test('Wurf: Dot klebt an der Wand wie in der App, löst sich und kehrt zur Bühne zurück', async ({ page }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  const treffer = page.locator('.tyd-dot-treffer')
+  const lage = () => treffer.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, w: r.width } })
+  const platz = () => page.evaluate(() => localStorage.getItem('tyd.dot.platz.v1'))
+  const vorher = await lage(), platzVorher = await platz()
+  // schnell nach rechts geworfen
+  await treffer.evaluate((el, s) => {
+    const ev = (t: string, x: number) => el.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: x, clientY: s.y, bubbles: true, cancelable: true }))
+    ev('pointerdown', s.x)
+    for (let i = 1; i <= 6; i++) ev('pointermove', s.x + i * 25)
+    ev('pointerup', s.x + 150)
+  }, { x: vorher.x, y: await treffer.evaluate(el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 }) })
+  // über 3 s: am weitesten rechts und am schmalsten (abgeplattet an der Wand)
+  let rechts = 0, schmal = Infinity
+  for (let t = 0; t < 3000; t += 100) {
+    await page.clock.runFor(100)
+    const l = await lage(); rechts = Math.max(rechts, l.x); schmal = Math.min(schmal, l.w)
+  }
+  expect(rechts).toBeGreaterThan(page.viewportSize()!.width - 70)
+  expect(schmal).toBeLessThan(vorher.w * 0.92)
+  await lassLaufen(page, 7000)
+  const zurueck = await lage()
+  expect(Math.abs(zurueck.x - vorher.x)).toBeLessThan(3)
+  // sein Platz in der App bleibt, wo er war
+  expect(await platz()).toBe(platzVorher)
+})
+
 test('Benutzername: Anmelden über die Edge Function, falsches Passwort bekommt X und Satz', async ({ page, mock }) => {
   await abgemeldet(page)
   await zumFormular(page)

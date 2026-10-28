@@ -5,8 +5,12 @@
  * über allem; die Bühne ist nur der Platz, an dem er steht.
  */
 
+/* Über das ganze Display, unter Statusleiste und Home-Strich: body hält dort schon
+   Abstand (index.css), die Seite hebt ihn auf und rechnet ihn selbst ein — sonst
+   stünde er doppelt da und die Seite wäre höher als das Display. */
 .tyd-auth {
-  min-height: 100dvh; max-width: 440px; margin: 0 auto; box-sizing: border-box;
+  min-height: 100dvh; max-width: 440px; box-sizing: border-box;
+  margin: calc(-1 * env(safe-area-inset-top, 0px)) auto calc(-1 * env(safe-area-inset-bottom, 0px));
   display: flex; flex-direction: column;
   padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 16px) max(16px, env(safe-area-inset-left, 0px));
   background: radial-gradient(120% 50% at 50% 0%, rgba(30, 60, 90, 0.35), transparent 60%);
