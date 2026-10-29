@@ -14,7 +14,10 @@ test('Plan anlegen → Home bestätigen → Kalender → Bestand bleibt nach Neu
   expect(mock.table('dose_logs')).toHaveLength(1)
   expect(mock.table('dose_logs')[0]).toMatchObject({ taken: true, dose: 250, unit: 'mcg' })
   await page.reload()
-  await expect(page.getByText('1/1 Einnahmen geloggt', { exact: true })).toBeVisible()
+  // Nach dem Neuladen baut Home die 3D-Torso-Vorschau neu auf. Im Test laeuft
+  // WebGL in Software, das dauert hier allein rund 5 s (gemessen: ohne die
+  // Vorschau 1,2 s, mit ihr 5–7 s) — die uebliche Grenze von 8 s reicht dafuer nicht.
+  await expect(page.getByText('1/1 Einnahmen geloggt', { exact: true })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('button', { name: /Alle als eingenommen markieren –/ })).toHaveCount(0)
   await expectCalendarTaken(page)
   await expectStockVisible(page)

@@ -30,6 +30,7 @@ import { flyDots } from './lib/dotFlight'
 import { RELEASE_FLIGHT_MS, setOrbOrigin, setOrbTarget } from './lib/orbBridge'
 import { orbPalette } from './lib/orbDraw'
 import { usePrefersReducedMotion } from './lib/orbZone'
+import { useDotRundflug } from './hooks/useDotRundflug'
 import { toDateKey, useNutritionDay } from './hooks/useNutritionDay'
 import { type DishDraft, addToDraft, draftFromDish, draftFromIngredients } from './lib/dishDraft'
 import { foodFromEntry } from './lib/foodSearch'
@@ -94,6 +95,8 @@ export function ErnaehrungPage() {
   }
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
+  // Dot fliegt beim Öffnen einmal um die Kugel und sagt, was heute offen ist (höchstens alle 2 h)
+  useDotRundflug({ heute: isToday, bereit: !!n.day && isToday, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
