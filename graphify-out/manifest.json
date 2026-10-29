@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793287371.2041368,
-    "seen": 1793287611.8973033,
-    "ast_hash": "2d2226a2c33c2c09da06ac5a4b6bf93c",
+    "mtime": 1793288230.4147866,
+    "seen": 1793288380.6876044,
+    "ast_hash": "2cae2e10ff332c8e103f4007b3c2ba00",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793286933.0776353,
-    "seen": 1793287176.1659362,
-    "ast_hash": "422229ed9c0631afa37545efe7783a2b",
+    "mtime": 1793288209.3613505,
+    "seen": 1793288380.6869056,
+    "ast_hash": "9117ec6607f6d68c2bb3da1e0dc3f547",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793287329.9738748,
-    "seen": 1793287611.8966753,
-    "ast_hash": "40bdcb94bc9f0c9afe5a1cfbaa3b6080",
+    "mtime": 1793288281.7106194,
+    "seen": 1793288380.686561,
+    "ast_hash": "ff398cb17bb0433f1696390a893f006d",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -18894,15 +18894,15 @@
     "semantic_hash": ""
   },
   "src/features/auth/lib/hinweise.test.ts": {
-    "mtime": 1793286259.2699752,
-    "seen": 1793286461.5470495,
-    "ast_hash": "0e5305212c0e5b9e0a5cefff732bf18e",
+    "mtime": 1793288069.7738957,
+    "seen": 1793288380.686763,
+    "ast_hash": "88d9d599a5917773eebeee41eae597c9",
     "semantic_hash": ""
   },
   "src/features/auth/lib/hinweise.ts": {
-    "mtime": 1793286276.9195955,
-    "seen": 1793286461.5470505,
-    "ast_hash": "b37593c8229966496df60861e8adc49d",
+    "mtime": 1793288078.619148,
+    "seen": 1793288380.6867642,
+    "ast_hash": "07630e1a2880fc10d29d43d617a62f4c",
     "semantic_hash": ""
   },
   "src/features/dot/engine/auftritt.test.ts": {
