@@ -28,12 +28,14 @@ export async function mitAnbieter(anbieter: Anbieter): Promise<ServerFehler | nu
   return error ? serverFehler(error) : null
 }
 
-export interface Rueckkehr { anbieter: Anbieter | null; fehler: boolean }
+/** `abgebrochen`: die Person hat beim Anbieter selbst abgebrochen (kein Fehler, Hoku zeigt kein X). */
+export interface Rueckkehr { anbieter: Anbieter | null; fehler: boolean; abgebrochen: boolean }
 
 /** Kommt die Seite vom Anbieter zurück, und mit welchem Ausgang? */
 export function rueckkehr(search: string, hash: string): Rueckkehr {
   const q = new URLSearchParams(search), h = new URLSearchParams(hash.replace(/^#/, ''))
   const name = q.get(PARAM)
   const anbieter = name === 'apple' || name === 'google' ? name : null
-  return { anbieter, fehler: !!(q.get('error') || h.get('error')) }
+  const fehler = q.get('error') || h.get('error'), abgebrochen = fehler === 'access_denied'
+  return { anbieter, fehler: !!fehler && !abgebrochen, abgebrochen }
 }

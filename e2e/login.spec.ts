@@ -169,9 +169,75 @@ test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Dot landet in der Leiste'
 test('Zurück vom Anbieter mit Fehler: Satz und X, Adresse bereinigt', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
-  await page.goto('/auth?anbieter=apple&error=access_denied&error_description=abgebrochen')
+  await page.goto('/auth?anbieter=apple&error=server_error&error_description=kaputt')
   await expect(page.getByRole('alert')).toHaveText('Das hat nicht geklappt. Versuch es noch einmal.')
   await expect(page).toHaveURL(/\/auth$/)
+})
+
+test('Zurück vom Anbieter, selbst abgebrochen: kein Fehler, Hoku bleibt ruhig, Adresse bereinigt', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth?anbieter=apple&error=access_denied&error_description=abgebrochen')
+  await lassLaufen(page, 3000)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page).toHaveURL(/\/auth$/)
+  await expect(page.locator('[data-auth-submit]')).toBeEnabled()
+})
+
+// Hoku führt (Spec 2026-10-29): Hinweise bei Stille, Abbruch durch Eingabe, Name beim Tippen, Sprache
+const bisAttribut = async (page: Page, sel: string, attr: string, maxMs: number) => {
+  for (let t = 0; t < maxMs; t += 100) {
+    await page.clock.runFor(100)
+    if ((await page.locator(sel).getAttribute(attr)) !== null) return t
+  }
+  return -1
+}
+const hokuSagt = (page: Page) => page.locator('main p[role="status"]').first()
+
+test('Start: nach der Begrüßung Hinweise auf Anmelden und Registrieren, dann klopft Hoku', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth')
+  expect(await bisAttribut(page, '[data-auth-start-login]', 'data-dot-ziel', 26000)).toBeGreaterThan(0)
+  expect(await bisAttribut(page, '[data-auth-start-register]', 'data-dot-ziel', 16000)).toBeGreaterThan(0)
+  let gefragt = false
+  for (let t = 0; t < 26000 && !gefragt; t += 200) { await page.clock.runFor(200); gefragt = (await hokuSagt(page).textContent()) === 'Noch da?' }
+  expect(gefragt).toBe(true)
+})
+
+test('Anmelden: nach 10 s Stille fliegt Hoku zum leeren Feld, Tippen bricht das sofort ab', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  expect(await bisAttribut(page, '#auth-kennung', 'data-dot-ziel', 20000)).toBeGreaterThan(0)
+  await expect(hokuSagt(page)).toHaveText('Hier deine E-Mail rein')
+  await page.locator('#auth-kennung').pressSequentially('a')
+  await page.clock.runFor(200)
+  await expect(page.locator('#auth-kennung')).not.toHaveAttribute('data-dot-ziel')
+})
+
+test('Registrieren: der Name wird beim Tippen geprüft, vergeben zeigt die Zeile ohne Absenden', async ({ page, mock }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await page.locator('[data-auth-start-register]').click()
+  await page.locator('#auth-user').fill('e2e')
+  await lassLaufen(page, 1500)
+  await expect(page.getByRole('alert')).toHaveText('Dieser Benutzername ist schon vergeben.')
+  await page.locator('#auth-user').fill('neuer.name')
+  await lassLaufen(page, 1500)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  expect(mock.rpcCalls.filter(c => c.name === 'benutzername_frei')).toHaveLength(2)
+  expect(mock.log.filter(z => z.includes('/auth/v1/signup'))).toEqual([])
+})
+
+test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6500)
+  await expect(hokuSagt(page)).toHaveText('Hi! Willkommen bei Hoku')
+  await page.locator('.tyd-auth-sprache button[lang="en"]').click()
+  await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
 test('Face ID (Passkey): nach der Landung einrichten, danach mit einem Tipp anmelden', async ({ page, mock }) => {
