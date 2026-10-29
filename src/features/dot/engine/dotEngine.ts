@@ -16,6 +16,7 @@ import {
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
 import { FORM_R, herzSchlag, kreuzFlach, ladeSchrift, textForm } from './formen'
+import { AUFTRITT, feder, flugPunkt, flugWerte, stoss, type FlugWerte } from './auftritt'
 import { GESTE_N, HAKEN_GRUEN, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
@@ -84,6 +85,16 @@ export interface DotApi {
   verlasseLogin(): void
   /** Auf der Anmeldung: um so viele Pixel zum Formular hin neigen. */
   setNeigung(px: number): void
+  /**
+   * Hinweis auf der Anmeldung: Hoku fliegt klein zu `el`, schwingt frei um ihn (auch dahinter), tippt
+   * zweimal darauf und kehrt zurück. Während der Runde trägt `el` `data-dot-ziel`, bei jedem Tipp kurz
+   * `data-dot-druck`. `true`, wenn er fertig geworden ist; `false` bei Abbruch oder unsichtbarem Ziel.
+   */
+  umkreise(el: HTMLElement, beiTipp?: () => void): Promise<boolean>
+  /** Hoku fliegt dreimal ganz nah an die Scheibe und prallt dagegen; `beiStoss` bei jedem Aufprall. */
+  klopfe(beiStoss?: () => void): Promise<boolean>
+  /** Bricht einen Hinweis oder das Klopfen sofort ab; Hoku federt zur Bühne. */
+  stoppeAuftritt(): void
   stimme(v: number): void
   sag(text: string, ms?: number): void
   neuVermessen(): void
@@ -192,6 +203,13 @@ interface Wand extends Abstand {
 }
 interface Punkt { i: number; u: number; x: number; y: number; z: number; s: number; k: number; par: number }
 interface Funke { x: number; y: number; vx: number; vy: number; t: number; life: number }
+
+interface Auftritt {
+  art: 'knopf' | 'klopfen'; t: number; el: HTMLElement | null; rect: DOMRect | null; F: FlugWerte | null
+  x: number; y: number; vx: number; vy: number; z: number; vz: number
+  x0: number; y0: number; ex: number; ey: number; ez: number; hinten: boolean; wand: Wand | null; druckBis: number; stoesse: number
+  beiStoss?: () => void; fertig: (ok: boolean) => void
+}
 
 export function createDot(host: DotHost): DotApi {
   const { canvas, glCanvas, hit, blase, texte } = host
@@ -319,7 +337,9 @@ export function createDot(host: DotHost): DotApi {
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
     form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
-    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck', still: 0, neigung: 0, n: 0 },
+    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0 },
+  // Hinweis oder Klopfen auf der Anmeldung (Spec Hoku führt); quetsch staucht ihn beim Aufprall
+  auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
   }
   // Je Punkt, in Dots Formraum (Einheit: sein Radius, Mitte 0): Lage Q und Tempo V
   // (pro 1/60 s, wie im Mockup), Ziel T, Ziel beim letzten Wechsel O, Verzögerung DEL.
@@ -415,7 +435,7 @@ export function createDot(host: DotHost): DotApi {
   function radiusTarget() {
     if (B.mode === 'stage') return 46
     if (B.mode === 'portal') return B.r
-    if (B.mode === 'login') return loginRadius()
+    if (B.mode === 'login') return B.auftritt ? B.r : loginRadius()
     if (B.mode === 'enter') return B.size * 0.8
     if (B.mode === 'orbit' && B.orbit) return B.size * (0.42 + 0.1 * B.orbit.depth)
     return B.size * (1 - 0.14 * B.recede)
@@ -588,7 +608,7 @@ export function createDot(host: DotHost): DotApi {
     if (B.squeezed && !NAV.kbT && B.y < TAB - B.r * 0.5) B.squeezed = false
     moods(dt)
     shapeScript(dt)
-    const scripted = !!B.drag || B.mode === 'exit' || B.mode === 'house' || B.mode === 'orbit' || (B.mode === 'login' && B.login.phase === 'ruhe') || B.mode === 'portal'
+    const scripted = !!B.drag || B.mode === 'exit' || B.mode === 'house' || B.mode === 'orbit' || (B.mode === 'login' && (B.login.phase === 'ruhe' || B.login.phase === 'auftritt')) || B.mode === 'portal'
     if (scripted && dt > 0) {
       const vx = (B.x - B.lx) / dt, vy = (B.y - B.ly) / dt
       B.ax += (clamp((vx - B.lvx) / dt, -30000, 30000) - B.ax) * 0.4
@@ -628,7 +648,8 @@ export function createDot(host: DotHost): DotApi {
       if (!scripted) { ax = clamp((B.vx - pvx) / h, -40000, 40000); ay = clamp((B.vy - pvy) / h, -40000, 40000) }
       const lp = 1 - Math.exp(-h / 0.03)
       B.fax += (ax - B.fax) * lp; B.fay += (ay - B.fay) * lp
-      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, wand ? walls() : [])
+      // beim Tippen auf einen Knopf drückt er sich an dessen Oberkante platt wie an einer Wand
+      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, wand ? walls() : B.auftritt?.wand ? [B.auftritt.wand] : [])
     }
     if (!scripted) { B.ax *= 0.5; B.ay *= 0.5 }
     B.kx *= Math.exp(-dt * 14)
@@ -671,6 +692,7 @@ export function createDot(host: DotHost): DotApi {
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
   function loginStep(dt: number) {
     const L = B.login
+    if (L.phase === 'auftritt') { auftrittStep(dt); return }
     // die Neigung zum Formular weich, das Scrollen der Seite sofort
     L.n += (L.neigung - L.n) * (1 - Math.exp(-dt * 10))
     const Z = loginZiel()
@@ -687,6 +709,94 @@ export function createDot(host: DotHost): DotApi {
     } else if (L.phase === 'loesen') {
       if (B.flat < 0.06) { B.dock = { x: null, y: null }; L.phase = 'zurueck' }
     } else if (Math.hypot(Z.x - B.x, Z.y - B.y) < 0.4 && sp < 2) L.phase = 'ruhe'
+  }
+  /* ── Hinweis und Klopfen (Spec Hoku führt, Mockup K2 und G4) ───────────── */
+  // Ein Knopf zählt nur, wenn er ganz im sichtbaren Bereich liegt (nicht hinter der Tastatur)
+  const imBild = (k: DOMRect) => { const b = bounds(); return k.width > 0 && k.top >= b.t && k.bottom <= b.b }
+  function auftrittStart(art: Auftritt['art'], el: HTMLElement | null, beiStoss: (() => void) | undefined, fertig: (ok: boolean) => void) {
+    if (weniger || B.mode !== 'login' || B.drag || B.auftritt || B.intro.an) { fertig(false); return }
+    const rect = el ? el.getBoundingClientRect() : null
+    if (el && (!rect || !imBild(rect))) { fertig(false); return }
+    if (B.form || B.text) setState(B.state)
+    B.auftritt = { art, t: 0, el, rect, F: el ? flugWerte(Math.random() * 10) : null, x: B.x, y: B.y, vx: 0, vy: 0, z: 1, vz: 0,
+      x0: B.x, y0: B.y, ex: 0, ey: 0, ez: 1, hinten: false, wand: null, druckBis: 0, stoesse: 0, beiStoss, fertig }
+    B.login.phase = 'auftritt'; laufen()
+  }
+  function auftrittEnde(ok: boolean) {
+    const A = B.auftritt
+    if (!A) return
+    B.auftritt = null; B.quetsch = 0
+    if (A.el) { delete A.el.dataset.dotZiel; delete A.el.dataset.dotDruck }
+    // fertig steht er schon auf der Bühne; abgebrochen federt er von dort zurück, wo er gerade ist
+    if (B.mode === 'login' && B.login.phase === 'auftritt') { B.login.phase = 'zurueck'; B.vx = B.lvx; B.vy = B.lvy }
+    A.fertig(ok)
+  }
+  function auftrittStep(dt: number) {
+    const A = B.auftritt
+    if (!A) { B.login.phase = 'zurueck'; return }
+    const K = AUFTRITT, Z = loginZiel(), rB = loginRadius(), t0 = A.t
+    A.t += dt
+    const tt = A.t
+    if (A.art === 'klopfen') {
+      const s = stoss(tt)
+      B.x = Z.x + (W / 2 - Z.x) * s.naehe; B.y = Z.y + (H * 0.39 - Z.y) * s.naehe
+      B.r = rB * s.skala; B.rv = 0; B.quetsch = s.quetsch
+      for (const b of K.stoesse) {
+        const aufprall = b + K.stossHin
+        if (t0 < aufprall && tt >= aufprall) {
+          A.stoesse++; B.flash = Math.min(0.8, B.flash + 0.45); B.glas.push({ x: B.x, y: B.y, r: B.r, t: 0 }); A.beiStoss?.()
+        }
+      }
+      if (tt >= K.klopfen) { B.x = Z.x; B.y = Z.y; B.r = rB; B.login.phase = 'ruhe'; auftrittEnde(true) }
+      return
+    }
+    const el = A.el, F = A.F
+    if (!el || !F || !el.isConnected) { auftrittEnde(false); return }
+    const k = el.getBoundingClientRect(); A.rect = k
+    if (tt < K.hin) {
+      // Hinflug im Bogen auf den schon fliegenden Köder zu, mit Überschwingen
+      const l = flugPunkt(k, F, tt), e = feder(tt, 6, 10), w = clamp01(tt / 0.5), px = B.x, py = B.y
+      B.x = A.x0 + (l.x - A.x0) * e + 18 * Math.sin(Math.PI * w); B.y = A.y0 + (l.y - A.y0) * e - 70 * Math.sin(Math.PI * w)
+      B.r = rB + (K.klein - rB) * weich(tt / 0.45); B.rv = 0; A.z = 1 + (l.z - 1) * weich(tt / K.hin)
+      A.x = B.x; A.y = B.y; if (dt > 0) { A.vx = (B.x - px) / dt; A.vy = (B.y - py) / dt }
+      el.dataset.dotZiel = 'an'
+    } else if (tt < K.hin + K.flug) {
+      // Hoku an einer weichen Feder hinter dem Köder her; mittendrin fällt er auf den Knopf und tippt zweimal
+      const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n, tipA = F.tipp, tipB = tipA + K.tippDauer, boden = k.top - K.klein * 0.95
+      const tippX = k.left + k.width * F.tippX
+      for (let j = 0; j < n; j++) {
+        const st = t0 - K.hin + (j + 1) * h, l = flugPunkt(k, F, K.hin + Math.max(0, st))
+        let ax: number, ay: number, zT: number
+        if (st >= tipA && st < tipA + K.anflug) {
+          const kk = 150, c = 2 * 0.75 * Math.sqrt(kk)
+          ax = kk * (tippX - A.x) - c * A.vx; ay = kk * (k.top - 40 - A.y) - c * A.vy; zT = 1
+        } else if (st >= tipA && st < tipB) { ax = -7 * A.vx; ay = K.fall; zT = 1 }
+        else {
+          const kk = K.federK, c = 2 * K.federD * Math.sqrt(kk)
+          ax = kk * (l.x - A.x) - c * A.vx; ay = kk * (l.y - A.y) - c * A.vy + K.schwer; zT = l.z
+        }
+        A.vx += ax * h; A.vy += ay * h; A.x += A.vx * h; A.y += A.vy * h
+        if (st >= tipA + K.anflug && st < tipB && A.vy > 0 && A.y > boden && A.x > k.left + 8 && A.x < k.right - 8) {
+          const v = A.vy
+          A.y = boden; A.vy = -v * K.rueckprall
+          if (v > 80) {
+            const wand: Wand = { id: 'knopf', d: k.top - A.y, nx: 0, ny: -1 }
+            impact(wand, v); el.dataset.dotDruck = 'an'; A.druckBis = tt + 0.16; A.beiStoss?.()
+          }
+        }
+        A.vz += (60 * (zT - A.z) - 2 * 0.5 * Math.sqrt(60) * A.vz) * h; A.z = clamp(A.z + A.vz * h, -1, 1)
+      }
+      const st = tt - K.hin, aufBoden = st >= tipA && st < tipB && A.y > boden - 6
+      A.wand = aufBoden ? { id: 'knopf', d: k.top - A.y, nx: 0, ny: -1 } : null
+      B.x = A.x; B.y = A.y; B.r = K.klein * (1 + 0.22 * A.z); B.rv = 0; A.hinten = A.z < -0.05
+      A.ex = A.x; A.ey = A.y; A.ez = A.z
+      if (A.druckBis && tt > A.druckBis) { delete el.dataset.dotDruck; A.druckBis = 0 }
+    } else if (tt < K.hin + K.flug + K.rueck) {
+      const u = tt - K.hin - K.flug, e = feder(u, 5.5, 9), w = clamp01(u / 0.55)
+      B.x = A.ex + (Z.x - A.ex) * e - 16 * Math.sin(Math.PI * w); B.y = A.ey + (Z.y - A.ey) * e - 60 * Math.sin(Math.PI * w)
+      B.r = K.klein + (rB - K.klein) * weich(u / 0.5); B.rv = 0; A.z = A.ez + (1 - A.ez) * weich(u / 0.3); A.hinten = A.z < -0.05; A.wand = null
+      delete el.dataset.dotZiel; delete el.dataset.dotDruck
+    } else { B.x = Z.x; B.y = Z.y; B.r = rB; B.login.phase = 'ruhe'; auftrittEnde(true) }
   }
   function loginBetreten(el: HTMLElement) {
     B.stage = el; messeBuehne()
@@ -706,6 +816,7 @@ export function createDot(host: DotHost): DotApi {
     else setTimeout(vorbereiten, 300)
   }
   function loginVerlassen() {
+    auftrittEnde(false)
     if (B.mode !== 'login') return
     B.mode = 'house'; B.stage = null; B.drag = null; B.login.neigung = 0
     appPlatz()
@@ -1366,6 +1477,7 @@ export function createDot(host: DotHost): DotApi {
   /* ── Erfolg: Portal und Heimweg ───────────────────────────────────────── */
   const portalFlaeche = () => document.querySelector<HTMLElement>('[data-dot-portal]')
   function erfolg(): boolean {
+    auftrittEnde(false)
     if (weniger || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
     appPlatz()
@@ -1567,7 +1679,7 @@ export function createDot(host: DotHost): DotApi {
     // die Grenze zum Formular folgt der Bühne, falls die Seite sich während der Eröffnung verschiebt
     if (B.intro.an) messeBuehne()
     federSchritt(dt, tt, anzahl)
-    const imDisplay = loginWand() || B.intro.an, cp = [0, 0, 0]
+    const imDisplay = loginWand() || B.intro.an, cp = [0, 0, 0], verdeckt = B.auftritt?.hinten ? B.auftritt.rect : null
     ctx.globalCompositeOperation = 'lighter'
     if (!hidden) for (let i = 0; i < anzahl; i++) {
       // unsichtbar (Kinder in ihren Eltern, ungenutzte Formpunkte): nichts zu zeichnen
@@ -1578,6 +1690,7 @@ export function createDot(host: DotHost): DotApi {
       const rf = ((th / TAU + 1) % 1) * RK, ri = rf | 0, rq = rf - ri, rj = (ri + 1) % RK, ra = ri % RK
       const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = B.shape === 'frame' ? 1 : 1 + ur
       let dx = cp[0] * r * s, dy = cp[1] * r * s
+      if (B.quetsch > 0.001) { dx *= 1 + 0.14 * B.quetsch; dy *= 1 - 0.11 * B.quetsch }
       if (pan && B.flat > 0.01) {
         const w = pan.w, tx = -w.ny, ty = w.nx, mid = (pan.lo + pan.hi) / 2, half = (pan.hi - pan.lo) / 2
         // Punkte nah der Mitte haben keine stabile Richtung: dort kein Wackel-Anteil (sonst zucken sie)
@@ -1645,6 +1758,8 @@ export function createDot(host: DotHost): DotApi {
       if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
       // Bei der Eröffnung verlässt kein Punkt das Display. Sonst halten ihn die Wände wie in
       // der App; eine rechteckige Grenze gäbe oben in den runden Ecken eine Kante, an der er zuckt.
+      // hinter einem Knopf verdeckt der Knopf ihn
+      if (verdeckt && X > verdeckt.left && X < verdeckt.right && Y > verdeckt.top && Y < verdeckt.bottom) continue
       if (B.intro.an) {
         const lb = bounds(); X = clamp(X, lb.l, lb.r); Y = clamp(Y, lb.t, lb.b)
         // über dem Formular nichts: unterhalb der Bühne verblassen die Partikel auf 18 px
@@ -1682,6 +1797,14 @@ export function createDot(host: DotHost): DotApi {
       ctx.beginPath(); ctx.arc(z.x, z.y, 6 + 26 * easeOut3(q), 0, TAU); ctx.stroke()
     }
     B.rufe = B.rufe.filter(z => z.t < 0.55)
+    // Klopfen: ein Lichtring läuft über die Scheibe, wo er aufgeprallt ist
+    for (const z of B.glas) {
+      z.t += dt
+      const q = clamp01(z.t / 0.75); if (q >= 1) continue
+      ctx.strokeStyle = `rgba(175,220,255,${(0.5 * (1 - q)).toFixed(3)})`; ctx.lineWidth = 2
+      ctx.beginPath(); ctx.arc(z.x, z.y, z.r * (1 + 0.3 * easeOut3(q)), 0, TAU); ctx.stroke()
+    }
+    B.glas = B.glas.filter(z => z.t < 0.75)
     B.sparks = B.sparks.filter(s => s.t < s.life)
     for (const z of B.zz) {
       const q = z.t / 2.2, a = Math.sin(Math.PI * q) * 0.7
@@ -1743,6 +1866,7 @@ export function createDot(host: DotHost): DotApi {
     e.preventDefault()
     try { hit.setPointerCapture(e.pointerId) } catch { /* ohne Fang */ }
     zeiger = e.pointerId
+    auftrittEnde(false)
     const now = performance.now()
     B.drag = { rand: e.pointerType !== 'mouse' && e.clientX <= RAND_ZURUECK, ox: e.clientX - B.x, oy: e.clientY - B.y, sx: e.clientX, sy: e.clientY, t0: now, moved: 0, hist: [{ x: B.x, y: B.y, t: now }], trail: [{ x: e.clientX, y: e.clientY, t: now }], rev: [], sx0: 0 }
     B.vx = 0; B.vy = 0; B.poke = 0; wake(false); laufen()
@@ -2012,6 +2136,9 @@ export function createDot(host: DotHost): DotApi {
     loginBuehne: el => loginBetreten(el),
     verlasseLogin: () => loginVerlassen(),
     setNeigung: px => { B.login.neigung = px },
+    umkreise: (el, beiTipp) => new Promise<boolean>(fertig => auftrittStart('knopf', el, beiTipp, fertig)),
+    klopfe: beiStoss => new Promise<boolean>(fertig => auftrittStart('klopfen', null, beiStoss, fertig)),
+    stoppeAuftritt: () => auftrittEnde(false),
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
     sag: (text, ms) => { sag(text, ms); laufen() },
