@@ -1,0 +1,417 @@
+{
+  "date": "2026-10-29",
+  "fonts": {
+    "headline": "Michroma 400",
+    "caption": "IBM Plex Mono 500"
+  },
+  "equalWidths": {
+    "HOKU": 410,
+    "HEALTH_HUB": 410
+  },
+  "compactEqualHeights": {
+    "HOKU": 71.96107081583669,
+    "Hoku": 71.96107081583669
+  },
+  "pngs": [
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "transparentPixels": 1575733,
+      "opaquePixels": 110847,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "4fb7701c0f3e8c925ba2a14c10d48eca4e22983069216e42324fc2a90e468bae"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "transparentPixels": 393377,
+      "opaquePixels": 26908,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "2eca5372f15b6ce55c9612e84cc200b38ea01ef2ed0e5586779c29cce6cee5e5"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 783,
+      "transparentPixels": 0,
+      "opaquePixels": 1879200,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 6362,
+      "sha256": "f6089e4b968519df8cd559e34e3ab589a689ff312cc2f43bd3689b4ac5042357"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "transparentPixels": 1575733,
+      "opaquePixels": 110847,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "3f8617f1b98ca8c90b3db2d175f33bae047f7cabd66eb65e35d9ec6681021873"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "transparentPixels": 393377,
+      "opaquePixels": 26908,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "cdbdb4b45771378f7ed7fb417cd1b3c1e23ab8e04ce4b688fd3d45bc56fe46cb"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 783,
+      "transparentPixels": 0,
+      "opaquePixels": 1879200,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 6362,
+      "sha256": "6756c9dc15286163ab72201240b27a9830a8a5e78b9acc0847c4993701a80103"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 589,
+      "transparentPixels": 1231661,
+      "opaquePixels": 110745,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "c7eab82c7cb963ee7aabef18219be3c0b2db1bc7d1277a1a2ff05b9c05b42f72"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 294,
+      "transparentPixels": 306722,
+      "opaquePixels": 26857,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "04cded075ce5b4a24e125963d61721a2ffbd7b8880fde0b97f16f96683d0ed49"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 589,
+      "transparentPixels": 0,
+      "opaquePixels": 1413600,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 5974,
+      "sha256": "ea75f169e616bf135c1a72960ff243452dcefe8055b1c3ed9cc15f0f945831f0"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 589,
+      "transparentPixels": 1231661,
+      "opaquePixels": 110745,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "469c08b119efae276e61b8765b03d9f3318f29f24b52346698eab3dc3cc13d16"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 294,
+      "transparentPixels": 306722,
+      "opaquePixels": 26857,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "d179c0c1e43cf16fa8eba90529c085bc64a09ae96f4f13f11d782bb9349a2bd0"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 589,
+      "transparentPixels": 0,
+      "opaquePixels": 1413600,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 5974,
+      "sha256": "9755c27bef9e9b0b31d933b3e6f60dcb5a94d2c7be8b8f529a7f8a150ae94246"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 1607667,
+      "opaquePixels": 59148,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "08af877a2e38634c236375b1e2d2fed8c3f4b9d76090e906853eebdda44fc612"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "transparentPixels": 399852,
+      "opaquePixels": 12723,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "d0a4d3fd2e198695a24d2e5f0c8eced2837ac6bbedb310010fc74f93a3facda3"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 0,
+      "opaquePixels": 1752000,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 6256,
+      "sha256": "07d3a9d63f74fe057188ea509bfe2dcaf9f651b2e97a8b4960a24ea121ee0378"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 1626703,
+      "opaquePixels": 0,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "6ebe0ea9cc812e189ff96daa6858e3d0e808f7cee8901067a22ec620d9cd5493"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 1607667,
+      "opaquePixels": 59148,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "866b8eb1dc7f68d31388ec950a71c6502bf7a2e723413c5b2681d6a15fb0ebc1"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "transparentPixels": 399852,
+      "opaquePixels": 12723,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "91ef58626e34829308225f2b474cd624ea0b5147bbaff2d2e51c9284a266cf1b"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 0,
+      "opaquePixels": 1752000,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 6256,
+      "sha256": "875fe8c1fad6278b10ba862151475b837025f3d07a8349a7699c9ad32f2f1181"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35-2400.png",
+      "width": 2400,
+      "height": 730,
+      "transparentPixels": 1626703,
+      "opaquePixels": 0,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "7eb66654cd94c9a8ee1a25646720f30f539c5bf97af55c128f3d37f94ea471a2"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-weiss-transparent-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 574748,
+      "opaquePixels": 31,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "91b3f9e0c6917e0213d679d5042e17f0008e42dc3a62f71267985ad8a89714db"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-schwarz-transparent-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 574748,
+      "opaquePixels": 31,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 0,
+      "sha256": "7bc21bd7074486a8166ba7daccd3ef7fc2eee57fe2be8abe6a8efb07f2ded0e0"
+    },
+    {
+      "file": "04-Icons/hoku-app-blau-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "opaquePixels": 1048576,
+      "coloredPixels": 1048333,
+      "visibleEdgePixels": 4092,
+      "sha256": "9bc65478356a0883b8aaee0a6564103e029f4696207c94a0a8524c9486ad91a8"
+    },
+    {
+      "file": "04-Icons/hoku-app-blau-512.png",
+      "width": 512,
+      "height": 512,
+      "transparentPixels": 0,
+      "opaquePixels": 262144,
+      "coloredPixels": 262079,
+      "visibleEdgePixels": 2044,
+      "sha256": "eb137aaa9b0e4c93e2dac9d5d231708dc96b80829ceb8d8db3de8eb0e3db7a3d"
+    },
+    {
+      "file": "04-Icons/hoku-app-blau-192.png",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 0,
+      "opaquePixels": 36864,
+      "coloredPixels": 36859,
+      "visibleEdgePixels": 764,
+      "sha256": "78d8c57fb821941eaa41931263fd4acc951b4d76f2a687d1558098f9c9a241a0"
+    },
+    {
+      "file": "04-Icons/hoku-app-blau-180.png",
+      "width": 180,
+      "height": 180,
+      "transparentPixels": 0,
+      "opaquePixels": 32400,
+      "coloredPixels": 32391,
+      "visibleEdgePixels": 716,
+      "sha256": "31c17b0079f4dfcf109aeeb85e432fec6d7ddd153a8675521e4fa9bf6e48993c"
+    },
+    {
+      "file": "04-Icons/hoku-app-farbig-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "opaquePixels": 1048576,
+      "coloredPixels": 1013334,
+      "visibleEdgePixels": 4092,
+      "sha256": "7a715a98e1efababeab8b7f2723af06a9c2f4330794b0e4d03cb906994eaec70"
+    },
+    {
+      "file": "04-Icons/hoku-app-farbig-512.png",
+      "width": 512,
+      "height": 512,
+      "transparentPixels": 0,
+      "opaquePixels": 262144,
+      "coloredPixels": 253637,
+      "visibleEdgePixels": 2044,
+      "sha256": "60b2a3542b3ed229a49889b68a4678a684ed9e8374b306c487e7d52e7870f0e5"
+    },
+    {
+      "file": "04-Icons/hoku-app-farbig-192.png",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 0,
+      "opaquePixels": 36864,
+      "coloredPixels": 35646,
+      "visibleEdgePixels": 764,
+      "sha256": "0f455dae9697e652d9924b93e0e50ad8cdfa8b8f853dcd82f49cbc9c7df5f2ca"
+    },
+    {
+      "file": "04-Icons/hoku-app-farbig-180.png",
+      "width": 180,
+      "height": 180,
+      "transparentPixels": 0,
+      "opaquePixels": 32400,
+      "coloredPixels": 31296,
+      "visibleEdgePixels": 716,
+      "sha256": "c77ab9de0a9847f5858dcffd0cd0ddf6e81c63e91c7d99b3abf7cd8906393cb6"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "opaquePixels": 1048576,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 4092,
+      "sha256": "6e74f2ded79fd3cc559977cc6455d372f3191715118464d7fecc4b3aaad5461b"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-512.png",
+      "width": 512,
+      "height": 512,
+      "transparentPixels": 0,
+      "opaquePixels": 262144,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 2044,
+      "sha256": "d09350baa2d3e5e274e412118eb9b3f533476b67da6153a29474f1ba55a12584"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-192.png",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 0,
+      "opaquePixels": 36864,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 764,
+      "sha256": "f280643370ef92da784f2543090fb011c26e10c986c4b5474598c274f102a81c"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-180.png",
+      "width": 180,
+      "height": 180,
+      "transparentPixels": 0,
+      "opaquePixels": 32400,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 716,
+      "sha256": "fd1ef4d8ae0cf816df858c97774ec7848e6ddfc2d6a16c829b7c09ddd1b85c1a"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-16.png",
+      "width": 16,
+      "height": 16,
+      "transparentPixels": 0,
+      "opaquePixels": 256,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 60,
+      "sha256": "9f47a80c8a398d49fc192c9132ca5a405420e37299ac0d80748434360f3eef13"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-32.png",
+      "width": 32,
+      "height": 32,
+      "transparentPixels": 0,
+      "opaquePixels": 1024,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 124,
+      "sha256": "2fb61b5a81cae8a6a94fcef9e74eef5498e411358599472e5ab956522f8c4463"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-48.png",
+      "width": 48,
+      "height": 48,
+      "transparentPixels": 0,
+      "opaquePixels": 2304,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 188,
+      "sha256": "6cb25c39533616e1be7d4683dfc6fc63d4e66ac34deccab9f534f2d1b5a5279f"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-64.png",
+      "width": 64,
+      "height": 64,
+      "transparentPixels": 0,
+      "opaquePixels": 4096,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 252,
+      "sha256": "c62dff46a6e295549285b35d23caffc169faa8d5f4096fc1bbe3a15bd946a4e3"
+    },
+    {
+      "file": "HOKU-Uebersicht.png",
+      "width": 2000,
+      "height": 1320,
+      "transparentPixels": 0,
+      "opaquePixels": 2640000,
+      "coloredPixels": 50330,
+      "visibleEdgePixels": 6636,
+      "sha256": "8889cd33c90891ea9e8f3b443c12fd00dca0779869c00cb084fdcd15f0f8d669"
+    },
+    {
+      "file": "HOKU-Groessenprobe.png",
+      "width": 1200,
+      "height": 620,
+      "transparentPixels": 0,
+      "opaquePixels": 744000,
+      "coloredPixels": 0,
+      "visibleEdgePixels": 3636,
+      "sha256": "8710d4c297de1c1f1e7fb40f6d33b28a41b913abf5a0e5a2a61642dc1ee7cbe6"
+    }
+  ]
+}
