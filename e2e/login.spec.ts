@@ -265,6 +265,25 @@ test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
   await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
+test('Passwort einblenden: Hoku hält sich die Augen zu und sagt, dass er nichts sieht', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.locator('#auth-pw').fill('geheim1')
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 1200)
+  const blase = page.locator('.tyd-dot-blase')
+  await expect(blase).toHaveText('Keine Sorge, ich sehe nichts.')
+  await expect(blase).toHaveAttribute('data-zeigen', 'true')
+  await lassLaufen(page, 3500)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
+  // wieder ausblenden: keine Blase
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 1200)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
+})
+
 test('Face ID (Passkey): nach der Landung einrichten, danach mit einem Tipp anmelden', async ({ page, mock }) => {
   test.skip(process.env.VITE_AUTH_PASSKEY !== '1', 'nur im Build mit Passkeys')
   // Auf Apple-Geräten heißt der Knopf Face ID, sonst Passkey (passkeyArt)

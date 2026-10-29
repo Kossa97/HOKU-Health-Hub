@@ -27,7 +27,8 @@ import '../features/auth/auth.css'
  * Anmeldung mit Hoku (docs/login/UEBERGABE.md; im Code noch „Dot"). Drei Ansichten: Start
  * (zwei Knöpfe), Anmelden, Registrieren. Hoku steht auf der Bühne oben — derselbe wie in
  * der App (DotLayer über den Routen) — und führt (Spec 2026-10-29 „Hoku führt"): er
- * begrüßt, hört im Passwortfeld zu, wartet mit, zeigt Haken und X, und
+ * begrüßt, hört im Passwortfeld zu, hält sich die Augen zu, wenn man das Passwort einblendet,
+ * wartet mit, zeigt Haken und X, und
  * meldet sich bei Stille mit einem Satz und fliegt zum Feld oder Knopf, um den es geht.
  */
 
@@ -46,8 +47,10 @@ const HINWEIS = 3500
 // Begrüßung (Mockup „Feinschliff"): Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s. Das Winken
 // dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
 const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
+// Augen zuhalten: von hier bis hier steht die Sprechblase (ms, wie im Mockup G1)
+const AUGEN_BLASE = { ab: 850, bis: 3000 }
 // alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
-const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_'))
+const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
@@ -270,7 +273,7 @@ export function Auth() {
     uhren.current.forEach(clearTimeout); uhren.current = []
     // abgebrochene Abläufe enden nie (ihre Uhren sind weg): Zähler zurück, laufende Hinweise stoppen
     aktiv.current = 0; hinweisLauf.current++; hinweisAn.current = false; zeigtSatz.current = false; wartet.current = false
-    dot()?.stoppeAuftritt()
+    dot()?.stoppeAuftritt(); dot()?.schweige()
     dot()?.setStimmung('idle'); dot()?.zeigeForm(null); dot()?.zeigeText(null); dot()?.setNeigung(0); setSatz(null)
     setLaeuft(false); setHalten(false); setMeldung(null); setNochmal(false); setGeschafft(false)
   }
@@ -350,6 +353,20 @@ export function Auth() {
     pwFokus.current = false
     if (laeuft) return
     dot()?.setStimmung('idle'); dot()?.setNeigung(0)
+  }
+
+  /** Passwort eingeblendet, während Hoku zu sehen ist: er hält sich die Augen zu (Mockup G1), dazu die Blase. */
+  function augenZu() {
+    if (laeuft || weniger || !dot()?.imBlick()) return
+    const gen = ++lauf.current
+    void mitHoku(async () => {
+      dot()?.setStimmung('idle'); dot()?.zeigeForm('augen')
+      await warte(AUGEN_BLASE.ab)
+      if (gen !== lauf.current) return
+      dot()?.sag(dtRef.current('login_sehe_nichts'), AUGEN_BLASE.bis - AUGEN_BLASE.ab)
+      await warte((FORM_DAUER.augen ?? 4.2) * 1000 - AUGEN_BLASE.ab)
+      if (gen === lauf.current) ruheForm()
+    })
   }
 
   /** Fehler im Gerät: sofort X und Schütteln, ohne Denken. */
@@ -539,7 +556,7 @@ export function Auth() {
     </div>
   )
   const auge = (
-    <button type="button" className="tyd-auth-auge" onClick={() => setZeigePw(v => !v)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
+    <button type="button" className="tyd-auth-auge" onClick={() => { if (!zeigePw) augenZu(); setZeigePw(!zeigePw) }} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
       {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   )

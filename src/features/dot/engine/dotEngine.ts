@@ -17,7 +17,7 @@ import {
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
-import { FREUDE, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { FREUDE, GESTE_FERN, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
 
@@ -97,6 +97,10 @@ export interface DotApi {
   stoppeAuftritt(): void
   stimme(v: number): void
   sag(text: string, ms?: number): void
+  /** Die Sprechblase sofort schließen. */
+  schweige(): void
+  /** Anmeldung: Hoku ist ganz zu sehen (nicht hinter der Tastatur, nicht aus dem Bild gescrollt). */
+  imBlick(): boolean
   neuVermessen(): void
   zerstoeren(): void
 }
@@ -129,6 +133,7 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
   haken: { bright: 1, glow: 0.5, hue: 0.45 },
   // Hoku führt durch die Anmeldung (Mockup „Dots Auftritte" Version 12)
   freude: { bright: 1.05, glow: 0.6, hue: 0.45 },
+  augen: { bright: 1, glow: 0.4, hue: 0.45 },
   warten: { bright: 1, glow: 0.55, hue: 0.5 },
   sanduhr: { bright: 1, glow: 0.45, hue: 0.45 },
   brief: { bright: 1, glow: 0.5, hue: 0.45 },
@@ -137,7 +142,7 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
 }
 const HERZ = { bpm: 72 }
 // Gesten: Tiefe der Perspektive wie im Mockup; die Begrüßung wechselt zwischen einem und beiden Armen
-const GESTE = { fern: 3.4 }
+const GESTE = { fern: GESTE_FERN }
 const GRUSS_FOLGE = 'tyd.dot.gruss'
 const SCHUETTELN = { start: 0.35, dauer: 0.8, staerke: 24, schwingungen: 3.5 }
 // Anmeldung: Ziehen und Werfen wie in der App, über das ganze Display (Nutzer 28.10.2026).
@@ -865,7 +870,7 @@ export function createDot(host: DotHost): DotApi {
   function versteckeBlase() { delete blase.dataset.zeigen }
   function placeBubble() {
     if (blase.dataset.zeigen !== 'true') return
-    if (B.mode !== 'home') { versteckeBlase(); return }
+    if (B.mode !== 'home' && B.mode !== 'login') { versteckeBlase(); return }
     const bw = blase.offsetWidth, bh = blase.offsetHeight
     const above = B.y - B.r - 14 - bh > Math.max(56, OBEN + 8)
     const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14
@@ -1358,7 +1363,7 @@ export function createDot(host: DotHost): DotApi {
         return ziel(Math.cos(th) * rr, Math.sin(th) * rr, 0.85)
       }
       case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken':
-      case 'freude': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
+      case 'freude': case 'augen': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
         if (p.i >= GESTE_N) return ziel(0, 0, 0)
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
@@ -2126,6 +2131,8 @@ export function createDot(host: DotHost): DotApi {
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
     sag: (text, ms) => { sag(text, ms); laufen() },
+    schweige: () => versteckeBlase(),
+    imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },
     neuVermessen: () => { vermessen(); laufen() },
     zerstoeren: () => {
       zerstoert = true

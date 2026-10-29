@@ -10,13 +10,15 @@
  * Jede Geste schreibt je Punkt Lage (Einheit: Dots Radius, y nach unten, z zum
  * Betrachter), Licht und Rosa-Anteil für den Zeitpunkt t seit ihrem Beginn.
  */
-import { TAU, clamp01 } from './geometry'
+import { TAU, clamp01, easeIO } from './geometry'
 import { herzSchlag } from './formen'
 
 export type DotForm = 'hand' | 'heart' | 'cross' | 'wifi' | 'haken'
   // Hoku führt durch die Anmeldung (Nutzer 29.10.2026, Mockup „Dots Auftritte" F, W, G)
-  | 'freude' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
+  | 'freude' | 'augen' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
 export const GESTE_N = 460
+/** Perspektive der Gesten: so weit (in Hokus Radius) steht das Auge vor seiner Mitte. */
+export const GESTE_FERN = 3.4
 export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array }
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
 export type Gruss = 'einArm' | 'beideArme'
@@ -40,7 +42,7 @@ export type Warten = 'welle' | 'wolken'
 /** Welche Variante einer Geste läuft; `fehler` null = noch keiner gezeigt. */
 export interface GestenWahl { gruss: Gruss; fehler: Fehler | null; netz: Netz; freude?: Freude; warten?: Warten }
 /** So lange dauern die Gesten, die von selbst enden (s); danach ist Hoku wieder eine geschlossene Kugel. */
-export const FORM_DAUER: Partial<Record<DotForm, number>> = { freude: 2.1, sanduhr: 2.7, brief: 2.4, nicken: 1.4, schuetteln: 1.4 }
+export const FORM_DAUER: Partial<Record<DotForm, number>> = { freude: 2.1, augen: 4.2, sanduhr: 2.7, brief: 2.4, nicken: 1.4, schuetteln: 1.4 }
 /** So lange dauert die Begrüßung, bis die Arme wieder in Dot stecken (s). */
 export const GRUSS_DAUER = 3.9
 /** Ab hier ist der Haken gezeichnet und färbt sich grün (s), so lange dauert das. */
@@ -410,8 +412,8 @@ function kreuzBild(t: number, out: GestenBild) {
   zeichenAusDot((kreuz ??= baueKreuz()), raus, 1, glanz, 0.12 * Math.sin(TAU * 0.3 * t), out)
 }
 
-/* ── Hoku führt: Freude, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
-   Aus dem Mockup „Dots Auftritte" (Version 12, Wahl des Nutzers 29.10.2026); Längen dort in Pixeln bei
+/* ── Hoku führt: Freude, Augen zuhalten, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
+   Aus dem Mockup „Dots Auftritte" (Version 12, Augen zuhalten Version 13; Wahl des Nutzers 29.10.2026); Längen dort in Pixeln bei
    Radius 70, hier in Hokus Radius. Lage y nach unten, z zum Betrachter. */
 // Kugel um (tx, ty), gestaucht um ihren Boden: sx quer, sy hoch; Licht und Farbe für alle gleich
 function kugelBild(tx: number, ty: number, sx: number, sy: number, yaw: number, licht: number, farbe: number, out: GestenBild) {
@@ -458,6 +460,54 @@ function funken(t: number, out: GestenBild) {
     const tt = 0.9 * u, vx = (ZA[j + 2] - 0.5) * 2.4, vy = -3.6 - 5.1 * ZA[j]
     const x = vx * tt, y = hy - 0.8 + vy * tt + 3.7 * tt * tt, w = weich((u - 0.75) / 0.25)
     out.P[j] = misch(x, out.P[j], w); out.P[j + 1] = misch(y, out.P[j + 1], w); out.P[j + 2] = misch(0.6, out.P[j + 2], w); out.L[i] = misch(1.25, 1, w)
+  }
+}
+
+// G1 Augen zuhalten (Mockup Version 13): unten links und rechts wird die Kappe seiner Oberfläche wie zäher
+// Teig zu je einem Arm herausgezogen. Die Mitte der Kappe wird zur Hand vor seinem „Gesicht", ihr Rand bleibt
+// an der Kugel, die Nachbarn werden zum Hals. Am Ende fließt jeder Punkt gestaffelt auf seinen Platz zurück.
+const AUGEN = { wx: 0.86, wy: 0.51, kappe: 0.64, dick: 0.2, hand: 1.1 }
+// Feder: 0 → 1 mit Überschwingen und Ausklingen, u in Sekunden seit Beginn
+const feder = (u: number, k: number, w: number) => (u <= 0 ? 0 : 1 - Math.exp(-k * u) * Math.cos(w * u))
+// Das Mockup zeichnet flach mit eigener Größe; hier macht die Tiefe beides: der Punkt rückt so weit vor, dass er
+// `gross`-mal so groß erscheint, und so weit zur Mitte, dass er nach der Perspektive bei (x, y) liegt
+function flach(x: number, y: number, gross: number, alpha: number, o: number[]) {
+  const z = GESTE_FERN * (1 - 1 / gross), sicht = 0.28 + 0.72 * clamp01((z + 1) / 2)
+  o[0] = x / gross; o[1] = y / gross; o[2] = z; o[3] = Math.min(1.6, alpha / sicht)
+}
+const ARM_O = [0, 0, 0, 0]
+function augen(t: number, out: GestenBild) {
+  const wachs = feder(t - 0.1, 4.2, 8), heim = easeIO(clamp01((t - 3.15) / 0.7)), KA = AUGEN.kappe
+  const wack = t > 0.1 ? 0.1 * Math.exp(-3.5 * (t - 0.1)) * Math.sin(12 * (t - 0.1)) : 0
+  // die Kugel tritt zurück, solange die Arme draußen sind
+  const kugelLicht = misch(misch(1, 0.22, clamp01(wachs)), 1, heim)
+  drehe(KUGEL, TMP, { yaw: 0.5 * t, pitch: 0.3 })
+  for (let i = 0; i < N; i++) {
+    const j = i * 3, ux = TMP[j], uy = TMP[j + 1], uz = TMP[j + 2]
+    out.P[j] = ux; out.P[j + 1] = uy; out.P[j + 2] = uz; out.L[i] = kugelLicht; out.H[i] = 0
+    // linker und rechter Arm spiegeln sich; Wurzel unten seitlich
+    const seite = ux < 0 ? 1 : -1, wx = -AUGEN.wx * seite, wy = AUGEN.wy, d = ux * wx + uy * wy
+    if (d <= KA - 0.18 || wachs <= 0) continue
+    // Einfahren: jeder Punkt fließt gestaffelt auf seinen eigenen Platz zurück, kein Zusammenziehen zum Strich
+    const h = easeIO(clamp01((t - 3.1 - 0.35 * ZA[j + 2]) / 0.55))
+    if (d <= KA) {
+      // Hals: Nachbarn der Kappe werden ein wenig zur Wurzel gezogen
+      const hh = ((d - (KA - 0.18)) / 0.18) * Math.min(1, wachs) * (1 - h)
+      out.P[j] = ux + wx * 0.1 * hh; out.P[j + 1] = uy + wy * 0.1 * hh; out.L[i] = misch(1.7, 1, h)
+      continue
+    }
+    // Arm: Bogen von der Wurzel über den Ellbogen außen zur Hand vor dem Gesicht
+    const b1x = seite * -1.5, b1y = -0.1, b2x = seite * (-0.2 + wack), b2y = -0.34
+    const s = (d - KA) / (1 - KA), ss = s * wachs, m = 1 - ss, p0x = wx * 0.92, p0y = wy * 0.92
+    let x = m * m * p0x + 2 * m * ss * b1x + ss * ss * b2x, y = m * m * p0y + 2 * m * ss * b1y + ss * ss * b2y
+    const tx = 2 * m * (b1x - p0x) + 2 * ss * (b2x - b1x), ty = 2 * m * (b1y - p0y) + 2 * ss * (b2y - b1y), tl = Math.hypot(tx, ty) || 1
+    // Querschnitt aus der Lage auf der Kugel; zur Hand hin wird er wieder dicker
+    const q = -ux * wy + uy * wx, ang = Math.atan2(uz, q)
+    const rad = AUGEN.dick * (1 - 0.35 * s + AUGEN.hand * weich((s - 0.68) / 0.32)) * (0.75 + 0.25 * Math.min(1, wachs))
+    x += (-ty / tl) * Math.cos(ang) * rad; y += (tx / tl) * Math.cos(ang) * rad
+    flach(x, y, 1 + 0.5 * s * s, (0.8 + 0.45 * Math.sin(ang)) * 1.7, ARM_O)
+    out.P[j] = misch(ARM_O[0], ux, h); out.P[j + 1] = misch(ARM_O[1], uy, h); out.P[j + 2] = misch(ARM_O[2], uz, h)
+    out.L[i] = misch(ARM_O[3], 1, h)
   }
 }
 
@@ -574,6 +624,7 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
   else if (form === 'cross') { if (v.fehler === 'heute') kreuzBild(t, out); else fehler(t, v.fehler, out) }
   else if (form === 'wifi') (v.netz === 'boegen' ? boegen : sucht)(t, out)
   else if (form === 'freude') ({ huepfen, strecken, funken })[v.freude ?? 'huepfen'](t, out)
+  else if (form === 'augen') augen(t, out)
   else if (form === 'warten') (v.warten === 'wolken' ? wolken : welle)(t, out)
   else if (form === 'sanduhr') sanduhr(t, out)
   else if (form === 'brief') brief(t, out)
@@ -585,5 +636,5 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
 /** Bei weniger Bewegung steht jede Geste still in diesem Moment. */
 export const STILL: Record<DotForm, number> = {
   hand: 1.3, heart: 0.3, cross: 0.7, wifi: 0.8, haken: 1.0,
-  freude: 0, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
+  freude: 0, augen: 1.2, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
 }

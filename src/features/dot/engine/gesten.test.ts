@@ -110,7 +110,7 @@ describe('Dot: Gesten', () => {
   it('neue Emotes: endlich, im Rahmen, Farbe 0…1; die mit fester Dauer enden als Kugel', () => {
     const faelle: [DotForm, Partial<GestenWahl>][] = [
       ['freude', { freude: 'huepfen' }], ['freude', { freude: 'strecken' }], ['freude', { freude: 'funken' }],
-      ['warten', { warten: 'welle' }], ['warten', { warten: 'wolken' }],
+      ['warten', { warten: 'welle' }], ['warten', { warten: 'wolken' }], ['augen', {}],
       ['sanduhr', {}], ['brief', {}], ['nicken', {}], ['schuetteln', {}],
     ]
     for (const [f, w] of faelle) {
@@ -132,6 +132,17 @@ describe('Dot: Gesten', () => {
       // am Ende wieder eine geschlossene Kugel um seine Mitte
       for (const d of abstaende(ende)) expect(Math.abs(d - 1), `${f} Ende`).toBeLessThan(0.05)
     }
+  })
+
+  it('Augen zuhalten: helle Hände liegen vor seinem Gesicht, die Kugel tritt zurück', () => {
+    const b = bild()
+    gestenBild('augen', 1.2, { gruss: 'einArm', fehler: null, netz: 'sucht' }, b)
+    // wo der Punkt nach der Perspektive der Engine erscheint (fern 3.4)
+    const s = (i: number) => 3.4 / (3.4 - b.P[i * 3 + 2])
+    const haende = Array.from({ length: GESTE_N }, (_, i) => i)
+      .filter(i => b.L[i] > 0.5 && Math.abs(b.P[i * 3] * s(i)) < 0.6 && b.P[i * 3 + 1] * s(i) > -0.8 && b.P[i * 3 + 1] * s(i) < 0.1)
+    expect(haende.length).toBeGreaterThan(15)
+    expect(Array.from(b.L).filter(l => l < 0.3).length).toBeGreaterThan(GESTE_N * 0.3)
   })
 
   it('Nicken färbt ganz Hoku, Kopfschütteln auch', () => {

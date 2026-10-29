@@ -179,7 +179,8 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Danach (29.10.): Hinweis neu als K4 (zwei Runden auf flachem Ring wie um die Uhr, direkt nach der
   Begrüßung); Erfolg S3 + S5 (Kreis öffnet die App, Partikel bleiben am Geräterand, dann Sammeln und
   Heimflug); Augen zuhalten gestrichen (Tastatur fährt aus, Hoku ist dann nicht zu sehen), im
-  Passwortfeld hört er wieder nur zu.
+  Passwortfeld hört er wieder nur zu. Später am 29.10. zurück, aber nur beim Tipp auf „Passwort
+  anzeigen“, solange Hoku zu sehen ist: Arme und Blase genau wie Mockup G1 v13, ohne Wegdrehen.
 
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum

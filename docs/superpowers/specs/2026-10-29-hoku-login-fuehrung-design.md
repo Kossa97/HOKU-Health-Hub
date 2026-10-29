@@ -322,3 +322,10 @@ des Nutzers. Erst danach wird gebaut.
   am äußersten Rand des Geräts liegen, dann Sammeln in der Mitte und Heimflug.
 - **Augen zuhalten gestrichen** (auch die Sprechblase): beim Passwortfeld fährt die Tastatur aus und Hoku
   ist nicht zu sehen. Im Passwortfeld hört er wie früher nur zu.
+
+**Sechste Rückmeldung (29.10.2026):**
+- **Augen zuhalten wieder da, mit neuem Auslöser:** nur wenn jemand „Passwort anzeigen“ drückt, während
+  Hoku zu sehen ist (nicht hinter der Tastatur). Ablauf genau wie Mockup G1 (Version 13): Arme aus der
+  Kappe seiner Oberfläche, Hände vor dem „Gesicht“, Blase „Keine Sorge, ich sehe nichts.“ von 0,85 bis
+  3,0 s, gestaffeltes Einfahren bis 4,2 s. Das Wegdrehen aus der Mitte des Mockups entfällt, weil das
+  Einblenden jetzt selbst der Auslöser ist. Ausblenden zeigt nichts.
