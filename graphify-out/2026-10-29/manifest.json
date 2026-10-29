@@ -6792,15 +6792,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-<<<<<<< HEAD
     "mtime": 1793058062.9341185,
     "seen": 1793060374.0562043,
     "ast_hash": "55fb159048f121d3b9c6f51903945ce4",
-=======
-    "mtime": 1793293395.371359,
-    "seen": 1793295184.2240832,
-    "ast_hash": "0b69ba57806ad9dac63cbdbb25e30a45",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6816,15 +6810,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/DaySummary.tsx": {
-<<<<<<< HEAD
     "mtime": 1793058062.9361403,
     "seen": 1793060374.056207,
     "ast_hash": "0fa00dc34a661e7c786ffdae6bebb1ff",
-=======
-    "mtime": 1793294841.64945,
-    "seen": 1793295184.2241828,
-    "ast_hash": "03d342afd8e8d5f59aa8b57a8254812a",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/FoodEditorSheet.tsx": {
@@ -7542,15 +7530,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbBridge.ts": {
-<<<<<<< HEAD
     "mtime": 1793058062.9490428,
     "seen": 1793060374.0562334,
     "ast_hash": "035217dd1ea63c8fa593a3cf8e756d3c",
-=======
-    "mtime": 1793294841.6490226,
-    "seen": 1793295184.2261915,
-    "ast_hash": "8f9593d05552bd0124523b4e48a6060f",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbDraw.ts": {
@@ -7560,15 +7542,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbEngine.ts": {
-<<<<<<< HEAD
     "mtime": 1793058062.9495459,
     "seen": 1793060374.0562346,
     "ast_hash": "a120c4cf745f088af5563da19ed06641",
-=======
-    "mtime": 1793294841.64845,
-    "seen": 1793295184.226227,
-    "ast_hash": "0ed7776edb034c99598d453a40ce334e",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbFeedback.ts": {
@@ -7806,15 +7782,9 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-<<<<<<< HEAD
     "mtime": 1793058062.2708094,
     "seen": 1793060374.0560133,
     "ast_hash": "edb66a84bf005184086b71d155921338",
-=======
-    "mtime": 1793294056.3468716,
-    "seen": 1793295184.2123346,
-    "ast_hash": "4cb5407ebbb6d215e1667763c09cb025",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
@@ -7848,15 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-<<<<<<< HEAD
     "mtime": 1793312443.6292002,
     "seen": 1793312606.9392436,
     "ast_hash": "2b29e8976a6b2526cce0bed4464a77c2",
-=======
-    "mtime": 1793294841.6475255,
-    "seen": 1793295184.2237127,
-    "ast_hash": "98b87350e435fb752d52566a4ae4c486",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7902,15 +7866,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-<<<<<<< HEAD
     "mtime": 1793312939.972097,
     "seen": 1793313280.3396695,
     "ast_hash": "40156b74fecc300e4bb5fdb5cead8a0b",
-=======
-    "mtime": 1793293113.923566,
-    "seen": 1793295184.2240508,
-    "ast_hash": "772df83e70cf048a3ba54e0efebe801e",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -7956,15 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-<<<<<<< HEAD
     "mtime": 1793236746.101407,
     "seen": 1793239925.6250186,
     "ast_hash": "826222548dd90262ba248ea346975fb5",
-=======
-    "mtime": 1793295155.3089797,
-    "seen": 1793295184.259613,
-    "ast_hash": "228e5cf68ccdd98405de6f23b5ba68ae",
->>>>>>> origin/main
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -19431,24 +19383,6 @@
     "mtime": 1793308541.2222536,
     "seen": 1793312606.9409842,
     "ast_hash": "7e2fc3588b30ab6997ffab0bac29f031",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/hooks/useDotRundflug.ts": {
-    "mtime": 1793294919.144966,
-    "seen": 1793295184.2247882,
-    "ast_hash": "b22d791f44d7ab061bdf2a99a1d775ad",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/lib/dotRundflug.test.ts": {
-    "mtime": 1793293311.091788,
-    "seen": 1793295184.2255259,
-    "ast_hash": "7ea370ee8f3942e079b497636a0f3b87",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/lib/dotRundflug.ts": {
-    "mtime": 1793294841.649939,
-    "seen": 1793295184.2255285,
-    "ast_hash": "7efb1ff0a5834a837c171dd20c553f44",
     "semantic_hash": ""
   }
 }
