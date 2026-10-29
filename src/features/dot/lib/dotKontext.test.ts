@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ResolvedTimelineIntake } from '../../../lib/intakeSchedule'
 import type { CycleTimeline } from '../../../lib/planTimeline'
-import { einnahmenAusPlaenen, heuteOffen, type DotKontext } from './dotKontext'
+import { einnahmenAusPlaenen, heuteHinweis, heuteOffen, type DotKontext } from './dotKontext'
 
 const k = (jetzt: string): DotKontext => ({
   heute: '2026-10-22', jetzt, zeitzone: 'Europe/Berlin', stack: [], blutwerte: [], ernaehrung: null,
@@ -30,6 +30,22 @@ describe('Dot: was heute offen ist', () => {
     const h = heuteOffen(k('09:00'))
     expect(h.naechste?.substanz).toBe('Mg')
     expect(h.verpasst).toBeNull()
+  })
+})
+
+describe('Dot: Begrüßung über heute', () => {
+  it('sagt nicht „alles eingetragen", wenn alles Offene schon fällig war', () => {
+    expect(heuteHinweis(heuteOffen(k('19:00')))).toEqual({ schluessel: 'gruss_offen', werte: { anzahl: 2 } })
+  })
+  it('nennt die eine verpasste Einnahme beim Namen', () => {
+    expect(heuteHinweis(heuteOffen(k('14:30')))).toEqual({ schluessel: 'gruss_verpasst', werte: { substanz: 'Mg', zeit: '12:00' } })
+  })
+  it('morgens die nächste, abends nach allem „alles eingetragen", ohne Plan „nichts geplant"', () => {
+    expect(heuteHinweis(heuteOffen(k('09:00'))).schluessel).toBe('naechste')
+    const erledigt = k('20:00')
+    erledigt.einnahmen = erledigt.einnahmen.map(e => ({ ...e, status: 'genommen' as const }))
+    expect(heuteHinweis(heuteOffen(erledigt)).schluessel).toBe('alles_erledigt')
+    expect(heuteHinweis(heuteOffen({ ...k('09:00'), einnahmen: [] })).schluessel).toBe('nichts_geplant')
   })
 })
 

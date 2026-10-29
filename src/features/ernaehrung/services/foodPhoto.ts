@@ -4,7 +4,7 @@
  * mögliche Zutaten, nur Namen. Lebensmittel, Menge und damit die Nährwerte
  * wählt der Nutzer selbst.
  */
-import { supabase } from '../../../lib/supabase'
+import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import { prepareFile } from '../../blutwerte/lib/imageResize'
 import type { IngredientKind } from '../lib/photoRows'
 
@@ -45,6 +45,7 @@ export async function analyzeMeal(file: File | null, hint: string, lang: 'de' | 
   // Bilder, die der Browser nicht lesen kann (etwa HEIC außerhalb von Safari), gar nicht erst schicken.
   const prepared = file ? await prepareFile(file).catch(() => { throw new PhotoError('unreadable') }) : null
   const { data, error } = await supabase.functions.invoke('food-photo', {
+    region: FUNKTIONS_REGION,
     body: { ...(prepared ? { image: prepared.base64, mimeType: prepared.mimeType } : {}), hint: hint.trim(), lang },
   })
   if (error) throw await errorFrom((error as { context?: unknown }).context)

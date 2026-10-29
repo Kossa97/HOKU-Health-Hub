@@ -3,7 +3,10 @@
   "1": "Animation Recipes",
   "2": "faq/types.ts",
   "3": "Protokoll.tsx",
+<<<<<<< HEAD
   "4": "StackItemWizard",
+=======
+>>>>>>> origin/main
   "5": "AdminPanel.tsx",
   "6": "stoerung.ts",
   "7": "StocksChart.tsx",
@@ -72,7 +75,10 @@
   "70": "tsconfig.json",
   "71": "vercel.json",
   "72": "vapid-public.js",
+<<<<<<< HEAD
   "73": "CoachPanel.tsx",
+=======
+>>>>>>> origin/main
   "74": "Package.swift",
   "75": "seed-test-data.ts",
   "76": "app/build.gradle",
@@ -87,8 +93,11 @@
   "85": "react-router-dom",
   "86": "Öffentliche Peptipedia mit horizontaler Tab-Navigation",
   "87": "The Fixes",
+<<<<<<< HEAD
   "88": "useAuth",
   "89": "batchFiles.ts",
+=======
+>>>>>>> origin/main
   "90": "PatchVisual.tsx",
   "91": "PenVisual.tsx",
   "92": "tailwind.config.js",
@@ -123,7 +132,10 @@
   "121": "Live-Blutspiegel-Graph Neubau — Implementation Plan",
   "122": "Onboarding-Rework: Substanz → Zyklus → Dosiserhöhung → Kalender → simulierte Bestätigung",
   "123": "Prototyping Variants",
+<<<<<<< HEAD
   "124": "SubstanzScanner.tsx",
+=======
+>>>>>>> origin/main
   "125": "The Lab Redesign Implementation Plan",
   "126": "File Map",
   "127": "TYD — Track Your Dose · Handoff-Dokument",
@@ -234,9 +246,12 @@
   "232": "My Stack — Aufarbeitung des Anlege-Formulars",
   "233": "clamp01",
   "234": "Visual Techniques & Optical Corrections",
+<<<<<<< HEAD
   "235": "Ladesilhouetten — Umriss-Abdruck",
   "236": "QUELLEN/build.cjs",
   "237": "Active Add-Vial Glow",
+=======
+>>>>>>> origin/main
   "238": "1. Was der Nutzer erlebt",
   "239": "look.ts",
   "240": "progressModel.ts",
@@ -299,9 +314,12 @@
   "297": "wellnessBuckets.ts",
   "298": "Einnahmerhythmus: drei Achsen statt einer Liste",
   "299": "Logo Design",
+<<<<<<< HEAD
   "300": "GoalsSheet.tsx",
   "301": "planTimeline.ts",
   "302": "liquidCalculation.ts",
+=======
+>>>>>>> origin/main
   "303": "e2e/tsconfig.json",
   "304": "coach/prompt.ts",
   "305": "Tagebuch — Formular v2",
@@ -318,6 +336,7 @@
   "316": "ProtocolPdfModal.tsx",
   "317": "AppBackNavigation.test.tsx",
   "318": "Die Entscheidungen",
+<<<<<<< HEAD
   "319": "My Stack: Tablette als vierte Bühnenform",
   "320": "build.cjs",
   "321": "pieces.ts",
@@ -326,6 +345,10 @@
   "324": "Layout.tsx",
   "325": "bauen.py",
   "326": "File Structure",
+=======
+  "324": "usePushNotifications.ts",
+  "325": "injectionHistory.ts",
+>>>>>>> origin/main
   "327": "Kalorientracker / Ernährung",
   "328": "supabase-store-compliance.sql",
   "329": "injectionPersistence.ts",
@@ -360,8 +383,11 @@
   "358": "zyklusZeilen.ts",
   "359": "progress-year-data.ts",
   "360": "blutwerte-referenz.spec.ts",
+<<<<<<< HEAD
   "361": "ConsentGate.tsx",
   "362": "Animation der größten Veränderungen",
+=======
+>>>>>>> origin/main
   "363": "My Stack: Formular „Substanz hinzufügen\" (v2)",
   "364": "Drei Änderungen",
   "365": "sag",
@@ -371,6 +397,7 @@
   "369": "__VialPreview.tsx",
   "370": "PeptideCalculatorPanel.tsx",
   "371": "Mark Types — What to Choose and When",
+<<<<<<< HEAD
   "372": "Farbschritt — nicht mehr hochziehen, sondern groß zeichnen",
   "373": "Der Befund",
   "374": "TheLab.tsx",
@@ -380,6 +407,10 @@
   "378": "My Stack: Pen als siebte Bühnenform",
   "379": "Fortschritt-Fotos: adaptives Vorschau-Raster – Design",
   "380": "dosePlan.ts",
+=======
+  "374": "merge-my-stack-i18n.mjs",
+  "380": "DotApi",
+>>>>>>> origin/main
   "381": "Apple und Google einrichten",
   "382": "supabase-my-stack-bestand.sql",
   "383": "StackListView.tsx",
@@ -627,6 +658,7 @@
   "625": "vitest.config.ts",
   "626": "ErnaehrungPage.tsx",
   "627": "units.ts",
+<<<<<<< HEAD
   "628": "supabase-login-name-fehlversuche.sql",
   "629": "ResearchSnapshot.tsx",
   "630": "generate-pk-profile-routes-sql.mjs",
@@ -655,4 +687,9 @@
   "653": "ManualSimulation.tsx",
   "654": "codex/README.md",
   "655": "social/README.md"
+=======
+  "630": "duration.ts",
+  "632": "chartData.test.ts",
+  "633": "dosageForms.ts"
+>>>>>>> origin/main
 }
