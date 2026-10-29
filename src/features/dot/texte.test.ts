@@ -22,7 +22,6 @@ describe('Dot-Texte', () => {
     expect(dotText('de', 'login_hub')).toBe('Hi! Willkommen\nbei Hoku')
     expect(dotText('en', 'login_hey')).toBe("Hey, I'm\nHoku!")
     expect(dotText('de', 'login_zurueck_2')).toBe('Schön, dich\nwiederzusehen!')
-    expect(dotText('de', 'login_sehe_nichts')).toBe('Keine Sorge, ich sehe nichts.')
   })
 
   it('jede andere Sprache bekommt Englisch; Einzahl bei anzahl 1', () => {

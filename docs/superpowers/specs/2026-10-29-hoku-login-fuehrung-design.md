@@ -314,3 +314,11 @@ des Nutzers. Erst danach wird gebaut.
 - Erkennung von Abbrüchen, Live-Namensprüfung, Rückkehr vom Reset-Link.
 - Tests: bestehende E2E-Login-Tests erweitern (Untätigkeit, Fehlversuche,
   Passwort vergessen), Unit-Tests für Zeitlogik.
+
+**Fünfte Rückmeldung (29.10.2026, nach dem Bau):**
+- Hinweis-Flug K2 ersetzt durch **K4**: zwei ruhige Runden auf einem flachen Ring um den Knopf wie Hokus
+  Runde um die iPhone-Uhr (hinten hinter dem Knopf), kein Tippen; erster Hinweis direkt nach der Begrüßung.
+- Erfolg: **S3 mit dem Ende von S5** — der Ring öffnet sich als Kreis über die App, seine Partikel bleiben
+  am äußersten Rand des Geräts liegen, dann Sammeln in der Mitte und Heimflug.
+- **Augen zuhalten gestrichen** (auch die Sprechblase): beim Passwortfeld fährt die Tastatur aus und Hoku
+  ist nicht zu sehen. Im Passwortfeld hört er wie früher nur zu.

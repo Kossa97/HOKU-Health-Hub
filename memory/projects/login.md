@@ -172,11 +172,14 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Klopfen „Noch da?“), Hoku fliegt dabei klein zum Feld/Knopf an einer weichen Feder, auch hinter
   den Knopf, und tippt zweimal darauf (Knopf gibt nach); Klopfen = dreimal ganz nah gegen die Scheibe.
   Freude F1/F2/F3 im Wechsel nach dem Begrüßungssatz („Willkommen zurück!“ u. a. im Zufall),
-  Augen zuhalten im Passwortfeld mit Sprechblase „Keine Sorge, ich sehe nichts.“ (weggedreht bei
-  sichtbarem Passwort), Warten W2 Lichtwelle / W3 Denkwolken im Wechsel, Haken und X wachsen aus Hoku
+  Warten W2 Lichtwelle / W3 Denkwolken im Wechsel, Haken und X wachsen aus Hoku
   und nur das Zeichen färbt sich, Sanduhr bei zu vielen Versuchen, Brief nach „Konto erstellt“,
   Name beim Tippen geprüft (Nicken grün / Kopfschütteln rot), Abbruch bei Apple/Google ohne X,
   „Wieder online!“, Startknöpfe mit „oder“ auseinander. Schulterzucken gestrichen.
+  Danach (29.10.): Hinweis neu als K4 (zwei Runden auf flachem Ring wie um die Uhr, direkt nach der
+  Begrüßung); Erfolg S3 + S5 (Kreis öffnet die App, Partikel bleiben am Geräterand, dann Sammeln und
+  Heimflug); Augen zuhalten gestrichen (Tastatur fährt aus, Hoku ist dann nicht zu sehen), im
+  Passwortfeld hört er wieder nur zu.
 
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum

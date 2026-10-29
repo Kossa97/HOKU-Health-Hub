@@ -15,7 +15,7 @@ import { herzSchlag } from './formen'
 
 export type DotForm = 'hand' | 'heart' | 'cross' | 'wifi' | 'haken'
   // Hoku führt durch die Anmeldung (Nutzer 29.10.2026, Mockup „Dots Auftritte" F, W, G)
-  | 'freude' | 'augen' | 'augenWeg' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
+  | 'freude' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
 export const GESTE_N = 460
 export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array }
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
@@ -173,8 +173,7 @@ function kappe(ax: number, zwei: boolean): Kappe {
   for (let j = 0; j < ARM_M; j++) { wer[idx[j]] = j; if (zwei) wer[idx[N - 1 - j]] = ARM_M + j }
   return { wer, ax, cA: ((KUGEL_FEST[idx[ARM_M - 1] * 3] + KUGEL_FEST[idx[ARM_M] * 3]) / 2) * ax }
 }
-// vor: die äußeren zwei Drittel des Arms liegen so weit vor (positiv) oder hinter (negativ) der Kugel
-interface Rahmen { g: number; neig: number; sc: number; ox?: number; oy: number; sx?: number; sy?: number; vor?: number }
+interface Rahmen { g: number; neig: number; sc: number; ox?: number; oy: number; sx?: number; sy?: number }
 // Winkel im Bild (0 nach außen, negativ nach oben) gelten für den rechten Arm und werden links gespiegelt; zwei Arme sitzen gegenüber
 function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
   const g = Math.max(0, k.g), gl = clamp01(g * 1.3), gk = Math.min(1, g), zwei = arme.length > 1
@@ -202,7 +201,7 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
       const px = BZ[b * 2] + (BZ[b * 2 + 2] - BZ[b * 2]) * fr, py = BZ[b * 2 + 1] + (BZ[b * 2 + 3] - BZ[b * 2 + 1]) * fr
       const tx = BZ[b * 2 + 2] - BZ[b * 2], ty = BZ[b * 2 + 3] - BZ[b * 2 + 1], tl = Math.hypot(tx, ty) || 1
       // Radius an derselben Stelle wie die Lage; so endet die Kuppe klein, aber nicht in einem Punkt
-      const rad = armRadius((j + 0.5) / ARM.ringe) * g, z0 = 0.1 + (0.2 * j) / ARM.ringe + (k.vor ?? 0) * weich((j / ARM.ringe - 0.25) / 0.45)
+      const rad = armRadius((j + 0.5) / ARM.ringe) * g, z0 = 0.1 + (0.2 * j) / ARM.ringe
       for (let q = 0; q < ARM.je; q++) {
         const ph = (q / ARM.je + (j % 2) / (2 * ARM.je)) * TAU, o = (j * ARM.je + q) * 3, cq = Math.cos(ph) * rad
         a.ziel[o] = a.s * (px - (ty / tl) * cq); a.ziel[o + 1] = py + (tx / tl) * cq; a.ziel[o + 2] = z0 + Math.sin(ph) * rad
@@ -411,7 +410,7 @@ function kreuzBild(t: number, out: GestenBild) {
   zeichenAusDot((kreuz ??= baueKreuz()), raus, 1, glanz, 0.12 * Math.sin(TAU * 0.3 * t), out)
 }
 
-/* ── Hoku führt: Freude, Augen zuhalten, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
+/* ── Hoku führt: Freude, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
    Aus dem Mockup „Dots Auftritte" (Version 12, Wahl des Nutzers 29.10.2026); Längen dort in Pixeln bei
    Radius 70, hier in Hokus Radius. Lage y nach unten, z zum Betrachter. */
 // Kugel um (tx, ty), gestaucht um ihren Boden: sx quer, sy hoch; Licht und Farbe für alle gleich
@@ -460,17 +459,6 @@ function funken(t: number, out: GestenBild) {
     const x = vx * tt, y = hy - 0.8 + vy * tt + 3.7 * tt * tt, w = weich((u - 0.75) / 0.25)
     out.P[j] = misch(x, out.P[j], w); out.P[j + 1] = misch(y, out.P[j + 1], w); out.P[j + 2] = misch(0.6, out.P[j + 2], w); out.L[i] = misch(1.25, 1, w)
   }
-}
-
-// Augen zuhalten: zwei Kegelarme aus seiner Haut, Ober- und Unterarm schwingen nach oben und
-// zurück vor sein „Gesicht", die Enden liegen vor der Kugel. Weggedreht: die Arme liegen dahinter.
-const AUGEN = { kp: null as Kappe | null, arme: [neuerArm(-1), neuerArm(1)] }
-function augen(t: number, weg: boolean, out: GestenBild) {
-  const g = hinaus((t - 0.05) / 0.5)
-  for (const a of AUGEN.arme) { a.a1 = -0.45; a.a2 = -2.75; a.b = -3.0 }
-  AUGEN.kp ??= kappe(-1, true)
-  armeBild(AUGEN.kp, AUGEN.arme, { g, neig: 0, sc: 1, oy: 0, vor: weg ? -0.9 : 1.0 }, out)
-  if (weg) { drehe(out.P, out.P, { yaw: 0.55 }); for (let i = 0; i < N; i++) out.L[i] = 0.85 }
 }
 
 // W2: ein heller Streifen läuft um die Oberfläche wie ein Ladering
@@ -573,7 +561,6 @@ export function gestenVorbereiten() {
   kreuz ??= baueKreuz()
   sanduhrRahmen ??= baueSanduhr()
   briefForm ??= baueBrief()
-  AUGEN.kp ??= kappe(-1, true)
   balken ??= baueBalken()
   wlan ??= baueWlan()
   EIN.kp ??= kappe(EIN.arm.s, false)
@@ -587,7 +574,6 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
   else if (form === 'cross') { if (v.fehler === 'heute') kreuzBild(t, out); else fehler(t, v.fehler, out) }
   else if (form === 'wifi') (v.netz === 'boegen' ? boegen : sucht)(t, out)
   else if (form === 'freude') ({ huepfen, strecken, funken })[v.freude ?? 'huepfen'](t, out)
-  else if (form === 'augen' || form === 'augenWeg') augen(t, form === 'augenWeg', out)
   else if (form === 'warten') (v.warten === 'wolken' ? wolken : welle)(t, out)
   else if (form === 'sanduhr') sanduhr(t, out)
   else if (form === 'brief') brief(t, out)
@@ -599,5 +585,5 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
 /** Bei weniger Bewegung steht jede Geste still in diesem Moment. */
 export const STILL: Record<DotForm, number> = {
   hand: 1.3, heart: 0.3, cross: 0.7, wifi: 0.8, haken: 1.0,
-  freude: 0, augen: 1.0, augenWeg: 1.0, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
+  freude: 0, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
 }

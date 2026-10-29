@@ -27,7 +27,7 @@ import '../features/auth/auth.css'
  * Anmeldung mit Hoku (docs/login/UEBERGABE.md; im Code noch „Dot"). Drei Ansichten: Start
  * (zwei Knöpfe), Anmelden, Registrieren. Hoku steht auf der Bühne oben — derselbe wie in
  * der App (DotLayer über den Routen) — und führt (Spec 2026-10-29 „Hoku führt"): er
- * begrüßt, hält sich im Passwortfeld die Augen zu, wartet mit, zeigt Haken und X, und
+ * begrüßt, hört im Passwortfeld zu, wartet mit, zeigt Haken und X, und
  * meldet sich bei Stille mit einem Satz und fliegt zum Feld oder Knopf, um den es geht.
  */
 
@@ -47,7 +47,7 @@ const HINWEIS = 3500
 // dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
 const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
 // alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
-const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
+const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_'))
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
@@ -91,18 +91,17 @@ export function Auth() {
   const hinweisLauf = useRef(0), hinweisAn = useRef(false), zeigtSatz = useRef(false)
   const pwFokus = useRef(false), wartet = useRef(false), vieleGezeigt = useRef(false)
   const letzterGruss = useRef<DotTextKey | null>(null)
-  // Sätze und Augen-Form in späten Abläufen: immer die aktuelle Sprache und Sichtbarkeit des Passworts
-  const dtRef = useRef(dt), zeigePwRef = useRef(zeigePw)
-  useEffect(() => { dtRef.current = dt; zeigePwRef.current = zeigePw })
+  // Sätze in späten Abläufen: immer in der aktuellen Sprache
+  const dtRef = useRef(dt)
+  useEffect(() => { dtRef.current = dt })
 
   const dot = () => dotStore.api()
   const warte = (ms: number) => new Promise<void>(r => { uhren.current.push(window.setTimeout(r, Math.max(0, ms))) })
   const tipp = () => { void hapticTick() }
-  /** Nach einer Geste: zurück zur Kugel, oder wieder Augen zu, solange der Fokus im Passwortfeld liegt. */
+  /** Nach einer Geste: zurück zur Kugel, oder wieder zuhören, solange der Fokus im Passwortfeld liegt. */
   function ruheForm() {
-    if (!pwFokus.current) { dot()?.zeigeForm(null); return }
-    dot()?.zeigeForm(zeigePwRef.current ? 'augenWeg' : 'augen')
-    if (!weniger) dot()?.sag(dtRef.current('login_sehe_nichts'), 60000)
+    if (pwFokus.current) dot()?.setStimmung('listen')
+    else dot()?.zeigeForm(null)
   }
   const neueStille = () => { stille.current = { ansicht: ansichtRef.current, seit: performance.now(), gezeigt: 0, geklopft: false } }
   /** Eine Geste oder ein Satz von Hoku: solange sie läuft, kommt kein Hinweis; danach beginnt die Stille neu. */
@@ -248,11 +247,6 @@ export function Auth() {
     return () => window.removeEventListener('pointerdown', beruehrt, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- eingabe liest nur Refs
   }, [])
-  // Passwort ein- oder ausgeblendet, während der Fokus im Feld liegt: Hoku dreht sich weg bzw. wieder her
-  useEffect(() => {
-    if (pwFokus.current && !laeuft) dot()?.zeigeForm(zeigePw ? 'augenWeg' : 'augen')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Umschalten
-  }, [zeigePw])
   // Ohne Netz: kommt es von selbst zurück, sagt Hoku es und der Knopf leuchtet kurz
   useEffect(() => {
     if (meldung?.text !== 'login_err_net') return
@@ -276,7 +270,7 @@ export function Auth() {
     uhren.current.forEach(clearTimeout); uhren.current = []
     // abgebrochene Abläufe enden nie (ihre Uhren sind weg): Zähler zurück, laufende Hinweise stoppen
     aktiv.current = 0; hinweisLauf.current++; hinweisAn.current = false; zeigtSatz.current = false; wartet.current = false
-    dot()?.stoppeAuftritt(); dot()?.schweige()
+    dot()?.stoppeAuftritt()
     dot()?.setStimmung('idle'); dot()?.zeigeForm(null); dot()?.zeigeText(null); dot()?.setNeigung(0); setSatz(null)
     setLaeuft(false); setHalten(false); setMeldung(null); setNochmal(false); setGeschafft(false)
   }
@@ -337,25 +331,23 @@ export function Auth() {
   /** Der Server prüft: Hoku wartet mit; dauert es länger als 4 s, schreibt er „Einen Moment…" und wartet weiter. */
   function mitWarten(gen: number) {
     wartet.current = true
-    dot()?.schweige(); dot()?.setStimmung('idle'); dot()?.zeigeForm('warten')
+    dot()?.setStimmung('idle'); dot()?.zeigeForm('warten')
     uhren.current.push(window.setTimeout(() => {
       if (gen !== lauf.current || !wartet.current) return
       void schreibe(gen, 'login_moment', GRUSS.text).then(() => { if (gen === lauf.current && wartet.current) dot()?.zeigeForm('warten') })
     }, 4000))
   }
 
-  // Fokus: im Passwort hält er sich höflich die Augen zu (weggedreht, wenn es sichtbar ist), sonst neigt er sich zum Formular
+  // Fokus: im Passwort hört er zu (Kreis), sonst neigt er sich zum Formular
   const beiFokus = (pw: boolean) => {
     eingabe()
     if (laeuft) return
     pwFokus.current = pw
-    if (pw) {
-      dot()?.setNeigung(0); dot()?.zeigeForm(zeigePw ? 'augenWeg' : 'augen')
-      if (!weniger) dot()?.sag(dt('login_sehe_nichts'), 60000)
-    } else { dot()?.setStimmung('idle'); dot()?.setNeigung(10) }
+    dot()?.setStimmung(pw ? 'listen' : 'idle')
+    dot()?.setNeigung(pw ? 0 : 10)
   }
   const beiVerlassen = () => {
-    if (pwFokus.current) { pwFokus.current = false; dot()?.schweige() }
+    pwFokus.current = false
     if (laeuft) return
     dot()?.setStimmung('idle'); dot()?.setNeigung(0)
   }
@@ -545,7 +537,7 @@ export function Auth() {
     </div>
   )
   const auge = (
-    <button type="button" className="tyd-auth-auge" onMouseDown={e => e.preventDefault()} onClick={() => setZeigePw(v => !v)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
+    <button type="button" className="tyd-auth-auge" onClick={() => setZeigePw(v => !v)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
       {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   )

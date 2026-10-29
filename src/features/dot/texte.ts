@@ -87,8 +87,6 @@ const de = {
   login_online: 'Wieder\nonline!',
   login_durchatmen: 'Kurz\ndurchatmen',
   login_postfach: 'Schau in\ndein Postfach!',
-  // Sprechblase, solange Hoku sich im Passwortfeld die Augen zuhält
-  login_sehe_nichts: 'Keine Sorge, ich sehe nichts.',
   heim_antwort: 'Bis später. Tipp auf mein Logo in der Leiste, wenn du mich brauchst.',
   hinweis_unten: 'Dot ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
@@ -219,7 +217,6 @@ const en: Record<keyof typeof de, string> = {
   login_online: 'Back\nonline!',
   login_durchatmen: 'Take a\nbreather',
   login_postfach: 'Check your\ninbox!',
-  login_sehe_nichts: "Don't worry, I can't see a thing.",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Dot is an AI and can be wrong. No diagnosis, no dose recommendations.',
 
