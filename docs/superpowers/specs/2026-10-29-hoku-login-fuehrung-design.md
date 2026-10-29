@@ -152,6 +152,15 @@ wählt dort Freude und Warten aus.
   gelegentliches Umkehren, hinter dem Knopf verdeckt). Hin- und Rückflug im Bogen mit
   Federn.
 
+**Dritte Rückmeldung (29.10.2026, Mockup Version 11):**
+- Klopfen: Hoku kommt so nah, dass er fast das ganze Display füllt (etwa 2,9-fache Größe).
+- Hinweis-Flug: darf nicht „abgehackt“ oder gescriptet wirken. Ersetzt durch stetige
+  Bewegung aus überlagerten Schwingungen mit je Hinweis zufälligen, krummen Frequenzen
+  (längs des Knopfs, Winkel um seine Längsachse, Abstand); die Winkelgeschwindigkeit
+  schwankt so stark, dass er mal flitzt, mal fast steht und umkehrt; leichtes Flirren;
+  im schnellen Flug streckt er sich in Flugrichtung. Hin- und Rückflug setzen am schon
+  fliegenden Punkt an.
+
 ## Alle Situationen
 
 ### Startseite (Anmelden / Registrieren)
