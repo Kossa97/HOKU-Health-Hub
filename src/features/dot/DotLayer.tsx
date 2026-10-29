@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
+import { AUTO_EREIGNIS } from './autoTracking/autoTracking'
+import { useDotAutoTracking } from './autoTracking/useDotAutoTracking'
 import { TAB_ITEMS } from '../../components/navigation/tabModel'
 import { createDot, warDraussen, type DotApi } from './engine/dotEngine'
 import { dauerText } from './engine/geometry'
@@ -18,13 +21,16 @@ import './dot.css'
  * was die Engine über die App wissen muss: welche Seite gerade gilt (mit oder
  * ohne Leiste, Kamera), ob ein Blatt offen ist, wie hoch die Tastatur ist und
  * ob er heraus darf.
+ *
+ * Die Ebene hängt über den Routen (App.tsx): Derselbe Dot steht auf der
+ * Anmeldung und lebt danach in der App. Drei Betriebsarten:
+ * - `login`: ohne Nutzer auf /auth, auf der Bühne der Anmeldung; kein Chat,
+ *   kein Kontext, kein automatisches Eintragen.
+ * - `app`: das App-Gerüst steht (`Layout` meldet sich bei `dotStore`).
+ * - `aus`: alles andere (Rechtstexte, Zustimmungsseite); die Ebene ist leer.
  */
 
-export interface DotLayerProps {
-  pathname: string
-  mitLeiste: boolean
-  schnellzugriffOffen: boolean
-}
+type Betriebsart = 'login' | 'app' | 'aus'
 
 function seiteVon(pathname: string): DotSeite {
   if (pathname === '/') return 'home'
@@ -46,11 +52,19 @@ const leisteFinden = () => {
   }
 }
 
-export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerProps) {
+export function DotLayer() {
+  const { pathname } = useLocation()
   const { user } = useAuth()
   const { dt } = useDotText()
   const zugang = useDotZugang()
   const stand = useDotStand()
+  // Nach dem Erfolg bleibt die Anmeldung kurz stehen (Haken); solange ihre Bühne da ist, steht er dort
+  // Während des Portals ist die App vielleicht noch nicht aufgebaut (Zustimmung lädt): er bleibt sichtbar
+  const betriebsart: Betriebsart = pathname === '/auth' && (!user || stand.loginBuehne) ? 'login' : user && (stand.app || stand.modus === 'portal') ? 'app' : 'aus'
+  const betriebsartRef = useRef(betriebsart)
+  useEffect(() => { betriebsartRef.current = betriebsart }, [betriebsart])
+  const mitLeiste = stand.app?.mitLeiste ?? false
+  const schnellzugriffOffen = stand.app?.schnellzugriff ?? false
   const canvas = useRef<HTMLCanvasElement>(null)
   const glCanvas = useRef<HTMLCanvasElement>(null)
   const hit = useRef<HTMLButtonElement>(null)
@@ -62,6 +76,9 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
   const kontext = useRef<{ wert: DotKontext | null; zeit: number }>({ wert: null, zeit: 0 })
   const dtRef = useRef(dt)
   useEffect(() => { dtRef.current = dt }, [dt])
+
+  // Dot trägt fällige Einnahmen ein (Pro) und sagt es, wenn er draußen ist
+  useDotAutoTracking(user?.id, zugang.geladen && zugang.darfRaus)
 
   // Kontext für Sprechblasen: höchstens alle 2 Minuten neu. Der Chat lädt
   // immer frisch — er soll nie eine gerade eingetragene Einnahme als offen nennen.
@@ -89,16 +106,19 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
   }, [holeKontext])
   const jetztIn = (k: DotKontext) => localDateTimeKey(new Date(), k.zeitzone).slice(11, 16)
 
-  // Engine einmal anlegen
+  // Engine einmal anlegen, sobald er zum ersten Mal gebraucht wird; danach
+  // bleibt dieselbe Instanz über alle Routen hinweg
+  const aktiv = betriebsart !== 'aus'
+  const api = useRef<DotApi | null>(null)
   useEffect(() => {
-    if (!canvas.current || !glCanvas.current || !hit.current || !blase.current) return
+    if (!aktiv || api.current || !canvas.current || !glCanvas.current || !hit.current || !blase.current) return
     const weniger = matchMedia('(prefers-reduced-motion: reduce)').matches
     const t = (k: Parameters<typeof dt>[0], v?: Record<string, string | number>) => dtRef.current(k, v)
     const tagesgruss = () => {
       const h = new Date().getHours()
       return t(h >= 5 && h < 11 ? 'gruss_morgen' : h >= 11 && h < 17 ? 'gruss_tag' : h >= 17 && h < 22 ? 'gruss_abend' : 'gruss_nacht')
     }
-    const api = createDot({
+    const neu = api.current = createDot({
       canvas: canvas.current,
       glCanvas: glCanvas.current,
       hit: hit.current,
@@ -133,15 +153,16 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
         },
       },
       beiAntippen: () => {
+        if (betriebsartRef.current !== 'app') return
         const r = hit.current?.getBoundingClientRect()
         window.clearTimeout(zuT.current)
         setChat({ offen: true, inhalt: true, x: r ? r.left + r.width / 2 : window.innerWidth / 2, y: r ? r.top + r.height / 2 : window.innerHeight / 2 })
       },
       beiZustand: z => dotStore.melde(z),
     })
-    setDot(api)
-    return () => { api.zerstoeren(); dotStore.verbinde(null, null); setDot(null) }
-  }, [])
+    setDot(neu)
+  }, [aktiv])
+  useEffect(() => () => { api.current?.zerstoeren(); api.current = null; dotStore.verbinde(null, null); setDot(null) }, [])
 
   // Mit dem Logo verbinden; gesperrt heißt: Hinweis auf Pro
   useEffect(() => {
@@ -151,24 +172,43 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
 
   // Kontext vorladen, sobald er heraus darf (für den Gruß)
   useEffect(() => { if (zugang.darfRaus) void holeKontext().catch(() => null) }, [zugang.darfRaus, holeKontext, pathname])
-
-  // War er beim letzten Mal draußen, kommt er beim Start wieder heraus
-  const gestartet = useRef(false)
   useEffect(() => {
-    if (!dot || !zugang.geladen || gestartet.current) return
+    if (!dot) return
+    const beiAuto = (e: Event) => {
+      const anzahl = (e as CustomEvent<{ anzahl: number }>).detail?.anzahl ?? 0
+      kontext.current.zeit = 0
+      if (anzahl > 0 && dot.modus() === 'home') dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
+    }
+    window.addEventListener(AUTO_EREIGNIS, beiAuto)
+    return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
+  }, [dot])
+
+  // Anmeldung: auf ihre Bühne. Sonst verlässt er sie (vorerst still ins Haus;
+  // der Flug in die Leiste kommt mit dem Erfolg der Anmeldung)
+  useEffect(() => {
+    if (!dot) return
+    if (betriebsart === 'login') { if (stand.loginBuehne) dot.loginBuehne(stand.loginBuehne) }
+    else dot.verlasseLogin()
+  }, [dot, betriebsart, stand.loginBuehne])
+
+  // War er beim letzten Mal draußen, kommt er beim Start der App wieder heraus
+  const gestartet = useRef(false)
+  useEffect(() => { if (betriebsart === 'login') gestartet.current = false }, [betriebsart])
+  useEffect(() => {
+    if (!dot || betriebsart !== 'app' || !zugang.geladen || gestartet.current) return
     gestartet.current = true
     if (zugang.darfRaus && warDraussen()) window.setTimeout(() => dot.klingeln(), 900)
-  }, [dot, zugang.geladen, zugang.darfRaus])
+  }, [dot, betriebsart, zugang.geladen, zugang.darfRaus])
 
   // Seitenwechsel: mit oder ohne Leiste, Kamera, Richtung für das Nachwabbeln
   const vorherPfad = useRef(pathname)
   useEffect(() => {
-    if (!dot) return
+    if (!dot || betriebsart !== 'app') return
     const ia = TAB_ITEMS.findIndex(t => t.route === vorherPfad.current), ib = TAB_ITEMS.findIndex(t => t.route === pathname)
     const richtung = vorherPfad.current === pathname ? 0 : ia >= 0 && ib >= 0 ? Math.sign(ib - ia) : 1
     vorherPfad.current = pathname
     dot.setSeite({ leiste: mitLeiste, kamera: stand.kameras > 0, darfRaus: zugang.geladen && zugang.darfRaus, richtung })
-  }, [dot, pathname, mitLeiste, stand.kameras, zugang.geladen, zugang.darfRaus])
+  }, [dot, betriebsart, pathname, mitLeiste, stand.kameras, zugang.geladen, zugang.darfRaus])
 
   // Blätter und Dialoge: er tritt zurück, gedimmt unter dem Schleier
   useEffect(() => {
@@ -205,13 +245,13 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
 
   return (
     <>
-      <div className="tyd-dot-ebene" data-buehne={chat.offen ? 'true' : 'false'} aria-hidden={stand.drinnen}>
+      <div className="tyd-dot-ebene" data-buehne={chat.offen ? 'true' : 'false'} aria-hidden={stand.drinnen} hidden={!aktiv}>
         <canvas ref={canvas} className="tyd-dot-flaeche" />
         <canvas ref={glCanvas} className="tyd-dot-flaeche" />
         <button ref={hit} type="button" className="tyd-dot-treffer" aria-label={dt('figur')} hidden />
         <div ref={blase} className="tyd-dot-blase" role="status" />
       </div>
-      <CoachPanel
+      {betriebsart === 'app' && <CoachPanel
         offen={chat.offen}
         inhalt={chat.inhalt}
         ursprung={{ x: chat.x, y: chat.y }}
@@ -222,7 +262,7 @@ export function DotLayer({ pathname, mitLeiste, schnellzugriffOffen }: DotLayerP
         dot={dot}
         onSchliessen={schliessen}
         onHeim={heim}
-      />
+      />}
     </>
   )
 }

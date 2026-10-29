@@ -4,6 +4,7 @@ import { vergissAbdruecke } from '../components/ui/umrissAbdruck'
 import { AUTH_STORAGE_KEY, supabase } from '../lib/supabase'
 import { setzeAngemeldetenNutzer, vergissOfflineDaten } from '../lib/stoerung'
 import { vergissDotVerlauf } from '../features/dot/chat/coachService'
+import { abmeldenBeimStart } from '../features/auth/lib/sitzung'
 
 interface AuthContextType {
   session: Session | null
@@ -47,10 +48,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    void (async () => {
+      // „Angemeldet bleiben" war aus: neuer Start, neue Anmeldung — bevor die Route entschieden wird
+      if (abmeldenBeimStart()) {
+        const { error } = await supabase.auth.signOut({ scope: 'local' })
+        if (error) try { localStorage.removeItem(AUTH_STORAGE_KEY) } catch { /* kein Speicher */ }
+      }
+      const { data: { session }, error } = await supabase.auth.getSession()
       setSession(session ?? (error && isAuthRetryableFetchError(error) ? gespeicherteSitzung() : null))
       setLoading(false)
-    })
+    })()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Den Start regelt getSession oben — offline käme hier sonst `null`

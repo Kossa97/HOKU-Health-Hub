@@ -1,3 +1,5 @@
+import { AUTO_EREIGNIS } from '../features/dot/autoTracking/autoTracking'
+import { useDotText } from '../features/dot/texte'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -56,6 +58,7 @@ import {
   saveIntakeBundle,
   type IntakeBundle,
   type IntakeBundleClient,
+  setIntakeBundleAutoLog,
 } from '../features/routines/bundles/intakeBundles'
 import { IntakeBundleSheet } from '../features/routines/bundles/IntakeBundleSheet'
 import {
@@ -85,6 +88,8 @@ interface DoseLog {
   cycle_id?: string | null
   plan_version_id?: string | null
   routine_slot_key?: string | null
+  /** Von Dot automatisch eingetragen (Pro). */
+  auto_logged?: boolean
 }
 
 interface Cycle {
@@ -311,6 +316,7 @@ function initialDay(): Date {
 
 export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {}) {
   const { t } = useTranslation()
+  const { dt } = useDotText()
   const location = useLocation()
   const navigate = useNavigate()
   const locale = getDateLocale()
@@ -667,7 +673,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           const selectionStart = parseISO(tagAusserhalbDesRasters)
           ranges.push({ start: selectionStart, end: addDays(selectionStart, 1) })
         }
-        const columns = 'id, stack_item_id, dose, unit, method, logged_at, notes, taken, cycle_id, plan_version_id, routine_slot_key, stack_items(display_name)'
+        const columns = 'id, stack_item_id, dose, unit, method, logged_at, notes, taken, cycle_id, plan_version_id, routine_slot_key, auto_logged, stack_items(display_name)'
         const byId = new Map<string, DoseLog>()
         // Nebeneinander, nicht nacheinander: die Zeitbereiche wissen nichts
         // voneinander, gewartet wurde trotzdem der Reihe nach.
@@ -748,7 +754,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const { data } = await dashboardDataClient
       .from('dose_logs')
       .select(FEATURES.planTimelineV2
-        ? 'id, stack_item_id, dose, unit, method, logged_at, notes, taken, cycle_id, plan_version_id, routine_slot_key, stack_items(display_name)'
+        ? 'id, stack_item_id, dose, unit, method, logged_at, notes, taken, cycle_id, plan_version_id, routine_slot_key, auto_logged, stack_items(display_name)'
         : '*, stack_items(display_name)')
       .eq('user_id', user.id)
       .gte('logged_at', start)
@@ -766,6 +772,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const loadLogs = useCallback(async () => {
     await latestLogLoader.current?.()
   }, [])
+
+  // Dot hat eingetragen: neu laden
+  useEffect(() => {
+    const neu = () => { void loadLogs() }
+    window.addEventListener(AUTO_EREIGNIS, neu)
+    return () => window.removeEventListener(AUTO_EREIGNIS, neu)
+  }, [loadLogs])
 
   const loadCycles = useCallback(async () => {
     if (!user) return
@@ -1804,10 +1817,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     /** Zelle des Wochenstreifens: Balken, Zahl, Wochentag, gewaehlt auf grauer Kachel.
      *  Ohne: Zelle des Monatsblatts, Zahl im Kreis, Wochentage stehen ueber dem Raster. */
     mitWochentag?: boolean
-    /** Der Onboarding-Anker fuer „heute" darf es nur einmal geben. */
-    ohneAnker?: boolean
   }
-  const renderDayCell = ({ day, monatsBezug, key, vorschau = false, mitWochentag = false, ohneAnker = false }: ZellenOptionen) => {
+  const renderDayCell = ({ day, monatsBezug, key, vorschau = false, mitWochentag = false }: ZellenOptionen) => {
     const isPeek = vorschau
     const inMonth = mitWochentag || day.getMonth() === monatsBezug.getMonth()
     const isSelected = !isPeek && isSameDay(day, selectedDay)
@@ -1876,7 +1887,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const zelleProps = {
       type: 'button' as const,
       'data-calendar-date': !isPeek ? dayKey : undefined,
-      ...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {}),
       'aria-label': beschriftung,
       'aria-pressed': !isPeek ? isSelected : undefined,
       'aria-current': isTodayDay && !isPeek ? 'date' as const : undefined,
@@ -2154,6 +2164,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {log.method && <> · <span>{log.method}</span></>}
             {' · '}<span className="tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
             {log.notes && log.notes !== AUTO_MISSED_NOTE && <> · <span>{log.notes}</span></>}
+            {log.auto_logged && log.taken === true && <> · <span data-auto-logged className="text-[var(--lg-accent-text)]">{dt('auto_marke')}</span></>}
           </span>
         </span>
         {status && <span className={`shrink-0 text-[15px] ${ton}`}>{status}</span>}
@@ -2286,7 +2297,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )}
 
       {/* ── Kalender ──────────────────────────────────────────────────────── */}
-      <div data-ob="calendar-main" data-ob-self>
+      <div>
         {/* Der Streifen traegt keinen eigenen Rahmen mehr. Er ist Navigation,
             nicht Inhalt — der Tag darunter ist der Inhalt. */}
         <div className="flex flex-col gap-2">
@@ -2424,7 +2435,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 className="grid select-none grid-cols-7 gap-1"
               >
                 {calendarDays.map((day, i) => renderDayCell({
-                  day, monatsBezug: currentDate, key: i, ohneAnker: true,
+                  day, monatsBezug: currentDate, key: i,
                 }))}
               </div>
 
@@ -2435,7 +2446,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})` }}
                 >
                   {peekCalendarDays.map((day, i) => renderDayCell({
-                    day, monatsBezug: peekDate!, key: i, vorschau: true, ohneAnker: true,
+                    day, monatsBezug: peekDate!, key: i, vorschau: true,
                   }))}
                 </div>
               )}
@@ -2796,6 +2807,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           onClose={() => setBundleSheet(undefined)}
           onSave={saveBundle}
           onDelete={bundleSheet ? removeBundle : undefined}
+          onAutoChange={bundleSheet ? async seit => {
+            const id = bundleSheet.id
+            await setIntakeBundleAutoLog(dashboardDataClient as never, user!.id, id, seit)
+            setBundles(current => current.map(b => b.id === id ? { ...b, auto_log_since: seit } : b))
+          } : undefined}
         />
       )}
 

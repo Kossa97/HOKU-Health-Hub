@@ -54,11 +54,13 @@ export default defineConfig(({ mode }) => {
         short_name: 'TYD',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
-        background_color: '#07091a',
+        background_color: '#060911',
         display: 'standalone',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          // Dot (docs/logo/dot/codex, Bild von Codex). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
+          { src: '/icons/dot-codex-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/dot-codex-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/dot-codex-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_supabase_schema_update_sql", "label": "supabase-schema-update.sql", "file_type": "code", "source_file": "supabase-schema-update.sql", "source_location": null}, {"id": "peptides", "label": "peptides", "file_type": "code", "source_file": "", "source_location": "", "origin_file": "$graphify-root$/supabase-schema-update.sql"}], "edges": []}

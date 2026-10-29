@@ -8,10 +8,11 @@ import { parseExtractResult, type ExtractResult } from '../../lib/extractResult'
 import { CATALOG_MARKER_NAMES, normalizeMarker } from '../../lib/markerCatalog'
 import { mergeIncoming, markerKey, type MergeConflict, type MergeItem } from '../../lib/mergeRows'
 import { formatDisplayDate } from '../../lib/format'
-import { CYAN, MUTED, TEXT } from '../../styles'
+import { MUTED, TEXT } from '../../styles'
 import { ReviewTable, type ReviewRow } from './ReviewTable'
 import { ConflictResolver } from './ConflictResolver'
 import { EINWILLIGUNG_FEHLT } from '../../lib/aiConsent'
+import { DotArbeitet } from '../../../dot/DotZeichen'
 import { beschreibeExtraktionsFehler } from '../../lib/extractError'
 import { KiEinwilligung } from '../KiEinwilligung'
 import { useKiEinwilligung } from '../useKiEinwilligung'
@@ -287,11 +288,7 @@ export function ImportFlow({ mode, onClose, onSaved }: Props) {
           </>
         )}
 
-        {phase === 'extracting' && (
-          <div className="py-10 text-center font-semibold" style={{ color: CYAN }}>
-            {t('bw_extracting')}
-          </div>
-        )}
+        {phase === 'extracting' && <DotArbeitet text={t('bw_extracting')} />}
 
         {(phase === 'review' || saving) && (
           <>

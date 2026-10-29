@@ -2,13 +2,12 @@ import { Plus } from 'lucide-react'
 
 // Empty "ghost" vial that adds a new substance when clicked — nur noch im
 // leeren Stack; im Karussell steht `AddStageTile`.
-export function AddVialTile({ onClick, label, obKey }: { onClick: () => void; label: string; obKey?: string }) {
+export function AddVialTile({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      {...(obKey ? { 'data-ob': obKey } : {})}
       className="group mx-auto flex w-20 flex-col items-center sm:w-24"
     >
       <div className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-white/25 bg-[rgba(28,28,30,0.72)] text-[var(--lg-text-3)] transition-colors group-hover:border-[rgba(100,210,255,0.6)] group-focus-visible:border-cyan-300/60 sm:h-36">

@@ -5,6 +5,7 @@ import { useSheetClose } from '../../../lib/useSheetClose'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { BUNDLE_NAME_MAX, normalizeBundleName, type IntakeBundle } from './intakeBundles'
 import { SheetGriff } from '../../../components/ui/SheetGriff'
+import { DotAutoSchalter } from '../../dot/autoTracking/DotAutoSchalter'
 
 interface BundleSheetItem {
   id: string
@@ -18,9 +19,11 @@ interface IntakeBundleSheetProps {
   onClose: () => void
   onSave: (draft: { name: string; stackItemIds: string[] }) => Promise<void>
   onDelete?: () => Promise<void>
+  /** Schalter „Dot trägt automatisch ein" (nur für ein gespeichertes Bündel). */
+  onAutoChange?: (seit: string | null) => Promise<void>
 }
 
-export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelete }: IntakeBundleSheetProps) {
+export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelete, onAutoChange }: IntakeBundleSheetProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const nameId = useId()
@@ -134,6 +137,12 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
             </ul>
           )}
         </fieldset>
+
+        {bundle && onAutoChange && (
+          <div className="lg-group mt-5">
+            <DotAutoSchalter kompakt seit={bundle.auto_log_since} text="auto_text_buendel" speichern={onAutoChange} />
+          </div>
+        )}
 
         {error && (
           <p role="alert" className="mt-3 px-1 text-[13px] text-[var(--lg-bad-text)]">

@@ -1,9 +1,11 @@
 import { TEST_USER } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 
+test.use({ dotFrei: true })
+
 /**
- * Dot, der KI-Coach: wohnt für alle in der Leiste, heraus kommt er nur mit
- * Pro (oder als Tester). Chat nur mit Einwilligung.
+ * Dot, der KI-Coach: wohnt für alle in der Leiste. Bis Pro startet, kommt er
+ * für alle heraus (PRO_PFLICHT aus). Chat nur mit Einwilligung.
  */
 
 const logo = (page: import('@playwright/test').Page) => page.locator('[data-tyd-slot="dot"]')
@@ -14,19 +16,14 @@ const lassLaufen = async (page: import('@playwright/test').Page, ms: number) => 
   for (let t = 0; t < ms; t += 100) await page.clock.runFor(100)
 }
 
-test('ohne Pro bleibt Dot im Haus und sagt, dass es Pro braucht', async ({ page, mock }) => {
-  // Nicht auf Home: dort baut direkt nach dem Laden die 3D-Torso-Vorschau auf,
-  // mit Software-WebGL mehrere Sekunden, in denen nichts gezeichnet wird — der
-  // Hinweis (4,5 s ab dem Tipp) war dann abgelaufen, bevor er erschien.
-  // Dot wohnt auf jeder Seite mit Leiste.
-  await page.goto('/kalender')
+test('bis Pro startet, kommt Dot auch ohne Pro heraus', async ({ page, mock }) => {
+  await page.goto('/')
   await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await logo(page).click()
-  // die Uhr der Seite steht: beim Warten weiterlaufen lassen
-  const hinweis = page.getByText('Dot kommt mit Pro heraus')
-  await expect.poll(async () => { await page.clock.runFor(100); return hinweis.isVisible() }).toBe(true)
-  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
+  await lassLaufen(page, 3000)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')
+  await expect(page.getByText('Dot kommt mit Pro heraus')).toHaveCount(0)
   expect(mock.coach.calls).toEqual([])
 })
 

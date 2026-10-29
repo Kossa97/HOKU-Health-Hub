@@ -71,7 +71,7 @@ export function installDenyFeedback(
     const el = origin.closest<HTMLElement>(DENY_SELECTOR)
     if (!el) return
     event.preventDefault()
-    // Auch andere Klick-Lauscher am Dokument (Onboarding, Zurueck-Navigation)
+    // Auch andere Klick-Lauscher am Dokument (etwa die Zurueck-Navigation)
     // sollen den Klick nicht sehen — ein disabled-Knopf loeste gar keinen aus.
     // Das greift, weil dieser Lauscher als erster eingehaengt wird (main.tsx).
     event.stopImmediatePropagation()

@@ -18,8 +18,6 @@ export interface TabDefinition {
   labelKey: string | null
   /** Beschriftung, wenn kein Schluessel greift (Eigennamen werden nicht uebersetzt). */
   fallbackLabel: string
-  /** Anker fuer das Onboarding. Fehlt er, zeigt kein Schritt auf den Reiter. */
-  obKey?: string
 }
 
 /**
@@ -28,9 +26,9 @@ export interface TabDefinition {
  * fuehrt zu keiner Route und sitzt deshalb neben der Kapsel.
  */
 export const TAB_ITEMS: readonly TabDefinition[] = [
-  { id: 'home',     route: '/',         labelKey: 'nav_home',     fallbackLabel: 'Home',     obKey: 'nav-home' },
-  { id: 'my-stack', route: '/my-stack', labelKey: null,           fallbackLabel: 'My Stack', obKey: 'nav-peptide' },
-  { id: 'kalender', route: '/kalender', labelKey: 'nav_kalender', fallbackLabel: 'Kalender', obKey: 'nav-kalender' },
+  { id: 'home',     route: '/',         labelKey: 'nav_home',     fallbackLabel: 'Home' },
+  { id: 'my-stack', route: '/my-stack', labelKey: null,           fallbackLabel: 'My Stack' },
+  { id: 'kalender', route: '/kalender', labelKey: 'nav_kalender', fallbackLabel: 'Kalender' },
   { id: 'profil',   route: '/profil',   labelKey: 'nav_profil',   fallbackLabel: 'Profil' },
 ] as const
 

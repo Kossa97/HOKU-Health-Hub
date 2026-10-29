@@ -1,10 +1,11 @@
 /**
- * Auswahl hinter dem „+" der Blutwerte: Dokument oder Foto (Werte liest die
- * KI aus — der Import fragt vorher nach der Einwilligung) oder manuelle Eingabe.
+ * Auswahl hinter dem „+" der Blutwerte: Dokument oder Foto (Werte liest Dot
+ * aus — der Import fragt vorher nach der Einwilligung) oder manuelle Eingabe.
  */
 import { useTranslation } from 'react-i18next'
-import { Camera, ChevronRight, FileText, PenLine, Sparkles, type LucideIcon } from 'lucide-react'
-import { CYAN, MUTED, TEXT } from '../styles'
+import { Camera, ChevronRight, FileText, PenLine, type LucideIcon } from 'lucide-react'
+import { DotZeichen } from '../../dot/DotZeichen'
+import { MUTED, TEXT } from '../styles'
 import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 export type AddChoice = 'document' | 'photo' | 'manual'
@@ -43,17 +44,11 @@ export function AddSheet({ onPick, onClose }: Props) {
             >
               <span className="lg-icon-tile relative !h-9 !w-9" style={{ background: ki ? '#0a84ff' : '#636366' }}>
                 <Icon size={18} aria-hidden="true" />
-                {/* KI-Sterne: diese Wege lesen die Werte per KI aus */}
+                {/* Dot: diese Wege liest er aus */}
                 {ki && (
-                  <Sparkles
-                    aria-hidden="true"
-                    data-bw-ki-badge
-                    size={14}
-                    strokeWidth={1.5}
-                    fill="currentColor"
-                    className="absolute -right-1.5 -top-1.5"
-                    style={{ color: CYAN }}
-                  />
+                  <span data-bw-ki-badge className="absolute -right-2 -top-2 flex rounded-full bg-[var(--lg-surface,#1c1c1e)] p-[2px]">
+                    <DotZeichen groesse={15} />
+                  </span>
                 )}
               </span>
               <span className="min-w-0 flex-1">

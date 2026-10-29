@@ -64,6 +64,10 @@ const de = {
   chip_bestand: 'Wie lange reicht mein Bestand?',
   chip_ernaehrung: 'Wie sieht meine Ernährung heute aus?',
   chip_heim: 'Geh in dein Haus',
+  // Anmeldung: Dot schreibt diese Zeilen mit seinen Punkten (Zeilenumbruch = neue Zeile)
+  login_hub: 'Willkommen im\nHealth Hub',
+  login_zurueck: 'Willkommen\nzurück',
+  login_hey: 'Hey, ich\nbin Dot',
   heim_antwort: 'Bis später. Tipp auf mein Logo in der Leiste, wenn du mich brauchst.',
   hinweis_unten: 'Dot ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
@@ -78,6 +82,48 @@ const de = {
   einw_widerrufen: 'Einwilligung widerrufen',
   einw_widerrufen_fertig: 'Einwilligung widerrufen. Dot schickt nichts mehr an Anthropic.',
   einw_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
+
+  // Dot trägt automatisch ein (Pro)
+  auto_eingetragen: 'Ich habe {{anzahl}} Einnahmen für dich eingetragen. Sag mir, wenn etwas anders war.',
+  auto_eingetragen_one: 'Ich habe eine Einnahme für dich eingetragen. Sag mir, wenn etwas anders war.',
+  auto_titel: 'Dot trägt automatisch ein',
+  auto_text: 'Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist. Du sagst Dot nur, was anders war.',
+  auto_text_buendel: 'Gilt für alle Substanzen in diesem Bündel. Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist.',
+  auto_pro: 'Mit Pro',
+  auto_marke: 'automatisch',
+  auto_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
+  auto_ueber_buendel: 'Läuft auch über dein Bündel „{{name}}“: solange es an ist, trägt Dot hier ein.',
+
+  // Eintragen per Satz (Karten im Chat)
+  melde_genommen: '{{substanz}}, {{wann}}: als genommen eingetragen ({{uhrzeit}}).',
+  melde_vergessen: '{{substanz}}, {{wann}}: als vergessen eingetragen.',
+  melde_vorgemerkt: '{{substanz}}, {{wann}}: ich trage sie um {{uhrzeit}} als genommen ein.',
+  melde_selbst: '{{substanz}}, {{wann}}: notiert. Hak sie um {{uhrzeit}} selbst ab, automatisch trage ich nur mit dem Schalter an der Substanz ein.',
+  melde_schon_genommen: '{{substanz}}, {{wann}}: war schon als genommen eingetragen.',
+  melde_schon_vergessen: '{{substanz}}, {{wann}}: war schon als vergessen eingetragen.',
+  melde_fehler: '{{substanz}}, {{wann}}: konnte ich nicht eintragen. Bitte im Kalender.',
+  melde_unbekannt: 'Diese Einnahme finde ich gerade nicht. Sag es mir bitte noch einmal.',
+  melde_heute: 'heute',
+  melde_gestern: 'gestern',
+  melde_zurueck: 'Rückgängig',
+  melde_zurueck_fertig: 'Rückgängig gemacht.',
+  melde_zurueck_fehler: 'Rückgängig ging nicht. Bitte im Kalender.',
+  melde_zurueck_veraendert: 'Das hat sich inzwischen geändert, ich lasse es so. Bitte im Kalender prüfen.',
+
+  // Substanz anlegen per Satz
+  anlage_vorbereitet: '{{was}}: Ich habe alles für dich vorbereitet. Schau es dir an und speichere es.',
+  anlage_oeffnen: 'Ansehen und speichern',
+  anlage_morgens: 'morgens',
+  anlage_mittags: 'mittags',
+  anlage_abends: 'abends',
+
+  // Dot hört zu
+  mikro_start: 'Sprechen',
+  mikro_fertig: 'Fertig gesprochen',
+  mikro_hoert: 'Ich höre zu …',
+  mikro_verweigert: 'Ich darf das Mikrofon nicht benutzen. Du kannst es in den Einstellungen erlauben – oder tipp auf das Mikrofon deiner Tastatur.',
+  mikro_nichts: 'Ich habe nichts gehört. Tipp noch einmal aufs Mikrofon und sprich los.',
+  mikro_fehler: 'Zuhören klappt gerade nicht. Das Mikrofon deiner Tastatur geht immer.',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -131,6 +177,9 @@ const en: Record<keyof typeof de, string> = {
   chip_bestand: 'How long will my supply last?',
   chip_ernaehrung: 'How is my nutrition today?',
   chip_heim: 'Go to your house',
+  login_hub: 'Welcome to\nHealth Hub',
+  login_zurueck: 'Welcome\nback',
+  login_hey: "Hey, I'm\nDot",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Dot is an AI and can be wrong. No diagnosis, no dose recommendations.',
 
@@ -144,6 +193,47 @@ const en: Record<keyof typeof de, string> = {
   einw_widerrufen: 'Withdraw consent',
   einw_widerrufen_fertig: 'Consent withdrawn. Dot no longer sends anything to Anthropic.',
   einw_fehler: 'Could not be saved. Please try again.',
+
+  auto_eingetragen: 'I logged {{anzahl}} intakes for you. Tell me if anything was different.',
+  auto_eingetragen_one: 'I logged one intake for you. Tell me if anything was different.',
+  auto_titel: 'Dot logs automatically',
+  auto_text: 'Planned intakes count as taken once their time is 30 minutes past. You only tell Dot what was different.',
+  auto_text_buendel: 'Applies to every substance in this bundle. Planned intakes count as taken once their time is 30 minutes past.',
+  auto_pro: 'With Pro',
+  auto_marke: 'automatic',
+  auto_fehler: 'Could not be saved. Please try again.',
+  auto_ueber_buendel: 'Also on through your bundle “{{name}}”: while it is on, Dot logs this one.',
+
+  // Logging by sentence (cards in the chat)
+  melde_genommen: '{{substanz}}, {{wann}}: logged as taken ({{uhrzeit}}).',
+  melde_vergessen: '{{substanz}}, {{wann}}: logged as forgotten.',
+  melde_vorgemerkt: '{{substanz}}, {{wann}}: I will log it as taken at {{uhrzeit}}.',
+  melde_selbst: '{{substanz}}, {{wann}}: noted. Tick it off yourself at {{uhrzeit}}; I only log automatically with the switch on the substance.',
+  melde_schon_genommen: '{{substanz}}, {{wann}}: was already logged as taken.',
+  melde_schon_vergessen: '{{substanz}}, {{wann}}: was already logged as forgotten.',
+  melde_fehler: '{{substanz}}, {{wann}}: I could not log that. Please use the calendar.',
+  melde_unbekannt: 'I cannot find that intake right now. Please tell me again.',
+  melde_heute: 'today',
+  melde_gestern: 'yesterday',
+  melde_zurueck: 'Undo',
+  melde_zurueck_fertig: 'Undone.',
+  melde_zurueck_fehler: 'Undo did not work. Please use the calendar.',
+  melde_zurueck_veraendert: 'That has changed since, so I am leaving it. Please check the calendar.',
+
+  // Adding a substance by sentence
+  anlage_vorbereitet: '{{was}}: I have prepared everything for you. Take a look and save it.',
+  anlage_oeffnen: 'Review and save',
+  anlage_morgens: 'morning',
+  anlage_mittags: 'midday',
+  anlage_abends: 'evening',
+
+  // Dot listens
+  mikro_start: 'Speak',
+  mikro_fertig: 'Done speaking',
+  mikro_hoert: 'Listening …',
+  mikro_verweigert: 'I am not allowed to use the microphone. You can allow it in Settings – or tap the microphone on your keyboard.',
+  mikro_nichts: 'I did not hear anything. Tap the microphone again and start speaking.',
+  mikro_fehler: 'Listening does not work right now. The microphone on your keyboard always does.',
 }
 
 export const DOT_TEXTE = { de, en }
@@ -162,7 +252,8 @@ export function dotText(lang: DotSprache, key: DotTextKey, vars?: Record<string,
 
 export function useDotText() {
   const { i18n } = useTranslation()
-  const lang = dotSprache(i18n.resolvedLanguage ?? i18n.language)
+  // Ohne i18n-Instanz (Tests mit gemocktem useTranslation) gilt Englisch
+  const lang = dotSprache(i18n?.resolvedLanguage ?? i18n?.language)
   const dt = useCallback((key: DotTextKey, vars?: Record<string, string | number>) => dotText(lang, key, vars), [lang])
   return { dt, lang }
 }

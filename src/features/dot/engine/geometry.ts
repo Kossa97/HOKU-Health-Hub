@@ -102,3 +102,31 @@ export function dauerText(minuten: number, std: string, min: string) {
   const h = Math.floor(m / 60), r = m % 60
   return [h ? `${h} ${std}` : '', r || !h ? `${r} ${min}` : ''].filter(Boolean).join(' ')
 }
+
+/**
+ * Ein Punkt auf dem Umriss des Displays (abgerundetes Rechteck), `s` von 0 bis 1
+ * im Uhrzeigersinn ab der Mitte oben. Für die Eröffnung: dort starten die Partikel.
+ */
+export function rahmenPunkt(rand: Rand, rad: number, s: number): [number, number] {
+  const { l, t, r, b } = rand
+  const w = Math.max(0, r - l - 2 * rad), h = Math.max(0, b - t - 2 * rad), bogen = (rad * Math.PI) / 2
+  let d = s * (2 * w + 2 * h + 4 * bogen)
+  const cx = (l + r) / 2
+  if (d < w / 2) return [cx + d, t]
+  d -= w / 2
+  if (d < bogen) { const a = d / rad; return [r - rad + Math.sin(a) * rad, t + rad - Math.cos(a) * rad] }
+  d -= bogen
+  if (d < h) return [r, t + rad + d]
+  d -= h
+  if (d < bogen) { const a = d / rad; return [r - rad + Math.cos(a) * rad, b - rad + Math.sin(a) * rad] }
+  d -= bogen
+  if (d < w) return [r - rad - d, b]
+  d -= w
+  if (d < bogen) { const a = d / rad; return [l + rad - Math.sin(a) * rad, b - rad + Math.cos(a) * rad] }
+  d -= bogen
+  if (d < h) return [l, b - rad - d]
+  d -= h
+  if (d < bogen) { const a = d / rad; return [l + rad - Math.cos(a) * rad, t + rad - Math.sin(a) * rad] }
+  d -= bogen
+  return [l + rad + d, t]
+}

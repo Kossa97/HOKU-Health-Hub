@@ -33,6 +33,7 @@ import {
   type ScheduleCycle,
 } from '../lib/intakeSchedule'
 import { loadCycleTimelines } from '../features/my-stack/services/planLifecycle'
+import { AUTO_EREIGNIS, dotTraegtEin, ladeAutoKarte, type AutoKarte } from '../features/dot/autoTracking/autoTracking'
 import { localDateBoundaryInstant, localDateTimeKey, resolveCycleAt, type CycleTimeline } from '../lib/planTimeline'
 import { ExpiryWarningBanners } from '../components/ExpiryWarningBanners'
 import { WorkflowBanner } from '../components/WorkflowBanner'
@@ -486,9 +487,10 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         let inventoryData: Record<string, unknown>[] = []
         let escalationData: unknown[] = []
         let injectionData: Record<string, unknown>[] = []
+        let autoKarteHome: AutoKarte | null = new Map()
 
         if (FEATURES.planTimelineV2) {
-          const [loadedTimelines, logsResult, stackItemsResult, inventoryResult, injectionsResult] = await Promise.all([
+          const [loadedTimelines, logsResult, stackItemsResult, inventoryResult, injectionsResult, loadedAutoKarte] = await Promise.all([
             loadCycleTimelines(homeDataClient as never, user!.id),
             homeDataClient.from('dose_logs')
               .select('id, logged_at, stack_item_id, taken, cycle_id, plan_version_id, routine_slot_key')
@@ -506,10 +508,14 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               .eq('user_id', user!.id)
               .order('logged_at', { ascending: false })
               .limit(30),
+            // Was Dot automatisch einträgt, markiert die Rückschau nicht als verpasst.
+            // Unbekannt (Fehler): dann lieber gar nicht markieren.
+            ladeAutoKarte(homeDataClient as never, user!.id).catch(() => null),
           ])
           if (cancelled) return
           if (logsResult.error) throw logsResult.error
           if (stackItemsResult.error) throw stackItemsResult.error
+          autoKarteHome = loadedAutoKarte
           timelines = loadedTimelines
           logData = (logsResult.data ?? []) as IntakeLog[]
           stackItemData = (stackItemsResult.data ?? []) as Record<string, unknown>[]
@@ -697,11 +703,12 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         const runAutoMissBatch = () => {
           if (cancelled) return
           if (FEATURES.planTimelineV2) {
-            if (oldestRemaining < 1) return
+            if (oldestRemaining < 1 || !autoKarteHome) return
+            const karte = autoKarteHome
             const newest = Math.max(1, oldestRemaining - AUTO_MISS_DAY_BATCH + 1)
             const missed = collectMissedTimelineIntakes(
               timelines, logData, now, timeZone, oldestRemaining, newest,
-            )
+            ).filter(m => !m.scheduledAt || !dotTraegtEin(karte, m.stackItemId, m.scheduledAt, now))
             if (missed.length > 0) {
               const stackItemById = new Map(stackItemData.map(item => [item.id as string, item]))
               const entries = missed.flatMap(m => {
@@ -783,6 +790,13 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
       if (missedTimer !== undefined) window.clearTimeout(missedTimer)
     }
   }, [homeDataClient, user, homeReloadKey])
+
+  // Dot hat eingetragen: neu laden
+  useEffect(() => {
+    const neu = () => setHomeReloadKey(value => value + 1)
+    window.addEventListener(AUTO_EREIGNIS, neu)
+    return () => window.removeEventListener(AUTO_EREIGNIS, neu)
+  }, [])
 
   const { t } = useTranslation()
   const locale = getDateLocale()
@@ -1255,7 +1269,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         <div style={sectionHeaderStyle}>
           <h2 style={sectionTitleStyle}>{t('home_all_tools', { defaultValue: 'Alle Tools' })}</h2>
         </div>
-        <div className="lg-surface" style={{ ...panelStyle }} data-ob="home-tiles">
+        <div className="lg-surface" style={{ ...panelStyle }}>
           {TILE_DEFS.map(tile => (
             <TileButton
               key={tile.labelKey}

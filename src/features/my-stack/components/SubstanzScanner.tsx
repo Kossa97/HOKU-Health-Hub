@@ -13,6 +13,7 @@ import { reportError } from '../../../lib/monitoring'
 import { vorschlagAusEtikett, vorschlagAusProdukt, type ScanStaerke, type ScanVorschlag } from '../lib/substanzScan'
 import { ScanFehler, liesEtikett, sucheBarcode } from '../services/substanzScan'
 import type { SubstanceCatalogEntry } from '../types'
+import { DotArbeitet } from '../../dot/DotZeichen'
 
 interface Foto {
   base64: string
@@ -212,12 +213,14 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
         </div>
       )}
 
-      {phase.art === 'laeuft' && (
+      {/* Den Barcode schlägt die App selbst nach; das Etikett liest Dot */}
+      {phase.art === 'laeuft' && phase.was === 'barcode' && (
         <p role="status" className="mt-6 flex flex-col items-center gap-3 py-8 text-center text-[15px] text-[var(--lg-text-2)]">
           <LoaderCircle size={28} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          {t(phase.was === 'barcode' ? 'my_stack_scan_searching' : 'my_stack_scan_reading')}
+          {t('my_stack_scan_searching')}
         </p>
       )}
+      {phase.art === 'laeuft' && phase.was !== 'barcode' && <div className="mt-6"><DotArbeitet text={t('my_stack_scan_reading')} /></div>}
 
       {phase.art === 'ergebnis' && (
         <ScanErgebnis
