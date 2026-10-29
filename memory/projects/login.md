@@ -162,8 +162,27 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Danach (Nutzer 29.10.): zu dünn. Jetzt **Dot wird der Rahmen**: alle 2760 Punkte (mit den Kindern)
   als dicke, ungleichmäßige Schicht (10–36 px, Beulen schwellen langsam) am äußersten Rand, jeder
   Punkt bewegt sich leicht auf der Stelle; Ruhe am Rand 0,9 s. Beim Sammeln verblassen die Kinder.
+  Danach (Nutzer 29.10.): **S5 eingebaut** — Haken wird unruhiger Ring (0,45 s), schnelles Portal mit
+  dünnem, klumpigem Rahmen zum Display-Rand, kurze Ruhe, Sammeln in der Mitte, Heimflug. S9 liegt in Git.
+
+- **Hoku führt (Nutzer 29.10.2026):** Das Maskottchen heißt jetzt **Hoku** (Code noch `dot`). Spec
+  `docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md`, Plan unter `docs/superpowers/plans/`,
+  Mockup „Dots Auftritte“ Version 12 (https://claude.ai/artifact/Ab6uRmqzVNDBHgBDRYbnS5).
+  Eingebaut: Hinweise bei Stille (Start 6 s/12 s, Formular 10 s, ein Hinweis je Stille, nach 30 s
+  Klopfen „Noch da?“), Hoku fliegt dabei klein zum Feld/Knopf an einer weichen Feder, auch hinter
+  den Knopf, und tippt zweimal darauf (Knopf gibt nach); Klopfen = dreimal ganz nah gegen die Scheibe.
+  Freude F1/F2/F3 im Wechsel nach dem Begrüßungssatz („Willkommen zurück!“ u. a. im Zufall),
+  Augen zuhalten im Passwortfeld mit Sprechblase „Keine Sorge, ich sehe nichts.“ (weggedreht bei
+  sichtbarem Passwort), Warten W2 Lichtwelle / W3 Denkwolken im Wechsel, Haken und X wachsen aus Hoku
+  und nur das Zeichen färbt sich, Sanduhr bei zu vielen Versuchen, Brief nach „Konto erstellt“,
+  Name beim Tippen geprüft (Nicken grün / Kopfschütteln rot), Abbruch bei Apple/Google ohne X,
+  „Wieder online!“, Startknöpfe mit „oder“ auseinander. Schulterzucken gestrichen.
 
 ## Offen
+- **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
+  Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand
+  (SMTP) in Supabase, Einstellung „E-Mail bestätigen“ (beeinflusst auch #22 „schon ein Konto“).
+- Umbenennung Dot → Hoku in App-Texten und Code (eigene Aufgabe vorgeschlagen).
 - Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.

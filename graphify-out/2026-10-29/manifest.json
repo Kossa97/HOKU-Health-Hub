@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793225859.410727,
-    "seen": 1793226272.914376,
-    "ast_hash": "48a6f71ee3fae44d12df8ca44c0f7dab",
+    "mtime": 1793287164.9360006,
+    "seen": 1793287176.166399,
+    "ast_hash": "699c72981c278aa18d9e76e3a26f9832",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793232341.4667974,
-    "seen": 1793232583.3626852,
-    "ast_hash": "3e8437123b45a9fb4c3aea8ed8fa9c24",
+    "mtime": 1793286933.0776353,
+    "seen": 1793287176.1659362,
+    "ast_hash": "422229ed9c0631afa37545efe7783a2b",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7860,15 +7860,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
-    "mtime": 1793058062.9320943,
-    "seen": 1793060374.0562024,
-    "ast_hash": "cafd41258fee44bf1d4ab41f696c05ba",
+    "mtime": 1793286162.1683588,
+    "seen": 1793286207.722115,
+    "ast_hash": "89effeb1a57eff4463703c98adc800bb",
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-    "mtime": 1793135686.9102685,
-    "seen": 1793136185.6307354,
-    "ast_hash": "8244b5650455d3b80e2f54413fe9fe01",
+    "mtime": 1793286220.1668906,
+    "seen": 1793286461.5471447,
+    "ast_hash": "4d83f1fe6f7c911ed7bffb7b5d4f85f2",
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -7914,8 +7914,8 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793135686.9056,
-    "seen": 1793136185.632098,
+    "mtime": 1793236746.101407,
+    "seen": 1793239925.6250186,
     "ast_hash": "826222548dd90262ba248ea346975fb5",
     "semantic_hash": ""
   },
@@ -8130,9 +8130,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/formen.ts": {
-    "mtime": 1793199354.9359696,
-    "seen": 1793199766.395529,
-    "ast_hash": "04da1a95ea7ab24efa23ad19effe8188",
+    "mtime": 1793286721.5551722,
+    "seen": 1793287176.1659367,
+    "ast_hash": "ddc864f2a4d928cd482eab628849bf1e",
     "semantic_hash": ""
   },
   "supabase-auto-tracking.sql": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793225855.1935508,
-    "seen": 1793226272.9135606,
-    "ast_hash": "19f5d98aa96f6c46dcb411838416c74d",
+    "mtime": 1793239768.697354,
+    "seen": 1793239925.6239452,
+    "ast_hash": "e6197fe7e87d98885c680c9469f27c68",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -17322,15 +17322,15 @@
     "semantic_hash": ""
   },
   "src/features/auth/lib/anbieter.test.ts": {
-    "mtime": 1793068265.9997106,
-    "seen": 1793068575.2917464,
-    "ast_hash": "cd534ad182c518b003d22cf5b349ed7c",
+    "mtime": 1793287193.6201866,
+    "seen": 1793287313.8278956,
+    "ast_hash": "d8f82fb9a1390852c8dbe930a46fcfeb",
     "semantic_hash": ""
   },
   "src/features/auth/lib/anbieter.ts": {
-    "mtime": 1793068265.8484995,
-    "seen": 1793068575.291747,
-    "ast_hash": "9e15099e7e00b84daa8022cc27f7032e",
+    "mtime": 1793287164.9360006,
+    "seen": 1793287176.165845,
+    "ast_hash": "22b02279d07ef726ce684f6b3e641f7d",
     "semantic_hash": ""
   },
   "docs/login/ANBIETER.md": {
@@ -17400,15 +17400,1521 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.test.ts": {
-    "mtime": 1793219718.6665556,
-    "seen": 1793219990.6656005,
-    "ast_hash": "18b17b1405ac4cb6e192152f412b1f42",
+    "mtime": 1793286840.0294461,
+    "seen": 1793287176.1659398,
+    "ast_hash": "60e4c8656bb6797cb7a9fb265318360d",
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.ts": {
-    "mtime": 1793219922.6979697,
-    "seen": 1793219990.6656015,
-    "ast_hash": "c51195f5dedbdf68b6d498d08f933248",
+    "mtime": 1793286899.0501132,
+    "seen": 1793287176.1659408,
+    "ast_hash": "7ee43ae83ab9edc0823b885cdfd1868a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/kit.cjs": {
+    "mtime": 1793234927.3086026,
+    "seen": 1793239925.6239197,
+    "ast_hash": "476373a451c12ff52ddeea927552a4ac",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/export.cjs": {
+    "mtime": 1793237514.9986267,
+    "seen": 1793239925.6239212,
+    "ast_hash": "43519009f45e1aee89de03fcbaf60044",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/bau.cjs": {
+    "mtime": 1793234641.5552206,
+    "seen": 1793239925.6239219,
+    "ast_hash": "5c20c656553f4e293e675ac026b43c94",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/README.md": {
+    "mtime": 1793234967.9335244,
+    "seen": 1793239925.6249278,
+    "ast_hash": "710024fd12a442ed6426534a969b9586",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-klein-leuchtend-128.png": {
+    "mtime": 1793234929.4405096,
+    "seen": 1793239925.626139,
+    "ast_hash": "e9d2c55a5b83bf83823e909678c6a158",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-klein.svg": {
+    "mtime": 1793234928.980636,
+    "seen": 1793239925.6261399,
+    "ast_hash": "a23cb7b85b88db6539a625babb21fd2f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-lockup-schwarz.png": {
+    "mtime": 1793234929.5626354,
+    "seen": 1793239925.6261404,
+    "ast_hash": "b077094ecdd1f3f6f70ea7daf2e580c0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-lockup-transparent.png": {
+    "mtime": 1793234929.6511538,
+    "seen": 1793239925.626141,
+    "ast_hash": "67db1216ef8e7ba476e1ae4a28a7042b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-1024.png": {
+    "mtime": 1793234929.183793,
+    "seen": 1793239925.6261418,
+    "ast_hash": "6c04f8f4485c2f58ae4550e2fca0424e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-256.png": {
+    "mtime": 1793234929.3778284,
+    "seen": 1793239925.6261423,
+    "ast_hash": "c6436ce60dcc180e196db33c54f0c3aa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-512.png": {
+    "mtime": 1793234929.3254204,
+    "seen": 1793239925.626143,
+    "ast_hash": "67d949b85d8491fb41d78ae80ca2460c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke.svg": {
+    "mtime": 1793234928.9801261,
+    "seen": 1793239925.6261437,
+    "ast_hash": "823d122b51602f0c7667e60cf26d1d57",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/uebersicht.png": {
+    "mtime": 1793234930.192047,
+    "seen": 1793239925.6261444,
+    "ast_hash": "4923f933a33fa0305be2260ecba8c115",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-black-400.png": {
+    "mtime": 1793234938.3396807,
+    "seen": 1793239925.6261451,
+    "ast_hash": "5ba72a43c3ae2fd93f861fee15466a62",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-black.svg": {
+    "mtime": 1793234937.8826666,
+    "seen": 1793239925.626146,
+    "ast_hash": "9eb99543f387d1b73b8ff9378dea35b4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-mono-6ee6ff-400.png": {
+    "mtime": 1793234939.5974948,
+    "seen": 1793239925.6261468,
+    "ast_hash": "951cb77428719e568e2d9079f1e95472",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-mono-6ee6ff.svg": {
+    "mtime": 1793234937.8836987,
+    "seen": 1793239925.6261473,
+    "ast_hash": "2e4e7d5b1f3d4589046e43955f74ecde",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-white-400.png": {
+    "mtime": 1793234938.9884253,
+    "seen": 1793239925.6261477,
+    "ast_hash": "159129076dd4118f95cfa0aaafde2ebb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-white.svg": {
+    "mtime": 1793234937.8836987,
+    "seen": 1793239925.6261485,
+    "ast_hash": "bd00422b842703635e779a0769c5af79",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-black-1200.png": {
+    "mtime": 1793234936.3490872,
+    "seen": 1793239925.626149,
+    "ast_hash": "44d938fbc1e458e247ce32444d3095d4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-black.svg": {
+    "mtime": 1793234935.870157,
+    "seen": 1793239925.6261494,
+    "ast_hash": "c6df04c0ced37590be4d8293951f5137",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-mono-6ee6ff-1200.png": {
+    "mtime": 1793234937.6117065,
+    "seen": 1793239925.62615,
+    "ast_hash": "0821a32e5a68d59af3dd993895f43819",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-mono-6ee6ff.svg": {
+    "mtime": 1793234935.87117,
+    "seen": 1793239925.6261504,
+    "ast_hash": "4e5939197570ae8b2c2390ec43cfcc1d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-white-1200.png": {
+    "mtime": 1793234936.9964514,
+    "seen": 1793239925.626151,
+    "ast_hash": "b147e5aab92a5f3f4c03f281bac854d5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-white.svg": {
+    "mtime": 1793234935.8706644,
+    "seen": 1793239925.6261516,
+    "ast_hash": "382dc02551612a6b3bdefc2fad2bdac3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-einfarbig.png": {
+    "mtime": 1793237517.638152,
+    "seen": 1793239925.6261523,
+    "ast_hash": "cb3de69f4776dd6aab0f27ab8b803577",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-farbig.png": {
+    "mtime": 1793237517.838166,
+    "seen": 1793239925.6261528,
+    "ast_hash": "242cf4727d0cf485d30f5621e0a995ed",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-farbig.svg": {
+    "mtime": 1793237517.7342184,
+    "seen": 1793239925.6261532,
+    "ast_hash": "2292b918987d4a18e77adf00738699aa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-schwarz.png": {
+    "mtime": 1793237516.9786818,
+    "seen": 1793239925.6261535,
+    "ast_hash": "6f66c0418a5299b605578afd8ced81d7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-transparent.png": {
+    "mtime": 1793237517.4918466,
+    "seen": 1793239925.6261542,
+    "ast_hash": "f83ad084f8e45b6e5db18daf6e4673a7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-weiss.png": {
+    "mtime": 1793237517.731121,
+    "seen": 1793239925.6261547,
+    "ast_hash": "6f136fbb692b2bbd98bf54901cea79b1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/1-hoku-leuchtend.png": {
+    "mtime": 1793234643.1864822,
+    "seen": 1793239925.6261554,
+    "ast_hash": "363f1b15216b21047cb1a98aa2e6e7c1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/1-hoku.svg": {
+    "mtime": 1793234643.0523193,
+    "seen": 1793239925.6261559,
+    "ast_hash": "af135109f26a101bec8b1fe1bcf9ac66",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU-leuchtend.png": {
+    "mtime": 1793234643.2923474,
+    "seen": 1793239925.6261563,
+    "ast_hash": "18509c1da8c831a555f63b770ce61f3b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU-vektor.svg": {
+    "mtime": 1793234643.0533566,
+    "seen": 1793239925.6261568,
+    "ast_hash": "cfe2f988403da54372aa716e7345dc22",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU.svg": {
+    "mtime": 1793234643.0528388,
+    "seen": 1793239925.6261573,
+    "ast_hash": "a37475a2b55d8f33d71f4ff1e87b9cf7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/3-hoku-vektor-weiss.svg": {
+    "mtime": 1793234643.0533566,
+    "seen": 1793239925.6261578,
+    "ast_hash": "db81a95df23118120a6357918f71a816",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/3-hoku-vektor.svg": {
+    "mtime": 1793234643.0528388,
+    "seen": 1793239925.6261585,
+    "ast_hash": "554e4dc6bbccb4818632f29e9fe24413",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/uebersicht.png": {
+    "mtime": 1793234643.8089633,
+    "seen": 1793239925.6261592,
+    "ast_hash": "249a1b3b34d1ebb38c30ae63708abaad",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/build.cjs": {
+    "mtime": 1793245948.2624836,
+    "seen": 1793286207.7218776,
+    "ast_hash": "09790ac8b2d0338820e7aec7c954ace3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/export-checks.json": {
+    "mtime": 1793245956.806625,
+    "seen": 1793286207.7218792,
+    "ast_hash": "55df8d52c9fb38fef318f9623756c828",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/branding/ENTSCHEIDUNGEN.md": {
+    "mtime": 1793246060.3992157,
+    "seen": 1793286207.722705,
+    "ast_hash": "768d87b194e4b1ebfc4a2fd3a5d7769f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/README.md": {
+    "mtime": 1793245956.807628,
+    "seen": 1793286207.722707,
+    "ast_hash": "7fff561d405856bf2dfe025a0e7385d1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/README.md": {
+    "mtime": 1793245956.807628,
+    "seen": 1793286207.722708,
+    "ast_hash": "7fff561d405856bf2dfe025a0e7385d1",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-10-29-hoku-login-fuehrung.md": {
+    "mtime": 1793245523.8971865,
+    "seen": 1793286207.7227383,
+    "ast_hash": "15bec7dd114c329f03a3a184de9e71a7",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md": {
+    "mtime": 1793286085.8849921,
+    "seen": 1793286207.7227876,
+    "ast_hash": "924680255b9d665cfa799f512a64b021",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-app-icon-dark-v1-1024.png": {
+    "mtime": 1793240464.991453,
+    "seen": 1793286207.723833,
+    "ast_hash": "20474da409b4df66e6ff8bad821b9427",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-app-icon-dark-v1.png": {
+    "mtime": 1793240453.440607,
+    "seen": 1793286207.7238338,
+    "ast_hash": "3292a55b3baa3f13da595d1fd0cc1976",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-app-icon-premium-v1-1024.png": {
+    "mtime": 1793239988.305908,
+    "seen": 1793286207.7238345,
+    "ast_hash": "31a3b1c3d3cff43775776fcfc6396ac9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-app-icon-premium-v1.png": {
+    "mtime": 1793239951.218985,
+    "seen": 1793286207.723835,
+    "ast_hash": "0821153c2f2d628fdc24e209a5c0d94d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v1.png": {
+    "mtime": 1793242646.2745347,
+    "seen": 1793286207.7238355,
+    "ast_hash": "7b2da1cce30a9a50b8ebb0018e57ec1e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v1.svg": {
+    "mtime": 1793242646.080065,
+    "seen": 1793286207.723836,
+    "ast_hash": "4d833e6dd272a773bef5602cbd2e209c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v2.png": {
+    "mtime": 1793244622.7947314,
+    "seen": 1793286207.7238364,
+    "ast_hash": "0a81c984816120bf096e4ce98e67ca36",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v2.svg": {
+    "mtime": 1793244622.5335312,
+    "seen": 1793286207.723837,
+    "ast_hash": "e315644c1e2acd2c74050dceb8d4db8e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v3.png": {
+    "mtime": 1793244779.296771,
+    "seen": 1793286207.7238376,
+    "ast_hash": "c794cb5ff1b13087975619dac7ddb503",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v3.svg": {
+    "mtime": 1793244778.8944106,
+    "seen": 1793286207.723838,
+    "ast_hash": "06f0eefc3d3156e55a24814339ca0e3d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v4.png": {
+    "mtime": 1793245021.0846188,
+    "seen": 1793286207.7238388,
+    "ast_hash": "05c9af2771e4d49d35ba5eba8a6a6054",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-dunkel-v4.svg": {
+    "mtime": 1793245020.8172064,
+    "seen": 1793286207.723839,
+    "ast_hash": "6a4752f4457e373b688712d1c746e3a9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-weiss-auf-schwarz-v1.png": {
+    "mtime": 1793245352.3276932,
+    "seen": 1793286207.7238395,
+    "ast_hash": "b9fd60c3cd27e1b43c69790ee9d130d7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-weiss-auf-schwarz-v1.svg": {
+    "mtime": 1793245352.1431499,
+    "seen": 1793286207.72384,
+    "ast_hash": "dff34b9f8ab9e58fba2a72744a5ed1b3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-weiss-transparent-v1.png": {
+    "mtime": 1793245352.522185,
+    "seen": 1793286207.7238405,
+    "ast_hash": "9a8d84e5cf6395f78a42e1a98cb10899",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-weiss-transparent-v1.svg": {
+    "mtime": 1793245352.3367493,
+    "seen": 1793286207.723841,
+    "ast_hash": "4741af8fd2b3ed13a48af02bdfd0fb70",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-k-v4-detail.png": {
+    "mtime": 1793245021.2508202,
+    "seen": 1793286207.7238414,
+    "ast_hash": "7ba29f7c6693e8f0fb469ae8a046caf4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-maskottchen-weiss-v1.png": {
+    "mtime": 1793245287.4815702,
+    "seen": 1793286207.7238421,
+    "ast_hash": "624fd47519676e3e00b312459db755a5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/k1-farbig_dunkel.png": {
+    "mtime": 1793245952.4652326,
+    "seen": 1793286207.7238655,
+    "ast_hash": "7fe0bddd2392f1c8a07ff216f32944d5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/k2-farbig_dunkel.png": {
+    "mtime": 1793245953.294567,
+    "seen": 1793286207.7238662,
+    "ast_hash": "eaaa2fcbe035ef6c803ff532a9ee88bb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/k3-farbig_dunkel.png": {
+    "mtime": 1793245954.1192923,
+    "seen": 1793286207.7238667,
+    "ast_hash": "7f79de3025fd3760ea1d5b1a4a4e29c9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/t1-farbig_dunkel.png": {
+    "mtime": 1793245954.9355502,
+    "seen": 1793286207.723867,
+    "ast_hash": "ec456aa02e1654110aa185541960ba80",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/t2-farbig_dunkel.png": {
+    "mtime": 1793245955.7254198,
+    "seen": 1793286207.7238674,
+    "ast_hash": "ceb37e969bc94f2b8bdc72a76c1decab",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/t3-farbig_dunkel.png": {
+    "mtime": 1793245956.4946024,
+    "seen": 1793286207.723868,
+    "ast_hash": "306f693314f630f63686f9418fecc292",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/w1-farbig_dunkel.png": {
+    "mtime": 1793245949.870752,
+    "seen": 1793286207.7238686,
+    "ast_hash": "2f9d1b84d15284cca5ff4d1d76acc6b9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/w2-farbig_dunkel.png": {
+    "mtime": 1793245950.700893,
+    "seen": 1793286207.723869,
+    "ast_hash": "09973b2a3c2fa234f6d5f64e7e5860bb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-dunkel/w3-farbig_dunkel.png": {
+    "mtime": 1793245951.6284564,
+    "seen": 1793286207.7238698,
+    "ast_hash": "e800852f23167abfd8ba798f7a6216cd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/k1-farbig_hell.png": {
+    "mtime": 1793245952.6386843,
+    "seen": 1793286207.7238703,
+    "ast_hash": "08df063f5574511d97c42aacd6bf4d1b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/k2-farbig_hell.png": {
+    "mtime": 1793245953.4676907,
+    "seen": 1793286207.7238705,
+    "ast_hash": "54ed84c76fd6964e6a65a65b2ed4675c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/k3-farbig_hell.png": {
+    "mtime": 1793245954.2860389,
+    "seen": 1793286207.723871,
+    "ast_hash": "d4ca9fd0452509c5a1a4a1a58f5d3f65",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/t1-farbig_hell.png": {
+    "mtime": 1793245955.1054783,
+    "seen": 1793286207.7238715,
+    "ast_hash": "47df1d14f94fa8604a346c29c9cb35e7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/t2-farbig_hell.png": {
+    "mtime": 1793245955.878703,
+    "seen": 1793286207.723872,
+    "ast_hash": "5a19669a56c098fcaea0ccee64a51ee7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/t3-farbig_hell.png": {
+    "mtime": 1793245956.6479268,
+    "seen": 1793286207.7238724,
+    "ast_hash": "9217365cae5b37007d25702a03805a44",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/w1-farbig_hell.png": {
+    "mtime": 1793245950.0390782,
+    "seen": 1793286207.7238731,
+    "ast_hash": "8b3939b3f99923f3ef39aff035b21705",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/w2-farbig_hell.png": {
+    "mtime": 1793245950.8609,
+    "seen": 1793286207.7238736,
+    "ast_hash": "9605bf53ec77dc1e49ed5b50bfb43eb1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Farbig-hell/w3-farbig_hell.png": {
+    "mtime": 1793245951.8217123,
+    "seen": 1793286207.723874,
+    "ast_hash": "e800852f23167abfd8ba798f7a6216cd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/k1-schwarz.png": {
+    "mtime": 1793245952.3125308,
+    "seen": 1793286207.7238746,
+    "ast_hash": "130bdc13112d746c4006365aab33ece9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/k2-schwarz.png": {
+    "mtime": 1793245953.1230524,
+    "seen": 1793286207.723875,
+    "ast_hash": "6450bdaae41a31b2def0c7d241035881",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/k3-schwarz.png": {
+    "mtime": 1793245953.9527342,
+    "seen": 1793286207.7238753,
+    "ast_hash": "6f547be15214482b28bd0d82f83cfb3c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/t1-schwarz.png": {
+    "mtime": 1793245954.7686498,
+    "seen": 1793286207.723876,
+    "ast_hash": "fa04a2f559eb3b07905611e439c85bd4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/t2-schwarz.png": {
+    "mtime": 1793245955.5766366,
+    "seen": 1793286207.7238767,
+    "ast_hash": "54854fcee679c795989e7a40be03aac8",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/t3-schwarz.png": {
+    "mtime": 1793245956.3426034,
+    "seen": 1793286207.7238774,
+    "ast_hash": "4be29213e501ef61dcb52b666819b56b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/w1-schwarz.png": {
+    "mtime": 1793245949.7033057,
+    "seen": 1793286207.723878,
+    "ast_hash": "9b07b8ea14ec50ebb06a87b3d3664356",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/w2-schwarz.png": {
+    "mtime": 1793245950.5350041,
+    "seen": 1793286207.7238784,
+    "ast_hash": "3d9983fb899dbbf188b27fe39222de8e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Schwarz/w3-schwarz.png": {
+    "mtime": 1793245951.4332275,
+    "seen": 1793286207.7238789,
+    "ast_hash": "163da33e0d2743a6029e7f1411cf9953",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/k1-weiss-dezent.png": {
+    "mtime": 1793245952.8084419,
+    "seen": 1793286207.723879,
+    "ast_hash": "f6f732ff61ec796ca2c1572a6ea1fad0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/k2-weiss-dezent.png": {
+    "mtime": 1793245953.6199856,
+    "seen": 1793286207.7238796,
+    "ast_hash": "859da5abc30f36b991b77d0c532aeeec",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/k3-weiss-dezent.png": {
+    "mtime": 1793245954.464855,
+    "seen": 1793286207.7238803,
+    "ast_hash": "4ea65f48b10c58b535bd3ec9f84da61d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/t1-weiss-dezent.png": {
+    "mtime": 1793245955.2591825,
+    "seen": 1793286207.7238808,
+    "ast_hash": "2a7d083a27b914b24db8f5d48f6dcce0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/t2-weiss-dezent.png": {
+    "mtime": 1793245956.0423992,
+    "seen": 1793286207.7238812,
+    "ast_hash": "f883a257d3af4e8e7a9996fe0542c6a5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/t3-weiss-dezent.png": {
+    "mtime": 1793245956.806625,
+    "seen": 1793286207.7238815,
+    "ast_hash": "02b8d598a862231f8195fe2bba8466fd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/w1-weiss-dezent.png": {
+    "mtime": 1793245950.198283,
+    "seen": 1793286207.723882,
+    "ast_hash": "74911cf9907e97f92bf5c8982f32aac0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/w2-weiss-dezent.png": {
+    "mtime": 1793245951.0282028,
+    "seen": 1793286207.7238824,
+    "ast_hash": "3e5be1a61c665fb19aadccbfde7404e9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss-dezent/w3-weiss-dezent.png": {
+    "mtime": 1793245952.0088406,
+    "seen": 1793286207.7238832,
+    "ast_hash": "a633c576041715c94f1b1601838839b6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/k1-weiss.png": {
+    "mtime": 1793245952.165363,
+    "seen": 1793286207.7238836,
+    "ast_hash": "67f2ec9da886f7dbfad9aef6c31efcaa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/k2-weiss.png": {
+    "mtime": 1793245952.969865,
+    "seen": 1793286207.7238843,
+    "ast_hash": "2cdbcc088aef2b2f8edd3860eb4b5a8b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/k3-weiss.png": {
+    "mtime": 1793245953.7879293,
+    "seen": 1793286207.7238848,
+    "ast_hash": "bcb38bdf912c7b2e7d52b257f1f43a2c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/t1-weiss.png": {
+    "mtime": 1793245954.6132076,
+    "seen": 1793286207.7238853,
+    "ast_hash": "47d8b94df946329cfbb8962c05333556",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/t2-weiss.png": {
+    "mtime": 1793245955.417797,
+    "seen": 1793286207.7238858,
+    "ast_hash": "6bd3864c54c721b0ca83b3da8d85a404",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/t3-weiss.png": {
+    "mtime": 1793245956.1908557,
+    "seen": 1793286207.723886,
+    "ast_hash": "a8a64170de745feb0f9d1494ce7fafdd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/w1-weiss.png": {
+    "mtime": 1793245949.5330968,
+    "seen": 1793286207.7238865,
+    "ast_hash": "c12a02c05b9a0660e43701fbfc8d0cec",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/w2-weiss.png": {
+    "mtime": 1793245950.3584678,
+    "seen": 1793286207.7238872,
+    "ast_hash": "938e7539d8bdc3567609098f2d2fd24c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/PNG/Weiss/w3-weiss.png": {
+    "mtime": 1793245951.223927,
+    "seen": 1793286207.7238877,
+    "ast_hash": "2c06a210a4a6c985c706cff562118b27",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/k1-farbig_dunkel.svg": {
+    "mtime": 1793245952.315528,
+    "seen": 1793286207.7238882,
+    "ast_hash": "edf349656f4ae223dcdae36890a4bee3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/k2-farbig_dunkel.svg": {
+    "mtime": 1793245953.1260543,
+    "seen": 1793286207.7238884,
+    "ast_hash": "f98d2f517cf5bc0bdef490370f3f41d6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/k3-farbig_dunkel.svg": {
+    "mtime": 1793245953.9557354,
+    "seen": 1793286207.7238889,
+    "ast_hash": "da41407a3a8f0524a28bf3675169a78e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/t1-farbig_dunkel.svg": {
+    "mtime": 1793245954.772651,
+    "seen": 1793286207.7238894,
+    "ast_hash": "a5335d78a5798075b4ebc25e7a1365f7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/t2-farbig_dunkel.svg": {
+    "mtime": 1793245955.5791419,
+    "seen": 1793286207.7238898,
+    "ast_hash": "05e0de2c67a1de9335ced85aea062c6d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/t3-farbig_dunkel.svg": {
+    "mtime": 1793245956.3456059,
+    "seen": 1793286207.7238905,
+    "ast_hash": "e40a38b3474b3cbeb8155cae63c6e1b5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/w1-farbig_dunkel.svg": {
+    "mtime": 1793245949.708817,
+    "seen": 1793286207.723891,
+    "ast_hash": "c36b116c077d7e074600458f3101ef6e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/w2-farbig_dunkel.svg": {
+    "mtime": 1793245950.5385184,
+    "seen": 1793286207.7238915,
+    "ast_hash": "88329373036aeee828e0247cc204f86e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-dunkel/w3-farbig_dunkel.svg": {
+    "mtime": 1793245951.4352226,
+    "seen": 1793286207.723892,
+    "ast_hash": "53c87d07c73e6a3b2422b5168c5e8988",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/k1-farbig_hell.svg": {
+    "mtime": 1793245952.4687476,
+    "seen": 1793286207.7238922,
+    "ast_hash": "9bdd4aac4aa1b0a0e0d9c09d88141435",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/k2-farbig_hell.svg": {
+    "mtime": 1793245953.2990785,
+    "seen": 1793286207.7238927,
+    "ast_hash": "1b1775c69558d66be2f0b3d430554d85",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/k3-farbig_hell.svg": {
+    "mtime": 1793245954.1218617,
+    "seen": 1793286207.7238934,
+    "ast_hash": "84f075d8909f8b28f20b196aa23ff3e4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/t1-farbig_hell.svg": {
+    "mtime": 1793245954.9410584,
+    "seen": 1793286207.7238941,
+    "ast_hash": "57e625f07cc2042c1f9f4f1f958ab422",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/t2-farbig_hell.svg": {
+    "mtime": 1793245955.7289398,
+    "seen": 1793286207.7238944,
+    "ast_hash": "ca6718625d5281798d6ef832512d6b4c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/t3-farbig_hell.svg": {
+    "mtime": 1793245956.5001125,
+    "seen": 1793286207.7238948,
+    "ast_hash": "683818816aac68fb6748c7ddd2dc9d59",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/w1-farbig_hell.svg": {
+    "mtime": 1793245949.8777528,
+    "seen": 1793286207.7238955,
+    "ast_hash": "d8a6de9daef306388fbe21bf933fc37a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/w2-farbig_hell.svg": {
+    "mtime": 1793245950.7048914,
+    "seen": 1793286207.723896,
+    "ast_hash": "292e1d9471d493a8a8320c3794d053a6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Farbig-hell/w3-farbig_hell.svg": {
+    "mtime": 1793245951.6304555,
+    "seen": 1793286207.7238965,
+    "ast_hash": "265ca94b1acad6b72ba7f14edbf20e94",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/k1-schwarz.svg": {
+    "mtime": 1793245952.1678686,
+    "seen": 1793286207.7238967,
+    "ast_hash": "c52a70bed7538cf24bc34986793fddf5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/k2-schwarz.svg": {
+    "mtime": 1793245952.9728642,
+    "seen": 1793286207.7238975,
+    "ast_hash": "15377ecffb20236328f7e01a31087bc3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/k3-schwarz.svg": {
+    "mtime": 1793245953.7909355,
+    "seen": 1793286207.723898,
+    "ast_hash": "e682063440727577683504f67eded1b7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/t1-schwarz.svg": {
+    "mtime": 1793245954.6162064,
+    "seen": 1793286207.7238984,
+    "ast_hash": "d4a31888e55e11e68fd88bb44c0483c9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/t2-schwarz.svg": {
+    "mtime": 1793245955.420803,
+    "seen": 1793286207.723899,
+    "ast_hash": "217dd7d23be1a3481fe6673d745bad7d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/t3-schwarz.svg": {
+    "mtime": 1793245956.1949983,
+    "seen": 1793286207.7238994,
+    "ast_hash": "ef7bc0d0ab8cb0caad0f33ccdd972231",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/w1-schwarz.svg": {
+    "mtime": 1793245949.5376005,
+    "seen": 1793286207.7238996,
+    "ast_hash": "5f1461b7802b54f77ef6b44523ade071",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/w2-schwarz.svg": {
+    "mtime": 1793245950.365983,
+    "seen": 1793286207.7239,
+    "ast_hash": "3b69a8eccb56da61bfd8b41c8af303b2",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Schwarz/w3-schwarz.svg": {
+    "mtime": 1793245951.230433,
+    "seen": 1793286207.7239006,
+    "ast_hash": "1778fc7975cc7b45ae8931826b9ce06e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/k1-weiss-dezent.svg": {
+    "mtime": 1793245952.6416786,
+    "seen": 1793286207.7239013,
+    "ast_hash": "e255a30b4d56d74fd10e08dbad315470",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/k2-weiss-dezent.svg": {
+    "mtime": 1793245953.4726956,
+    "seen": 1793286207.7239015,
+    "ast_hash": "752f5a691db3d6ffa5eab02bee25993e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/k3-weiss-dezent.svg": {
+    "mtime": 1793245954.2885458,
+    "seen": 1793286207.723902,
+    "ast_hash": "b41a202e1580706242e60967e48cd228",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/t1-weiss-dezent.svg": {
+    "mtime": 1793245955.1089895,
+    "seen": 1793286207.7239025,
+    "ast_hash": "392d7109a92a9f19ed70587b129a0c0f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/t2-weiss-dezent.svg": {
+    "mtime": 1793245955.8817022,
+    "seen": 1793286207.723903,
+    "ast_hash": "3b17d3508532a9a04662c275ac35ae48",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/t3-weiss-dezent.svg": {
+    "mtime": 1793245956.650931,
+    "seen": 1793286207.7239034,
+    "ast_hash": "402e9e7f9ee08dd2892d6f0481e6b84d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/w1-weiss-dezent.svg": {
+    "mtime": 1793245950.0420773,
+    "seen": 1793286207.723904,
+    "ast_hash": "39256bcb005103b46ef260faad4dae93",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/w2-weiss-dezent.svg": {
+    "mtime": 1793245950.8639064,
+    "seen": 1793286207.7239046,
+    "ast_hash": "d84c1aa9dfb2a18e7e2f00cec876b32c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss-dezent/w3-weiss-dezent.svg": {
+    "mtime": 1793245951.8247204,
+    "seen": 1793286207.723905,
+    "ast_hash": "8f72f9b248eca664c5b9d0459f6d7000",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/k1-weiss.svg": {
+    "mtime": 1793245952.010843,
+    "seen": 1793286207.7239053,
+    "ast_hash": "5cc9e363088121b0c25cdfcac8773124",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/k2-weiss.svg": {
+    "mtime": 1793245952.8094468,
+    "seen": 1793286207.7239058,
+    "ast_hash": "9026b82e7eb0b9f6b34596b9da2efd44",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/k3-weiss.svg": {
+    "mtime": 1793245953.6229856,
+    "seen": 1793286207.7239063,
+    "ast_hash": "0147fa4c5b32b0ea3ab2fae7e809158a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/t1-weiss.svg": {
+    "mtime": 1793245954.4658592,
+    "seen": 1793286207.7239068,
+    "ast_hash": "1b71118bc709ed23d31ca75516c8212e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/t2-weiss.svg": {
+    "mtime": 1793245955.2611823,
+    "seen": 1793286207.7239072,
+    "ast_hash": "9c6c47f5da4983b3415d730119b6ba5c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/t3-weiss.svg": {
+    "mtime": 1793245956.0444028,
+    "seen": 1793286207.723908,
+    "ast_hash": "4d7e433318229adc62a2172102100a37",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/w1-weiss.svg": {
+    "mtime": 1793245949.3755593,
+    "seen": 1793286207.7239082,
+    "ast_hash": "7c74bba389b1e6f85220a20246d844d7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/w2-weiss.svg": {
+    "mtime": 1793245950.2004435,
+    "seen": 1793286207.7239087,
+    "ast_hash": "9f6491c50ce3e21c0646fbd58d9b59de",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/SVG/Weiss/w3-weiss.svg": {
+    "mtime": 1793245951.0292037,
+    "seen": 1793286207.7239091,
+    "ast_hash": "f7898f24a6a4ea3cefae8af0a4767108",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/hoku-watermarks-uebersicht.png": {
+    "mtime": 1793245949.3745606,
+    "seen": 1793286207.7239096,
+    "ast_hash": "2372251021aa8e13dd6bdcd4864fc968",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/hoku-watermarks-uebersicht.png": {
+    "mtime": 1793245949.3745606,
+    "seen": 1793286207.72391,
+    "ast_hash": "2372251021aa8e13dd6bdcd4864fc968",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/hoku-watermarks-uebersicht.svg": {
+    "mtime": 1793245948.6839697,
+    "seen": 1793286207.7239106,
+    "ast_hash": "c35e14f4985a5fd1e8b9779e3477bfd5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-farbig_dunkel.png": {
+    "mtime": 1793245952.4652326,
+    "seen": 1793286207.7239113,
+    "ast_hash": "7fe0bddd2392f1c8a07ff216f32944d5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-farbig_dunkel.svg": {
+    "mtime": 1793245952.315528,
+    "seen": 1793286207.7239118,
+    "ast_hash": "edf349656f4ae223dcdae36890a4bee3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-farbig_hell.png": {
+    "mtime": 1793245952.6386843,
+    "seen": 1793286207.723912,
+    "ast_hash": "08df063f5574511d97c42aacd6bf4d1b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-farbig_hell.svg": {
+    "mtime": 1793245952.4687476,
+    "seen": 1793286207.7239125,
+    "ast_hash": "9bdd4aac4aa1b0a0e0d9c09d88141435",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-schwarz.png": {
+    "mtime": 1793245952.3125308,
+    "seen": 1793286207.723913,
+    "ast_hash": "130bdc13112d746c4006365aab33ece9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-schwarz.svg": {
+    "mtime": 1793245952.1678686,
+    "seen": 1793286207.7239134,
+    "ast_hash": "c52a70bed7538cf24bc34986793fddf5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-weiss-dezent.png": {
+    "mtime": 1793245952.8084419,
+    "seen": 1793286207.723914,
+    "ast_hash": "f6f732ff61ec796ca2c1572a6ea1fad0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-weiss-dezent.svg": {
+    "mtime": 1793245952.6416786,
+    "seen": 1793286207.7239144,
+    "ast_hash": "e255a30b4d56d74fd10e08dbad315470",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-weiss.png": {
+    "mtime": 1793245952.165363,
+    "seen": 1793286207.7239149,
+    "ast_hash": "67f2ec9da886f7dbfad9aef6c31efcaa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k1-weiss.svg": {
+    "mtime": 1793245952.010843,
+    "seen": 1793286207.7239156,
+    "ast_hash": "5cc9e363088121b0c25cdfcac8773124",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-farbig_dunkel.png": {
+    "mtime": 1793245953.294567,
+    "seen": 1793286207.7239158,
+    "ast_hash": "eaaa2fcbe035ef6c803ff532a9ee88bb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-farbig_dunkel.svg": {
+    "mtime": 1793245953.1260543,
+    "seen": 1793286207.7239163,
+    "ast_hash": "f98d2f517cf5bc0bdef490370f3f41d6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-farbig_hell.png": {
+    "mtime": 1793245953.4676907,
+    "seen": 1793286207.7239168,
+    "ast_hash": "54ed84c76fd6964e6a65a65b2ed4675c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-farbig_hell.svg": {
+    "mtime": 1793245953.2990785,
+    "seen": 1793286207.7239172,
+    "ast_hash": "1b1775c69558d66be2f0b3d430554d85",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-schwarz.png": {
+    "mtime": 1793245953.1230524,
+    "seen": 1793286207.7239177,
+    "ast_hash": "6450bdaae41a31b2def0c7d241035881",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-schwarz.svg": {
+    "mtime": 1793245952.9728642,
+    "seen": 1793286207.723918,
+    "ast_hash": "15377ecffb20236328f7e01a31087bc3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-weiss-dezent.png": {
+    "mtime": 1793245953.6199856,
+    "seen": 1793286207.723919,
+    "ast_hash": "859da5abc30f36b991b77d0c532aeeec",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-weiss-dezent.svg": {
+    "mtime": 1793245953.4726956,
+    "seen": 1793286207.7239192,
+    "ast_hash": "752f5a691db3d6ffa5eab02bee25993e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-weiss.png": {
+    "mtime": 1793245952.969865,
+    "seen": 1793286207.7239196,
+    "ast_hash": "2cdbcc088aef2b2f8edd3860eb4b5a8b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k2-weiss.svg": {
+    "mtime": 1793245952.8094468,
+    "seen": 1793286207.7239203,
+    "ast_hash": "9026b82e7eb0b9f6b34596b9da2efd44",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-farbig_dunkel.png": {
+    "mtime": 1793245954.1192923,
+    "seen": 1793286207.7239208,
+    "ast_hash": "7f79de3025fd3760ea1d5b1a4a4e29c9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-farbig_dunkel.svg": {
+    "mtime": 1793245953.9557354,
+    "seen": 1793286207.723921,
+    "ast_hash": "da41407a3a8f0524a28bf3675169a78e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-farbig_hell.png": {
+    "mtime": 1793245954.2860389,
+    "seen": 1793286207.7239218,
+    "ast_hash": "d4ca9fd0452509c5a1a4a1a58f5d3f65",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-farbig_hell.svg": {
+    "mtime": 1793245954.1218617,
+    "seen": 1793286207.7239223,
+    "ast_hash": "84f075d8909f8b28f20b196aa23ff3e4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-schwarz.png": {
+    "mtime": 1793245953.9527342,
+    "seen": 1793286207.7239227,
+    "ast_hash": "6f547be15214482b28bd0d82f83cfb3c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-schwarz.svg": {
+    "mtime": 1793245953.7909355,
+    "seen": 1793286207.7239232,
+    "ast_hash": "e682063440727577683504f67eded1b7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-weiss-dezent.png": {
+    "mtime": 1793245954.464855,
+    "seen": 1793286207.7239237,
+    "ast_hash": "4ea65f48b10c58b535bd3ec9f84da61d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-weiss-dezent.svg": {
+    "mtime": 1793245954.2885458,
+    "seen": 1793286207.7239242,
+    "ast_hash": "b41a202e1580706242e60967e48cd228",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-weiss.png": {
+    "mtime": 1793245953.7879293,
+    "seen": 1793286207.7239249,
+    "ast_hash": "bcb38bdf912c7b2e7d52b257f1f43a2c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/k3-weiss.svg": {
+    "mtime": 1793245953.6229856,
+    "seen": 1793286207.7239256,
+    "ast_hash": "0147fa4c5b32b0ea3ab2fae7e809158a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-farbig_dunkel.png": {
+    "mtime": 1793245954.9355502,
+    "seen": 1793286207.723926,
+    "ast_hash": "ec456aa02e1654110aa185541960ba80",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-farbig_dunkel.svg": {
+    "mtime": 1793245954.772651,
+    "seen": 1793286207.7239265,
+    "ast_hash": "a5335d78a5798075b4ebc25e7a1365f7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-farbig_hell.png": {
+    "mtime": 1793245955.1054783,
+    "seen": 1793286207.7239268,
+    "ast_hash": "47df1d14f94fa8604a346c29c9cb35e7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-farbig_hell.svg": {
+    "mtime": 1793245954.9410584,
+    "seen": 1793286207.7239273,
+    "ast_hash": "57e625f07cc2042c1f9f4f1f958ab422",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-schwarz.png": {
+    "mtime": 1793245954.7686498,
+    "seen": 1793286207.7239277,
+    "ast_hash": "fa04a2f559eb3b07905611e439c85bd4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-schwarz.svg": {
+    "mtime": 1793245954.6162064,
+    "seen": 1793286207.7239282,
+    "ast_hash": "d4a31888e55e11e68fd88bb44c0483c9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-weiss-dezent.png": {
+    "mtime": 1793245955.2591825,
+    "seen": 1793286207.723929,
+    "ast_hash": "2a7d083a27b914b24db8f5d48f6dcce0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-weiss-dezent.svg": {
+    "mtime": 1793245955.1089895,
+    "seen": 1793286207.7239294,
+    "ast_hash": "392d7109a92a9f19ed70587b129a0c0f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-weiss.png": {
+    "mtime": 1793245954.6132076,
+    "seen": 1793286207.72393,
+    "ast_hash": "47d8b94df946329cfbb8962c05333556",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t1-weiss.svg": {
+    "mtime": 1793245954.4658592,
+    "seen": 1793286207.7239304,
+    "ast_hash": "1b71118bc709ed23d31ca75516c8212e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-farbig_dunkel.png": {
+    "mtime": 1793245955.7254198,
+    "seen": 1793286207.7239308,
+    "ast_hash": "ceb37e969bc94f2b8bdc72a76c1decab",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-farbig_dunkel.svg": {
+    "mtime": 1793245955.5791419,
+    "seen": 1793286207.723931,
+    "ast_hash": "05e0de2c67a1de9335ced85aea062c6d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-farbig_hell.png": {
+    "mtime": 1793245955.878703,
+    "seen": 1793286207.7239316,
+    "ast_hash": "5a19669a56c098fcaea0ccee64a51ee7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-farbig_hell.svg": {
+    "mtime": 1793245955.7289398,
+    "seen": 1793286207.7239323,
+    "ast_hash": "ca6718625d5281798d6ef832512d6b4c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-schwarz.png": {
+    "mtime": 1793245955.5766366,
+    "seen": 1793286207.7239327,
+    "ast_hash": "54854fcee679c795989e7a40be03aac8",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-schwarz.svg": {
+    "mtime": 1793245955.420803,
+    "seen": 1793286207.723933,
+    "ast_hash": "217dd7d23be1a3481fe6673d745bad7d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-weiss-dezent.png": {
+    "mtime": 1793245956.0423992,
+    "seen": 1793286207.7239335,
+    "ast_hash": "f883a257d3af4e8e7a9996fe0542c6a5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-weiss-dezent.svg": {
+    "mtime": 1793245955.8817022,
+    "seen": 1793286207.723934,
+    "ast_hash": "3b17d3508532a9a04662c275ac35ae48",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-weiss.png": {
+    "mtime": 1793245955.417797,
+    "seen": 1793286207.7239344,
+    "ast_hash": "6bd3864c54c721b0ca83b3da8d85a404",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t2-weiss.svg": {
+    "mtime": 1793245955.2611823,
+    "seen": 1793286207.723935,
+    "ast_hash": "9c6c47f5da4983b3415d730119b6ba5c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-farbig_dunkel.png": {
+    "mtime": 1793245956.4946024,
+    "seen": 1793286207.7239356,
+    "ast_hash": "306f693314f630f63686f9418fecc292",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-farbig_dunkel.svg": {
+    "mtime": 1793245956.3456059,
+    "seen": 1793286207.723936,
+    "ast_hash": "e40a38b3474b3cbeb8155cae63c6e1b5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-farbig_hell.png": {
+    "mtime": 1793245956.6479268,
+    "seen": 1793286207.7239366,
+    "ast_hash": "9217365cae5b37007d25702a03805a44",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-farbig_hell.svg": {
+    "mtime": 1793245956.5001125,
+    "seen": 1793286207.723937,
+    "ast_hash": "683818816aac68fb6748c7ddd2dc9d59",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-schwarz.png": {
+    "mtime": 1793245956.3426034,
+    "seen": 1793286207.7239375,
+    "ast_hash": "4be29213e501ef61dcb52b666819b56b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-schwarz.svg": {
+    "mtime": 1793245956.1949983,
+    "seen": 1793286207.723938,
+    "ast_hash": "ef7bc0d0ab8cb0caad0f33ccdd972231",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-weiss-dezent.png": {
+    "mtime": 1793245956.806625,
+    "seen": 1793286207.7239385,
+    "ast_hash": "02b8d598a862231f8195fe2bba8466fd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-weiss-dezent.svg": {
+    "mtime": 1793245956.650931,
+    "seen": 1793286207.7239392,
+    "ast_hash": "402e9e7f9ee08dd2892d6f0481e6b84d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-weiss.png": {
+    "mtime": 1793245956.1908557,
+    "seen": 1793286207.72394,
+    "ast_hash": "a8a64170de745feb0f9d1494ce7fafdd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/t3-weiss.svg": {
+    "mtime": 1793245956.0444028,
+    "seen": 1793286207.7239406,
+    "ast_hash": "4d7e433318229adc62a2172102100a37",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-farbig_dunkel.png": {
+    "mtime": 1793245949.870752,
+    "seen": 1793286207.7239413,
+    "ast_hash": "2f9d1b84d15284cca5ff4d1d76acc6b9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-farbig_dunkel.svg": {
+    "mtime": 1793245949.708817,
+    "seen": 1793286207.7239425,
+    "ast_hash": "c36b116c077d7e074600458f3101ef6e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-farbig_hell.png": {
+    "mtime": 1793245950.0390782,
+    "seen": 1793286207.7239432,
+    "ast_hash": "8b3939b3f99923f3ef39aff035b21705",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-farbig_hell.svg": {
+    "mtime": 1793245949.8777528,
+    "seen": 1793286207.723944,
+    "ast_hash": "d8a6de9daef306388fbe21bf933fc37a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-schwarz.png": {
+    "mtime": 1793245949.7033057,
+    "seen": 1793286207.723945,
+    "ast_hash": "9b07b8ea14ec50ebb06a87b3d3664356",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-schwarz.svg": {
+    "mtime": 1793245949.5376005,
+    "seen": 1793286207.7239454,
+    "ast_hash": "5f1461b7802b54f77ef6b44523ade071",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-weiss-dezent.png": {
+    "mtime": 1793245950.198283,
+    "seen": 1793286207.7239463,
+    "ast_hash": "74911cf9907e97f92bf5c8982f32aac0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-weiss-dezent.svg": {
+    "mtime": 1793245950.0420773,
+    "seen": 1793286207.7239566,
+    "ast_hash": "39256bcb005103b46ef260faad4dae93",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-weiss.png": {
+    "mtime": 1793245949.5330968,
+    "seen": 1793286207.723957,
+    "ast_hash": "c12a02c05b9a0660e43701fbfc8d0cec",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w1-weiss.svg": {
+    "mtime": 1793245949.3755593,
+    "seen": 1793286207.7239575,
+    "ast_hash": "7c74bba389b1e6f85220a20246d844d7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-farbig_dunkel.png": {
+    "mtime": 1793245950.700893,
+    "seen": 1793286207.723958,
+    "ast_hash": "09973b2a3c2fa234f6d5f64e7e5860bb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-farbig_dunkel.svg": {
+    "mtime": 1793245950.5385184,
+    "seen": 1793286207.7239585,
+    "ast_hash": "88329373036aeee828e0247cc204f86e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-farbig_hell.png": {
+    "mtime": 1793245950.8609,
+    "seen": 1793286207.723959,
+    "ast_hash": "9605bf53ec77dc1e49ed5b50bfb43eb1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-farbig_hell.svg": {
+    "mtime": 1793245950.7048914,
+    "seen": 1793286207.7239594,
+    "ast_hash": "292e1d9471d493a8a8320c3794d053a6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-schwarz.png": {
+    "mtime": 1793245950.5350041,
+    "seen": 1793286207.72396,
+    "ast_hash": "3d9983fb899dbbf188b27fe39222de8e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-schwarz.svg": {
+    "mtime": 1793245950.365983,
+    "seen": 1793286207.7239604,
+    "ast_hash": "3b69a8eccb56da61bfd8b41c8af303b2",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-weiss-dezent.png": {
+    "mtime": 1793245951.0282028,
+    "seen": 1793286207.7239609,
+    "ast_hash": "3e5be1a61c665fb19aadccbfde7404e9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-weiss-dezent.svg": {
+    "mtime": 1793245950.8639064,
+    "seen": 1793286207.7239616,
+    "ast_hash": "d84c1aa9dfb2a18e7e2f00cec876b32c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-weiss.png": {
+    "mtime": 1793245950.3584678,
+    "seen": 1793286207.7239618,
+    "ast_hash": "938e7539d8bdc3567609098f2d2fd24c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w2-weiss.svg": {
+    "mtime": 1793245950.2004435,
+    "seen": 1793286207.7239625,
+    "ast_hash": "9f6491c50ce3e21c0646fbd58d9b59de",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-farbig_dunkel.png": {
+    "mtime": 1793245951.6284564,
+    "seen": 1793286207.723963,
+    "ast_hash": "e800852f23167abfd8ba798f7a6216cd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-farbig_dunkel.svg": {
+    "mtime": 1793245951.4352226,
+    "seen": 1793286207.7239637,
+    "ast_hash": "53c87d07c73e6a3b2422b5168c5e8988",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-farbig_hell.png": {
+    "mtime": 1793245951.8217123,
+    "seen": 1793286207.7239642,
+    "ast_hash": "e800852f23167abfd8ba798f7a6216cd",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-farbig_hell.svg": {
+    "mtime": 1793245951.6304555,
+    "seen": 1793286207.7239647,
+    "ast_hash": "265ca94b1acad6b72ba7f14edbf20e94",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-schwarz.png": {
+    "mtime": 1793245951.4332275,
+    "seen": 1793286207.7239652,
+    "ast_hash": "163da33e0d2743a6029e7f1411cf9953",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-schwarz.svg": {
+    "mtime": 1793245951.230433,
+    "seen": 1793286207.7239656,
+    "ast_hash": "1778fc7975cc7b45ae8931826b9ce06e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-weiss-dezent.png": {
+    "mtime": 1793245952.0088406,
+    "seen": 1793286207.7239664,
+    "ast_hash": "a633c576041715c94f1b1601838839b6",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-weiss-dezent.svg": {
+    "mtime": 1793245951.8247204,
+    "seen": 1793286207.723967,
+    "ast_hash": "8f72f9b248eca664c5b9d0459f6d7000",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-weiss.png": {
+    "mtime": 1793245951.223927,
+    "seen": 1793286207.7239676,
+    "ast_hash": "2c06a210a4a6c985c706cff562118b27",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/watermarks-v1/w3-weiss.svg": {
+    "mtime": 1793245951.0292037,
+    "seen": 1793286207.723968,
+    "ast_hash": "f7898f24a6a4ea3cefae8af0a4767108",
+    "semantic_hash": ""
+  },
+  "src/features/auth/lib/hinweise.test.ts": {
+    "mtime": 1793286259.2699752,
+    "seen": 1793286461.5470495,
+    "ast_hash": "0e5305212c0e5b9e0a5cefff732bf18e",
+    "semantic_hash": ""
+  },
+  "src/features/auth/lib/hinweise.ts": {
+    "mtime": 1793286276.9195955,
+    "seen": 1793286461.5470505,
+    "ast_hash": "b37593c8229966496df60861e8adc49d",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/auftritt.test.ts": {
+    "mtime": 1793286372.718028,
+    "seen": 1793286461.5471356,
+    "ast_hash": "5f53aaabd62ce05e0cfaf66836905719",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/auftritt.ts": {
+    "mtime": 1793286489.252542,
+    "seen": 1793287176.165935,
+    "ast_hash": "73f7c356688149438e3aceb793183671",
     "semantic_hash": ""
   }
 }
