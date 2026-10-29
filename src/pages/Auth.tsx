@@ -241,6 +241,13 @@ export function Auth() {
     return () => { aus = true; window.clearTimeout(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur wenn sich der Name ändert
   }, [benutzer, ansicht])
+  // Jede Berührung, auch Hoku greifen oder werfen, beginnt die Stille neu und bricht einen Hinweis ab
+  useEffect(() => {
+    const beruehrt = () => eingabe()
+    window.addEventListener('pointerdown', beruehrt, true)
+    return () => window.removeEventListener('pointerdown', beruehrt, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- eingabe liest nur Refs
+  }, [])
   // Passwort ein- oder ausgeblendet, während der Fokus im Feld liegt: Hoku dreht sich weg bzw. wieder her
   useEffect(() => {
     if (pwFokus.current && !laeuft) dot()?.zeigeForm(zeigePw ? 'augenWeg' : 'augen')
@@ -319,7 +326,7 @@ export function Auth() {
       } else {
         await schreibe(gen, s.text, GRUSS.text)
         const el = zielElement(s.ziel)
-        if (gilt() && el && !weniger) await dot()?.umkreise(el, tipp)
+        if (gilt() && el && !weniger) await dot()?.umkreise(el)
       }
     } finally {
       aktiv.current = Math.max(0, aktiv.current - 1)
@@ -397,7 +404,7 @@ export function Auth() {
         if (text === 'login_err_exists' && gen === lauf.current && !weniger) {
           dot()?.zeigeForm(null)
           const el = document.querySelector<HTMLElement>('.tyd-auth-zurueck')
-          if (el) await dot()?.umkreise(el, tipp)
+          if (el) await dot()?.umkreise(el)
         }
       }
       if (gen === lauf.current) ruheForm()
@@ -585,7 +592,7 @@ export function Auth() {
   )
 
   return (
-    <main className="tyd-auth" data-verlassen={verlassen || undefined} onPointerDownCapture={eingabe}>
+    <main className="tyd-auth" data-verlassen={verlassen || undefined}>
       <div className="tyd-auth-top">
         <div className="tyd-auth-sprache" role="group" aria-label={t('language')}>
           {LANGUAGES.map(l => (

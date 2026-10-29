@@ -111,9 +111,8 @@
 /* Startseite: die beiden Knöpfe mit Abstand und „oder", damit Hokus Flug um den einen den anderen nicht schneidet */
 .tyd-auth-ansicht[data-start] .tyd-auth-oder { margin: 10px 0; }
 
-/* Hoku zeigt auf einen Knopf oder ein Feld: leises Leuchten; tippt er darauf, gibt der Knopf kurz nach (Spec Hoku führt) */
+/* Hoku fliegt um einen Knopf oder ein Feld: es leuchtet leise (Spec Hoku führt) */
 .tyd-auth [data-dot-ziel='an'] { box-shadow: 0 0 0 2px rgba(160, 225, 255, 0.55), 0 0 22px rgba(120, 210, 255, 0.45); }
-.tyd-auth [data-dot-druck='an'] { transform: translateY(1px) scale(0.97); filter: brightness(1.15); }
 
 /* Anmelden und rechts daneben Face ID (nur wenn auf diesem Gerät eingerichtet) */
 .tyd-auth-zeile { display: flex; gap: 10px; }

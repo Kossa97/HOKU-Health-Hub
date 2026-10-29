@@ -16,7 +16,7 @@ import {
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
-import { AUFTRITT, feder, flugPunkt, flugWerte, stoss, type FlugWerte } from './auftritt'
+import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
 import { FREUDE, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
@@ -86,11 +86,11 @@ export interface DotApi {
   /** Auf der Anmeldung: um so viele Pixel zum Formular hin neigen. */
   setNeigung(px: number): void
   /**
-   * Hinweis auf der Anmeldung: Hoku fliegt klein zu `el`, schwingt frei um ihn (auch dahinter), tippt
-   * zweimal darauf und kehrt zurück. Während der Runde trägt `el` `data-dot-ziel`, bei jedem Tipp kurz
-   * `data-dot-druck`. `true`, wenn er fertig geworden ist; `false` bei Abbruch oder unsichtbarem Ziel.
+   * Hinweis auf der Anmeldung: Hoku fliegt klein zwei Runden auf einem flachen Ring um `el` (hinten
+   * hinter ihm, wie um die Uhr) und kehrt zurück. Während der Runden trägt `el` `data-dot-ziel`.
+   * `true`, wenn er fertig geworden ist; `false` bei Abbruch oder unsichtbarem Ziel.
    */
-  umkreise(el: HTMLElement, beiTipp?: () => void): Promise<boolean>
+  umkreise(el: HTMLElement): Promise<boolean>
   /** Hoku fliegt dreimal ganz nah an die Scheibe und prallt dagegen; `beiStoss` bei jedem Aufprall. */
   klopfe(beiStoss?: () => void): Promise<boolean>
   /** Bricht einen Hinweis oder das Klopfen sofort ab; Hoku federt zur Bühne. */
@@ -156,10 +156,10 @@ const TEXT = { dichte: 5.5, groesse: 1.6 / 4.3, licht: 1, funkeln: 0.4 }
 // dem Dunkel, E5 Ringe; Länge je Variante in s. Jeder Punkt folgt einer festen Bahn, ohne Federn und
 // ohne Kinder, nichts über dem Formular. E3, E4 und E6 aus dem Mockup bleiben für später.
 const EROEFFNUNG = { rand: 1.9, dunkel: 1.6, ringe: 1.6 }
-// Erfolg (Nutzer 29.10.2026, Mockup „Dots Auftritte" S5), Zeiten in s: Haken wird Ring, schnelles
-// Portal mit unruhigem Rahmen zum Display-Rand, kurze Ruhe, Sammeln in der Mitte des Displays,
-// Heimflug im Bogen wie S2. Radien in px.
-const ERFOLG = { ring: 0.45, portal: 0.45, ruhe: 0.25, sammeln: 0.7, flug: 0.75, logoR: 13, rahmenR: 48 }
+// Erfolg (Nutzer 29.10.2026, Mockup „Dots Auftritte" S3 mit dem Ende von S5), Zeiten in s: Haken wird
+// Ring, der Ring öffnet sich als weicher Kreis über die App und lässt seine Punkte am äußersten Rand des
+// Geräts liegen (unruhiges Band wie S5), kurze Ruhe, Sammeln in der Mitte, Heimflug im Bogen. Radien in px.
+const ERFOLG = { ring: 0.45, portal: 0.85, ruhe: 0.25, sammeln: 0.7, flug: 0.75, logoR: 13 }
 /** So lange nach `erfolg()` geht das Portal auf (ms); bis dahin kann die Anmeldung stehen bleiben. */
 export const PORTAL_AUF = ERFOLG.ring * 1000
 type Variante = keyof typeof EROEFFNUNG
@@ -216,9 +216,8 @@ interface Punkt { i: number; u: number; x: number; y: number; z: number; s: numb
 interface Funke { x: number; y: number; vx: number; vy: number; t: number; life: number }
 
 interface Auftritt {
-  art: 'knopf' | 'klopfen'; t: number; el: HTMLElement | null; rect: DOMRect | null; F: FlugWerte | null
-  x: number; y: number; vx: number; vy: number; z: number; vz: number
-  x0: number; y0: number; ex: number; ey: number; ez: number; hinten: boolean; wand: Wand | null; druckBis: number; stoesse: number
+  art: 'knopf' | 'klopfen'; t: number; el: HTMLElement | null; rect: DOMRect | null; z: number
+  x0: number; y0: number; ex: number; ey: number; ez: number; hinten: boolean; stoesse: number
   beiStoss?: () => void; fertig: (ok: boolean) => void
 }
 
@@ -659,8 +658,7 @@ export function createDot(host: DotHost): DotApi {
       if (!scripted) { ax = clamp((B.vx - pvx) / h, -40000, 40000); ay = clamp((B.vy - pvy) / h, -40000, 40000) }
       const lp = 1 - Math.exp(-h / 0.03)
       B.fax += (ax - B.fax) * lp; B.fay += (ay - B.fay) * lp
-      // beim Tippen auf einen Knopf drückt er sich an dessen Oberkante platt wie an einer Wand
-      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, wand ? walls() : B.auftritt?.wand ? [B.auftritt.wand] : [])
+      ringStep(h, weniger ? 0 : B.fax + B.kx, weniger ? 0 : B.fay, t, wand ? walls() : [])
     }
     if (!scripted) { B.ax *= 0.5; B.ay *= 0.5 }
     B.kx *= Math.exp(-dt * 14)
@@ -721,23 +719,23 @@ export function createDot(host: DotHost): DotApi {
       if (B.flat < 0.06) { B.dock = { x: null, y: null }; L.phase = 'zurueck' }
     } else if (Math.hypot(Z.x - B.x, Z.y - B.y) < 0.4 && sp < 2) L.phase = 'ruhe'
   }
-  /* ── Hinweis und Klopfen (Spec Hoku führt, Mockup K2 und G4) ───────────── */
+  /* ── Hinweis und Klopfen (Spec Hoku führt, Mockup K4 und G4) ───────────── */
   // Ein Knopf zählt nur, wenn er ganz im sichtbaren Bereich liegt (nicht hinter der Tastatur)
   const imBild = (k: DOMRect) => { const b = bounds(); return k.width > 0 && k.top >= b.t && k.bottom <= b.b }
   function auftrittStart(art: Auftritt['art'], el: HTMLElement | null, beiStoss: (() => void) | undefined, fertig: (ok: boolean) => void) {
-    if (weniger || B.mode !== 'login' || B.drag || B.auftritt || B.intro.an) { fertig(false); return }
+    // nur aus der Ruhe auf der Bühne: geworfen, an der Wand oder auf dem Rückweg zeigt er nichts
+    if (weniger || B.mode !== 'login' || B.drag || B.auftritt || B.intro.an || B.login.phase !== 'ruhe') { fertig(false); return }
     const rect = el ? el.getBoundingClientRect() : null
     if (el && (!rect || !imBild(rect))) { fertig(false); return }
     if (B.form || B.text) setState(B.state)
-    B.auftritt = { art, t: 0, el, rect, F: el ? flugWerte(Math.random() * 10) : null, x: B.x, y: B.y, vx: 0, vy: 0, z: 1, vz: 0,
-      x0: B.x, y0: B.y, ex: 0, ey: 0, ez: 1, hinten: false, wand: null, druckBis: 0, stoesse: 0, beiStoss, fertig }
+    B.auftritt = { art, t: 0, el, rect, z: 1, x0: B.x, y0: B.y, ex: B.x, ey: B.y, ez: 1, hinten: false, stoesse: 0, beiStoss, fertig }
     B.login.phase = 'auftritt'; laufen()
   }
   function auftrittEnde(ok: boolean) {
     const A = B.auftritt
     if (!A) return
     B.auftritt = null; B.quetsch = 0
-    if (A.el) { delete A.el.dataset.dotZiel; delete A.el.dataset.dotDruck }
+    if (A.el) delete A.el.dataset.dotZiel
     // fertig steht er schon auf der Bühne; abgebrochen federt er von dort zurück, wo er gerade ist
     if (B.mode === 'login' && B.login.phase === 'auftritt') { B.login.phase = 'zurueck'; B.vx = B.lvx; B.vy = B.lvy }
     A.fertig(ok)
@@ -761,52 +759,23 @@ export function createDot(host: DotHost): DotApi {
       if (tt >= K.klopfen) { B.x = Z.x; B.y = Z.y; B.r = rB; B.login.phase = 'ruhe'; auftrittEnde(true) }
       return
     }
-    const el = A.el, F = A.F
-    if (!el || !F || !el.isConnected) { auftrittEnde(false); return }
+    const el = A.el
+    if (!el || !el.isConnected) { auftrittEnde(false); return }
     const k = el.getBoundingClientRect(); A.rect = k
-    if (tt < K.hin) {
-      // Hinflug im Bogen auf den schon fliegenden Köder zu, mit Überschwingen
-      const l = flugPunkt(k, F, tt), e = feder(tt, 6, 10), w = clamp01(tt / 0.5), px = B.x, py = B.y
-      B.x = A.x0 + (l.x - A.x0) * e + 18 * Math.sin(Math.PI * w); B.y = A.y0 + (l.y - A.y0) * e - 70 * Math.sin(Math.PI * w)
-      B.r = rB + (K.klein - rB) * weich(tt / 0.45); B.rv = 0; A.z = 1 + (l.z - 1) * weich(tt / K.hin)
-      A.x = B.x; A.y = B.y; if (dt > 0) { A.vx = (B.x - px) / dt; A.vy = (B.y - py) / dt }
+    if (tt < K.runde) {
+      // zwei Runden auf dem flachen Ring um den Knopf (K4, wie an der Uhr); er gleitet schon mit der Runde hinein
+      const o = ringPunkt(k, runde(tt)), mix = easeOut3(clamp01(tt / K.hin))
+      B.x = A.x0 + (o.x - A.x0) * mix; B.y = A.y0 + (o.y - A.y0) * mix - 40 * Math.sin(Math.PI * clamp01(tt / K.hin))
+      A.z = 1 + (o.z - 1) * mix; B.r = rB + (K.klein * (0.85 + 0.15 * o.z) - rB) * mix; B.rv = 0
+      A.hinten = A.z < -0.05; A.ex = B.x; A.ey = B.y; A.ez = A.z
       el.dataset.dotZiel = 'an'
-    } else if (tt < K.hin + K.flug) {
-      // Hoku an einer weichen Feder hinter dem Köder her; mittendrin fällt er auf den Knopf und tippt zweimal
-      const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n, tipA = F.tipp, tipB = tipA + K.tippDauer, boden = k.top - K.klein * 0.95
-      const tippX = k.left + k.width * F.tippX
-      for (let j = 0; j < n; j++) {
-        const st = t0 - K.hin + (j + 1) * h, l = flugPunkt(k, F, K.hin + Math.max(0, st))
-        let ax: number, ay: number, zT: number
-        if (st >= tipA && st < tipA + K.anflug) {
-          const kk = 150, c = 2 * 0.75 * Math.sqrt(kk)
-          ax = kk * (tippX - A.x) - c * A.vx; ay = kk * (k.top - 40 - A.y) - c * A.vy; zT = 1
-        } else if (st >= tipA && st < tipB) { ax = -7 * A.vx; ay = K.fall; zT = 1 }
-        else {
-          const kk = K.federK, c = 2 * K.federD * Math.sqrt(kk)
-          ax = kk * (l.x - A.x) - c * A.vx; ay = kk * (l.y - A.y) - c * A.vy + K.schwer; zT = l.z
-        }
-        A.vx += ax * h; A.vy += ay * h; A.x += A.vx * h; A.y += A.vy * h
-        if (st >= tipA + K.anflug && st < tipB && A.vy > 0 && A.y > boden && A.x > k.left + 8 && A.x < k.right - 8) {
-          const v = A.vy
-          A.y = boden; A.vy = -v * K.rueckprall
-          if (v > 150) {
-            const wand: Wand = { id: 'knopf', d: k.top - A.y, nx: 0, ny: -1 }
-            impact(wand, v); el.dataset.dotDruck = 'an'; A.druckBis = tt + 0.16; A.beiStoss?.()
-          }
-        }
-        A.vz += (60 * (zT - A.z) - 2 * 0.5 * Math.sqrt(60) * A.vz) * h; A.z = clamp(A.z + A.vz * h, -1, 1)
-      }
-      const st = tt - K.hin, aufBoden = st >= tipA && st < tipB && A.y > boden - 6
-      A.wand = aufBoden ? { id: 'knopf', d: k.top - A.y, nx: 0, ny: -1 } : null
-      B.x = A.x; B.y = A.y; B.r = K.klein * (1 + 0.22 * A.z); B.rv = 0; A.hinten = A.z < -0.05
-      A.ex = A.x; A.ey = A.y; A.ez = A.z
-      if (A.druckBis && tt > A.druckBis) { delete el.dataset.dotDruck; A.druckBis = 0 }
-    } else if (tt < K.hin + K.flug + K.rueck) {
-      const u = tt - K.hin - K.flug, e = feder(u, 5.5, 9), w = clamp01(u / 0.55)
-      B.x = A.ex + (Z.x - A.ex) * e - 16 * Math.sin(Math.PI * w); B.y = A.ey + (Z.y - A.ey) * e - 60 * Math.sin(Math.PI * w)
-      B.r = K.klein + (rB - K.klein) * weich(u / 0.5); B.rv = 0; A.z = A.ez + (1 - A.ez) * weich(u / 0.3); A.hinten = A.z < -0.05; A.wand = null
-      delete el.dataset.dotZiel; delete el.dataset.dotDruck
+    } else if (tt < K.runde + K.rueck) {
+      // weich zurück auf die Bühne
+      const w = clamp01((tt - K.runde) / K.rueck), u = easeIO(w)
+      B.x = A.ex + (Z.x - A.ex) * u; B.y = A.ey + (Z.y - A.ey) * u - 40 * Math.sin(Math.PI * w)
+      B.r = K.klein * (0.85 + 0.15 * A.ez) + (rB - K.klein * (0.85 + 0.15 * A.ez)) * u; B.rv = 0
+      A.z = A.ez + (1 - A.ez) * u; A.hinten = A.z < -0.05
+      delete el.dataset.dotZiel
     } else { B.x = Z.x; B.y = Z.y; B.r = rB; B.login.phase = 'ruhe'; auftrittEnde(true) }
   }
   function loginBetreten(el: HTMLElement) {
@@ -1402,21 +1371,18 @@ export function createDot(host: DotHost): DotApi {
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
       case 'frame': {
-        // Portal (Nutzer 29.10.2026, S5): ein durchgehender, unruhiger Rahmen aus Dots Punkten. Sie sitzen
-        // ungleich verteilt in Klumpen, das Band ist mal dünn, mal dick, und alles wandert langsam am Rand entlang.
+        // Portal (Nutzer 29.10.2026, S3 + S5): ein Kreis um Hokus Platz wächst über das Display hinaus. Jeder
+        // Punkt hat seine Richtung; erreicht der Kreis dort den Rand des Geräts, bleibt der Punkt liegen. Am
+        // Rand sitzen sie ungleich in Klumpen, das Band ist mal dünn, mal dick, alles wandert langsam weiter.
         const P0 = B.portal, fe = P0 ? P0.fe : 0, R0 = P0 ? P0.r0 : B.r
-        const L = (B.x - R0) * (1 - fe), T = (B.y - R0) * (1 - fe)
-        const Rr = B.x + R0 + (W - (B.x + R0)) * fe, Bt = B.y + R0 + (H - (B.y + R0)) * fe
-        const box = { l: L, t: T, r: Rr, b: Bt }, rad = R0 + (ERFOLG.rahmenR - R0) * fe
+        const rr = R0 + (kreisWeit() - R0) * fe
         const q = (p.i * 0.618033988749895) % 1
-        const u = q + 0.035 * Math.sin(q * TAU * 9 + 1.3) + 0.02 * Math.sin(q * TAU * 23) + 0.03 * t
-        const [x, y] = rahmenPunkt(box, rad, u), [x2, y2] = rahmenPunkt(box, rad, u + 0.001)
-        const tl = Math.hypot(x2 - x, y2 - y) || 1, sx = (x2 - x) / tl, sy = (y2 - y) / tl
-        const sg = -sy * ((L + Rr) / 2 - x) + sx * ((T + Bt) / 2 - y) > 0 ? 1 : -1, nx = -sy * sg, ny = sx * sg
-        // quer zum Rand: um eine Linie knapp innerhalb des Displays, als Ring noch schmal
+        const th = TAU * (q + 0.035 * Math.sin(q * TAU * 9 + 1.3) + 0.02 * Math.sin(q * TAU * 23) + 0.03 * t)
+        const rand = randAbstand(B.x, B.y, th, W, H), amRand = clamp01((rr - rand) / 40)
         const dicke = 5 + 10 * (0.5 + 0.5 * Math.sin(q * TAU * 4 + 0.7))
-        const tief = 6 * fe + (p.k - 0.5) * 2 * dicke * (0.4 + 0.6 * fe) + 3.5 * Math.sin(q * TAU * 6 + t * 5)
-        return ziel((x + nx * tief - B.x) / B.r, (y + ny * tief - B.y) / B.r, 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(p.s * 7)))
+        const tief = 6 * amRand + (p.k - 0.5) * 2 * dicke * (0.4 + 0.6 * amRand) + 3.5 * Math.sin(q * TAU * 6 + t * 5)
+        const d = Math.min(rr, rand) - tief
+        return ziel((Math.cos(th) * d) / B.r, (Math.sin(th) * d) / B.r, 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(p.s * 7)))
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum
@@ -1489,6 +1455,8 @@ export function createDot(host: DotHost): DotApi {
     }
   }
   /* ── Erfolg: Portal und Heimweg ───────────────────────────────────────── */
+  // So weit muss der Kreis um Hokus Platz wachsen, bis er das ganze Display bedeckt
+  const kreisWeit = () => Math.hypot(Math.max(B.x, W - B.x), Math.max(B.y, H - B.y)) + 20
   const portalFlaeche = () => document.querySelector<HTMLElement>('[data-dot-portal]')
   function erfolg(): boolean {
     auftrittEnde(false)
@@ -1517,13 +1485,12 @@ export function createDot(host: DotHost): DotApi {
         B.kMul = 1.6
       }
     } else if (P0.phase === 'rahmen') {
-      // Innerhalb genau dieser Form wird die App sichtbar
-      const fe = easeOut3(clamp01(te / ERFOLG.portal))
+      // Innerhalb des wachsenden Kreises wird die App sichtbar, weich wie eine runde Blende (S3)
+      const fe = easeIO(clamp01(te / ERFOLG.portal))
       P0.fe = fe
-      const R0 = P0.r0
       if (el) {
-        const l = (B.x - R0) * (1 - fe), t = (B.y - R0) * (1 - fe), r = (W - B.x - R0) * (1 - fe), b = (H - B.y - R0) * (1 - fe), rad = R0 + (ERFOLG.rahmenR - R0) * fe
-        el.style.clipPath = fe >= 1 ? 'none' : `inset(${t.toFixed(1)}px ${r.toFixed(1)}px ${b.toFixed(1)}px ${l.toFixed(1)}px round ${rad.toFixed(1)}px)`
+        const rr = P0.r0 + (kreisWeit() - P0.r0) * fe
+        el.style.clipPath = fe >= 1 ? 'none' : `circle(${rr.toFixed(1)}px at ${B.x.toFixed(1)}px ${B.y.toFixed(1)}px)`
       }
       if (fe >= 1) { P0.phase = 'rand'; P0.t0 = jetzt }
     } else if (P0.phase === 'rand' && te > ERFOLG.ruhe) {
@@ -1645,7 +1612,7 @@ export function createDot(host: DotHost): DotApi {
     const pulse = 1 + m * (0.018 * (1 + (KUGEL.puls - 1) * B.kugel) * Math.sin(t * 1.6) + (pk < 0.6 ? -Math.exp(-pk * 8) * Math.cos(pk * 22) * 0.07 : 0) + (B.joyT < 1.3 ? Math.exp(-B.joyT * 4.2) * Math.sin(B.joyT * 13) * 0.12 : 0))
     const dz = B.dizzyT >= 0 && !weniger ? Math.min(1, B.dizzyT * 4) * clamp01((3.2 - B.dizzyT) / 0.8) : 0
     const r = B.r * pulse, cx = B.x + B.shakeX + dz * Math.cos(t * 5.5) * B.r * 0.12, cy = B.y + dz * Math.sin(t * 5.5) * B.r * 0.08
-    const bright = (cur.bright + B.flash * 0.6) * (1 - 0.4 * B.sleepAmt) * (1 - 0.25 * B.thin) * (1 - 0.3 * B.recede) * (B.mode === 'orbit' && B.orbit ? 0.75 + 0.25 * B.orbit.depth : 1) + (B.giggleT >= 0 ? 0.15 * Math.sin(t * 40) : 0)
+    const bright = (cur.bright + B.flash * 0.6) * (1 - 0.4 * B.sleepAmt) * (1 - 0.25 * B.thin) * (1 - 0.3 * B.recede) * (B.mode === 'orbit' && B.orbit ? 0.75 + 0.25 * B.orbit.depth : B.auftritt?.art === 'knopf' ? 0.75 + 0.25 * B.auftritt.z : 1) + (B.giggleT >= 0 ? 0.15 * Math.sin(t * 40) : 0)
     const hueShift = dz * 0.5 * Math.sin(t * 3)
 
     drawRimGlow(); drawInselGlow()
@@ -2151,7 +2118,7 @@ export function createDot(host: DotHost): DotApi {
     loginBuehne: el => loginBetreten(el),
     verlasseLogin: () => loginVerlassen(),
     setNeigung: px => { B.login.neigung = px },
-    umkreise: (el, beiTipp) => new Promise<boolean>(fertig => auftrittStart('knopf', el, beiTipp, fertig)),
+    umkreise: el => new Promise<boolean>(fertig => auftrittStart('knopf', el, undefined, fertig)),
     klopfe: beiStoss => new Promise<boolean>(fertig => auftrittStart('klopfen', null, beiStoss, fertig)),
     stoppeAuftritt: () => auftrittEnde(false),
     erfolg: () => erfolg(),

@@ -77,9 +77,10 @@ test('Wurf: Dot klebt an der Wand wie in der App, löst sich und kehrt zur Bühn
   }
   expect(rechts).toBeGreaterThan(page.viewportSize()!.width - 70)
   expect(schmal).toBeLessThan(vorher.w * 0.92)
-  await lassLaufen(page, 7000)
-  const zurueck = await lage()
-  expect(Math.abs(zurueck.x - vorher.x)).toBeLessThan(3)
+  // zurück auf der Bühne (danach darf ein Hinweis ihn wieder losschicken)
+  let daheim = false
+  for (let t = 0; t < 7000 && !daheim; t += 100) { await page.clock.runFor(100); daheim = Math.abs((await lage()).x - vorher.x) < 3 }
+  expect(daheim).toBe(true)
   // sein Platz in der App bleibt, wo er war
   expect(await platz()).toBe(platzVorher)
 })

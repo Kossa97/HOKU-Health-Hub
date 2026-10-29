@@ -1,33 +1,35 @@
 import { describe, expect, it } from 'vitest'
-import { AUFTRITT, flugPunkt, flugWerte, stoss } from './auftritt'
+import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
 
-const knopf = { left: 30, top: 548, width: 330, height: 48 }
+const knopf = { left: 30, top: 436, width: 330, height: 48 }
 
-describe('Auftritt: Flug um den Knopf', () => {
-  it('flugPunkt ist stetig: in 1/240 s kaum Weg, nie ein Sprung', () => {
-    const F = flugWerte(0.4)
-    let a = flugPunkt(knopf, F, 0)
-    for (let t = 1 / 240; t < 4; t += 1 / 240) {
-      const b = flugPunkt(knopf, F, t)
-      expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeLessThan(8)
+describe('Auftritt: Runde um den Knopf (K4, wie an der Uhr)', () => {
+  it('ringPunkt: flacher Ring um den Knopf, vorn unten, hinten oben', () => {
+    const links = ringPunkt(knopf, 0), vorn = ringPunkt(knopf, 0.25), hinten = ringPunkt(knopf, 0.75)
+    expect(links.x).toBeLessThan(knopf.left)
+    expect(vorn.z).toBeCloseTo(1, 5)
+    expect(vorn.y).toBeGreaterThan(knopf.top + knopf.height / 2)
+    expect(hinten.z).toBeCloseTo(-1, 5)
+    expect(hinten.y).toBeLessThan(knopf.top + knopf.height / 2)
+  })
+
+  it('runde: zwei Runden, weich am Anfang und Ende, am Ende wieder am Start', () => {
+    expect(runde(0)).toBe(0)
+    expect(runde(AUFTRITT.runde)).toBeCloseTo(AUFTRITT.runden, 5)
+    // weich: in den ersten 5 % der Zeit weniger als 2 % des Wegs
+    expect(runde(AUFTRITT.runde * 0.05)).toBeLessThan(AUFTRITT.runden * 0.02)
+    const a = ringPunkt(knopf, runde(0)), b = ringPunkt(knopf, runde(AUFTRITT.runde))
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(0.5)
+  })
+
+  it('runde ist stetig: in 1/120 s nie ein Sprung', () => {
+    let a = ringPunkt(knopf, runde(0))
+    for (let t = 1 / 120; t <= AUFTRITT.runde; t += 1 / 120) {
+      const b = ringPunkt(knopf, runde(t))
+      // Mitte der Runde: rund 1,5 Runden/s auf einem 360 px breiten Ring (wie im Mockup K4)
+      expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeLessThan(20)
       a = b
     }
-  })
-
-  it('bleibt in einem Band um den Knopf, z zwischen −1 und 1', () => {
-    const F = flugWerte(2.1)
-    for (let t = 0; t < 4; t += 0.01) {
-      const p = flugPunkt(knopf, F, t)
-      expect(p.x).toBeGreaterThan(knopf.left - 25)
-      expect(p.x).toBeLessThan(knopf.left + knopf.width + 25)
-      expect(Math.abs(p.y - (knopf.top + knopf.height / 2))).toBeLessThan(knopf.height / 2 + 40)
-      expect(Math.abs(p.z)).toBeLessThanOrEqual(1)
-    }
-  })
-
-  it('zwei Saaten fliegen verschieden', () => {
-    const a = flugPunkt(knopf, flugWerte(0.4), 1.3), b = flugPunkt(knopf, flugWerte(2.1), 1.3)
-    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(1)
   })
 })
 
@@ -43,5 +45,14 @@ describe('Auftritt: Klopfen an die Scheibe', () => {
     const s0 = AUFTRITT.stoesse[0] + AUFTRITT.stossHin
     expect(stoss(s0 + 0.005).quetsch).toBeGreaterThan(0.8)
     expect(stoss(0.1).quetsch).toBe(0)
+  })
+})
+
+describe('Auftritt: Erfolg, Kreis bis an den Geräterand', () => {
+  const W = 390, H = 844
+  it('randAbstand: vom Punkt aus bis zum Rand des Displays (6 px innen)', () => {
+    expect(randAbstand(195, 245, 0, W, H)).toBeCloseTo(195 - 6, 3)
+    expect(randAbstand(195, 245, -Math.PI / 2, W, H)).toBeCloseTo(245 - 6, 3)
+    expect(randAbstand(195, 245, Math.PI / 2, W, H)).toBeCloseTo(H - 6 - 245, 3)
   })
 })

@@ -4,9 +4,9 @@ import { erstesLeeres, faellig, type Stille } from './hinweise'
 const still = (ansicht: Stille['ansicht'], gezeigt = 0, geklopft = false): Stille => ({ ansicht, seit: 0, gezeigt, geklopft })
 
 describe('Hinweise bei Stille', () => {
-  it('Start: Anmelden nach 6 s, Registrieren 6 s nach dem Ende des ersten Hinweises, Klopfen nach 30 s, dann nichts', () => {
-    expect(faellig(still('start'), 5999, null)).toBeNull()
-    expect(faellig(still('start'), 6000, null)).toEqual({ art: 'hinweis', ziel: 'start-anmelden', text: 'login_start_anmelden' })
+  it('Start: Anmelden direkt nach der Begrüßung, Registrieren 6 s nach dem Ende des ersten Hinweises, Klopfen nach 30 s', () => {
+    expect(faellig(still('start'), 799, null)).toBeNull()
+    expect(faellig(still('start'), 800, null)).toEqual({ art: 'hinweis', ziel: 'start-anmelden', text: 'login_start_anmelden' })
     // nach einem Hinweis beginnt die Stille neu (seit = Ende des Hinweises), gezeigt zählt weiter
     expect(faellig(still('start', 1), 5999, null)).toBeNull()
     expect(faellig(still('start', 1), 6000, null)).toEqual({ art: 'hinweis', ziel: 'start-registrieren', text: 'login_start_registrieren' })
