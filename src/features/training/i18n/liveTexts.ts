@@ -73,6 +73,12 @@ const de = {
   plan_fullbody_3: 'Ganzkörper 3×',
   plan_upper_lower_4: 'Ober-/Unterkörper 4×',
   plan_ppl_6: 'Push/Pull/Beine 6×',
+
+  // Raeder fuer Gewicht und Wdh. (live/SetWheelSheet.tsx)
+  wheel_same_as_last: 'Wie letztes Mal',
+  wheel_save: 'Übernehmen',
+  wheel_save_done: 'Übernehmen und abhaken',
+  wheel_decimals: 'Nachkomma',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -135,6 +141,12 @@ const en: Record<keyof typeof de, string> = {
   plan_fullbody_3: 'Full Body 3×',
   plan_upper_lower_4: 'Upper/Lower 4×',
   plan_ppl_6: 'Push/Pull/Legs 6×',
+
+  // Wheels for weight and reps (live/SetWheelSheet.tsx)
+  wheel_same_as_last: 'Same as last',
+  wheel_save: 'Apply',
+  wheel_save_done: 'Apply and mark done',
+  wheel_decimals: 'decimals',
 }
 
 export const LIVE_TEXTS = { de, en }

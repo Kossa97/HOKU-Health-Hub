@@ -271,7 +271,8 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
  * Druck-Rueckmeldung beim Aufsetzen des Fingers, Hover nur mit Maus
  * (mobile-native). Animiert werden nur transform, opacity und background;
  * `tyd-train-pop` laesst Vorschlag und Pausen-Timer von unten einschweben,
- * `tyd-train-check` federt den Haken beim Abhaken kurz.
+ * `tyd-train-check` federt den Haken beim Abhaken kurz. `tyd-wheel` ist das
+ * Auswahlrad (live/WheelPicker): ohne Scrollleiste, Fokusring nur per Tastatur.
  */
 export const TRAINING_CSS = `
 .tyd-train-press { touch-action: manipulation; -webkit-user-select: none; user-select: none; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), opacity 140ms ease-out; }
@@ -290,4 +291,8 @@ export const TRAINING_CSS = `
 }
 .tyd-train-input::-webkit-outer-spin-button, .tyd-train-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .tyd-train-input.sug { font-style: italic; }
+.tyd-wheel { scrollbar-width: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+.tyd-wheel::-webkit-scrollbar { display: none; }
+.tyd-wheel-wrap { border-radius: 12px; }
+.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px rgba(249,115,22,0.55); }
 `

@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useRef, useState, type Ref } from 'react'
 import { Check } from 'lucide-react'
 import { hapticTick } from '../../../../lib/haptics'
 import type { TrackingMode, TrainingSet, WeightUnit } from '../../types'
 import { useTrainingText } from '../../i18n'
 import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exerciseLookup'
 import { formatClock, formatNumber, parseDecimal, parseStopwatchDigits, stopwatchDigits } from '../../lib/format'
-import { fromDisplayWeight, toDisplayWeight } from '../../lib/stats'
+import { toDisplayWeight } from '../../lib/stats'
 import { TRAINING_ACCENT } from '../ui'
+import { SetWheelSheet } from './SetWheelSheet'
 
 /**
  * Eine Satzzeile im Logger: Nummer/Art · Vorher · Werte · Haken.
@@ -14,6 +15,9 @@ import { TRAINING_ACCENT } from '../ui'
  * Der naechste offene Satz traegt einen Ring in Akzentfarbe. Werte, die noch
  * vom Vorschlag stammen (nicht getippt, nicht abgehakt), stehen kursiv in
  * Akzentfarbe — sobald der Nutzer tippt oder abhakt, werden sie zu seinen.
+ *
+ * Gewicht und Wiederholungen werden nicht getippt, sondern per Rad gewaehlt
+ * (`SetWheelSheet`); Distanz und Dauer bleiben Eingabefelder.
  */
 
 export const DONE_TINT = 'rgba(16,185,129,0.14)'
@@ -58,40 +62,27 @@ function displayValue(kind: CellKind, set: TrainingSet, unit: WeightUnit, locale
   }
 }
 
-function editValue(kind: CellKind, set: TrainingSet, unit: WeightUnit, locale: string): string {
+type InputKind = 'distance' | 'duration'
+
+function editValue(kind: InputKind, set: TrainingSet, unit: WeightUnit, locale: string): string {
   if (kind === 'duration') return set.durationS == null ? '' : stopwatchDigits(set.durationS)
   return displayValue(kind, set, unit, locale)
 }
 
-function parseCell(kind: CellKind, text: string, unit: WeightUnit): Partial<TrainingSet> | null {
-  switch (kind) {
-    case 'weight': {
-      if (!text.trim()) return { weightKg: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 2000 ? null : { weightKg: fromDisplayWeight(v, unit) }
-    }
-    case 'reps': {
-      if (!text.trim()) return { reps: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 1000 ? null : { reps: Math.round(v) }
-    }
-    case 'distance': {
-      if (!text.trim()) return { distanceM: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 1_000_000 ? null : { distanceM: Math.round(v) }
-    }
-    case 'duration':
-      return { durationS: parseStopwatchDigits(text) }
-  }
+function parseCell(kind: InputKind, text: string): Partial<TrainingSet> | null {
+  if (kind === 'duration') return { durationS: parseStopwatchDigits(text) }
+  if (!text.trim()) return { distanceM: null }
+  const v = parseDecimal(text)
+  return v == null || v < 0 || v > 1_000_000 ? null : { distanceM: Math.round(v) }
 }
 
 /**
- * Zahlenfeld, das waehrend der Eingabe den Text haelt („82," ist noch keine
- * Zahl) und erst gueltige Werte nach oben gibt. Ohne Fokus zeigt es den
+ * Zahlenfeld fuer Distanz und Dauer, das waehrend der Eingabe den Text haelt
+ * („12" ist noch keine fertige Dauer) und erst gueltige Werte nach oben gibt. Ohne Fokus zeigt es den
  * gespeicherten Wert; leer zeigt es grau den Wert vom letzten Mal.
  */
 function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange }: {
-  kind: CellKind
+  kind: InputKind
   set: TrainingSet
   unit: WeightUnit
   locale: string
@@ -110,7 +101,7 @@ function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange
       aria-label={label}
       value={focused ? text : displayValue(kind, set, unit, locale)}
       placeholder={placeholder}
-      inputMode={kind === 'weight' ? 'decimal' : 'numeric'}
+      inputMode="numeric"
       enterKeyHint="done"
       autoComplete="off"
       onFocus={event => {
@@ -122,7 +113,7 @@ function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange
       onBlur={() => setFocused(false)}
       onChange={event => {
         setText(event.target.value)
-        const patch = parseCell(kind, event.target.value, unit)
+        const patch = parseCell(kind, event.target.value)
         if (patch) onChange(patch)
       }}
       style={{
@@ -134,6 +125,39 @@ function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange
         transition: 'background 160ms ease-out',
       }}
     />
+  )
+}
+
+/** Wert in der Zeile; tippen oeffnet die Raeder. Leer zeigt er grau den Wert vom letzten Mal. */
+function ValueButton({ value, placeholder, label, done, suggested, onOpen, buttonRef }: {
+  value: string
+  placeholder: string
+  label: string
+  done: boolean
+  suggested: boolean
+  onOpen: () => void
+  buttonRef: Ref<HTMLButtonElement>
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onOpen}
+      aria-label={value ? `${label}: ${value}` : label}
+      aria-haspopup="dialog"
+      className={suggested ? 'tyd-train-press tyd-train-input sug' : 'tyd-train-press tyd-train-input'}
+      style={{
+        width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
+        fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
+        background: done ? 'transparent' : 'var(--surface-input)',
+        border: `1px solid ${done ? 'transparent' : 'var(--border-strong)'}`,
+        color: !value ? 'var(--text-muted)' : suggested && !done ? TRAINING_ACCENT : 'var(--text)', padding: '0 4px',
+        fontStyle: !value ? 'normal' : undefined,
+        transition: 'background 160ms ease-out',
+      }}
+    >
+      {value || placeholder || '–'}
+    </button>
   )
 }
 
@@ -155,6 +179,9 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
   const { tt, locale } = useTrainingText()
   // Der Haken federt nur beim Abhaken, nicht beim ersten Zeichnen eines schon erledigten Satzes.
   const [popping, setPopping] = useState(false)
+  const [wheel, setWheel] = useState<'weight' | 'reps' | null>(null)
+  const weightButton = useRef<HTMLButtonElement>(null)
+  const repsButton = useRef<HTMLButtonElement>(null)
   const label = set.type === 'warmup' ? tt('set_warmup_short')
     : set.type === 'drop' ? tt('set_drop_short')
     : set.type === 'failure' ? tt('set_failure_short')
@@ -185,8 +212,8 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {previousLabel(previous, tracking, unit, locale)}
       </span>
-      {usesWeight(tracking) && <Cell kind="weight" set={set} unit={unit} locale={locale} placeholder={ph('weight')} label={weightLabel} suggested={suggested} onChange={onChange} />}
-      {usesReps(tracking) && <Cell kind="reps" set={set} unit={unit} locale={locale} placeholder={ph('reps')} label={tt('col_reps')} suggested={suggested} onChange={onChange} />}
+      {usesWeight(tracking) && <ValueButton value={displayValue('weight', set, unit, locale)} placeholder={ph('weight')} label={weightLabel} done={set.done} suggested={suggested} onOpen={() => setWheel('weight')} buttonRef={weightButton} />}
+      {usesReps(tracking) && <ValueButton value={displayValue('reps', set, unit, locale)} placeholder={ph('reps')} label={tt('col_reps')} done={set.done} suggested={suggested} onOpen={() => setWheel('reps')} buttonRef={repsButton} />}
       {usesDistance(tracking) && <Cell kind="distance" set={set} unit={unit} locale={locale} placeholder={ph('distance')} label={tt('col_distance')} suggested={suggested} onChange={onChange} />}
       {usesDuration(tracking) && <Cell kind="duration" set={set} unit={unit} locale={locale} placeholder={ph('duration')} label={tt('col_time')} suggested={suggested} onChange={onChange} />}
       <button
@@ -220,6 +247,30 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
       >
         <Check size={20} strokeWidth={3} aria-hidden="true" />
       </button>
+      {wheel && (
+        <SetWheelSheet
+          title={`${tt('col_set')} ${label}`}
+          previousText={previous ? previousLabel(previous, tracking, unit, locale) : undefined}
+          set={set}
+          previous={previous}
+          tracking={tracking}
+          unit={unit}
+          weightLabel={weightLabel}
+          focus={wheel}
+          onClose={(patch, markDone) => {
+            // Fokus zurueck auf den Wert, von dem aus geoeffnet wurde.
+            const opener = wheel === 'weight' ? weightButton : repsButton
+            opener.current?.focus({ preventScroll: true })
+            setWheel(null)
+            if (patch) onChange(patch)
+            if (markDone) {
+              void hapticTick()
+              setPopping(true)
+              onToggleDone()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
