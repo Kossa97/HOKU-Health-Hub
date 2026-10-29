@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793291205.788365,
-    "seen": 1793291375.334442,
-    "ast_hash": "62caa45b797ba4533d12120354c0b709",
+    "mtime": 1793292514.827213,
+    "seen": 1793292737.6600895,
+    "ast_hash": "8c3286def2d838d396f34480f651ae27",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793291205.7893646,
-    "seen": 1793291375.3340206,
-    "ast_hash": "e16eddd8e05199041873a49ef4181243",
+    "mtime": 1793292471.6647854,
+    "seen": 1793292737.6596165,
+    "ast_hash": "f9534b862eeb1e4e7fb8d118096322dc",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -18915,6 +18915,42 @@
     "mtime": 1793290060.3830297,
     "seen": 1793290152.929016,
     "ast_hash": "8b3e0a9af2828028d44aec5f0af0fc15",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-schwarz-auf-weiss-v1.png": {
+    "mtime": 1793291434.156256,
+    "seen": 1793292737.6619308,
+    "ast_hash": "14011a7149210cf06616f31b371515c4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-hauptlogo-schwarz-auf-weiss-v1.svg": {
+    "mtime": 1793291434.127254,
+    "seen": 1793292737.6619318,
+    "ast_hash": "ed79556cb25e524e3a814ce5df77940b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-fein-schwarz-auf-weiss-v1.png": {
+    "mtime": 1793292168.4585748,
+    "seen": 1793292737.6619356,
+    "ast_hash": "136acc55273909b76695cd9936ac58b5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-fein-schwarz-auf-weiss-v1.svg": {
+    "mtime": 1793292168.427942,
+    "seen": 1793292737.6619363,
+    "ast_hash": "01e8c6bdc81c662b7074dd3989df2a6d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-fein-weiss-auf-schwarz-v1.png": {
+    "mtime": 1793292168.6556618,
+    "seen": 1793292737.6619372,
+    "ast_hash": "e5ab67866daad624c8b07fca0ab8e9e3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-fein-weiss-auf-schwarz-v1.svg": {
+    "mtime": 1793292168.624656,
+    "seen": 1793292737.6619377,
+    "ast_hash": "ccdf252279e5f084e44036760a3e5a24",
     "semantic_hash": ""
   }
 }
