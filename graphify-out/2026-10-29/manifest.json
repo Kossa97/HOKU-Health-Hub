@@ -6690,9 +6690,9 @@
     "semantic_hash": ""
   },
   "e2e/training.spec.ts": {
-    "mtime": 1793202800.9549813,
-    "seen": 1793203480.5794961,
-    "ast_hash": "23f49aadb118cdf5976fbce4c0a79d05",
+    "mtime": 1793270975.9168963,
+    "seen": 1793271574.0369215,
+    "ast_hash": "70f3633fc0b548746a03dbbbe0a78235",
     "semantic_hash": ""
   },
   "src/features/training/TrainingPage.tsx": {
@@ -6762,9 +6762,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/live/SetRow.tsx": {
-    "mtime": 1793202801.0309193,
-    "seen": 1793203480.5975924,
-    "ast_hash": "919c6eb355c2134cf2180fdd2a6a9546",
+    "mtime": 1793271232.6847124,
+    "seen": 1793271574.061839,
+    "ast_hash": "b790f24b04e82bb266afe0ae5b06a668",
     "semantic_hash": ""
   },
   "src/features/training/components/progress/ExerciseDetailSheet.tsx": {
@@ -6864,9 +6864,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/ui.tsx": {
-    "mtime": 1793202801.031395,
-    "seen": 1793203480.5981696,
-    "ast_hash": "d5a2ea224496adae8e44d1e0983c08db",
+    "mtime": 1793270975.916082,
+    "seen": 1793271574.0626912,
+    "ast_hash": "2c367f2a8da5253a2ae3cd9375e8e5e2",
     "semantic_hash": ""
   },
   "src/features/training/data/exercises.test.ts": {
@@ -7044,9 +7044,9 @@
     "semantic_hash": ""
   },
   "memory/projects/workouttracker.md": {
-    "mtime": 1793204882.0532715,
-    "seen": 1793204904.9897025,
-    "ast_hash": "302f488533f3df112b8212ea4cd45bea",
+    "mtime": 1793245501.5797293,
+    "seen": 1793271574.078052,
+    "ast_hash": "7a7175543a05d5e9ddde47e61b0608e9",
     "semantic_hash": ""
   },
   "src/features/training/services/trainingRepo.test.ts": {
@@ -7092,9 +7092,9 @@
     "semantic_hash": ""
   },
   "src/features/training/i18n/liveTexts.ts": {
-    "mtime": 1793203749.5186245,
-    "seen": 1793204904.9775262,
-    "ast_hash": "d3e56e9f13b93cb693bd355b0fccb1c8",
+    "mtime": 1793270975.9155037,
+    "seen": 1793271574.0631518,
+    "ast_hash": "5fb7f0a250b03506a2310bae581d5c93",
     "semantic_hash": ""
   },
   "src/features/training/components/live/nextSet.ts": {
@@ -7185,6 +7185,108 @@
     "mtime": 1793203530.5423706,
     "seen": 1793204904.9784646,
     "ast_hash": "adb79640320a38b1e239e7952f1dbed4",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/mockup-v2/canvas.json": {
+    "mtime": 1793245466.5994058,
+    "seen": 1793271574.0363007,
+    "ast_hash": "b68401e7cf4af1a006ad662c15af5fd9",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/render/render.js": {
+    "mtime": 1793245466.4067795,
+    "seen": 1793271574.0363047,
+    "ast_hash": "10317ccb692d86a81668a68a241d6275",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/SetWheelSheet.tsx": {
+    "mtime": 1793271388.3522465,
+    "seen": 1793271574.0618434,
+    "ast_hash": "9f87ba2b5ef0d6d830d8f92b026a202a",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/WheelPicker.tsx": {
+    "mtime": 1793271334.0133233,
+    "seen": 1793271574.0618467,
+    "ast_hash": "5deed2a7c39e7c222a6f56f6838bb2ee",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/wheelGeometry.ts": {
+    "mtime": 1793270854.51315,
+    "seen": 1793271574.061892,
+    "ast_hash": "761ec72c9782db364c22955b7cc9a104",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/setWheel.test.ts": {
+    "mtime": 1793271397.165324,
+    "seen": 1793271574.064359,
+    "ast_hash": "0788ab2448cf580b96fc3ae61d64b16e",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/setWheel.ts": {
+    "mtime": 1793271388.352499,
+    "seen": 1793271574.064362,
+    "ast_hash": "ccc728239e4b03891e0c743c9bed8aa4",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/README.md": {
+    "mtime": 1793245495.1153,
+    "seen": 1793271574.077839,
+    "ast_hash": "73bee40d97d19465751a67f495ac2572",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/hoku-arme.html": {
+    "mtime": 1793245466.3340445,
+    "seen": 1793271574.0778425,
+    "ast_hash": "503d81920aea0160ec44465cb1e0dd27",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/hoku-poster.html": {
+    "mtime": 1793245466.334024,
+    "seen": 1793271574.077845,
+    "ast_hash": "f26146a793a13382a9db79d5970dab6e",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/hoku-traegt.html": {
+    "mtime": 1793245466.3339968,
+    "seen": 1793271574.0778477,
+    "ast_hash": "4fec9d7aea2b1d0e7fd4f91c4095f9fe",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/mockup-v2/Main.dc.html": {
+    "mtime": 1793245466.6001236,
+    "seen": 1793271574.0778496,
+    "ast_hash": "539893aeff33df3ad4e59e43a5e0b0ab",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/mockup-v2/Scheiben.dc.html": {
+    "mtime": 1793245466.5995753,
+    "seen": 1793271574.0778515,
+    "ast_hash": "8db42fba83a8e5d3e6f649aaacb4023b",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/render/render.html": {
+    "mtime": 1793245466.4032989,
+    "seen": 1793271574.0778542,
+    "ast_hash": "4c0a50b9f120ae5dc590380fb81df68f",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/silo-rueckblick.html": {
+    "mtime": 1793245466.3339634,
+    "seen": 1793271574.0778565,
+    "ast_hash": "d0f4a8428860d00c55c35a2523da6e4d",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/volumen-silo.html": {
+    "mtime": 1793245466.33392,
+    "seen": 1793271574.0778582,
+    "ast_hash": "88f6d26b4933eeabfee2ef42409ad15a",
+    "semantic_hash": ""
+  },
+  "docs/training/hoku/obj-bus.png": {
+    "mtime": 1793245466.33446,
+    "seen": 1793271574.0795105,
+    "ast_hash": "fb25b1635866497767f97c4caad88256",
     "semantic_hash": ""
   }
 }
