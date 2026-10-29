@@ -66,3 +66,7 @@ Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/RE
   Stempel für geteilte Erfolge, Beiträge, PDFs: S1 Siegel, S2 Kennung, S3 „TRACKED WITH DOT“ – je schwarz, weiß, farbig.
   Nutzer findet alle gut. **Favorit Stempel: S2 Kennung** (27.10.). Dazu sechs Siegel-Varianten
   „aus Neugier“ (`futur/siegel.py`). Hauptschriftzug noch offen (Vorschlag F1).
+
+**Fassung 3 (29.10.2026): App-Icon ist das Dot-Bild von Codex** (Nutzer: „perfekt, ändere alle Logos der App“).
+Quelle und Export in `docs/logo/dot/codex/`; ersetzt iOS, Android, Web/PWA, Favicon und Benachrichtigungs-Icon.
+Web-Dateien heißen `icons/dot-codex-*`. Tab-Leisten-Logo (`DotLogo.tsx`) unverändert.
