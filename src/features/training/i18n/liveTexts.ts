@@ -79,6 +79,13 @@ const de = {
   wheel_save: 'Übernehmen',
   wheel_save_done: 'Übernehmen und abhaken',
   wheel_decimals: 'Nachkomma',
+
+  // Einstieg „Heute" (today/TodayTab, today/WeekStrip)
+  start_empty_cta: 'Leeres Training starten',
+  start_routine: '{{name}} starten',
+  week_planned: 'Geplant: {{names}}',
+  week_no_training: 'Kein Training',
+  week_nothing_planned: 'Nichts geplant',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -147,6 +154,13 @@ const en: Record<keyof typeof de, string> = {
   wheel_save: 'Apply',
   wheel_save_done: 'Apply and mark done',
   wheel_decimals: 'decimals',
+
+  // Entry "Today" (today/TodayTab, today/WeekStrip)
+  start_empty_cta: 'Start empty workout',
+  start_routine: 'Start {{name}}',
+  week_planned: 'Planned: {{names}}',
+  week_no_training: 'No workout',
+  week_nothing_planned: 'Nothing planned',
 }
 
 export const LIVE_TEXTS = { de, en }

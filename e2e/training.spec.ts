@@ -36,10 +36,10 @@ test('Training: Routine starten, Vorher-Werte, Rekord, speichern', async ({ page
   await page.goto('/training')
 
   // Montag (28.09.) ist „Push" geplant
-  await expect(page.getByText('Heute geplant')).toBeVisible()
+  await expect(page.getByText('Heute geplant', { exact: true })).toBeVisible()
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/training-heute.png`, fullPage: true })
 
-  await page.getByRole('button', { name: 'Starten' }).first().click()
+  await page.getByRole('button', { name: 'Push starten' }).click()
   const live = page.getByRole('dialog', { name: 'Push' })
   await expect(live).toBeVisible()
   await expect(live.getByText('80 × 5').first()).toBeVisible()

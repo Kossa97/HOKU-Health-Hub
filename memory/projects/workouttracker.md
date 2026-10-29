@@ -109,6 +109,20 @@ proportional zueinander; Gegenstände als gerenderte 3D-Modelle (Render-Strecke 
 Physik (Baustein `hoku-arme.html`). Offen: Stil der Modelle (stilisiert vs. realistisch),
 weitere Modelle vom Nutzer, Muskeldefinition der Arme.
 
+## Einstieg „Heute“ (Entscheidung Nutzer, 29.10.2026)
+
+Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
+- Reihenfolge: Titel · Tabs (Heute/Verlauf/Fortschritt) · **Wochenleiste** (Datum oben,
+  Wochentag darunter) · **Leeres Training starten** · **Routinen** (die von heute bzw. die
+  nächste oben im Ordner, hervorgehoben, großer Start; an Ruhetagen ruhiger mit Mond) ·
+  Aktivität eintragen · Diese Woche · Bereitschaft (nur mit Wert) · GLP-1 · Zuletzt.
+- Tabs oben, weil sie den ganzen Tracker umschalten; der Kalender ist Inhalt von „Heute“.
+- **Dot gehört nicht in die Karten.** Er lebt in der Tab-Leiste, kommt heraus und sagt per
+  Sprechblase, was heute dran ist, oder motiviert. Dot liegt auf `main`
+  (`src/features/dot/`), nicht auf diesem Branch: Anbindung nach dem Zusammenführen.
+- Die Karte „Heute geplant/Als Nächstes“ (`NextInPlanCard`) und die leere
+  Bereitschaftskarte sind entfallen.
+
 ## Offen
 
 | Punkt | Stand |

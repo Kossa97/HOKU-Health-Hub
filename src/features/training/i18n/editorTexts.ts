@@ -38,7 +38,6 @@ const de = {
 
   // Heute: Plan
   plan_next_title: 'Als Nächstes im Plan',
-  plan_rotation: 'Rotation',
   plan_last: 'zuletzt {{day}}',
   plan_never: 'noch nie trainiert',
   plan_heading: 'Plan · {{name}}',
@@ -79,7 +78,6 @@ const en: Record<keyof typeof de, string> = {
   muscle_week_title: 'Sets per muscle · this week',
 
   plan_next_title: 'Up next in your plan',
-  plan_rotation: 'Rotation',
   plan_last: 'last {{day}}',
   plan_never: 'not trained yet',
   plan_heading: 'Plan · {{name}}',

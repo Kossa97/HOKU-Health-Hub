@@ -1,6 +1,5 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronRight, Play, Timer } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ChevronRight, Plus, Timer } from 'lucide-react'
 import type { TrainingRoutine, TrainingSession } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { TrainingData } from '../../hooks/useTrainingData'
@@ -8,15 +7,19 @@ import { sessionKcal } from '../../lib/energy'
 import { computeReadiness, type ReadinessFactor } from '../../lib/readiness'
 import { weekSummary } from '../../lib/stats'
 import { formatDuration, formatNumber, formatVolume } from '../../lib/format'
-import { Card, SectionTitle, Stat, TRAINING_ACCENT } from '../ui'
+import { Button, Card, SectionTitle, Stat, TRAINING_ACCENT } from '../ui'
 import { Glp1Card } from './Glp1Card'
 import { SessionRow } from '../history/SessionRow'
-import { NextInPlanCard, PlanSection, WeeklyMuscleCard } from '../plan/PlanSection'
+import { nextInPlan } from '../../lib/planRotation'
+import { PlanSection, WeeklyMuscleCard } from '../plan/PlanSection'
+import { WeekStrip } from './WeekStrip'
 
 /**
- * „Heute": Bereitschaft, was als Naechstes im Plan ist, Schnellstart,
- * Routinen nach Plan, Wochenbilanz, GLP-1 — in der Reihenfolge, in der man
- * es vor dem Training braucht.
+ * „Heute", von oben nach unten: Wochenleiste, leeres Training starten,
+ * Routinen (die von heute bzw. die naechste hervorgehoben), Aktivitaet
+ * eintragen, Wochenbilanz, Bereitschaft (nur mit Wert), GLP-1, zuletzt.
+ * Was heute dran ist, sagt die Leiste und die hervorgehobene Routine; eine
+ * eigene Karte dafuer gibt es nicht mehr.
  */
 export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, onEditRoutine, onOpenSession, onShowHistory }: {
   data: TrainingData
@@ -28,7 +31,19 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
   onShowHistory: () => void
 }) {
   const { tt, locale } = useTrainingText()
-  const now = useMemo(() => new Date(), [])
+  // Ein fester Zeitpunkt je Tag; kommt die App nach Mitternacht zurueck, ruecken Leiste und Plan nach.
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible' && new Date().toDateString() !== now.toDateString()) setNow(new Date())
+    }
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    return () => {
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+    }
+  }, [now])
 
   const readiness = useMemo(() => computeReadiness({
     now,
@@ -42,26 +57,33 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
     [data.sessions, now, data.settings.weeklyGoal, data.context.latestWeightKg],
   )
 
+  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now), [data.routines, data.sessions, now])
+  // Ruhetag: es gibt einen Wochenplan, fuer heute steht nichts darin und heute wurde nicht trainiert.
+  const restDay = useMemo(() => next != null && !next.plannedToday
+    && data.routines.some(r => r.weekdays.length > 0)
+    && !data.sessions.some(s => new Date(s.startedAt).toDateString() === now.toDateString()),
+  [next, data.routines, data.sessions, now])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <ReadinessCard result={readiness} />
+      <WeekStrip key={now.toDateString()} data={data} now={now} />
 
-      <NextInPlanCard data={data} now={now} onStartRoutine={onStartRoutine} />
+      <Button block onClick={onStartEmpty} style={{ minHeight: 52, fontSize: '1rem', borderRadius: 16 }}>
+        <Plus size={20} strokeWidth={2.5} aria-hidden="true" /> {tt('start_empty_cta')}
+      </Button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <Card onClick={onStartEmpty} style={{ padding: 14 }}>
-          <Play size={20} aria-hidden="true" style={{ color: TRAINING_ACCENT }} />
-          <div style={{ fontWeight: 800, marginTop: 8 }}>{tt('start_empty')}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{tt('kind_strength')}</div>
-        </Card>
-        <Card onClick={onLogActivity} style={{ padding: 14 }}>
-          <Timer size={20} aria-hidden="true" style={{ color: '#10b981' }} />
-          <div style={{ fontWeight: 800, marginTop: 8 }}>{tt('log_activity')}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{tt('log_activity_hint')}</div>
-        </Card>
-      </div>
+      <PlanSection data={data} next={next} restDay={restDay} now={now} onStartRoutine={onStartRoutine} onEditRoutine={onEditRoutine} />
 
-      <PlanSection data={data} onStartRoutine={onStartRoutine} onEditRoutine={onEditRoutine} />
+      <Card onClick={onLogActivity} style={{ padding: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Timer size={20} aria-hidden="true" style={{ color: '#10b981', flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 800 }}>{tt('log_activity')}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{tt('log_activity_hint')}</div>
+          </div>
+          <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--text-muted)' }} />
+        </div>
+      </Card>
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <SectionTitle>{tt('this_week')}</SectionTitle>
@@ -83,6 +105,8 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
         </Card>
         <WeeklyMuscleCard data={data} now={now} />
       </section>
+
+      {readiness && <ReadinessCard result={readiness} />}
 
       {data.glp1Active && <Glp1Card data={data} now={now} />}
 
@@ -110,20 +134,9 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
 
 const LEVEL_COLOR = { high: '#10b981', normal: '#06b6d4', low: '#f59e0b' } as const
 
-function ReadinessCard({ result }: { result: ReturnType<typeof computeReadiness> }) {
+/** Bereitschaft mit Wert; ohne Daten steht auf „Heute" nichts (eintragen: Fortschritt). */
+function ReadinessCard({ result }: { result: NonNullable<ReturnType<typeof computeReadiness>> }) {
   const { tt, locale } = useTrainingText()
-  if (!result) {
-    return (
-      <Card>
-        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('readiness')}</div>
-        <div style={{ fontWeight: 750, marginTop: 4 }}>{tt('readiness_empty')}</div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 4 }}>{tt('readiness_empty_hint')}</p>
-        <Link to="/progress" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10, minHeight: 36, fontWeight: 750, color: TRAINING_ACCENT, fontSize: '0.88rem' }}>
-          {tt('readiness_log_today')} <ChevronRight size={16} aria-hidden="true" />
-        </Link>
-      </Card>
-    )
-  }
   const color = LEVEL_COLOR[result.level]
   const circumference = 2 * Math.PI * 26
   const factorText = (f: ReadinessFactor) => tt(`factor_${f.key}` as TrainingTextKey, {

@@ -6,7 +6,7 @@ import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { exerciseInfo } from '../../lib/exerciseLookup'
 import { formatDate, formatNumber } from '../../lib/format'
-import { groupByFolder, nextInPlan } from '../../lib/planRotation'
+import { groupByFolder, type NextInPlan } from '../../lib/planRotation'
 import { sortedMuscles } from '../../lib/muscleVolume'
 import { setsPerMuscle, startOfWeek } from '../../lib/stats'
 import { createPlanRoutines, TRAINING_PLANS, type TrainingPlan } from '../../data/plans'
@@ -15,24 +15,45 @@ import { Button, Card, Chip, SectionTitle, TrainingSheet, TRAINING_ACCENT } from
 import { BandLegend, MuscleBars } from './MuscleVolume'
 
 /**
- * Der Plan-Teil von „Heute": die naechste Routine aus der Rotation, die
- * Routinen nach Ordner, Vorlagen zum Anlegen eines ganzen Plans. Ohne
- * Routinen stehen die Vorlagen gross im Bild, sonst als Chip-Zeile.
+ * Der Plan-Teil von „Heute": die Routinen nach Ordner, Vorlagen zum Anlegen
+ * eines ganzen Plans. Die Routine, die heute geplant oder in der Rotation
+ * als Naechstes dran ist, steht oben in ihrem Ordner, hervorgehoben und mit
+ * grossem Start-Knopf. Ohne Routinen stehen die Vorlagen gross im Bild,
+ * sonst als Chip-Zeile.
  */
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export function PlanSection({ data, onStartRoutine, onEditRoutine }: {
+export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRoutine }: {
   data: TrainingData
+  /** Heute geplant oder als Naechstes in der Rotation (`nextInPlan`). */
+  next: NextInPlan | null
+  /** Heute ist laut Plan frei: die naechste Routine steht ruhiger da. */
+  restDay: boolean
+  now: Date
   onStartRoutine: (routine: TrainingRoutine) => void
   onEditRoutine: (routine: (Omit<TrainingRoutine, 'id'> & { id?: string }) | null) => void
 }) {
-  const { tt, lang } = useTrainingText()
+  const { tt, lang, locale } = useTrainingText()
   const [template, setTemplate] = useState<TrainingPlan | null>(null)
   const [hyroxPick, setHyroxPick] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const groups = useMemo(() => groupByFolder(data.routines), [data.routines])
+  // Die hervorgehobene Routine nach oben in ihrem Ordner.
+  const groups = useMemo(() => groupByFolder(data.routines).map(group => ({
+    ...group,
+    routines: [...group.routines].sort((a, b) => Number(b.id === next?.routine.id) - Number(a.id === next?.routine.id)),
+  })), [data.routines, next])
+
+  // „zuletzt Freitag" fuer die letzten sechs Tage, davor mit Datum.
+  const lastLabel = (iso: string | null) => {
+    if (!iso) return tt('plan_never')
+    const ageDays = (now.getTime() - Date.parse(iso)) / DAY_MS
+    const day = ageDays < 6
+      ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(iso))
+      : formatDate(iso, locale)
+    return tt('plan_last', { day })
+  }
 
   const weekdayList = (days: number[]) => days.map(d => tt(`weekday_${d}` as TrainingTextKey)).join(', ')
 
@@ -76,7 +97,34 @@ export function PlanSection({ data, onStartRoutine, onEditRoutine }: {
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
                 </div>
               )}
-              {group.routines.map(r => (
+              {group.routines.map(r => r.id === next?.routine.id ? (
+                <Card key={r.id} accent={TRAINING_ACCENT} style={{ padding: 14, borderColor: restDay ? undefined : `${TRAINING_ACCENT}73` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: '1.05rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
+                    {restDay ? (
+                      <span style={{ flexShrink: 0, minHeight: 24, padding: '2px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 750, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(139,92,246,0.14)', color: '#8b5cf6' }}>
+                        <Moon size={12} aria-hidden="true" /> {tt('rest_day')}
+                      </span>
+                    ) : (
+                      <span style={{ flexShrink: 0, minHeight: 24, padding: '2px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 750, display: 'inline-flex', alignItems: 'center', background: `${TRAINING_ACCENT}24`, color: TRAINING_ACCENT }}>
+                        {next.plannedToday ? tt('planned_today') : tt('plan_next_title')}
+                      </span>
+                    )}
+                    <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 40, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', flexShrink: 0 }}>
+                      <Pencil size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', margin: '2px 0 12px' }}>
+                    {restDay && `${tt('plan_next_title')} · `}
+                    {tt('exercises_count', { count: r.exercises.length })}
+                    {r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
+                    {` · ${lastLabel(next.lastTrainedAt)}`}
+                  </div>
+                  <Button block tone={restDay ? 'ghost' : 'primary'} onClick={() => onStartRoutine(r)} style={{ minHeight: 48 }}>
+                    <Play size={16} aria-hidden="true" /> {tt('start_routine', { name: r.name })}
+                  </Button>
+                </Card>
+              ) : (
                 <Card key={r.id} style={{ padding: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -182,81 +230,6 @@ export function PlanSection({ data, onStartRoutine, onEditRoutine }: {
         </TrainingSheet>
       )}
     </>
-  )
-}
-
-/**
- * „Als Naechstes im Plan": die Routine aus der Rotation (oder die fuer heute
- * geplante), mit Start-Knopf und der Rotation des Ordners als Chip-Zeile.
- */
-export function NextInPlanCard({ data, now, onStartRoutine }: {
-  data: TrainingData
-  now: Date
-  onStartRoutine: (routine: TrainingRoutine) => void
-}) {
-  const { tt, locale } = useTrainingText()
-  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now), [data.routines, data.sessions, now])
-  if (!next) return null
-  const hasPlan = data.routines.some(r => r.weekdays.length > 0)
-  const doneToday = data.sessions.some(s => new Date(s.startedAt).toDateString() === now.toDateString())
-  const restDay = hasPlan && !next.plannedToday && !doneToday
-
-  // „zuletzt Freitag" fuer die letzten sechs Tage, davor mit Datum.
-  const lastLabel = (iso: string | null) => {
-    if (!iso) return tt('plan_never')
-    const ageDays = (now.getTime() - Date.parse(iso)) / DAY_MS
-    const day = ageDays < 6
-      ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(iso))
-      : formatDate(iso, locale)
-    return tt('plan_last', { day })
-  }
-
-  return (
-    <Card accent={TRAINING_ACCENT} style={{ background: `radial-gradient(140% 120% at 0% 0%, ${TRAINING_ACCENT}24 0%, var(--surface) 60%)` }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: TRAINING_ACCENT, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          {next.plannedToday ? tt('planned_today') : tt('plan_next_title')}
-        </span>
-        {restDay && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', fontWeight: 700, color: '#8b5cf6' }}>
-            <Moon size={12} aria-hidden="true" /> {tt('rest_day')}
-          </span>
-        )}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{next.routine.name}</div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-            {tt('exercises_count', { count: next.routine.exercises.length })} · {lastLabel(next.lastTrainedAt)}
-          </div>
-        </div>
-        <Button onClick={() => onStartRoutine(next.routine)} style={{ minHeight: 50, padding: '0 18px' }}>
-          <Play size={16} aria-hidden="true" /> {tt('start')}
-        </Button>
-      </div>
-      {next.rotation.length > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, overflowX: 'auto', scrollbarWidth: 'none' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 650, flexShrink: 0 }}>{next.folder ?? tt('plan_rotation')}</span>
-          {next.rotation.map(r => {
-            const active = r.id === next.routine.id
-            return (
-              <span
-                key={r.id}
-                aria-current={active ? 'true' : undefined}
-                style={{
-                  flexShrink: 0, minHeight: 26, padding: '2px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center',
-                  background: active ? `${TRAINING_ACCENT}22` : 'var(--surface-raised)',
-                  border: `1px solid ${active ? `${TRAINING_ACCENT}66` : 'var(--border)'}`,
-                  color: active ? TRAINING_ACCENT : 'var(--text-dim)',
-                }}
-              >
-                {r.name}
-              </span>
-            )
-          })}
-        </div>
-      )}
-    </Card>
   )
 }
 
