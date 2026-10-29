@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
 import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
-import { takeOrbOrigin, takeOrbTarget, useOrbPreview } from '../lib/orbBridge'
+import { clearOrbBuehne, setOrbBuehne, takeOrbOrigin, takeOrbTarget, useOrbPreview } from '../lib/orbBridge'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { ZONE_BELOW as BELOW, ZONE_MAX, trackZone, usePrefersReducedMotion } from '../lib/orbZone'
 import type { Goals, Nutrients } from '../lib/nutrition'
@@ -76,6 +76,8 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
     const mo = new MutationObserver(palette)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class', 'data-look', 'data-theme'] })
     engine.start()
+    const buehne = { koerper: () => engine.koerper(), fokus: (key: Parameters<OrbEngine['focus']>[0]) => engine.focus(key, true) }
+    setOrbBuehne(buehne)
     // Töne: Browser spielen erst nach einer Geste — beim ersten Tippen freischalten
     // (pointerdown zählt bei Touch nicht als Geste, touchend und click schon).
     const unlock = () => { if (soundsWanted()) unlockAudio() }
@@ -84,6 +86,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
     return () => {
       document.removeEventListener('touchend', unlock, { capture: true })
       document.removeEventListener('click', unlock, { capture: true })
+      clearOrbBuehne(buehne)
       untrack()
       mo.disconnect()
       engine.destroy()
@@ -171,7 +174,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
           </button>
         </div>
         <div role="status" aria-live="polite" className="pointer-events-none absolute left-0 top-0 z-[3] h-0 w-0 overflow-visible">
-          {focus && focused && (
+          {focus && focused && !focus.still && (
             <div ref={el => engineRef.current?.setLabel(el)} className="absolute flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-[12px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] px-2.5 py-1.5 text-[13px] font-medium tabular-nums text-[var(--lg-text)] shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
               style={{ left: focus.x, top: focus.y, transform: 'translate(-50%, calc(-100% - 10px))' }}>
               <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: MACRO_COLORS[focus.key] }} />
