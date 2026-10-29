@@ -133,6 +133,25 @@ wählt dort Freude und Warten aus.
   zufälliger, auch vertikal um den Knopf herum, also zwischen Knopf und Hintergrund
   hindurch (hinter dem Knopf verdeckt).
 
+**Zweite Rückmeldung (29.10.2026, Mockup Version 9 → 10):**
+- Augen zuhalten: Arme gut. Beim Einfahren fließt jeder Punkt gestaffelt auf seinen
+  eigenen Platz in der Kugel zurück (kein Zusammenziehen zum Strich). Dazu eine
+  **Sprechblase**: „Keine Sorge, ich sehe nichts.“ (en: „Don't worry, I can't see a
+  thing.“), solange er die Augen zuhält — über die Blase der Engine (`sag`), nicht als
+  Partikelschrift.
+- Haken und X: nur das Zeichen selbst leuchtet auf (heller, kleiner Schein eng darum),
+  nicht Hoku und nicht die Umgebung.
+- Nicken / Kopfschütteln: nur Hokus eigene Punkte leuchten grün bzw. rot, kein Schein
+  drumherum.
+- Klopfen **neu**: kein Arm. Hoku fliegt dreimal ganz nah an die Scheibe, prallt sanft
+  dagegen (drückt sich platt, Lichtring auf dem Glas, leichtes Tippen per Vibration),
+  federt zurück; dann „Noch da?“.
+- Hinweis-Flug K2: physikalisch und organisch statt Ablauf — Federn längs des Knopfs,
+  um seine Längsachse und im Abstand jagen unregelmäßig springenden Zielen nach, mit
+  wechselnder Steifigkeit und Dämpfung unter 1 (Überschwingen, Tempowechsel,
+  gelegentliches Umkehren, hinter dem Knopf verdeckt). Hin- und Rückflug im Bogen mit
+  Federn.
+
 ## Alle Situationen
 
 ### Startseite (Anmelden / Registrieren)
