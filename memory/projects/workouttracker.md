@@ -98,6 +98,17 @@ Migration v2 noch nicht in Prod** (Reihenfolge: erst Migration, dann Deploy).
 Nutzer wollte alles selbst nachbessern. Übungsmedien (Gym Visual) und 3D-Körper
 (anatomy-models, Demo https://claude.ai/artifact/Lt3V66ArqPxMnTjHQPznE1) offen.
 
+## Trainingsabschluss: Silo und „Hoku trägt“ (Entwurf, 28./29.10.2026)
+
+Alle Entwürfe, Links, Verlauf der Entscheidungen und offenen Punkte:
+`docs/training/hoku/README.md`. Aktuelle Richtung: **ein Bild am Trainingsende**,
+Hoku (KI-Assistent, früher „Dot“, `src/features/dot/` auf `main`) trägt **Gegenstände**,
+die zusammen das Volumen wiegen (Bus 12 t, Elefant 6 t … Waschmaschine 70 kg),
+proportional zueinander; Gegenstände als gerenderte 3D-Modelle (Render-Strecke in
+`docs/training/hoku/render/`), Hoku bleibt Licht. Arme kommen aus Hoku, riesig, Muskeln,
+Physik (Baustein `hoku-arme.html`). Offen: Stil der Modelle (stilisiert vs. realistisch),
+weitere Modelle vom Nutzer, Muskeldefinition der Arme.
+
 ## Offen
 
 | Punkt | Stand |
