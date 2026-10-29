@@ -126,18 +126,37 @@ export function parseSearchResponse(json: unknown, lang: 'de' | 'en', limit = 25
 }
 
 /**
- * Ein Produkt ohne Nährwerte — für den Substanz-Scan in My Stack.
- * Supplements stehen oft ohne Energieangabe in OFF; `mapProduct` würde sie
- * verwerfen. Hier genügt ein Name.
+ * Ein Produkt für den Substanz-Scan in My Stack. Supplements stehen oft ohne
+ * Energieangabe in OFF; `mapProduct` würde sie verwerfen. Hier genügt ein
+ * Name. Eiweiß kommt mit, wo es steht: bei Proteinpulver ist es die Stärke
+ * („24 g je 30 g Portion").
  */
 export interface OffItem {
   barcode: string | null
   name: string
   brand: string | null
   quantity: string | null
+  /** Gramm Eiweiß je `per` Gramm — je Portion, sonst je 100 g. */
+  protein: { amount: number; per: number } | null
 }
 
-export const ITEM_FIELDS = ['code', 'product_name', 'product_name_de', 'product_name_en', 'generic_name', 'brands', 'quantity'].join(',')
+export const ITEM_FIELDS = [
+  'code', 'product_name', 'product_name_de', 'product_name_en', 'generic_name', 'brands', 'quantity',
+  'nutriments', 'serving_quantity', 'serving_quantity_unit',
+].join(',')
+
+/** Eiweiß je Portion (wenn die Portion in Gramm angegeben ist), sonst je 100 g. */
+function eiweiss(p: Raw): OffItem['protein'] {
+  const n = (p.nutriments && typeof p.nutriments === 'object' ? p.nutriments : {}) as Raw
+  const portion = num(p.serving_quantity)
+  const portionInGramm = !p.serving_quantity_unit || String(p.serving_quantity_unit).toLowerCase() === 'g'
+  const jePortion = num(n.proteins_serving)
+  if (portion != null && portion > 0 && portion <= 500 && portionInGramm && jePortion != null && jePortion > 0 && jePortion <= portion) {
+    return { amount: r1(jePortion), per: r1(portion) }
+  }
+  const je100 = num(n.proteins_100g)
+  return je100 != null && je100 > 0 && je100 <= 100 ? { amount: r1(je100), per: 100 } : null
+}
 
 export function mapItem(p: Raw, lang: 'de' | 'en'): OffItem | null {
   const name = text(p[`product_name_${lang}`], 120) ?? text(p.product_name, 120) ?? text(p.generic_name, 120)
@@ -147,6 +166,7 @@ export function mapItem(p: Raw, lang: 'de' | 'en'): OffItem | null {
     name,
     brand: text(typeof p.brands === 'string' ? p.brands.split(',')[0] : p.brands, 120),
     quantity: text(p.quantity, 40),
+    protein: eiweiss(p),
   }
 }
 

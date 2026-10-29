@@ -75,7 +75,12 @@ export interface OrbFocus {
   /** Mitte über dem Mond, CSS-Pixel relativ zur Zeichenfläche. */
   x: number
   y: number
+  /** Ohne Etikett (Dot sagt es in seiner Sprechblase). */
+  still?: boolean
 }
+
+/** Ein Körper auf dem Bildschirm: Mitte und Radius in CSS-Pixeln. */
+export interface OrbKoerper { x: number; y: number; r: number }
 
 export class OrbEngine {
   private readonly canvas: HTMLCanvasElement
@@ -230,14 +235,27 @@ export class OrbEngine {
 
   // ─── Antippen ─────────────────────────────────────────────────────────
 
-  focus(key: MacroKey | null) {
+  focus(key: MacroKey | null, still = false) {
     if (key === null) { this.clearFocus(); return }
     this.focusKey = key
     this.focusUntil = performance.now() + 2800
     if (this.reduce) for (const k of Object.keys(this.focusA) as MacroKey[]) this.focusA[k] = k === key ? 1 : 0
     this.needsDraw = true
-    hapticSelect()
-    this.onFocus({ key, ...this.labelAt(key) })
+    // Still (Dots Rundflug): ohne Haptik, der Nutzer hat nichts angetippt
+    if (!still) hapticSelect()
+    this.onFocus({ key, ...this.labelAt(key), still })
+  }
+
+  /** Kugel und Monde, wie sie gerade auf dem Bildschirm stehen (für Dots Rundflug). */
+  koerper(): { main: OrbKoerper | null; moons: Partial<Record<MacroKey, OrbKoerper>> } {
+    const rc = this.canvas.getBoundingClientRect(), k = this.dpr || 1
+    const at = (g: { cx: number; cy: number; R: number }) => ({ x: rc.left + g.cx / k, y: rc.top + g.cy / k, r: g.R / k })
+    const moons: Partial<Record<MacroKey, OrbKoerper>> = {}
+    for (const key of Object.keys(this.moonGeo) as MacroKey[]) {
+      const g = this.moonGeo[key]
+      if (g) moons[key] = at(g)
+    }
+    return { main: this.geo ? at(this.geo) : null, moons }
   }
 
   /** Mitte über dem Mond in seiner vollen Größe (er wächst um 38 %), CSS-Pixel. */

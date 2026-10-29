@@ -3,7 +3,8 @@ import { TEST_USER } from './support/mockSupabase'
 
 /** Sprachauswahl: zum Start nur Deutsch und Englisch. */
 
-test('Erster Start: Auswahl zeigt nur Deutsch und Englisch, die Wahl gilt sofort und bleibt', async ({ page, mock: _mock }) => {
+test('Erster Start: Auswahl zeigt nur Deutsch und Englisch, die Wahl gilt sofort und bleibt', async ({ page, mock }) => {
+  void mock
   await page.addInitScript(userId => {
     if (sessionStorage.getItem('__e2e_lang_gate')) return
     sessionStorage.setItem('__e2e_lang_gate', '1')
@@ -29,7 +30,8 @@ test('Erster Start: Auswahl zeigt nur Deutsch und Englisch, die Wahl gilt sofort
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 })
 
-test('Profil: Umschalter mit genau zwei Sprachen, ohne Anleitung', async ({ page, mock: _mock }) => {
+test('Profil: Umschalter mit genau zwei Sprachen, ohne Anleitung', async ({ page, mock }) => {
+  void mock
   await page.goto('/profil')
 
   const deutsch = page.getByRole('button', { name: /Deutsch/ })

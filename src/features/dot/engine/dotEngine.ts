@@ -24,6 +24,21 @@ export type { DotForm } from './gesten'
 export type DotModus = 'house' | 'exit' | 'home' | 'enter' | 'stage' | 'away' | 'gather' | 'orbit' | 'login' | 'portal'
 export type DotStimmung = 'idle' | 'think' | 'speak' | 'joy' | 'listen'
 
+/**
+ * Ein Rundflug, den eine Seite vorgibt (Kalorientracker: einmal um die Kugel). Die Seite kennt
+ * die Bahn, die Engine fliegt sie und landet danach an seinem Platz (`platz()` am Ende der Bahn).
+ */
+export interface Rundflug {
+  /** Dauer in Sekunden. */
+  dauer: number
+  /** Lage zum Zeitpunkt t (s), Bildschirm-px; `depth` 1 = vorn (volle Größe), −1 = hinten. */
+  pos(t: number): { x: number; y: number; depth: number }
+  /** Gelandet (auch nach dem Abkürzen); nicht, wenn etwas anderes ihn unterbrach. */
+  fertig?(): void
+  /** Etwas anderes hat ihn herausgeholt (Chat, Kamera, Zugang weg). */
+  abgebrochen?(): void
+}
+
 export interface DotTexte {
   wach(): string
   kitzeln(): string
@@ -101,6 +116,15 @@ export interface DotApi {
   schweige(): void
   /** Anmeldung: Hoku ist ganz zu sehen (nicht hinter der Tastatur, nicht aus dem Bild gescrollt). */
   imBlick(): boolean
+  /** Wo er gerade ist und wo sein Platz ist (Bildschirm-px). */
+  lage(): { x: number; y: number }
+  platz(): { x: number; y: number }
+  /** Rundflug starten; `false`, wenn er gerade nicht kann (weniger Bewegung, Chat, Kamera …). */
+  rundflug(r: Rundflug): boolean
+  /** Rundflug abkürzen: von hier in `sek` Sekunden an seinen Platz. */
+  rundflugAbkuerzen(sek: number): void
+  /** Gleich kommt ein Rundflug: so lange nicht von selbst herauskommen (er kommt dann vom Rand). */
+  rundflugKommt(ms: number): void
   neuVermessen(): void
   zerstoeren(): void
 }
@@ -342,6 +366,7 @@ export function createDot(host: DotHost): DotApi {
     portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; te: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
     kMul: 1,
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
+    tour: null as null | { r: Rundflug; ab: null | { t0: number; x: number; y: number; d: number } }, tourBald: 0,
     orbitCool: 0, herkunft: null as null | { x: number; y: number; t: number },
     pref: null as null | { dock: { x: DockX; y: DockY }; along: { x: number; y: number } },
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
@@ -448,6 +473,7 @@ export function createDot(host: DotHost): DotApi {
     if (B.mode === 'portal') return B.r
     if (B.mode === 'login') return B.auftritt ? B.r : loginRadius()
     if (B.mode === 'enter') return B.size * 0.8
+    if (B.mode === 'orbit' && B.tour && B.orbit) return B.size * (0.8 + 0.2 * B.orbit.depth)
     if (B.mode === 'orbit' && B.orbit) return B.size * (0.42 + 0.1 * B.orbit.depth)
     return B.size * (1 - 0.14 * B.recede)
   }
@@ -613,7 +639,9 @@ export function createDot(host: DotHost): DotApi {
     if (B.mode === 'exit') climb(dt)
     B.orbitCool = Math.max(0, B.orbitCool - dt)
     if (B.mode === 'home' && !B.drag && !B.orbitCool && nearClock(B.x, B.y, B.r * 0.75)) startOrbit()
-    if (B.mode === 'orbit') orbitStep(dt)
+    // Etwas anderes hat ihn aus dem Rundflug geholt (Chat, Zugang weg): der Rundflug ist vorbei
+    if (B.tour && B.mode !== 'orbit') { const r = B.tour.r; B.tour = null; r.abgebrochen?.() }
+    if (B.mode === 'orbit') { if (B.tour) tourStep(dt); else orbitStep(dt) }
     if (B.mode === 'login' && !B.drag) loginStep(dt)
     if (B.mode === 'portal') portalSchritt(dt)
     if (B.squeezed && !NAV.kbT && B.y < TAB - B.r * 0.5) B.squeezed = false
@@ -804,6 +832,43 @@ export function createDot(host: DotHost): DotApi {
     setState('idle'); versteckeTreffer(); versteckeBlase(); melde(); laufen()
   }
 
+  /* ── Rundflug (von einer Seite vorgegeben) ─────────────────────────────── */
+  function startTour(r: Rundflug) {
+    if (weniger || (B.mode !== 'home' && B.mode !== 'house') || B.drag || NAV.cam || !NAV.darfRaus) return false
+    const p = r.pos(0)
+    // Aus dem Haus auf einer Seite ohne Leiste: danach liegt er als Streifen am Rand wie sonst
+    // beim Hineinnavigieren, und geht mit der Leiste wieder ins Haus
+    if (B.mode === 'house' && !navOn()) { toStrip(); B.autoOut = true }
+    B.tourBald = 0
+    B.tour = { r, ab: null }
+    B.orbit = { x0: p.x, y0: p.y, a: 0, b: 0, th0: 0, total: 0, depth: p.depth }
+    B.x = p.x; B.y = p.y; B.vx = 0; B.vy = 0
+    B.mode = 'orbit'; B.te = 0; versteckeTreffer(); wake(true); melde(); laufen()
+    return true
+  }
+  function tourStep(dt: number) {
+    const T = B.tour!
+    B.te += dt
+    let x: number, y: number, depth = 1, fertig: boolean
+    if (T.ab) {
+      // abgekürzt: von der Stelle, an der er war, an seinen Platz
+      const q = clamp01((B.te - T.ab.t0) / T.ab.d), e = easeIO(q), h = homeTarget()
+      x = T.ab.x + (h.x - T.ab.x) * e; y = T.ab.y + (h.y - T.ab.y) * e; fertig = q >= 1
+    } else {
+      const p = T.r.pos(Math.min(B.te, T.r.dauer))
+      x = p.x; y = p.y; depth = p.depth; fertig = B.te >= T.r.dauer
+    }
+    if (B.orbit) B.orbit.depth = depth
+    B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3); B.x = x; B.y = y
+    if (fertig) {
+      B.tour = null
+      B.mode = 'home'; B.contact = {}; zeigeTreffer(); B.orbitCool = 2; B.idleT = 0
+      // mit etwas Schwung landen, den Rest macht die Feder
+      B.vx *= 0.6; B.vy *= 0.6
+      melde(); T.r.fertig?.()
+    }
+  }
+
   /* ── Uhr ──────────────────────────────────────────────────────────────── */
   const nearClock = (x: number, y: number, pad: number) =>
     !!CLK && Math.abs(x - CLK.x) < CLK.w / 2 + pad && Math.abs(y - CLK.y) < CLK.h / 2 + pad
@@ -870,7 +935,7 @@ export function createDot(host: DotHost): DotApi {
   function versteckeBlase() { delete blase.dataset.zeigen }
   function placeBubble() {
     if (blase.dataset.zeigen !== 'true') return
-    if (B.mode !== 'home' && B.mode !== 'login') { versteckeBlase(); return }
+    if (B.mode !== 'home' && B.mode !== 'login' && !B.tour) { versteckeBlase(); return }
     const bw = blase.offsetWidth, bh = blase.offsetHeight
     const above = B.y - B.r - 14 - bh > Math.max(56, OBEN + 8)
     const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14
@@ -2035,6 +2100,9 @@ export function createDot(host: DotHost): DotApi {
       // Seite ohne Leiste: ist er zu Hause (und darf heraus), kommt er beim Hineinnavigieren
       // heraus — dort, wo die Leiste war, vom unteren Rand — und legt sich als Streifen an den Rand
       if (B.mode === 'house' && NAV.darfRaus) {
+        // Ein Rundflug ist angekündigt: er kommt mit ihm vom Rand, nicht hier von unten
+        const warte = B.tourBald - performance.now()
+        if (warte > 0) { syncT = window.setTimeout(sync, warte + 50); return }
         toStrip(); B.autoOut = true
         ring(pickKind(['pop', 'stream', 'climb'], B.lastExit))
         return
@@ -2148,6 +2216,11 @@ export function createDot(host: DotHost): DotApi {
     sag: (text, ms) => { sag(text, ms); laufen() },
     schweige: () => versteckeBlase(),
     imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },
+    lage: () => ({ x: B.x, y: B.y }),
+    platz: () => homeTarget(),
+    rundflug: r => startTour(r),
+    rundflugKommt: ms => { B.tourBald = performance.now() + ms },
+    rundflugAbkuerzen: sek => { const T = B.tour; if (T && !T.ab) T.ab = { t0: B.te, x: B.x, y: B.y, d: Math.max(0.05, sek) } },
     neuVermessen: () => { vermessen(); laufen() },
     zerstoeren: () => {
       zerstoert = true

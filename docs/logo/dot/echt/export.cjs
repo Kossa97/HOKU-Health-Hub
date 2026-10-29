@@ -9,7 +9,7 @@ async function render(p, opts, size) {
 }
 ;(async () => {
   const [root, vorschau] = process.argv.slice(2)
-  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+  const b = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
   const p = await b.newPage(); await p.goto('file://' + path.join(__dirname, 'dot-icon.html'))
   const W = (rel, buf) => { const f = path.join(root, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, buf); console.log('wrote', rel) }
   const big = { ...BASIS, size: 2048, layers: ALLES }
