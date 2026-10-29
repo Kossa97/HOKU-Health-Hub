@@ -1383,6 +1383,12 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_form_recommended',
   'my_stack_custom_substance',
   'my_stack_preview',
+  'my_stack_scan_which',
+  'my_stack_scan_which_hint',
+  'my_stack_scan_pack_read',
+  'my_stack_scan_expiry',
+  'my_stack_scan_batch',
+  'my_stack_scan_pzn',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit

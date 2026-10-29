@@ -13,6 +13,8 @@
  */
 
 export const PRODUCT_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'] as const
+/** Arzneimittelpackungen tragen PZN, Charge und Verfall im Data-Matrix-Code (My Stack). */
+export const DATA_MATRIX = 'data_matrix'
 
 export interface Detector {
   detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>
@@ -36,19 +38,25 @@ async function loadFallback(): Promise<DetectorCtor> {
   return BarcodeDetector as unknown as DetectorCtor
 }
 
-/** Leser für Produkt-Barcodes (EAN/UPC). Eingebaut, wenn er EAN-13 kann; sonst ZXing. */
-export async function createDetector(): Promise<Detector> {
+/**
+ * Leser für Produkt-Barcodes (EAN/UPC), auf Wunsch auch Data Matrix.
+ * Eingebaut, wenn er alle gewünschten Formate kann; sonst ZXing.
+ */
+export async function createDetector(mitDataMatrix = false): Promise<Detector> {
+  const formats: string[] = mitDataMatrix ? [...PRODUCT_FORMATS, DATA_MATRIX] : [...PRODUCT_FORMATS]
   const native = (globalThis as { BarcodeDetector?: DetectorCtor }).BarcodeDetector
   if (native?.getSupportedFormats) {
     try {
       const supported = await native.getSupportedFormats()
-      if (supported.includes('ean_13')) return new native({ formats: PRODUCT_FORMATS.filter(f => supported.includes(f)) })
+      if (supported.includes('ean_13') && (!mitDataMatrix || supported.includes(DATA_MATRIX))) {
+        return new native({ formats: formats.filter(f => supported.includes(f)) })
+      }
     } catch { /* weiter mit ZXing */ }
   }
   fallback ??= loadFallback()
   try {
     const Ctor = await fallback
-    return new Ctor({ formats: [...PRODUCT_FORMATS] })
+    return new Ctor({ formats })
   } catch (error) {
     fallback = null // beim nächsten Versuch neu laden (etwa nach Netzfehler)
     throw error

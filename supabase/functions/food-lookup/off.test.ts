@@ -117,7 +117,7 @@ describe('TtlCache', () => {
 describe('mapItem (Substanz-Scan)', () => {
   it('braucht nur einen Namen — Supplements ohne Nährwerte bleiben', () => {
     const p = { code: '4058172312345', product_name: 'Vitamin D3 1000 I.E.', brands: 'Das gesunde Plus, dm', quantity: '100 Tabletten' }
-    expect(mapItem(p, 'de')).toEqual({ barcode: '4058172312345', name: 'Vitamin D3 1000 I.E.', brand: 'Das gesunde Plus', quantity: '100 Tabletten' })
+    expect(mapItem(p, 'de')).toEqual({ barcode: '4058172312345', name: 'Vitamin D3 1000 I.E.', brand: 'Das gesunde Plus', quantity: '100 Tabletten', protein: null })
     expect(mapProduct(p, 'de')).toBeNull()
   })
   it('nimmt notfalls die Gattungsbezeichnung, ohne Namen nichts', () => {
@@ -128,6 +128,16 @@ describe('mapItem (Substanz-Scan)', () => {
     expect(parseItemResponse({ status: 1, code: '4058172312345', product: { product_name: 'Zink 25 mg' } }, 'de')!.name).toBe('Zink 25 mg')
     expect(parseItemResponse({ status: 0 }, 'de')).toBeNull()
     expect(itemUrl('4058172312345')).toContain('fields=code,product_name')
-    expect(itemUrl('4058172312345')).not.toContain('nutriments')
+    // Nährwerte nur fürs Eiweiß (Proteinpulver), samt Portionsgröße.
+    expect(itemUrl('4058172312345')).toContain('nutriments,serving_quantity')
+  })
+  it('Eiweiß je Portion, sonst je 100 g — Unmögliches fliegt raus', () => {
+    const whey = { product_name: 'Whey Protein Vanille', nutriments: { proteins_serving: 23.7, proteins_100g: 79 }, serving_quantity: 30 }
+    expect(mapItem(whey, 'de')!.protein).toEqual({ amount: 23.7, per: 30 })
+    expect(mapItem({ ...whey, serving_quantity: undefined }, 'de')!.protein).toEqual({ amount: 79, per: 100 })
+    // Portion in ml: kein Grammbezug — dann je 100 g.
+    expect(mapItem({ ...whey, serving_quantity_unit: 'ml' }, 'de')!.protein).toEqual({ amount: 79, per: 100 })
+    expect(mapItem({ product_name: 'X', nutriments: { proteins_serving: 40 }, serving_quantity: 30 }, 'de')!.protein).toBeNull()
+    expect(mapItem({ product_name: 'X', nutriments: { proteins_100g: 120 } }, 'de')!.protein).toBeNull()
   })
 })

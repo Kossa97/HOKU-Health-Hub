@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { SubstanceCatalogEntry } from '../types'
 import { initialWizardState, wizardReducer, type WizardState } from './wizardState'
 import {
+  familienKandidaten,
   findeKatalogeintrag,
   formAusText,
   parseBarcodeProdukt,
@@ -31,8 +32,11 @@ const vitaminD3 = eintrag('vitamin-d3', 'Vitamin D3', { aliases: ['Cholecalcifer
 const vitaminK2 = eintrag('vitamin-k2', 'Vitamin K2', { aliases: ['Menachinon'], suggested_units: ['mcg'] })
 const d3k2 = eintrag('d3-k2', 'Vitamin D3 + K2', { suggested_units: ['IU', 'mcg'], component_names: ['Vitamin D3', 'Vitamin K2'] })
 const zink = eintrag('zink', 'Zink', { aliases: ['Zinc'] })
-const testoE = eintrag('testo-e', 'Testosteron Enantat', { default_category: 'hormone' })
-const KATALOG = [bpc, vitaminD, vitaminD3, vitaminK2, d3k2, zink, testoE]
+const testo = eintrag('testo', 'Testosteron', { aliases: ['Testosterone'], default_category: 'hormone' })
+const testoE = eintrag('testo-e', 'Testosteron Enantat', { aliases: ['Testosterone Enanthate', 'Test E'], default_category: 'hormone' })
+const testoC = eintrag('testo-c', 'Testosteron Cypionat', { aliases: ['Testosterone Cypionate'], default_category: 'hormone' })
+const whey = eintrag('whey', 'Whey Protein', { aliases: ['Molkenprotein', 'Whey'], default_category: 'supplement', suggested_units: ['g'], suggested_dosage_forms: ['powder'] })
+const KATALOG = [bpc, vitaminD, vitaminD3, vitaminK2, d3k2, zink, testo, testoE, testoC, whey]
 
 function anwenden(vorschlag: ScanVorschlag): WizardState {
   return scanAktionen(vorschlag, KATALOG).reduce(wizardReducer, initialWizardState())
@@ -118,6 +122,109 @@ describe('vorschlagAusEtikett', () => {
       ingredients: [{ name: 'Testosteron Enantat', amount: 250, unit: 'mg', per_amount: 1, per_unit: 'ml' }],
     }, KATALOG)
     expect(v.entry?.id).toBe('testo-e')
+  })
+})
+
+describe('Abgleich: der genauere Treffer gewinnt', () => {
+  const etikett = (name: string, wirkstoffe: (string | null)[] = []) => ({
+    name, brand: null, dosage_form: 'vial' as const,
+    ingredients: wirkstoffe.map(w => ({ name: w, amount: 250, unit: 'mg', per_amount: 1, per_unit: 'ml' })),
+  })
+
+  it('Name „Testosterone 250", Wirkstoff Enanthate: Enantat, nicht Testosteron', () => {
+    const v = vorschlagAusEtikett(etikett('Testosterone 250', ['Testosterone Enanthate']), KATALOG)
+    expect(v.entry?.id).toBe('testo-e')
+    expect(v.kandidaten).toBeUndefined()
+  })
+
+  it('englische und deutsche Ester-Schreibweise sind dasselbe', () => {
+    expect(findeKatalogeintrag('Testosteron Enanthat 250', KATALOG)?.id).toBe('testo-e')
+    expect(findeKatalogeintrag('TESTOSTERONE CYPIONATE', KATALOG)?.id).toBe('testo-c')
+  })
+
+  it('ohne Ester auf dem Etikett: Auswahl aus der Familie', () => {
+    const v = vorschlagAusEtikett(etikett('Testosteron 250 mg/ml', [null]), KATALOG)
+    expect(v.entry?.id).toBe('testo')
+    expect(v.kandidaten?.map(k => k.id)).toEqual(['testo', 'testo-e', 'testo-c'])
+  })
+
+  it('auch per Barcode', () => {
+    const v = vorschlagAusProdukt({ barcode: null, name: 'Testosterone Gel', brand: null, quantity: null }, KATALOG)
+    expect(v.kandidaten?.map(k => k.id)).toEqual(['testo', 'testo-e', 'testo-c'])
+  })
+
+  it('„Vitamin D3" gehoert nicht zur Familie „Vitamin D"', () => {
+    expect(familienKandidaten(vitaminD, ['Vitamin D 1000 IE'], KATALOG)).toEqual([])
+  })
+
+  it('mehrere Wirkstoffe: eigenes Produkt, je eine Zeile, mit dem Katalog verknuepft', () => {
+    const v = vorschlagAusEtikett({
+      name: 'Zink Komplex', brand: null, dosage_form: 'tablet',
+      ingredients: [
+        { name: 'Zinc', amount: 10, unit: 'mg', per_amount: null, per_unit: null },
+        { name: 'Vitamin C', amount: 100, unit: 'mg', per_amount: null, per_unit: null },
+      ],
+    }, KATALOG)
+    expect(v.entry).toBeNull()
+    expect(v.name).toBe('Zink Komplex')
+    const { draft } = anwenden(v)
+    expect(draft.displayName).toBe('Zink Komplex')
+    expect(draft.ingredients).toHaveLength(2)
+    expect(draft.ingredients[0]).toMatchObject({ catalog_substance_id: 'zink', custom_name: 'Zink', amount_value: 10, amount_unit: 'mg' })
+    expect(draft.ingredients[1]).toMatchObject({ catalog_substance_id: null, custom_name: 'Vitamin C', amount_value: 100, amount_unit: 'mg' })
+  })
+
+  it('ein Traegerstoff in ml macht kein zweites Produkt daraus', () => {
+    const v = vorschlagAusEtikett({
+      name: 'Testosteron Enantat 250', brand: null, dosage_form: 'vial',
+      ingredients: [
+        { name: 'Testosterone Enanthate', amount: 250, unit: 'mg', per_amount: 1, per_unit: 'ml' },
+        { name: 'Benzylbenzoat', amount: 0.2, unit: 'ml', per_amount: 1, per_unit: 'ml' },
+      ],
+    }, KATALOG)
+    expect(v.entry?.id).toBe('testo-e')
+  })
+
+  it('ein Kombipraeparat aus dem Katalog bleibt eines', () => {
+    const v = vorschlagAusEtikett({
+      name: 'Vitamin D3 + K2', brand: null, dosage_form: 'drops',
+      ingredients: [
+        { name: 'Vitamin D3', amount: 1000, unit: 'IU', per_amount: null, per_unit: null },
+        { name: 'Vitamin K2', amount: 20, unit: 'mcg', per_amount: null, per_unit: null },
+      ],
+    }, KATALOG)
+    expect(v.entry?.id).toBe('d3-k2')
+  })
+})
+
+describe('Packungscode im Assistenten', () => {
+  it('Charge und Verfall landen in der Packung', () => {
+    const { draft } = anwenden(vorschlag({
+      entry: testoE, name: 'Testosteron Enantat', dosageForm: 'ampoule',
+      packung: { pzn: '01234562', charge: 'AB12C', verfall: '2027-06-30' },
+    }))
+    expect(draft.inventory).toMatchObject({ batchNumber: 'AB12C', expiresAt: '2027-06-30' })
+  })
+})
+
+describe('Proteinpulver per Barcode', () => {
+  it('Eiweiss je Portion wird die Staerke, die Form Pulver', () => {
+    const v = vorschlagAusProdukt({ barcode: null, name: 'ESN Designer Whey Vanilla', brand: 'ESN', quantity: '1 kg', protein: { amount: 23.7, per: 30 } }, KATALOG)
+    expect(v).toMatchObject({ entry: whey, dosageForm: 'powder' })
+    expect(v.staerken).toEqual([{ name: null, amount: 23.7, unit: 'g', perAmount: 30, perUnit: 'g' }])
+    const { draft } = anwenden(v)
+    expect(draft.ingredients[0]).toMatchObject({ amount_value: 23.7, amount_unit: 'g', basis_value: 30, basis_unit: 'g' })
+  })
+  it('Eiweiss in einem Riegel ist keine Dosis', () => {
+    const v = vorschlagAusProdukt({ barcode: null, name: 'Schoko Riegel', brand: null, quantity: '45 g', protein: { amount: 10, per: 100 } }, KATALOG)
+    expect(v.staerken).toEqual([])
+    const riegel = vorschlagAusProdukt({ barcode: null, name: 'Protein Bar Cookie Dough', brand: null, quantity: '45 g', protein: { amount: 20, per: 45 } }, KATALOG)
+    expect(riegel).toMatchObject({ dosageForm: null, staerken: [] })
+  })
+  it('prueft die Eiweissangabe aus dem Netz', () => {
+    expect(parseBarcodeProdukt({ item: { name: 'Whey', protein: { amount: 40, per: 30 } } })!.protein).toBeNull()
+    expect(parseBarcodeProdukt({ item: { name: 'Whey', protein: { amount: 24, per: 30 } } })!.protein).toEqual({ amount: 24, per: 30 })
+    expect(parseBarcodeProdukt({ item: { name: 'Whey' } })!.protein).toBeNull()
   })
 })
 

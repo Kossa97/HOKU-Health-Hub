@@ -1,6 +1,7 @@
 import type { DosageFormKey, StackItemIngredient, SubstanceCatalogEntry } from '../types'
 import { DOSAGE_FORMS, getDosageForm, strengthShapeFor } from './dosageForms'
 import { bestandteileAufloesen } from './kombination'
+import type { Packungscode } from './packungscode'
 import type { WizardAction } from './wizardState'
 
 /**
@@ -24,10 +25,18 @@ export interface ScanVorschlag {
   quelle: 'barcode' | 'foto'
   /** Der Katalogeintrag, wenn einer passt. Sonst wird es eine eigene Substanz. */
   entry: SubstanceCatalogEntry | null
+  /**
+   * Mehrere Eintraege einer Familie, und das Etikett sagt nicht, welcher:
+   * „Testosteron" ohne Ester. Dann waehlt der Nutzer, bevor es weitergeht.
+   * Leer, wenn der Treffer eindeutig ist.
+   */
+  kandidaten?: SubstanceCatalogEntry[]
   name: string
   brand: string | null
   dosageForm: DosageFormKey | null
   staerken: ScanStaerke[]
+  /** Aus dem Data-Matrix-Code einer Arzneimittelpackung, vor dem Etikettfoto gelesen. */
+  packung?: Packungscode
 }
 
 /** Antwort von `label-extract`, wie sie die Funktion liefert. */
@@ -44,6 +53,8 @@ export interface BarcodeProdukt {
   name: string
   brand: string | null
   quantity: string | null
+  /** Gramm Eiweiss je `per` Gramm (Portion oder 100 g), wo Open Food Facts es kennt. */
+  protein?: { amount: number; per: number } | null
 }
 
 const FORMEN: readonly DosageFormKey[] = DOSAGE_FORMS.map(form => form.key)
@@ -83,11 +94,23 @@ export function parseBarcodeProdukt(data: unknown): BarcodeProdukt | null {
   const i = item as Record<string, unknown>
   const name = text(i.name)
   if (!name) return null
-  return { barcode: text(i.barcode, 14), name, brand: text(i.brand), quantity: text(i.quantity, 40) }
+  const p = i.protein && typeof i.protein === 'object' ? i.protein as Record<string, unknown> : null
+  const amount = positiv(p?.amount)
+  const per = positiv(p?.per)
+  const protein = amount != null && per != null && amount <= per ? { amount, per } : null
+  return { barcode: text(i.barcode, 14), name, brand: text(i.brand), quantity: text(i.quantity, 40), protein }
 }
+
+// Proteinpulver: dort ist das Eiweiss die Staerke. Bei allem anderen (Riegel,
+// Muesli, Kapseln) waere es eine Naehrwertangabe, keine Dosis.
+const PROTEIN = /protein|whey|casein|kasein|molke|eiweiss|eiweiß|isolat|isolate/i
+const KEIN_PULVER = /riegel|\bbars?\b|drink|shake|pudding|joghurt|yogh?urt|m[uü]e?sli|chips|keks|cookie|crisp|quark/i
 
 // „BPC-157", „bpc 157" und „BPC157" sind dasselbe; „Vitamin D3 1000 I.E." enthaelt
 // „Vitamin D3". Verglichen wird ohne Gross/klein, Akzente und Satzzeichen.
+// Englisch und Deutsch schreiben Ester verschieden — „Testosterone Enanthate",
+// „Testosteron Enantat" —, deshalb zaehlt „th" wie „t" und ein End-„e" langer
+// Woerter nicht.
 function woerter(s: string): string[] {
   return s
     .toLocaleLowerCase('de')
@@ -96,6 +119,10 @@ function woerter(s: string): string[] {
     .replace(/ß/g, 'ss')
     .split(/[^a-z0-9]+/)
     .filter(Boolean)
+    .map(wort => {
+      const ohneTh = wort.replace(/th/g, 't')
+      return ohneTh.length >= 5 && ohneTh.endsWith('e') ? ohneTh.slice(0, -1) : ohneTh
+    })
 }
 
 const zusammen = (s: string) => woerter(s).join('')
@@ -140,13 +167,64 @@ export function findeKatalogeintrag(
   textEingabe: string,
   entries: readonly SubstanceCatalogEntry[],
 ): SubstanceCatalogEntry | null {
-  let bester: { entry: SubstanceCatalogEntry; wertung: number } | null = null
+  return treffer(textEingabe, entries)?.entry ?? null
+}
+
+interface Treffer {
+  entry: SubstanceCatalogEntry
+  /** Laenge des passenden Namens — je laenger, desto genauer. */
+  laenge: number
+  wertung: number
+}
+
+function treffer(textEingabe: string, entries: readonly SubstanceCatalogEntry[]): Treffer | null {
+  let bester: Treffer | null = null
   for (const entry of entries) {
     const kanonisch = passung(textEingabe, [entry.canonical_name])
-    const wertung = Math.max(kanonisch * 2 + (kanonisch > 0 ? 1 : 0), passung(textEingabe, entry.aliases) * 2)
-    if (wertung > 0 && (!bester || wertung > bester.wertung)) bester = { entry, wertung }
+    const alias = passung(textEingabe, entry.aliases)
+    const wertung = Math.max(kanonisch * 2 + (kanonisch > 0 ? 1 : 0), alias * 2)
+    if (wertung > 0 && (!bester || wertung > bester.wertung)) {
+      bester = { entry, wertung, laenge: Math.max(kanonisch, alias) % 10_000 }
+    }
+  }
+  return bester
+}
+
+/**
+ * Der genaueste Treffer aus mehreren Texten (Produktname, Wirkstoffe): der
+ * laengere Name gewinnt. Ein Etikett „Testosterone 250" mit dem Wirkstoff
+ * „Testosterone Enanthate" ist Enantat, nicht Testosteron.
+ */
+function genauesterTreffer(texte: readonly string[], entries: readonly SubstanceCatalogEntry[]): SubstanceCatalogEntry | null {
+  let bester: Treffer | null = null
+  for (const textEingabe of texte) {
+    const t = treffer(textEingabe, entries)
+    if (t && (!bester || t.laenge > bester.laenge || (t.laenge === bester.laenge && t.wertung > bester.wertung))) bester = t
   }
   return bester?.entry ?? null
+}
+
+/**
+ * Die Familie eines Treffers: Eintraege, deren Name mit allen Woertern des
+ * Treffers beginnt und weitere hat — zu „Testosteron" die Ester. Steht keiner
+ * davon im Text, ist offen, welcher es ist, und der Nutzer waehlt. „Vitamin D3"
+ * gehoert nicht zu „Vitamin D": „d3" ist ein anderes Wort als „d".
+ */
+export function familienKandidaten(
+  entry: SubstanceCatalogEntry,
+  texte: readonly string[],
+  entries: readonly SubstanceCatalogEntry[],
+): SubstanceCatalogEntry[] {
+  if (entry.component_names?.length) return []
+  const stamm = woerter(entry.canonical_name)
+  const kinder = entries.filter(kind => {
+    if (kind.id === entry.id || kind.component_names?.length) return false
+    const w = woerter(kind.canonical_name)
+    return w.length > stamm.length && stamm.every((wort, i) => w[i] === wort)
+  })
+  if (kinder.length === 0) return []
+  const genannt = kinder.some(kind => texte.some(t => passung(t, [kind.canonical_name, ...kind.aliases]) > 0))
+  return genannt ? [] : [entry, ...kinder]
 }
 
 const FORM_WOERTER: readonly [RegExp, DosageFormKey][] = [
@@ -201,12 +279,23 @@ function zahlAusText(zahl: string, unit: string): number | null {
 }
 
 export function vorschlagAusEtikett(etikett: Etikett, entries: readonly SubstanceCatalogEntry[]): ScanVorschlag {
-  const einzigerWirkstoff = etikett.ingredients.length === 1 ? etikett.ingredients[0].name : null
-  const entry = findeKatalogeintrag(etikett.name, entries)
-    ?? (einzigerWirkstoff ? findeKatalogeintrag(einzigerWirkstoff, entries) : null)
+  const wirkstoffe = etikett.ingredients.flatMap(i => (i.name ? [i.name] : []))
+  const nachName = findeKatalogeintrag(etikett.name, entries)
+  // Ein Kombipraeparat aus dem Katalog traegt seine Bestandteile selbst.
+  // Sonst: mehrere benannte Wirkstoffe sind ein eigenes Produkt mit je einer
+  // Zeile (siehe `scanAktionen`); bei einem gewinnt der genauere Name.
+  // Wirkstoff heisst: Menge in Masse oder I.E. — „Benzylbenzoat 0,2 ml" im
+  // Testosteron-Vial ist Traegerstoff, kein zweiter Wirkstoff.
+  const dosiert = etikett.ingredients.filter(i => i.name && i.unit !== 'ml')
+  const mehrere = dosiert.length >= 2 && etikett.ingredients.every(i => i.name)
+  const entry = nachName?.component_names?.length
+    ? nachName
+    : mehrere ? null : genauesterTreffer([etikett.name, ...wirkstoffe], entries)
+  const kandidaten = entry ? familienKandidaten(entry, [etikett.name, ...wirkstoffe], entries) : []
   return {
     quelle: 'foto',
     entry,
+    ...(kandidaten.length > 0 ? { kandidaten } : {}),
     name: entry?.canonical_name ?? etikett.name,
     brand: etikett.brand,
     dosageForm: etikett.dosage_form,
@@ -218,19 +307,27 @@ export function vorschlagAusEtikett(etikett: Etikett, entries: readonly Substanc
 
 export function vorschlagAusProdukt(produkt: BarcodeProdukt, entries: readonly SubstanceCatalogEntry[]): ScanVorschlag {
   const entry = findeKatalogeintrag(produkt.name, entries)
+  const kandidaten = entry ? familienKandidaten(entry, [produkt.name], entries) : []
+  const proteinpulver = Boolean(produkt.protein) && PROTEIN.test(`${produkt.name} ${entry?.canonical_name ?? ''}`)
+    && !KEIN_PULVER.test(produkt.name)
   const dosageForm = formAusText(`${produkt.name} ${produkt.quantity ?? ''}`)
+    ?? (proteinpulver ? 'powder' : null)
   // Aus dem Namen nur, wo die Staerke je Stueck gilt (Tablette, Kapsel, Spray):
   // „1000 I.E." an einer Tropfflasche koennte je Tropfen oder je ml heissen.
   const staerke = dosageForm && strengthShapeFor(dosageForm, entry?.default_category ?? null) === 'per_unit'
     ? staerkeAusText(produkt.name)
     : null
+  const eiweiss: ScanStaerke | null = proteinpulver && dosageForm === 'powder' && produkt.protein
+    ? { name: null, amount: produkt.protein.amount, unit: 'g', perAmount: produkt.protein.per, perUnit: 'g' }
+    : null
   return {
     quelle: 'barcode',
     entry,
+    ...(kandidaten.length > 0 ? { kandidaten } : {}),
     name: entry?.canonical_name ?? produkt.name,
     brand: produkt.brand,
     dosageForm,
-    staerken: staerke ? [{ name: null, ...staerke, perAmount: null, perUnit: null }] : [],
+    staerken: eiweiss ? [eiweiss] : staerke ? [{ name: null, ...staerke, perAmount: null, perUnit: null }] : [],
   }
 }
 
@@ -290,6 +387,22 @@ export function scanAktionen(
           ]) > 0)
       if (index >= 0) aktionen.push({ type: 'ingredient_changed', index, changes: zeilenAenderung(staerke, dosageForm, entry) })
     })
+  } else if (!entry && vorschlag.staerken.length >= 2 && vorschlag.staerken.every(s => s.name)) {
+    // Eigenes Produkt mit mehreren Wirkstoffen: je eine Zeile, mit dem Katalog
+    // verknuepft, wo der Name passt.
+    vorschlag.staerken.forEach((staerke, index) => {
+      if (index > 0) aktionen.push({ type: 'ingredient_added' })
+      const katalog = findeKatalogeintrag(staerke.name!, entries)
+      aktionen.push({
+        type: 'ingredient_changed',
+        index,
+        changes: {
+          catalog_substance_id: katalog?.id ?? null,
+          custom_name: katalog?.canonical_name ?? staerke.name!,
+          ...zeilenAenderung(staerke, dosageForm, katalog),
+        },
+      })
+    })
   } else if (vorschlag.staerken.length > 0) {
     // Eine Zeile: die eine Staerke — oder bei mehreren die, deren Name passt.
     // Eine fremde Staerke in der einzigen Zeile waere eine falsche Angabe.
@@ -302,5 +415,15 @@ export function scanAktionen(
   }
 
   if (vorschlag.brand) aktionen.push({ type: 'details_changed', changes: { brand: vorschlag.brand } })
+  const { packung } = vorschlag
+  if (packung && (packung.charge || packung.verfall)) {
+    aktionen.push({
+      type: 'inventory_changed',
+      changes: {
+        ...(packung.charge ? { batchNumber: packung.charge } : {}),
+        ...(packung.verfall ? { expiresAt: packung.verfall } : {}),
+      },
+    })
+  }
   return aktionen
 }
