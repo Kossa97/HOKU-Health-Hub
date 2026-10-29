@@ -2045,7 +2045,9 @@ export function createDot(host: DotHost): DotApi {
     const dt = clamp((now - last) / 1000, 0, 0.05)
     last = now
     messeBuehne()
-    physics(dt, now / 1000)
+    // Ohne Zeitschritt keine Physik: sie teilt durch ihn (Geschwindigkeiten, Heilen des Rands). Ein
+    // einziges NaN bliebe sonst für immer und machte in WebGL (Chrome am Desktop) alle Punkte unsichtbar
+    if (dt > 0) physics(dt, now / 1000)
     render(now / 1000, dt)
     // Drinnen und Tür zu: nichts mehr zu tun, bis jemand klingelt
     if (B.mode === 'house' && B.door < 0.005 && !B.sparks.length) {
