@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793304148.7599835,
-    "seen": 1793304656.6994882,
-    "ast_hash": "b44e83dc0d42ca54010a350080ae0be8",
+    "mtime": 1793312443.6292002,
+    "seen": 1793312606.9392436,
+    "ast_hash": "2b29e8976a6b2526cce0bed4464a77c2",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -17400,15 +17400,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.test.ts": {
-    "mtime": 1793304214.6697977,
-    "seen": 1793304656.6994913,
-    "ast_hash": "96a5e0d0c57999f2213d1ccdb02161c2",
+    "mtime": 1793312251.5586207,
+    "seen": 1793312606.939246,
+    "ast_hash": "4c7e1fe0fbf92665a9d3d44443499253",
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.ts": {
-    "mtime": 1793304148.7584672,
-    "seen": 1793304656.699492,
-    "ast_hash": "e1dc3cdf4c08ec5d754ea1cd5627e3fb",
+    "mtime": 1793312549.8988502,
+    "seen": 1793312606.9392467,
+    "ast_hash": "9b09f3d09222c76dda714abf79d61fb4",
     "semantic_hash": ""
   },
   "docs/logo/hoku/kit/kit.cjs": {
@@ -17682,9 +17682,9 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md": {
-    "mtime": 1793304611.3823888,
-    "seen": 1793304656.7001863,
-    "ast_hash": "347ab5d3cfa825fa02be3a01460a683a",
+    "mtime": 1793312575.8260305,
+    "seen": 1793312606.939919,
+    "ast_hash": "f63600313ba0351738be3b4c413244cd",
     "semantic_hash": ""
   },
   "docs/logo/hoku/exports/hoku-app-icon-dark-v1-1024.png": {
@@ -18972,15 +18972,15 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/build.cjs": {
-    "mtime": 1793296689.1575007,
-    "seen": 1793299786.7734463,
-    "ast_hash": "cf68052b770ccfbe5fc7604b14644968",
+    "mtime": 1793308540.8600883,
+    "seen": 1793312606.9389997,
+    "ast_hash": "f1dd45075434b602e6891f18b3b4c21b",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/verify.cjs": {
-    "mtime": 1793296782.194096,
-    "seen": 1793299786.7734475,
-    "ast_hash": "a0ad6f5775e92933b601140c72b730c0",
+    "mtime": 1793308561.4021404,
+    "seen": 1793312606.9390018,
+    "ast_hash": "9dcdeb77d2294bdcd28ac105b4afd40a",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/05-Schriften/IBMPlexMono-OFL.txt": {
@@ -18996,21 +18996,21 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.html": {
-    "mtime": 1793296701.959759,
-    "seen": 1793299786.7742705,
-    "ast_hash": "7d3af8f9bb42a7062c7dc5aeb58a9eef",
+    "mtime": 1793308541.23036,
+    "seen": 1793312606.9398327,
+    "ast_hash": "cd26e8e09e9fe526702e25f9963807f2",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.md": {
-    "mtime": 1793296701.9572475,
-    "seen": 1793299786.7742712,
-    "ast_hash": "fd816a6fdfb82136c36e3ebe5c30ac2e",
+    "mtime": 1793308541.2252667,
+    "seen": 1793312606.9398332,
+    "ast_hash": "96cad4adcfba29fc42770ea763364143",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/README.md": {
-    "mtime": 1793296701.9607625,
-    "seen": 1793299786.774272,
-    "ast_hash": "e227b017ff4aaa2d056cf9a82e6b093f",
+    "mtime": 1793308541.23036,
+    "seen": 1793312606.9398339,
+    "ast_hash": "06bf5834212ffd476c08ed00002f930c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png": {
@@ -19359,6 +19359,30 @@
     "mtime": 1793293982.207973,
     "seen": 1793299786.7754462,
     "ast_hash": "7186c2944c3ad0155df959eee594035a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/ORIGINAL-CHECKS.json": {
+    "mtime": 1793308541.2252667,
+    "seen": 1793312606.9389975,
+    "ast_hash": "479073f037c4094920136a441bc7542f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/QUELLEN/originale.cjs": {
+    "mtime": 1793308540.8600883,
+    "seen": 1793312606.9390008,
+    "ast_hash": "c4c291ca4e52f6d7773eb5ac97d3d91a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/06-Originale/hoku-health-hub-michroma-schwarz-auf-weiss-v1.png": {
+    "mtime": 1793308541.224764,
+    "seen": 1793312606.9409835,
+    "ast_hash": "293d8585c39502361c006221f11ee45e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/06-Originale/hoku-health-hub-michroma-weiss-auf-schwarz-v1.png": {
+    "mtime": 1793308541.2222536,
+    "seen": 1793312606.9409842,
+    "ast_hash": "7e2fc3588b30ab6997ffab0bac29f031",
     "semantic_hash": ""
   }
 }
