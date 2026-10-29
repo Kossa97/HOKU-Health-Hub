@@ -17,7 +17,7 @@ import {
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, feder, flugPunkt, flugWerte, stoss, type FlugWerte } from './auftritt'
-import { GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { FREUDE, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
 
@@ -97,6 +97,8 @@ export interface DotApi {
   stoppeAuftritt(): void
   stimme(v: number): void
   sag(text: string, ms?: number): void
+  /** Die Sprechblase sofort schließen. */
+  schweige(): void
   neuVermessen(): void
   zerstoeren(): void
 }
@@ -127,6 +129,15 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
   cross: { bright: 1, glow: 0.8, hue: 0.45 },
   wifi: { bright: 1, glow: 0.8, hue: 0.45 },
   haken: { bright: 1, glow: 0.5, hue: 0.45 },
+  // Hoku führt durch die Anmeldung (Mockup „Dots Auftritte" Version 12)
+  freude: { bright: 1.05, glow: 0.6, hue: 0.45 },
+  augen: { bright: 1, glow: 0.4, hue: 0.45 },
+  augenWeg: { bright: 0.95, glow: 0.35, hue: 0.45 },
+  warten: { bright: 1, glow: 0.55, hue: 0.5 },
+  sanduhr: { bright: 1, glow: 0.45, hue: 0.45 },
+  brief: { bright: 1, glow: 0.5, hue: 0.45 },
+  nicken: { bright: 1.05, glow: 0.45, hue: 0.45 },
+  schuetteln: { bright: 1.05, glow: 0.45, hue: 0.45 },
 }
 const HERZ = { bpm: 72 }
 // Gesten: Tiefe der Perspektive wie im Mockup; die Begrüßung wechselt zwischen einem und beiden Armen
@@ -889,7 +900,7 @@ export function createDot(host: DotHost): DotApi {
   function versteckeBlase() { delete blase.dataset.zeigen }
   function placeBubble() {
     if (blase.dataset.zeigen !== 'true') return
-    if (B.mode !== 'home') { versteckeBlase(); return }
+    if (B.mode !== 'home' && B.mode !== 'login') { versteckeBlase(); return }
     const bw = blase.offsetWidth, bh = blase.offsetHeight
     const above = B.y - B.r - 14 - bh > Math.max(56, OBEN + 8)
     const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14
@@ -1310,8 +1321,14 @@ export function createDot(host: DotHost): DotApi {
     if (f === 'cross') B.wahl.fehler = naechsterFehler(B.wahl.fehler)
     // Kein Netz: Bögen (A) und Dot sucht (B) im Wechsel, die erste zufällig
     if (f === 'wifi') B.wahl.netz = B.wahl.netz === 'boegen' ? 'sucht' : 'boegen'
-    B.shape = f ?? SHAPE[B.state]; B.form = f; B.text = null; B.textF = null; B.formT = 0
-    B.punktFarbe = f === 'haken' ? GOOD : f === 'cross' ? BAD : PINK
+    // Freude: F1, F2, F3 zufällig, nie zweimal dieselbe; Warten: Lichtwelle und Denkwolken im Wechsel
+    if (f === 'freude') { const andere = FREUDE.filter(v => v !== B.wahl.freude); B.wahl.freude = andere[(Math.random() * andere.length) | 0] }
+    if (f === 'warten') B.wahl.warten = B.wahl.warten === 'welle' ? 'wolken' : 'welle'
+    // Augen zu und weggedreht gehen ineinander über, ohne dass die Arme neu wachsen
+    const weiter = (B.form === 'augen' && f === 'augenWeg') || (B.form === 'augenWeg' && f === 'augen')
+    B.shape = f ?? SHAPE[B.state]; B.form = f; B.text = null; B.textF = null
+    if (!weiter) B.formT = 0
+    B.punktFarbe = f === 'haken' || f === 'nicken' ? GOOD : f === 'cross' || f === 'schuetteln' ? BAD : PINK
     wechsel()
   }
   function setText(text: string | null) {
@@ -1377,7 +1394,8 @@ export function createDot(host: DotHost): DotApi {
         const th = p.u * TAU + t * 0.4, rr = 1 + 0.06 * Math.sin(th * 8 + t * 6) + (p.k - 0.5) * 0.05
         return ziel(Math.cos(th) * rr, Math.sin(th) * rr, 0.85)
       }
-      case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken': {
+      case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken':
+      case 'freude': case 'augen': case 'augenWeg': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
         if (p.i >= GESTE_N) return ziel(0, 0, 0)
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
@@ -2139,6 +2157,7 @@ export function createDot(host: DotHost): DotApi {
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
     sag: (text, ms) => { sag(text, ms); laufen() },
+    schweige: () => versteckeBlase(),
     neuVermessen: () => { vermessen(); laufen() },
     zerstoeren: () => {
       zerstoert = true

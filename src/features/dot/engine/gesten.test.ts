@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FEHLER, GESTE_N, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type Gruss, type Netz } from './gesten'
+import { FEHLER, FORM_DAUER, GESTE_N, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type GestenWahl, type Gruss, type Netz } from './gesten'
 
 const bild = (): GestenBild => ({ P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) })
 // Abstand jedes Punkts von Dots Mitte (Einheit: sein Radius)
@@ -105,6 +105,50 @@ describe('Dot: Gesten', () => {
     expect(naechsterFehler(null, () => 0)).toBe('heute')
     expect(naechsterFehler(null, () => 0.999999)).toBe('balken')
     expect(naechsterFehler('balken', () => 0.999999)).toBe('kugel')
+  })
+
+  it('neue Emotes: endlich, im Rahmen, Farbe 0…1; die mit fester Dauer enden als Kugel', () => {
+    const faelle: [DotForm, Partial<GestenWahl>][] = [
+      ['freude', { freude: 'huepfen' }], ['freude', { freude: 'strecken' }], ['freude', { freude: 'funken' }],
+      ['warten', { warten: 'welle' }], ['warten', { warten: 'wolken' }], ['augen', {}], ['augenWeg', {}],
+      ['sanduhr', {}], ['brief', {}], ['nicken', {}], ['schuetteln', {}],
+    ]
+    for (const [f, w] of faelle) {
+      const wahl: GestenWahl = { gruss: 'einArm', fehler: null, netz: 'sucht', ...w }
+      for (let t = 0; t <= 5; t += 0.1) {
+        const b = bild()
+        gestenBild(f, t, wahl, b)
+        expect(b.P.every(Number.isFinite), `${f} ${t}`).toBe(true)
+        expect(b.L.every(v => Number.isFinite(v) && v >= 0), `${f} ${t}`).toBe(true)
+        expect(b.H.every(v => v >= 0 && v <= 1), `${f} ${t}`).toBe(true)
+        // der Brief fliegt aus dem Bild, alles andere bleibt bei Hoku
+        const grenze = f === 'brief' ? 7 : 3.2
+        for (let i = 0; i < GESTE_N; i++) expect(Math.hypot(b.P[i * 3], b.P[i * 3 + 1]), `${f} ${t}`).toBeLessThan(grenze)
+      }
+      const dauer = FORM_DAUER[f]
+      if (dauer === undefined) continue
+      const ende = bild()
+      gestenBild(f, dauer, wahl, ende)
+      // am Ende wieder eine geschlossene Kugel um seine Mitte
+      for (const d of abstaende(ende)) expect(Math.abs(d - 1), `${f} Ende`).toBeLessThan(0.05)
+    }
+  })
+
+  it('Augen zuhalten: Arme stehen vor dem Gesicht, weggedreht liegen sie dahinter', () => {
+    const vor = bild(), weg = bild(), w: GestenWahl = { gruss: 'einArm', fehler: null, netz: 'sucht' }
+    gestenBild('augen', 1.2, w, vor); gestenBild('augenWeg', 1.2, w, weg)
+    // vorne in der Mitte oben (wo Augen wären) liegen Punkte weit vor der Kugel
+    const vorne = (b: GestenBild) => Array.from({ length: GESTE_N }, (_, i) => i).filter(i => Math.abs(b.P[i * 3]) < 0.6 && b.P[i * 3 + 1] < 0 && b.P[i * 3 + 2] > 1.05).length
+    expect(vorne(vor)).toBeGreaterThan(20)
+    expect(vorne(weg)).toBeLessThan(5)
+  })
+
+  it('Nicken färbt ganz Hoku, Kopfschütteln auch', () => {
+    for (const f of ['nicken', 'schuetteln'] as DotForm[]) {
+      const b = bild()
+      gestenBild(f, 0.6, { gruss: 'einArm', fehler: null, netz: 'sucht' }, b)
+      expect(Array.from(b.H).filter(h => h > 0.5).length, f).toBeGreaterThan(GESTE_N * 0.8)
+    }
   })
 
   it('Kein Netz A: das Suchlicht läuft über die Bögen nach außen, der Schrägstrich leuchtet ruhig', () => {
