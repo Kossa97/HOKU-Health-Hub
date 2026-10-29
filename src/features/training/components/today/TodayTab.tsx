@@ -11,6 +11,8 @@ import { Button, Card, SectionTitle, Stat, TRAINING_ACCENT } from '../ui'
 import { Glp1Card } from './Glp1Card'
 import { SessionRow } from '../history/SessionRow'
 import { nextInPlan } from '../../lib/planRotation'
+import { dotHint } from '../../lib/dotHint'
+import { dotStore } from '../../../dot/dotStore'
 import { PlanSection, WeeklyMuscleCard } from '../plan/PlanSection'
 import { WeekStrip } from './WeekStrip'
 
@@ -21,8 +23,10 @@ import { WeekStrip } from './WeekStrip'
  * Was heute dran ist, sagt die Leiste und die hervorgehobene Routine; eine
  * eigene Karte dafuer gibt es nicht mehr.
  */
-export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, onEditRoutine, onOpenSession, onShowHistory }: {
+export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty, onLogActivity, onEditRoutine, onOpenSession, onShowHistory }: {
   data: TrainingData
+  /** Das Live-Training liegt darueber: Dot schweigt zu „Heute". */
+  dotQuiet?: boolean
   onStartRoutine: (routine: TrainingRoutine) => void
   onStartEmpty: () => void
   onLogActivity: () => void
@@ -58,11 +62,25 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
   )
 
   const next = useMemo(() => nextInPlan(data.routines, data.sessions, now), [data.routines, data.sessions, now])
+  const todaySessions = useMemo(
+    () => data.sessions.filter(s => new Date(s.startedAt).toDateString() === now.toDateString()),
+    [data.sessions, now],
+  )
   // Ruhetag: es gibt einen Wochenplan, fuer heute steht nichts darin und heute wurde nicht trainiert.
-  const restDay = useMemo(() => next != null && !next.plannedToday
+  const restDay = next != null && !next.plannedToday && todaySessions.length === 0
     && data.routines.some(r => r.weekdays.length > 0)
-    && !data.sessions.some(s => new Date(s.startedAt).toDateString() === now.toDateString()),
-  [next, data.routines, data.sessions, now])
+
+  // Dot sagt, was heute dran ist (er lebt in der Leiste, nicht in den Karten)
+  const hint = dotHint({
+    tt, todaySessions, next, restDay,
+    hasRoutines: data.routines.length > 0,
+    lowReadiness: readiness?.level === 'low',
+    week: { sessions: week.sessions, goal: week.goal },
+  })
+  useEffect(() => {
+    dotStore.setHinweis(dotQuiet ? null : hint || null)
+    return () => dotStore.setHinweis(null)
+  }, [hint, dotQuiet])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -79,9 +97,9 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
           <Timer size={20} aria-hidden="true" style={{ color: '#10b981', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800 }}>{tt('log_activity')}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{tt('log_activity_hint')}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('log_activity_hint')}</div>
           </div>
-          <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--text-muted)' }} />
+          <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--lg-text-3)' }} />
         </div>
       </Card>
 
@@ -96,11 +114,11 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
           </div>
           <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 14 }}>
             {Array.from({ length: Math.max(week.goal, week.sessions) }, (_, i) => (
-              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--surface-raised)' }} />
+              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
             ))}
           </div>
           {week.streakWeeks > 1 && (
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 10 }}>🔥 {tt('streak_weeks', { count: week.streakWeeks })}</div>
+            <div style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 10 }}>🔥 {tt('streak_weeks', { count: week.streakWeeks })}</div>
           )}
         </Card>
         <WeeklyMuscleCard data={data} now={now} />
@@ -112,14 +130,14 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
 
       <section>
         <SectionTitle action={data.sessions.length > 3 ? (
-          <button type="button" onClick={onShowHistory} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 36, color: TRAINING_ACCENT, fontWeight: 750, fontSize: '0.85rem' }}>
+          <button type="button" onClick={onShowHistory} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 36, color: 'var(--lg-accent-text)', fontWeight: 500, fontSize: 15, padding: '0 4px' }}>
             {tt('show_all')} <ChevronRight size={16} aria-hidden="true" />
           </button>
         ) : undefined}>
           {tt('recent')}
         </SectionTitle>
         {data.sessions.length === 0 ? (
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', margin: '0 2px' }}>{tt('no_sessions')}</p>
+          <p style={{ fontSize: 15, color: 'var(--lg-text-3)', margin: '0 16px' }}>{tt('no_sessions')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.sessions.slice(0, 3).map(s => (
@@ -132,7 +150,9 @@ export function TodayTab({ data, onStartRoutine, onStartEmpty, onLogActivity, on
   )
 }
 
-const LEVEL_COLOR = { high: '#10b981', normal: '#06b6d4', low: '#f59e0b' } as const
+const LEVEL_COLOR = { high: '#30d158', normal: '#64d2ff', low: '#ff9f0a' } as const
+/** Schrift in der hellen Variante, damit sie auf Schwarz gut lesbar bleibt */
+const LEVEL_TEXT = { high: 'var(--lg-good-text)', normal: 'var(--lg-accent-text)', low: 'var(--lg-warn-text)' } as const
 
 /** Bereitschaft mit Wert; ohne Daten steht auf „Heute" nichts (eintragen: Fortschritt). */
 function ReadinessCard({ result }: { result: NonNullable<ReturnType<typeof computeReadiness>> }) {
@@ -144,29 +164,26 @@ function ReadinessCard({ result }: { result: NonNullable<ReturnType<typeof compu
     average: formatNumber(f.average, locale, 1),
   })
   return (
-    <Card accent={color}>
+    <Card>
       <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
         <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label={`${tt('readiness')} ${result.score}`} style={{ flexShrink: 0 }}>
-          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--surface-raised)" strokeWidth="6" />
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--lg-fill)" strokeWidth="6" />
           <circle
             cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
             strokeDasharray={`${(result.score / 100) * circumference} ${circumference}`}
             transform="rotate(-90 32 32)"
           />
-          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="800" fill="var(--text)">{result.score}</text>
+          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="600" fill="var(--lg-text)">{result.score}</text>
         </svg>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('readiness')}</div>
-          <div style={{ fontWeight: 850, fontSize: '1.05rem', color }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: 2 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{tt('readiness')}</div>
+          <div style={{ fontWeight: 700, fontSize: 20, color: LEVEL_TEXT[result.level] }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
+          <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 2 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
         </div>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
         {result.factors.map(f => (
-          <span key={f.key} style={{
-            fontSize: '0.75rem', fontWeight: 650, padding: '4px 10px', borderRadius: 999,
-            background: 'var(--surface-raised)', color: f.points < -2 ? '#f59e0b' : f.points > 2 ? '#10b981' : 'var(--text-dim)',
-          }}>
+          <span key={f.key} className="lg-tag" data-tone={f.points < -2 ? 'warn' : f.points > 2 ? 'good' : undefined} style={{ whiteSpace: 'normal', lineHeight: 1.25, padding: '4px 10px' }}>
             {factorText(f)}
           </span>
         ))}

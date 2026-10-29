@@ -38,14 +38,14 @@ export function MuscleBars({ rows }: { rows: readonly MuscleBarRow[] }) {
           key={row.muscle}
           style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7.5em) minmax(0, 1fr) auto', alignItems: 'center', gap: 10, minHeight: 22, fontSize: '0.82rem', fontWeight: 650 }}
         >
-          <span style={{ color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {tt(`muscle_${row.muscle}` as TrainingTextKey)}
           </span>
-          <span aria-hidden="true" style={{ position: 'relative', height: 8, borderRadius: 4, background: 'var(--surface-raised)', overflow: 'hidden', display: 'block' }}>
-            <span style={{ position: 'absolute', top: 0, bottom: 0, left: pct(SETS_BAND.low), width: pct(SETS_BAND.high - SETS_BAND.low), background: 'var(--border-strong)' }} />
+          <span aria-hidden="true" style={{ position: 'relative', height: 8, borderRadius: 4, background: 'var(--lg-fill)', overflow: 'hidden', display: 'block' }}>
+            <span style={{ position: 'absolute', top: 0, bottom: 0, left: pct(SETS_BAND.low), width: pct(SETS_BAND.high - SETS_BAND.low), background: 'var(--lg-separator)' }} />
             <span style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: pct(row.week), minWidth: row.week > 0 ? 3 : 0, borderRadius: 4, background: barColor(row.week), transition: 'width 180ms ease-out' }} />
           </span>
-          <span style={{ color: 'var(--text-dim)', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem', textAlign: 'right', whiteSpace: 'nowrap' }}>{row.label}</span>
+          <span style={{ color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem', textAlign: 'right', whiteSpace: 'nowrap' }}>{row.label}</span>
         </li>
       ))}
     </ul>
@@ -56,8 +56,8 @@ export function MuscleBars({ rows }: { rows: readonly MuscleBarRow[] }) {
 export function BandLegend() {
   const { tt } = useTrainingText()
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 650 }}>
-      <span aria-hidden="true" style={{ width: 14, height: 8, borderRadius: 2, background: 'var(--border-strong)' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--lg-text-3)', fontWeight: 650 }}>
+      <span aria-hidden="true" style={{ width: 14, height: 8, borderRadius: 2, background: 'var(--lg-separator)' }} />
       {tt('sets_guide')}
     </span>
   )

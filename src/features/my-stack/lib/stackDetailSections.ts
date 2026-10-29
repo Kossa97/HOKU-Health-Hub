@@ -1,4 +1,4 @@
-import { anbruchArt } from './bestand'
+import { anbruchArt, haltbarkeitArt } from './bestand'
 import type { DosageFormDefinition } from './dosageForms'
 
 /**
@@ -81,7 +81,9 @@ export function detailAbschnitte(form: DosageFormDefinition | undefined): Detail
   // es eine zugefuegte Fluessigkeit. Ein Datum und eine Haltbarkeit danach
   // hat alles, was angebrochen wird (Vial, Pen, Flasche).
   if (form?.capabilities.includes('reconstitutable')) produkt.push('fluessigkeit')
-  if (form?.capabilities.includes('reconstitutable') || anbruchArt(form?.key)) {
+  // Dieselbe Regel wie im Assistenten (`haltbarkeitArt`): auch Gel, Tube
+  // und Pulverdose haben ein Oeffnungsdatum.
+  if (form?.capabilities.includes('reconstitutable') || anbruchArt(form?.key) || haltbarkeitArt(form?.key, null)) {
     produkt.push('rekonstituiert_am', 'haltbarkeit')
   }
 

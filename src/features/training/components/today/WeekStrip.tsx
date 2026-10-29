@@ -59,7 +59,7 @@ export function WeekStrip({ data, now }: { data: TrainingData; now: Date }) {
           const fill = main ? KIND_STYLE[main.kind].color : null
           const planned = day.planned.length > 0
           const ring = fill ? undefined
-            : day.isToday ? `inset 0 0 0 2px ${planned ? TRAINING_ACCENT : 'var(--text)'}`
+            : day.isToday ? `inset 0 0 0 2px ${planned ? TRAINING_ACCENT : 'var(--lg-text)'}`
             : planned ? `inset 0 0 0 1.5px ${TRAINING_ACCENT}b3`
             : undefined
           return (
@@ -77,7 +77,7 @@ export function WeekStrip({ data, now }: { data: TrainingData; now: Date }) {
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 minHeight: 60, padding: '4px 0', borderRadius: 12,
-                background: selected === i ? 'var(--surface-raised)' : 'transparent',
+                background: selected === i ? 'var(--lg-fill)' : 'transparent',
               }}
             >
               <span
@@ -86,20 +86,20 @@ export function WeekStrip({ data, now }: { data: TrainingData; now: Date }) {
                   width: 34, height: 34, borderRadius: 17, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.88rem', fontWeight: 750, fontVariantNumeric: 'tabular-nums',
                   background: fill ?? 'transparent', boxShadow: ring,
-                  color: fill ? '#140800' : day.isToday ? 'var(--text)' : planned ? TRAINING_ACCENT : 'var(--text-dim)',
-                  outline: fill && day.isToday ? '2px solid var(--text)' : undefined, outlineOffset: 2,
+                  color: fill ? '#140800' : day.isToday ? 'var(--lg-text)' : planned ? TRAINING_ACCENT : 'var(--lg-text-3)',
+                  outline: fill && day.isToday ? '2px solid var(--lg-text)' : undefined, outlineOffset: 2,
                 }}
               >
                 {day.date.getDate()}
               </span>
-              <span aria-hidden="true" style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--text)' : 'var(--text-muted)' }}>
+              <span aria-hidden="true" style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--lg-text)' : 'var(--lg-text-3)' }}>
                 {tt(`weekday_${day.weekday}` as TrainingTextKey)}
               </span>
             </button>
           )
         })}
       </div>
-      <p aria-live="polite" style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textAlign: 'center', margin: '6px 0 0', minHeight: '1.2em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <p aria-live="polite" style={{ fontSize: '0.8rem', color: 'var(--lg-text-3)', textAlign: 'center', margin: '6px 0 0', minHeight: '1.2em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {days[selected] ? dayText(days[selected]) : ''}
       </p>
     </div>

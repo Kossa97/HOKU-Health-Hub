@@ -4,54 +4,54 @@ import {
   Activity, Bike, Dumbbell, Flame, Footprints, Mountain, PersonStanding, Sparkles,
   Timer, Trophy, Waves, type LucideIcon,
 } from 'lucide-react'
-import { X } from 'lucide-react'
 import type { SessionKind } from '../types'
 import { useTrainingText } from '../i18n'
+import { SheetClose } from '../../../components/ui/SheetClose'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 
 /**
- * Bausteine des Workout-Trackers. Farben kommen aus den App-Variablen
- * (`--surface`, `--text` …), damit helles und dunkles Thema stimmen.
+ * Bausteine des Workout-Trackers im Liquid-Glass-Schwarz der App: Flächen
+ * `lg-surface`, Knöpfe `lg-btn`/`lg-gray-btn`, Farben aus den `--lg-*`-Tokens.
+ * Orange ist der Akzent des Trainings — sparsam: Kacheln, Ringe, Linien.
  */
 
-export const TRAINING_ACCENT = '#f97316'
+export const TRAINING_ACCENT = '#ff9f0a'
 
-export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string }> = {
-  strength: { icon: Dumbbell, color: '#f97316' },
-  run: { icon: Footprints, color: '#10b981' },
-  cycle: { icon: Bike, color: '#6366f1' },
-  swim: { icon: Waves, color: '#3b82f6' },
-  row: { icon: Waves, color: '#0ea5e9' },
-  walk: { icon: Footprints, color: '#84cc16' },
-  hike: { icon: Mountain, color: '#65a30d' },
-  hiit: { icon: Flame, color: '#ef4444' },
-  hyrox: { icon: Timer, color: '#eab308' },
-  yoga: { icon: PersonStanding, color: '#a855f7' },
-  mobility: { icon: Sparkles, color: '#8b5cf6' },
-  sport: { icon: Trophy, color: '#f43f5e' },
-  other: { icon: Activity, color: '#94a3b8' },
+/** iOS-Systemfarben je Art; `ink` ist die Symbolfarbe auf der Kachel. */
+export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string; ink?: string }> = {
+  strength: { icon: Dumbbell, color: '#ff9f0a' },
+  run: { icon: Footprints, color: '#30d158' },
+  cycle: { icon: Bike, color: '#5e5ce6' },
+  swim: { icon: Waves, color: '#0a84ff' },
+  row: { icon: Waves, color: '#64d2ff', ink: '#002a3a' },
+  walk: { icon: Footprints, color: '#32ade6' },
+  hike: { icon: Mountain, color: '#a2845e' },
+  hiit: { icon: Flame, color: '#ff453a' },
+  hyrox: { icon: Timer, color: '#ffd60a', ink: '#3a2c00' },
+  yoga: { icon: PersonStanding, color: '#bf5af2' },
+  mobility: { icon: Sparkles, color: '#af52de' },
+  sport: { icon: Trophy, color: '#ff375f' },
+  other: { icon: Activity, color: '#8e8e93' },
 }
 
+/** Art als Icon-Kachel wie in den iOS-Einstellungen: volle Farbe, Symbol hell. */
 export function KindBadge({ kind, size = 38 }: { kind: SessionKind; size?: number }) {
-  const { icon: Icon, color } = KIND_STYLE[kind]
+  const { icon: Icon, color, ink } = KIND_STYLE[kind]
   return (
     <span
       aria-hidden="true"
-      style={{
-        width: size, height: size, borderRadius: Math.round(size * 0.32), flexShrink: 0,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        background: `${color}1f`, border: `1px solid ${color}38`, color,
-      }}
+      className="lg-icon-tile"
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.27), background: color, color: ink ?? '#fff' }}
     >
-      <Icon size={Math.round(size * 0.48)} />
+      <Icon size={Math.round(size * 0.52)} />
     </span>
   )
 }
 
-export function Card({ children, style, accent, onClick, as = 'div', ariaLabel }: {
+export function Card({ children, style, onClick, as = 'div', ariaLabel }: {
   children: ReactNode
   style?: CSSProperties
-  accent?: string
   onClick?: () => void
   as?: 'div' | 'button' | 'section'
   ariaLabel?: string
@@ -62,14 +62,11 @@ export function Card({ children, style, accent, onClick, as = 'div', ariaLabel }
       type={Tag === 'button' ? 'button' : undefined}
       onClick={onClick}
       aria-label={ariaLabel}
-      className={onClick ? 'tyd-train-press' : undefined}
+      className={`lg-surface lg-flat${onClick ? ' tyd-train-press' : ''}`}
       style={{
         display: 'block', width: '100%', textAlign: 'left',
-        padding: 16, borderRadius: 20,
-        background: 'var(--surface)',
-        border: `1px solid ${accent ? `${accent}30` : 'var(--border)'}`,
-        boxShadow: 'var(--shadow-card)',
-        color: 'var(--text)',
+        padding: 16,
+        color: 'var(--lg-text)',
         cursor: onClick ? 'pointer' : undefined,
         ...style,
       }}
@@ -81,8 +78,8 @@ export function Card({ children, style, accent, onClick, as = 'div', ariaLabel }
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '6px 2px 8px' }}>
-      <h2 style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '14px 0 7px', minHeight: 24 }}>
+      <h2 className="lg-group-title" style={{ margin: '0 16px' }}>
         {children}
       </h2>
       {action}
@@ -92,24 +89,20 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { tone?: 'primary' | 'ghost' | 'danger'; block?: boolean }
 
+/** Primär: die Hauptaktion der App (Cyan); sonst graue iOS-Knöpfe. */
 export function Button({ tone = 'primary', block, style, className, children, ...rest }: ButtonProps) {
-  const tones: Record<NonNullable<ButtonProps['tone']>, CSSProperties> = {
-    primary: { background: TRAINING_ACCENT, color: '#140800', border: '1px solid transparent' },
-    ghost: { background: 'var(--surface-raised)', color: 'var(--text)', border: '1px solid var(--border-strong)' },
-    danger: { background: 'rgba(244,63,94,0.12)', color: '#f43f5e', border: '1px solid rgba(244,63,94,0.3)' },
-  }
+  const base = tone === 'primary' ? 'lg-btn lg-btn-primary' : 'lg-gray-btn'
   return (
     <button
       type="button"
-      className={`tyd-train-press${className ? ` ${className}` : ''}`}
+      className={`${base}${className ? ` ${className}` : ''}`}
+      data-quiet={tone === 'ghost' ? '' : undefined}
+      data-tone={tone === 'danger' ? 'bad' : undefined}
       style={{
-        minHeight: 44, padding: '10px 16px', borderRadius: 14,
-        fontWeight: 750, fontSize: '0.92rem',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        minHeight: 44, padding: '0 18px', gap: 8,
+        fontSize: 16, fontWeight: 600,
+        display: block ? 'flex' : 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: block ? '100%' : undefined,
-        cursor: rest.disabled ? 'default' : 'pointer',
-        opacity: rest.disabled ? 0.5 : 1,
-        ...tones[tone],
         ...style,
       }}
       {...rest}
@@ -119,7 +112,8 @@ export function Button({ tone = 'primary', block, style, className, children, ..
   )
 }
 
-export function Chip({ active, children, onClick, color = TRAINING_ACCENT, ariaLabel }: {
+/** An/aus-Kapsel. Mit `color` ein Farbpunkt davor (z. B. die Art). */
+export function Chip({ active, children, onClick, color, ariaLabel }: {
   active: boolean
   children: ReactNode
   onClick: () => void
@@ -134,14 +128,17 @@ export function Chip({ active, children, onClick, color = TRAINING_ACCENT, ariaL
       onClick={onClick}
       className="tyd-train-press"
       style={{
-        minHeight: 36, padding: '6px 12px', borderRadius: 999, flexShrink: 0,
-        fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap',
-        background: active ? `${color}22` : 'var(--surface-raised)',
-        border: `1px solid ${active ? `${color}66` : 'var(--border)'}`,
-        color: active ? color : 'var(--text-dim)',
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        minHeight: 36, padding: '0 14px', borderRadius: 999, flexShrink: 0,
+        fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', border: 0,
+        // Gewählt wie ein iOS-Segment: fester grauer Stein, Schrift hell
+        background: active ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
+        boxShadow: active ? '0 3px 8px rgba(0,0,0,0.25)' : undefined,
+        color: active ? 'var(--lg-text)' : 'var(--lg-text-2)',
         cursor: 'pointer',
       }}
     >
+      {color && <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: color }} />}
       {children}
     </button>
   )
@@ -150,9 +147,9 @@ export function Chip({ active, children, onClick, color = TRAINING_ACCENT, ariaL
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 650 }}>{label}</div>
-      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{sub}</div>}
+      <div style={{ fontSize: 13, color: 'var(--lg-text-3)', fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
+      {sub && <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{sub}</div>}
     </div>
   )
 }
@@ -164,8 +161,8 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
  */
 export function Field({ label, children, hint, group = false }: { label: string; children: ReactNode; hint?: ReactNode; group?: boolean }) {
   const labelId = useId()
-  const caption = <span id={labelId} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{label}</span>
-  const note = hint && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{hint}</span>
+  const caption = <span id={labelId} className="label" style={{ marginBottom: 0 }}>{label}</span>
+  const note = hint && <span style={{ fontSize: 13, lineHeight: 1.35, color: 'var(--lg-text-3)', paddingInline: 4 }}>{hint}</span>
   if (group) {
     return (
       <div role="group" aria-labelledby={labelId} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -180,10 +177,12 @@ export function Field({ label, children, hint, group = false }: { label: string;
   )
 }
 
+/** Eingelassenes Feld wie `.input` der App: dunkler als die Fläche, 16 px. */
 export const inputStyle: CSSProperties = {
-  width: '100%', minHeight: 44, padding: '10px 12px', borderRadius: 12,
-  background: 'var(--surface-input)', border: '1px solid var(--border-strong)',
-  color: 'var(--text)', fontSize: 16,
+  width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 'var(--r-md)',
+  background: 'var(--surface-input)', border: '1px solid transparent',
+  boxShadow: 'var(--shadow-input)',
+  color: 'var(--lg-text)', fontSize: 16,
 }
 
 /**
@@ -220,6 +219,7 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
       style={{
         position: 'fixed', inset: 0, zIndex, background: 'rgba(0,0,0,0.6)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        padding: '0 8px calc(8px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       <div
@@ -227,40 +227,29 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={event => event.stopPropagation()}
-        className="tyd-train-sheet"
+        // Schwebendes iOS-Sheet; feste Fläche, weil der Inhalt scrollt
+        className="lg-sheet lg-sheet-solid tyd-train-sheet"
         style={{
-          width: '100%', maxWidth: 560,
-          height: tall ? 'calc(100dvh - max(24px, env(safe-area-inset-top)))' : undefined,
-          maxHeight: 'calc(100dvh - max(24px, env(safe-area-inset-top)))',
+          width: '100%', maxWidth: 560, overflow: 'hidden',
+          height: tall ? 'calc(100dvh - max(32px, env(safe-area-inset-top)) - 8px - env(safe-area-inset-bottom, 0px))' : undefined,
+          maxHeight: 'calc(100dvh - max(32px, env(safe-area-inset-top)) - 8px - env(safe-area-inset-bottom, 0px))',
           display: 'flex', flexDirection: 'column',
-          background: 'var(--app-bg)', color: 'var(--text)',
-          borderTopLeftRadius: 24, borderTopRightRadius: 24,
-          border: '1px solid var(--border-strong)', borderBottom: 'none',
-          boxShadow: '0 -12px 48px rgba(0,0,0,0.5)',
+          color: 'var(--lg-text)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 10px' }}>
-          <h2 id={titleId} style={{ flex: 1, fontSize: '1.05rem', fontWeight: 800, minWidth: 0 }}>{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            aria-label={closeLabel}
-            className="tyd-train-press"
-            style={{ width: 36, height: 36, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-raised)', color: 'var(--text-dim)' }}
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+        <SheetGriff style={{ marginTop: 8 }} onClose={onClose} disabled={busy} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px 8px 20px' }}>
+          <h2 id={titleId} className="lg-title2" style={{ flex: 1, minWidth: 0 }}>{title}</h2>
+          <SheetClose onClick={onClose} disabled={busy} label={closeLabel} />
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '4px 16px 16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '4px 20px 20px' }}>
           {children}
         </div>
         {footer && (
-          <div style={{ padding: '10px 16px calc(12px + env(safe-area-inset-bottom, 0px))', borderTop: '1px solid var(--border)' }}>
+          <div style={{ padding: '10px 20px 16px', borderTop: '0.5px solid var(--lg-separator)' }}>
             {footer}
           </div>
         )}
-        {!footer && <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />}
       </div>
     </div>,
     document.body,
@@ -289,10 +278,22 @@ export const TRAINING_CSS = `
   .tyd-train-sheet, .tyd-train-pop, .tyd-train-check.is-popping { animation: none; }
   .tyd-train-press:active:not(:disabled) { transform: none; opacity: 0.7; }
 }
+/* Flächen im Sheet: eine Stufe heller als das Sheet, ohne Lichtkante — wie
+   gruppierte Listen in iOS-Sheets */
+.tyd-train-sheet .lg-surface { background: var(--lg-surface-2); box-shadow: none; }
+.tyd-train-sheet .lg-surface::before, .tyd-train-sheet .lg-surface::after { display: none; }
+.tyd-train-sheet .tyd-train-menu { background: var(--lg-surface-2); }
+.tyd-train-menu { overflow: hidden; border-radius: var(--r-xl); background: var(--lg-surface-2); }
+.tyd-train-menu > * { position: relative; }
+.tyd-train-menu > * + *::before { content: ''; position: absolute; top: 0; inset-inline: 48px 0; height: 0.5px; background: var(--lg-separator); }
+.tyd-train-menu > button:active { background: rgba(255,255,255,0.06); }
 .tyd-train-input::-webkit-outer-spin-button, .tyd-train-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .tyd-train-input.sug { font-style: italic; }
 .tyd-wheel { scrollbar-width: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .tyd-wheel::-webkit-scrollbar { display: none; }
 .tyd-wheel-wrap { border-radius: 12px; }
-.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px rgba(249,115,22,0.55); }
+.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px ${TRAINING_ACCENT}8c; }
+/* Tastatur: sichtbarer Fokus statt keinem */
+.tyd-train-input { outline: none; }
+.tyd-train-input:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }
 `

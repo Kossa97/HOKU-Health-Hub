@@ -11,11 +11,14 @@ import { SONSTIGE, normalizeMarker } from './lib/markerCatalog'
 import { CYAN, TEXT, MUTED } from './styles'
 import { markerName } from './lib/markerCatalog.en'
 import { Sheet } from '../compliance/components/Sheet'
+import { GlassSegmented } from '../../components/ui/GlassSegmented'
 import { MarkerList, type MarkerLayout, type PillMode } from './components/MarkerList'
 import { MarkerDetail } from './components/MarkerDetail'
 import { GridControls } from './components/GridControls'
 import { AuffaelligeWerte } from './components/AuffaelligeWerte'
 import { BefundListe } from './components/BefundListe'
+import { MarkerUmriss, Silhouette } from '../../components/ui/Silhouette'
+import { useLadephase } from '../../components/ui/silhouetteTakt'
 import { EntryModal, emptyDraft, refText, sameRef, type EntryDraft, type ParsedEntry } from './components/EntryModal'
 import { AddSheet } from './components/AddSheet'
 import { ImportFlow } from './components/import/ImportFlow'
@@ -213,7 +216,10 @@ export function BlutwertePage() {
 
   const auffaellig = useMemo(() => auffaelligeWerte(summaries), [summaries])
   const ungeprueft = useMemo(() => ungepruefteWerte(summaries).length, [summaries])
-  const erstLaden = loading && !geladen
+  // Erstes Laden: Umriss der Marker statt Text; erschien er, blendet die Liste über
+  const ladephase = useLadephase(loading && !geladen)
+  const erstLaden = ladephase === 'laden'
+  const einblenden = ladephase === 'einblenden' ? 'lg-reveal' : undefined
 
   const latestDate = useMemo(() => {
     if (entries.length === 0) return null
@@ -319,21 +325,21 @@ export function BlutwertePage() {
   const loeschenSheet = loeschen && (
     <Sheet labelledBy="bw-delete-title" busy={loescht} onClose={loeschenAbbrechen} role="alertdialog" data-bw-delete-sheet>
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_18%,transparent)] text-[var(--lg-bad-text)]">
           <Trash2 size={18} aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h2 id="bw-delete-title" className="text-lg font-bold text-white">{t('bw_delete_title')}</h2>
-          <p className="mt-0.5 text-sm text-slate-400">
+          <h2 id="bw-delete-title" className="lg-title2">{t('bw_delete_title')}</h2>
+          <p className="mt-1 text-[15px] leading-snug text-[var(--lg-text-2)]">
             {t('bw_delete_desc', { marker: markerName(loeschen.marker, sprache), date: formatDisplayDate(loeschen.tested_at) })}
           </p>
         </div>
       </div>
       <div className="mt-5 flex gap-2">
-        <button type="button" autoFocus data-app-back-close disabled={loescht} onClick={loeschenAbbrechen} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 disabled:opacity-50">
+        <button type="button" autoFocus data-app-back-close disabled={loescht} onClick={loeschenAbbrechen} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
           {t('cancel')}
         </button>
-        <button type="button" data-bw-delete-confirm disabled={loescht} onClick={() => void loeschenBestaetigt()} className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-50">
+        <button type="button" data-bw-delete-confirm disabled={loescht} onClick={() => void loeschenBestaetigt()} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px] !font-semibold">
           {t('delete')}
         </button>
       </div>
@@ -387,20 +393,19 @@ export function BlutwertePage() {
   }
 
   // ---------- Übersicht: wie die Aktien-App ----------
-  const headerButton = 'flex h-11 w-11 items-center justify-center rounded-full'
+  const headerButton = 'lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300'
   return (
     <div>
       {/* Titel und Knoepfe in einer Reihe, das Datum kleiner darunter ueber die
           volle Breite — so bleibt es immer einzeilig. */}
       <header className="mb-4 grid items-start gap-x-3" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-        <h1 className="min-w-0 text-[2rem] font-black leading-tight tracking-tight" style={{ color: TEXT }}>{t('bw_title')}</h1>
-        <div className="mt-1 flex shrink-0 items-center rounded-full px-1" style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)' }}>
+        <h1 className="lg-large-title min-w-0 truncate">{t('bw_title')}</h1>
+        <div className="flex shrink-0 items-center gap-2">
           {view === 'marker' && (
             // Zeigt, wohin es geht: im Raster das Listen-Symbol und umgekehrt.
             <button
               type="button"
               className={headerButton}
-              style={{ color: TEXT }}
               onClick={toggleLayout}
               aria-label={t(markerLayout === 'raster' ? 'bw_list_view' : 'bw_grid_view')}
               title={t(markerLayout === 'raster' ? 'bw_list_view' : 'bw_grid_view')}
@@ -409,37 +414,31 @@ export function BlutwertePage() {
               {markerLayout === 'raster' ? <List size={20} /> : <LayoutGrid size={19} />}
             </button>
           )}
-          <button type="button" className={headerButton} style={{ color: TEXT }} onClick={() => setShowAdd(true)} aria-label={t('bw_add_title')} title={t('bw_add_title')} aria-haspopup="dialog">
+          <button type="button" className={headerButton} onClick={() => setShowAdd(true)} aria-label={t('bw_add_title')} title={t('bw_add_title')} aria-haspopup="dialog">
             <Plus size={22} />
           </button>
         </div>
-        <p className="col-span-2 truncate text-[1.5rem] font-extrabold leading-tight tracking-tight" style={{ color: MUTED }}>
+        <p className="lg-title2 col-span-2 truncate !text-[var(--lg-text-3)]">
           {/* Stand der Uebersicht: das Datum der letzten Messung. */}
           {latestDate ? t('bw_as_of', { date: formatLongDate(latestDate, sprache) }) : t('bw_overview_empty_date')}
         </p>
       </header>
 
       {/* Ansicht: Marker / Befunde; unter Marker der Filter „Auffällige“ (vorausgewählt) */}
-      <div className="mb-3 flex rounded-full p-1" style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)' }}>
-        {([['marker', t('bw_view_markers')], ['befunde', t('bw_view_reports')]] as [typeof view, string][]).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setView(key)}
-            aria-pressed={view === key}
-            className="min-h-9 flex-1 rounded-full px-3 text-sm whitespace-nowrap transition-colors"
-            style={view === key
-              ? { background: 'var(--surface)', color: TEXT, fontWeight: 800, boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }
-              : { color: MUTED, fontWeight: 600 }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <GlassSegmented
+        className="mb-3"
+        material="fill"
+        equal
+        ariaLabel={t('bw_view_aria')}
+        value={view}
+        onChange={setView}
+        options={[{ key: 'marker', label: t('bw_view_markers') }, { key: 'befunde', label: t('bw_view_reports') }]}
+      />
 
       {erstLaden && (
-        <div className="p-10 text-center" style={{ color: MUTED }}>
-          {t('bw_loading')}
-        </div>
+        <Silhouette label={t('bw_loading')} abdruck>
+          <MarkerUmriss />
+        </Silhouette>
       )}
 
       {!erstLaden && zeigeBioHinweis && (
@@ -450,11 +449,13 @@ export function BlutwertePage() {
       )}
 
       {!erstLaden && view === 'befunde' && (
-        <BefundListe reports={reports} entries={entries} profil={bioProfil} onChanged={load} />
+        <div className={einblenden}>
+          <BefundListe reports={reports} entries={entries} profil={bioProfil} onChanged={load} />
+        </div>
       )}
 
       {!erstLaden && view === 'marker' && (
-        <>
+        <div className={einblenden}>
           <GridControls
             kategorie={kategorie}
             auffaellig={auffaellig.length}
@@ -469,7 +470,7 @@ export function BlutwertePage() {
 
           {ladeFehler && entries.length === 0 ? (
             // Nie „keine Werte“ zeigen, wenn nur das Laden scheiterte — unter keinem Filter.
-            <div className="py-8 mb-4 text-center" data-bw-load-error>
+            <div className="py-8 mb-4 text-center" data-bw-load-error data-umriss-nicht-merken>
               <p className="text-sm" style={{ color: TEXT }}>{t('bw_load_error')}</p>
               <button type="button" className="mt-3 min-h-11 px-3 text-sm font-semibold" style={{ color: CYAN }} onClick={() => void load()}>
                 {t('ai_consent_retry')}
@@ -496,7 +497,7 @@ export function BlutwertePage() {
               onSelect={setSelectedMarker}
             />
           )}
-        </>
+        </div>
       )}
 
       {!erstLaden && view !== 'befunde' && (

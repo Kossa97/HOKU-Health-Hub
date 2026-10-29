@@ -63,3 +63,19 @@ dieselbe Liste (`InjectionIntakeList.tsx`). Nach Wahl der Einnahme nur noch
 Karte + Stelle + Uhrzeit (einklappbar) + „Hat sich deine Dosis geändert?“ +
 Notiz (einklappbar). Manuell als Link „Ohne Plan eintragen“. Karte/Verlauf:
 7/14/30/Alle.
+
+18.10.2026, Look „Studio“ (Variante A aus den Licht-Mockups, Branch
+`claude/injektionstracker-glas`). Vorher umgesetzt und vom Nutzer verworfen:
+C „Dunkles Glas“ (dunkle Lackfigur) und B „Bühne“ (harte Kanten, Licht von
+oben). Haut bleibt im Originalmaterial. Licht in `src/lib/injectionStudioLook.ts`
++ `InjectionStudioLight.tsx`: weiches, leicht warmes Hauptlicht oben links
+vorn, schwaches kühles Fülllicht rechts, zwei kühle Kantenlichter seitlich
+hinten (zeichnen auch die Rückseite), weiche Spiegelungen aus lokal erzeugter
+RoomEnvironment (kein HDR aus dem Netz). Hintergrund Schwarz mit warmem
+Schein. Gilt für Karte und Vorschau-Karte auf Home. Pinköpfe leuchten
+leicht. Kontaktschatten entfernt (auf Schwarz unsichtbar).
+Offen: Test auf echtem iPhone.
+
+22.10.2026, Look „Nacht“: nur die Kantenlichter getönt (links cyan, rechts
+violett), Bühne über `--inj-backdrop` in liquid-glass.css. Details in
+`erscheinungsbild.md`.

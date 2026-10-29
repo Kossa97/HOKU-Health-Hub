@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import type { CustomExercise, ExerciseCategory, MuscleGroup, TrackingMode, TrainingSession } from '../types'
 import { useTrainingText, type TrainingTextKey } from '../i18n'
 import { allExercises, matchesSearch, type ExerciseInfo } from '../lib/exerciseLookup'
-import { Button, Chip, Field, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
+import { Button, Chip, Field, TrainingSheet, inputStyle } from './ui'
 
 /**
  * Uebung waehlen — Suche ueber Deutsch, Englisch und die Schreibweisen aus
@@ -88,9 +88,9 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
         </Button>
       ) : undefined}
     >
-      <div style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--app-bg)', paddingBottom: 8 }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--lg-sheet-solid)', paddingBottom: 8 }}>
         <div style={{ position: 'relative' }}>
-          <Search size={18} aria-hidden="true" style={{ position: 'absolute', left: 12, top: 13, color: 'var(--text-muted)' }} />
+          <Search size={18} aria-hidden="true" style={{ position: 'absolute', left: 12, top: 13, color: 'var(--lg-text-3)' }} />
           <input
             type="search"
             value={query}
@@ -124,12 +124,12 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
                 className="tyd-train-press"
                 style={{
                   width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 4px', textAlign: 'left', borderBottom: '1px solid var(--border)',
+                  padding: '10px 4px', textAlign: 'left', borderBottom: '0.5px solid var(--lg-separator)',
                 }}
               >
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</span>
-                  <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ display: 'block', fontSize: 17, fontWeight: 400, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</span>
+                  <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {[...ex.primary.slice(0, 2).map(m => tt(`muscle_${m}` as TrainingTextKey)), tt(`eq_${ex.equipment}` as TrainingTextKey)].join(' · ')}
                   </span>
                 </span>
@@ -137,11 +137,12 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
                   <span
                     aria-hidden="true"
                     style={{
-                      width: 26, height: 26, borderRadius: 9, flexShrink: 0,
+                      // Auswahlkreis wie in iOS-Listen
+                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: isSelected ? TRAINING_ACCENT : 'transparent',
-                      border: `1.5px solid ${isSelected ? TRAINING_ACCENT : 'var(--border-strong)'}`,
-                      color: '#140800',
+                      background: isSelected ? 'var(--lg-accent)' : 'transparent',
+                      boxShadow: isSelected ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
+                      color: 'var(--accent-contrast)',
                     }}
                   >
                     {isSelected && <Check size={16} strokeWidth={3} />}
@@ -153,7 +154,7 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
         })}
       </ul>
       {visible.length === 0 && (
-        <p style={{ padding: '24px 4px', color: 'var(--text-dim)', textAlign: 'center' }}>{tt('picker_none')}</p>
+        <p style={{ padding: '24px 4px', fontSize: 15, color: 'var(--lg-text-3)', textAlign: 'center' }}>{tt('picker_none')}</p>
       )}
       <div style={{ paddingTop: 14 }}>
         <Button tone="ghost" block onClick={() => setCreating(true)}>

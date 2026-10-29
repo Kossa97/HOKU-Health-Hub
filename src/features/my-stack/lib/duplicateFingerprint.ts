@@ -12,7 +12,7 @@ function ingredientFingerprint(ingredient: StackItemIngredient): string {
   const catalogSubstanceId = normalizeText(ingredient.catalog_substance_id ?? '')
   const identity = catalogSubstanceId
     ? `catalog:${catalogSubstanceId}`
-    : `custom:${normalizeText(ingredient.custom_name)}`
+    : `custom:${normalizeText(ingredient.custom_name ?? '')}`
 
   return JSON.stringify([
     identity,

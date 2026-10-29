@@ -18,6 +18,7 @@ import { LiveWorkout } from './components/live/LiveWorkout'
 import { describeNextSet } from './components/live/nextSet'
 import { QuickLogSheet } from './components/QuickLogSheet'
 import { RoutineEditor } from './components/RoutineEditor'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 
 /**
  * Der Workout-Tracker (`/training`).
@@ -102,21 +103,23 @@ export function TrainingPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 24 }}>
       <style>{TRAINING_CSS}</style>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <h1 style={{ flex: 1, fontSize: '1.6rem', fontWeight: 850, letterSpacing: '-0.02em' }}>{tt('title')}</h1>
+      {/* Kopf: großer Titel wie in iOS, Einstellungen als Glasknopf */}
+      <header style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 4px' }}>
+        <h1 className="lg-large-title" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tt('title')}</h1>
         <button
           type="button"
           onClick={() => setSettingsOpen(true)}
           aria-label={tt('settings')}
           disabled={data.state !== 'ready'}
-          className="tyd-train-press"
-          style={{ width: 44, height: 44, borderRadius: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-raised)', color: 'var(--text-dim)' }}
+          className="lg-glass lg-icon-btn lg-press"
+          style={{ flexShrink: 0, opacity: data.state !== 'ready' ? 0.4 : 1 }}
         >
           <Settings size={20} aria-hidden="true" />
         </button>
       </header>
 
-      <div role="tablist" aria-label={tt('title')} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, padding: 4, borderRadius: 14, background: 'var(--surface-raised)' }}>
+      {/* Reiter wie ein iOS-Segment: eingelassene Füllung, die Wahl als grauer Stein */}
+      <div role="tablist" aria-label={tt('title')} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: 2, borderRadius: 999, background: 'var(--lg-fill)' }}>
         {TABS.map(id => (
           <button
             key={id}
@@ -126,10 +129,10 @@ export function TrainingPage() {
             onClick={() => setTab(id)}
             className="tyd-train-press"
             style={{
-              minHeight: 40, borderRadius: 11, fontWeight: 750, fontSize: '0.88rem',
-              background: tab === id ? 'var(--surface)' : 'transparent',
-              color: tab === id ? 'var(--text)' : 'var(--text-dim)',
-              boxShadow: tab === id ? 'var(--shadow-card)' : undefined,
+              minHeight: 34, borderRadius: 999, fontWeight: 600, fontSize: 15,
+              background: tab === id ? 'var(--lg-fill-selected)' : 'transparent',
+              color: tab === id ? 'var(--lg-text)' : 'var(--lg-text-2)',
+              boxShadow: tab === id ? '0 3px 8px rgba(0,0,0,0.25)' : undefined,
             }}
           >
             {tt(`tab_${id}`)}
@@ -139,10 +142,11 @@ export function TrainingPage() {
 
       {workout && !liveOpen && <RunningBanner workout={workout} data={data} onResume={() => setLiveOpen(true)} />}
 
-      {data.state === 'loading' && <p style={{ color: 'var(--text-dim)', padding: '24px 0', textAlign: 'center' }}>{tt('loading')}</p>}
+      {/* Laden: der Umriss der Karten statt eines Textes (wie überall in der App) */}
+      {data.state === 'loading' && <Silhouette label={tt('loading')} abdruck><KurvenUmriss /></Silhouette>}
       {(data.state === 'error' || data.state === 'missing') && (
         <Card>
-          <p style={{ fontWeight: 700 }}>{data.state === 'missing' ? tt('setup_missing') : tt('load_error')}</p>
+          <p data-umriss-nicht-merken style={{ fontSize: 17, fontWeight: 600 }}>{data.state === 'missing' ? tt('setup_missing') : tt('load_error')}</p>
           <div style={{ marginTop: 12 }}><Button tone="ghost" onClick={data.reload}>{tt('retry')}</Button></div>
         </Card>
       )}
@@ -152,6 +156,7 @@ export function TrainingPage() {
           {tab === 'today' && (
             <TodayTab
               data={data}
+              dotQuiet={liveOpen}
               onStartRoutine={startRoutine}
               onStartEmpty={startEmpty}
               onLogActivity={() => setQuickLog({ session: null })}
@@ -219,14 +224,14 @@ function RunningBanner({ workout, data, onResume }: { workout: ActiveWorkout; da
     next ? [next.exercise, next.target].filter(Boolean).join(' ') : null,
   ].filter(Boolean).join(' · ')
   return (
-    <Card accent={TRAINING_ACCENT} onClick={onResume} style={{ padding: 12 }}>
+    <Card onClick={onResume} style={{ padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${TRAINING_ACCENT}33` }} />
+        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${TRAINING_ACCENT}33` }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{workout.title || tt('running_banner')}</div>
-          {sub && <div style={{ fontSize: '0.8rem', color: restLeftS != null ? TRAINING_ACCENT : 'var(--text-dim)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}
+          <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{workout.title || tt('running_banner')}</div>
+          {sub && <div style={{ fontSize: 13, color: restLeftS != null ? TRAINING_ACCENT : 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}
         </div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 800, color: TRAINING_ACCENT }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: TRAINING_ACCENT }}>
           <Play size={16} aria-hidden="true" /> {tt('resume')}
         </span>
       </div>

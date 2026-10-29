@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto'
 import type { Page, Route } from '@playwright/test'
 import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
+import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
+import { hatZugang } from '../../supabase/functions/coach/prompt'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -22,7 +24,7 @@ import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 export class RpcError extends Error {}
 
 export const SUPABASE_ORIGIN = 'https://xcskcojakolphtbuqfbw.supabase.co'
-const STORAGE_KEY = 'sb-xcskcojakolphtbuqfbw-auth-token'
+export const STORAGE_KEY = 'sb-xcskcojakolphtbuqfbw-auth-token'
 
 export const TEST_USER = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -68,6 +70,7 @@ const RELATIONS: Record<string, Record<string, Relation>> = {
   effects: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
     dose_logs: { table: 'dose_logs', kind: 'one', local: 'dose_log_id', foreign: 'id' },
+    effect_symptoms: { table: 'effect_symptoms', kind: 'many', local: 'id', foreign: 'effect_id' },
   },
   cycles: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
@@ -103,9 +106,10 @@ function parseSelect(select: string): SelectField[] {
         if (depth > 0) inner += text[i]
         i++
       }
-      const [alias, table] = token.includes(':') ? token.split(':') : [token, token]
-      if (table.includes('!')) throw new Error(`Einbettung mit Hinweis ${table} nicht nachgebildet`)
-      fields.push({ alias, table, children: parseSelect(inner) })
+      const [alias, hinted] = token.includes(':') ? token.split(':') : [token, token]
+      const [table, hint] = hinted.split('!')
+      if (hint && hint !== 'inner') throw new Error(`Einbettung mit Hinweis ${hinted} nicht nachgebildet`)
+      fields.push({ alias: alias === hinted ? table : alias, table, children: parseSelect(inner) })
     } else if (token) {
       fields.push({ alias: token })
     }
@@ -252,6 +256,7 @@ export class MockSupabase {
     this.registerMyStackRpcs()
     this.registerComplianceRpcs()
     this.registerIntakeRpcs()
+    this.registerDiaryRpcs()
     this.seedCatalog()
     this.seedOwnProfile()
   }
@@ -346,7 +351,6 @@ export class MockSupabase {
       localStorage.setItem(key, value)
       localStorage.setItem('tyd_lang', lang)
       localStorage.setItem(`tyd_lang_picked_${userId}`, '1')
-      localStorage.setItem(`_ob_done_${userId}`, '1')
       localStorage.setItem('tyd_stack_colors_migrated_v1', '1')
       localStorage.setItem('tyd_push_dismissed', 'true')
       localStorage.setItem('tyd_ios_install_shown', 'true')
@@ -374,6 +378,11 @@ export class MockSupabase {
       if (url.pathname.startsWith('/rest/v1/')) return await this.handleRest(route, url)
       if (url.pathname.startsWith('/storage/v1/object/')) return await this.handleStorage(route, url)
       if (url.pathname === '/functions/v1/bloodwork-extract') return await this.handleBloodworkExtract(route)
+      if (url.pathname === '/functions/v1/food-lookup') return await this.handleFoodLookup(route)
+      if (url.pathname === '/functions/v1/food-photo') return await this.handleFoodPhoto(route)
+      if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
+      if (url.pathname === '/functions/v1/coach') return await this.handleCoach(route)
+      if (url.pathname === '/functions/v1/login-name') return await this.handleLoginName(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -411,7 +420,128 @@ export class MockSupabase {
     })
   }
 
-  /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */
+  /**
+   * Nachbild von supabase/functions/label-extract (Etikett per Foto, My Stack):
+   * ohne Einwilligung ab dem Etikett-Stichtag 403 `consent_required`, sonst
+   * `labelExtract.label` —
+   * `null` spielt „kein Etikett erkannt" (422) nach.
+   */
+  readonly labelExtract: {
+    label: Row | null
+    calls: { mimeType: string; names: number }[]
+  } = {
+    label: {
+      name: 'BPC-157', brand: 'Testlabor', dosage_form: 'vial',
+      ingredients: [{ name: null, amount: 5, unit: 'mg', per_amount: null, per_unit: null }],
+    },
+    calls: [],
+  }
+
+  private async handleLabelExtract(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!consentCoversLabels(profil?.ai_import_consent_at as string | null | undefined)) {
+      return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    }
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; names?: unknown[] }
+    this.labelExtract.calls.push({ mimeType: String(body.mimeType ?? ''), names: Array.isArray(body.names) ? body.names.length : 0 })
+    if (!this.labelExtract.label) return route.fulfill({ status: 422, headers: corsHeaders(), json: { error: 'no_label_found' } })
+    return route.fulfill({ headers: corsHeaders(), json: { label: this.labelExtract.label } })
+  }
+
+  /**
+   * Nachbild von supabase/functions/food-lookup (Open Food Facts). Tests legen
+   * Produkte und Suchtreffer im schon verschlankten Format der Funktion an;
+   * `foodLookup.down` spielt „OFF nicht erreichbar" (503) nach.
+   */
+  readonly foodLookup: {
+    products: Record<string, Row | null>
+    /** `kind: 'item'` (Substanz-Scan in My Stack): nur Name, Marke, Menge. */
+    items: Record<string, Row | null>
+    search: Record<string, Row[]>
+    down: boolean
+    calls: { barcode?: string; query?: string; kind?: string }[]
+  } = { products: {}, items: {}, search: {}, down: false, calls: [] }
+
+  private async handleFoodLookup(route: Route): Promise<void> {
+    const body = (route.request().postDataJSON() ?? {}) as { barcode?: string; query?: string; kind?: string }
+    this.foodLookup.calls.push({ barcode: body.barcode, query: body.query, ...(body.kind ? { kind: body.kind } : {}) })
+    if (this.foodLookup.down) return route.fulfill({ status: 503, headers: corsHeaders(), json: { error: 'upstream_unavailable' } })
+    if (body.barcode !== undefined && body.kind === 'item') return route.fulfill({ headers: corsHeaders(), json: { item: this.foodLookup.items[body.barcode] ?? null } })
+    if (body.barcode !== undefined) return route.fulfill({ headers: corsHeaders(), json: { product: this.foodLookup.products[body.barcode] ?? null } })
+    const key = String(body.query ?? '').trim().toLowerCase()
+    return route.fulfill({ headers: corsHeaders(), json: { results: this.foodLookup.search[key] ?? [] } })
+  }
+
+  /**
+   * Nachbild von supabase/functions/food-photo (Foto/Notiz → Anthropic): ohne
+   * Einwilligung 403 `consent_required`, sonst `foodPhoto.result` (Gericht,
+   * needsNote, Zutaten); mit `foodPhoto.error` dieser Fehlercode.
+   */
+  readonly foodPhoto: {
+    result: Row
+    error: { status: number; code: string } | null
+    calls: { mimeType: string | null; hint: string; lang: string }[]
+  } = { result: { dish: '', needsNote: false, ingredients: [] }, error: null, calls: [] }
+
+  private async handleFoodPhoto(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    if (!profil?.ai_food_consent_at) return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    const body = (route.request().postDataJSON() ?? {}) as { mimeType?: string; hint?: string; lang?: string }
+    this.foodPhoto.calls.push({ mimeType: body.mimeType ?? null, hint: String(body.hint ?? ''), lang: String(body.lang ?? '') })
+    if (this.foodPhoto.error) return route.fulfill({ status: this.foodPhoto.error.status, headers: corsHeaders(), json: { error: this.foodPhoto.error.code } })
+    return route.fulfill({ headers: corsHeaders(), json: { ...this.foodPhoto.result, remaining: 29 } })
+  }
+
+  /**
+   * Nachbild von supabase/functions/coach (Dot, der KI-Coach): ohne Zugang
+   * (Pro oder Tester) 403 `no_access`, ohne Einwilligung 403
+   * `consent_required`, sonst `coach.antwort` und `coach.meldungen`. Festgehalten wird, was die App
+   * schickt (Verlauf, Kontext, Seite, Sprache).
+   */
+  readonly coach: {
+    antwort: string
+    /** Meldungen per Satz, wie das Werkzeug `einnahmen_melden` sie liefert; als Funktion bekommt sie den gesendeten Kontext. */
+    meldungen: unknown[] | ((kontext: unknown) => unknown[])
+    /** Von Dot vorbereitete Substanzen, wie das Werkzeug `substanz_anlegen` sie liefert. */
+    anlagen: unknown[]
+    error: { status: number; code: string } | null
+    calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
+  } = { antwort: 'Heute ist nichts geplant.', meldungen: [], anlagen: [], error: null, calls: [] }
+
+  /**
+   * Nachbild von supabase/functions/login-name: Name (Groß/klein egal) und
+   * `loginName.passwort` ergeben die Sitzung der Testperson, alles andere 401.
+   */
+  readonly loginName: { passwort: string; calls: { name: string }[] } = { passwort: 'geheim1', calls: [] }
+
+  private async handleLoginName(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const body = (route.request().postDataJSON() ?? {}) as { name?: string; passwort?: string }
+    this.loginName.calls.push({ name: String(body.name ?? '') })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    const passt = String(profil?.username ?? '').toLowerCase() === String(body.name ?? '').trim().toLowerCase() && body.passwort === this.loginName.passwort
+    if (!passt) return route.fulfill({ status: 401, headers: corsHeaders(), json: { error: 'invalid_credentials' } })
+    const s = fakeSession(this.now())
+    return route.fulfill({ headers: corsHeaders(), json: { access_token: s.access_token, refresh_token: s.refresh_token } })
+  }
+
+  private async handleCoach(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id) ?? null
+    if (!hatZugang(profil as { pro_until?: string | null; is_admin?: boolean | null } | null, this.now())) {
+      return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'no_access' } })
+    }
+    if (!profil?.coach_consent_at) return route.fulfill({ status: 403, headers: corsHeaders(), json: { error: 'consent_required' } })
+    const body = (route.request().postDataJSON() ?? {}) as MockSupabase['coach']['calls'][number]
+    this.coach.calls.push(body)
+    if (this.coach.error) return route.fulfill({ status: this.coach.error.status, headers: corsHeaders(), json: { error: this.coach.error.code } })
+    const meldungen = typeof this.coach.meldungen === 'function' ? this.coach.meldungen(body.kontext) : this.coach.meldungen
+    return route.fulfill({ headers: corsHeaders(), json: { antwort: this.coach.antwort, meldungen, anlagen: this.coach.anlagen, verbleibend: 39 } })
+  }
+
+    /** Auflisten und Loeschen (Konto loeschen), signierte Links (private Buckets). */
   private async handleStorage(route: Route, url: URL): Promise<void> {
     const method = route.request().method()
     const rest = url.pathname.slice('/storage/v1/object/'.length)
@@ -455,7 +585,55 @@ export class MockSupabase {
     if (url.pathname === '/auth/v1/token') {
       return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
     }
+    if (url.pathname.startsWith('/auth/v1/passkeys')) return this.handlePasskeys(route, url)
     this.unhandled.push(`AUTH ${url.pathname}`)
+    return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
+  }
+
+  /**
+   * Nachbild der Passkey-Endpunkte von Supabase Auth (experimentell). Die
+   * Zeremonie selbst läuft im Browser gegen einen virtuellen Authenticator;
+   * hier wird nur gemerkt, welche Credential-IDs registriert sind.
+   */
+  readonly passkeys: { id: string; credentialId: string; created_at: string }[] = []
+
+  private async handlePasskeys(route: Route, url: URL): Promise<void> {
+    const method = route.request().method()
+    const pfad = url.pathname.slice('/auth/v1/passkeys'.length)
+    const body = (method === 'POST' ? route.request().postDataJSON() ?? {} : {}) as { credential?: { id?: string } }
+    const challenge = base64urlBytes(16)
+    const ablauf = Math.floor(this.now().getTime() / 1000) + 300
+    if (method === 'POST' && pfad === '/registration/options') {
+      return route.fulfill({ headers: corsHeaders(), json: { challenge_id: 'reg', expires_at: ablauf, options: {
+        challenge, rp: { id: url.searchParams.get('rp') ?? 'localhost', name: 'Dot' },
+        user: { id: Buffer.from(TEST_USER.id).toString('base64url'), name: TEST_USER.email, displayName: 'e2e' },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }], timeout: 60000,
+        authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+      } } })
+    }
+    if (method === 'POST' && pfad === '/registration/verify') {
+      const eintrag = { id: `pk-${this.passkeys.length + 1}`, credentialId: String(body.credential?.id ?? ''), created_at: this.now().toISOString() }
+      this.passkeys.push(eintrag)
+      return route.fulfill({ headers: corsHeaders(), json: { id: eintrag.id, friendly_name: 'Virtueller Schlüssel', created_at: eintrag.created_at } })
+    }
+    if (method === 'POST' && pfad === '/authentication/options') {
+      return route.fulfill({ headers: corsHeaders(), json: { challenge_id: 'auth', expires_at: ablauf, options: { challenge, rpId: 'localhost', userVerification: 'required', timeout: 60000 } } })
+    }
+    if (method === 'POST' && pfad === '/authentication/verify') {
+      if (!this.passkeys.some(p => p.credentialId === body.credential?.id)) {
+        return route.fulfill({ status: 404, headers: corsHeaders(), json: { code: 'webauthn_credential_not_found', error_code: 'webauthn_credential_not_found', msg: 'not found' } })
+      }
+      return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
+    }
+    if (method === 'GET' && (pfad === '' || pfad === '/')) {
+      return route.fulfill({ headers: corsHeaders(), json: this.passkeys.map(p => ({ id: p.id, friendly_name: 'Virtueller Schlüssel', created_at: p.created_at })) })
+    }
+    if (method === 'DELETE') {
+      const i = this.passkeys.findIndex(p => `/${p.id}` === pfad)
+      if (i >= 0) this.passkeys.splice(i, 1)
+      return route.fulfill({ status: 204, headers: corsHeaders() })
+    }
+    this.unhandled.push(`AUTH ${method} ${url.pathname}`)
     return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
   }
 
@@ -486,9 +664,18 @@ export class MockSupabase {
     const prefer = headers.prefer ?? ''
     const filters = [...url.searchParams.entries()].filter(([key]) => !RESERVED_PARAMS.has(key))
     const rows = this.table(tableName)
+    // Filter auf eine eingebettete Spalte (`art.kind=eq.effect`) nur fuer
+    // `!inner`-Einbettungen: die Zeile bleibt, wenn mindestens ein Kind passt.
+    const embedded = new Map(parseSelect(url.searchParams.get('select') ?? '*').filter(field => field.children).map(field => [field.alias, field.table!]))
+    const embeddedMatch = (row: Row, column: string, filter: string) => {
+      const [alias, childColumn] = column.split('.')
+      const relation = RELATIONS[tableName]?.[embedded.get(alias) ?? '']
+      if (!relation || relation.kind !== 'many') throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      return this.table(relation.table).some(child => child[relation.foreign] === row[relation.local] && matches(child, childColumn, filter))
+    }
     const selected = () => rows.filter(row => filters.every(([column, filter]) => {
       if (column === 'or' || column === 'and') return logicalMatch(row, column, filter)
-      if (column.includes('.')) throw new Error(`Filter auf eingebettete Spalte ${column} nicht nachgebildet`)
+      if (column.includes('.')) return embeddedMatch(row, column, filter)
       return matches(row, column, filter)
     }))
 
@@ -555,6 +742,11 @@ export class MockSupabase {
     if (method === 'DELETE') {
       const doomed = new Set(selected())
       this.tables.set(tableName, rows.filter(row => !doomed.has(row)))
+      // on delete cascade aus supabase-tagebuch-chips.sql
+      if (tableName === 'effects') {
+        const gone = new Set([...doomed].map(row => row.id))
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => !gone.has(row.effect_id)))
+      }
       return returnRows ? respond([...doomed]) : route.fulfill({ status: 204, headers: corsHeaders() })
     }
 
@@ -604,6 +796,9 @@ export class MockSupabase {
       .find(row => String(row.username ?? '').toLowerCase() === String(name ?? '').trim().toLowerCase())
     const istAdmin = () => this.table('profiles').some(row => row.id === TEST_USER.id && row.is_admin === true)
 
+    // Registrierung: ist der Benutzername frei? (Groß/klein egal, wie supabase-login-name.sql)
+    this.onRpc('benutzername_frei', params => !this.table('profiles')
+      .some(row => String(row.username ?? '').toLowerCase() === String(params.p_name ?? '').trim().toLowerCase()))
     this.onRpc('report_public_review', params => {
       const review = this.table('reviews').find(row => row.id === params.p_review_id)
       const besitzer = review && this.table('profiles').find(row => row.id === review.user_id)
@@ -822,6 +1017,50 @@ export class MockSupabase {
     })
   }
 
+  // ---------------------------------------------------------------------------
+  // Tagebuch (supabase-tagebuch-save-rpc.sql): Eintrag und Chips in einem
+  // Aufruf. Nachgebaut: Pflichtangaben, Art/Intensität aus den Chips, Chips
+  // ersetzen; ein Katalog-Chip nur einmal je Eintrag. Alles oder nichts.
+
+  private registerDiaryRpcs(): void {
+    this.onRpc('save_diary_entry', params => {
+      const entry = (params.p_entry ?? {}) as Row
+      const chips = (params.p_chips ?? []) as Row[]
+      const title = String(entry.description ?? '').trim()
+      if (!title) throw new RpcError('diary_title_required')
+      if (!chips.length) throw new RpcError('diary_chips_required')
+      const keys = chips.map(chip => chip.symptom_key).filter(Boolean)
+      if (new Set(keys).size !== keys.length) throw new RpcError('duplicate key value violates unique constraint "effect_symptoms_effect_key_uniq"')
+      const kinds = new Set(chips.map(chip => chip.kind))
+      const fields = {
+        description: title,
+        type: kinds.size === 1 ? chips[0].kind : null,
+        severity: Math.max(...chips.map(chip => Number(chip.severity))),
+        duration: null,
+        occurred_at: entry.occurred_at,
+        stack_item_id: entry.stack_item_id || null,
+        dose_log_id: entry.dose_log_id || null,
+        notes: String(entry.notes ?? '').trim() || null,
+      }
+      let effect: Row
+      if (params.p_effect_id) {
+        const found = this.table('effects').find(row => row.id === params.p_effect_id && row.user_id === TEST_USER.id)
+        if (!found) throw new RpcError('diary_entry_not_found')
+        effect = Object.assign(found, fields)
+        this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => row.effect_id !== effect.id))
+      } else {
+        effect = this.insert('effects', { user_id: TEST_USER.id, status: 'eingetreten', ...fields })
+      }
+      chips.forEach((chip, position) => this.insert('effect_symptoms', {
+        effect_id: effect.id, user_id: TEST_USER.id,
+        symptom_key: chip.symptom_key || null, custom_label: String(chip.custom_label ?? '').trim() || null,
+        kind: chip.kind, severity: chip.severity, duration_minutes: chip.duration_minutes ?? null,
+        ongoing: chip.ongoing === true, position,
+      }))
+      return effect.id
+    })
+  }
+
   /** Bounded journey substitute, derived from perf-timezone-check and bestand SQL.
    * It models slot identity and inventory ledgers; it does not prove SQL, RLS,
    * concurrent transactions, or every historical inventory migration path.
@@ -878,6 +1117,17 @@ export class MockSupabase {
       return validated.map(({ saved, fields }) => saved ? saved.taken == null ? Object.assign(saved, fields) : saved : this.insert('dose_logs', fields))
     })
 
+    // Dot: bestätigen und als „automatisch“ markieren in einem Schritt (supabase-auto-tracking.sql).
+    // Markiert wird nur, was vorher offen war.
+    this.onRpc('confirm_intake_group_auto', params => {
+      const schon = new Set(this.table('dose_logs').filter(log => log.user_id === TEST_USER.id && log.taken != null).map(log => log.routine_slot_key))
+      const saved = this.callRpc('confirm_intake_group', params) as Row[]
+      return saved.map(row => {
+        if (row.taken === true && !schon.has(row.routine_slot_key)) row.auto_logged = true
+        return row
+      })
+    })
+
     const ingredientsFor = (item: Row) => this.table('stack_item_ingredients').filter(row => row.stack_item_id === item.id)
     const vialUsesInventory = (item: Row, inventory: Row | undefined) => {
       const ingredients = ingredientsFor(item)
@@ -892,7 +1142,11 @@ export class MockSupabase {
       if (!item) throw new RpcError('Stack item not found')
       const inventory = this.table('stack_item_inventory').find(row => row.stack_item_id === item.id && row.user_id === TEST_USER.id)
       const vialInventory = vialUsesInventory(item, inventory)
-      const legacyVial = item.dosage_form === 'vial' && !vialInventory
+      // Vial mit fertiger Loesung, Bestand in ml: der allgemeine Weg (wie in
+      // supabase-vial-bestand-ml.sql), solange keine alte Vial-Buchung besteht.
+      const genericVial = item.dosage_form === 'vial' && !!inventory?.enabled && inventory.package_unit != null && inventory.package_unit !== 'vial'
+        && !this.table('vial_stock_movements').some(row => row.source_dose_log_id === log.id && row.user_id === TEST_USER.id)
+      const legacyVial = item.dosage_form === 'vial' && !vialInventory && !genericVial
       if (!legacyVial && !vialInventory && item.tracking_level !== 'complete') return null
       if (!legacyVial && !inventory) return null
       if (!legacyVial && !inventory!.enabled) return inventory!.remaining_quantity
@@ -1002,6 +1256,11 @@ function corsHeaders(): Record<string, string> {
     'access-control-allow-methods': 'GET,POST,PATCH,DELETE,HEAD,OPTIONS',
     'access-control-expose-headers': 'content-range',
   }
+}
+
+/** Zufällige Bytes als base64url (Challenge der Passkey-Zeremonie). */
+function base64urlBytes(n: number): string {
+  return Buffer.from(Array.from({ length: n }, () => Math.floor(Math.random() * 256))).toString('base64url')
 }
 
 function base64url(value: object): string {

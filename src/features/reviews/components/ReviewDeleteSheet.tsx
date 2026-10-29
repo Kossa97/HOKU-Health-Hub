@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Trash2 } from 'lucide-react'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 /**
  * Loeschen einer Bewertung — ein eigenes Sheet statt des Browser-Fensters.
@@ -17,7 +18,7 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
   return (
     <div
       data-app-modal
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-10"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
       onClick={() => { if (!busy) onCancel() }}
     >
       <div
@@ -26,7 +27,7 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
         aria-labelledby="review-delete-title"
         aria-describedby="review-delete-desc"
         data-review-delete
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl"
+        className="lg-sheet w-full max-w-md px-5 pb-5 pt-2"
         onClick={event => event.stopPropagation()}
         onKeyDown={event => {
           if (event.key !== 'Escape' || busy) return
@@ -34,18 +35,19 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
           onCancel()
         }}
       >
+        <SheetGriff className="mb-3" onClose={onCancel} disabled={busy} />
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-300">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_18%,transparent)] text-[var(--lg-bad-text)]">
             <Trash2 size={18} aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h2 id="review-delete-title" className="text-lg font-bold text-white">{t('review_delete_title')}</h2>
-            <p id="review-delete-desc" className="mt-0.5 text-sm text-slate-400">
+            <h2 id="review-delete-title" className="lg-title2">{t('review_delete_title')}</h2>
+            <p id="review-delete-desc" className="mt-1 text-[15px] leading-snug text-[var(--lg-text-2)]">
               {name} · {zyklus}
             </p>
           </div>
         </div>
-        <p className="mt-3 text-sm text-slate-400">{t('review_delete_desc')}</p>
+        <p className="mt-3 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('review_delete_desc')}</p>
         <div className="mt-5 flex gap-2">
           <button
             type="button"
@@ -53,7 +55,8 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
             data-app-back-close
             disabled={busy}
             onClick={onCancel}
-            className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-300 disabled:opacity-50"
+            data-quiet
+            className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
           >
             {t('cancel')}
           </button>
@@ -61,7 +64,8 @@ export function ReviewDeleteSheet({ name, zyklus, busy, onCancel, onConfirm }: {
             type="button"
             disabled={busy}
             onClick={onConfirm}
-            className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-50"
+            data-tone="bad"
+            className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
           >
             {busy ? t('review_deleting') : t('loeschen')}
           </button>

@@ -5,7 +5,8 @@
  */
 import { memo, useCallback, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 import { useTranslation } from 'react-i18next'
 import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import { methodLabel } from '../../lib/intakeMethods'
@@ -28,8 +29,7 @@ const DAY = 24 * 3_600_000
 
 // ── Bausteine ─────────────────────────────────────────────────────────────
 
-const MUTED: CSSProperties = { color: 'var(--text-muted)' }
-const HAIRLINE = '1px solid var(--border)'
+const MUTED: CSSProperties = { color: 'var(--lg-text-2)' }
 
 function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
   if (points.length < 2) return <span style={{ width: 48, height: 20, display: 'inline-block' }} />
@@ -83,7 +83,7 @@ const TickerStrip = memo(function TickerStrip({
             style={{
               flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 44,
               padding: compact ? '6px 10px' : '8px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
-              background: selected ? 'var(--surface-raised)' : 'transparent',
+              background: selected ? 'var(--lg-fill)' : 'transparent',
               textAlign: 'left', fontFamily: 'inherit',
               transition: 'background 0.2s ease',
             }}
@@ -92,7 +92,7 @@ const TickerStrip = memo(function TickerStrip({
               <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {entry.name}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>
                 {curve?.current != null ? `${f.pct(curve.current)} %` : '—'}
               </span>
             </span>
@@ -107,7 +107,7 @@ const TickerStrip = memo(function TickerStrip({
 function RangeControl({ value, onChange }: { value: ChartRange; onChange: (r: ChartRange) => void }) {
   const { t } = useTranslation()
   return (
-    <div role="radiogroup" aria-label={t('pk_range_select')} style={{ display: 'flex', gap: 4 }}>
+    <div role="radiogroup" aria-label={t('pk_range_select')} style={{ display: 'flex', gap: 0, padding: 2, borderRadius: 999, background: 'var(--lg-fill)' }}>
       {CHART_RANGES.map(range => {
         const active = range === value
         return (
@@ -118,10 +118,11 @@ function RangeControl({ value, onChange }: { value: ChartRange; onChange: (r: Ch
             aria-checked={active}
             onClick={() => onChange(range)}
             style={{
-              flex: '0 0 auto', minHeight: 36, minWidth: 52, padding: '0 12px', borderRadius: 999, border: 'none',
-              background: active ? 'var(--surface-raised)' : 'transparent',
-              color: active ? 'var(--text)' : 'var(--text-dim)',
-              fontSize: 14, fontWeight: active ? 800 : 600, cursor: 'pointer', fontFamily: 'inherit',
+              flex: '1 1 0', minHeight: 36, padding: '0 10px', borderRadius: 999, border: 'none',
+              background: active ? 'var(--lg-fill-selected)' : 'transparent',
+              boxShadow: active ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
+              color: active ? 'var(--lg-text)' : 'var(--lg-text-2)',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
               transition: 'background 0.2s ease, color 0.2s ease',
             }}
           >
@@ -137,13 +138,13 @@ function StatTable({ rows }: { rows: Array<{ label: string; value: string }> }) 
   // Drei Spalten wie in der Aktien-App; auf schmalen Geraeten zwei.
   return (
     <dl
-      className="blutspiegel-stats"
-      style={{ display: 'grid', columnGap: 0, rowGap: 0, margin: 0 }}
+      className="blutspiegel-stats lg-surface"
+      style={{ display: 'grid', columnGap: 16, rowGap: 0, margin: 0, padding: '12px 18px', borderRadius: 22 }}
     >
       {rows.map(row => (
-        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '7px 12px 7px 0', minWidth: 0 }}>
+        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '7px 0', minWidth: 0 }}>
           <dt style={{ ...MUTED, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.label}</dt>
-          <dd style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</dd>
+          <dd style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</dd>
         </div>
       ))}
     </dl>
@@ -160,8 +161,8 @@ function UnsupportedRow({ entry }: { entry: UnsupportedEntry }) {
     : entry.reason === 'route' ? t('pk_nocurve_route', { method: methodLabel(t, entry.method) })
       : t('pk_nocurve_profile')
   return (
-    <div className="flex min-h-[52px] items-baseline gap-2 py-3.5" style={{ borderTop: HAIRLINE }} title={lang} data-bs-nocurve={entry.reason}>
-      <span className="shrink-0 text-[15px] font-bold" style={{ color: 'var(--text)' }}>{entry.name}</span>
+    <div className="flex min-h-[52px] items-baseline gap-2 px-4 py-3.5" title={lang} data-bs-nocurve={entry.reason}>
+      <span className="shrink-0 text-[16px]" style={{ color: 'var(--lg-text)' }}>{entry.name}</span>
       <span className="truncate text-[13px]" style={MUTED}>{kurz}</span>
     </div>
   )
@@ -219,26 +220,26 @@ const DetailStats = memo(function DetailStats({
   return (
     <>
       <StatTable rows={statRows} />
-      <div style={{ borderTop: HAIRLINE }}>
+      <div className="lg-group">
         <button
           type="button"
           aria-expanded={explainOpen}
           onClick={() => setExplainOpen(o => !o)}
           style={{
-            width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit',
-            fontSize: 15, fontWeight: 700, color: 'var(--text)',
+            width: '100%', minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'none', border: 'none', padding: '0 16px', cursor: 'pointer', fontFamily: 'inherit',
+            fontSize: 16, fontWeight: 600, color: 'var(--lg-text)',
           }}
         >
           {t('pk_explain_title')}
-          <ChevronDown size={18} style={{ transform: explainOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', color: 'var(--text-muted)' }} />
+          <ChevronDown size={18} style={{ transform: explainOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', color: 'var(--lg-text-3)' }} />
         </button>
         {explainOpen && (
-          <dl style={{ margin: '0 0 8px' }}>
+          <dl style={{ margin: 0, padding: '0 16px 10px' }}>
             {explanations.map(e => (
               <div key={e.label} style={{ padding: '8px 0' }}>
-                <dt style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{e.label}</dt>
-                <dd style={{ margin: '2px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--text-dim)' }}>{e.text}</dd>
+                <dt style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)' }}>{e.label}</dt>
+                <dd style={{ margin: '2px 0 0', fontSize: 14, lineHeight: 1.5, color: 'var(--lg-text-2)' }}>{e.text}</dd>
               </div>
             ))}
           </dl>
@@ -262,17 +263,17 @@ function MissingRow({ entry }: { entry: MissingEntry }) {
     <Link
       to={`/my-stack?edit=${encodeURIComponent(entry.stackItemId)}&intent=pk`}
       aria-label={`${entry.name}: ${t('pk_complete_action')}`}
-      className="-mx-3 flex min-h-[52px] items-center gap-3 rounded-xl px-3 transition-colors duration-100 active:bg-[var(--surface-raised)]"
-      style={{ borderTop: HAIRLINE, color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
+      className="flex min-h-[52px] items-center gap-3 px-4 transition-colors duration-100 active:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--lg-accent)]"
+      style={{ color: 'var(--lg-text)', WebkitTapHighlightColor: 'transparent' }}
       data-bs-nocurve="missing"
     >
       <span className="flex min-w-0 flex-1 items-baseline gap-2">
-        <span className="shrink-0 text-[15px] font-bold">{entry.name}</span>
+        <span className="shrink-0 text-[16px]">{entry.name}</span>
         <span className="truncate text-[13px]" style={MUTED}>
           {t('pk_nocurve_missing', { requirements: entry.missing.map(r => labels[r]).join(', ') })}
         </span>
       </span>
-      <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
+      <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--lg-text-3)', flexShrink: 0 }} />
     </Link>
   )
 }
@@ -283,15 +284,15 @@ function LetzteEinnahmen({ doses }: { doses: EntryCurve['doses'] }) {
   const liste = doses.slice(-10).reverse()
   return (
     <section aria-labelledby="bs-doses-title">
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 0 4px' }}>
-        <h2 id="bs-doses-title" style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text)' }}>{f.t('pk_recent_doses')}</h2>
-        <span style={{ fontSize: 14, ...MUTED, fontVariantNumeric: 'tabular-nums' }}>{doses.length}</span>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '12px 4px 8px' }}>
+        <h2 id="bs-doses-title" className="lg-title2">{f.t('pk_recent_doses')}</h2>
+        <span style={{ fontSize: 15, ...MUTED, fontVariantNumeric: 'tabular-nums' }}>{doses.length}</span>
       </div>
-      <ul>
+      <ul className="lg-group lg-rows">
         {liste.map((d, i) => (
-          <li key={`${d.ts}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: HAIRLINE, fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{f.scrub(d.ts)}</span>
-            <span style={{ fontSize: 15, color: 'var(--text)' }}>{f.num(d.dose)} <span style={MUTED}>{d.unit}</span></span>
+          <li key={`${d.ts}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, minHeight: 48, alignItems: 'center', padding: '10px 16px', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 16, color: 'var(--lg-text)' }}>{f.scrub(d.ts)}</span>
+            <span style={{ fontSize: 16, color: 'var(--lg-text)' }}>{f.num(d.dose)} <span style={MUTED}>{d.unit}</span></span>
           </li>
         ))}
       </ul>
@@ -328,7 +329,18 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     [data.entries, compact],
   )
 
-  const scrubLabel = useMemo(() => ({ date: f.scrub, value: (v: number) => `${f.pct(v)} %` }), [f])
+  // Auf einer Einnahme nennt das Schild sie mit Dosis; das Ablesen rastet dort ein.
+  const scrubLabel = useMemo(() => {
+    const doses = new Map((curve?.doses ?? []).map(d => [d.ts, d]))
+    return {
+      date: f.scrub,
+      value: (v: number) => `${f.pct(v)} %`,
+      note: (ts: number) => {
+        const d = doses.get(ts)
+        return d ? f.t('pk_scrub_intake', { dose: `${f.num(d.dose)} ${d.unit}` }) : null
+      },
+    }
+  }, [f, curve?.doses])
   const select = useCallback((key: string) => { setPickedKey(key); setScrub(null); setViewEnd(null) }, [])
   const changeRange = useCallback((r: ChartRange) => { setRange(r); setScrub(null); setViewEnd(null) }, [])
 
@@ -354,17 +366,16 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   }
   if (data.loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: compact ? 160 : 280, justifyContent: 'center' }}>
-        <Loader2 size={18} color="var(--accent)" className="animate-spin" />
-        <span style={{ fontSize: 14, ...MUTED }}>{t('pk_live_loading')}</span>
-      </div>
+      <Silhouette label={t('pk_live_loading')}>
+        <KurvenUmriss anzahl={1} hoehe={compact ? 96 : 200} />
+      </Silhouette>
     )
   }
 
   if (!selected && einzeln && pickedKey) {
     return (
       <div style={{ padding: '24px 0', textAlign: 'center' }} data-bs-not-found>
-        <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 6 }}>{t('pk_not_found')}</p>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', marginBottom: 6 }}>{t('pk_not_found')}</p>
         <Link to={UEBERSICHT_PFAD} style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{t('pk_back_overview')}</Link>
       </div>
     )
@@ -374,10 +385,10 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     return (
       <div>
         {missing.length > 0
-          ? missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)
+          ? <div className="lg-group lg-rows">{missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}</div>
           : (
             <div style={{ padding: '24px 0', textAlign: 'center' }}>
-              <p style={{ fontSize: 14, color: 'var(--text-dim)', marginBottom: 6 }}>{t('pk_no_ready_items')}</p>
+              <p style={{ fontSize: 14, color: 'var(--lg-text-3)', marginBottom: 6 }}>{t('pk_no_ready_items')}</p>
               {compact && (
                 <Link to="/simulation" style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{t('pk_open_simulation')}</Link>
               )}
@@ -395,7 +406,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   const shown = curve?.current != null && points.length ? points[points.length - 1] : null
   const change = shown ? aenderungSeit(points, bounds.start) : null
   // Neutral: zwischen zwei Dosen faellt der Spiegel immer — kein Warnsignal.
-  const changeColor = 'var(--text-dim)'
+  const changeColor = 'var(--lg-text-3)'
   const subline = t(`pk_range_label_${effectiveRange}`)
 
   return (
@@ -406,9 +417,9 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
 
       {/* Kopf: Name, Wert, Veraenderung */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, paddingBottom: compact ? 6 : 10, borderBottom: compact ? 'none' : HAIRLINE }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, paddingBottom: compact ? 6 : 4 }}>
           <h2 style={{
-            fontSize: compact ? 22 : 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)', lineHeight: 1.05,
+            fontSize: compact ? 22 : 34, fontWeight: 700, letterSpacing: compact ? '-0.01em' : '0.011em', color: 'var(--lg-text)', lineHeight: compact ? 1.05 : '41px',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
           }}>
             {selected.name}
@@ -429,28 +440,28 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
         </div>
         <div style={{ marginTop: compact ? 0 : 10 }}>
           <p style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ fontSize: compact ? 22 : 26, fontWeight: 800, color: 'var(--text)' }}>
+            <span style={{ fontSize: compact ? 22 : 28, fontWeight: 700, color: 'var(--lg-text)' }}>
               {shown ? `${f.pct(shown.level)} %` : '—'}
             </span>
             {change != null && (
               <span style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: changeColor }}>{f.signed(change)}</span>
             )}
           </p>
-          <p style={{ fontSize: compact ? 13 : 16, color: 'var(--text-dim)', marginTop: 2 }}>{subline}</p>
-          {!compact && <p style={{ fontSize: 13, ...MUTED, marginTop: 2 }}>{t('pk_model_note')}</p>}
+          <p style={{ fontSize: compact ? 13 : 15, color: 'var(--lg-text-2)', marginTop: 2 }}>{subline}</p>
+          {!compact && <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 2 }}>{t('pk_model_note')}</p>}
         </div>
         <div style={{ marginTop: 6 }}>
           <LiveStatus asOf={asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} interrupted={curve?.interruptedAt != null} />
         </div>
         {curve?.interruptedAt != null && (
-          <p role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>{t('pk_interrupted')}</p>
+          <p role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: 'var(--lg-warn-text)' }}>{t('pk_interrupted')}</p>
         )}
       </div>
 
       {!compact && <RangeControl value={range} onChange={changeRange} />}
 
       {/* Fuer Screenreader: der abgelesene Wert (sichtbar steht er im Schild im Graph). */}
-      <p className="sr-only" aria-live="polite">{scrub ? `${scrubLabel.date(scrub.ts)}: ${scrubLabel.value(scrub.level)}` : ''}</p>
+      <p className="sr-only" aria-live="polite" data-bs-scrub-live>{scrub ? [`${scrubLabel.date(scrub.ts)}: ${scrubLabel.value(scrub.level)}`, scrubLabel.note(scrub.ts)].filter(Boolean).join(' · ') : ''}</p>
       {points.length ? (
         <StocksChart
           points={points}
@@ -461,6 +472,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           height={compact ? 210 : 340}
           seriesKey={selected.key}
           intakes={curve?.intakes}
+          snapTimes={curve?.intakes}
           formatTick={f.tick}
           formatValue={f.num}
           onScrub={setScrub}
@@ -482,8 +494,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           {einzeln && curve && curve.doses.length > 0 && <LetzteEinnahmen doses={curve.doses} />}
           {missing.length > 0 && !einzeln && (
             <div>
-              <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)', padding: '12px 0 4px' }}>{t('pk_incomplete_title')}</p>
-              {missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}
+              <p className="lg-group-title" style={{ paddingTop: 12 }}>{t('pk_incomplete_title')}</p>
+              <div className="lg-group lg-rows">{missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}</div>
             </div>
           )}
         </>

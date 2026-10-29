@@ -54,6 +54,7 @@ export function InjectionTrackerTabs({
   return (
     <>
       <div
+        data-injection-cover="bottom"
         className="injection-floating-actions pointer-events-none absolute left-4 right-4 z-30 flex items-center justify-between gap-3"
         style={{ bottom: 'calc(14px + env(safe-area-inset-bottom))' }}
       >
@@ -77,28 +78,27 @@ export function InjectionTrackerTabs({
           data-app-back-dirty-on-interaction
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"
+          className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col overflow-hidden overscroll-y-contain"
           style={{
-            background: 'linear-gradient(180deg, rgba(7,11,24,0.96), var(--surface))',
             overscrollBehaviorY: 'contain',
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          <div className="shrink-0 border-b border-white/10 px-4 py-3">
+          <div className="shrink-0 px-4 pb-2 pt-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 aria-label={String(t('close', { defaultValue: 'Schließen' }))}
                 onClick={closeSheet}
                 data-app-back-close
-                className="grid min-h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:text-white"
+                className="lg-glass lg-icon-btn lg-press shrink-0"
               >
-                <X size={17} aria-hidden="true" />
+                <X size={20} aria-hidden="true" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-xl font-black text-white">{labels.open}</h2>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <h2 className="truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{labels.open}</h2>
+                <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-3)]">
                   {t('injection_intakes_hint', { defaultValue: 'Einnahme wählen, dann die Stelle auf der Karte markieren.' })}
                 </p>
               </div>
@@ -113,16 +113,17 @@ export function InjectionTrackerTabs({
 
       {activeSheet === 'history' && (
         <section
+          data-injection-cover="bottom"
           data-app-modal
           role="dialog"
           aria-modal="true"
-          className="absolute bottom-0 left-0 right-0 z-40 max-h-[48dvh] overflow-hidden border-t border-white/10 px-4 pt-3"
+          className="lg-sheet absolute bottom-2 left-2 right-2 z-40 max-h-[48dvh] overflow-hidden px-4 pt-3"
           style={{
-            background: 'linear-gradient(180deg, rgba(7, 11, 24, 0.92), var(--surface))',
+            // Leicht durchscheinend: die Karte bleibt darunter erkennbar.
+            background: 'rgba(28, 28, 30, 0.9)',
             paddingBottom: 'calc(0.85rem + env(safe-area-inset-bottom))',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 -18px 46px rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(30px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(30px) saturate(180%)',
           }}
         >
           <div className="mb-2 flex items-center gap-3">
@@ -131,14 +132,13 @@ export function InjectionTrackerTabs({
               aria-label={String(t('close', { defaultValue: 'Schließen' }))}
               onClick={closeSheet}
               data-app-back-close
-              className="grid min-h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:text-white"
+              className="lg-icon-btn lg-press shrink-0 bg-[var(--lg-fill)] !text-[var(--lg-text-2)]"
             >
-              <X size={17} aria-hidden="true" />
+              <X size={20} aria-hidden="true" />
             </button>
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2 text-white">
-                <History size={18} className="shrink-0 text-sky-300" aria-hidden="true" />
-                <h2 className="truncate text-lg font-black">{labels.history}</h2>
+              <div className="flex min-w-0 items-center gap-2 text-[var(--lg-text)]">
+                <h2 className="lg-title2 truncate">{labels.history}</h2>
               </div>
               <HistoryDaysSelect
                 className="shrink-0"
@@ -182,7 +182,8 @@ function FloatingActionButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={'pointer-events-auto flex min-h-12 min-w-[8.5rem] cursor-pointer items-center justify-center gap-2 rounded-2xl border px-4 text-sm font-black shadow-[0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl transition-colors ' + (active ? 'border-sky-300/35 bg-sky-400/20 text-sky-200' : 'border-white/10 bg-black/50 text-slate-200 hover:text-white')}
+      // Glas-Kapsel über der Karte; aktiv in der Akzentfarbe getönt.
+      className={'lg-btn pointer-events-auto min-w-[8.5rem] !px-5 !text-[15px] ' + (active ? 'lg-btn-primary' : 'lg-glass lg-btn-glass')}
     >
       {icon}
       <span className="truncate">{label}</span>

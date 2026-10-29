@@ -150,8 +150,10 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
       role="dialog"
       aria-modal="true"
       aria-label={workout.title || tt('workout')}
+      // Vollbild auf reinem Schwarz wie die Seiten der App
+      className="lg-backdrop"
       style={{
-        position: 'fixed', inset: 0, zIndex: 85, background: 'var(--app-bg)', color: 'var(--text)',
+        position: 'fixed', inset: 0, zIndex: 85, color: 'var(--lg-text)',
         display: 'flex', flexDirection: 'column', height: '100dvh',
       }}
     >
@@ -159,17 +161,17 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: 'calc(8px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 8px calc(12px + env(safe-area-inset-left, 0px))',
-          borderBottom: '1px solid var(--border)', background: 'var(--surface)',
+          borderBottom: '0.5px solid var(--lg-separator)',
         }}
       >
         <button
           type="button"
           onClick={onMinimize}
           aria-label={tt('back')}
-          className="tyd-train-press"
-          style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}
+          className="lg-glass lg-icon-btn lg-press"
+          style={{ flexShrink: 0 }}
         >
-          <ChevronDown size={24} aria-hidden="true" />
+          <ChevronDown size={22} aria-hidden="true" />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <input
@@ -178,17 +180,18 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
             placeholder={tt('workout_title_placeholder')}
             aria-label={tt('workout_title_placeholder')}
             maxLength={80}
-            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 16, fontWeight: 800, padding: 0 }}
+            className="tyd-train-input rounded-md"
+            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--lg-text)', fontSize: 17, fontWeight: 600, padding: 0 }}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.75rem', fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>
             {!editing && <ElapsedClock startedAt={workout.startedAt} />}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               <Check size={12} strokeWidth={3} aria-hidden="true" style={{ color: '#10b981', flexShrink: 0 }} />
               {tt('saved_on_device')}
             </span>
           </div>
         </div>
-        <Button onClick={() => setFinishing(true)} style={{ minHeight: 40 }}>
+        <Button onClick={() => setFinishing(true)} style={{ minHeight: 44, flexShrink: 0 }}>
           {editing ? tt('save') : tt('finish')}
         </Button>
       </header>
@@ -196,7 +199,7 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
       <main ref={mainRef} style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '12px 10px 24px' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {workout.exercises.length === 0 && (
-            <p style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '32px 0 8px' }}>{tt('empty_workout_hint')}</p>
+            <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--lg-text-3)', padding: '32px 16px 8px' }}>{tt('empty_workout_hint')}</p>
           )}
           {workout.exercises.map((exercise, index) => (
             <ExerciseBlock
@@ -225,7 +228,7 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
             />
           ))}
 
-          <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 52, borderStyle: 'dashed', color: TRAINING_ACCENT }}>
+          <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 50 }}>
             <Plus size={18} aria-hidden="true" /> {tt('add_exercise')}
           </Button>
           <Button
@@ -244,7 +247,7 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
           className="tyd-train-pop"
           style={{
             padding: '8px calc(10px + env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px))',
-            borderTop: '1px solid var(--border)', background: 'var(--surface)',
+            borderTop: '0.5px solid var(--lg-separator)', background: 'var(--lg-sheet-solid)',
           }}
         >
           <div style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -316,7 +319,7 @@ function ElapsedClock({ startedAt }: { startedAt: string }) {
     return () => window.clearInterval(id)
   }, [])
   return (
-    <span style={{ fontSize: '0.8rem', color: TRAINING_ACCENT, fontWeight: 750, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+    <span style={{ fontSize: 13, color: TRAINING_ACCENT, fontWeight: 600, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
       {formatClock(Math.max(0, (now - Date.parse(startedAt)) / 1000))}
     </span>
   )

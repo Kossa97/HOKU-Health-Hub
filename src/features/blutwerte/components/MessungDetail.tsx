@@ -4,7 +4,7 @@ import type { EffectiveRange } from '../lib/bloodwork'
 import { abstandZurGrenze, roundConverted } from '../lib/bloodwork'
 import type { BloodworkEntry } from '../types'
 import { formatDisplayDate, formatNumber, formatSigned as signed } from '../lib/format'
-import { CYAN, GREEN, MUTED, RED, RED_WEAK, TEXT } from '../styles'
+import { MUTED, RED, TEXT } from '../styles'
 import { ReferenceBar } from './ReferenceBar'
 
 /**
@@ -28,8 +28,8 @@ export function MessungDetail({ id, entry, value, unit, diff, range, inRange, on
     <div
       id={id}
       data-bw-entry-detail
-      className="bw-messung-detail mb-3 mt-1 flex flex-col gap-3 rounded-2xl p-4"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+      className="bw-messung-detail mx-3 mb-3 mt-1 flex flex-col gap-3 rounded-[20px] p-4"
+      style={{ background: 'var(--lg-surface-2)' }}
     >
       <style>{`
         /* Aufklappen: kurz einblenden und 4 px nachruecken, beim Schliessen sofort weg */
@@ -40,7 +40,7 @@ export function MessungDetail({ id, entry, value, unit, diff, range, inRange, on
         }
       `}</style>
       <div className="flex items-end justify-between gap-3">
-        <p className="text-2xl font-bold tabular-nums" style={{ color: inRange === false ? RED : CYAN }} data-bw-entry-value>
+        <p className="text-2xl font-bold tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-entry-value>
           {formatNumber(value ?? entry.value)}
           <span className="ml-1.5 text-sm font-semibold" style={{ color: MUTED }}>{unit}</span>
         </p>
@@ -53,21 +53,20 @@ export function MessungDetail({ id, entry, value, unit, diff, range, inRange, on
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          {inRange === true && <span className="badge" style={{ background: 'rgba(16,185,129,0.12)', color: GREEN }}>{t('bw_in_range')}</span>}
+          {inRange === true && <span className="lg-tag" data-tone="good">{t('bw_in_range')}</span>}
           {inRange === false && (
-            <span className="badge" style={{ background: RED_WEAK, color: RED }}>
+            <span className="lg-tag" data-tone="bad">
               {abstand ? t(abstand.key, { value: `${formatNumber(roundConverted(abstand.wert))} ${unit}` }) : t('bw_out_range')}
             </span>
           )}
-          {inRange === null && <span className="badge" style={{ background: 'var(--border)', color: MUTED }}>{t('bw_no_reference')}</span>}
+          {inRange === null && <span className="lg-tag">{t('bw_no_reference')}</span>}
         </div>
         <button
           type="button"
           onClick={onEdit}
           aria-label={t('bw_edit_aria', { value: `${formatNumber(entry.value)} ${entry.unit}`, date: formatDisplayDate(entry.tested_at) })}
           data-bw-entry-edit
-          className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-transform duration-100 active:scale-[0.97]"
-          style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', color: TEXT }}
+          className="lg-gray-btn !min-h-10 !px-4 !text-sm"
         >
           <Pencil size={15} strokeWidth={2.2} aria-hidden="true" />
           {t('bw_edit')}

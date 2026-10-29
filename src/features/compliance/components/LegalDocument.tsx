@@ -6,19 +6,19 @@ export function LegalDocument({ page, headingId }: { page: LegalPageKey; heading
   const { t, i18n } = useTranslation()
   const doc = LEGAL_DOCS[page][legalLang(i18n.resolvedLanguage ?? i18n.language)]
   return (
-    <article data-legal-page={page} className="text-slate-300">
-      <h1 id={headingId} className="text-2xl font-bold text-white">{doc.title}</h1>
-      <p className="mt-1 text-xs text-slate-500">{doc.updated}</p>
+    <article data-legal-page={page} className="text-[var(--lg-text-2)]">
+      <h1 id={headingId} className="lg-title2 !text-[26px] !leading-tight">{doc.title}</h1>
+      <p className="mt-1 text-[13px] text-[var(--lg-text-3)]">{doc.updated}</p>
       {hatPlatzhalter(doc) && (
-        <p data-legal-draft className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+        <p data-legal-draft className="mt-3 rounded-[14px] bg-[var(--lg-surface-2)] px-3.5 py-2.5 text-[13px] text-[var(--lg-warn-text)]">
           {t('legal_draft')}
         </p>
       )}
       <div className="mt-5 flex flex-col gap-5">
         {doc.sections.map(section => (
           <section key={section.heading}>
-            <h2 className="text-sm font-semibold text-white">{section.heading}</h2>
-            <div className="mt-1.5 flex flex-col gap-2 text-sm leading-relaxed">
+            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{section.heading}</h2>
+            <div className="mt-1.5 flex flex-col gap-2 text-[15px] leading-relaxed">
               {section.paragraphs.map((absatz, i) => (
                 <p key={i}>
                   {teileAbsatz(absatz).map((teil, j) => teil.platzhalter

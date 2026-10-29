@@ -84,21 +84,21 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
       <section>
         <SectionTitle action={newRoutineAction}>{tt('routines')}</SectionTitle>
         {data.routines.length === 0 && (
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', margin: '0 2px 10px' }}>{tt('routines_empty')}</p>
+          <p style={{ fontSize: '0.88rem', color: 'var(--lg-text-3)', margin: '0 2px 10px' }}>{tt('routines_empty')}</p>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {groups.map(group => (
             <div key={group.folder ?? '\0'} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {(groups.length > 1 || group.folder != null) && (
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, margin: '0 2px' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {group.folder != null ? tt('plan_heading', { name: group.folder }) : tt('routine_folder_none')}
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
                 </div>
               )}
               {group.routines.map(r => r.id === next?.routine.id ? (
-                <Card key={r.id} accent={TRAINING_ACCENT} style={{ padding: 14, borderColor: restDay ? undefined : `${TRAINING_ACCENT}73` }}>
+                <Card key={r.id} style={{ padding: 14, boxShadow: restDay ? undefined : `var(--lg-surface-shadow), inset 0 0 0 1.5px ${TRAINING_ACCENT}99` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: '1.05rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
                     {restDay ? (
@@ -110,11 +110,11 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                         {next.plannedToday ? tt('planned_today') : tt('plan_next_title')}
                       </span>
                     )}
-                    <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 40, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', flexShrink: 0 }}>
+                    <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 40, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)', flexShrink: 0 }}>
                       <Pencil size={18} aria-hidden="true" />
                     </button>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', margin: '2px 0 12px' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--lg-text-3)', margin: '2px 0 12px' }}>
                     {restDay && `${tt('plan_next_title')} · `}
                     {tt('exercises_count', { count: r.exercises.length })}
                     {r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
@@ -129,12 +129,12 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>
                         {tt('exercises_count', { count: r.exercises.length })}
                         {r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
                       </div>
                     </div>
-                    <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)' }}>
+                    <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)' }}>
                       <Pencil size={18} aria-hidden="true" />
                     </button>
                     <Button onClick={() => onStartRoutine(r)} aria-label={`${r.name} – ${tt('start')}`} style={{ padding: '10px 14px' }}>
@@ -150,13 +150,13 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
         <div style={{ marginTop: data.routines.length === 0 ? 0 : 12 }}>
           {data.routines.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-dim)', margin: '0 2px' }}>{tt('plan_templates')}</div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--lg-text-3)', margin: '0 2px' }}>{tt('plan_templates')}</div>
               {TRAINING_PLANS.map(plan => (
                 <Card key={plan.id} onClick={() => setTemplate(plan)} style={{ padding: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 800 }}>{plan.name[lang]}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>
                         {tt('routines_count', { count: plan.days.length })} · {tt('plan_days_per_week', { count: plan.days.length })}
                       </div>
                     </div>
@@ -168,14 +168,14 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontWeight: 650, marginRight: 2 }}>{tt('plan_templates')}</span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)', fontWeight: 650, marginRight: 2 }}>{tt('plan_templates')}</span>
               {TRAINING_PLANS.map(plan => (
                 <Chip key={plan.id} active={false} onClick={() => setTemplate(plan)}>{plan.name[lang]}</Chip>
               ))}
               <Chip active={false} onClick={() => setHyroxPick(true)}>{hyroxLabel}</Chip>
             </div>
           )}
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '8px 2px 0' }}>{tt('plan_template_hint')}</p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', margin: '8px 2px 0' }}>{tt('plan_template_hint')}</p>
         </div>
       </section>
 
@@ -188,13 +188,13 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
             <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{template.name[lang]}</div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>{tt('plan_create_hint', { name: template.name[lang], count: template.days.length })}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--lg-text-3)' }}>{tt('plan_create_hint', { name: template.name[lang], count: template.days.length })}</p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {template.days.map(day => (
-                <li key={day.name.en} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <li key={day.name.en} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, background: 'var(--lg-surface-2)', border: '1px solid var(--lg-separator)' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 750 }}>{day.name[lang]}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{tt('exercises_count', { count: day.exercises.length })}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('exercises_count', { count: day.exercises.length })}</div>
                   </div>
                   <span style={{ fontSize: '0.78rem', fontWeight: 700, color: TRAINING_ACCENT }}>{weekdayList(day.weekdays)}</span>
                 </li>
@@ -248,7 +248,7 @@ export function WeeklyMuscleCard({ data, now }: { data: TrainingData; now: Date 
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('muscle_week_title')}</span>
+        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tt('muscle_week_title')}</span>
         <BandLegend />
       </div>
       <MuscleBars rows={rows} />

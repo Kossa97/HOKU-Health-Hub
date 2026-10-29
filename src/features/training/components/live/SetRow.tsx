@@ -20,14 +20,15 @@ import { SetWheelSheet } from './SetWheelSheet'
  * (`SetWheelSheet`); Distanz und Dauer bleiben Eingabefelder.
  */
 
-export const DONE_TINT = 'rgba(16,185,129,0.14)'
-const DONE_COLOR = '#10b981'
+export const DONE_TINT = 'rgba(48,209,88,0.16)'
+const DONE_COLOR = '#30d158'
 
 export const SET_TYPE_COLOR: Record<TrainingSet['type'], string> = {
-  normal: 'var(--text)',
-  warmup: '#f59e0b',
-  drop: '#a855f7',
-  failure: '#f43f5e',
+  normal: 'var(--lg-text)',
+  // Helle Varianten: lesbar auf Schwarz
+  warmup: 'var(--lg-warn-text)',
+  drop: '#da8fff',
+  failure: 'var(--lg-bad-text)',
 }
 
 /** Spaltenraster je Erfassungsart — Kopfzeile und Zeilen teilen es. */
@@ -118,10 +119,10 @@ function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange
       }}
       style={{
         width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
-        fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
-        background: set.done ? 'transparent' : 'var(--surface-input)',
-        border: `1px solid ${set.done ? 'transparent' : 'var(--border-strong)'}`,
-        color: suggested && !set.done ? TRAINING_ACCENT : 'var(--text)', padding: '0 4px',
+        fontSize: 16, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+        background: set.done ? 'transparent' : 'var(--lg-fill)',
+        border: 0,
+        color: suggested && !set.done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
         transition: 'background 160ms ease-out',
       }}
     />
@@ -149,9 +150,9 @@ function ValueButton({ value, placeholder, label, done, suggested, onOpen, butto
       style={{
         width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
         fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
-        background: done ? 'transparent' : 'var(--surface-input)',
-        border: `1px solid ${done ? 'transparent' : 'var(--border-strong)'}`,
-        color: !value ? 'var(--text-muted)' : suggested && !done ? TRAINING_ACCENT : 'var(--text)', padding: '0 4px',
+        background: done ? 'transparent' : 'var(--lg-fill)',
+        border: `1px solid ${done ? 'transparent' : 'var(--lg-separator)'}`,
+        color: !value ? 'var(--lg-text-3)' : suggested && !done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
         fontStyle: !value ? 'normal' : undefined,
         transition: 'background 160ms ease-out',
       }}
@@ -205,11 +206,11 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
         onClick={onOpenSetMenu}
         aria-label={`${tt('col_set')} ${label}: ${tt(`set_type_${set.type}`)}`}
         className="tyd-train-press"
-        style={{ height: 36, borderRadius: 10, fontWeight: 800, color: SET_TYPE_COLOR[set.type], background: 'var(--surface-raised)' }}
+        style={{ height: 36, borderRadius: 10, fontSize: 15, fontWeight: 600, color: SET_TYPE_COLOR[set.type], background: 'var(--lg-fill)' }}
       >
         {label}
       </button>
-      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 13, color: 'var(--lg-text-3)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {previousLabel(previous, tracking, unit, locale)}
       </span>
       {usesWeight(tracking) && <ValueButton value={displayValue('weight', set, unit, locale)} placeholder={ph('weight')} label={weightLabel} done={set.done} suggested={suggested} onOpen={() => setWheel('weight')} buttonRef={weightButton} />}
@@ -240,9 +241,9 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
         style={{
           width: 44, height: 40, borderRadius: 12,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          background: set.done ? DONE_COLOR : 'var(--surface-raised)',
-          border: `1px solid ${set.done ? DONE_COLOR : 'var(--border-strong)'}`,
-          color: set.done ? '#04140d' : 'var(--text-muted)',
+          background: set.done ? DONE_COLOR : 'var(--lg-fill)',
+          border: 0,
+          color: set.done ? '#fff' : 'var(--lg-text-3)',
         }}
       >
         <Check size={20} strokeWidth={3} aria-hidden="true" />

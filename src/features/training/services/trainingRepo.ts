@@ -318,7 +318,7 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
       : [],
     // Fehlt der Schluessel (Einstellungen aus v1), gilt der Standard „an".
     restSound: value.restSound !== false,
-    restNotify: value.restNotify !== false,
+    restNotify: value.restNotify === true,
   }
 }
 

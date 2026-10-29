@@ -56,10 +56,10 @@ function Pill({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`min-h-11 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 ${
+      className={`min-h-9 px-3.5 rounded-full text-[13px] font-semibold transition-colors duration-150 motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)] ${
         active
-          ? 'bg-sky-500 border-transparent text-white'
-          : 'border-white/10 text-slate-400 hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-400'
+          ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
+          : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
       }`}
     >
       {children}
@@ -150,35 +150,28 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
   return (
     <div>
       {/* Hero */}
-      <div className="relative -mx-4 px-4 pb-8 pt-6 mb-5 overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'radial-gradient(circle, #1e293b 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#070B11] to-transparent pointer-events-none" />
-        <div className="relative">
-          <p className="text-[0.58rem] font-black uppercase tracking-[0.2em] text-sky-400/65 mb-2"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_hero_kicker')}</p>
-          <h1 className="text-3xl font-black text-white mb-1 leading-tight"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Peptipedia</h1>
-          <p className="text-sm text-slate-400 mb-5">{t('plib_hero_sub')}</p>
+      <div className="mb-4">
+        <div>
+          <p className="mb-0.5 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_hero_kicker')}</p>
+          <h1 className="lg-large-title">Peptipedia</h1>
+          <p className="mt-1 mb-4 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('plib_hero_sub')}</p>
 
           {/* Search + Filter toggle */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
               <input type="search" aria-label={t('plib_search_placeholder')} value={query} onChange={e => setQuery(e.target.value)}
                 placeholder={t('plib_search_placeholder')}
-                className="min-h-11 w-full bg-[#0B1220] border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all duration-300 motion-reduce:transition-none focus:border-sky-500/50 focus:shadow-[0_0_20px_rgba(0,204,245,0.08)]" />
+                className="min-h-11 w-full bg-[var(--lg-fill)] border-0 rounded-full pl-10 pr-4 py-2.5 text-[16px] text-[var(--lg-text)] placeholder:text-[var(--lg-text-3)] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)]" />
             </div>
             <button type="button" aria-label={locale === 'de' ? 'Filter anzeigen' : 'Show filters'} aria-expanded={showFilters} onClick={() => setShowFilters(f => !f)}
-              className={`flex min-h-11 items-center gap-1.5 px-4 rounded-xl border text-sm transition-all duration-200 motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 ${
+              className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3.5 rounded-full text-sm transition-colors duration-150 motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)] ${
                 showFilters || activeFilterCount > 0
-                  ? 'bg-sky-500 border-transparent text-white'
-                  : 'border-white/10 text-slate-400 hover:text-slate-200 hover:border-white/20'
+                  ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]'
+                  : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
               }`}>
-              <SlidersHorizontal size={14} />
-              {activeFilterCount > 0 && <span className="text-xs font-black">{activeFilterCount}</span>}
+              <SlidersHorizontal size={16} />
+              {activeFilterCount > 0 && <span className="text-[13px] font-bold">{activeFilterCount}</span>}
             </button>
           </div>
         </div>
@@ -186,12 +179,11 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
       {/* ── Filter Panel ──────────────────────────────────────────────────────── */}
       {showFilters && (
-        <div className="bg-[#0B1220] border border-white/[0.07] rounded-2xl p-4 mb-4 space-y-4">
+        <div className="lg-surface p-4 mb-4 space-y-4">
 
           {/* Sort */}
           <div>
-            <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_sort_label')}</p>
+            <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_sort_label')}</p>
             <div className="flex flex-wrap gap-2">
               {SORT_OPTIONS.map(o => (
                 <Pill key={o.value} active={sort === o.value} onClick={() => setSort(o.value)}>
@@ -203,8 +195,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
           {/* Category */}
           <div>
-            <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_category_label')}</p>
+            <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_category_label')}</p>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(c => (
                 <Pill key={c.value} active={filters.category === c.value}
@@ -217,8 +208,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
           {/* Research Status */}
           <div>
-            <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_status_label')}</p>
+            <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_status_label')}</p>
             <div className="flex flex-wrap gap-2">
               {([['all', 'plib_all'], ['preclinical', 'plib_status_preclinical'], ['phase_1', 'plib_status_phase_1'], ['phase_2', 'plib_status_phase_2'], ['human_research', 'plib_status_human_research'], ['historical_approval', 'plib_status_historical_approval'], ['approved', 'plib_status_approved'], ['unverified', 'plib_status_unverified']] as const).map(([val, labelKey]) => (
                 <Pill key={val} active={filters.status === val}
@@ -231,8 +221,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
           {/* Human Evidence */}
           <div>
-            <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_human_evidence_label')}</p>
+            <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_human_evidence_label')}</p>
             <div className="flex flex-wrap gap-2">
               {([['all', 'plib_all'], ['yes', 'plib_human_yes'], ['strong', 'plib_human_strong']] as const).map(([val, labelKey]) => (
                 <Pill key={val} active={filters.humanEvidence === val}
@@ -246,8 +235,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
           {/* Tags */}
           {allTags.length > 0 && (
             <div>
-              <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{t('plib_tags_label')}</p>
+              <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{t('plib_tags_label')}</p>
               <div className="flex flex-wrap gap-2">
                 <Pill active={filters.tag === ''} onClick={() => setFilters(f => ({ ...f, tag: '' }))}>
                   {t('plib_all')}
@@ -265,8 +253,8 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
           {/* Reset */}
           {activeFilterCount > 0 && (
             <button type="button" onClick={resetFilters}
-              className="flex min-h-11 items-center gap-1.5 text-xs text-slate-500 hover:text-rose-400 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">
-              <X size={12} />
+              className="flex min-h-11 items-center gap-1.5 text-[15px] font-semibold text-[var(--lg-accent-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)]">
+              <X size={15} />
               {t('plib_reset_filters')}
             </button>
           )}
@@ -275,7 +263,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
       {/* ── Category quick tabs (if no filter panel) ─────────────────────────── */}
       {!showFilters && (
-        <div className="flex gap-2 flex-wrap mb-4">
+        <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0">
           {CATEGORIES.map(cat => (
             <Pill key={cat.value} active={filters.category === cat.value}
               onClick={() => setFilters(f => ({ ...f, category: cat.value }))}>
@@ -285,7 +273,7 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
         </div>
       )}
 
-      <div className="flex gap-2 flex-wrap mb-4" role="group" aria-label={locale === 'de' ? 'Profiltyp' : 'Profile type'}>
+      <div className="flex gap-2 flex-wrap mb-3" role="group" aria-label={locale === 'de' ? 'Profiltyp' : 'Profile type'}>
         {(['all', 'individual', 'blend'] as const).map(kind => <Pill key={kind} active={filters.kind === kind} onClick={() => setFilters(f => ({ ...f, kind }))}>
           {kind === 'blend' ? 'Blends' : kind === 'individual' ? (locale === 'de' ? 'Einzelprofile' : 'Individual profiles') : (locale === 'de' ? 'Alle Profile' : 'All profiles')}
         </Pill>)}
@@ -293,35 +281,34 @@ export function PeptideLibrary({ locale = 'de', mode = 'public' }: { locale?: Pe
 
       {/* Count */}
       {(
-        <p className="text-[0.6rem] text-slate-700 mb-4"
-          style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+        <p className="mx-1 mb-3 text-[13px] text-[var(--lg-text-3)]">
           {t('plib_count', { count: filtered.length })}
           {activeFilterCount > 0 && ` · ${t('plib_filtered')}`}
         </p>
       )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map(peptide => <PeptideCard key={peptide.slug} peptide={peptide} locale={locale} mode={mode} />)}
       </div>
 
       {/* Empty */}
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-slate-600">
-          <FlaskConical size={28} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">{t('plib_empty')}</p>
+        <div className="text-center py-12 text-[var(--lg-text-3)]">
+          <FlaskConical size={28} className="mx-auto mb-3 opacity-50" />
+          <p className="text-[15px] text-[var(--lg-text-2)]">{t('plib_empty')}</p>
           {activeFilterCount > 0 && (
             <button type="button" onClick={resetFilters}
-              className="mt-2 min-h-11 text-xs text-sky-400/60 hover:text-sky-400 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">
+              className="mt-2 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)]">
               {t('plib_reset_filters_short')}
             </button>
           )}
         </div>
       )}
 
-      <div className="mt-8 flex items-start gap-3 bg-amber-500/5 border border-amber-500/15 rounded-xl px-4 py-3">
-        <FlaskConical size={14} className="text-amber-400/70 shrink-0 mt-0.5" />
-        <p className="text-xs text-amber-300/60 leading-relaxed">
+      <div className="mt-8 flex items-start gap-2.5 rounded-[18px] bg-[var(--lg-surface-2)] px-3.5 py-2.5">
+        <FlaskConical size={15} className="text-[var(--lg-warn-text)] shrink-0 mt-px" />
+        <p className="text-[13px] text-[var(--lg-text-2)] leading-snug">
           {PEPTIPEDIA_UI_COPY[locale].disclaimer}
         </p>
       </div>

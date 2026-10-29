@@ -87,15 +87,24 @@ export function SyringeNote({ syringe, language, t }: { syringe: SpritzenRechnun
   )
 }
 
+/**
+ * „Abends" oder „Abends · 20:00" — die Uhrzeit nur, wenn der Plan eine eigene
+ * hat. Vorher stand immer eine da (die Standardzeit der Tageszeit), auch wenn
+ * man bewusst nur „Abends" gewaehlt hatte.
+ */
+function zeitLabel(slot: PlanCardSlot, t: Translate): string {
+  return slot.customTime ? `${routineLabel(slot, t)} · ${slot.time}` : routineLabel(slot, t)
+}
+
 export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: PlanCardSlot; language: string; t: Translate; syringe?: SpritzenRechnung | null; stueck?: StueckRechnung | null }) {
   const dose = slotDoseLabel(slot)
   const hinweis = einnahmeHinweis(slot, syringe, stueck, t, language, false)
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-3">
       <RoutineIcon group={slot.routineGroup} />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-100">
-          {routineLabel(slot, t)} · {slot.time}
+        <p className="text-[15px] font-semibold text-[var(--lg-text)]">
+          {zeitLabel(slot, t)}
         </p>
         {slot.days.length > 0 && (
           <span className="sr-only">{slot.days.map(day => weekdayLabel(day, language)).join(', ')}</span>
@@ -103,8 +112,8 @@ export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: P
       </div>
       {dose && (
         <p className="flex flex-col items-end whitespace-nowrap">
-          <span className="text-base font-bold text-white">{dose}</span>
-          {hinweis && <span data-einnahme-hinweis className="text-xs font-semibold text-cyan-300">{hinweis}</span>}
+          <span className="text-[17px] font-bold tabular-nums text-[var(--lg-text)]">{dose}</span>
+          {hinweis && <span data-einnahme-hinweis className="text-[13px] font-semibold text-[#64d2ff]">{hinweis}</span>}
         </p>
       )}
       {slot.days.length > 0 && (
@@ -175,5 +184,68 @@ export function StepSlotRow({ row, language, t, syringe, stueck }: { row: PlanSt
         </p>
       )}
     </li>
+  )
+}
+
+/**
+ * Die Einnahmen eines Plans. Unterscheiden sich die Tage — „Montag abends,
+ * Freitag morgens" —, steht je Tag eine Zeile, der Tag vorn. Vorher kam die
+ * Tageszeit zuerst und der Tag als Leiste darunter; man musste sich den Plan
+ * aus zwei Zeilen zusammensetzen.
+ *
+ * `planDays`: die Tage des Rhythmus bei „bestimmte Wochentage", sonst null.
+ */
+export function SlotList({ slots, planDays, language, t, syringe, stueck, className = 'space-y-1.5' }: {
+  slots: PlanCardSlot[]
+  planDays: readonly string[] | null
+  language: string
+  t: Translate
+  syringe?: SpritzenRechnung | null
+  stueck?: StueckRechnung | null
+  className?: string
+}) {
+  // Nur bei „bestimmte Wochentage": bei taeglich mit einer Ausnahme
+  // („abends nur Mo, Mi, Fr") staenden sonst sieben Zeilen da.
+  // Je Tag nur, wenn jede Einnahme an einem der Plantage liegt — sonst fiele
+  // eine (veraltete) Einnahme an einem anderen Tag stillschweigend weg.
+  const jeTag = planDays != null && planDays.length > 0 && slots.some(slot => slot.days.length > 0)
+    && slots.every(slot => slot.days.length === 0 || slot.days.some(tag => planDays.includes(tag)))
+  if (!jeTag) {
+    return (
+      <ul className={className}>
+        {slots.map(slot => <CurrentSlotRow key={slot.id} slot={slot} language={language} t={t} syringe={syringe} stueck={stueck} />)}
+      </ul>
+    )
+  }
+  const tage = WEEKDAY_KEYS
+    .filter(tag => planDays.includes(tag))
+    .map(tag => ({ tag, slots: slots.filter(slot => slot.days.length === 0 || slot.days.includes(tag)) }))
+    .filter(eintrag => eintrag.slots.length > 0)
+  return (
+    <ul data-plan-days className={className}>
+      {tage.map(({ tag, slots: amTag }) => (
+        <li key={tag} data-plan-day={tag} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-3 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-3">
+          <span className="pt-0.5 text-[15px] font-bold text-[var(--lg-text)]">{weekdayLabel(tag, language)}</span>
+          <div className="min-w-0 space-y-2">
+            {amTag.map(slot => {
+              const dose = slotDoseLabel(slot)
+              const hinweis = einnahmeHinweis(slot, syringe, stueck, t, language, false)
+              return (
+                <div key={slot.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
+                  <RoutineIcon group={slot.routineGroup} />
+                  <p className="min-w-0 truncate text-[15px] font-semibold text-[var(--lg-text)]">{zeitLabel(slot, t)}</p>
+                  {dose && (
+                    <p className="flex flex-col items-end whitespace-nowrap">
+                      <span className="text-[17px] font-bold tabular-nums text-[var(--lg-text)]">{dose}</span>
+                      {hinweis && <span data-einnahme-hinweis className="text-[13px] font-semibold text-[#64d2ff]">{hinweis}</span>}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }

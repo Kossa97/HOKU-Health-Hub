@@ -18,29 +18,19 @@ export interface TabDefinition {
   labelKey: string | null
   /** Beschriftung, wenn kein Schluessel greift (Eigennamen werden nicht uebersetzt). */
   fallbackLabel: string
-  /** Anker fuer das Onboarding. Fehlt er, zeigt kein Schritt auf den Reiter. */
-  obKey?: string
 }
 
 /**
- * Die Reihenfolge ist die Reihenfolge auf dem Schirm. Die mittlere Schaltflaeche
- * steht NICHT hier: sie ist kein Reiter, sondern oeffnet das
- * Schnellzugriff-Menue, und sie fuehrt zu keiner Route.
+ * Die Reihenfolge ist die Reihenfolge auf dem Schirm. Der Plus-Knopf steht
+ * NICHT hier: er ist kein Reiter, sondern oeffnet das Schnellzugriff-Menue,
+ * fuehrt zu keiner Route und sitzt deshalb neben der Kapsel.
  */
 export const TAB_ITEMS: readonly TabDefinition[] = [
-  { id: 'home',     route: '/',         labelKey: 'nav_home',     fallbackLabel: 'Home',     obKey: 'nav-home' },
-  { id: 'my-stack', route: '/my-stack', labelKey: null,           fallbackLabel: 'My Stack', obKey: 'nav-peptide' },
-  { id: 'kalender', route: '/kalender', labelKey: 'nav_kalender', fallbackLabel: 'Kalender', obKey: 'nav-kalender' },
+  { id: 'home',     route: '/',         labelKey: 'nav_home',     fallbackLabel: 'Home' },
+  { id: 'my-stack', route: '/my-stack', labelKey: null,           fallbackLabel: 'My Stack' },
+  { id: 'kalender', route: '/kalender', labelKey: 'nav_kalender', fallbackLabel: 'Kalender' },
   { id: 'profil',   route: '/profil',   labelKey: 'nav_profil',   fallbackLabel: 'Profil' },
 ] as const
-
-/**
- * An welcher Stelle im Streifen die mittlere Schaltflaeche steht.
- *
- * Zwei Reiter links, zwei rechts — die Zahl sagt, nach wie vielen Reitern sie
- * eingeschoben wird, damit die Darstellung sie nicht selbst abzaehlen muss.
- */
-export const CENTER_ACTION_INDEX = 2
 
 /**
  * Welcher Reiter gilt gerade?

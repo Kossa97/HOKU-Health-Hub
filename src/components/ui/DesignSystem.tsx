@@ -271,26 +271,24 @@ export function ResearchDisclaimer({
 }) {
   return (
     <div
+      // Ruhige Fußnoten-Fläche wie der Medizin-Hinweis; der Titel trägt die Farbe
       style={{
-        padding: compact ? '10px 12px' : '14px 16px',
-        borderRadius: compact ? 16 : 20,
-        border: `1px solid ${accentAlpha(accent, '33')}`,
-        background: `linear-gradient(145deg, ${accentAlpha(accent, '12')}, var(--surface))`,
+        padding: compact ? '10px 14px' : '12px 16px',
+        borderRadius: 18,
+        background: 'var(--lg-surface-2)',
       }}
     >
       <p
         style={{
-          fontSize: compact ? '0.62rem' : '0.68rem',
-          fontWeight: 850,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: accentAlpha(accent, 'dd'),
-          marginBottom: compact ? 4 : 6,
+          fontSize: 13,
+          fontWeight: 600,
+          color: accent === '#f59e0b' ? 'var(--lg-warn-text)' : accent === '#00ccf5' ? 'var(--lg-accent-text)' : accent,
+          marginBottom: 2,
         }}
       >
         {title}
       </p>
-      <p style={{ fontSize: compact ? '0.72rem' : '0.78rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+      <p style={{ fontSize: 13, color: 'var(--lg-text-2)', lineHeight: 1.45 }}>
         {body}
       </p>
     </div>

@@ -58,6 +58,15 @@ describe('formatInjectionSite', () => {
     }))).toBe('Gesäß mittig · oben innen · Rückseite')
   })
 
+  it('says „mittig“ only once when height and side are both in the middle', () => {
+    expect(formatInjectionSite(log({
+      body_region: 'thigh',
+      body_side: 'right',
+      position: { x: 0.2, y: -0.1, z: 0.12 },
+      normal: { x: 0, y: -0.2, z: 0.97 },
+    }))).toBe('Oberschenkel rechts · mittig · Vorderseite')
+  })
+
   it('does not invent a position for legacy entries', () => {
     expect(formatInjectionSite(log({
       model_version: 'legacy-2d',

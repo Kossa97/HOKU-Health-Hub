@@ -31,7 +31,7 @@ describe('trainingRepo', () => {
     expect(s.dismissedExternalIds).toEqual([])
     // v1-Einstellungen ohne die Pausen-Schalter: beide an
     expect(s.restSound).toBe(true)
-    expect(s.restNotify).toBe(true)
+    expect(s.restNotify).toBe(false)
     expect(normalizeSettings({ restSound: false, restNotify: false }).restSound).toBe(false)
     expect(normalizeSettings({ restSound: false, restNotify: false }).restNotify).toBe(false)
   })

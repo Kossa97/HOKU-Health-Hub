@@ -24,10 +24,16 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>TYD uses the camera to scan barcodes on food and products and, after your consent, to photograph labels that are sent to be read. No images are stored.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dot listens when you tap the microphone in the chat and writes what you say into the input field. Nothing is recorded or stored.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Apple's speech recognition turns what you say to Dot in the chat into text. TYD does not store any recordings.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>TYD liest Gesundheitsdaten, um Gewicht, Schritte, Schlaf und Herzfrequenz in deiner Dokumentation anzuzeigen.</string>
+	<string>TYD reads health data to show weight, steps, sleep and heart rate in your records.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>TYD kann ausgewaehlte Gesundheitsdaten speichern, wenn du diese Funktion aktiv nutzt.</string>
+	<string>TYD can save selected health data when you actively use this feature.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

@@ -138,7 +138,7 @@ describe('My Stack page vial view', () => {
     const text = source()
 
     expect(text).toContain('detailAbschnitte, LEER_AUSBLENDEN, wirkstoffBezug,')
-    expect(text).toContain('detailAbschnitte(form).map(abschnitt => (')
+    expect(text).toContain('detailAbschnitte(form).map(abschnitt => {')
     expect(text).toContain('data-stack-detail={abschnitt.id}')
     expect(text).toContain('data-stack-detail-field={feld}')
     // Und die Stärke heißt, wie die Form sie misst — „pro Vial" stimmt beim
@@ -278,7 +278,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('<AddStageTile')
     expect(text).toContain('active={addTileActive}')
     // Steht die Kachel in der Mitte, ist keine Substanz zugleich aktiv.
-    expect(text).toContain('const isActive = !addTileActive && p.id === activePeptide.id')
+    expect(text).toContain('isActive={!addTileActive && p.id === activePeptide.id}')
   })
 
   test('shows the fill percentage directly under the active vial in My Stack', () => {
@@ -376,7 +376,10 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('pushVialSlosh')
     expect(text).toContain('vialLastScrollLeftRef')
     expect(text).toContain("const vialSnapClassName = isVialCarouselDragging ? 'snap-none' : 'snap-x snap-mandatory'")
-    expect(text).toContain("const vialItemSnapClassName = isVialCarouselDragging ? '' : 'snap-center snap-always'")
+    // Waehrend des Ziehens kein Einrasten am Platz — per CSS am Streifen,
+    // damit Druck und Loslassen nicht alle Objekte neu rendern.
+    expect(text).toContain('data-dragging={isVialCarouselDragging || undefined}')
+    expect(text).toContain('snap-center snap-always transition-all duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none')
     expect(text).toContain('onPointerDown={handleVialCarouselPointerDown}')
     expect(text).toContain('onPointerMove={handleVialCarouselPointerMove}')
     expect(text).toContain('onPointerUp={handleVialCarouselPointerUp}')
@@ -443,7 +446,8 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('vialStageLightHandlesRef')
     expect(text).toContain('setStageLight')
-    expect(text).toContain('stageLightRef={handle =>')
+    expect(text).toContain('stageLightRef={stageLightRef}')
+    expect(text).toContain('const stageLightRef = useCallback((handle: StageLightHandle | null) =>')
     // the old per-scroll-frame state update must stay gone — it re-rendered
     // the whole page on every swipe frame
     expect(text).not.toContain('vialFocusByIndex')
@@ -460,15 +464,16 @@ describe('My Stack page vial view', () => {
     expect(scrollHandler).not.toContain('updateVialFocus()')
   })
 
-  test('zeigt die Angaben als ein Raster, nicht als drei Fassungen derselben Daten', () => {
+  test('zeigt die Angaben als eine gruppierte Liste, nicht als drei Fassungen derselben Daten', () => {
     // Die Angaben stehen in nach Form ausgesuchten Abschnitten; die drei
     // Fassungen derselben Daten (zwei davon `hidden`) sind weg, ebenso die
     // Kachel „Peptidname" — der Name steht auf dem Objekt darüber.
     const text = source()
 
-    expect(text).toContain('grid grid-cols-2 gap-2')
-    expect(text).toContain("'my_stack_stock_use_within_vial'")
-    expect(text).toContain("'my_stack_stock_mixed_on'")
+    expect(text).toContain('className="lg-kv"')
+    // Haltbarkeit mit denselben Woertern wie im Assistenten (`haltbarkeitArt`).
+    expect(text).toContain('`my_stack_shelf_within_${haltbarArt}`')
+    expect(text).toContain('`my_stack_shelf_opened_${haltbarArt}`')
     expect(text).toContain("'my_stack_stock_document'")
     expect(text).not.toContain('Peptidname')
     expect(text).not.toContain('Rohe Vials in Reserve')
@@ -557,14 +562,15 @@ describe('My Stack page vial view', () => {
 
     expect(text).toContain('data-archive-fullscreen')
     expect(text).toContain('data-archive-row')
-    expect(text).toContain('fixed inset-0 z-50 flex min-h-dvh flex-col bg-slate-950')
+    expect(text).toContain('lg-backdrop fixed inset-0 z-50 flex min-h-dvh flex-col')
     expect(text).toContain('fillPct={0}')
     expect(text).toContain("color_hex: '#64748b'")
     expect(text).toContain('animateOnMount={false}')
     expect(text).toContain('isActive={false}')
     expect(text).toContain('size="compact"')
     expect(text).toContain("t('archiviert_am'")
-    expect(text).toContain('h-11 w-11')
+    // Die Knoepfe der Zeile: 44 px rund (lg-icon-btn).
+    expect(text).toContain('lg-icon-btn lg-press')
     expect(text).toContain('const language = i18n.resolvedLanguage ?? i18n.language')
     expect(text).toContain('formatInstantDay(p.archived_at, language)')
   })
@@ -582,7 +588,7 @@ describe('My Stack page vial view', () => {
     expect(text).toContain('data-archive-info-button={p.id}')
     expect(text).toContain('setArchiveInfoPeptide(p)')
     expect(text).toContain('data-archive-info-detail={p.id}')
-    expect(text).toContain('className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-slate-950"')
+    expect(text).toContain('className="lg-backdrop fixed inset-0 z-[60] flex min-h-dvh flex-col"')
     expect(text).toContain('p.vial_amount_mg')
     expect(text).toContain('p.reconstitution_ml')
     expect(text).toContain('p.syringe_type')
@@ -857,8 +863,9 @@ describe('My Stack page vial view', () => {
   test('assigns a random palette color when creating a peptide', () => {
     const text = source()
 
-    expect(text).toContain('getRandomStackItemColor')
-    expect(text).toContain('setWizardInitialColor(getRandomStackItemColor())')
+    // Eine der Systemfarben der Farbwahl — so steht sie dort sichtbar gewaehlt.
+    expect(text).toContain('getRandomSwatchColor')
+    expect(text).toContain('setWizardInitialColor(getRandomSwatchColor())')
     expect(text).toContain('initialColorHex={wizardInitialColor}')
   })
 })

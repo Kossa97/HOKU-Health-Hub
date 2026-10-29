@@ -86,6 +86,17 @@ const de = {
   week_planned: 'Geplant: {{names}}',
   week_no_training: 'Kein Training',
   week_nothing_planned: 'Nichts geplant',
+
+  // Dot auf „Heute" (lib/dotHint.ts)
+  dot_done_today: '{{name}} ist heute erledigt. Stark!',
+  dot_planned_today: 'Heute ist {{name}} dran.',
+  dot_next: 'Als Nächstes im Plan: {{name}}.',
+  dot_rest_day: 'Heute ist Ruhetag. Erholung gehört zum Training.',
+  dot_low_readiness: 'Deine Bereitschaft ist heute niedrig, mach lieber locker.',
+  dot_start: 'Leg los: leeres Training starten oder einen Plan aus den Vorlagen wählen.',
+  dot_week_left: 'Noch {{count}} Einheiten bis zu deinem Wochenziel.',
+  dot_week_left_one: 'Noch eine Einheit bis zu deinem Wochenziel.',
+  dot_week_done: 'Wochenziel geschafft!',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -161,6 +172,17 @@ const en: Record<keyof typeof de, string> = {
   week_planned: 'Planned: {{names}}',
   week_no_training: 'No workout',
   week_nothing_planned: 'Nothing planned',
+
+  // Dot on "Today" (lib/dotHint.ts)
+  dot_done_today: '{{name}} is done for today. Strong!',
+  dot_planned_today: '{{name}} is on for today.',
+  dot_next: 'Next in your plan: {{name}}.',
+  dot_rest_day: 'Rest day today. Recovery is part of training.',
+  dot_low_readiness: 'Your readiness is low today, take it easy.',
+  dot_start: 'Get going: start an empty workout or pick a plan from the templates.',
+  dot_week_left: '{{count}} more sessions to your weekly goal.',
+  dot_week_left_one: 'One more session to your weekly goal.',
+  dot_week_done: 'Weekly goal reached!',
 }
 
 export const LIVE_TEXTS = { de, en }

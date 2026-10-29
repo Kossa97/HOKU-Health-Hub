@@ -44,17 +44,23 @@ export default defineConfig(({ mode }) => {
         // Der Service Worker entsteht nach dem Sentry-Upload; seine Map
         // wuerde weder hochgeladen noch geloescht.
         sourcemap: false,
+        // Barcode-Leser (ZXing, ~1,1 MB) nicht vorab laden: er kommt erst beim
+        // ersten Scan, sonst laedt jedes Geraet ihn bei jeder neuen Version mit.
+        // Dasselbe fuer pdf.js (~490 KB + Worker): nur die PDF-Vorschau braucht es.
+        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*'],
       },
       manifest: {
         name: 'TYD – Track Your Dose',
         short_name: 'TYD',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
-        background_color: '#07091a',
+        background_color: '#060911',
         display: 'standalone',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          // Dot (docs/logo/dot/codex, Bild von Codex). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
+          { src: '/icons/dot-codex-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/dot-codex-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/dot-codex-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

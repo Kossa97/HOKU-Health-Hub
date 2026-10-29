@@ -16,8 +16,11 @@ concurrency:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Fest auf 24.04: ubuntu-latest ist inzwischen 26.04, und dort installiert
+    # Playwright 1.56 keine Browser („does not support chromium").
+    runs-on: ubuntu-24.04
+    # Die Läufe brauchen inzwischen 38–44 Minuten; 45 war zu knapp.
+    timeout-minutes: 60
     env:
       VITE_SENTRY_DSN: ''
       SENTRY_AUTH_TOKEN: ''

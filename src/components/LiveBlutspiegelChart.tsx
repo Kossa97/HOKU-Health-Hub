@@ -12,6 +12,7 @@ import i18n from 'i18next'
 import { getDateLocale } from '../i18n/dateLocales'
 import type { CycleChartData } from '../services/liveBlutspiegelChart'
 import { splitLiveCurveSegments } from './liveCycleChart/chartMath'
+import { Ph, Silhouette } from './ui/Silhouette'
 
 const WINDOW_MS = 7 * 24 * 3_600_000     // 7 days
 const DAY_MS    = 24 * 3_600_000
@@ -409,9 +410,9 @@ export function LiveBlutspiegelChart({
 
   if (loading) {
     return (
-      <div style={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{t('pk_history_loading')}</span>
-      </div>
+      <Silhouette label={t('pk_history_loading')}>
+        <Ph h={240} style={{ borderRadius: 14 }} />
+      </Silhouette>
     )
   }
 

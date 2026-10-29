@@ -6,8 +6,26 @@ import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react'
 
 export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: () => void; overlay?: boolean }) {
   const { t } = useTranslation()
+  // Ueber der Karte liest sich weisse Schrift auch auf heller Haut: ein weicher
+  // Verlauf ueber die volle Breite statt eines Textschattens. Ein grosser
+  // Schatten wuerde von `truncate` an der Textbox abgeschnitten und stuende
+  // als dunkles Rechteck hinter der Ueberschrift.
+  const textShadow = overlay ? '0 1px 2px rgba(0,0,0,0.45)' : undefined
   return (
-    <div style={{
+    <>
+    {overlay && (
+      <div aria-hidden="true" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 'calc(120px + env(safe-area-inset-top))',
+        zIndex: 24,
+        pointerEvents: 'none',
+        background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.22) 55%, rgba(0,0,0,0))',
+      }} />
+    )}
+    <div data-injection-cover={overlay ? 'top' : undefined} style={{
       display: 'flex',
       alignItems: 'center',
       gap: 12,
@@ -23,32 +41,25 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
       <button
         onClick={onBack}
         aria-label={String(t('back', { defaultValue: 'Zurück' }))}
-        style={{
-          width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: overlay ? 'rgba(8,13,26,0.72)' : 'var(--surface)',
-          border: '1px solid var(--border)',
-          backdropFilter: overlay ? 'blur(16px)' : undefined,
-          WebkitBackdropFilter: overlay ? 'blur(16px)' : undefined,
-          pointerEvents: overlay ? 'auto' : undefined,
-          color: 'var(--text-dim)',
-        }}
+        className="lg-glass lg-icon-btn lg-press shrink-0"
+        style={{ pointerEvents: overlay ? 'auto' : undefined }}
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={20} />
       </button>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: '0.62rem', fontWeight: 800, letterSpacing: 0,
-          textTransform: 'uppercase', color: 'var(--accent)',
-          textShadow: overlay ? '0 2px 12px rgba(0,0,0,0.75)' : undefined,
+          fontSize: 13, fontWeight: 600,
+          color: 'var(--lg-text-2)',
+          textShadow,
         }}>
           {t('injection_pro_title', { defaultValue: 'Injektionstracker Pro' })}
         </p>
-        <h1 style={{ fontSize: '1.32rem', fontWeight: 900, color: 'var(--text)', letterSpacing: 0, lineHeight: 1.1, textShadow: overlay ? '0 2px 14px rgba(0,0,0,0.8)' : undefined }}>
+        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--lg-text)', textShadow }}>
           {t('injection_map_title', { defaultValue: '3D Injektionskarte' })}
         </h1>
       </div>
     </div>
+    </>
   )
 }
 
@@ -57,26 +68,15 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
 export function InjectionTrackerUnavailable({ title, hint, onRetry }: { title: string; hint?: string; onRetry: () => void }) {
   const { t } = useTranslation()
   return (
-    <div role="alert" style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 22,
-      padding: 22,
-      textAlign: 'center',
-    }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: 18,
-        background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 14px',
-      }}>
-        <AlertTriangle size={22} color="#f59e0b" aria-hidden="true" />
+    <div role="alert" className="lg-surface" style={{ padding: 22, textAlign: 'center' }}>
+      <div className="lg-icon-tile" style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--lg-warn)', margin: '0 auto 14px' }}>
+        <AlertTriangle size={24} aria-hidden="true" />
       </div>
-      <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: hint ? 8 : 18 }}>{title}</h2>
+      <h2 className="lg-title2" style={{ marginBottom: hint ? 8 : 18 }}>{title}</h2>
       {hint && (
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 18 }}>{hint}</p>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.5, marginBottom: 18 }}>{hint}</p>
       )}
-      <button type="button" className="btn-secondary min-h-11 w-full" onClick={onRetry}>
+      <button type="button" data-quiet className="lg-gray-btn min-h-11 w-full" onClick={onRetry}>
         <RefreshCw size={14} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
       </button>
     </div>

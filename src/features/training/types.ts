@@ -218,5 +218,5 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   glp1Mode: null,
   dismissedExternalIds: [],
   restSound: true,
-  restNotify: true,
+  restNotify: false,
 }

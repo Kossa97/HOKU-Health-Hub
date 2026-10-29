@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { DEFAULT_FILTER_STATE } from './pubmed'
 import type { FilterState, SortMode, YearFilter } from './pubmed'
+import { SheetGriff } from '../../components/ui/SheetGriff'
 
 const ALL_PEPTIDES = [
   'BPC-157', 'TB-500', 'Ipamorelin', 'CJC-1295',
@@ -61,35 +62,35 @@ export function FilterSheet({
       />
 
       {/* Sheet panel — NO backdrop-filter on this element or its children */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+      <div className="fixed inset-x-2 bottom-2 z-50 flex justify-center pointer-events-none pb-[env(safe-area-inset-bottom)]">
         <div
           data-app-modal
           data-app-back-dirty-on-interaction
           role="dialog"
           aria-modal="true"
           aria-label={String(t('lab_filter_title'))}
-          className="w-full max-w-lg bg-slate-900 border border-slate-700/60 border-b-0 rounded-t-2xl pointer-events-auto shadow-card"
+          className="lg-sheet lg-sheet-solid w-full max-w-lg overflow-hidden pointer-events-auto"
         >
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-1">
-            <div className="w-8 h-1 bg-slate-700 rounded-full" />
+          <div className="pt-2 pb-1">
+            <SheetGriff onClose={onClose} />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-2 pb-3 border-b border-slate-800">
-            <h2 className="text-sm font-black text-white">{t('lab_filter_title')}</h2>
+          <div className="flex items-center justify-between pl-5 pr-2 pt-1 pb-2">
+            <h2 className="lg-title2">{t('lab_filter_title')}</h2>
             <button
               type="button"
               onClick={onClose}
               data-app-back-close
-              className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+              aria-label={t('close')}
+              className="lg-icon-btn text-[var(--lg-text-2)]"
             >
-              <X size={16} />
+              <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} /></span>
             </button>
           </div>
 
           {/* Scrollable content — NO backdrop-filter here (breaks overflow-y on iOS Safari) */}
-          <div className="overflow-y-auto max-h-[55vh] px-4 py-4 space-y-5">
+          <div className="overflow-y-auto max-h-[55vh] px-5 pt-2 pb-4 space-y-5">
             {/* Peptid */}
             <div>
               <p className="label">{t('lab_filter_peptide')}</p>
@@ -101,10 +102,11 @@ export function FilterSheet({
                       key={p}
                       type="button"
                       onClick={() => togglePeptide(p)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                      aria-pressed={active}
+                      className={`min-h-9 px-3.5 rounded-full text-[14px] font-medium transition-colors ${
                         active
-                          ? 'bg-sky-500 text-white'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                          ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]'
+                          : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
                       }`}
                     >
                       {p}
@@ -117,16 +119,17 @@ export function FilterSheet({
             {/* Sortieren */}
             <div>
               <p className="label">{t('lab_filter_sort')}</p>
-              <div className="flex gap-2">
+              <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5">
                 {(['date', 'relevance'] as SortMode[]).map(s => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => onChange({ ...filters, sort: s })}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
+                    aria-pressed={filters.sort === s}
+                    className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
                       filters.sort === s
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                        : 'text-[var(--lg-text-2)]'
                     }`}
                   >
                     {s === 'date' ? t('lab_filter_newest') : t('lab_filter_relevance')}
@@ -138,16 +141,17 @@ export function FilterSheet({
             {/* Jahr */}
             <div>
               <p className="label">{t('lab_filter_year_label')}</p>
-              <div className="flex gap-2">
+              <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5">
                 {(['all', '2024plus', '2025'] as YearFilter[]).map(y => (
                   <button
                     key={y}
                     type="button"
                     onClick={() => onChange({ ...filters, year: y })}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
+                    aria-pressed={filters.year === y}
+                    className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
                       filters.year === y
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                        : 'text-[var(--lg-text-2)]'
                     }`}
                   >
                     {y === 'all' ? t('lab_filter_year_all') : y === '2024plus' ? '2024+' : '2025'}
@@ -158,13 +162,13 @@ export function FilterSheet({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 px-4 py-4 border-t border-slate-800">
-            <button type="button" className="btn-secondary flex-1 text-sm" onClick={reset}>
+          <div className="flex gap-3 px-4 pt-2 pb-4">
+            <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" onClick={reset}>
               {t('lab_filter_reset')}
             </button>
             <button
               type="button"
-              className="btn-primary text-sm"
+              className="lg-btn lg-btn-primary !px-4"
               style={{ flex: 2 }}
               onClick={() => {
                 onApply()

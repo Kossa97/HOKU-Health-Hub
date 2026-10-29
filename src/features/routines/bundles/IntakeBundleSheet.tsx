@@ -1,8 +1,11 @@
 import { useId, useState } from 'react'
-import { Check, Trash2, X } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useSheetClose } from '../../../lib/useSheetClose'
+import { SheetClose } from '../../../components/ui/SheetClose'
 import { BUNDLE_NAME_MAX, normalizeBundleName, type IntakeBundle } from './intakeBundles'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
+import { DotAutoSchalter } from '../../dot/autoTracking/DotAutoSchalter'
 
 interface BundleSheetItem {
   id: string
@@ -16,9 +19,11 @@ interface IntakeBundleSheetProps {
   onClose: () => void
   onSave: (draft: { name: string; stackItemIds: string[] }) => Promise<void>
   onDelete?: () => Promise<void>
+  /** Schalter „Dot trägt automatisch ein" (nur für ein gespeichertes Bündel). */
+  onAutoChange?: (seit: string | null) => Promise<void>
 }
 
-export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelete }: IntakeBundleSheetProps) {
+export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelete, onAutoChange }: IntakeBundleSheetProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const nameId = useId()
@@ -56,7 +61,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         aria-label={String(t('close', { defaultValue: 'Schließen' }))}
         onClick={requestClose}
         {...closingProps}
-        className="tyd-backdrop fixed inset-0 z-50 cursor-pointer bg-black/70"
+        className="tyd-backdrop fixed inset-0 z-50 cursor-pointer bg-black/60"
       />
       <section
         role="dialog"
@@ -65,36 +70,29 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         data-app-back-dirty-on-interaction
         aria-labelledby={titleId}
         {...closingProps}
-        className="tyd-sheet fixed inset-x-3 bottom-3 z-[60] max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[var(--surface)] p-4 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+        className="lg-sheet lg-sheet-solid tyd-sheet fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain px-5 pt-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
       >
+        <SheetGriff className="mb-3" onClose={requestClose} disabled={saving} />
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-lg font-black text-white">
+            <h2 id={titleId} className="lg-title2">
               {bundle
                 ? t('bundle_edit_title', { defaultValue: 'Bündel bearbeiten' })
                 : t('bundle_new_title', { defaultValue: 'Neues Bündel' })}
             </h2>
-            <p className="mt-1 text-sm font-semibold text-slate-400">
+            <p className="mt-1 text-[15px] leading-snug text-[var(--lg-text-2)]">
               {t('bundle_sheet_hint', { defaultValue: 'Substanzen, die du zusammen nimmst, bestätigst du im Kalender mit einem Tipp.' })}
             </p>
           </div>
-          <button
-            type="button"
-            data-app-back-close
-            aria-label={String(t('close', { defaultValue: 'Schließen' }))}
-            onClick={requestClose}
-            className="tyd-press grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          <SheetClose onClick={requestClose} />
         </header>
 
-        <label htmlFor={nameId} className="mb-1.5 block text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+        <label htmlFor={nameId} className="label">
           {t('bundle_name_label', { defaultValue: 'Name' })}
         </label>
         <input
           id={nameId}
-          className="input mb-4 min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="input mb-5"
           value={name}
           maxLength={BUNDLE_NAME_MAX}
           placeholder={String(t('bundle_name_placeholder', { defaultValue: 'z. B. Morgen-Stack' }))}
@@ -104,30 +102,34 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
         />
 
         <fieldset>
-          <legend className="mb-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+          <legend className="label">
             {t('bundle_items_label', { defaultValue: 'Substanzen' })}
           </legend>
           {stackItems.length === 0 ? (
-            <p className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-slate-400">
+            <p className="rounded-[18px] bg-[var(--lg-surface-2)] p-4 text-[15px] text-[var(--lg-text-3)]">
               {t('bundle_items_empty', { defaultValue: 'Lege zuerst Substanzen in My Stack an.' })}
             </p>
           ) : (
-            <ul className="space-y-1.5">
+            // Gruppierte Liste wie in iOS: Name links, Häkchen rechts
+            <ul className="lg-rows overflow-hidden rounded-[var(--r-xl)] bg-[var(--lg-surface-2)]">
               {stackItems.map(item => {
                 const checked = selected.includes(item.id)
                 return (
                   <li key={item.id}>
-                    <label className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border px-3 transition-colors ${checked
-                      ? 'border-emerald-500/30 bg-emerald-500/[0.1]'
-                      : 'border-white/10 bg-white/[0.035] hover:bg-white/[0.06]'}`}
-                    >
+                    <label className="flex min-h-12 cursor-pointer items-center gap-3 px-4 transition-colors active:bg-[var(--lg-fill)]">
+                      <span className="min-w-0 flex-1 truncate text-[17px] text-[var(--lg-text)]">{item.display_name}</span>
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggle(item.id)}
-                        className="h-5 w-5 shrink-0 accent-emerald-400"
+                        className="peer sr-only"
                       />
-                      <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{item.display_name}</span>
+                      <span aria-hidden="true" className={`grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--lg-accent)] ${checked
+                        ? 'bg-[var(--lg-accent)] text-[var(--accent-contrast)]'
+                        : 'shadow-[inset_0_0_0_1.5px_var(--lg-text-3)]'}`}
+                      >
+                        {checked && <Check size={14} strokeWidth={3} />}
+                      </span>
                     </label>
                   </li>
                 )
@@ -136,8 +138,14 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
           )}
         </fieldset>
 
+        {bundle && onAutoChange && (
+          <div className="lg-group mt-5">
+            <DotAutoSchalter kompakt seit={bundle.auto_log_since} text="auto_text_buendel" speichern={onAutoChange} />
+          </div>
+        )}
+
         {error && (
-          <p role="alert" className="mt-3 text-sm font-bold text-rose-300">
+          <p role="alert" className="mt-3 px-1 text-[13px] text-[var(--lg-bad-text)]">
             {t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' })}
           </p>
         )}
@@ -146,7 +154,7 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
           type="button"
           disabled={!canSave}
           onClick={() => void run(() => onSave({ name, stackItemIds: selected }))}
-          className="tyd-press mt-4 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.17] text-base font-extrabold text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="lg-btn lg-btn-primary mt-5 w-full"
         >
           <Check size={18} aria-hidden="true" />
           {t('bundle_save', { defaultValue: 'Bündel speichern' })}
@@ -160,7 +168,8 @@ export function IntakeBundleSheet({ bundle, stackItems, onClose, onSave, onDelet
               if (!confirmDelete) { setConfirmDelete(true); return }
               void run(onDelete)
             }}
-            className="tyd-press mt-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/[0.08] text-sm font-extrabold text-rose-300 transition-colors hover:bg-rose-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50"
+            data-tone="bad"
+            className="lg-gray-btn mt-2 w-full !min-h-12"
           >
             <Trash2 size={15} aria-hidden="true" />
             {confirmDelete

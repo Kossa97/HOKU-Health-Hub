@@ -16,17 +16,6 @@ import type { NextSetInfo } from './nextSet'
  */
 
 /** Die Berechtigung wird nur einmal je Sitzung angefragt — und nie blockierend. */
-let permissionAsked = false
-
-function askNotificationPermission() {
-  if (permissionAsked || typeof Notification === 'undefined') return
-  permissionAsked = true
-  try {
-    if (Notification.permission === 'default') void Notification.requestPermission().catch(() => {})
-  } catch {
-    // kein Notification-API (z. B. iOS-Browser ohne Home-Bildschirm)
-  }
-}
 
 export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSkip }: {
   endsAt: number
@@ -47,10 +36,6 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
   // Zeitgeber fuers Ausblenden ab, und der Timer bliebe auf 0:00 stehen.
   const latest = useRef({ onSkip, next, sound, notify, tt })
   useEffect(() => { latest.current = { onSkip, next, sound, notify, tt } })
-
-  useEffect(() => {
-    if (notify) askNotificationPermission()
-  }, [notify])
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 250)
@@ -74,6 +59,7 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
           current.tt('rest_notify_title'),
           n ? current.tt('rest_notify_body', { exercise: n.exercise, set: n.set, target: n.target }) : current.tt('rest_done'),
           '/training',
+          'tyd-rest',
         )
       }
     } catch {
@@ -95,35 +81,35 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
       aria-live="off"
       aria-label={`${tt('rest_timer')} ${formatClock(remainingS)}`}
       style={{
-        position: 'relative', overflow: 'hidden', borderRadius: 18,
-        background: 'var(--surface-raised)', border: `1px solid ${TRAINING_ACCENT}66`,
-        padding: '10px 12px', display: 'flex', alignItems: 'center',
+        position: 'relative', overflow: 'hidden', borderRadius: 22,
+        background: 'var(--lg-surface-2)', border: `1px solid ${TRAINING_ACCENT}55`,
+        padding: '10px 12px 10px 16px', display: 'flex', alignItems: 'center',
       }}
     >
       <div
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, transformOrigin: 'left',
-          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}22`,
+          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}2e`,
           transition: 'transform 250ms linear',
         }}
       />
       <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, fontSize: '0.7rem', fontWeight: 800 }}>
-          <span style={{ flexShrink: 0, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{title}</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, fontSize: 13, fontWeight: 600 }}>
+          <span style={{ flexShrink: 0, color: 'var(--lg-text-2)' }}>{title}</span>
           {targetLine && (
             <span style={{ flex: 1, minWidth: 0, color: TRAINING_ACCENT, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {targetLine}
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ flex: 1, fontSize: '1.6rem', lineHeight: 1.15, fontWeight: 850, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--text)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ flex: 1, minWidth: 72, fontSize: 28, lineHeight: '34px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text)' }}>
             {formatClock(remainingS)}
           </span>
-          <Button tone="ghost" onClick={() => onAdjust(-15)} aria-label="−15 s" style={{ minWidth: 46, minHeight: 40, padding: '8px 6px', borderRadius: 999, fontSize: '0.85rem' }}>−15</Button>
-          <Button tone="ghost" onClick={() => onAdjust(15)} aria-label="+15 s" style={{ minWidth: 46, minHeight: 40, padding: '8px 6px', borderRadius: 999, fontSize: '0.85rem' }}>+15</Button>
-          <Button onClick={onSkip} style={{ minHeight: 40, padding: '8px 12px' }}>{tt('rest_continue')}</Button>
+          <Button tone="ghost" onClick={() => onAdjust(-15)} aria-label="−15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 999, fontSize: 15 }}>−15</Button>
+          <Button tone="ghost" onClick={() => onAdjust(15)} aria-label="+15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 999, fontSize: 15 }}>+15</Button>
+          <Button onClick={onSkip} style={{ minHeight: 40, padding: '0 14px' }}>{tt('rest_continue')}</Button>
         </div>
       </div>
     </div>

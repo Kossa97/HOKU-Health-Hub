@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { TRAINING_ACCENT } from '../ui'
 
 /** Kleine Bausteine, die nur die Einstellungen brauchen. */
 
@@ -8,8 +7,8 @@ export function SectionHeading({ id, children }: { id: string; children: ReactNo
     <h3
       id={id}
       style={{
-        margin: '18px 2px 8px', fontSize: '0.78rem', fontWeight: 800,
-        letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)',
+        margin: '22px 16px 7px', fontSize: 13, fontWeight: 600,
+        letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--lg-text-3)',
       }}
     >
       {children}
@@ -34,26 +33,26 @@ export function Switch({ checked, onChange, label, disabled }: {
       className="tyd-train-press"
       style={{
         display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 44,
-        padding: 0, background: 'none', border: 'none', color: 'var(--text)', textAlign: 'left',
+        padding: 0, background: 'none', border: 'none', color: 'var(--lg-text)', textAlign: 'left',
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1,
       }}
     >
-      <span style={{ flex: 1, fontWeight: 700, fontSize: '0.92rem' }}>{label}</span>
+      <span style={{ flex: 1, fontWeight: 400, fontSize: 17 }}>{label}</span>
       <span
         aria-hidden="true"
         style={{
-          position: 'relative', width: 50, height: 30, borderRadius: 999, flexShrink: 0,
-          background: checked ? TRAINING_ACCENT : 'var(--surface-raised)',
-          border: `1px solid ${checked ? 'transparent' : 'var(--border-strong)'}`,
-          transition: 'background 160ms ease-out',
+          // iOS-Schalter: grün an, grau aus — wie im Profil
+          position: 'relative', width: 51, height: 31, borderRadius: 16, flexShrink: 0,
+          background: checked ? 'var(--lg-good)' : 'rgba(120,120,128,0.32)',
+          transition: 'background-color 200ms ease',
         }}
       >
         <span
           style={{
-            position: 'absolute', top: 2, left: 2, width: 24, height: 24, borderRadius: 999,
-            background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+            position: 'absolute', top: 2, left: 2, width: 27, height: 27, borderRadius: '50%',
+            background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
             transform: checked ? 'translateX(20px)' : 'translateX(0)',
-            transition: 'transform 200ms cubic-bezier(0.22,1,0.36,1)',
+            transition: 'transform 260ms var(--lg-ease-out)',
           }}
         />
       </span>

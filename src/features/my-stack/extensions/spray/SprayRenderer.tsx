@@ -49,7 +49,7 @@ export function SprayRenderer({ item, sloshEngine, ...visualProps }: SprayRender
   )
 
   return (
-    <div data-stack-renderer="spray">
+    <div data-stack-renderer="spray" data-umriss-form="spray">
       {sloshEngine ? <SloshProvider engine={sloshEngine}>{spray}</SloshProvider> : spray}
     </div>
   )

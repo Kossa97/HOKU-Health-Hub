@@ -1,52 +1,41 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import toast from 'react-hot-toast'
-import type { ChartNavigation, FortschrittOverviewState, MetricKey } from '../../types'
+import { forwardRef, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useTranslation } from 'react-i18next'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
+import type { ChartNavigation, DateRange, FortschrittOverviewState, MetricKey } from '../../types'
 import { CHART_METRIC_KEYS, isChartMetricKey } from '../../constants'
-import { buildMetricSeries } from '../../lib/metrics'
+import { buildMetricSeries, computeDelta } from '../../lib/metrics'
 import { buildAvailableMetrics, normalizeMetricKey } from '../../lib/metricDefinitions'
-import {
-  filterCyclesByVisibility,
-  filterOngoingByVisibility,
-} from '../../lib/chartVisibility'
-import { useChartVisibility } from '../../hooks/useChartVisibility'
-import { DEFAULT_CHART_WINDOW, type ChartWindowKey } from '../../lib/chartWindow'
-import { panel } from '../../styles'
-import { VerlaufSetup } from './VerlaufSetup'
-import { VerlaufSetupSheet } from './VerlaufSetupSheet'
-import { ChartSettingsButton } from './ChartSettingsButton'
-import { MetricChart, type ChartPanHandle } from './MetricChart'
+import { metricLabel } from '../../lib/metricLabels'
+import { formatDaySafe, formatNumber, formatSignedNumber } from '../../lib/dates'
+import { todayIso } from '../../lib/substances'
+import { GlassSegmented } from '../../../../components/ui/GlassSegmented'
+import { GlassChart, type ChartBand, type ScrubState } from './GlassChart'
+import { CycleChips } from './CycleChips'
+import { useAmbientAvoid, useAmbientTint } from '../../../../components/ambient/context'
+import { substancesInRange } from '../../lib/cycleSubstances'
 
 interface Props {
   state: FortschrittOverviewState
+  /** Seiten-Zeitraum aus der Leiste oben — gilt auch für den Verlauf. */
+  pageRange: DateRange
   chartNav: ChartNavigation | null
   onChartNavConsumed: () => void
 }
 
-export function VerlaufSection({
+const withUnit = (value: string, unit: string) => (unit === '%' ? `${value} %` : unit ? `${value} ${unit}` : value)
+
+export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSection({
   state,
+  pageRange,
   chartNav,
   onChartNavConsumed,
-}: Props) {
+}, ref) {
+  const { t } = useTranslation()
   const [metricKey, setMetricKey] = useState<MetricKey>('weight')
-  const [setupOpen, setSetupOpen] = useState(false)
-  const [windowKey, setWindowKey] = useState<ChartWindowKey>(DEFAULT_CHART_WINDOW)
-  const chartRef = useRef<ChartPanHandle>(null)
-
-  const {
-    groups: visibilityGroups,
-    visibleIds,
-    toggleGroup,
-    toggleCycle,
-  } = useChartVisibility(state.cycleSubstances, state.ongoingSubstances)
-
-  const visibleCycles = useMemo(
-    () => filterCyclesByVisibility(state.cycleSubstances, visibleIds),
-    [state.cycleSubstances, visibleIds],
-  )
-  const visibleOngoing = useMemo(
-    () => filterOngoingByVisibility(state.ongoingSubstances, visibleIds),
-    [state.ongoingSubstances, visibleIds],
-  )
+  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set())
+  const [touched, setTouched] = useState(false)
+  const [newSubstance, setNewSubstance] = useState<string | null>(null)
+  const [scrub, setScrub] = useState<ScrubState | null>(null)
 
   useEffect(() => {
     if (!chartNav) return
@@ -56,105 +45,189 @@ export function VerlaufSection({
     onChartNavConsumed()
   }, [chartNav, onChartNavConsumed])
 
-
-  const baseRange = state.fullRange
+  // Welche Messwerte es überhaupt gibt: über die ganze Historie, damit der
+  // Umschalter beim Zeitraum-Wechsel nicht springt.
   const pointCounts = useMemo(() => {
     const counts = new Map<string, number>()
+    const full = state.fullRange
     for (const key of CHART_METRIC_KEYS) {
-      counts.set(key, buildMetricSeries(key, baseRange, state.weightLogs, state.dailyLogs, state.bloodwork).length)
+      counts.set(key, buildMetricSeries(key, full, state.weightLogs, state.dailyLogs, state.bloodwork).length)
     }
-    for (const marker of [...new Set(state.bloodwork.map(b => b.marker))]) {
-      counts.set(marker, buildMetricSeries(marker, baseRange, state.weightLogs, state.dailyLogs, state.bloodwork).length)
+    for (const marker of new Set(state.bloodwork.map(b => b.marker))) {
+      counts.set(marker, buildMetricSeries(marker, full, state.weightLogs, state.dailyLogs, state.bloodwork).length)
     }
     return counts
-  }, [baseRange, state])
+  }, [state.fullRange, state.weightLogs, state.dailyLogs, state.bloodwork])
 
   const labUnits = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const b of state.bloodwork) m.set(b.marker, b.unit)
-    return m
+    const units = new Map<string, string>()
+    for (const b of state.bloodwork) units.set(b.marker, b.unit)
+    return units
   }, [state.bloodwork])
 
-  const availableMetrics = useMemo(
-    () => buildAvailableMetrics(pointCounts, [...new Set(state.bloodwork.map(b => b.marker))], labUnits),
-    [pointCounts, state.bloodwork, labUnits],
+  const metrics = useMemo(
+    () => buildAvailableMetrics(pointCounts, [...new Set(state.bloodwork.map(b => b.marker))], labUnits)
+      .map(m => ({ ...m, label: metricLabel(t, m.key, m.label) })),
+    [pointCounts, state.bloodwork, labUnits, t],
+  )
+  const metric = metrics.find(m => m.key === metricKey) ?? metrics.find(m => m.key === 'weight') ?? metrics[0]
+
+  const series = useMemo(
+    () => metric ? buildMetricSeries(metric.key, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork) : [],
+    [metric, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork],
   )
 
-  const selectedMetric = availableMetrics.find(m => m.key === metricKey)
-    ?? availableMetrics.find(m => m.key === 'weight')
-    ?? availableMetrics[0]
+  const substances = useMemo(() => substancesInRange(state.cycleSubstances, pageRange), [state.cycleSubstances, pageRange])
+  // Angewählte Substanzen, die im Zeitraum nicht mehr vorkommen, zählen nicht mit.
+  const activeSelection = useMemo(
+    () => new Set(substances.filter(s => selected.has(s.id)).map(s => s.id)),
+    [substances, selected],
+  )
 
-  useEffect(() => {
-    if (availableMetrics.length === 0) return
-    if (!availableMetrics.some(m => m.key === metricKey)) {
-      setMetricKey(availableMetrics.find(m => m.key === 'weight')?.key ?? availableMetrics[0].key)
-    }
-  }, [availableMetrics, metricKey])
+  const bands = useMemo<ChartBand[]>(() => substances
+    .filter(s => activeSelection.has(s.id))
+    .flatMap(s => s.cycles.map(c => ({
+      key: c.id,
+      substanceId: s.id,
+      name: s.name,
+      color: s.color,
+      start: c.startDate,
+      end: c.endDate,
+    }))), [substances, activeSelection])
 
-  const selectMetric = (key: MetricKey) => {
-    const count = pointCounts.get(key) ?? 0
-    const metric = availableMetrics.find(m => m.key === key)
-    if (!metric || count === 0) return
-    if (metric.isLab && count < 2) {
-      toast.error('Mindestens 2 Messungen für den Verlauf nötig')
-      return
-    }
-    setMetricKey(key)
+  const toggle = useCallback((id: string) => {
+    const on = !selected.has(id)
+    const next = new Set(selected)
+    if (on) next.add(id)
+    else next.delete(id)
+    setTouched(true)
+    setSelected(next)
+    // Nur der neu angewählte Balken blendet auf; die übrigen werden dünner.
+    setNewSubstance(on ? id : null)
+  }, [selected])
+
+  const onScrub = useCallback((s: ScrubState | null) => setScrub(s), [])
+  // Nur ein Ablesen, das zur aktuellen Reihe passt, zählt — wie für die Anzeige unten
+  const scrubbing = scrub != null && scrub.index < series.length
+
+  // Hintergrund: beim Ablesen tritt das Licht hinter dem Ablese-Punkt zurück, damit die
+  // Zahl heraussticht. Ein angewählter Zyklus färbt das mittlere Licht: der gerade
+  // angewählte, sonst der erste noch angewählte.
+  useAmbientAvoid(scrubbing ? { x: scrub.clientX, y: scrub.clientY } : null)
+  const cycleColor = substances.find(s => s.id === newSubstance && activeSelection.has(s.id))?.color
+    ?? substances.find(s => activeSelection.has(s.id))?.color
+  useAmbientTint('middle', cycleColor ? { color: cycleColor } : null)
+
+  if (!metric) {
+    return (
+      <section ref={ref} className="fg-hero lg-surface" aria-label={t('fortschritt_metric_weight')}>
+        <div className="fg-chart-empty">
+          <p className="lg-h3">{t('fortschritt_chart_no_data_title', { metric: t('fortschritt_metric_weight') })}</p>
+          <p>{t('fortschritt_chart_no_data_body')}</p>
+        </div>
+        <CycleChips substances={substances} selected={activeSelection} hint={!touched} onToggle={toggle} />
+      </section>
+    )
   }
 
-  const hasChartData = visibleCycles.length > 0 || visibleOngoing.length > 0
-  const openSetup = () => setSetupOpen(true)
+  const first = series[0]
+  // Ein Index aus einer älteren Reihe (Zeitraum gewechselt, Daten neu geladen) gilt nicht mehr.
+  const liveScrub = scrub && scrub.index < series.length ? scrub : null
+  const point = liveScrub ? series[liveScrub.index] : series[series.length - 1]
+  const pointDate = liveScrub?.date ?? point?.date
+  const delta = point && first ? point.value - first.value : null
+  const isToday = !liveScrub && point?.date === todayIso()
+
+  // Am Zyklusstart: der Start und, ehrlich daneben, von wann der gezeigte Messwert ist.
+  const label = liveScrub?.startOf && point
+    ? `${t('fortschritt_chart_start_note', { names: liveScrub.startOf })} ${formatDaySafe(liveScrub.date)} · ${t('fortschritt_chart_value_of', { metric: metric.label, date: formatDaySafe(point.date) })}`
+    : point
+      ? `${metric.label} · ${isToday ? t('fortschritt_chart_today') : formatDaySafe(point.date, 'full')}`
+      : metric.label
+
+  // Welche angewählten Zyklen an diesem Tag liefen, mit Zyklustag
+  const running = pointDate
+    ? bands
+      .filter(b => b.start <= pointDate && (b.end == null || b.end >= pointDate))
+      .map(b => ({ key: b.key, name: b.name, color: b.color, day: differenceInCalendarDays(parseISO(pointDate), parseISO(b.start)) + 1 }))
+    : []
+
+  const options = metrics.map(m => {
+    const count = pointCounts.get(m.key) ?? 0
+    return {
+      key: m.key,
+      label: m.label,
+      denyReason: m.isLab && count < 2 ? t('fortschritt_chip_need_two', { metric: m.label }) : undefined,
+    }
+  })
+
+  const fullDelta = computeDelta(series)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {selectedMetric && hasChartData && (
-        <MetricChart
-          ref={chartRef}
-          dataRange={state.fullRange}
-          windowKey={windowKey}
-          onWindowChange={setWindowKey}
-          metric={selectedMetric}
-          availableMetrics={availableMetrics}
-          metricKey={metricKey}
-          pointCounts={pointCounts}
-          onSelectMetric={selectMetric}
-          weights={state.weightLogs}
-          dailyLogs={state.dailyLogs}
-          bloodwork={state.bloodwork}
-          cycles={visibleCycles}
-          ongoing={visibleOngoing}
-          onOpenSettings={openSetup}
-        />
-      )}
+    <section
+      ref={ref}
+      className="fg-hero lg-surface"
+      aria-label={metric.label}
+      data-metric={metric.key}
+    >
+      <div className="fg-hero-in">
+        {options.length > 1 && (
+          <GlassSegmented
+            ariaLabel={t('fortschritt_metric_switch_aria')}
+            options={options}
+            value={metric.key}
+            material="fill"
+            scroll
+            onChange={key => { setScrub(null); setMetricKey(key) }}
+          />
+        )}
 
-      {!hasChartData && (
-        <section style={{
-          ...panel,
-          padding: '32px 18px',
-          textAlign: 'center',
-          position: 'relative',
-        }}>
-          <div style={{ position: 'absolute', top: 14, right: 12 }}>
-            <ChartSettingsButton onClick={openSetup} />
+        {series.length === 0 ? (
+          <div className="fg-chart-empty">
+            <p className="lg-h3">{t('fortschritt_chart_no_data_title', { metric: metric.label })}</p>
+            <p>{t('fortschritt_chart_no_data_body')}</p>
           </div>
-          <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 8 }}>
-            Chart noch leer
-          </p>
-          <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', maxWidth: 260, margin: '0 auto' }}>
-            Tippe auf Einstellen, um Substanzen und Zyklen für den Verlauf zu wählen.
-          </p>
-        </section>
+        ) : (
+          <>
+            <div className="fg-hero-label" aria-live="polite">{label}</div>
+            <div className="fg-hero-value" data-hero-value>
+              {formatNumber(point.value)}
+              {metric.unit && <small>{metric.unit}</small>}
+            </div>
+            {delta != null && first && (
+              <div className="fg-hero-delta">
+                {withUnit(formatSignedNumber(Math.round(delta * 100) / 100), metric.unit)} {t('fortschritt_since', { date: formatDaySafe(first.date) })}
+              </div>
+            )}
+            <div className="fg-hero-ctx">
+              {running.map(r => (
+                <span key={r.key} style={{ '--dot': r.color } as CSSProperties}>
+                  {r.name} · {t('fortschritt_cycle_day', { n: r.day })}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {series.length > 0 && (
+        <GlassChart
+          points={series}
+          range={pageRange}
+          color={metric.color}
+          bands={bands}
+          newBandSubstance={newSubstance}
+          onScrub={onScrub}
+          ariaLabel={t('fortschritt_chart_aria_range', {
+            metric: metric.label,
+            from: formatDaySafe(pageRange.from, 'full'),
+            to: formatDaySafe(pageRange.to, 'full'),
+            delta: fullDelta ? withUnit(formatSignedNumber(Math.round(fullDelta.delta * 100) / 100), metric.unit) : '–',
+          })}
+        />
       )}
 
-      <VerlaufSetupSheet open={setupOpen} onClose={() => setSetupOpen(false)}>
-        <VerlaufSetup
-          embedded
-          groups={visibilityGroups}
-          visibleIds={visibleIds}
-          onToggleGroup={toggleGroup}
-          onToggleCycle={toggleCycle}
-        />
-      </VerlaufSetupSheet>
-    </div>
+      <CycleChips substances={substances} selected={activeSelection} hint={!touched} onToggle={toggle} />
+    </section>
   )
-}
+})

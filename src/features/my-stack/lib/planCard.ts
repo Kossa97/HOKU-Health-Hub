@@ -17,6 +17,8 @@ export interface PlanCardSlot {
   id: string
   key: string
   time: string
+  /** Hat der Plan eine eigene Uhrzeit — oder gilt die Standardzeit der Tageszeit? */
+  customTime: boolean
   minutes: number
   routineGroup: ResolvedRoutineGroup
   dose: number | null
@@ -65,6 +67,7 @@ export function planCardSlots(version: PlanScheduleSnapshot): PlanCardSlot[] {
       id: `${key}#${nummer}`,
       key,
       time: slot.time,
+      customTime: Boolean(einzeln.intake_time_custom.trim()),
       minutes: slot.minutes,
       routineGroup: slot.routineGroup,
       dose: slot.dose ?? version.dose,
@@ -93,7 +96,7 @@ export function versionRhythm(version: PlanScheduleSnapshot): IntakeRhythm {
   })
 }
 
-function planTage(version: PlanScheduleSnapshot, rhythmus = versionRhythm(version)): string[] | null {
+export function planTage(version: PlanScheduleSnapshot, rhythmus = versionRhythm(version)): string[] | null {
   return rhythmus.kind === 'weekdays' ? rhythmus.weekdays : null
 }
 

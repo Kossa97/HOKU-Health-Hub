@@ -129,3 +129,25 @@ test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   const ride = mock.table('training_sessions').find(row => row.kind === 'cycle')
   expect(ride).toMatchObject({ duration_s: 3600, distance_m: 25500, source: 'manual' })
 })
+
+test.describe('Dot auf „Heute"', () => {
+  test.use({ dotFrei: true })
+
+  test('Dot sagt, was heute dran ist', async ({ page, mock }) => {
+    seedHistory(mock)
+    await page.goto('/training')
+    await expect(page.getByRole('button', { name: 'Push starten' })).toBeVisible()
+    const logo = page.locator('[data-tyd-slot="dot"]')
+    await expect(logo).toHaveAttribute('data-dot-bereit', 'true')
+    await logo.click()
+    const blase = page.locator('.tyd-dot-blase')
+    const gesagt = new Set<string>()
+    for (let t = 0; t < 5000; t += 100) {
+      await page.clock.runFor(100)
+      const text = (await blase.textContent())?.trim()
+      if (text && (await blase.getAttribute('data-zeigen')) === 'true') gesagt.add(text)
+    }
+    // Montag, 28.09.: Push ist geplant, diese Woche noch nichts trainiert (Ziel 3)
+    expect([...gesagt].some(t => t.includes('Heute ist Push dran. Noch 3 Einheiten bis zu deinem Wochenziel.'))).toBe(true)
+  })
+})

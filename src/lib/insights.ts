@@ -1,11 +1,15 @@
+import { observationGroup, observationsOf, type Observation, type SymptomKind, type SymptomRow } from './tagebuch/diary'
+
 export interface EffectRow {
   id: string
-  type: 'effect' | 'side_effect'
+  /** Nur bei älteren Einträgen ohne Chips maßgeblich. */
+  type: SymptomKind | null
   description: string
-  severity: number
+  severity: number | null
   stack_item_id: string | null
   occurred_at: string
   stack_items: { display_name: string } | null
+  effect_symptoms?: SymptomRow[] | null
 }
 
 export interface ReviewRow {
@@ -46,19 +50,19 @@ export interface PeptideReviewStat {
   wiederBeantwortet: number
 }
 
-function normalizeDescription(text: string) {
-  return text.trim().toLowerCase()
-}
-
-export function topSideEffects(effects: EffectRow[], limit = 5): SideEffectStat[] {
+/** Häufigste Nebenwirkungen über alle Chips; `label` liefert den Namen in der aktuellen Sprache. */
+export function topSideEffects(effects: EffectRow[], label: (observation: Observation) => string, limit = 5): SideEffectStat[] {
   const counts = new Map<string, { label: string; count: number }>()
   for (const row of effects) {
-    if (row.type !== 'side_effect') continue
-    const key = normalizeDescription(row.description)
-    if (!key) continue
-    const existing = counts.get(key)
-    if (existing) existing.count += 1
-    else counts.set(key, { label: row.description.trim(), count: 1 })
+    for (const observation of observationsOf(row)) {
+      if (observation.kind !== 'side_effect') continue
+      const text = label(observation).trim()
+      if (!text) continue
+      const key = observationGroup(observation)
+      const existing = counts.get(key)
+      if (existing) existing.count += 1
+      else counts.set(key, { label: text, count: 1 })
+    }
   }
   return [...counts.values()]
     .sort((a, b) => b.count - a.count)
@@ -66,14 +70,19 @@ export function topSideEffects(effects: EffectRow[], limit = 5): SideEffectStat[
     .map(({ label, count }) => ({ text: label, count }))
 }
 
+/** Je Substanz: Wirkungen und Nebenwirkungen (je Chip gezählt) und Ø Intensität. */
 export function effectsByPeptide(effects: EffectRow[]): PeptideEffectStat[] {
   const grouped = new Map<string, { name: string; effects: number; sideEffects: number; severities: number[] }>()
   for (const row of effects) {
+    const observations = observationsOf(row)
+    if (!observations.length) continue
     const name = row.stack_items?.display_name?.trim() || '—'
     const entry = grouped.get(name) ?? { name, effects: 0, sideEffects: 0, severities: [] }
-    if (row.type === 'effect') entry.effects += 1
-    else entry.sideEffects += 1
-    entry.severities.push(row.severity)
+    for (const observation of observations) {
+      if (observation.kind === 'effect') entry.effects += 1
+      else entry.sideEffects += 1
+      entry.severities.push(observation.severity)
+    }
     grouped.set(name, entry)
   }
   return [...grouped.values()]

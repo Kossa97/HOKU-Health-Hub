@@ -25,7 +25,7 @@ import { useDragReorder } from './plan/useDragReorder'
 
 const REST_OPTIONS = [60, 90, 120, 180]
 const TYPE_ORDER: SetType[] = ['normal', 'warmup', 'drop', 'failure']
-const TYPE_COLOR: Record<SetType, string> = { normal: 'var(--text)', warmup: '#f59e0b', drop: '#a855f7', failure: '#f43f5e' }
+const TYPE_COLOR: Record<SetType, string> = { normal: 'var(--lg-text)', warmup: '#f59e0b', drop: '#a855f7', failure: '#f43f5e' }
 const MAX_SETS = 20
 
 type Column = 'type' | 'min' | 'dash' | 'max' | 'duration' | 'distance' | 'weight' | 'rpe'
@@ -249,7 +249,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--text-dim)' }}>{tt('editor_saves_on_close')}</span>
+          <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('editor_saves_on_close')}</span>
           {onStart && (
             <Button tone="ghost" disabled={busy} onClick={start} style={{ minHeight: 38, padding: '0 12px', fontSize: '0.85rem' }}>
               <Play size={14} aria-hidden="true" /> {tt('start')}
@@ -306,7 +306,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           </div>
         </section>
 
-        {exercises.length === 0 && <p style={{ color: 'var(--text-dim)', padding: '4px 2px', fontSize: '0.9rem' }}>{tt('routine_no_exercises')}</p>}
+        {exercises.length === 0 && <p style={{ color: 'var(--lg-text-3)', padding: '4px 2px', fontSize: '0.9rem' }}>{tt('routine_no_exercises')}</p>}
         <ul {...drag.containerProps} style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {exercises.map((ex, index) => {
             const exInfo = info(ex.exerciseId)
@@ -334,13 +334,13 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                     type="button"
                     aria-label={tt('drag_handle')}
                     {...drag.handleProps(index)}
-                    style={{ ...drag.handleProps(index).style, width: 32, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 }}
+                    style={{ ...drag.handleProps(index).style, width: 32, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)', flexShrink: 0 }}
                   >
                     <GripVertical size={18} aria-hidden="true" />
                   </button>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exName}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {exInfo?.primary.map(m => tt(`muscle_${m}` as TrainingTextKey)).join(', ')}
                     </div>
                   </div>
@@ -369,13 +369,13 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                     onClick={() => setMenu(index)}
                     aria-label={`${exName} – ${tt('exercise_menu')}`}
                     className="tyd-train-press"
-                    style={{ width: 36, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', flexShrink: 0 }}
+                    style={{ width: 36, height: 40, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)', flexShrink: 0 }}
                   >
                     <MoreHorizontal size={18} aria-hidden="true" />
                   </button>
                 </div>
 
-                <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: grid, gap: 6, padding: '2px 4px 0', fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '0.04em' }}>
+                <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: grid, gap: 6, padding: '2px 4px 0', fontSize: '0.62rem', fontWeight: 800, color: 'var(--lg-text-3)', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '0.04em' }}>
                   {columns.map(col => <span key={col}>{columnHeader(col, tt, unit)}</span>)}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -393,13 +393,13 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                                   onClick={() => cycleType(index, setIndex)}
                                   aria-label={`${tt('set_type')}: ${tt(`set_type_${set.type}` as TrainingTextKey)}`}
                                   className="tyd-train-press"
-                                  style={{ height: 38, borderRadius: 10, fontWeight: 800, fontSize: '0.85rem', background: 'var(--surface-raised)', color: TYPE_COLOR[set.type] }}
+                                  style={{ height: 38, borderRadius: 10, fontWeight: 800, fontSize: '0.85rem', background: 'var(--lg-fill)', color: TYPE_COLOR[set.type] }}
                                 >
                                   {set.type === 'normal' ? number : tt(`set_${set.type}_short` as TrainingTextKey)}
                                 </button>
                               )
                             case 'dash':
-                              return <span key={col} aria-hidden="true" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>–</span>
+                              return <span key={col} aria-hidden="true" style={{ textAlign: 'center', color: 'var(--lg-text-3)' }}>–</span>
                             case 'min':
                               return <NumField key={col} label={`${tt('reps_range')} ${tt('reps_min')}`} value={set.repsMin ?? set.reps ?? null} parse={parseReps} format={String} inputMode="numeric" onCommit={v => commitRepsBound(index, setIndex, 'repsMin', v)} />
                             case 'max':
@@ -431,7 +431,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                 </div>
                 <div style={{ display: 'flex', gap: 6, padding: '4px 4px 0' }}>
                   <Button tone="ghost" onClick={() => addSet(index)} disabled={ex.sets.length >= MAX_SETS} aria-label={tt('add_set')} style={{ minHeight: 36, fontSize: '0.82rem', flex: 1 }}>{tt('add_set_short')}</Button>
-                  <Button tone="ghost" onClick={() => removeSet(index)} disabled={ex.sets.length <= 1} aria-label={tt('remove_set')} style={{ minHeight: 36, fontSize: '0.82rem', color: 'var(--text-dim)' }}>{tt('remove_set_short')}</Button>
+                  <Button tone="ghost" onClick={() => removeSet(index)} disabled={ex.sets.length <= 1} aria-label={tt('remove_set')} style={{ minHeight: 36, fontSize: '0.82rem', color: 'var(--lg-text-3)' }}>{tt('remove_set_short')}</Button>
                 </div>
                 {notesOpen && (
                   <textarea
@@ -454,15 +454,15 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 
         <section style={{ ...cardStyle, padding: '14px 16px' }} aria-labelledby="routine-muscle-title">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-            <h3 id="routine-muscle-title" style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>{tt('sets_per_muscle')}</h3>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{tt('muscle_routine_times', { count: times })}</span>
+            <h3 id="routine-muscle-title" style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lg-text-3)' }}>{tt('sets_per_muscle')}</h3>
+            <span style={{ fontSize: '0.72rem', color: 'var(--lg-text-3)' }}>{tt('muscle_routine_times', { count: times })}</span>
           </div>
           {muscleRows.length === 0 ? (
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: 8 }}>{tt('muscle_empty_editor')}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('muscle_empty_editor')}</p>
           ) : (
             <div style={{ marginTop: 10 }}><MuscleBars rows={muscleRows} /></div>
           )}
-          <p style={{ margin: '10px 0 0', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{tt('muscle_band_hint')}</p>
+          <p style={{ margin: '10px 0 0', fontSize: '0.72rem', color: 'var(--lg-text-3)', lineHeight: 1.4 }}>{tt('muscle_band_hint')}</p>
         </section>
 
         {routine?.id && (
@@ -492,17 +492,17 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 
 const cardStyle: CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 10, padding: '12px 14px', borderRadius: 18,
-  background: 'var(--surface)', border: '1px solid var(--border)',
+  background: 'var(--lg-surface-2)', border: '1px solid var(--lg-separator)',
 }
 const rowStyle: CSSProperties = { display: 'flex', gap: 8, alignItems: 'flex-start' }
-const rowLabel: CSSProperties = { fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 700, width: '4em', flexShrink: 0, paddingTop: 10 }
+const rowLabel: CSSProperties = { fontSize: '0.75rem', color: 'var(--lg-text-3)', fontWeight: 700, width: '4em', flexShrink: 0, paddingTop: 10 }
 
 const smallChip = (active: boolean, color = TRAINING_ACCENT): CSSProperties => ({
   minHeight: 30, padding: '0 9px', borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
   fontSize: '0.72rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-  background: active ? `${color}22` : 'var(--surface-raised)',
-  border: `1px solid ${active ? `${color}66` : 'var(--border)'}`,
-  color: active ? color : 'var(--text-dim)',
+  background: active ? `${color}22` : 'var(--lg-fill)',
+  border: `1px solid ${active ? `${color}66` : 'var(--lg-separator)'}`,
+  color: active ? color : 'var(--lg-text-3)',
 })
 
 function columnHeader(col: Column, tt: ReturnType<typeof useTrainingText>['tt'], unit: 'kg' | 'lb'): string {
@@ -583,9 +583,9 @@ function MenuItem({ icon, children, onClick, disabled, danger }: { icon: ReactNo
       disabled={disabled}
       className="tyd-train-press"
       style={{
-        minHeight: 50, display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '0 14px', borderRadius: 14,
-        fontWeight: 700, fontSize: '0.95rem', background: 'var(--surface)', border: '1px solid var(--border)',
-        color: danger ? '#f43f5e' : 'var(--text)', opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer',
+        minHeight: 50, display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '0 16px', borderRadius: 14,
+        fontWeight: 500, fontSize: 17, background: 'var(--lg-surface-2)', border: 0,
+        color: danger ? 'var(--lg-bad-text)' : 'var(--lg-text)', opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer',
       }}
     >
       {icon}{children}

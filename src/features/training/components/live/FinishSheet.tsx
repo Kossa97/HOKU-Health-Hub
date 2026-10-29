@@ -82,7 +82,7 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
             {busy ? tt('saving') : tt('summary_save')}
           </Button>
           {!editing && (
-            <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--text-muted)' }}>{tt('save_hint')}</p>
+            <p style={{ margin: 0, textAlign: 'center', fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--lg-text-3)' }}>{tt('save_hint')}</p>
           )}
         </div>
       }
@@ -94,20 +94,20 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
           <Stat label={tt('summary_sets')} value={sets} />
         </div>
 
-        {nothing && <p style={{ color: 'var(--text-dim)' }}>{tt('summary_nothing')}</p>}
-        {open > 0 && !nothing && <p style={{ color: '#f59e0b', fontSize: '0.85rem' }}>{tt('summary_unfinished', { count: open })}</p>}
+        {nothing && <p style={{ fontSize: 15, color: 'var(--lg-text-3)' }}>{tt('summary_nothing')}</p>}
+        {open > 0 && !nothing && <p style={{ color: 'var(--lg-warn-text)', fontSize: 13 }}>{tt('summary_unfinished', { count: open })}</p>}
 
         {preview.records.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, marginBottom: 8, color: '#eab308' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17, fontWeight: 600, marginBottom: 8, color: '#ffd60a' }}>
               <Trophy size={18} aria-hidden="true" /> {tt('summary_records')}
             </div>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {preview.records.map((r, i) => (
-                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: '0.9rem' }}>
+                <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: 15 }}>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontWeight: 700 }}>{tt(`record_${r.kind}` as TrainingTextKey)}</span>
-                    <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(r.exerciseId)}</span>
+                    <span style={{ display: 'block', fontWeight: 600 }}>{tt(`record_${r.kind}` as TrainingTextKey)}</span>
+                    <span style={{ display: 'block', fontSize: 12, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(r.exerciseId)}</span>
                   </span>
                   <strong style={{ fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{recordValue(r, settings, locale)}</strong>
                 </li>
@@ -117,7 +117,7 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
         )}
 
         <div>
-          <div style={{ fontWeight: 800, marginBottom: 8 }}>
+          <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>
             {tt('summary_rpe')} {rpe != null && <span style={{ color: TRAINING_ACCENT }}>{tt('summary_rpe_value', { value: rpe })}</span>}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -132,7 +132,7 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
             className="tyd-train-pop"
             style={{
               display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer',
-              padding: '12px 14px', borderRadius: 16, background: 'var(--surface)',
+              padding: '12px 14px', borderRadius: 16, background: 'var(--lg-surface-2)',
               border: `1px solid ${TRAINING_ACCENT}55`,
             }}
           >
@@ -144,7 +144,7 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
             />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'block', fontWeight: 800 }}>{tt('update_routine_question')}</span>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.4 }}>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--lg-text-3)', marginTop: 2, lineHeight: 1.4 }}>
                 {routine.name} · {tt('update_routine_hint', { changes: diffText })}
               </span>
             </span>

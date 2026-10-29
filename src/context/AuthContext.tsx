@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { isAuthRetryableFetchError, type Session, type User } from '@supabase/supabase-js'
+import { vergissAbdruecke } from '../components/ui/umrissAbdruck'
+import { AUTH_STORAGE_KEY, supabase } from '../lib/supabase'
+import { setzeAngemeldetenNutzer, vergissOfflineDaten } from '../lib/stoerung'
+import { vergissDotVerlauf } from '../features/dot/chat/coachService'
+import { abmeldenBeimStart } from '../features/auth/lib/sitzung'
 
 interface AuthContextType {
   session: Session | null
@@ -16,17 +20,55 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 })
 
+/**
+ * Abgelaufene Sitzung ohne Netz: supabase-js kann das Token nicht erneuern,
+ * gibt `null` zurück, lässt die Sitzung aber im Speicher. Damit niemand
+ * offline auf die Anmeldung fliegt, gilt die gespeicherte weiter — Daten
+ * kommen dann aus dem Offline-Cache, und sobald das Netz zurück ist,
+ * erneuert supabase-js das Token selbst (TOKEN_REFRESHED).
+ */
+function gespeicherteSitzung(): Session | null {
+  try {
+    const roh = localStorage.getItem(AUTH_STORAGE_KEY)
+    const sitzung = roh ? (JSON.parse(roh) as Session) : null
+    return sitzung?.user?.id ? sitzung : null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSessionState] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  // Der Offline-Cache erfährt sofort, wessen Daten er lesen darf — vor dem
+  // ersten Rendern der Seiten, die gleich laden
+  const setSession = (neu: Session | null) => {
+    setzeAngemeldetenNutzer(neu?.user?.id ?? null)
+    setSessionState(neu)
+  }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+    void (async () => {
+      // „Angemeldet bleiben" war aus: neuer Start, neue Anmeldung — bevor die Route entschieden wird
+      if (abmeldenBeimStart()) {
+        const { error } = await supabase.auth.signOut({ scope: 'local' })
+        if (error) try { localStorage.removeItem(AUTH_STORAGE_KEY) } catch { /* kein Speicher */ }
+      }
+      const { data: { session }, error } = await supabase.auth.getSession()
+      setSession(session ?? (error && isAuthRetryableFetchError(error) ? gespeicherteSitzung() : null))
       setLoading(false)
-    })
+    })()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Den Start regelt getSession oben — offline käme hier sonst `null`
+      // und würfe die gerettete Sitzung wieder weg
+      if (event === 'INITIAL_SESSION') return
+      // Jeder Weg hinaus (Abmelden, Konto gelöscht, Sitzung abgelaufen)
+      if (event === 'SIGNED_OUT') {
+        vergissAbdruecke()
+        vergissDotVerlauf()
+        void vergissOfflineDaten()
+      }
       setSession(session)
     })
 
@@ -34,7 +76,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    // Ohne Netz meldet supabase-js nur den Fehler und bleibt angemeldet —
+    // auf dem Gerät trotzdem abmelden
+    if (error && isAuthRetryableFetchError(error)) {
+      try { localStorage.removeItem(AUTH_STORAGE_KEY) } catch { /* kein Speicher */ }
+      vergissAbdruecke()
+      vergissDotVerlauf()
+      await vergissOfflineDaten()
+      setSession(null)
+    }
   }
 
   return (

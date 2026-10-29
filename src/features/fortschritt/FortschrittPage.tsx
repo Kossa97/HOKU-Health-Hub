@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { useFortschrittData } from './hooks/useFortschrittData'
 import { FortschrittHeader } from './components/FortschrittHeader'
@@ -9,8 +10,11 @@ import { TodayLogSheet } from './components/TodayLogSheet'
 import { hasLogForDate } from './lib/metricDefaults'
 import { DEFAULT_RANGE_CHIP, rangeFromChip, type RangeChipKey } from './lib/verlaufRange'
 import { formatDaySafe } from './lib/dates'
+import './glass.css'
+import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 
 export function FortschrittPage() {
+  const { t } = useTranslation()
   const { state, reload } = useFortschrittData()
   const [searchParams, setSearchParams] = useSearchParams()
   const [logOpen, setLogOpen] = useState(false)
@@ -27,7 +31,7 @@ export function FortschrittPage() {
     [rangeChip, state.fullRange],
   )
 
-  const rangeLabel = `${formatDaySafe(pageRange.from, 'dd.MM.yyyy')} – ${formatDaySafe(pageRange.to, 'dd.MM.yyyy')}`
+  const rangeLabel = `${formatDaySafe(pageRange.from, 'full')} – ${formatDaySafe(pageRange.to, 'full')}`
 
   const hasTodayEntry = useMemo(
     () => hasLogForDate(state.dailyLogs, state.weightLogs, format(new Date(), 'yyyy-MM-dd')),
@@ -35,7 +39,8 @@ export function FortschrittPage() {
   )
 
   return (
-    <div className="space-y-4" style={{ marginTop: '-1rem' }}>
+    <div className="fg-root">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <StickyRangeBar
         value={rangeChip}
         onChange={setRangeChip}
@@ -49,9 +54,7 @@ export function FortschrittPage() {
       />
 
       {state.loading ? (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-          Laden…
-        </div>
+        <Silhouette label={t('fortschritt_loading')} abdruck><KurvenUmriss /></Silhouette>
       ) : (
         <FortschrittDashboard
           state={state}
@@ -60,6 +63,8 @@ export function FortschrittPage() {
           onReload={() => void reload()}
         />
       )}
+
+      </div>
 
       <TodayLogSheet
         logs={state.dailyLogs}
@@ -71,3 +76,4 @@ export function FortschrittPage() {
     </div>
   )
 }
+

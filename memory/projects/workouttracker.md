@@ -118,8 +118,16 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
   Aktivität eintragen · Diese Woche · Bereitschaft (nur mit Wert) · GLP-1 · Zuletzt.
 - Tabs oben, weil sie den ganzen Tracker umschalten; der Kalender ist Inhalt von „Heute“.
 - **Dot gehört nicht in die Karten.** Er lebt in der Tab-Leiste, kommt heraus und sagt per
-  Sprechblase, was heute dran ist, oder motiviert. Dot liegt auf `main`
-  (`src/features/dot/`), nicht auf diesem Branch: Anbindung nach dem Zusammenführen.
+  Sprechblase, was heute dran ist, oder motiviert. Angebunden am 29.10.2026 nach dem Merge
+  von `main`: Seiten geben ihm über `dotStore.setHinweis(text)` einen Satz; ist er draußen
+  (`modus === 'home'`), sagt er ihn, beim Herauskommen grüßt er damit. Der Satz für
+  „Heute" kommt aus `training/lib/dotHint.ts` (heute dran / erledigt / Ruhetag / niedrige
+  Bereitschaft / Wochenziel). Während das Live-Training offen ist, schweigt er dazu.
+- Merge mit `main` (29.10.2026): `main` hatte den Tracker auf das schwarze Design (lg-Klassen)
+  gebracht; aufgelöst als v2-Logik mit lg-Optik, alte Farbvariablen auf lg-Variablen gemappt.
+- Pausen-Benachrichtigung ist jetzt **Opt-in** (Standard aus, Erlaubnis beim Einschalten).
+  Offen: auf Android/iOS/Capacitor zeigt die Seiten-Benachrichtigung nichts zuverlässig —
+  braucht geplante Benachrichtigung über Service Worker bzw. Capacitor Local Notifications.
 - Die Karte „Heute geplant/Als Nächstes“ (`NextInPlanCard`) und die leere
   Bereitschaftskarte sind entfallen.
 

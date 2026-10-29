@@ -39,12 +39,20 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
   const scroller = useRef<HTMLDivElement>(null)
   const items = useRef<Array<HTMLDivElement | null>>([])
   const frame = useRef(0)
-  const settleTimer = useRef<ReturnType<typeof setTimeout>>()
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   /** Zeile in der Mitte, zuletzt gemeldet an Haptik und Eltern. */
   const centered = useRef(index)
   const reported = useRef(index)
   /** Laeuft ein Scrollen, das wir selbst ausgeloest haben? Dann keine Ticks. */
   const programmatic = useRef(false)
+  /**
+   * Ziel des selbst ausgeloesten Drehens. Bis es erreicht ist, gilt es als
+   * Wert — auch wenn das sanfte Scrollen stockt (volle Hauptschleife) und
+   * zwischendurch kurz still steht. Greift der Nutzer ein, verfaellt es.
+   */
+  const target = useRef<number | null>(null)
+  /** Schon einmal ohne Animation nachgesprungen? Dann gilt das Ziel als erreicht. */
+  const retried = useRef(false)
   const onChangeRef = useRef(onChange)
   useLayoutEffect(() => { onChangeRef.current = onChange })
 
@@ -80,7 +88,23 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
     }
   }, [count])
 
+  const settleRef = useRef<() => void>(() => {})
   const settle = useCallback(() => {
+    const el = scroller.current
+    if (el && target.current != null) {
+      const top = target.current * WHEEL_ITEM_H
+      // Gestockt statt angekommen: einmal ohne Animation hin, dann gilt es als erreicht.
+      if (Math.abs(el.scrollTop - top) > 2 && !retried.current) {
+        retried.current = true
+        el.scrollTo({ top, behavior: 'auto' })
+        clearTimeout(settleTimer.current)
+        settleTimer.current = setTimeout(() => settleRef.current(), SETTLE_MS)
+        return
+      }
+      centered.current = target.current
+      target.current = null
+      retried.current = false
+    }
     programmatic.current = false
     const now = centered.current
     if (now !== reported.current) {
@@ -88,6 +112,8 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       onChangeRef.current(now)
     }
   }, [])
+
+  useLayoutEffect(() => { settleRef.current = settle })
 
   const onScroll = useCallback(() => {
     if (!frame.current) frame.current = requestAnimationFrame(paint)
@@ -101,6 +127,8 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
     const top = i * WHEEL_ITEM_H
     if (Math.abs(el.scrollTop - top) < 1) return
     programmatic.current = true
+    target.current = i
+    retried.current = false
     el.scrollTo({ top, behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto' })
   }, [])
 
@@ -128,6 +156,12 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
     cancelAnimationFrame(frame.current)
     clearTimeout(settleTimer.current)
   }, [])
+
+  // Finger, Maus oder Rad uebernehmen: ein laufendes Hindrehen verfaellt.
+  const takeOver = () => {
+    target.current = null
+    programmatic.current = false
+  }
 
   const step = (delta: number) => {
     const next = clamp(reported.current + delta, 0, count - 1)
@@ -165,6 +199,8 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       aria-valuetext={format(index)}
       className="tyd-wheel"
       onScroll={onScroll}
+      onPointerDown={takeOver}
+      onWheel={takeOver}
       onClick={event => {
         // Tippen auf eine Zeile dreht sie in die Mitte.
         const row = (event.target as HTMLElement).closest<HTMLElement>('[data-wheel-index]')
@@ -185,7 +221,7 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
         height: WHEEL_HEIGHT, overflowY: 'auto', overscrollBehavior: 'contain',
         scrollSnapType: 'y mandatory', paddingBlock: PAD,
         fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
-        color: 'var(--text)', touchAction: 'pan-y', outline: 'none',
+        color: 'var(--lg-text)', touchAction: 'pan-y', outline: 'none',
         WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
         maskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
       }}

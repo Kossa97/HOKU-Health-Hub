@@ -3,6 +3,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
 import { PeptideVialVisual } from './PeptideVialVisual'
+import { VIAL_CAP_COLLAR } from '../features/my-stack/extensions/peptide/vialShape'
 
 const source = () => readFileSync(new URL('./PeptideVialVisual.tsx', import.meta.url), 'utf8')
 // The imperative stage-light channel is shared with the other stage forms and
@@ -333,7 +334,9 @@ describe('PeptideVialVisual', () => {
 
     // Ambient life: rising bubbles rendered as animated SVG circles.
     expect(html).toContain('data-vial-detail="liquid-bubble"')
-    expect(html).toContain('<animateTransform')
+    expect(html).toContain('tyd-liquid-bubble')
+    // Kein SMIL: es rechnete in jedem Bild den Stil der ganzen Seite neu.
+    expect(html).not.toContain('<animateTransform')
 
     const text = source()
     // Surface is redrawn imperatively from the shared slosh engine each frame.
@@ -435,7 +438,8 @@ describe('PeptideVialVisual', () => {
 
     expect(text).toContain('data-vial-detail="cap-top"')
     expect(text).toContain('data-vial-detail="cap-collar"')
-    expect(text).toContain('width="86"')
+    expect(text).toContain('{...VIAL_CAP_COLLAR}')
+    expect(VIAL_CAP_COLLAR.width).toBe(86)
     expect(text).toContain('className={`pointer-events-none relative z-20 ${marginClass} block h-auto w-full`}')
     expect(text).toContain('className={`relative z-0 w-full ${shellClass} overflow-visible`}')
   })

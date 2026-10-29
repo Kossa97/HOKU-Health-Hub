@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/dot-codex-32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="TYD" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/dot-codex-180.png" />
     <title>TYD · Track Your Dose</title>
     <!-- Die Verbindung zu Supabase VOR der ersten Abfrage aufbauen.
          Im Netzwerkprofil brauchten die ersten drei Datenabfragen 840-865 ms,
@@ -20,19 +20,11 @@
     <link rel="dns-prefetch" href="https://xcskcojakolphtbuqfbw.supabase.co">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;900&family=IBM+Plex+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&family=IBM+Plex+Mono:wght@700&display=swap" rel="stylesheet">
+    <!-- Erscheinungsbild vor dem ersten Zeichnen setzen (src/lib/look.ts),
+         sonst blitzt beim Start kurz das andere auf. -->
     <script>
-      (function () {
-        try {
-          var stored = localStorage.getItem('tyd_theme'); // 'light' | 'dark' | 'system' | null
-          var mode = stored || 'system';
-          var dark = mode === 'dark' ||
-            (mode === 'system' && !window.matchMedia('(prefers-color-scheme: light)').matches);
-          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
+      try { var l = localStorage.getItem('tyd_look'); document.documentElement.setAttribute('data-look', l === 'licht' || l === 'satin' || l === 'nacht' || l === 'instrument' ? l : 'schwarz') } catch (e) {}
     </script>
   </head>
   <body>

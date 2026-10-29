@@ -141,7 +141,8 @@ export function asPeptide(item: LoadedStackItem): Peptide {
   const peptide: Peptide = {
     ...legacy,
     name: item.display_name,
-    default_method: legacy.default_method ?? 'Andere',
+    // Keine erfundene Methode: leer heisst „nicht gesetzt", nicht „Andere".
+    default_method: legacy.default_method ?? '',
     vial_amount_mg: legacy.vial_amount_mg ?? null,
     vial_amount_unit: legacy.vial_amount_unit ?? null,
     reconstitution_ml: legacy.reconstitution_ml ?? null,
@@ -213,6 +214,11 @@ export function fuellstandFuer(p: Peptide): number | null {
   if (teile.rest <= 0) return 0
   if (teile.angebrochenAnteil != null) return teile.angebrochenAnteil * 100
   return Math.min(1, teile.rest / groesse) * 100
+}
+
+/** Ob unter dem Objekt auf der Buehne ein Fuellstand steht: mit Pegel, und beim Vial immer. */
+export function zeigtPegel(p: Peptide): boolean {
+  return fuellstandFuer(p) !== null || anbruchArt(p.dosage_form) === 'vial'
 }
 
 function compareNullableNum(a: number | null | undefined, b: number | null | undefined, asc: boolean): number {

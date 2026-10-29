@@ -110,21 +110,21 @@ describe('IntakePlanEditor', () => {
     expect(screen.queryByLabelText('Methode')).toBeNull()
 
     rerender(<PlanHarness trackingLevel="intake_only" dosageForm="vial" />)
-    const method = screen.getByLabelText('Methode') as HTMLSelectElement
-    expect(method.required).toBe(true)
-    expect(Array.from(method.options).map(option => option.value))
-      .toEqual(['', 'Subkutan', 'Intramuskulär', 'Intravenös'])
+    // Sichtbare Knoepfe statt Auswahlliste: auf dem iPhone fand man
+    // „Intramuskulaer" in der zugeklappten Liste nicht.
+    const method = screen.getByRole('radiogroup', { name: 'Methode' })
+    expect(within(method).getAllByRole('radio').map(knopf => knopf.textContent))
+      .toEqual(['Subkutan', 'Intramuskulär', 'Intravenös'])
   })
 
   it('zeigt die Route in der App-Sprache und speichert weiter den gespeicherten Wert', () => {
     i18nTestState.translations = { method_subkutan: 'Subcutaneous', method_intramusk: 'Intramuscular' }
     render(<PlanHarness trackingLevel="intake_only" dosageForm="vial" />)
 
-    const method = screen.getByLabelText('Methode') as HTMLSelectElement
-    const subkutan = Array.from(method.options).find(option => option.value === 'Subkutan')!
-    expect(subkutan.textContent).toBe('Subcutaneous')
-    fireEvent.change(method, { target: { value: 'Subkutan' } })
-    expect(method.value).toBe('Subkutan')
+    const method = screen.getByRole('radiogroup', { name: 'Methode' })
+    fireEvent.click(within(method).getByRole('radio', { name: 'Intramuscular' }))
+    expect(within(method).getByRole('radio', { name: 'Intramuscular' }).getAttribute('aria-checked')).toBe('true')
+    expect(within(method).getByRole('radio', { name: 'Subcutaneous' }).getAttribute('aria-checked')).toBe('false')
   })
 
   it('setzt die einzige Route selbst, damit der Schritt nicht lautlos blockiert', () => {

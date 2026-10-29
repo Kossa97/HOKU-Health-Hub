@@ -11,6 +11,7 @@ import { conversionHint } from '../lib/conversionHint'
 import { formatEingabe, formatRange } from '../lib/format'
 import { unitChoices } from '../lib/unitConversion'
 import { CYAN, MUTED, TEXT } from '../styles'
+import { SheetGriff } from '../../../components/ui/SheetGriff'
 
 export interface EntryDraft {
   /** Gesetzt, wenn ein bestehender Wert bearbeitet wird. */
@@ -145,23 +146,23 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center"
+      className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-[var(--tyd-popup-top)]"
       data-app-modal
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-lg p-6 pb-8 space-y-4 overflow-y-auto max-h-[90vh] rounded-t-2xl"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        className="lg-sheet w-full max-w-lg px-5 pb-5 pt-2 space-y-4 overflow-y-auto overscroll-contain max-h-full"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold" style={{ color: TEXT }}>{t(draft.id ? 'bw_edit_title' : 'bw_entry_title')}</h2>
+        <SheetGriff className="!mb-1" onClose={onCancel} />
+        <h2 className="lg-title2" style={{ color: TEXT }}>{t(draft.id ? 'bw_edit_title' : 'bw_entry_title')}</h2>
 
         <div>
           <label className="label" htmlFor="bw-entry-marker">{t('bw_marker')}</label>
           {markerLocked ? (
             <div
               className="rounded-2xl px-4 py-3 font-semibold"
-              style={{ border: '1px solid var(--accent-border)', color: CYAN }}
+              style={{ background: 'var(--lg-fill)', color: 'var(--lg-accent-text)' }}
             >
               {markerName(draft.marker, sprache)}
             </div>
@@ -264,7 +265,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
         {wechseljahreFragen && (
           <fieldset data-bw-menopause>
             <legend className="label">{t('bw_menopause_label')}</legend>
-            <div role="radiogroup" aria-label={t('bw_menopause_label')} className="flex rounded-xl p-1" style={{ border: '1px solid var(--border)' }}>
+            <div role="radiogroup" aria-label={t('bw_menopause_label')} className="flex rounded-full p-0.5" style={{ background: 'var(--lg-fill)' }}>
               {([['pre', 'bw_menopause_pre'], ['post', 'bw_menopause_post'], ['', 'bw_menopause_unknown']] as const).map(([key, label]) => {
                 const aktiv = (draft.menopause ?? '') === key
                 return (
@@ -274,8 +275,8 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
                     role="radio"
                     aria-checked={aktiv}
                     onClick={() => onChange({ ...draft, menopause: key })}
-                    className="min-h-10 flex-1 rounded-lg px-2 text-sm transition-colors"
-                    style={aktiv ? { background: 'var(--accent-soft, rgba(34,195,230,0.15))', color: CYAN, fontWeight: 700 } : { color: MUTED, fontWeight: 600 }}
+                    className="min-h-10 flex-1 rounded-full px-2 text-sm transition-colors"
+                    style={aktiv ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 600, boxShadow: '0 3px 8px rgba(0,0,0,0.25)' } : { color: 'var(--lg-text-2)', fontWeight: 600 }}
                   >
                     {t(label)}
                   </button>
@@ -321,7 +322,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
           <button
             type="button"
             data-bw-entry-delete
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-red-400"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-[var(--lg-bad-text)]"
             disabled={saving}
             onClick={onDelete}
           >

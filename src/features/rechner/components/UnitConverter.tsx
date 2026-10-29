@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDownUp, Droplet, X } from 'lucide-react'
-import { GlassPanel, SectionHeader } from '../../../components/ui/DesignSystem'
+import { SectionHeader } from '../../../components/ui/DesignSystem'
 import { SyringeFields } from './SyringeFields'
 import { formatCalculatorNumber, parseDecimalInput } from '../lib/units'
 import {
@@ -81,7 +81,7 @@ export function UnitConverter() {
   const activity = ['activity', 'activity_concentration'].includes(sourceUnit.family)
 
   return (
-    <GlassPanel padding="lg">
+    <section className="lg-surface lg-flat rechner-converter-card">
       <SectionHeader title={t('rechner_converter_title')} subtitle={t('rechner_converter_subtitle')} />
       <div className="rechner-form rechner-converter">
         {marker ? <div className="rechner-converter-scope">
@@ -157,6 +157,6 @@ export function UnitConverter() {
         {(activity || syringe) && <p className="rechner-muted">{t('rechner_converter_iu_note')}</p>}
         {!marker && !concentration && !hba1c && !activity && !syringe && <p className="rechner-muted">{t('rechner_converter_mass_volume_note')}</p>}
       </div>}
-    </GlassPanel>
+    </section>
   )
 }

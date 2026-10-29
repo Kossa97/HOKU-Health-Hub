@@ -13,7 +13,9 @@ export interface SloshState {
   time: number // seconds, monotonic — drives the ambient living ripple
 }
 
-type Subscriber = (state: SloshState) => void
+// A subscriber may return true while it animates on its own (e.g. a fill-level
+// tween) and needs every frame, even though the liquid itself is at rest.
+type Subscriber = (state: SloshState) => boolean | void
 
 // Tuned for a lively, fluid swipe slosh: quick response, visible counter-swing, then settles.
 const STIFFNESS = 135 // spring constant (higher = snappier, faster wobble)
@@ -22,6 +24,14 @@ const IMPULSE_GAIN = 6.2 // how hard an impulse of magnitude 1 kicks the spring
 const MAX_TILT = 0.85 // clamp so even stacked drag impulses can't overturn it
 const MAX_VEL = 9 // ceiling on accumulated velocity (a fast continuous drag)
 const MAX_DT = 1 / 30 // clamp long frames so tab-switches don't explode the spring
+// At rest only the ambient ripple moves — at most ~1.7 viewBox units per second,
+// a few screen pixels. Redrawing it 30 instead of 60 (or 120) times a second
+// moves the surface by well under a tenth of a pixel per step: invisible, but it
+// halves the SVG repaints that kept the main thread busy while nothing happened.
+// Any slosh energy, a subscriber's own animation or a fresh impulse returns to
+// every frame at once.
+export const REST_ENERGY = 0.004
+const REST_FRAME_MS = 1000 / 30 - 6 // slack for rAF timestamps that aren't snapped to vsync
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
@@ -53,6 +63,8 @@ export function createSloshEngine(): SloshEngine {
   let last = 0
   let raf = 0
   let enabled = true
+  let lastNotify = 0
+  let busy = false // a subscriber asked for every frame
   const subs = new Set<Subscriber>()
 
   const snapshot = (): SloshState => ({
@@ -63,7 +75,9 @@ export function createSloshEngine(): SloshEngine {
 
   const notify = () => {
     const s = snapshot()
-    subs.forEach(cb => cb(s))
+    let wantsFrames = false
+    subs.forEach(cb => { if (cb(s) === true) wantsFrames = true })
+    busy = wantsFrames
   }
 
   const tick = (ts: number) => {
@@ -75,7 +89,11 @@ export function createSloshEngine(): SloshEngine {
     const next = stepSlosh({ angle, vel }, dt)
     angle = next.angle
     vel = next.vel
-    notify()
+    const resting = !busy && Math.abs(angle) + Math.abs(vel) * 0.12 < REST_ENERGY
+    if (!resting || ts - lastNotify >= REST_FRAME_MS) {
+      lastNotify = ts
+      notify()
+    }
     schedule()
   }
 
@@ -88,6 +106,7 @@ export function createSloshEngine(): SloshEngine {
     if (raf) cancelAnimationFrame(raf)
     raf = 0
     last = 0
+    lastNotify = 0
   }
 
   return {
@@ -98,7 +117,7 @@ export function createSloshEngine(): SloshEngine {
     },
     subscribe(cb: Subscriber) {
       subs.add(cb)
-      cb(snapshot())
+      if (cb(snapshot()) === true) busy = true
       schedule()
       return () => {
         subs.delete(cb)

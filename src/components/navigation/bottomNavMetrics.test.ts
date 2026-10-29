@@ -9,21 +9,11 @@ const wert = (name: string) => {
 
 describe('Maße der Bottom-Navigation', () => {
   it('reserviert genau so viel Platz, wie die Kapsel samt Abstand belegt', () => {
-    // Sieben Stellen rechnen mit `--bottom-nav-height`: Inhaltspolster,
-    // FAQ-Knopf, Schnellzugriff, Onboarding (zweimal), `onboardingPlacement`
-    // und die My-Stack-Bühne. Stimmt die Summe nicht, verdeckt die Leiste
+    // Mehrere Stellen rechnen mit `--bottom-nav-height`: Inhaltspolster,
+    // FAQ-Knopf, Schnellzugriff und die My-Stack-Bühne. Stimmt die Summe nicht, verdeckt die Leiste
     // Inhalt oder es bleibt ein toter Streifen darunter.
     expect(wert('bottom-nav-capsule')! + wert('bottom-nav-gap')!)
       .toBe(wert('bottom-nav-height'))
-  })
-
-  it('hält die Höhe als glatte Zahl, nicht als Rechnung', () => {
-    // `onboardingPlacement.ts` liest sie mit `parseInt`, und eigene
-    // Eigenschaften werden nicht ausgerechnet: `parseInt('calc(62px + 12px)')`
-    // wäre NaN und die Einblendungen säßen falsch.
-    expect(css()).toMatch(/--bottom-nav-height:\s*\d+px/)
-    const platzierung = readFileSync(new URL('../onboardingPlacement.ts', import.meta.url), 'utf8')
-    expect(platzierung).toContain("getPropertyValue('--bottom-nav-height')")
   })
 
   it('lässt der Kapsel Abstand zur Sicherheitszone und zu den Rändern', () => {
@@ -50,6 +40,8 @@ describe('Maße der Bottom-Navigation', () => {
     // verdecken — ein Dialog ist kein Ladezustand.
     const loader = readFileSync(new URL('../LabLoader.tsx', import.meta.url), 'utf8')
 
+    // Die feste Hülle trägt die Stapelordnung; die Kapsel darin ebenfalls.
+    expect(css()).toMatch(/\.tyd-tabdock\s*\{[^}]*z-index:\s*41;/)
     expect(css()).toMatch(/\.tyd-tabbar\s*\{[\s\S]*?z-index:\s*41;/)
     const klassen = loader.match(/className=\{`fixed[^`]*`/)![0]
     expect(klassen).toContain('z-40')
@@ -63,9 +55,14 @@ describe('Maße der Bottom-Navigation', () => {
   it('nimmt die Wege heraus, wenn jemand Bewegung abbestellt hat', () => {
     // Die Datei hat mehrere solche Blöcke; gemeint ist der der Leiste.
     const block = css().slice(css().lastIndexOf('@media (prefers-reduced-motion: reduce)'))
-    const bis = block.match(
-      /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\}\s*(?=\/\* Im hellen Thema)/,
-    )?.[0] ?? ''
+    // Bis zur schließenden Klammer des Blocks zählen
+    let tiefe = 0
+    let ende = block.length
+    for (let i = 0; i < block.length; i++) {
+      if (block[i] === '{') tiefe++
+      else if (block[i] === '}' && --tiefe === 0) { ende = i + 1; break }
+    }
+    const bis = block.slice(0, ende)
 
     expect(bis).toContain('.tyd-tabbar-pill')
     // Auch das Anheben beim Drücken und das Aufblähen der Blase.
