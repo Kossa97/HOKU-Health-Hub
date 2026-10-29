@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dauerText, eckenAbstand, FERN, leistenAbstand, rahmenAbstand, ueberlappt } from './geometry'
+import { dauerText, eckenAbstand, FERN, kastenAbstand, leistenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt } from './geometry'
 
 const rand = { l: 4, t: 4, r: 394, b: 838 }
 
@@ -25,14 +25,20 @@ describe('Dot: Geometrie', () => {
     expect(ecke.nx).toBeCloseTo(ecke.ny)
   })
 
-  it('Unter der Statusleiste ist die Kante oben gerade, unten bleibt die Rundung', () => {
-    const unter = { ...rand, t: 61 }
-    expect(eckenAbstand(66, 66, unter, 44, false, true)).toBe(FERN)
-    expect(eckenAbstand(6, 836, unter, 44, false, true).d).toBeLessThan(0)
-    // die Ecke oben ist eckig: Abstand zur näheren der beiden Kanten
-    const ecke = rahmenAbstand(10, 70, unter, 44, false, true)
-    expect(ecke.d).toBeCloseTo(6)
-    expect(ecke.nx).toBe(1)
+  it('Mitte der Statusleiste: Kasten mit runden Ecken als Körper', () => {
+    const insel = { l: 126, r: 264, t: -80, b: 59 }
+    const unter = kastenAbstand(195, 80, insel, 18)
+    expect(unter.d).toBeCloseTo(21)
+    expect(unter.ny).toBe(1)
+    expect(kastenAbstand(195, 30, insel, 18).d).toBeLessThan(0)
+    // links daneben (Uhr) ist frei
+    const links = kastenAbstand(100, 30, insel, 18)
+    expect(links.d).toBeCloseTo(26)
+    expect(links.nx).toBe(-1)
+    // an der runden Ecke unten zeigt die Normale schräg nach außen
+    const ecke = kastenAbstand(116, 69, insel, 18)
+    expect(ecke.nx).toBeLessThan(0)
+    expect(ecke.ny).toBeGreaterThan(0)
   })
 
   it('Leiste: Kapsel und Plus-Knopf als Körper', () => {
@@ -49,5 +55,18 @@ describe('Dot: Geometrie', () => {
     expect(dauerText(499, 'Std.', 'Min.')).toBe('8 Std. 19 Min.')
     expect(dauerText(60, 'Std.', 'Min.')).toBe('1 Std.')
     expect(dauerText(5, 'Std.', 'Min.')).toBe('5 Min.')
+  })
+  it('Rahmenpunkt: läuft im Uhrzeigersinn um den Umriss, ab der Mitte oben', () => {
+    expect(rahmenPunkt(rand, 44, 0)).toEqual([199, 4])
+    const [rx, ry] = rahmenPunkt(rand, 44, 0.25)
+    expect(rx).toBeCloseTo(394)
+    expect(ry).toBeGreaterThan(4 + 44)
+    const [, unten] = rahmenPunkt(rand, 44, 0.5)
+    expect(unten).toBeCloseTo(838)
+    // jeder Punkt liegt auf dem Umriss: Abstand zur Kante 0
+    for (let s = 0; s < 1; s += 0.037) {
+      const [x, y] = rahmenPunkt(rand, 44, s)
+      expect(Math.abs(rahmenAbstand(x, y, rand, 44, false).d)).toBeLessThan(0.01)
+    }
   })
 })

@@ -1,6 +1,6 @@
 import { addDays, format, parseISO } from 'date-fns'
 import { supabase } from '../../../lib/supabase'
-import { resolveTimelineIntakesForDay } from '../../../lib/intakeSchedule'
+import { resolveTimelineIntakesForDay, type ResolvedTimelineIntake } from '../../../lib/intakeSchedule'
 import { localDateBoundaryInstant, localDateTimeKey, type CycleTimeline } from '../../../lib/planTimeline'
 import { loadCycleTimelines } from '../../my-stack/services/planLifecycle'
 import { formatTrackedQuantity, hasTrackedQuantity } from '../../routines/quantityPresentation'
@@ -18,6 +18,8 @@ import { formatTrackedQuantity, hasTrackedQuantity } from '../../routines/quanti
 export type EinnahmeStatus = 'genommen' | 'ausgelassen' | 'offen'
 
 export interface DotEinnahme {
+  /** Kurzer Verweis für Dots Werkzeug (`e1`, `e2` …), gilt nur für diesen Kontext. */
+  ref?: string
   datum: string
   zeit: string
   minuten: number
@@ -46,6 +48,8 @@ export function einnahmenAusPlaenen(
   heute: string,
   zeitzone: string,
   tage = TAGE,
+  /** Wird gefüllt: Verweis → geplante Einnahme, für Meldungen per Satz. */
+  slots?: Map<string, ResolvedTimelineIntake>,
 ): DotEinnahme[] {
   const status = new Map<string, EinnahmeStatus>()
   for (const log of logs) {
@@ -54,7 +58,7 @@ export function einnahmenAusPlaenen(
     if (log.taken) status.set(log.routine_slot_key, 'genommen')
     else if (!status.has(log.routine_slot_key)) status.set(log.routine_slot_key, 'ausgelassen')
   }
-  const out: DotEinnahme[] = []
+  const out: { e: DotEinnahme; intake: ResolvedTimelineIntake }[] = []
   for (let i = tage - 1; i >= 0; i--) {
     const datum = format(addDays(parseISO(heute), -i), 'yyyy-MM-dd')
     for (const timeline of timelines) {
@@ -62,15 +66,29 @@ export function einnahmenAusPlaenen(
         const name = namen.get(e.stackItemId)
         if (!name) continue
         out.push({
-          datum, zeit: e.time, minuten: e.minutes, substanz: name,
-          menge: hasTrackedQuantity({ dose: e.dose, unit: e.unit }) ? formatTrackedQuantity(e.dose, e.unit, '') : null,
-          status: status.get(e.routineSlotKey) ?? 'offen',
+          intake: e,
+          e: {
+            datum, zeit: e.time, minuten: e.minutes, substanz: name,
+            menge: hasTrackedQuantity({ dose: e.dose, unit: e.unit }) ? formatTrackedQuantity(e.dose, e.unit, '') : null,
+            status: status.get(e.routineSlotKey) ?? 'offen',
+          },
         })
       }
     }
   }
-  return out.sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit))
+  out.sort((a, b) => (a.e.datum + a.e.zeit).localeCompare(b.e.datum + b.e.zeit))
+  return out.map(({ e, intake }, i) => {
+    const ref = `e${i + 1}`
+    slots?.set(ref, intake)
+    return { ref, ...e }
+  })
 }
+
+/** Zu jedem geladenen Kontext: welche geplante Einnahme hinter einem Verweis steht. */
+const slotsJeKontext = new WeakMap<DotKontext, Map<string, ResolvedTimelineIntake>>()
+
+/** Die geplante Einnahme hinter einem Verweis aus genau diesem Kontext. */
+export const einnahmeZuRef = (k: DotKontext, ref: string) => slotsJeKontext.get(k)?.get(ref) ?? null
 
 const zahl = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0)
 
@@ -121,14 +139,17 @@ export async function ladeDotKontext(userId: string): Promise<DotKontext> {
     }
     : null
 
-  return {
+  const slots = new Map<string, ResolvedTimelineIntake>()
+  const kontext: DotKontext = {
     heute, zeitzone,
     jetzt: localDateTimeKey(jetzt, zeitzone).slice(11, 16),
     stack,
-    einnahmen: einnahmenAusPlaenen(timelines, (logs.data ?? []) as never, namen, heute, zeitzone),
+    einnahmen: einnahmenAusPlaenen(timelines, (logs.data ?? []) as never, namen, heute, zeitzone, TAGE, slots),
     blutwerte,
     ernaehrung,
   }
+  slotsJeKontext.set(kontext, slots)
+  return kontext
 }
 
 /** Ist der Kontext noch von heute (in seiner Zeitzone)? */

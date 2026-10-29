@@ -2,18 +2,19 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Languages, Bell, BellOff, Send, ShieldCheck, FileText, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react'
+import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, ChevronRight, HelpCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
-import { OnboardingRestartButton } from '../components/Onboarding'
-import { LANGUAGES, applyDirection } from '../i18n'
+import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { AccountSection } from '../features/compliance/components/AccountSection'
+import { PASSKEY_AN } from '../features/auth/lib/passkey'
+import { PasskeyEinstellung } from '../features/auth/components/PasskeyEinstellung'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
@@ -247,9 +248,6 @@ export function Profil() {
           <ChevronRight size={18} aria-hidden="true" className="text-[var(--lg-text-3)]" />
         </Link>
       </div>
-      <div className="mt-3">
-        <OnboardingRestartButton />
-      </div>
 
       {/* ── Alter und Geschlecht für die Blutwerte-Bereiche (eigenes Speichern) ── */}
       <div className="mt-6">
@@ -261,6 +259,9 @@ export function Profil() {
         <KiEinwilligungProfil />
         <PhotoConsentProfile />
       </div>
+
+      {/* ── Face ID / Passkeys ── */}
+      {PASSKEY_AN && <PasskeyEinstellung />}
 
       {/* ── Blockierte Profile, Rechtstexte, Konto löschen ── */}
       <AccountSection />
@@ -547,96 +548,23 @@ function PushSettings() {
 
 function LanguageSwitcher() {
   const { i18n, t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState(i18n.language)
-  const current = LANGUAGES.find(l => l.code === i18n.language) ?? LANGUAGES[0]
-
-  function apply() {
-    i18n.changeLanguage(selected)
-    localStorage.setItem('tyd_lang', selected)
-    applyDirection(selected)
-    setOpen(false)
-  }
-
+  const current = LANGUAGES.find(l => l.code === i18n.language?.split('-')[0])?.code ?? 'en'
+  const options: SegmentOption<LanguageCode>[] = LANGUAGES.map(l => ({ key: l.code, label: `${l.flag} ${l.name}` }))
   return (
     <div className="mt-6">
       <p className="lg-group-title">
         {t('language')}
       </p>
-
-      <button
-        onClick={() => { setOpen(o => !o); setSelected(i18n.language) }}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          minHeight: 52, padding: '0 16px', borderRadius: 'var(--r-xl)',
-          background: 'var(--lg-surface-2)', border: 'none',
-          color: 'var(--lg-text)', fontWeight: 500, fontSize: 16, cursor: 'pointer',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="lg-icon-tile" style={{ background: '#0a84ff' }}><Languages size={16} /></span>
-          <span>{current.flag} {current.name}</span>
-        </div>
-        <ChevronDown size={18} aria-hidden="true" style={{ color: 'var(--lg-text-3)', transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 200ms ease' }} />
-      </button>
-
-      {open && (
-        <div style={{
-          marginTop: 8, borderRadius: 'var(--r-xl)', overflow: 'hidden',
-          background: 'var(--lg-surface-2)',
-        }}>
-          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-            {LANGUAGES.map(lang => {
-              const isSelected = lang.code === selected
-              return (
-                <div
-                  key={lang.code}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    borderBottom: '0.5px solid var(--lg-separator)',
-                    background: isSelected ? 'rgba(0, 204, 245, 0.10)' : 'transparent',
-                  }}
-                >
-                  <button
-                    onClick={() => setSelected(lang.code)}
-                    style={{
-                      flex: 1, display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '11px 16px', textAlign: 'left', cursor: 'pointer',
-                      minHeight: 48,
-                      color: isSelected ? 'var(--lg-accent-text)' : 'var(--lg-text)',
-                      fontWeight: isSelected ? 600 : 400,
-                      fontSize: 16,
-                      background: 'transparent',
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>{lang.flag}</span>
-                    <span>{lang.name}</span>
-                  </button>
-
-                  {isSelected && (
-                    <button
-                      onClick={apply}
-                      style={{
-                        margin: '6px 10px 6px 0',
-                        minHeight: 34,
-                        padding: '0 14px',
-                        borderRadius: 999,
-                        background: lang.code !== i18n.language ? 'var(--lg-primary-fill)' : 'transparent',
-                        border: 'none',
-                        color: lang.code !== i18n.language ? 'var(--accent-contrast)' : 'var(--lg-accent-text)',
-                        fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {lang.code !== i18n.language ? t('apply') : <Check size={14} />}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      <div className="card">
+        <GlassSegmented
+          options={options}
+          value={current}
+          onChange={setLanguage}
+          ariaLabel={String(t('language'))}
+          material="fill"
+          equal
+        />
+      </div>
     </div>
   )
 }

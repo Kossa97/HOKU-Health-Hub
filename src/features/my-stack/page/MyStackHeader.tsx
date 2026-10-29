@@ -206,7 +206,6 @@ export function MyStackHeader({
               aria-label={String(t('neues_peptid_title'))}
               title={String(t('neues_peptid_title'))}
               data-my-stack-add
-              data-ob="btn-peptid-anlegen"
               className="stack-head-btn lg-btn-primary lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
             >
               <Plus size={22} strokeWidth={2.4} aria-hidden="true" />

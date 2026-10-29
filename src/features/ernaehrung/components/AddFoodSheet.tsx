@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Camera, ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
+import { ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { type FrequentFood, mergeResults } from '../lib/foodSearch'
@@ -10,6 +10,7 @@ import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
 import { FoodOrb } from './FoodOrb'
 import { ScoreBadge } from './ScoreBadge'
+import { DotZeichen } from '../../dot/DotZeichen'
 
 type Tab = 'frequent' | 'mine' | 'dishes'
 type Remote = { query: string; state: 'loading' | 'done' | 'error'; results: Food[] }
@@ -146,8 +147,8 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
             className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" />
         </div>
         {onPhoto && (
-          <button type="button" onClick={onPhoto} aria-label={t('nutr_photo_title')} className="lg-gray-btn !w-11 shrink-0 !px-0">
-            <Camera size={20} />
+          <button type="button" onClick={onPhoto} aria-label={t('nutr_photo_title')} className="lg-gray-btn !w-11 shrink-0 !px-0" data-dot-knopf>
+            <DotZeichen groesse={24} />
           </button>
         )}
         <button type="button" onClick={onScan} aria-label={t('nutr_scan')} className="lg-gray-btn !w-11 shrink-0 !px-0">

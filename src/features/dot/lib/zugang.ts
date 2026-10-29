@@ -5,12 +5,24 @@ import { supabase } from '../../../lib/supabase'
 /**
  * Wer darf Dot aus dem Haus holen und mit ihm reden?
  *
- * Sichtbar ist er für alle (sein Logo wohnt in der Leiste). Heraus kommt er
- * nur mit Pro — oder zum Testen: Admins und der Entwicklungs-Build. Testkonten
+ * Sichtbar ist er für alle (sein Logo wohnt in der Leiste). Bis Pro startet,
+ * kommt er für alle heraus (`PRO_PFLICHT` aus). Danach nur mit Pro — oder zum
+ * Testen: Admins und der Entwicklungs-Build. Testkonten
  * bekommen `pro_until` per SQL; an der E-Mail-Adresse hängt nichts, weil die
  * Registrierung offen ist. Die Edge Function `coach` prüft auf dem Server
  * dasselbe (ohne den Entwicklungs-Build); hier ist nur die Oberfläche.
  */
+
+/** Gleicher Schalter auf dem Server: `PRO_PFLICHT` in supabase/functions/coach/prompt.ts. */
+export const PRO_PFLICHT = false
+
+/**
+ * Nur für Browser-Tests, die nicht von Dot handeln (`e2e/support/fixtures.ts`):
+ * dort bleibt er im Haus, wie früher ohne Pro.
+ */
+export function imHausFuerTests() {
+  try { return localStorage.getItem('tyd.e2e.dot-im-haus') === '1' } catch { return false }
+}
 
 export function istTester(istAdmin: boolean, entwicklung: boolean) {
   return entwicklung || istAdmin
@@ -42,7 +54,7 @@ export function useDotZugang(): DotZugang {
     void supabase.from('profiles').select('*').eq('id', user.id).maybeSingle().then(({ data }) => {
       if (aus) return
       const p = (data ?? {}) as Record<string, unknown>
-      const darfRaus = hatPro(p.pro_until as string | null) || istTester(p.is_admin === true, import.meta.env.DEV)
+      const darfRaus = !imHausFuerTests() && (!PRO_PFLICHT || hatPro(p.pro_until as string | null) || istTester(p.is_admin === true, import.meta.env.DEV))
       setStand({ fuer: user.id, darfRaus, einwilligung: (p.coach_consent_at as string | null) ?? null })
     })
     return () => { aus = true }

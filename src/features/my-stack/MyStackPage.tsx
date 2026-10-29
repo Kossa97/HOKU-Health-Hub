@@ -1,6 +1,8 @@
+import { SubstanzAutoSchalter } from '../dot/autoTracking/SubstanzAutoSchalter'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type UIEvent as ReactUIEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { liesAnlagen, type DotAnlage } from './lib/dotAnlage'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -38,7 +40,7 @@ import {
 import { produktAngaben, type Angabe, type Zutat } from './lib/produktAngaben'
 import { StackStage } from './components/StackStage'
 import { StackArchive } from './components/StackArchive'
-import { archiveStackItem, deleteStackItem, reconstituteStackItem, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
+import { archiveStackItem, deleteStackItem, reconstituteStackItem, setStackItemAutoLog, removePlanSegment, restoreStackItem, planScheduleSnapshot, savePlanChange, saveStackItem, saveStackItemSetup } from './services/stackItems'
 import { powderVialForSave } from './lib/vialStrength'
 import type { StackItem, StackItemSetupDraft } from './types'
 import { getDosageForm, intakeUnitLabelKey, isStageRenderable } from './lib/dosageForms'
@@ -149,7 +151,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const {
     inventory, peptides, setPeptides, loading, initialLoad,
     cycles, cycleTimelines, setCycleTimelines, timelineLoadError,
-    timelineLoading, catalogEntries, catalogUnavailable,
+    timelineLoading, catalogEntries, catalogUnavailable, catalogLoaded,
     archivedPeptides, escalations,
     loadInventory, loadPeptides, loadArchived, loadCycles, loadTimelines, loadEscalations,
     reloadTimelinesAndPeptides,
@@ -169,6 +171,8 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
   const lifecycleIdempotencyKeysRef = useRef(new Map<string, RecoverableMutation>())
   // Ein zweiter Plan statt einer Aenderung am bestehenden.
   const [wizardNeuerZyklus, setWizardNeuerZyklus] = useState(false)
+  const [wizardDotAnlage, setWizardDotAnlage] = useState<DotAnlage | undefined>()
+  const [wizardSchluessel, setWizardSchluessel] = useState(0)
   const [search, setSearch]                   = useState('')
   const [searchOpen, setSearchOpen]           = useState(false)
   const [filterOpen, setFilterOpen]           = useState(false)
@@ -307,6 +311,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
 
   useEffect(() => {
     if (location.hash !== '#new-substance') return
+    // Von Dot vorbereitet: der Assistent öffnet sich damit vorbefüllt
+    const anlage = historyStateRecord(location.state).dotAnlage
+    setWizardDotAnlage(liesAnlagen([anlage])[0])
+    setWizardSchluessel(n => n + 1)
     setEditingPeptideId(null)
     setWizardCycleId(null)
     setPlanEditContext(null)
@@ -314,7 +322,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     setWizardInitialColor(getRandomSwatchColor())
     setShowPeptideForm(true)
     navigate(location.pathname, { replace: true })
-  }, [location.hash, location.pathname, navigate])
+  }, [location.hash, location.pathname, location.state, navigate])
 
   useEffect(() => {
     if (loading) return
@@ -1935,6 +1943,18 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                       deductsIntakes={buchtEinnahmenAb(eintrag)}
                       onEdit={editor => setBestandEdit({ peptideId: eintrag.id, editor })}
                     />
+                    {/* Dot trägt die geplanten Einnahmen dieser Substanz selbst ein (Pro) */}
+                    {FEATURES.planTimelineV2 && (
+                      <SubstanzAutoSchalter
+                        key={eintrag.id}
+                        stackItemId={eintrag.id}
+                        seit={eintrag.auto_log_since}
+                        speichern={async seit => {
+                          await setStackItemAutoLog(supabase as never, eintrag.id, seit)
+                          setPeptides(prev => prev.map(pp => pp.id === eintrag.id ? { ...pp, auto_log_since: seit } : pp))
+                        }}
+                      />
+                    )}
                     {/* Nur, was gesetzt ist. „Nicht gesetzt" in jeder zweiten
                         Zeile war Rauschen — das Vollbild sagt, was man WEISS.
                         Was fehlt, zaehlt der Knopf darunter und fuehrt direkt
@@ -2110,7 +2130,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           {!loading && peptides.length === 0 && (
             <div className="card text-center py-10 text-slate-500">
               <p className="mb-4">{t('keine_peptide')}</p>
-              <AddVialTile onClick={handleNewPeptide} label={t('neues_peptid_title')} obKey="btn-peptid-anlegen" />
+              <AddVialTile onClick={handleNewPeptide} label={t('neues_peptid_title')} />
             </div>
           )}
 
@@ -2202,8 +2222,11 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
         eintragDetails={eintragDetails}
       />
 
-      {showPeptideForm && (
+      {/* Von Dot vorbereitet: erst öffnen, wenn der Katalog da ist — sonst fände er die Substanz nicht */}
+      {showPeptideForm && (!wizardDotAnlage || catalogLoaded) && (
         <StackItemWizard
+          // Neu aufbauen, wenn Dot ihn öffnet: sein Anfangszustand entsteht nur beim ersten Aufbau
+          key={wizardSchluessel}
           catalogEntries={catalogEntries}
           catalogUnavailable={catalogUnavailable}
           existingItems={peptides}
@@ -2232,8 +2255,10 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               })}
           initialColorHex={wizardInitialColor}
           intent={wizardIntent}
+          dotAnlage={wizardDotAnlage}
           onClose={() => {
             setShowPeptideForm(false)
+            setWizardDotAnlage(undefined)
             setWizardIntent(undefined)
             setWizardNeuerZyklus(false)
             setWizardCycleId(null)

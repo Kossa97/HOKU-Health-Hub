@@ -11,15 +11,23 @@ export const NOW = new Date('2026-09-28T10:00:00+02:00')
  *
  * Nach jedem Test: keine Anfrage, die der Mock nicht kennt, und kein
  * unbehandelter Fehler in der Seite.
+ *
+ * `dotFrei`: Dot ist für alle frei und käme sonst überall heraus (auf Seiten
+ * ohne Leiste von selbst), lüde seinen Kontext und zeichnete die volle
+ * Fläche — im Testbrowser ohne Grafikkarte teuer genug, dass Halten und
+ * Ziehen zu spät auslösen. Tests, die nicht von Dot handeln, lassen ihn
+ * deshalb im Haus; die Dot-Tests setzen `test.use({ dotFrei: true })`.
  */
-export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now: Date }>({
+export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now: Date; dotFrei: boolean }>({
   language: ['de', { option: true }],
+  dotFrei: [false, { option: true }],
   now: [NOW, { option: true }],
   locale: async ({ language }, provide) => {
     await provide(language === 'de' ? 'de-DE' : 'en-GB')
   },
-  mock: async ({ page, language, now }, provide) => {
+  mock: async ({ page, language, now, dotFrei }, provide) => {
     const mock = new MockSupabase({ now })
+    if (!dotFrei) await page.addInitScript(() => { try { localStorage.setItem('tyd.e2e.dot-im-haus', '1') } catch { /* ohne Speicher */ } })
     const pageErrors: string[] = []
     page.on('pageerror', error => pageErrors.push(error.message))
     await page.clock.install({ time: now })

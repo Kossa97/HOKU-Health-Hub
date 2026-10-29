@@ -313,12 +313,18 @@ vom Style her auch wie Siri, passend zur App“.
   Produktion), dann im Projekt angewendet. Nachzählung: 13 Profile, neue Felder
   leer, 6 Trigger auf profiles, coach_usage leer mit RLS, `coach_zaehlen` nur
   für service_role.
-- **Statusleiste als Wand (Nutzer 22.10., Screenshot: „ist sonst im Weg"):**
-  Oben endet sein Raum an `safe-area-inset-top` (+2 px), wie unten an der
-  Leiste; die Kante dort ist gerade (keine runden Ecken oben), sie leuchtet an
-  der Berührstelle. Löst v19 „bis an den Rand" ab. Uhr: nur ein Wurf, dessen
-  Bahn die Wand unter der Uhr trifft (oder Anschlag > 180 px/s), schickt ihn
-  einmal herum; danach liegt er unter der Wand rechts neben der Uhr.
+- **Mitte der Statusleiste als Wand (Nutzer 22.10., ersetzt „ganze Statusleiste"):**
+  Nur der mittlere Bereich mit Kamera-Insel bzw. Notch ist ein Körper (Kasten mit
+  runden Ecken, 126 px + 2×6 breit bei Abstand oben ≥ 51 px, sonst 200 px), von
+  oben bis zur Unterkante der Statusleiste; er leuchtet an der Berührstelle.
+  Links (Uhr) und rechts geht Dot wieder bis an den runden Bildschirmrand wie in
+  v19 — die eckige Kante, an der er oben rechts zuckte, ist weg. Uhr wie v19
+  (heranschieben oder -werfen), Landung danach unter der Uhr, weil rechts daneben
+  die Wand ist. Unter der Mitte losgelassen bleibt er an deren Unterkante.
+- **Nach dem Flug um die Uhr zurück (Nutzer 23.10.):** Er fliegt ungefähr dorthin
+  zurück, wo er losgelassen bzw. gerufen wurde (mit Schwung, Rest macht die
+  Feder). Lag dieser Punkt schon an der Uhr oder ist er älter als 5 s, landet er
+  wie bisher unter der Uhr.
 - **Herauskommen an zufälligen Platz (Nutzer 22.10., gegen Feststecken):** Jede
   Art herauszukommen fliegt ihn an eine zufällige freie Stelle (frei schwebend
   oder links/rechts an der Seite, nicht in `data-dot-avoid`, mindestens 30 %
@@ -341,6 +347,94 @@ vom Style her auch wie Siri, passend zur App“.
   — so greift man ihn neben der Randzone, ohne Zurück.
 - **Kosten:** Opus 5.5 (Standard der Anleitung, weil kein Modell genannt).
   Günstiger wäre `claude-haiku-5-5` (wie `food-photo`) — Entscheidung Nutzer.
+
+## Funktionsumfang (Nutzer 23./24.10.2026)
+
+Alle acht Punkte des Nutzers sind übernommen, Spezifikation in
+`docs/ki-coach/funktionen.md`: Hinweise bei hohen Eingaben (Kalorien, Plausibilität
+gegen eigenen Plan), Lob und Kritik (Ton einstellbar), automatisches Tracking mit
+Ausnahmen per Satz, Überwachung von Werten, Erinnern auf Zuruf, Workout (Stoppuhr,
+Übungen, Motivation), FAQ und Führung durch die App, Skins/Effekte/Emotes/Battle Pass.
+Reihenfolge-Vorschlag: Phase 1 Auto-Tracking + Plausibilität + Bestand; Phase 2
+Blutwerte, FAQ, Lob; Phase 3 Erinnerungen, Workout; Phase 4 Kosmetik, Bewegung.
+Preis/Paywall/Abo: ausgelagert in ein anderes Gespräch (Nutzer).
+
+## Zug am Griffpunkt (Nutzer 24.10.2026)
+
+Beim Ziehen folgt die Stelle unter dem Finger sofort, der Rest hängt nach (je weiter
+vom Griff und je schneller, desto mehr; `ZUG_TRAEGHEIT` 0,055 s). Mitte gegriffen:
+Ei nach hinten; oben gegriffen und nach unten gezogen: unterer Teil staucht hoch;
+unten gegriffen: oberer Teil zieht sich lang. Losgelassen fällt der Zug weg, kleiner
+Stoß, der Rand federt nach (stärker nach schnellem Ziehen). Das Nachhängen ist
+elastisch und prägt sich nicht ins Formgedächtnis ein. Gefühl am Gerät prüfen.
+
+## Phase 1: Dot trägt automatisch ein (24.10.2026, Nutzer: „Schalter an Substanz oder Bündel“)
+
+- **Schalter:** an der Substanz (My Stack, unter Bestand) und im Bündel-Blatt
+  (Kalender, nur gespeichertes Bündel). `auto_log_since` = seit wann an; nichts
+  davor wird nachgetragen. Ohne Pro sichtbar mit „Mit Pro“, nicht einschaltbar.
+  Steckt eine Substanz in einem Bündel mit Schalter, sagt der Substanz-Schalter das.
+- **Automatik** (`src/features/dot/autoTracking/`): beim Start, alle 5 min und beim
+  Zurückkommen in die App, nur mit Pro. Fällig = geplante Zeit + 30 min vorbei,
+  höchstens 14 Tage zurück. Bestätigt über `confirm_intake_group_auto` (Hülle um
+  `confirm_intake_group`: bestätigen und `dose_logs.auto_logged` in EINER Transaktion,
+  nur vorher offene Plätze), danach Bestand wie nach dem Haken. Wieder geöffnete
+  Einträge (taken null) füllt Dot nicht erneut; Trigger löscht dabei die Markierung.
+- **Kalender:** Einträge von Dot zeigen „automatisch“. Dot sagt in einer Blase, wie
+  viele er eingetragen hat. Die Rückschau „Verpasst“ (Home) lässt Einnahmen aus,
+  die Dot einträgt (nur mit Pro und innerhalb von 14 Tagen).
+- **Migration** `supabase-auto-tracking.sql`: Trockenlauf PG 16 (2×, Ist-Zahlen
+  nachgestellt, Trigger und Hülle geprüft), dann Produktion. Nachzählung nach dem
+  Lauf: 29 Substanzen, 2 Bündel, 16.333 Einträge unverändert, neue Felder leer;
+  Hülle nur für authenticated ausführbar.
+- **Offen:** Markierung auch im PDF/Export; Ausnahmen per Satz im Chat (nächster Schritt).
+
+## Vorerst für alle frei (Nutzer 25.10.2026)
+
+„Schalte Dot erstmal für jeden frei, das nur für Pro erst wenn es so weit ist."
+Schalter `PRO_PFLICHT = false` an zwei Stellen, die gleich stehen müssen (Test
+in `zugang.test.ts`): `src/features/dot/lib/zugang.ts` (App) und
+`supabase/functions/coach/prompt.ts` (Server, danach `coach` neu deployen).
+Frei sind damit Herauskommen, Chat und automatisches Eintragen; das Tageslimit
+von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Tests
+„bis Pro startet …" in `dot.spec.ts`/`dot-auto.spec.ts` zurück auf „ohne Pro gesperrt".
+
+## Eintragen per Satz (25.10.2026, Nutzer wählte es als nächste Fähigkeit)
+
+„GHK heute vergessen", „BPC um 9 genommen", „Tesa heute erst um 22 Uhr".
+- Claude bekommt ein striktes Werkzeug `einnahmen_melden` (prompt.ts `WERKZEUGE`),
+  meldet nur Verweise `e1…` auf Einnahmen aus dem Kontext (7 Tage). Die Edge
+  Function prüft (`pruefeMeldungen`) und schreibt nichts; die App führt aus
+  (`src/features/dot/chat/meldungen.ts`) mit der Sitzung des Nutzers, auf dem
+  Kalenderweg: öffnen vor dem Umentscheiden, `confirm_intake_group`, Bestand.
+- Je Meldung eine Karte mit „Rückgängig" (nur bis zum Neustart; prüft, ob der
+  Platz noch so steht, sonst bleibt er). Per Satz Eingetragenes ist nicht
+  „automatisch" markiert (der Nutzer hat es gesagt).
+- „Erst um 22 Uhr" mit Schalter: Vormerkung auf dem Gerät
+  (`autoTracking/vormerkungen.ts`), das automatische Eintragen wartet bis dahin.
+  Nur dieses Gerät. Ohne Schalter: Dot sagt „selbst abhaken".
+- Noch nicht: Planänderung „ab jetzt immer 21 Uhr" (mit Bestätigung),
+  Einstichstelle „Bauch links".
+
+## Dot statt „KI" und Substanz anlegen per Satz (26.10.2026, Nutzer)
+
+„Alle mit-KI-Buttons bekommen einen Dot-Button, als würde Dot es tun."
+- Schritt 1 (#87): Befund, Essensfoto, Etikett zeigen Dots Zeichen
+  (`src/features/dot/DotZeichen.tsx`: `DotZeichen`, `DotArbeitet`), Texte
+  de/en in Dots Stimme, Einwilligungen bleiben getrennt und nennen Dot als KI.
+- Schritt 2: „leg BPC-157 an, 250 mcg morgens" — Werkzeug `substanz_anlegen`
+  (nur, was der Nutzer sagt, nie eine ausgedachte Menge), Karte im Chat
+  „Ansehen und speichern" öffnet `/my-stack#new-substance` mit `dotAnlage`
+  im History-State; der Assistent wendet `anlageAktionen` (lib/dotAnlage.ts)
+  im Reducer-Start an, erst wenn der Katalog geladen ist. Gespeichert wird
+  nur im Assistenten.
+- Schritt 3: Mikrofon im Chat (`chat/useSpracheingabe.ts`): Web Speech API des
+  Browsers (Safari: `webkitSpeechRecognition`, Erkennung bei Apple). Knopf nur,
+  wo es sie gibt; das Tastatur-Diktat geht immer. Das native Community-Plugin
+  (`@capacitor-community/speech-recognition` 7.0.1) hat kein Package.swift und
+  passt nicht zum SPM-Projekt der iOS-App. Info.plist hat Mikrofon- und
+  Spracherkennungs-Texte; in der nativen App erst mit dem nächsten Build. Ob
+  WKWebView die Erkennung anbietet, auf dem Gerät prüfen.
 
 ## Name der App (Überlegung, 22.10.2026)
 - Nutzer überlegt, die App „Dot“ zu nennen; Idee „Meet Dot“. Websuche (keine

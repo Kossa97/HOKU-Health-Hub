@@ -20,9 +20,13 @@ interface DotStand {
   geladen: boolean
   /** Engine da und Zugang geladen. */
   bereit: boolean
+  /** Das App-Gerüst (Layout) steht: mit oder ohne Leiste, Schnellzugriff offen. `null` = keine App-Seite. */
+  app: { mitLeiste: boolean; schnellzugriff: boolean } | null
+  /** Die Bühne der Anmeldung, solange sie zu sehen ist. */
+  loginBuehne: HTMLElement | null
 }
 
-let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false, bereit: false }
+let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false, bereit: false, app: null, loginBuehne: null }
 let tippWartet = false
 const hoerer = new Set<() => void>()
 let engine: DotApi | null = null
@@ -55,6 +59,13 @@ export const dotStore = {
     const was = engine.logoTipp(stand.darfRaus)
     if (was === 'gesperrt') beiGesperrt?.()
   },
+  /** Die Engine selbst, für Seiten, die ihn Formen zeigen lassen (Anmeldung). */
+  api: () => engine,
+  setApp(app: DotStand['app']) {
+    if (app?.mitLeiste === stand.app?.mitLeiste && app?.schnellzugriff === stand.app?.schnellzugriff) return
+    setze({ app })
+  },
+  setLoginBuehne(el: HTMLElement | null) { if (el !== stand.loginBuehne) setze({ loginBuehne: el }) },
   kameraAuf() { setze({ kameras: stand.kameras + 1 }) },
   kameraZu() { setze({ kameras: Math.max(0, stand.kameras - 1) }) },
 }

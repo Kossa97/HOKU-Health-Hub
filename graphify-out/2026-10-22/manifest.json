@@ -7878,9 +7878,9 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-    "mtime": 1792696096.9352252,
-    "seen": 1792696244.012718,
-    "ast_hash": "c8ebcbe5415c21a83a1910882c33fae7",
+    "mtime": 1792697331.119568,
+    "seen": 1792697419.7495725,
+    "ast_hash": "6d87ad9ae87ed330b4942cc62bddb5ff",
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1792695896.911234,
-    "seen": 1792696244.0185132,
-    "ast_hash": "24d0183b8719d694ed4762784afc4e07",
+    "mtime": 1792696907.9647098,
+    "seen": 1792697419.7552662,
+    "ast_hash": "48b0be279f2c0ebd9508ea53856503ec",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8010,9 +8010,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1792696222.6972802,
-    "seen": 1792696244.0389466,
-    "ast_hash": "e889afeef5f319d06a17858e02f2b628",
+    "mtime": 1792697398.6092272,
+    "seen": 1792697419.7756684,
+    "ast_hash": "01dd0c9322a9ffeb8017e060e9e843f7",
     "semantic_hash": ""
   }
 }

@@ -29,7 +29,9 @@ test('Monatsblatt: nach unten ziehen schliesst es, ein kurzes Ziehen federt zuru
   // steht wieder — auch wenn es beim Zugreifen noch einfuhr.
   await ziehe(page, blatt, 40, 30)
   await expect(blatt).toBeVisible()
-  await expect.poll(() => blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBe(0)
+  // Die Uhr der Seite steht (Fixture); das Zurueckfedern ist ein CSS-Uebergang,
+  // den WebKit erst weiterlaufen laesst, wenn sie weitergeht
+  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
 
   // Weit genug nach unten: es geht zu.
   await ziehe(page, blatt, 220)
@@ -43,7 +45,7 @@ test('Monatsblatt: nach unten ziehen schliesst es, ein kurzes Ziehen federt zuru
 test('Monatsblatt: ein kurzer schneller Wurf nach unten schliesst es auch', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   const blatt = await oeffneMonatsblatt(page)
-  await expect.poll(() => blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBe(0)
+  await expect.poll(async () => { await page.clock.runFor(100); return blatt.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42) }).toBe(0)
   await ziehe(page, blatt, 60, 2)
   await expect(blatt).toBeHidden()
 })

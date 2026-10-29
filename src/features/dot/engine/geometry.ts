@@ -28,12 +28,11 @@ export function winkelAbstand(a: number, b: number) {
 /**
  * Die runden Ecken des Bildschirms: außerhalb des Bogens ist kein Platz.
  * `untenGerade` gilt über der Tastatur — deren Kante hat keine Rundung.
- * `obenGerade` gilt unter der Statusleiste: deren Unterkante ist gerade.
  */
-export function eckenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean, obenGerade = false): Abstand {
+export function eckenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean): Abstand {
   if (radius <= 0) return FERN
   let cy: number
-  if (py < b.t + radius && !obenGerade) cy = b.t + radius
+  if (py < b.t + radius) cy = b.t + radius
   else if (py > b.b - radius && !untenGerade) cy = b.b - radius
   else return FERN
   let cx: number
@@ -48,9 +47,9 @@ export function eckenAbstand(px: number, py: number, b: Rand, radius: number, un
  * Der ganze Bildschirmrand als eine Fläche (abgerundetes Rechteck). In einer
  * Ecke läuft die flache Form so um den Bogen herum, statt an ihm zu enden.
  */
-export function rahmenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean, obenGerade = false): Abstand {
+export function rahmenAbstand(px: number, py: number, b: Rand, radius: number, untenGerade: boolean): Abstand {
   const cx = (b.l + b.r) / 2, cy = (b.t + b.b) / 2
-  const R = py < cy ? (obenGerade ? 0 : radius) : untenGerade ? 0 : radius
+  const R = py < cy ? radius : untenGerade ? 0 : radius
   const sx = px < cx ? -1 : 1, sy = py < cy ? -1 : 1
   const qx = Math.abs(px - cx) - ((b.r - b.l) / 2 - R), qy = Math.abs(py - cy) - ((b.b - b.t) / 2 - R)
   if (qx > 0 && qy > 0) {
@@ -72,6 +71,21 @@ export function leistenAbstand(px: number, py: number, kapsel: Kapsel, plus: Kno
   return o
 }
 
+/**
+ * Ein Kasten mit runden Ecken als Körper (die Mitte der Statusleiste mit der
+ * Kamera-Insel). d > 0 außerhalb, die Normale zeigt vom Kasten weg.
+ */
+export function kastenAbstand(px: number, py: number, k: Rand, radius: number): Abstand {
+  const cx = (k.l + k.r) / 2, cy = (k.t + k.b) / 2, sx = px < cx ? -1 : 1, sy = py < cy ? -1 : 1
+  const R = Math.min(radius, (k.r - k.l) / 2, (k.b - k.t) / 2)
+  const qx = Math.abs(px - cx) - ((k.r - k.l) / 2 - R), qy = Math.abs(py - cy) - ((k.b - k.t) / 2 - R)
+  if (qx > 0 && qy > 0) {
+    const l = Math.hypot(qx, qy) || 1e-6
+    return { d: l - R, nx: (sx * qx) / l, ny: (sy * qy) / l }
+  }
+  return qx > qy ? { d: qx - R, nx: sx, ny: 0 } : { d: qy - R, nx: 0, ny: sy }
+}
+
 /** Apples Projektion des Endpunkts (Designing Fluid Interfaces), etwas kürzer. */
 export const projektion = (v: number) => ((v / 1000) * 0.993) / (1 - 0.993)
 
@@ -87,4 +101,32 @@ export function dauerText(minuten: number, std: string, min: string) {
   const m = Math.max(0, Math.round(minuten))
   const h = Math.floor(m / 60), r = m % 60
   return [h ? `${h} ${std}` : '', r || !h ? `${r} ${min}` : ''].filter(Boolean).join(' ')
+}
+
+/**
+ * Ein Punkt auf dem Umriss des Displays (abgerundetes Rechteck), `s` von 0 bis 1
+ * im Uhrzeigersinn ab der Mitte oben. Für die Eröffnung: dort starten die Partikel.
+ */
+export function rahmenPunkt(rand: Rand, rad: number, s: number): [number, number] {
+  const { l, t, r, b } = rand
+  const w = Math.max(0, r - l - 2 * rad), h = Math.max(0, b - t - 2 * rad), bogen = (rad * Math.PI) / 2
+  let d = s * (2 * w + 2 * h + 4 * bogen)
+  const cx = (l + r) / 2
+  if (d < w / 2) return [cx + d, t]
+  d -= w / 2
+  if (d < bogen) { const a = d / rad; return [r - rad + Math.sin(a) * rad, t + rad - Math.cos(a) * rad] }
+  d -= bogen
+  if (d < h) return [r, t + rad + d]
+  d -= h
+  if (d < bogen) { const a = d / rad; return [r - rad + Math.cos(a) * rad, b - rad + Math.sin(a) * rad] }
+  d -= bogen
+  if (d < w) return [r - rad - d, b]
+  d -= w
+  if (d < bogen) { const a = d / rad; return [l + rad - Math.sin(a) * rad, b - rad + Math.cos(a) * rad] }
+  d -= bogen
+  if (d < h) return [l, b - rad - d]
+  d -= h
+  if (d < bogen) { const a = d / rad; return [l + rad - Math.cos(a) * rad, t + rad - Math.sin(a) * rad] }
+  d -= bogen
+  return [l + rad + d, t]
 }
