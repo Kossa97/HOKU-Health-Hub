@@ -18,7 +18,7 @@ vi.mock('react-i18next', () => ({
 afterEach(cleanup)
 
 const css = readFileSync(resolve(__dirname, '../../../index.css'), 'utf8')
-const block = css.slice(css.indexOf('/* ── Abgelaufen-Abzeichen'), css.indexOf('/* Onboarding overlay'))
+const block = css.slice(css.indexOf('/* ── Abgelaufen-Abzeichen'), css.indexOf('/* ═══'))
 
 describe('ExpiredBadge', () => {
   it('schreibt den ganzen Satz aus — heute, ein Tag, mehrere Tage', () => {

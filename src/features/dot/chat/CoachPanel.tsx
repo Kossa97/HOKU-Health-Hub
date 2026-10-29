@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { AUTO_EREIGNIS, ladeAutoKarte } from '../autoTracking/autoTracking'
@@ -10,6 +11,8 @@ import {
   type CoachFehler, type CoachNachricht,
 } from './coachService'
 import { Veraendert, fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
+import type { DotAnlage } from '../../my-stack/lib/dotAnlage'
+import { useSpracheingabe, type SpracheFehler } from './useSpracheingabe'
 
 /**
  * Das Chatfenster. Es öffnet sich als Kreis genau dort, wo Dot gerade ist,
@@ -56,6 +59,8 @@ const ERGEBNIS: Record<MeldungErgebnis['status'], DotTextKey> = {
   schon_genommen: 'melde_schon_genommen', schon_vergessen: 'melde_schon_vergessen', fehler: 'melde_fehler',
 }
 
+const SPRACHE_FEHLER: Record<SpracheFehler, DotTextKey> = { verweigert: 'mikro_verweigert', nichts: 'mikro_nichts', fehler: 'mikro_fehler' }
+
 /** „heute 08:00", „gestern 20:00", sonst „19.10. 08:00". */
 function wann(datum: string, zeit: string, heute: string, dt: (k: DotTextKey) => string) {
   const tage = Math.round((Date.parse(`${heute}T12:00:00Z`) - Date.parse(`${datum}T12:00:00Z`)) / 86_400_000)
@@ -66,6 +71,7 @@ function wann(datum: string, zeit: string, heute: string, dt: (k: DotTextKey) =>
 export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEinwilligung, kontext, dot, onSchliessen, onHeim }: CoachPanelProps) {
   const { user } = useAuth()
   const { dt, lang } = useDotText()
+  const navigate = useNavigate()
   const [verlauf, setVerlauf] = useState<CoachNachricht[]>(() => (user ? ladeVerlauf(user.id) : []))
   const [laufend, setLaufend] = useState<string | null>(null)
   const [denkt, setDenkt] = useState(false)
@@ -78,6 +84,23 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
   /** Rückgängig je Karte, nur im Speicher: gesichert wird nur der Text (`speichereVerlauf`), nach einem Neustart fehlt der Knopf. */
   const zurueck = useRef(new Map<string, () => Promise<void>>())
   const kartenZaehler = useRef(0)
+  // Dot hört zu: das Gehörte geht ab wie getippt
+  const sprache = useSpracheingabe(
+    lang,
+    text => { void fragen(text) },
+    f => setVerlauf(v => [...v, { rolle: 'dot', text: dt(SPRACHE_FEHLER[f]), lokal: true }]),
+  )
+  // Nur beim Wechsel: zuhören → listen, danach zurück (antwortet er schon, setzt fragen die Stimmung)
+  const hoerteVorher = useRef(false)
+  useEffect(() => {
+    if (hoerteVorher.current === sprache.hoert) return
+    hoerteVorher.current = sprache.hoert
+    if (!dot || arbeitet.current) return
+    dot.setStimmung(sprache.hoert ? 'listen' : 'idle')
+  }, [dot, sprache.hoert])
+  // Chat zu: nicht weiter zuhören, nichts schicken
+  const { abbrechen: zuhoerenAbbrechen } = sprache
+  useEffect(() => { if (!offen) zuhoerenAbbrechen() }, [offen, zuhoerenAbbrechen])
   const [karteLaeuft, setKarteLaeuft] = useState<string | null>(null)
   const weniger = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -120,6 +143,7 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     const antwort = await frageCoach(neu, k, seite, lang)
     if (!antwort.ok && antwort.fehler === 'consent_required') setEinwilligung(null)
     const karten = antwort.ok && antwort.meldungen.length ? await fuehreAus(antwort.meldungen, k) : []
+    if (antwort.ok) for (const anlage of antwort.anlagen) karten.push({ rolle: 'dot', text: anlageText(anlage), anlage })
     setDenkt(false)
     const text = antwort.ok ? antwort.text : dt(FEHLER[antwort.fehler])
     const lokal = !antwort.ok
@@ -160,6 +184,19 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     }
     window.dispatchEvent(new CustomEvent(AUTO_EREIGNIS, { detail: { anzahl: 0 } }))
     return karten
+  }
+
+  /** Was Dot vorbereitet hat, in einem Satz: „BPC-157 · 250 mcg · morgens". */
+  function anlageText(a: DotAnlage) {
+    const zeiten = a.zeiten.map(z => (z.uhrzeit ?? dt(z.tageszeit === 'morning' ? 'anlage_morgens' : z.tageszeit === 'midday' ? 'anlage_mittags' : 'anlage_abends')))
+    const teile = [a.name, a.menge !== null ? `${a.menge.toLocaleString(lang)} ${a.einheit ?? ''}`.trim() : null, zeiten.join(', ') || null].filter(Boolean)
+    return dt('anlage_vorbereitet', { was: teile.join(' · ') })
+  }
+
+  /** Zum Assistenten in My Stack, vorbefüllt. Gespeichert wird erst dort. */
+  function oeffneAnlage(anlage: DotAnlage) {
+    onSchliessen()
+    navigate('/my-stack#new-substance', { state: { dotAnlage: anlage } })
   }
 
   async function machRueckgaengig(id: string) {
@@ -227,8 +264,11 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
             <div ref={faden} className="tyd-dot-faden">
               {verlauf.length === 0 && !laufend && <p className="tyd-dot-intro">{intro}</p>}
               {verlauf.map((n, i) => (
-                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte ? 'true' : undefined}>
+                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte || n.anlage ? 'true' : undefined}>
                   {n.text}
+                  {n.anlage && (
+                    <button type="button" className="tyd-dot-zurueck" onClick={() => oeffneAnlage(n.anlage!)}>{dt('anlage_oeffnen')}</button>
+                  )}
                   {n.karte && (
                     <button type="button" className="tyd-dot-zurueck" disabled={karteLaeuft === n.karte} onClick={() => void machRueckgaengig(n.karte!)}>{dt('melde_zurueck')}</button>
                   )}
@@ -248,14 +288,35 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
               </div>
               <form className="tyd-dot-eingabe" onSubmit={e => { e.preventDefault(); void fragen(eingabe) }}>
                 <input
-                  value={eingabe}
+                  value={sprache.hoert ? sprache.zwischen : eingabe}
                   onChange={e => setEingabe(e.target.value)}
-                  placeholder={dt('chat_platzhalter')}
+                  placeholder={dt(sprache.hoert ? 'mikro_hoert' : 'chat_platzhalter')}
                   aria-label={dt('chat_platzhalter')}
                   maxLength={500}
                   enterKeyHint="send"
+                  readOnly={sprache.hoert}
                 />
-                <button type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                {/* Leeres Feld: Mikrofon (wo der Browser Sprache erkennt), sonst Senden */}
+                {sprache.verfuegbar && (sprache.hoert || !eingabe.trim()) ? (
+                  <button
+                    key="mikro"
+                    type="button"
+                    className="tyd-dot-senden"
+                    // Während Dot antwortet, kein neuer Satz: er ginge verloren
+                    disabled={!sprache.hoert && (denkt || laufend !== null)}
+                    data-mikro={sprache.hoert ? 'an' : 'aus'}
+                    aria-label={dt(sprache.hoert ? 'mikro_fertig' : 'mikro_start')}
+                    aria-pressed={sprache.hoert}
+                    onClick={() => (sprache.hoert ? sprache.beenden() : sprache.starten())}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="3" width="6" height="11" rx="3" />
+                      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button key="senden" type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                )}
               </form>
               <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>
             </>

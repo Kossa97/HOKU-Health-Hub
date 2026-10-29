@@ -1817,10 +1817,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     /** Zelle des Wochenstreifens: Balken, Zahl, Wochentag, gewaehlt auf grauer Kachel.
      *  Ohne: Zelle des Monatsblatts, Zahl im Kreis, Wochentage stehen ueber dem Raster. */
     mitWochentag?: boolean
-    /** Der Onboarding-Anker fuer „heute" darf es nur einmal geben. */
-    ohneAnker?: boolean
   }
-  const renderDayCell = ({ day, monatsBezug, key, vorschau = false, mitWochentag = false, ohneAnker = false }: ZellenOptionen) => {
+  const renderDayCell = ({ day, monatsBezug, key, vorschau = false, mitWochentag = false }: ZellenOptionen) => {
     const isPeek = vorschau
     const inMonth = mitWochentag || day.getMonth() === monatsBezug.getMonth()
     const isSelected = !isPeek && isSameDay(day, selectedDay)
@@ -1889,7 +1887,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const zelleProps = {
       type: 'button' as const,
       'data-calendar-date': !isPeek ? dayKey : undefined,
-      ...(isTodayDay && !isPeek && !ohneAnker ? { 'data-ob': 'ob-cal-today' } : {}),
       'aria-label': beschriftung,
       'aria-pressed': !isPeek ? isSelected : undefined,
       'aria-current': isTodayDay && !isPeek ? 'date' as const : undefined,
@@ -2300,7 +2297,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )}
 
       {/* ── Kalender ──────────────────────────────────────────────────────── */}
-      <div data-ob="calendar-main" data-ob-self>
+      <div>
         {/* Der Streifen traegt keinen eigenen Rahmen mehr. Er ist Navigation,
             nicht Inhalt — der Tag darunter ist der Inhalt. */}
         <div className="flex flex-col gap-2">
@@ -2438,7 +2435,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 className="grid select-none grid-cols-7 gap-1"
               >
                 {calendarDays.map((day, i) => renderDayCell({
-                  day, monatsBezug: currentDate, key: i, ohneAnker: true,
+                  day, monatsBezug: currentDate, key: i,
                 }))}
               </div>
 
@@ -2449,7 +2446,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   style={{ transform: `translateX(${peekDir === 1 ? '100%' : '-100%'})` }}
                 >
                   {peekCalendarDays.map((day, i) => renderDayCell({
-                    day, monatsBezug: peekDate!, key: i, vorschau: true, ohneAnker: true,
+                    day, monatsBezug: peekDate!, key: i, vorschau: true,
                   }))}
                 </div>
               )}

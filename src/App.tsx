@@ -3,9 +3,9 @@ import { lazyPage, ReloadOnUpdate } from './lib/staleChunkReload'
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
-import { OnboardingProvider } from './context/OnboardingContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
+import { DotLayer } from './features/dot/DotLayer'
 import { Auth } from './pages/Auth'
 import { publicPeptipediaRoutes } from './features/peptipedia/publicRoutes'
 import { PeptipediaAppPage } from './features/peptipedia/PeptipediaAppPage'
@@ -65,7 +65,6 @@ function LazyPage({ children, oeffentlich = false }: { children: ReactNode; oeff
 function PersonalApp() {
   return (
       <AuthProvider>
-        <OnboardingProvider>
         <Toaster
           position="top-center"
           // Unter Statusleiste und Dynamic Island, nicht dahinter
@@ -113,7 +112,8 @@ function PersonalApp() {
             <Route path="simulation/:key" element={<LazyPage><BlutspiegelDetail /></LazyPage>} />
           </Route>
         </Routes>
-        </OnboardingProvider>
+        {/* Dot über den Routen: derselbe auf der Anmeldung und in der App */}
+        <DotLayer />
       </AuthProvider>
   )
 }

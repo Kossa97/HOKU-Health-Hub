@@ -1269,7 +1269,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         <div style={sectionHeaderStyle}>
           <h2 style={sectionTitleStyle}>{t('home_all_tools', { defaultValue: 'Alle Tools' })}</h2>
         </div>
-        <div className="lg-surface" style={{ ...panelStyle }} data-ob="home-tiles">
+        <div className="lg-surface" style={{ ...panelStyle }}>
           {TILE_DEFS.map(tile => (
             <TileButton
               key={tile.labelKey}

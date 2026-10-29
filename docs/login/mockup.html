@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>Dot Login</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one-screen login on the app's black Liquid-Glass look. Dot is drawn on two fixed full-screen canvases (glow in 2D, points in WebGL at native pixel density) like the app's DotLayer, so he can be dragged anywhere on screen and always drifts back to his stage above the glass card. Single committed dark theme = app design system. */
+:root{
+  --app-bg:#000000;
+  --surface-input:rgba(118,118,128,0.16);
+  --lg-fill:rgba(120,120,128,0.18);
+  --lg-fill-selected:rgba(120,120,128,0.42);
+  --text:#F5F5F7;
+  --text-2:rgba(235,240,255,0.66);
+  --text-3:rgba(235,240,255,0.52);
+  --accent:#00CCF5;
+  --accent-contrast:#00141C;
+  --primary-fill:linear-gradient(180deg,#4FE2FF 0%,#00C2EC 55%,#00A9D4 100%);
+  --good:#30D158;
+  --display:'Space Grotesk','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --ui:-apple-system,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--app-bg);color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.screen{
+  min-height:100%;max-width:440px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 10px;
+  background:radial-gradient(120% 50% at 50% 0%,rgba(30,60,90,0.35),transparent 60%);
+}
+.top{display:flex;justify-content:flex-end;min-height:30px}
+.lang{display:flex;gap:2px;background:var(--lg-fill);border-radius:999px;padding:3px}
+.lang button{font:inherit;font-size:12px;font-weight:600;padding:4px 10px;border:0;border-radius:999px;background:transparent;color:var(--text-2);cursor:pointer}
+.lang button.on{background:var(--lg-fill-selected);color:var(--text)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.hero{position:relative;height:clamp(230px,40vh,330px)}
+.greet{display:none;text-align:center;margin:0 0 8px;font-family:var(--display);font-weight:700;font-size:22px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Dot's layer: over the page, under nothing; only his hit area takes touches */
+.dot-ebene{position:fixed;inset:0;z-index:44;pointer-events:none}
+.dot-ebene canvas{position:absolute;inset:0;width:100%;height:100%;max-width:100%;display:block}
+.dot-treffer{
+  position:fixed;left:0;top:0;border:0;padding:0;background:transparent;border-radius:50%;z-index:45;
+  cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+}
+.dot-treffer:active{cursor:grabbing}
+.dot-treffer[hidden]{display:none}
+.dot-treffer:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.safe-probe{position:fixed;left:-9999px;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+
+.card{
+  border-radius:24px;padding:16px;box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 18px 40px rgba(0,0,0,0.7);
+}
+form{display:flex;flex-direction:column;gap:10px}
+.field{position:relative;min-width:0}
+.field input{
+  width:100%;box-sizing:border-box;height:48px;padding:0 48px 0 14px;border-radius:14px;border:1px solid transparent;
+  background:var(--surface-input);color:var(--text);font:inherit;font-size:16px;outline:none;transition:box-shadow .2s var(--ease-out),border-color .2s;
+}
+.field input::placeholder{color:var(--text-3)}
+.field input:focus{border-color:rgba(0,204,245,0.5);box-shadow:0 0 0 3px rgba(0,204,245,0.14)}
+.eye{position:absolute;right:4px;top:4px;width:40px;height:40px;border:0;border-radius:10px;background:transparent;color:var(--text-3);cursor:pointer;display:grid;place-items:center}
+.row{display:flex;justify-content:flex-end;font-size:13px}
+a{color:var(--accent);text-decoration:none;font-weight:500}
+.btn{height:50px;border-radius:14px;border:0;font:inherit;font-weight:600;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s var(--ease-out),filter .3s}
+.btn.primary{background:var(--primary-fill);color:var(--accent-contrast);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 10px 30px rgba(0,204,245,0.25);margin-top:4px}
+.btn.primary:active{transform:scale(.985)}
+.btn.primary:disabled{cursor:default}
+.btn.primary.ok{background:var(--good);box-shadow:0 10px 30px rgba(48,209,88,0.25)}
+.foot{text-align:center;font-size:13px;color:var(--text-3);margin:12px 0 0}
+
+/* views inside the card: start (two choices), sign in, create account */
+.view{display:none;flex-direction:column;gap:10px}
+.view.on{display:flex;animation:viewIn .38s var(--ease-out)}
+.view.on.from-left{animation-name:viewInLeft}
+@keyframes viewIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+@keyframes viewInLeft{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
+.v-head{display:flex;align-items:center;gap:6px;margin:-4px 0 4px -6px}
+.v-head h2{margin:0;font-family:var(--display);font-size:20px;font-weight:700}
+.back{width:36px;height:36px;border-radius:50%;border:0;background:transparent;color:var(--text-2);display:grid;place-items:center;cursor:pointer}
+.back:hover{color:var(--text)}
+.btn.glass{background:var(--lg-fill);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.12)}
+.btn.social{height:46px;font-size:15px;background:var(--lg-fill);color:var(--text)}
+.btn.social.apple{background:#F5F5F7;color:#000}
+.or{display:flex;align-items:center;gap:12px;color:var(--text-3);font-size:13px;margin:2px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,0.1)}
+.row{align-items:center;justify-content:space-between;gap:10px}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer;-webkit-user-select:none;user-select:none}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{position:relative;width:36px;height:22px;border-radius:11px;background:var(--lg-fill-selected);transition:background .2s var(--ease-out);flex:none}
+.switch .track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.3);transition:transform .25s var(--ease-out)}
+.switch input:checked + .track{background:var(--good)}
+.switch input:checked + .track::after{transform:translateX(14px)}
+.switch input:focus-visible + .track{outline:2px solid var(--accent);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--text-2);cursor:pointer}
+.check input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
+.check.bad{color:#FF6961}
+.submit-row{display:flex;gap:10px}
+.submit-row .btn.primary{flex:1;margin-top:0}
+.btn.icon{width:50px;flex:none;padding:0}
+
+.demo{margin-top:auto;padding-top:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.demo span{font-size:11px;color:var(--text-3);margin-right:2px}
+.demo button{font:inherit;font-size:12px;padding:6px 10px;border-radius:999px;border:0;background:var(--lg-fill);color:var(--text-2);cursor:pointer}
+.demo button.on{color:var(--accent);box-shadow:inset 0 0 0 1px rgba(0,204,245,0.45)}
+
+/* Feinschliff: tuning sheet for the mockup, over everything */
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0 auto;max-width:440px;max-height:56vh;box-sizing:border-box;
+  display:flex;flex-direction:column;border-radius:22px 22px 0 0;
+  background:rgba(28,28,30,0.92);-webkit-backdrop-filter:blur(30px) saturate(160%);backdrop-filter:blur(30px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 -12px 40px rgba(0,0,0,0.6);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.sheet[hidden],.sheet textarea[hidden]{display:none}
+
+/* errors */
+.msg{margin:0;font-size:13px;line-height:1.4;color:#FF6961}
+.msg[hidden]{display:none}
+.field.bad input{border-color:rgba(255,69,58,0.7);box-shadow:0 0 0 3px rgba(255,69,58,0.15)}
+.hint{font-size:11px;color:var(--text-3);flex-basis:100%;margin-top:2px}
+
+/* login leaves */
+.screen{transition:opacity .45s var(--ease-out),filter .45s var(--ease-out),transform .45s var(--ease-out)}
+.screen.leaving{opacity:0;filter:blur(10px);transform:scale(.96);pointer-events:none}
+
+/* home mock (placeholder content) */
+.home{position:fixed;inset:0;z-index:40;background:var(--app-bg);overflow:hidden;opacity:0;transition:opacity .5s var(--ease-out)}
+.home[hidden]{display:none}
+.home.in{opacity:1}
+.home.portal{opacity:1;transition:none}
+.h-wrap{max-width:440px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(env(safe-area-inset-top,0px) + 14px) 110px;
+  background:radial-gradient(120% 40% at 50% 0%,rgba(30,60,90,0.3),transparent 60%);transform:translateY(14px);transition:transform .6s var(--ease-out)}
+.home.in .h-wrap,.home.portal .h-wrap{transform:none}
+.h-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;transition:opacity .5s var(--ease-out)}
+.h-date{margin:0;font-size:13px;color:var(--text-3)}
+.h-title{margin:2px 0 0;font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-0.01em}
+.h-back{flex:none;font:inherit;font-size:12px;font-weight:600;padding:7px 11px;border-radius:999px;border:0;background:var(--lg-fill);color:var(--text-2);cursor:pointer}
+.h-card{border-radius:20px;padding:14px;box-sizing:border-box;background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 18px 40px rgba(0,0,0,0.7);transition:opacity .55s var(--ease-out);min-width:0}
+.h-row{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
+.h-row span{font-size:13px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.h-bar{height:6px;border-radius:3px;background:var(--lg-fill);margin:10px 0 8px;overflow:hidden}
+.h-bar i{display:block;height:100%;width:50%;border-radius:3px;background:var(--primary-fill)}
+.h-list{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.h-list li{display:flex;justify-content:space-between;gap:8px}
+.h-list span:last-child{color:var(--text-3);font-variant-numeric:tabular-nums}
+.h-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.h-k{margin:0;font-size:13px;color:var(--text-3)}
+.h-v{margin:4px 0 0;font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.h-v small{font-size:14px;color:var(--text-3);font-weight:500}
+.h-curve svg{display:block;width:100%;height:64px;margin-top:6px}
+.home.nova .h-card,.home.nova .h-head{opacity:0}
+.home.nova.nova-done .h-card,.home.nova.nova-done .h-head{opacity:1}
+.h-dock{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);margin:0 auto;max-width:440px;height:56px;box-sizing:border-box;display:flex;gap:10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transform:translateY(160%);transition:transform .6s cubic-bezier(.32,.72,0,1) .25s}
+.home.in .h-dock,.home.portal .h-dock{transform:none}
+.home.portal .h-dock{transition:none}
+.home.nova .h-dock{transform:translateY(160%)}
+.home.nova.nova-done .h-dock{transform:none}
+.h-tabbar{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-around;border-radius:999px;background:rgba(28,28,30,0.72);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 0 0 1px rgba(255,255,255,0.09),0 12px 40px rgba(0,0,0,0.55)}
+.h-tab{display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:10px;color:var(--text-3);border:0;background:none;padding:0;min-width:44px;cursor:pointer}
+.h-tab.on{color:var(--accent)}
+.h-slot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:0;background:none;padding:0}
+.h-slot svg{opacity:0;transform:scale(.4);overflow:visible}
+.h-slot.arrive svg{opacity:1;transform:none;animation:arrive .65s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 0 4px rgba(0,204,245,.9)) drop-shadow(0 0 10px rgba(140,110,255,.5))}
+@keyframes arrive{0%{transform:scale(.4);opacity:0}40%{transform:scale(1.32,.8);opacity:1}70%{transform:scale(.9,1.12)}100%{transform:none;opacity:1}}
+.h-plus{flex:none;width:56px;height:56px;border-radius:50%;border:0;background:var(--primary-fill);color:var(--accent-contrast);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 10px 30px rgba(0,204,245,0.25)}
+@media (prefers-reduced-motion:reduce){.screen,.home,.h-wrap,.h-dock,.h-card{transition:none}.h-slot.arrive svg{animation:none}}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px max(16px,env(safe-area-inset-left,0px)) 4px max(16px,env(safe-area-inset-left,0px))}
+.sheet-head strong{font-family:var(--display);font-size:17px;font-weight:700}
+.x{width:32px;height:32px;border-radius:50%;border:0;background:var(--lg-fill);color:var(--text);font-size:18px;line-height:1;cursor:pointer}
+.sheet-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 16px;scrollbar-width:none;flex:none}
+.sheet-tabs::-webkit-scrollbar{display:none}
+.chip{flex:none;font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;border:0;background:var(--lg-fill);color:var(--text-2);cursor:pointer;white-space:nowrap}
+.chip.on{background:rgba(0,204,245,0.16);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(0,204,245,0.45)}
+.sheet-body{overflow-y:auto;overscroll-behavior:contain;padding:4px 16px 8px;min-height:0;flex:1}
+.s-info{margin:2px 0 10px;font-size:13px;line-height:1.4;color:var(--text-2)}
+.s-label{font-size:12px;color:var(--text-3);margin:0 0 6px}
+.s-chips{display:flex;flex-wrap:wrap;gap:6px}
+.s-vinfo{margin:8px 0 12px;font-size:12.5px;line-height:1.4;color:var(--text-3);min-height:2.8em}
+.s-row{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:10px;padding:6px 0;border-top:1px solid rgba(255,255,255,0.06)}
+.s-row label{font-size:14px}
+.s-row output{font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+.s-row input[type=range]{grid-column:1 / -1;width:100%;margin:6px 0 2px;accent-color:var(--accent)}
+.s-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.act{font:inherit;font-size:14px;font-weight:600;height:38px;padding:0 14px;border-radius:12px;border:0;background:var(--lg-fill);color:var(--text);cursor:pointer}
+.act.primary{background:var(--primary-fill);color:var(--accent-contrast)}
+.act[aria-pressed="true"]{background:rgba(0,204,245,0.16);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(0,204,245,0.45)}
+.sheet-foot{display:flex;align-items:center;gap:10px;padding:8px 16px 12px;border-top:1px solid rgba(255,255,255,0.06);flex:none}
+.sheet-foot span{font-size:12px;color:var(--text-3)}
+.sheet textarea{margin:0 16px 12px;height:90px;border-radius:12px;border:0;background:var(--surface-input);color:var(--text);font:12px/1.4 ui-monospace,Menlo,monospace;padding:8px}
+@media (prefers-reduced-motion:reduce){.greet{display:block}}
+</style>
+
+<div class="screen">
+  <div class="top">
+    <div class="lang" role="group" aria-label="Sprache">
+      <button type="button" id="langDe" class="on">DE</button>
+      <button type="button" id="langEn">EN</button>
+    </div>
+  </div>
+
+  <div class="hero" id="hero" aria-hidden="true"></div>
+  <p class="greet" id="greet">Herzlich willkommen</p>
+
+  <div class="card">
+    <!-- Start: two choices, nothing else -->
+    <div class="view on" id="vStart" data-view="start">
+      <button type="button" class="btn primary" id="goLogin"><span data-i18n="signIn">Anmelden</span></button>
+      <button type="button" class="btn glass" id="goRegister"><span data-i18n="tabRegister">Registrieren</span></button>
+    </div>
+
+    <!-- Sign in -->
+    <form class="view" id="vLogin" data-view="login" novalidate>
+      <div class="v-head"><button type="button" class="back" data-back aria-label="Zurück"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-i18n="signIn">Anmelden</h2></div>
+      <button type="button" class="btn social apple" data-social="apple"><span data-i18n="apple">Mit Apple fortfahren</span></button>
+      <button type="button" class="btn social" data-social="google"><span data-i18n="google">Mit Google fortfahren</span></button>
+      <div class="or"><span data-i18n="or">oder</span></div>
+      <div class="field">
+        <label class="sr" for="loginId" data-i18n="idLabel">E-Mail oder Benutzername</label>
+        <input id="loginId" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="E-Mail oder Benutzername" data-i18n-ph="idLabel">
+      </div>
+      <div class="field">
+        <label class="sr" for="loginPw" data-i18n="password">Passwort</label>
+        <input id="loginPw" type="password" autocomplete="current-password" placeholder="Passwort" data-i18n-ph="password">
+        <button type="button" class="eye" data-eye="loginPw" aria-label="Passwort anzeigen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="row">
+        <label class="switch"><input type="checkbox" id="remember" checked><span class="track" aria-hidden="true"></span><span data-i18n="remember">Angemeldet bleiben</span></label>
+        <a href="#forgot" data-i18n="forgot">Passwort vergessen?</a>
+      </div>
+      <p class="msg" role="alert" hidden></p>
+      <div class="submit-row">
+        <button class="btn primary" type="submit"><span data-i18n="signIn">Anmelden</span></button>
+        <button type="button" class="btn glass icon" id="faceId" aria-label="Mit Face ID anmelden"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/><path d="M8.5 9v1.2M15.5 9v1.2M12 9v4h-1M9 16c1.7 1.3 4.3 1.3 6 0"/></svg></button>
+      </div>
+    </form>
+
+    <!-- Create account -->
+    <form class="view" id="vRegister" data-view="register" novalidate>
+      <div class="v-head"><button type="button" class="back" data-back aria-label="Zurück"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h2 data-i18n="createAccount">Konto erstellen</h2></div>
+      <button type="button" class="btn social apple" data-social="apple"><span data-i18n="apple">Mit Apple fortfahren</span></button>
+      <button type="button" class="btn social" data-social="google"><span data-i18n="google">Mit Google fortfahren</span></button>
+      <div class="or"><span data-i18n="or">oder</span></div>
+      <div class="field">
+        <label class="sr" for="regUser" data-i18n="username">Benutzername</label>
+        <input id="regUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Benutzername" data-i18n-ph="username">
+      </div>
+      <div class="field">
+        <label class="sr" for="regEmail" data-i18n="email">E-Mail</label>
+        <input id="regEmail" type="email" inputmode="email" autocomplete="email" placeholder="E-Mail" data-i18n-ph="email">
+      </div>
+      <div class="field">
+        <label class="sr" for="regPw" data-i18n="password">Passwort</label>
+        <input id="regPw" type="password" autocomplete="new-password" placeholder="Passwort (mind. 6 Zeichen)" data-i18n-ph="pwNew">
+        <button type="button" class="eye" data-eye="regPw" aria-label="Passwort anzeigen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="field">
+        <label class="sr" for="regPw2" data-i18n="pwRepeat">Passwort wiederholen</label>
+        <input id="regPw2" type="password" autocomplete="new-password" placeholder="Passwort wiederholen" data-i18n-ph="pwRepeat">
+      </div>
+      <label class="check"><input type="checkbox" id="consent"><span><span data-i18n="consentA">Ich stimme den</span> <a href="#terms" data-i18n="terms">Nutzungsbedingungen</a> <span data-i18n="consentB">und der</span> <a href="#privacy" data-i18n="privacy">Datenschutzerklärung</a> <span data-i18n="consentC">zu.</span></span></label>
+      <p class="msg" role="alert" hidden></p>
+      <button class="btn primary" type="submit"><span data-i18n="createAccount">Konto erstellen</span></button>
+    </form>
+  </div>
+  <p class="foot" data-i18n="research">Nur für Forschungs- und Dokumentationszwecke.</p>
+
+  <div class="demo" id="demo" aria-label="Mockup-Steuerung">
+    <span>Mockup</span>
+    <button type="button" id="replay">▶ Ganzer Ablauf</button>
+    <button type="button" id="openSheet">Feinschliff</button>
+    <span class="hint">Test im Formular: Passwort „falsch“ = falsches Passwort, „netz“ = kein Netz, alles andere = Erfolg.</span>
+  </div>
+</div>
+
+<div class="home" id="home" hidden>
+  <div class="h-wrap">
+    <header class="h-head">
+      <div><p class="h-date" id="hDate"></p><h1 class="h-title" id="hGreet">Guten Abend</h1></div>
+      <button type="button" class="h-back" id="backLogin" data-i18n="hBack">Abmelden</button>
+    </header>
+    <section class="h-card">
+      <div class="h-row"><strong data-i18n="hToday">Heute</strong><span>2 / 4</span></div>
+      <div class="h-bar"><i></i></div>
+      <ul class="h-list">
+        <li><span>Vitamin D3</span><span>08:00 ✓</span></li>
+        <li><span>Omega-3</span><span>13:00 ✓</span></li>
+        <li><span>Magnesium</span><span>21:00</span></li>
+      </ul>
+    </section>
+    <div class="h-grid">
+      <section class="h-card"><p class="h-k" data-i18n="hWell">Wohlbefinden</p><p class="h-v">7<small>/10</small></p></section>
+      <section class="h-card"><p class="h-k" data-i18n="hSleep">Schlaf</p><p class="h-v">7:20<small> h</small></p></section>
+    </div>
+    <section class="h-card h-curve">
+      <p class="h-k" data-i18n="hLevel">Blutspiegel</p>
+      <svg viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 C30 58 34 14 60 14 S96 44 120 44 S150 10 176 10 S212 40 236 40 S270 18 300 22" fill="none" stroke="#00CCF5" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </section>
+  </div>
+  <div class="h-dock">
+    <nav class="h-tabbar" aria-label="Navigation">
+      <button type="button" class="h-tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Home</button>
+      <button type="button" class="h-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4l8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/></svg>My Stack</button>
+      <button type="button" class="h-slot" id="hSlot" aria-label="Dot"></button>
+      <button type="button" class="h-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span data-i18n="hCal">Kalender</span></button>
+      <button type="button" class="h-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="4"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5"/></svg>Profil</button>
+    </nav>
+    <button type="button" class="h-plus" aria-label="Schnellzugriff"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-head"><strong>Feinschliff</strong><button type="button" class="x" id="closeSheet" aria-label="Feinschliff schließen">×</button></div>
+  <div class="sheet-tabs" id="sheetTabs" role="tablist"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+  <div class="sheet-foot">
+    <button type="button" class="act" id="copyCfg">Werte kopieren</button>
+    <button type="button" class="act" id="resetAll">Alles zurücksetzen</button>
+    <span id="copyMsg" role="status"></span>
+  </div>
+  <textarea id="cfgOut" readonly hidden aria-label="Eingestellte Werte"></textarea>
+</div>
+
+<div class="dot-ebene" id="ebene">
+  <canvas id="glowCanvas"></canvas>
+  <canvas id="glCanvas"></canvas>
+</div>
+<button type="button" class="dot-treffer" id="hit" aria-label="Dot, das Maskottchen. Ziehen zum Bewegen."></button>
+<div class="safe-probe" id="safeProbe"></div>
+
+<script>
+(function(){
+  var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var TAU = Math.PI * 2;
+  var hero = document.getElementById('hero');
+  var glowCv = document.getElementById('glowCanvas'), glCv = document.getElementById('glCanvas');
+  var ctx = glowCv.getContext('2d');
+  var hit = document.getElementById('hit');
+  var off = document.createElement('canvas');
+  var octx = off.getContext('2d', { willReadFrequently: true });
+  var clamp01 = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
+
+  var i18n = {
+    de: { tabLogin:'Anmelden', tabRegister:'Registrieren', email:'E-Mail', password:'Passwort', forgot:'Passwort vergessen?', signIn:'Anmelden', createAccount:'Konto erstellen', signingIn:'Wird angemeldet…', signedIn:'Angemeldet', research:'Nur für Forschungs- und Dokumentationszwecke.', greet:'Willkommen zurück bei Dot: Health Hub',
+      emailEmpty:'Gib deine E-Mail-Adresse ein.', emailBad:'Diese E-Mail-Adresse ist ungültig.', pwEmpty:'Gib dein Passwort ein.', wrong:'Benutzername, E-Mail oder Passwort stimmt nicht.', net:'Keine Verbindung. Prüf dein Internet und versuch es erneut.', retry:'Erneut versuchen',
+      apple:'Mit Apple fortfahren', google:'Mit Google fortfahren', or:'oder', idLabel:'E-Mail oder Benutzername', remember:'Angemeldet bleiben', username:'Benutzername', pwNew:'Passwort (mind. 6 Zeichen)',
+      consentA:'Ich stimme den', terms:'Nutzungsbedingungen', consentB:'und der', privacy:'Datenschutzerklärung', consentC:'zu.', faceId:'Mit Face ID anmelden',
+      idEmpty:'Gib deine E-Mail oder deinen Benutzernamen ein.', userEmpty:'Wähl einen Benutzernamen.', userBad:'Benutzername: 3 bis 20 Zeichen, nur Buchstaben, Zahlen, Punkt und Unterstrich.', pwShort:'Das Passwort braucht mindestens 6 Zeichen.', consentMiss:'Stimm bitte den Nutzungsbedingungen und der Datenschutzerklärung zu.',
+      pwRepeat:'Passwort wiederholen', pw2Empty:'Wiederhol dein Passwort.', pwMismatch:'Die Passwörter stimmen nicht überein.',
+      hBack:'Abmelden', hToday:'Heute', hWell:'Wohlbefinden', hSleep:'Schlaf', hLevel:'Blutspiegel', hCal:'Kalender', morning:'Guten Morgen', day:'Guten Tag', evening:'Guten Abend', night:'Gute Nacht' },
+    en: { tabLogin:'Sign in', tabRegister:'Create account', email:'Email', password:'Password', forgot:'Forgot password?', signIn:'Sign in', createAccount:'Create account', signingIn:'Signing in…', signedIn:'Signed in', research:'For research and documentation purposes only.', greet:'Welcome back to Dot: Health Hub',
+      emailEmpty:'Enter your email address.', emailBad:"This email address isn't valid.", pwEmpty:'Enter your password.', wrong:'Username, email or password is incorrect.', net:'No connection. Check your internet and try again.', retry:'Try again',
+      apple:'Continue with Apple', google:'Continue with Google', or:'or', idLabel:'Email or username', remember:'Stay signed in', username:'Username', pwNew:'Password (at least 6 characters)',
+      consentA:'I agree to the', terms:'Terms of Use', consentB:'and the', privacy:'Privacy Policy', consentC:'.', faceId:'Sign in with Face ID',
+      idEmpty:'Enter your email or username.', userEmpty:'Choose a username.', userBad:'Username: 3 to 20 characters, only letters, numbers, dots and underscores.', pwShort:'Your password needs at least 6 characters.', consentMiss:'Please agree to the Terms of Use and the Privacy Policy.',
+      pwRepeat:'Repeat password', pw2Empty:'Repeat your password.', pwMismatch:"The passwords don't match.",
+      hBack:'Sign out', hToday:'Today', hWell:'Wellbeing', hSleep:'Sleep', hLevel:'Blood level', hCal:'Calendar', morning:'Good morning', day:'Good afternoon', evening:'Good evening', night:'Good night' }
+  };
+  var lang = 'de', tab = 'start';
+
+  /* ---------- Feinschliff: every tunable value of every animation ---------- */
+  var DEF = {
+    intro: { v: 'zufall', dauer: 1, wirbel: 1, groesse: 2 },
+    /* Devin's tuned values (26.10.2026) */
+    kugel: { v: 'eigen', drehung: 0.6, atmen: 2.5, licht: 2.5, puls: 2.5 },
+    trans: { v: 'ausgewogen', tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1, ablauf: 1 },
+    hand: { v: 'winken', freq: 1.44, ausschlag: 19, peitsche: 0, dauer: 2.6 },
+    text: { v: 'mitte', dauer: 2.2, licht: 1, welle: 0, funkeln: 0.4, dichte: 5.5, groesse: 1.6 },
+    herz: { v: 'gefuellt', bpm: 72, schlag: 0.3, licht: 1.5, dauer: 2.4 },
+    ziehen: { v: 'eigen', rueckkehr: 1, warten: 450, abprall: 0.42, gelee: 2 },
+    fehler: { v: 'schuetteln', dauer: 1.3, staerke: 24, rot: 1 },
+    erfolg: { v: 'portalheim', denken: 1, haken: 0.8, tempo: 0.6 }
+  };
+  var KEY = 'dot-login-feinschliff-v1';
+  var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+  var CFG = clone(DEF);
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) for (var sk in DEF) if (saved[sk]) for (var sf in DEF[sk]) if (typeof saved[sk][sf] === typeof DEF[sk][sf]) CFG[sk][sf] = saved[sk][sf];
+    /* one-time switch to the chosen variants (random opening, portal + home-run); tuned slider values stay */
+    if (!localStorage.getItem(KEY + '-mig2')) { CFG.intro.v = 'zufall'; CFG.erfolg.v = 'portalheim'; localStorage.setItem(KEY + '-mig2', '1'); localStorage.setItem(KEY, JSON.stringify(CFG)); }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(CFG)); } catch (e) {} }
+
+  /* ---------- Dot: the app's 460-point sphere; children (N in total) appear for hand, text and heart ---------- */
+  var NP = 460, N = 2760;
+  var TILT = 0.38, CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200];
+  var P, px, py, vx, vy, tx, ty, tz, ox, oy, oz, kr, dr, bb, delay, al, ss, GLD;
+  var swirl = 0;
+  var intro = { on: false, t0: 0, v: 'strudel', rel: null, sx: null, sy: null, out: null };
+  function alloc() {
+    P = [];
+    var ga = Math.PI * (3 - Math.sqrt(5)), i;
+    for (i = 0; i < NP; i++) {
+      var y = 1 - (2 * (i + 0.5)) / NP, r = Math.sqrt(1 - y * y), th = ga * i;
+      P.push({ i: i, u: i / NP, x: Math.cos(th) * r, y: y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random(), par: i });
+    }
+    for (i = NP; i < N; i++) { var q = P[i % NP]; P.push({ i: i, u: i / N, x: q.x, y: q.y, z: q.z, s: Math.random() * TAU, k: Math.random(), par: i % NP }); }
+    px = new Float32Array(N); py = new Float32Array(N); vx = new Float32Array(N); vy = new Float32Array(N);
+    tx = new Float32Array(N); ty = new Float32Array(N); tz = new Float32Array(N);
+    ox = new Float32Array(N); oy = new Float32Array(N); oz = new Float32Array(N);
+    kr = new Float32Array(N); dr = new Float32Array(N); bb = new Float32Array(N); delay = new Float32Array(N);
+    al = new Float32Array(N); ss = new Float32Array(N);
+    intro.rel = new Float32Array(N); intro.sx = new Float32Array(N); intro.sy = new Float32Array(N); intro.out = new Uint8Array(N);
+    for (i = 0; i < N; i++) { kr[i] = Math.random(); dr[i] = Math.random(); bb[i] = 1; ss[i] = 3; }
+    GLD = new Float32Array(N * 2 * 7);
+  }
+  alloc();
+
+  var W = 0, H = 0, DPR = 1, SC = 1, R = 66, rot = 0;
+  var bounds = { l: 4, t: 4, r: 100, b: 100 };
+  var shapes = {};
+  var state = 'sphere', stateAt = 0, sequencing = false, busy = false;
+  var lean = 0, leanTo = 0, poke = 9;
+  var B = { x: 0, y: 0, vx: 0, vy: 0, hx: 0, hy: 0, mode: 'idle', still: 0, sq: 0, sqv: 0, nx: 1, ny: 0 };
+  var drag = null;
+  /* error & success flow state */
+  var tint = 0, sagAmt = 0, shake = null, shakeX = 0, fall = null, glitchOn = false, glitchAt = 0, glitchOff = new Float32Array(64);
+  var Rscale = 1, noClamp = false, dotHidden = false, fly = null, portal = null, portalE = 0;
+  /* frame: Dot's ring morphs into the display outline (rounded corners), a light runs around it */
+  var frameE = 0, frameT0 = 0, FRAME_R = 48, kMul = 1;
+  var BAD = [255, 69, 58], WARN = [255, 159, 10], tintCol = BAD;
+  function rrPoint(L, T, Rr, Bt, rad, s, out) {
+    var w = Math.max(0, Rr - L - 2 * rad), h = Math.max(0, Bt - T - 2 * rad), arc = rad * Math.PI / 2;
+    var d = s * (2 * w + 2 * h + 4 * arc), cx = (L + Rr) / 2;
+    if (d < w / 2) { out[0] = cx + d; out[1] = T; return; } d -= w / 2;
+    if (d < arc) { var a = d / rad; out[0] = Rr - rad + Math.sin(a) * rad; out[1] = T + rad - Math.cos(a) * rad; return; } d -= arc;
+    if (d < h) { out[0] = Rr; out[1] = T + rad + d; return; } d -= h;
+    if (d < arc) { a = d / rad; out[0] = Rr - rad + Math.cos(a) * rad; out[1] = Bt - rad + Math.sin(a) * rad; return; } d -= arc;
+    if (d < w) { out[0] = Rr - rad - d; out[1] = Bt; return; } d -= w;
+    if (d < arc) { a = d / rad; out[0] = L + rad - Math.sin(a) * rad; out[1] = Bt - rad + Math.cos(a) * rad; return; } d -= arc;
+    if (d < h) { out[0] = L; out[1] = Bt - rad - d; return; } d -= h;
+    if (d < arc) { a = d / rad; out[0] = L + rad - Math.cos(a) * rad; out[1] = T + rad - Math.sin(a) * rad; return; } d -= arc;
+    out[0] = L + rad + d; out[1] = T;
+  }
+  var RRP = [0, 0];
+  var novaBX = new Float32Array(N), novaBY = new Float32Array(N), novaTX = new Float32Array(N), novaTY = new Float32Array(N), novaFade = 9;
+  var easeIO = function (u) { return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+
+  /* ---------- colours ---------- */
+  var CB = [0, 0, 0];
+  function dotColor(X, Y, hue) {
+    var m = clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7);
+    var r = CYAN[0] + (VIOLET[0] - CYAN[0]) * m, g = CYAN[1] + (VIOLET[1] - CYAN[1]) * m, b = CYAN[2] + (VIOLET[2] - CYAN[2]) * m;
+    if (Y > 0.55) { var q = Math.min(1, (Y - 0.55) * 1.4); r += (PINK[0] - r) * q; g += (PINK[1] - g) * q; b += (PINK[2] - b) * q; }
+    CB[0] = r; CB[1] = g; CB[2] = b; return CB;
+  }
+
+  /* ---------- WebGL points (engine shader + small highlight), Canvas-2D fallback ---------- */
+  var GL = null, GLU = null, ctx2 = null, spriteCache = {};
+  function glInit() {
+    var gl = glCv.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
+    if (!gl) return null;
+    var sh = function (t, src) { var x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); return gl.getShaderParameter(x, gl.COMPILE_STATUS) ? x : null; };
+    var vs = sh(gl.VERTEX_SHADER, 'attribute vec2 aP; attribute float aS; attribute vec4 aC; uniform vec2 uR; uniform float uD; varying vec4 vC; void main(){ vec2 p = aP / uR * 2.0 - 1.0; gl_Position = vec4(p.x, -p.y, 0.0, 1.0); gl_PointSize = aS * uD; vC = aC; }');
+    var fs = sh(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec4 vC; uniform float uS; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = d < 0.42 ? 1.0 : (d < 0.62 ? mix(0.95, 0.4, (d - 0.42) / 0.2) : max(0.0, 0.4 * (1.0 - (d - 0.62) / 0.38))); a *= vC.a; float h = clamp(length(gl_PointCoord - vec2(0.38, 0.36)) * 1.9, 0.0, 1.0); float s = 1.0 - uS * 0.6 * h; vec3 c = vC.rgb * s + vec3(uS * 0.35 * (1.0 - h) * (1.0 - h)); gl_FragColor = vec4(c * a, a); }');
+    if (!vs || !fs) return null;
+    var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+    gl.useProgram(pr); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    var at = function (n, size, o) { var l = gl.getAttribLocation(pr, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, gl.FLOAT, false, 28, o); };
+    at('aP', 2, 0); at('aS', 1, 8); at('aC', 4, 12);
+    GLU = { r: gl.getUniformLocation(pr, 'uR'), d: gl.getUniformLocation(pr, 'uD'), s: gl.getUniformLocation(pr, 'uS') };
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE); gl.clearColor(0, 0, 0, 0);
+    return gl;
+  }
+  try { GL = glInit(); } catch (e) { GL = null; }
+  glCv.addEventListener('webglcontextlost', function (e) { e.preventDefault(); GL = null; ctx2 = null; });
+  if (!GL) ctx2 = glCv.getContext('2d');
+  function sprite(c) {
+    var key = ((c[0] >> 3) << 10) | ((c[1] >> 3) << 5) | (c[2] >> 3), sp = spriteCache[key];
+    if (!sp) {
+      var S = 32, col = ((key >> 10) << 3) + ',' + (((key >> 5) & 31) << 3) + ',' + ((key & 31) << 3);
+      sp = document.createElement('canvas'); sp.width = sp.height = S;
+      var g = sp.getContext('2d'), gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+      gr.addColorStop(0, 'rgba(' + col + ',1)'); gr.addColorStop(0.42, 'rgba(' + col + ',0.95)'); gr.addColorStop(0.62, 'rgba(' + col + ',0.4)'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+      g.fillStyle = gr; g.fillRect(0, 0, S, S); spriteCache[key] = sp;
+    }
+    return sp;
+  }
+
+  /* ---------- sampled shapes ---------- */
+  function roundRect(c, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); c.fill();
+  }
+  function finger(c, bx, by, ang, len, w, segs) {
+    c.save(); c.translate(bx, by); c.rotate(ang);
+    var y = 6, ws = [w, w * 0.9, w * 0.78];
+    for (var i = 0; i < segs.length; i++) {
+      var L = len * segs[i], ww = ws[i];
+      roundRect(c, -ww / 2, y - L, ww, L + 4, ww / 2);
+      c.beginPath(); c.arc(0, y - L, ww * 0.52, 0, TAU); c.fill();
+      y -= L;
+    }
+    c.restore();
+  }
+  function drawHand(c) {
+    c.beginPath();
+    c.moveTo(-36, 92);
+    c.bezierCurveTo(-54, 70, -62, 30, -50, -22);
+    c.bezierCurveTo(-46, -36, -30, -40, -14, -38);
+    c.bezierCurveTo(10, -40, 40, -34, 50, -16);
+    c.bezierCurveTo(60, 10, 56, 60, 40, 92);
+    c.closePath(); c.fill();
+    c.save(); c.translate(-38, 44); c.rotate(-0.5); c.beginPath(); c.ellipse(0, 0, 24, 36, 0, 0, TAU); c.fill(); c.restore();
+    roundRect(c, -30, 78, 62, 34, 16);
+    finger(c, -38, -28, -0.16, 84, 24, [0.42, 0.33, 0.25]);
+    finger(c, -12, -36, -0.03, 94, 24, [0.42, 0.33, 0.25]);
+    finger(c, 15, -33, 0.09, 88, 22, [0.42, 0.33, 0.25]);
+    finger(c, 40, -20, 0.24, 66, 19, [0.42, 0.34, 0.24]);
+    finger(c, -54, 24, -0.92, 86, 27, [0.52, 0.48]);
+  }
+  function drawLines(c, lines, fs) {
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    var maxW = 300;
+    lines.forEach(function (l) { c.font = '700 ' + fs + 'px "Space Grotesk", system-ui, sans-serif'; var w = c.measureText(l).width; if (w > maxW) fs = Math.floor(fs * maxW / w); });
+    c.font = '700 ' + fs + 'px "Space Grotesk", system-ui, sans-serif';
+    var lh = fs * 1.1, y0 = -lh * (lines.length - 1) / 2;
+    lines.forEach(function (l, i) { c.fillText(l, 0, y0 + i * lh); });
+  }
+  function sampleShape(fn, grid, lattice, count) {
+    var S = 640;
+    off.width = S; off.height = S;
+    octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, S, S);
+    octx.translate(S / 2, S / 2); octx.scale(2, 2); octx.fillStyle = '#fff'; fn(octx);
+    var d = octx.getImageData(0, 0, S, S).data, pts = [];
+    var inside = function (x, y) { return x >= 0 && y >= 0 && x < S && y < S && d[((y | 0) * S + (x | 0)) * 4 + 3] > 120; };
+    var thick = function (x, y) {
+      var tmax = 0, ds = [3, 6, 9, 12, 16];
+      for (var k = 0; k < ds.length; k++) {
+        var e = ds[k], ok = inside(x + e, y) && inside(x - e, y) && inside(x, y + e) && inside(x, y - e) && inside(x + e * 0.7, y + e * 0.7) && inside(x - e * 0.7, y - e * 0.7) && inside(x + e * 0.7, y - e * 0.7) && inside(x - e * 0.7, y + e * 0.7);
+        if (!ok) break; tmax = e;
+      }
+      return tmax;
+    };
+    var scan = function (gr) {
+      var out = [], row = 0, ystep = lattice ? gr * 0.866 : gr;
+      for (var y = 0; y < S; y += ystep, row++) for (var x = lattice && row % 2 ? gr / 2 : 0; x < S; x += gr) {
+        if (inside(x, y)) out.push([x - S / 2, y - S / 2, thick(x, y)]);
+      }
+      return out;
+    };
+    if (count) {
+      /* Dot style: an even lattice with at most `count` dots (his 460), spacing found from the silhouette's area */
+      var area = 0;
+      for (var yy = 0; yy < S; yy += 2) for (var xx = 0; xx < S; xx += 2) if (inside(xx, yy)) area += 4;
+      grid = Math.sqrt(area / (count * 0.866));
+      for (var it = 0; it < 40; it++) { pts = scan(grid); if (pts.length <= count) break; grid *= 1.015; }
+    } else pts = scan(grid);
+    if (!pts.length) pts.push([0, 0, 0]);
+    var sel = [], mx = 0, my = 0, i, M = lattice ? Math.min(pts.length, N) : N, jit = lattice ? 0 : grid * 0.7;
+    for (i = 0; i < M; i++) {
+      var p = pts[Math.floor(i * pts.length / M) % pts.length];
+      var q = [(p[0] + (Math.random() - .5) * jit) / 2, (p[1] + (Math.random() - .5) * jit) / 2, 0.5 + 0.5 * Math.min(1, p[2] / 14)];
+      sel.push(q); mx += q[0]; my += q[1];
+    }
+    mx /= M; my /= M;
+    sel.sort(function (a, b) { return Math.atan2(a[1] - my, a[0] - mx) - Math.atan2(b[1] - my, b[0] - mx); });
+    var out = new Float32Array(N * 3);
+    for (i = 0; i < N; i++) {
+      var sp = sel[Math.floor(i * M / N)];
+      out[i * 3] = sp[0]; out[i * 3 + 1] = sp[1]; out[i * 3 + 2] = i < M ? sp[2] : -1;
+    }
+    if (M < N) for (i = 0; i < M; i++) { out[i * 3] = sel[i][0]; out[i * 3 + 1] = sel[i][1]; out[i * 3 + 2] = sel[i][2]; }
+    return out;
+  }
+  var TEXTE = {
+    zurueck: { de: ['Willkommen', 'zurück'], en: ['Welcome', 'back'] },
+    hey: { de: ['Hey, ich', 'bin Dot'], en: ["Hey, I'm", 'Dot'] },
+    hub: { de: ['Willkommen im', 'Health Hub'], en: ['Welcome to', 'Health Hub'] }
+  };
+  function buildText() {
+    Object.keys(TEXTE).forEach(function (k) {
+      ['de', 'en'].forEach(function (l) {
+        shapes['text_' + k + '_' + l] = sampleShape(function (c) { drawLines(c, TEXTE[k][l], 64); }, CFG.text.dichte, true);
+      });
+    });
+  }
+  /* the hand uses Dot's own 460 points, evenly spaced like his sphere */
+  function drawHeart(c) {
+    c.beginPath();
+    for (var t = 0; t <= TAU + 0.01; t += 0.02) {
+      var x = 16 * Math.pow(Math.sin(t), 3) * 4.6, y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 4.6 + 3;
+      if (t === 0) c.moveTo(x, y); else c.lineTo(x, y);
+    }
+    c.closePath(); c.fill();
+  }
+  var heartMax = 1;
+  /* no-connection symbol: three arcs and a dot, crossed by a slash with a clean gap around it */
+  var WIFI_O = 46, SL0 = [-66, -70], SL1 = [66, 62];
+  function drawWifiOff(c) {
+    c.lineCap = 'round'; c.strokeStyle = '#fff'; c.fillStyle = '#fff';
+    [34, 66, 98].forEach(function (r) { c.lineWidth = 17; c.beginPath(); c.arc(0, WIFI_O, r, -Math.PI / 2 - 0.85, -Math.PI / 2 + 0.85); c.stroke(); });
+    c.beginPath(); c.arc(0, WIFI_O, 11, 0, TAU); c.fill();
+    c.globalCompositeOperation = 'destination-out'; c.lineWidth = 28;
+    c.beginPath(); c.moveTo(SL0[0], SL0[1]); c.lineTo(SL1[0], SL1[1]); c.stroke();
+    c.globalCompositeOperation = 'source-over'; c.lineWidth = 15;
+    c.beginPath(); c.moveTo(SL0[0], SL0[1]); c.lineTo(SL1[0], SL1[1]); c.stroke();
+  }
+  function buildShapes() {
+    shapes.hand = sampleShape(drawHand, 0, true, NP);
+    /* the heart, too, is Dot's 460 points on an even lattice; heartMax normalises the core-to-rim light wave */
+    shapes.heartFill = sampleShape(drawHeart, 0, true, NP);
+    shapes.wifi = sampleShape(drawWifiOff, 0, true, NP);
+    shapes.cross = sampleShape(function (c) {
+      [Math.PI / 4, -Math.PI / 4].forEach(function (a) { c.save(); c.rotate(a); roundRect(c, -80, -18, 160, 36, 18); c.restore(); });
+    }, 0, true, NP);
+    heartMax = 1;
+    for (var i = 0; i < NP; i++) heartMax = Math.max(heartMax, Math.hypot(shapes.heartFill[i * 3], shapes.heartFill[i * 3 + 1] - 8));
+    buildText();
+  }
+  var DYNAMIC = { sphere: 1, rings: 1, circle: 1, check: 1, heart: 1, sag: 1, nova: 1, frame: 1 };
+
+  /* heartbeat: lub-dub, rate from the Herz settings */
+  function beatPhase(te) { return te < 0.45 ? -1 : ((te - 0.45) / (60 / CFG.herz.bpm)) % 1; }
+  function beat(te) {
+    var ph = beatPhase(te);
+    if (ph < 0) return 0;
+    return Math.exp(-Math.pow((ph - 0.096) / 0.084, 2)) + 0.55 * Math.exp(-Math.pow((ph - 0.36) / 0.096, 2));
+  }
+
+  /* opening variants: release window (a0, a1), total length, vortex strength */
+  function IV() {
+    /* while an opening runs, its picked variant counts; otherwise the setting (random → the last pick) */
+    var v = intro.on || CFG.intro.v === 'zufall' ? intro.v : CFG.intro.v, d = CFG.intro.dauer;
+    if (v === 'galaxie') return { a0: 1.0 * d, a1: 1.2 * d, len: 4.2 * d, sw: 0.02 };
+    if (v === 'implosion') return { a0: 0, a1: 0.3 * d, len: 2.0 * d, sw: 0 };
+    if (v === 'regen') return { a0: 0.55 * d, a1: 0.8 * d, len: 3.2 * d, sw: 0.006 };
+    return { a0: 0.7 * d, a1: 0.9 * d, len: 3.4 * d, sw: 0.012 };
+  }
+
+  /* ---------- sizing & bounds ---------- */
+  var heroRect = { left: 0, top: 0, width: 0, height: 0 };
+  function measureHero() { var r = hero.getBoundingClientRect(); heroRect = { left: r.left, top: r.top, width: r.width, height: r.height }; }
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 4);
+    glowCv.width = Math.round(W * DPR); glowCv.height = Math.round(H * DPR);
+    glCv.width = Math.round(W * DPR); glCv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (GL) GL.viewport(0, 0, glCv.width, glCv.height);
+    if (ctx2) ctx2.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var cs = getComputedStyle(document.getElementById('safeProbe'));
+    bounds = { l: 4 + (parseFloat(cs.paddingLeft) || 0), t: 4 + (parseFloat(cs.paddingTop) || 0), r: W - 4 - (parseFloat(cs.paddingRight) || 0), b: H - 4 - (parseFloat(cs.paddingBottom) || 0) };
+    measureHero();
+    R = Math.min(66, heroRect.height * 0.26);
+    SC = Math.min(heroRect.width / 340, heroRect.height / 280, 1.15);
+  }
+
+  /* ---------- targets ---------- */
+  function updateTargets(t, te) {
+    var K = CFG.kugel, HA = CFG.hand, T = CFG.text, HZ = CFG.herz, Z = CFG.ziehen;
+    var pulse = 1 + (RM ? 0 : 0.018 * K.puls * Math.sin(t * 1.6) + (poke < 0.6 ? -Math.exp(-poke * 8) * Math.cos(poke * 22) * 0.07 : 0));
+    var r = R * pulse * Rscale, rc = Math.cos(rot), rs = Math.sin(rot), ct = Math.cos(TILT), st = Math.sin(TILT);
+    var base = shapes[state], i, p, x, y, z;
+    var sp = Math.hypot(B.vx, B.vy) * 60, stretch = 1 + Math.min(sp * 0.00028 * Z.gelee, 0.26 * Z.gelee);
+    var mc = sp > 1 ? B.vx * 60 / sp : 1, ms = sp > 1 ? B.vy * 60 / sp : 0;
+    var sqA = 1 + B.sq, sqB = 1 - B.sq * 0.6, nx = B.nx, ny = B.ny;
+    var isHand = state === 'hand', hv = HA.v, hw = TAU * HA.freq, hamp = HA.ausschlag * Math.PI / 180;
+    var hStart = hv === 'aufsteigen' ? 0.35 : 0;
+    var ramp = isHand ? clamp01((te - hStart) * 1.6) : 0;
+    var wave = isHand ? hamp * (hv === 'fingerwelle' ? 0.3 : 1) * Math.sin(hw * (te - hStart)) * ramp : 0;
+    var rise = isHand && hv === 'aufsteigen' ? 110 * SC * Math.exp(-te * 4.5) * Math.cos(te * 7) : 0;
+    var curl = isHand && hv === 'fingerwelle';
+    var roll = isHand ? 0.9 + 0.1 * Math.cos(hw * 0.5 * te) : 1, isText = state.indexOf('text_') === 0, pvy = 92 * SC;
+    var bph = state === 'heart' ? beatPhase(te) : -1, rp = bph >= 0 ? bph / 0.54 : -1, bs = 1 + HZ.schlag * beat(te);
+    /* sparse: shapes drawn with Dot's own 460 points; his children stay hidden inside them */
+    var sparse = state === 'sphere' || state === 'rings' || state === 'circle' || state === 'check' || state === 'hand' || state === 'heart' || state === 'cross' || state === 'sag' || state === 'frame' || state === 'wifi';
+    var iv = IV(), ti = intro.on ? (performance.now() - intro.t0) / 1000 : 99, fadeAt = Math.max(iv.a0 + iv.a1 - 0.2, 0.5 * CFG.intro.dauer);
+    var ntp = CFG.erfolg.tempo;
+    for (i = 0; i < N; i++) {
+      p = P[i]; bb[i] = 1;
+      if (intro.on && (ti < intro.rel[i] || (sparse && i >= NP))) {
+        if (ti < intro.rel[i]) { tx[i] = intro.sx[i]; ty[i] = intro.sy[i]; tz[i] = 0; continue; }
+        x = tx[p.par] - B.x + (p.k - 0.5) * 1.5; y = ty[p.par] - B.y + Math.sin(p.s) * 0.75;
+        z = 0.75 * Math.max(0, 1 - (ti - intro.rel[i] - fadeAt) / 0.6);
+      } else if (sparse && i >= NP) {
+        x = tx[p.par] - B.x + (p.k - 0.5) * 1.5; y = ty[p.par] - B.y + Math.sin(p.s) * 0.75; z = 0;
+      } else if (state === 'nova') {
+        /* burst outward, then trace the outlines of the home cards; fade out as the real cards appear */
+        if (te < 0.3 / ntp) { x = novaBX[i]; y = novaBY[i]; } else { x = novaTX[i] - B.x; y = novaTY[i] - B.y; }
+        z = te < novaFade ? 0.9 : Math.max(0, 0.9 - (te - novaFade) * 2.2);
+      } else if (state === 'frame') {
+        /* portal: Dot's ring of 460 points grows from his circle (box = his size) until it rests on the display edge */
+        var fe = frameE, ins = 5 * fe, rr0 = R;
+        var fL = (B.x - rr0) + (ins - (B.x - rr0)) * fe, fT = (B.y - rr0) + (ins - (B.y - rr0)) * fe;
+        var fR = (B.x + rr0) + (W - ins - (B.x + rr0)) * fe, fB = (B.y + rr0) + (H - ins - (B.y + rr0)) * fe;
+        var frad = rr0 + (FRAME_R - ins - rr0) * fe;
+        rrPoint(fL, fT, fR, fB, frad, i / NP, RRP);
+        x = RRP[0] - B.x; y = RRP[1] - B.y; z = 0.9;
+      } else if (state === 'wifi') {
+        var wb = shapes.wifi, ws = r / 66, wx0 = wb[i * 3], wy0 = wb[i * 3 + 1];
+        x = wx0 * ws; y = wy0 * ws; z = wb[i * 3 + 2] < 0 ? 0 : 0.6 + 0.4 * wb[i * 3 + 2];
+        var sdx = SL1[0] - SL0[0], sdy = SL1[1] - SL0[1], sl = Math.hypot(sdx, sdy);
+        var proj = ((wx0 - SL0[0]) * sdx + (wy0 - SL0[1]) * sdy) / (sl * sl), sdist = Math.abs((wx0 - SL0[0]) * sdy - (wy0 - SL0[1]) * sdx) / sl;
+        if (sdist < 10 && proj > -0.05 && proj < 1.05) {
+          /* the slash draws itself from top left to bottom right once the search has failed */
+          z *= clamp01((te - 1.0 - proj * 0.35) / 0.12);
+          bb[i] = 1.25;
+        } else {
+          /* searching: light runs outward through the arcs, twice, then the symbol dims a little */
+          var wd = Math.hypot(wx0, wy0 - WIFI_O), idx = wd < 20 ? 0 : wd < 50 ? 1 : wd < 82 ? 2 : 3;
+          var ph = te * 2.4 - idx * 0.32;
+          if (te < 1.15 && ph > 0) bb[i] = 1 + 1.1 * Math.pow(Math.max(0, Math.sin(ph * Math.PI)), 4);
+          z *= 1 - 0.4 * clamp01((te - 1.1) / 0.4);
+        }
+      } else if (state === 'cross') {
+        var cb = shapes.cross, cs = r / 66;
+        x = cb[i * 3] * cs; y = cb[i * 3 + 1] * cs; z = cb[i * 3 + 2] < 0 ? 0 : 0.6 + 0.4 * cb[i * 3 + 2];
+        if (glitchOn) x += glitchOff[((y + 160) / 9 | 0) & 63];
+      } else if (state === 'sphere' || state === 'sag') {
+        var X = p.x * rc + p.z * rs, Z0 = -p.x * rs + p.z * rc;
+        var Y = p.y * ct - Z0 * st, Zz = p.y * st + Z0 * ct, f = (Zz + 1) / 2;
+        var rj = RM ? 1 : 1 + K.atmen * (0.022 * Math.sin(t * 2.1 + p.s) + 0.012 * Math.sin(t * 3.7 + p.s * 2.3));
+        x = X * r * rj; y = Y * r * rj; z = 0.1 + 0.85 * f * f;
+        /* disappointed: wider, flatter, sunk a little, the lower points drooping more */
+        if (sagAmt > 0.001) { x *= 1 + 0.14 * sagAmt; y = y * (1 - 0.28 * sagAmt) + (16 * SC + 6 * p.k * Math.max(0, Y)) * sagAmt; }
+        bb[i] = 1 + 0.18 * K.licht * Math.max(0, Math.sin(t * 0.9 + X * 1.6 + Y * 0.8)) * f;
+        var a1 = x * mc + y * ms, b1 = -x * ms + y * mc; a1 *= stretch; b1 /= stretch;
+        x = a1 * mc - b1 * ms; y = a1 * ms + b1 * mc;
+        var a2 = x * nx + y * ny, b2 = -x * ny + y * nx; a2 *= sqA; b2 *= sqB;
+        x = a2 * nx - b2 * ny; y = a2 * ny + b2 * nx;
+      } else if (state === 'rings') {
+        var ringI = p.i % 2, th = p.u * TAU * 2 + t * (ringI ? 2.4 : -1.9), rr = 1 + (p.k - 0.5) * 0.08;
+        var x0 = Math.cos(th) * rr, y0 = Math.sin(th) * rr * Math.cos(1.15), z0 = Math.sin(th) * rr * Math.sin(1.15), g = ringI ? 0.55 : -0.55;
+        x = (x0 * Math.cos(g) - y0 * Math.sin(g)) * r; y = (x0 * Math.sin(g) + y0 * Math.cos(g)) * r; z = 0.25 + (0.75 * (z0 + 1)) / 2;
+      } else if (state === 'circle') {
+        var th2 = p.u * TAU + t * 0.4, rr2 = 1 + 0.06 * Math.sin(th2 * 8 + t * 6) + (p.k - 0.5) * 0.05;
+        x = Math.cos(th2) * rr2 * r; y = Math.sin(th2) * rr2 * r; z = 0.85;
+      } else if (state === 'heart') {
+        var outline = HZ.v === 'umriss', hq;
+        if (outline) {
+          var ht = p.u * TAU; hq = 0.86 + 0.07 * (p.i % 3);
+          var hx = 16 * Math.pow(Math.sin(ht), 3), hy = 13 * Math.cos(ht) - 5 * Math.cos(2 * ht) - 2 * Math.cos(3 * ht) - Math.cos(4 * ht);
+          x = hx / 17 * hq * r * 1.12 * bs; y = (-hy / 17 * hq * r * 1.12 + r * 0.04) * bs; z = 0.95;
+        } else {
+          var hb = shapes.heartFill, hbx = hb[i * 3], hby = hb[i * 3 + 1], hs = r / 66 * bs;
+          hq = Math.hypot(hbx, hby - 8) / heartMax;
+          x = hbx * hs; y = hby * hs; z = hb[i * 3 + 2] < 0 ? 0 : 0.6 + 0.4 * (1 - hq * hq);
+        }
+        if (rp >= 0 && rp <= 1.2) bb[i] = 1 + HZ.licht * Math.exp(-Math.pow((hq - rp) / 0.1, 2));
+      } else if (state === 'check') {
+        var L1 = 0.566, L2 = 1.13, sv = p.u * (L1 + L2), j = (p.k - 0.5) * 0.12, j2 = Math.sin(p.s) * 0.03, q;
+        if (sv < L1) { q = sv / L1; x = -0.55 + 0.4 * q + j * 0.7; y = 0.4 * q - j * 0.7; }
+        else { q = (sv - L1) / L2; x = -0.15 + 0.77 * q + j * 0.55; y = 0.4 - 0.82 * q + j * 0.83; }
+        x = (x + j2) * r * 1.15; y = (y - 0.02 + j2) * r * 1.15; z = 1;
+      } else {
+        var bx0 = base[i * 3], by0 = base[i * 3 + 1];
+        /* finger wave: fingers above the knuckle line fold in one after another, index to pinky */
+        if (curl && by0 < -30) { var bend = Math.max(0, Math.sin(hw * 1.2 * te - (bx0 + 50) * 0.035)) * Math.min(1, te * 1.6); by0 = -30 + (by0 + 30) * (1 - 0.45 * bend); }
+        x = bx0 * SC * roll; y = by0 * SC; z = base[i * 3 + 2] < 0 ? 0 : 0.55 + 0.45 * base[i * 3 + 2];
+        if (isText) {
+          bb[i] = 1 + T.licht * Math.max(0, Math.sin(t * 2.2 - x * 0.028)) + T.funkeln * Math.sin(t * 3.1 + p.s * 4);
+          y += T.welle * Math.sin(t * 2.4 + x * 0.05) * SC;
+          if (T.v === 'flug') { var lift = 1 - clamp01((te - delay[i]) / 0.55); y -= 60 * SC * lift * lift; }
+        }
+        if (wave) {
+          var dy0 = y - pvy, dist = Math.hypot(x, dy0), a = wave * (1 + HA.peitsche * dist / (200 * SC)) - 0.23 * HA.peitsche * Math.sin(hw * te - dist * 0.012) * ramp;
+          var c = Math.cos(a), s = Math.sin(a), nx2 = x * c - dy0 * s; y = x * s + dy0 * c + pvy; x = nx2;
+        }
+        if (rise) y += rise;
+        if (!RM) { x += Math.sin(t * 1.3 + p.s) * 0.4; y += Math.cos(t * 1.1 + p.s * 1.7) * 0.4; }
+      }
+      if (te < delay[i] && !(sparse && i >= NP)) { x = ox[i]; y = oy[i]; z = oz[i]; }
+      x += B.x + shakeX; y += B.y;
+      if (!noClamp) {
+        if (x < bounds.l) x = bounds.l; else if (x > bounds.r) x = bounds.r;
+        if (y < bounds.t) y = bounds.t; else if (y > bounds.b) y = bounds.b;
+      }
+      tx[i] = x; ty[i] = y; tz[i] = dotHidden ? 0 : z;
+    }
+  }
+  function physics(dt) {
+    if (RM) { for (var r0 = 0; r0 < N; r0++) { px[r0] = tx[r0]; py[r0] = ty[r0]; vx[r0] = vy[r0] = 0; } return; }
+    var TR = CFG.trans, tempo2 = TR.tempo * TR.tempo * kMul, dBase = 0.58 + 0.24 * TR.nachschwingen;
+    swirl *= Math.pow(0.955, dt);
+    var sw = swirl > 0.01 ? swirl * 0.028 * TR.wirbel : 0;
+    var iv = IV(), iw = CFG.intro.wirbel, ivar = intro.v;
+    var now = performance.now(), ti = intro.on ? (now - intro.t0) / 1000 : 99, tse = (now - stateAt) / 1000;
+    var cornRad = FRAME_R - 4, cornL = bounds.l + cornRad, cornR = bounds.r - cornRad, cornT = bounds.t + cornRad, cornB = bounds.b - cornRad;
+    for (var i = 0; i < N; i++) {
+      var kf = 1, swi = sw, grav = 0, free = false;
+      /* network error: the X lets go and its points fall freely before they gather again */
+      if (fall && i < NP && tse < delay[i]) { free = true; grav = 0.34; }
+      if (intro.on) {
+        var age = ti - intro.rel[i];
+        if (age < 0) { px[i] = intro.sx[i]; py[i] = intro.sy[i]; vx[i] = vy[i] = 0; continue; }
+        if (!intro.out[i]) {
+          intro.out[i] = 1;
+          var rx = intro.sx[i] - B.x, ry = intro.sy[i] - B.y, rl = Math.hypot(rx, ry) || 1;
+          if (ivar === 'implosion') { vx[i] = -rx / rl * 3; vy[i] = -ry / rl * 3; }
+          else if (ivar === 'regen') { vx[i] = (Math.random() - .5) * 0.6; vy[i] = 1.2 + Math.random(); }
+          else { var tv = (ivar === 'galaxie' ? 10 : 7) * iw; vx[i] = -ry / rl * tv; vy[i] = rx / rl * tv; }
+        }
+        var q = clamp01((age - iv.a0) / iv.a1);
+        kf = ivar === 'implosion' ? 0.45 + 0.55 * q : 0.12 + 0.88 * q;
+        swi = Math.max(swi, iv.sw * iw * (1 - q));
+        if (ivar === 'regen') grav = 0.2 * (1 - q);
+      }
+      var k = free ? 0 : (0.1 + 0.07 * kr[i]) * tempo2 * kf, damp = Math.pow(free ? 0.985 : Math.min(0.9, dBase + (dr[i] - 0.5) * 0.1), dt);
+      var dx = tx[i] - px[i], dy = ty[i] - py[i];
+      var ax = dx * k, ay = dy * k + grav;
+      if (swi && !free) { ax += -dy * swi; ay += dx * swi; }
+      vx[i] = (vx[i] + ax * dt) * damp; vy[i] = (vy[i] + ay * dt) * damp;
+      px[i] += vx[i] * dt; py[i] += vy[i] * dt;
+      if (noClamp) continue;
+      if (px[i] < bounds.l) { px[i] = bounds.l; vx[i] *= -0.3; } else if (px[i] > bounds.r) { px[i] = bounds.r; vx[i] *= -0.3; }
+      if (py[i] < bounds.t) { py[i] = bounds.t; vy[i] *= -0.3; } else if (py[i] > bounds.b) { py[i] = bounds.b; vy[i] *= free ? -0.45 : -0.3; }
+      /* rounded display corners: a point in a corner beyond the curve is pushed back onto it */
+      var ccx = px[i] < cornL ? cornL : px[i] > cornR ? cornR : 0, ccy = py[i] < cornT ? cornT : py[i] > cornB ? cornB : 0;
+      if (ccx && ccy) {
+        var ex = px[i] - ccx, ey = py[i] - ccy, el = Math.hypot(ex, ey);
+        if (el > cornRad) { px[i] = ccx + ex / el * cornRad; py[i] = ccy + ey / el * cornRad; vx[i] *= 0.5; vy[i] *= 0.5; }
+      }
+    }
+  }
+
+  /* ---------- soft body: drag, throw, bounce, return home ---------- */
+  function homePos() { B.hx = heroRect.left + heroRect.width / 2; B.hy = heroRect.top + heroRect.height / 2 + lean; }
+  function bump(nx, ny, strength) { B.nx = nx; B.ny = ny; B.sq = -Math.min(0.32, strength * CFG.ziehen.gelee); B.sqv = 0; poke = 0; }
+  function body(dt) {
+    var Z = CFG.ziehen;
+    homePos();
+    /* his whole body stays on the display: the centre keeps a full radius from every edge. Because his radius is
+       larger than the display's corner radius, that box also keeps him clear of the rounded corners */
+    var inner = R + 2, minX = bounds.l + inner, maxX = bounds.r - inner, minY = bounds.t + inner, maxY = bounds.b - inner;
+    var ms = dt * 16.67, bo = Z.abprall;
+    if (B.mode === 'drag' && drag) {
+      var wx = drag.px - drag.ox, wy = drag.py - drag.oy, ovx = 0, ovy = 0;
+      if (wx < minX) { ovx = minX - wx; wx = minX; } else if (wx > maxX) { ovx = maxX - wx; wx = maxX; }
+      if (wy < minY) { ovy = minY - wy; wy = minY; } else if (wy > maxY) { ovy = maxY - wy; wy = maxY; }
+      /* pushed against the edge he flattens against it instead of crossing it */
+      var ov = Math.hypot(ovx, ovy);
+      if (ov > 0.5) { B.nx = ovx / ov; B.ny = ovy / ov; B.sq = -Math.min(0.3, ov * 0.004) * Z.gelee; B.sqv = 0; }
+      B.vx = (wx - B.x) / dt * 0.5; B.vy = (wy - B.y) / dt * 0.5;
+      B.x = wx; B.y = wy;
+    } else if (B.mode === 'fly' && fly) {
+      /* home-run: an arc from the stage into his slot in the tab bar, shrinking to the logo's size */
+      var u = clamp01((performance.now() - fly.t0) / fly.dur), e = easeIO(u);
+      var mx = (fly.sx + fly.ex) / 2 + (fly.ex - fly.sx) * 0.15, my = Math.min(fly.sy, fly.ey) + (fly.ey - fly.sy) * 0.18 - 40;
+      var qx = (1 - e) * (1 - e) * fly.sx + 2 * (1 - e) * e * mx + e * e * fly.ex, qy = (1 - e) * (1 - e) * fly.sy + 2 * (1 - e) * e * my + e * e * fly.ey;
+      B.vx = (qx - B.x) / dt; B.vy = (qy - B.y) / dt; B.x = qx; B.y = qy;
+      var fs0 = fly.start || 1; Rscale = fs0 - (fs0 - fly.end) * e;
+      if (u >= 1) { fly = null; B.mode = 'hold'; B.vx = B.vy = 0; dotHidden = true; slotArrive(); }
+    } else if (B.mode === 'hold') {
+      B.vx = B.vy = 0;
+    } else if (B.mode === 'free' || B.mode === 'return') {
+      if (B.mode === 'return') {
+        var k = 0.0045 * Z.rueckkehr * Z.rueckkehr, c = 2 * Math.sqrt(k) * 1.05;
+        B.vx += ((B.hx - B.x) * k - B.vx * c) * dt; B.vy += ((B.hy - B.y) * k - B.vy * c) * dt;
+      } else {
+        var f = Math.pow(0.993, ms); B.vx *= f; B.vy *= f;
+      }
+      B.x += B.vx * dt; B.y += B.vy * dt;
+      if (B.x < minX) { B.x = minX; if (B.vx < 0) { bump(1, 0, Math.abs(B.vx) * 0.04); B.vx = -B.vx * bo; } }
+      else if (B.x > maxX) { B.x = maxX; if (B.vx > 0) { bump(-1, 0, Math.abs(B.vx) * 0.04); B.vx = -B.vx * bo; } }
+      if (B.y < minY) { B.y = minY; if (B.vy < 0) { bump(0, 1, Math.abs(B.vy) * 0.04); B.vy = -B.vy * bo; } }
+      else if (B.y > maxY) { B.y = maxY; if (B.vy > 0) { bump(0, -1, Math.abs(B.vy) * 0.04); B.vy = -B.vy * bo; } }
+      var sp = Math.hypot(B.vx, B.vy) * 60;
+      if (B.mode === 'free') {
+        if (sp < 14) { B.still += ms; if (B.still > Z.warten) { B.mode = 'return'; B.still = 0; } } else B.still = 0;
+      } else if (Math.hypot(B.hx - B.x, B.hy - B.y) < 0.4 && sp < 2) { B.mode = 'idle'; B.x = B.hx; B.y = B.hy; B.vx = B.vy = 0; applyFocusState(); }
+    } else { B.x = B.hx; B.y = B.hy; B.vx = B.vy = 0; }
+    B.sqv += (-B.sq * 0.22) * dt; B.sqv *= Math.pow(0.82, dt); B.sq += B.sqv * dt;
+    var hr = R + 12;
+    hit.hidden = dotHidden || B.mode === 'fly' || B.mode === 'hold';
+    hit.style.transform = 'translate(' + (B.x - hr) + 'px,' + (B.y - hr) + 'px)';
+    hit.style.width = hit.style.height = hr * 2 + 'px';
+  }
+
+  function grab(e) {
+    e.preventDefault();
+    hit.setPointerCapture(e.pointerId);
+    clearTimers(); sequencing = false; busy = false; fall = null; shake = null; btn.disabled = false; btnLabel.textContent = labelIdle(); setState('sphere');
+    drag = { id: e.pointerId, ox: e.clientX - B.x, oy: e.clientY - B.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: 0, hist: [] };
+    B.mode = 'drag'; B.still = 0;
+  }
+  function move(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.px = e.clientX; drag.py = e.clientY;
+    drag.moved = Math.max(drag.moved, Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy));
+    var now = performance.now(); drag.hist.push({ x: e.clientX, y: e.clientY, t: now });
+    while (drag.hist.length && now - drag.hist[0].t > 100) drag.hist.shift();
+  }
+  function release(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var now = performance.now(), h = drag.hist, vx0 = 0, vy0 = 0;
+    if (h.length >= 2) { var a = h[0], b = h[h.length - 1], dt = Math.max(16, b.t - a.t); vx0 = (b.x - a.x) / dt * 1000; vy0 = (b.y - a.y) / dt * 1000; }
+    var sp = Math.hypot(vx0, vy0), cap = 2600;
+    if (sp > cap) { vx0 *= cap / sp; vy0 *= cap / sp; }
+    if (drag.moved < 6 && now - drag.t0 < 260) { poke = 0; bump(0, 1, 0.14); }
+    B.vx = vx0 / 60; B.vy = vy0 / 60; B.mode = 'free'; B.still = 0;
+    drag = null;
+  }
+  hit.addEventListener('pointerdown', grab);
+  hit.addEventListener('pointermove', move);
+  hit.addEventListener('pointerup', release);
+  hit.addEventListener('pointercancel', release);
+
+  /* ---------- render ---------- */
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    var te = (performance.now() - stateAt) / 1000, isTextS = state.indexOf('text_') === 0;
+    var RR = R * Rscale;
+    var gr = RR * (state === 'sphere' ? 1 : 1.6), glow = (state === 'rings' ? 0.6 : state === 'check' ? 0.9 : state === 'heart' ? 0.5 + 0.6 * beat(te) : state === 'cross' || state === 'wifi' ? 0.8 : 0.45) * (dotHidden || state === 'nova' || state === 'frame' || Rscale > 3 ? 0 : 1);
+    var gsx = isTextS ? 2.1 : state === 'hand' ? 1.05 : 1, gsy = isTextS ? 0.85 : state === 'hand' ? 1.35 : 1;
+    if (glow > 0) {
+      /* glow turns red with the error tint */
+      var c0 = [70 + (tintCol[0] - 70) * tint, 170 + (tintCol[1] - 170) * tint, 255 + (tintCol[2] - 255) * tint], c1 = [150 + (tintCol[0] - 150) * tint, 110 + (tintCol[1] * 0.85 - 110) * tint, 255 + (tintCol[2] + 50 - 255) * tint];
+      ctx.save(); ctx.translate(B.x + shakeX, B.y); ctx.scale(gsx, gsy);
+      var g = ctx.createRadialGradient(0, 0, gr * 0.2, 0, 0, gr * 2);
+      g.addColorStop(0, 'rgba(' + (c0[0] | 0) + ',' + (c0[1] | 0) + ',' + (c0[2] | 0) + ',' + (0.18 * glow * (1 + tint * 0.4)) + ')');
+      g.addColorStop(0.5, 'rgba(' + (c1[0] | 0) + ',' + (c1[1] | 0) + ',' + (c1[2] | 0) + ',' + (0.08 * glow) + ')'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(-gr * 2, -gr * 2, gr * 4, gr * 4);
+      ctx.restore();
+    }
+
+    var bright = (state === 'check' ? 1.1 : state === 'sphere' ? 0.85 : state === 'heart' ? 1 : 0.95) * (1 - 0.65 * portalE);
+    var hue = state === 'rings' ? 0.8 : state === 'check' ? 0.25 : state === 'circle' ? 0.3 : state === 'heart' ? 0.62 : 0.45;
+    var compact = state === 'sphere' || state === 'rings' || state === 'circle' || state === 'check' || state === 'hand' || state === 'heart' || state === 'cross' || state === 'sag' || state === 'frame' || state === 'wifi';
+    var cap = N * 2 - 1;
+    var iv = IV(), introFine = intro.on && performance.now() - intro.t0 < (iv.len - 1.1 * CFG.intro.dauer) * 1000;
+    var dotR = introFine ? CFG.intro.groesse : compact ? 4.3 : isTextS ? CFG.text.groesse : state === 'frame' ? 3 : 2.4;
+    var i, col, sp, sz, nx, ny, a, cr, cg, cb2, n = 0, j;
+    if (GL) {
+      var isFrame = state === 'frame' && frameE > 0.02, hw2 = W / 2, hh2 = H / 2;
+      for (i = 0; i < N; i++) {
+        /* on the frame the colour runs across the whole display: cyan top left, violet, pink at the bottom */
+        if (isFrame) { nx = (px[i] - hw2) / hw2; ny = (py[i] - hh2) / hh2 * 1.1; }
+        else { nx = (px[i] - B.x) / RR; ny = (py[i] - B.y) / RR; }
+        col = dotColor(nx, ny, hue);
+        if (tint > 0.01) {
+          /* error red from the app's palette (#ff453a), shading towards a pinker red at the bottom right */
+          var m = clamp01((nx - ny) * 0.3 + 0.5);
+          var warm = tintCol === WARN;
+          col[0] += (tintCol[0] - col[0]) * tint; col[1] += (tintCol[1] - (warm ? 30 : 20) * m - col[1]) * tint; col[2] += (tintCol[2] + (warm ? 10 : 40) * m - col[2]) * tint;
+        }
+        sp = Math.abs(vx[i]) + Math.abs(vy[i]);
+        ss[i] += (dotR - ss[i]) * 0.1;
+        al[i] += (tz[i] - al[i]) * 0.14;
+        if (al[i] < 0.01 || n >= cap) continue;
+        sz = ss[i] * (0.7 + 0.55 * al[i]) * (isTextS ? 0.82 + 0.18 * bb[i] : 0.85 + 0.3 * P[i].k) * (1 + Math.min(sp * 0.05, 0.6));
+        a = clamp01(al[i] * bright * bb[i]);
+        cr = col[0] / 255; cg = col[1] / 255; cb2 = col[2] / 255;
+        j = n * 7; GLD[j] = px[i]; GLD[j + 1] = py[i]; GLD[j + 2] = sz; GLD[j + 3] = cr; GLD[j + 4] = cg; GLD[j + 5] = cb2; GLD[j + 6] = a; n++;
+        /* glitch: a cyan copy shifted sideways, like a broken colour channel */
+        if (glitchOn && n < cap) { j = n * 7; GLD[j] = px[i] + 3.5; GLD[j + 1] = py[i]; GLD[j + 2] = sz; GLD[j + 3] = 0.2; GLD[j + 4] = 0.85; GLD[j + 5] = 1; GLD[j + 6] = a * 0.45; n++; continue; }
+        if (sp > 1.4 && n < cap) { j = n * 7; GLD[j] = px[i] - vx[i] * 0.7; GLD[j + 1] = py[i] - vy[i] * 0.7; GLD[j + 2] = sz * 0.85; GLD[j + 3] = cr; GLD[j + 4] = cg; GLD[j + 5] = cb2; GLD[j + 6] = a * 0.4; n++; }
+      }
+      GL.clear(GL.COLOR_BUFFER_BIT);
+      GL.uniform2f(GLU.r, W, H); GL.uniform1f(GLU.d, DPR); GL.uniform1f(GLU.s, compact ? 0.35 : 1.0);
+      GL.bufferData(GL.ARRAY_BUFFER, GLD.subarray(0, n * 7), GL.DYNAMIC_DRAW); GL.drawArrays(GL.POINTS, 0, n);
+    } else if (ctx2) {
+      ctx2.globalCompositeOperation = 'source-over'; ctx2.clearRect(0, 0, W, H); ctx2.globalCompositeOperation = 'lighter';
+      for (i = 0; i < N; i++) {
+        nx = (px[i] - B.x) / RR; ny = (py[i] - B.y) / RR;
+        col = dotColor(nx, ny, hue); sp = Math.abs(vx[i]) + Math.abs(vy[i]);
+        if (tint > 0.01) { col[0] += (tintCol[0] - col[0]) * tint; col[1] += (tintCol[1] - col[1]) * tint; col[2] += (tintCol[2] - col[2]) * tint; }
+        ss[i] += (dotR - ss[i]) * 0.1; al[i] += (tz[i] - al[i]) * 0.14;
+        if (al[i] < 0.01) continue;
+        sz = ss[i] * (0.7 + 0.55 * al[i]) * (1 + Math.min(sp * 0.05, 0.6));
+        ctx2.globalAlpha = clamp01(al[i] * bright * bb[i]);
+        ctx2.drawImage(sprite(col), px[i] - sz / 2, py[i] - sz / 2, sz, sz);
+      }
+      ctx2.globalAlpha = 1;
+    }
+  }
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min((now - last) / 16.67, 2); last = now;
+    var t = now / 1000, te = (now - stateAt) / 1000;
+    if (!RM) rot += CFG.kugel.drehung * dt / 60;
+    if (intro.on && now - intro.t0 > IV().len * 1000) intro.on = false;
+    lean += (leanTo - lean) * 0.08 * dt;
+    poke += dt / 60;
+    kMul += (1 - kMul) * Math.min(1, 0.005 * dt);
+    /* error tint and sagging ease in and out */
+    var tintTo = state === 'cross' || state === 'sag' || state === 'wifi' ? CFG.fehler.rot : fall ? CFG.fehler.rot * 0.85 : 0;
+    if (state === 'wifi') tintCol = WARN; else if (state === 'cross' || state === 'sag') tintCol = BAD;
+    tint += (tintTo - tint) * Math.min(1, 0.12 * dt);
+    sagAmt += ((state === 'sag' ? 1 : 0) - sagAmt) * Math.min(1, 0.1 * dt);
+    /* damped sideways shake, like the iOS password field */
+    shakeX = 0;
+    if (shake && !RM) {
+      var su = (now - shake.t0) / shake.dur;
+      if (su >= 1) shake = null; else if (su > 0) shakeX = shake.amp * Math.exp(-su * 3.2) * Math.sin(su * TAU * shake.cycles);
+    }
+    /* glitch bursts on the X: stripes jump sideways for a moment */
+    var gOn = state === 'cross' && CFG.fehler.v === 'glitch' && !fall && !RM && ((te > 0.35 && te < 0.62) || (te > 0.95 && te < 1.1));
+    if (gOn && now - glitchAt > 55) {
+      glitchAt = now;
+      for (var gb = 0; gb < 64; gb++) glitchOff[gb] = Math.random() < 0.3 ? (Math.random() - 0.5) * 2.8 * CFG.fehler.staerke : 0;
+    }
+    if (!gOn && glitchOn) glitchOff.fill(0);
+    glitchOn = gOn;
+    /* portal: Dot's ring opens over the whole screen, the home screen shows inside it */
+    portalE = 0;
+    if (portal && portal.frame) {
+      /* the ring grows into the display outline; the home screen is revealed inside the same rounded rectangle */
+      var fu = clamp01((now - portal.t0) / portal.dur), fe2 = easeIO(fu);
+      frameE = fe2;
+      var cL = (B.x - R) * (1 - fe2), cT = (B.y - R) * (1 - fe2), cRr = (W - B.x - R) * (1 - fe2), cB = (H - B.y - R) * (1 - fe2), cr = R + (FRAME_R - R) * fe2;
+      homeEl.style.clipPath = 'inset(' + cT.toFixed(1) + 'px ' + cRr.toFixed(1) + 'px ' + cB.toFixed(1) + 'px ' + cL.toFixed(1) + 'px round ' + cr.toFixed(1) + 'px)';
+      if (fu >= 1) {
+        var pf0 = portal, ftp = CFG.erfolg.tempo; portal = null; homeEl.style.clipPath = 'none'; screenEl.style.visibility = 'hidden';
+        /* rest on the edge, then the points drift together into Dot (soft springs), then he flies home */
+        timers.push(setTimeout(function () { noClamp = false; frameE = 0; Rscale = 1; kMul = 0.05; setState('sphere'); for (var q = 0; q < NP; q++) delay[q] = P[q].k * 0.5; }, 350 / ftp));
+        timers.push(setTimeout(function () { B.mode = 'fly'; fly = { t0: performance.now(), dur: 900 / ftp, sx: B.x, sy: B.y, ex: pf0.ex, ey: pf0.ey, start: 1, end: 13 / R }; }, (350 + 1900) / ftp));
+      }
+    } else if (portal) {
+      var pu = clamp01((now - portal.t0) / portal.dur), pe = 1 - Math.pow(1 - pu, 4);
+      portalE = pe; Rscale = 1 + pe * (portal.maxR / R - 1);
+      homeEl.style.clipPath = 'circle(' + (R * Rscale * 0.97).toFixed(1) + 'px at ' + B.x.toFixed(1) + 'px ' + B.y.toFixed(1) + 'px)';
+      if (pu >= 1) {
+        var pf = portal; portal = null; portalE = 0; homeEl.style.clipPath = 'none'; noClamp = false; screenEl.style.visibility = 'hidden';
+        if (pf.heim) {
+          /* the ring's points rush in from the screen edges, gather into a small Dot, and he flies home into the tab bar */
+          var ptp = CFG.erfolg.tempo;
+          Rscale = 0.5; setState('sphere');
+          timers.push(setTimeout(function () { B.mode = 'fly'; fly = { t0: performance.now(), dur: 820 / ptp, sx: B.x, sy: B.y, ex: pf.ex, ey: pf.ey, start: 0.5, end: 13 / R }; }, 650 / ptp));
+        } else { dotHidden = true; slotArrive(); }
+      }
+    }
+    body(dt); updateTargets(t, te); physics(dt); render();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- state ---------- */
+  function setState(s) {
+    if (s === state) return;
+    if (!DYNAMIC[s] && !shapes[s]) return;
+    var text = s.indexOf('text_') === 0, sh = shapes[s], tv = CFG.text.v, stf = CFG.trans.staffel;
+    for (var i = 0; i < N; i++) {
+      ox[i] = tx[i] - B.x; oy[i] = ty[i] - B.y; oz[i] = tz[i];
+      if (text && sh) {
+        var sx = sh[i * 3];
+        delay[i] = tv === 'mitte' ? P[i].k * 0.12 + Math.abs(sx) / 150 * 0.4
+          : tv === 'zufall' ? P[i].k * 0.6
+          : P[i].k * 0.12 + ((sx + 150) / 300) * 0.45;
+      } else delay[i] = P[i].k * stf;
+    }
+    swirl = RM ? 0 : 1;
+    state = s; stateAt = performance.now();
+  }
+  var timers = [];
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function startIntro() {
+    var all = ['strudel', 'galaxie', 'implosion', 'regen'];
+    if (CFG.intro.v === 'zufall') {
+      /* a different one each time, never the same twice in a row */
+      var pool = all.filter(function (x) { return x !== intro.v; });
+      intro.v = pool[(Math.random() * pool.length) | 0];
+    } else intro.v = CFG.intro.v;
+    intro.on = true; intro.t0 = performance.now();
+    var v = intro.v, d = CFG.intro.dauer;
+    var fr = FRAME_R - 4, lowest = bounds.b - fr;
+    for (var i = 0; i < N; i++) {
+      var x, y, rel, tries = 0;
+      /* a spot on the display outline (rounded corners): rain only along the top, the others on the left, top and right,
+         never along the bottom where the form sits */
+      do { rrPoint(bounds.l, bounds.t, bounds.r, bounds.b, fr, Math.random(), RRP); tries++; }
+      while (tries < 30 && (v === 'regen' ? RRP[1] > bounds.t + fr * 0.5 : RRP[1] > lowest));
+      x = RRP[0]; y = RRP[1];
+      if (v === 'regen') rel = Math.random() * 0.9 * d;
+      else {
+        var ang = (Math.atan2(y - B.hy, x - B.hx) / TAU + 1.625) % 1;
+        rel = v === 'implosion' ? Math.random() * 0.25 * d
+          : v === 'galaxie' ? ((ang * 3) % 1) * 0.9 * d + Math.random() * 0.15 * d
+          : ang * 1.1 * d + Math.random() * 0.25 * d;
+      }
+      intro.sx[i] = x; intro.sy[i] = y; intro.out[i] = 0; intro.rel[i] = rel;
+      px[i] = x; py[i] = y; vx[i] = vy[i] = 0; al[i] = 0;
+    }
+  }
+  function runSteps(steps, done) {
+    var acc = 0; sequencing = true;
+    steps.forEach(function (st) { timers.push(setTimeout(function () { if (B.mode !== 'drag') setState(st[0]); }, acc)); acc += st[1]; });
+    timers.push(setTimeout(function () { sequencing = false; if (done) done(); else applyFocusState(); }, acc + 50));
+  }
+  function sec(s) { return s * 1000 / CFG.trans.ablauf; }
+  function playSequence(withIntro) {
+    clearTimers(); busy = false; fall = null; shake = null; loopKey = null; syncLoopBtn();
+    if (RM) { setState('sphere'); return; }
+    if (B.mode !== 'idle') B.mode = 'return';
+    if (withIntro) { setState('sphere'); startIntro(); }
+    var lead = withIntro ? IV().len * 1000 - 400 : 1200;
+    var hd = sec(CFG.hand.dauer), td = sec(CFG.text.dauer), zd = sec(CFG.herz.dauer);
+    /* first screen: wave, welcome to the Health Hub, heart */
+    runSteps([['sphere', lead], ['hand', hd], ['text_hub_' + lang, td * 1.15], ['heart', zd], ['sphere', 0]]);
+  }
+  /* opening a form: one short line from Dot */
+  function playGreeting(v) {
+    clearTimers(); busy = false; fall = null; shake = null; loopKey = null; syncLoopBtn();
+    if (RM) { setState('sphere'); return; }
+    if (B.mode !== 'idle' && B.mode !== 'drag') B.mode = 'return';
+    runSteps([[v === 'login' ? 'text_zurueck_' + lang : 'text_hey_' + lang, sec(CFG.text.dauer)], ['sphere', 0]]);
+  }
+  function applyFocusState() {
+    if (sequencing || busy || B.mode !== 'idle') return;
+    var a = document.activeElement, isField = a && a.tagName === 'INPUT' && a.type !== 'checkbox';
+    /* listening while you type your password, leaning towards the form while you type anything else */
+    setState(isField && a.dataset.pw ? 'circle' : 'sphere');
+    leanTo = isField && !a.dataset.pw ? 10 : 0;
+  }
+
+  /* ---------- single animations for the tuning sheet ---------- */
+  var loopKey = null;
+  function playOne(key) {
+    clearTimers(); busy = false; fall = null; shake = null;
+    if (B.mode !== 'idle' && B.mode !== 'drag') B.mode = 'return';
+    var done = function () { if (loopKey === key) timers.push(setTimeout(function () { playOne(key); }, 700)); else applyFocusState(); };
+    var textKey = 'text_' + (tab === 'login' ? 'zurueck' : tab === 'register' ? 'hey' : 'hub') + '_' + lang;
+    if (key === 'intro') { setState('sphere'); if (!RM) startIntro(); runSteps([['sphere', IV().len * 1000]], done); }
+    else if (key === 'kugel') { setState('sphere'); poke = 0; runSteps([['sphere', 3000]], done); }
+    else if (key === 'trans') { setState('sphere'); runSteps([['heart', sec(1.6)], ['hand', sec(1.8)], [textKey, sec(1.8)], ['sphere', sec(1.4)]], done); }
+    else if (key === 'hand') { setState('sphere'); runSteps([['hand', sec(CFG.hand.dauer)], ['sphere', 1000]], done); }
+    else if (key === 'text') { setState('sphere'); runSteps([[textKey, sec(CFG.text.dauer)], ['sphere', 1000]], done); }
+    else if (key === 'herz') { setState('sphere'); runSteps([['heart', sec(CFG.herz.dauer)], ['sphere', 1000]], done); }
+    else if (key === 'ziehen') {
+      setState('sphere'); B.mode = 'free'; B.still = 0; B.vx = (Math.random() < 0.5 ? -1 : 1) * 24; B.vy = -16;
+      runSteps([['sphere', 2200 + CFG.ziehen.warten + 2000 / CFG.ziehen.rueckkehr]], done);
+    }
+    else if (key === 'fehler') { if (tab === 'start') showView('login', true); runError('falsch', null, done); }
+    else if (key === 'erfolg') { loopKey = null; if (tab === 'start') showView('login', true); runSuccess(); }
+  }
+
+  /* ---------- tuning sheet ---------- */
+  var pct = function (v) { return Math.round(v * 100) + ' %'; };
+  var dec = function (v, n) { return v.toFixed(n).replace('.', ','); };
+  var SPEC = [
+    { key: 'intro', name: 'Eröffnung', info: 'Beim Öffnen kommen die Partikel vom Rand und bilden Dot.',
+      variants: [['zufall', 'Zufall', 'Bei jedem Öffnen eine der vier anderen, nie zweimal dieselbe hintereinander.'],
+        ['strudel', 'Strudel', 'Eine Welle läuft links hoch, oben entlang und rechts runter. Die Partikel ziehen Spiralen zur Mitte.'],
+        ['galaxie', 'Galaxie', 'Drei Spiralarme und mehrere Umdrehungen. Wirkt größer und ruhiger, dauert länger.'],
+        ['implosion', 'Implosion', 'Alle Partikel zugleich, fast gerade zur Mitte, mit kurzem Nachfedern. Schnell und kraftvoll.'],
+        ['regen', 'Regen', 'Partikel fallen von oben herab und werden dann zu Dot zusammengezogen.']],
+      sliders: [['dauer', 'Dauer', 0.5, 2, 0.05, function () { return dec(IV().len, 1) + ' s'; }],
+        ['wirbel', 'Wirbel', 0, 2.5, 0.05, pct],
+        ['groesse', 'Partikelgröße beim Einflug', 1, 3.5, 0.1, function (v) { return dec(v, 1) + ' px'; }]] },
+    { key: 'kugel', name: 'Kugel', preset: true, info: 'Dot in Ruhe: Drehung, Atmen der Oberfläche, Lichtlauf und Grundpuls.',
+      variants: [['app', 'Wie in der App', 'Die Werte aus dotEngine.ts.'],
+        ['ruhig', 'Ruhig', 'Langsame Drehung, kaum Atmen. Wirkt still und edel.'],
+        ['lebendig', 'Lebendig', 'Dreht schneller, atmet sichtbar, deutlicher Lichtlauf.']],
+      presets: { app: { drehung: 0.16, atmen: 1, licht: 1, puls: 1 }, ruhig: { drehung: 0.07, atmen: 0.35, licht: 0.5, puls: 0.5 }, lebendig: { drehung: 0.32, atmen: 1.7, licht: 1.7, puls: 1.5 } },
+      sliders: [['drehung', 'Drehung', 0, 0.6, 0.01, function (v) { return Math.round(v * 57.3) + ' °/s'; }],
+        ['atmen', 'Atmen', 0, 2.5, 0.05, pct], ['licht', 'Lichtlauf', 0, 2.5, 0.05, pct], ['puls', 'Grundpuls', 0, 2.5, 0.05, pct]] },
+    { key: 'trans', name: 'Übergang', preset: true, jump: true, info: 'Wie die Punkte von einer Form zur nächsten wandern. Gilt für jeden Formwechsel.',
+      variants: [['ruhig', 'Ruhig', 'Weich und gedämpft, kein Nachschwingen, sanfte Bögen.'],
+        ['ausgewogen', 'Ausgewogen', 'Der aktuelle Stand.'],
+        ['verspielt', 'Verspielt', 'Schnell, federt sichtbar nach, starker Wirbel.']],
+      presets: { ruhig: { tempo: 0.75, nachschwingen: 0.25, staffel: 0.5, wirbel: 0.5, ablauf: 0.85 }, ausgewogen: { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1, ablauf: 1 }, verspielt: { tempo: 1.3, nachschwingen: 0.9, staffel: 0.22, wirbel: 1.7, ablauf: 1.15 } },
+      sliders: [['tempo', 'Federtempo', 0.5, 1.8, 0.05, pct], ['nachschwingen', 'Nachschwingen', 0, 1, 0.05, pct],
+        ['staffel', 'Staffelung', 0, 0.8, 0.02, function (v) { return dec(v, 2) + ' s'; }],
+        ['wirbel', 'Wirbel', 0, 2.5, 0.05, pct], ['ablauf', 'Ablauftempo', 0.6, 1.6, 0.05, pct]] },
+    { key: 'hand', name: 'Hand', info: 'Dot wird zur Hand und grüßt.',
+      variants: [['winken', 'Winken', 'Die ganze Hand schwingt aus dem Handgelenk, die Finger peitschen leicht nach.'],
+        ['aufsteigen', 'Aufsteigen', 'Die Hand kommt von unten hoch, federt über und winkt dann.'],
+        ['fingerwelle', 'Fingerwelle', 'Die Hand bleibt fast stehen, die Finger klappen nacheinander ein, wie bei einem Kind.']],
+      sliders: [['freq', 'Winktempo', 0.5, 2, 0.02, function (v) { return dec(v, 2) + ' Hz'; }],
+        ['ausschlag', 'Ausschlag', 5, 40, 1, function (v) { return Math.round(v) + '°'; }],
+        ['peitsche', 'Nachpeitschen der Finger', 0, 0.6, 0.02, pct],
+        ['dauer', 'Dauer', 1.2, 4.5, 0.1, function (v) { return dec(v, 1) + ' s'; }]] },
+    { key: 'text', name: 'Text', info: 'Wie der Gruß entsteht und lebt.',
+      variants: [['schreiben', 'Schreiben', 'Von links nach rechts, wie handgeschrieben.'],
+        ['mitte', 'Aus der Mitte', 'Entsteht in der Mitte und breitet sich nach außen aus.'],
+        ['zufall', 'Funkeln', 'Alle Buchstaben gleichzeitig, jede Kugel zu ihrer eigenen Zeit.'],
+        ['flug', 'Einflug', 'Von links nach rechts, jede Kugel fliegt in einem Bogen von oben ein.']],
+      sliders: [['dauer', 'Dauer', 1, 4, 0.1, function (v) { return dec(v, 1) + ' s'; }],
+        ['licht', 'Lichtlauf', 0, 1, 0.02, pct],
+        ['welle', 'Wellenbewegung', 0, 3, 0.1, function (v) { return dec(v, 1) + ' px'; }],
+        ['funkeln', 'Flackern', 0, 0.4, 0.01, pct],
+        ['dichte', 'Kugelabstand', 5.5, 10, 0.1, function (v) { return dec(v / 2, 1) + ' px'; }],
+        ['groesse', 'Kugelgröße', 1.6, 4.5, 0.1, function (v) { return dec(v, 1) + ' px'; }]] },
+    { key: 'herz', name: 'Herz', info: 'Das schlagende Herz am Ende des Grußes.',
+      variants: [['gefuellt', 'Gefüllt', 'Ein volles Herz, bei jedem Schlag läuft Licht vom Kern zum Rand.'],
+        ['umriss', 'Umriss', 'Nur die Kontur. Leichter, grafischer, der Schlag wirkt präziser.']],
+      sliders: [['bpm', 'Puls', 40, 140, 1, function (v) { return Math.round(v) + ' bpm'; }],
+        ['schlag', 'Schlagstärke', 0, 0.3, 0.01, pct],
+        ['licht', 'Lichtwelle', 0, 1.5, 0.05, pct],
+        ['dauer', 'Dauer', 1.2, 5, 0.1, function (v) { return dec(v, 1) + ' s'; }]] },
+    { key: 'ziehen', name: 'Ziehen', preset: true, info: 'Wie Dot sich beim Ziehen, Werfen und Zurückkehren verhält. Abspielen wirft ihn einmal quer.',
+      variants: [['gelee', 'Gelee', 'Der aktuelle Stand: weich, prallt mäßig ab, kehrt sanft zurück.'],
+        ['fest', 'Fest', 'Wenig Verformung, kaum Abprall, kehrt schnell zurück.'],
+        ['flummi', 'Flummi', 'Prallt stark ab, verformt sich deutlich, lässt sich Zeit mit der Rückkehr.']],
+      presets: { gelee: { rueckkehr: 1, warten: 450, abprall: 0.42, gelee: 1 }, fest: { rueckkehr: 1.7, warten: 200, abprall: 0.2, gelee: 0.4 }, flummi: { rueckkehr: 0.7, warten: 800, abprall: 0.72, gelee: 1.6 } },
+      sliders: [['rueckkehr', 'Rückkehrtempo', 0.4, 3, 0.05, pct],
+        ['warten', 'Wartezeit vor Rückkehr', 0, 1500, 50, function (v) { return Math.round(v) + ' ms'; }],
+        ['abprall', 'Abprall am Rand', 0, 0.85, 0.01, pct],
+        ['gelee', 'Verformung', 0, 2, 0.05, pct]] },
+    { key: 'fehler', name: 'Fehler', test: true, info: 'Rotes X mit Schütteln für jeden Eingabefehler. Ohne Netz wird Dot zum Kein-Netz-Symbol in Orange.',
+      variants: [['schuetteln', 'X + Schütteln', 'Bei falschem Passwort und bei leeren oder ungültigen Feldern. Ohne Netz zeigt Dot stattdessen das Kein-Netz-Symbol.']],
+      sliders: [['dauer', 'Dauer', 0.8, 2.5, 0.05, function (v) { return dec(v, 1) + ' s'; }],
+        ['staerke', 'Schüttelweite', 4, 24, 1, function (v) { return Math.round(v) + ' px'; }],
+        ['rot', 'Farbstärke', 0, 1, 0.05, pct]] },
+    { key: 'erfolg', name: 'Erfolg', info: 'Haken und Übergang zur Startseite. Die Startseite ist eine Attrappe mit eurer Tab-Leiste.',
+      variants: [['portalheim', 'Portal + Heimweg', 'Das Portal öffnet sich, bis seine Kugeln am Rand des Displays liegen. Dann finden sie langsam zu Dot zusammen, und er fliegt in die Tab-Leiste.'],
+        ['heimweg', 'Heimweg', 'Die Login-Karte löst sich auf, Dot fliegt im Bogen in seinen Platz in der Tab-Leiste.'],
+        ['portal', 'Portal', 'Dot wird zum Ring, der Ring öffnet sich über den ganzen Bildschirm, darin die Startseite.'],
+        ['supernova', 'Supernova', 'Dot zerplatzt, die Partikel zeichnen die Karten der Startseite nach und werden zu ihnen.']],
+      sliders: [['denken', 'Denken (Wartezeit)', 0.4, 2.5, 0.05, function (v) { return dec(v, 1) + ' s'; }],
+        ['haken', 'Haken stehen lassen', 0.2, 1.5, 0.05, function (v) { return dec(v, 2) + ' s'; }],
+        ['tempo', 'Übergangstempo', 0.6, 1.6, 0.05, pct]] }
+  ];
+  var TESTS = [['falsch', 'Falsches Passwort'], ['leer', 'Feld leer'], ['netz', 'Kein Netz']];
+  var JUMPS = [['sphere', 'Dot'], ['hand', 'Hand'], ['text', 'Text'], ['heart', 'Herz'], ['circle', 'Ring'], ['rings', 'Denken'], ['check', 'Haken']];
+  var sheet = document.getElementById('sheet'), sTabs = document.getElementById('sheetTabs'), sBody = document.getElementById('sheetBody');
+  var curTab = 'intro';
+  function specOf(k) { for (var i = 0; i < SPEC.length; i++) if (SPEC[i].key === k) return SPEC[i]; return null; }
+  function renderTabs() {
+    sTabs.innerHTML = SPEC.map(function (s) { return '<button type="button" role="tab" class="chip' + (s.key === curTab ? ' on' : '') + '" aria-selected="' + (s.key === curTab) + '" data-tab="' + s.key + '">' + s.name + '</button>'; }).join('');
+  }
+  function vinfo(s, c) { var cur = s.variants.filter(function (v) { return v[0] === c.v; })[0]; return cur ? cur[2] : 'Eigene Einstellung.'; }
+  function renderBody() {
+    var s = specOf(curTab), c = CFG[curTab], h = '';
+    h += '<p class="s-info">' + s.info + '</p>';
+    h += '<p class="s-label">' + (s.preset ? 'Voreinstellungen' : 'Alternativen') + '</p><div class="s-chips">';
+    s.variants.forEach(function (v) { h += '<button type="button" class="chip' + (c.v === v[0] ? ' on' : '') + '" data-v="' + v[0] + '">' + v[1] + '</button>'; });
+    h += '</div><p class="s-vinfo" id="vinfo">' + vinfo(s, c) + '</p>';
+    s.sliders.forEach(function (sl) {
+      var id = 'sl-' + curTab + '-' + sl[0];
+      h += '<div class="s-row"><label for="' + id + '">' + sl[1] + '</label><output id="' + id + '-o" for="' + id + '">' + sl[5](c[sl[0]]) + '</output>' +
+        '<input type="range" id="' + id + '" data-f="' + sl[0] + '" min="' + sl[2] + '" max="' + sl[3] + '" step="' + sl[4] + '" value="' + c[sl[0]] + '"></div>';
+    });
+    if (s.test) {
+      h += '<p class="s-label" style="margin-top:12px">Fehlerarten testen</p><div class="s-chips">';
+      TESTS.forEach(function (tv) { h += '<button type="button" class="chip" data-test="' + tv[0] + '">' + tv[1] + '</button>'; });
+      h += '</div>';
+    }
+    if (s.jump) {
+      h += '<p class="s-label" style="margin-top:12px">Formwechsel testen</p><div class="s-chips">';
+      JUMPS.forEach(function (jv) { h += '<button type="button" class="chip" data-jump="' + jv[0] + '">' + jv[1] + '</button>'; });
+      h += '</div>';
+    }
+    h += '<div class="s-actions"><button type="button" class="act primary" data-act="play">▶ Abspielen</button>' +
+      '<button type="button" class="act" data-act="loop" id="loopBtn" aria-pressed="' + (loopKey === curTab) + '">Schleife</button>' +
+      '<button type="button" class="act" data-act="reset">Zurücksetzen</button></div>';
+    sBody.innerHTML = h;
+  }
+  function syncLoopBtn() { var b = document.getElementById('loopBtn'); if (b) b.setAttribute('aria-pressed', String(loopKey === curTab)); }
+  function refreshOutputs() {
+    var s = specOf(curTab), c = CFG[curTab];
+    s.sliders.forEach(function (sl) { var o = document.getElementById('sl-' + curTab + '-' + sl[0] + '-o'); if (o) o.textContent = sl[5](c[sl[0]]); });
+  }
+  var textT = 0;
+  sTabs.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]'); if (!b) return;
+    curTab = b.dataset.tab; renderTabs(); renderBody();
+  });
+  sBody.addEventListener('input', function (e) {
+    var el = e.target; if (!el.dataset || !el.dataset.f) return;
+    var s = specOf(curTab), c = CFG[curTab];
+    c[el.dataset.f] = parseFloat(el.value);
+    if (s.preset && c.v !== 'eigen') {
+      c.v = 'eigen';
+      sBody.querySelectorAll('[data-v]').forEach(function (x) { x.classList.remove('on'); });
+      document.getElementById('vinfo').textContent = vinfo(s, c);
+    }
+    refreshOutputs(); save();
+    if (curTab === 'text' && el.dataset.f === 'dichte') { clearTimeout(textT); textT = setTimeout(buildText, 120); }
+  });
+  sBody.addEventListener('click', function (e) {
+    var s = specOf(curTab), c = CFG[curTab];
+    var vb = e.target.closest('[data-v]');
+    if (vb) {
+      c.v = vb.dataset.v;
+      if (s.presets && s.presets[c.v]) { var pv = s.presets[c.v]; for (var f in pv) c[f] = pv[f]; }
+      save(); renderBody(); playOne(curTab); return;
+    }
+    var tb = e.target.closest('[data-test]');
+    if (tb) { var k = tb.dataset.test; if (tab === 'start') showView('login', true); runError(k, k === 'leer' ? { field: tab === 'register' ? 'regUser' : 'loginId', msg: tab === 'register' ? 'userEmpty' : 'idEmpty' } : null); return; }
+    var jb = e.target.closest('[data-jump]');
+    if (jb) {
+      clearTimers(); sequencing = true; busy = false; loopKey = null; syncLoopBtn();
+      if (B.mode !== 'idle' && B.mode !== 'drag') B.mode = 'return';
+      var js = jb.dataset.jump; setState(js === 'text' ? 'text_' + (tab === 'login' ? 'zurueck' : tab === 'register' ? 'hey' : 'hub') + '_' + lang : js);
+      return;
+    }
+    var ab = e.target.closest('[data-act]'); if (!ab) return;
+    if (ab.dataset.act === 'play') playOne(curTab);
+    else if (ab.dataset.act === 'loop') { loopKey = loopKey === curTab ? null : curTab; syncLoopBtn(); if (loopKey) playOne(curTab); }
+    else if (ab.dataset.act === 'reset') {
+      CFG[curTab] = clone(DEF[curTab]); save(); renderBody();
+      if (curTab === 'text') buildText();
+    }
+  });
+  document.getElementById('openSheet').addEventListener('click', function () { sheet.hidden = false; renderTabs(); renderBody(); });
+  document.getElementById('closeSheet').addEventListener('click', function () { sheet.hidden = true; loopKey = null; });
+  var copyMsg = document.getElementById('copyMsg'), cfgOut = document.getElementById('cfgOut');
+  document.getElementById('copyCfg').addEventListener('click', function () {
+    var txt = JSON.stringify(CFG, null, 1);
+    var fallback = function () { cfgOut.hidden = false; cfgOut.value = txt; cfgOut.focus(); cfgOut.select(); copyMsg.textContent = 'Markiert. Kopieren und mir schicken.'; };
+    try { navigator.clipboard.writeText(txt).then(function () { cfgOut.hidden = true; copyMsg.textContent = 'Kopiert. Einfach in den Chat einfügen.'; }, fallback); } catch (e2) { fallback(); }
+  });
+  document.getElementById('resetAll').addEventListener('click', function () {
+    CFG = clone(DEF); save(); buildText(); renderTabs(); renderBody(); copyMsg.textContent = 'Alles auf Standard.';
+  });
+
+  /* ---------- UI ---------- */
+  var views = { start: document.getElementById('vStart'), login: document.getElementById('vLogin'), register: document.getElementById('vRegister') };
+  var btn = views.login.querySelector('[type=submit]'), btnLabel = btn.querySelector('span');
+  function applyLang() {
+    var t = i18n[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t[el.dataset.i18n]; });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = t[el.dataset.i18nPh]; });
+    document.getElementById('faceId').setAttribute('aria-label', t.faceId);
+    document.getElementById('greet').textContent = t.greet;
+    document.getElementById('langDe').classList.toggle('on', lang === 'de');
+    document.getElementById('langEn').classList.toggle('on', lang === 'en');
+    document.documentElement.lang = lang;
+    if (!busy && tab !== 'start') btnLabel.textContent = labelIdle();
+  }
+  document.getElementById('langDe').addEventListener('click', function () { lang = 'de'; applyLang(); });
+  document.getElementById('langEn').addEventListener('click', function () { lang = 'en'; applyLang(); });
+  /* switch the card's view; forms slide in from the right, going back slides in from the left */
+  function showView(v, quiet) {
+    var back = v === 'start';
+    Object.keys(views).forEach(function (k) { views[k].classList.remove('on', 'from-left'); });
+    views[v].classList.add('on'); if (back) views[v].classList.add('from-left');
+    tab = v; retryMode = false; clearMsg();
+    if (v !== 'start') { btn = views[v].querySelector('[type=submit]'); btnLabel = btn.querySelector('span'); btnLabel.textContent = labelIdle(); }
+    requestAnimationFrame(measureHero);
+    if (quiet) return;
+    if (back) { clearTimers(); sequencing = false; applyFocusState(); } else playGreeting(v);
+  }
+  document.getElementById('goLogin').addEventListener('click', function () { showView('login'); });
+  document.getElementById('goRegister').addEventListener('click', function () { showView('register'); });
+  /* back always works, even mid-animation: it cancels what Dot is doing (but not once the way home has started) */
+  document.querySelectorAll('[data-back]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (!homeEl.hidden) return;
+      clearTimers(); busy = false; fall = null; shake = null; retryMode = false;
+      btn.disabled = false; btn.classList.remove('ok');
+      if (B.mode !== 'idle' && B.mode !== 'drag') B.mode = 'return';
+      setState('sphere'); showView('start');
+    });
+  });
+
+  var fields = Array.prototype.slice.call(document.querySelectorAll('.card input'));
+  ['loginPw', 'regPw', 'regPw2'].forEach(function (id) { document.getElementById(id).dataset.pw = '1'; });
+  function fokus() { if (busy) return; clearTimers(); sequencing = false; loopKey = null; syncLoopBtn(); applyFocusState(); }
+  fields.forEach(function (el) {
+    if (el.type === 'checkbox') return;
+    el.addEventListener('focus', fokus); el.addEventListener('blur', applyFocusState);
+    el.addEventListener('input', function () { if (!el.dataset.pw) poke = 0; });
+  });
+  document.querySelectorAll('[data-eye]').forEach(function (eb) {
+    eb.addEventListener('click', function () {
+      var f = document.getElementById(eb.dataset.eye), show = f.type === 'password';
+      f.type = show ? 'text' : 'password';
+      /* the eye on the new password also reveals its repetition */
+      if (eb.dataset.eye === 'regPw') document.getElementById('regPw2').type = f.type;
+      eb.setAttribute('aria-label', show ? 'Passwort verbergen' : 'Passwort anzeigen');
+      f.focus();
+    });
+  });
+
+  /* ---------- sign-in outcomes ---------- */
+  var homeEl = document.getElementById('home'), screenEl = document.querySelector('.screen');
+  var slotEl = document.getElementById('hSlot'), retryMode = false, sheetWasOpen = false;
+  function labelIdle() { return retryMode ? i18n[lang].retry : tab === 'register' ? i18n[lang].createAccount : i18n[lang].signIn; }
+  function msgEl() { return (views[tab] || views.login).querySelector('.msg') || { hidden: true }; }
+  function clearMsg() {
+    document.querySelectorAll('.card .msg').forEach(function (m) { m.hidden = true; m.textContent = ''; });
+    document.querySelectorAll('.card .bad').forEach(function (b) { b.classList.remove('bad'); });
+    fields.forEach(function (el) { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); });
+  }
+  function showMsg(key, field) {
+    var m = msgEl(); m.textContent = i18n[lang][key]; m.hidden = false;
+    if (!m.id) m.id = 'msg-' + tab;
+    var el = field ? document.getElementById(field) : null;
+    if (el) { (el.closest('.field') || el.closest('.check')).classList.add('bad'); el.setAttribute('aria-invalid', 'true'); el.setAttribute('aria-describedby', m.id); }
+  }
+  fields.forEach(function (el) { el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', clearMsg); });
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/, USER = /^[A-Za-z0-9._]{3,20}$/;
+  function validate() {
+    var g = function (id) { return document.getElementById(id); };
+    if (tab === 'register') {
+      var u = g('regUser').value.trim(), e = g('regEmail').value.trim();
+      if (!u) return { field: 'regUser', msg: 'userEmpty' };
+      if (!USER.test(u)) return { field: 'regUser', msg: 'userBad' };
+      if (!e) return { field: 'regEmail', msg: 'emailEmpty' };
+      if (!EMAIL.test(e)) return { field: 'regEmail', msg: 'emailBad' };
+      if (g('regPw').value.length < 6) return { field: 'regPw', msg: g('regPw').value ? 'pwShort' : 'pwEmpty' };
+      if (!g('regPw2').value) return { field: 'regPw2', msg: 'pw2Empty' };
+      if (g('regPw2').value !== g('regPw').value) return { field: 'regPw2', msg: 'pwMismatch' };
+      if (!g('consent').checked) return { field: 'consent', msg: 'consentMiss' };
+      return null;
+    }
+    var id = g('loginId').value.trim();
+    if (!id) return { field: 'loginId', msg: 'idEmpty' };
+    /* with an @ it must be a valid email; without, it is a username */
+    if (id.indexOf('@') >= 0 ? !EMAIL.test(id) : !USER.test(id)) return { field: 'loginId', msg: id.indexOf('@') >= 0 ? 'emailBad' : 'userBad' };
+    if (!g('loginPw').value) return { field: 'loginPw', msg: 'pwEmpty' };
+    return null;
+  }
+  function startFlow() {
+    clearTimers(); sequencing = false; loopKey = null; syncLoopBtn(); busy = true;
+    shake = null; fall = null; clearMsg();
+    if (B.mode !== 'idle' && B.mode !== 'drag') B.mode = 'return';
+  }
+  function endFlow(done) {
+    busy = false; fall = null; btn.disabled = false; btnLabel.textContent = labelIdle();
+    setState('sphere'); if (done) done(); else applyFocusState();
+  }
+  /* kind: 'leer' (empty or invalid field), 'falsch' (wrong credentials), 'netz' (no connection) */
+  function xShake(F) { setState('cross'); shake = { t0: performance.now() + 350, dur: 800, amp: F.staerke, cycles: 3.5 }; }
+  function runError(kind, info, done) {
+    startFlow();
+    var F = CFG.fehler, t = i18n[lang];
+    if (kind === 'leer') {
+      /* empty or invalid field: checked on the device, so no thinking first, straight to X + shake */
+      info = info || { field: 'loginId', msg: 'idEmpty' };
+      showMsg(info.msg, info.field); xShake(F);
+      timers.push(setTimeout(function () { endFlow(done); }, F.dauer * 1000));
+      return;
+    }
+    retryMode = false;
+    btn.disabled = true; btnLabel.textContent = t.signingIn; setState('rings');
+    var think = kind === 'netz' ? 1400 : 900;
+    timers.push(setTimeout(function () {
+      if (kind === 'netz') {
+        /* no connection: Dot becomes the no-signal symbol, searches along its arcs, then the slash is drawn */
+        retryMode = true; showMsg('net'); btn.disabled = false; btnLabel.textContent = t.retry; setState('wifi');
+        timers.push(setTimeout(function () { endFlow(done); }, (F.dauer + 1.2) * 1000));
+      } else {
+        showMsg('wrong', tab === 'register' ? null : 'loginPw'); btn.disabled = false; btnLabel.textContent = t.signIn; xShake(F);
+        timers.push(setTimeout(function () { endFlow(done); }, F.dauer * 1000));
+      }
+    }, think));
+  }
+  var SESSION = 'dot-login-session';
+  function setSession(on) { try { if (on) localStorage.setItem(SESSION, '1'); else localStorage.removeItem(SESSION); } catch (e) {} }
+  function hasSession() { try { return localStorage.getItem(SESSION) === '1'; } catch (e) { return false; } }
+  function runSuccess() {
+    startFlow(); retryMode = false;
+    /* the sign-in form has the switch; sign-up, Apple, Google and Face ID stay signed in */
+    setSession(tab === 'login' ? document.getElementById('remember').checked : true);
+    var E = CFG.erfolg, t = i18n[lang];
+    btn.disabled = true; btnLabel.textContent = t.signingIn; setState('rings');
+    timers.push(setTimeout(function () { setState('check'); btnLabel.textContent = t.signedIn; btn.classList.add('ok'); }, E.denken * 1000));
+    timers.push(setTimeout(function () { goHome(E.v); }, (E.denken + E.haken) * 1000));
+  }
+  function slotArrive() { slotEl.classList.remove('arrive'); void slotEl.offsetWidth; slotEl.classList.add('arrive'); }
+  function goHome(v) {
+    var tp = CFG.erfolg.tempo, now = performance.now();
+    sheetWasOpen = !sheet.hidden; sheet.hidden = true; loopKey = null;
+    homeEl.hidden = false; homeEl.className = 'home'; homeEl.style.clipPath = ''; slotEl.classList.remove('arrive');
+    var h = new Date().getHours(), t = i18n[lang];
+    document.getElementById('hGreet').textContent = h >= 5 && h < 11 ? t.morning : h < 17 && h >= 11 ? t.day : h < 22 && h >= 17 ? t.evening : t.night;
+    document.getElementById('hDate').textContent = new Date().toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    /* measure the slot where the tab bar ends up, not where it starts its slide */
+    var dock = homeEl.querySelector('.h-dock');
+    dock.style.transition = 'none'; dock.style.transform = 'none';
+    var sr = slotEl.getBoundingClientRect(), ex = sr.left + sr.width / 2, ey = sr.top + sr.height / 2;
+    dock.style.transform = ''; void dock.offsetWidth; dock.style.transition = '';
+    if (v === 'portalheim') {
+      homeEl.classList.add('portal'); B.mode = 'hold'; noClamp = true; frameE = 0; frameT0 = 0;
+      setState('frame');
+      homeEl.style.clipPath = 'inset(' + (B.y - R) + 'px ' + (W - B.x - R) + 'px ' + (H - B.y - R) + 'px ' + (B.x - R) + 'px round ' + R + 'px)';
+      portal = { frame: true, t0: now + 300 / tp, dur: 900 / tp, ex: ex, ey: ey };
+      return;
+    }
+    if (v === 'portal') {
+      homeEl.classList.add('portal'); B.mode = 'hold'; setState('circle'); noClamp = true;
+      homeEl.style.clipPath = 'circle(' + R + 'px at ' + B.x + 'px ' + B.y + 'px)';
+      portal = { t0: now + 250 / tp, dur: 850 / tp, maxR: Math.hypot(Math.max(B.x, W - B.x), Math.max(B.y, H - B.y)) + 60, heim: v === 'portalheim', ex: ex, ey: ey };
+      return;
+    }
+    screenEl.classList.add('leaving');
+    if (v === 'supernova') {
+      homeEl.classList.add('in', 'nova'); B.mode = 'hold';
+      /* targets: points spread along the outlines of the home cards */
+      var rects = Array.prototype.map.call(homeEl.querySelectorAll('.h-card'), function (c) { return c.getBoundingClientRect(); });
+      var per = rects.map(function (r) { return 2 * (r.width + r.height); }), total = per.reduce(function (a, b) { return a + b; }, 0);
+      for (var i = 0; i < N; i++) {
+        var s = (i + Math.random() * 0.5) / N * total, ri = 0;
+        while (ri < rects.length - 1 && s > per[ri]) { s -= per[ri]; ri++; }
+        var rc = rects[ri], w = rc.width, hh = rc.height, x, y, inset = 1 + Math.random() * 2;
+        if (s < w) { x = rc.left + s; y = rc.top + inset; } else if (s < w + hh) { x = rc.right - inset; y = rc.top + (s - w); }
+        else if (s < 2 * w + hh) { x = rc.right - (s - w - hh); y = rc.bottom - inset; } else { x = rc.left + inset; y = rc.bottom - (s - 2 * w - hh); }
+        novaTX[i] = x; novaTY[i] = y;
+        var ang = Math.random() * TAU, rad = R * (1.6 + Math.random() * 1.8);
+        novaBX[i] = Math.cos(ang) * rad; novaBY[i] = Math.sin(ang) * rad;
+      }
+      novaFade = 1.35 / tp;
+      setState('nova');
+      for (i = 0; i < N; i++) { delay[i] = P[i].k * 0.08; var a2 = Math.random() * TAU, sp = 6 + Math.random() * 9; vx[i] += Math.cos(a2) * sp; vy[i] += Math.sin(a2) * sp; }
+      timers.push(setTimeout(function () { homeEl.classList.add('nova-done'); }, 1250 / tp));
+      timers.push(setTimeout(function () { dotHidden = true; slotArrive(); }, 1950 / tp));
+      return;
+    }
+    /* heimweg */
+    homeEl.classList.add('in'); setState('sphere'); B.mode = 'fly';
+    fly = { t0: now + 180 / tp, dur: 950 / tp, sx: B.x, sy: B.y, ex: ex, ey: ey, end: 13 / R };
+  }
+  function backToLogin(replay) {
+    clearTimers(); portal = null; fly = null; fall = null; shake = null; noClamp = false; dotHidden = false; Rscale = 1; portalE = 0; frameE = 0; frameT0 = 0;
+    homeEl.hidden = true; homeEl.className = 'home'; homeEl.style.clipPath = '';
+    screenEl.classList.remove('leaving'); screenEl.style.visibility = '';
+    btn.classList.remove('ok'); btn.disabled = false; busy = false; retryMode = false; btnLabel.textContent = labelIdle();
+    measureHero(); homePos(); B.mode = 'idle'; B.x = B.hx; B.y = B.hy;
+    if (sheetWasOpen) sheet.hidden = false;
+    showView('start', true);
+    setState('sphere');
+    if (replay) timers.push(setTimeout(runSuccess, 700));
+    else if (!RM) startIntro();
+  }
+  document.getElementById('backLogin').addEventListener('click', function () { setSession(false); backToLogin(false); });
+  /* returning user: no login, no show. The home screen is there at once, Dot sits in his slot */
+  function openHomeDirect() {
+    screenEl.style.visibility = 'hidden'; homeEl.hidden = false; homeEl.className = 'home portal';
+    var h = new Date().getHours(), t = i18n[lang];
+    document.getElementById('hGreet').textContent = h >= 5 && h < 11 ? t.morning : h < 17 && h >= 11 ? t.day : h < 22 && h >= 17 ? t.evening : t.night;
+    document.getElementById('hDate').textContent = new Date().toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    dotHidden = true; B.mode = 'hold'; slotArrive();
+  }
+  /* the small logo in the tab bar: same point sphere as the app's DotLogo */
+  (function () {
+    var n = 46, ga = Math.PI * (3 - Math.sqrt(5)), h = '<svg viewBox="-15 -15 30 30" width="30" height="30" aria-hidden="true">';
+    for (var i = 0; i < n; i++) {
+      var y = 1 - (2 * (i + 0.5)) / n, rr = Math.sqrt(1 - y * y), th = ga * i, x = Math.cos(th) * rr, z = Math.sin(th) * rr;
+      var Y = y * Math.cos(0.38) - z * Math.sin(0.38), Z = y * Math.sin(0.38) + z * Math.cos(0.38), f = (Z + 1) / 2, c = dotColor(x, Y, 0.45);
+      h += '<circle cx="' + (x * 11).toFixed(2) + '" cy="' + (Y * 11).toFixed(2) + '" r="' + (0.55 + 0.7 * f).toFixed(2) + '" fill="rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')" opacity="' + (0.15 + 0.85 * f * f).toFixed(2) + '"/>';
+    }
+    slotEl.innerHTML = h + '</svg>';
+  })();
+
+  [views.login, views.register].forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (busy) return;
+      var v = validate();
+      if (v) { runError('leer', v); return; }
+      var p = (tab === 'register' ? document.getElementById('regPw') : document.getElementById('loginPw')).value.trim().toLowerCase();
+      if (p === 'falsch' || p === 'wrong') runError('falsch');
+      else if (p === 'netz' || p === 'offline') runError('netz');
+      else runSuccess();
+    });
+  });
+  /* Apple, Google and Face ID skip the form: Dot thinks, then the same success */
+  document.querySelectorAll('[data-social]').forEach(function (b) { b.addEventListener('click', function () { if (!busy) runSuccess(); }); });
+  document.getElementById('faceId').addEventListener('click', function () { if (!busy) runSuccess(); });
+
+  document.getElementById('replay').addEventListener('click', function () { playSequence(true); });
+
+  /* ---------- boot ---------- */
+  applyLang();
+  resize(); buildShapes(); homePos();
+  B.x = B.hx; B.y = B.hy;
+  stateAt = performance.now();
+  updateTargets(0, 9);
+  for (var j = 0; j < N; j++) { px[j] = tx[j]; py[j] = ty[j]; }
+  requestAnimationFrame(frame);
+  if (hasSession()) openHomeDirect(); else playSequence(!RM);
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('700 60px "Space Grotesk"').then(function () { buildText(); }).catch(function () {});
+  }
+  var rt;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 120); });
+  window.addEventListener('scroll', measureHero, { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 120); });
+})();
+</script>
+
+</body>
+</html>
