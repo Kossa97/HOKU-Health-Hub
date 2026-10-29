@@ -51,3 +51,6 @@ backup-*.sqlnpx
 e2e/.dist
 test-results
 playwright-report
+
+# Dot-Grafiken für Social Media: werden mit docs/logo/dot/echt/social.cjs erzeugt (zu groß fürs Repo)
+docs/logo/dot/social/*.png
