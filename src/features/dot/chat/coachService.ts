@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabase'
+import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import type { DotKontext } from '../lib/dotKontext'
 import type { Meldung } from './meldungen'
 import { liesAnlagen, type DotAnlage } from '../../my-stack/lib/dotAnlage'
@@ -35,6 +35,7 @@ export async function frageCoach(
 ): Promise<CoachAntwort> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { ok: false, fehler: 'offline' }
   const { data, error } = await supabase.functions.invoke('coach', {
+    region: FUNKTIONS_REGION,
     body: { nachrichten: verlauf.filter(n => !n.lokal).map(({ rolle, text }) => ({ rolle, text })).slice(-VERLAUF_MAX), kontext, seite, sprache },
   })
   if (error) {

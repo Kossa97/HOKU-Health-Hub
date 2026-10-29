@@ -4,6 +4,7 @@ import { resolveTimelineIntakesForDay, type ResolvedTimelineIntake } from '../..
 import { localDateBoundaryInstant, localDateTimeKey, type CycleTimeline } from '../../../lib/planTimeline'
 import { loadCycleTimelines } from '../../my-stack/services/planLifecycle'
 import { formatTrackedQuantity, hasTrackedQuantity } from '../../routines/quantityPresentation'
+import type { DotTextKey } from '../texte'
 
 /**
  * Was Dot über den Nutzer weiß — knapp, für Sprechblasen und als Kontext
@@ -169,6 +170,27 @@ export function heuteOffen(k: DotKontext, jetzt = k.jetzt) {
     offen: offen.length,
     naechste: offen.find(e => e.minuten >= minuten) ?? null,
     verpasst: [...offen].reverse().find(e => e.minuten < minuten) ?? null,
+    /** Wie viele schon fällig waren und noch offen sind. */
+    faellig: offen.filter(e => e.minuten < minuten).length,
     minuten,
   }
+}
+
+/**
+ * Was Dot beim Begrüßen über heute sagt. Erst, was schon fällig und noch
+ * offen ist (wie bei der Uhr), dann die nächste Einnahme; „alles
+ * eingetragen" nur, wenn wirklich nichts mehr offen ist.
+ */
+export function heuteHinweis(h: ReturnType<typeof heuteOffen>): { schluessel: DotTextKey; werte?: Record<string, string | number> } {
+  if (h.verpasst) {
+    return h.faellig > 1
+      ? { schluessel: 'gruss_offen', werte: { anzahl: h.faellig } }
+      : { schluessel: 'gruss_verpasst', werte: { substanz: h.verpasst.substanz, zeit: h.verpasst.zeit } }
+  }
+  if (h.naechste) {
+    return h.naechste.menge
+      ? { schluessel: 'naechste_menge', werte: { zeit: h.naechste.zeit, substanz: h.naechste.substanz, menge: h.naechste.menge } }
+      : { schluessel: 'naechste', werte: { zeit: h.naechste.zeit, substanz: h.naechste.substanz } }
+  }
+  return { schluessel: h.geplant ? 'alles_erledigt' : 'nichts_geplant' }
 }
