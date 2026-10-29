@@ -1488,8 +1488,10 @@ export function createDot(host: DotHost): DotApi {
       const fe = easeIO(clamp01(te / ERFOLG.portal))
       P0.fe = fe
       if (el) {
-        const rr = P0.r0 + (kreisWeit() - P0.r0) * fe
-        el.style.clipPath = fe >= 1 ? 'none' : `circle(${rr.toFixed(1)}px at ${B.x.toFixed(1)}px ${B.y.toFixed(1)}px)`
+        // clip-path misst ab der Ecke der App-Fläche, Hoku ab der Ecke des Bildschirms; am iPhone beginnt die
+        // Fläche unter der Statusleiste (sicherer Bereich), dort lägen Kreis und Partikelring sonst versetzt
+        const rr = P0.r0 + (kreisWeit() - P0.r0) * fe, k = el.getBoundingClientRect()
+        el.style.clipPath = fe >= 1 ? 'none' : `circle(${rr.toFixed(1)}px at ${(B.x - k.left).toFixed(1)}px ${(B.y - k.top).toFixed(1)}px)`
       }
       if (fe >= 1) { P0.phase = 'rand'; P0.te = 0 }
     } else if (P0.phase === 'rand' && te > ERFOLG.ruhe) {
