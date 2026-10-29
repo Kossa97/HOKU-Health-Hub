@@ -210,9 +210,9 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1793062157.4074564,
-    "seen": 1793063209.43276,
-    "ast_hash": "d71d80fbcf0c7dd823fd8918d54b1a2b",
+    "mtime": 1793294436.040429,
+    "seen": 1793294672.8249984,
+    "ast_hash": "e410da6fd48490bd7b4c5b7ed9f85934",
     "semantic_hash": ""
   },
   "src/components/ExpiryWarningBanners.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793287523.1984413,
-    "seen": 1793287611.8973868,
+    "mtime": 1793294501.355095,
+    "seen": 1793294672.8256688,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7038,9 +7038,9 @@
     "semantic_hash": ""
   },
   "src/components/ui/Silhouette.tsx": {
-    "mtime": 1793058062.8892066,
-    "seen": 1793060374.0561156,
-    "ast_hash": "fe9b15c0c5f63e6a6e1ed171c9b64eaf",
+    "mtime": 1793294436.040429,
+    "seen": 1793294672.8250494,
+    "ast_hash": "99aed8b7015b9a192434efa1359e71f2",
     "semantic_hash": ""
   },
   "src/components/ui/silhouetteTakt.test.ts": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793292471.6647854,
-    "seen": 1793292737.6596165,
-    "ast_hash": "f9534b862eeb1e4e7fb8d118096322dc",
+    "mtime": 1793294429.9063606,
+    "seen": 1793294672.8251479,
+    "ast_hash": "98b73fc6688b08c195e29e96455f3f7f",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -17658,9 +17658,9 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/branding/ENTSCHEIDUNGEN.md": {
-    "mtime": 1793246060.3992157,
-    "seen": 1793286207.722705,
-    "ast_hash": "768d87b194e4b1ebfc4a2fd3a5d7769f",
+    "mtime": 1793293661.7435389,
+    "seen": 1793294672.8257425,
+    "ast_hash": "f2ae7c563dd401920b57408b2a00a18f",
     "semantic_hash": ""
   },
   "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/README.md": {
@@ -18951,6 +18951,18 @@
     "mtime": 1793292168.624656,
     "seen": 1793292737.6619377,
     "ast_hash": "ccdf252279e5f084e44036760a3e5a24",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-michroma-schwarz-auf-weiss-v1.png": {
+    "mtime": 1793293236.0703447,
+    "seen": 1793294672.8268566,
+    "ast_hash": "293d8585c39502361c006221f11ee45e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-health-hub-michroma-weiss-auf-schwarz-v1.png": {
+    "mtime": 1793293235.8670032,
+    "seen": 1793294672.8268576,
+    "ast_hash": "7e2fc3588b30ab6997ffab0bac29f031",
     "semantic_hash": ""
   }
 }
