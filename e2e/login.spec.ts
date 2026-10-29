@@ -201,7 +201,8 @@ test('Start: nach der Begrüßung Hinweise auf Anmelden und Registrieren, dann k
   expect(await bisAttribut(page, '[data-auth-start-login]', 'data-dot-ziel', 26000)).toBeGreaterThan(0)
   expect(await bisAttribut(page, '[data-auth-start-register]', 'data-dot-ziel', 16000)).toBeGreaterThan(0)
   let gefragt = false
-  for (let t = 0; t < 26000 && !gefragt; t += 200) { await page.clock.runFor(200); gefragt = (await hokuSagt(page).textContent()) === 'Noch da?' }
+  // das Klopfen kommt eine halbe Minute nach dem Ende des letzten Hinweises
+  for (let t = 0; t < 40000 && !gefragt; t += 200) { await page.clock.runFor(200); gefragt = (await hokuSagt(page).textContent()) === 'Noch da?' }
   expect(gefragt).toBe(true)
 })
 
@@ -214,6 +215,29 @@ test('Anmelden: nach 10 s Stille fliegt Hoku zum leeren Feld, Tippen bricht das 
   await page.locator('#auth-kennung').pressSequentially('a')
   await page.clock.runFor(200)
   await expect(page.locator('#auth-kennung')).not.toHaveAttribute('data-dot-ziel')
+})
+
+test('Anmelden: Absenden während des Hinweises bricht ihn ab', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await page.locator('#auth-kennung').fill('test@example.test')
+  await page.locator('#auth-pw').fill('geheim1')
+  await page.locator('#auth-pw').blur()
+  expect(await bisAttribut(page, '[data-auth-submit]', 'data-dot-ziel', 20000)).toBeGreaterThan(0)
+  // wie Enter im Feld: das Formular wird abgeschickt, ohne dass ein Feld den Fokus bekommt
+  await page.locator('form').evaluate(f => (f as HTMLFormElement).requestSubmit())
+  await page.clock.runFor(200)
+  await expect(page.locator('[data-auth-submit]')).not.toHaveAttribute('data-dot-ziel')
+})
+
+test('Anmelden: solange eine Fehlerzeile steht, drängt Hoku nicht', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await page.locator('[data-auth-submit]').click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  expect(await bisAttribut(page, '#auth-kennung', 'data-dot-ziel', 16000)).toBe(-1)
 })
 
 test('Registrieren: der Name wird beim Tippen geprüft, vergeben zeigt die Zeile ohne Absenden', async ({ page, mock }) => {

@@ -12,8 +12,11 @@ export type HinweisZiel = 'start-anmelden' | 'start-registrieren' | LoginFeld | 
 export type HinweisSchritt = { art: 'hinweis'; ziel: HinweisZiel; text: DotTextKey } | { art: 'klopfen' }
 export interface Stille { ansicht: 'start' | 'login' | 'register'; seit: number; gezeigt: number; geklopft: boolean }
 
-/** Startseite: zwei Hinweise nach 6 und 12 s; Formulare: einer nach 10 s; Klopfen nach 30 s (ms ab Beginn der Stille). */
-export const HINWEIS_MS = { start: [6000, 12000], form: 10000, klopfen: 30000 }
+/**
+ * Startseite: erster Hinweis nach 6 s, der zweite 6 s nach dem Ende des ersten; Formulare: einer nach 10 s;
+ * Klopfen nach 30 s (ms ab Beginn der Stille). Nach jedem Hinweis beginnt die Stille neu, `gezeigt` zählt weiter.
+ */
+export const HINWEIS_MS = { start: [6000, 6000], form: 10000, klopfen: 30000 }
 
 const LOGIN_TEXT: Partial<Record<HinweisZiel, DotTextKey>> = {
   kennung: 'login_tipp_email', passwort: 'login_tipp_passwort', absenden: 'login_tipp_anmelden',

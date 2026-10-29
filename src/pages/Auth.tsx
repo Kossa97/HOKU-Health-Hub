@@ -91,10 +91,19 @@ export function Auth() {
   const hinweisLauf = useRef(0), hinweisAn = useRef(false), zeigtSatz = useRef(false)
   const pwFokus = useRef(false), wartet = useRef(false), vieleGezeigt = useRef(false)
   const letzterGruss = useRef<DotTextKey | null>(null)
+  // Sätze und Augen-Form in späten Abläufen: immer die aktuelle Sprache und Sichtbarkeit des Passworts
+  const dtRef = useRef(dt), zeigePwRef = useRef(zeigePw)
+  useEffect(() => { dtRef.current = dt; zeigePwRef.current = zeigePw })
 
   const dot = () => dotStore.api()
   const warte = (ms: number) => new Promise<void>(r => { uhren.current.push(window.setTimeout(r, Math.max(0, ms))) })
   const tipp = () => { void hapticTick() }
+  /** Nach einer Geste: zurück zur Kugel, oder wieder Augen zu, solange der Fokus im Passwortfeld liegt. */
+  function ruheForm() {
+    if (!pwFokus.current) { dot()?.zeigeForm(null); return }
+    dot()?.zeigeForm(zeigePwRef.current ? 'augenWeg' : 'augen')
+    if (!weniger) dot()?.sag(dtRef.current('login_sehe_nichts'), 60000)
+  }
   const neueStille = () => { stille.current = { ansicht: ansichtRef.current, seit: performance.now(), gezeigt: 0, geklopft: false } }
   /** Eine Geste oder ein Satz von Hoku: solange sie läuft, kommt kein Hinweis; danach beginnt die Stille neu. */
   async function mitHoku(f: () => Promise<void>) {
@@ -114,7 +123,11 @@ export function Auth() {
     dotStore.setLoginBuehne(buehne.current)
     return () => dotStore.setLoginBuehne(null)
   }, [])
-  useEffect(() => () => uhren.current.forEach(clearTimeout), [])
+  useEffect(() => () => {
+    uhren.current.forEach(clearTimeout)
+    // Seite verlassen: späte Abläufe (Klopfen, Hinweise) schreiben nichts mehr
+    lauf.current++; hinweisLauf.current++
+  }, [])
 
   /** Dot schreibt einen Satz und wird danach wieder zur Kugel. */
   async function schreibe(gen: number, key: DotTextKey, ms: number) {
@@ -122,14 +135,18 @@ export function Auth() {
     if (weniger) return
     await vorbereitet.current
     if (gen !== lauf.current) return
-    dot()?.zeigeText(dt(key)); zeigtSatz.current = true
+    dot()?.zeigeText(dtRef.current(key)); zeigtSatz.current = true
     await warte(ms)
     zeigtSatz.current = false
     if (gen === lauf.current) dot()?.zeigeText(null)
   }
   // Sprache umgestellt: den Satz, den er gerade zeigt, in der neuen Sprache neu schreiben
   useEffect(() => {
-    if (zeigtSatz.current && satz && !weniger) dot()?.zeigeText(dt(satz))
+    const d = dot()
+    if (!d || weniger) return
+    // die Sätze der neuen Sprache vorab abtasten
+    vorbereitet.current = d.bereiteTexte(SAETZE.map(k => dt(k)))
+    if (zeigtSatz.current && satz) d.zeigeText(dt(satz))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Sprachwechsel
   }, [i18n.language])
 
@@ -192,7 +209,7 @@ export function Auth() {
   // Bei Stille meldet sich Hoku: ein Satz, dann fliegt er zum Feld oder Knopf (oder klopft an die Scheibe)
   useEffect(() => {
     const id = window.setInterval(() => {
-      if (!gegruesst.current || aktiv.current || laeuft || verlassen || pwFokus.current || stand.modus !== 'login') return
+      if (!gegruesst.current || aktiv.current || laeuft || verlassen || meldung || pwFokus.current || stand.modus !== 'login') return
       const leer = ansicht === 'login'
         ? erstesLeeres({ kennung: !!kennung.trim(), passwort: !!passwort }, ['kennung', 'passwort'])
         : ansicht === 'register'
@@ -209,20 +226,26 @@ export function Auth() {
     if (ansicht !== 'register' || laeuft || !BENUTZERNAME.test(name)) return
     let aus = false
     const id = window.setTimeout(() => {
+      const gen = lauf.current
       void benutzernameFrei(name).then(frei => {
-        if (aus || frei === 'netz' || frei === null) return
+        if (aus || gen !== lauf.current || frei === 'netz' || frei === null) return
+        if (!frei) setMeldung({ feld: 'benutzer', text: 'login_err_user_taken', art: 'fehler' })
+        if (pwFokus.current) return
         void mitHoku(async () => {
-          const gen = lauf.current
           dot()?.zeigeForm(frei ? 'nicken' : 'schuetteln')
-          if (!frei) setMeldung({ feld: 'benutzer', text: 'login_err_user_taken', art: 'fehler' })
           await warte((FORM_DAUER.nicken ?? 1.4) * 1000)
-          if (gen === lauf.current && !pwFokus.current) dot()?.zeigeForm(null)
+          if (gen === lauf.current) ruheForm()
         })
       })
     }, 500)
     return () => { aus = true; window.clearTimeout(id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur wenn sich der Name ändert
   }, [benutzer, ansicht])
+  // Passwort ein- oder ausgeblendet, während der Fokus im Feld liegt: Hoku dreht sich weg bzw. wieder her
+  useEffect(() => {
+    if (pwFokus.current && !laeuft) dot()?.zeigeForm(zeigePw ? 'augenWeg' : 'augen')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Umschalten
+  }, [zeigePw])
   // Ohne Netz: kommt es von selbst zurück, sagt Hoku es und der Knopf leuchtet kurz
   useEffect(() => {
     if (meldung?.text !== 'login_err_net') return
@@ -261,10 +284,10 @@ export function Auth() {
     void mitHoku(async () => {
       const gen = lauf.current, key = ziel === 'login' ? naechsterGruss() : 'login_hey'
       await schreibe(gen, key, GRUSS.text)
-      if (gen !== lauf.current || weniger) return
+      if (gen !== lauf.current || weniger || pwFokus.current) return
       dot()?.zeigeForm('freude')
       await warte((FORM_DAUER.freude ?? 2) * 1000)
-      if (gen === lauf.current && !pwFokus.current) dot()?.zeigeForm(null)
+      if (gen === lauf.current) ruheForm()
     })
   }
   /** Willkommen zurück: einer von drei Sätzen, nie zweimal derselbe hintereinander. */
@@ -290,8 +313,9 @@ export function Auth() {
     aktiv.current++; hinweisAn.current = true
     try {
       if (s.art === 'klopfen') {
-        if (!weniger) await dot()?.klopfe(tipp)
-        if (gilt()) await schreibe(gen, 'login_noch_da', GRUSS.text)
+        // greift die Person ihn beim Klopfen, hat sie geantwortet: dann keine Frage
+        const fertig = weniger ? true : await dot()?.klopfe(tipp)
+        if (gilt() && fertig !== false) await schreibe(gen, 'login_noch_da', GRUSS.text)
       } else {
         await schreibe(gen, s.text, GRUSS.text)
         const el = zielElement(s.ziel)
@@ -299,13 +323,14 @@ export function Auth() {
       }
     } finally {
       aktiv.current = Math.max(0, aktiv.current - 1)
-      if (h === hinweisLauf.current) hinweisAn.current = false
+      // nach jedem Hinweis eine neue Pause; gezeigt und geklopft zählen weiter
+      if (h === hinweisLauf.current) { hinweisAn.current = false; stille.current = { ...stille.current, seit: performance.now() } }
     }
   }
   /** Der Server prüft: Hoku wartet mit; dauert es länger als 4 s, schreibt er „Einen Moment…" und wartet weiter. */
   function mitWarten(gen: number) {
     wartet.current = true
-    dot()?.setStimmung('idle'); dot()?.zeigeForm('warten')
+    dot()?.schweige(); dot()?.setStimmung('idle'); dot()?.zeigeForm('warten')
     uhren.current.push(window.setTimeout(() => {
       if (gen !== lauf.current || !wartet.current) return
       void schreibe(gen, 'login_moment', GRUSS.text).then(() => { if (gen === lauf.current && wartet.current) dot()?.zeigeForm('warten') })
@@ -330,13 +355,14 @@ export function Auth() {
 
   /** Fehler im Gerät: sofort X und Schütteln, ohne Denken. */
   async function eingabeFehler(feld: Feld, text: string) {
+    eingabe()
     const gen = ++lauf.current
     setMeldung({ feld, text, art: 'fehler' })
     fuehlen(false)
     await mitHoku(async () => {
       dot()?.setStimmung('idle'); dot()?.zeigeForm('cross')
       await warte(ZEIGEN.fehler)
-      if (gen === lauf.current) dot()?.zeigeForm(null)
+      if (gen === lauf.current) ruheForm()
     })
   }
 
@@ -374,7 +400,7 @@ export function Auth() {
           if (el) await dot()?.umkreise(el, tipp)
         }
       }
-      if (gen === lauf.current) dot()?.zeigeForm(null)
+      if (gen === lauf.current) ruheForm()
     })
   }
 
@@ -403,6 +429,7 @@ export function Auth() {
   async function anmelden(e: FormEvent) {
     e.preventDefault()
     if (laeuft) return
+    eingabe()
     const fehler = pruefeLogin(kennung, passwort)
     if (fehler) return void eingabeFehler(fehler.feld, fehler.text)
     const gen = ++lauf.current
@@ -425,6 +452,7 @@ export function Auth() {
   async function registrieren(e: FormEvent) {
     e.preventDefault()
     if (laeuft) return
+    eingabe()
     const fehler = pruefeRegistrierung({ benutzer, email, passwort, passwort2, zugestimmt: vollstaendig(zustimmung) })
     if (fehler) return void eingabeFehler(fehler.feld, fehler.text)
     const gen = ++lauf.current
@@ -510,7 +538,7 @@ export function Auth() {
     </div>
   )
   const auge = (
-    <button type="button" className="tyd-auth-auge" onClick={() => setZeigePw(v => !v)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
+    <button type="button" className="tyd-auth-auge" onMouseDown={e => e.preventDefault()} onClick={() => setZeigePw(v => !v)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
       {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   )
@@ -557,7 +585,7 @@ export function Auth() {
   )
 
   return (
-    <main className="tyd-auth" data-verlassen={verlassen || undefined}>
+    <main className="tyd-auth" data-verlassen={verlassen || undefined} onPointerDownCapture={eingabe}>
       <div className="tyd-auth-top">
         <div className="tyd-auth-sprache" role="group" aria-label={t('language')}>
           {LANGUAGES.map(l => (

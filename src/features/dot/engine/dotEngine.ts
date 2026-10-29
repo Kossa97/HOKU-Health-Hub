@@ -790,7 +790,7 @@ export function createDot(host: DotHost): DotApi {
         if (st >= tipA + K.anflug && st < tipB && A.vy > 0 && A.y > boden && A.x > k.left + 8 && A.x < k.right - 8) {
           const v = A.vy
           A.y = boden; A.vy = -v * K.rueckprall
-          if (v > 80) {
+          if (v > 150) {
             const wand: Wand = { id: 'knopf', d: k.top - A.y, nx: 0, ny: -1 }
             impact(wand, v); el.dataset.dotDruck = 'an'; A.druckBis = tt + 0.16; A.beiStoss?.()
           }
