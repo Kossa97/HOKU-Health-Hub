@@ -92,3 +92,22 @@ test('dreimal schnell auf dieselbe Stelle tippen ruft Dot dorthin', async ({ pag
   b = (await figur.boundingBox())!
   expect(Math.hypot(b.x + b.width / 2 - ziel.x, b.y + b.height / 2 - ziel.y)).toBeLessThan(30)
 })
+
+test('Kalorientracker: Dot fliegt um die Kugel und sagt je Halt, was offen ist; danach alles zusammen', async ({ page, mock }) => {
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('region', { name: 'Frühstück' })).toBeVisible()
+  const blase = page.locator('.tyd-dot-blase')
+  // Je Halt ein Satz: Kugel, dann die drei Monde; gesammelt, während er fliegt
+  const gesagt = new Set<string>()
+  for (let t = 0; t < 12_000; t += 100) {
+    await page.clock.runFor(100)
+    const text = (await blase.textContent())?.trim()
+    if (text && (await blase.getAttribute('data-zeigen')) === 'true') gesagt.add(text)
+  }
+  expect([...gesagt]).toEqual(expect.arrayContaining([
+    'Noch alle 2000 kcal frei.', 'Eiweiß: noch 110 g.', 'Kohlenhydrate: noch 230 g.', 'Fett: noch 65 g.', 'Heute ist noch alles offen.',
+  ]))
+  // Gemerkt: frühestens in zwei Stunden wieder. Gesprochen wird ohne KI (keine Anfrage an den Coach).
+  expect(await page.evaluate(() => localStorage.getItem('tyd.dot.rundflug.v1'))).toBeTruthy()
+  expect(mock.coach.calls).toEqual([])
+})

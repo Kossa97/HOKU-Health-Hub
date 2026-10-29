@@ -304,7 +304,6 @@ export function LegacyCycleManager({
               <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                 <button
                   type="button"
-                  data-ob="btn-zyklus-add"
                   onClick={() => {
                     openNewCycle(cycleManagerPeptide)
                     dismissZyklusBtn()

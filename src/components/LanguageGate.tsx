@@ -1,33 +1,45 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Languages, ChevronRight } from 'lucide-react'
-import { LANGUAGES, applyDirection } from '../i18n'
-import { useOnboarding } from '../context/OnboardingContext'
+import { Check, ChevronRight } from 'lucide-react'
+import { LANGUAGES, setLanguage } from '../i18n'
+import type { LanguageCode } from '../i18n'
+import { useAuth } from '../context/AuthContext'
 
+// Pro Nutzer: wer schon einmal gewählt hat, sieht die Auswahl nicht wieder.
+const pickedKey = (uid: string | undefined) => `tyd_lang_picked${uid ? `_${uid}` : ''}`
+
+const currentCode = (lang: string | undefined): LanguageCode =>
+  LANGUAGES.find(l => l.code === lang?.split('-')[0])?.code ?? 'en'
+
+/** Sprachauswahl beim ersten Start — Deutsch oder Englisch. */
 export function LanguageGate() {
-  const { needsLanguagePick, confirmLanguage } = useOnboarding()
+  const { user, loading } = useAuth()
   const { i18n, t } = useTranslation()
 
-  const detectedBase = i18n.language?.split('-')[0] ?? ''
-  const initialCode =
-    LANGUAGES.find(l => l.code === detectedBase)?.code ??
-    LANGUAGES.find(l => l.code === localStorage.getItem('tyd_lang'))?.code ??
-    'de'
+  const key = pickedKey(user?.id)
+  const [doneFor, setDoneFor] = useState<string | null>(null)
+  const [selected, setSelected] = useState<LanguageCode>(() => currentCode(i18n.language))
 
-  const [selected, setSelected] = useState(initialCode)
+  // Erst nach dem Auth-Check entscheiden, sonst blitzt die Auswahl beim
+  // falschen Nutzer auf.
+  if (loading || doneFor === key || localStorage.getItem(key)) return null
 
-  if (!needsLanguagePick) return null
+  const choose = (code: LanguageCode) => {
+    setSelected(code)
+    setLanguage(code)
+  }
 
-  const panelStyle: React.CSSProperties = {
-    background: 'var(--surface)',
-    border: '1px solid var(--accent-weak)',
-    borderRadius: 20,
-    padding: '22px 18px 18px',
-    boxShadow: '0 -4px 40px rgba(0,0,0,0.7), 0 0 40px rgba(0,204,245,0.06)',
+  const finish = () => {
+    setLanguage(selected)
+    localStorage.setItem(key, '1')
+    setDoneFor(key)
   }
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="language-gate-title"
       className="fixed inset-0 z-[60] flex flex-col items-center justify-center px-4"
       style={{
         background: 'rgba(3, 4, 16, 0.97)',
@@ -35,62 +47,61 @@ export function LanguageGate() {
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <div className="w-full max-w-md" style={panelStyle}>
-        <div className="flex items-center justify-center mb-2" style={{ color: 'var(--accent)' }}>
-          <Languages size={20} />
-        </div>
+      <div
+        className="w-full max-w-md"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--accent-weak)',
+          borderRadius: 20,
+          padding: '24px 18px 18px',
+          boxShadow: '0 -4px 40px rgba(0,0,0,0.7), 0 0 40px rgba(0,204,245,0.06)',
+        }}
+      >
         <h1
+          id="language-gate-title"
           className="text-center font-bold mb-1"
           style={{ fontSize: '1.15rem', color: 'var(--text-dim)', letterSpacing: '-0.02em' }}
         >
           {t('lang_gate_title')}
         </h1>
         <p
-          className="text-center mb-4"
-          style={{ fontSize: '0.8rem', color: 'rgba(200,215,235,0.65)', lineHeight: 1.5 }}
+          className="text-center mb-5"
+          style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}
         >
           {t('lang_gate_subtitle')}
         </p>
 
-        <div
-          className="rounded-xl overflow-hidden mb-4"
-          style={{
-            border: '1px solid var(--border)',
-            background: 'rgba(8,10,24,0.98)',
-            maxHeight: 'min(52vh, 360px)',
-            overflowY: 'auto',
-          }}
-        >
+        <div role="radiogroup" aria-labelledby="language-gate-title" className="grid grid-cols-2 gap-3 mb-5">
           {LANGUAGES.map(lang => {
             const isSelected = lang.code === selected
             return (
               <button
                 key={lang.code}
                 type="button"
-                onClick={() => {
-                  setSelected(lang.code)
-                  void i18n.changeLanguage(lang.code)
-                  applyDirection(lang.code)
-                }}
+                role="radio"
+                aria-checked={isSelected}
+                lang={lang.code}
+                onClick={() => choose(lang.code)}
                 style={{
-                  width: '100%',
+                  position: 'relative',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '12px 16px',
-                  textAlign: 'start',
+                  gap: 8,
+                  padding: '20px 12px',
+                  borderRadius: 16,
                   cursor: 'pointer',
-                  borderBottom: '1px solid var(--border)',
+                  border: `1px solid ${isSelected ? 'var(--accent-border)' : 'var(--border)'}`,
                   background: isSelected ? 'var(--accent-weak)' : 'transparent',
-                  color: isSelected ? 'var(--accent)' : 'rgba(200,215,235,0.85)',
-                  fontWeight: isSelected ? 700 : 400,
-                  fontSize: '0.9rem',
+                  color: isSelected ? 'var(--accent)' : 'var(--text-dim)',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: '0.95rem',
                 }}
               >
-                <span style={{ fontSize: 20 }}>{lang.flag}</span>
+                <span style={{ fontSize: 34, lineHeight: 1 }} aria-hidden="true">{lang.flag}</span>
                 <span>{lang.name}</span>
                 {isSelected && (
-                  <span style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', color: 'var(--accent)' }}>
+                  <span style={{ position: 'absolute', top: 10, insetInlineEnd: 10, display: 'flex' }} aria-hidden="true">
                     <Check size={14} />
                   </span>
                 )}
@@ -101,7 +112,7 @@ export function LanguageGate() {
 
         <button
           type="button"
-          onClick={() => confirmLanguage(selected)}
+          onClick={finish}
           style={{
             width: '100%',
             display: 'flex',

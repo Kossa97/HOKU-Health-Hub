@@ -2130,7 +2130,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           {!loading && peptides.length === 0 && (
             <div className="card text-center py-10 text-slate-500">
               <p className="mb-4">{t('keine_peptide')}</p>
-              <AddVialTile onClick={handleNewPeptide} label={t('neues_peptid_title')} obKey="btn-peptid-anlegen" />
+              <AddVialTile onClick={handleNewPeptide} label={t('neues_peptid_title')} />
             </div>
           )}
 

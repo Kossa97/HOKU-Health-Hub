@@ -1,0 +1,107 @@
+/*
+ * Anmeldung mit Dot (docs/login/UEBERGABE.md, Mockup docs/login/mockup.html).
+ * Ein Bildschirm: oben Dots Bühne, darunter eine Karte mit drei Ansichten
+ * (Start, Anmelden, Registrieren). Dot selbst zeichnet die DotLayer-Ebene
+ * über allem; die Bühne ist nur der Platz, an dem er steht.
+ */
+
+.tyd-auth {
+  min-height: 100dvh; max-width: 440px; margin: 0 auto; box-sizing: border-box;
+  display: flex; flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 16px) max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(120% 50% at 50% 0%, rgba(30, 60, 90, 0.35), transparent 60%);
+}
+.tyd-auth-top { display: flex; justify-content: flex-end; min-height: 30px; }
+.tyd-auth-sprache { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--lg-fill); }
+.tyd-auth-sprache button {
+  font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--lg-text-2); cursor: pointer;
+}
+.tyd-auth-sprache button[aria-pressed='true'] { background: var(--lg-fill-selected); color: var(--lg-text); }
+
+.tyd-auth-buehne { position: relative; height: clamp(230px, 40vh, 330px); flex: none; }
+
+.tyd-auth-karte {
+  border-radius: 24px; padding: 16px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 18px 40px rgba(0, 0, 0, 0.7);
+}
+.tyd-auth-ansicht { display: flex; flex-direction: column; gap: 10px; animation: tyd-auth-rein 0.38s cubic-bezier(0.23, 1, 0.32, 1); }
+.tyd-auth-ansicht[data-von='links'] { animation-name: tyd-auth-rein-links; }
+@keyframes tyd-auth-rein { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@keyframes tyd-auth-rein-links { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+
+.tyd-auth-kopf { display: flex; align-items: center; gap: 6px; margin: -4px 0 4px -6px; }
+.tyd-auth-kopf h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--lg-text); }
+.tyd-auth-zurueck {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent; color: var(--lg-text-2);
+  display: grid; place-items: center; cursor: pointer;
+}
+
+.tyd-auth-feld { position: relative; min-width: 0; }
+.tyd-auth-feld input {
+  width: 100%; box-sizing: border-box; height: 48px; padding: 0 48px 0 14px; border-radius: 14px;
+  border: 1px solid transparent; background: rgba(118, 118, 128, 0.16); color: var(--lg-text);
+  font: inherit; font-size: 16px; outline: none; transition: box-shadow 0.2s, border-color 0.2s;
+}
+.tyd-auth-feld input::placeholder { color: var(--lg-text-3); }
+.tyd-auth-feld input:focus { border-color: rgba(0, 204, 245, 0.5); box-shadow: 0 0 0 3px rgba(0, 204, 245, 0.14); }
+.tyd-auth-feld input[aria-invalid='true'] { border-color: rgba(255, 69, 58, 0.7); box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.15); }
+.tyd-auth-auge {
+  position: absolute; right: 4px; top: 4px; width: 40px; height: 40px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--lg-text-3); display: grid; place-items: center; cursor: pointer;
+}
+
+.tyd-auth-knopf {
+  height: 50px; border-radius: 14px; border: 0; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.12s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s;
+}
+.tyd-auth-knopf:active { transform: scale(0.985); }
+.tyd-auth-knopf[data-art='haupt'] {
+  background: var(--lg-primary-fill); color: var(--accent-contrast, #00141c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 204, 245, 0.25);
+}
+.tyd-auth-knopf[data-art='haupt'][data-ok='true'] { background: var(--lg-good); box-shadow: 0 10px 30px rgba(48, 209, 88, 0.25); }
+.tyd-auth-knopf[data-art='glas'] { background: var(--lg-fill); color: var(--lg-text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+.tyd-auth-knopf:disabled { cursor: default; }
+.tyd-auth :is(button, input):focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 2px; }
+
+.tyd-auth-meldung { margin: 0; font-size: 13px; line-height: 1.4; color: #ff6961; }
+.tyd-auth-meldung[data-art='info'] { color: var(--lg-text-2); }
+.tyd-auth-fuss { margin: 12px 0 0; text-align: center; font-size: 13px; color: var(--lg-text-3); }
+
+.tyd-auth-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tyd-auth-ansicht { animation: none; }
+  .tyd-auth-knopf { transition: none; }
+}
+
+/* Was Dot schreibt, als Text: nur bei weniger Bewegung sichtbar (sonst für Screenreader) */
+.tyd-auth-gruss { margin: -8px 0 12px; text-align: center; font-family: var(--lg-display); font-size: 22px; font-weight: 700; color: var(--lg-text); }
+
+/* Nach dem Erfolg: die Anmeldung blendet aus, bevor Dots Portal die App zeigt */
+.tyd-auth { transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1), filter 0.45s cubic-bezier(0.23, 1, 0.32, 1), transform 0.45s cubic-bezier(0.23, 1, 0.32, 1); }
+.tyd-auth[data-verlassen='true'] { opacity: 0; filter: blur(10px); transform: scale(0.96); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .tyd-auth { transition: none; } }
+
+/* Schalter „Angemeldet bleiben" (wie iOS) */
+.tyd-auth-schalter { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; font-size: 13px; color: var(--lg-text-2); cursor: pointer; -webkit-user-select: none; user-select: none; }
+.tyd-auth-schalter input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tyd-auth-spur { position: relative; flex: none; width: 36px; height: 22px; border-radius: 11px; background: var(--lg-fill-selected); transition: background 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+.tyd-auth-spur::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1); }
+.tyd-auth-schalter input:checked + .tyd-auth-spur { background: var(--lg-good); }
+.tyd-auth-schalter input:checked + .tyd-auth-spur::after { transform: translateX(14px); }
+.tyd-auth-schalter input:focus-visible + .tyd-auth-spur { outline: 2px solid var(--lg-accent); outline-offset: 2px; }
+
+/* Apple und Google nach den Vorgaben der Anbieter: Apple weiß mit schwarzer Glyphe, Google dunkel mit Rand */
+.tyd-auth-knopf[data-art='apple'], .tyd-auth-knopf[data-art='google'] { height: 46px; gap: 8px; font-size: 15px; }
+.tyd-auth-knopf[data-art='apple'] { background: #fff; color: #000; }
+.tyd-auth-knopf[data-art='google'] { background: #131314; color: #e3e3e3; border: 1px solid #8e918f; font-family: Roboto, var(--font-ui, system-ui), sans-serif; font-weight: 500; }
+.tyd-auth-oder { display: flex; align-items: center; gap: 12px; margin: 2px 0; font-size: 13px; color: var(--lg-text-3); }
+.tyd-auth-oder::before, .tyd-auth-oder::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+
+/* Anmelden und rechts daneben Face ID (nur wenn auf diesem Gerät eingerichtet) */
+.tyd-auth-zeile { display: flex; gap: 10px; }
+.tyd-auth-zeile > .tyd-auth-knopf:first-child { flex: 1; }
+.tyd-auth-knopf[data-symbol] { width: 50px; flex: none; padding: 0; }

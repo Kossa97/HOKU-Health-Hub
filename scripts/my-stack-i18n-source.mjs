@@ -1290,7 +1290,7 @@ export const MY_STACK_EN = {
   bundle_confirm_open: "Confirm {{n}}",
   bundle_empty_hint: "Group substances you take together into a bundle and confirm them with a single tap.",
   my_stack_scan: "Scan",
-  my_stack_scan_hint: "Hold the barcode inside the frame – or take a photo of the label.",
+  my_stack_scan_hint: "Hold the barcode – or the square code on medicine packs – inside the frame, or take a photo of the label.",
   my_stack_scan_hint_photo: "Hold the label in view so it is easy to read, then take the photo.",
   my_stack_scan_photo: "Photograph label",
   my_stack_scan_photo_instead: "Photograph label",
@@ -1374,6 +1374,12 @@ export const MY_STACK_EN = {
   my_stack_form_recommended: "Recommended",
   my_stack_custom_substance: "Custom substance",
   my_stack_preview: "Preview",
+  my_stack_scan_which: "Which one exactly?",
+  my_stack_scan_which_hint: "The label doesn't say which one it is.",
+  my_stack_scan_pack_read: "Pack code read. Now take a photo of the label – the code doesn't contain the name.",
+  my_stack_scan_expiry: "Expiry",
+  my_stack_scan_batch: "Batch",
+  my_stack_scan_pzn: "PZN",
 }
 
 export const MY_STACK_DE = {
@@ -2667,7 +2673,7 @@ export const MY_STACK_DE = {
   bundle_confirm_open: "{{n}} bestätigen",
   bundle_empty_hint: "Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.",
   my_stack_scan: "Scannen",
-  my_stack_scan_hint: "Barcode in den Rahmen halten – oder das Etikett fotografieren.",
+  my_stack_scan_hint: "Barcode – oder den quadratischen Code auf Medikamenten – in den Rahmen halten, oder das Etikett fotografieren.",
   my_stack_scan_hint_photo: "Etikett gut lesbar ins Bild halten und auslösen.",
   my_stack_scan_photo: "Etikett fotografieren",
   my_stack_scan_photo_instead: "Etikett fotografieren",
@@ -2751,6 +2757,12 @@ export const MY_STACK_DE = {
   my_stack_form_recommended: "Empfohlen",
   my_stack_custom_substance: "Eigene Substanz",
   my_stack_preview: "Vorschau",
+  my_stack_scan_which: "Welche genau?",
+  my_stack_scan_which_hint: "Auf dem Etikett steht nicht, welche es ist.",
+  my_stack_scan_pack_read: "Packungscode gelesen. Jetzt das Etikett fotografieren – der Code enthält keinen Namen.",
+  my_stack_scan_expiry: "Verfall",
+  my_stack_scan_batch: "Charge",
+  my_stack_scan_pzn: "PZN",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

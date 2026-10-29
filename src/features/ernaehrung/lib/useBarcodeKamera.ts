@@ -16,7 +16,14 @@ const FRAME_MS = 180
  * Kamera laeuft, solange die Komponente steht — wer neu scannen will, setzt
  * sie neu ein. Gemeinsam fuer Ernaehrung und My Stack.
  */
-export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
+export function useBarcodeKamera(
+  onCode: ((code: string) => void) | null,
+  /**
+   * Auch Data-Matrix-Codes lesen; angenommen wird ein Code, fuer den das
+   * `true` ergibt, und dann roh weitergereicht (My Stack: Arzneimittelpackung).
+   */
+  dataMatrix?: (raw: string) => boolean,
+) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cam, setCam] = useState<KameraStand>(cameraAvailable() ? 'starting' : 'unavailable')
   // Solange ein Kamerabild läuft, ist Dot ganz weg
@@ -26,6 +33,7 @@ export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
   // Beim Start festgelegt: ein Wechsel mitten im Lauf hiesse, den Leser
   // nachzuladen oder abzuschalten — dafuer wird neu eingesetzt.
   const [mitBarcode] = useState(onCode !== null)
+  const [mitDataMatrix] = useState(() => dataMatrix)
 
   useEffect(() => {
     if (!cameraAvailable()) return
@@ -51,7 +59,7 @@ export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
         if (!mitBarcode) { if (!stopped) setCam('scanning'); return }
         let detector: Awaited<ReturnType<typeof createDetector>>
         try {
-          detector = await createDetector()
+          detector = await createDetector(Boolean(mitDataMatrix))
         } catch {
           // Etwa ZXing offline nicht geladen: das Bild steht trotzdem.
           if (!stopped) setCam('photo_only')
@@ -66,7 +74,9 @@ export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
           try {
             if (video.readyState >= 2) {
               const found = await detector.detect(video)
-              const code = found.map(f => normalizeBarcode(f.rawValue)).find(Boolean) ?? ''
+              const code = found
+                .map(f => normalizeBarcode(f.rawValue) ?? (mitDataMatrix?.(f.rawValue) ? f.rawValue : null))
+                .find(Boolean) ?? ''
               seen = code && code === last ? seen + 1 : code ? 1 : 0
               last = code
               if (code && seen >= CONFIRM_FRAMES) {
@@ -90,7 +100,7 @@ export function useBarcodeKamera(onCode: ((code: string) => void) | null) {
       window.clearTimeout(timer)
       stream?.getTracks().forEach(tr => tr.stop())
     }
-  }, [mitBarcode])
+  }, [mitBarcode, mitDataMatrix])
 
   return { videoRef, cam }
 }

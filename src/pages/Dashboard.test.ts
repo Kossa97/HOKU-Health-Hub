@@ -2178,8 +2178,8 @@ describe('Dashboard intake confirmation actions', () => {
 
   it('kennt jeden Uebersetzungsschluessel der Seite in de und en', () => {
     // Ein `defaultValue` ist deutscher Text. Fehlt der Schluessel in en.json,
-    // faellt i18next auf `fallbackLng: 'de'` zurueck -- die englische App
-    // zeigt Deutsch, und nichts schlaegt fehl. Genau so standen `verpasst`
+    // faellt i18next auf `fallbackLng` zurueck -- die App zeigt die andere
+    // Sprache, und nichts schlaegt fehl. Genau so standen `verpasst`
     // und `dose_mark_taken` monatelang in beiden Sprachdateien nicht drin.
     const source = readFileSync('src/pages/Dashboard.tsx', 'utf8')
     const de = JSON.parse(readFileSync('src/i18n/locales/de.json', 'utf8')) as Record<string, unknown>

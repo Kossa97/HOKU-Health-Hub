@@ -24,7 +24,7 @@ import { hatZugang } from '../../supabase/functions/coach/prompt'
 export class RpcError extends Error {}
 
 export const SUPABASE_ORIGIN = 'https://xcskcojakolphtbuqfbw.supabase.co'
-const STORAGE_KEY = 'sb-xcskcojakolphtbuqfbw-auth-token'
+export const STORAGE_KEY = 'sb-xcskcojakolphtbuqfbw-auth-token'
 
 export const TEST_USER = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -351,7 +351,6 @@ export class MockSupabase {
       localStorage.setItem(key, value)
       localStorage.setItem('tyd_lang', lang)
       localStorage.setItem(`tyd_lang_picked_${userId}`, '1')
-      localStorage.setItem(`_ob_done_${userId}`, '1')
       localStorage.setItem('tyd_stack_colors_migrated_v1', '1')
       localStorage.setItem('tyd_push_dismissed', 'true')
       localStorage.setItem('tyd_ios_install_shown', 'true')
@@ -383,6 +382,7 @@ export class MockSupabase {
       if (url.pathname === '/functions/v1/food-photo') return await this.handleFoodPhoto(route)
       if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
       if (url.pathname === '/functions/v1/coach') return await this.handleCoach(route)
+      if (url.pathname === '/functions/v1/login-name') return await this.handleLoginName(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -510,6 +510,23 @@ export class MockSupabase {
     calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
   } = { antwort: 'Heute ist nichts geplant.', meldungen: [], anlagen: [], error: null, calls: [] }
 
+  /**
+   * Nachbild von supabase/functions/login-name: Name (Groß/klein egal) und
+   * `loginName.passwort` ergeben die Sitzung der Testperson, alles andere 401.
+   */
+  readonly loginName: { passwort: string; calls: { name: string }[] } = { passwort: 'geheim1', calls: [] }
+
+  private async handleLoginName(route: Route): Promise<void> {
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
+    const body = (route.request().postDataJSON() ?? {}) as { name?: string; passwort?: string }
+    this.loginName.calls.push({ name: String(body.name ?? '') })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)
+    const passt = String(profil?.username ?? '').toLowerCase() === String(body.name ?? '').trim().toLowerCase() && body.passwort === this.loginName.passwort
+    if (!passt) return route.fulfill({ status: 401, headers: corsHeaders(), json: { error: 'invalid_credentials' } })
+    const s = fakeSession(this.now())
+    return route.fulfill({ headers: corsHeaders(), json: { access_token: s.access_token, refresh_token: s.refresh_token } })
+  }
+
   private async handleCoach(route: Route): Promise<void> {
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: corsHeaders() })
     const profil = this.table('profiles').find(row => row.id === TEST_USER.id) ?? null
@@ -568,7 +585,55 @@ export class MockSupabase {
     if (url.pathname === '/auth/v1/token') {
       return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
     }
+    if (url.pathname.startsWith('/auth/v1/passkeys')) return this.handlePasskeys(route, url)
     this.unhandled.push(`AUTH ${url.pathname}`)
+    return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
+  }
+
+  /**
+   * Nachbild der Passkey-Endpunkte von Supabase Auth (experimentell). Die
+   * Zeremonie selbst läuft im Browser gegen einen virtuellen Authenticator;
+   * hier wird nur gemerkt, welche Credential-IDs registriert sind.
+   */
+  readonly passkeys: { id: string; credentialId: string; created_at: string }[] = []
+
+  private async handlePasskeys(route: Route, url: URL): Promise<void> {
+    const method = route.request().method()
+    const pfad = url.pathname.slice('/auth/v1/passkeys'.length)
+    const body = (method === 'POST' ? route.request().postDataJSON() ?? {} : {}) as { credential?: { id?: string } }
+    const challenge = base64urlBytes(16)
+    const ablauf = Math.floor(this.now().getTime() / 1000) + 300
+    if (method === 'POST' && pfad === '/registration/options') {
+      return route.fulfill({ headers: corsHeaders(), json: { challenge_id: 'reg', expires_at: ablauf, options: {
+        challenge, rp: { id: url.searchParams.get('rp') ?? 'localhost', name: 'Dot' },
+        user: { id: Buffer.from(TEST_USER.id).toString('base64url'), name: TEST_USER.email, displayName: 'e2e' },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }], timeout: 60000,
+        authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+      } } })
+    }
+    if (method === 'POST' && pfad === '/registration/verify') {
+      const eintrag = { id: `pk-${this.passkeys.length + 1}`, credentialId: String(body.credential?.id ?? ''), created_at: this.now().toISOString() }
+      this.passkeys.push(eintrag)
+      return route.fulfill({ headers: corsHeaders(), json: { id: eintrag.id, friendly_name: 'Virtueller Schlüssel', created_at: eintrag.created_at } })
+    }
+    if (method === 'POST' && pfad === '/authentication/options') {
+      return route.fulfill({ headers: corsHeaders(), json: { challenge_id: 'auth', expires_at: ablauf, options: { challenge, rpId: 'localhost', userVerification: 'required', timeout: 60000 } } })
+    }
+    if (method === 'POST' && pfad === '/authentication/verify') {
+      if (!this.passkeys.some(p => p.credentialId === body.credential?.id)) {
+        return route.fulfill({ status: 404, headers: corsHeaders(), json: { code: 'webauthn_credential_not_found', error_code: 'webauthn_credential_not_found', msg: 'not found' } })
+      }
+      return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
+    }
+    if (method === 'GET' && (pfad === '' || pfad === '/')) {
+      return route.fulfill({ headers: corsHeaders(), json: this.passkeys.map(p => ({ id: p.id, friendly_name: 'Virtueller Schlüssel', created_at: p.created_at })) })
+    }
+    if (method === 'DELETE') {
+      const i = this.passkeys.findIndex(p => `/${p.id}` === pfad)
+      if (i >= 0) this.passkeys.splice(i, 1)
+      return route.fulfill({ status: 204, headers: corsHeaders() })
+    }
+    this.unhandled.push(`AUTH ${method} ${url.pathname}`)
     return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
   }
 
@@ -731,6 +796,9 @@ export class MockSupabase {
       .find(row => String(row.username ?? '').toLowerCase() === String(name ?? '').trim().toLowerCase())
     const istAdmin = () => this.table('profiles').some(row => row.id === TEST_USER.id && row.is_admin === true)
 
+    // Registrierung: ist der Benutzername frei? (Groß/klein egal, wie supabase-login-name.sql)
+    this.onRpc('benutzername_frei', params => !this.table('profiles')
+      .some(row => String(row.username ?? '').toLowerCase() === String(params.p_name ?? '').trim().toLowerCase()))
     this.onRpc('report_public_review', params => {
       const review = this.table('reviews').find(row => row.id === params.p_review_id)
       const besitzer = review && this.table('profiles').find(row => row.id === review.user_id)
@@ -1188,6 +1256,11 @@ function corsHeaders(): Record<string, string> {
     'access-control-allow-methods': 'GET,POST,PATCH,DELETE,HEAD,OPTIONS',
     'access-control-expose-headers': 'content-range',
   }
+}
+
+/** Zufällige Bytes als base64url (Challenge der Passkey-Zeremonie). */
+function base64urlBytes(n: number): string {
+  return Buffer.from(Array.from({ length: n }, () => Math.floor(Math.random() * 256))).toString('base64url')
 }
 
 function base64url(value: object): string {

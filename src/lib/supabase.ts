@@ -8,7 +8,9 @@ export const AUTH_STORAGE_KEY = `sb-${new URL(supabaseUrl).hostname.split('.')[0
 
 // supabase-js ruft das globale fetch erst beim Senden auf — das ist ab dem
 // Start dienstFetch (Offline-Lesecache und Störungsschalter, lib/stoerung.ts).
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Passkeys (Face ID im Web) sind bei Supabase noch experimentell und müssen
+// ausdrücklich eingeschaltet werden; genutzt nur in features/auth/lib/passkey.ts
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { auth: { experimental: { passkey: true } } })
 
 /**
  * Server-Funktionen laufen fest in der EU (Irland, wie die Datenbank) statt im
