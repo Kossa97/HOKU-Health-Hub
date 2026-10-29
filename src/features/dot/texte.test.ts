@@ -13,6 +13,18 @@ describe('Dot-Texte', () => {
     }
   })
 
+  it('Hokus Login-Sätze: höchstens zwei Zeilen, Wortlaut wie geplant', () => {
+    for (const k of Object.keys(DOT_TEXTE.de) as (keyof typeof DOT_TEXTE.de)[]) {
+      if (!k.startsWith('login_')) continue
+      expect(dotText('de', k).split('\n').length, k).toBeLessThanOrEqual(2)
+      expect(dotText('en', k).split('\n').length, k).toBeLessThanOrEqual(2)
+    }
+    expect(dotText('de', 'login_hub')).toBe('Hi! Willkommen\nbei Hoku')
+    expect(dotText('en', 'login_hey')).toBe("Hey, I'm\nHoku!")
+    expect(dotText('de', 'login_zurueck_2')).toBe('Schön, dich\nwiederzusehen!')
+    expect(dotText('de', 'login_sehe_nichts')).toBe('Keine Sorge, ich sehe nichts.')
+  })
+
   it('jede andere Sprache bekommt Englisch; Einzahl bei anzahl 1', () => {
     expect(dotSprache('de-DE')).toBe('de')
     expect(dotSprache('fr')).toBe('en')

@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { LANGUAGES, setLanguage } from '../i18n'
 import { dotStore, useDotStand } from '../features/dot/dotStore'
-import { useDotText, type DotTextKey } from '../features/dot/texte'
+import { DOT_TEXTE, useDotText, type DotTextKey } from '../features/dot/texte'
 import { GRUSS_DAUER } from '../features/dot/engine/gesten'
 import { PORTAL_AUF } from '../features/dot/engine/dotEngine'
 import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
@@ -45,7 +45,8 @@ const HINWEIS = 3500
 // Begrüßung (Mockup „Feinschliff"): Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s. Das Winken
 // dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
 const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
-const SAETZE: DotTextKey[] = ['login_hub', 'login_zurueck', 'login_hey']
+// alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
+const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
@@ -172,7 +173,7 @@ export function Auth() {
     setZeigePw(false)
     setAnsicht(ziel)
     // Jedes Formular öffnet mit einem Satz von Dot
-    if (ziel !== 'start') void schreibe(lauf.current, ziel === 'login' ? 'login_zurueck' : 'login_hey', GRUSS.text)
+    if (ziel !== 'start') void schreibe(lauf.current, ziel === 'login' ? 'login_zurueck_1' : 'login_hey', GRUSS.text)
   }
 
   // Fokus: im Passwort hört er zu (Kreis), sonst neigt er sich zum Formular
