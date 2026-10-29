@@ -116,6 +116,23 @@ Fehlergeste (Heute/A/C im Zufall), **kein Text von Hoku**, Zeile unten wie heute
 Vor dem Bau werden alle neuen Emotes im Mockup „Dots Auftritte“ gezeigt; der Nutzer
 wählt dort Freude und Warten aus.
 
+**Wahl des Nutzers (29.10.2026, Mockup Version 8):**
+- Freude: F1, F2 und F3 im Wechsel.
+- Warten: W2 (Lichtwelle) und W3 (Denkwolken: erst eine kleine, dann eine mittlere,
+  dann die große Wolke, im Loop) im Wechsel.
+- Augen zuhalten: Arme müssen organisch und physikalisch aus Hokus eigenen
+  Partikeln herauswachsen, keine Extra-Objekte.
+- Haken: gut, Hoku leuchtet dabei grün auf. X: oben links ausbessern, sonst gut.
+- Klopfen: Hoku kommt noch näher an die Scheibe, dann wächst ein Arm aus ihm und
+  klopft; deutlicher, aufwändiger, hochwertiger.
+- Sanduhr, Briefumschlag: gut.
+- Schulterzucken: **gestrichen**. Bei Abbruch (Apple/Google/Face ID) zeigt Hoku
+  nichts und wird nur wieder ruhig. **[Claude]**
+- Nicken: gut, Hoku leuchtet dabei grün auf. Kopfschütteln: gut, Hoku leuchtet rot auf.
+- Startknöpfe K2 (auseinander, „oder“ dazwischen); Hokus Flug um den Knopf freier und
+  zufälliger, auch vertikal um den Knopf herum, also zwischen Knopf und Hintergrund
+  hindurch (hinter dem Knopf verdeckt).
+
 ## Alle Situationen
 
 ### Startseite (Anmelden / Registrieren)
