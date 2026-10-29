@@ -41,7 +41,7 @@ test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page
   await page.locator('#auth-kennung').fill('test@example.test')
   await page.locator('#auth-pw').fill('geheim1')
   await page.locator('[data-auth-submit]').click()
-  // Denken 1 s, Haken 1,2 s (zeichnet sich, wird grün), Kugel und Brodeln 0,9 s, dann Portal, Sammeln, Heimflug
+  // Denken 1 s, Haken 1,2 s (zeichnet sich, wird grün), Ring 0,45 s, dann Portal, Sammeln, Heimflug
   await lassLaufen(page, 3500)
   await expect(page).toHaveURL(/\/$/)
   const portal = page.locator('[data-dot-portal]')
