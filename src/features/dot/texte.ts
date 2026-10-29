@@ -72,7 +72,7 @@ const de = {
   login_hey: 'Hey, ich bin\nHoku!',
   // Hinweise, wenn die Person eine Weile nichts tut (Hoku schwebt danach zum Feld oder Knopf)
   login_start_anmelden: 'Melde dich\nan!',
-  login_start_registrieren: 'Neu? Registrier\ndich!',
+  login_start_registrieren: 'Neu?\nRegistriere dich!',
   login_noch_da: 'Noch\nda?',
   login_tipp_email: 'Hier deine\nE-Mail rein',
   login_tipp_passwort: 'Jetzt noch\ndein Passwort',
