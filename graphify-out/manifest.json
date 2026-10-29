@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793290241.9423106,
-    "seen": 1793290309.5052013,
-    "ast_hash": "31c900bd0db2ae5ef3204759f5672d23",
+    "mtime": 1793291205.788365,
+    "seen": 1793291375.334442,
+    "ast_hash": "62caa45b797ba4533d12120354c0b709",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793290241.9413085,
-    "seen": 1793290309.5047581,
-    "ast_hash": "edbc6a9df489c117f60f9ff58abc9ec4",
+    "mtime": 1793291205.7893646,
+    "seen": 1793291375.3340206,
+    "ast_hash": "e16eddd8e05199041873a49ef4181243",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7860,15 +7860,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
-    "mtime": 1793286162.1683588,
-    "seen": 1793286207.722115,
-    "ast_hash": "89effeb1a57eff4463703c98adc800bb",
+    "mtime": 1793291205.8084724,
+    "seen": 1793291375.3340278,
+    "ast_hash": "351ea32ed2eff5762372b1014003a6a1",
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-    "mtime": 1793286220.1668906,
-    "seen": 1793286461.5471447,
-    "ast_hash": "4d83f1fe6f7c911ed7bffb7b5d4f85f2",
+    "mtime": 1793291205.8084724,
+    "seen": 1793291375.3340282,
+    "ast_hash": "9b25aa173a98bac57f131e2040700e9a",
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -8478,9 +8478,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793287573.4667768,
-    "seen": 1793287611.8975508,
-    "ast_hash": "bebce2cec34d6cf885c3d8e4de2c56f9",
+    "mtime": 1793291322.854365,
+    "seen": 1793291375.3346899,
+    "ast_hash": "51cbcbcfee9c647df6474a3f7a935645",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -17400,15 +17400,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.test.ts": {
-    "mtime": 1793286840.0294461,
-    "seen": 1793287176.1659398,
-    "ast_hash": "60e4c8656bb6797cb7a9fb265318360d",
+    "mtime": 1793291205.8074694,
+    "seen": 1793291375.3340242,
+    "ast_hash": "e132e57415dedd93269d4f2b8d7f71bd",
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.ts": {
-    "mtime": 1793286899.0501132,
-    "seen": 1793287176.1659408,
-    "ast_hash": "7ee43ae83ab9edc0823b885cdfd1868a",
+    "mtime": 1793291205.8004687,
+    "seen": 1793291375.3340247,
+    "ast_hash": "a2096abd5cb9f0d4fc4e031f1b86b2eb",
     "semantic_hash": ""
   },
   "docs/logo/hoku/kit/kit.cjs": {
@@ -17682,9 +17682,9 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md": {
-    "mtime": 1793286085.8849921,
-    "seen": 1793286207.7227876,
-    "ast_hash": "924680255b9d665cfa799f512a64b021",
+    "mtime": 1793291322.854365,
+    "seen": 1793291375.3346832,
+    "ast_hash": "6f20a6a4528f7eec220eed4e810a673d",
     "semantic_hash": ""
   },
   "docs/logo/hoku/exports/hoku-app-icon-dark-v1-1024.png": {
