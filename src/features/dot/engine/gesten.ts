@@ -19,8 +19,7 @@ export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array 
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
 export type Gruss = 'einArm' | 'beideArme'
 /**
- * Fehler: „Heute" das flache X, A die Kugel schüttelt sich, C ein X aus zwei runden Balken im Raum.
- * Das flache X zeichnet die Engine aus seiner Abtastung (`kreuzFlach`), die beiden anderen stehen hier.
+ * Fehler: „Heute" ein X, das aus Dot herauswächst, A die Kugel schüttelt sich, C ein X aus zwei runden Balken im Raum.
  */
 export type Fehler = 'heute' | 'kugel' | 'balken'
 export const FEHLER: readonly Fehler[] = ['heute', 'kugel', 'balken']
@@ -366,35 +365,47 @@ function sucht(t: number, out: GestenBild) {
   drehe(TMP, out.P, { yaw: 0.25 * Math.sin(0.5 * t), s: 0.95, ty: -0.12 })
 }
 
-/* ── Erfolg A: Haken mit Volumen zeichnet sich in einem Zug, danach läuft Licht hindurch ── */
-const HA: V3 = [-0.8, 0.02, 0], HB: V3 = [-0.22, 0.6, 0], HC: V3 = [0.92, -0.64, 0]
-let haken: { p: Float32Array; lauf: Float32Array } | null = null
-function baueHaken() {
-  const f = flaechenPunkte([{ a: HA, b: HB, r: 0.17 }, { a: HB, b: HC, r: 0.17 }], N)
-  const l1 = Math.hypot(HB[0] - HA[0], HB[1] - HA[1]), l2 = Math.hypot(HC[0] - HB[0], HC[1] - HB[1]), lauf = new Float32Array(N)
+/* ── Haken und X aus Dot (Nutzer 29.10.2026, Mockup G2/G3) ──────────────────
+   Jeder zweite Punkt wölbt sich als Zeichen vor Dot heraus wie beim Herz, nur das Zeichen färbt
+   sich (grün oder rot, die Farbe wählt die Engine) und leuchtet auf; Dot dahinter wird dunkler.
+   Danach sinkt das Zeichen in ihn zurück. Beide Balken sind gleich dicht besetzt. */
+/** Hier ist der Haken wieder ganz in Dot (s); danach beginnt das Portal. */
+export const HAKEN_ENDE = 1.65
+const HA: V3 = [-0.8, 0.02, 0], HB: V3 = [-0.22, 0.6, 0], HC: V3 = [0.92, -0.64, 0], VORN = 0.72
+let haken: Float32Array | null = null, kreuz: Float32Array | null = null
+const baueHaken = () => flaechenPunkte([{ a: HA, b: HB, r: 0.17 }, { a: HB, b: HC, r: 0.17 }], N / 2).p
+const baueKreuz = () => flaechenPunkte([{ a: [-0.62, -0.62, 0], b: [0.62, 0.62, 0], r: 0.17 }, { a: [0.62, -0.62, 0], b: [-0.62, 0.62, 0], r: 0.17 }], N / 2).p
+// raus: 0 = alles Kugel, 1 = Zeichen steht vor ihm; farbe 0…1 nur für die Punkte des Zeichens
+function zeichenAusDot(f: Float32Array, raus: number, farbe: number, glanz: number, yaw: number, out: GestenBild) {
+  const ra = Math.max(0, raus), rr = Math.min(1, ra)
   for (let i = 0; i < N; i++) {
-    const x = f.p[i * 3], y = f.p[i * 3 + 1]
-    // die runden Enden liegen hinter Anfang und Ende des Strichs: auf 0…1 begrenzt, sonst blieben sie dunkel
-    lauf[i] = clamp01(f.m[i] === 0
-      ? ((x - HA[0]) * (HB[0] - HA[0]) + (y - HA[1]) * (HB[1] - HA[1])) / l1 / (l1 + l2)
-      : (l1 + ((x - HB[0]) * (HC[0] - HB[0]) + (y - HB[1]) * (HC[1] - HB[1])) / l2) / (l1 + l2))
+    const j = i * 3, x = KUGEL_FEST[j], y = KUGEL_FEST[j + 1], z = KUGEL_FEST[j + 2]
+    if (i % 2 === 0) {
+      const m = (i / 2) * 3
+      TMP[j] = misch(x, f[m] * 1.2, ra); TMP[j + 1] = misch(y, f[m + 1] * 1.2, ra); TMP[j + 2] = misch(z, VORN + f[m + 2], ra)
+      out.L[i] = misch(1, 1.15 + glanz, rr); out.H[i] = clamp01(farbe * rr)
+    } else {
+      TMP[j] = x; TMP[j + 1] = y; TMP[j + 2] = z
+      out.L[i] = 1 - 0.45 * rr; out.H[i] = 0
+    }
   }
-  return { p: f.p, lauf }
+  drehe(TMP, out.P, { yaw, pitch: 0.1 })
 }
 function hakenBild(t: number, out: GestenBild) {
-  const f = (haken ??= baueHaken())
-  drehe(f.p, out.P, { yaw: 0.3 * Math.sin(TAU * 0.25 * t), pitch: 0.1, s: 0.95 })
-  const prog = clamp01(t / HAKEN_GRUEN.ab), welle = ((t - HAKEN_GRUEN.ab) * 0.7) % 1.4
-  for (let i = 0; i < N; i++) {
-    out.L[i] = (f.lauf[i] <= prog ? 1.1 : 0.04) + (t > HAKEN_GRUEN.ab ? 0.7 * Math.exp(-Math.pow(f.lauf[i] - welle, 2) / 0.01) : 0)
-    out.H[i] = 0
-  }
+  const raus = hinaus((t - 0.1) / 0.45) * (1 - weich((t - 1.2) / 0.45))
+  const gruen = clamp01((t - HAKEN_GRUEN.ab) / HAKEN_GRUEN.dauer), glanz = 0.55 * gruen * (0.6 + 0.4 * Math.sin(Math.PI * clamp01((t - 0.75) / 0.5)))
+  zeichenAusDot((haken ??= baueHaken()), raus, gruen, glanz, 0.22 * Math.sin(TAU * 0.25 * t), out)
+}
+function kreuzBild(t: number, out: GestenBild) {
+  const raus = hinaus((t - 0.15) / 0.45) * (1 - weich((t - 1.05) / 0.3)), glanz = 0.45 * Math.sin(Math.PI * clamp01((t - 0.45) / 0.6))
+  zeichenAusDot((kreuz ??= baueKreuz()), raus, 1, glanz, 0.12 * Math.sin(TAU * 0.3 * t), out)
 }
 
 /** Herz und Haken vorab bauen (Kandidaten und Auswahl dauern einige Millisekunden), damit ihr erstes Bild nicht ruckelt. */
 export function gestenVorbereiten() {
   herzKugel ??= baueHerzKugel()
   haken ??= baueHaken()
+  kreuz ??= baueKreuz()
   balken ??= baueBalken()
   wlan ??= baueWlan()
   EIN.kp ??= kappe(EIN.arm.s, false)
@@ -405,10 +416,10 @@ export function gestenVorbereiten() {
 export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenBild) {
   if (form === 'hand') (v.gruss === 'beideArme' ? beideArme : einArm)(t, out)
   else if (form === 'heart') herz(t, out)
-  else if (form === 'cross') fehler(t, v.fehler, out)
+  else if (form === 'cross') { if (v.fehler === 'heute') kreuzBild(t, out); else fehler(t, v.fehler, out) }
   else if (form === 'wifi') (v.netz === 'boegen' ? boegen : sucht)(t, out)
   else hakenBild(t, out)
 }
 
 /** Bei weniger Bewegung steht jede Geste still in diesem Moment. */
-export const STILL: Record<DotForm, number> = { hand: 1.3, heart: 0.3, cross: 0, wifi: 0.8, haken: 1.2 }
+export const STILL: Record<DotForm, number> = { hand: 1.3, heart: 0.3, cross: 0.7, wifi: 0.8, haken: 1.0 }

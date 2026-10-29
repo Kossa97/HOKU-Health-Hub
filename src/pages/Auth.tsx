@@ -10,6 +10,7 @@ import { dotStore, useDotStand } from '../features/dot/dotStore'
 import { DOT_TEXTE, useDotText, type DotTextKey } from '../features/dot/texte'
 import { GRUSS_DAUER } from '../features/dot/engine/gesten'
 import { PORTAL_AUF } from '../features/dot/engine/dotEngine'
+import { HAKEN_ENDE } from '../features/dot/engine/gesten'
 import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
@@ -36,8 +37,8 @@ interface Meldung { feld: Feld | null; text: string; art: 'fehler' | 'info' }
 
 // Zeiten aus dem Mockup: Denken vor dem Urteil des Servers, Dauer der Fehler
 const DENKEN: Record<NamensFehler | 'erfolg', number> = { falsch: 900, viele: 900, fehler: 900, netz: 1400, erfolg: 1000 }
-// Haken: zeichnet sich in 0,55 s, ist nach 1 s grün (Gesten-Mockup, Erfolg A)
-const ZEIGEN = { fehler: 1300, netz: 2500, haken: 1200 }
+// Haken: wächst aus Hoku, ist nach 1 s grün und nach HAKEN_ENDE wieder in ihm (Mockup G2)
+const ZEIGEN = { fehler: 1300, netz: 2500, haken: HAKEN_ENDE * 1000 }
 // So lange blendet die Anmeldung aus, bevor das Portal die App zeigt; sie geht, während Dot brodelt
 const VERLASSEN = 450
 // So lange steht der Hinweis, dass der Name später gewählt wird

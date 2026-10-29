@@ -1,11 +1,39 @@
 import { describe, expect, it } from 'vitest'
-import { FEHLER, GESTE_N, GRUSS_DAUER, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type Gruss, type Netz } from './gesten'
+import { FEHLER, GESTE_N, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type Gruss, type Netz } from './gesten'
 
 const bild = (): GestenBild => ({ P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) })
 // Abstand jedes Punkts von Dots Mitte (Einheit: sein Radius)
 const abstaende = (b: GestenBild) => Array.from({ length: GESTE_N }, (_, i) => Math.hypot(b.P[i * 3], b.P[i * 3 + 1], b.P[i * 3 + 2]))
 
 describe('Dot: Gesten', () => {
+  it('Haken wächst aus Dot, nur seine Punkte werden grün, dann sinkt er zurück', () => {
+    const w = { gruss: 'einArm' as Gruss, fehler: null, netz: 'sucht' as Netz }
+    const anfang = bild(); gestenBild('haken', 0, w, anfang)
+    for (const d of abstaende(anfang)) expect(d).toBeLessThan(1.05)
+    const steht = bild(); gestenBild('haken', HAKEN_GRUEN.ab + HAKEN_GRUEN.dauer, w, steht)
+    // ein großer Teil der Punkte hat seinen Platz auf der Kugel verlassen und steht als Haken vor ihm
+    const bewegt = Array.from({ length: GESTE_N }, (_, i) => Math.hypot(steht.P[i * 3] - anfang.P[i * 3], steht.P[i * 3 + 1] - anfang.P[i * 3 + 1], steht.P[i * 3 + 2] - anfang.P[i * 3 + 2]))
+    expect(bewegt.filter(d => d > 0.3).length).toBeGreaterThan(GESTE_N * 0.3)
+    const gruen = Array.from(steht.H).filter(h => h > 0.5).length
+    expect(gruen).toBeGreaterThan(GESTE_N * 0.3)
+    expect(gruen).toBeLessThan(GESTE_N * 0.7)
+    const ende = bild(); gestenBild('haken', HAKEN_ENDE, w, ende)
+    for (const d of abstaende(ende)) expect(d).toBeLessThan(1.05)
+    expect(Array.from(ende.H).every(h => h < 0.05)).toBe(true)
+  })
+
+  it('X (heute) wächst aus Dot, nur das X wird rot, beide Balken gleich dicht', () => {
+    const w = { gruss: 'einArm' as Gruss, fehler: 'heute' as Fehler, netz: 'sucht' as Netz }
+    const b = bild(); gestenBild('cross', 0.7, w, b)
+    const rot: number[] = []
+    for (let i = 0; i < GESTE_N; i++) if (b.H[i] > 0.5) rot.push(i)
+    expect(rot.length).toBeGreaterThan(GESTE_N * 0.3)
+    expect(rot.length).toBeLessThan(GESTE_N * 0.7)
+    // Balken von oben links nach unten rechts gegen den anderen: höchstens 15 % Unterschied
+    const fallend = rot.filter(i => b.P[i * 3] * b.P[i * 3 + 1] > 0).length, steigend = rot.length - fallend
+    expect(Math.abs(fallend - steigend) / rot.length).toBeLessThan(0.15)
+  })
+
   it('jede Geste liefert zu jeder Zeit endliche Lagen, Licht und Rosa', () => {
     const formen: DotForm[] = ['hand', 'heart', 'cross', 'wifi', 'haken']
     for (const f of formen) for (const g of ['einArm', 'beideArme'] as Gruss[]) for (const fe of ['kugel', 'balken'] as Fehler[]) for (const ne of ['boegen', 'sucht'] as Netz[]) for (let t = 0; t <= 4; t += 0.25) {
@@ -51,15 +79,6 @@ describe('Dot: Gesten', () => {
     gestenBild('heart', 0.5, { gruss: 'einArm', fehler: 'kugel', netz: 'sucht' }, b)
     expect(b.H.filter(v => v >= 0.85).length).toBeGreaterThan(150)
     expect(Math.max(...b.L)).toBeGreaterThan(1.8)
-  })
-
-  it('Haken: zeichnet sich in einem Zug, am Anfang ist er fast dunkel', () => {
-    const anfang = bild(), fertig = bild()
-    gestenBild('haken', 0.05, { gruss: 'einArm', fehler: 'kugel', netz: 'sucht' }, anfang)
-    gestenBild('haken', 0.6, { gruss: 'einArm', fehler: 'kugel', netz: 'sucht' }, fertig)
-    const hell = (b: GestenBild) => b.L.filter(v => v >= 1).length
-    expect(hell(anfang)).toBeLessThan(GESTE_N * 0.2)
-    expect(hell(fertig)).toBe(GESTE_N)
   })
 
   it('Fehler C: ein X aus zwei Balken, die Kugel-Variante bleibt rund', () => {

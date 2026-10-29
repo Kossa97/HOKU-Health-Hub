@@ -15,9 +15,9 @@ import {
   kastenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt, winkelAbstand,
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
-import { FORM_R, herzSchlag, kreuzFlach, ladeSchrift, textForm } from './formen'
+import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, feder, flugPunkt, flugWerte, stoss, type FlugWerte } from './auftritt'
-import { GESTE_N, HAKEN_GRUEN, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
 export type { DotForm } from './gesten'
 
@@ -126,7 +126,7 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
   heart: { bright: 1, glow: 0.5, hue: 0.55 },
   cross: { bright: 1, glow: 0.8, hue: 0.45 },
   wifi: { bright: 1, glow: 0.8, hue: 0.45 },
-  haken: { bright: 1.1, glow: 0.6, hue: 0.25 },
+  haken: { bright: 1, glow: 0.5, hue: 0.45 },
 }
 const HERZ = { bpm: 72 }
 // Gesten: Tiefe der Perspektive wie im Mockup; die Begrüßung wechselt zwischen einem und beiden Armen
@@ -339,7 +339,7 @@ export function createDot(host: DotHost): DotApi {
     form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
     login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0 },
   // Hinweis oder Klopfen auf der Anmeldung (Spec Hoku führt); quetsch staucht ihn beim Aufprall
-  auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
+  punktFarbe: PINK, auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
   }
   // Je Punkt, in Dots Formraum (Einheit: sein Radius, Mitte 0): Lage Q und Tempo V
   // (pro 1/60 s, wie im Mockup), Ziel T, Ziel beim letzten Wechsel O, Verzögerung DEL.
@@ -811,7 +811,7 @@ export function createDot(host: DotHost): DotApi {
     setState('idle'); arbeitet = false
     versteckeBlase(); zeigeTreffer(); melde(); laufen()
     // Gesten im Leerlauf vorab bauen, nicht im ersten Bild von Herz oder Haken
-    const vorbereiten = () => { gestenVorbereiten(); kreuzFlach(PUNKTE) }
+    const vorbereiten = () => gestenVorbereiten()
     if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(vorbereiten, { timeout: 1500 })
     else setTimeout(vorbereiten, 300)
   }
@@ -1311,6 +1311,7 @@ export function createDot(host: DotHost): DotApi {
     // Kein Netz: Bögen (A) und Dot sucht (B) im Wechsel, die erste zufällig
     if (f === 'wifi') B.wahl.netz = B.wahl.netz === 'boegen' ? 'sucht' : 'boegen'
     B.shape = f ?? SHAPE[B.state]; B.form = f; B.text = null; B.textF = null; B.formT = 0
+    B.punktFarbe = f === 'haken' ? GOOD : f === 'cross' ? BAD : PINK
     wechsel()
   }
   function setText(text: string | null) {
@@ -1379,11 +1380,6 @@ export function createDot(host: DotHost): DotApi {
       case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
         if (p.i >= GESTE_N) return ziel(0, 0, 0)
-        if (B.form === 'cross' && B.wahl.fehler === 'heute') {
-          // das flache X wie bisher, dicke Stellen heller
-          const f = kreuzFlach(PUNKTE), j = p.i * 3
-          return ziel(f[j] / FORM_R, f[j + 1] / FORM_R, f[j + 2] < 0 ? 0 : 0.6 + 0.4 * f[j + 2])
-        }
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
@@ -1610,9 +1606,10 @@ export function createDot(host: DotHost): DotApi {
     cur.spin += (spin - cur.spin) * k; cur.bright += (tg.bright - cur.bright) * k
     cur.glow += (tg.glow - cur.glow) * k; cur.hue += (tg.hue - cur.hue) * k
     B.joyT += dt; B.poke += dt; B.trans += dt; B.formT += dt
-    // Farbe blendet zu Rot (Fehler), Orange (kein Netz) oder Grün (Haken, sobald er steht) und zurück
-    const tintZiel = B.form === 'cross' || B.form === 'wifi' ? 1 : B.form === 'haken' ? clamp01((B.formT - HAKEN_GRUEN.ab) / HAKEN_GRUEN.dauer) : 0
-    if (tintZiel > 0) B.toenung = B.form === 'wifi' ? TOENUNG.warn : B.form === 'haken' ? TOENUNG.good : TOENUNG.bad
+    // Ganz Dot blendet zu Rot (Fehler A und C) oder Orange (kein Netz) und zurück; Haken und das X „heute"
+    // färben nur ihre eigenen Punkte (Punktfarbe)
+    const tintZiel = (B.form === 'cross' && B.wahl.fehler !== 'heute') || B.form === 'wifi' ? 1 : 0
+    if (tintZiel > 0) B.toenung = B.form === 'wifi' ? TOENUNG.warn : TOENUNG.bad
     B.tint += (tintZiel - B.tint) * Math.min(1, 7.2 * dt)
     // X: gedämpftes Schütteln zur Seite wie das iOS-Passwortfeld
     const su = (B.formT - SCHUETTELN.start) / SCHUETTELN.dauer
@@ -1675,7 +1672,7 @@ export function createDot(host: DotHost): DotApi {
     const buehne = B.mode === 'login' ? BUEHNE : null
     TEXT_SC = buehne ? Math.min(buehne.width / 340, buehne.height / 280, 1.15) : B.r / FORM_R
     const anzahl = kinderAktiv() ? ALLE : PUNKTE
-    if (B.form && !(B.form === 'cross' && B.wahl.fehler === 'heute')) gestenBild(B.form, weniger ? STILL[B.form] : B.formT, B.wahl, GB)
+    if (B.form) gestenBild(B.form, weniger ? STILL[B.form] : B.formT, B.wahl, GB)
     // die Grenze zum Formular folgt der Bühne, falls die Seite sich während der Eröffnung verschiebt
     if (B.intro.an) messeBuehne()
     federSchritt(dt, tt, anzahl)
@@ -1715,9 +1712,9 @@ export function createDot(host: DotHost): DotApi {
         ? dotColorInto((cx + cp[0] * r - W / 2) / (W / 2), ((cy + cp[1] * r - H / 2) / (H / 2)) * 1.1, cur.hue + hueShift, heal)
         : B.portal && rho > 1 ? dotColorInto(cp[0] / rho, cp[1] / rho, cur.hue + hueShift, heal) // weit draußen (Sammeln): Dots Farben, nicht hochgerechnet
           : dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal)
-      // Rosa je Punkt (Herz in Dot)
-      const ro = ROSA[i]
-      if (ro > 0.01) { c[0] += (PINK[0] - c[0]) * ro; c[1] += (PINK[1] - c[1]) * ro; c[2] += (PINK[2] - c[2]) * ro }
+      // Farbe je Punkt: Rosa (Herz in Dot), Grün (Haken), Rot (X)
+      const ro = ROSA[i], pf = B.punktFarbe
+      if (ro > 0.01) { c[0] += (pf[0] - c[0]) * ro; c[1] += (pf[1] - c[1]) * ro; c[2] += (pf[2] - c[2]) * ro }
       if (ti > 0.01) {
         // Farbe der App (Rot, Orange, Grün), unten rechts leicht verschoben
         const mm = clamp01((cp[0] - cp[1]) * 0.3 + 0.5)
