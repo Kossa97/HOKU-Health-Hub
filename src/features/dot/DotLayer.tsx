@@ -9,7 +9,7 @@ import { createDot, warDraussen, type DotApi } from './engine/dotEngine'
 import { dauerText } from './engine/geometry'
 import { dotStore, useDotStand } from './dotStore'
 import { localDateTimeKey } from '../../lib/planTimeline'
-import { heuteOffen, kontextVonHeute, ladeDotKontext, type DotKontext } from './lib/dotKontext'
+import { heuteHinweis, heuteOffen, kontextVonHeute, ladeDotKontext, type DotKontext } from './lib/dotKontext'
 import { useDotZugang } from './lib/zugang'
 import { useDotText } from './texte'
 import { CoachPanel, type DotSeite } from './chat/CoachPanel'
@@ -134,11 +134,8 @@ export function DotLayer() {
         gruss: () => {
           const k = aktuellerKontext.current()
           if (!k) return tagesgruss()
-          const h = heuteOffen(k, jetztIn(k))
-          const rest = h.naechste
-            ? t(h.naechste.menge ? 'naechste_menge' : 'naechste', { zeit: h.naechste.zeit, substanz: h.naechste.substanz, menge: h.naechste.menge ?? '' })
-            : h.geplant ? t('alles_erledigt') : t('nichts_geplant')
-          return `${tagesgruss()} ${rest}`
+          const hinweis = heuteHinweis(heuteOffen(k, jetztIn(k)))
+          return `${tagesgruss()} ${t(hinweis.schluessel, hinweis.werte)}`
         },
         uhr: () => {
           const jetzt = new Date()
