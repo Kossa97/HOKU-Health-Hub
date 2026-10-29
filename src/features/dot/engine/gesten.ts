@@ -463,51 +463,47 @@ function funken(t: number, out: GestenBild) {
   }
 }
 
-// G1 Augen zuhalten (Mockup Version 13): unten links und rechts wird die Kappe seiner Oberfläche wie zäher
-// Teig zu je einem Arm herausgezogen. Die Mitte der Kappe wird zur Hand vor seinem „Gesicht", ihr Rand bleibt
-// an der Kugel, die Nachbarn werden zum Hals. Am Ende fließt jeder Punkt gestaffelt auf seinen Platz zurück.
-const AUGEN = { wx: 0.86, wy: 0.51, kappe: 0.64, dick: 0.2, hand: 1.1 }
+// G1 Augen zuhalten (Mockup Version 13, Nutzer 29.10.2026: Körper bleibt normal, Arme deutlicher): Hoku
+// bleibt die ruhige Kugel. Unten links und rechts wachsen aus seinem Rand zwei Arme aus eigenen Punkten
+// (in der Engine die Kinderpunkte) und legen die Hände vor sein „Gesicht". Bahn wie im Mockup, die Arme
+// etwas dicker, heller und mit dem Ellbogen weiter außen, damit sie sich von der Kugel abheben.
+// Am Ende fließt jeder Armpunkt gestaffelt zurück zur Wurzel und geht in ihm auf.
+const AUGEN = { wx: 0.86, wy: 0.51, ellbogen: 1.6, dick: 0.12, hand: 1.0, ringe: 30, je: 8, vor: 1.3, licht: 1.5 }
+/** So viele Punkte mehr als die Kugel braucht eine Geste höchstens (die Arme beim Augen zuhalten). */
+export const GESTE_ARME = 2 * AUGEN.ringe * AUGEN.je
+/** Länge der Gestenbilder: Kugel und Armpunkte. */
+export const GESTE_PLATZ = GESTE_N + GESTE_ARME
 // Feder: 0 → 1 mit Überschwingen und Ausklingen, u in Sekunden seit Beginn
 const feder = (u: number, k: number, w: number) => (u <= 0 ? 0 : 1 - Math.exp(-k * u) * Math.cos(w * u))
-// Das Mockup zeichnet flach mit eigener Größe; hier macht die Tiefe beides: der Punkt rückt so weit vor, dass er
-// `gross`-mal so groß erscheint, und so weit zur Mitte, dass er nach der Perspektive bei (x, y) liegt
-function flach(x: number, y: number, gross: number, alpha: number, o: number[]) {
-  const z = GESTE_FERN * (1 - 1 / gross), sicht = 0.28 + 0.72 * clamp01((z + 1) / 2)
-  o[0] = x / gross; o[1] = y / gross; o[2] = z; o[3] = Math.min(1.6, alpha / sicht)
-}
-const ARM_O = [0, 0, 0, 0]
+// fester Zufall je Armpunkt: wann er beim Einfahren losfließt
+const ZARM = (() => { const z = zufall(31); return Float32Array.from({ length: GESTE_ARME }, z) })()
 function augen(t: number, out: GestenBild) {
-  const wachs = feder(t - 0.1, 4.2, 8), heim = easeIO(clamp01((t - 3.15) / 0.7)), KA = AUGEN.kappe
+  // der Körper bleibt, wie er ist
+  for (let i = 0; i < N * 3; i++) out.P[i] = KUGEL_FEST[i]
+  for (let i = 0; i < N; i++) { out.L[i] = 1; out.H[i] = 0 }
+  const wachs = feder(t - 0.1, 4.2, 8)
   const wack = t > 0.1 ? 0.1 * Math.exp(-3.5 * (t - 0.1)) * Math.sin(12 * (t - 0.1)) : 0
-  // die Kugel tritt zurück, solange die Arme draußen sind
-  const kugelLicht = misch(misch(1, 0.22, clamp01(wachs)), 1, heim)
-  drehe(KUGEL, TMP, { yaw: 0.5 * t, pitch: 0.3 })
-  for (let i = 0; i < N; i++) {
-    const j = i * 3, ux = TMP[j], uy = TMP[j + 1], uz = TMP[j + 2]
-    out.P[j] = ux; out.P[j + 1] = uy; out.P[j + 2] = uz; out.L[i] = kugelLicht; out.H[i] = 0
-    // linker und rechter Arm spiegeln sich; Wurzel unten seitlich
-    const seite = ux < 0 ? 1 : -1, wx = -AUGEN.wx * seite, wy = AUGEN.wy, d = ux * wx + uy * wy
-    if (d <= KA - 0.18 || wachs <= 0) continue
-    // Einfahren: jeder Punkt fließt gestaffelt auf seinen eigenen Platz zurück, kein Zusammenziehen zum Strich
-    const h = easeIO(clamp01((t - 3.1 - 0.35 * ZA[j + 2]) / 0.55))
-    if (d <= KA) {
-      // Hals: Nachbarn der Kappe werden ein wenig zur Wurzel gezogen
-      const hh = ((d - (KA - 0.18)) / 0.18) * Math.min(1, wachs) * (1 - h)
-      out.P[j] = ux + wx * 0.1 * hh; out.P[j + 1] = uy + wy * 0.1 * hh; out.L[i] = misch(1.7, 1, h)
-      continue
-    }
-    // Arm: Bogen von der Wurzel über den Ellbogen außen zur Hand vor dem Gesicht
-    const b1x = seite * -1.5, b1y = -0.1, b2x = seite * (-0.2 + wack), b2y = -0.34
-    const s = (d - KA) / (1 - KA), ss = s * wachs, m = 1 - ss, p0x = wx * 0.92, p0y = wy * 0.92
+  for (let a = 0; a < GESTE_ARME; a++) {
+    const o = N + a, j = o * 3, arm = a < GESTE_ARME / 2 ? 0 : 1, k = a % (GESTE_ARME / 2)
+    const seite = arm === 0 ? 1 : -1, wx = -AUGEN.wx * seite, wy = AUGEN.wy
+    // Einfahren: jeder Punkt fließt gestaffelt zur Wurzel zurück, kein Zusammenziehen zum Strich
+    const h = easeIO(clamp01((t - 3.1 - 0.35 * ZARM[a]) / 0.55)), g = Math.max(0, wachs) * (1 - h)
+    // Lage entlang des Arms (zur Hand hin dichter) und rund um seinen Querschnitt
+    const ring = Math.floor(k / AUGEN.je), u = Math.pow((ring + 0.5) / AUGEN.ringe, 0.8)
+    const ang = ((k % AUGEN.je) / AUGEN.je + (ring % 2) / (2 * AUGEN.je)) * TAU
+    // Bogen von der Wurzel über den Ellbogen außen zur Hand vor dem Gesicht (Mockup armPunkt)
+    const b1x = seite * -AUGEN.ellbogen, b1y = -0.1, b2x = seite * (-0.2 + wack), b2y = -0.34
+    const ss = u * g, m = 1 - ss, p0x = wx * 0.92, p0y = wy * 0.92
     let x = m * m * p0x + 2 * m * ss * b1x + ss * ss * b2x, y = m * m * p0y + 2 * m * ss * b1y + ss * ss * b2y
     const tx = 2 * m * (b1x - p0x) + 2 * ss * (b2x - b1x), ty = 2 * m * (b1y - p0y) + 2 * ss * (b2y - b1y), tl = Math.hypot(tx, ty) || 1
-    // Querschnitt aus der Lage auf der Kugel; zur Hand hin wird er wieder dicker
-    const q = -ux * wy + uy * wx, ang = Math.atan2(uz, q)
-    const rad = AUGEN.dick * (1 - 0.35 * s + AUGEN.hand * weich((s - 0.68) / 0.32)) * (0.75 + 0.25 * Math.min(1, wachs))
+    const rad = AUGEN.dick * (1 - 0.35 * u + AUGEN.hand * weich((u - 0.68) / 0.32)) * (0.75 + 0.25 * Math.min(1, g))
     x += (-ty / tl) * Math.cos(ang) * rad; y += (tx / tl) * Math.cos(ang) * rad
-    flach(x, y, 1 + 0.5 * s * s, (0.8 + 0.45 * Math.sin(ang)) * 1.7, ARM_O)
-    out.P[j] = misch(ARM_O[0], ux, h); out.P[j + 1] = misch(ARM_O[1], uy, h); out.P[j + 2] = misch(ARM_O[2], uz, h)
-    out.L[i] = misch(ARM_O[3], 1, h)
+    // vor die Kugel: an der Wurzel an ihrem Rand, die Hand ganz vorn; die Perspektive der Engine ist
+    // herausgerechnet, damit die Hand dort liegt, wo das Mockup sie zeichnet
+    const da = clamp01(g * 4), z = (AUGEN.vor * weich(ss) + Math.sin(ang) * rad) * da, s = GESTE_FERN / (GESTE_FERN - z)
+    out.P[j] = x / s; out.P[j + 1] = y / s; out.P[j + 2] = z
+    // hell und deutlich; ungewachsen und ganz zurückgeflossen unsichtbar (auch ohne Tiefe, damit nichts nachglimmt)
+    out.L[o] = AUGEN.licht * (0.85 + 0.25 * Math.sin(ang)) * da; out.H[o] = 0
   }
 }
 

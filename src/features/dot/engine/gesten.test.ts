@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { FEHLER, FORM_DAUER, GESTE_N, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type GestenWahl, type Gruss, type Netz } from './gesten'
+import { FEHLER, FORM_DAUER, GESTE_N, GESTE_PLATZ, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type GestenWahl, type Gruss, type Netz } from './gesten'
 
-const bild = (): GestenBild => ({ P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) })
+const bild = (): GestenBild => ({ P: new Float32Array(GESTE_PLATZ * 3), L: new Float32Array(GESTE_PLATZ), H: new Float32Array(GESTE_PLATZ) })
 // Abstand jedes Punkts von Dots Mitte (Einheit: sein Radius)
 const abstaende = (b: GestenBild) => Array.from({ length: GESTE_N }, (_, i) => Math.hypot(b.P[i * 3], b.P[i * 3 + 1], b.P[i * 3 + 2]))
 
@@ -134,15 +134,22 @@ describe('Dot: Gesten', () => {
     }
   })
 
-  it('Augen zuhalten: helle Hände liegen vor seinem Gesicht, die Kugel tritt zurück', () => {
+  it('Augen zuhalten: der Körper bleibt eine volle Kugel, helle Arme legen die Hände vor sein Gesicht', () => {
+    const w: GestenWahl = { gruss: 'einArm', fehler: null, netz: 'sucht' }
     const b = bild()
-    gestenBild('augen', 1.2, { gruss: 'einArm', fehler: null, netz: 'sucht' }, b)
-    // wo der Punkt nach der Perspektive der Engine erscheint (fern 3.4)
+    gestenBild('augen', 1.2, w, b)
+    for (const d of abstaende(b)) expect(Math.abs(d - 1)).toBeLessThan(1e-4)
+    expect(Array.from(b.L.subarray(0, GESTE_N)).every(l => l === 1)).toBe(true)
+    // wo ein Armpunkt nach der Perspektive der Engine erscheint (fern 3.4)
     const s = (i: number) => 3.4 / (3.4 - b.P[i * 3 + 2])
-    const haende = Array.from({ length: GESTE_N }, (_, i) => i)
-      .filter(i => b.L[i] > 0.5 && Math.abs(b.P[i * 3] * s(i)) < 0.6 && b.P[i * 3 + 1] * s(i) > -0.8 && b.P[i * 3 + 1] * s(i) < 0.1)
-    expect(haende.length).toBeGreaterThan(15)
-    expect(Array.from(b.L).filter(l => l < 0.3).length).toBeGreaterThan(GESTE_N * 0.3)
+    const haende = Array.from({ length: GESTE_PLATZ - GESTE_N }, (_, a) => GESTE_N + a)
+      .filter(i => b.L[i] > 0.8 && b.P[i * 3 + 2] > 0.9 && Math.abs(b.P[i * 3] * s(i)) < 0.6 && b.P[i * 3 + 1] * s(i) > -0.8 && b.P[i * 3 + 1] * s(i) < 0.1)
+    expect(haende.length).toBeGreaterThan(80)
+    // vor dem Wachsen und nach dem Einfahren keine Armpunkte zu sehen
+    for (const t0 of [0, FORM_DAUER.augen ?? 4.2]) {
+      const c = bild(); gestenBild('augen', t0, w, c)
+      expect(Array.from(c.L.subarray(GESTE_N)).every(l => l === 0), String(t0)).toBe(true)
+    }
   })
 
   it('Nicken färbt ganz Hoku, Kopfschütteln auch', () => {

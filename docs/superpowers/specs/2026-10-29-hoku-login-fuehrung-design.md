@@ -329,3 +329,6 @@ des Nutzers. Erst danach wird gebaut.
   Kappe seiner Oberfläche, Hände vor dem „Gesicht“, Blase „Keine Sorge, ich sehe nichts.“ von 0,85 bis
   3,0 s, gestaffeltes Einfahren bis 4,2 s. Das Wegdrehen aus der Mitte des Mockups entfällt, weil das
   Einblenden jetzt selbst der Auslöser ist. Ausblenden zeigt nichts.
+- Nachgeschärft: **Hokus Körper bleibt die normale Kugel** (keine Löcher, nicht abgedunkelt); die Arme
+  bestehen aus eigenen Punkten (Kinderpunkte der Engine), sind schlank, dicht und hell, wachsen aus den
+  Schultern unten seitlich und fließen am Ende dorthin zurück.
