@@ -161,6 +161,14 @@ wählt dort Freude und Warten aus.
   im schnellen Flug streckt er sich in Flugrichtung. Hin- und Rückflug setzen am schon
   fliegenden Punkt an.
 
+**Vierte Rückmeldung (29.10.2026, Mockup Version 12):** Hinweis-Flug mit mehr
+Schwingung und Physik, und Hoku tippt zweimal schnell gegen den Knopf, dann zieht er
+weiter. Umgesetzt als Simulation: Hoku ist eine Masse an einer weichen Feder
+(Dämpfung 0,22, leichte Schwerkraft), die dem stetig fliegenden Köder nachjagt.
+Mittendrin hält er über dem Knopf, fällt auf ihn und prallt zweimal ab (Rückprall
+55 %); bei jedem Treffer drückt er sich platt, der Knopf gibt nach (etwas kleiner,
+heller) und leuchtet; dann schwingt er weiter.
+
 ## Alle Situationen
 
 ### Startseite (Anmelden / Registrieren)
