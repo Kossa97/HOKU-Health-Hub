@@ -1417,7 +1417,8 @@ export function createDot(host: DotHost): DotApi {
     const zA = 1 - Math.pow(0.86, f), sA = 1 - Math.pow(0.9, f), R = Math.max(B.r, 1)
     // nach dem Portal sehr weiche Federn, die sich zurück auf normal steigern
     B.kMul += (1 - B.kMul) * Math.min(1, 0.005 * f)
-    const sofort = weniger || B.erstes
+    // während das Portal wächst, sitzen die Punkte genau auf dem Rand des Kreises, der die App freigibt
+    const sofort = weniger || B.erstes || B.portal?.phase === 'rahmen'
     B.erstes = false
     for (let i = 0; i < anzahl; i++) {
       const p = B.pts[i], kind = i >= PUNKTE
