@@ -92,6 +92,11 @@ Daten
 
 **Stand 28.10.2026:** v2 gebaut auf `claude/workout-tracker-v2` (Logger, Editor,
 Pläne, Vorlagen), Live-Mockup https://claude.ai/artifact/Rg8Myea78FVk1qbp4JvLvX.
+**Migration v2 in Prod eingespielt am 29.10.2026** (Migration `training_workout_tracker_v2_folder`,
+mit Zustimmung des Nutzers): Trockenlauf mit Postgres 16 zweimal (zweiter Lauf: „already exists,
+skipping"), Prüfregel getestet (leer und 41 Zeichen abgelehnt). Prod danach: `training_routines`
+mit Spalte `folder` + Prüfregel (5 Checks), 0 Zeilen, RLS an, 4 Policies; Security-Advisor ohne
+neuen Befund. Das v2-Frontend darf jetzt deployt werden.
 Prüfungen grün: tsc, eslint (0 Fehler), 3165 Unit-Tests, e2e Training (iPhone 13,
 Pixel 7), Build. Code-Review (10 Punkte) eingearbeitet. **Noch nicht auf main,
 Migration v2 noch nicht in Prod** (Reihenfolge: erst Migration, dann Deploy).
