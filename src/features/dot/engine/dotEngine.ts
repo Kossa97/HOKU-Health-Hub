@@ -334,7 +334,7 @@ export function createDot(host: DotHost): DotApi {
     // v: zuletzt gezeigte Eröffnung; null = noch keine, dann ist jede möglich
     intro: { an: false, t0: 0, v: null as Variante | null },
     // Erfolg: Phase, Start der Phase, Fortschritt des Rahmens, Flugbahn; kMul macht die Federn weich
-    portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; t0: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
+    portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; te: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
     kMul: 1,
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
     orbitCool: 0, herkunft: null as null | { x: number; y: number; t: number },
@@ -1457,7 +1457,7 @@ export function createDot(host: DotHost): DotApi {
     if (weniger || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
     appPlatz()
-    B.portal = { phase: 'ring', t0: performance.now(), fe: 0, r0: B.r }
+    B.portal = { phase: 'ring', te: 0, fe: 0, r0: B.r }
     // der Haken wird zum Ring um Dots Platz, schon unruhig wie später der Rahmen
     B.state = 'idle'; B.shape = 'frame'; B.form = null; B.text = null; B.textF = null
     wechsel()
@@ -1467,14 +1467,18 @@ export function createDot(host: DotHost): DotApi {
   function portalSchritt(dt: number) {
     const P0 = B.portal
     if (!P0) return
-    const jetzt = performance.now(), te = (jetzt - P0.t0) / 1000, el = portalFlaeche()
+    // Zeit nur so weit, wie Bilder gezeigt werden: hängt der Seitenwechsel (die App baut sich auf),
+    // wartet das Portal, statt danach zu springen
+    P0.te += Math.min(dt, 1 / 30)
+    const te = P0.te, el = portalFlaeche()
     B.vx = B.vy = 0
     if (P0.phase === 'ring') {
       // die App bleibt verborgen, bis das Portal aufgeht
       if (el) el.style.clipPath = 'circle(0px)'
-      if (te > ERFOLG.ring) {
+      // erst wenn die App da ist (sonst wüchse der Kreis über nichts und sie erschiene mittendrin); notfalls nach 3 s
+      if ((te > ERFOLG.ring && el?.isConnected) || te > 3) {
         // das Portal schießt hinaus, die Punkte folgen fast gleichzeitig und straff
-        P0.phase = 'rahmen'; P0.t0 = jetzt; P0.r0 = B.r
+        P0.phase = 'rahmen'; P0.te = 0; P0.r0 = B.r
         for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.05
         B.kMul = 1.6
       }
@@ -1486,7 +1490,7 @@ export function createDot(host: DotHost): DotApi {
         const rr = P0.r0 + (kreisWeit() - P0.r0) * fe
         el.style.clipPath = fe >= 1 ? 'none' : `circle(${rr.toFixed(1)}px at ${B.x.toFixed(1)}px ${B.y.toFixed(1)}px)`
       }
-      if (fe >= 1) { P0.phase = 'rand'; P0.t0 = jetzt }
+      if (fe >= 1) { P0.phase = 'rand'; P0.te = 0 }
     } else if (P0.phase === 'rand' && te > ERFOLG.ruhe) {
       // Kurz am Rand, dann sammeln sich die Punkte in der Mitte des Displays: Dots Mitte springt
       // dorthin, die Punkte bleiben auf dem Bildschirm, wo sie sind
@@ -1495,14 +1499,14 @@ export function createDot(host: DotHost): DotApi {
       B.x = B.lx = nx; B.y = B.ly = ny
       setState('idle')
       for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.12
-      B.kMul = 0.9; P0.phase = 'sammeln'; P0.t0 = jetzt
+      B.kMul = 0.9; P0.phase = 'sammeln'; P0.te = 0
     } else if (P0.phase === 'sammeln' && te > ERFOLG.sammeln) {
       vermessen()
       const l = host.leiste()
       if (!l || !l.logo.isConnected) { portalEnde(false); return }
       const lr = l.logo.getBoundingClientRect()
       P0.flug = { sx: B.x, sy: B.y, ex: lr.left + lr.width / 2, ey: lr.top + lr.height / 2 }
-      P0.phase = 'flug'; P0.t0 = jetzt
+      P0.phase = 'flug'; P0.te = 0
     } else if (P0.phase === 'flug' && P0.flug) {
       // Bogen nach rechts außen in den Platz in der Leiste, dabei auf Logo-Größe schrumpfen (wie S2)
       const F = P0.flug, u = clamp01(te / ERFOLG.flug), e = easeIO(u)
@@ -1512,7 +1516,6 @@ export function createDot(host: DotHost): DotApi {
       B.r = P0.r0 + (ERFOLG.logoR - P0.r0) * e; B.rv = 0
       if (u >= 1) portalEnde(true)
     }
-    void dt
   }
   /** Er ist drinnen: das Logo hüpft (Stoß), die Tür ist zu. */
   function portalEnde(gelandet: boolean) {

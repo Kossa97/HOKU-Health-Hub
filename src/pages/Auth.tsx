@@ -408,6 +408,8 @@ export function Auth() {
     await warte(DENKEN.erfolg - (performance.now() - seit))
     if (gen !== lauf.current) return
     wartet.current = false
+    // die Startseite der App schon jetzt laden: sonst baut sie sich erst beim Portal auf und es ruckelt
+    void import('./Home').catch(() => { /* lädt die Route beim Wechsel selbst, mit Neuladen bei alter Version */ })
     setGeschafft(true)
     fuehlen(true)
     dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
