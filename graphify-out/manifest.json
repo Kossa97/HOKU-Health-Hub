@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793292514.827213,
-    "seen": 1793292737.6600895,
-    "ast_hash": "8c3286def2d838d396f34480f651ae27",
+    "mtime": 1793304148.7614987,
+    "seen": 1793304656.6999338,
+    "ast_hash": "5419200592cb9838cb6d863aaf521fe0",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793294501.355095,
-    "seen": 1793294672.8256688,
+    "mtime": 1793304563.7486527,
+    "seen": 1793304656.7000234,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793299632.6224482,
-    "seen": 1793299786.7736797,
-    "ast_hash": "a259228eedc4897cfc3bf2332d1b696e",
+    "mtime": 1793304148.7599835,
+    "seen": 1793304656.6994882,
+    "ast_hash": "b44e83dc0d42ca54010a350080ae0be8",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7860,15 +7860,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
-    "mtime": 1793291205.8084724,
-    "seen": 1793291375.3340278,
-    "ast_hash": "351ea32ed2eff5762372b1014003a6a1",
+    "mtime": 1793304148.7614987,
+    "seen": 1793304656.6994958,
+    "ast_hash": "bd49b2fe70c9aeb2561dfcc5974ecd4a",
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-    "mtime": 1793291205.8084724,
-    "seen": 1793291375.3340282,
-    "ast_hash": "9b25aa173a98bac57f131e2040700e9a",
+    "mtime": 1793304148.7614987,
+    "seen": 1793304656.6994965,
+    "ast_hash": "e6d112ebb73570e8bd2efa238e0ea203",
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -8478,9 +8478,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793291322.854365,
-    "seen": 1793291375.3346899,
-    "ast_hash": "51cbcbcfee9c647df6474a3f7a935645",
+    "mtime": 1793304611.3839004,
+    "seen": 1793304656.7001932,
+    "ast_hash": "b83f5c5305d848187c5f131679cde468",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793290241.9423106,
-    "seen": 1793290309.5045319,
-    "ast_hash": "80a37fe6fde84d1612615b4b3f86c6d1",
+    "mtime": 1793304236.2461405,
+    "seen": 1793304656.699271,
+    "ast_hash": "dc6ad341a9381f1f3ec1be647b323437",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -17400,15 +17400,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.test.ts": {
-    "mtime": 1793291205.8074694,
-    "seen": 1793291375.3340242,
-    "ast_hash": "e132e57415dedd93269d4f2b8d7f71bd",
+    "mtime": 1793304214.6697977,
+    "seen": 1793304656.6994913,
+    "ast_hash": "96a5e0d0c57999f2213d1ccdb02161c2",
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.ts": {
-    "mtime": 1793291205.8004687,
-    "seen": 1793291375.3340247,
-    "ast_hash": "a2096abd5cb9f0d4fc4e031f1b86b2eb",
+    "mtime": 1793304148.7584672,
+    "seen": 1793304656.699492,
+    "ast_hash": "e1dc3cdf4c08ec5d754ea1cd5627e3fb",
     "semantic_hash": ""
   },
   "docs/logo/hoku/kit/kit.cjs": {
@@ -17682,9 +17682,9 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md": {
-    "mtime": 1793291322.854365,
-    "seen": 1793291375.3346832,
-    "ast_hash": "6f20a6a4528f7eec220eed4e810a673d",
+    "mtime": 1793304611.3823888,
+    "seen": 1793304656.7001863,
+    "ast_hash": "347ab5d3cfa825fa02be3a01460a683a",
     "semantic_hash": ""
   },
   "docs/logo/hoku/exports/hoku-app-icon-dark-v1-1024.png": {

@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793295876.8810816,
-    "seen": 1793296021.1868467,
-    "ast_hash": "22ca75698a6274b5f0ab32e63df4eb08",
+    "mtime": 1793299632.6224482,
+    "seen": 1793299786.7736797,
+    "ast_hash": "a259228eedc4897cfc3bf2332d1b696e",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -17658,9 +17658,9 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/branding/ENTSCHEIDUNGEN.md": {
-    "mtime": 1793293661.7435389,
-    "seen": 1793294672.8257425,
-    "ast_hash": "f2ae7c563dd401920b57408b2a00a18f",
+    "mtime": 1793296818.283028,
+    "seen": 1793299786.774273,
+    "ast_hash": "ec1ccc379c14520d72548a1bd3f3a23b",
     "semantic_hash": ""
   },
   "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/README.md": {
@@ -18963,6 +18963,402 @@
     "mtime": 1793293235.8670032,
     "seen": 1793294672.8268576,
     "ast_hash": "7e2fc3588b30ab6997ffab0bac29f031",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/EXPORT-CHECKS.json": {
+    "mtime": 1793296701.9612648,
+    "seen": 1793299786.773445,
+    "ast_hash": "3e90cf47f37e35a77a90e7087fc7d767",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/QUELLEN/build.cjs": {
+    "mtime": 1793296689.1575007,
+    "seen": 1793299786.7734463,
+    "ast_hash": "cf68052b770ccfbe5fc7604b14644968",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/QUELLEN/verify.cjs": {
+    "mtime": 1793296782.194096,
+    "seen": 1793299786.7734475,
+    "ast_hash": "a0ad6f5775e92933b601140c72b730c0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/05-Schriften/IBMPlexMono-OFL.txt": {
+    "mtime": 1793288388.7296057,
+    "seen": 1793299786.774269,
+    "ast_hash": "4d4949dda4b23922e334f0cbf6179065",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/05-Schriften/Michroma-OFL.txt": {
+    "mtime": 1793288388.5427692,
+    "seen": 1793299786.77427,
+    "ast_hash": "8b36b8ffa1349fcce0322d898f92c486",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.html": {
+    "mtime": 1793296701.959759,
+    "seen": 1793299786.7742705,
+    "ast_hash": "7d3af8f9bb42a7062c7dc5aeb58a9eef",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.md": {
+    "mtime": 1793296701.9572475,
+    "seen": 1793299786.7742712,
+    "ast_hash": "fd816a6fdfb82136c36e3ebe5c30ac2e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/README.md": {
+    "mtime": 1793296701.9607625,
+    "seen": 1793299786.774272,
+    "ast_hash": "e227b017ff4aaa2d056cf9a82e6b093f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png": {
+    "mtime": 1793296692.2311652,
+    "seen": 1793299786.7753983,
+    "ast_hash": "149f95e8ca5bdabc466008b55932e0dc",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss.svg": {
+    "mtime": 1793296691.597202,
+    "seen": 1793299786.775399,
+    "ast_hash": "99ce519c7b6e3c586eea0d1697c12eea",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent-1200.png": {
+    "mtime": 1793296691.5966997,
+    "seen": 1793299786.7753992,
+    "ast_hash": "06e0fabc53b8190d6094622580eeb75d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent-2400.png": {
+    "mtime": 1793296691.3905585,
+    "seen": 1793299786.7753997,
+    "ast_hash": "9c0b5a4b2a8300b60183311418f8e79e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent.svg": {
+    "mtime": 1793296690.941021,
+    "seen": 1793299786.7754002,
+    "ast_hash": "25750780cc89d6df4be7a8e92fd0aacf",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz-2400.png": {
+    "mtime": 1793296690.941021,
+    "seen": 1793299786.7754006,
+    "ast_hash": "c9373910e078f5d951538bfab59bc809",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz.svg": {
+    "mtime": 1793296690.3114958,
+    "seen": 1793299786.775401,
+    "ast_hash": "74fec348ae28b7b781b48a1613b24c06",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent-1200.png": {
+    "mtime": 1793296690.3099895,
+    "seen": 1793299786.7754018,
+    "ast_hash": "265409b5970237090caa160824fcbd54",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent-2400.png": {
+    "mtime": 1793296690.105694,
+    "seen": 1793299786.7754023,
+    "ast_hash": "03934652f90841745a77ba265fbd9d6c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent.svg": {
+    "mtime": 1793296689.6640463,
+    "seen": 1793299786.7754028,
+    "ast_hash": "4304bc5fece676e94f764865b7a758b2",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss-2400.png": {
+    "mtime": 1793296694.278483,
+    "seen": 1793299786.7754035,
+    "ast_hash": "e3b6a04cd42b7f8461cc43c9d633b270",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss.svg": {
+    "mtime": 1793296693.7814934,
+    "seen": 1793299786.775404,
+    "ast_hash": "31fda5dc19950669d53bf28157499e1a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent-1200.png": {
+    "mtime": 1793296693.7809882,
+    "seen": 1793299786.7754045,
+    "ast_hash": "0e444350fa2787e802b0a381f54789be",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent-2400.png": {
+    "mtime": 1793296693.601063,
+    "seen": 1793299786.7754052,
+    "ast_hash": "99259719299810bda8a8c85ca7c8c0cf",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent.svg": {
+    "mtime": 1793296693.25233,
+    "seen": 1793299786.7754056,
+    "ast_hash": "59817e6f4da4c4c00d4e9f4fe963ba1a",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz-2400.png": {
+    "mtime": 1793296693.2508206,
+    "seen": 1793299786.7754061,
+    "ast_hash": "6899e33cbde2d01ac35c36d87627f843",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz.svg": {
+    "mtime": 1793296692.759611,
+    "seen": 1793299786.7754066,
+    "ast_hash": "566dc05b124e08ebeeaa38ff277f8f01",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent-1200.png": {
+    "mtime": 1793296692.7574852,
+    "seen": 1793299786.775407,
+    "ast_hash": "c488cba595a1aed189d155e48a793a25",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent-2400.png": {
+    "mtime": 1793296692.57124,
+    "seen": 1793299786.7754078,
+    "ast_hash": "f89da1ecbe3f5fe0c0c1683fe829286c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent.svg": {
+    "mtime": 1793296692.2326717,
+    "seen": 1793299786.7754083,
+    "ast_hash": "555201afe99734c0a66ff5441503ee98",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss-2400.png": {
+    "mtime": 1793296696.986036,
+    "seen": 1793299786.775409,
+    "ast_hash": "270bc61b9a74a0e425ddd975c45b6656",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss.svg": {
+    "mtime": 1793296696.4073796,
+    "seen": 1793299786.77541,
+    "ast_hash": "4c7b0ece6d5f8f23ed339b3f20d0d321",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35-2400.png": {
+    "mtime": 1793296697.3845456,
+    "seen": 1793299786.7754102,
+    "ast_hash": "b8527687807e70445bf49ec6e99fbfd7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35.svg": {
+    "mtime": 1793296696.9870563,
+    "seen": 1793299786.7754107,
+    "ast_hash": "aa3b27ba3c68d732a05cba55b1c12086",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-1200.png": {
+    "mtime": 1793296696.4073796,
+    "seen": 1793299786.7754111,
+    "ast_hash": "0f5d2d7734b099ee20e301f55f21522e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-2400.png": {
+    "mtime": 1793296696.2244225,
+    "seen": 1793299786.775412,
+    "ast_hash": "354a168fac151ea99ef7cc2758f39918",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent.svg": {
+    "mtime": 1793296695.8358824,
+    "seen": 1793299786.7754126,
+    "ast_hash": "fb03a9390a33c0f8dbf6d00c4220e070",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz-2400.png": {
+    "mtime": 1793296695.440578,
+    "seen": 1793299786.775413,
+    "ast_hash": "ad7f1527402660c21dbc5e060232160c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz.svg": {
+    "mtime": 1793296694.8630655,
+    "seen": 1793299786.7754135,
+    "ast_hash": "fca47df92d7e613952e91846160b6888",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35-2400.png": {
+    "mtime": 1793296695.8338628,
+    "seen": 1793299786.775414,
+    "ast_hash": "ac5fdda78b426dc473a5552817738950",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35.svg": {
+    "mtime": 1793296695.442595,
+    "seen": 1793299786.7754142,
+    "ast_hash": "0ba10bcd9ccf2b21d53ba02736f50732",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-1200.png": {
+    "mtime": 1793296694.8615527,
+    "seen": 1793299786.7754147,
+    "ast_hash": "6219c89c9e76c0802fce22e7f2771833",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-2400.png": {
+    "mtime": 1793296694.6726427,
+    "seen": 1793299786.7754152,
+    "ast_hash": "e12a4349e2b53d879a85ca9413e41389",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent.svg": {
+    "mtime": 1793296694.2810004,
+    "seen": 1793299786.775416,
+    "ast_hash": "5f2e3c94de5edf6871605efc558c4f1f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-1024.png": {
+    "mtime": 1793296698.6569924,
+    "seen": 1793299786.7754164,
+    "ast_hash": "20474da409b4df66e6ff8bad821b9427",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-180.png": {
+    "mtime": 1793296699.1490216,
+    "seen": 1793299786.7754166,
+    "ast_hash": "17bf4d4d7d6e30abb7cd742148789a1f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-192.png": {
+    "mtime": 1793296699.0057964,
+    "seen": 1793299786.7754173,
+    "ast_hash": "69c2aebe353591cf55274690e6748aab",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-512.png": {
+    "mtime": 1793296698.8638043,
+    "seen": 1793299786.7754176,
+    "ast_hash": "914d6a5bf734f4c2179c8e4291543fd7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-1024.png": {
+    "mtime": 1793296699.611463,
+    "seen": 1793299786.7754183,
+    "ast_hash": "a4c90b1efee27500c93fa81ce316dd64",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-180.png": {
+    "mtime": 1793296700.0813231,
+    "seen": 1793299786.7754185,
+    "ast_hash": "0e58ac68e440fa9fde2fb6bcd4bccd47",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-192.png": {
+    "mtime": 1793296699.9539487,
+    "seen": 1793299786.7754192,
+    "ast_hash": "a6ffd192274275316bc6610a2183c1f7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-512.png": {
+    "mtime": 1793296699.8211348,
+    "seen": 1793299786.7754197,
+    "ast_hash": "820fa53d656bb49b0d668ede613dd965",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-16.png": {
+    "mtime": 1793296700.2000456,
+    "seen": 1793299786.7754204,
+    "ast_hash": "84844693264d50ac37a092f4e7277692",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-32.png": {
+    "mtime": 1793296700.3288896,
+    "seen": 1793299786.775421,
+    "ast_hash": "6176d7112a803606f575c548da1e828e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-48.png": {
+    "mtime": 1793296700.4527242,
+    "seen": 1793299786.7754216,
+    "ast_hash": "45511658f00f542d28bbadae0fe91d70",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-64.png": {
+    "mtime": 1793296700.5711904,
+    "seen": 1793299786.775422,
+    "ast_hash": "fc43d271a2497e58d084d4689cc4caac",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-schwarz-transparent-1024.png": {
+    "mtime": 1793296698.202523,
+    "seen": 1793299786.7754228,
+    "ast_hash": "3599f9ee8cf5bf68e0542ee9490fd310",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-schwarz-transparent.svg": {
+    "mtime": 1793296697.7974873,
+    "seen": 1793299786.775423,
+    "ast_hash": "720e4a1d7c5c13f4d5604961f8c89899",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-weiss-transparent-1024.png": {
+    "mtime": 1793296697.7959802,
+    "seen": 1793299786.7754235,
+    "ast_hash": "db402e52713757b528d23cae6aee99eb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-weiss-transparent.svg": {
+    "mtime": 1793296697.3866007,
+    "seen": 1793299786.775424,
+    "ast_hash": "00fce8eb31e0d30b322961bd22565054",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/HOKU-Groessenprobe.png": {
+    "mtime": 1793296701.956744,
+    "seen": 1793299786.7754245,
+    "ast_hash": "b754178827262ff37e35193f3b9bb66f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/HOKU-Uebersicht.png": {
+    "mtime": 1793296701.594528,
+    "seen": 1793299786.775425,
+    "ast_hash": "5128332c95659e2c73c2ee153d1f3143",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/QUELLEN/hoku-app-icon-dark-v1.png": {
+    "mtime": 1793240453.440607,
+    "seen": 1793299786.7754254,
+    "ast_hash": "3292a55b3baa3f13da595d1fd0cc1976",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/brand-kit-v1/QUELLEN/hoku-maskottchen-weiss-v1.png": {
+    "mtime": 1793245287.4815702,
+    "seen": 1793299786.7754261,
+    "ast_hash": "624fd47519676e3e00b312459db755a5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-tracked-by-03-p-schwarz-auf-weiss.png": {
+    "mtime": 1793293982.383686,
+    "seen": 1793299786.7754447,
+    "ast_hash": "fcd0bc1d9bb3c9801d112d0516db0249",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-tracked-by-03-p-schwarz-auf-weiss.svg": {
+    "mtime": 1793293982.364684,
+    "seen": 1793299786.7754452,
+    "ast_hash": "33305e3a0832631d417053d9bf4d2b86",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-tracked-by-03-p-weiss-auf-schwarz.png": {
+    "mtime": 1793293982.2259977,
+    "seen": 1793299786.775446,
+    "ast_hash": "3053cd720196fb74a76721a6c2f48a7e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/exports/hoku-tracked-by-03-p-weiss-auf-schwarz.svg": {
+    "mtime": 1793293982.207973,
+    "seen": 1793299786.7754462,
+    "ast_hash": "7186c2944c3ad0155df959eee594035a",
     "semantic_hash": ""
   }
 }
