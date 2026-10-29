@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793228671.9387116,
-    "seen": 1793228733.5407517,
+    "mtime": 1793232487.0377507,
+    "seen": 1793232583.3635356,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793228547.9722404,
-    "seen": 1793228733.5398538,
-    "ast_hash": "6881dd3a2d54e8a9b1a0641f8ef4c5c3",
+    "mtime": 1793232341.4667974,
+    "seen": 1793232583.3626852,
+    "ast_hash": "3e8437123b45a9fb4c3aea8ed8fa9c24",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {

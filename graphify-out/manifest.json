@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793228671.9387116,
-    "seen": 1793228733.5407517,
+    "mtime": 1793232487.0377507,
+    "seen": 1793232583.3635356,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793228547.9722404,
-    "seen": 1793228733.5398538,
-    "ast_hash": "6881dd3a2d54e8a9b1a0641f8ef4c5c3",
+    "mtime": 1793239706.9645658,
+    "seen": 1793239925.62416,
+    "ast_hash": "ce16f41f61cc174a0ba5d8ae464f800d",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7914,8 +7914,8 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793135686.9056,
-    "seen": 1793136185.632098,
+    "mtime": 1793236746.101407,
+    "seen": 1793239925.6250186,
     "ast_hash": "826222548dd90262ba248ea346975fb5",
     "semantic_hash": ""
   },
@@ -17268,9 +17268,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793225855.1935508,
-    "seen": 1793226272.9135606,
-    "ast_hash": "19f5d98aa96f6c46dcb411838416c74d",
+    "mtime": 1793239768.697354,
+    "seen": 1793239925.6239452,
+    "ast_hash": "e6197fe7e87d98885c680c9469f27c68",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -17409,6 +17409,240 @@
     "mtime": 1793219922.6979697,
     "seen": 1793219990.6656015,
     "ast_hash": "c51195f5dedbdf68b6d498d08f933248",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/kit.cjs": {
+    "mtime": 1793234927.3086026,
+    "seen": 1793239925.6239197,
+    "ast_hash": "476373a451c12ff52ddeea927552a4ac",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/export.cjs": {
+    "mtime": 1793237514.9986267,
+    "seen": 1793239925.6239212,
+    "ast_hash": "43519009f45e1aee89de03fcbaf60044",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/bau.cjs": {
+    "mtime": 1793234641.5552206,
+    "seen": 1793239925.6239219,
+    "ast_hash": "5c20c656553f4e293e675ac026b43c94",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/README.md": {
+    "mtime": 1793234967.9335244,
+    "seen": 1793239925.6249278,
+    "ast_hash": "710024fd12a442ed6426534a969b9586",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-klein-leuchtend-128.png": {
+    "mtime": 1793234929.4405096,
+    "seen": 1793239925.626139,
+    "ast_hash": "e9d2c55a5b83bf83823e909678c6a158",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-klein.svg": {
+    "mtime": 1793234928.980636,
+    "seen": 1793239925.6261399,
+    "ast_hash": "a23cb7b85b88db6539a625babb21fd2f",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-lockup-schwarz.png": {
+    "mtime": 1793234929.5626354,
+    "seen": 1793239925.6261404,
+    "ast_hash": "b077094ecdd1f3f6f70ea7daf2e580c0",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-lockup-transparent.png": {
+    "mtime": 1793234929.6511538,
+    "seen": 1793239925.626141,
+    "ast_hash": "67db1216ef8e7ba476e1ae4a28a7042b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-1024.png": {
+    "mtime": 1793234929.183793,
+    "seen": 1793239925.6261418,
+    "ast_hash": "6c04f8f4485c2f58ae4550e2fca0424e",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-256.png": {
+    "mtime": 1793234929.3778284,
+    "seen": 1793239925.6261423,
+    "ast_hash": "c6436ce60dcc180e196db33c54f0c3aa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke-leuchtend-512.png": {
+    "mtime": 1793234929.3254204,
+    "seen": 1793239925.626143,
+    "ast_hash": "67d949b85d8491fb41d78ae80ca2460c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/hoku-wortmarke.svg": {
+    "mtime": 1793234928.9801261,
+    "seen": 1793239925.6261437,
+    "ast_hash": "823d122b51602f0c7667e60cf26d1d57",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/uebersicht.png": {
+    "mtime": 1793234930.192047,
+    "seen": 1793239925.6261444,
+    "ast_hash": "4923f933a33fa0305be2260ecba8c115",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-black-400.png": {
+    "mtime": 1793234938.3396807,
+    "seen": 1793239925.6261451,
+    "ast_hash": "5ba72a43c3ae2fd93f861fee15466a62",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-black.svg": {
+    "mtime": 1793234937.8826666,
+    "seen": 1793239925.626146,
+    "ast_hash": "9eb99543f387d1b73b8ff9378dea35b4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-mono-6ee6ff-400.png": {
+    "mtime": 1793234939.5974948,
+    "seen": 1793239925.6261468,
+    "ast_hash": "951cb77428719e568e2d9079f1e95472",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-mono-6ee6ff.svg": {
+    "mtime": 1793234937.8836987,
+    "seen": 1793239925.6261473,
+    "ast_hash": "2e4e7d5b1f3d4589046e43955f74ecde",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-white-400.png": {
+    "mtime": 1793234938.9884253,
+    "seen": 1793239925.6261477,
+    "ast_hash": "159129076dd4118f95cfa0aaafde2ebb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-klein-white.svg": {
+    "mtime": 1793234937.8836987,
+    "seen": 1793239925.6261485,
+    "ast_hash": "bd00422b842703635e779a0769c5af79",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-black-1200.png": {
+    "mtime": 1793234936.3490872,
+    "seen": 1793239925.626149,
+    "ast_hash": "44d938fbc1e458e247ce32444d3095d4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-black.svg": {
+    "mtime": 1793234935.870157,
+    "seen": 1793239925.6261494,
+    "ast_hash": "c6df04c0ced37590be4d8293951f5137",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-mono-6ee6ff-1200.png": {
+    "mtime": 1793234937.6117065,
+    "seen": 1793239925.62615,
+    "ast_hash": "0821a32e5a68d59af3dd993895f43819",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-mono-6ee6ff.svg": {
+    "mtime": 1793234935.87117,
+    "seen": 1793239925.6261504,
+    "ast_hash": "4e5939197570ae8b2c2390ec43cfcc1d",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-white-1200.png": {
+    "mtime": 1793234936.9964514,
+    "seen": 1793239925.626151,
+    "ast_hash": "b147e5aab92a5f3f4c03f281bac854d5",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/kit/varianten/hoku-wortmarke-white.svg": {
+    "mtime": 1793234935.8706644,
+    "seen": 1793239925.6261516,
+    "ast_hash": "382dc02551612a6b3bdefc2fad2bdac3",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-einfarbig.png": {
+    "mtime": 1793237517.638152,
+    "seen": 1793239925.6261523,
+    "ast_hash": "cb3de69f4776dd6aab0f27ab8b803577",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-farbig.png": {
+    "mtime": 1793237517.838166,
+    "seen": 1793239925.6261528,
+    "ast_hash": "242cf4727d0cf485d30f5621e0a995ed",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-farbig.svg": {
+    "mtime": 1793237517.7342184,
+    "seen": 1793239925.6261532,
+    "ast_hash": "2292b918987d4a18e77adf00738699aa",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-schwarz.png": {
+    "mtime": 1793237516.9786818,
+    "seen": 1793239925.6261535,
+    "ast_hash": "6f66c0418a5299b605578afd8ced81d7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-transparent.png": {
+    "mtime": 1793237517.4918466,
+    "seen": 1793239925.6261542,
+    "ast_hash": "f83ad084f8e45b6e5db18daf6e4673a7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/maskottchen/hoku-weiss.png": {
+    "mtime": 1793237517.731121,
+    "seen": 1793239925.6261547,
+    "ast_hash": "6f136fbb692b2bbd98bf54901cea79b1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/1-hoku-leuchtend.png": {
+    "mtime": 1793234643.1864822,
+    "seen": 1793239925.6261554,
+    "ast_hash": "363f1b15216b21047cb1a98aa2e6e7c1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/1-hoku.svg": {
+    "mtime": 1793234643.0523193,
+    "seen": 1793239925.6261559,
+    "ast_hash": "af135109f26a101bec8b1fe1bcf9ac66",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU-leuchtend.png": {
+    "mtime": 1793234643.2923474,
+    "seen": 1793239925.6261563,
+    "ast_hash": "18509c1da8c831a555f63b770ce61f3b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU-vektor.svg": {
+    "mtime": 1793234643.0533566,
+    "seen": 1793239925.6261568,
+    "ast_hash": "cfe2f988403da54372aa716e7345dc22",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/2-HOKU.svg": {
+    "mtime": 1793234643.0528388,
+    "seen": 1793239925.6261573,
+    "ast_hash": "a37475a2b55d8f33d71f4ff1e87b9cf7",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/3-hoku-vektor-weiss.svg": {
+    "mtime": 1793234643.0533566,
+    "seen": 1793239925.6261578,
+    "ast_hash": "db81a95df23118120a6357918f71a816",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/3-hoku-vektor.svg": {
+    "mtime": 1793234643.0528388,
+    "seen": 1793239925.6261585,
+    "ast_hash": "554e4dc6bbccb4818632f29e9fe24413",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/schriftzug/uebersicht.png": {
+    "mtime": 1793234643.8089633,
+    "seen": 1793239925.6261592,
+    "ast_hash": "249a1b3b34d1ebb38c30ae63708abaad",
     "semantic_hash": ""
   }
 }
