@@ -3,9 +3,9 @@ import { STORAGE_KEY } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 
 /**
- * Anmeldung mit Dot (docs/login/UEBERGABE.md): Start abgemeldet auf /auth.
+ * Anmeldung mit Hoku (docs/login/UEBERGABE.md): Start abgemeldet auf /auth.
  * Fehler im Gerät fragen den Server nicht; falsche Zugangsdaten kommen vom
- * Server; Erfolg öffnet Dots Portal in die App und er fliegt in die Leiste.
+ * Server; Erfolg öffnet Hokus Portal in die App und er fliegt in die Leiste.
  */
 
 const abgemeldet = async (page: Page) => {
@@ -35,7 +35,7 @@ test('Fehler im Gerät: leeres Feld markiert, Satz darunter, keine Anfrage', asy
   expect(mock.log.filter(z => z.includes('/auth/v1/token'))).toEqual([])
 })
 
-test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page, mock }) => {
+test('Erfolg: Haken, Portal in die App, Hoku fliegt in die Leiste', async ({ page, mock }) => {
   await abgemeldet(page)
   await zumFormular(page)
   await page.locator('#auth-kennung').fill('test@example.test')
@@ -54,7 +54,7 @@ test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page
   expect(mock.log.filter(z => z.includes('/auth/v1/token')).length).toBe(1)
 })
 
-test('Wurf: Dot klebt an der Wand wie in der App, löst sich und kehrt zur Bühne zurück', async ({ page }) => {
+test('Wurf: Hoku klebt an der Wand wie in der App, löst sich und kehrt zur Bühne zurück', async ({ page }) => {
   await abgemeldet(page)
   await page.goto('/auth')
   await lassLaufen(page, 6000)
@@ -201,7 +201,7 @@ test('Apple/Google eingerichtet: Knöpfe stehen oben, Google leitet zu Supabase 
   expect(decodeURIComponent(ziel)).toContain('/auth?anbieter=google')
 })
 
-test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Dot landet in der Leiste', async ({ page, mock }) => {
+test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Hoku landet in der Leiste', async ({ page, mock }) => {
   void mock
   await page.goto('/auth?anbieter=google')
   await lassLaufen(page, 2500)

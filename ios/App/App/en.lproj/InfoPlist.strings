@@ -1,6 +1,6 @@
 /* Texts for iOS permission prompts (English). German in de.lproj. */
-"NSCameraUsageDescription" = "TYD uses the camera to scan barcodes on food and products and, after your consent, to photograph labels that are sent to be read. No images are stored.";
-"NSMicrophoneUsageDescription" = "Dot listens when you tap the microphone in the chat and writes what you say into the input field. Nothing is recorded or stored.";
-"NSSpeechRecognitionUsageDescription" = "Apple's speech recognition turns what you say to Dot in the chat into text. TYD does not store any recordings.";
-"NSHealthShareUsageDescription" = "TYD reads health data to show weight, steps, sleep and heart rate in your records.";
-"NSHealthUpdateUsageDescription" = "TYD can save selected health data when you actively use this feature.";
+"NSCameraUsageDescription" = "HOKU uses the camera to scan barcodes on food and products and, after your consent, to photograph labels that are sent to be read. No images are stored.";
+"NSMicrophoneUsageDescription" = "Hoku listens when you tap the microphone in the chat and writes what you say into the input field. Nothing is recorded or stored.";
+"NSSpeechRecognitionUsageDescription" = "Apple's speech recognition turns what you say to Hoku in the chat into text. HOKU does not store any recordings.";
+"NSHealthShareUsageDescription" = "HOKU reads health data to show weight, steps, sleep and heart rate in your records.";
+"NSHealthUpdateUsageDescription" = "HOKU can save selected health data when you actively use this feature.";

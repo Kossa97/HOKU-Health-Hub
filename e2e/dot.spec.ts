@@ -4,7 +4,7 @@ import { expect, test } from './support/fixtures'
 test.use({ dotFrei: true })
 
 /**
- * Dot, der KI-Coach: wohnt für alle in der Leiste. Bis Pro startet, kommt er
+ * Hoku, der KI-Coach: wohnt für alle in der Leiste. Bis Pro startet, kommt er
  * für alle heraus (PRO_PFLICHT aus). Chat nur mit Einwilligung.
  */
 
@@ -16,14 +16,14 @@ const lassLaufen = async (page: import('@playwright/test').Page, ms: number) => 
   for (let t = 0; t < ms; t += 100) await page.clock.runFor(100)
 }
 
-test('bis Pro startet, kommt Dot auch ohne Pro heraus', async ({ page, mock }) => {
+test('bis Pro startet, kommt Hoku auch ohne Pro heraus', async ({ page, mock }) => {
   await page.goto('/')
   await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await logo(page).click()
   await lassLaufen(page, 3000)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')
-  await expect(page.getByText('Dot kommt mit Pro heraus')).toHaveCount(0)
+  await expect(page.getByText('Hoku kommt mit Pro heraus')).toHaveCount(0)
   expect(mock.coach.calls).toEqual([])
 })
 
@@ -37,14 +37,14 @@ test('mit Pro: herausholen, einwilligen, fragen, zurück ins Haus', async ({ pag
   await lassLaufen(page, 3000)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')
 
-  const figur = page.getByRole('button', { name: /Dot, dein KI-Coach/ })
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
   await expect(figur).toBeVisible()
   // Seine Trefferfläche folgt dem atmenden Umriss und steht nie ganz still;
   // WebKit wartet sonst vergeblich auf ein „stabiles" Element
   await figur.click({ force: true })
   await lassLaufen(page, 600)
 
-  const chat = page.getByRole('dialog', { name: 'Dot' })
+  const chat = page.getByRole('dialog', { name: 'Hoku' })
   await expect(chat.getByRole('heading', { name: 'Bevor wir reden' })).toBeVisible()
   await chat.getByRole('button', { name: 'Einverstanden' }).click()
   await expect(chat.getByRole('button', { name: 'Was steht heute an?' })).toBeVisible()
@@ -63,14 +63,14 @@ test('mit Pro: herausholen, einwilligen, fragen, zurück ins Haus', async ({ pag
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
 })
 
-test('dreimal schnell auf dieselbe Stelle tippen ruft Dot dorthin', async ({ page, mock }) => {
+test('dreimal schnell auf dieselbe Stelle tippen ruft Hoku dorthin', async ({ page, mock }) => {
   const profil = mock.table('profiles').find(row => row.id === TEST_USER.id)!
   profil.pro_until = '2099-01-01T00:00:00.000Z'
   await page.goto('/')
   await bereit(page)
   await logo(page).click()
   await lassLaufen(page, 3000)
-  const figur = page.getByRole('button', { name: /Dot, dein KI-Coach/ })
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
   await expect(figur).toBeVisible()
   // auf eine freie Fläche tippen: unter der leeren Stack-Karte
   await page.goto('/my-stack')
@@ -93,7 +93,7 @@ test('dreimal schnell auf dieselbe Stelle tippen ruft Dot dorthin', async ({ pag
   expect(Math.hypot(b.x + b.width / 2 - ziel.x, b.y + b.height / 2 - ziel.y)).toBeLessThan(30)
 })
 
-test('Kalorientracker: Dot fliegt um die Kugel und sagt je Halt, was offen ist; danach alles zusammen', async ({ page, mock }) => {
+test('Kalorientracker: Hoku fliegt um die Kugel und sagt je Halt, was offen ist; danach alles zusammen', async ({ page, mock }) => {
   await page.goto('/ernaehrung')
   await expect(page.getByRole('region', { name: 'Frühstück' })).toBeVisible()
   const blase = page.locator('.tyd-dot-blase')

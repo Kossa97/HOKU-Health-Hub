@@ -70,3 +70,14 @@ Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/RE
 **Fassung 3 (29.10.2026): App-Icon ist das Dot-Bild von Codex** (Nutzer: „perfekt, ändere alle Logos der App“).
 Quelle und Export in `docs/logo/dot/codex/`; ersetzt iOS, Android, Web/PWA, Favicon und Benachrichtigungs-Icon.
 Web-Dateien heißen `icons/dot-codex-*`. Tab-Leisten-Logo (`DotLogo.tsx`) unverändert.
+
+**Fassung 4 (30.10.2026): HOKU-Brand-Kit v1** (`docs/logo/hoku/brand-kit-v1`, Maskottchen heißt dort Hoku).
+App-Icon = blaue Fassung aus dem Kit überall (iOS, Android, Web, Favicon aus dem Kit, Benachrichtigungen),
+dazu neue Startbildschirme (vorher Capacitor-Standardkreuz). Einbau: `docs/logo/hoku/EINBAU.md`.
+Name der App noch nicht auf HOKU umgestellt.
+
+**Name (30.10.2026, Nutzer):** App heißt **„HOKU: Health Hub“** (Startbildschirm/Kurzname „HOKU“), der Assistent
+heißt **Hoku** statt Dot. Umgestellt in allen sichtbaren de/en-Texten, Rechtstexten, PDFs (Dateinamen `HOKU-…`),
+iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-Prompt. Unverändert: App-ID
+`com.kossa97.tyd`, Speicherschlüssel `tyd_*`, Code-Bezeichner (`features/dot`, `Dot…`), die zwölf weiteren Sprachen
+(CLAUDE.md), User-Agent der Lebensmittel-Suche.
