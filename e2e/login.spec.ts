@@ -110,9 +110,15 @@ test('Wurf in die runde Ecke unten rechts: Hoku liegt dort still, statt zu zucke
   expect(ecke.x).toBeGreaterThan(width - 70)
   expect(ecke.y).toBeGreaterThan(height - 70)
   // Zuckte er (die Ecke stieß ihn hinaus, sein Ziel zog ihn zurück), kam er nie zur Ruhe und
-  // löste sich nie. Liegt er still, löst er sich nach 1,2 s und ist bald zurück auf der Bühne.
+  // löste sich nie. Liegt er still, löst er sich nach 1,2 s und ist bald zurück auf der Bühne
+  // (dort darf ihn ein Hinweis zum Schriftzug machen: dann sitzt die Trefferfläche anders)
+  const buehne = await page.locator('.tyd-auth-buehne').boundingBox()
   let daheim = false
-  for (let t = 0; t < 6000 && !daheim; t += 100) { await page.clock.runFor(100); const l = await lage(); daheim = Math.hypot(l.x - vorher.x, l.y - vorher.y) < 3 }
+  for (let t = 0; t < 6000 && !daheim; t += 100) {
+    await page.clock.runFor(100)
+    const l = await lage()
+    daheim = l.x > buehne!.x && l.x < buehne!.x + buehne!.width && l.y > buehne!.y && l.y < buehne!.y + buehne!.height
+  }
   expect(daheim).toBe(true)
 })
 
