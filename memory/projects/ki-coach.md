@@ -493,7 +493,7 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 
 ## Rundflug im Kalorientracker (Nutzer 29.10.2026)
 - Idee: beim Öffnen des Kalorientrackers kommt Dot („HOKU“ genannt, Name noch nicht bestätigt) vom linken Rand, fliegt um die Kugel, schaut sich Kugel und drei Monde an und sagt, was offen ist.
-- Live-Mockup mit drei Varianten (echte Engines): https://claude.ai/artifact/EuhJNRfgan7dypXoSG4Kge — A Umlauf, B Halt an jedem Körper, C Kreisen. **Gewählt: B.** Erneut frühestens nach **2 h** (`tyd.dot.rundflug.v1`).
+- Live-Mockup mit drei Varianten (echte Engines): https://claude.ai/artifact/EuhJNRfgan7dypXoSG4Kge — A Umlauf, B Halt an jedem Körper, C Kreisen. **Gewählt: B.** Erneut nach **2 h** oder **beim 3. Hineinnavigieren** seit dem letzten Rundflug (Nutzer 30.10.; `tyd.dot.rundflug.v1` = `{t, n}`).
 - Engine: `Rundflug` (Bahn je Zeitpunkt, `fertig`, `abgebrochen`), `rundflug()`, `rundflugAbkuerzen()`, `rundflugKommt(ms)` (hält das Herauskommen auf Seiten ohne Leiste auf, damit er vom Rand kommt), `lage()`, `platz()`. Modus intern `orbit` mit `B.tour`.
 - Seite: `ernaehrung/lib/dotRundflug.ts` (Bahn, Texte, Abstand), `hooks/useDotRundflug.ts`; Kugel über `orbBridge` (`setOrbBuehne`: `koerper()`, stiller Fokus ohne Etikett und Haptik). Antippen kürzt ab; „Bewegung reduzieren“: nur der Satz. Nur heute, nur wenn er heraus darf.
 - Texte in `dot/texte.ts` (`rf_*`, de/en). Über dem Ziel neutral, Freude-Haken nur bei „Alles erledigt“.
