@@ -600,87 +600,87 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/ar.json": {
-    "mtime": 1793313452.7167726,
-    "seen": 1793314450.5865285,
-    "ast_hash": "0e9853ca1f24a4f11b7d25268f486fc3",
+    "mtime": 1793122914.99965,
+    "seen": 1793123583.7610497,
+    "ast_hash": "bc280b01bfd2463112f08c34c837b987",
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1793313452.717793,
-    "seen": 1793314450.586529,
-    "ast_hash": "d802168f8194fc2b22e3e3f71c9ed3cb",
+    "mtime": 1793122915.002167,
+    "seen": 1793123583.7610505,
+    "ast_hash": "4b53d5c5b0f67e03e7d007d5b6e82376",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1793313452.7188096,
-    "seen": 1793314450.5865297,
-    "ast_hash": "996bb908a8b123b629351ec2849d7762",
+    "mtime": 1793122915.0047452,
+    "seen": 1793123583.761051,
+    "ast_hash": "f063bb7bb01c1b16a6c673a77c2f7fb3",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
-    "mtime": 1793313452.719316,
-    "seen": 1793314450.5865302,
-    "ast_hash": "e364b88f86677cda19f641509aa322b8",
+    "mtime": 1793122915.006745,
+    "seen": 1793123583.7610517,
+    "ast_hash": "7f0529847e8f3fc458680794636cf4ff",
     "semantic_hash": ""
   },
   "src/i18n/locales/fr.json": {
-    "mtime": 1793313452.7198255,
-    "seen": 1793314450.586531,
-    "ast_hash": "9e81d19f3eb5013b92f4832e40b66e97",
+    "mtime": 1793122915.009746,
+    "seen": 1793123583.7610521,
+    "ast_hash": "da4135fe3eeb8bed0fe83a1fbfba9f12",
     "semantic_hash": ""
   },
   "src/i18n/locales/hi.json": {
-    "mtime": 1793313452.7208414,
-    "seen": 1793314450.5865316,
-    "ast_hash": "bee49aaf8466d9fd3623792f561287ff",
+    "mtime": 1793122915.0122685,
+    "seen": 1793123583.7610526,
+    "ast_hash": "9fc0a1c75ca20156a06e3854f69d17eb",
     "semantic_hash": ""
   },
   "src/i18n/locales/id.json": {
-    "mtime": 1793313452.721857,
-    "seen": 1793314450.586532,
-    "ast_hash": "69e433f0f2e27ed52d1b99f0067a9d2c",
+    "mtime": 1793122915.013885,
+    "seen": 1793123583.761053,
+    "ast_hash": "c36e3cb1b6520b7640c6ca48fc2c3e8e",
     "semantic_hash": ""
   },
   "src/i18n/locales/it.json": {
-    "mtime": 1793313452.7223656,
-    "seen": 1793314450.5865326,
-    "ast_hash": "1a7e6eddc417f60dfcf834ebea67f4a5",
+    "mtime": 1793122915.0168884,
+    "seen": 1793123583.7610538,
+    "ast_hash": "f871f1aae38a6cda76ecdc847957c300",
     "semantic_hash": ""
   },
   "src/i18n/locales/ja.json": {
-    "mtime": 1793313452.72339,
-    "seen": 1793314450.586533,
-    "ast_hash": "d5d1291cf675fa5d06685b90ff03621e",
+    "mtime": 1793122915.0188875,
+    "seen": 1793123583.7610543,
+    "ast_hash": "69d4d7da4291d6f049417197a398a8b0",
     "semantic_hash": ""
   },
   "src/i18n/locales/ko.json": {
-    "mtime": 1793313452.7239034,
-    "seen": 1793314450.5865333,
-    "ast_hash": "6245b5fe26fd3c9e900b304deceafc1a",
+    "mtime": 1793122915.0213938,
+    "seen": 1793123583.7610548,
+    "ast_hash": "efa88b1690783e1afdb2df4470a763e7",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.json": {
-    "mtime": 1793313452.7244115,
-    "seen": 1793314450.5865338,
-    "ast_hash": "0c00499aeae430478275d06418f44a3c",
+    "mtime": 1793122915.023953,
+    "seen": 1793123583.7610552,
+    "ast_hash": "9e0ff3921736f48935d5cce4ec5c34df",
     "semantic_hash": ""
   },
   "src/i18n/locales/ru.json": {
-    "mtime": 1793313452.724926,
-    "seen": 1793314450.5865345,
-    "ast_hash": "581ce0dca9e827fc959592b7d811f580",
+    "mtime": 1793122915.025956,
+    "seen": 1793123583.7610557,
+    "ast_hash": "ae7bed1446df837aa51df48efc87bb4c",
     "semantic_hash": ""
   },
   "src/i18n/locales/tr.json": {
-    "mtime": 1793313452.7259395,
-    "seen": 1793314450.586535,
-    "ast_hash": "4c3e0159f1800d64ee6506e18972c4e7",
+    "mtime": 1793122915.0289576,
+    "seen": 1793123583.7610562,
+    "ast_hash": "2cdfff033d21202d9a0cdefcb7a99062",
     "semantic_hash": ""
   },
   "src/i18n/locales/zh.json": {
-    "mtime": 1793313452.7264533,
-    "seen": 1793314450.5865355,
-    "ast_hash": "b04432740b7515afc72feffc3028b3f1",
+    "mtime": 1793122915.0314608,
+    "seen": 1793123583.7610571,
+    "ast_hash": "23537002fa0c02876850b81d83f8ef5d",
     "semantic_hash": ""
   },
   "src/lib/dailyLogs.ts": {
@@ -894,9 +894,9 @@
     "semantic_hash": ""
   },
   "src/lib/supabase.ts": {
-    "mtime": 1793313954.699601,
-    "seen": 1793314450.5865989,
-    "ast_hash": "8b1a8cceefdbb3f9279fa208afdf4d2c",
+    "mtime": 1793120739.7412584,
+    "seen": 1793121094.755403,
+    "ast_hash": "03e96c52c19288e253b13491ec7d8c99",
     "semantic_hash": ""
   },
   "src/lib/useMediaQuery.ts": {
@@ -1332,15 +1332,15 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1793313954.7016127,
-    "seen": 1793314450.5867214,
-    "ast_hash": "913ee9124015f70fce08fdafcf065859",
+    "mtime": 1783031618.6116602,
+    "seen": 1793060374.0566883,
+    "ast_hash": "576cbd5329e299054fe940a8dded4805",
     "semantic_hash": ""
   },
   "vite.config.ts": {
-    "mtime": 1793313452.7285016,
-    "seen": 1793314450.5867221,
-    "ast_hash": "87f1c8b3e24e05ee3f183f4a7734344a",
+    "mtime": 1793058063.1015775,
+    "seen": 1793060374.0566888,
+    "ast_hash": "f5ca8e020f3af21dc8423fac92556ad7",
     "semantic_hash": ""
   },
   "vitest.config.ts": {
@@ -1494,9 +1494,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1793313452.6932166,
-    "seen": 1793314450.5868564,
-    "ast_hash": "510604366812731fd1278c8f0620ad90",
+    "mtime": 1793058062.8392763,
+    "seen": 1793060374.056792,
+    "ast_hash": "2679c0e0270065ba334c28c286256964",
     "semantic_hash": ""
   },
   "ios/App/CapApp-SPM/README.md": {
@@ -1728,99 +1728,99 @@
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
-    "mtime": 1793313452.2925324,
-    "seen": 1793314450.587867,
-    "ast_hash": "1bacd06d0af3177bb8b71799cdbc2425",
+    "mtime": 1793058062.1301565,
+    "seen": 1793060374.0576174,
+    "ast_hash": "ecb45f5f76a46e59edc276500fa0370f",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": {
-    "mtime": 1793313452.2930567,
-    "seen": 1793314450.5878677,
-    "ast_hash": "235a4802852ddd054589697fe3de7472",
+    "mtime": 1793058062.1301565,
+    "seen": 1793060374.0576181,
+    "ast_hash": "50519aa0090b9a2d9b810977888fd615",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
-    "mtime": 1793313452.2935686,
-    "seen": 1793314450.5878685,
-    "ast_hash": "9e23af160077c6d76d81b500989d5866",
+    "mtime": 1793058062.1311607,
+    "seen": 1793060374.0576186,
+    "ast_hash": "814a3ab0f28b9c13696633ce1fcd185b",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
-    "mtime": 1793313452.2950802,
-    "seen": 1793314450.5878692,
-    "ast_hash": "632c84282aaadb847170882d6bc0530f",
+    "mtime": 1793058062.131664,
+    "seen": 1793060374.0576196,
+    "ast_hash": "67a904bdf7b57353eeeb0233a8d966ae",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": {
-    "mtime": 1793313452.2955947,
-    "seen": 1793314450.5878696,
-    "ast_hash": "f466555badfe8ce02d55f51944c8a25b",
+    "mtime": 1793058062.131664,
+    "seen": 1793060374.05762,
+    "ast_hash": "df4c703bd9d9e21077887740688f7498",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
-    "mtime": 1793313452.296103,
-    "seen": 1793314450.5878701,
-    "ast_hash": "0ade9dcd26f4afe4ff3d4b3b02abf17e",
+    "mtime": 1793058062.131664,
+    "seen": 1793060374.0576205,
+    "ast_hash": "7a23862eae8ec5f8fc13d403d1cb8704",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
-    "mtime": 1793313452.296103,
-    "seen": 1793314450.587871,
-    "ast_hash": "f5947dd39500f27fe13893ece8d4d0bb",
+    "mtime": 1793058062.1331737,
+    "seen": 1793060374.0576212,
+    "ast_hash": "c91177ddfc8ab3d1f3d0913c7af0fc59",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": {
-    "mtime": 1793313452.2976136,
-    "seen": 1793314450.5878716,
-    "ast_hash": "2ce5311f2802ec430b06b69bb40558f3",
+    "mtime": 1793058062.1331737,
+    "seen": 1793060374.0576215,
+    "ast_hash": "3bf52fa551254bde8c06fee1f71a8671",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
-    "mtime": 1793313452.2976136,
-    "seen": 1793314450.5878723,
-    "ast_hash": "14ad9834cac186adfdeef202f8dcbb44",
+    "mtime": 1793058062.1331737,
+    "seen": 1793060374.0576222,
+    "ast_hash": "cbbd2cf619beb930d208ccd4a0b8e438",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
-    "mtime": 1793313452.2991307,
-    "seen": 1793314450.5878727,
-    "ast_hash": "508705878d852e4b806799e582260d86",
+    "mtime": 1793058062.134689,
+    "seen": 1793060374.0576227,
+    "ast_hash": "59f5c94ca2ed0426dd512879c3f22202",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": {
-    "mtime": 1793313452.3006876,
-    "seen": 1793314450.5878732,
-    "ast_hash": "9b4e7c4e1d3183ec521a5e61a700cbf0",
+    "mtime": 1793058062.134689,
+    "seen": 1793060374.0576234,
+    "ast_hash": "ec34c49d2551618517532c7d5de9ea80",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
-    "mtime": 1793313452.3006876,
-    "seen": 1793314450.5878737,
-    "ast_hash": "bb14de96ec1089b6bfb7093a04e061d5",
+    "mtime": 1793058062.134689,
+    "seen": 1793060374.0576239,
+    "ast_hash": "eb20b9110d30c662d36226f2bfd91776",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
-    "mtime": 1793313452.302717,
-    "seen": 1793314450.5878744,
-    "ast_hash": "7140de7ac666e0793a068a49e3044cf3",
+    "mtime": 1793058062.136727,
+    "seen": 1793060374.0576243,
+    "ast_hash": "b10ea5b9fcf8fb08b95c603723465fa9",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": {
-    "mtime": 1793313452.3032308,
-    "seen": 1793314450.5878751,
-    "ast_hash": "4a147e5f89d19df0637204ce57b49b60",
+    "mtime": 1793058062.1372385,
+    "seen": 1793060374.0576248,
+    "ast_hash": "ed3b5fabeac42641ece062e9d2c4b85b",
     "semantic_hash": ""
   },
   "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
-    "mtime": 1793313452.3047433,
-    "seen": 1793314450.5878756,
-    "ast_hash": "c645cf327764221fe6105eb1438bcb56",
+    "mtime": 1793058062.1372385,
+    "seen": 1793060374.0576253,
+    "ast_hash": "2e8aaca88e0ccbc18c64afc4fcf429a3",
     "semantic_hash": ""
   },
   "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png": {
-    "mtime": 1793313452.6952674,
-    "seen": 1793314450.5881803,
-    "ast_hash": "52e2c816b2ccbfeb76cd75fe9bdd4b03",
+    "mtime": 1793058062.8432994,
+    "seen": 1793060374.057639,
+    "ast_hash": "ed536afaa1887f24a539d1cdd23caeec",
     "semantic_hash": ""
   },
   "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png": {
@@ -1842,27 +1842,27 @@
     "semantic_hash": ""
   },
   "public/favicon.svg": {
-    "mtime": 1793313452.6978352,
-    "seen": 1793314450.5881824,
-    "ast_hash": "f17006c9aa04dfac3f4464c8610ff204",
+    "mtime": 1793058062.850876,
+    "seen": 1793060374.0576413,
+    "ast_hash": "989f803b7c952061d92fb2181e1573f7",
     "semantic_hash": ""
   },
   "public/icon-192.png": {
-    "mtime": 1793313452.6988542,
-    "seen": 1793314450.5881834,
-    "ast_hash": "3a8221e6ab7f462829750d1cf2210ecb",
+    "mtime": 1793058062.850876,
+    "seen": 1793060374.057642,
+    "ast_hash": "3275b111d32505d7c609b411560e525d",
     "semantic_hash": ""
   },
   "public/icon-512.png": {
-    "mtime": 1793313452.7003777,
-    "seen": 1793314450.5881839,
-    "ast_hash": "ffc75782e39fb9bf2c66601dc31d52a9",
+    "mtime": 1793058062.8523886,
+    "seen": 1793060374.0576425,
+    "ast_hash": "90fb674f422425636e44593295ce195a",
     "semantic_hash": ""
   },
   "public/icon.svg": {
-    "mtime": 1793313452.7024195,
-    "seen": 1793314450.5881844,
-    "ast_hash": "869d99a20cd21daa177f5ab4f7e6fe3e",
+    "mtime": 1793058062.853901,
+    "seen": 1793060374.057643,
+    "ast_hash": "34bc6c88235b0fd14200fbd1d20c2936",
     "semantic_hash": ""
   },
   "public/icons.svg": {
@@ -2226,9 +2226,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ImportFlow.tsx": {
-    "mtime": 1793313954.6935277,
-    "seen": 1793314450.5861027,
-    "ast_hash": "04ac648fbe57269529ea5e5f0970a706",
+    "mtime": 1793058062.903343,
+    "seen": 1793060374.0561397,
+    "ast_hash": "03b4e6ed072bfa841c7e8797bfb02069",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ReviewTable.tsx": {
@@ -2286,9 +2286,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/bloodwork-extract/index.ts": {
-    "mtime": 1793313954.7001042,
-    "seen": 1793314450.5867066,
-    "ast_hash": "f7bee9656e07af316b5b63d2bfde5620",
+    "mtime": 1793058063.0923512,
+    "seen": 1793060374.056677,
+    "ast_hash": "71987767ec407183d8621abdd1ca0ba6",
     "semantic_hash": ""
   },
   "supabase/functions/bloodwork-extract/prompt.test.ts": {
@@ -2340,9 +2340,9 @@
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/BefundEditor.tsx": {
-    "mtime": 1793313954.6935277,
-    "seen": 1793314450.5860918,
-    "ast_hash": "551bfb1c85e5bf8d70e590c005a1e355",
+    "mtime": 1793058062.898794,
+    "seen": 1793060374.0561326,
+    "ast_hash": "2da865daacea57d80b62c9330936ee09",
     "semantic_hash": ""
   },
   "src/features/blutwerte/components/import/ConflictResolver.tsx": {
@@ -2676,9 +2676,9 @@
     "semantic_hash": ""
   },
   "scripts/my-stack-i18n-source.mjs": {
-    "mtime": 1793313452.7065296,
-    "seen": 1793314450.5858266,
-    "ast_hash": "be2aa15e81fe4a7ed465631d81ae632c",
+    "mtime": 1793058062.8680494,
+    "seen": 1793060374.0560544,
+    "ast_hash": "11b87033e7c437412ab885c5870cad55",
     "semantic_hash": ""
   },
   "scripts/pk-profile-source.mjs": {
@@ -2970,9 +2970,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/components/StackItemWizard.tsx": {
-    "mtime": 1793313452.7137148,
-    "seen": 1793314450.5862873,
-    "ast_hash": "5523c977a6ab5b05fffbd2da4a5a36dd",
+    "mtime": 1793135686.912323,
+    "seen": 1793136185.6309388,
+    "ast_hash": "e2429b2451ef486f7cedfbe752ef7913",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/StackStage.test.ts": {
@@ -3504,9 +3504,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1793313452.714742,
-    "seen": 1793314450.5863495,
-    "ast_hash": "8cd8dfb66c2cc73e99d367c4c3e37aa6",
+    "mtime": 1793122940.247299,
+    "seen": 1793123583.7608552,
+    "ast_hash": "999f46ba7c067c3e9170101b251e3083",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793314000.1980085,
-    "seen": 1793314450.5866919,
+    "mtime": 1793304563.7486527,
+    "seen": 1793304656.7000234,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -5304,9 +5304,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/e2e.yml": {
-    "mtime": 1793313452.291013,
-    "seen": 1793314450.5867531,
-    "ast_hash": "4751d052e515eb8ecc1aa3176c70c5da",
+    "mtime": 1793058062.1266906,
+    "seen": 1793060374.056713,
+    "ast_hash": "ffd664ce46ece2155002a7d6f6c51c99",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/useMinuteClock.ts": {
@@ -5448,9 +5448,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793313954.6950376,
-    "seen": 1793314450.586152,
-    "ast_hash": "39d4869d9c056f7041010e6aaf54a927",
+    "mtime": 1793135686.906618,
+    "seen": 1793136185.630692,
+    "ast_hash": "95f4adc346f1076d8f84985642588618",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -5580,9 +5580,9 @@
     "semantic_hash": ""
   },
   "docs/store-compliance.md": {
-    "mtime": 1793313954.433224,
-    "seen": 1793314450.5867784,
-    "ast_hash": "f4a99d4fc42655db076eebf72c8cf1fe",
+    "mtime": 1793058062.2662635,
+    "seen": 1793060374.0567248,
+    "ast_hash": "cc80130ea97d1217546ea4b2827f8bb3",
     "semantic_hash": ""
   },
   "e2e/tagebuch.spec.ts": {
@@ -5670,9 +5670,9 @@
     "semantic_hash": ""
   },
   "e2e/intake-journey.spec.ts": {
-    "mtime": 1793313452.4813006,
-    "seen": 1793314450.585745,
-    "ast_hash": "588b98624469b95cf4ac24a654e62534",
+    "mtime": 1793058062.2723167,
+    "seen": 1793060374.0560188,
+    "ast_hash": "1178b64880fc56bc59362a818e2badf2",
     "semantic_hash": ""
   },
   "e2e/intake-timeline.spec.ts": {
@@ -6792,9 +6792,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1793313452.7090814,
-    "seen": 1793314450.5861783,
-    "ast_hash": "031b27802991c3d9bba9cbc7d91071e0",
+    "mtime": 1793058062.9341185,
+    "seen": 1793060374.0562043,
+    "ast_hash": "55fb159048f121d3b9c6f51903945ce4",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6810,9 +6810,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/DaySummary.tsx": {
-    "mtime": 1793313452.7096138,
-    "seen": 1793314450.5861812,
-    "ast_hash": "428a512f2fbf52677a81d136729c0638",
+    "mtime": 1793058062.9361403,
+    "seen": 1793060374.056207,
+    "ast_hash": "0fa00dc34a661e7c786ffdae6bebb1ff",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/FoodEditorSheet.tsx": {
@@ -6882,9 +6882,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/barcodeDetector.ts": {
-    "mtime": 1793313452.711137,
-    "seen": 1793314450.5861995,
-    "ast_hash": "b92a756df82b7f27f4541cf32efe6208",
+    "mtime": 1793058062.9435108,
+    "seen": 1793060374.0562222,
+    "ast_hash": "eaa88936ba32537eb6c07e639868009c",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/foodSearch.test.ts": {
@@ -6912,9 +6912,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/foodLookup.ts": {
-    "mtime": 1793313954.6980844,
-    "seen": 1793314450.5862234,
-    "ast_hash": "2a8387d2b4b3c1e9e6880fa51041841f",
+    "mtime": 1793058062.9535906,
+    "seen": 1793060374.0562415,
+    "ast_hash": "b0298d2c6ff5365d92692f4dac2ce76f",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/nutritionStore.ts": {
@@ -6930,21 +6930,21 @@
     "semantic_hash": ""
   },
   "supabase/functions/food-lookup/index.ts": {
-    "mtime": 1793313452.727468,
-    "seen": 1793314450.5867105,
-    "ast_hash": "d5b66b04b833346f30afcb437346f220",
+    "mtime": 1793058063.0938625,
+    "seen": 1793060374.0566804,
+    "ast_hash": "7366a7ebac8032e61ab2afbd438a0cf4",
     "semantic_hash": ""
   },
   "supabase/functions/food-lookup/off.test.ts": {
-    "mtime": 1793313452.7279935,
-    "seen": 1793314450.5867114,
-    "ast_hash": "39e108fbc172fd88830aba76eeaedd1c",
+    "mtime": 1793058063.0938625,
+    "seen": 1793060374.0566812,
+    "ast_hash": "6dd3f52b04fcecdfdaa8479b52c693d3",
     "semantic_hash": ""
   },
   "supabase/functions/food-lookup/off.ts": {
-    "mtime": 1793313452.7279935,
-    "seen": 1793314450.586712,
-    "ast_hash": "f099870a99050d01b630ccce21114177",
+    "mtime": 1793058063.0948663,
+    "seen": 1793060374.0566814,
+    "ast_hash": "a69ec4ef09a6539a38b9729147fbba1b",
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-10-18-ernaehrung-kalorientracker-design.md": {
@@ -6972,9 +6972,9 @@
     "semantic_hash": ""
   },
   "e2e/taschenlampe.spec.ts": {
-    "mtime": 1793313452.4838595,
-    "seen": 1793314450.5857754,
-    "ast_hash": "664953db2fc152b642ae2329dabf69bb",
+    "mtime": 1793058062.2793925,
+    "seen": 1793060374.0560338,
+    "ast_hash": "75e0b24b7db5edcefb29b01d60fff609",
     "semantic_hash": ""
   },
   "src/components/ambient/AmbientLight.test.tsx": {
@@ -7230,39 +7230,39 @@
     "semantic_hash": ""
   },
   "e2e/my-stack-scan.spec.ts": {
-    "mtime": 1793313452.4833405,
-    "seen": 1793314450.5857546,
-    "ast_hash": "f19a5ac96293cc9edeee5f0f85c92094",
+    "mtime": 1793058062.2738297,
+    "seen": 1793060374.0560231,
+    "ast_hash": "27478f4f08c84bc0cb2500053ce968a8",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/useBarcodeKamera.ts": {
-    "mtime": 1793313452.712692,
-    "seen": 1793314450.586223,
-    "ast_hash": "8cb9ed72b6fe64b96ba305dfd82f7678",
+    "mtime": 1793058062.9520812,
+    "seen": 1793060374.0562408,
+    "ast_hash": "442d72387c7a70c2776bc55a2496e1fd",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/SubstanzScanner.tsx": {
-    "mtime": 1793313452.7137148,
-    "seen": 1793314450.586295,
-    "ast_hash": "c714dc78ce72ff7505f88ab2efe282eb",
+    "mtime": 1793058062.9753246,
+    "seen": 1793060374.0563016,
+    "ast_hash": "ca7c260cac38a6f677371382852962ed",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/substanzScan.test.ts": {
-    "mtime": 1793313452.7152514,
-    "seen": 1793314450.5863798,
-    "ast_hash": "ab808e07a63d3c8dc28f9679eea852e6",
+    "mtime": 1793058062.9894924,
+    "seen": 1793060374.0563736,
+    "ast_hash": "ed32594b3c2101b0fa5271f83c0c215c",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/substanzScan.ts": {
-    "mtime": 1793313452.7157588,
-    "seen": 1793314450.5863802,
-    "ast_hash": "94f7211480c74d3caf206ae8a6faf3e9",
+    "mtime": 1793058062.9894924,
+    "seen": 1793060374.056374,
+    "ast_hash": "ef2b2acde6533293dd402f1416f77bc6",
     "semantic_hash": ""
   },
   "src/features/my-stack/services/substanzScan.ts": {
-    "mtime": 1793313954.699601,
-    "seen": 1793314450.5864036,
-    "ast_hash": "763b2943aa83ca5ad219c2986c07cbe5",
+    "mtime": 1793058062.999081,
+    "seen": 1793060374.0563953,
+    "ast_hash": "1d01fcff9fdf3a6f77d89cc2a81f17a7",
     "semantic_hash": ""
   },
   "src/pages/tagebuch/ChipEditor.tsx": {
@@ -7314,9 +7314,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/label-extract/index.ts": {
-    "mtime": 1793313954.7016127,
-    "seen": 1793314450.5867143,
-    "ast_hash": "a65de2ff122713da6c002e7e5fa34704",
+    "mtime": 1793058063.0963998,
+    "seen": 1793060374.0566838,
+    "ast_hash": "6c94b75d4df6fa5aded5de6bd8906fb7",
     "semantic_hash": ""
   },
   "supabase/functions/label-extract/prompt.test.ts": {
@@ -7386,15 +7386,15 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/foodPhoto.ts": {
-    "mtime": 1793313954.6985972,
-    "seen": 1793314450.5862238,
-    "ast_hash": "44866ee2755a1160cfaaa975c54f9a2d",
+    "mtime": 1793058062.9535906,
+    "seen": 1793060374.056242,
+    "ast_hash": "e513752c57e8e8d9bde16a32d2f5b939",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/index.ts": {
-    "mtime": 1793313954.701109,
-    "seen": 1793314450.5867126,
-    "ast_hash": "c0a6d32045bd0c0944e505aa31dca3ff",
+    "mtime": 1793058063.0953689,
+    "seen": 1793060374.0566823,
+    "ast_hash": "04d5ff5af92f0ef42fe068ea3925e31c",
     "semantic_hash": ""
   },
   "supabase/functions/food-photo/photo.test.ts": {
@@ -7530,9 +7530,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbBridge.ts": {
-    "mtime": 1793313452.7121549,
-    "seen": 1793314450.5862138,
-    "ast_hash": "560848978263612d22e8278458bdfad2",
+    "mtime": 1793058062.9490428,
+    "seen": 1793060374.0562334,
+    "ast_hash": "035217dd1ea63c8fa593a3cf8e756d3c",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbDraw.ts": {
@@ -7542,9 +7542,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbEngine.ts": {
-    "mtime": 1793313452.7121549,
-    "seen": 1793314450.5862153,
-    "ast_hash": "940a6146be167438ed4dcf1cb967eda7",
+    "mtime": 1793058062.9495459,
+    "seen": 1793060374.0562346,
+    "ast_hash": "a120c4cf745f088af5563da19ed06641",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/orbFeedback.ts": {
@@ -7644,9 +7644,9 @@
     "semantic_hash": ""
   },
   "e2e/kalender-monatsblatt.spec.ts": {
-    "mtime": 1793313452.4828148,
-    "seen": 1793314450.5857482,
-    "ast_hash": "8a78e1485d62a992a000e25f53f4cbaa",
+    "mtime": 1793058062.2738297,
+    "seen": 1793060374.056021,
+    "ast_hash": "bb91ca278374c4a78956ec421c13174e",
     "semantic_hash": ""
   },
   "e2e/sheet-wegziehen.spec.ts": {
@@ -7662,9 +7662,9 @@
     "semantic_hash": ""
   },
   "src/lib/useSheetDrag.ts": {
-    "mtime": 1793313452.7269592,
-    "seen": 1793314450.5866039,
-    "ast_hash": "a3291caa1d88fd3b58d58171531b5f38",
+    "mtime": 1793058063.0622432,
+    "seen": 1793060374.0565772,
+    "ast_hash": "5e2ec56836c41be66625322689e3b3fe",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/ScoreInfo.tsx": {
@@ -7722,9 +7722,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793313452.6962857,
-    "seen": 1793314450.5868585,
-    "ast_hash": "852426b6a433f44f873d49f6ef8daa6d",
+    "mtime": 1793058062.8448098,
+    "seen": 1793060374.056794,
+    "ast_hash": "55e2106331c221f4ae87f0d385425d61",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -7746,9 +7746,9 @@
     "semantic_hash": ""
   },
   "memory/projects/my-stack-formular.md": {
-    "mtime": 1793313452.697325,
-    "seen": 1793314450.5868623,
-    "ast_hash": "e89697767759b5634331168d6155ddd9",
+    "mtime": 1793058062.8463454,
+    "seen": 1793060374.0567975,
+    "ast_hash": "985a4503cb85892438c5c81c5a0aae28",
     "semantic_hash": ""
   },
   "src/lib/injectionStudioLook.test.ts": {
@@ -7782,15 +7782,15 @@
     "semantic_hash": ""
   },
   "e2e/dot.spec.ts": {
-    "mtime": 1793313452.4813006,
-    "seen": 1793314450.5857337,
-    "ast_hash": "bb9b6d6c1e96a37568caa3374f269804",
+    "mtime": 1793058062.2708094,
+    "seen": 1793060374.0560133,
+    "ast_hash": "edb66a84bf005184086b71d155921338",
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
-    "mtime": 1793313954.6955535,
-    "seen": 1793314450.5861568,
-    "ast_hash": "8fe88833598c37b5abdae4b1e640f474",
+    "mtime": 1793065498.4407818,
+    "seen": 1793065776.6670206,
+    "ast_hash": "50acac86b727084962999ad36d06f48b",
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
@@ -7806,9 +7806,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/coachService.ts": {
-    "mtime": 1793313954.696063,
-    "seen": 1793314450.5861645,
-    "ast_hash": "a8f598a26dfd454dd75534cd29ee40ac",
+    "mtime": 1793135686.9076629,
+    "seen": 1793136185.6307187,
+    "ast_hash": "e072542d80fae7915167c57284cfa8d8",
     "semantic_hash": ""
   },
   "src/features/dot/dotStore.ts": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793313471.0874352,
-    "seen": 1793314450.5861692,
-    "ast_hash": "95df32e2d753b0b516215e0d4b1c09ff",
+    "mtime": 1793312443.6292002,
+    "seen": 1793312606.9392436,
+    "ast_hash": "2b29e8976a6b2526cce0bed4464a77c2",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7836,15 +7836,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/lib/dotKontext.test.ts": {
-    "mtime": 1793313954.696063,
-    "seen": 1793314450.5861733,
-    "ast_hash": "bb82e9b99307eef9e6e4ea4fafbb3ed2",
+    "mtime": 1793058062.9320943,
+    "seen": 1793060374.0562003,
+    "ast_hash": "d74575bb4121cbb2b5714625edc3c17f",
     "semantic_hash": ""
   },
   "src/features/dot/lib/dotKontext.ts": {
-    "mtime": 1793313954.697067,
-    "seen": 1793314450.586174,
-    "ast_hash": "7b8c53d98759c44939b779b3c2337067",
+    "mtime": 1793058062.9320943,
+    "seen": 1793060374.056201,
+    "ast_hash": "ef8a7fcba8e7abb9c49fd83983a82bac",
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.test.ts": {
@@ -7866,9 +7866,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-    "mtime": 1793313954.6975703,
-    "seen": 1793314450.5861769,
-    "ast_hash": "ff5f41f64580c1086df38ffda20cbe98",
+    "mtime": 1793312939.972097,
+    "seen": 1793313280.3396695,
+    "ast_hash": "40156b74fecc300e4bb5fdb5cead8a0b",
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -7878,9 +7878,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/coach/index.ts": {
-    "mtime": 1793313954.7001042,
-    "seen": 1793314450.5867085,
-    "ast_hash": "5a3e585cdf41b986d0cfe7be0f59a869",
+    "mtime": 1793135686.9138575,
+    "seen": 1793136185.6318026,
+    "ast_hash": "c9c634a0116d80172c8b9164a06a92c5",
     "semantic_hash": ""
   },
   "supabase/functions/coach/prompt.test.ts": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793313954.6924758,
-    "seen": 1793314450.5868607,
-    "ast_hash": "628e0e18cfe48aa58daf693155189d74",
+    "mtime": 1793236746.101407,
+    "seen": 1793239925.6250186,
+    "ast_hash": "826222548dd90262ba248ea346975fb5",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -8076,15 +8076,15 @@
     "semantic_hash": ""
   },
   "docs/logo/dot/echt/export.cjs": {
-    "mtime": 1793313452.3178782,
-    "seen": 1793314450.5856833,
-    "ast_hash": "7f40dd16f1519171a151f77c8066b0ba",
+    "mtime": 1793058062.2424996,
+    "seen": 1793060374.056001,
+    "ast_hash": "69af2352812e309fd7bbc2fa965b0b98",
     "semantic_hash": ""
   },
   "docs/logo/dot/echt/vorschau.cjs": {
-    "mtime": 1793313452.3193905,
-    "seen": 1793314450.5856864,
-    "ast_hash": "1adaf2df4baaa729617975a05eb6cc1b",
+    "mtime": 1793058062.2424996,
+    "seen": 1793060374.056002,
+    "ast_hash": "f70901787b0dae74c20b9f672c61f80f",
     "semantic_hash": ""
   },
   "docs/logo/dot/gen.py": {
@@ -8094,9 +8094,9 @@
     "semantic_hash": ""
   },
   "e2e/sprache.spec.ts": {
-    "mtime": 1793313452.4838595,
-    "seen": 1793314450.5857606,
-    "ast_hash": "c5f5f8884e2007e184d2f7d35fed683b",
+    "mtime": 1792882702.8070464,
+    "seen": 1793060374.0560262,
+    "ast_hash": "7df55767f9b6a63c22809a922c847710",
     "semantic_hash": ""
   },
   "scripts/sql/injection-atomic-confirm.test.sql": {
@@ -8460,9 +8460,9 @@
     "semantic_hash": ""
   },
   "docs/logo/dot/echt/dot-icon.html": {
-    "mtime": 1793313452.3178782,
-    "seen": 1793314450.5867662,
-    "ast_hash": "cabdbb832b5144a1a43f20a50f1c53cd",
+    "mtime": 1793058062.2424996,
+    "seen": 1793060374.0567217,
+    "ast_hash": "d5f087431e9a001e5508aa31df3150b8",
     "semantic_hash": ""
   },
   "docs/logo/dot/kit/README.md": {
@@ -17225,6 +17225,36 @@
     "ast_hash": "59e36e0cde2db3a740d324d571546332",
     "semantic_hash": ""
   },
+  "public/icons/dot-180.png": {
+    "mtime": 1793058062.853901,
+    "seen": 1793060374.0576441,
+    "ast_hash": "2cb83d245ced9353efd6e1f2429f041c",
+    "semantic_hash": ""
+  },
+  "public/icons/dot-192.png": {
+    "mtime": 1793058062.8554132,
+    "seen": 1793060374.0576446,
+    "ast_hash": "3275b111d32505d7c609b411560e525d",
+    "semantic_hash": ""
+  },
+  "public/icons/dot-32.png": {
+    "mtime": 1793058062.8554132,
+    "seen": 1793060374.0576453,
+    "ast_hash": "d39a990b8473aa08286dbd3f72434413",
+    "semantic_hash": ""
+  },
+  "public/icons/dot-512.png": {
+    "mtime": 1793058062.8569193,
+    "seen": 1793060374.0576458,
+    "ast_hash": "90fb674f422425636e44593295ce195a",
+    "semantic_hash": ""
+  },
+  "public/icons/dot-maskable-512.png": {
+    "mtime": 1793058062.8569193,
+    "seen": 1793060374.057646,
+    "ast_hash": "39f4e5e7f1a380016701943c85b33be1",
+    "semantic_hash": ""
+  },
   "src/features/auth/lib/pruefung.test.ts": {
     "mtime": 1793066362.519026,
     "seen": 1793066587.7894437,
@@ -17628,9 +17658,9 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/branding/ENTSCHEIDUNGEN.md": {
-    "mtime": 1793313823.2181034,
-    "seen": 1793314450.5867739,
-    "ast_hash": "6b6c3432d740d67aa758a94fa89acc35",
+    "mtime": 1793296818.283028,
+    "seen": 1793299786.774273,
+    "ast_hash": "ec1ccc379c14520d72548a1bd3f3a23b",
     "semantic_hash": ""
   },
   "docs/logo/hoku/watermarks-v1/HOKU-Watermarks-v1/README.md": {
@@ -18936,15 +18966,15 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/EXPORT-CHECKS.json": {
-    "mtime": 1793313846.2033157,
-    "seen": 1793314450.5856993,
-    "ast_hash": "c07ec7b50780f43a01e521f25b4c5262",
+    "mtime": 1793296701.9612648,
+    "seen": 1793299786.773445,
+    "ast_hash": "3e90cf47f37e35a77a90e7087fc7d767",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/build.cjs": {
-    "mtime": 1793313823.2039993,
-    "seen": 1793314450.585703,
-    "ast_hash": "8bbd1044db68de9176d26fd83b76b847",
+    "mtime": 1793308540.8600883,
+    "seen": 1793312606.9389997,
+    "ast_hash": "f1dd45075434b602e6891f18b3b4c21b",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/verify.cjs": {
@@ -18966,333 +18996,333 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.html": {
-    "mtime": 1793313846.2243464,
-    "seen": 1793314450.5867717,
-    "ast_hash": "bed2458f1263817ebc19000e13d1874e",
+    "mtime": 1793308541.23036,
+    "seen": 1793312606.9398327,
+    "ast_hash": "cd26e8e09e9fe526702e25f9963807f2",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.md": {
-    "mtime": 1793313846.2089345,
-    "seen": 1793314450.5867722,
-    "ast_hash": "83389f1c57ebc4f566bade80fab76ac6",
+    "mtime": 1793308541.2252667,
+    "seen": 1793312606.9398332,
+    "ast_hash": "96cad4adcfba29fc42770ea763364143",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/README.md": {
-    "mtime": 1793313846.2279565,
-    "seen": 1793314450.5867727,
+    "mtime": 1793308541.23036,
+    "seen": 1793312606.9398339,
     "ast_hash": "06bf5834212ffd476c08ed00002f930c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png": {
-    "mtime": 1793313833.6878915,
-    "seen": 1793314450.587975,
+    "mtime": 1793296692.2311652,
+    "seen": 1793299786.7753983,
     "ast_hash": "149f95e8ca5bdabc466008b55932e0dc",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss.svg": {
-    "mtime": 1793313832.971353,
-    "seen": 1793314450.5879757,
+    "mtime": 1793296691.597202,
+    "seen": 1793299786.775399,
     "ast_hash": "99ce519c7b6e3c586eea0d1697c12eea",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent-1200.png": {
-    "mtime": 1793313832.971353,
-    "seen": 1793314450.5879762,
+    "mtime": 1793296691.5966997,
+    "seen": 1793299786.7753992,
     "ast_hash": "06e0fabc53b8190d6094622580eeb75d",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent-2400.png": {
-    "mtime": 1793313832.703153,
-    "seen": 1793314450.587977,
+    "mtime": 1793296691.3905585,
+    "seen": 1793299786.7753997,
     "ast_hash": "9c0b5a4b2a8300b60183311418f8e79e",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-transparent.svg": {
-    "mtime": 1793313831.6998198,
-    "seen": 1793314450.5879774,
+    "mtime": 1793296690.941021,
+    "seen": 1793299786.7754002,
     "ast_hash": "25750780cc89d6df4be7a8e92fd0aacf",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz-2400.png": {
-    "mtime": 1793313831.6961627,
-    "seen": 1793314450.587978,
+    "mtime": 1793296690.941021,
+    "seen": 1793299786.7754006,
     "ast_hash": "c9373910e078f5d951538bfab59bc809",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz.svg": {
-    "mtime": 1793313829.3878062,
-    "seen": 1793314450.5879788,
+    "mtime": 1793296690.3114958,
+    "seen": 1793299786.775401,
     "ast_hash": "74fec348ae28b7b781b48a1613b24c06",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent-1200.png": {
-    "mtime": 1793313829.3795414,
-    "seen": 1793314450.5879796,
+    "mtime": 1793296690.3099895,
+    "seen": 1793299786.7754018,
     "ast_hash": "265409b5970237090caa160824fcbd54",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent-2400.png": {
-    "mtime": 1793313828.611202,
-    "seen": 1793314450.58798,
+    "mtime": 1793296690.105694,
+    "seen": 1793299786.7754023,
     "ast_hash": "03934652f90841745a77ba265fbd9d6c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-weiss-transparent.svg": {
-    "mtime": 1793313827.190123,
-    "seen": 1793314450.5879805,
+    "mtime": 1793296689.6640463,
+    "seen": 1793299786.7754028,
     "ast_hash": "4304bc5fece676e94f764865b7a758b2",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss-2400.png": {
-    "mtime": 1793313835.8158638,
-    "seen": 1793314450.587981,
+    "mtime": 1793296694.278483,
+    "seen": 1793299786.7754035,
     "ast_hash": "e3b6a04cd42b7f8461cc43c9d633b270",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss.svg": {
-    "mtime": 1793313835.3164513,
-    "seen": 1793314450.5879815,
+    "mtime": 1793296693.7814934,
+    "seen": 1793299786.775404,
     "ast_hash": "31fda5dc19950669d53bf28157499e1a",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent-1200.png": {
-    "mtime": 1793313835.3159487,
-    "seen": 1793314450.5879822,
+    "mtime": 1793296693.7809882,
+    "seen": 1793299786.7754045,
     "ast_hash": "0e444350fa2787e802b0a381f54789be",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent-2400.png": {
-    "mtime": 1793313835.126073,
-    "seen": 1793314450.5879827,
+    "mtime": 1793296693.601063,
+    "seen": 1793299786.7754052,
     "ast_hash": "99259719299810bda8a8c85ca7c8c0cf",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-schwarz-transparent.svg": {
-    "mtime": 1793313834.7718499,
-    "seen": 1793314450.5879831,
+    "mtime": 1793296693.25233,
+    "seen": 1793299786.7754056,
     "ast_hash": "59817e6f4da4c4c00d4e9f4fe963ba1a",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz-2400.png": {
-    "mtime": 1793313834.7708359,
-    "seen": 1793314450.5879838,
+    "mtime": 1793296693.2508206,
+    "seen": 1793299786.7754061,
     "ast_hash": "6899e33cbde2d01ac35c36d87627f843",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz.svg": {
-    "mtime": 1793313834.2530742,
-    "seen": 1793314450.5879846,
+    "mtime": 1793296692.759611,
+    "seen": 1793299786.7754066,
     "ast_hash": "566dc05b124e08ebeeaa38ff277f8f01",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent-1200.png": {
-    "mtime": 1793313834.2510245,
-    "seen": 1793314450.587985,
+    "mtime": 1793296692.7574852,
+    "seen": 1793299786.775407,
     "ast_hash": "c488cba595a1aed189d155e48a793a25",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent-2400.png": {
-    "mtime": 1793313834.0591729,
-    "seen": 1793314450.5879858,
+    "mtime": 1793296692.57124,
+    "seen": 1793299786.7754078,
     "ast_hash": "f89da1ecbe3f5fe0c0c1683fe829286c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/02-Kompaktlogo/hoku-kompakt-weiss-transparent.svg": {
-    "mtime": 1793313833.690426,
-    "seen": 1793314450.5879865,
+    "mtime": 1793296692.2326717,
+    "seen": 1793299786.7754083,
     "ast_hash": "555201afe99734c0a66ff5441503ee98",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss-2400.png": {
-    "mtime": 1793313838.7230504,
-    "seen": 1793314450.5879872,
+    "mtime": 1793296696.986036,
+    "seen": 1793299786.775409,
     "ast_hash": "270bc61b9a74a0e425ddd975c45b6656",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss.svg": {
-    "mtime": 1793313838.0398881,
-    "seen": 1793314450.587988,
+    "mtime": 1793296696.4073796,
+    "seen": 1793299786.77541,
     "ast_hash": "4c7b0ece6d5f8f23ed339b3f20d0d321",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35-2400.png": {
-    "mtime": 1793313839.162504,
-    "seen": 1793314450.5879884,
+    "mtime": 1793296697.3845456,
+    "seen": 1793299786.7754102,
     "ast_hash": "b8527687807e70445bf49ec6e99fbfd7",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35.svg": {
-    "mtime": 1793313838.7250926,
-    "seen": 1793314450.5879893,
+    "mtime": 1793296696.9870563,
+    "seen": 1793299786.7754107,
     "ast_hash": "aa3b27ba3c68d732a05cba55b1c12086",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-1200.png": {
-    "mtime": 1793313838.037334,
-    "seen": 1793314450.58799,
+    "mtime": 1793296696.4073796,
+    "seen": 1793299786.7754111,
     "ast_hash": "0f5d2d7734b099ee20e301f55f21522e",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-2400.png": {
-    "mtime": 1793313837.8387742,
-    "seen": 1793314450.5879905,
+    "mtime": 1793296696.2244225,
+    "seen": 1793299786.775412,
     "ast_hash": "354a168fac151ea99ef7cc2758f39918",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent.svg": {
-    "mtime": 1793313837.4323232,
-    "seen": 1793314450.5879912,
+    "mtime": 1793296695.8358824,
+    "seen": 1793299786.7754126,
     "ast_hash": "fb03a9390a33c0f8dbf6d00c4220e070",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz-2400.png": {
-    "mtime": 1793313837.0132508,
-    "seen": 1793314450.5879917,
+    "mtime": 1793296695.440578,
+    "seen": 1793299786.775413,
     "ast_hash": "ad7f1527402660c21dbc5e060232160c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz.svg": {
-    "mtime": 1793313836.413585,
-    "seen": 1793314450.5879927,
+    "mtime": 1793296694.8630655,
+    "seen": 1793299786.7754135,
     "ast_hash": "fca47df92d7e613952e91846160b6888",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35-2400.png": {
-    "mtime": 1793313837.4313068,
-    "seen": 1793314450.5879931,
+    "mtime": 1793296695.8338628,
+    "seen": 1793299786.775414,
     "ast_hash": "ac5fdda78b426dc473a5552817738950",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35.svg": {
-    "mtime": 1793313837.0147786,
-    "seen": 1793314450.5879939,
+    "mtime": 1793296695.442595,
+    "seen": 1793299786.7754142,
     "ast_hash": "0ba10bcd9ccf2b21d53ba02736f50732",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-1200.png": {
-    "mtime": 1793313836.4120762,
-    "seen": 1793314450.5879946,
+    "mtime": 1793296694.8615527,
+    "seen": 1793299786.7754147,
     "ast_hash": "6219c89c9e76c0802fce22e7f2771833",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-2400.png": {
-    "mtime": 1793313836.2189229,
-    "seen": 1793314450.587995,
+    "mtime": 1793296694.6726427,
+    "seen": 1793299786.7754152,
     "ast_hash": "e12a4349e2b53d879a85ca9413e41389",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent.svg": {
-    "mtime": 1793313835.8194644,
-    "seen": 1793314450.5879955,
+    "mtime": 1793296694.2810004,
+    "seen": 1793299786.775416,
     "ast_hash": "5f2e3c94de5edf6871605efc558c4f1f",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-1024.png": {
-    "mtime": 1793313841.9111922,
-    "seen": 1793314450.5879989,
+    "mtime": 1793296698.6569924,
+    "seen": 1793299786.7754164,
     "ast_hash": "20474da409b4df66e6ff8bad821b9427",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-180.png": {
-    "mtime": 1793313842.5365455,
-    "seen": 1793314450.5879996,
+    "mtime": 1793296699.1490216,
+    "seen": 1793299786.7754166,
     "ast_hash": "17bf4d4d7d6e30abb7cd742148789a1f",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-192.png": {
-    "mtime": 1793313842.3235993,
-    "seen": 1793314450.5880003,
+    "mtime": 1793296699.0057964,
+    "seen": 1793299786.7754173,
     "ast_hash": "69c2aebe353591cf55274690e6748aab",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-farbig-512.png": {
-    "mtime": 1793313842.1444652,
-    "seen": 1793314450.5880008,
+    "mtime": 1793296698.8638043,
+    "seen": 1793299786.7754176,
     "ast_hash": "914d6a5bf734f4c2179c8e4291543fd7",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-1024.png": {
-    "mtime": 1793313843.167585,
-    "seen": 1793314450.5880013,
+    "mtime": 1793296699.611463,
+    "seen": 1793299786.7754183,
     "ast_hash": "a4c90b1efee27500c93fa81ce316dd64",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-180.png": {
-    "mtime": 1793313843.967756,
-    "seen": 1793314450.588002,
+    "mtime": 1793296700.0813231,
+    "seen": 1793299786.7754185,
     "ast_hash": "0e58ac68e440fa9fde2fb6bcd4bccd47",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-192.png": {
-    "mtime": 1793313843.7149606,
-    "seen": 1793314450.588003,
+    "mtime": 1793296699.9539487,
+    "seen": 1793299786.7754192,
     "ast_hash": "a6ffd192274275316bc6610a2183c1f7",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-monochrom-512.png": {
-    "mtime": 1793313843.4852138,
-    "seen": 1793314450.5880034,
+    "mtime": 1793296699.8211348,
+    "seen": 1793299786.7754197,
     "ast_hash": "820fa53d656bb49b0d668ede613dd965",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-16.png": {
-    "mtime": 1793313844.1538084,
-    "seen": 1793314450.5880039,
+    "mtime": 1793296700.2000456,
+    "seen": 1793299786.7754204,
     "ast_hash": "84844693264d50ac37a092f4e7277692",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-32.png": {
-    "mtime": 1793313844.2978184,
-    "seen": 1793314450.5880046,
+    "mtime": 1793296700.3288896,
+    "seen": 1793299786.775421,
     "ast_hash": "6176d7112a803606f575c548da1e828e",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-48.png": {
-    "mtime": 1793313844.4357653,
-    "seen": 1793314450.588005,
+    "mtime": 1793296700.4527242,
+    "seen": 1793299786.7754216,
     "ast_hash": "45511658f00f542d28bbadae0fe91d70",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-favicon-64.png": {
-    "mtime": 1793313844.575226,
-    "seen": 1793314450.5880058,
+    "mtime": 1793296700.5711904,
+    "seen": 1793299786.775422,
     "ast_hash": "fc43d271a2497e58d084d4689cc4caac",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-schwarz-transparent-1024.png": {
-    "mtime": 1793313840.094667,
-    "seen": 1793314450.5880065,
+    "mtime": 1793296698.202523,
+    "seen": 1793299786.7754228,
     "ast_hash": "3599f9ee8cf5bf68e0542ee9490fd310",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-schwarz-transparent.svg": {
-    "mtime": 1793313839.620845,
-    "seen": 1793314450.5880075,
+    "mtime": 1793296697.7974873,
+    "seen": 1793299786.775423,
     "ast_hash": "720e4a1d7c5c13f4d5604961f8c89899",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-weiss-transparent-1024.png": {
-    "mtime": 1793313839.6193326,
-    "seen": 1793314450.588008,
+    "mtime": 1793296697.7959802,
+    "seen": 1793299786.7754235,
     "ast_hash": "db402e52713757b528d23cae6aee99eb",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-symbol-weiss-transparent.svg": {
-    "mtime": 1793313839.163525,
-    "seen": 1793314450.5880084,
+    "mtime": 1793296697.3866007,
+    "seen": 1793299786.775424,
     "ast_hash": "00fce8eb31e0d30b322961bd22565054",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Groessenprobe.png": {
-    "mtime": 1793313846.1966202,
-    "seen": 1793314450.5880108,
+    "mtime": 1793296701.956744,
+    "seen": 1793299786.7754245,
     "ast_hash": "b754178827262ff37e35193f3b9bb66f",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Uebersicht.png": {
-    "mtime": 1793313845.7777123,
-    "seen": 1793314450.5880113,
-    "ast_hash": "144d69be8a6234ace37bdcedb1590562",
+    "mtime": 1793296701.594528,
+    "seen": 1793299786.775425,
+    "ast_hash": "5128332c95659e2c73c2ee153d1f3143",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/hoku-app-icon-dark-v1.png": {
@@ -19332,1161 +19362,27 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/ORIGINAL-CHECKS.json": {
-    "mtime": 1793313846.2079167,
-    "seen": 1793314450.5857015,
+    "mtime": 1793308541.2252667,
+    "seen": 1793312606.9389975,
     "ast_hash": "479073f037c4094920136a441bc7542f",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/originale.cjs": {
-    "mtime": 1793313823.2092981,
-    "seen": 1793314450.5857046,
-    "ast_hash": "78f26a11d48846c691eb423cd6cdf361",
+    "mtime": 1793308540.8600883,
+    "seen": 1793312606.9390008,
+    "ast_hash": "c4c291ca4e52f6d7773eb5ac97d3d91a",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/06-Originale/hoku-health-hub-michroma-schwarz-auf-weiss-v1.png": {
-    "mtime": 1793313846.2079167,
-    "seen": 1793314450.5880094,
+    "mtime": 1793308541.224764,
+    "seen": 1793312606.9409835,
     "ast_hash": "293d8585c39502361c006221f11ee45e",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/06-Originale/hoku-health-hub-michroma-weiss-auf-schwarz-v1.png": {
-    "mtime": 1793313846.2068982,
-    "seen": 1793314450.58801,
+    "mtime": 1793308541.2222536,
+    "seen": 1793312606.9409842,
     "ast_hash": "7e2fc3588b30ab6997ffab0bac29f031",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/export.py": {
-    "mtime": 1793313452.3178782,
-    "seen": 1793314450.5856802,
-    "ast_hash": "771e4a51e47ca9d5f47764e119c24e77",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/echt/social.cjs": {
-    "mtime": 1793313452.3178782,
-    "seen": 1793314450.585685,
-    "ast_hash": "8085cb462c0edcf3dc4a71008e357be1",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/futur.py": {
-    "mtime": 1793313452.3317332,
-    "seen": 1793314450.5856876,
-    "ast_hash": "7487ed9761baada17823fde56de9abe4",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel_ticket.py": {
-    "mtime": 1793313452.352962,
-    "seen": 1793314450.5856886,
-    "ast_hash": "00a18e5072b3b646e63ba50ac7cb9ef9",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel.py": {
-    "mtime": 1793313452.3989923,
-    "seen": 1793314450.58569,
-    "ast_hash": "f0df56f2f9be5c430d047c21583e1771",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel_clean.py": {
-    "mtime": 1793313452.4005039,
-    "seen": 1793314450.585692,
-    "ast_hash": "2d85d17941e63bb76e4fa2907c293f36",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked.py": {
-    "mtime": 1793313452.4356556,
-    "seen": 1793314450.585693,
-    "ast_hash": "b13ef3ceb2da3ede404c7e48135dbfb6",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/bauen.py": {
-    "mtime": 1793313452.4490757,
-    "seen": 1793314450.5856965,
-    "ast_hash": "2972959934b92631daeb61763999e27f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/varianten.py": {
-    "mtime": 1793313452.4813006,
-    "seen": 1793314450.5856977,
-    "ast_hash": "21fa0c99ef4ee1d27469fb7e6f9bf010",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/build.cjs": {
-    "mtime": 1793314364.2882874,
-    "seen": 1793314450.5857074,
-    "ast_hash": "3a39c756add73b35d27fc139745250c1",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/hooks/useDotRundflug.ts": {
-    "mtime": 1793313452.71012,
-    "seen": 1793314450.5861957,
-    "ast_hash": "5a5d332cbc9e25b37faf5e0c5d09223b",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/lib/dotRundflug.test.ts": {
-    "mtime": 1793313452.711137,
-    "seen": 1793314450.586205,
-    "ast_hash": "6985015236c77e4ea2ff5cb304585086",
-    "semantic_hash": ""
-  },
-  "src/features/ernaehrung/lib/dotRundflug.ts": {
-    "mtime": 1793313452.7116468,
-    "seen": 1793314450.5862057,
-    "ast_hash": "6d685067c7b492637436bced88fb97d8",
-    "semantic_hash": ""
-  },
-  "src/features/my-stack/lib/packungscode.test.ts": {
-    "mtime": 1793313452.714742,
-    "seen": 1793314450.5863624,
-    "ast_hash": "f20f748e9c982866c5127abb478c4a23",
-    "semantic_hash": ""
-  },
-  "src/features/my-stack/lib/packungscode.ts": {
-    "mtime": 1793313452.7152514,
-    "seen": 1793314450.586363,
-    "ast_hash": "3292ed5cbc6fa2639a590cf3138e7dc1",
-    "semantic_hash": ""
-  },
-  "docs/datenschutz/dsfa-ki.md": {
-    "mtime": 1793313954.43222,
-    "seen": 1793314450.5867586,
-    "ast_hash": "d923f2d0494a44d20f6b605d5a82fd89",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/README.md": {
-    "mtime": 1793313452.306252,
-    "seen": 1793314450.5867658,
-    "ast_hash": "fce242ac56720b4bcc82938977e2d700",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/README.md": {
-    "mtime": 1793313452.3193905,
-    "seen": 1793314450.586767,
-    "ast_hash": "2758c03784bee5cf30badc14b2ebd6b0",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/social/README.md": {
-    "mtime": 1793313452.4455428,
-    "seen": 1793314450.5867684,
-    "ast_hash": "f5443e71218d17e4ef1ad925c7fa8f93",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/README.md": {
-    "mtime": 1793313452.446057,
-    "seen": 1793314450.5867689,
-    "ast_hash": "8057680d88ab45b36a6eb375550eb728",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/dot-codex-1024.png": {
-    "mtime": 1793313452.309282,
-    "seen": 1793314450.5878835,
-    "ast_hash": "52e2c816b2ccbfeb76cd75fe9bdd4b03",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/dot-codex-1254.png": {
-    "mtime": 1793313452.315859,
-    "seen": 1793314450.587885,
-    "ast_hash": "5ad363e131a5df39a9a92df75f76cfca",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/dot-codex.webp": {
-    "mtime": 1793313452.3163629,
-    "seen": 1793314450.5878859,
-    "ast_hash": "31450bf5cd58a0ee59d66bf5fbddcb27",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/codex/eingebaut.png": {
-    "mtime": 1793313452.3163629,
-    "seen": 1793314450.5878866,
-    "ast_hash": "18d2f7ba7bd8d519e4ab81fa3c427775",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f1-weit-farbe.svg": {
-    "mtime": 1793313452.3259764,
-    "seen": 1793314450.5878875,
-    "ast_hash": "55f1c343ee0a4797031614ec41d7d719",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f1-weit-schwarz.svg": {
-    "mtime": 1793313452.3274927,
-    "seen": 1793314450.5878882,
-    "ast_hash": "a58961bfab7ad62f79fb9886a959ebec",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f1-weit-weiss.svg": {
-    "mtime": 1793313452.3274927,
-    "seen": 1793314450.587889,
-    "ast_hash": "d7604bc4fbadb27a1a73b6ec6e7119e5",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f2-punktschrift-farbe.svg": {
-    "mtime": 1793313452.3274927,
-    "seen": 1793314450.5878894,
-    "ast_hash": "86ed39dcbf83077d86dc2a5061a2cd1c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f2-punktschrift-schwarz.svg": {
-    "mtime": 1793313452.3290112,
-    "seen": 1793314450.58789,
-    "ast_hash": "2de488e18d4db2caacf3523e699d3ddb",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f2-punktschrift-weiss.svg": {
-    "mtime": 1793313452.3290112,
-    "seen": 1793314450.5878904,
-    "ast_hash": "373c3c4fe35f1b1821402029489c49ce",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f3-umlaufbahn-farbe.svg": {
-    "mtime": 1793313452.3305254,
-    "seen": 1793314450.587891,
-    "ast_hash": "436e7d460515ed98612c7da0eb339d77",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f3-umlaufbahn-schwarz.svg": {
-    "mtime": 1793313452.3305254,
-    "seen": 1793314450.587892,
-    "ast_hash": "8e44be5676ebb71900f7c1b7847e563e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/f3-umlaufbahn-weiss.svg": {
-    "mtime": 1793313452.3312104,
-    "seen": 1793314450.5878925,
-    "ast_hash": "2eb643cc3c6424b3aba1a40c29016a36",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-1-linie-farbe.svg": {
-    "mtime": 1793313452.3332775,
-    "seen": 1793314450.587893,
-    "ast_hash": "590920046605969590b47e19c30b4045",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-1-linie-schwarz.svg": {
-    "mtime": 1793313452.3337893,
-    "seen": 1793314450.5878935,
-    "ast_hash": "9d7b2953da5dc2ff183d9f42546ee54d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-1-linie-weiss.svg": {
-    "mtime": 1793313452.3337893,
-    "seen": 1793314450.5878942,
-    "ast_hash": "bc42b22ef853d8f2fdf6e94ff4d075b3",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-2-gefuellt-farbe.svg": {
-    "mtime": 1793313452.3337893,
-    "seen": 1793314450.5878947,
-    "ast_hash": "ccbdfb600f6a3d07de09a771efd99aa6",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-2-gefuellt-schwarz.svg": {
-    "mtime": 1793313452.335301,
-    "seen": 1793314450.5878954,
-    "ast_hash": "e13bfb0649d138a88f37ecdd13a53474",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-2-gefuellt-weiss.svg": {
-    "mtime": 1793313452.335816,
-    "seen": 1793314450.5878959,
-    "ast_hash": "b59069af6afa3ffcfbb3f139ab8671eb",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-3-ausbruch-farbe.svg": {
-    "mtime": 1793313452.3363237,
-    "seen": 1793314450.5878963,
-    "ast_hash": "32f99cc23db902ce49727de54eb6a9ac",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-3-ausbruch-schwarz.svg": {
-    "mtime": 1793313452.3363237,
-    "seen": 1793314450.5878968,
-    "ast_hash": "5592c6502cf61ab47597c7c4e6a0dc4a",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-3-ausbruch-weiss.svg": {
-    "mtime": 1793313452.3363237,
-    "seen": 1793314450.587897,
-    "ast_hash": "0c1b79ac84debc98e670c83e82f49d8c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-4-kompakt-farbe.svg": {
-    "mtime": 1793313452.3378346,
-    "seen": 1793314450.5878975,
-    "ast_hash": "c5d6e4ebc9de955902263f74efd0c427",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-4-kompakt-schwarz.svg": {
-    "mtime": 1793313452.3378346,
-    "seen": 1793314450.587898,
-    "ast_hash": "a3ac3e3d37c9f923c84f39b0d736cf9b",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-4-kompakt-weiss.svg": {
-    "mtime": 1793313452.3393464,
-    "seen": 1793314450.5878987,
-    "ast_hash": "2ff8cdefd0f8c4ce8cd6ac68fdcbe934",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-5-einzeilig-farbe.svg": {
-    "mtime": 1793313452.3393464,
-    "seen": 1793314450.5878992,
-    "ast_hash": "c6caaf954d2f7335a8741dac48f7c504",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-5-einzeilig-schwarz.svg": {
-    "mtime": 1793313452.34086,
-    "seen": 1793314450.5878997,
-    "ast_hash": "8b499468ee119decdebdcc18241152fd",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-5-einzeilig-weiss.svg": {
-    "mtime": 1793313452.34086,
-    "seen": 1793314450.5879,
-    "ast_hash": "7cd23427decb647f29b093f782b86113",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-6-geteilt-farbe.svg": {
-    "mtime": 1793313452.342375,
-    "seen": 1793314450.5879006,
-    "ast_hash": "e32e543ef5a4b9fd37284b7b55684e1c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-6-geteilt-schwarz.svg": {
-    "mtime": 1793313452.342375,
-    "seen": 1793314450.5879009,
-    "ast_hash": "fab95cb03ac2eb099e5b17cf4fa3cf9a",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-6-geteilt-weiss.svg": {
-    "mtime": 1793313452.3428895,
-    "seen": 1793314450.5879014,
-    "ast_hash": "0c3c3e65681a10fb5b99cf8558e2151b",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/kapsel-ticket-uebersicht.png": {
-    "mtime": 1793313452.3524528,
-    "seen": 1793314450.587902,
-    "ast_hash": "2c3adc2334814d2ff68eb22a46a6db7f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s1-siegel-farbe.svg": {
-    "mtime": 1793313452.3534703,
-    "seen": 1793314450.5879025,
-    "ast_hash": "db7e5e3dc66b861316a9190f44360bbe",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s1-siegel-schwarz.svg": {
-    "mtime": 1793313452.3534703,
-    "seen": 1793314450.587903,
-    "ast_hash": "95a51a401d7fd6ad14f04ee606af53d2",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s1-siegel-weiss.svg": {
-    "mtime": 1793313452.3549836,
-    "seen": 1793314450.5879035,
-    "ast_hash": "efa8d1d36b67abafa2f2998877433f17",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s2-kennung-farbe.svg": {
-    "mtime": 1793313452.355988,
-    "seen": 1793314450.587904,
-    "ast_hash": "2b6c83414ecdea40e6bf5d535428a428",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s2-kennung-schwarz.svg": {
-    "mtime": 1793313452.3564923,
-    "seen": 1793314450.5879045,
-    "ast_hash": "13a59b69031a83c9d7438445d0aa8993",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s2-kennung-weiss.svg": {
-    "mtime": 1793313452.3564923,
-    "seen": 1793314450.587905,
-    "ast_hash": "9ceb83f4b1cfe6cdd67e8e1cc7284c94",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s3-erfolg-farbe.svg": {
-    "mtime": 1793313452.3580048,
-    "seen": 1793314450.5879052,
-    "ast_hash": "a0c039460db6f3ef77690ac329b902e9",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s3-erfolg-schwarz.svg": {
-    "mtime": 1793313452.3580048,
-    "seen": 1793314450.5879061,
-    "ast_hash": "e671f7aea82ba32702a3b1a0a03f23c4",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/s3-erfolg-weiss.svg": {
-    "mtime": 1793313452.3580048,
-    "seen": 1793314450.5879068,
-    "ast_hash": "bd0b14ea48c3484f05a2bc8e1ff6828e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-1-mission-farbe.svg": {
-    "mtime": 1793313452.3600328,
-    "seen": 1793314450.587907,
-    "ast_hash": "66646346e4b0699b4a36c28ccf391274",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-1-mission-schwarz.svg": {
-    "mtime": 1793313452.3605359,
-    "seen": 1793314450.5879076,
-    "ast_hash": "657af7af070e65aed6ca7e523cea0019",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-1-mission-weiss.svg": {
-    "mtime": 1793313452.3605359,
-    "seen": 1793314450.587908,
-    "ast_hash": "4ecc1198c1c7595872b9aed4191feb3d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-2-radar-farbe.svg": {
-    "mtime": 1793313452.363052,
-    "seen": 1793314450.5879085,
-    "ast_hash": "52736e7d30db09dda895324ae67cff3e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-2-radar-schwarz.svg": {
-    "mtime": 1793313452.3635554,
-    "seen": 1793314450.5879092,
-    "ast_hash": "06321f16c083199ac013ce6c0325be8d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-2-radar-weiss.svg": {
-    "mtime": 1793313452.3635554,
-    "seen": 1793314450.5879097,
-    "ast_hash": "f8257b34f7cac587af6f919802cbe2ba",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-3-orbits-farbe.svg": {
-    "mtime": 1793313452.365591,
-    "seen": 1793314450.5879102,
-    "ast_hash": "05cbf0c3dc81462798b2f0e67a74ce5a",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-3-orbits-schwarz.svg": {
-    "mtime": 1793313452.3661022,
-    "seen": 1793314450.5879107,
-    "ast_hash": "145656b210754c487baa5976651c6fb4",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-3-orbits-weiss.svg": {
-    "mtime": 1793313452.3661022,
-    "seen": 1793314450.5879114,
-    "ast_hash": "23e7c4d0f02dce5e18d701d72bf58372",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-4-galaxie-farbe.svg": {
-    "mtime": 1793313452.3691325,
-    "seen": 1793314450.5879116,
-    "ast_hash": "c493924f1995f3467490a9eec8b5bcd3",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-4-galaxie-schwarz.svg": {
-    "mtime": 1793313452.3691325,
-    "seen": 1793314450.587912,
-    "ast_hash": "d2eb33fbe8902209d125b6499c45548f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-4-galaxie-weiss.svg": {
-    "mtime": 1793313452.370137,
-    "seen": 1793314450.5879128,
-    "ast_hash": "7ec4e912ec9e0ba9481933fc23342ca2",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-5-hud-farbe.svg": {
-    "mtime": 1793313452.3706398,
-    "seen": 1793314450.5879133,
-    "ast_hash": "309ab065c5d0bd9bb35900ea191713f9",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-5-hud-schwarz.svg": {
-    "mtime": 1793313452.3706398,
-    "seen": 1793314450.5879138,
-    "ast_hash": "bafdf97a0ca456666f21714ef46ff1cb",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-5-hud-weiss.svg": {
-    "mtime": 1793313452.3721504,
-    "seen": 1793314450.5879142,
-    "ast_hash": "1e6f34fb1aeeaaceb14e9434ea853669",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-6-fortschritt-farbe.svg": {
-    "mtime": 1793313452.3731534,
-    "seen": 1793314450.587915,
-    "ast_hash": "be1fe4c82e4ead9bbfc3d97561dda34b",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-6-fortschritt-schwarz.svg": {
-    "mtime": 1793313452.3731534,
-    "seen": 1793314450.5879152,
-    "ast_hash": "6f705a7d75bcd192e5ed63c7608afbde",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-6-fortschritt-weiss.svg": {
-    "mtime": 1793313452.3736558,
-    "seen": 1793314450.5879157,
-    "ast_hash": "eeaba1730b70c2bd4c708ab5ac279164",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-1-mission-farbe.svg": {
-    "mtime": 1793313452.3736558,
-    "seen": 1793314450.5879166,
-    "ast_hash": "a3657bbcbcecbe94a5ba91e7fa833713",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-1-mission-schwarz.svg": {
-    "mtime": 1793313452.375171,
-    "seen": 1793314450.5879169,
-    "ast_hash": "892a00f6bd34a8db1bd5f0e0339d6482",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-1-mission-weiss.svg": {
-    "mtime": 1793313452.3756843,
-    "seen": 1793314450.5879173,
-    "ast_hash": "53c5fcd671c1103919dfcc2cf8f2f28f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-2-radar-farbe.svg": {
-    "mtime": 1793313452.3761976,
-    "seen": 1793314450.587918,
-    "ast_hash": "2350d1e89c2d975277caf775c03bd900",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-2-radar-schwarz.svg": {
-    "mtime": 1793313452.3777132,
-    "seen": 1793314450.5879185,
-    "ast_hash": "66f878f03714e4e0125d98bea45d31d1",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-2-radar-weiss.svg": {
-    "mtime": 1793313452.3777132,
-    "seen": 1793314450.587919,
-    "ast_hash": "2d4593da237e6f0ab54b0fe4a4bfe19c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-3-orbit-farbe.svg": {
-    "mtime": 1793313452.3777132,
-    "seen": 1793314450.5879197,
-    "ast_hash": "7e919e882dadac9d987114ebe0704be1",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-3-orbit-schwarz.svg": {
-    "mtime": 1793313452.3792562,
-    "seen": 1793314450.5879202,
-    "ast_hash": "9d62694b43a60e8295fae0bcf49975fa",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-3-orbit-weiss.svg": {
-    "mtime": 1793313452.3792562,
-    "seen": 1793314450.5879207,
-    "ast_hash": "b6ee534d35b0b74a4fab95e0c0d26e15",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-4-staubring-farbe.svg": {
-    "mtime": 1793313452.3807704,
-    "seen": 1793314450.587921,
-    "ast_hash": "48485729eaab3a6fe9e4237709fd3419",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-4-staubring-schwarz.svg": {
-    "mtime": 1793313452.3807704,
-    "seen": 1793314450.5879214,
-    "ast_hash": "8312ca010843e94673b4a8fa0840c576",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-4-staubring-weiss.svg": {
-    "mtime": 1793313452.3807704,
-    "seen": 1793314450.5879219,
-    "ast_hash": "d6af7692b40b36ff7c690fed4ba80639",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-5-rahmen-farbe.svg": {
-    "mtime": 1793313452.3822837,
-    "seen": 1793314450.5879223,
-    "ast_hash": "1a260e1b367178b69d08dccfa9cc6df6",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-5-rahmen-schwarz.svg": {
-    "mtime": 1793313452.3827982,
-    "seen": 1793314450.587923,
-    "ast_hash": "2bb213eabd2aee7ee9481216f79308ae",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-5-rahmen-weiss.svg": {
-    "mtime": 1793313452.3827982,
-    "seen": 1793314450.5879235,
-    "ast_hash": "82f4e72797c9ff4927648eadd70cf3e3",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-6-fortschritt-farbe.svg": {
-    "mtime": 1793313452.3833046,
-    "seen": 1793314450.587924,
-    "ast_hash": "ab6ed1ac77bd02a90a9c7e5be0c0f075",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-6-fortschritt-schwarz.svg": {
-    "mtime": 1793313452.3833046,
-    "seen": 1793314450.5879245,
-    "ast_hash": "11cf650e22d43859b075c4f2befb0d54",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-6-fortschritt-weiss.svg": {
-    "mtime": 1793313452.3833046,
-    "seen": 1793314450.587925,
-    "ast_hash": "742cbfd3c80d412d8953ce5ded7c1250",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-clean-uebersicht.png": {
-    "mtime": 1793313452.389368,
-    "seen": 1793314450.5879254,
-    "ast_hash": "f1fe8f23088e6f08933547af9e60ee1d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/siegel-uebersicht.png": {
-    "mtime": 1793313452.3989923,
-    "seen": 1793314450.587926,
-    "ast_hash": "823ba64938b99071db6cb6d9f6d57223",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-1-linie-farbe.svg": {
-    "mtime": 1793313452.4005039,
-    "seen": 1793314450.5879266,
-    "ast_hash": "60ec63f946a4e7794008f23968c3c14c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-1-linie-schwarz.svg": {
-    "mtime": 1793313452.4005039,
-    "seen": 1793314450.5879273,
-    "ast_hash": "1a4cfeddccdb8ea76fade6a2614628fd",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-1-linie-weiss.svg": {
-    "mtime": 1793313452.402015,
-    "seen": 1793314450.5879278,
-    "ast_hash": "98e9b325f9461c6d0bf8a2efb477c9d2",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-2-kerben-farbe.svg": {
-    "mtime": 1793313452.403019,
-    "seen": 1793314450.587928,
-    "ast_hash": "54fedd1cf26b104b71d59cf7bfe17dde",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-2-kerben-schwarz.svg": {
-    "mtime": 1793313452.403523,
-    "seen": 1793314450.5879285,
-    "ast_hash": "9ab4e4817a2b92adcc603db3c2ee99ef",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-2-kerben-weiss.svg": {
-    "mtime": 1793313452.403523,
-    "seen": 1793314450.587929,
-    "ast_hash": "4c856456f16c6641afe0e22dc9f3fb74",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-3-hochformat-farbe.svg": {
-    "mtime": 1793313452.403523,
-    "seen": 1793314450.58793,
-    "ast_hash": "5c3abd24a629b62db5e7318ed148a61b",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-3-hochformat-schwarz.svg": {
-    "mtime": 1793313452.405036,
-    "seen": 1793314450.5879304,
-    "ast_hash": "a67a90230a8da2330b601f1619f05d4a",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-3-hochformat-weiss.svg": {
-    "mtime": 1793313452.4055586,
-    "seen": 1793314450.587931,
-    "ast_hash": "27c3f38684181fb00a93b65b94109c69",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-4-boarding-farbe.svg": {
-    "mtime": 1793313452.4060676,
-    "seen": 1793314450.5879314,
-    "ast_hash": "5c6d2d518daeca1374d99c073d42d90f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-4-boarding-schwarz.svg": {
-    "mtime": 1793313452.4060676,
-    "seen": 1793314450.5879319,
-    "ast_hash": "42bfdfc7cc8c4db86724c8de58d534af",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-4-boarding-weiss.svg": {
-    "mtime": 1793313452.4060676,
-    "seen": 1793314450.5879323,
-    "ast_hash": "d583abaefa3bbf122ca782e10cdf5771",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-5-gefuellt-farbe.svg": {
-    "mtime": 1793313452.4075787,
-    "seen": 1793314450.5879326,
-    "ast_hash": "3bda5cf8b71c31e9ba329245e557faf1",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-5-gefuellt-schwarz.svg": {
-    "mtime": 1793313452.4075787,
-    "seen": 1793314450.5879335,
-    "ast_hash": "921e9f1dd9d60e3519d83f4daab4a6a8",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-5-gefuellt-weiss.svg": {
-    "mtime": 1793313452.4075787,
-    "seen": 1793314450.587934,
-    "ast_hash": "0f1ac6c9ea4195a7550e75743905d006",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-6-punktcode-farbe.svg": {
-    "mtime": 1793313452.4091313,
-    "seen": 1793314450.5879345,
-    "ast_hash": "332b32cc5c29a8d0de0f8cd78a5ba73e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-6-punktcode-schwarz.svg": {
-    "mtime": 1793313452.4091313,
-    "seen": 1793314450.5879347,
-    "ast_hash": "de83e3c78dfd50bb515111fa4ce60f18",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/ticket-6-punktcode-weiss.svg": {
-    "mtime": 1793313452.4106412,
-    "seen": 1793314450.5879352,
-    "ast_hash": "3d85fa520e1133ec90dec4e70ddb0277",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-1-klassisch-farbe.svg": {
-    "mtime": 1793313452.4106412,
-    "seen": 1793314450.5879357,
-    "ast_hash": "b34d008247ee0d8c9ce405fb6e71acc3",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-1-klassisch-schwarz.svg": {
-    "mtime": 1793313452.4106412,
-    "seen": 1793314450.5879362,
-    "ast_hash": "e267a9d60a559177f0cc652194377940",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-1-klassisch-weiss.svg": {
-    "mtime": 1793313452.4121492,
-    "seen": 1793314450.5879364,
-    "ast_hash": "300551033eea6f7d9879d7e3ec1f59af",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-2-stempel-farbe.svg": {
-    "mtime": 1793313452.413163,
-    "seen": 1793314450.587937,
-    "ast_hash": "fc08070e0a6b115663460682f5391b09",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-2-stempel-schwarz.svg": {
-    "mtime": 1793313452.413163,
-    "seen": 1793314450.5879376,
-    "ast_hash": "eba814804c60f671f851f279cf09eb52",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-2-stempel-weiss.svg": {
-    "mtime": 1793313452.413163,
-    "seen": 1793314450.5879383,
-    "ast_hash": "fc52c8628d9e426d30efac5ff2f41d38",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-3-medaille-farbe.svg": {
-    "mtime": 1793313452.415675,
-    "seen": 1793314450.5879388,
-    "ast_hash": "f66fe223cdaa9c2081fd3fbf1a6c7daf",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-3-medaille-schwarz.svg": {
-    "mtime": 1793313452.415675,
-    "seen": 1793314450.5879393,
-    "ast_hash": "c237c3972150d259b8082e3cfc59f670",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-3-medaille-weiss.svg": {
-    "mtime": 1793313452.4161773,
-    "seen": 1793314450.5879395,
-    "ast_hash": "0038e381b7b10cdfcd3db63e2618f372",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-4-fortschritt-farbe.svg": {
-    "mtime": 1793313452.4161773,
-    "seen": 1793314450.5879405,
-    "ast_hash": "54985909114953ef37ae224b06c9fc25",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-4-fortschritt-schwarz.svg": {
-    "mtime": 1793313452.4176924,
-    "seen": 1793314450.587941,
-    "ast_hash": "6c454564209c599eea5fe2f82b125718",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-4-fortschritt-weiss.svg": {
-    "mtime": 1793313452.4182055,
-    "seen": 1793314450.5879414,
-    "ast_hash": "c4ed375d4ba898742e14a69027fb545c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-5-orbit-farbe.svg": {
-    "mtime": 1793313452.4187167,
-    "seen": 1793314450.587942,
-    "ast_hash": "876b17505abedf011a08977c6baf78af",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-5-orbit-schwarz.svg": {
-    "mtime": 1793313452.4187167,
-    "seen": 1793314450.5879424,
-    "ast_hash": "8244065a2070da7c3a57ef8f5c9ea764",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-5-orbit-weiss.svg": {
-    "mtime": 1793313452.4187167,
-    "seen": 1793314450.5879428,
-    "ast_hash": "31f33ab73c9e751a84217a73e19cf768",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-6-sucher-farbe.svg": {
-    "mtime": 1793313452.4207788,
-    "seen": 1793314450.5879438,
-    "ast_hash": "01c0122ba19d6e78e7b7e80d9cdd0850",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-6-sucher-schwarz.svg": {
-    "mtime": 1793313452.4207788,
-    "seen": 1793314450.5879443,
-    "ast_hash": "39ba2a0ba4d994374c374961d621b098",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-6-sucher-weiss.svg": {
-    "mtime": 1793313452.4207788,
-    "seen": 1793314450.5879447,
-    "ast_hash": "fa11b7d2d30ccb061fe8dc66af50fe31",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-7-kapsel-farbe.svg": {
-    "mtime": 1793313452.4228075,
-    "seen": 1793314450.5879452,
-    "ast_hash": "5218397c6e77a72cc1d2398b6c6004a7",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-7-kapsel-schwarz.svg": {
-    "mtime": 1793313452.4228075,
-    "seen": 1793314450.587946,
-    "ast_hash": "b17b38cd83a4e9b8ddd2df93b8adc202",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-7-kapsel-weiss.svg": {
-    "mtime": 1793313452.4233484,
-    "seen": 1793314450.5879462,
-    "ast_hash": "a67a016bff780953ca6dce958184f73e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-8-ticket-farbe.svg": {
-    "mtime": 1793313452.4233484,
-    "seen": 1793314450.587947,
-    "ast_hash": "8cf632bc5173cc82681f17df025d122c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-8-ticket-schwarz.svg": {
-    "mtime": 1793313452.4233484,
-    "seen": 1793314450.5879476,
-    "ast_hash": "526d48caaf2209c620d414fe66c8a134",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-8-ticket-weiss.svg": {
-    "mtime": 1793313452.4248629,
-    "seen": 1793314450.587948,
-    "ast_hash": "171c48274ba2bcb38394718cc1ca8e00",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-9-staubring-farbe.svg": {
-    "mtime": 1793313452.425868,
-    "seen": 1793314450.5879486,
-    "ast_hash": "3ec98a9ffe0ae961255787dd371f9e0c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-9-staubring-schwarz.svg": {
-    "mtime": 1793313452.425868,
-    "seen": 1793314450.587949,
-    "ast_hash": "bd615fed1183efb06a2571dd1c2c0953",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-9-staubring-weiss.svg": {
-    "mtime": 1793313452.4263718,
-    "seen": 1793314450.5879495,
-    "ast_hash": "c9347254a14dc70f78110b35c7162f6c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/tracked-uebersicht.png": {
-    "mtime": 1793313452.4351432,
-    "seen": 1793314450.5879498,
-    "ast_hash": "2691a06846abb1c7449a18061ee10f63",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/futur/uebersicht.png": {
-    "mtime": 1793313452.445026,
-    "seen": 1793314450.5879507,
-    "ast_hash": "b5112fde91819123b690619e7be934d9",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/a-schlusspunkt-farbe.svg": {
-    "mtime": 1793313452.4475684,
-    "seen": 1793314450.5879605,
-    "ast_hash": "cc9048883d6cb9f7992ac982c493141d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/a-schlusspunkt.svg": {
-    "mtime": 1793313452.4475684,
-    "seen": 1793314450.5879612,
-    "ast_hash": "3d18bea5f3e36b8cf96c08990651bb3c",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/b-o-ist-dot-farbe.svg": {
-    "mtime": 1793313452.4490757,
-    "seen": 1793314450.5879617,
-    "ast_hash": "30ed82a6791535298a5fb1d4ee37caad",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/b-o-ist-dot.svg": {
-    "mtime": 1793313452.4490757,
-    "seen": 1793314450.5879622,
-    "ast_hash": "fcbbae91593e3883cc256785fdeeb070",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c-lockup-farbe.svg": {
-    "mtime": 1793313452.455155,
-    "seen": 1793314450.5879629,
-    "ast_hash": "29d60c56b672d1dff035b22c25758e8b",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c-lockup.svg": {
-    "mtime": 1793313452.4556677,
-    "seen": 1793314450.5879633,
-    "ast_hash": "87323d86065e1f886e3bbb30570befe4",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c1-basis-farbe.svg": {
-    "mtime": 1793313452.4561775,
-    "seen": 1793314450.5879638,
-    "ast_hash": "49ef49f2310ff283f0bfb00296c9a69e",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c1-basis.svg": {
-    "mtime": 1793313452.4561775,
-    "seen": 1793314450.5879645,
-    "ast_hash": "2499db959e496f3a64ea1c313f953256",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c2-kraeftig-farbe.svg": {
-    "mtime": 1793313452.457686,
-    "seen": 1793314450.587965,
-    "ast_hash": "38e935a223e4ceac22240d668e4e8d3d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c2-kraeftig.svg": {
-    "mtime": 1793313452.457686,
-    "seen": 1793314450.5879655,
-    "ast_hash": "8073d70c7067d1a313ed7f5aba5a280d",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c3-leicht-farbe.svg": {
-    "mtime": 1793313452.459194,
-    "seen": 1793314450.587966,
-    "ast_hash": "8d34ad2db09d3d7af93c07fd28721eda",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c3-leicht.svg": {
-    "mtime": 1793313452.459194,
-    "seen": 1793314450.5879664,
-    "ast_hash": "342793ed5f330c6dfb1ed5e1f07d7a84",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c4-zeile-farbe.svg": {
-    "mtime": 1793313452.4607089,
-    "seen": 1793314450.587967,
-    "ast_hash": "b8aa76ed93a4c8ec7d933bb55e700e53",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c4-zeile.svg": {
-    "mtime": 1793313452.4607089,
-    "seen": 1793314450.5879674,
-    "ast_hash": "ed5f12bbdb89e6bc215773657e32744a",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c5-kompakt-farbe.svg": {
-    "mtime": 1793313452.4607089,
-    "seen": 1793314450.5879683,
-    "ast_hash": "fce7dcf61f487956d726a53d0e6cb23f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c5-kompakt.svg": {
-    "mtime": 1793313452.4622245,
-    "seen": 1793314450.5879688,
-    "ast_hash": "201677ca4208912510ac36e5534584d3",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c6-gestapelt-farbe.svg": {
-    "mtime": 1793313452.4632473,
-    "seen": 1793314450.5879693,
-    "ast_hash": "d271507436096a7742f37ffe77570a68",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c6-gestapelt.svg": {
-    "mtime": 1793313452.4632473,
-    "seen": 1793314450.5879698,
-    "ast_hash": "6d2b35cebf778ae7d195fb0c9061a9c1",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c7-app-schrift-farbe.svg": {
-    "mtime": 1793313452.4647617,
-    "seen": 1793314450.5879703,
-    "ast_hash": "6b20f6d487633008ca6bbca953e0307f",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/c7-app-schrift.svg": {
-    "mtime": 1793313452.4647617,
-    "seen": 1793314450.5879707,
-    "ast_hash": "c4b2441ef1da71cb6aa9e7bd106e6720",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/dot-hell-1024.png": {
-    "mtime": 1793313452.470315,
-    "seen": 1793314450.5879717,
-    "ast_hash": "601bb6ae63a9c2d7d7342283a056b601",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/farbe.png": {
-    "mtime": 1793313452.4723291,
-    "seen": 1793314450.5879722,
-    "ast_hash": "eefcce990a857c8a1c53876190078ffd",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/konzepte.png": {
-    "mtime": 1793313452.4733524,
-    "seen": 1793314450.5879726,
-    "ast_hash": "895b649c070396887874bbe963bb5d52",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/varianten-farbe.png": {
-    "mtime": 1793313452.4778953,
-    "seen": 1793314450.587973,
-    "ast_hash": "7dbed057dc728435f102d7b461c1b135",
-    "semantic_hash": ""
-  },
-  "docs/logo/dot/wortmarke/varianten-schwarz.png": {
-    "mtime": 1793313452.4813006,
-    "seen": 1793314450.5879738,
-    "ast_hash": "bb7f275e96f0202548118ca9e43c320a",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-blau-1024.png": {
-    "mtime": 1793313840.7229803,
-    "seen": 1793314450.5879962,
-    "ast_hash": "31a3b1c3d3cff43775776fcfc6396ac9",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-blau-180.png": {
-    "mtime": 1793313841.332083,
-    "seen": 1793314450.5879967,
-    "ast_hash": "a65fc766db240800f89995aacfdc5b73",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-blau-192.png": {
-    "mtime": 1793313841.186437,
-    "seen": 1793314450.5879972,
-    "ast_hash": "105f30135816132f19907bcfb4df29ef",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-blau-512.png": {
-    "mtime": 1793313841.0033915,
-    "seen": 1793314450.587998,
-    "ast_hash": "492d41ba767018ed47613818cbaccb30",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/04-Icons/hoku-app-blau-original-1254.png": {
-    "mtime": 1793313840.0972824,
-    "seen": 1793314450.5879984,
-    "ast_hash": "0821153c2f2d628fdc24e209a5c0d94d",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/brand-kit-v1/QUELLEN/hoku-app-icon-premium-v1.png": {
-    "mtime": 1793239951.218985,
-    "seen": 1793314450.5880127,
-    "ast_hash": "0821153c2f2d628fdc24e209a5c0d94d",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-blau-1024.png": {
-    "mtime": 1793314365.066192,
-    "seen": 1793314450.5880141,
-    "ast_hash": "9dca0b383d9cce0af8f88beefd5d0ea7",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-blau.svg": {
-    "mtime": 1793314364.9290931,
-    "seen": 1793314450.5880146,
-    "ast_hash": "006e81e0e3064d91c74be4c1a62ba5b1",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-pur-1024.png": {
-    "mtime": 1793314364.8023663,
-    "seen": 1793314450.588015,
-    "ast_hash": "645673ff185fd8790fcfbd6982a3fa74",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-pur.svg": {
-    "mtime": 1793314364.6864364,
-    "seen": 1793314450.5880158,
-    "ast_hash": "92b06ab25484501ecccee381cc06c597",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-varianten-v1.png": {
-    "mtime": 1793314365.261706,
-    "seen": 1793314450.5880163,
-    "ast_hash": "59f4f1ef046a0dfce72eedf6f78290ac",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-weiss-1024.png": {
-    "mtime": 1793314364.9260764,
-    "seen": 1793314450.5880167,
-    "ast_hash": "a1ce9e9b310b20777e8753c88c428af1",
-    "semantic_hash": ""
-  },
-  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-weiss.svg": {
-    "mtime": 1793314364.8038933,
-    "seen": 1793314450.5880172,
-    "ast_hash": "3153c5b9f51c080c99e977237eac296a",
-    "semantic_hash": ""
-  },
-  "public/icons/dot-codex-180.png": {
-    "mtime": 1793313452.7029288,
-    "seen": 1793314450.5881853,
-    "ast_hash": "5c3478e9cbeb3502f6635fc9988d35eb",
-    "semantic_hash": ""
-  },
-  "public/icons/dot-codex-192.png": {
-    "mtime": 1793313452.703442,
-    "seen": 1793314450.5881858,
-    "ast_hash": "3a8221e6ab7f462829750d1cf2210ecb",
-    "semantic_hash": ""
-  },
-  "public/icons/dot-codex-32.png": {
-    "mtime": 1793313452.7039535,
-    "seen": 1793314450.5881863,
-    "ast_hash": "82ab21fa8a9af723be1fed3ae0c642a8",
-    "semantic_hash": ""
-  },
-  "public/icons/dot-codex-512.png": {
-    "mtime": 1793313452.7044723,
-    "seen": 1793314450.588187,
-    "ast_hash": "ffc75782e39fb9bf2c66601dc31d52a9",
-    "semantic_hash": ""
-  },
-  "public/icons/dot-codex-maskable-512.png": {
-    "mtime": 1793313452.7054908,
-    "seen": 1793314450.5881875,
-    "ast_hash": "ffc75782e39fb9bf2c66601dc31d52a9",
     "semantic_hash": ""
   }
 }
