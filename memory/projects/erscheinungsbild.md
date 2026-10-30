@@ -22,6 +22,13 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
   Dots Partikeln). Mockup aller Screens: https://claude.ai/artifact/MehxjrTT48ZnjZHVzC372K
   (Seite „Soft Dark"); dort auch Dot in der Mitte der Leiste — in der App bisher
   nur CSS, die Leiste behält ihren Aufbau.
+  **Nachgeschärft (30.10.2026, Nutzer: „noch etwas dunkler wie im Foto“, Kanten
+  „sehr dünn, weich und dezent“; dann „die selben Farbtöne wie im Screenshot“):
+  dann „mit einer Pipette“): Werte per Pipette (Median kleiner Flächen) aus dem
+  Referenzfoto — Grund #17181c (oben #232429), Flächen #21252a → #20242a →
+  #1e2026, Knöpfe #23272d → #1f2228, Kante kaum sichtbar (oben weiß 6 %, sonst
+  2–3 %), kein innerer Lichtsaum. Blau 1:1 aus dem Foto: #4ebbfe → #3c8bf0 →
+  #347cef (weiße Schrift darauf nur ~3,4:1 — vom Nutzer so gewollt).
 
 Injektionstracker (22.10.2026): bei Nacht Kantenlichter der Figur links
 cyan, rechts violett (Hauptlicht und Haut wie „Studio“), Bühne als
