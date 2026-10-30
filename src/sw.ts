@@ -99,7 +99,7 @@ async function notifyOpenClients(payload: PushPayload, title: string, body: stri
 // ── Push notification handler ─────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   const payload = parsePushPayload(event)
-  const title   = payload.title ?? 'TYD – Track Your Dose'
+  const title   = payload.title ?? 'HOKU: Health Hub'
   const body    = payload.body ?? ''
 
   // iOS braucht absolute Icon-URLs

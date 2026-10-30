@@ -556,7 +556,7 @@ const KUERBISSUPPE = {
 
 async function openPhoto(page: import('@playwright/test').Page, meal: string) {
   await mealCard(page, meal).getByRole('button', { name: 'Hinzufügen' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Dot erkennt dein Essen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Hoku erkennt dein Essen' }).click()
 }
 
 test('Essen per Foto: Suppe → Notiz nachreichen → antippen, was drin war (Kokosmilch statt Sahne) → Lebensmittel und Menge wählen', async ({ page, mock }) => {
@@ -686,7 +686,7 @@ test('Essen per Foto: kein Essen erkannt → verständlicher Hinweis, nichts ein
   mock.foodPhoto.error = { status: 422, code: 'not_food' }
   await page.goto('/ernaehrung')
   await mealCard(page, 'Snacks').getByRole('button', { name: 'Hinzufügen' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Dot erkennt dein Essen' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Hoku erkennt dein Essen' }).click()
   await page.locator('[data-photo-gallery]').setInputFiles(TELLER)
   await expect(page.getByText('Auf dem Foto war kein Essen zu erkennen')).toBeVisible()
   expect(mock.table('food_logs')).toHaveLength(0)

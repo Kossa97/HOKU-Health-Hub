@@ -490,7 +490,7 @@ function PushSettings() {
 
         {state === 'subscribed' && (
           <p style={{ fontSize: 13, color: 'var(--lg-text-2)', lineHeight: 1.45, marginBottom: 10 }}>
-            iPhone: Einstellungen → Mitteilungen → TYD erlauben. Test mit geschlossener App oder gesperrtem Display.
+            iPhone: Einstellungen → Mitteilungen → HOKU erlauben. Test mit geschlossener App oder gesperrtem Display.
           </p>
         )}
 

@@ -1425,8 +1425,8 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '3b216627e8ec53a689f6ea940111ad946b381e2ba1cb7a9927d5cf9d92ebcda8',
-  en: '8c6813b8fe3ee8162d08f26e5a096094d7cfd373034c4f40878cab8a88c91b17',
+  de: 'cecb430dc918a643619c262d6663a37de114c49a7f674172855bda6b26ded0a9',
+  en: 'ec5554e4264c4538330bea4c890c77b7a40413d059aa45bd912ecad2585832fd',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

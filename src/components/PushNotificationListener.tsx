@@ -16,7 +16,7 @@ export function PushNotificationListener() {
     const onMessage = (event: MessageEvent<PushPayloadMessage>) => {
       if (event.data?.type !== 'PUSH_RECEIVED') return
 
-      const title = event.data.title ?? 'TYD'
+      const title = event.data.title ?? 'HOKU'
       const body  = event.data.body ?? ''
 
       // System-Banner, wenn die App nicht sichtbar ist (funktioniert auf einigen Geräten besser als nur SW)

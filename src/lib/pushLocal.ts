@@ -5,7 +5,7 @@ export type PushPayloadMessage = {
   url?: string
 }
 
-const TEST_TITLE = '✅ TYD – Test erfolgreich'
+const TEST_TITLE = '✅ HOKU – Test erfolgreich'
 const TEST_BODY  = 'Push-Notifications funktionieren!'
 
 /** Wartet auf PUSH_RECEIVED vom Service Worker (Push ist am Gerät angekommen). */
