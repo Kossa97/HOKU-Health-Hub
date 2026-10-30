@@ -23,7 +23,7 @@ function griff(ort: Locator): Locator {
   return ort.locator('[data-due-item]').or(ort.filter({ hasNot: ort.page().locator('[data-due-item]') })).first()
 }
 
-async function ziehe(page: Page, von: Locator, nach: Locator, { verweilen = true } = {}) {
+async function ziehe(page: Page, von: Locator, nach: Locator, { ziel: mitZiel = true } = {}) {
   const a = (await griff(von).boundingBox())!
   const b = (await griff(nach).boundingBox())!
   const start = { x: a.x + a.width * 0.4, y: a.y + a.height / 2 }
@@ -44,7 +44,15 @@ async function ziehe(page: Page, von: Locator, nach: Locator, { verweilen = true
     }] })
     await page.clock.runFor(16)
   }
-  if (verweilen) await page.clock.runFor(300)
+  // Verweilen, bis das Ziel markiert ist (wie bei Ordnern auf dem iPhone).
+  if (mitZiel) {
+    await expect.poll(async () => {
+      await page.clock.runFor(100)
+      return page.evaluate(() => Boolean(document.querySelector('[data-zieh-ziel]')))
+    }).toBe(true)
+  } else {
+    await page.clock.runFor(300)
+  }
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   await cdp.detach()
 }
@@ -110,7 +118,7 @@ test.describe('Kalender: Bündel ziehen', () => {
 
     // Auf die Abends-Ueberschrift: auf dem kleinen iPhone liegt TB-500 selbst
     // unter der Tab-Leiste.
-    await ziehe(page, zeile(page, 'BPC-157'), page.locator('[data-periode-abschnitt="abends"]').getByText('Abends', { exact: true }))
+    await ziehe(page, zeile(page, 'BPC-157'), page.locator('[data-periode-abschnitt="abends"]').getByText('Abends', { exact: true }), { ziel: false })
 
     await expect(page.getByText('Bündel gehen nur innerhalb einer Tageszeit')).toBeVisible()
     await page.clock.runFor(500)

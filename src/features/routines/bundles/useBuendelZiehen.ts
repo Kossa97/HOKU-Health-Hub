@@ -39,6 +39,8 @@ interface Zug {
   kandidat: { ziel: ZiehZiel; el: Element } | null
   ziel: { ziel: ZiehZiel; el: Element } | null
   verweilen: number | null
+  /** Federt schon zurück: nimmt nichts mehr an. */
+  zurueck: boolean
   periodeUnter: string | null
   ueberFeld: boolean
   feld: HTMLElement | null
@@ -94,6 +96,11 @@ export function useBuendelZiehen(optionen: Optionen) {
         el.removeAttribute('data-abgelehnt')
       })
       zug.current = null
+      sperreKlick()
+    }
+
+    /** Das `click` nach dem Loslassen ist kein Tipp — auch wenn die Zeile erst noch zurückfedert. */
+    const sperreKlick = () => {
       klickSperre.current = true
       window.setTimeout(() => { klickSperre.current = false }, 0)
     }
@@ -102,6 +109,9 @@ export function useBuendelZiehen(optionen: Optionen) {
       const z = zug.current
       if (!z) return
       if (ruhig()) { beenden(); return }
+      z.zurueck = true
+      z.ziel?.el.removeAttribute('data-zieh-ziel')
+      if (z.verweilen) window.clearTimeout(z.verweilen)
       z.bild.style.transition = `transform ${ZURUECK_MS}ms var(--tyd-ease-drawer)`
       z.bild.style.transform = 'translate(0px, 0px)'
       z.bild.removeAttribute('data-angehoben')
@@ -147,7 +157,7 @@ export function useBuendelZiehen(optionen: Optionen) {
       zug.current = {
         quelle: { stackItemId, buendelId, periode },
         zeile, bild, pointerId, start: { x, y },
-        kandidat: null, ziel: null, verweilen: null, periodeUnter: periode, ueberFeld: false, feld,
+        kandidat: null, ziel: null, verweilen: null, zurueck: false, periodeUnter: periode, ueberFeld: false, feld,
       }
       vibrieren(10)
     }
@@ -156,7 +166,7 @@ export function useBuendelZiehen(optionen: Optionen) {
 
     const bewegen = (x: number, y: number) => {
       const z = zug.current
-      if (!z) return
+      if (!z || z.zurueck) return
       z.bild.style.transform = `translate(${x - z.start.x}px, ${y - z.start.y}px)`
       const unter = document.elementFromPoint(x, y)
       const abschnitt = unter?.closest<HTMLElement>('[data-periode-abschnitt]') ?? null
@@ -171,9 +181,12 @@ export function useBuendelZiehen(optionen: Optionen) {
         const karte = unter?.closest<HTMLElement>('[data-bundle-row]')
         const zeile = unter?.closest<HTMLElement>('[data-zieh-zeile]')
         if (karte) {
-          // Das eigene Bündel ist kein Ziel.
-          if (karte.dataset.bundleRow !== z.quelle.buendelId) kandidat = { ziel: { art: 'buendel', buendelId: karte.dataset.bundleRow! }, el: karte }
-        } else if (zeile && zeile !== z.zeile && zeile.dataset.stackItem) {
+          // Das eigene Bündel ist kein Ziel, eines mit derselben Substanz auch nicht.
+          const mitglieder = karte.dataset.mitglieder?.split(' ') ?? []
+          if (karte.dataset.bundleRow !== z.quelle.buendelId && !mitglieder.includes(z.quelle.stackItemId)) {
+            kandidat = { ziel: { art: 'buendel', buendelId: karte.dataset.bundleRow! }, el: karte }
+          }
+        } else if (zeile && zeile !== z.zeile && zeile.dataset.stackItem && zeile.dataset.stackItem !== z.quelle.stackItemId) {
           kandidat = { ziel: { art: 'einnahme', stackItemId: zeile.dataset.stackItem }, el: zeile }
         }
       }
@@ -204,6 +217,8 @@ export function useBuendelZiehen(optionen: Optionen) {
       if (druck.current && event.pointerId === druck.current.pointerId) aufraeumenDruck()
       const z = zug.current
       if (!z || event.pointerId !== z.pointerId) return
+      sperreKlick()
+      if (z.zurueck) return
       const { quelle, ziel, periodeUnter, ueberFeld } = z
       const unter = document.elementFromPoint(event.clientX, event.clientY)
       if (ziel) { beenden(); aktuell.current.onZusammen(quelle, ziel.ziel); return }
@@ -220,7 +235,7 @@ export function useBuendelZiehen(optionen: Optionen) {
     }
     const onCancel = (event: PointerEvent) => {
       if (druck.current && event.pointerId === druck.current.pointerId) aufraeumenDruck()
-      if (zug.current && event.pointerId === zug.current.pointerId) zurueckfedern()
+      if (zug.current && event.pointerId === zug.current.pointerId && !zug.current.zurueck) zurueckfedern()
     }
     // Während des Ziehens scrollt die Seite nicht.
     const onTouchMove = (event: TouchEvent) => { if (zug.current) event.preventDefault() }

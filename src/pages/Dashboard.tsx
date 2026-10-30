@@ -443,7 +443,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
    * ist der Stand ALLER Bündel davor — „Rückgängig" stellt ihn wieder her.
    * `neu`: gerade erst angelegt (dann heißt der Knopf „Rückgängig").
    */
-  const [buendelBearbeiten, setBuendelBearbeiten] = useState<{ id: string; name: string; vorher: IntakeBundle[]; neu: boolean } | null>(null)
+  // `schluessel`: die Karte (Bündel@Tageszeit), die bearbeitet wird — steht ein
+  // Bündel morgens und abends, öffnet nur die angetippte.
+  const [buendelBearbeiten, setBuendelBearbeiten] = useState<{ id: string; schluessel: string; name: string; vorher: IntakeBundle[]; neu: boolean } | null>(null)
+  // Nur die letzte Bündel-Änderung lässt sich rückgängig machen; eine ältere
+  // Meldung geht zu, sobald eine neue kommt.
+  const letzteRueckgabe = useRef<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
   const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
@@ -1221,7 +1226,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // morgens und abends etwas, steht es in beiden, jeweils mit seinem Teil.
   type TagesEintrag =
     | { art: 'einzel'; slot: DueSlot; minuten: number }
-    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; slots: DueSlot[]; minuten: number }
+    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; anzahl: number; slots: DueSlot[]; minuten: number }
   const tagesGruppen = offeneGruppen.map(gruppe => {
     const { entries, vergeben } = bundlesForPeriod(
       bundleRows,
@@ -1229,7 +1234,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       geplantJeTageszeit.get(PERIOD_TO_ROUTINE_GROUP[gruppe.key]) ?? new Set(),
     )
     const eintraege: TagesEintrag[] = [
-      ...entries.map(({ bundle, intakes }) => {
+      ...entries.map(({ bundle, intakes, anzahl }) => {
         // Aufgeklappt nach der Uhr wie die Liste drumherum; das Blatt
         // behaelt die Reihenfolge des Bündels.
         const slots = intakes
@@ -1241,6 +1246,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           schluessel: `${bundle.id}@${gruppe.key}`,
           bundle,
           intakes,
+          anzahl,
           slots,
           minuten: Math.min(...slots.map(slot => slot.minutes)),
         }
@@ -1872,17 +1878,40 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         const vorhanden = jetztById.get(bundle.id)
         const gleich = vorhanden && vorhanden.name === bundle.name
           && vorhanden.stack_item_ids.join() === bundle.stack_item_ids.join()
-        ergebnis.push(gleich ? vorhanden : await saveIntakeBundle(bundleClient, user.id, {
-          id: vorhanden ? bundle.id : undefined,
+        if (gleich) { ergebnis.push(vorhanden); continue }
+        // Ein aufgelöstes Bündel kommt mit seiner id zurück, samt Auto-Eintrag.
+        const gespeichert = await saveIntakeBundle(bundleClient, user.id, {
+          id: bundle.id,
+          neu: !vorhanden,
           name: bundle.name,
           stackItemIds: bundle.stack_item_ids,
           sortOrder: bundle.sort_order,
-        }))
+        })
+        if (!vorhanden && bundle.auto_log_since) {
+          await setIntakeBundleAutoLog(dashboardDataClient as never, user.id, bundle.id, bundle.auto_log_since)
+          gespeichert.auto_log_since = bundle.auto_log_since
+        }
+        ergebnis.push(gespeichert)
       }
       setBundles(ergebnis)
     } catch {
-      toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+      buendelFehler()
     }
+  }
+
+  /**
+   * Eine Änderung aus mehreren Schritten ist halb durch, wenn ein späterer
+   * scheitert: dann den Stand aus der Datenbank holen statt einen alten zu zeigen.
+   */
+  const buendelFehler = () => {
+    toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+    if (!user) return
+    loadIntakeBundles(bundleClient, user.id).then(setBundles).catch(() => {})
+  }
+
+  const rueckgabeSchliessen = () => {
+    if (letzteRueckgabe.current) toast.dismiss(letzteRueckgabe.current)
+    letzteRueckgabe.current = null
   }
 
   /** Setzt die Mitglieder eines Bündels; unter zwei löst es sich auf. */
@@ -1900,18 +1929,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     hinweis: { text: string; zusatz?: string },
   ) => {
     const vorher = bundles
+    rueckgabeSchliessen()
     let nachher: IntakeBundle[]
     try {
       nachher = await aenderung(vorher)
     } catch {
-      toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+      buendelFehler()
       return null
     }
     setBundles(nachher)
-    buendelHinweis({
+    letzteRueckgabe.current = buendelHinweis({
       ...hinweis,
       rueckgaengigText: String(t('bundle_undo', { defaultValue: 'Rückgängig' })),
       rueckgaengig: () => {
+        letzteRueckgabe.current = null
         setBuendelBearbeiten(null)
         void buendelWiederherstellen(vorher, nachher)
       },
@@ -1932,7 +1963,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const name = substanzName(quelle.stackItemId)
     if (ziel.art === 'buendel') {
       const zielBuendel = bundles.find(bundle => bundle.id === ziel.buendelId)
-      if (!zielBuendel) return
+      // Schon drin: nichts zu tun.
+      if (!zielBuendel || zielBuendel.stack_item_ids.includes(quelle.stackItemId)) return
       void buendelAendern(async vorher => {
         const ohne = await ohneQuelle(vorher, quelle)
         const aktuell = ohne.find(bundle => bundle.id === zielBuendel.id) ?? zielBuendel
@@ -1945,6 +1977,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       }, { text: String(t('bundle_added', { defaultValue: '{{item}} ist jetzt im Bündel „{{name}}"', item: name, name: zielBuendel.name })) })
       return
     }
+    // Dieselbe Substanz zweimal (07:00 und 09:00) ist kein Bündel.
+    if (ziel.stackItemId === quelle.stackItemId) return
     // Zwei Einzelne: ein neues Bündel, benannt nach der Tageszeit, gleich zum Umbenennen offen.
     const basis = periodeLabel(quelle.periode)
     let buendelName = basis
@@ -1964,7 +1998,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       const angelegt = ergebnis?.nachher.find(bundle => !ergebnis.vorher.some(alt => alt.id === bundle.id))
       if (!ergebnis || !angelegt) return
       setOffenesBuendel(`${angelegt.id}@${quelle.periode}`)
-      setBuendelBearbeiten({ id: angelegt.id, name: angelegt.name, vorher: ergebnis.vorher, neu: true })
+      setBuendelBearbeiten({ id: angelegt.id, schluessel: `${angelegt.id}@${quelle.periode}`, name: angelegt.name, vorher: ergebnis.vorher, neu: true })
     })
   }
 
@@ -1997,6 +2031,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const zustand = buendelBearbeiten
     if (!zustand || !user) return
     setBuendelBearbeiten(null)
+    rueckgabeSchliessen()
     if (verwerfen) {
       await buendelWiederherstellen(zustand.vorher, bundles)
       buendelHinweis({ text: String(zustand.neu
@@ -2013,12 +2048,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       })
       setBundles(current => current.map(candidate => candidate.id === gespeichert.id ? gespeichert : candidate))
     } catch {
-      toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+      buendelFehler()
     }
   }
 
   /** Minus im Bearbeiten-Zustand: ohne Ziehen wieder einzeln. */
   const imBearbeitenHerausnehmen = async (bundle: IntakeBundle, stackItemId: string) => {
+    rueckgabeSchliessen()
     try {
       const neu = await mitgliederSetzen(bundle, bundle.stack_item_ids.filter(id => id !== stackItemId))
       setBundles(current => neu ? current.map(candidate => candidate.id === neu.id ? neu : candidate) : current.filter(candidate => candidate.id !== bundle.id))
@@ -2028,7 +2064,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         zusatz: neu ? undefined : String(t('bundle_dissolved', { defaultValue: '„{{name}}" hat sich aufgelöst', name: bundle.name })),
       })
     } catch {
-      toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+      buendelFehler()
     }
   }
 
@@ -2266,19 +2302,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     eintrag: Extract<TagesEintrag, { art: 'buendel' }>,
     periode: Parameters<typeof renderEinnahme>[1],
   ) => {
-    const bearbeiten = buendelBearbeiten?.id === eintrag.bundle.id ? buendelBearbeiten : null
+    const bearbeiten = buendelBearbeiten?.schluessel === eintrag.schluessel ? buendelBearbeiten : null
     const offen = Boolean(bearbeiten) || eintrag.schluessel === aufgeklapptesBuendel
+    // Der Ring zählt, was offen ist; die Kopfzeile, was das Bündel hier umfasst.
     const anzahl = eintrag.intakes.length
     const zeiten = eintrag.slots.map(slot => slot.time).filter(Boolean)
     const spanne = zeiten.length === 0 ? '' : zeiten[0] === zeiten[zeiten.length - 1] ? zeiten[0] : `${zeiten[0]}–${zeiten[zeiten.length - 1]}`
     const kopfzeile = (
       <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--accent)]">
-        {t('bundle_card_label', { defaultValue: 'Bündel · {{n}} Einnahmen', n: anzahl })}
+        {t('bundle_card_label', { defaultValue: 'Bündel · {{n}} Einnahmen', n: eintrag.anzahl })}
       </span>
     )
     if (bearbeiten) {
       return (
-        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-periode={periode.key} data-offen="" className="tyd-buendel">
+        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen="" className="tyd-buendel">
           <div className="flex items-center gap-3 px-3 pb-2 pt-3">
             <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
             <label className="min-w-0 flex-1">
@@ -2331,7 +2368,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )
     }
     return (
-      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-periode={periode.key} data-offen={offen ? '' : undefined} className="tyd-buendel">
+      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen={offen ? '' : undefined} className="tyd-buendel">
         <div className="flex items-center gap-1 pr-2">
           <button
             type="button"
@@ -2369,7 +2406,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             <div className="flex justify-end px-3 pb-2">
               <button
                 type="button"
-                onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, name: eintrag.bundle.name, vorher: bundles, neu: false })}
+                onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, schluessel: eintrag.schluessel, name: eintrag.bundle.name, vorher: bundles, neu: false })}
                 className="tyd-press min-h-11 px-2 text-[15px] font-semibold text-[var(--accent)]"
               >
                 {t('bundle_edit_short', { defaultValue: 'Bearbeiten' })}
@@ -2897,7 +2934,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {format(selectedDay, 'dd.MM.yyyy')}
           </span>
         </div>
-        {(!FEATURES.planTimelineV2 || timelineReady) && totalDaySlots > 0 && (
+        {/* Nur solange etwas offen ist: ein vergangener Tag hat dafür seine
+            Bilanz, ein erledigter Tag die Quittung darunter — beide nennen x/y. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && totalDaySlots > 0 && dueSlots.length > 0 && !isPastSelected && (
           <div data-tag-bestaetigt className="-mt-1.5 mb-3 flex items-center gap-2.5 px-1 text-[15px] tabular-nums text-[var(--lg-text-3)]">
             <span>
               {t('day_confirmed_label', { defaultValue: 'Bestätigt' })}{' '}

@@ -93,6 +93,18 @@ describe('bundlesForPeriod', () => {
     expect(bundlesForPeriod(buendel, sonntag).entries).toHaveLength(1)
   })
 
+  it('does not count a substance an earlier bundle already holds', () => {
+    // Magnesium steckt in beiden; das erste Bündel hält es. Das zweite hätte
+    // nur noch Vitamin D — ein Bündel aus einer Einnahme ist keins.
+    const abend = [intake('magnesium', '2026-10-18T21:00:00.000Z'), intake('melatonin', '2026-10-18T21:30:00.000Z'),
+      intake('vitd', '2026-10-18T21:00:00.000Z')]
+    const { entries } = bundlesForPeriod([
+      { bundle: 'Sonntag', itemIds: ['magnesium', 'melatonin'] },
+      { bundle: 'Neu', itemIds: ['magnesium', 'vitd'] },
+    ], abend, new Set(['magnesium', 'melatonin', 'vitd']))
+    expect(entries.map(entry => [entry.bundle, entry.anzahl])).toEqual([['Sonntag', 2]])
+  })
+
   it('counts what is planned, not what is still open: one confirmed keeps the bundle', () => {
     const buendel = [{ bundle: 'Sonntag', itemIds: ['magnesium', 'melatonin'] }]
     const nurNochMelatonin = [intake('melatonin', '2026-10-18T21:30:00.000Z')]
