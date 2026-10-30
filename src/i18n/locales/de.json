@@ -2850,5 +2850,7 @@
   "bundle_done": "Fertig",
   "bundle_edit_short": "Bearbeiten",
   "day_confirmed_label": "Bestätigt",
-  "bundle_period_locked": "Nur innerhalb einer Tageszeit"
+  "bundle_period_locked": "Nur innerhalb einer Tageszeit",
+  "syringe_draw_units": "{{units}} Einheiten aufziehen",
+  "dose_once": "einmalig"
 }

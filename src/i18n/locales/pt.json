@@ -2616,5 +2616,7 @@
   "bundle_done": "Done",
   "bundle_edit_short": "Edit",
   "day_confirmed_label": "Confirmed",
-  "bundle_period_locked": "Only within one time of day"
+  "bundle_period_locked": "Only within one time of day",
+  "syringe_draw_units": "Draw {{units}} units",
+  "dose_once": "one-off"
 }

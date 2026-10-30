@@ -1317,6 +1317,8 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_edit_short',
   'day_confirmed_label',
   'bundle_period_locked',
+  'syringe_draw_units',
+  'dose_once',
   'my_stack_scan',
   'my_stack_scan_hint',
   'my_stack_scan_hint_photo',

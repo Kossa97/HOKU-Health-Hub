@@ -60,7 +60,7 @@ vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: pageMocks.use
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, options?: { defaultValue?: string; [name: string]: string | number | undefined }) => (
     (options?.defaultValue ?? key).replace(/{{(\w+)}}/g, (_, name: string) => String(options?.[name] ?? ''))
-  ) }),
+  ), i18n: { language: 'de' } }),
 }))
 vi.mock('react-hot-toast', () => ({ default: pageMocks.toast }))
 
@@ -1325,6 +1325,28 @@ describe('Dashboard normalized timeline path', () => {
         dose: 30, unit: 'mg', logged_at: '2026-09-18T07:30:00.000Z',
       })],
     }))
+  })
+
+  it('nennt beim angemischten Vial die Einheiten auf der Spritze, auch nach einer einmaligen Änderung', async () => {
+    const fixtures = startFixFixture()
+    // 50 mg im Vial auf 2 ml: 25 mg sind 1 ml, auf der U-100-Spritze 100 E.
+    ;(fixtures as Record<string, unknown[]>).stack_items = [{ ...fixtures.stack_items[0], dosage_form: 'vial', reconstitution_ml: 2,
+      syringe_type: null, ingredients: [{ id: 'zutat-1', stack_item_id: 'stack-1', catalog_substance_id: null,
+        custom_name: 'Vitamin D3', amount_value: 50, amount_unit: 'mg', basis_value: 1, basis_unit: 'vial', position: 0 }] }]
+    renderDashboard(createDashboardClient(fixtures))
+    const zeile = await waitFor(() => {
+      const gefunden = document.querySelector<HTMLElement>('[data-due-row]')
+      expect(gefunden).toBeTruthy()
+      return gefunden!
+    })
+    expect(zeile.textContent).toContain('25 mg · 100 E · Oral')
+
+    await openSingle()
+    expect(screen.getByText('100 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.queryByText('einmalig')).toBeNull()
+    fireEvent.change(screen.getByLabelText('Menge'), { target: { value: '12.5' } })
+    expect(screen.getByText('50 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.getByText('einmalig')).toBeTruthy()
   })
 
   it('laesst eine ungueltige Menge nicht durch und verwirft nichts', async () => {

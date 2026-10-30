@@ -38,6 +38,10 @@ import { isOnDemand } from '../features/my-stack/lib/intakeFrequency'
 import { debitPeptideStockForDoseById } from '../features/my-stack/extensions/peptide/vialStock'
 import { formatTrackedQuantity, hasTrackedQuantity } from '../features/routines/quantityPresentation'
 import { dosePlanCapabilities } from '../features/my-stack/lib/dosePlan'
+import { aufzuziehendeEinheiten, spritzeFuer } from '../features/my-stack/lib/bestand'
+import { formatAmount } from '../features/my-stack/lib/bestandLabels'
+import { stackItemColumns } from '../features/my-stack/services/stackItems'
+import type { StackItemIngredient, StackItemInventory } from '../features/my-stack/types'
 import {
   buildConfirmationEntry,
   groupRoutineIntakes,
@@ -127,7 +131,14 @@ interface StackItem {
   vial_amount_mg: number | null; reconstitution_ml: number | null
   vials_in_stock: number | null; vials_initial: number | null
   reconstitution_date: string | null; expiry_days: number | null
+  /** Fuer die Spritzeneinheiten eines angemischten Vials. */
+  syringe_type?: string | null
+  ingredients?: StackItemIngredient[]
+  inventory?: StackItemInventory | null
 }
+
+// Mit Wirkstoff und Bestand: daraus rechnen sich die Einheiten auf der Spritze.
+const STACK_ITEM_COLUMNS = stackItemColumns({ includeInventory: true, includeIngredientCatalog: false })
 
 interface Escalation {
   id: string
@@ -318,7 +329,7 @@ function initialDay(): Date {
 }
 
 export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {}) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { dt } = useDotText()
   const location = useLocation()
   const navigate = useNavigate()
@@ -400,6 +411,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // `confirmUnit` ist zugleich das Signal, ob die Substanz ueberhaupt eine
   // Menge fuehrt (`null` heisst: Intake-Only, kein Feld noetig).
   const [confirmDoseText, setConfirmDoseText] = useState('')
+  // Die geplante Menge, gegen die „einmalig" geprueft wird.
+  const [confirmDoseGeplant, setConfirmDoseGeplant] = useState('')
   const [confirmUnit, setConfirmUnit] = useState<string | null>(null)
   const confirmDoseWert = confirmDoseText.trim() === '' ? null : Number(confirmDoseText)
   // Dieselbe Regel wie im Gruppen-Sheet: eine Menge ist entweder unveraendert
@@ -670,7 +683,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       try {
         const [loadedTimelines, itemsResult, timezoneReviewResult] = await Promise.all([
           loadCycleTimelines(dashboardDataClient as never, user.id),
-          dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name'),
+          dashboardDataClient.from('stack_items').select(STACK_ITEM_COLUMNS).eq('user_id', user.id).eq('archived', false).order('display_name'),
           dashboardDataClient.from('cycles').select('stack_item_id, timezone_review_required')
             .eq('user_id', user.id).eq('timezone_review_required', true),
         ])
@@ -738,8 +751,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         if (!isCurrent()) return
         setTimelines(loadedTimelines)
         setCycles([])
-        setStackItems(itemsResult.data ?? [])
-        const visibleStackItemIds = new Set((itemsResult.data ?? []).map(item => item.id))
+        // Die Spalten kommen aus einer zusammengesetzten Auswahl, die der
+        // Typ-Parser von supabase-js nicht lesen kann.
+        const loadedItems = (itemsResult.data ?? []) as unknown as StackItem[]
+        setStackItems(loadedItems)
+        const visibleStackItemIds = new Set(loadedItems.map(item => item.id))
         setTimezoneReviewStackItemIds([...new Set((timezoneReviewResult.data ?? [])
           .filter(row => row.timezone_review_required === true && visibleStackItemIds.has(row.stack_item_id))
           .map(row => row.stack_item_id))])
@@ -808,8 +824,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const loadStackItems = useCallback(async () => {
     if (!user) return
     if (FEATURES.planTimelineV2) return
-    const { data } = await dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name')
-    if (data) setStackItems(data)
+    const { data } = await dashboardDataClient.from('stack_items').select(STACK_ITEM_COLUMNS).eq('user_id', user.id).eq('archived', false).order('display_name')
+    if (data) setStackItems(data as unknown as StackItem[])
   }, [dashboardDataClient, user])
 
   // Bündel sind Einstellungen, keine Tagesdaten: einmal je Nutzer laden.
@@ -894,6 +910,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   const timelineReady = timelineLoadState === 'ready' && timelinePeriod === timelineContext
   const stackItemById = new Map(stackItems.map(item => [item.id, item]))
+  // Bei einem angemischten Vial: wie viele Einheiten auf der Spritze diese
+  // Menge sind. Der Spritzentyp der Substanz zaehlt (U-100, U-40 …).
+  const einheitenFuer = (stackItemId: string, dose: number | null, unit: string | null) => {
+    const item = stackItemById.get(stackItemId)
+    const spritze = item ? spritzeFuer(item) : null
+    return spritze ? aufzuziehendeEinheiten(dose, unit, spritze) : null
+  }
+  const einheitenText = (einheiten: number) => formatAmount(einheiten, i18n.language)
   const timelineOccurrencesForDay = (day: Date) => {
     if (!timelineReady) return []
     const localDate = localDateTimeKey(day, timeZone).slice(0, 10)
@@ -1671,9 +1695,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     if (FEATURES.planTimelineV2 && cycle && dosePlanCapabilities(cycle.stack_items.tracking_level).oneOff) {
       const geplant = resolveDashboardCycleQuantity(cycle, selectedDay, escalations, slotDose)
       setConfirmDoseText(geplant.dose != null ? String(geplant.dose) : '')
+      setConfirmDoseGeplant(geplant.dose != null ? String(geplant.dose) : '')
       setConfirmUnit(geplant.unit)
     } else {
       setConfirmDoseText('')
+      setConfirmDoseGeplant('')
       setConfirmUnit(null)
     }
     setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey, nachtragen })
@@ -2373,7 +2399,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   ) => {
     const c = slot.cycle
     const { dose, unit } = resolveDashboardCycleQuantity(c, selectedDay, escalations, slot.dose)
+    const einheiten = einheitenFuer(c.stack_item_id, dose, unit)
     const mengeText = formatTrackedQuantity(dose, unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
+      + (einheiten != null ? ` · ${String(t('my_stack_plan_units_short', { defaultValue: '{{units}} E', units: einheitenText(einheiten) }))}` : '')
     const farbe = getStackItemColor(stackItems.findIndex(item => item.id === c.stack_item_id))
     const PeriodenIcon = periode.icon
     // Nur DIESE Einnahme vorlegen — die Gruppe traegt die ganze Tageszeit,
@@ -2464,8 +2492,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           )}
         </div>
 
+        {/* Die Knöpfe im aufgeklappten Feld bleiben Knöpfe: Halten dort hebt nichts an. */}
         <div
           data-due-panel
+          data-kein-ziehen
           data-open={offen ? '' : undefined}
           className="tyd-collapse"
           aria-hidden={!offen}
@@ -3197,6 +3227,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
           onAddInjection={openRoutineInjection}
+          einheitenFuer={einheitenFuer}
         />
       )}
 
@@ -3286,6 +3317,27 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     />
                     <span className="text-[17px] text-[var(--lg-text-2)]">{confirmUnit}</span>
                   </div>
+                  {(() => {
+                    const einmalig = confirmDoseGeplant !== '' && !confirmDoseUngueltig && confirmDoseWert !== Number(confirmDoseGeplant)
+                    const einheiten = confirmSheet.cycle && !confirmDoseUngueltig
+                      ? einheitenFuer(confirmSheet.cycle.stack_item_id, confirmDoseWert, confirmUnit)
+                      : null
+                    if (!einmalig && einheiten == null) return null
+                    return (
+                      <p data-menge-hinweis className="-mt-3 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-[var(--lg-text-2)]">
+                        {einheiten != null && (
+                          <span className="font-semibold tabular-nums text-[var(--accent)]">
+                            {t('syringe_draw_units', { defaultValue: '{{units}} Einheiten aufziehen', units: einheitenText(einheiten) })}
+                          </span>
+                        )}
+                        {einmalig && (
+                          <span className="rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-2 py-0.5 text-[12px] font-semibold text-[var(--accent)]">
+                            {t('dose_once', { defaultValue: 'einmalig' })}
+                          </span>
+                        )}
+                      </p>
+                    )
+                  })()}
                 </>
               )}
               <div className="flex gap-3">
