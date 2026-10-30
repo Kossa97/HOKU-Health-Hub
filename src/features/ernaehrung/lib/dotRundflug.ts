@@ -1,7 +1,7 @@
 /**
  * Dots Rundflug im Kalorientracker: Er kommt vom linken Rand, hält an der Kugel und an jedem
  * Mond (von links nach rechts), sagt je Halt, was dort offen ist, und fliegt an seinen Platz;
- * dort sagt er alles zusammen. Höchstens alle zwei Stunden.
+ * dort sagt er alles zusammen. Wieder nach zwei Stunden — oder beim dritten Öffnen seit dem letzten Mal.
  *
  * Hier nur Rechnung (Bahn, Texte, Abstand); die Seite verbindet sie mit Dot und der Kugel
  * (`hooks/useDotRundflug.ts`). Entschieden am Live-Mockup, Variante B (Nutzer 29.10.2026).
@@ -17,26 +17,46 @@ export interface Lage { main: Koerper; moons: Partial<Record<MacroKey, Koerper>>
 
 /** Zeiten in Sekunden: herein, je Weg zum nächsten Halt, je Halt, an den Platz. */
 export const RF_ZEIT = { herein: 0.85, weg: 0.6, halt: 1.05, heim: 0.85 }
-/** Frühestens nach so langer Zeit fliegt er wieder (Nutzer: „im Abstand von 2 h“). */
+/** Nach so langer Zeit fliegt er wieder (Nutzer: „im Abstand von 2 h“) … */
 export const RF_ABSTAND_MS = 2 * 60 * 60 * 1000
+/** … und zusätzlich bei jedem dritten Hineinnavigieren seit dem letzten Rundflug (Nutzer 30.10.2026). */
+export const RF_JEDES = 3
 const SPEICHER = 'tyd.dot.rundflug.v1'
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 const easeIO = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 const easeOut3 = (t: number) => 1 - (1 - t) ** 3
 
+/** Gespeichert: wann zuletzt geflogen, wie oft seitdem hineinnavigiert (früher nur die Zeit als Zahl). */
+function lies(): { t: number; n: number } | null {
+  const roh = localStorage.getItem(SPEICHER)
+  if (!roh) return null
+  const alt = Number(roh)
+  if (Number.isFinite(alt)) return { t: alt, n: 0 }
+  const v = JSON.parse(roh) as { t?: unknown; n?: unknown }
+  return { t: Number(v.t) || 0, n: Number(v.n) || 0 }
+}
+
 /** Ist ein Rundflug fällig? Ohne Speicher (privates Fenster) ja. */
 export function rundflugFaellig(jetzt: number): boolean {
   try {
-    const zuletzt = Number(localStorage.getItem(SPEICHER))
-    return !Number.isFinite(zuletzt) || zuletzt <= 0 || jetzt - zuletzt >= RF_ABSTAND_MS || zuletzt > jetzt
+    const s = lies()
+    return !s || s.t <= 0 || jetzt - s.t >= RF_ABSTAND_MS || s.t > jetzt || s.n >= RF_JEDES
   } catch {
     return true
   }
 }
 
+/** Einmal je Hineinnavigieren in den Kalorientracker (heute). */
+export function zaehleBesuch() {
+  try {
+    const s = lies()
+    if (s) localStorage.setItem(SPEICHER, JSON.stringify({ t: s.t, n: s.n + 1 }))
+  } catch { /* kein Speicher */ }
+}
+
 export function merkeRundflug(jetzt: number) {
-  try { localStorage.setItem(SPEICHER, String(jetzt)) } catch { /* kein Speicher */ }
+  try { localStorage.setItem(SPEICHER, JSON.stringify({ t: jetzt, n: 0 })) } catch { /* kein Speicher */ }
 }
 
 /**

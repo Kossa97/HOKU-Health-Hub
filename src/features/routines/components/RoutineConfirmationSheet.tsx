@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatTrackedQuantity } from '../quantityPresentation'
+import { formatAmount } from '../../my-stack/lib/bestandLabels'
 import {
   buildConfirmationEntry,
   type RoutineConfirmationEntry,
@@ -25,13 +26,22 @@ interface RoutineConfirmationSheetProps {
   /**
    * `time` ist die abgefragte Uhrzeit (HH:mm), wenn `initialTime` gesetzt ist.
    * Sie gilt fuer alle gewaehlten Einnahmen: was man zusammen nimmt, nimmt
-   * man zur selben Zeit.
+   * man zur selben Zeit. `heute`: die Zeit kam von „Jetzt" und gilt fuer
+   * heute, nicht fuer den Tag der Einnahme.
    */
-  onConfirm: (entries: RoutineConfirmationEntry[], time?: string) => Promise<string[]>
+  onConfirm: (entries: RoutineConfirmationEntry[], time?: string, heute?: boolean) => Promise<string[]>
   onAfterConfirm?: (entries: RoutineConfirmationEntry[], savedLogIds: string[]) => void | Promise<void>
   onAddInjection?: (entry: RoutineIntake, doseLogId: string) => void
   /** Gesetzt, fragt das Blatt die Uhrzeit ab, vorbelegt mit diesem Wert (HH:mm). */
   initialTime?: string
+  /** Die geplante Uhrzeit (HH:mm) fuer den Knopf „Geplant" neben „Jetzt". */
+  plannedTime?: string
+  /**
+   * Bei einem angemischten Vial: wie viele Einheiten auf der Spritze die Menge
+   * sind, sonst null. Gerechnet wird mit der tatsaechlichen Menge, also auch
+   * nach einer einmaligen Aenderung.
+   */
+  einheitenFuer?: (stackItemId: string, dose: number | null, unit: string | null) => number | null
 }
 
 
@@ -49,12 +59,15 @@ export function RoutineConfirmationSheet({
   onAfterConfirm,
   onAddInjection,
   initialTime,
+  plannedTime,
+  einheitenFuer,
 }: RoutineConfirmationSheetProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const titleId = useId()
   const timeId = useId()
   const { requestClose, closingProps } = useSheetClose(onClose)
   const [time, setTime] = useState(initialTime ?? '')
+  const [heute, setHeute] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [entries, setEntries] = useState<RoutineConfirmationEntry[]>(() => (
     group.items.map(buildConfirmationEntry)
@@ -107,7 +120,7 @@ export function RoutineConfirmationSheet({
     setError(false)
     let savedLogIds: string[]
     try {
-      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time) : await onConfirm(entries)
+      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time, heute) : await onConfirm(entries)
     } catch {
       setError(true)
       setSaving(false)
@@ -217,14 +230,25 @@ export function RoutineConfirmationSheet({
                   <label htmlFor={timeId} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
                     {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setTime(format(new Date(), 'HH:mm'))}
-                    className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                  >
-                    <Clock size={12} aria-hidden="true" />
-                    {t('confirm_time_now', { defaultValue: 'Jetzt' })}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setTime(format(new Date(), 'HH:mm')); setHeute(true) }}
+                      className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                    >
+                      <Clock size={12} aria-hidden="true" />
+                      {t('confirm_time_now', { defaultValue: 'Jetzt' })}
+                    </button>
+                    {plannedTime && (
+                      <button
+                        type="button"
+                        onClick={() => { setTime(plannedTime); setHeute(false) }}
+                        className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                      >
+                        {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: plannedTime })}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <input
                   id={timeId}
@@ -241,6 +265,13 @@ export function RoutineConfirmationSheet({
                 const capabilities = dosePlanCapabilities(entry.trackingLevel)
                 const plannedQuantity = capabilities.oneOff
                   ? formatTrackedQuantity(entry.dose, entry.unit, '')
+                  : null
+                // Einmalig geaendert: die geplante Menge bleibt durchgestrichen
+                // stehen, damit klar ist, wovon abgewichen wird.
+                const changed = capabilities.oneOff && entry.actualDose != null && entry.actualDose !== entry.dose
+                const actualQuantity = changed ? formatTrackedQuantity(entry.actualDose, entry.actualUnit, '') : null
+                const units = capabilities.oneOff
+                  ? einheitenFuer?.(entry.stackItemId, entry.actualDose, entry.actualUnit) ?? null
                   : null
                 return (
                   <li key={entry.key} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
@@ -259,13 +290,31 @@ export function RoutineConfirmationSheet({
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-black text-white">{entry.stackItemName}</span>
                           {plannedQuantity && (
-                            <span className="block text-xs font-semibold text-slate-400">
-                              {t('routine_planned_quantity', { defaultValue: 'Geplant: {{quantity}}', quantity: plannedQuantity })}
+                            <span data-routine-quantity className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-slate-400">
+                              {changed ? (
+                                <>
+                                  <s className="text-slate-500">{plannedQuantity}</s>
+                                  <span className="text-[var(--accent)]">{actualQuantity}</span>
+                                  <span className="rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-1.5 py-px text-[11px] font-bold text-[var(--accent)]">
+                                    {t('dose_once', { defaultValue: 'einmalig' })}
+                                  </span>
+                                </>
+                              ) : <span>{plannedQuantity}</span>}
+                            </span>
+                          )}
+                          {units != null && (
+                            <span data-routine-units className="mt-0.5 block text-xs font-bold tabular-nums text-[var(--accent)]">
+                              {t('syringe_draw_units', {
+                                defaultValue: '{{units}} Einheiten aufziehen',
+                                units: formatAmount(units, i18n.language),
+                              })}
                             </span>
                           )}
                         </span>
                       </label>
                       {capabilities.oneOff && (
+                        // Der Stift oeffnet das Feld; offen setzt derselbe Knopf
+                        // auf die geplante Menge zurueck und schliesst es.
                         <button
                           type="button"
                           aria-label={String(t('routine_actual_override', { defaultValue: 'Einmalige Abweichung' }))}
@@ -278,9 +327,9 @@ export function RoutineConfirmationSheet({
                               setEditingKeys(current => [...current, entry.key])
                             }
                           }}
-                          className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 text-xs font-black text-cyan-300 transition-colors hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                          className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-full text-[var(--accent)] transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                         >
-                          <Pencil size={13} aria-hidden="true" /> {t('routine_actual_override', { defaultValue: 'Einmalige Abweichung' })}
+                          {editing ? <RotateCcw size={17} aria-hidden="true" /> : <Pencil size={17} aria-hidden="true" />}
                         </button>
                       )}
                     </div>

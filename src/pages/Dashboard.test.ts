@@ -60,7 +60,7 @@ vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: pageMocks.use
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, options?: { defaultValue?: string; [name: string]: string | number | undefined }) => (
     (options?.defaultValue ?? key).replace(/{{(\w+)}}/g, (_, name: string) => String(options?.[name] ?? ''))
-  ) }),
+  ), i18n: { language: 'de' } }),
 }))
 vi.mock('react-hot-toast', () => ({ default: pageMocks.toast }))
 
@@ -190,10 +190,22 @@ function createDashboardClient(
   const rpc = vi.fn(aufgeloesteRpcImplementation)
   // Ein Bündel mit allen Substanzen: der Sammelweg im Kalender. Nur auf
   // Wunsch (`buendel`) — es nimmt seine Substanzen aus den Einzelzeilen.
+  // Ein Bündel steht erst ab zwei geplanten Einnahmen einer Tageszeit da;
+  // deshalb kommt ein Begleiter dazu, der heute schon bestätigt ist. So bleibt
+  // genau eine offene Einnahme im Bündel, wie die Fälle sie erwarten.
+  const begleiter = options.buendel && !fixtures.intake_bundles ? begleiterFuer(fixtures) : null
+  const mitBegleiter = (table: string): unknown[] => {
+    const zeilen = fixtures[table] ?? []
+    if (!begleiter) return zeilen
+    if (table === 'cycles') return [...zeilen, begleiter.cycle]
+    if (table === 'stack_items') return [...zeilen, begleiter.stackItem]
+    if (table === 'dose_logs') return [...zeilen, begleiter.log]
+    return zeilen
+  }
   const buendel = fixtures.intake_bundles ?? (!options.buendel ? [] : [{
     id: 'bundle-all',
     name: 'Alle Substanzen',
-    stack_item_ids: (fixtures.stack_items ?? []).map(item => (item as { id: string }).id),
+    stack_item_ids: mitBegleiter('stack_items').map(item => (item as { id: string }).id),
     sort_order: 0,
     created_at: '2026-01-01T00:00:00Z',
   }])
@@ -201,7 +213,7 @@ function createDashboardClient(
     select: vi.fn((columns: string) => {
       selectCounts.set(table, (selectCounts.get(table) ?? 0) + 1)
       selectCalls.push({ table, columns })
-      const query = resolvedQuery(table === 'intake_bundles' ? buendel : fixtures[table] ?? [], options.errors?.[table] ?? null,
+      const query = resolvedQuery(table === 'intake_bundles' ? buendel : mitBegleiter(table), options.errors?.[table] ?? null,
         table === 'dose_logs' && options.filterLogs, table === 'dose_logs' ? options.logReadGate : undefined)
       if (table === 'dose_logs') logQueries.push(query)
       return query
@@ -220,6 +232,34 @@ function createDashboardClient(
     }),
   }))
   return { from, rpc, selectCounts, selectCalls, mutations, logQueries }
+}
+
+/**
+ * Eine zweite Substanz zur selben Zeit wie die erste Phase der Fixtur, heute
+ * um 08:00 schon eingenommen.
+ */
+function begleiterFuer(fixtures: Record<string, unknown[]>) {
+  const vorlage = fixtures.cycles?.[0] as Record<string, unknown> & {
+    id: string; versions?: Record<string, unknown>[]; stack_items?: Record<string, unknown>
+  } | undefined
+  if (!vorlage) return null
+  const id = `${vorlage.id}-begleiter`
+  const versionen = vorlage.versions?.map(version => ({ ...version, id: `${version.id}-begleiter`, cycle_id: id }))
+  const heute = new Date()
+  const tag = [heute.getFullYear(), String(heute.getMonth() + 1).padStart(2, '0'), String(heute.getDate()).padStart(2, '0')].join('-')
+  const um8 = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate(), 8, 0, 0, 0).toISOString()
+  return {
+    cycle: { ...vorlage, id, name: 'Magnesium', stack_item_id: 'stack-begleiter',
+      stack_items: { ...vorlage.stack_items, display_name: 'Magnesium' },
+      ...(versionen ? { versions: versionen } : {}) },
+    stackItem: { id: 'stack-begleiter', display_name: 'Magnesium', default_method: 'Oral',
+      dosage_form: 'capsule', tracking_level: 'complete' },
+    log: { id: 'begleiter-log', stack_item_id: 'stack-begleiter', taken: true,
+      dose: vorlage.dose ?? null, unit: vorlage.unit ?? null, method: 'Oral', notes: null,
+      stack_items: { display_name: 'Magnesium' }, logged_at: um8,
+      cycle_id: versionen ? id : null, plan_version_id: versionen?.[0]?.id ?? null,
+      routine_slot_key: versionen ? `${id}@${tag}T08:00` : null },
+  }
 }
 
 function intakeOnlyCycle() {
@@ -920,7 +960,7 @@ describe('Dashboard normalized timeline path', () => {
 
     // Aufgeklappt zeigt es seine Einnahmen als Einzelzeilen, mit allem, was
     // eine Einzelzeile kann.
-    const pfeil = screen.getByRole('button', { name: 'Alle Substanzen: Substanzen' })
+    const pfeil = document.querySelector<HTMLElement>('[data-bundle-row] button[aria-expanded]')!
     expect(pfeil.getAttribute('aria-expanded')).toBe('false')
     fireEvent.click(pfeil)
     expect(pfeil.getAttribute('aria-expanded')).toBe('true')
@@ -932,9 +972,11 @@ describe('Dashboard normalized timeline path', () => {
     expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/)
   })
 
-  it('stellt ein Bündel in jede Tageszeit mit seinem Teil; Substanzen ausserhalb bleiben einzeln', async () => {
+  it('stellt ein Bündel nur in die Tageszeit, in der zwei seiner Substanzen geplant sind', async () => {
     const basis = dreiMorgensFixture()
-    // Magnesium abends, Vitamin D3 und Zink morgens. Im Bündel: Vitamin D3 und Magnesium.
+    // Magnesium abends, Vitamin D3 und Zink morgens; alle drei im Bündel.
+    // Morgens sind es zwei, also ein Bündel; abends bliebe Magnesium allein —
+    // ein Bündel aus einer Einnahme ist keins, es steht einzeln da.
     const fixtures: Record<string, unknown[]> = {
       ...basis,
       cycles: basis.cycles.map(cycle => cycle.id !== 'zyklus-zwei' ? cycle : {
@@ -942,32 +984,30 @@ describe('Dashboard normalized timeline path', () => {
         versions: cycle.versions.map(version => ({ ...version, intake_time: 'abends', intake_time_custom: '20:00' })),
       }),
       intake_bundles: [{
-        id: 'bundle-tag', name: 'Tagesbündel', stack_item_ids: ['stack-1', 'stack-2'],
+        id: 'bundle-tag', name: 'Tagesbündel', stack_item_ids: ['stack-1', 'stack-2', 'stack-3'],
         sort_order: 0, created_at: '2026-01-01T00:00:00Z',
       }],
     }
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
 
-    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(2))
+    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(1))
     const buendel = [...document.querySelectorAll<HTMLElement>('[data-bundle-row]')]
-    expect(buendel.map(zeile => zeile.textContent)).toEqual([
-      expect.stringContaining('Vitamin D3'),
-      expect.stringContaining('Magnesium'),
-    ])
+    expect(buendel[0].textContent).toContain('Vitamin D3')
+    expect(buendel[0].textContent).toContain('Zink')
     expect(buendel[0].textContent).not.toContain('Magnesium')
-    // Zink ist in keinem Bündel und steht einzeln da; die beiden anderen nicht.
     const einzeln = [...document.querySelectorAll<HTMLElement>('[data-due-row]')]
     expect(einzeln).toHaveLength(1)
-    expect(einzeln[0].textContent).toContain('Zink')
+    expect(einzeln[0].textContent).toContain('Magnesium')
     // Als Naechstes steht das Bündel an; die grosse Ansicht springt nicht an
     // ihm vorbei auf die Einzelne.
     expect(document.querySelector('[data-due-open]')).toBeNull()
 
     // Der Morgen-Teil bestaetigt nur, was morgens offen ist.
-    fireEvent.click(within(buendel[0]).getByRole('button', { name: /^Tagesbündel\s*1 bestätigen$/ }))
+    fireEvent.click(within(buendel[0]).getByRole('button', { name: /^Tagesbündel\s*2 bestätigen$/ }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('Vitamin D3')).toBeTruthy()
+    expect(within(dialog).getByText('Zink')).toBeTruthy()
     expect(within(dialog).queryByText('Magnesium')).toBeNull()
   })
 
@@ -1245,7 +1285,9 @@ describe('Dashboard normalized timeline path', () => {
     expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
   })
 
-  it('keeps the original 08:00 occurrence in a pending group confirmation', async () => {
+  it('keeps the original 08:00 occurrence in a pending group confirmation, taken now', async () => {
+    // Der Platz im Plan bleibt 08:00; gespeichert wird, wann wirklich
+    // genommen wurde — vorbelegt mit jetzt (16:00 in Berlin).
     const fixtures = startFixFixture()
     fixtures.dose_logs = [pendingLog()]
     const client = createDashboardClient(fixtures, undefined, { buendel: true })
@@ -1254,8 +1296,79 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({ dose_log_id: 'pending-exact',
-        slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T06:00:00.000Z' })],
+        slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T14:00:00.000Z' })],
     }))
+  })
+
+  it('stellt im Bündel per Knopf auf die geplante Uhrzeit um', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [pendingLog()]
+    const client = createDashboardClient(fixtures, undefined, { buendel: true })
+    renderDashboard(client)
+    await gruppenBestaetigungOeffnen()
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('16:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
+      p_entries: [expect.objectContaining({ logged_at: '2026-09-18T06:00:00.000Z' })],
+    }))
+  })
+
+  it('belegt die Einzelbestätigung mit jetzt vor, die geplante Zeit liegt auf dem Knopf', async () => {
+    const fixtures = startFixFixture()
+    const client = createDashboardClient(fixtures)
+    renderDashboard(client)
+    await openSingle()
+    const dialog = await screen.findByRole('dialog')
+    const feld = within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('16:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
+    expect(feld.value).toBe('08:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
+    expect(feld.value).toBe('16:00')
+  })
+
+  it('nimmt mit „Jetzt" nach Mitternacht heute, nicht den Tag der Einnahme', async () => {
+    // Die verpasste Einnahme vom 18. wird am 19. um 00:30 nachgetragen: mit
+    // „Jetzt" gespeichert wird der 19. um 00:30 — vorher landete sie am 18.
+    // um 00:30, fast einen Tag zu früh (und so im Blutspiegel).
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-18T22:30:00Z'))
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+
+    const dialog = await screen.findByRole('dialog')
+    const feld = within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('08:00')
+    expect(dialog.querySelector('[data-confirm-time-today]')).toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
+    expect(feld.value).toBe('00:30')
+    expect(dialog.querySelector('[data-confirm-time-today]')).not.toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
+    const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
+      p_entries: Array<{ slot_key: string; logged_at: string }>
+    }
+    expect(params.p_entries).toEqual([expect.objectContaining({
+      slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T22:30:00.000Z',
+    })])
+  })
+
+  it('belegt „Doch eingenommen" auch heute mit der geplanten Uhrzeit vor', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
+    renderDashboard(createDashboardClient(fixtures))
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
   })
 
   it('keeps the original pending occurrence in the injection deep link', async () => {
@@ -1285,6 +1398,28 @@ describe('Dashboard normalized timeline path', () => {
         dose: 30, unit: 'mg', logged_at: '2026-09-18T07:30:00.000Z',
       })],
     }))
+  })
+
+  it('nennt beim angemischten Vial die Einheiten auf der Spritze, auch nach einer einmaligen Änderung', async () => {
+    const fixtures = startFixFixture()
+    // 50 mg im Vial auf 2 ml: 25 mg sind 1 ml, auf der U-100-Spritze 100 E.
+    ;(fixtures as Record<string, unknown[]>).stack_items = [{ ...fixtures.stack_items[0], dosage_form: 'vial', reconstitution_ml: 2,
+      syringe_type: null, ingredients: [{ id: 'zutat-1', stack_item_id: 'stack-1', catalog_substance_id: null,
+        custom_name: 'Vitamin D3', amount_value: 50, amount_unit: 'mg', basis_value: 1, basis_unit: 'vial', position: 0 }] }]
+    renderDashboard(createDashboardClient(fixtures))
+    const zeile = await waitFor(() => {
+      const gefunden = document.querySelector<HTMLElement>('[data-due-row]')
+      expect(gefunden).toBeTruthy()
+      return gefunden!
+    })
+    expect(zeile.textContent).toContain('25 mg · 100 E · Oral')
+
+    await openSingle()
+    expect(screen.getByText('100 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.queryByText('einmalig')).toBeNull()
+    fireEvent.change(screen.getByLabelText('Menge'), { target: { value: '12.5' } })
+    expect(screen.getByText('50 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.getByText('einmalig')).toBeTruthy()
   })
 
   it('laesst eine ungueltige Menge nicht durch und verwirft nichts', async () => {
@@ -1438,6 +1573,14 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({ plan_version_id: 'prn-afternoon', logged_at: '2026-09-18T14:00:00.000Z' })],
     }))
+  })
+
+  it('zeigt bei Bedarf keinen Knopf „Geplant" — es gibt keinen Plan', async () => {
+    renderDashboard(createDashboardClient(startFixFixture('Bei Bedarf')))
+    fireEvent.click(await screen.findByRole('button', { name: 'Eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('16:00')
+    expect(within(dialog).queryByRole('button', { name: /^Geplant/ })).toBeNull()
   })
 
   it('rejects a chosen PRN minute inside a pause before issuing any write', async () => {

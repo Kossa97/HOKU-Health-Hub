@@ -14,7 +14,7 @@ import {
 } from 'date-fns'
 import {
   AlertTriangle, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
-  Layers, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  Layers, Lock, Minus, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -38,6 +38,10 @@ import { isOnDemand } from '../features/my-stack/lib/intakeFrequency'
 import { debitPeptideStockForDoseById } from '../features/my-stack/extensions/peptide/vialStock'
 import { formatTrackedQuantity, hasTrackedQuantity } from '../features/routines/quantityPresentation'
 import { dosePlanCapabilities } from '../features/my-stack/lib/dosePlan'
+import { aufzuziehendeEinheiten, spritzeFuer } from '../features/my-stack/lib/bestand'
+import { formatAmount } from '../features/my-stack/lib/bestandLabels'
+import { stackItemColumns } from '../features/my-stack/services/stackItems'
+import type { StackItemIngredient, StackItemInventory } from '../features/my-stack/types'
 import {
   buildConfirmationEntry,
   groupRoutineIntakes,
@@ -55,6 +59,7 @@ import {
   deleteIntakeBundle,
   liveBundleItemIds,
   loadIntakeBundles,
+  normalizeBundleName,
   saveIntakeBundle,
   type IntakeBundle,
   type IntakeBundleClient,
@@ -74,6 +79,8 @@ import { useSheetDrag } from '../lib/useSheetDrag'
 import { denyProps } from '../lib/denyFeedback'
 import { dayKey, readSharedDay, writeSharedDay } from '../lib/sharedDay'
 import { SheetGriff } from '../components/ui/SheetGriff'
+import { useBuendelZiehen, type ZiehQuelle, type ZiehZiel } from '../features/routines/bundles/useBuendelZiehen'
+import { buendelHinweis } from '../features/routines/bundles/buendelHinweis'
 
 interface DoseLog {
   id: string
@@ -124,7 +131,14 @@ interface StackItem {
   vial_amount_mg: number | null; reconstitution_ml: number | null
   vials_in_stock: number | null; vials_initial: number | null
   reconstitution_date: string | null; expiry_days: number | null
+  /** Fuer die Spritzeneinheiten eines angemischten Vials. */
+  syringe_type?: string | null
+  ingredients?: StackItemIngredient[]
+  inventory?: StackItemInventory | null
 }
+
+// Mit Wirkstoff und Bestand: daraus rechnen sich die Einheiten auf der Spritze.
+const STACK_ITEM_COLUMNS = stackItemColumns({ includeInventory: true, includeIngredientCatalog: false })
 
 interface Escalation {
   id: string
@@ -315,7 +329,7 @@ function initialDay(): Date {
 }
 
 export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {}) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { dt } = useDotText()
   const location = useLocation()
   const navigate = useNavigate()
@@ -387,16 +401,28 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
   // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string }) | null>(null)
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string; plannedTime?: string }) | null>(null)
   const [bundles, setBundles] = useState<IntakeBundle[]>([])
   // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
   const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
   const [confirmTime, setConfirmTime]   = useState('')
+  // Die geplante Uhrzeit fuer den Knopf „Geplant", null ohne Plan.
+  const [confirmPlanTime, setConfirmPlanTime] = useState<string | null>(null)
+  // Der Tag zur Uhrzeit im Feld. null: der Tag der Einnahme. „Jetzt" setzt
+  // heute — wer die Einnahme von gestern Abend nach Mitternacht mit „Jetzt"
+  // bestaetigt, hat sie heute um 00:30 genommen, nicht gestern um 00:30.
+  const [confirmDay, setConfirmDay] = useState<Date | null>(null)
+  const confirmJetzt = () => {
+    setConfirmTime(format(new Date(), 'HH:mm'))
+    setConfirmDay(new Date())
+  }
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
   // `confirmUnit` ist zugleich das Signal, ob die Substanz ueberhaupt eine
   // Menge fuehrt (`null` heisst: Intake-Only, kein Feld noetig).
   const [confirmDoseText, setConfirmDoseText] = useState('')
+  // Die geplante Menge, gegen die „einmalig" geprueft wird.
+  const [confirmDoseGeplant, setConfirmDoseGeplant] = useState('')
   const [confirmUnit, setConfirmUnit] = useState<string | null>(null)
   const confirmDoseWert = confirmDoseText.trim() === '' ? null : Number(confirmDoseText)
   // Dieselbe Regel wie im Gruppen-Sheet: eine Menge ist entweder unveraendert
@@ -422,6 +448,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })
   /** Das aufgeklappte Bündel einer Tageszeit (`bundle.id@tageszeit`), sonst null. */
   const [offenesBuendel, setOffenesBuendel] = useState<string | null>(null)
+  /**
+   * Ein Bündel im Bearbeiten-Zustand: Name, Herausnehmen, Rückgängig. `vorher`
+   * ist der Stand ALLER Bündel davor — „Rückgängig" stellt ihn wieder her.
+   * `neu`: gerade erst angelegt (dann heißt der Knopf „Rückgängig").
+   */
+  // `schluessel`: die Karte (Bündel@Tageszeit), die bearbeitet wird — steht ein
+  // Bündel morgens und abends, öffnet nur die angetippte.
+  const [buendelBearbeiten, setBuendelBearbeiten] = useState<{ id: string; schluessel: string; name: string; vorher: IntakeBundle[]; neu: boolean } | null>(null)
+  // Nur die letzte Bündel-Änderung lässt sich rückgängig machen; eine ältere
+  // Meldung geht zu, sobald eine neue kommt.
+  const letzteRueckgabe = useRef<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
   const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
@@ -661,7 +698,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       try {
         const [loadedTimelines, itemsResult, timezoneReviewResult] = await Promise.all([
           loadCycleTimelines(dashboardDataClient as never, user.id),
-          dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name'),
+          dashboardDataClient.from('stack_items').select(STACK_ITEM_COLUMNS).eq('user_id', user.id).eq('archived', false).order('display_name'),
           dashboardDataClient.from('cycles').select('stack_item_id, timezone_review_required')
             .eq('user_id', user.id).eq('timezone_review_required', true),
         ])
@@ -729,8 +766,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         if (!isCurrent()) return
         setTimelines(loadedTimelines)
         setCycles([])
-        setStackItems(itemsResult.data ?? [])
-        const visibleStackItemIds = new Set((itemsResult.data ?? []).map(item => item.id))
+        // Die Spalten kommen aus einer zusammengesetzten Auswahl, die der
+        // Typ-Parser von supabase-js nicht lesen kann.
+        const loadedItems = (itemsResult.data ?? []) as unknown as StackItem[]
+        setStackItems(loadedItems)
+        const visibleStackItemIds = new Set(loadedItems.map(item => item.id))
         setTimezoneReviewStackItemIds([...new Set((timezoneReviewResult.data ?? [])
           .filter(row => row.timezone_review_required === true && visibleStackItemIds.has(row.stack_item_id))
           .map(row => row.stack_item_id))])
@@ -799,8 +839,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const loadStackItems = useCallback(async () => {
     if (!user) return
     if (FEATURES.planTimelineV2) return
-    const { data } = await dashboardDataClient.from('stack_items').select('*').eq('user_id', user.id).eq('archived', false).order('display_name')
-    if (data) setStackItems(data)
+    const { data } = await dashboardDataClient.from('stack_items').select(STACK_ITEM_COLUMNS).eq('user_id', user.id).eq('archived', false).order('display_name')
+    if (data) setStackItems(data as unknown as StackItem[])
   }, [dashboardDataClient, user])
 
   // Bündel sind Einstellungen, keine Tagesdaten: einmal je Nutzer laden.
@@ -885,6 +925,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   const timelineReady = timelineLoadState === 'ready' && timelinePeriod === timelineContext
   const stackItemById = new Map(stackItems.map(item => [item.id, item]))
+  // Bei einem angemischten Vial: wie viele Einheiten auf der Spritze diese
+  // Menge sind. Der Spritzentyp der Substanz zaehlt (U-100, U-40 …).
+  const einheitenFuer = (stackItemId: string, dose: number | null, unit: string | null) => {
+    const item = stackItemById.get(stackItemId)
+    const spritze = item ? spritzeFuer(item) : null
+    return spritze ? aufzuziehendeEinheiten(dose, unit, spritze) : null
+  }
+  const einheitenText = (einheiten: number) => formatAmount(einheiten, i18n.language)
   const timelineOccurrencesForDay = (day: Date) => {
     if (!timelineReady) return []
     const localDate = localDateTimeKey(day, timeZone).slice(0, 10)
@@ -1050,8 +1098,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   interface DueSlot { key: string; cycle: Cycle; planVersionId: string | null; scheduledAt: string; minutes: number; time: string; groupKey: IntakeGroupKey; routineGroup: ResolvedRoutineGroup; dose: number | null; pendingLog?: DoseLog }
   const dueSlots: DueSlot[] = []
   let totalDaySlots = 0
+  // Was an diesem Tag je Tageszeit geplant ist, auch schon Bestätigtes: daran
+  // misst sich, ob ein Bündel als Bündel dasteht (mindestens zwei).
+  const geplantJeTageszeit = new Map<ResolvedRoutineGroup, Set<string>>()
+  const alsGeplant = (gruppe: ResolvedRoutineGroup, stackItemId: string) => {
+    const menge = geplantJeTageszeit.get(gruppe) ?? new Set<string>()
+    menge.add(stackItemId)
+    geplantJeTageszeit.set(gruppe, menge)
+  }
   if (FEATURES.planTimelineV2) {
     const planned = timelineOccurrencesForDay(selectedDay)
+    for (const intake of planned) alsGeplant(intake.routineGroup, intake.stackItemId)
     const open = collectOpenTimelineIntakes(
       timelineReady ? timelines : [], logs as IntakeLog[], selectedDay, timeZone,
     )
@@ -1090,6 +1147,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const slotsByStackItem = new Map<string, DueSlot[]>()
     for (const cycle of selCycles) {
       for (const slot of cycleSlots(cycle, selectedDay)) {
+        alsGeplant(slot.routineGroup, cycle.stack_item_id)
         const arr = slotsByStackItem.get(cycle.stack_item_id) ?? []
         arr.push({
           key: `${cycle.id}-${slot.minutes}`,
@@ -1178,11 +1236,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // morgens und abends etwas, steht es in beiden, jeweils mit seinem Teil.
   type TagesEintrag =
     | { art: 'einzel'; slot: DueSlot; minuten: number }
-    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; slots: DueSlot[]; minuten: number }
+    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; anzahl: number; slots: DueSlot[]; minuten: number }
   const tagesGruppen = offeneGruppen.map(gruppe => {
-    const { entries, vergeben } = bundlesForPeriod(bundleRows, gruppe.routineGroup?.items ?? [])
+    const { entries, vergeben } = bundlesForPeriod(
+      bundleRows,
+      gruppe.routineGroup?.items ?? [],
+      geplantJeTageszeit.get(PERIOD_TO_ROUTINE_GROUP[gruppe.key]) ?? new Set(),
+    )
     const eintraege: TagesEintrag[] = [
-      ...entries.map(({ bundle, intakes }) => {
+      ...entries.map(({ bundle, intakes, anzahl }) => {
         // Aufgeklappt nach der Uhr wie die Liste drumherum; das Blatt
         // behaelt die Reihenfolge des Bündels.
         const slots = intakes
@@ -1194,6 +1256,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           schluessel: `${bundle.id}@${gruppe.key}`,
           bundle,
           intakes,
+          anzahl,
           slots,
           minuten: Math.min(...slots.map(slot => slot.minutes)),
         }
@@ -1204,7 +1267,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     ]
     // Nach der Uhr; bei gleicher Zeit zuerst das Bündel, wie oben eingereiht.
     eintraege.sort((a, b) => a.minuten - b.minuten)
-    return { ...gruppe, eintraege }
+    // Aufeinanderfolgende Einzelne teilen sich eine Liste; jedes Bündel ist
+    // eine eigene Karte dazwischen.
+    const bloecke: ({ art: 'liste'; slots: DueSlot[] } | Extract<TagesEintrag, { art: 'buendel' }>)[] = []
+    for (const eintrag of eintraege) {
+      if (eintrag.art === 'buendel') { bloecke.push(eintrag); continue }
+      const letzter = bloecke[bloecke.length - 1]
+      if (letzter?.art === 'liste') letzter.slots.push(eintrag.slot)
+      else bloecke.push({ art: 'liste', slots: [eintrag.slot] })
+    }
+    return { ...gruppe, eintraege, bloecke }
   })
   // Jede offene Einnahme kann die grosse Ansicht bekommen — aber nur eine auf
   // einmal, und nur auf Antippen. Voreingestellt ist die erste offene; tippt
@@ -1611,22 +1683,30 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   // ── Bestätigungs-Sheet ───────────────────────────────────────────────────
-  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false) => {
-    let defaultTime: string
-    if (cycle && slotTime) {
-      defaultTime = slotTime
+  const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false, ohnePlan = false) => {
+    let geplant: string | null = null
+    if (ohnePlan) {
+      geplant = null
+    } else if (cycle && slotTime) {
+      geplant = slotTime
     } else if (cycle) {
-      const intakeMin = cycleIntakeMinutes(cycle, selectedDay)
-      const safe = intakeMin >= 24 * 60 ? 12 * 60 : intakeMin
-      defaultTime = `${Math.floor(safe / 60).toString().padStart(2, '0')}:${(safe % 60).toString().padStart(2, '0')}`
+      geplant = format(new Date(cycleLogTimestamp(cycle, selectedDay)), 'HH:mm')
     } else if (log) {
-      const d = new Date(log.logged_at)
-      defaultTime = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-    } else {
-      const now = new Date()
-      defaultTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+      geplant = format(new Date(log.logged_at), 'HH:mm')
     }
-    setConfirmTime(defaultTime)
+    // Vorbelegt ist jetzt: gespeichert wird, wann wirklich genommen wurde,
+    // die geplante Zeit ist einen Tipp entfernt. Ausnahme: eine ausgelassene
+    // oder verpasste (Auto-Miss) Einnahme nachtragen, oder ein anderer Tag —
+    // dann ist „jetzt" sicher falsch, und es steht die geplante Zeit.
+    const tag = log && !cycle ? new Date(log.logged_at) : selectedDay
+    const nachPlan = nachtragen || log?.taken === false || !isSameDay(tag, new Date())
+    if (geplant !== null && nachPlan) {
+      setConfirmTime(geplant)
+      setConfirmDay(null)
+    } else {
+      confirmJetzt()
+    }
+    setConfirmPlanTime(geplant)
     // Vorausgefuellt mit der geplanten Menge dieses Slots -- derselbe
     // Resolver, den `confirmCycleDose` selbst benutzt, damit hier steht,
     // was tatsaechlich gilt (Eskalation, Slot-eigene Menge), nicht geraten.
@@ -1639,9 +1719,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     if (FEATURES.planTimelineV2 && cycle && dosePlanCapabilities(cycle.stack_items.tracking_level).oneOff) {
       const geplant = resolveDashboardCycleQuantity(cycle, selectedDay, escalations, slotDose)
       setConfirmDoseText(geplant.dose != null ? String(geplant.dose) : '')
+      setConfirmDoseGeplant(geplant.dose != null ? String(geplant.dose) : '')
       setConfirmUnit(geplant.unit)
     } else {
       setConfirmDoseText('')
+      setConfirmDoseGeplant('')
       setConfirmUnit(null)
     }
     setConfirmSheet({ cycle, log, slotDose, scheduledAt, slotKey, nachtragen })
@@ -1666,7 +1748,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       if (confirmDoseUngueltig) return
       try {
         const [hours, minutes] = confirmTime.split(':').map(Number)
-        const actualAt = new Date(selectedDay)
+        const actualAt = new Date(confirmDay ?? selectedDay)
         actualAt.setHours(hours, minutes, 0, 0)
         if (confirmSheet.cycle) {
           const ausgelassen = confirmSheet.nachtragen && confirmSheet.log?.taken === false
@@ -1708,7 +1790,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     }
     const [h, m] = confirmTime.split(':').map(Number)
     if (confirmSheet.cycle) {
-      const day = new Date(selectedDay)
+      const day = new Date(confirmDay ?? selectedDay)
       day.setHours(h, m, 0, 0)
       if (confirmSheet.log) await confirmDose(
         confirmSheet.log,
@@ -1725,14 +1807,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         confirmSheet.slotDose ?? null,
       )
     } else if (confirmSheet.log) {
-      const logDate = new Date(confirmSheet.log.logged_at)
+      const logDate = new Date(confirmDay ?? confirmSheet.log.logged_at)
       logDate.setHours(h, m, 0, 0)
       await confirmDose(confirmSheet.log, true, logDate.toISOString())
     }
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string, heute = false): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
     // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
     // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
@@ -1741,7 +1823,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       ? entries.map(entry => {
           if (!entry.selected) return entry
           const [stunde, minute] = time.split(':').map(Number)
-          const zeitpunkt = new Date(selectedDay)
+          // „Jetzt" im Blatt: heute, auch wenn ein anderer Tag offen ist.
+          const zeitpunkt = heute ? new Date() : new Date(selectedDay)
           zeitpunkt.setHours(stunde, minute, 0, 0)
           const actualLoggedAt = zeitpunkt.toISOString()
           if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
@@ -1762,13 +1845,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   /**
    * Ein Tipp auf das Bündel oeffnet das Bestaetigungsblatt mit je Substanz der
    * naechsten offenen Einnahme. Die Uhrzeit wird immer abgefragt, vorbelegt
-   * mit der fruehesten geplanten; Mengen und Injektionsstelle wie gewohnt.
+   * mit jetzt (an einem anderen Tag mit der fruehesten geplanten, die auch
+   * per Knopf bereitsteht); Mengen und Injektionsstelle wie gewohnt.
    */
   const openBundle = (bundle: IntakeBundle, items: RoutineIntake[]) => {
     if (items.length === 0) return
     const frueheste = items.reduce((min, item) => item.scheduledAt < min ? item.scheduledAt : min, items[0].scheduledAt)
     routineCommitted.current = false
-    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime: format(new Date(frueheste), 'HH:mm') })
+    const geplant = format(new Date(frueheste), 'HH:mm')
+    const initialTime = isSameDay(selectedDay, new Date()) ? format(new Date(), 'HH:mm') : geplant
+    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime, plannedTime: geplant })
   }
 
   const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
@@ -1791,6 +1877,217 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     await deleteIntakeBundle(bundleClient, user.id, id)
     setBundles(current => current.filter(bundle => bundle.id !== id))
     setBundleSheet(undefined)
+  }
+
+  // ── Bündel per Ziehen ───────────────────────────────────────────────
+  // Jede Änderung an den Bündeln geht sofort zur Datenbank; der Hinweis
+  // danach kann sie zurücknehmen. Ein Bündel mit weniger als zwei Substanzen
+  // löst sich auf.
+  const substanzName = (stackItemId: string) => stackItemById.get(stackItemId)?.display_name ?? ''
+  const periodeLabel = (key: string) => duePeriodCarousels.find(periode => periode.key === key)?.label ?? key
+
+  /** Bringt die Bündel in der Datenbank auf den Stand `ziel` zurück. */
+  const buendelWiederherstellen = async (ziel: IntakeBundle[], jetzt: IntakeBundle[]) => {
+    if (!user) return
+    const zielIds = new Set(ziel.map(bundle => bundle.id))
+    const jetztById = new Map(jetzt.map(bundle => [bundle.id, bundle]))
+    try {
+      for (const bundle of jetzt) {
+        if (!zielIds.has(bundle.id)) await deleteIntakeBundle(bundleClient, user.id, bundle.id)
+      }
+      const ergebnis: IntakeBundle[] = []
+      for (const bundle of ziel) {
+        const vorhanden = jetztById.get(bundle.id)
+        const gleich = vorhanden && vorhanden.name === bundle.name
+          && vorhanden.stack_item_ids.join() === bundle.stack_item_ids.join()
+        if (gleich) { ergebnis.push(vorhanden); continue }
+        // Ein aufgelöstes Bündel kommt mit seiner id zurück, samt Auto-Eintrag.
+        const gespeichert = await saveIntakeBundle(bundleClient, user.id, {
+          id: bundle.id,
+          neu: !vorhanden,
+          name: bundle.name,
+          stackItemIds: bundle.stack_item_ids,
+          sortOrder: bundle.sort_order,
+        })
+        if (!vorhanden && bundle.auto_log_since) {
+          await setIntakeBundleAutoLog(dashboardDataClient as never, user.id, bundle.id, bundle.auto_log_since)
+          gespeichert.auto_log_since = bundle.auto_log_since
+        }
+        ergebnis.push(gespeichert)
+      }
+      setBundles(ergebnis)
+    } catch {
+      buendelFehler()
+    }
+  }
+
+  /**
+   * Eine Änderung aus mehreren Schritten ist halb durch, wenn ein späterer
+   * scheitert: dann den Stand aus der Datenbank holen statt einen alten zu zeigen.
+   */
+  const buendelFehler = () => {
+    toast.error(t('fehler_speichern', { defaultValue: 'Fehler beim Speichern' }))
+    if (!user) return
+    loadIntakeBundles(bundleClient, user.id).then(setBundles).catch(() => {})
+  }
+
+  const rueckgabeSchliessen = () => {
+    if (letzteRueckgabe.current) toast.dismiss(letzteRueckgabe.current)
+    letzteRueckgabe.current = null
+  }
+
+  /** Setzt die Mitglieder eines Bündels; unter zwei löst es sich auf. */
+  const mitgliederSetzen = async (bundle: IntakeBundle, stackItemIds: string[], name = bundle.name) => {
+    if (!user) return null
+    if (stackItemIds.length < 2) {
+      await deleteIntakeBundle(bundleClient, user.id, bundle.id)
+      return null
+    }
+    return saveIntakeBundle(bundleClient, user.id, { id: bundle.id, name, stackItemIds, sortOrder: bundle.sort_order })
+  }
+
+  const buendelAendern = async (
+    aenderung: (vorher: IntakeBundle[]) => Promise<IntakeBundle[]>,
+    hinweis: { text: string; zusatz?: string },
+  ) => {
+    const vorher = bundles
+    rueckgabeSchliessen()
+    let nachher: IntakeBundle[]
+    try {
+      nachher = await aenderung(vorher)
+    } catch {
+      buendelFehler()
+      return null
+    }
+    setBundles(nachher)
+    letzteRueckgabe.current = buendelHinweis({
+      ...hinweis,
+      rueckgaengigText: String(t('bundle_undo', { defaultValue: 'Rückgängig' })),
+      rueckgaengig: () => {
+        letzteRueckgabe.current = null
+        setBuendelBearbeiten(null)
+        void buendelWiederherstellen(vorher, nachher)
+      },
+    })
+    return { vorher, nachher }
+  }
+
+  const ohneQuelle = async (liste: IntakeBundle[], quelle: ZiehQuelle) => {
+    if (!quelle.buendelId) return liste
+    const alt = liste.find(bundle => bundle.id === quelle.buendelId)
+    if (!alt) return liste
+    const neu = await mitgliederSetzen(alt, alt.stack_item_ids.filter(id => id !== quelle.stackItemId))
+    return neu ? liste.map(bundle => bundle.id === alt.id ? neu : bundle) : liste.filter(bundle => bundle.id !== alt.id)
+  }
+
+  const zusammenlegen = (quelle: ZiehQuelle, ziel: ZiehZiel) => {
+    if (!user) return
+    const name = substanzName(quelle.stackItemId)
+    if (ziel.art === 'buendel') {
+      const zielBuendel = bundles.find(bundle => bundle.id === ziel.buendelId)
+      // Schon drin: nichts zu tun.
+      if (!zielBuendel || zielBuendel.stack_item_ids.includes(quelle.stackItemId)) return
+      void buendelAendern(async vorher => {
+        const ohne = await ohneQuelle(vorher, quelle)
+        const aktuell = ohne.find(bundle => bundle.id === zielBuendel.id) ?? zielBuendel
+        const gespeichert = await saveIntakeBundle(bundleClient, user.id, {
+          id: aktuell.id, name: aktuell.name,
+          stackItemIds: [...new Set([...aktuell.stack_item_ids, quelle.stackItemId])],
+          sortOrder: aktuell.sort_order,
+        })
+        return ohne.map(bundle => bundle.id === gespeichert.id ? gespeichert : bundle)
+      }, { text: String(t('bundle_added', { defaultValue: '{{item}} ist jetzt im Bündel „{{name}}"', item: name, name: zielBuendel.name })) })
+      return
+    }
+    // Dieselbe Substanz zweimal (07:00 und 09:00) ist kein Bündel.
+    if (ziel.stackItemId === quelle.stackItemId) return
+    // Zwei Einzelne: ein neues Bündel, benannt nach der Tageszeit, gleich zum Umbenennen offen.
+    const basis = periodeLabel(quelle.periode)
+    let buendelName = basis
+    for (let n = 2; bundles.some(bundle => bundle.name === buendelName); n++) buendelName = `${basis} ${n}`
+    void buendelAendern(async vorher => {
+      const ohne = await ohneQuelle(vorher, quelle)
+      const angelegt = await saveIntakeBundle(bundleClient, user.id, {
+        name: buendelName,
+        stackItemIds: [ziel.stackItemId, quelle.stackItemId],
+        sortOrder: ohne.reduce((max, bundle) => Math.max(max, bundle.sort_order + 1), 0),
+      })
+      return [...ohne, angelegt]
+    }, {
+      text: String(t('bundle_created', { defaultValue: 'Bündel „{{name}}" angelegt', name: buendelName })),
+      zusatz: String(t('bundle_created_hint', { defaultValue: 'Erscheint, wenn mindestens zwei davon fällig sind' })),
+    }).then(ergebnis => {
+      const angelegt = ergebnis?.nachher.find(bundle => !ergebnis.vorher.some(alt => alt.id === bundle.id))
+      if (!ergebnis || !angelegt) return
+      setOffenesBuendel(`${angelegt.id}@${quelle.periode}`)
+      setBuendelBearbeiten({ id: angelegt.id, schluessel: `${angelegt.id}@${quelle.periode}`, name: angelegt.name, vorher: ergebnis.vorher, neu: true })
+    })
+  }
+
+  const herausnehmen = (quelle: ZiehQuelle) => {
+    const alt = bundles.find(bundle => bundle.id === quelle.buendelId)
+    if (!alt) return
+    const aufgeloest = alt.stack_item_ids.filter(id => id !== quelle.stackItemId).length < 2
+    void buendelAendern(vorher => ohneQuelle(vorher, quelle), {
+      text: String(t('bundle_taken_out', { defaultValue: '{{item}} ist wieder einzeln', item: substanzName(quelle.stackItemId) })),
+      zusatz: aufgeloest ? String(t('bundle_dissolved', { defaultValue: '„{{name}}" hat sich aufgelöst', name: alt.name })) : undefined,
+    })
+  }
+
+  const buendelZiehen = useBuendelZiehen({
+    onZusammen: zusammenlegen,
+    onHeraus: herausnehmen,
+    onAndereTageszeit: quelle => buendelHinweis({
+      art: 'warnung',
+      text: String(t('bundle_period_only', { defaultValue: 'Bündel gehen nur innerhalb einer Tageszeit' })),
+      zusatz: String(t('bundle_stays_in', {
+        defaultValue: '{{item}} bleibt bei „{{periode}}"',
+        item: substanzName(quelle.stackItemId),
+        periode: periodeLabel(quelle.periode),
+      })),
+    }),
+    wiederEinzeln: String(t('bundle_drop_single', { defaultValue: 'Hier loslassen: wieder einzeln' })),
+  })
+
+  const bearbeitenBeenden = async (verwerfen: boolean) => {
+    const zustand = buendelBearbeiten
+    if (!zustand || !user) return
+    setBuendelBearbeiten(null)
+    rueckgabeSchliessen()
+    if (verwerfen) {
+      await buendelWiederherstellen(zustand.vorher, bundles)
+      buendelHinweis({ text: String(zustand.neu
+        ? t('bundle_not_created', { defaultValue: 'Bündel nicht angelegt' })
+        : t('bundle_discarded', { defaultValue: 'Änderungen verworfen' })) })
+      return
+    }
+    const bundle = bundles.find(candidate => candidate.id === zustand.id)
+    const name = normalizeBundleName(zustand.name)
+    if (!bundle || !name || name === bundle.name) return
+    try {
+      const gespeichert = await saveIntakeBundle(bundleClient, user.id, {
+        id: bundle.id, name, stackItemIds: bundle.stack_item_ids, sortOrder: bundle.sort_order,
+      })
+      setBundles(current => current.map(candidate => candidate.id === gespeichert.id ? gespeichert : candidate))
+    } catch {
+      buendelFehler()
+    }
+  }
+
+  /** Minus im Bearbeiten-Zustand: ohne Ziehen wieder einzeln. */
+  const imBearbeitenHerausnehmen = async (bundle: IntakeBundle, stackItemId: string) => {
+    rueckgabeSchliessen()
+    try {
+      const neu = await mitgliederSetzen(bundle, bundle.stack_item_ids.filter(id => id !== stackItemId))
+      setBundles(current => neu ? current.map(candidate => candidate.id === neu.id ? neu : candidate) : current.filter(candidate => candidate.id !== bundle.id))
+      if (!neu) setBuendelBearbeiten(null)
+      buendelHinweis({
+        text: String(t('bundle_taken_out', { defaultValue: '{{item}} ist wieder einzeln', item: substanzName(stackItemId) })),
+        zusatz: neu ? undefined : String(t('bundle_dissolved', { defaultValue: '„{{name}}" hat sich aufgelöst', name: bundle.name })),
+      })
+    } catch {
+      buendelFehler()
+    }
   }
 
   const afterRoutineGroupConfirmed = async (
@@ -2017,53 +2314,127 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   /**
-   * Ein Bündel als Zeile seiner Tageszeit. Der Tipp bestaetigt, was davon in
-   * dieser Tageszeit offen ist; der Pfeil klappt die Einzelzeilen auf, falls
-   * eine Substanz anders laufen soll (ueberspringen, andere Menge).
+   * Ein Bündel als eigene Karte in seiner Tageszeit. Tippen klappt es auf; der
+   * Kreis mit der Zahl bestätigt, was davon in dieser Tageszeit offen ist.
+   * Aufgeklappt hängen seine Einnahmen eingerückt an einer Linie und können
+   * alles, was eine Einzelzeile kann. Im Bearbeiten-Zustand: Name, Minus,
+   * Rückgängig.
    */
   const renderBuendel = (
     eintrag: Extract<TagesEintrag, { art: 'buendel' }>,
     periode: Parameters<typeof renderEinnahme>[1],
   ) => {
-    const offen = eintrag.schluessel === aufgeklapptesBuendel
-    const namen = eintrag.intakes.map(intake => intake.stackItemName).join(' · ')
+    const bearbeiten = buendelBearbeiten?.schluessel === eintrag.schluessel ? buendelBearbeiten : null
+    const offen = Boolean(bearbeiten) || eintrag.schluessel === aufgeklapptesBuendel
+    // Der Ring zählt, was offen ist; die Kopfzeile, was das Bündel hier umfasst.
+    const anzahl = eintrag.intakes.length
+    const zeiten = eintrag.slots.map(slot => slot.time).filter(Boolean)
+    const spanne = zeiten.length === 0 ? '' : zeiten[0] === zeiten[zeiten.length - 1] ? zeiten[0] : `${zeiten[0]}–${zeiten[zeiten.length - 1]}`
+    const kopfzeile = (
+      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--accent)]">
+        {t('bundle_card_label', { defaultValue: 'Bündel · {{n}} Einnahmen', n: eintrag.anzahl })}
+      </span>
+    )
+    if (bearbeiten) {
+      return (
+        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen="" className="lg-group tyd-buendel">
+          <div className="flex items-center gap-3 px-3 pb-2 pt-3">
+            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
+            <label className="min-w-0 flex-1">
+              <span className="block">{t('bundle_naming', { defaultValue: 'Bündel benennen' })}</span>
+              <input
+                autoFocus
+                className="input mt-1 !min-h-10 !py-1.5 text-[17px] font-semibold"
+                value={bearbeiten.name}
+                maxLength={60}
+                enterKeyHint="done"
+                onFocus={event => event.currentTarget.select()}
+                onChange={event => setBuendelBearbeiten({ ...bearbeiten, name: event.target.value })}
+                onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void bearbeitenBeenden(false) } }}
+              />
+            </label>
+          </div>
+          <div className="tyd-buendel-glieder lg-rows">
+            {eintrag.slots.map(slot => {
+              const name = slot.cycle.stack_items?.display_name ?? ''
+              return (
+                <div key={slot.key} data-due-row={slot.key} className="flex min-h-[54px] items-center gap-3 pl-3 pr-2">
+                  <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full" style={{ background: getStackItemColor(stackItems.findIndex(item => item.id === slot.cycle.stack_item_id)) }} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[16px] font-semibold text-[var(--lg-text)]">{name}</span>
+                    <span className="block truncate text-[13px] text-[var(--lg-text-3)]">{slot.time}</span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={String(t('bundle_remove_item', { defaultValue: '{{name}} aus dem Bündel nehmen', name }))}
+                    onClick={() => void imBearbeitenHerausnehmen(eintrag.bundle, slot.cycle.stack_item_id)}
+                    className="tyd-press grid h-11 w-11 shrink-0 place-items-center rounded-full"
+                  >
+                    <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_20%,transparent)] text-[var(--lg-bad-text)]"><Minus size={14} strokeWidth={3} /></span>
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-1">
+            <button type="button" onClick={() => void bearbeitenBeenden(true)} data-quiet className="tyd-press min-h-11 text-[15px] font-semibold text-[var(--lg-text-2)]">
+              {bearbeiten.neu
+                ? t('bundle_undo', { defaultValue: 'Rückgängig' })
+                : t('bundle_discard', { defaultValue: 'Änderungen verwerfen' })}
+            </button>
+            <button type="button" onClick={() => void bearbeitenBeenden(false)} className="lg-btn lg-btn-primary !min-h-11 !px-5">
+              {t('bundle_done', { defaultValue: 'Fertig' })}
+            </button>
+          </div>
+        </div>
+      )
+    }
     return (
-      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} className="overflow-hidden">
-        <div className="flex items-center gap-2 pr-2">
-          <button
-            type="button"
-            onClick={() => openBundle(eintrag.bundle, eintrag.intakes)}
-            className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-3 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
-          >
-            <span aria-hidden="true" className="lg-icon-tile !h-8 !w-8 shrink-0" style={{ background: 'var(--lg-good)' }}>
-              <Check size={16} strokeWidth={2.6} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[17px] font-semibold text-[var(--lg-text)]">{eintrag.bundle.name}</span>
-              <span className="mt-0.5 block truncate text-[13px]">
-                <span className="text-[var(--lg-good-text)]">
-                  {t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: eintrag.intakes.length })}
-                </span>
-                {/* Die Namen sieht man; vorgelesen wird der Knopf kurz, die
-                    Einzelnen nennt das Aufklappen. */}
-                <span aria-hidden="true" className="text-[var(--lg-text-3)]"> · {namen}</span>
-              </span>
-            </span>
-          </button>
+      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen={offen ? '' : undefined} className="lg-group tyd-buendel">
+        <div className="flex items-center gap-1 pr-2">
           <button
             type="button"
             aria-expanded={offen}
-            aria-label={`${eintrag.bundle.name}: ${String(t('bundle_items_label', { defaultValue: 'Substanzen' }))}`}
-            onClick={() => setOffenesBuendel(offen ? null : eintrag.schluessel)}
-            className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)]"
+            onClick={() => { if (!buendelZiehen.klickNachZiehen()) setOffenesBuendel(offen ? null : eintrag.schluessel) }}
+            className="flex min-h-[64px] min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
-            <ChevronDown size={18} aria-hidden="true" className={`transition-transform duration-200 motion-reduce:transition-none ${offen ? 'rotate-180' : ''}`} />
+            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
+            <span className="min-w-0 flex-1">
+              {kopfzeile}
+              <span className="block truncate text-[17px] font-semibold text-[var(--lg-text)]">{eintrag.bundle.name}</span>
+              {!offen && (
+                <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">
+                  {[eintrag.intakes.map(intake => intake.stackItemName).join(' · '), spanne].filter(Boolean).join(' · ')}
+                </span>
+              )}
+            </span>
+            <ChevronDown size={18} aria-hidden="true" className={`shrink-0 text-[var(--lg-text-3)] transition-transform duration-200 motion-reduce:transition-none ${offen ? 'rotate-180' : ''}`} />
+          </button>
+          <button
+            type="button"
+            data-kein-ziehen
+            aria-label={`${eintrag.bundle.name} ${String(t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: anzahl }))}`}
+            onClick={() => openBundle(eintrag.bundle, eintrag.intakes)}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
+          >
+            <span aria-hidden="true" className="tyd-kreis">{anzahl}</span>
           </button>
         </div>
         {offen && (
-          <div className="lg-rows border-t border-[var(--lg-separator)] pl-4">
-            {eintrag.slots.map(slot => renderEinnahme(slot, periode, slot.key === offenerSlot))}
-          </div>
+          <>
+            <div className="tyd-buendel-glieder lg-rows">
+              {eintrag.slots.map(slot => renderEinnahme(slot, periode, slot.key === offenerSlot, eintrag.bundle.id))}
+            </div>
+            <div className="flex justify-end px-3 pb-2">
+              <button
+                type="button"
+                onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, schluessel: eintrag.schluessel, name: eintrag.bundle.name, vorher: bundles, neu: false })}
+                className="tyd-press min-h-11 px-2 text-[15px] font-semibold text-[var(--accent)]"
+              >
+                {t('bundle_edit_short', { defaultValue: 'Bearbeiten' })}
+              </button>
+            </div>
+          </>
         )}
       </div>
     )
@@ -2082,10 +2453,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     slot: DueSlot,
     periode: { icon: LucideIcon; label: string; key: string; routineGroup: RoutineGroupModel | null },
     offen: boolean,
+    /** Steht die Zeile in einem aufgeklappten Bündel: dessen id. */
+    buendelId?: string,
   ) => {
     const c = slot.cycle
     const { dose, unit } = resolveDashboardCycleQuantity(c, selectedDay, escalations, slot.dose)
+    const einheiten = einheitenFuer(c.stack_item_id, dose, unit)
     const mengeText = formatTrackedQuantity(dose, unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
+      + (einheiten != null ? ` · ${String(t('my_stack_plan_units_short', { defaultValue: '{{units}} E', units: einheitenText(einheiten) }))}` : '')
     const farbe = getStackItemColor(stackItems.findIndex(item => item.id === c.stack_item_id))
     const PeriodenIcon = periode.icon
     // Nur DIESE Einnahme vorlegen — die Gruppe traegt die ganze Tageszeit,
@@ -2100,6 +2475,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         key={slot.key}
         data-due-row={slot.key}
         data-due-open={offen ? 'true' : undefined}
+        data-zieh-zeile=""
+        data-stack-item={c.stack_item_id}
+        data-periode={periode.key}
+        data-buendel={buendelId}
         className="overflow-hidden"
       >
         <div className="flex items-center gap-2 pr-2">
@@ -2107,9 +2486,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             type="button"
             data-due-item={slot.key}
             aria-expanded={offen}
-            onClick={() => setAufgeklappt(offen
-              ? { art: 'keiner' }
-              : { art: 'slot', key: slot.key, gruppe: periode.key })}
+            onClick={() => {
+              if (buendelZiehen.klickNachZiehen()) return
+              setAufgeklappt(offen
+                ? { art: 'keiner' }
+                : { art: 'slot', key: slot.key, gruppe: periode.key })
+            }}
             className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
             <span
@@ -2152,25 +2534,27 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </span>
             )}
           </button>
-          {/* Das gruene Haekchen ist der kurze Weg: es oeffnet direkt das
-              Bestaetigungsblatt, ohne die Zeile erst aufzuklappen. Die Uhrzeit
-              wird dort bewusst immer abgefragt.
-              Aufgeklappt waere es doppelt, dort steht „Eingenommen" gross. */}
+          {/* Der leere Kreis ist der kurze Weg: er oeffnet direkt das
+              Bestaetigungsblatt, ohne die Zeile erst aufzuklappen. Leer, weil
+              offen — ein gruenes Haekchen las sich, als waere es schon erledigt.
+              Aufgeklappt waere er doppelt, dort steht „Eingenommen" gross. */}
           {!offen && (
             <button
               type="button"
+              data-kein-ziehen
               aria-label={`${c.stack_items?.display_name} ${String(t('eingenommen'))}`}
               onClick={() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key)}
-              data-tone="good"
-              className="lg-gray-btn !h-11 !w-11 shrink-0 !p-0"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
             >
-              <Check size={20} aria-hidden="true" />
+              <span aria-hidden="true" className="tyd-kreis" />
             </button>
           )}
         </div>
 
+        {/* Die Knöpfe im aufgeklappten Feld bleiben Knöpfe: Halten dort hebt nichts an. */}
         <div
           data-due-panel
+          data-kein-ziehen
           data-open={offen ? '' : undefined}
           className="tyd-collapse"
           aria-hidden={!offen}
@@ -2572,6 +2956,21 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {format(selectedDay, 'dd.MM.yyyy')}
           </span>
         </div>
+        {/* Nur solange etwas offen ist: ein vergangener Tag hat dafür seine
+            Bilanz, ein erledigter Tag die Quittung darunter — beide nennen x/y. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && totalDaySlots > 0 && dueSlots.length > 0 && !isPastSelected && (
+          <div data-tag-bestaetigt className="-mt-1.5 mb-3 flex items-center gap-2.5 px-1 text-[15px] tabular-nums text-[var(--lg-text-3)]">
+            <span>
+              {t('day_confirmed_label', { defaultValue: 'Bestätigt' })}{' '}
+              <b className={`font-semibold ${genommeneSlots >= totalDaySlots ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-text-2)]'}`}>
+                {genommeneSlots}/{totalDaySlots}
+              </b>
+            </span>
+            <span aria-hidden="true" className="h-1 w-[72px] overflow-hidden rounded-full bg-[var(--lg-fill)]">
+              <span className="block h-full rounded-full bg-[var(--lg-good)] transition-[width] duration-300" style={{ width: `${Math.min(100, Math.round(genommeneSlots / totalDaySlots * 100))}%` }} />
+            </span>
+          </div>
+        )}
 
         {FEATURES.planTimelineV2 && !timelineReady && (timelineLoadState === 'error' ? (
           <div role="alert" data-umriss-nicht-merken className="mb-3 text-sm text-slate-400">
@@ -2687,18 +3086,28 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             die naechste anstehende, danach die, die man antippt. Aufgeklappt
             wird AN ORT UND STELLE, damit nichts springt. Bündel stehen als
             eine Zeile in ihrer Tageszeit (siehe `tagesGruppen`). */}
+        {/* Gedrückt halten und auf eine andere Einnahme derselben Tageszeit
+            ziehen bildet ein Bündel (useBuendelZiehen). */}
         {tagesGruppen.map(gruppe => (
-          <div key={gruppe.key} className="mb-6">
+          <div key={gruppe.key} className="mb-6" data-periode-abschnitt={gruppe.key} onPointerDown={buendelZiehen.onPointerDown}>
             <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
               <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
                 {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
                 <span className="truncate">{gruppe.label}</span>
               </p>
+              <span data-periode-sperre className="items-center gap-1.5 pr-2 text-[13px] text-[var(--lg-text-3)]">
+                <Lock size={12} aria-hidden="true" />
+                {t('bundle_period_locked', { defaultValue: 'Nur innerhalb einer Tageszeit' })}
+              </span>
             </div>
-            <div className="lg-group lg-rows">
-              {gruppe.eintraege.map(eintrag => eintrag.art === 'einzel'
-                ? renderEinnahme(eintrag.slot, gruppe, eintrag.slot.key === offenerSlot)
-                : renderBuendel(eintrag, gruppe))}
+            <div data-periode-bloecke className="space-y-2.5">
+              {gruppe.bloecke.map(block => block.art === 'liste'
+                ? (
+                    <div key={`liste-${block.slots[0].key}`} className="lg-group lg-rows">
+                      {block.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
+                    </div>
+                  )
+                : renderBuendel(block, gruppe))}
             </div>
           </div>
         ))}
@@ -2854,7 +3263,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   <button
                     type="button"
                     onClick={() => FEATURES.planTimelineV2
-                      ? openConfirmSheet(cycle, undefined, format(new Date(), 'HH:mm'))
+                      ? openConfirmSheet(cycle, undefined, undefined, null, undefined, undefined, false, true)
                       : void confirmCycleDose(cycle, true, new Date().toISOString())}
                     data-tone="good"
                     className="lg-gray-btn shrink-0"
@@ -2875,10 +3284,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <RoutineConfirmationSheet
           group={routineGroupSheet}
           initialTime={routineGroupSheet.initialTime}
+          plannedTime={routineGroupSheet.plannedTime}
           onClose={() => setRoutineGroupSheet(null)}
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
           onAddInjection={openRoutineInjection}
+          einheitenFuer={einheitenFuer}
         />
       )}
 
@@ -2921,20 +3332,33 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <h2 id="confirm-sheet-title" className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
               </div>
               <p className="mb-5 mt-1.5 text-[15px] text-[var(--lg-text-2)]">
-                {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen? Vorausgefüllt mit der geplanten Zykluszeit.' })}
+                {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen?' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <label htmlFor="confirm-sheet-time" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
                   {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setConfirmTime(format(new Date(), 'HH:mm'))}
-                  className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
-                >
-                  <Clock size={13} />
-                  {t('confirm_time_now', { defaultValue: 'Jetzt' })}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    data-confirm-time-now
+                    onClick={confirmJetzt}
+                    className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
+                  >
+                    <Clock size={13} />
+                    {t('confirm_time_now', { defaultValue: 'Jetzt' })}
+                  </button>
+                  {confirmPlanTime && (
+                    <button
+                      type="button"
+                      data-confirm-time-planned
+                      onClick={() => { setConfirmTime(confirmPlanTime); setConfirmDay(null) }}
+                      className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
+                    >
+                      {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: confirmPlanTime })}
+                    </button>
+                  )}
+                </div>
               </div>
               <input
                 id="confirm-sheet-time"
@@ -2944,6 +3368,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 className={`input font-semibold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
                 style={{ colorScheme: 'dark' }}
               />
+              {confirmDay && !isSameDay(confirmDay, selectedDay) && (
+                <p data-confirm-time-today className="-mt-2 mb-4 text-[13px] text-[var(--lg-text-3)]">
+                  {t('confirm_time_today', { defaultValue: 'Eingetragen für heute, nicht für den geöffneten Tag.' })}
+                </p>
+              )}
               {confirmUnit != null && (
                 <>
                   {/* Dieselbe Menge, dieselbe Uhrzeit, dasselbe Sheet -- vorher
@@ -2968,6 +3397,27 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     />
                     <span className="text-[17px] text-[var(--lg-text-2)]">{confirmUnit}</span>
                   </div>
+                  {(() => {
+                    const einmalig = confirmDoseGeplant !== '' && !confirmDoseUngueltig && confirmDoseWert !== Number(confirmDoseGeplant)
+                    const einheiten = confirmSheet.cycle && !confirmDoseUngueltig
+                      ? einheitenFuer(confirmSheet.cycle.stack_item_id, confirmDoseWert, confirmUnit)
+                      : null
+                    if (!einmalig && einheiten == null) return null
+                    return (
+                      <p data-menge-hinweis className="-mt-3 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-[var(--lg-text-2)]">
+                        {einheiten != null && (
+                          <span className="font-semibold tabular-nums text-[var(--accent)]">
+                            {t('syringe_draw_units', { defaultValue: '{{units}} Einheiten aufziehen', units: einheitenText(einheiten) })}
+                          </span>
+                        )}
+                        {einmalig && (
+                          <span className="rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-2 py-0.5 text-[12px] font-semibold text-[var(--accent)]">
+                            {t('dose_once', { defaultValue: 'einmalig' })}
+                          </span>
+                        )}
+                      </p>
+                    )
+                  })()}
                 </>
               )}
               <div className="flex gap-3">
