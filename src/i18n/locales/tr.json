@@ -578,6 +578,7 @@
   "vials_vorratig": "{{n}} flakon stokta",
   "confirm_time_now": "Şimdi",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Bölge Rotasyonu",
   "inj_title": "Enjeksiyon Takibi",
   "inj_log_btn": "Kaydet",

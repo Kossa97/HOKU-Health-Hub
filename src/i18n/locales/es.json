@@ -578,6 +578,7 @@
   "vials_vorratig": "{{n}} viales en stock",
   "confirm_time_now": "Ahora",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Rotación de zonas",
   "inj_title": "Seguimiento de inyecciones",
   "inj_log_btn": "Registrar",

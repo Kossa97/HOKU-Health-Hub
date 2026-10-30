@@ -578,6 +578,7 @@
   "vials_vorratig": "{{n}} शीशियाँ उपलब्ध",
   "confirm_time_now": "अभी",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "स्थान-रोटेशन",
   "inj_title": "इंजेक्शन ट्रैकर",
   "inj_log_btn": "लॉग करें",

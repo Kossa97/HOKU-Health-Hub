@@ -402,6 +402,7 @@
   "einnahme_bestaetigt": "Einnahme bestätigt ✓",
   "confirm_time_now": "Jetzt",
   "confirm_time_planned": "Geplant · {{time}}",
+  "confirm_time_today": "Eingetragen für heute, nicht für den geöffneten Tag.",
   "erinnern": "Erinnern",
   "snooze_min": "{{n}} Min",
   "protokollierte_dosen": "Protokollierte Dosen",

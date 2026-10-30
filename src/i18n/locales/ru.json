@@ -578,6 +578,7 @@
   "vials_vorratig": "{{n}} флаконов в наличии",
   "confirm_time_now": "Сейчас",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Ротация мест",
   "inj_title": "Трекер инъекций",
   "inj_log_btn": "Записать",

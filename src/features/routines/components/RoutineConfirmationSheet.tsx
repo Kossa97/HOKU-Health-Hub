@@ -25,9 +25,10 @@ interface RoutineConfirmationSheetProps {
   /**
    * `time` ist die abgefragte Uhrzeit (HH:mm), wenn `initialTime` gesetzt ist.
    * Sie gilt fuer alle gewaehlten Einnahmen: was man zusammen nimmt, nimmt
-   * man zur selben Zeit.
+   * man zur selben Zeit. `heute`: die Zeit kam von „Jetzt" und gilt fuer
+   * heute, nicht fuer den Tag der Einnahme.
    */
-  onConfirm: (entries: RoutineConfirmationEntry[], time?: string) => Promise<string[]>
+  onConfirm: (entries: RoutineConfirmationEntry[], time?: string, heute?: boolean) => Promise<string[]>
   onAfterConfirm?: (entries: RoutineConfirmationEntry[], savedLogIds: string[]) => void | Promise<void>
   onAddInjection?: (entry: RoutineIntake, doseLogId: string) => void
   /** Gesetzt, fragt das Blatt die Uhrzeit ab, vorbelegt mit diesem Wert (HH:mm). */
@@ -58,6 +59,7 @@ export function RoutineConfirmationSheet({
   const timeId = useId()
   const { requestClose, closingProps } = useSheetClose(onClose)
   const [time, setTime] = useState(initialTime ?? '')
+  const [heute, setHeute] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [entries, setEntries] = useState<RoutineConfirmationEntry[]>(() => (
     group.items.map(buildConfirmationEntry)
@@ -110,7 +112,7 @@ export function RoutineConfirmationSheet({
     setError(false)
     let savedLogIds: string[]
     try {
-      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time) : await onConfirm(entries)
+      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time, heute) : await onConfirm(entries)
     } catch {
       setError(true)
       setSaving(false)
@@ -223,7 +225,7 @@ export function RoutineConfirmationSheet({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setTime(format(new Date(), 'HH:mm'))}
+                      onClick={() => { setTime(format(new Date(), 'HH:mm')); setHeute(true) }}
                       className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                     >
                       <Clock size={12} aria-hidden="true" />
@@ -232,7 +234,7 @@ export function RoutineConfirmationSheet({
                     {plannedTime && (
                       <button
                         type="button"
-                        onClick={() => setTime(plannedTime)}
+                        onClick={() => { setTime(plannedTime); setHeute(false) }}
                         className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
                         {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: plannedTime })}

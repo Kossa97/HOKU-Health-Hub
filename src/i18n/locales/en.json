@@ -400,6 +400,7 @@
   "einnahme_bestaetigt": "Dose confirmed ✓",
   "confirm_time_now": "Now",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "erinnern": "Remind",
   "snooze_min": "{{n}} min",
   "protokollierte_dosen": "Logged doses",

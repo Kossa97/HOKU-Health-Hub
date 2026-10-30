@@ -579,6 +579,7 @@
   "vials_vorratig": "{{n}} vial tersedia",
   "confirm_time_now": "Sekarang",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Rotasi Tempat",
   "inj_title": "Pelacak Injeksi",
   "inj_log_btn": "Catat",

@@ -578,6 +578,7 @@
   "vials_vorratig": "{{n}} バイアル在庫あり",
   "confirm_time_now": "今すぐ",
   "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "部位ローテーション",
   "inj_title": "注射トラッカー",
   "inj_log_btn": "記録する",

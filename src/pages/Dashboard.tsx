@@ -394,6 +394,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [confirmTime, setConfirmTime]   = useState('')
   // Die geplante Uhrzeit fuer den Knopf „Geplant", null ohne Plan.
   const [confirmPlanTime, setConfirmPlanTime] = useState<string | null>(null)
+  // Der Tag zur Uhrzeit im Feld. null: der Tag der Einnahme. „Jetzt" setzt
+  // heute — wer die Einnahme von gestern Abend nach Mitternacht mit „Jetzt"
+  // bestaetigt, hat sie heute um 00:30 genommen, nicht gestern um 00:30.
+  const [confirmDay, setConfirmDay] = useState<Date | null>(null)
+  const confirmJetzt = () => {
+    setConfirmTime(format(new Date(), 'HH:mm'))
+    setConfirmDay(new Date())
+  }
   // Menge im selben Sheet wie die Uhrzeit -- vorher brauchte es dafuer den
   // Umweg ueber „Einmalige Dosisaenderung", ein zweites, groesseres Sheet.
   // `confirmUnit` ist zugleich das Signal, ob die Substanz ueberhaupt eine
@@ -1578,7 +1586,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     // dann ist „jetzt" sicher falsch, und es steht die geplante Zeit.
     const tag = log && !cycle ? new Date(log.logged_at) : selectedDay
     const nachPlan = nachtragen || log?.taken === false || !isSameDay(tag, new Date())
-    setConfirmTime(geplant !== null && nachPlan ? geplant : format(new Date(), 'HH:mm'))
+    if (geplant !== null && nachPlan) {
+      setConfirmTime(geplant)
+      setConfirmDay(null)
+    } else {
+      confirmJetzt()
+    }
     setConfirmPlanTime(geplant)
     // Vorausgefuellt mit der geplanten Menge dieses Slots -- derselbe
     // Resolver, den `confirmCycleDose` selbst benutzt, damit hier steht,
@@ -1619,7 +1632,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       if (confirmDoseUngueltig) return
       try {
         const [hours, minutes] = confirmTime.split(':').map(Number)
-        const actualAt = new Date(selectedDay)
+        const actualAt = new Date(confirmDay ?? selectedDay)
         actualAt.setHours(hours, minutes, 0, 0)
         if (confirmSheet.cycle) {
           const ausgelassen = confirmSheet.nachtragen && confirmSheet.log?.taken === false
@@ -1661,7 +1674,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     }
     const [h, m] = confirmTime.split(':').map(Number)
     if (confirmSheet.cycle) {
-      const day = new Date(selectedDay)
+      const day = new Date(confirmDay ?? selectedDay)
       day.setHours(h, m, 0, 0)
       if (confirmSheet.log) await confirmDose(
         confirmSheet.log,
@@ -1678,14 +1691,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         confirmSheet.slotDose ?? null,
       )
     } else if (confirmSheet.log) {
-      const logDate = new Date(confirmSheet.log.logged_at)
+      const logDate = new Date(confirmDay ?? confirmSheet.log.logged_at)
       logDate.setHours(h, m, 0, 0)
       await confirmDose(confirmSheet.log, true, logDate.toISOString())
     }
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string, heute = false): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
     // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
     // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
@@ -1694,7 +1707,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       ? entries.map(entry => {
           if (!entry.selected) return entry
           const [stunde, minute] = time.split(':').map(Number)
-          const zeitpunkt = new Date(selectedDay)
+          // „Jetzt" im Blatt: heute, auch wenn ein anderer Tag offen ist.
+          const zeitpunkt = heute ? new Date() : new Date(selectedDay)
           zeitpunkt.setHours(stunde, minute, 0, 0)
           const actualLoggedAt = zeitpunkt.toISOString()
           if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
@@ -2858,7 +2872,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   <button
                     type="button"
                     data-confirm-time-now
-                    onClick={() => setConfirmTime(format(new Date(), 'HH:mm'))}
+                    onClick={confirmJetzt}
                     className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
                   >
                     <Clock size={13} />
@@ -2868,7 +2882,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     <button
                       type="button"
                       data-confirm-time-planned
-                      onClick={() => setConfirmTime(confirmPlanTime)}
+                      onClick={() => { setConfirmTime(confirmPlanTime); setConfirmDay(null) }}
                       className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
                     >
                       {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: confirmPlanTime })}
@@ -2884,6 +2898,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 className={`input font-semibold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
                 style={{ colorScheme: 'dark' }}
               />
+              {confirmDay && !isSameDay(confirmDay, selectedDay) && (
+                <p data-confirm-time-today className="-mt-2 mb-4 text-[13px] text-[var(--lg-text-3)]">
+                  {t('confirm_time_today', { defaultValue: 'Eingetragen für heute, nicht für den geöffneten Tag.' })}
+                </p>
+              )}
               {confirmUnit != null && (
                 <>
                   {/* Dieselbe Menge, dieselbe Uhrzeit, dasselbe Sheet -- vorher
