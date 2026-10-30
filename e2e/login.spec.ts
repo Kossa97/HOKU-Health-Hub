@@ -85,6 +85,55 @@ test('Wurf: Hoku klebt an der Wand wie in der App, löst sich und kehrt zur Büh
   expect(await platz()).toBe(platzVorher)
 })
 
+test('Wurf in die runde Ecke unten rechts: Hoku liegt dort still, statt zu zucken, und kehrt zurück', async ({ page }) => {
+  await abgemeldet(page)
+  // iPhone mit runden Bildschirmecken: die Engine misst env(safe-area-inset-*) an ihrer Sonde
+  await page.addInitScript(() => {
+    const s = document.createElement('style')
+    s.textContent = 'div[style*="padding-bottom: env(safe-area-inset-bottom)"]{padding-top:47px!important;padding-bottom:34px!important}'
+    document.addEventListener('readystatechange', () => { if (document.readyState === 'interactive') document.head.appendChild(s) })
+  })
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  const treffer = page.locator('.tyd-dot-treffer')
+  const lage = () => treffer.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
+  const vorher = await lage()
+  await treffer.evaluate((el, s) => {
+    const ev = (t: string, d: number) => el.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: s.x + d, clientY: s.y + d, bubbles: true, cancelable: true }))
+    ev('pointerdown', 0)
+    for (let i = 1; i <= 6; i++) ev('pointermove', i * 60)
+    ev('pointerup', 420)
+  }, vorher)
+  const { width, height } = page.viewportSize()!
+  await lassLaufen(page, 900)
+  const ecke = await lage()
+  expect(ecke.x).toBeGreaterThan(width - 70)
+  expect(ecke.y).toBeGreaterThan(height - 70)
+  // Zuckte er (die Ecke stieß ihn hinaus, sein Ziel zog ihn zurück), kam er nie zur Ruhe und
+  // löste sich nie. Liegt er still, löst er sich nach 1,2 s und ist bald zurück auf der Bühne
+  // (dort darf ihn ein Hinweis zum Schriftzug machen: dann sitzt die Trefferfläche anders)
+  const buehne = await page.locator('.tyd-auth-buehne').boundingBox()
+  let daheim = false
+  for (let t = 0; t < 6000 && !daheim; t += 100) {
+    await page.clock.runFor(100)
+    const l = await lage()
+    daheim = l.x > buehne!.x && l.x < buehne!.x + buehne!.width && l.y > buehne!.y && l.y < buehne!.y + buehne!.height
+  }
+  expect(daheim).toBe(true)
+})
+
+test('Start und Anmelden füllen das Display: Karte und Fußzeile sitzen unten, die Bühne nimmt den Rest', async ({ page }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  const unten = () => page.locator('main.tyd-auth').evaluate(el => (el.lastElementChild as HTMLElement).getBoundingClientRect().bottom)
+  const hoehe = page.viewportSize()!.height
+  // .tyd-auth hat unten 16 px Innenabstand
+  expect(await unten()).toBeGreaterThan(hoehe - 24)
+  await page.locator('[data-auth-start-login]').click()
+  await expect(page.locator('#auth-kennung')).toBeVisible()
+  expect(await unten()).toBeGreaterThan(hoehe - 24)
+})
+
 test('Benutzername: Anmelden über die Edge Function, falsches Passwort bekommt X und Satz', async ({ page, mock }) => {
   await abgemeldet(page)
   await zumFormular(page)

@@ -664,7 +664,10 @@ export function createDot(host: DotHost): DotApi {
         const c = 2 * Math.sqrt(k) * (weniger ? 1 : heim ? 1.05 : 0.85)
         let ax = k * (T.x - B.x) - c * B.vx, ay = k * (T.y - B.y) - c * B.vy
         if (wand) for (const w of walls()) {
-          const rest = (docked(w.id) ? restNow() : 1) * B.r, vn = B.vx * w.nx + B.vy * w.ny
+          // Die runde Ecke verbindet zwei Wände: liegt er an einer davon flach an, ist sie es auch.
+          // Mit voller Kugel stieß sie ihn aus der Ecke, das Ziel zog ihn zurück (Zucken).
+          const flach = docked(w.id) || (w.id === 'corner' && !!(B.dock.x || B.dock.y))
+          const rest = (flach ? restNow() : 1) * B.r, vn = B.vx * w.nx + B.vy * w.ny
           if (w.d < rest) {
             if (!B.contact[w.id]) { B.contact[w.id] = true; impact(w, -vn) }
             const pen = rest - w.d, cw = 2 * Math.sqrt(P.kw) * 0.95, f = P.kw * pen - cw * vn

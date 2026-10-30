@@ -21,10 +21,10 @@ export const BUNDLE_NAME_MAX = 60
 /**
  * Die offenen Einnahmen, die ein Tipp auf das Bündel bestaetigt.
  *
- * Je Substanz genau EINE — die frueheste offene des Tages. Wer eine Substanz
- * morgens und abends nimmt und morgens sein „Morgen-Bündel" bestaetigt, hat
- * damit nicht auch die Abenddosis genommen. Beim naechsten Tipp ist dann die
- * naechste dran.
+ * Je Substanz genau EINE — die frueheste der uebergebenen offenen. Der
+ * Kalender uebergibt die einer Tageszeit (`bundlesForPeriod`): wer eine
+ * Substanz morgens und abends nimmt und morgens bestaetigt, hat damit nicht
+ * auch die Abenddosis genommen — die steht abends in ihrem eigenen Teil.
  *
  * Die Reihenfolge folgt dem Bündel, nicht der Uhr: so steht es auch im Blatt.
  */
@@ -42,6 +42,29 @@ export function bundleDueIntakes(
   return [...new Set(bundle.stack_item_ids)]
     .map(id => earliestByItem.get(id))
     .filter((intake): intake is RoutineIntake => Boolean(intake))
+}
+
+/**
+ * Die Bündel einer Tageszeit: jedes nimmt sich je Substanz die frueheste offene
+ * Einnahme DIESER Tageszeit. Was ein Bündel genommen hat, steht dort nicht noch
+ * einmal einzeln (`vergeben`). Steht eine Substanz in zwei Bündeln, gehoert die
+ * Einnahme dem ersten; ein Bündel ohne offene Einnahme in dieser Tageszeit
+ * erscheint dort nicht.
+ */
+export function bundlesForPeriod<B>(
+  bundles: readonly { bundle: B; itemIds: readonly string[] }[],
+  periodIntakes: readonly RoutineIntake[],
+): { entries: { bundle: B; intakes: RoutineIntake[] }[]; vergeben: Set<string> } {
+  const vergeben = new Set<string>()
+  const entries: { bundle: B; intakes: RoutineIntake[] }[] = []
+  for (const { bundle, itemIds } of bundles) {
+    const frei = periodIntakes.filter(intake => !vergeben.has(intake.key))
+    const intakes = bundleDueIntakes({ stack_item_ids: [...itemIds] }, frei)
+    if (intakes.length === 0) continue
+    for (const intake of intakes) vergeben.add(intake.key)
+    entries.push({ bundle, intakes })
+  }
+  return { entries, vergeben }
 }
 
 /**

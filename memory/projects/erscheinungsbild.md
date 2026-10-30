@@ -1,6 +1,6 @@
 # Erscheinungsbild (Looks)
 
-Vier Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
+Sechs Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
 Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
 
 - **Schwarz** (Standard): reines Schwarz, helle Taschenlampen-Kante.
@@ -12,6 +12,16 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
   wie ein Messgerät — reines Schwarz, feste Flächen #0b0c0e mit Haarlinie,
   kein Glas/Glanz/Glow, weißer Hauptknopf, Cyan nur für Daten („jetzt").
   Mockup: https://claude.ai/artifact/QWVFNb3XebtLZUf72NoPZK
+- **Soft Dark** (29.10.2026, Nutzer gab eine Wetter-App als Referenz vor):
+  weiches Anthrazit (#1f2023, oben heller), jede Fläche leicht erhaben
+  (Verlauf #303136 → #27282c, Lichtsaum oben, weicher Schatten) — ausdrücklich
+  **nicht eingelassen** (Nutzer). Blau (#4ea8ff, Hauptknopf als Verlauf mit
+  Schein) ist die Farbe der Bedienung, Cyan bleibt den Daten. Leiste: erhabene
+  Kapsel, aktiver Reiter blau mit leichtem Leuchten. Gedrückt: Schatten flacher,
+  Karten 0,985. Sterne im Hintergrund lehnte der Nutzer ab (beißen sich mit
+  Dots Partikeln). Mockup aller Screens: https://claude.ai/artifact/MehxjrTT48ZnjZHVzC372K
+  (Seite „Soft Dark"); dort auch Dot in der Mitte der Leiste — in der App bisher
+  nur CSS, die Leiste behält ihren Aufbau.
 
 Injektionstracker (22.10.2026): bei Nacht Kantenlichter der Figur links
 cyan, rechts violett (Hauptlicht und Haut wie „Studio“), Bühne als

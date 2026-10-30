@@ -27,7 +27,8 @@
 }
 .tyd-auth-sprache button[aria-pressed='true'] { background: var(--lg-fill-selected); color: var(--lg-text); }
 
-.tyd-auth-buehne { position: relative; height: clamp(230px, 40vh, 330px); flex: none; }
+/* Die Bühne nimmt den freien Platz: Karte und Fußzeile sitzen unten, auch auf hohen Displays */
+.tyd-auth-buehne { position: relative; flex: 1 0 clamp(230px, 40vh, 330px); }
 
 .tyd-auth-karte {
   border-radius: 24px; padding: 16px; overflow: hidden;

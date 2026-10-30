@@ -51,7 +51,7 @@ import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
 import { slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
 import {
-  bundleDueIntakes,
+  bundlesForPeriod,
   deleteIntakeBundle,
   liveBundleItemIds,
   loadIntakeBundles,
@@ -420,6 +420,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     | { art: 'slot'; key: string; gruppe: string }
     | { art: 'keiner' }
   const [aufgeklappt, setAufgeklappt] = useState<Aufgeklappt>({ art: 'voreingestellt' })
+  /** Das aufgeklappte Bündel einer Tageszeit (`bundle.id@tageszeit`), sonst null. */
+  const [offenesBuendel, setOffenesBuendel] = useState<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [monatOffen, setMonatOffen] = useState(false)
   const monatsBlattSchliessen = useSheetClose(() => setMonatOffen(false), monatOffen)
@@ -1151,11 +1153,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     })
   }))
   const dueRoutineGroupByKey = new Map(dueRoutineGroups.map(group => [group.key, group]))
-  const dueIntakes = dueRoutineGroups.flatMap(group => group.items)
-  const bundleRows = bundles.map(bundle => {
-    const itemIds = liveBundleItemIds(bundle, stackItemById)
-    return { bundle, itemIds, open: bundleDueIntakes({ stack_item_ids: itemIds }, dueIntakes) }
-  })
+  const bundleRows = bundles.map(bundle => ({ bundle, itemIds: liveBundleItemIds(bundle, stackItemById) }))
   const duePeriodCarousels = PERIOD_ORDER.map(key => {
     const routineGroup = dueRoutineGroupByKey.get(PERIOD_TO_ROUTINE_GROUP[key]) ?? null
     return {
@@ -1174,17 +1172,70 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // nach einem Ladevorgang stand der aktive Reiter gern auf einer leeren
   // Tageszeit.
   const offeneGruppen = duePeriodCarousels.filter(periode => periode.slots.length > 0)
+  // Ein Bündel steht in seiner Tageszeit, als eine Zeile an der Stelle seiner
+  // fruehesten Einnahme. Was es enthaelt, steht dort nicht noch einmal einzeln
+  // — erst aufgeklappt, dann mit allem, was eine Einzelzeile kann. Hat es
+  // morgens und abends etwas, steht es in beiden, jeweils mit seinem Teil.
+  type TagesEintrag =
+    | { art: 'einzel'; slot: DueSlot; minuten: number }
+    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; slots: DueSlot[]; minuten: number }
+  const tagesGruppen = offeneGruppen.map(gruppe => {
+    const { entries, vergeben } = bundlesForPeriod(bundleRows, gruppe.routineGroup?.items ?? [])
+    const eintraege: TagesEintrag[] = [
+      ...entries.map(({ bundle, intakes }) => {
+        // Aufgeklappt nach der Uhr wie die Liste drumherum; das Blatt
+        // behaelt die Reihenfolge des Bündels.
+        const slots = intakes
+          .map(intake => dueSlotByKey.get(intake.key))
+          .filter((slot): slot is DueSlot => Boolean(slot))
+          .sort((a, b) => a.minutes - b.minutes)
+        return {
+          art: 'buendel' as const,
+          schluessel: `${bundle.id}@${gruppe.key}`,
+          bundle,
+          intakes,
+          slots,
+          minuten: Math.min(...slots.map(slot => slot.minutes)),
+        }
+      }),
+      ...gruppe.slots
+        .filter(slot => !vergeben.has(slot.key))
+        .map(slot => ({ art: 'einzel' as const, slot, minuten: slot.minutes })),
+    ]
+    // Nach der Uhr; bei gleicher Zeit zuerst das Bündel, wie oben eingereiht.
+    eintraege.sort((a, b) => a.minuten - b.minuten)
+    return { ...gruppe, eintraege }
+  })
   // Jede offene Einnahme kann die grosse Ansicht bekommen — aber nur eine auf
   // einmal, und nur auf Antippen. Voreingestellt ist die erste offene; tippt
   // man eine andere an, wandert die grosse Ansicht dorthin und die bisherige
   // wird zur Zeile.
-  const alleOffenenSlots = offeneGruppen.flatMap(gruppe => (
-    gruppe.slots.map(slot => ({ slot, gruppe }))
-  ))
+  // Ein aufgeklapptes Bündel, das es nicht mehr gibt (alles bestaetigt),
+  // gilt als zu — sonst kaeme es spaeter von selbst aufgeklappt zurueck.
+  const buendelSchluessel = new Set(tagesGruppen.flatMap(gruppe => gruppe.eintraege.flatMap(eintrag => (
+    eintrag.art === 'buendel' ? [eintrag.schluessel] : []
+  ))))
+  const aufgeklapptesBuendel = offenesBuendel && buendelSchluessel.has(offenesBuendel) ? offenesBuendel : null
+  useEffect(() => {
+    if (offenesBuendel && !aufgeklapptesBuendel) setOffenesBuendel(null)
+  }, [offenesBuendel, aufgeklapptesBuendel])
+  // Gross aufklappen laesst sich, was zu sehen ist: Einzelzeilen und die
+  // Zeilen eines aufgeklappten Bündels.
+  const alleOffenenSlots = tagesGruppen.flatMap(gruppe => gruppe.eintraege.flatMap(eintrag => (
+    eintrag.art === 'einzel'
+      ? [{ slot: eintrag.slot, gruppe }]
+      : eintrag.schluessel === aufgeklapptesBuendel ? eintrag.slots.map(slot => ({ slot, gruppe })) : []
+  )))
   const offenerSlot: string | null = aufgeklappt.art === 'keiner'
     ? null
     : aufgeklappt.art === 'voreingestellt'
-      ? alleOffenenSlots[0]?.slot.key ?? null
+      // Von selbst gross wird nur, was als Naechstes ansteht. Ist das ein
+      // Bündel, bleibt es die Zeile — sonst sprang die grosse Ansicht an ihm
+      // vorbei auf eine spaetere Einzelne.
+      ? (() => {
+          const erster = tagesGruppen[0]?.eintraege[0]
+          return erster?.art === 'einzel' ? erster.slot.key : null
+        })()
       // Ist die angetippte entschieden, ruecken wir in derselben Tageszeit
       // weiter statt zuzuklappen: „durchgehen" soll durch ALLE gehen.
       : alleOffenenSlots.find(eintrag => eintrag.slot.key === aufgeklappt.key)?.slot.key
@@ -1197,6 +1248,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
   useEffect(() => {
     setAufgeklappt({ art: 'voreingestellt' })
+    setOffenesBuendel(null)
   }, [selectedDay])
 
   useEffect(() => {
@@ -1965,6 +2017,59 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   /**
+   * Ein Bündel als Zeile seiner Tageszeit. Der Tipp bestaetigt, was davon in
+   * dieser Tageszeit offen ist; der Pfeil klappt die Einzelzeilen auf, falls
+   * eine Substanz anders laufen soll (ueberspringen, andere Menge).
+   */
+  const renderBuendel = (
+    eintrag: Extract<TagesEintrag, { art: 'buendel' }>,
+    periode: Parameters<typeof renderEinnahme>[1],
+  ) => {
+    const offen = eintrag.schluessel === aufgeklapptesBuendel
+    const namen = eintrag.intakes.map(intake => intake.stackItemName).join(' · ')
+    return (
+      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} className="overflow-hidden">
+        <div className="flex items-center gap-2 pr-2">
+          <button
+            type="button"
+            onClick={() => openBundle(eintrag.bundle, eintrag.intakes)}
+            className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-3 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
+          >
+            <span aria-hidden="true" className="lg-icon-tile !h-8 !w-8 shrink-0" style={{ background: 'var(--lg-good)' }}>
+              <Check size={16} strokeWidth={2.6} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[17px] font-semibold text-[var(--lg-text)]">{eintrag.bundle.name}</span>
+              <span className="mt-0.5 block truncate text-[13px]">
+                <span className="text-[var(--lg-good-text)]">
+                  {t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: eintrag.intakes.length })}
+                </span>
+                {/* Die Namen sieht man; vorgelesen wird der Knopf kurz, die
+                    Einzelnen nennt das Aufklappen. */}
+                <span aria-hidden="true" className="text-[var(--lg-text-3)]"> · {namen}</span>
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-expanded={offen}
+            aria-label={`${eintrag.bundle.name}: ${String(t('bundle_items_label', { defaultValue: 'Substanzen' }))}`}
+            onClick={() => setOffenesBuendel(offen ? null : eintrag.schluessel)}
+            className="lg-icon-btn shrink-0 !text-[var(--lg-text-3)]"
+          >
+            <ChevronDown size={18} aria-hidden="true" className={`transition-transform duration-200 motion-reduce:transition-none ${offen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+        {offen && (
+          <div className="lg-rows border-t border-[var(--lg-separator)] pl-4">
+            {eintrag.slots.map(slot => renderEinnahme(slot, periode, slot.key === offenerSlot))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  /**
    * Eine offene Einnahme — zugeklappt eine Zeile, aufgeklappt die grosse
    * Ansicht. Beides AN DERSELBEN STELLE: wer nach unten gescrollt hat und
    * antippt, bekommt sie dort geoeffnet, ohne dass die Seite springt.
@@ -2577,79 +2682,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
 
-        {/* ── Eigene Bündel ──────────────────────────────────────────────
-            Selbst zusammengestellte Gruppen, mit einem Tipp bestaetigt. Sie
-            stehen ueber der Tagesliste, weil sie sie abkuerzen. */}
-        {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
-          <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-6 space-y-2">
-            <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
-              <h3 id="intake-bundles-title" className="flex min-w-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
-                <Layers size={14} aria-hidden="true" />
-                <span className="truncate">{t('bundle_section_title', { defaultValue: 'Meine Bündel' })}</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setBundleSheet(null)}
-                data-quiet
-                className="lg-gray-btn shrink-0 !px-3.5 !text-[13px]"
-              >
-                <Plus size={14} aria-hidden="true" />
-                {t('bundle_new', { defaultValue: 'Bündel' })}
-              </button>
-            </div>
-            {bundleRows.map(({ bundle, itemIds, open }) => {
-              const done = open.length === 0
-              return (
-                <div key={bundle.id} className="flex items-stretch gap-2">
-                  <button
-                    type="button"
-                    disabled={done}
-                    onClick={() => openBundle(bundle, open)}
-                    data-tone={done ? undefined : 'good'}
-                    className="lg-surface flex min-h-[60px] min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)] disabled:cursor-default"
-                  >
-                    <span aria-hidden="true" className="lg-icon-tile" style={{ background: done ? '#636366' : 'var(--lg-good)' }}>
-                      <Check size={17} strokeWidth={2.6} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[17px] text-[var(--lg-text)]">{bundle.name}</span>
-                      <span className={`block truncate text-[13px] ${done ? 'text-[var(--lg-text-3)]' : 'text-[var(--lg-good-text)]'}`}>
-                        {itemIds.length === 0
-                          ? t('bundle_no_items', { defaultValue: 'Keine Substanzen mehr im Bündel' })
-                          : done
-                          ? t('bundle_nothing_open', { defaultValue: 'Nichts offen' })
-                          : t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: open.length })}
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
-                    onClick={() => setBundleSheet(bundle)}
-                    data-quiet
-                    className="lg-gray-btn !h-auto !w-12 shrink-0 !rounded-[var(--r-xl)] !p-0"
-                  >
-                    <Pencil size={16} aria-hidden="true" />
-                  </button>
-                </div>
-              )
-            })}
-            {bundleRows.length === 0 && (
-              <p className="px-4 text-[13px] leading-snug text-[var(--lg-text-3)]">
-                {t('bundle_empty_hint', { defaultValue: 'Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.' })}
-              </p>
-            )}
-          </section>
-        )}
-
         {/* ── Die offenen Einnahmen ──────────────────────────────────────
             Eine Liste in Tagesordnung. Genau eine ist aufgeklappt — zuerst
             die naechste anstehende, danach die, die man antippt. Aufgeklappt
-            wird AN ORT UND STELLE, damit nichts springt. */}
-        {offeneGruppen.map(gruppe => (
+            wird AN ORT UND STELLE, damit nichts springt. Bündel stehen als
+            eine Zeile in ihrer Tageszeit (siehe `tagesGruppen`). */}
+        {tagesGruppen.map(gruppe => (
           <div key={gruppe.key} className="mb-6">
-            {/* Gemeinsam bestaetigt wird ueber die eigenen Bündel oben; die
-                Tageszeit ist hier nur noch Ueberschrift. */}
             <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
               <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
                 {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
@@ -2657,10 +2696,53 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               </p>
             </div>
             <div className="lg-group lg-rows">
-              {gruppe.slots.map(slot => renderEinnahme(slot, gruppe, slot.key === offenerSlot))}
+              {gruppe.eintraege.map(eintrag => eintrag.art === 'einzel'
+                ? renderEinnahme(eintrag.slot, gruppe, eintrag.slot.key === offenerSlot)
+                : renderBuendel(eintrag, gruppe))}
             </div>
           </div>
         ))}
+
+        {/* Die Bündel selbst: anlegen und bearbeiten. Bestaetigt werden sie
+            oben in ihrer Tageszeit; hier stehen sie auch, wenn heute nichts
+            von ihnen offen ist. */}
+        {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
+          <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-6 px-1">
+            <h3 id="intake-bundles-title" className="mb-2 flex items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
+              <Layers size={14} aria-hidden="true" />
+              {t('bundle_section_title', { defaultValue: 'Meine Bündel' })}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {bundleRows.map(({ bundle }) => (
+                <button
+                  key={bundle.id}
+                  type="button"
+                  aria-label={String(t('bundle_edit_label', { defaultValue: '{{name}} bearbeiten', name: bundle.name }))}
+                  onClick={() => setBundleSheet(bundle)}
+                  data-quiet
+                  className="lg-gray-btn max-w-full !px-3.5 !text-[13px]"
+                >
+                  <Pencil size={13} aria-hidden="true" />
+                  <span className="truncate">{bundle.name}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setBundleSheet(null)}
+                data-quiet
+                className="lg-gray-btn !px-3.5 !text-[13px]"
+              >
+                <Plus size={14} aria-hidden="true" />
+                {t('bundle_new', { defaultValue: 'Bündel' })}
+              </button>
+            </div>
+            {bundleRows.length === 0 && (
+              <p className="mt-2 px-3 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                {t('bundle_empty_hint', { defaultValue: 'Fasse Substanzen, die du zusammen nimmst, zu einem Bündel zusammen und bestätige sie mit einem Tipp.' })}
+              </p>
+            )}
+          </section>
+        )}
 
         {/* Bestätigte und nicht bestätigte Einnahmen getrennt ausklappen. */}
         {loggedLogs.length > 0 && (
