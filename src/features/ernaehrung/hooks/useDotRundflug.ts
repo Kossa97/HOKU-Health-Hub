@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { dotStore, useDotStand } from '../../dot/dotStore'
 import { useDotText } from '../../dot/texte'
-import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte } from '../lib/dotRundflug'
+import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, zaehleBesuch } from '../lib/dotRundflug'
 import { orbBuehne } from '../lib/orbBridge'
 import type { MacroKey } from '../lib/orb'
 import type { Goals, Nutrients } from '../lib/nutrition'
@@ -19,7 +19,7 @@ const wenigerBewegung = () => typeof matchMedia === 'function' && matchMedia('(p
 
 /**
  * Beim Öffnen des Kalorientrackers (heute, Tag geladen): Dot fliegt einmal um die Kugel, hält an
- * Kugel und Monden und sagt, was offen ist — höchstens alle zwei Stunden, nur wenn er heraus
+ * Kugel und Monden und sagt, was offen ist — nach zwei Stunden oder beim dritten Öffnen, nur wenn er heraus
  * darf und gerade frei ist. Antippen kürzt ab. Bei „Bewegung reduzieren“ nur der Satz.
  */
 export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean; bereit: boolean; total: Nutrients; goals: Goals }) {
@@ -32,9 +32,11 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
   const abbrechen = useRef<() => void>(() => {})
   useEffect(() => () => abbrechen.current(), [])
 
-  // Vor Dots eigenem Seitenwechsel (Layout-Effekt): kommt gleich ein Rundflug, wartet er im Haus,
-  // statt unten herauszukommen — dann erscheint er mit dem Rundflug am linken Rand.
+  // Vor Dots eigenem Seitenwechsel (Layout-Effekt): dieses Hineinnavigieren zählen; kommt gleich ein
+  // Rundflug, wartet er im Haus, statt unten herauszukommen — dann erscheint er am linken Rand.
+  const gezaehlt = useRef(false)
   useLayoutEffect(() => {
+    if (heute && !gezaehlt.current) { gezaehlt.current = true; zaehleBesuch() }
     const s = dotStore.stand()
     if (heute && s.darfRaus && !s.kameras && !wenigerBewegung() && rundflugFaellig(Date.now())) dotStore.api()?.rundflugKommt(ANKUENDIGUNG_MS)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
