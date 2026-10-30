@@ -67,13 +67,14 @@ describe('bundlesForPeriod', () => {
   })
 
   it('gives a substance in two bundles to the first one only', () => {
+    const vier = [...morgen, intake('d', '2026-10-16T08:30:00.000Z')]
     const { entries } = bundlesForPeriod([
       { bundle: 'Erstes', itemIds: ['a', 'b'] },
-      { bundle: 'Zweites', itemIds: ['b', 'c'] },
-    ], morgen)
+      { bundle: 'Zweites', itemIds: ['b', 'c', 'd'] },
+    ], vier)
     expect(entries.map(entry => [entry.bundle, entry.intakes.map(item => item.stackItemId)])).toEqual([
       ['Erstes', ['a', 'b']],
-      ['Zweites', ['c']],
+      ['Zweites', ['c', 'd']],
     ])
   })
 
@@ -83,10 +84,33 @@ describe('bundlesForPeriod', () => {
     expect(vergeben.size).toBe(0)
   })
 
+  it('shows a bundle only with at least two open intakes; one alone stays single', () => {
+    // Sonntags-Bündel: Magnesium täglich, Melatonin nur sonntags.
+    const werktag = [intake('magnesium', '2026-10-16T21:00:00.000Z')]
+    const sonntag = [...werktag, intake('melatonin', '2026-10-18T21:30:00.000Z')]
+    const buendel = [{ bundle: 'Sonntag', itemIds: ['magnesium', 'melatonin'] }]
+    expect(bundlesForPeriod(buendel, werktag)).toEqual({ entries: [], vergeben: new Set() })
+    expect(bundlesForPeriod(buendel, sonntag).entries).toHaveLength(1)
+  })
+
+  it('counts what is planned, not what is still open: one confirmed keeps the bundle', () => {
+    const buendel = [{ bundle: 'Sonntag', itemIds: ['magnesium', 'melatonin'] }]
+    const nurNochMelatonin = [intake('melatonin', '2026-10-18T21:30:00.000Z')]
+    // Sonntag, Magnesium schon bestätigt: beide geplant, eine offen.
+    expect(bundlesForPeriod(buendel, nurNochMelatonin, new Set(['magnesium', 'melatonin'])).entries[0].intakes
+      .map(item => item.stackItemId)).toEqual(['melatonin'])
+    // Werktag: nur Magnesium geplant.
+    expect(bundlesForPeriod(buendel, [intake('magnesium', '2026-10-16T21:00:00.000Z')], new Set(['magnesium'])).entries).toEqual([])
+  })
+
   it('takes only the earliest intake per substance; a second one stays single', () => {
-    const zweimal = [intake('a', '2026-10-16T07:00:00.000Z'), intake('a', '2026-10-16T09:00:00.000Z')]
-    const { entries, vergeben } = bundlesForPeriod([{ bundle: 'Morgen', itemIds: ['a'] }], zweimal)
-    expect(entries[0].intakes.map(item => item.key)).toEqual(['a-2026-10-16T07:00:00.000Z'])
+    const zweimal = [
+      intake('a', '2026-10-16T07:00:00.000Z'),
+      intake('a', '2026-10-16T09:00:00.000Z'),
+      intake('b', '2026-10-16T07:30:00.000Z'),
+    ]
+    const { entries, vergeben } = bundlesForPeriod([{ bundle: 'Morgen', itemIds: ['a', 'b'] }], zweimal)
+    expect(entries[0].intakes.map(item => item.key)).toEqual(['a-2026-10-16T07:00:00.000Z', 'b-2026-10-16T07:30:00.000Z'])
     expect(vergeben.has('a-2026-10-16T09:00:00.000Z')).toBe(false)
   })
 })

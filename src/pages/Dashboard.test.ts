@@ -190,10 +190,22 @@ function createDashboardClient(
   const rpc = vi.fn(aufgeloesteRpcImplementation)
   // Ein Bündel mit allen Substanzen: der Sammelweg im Kalender. Nur auf
   // Wunsch (`buendel`) — es nimmt seine Substanzen aus den Einzelzeilen.
+  // Ein Bündel steht erst ab zwei geplanten Einnahmen einer Tageszeit da;
+  // deshalb kommt ein Begleiter dazu, der heute schon bestätigt ist. So bleibt
+  // genau eine offene Einnahme im Bündel, wie die Fälle sie erwarten.
+  const begleiter = options.buendel && !fixtures.intake_bundles ? begleiterFuer(fixtures) : null
+  const mitBegleiter = (table: string): unknown[] => {
+    const zeilen = fixtures[table] ?? []
+    if (!begleiter) return zeilen
+    if (table === 'cycles') return [...zeilen, begleiter.cycle]
+    if (table === 'stack_items') return [...zeilen, begleiter.stackItem]
+    if (table === 'dose_logs') return [...zeilen, begleiter.log]
+    return zeilen
+  }
   const buendel = fixtures.intake_bundles ?? (!options.buendel ? [] : [{
     id: 'bundle-all',
     name: 'Alle Substanzen',
-    stack_item_ids: (fixtures.stack_items ?? []).map(item => (item as { id: string }).id),
+    stack_item_ids: mitBegleiter('stack_items').map(item => (item as { id: string }).id),
     sort_order: 0,
     created_at: '2026-01-01T00:00:00Z',
   }])
@@ -201,7 +213,7 @@ function createDashboardClient(
     select: vi.fn((columns: string) => {
       selectCounts.set(table, (selectCounts.get(table) ?? 0) + 1)
       selectCalls.push({ table, columns })
-      const query = resolvedQuery(table === 'intake_bundles' ? buendel : fixtures[table] ?? [], options.errors?.[table] ?? null,
+      const query = resolvedQuery(table === 'intake_bundles' ? buendel : mitBegleiter(table), options.errors?.[table] ?? null,
         table === 'dose_logs' && options.filterLogs, table === 'dose_logs' ? options.logReadGate : undefined)
       if (table === 'dose_logs') logQueries.push(query)
       return query
@@ -220,6 +232,34 @@ function createDashboardClient(
     }),
   }))
   return { from, rpc, selectCounts, selectCalls, mutations, logQueries }
+}
+
+/**
+ * Eine zweite Substanz zur selben Zeit wie die erste Phase der Fixtur, heute
+ * um 08:00 schon eingenommen.
+ */
+function begleiterFuer(fixtures: Record<string, unknown[]>) {
+  const vorlage = fixtures.cycles?.[0] as Record<string, unknown> & {
+    id: string; versions?: Record<string, unknown>[]; stack_items?: Record<string, unknown>
+  } | undefined
+  if (!vorlage) return null
+  const id = `${vorlage.id}-begleiter`
+  const versionen = vorlage.versions?.map(version => ({ ...version, id: `${version.id}-begleiter`, cycle_id: id }))
+  const heute = new Date()
+  const tag = [heute.getFullYear(), String(heute.getMonth() + 1).padStart(2, '0'), String(heute.getDate()).padStart(2, '0')].join('-')
+  const um8 = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate(), 8, 0, 0, 0).toISOString()
+  return {
+    cycle: { ...vorlage, id, name: 'Magnesium', stack_item_id: 'stack-begleiter',
+      stack_items: { ...vorlage.stack_items, display_name: 'Magnesium' },
+      ...(versionen ? { versions: versionen } : {}) },
+    stackItem: { id: 'stack-begleiter', display_name: 'Magnesium', default_method: 'Oral',
+      dosage_form: 'capsule', tracking_level: 'complete' },
+    log: { id: 'begleiter-log', stack_item_id: 'stack-begleiter', taken: true,
+      dose: vorlage.dose ?? null, unit: vorlage.unit ?? null, method: 'Oral', notes: null,
+      stack_items: { display_name: 'Magnesium' }, logged_at: um8,
+      cycle_id: versionen ? id : null, plan_version_id: versionen?.[0]?.id ?? null,
+      routine_slot_key: versionen ? `${id}@${tag}T08:00` : null },
+  }
 }
 
 function intakeOnlyCycle() {
@@ -920,7 +960,7 @@ describe('Dashboard normalized timeline path', () => {
 
     // Aufgeklappt zeigt es seine Einnahmen als Einzelzeilen, mit allem, was
     // eine Einzelzeile kann.
-    const pfeil = screen.getByRole('button', { name: 'Alle Substanzen: Substanzen' })
+    const pfeil = document.querySelector<HTMLElement>('[data-bundle-row] button[aria-expanded]')!
     expect(pfeil.getAttribute('aria-expanded')).toBe('false')
     fireEvent.click(pfeil)
     expect(pfeil.getAttribute('aria-expanded')).toBe('true')
@@ -932,9 +972,11 @@ describe('Dashboard normalized timeline path', () => {
     expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/)
   })
 
-  it('stellt ein Bündel in jede Tageszeit mit seinem Teil; Substanzen ausserhalb bleiben einzeln', async () => {
+  it('stellt ein Bündel nur in die Tageszeit, in der zwei seiner Substanzen geplant sind', async () => {
     const basis = dreiMorgensFixture()
-    // Magnesium abends, Vitamin D3 und Zink morgens. Im Bündel: Vitamin D3 und Magnesium.
+    // Magnesium abends, Vitamin D3 und Zink morgens; alle drei im Bündel.
+    // Morgens sind es zwei, also ein Bündel; abends bliebe Magnesium allein —
+    // ein Bündel aus einer Einnahme ist keins, es steht einzeln da.
     const fixtures: Record<string, unknown[]> = {
       ...basis,
       cycles: basis.cycles.map(cycle => cycle.id !== 'zyklus-zwei' ? cycle : {
@@ -942,32 +984,30 @@ describe('Dashboard normalized timeline path', () => {
         versions: cycle.versions.map(version => ({ ...version, intake_time: 'abends', intake_time_custom: '20:00' })),
       }),
       intake_bundles: [{
-        id: 'bundle-tag', name: 'Tagesbündel', stack_item_ids: ['stack-1', 'stack-2'],
+        id: 'bundle-tag', name: 'Tagesbündel', stack_item_ids: ['stack-1', 'stack-2', 'stack-3'],
         sort_order: 0, created_at: '2026-01-01T00:00:00Z',
       }],
     }
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
 
-    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(2))
+    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(1))
     const buendel = [...document.querySelectorAll<HTMLElement>('[data-bundle-row]')]
-    expect(buendel.map(zeile => zeile.textContent)).toEqual([
-      expect.stringContaining('Vitamin D3'),
-      expect.stringContaining('Magnesium'),
-    ])
+    expect(buendel[0].textContent).toContain('Vitamin D3')
+    expect(buendel[0].textContent).toContain('Zink')
     expect(buendel[0].textContent).not.toContain('Magnesium')
-    // Zink ist in keinem Bündel und steht einzeln da; die beiden anderen nicht.
     const einzeln = [...document.querySelectorAll<HTMLElement>('[data-due-row]')]
     expect(einzeln).toHaveLength(1)
-    expect(einzeln[0].textContent).toContain('Zink')
+    expect(einzeln[0].textContent).toContain('Magnesium')
     // Als Naechstes steht das Bündel an; die grosse Ansicht springt nicht an
     // ihm vorbei auf die Einzelne.
     expect(document.querySelector('[data-due-open]')).toBeNull()
 
     // Der Morgen-Teil bestaetigt nur, was morgens offen ist.
-    fireEvent.click(within(buendel[0]).getByRole('button', { name: /^Tagesbündel\s*1 bestätigen$/ }))
+    fireEvent.click(within(buendel[0]).getByRole('button', { name: /^Tagesbündel\s*2 bestätigen$/ }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('Vitamin D3')).toBeTruthy()
+    expect(within(dialog).getByText('Zink')).toBeTruthy()
     expect(within(dialog).queryByText('Magnesium')).toBeNull()
   })
 

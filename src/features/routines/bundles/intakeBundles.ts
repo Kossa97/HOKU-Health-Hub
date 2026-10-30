@@ -17,6 +17,8 @@ export interface IntakeBundle {
 }
 
 export const BUNDLE_NAME_MAX = 60
+/** Ab so vielen offenen Einnahmen einer Tageszeit steht ein Bündel als Bündel da. */
+export const BUNDLE_MIN_DUE = 2
 
 /**
  * Die offenen Einnahmen, die ein Tipp auf das Bündel bestaetigt.
@@ -48,19 +50,29 @@ export function bundleDueIntakes(
  * Die Bündel einer Tageszeit: jedes nimmt sich je Substanz die frueheste offene
  * Einnahme DIESER Tageszeit. Was ein Bündel genommen hat, steht dort nicht noch
  * einmal einzeln (`vergeben`). Steht eine Substanz in zwei Bündeln, gehoert die
- * Einnahme dem ersten; ein Bündel ohne offene Einnahme in dieser Tageszeit
- * erscheint dort nicht.
+ * Einnahme dem ersten.
+ *
+ * Ein Bündel erscheint nur, wenn an diesem Tag in dieser Tageszeit mindestens
+ * ZWEI seiner Substanzen geplant sind (`geplant`) — sonst stehen sie einzeln
+ * da. So gilt ein Sonntags-Bündel (Magnesium täglich, Melatonin nur sonntags)
+ * von selbst nur sonntags, und es folgt dem Plan, ohne eigene Wochentage.
+ * Gezählt wird das Geplante, nicht das Offene: ist eine der beiden schon
+ * bestätigt, bleibt das Bündel mit der übrigen stehen, statt sich mitten am
+ * Tag aufzulösen. Ohne `geplant` zählen die offenen.
  */
 export function bundlesForPeriod<B>(
   bundles: readonly { bundle: B; itemIds: readonly string[] }[],
   periodIntakes: readonly RoutineIntake[],
+  /** Die an diesem Tag in dieser Tageszeit geplanten Substanzen, auch die schon bestätigten. */
+  geplant?: ReadonlySet<string>,
 ): { entries: { bundle: B; intakes: RoutineIntake[] }[]; vergeben: Set<string> } {
   const vergeben = new Set<string>()
   const entries: { bundle: B; intakes: RoutineIntake[] }[] = []
   for (const { bundle, itemIds } of bundles) {
     const frei = periodIntakes.filter(intake => !vergeben.has(intake.key))
     const intakes = bundleDueIntakes({ stack_item_ids: [...itemIds] }, frei)
-    if (intakes.length === 0) continue
+    const imPlan = geplant ? [...new Set(itemIds)].filter(id => geplant.has(id)).length : intakes.length
+    if (intakes.length === 0 || imPlan < BUNDLE_MIN_DUE) continue
     for (const intake of intakes) vergeben.add(intake.key)
     entries.push({ bundle, intakes })
   }
