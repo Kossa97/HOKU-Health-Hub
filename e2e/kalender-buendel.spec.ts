@@ -23,9 +23,26 @@ function griff(ort: Locator): Locator {
   return ort.locator('[data-due-item]').or(ort.filter({ hasNot: ort.page().locator('[data-due-item]') })).first()
 }
 
+/**
+ * Wo das Element steht, sobald es stillsteht. Gleich nach dem Zuklappen fährt
+ * die Zeile noch zusammen (CSS-Übergang, läuft auf echter Zeit); misst man
+ * dann, landet der Finger im wegklappenden Aktionsfeld, das bewusst kein
+ * Ziehen startet. Auf langsamen Rechnern (CI) passierte genau das.
+ */
+async function ruhigeBox(page: Page, ort: Locator) {
+  let vorher = await ort.boundingBox()
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(80)
+    const jetzt = await ort.boundingBox()
+    if (vorher && jetzt && Math.abs(jetzt.y - vorher.y) < 0.5 && Math.abs(jetzt.height - vorher.height) < 0.5) return jetzt
+    vorher = jetzt
+  }
+  throw new Error('Element kommt nicht zur Ruhe')
+}
+
 async function ziehe(page: Page, von: Locator, nach: Locator, { ziel: mitZiel = true } = {}) {
-  const a = (await griff(von).boundingBox())!
-  const b = (await griff(nach).boundingBox())!
+  const a = await ruhigeBox(page, griff(von))
+  const b = await ruhigeBox(page, griff(nach))
   const start = { x: a.x + a.width * 0.4, y: a.y + a.height / 2 }
   const ziel = { x: b.x + b.width * 0.4, y: b.y + Math.min(b.height / 2, 24) }
   const cdp = await page.context().newCDPSession(page)
