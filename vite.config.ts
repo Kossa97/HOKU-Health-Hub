@@ -50,8 +50,8 @@ export default defineConfig(({ mode }) => {
         globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*'],
       },
       manifest: {
-        name: 'TYD – Track Your Dose',
-        short_name: 'TYD',
+        name: 'HOKU: Health Hub',
+        short_name: 'HOKU',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
         background_color: '#080b13',

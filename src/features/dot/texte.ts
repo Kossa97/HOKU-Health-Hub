@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
 /**
- * Texte von Dot — eigener kleiner Namensraum wie beim Workout-Tracker.
+ * Texte von Hoku — eigener kleiner Namensraum wie beim Workout-Tracker.
  *
  * Gepflegt werden nur Deutsch und Englisch (CLAUDE.md, „Sprachen beim
  * Start"). Jede andere Oberflächensprache bekommt Englisch; die zwölf großen
@@ -12,12 +12,12 @@ import { useTranslation } from 'react-i18next'
 
 const de = {
   // Logo und Figur
-  logo_drinnen: 'Dot rufen',
-  logo_draussen: 'Dot nach Hause schicken',
-  logo_gesperrt: 'Dot, dein KI-Coach (Pro)',
-  figur: 'Dot, dein KI-Coach. Antippen zum Reden, ziehen zum Verschieben.',
-  gesperrt_titel: 'Dot kommt mit Pro heraus',
-  gesperrt_text: 'Dot wohnt in deiner Leiste. Mit Pro kommt er heraus, beantwortet Fragen zu deinem Stack und erinnert dich an das, was heute ansteht.',
+  logo_drinnen: 'Hoku rufen',
+  logo_draussen: 'Hoku nach Hause schicken',
+  logo_gesperrt: 'Hoku, dein KI-Coach (Pro)',
+  figur: 'Hoku, dein KI-Coach. Antippen zum Reden, ziehen zum Verschieben.',
+  gesperrt_titel: 'Hoku kommt mit Pro heraus',
+  gesperrt_text: 'Hoku wohnt in deiner Leiste. Mit Pro kommt er heraus, beantwortet Fragen zu deinem Stack und erinnert dich an das, was heute ansteht.',
   gesperrt_ok: 'Verstanden',
 
   // Sprechblasen
@@ -63,20 +63,20 @@ const de = {
   min: 'Min.',
 
   // Chat
-  chat_titel: 'Dot',
+  chat_titel: 'Hoku',
   chat_schliessen: 'Chat schließen',
   chat_leeren: 'Verlauf leeren',
-  chat_platzhalter: 'Frag Dot …',
+  chat_platzhalter: 'Frag Hoku …',
   chat_senden: 'Senden',
-  chat_intro: 'Hi, ich bin Dot. Ich kenne deinen Stack und deinen Plan für heute und erkläre dir deine Blutwerte. Dosierungen empfehle ich nicht, das gehört in ärztliche Hand.',
+  chat_intro: 'Hi, ich bin Hoku. Ich kenne deinen Stack und deinen Plan für heute und erkläre dir deine Blutwerte. Dosierungen empfehle ich nicht, das gehört in ärztliche Hand.',
   chat_intro_stack: 'Du bist in deinem Stack. Frag mich, was heute ansteht oder wie lange dein Bestand reicht.',
   chat_intro_kalender: 'Ich sehe, was geplant war und was eingetragen ist. Frag mich nach Lücken.',
   chat_intro_ernaehrung: 'Frag mich zu deiner Ernährung heute.',
-  chat_denkt: 'Dot denkt nach …',
+  chat_denkt: 'Hoku denkt nach …',
   chat_fehler: 'Das hat nicht geklappt. Versuch es gleich noch einmal.',
   chat_offline: 'Ohne Internet kann ich nicht antworten.',
   chat_grenze: 'Für heute habe ich genug geredet. Morgen bin ich wieder für dich da.',
-  chat_kein_zugang: 'Den Chat mit Dot gibt es mit Pro.',
+  chat_kein_zugang: 'Den Chat mit Hoku gibt es mit Pro.',
   chip_heute: 'Was steht heute an?',
   chip_verpasst: 'Was habe ich diese Woche verpasst?',
   chip_naechste: 'Wann ist meine nächste Einnahme?',
@@ -84,7 +84,7 @@ const de = {
   chip_bestand: 'Wie lange reicht mein Bestand?',
   chip_ernaehrung: 'Wie sieht meine Ernährung heute aus?',
   chip_heim: 'Geh in dein Haus',
-  // Anmeldung: Dot schreibt diese Zeilen mit seinen Punkten (Zeilenumbruch = neue Zeile)
+  // Anmeldung: Hoku schreibt diese Zeilen mit seinen Punkten (Zeilenumbruch = neue Zeile)
   login_hub: 'Hi! Willkommen\nbei Hoku',
   login_zurueck_1: 'Willkommen\nzurück!',
   login_zurueck_2: 'Schön, dich\nwiederzusehen!',
@@ -110,30 +110,30 @@ const de = {
   // Sprechblase, während Hoku sich die Augen zuhält (Passwort eingeblendet)
   login_sehe_nichts: 'Keine Sorge, ich sehe nichts.',
   heim_antwort: 'Bis später. Tipp auf mein Logo in der Leiste, wenn du mich brauchst.',
-  hinweis_unten: 'Dot ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
+  hinweis_unten: 'Hoku ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
   // Einwilligung (Art. 9 DSGVO, Apple 5.1.2(i))
   einw_titel: 'Bevor wir reden',
-  einw_text: 'Damit Dot antworten kann, schickt die App deine Frage und eine Zusammenfassung deiner Daten an Anthropic (Claude), einen KI-Anbieter in den USA: deinen Stack, deinen Einnahmeplan der letzten Tage, deine letzten Blutwerte und deine heutige Ernährung (Kalorien und Makros). Das sind Gesundheitsdaten.',
-  einw_punkt_1: 'TYD speichert deine Fragen nicht auf dem Server, nur wie viele es heute waren (für das Tageslimit).',
+  einw_text: 'Damit Hoku antworten kann, schickt die App deine Frage und eine Zusammenfassung deiner Daten an Anthropic (Claude), einen KI-Anbieter in den USA: deinen Stack, deinen Einnahmeplan der letzten Tage, deine letzten Blutwerte und deine heutige Ernährung (Kalorien und Makros). Das sind Gesundheitsdaten.',
+  einw_punkt_1: 'HOKU speichert deine Fragen nicht auf dem Server, nur wie viele es heute waren (für das Tageslimit).',
   einw_punkt_2: 'Den Verlauf speichert die App nur auf diesem Gerät.',
   einw_punkt_3: 'Du kannst die Einwilligung jederzeit im Chat widerrufen.',
   einw_ja: 'Einverstanden',
   einw_nein: 'Nicht jetzt',
   einw_widerrufen: 'Einwilligung widerrufen',
-  einw_widerrufen_fertig: 'Einwilligung widerrufen. Dot schickt nichts mehr an Anthropic.',
+  einw_widerrufen_fertig: 'Einwilligung widerrufen. Hoku schickt nichts mehr an Anthropic.',
   einw_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
 
-  // Dot trägt automatisch ein (Pro)
+  // Hoku trägt automatisch ein (Pro)
   auto_eingetragen: 'Ich habe {{anzahl}} Einnahmen für dich eingetragen. Sag mir, wenn etwas anders war.',
   auto_eingetragen_one: 'Ich habe eine Einnahme für dich eingetragen. Sag mir, wenn etwas anders war.',
-  auto_titel: 'Dot trägt automatisch ein',
-  auto_text: 'Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist. Du sagst Dot nur, was anders war.',
+  auto_titel: 'Hoku trägt automatisch ein',
+  auto_text: 'Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist. Du sagst Hoku nur, was anders war.',
   auto_text_buendel: 'Gilt für alle Substanzen in diesem Bündel. Geplante Einnahmen gelten als genommen, sobald ihre Zeit 30 Minuten vorbei ist.',
   auto_pro: 'Mit Pro',
   auto_marke: 'automatisch',
   auto_fehler: 'Konnte nicht gespeichert werden. Bitte noch einmal versuchen.',
-  auto_ueber_buendel: 'Läuft auch über dein Bündel „{{name}}“: solange es an ist, trägt Dot hier ein.',
+  auto_ueber_buendel: 'Läuft auch über dein Bündel „{{name}}“: solange es an ist, trägt Hoku hier ein.',
 
   // Eintragen per Satz (Karten im Chat)
   melde_genommen: '{{substanz}}, {{wann}}: als genommen eingetragen ({{uhrzeit}}).',
@@ -158,7 +158,7 @@ const de = {
   anlage_mittags: 'mittags',
   anlage_abends: 'abends',
 
-  // Dot hört zu
+  // Hoku hört zu
   mikro_start: 'Sprechen',
   mikro_fertig: 'Fertig gesprochen',
   mikro_hoert: 'Ich höre zu …',
@@ -168,12 +168,12 @@ const de = {
 }
 
 const en: Record<keyof typeof de, string> = {
-  logo_drinnen: 'Call Dot',
-  logo_draussen: 'Send Dot home',
-  logo_gesperrt: 'Dot, your AI coach (Pro)',
-  figur: 'Dot, your AI coach. Tap to talk, drag to move.',
-  gesperrt_titel: 'Dot comes out with Pro',
-  gesperrt_text: 'Dot lives in your tab bar. With Pro he comes out, answers questions about your stack and reminds you of what is due today.',
+  logo_drinnen: 'Call Hoku',
+  logo_draussen: 'Send Hoku home',
+  logo_gesperrt: 'Hoku, your AI coach (Pro)',
+  figur: 'Hoku, your AI coach. Tap to talk, drag to move.',
+  gesperrt_titel: 'Hoku comes out with Pro',
+  gesperrt_text: 'Hoku lives in your tab bar. With Pro he comes out, answers questions about your stack and reminds you of what is due today.',
   gesperrt_ok: 'Got it',
 
   wach: 'Oh! I’m awake.',
@@ -216,20 +216,20 @@ const en: Record<keyof typeof de, string> = {
   std: 'h',
   min: 'min',
 
-  chat_titel: 'Dot',
+  chat_titel: 'Hoku',
   chat_schliessen: 'Close chat',
   chat_leeren: 'Clear history',
-  chat_platzhalter: 'Ask Dot …',
+  chat_platzhalter: 'Ask Hoku …',
   chat_senden: 'Send',
-  chat_intro: 'Hi, I’m Dot. I know your stack and today’s plan, and I can explain your blood values. I don’t recommend doses — that belongs with your doctor.',
+  chat_intro: 'Hi, I’m Hoku. I know your stack and today’s plan, and I can explain your blood values. I don’t recommend doses — that belongs with your doctor.',
   chat_intro_stack: 'You’re in your stack. Ask me what’s due today or how long your supply lasts.',
   chat_intro_kalender: 'I can see what was planned and what was logged. Ask me about gaps.',
   chat_intro_ernaehrung: 'Ask me about your nutrition today.',
-  chat_denkt: 'Dot is thinking …',
+  chat_denkt: 'Hoku is thinking …',
   chat_fehler: 'That didn’t work. Please try again in a moment.',
   chat_offline: 'I can’t answer without an internet connection.',
   chat_grenze: 'That’s enough talking for today. I’ll be back for you tomorrow.',
-  chat_kein_zugang: 'Chatting with Dot comes with Pro.',
+  chat_kein_zugang: 'Chatting with Hoku comes with Pro.',
   chip_heute: 'What’s due today?',
   chip_verpasst: 'What did I miss this week?',
   chip_naechste: 'When is my next intake?',
@@ -260,28 +260,28 @@ const en: Record<keyof typeof de, string> = {
   login_postfach: 'Check your\ninbox!',
   login_sehe_nichts: "Don't worry, I can't see a thing.",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
-  hinweis_unten: 'Dot is an AI and can be wrong. No diagnosis, no dose recommendations.',
+  hinweis_unten: 'Hoku is an AI and can be wrong. No diagnosis, no dose recommendations.',
 
   einw_titel: 'Before we talk',
   einw_text: 'To answer, the app sends your question and a summary of your data to Anthropic (Claude), an AI provider in the USA: your stack, your intake plan for the last few days, your latest blood values and today’s nutrition (calories and macros). This is health data.',
-  einw_punkt_1: 'TYD doesn’t store your questions on the server, only how many you asked today (for the daily limit).',
+  einw_punkt_1: 'HOKU doesn’t store your questions on the server, only how many you asked today (for the daily limit).',
   einw_punkt_2: 'The app keeps the chat history on this device only.',
   einw_punkt_3: 'You can withdraw your consent in the chat at any time.',
   einw_ja: 'I agree',
   einw_nein: 'Not now',
   einw_widerrufen: 'Withdraw consent',
-  einw_widerrufen_fertig: 'Consent withdrawn. Dot no longer sends anything to Anthropic.',
+  einw_widerrufen_fertig: 'Consent withdrawn. Hoku no longer sends anything to Anthropic.',
   einw_fehler: 'Could not be saved. Please try again.',
 
   auto_eingetragen: 'I logged {{anzahl}} intakes for you. Tell me if anything was different.',
   auto_eingetragen_one: 'I logged one intake for you. Tell me if anything was different.',
-  auto_titel: 'Dot logs automatically',
-  auto_text: 'Planned intakes count as taken once their time is 30 minutes past. You only tell Dot what was different.',
+  auto_titel: 'Hoku logs automatically',
+  auto_text: 'Planned intakes count as taken once their time is 30 minutes past. You only tell Hoku what was different.',
   auto_text_buendel: 'Applies to every substance in this bundle. Planned intakes count as taken once their time is 30 minutes past.',
   auto_pro: 'With Pro',
   auto_marke: 'automatic',
   auto_fehler: 'Could not be saved. Please try again.',
-  auto_ueber_buendel: 'Also on through your bundle “{{name}}”: while it is on, Dot logs this one.',
+  auto_ueber_buendel: 'Also on through your bundle “{{name}}”: while it is on, Hoku logs this one.',
 
   // Logging by sentence (cards in the chat)
   melde_genommen: '{{substanz}}, {{wann}}: logged as taken ({{uhrzeit}}).',
@@ -306,7 +306,7 @@ const en: Record<keyof typeof de, string> = {
   anlage_mittags: 'midday',
   anlage_abends: 'evening',
 
-  // Dot listens
+  // Hoku listens
   mikro_start: 'Speak',
   mikro_fertig: 'Done speaking',
   mikro_hoert: 'Listening …',

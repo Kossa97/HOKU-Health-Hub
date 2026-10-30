@@ -5,7 +5,7 @@ import { seedBpc157, stageObject } from './support/myStack'
 test.use({ dotFrei: true })
 
 /**
- * Dot trägt automatisch ein (Pro): ist der Schalter an der Substanz an, gilt
+ * Hoku trägt automatisch ein (Pro): ist der Schalter an der Substanz an, gilt
  * jede geplante Einnahme als genommen, sobald ihre Zeit vorbei ist — auf
  * demselben Weg wie der Haken, mit Markierung „automatisch".
  */
@@ -15,7 +15,7 @@ const pro = (mock: import('./support/mockSupabase').MockSupabase) => {
   profil.pro_until = '2099-01-01T00:00:00.000Z'
 }
 
-test('mit Pro und Schalter: Dot trägt fällige Einnahmen ein, markiert und bucht ab', async ({ page, mock }) => {
+test('mit Pro und Schalter: Hoku trägt fällige Einnahmen ein, markiert und bucht ab', async ({ page, mock }) => {
   pro(mock)
   seedBpc157(mock, { startDate: '2026-09-01' })
   const cycleId = String(mock.table('cycles')[0].id)
@@ -35,7 +35,7 @@ test('mit Pro und Schalter: Dot trägt fällige Einnahmen ein, markiert und buch
   await expect(page.locator('[data-auto-logged]').first()).toHaveText('automatisch')
 })
 
-test('bis Pro startet, trägt Dot auch ohne Pro ein', async ({ page, mock }) => {
+test('bis Pro startet, trägt Hoku auch ohne Pro ein', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   mock.table('stack_items')[0].auto_log_since = '2026-09-27T05:00:00.000Z'
   await page.goto('/kalender?date=2026-09-28#due-intakes')
@@ -47,7 +47,7 @@ test('bis Pro startet, ist der Schalter an der Substanz ohne Pro frei', async ({
   await page.goto('/my-stack')
   await stageObject(page, 'BPC-157').click()
   const detail = page.getByRole('dialog', { name: 'BPC-157', exact: true })
-  const schalter = detail.getByRole('switch', { name: 'Dot trägt automatisch ein' })
+  const schalter = detail.getByRole('switch', { name: 'Hoku trägt automatisch ein' })
   await expect(schalter).toHaveAttribute('aria-checked', 'false')
   await expect(detail.getByText('Mit Pro')).toHaveCount(0)
   await expect(schalter).not.toHaveAttribute('aria-disabled', 'true')
@@ -61,7 +61,7 @@ test('mit Pro: Schalter an der Substanz ein und wieder aus', async ({ page, mock
   await page.goto('/my-stack')
   await stageObject(page, 'BPC-157').click()
   const detail = page.getByRole('dialog', { name: 'BPC-157', exact: true })
-  const schalter = detail.getByRole('switch', { name: 'Dot trägt automatisch ein' })
+  const schalter = detail.getByRole('switch', { name: 'Hoku trägt automatisch ein' })
   await schalter.click()
   await expect(schalter).toHaveAttribute('aria-checked', 'true')
   await expect.poll(() => mock.table('stack_items')[0].auto_log_since).toBeTruthy()
@@ -70,7 +70,7 @@ test('mit Pro: Schalter an der Substanz ein und wieder aus', async ({ page, mock
   await expect.poll(() => mock.table('stack_items')[0].auto_log_since ?? null).toBeNull()
 })
 
-test('mit Pro: Schalter im Bündel lässt Dot dessen Substanzen eintragen', async ({ page, mock }) => {
+test('mit Pro: Schalter im Bündel lässt Hoku dessen Substanzen eintragen', async ({ page, mock }) => {
   pro(mock)
   seedBpc157(mock, { startDate: '2026-09-01' })
   const itemId = String(mock.table('stack_items')[0].id)
@@ -80,7 +80,7 @@ test('mit Pro: Schalter im Bündel lässt Dot dessen Substanzen eintragen', asyn
   })
   await page.goto('/kalender?date=2026-09-28#due-intakes')
   await page.getByRole('button', { name: 'Morgen bearbeiten' }).click()
-  const schalter = page.getByRole('switch', { name: 'Dot trägt automatisch ein' })
+  const schalter = page.getByRole('switch', { name: 'Hoku trägt automatisch ein' })
   await expect(schalter).toHaveAttribute('aria-checked', 'false')
   await schalter.click()
   await expect(schalter).toHaveAttribute('aria-checked', 'true')
