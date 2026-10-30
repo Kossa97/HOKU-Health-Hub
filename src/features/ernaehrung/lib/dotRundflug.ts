@@ -1,10 +1,13 @@
 /**
- * Dots Rundflug im Kalorientracker: Er kommt vom linken Rand, hält an der Kugel und an jedem
- * Mond (von links nach rechts), sagt je Halt, was dort offen ist, und fliegt an seinen Platz;
- * dort sagt er alles zusammen. Wieder nach zwei Stunden — oder beim dritten Öffnen seit dem letzten Mal.
+ * Dots Flug im Kalorientracker, beim Hineinnavigieren (Nutzer 30.10.2026):
+ * - Sonst: ein Umlauf um die Kugel, ohne Daten (`umlaufBahn`, Variante A des Mockups).
+ * - Nach zwei Stunden oder beim dritten Öffnen seit dem letzten Mal: der Rundflug (`rundflugBahn`,
+ *   Variante B) — er hält an der Kugel und an jedem Mond (von links nach rechts), sagt je Halt,
+ *   was dort offen ist, und an seinem Platz alles zusammen.
+ * Ist er draußen, startet er dort, wo er ist, sonst am linken Bildschirmrand.
  *
- * Hier nur Rechnung (Bahn, Texte, Abstand); die Seite verbindet sie mit Dot und der Kugel
- * (`hooks/useDotRundflug.ts`). Entschieden am Live-Mockup, Variante B (Nutzer 29.10.2026).
+ * Hier nur Rechnung (Bahnen, Texte, Abstand); die Seite verbindet sie mit Dot und der Kugel
+ * (`hooks/useDotRundflug.ts`). Live-Mockup: https://claude.ai/artifact/EuhJNRfgan7dypXoSG4Kge
  */
 import type { Rundflug } from '../../dot/engine/dotEngine'
 import type { DotTextKey } from '../../dot/texte'
@@ -137,6 +140,50 @@ export function rundflugBahn(o: {
         p = { x: a.x + (h.x - a.x) * e, y: a.y + (h.y - a.y) * e + Math.sin(Math.PI * q) * 30 }
       }
       return { ...p, depth: 1 }
+    },
+  }
+}
+
+/** Umlauf (bei jedem Hineinnavigieren, ohne Daten): herein, eine Runde, an den Platz (s). */
+export const UMLAUF_ZEIT = { herein: 0.9, runde: 2.7, heim: 0.9 }
+
+/** Kubische Hermite-Kurve: Lage und Tempo (je Einheit q) an beiden Enden. */
+function hermite(p0: number, v0: number, p1: number, v1: number, q: number) {
+  const q2 = q * q, q3 = q2 * q
+  return (2 * q3 - 3 * q2 + 1) * p0 + (q3 - 2 * q2 + q) * v0 + (-2 * q3 + 3 * q2) * p1 + (q3 - q2) * v1
+}
+
+/**
+ * Der Umlauf: vom Start (linker Rand oder sein Platz) in eine flache Bahn um die Kugel — vorn
+ * unten entlang, rechts hoch, hinten oben vorbei (dort verdeckt die Kugel ihn), links zurück —
+ * und mit dem Schwung der Runde an seinen Platz. Keine Halte, nichts gesagt.
+ */
+export function umlaufBahn(o: { start: Punkt; lage: () => Lage | null; platz: () => Punkt; fertig?: () => void; abgebrochen?: () => void }): Rundflug {
+  const { herein, runde, heim } = UMLAUF_ZEIT, kreis = herein + runde, phi = -0.12
+  let letzte: Lage | null = null
+  const bahn = (th: number) => {
+    const m = letzte!.main, a = m.r * 1.55, b = m.r * 0.5
+    const ex = a * Math.cos(th), ey = b * Math.sin(th)
+    return { x: m.x + ex * Math.cos(phi) - ey * Math.sin(phi), y: m.y + ex * Math.sin(phi) + ey * Math.cos(phi) + m.r * 0.08, depth: Math.sin(th) }
+  }
+  // Winkel: von links (π) rückwärts — zuerst vorn unten; gleichmäßig mit weichem Anfang und Ende
+  const winkel = (t: number) => { const u = clamp01(t / kreis); return Math.PI - 2 * Math.PI * (0.25 * easeIO(u) + 0.75 * u) }
+  return {
+    dauer: kreis + heim,
+    fertig: o.fertig,
+    abgebrochen: o.abgebrochen,
+    pos: t => {
+      letzte = o.lage() ?? letzte
+      if (!letzte) return { ...o.start, depth: 1 }
+      if (t <= kreis) {
+        const L = bahn(winkel(t)), m = easeOut3(clamp01(t / herein))
+        const depth = L.depth * m + (1 - m)
+        return { x: o.start.x + (L.x - o.start.x) * m, y: o.start.y + (L.y - o.start.y) * m, depth, hinter: depth < -0.05 ? letzte.main : null }
+      }
+      // mit dem Tempo am Ende der Runde an seinen Platz
+      const q = clamp01((t - kreis) / heim), a = bahn(winkel(kreis)), b = bahn(winkel(kreis - 0.02)), h = o.platz()
+      const vx = ((a.x - b.x) / 0.02) * heim, vy = ((a.y - b.y) / 0.02) * heim
+      return { x: hermite(a.x, vx, h.x, 0, q), y: hermite(a.y, vy, h.y, 0, q), depth: 1 }
     },
   }
 }

@@ -31,8 +31,11 @@ export type DotStimmung = 'idle' | 'think' | 'speak' | 'joy' | 'listen'
 export interface Rundflug {
   /** Dauer in Sekunden. */
   dauer: number
-  /** Lage zum Zeitpunkt t (s), Bildschirm-px; `depth` 1 = vorn (volle Größe), −1 = hinten. */
-  pos(t: number): { x: number; y: number; depth: number }
+  /**
+   * Lage zum Zeitpunkt t (s), Bildschirm-px; `depth` 1 = vorn (volle Größe), −1 = hinten.
+   * `hinter`: er ist gerade hinter diesem Kreis (Kugel) — was davon verdeckt ist, wird ausgeblendet.
+   */
+  pos(t: number): { x: number; y: number; depth: number; hinter?: { x: number; y: number; r: number } | null }
   /** Gelandet (auch nach dem Abkürzen); nicht, wenn etwas anderes ihn unterbrach. */
   fertig?(): void
   /** Etwas anderes hat ihn herausgeholt (Chat, Kamera, Zugang weg). */
@@ -640,7 +643,7 @@ export function createDot(host: DotHost): DotApi {
     B.orbitCool = Math.max(0, B.orbitCool - dt)
     if (B.mode === 'home' && !B.drag && !B.orbitCool && nearClock(B.x, B.y, B.r * 0.75)) startOrbit()
     // Etwas anderes hat ihn aus dem Rundflug geholt (Chat, Zugang weg): der Rundflug ist vorbei
-    if (B.tour && B.mode !== 'orbit') { const r = B.tour.r; B.tour = null; r.abgebrochen?.() }
+    if (B.tour && B.mode !== 'orbit') { const r = B.tour.r; B.tour = null; verdecke(null); r.abgebrochen?.() }
     if (B.mode === 'orbit') { if (B.tour) tourStep(dt); else orbitStep(dt) }
     if (B.mode === 'login' && !B.drag) loginStep(dt)
     if (B.mode === 'portal') portalSchritt(dt)
@@ -849,19 +852,28 @@ export function createDot(host: DotHost): DotApi {
     B.mode = 'orbit'; B.te = 0; versteckeTreffer(); wake(true); melde(); laufen()
     return true
   }
+  /** Hinter einem Kreis (der Kugel): seine Flächen bekommen dort ein Loch. */
+  let maskiert = false
+  function verdecke(k: { x: number; y: number; r: number } | null | undefined) {
+    if (!k && !maskiert) return
+    const m = k ? `radial-gradient(circle at ${k.x.toFixed(1)}px ${k.y.toFixed(1)}px, transparent ${k.r.toFixed(1)}px, #000 ${(k.r + 1.5).toFixed(1)}px)` : ''
+    for (const el of [canvas, glCanvas]) { el.style.maskImage = m; el.style.webkitMaskImage = m }
+    maskiert = !!k
+  }
   function tourStep(dt: number) {
     const T = B.tour!
     B.te += dt
-    let x: number, y: number, depth = 1, fertig: boolean
+    let x: number, y: number, depth = 1, fertig: boolean, hinter: { x: number; y: number; r: number } | null | undefined = null
     if (T.ab) {
       // abgekürzt: von der Stelle, an der er war, an seinen Platz
       const q = clamp01((B.te - T.ab.t0) / T.ab.d), e = easeIO(q), h = homeTarget()
       x = T.ab.x + (h.x - T.ab.x) * e; y = T.ab.y + (h.y - T.ab.y) * e; fertig = q >= 1
     } else {
       const p = T.r.pos(Math.min(B.te, T.r.dauer))
-      x = p.x; y = p.y; depth = p.depth; fertig = B.te >= T.r.dauer
+      x = p.x; y = p.y; depth = p.depth; hinter = p.hinter; fertig = B.te >= T.r.dauer
     }
     if (B.orbit) B.orbit.depth = depth
+    verdecke(fertig ? null : hinter)
     B.vx = (x - B.x) / Math.max(dt, 1e-3); B.vy = (y - B.y) / Math.max(dt, 1e-3); B.x = x; B.y = y
     if (fertig) {
       B.tour = null
