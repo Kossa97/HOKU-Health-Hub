@@ -32,6 +32,8 @@ interface RoutineConfirmationSheetProps {
   onAddInjection?: (entry: RoutineIntake, doseLogId: string) => void
   /** Gesetzt, fragt das Blatt die Uhrzeit ab, vorbelegt mit diesem Wert (HH:mm). */
   initialTime?: string
+  /** Die geplante Uhrzeit (HH:mm) fuer den Knopf „Geplant" neben „Jetzt". */
+  plannedTime?: string
 }
 
 
@@ -49,6 +51,7 @@ export function RoutineConfirmationSheet({
   onAfterConfirm,
   onAddInjection,
   initialTime,
+  plannedTime,
 }: RoutineConfirmationSheetProps) {
   const { t } = useTranslation()
   const titleId = useId()
@@ -217,14 +220,25 @@ export function RoutineConfirmationSheet({
                   <label htmlFor={timeId} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
                     {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setTime(format(new Date(), 'HH:mm'))}
-                    className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                  >
-                    <Clock size={12} aria-hidden="true" />
-                    {t('confirm_time_now', { defaultValue: 'Jetzt' })}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTime(format(new Date(), 'HH:mm'))}
+                      className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                    >
+                      <Clock size={12} aria-hidden="true" />
+                      {t('confirm_time_now', { defaultValue: 'Jetzt' })}
+                    </button>
+                    {plannedTime && (
+                      <button
+                        type="button"
+                        onClick={() => setTime(plannedTime)}
+                        className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                      >
+                        {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: plannedTime })}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <input
                   id={timeId}

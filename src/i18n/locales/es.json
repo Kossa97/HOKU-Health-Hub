@@ -577,6 +577,7 @@
   "tile_protokoll_desc": "Evaluación de ciclos y exportación PDF",
   "vials_vorratig": "{{n}} viales en stock",
   "confirm_time_now": "Ahora",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "Rotación de zonas",
   "inj_title": "Seguimiento de inyecciones",
   "inj_log_btn": "Registrar",

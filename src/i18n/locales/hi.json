@@ -577,6 +577,7 @@
   "tile_protokoll_desc": "चक्र विश्लेषण और PDF निर्यात",
   "vials_vorratig": "{{n}} शीशियाँ उपलब्ध",
   "confirm_time_now": "अभी",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "स्थान-रोटेशन",
   "inj_title": "इंजेक्शन ट्रैकर",
   "inj_log_btn": "लॉग करें",

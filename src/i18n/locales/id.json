@@ -578,6 +578,7 @@
   "tile_protokoll_desc": "Evaluasi siklus & ekspor PDF",
   "vials_vorratig": "{{n}} vial tersedia",
   "confirm_time_now": "Sekarang",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "Rotasi Tempat",
   "inj_title": "Pelacak Injeksi",
   "inj_log_btn": "Catat",

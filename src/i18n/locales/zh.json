@@ -577,6 +577,7 @@
   "tile_protokoll_desc": "周期分析与PDF导出",
   "vials_vorratig": "库存 {{n}} 瓶",
   "confirm_time_now": "现在",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "部位轮换",
   "inj_title": "注射追踪器",
   "inj_log_btn": "记录",

@@ -89,6 +89,9 @@ test.describe('Lokaler Tag an der Herbstzeitumstellung', () => {
     await page.goto('/kalender')
     await expect(page.locator('[data-calendar-date="2026-10-25"][aria-pressed="true"]').first()).toBeVisible()
     const sheet = await openConfirmation(page, slotKey)
+    // Vorbelegt mit jetzt; die geplante Zeit liegt auf dem Knopf daneben.
+    await expect(sheet.locator('input[type="time"]')).toHaveValue('00:05')
+    await sheet.getByRole('button', { name: 'Geplant · 02:30', exact: true }).click()
     await expect(sheet.locator('input[type="time"]')).toHaveValue('02:30')
     await sheet.getByRole('button', { name: 'Jetzt', exact: true }).click()
     await expect(sheet.locator('input[type="time"]')).toHaveValue('00:05')

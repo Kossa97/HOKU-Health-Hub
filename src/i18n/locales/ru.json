@@ -577,6 +577,7 @@
   "tile_protokoll_desc": "Анализ циклов и экспорт в PDF",
   "vials_vorratig": "{{n}} флаконов в наличии",
   "confirm_time_now": "Сейчас",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "Ротация мест",
   "inj_title": "Трекер инъекций",
   "inj_log_btn": "Записать",

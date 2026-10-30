@@ -577,6 +577,7 @@
   "tile_protokoll_desc": "تقييم الدورات وتصدير PDF",
   "vials_vorratig": "{{n}} قارورة في المخزون",
   "confirm_time_now": "الآن",
+  "confirm_time_planned": "Planned · {{time}}",
   "inj_kicker": "تناوب مواضع الحقن",
   "inj_title": "متتبع الحقن",
   "inj_log_btn": "تسجيل",
