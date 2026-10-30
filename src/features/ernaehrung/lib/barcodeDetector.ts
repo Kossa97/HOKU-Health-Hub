@@ -15,9 +15,11 @@
 export const PRODUCT_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'] as const
 /** Arzneimittelpackungen tragen PZN, Charge und Verfall im Data-Matrix-Code (My Stack). */
 export const DATA_MATRIX = 'data_matrix'
+/** Amazons Lageretikett (FNSKU, `X00…`) — klebt oft über dem EAN (My Stack). */
+export const CODE_128 = 'code_128'
 
 export interface Detector {
-  detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>
+  detect(source: HTMLVideoElement): Promise<{ rawValue: string; format?: string }[]>
 }
 
 type DetectorCtor = {
@@ -39,15 +41,18 @@ async function loadFallback(): Promise<DetectorCtor> {
 }
 
 /**
- * Leser für Produkt-Barcodes (EAN/UPC), auf Wunsch auch Data Matrix.
- * Eingebaut, wenn er alle gewünschten Formate kann; sonst ZXing.
+ * Leser für Produkt-Barcodes (EAN/UPC), auf Wunsch auch Data Matrix und
+ * Code 128 (My Stack). Eingebaut, wenn er alle gewünschten Formate kann;
+ * sonst ZXing.
  */
 export async function createDetector(mitDataMatrix = false): Promise<Detector> {
-  const formats: string[] = mitDataMatrix ? [...PRODUCT_FORMATS, DATA_MATRIX] : [...PRODUCT_FORMATS]
+  const formats: string[] = mitDataMatrix ? [...PRODUCT_FORMATS, DATA_MATRIX, CODE_128] : [...PRODUCT_FORMATS]
   const native = (globalThis as { BarcodeDetector?: DetectorCtor }).BarcodeDetector
   if (native?.getSupportedFormats) {
     try {
       const supported = await native.getSupportedFormats()
+      // Code 128 nur, wo der eingebaute Leser ihn kann: das Amazon-Etikett ist
+      // ein Zusatz und soll nicht das Nachladen von ZXing erzwingen.
       if (supported.includes('ean_13') && (!mitDataMatrix || supported.includes(DATA_MATRIX))) {
         return new native({ formats: formats.filter(f => supported.includes(f)) })
       }

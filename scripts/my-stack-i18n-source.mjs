@@ -1322,7 +1322,7 @@ export const MY_STACK_EN = {
   my_stack_scan_ai_note: "Hoku reads label photos; for that they are sent to Anthropic (USA). Barcodes are looked up without AI.",
   my_stack_scan_searching: "Looking up barcode …",
   my_stack_scan_reading: "Hoku is reading the label …",
-  my_stack_scan_barcode_unknown: "We don’t know this barcode. Take a photo of the label instead.",
+  my_stack_scan_barcode_unknown: "We don’t know this barcode yet. Take a photo of the back with the ingredients – next time this product is recognised straight away.",
   my_stack_scan_err_lookup: "The barcode could not be looked up right now. Take a photo of the label instead.",
   my_stack_scan_err: "The label could not be read. Please try again.",
   my_stack_scan_err_limit: "Too many scans in a short time. Try again later or enter it by hand.",
@@ -1402,6 +1402,7 @@ export const MY_STACK_EN = {
   my_stack_scan_expiry: "Expiry",
   my_stack_scan_batch: "Batch",
   my_stack_scan_pzn: "PZN",
+  my_stack_scan_amazon: "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead.",
 }
 
 export const MY_STACK_DE = {
@@ -2727,7 +2728,7 @@ export const MY_STACK_DE = {
   my_stack_scan_ai_note: "Etikettfotos liest Hoku aus, dafür gehen sie an Anthropic (USA). Barcodes werden ohne KI nachgeschlagen.",
   my_stack_scan_searching: "Barcode wird gesucht …",
   my_stack_scan_reading: "Hoku liest das Etikett …",
-  my_stack_scan_barcode_unknown: "Diesen Barcode kennen wir nicht. Fotografiere stattdessen das Etikett.",
+  my_stack_scan_barcode_unknown: "Diesen Barcode kennen wir noch nicht. Fotografiere die Rückseite mit den Inhaltsstoffen – beim nächsten Scan ist das Produkt dann sofort da.",
   my_stack_scan_err_lookup: "Der Barcode ließ sich gerade nicht nachschlagen. Fotografiere stattdessen das Etikett.",
   my_stack_scan_err: "Das Etikett ließ sich nicht lesen. Bitte versuche es noch einmal.",
   my_stack_scan_err_limit: "Zu viele Scans in kurzer Zeit. Versuche es später noch einmal oder trage es von Hand ein.",
@@ -2807,6 +2808,7 @@ export const MY_STACK_DE = {
   my_stack_scan_expiry: "Verfall",
   my_stack_scan_batch: "Charge",
   my_stack_scan_pzn: "PZN",
+  my_stack_scan_amazon: "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen.",
 }
 
 export const MY_STACK_KEYS = Object.keys(MY_STACK_EN)

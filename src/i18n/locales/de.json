@@ -2693,7 +2693,7 @@
   "my_stack_scan_ai_note": "Etikettfotos liest Hoku aus, dafür gehen sie an Anthropic (USA). Barcodes werden ohne KI nachgeschlagen.",
   "my_stack_scan_searching": "Barcode wird gesucht …",
   "my_stack_scan_reading": "Hoku liest das Etikett …",
-  "my_stack_scan_barcode_unknown": "Diesen Barcode kennen wir nicht. Fotografiere stattdessen das Etikett.",
+  "my_stack_scan_barcode_unknown": "Diesen Barcode kennen wir noch nicht. Fotografiere die Rückseite mit den Inhaltsstoffen – beim nächsten Scan ist das Produkt dann sofort da.",
   "my_stack_scan_err_lookup": "Der Barcode ließ sich gerade nicht nachschlagen. Fotografiere stattdessen das Etikett.",
   "my_stack_scan_err": "Das Etikett ließ sich nicht lesen. Bitte versuche es noch einmal.",
   "my_stack_scan_err_limit": "Zu viele Scans in kurzer Zeit. Versuche es später noch einmal oder trage es von Hand ein.",
@@ -2855,5 +2855,6 @@
   "bundle_period_locked": "Nur innerhalb einer Tageszeit",
   "syringe_draw_units": "{{units}} Einheiten aufziehen",
   "dose_once": "einmalig",
-  "bundle_merged_hint": "Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind."
+  "bundle_merged_hint": "Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind.",
+  "my_stack_scan_amazon": "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen."
 }

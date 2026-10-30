@@ -7,8 +7,8 @@ import { expectStep, next, seedBpc157, stageObject } from './support/myStack'
  * Substanz per Scan: Etikett fotografieren (bzw. Foto auswaehlen), per KI
  * auslesen, Vorschlag uebernehmen — der Assistent steht danach vorbelegt da.
  * Ohne Einwilligung geht kein Foto raus. Den Produkt-Barcode pruefen die
- * Unit-Tests (`substanzScan.test.ts`); fuer den Packungscode von Medikamenten
- * bildet `packungsKamera` Kamera und Leser nach.
+ * Unit-Tests (`substanzScan.test.ts`); fuer Packungscode, Amazon-Etikett und
+ * gemerkte Produkte bildet `kameraMitCode` Kamera und Leser nach.
  */
 
 // 1×1-PNG — genug, damit Bild und Canvas im Browser laden.
@@ -112,12 +112,12 @@ test('Nur beim Neuanlegen: beim Bearbeiten der Substanz gibt es keinen Scan', as
 
 /**
  * Kamera und Leser nachgebildet: ein Canvas als Kamerabild, ein
- * `BarcodeDetector`, der den Data-Matrix-Code einer Arzneimittelpackung
- * „sieht" (IFA-Format: PZN 01234562, Charge AB12C, Verfall 06/2027).
+ * `BarcodeDetector`, der immer denselben Code „sieht" — standardmaessig den
+ * Data-Matrix-Code einer Arzneimittelpackung (IFA-Format: PZN 01234562,
+ * Charge AB12C, Verfall 06/2027).
  */
-async function packungsKamera(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const code = '[)>\x1e06\x1d9N110123456242\x1d1TAB12C\x1dD270600\x1dS1234567890AB\x1e\x04'
+async function kameraMitCode(page: Page, code = '[)>\x1e06\x1d9N110123456242\x1d1TAB12C\x1dD270600\x1dS1234567890AB\x1e\x04'): Promise<void> {
+  await page.addInitScript(code => {
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,
       value: {
@@ -133,15 +133,15 @@ async function packungsKamera(page: Page): Promise<void> {
       },
     })
     class Leser {
-      static async getSupportedFormats() { return ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'data_matrix'] }
+      static async getSupportedFormats() { return ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'data_matrix', 'code_128'] }
       async detect() { return [{ rawValue: code }] }
     }
     ;(globalThis as unknown as { BarcodeDetector: unknown }).BarcodeDetector = Leser
-  })
+  }, code)
 }
 
 test('Medikament: erst der Packungscode, dann das Etikett — Ester wählen, Verfall und Charge stehen im Assistenten', async ({ page, mock }) => {
-  await packungsKamera(page)
+  await kameraMitCode(page)
   mock.labelExtract.label = {
     name: 'Testosteron 250 mg/ml', brand: 'Pharma X', dosage_form: 'ampoule',
     ingredients: [{ name: null, amount: 250, unit: 'mg', per_amount: 1, per_unit: 'ml' }],
@@ -171,4 +171,51 @@ test('Medikament: erst der Packungscode, dann das Etikett — Ester wählen, Ver
 
   await next(wizard, 'Zusammensetzung')
   await expect(wizard.locator('[data-field="inventory.expiresAt"]')).toHaveValue('2027-06-30')
+})
+
+test('Amazon-Versandetikett: kein Nachschlagen, gleich zum Etikettfoto', async ({ page, mock }) => {
+  await kameraMitCode(page, 'X002EL8Z49')
+  const { scanner } = await scannerOeffnen(page)
+  await expect(scanner.locator('[data-scan-hint]')).toContainText('Amazons Versandetikett')
+  // Der Leser ist aus: das Etikett soll fotografiert werden, nicht derselbe Code wieder.
+  await expect(scanner.locator('[data-scan-shutter]')).toBeVisible()
+  expect(mock.foodLookup.calls).toHaveLength(0)
+})
+
+const BERGAMOT = {
+  name: 'Citrus Bergamot', brand: 'MS Impuls', dosage_form: 'capsule',
+  ingredients: [{ name: 'Citrus Bergamot-Extrakt', amount: 1500, unit: 'mg', per_amount: 2, per_unit: 'Kapseln' }],
+}
+
+test('Unbekannter Barcode: Etikett fotografieren, übernehmen — der nächste Scan kennt das Produkt', async ({ page, mock }) => {
+  await kameraMitCode(page, '8721008368139')
+  mock.labelExtract.label = BERGAMOT
+  const { scanner } = await scannerOeffnen(page)
+
+  await expect(scanner.locator('[data-scan-hint]')).toContainText('kennen wir noch nicht')
+  expect(mock.foodLookup.calls).toEqual([{ barcode: '8721008368139', kind: 'item' }])
+  await scanner.locator('[data-scan-file-input]').setInputFiles(ETIKETT)
+  const einwilligung = scanner.locator('[data-ai-consent]')
+  await einwilligung.locator('[data-ai-consent-check]').check()
+  await einwilligung.locator('[data-ai-consent-accept]').click()
+  const ergebnis = scanner.locator('[data-scan-result]')
+  await expect(ergebnis).toContainText('Citrus Bergamot')
+  // Gemerkt wird erst beim Übernehmen.
+  expect(mock.table('scan_produkte')).toHaveLength(0)
+  await ergebnis.locator('[data-scan-apply]').click()
+  await expect(scanner).toBeHidden()
+  await expect.poll(() => mock.table('scan_produkte').map(row => ({ ean: row.ean, name: (row.etikett as { name: string }).name })))
+    .toEqual([{ ean: '8721008368139', name: 'Citrus Bergamot' }])
+})
+
+test('Gemerktes Produkt: der Barcode reicht, mit Wirkstoffen und ohne KI', async ({ page, mock }) => {
+  await kameraMitCode(page, '8721008368139')
+  mock.table('scan_produkte').push({ ean: '8721008368139', etikett: BERGAMOT })
+  const { scanner } = await scannerOeffnen(page)
+
+  const ergebnis = scanner.locator('[data-scan-result]')
+  await expect(ergebnis).toContainText('Citrus Bergamot')
+  await expect(ergebnis).toContainText('1.500 mg')
+  await expect(ergebnis).toContainText('Kapsel')
+  expect(mock.labelExtract.calls).toHaveLength(0)
 })
