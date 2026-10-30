@@ -729,6 +729,12 @@ export class MockSupabase {
           const existing = rows.find(candidate => conflict.every(column => candidate[column] === row[column]))
           if (existing) return Object.assign(existing, row, { updated_at: this.now().toISOString() })
         }
+        // insert … on conflict do nothing: der erste Eintrag bleibt.
+        if (prefer.includes('resolution=ignore-duplicates')) {
+          const conflict = (url.searchParams.get('on_conflict') ?? 'id').split(',')
+          const existing = rows.find(candidate => conflict.every(column => candidate[column] === row[column]))
+          if (existing) return existing
+        }
         return this.insert(tableName, { user_id: TEST_USER.id, ...row })
       })
       return returnRows ? respond(saved) : route.fulfill({ status: 201, headers: corsHeaders() })

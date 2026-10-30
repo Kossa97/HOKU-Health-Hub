@@ -2621,5 +2621,6 @@
   "bundle_period_locked": "Only within one time of day",
   "syringe_draw_units": "Draw {{units}} units",
   "dose_once": "one-off",
-  "bundle_merged_hint": "Combined today because these bundles are due at the same time."
+  "bundle_merged_hint": "Combined today because these bundles are due at the same time.",
+  "my_stack_scan_amazon": "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead."
 }

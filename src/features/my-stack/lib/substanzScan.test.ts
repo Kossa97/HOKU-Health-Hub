@@ -3,6 +3,7 @@ import type { SubstanceCatalogEntry } from '../types'
 import { initialWizardState, wizardReducer, type WizardState } from './wizardState'
 import {
   familienKandidaten,
+  istAmazonEtikett,
   findeKatalogeintrag,
   formAusText,
   parseBarcodeProdukt,
@@ -44,6 +45,17 @@ function anwenden(vorschlag: ScanVorschlag): WizardState {
 
 const vorschlag = (extra: Partial<ScanVorschlag>): ScanVorschlag => ({
   quelle: 'foto', entry: null, name: 'X', brand: null, dosageForm: null, staerken: [], ...extra,
+})
+
+describe('istAmazonEtikett', () => {
+  it('erkennt FNSKU und ASIN, nicht aber EAN oder Packungscode', () => {
+    expect(istAmazonEtikett('X002EL8Z49')).toBe(true)
+    expect(istAmazonEtikett('X002G7UB2Z')).toBe(true)
+    expect(istAmazonEtikett('B0CXYZ1234')).toBe(true)
+    expect(istAmazonEtikett('8721008368139')).toBe(false)
+    expect(istAmazonEtikett('X002EL8Z4')).toBe(false)
+    expect(istAmazonEtikett('x002el8z49')).toBe(false)
+  })
 })
 
 describe('findeKatalogeintrag', () => {

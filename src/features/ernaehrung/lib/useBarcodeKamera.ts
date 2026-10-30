@@ -19,8 +19,9 @@ const FRAME_MS = 180
 export function useBarcodeKamera(
   onCode: ((code: string) => void) | null,
   /**
-   * Auch Data-Matrix-Codes lesen; angenommen wird ein Code, fuer den das
-   * `true` ergibt, und dann roh weitergereicht (My Stack: Arzneimittelpackung).
+   * Auch Data-Matrix- und Code-128-Codes lesen; angenommen wird ein Code, fuer
+   * den das `true` ergibt, und dann roh weitergereicht (My Stack:
+   * Arzneimittelpackung, Amazon-Lageretikett).
    */
   dataMatrix?: (raw: string) => boolean,
 ) {

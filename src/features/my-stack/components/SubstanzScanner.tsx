@@ -12,8 +12,8 @@ import { useBarcodeKamera, type KameraStand } from '../../ernaehrung/lib/useBarc
 import { reportError } from '../../../lib/monitoring'
 import { formatLocalDay } from '../lib/localDays'
 import { parsePackungscode, type Packungscode } from '../lib/packungscode'
-import { vorschlagAusEtikett, vorschlagAusProdukt, type ScanStaerke, type ScanVorschlag } from '../lib/substanzScan'
-import { ScanFehler, liesEtikett, sucheBarcode } from '../services/substanzScan'
+import { istAmazonEtikett, vorschlagAusEtikett, vorschlagAusProdukt, type Etikett, type ScanStaerke, type ScanVorschlag } from '../lib/substanzScan'
+import { ScanFehler, gemerktesEtikett, liesEtikett, merkeEtikett, sucheBarcode } from '../services/substanzScan'
 import type { SubstanceCatalogEntry } from '../types'
 import { DotArbeitet } from '../../dot/DotZeichen'
 
@@ -44,7 +44,9 @@ function fotoAusVideo(video: HTMLVideoElement): Foto | null {
   return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/jpeg' }
 }
 
-const istPackungscode = (raw: string) => parsePackungscode(raw) !== null
+// Roh angenommen: der Data-Matrix-Code einer Arzneimittelpackung und Amazons
+// Lageretikett — beides kein EAN, beides fuehrt zum Etikettfoto.
+const istRohcode = (raw: string) => parsePackungscode(raw) !== null || istAmazonEtikett(raw)
 
 /** Kamerabild mit Barcode-Erkennung und Ausloeser. Wird je Versuch neu eingesetzt. */
 function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
@@ -54,7 +56,7 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
   onFoto: (foto: Foto) => void
 }) {
   const { t } = useTranslation()
-  const { videoRef, cam } = useBarcodeKamera(onCode, istPackungscode)
+  const { videoRef, cam } = useBarcodeKamera(onCode, istRohcode)
   // Ohne Barcode-Leser (nicht ladbar) bleibt das Foto.
   const bildLaeuft = cam === 'scanning' || cam === 'photo_only'
   const camMessage: Partial<Record<KameraStand, string>> = {
@@ -114,6 +116,10 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
   // Der Data-Matrix-Code einer Arzneimittelpackung: Charge und Verfall, aber
   // kein Name — den liefert das Etikettfoto danach.
   const [packung, setPackung] = useState<Packungscode | null>(null)
+  // Der gescannte EAN, solange es um dasselbe Produkt geht, und das Etikett
+  // dazu, sobald es gelesen ist: beim Uebernehmen fuer den naechsten Scan
+  // gemerkt (`scan_produkte`).
+  const [merken, setMerken] = useState<{ ean: string; etikett?: Etikett } | null>(null)
   const dateiRef = useRef<HTMLInputElement>(null)
   const { einwilligung, fehler: einwilligungFehler, setze, vergessen, neuLaden } = useKiEinwilligung()
   const lang = (i18n.resolvedLanguage ?? i18n.language).startsWith('de') ? 'de' : 'en'
@@ -124,7 +130,7 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
   const zurKamera = (hinweis?: string, nurFoto = false) => {
     // Neu anfangen heisst auch: der gelesene Packungscode gehoert nicht zum
     // naechsten Produkt. Nur fuers Etikett derselben Packung bleibt er.
-    if (!nurFoto) setPackung(null)
+    if (!nurFoto) { setPackung(null); setMerken(null) }
     setVersuch(n => n + 1)
     setPhase({ art: 'kamera', hinweis, nurFoto })
   }
@@ -137,7 +143,19 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
       return
     }
     setPackung(null)
+    if (istAmazonEtikett(code)) {
+      setMerken(null)
+      zurKamera(t('my_stack_scan_amazon'), true)
+      return
+    }
+    setMerken({ ean: code })
     setPhase({ art: 'laeuft', was: 'barcode' })
+    // Schon einmal per Etikett angelegt: sofort fertig, mit Wirkstoffen.
+    const gemerkt = await gemerktesEtikett(code).catch(() => null)
+    if (gemerkt) {
+      setPhase({ art: 'ergebnis', vorschlag: { ...vorschlagAusEtikett(gemerkt, katalog), quelle: 'barcode' } })
+      return
+    }
     try {
       const produkt = await sucheBarcode(code, lang)
       if (!produkt) { zurKamera(t('my_stack_scan_barcode_unknown'), true); return }
@@ -151,6 +169,7 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
     setPhase({ art: 'laeuft', was: 'foto' })
     try {
       const etikett = await liesEtikett(foto.base64, foto.mimeType, katalog.map(e => e.canonical_name))
+      setMerken(m => (m ? { ...m, etikett } : m))
       const vorschlag = vorschlagAusEtikett(etikett, katalog)
       setPhase({ art: 'ergebnis', vorschlag: packung ? { ...vorschlag, packung } : vorschlag })
     } catch (error) {
@@ -243,7 +262,14 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
       {phase.art === 'ergebnis' && (
         <ScanErgebnis
           vorschlag={phase.vorschlag}
-          onUebernehmen={onUebernehmen}
+          onUebernehmen={vorschlag => {
+            // Erst wer uebernimmt, hat das gelesene Etikett gesehen und fuer
+            // richtig befunden — dann ist es den naechsten Scan wert.
+            if (merken?.etikett && vorschlag.quelle === 'foto') {
+              merkeEtikett(merken.ean, merken.etikett).catch(error => reportError(error, 'SubstanzScanner.merken'))
+            }
+            onUebernehmen(vorschlag)
+          }}
           // Nach einem Barcode heisst „nochmal" fast immer: das Etikett lesen.
           onNochmal={() => zurKamera(undefined, phase.vorschlag.quelle === 'barcode' && !phase.vorschlag.packung)}
         />
