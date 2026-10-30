@@ -1,17 +1,17 @@
 # Graph Report - TYD-TrackYourDose  (2026-10-30)
 
 ## Corpus Check
-- 1437 files · ~4,149,536 words
+- 1437 files · ~4,150,410 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 68 file(s) not represented in the graph (top: (none) 26, .xml 10, .css 9)
 
 ## Summary
-- 10150 nodes · 25982 edges · 460 communities (366 shown, 94 thin omitted)
+- 10150 nodes · 25983 edges · 460 communities (366 shown, 94 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 880 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8d2c21cb`
+- Built from commit: `0bfc7149`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -262,7 +262,7 @@
 - produktAngaben.ts
 - Fortschritt-Chart: Ruhige 3M-Ansicht für Gewicht und KFA
 - Legacy My Stack – Kompatibilität mit dem neuen Schema
-- support/intake.ts
+- myStack.ts
 - legacyPlanTimeline.ts
 - Testaccount-Jahresverlauf: Design
 - WerteCard.tsx
@@ -1156,7 +1156,7 @@ Nodes (35): Task 6: Kategorie-Filter und Sortierung, main(), PK_PROFILES, PkSeed
 
 ### Community 250 - "MockSupabase"
 Cohesion: 0.13
-Nodes (15): Ownership / interfaces, beende(), bewertung(), bpcMitEinnahmen(), profil(), fremdesProfil(), corsHeaders(), fakeSession() (+7 more)
+Nodes (14): Ownership / interfaces, bewertung(), bpcMitEinnahmen(), profil(), fremdesProfil(), corsHeaders(), fakeSession(), MockSupabase (+6 more)
 
 ### Community 251 - "peptide"
 Cohesion: 0.22
@@ -1210,9 +1210,9 @@ Nodes (8): Ablesen in der 3M-Ansicht, Animation, Auswahl des echten Messwerts, E
 Cohesion: 0.29
 Nodes (6): Datenvertrag, Erfolgskriterien, Legacy My Stack – Kompatibilität mit dem neuen Schema, Sicherheitsgrenzen, Umfang, Ziel
 
-### Community 264 - "support/intake.ts"
-Cohesion: 0.40
-Nodes (8): confirmHomeRoutine(), createTrackedIntake(), expectCalendarTaken(), expectStockVisible(), openHomeRoutine(), remainingStock(), seedTrackedIntake(), stageObject()
+### Community 264 - "myStack.ts"
+Cohesion: 0.22
+Nodes (12): ETIKETT, confirmHomeRoutine(), createTrackedIntake(), expectCalendarTaken(), expectStockVisible(), openHomeRoutine(), remainingStock(), seedTrackedIntake() (+4 more)
 
 ### Community 265 - "legacyPlanTimeline.ts"
 Cohesion: 0.23
@@ -1319,8 +1319,8 @@ Cohesion: 0.15
 Nodes (14): bauen(), font(), glyph_bounds(), kern(), kern_pairs(), konzepte(), kugel_img(), kugel_vec() (+6 more)
 
 ### Community 291 - "blutwerte-sprache.spec.ts"
-Cohesion: 0.31
-Nodes (6): eigenesProfil(), testosteron(), wert(), messungBearbeiten(), messungenAufklappen(), messungOeffnen()
+Cohesion: 0.26
+Nodes (7): eigenesProfil(), testosteron(), wert(), messungBearbeiten(), messungenAufklappen(), messungOeffnen(), @playwright/test
 
 ### Community 292 - "My Stack: Tracking-Tiefe, Routinen und Dosierungsverlauf"
 Cohesion: 0.12
@@ -1563,8 +1563,8 @@ Cohesion: 0.29
 Nodes (6): Der Befund, Substanzkatalog — Welle „Apotheke", Verifikation, Warum das vorher nicht ging, Was aufgenommen wurde, Was der Katalog weiterhin nicht ist
 
 ### Community 352 - "fixtures.ts"
-Cohesion: 0.10
-Nodes (13): BEFUND, bereit(), logo(), seed(), ETIKETT, NOW, test, TEST_USER (+5 more)
+Cohesion: 0.11
+Nodes (9): beende(), BEFUND, bereit(), logo(), seed(), NOW, test, TEST_USER (+1 more)
 
 ### Community 353 - "Fortschritt-Chart: Festes 30T/3M-Fenster mit Pan in die Vergangenheit"
 Cohesion: 0.29
@@ -1959,7 +1959,7 @@ Nodes (5): Dot – futuristische Richtung (Runde 3, 27.10.2026), Favorit und Sie
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `react` connect `react` to `faq/types.ts`, `Protokoll.tsx`, `StackItemWizard.tsx`, `AdminPanel.tsx`, `AuthContext.tsx`, `StocksChart.tsx`, `bestand.ts`, `StudyCard.tsx`, `Silhouette.tsx`, `InjectionMapCanvas.tsx`, `EntryForm.tsx`, `AmbientLight.tsx`, `IntakePlanEditor.tsx`, `StageFit.test.tsx`, `dosageForms.ts`, `PeptideVialVisual.tsx`, `csvImport.ts`, `blutspiegelHistory.ts`, `SubstanzScanner.tsx`, `PowderVisual.tsx`, `StackItemWizard.interaction.test.tsx`, `Home.tsx`, `useBarcodeKamera.ts`, `planLabels.ts`, `RoutineEditor.tsx`, `protocolPdf.test.ts`, `TodayLogSheet.tsx`, `fortschritt/types.ts`, `package.json`, `look.ts`, `Layout.tsx`, `Bewertungen.tsx`, `Health.tsx`, `PdfPagesPreview.tsx`, `ConsentGate.tsx`, `BlutspiegelView.tsx`, `useAuth`, `PatchVisual.tsx`, `useMyStackData.ts`, `PenVisual.tsx`, `react-i18next`, `CoachPanel.tsx`, `LiquidGlassTabBar.test.tsx`, `ArticleCards.tsx`, `Tagebuch.tsx`, `metrics.ts`, `ErnaehrungPage.tsx`, `DoseCalculator.tsx`, `InjektionsTracker.tsx`, `ColorField.tsx`, `Dashboard.tsx`, `Rechner.tsx`, `ManualSimulation.tsx`, `batchFiles.ts`, `Auth.tsx`, `My Stack — Vorschau mit Farbpalette über dem Formular`, `react-i18next`, `ExerciseBlock.tsx`, `Auswertung.tsx`, `TrainingPage.tsx`, `stageLightDirection.test.ts`, `passkey.ts`, `FotosTab.tsx`, `training/i18n/index.ts`, `bioProfile.ts`, `routing.ts`, `training/types.ts`, `formUmrisse.ts`, `entries.ts`, `Silhouette`, `ExercisePicker.tsx`, `useTrainingText`, `Profil.tsx`, `StackListView.tsx`, `@testing-library/react`, `GelVisual.tsx`, `BlutwertePage.tsx`, `components/WeekStrip.tsx`, `trainingRepo.ts`, `Home.test.ts`, `WerteCard.tsx`, `ConsentGate.tsx`, `injectionGeometry.ts`, `__VialPreview.tsx`, `SprayVisual.tsx`, `injectionHistory.ts`, `vitest`, `useBuendelZiehen.ts`, `TubeVisual.tsx`, `__DevPreviews.tsx`, `zugang.ts`, `InjectionIntakeList.tsx`, `DotLayer.tsx`, `GoalsSheet.tsx`, `StageFormSpec`, `Dashboard.test.ts`, `useStageLight`, `my-stack/types.ts`, `UnitConverter.tsx`, `react-router-dom`, `App.tsx`, `ProtocolPdfModal.tsx`, `AppBackNavigation.test.tsx`, `LiveBlutspiegelChart.tsx`, `PeptideCalculatorPanel.tsx`, `Layout.tsx`, `silhouetteTakt.ts`, `dotRundflug.ts`, `DishStage.tsx`, `MarkerDetail.tsx`, `UnitConverter.test.tsx`, `pubmed.ts`, `VerlaufSection.tsx`, `SyringeScale.test.tsx`, `staleChunkReload.ts`, `MyStackPage.tsx`, `DesignSystem.tsx`, `FortschrittPage.tsx`?**
-  _High betweenness centrality (0.225) - this node is a cross-community bridge._
+  _High betweenness centrality (0.227) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `MyStackPage()` (e.g. with `Task 8: Bestehende My-Stack-Seite modularisieren und Wizard integrieren` and `Task 9: Farben persistieren und alte Formulargrenze entfernen`) actually correct?**
   _`MyStackPage()` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `../tsconfig.node.json`, `UIKit`, `Capacitor` to the rest of the system?**
@@ -1967,7 +1967,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `renderProtocolPdf.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.10122448979591837 - nodes in this community are weakly interconnected._
 - **Why does `vitest` connect `vitest` to `StackItemWizard.tsx`, `AuthContext.tsx`, `StocksChart.tsx`, `glp1.ts`, `nutrition.ts`, `bestand.ts`, `InjectionMapCanvas.tsx`, `EntryForm.tsx`, `off.ts`, `AmbientLight.tsx`, `rechnerVial.ts`, `planTimeline.js`, `IntakePlanEditor.tsx`, `StageFit.test.tsx`, `dosageForms.ts`, `gesten.ts`, `PeptideVialVisual.tsx`, `csvImport.ts`, `blutspiegelHistory.ts`, `SubstanzScanner.tsx`, `PowderVisual.tsx`, `react`, `content/types.ts`, `StackItemWizard.interaction.test.tsx`, `Home.tsx`, `useBarcodeKamera.ts`, `planLabels.ts`, `RoutineEditor.tsx`, `protocolPdf.test.ts`, `label-extract/prompt.ts`, `fortschritt/types.ts`, `package.json`, `look.ts`, `chartMath.ts`, `Layout.tsx`, `Bewertungen.tsx`, `stackInventory.ts`, `ConsentGate.tsx`, `SubstanzScanner.tsx`, `useAuth`, `PatchVisual.tsx`, `PenVisual.tsx`, `useMyStackData.ts`, `photo.ts`, `monitoring.ts`, `react-hot-toast`, `intakeSchedule.ts`, `react-i18next`, `CoachPanel.tsx`, `LiquidGlassTabBar.test.tsx`, `MealSection.tsx`, `legacyMyStackPersistence.ts`, `Tagebuch.tsx`, `metrics.ts`, `ErnaehrungPage.tsx`, `DoseCalculator.tsx`, `InjektionsTracker.tsx`, `ColorField.tsx`, `Dashboard.tsx`, `insights.ts`, `Rechner.tsx`, `ManualSimulation.tsx`, `batchFiles.ts`, `Auth.tsx`, `My Stack — Vorschau mit Farbpalette über dem Formular`, `react-i18next`, `dotEngine.ts`, `ExerciseBlock.tsx`, `Auswertung.tsx`, `TrainingPage.tsx`, `stackItems.ts`, `stageLightDirection.test.ts`, `passkey.ts`, `FotosTab.tsx`, `training/i18n/index.ts`, `bioProfile.ts`, `routing.ts`, `healthImport.ts`, `training/types.ts`, `formUmrisse.ts`, `entries.ts`, `Silhouette`, `Profil.tsx`, `StackListView.tsx`, `metricDefaults.ts`, `@testing-library/react`, `GelVisual.tsx`, `BlutwertePage.tsx`, `MockSupabase`, `components/WeekStrip.tsx`, `bloodwork.ts`, `trainingRepo.ts`, `Home.test.ts`, `produktAngaben.ts`, `legacyPlanTimeline.ts`, `WerteCard.tsx`, `ConsentGate.tsx`, `injectionGeometry.ts`, `__VialPreview.tsx`, `SprayVisual.tsx`, `injectionHistory.ts`, `dotFlight.ts`, `TubeVisual.tsx`, `audit-peptipedia.ts`, `zugang.ts`, `InjectionIntakeList.tsx`, `DotLayer.tsx`, `wellnessBuckets.ts`, `StageFormSpec`, `liquidCalculation.ts`, `coach/prompt.ts`, `Dashboard.test.ts`, `useStageLight`, `my-stack/types.ts`, `UnitConverter.tsx`, `react-router-dom`, `App.tsx`, `AppBackNavigation.test.tsx`, `progression.ts`, `LiveBlutspiegelChart.tsx`, `PeptideCalculatorPanel.tsx`, `Layout.tsx`, `silhouetteTakt.ts`, `injectionPersistence.ts`, `intakeFrequency.ts`, `dotRundflug.ts`, `bloodwork-extract/index.ts`, `DishStage.tsx`, `loadProtocolData.ts`, `My Stack — Stärke je Darreichungsform`, `MarkerDetail.tsx`, `progress-year-data.ts`, `LiquidGraphic`, `units.ts`, `UnitConverter.test.tsx`, `Farbschritt — nicht mehr hochziehen, sondern groß zeichnen`, `chartData.test.ts`, `VerlaufSection.tsx`, `markerGuidance.ts`, `SyringeScale.test.tsx`, `inventoryMath.ts`, `login-name/index.ts`, `staleChunkReload.ts`, `MyStackPage.tsx`, `auftritt.ts`, `FortschrittPage.tsx`?**
-  _High betweenness centrality (0.220) - this node is a cross-community bridge._
+  _High betweenness centrality (0.222) - this node is a cross-community bridge._
 - **Should `Animation Recipes` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
 - **Why does `lucide-react` connect `react-i18next` to `DoseCalculator.tsx`, `bloodwork.ts`, `faq/types.ts`, `StackItemWizard.tsx`, `InjektionsTracker.tsx`, `AuthContext.tsx`, `AdminPanel.tsx`, `Protokoll.tsx`, `Rechner.tsx`, `Dashboard.tsx`, `nutrition.ts`, `ConsentGate.tsx`, `injectionGeometry.ts`, `ManualSimulation.tsx`, `InjectionMapCanvas.tsx`, `bestand.ts`, `Auth.tsx`, `StudyCard.tsx`, `injectionHistory.ts`, `My Stack — Vorschau mit Farbpalette über dem Formular`, `EntryForm.tsx`, `vitest`, `IntakePlanEditor.tsx`, `ExerciseBlock.tsx`, `dosageForms.ts`, `TrainingPage.tsx`, `Auswertung.tsx`, `csvImport.ts`, `passkey.ts`, `FotosTab.tsx`, `SubstanzScanner.tsx`, `bioProfile.ts`, `InjectionIntakeList.tsx`, `Home.tsx`, `DotLayer.tsx`, `training/types.ts`, `planLabels.ts`, `RoutineEditor.tsx`, `protocolPdf.test.ts`, `TodayLogSheet.tsx`, `my-stack/types.ts`, `UnitConverter.tsx`, `package.json`, `react-router-dom`, `ProtocolPdfModal.tsx`, `Layout.tsx`, `Bewertungen.tsx`, `Health.tsx`, `PdfPagesPreview.tsx`, `ConsentGate.tsx`, `BlutspiegelView.tsx`, `MyStackPage.tsx`, `DishStage.tsx`, `DesignSystem.tsx`, `react-i18next`, `MarkerDetail.tsx`, `FortschrittPage.tsx`, `pubmed.ts`, `ExercisePicker.tsx`, `useTrainingText`, `Profil.tsx`, `MealSection.tsx`, `StackListView.tsx`, `ArticleCards.tsx`, `@testing-library/react`, `StudyFeed.tsx`, `Tagebuch.tsx`, `BlutwertePage.tsx`, `metrics.ts`, `components/WeekStrip.tsx`, `ErnaehrungPage.tsx`?**

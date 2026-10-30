@@ -2854,5 +2854,6 @@
   "day_confirmed_label": "Bestätigt",
   "bundle_period_locked": "Nur innerhalb einer Tageszeit",
   "syringe_draw_units": "{{units}} Einheiten aufziehen",
-  "dose_once": "einmalig"
+  "dose_once": "einmalig",
+  "bundle_merged_hint": "Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind."
 }
