@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { RoutineIntake } from '../intakeGroups'
 import {
   bundleDueIntakes,
+  bundlesForPeriod,
   liveBundleItemIds,
   normalizeBundleName,
   saveIntakeBundle,
@@ -48,6 +49,45 @@ describe('bundleDueIntakes', () => {
 
   it('ignores open intakes of substances outside the bundle', () => {
     expect(bundleDueIntakes({ stack_item_ids: ['x'] }, [intake('a', '2026-10-16T07:00:00.000Z')])).toEqual([])
+  })
+})
+
+describe('bundlesForPeriod', () => {
+  const morgen = [
+    intake('a', '2026-10-16T07:00:00.000Z'),
+    intake('b', '2026-10-16T07:30:00.000Z'),
+    intake('c', '2026-10-16T08:00:00.000Z'),
+  ]
+
+  it('takes the members open in this period and marks them as taken', () => {
+    const { entries, vergeben } = bundlesForPeriod([{ bundle: 'Morgen', itemIds: ['a', 'b', 'x'] }], morgen)
+    expect(entries).toHaveLength(1)
+    expect(entries[0].intakes.map(item => item.stackItemId)).toEqual(['a', 'b'])
+    expect([...vergeben].sort()).toEqual(['a-2026-10-16T07:00:00.000Z', 'b-2026-10-16T07:30:00.000Z'])
+  })
+
+  it('gives a substance in two bundles to the first one only', () => {
+    const { entries } = bundlesForPeriod([
+      { bundle: 'Erstes', itemIds: ['a', 'b'] },
+      { bundle: 'Zweites', itemIds: ['b', 'c'] },
+    ], morgen)
+    expect(entries.map(entry => [entry.bundle, entry.intakes.map(item => item.stackItemId)])).toEqual([
+      ['Erstes', ['a', 'b']],
+      ['Zweites', ['c']],
+    ])
+  })
+
+  it('leaves out a bundle with nothing open in this period', () => {
+    const { entries, vergeben } = bundlesForPeriod([{ bundle: 'Abend', itemIds: ['z'] }], morgen)
+    expect(entries).toEqual([])
+    expect(vergeben.size).toBe(0)
+  })
+
+  it('takes only the earliest intake per substance; a second one stays single', () => {
+    const zweimal = [intake('a', '2026-10-16T07:00:00.000Z'), intake('a', '2026-10-16T09:00:00.000Z')]
+    const { entries, vergeben } = bundlesForPeriod([{ bundle: 'Morgen', itemIds: ['a'] }], zweimal)
+    expect(entries[0].intakes.map(item => item.key)).toEqual(['a-2026-10-16T07:00:00.000Z'])
+    expect(vergeben.has('a-2026-10-16T09:00:00.000Z')).toBe(false)
   })
 })
 

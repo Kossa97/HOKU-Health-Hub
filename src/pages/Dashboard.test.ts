@@ -169,7 +169,7 @@ function createDashboardClient(
     data: unknown
     error: { message: string } | null
   }>,
-  options: { errors?: Record<string, { message: string } | null>; filterLogs?: boolean; logReadGate?: Promise<void> } = {},
+  options: { errors?: Record<string, { message: string } | null>; filterLogs?: boolean; logReadGate?: Promise<void>; buendel?: boolean } = {},
 ) {
   // Eine neue id je synthetisierter Zeile -- ueber ALLE Aufrufe dieses
   // Clients hinweg, nicht neu bei jedem einzelnen RPC-Aufruf. Zwei
@@ -188,14 +188,15 @@ function createDashboardClient(
   const mutations: RecordedMutation[] = []
   const logQueries: ReturnType<typeof resolvedQuery>[] = []
   const rpc = vi.fn(aufgeloesteRpcImplementation)
-  // Ein Bündel mit allen Substanzen: der Sammelweg im Kalender.
-  const buendel = fixtures.intake_bundles ?? [{
+  // Ein Bündel mit allen Substanzen: der Sammelweg im Kalender. Nur auf
+  // Wunsch (`buendel`) — es nimmt seine Substanzen aus den Einzelzeilen.
+  const buendel = fixtures.intake_bundles ?? (!options.buendel ? [] : [{
     id: 'bundle-all',
     name: 'Alle Substanzen',
     stack_item_ids: (fixtures.stack_items ?? []).map(item => (item as { id: string }).id),
     sort_order: 0,
     created_at: '2026-01-01T00:00:00Z',
-  }]
+  }])
   const from = vi.fn((table: string) => ({
     select: vi.fn((columns: string) => {
       selectCounts.set(table, (selectCounts.get(table) ?? 0) + 1)
@@ -907,12 +908,23 @@ describe('Dashboard normalized timeline path', () => {
   })
 
   it('bestätigt gemeinsam nur über die eigenen Bündel, nicht je Tageszeit', async () => {
-    // Die Tageszeit ist nur noch Ueberschrift. Der Sammelweg ist das Bündel,
-    // und dessen Blatt fragt die Uhrzeit immer ab.
-    const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true })
+    // Die Tageszeit ist nur Ueberschrift. Der Sammelweg ist das Bündel — es
+    // steht als eine Zeile in seiner Tageszeit, seine Substanzen nicht noch
+    // einmal einzeln —, und dessen Blatt fragt die Uhrzeit immer ab.
+    const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true, buendel: true })
     renderDashboard(client)
-    await waitFor(() => expect(document.querySelectorAll('[data-due-row]').length).toBe(2))
+    await screen.findByRole('button', { name: BUENDEL_KNOPF })
+    expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(1)
+    expect(document.querySelectorAll('[data-due-row]')).toHaveLength(0)
     expect(screen.queryByRole('button', { name: 'Alle als eingenommen markieren' })).toBeNull()
+
+    // Aufgeklappt zeigt es seine Einnahmen als Einzelzeilen, mit allem, was
+    // eine Einzelzeile kann.
+    const pfeil = screen.getByRole('button', { name: 'Alle Substanzen: Substanzen' })
+    expect(pfeil.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(pfeil)
+    expect(pfeil.getAttribute('aria-expanded')).toBe('true')
+    expect(document.querySelectorAll('[data-bundle-row] [data-due-row]')).toHaveLength(2)
 
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
@@ -920,8 +932,47 @@ describe('Dashboard normalized timeline path', () => {
     expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toMatch(/^\d{2}:\d{2}$/)
   })
 
+  it('stellt ein Bündel in jede Tageszeit mit seinem Teil; Substanzen ausserhalb bleiben einzeln', async () => {
+    const basis = dreiMorgensFixture()
+    // Magnesium abends, Vitamin D3 und Zink morgens. Im Bündel: Vitamin D3 und Magnesium.
+    const fixtures: Record<string, unknown[]> = {
+      ...basis,
+      cycles: basis.cycles.map(cycle => cycle.id !== 'zyklus-zwei' ? cycle : {
+        ...cycle, intake_time: 'abends', intake_time_custom: '20:00',
+        versions: cycle.versions.map(version => ({ ...version, intake_time: 'abends', intake_time_custom: '20:00' })),
+      }),
+      intake_bundles: [{
+        id: 'bundle-tag', name: 'Tagesbündel', stack_item_ids: ['stack-1', 'stack-2'],
+        sort_order: 0, created_at: '2026-01-01T00:00:00Z',
+      }],
+    }
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+
+    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(2))
+    const buendel = [...document.querySelectorAll<HTMLElement>('[data-bundle-row]')]
+    expect(buendel.map(zeile => zeile.textContent)).toEqual([
+      expect.stringContaining('Vitamin D3'),
+      expect.stringContaining('Magnesium'),
+    ])
+    expect(buendel[0].textContent).not.toContain('Magnesium')
+    // Zink ist in keinem Bündel und steht einzeln da; die beiden anderen nicht.
+    const einzeln = [...document.querySelectorAll<HTMLElement>('[data-due-row]')]
+    expect(einzeln).toHaveLength(1)
+    expect(einzeln[0].textContent).toContain('Zink')
+    // Als Naechstes steht das Bündel an; die grosse Ansicht springt nicht an
+    // ihm vorbei auf die Einzelne.
+    expect(document.querySelector('[data-due-open]')).toBeNull()
+
+    // Der Morgen-Teil bestaetigt nur, was morgens offen ist.
+    fireEvent.click(within(buendel[0]).getByRole('button', { name: /^Tagesbündel\s*1 bestätigen$/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Vitamin D3')).toBeTruthy()
+    expect(within(dialog).queryByText('Magnesium')).toBeNull()
+  })
+
   it('speichert die im Bündel abgefragte Uhrzeit für alle gewählten Einnahmen', async () => {
-    const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true })
+    const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true, buendel: true })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
     const dialog = await screen.findByRole('dialog')
@@ -1103,7 +1154,7 @@ describe('Dashboard normalized timeline path', () => {
     // die Seite nichts anbieten, was auf den alten Zahlen beruht, und zeigt
     // bis zur Antwort den Ladehinweis.
     const fixtures = startFixFixture()
-    const options: { filterLogs: boolean; logReadGate?: Promise<void> } = { filterLogs: true }
+    const options: { filterLogs: boolean; logReadGate?: Promise<void>; buendel: boolean } = { filterLogs: true, buendel: true }
     const client = createDashboardClient(fixtures, undefined, options)
     renderDashboard(client)
     await screen.findByRole('button', { name: BUENDEL_KNOPF })
@@ -1138,7 +1189,7 @@ describe('Dashboard normalized timeline path', () => {
         fixtures.dose_logs = [{ ...pendingLog(), taken: true, logged_at: '2026-07-01T06:00:00.000Z' }]
       }
       return { data: [{ id: 'saved-log-1' }], error: null }
-    }, { filterLogs: true })
+    }, { filterLogs: true, buendel: kind === 'group' })
     renderDashboard(client)
     if (kind === 'single') {
       await openSingle()
@@ -1149,13 +1200,16 @@ describe('Dashboard normalized timeline path', () => {
     }
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
     browseToNovember()
-    await screen.findByRole('button', { name: BUENDEL_KNOPF })
+    // Mit Bündel steht die offene Einnahme darin, ohne als Einzelzeile.
+    if (kind === 'group') await screen.findByRole('button', { name: BUENDEL_KNOPF })
+    else await waitFor(() => expect(document.querySelector('[data-due-row]')).toBeTruthy())
     const queriesBeforeCompletion = client.logQueries.length
     await act(async () => { finish() })
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(queriesBeforeCompletion))
     await waitFor(() => expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(false))
     expect(await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
+    expect(document.querySelector('[data-due-row]')).toBeNull()
     const refreshedKeys: string[] = client.logQueries.slice(queriesBeforeCompletion)
       .flatMap(query => (query.or as ReturnType<typeof vi.fn>).mock.calls.map(call => call[0] as string))
     expect(faengtSchluessel(refreshedKeys, 'timeline-cycle@2026-11-18T08:00')).toBe(true)
@@ -1176,7 +1230,7 @@ describe('Dashboard normalized timeline path', () => {
         return { data: null, error: { message: 'retry inventory' } }
       }
       return { data: [{ id: 'saved-log-1' }], error: null }
-    }, { filterLogs: true })
+    }, { filterLogs: true, buendel: true })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
@@ -1194,7 +1248,7 @@ describe('Dashboard normalized timeline path', () => {
   it('keeps the original 08:00 occurrence in a pending group confirmation', async () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [pendingLog()]
-    const client = createDashboardClient(fixtures)
+    const client = createDashboardClient(fixtures, undefined, { buendel: true })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
@@ -1431,7 +1485,7 @@ describe('Dashboard normalized timeline path', () => {
         return { data: [{ id: 'saved-log-1' }], error: null }
       }
       return { data: [{ id: 'saved-log-1' }], error: null }
-    }, { errors })
+    }, { errors, buendel: true })
     renderDashboard(client)
     await gruppenBestaetigungOeffnen()
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
@@ -1556,7 +1610,7 @@ describe('Dashboard normalized timeline path', () => {
         id: 'stack-1', display_name: 'Vitamin D3', default_method: 'Oral',
         dosage_form: 'capsule', tracking_level: 'complete',
       }],
-    })
+    }, undefined, { buendel: true })
     renderDashboard(client)
 
     await gruppenBestaetigungOeffnen()
@@ -1688,7 +1742,7 @@ describe('Dashboard intake confirmation actions', () => {
       dose_logs: [],
       stack_items: [{ id: 'stack-1', display_name: 'Vitamin D3', dosage_form: 'capsule' }],
       dose_escalations: [],
-    })
+    }, undefined, { buendel: true })
     renderDashboard(client)
 
     await gruppenBestaetigungOeffnen()
@@ -2054,7 +2108,7 @@ describe('Dashboard intake confirmation actions', () => {
       return stockAttempts === 1
         ? { data: null, error: { message: 'vial stock offline' } }
         : { data: 0.9, error: null }
-    })
+    }, { buendel: true })
     renderDashboard(client)
 
     await gruppenBestaetigungOeffnen()
@@ -2093,7 +2147,7 @@ describe('Dashboard intake confirmation actions', () => {
       return inventoryAttempts === 1
         ? { data: null, error: { message: 'inventory offline' } }
         : { data: 41, error: null }
-    })
+    }, { buendel: true })
     renderDashboard(client)
 
     await gruppenBestaetigungOeffnen()
