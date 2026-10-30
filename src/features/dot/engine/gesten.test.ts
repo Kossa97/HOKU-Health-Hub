@@ -57,21 +57,34 @@ describe('Dot: Gesten', () => {
     const ein = bild(), beide = bild()
     gestenBild('hand', 1.5, { gruss: 'einArm', fehler: 'kugel', netz: 'sucht' }, ein)
     gestenBild('hand', 1.5, { gruss: 'beideArme', fehler: 'kugel', netz: 'sucht' }, beide)
-    // Punkte, die seitlich weiter als 1,3 Radien von Dots Mitte stehen (Mitte und Maßstab je Variante)
-    const draussen = (b: GestenBild, mx: number, sc: number, seite: number) => Array.from({ length: GESTE_N }, (_, i) => i).filter(i => (b.P[i * 3] - mx) * seite > 1.3 * sc).length
-    // ein Arm: links (vom Betrachter aus), Dot rückt dafür nach rechts; beide Hände schwingen gerade zur selben Seite
-    expect(draussen(ein, 0.4, 0.74, -1)).toBeGreaterThan(40)
-    expect(draussen(ein, 0.4, 0.74, 1)).toBe(0)
-    expect(draussen(beide, 0, 0.64, -1)).toBeGreaterThan(20)
-    expect(draussen(beide, 0, 0.64, 1)).toBeGreaterThan(20)
-    // beim Winken reicht das Ende des Arms bis auf Höhe von Dots Scheitel (Mitte 0,36, Radius 0,74)
+    // Punkte, die seitlich weiter als 1,3 Radien von Dots Mitte stehen
+    const draussen = (b: GestenBild, seite: number) => Array.from({ length: GESTE_N }, (_, i) => i).filter(i => b.P[i * 3] * seite > 1.3).length
+    // ein Arm: links (vom Betrachter aus); beide Hände schwingen gerade zur selben Seite
+    expect(draussen(ein, -1)).toBeGreaterThan(40)
+    expect(draussen(ein, 1)).toBe(0)
+    expect(draussen(beide, -1)).toBeGreaterThan(20)
+    expect(draussen(beide, 1)).toBeGreaterThan(20)
+    // beim Winken reicht das Ende des Arms bis auf Höhe von Dots Scheitel
     let hoechste = 9
     for (let t = 1; t <= 2.5; t += 0.05) {
       const b = bild()
       gestenBild('hand', t, { gruss: 'einArm', fehler: null, netz: 'sucht' }, b)
       for (let i = 0; i < GESTE_N; i++) hoechste = Math.min(hoechste, b.P[i * 3 + 1])
     }
-    expect(hoechste).toBeLessThan(0.36 - 0.74 + 0.05)
+    expect(hoechste).toBeLessThan(-1 + 0.07)
+  })
+
+  it('Begrüßung: Hoku bleibt beim Winken mittig und so groß wie vorher', () => {
+    // die Kugel ohne Arm: Punkte, die nicht weiter als 1,05 Radien von der Mitte stehen
+    for (const g of ['einArm', 'beideArme'] as Gruss[]) for (let t = 0.5; t <= 3.5; t += 0.25) {
+      const b = bild()
+      gestenBild('hand', t, { gruss: g, fehler: null, netz: 'sucht' }, b)
+      const kugel = Array.from({ length: GESTE_N }, (_, i) => i).filter(i => Math.hypot(b.P[i * 3], b.P[i * 3 + 1]) < 1.05)
+      const breite = Math.max(...kugel.map(i => b.P[i * 3])) - Math.min(...kugel.map(i => b.P[i * 3]))
+      const mx = kugel.reduce((a, i) => a + b.P[i * 3], 0) / kugel.length
+      expect(breite, `${g} ${t}`).toBeGreaterThan(1.8)
+      expect(Math.abs(mx), `${g} ${t}`).toBeLessThan(0.15)
+    }
   })
 
   it('Herz: ein Teil der Punkte ist rosa, die Kontur leuchtet am hellsten', () => {

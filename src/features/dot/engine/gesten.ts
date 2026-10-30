@@ -55,7 +55,7 @@ const weich = (x: number) => { x = clamp01(x); return x * x * (3 - 2 * x) }
 const hinaus = (x: number) => { x = clamp01(x) - 1; return 1 + 2.70158 * x * x * x + 1.70158 * x * x }
 const misch = (a: number, b: number, r: number) => a + (b - a) * r
 const wachsen = (t: number, ein: number, aus: number) => t > aus ? 1 - weich((t - aus) / 0.55) : hinaus(t / ein)
-// Bildausschnitt: aus der Kugel-Lage in den der Geste und zurück
+// Übergang aus der Kugel-Lage in die der Geste und zurück (Neigung, Hüpfen)
 const rein = (t: number) => weich(t / 0.45) * (1 - weich((t - 3.45) / 0.45))
 
 function fib(n: number, r: number) {
@@ -228,7 +228,8 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
   }
 }
 
-// D1: ein Arm wächst aus der Seite, geht schräg nach oben und winkt; sein Ende schwingt nach
+// D1: ein Arm wächst aus der Seite, geht schräg nach oben und winkt; sein Ende schwingt nach.
+// Hoku bleibt dabei mittig und so groß wie vorher (Nutzer 30.10.2026), nur der Arm kommt dazu
 const EIN = { kp: null as Kappe | null, arm: neuerArm(-1) }
 function einArm(t: number, out: GestenBild) {
   const r = hinaus((t - 0.25) / 0.55) * (1 - weich((t - 2.85) / 0.45)), ak = clamp01((t - 0.7) / 0.3) * clamp01((2.95 - t) / 0.3)
@@ -236,7 +237,7 @@ function einArm(t: number, out: GestenBild) {
   a.a1 = misch(0.55, -0.2, r) - 0.06 * w; a.a2 = misch(1.25, -1.0, r) + 0.38 * w
   a.b = a.a2 - 0.1 * r + 0.3 * Math.sin(ph - 0.9) * ak
   EIN.kp ??= kappe(a.s, false)
-  armeBild(EIN.kp, [a], { g: wachsen(t, 0.45, 3.3), neig: (-0.05 * r - 0.02 * w) * e, sc: misch(1, 0.74, e), ox: 0.4 * e, oy: 0.36 * e }, out)
+  armeBild(EIN.kp, [a], { g: wachsen(t, 0.45, 3.3), neig: (-0.05 * r - 0.02 * w) * e, sc: 1, oy: 0 }, out)
 }
 // D4: beide Arme gehen schräg nach oben und winken im Gleichtakt in dieselbe Richtung; Dot hüpft dazu
 const BEIDE = { kp: null as Kappe | null, arme: [neuerArm(-1), neuerArm(1)] }
@@ -250,7 +251,7 @@ function beideArme(t: number, out: GestenBild) {
   }
   const hop = Math.pow(Math.abs(Math.sin(ph / 2)), 0.8) * ak, sq = (1 - hop) * 0.06 * ak
   BEIDE.kp ??= kappe(-1, true)
-  armeBild(BEIDE.kp, BEIDE.arme, { g: wachsen(t, 0.45, 3.3), neig: 0.03 * w * e, sx: 1 + sq, sy: 1 - sq, sc: misch(1, 0.64, e), oy: (0.42 - 0.14 * hop + 0.06 * sq) * e }, out)
+  armeBild(BEIDE.kp, BEIDE.arme, { g: wachsen(t, 0.45, 3.3), neig: 0.03 * w * e, sx: 1 + sq, sy: 1 - sq, sc: 1, oy: (-0.22 * hop + 0.09 * sq) * e }, out)
 }
 
 /* ── Herz C: ein Herz aus eigenen Punkten wölbt sich aus Dot ───────────────── */

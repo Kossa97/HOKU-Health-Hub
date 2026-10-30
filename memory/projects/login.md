@@ -182,6 +182,10 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Passwortfeld hört er wieder nur zu. Später am 29.10. zurück, aber nur beim Tipp auf „Passwort
   anzeigen“, solange Hoku zu sehen ist: Arme und Blase genau wie Mockup G1 v13, ohne Wegdrehen.
 
+- **Winken ohne Verkleinern (Nutzer 30.10.2026):** Beim Winken (D1 ein Arm, D4 beide Arme) wurde Hoku
+  auf 0,74 bzw. 0,64 verkleinert und (D1) nach rechts gerückt, damit der Arm Platz hat. Jetzt bleibt er
+  mittig und in voller Größe, nur der Arm kommt dazu; Neigung und Hüpfer (D4, relativ 0,22) bleiben.
+
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
   Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand
