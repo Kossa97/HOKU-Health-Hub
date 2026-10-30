@@ -1,6 +1,7 @@
 import { supabase } from '../../../lib/supabase'
 import {
   DEFAULT_TRAINING_SETTINGS,
+  ROUTINE_FOLDER_MAX,
   type CustomExercise,
   type SessionExercise,
   type TrainingRoutine,
@@ -172,26 +173,49 @@ interface RoutineRow {
   exercises: TrainingRoutine['exercises'] | null
   weekdays: number[] | null
   sort_order: number
+  folder?: string | null
 }
 
-const routineFromRow = (row: RoutineRow): TrainingRoutine => ({
+/**
+ * `folder` kommt mit `supabase-training-v2.sql`; die Migration gehoert VOR das
+ * Frontend-Deploy. Fehlt sie doch, liest `loadRoutines` ohne die Spalte weiter,
+ * `saveRoutine` scheitert (Fehler-Toast in der Oberflaeche).
+ */
+const ROUTINE_COLUMNS = 'id, name, kind, exercises, weekdays, sort_order, folder'
+const ROUTINE_COLUMNS_V1 = 'id, name, kind, exercises, weekdays, sort_order'
+
+/** Postgres 42703: Spalte gibt es nicht. */
+export const isUndefinedColumn = (error: { code?: string } | null | undefined): boolean => error?.code === '42703'
+
+export const routineFromRow = (row: RoutineRow): TrainingRoutine => ({
   id: row.id,
   name: row.name,
   kind: row.kind,
   exercises: Array.isArray(row.exercises) ? row.exercises : [],
   weekdays: row.weekdays ?? [],
   sortOrder: row.sort_order,
+  folder: normalizeFolder(row.folder),
 })
 
+/** Ordnername wie die Datenbank ihn prueft: getrimmt, 1–40 Zeichen, sonst null. */
+export function normalizeFolder(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim().slice(0, ROUTINE_FOLDER_MAX)
+  return trimmed.length > 0 ? trimmed : null
+}
+
 export async function loadRoutines(userId: string): Promise<TrainingRoutine[]> {
-  const { data, error } = await supabase
+  const select = (columns: string) => supabase
     .from('training_routines')
-    .select('id, name, kind, exercises, weekdays, sort_order')
+    .select(columns)
     .eq('user_id', userId)
     .order('sort_order')
     .order('created_at')
+  let { data, error } = await select(ROUTINE_COLUMNS)
+  // Frontend vor der v2-Migration ausgerollt: Routinen trotzdem zeigen, Ordner leer.
+  if (isUndefinedColumn(error)) ({ data, error } = await select(ROUTINE_COLUMNS_V1))
   if (error) throw error
-  return ((data ?? []) as RoutineRow[]).map(routineFromRow)
+  return ((data ?? []) as unknown as RoutineRow[]).map(routineFromRow)
 }
 
 export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine, 'id'> & { id?: string }): Promise<TrainingRoutine> {
@@ -202,12 +226,13 @@ export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine,
     exercises: routine.exercises,
     weekdays: [...new Set(routine.weekdays)].sort(),
     sort_order: routine.sortOrder,
+    folder: normalizeFolder(routine.folder),
     updated_at: new Date().toISOString(),
   }
   const query = routine.id
     ? supabase.from('training_routines').update(row).eq('id', routine.id).eq('user_id', userId)
     : supabase.from('training_routines').insert(row)
-  const { data, error } = await query.select('id, name, kind, exercises, weekdays, sort_order').single()
+  const { data, error } = await query.select(ROUTINE_COLUMNS).single()
   if (error) throw error
   return routineFromRow(data as RoutineRow)
 }
@@ -291,6 +316,9 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
     dismissedExternalIds: Array.isArray(value.dismissedExternalIds)
       ? value.dismissedExternalIds.filter((id): id is string => typeof id === 'string' && id.length <= 200).slice(-MAX_DISMISSED)
       : [],
+    // Fehlt der Schluessel (Einstellungen aus v1), gilt der Standard „an".
+    restSound: value.restSound !== false,
+    restNotify: value.restNotify === true,
   }
 }
 

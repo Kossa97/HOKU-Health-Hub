@@ -1,0 +1,1136 @@
+<title>Silo-Rückblick</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: Abschluss-Bildschirm eines Trainings. Glas-Silo links, Skala rechts daneben,
+   Zahl oben, unten der laufende Satz und die Steuerung, Teilen als Blatt.
+   Farben aus der App: Tiefblau-Schwarz, Cyan als Leitfarbe, Orange nur fuer die Steigerung. */
+:root{
+  --bg:#02030a;
+  --sheet:#080a16;
+  --ink:#eef1fa;
+  --dim:#8e99b5;
+  --faint:#5d6680;
+  --cyan:#00ccf5;
+  --cyan-soft:rgba(0,204,245,.12);
+  --up:#f97316;
+  --up-2:#fdba74;
+  --up-ink:#1a0d02;
+  --line:rgba(160,200,255,.12);
+  --chip:rgba(255,255,255,.05);
+  --font-display:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+.app{position:relative;height:100%;max-width:440px;margin:0 auto;overflow:hidden;background:var(--bg)}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:pointer}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+
+.hud{position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:14px 0;
+  display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.hud-top{display:flex;align-items:center;gap:8px}
+.eyebrow{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+.tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);background:var(--cyan-soft);border:1px solid rgba(0,204,245,.35);border-radius:999px;padding:2px 8px}
+.total{display:flex;align-items:baseline;gap:6px}
+.total .num{font-family:var(--font-display);font-weight:700;font-size:54px;line-height:1;color:#f4f8ff;text-shadow:0 0 34px rgba(0,204,245,.22)}
+.total .unit{font-size:18px;font-weight:700;color:var(--dim)}
+.meter{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--faint);width:100%;max-width:310px}
+.meter.up{color:var(--up-2)}
+.bar{flex:1;height:3px;border-radius:2px;background:rgba(160,200,255,.1);overflow:hidden;display:flex}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,rgba(0,204,245,.5),var(--cyan))}
+.bar b{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--up-2),var(--up))}
+.share{position:absolute;top:8px;right:max(10px, env(safe-area-inset-right, 0px));pointer-events:auto;width:44px;height:44px;border-radius:12px;
+  display:inline-flex;align-items:center;justify-content:center;color:#c7d6f0;background:var(--chip);border:1px solid var(--line)}
+
+.tray{position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:26px max(14px, env(safe-area-inset-bottom, 0px));
+  background:linear-gradient(180deg, rgba(2,3,10,0) 0%, rgba(2,3,10,.9) 22%, var(--bg) 50%);
+  display:flex;flex-direction:column;gap:10px}
+.now{display:flex;align-items:flex-start;gap:10px}
+.now-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;min-height:44px}
+.now-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ink);text-wrap:balance}
+.now-sub{font-size:13px;color:var(--dim)}
+.now-sub em{font-style:normal;color:var(--up-2);font-weight:700}
+.viewseg{display:inline-grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);flex:none}
+.viewseg button{min-height:30px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:700;color:var(--dim)}
+.viewseg button[aria-pressed="true"]{background:var(--cyan-soft);color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(0,204,245,.35)}
+.progress{display:flex;gap:3px}
+.progress span{flex:1;height:3px;border-radius:2px;background:rgba(160,200,255,.1)}
+.progress span.done{background:rgba(0,204,245,.75)}
+.progress span.up{background:var(--up)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status{margin:0;font-size:12px;color:var(--faint);min-height:1.4em}
+
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;border:none;background:transparent;color:inherit;padding:0;
+  transition:transform 140ms cubic-bezier(.23,1,.32,1)}
+button:active{transform:scale(.96)}
+button:focus-visible,label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
+.btn{min-height:44px;padding:0 16px;white-space:nowrap;border-radius:14px;background:var(--chip);border:1px solid var(--line);color:#dfe7f6;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--cyan);border-color:var(--cyan);color:#001018;flex:1;box-shadow:0 0 24px rgba(0,204,245,.25)}
+.btn.icon{width:44px;padding:0}
+.chip{min-height:36px;padding:0 13px;border-radius:999px;background:var(--chip);border:1px solid var(--line);color:#c7d6f0;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:rgba(0,204,245,.55);background:var(--cyan-soft);color:var(--cyan)}
+.sound .on-i{display:none}.sound[aria-pressed="true"] .on-i{display:inline}.sound[aria-pressed="true"] .off-i{display:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:13px;z-index:1}
+
+/* Teilen-Blatt */
+.scrim{position:absolute;inset:0;z-index:5;background:rgba(0,0,0,.62);opacity:0;transition:opacity 220ms cubic-bezier(.23,1,.32,1)}
+.scrim.open{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;max-height:95%;overflow:auto;background:var(--sheet);border-top:1px solid rgba(0,204,245,.25);border-radius:22px 22px 0 0;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:8px max(16px, env(safe-area-inset-bottom, 0px));
+  display:flex;flex-direction:column;gap:12px;transform:translateY(100%);transition:transform 320ms cubic-bezier(.23,1,.32,1)}
+.sheet.open{transform:none}
+.grab{width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);align-self:center}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sheet h2{margin:0;font-family:var(--font-display);font-size:19px;font-weight:700}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--dim);background:var(--chip)}
+.modes{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.modes::-webkit-scrollbar{display:none}
+.preview{border-radius:14px;overflow:hidden;background:#05060c;display:flex;align-items:center;justify-content:center;min-height:240px;border:1px solid var(--line)}
+.preview.checker{background:repeating-conic-gradient(#1a1d29 0 25%, #10121b 0 50%) 0 0/20px 20px}
+.preview.checker-light{background:repeating-conic-gradient(#e9ecf2 0 25%, #d9dde6 0 50%) 0 0/20px 20px}
+.preview img{display:block;max-width:100%;max-height:44vh;object-fit:contain}
+.preview p{margin:0;padding:24px;font-size:13px;color:var(--dim);text-align:center;max-width:30ch;line-height:1.45}
+.mode-note{margin:0;font-size:12px;color:var(--dim);line-height:1.45}
+.cta{flex:1;min-height:50px;border-radius:14px;background:var(--cyan);color:#001018;font-size:15px;font-weight:800}
+.cta[disabled]{opacity:.45;cursor:default}
+.hint{margin:0;font-size:12px;color:var(--faint);text-align:center;min-height:1.4em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){
+  .sheet{transform:none;opacity:0;transition:opacity 180ms ease}
+  .sheet.open{opacity:1}
+}
+</style>
+
+<div class="app" id="app">
+  <canvas id="stage" role="img" aria-label="Glas-Silo mit den Hantelscheiben des Trainings. Rechts daneben eine Skala mit dem Volumen jeder Übung."></canvas>
+  <div class="loading" id="loading">Rückblick wird vorbereitet …</div>
+
+  <header class="hud" id="hud">
+    <div class="hud-top"><span class="eyebrow">Push A · Abschluss</span><span class="tag">Beispiel</span></div>
+    <div class="total"><span class="num" id="kg">0</span><span class="unit">kg</span></div>
+    <div class="meter" id="meter"><div class="bar"><i id="barBase"></i><b id="barUp"></b></div><span class="num" id="pct">Letztes Mal 6.975 kg</span></div>
+    <button type="button" class="share" id="shareBtn" aria-label="Bild teilen">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+    </button>
+  </header>
+
+  <div class="tray" id="tray">
+    <div class="now">
+      <div class="now-text">
+        <div class="now-title" id="nowTitle">Gleich geht’s los</div>
+        <div class="now-sub num" id="nowSub">16 Sätze aus 5 Übungen fallen nacheinander ins Silo.</div>
+      </div>
+      <div class="viewseg" role="group" aria-label="Ansicht">
+        <button type="button" data-view="iron" aria-pressed="true">Eisen</button>
+        <button type="button" data-view="neon" aria-pressed="false">Neon</button>
+      </div>
+    </div>
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <div class="row" id="ctlPlay">
+      <button type="button" class="btn primary" id="nextBtn">Nächster Satz</button>
+      <button type="button" class="btn" id="skipBtn">Überspringen</button>
+      <button type="button" class="btn icon sound" id="snd" aria-pressed="false" aria-label="Ton">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path class="on-i" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path><path class="off-i" d="M16 9l5 6M21 9l-5 6"></path></svg>
+      </button>
+    </div>
+    <div class="row" id="ctlDone" hidden>
+      <button type="button" class="btn icon" id="replayBtn" aria-label="Nochmal abspielen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+      </button>
+      <button type="button" class="btn primary" id="shareBtn2">Bild teilen</button>
+    </div>
+    <p class="status" id="status" aria-live="polite">Tippe aufs Silo, um den nächsten Satz sofort einzuwerfen.</p>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Bild teilen</h2>
+      <button type="button" class="icon-btn" id="sheetClose" aria-label="Schließen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Variante">
+      <button type="button" class="chip" data-mode="card" aria-pressed="true">Karte</button>
+      <button type="button" class="chip" data-mode="neon" aria-pressed="false">Neon</button>
+      <button type="button" class="chip" data-mode="line-w" aria-pressed="false">Linie hell</button>
+      <button type="button" class="chip" data-mode="line-b" aria-pressed="false">Linie dunkel</button>
+      <button type="button" class="chip" data-mode="photo" aria-pressed="false">Auf Foto</button>
+    </div>
+    <p class="mode-note" id="modeNote"></p>
+    <div class="preview" id="preview"><img id="previewImg" alt="Vorschau des Bildes zum Teilen"><p id="previewEmpty" hidden>Wähle ein Foto vom Training. Das Silo kommt als Wasserzeichen unten links darauf.</p></div>
+    <div class="row" id="photoRow" hidden>
+      <label class="chip">Foto wählen<input type="file" accept="image/*" id="photoInput" class="vh"></label>
+      <button type="button" class="chip" data-overlay="line-w" aria-pressed="true">Linie</button>
+      <button type="button" class="chip" data-overlay="neon" aria-pressed="false">Neon</button>
+    </div>
+    <div class="row"><button type="button" class="cta" id="saveBtn">Bild speichern</button></div>
+    <p class="hint" id="saveHint" aria-live="polite"></p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+(() => {
+  const M = window.Matter
+  const $ = id => document.getElementById(id)
+  if (!M) { $('loading').textContent = 'Die Physik-Bibliothek ließ sich nicht laden.'; return }
+
+  const app = $('app'), cv = $('stage'), ctx = cv.getContext('2d')
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const deNum = n => n.toLocaleString('de-DE')
+  const fmtT = kg => (kg / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' t'
+  function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c }
+  function rgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})` }
+
+  // ---------- Beispieltraining ----------
+  // Saetze als [kg, Wiederholungen]. Kurzhanteln zaehlen beide Haenteln.
+  const WORKOUT = {
+    name: 'Push A',
+    last: 6975,
+    exercises: [
+      { name: 'Bankdrücken', sets: [[60, 10], [80, 8], [80, 8], [82.5, 6]] },
+      { name: 'Schrägbank Kurzhantel', sets: [[60, 10], [60, 10], [60, 9]] },
+      { name: 'Schulterdrücken', sets: [[50, 10], [50, 10], [50, 8]] },
+      { name: 'Seitheben', sets: [[20, 15], [20, 15], [20, 12]] },
+      { name: 'Trizepsdrücken Kabel', sets: [[35, 12], [35, 12], [35, 12]] },
+    ],
+  }
+  const exVol = WORKOUT.exercises.map(e => e.sets.reduce((s, [w, r]) => s + w * r, 0))
+  const PLAN_TOTAL = exVol.reduce((a, b) => a + b, 0)
+  const SET_COUNT = WORKOUT.exercises.reduce((a, e) => a + e.sets.length, 0)
+  const SEED = 20261029
+  // Farbe je Uebung, nur beim Auswaehlen und in der Neon-Ansicht. Orange bleibt der Steigerung.
+  const EX_COLORS = ['#00ccf5', '#a78bfa', '#f472b6', '#a3e635', '#facc15']
+  const exColor = i => EX_COLORS[i % EX_COLORS.length]
+  const CYAN = '#00ccf5', UP = '#f97316'
+
+  // ---------- Welt ----------
+  const KINDS = {
+    20:   { kg: 20,   w: 160, h: 22 },
+    15:   { kg: 15,   w: 144, h: 20 },
+    10:   { kg: 10,   w: 127, h: 18 },
+    7.5:  { kg: 7.5,  w: 110, h: 16 },
+    5:    { kg: 5,    w: 94,  h: 15 },
+    2.5:  { kg: 2.5,  w: 78,  h: 14 },
+    1.25: { kg: 1.25, w: 63,  h: 14 },
+  }
+  const ORDER = [20, 15, 10, 7.5, 5, 2.5, 1.25]
+  // Hochkant fuer Handy und 4:5-Bild, gleiche Flaeche wie zuvor 3600 x 3300
+  const MAX_CAP = 30000, MAX_W = 2600, MAX_H = 4570, WALL = 140
+  const TIERS = [1000, 2500, 5000, 10000, 15000, 20000, 25000, 30000]
+  const FILL = 0.78
+  const dims = cap => { const f = Math.sqrt(cap / MAX_CAP); return { w: MAX_W * f, h: MAX_H * f } }
+  const tierFor = kg => TIERS.find(t => kg <= t * FILL) || MAX_CAP
+  const COL = 26, NCOL = MAX_W / COL, GL = -MAX_W / 2
+  const MAXSTEP = 9, SUBMS = 1000 / 240
+  const SOFT = 90, HARD = 260, DEPTH = 150
+
+  // Alles, was den Haufen formt, haengt nur am Ablauf der Teilschritte und am Startwert.
+  function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+  let rnd = mulberry32(SEED)
+
+  let engine, world, wallL, wallR
+  let live = [], baked = [], total = 0, count = 0, siloKg = 0, simT = 0, steps = 0
+  let exPoured = WORKOUT.exercises.map(() => 0)
+  const silo = { cap: TIERS[0], capFrom: TIERS[0], w: 0, h: 0, from: null, to: null, t0: 0, dur: 950 }
+  const colTop = new Float32Array(NCOL)
+  let colBodies = new Array(NCOL).fill(null)
+  let bakedTop = 0
+  const ID0 = 1000
+
+  function buildWorld() {
+    M.Common._nextId = ID0
+    engine = M.Engine.create({ enableSleeping: true, positionIterations: 10, velocityIterations: 8 })
+    engine.gravity.y = 2.4
+    world = engine.world
+    const WL = MAX_H + 3400
+    wallL = M.Bodies.rectangle(0, -WL / 2 + 200, WALL, WL, { isStatic: true, friction: 0.4 })
+    wallR = M.Bodies.rectangle(0, -WL / 2 + 200, WALL, WL, { isStatic: true, friction: 0.4 })
+    M.Composite.add(world, [M.Bodies.rectangle(0, 200, MAX_W + 2 * WALL + 400, 400, { isStatic: true, friction: 0.9 }), wallL, wallR])
+    M.Events.on(engine, 'afterUpdate', clampSpeed)
+    M.Events.on(engine, 'collisionStart', onCollide)
+    live = []; baked = []; total = 0; count = 0; siloKg = 0; simT = 0; steps = 0
+    exPoured = WORKOUT.exercises.map(() => 0)
+    colTop.fill(0); colBodies = new Array(NCOL).fill(null); bakedTop = 0
+    rnd = mulberry32(SEED)
+    setSiloNow(TIERS[0])
+  }
+  function setWalls(w) {
+    M.Body.setPosition(wallL, { x: -w / 2 - WALL / 2, y: wallL.position.y })
+    M.Body.setPosition(wallR, { x: w / 2 + WALL / 2, y: wallR.position.y })
+  }
+  function setSiloNow(cap) { const d = dims(cap); silo.cap = silo.capFrom = cap; silo.w = d.w; silo.h = d.h; silo.from = silo.to = null; setWalls(d.w) }
+
+  // ---------- Eisen-Grafik (nur Ansicht "Eisen"; Neon und Linie werden als Vektor gezeichnet) ----------
+  const SPR = 1.6
+  const TONES = [
+    { bands: ['#a3a6ad', '#2e3035', '#5d6168', '#27292e', '#141517'], lbl: '#b8bcc4' },
+    { bands: ['#c9bfac', '#3d3933', '#8a8170', '#38342d', '#1c1a17'], lbl: '#ddd4c4' },
+  ]
+  function rr(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r)
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath()
+  }
+  function bands(g, stops, x0, y0, x1, y1) {
+    const gr = g.createLinearGradient(x0, y0, x1, y1)
+    for (const [o, c] of stops) gr.addColorStop(o, c)
+    return gr
+  }
+  function spacing(g, px) { try { g.letterSpacing = px + 'px' } catch (_) {} }
+  function makeSprite(k, tone, chalk) {
+    const W = Math.ceil(k.w * SPR), H = Math.ceil(k.h * SPR), r = H * 0.4, T = TONES[tone], b = T.bands
+    const c = canvas(W, H), g = c.getContext('2d')
+    g.save(); rr(g, 0, 0, W, H, r); g.clip()
+    g.fillStyle = bands(g, [[0, b[0]], [.12, b[0]], [.12, b[1]], [.28, b[1]], [.28, b[2]], [.6, b[2]], [.6, b[3]], [.86, b[3]], [.86, b[4]], [1, b[4]]], 0, 0, 0, H)
+    g.fillRect(0, 0, W, H)
+    g.fillStyle = bands(g, [[0, 'rgba(0,0,0,.55)'], [.06, 'rgba(0,0,0,.55)'], [.06, 'rgba(0,0,0,.2)'], [.2, 'rgba(0,0,0,.2)'], [.2, 'rgba(0,0,0,0)'], [.8, 'rgba(0,0,0,0)'], [.8, 'rgba(0,0,0,.2)'], [.94, 'rgba(0,0,0,.2)'], [.94, 'rgba(0,0,0,.55)'], [1, 'rgba(0,0,0,.55)']], 0, 0, W, 0)
+    g.fillRect(0, 0, W, H)
+    if (chalk) { g.fillStyle = 'rgba(245,240,230,.22)'; g.fillRect(0, 0, W, H) }
+    const label = deNum(k.kg) + ' KG'
+    g.font = `700 ${Math.round(H * 0.46)}px "Space Grotesk", Inter, sans-serif`
+    g.textAlign = 'center'; g.textBaseline = 'middle'; spacing(g, (H * 0.07).toFixed(1))
+    const ty = H * 0.47
+    g.fillStyle = 'rgba(0,0,0,.9)'; g.fillText(label, W / 2, ty + 1)
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillText(label, W / 2, ty - 1)
+    g.fillStyle = chalk ? '#ffffff' : T.lbl; g.fillText(label, W / 2, ty)
+    g.restore()
+    if (chalk) { g.lineWidth = 2.6; g.strokeStyle = 'rgba(248,244,236,.95)'; rr(g, 1.3, 1.3, W - 2.6, H - 2.6, r); g.stroke() }
+    else { g.lineWidth = 1.2; g.strokeStyle = 'rgba(0,0,0,.7)'; rr(g, .6, .6, W - 1.2, H - 1.2, r); g.stroke() }
+    return c
+  }
+
+  // ---------- Physik ----------
+  function clampSpeed() {
+    for (const b of live) {
+      const dx = b.position.x - b.positionPrev.x, dy = b.position.y - b.positionPrev.y
+      const d = Math.hypot(dx, dy)
+      if (d > MAXSTEP) { const k = MAXSTEP / d; b.positionPrev.x = b.position.x - dx * k; b.positionPrev.y = b.position.y - dy * k }
+    }
+  }
+  function onCollide(e) {
+    for (const p of e.pairs) {
+      for (const [a, o] of [[p.bodyA, p.bodyB], [p.bodyB, p.bodyA]]) {
+        const t = a.plugin && a.plugin.tyd
+        if (!t || !t.fresh) continue
+        const ot = o.plugin && o.plugin.tyd
+        if (ot && ot.fresh) continue
+        t.fresh = false
+        const sp = Math.hypot(a.position.x - a.positionPrev.x, a.position.y - a.positionPrev.y)
+        if (sp > 2.2) {
+          const s = p.collision && p.collision.supports && p.collision.supports[0]
+          impact(s ? s.x : a.position.x, s ? s.y : a.position.y + KINDS[t.kg].h / 2, t.kg, sp, t.chalk, t.ex)
+        }
+      }
+    }
+  }
+  const settled = b => !b.plugin.tyd.fresh && (b.isSleeping || b.speed < 0.35)
+  function heapTop() {
+    let top = bakedTop
+    for (const b of live) if (settled(b) && b.bounds.min.y < top) top = b.bounds.min.y
+    return top
+  }
+  function addPlate(meta, x, y, a) {
+    const k = KINDS[meta.kg]
+    const b = M.Bodies.rectangle(x, y, k.w, k.h, {
+      chamfer: { radius: k.h * 0.35 }, friction: 0.8, frictionStatic: 1.2, restitution: 0.03, frictionAir: 0.004, slop: 0.03,
+    })
+    M.Body.setMass(b, meta.kg * 0.3 + 2)
+    M.Body.setAngle(b, a)
+    b.plugin.tyd = meta
+    M.Composite.add(world, b)
+    live.push(b)
+    return b
+  }
+  let crossed = false
+  function dropPlate(it) {
+    const x = (rnd() - 0.5) * 50
+    let y = Math.min(-silo.h - 160, heapTop() - 320)
+    for (const b of live) if (b.plugin.tyd.fresh && Math.abs(b.position.x - x) < 120 && Math.abs(b.position.y - y) < 46) y = Math.min(y, b.position.y - 46)
+    const b = addPlate({ kg: it.kg, ex: it.ex, chalk: it.chalk, fresh: true }, x, y, (rnd() - 0.5) * 0.35)
+    M.Body.setAngularVelocity(b, (rnd() - 0.5) * 0.02)
+    total += it.kg; siloKg += it.kg; count++; exPoured[it.ex] += it.kg
+    if (!crossed && total > WORKOUT.last) { crossed = true; notice('Letztes Mal übertroffen. Alles darüber hat eine Kreidekante.', 3200) }
+    const t = tierFor(siloKg)
+    if (t > silo.cap) grow(t)
+  }
+
+  // ---------- Wachsen ----------
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+  function grow(cap) {
+    unbakeNearWalls(silo.w)
+    for (const b of live) M.Sleeping.set(b, false)
+    const d = dims(cap)
+    silo.capFrom = capEff(); silo.cap = cap
+    silo.from = { w: silo.w, h: silo.h }; silo.to = d; silo.t0 = simT
+  }
+  function capEff() {
+    if (!silo.to) return silo.cap
+    const e = ease(Math.min(1, (simT - silo.t0) / silo.dur))
+    return silo.capFrom + (silo.cap - silo.capFrom) * e
+  }
+  function stepSilo() {
+    if (!silo.to) return
+    const k = Math.min(1, (simT - silo.t0) / silo.dur), e = ease(k)
+    silo.w = silo.from.w + (silo.to.w - silo.from.w) * e
+    silo.h = silo.from.h + (silo.to.h - silo.from.h) * e
+    setWalls(silo.w)
+    for (const b of live) if (b.isSleeping && Math.abs(b.position.x) > silo.w / 2 - 340) M.Sleeping.set(b, false)
+    if (k >= 1) { silo.from = silo.to = null; silo.capFrom = silo.cap }
+  }
+  const UNBAKE_MAX = 700
+  function unbakeNearWalls(w) {
+    const keep = [], back = []
+    for (const e of baked) (Math.abs(e.x) > w / 2 - 160 - 0.58 * -e.y ? back : keep).push(e)
+    if (!back.length) return
+    if (back.length > UNBAKE_MAX) { back.sort((a, b) => a.y - b.y); keep.push(...back.splice(UNBAKE_MAX)) }
+    baked = keep
+    rebuildColumns()
+    for (const e of back) addPlate({ kg: e.kg, ex: e.ex, chalk: e.chalk, fresh: false }, e.x, e.y, e.a)
+  }
+
+  // ---------- Einbacken (nur fuer die Physik; gezeichnet wird jede Scheibe) ----------
+  function corners(e) {
+    const k = KINDS[e.kg], c = Math.cos(e.a), s = Math.sin(e.a), hw = k.w / 2, hh = k.h / 2
+    return [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([x, y]) => ({ x: e.x + x * c - y * s, y: e.y + x * s + y * c }))
+  }
+  function topAt(v, x) {
+    let best = Infinity
+    for (let j = 0; j < v.length; j++) {
+      const a = v[j], c = v[(j + 1) % v.length]
+      if ((a.x <= x && c.x >= x) || (c.x <= x && a.x >= x)) {
+        const y = a.x === c.x ? Math.min(a.y, c.y) : a.y + (c.y - a.y) * (x - a.x) / (c.x - a.x)
+        if (y < best) best = y
+      }
+    }
+    return best
+  }
+  const dirty = new Set()
+  function profile(e) {
+    const v = corners(e)
+    let mn = Infinity, mx = -Infinity
+    for (const p of v) { if (p.x < mn) mn = p.x; if (p.x > mx) mx = p.x }
+    const i0 = Math.max(0, Math.floor((mn - GL) / COL)), i1 = Math.min(NCOL - 1, Math.floor((mx - GL) / COL))
+    for (let i = i0; i <= i1; i++) {
+      const xl = GL + i * COL
+      let top = Infinity
+      for (const sx of [xl + 3, xl + COL / 2, xl + COL - 3]) { const y = topAt(v, sx); if (y < top) top = y }
+      if (top < colTop[i]) { colTop[i] = top; dirty.add(i) }
+    }
+  }
+  function setColumn(i) {
+    if (colBodies[i]) { M.Composite.remove(world, colBodies[i]); colBodies[i] = null }
+    if (colTop[i] < -0.5) {
+      const h = -colTop[i] + 200
+      colBodies[i] = M.Bodies.rectangle(GL + (i + 0.5) * COL, colTop[i] + h / 2, COL, h, { isStatic: true, friction: 0.8 })
+      M.Composite.add(world, colBodies[i])
+    }
+  }
+  function flushColumns() {
+    for (const i of dirty) setColumn(i)
+    dirty.clear()
+    bakedTop = 0
+    for (let i = 0; i < NCOL; i++) if (colTop[i] < bakedTop) bakedTop = colTop[i]
+  }
+  function rebuildColumns() {
+    colTop.fill(0)
+    for (let i = 0; i < NCOL; i++) dirty.add(i)
+    for (const e of baked) profile(e)
+    flushColumns()
+  }
+  const span = b => [Math.max(0, Math.floor((b.bounds.min.x - GL) / COL)), Math.min(NCOL - 1, Math.floor((b.bounds.max.x - GL) / COL))]
+  function bakePass() {
+    const n = live.length
+    if (n <= SOFT || silo.to) return
+    const surf = Float32Array.from(colTop)
+    for (const b of live) {
+      if (!settled(b)) continue
+      const [i0, i1] = span(b)
+      for (let i = i0; i <= i1; i++) if (b.bounds.min.y < surf[i]) surf[i] = b.bounds.min.y
+    }
+    const depth = n > HARD ? DEPTH * 0.4 : DEPTH
+    const gone = new Set()
+    for (const c of live) {
+      if (!settled(c)) continue
+      if (!c.isSleeping && n <= HARD) continue
+      const [i0, i1] = span(c)
+      let top = Infinity
+      for (let i = i0; i <= i1; i++) if (surf[i] < top) top = surf[i]
+      if (c.bounds.min.y - top < depth) continue
+      const t = c.plugin.tyd, e = { kg: t.kg, ex: t.ex, chalk: t.chalk, x: c.position.x, y: c.position.y, a: c.angle }
+      baked.push(e); profile(e); M.Composite.remove(world, c); gone.add(c)
+      if (gone.size >= 60) break
+    }
+    if (gone.size) { live = live.filter(b => !gone.has(b)); flushColumns() }
+  }
+  function forEachPlate(fn) {
+    for (const e of baked) fn(e.kg, e.ex, e.chalk, e.x, e.y, e.a)
+    for (const b of live) { const t = b.plugin.tyd; fn(t.kg, t.ex, t.chalk, b.position.x, b.position.y, b.angle) }
+  }
+
+  // ---------- Ablauf: Satz fuer Satz ----------
+  const PATTERN = [20, 20, 20, 15, 20, 10, 20, 5, 20, 2.5, 20, 1.25, 20, 7.5, 10, 20]
+  function plan(kg) {
+    const out = []
+    let rest = kg, i = 0
+    while (rest >= 20) { const p = PATTERN[i++ % PATTERN.length]; out.push(p); rest -= p }
+    for (const p of ORDER) while (rest >= p - 1e-9) { out.push(p); rest -= p }
+    return out
+  }
+  let queue = [], playing = false, wait = 0, gap = 6, boost = false, skipping = false, setsDone = 0
+  function buildQueue() {
+    const q = []
+    let cum = 0, n = 0
+    WORKOUT.exercises.forEach((ex, ei) => ex.sets.forEach(([w, r], si) => {
+      q.push({ start: { ei, si, w, r, n: n++ } })
+      for (const kg of plan(w * r)) { cum += kg; q.push({ kg, ex: ei, chalk: cum > WORKOUT.last + 1e-9 }) }
+      q.push({ pause: si === ex.sets.length - 1 ? 150 : 80 })
+    }))
+    return q
+  }
+  function schedStep() {
+    if (!playing) return
+    if (wait > 0) { wait--; return }
+    while (queue.length) {
+      const it = queue[0]
+      if (it.start) { queue.shift(); onSetStart(it.start); continue }
+      if (it.pause) { queue.shift(); wait = skipping ? 0 : it.pause; return }
+      queue.shift(); dropPlate(it)
+      wait = skipping || boost ? 2 : gap
+      return
+    }
+    playing = false
+    onDone()
+  }
+  function onSetStart(s) {
+    boost = false
+    setsDone = s.n + 1
+    const ex = WORKOUT.exercises[s.ei]
+    $('nowTitle').textContent = `${ex.name} · Satz ${s.si + 1} von ${ex.sets.length}`
+    $('nowSub').innerHTML = `${deNum(s.w)} kg × ${s.r} = <em>${deNum(s.w * s.r)} kg</em>`
+    renderProgress()
+  }
+  function nextSet() {
+    if (!playing) return
+    const i = queue.findIndex(q => q.start)
+    if (i < 0) { boost = true; return }
+    queue = queue.slice(0, i).filter(q => !q.pause).concat(queue.slice(i))
+    boost = true; wait = 0
+  }
+  function renderProgress() {
+    const el = $('progress')
+    if (!el.children.length) for (let i = 0; i < SET_COUNT; i++) el.append(document.createElement('span'))
+    let cum = 0, k = 0
+    WORKOUT.exercises.forEach(ex => ex.sets.forEach(([w, r]) => {
+      cum += w * r
+      el.children[k].className = k < setsDone ? (cum > WORKOUT.last ? 'up' : 'done') : ''
+      k++
+    }))
+  }
+  function summary() {
+    const up = total - WORKOUT.last
+    $('nowTitle').textContent = `${deNum(count)} Scheiben aus ${SET_COUNT} Sätzen`
+    $('nowSub').innerHTML = up > 0 ? `<em>+${deNum(up)} kg</em> mehr als letztes Mal` : `${deNum(-up)} kg weniger als letztes Mal`
+    $('status').textContent = 'Tippe eine Übung in der Skala oder eine Scheibe im Silo an.'
+  }
+  function onDone() {
+    $('ctlPlay').hidden = true; $('ctlDone').hidden = false
+    summary()
+  }
+  function startReplay() {
+    for (const b of live) M.Composite.remove(world, b)
+    buildWorld()
+    queue = buildQueue(); playing = true; wait = 90; boost = false; skipping = false; setsDone = 0; crossed = false; sel = null
+    dust.length = 0; shown = 0
+    $('progress').innerHTML = ''; renderProgress()
+    $('ctlPlay').hidden = false; $('ctlDone').hidden = true
+    $('nowTitle').textContent = 'Gleich geht’s los'
+    $('nowSub').textContent = `${SET_COUNT} Sätze aus ${WORKOUT.exercises.length} Übungen fallen nacheinander ins Silo.`
+    $('status').textContent = 'Tippe aufs Silo, um den nächsten Satz sofort einzuwerfen.'
+    cam.snap = true
+  }
+
+  // ---------- Szene: Glas-Silo, Scheiben, Skala ----------
+  // o: { k (Bildpunkte je Welteinheit), tx/ty (Bodenmitte), style 'iron'|'neon'|'mono', sel, px (Schrift), ink (mono), gap, colW, shadow, store }
+  const fxCache = new Map()
+  function fxFor(w, h) {
+    const key = w + 'x' + h
+    let f = fxCache.get(key)
+    if (!f) {
+      const n = canvas(w, h), s1 = canvas(Math.max(1, w >> 2), Math.max(1, h >> 2)), s2 = canvas(Math.max(1, Math.round(w / 10)), Math.max(1, Math.round(h / 10)))
+      f = { n, nc: n.getContext('2d'), s1, c1: s1.getContext('2d'), s2, c2: s2.getContext('2d') }
+      fxCache.set(key, f)
+    }
+    return f
+  }
+  const lw = (o, px) => px * o.unit / o.k        // Linienbreite in Welteinheiten fuer px Bildpunkte
+  function glassBack(g, o) {
+    if (o.style === 'mono') return
+    const { k, tx, ty } = o, w = silo.w, h = silo.h, L = -w / 2
+    g.setTransform(k, 0, 0, k, tx, ty)
+    g.fillStyle = bands(g, [[0, 'rgba(20,34,64,.42)'], [1, 'rgba(6,12,28,.72)']], 0, -h, 0, 0)
+    g.fillRect(L, -h, w, h)
+    g.fillStyle = bands(g, [[0, 'rgba(140,220,255,.09)'], [.05, 'rgba(140,220,255,.02)'], [.12, 'rgba(140,220,255,0)'], [.86, 'rgba(140,220,255,0)'], [.95, 'rgba(140,220,255,.03)'], [1, 'rgba(140,220,255,.08)']], L, 0, L + w, 0)
+    g.fillRect(L, -h, w, h)
+    g.strokeStyle = 'rgba(0,204,245,.06)'; g.lineWidth = lw(o, 1)
+    for (let i = 1; i < 8; i++) { const y = -h * i / 8; g.beginPath(); g.moveTo(L, y); g.lineTo(L + w, y); g.stroke() }
+  }
+  function ironPlates(g, o) {
+    const { k, tx, ty, sel } = o
+    forEachPlate((kg, ex, chalk, x, y, a) => {
+      if (sel != null && ex === sel) return
+      g.globalAlpha = sel == null ? 1 : 0.14
+      const K = KINDS[kg], c = Math.cos(a), s = Math.sin(a)
+      g.setTransform(k * c, k * s, -k * s, k * c, tx + x * k, ty + y * k)
+      g.drawImage(K.spr[(ex % 2) * 2 + (chalk ? 1 : 0)], -K.w / 2, -K.h / 2, K.w, K.h)
+    })
+    g.globalAlpha = 1
+  }
+  // Neon: Scheiben als leuchtende Striche in der Farbe der Uebung, mit Bloom.
+  function neonPlates(g, o, only) {
+    const { k, tx, ty, sel } = o
+    const fx = fxFor(g.canvas.width, g.canvas.height), n = fx.nc
+    n.setTransform(1, 0, 0, 1, 0, 0); n.clearRect(0, 0, fx.n.width, fx.n.height)
+    const minH = lw(o, 1.3)
+    forEachPlate((kg, ex, chalk, x, y, a) => {
+      if (only != null && ex !== only) return
+      const K = KINDS[kg], c = Math.cos(a), s = Math.sin(a), hh = Math.max(K.h, minH)
+      n.setTransform(k * c, k * s, -k * s, k * c, tx + x * k, ty + y * k)
+      n.globalAlpha = sel == null || ex === sel ? 1 : 0.18
+      n.fillStyle = exColor(ex); n.fillRect(-K.w / 2, -hh / 2, K.w, hh)
+      if (K.h * k > 3.2) { n.fillStyle = 'rgba(255,255,255,.6)'; n.fillRect(-K.w / 2 + K.h * 0.4, -hh * 0.12, K.w - K.h * 0.8, hh * 0.24) }
+    })
+    n.globalAlpha = 1
+    fx.c1.clearRect(0, 0, fx.s1.width, fx.s1.height); fx.c1.drawImage(fx.n, 0, 0, fx.s1.width, fx.s1.height)
+    fx.c2.clearRect(0, 0, fx.s2.width, fx.s2.height); fx.c2.drawImage(fx.s1, 0, 0, fx.s2.width, fx.s2.height)
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.globalCompositeOperation = 'lighter'
+    g.globalAlpha = 0.9; g.drawImage(fx.s2, 0, 0, g.canvas.width, g.canvas.height)
+    g.globalAlpha = 0.55; g.drawImage(fx.s1, 0, 0, g.canvas.width, g.canvas.height)
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'
+    g.drawImage(fx.n, 0, 0)
+  }
+  // Linie: eine Farbe. Uebungen im Wechsel gefuellt und als Umriss; Auswahl gefuellt, Rest zurueckgenommen.
+  function monoPlates(g, o) {
+    const { k, tx, ty, sel, ink } = o
+    const sw = lw(o, 1.1)
+    g.fillStyle = ink; g.strokeStyle = ink; g.lineWidth = sw
+    forEachPlate((kg, ex, chalk, x, y, a) => {
+      const K = KINDS[kg], c = Math.cos(a), s = Math.sin(a), hh = Math.max(K.h, sw * 2)
+      g.setTransform(k * c, k * s, -k * s, k * c, tx + x * k, ty + y * k)
+      const filled = sel == null ? ex % 2 === 0 : ex === sel
+      g.globalAlpha = sel == null || ex === sel ? 1 : 0.4
+      if (filled) g.fillRect(-K.w / 2, -hh / 2, K.w, hh)
+      else g.strokeRect(-K.w / 2 + sw / 2, -hh / 2 + sw / 2, K.w - sw, hh - sw)
+    })
+    g.globalAlpha = 1
+  }
+  function glassFront(g, o) {
+    const { k, tx, ty, style, ink } = o, w = silo.w, h = silo.h, L = -w / 2, R = w / 2
+    const mono = style === 'mono', col = mono ? ink : 'rgba(0,204,245,.8)'
+    g.setTransform(k, 0, 0, k, tx, ty)
+    if (!mono) { g.shadowColor = 'rgba(0,204,245,.75)'; g.shadowBlur = 8 * o.unit }
+    g.strokeStyle = col; g.lineCap = 'round'
+    const line = (pts, px) => { g.lineWidth = lw(o, px); g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.stroke() }
+    const rim = lw(o, 7)
+    line([L - rim, -h, L, -h, L, 0], 1.5)
+    line([R + rim, -h, R, -h, R, 0], 1.5)
+    line([L - lw(o, 10), 0, R + lw(o, 10), 0], 2.4)
+    g.shadowBlur = 0; g.shadowColor = 'transparent'
+    // HUD-Eckklammern um den Behaelter
+    const pad = lw(o, 9), len = lw(o, 12)
+    g.strokeStyle = mono ? ink : 'rgba(0,204,245,.45)'
+    const x0 = L - pad, x1 = R + pad, y0 = -h - pad, y1 = pad
+    for (const [cx, cy, dx, dy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) line([cx + dx * len, cy, cx, cy, cx, cy + dy * len], 1)
+    if (!mono) {
+      // Spiegelung des Glases
+      g.fillStyle = bands(g, [[0, 'rgba(255,255,255,0)'], [.5, 'rgba(255,255,255,.035)'], [1, 'rgba(255,255,255,0)']], L + w * 0.06, 0, L + w * 0.14, 0)
+      g.fillRect(L + w * 0.06, -h, w * 0.08, h)
+    }
+  }
+  // Skala neben dem Silo: Abschnitte je Uebung in Hoehe ihres Volumens, Beschriftung daneben.
+  function drawGauge(g, o) {
+    const { k, tx, ty, style, sel, px, ink } = o, u = o.unit
+    const mono = style === 'mono', neon = style === 'neon'
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    const bw = Math.max(3 * u, px * 0.38), x = tx + silo.w / 2 * k + o.gap
+    const yF = ty, yT = ty - silo.h * k, H = yF - yT, cap = capEff()
+    const yOf = kg => yF - Math.min(1, kg / cap) * H
+    const inkA = a => mono ? rgba(ink, a) : `rgba(170,200,240,${a})`
+    if (o.shadow) { g.shadowColor = o.shadow; g.shadowBlur = 6 * u }
+    // Spur + Tonnen-Striche
+    g.fillStyle = inkA(mono ? 0.22 : 0.1); g.fillRect(x, yT, bw, H)
+    const step = cap <= 10000 ? 1000 : 5000
+    g.fillStyle = inkA(mono ? 0.6 : 0.35)
+    for (let kg = step; kg < cap - 1; kg += step) g.fillRect(x - px * 0.55, Math.round(yOf(kg)), px * 0.35, Math.max(1, u))
+    g.font = `600 ${Math.round(px * 0.78)}px Inter, sans-serif`; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; spacing(g, px * 0.12)
+    g.fillStyle = mono ? rgba(ink, 0.75) : 'rgba(0,204,245,.75)'
+    g.fillText('MAX ' + fmtT(silo.cap).toUpperCase(), x, yT - px * 0.55)
+    // Abschnitte
+    const segs = [], gapPx = Math.max(1.5 * u, px * 0.12)
+    let cum = 0
+    exPoured.forEach((v, i) => {
+      if (v <= 0) return
+      const y0 = yOf(cum), y1 = yOf(cum + v)
+      cum += v
+      const on = sel == null || sel === i, hot = sel === i || neon
+      const top = y1 + gapPx / 2, hgt = Math.max(1, y0 - y1 - gapPx)
+      g.save()
+      if (hot && !mono) { g.shadowColor = exColor(i); g.shadowBlur = 10 * u }
+      if (mono) {
+        g.globalAlpha = on ? 1 : 0.35
+        if (sel === i || (sel == null && i % 2 === 0)) { g.fillStyle = ink; g.fillRect(x, top, bw, hgt) }
+        else { g.strokeStyle = ink; g.lineWidth = Math.max(1, u); g.strokeRect(x + 0.5 * u, top + 0.5 * u, bw - u, hgt - u) }
+      } else {
+        g.fillStyle = hot ? exColor(i) : on ? (i % 2 ? 'rgba(201,191,172,.75)' : 'rgba(205,214,232,.85)') : 'rgba(170,200,240,.18)'
+        g.fillRect(x, top, bw, hgt)
+      }
+      g.restore()
+      segs.push({ ex: i, mid: (y0 + y1) / 2, y0: y1, y1: y0, kg: v })
+    })
+    // Steigerung: Kerbe beim letzten Mal, orange Spur fuer das Plus
+    const yL = yOf(WORKOUT.last)
+    if (WORKOUT.last < cap) {
+      g.fillStyle = mono ? ink : UP
+      g.beginPath(); g.moveTo(x - px * 0.15, yL); g.lineTo(x - px * 0.7, yL - px * 0.32); g.lineTo(x - px * 0.7, yL + px * 0.32); g.closePath(); g.fill()
+      if (total > WORKOUT.last && !mono) {
+        g.save(); g.shadowColor = UP; g.shadowBlur = 8 * u
+        g.fillRect(x + bw + 2 * u, yOf(total), Math.max(2 * u, px * 0.16), yL - yOf(total))
+        g.restore()
+      }
+    }
+    // Beschriftung: zweizeilig, von unten nach oben verteilt, mit Fuehrungslinie zum Abschnitt
+    const lx = x + bw + px * 0.95, lineGap = px * 2.55, minY = yT + px * 0.4
+    const items = segs.filter(s => exVol[s.ex] / PLAN_TOTAL >= 0.05).sort((a, b) => b.mid - a.mid)
+    let prev = Infinity
+    for (const it of items) { it.y = Math.min(it.mid, prev - lineGap); prev = it.y }
+    for (let i = items.length - 1, lim = minY; i >= 0; i--) { if (items[i].y < lim) items[i].y = lim; lim = items[i].y + lineGap }
+    const rects = []
+    const maxW = o.colW - (lx - x) - px * 0.2
+    const fit = (str, font) => { g.font = font; if (g.measureText(str).width <= maxW) return str; let s = str; while (s.length > 3 && g.measureText(s + '…').width > maxW) s = s.slice(0, -1); return s + '…' }
+    for (const it of items) {
+      const on = sel == null || sel === it.ex, picked = sel === it.ex
+      const ex = WORKOUT.exercises[it.ex]
+      const nameFont = `${mono ? 600 : 700} ${px}px "Space Grotesk", Inter, sans-serif`, subFont = `500 ${Math.round(px * 0.84)}px Inter, sans-serif`
+      const name = fit(ex.name, nameFont)
+      const sub = `${deNum(it.kg)} kg · ${Math.round(it.kg / Math.max(1, total) * 100)} %`
+      g.globalAlpha = on ? 1 : 0.35
+      g.strokeStyle = mono ? rgba(ink, 0.55) : picked || neon ? rgba(exColor(it.ex), 0.7) : 'rgba(170,200,240,.35)'
+      g.lineWidth = Math.max(1, u)
+      g.beginPath(); g.moveTo(x + bw + 2 * u, it.mid); g.lineTo(x + bw + px * 0.4, it.mid); g.lineTo(lx - px * 0.25, it.y - px * 0.25); g.stroke()
+      spacing(g, 0); g.textBaseline = 'alphabetic'
+      g.font = nameFont
+      g.fillStyle = mono ? ink : picked || neon ? exColor(it.ex) : '#eef3fc'
+      g.fillText(name, lx, it.y)
+      const nw = g.measureText(name).width
+      g.font = subFont
+      g.fillStyle = mono ? rgba(ink, 0.75) : 'rgba(170,190,225,.85)'
+      g.fillText(sub, lx, it.y + px * 1.15)
+      const sw2 = g.measureText(sub).width
+      const bx0 = lx - px * 0.35, bx1 = lx + Math.max(nw, sw2) + px * 0.35, by0 = it.y - px * 1.05, by1 = it.y + px * 1.5
+      if (picked) {
+        // Auswahl: HUD-Eckklammern um die Beschriftung
+        g.strokeStyle = mono ? ink : exColor(it.ex); g.lineWidth = Math.max(1.2 * u, px * 0.09)
+        const c = px * 0.5
+        for (const [cx, cy, dx, dy] of [[bx0, by0, 1, 1], [bx1, by0, -1, 1], [bx0, by1, 1, -1], [bx1, by1, -1, -1]]) {
+          g.beginPath(); g.moveTo(cx + dx * c, cy); g.lineTo(cx, cy); g.lineTo(cx, cy + dy * c); g.stroke()
+        }
+      }
+      rects.push({ ex: it.ex, x0: x - px, x1: bx1, y0: Math.min(by0, it.y1), y1: Math.max(by1, it.y0) })
+    }
+    g.globalAlpha = 1; g.shadowBlur = 0; g.shadowColor = 'transparent'
+    if (o.store) hitRects = rects
+  }
+  function drawScene(g, o) {
+    glassBack(g, o)
+    if (o.style === 'mono') monoPlates(g, o)
+    else if (o.style === 'neon') neonPlates(g, o, null)
+    else { ironPlates(g, o); if (o.sel != null) neonPlates(g, o, o.sel) }
+    glassFront(g, o)
+    drawGauge(g, o)
+  }
+  // Silo + Skala in ein Rechteck einpassen (Bildpunkte). Gibt k, tx, ty zurueck.
+  function fitScene(rx, ry, rw, rh, px, colW, gap) {
+    const pad = px * 1.4
+    const k = Math.min((rw - colW - gap - pad * 2) / silo.w, (rh - px * 2.2) / silo.h)
+    const groupW = silo.w * k + gap + colW
+    return { k, tx: rx + (rw - groupW) / 2 + silo.w * k / 2, ty: ry + rh - px * 0.6 }
+  }
+
+  // ---------- Kamera + Layout ----------
+  const layout = { W: 0, H: 0, dpr: 1, hudB: 0, floorY: 0, availH: 0 }
+  const cam = { k: 0.1, tx: 0, snap: true }
+  let bg = null, vig = null
+  const COLW = 146, GAP = 14, PX = 11
+  function resize() {
+    const r = app.getBoundingClientRect()
+    layout.W = r.width; layout.H = r.height
+    layout.dpr = Math.min(2, window.devicePixelRatio || 1)
+    cv.width = Math.round(r.width * layout.dpr); cv.height = Math.round(r.height * layout.dpr)
+    layout.hudB = $('hud').getBoundingClientRect().bottom - r.top + 30
+    layout.floorY = $('tray').getBoundingClientRect().top - r.top + 6
+    layout.availH = Math.max(120, layout.floorY - layout.hudB)
+    bg = canvas(cv.width, cv.height)
+    const g = bg.getContext('2d'); g.scale(layout.dpr, layout.dpr); paintStage(g, layout.W, layout.H)
+    vig = canvas(cv.width, cv.height)
+    const v = vig.getContext('2d'); v.scale(layout.dpr, layout.dpr); paintVignette(v, layout.W, layout.H)
+    cam.snap = true
+  }
+  function paintStage(g, W, H) {
+    g.fillStyle = '#02030a'; g.fillRect(0, 0, W, H)
+    let gr = g.createRadialGradient(W / 2, -20, 10, W / 2, -20, H * 0.75)
+    gr.addColorStop(0, 'rgba(120,200,255,.14)'); gr.addColorStop(.5, 'rgba(60,120,200,.04)'); gr.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = gr; g.fillRect(0, 0, W, H)
+    gr = g.createRadialGradient(W / 2, H * 0.7, 10, W / 2, H * 0.7, W * 0.7)
+    gr.addColorStop(0, 'rgba(0,204,245,.05)'); gr.addColorStop(1, 'rgba(0,204,245,0)')
+    g.fillStyle = gr; g.fillRect(0, 0, W, H)
+  }
+  function paintVignette(g, W, H) {
+    const gr = g.createRadialGradient(W / 2, H * 0.45, H * 0.3, W / 2, H * 0.45, H * 0.8)
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.6)')
+    g.fillStyle = gr; g.fillRect(0, 0, W, H)
+  }
+  function updateCamera() {
+    const f = fitScene(16, layout.hudB, layout.W - 32, layout.availH, PX, COLW, GAP)
+    const k = Math.min(0.62, f.k)
+    if (cam.snap || reduce) { cam.k = k; cam.tx = f.tx; cam.snap = false }
+    else { cam.k += (k - cam.k) * 0.14; cam.tx += (f.tx - cam.tx) * 0.14 }
+  }
+
+  // ---------- Kreide + Ton ----------
+  const dust = []
+  let lastDust = 0, lastSound = 0
+  const rndV = Math.random   // nur fuer Staub: aendert den Haufen nicht
+  function impact(wx, wy, kg, sp, chalk, ex) {
+    const now = performance.now()
+    if (!reduce && now - lastDust > 60 && dust.length < 320) {
+      lastDust = now
+      const k = Math.max(0.35, Math.min(1, cam.k / 0.3)), size = 0.5 + kg / 40, more = chalk ? 1.6 : 1
+      const n = Math.round((6 + 8 * kg / 20) * more)
+      const col = view === 'neon' ? exColor(ex) : '#efe9dd'
+      for (let i = 0; i < n; i++) {
+        const dir = rndV() < 0.5 ? -1 : 1
+        dust.push({ wx, wy, dx: 0, dy: 0, vx: dir * (0.5 + rndV() * 2.2) * k * (1 + size), vy: -(rndV() * 1) * k, life: 0, max: 34 + rndV() * 24, r: (0.8 + rndV() * 1.6) * k * (0.8 + size * 0.5), cloud: false, col })
+      }
+      dust.push({ wx, wy, dx: 0, dy: -3 * k, vx: 0, vy: -0.12, life: 0, max: 42, r: 14 * k * (0.8 + size) * more, cloud: true, a: chalk ? 0.28 : 0.14, col })
+    }
+    if (soundOn && now - lastSound > 45) { lastSound = now; clank(Math.min(1, sp / MAXSTEP), kg) }
+  }
+  let actx = null, noise = null, soundOn = false
+  function ensureAudio() {
+    if (actx) return
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)()
+      noise = actx.createBuffer(1, actx.sampleRate * 0.25, actx.sampleRate)
+      const d = noise.getChannelData(0)
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3)
+    } catch (_) { actx = null }
+  }
+  function clank(v, kg) {
+    if (!actx) return
+    const t = actx.currentTime, heavy = kg / 20
+    const src = actx.createBufferSource(); src.buffer = noise
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500 - 700 * heavy; bp.Q.value = 3
+    const g = actx.createGain(); g.gain.setValueAtTime(0.14 * v, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+    src.connect(bp).connect(g).connect(actx.destination); src.start(t); src.stop(t + 0.25)
+  }
+
+  // ---------- Zeichnen ----------
+  let sel = null, view = 'iron', hitRects = []
+  function draw() {
+    const { W, H, dpr, floorY } = layout
+    const k = dpr * cam.k, tx = dpr * cam.tx, ty = dpr * floorY
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.drawImage(bg, 0, 0)
+    drawScene(ctx, { k, tx, ty, style: view, sel, px: PX * dpr, unit: dpr, gap: GAP * dpr, colW: COLW * dpr, store: true })
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    for (let i = dust.length - 1; i >= 0; i--) {
+      const p = dust[i]
+      p.life++; p.dx += p.vx; p.dy += p.vy; p.vx *= p.cloud ? 0.97 : 0.93; p.vy = p.vy * 0.95 + (p.cloud ? -0.01 : 0.02)
+      const q = p.life / p.max
+      if (q >= 1) { dust.splice(i, 1); continue }
+      const x = cam.tx + p.wx * cam.k + p.dx, y = floorY + p.wy * cam.k + p.dy
+      if (p.cloud) {
+        const r = p.r * (0.6 + 1.8 * (1 - Math.pow(1 - q, 3)))
+        const gr = ctx.createRadialGradient(x, y, 0, x, y, r)
+        gr.addColorStop(0, rgba(p.col, p.a * (1 - q))); gr.addColorStop(1, rgba(p.col, 0))
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+      } else {
+        ctx.fillStyle = rgba(p.col, 0.9 * (1 - q))
+        ctx.beginPath(); ctx.arc(x, y, p.r * (0.6 + q), 0, 7); ctx.fill()
+      }
+    }
+    // Band unter der Zahl: Neue Scheiben tauchen weich aus dem Dunkel auf.
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    const hb = Math.round((layout.hudB - 14) * dpr), band = Math.round(30 * dpr)
+    ctx.drawImage(bg, 0, 0, bg.width, Math.max(1, hb - band), 0, 0, bg.width, Math.max(1, hb - band))
+    for (let i = 0; i < 12; i++) {
+      const y0 = hb - band + Math.round(i * band / 12), h = Math.ceil(band / 12)
+      ctx.globalAlpha = 1 - i / 12
+      ctx.drawImage(bg, 0, y0, bg.width, h, 0, y0, bg.width, h)
+    }
+    ctx.globalAlpha = 1
+    ctx.drawImage(vig, 0, 0)
+  }
+
+  // ---------- HUD ----------
+  let shown = 0, noticeUntil = 0
+  function notice(msg, ms) { $('status').textContent = msg; noticeUntil = performance.now() + (ms || 2200) }
+  function hud(force) {
+    const d = total - shown
+    shown = force || reduce || Math.abs(d) < 0.5 ? total : shown + d * 0.2
+    $('kg').textContent = deNum(Math.round(shown))
+    const last = WORKOUT.last, scale = Math.max(last, PLAN_TOTAL)
+    $('barBase').style.width = (Math.min(shown, last) / scale * 100).toFixed(2) + '%'
+    $('barUp').style.width = (Math.max(0, shown - last) / scale * 100).toFixed(2) + '%'
+    const up = shown > last
+    $('meter').classList.toggle('up', up)
+    $('pct').textContent = up ? `+${deNum(Math.round(shown - last))} kg zum letzten Mal` : `Letztes Mal ${deNum(last)} kg`
+  }
+
+  // ---------- Bedienung ----------
+  function selectEx(ex) {
+    sel = sel === ex ? null : ex
+    if (sel == null) { summary(); return }
+    const e = WORKOUT.exercises[sel]
+    $('nowTitle').textContent = e.name
+    $('nowSub').textContent = `${deNum(exVol[sel])} kg · ${Math.round(exVol[sel] / PLAN_TOTAL * 100)} %  ·  ` + e.sets.map(([w, r]) => `${deNum(w)} × ${r}`).join(' · ')
+    $('status').textContent = 'Nochmal antippen, um alle Übungen zu zeigen.'
+  }
+  function hitPlate(wx, wy) {
+    let hit = null, best = 22 / cam.k
+    forEachPlate((kg, ex, chalk, x, y, a) => {
+      const K = KINDS[kg], dx = wx - x, dy = wy - y, c = Math.cos(a), s = Math.sin(a)
+      const lx = dx * c + dy * s, ly = -dx * s + dy * c
+      const d = Math.max(0, Math.abs(lx) - K.w / 2) + Math.max(0, Math.abs(ly) - K.h / 2)
+      if (d <= best) { best = d; hit = ex }
+    })
+    return hit
+  }
+  cv.addEventListener('click', e => {
+    const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top
+    if (playing) { nextSet(); return }
+    const dpr = layout.dpr
+    for (const h of hitRects) if (px * dpr >= h.x0 && px * dpr <= h.x1 && py * dpr >= h.y0 && py * dpr <= h.y1) { selectEx(h.ex); return }
+    const hit = hitPlate((px - cam.tx) / cam.k, (py - layout.floorY) / cam.k)
+    if (hit != null) selectEx(hit)
+    else if (sel != null) selectEx(sel)
+  })
+  $('nextBtn').addEventListener('click', nextSet)
+  $('skipBtn').addEventListener('click', () => { skipping = true; wait = 0 })
+  $('replayBtn').addEventListener('click', startReplay)
+  for (const b of document.querySelectorAll('[data-view]')) b.addEventListener('click', () => {
+    view = b.dataset.view
+    for (const o of document.querySelectorAll('[data-view]')) o.setAttribute('aria-pressed', String(o === b))
+  })
+  $('snd').addEventListener('click', e => {
+    soundOn = !soundOn
+    if (soundOn) { ensureAudio(); try { actx && actx.resume() } catch (_) {} }
+    e.currentTarget.setAttribute('aria-pressed', String(soundOn))
+  })
+  window.addEventListener('resize', resize)
+
+  // ---------- Teilen ----------
+  const today = new Date()
+  const dateText = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const isoDate = today.toISOString().slice(0, 10)
+  const MODES = {
+    card:     { note: 'Dunkle Karte im 4:5-Format für Feed und Story.', file: 'karte', ext: 'png' },
+    neon:     { note: 'Durchsichtig, jede Übung leuchtet in ihrer Farbe. Zum Drüberlegen in der Story.', file: 'neon', ext: 'png' },
+    'line-w': { note: 'Durchsichtig, nur Weiß. Das schlichte Wasserzeichen für dunkle Fotos.', file: 'linie-hell', ext: 'png' },
+    'line-b': { note: 'Durchsichtig, nur Schwarz. Das schlichte Wasserzeichen für helle Fotos.', file: 'linie-dunkel', ext: 'png' },
+    photo:    { note: 'Dein Foto mit dem Silo als Wasserzeichen unten links.', file: 'foto', ext: 'jpg' },
+  }
+  function text(g, str, x, y, font, color, align, ls) {
+    g.font = font; g.fillStyle = color; g.textAlign = align || 'left'; g.textBaseline = 'alphabetic'; spacing(g, ls || 0)
+    g.fillText(str, x, y)
+  }
+  // Kopf der Bilder: Name + Datum, grosse Zahl, Zeile darunter, Plus zum letzten Mal.
+  function headBlock(g, x, top, opts) {
+    const { ink, accent, numWeight, glow } = opts
+    const up = total - WORKOUT.last
+    if (glow) { g.shadowColor = glow; g.shadowBlur = 18 }
+    text(g, `${WORKOUT.name.toUpperCase()} · ${dateText}`, x, top + 40, '600 28px Inter, sans-serif', rgba(ink, 0.7), 'left', 5)
+    const num = deNum(Math.round(total))
+    g.font = `${numWeight} 150px "Space Grotesk", Inter, sans-serif`; spacing(g, -4)
+    const nw = g.measureText(num).width
+    text(g, num, x - 4, top + 186, `${numWeight} 150px "Space Grotesk", Inter, sans-serif`, ink, 'left', -4)
+    text(g, 'kg', x + nw + 10, top + 186, '600 52px Inter, sans-serif', rgba(ink, 0.6), 'left')
+    text(g, `${WORKOUT.exercises.length} Übungen · ${SET_COUNT} Sätze · ${deNum(count)} Scheiben`, x, top + 240, '500 30px Inter, sans-serif', rgba(ink, 0.6), 'left')
+    if (up > 0) text(g, `+${deNum(up)} kg mehr als letztes Mal`, x, top + 284, '700 30px Inter, sans-serif', accent, 'left')
+    g.shadowBlur = 0; g.shadowColor = 'transparent'
+  }
+  function footer(g, W, H, ink, rule) {
+    if (rule) { g.fillStyle = rgba(ink, 0.15); g.fillRect(72, H - 92, W - 144, 1.5) }
+    text(g, 'TrackYourDose', 72, H - 44, '700 30px "Space Grotesk", Inter, sans-serif', rgba(ink, 0.9), 'left', 2)
+    text(g, `${fmtT(silo.cap)}-Silo`, W - 72, H - 44, '500 26px Inter, sans-serif', rgba(ink, 0.5), 'right', 1)
+  }
+  function scene(g, style, ink, shadow) {
+    const px = 25, colW = px * 13.6, gap = px * 1.4
+    const f = fitScene(56, 360, 968, 840, px, colW, gap)
+    drawScene(g, { k: f.k, tx: f.tx, ty: f.ty, style, sel, px, unit: 1.9, gap, colW, ink, shadow })
+    g.setTransform(1, 0, 0, 1, 0, 0)
+  }
+  function renderCard() {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    paintStage(g, W, H)
+    headBlock(g, 72, 60, { ink: '#eef3fc', accent: '#fdba74', numWeight: 700 })
+    scene(g, 'iron', '#ffffff')
+    paintVignette(g, W, H)
+    footer(g, W, H, '#eef3fc', true)
+    return c
+  }
+  function renderNeon() {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    headBlock(g, 72, 60, { ink: '#ffffff', accent: '#fdba74', numWeight: 700, glow: 'rgba(0,204,245,.55)' })
+    scene(g, 'neon', '#ffffff', 'rgba(0,0,0,.35)')
+    footer(g, W, H, '#ffffff', false)
+    return c
+  }
+  function renderLine(ink) {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    const halo = ink === '#ffffff' ? 'rgba(0,0,0,.28)' : 'rgba(255,255,255,.3)'
+    headBlock(g, 72, 60, { ink, accent: ink, numWeight: 500, glow: halo })
+    scene(g, 'mono', ink, halo)
+    footer(g, W, H, ink, false)
+    return c
+  }
+  let overlay = 'line-w'
+  function renderOnPhoto(img) {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    const sc = Math.max(W / img.width, H / img.height), iw = img.width * sc, ih = img.height * sc
+    g.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih)
+    const gr = g.createLinearGradient(0, H * 0.45, 0, H)
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.5)')
+    g.fillStyle = gr; g.fillRect(0, H * 0.45, W, H * 0.55)
+    const st = overlay === 'neon' ? renderNeon() : renderLine('#ffffff'), sw = 560, sh = sw * st.height / st.width
+    g.drawImage(st, 20, H - sh - 10, sw, sh)
+    return c
+  }
+
+  let mode = 'card', photo = null, blob = null, blobUrl = null, dl = null, dlChecked = false
+  const sheet = $('sheet'), scrim = $('scrim'), img = $('previewImg'), empty = $('previewEmpty'), saveBtn = $('saveBtn'), hint = $('saveHint')
+  ;(async () => {
+    try { if (window.claude && typeof window.claude.use === 'function') dl = await window.claude.use('downloads') } catch (_) { dl = null }
+    dlChecked = true; syncSave()
+  })()
+  function syncSave() {
+    saveBtn.hidden = !dl
+    saveBtn.disabled = !blob
+    if (!dl && dlChecked) hint.textContent = blob ? 'Halte das Bild gedrückt, um es zu sichern.' : ''
+  }
+  let renderToken = 0
+  async function renderPreview() {
+    const token = ++renderToken
+    const pv = $('preview')
+    pv.classList.toggle('checker', mode === 'neon' || mode === 'line-w')
+    pv.classList.toggle('checker-light', mode === 'line-b')
+    $('photoRow').hidden = mode !== 'photo'
+    $('modeNote').textContent = MODES[mode].note + (sel != null ? ` Ausgewählt: ${WORKOUT.exercises[sel].name}.` : '')
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null }
+    blob = null
+    if (mode === 'photo' && !photo) { img.hidden = true; empty.hidden = false; if (dl) hint.textContent = ''; syncSave(); return }
+    const c = mode === 'card' ? renderCard() : mode === 'neon' ? renderNeon() : mode === 'line-w' ? renderLine('#ffffff') : mode === 'line-b' ? renderLine('#0a0c12') : renderOnPhoto(photo)
+    const b = await new Promise(r => c.toBlob(r, MODES[mode].ext === 'jpg' ? 'image/jpeg' : 'image/png', 0.92))
+    if (token !== renderToken) return
+    blob = b
+    blobUrl = URL.createObjectURL(blob)
+    img.src = blobUrl; img.hidden = false; empty.hidden = true
+    if (dl) hint.textContent = ''
+    syncSave()
+  }
+  let lastFocus = null
+  function openSheet() {
+    lastFocus = document.activeElement
+    scrim.hidden = false; sheet.hidden = false
+    requestAnimationFrame(() => { scrim.classList.add('open'); sheet.classList.add('open') })
+    renderPreview()
+    $('sheetClose').focus()
+  }
+  function closeSheet() {
+    scrim.classList.remove('open'); sheet.classList.remove('open')
+    setTimeout(() => { scrim.hidden = true; sheet.hidden = true }, reduce ? 180 : 320)
+    if (lastFocus) lastFocus.focus()
+  }
+  $('shareBtn').addEventListener('click', openSheet)
+  $('shareBtn2').addEventListener('click', openSheet)
+  $('sheetClose').addEventListener('click', closeSheet)
+  scrim.addEventListener('click', closeSheet)
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeSheet() })
+  for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => {
+    mode = b.dataset.mode
+    for (const o of document.querySelectorAll('[data-mode]')) o.setAttribute('aria-pressed', String(o === b))
+    renderPreview()
+  })
+  for (const b of document.querySelectorAll('[data-overlay]')) b.addEventListener('click', () => {
+    overlay = b.dataset.overlay
+    for (const o of document.querySelectorAll('[data-overlay]')) o.setAttribute('aria-pressed', String(o === b))
+    renderPreview()
+  })
+  $('photoInput').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]
+    if (!f) return
+    const im = new Image()
+    im.onload = () => { photo = im; renderPreview() }
+    im.onerror = () => { hint.textContent = 'Dieses Bild ließ sich nicht öffnen. Versuche ein JPG oder PNG.' }
+    im.src = URL.createObjectURL(f)
+  })
+  saveBtn.addEventListener('click', async () => {
+    if (!dl || !blob) return
+    const m = MODES[mode]
+    const name = `tyd-${WORKOUT.name.toLowerCase().replace(/\s+/g, '-')}-${isoDate}-${m.file}.${m.ext}`
+    try {
+      await dl.save({ filename: name, data: blob })
+      hint.textContent = 'Gespeichert.'
+    } catch (err) {
+      const code = err && err.code
+      if (code === 'declined') hint.textContent = 'Nicht gespeichert.'
+      else if (code === 'rate_limited') hint.textContent = 'Einen Moment, dann noch einmal.'
+      else if (code === 'too_large') hint.textContent = 'Das Bild ist zu groß. Wähle ein kleineres Foto.'
+      else { dl = null; syncSave() }
+    }
+  })
+
+  // ---------- Start ----------
+  let last = 0, acc = 0
+  function frame(now) {
+    const dt = Math.min(50, now - last); last = now
+    acc += dt
+    let n = 0
+    while (acc >= SUBMS && n < 12) {
+      schedStep(); stepSilo()
+      M.Engine.update(engine, SUBMS)
+      simT += SUBMS
+      if (++steps % 24 === 0) bakePass()
+      acc -= SUBMS; n++
+    }
+    if (n === 12) acc = 0
+    updateCamera()
+    draw(); hud(false)
+    requestAnimationFrame(frame)
+  }
+  const fontsReady = document.fonts && document.fonts.load ? Promise.race([
+    Promise.all([document.fonts.load('700 16px "Space Grotesk"'), document.fonts.load('500 16px "Space Grotesk"'), document.fonts.load('700 16px Inter'), document.fonts.load('600 16px Inter'), document.fonts.load('500 16px Inter')]),
+    new Promise(r => setTimeout(r, 1500)),
+  ]) : Promise.resolve()
+  fontsReady.catch(() => {}).then(() => {
+    for (const kg of ORDER) { const k = KINDS[kg]; k.spr = [makeSprite(k, 0, false), makeSprite(k, 0, true), makeSprite(k, 1, false), makeSprite(k, 1, true)] }
+    buildWorld()
+    resize()
+    startReplay()
+    updateCamera()
+    hud(true)
+    $('loading').hidden = true
+    last = performance.now()
+    requestAnimationFrame(frame)
+  })
+})()
+</script>

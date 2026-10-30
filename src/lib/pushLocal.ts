@@ -36,18 +36,21 @@ export function showPageNotification(
   title = TEST_TITLE,
   body = TEST_BODY,
   url = '/kalender',
+  tag = 'tyd-test',
 ): boolean {
-  if (Notification.permission !== 'granted') return false
+  // iOS-Safari (nicht als PWA) kennt `Notification` nicht.
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return false
   try {
     const n = new Notification(title, {
       body,
       icon: new URL('/icon-192.png', window.location.origin).href,
-      tag:  'tyd-test',
+      tag,
       data: { url },
     })
     n.onclick = () => {
       window.focus()
-      window.location.assign(url)
+      // Schon auf der Seite: nur nach vorn holen, nicht neu laden (offene Eingaben bleiben)
+      if (window.location.pathname !== url) window.location.assign(url)
     }
     return true
   } catch {

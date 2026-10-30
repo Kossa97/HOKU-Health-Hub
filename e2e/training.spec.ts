@@ -36,21 +36,36 @@ test('Training: Routine starten, Vorher-Werte, Rekord, speichern', async ({ page
   await page.goto('/training')
 
   // Montag (28.09.) ist „Push" geplant
-  await expect(page.getByText('Heute geplant')).toBeVisible()
+  await expect(page.getByText('Heute geplant', { exact: true })).toBeVisible()
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/training-heute.png`, fullPage: true })
 
-  await page.getByRole('button', { name: 'Starten' }).first().click()
+  await page.getByRole('button', { name: 'Push starten' }).click()
   const live = page.getByRole('dialog', { name: 'Push' })
   await expect(live).toBeVisible()
   await expect(live.getByText('80 × 5').first()).toBeVisible()
 
-  // Erster Satz: 85 kg statt 80 — dann abhaken, die Pause startet
-  const weight = live.getByRole('textbox', { name: 'kg' }).first()
-  await weight.fill('85')
-  await live.getByRole('checkbox', { name: 'Satz abhaken' }).first().click()
+  // Der Vorschlag: 80 × 5 zweimal geschafft → heute 82,5 kg (Langhantel-Schritt)
+  await expect(live.getByText(/Vorschlag 82,5 × 5/).first()).toBeVisible()
+  // Erster Satz: 85 kg statt 82,5 per Rad — der runde Haken uebernimmt und hakt ab, die Pause startet
+  await live.getByRole('button', { name: /^kg: 82,5/ }).first().click()
+  const wheels = page.getByRole('dialog', { name: 'Satz 1' })
+  await expect(wheels.getByRole('button', { name: 'Wie letztes Mal · 80 × 5' })).toBeVisible()
+  const whole = wheels.getByRole('spinbutton', { name: 'kg', exact: true })
+  await expect(whole).toHaveAttribute('aria-valuetext', '82')
+  await whole.press('ArrowDown')
+  await whole.press('ArrowDown')
+  await whole.press('ArrowDown')
+  await expect(whole).toHaveAttribute('aria-valuetext', '85')
+  const decimals = wheels.getByRole('spinbutton', { name: 'kg Nachkomma' })
+  await expect(decimals).toHaveAttribute('aria-valuetext', ',50')
+  await decimals.press('Home')
+  if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/training-raeder.png` })
+  await wheels.getByRole('button', { name: 'Übernehmen und abhaken' }).click()
+  await expect(wheels).toBeHidden()
+  await expect(live.getByRole('button', { name: 'kg: 85' }).first()).toBeVisible()
   await expect(page.getByRole('timer')).toBeVisible()
   if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/training-logger.png` })
-  await page.getByRole('button', { name: 'Überspringen' }).click()
+  await page.getByRole('button', { name: 'Weiter' }).click()
   await live.getByRole('checkbox', { name: 'Satz abhaken' }).nth(1).click()
 
   await live.getByRole('button', { name: 'Beenden' }).click()
@@ -65,7 +80,8 @@ test('Training: Routine starten, Vorher-Werte, Rekord, speichern', async ({ page
   expect(saved).toBeTruthy()
   expect(saved!.rpe).toBe(8)
   const sets = (saved!.exercises as Array<{ sets: Array<{ weightKg: number; reps: number; done: boolean }> }>)[0].sets
-  expect(sets.map(s => [s.weightKg, s.reps, s.done])).toEqual([[85, 5, true], [80, 5, true]])
+  // Satz 2 blieb beim Vorschlag (82,5 × 5)
+  expect(sets.map(s => [s.weightKg, s.reps, s.done])).toEqual([[85, 5, true], [82.5, 5, true]])
 
   // Nach dem Neuladen ist nichts mehr „laufend", der Verlauf zeigt die Einheit mit Rekord
   await page.reload()
@@ -112,4 +128,26 @@ test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   await expect(sheet).toBeHidden()
   const ride = mock.table('training_sessions').find(row => row.kind === 'cycle')
   expect(ride).toMatchObject({ duration_s: 3600, distance_m: 25500, source: 'manual' })
+})
+
+test.describe('Dot auf „Heute"', () => {
+  test.use({ dotFrei: true })
+
+  test('Dot sagt, was heute dran ist', async ({ page, mock }) => {
+    seedHistory(mock)
+    await page.goto('/training')
+    await expect(page.getByRole('button', { name: 'Push starten' })).toBeVisible()
+    const logo = page.locator('[data-tyd-slot="dot"]')
+    await expect(logo).toHaveAttribute('data-dot-bereit', 'true')
+    await logo.click()
+    const blase = page.locator('.tyd-dot-blase')
+    const gesagt = new Set<string>()
+    for (let t = 0; t < 5000; t += 100) {
+      await page.clock.runFor(100)
+      const text = (await blase.textContent())?.trim()
+      if (text && (await blase.getAttribute('data-zeigen')) === 'true') gesagt.add(text)
+    }
+    // Montag, 28.09.: Push ist geplant, diese Woche noch nichts trainiert (Ziel 3)
+    expect([...gesagt].some(t => t.includes('Heute ist Push dran. Noch 3 Einheiten bis zu deinem Wochenziel.'))).toBe(true)
+  })
 })

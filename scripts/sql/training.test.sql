@@ -1,5 +1,5 @@
 \set ON_ERROR_STOP on
--- Trockenlauf fuer supabase-training.sql.
+-- Trockenlauf fuer supabase-training.sql und supabase-training-v2.sql.
 -- Nur gegen ein Wegwerf-PostgreSQL 16 (siehe CLAUDE.md, Datenbankaenderungen).
 -- Die Migration legt nur neue Tabellen an; nachgestellt wird deshalb nur, was
 -- sie voraussetzt (auth.users, auth.uid(), Rollen). Synthetische Daten.
@@ -34,6 +34,26 @@ insert into public.training_sessions (kind, started_at, duration_s, distance_m, 
 values ('run', '2026-10-17T07:00:00Z', 1800, 5000, 'healthkit', 'hk-1');
 insert into public.training_routines (name, weekdays) values ('Push', '{1,4}');
 insert into public.training_custom_exercises (name) values ('Meine Uebung');
+reset role;
+
+-- v2: Ist-Zustand nachgestellt (eine Routine ohne Spalte `folder`), dann die
+-- Migration zweimal. Die bestehende Zeile bleibt, `folder` ist dort null.
+\ir ../../supabase-training-v2.sql
+\ir ../../supabase-training-v2.sql
+select pg_temp.expect((select count(*) = 1 from information_schema.columns where table_schema = 'public' and table_name = 'training_routines' and column_name = 'folder'), 'V2 Spalte folder genau einmal');
+select pg_temp.expect((select count(*) = 1 from public.training_routines), 'V2 Routinen nach Migration 1');
+select pg_temp.expect((select folder is null from public.training_routines where name = 'Push'), 'V2 bestehende Routine ohne Ordner');
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-00000000000a', false);
+insert into public.training_routines (name, weekdays, folder) values ('Pull', '{2,5}', 'Push/Pull/Beine');
+do $$ begin
+  insert into public.training_routines (name, folder) values ('X', '   ');
+  raise exception 'FEHLGESCHLAGEN: V2 leerer Ordner';
+exception when check_violation then null; end $$;
+do $$ begin
+  insert into public.training_routines (name, folder) values ('X', repeat('a', 41));
+  raise exception 'FEHLGESCHLAGEN: V2 Ordner zu lang';
+exception when check_violation then null; end $$;
 insert into public.training_settings (settings) values ('{"unit":"kg"}');
 
 -- 2) Doppelter Import derselben Uhr-Einheit scheitert
@@ -89,7 +109,8 @@ reset role;
 select pg_temp.expect((select count(*) = 6 from public.training_sessions), 'Z Einheiten 6');
 select pg_temp.expect((select count(*) = 1 from public.training_sessions where title = 'Push'), 'Z Titel unveraendert');
 select pg_temp.expect((select title = '' from public.training_sessions where external_id = 'hk-1' and user_id = '00000000-0000-4000-8000-00000000000a'), 'Z Duplikat nicht ueberschrieben');
-select pg_temp.expect((select count(*) = 1 from public.training_routines), 'Z Routinen 1');
+select pg_temp.expect((select count(*) = 2 from public.training_routines), 'Z Routinen 2');
+select pg_temp.expect((select count(*) = 1 from public.training_routines where folder = 'Push/Pull/Beine'), 'Z Routinen mit Ordner 1');
 select pg_temp.expect((select count(*) = 1 from public.training_custom_exercises), 'Z eigene Uebungen 1');
 select pg_temp.expect((select count(*) = 1 from public.training_settings), 'Z Einstellungen 1');
 \echo 'training: alle Pruefungen bestanden'

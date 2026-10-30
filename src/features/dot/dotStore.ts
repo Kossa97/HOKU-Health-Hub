@@ -24,9 +24,14 @@ interface DotStand {
   app: { mitLeiste: boolean; schnellzugriff: boolean } | null
   /** Die Bühne der Anmeldung, solange sie zu sehen ist. */
   loginBuehne: HTMLElement | null
+  /**
+   * Was die offene Seite ihm gerade zu sagen gibt (etwa „Heute ist Push dran.“):
+   * Ist er draußen, sagt er es; kommt er heraus, grüßt er damit. `null` = nichts.
+   */
+  hinweis: string | null
 }
 
-let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false, bereit: false, app: null, loginBuehne: null }
+let stand: DotStand = { modus: 'house', drinnen: true, stoss: 0, kameras: 0, darfRaus: false, geladen: false, bereit: false, app: null, loginBuehne: null, hinweis: null }
 let tippWartet = false
 const hoerer = new Set<() => void>()
 let engine: DotApi | null = null
@@ -66,6 +71,7 @@ export const dotStore = {
     setze({ app })
   },
   setLoginBuehne(el: HTMLElement | null) { if (el !== stand.loginBuehne) setze({ loginBuehne: el }) },
+  setHinweis(text: string | null) { if (text !== stand.hinweis) setze({ hinweis: text }) },
   kameraAuf() { setze({ kameras: stand.kameras + 1 }) },
   kameraZu() { setze({ kameras: Math.max(0, stand.kameras - 1) }) },
 }
