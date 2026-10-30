@@ -44,12 +44,17 @@ for d, s in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhd
 # Web / PWA: Kit-Dateien unter neuen Namen (gegen zwischengespeicherte alte Icons)
 for size in (180, 192, 512): kit_png(f"hoku-app-blau-{size}.png", f"public/icons/hoku-{size}.png", rgb=True)
 kit_png("hoku-app-blau-512.png", "public/icons/hoku-maskable-512.png", rgb=True)   # Kugel 68 % liegt in der sicheren Zone (80 %)
-for size in (32, 48, 64): kit_png(f"hoku-favicon-{size}.png", f"public/icons/hoku-favicon-{size}.png")
-shutil.copyfile(k("favicon.ico"), p("public/favicon.ico")); print("wrote public/favicon.ico (16/32/48/64)")
+# Favicons: nicht die einfarbigen aus dem Kit (bei 16 px nur Rauschen, Nutzer 30.10.), sondern das blaue Icon,
+# eng um die Kugel beschnitten (sie füllt 92 %), damit im Tab eine erkennbare leuchtende Kugel steht.
+def favicon(size, anteil=0.92):
+    kk = int(N * KUGEL / anteil); o = (N - kk) // 2
+    return SRC.crop((o, o, o + kk, o + kk)).resize((size, size), Image.LANCZOS)
+for size in (32, 48, 64): save(favicon(size), f"public/icons/hoku-fav-blau-{size}.png")
+favicon(256).save(p("public/favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48), (64, 64)]); print("wrote public/favicon.ico (16/32/48/64, blau)")
 # Benachrichtigungen und ältere Verweise
 kit_png("hoku-app-blau-192.png", "public/icon-192.png", rgb=True); kit_png("hoku-app-blau-512.png", "public/icon-512.png", rgb=True)
 open(p("public/icon.svg"), "w").write(svg_mit(Image.open(k("hoku-app-blau-512.png")).convert("RGB"), 512, "HOKU Health Hub"))
-open(p("public/favicon.svg"), "w").write(svg_mit(Image.open(k("hoku-favicon-64.png")), 32, "HOKU Health Hub"))
+open(p("public/favicon.svg"), "w").write(svg_mit(favicon(64), 32, "HOKU Health Hub"))
 # Startbildschirme: dunkler Grund, Hoku mittig, Kugel 22 % der kurzen Kante (bleibt beim Zuschneiden sichtbar)
 for f in ("splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"):
     save(mittig(2732, 2732, 2732 * 0.22), f"ios/App/App/Assets.xcassets/Splash.imageset/{f}")

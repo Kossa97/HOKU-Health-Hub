@@ -13,7 +13,7 @@ Export: `python3 -I docs/logo/hoku/export_app.py $PWD`; Übersicht `eingebaut.pn
 | Android Startbildschirm | `drawable*/splash.png` | erzeugt wie iOS |
 | Web Home-Bildschirm | `public/icons/hoku-180.png` | Kit `hoku-app-blau-180.png` |
 | Web Manifest | `public/icons/hoku-192/512.png`, `hoku-maskable-512.png` | Kit blau 192/512 |
-| Favicon | `public/favicon.ico` (16/32/48/64), `icons/hoku-favicon-32/48/64.png`, `favicon.svg` | Kit-Favicons (einfarbig, wie im Kit festgelegt) |
+| Favicon | `public/favicon.ico` (16/32/48/64), `icons/hoku-fav-blau-32/48/64.png`, `favicon.svg` | blaues Icon, eng um die Kugel (92 %); die einfarbigen Kit-Favicons waren bei 16 px nur Rauschen (Nutzer 30.10.) |
 | Benachrichtigungen | `public/icon-192.png`, `icon-512.png`, `icon.svg` | Kit blau |
 
 Vorher: das Codex-Bild (`docs/logo/dot/codex`) als `icons/dot-codex-*` – entfernt. Die Startbildschirme zeigten noch das
