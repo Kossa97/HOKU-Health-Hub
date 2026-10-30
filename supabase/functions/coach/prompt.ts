@@ -1,5 +1,5 @@
 /**
- * Dot, der KI-Coach: reine Logik ohne Netz (Prüfen der Anfrage, Zugang,
+ * Hoku, der KI-Coach: reine Logik ohne Netz (Prüfen der Anfrage, Zugang,
  * System-Prompt, Werkzeug, Nutzerdaten als Text). Der Aufruf an Anthropic steht in
  * index.ts.
  *
@@ -47,13 +47,13 @@ export function pruefeAnfrage(body: unknown): Anfrage | null {
 }
 
 /**
- * Braucht Dot Pro? Vorerst nicht: bis Pro startet, ist er für alle frei.
+ * Braucht Hoku Pro? Vorerst nicht: bis Pro startet, ist er für alle frei.
  * Gleicher Schalter in der App: `PRO_PFLICHT` in src/features/dot/lib/zugang.ts.
  */
 export const PRO_PFLICHT = false
 
 /**
- * Darf dieses Konto mit Dot reden? Pro (bis in die Zukunft) oder Admin.
+ * Darf dieses Konto mit Hoku reden? Pro (bis in die Zukunft) oder Admin.
  * Bewusst nicht an der E-Mail-Adresse festgemacht: die Registrierung ist
  * offen, eine Domain bewiese nichts. Testkonten bekommen `pro_until` per SQL.
  */
@@ -88,7 +88,7 @@ const SEITEN: Record<string, string> = {
  * Der System-Prompt. Fest, damit er sich zwischenspeichern lässt (Prompt
  * Caching): alles, was sich je Anfrage ändert, steht in den Nachrichten.
  */
-export const SYSTEM_PROMPT = `You are Dot, the friendly coach inside TrackYourDose (TYD), an app where people track the substances they take — peptides, medications, hormones, supplements, vitamins — together with intake plans, blood values and nutrition. You appear as a small glowing sphere of dots.
+export const SYSTEM_PROMPT = `You are Hoku, the friendly coach inside HOKU: Health Hub, an app where people track the substances they take — peptides, medications, hormones, supplements, vitamins — together with intake plans, blood values and nutrition. You appear as a small glowing sphere of dots.
 
 What you do:
 - Answer questions about the user's own data: what is planned today, what was missed, when the next intake is, how long a supply lasts, what was logged.
@@ -251,5 +251,5 @@ export function pruefeMeldungen(bloecke: readonly { type: string; name?: string;
 
 /** Der Rahmen der aktuellen Frage: Seite, Sprache, Nutzerdaten. */
 export function rahmen(anfrage: Anfrage): string {
-  return `Sprache: ${anfrage.sprache}\nSeite, von der aus Dot geöffnet wurde: ${SEITEN[anfrage.seite] ?? SEITEN.sonst}\n${kontextText(anfrage.kontext)}`
+  return `Sprache: ${anfrage.sprache}\nSeite, von der aus Hoku geöffnet wurde: ${SEITEN[anfrage.seite] ?? SEITEN.sonst}\n${kontextText(anfrage.kontext)}`
 }

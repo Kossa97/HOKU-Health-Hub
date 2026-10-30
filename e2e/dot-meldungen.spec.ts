@@ -5,7 +5,7 @@ import { next, seedBpc157 } from './support/myStack'
 test.use({ dotFrei: true })
 
 /**
- * Dot trägt per Satz ein: der Nutzer sagt „BPC heute vergessen", Claude meldet
+ * Hoku trägt per Satz ein: der Nutzer sagt „BPC heute vergessen", Claude meldet
  * das über sein Werkzeug, die App trägt es ein wie der Kalender und bietet
  * „Rückgängig" an. Heute ist der 28.09., 10:00; BPC-157 ist morgens geplant.
  */
@@ -26,9 +26,9 @@ async function chatOeffnen(page: import('@playwright/test').Page) {
   await expect(logo(page)).toHaveAttribute('data-dot-bereit', 'true', { timeout: 15_000 })
   await logo(page).click()
   await lassLaufen(page, 3000)
-  await page.getByRole('button', { name: /Dot, dein KI-Coach/ }).click({ force: true })
+  await page.getByRole('button', { name: /Hoku, dein KI-Coach/ }).click({ force: true })
   await lassLaufen(page, 600)
-  return page.getByRole('dialog', { name: 'Dot' })
+  return page.getByRole('dialog', { name: 'Hoku' })
 }
 
 async function sagen(page: import('@playwright/test').Page, chat: import('@playwright/test').Locator, satz: string) {
@@ -41,7 +41,7 @@ test.beforeEach(({ mock }) => {
   mock.table('profiles').find(row => row.id === TEST_USER.id)!.coach_consent_at = '2026-09-01T00:00:00.000Z'
 })
 
-test('„heute vergessen": Dot trägt aus, bestätigt mit Karte, Rückgängig nimmt es zurück', async ({ page, mock }) => {
+test('„heute vergessen": Hoku trägt aus, bestätigt mit Karte, Rückgängig nimmt es zurück', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   mock.coach.antwort = ''
   mock.coach.meldungen = kontext => [{ ref: heutigeRef(kontext), art: 'vergessen', uhrzeit: null }]
@@ -60,7 +60,7 @@ test('„heute vergessen": Dot trägt aus, bestätigt mit Karte, Rückgängig ni
   await expect(chat.getByRole('button', { name: 'Rückgängig' })).toHaveCount(0)
 })
 
-test('„um 9 genommen": Dot trägt mit der genannten Zeit ein; ohne Schalter bleibt „später" beim Haken', async ({ page, mock }) => {
+test('„um 9 genommen": Hoku trägt mit der genannten Zeit ein; ohne Schalter bleibt „später" beim Haken', async ({ page, mock }) => {
   seedBpc157(mock, { startDate: '2026-09-01' })
   mock.coach.antwort = 'Alles klar.'
   mock.coach.meldungen = kontext => [{ ref: heutigeRef(kontext), art: 'genommen', uhrzeit: '09:00' }]
@@ -70,7 +70,7 @@ test('„um 9 genommen": Dot trägt mit der genannten Zeit ein; ohne Schalter bl
   await expect(chat.getByText(/BPC-157, heute \d\d:\d\d: als genommen eingetragen \(09:00\)\./)).toBeVisible()
   await expect.poll(() => heute(mock).map(l => [l.taken, l.logged_at, l.auto_logged ?? false])).toEqual([[true, '2026-09-28T07:00:00.000Z', false]])
 
-  // Rückgängig, dann „erst um 22 Uhr": ohne Schalter an der Substanz trägt Dot nicht selbst ein
+  // Rückgängig, dann „erst um 22 Uhr": ohne Schalter an der Substanz trägt Hoku nicht selbst ein
   await chat.getByRole('button', { name: 'Rückgängig' }).click()
   await expect.poll(() => heute(mock).length).toBe(0)
   mock.coach.antwort = ''
@@ -117,7 +117,7 @@ test('eine überholte Karte nimmt nichts zurück, was danach entschieden wurde',
   expect(heute(mock).map(l => l.taken)).toEqual([true])
 })
 
-test('„leg BPC-157 an, Vial, 250 mcg morgens": Dot bereitet vor, der Assistent öffnet sich vorbefüllt, gespeichert wird dort', async ({ page, mock }) => {
+test('„leg BPC-157 an, Vial, 250 mcg morgens": Hoku bereitet vor, der Assistent öffnet sich vorbefüllt, gespeichert wird dort', async ({ page, mock }) => {
   mock.coach.antwort = 'Mach ich.'
   mock.coach.anlagen = [{
     name: 'BPC-157', form: 'vial', menge: 250, einheit: 'mcg',
@@ -151,7 +151,7 @@ test('„leg BPC-157 an, Vial, 250 mcg morgens": Dot bereitet vor, der Assistent
   })
 })
 
-test('Dot hört zu: Mikrofon tippen, sprechen, das Gehörte geht ab wie getippt', async ({ page, mock }) => {
+test('Hoku hört zu: Mikrofon tippen, sprechen, das Gehörte geht ab wie getippt', async ({ page, mock }) => {
   // Nachgebildete Spracherkennung des Browsers: erst ein Zwischenstand, dann der Satz
   await page.addInitScript(() => {
     class Erkennung {
@@ -190,7 +190,7 @@ test('ohne Spracherkennung im Browser gibt es keinen Mikrofon-Knopf', async ({ p
   await expect(chat.getByRole('button', { name: 'Senden' })).toBeVisible()
 })
 
-test('Chat zu, während Dot zuhört: das halb Gehörte geht nicht ab', async ({ page, mock }) => {
+test('Chat zu, während Hoku zuhört: das halb Gehörte geht nicht ab', async ({ page, mock }) => {
   // Spricht und hört nicht von selbst auf; abort() endet wie im Standard: erst „aborted", dann „end"
   await page.addInitScript(() => {
     class Erkennung {

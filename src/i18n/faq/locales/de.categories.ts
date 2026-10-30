@@ -7,8 +7,8 @@ export const deCategories: FaqCategory[] = [
     title: 'Erste Schritte & Navigation',
     items: [
       {
-        q: 'Was ist Track Your Dose?',
-        a: 'Track Your Dose ist eine private Dokumentations-App für Peptide, Zyklen, Dosen, Vorrat, Injektionsstellen, Blutwerte, Effekte und Reports. Die App ersetzt keine medizinische Beratung und ist für Recherche, Struktur und persönliche Dokumentation gedacht.',
+        q: 'Was ist HOKU: Health Hub?',
+        a: 'HOKU: Health Hub ist eine private Dokumentations-App für Peptide, Zyklen, Dosen, Vorrat, Injektionsstellen, Blutwerte, Effekte und Reports. Die App ersetzt keine medizinische Beratung und ist für Recherche, Struktur und persönliche Dokumentation gedacht.',
       },
       {
         q: 'Wie ist die App aufgebaut?',

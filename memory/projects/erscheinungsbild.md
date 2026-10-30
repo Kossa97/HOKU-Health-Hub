@@ -75,3 +75,9 @@ Web-Dateien heißen `icons/dot-codex-*`. Tab-Leisten-Logo (`DotLogo.tsx`) unver�
 App-Icon = blaue Fassung aus dem Kit überall (iOS, Android, Web, Favicon aus dem Kit, Benachrichtigungen),
 dazu neue Startbildschirme (vorher Capacitor-Standardkreuz). Einbau: `docs/logo/hoku/EINBAU.md`.
 Name der App noch nicht auf HOKU umgestellt.
+
+**Name (30.10.2026, Nutzer):** App heißt **„HOKU: Health Hub“** (Startbildschirm/Kurzname „HOKU“), der Assistent
+heißt **Hoku** statt Dot. Umgestellt in allen sichtbaren de/en-Texten, Rechtstexten, PDFs (Dateinamen `HOKU-…`),
+iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-Prompt. Unverändert: App-ID
+`com.kossa97.tyd`, Speicherschlüssel `tyd_*`, Code-Bezeichner (`features/dot`, `Dot…`), die zwölf weiteren Sprachen
+(CLAUDE.md), User-Agent der Lebensmittel-Suche.
