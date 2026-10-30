@@ -172,18 +172,27 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
   }
 
   // Die Zeilen aendern sich nur mit Anzahl und Format — beim Drehen bleibt React still.
+  // Einrastpunkt und Walzenform getrennt: die aeussere Zeile rastet ein und
+  // bleibt unbewegt, nur die innere wird gestaucht und verschoben. Safari rastet
+  // nach Spezifikation am transformierten Kasten ein — sass die Walzenform auf
+  // der Zeile selbst, wanderten die Einrastpunkte beim Malen mit und das Rad
+  // drehte von allein weiter (82 → 83 → 84).
   const rows = useMemo(() => Array.from({ length: count }, (_, i) => (
     <div
       key={i}
-      ref={node => { items.current[i] = node }}
       aria-hidden="true"
       data-wheel-index={i}
-      style={{
-        height: WHEEL_ITEM_H, lineHeight: `${WHEEL_ITEM_H}px`, scrollSnapAlign: 'center',
-        textAlign: align, padding: '0 10px', whiteSpace: 'nowrap',
-      }}
+      style={{ height: WHEEL_ITEM_H, scrollSnapAlign: 'center' }}
     >
-      {format(i)}
+      <div
+        ref={node => { items.current[i] = node }}
+        style={{
+          height: WHEEL_ITEM_H, lineHeight: `${WHEEL_ITEM_H}px`,
+          textAlign: align, padding: '0 10px', whiteSpace: 'nowrap',
+        }}
+      >
+        {format(i)}
+      </div>
     </div>
   )), [count, format, align])
 
