@@ -219,14 +219,18 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       }}
       style={{
         height: WHEEL_HEIGHT, overflowY: 'auto', overscrollBehavior: 'contain',
-        scrollSnapType: 'y mandatory', paddingBlock: PAD,
+        scrollSnapType: 'y mandatory',
         fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
         color: 'var(--lg-text)', touchAction: 'pan-y', outline: 'none',
         WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
         maskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
       }}
     >
+      {/* Platzhalter statt padding: WebKit rechnet die Einrastpunkte mit padding
+          am Scroll-Container anders und liess das Rad beim Oeffnen weiterwandern. */}
+      <div aria-hidden="true" style={{ height: PAD }} />
       {rows}
+      <div aria-hidden="true" style={{ height: PAD }} />
     </div>
   )
 }
