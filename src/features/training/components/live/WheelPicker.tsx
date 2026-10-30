@@ -4,9 +4,11 @@ import { prefersReducedMotion } from '../../lib/motion'
 import { WHEEL_HEIGHT, WHEEL_ITEM_H, WHEEL_PAD as PAD, WHEEL_RADIUS as RADIUS, WHEEL_STEP_RAD as STEP_RAD } from './wheelGeometry'
 
 /**
- * Senkrechtes Auswahlrad wie bei iOS: natives Scrollen mit Schwung und
- * Einrasten (`scroll-snap`), dazu eine Walzenform aus Stauchen und
- * Ausblenden zum Rand. Jede Zeile, die die Mitte kreuzt, gibt einen leichten
+ * Senkrechtes Auswahlrad wie bei iOS: natives Scrollen mit Schwung, dazu
+ * eine Walzenform aus Stauchen und Ausblenden zum Rand. Eingerastet wird
+ * hier, nicht per CSS `scroll-snap`: WebKit rastete beim Oeffnen eigenmaechtig
+ * zwei Zeilen weiter (82 → 84 im Geraetetest). Steht das Rad, rueckt es auf
+ * die naechste Zeile. Jede Zeile, die die Mitte kreuzt, gibt einen leichten
  * Haptik-Tick und geht sofort nach oben. Selbst ausgeloestes Hindrehen
  * (Tastatur, Antippen, Wert von aussen) meldet nur sein Ziel.
  *
@@ -53,6 +55,8 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
   const target = useRef<number | null>(null)
   /** Schon einmal ohne Animation nachgesprungen? Dann gilt das Ziel als erreicht. */
   const retried = useRef(false)
+  /** Finger liegt auf dem Rad: dann nicht einrasten, auch wenn es kurz still steht. */
+  const holding = useRef(false)
   const onChangeRef = useRef(onChange)
   useLayoutEffect(() => { onChangeRef.current = onChange })
 
@@ -104,6 +108,20 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       centered.current = target.current
       target.current = null
       retried.current = false
+    } else if (el && !holding.current) {
+      // Vom Nutzer gedreht und ausgelaufen: auf die naechste Zeile einrasten.
+      const nearest = clamp(Math.round(el.scrollTop / WHEEL_ITEM_H), 0, count - 1)
+      if (Math.abs(el.scrollTop - nearest * WHEEL_ITEM_H) > 1) {
+        if (nearest !== reported.current) {
+          reported.current = nearest
+          onChangeRef.current(nearest)
+        }
+        programmatic.current = true
+        target.current = nearest
+        retried.current = false
+        el.scrollTo({ top: nearest * WHEEL_ITEM_H, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+        return
+      }
     }
     programmatic.current = false
     const now = centered.current
@@ -111,7 +129,7 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       reported.current = now
       onChangeRef.current(now)
     }
-  }, [])
+  }, [count])
 
   useLayoutEffect(() => { settleRef.current = settle })
 
@@ -162,6 +180,13 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
     target.current = null
     programmatic.current = false
   }
+  // Finger auf dem Rad (Touch-Ereignisse kommen auch waehrend des nativen Scrollens).
+  const grab = () => { holding.current = true; takeOver() }
+  const release = () => {
+    holding.current = false
+    clearTimeout(settleTimer.current)
+    settleTimer.current = setTimeout(() => settleRef.current(), SETTLE_MS)
+  }
 
   const step = (delta: number) => {
     const next = clamp(reported.current + delta, 0, count - 1)
@@ -179,7 +204,7 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       aria-hidden="true"
       data-wheel-index={i}
       style={{
-        height: WHEEL_ITEM_H, lineHeight: `${WHEEL_ITEM_H}px`, scrollSnapAlign: 'center',
+        height: WHEEL_ITEM_H, lineHeight: `${WHEEL_ITEM_H}px`,
         textAlign: align, padding: '0 10px', whiteSpace: 'nowrap',
       }}
     >
@@ -201,6 +226,9 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       onScroll={onScroll}
       onPointerDown={takeOver}
       onWheel={takeOver}
+      onTouchStart={grab}
+      onTouchEnd={release}
+      onTouchCancel={release}
       onClick={event => {
         // Tippen auf eine Zeile dreht sie in die Mitte.
         const row = (event.target as HTMLElement).closest<HTMLElement>('[data-wheel-index]')
@@ -219,15 +247,13 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       }}
       style={{
         height: WHEEL_HEIGHT, overflowY: 'auto', overscrollBehavior: 'contain',
-        scrollSnapType: 'y mandatory',
         fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
         color: 'var(--lg-text)', touchAction: 'pan-y', outline: 'none',
         WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
         maskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
       }}
     >
-      {/* Platzhalter statt padding: WebKit rechnet die Einrastpunkte mit padding
-          am Scroll-Container anders und liess das Rad beim Oeffnen weiterwandern. */}
+      {/* Platzhalter oben und unten, damit auch die erste und letzte Zeile in die Mitte kommt */}
       <div aria-hidden="true" style={{ height: PAD }} />
       {rows}
       <div aria-hidden="true" style={{ height: PAD }} />
