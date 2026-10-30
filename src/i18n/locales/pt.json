@@ -577,6 +577,8 @@
   "tile_protokoll_desc": "Análise de ciclo & exportar PDF",
   "vials_vorratig": "{{n}} frascos em estoque",
   "confirm_time_now": "Agora",
+  "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Rodízio de locais",
   "inj_title": "Rastreador de injeções",
   "inj_log_btn": "Registrar",

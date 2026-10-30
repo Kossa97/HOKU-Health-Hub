@@ -577,6 +577,8 @@
   "tile_protokoll_desc": "주기 분석 및 PDF 내보내기",
   "vials_vorratig": "{{n}}개 바이알 재고",
   "confirm_time_now": "지금",
+  "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "주사 부위 로테이션",
   "inj_title": "주사 추적기",
   "inj_log_btn": "기록하기",

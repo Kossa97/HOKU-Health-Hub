@@ -577,6 +577,8 @@
   "tile_protokoll_desc": "Évaluation des cycles & export PDF",
   "vials_vorratig": "{{n}} flacons en stock",
   "confirm_time_now": "Maintenant",
+  "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Rotation des sites",
   "inj_title": "Suivi des injections",
   "inj_log_btn": "Enregistrer",

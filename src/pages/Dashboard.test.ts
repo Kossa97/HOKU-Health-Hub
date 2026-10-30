@@ -1285,7 +1285,9 @@ describe('Dashboard normalized timeline path', () => {
     expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
   })
 
-  it('keeps the original 08:00 occurrence in a pending group confirmation', async () => {
+  it('keeps the original 08:00 occurrence in a pending group confirmation, taken now', async () => {
+    // Der Platz im Plan bleibt 08:00; gespeichert wird, wann wirklich
+    // genommen wurde — vorbelegt mit jetzt (16:00 in Berlin).
     const fixtures = startFixFixture()
     fixtures.dose_logs = [pendingLog()]
     const client = createDashboardClient(fixtures, undefined, { buendel: true })
@@ -1294,8 +1296,79 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({ dose_log_id: 'pending-exact',
-        slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T06:00:00.000Z' })],
+        slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T14:00:00.000Z' })],
     }))
+  })
+
+  it('stellt im Bündel per Knopf auf die geplante Uhrzeit um', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [pendingLog()]
+    const client = createDashboardClient(fixtures, undefined, { buendel: true })
+    renderDashboard(client)
+    await gruppenBestaetigungOeffnen()
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('16:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
+      p_entries: [expect.objectContaining({ logged_at: '2026-09-18T06:00:00.000Z' })],
+    }))
+  })
+
+  it('belegt die Einzelbestätigung mit jetzt vor, die geplante Zeit liegt auf dem Knopf', async () => {
+    const fixtures = startFixFixture()
+    const client = createDashboardClient(fixtures)
+    renderDashboard(client)
+    await openSingle()
+    const dialog = await screen.findByRole('dialog')
+    const feld = within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('16:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
+    expect(feld.value).toBe('08:00')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
+    expect(feld.value).toBe('16:00')
+  })
+
+  it('nimmt mit „Jetzt" nach Mitternacht heute, nicht den Tag der Einnahme', async () => {
+    // Die verpasste Einnahme vom 18. wird am 19. um 00:30 nachgetragen: mit
+    // „Jetzt" gespeichert wird der 19. um 00:30 — vorher landete sie am 18.
+    // um 00:30, fast einen Tag zu früh (und so im Blutspiegel).
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
+    vi.setSystemTime(new Date('2026-09-18T22:30:00Z'))
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+
+    const dialog = await screen.findByRole('dialog')
+    const feld = within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('08:00')
+    expect(dialog.querySelector('[data-confirm-time-today]')).toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
+    expect(feld.value).toBe('00:30')
+    expect(dialog.querySelector('[data-confirm-time-today]')).not.toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
+    const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
+      p_entries: Array<{ slot_key: string; logged_at: string }>
+    }
+    expect(params.p_entries).toEqual([expect.objectContaining({
+      slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T22:30:00.000Z',
+    })])
+  })
+
+  it('belegt „Doch eingenommen" auch heute mit der geplanten Uhrzeit vor', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
+    renderDashboard(createDashboardClient(fixtures))
+    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await protokollZeileOeffnen()
+    fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
   })
 
   it('keeps the original pending occurrence in the injection deep link', async () => {
@@ -1500,6 +1573,14 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', {
       p_entries: [expect.objectContaining({ plan_version_id: 'prn-afternoon', logged_at: '2026-09-18T14:00:00.000Z' })],
     }))
+  })
+
+  it('zeigt bei Bedarf keinen Knopf „Geplant" — es gibt keinen Plan', async () => {
+    renderDashboard(createDashboardClient(startFixFixture('Bei Bedarf')))
+    fireEvent.click(await screen.findByRole('button', { name: 'Eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('16:00')
+    expect(within(dialog).queryByRole('button', { name: /^Geplant/ })).toBeNull()
   })
 
   it('rejects a chosen PRN minute inside a pause before issuing any write', async () => {

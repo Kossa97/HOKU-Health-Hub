@@ -577,6 +577,8 @@
   "tile_protokoll_desc": "Analisi ciclo & esportazione PDF",
   "vials_vorratig": "{{n}} flaconcini disponibili",
   "confirm_time_now": "Adesso",
+  "confirm_time_planned": "Planned · {{time}}",
+  "confirm_time_today": "Logged for today, not for the day you opened.",
   "inj_kicker": "Rotazione siti",
   "inj_title": "Tracker iniezioni",
   "inj_log_btn": "Registra",
