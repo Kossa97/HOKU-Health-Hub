@@ -116,6 +116,17 @@ test('Training: laufendes Training uebersteht einen Neustart', async ({ page, mo
   expect(mock.table('training_sessions')).toHaveLength(2)
 })
 
+test('Training: Schnellzugriff fuehrt nach Training, ohne zu starten', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Schnellzugriff' }).click()
+  await page.getByRole('button', { name: 'Training', exact: true }).click()
+  await expect(page).toHaveURL(/\/training$/)
+  await expect(page.getByRole('button', { name: 'Leeres Training starten' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Training' })).toHaveCount(0)
+  expect(mock.table('training_sessions')).toHaveLength(2)
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')
