@@ -52,7 +52,7 @@ import {
 } from '../features/routines/intakeGroups'
 import { confirmIntakeGroup, quantifiedVialEntries, skipIntakeGroup, type IntakeConfirmationClient, type SavedDoseLog } from '../features/routines/services/intakeConfirmation'
 import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
-import { slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
+import { planTagAusSchluessel, slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
 import {
   bundlesForPeriod,
@@ -705,12 +705,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         if (!isCurrent()) return
         if (itemsResult.error) throw itemsResult.error
         if (timezoneReviewResult.error) throw timezoneReviewResult.error
+        // Einen Tag weiter laden: die Einnahme vom letzten Abend des Fensters
+        // kann nach Mitternacht bestaetigt sein und gehoert trotzdem dazu.
         const rangeStart = parseISO(fensterStart)
-        const rangeEnd = parseISO(fensterEnde)
+        const rangeEnd = addDays(parseISO(fensterEnde), 1)
         const ranges = [{ start: rangeStart, end: rangeEnd }]
         if (tagAusserhalbDesRasters) {
           const selectionStart = parseISO(tagAusserhalbDesRasters)
-          ranges.push({ start: selectionStart, end: addDays(selectionStart, 1) })
+          ranges.push({ start: selectionStart, end: addDays(selectionStart, 2) })
         }
         const columns = 'id, stack_item_id, dose, unit, method, logged_at, notes, taken, cycle_id, plan_version_id, routine_slot_key, auto_logged, stack_items(display_name)'
         const byId = new Map<string, DoseLog>()
@@ -792,7 +794,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const rangeStart = monthStart < today ? monthStart : today
     const rangeEnd = monthEnd > today ? monthEnd : today
     const start = format(rangeStart, 'yyyy-MM-dd')
-    const end = format(rangeEnd, 'yyyy-MM-dd')
+    // Einen Tag weiter, wie oben: nach Mitternacht Bestaetigtes gehoert zum Vortag.
+    const end = format(addDays(rangeEnd, 1), 'yyyy-MM-dd')
     const { data } = await dashboardDataClient
       .from('dose_logs')
       .select(FEATURES.planTimelineV2
@@ -940,8 +943,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       resolveTimelineIntakesForDay(timeline, localDate, timeZone)
     ))
   }
-  const logsForDay = (day: Date) => FEATURES.planTimelineV2 && !timelineReady
-    ? [] : logs.filter(l => isSameDay(new Date(l.logged_at), day))
+  // Eine Einnahme mit Platz im Plan steht an dessen Tag, auch wenn sie nach
+  // Mitternacht bestaetigt wurde; ohne Platz (bei Bedarf, frei eingetragen)
+  // am Tag, an dem sie genommen wurde.
+  const logsForDay = (day: Date) => {
+    if (FEATURES.planTimelineV2 && !timelineReady) return []
+    const tag = format(day, 'yyyy-MM-dd')
+    return logs.filter(l => {
+      const planTag = planTagAusSchluessel(l.routine_slot_key)
+      return planTag ? planTag === tag : isSameDay(new Date(l.logged_at), day)
+    })
+  }
 
   // Der Stand eines Tages: wie viele Slots geplant sind, wie viele davon
   // genommen wurden, wie viele noch offen sind.
@@ -2674,6 +2686,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             <span>{menge}</span>
             {log.method && <> · <span>{log.method}</span></>}
             {' · '}<span className="tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
+            {/* Genommen an einem anderen Tag als dem des Platzes (nach Mitternacht): der Tag dazu */}
+            {(() => {
+              const planTag = planTagAusSchluessel(log.routine_slot_key)
+              const genommen = new Date(log.logged_at)
+              return planTag && planTag !== format(genommen, 'yyyy-MM-dd')
+                ? <span data-log-anderer-tag className="tabular-nums"> ({format(genommen, 'EEE', { locale })})</span>
+                : null
+            })()}
             {log.notes && log.notes !== AUTO_MISSED_NOTE && <> · <span>{log.notes}</span></>}
             {log.auto_logged && log.taken === true && <> · <span data-auto-logged className="text-[var(--lg-accent-text)]">{dt('auto_marke')}</span></>}
           </span>
