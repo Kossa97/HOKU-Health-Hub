@@ -13,13 +13,15 @@ import { useCallback, useEffect, useState } from 'react'
  *   getönter Kante und Prismasaum, feines Korn auf dem Grund
  * - `instrument`: wie ein Messgerät — reines Schwarz, feste Flächen mit
  *   Haarlinie, kein Glas, weißer Hauptknopf, Cyan nur für Daten
+ * - `softdark`: weiches Anthrazit, erhabene Flächen mit weichem Schatten,
+ *   blaue, leicht leuchtende Bedienung; Gedrücktes gibt sichtbar nach
  *
  * Gesetzt wird nur `data-look` am `<html>`; was sich ändert, steht in
  * liquid-glass.css unter `html[data-look='…']`.
  */
-export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument'
+export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument' | 'softdark'
 
-export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument']
+export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument', 'softdark']
 
 const STORAGE_KEY = 'tyd_look'
 
