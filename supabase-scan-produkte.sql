@@ -35,5 +35,7 @@ begin
   end if;
 end $$;
 
+-- Supabase vergibt neuen Tabellen alle Rechte; hier nur lesen und anlegen.
 revoke all on public.scan_produkte from anon;
+revoke update, delete, truncate, references, trigger on public.scan_produkte from authenticated;
 grant select, insert on public.scan_produkte to authenticated;
