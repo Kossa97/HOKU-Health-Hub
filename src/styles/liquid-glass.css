@@ -878,12 +878,13 @@ html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tab
    Rückmeldung: Gedrücktes gibt in 100–120 ms nach (kleiner, Schatten flacher,
    als drücke man es in die Fläche), Loslassen federt in 300 ms zurück.
    Nur transform, opacity und kleine Schatten.
+   Farben per Pipette aus dem Referenzfoto (Wetter-App) übernommen.
    Mockup: https://claude.ai/artifact/MehxjrTT48ZnjZHVzC372K (Seite „Soft Dark") */
 html[data-look='softdark'] {
   --app-bg: #17181c;
-  --surface: rgba(33,36,41,0.98);
-  --surface-raised: #262a2f;
-  --glass-bg: rgba(33,36,41,0.96);
+  --surface: rgba(32,36,42,0.98);
+  --surface-raised: #23272d;
+  --glass-bg: rgba(32,36,42,0.96);
   --lg-text-3: rgba(235,240,255,0.58);
   --accent: #4ea8ff;
   --accent-weak: rgba(78,168,255,0.14);
@@ -891,17 +892,17 @@ html[data-look='softdark'] {
   --accent-contrast: #04101e;
   --lg-accent-text: #8cc8ff;
   --glow-accent: 0 0 28px rgba(78,168,255,0.28);
-  --sd-raise: linear-gradient(180deg, #262a2f 0%, #212429 45%, #1e2026 100%);
-  --sd-raise-hi: linear-gradient(180deg, #2b2f34 0%, #23262b 100%);
+  --sd-raise: linear-gradient(180deg, #21252a 0%, #20242a 50%, #1e2026 100%);
+  --sd-raise-hi: linear-gradient(180deg, #23272d 0%, #1f2228 100%);
   /* Haarfeine Kante rundum: oben eine Spur heller, unten fast nichts */
-  --sd-rim: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.025) 100%);
+  --sd-rim: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 35%, rgba(255,255,255,0.02) 100%);
   --sd-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 24px -12px rgba(0,0,0,0.85);
   --sd-shadow-pressed: 0 1px 1px rgba(0,0,0,0.4), 0 5px 10px -6px rgba(0,0,0,0.75);
-  --sd-blue: linear-gradient(180deg, #52bfff 0%, #3a86f0 45%, #2f74e6 100%);
+  --sd-blue: linear-gradient(180deg, #4ebbfe 0%, #3c8bf0 55%, #347cef 100%);
   --sd-blue-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
   --sd-blue-shadow-pressed: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
 
-  --lg-surface-fill: #212429;
+  --lg-surface-fill: #20242a;
   --lg-surface-bg: var(--sd-raise);
   --lg-surface-blur: none;
   --lg-surface-shadow: var(--sd-shadow);
@@ -920,14 +921,14 @@ html[data-look='softdark'] {
   --lg-pill-shadow: var(--sd-blue-shadow);
   --lg-fill: rgba(255,255,255,0.06);
   --lg-fill-selected: #30343a;
-  --lg-sheet-bg: linear-gradient(180deg, #24272c 0%, #1d1f24 100%);
-  --lg-sheet-solid: #202328;
+  --lg-sheet-bg: linear-gradient(180deg, #21252a 0%, #1e2026 100%);
+  --lg-sheet-solid: #1f2228;
   --lg-sheet-blur: none;
   --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(170,180,255,0.10), rgba(170,180,255,0) 70%), #17181c;
 }
 /* Grund: oben eine Spur heller, wie unter einer Deckenleuchte */
 html[data-look='softdark'] body {
-  background: linear-gradient(180deg, #25272b 0px, #1b1c20 320px, #17181c 560px, #17181c 100%) var(--app-bg);
+  background: linear-gradient(180deg, #232429 0px, #17181c 320px, #17181c 100%) var(--app-bg);
 }
 html[data-look='softdark'] .lg-backdrop { background-color: #17181c; }
 
@@ -983,10 +984,10 @@ html[data-look='softdark'] .lg-sheet {
 /* Leiste: eine erhabene Kapsel. Die Pille ist eine Stufe heller, der aktive
    Reiter leuchtet blau — das Leuchten blendet in 240 ms ein. */
 html[data-look='softdark'] .tyd-tabbar {
-  background: linear-gradient(180deg, #282b31 0%, #1f2227 100%);
+  background: linear-gradient(180deg, #23272d 0%, #1e2026 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), inset 0 0 0 1px rgba(255,255,255,0.04), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
 }
 html[data-look='softdark'] .tyd-tabbar::before,
 html[data-look='softdark'] .tyd-tabbar::after { display: none; }
