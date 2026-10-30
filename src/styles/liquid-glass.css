@@ -869,9 +869,9 @@ html[data-look='instrument'] .tyd-tabbar-pill {
 html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
 
 /* ── Erscheinungsbild „Soft Dark" ───────────────────────────────────────
-   Weiches Anthrazit statt Schwarz, kein Glas: jede Fläche ist ein leicht
-   erhabenes Stück Material — oben eine Spur heller, ein Lichtsaum an der
-   Oberkante, darunter ein weicher Schatten. Nichts ist eingelassen. Blau ist
+   Dunkles, leicht kühles Anthrazit statt Schwarz, kein Glas: jede Fläche ist
+   ein leicht erhabenes Stück Material — eine Stufe heller als der Grund, rundum
+   eine haarfeine, weiche Kante (oben heller), darunter ein weicher Schatten. Nichts ist eingelassen. Blau ist
    die Farbe der Bedienung (Hauptknopf, Auswahl, aktiver Reiter) und leuchtet
    leicht; Cyan bleibt den Daten. Dot ist das einzige Licht auf der Seite.
 
@@ -880,10 +880,10 @@ html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tab
    Nur transform, opacity und kleine Schatten.
    Mockup: https://claude.ai/artifact/MehxjrTT48ZnjZHVzC372K (Seite „Soft Dark") */
 html[data-look='softdark'] {
-  --app-bg: #1f2023;
-  --surface: rgba(40,41,46,0.98);
-  --surface-raised: #303136;
-  --glass-bg: rgba(40,41,46,0.96);
+  --app-bg: #17181b;
+  --surface: rgba(34,36,40,0.98);
+  --surface-raised: #2a2c31;
+  --glass-bg: rgba(34,36,40,0.96);
   --lg-text-3: rgba(235,240,255,0.58);
   --accent: #4ea8ff;
   --accent-weak: rgba(78,168,255,0.14);
@@ -891,25 +891,27 @@ html[data-look='softdark'] {
   --accent-contrast: #04101e;
   --lg-accent-text: #8cc8ff;
   --glow-accent: 0 0 28px rgba(78,168,255,0.28);
-  --sd-raise: linear-gradient(180deg, #303136 0%, #27282c 100%);
-  --sd-raise-hi: linear-gradient(180deg, #37383e 0%, #2b2c31 100%);
-  --sd-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 4px rgba(0,0,0,0.22), 0 14px 26px -14px rgba(0,0,0,0.8);
-  --sd-shadow-pressed: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.3), 0 6px 12px -8px rgba(0,0,0,0.7);
+  --sd-raise: linear-gradient(180deg, #25272b 0%, #202226 100%);
+  --sd-raise-hi: linear-gradient(180deg, #2c2e33 0%, #25272b 100%);
+  /* Haarfeine Kante rundum: oben eine Spur heller, unten fast nichts */
+  --sd-rim: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.045) 35%, rgba(255,255,255,0.03) 100%);
+  --sd-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 24px -12px rgba(0,0,0,0.85);
+  --sd-shadow-pressed: 0 1px 1px rgba(0,0,0,0.4), 0 5px 10px -6px rgba(0,0,0,0.75);
   --sd-blue: linear-gradient(180deg, #62b8ff 0%, #2f7bea 55%, #2367d8 100%);
   --sd-blue-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
   --sd-blue-shadow-pressed: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
 
-  --lg-surface-fill: #2b2c31;
+  --lg-surface-fill: #232529;
   --lg-surface-bg: var(--sd-raise);
   --lg-surface-blur: none;
   --lg-surface-shadow: var(--sd-shadow);
-  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0) 38%);
+  --lg-card-rim: var(--sd-rim);
   --lg-card-sheen: none;
   --lg-surface-2: rgba(255,255,255,0.05);
   --lg-glass-fill: var(--sd-raise-hi);
   --lg-glass-filter: none;
   --lg-glass-shadow: var(--sd-shadow);
-  --lg-rim: none;
+  --lg-rim: var(--sd-rim);
   --lg-sheen: none;
   --lg-primary-fill: var(--sd-blue);
   --shadow-btn-primary: var(--sd-blue-shadow);
@@ -917,17 +919,17 @@ html[data-look='softdark'] {
   --lg-pill-fill: var(--sd-blue);
   --lg-pill-shadow: var(--sd-blue-shadow);
   --lg-fill: rgba(255,255,255,0.06);
-  --lg-fill-selected: #3a3b41;
-  --lg-sheet-bg: linear-gradient(180deg, #2e2f34 0%, #26272b 100%);
-  --lg-sheet-solid: #27282c;
+  --lg-fill-selected: #33353a;
+  --lg-sheet-bg: linear-gradient(180deg, #26282c 0%, #1f2124 100%);
+  --lg-sheet-solid: #212327;
   --lg-sheet-blur: none;
-  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(170,180,255,0.10), rgba(170,180,255,0) 70%), #1f2023;
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(170,180,255,0.10), rgba(170,180,255,0) 70%), #17181b;
 }
 /* Grund: oben eine Spur heller, wie unter einer Deckenleuchte */
 html[data-look='softdark'] body {
-  background: linear-gradient(180deg, #2b2c31 0px, #232428 440px, #1f2023 100%) var(--app-bg);
+  background: linear-gradient(180deg, #24262a 0px, #1b1c1f 440px, #17181b 100%) var(--app-bg);
 }
-html[data-look='softdark'] .lg-backdrop { background-color: #232428; }
+html[data-look='softdark'] .lg-backdrop { background-color: #1b1c1f; }
 
 /* Hauptknopf: blau, Schrift weiß; beim Drücken sinkt der Schein mit */
 html[data-look='softdark'] :is(.lg-btn-primary, .btn-primary) {
@@ -975,16 +977,16 @@ html[data-look='softdark'] .lg-seg > button { transition: color 240ms ease, tran
 
 /* Blätter: festes Material, oben ein Lichtsaum, kein Weichzeichner */
 html[data-look='softdark'] .lg-sheet {
-  box-shadow: 0 -18px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.09);
+  box-shadow: 0 -18px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.035);
 }
 
 /* Leiste: eine erhabene Kapsel. Die Pille ist eine Stufe heller, der aktive
    Reiter leuchtet blau — das Leuchten blendet in 240 ms ein. */
 html[data-look='softdark'] .tyd-tabbar {
-  background: linear-gradient(180deg, #35363b 0%, #2a2b2f 100%);
+  background: linear-gradient(180deg, #2a2c31 0%, #222428 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.3), 0 18px 34px -14px rgba(0,0,0,0.85);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), inset 0 0 0 1px rgba(255,255,255,0.04), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
 }
 html[data-look='softdark'] .tyd-tabbar::before,
 html[data-look='softdark'] .tyd-tabbar::after { display: none; }
