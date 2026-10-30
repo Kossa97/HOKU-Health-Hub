@@ -85,7 +85,7 @@ test.describe('Kalender: Bündel ziehen', () => {
     await expect(karte).toContainText('Bündel · 2 Einnahmen')
     await expect(karte).toContainText('Morgenroutine')
     // Die beiden stehen nicht mehr einzeln da.
-    await expect(page.locator('[data-periode-bloecke] > .lg-group [data-due-row]')).toHaveCount(0)
+    await expect(page.locator('[data-periode-bloecke] > .lg-group:not([data-bundle-row]) [data-due-row]')).toHaveCount(0)
     await expect.poll(() => mock.table('intake_bundles').map(row => ({
       name: row.name, anzahl: (row.stack_item_ids as string[]).length,
     }))).toEqual([{ name: 'Morgenroutine', anzahl: 2 }])

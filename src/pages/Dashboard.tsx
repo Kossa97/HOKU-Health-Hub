@@ -2315,7 +2315,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     )
     if (bearbeiten) {
       return (
-        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen="" className="tyd-buendel">
+        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen="" className="lg-group tyd-buendel">
           <div className="flex items-center gap-3 px-3 pb-2 pt-3">
             <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
             <label className="min-w-0 flex-1">
@@ -2368,7 +2368,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )
     }
     return (
-      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen={offen ? '' : undefined} className="tyd-buendel">
+      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen={offen ? '' : undefined} className="lg-group tyd-buendel">
         <div className="flex items-center gap-1 pr-2">
           <button
             type="button"
