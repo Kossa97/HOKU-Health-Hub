@@ -50,17 +50,17 @@ export default defineConfig(({ mode }) => {
         globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*'],
       },
       manifest: {
-        name: 'TYD – Track Your Dose',
-        short_name: 'TYD',
+        name: 'HOKU: Health Hub',
+        short_name: 'HOKU',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
-        background_color: '#060911',
+        background_color: '#080b13',
         display: 'standalone',
         icons: [
-          // Dot (docs/logo/dot/codex, Bild von Codex). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
-          { src: '/icons/dot-codex-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/dot-codex-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/dot-codex-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // HOKU (docs/logo/hoku/brand-kit-v1). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
+          { src: '/icons/hoku-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

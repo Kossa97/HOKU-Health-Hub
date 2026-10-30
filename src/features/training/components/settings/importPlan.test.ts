@@ -123,6 +123,6 @@ describe('replaceUnknownExercises', () => {
 
 describe('exportFileName', () => {
   it('nutzt das lokale Datum', () => {
-    expect(exportFileName(new Date(2026, 0, 5, 23, 30))).toBe('TYD-Training-2026-01-05.csv')
+    expect(exportFileName(new Date(2026, 0, 5, 23, 30))).toBe('HOKU-Training-2026-01-05.csv')
   })
 })

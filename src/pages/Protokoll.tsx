@@ -159,7 +159,7 @@ const COPY: Record<'de' | 'en', ProtocolCopy> = {
     missedDays: 'Tage mit ✗',
     user: 'Name',
     exportedAt: 'Datum',
-    coverTitle: 'TYD Protokoll',
+    coverTitle: 'HOKU Protokoll',
     researchExportHint: 'PDF-Export = Research-Protokoll für deine Dokumentation',
   },
   en: {
@@ -194,7 +194,7 @@ const COPY: Record<'de' | 'en', ProtocolCopy> = {
     missedDays: 'Days with ✗',
     user: 'Name',
     exportedAt: 'Date',
-    coverTitle: 'TYD Protocol',
+    coverTitle: 'HOKU Protocol',
     researchExportHint: 'PDF export = research protocol for your documentation',
   },
 }
