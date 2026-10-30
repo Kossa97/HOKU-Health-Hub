@@ -19,7 +19,7 @@ export const DATA_MATRIX = 'data_matrix'
 export const CODE_128 = 'code_128'
 
 export interface Detector {
-  detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>
+  detect(source: HTMLVideoElement): Promise<{ rawValue: string; format?: string }[]>
 }
 
 type DetectorCtor = {
@@ -51,7 +51,9 @@ export async function createDetector(mitDataMatrix = false): Promise<Detector> {
   if (native?.getSupportedFormats) {
     try {
       const supported = await native.getSupportedFormats()
-      if (supported.includes('ean_13') && (!mitDataMatrix || (supported.includes(DATA_MATRIX) && supported.includes(CODE_128)))) {
+      // Code 128 nur, wo der eingebaute Leser ihn kann: das Amazon-Etikett ist
+      // ein Zusatz und soll nicht das Nachladen von ZXing erzwingen.
+      if (supported.includes('ean_13') && (!mitDataMatrix || supported.includes(DATA_MATRIX))) {
         return new native({ formats: formats.filter(f => supported.includes(f)) })
       }
     } catch { /* weiter mit ZXing */ }

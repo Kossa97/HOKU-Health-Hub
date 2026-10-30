@@ -150,14 +150,17 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
     }
     setMerken({ ean: code })
     setPhase({ art: 'laeuft', was: 'barcode' })
-    // Schon einmal per Etikett angelegt: sofort fertig, mit Wirkstoffen.
+    // Beide zugleich fragen; ein gemerktes Etikett geht vor — es hat die
+    // Wirkstoffe, Open Food Facts meist nur den Namen.
+    const offenFood = sucheBarcode(code, lang)
+    offenFood.catch(() => {}) // wird unten ausgewertet; hier nur nicht unbehandelt
     const gemerkt = await gemerktesEtikett(code).catch(() => null)
     if (gemerkt) {
       setPhase({ art: 'ergebnis', vorschlag: { ...vorschlagAusEtikett(gemerkt, katalog), quelle: 'barcode' } })
       return
     }
     try {
-      const produkt = await sucheBarcode(code, lang)
+      const produkt = await offenFood
       if (!produkt) { zurKamera(t('my_stack_scan_barcode_unknown'), true); return }
       setPhase({ art: 'ergebnis', vorschlag: vorschlagAusProdukt(produkt, katalog) })
     } catch {
@@ -266,7 +269,11 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
             // Erst wer uebernimmt, hat das gelesene Etikett gesehen und fuer
             // richtig befunden — dann ist es den naechsten Scan wert.
             if (merken?.etikett && vorschlag.quelle === 'foto') {
-              merkeEtikett(merken.ean, merken.etikett).catch(error => reportError(error, 'SubstanzScanner.merken'))
+              // Hat der Nutzer aus einer Familie gewaehlt („Testosteron" → Enantat),
+              // gilt seine Wahl als Name — sonst fragte der naechste Scan erneut.
+              const gewaehlt = phase.vorschlag.kandidaten?.length && vorschlag.entry
+              const etikett = gewaehlt ? { ...merken.etikett, name: vorschlag.entry!.canonical_name } : merken.etikett
+              merkeEtikett(merken.ean, etikett).catch(error => reportError(error, 'SubstanzScanner.merken'))
             }
             onUebernehmen(vorschlag)
           }}

@@ -217,6 +217,5 @@ test('Gemerktes Produkt: der Barcode reicht, mit Wirkstoffen und ohne KI', async
   await expect(ergebnis).toContainText('Citrus Bergamot')
   await expect(ergebnis).toContainText('1.500 mg')
   await expect(ergebnis).toContainText('Kapsel')
-  expect(mock.foodLookup.calls).toHaveLength(0)
   expect(mock.labelExtract.calls).toHaveLength(0)
 })

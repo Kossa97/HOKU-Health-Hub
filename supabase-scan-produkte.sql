@@ -36,6 +36,9 @@ begin
 end $$;
 
 -- Supabase vergibt neuen Tabellen alle Rechte; hier nur lesen und anlegen.
+-- Gelesen werden nur EAN und Etikett: `created_at` verriete bei wenigen
+-- Nutzern, wann jemand ein Produkt angelegt hat.
 revoke all on public.scan_produkte from anon;
-revoke update, delete, truncate, references, trigger on public.scan_produkte from authenticated;
-grant select, insert on public.scan_produkte to authenticated;
+revoke select, update, delete, truncate, references, trigger on public.scan_produkte from authenticated;
+grant select (ean, etikett) on public.scan_produkte to authenticated;
+grant insert on public.scan_produkte to authenticated;
