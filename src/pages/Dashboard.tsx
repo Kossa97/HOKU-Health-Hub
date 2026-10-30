@@ -453,9 +453,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
    * ist der Stand ALLER Bündel davor — „Rückgängig" stellt ihn wieder her.
    * `neu`: gerade erst angelegt (dann heißt der Knopf „Rückgängig").
    */
-  // `schluessel`: die Karte (Bündel@Tageszeit), die bearbeitet wird — steht ein
-  // Bündel morgens und abends, öffnet nur die angetippte.
-  const [buendelBearbeiten, setBuendelBearbeiten] = useState<{ id: string; schluessel: string; name: string; vorher: IntakeBundle[]; neu: boolean } | null>(null)
+  // Bündel und Tageszeit, die bearbeitet werden — steht ein Bündel morgens und
+  // abends, öffnet nur die angetippte Karte.
+  const [buendelBearbeiten, setBuendelBearbeiten] = useState<{ id: string; periode: string; name: string; vorher: IntakeBundle[]; neu: boolean } | null>(null)
   // Nur die letzte Bündel-Änderung lässt sich rückgängig machen; eine ältere
   // Meldung geht zu, sobald eine neue kommt.
   const letzteRueckgabe = useRef<string | null>(null)
@@ -1236,7 +1236,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // morgens und abends etwas, steht es in beiden, jeweils mit seinem Teil.
   type TagesEintrag =
     | { art: 'einzel'; slot: DueSlot; minuten: number }
-    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; intakes: RoutineIntake[]; anzahl: number; slots: DueSlot[]; minuten: number }
+    | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; alle: IntakeBundle[]; name: string; mitglieder: string; intakes: RoutineIntake[]; anzahl: number; slots: DueSlot[]; minuten: number }
   const tagesGruppen = offeneGruppen.map(gruppe => {
     const { entries, vergeben } = bundlesForPeriod(
       bundleRows,
@@ -1244,7 +1244,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       geplantJeTageszeit.get(PERIOD_TO_ROUTINE_GROUP[gruppe.key]) ?? new Set(),
     )
     const eintraege: TagesEintrag[] = [
-      ...entries.map(({ bundle, intakes, anzahl }) => {
+      ...entries.map(({ bundle, alle, intakes, anzahl }) => {
         // Aufgeklappt nach der Uhr wie die Liste drumherum; das Blatt
         // behaelt die Reihenfolge des Bündels.
         const slots = intakes
@@ -1253,8 +1253,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           .sort((a, b) => a.minutes - b.minutes)
         return {
           art: 'buendel' as const,
-          schluessel: `${bundle.id}@${gruppe.key}`,
+          // Zusammengelegt (zwei Bündel teilen sich heute eine Substanz): eine
+          // Karte, benannt nach beiden.
+          schluessel: `${alle.map(eines => eines.id).join('+')}@${gruppe.key}`,
           bundle,
+          alle,
+          name: alle.map(eines => eines.name).join(' & '),
+          mitglieder: [...new Set(alle.flatMap(eines => eines.stack_item_ids))].join(' '),
           intakes,
           anzahl,
           slots,
@@ -2020,17 +2025,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       const angelegt = ergebnis?.nachher.find(bundle => !ergebnis.vorher.some(alt => alt.id === bundle.id))
       if (!ergebnis || !angelegt) return
       setOffenesBuendel(`${angelegt.id}@${quelle.periode}`)
-      setBuendelBearbeiten({ id: angelegt.id, schluessel: `${angelegt.id}@${quelle.periode}`, name: angelegt.name, vorher: ergebnis.vorher, neu: true })
+      setBuendelBearbeiten({ id: angelegt.id, periode: quelle.periode, name: angelegt.name, vorher: ergebnis.vorher, neu: true })
     })
   }
 
   const herausnehmen = (quelle: ZiehQuelle) => {
     const alt = bundles.find(bundle => bundle.id === quelle.buendelId)
     if (!alt) return
-    const aufgeloest = alt.stack_item_ids.filter(id => id !== quelle.stackItemId).length < 2
+    const aufgeloest = alt.stack_item_ids.filter(id => id !== quelle.stackItemId).length < 2 ? alt : null
     void buendelAendern(vorher => ohneQuelle(vorher, quelle), {
       text: String(t('bundle_taken_out', { defaultValue: '{{item}} ist wieder einzeln', item: substanzName(quelle.stackItemId) })),
-      zusatz: aufgeloest ? String(t('bundle_dissolved', { defaultValue: '„{{name}}" hat sich aufgelöst', name: alt.name })) : undefined,
+      zusatz: aufgeloest ? String(t('bundle_dissolved', { defaultValue: '„{{name}}" hat sich aufgelöst', name: aufgeloest.name })) : undefined,
     })
   }
 
@@ -2324,7 +2329,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     eintrag: Extract<TagesEintrag, { art: 'buendel' }>,
     periode: Parameters<typeof renderEinnahme>[1],
   ) => {
-    const bearbeiten = buendelBearbeiten?.schluessel === eintrag.schluessel ? buendelBearbeiten : null
+    // Bearbeitet wird ein gespeichertes Bündel. Legt es sich heute mit einem
+    // anderen zusammen (gerade neu angelegt), zeigt die Karte nur seine Einnahmen.
+    const bearbeitetes = buendelBearbeiten && buendelBearbeiten.periode === periode.key
+      ? eintrag.alle.find(eines => eines.id === buendelBearbeiten.id) ?? null
+      : null
+    const bearbeiten = bearbeitetes ? buendelBearbeiten : null
     const offen = Boolean(bearbeiten) || eintrag.schluessel === aufgeklapptesBuendel
     // Der Ring zählt, was offen ist; die Kopfzeile, was das Bündel hier umfasst.
     const anzahl = eintrag.intakes.length
@@ -2337,7 +2347,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     )
     if (bearbeiten) {
       return (
-        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen="" className="lg-group tyd-buendel">
+        <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.mitglieder} data-periode={periode.key} data-offen="" className="lg-group tyd-buendel">
           <div className="flex items-center gap-3 px-3 pb-2 pt-3">
             <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
             <label className="min-w-0 flex-1">
@@ -2355,7 +2365,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             </label>
           </div>
           <div className="tyd-buendel-glieder lg-rows">
-            {eintrag.slots.map(slot => {
+            {eintrag.slots.filter(slot => bearbeitetes!.stack_item_ids.includes(slot.cycle.stack_item_id)).map(slot => {
               const name = slot.cycle.stack_items?.display_name ?? ''
               return (
                 <div key={slot.key} data-due-row={slot.key} className="flex min-h-[54px] items-center gap-3 pl-3 pr-2">
@@ -2367,7 +2377,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   <button
                     type="button"
                     aria-label={String(t('bundle_remove_item', { defaultValue: '{{name}} aus dem Bündel nehmen', name }))}
-                    onClick={() => void imBearbeitenHerausnehmen(eintrag.bundle, slot.cycle.stack_item_id)}
+                    onClick={() => void imBearbeitenHerausnehmen(bearbeitetes!, slot.cycle.stack_item_id)}
                     className="tyd-press grid h-11 w-11 shrink-0 place-items-center rounded-full"
                   >
                     <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_20%,transparent)] text-[var(--lg-bad-text)]"><Minus size={14} strokeWidth={3} /></span>
@@ -2390,7 +2400,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       )
     }
     return (
-      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.bundle.stack_item_ids.join(' ')} data-periode={periode.key} data-offen={offen ? '' : undefined} className="lg-group tyd-buendel">
+      <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.mitglieder} data-zusammengelegt={eintrag.alle.length > 1 ? '' : undefined} data-periode={periode.key} data-offen={offen ? '' : undefined} className="lg-group tyd-buendel">
         <div className="flex items-center gap-1 pr-2">
           <button
             type="button"
@@ -2401,7 +2411,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
             <span className="min-w-0 flex-1">
               {kopfzeile}
-              <span className="block truncate text-[17px] font-semibold text-[var(--lg-text)]">{eintrag.bundle.name}</span>
+              {/* Zusammengelegt stehen zwei Namen da: umbrechen statt abschneiden. */}
+              <span className={`block text-[17px] font-semibold leading-snug text-[var(--lg-text)] ${eintrag.alle.length > 1 ? 'line-clamp-2 [overflow-wrap:anywhere]' : 'truncate'}`}>{eintrag.name}</span>
               {!offen && (
                 <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">
                   {[eintrag.intakes.map(intake => intake.stackItemName).join(' · '), spanne].filter(Boolean).join(' · ')}
@@ -2413,8 +2424,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           <button
             type="button"
             data-kein-ziehen
-            aria-label={`${eintrag.bundle.name} ${String(t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: anzahl }))}`}
-            onClick={() => openBundle(eintrag.bundle, eintrag.intakes)}
+            aria-label={`${eintrag.name} ${String(t('bundle_confirm_open', { defaultValue: '{{n}} bestätigen', n: anzahl }))}`}
+            onClick={() => openBundle({ ...eintrag.bundle, name: eintrag.name }, eintrag.intakes)}
             className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
           >
             <span aria-hidden="true" className="tyd-kreis">{anzahl}</span>
@@ -2422,18 +2433,29 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         </div>
         {offen && (
           <>
-            <div className="tyd-buendel-glieder lg-rows">
-              {eintrag.slots.map(slot => renderEinnahme(slot, periode, slot.key === offenerSlot, eintrag.bundle.id))}
+            {/* Zusammengelegt ist nur Anzeige: Herausziehen nähme die gemeinsame
+                Substanz aus beiden gespeicherten Bündeln und löste sie auf. */}
+            <div className="tyd-buendel-glieder lg-rows" data-kein-ziehen={eintrag.alle.length > 1 ? '' : undefined}>
+              {eintrag.slots.map(slot => renderEinnahme(slot, periode, slot.key === offenerSlot,
+                eintrag.alle.length > 1 ? undefined : eintrag.bundle.id))}
             </div>
-            <div className="flex justify-end px-3 pb-2">
-              <button
-                type="button"
-                onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, schluessel: eintrag.schluessel, name: eintrag.bundle.name, vorher: bundles, neu: false })}
-                className="tyd-press min-h-11 px-2 text-[15px] font-semibold text-[var(--accent)]"
-              >
-                {t('bundle_edit_short', { defaultValue: 'Bearbeiten' })}
-              </button>
-            </div>
+            {eintrag.alle.length > 1 ? (
+              // Zusammengelegt gibt es nichts Eigenes zu bearbeiten — die
+              // Bündel selbst stehen unter „Meine Bündel".
+              <p data-buendel-zusammengelegt className="px-4 pb-3 pt-1 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                {t('bundle_merged_hint', { defaultValue: 'Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind.' })}
+              </p>
+            ) : (
+              <div className="flex justify-end px-3 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, periode: periode.key, name: eintrag.bundle.name, vorher: bundles, neu: false })}
+                  className="tyd-press min-h-11 px-2 text-[15px] font-semibold text-[var(--accent)]"
+                >
+                  {t('bundle_edit_short', { defaultValue: 'Bearbeiten' })}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

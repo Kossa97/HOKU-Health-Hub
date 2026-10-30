@@ -66,16 +66,17 @@ describe('bundlesForPeriod', () => {
     expect([...vergeben].sort()).toEqual(['a-2026-10-16T07:00:00.000Z', 'b-2026-10-16T07:30:00.000Z'])
   })
 
-  it('gives a substance in two bundles to the first one only', () => {
+  it('puts two bundles that share a substance on one card when both are due', () => {
     const vier = [...morgen, intake('d', '2026-10-16T08:30:00.000Z')]
-    const { entries } = bundlesForPeriod([
+    const { entries, vergeben } = bundlesForPeriod([
       { bundle: 'Erstes', itemIds: ['a', 'b'] },
       { bundle: 'Zweites', itemIds: ['b', 'c', 'd'] },
     ], vier)
-    expect(entries.map(entry => [entry.bundle, entry.intakes.map(item => item.stackItemId)])).toEqual([
-      ['Erstes', ['a', 'b']],
-      ['Zweites', ['c', 'd']],
+    expect(entries.map(entry => [entry.alle, entry.intakes.map(item => item.stackItemId)])).toEqual([
+      [['Erstes', 'Zweites'], ['a', 'b', 'c', 'd']],
     ])
+    expect(entries[0].bundle).toBe('Erstes')
+    expect(vergeben.size).toBe(4)
   })
 
   it('leaves out a bundle with nothing open in this period', () => {
@@ -93,16 +94,40 @@ describe('bundlesForPeriod', () => {
     expect(bundlesForPeriod(buendel, sonntag).entries).toHaveLength(1)
   })
 
-  it('does not count a substance an earlier bundle already holds', () => {
-    // Magnesium steckt in beiden; das erste Bündel hält es. Das zweite hätte
-    // nur noch Vitamin D — ein Bündel aus einer Einnahme ist keins.
-    const abend = [intake('magnesium', '2026-10-18T21:00:00.000Z'), intake('melatonin', '2026-10-18T21:30:00.000Z'),
-      intake('vitd', '2026-10-18T21:00:00.000Z')]
+  it('folgt dem Plan: zusammen nur an Tagen, an denen beide Bündel dastehen', () => {
+    // GHK-Cu jeden Morgen, Testosteron freitags morgens, Retatrutid alle 6 Tage.
+    const buendel = [
+      { bundle: 'GHK+Test', itemIds: ['ghk', 'test'] },
+      { bundle: 'GHK+Reta', itemIds: ['ghk', 'reta'] },
+    ]
+    const tag = (...ids: string[]) => ids.map(id => intake(id, '2026-10-30T07:00:00.000Z'))
+    const fall = (...ids: string[]) => bundlesForPeriod(buendel, tag(...ids), new Set(ids)).entries
+      .map(entry => [entry.alle, entry.intakes.map(item => item.stackItemId), entry.anzahl])
+    // Freitag: GHK-Cu und Testosteron
+    expect(fall('ghk', 'test')).toEqual([[['GHK+Test'], ['ghk', 'test'], 2]])
+    // Samstag: GHK-Cu und Retatrutid
+    expect(fall('ghk', 'reta')).toEqual([[['GHK+Reta'], ['ghk', 'reta'], 2]])
+    // Freitag mit Retatrutid: alle drei auf einer Karte, nichts einzeln
+    expect(fall('ghk', 'test', 'reta')).toEqual([[['GHK+Test', 'GHK+Reta'], ['ghk', 'test', 'reta'], 3]])
+    // Nur GHK-Cu: kein Bündel
+    expect(fall('ghk')).toEqual([])
+  })
+
+  it('lässt Bündel ohne gemeinsame Substanz getrennt', () => {
     const { entries } = bundlesForPeriod([
-      { bundle: 'Sonntag', itemIds: ['magnesium', 'melatonin'] },
-      { bundle: 'Neu', itemIds: ['magnesium', 'vitd'] },
-    ], abend, new Set(['magnesium', 'melatonin', 'vitd']))
-    expect(entries.map(entry => [entry.bundle, entry.anzahl])).toEqual([['Sonntag', 2]])
+      { bundle: 'Eins', itemIds: ['a', 'b'] },
+      { bundle: 'Zwei', itemIds: ['c', 'd'] },
+    ], [...morgen, intake('d', '2026-10-16T08:30:00.000Z')])
+    expect(entries.map(entry => entry.alle)).toEqual([['Eins'], ['Zwei']])
+  })
+
+  it('verbindet auch über ein drittes Bündel: A–B und B–C werden eine Karte', () => {
+    const { entries } = bundlesForPeriod([
+      { bundle: 'AB', itemIds: ['a', 'b'] },
+      { bundle: 'CD', itemIds: ['c', 'd'] },
+      { bundle: 'BC', itemIds: ['b', 'c'] },
+    ], [...morgen, intake('d', '2026-10-16T08:30:00.000Z')])
+    expect(entries.map(entry => [entry.alle, entry.anzahl])).toEqual([[['AB', 'CD', 'BC'], 4]])
   })
 
   it('counts what is planned, not what is still open: one confirmed keeps the bundle', () => {

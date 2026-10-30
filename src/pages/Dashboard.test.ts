@@ -1011,6 +1011,37 @@ describe('Dashboard normalized timeline path', () => {
     expect(within(dialog).queryByText('Magnesium')).toBeNull()
   })
 
+  it('legt zwei Bündel mit gemeinsamer Substanz zu einer Karte zusammen, wenn beide fällig sind', async () => {
+    // Wie GHK-Cu+Testosteron und GHK-Cu+Retatrutid an einem Tag mit allen dreien.
+    const fixtures: Record<string, unknown[]> = {
+      ...dreiMorgensFixture(),
+      intake_bundles: [
+        { id: 'bundle-a', name: 'GHK+Test', stack_item_ids: ['stack-1', 'stack-2'], sort_order: 0, created_at: '2026-01-01T00:00:00Z' },
+        { id: 'bundle-b', name: 'GHK+Reta', stack_item_ids: ['stack-1', 'stack-3'], sort_order: 1, created_at: '2026-01-02T00:00:00Z' },
+      ],
+    }
+    renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
+
+    await waitFor(() => expect(document.querySelectorAll('[data-bundle-row]')).toHaveLength(1))
+    const karte = document.querySelector<HTMLElement>('[data-bundle-row]')!
+    expect(karte.textContent).toContain('GHK+Test & GHK+Reta')
+    expect(karte.textContent).toContain('Bündel · 3 Einnahmen')
+    // Nichts steht mehr einzeln da.
+    expect(document.querySelectorAll('[data-periode-bloecke] > .lg-group:not([data-bundle-row]) [data-due-row]')).toHaveLength(0)
+
+    fireEvent.click(karte.querySelector<HTMLElement>('button[aria-expanded]')!)
+    expect(karte.querySelectorAll('[data-due-row]')).toHaveLength(3)
+    expect(karte.querySelector('[data-buendel-zusammengelegt]')).toBeTruthy()
+    expect(within(karte).queryByRole('button', { name: 'Bearbeiten' })).toBeNull()
+    // Nur Anzeige: Herausziehen nähme Vitamin D3 aus beiden gespeicherten Bündeln.
+    expect(karte.querySelector('.tyd-buendel-glieder')?.hasAttribute('data-kein-ziehen')).toBe(true)
+    expect(karte.hasAttribute('data-zusammengelegt')).toBe(true)
+
+    fireEvent.click(within(karte).getByRole('button', { name: /^GHK\+Test & GHK\+Reta\s*3 bestätigen$/ }))
+    const dialog = await screen.findByRole('dialog')
+    for (const name of ['Vitamin D3', 'Magnesium', 'Zink']) expect(within(dialog).getByText(name)).toBeTruthy()
+  })
+
   it('speichert die im Bündel abgefragte Uhrzeit für alle gewählten Einnahmen', async () => {
     const client = createDashboardClient(zweiMorgensFixture(), undefined, { filterLogs: true, buendel: true })
     renderDashboard(client)

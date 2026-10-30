@@ -49,8 +49,7 @@ export function bundleDueIntakes(
 /**
  * Die Bündel einer Tageszeit: jedes nimmt sich je Substanz die frueheste offene
  * Einnahme DIESER Tageszeit. Was ein Bündel genommen hat, steht dort nicht noch
- * einmal einzeln (`vergeben`). Steht eine Substanz in zwei Bündeln, gehoert die
- * Einnahme dem ersten.
+ * einmal einzeln (`vergeben`).
  *
  * Ein Bündel erscheint nur, wenn an diesem Tag in dieser Tageszeit mindestens
  * ZWEI seiner Substanzen geplant sind (`geplant`) — sonst stehen sie einzeln
@@ -59,27 +58,45 @@ export function bundleDueIntakes(
  * Gezählt wird das Geplante, nicht das Offene: ist eine der beiden schon
  * bestätigt, bleibt das Bündel mit der übrigen stehen, statt sich mitten am
  * Tag aufzulösen. Ohne `geplant` zählen die offenen.
+ *
+ * Stehen an einem Tag zwei solche Bündel da und teilen sich eine Substanz,
+ * werden sie EINE Karte (`alle`): „GHK-Cu mit Testosteron" und „GHK-Cu mit
+ * Retatrutid" heißt, an Tagen mit allen dreien nimmt man alle drei zusammen.
+ * Gespeichert bleibt jedes Bündel, wie es ist; an anderen Tagen steht jedes
+ * für sich. `bundle` ist das erste der Gruppe (Reihenfolge der Liste).
  */
 export function bundlesForPeriod<B>(
   bundles: readonly { bundle: B; itemIds: readonly string[] }[],
   periodIntakes: readonly RoutineIntake[],
   /** Die an diesem Tag in dieser Tageszeit geplanten Substanzen, auch die schon bestätigten. */
   geplant?: ReadonlySet<string>,
-): { entries: { bundle: B; intakes: RoutineIntake[]; anzahl: number }[]; vergeben: Set<string> } {
-  const vergeben = new Set<string>()
-  // Substanzen, die schon ein früheres Bündel dieser Tageszeit hält — auch die
-  // dort schon bestätigten. Ein späteres Bündel zählt sie nicht mit.
-  const beansprucht = new Set<string>()
-  const entries: { bundle: B; intakes: RoutineIntake[]; anzahl: number }[] = []
+): { entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[]; vergeben: Set<string> } {
+  const offen = new Set(periodIntakes.map(intake => intake.stackItemId))
+  // Die Bündel, die heute hier als Bündel dastehen, zu Gruppen über gemeinsame
+  // Substanzen zusammengefasst — in der Reihenfolge ihres ersten Bündels.
+  const gruppen: { alle: B[]; mitglieder: string[] }[] = []
   for (const { bundle, itemIds } of bundles) {
-    const eigene = [...new Set(itemIds)].filter(id => !beansprucht.has(id))
+    const mitglieder = [...new Set(itemIds)].filter(id => (geplant ? geplant.has(id) : offen.has(id)))
+    if (mitglieder.length < BUNDLE_MIN_DUE) continue
+    const beruehrt = gruppen.filter(gruppe => gruppe.mitglieder.some(id => mitglieder.includes(id)))
+    const ziel = beruehrt[0] ?? { alle: [], mitglieder: [] }
+    if (!beruehrt.length) gruppen.push(ziel)
+    for (const andere of beruehrt.slice(1)) {
+      ziel.alle.push(...andere.alle)
+      ziel.mitglieder.push(...andere.mitglieder.filter(id => !ziel.mitglieder.includes(id)))
+      gruppen.splice(gruppen.indexOf(andere), 1)
+    }
+    ziel.alle.push(bundle)
+    ziel.mitglieder.push(...mitglieder.filter(id => !ziel.mitglieder.includes(id)))
+  }
+  const vergeben = new Set<string>()
+  const entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[] = []
+  for (const { alle, mitglieder } of gruppen) {
     const frei = periodIntakes.filter(intake => !vergeben.has(intake.key))
-    const intakes = bundleDueIntakes({ stack_item_ids: eigene }, frei)
-    const mitglieder = geplant ? eigene.filter(id => geplant.has(id)) : intakes.map(intake => intake.stackItemId)
-    if (intakes.length === 0 || mitglieder.length < BUNDLE_MIN_DUE) continue
+    const intakes = bundleDueIntakes({ stack_item_ids: mitglieder }, frei)
+    if (intakes.length === 0) continue
     for (const intake of intakes) vergeben.add(intake.key)
-    for (const id of mitglieder) beansprucht.add(id)
-    entries.push({ bundle, intakes, anzahl: mitglieder.length })
+    entries.push({ bundle: alle[0], alle, intakes, anzahl: mitglieder.length })
   }
   return { entries, vergeben }
 }

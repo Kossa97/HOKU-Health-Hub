@@ -181,9 +181,10 @@ export function useBuendelZiehen(optionen: Optionen) {
         const karte = unter?.closest<HTMLElement>('[data-bundle-row]')
         const zeile = unter?.closest<HTMLElement>('[data-zieh-zeile]')
         if (karte) {
-          // Das eigene Bündel ist kein Ziel, eines mit derselben Substanz auch nicht.
+          // Die eigene Karte ist kein Ziel, eine mit derselben Substanz auch nicht,
+          // eine zusammengelegte auch nicht (welchem Bündel gehörte die Substanz?).
           const mitglieder = karte.dataset.mitglieder?.split(' ') ?? []
-          if (karte.dataset.bundleRow !== z.quelle.buendelId && !mitglieder.includes(z.quelle.stackItemId)) {
+          if (!karte.contains(z.zeile) && !mitglieder.includes(z.quelle.stackItemId) && karte.dataset.zusammengelegt === undefined) {
             kandidat = { ziel: { art: 'buendel', buendelId: karte.dataset.bundleRow! }, el: karte }
           }
         } else if (zeile && zeile !== z.zeile && zeile.dataset.stackItem && zeile.dataset.stackItem !== z.quelle.stackItemId) {
