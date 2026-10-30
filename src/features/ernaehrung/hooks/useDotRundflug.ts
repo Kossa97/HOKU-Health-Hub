@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { dotStore, useDotStand } from '../../dot/dotStore'
 import { useDotText } from '../../dot/texte'
-import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, zaehleBesuch } from '../lib/dotRundflug'
+import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, umlaufBahn, zaehleBesuch } from '../lib/dotRundflug'
 import { orbBuehne } from '../lib/orbBridge'
 import type { MacroKey } from '../lib/orb'
 import type { Goals, Nutrients } from '../lib/nutrition'
@@ -18,9 +18,11 @@ const ANKUENDIGUNG_MS = WARTEN_MS + 2000
 const wenigerBewegung = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
- * Beim Öffnen des Kalorientrackers (heute, Tag geladen): Dot fliegt einmal um die Kugel, hält an
- * Kugel und Monden und sagt, was offen ist — nach zwei Stunden oder beim dritten Öffnen, nur wenn er heraus
- * darf und gerade frei ist. Antippen kürzt ab. Bei „Bewegung reduzieren“ nur der Satz.
+ * Beim Hineinnavigieren in den Kalorientracker (Tag geladen) fliegt Dot um die Kugel: sonst ein
+ * Umlauf ohne Daten; nach zwei Stunden oder beim dritten Öffnen (heute) der Rundflug mit Halt an
+ * Kugel und Monden, je Halt ein Satz, am Platz alles zusammen. Nur wenn er heraus darf und frei
+ * ist; draußen startet er, wo er ist, sonst am linken Rand. Antippen kürzt ab. Bei „Bewegung
+ * reduzieren“ kein Flug — beim Rundflug nur der Satz.
  */
 export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean; bereit: boolean; total: Nutrients; goals: Goals }) {
   const { dt } = useDotText()
@@ -38,7 +40,7 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
   useLayoutEffect(() => {
     if (heute && !gezaehlt.current) { gezaehlt.current = true; zaehleBesuch() }
     const s = dotStore.stand()
-    if (heute && s.darfRaus && !s.kameras && !wenigerBewegung() && rundflugFaellig(Date.now())) dotStore.api()?.rundflugKommt(ANKUENDIGUNG_MS)
+    if (s.darfRaus && !s.kameras && !wenigerBewegung()) dotStore.api()?.rundflugKommt(ANKUENDIGUNG_MS)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const dotFrei = stand.bereit && stand.darfRaus && stand.kameras === 0 && (stand.modus === 'home' || stand.modus === 'house')
@@ -48,7 +50,7 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
     let timer = 0, versuch = 0
     const los = () => {
       const dot = dotStore.api(), s = dotStore.stand()
-      if (!dot || (s.modus !== 'home' && s.modus !== 'house') || !rundflugFaellig(Date.now())) return
+      if (!dot || (s.modus !== 'home' && s.modus !== 'house')) return
       const lage0 = orbBuehne()?.koerper()
       if (!lage0?.main) {
         // Kugel noch nicht gezeichnet: gleich noch einmal
@@ -57,12 +59,9 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
         return
       }
       gestartet.current = true
-      const { total: t0, goals: g0, dt: tr } = aktuell.current
-      const T = rundflugTexte(t0, g0, tr)
       const main = lage0.main
-      // Monde von links nach rechts
-      const order = (Object.keys(lage0.moons) as MacroKey[]).sort((a, b) => lage0.moons[a]!.x - lage0.moons[b]!.x)
       const start = s.modus === 'home' ? dot.lage() : { x: -46, y: main.y - main.r * 0.25 }
+      const lage = () => { const k = orbBuehne()?.koerper(); return k?.main ? { main: k.main, moons: k.moons } : null }
       let laeuft = true
       const abkuerzen = () => { if (!laeuft) return; orbBuehne()?.fokus(null); dot.rundflugAbkuerzen(0.5) }
       const aufraeumen = () => {
@@ -71,9 +70,27 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
         orbBuehne()?.fokus(null)
         abbrechen.current = () => {}
       }
+      const fliege = (bahn: Parameters<typeof dot.rundflug>[0]) => {
+        if (!dot.rundflug(bahn)) { laeuft = false; dot.rundflugKommt(0); return false }
+        document.addEventListener('pointerdown', abkuerzen, true)
+        abbrechen.current = () => { if (laeuft) { aufraeumen(); dot.rundflugAbkuerzen(0.3) } }
+        return true
+      }
+
+      // Sonst nur der Umlauf, ohne Daten
+      if (!heute || !rundflugFaellig(Date.now())) {
+        // Abgelehnt, solange er im Haus ist: sobald er frei ist, noch einmal versuchen
+        if (!fliege(umlaufBahn({ start, lage, platz: () => dot.platz(), fertig: aufraeumen, abgebrochen: aufraeumen })) && s.modus === 'house') gestartet.current = false
+        return
+      }
+
+      const { total: t0, goals: g0, dt: tr } = aktuell.current
+      const T = rundflugTexte(t0, g0, tr)
+      // Monde von links nach rechts
+      const order = (Object.keys(lage0.moons) as MacroKey[]).sort((a, b) => lage0.moons[a]!.x - lage0.moons[b]!.x)
       const bahn = rundflugBahn({
         start,
-        lage: () => { const k = orbBuehne()?.koerper(); return k?.main ? { main: k.main, moons: k.moons } : null },
+        lage,
         platz: () => dot.platz(),
         rand: { l: 0, r: window.innerWidth },
         order,
@@ -91,16 +108,9 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
         // Chat, Kamera oder Zugang weg haben ihn herausgeholt: nur aufräumen
         abgebrochen: aufraeumen,
       })
-      if (dot.rundflug(bahn)) {
-        merkeRundflug(Date.now())
-        document.addEventListener('pointerdown', abkuerzen, true)
-        abbrechen.current = () => { if (laeuft) { aufraeumen(); dot.rundflugAbkuerzen(0.3) } }
-      } else {
-        laeuft = false
-        dot.rundflugKommt(0)
-        // Weniger Bewegung (oder er kann gerade nicht fliegen): nur der Satz, wenn er draußen ist
-        if (s.modus === 'home') { dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
-      }
+      if (fliege(bahn)) merkeRundflug(Date.now())
+      // Weniger Bewegung (oder er kann gerade nicht fliegen): nur der Satz, wenn er draußen ist
+      else if (s.modus === 'home') { dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
     }
     timer = window.setTimeout(los, WARTEN_MS)
     return () => window.clearTimeout(timer)

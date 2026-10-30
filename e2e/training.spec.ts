@@ -116,6 +116,17 @@ test('Training: laufendes Training uebersteht einen Neustart', async ({ page, mo
   expect(mock.table('training_sessions')).toHaveLength(2)
 })
 
+test('Training: Schnellzugriff fuehrt nach Training, ohne zu starten', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Schnellzugriff' }).click()
+  await page.getByRole('button', { name: 'Training', exact: true }).click()
+  await expect(page).toHaveURL(/\/training$/)
+  await expect(page.getByRole('button', { name: 'Leeres Training starten' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Training' })).toHaveCount(0)
+  expect(mock.table('training_sessions')).toHaveLength(2)
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')
@@ -150,4 +161,20 @@ test.describe('Dot auf „Heute"', () => {
     // Montag, 28.09.: Push ist geplant, diese Woche noch nichts trainiert (Ziel 3)
     expect([...gesagt].some(t => t.includes('Heute ist Push dran. Noch 3 Einheiten bis zu deinem Wochenziel.'))).toBe(true)
   })
+})
+
+test('Training: Rad rastet nach freiem Drehen auf der naechsten Zeile ein', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/training')
+  await page.getByRole('button', { name: 'Push starten' }).click()
+  const live = page.getByRole('dialog', { name: 'Push' })
+  await live.getByRole('button', { name: /^kg: 82,5/ }).first().click()
+  const whole = page.getByRole('dialog', { name: 'Satz 1' }).getByRole('spinbutton', { name: 'kg', exact: true })
+  // Beim Oeffnen bleibt es bei 82 — auch nach einer Weile (WebKit rastete frueher selbst weiter)
+  await page.waitForTimeout(600)
+  await expect(whole).toHaveAttribute('aria-valuetext', '82')
+  // Frei um 1,3 Zeilen gedreht und losgelassen: rastet bei 83 ein
+  await whole.evaluate(el => { el.scrollTop += 50 })
+  await expect(whole).toHaveAttribute('aria-valuetext', '83')
+  await expect.poll(() => whole.evaluate(el => Math.abs(el.scrollTop - 83 * 38))).toBeLessThan(1.5)
 })

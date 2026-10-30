@@ -114,6 +114,13 @@ proportional zueinander; Gegenstände als gerenderte 3D-Modelle (Render-Strecke 
 Physik (Baustein `hoku-arme.html`). Offen: Stil der Modelle (stilisiert vs. realistisch),
 weitere Modelle vom Nutzer, Muskeldefinition der Arme.
 
+**Auf main seit 30.10.2026** (PR #99, Merge `ae39159`, auf Wunsch ohne auf die Gerätetests zu
+warten). Danach im Safari-Profil (iphone-13-webkit) rot: das Gewichtsrad rastete beim Öffnen
+eigenmächtig zwei Zeilen weiter (82 → 84). Fix: kein CSS-`scroll-snap` mehr, das Rad rastet beim
+Stillstand selbst auf die nächste Zeile (Touch-Halten verhindert Einrasten unter dem Finger).
+Bekannt rot von main, nicht vom Tracker: `login.spec.ts:211` (WebKit), wackelnd
+`sheet-wegziehen.spec.ts:16` (WebKit) und `dot.spec.ts` „mit Pro“ unter Last.
+
 ## Einstieg „Heute“ (Entscheidung Nutzer, 29.10.2026)
 
 Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).

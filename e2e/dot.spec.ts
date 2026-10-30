@@ -111,3 +111,18 @@ test('Kalorientracker: Hoku fliegt um die Kugel und sagt je Halt, was offen ist;
   expect(await page.evaluate(() => localStorage.getItem('tyd.dot.rundflug.v1'))).toBeTruthy()
   expect(mock.coach.calls).toEqual([])
 })
+
+test('Kalorientracker sonst: nur ein Umlauf, ohne Sätze; der Rundflug kommt erst beim dritten Öffnen', async ({ page, mock }) => {
+  // Gerade geflogen, seither zweimal geöffnet: dieses Öffnen ist das erste danach
+  await page.addInitScript(() => { localStorage.setItem('tyd.dot.rundflug.v1', JSON.stringify({ t: Date.now(), n: 0 })) })
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('region', { name: 'Frühstück' })).toBeVisible()
+  const blase = page.locator('.tyd-dot-blase')
+  for (let t = 0; t < 7000; t += 100) {
+    await page.clock.runFor(100)
+    expect(await blase.getAttribute('data-zeigen')).not.toBe('true')
+  }
+  // Gezählt: einmal geöffnet
+  expect(JSON.parse((await page.evaluate(() => localStorage.getItem('tyd.dot.rundflug.v1')))!).n).toBe(1)
+  expect(mock.coach.calls).toEqual([])
+})

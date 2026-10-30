@@ -95,8 +95,8 @@ export function ErnaehrungPage() {
   }
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
-  // Dot fliegt beim Öffnen einmal um die Kugel und sagt, was heute offen ist (höchstens alle 2 h)
-  useDotRundflug({ heute: isToday, bereit: !!n.day && isToday, total: n.total, goals: n.goals })
+  // Dot fliegt beim Öffnen um die Kugel; nach 2 h oder beim dritten Öffnen mit Halt und Sätzen
+  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
