@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793314000.1980085,
-    "seen": 1793314450.5866919,
+    "mtime": 1793319790.9426801,
+    "seen": 1793319844.105878,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793313471.0874352,
-    "seen": 1793314450.5861692,
-    "ast_hash": "95df32e2d753b0b516215e0d4b1c09ff",
+    "mtime": 1793319559.5994797,
+    "seen": 1793319844.105318,
+    "ast_hash": "872bf5e18bd17a786894e391fa19c9e9",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -17238,9 +17238,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793304236.2461405,
-    "seen": 1793304656.699271,
-    "ast_hash": "dc6ad341a9381f1f3ec1be647b323437",
+    "mtime": 1793319578.378261,
+    "seen": 1793319844.1050954,
+    "ast_hash": "f8c7431d97f9ef7d6b69633ec779e627",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -20487,6 +20487,54 @@
     "mtime": 1793313452.7054908,
     "seen": 1793314450.5881875,
     "ast_hash": "ffc75782e39fb9bf2c66601dc31d52a9",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-hintergrund.cjs": {
+    "mtime": 1793314470.0648477,
+    "seen": 1793319844.105064,
+    "ast_hash": "c77b8a1f6bd1cb10d6a213b97613d549",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-negativ.cjs": {
+    "mtime": 1793314649.0843382,
+    "seen": 1793319844.105065,
+    "ast_hash": "fb8a9b16493f25213f538bf0e7e1958c",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-hoku-hintergrund-v2.png": {
+    "mtime": 1793314470.6601365,
+    "seen": 1793319844.1073263,
+    "ast_hash": "1575c6cd9bc6ffd8b652516e4b58e8c1",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-hoku-hintergrund-v2.svg": {
+    "mtime": 1793314470.4413333,
+    "seen": 1793319844.107327,
+    "ast_hash": "c1d065bbc4c09a93d732cbc16d025ffb",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-hoku-weiss-v3.png": {
+    "mtime": 1793314554.9476974,
+    "seen": 1793319844.1073277,
+    "ast_hash": "ff4a098acd42c1d4f594a1dd953c82c4",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-hoku-weiss-v3.svg": {
+    "mtime": 1793314554.9350617,
+    "seen": 1793319844.1073282,
+    "ast_hash": "d10e8038ea24047e17e0c3d75605ad2b",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-partikel-negativ-v1.png": {
+    "mtime": 1793314650.4259999,
+    "seen": 1793319844.1073291,
+    "ast_hash": "b7f762403d56b5fe15e6f3b354348e18",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/entwuerfe/tri-h-v1/hoku-tri-h-partikel-negativ-v1.svg": {
+    "mtime": 1793314650.4134119,
+    "seen": 1793319844.1073296,
+    "ast_hash": "4f198681c058d02e47b41e9b7c5b2012",
     "semantic_hash": ""
   }
 }
