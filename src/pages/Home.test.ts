@@ -261,6 +261,30 @@ describe('Home upcoming intake confirmation flow', () => {
     expect(client.rpc.mock.calls.filter(([name]) => name === 'confirm_intake_group')).toHaveLength(1)
   })
 
+  it('belegt die Uhrzeit mit jetzt vor, die geplante liegt auf dem Knopf', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    const jetzt = new Date()
+    jetzt.setHours(7, 30, 0, 0)
+    vi.setSystemTime(jetzt)
+    const client = createHomeClient({
+      cycles: [quantifiedHomeCycle()],
+      dose_logs: [],
+      stack_items: [{ id: 'stack-2', display_name: 'Zink', dosage_form: 'capsule' }],
+      inventory_items: [],
+      dose_escalations: [],
+      injection_logs: [],
+    })
+    const TestHome = Home as ComponentType<{ homeDataClient: unknown }>
+    render(createElement(MemoryRouter, null, createElement(TestHome, { homeDataClient: client })))
+
+    fireEvent.click(await screen.findByRole('button', { name: /Zink/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
+    const feld = screen.getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('07:30')
+    fireEvent.click(screen.getByRole('button', { name: /^Geplant/ }))
+    expect(feld.value).toBe('08:00')
+  })
+
   it('reuses a pending single log and applies only generic inventory with its committed id', async () => {
     const pendingAt = new Date()
     pendingAt.setHours(8, 0, 0, 0)
