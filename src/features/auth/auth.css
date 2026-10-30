@@ -5,10 +5,18 @@
  * über allem; die Bühne ist nur der Platz, an dem er steht.
  */
 
+/* body hält schon Abstand zu Statusleiste und Home-Strich (index.css); die Seite
+   rechnet ihn nicht noch einmal ein, sonst wäre sie höher als das Display. */
 .tyd-auth {
-  min-height: 100dvh; max-width: 440px; margin: 0 auto; box-sizing: border-box;
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-width: 440px; margin: 0 auto; box-sizing: border-box;
   display: flex; flex-direction: column;
-  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 16px) max(16px, env(safe-area-inset-left, 0px));
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
+}
+/* Der Hintergrund liegt fest über dem ganzen Display, auch unter der Statusleiste:
+   #root schneidet oben ab (overflow-x: hidden), die Seite selbst kann nicht dorthin. */
+.tyd-auth::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(120% 50% at 50% 0%, rgba(30, 60, 90, 0.35), transparent 60%);
 }
 .tyd-auth-top { display: flex; justify-content: flex-end; min-height: 30px; }
@@ -54,7 +62,7 @@
 
 .tyd-auth-knopf {
   height: 50px; border-radius: 14px; border: 0; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: transform 0.12s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.12s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s, box-shadow 0.4s ease-out;
 }
 .tyd-auth-knopf:active { transform: scale(0.985); }
 .tyd-auth-knopf[data-art='haupt'] {
@@ -100,6 +108,11 @@
 .tyd-auth-knopf[data-art='google'] { background: #131314; color: #e3e3e3; border: 1px solid #8e918f; font-family: Roboto, var(--font-ui, system-ui), sans-serif; font-weight: 500; }
 .tyd-auth-oder { display: flex; align-items: center; gap: 12px; margin: 2px 0; font-size: 13px; color: var(--lg-text-3); }
 .tyd-auth-oder::before, .tyd-auth-oder::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+/* Startseite: die beiden Knöpfe mit Abstand und „oder", damit Hokus Flug um den einen den anderen nicht schneidet */
+.tyd-auth-ansicht[data-start] .tyd-auth-oder { margin: 10px 0; }
+
+/* Hoku fliegt um einen Knopf oder ein Feld: es leuchtet leise (Spec Hoku führt) */
+.tyd-auth [data-dot-ziel='an'] { box-shadow: 0 0 0 2px rgba(160, 225, 255, 0.55), 0 0 22px rgba(120, 210, 255, 0.45); }
 
 /* Anmelden und rechts daneben Face ID (nur wenn auf diesem Gerät eingerichtet) */
 .tyd-auth-zeile { display: flex; gap: 10px; }

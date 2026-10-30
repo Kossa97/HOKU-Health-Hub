@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { markerName } from '../lib/markerCatalog.en'
 import toast from 'react-hot-toast'
-import { supabase } from '../../../lib/supabase'
+import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import type { BloodworkEntry, BloodworkReport } from '../types'
 import { MAX_UPLOAD_BYTES, prepareFile } from '../lib/imageResize'
@@ -77,6 +77,7 @@ export function BefundEditor({ report, entries, onClose, onSaved }: Props) {
     }
     const prepared = await prepareFile(file)
     const { data, error, response } = await supabase.functions.invoke('bloodwork-extract', {
+      region: FUNKTIONS_REGION,
       body: { file: prepared.base64, mimeType: prepared.mimeType, markerNames: CATALOG_MARKER_NAMES },
     })
 

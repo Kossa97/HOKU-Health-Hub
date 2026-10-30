@@ -147,7 +147,12 @@ export function useSheetDrag<T extends HTMLElement>(
     const probe = proben.current.find(p => jetzt - p.t <= 100)
     const tempo = probe ? (event.clientY - probe.y) / Math.max(1, jetzt - probe.t) : 0
     const el = ziel.current
-    if (el && (s.basis + dy >= WEG_SCHWELLE || (tempo > WURF_TEMPO && dy >= WURF_MIN))) {
+    // Geschlossen wird nach dem Weg des Fingers, nicht nach der Lage des
+    // Blatts: griff er es, als es noch einfuhr, stand es schon tief, und ein
+    // kurzes Ziehen haette es sonst weggeschickt. Steht es nach dem Zug aber
+    // mehr als halb aus dem Bild, geht es zu — dann wollte er es weghaben.
+    const halbWeg = el ? s.basis + dy >= el.offsetHeight / 2 && dy >= WURF_MIN : false
+    if (el && (dy >= WEG_SCHWELLE || halbWeg || (tempo > WURF_TEMPO && dy >= WURF_MIN))) {
       if (festhalten?.()) {
         zurueck()
         beiFesthalten?.()

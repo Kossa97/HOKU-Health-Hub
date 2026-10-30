@@ -6,8 +6,9 @@ import { expectStep, next, seedBpc157, stageObject } from './support/myStack'
 /**
  * Substanz per Scan: Etikett fotografieren (bzw. Foto auswaehlen), per KI
  * auslesen, Vorschlag uebernehmen — der Assistent steht danach vorbelegt da.
- * Ohne Einwilligung geht kein Foto raus. Den Barcode-Weg pruefen die
- * Unit-Tests (`substanzScan.test.ts`): eine Kamera mit Barcode gibt es hier nicht.
+ * Ohne Einwilligung geht kein Foto raus. Den Produkt-Barcode pruefen die
+ * Unit-Tests (`substanzScan.test.ts`); fuer den Packungscode von Medikamenten
+ * bildet `packungsKamera` Kamera und Leser nach.
  */
 
 // 1×1-PNG — genug, damit Bild und Canvas im Browser laden.
@@ -107,4 +108,67 @@ test('Nur beim Neuanlegen: beim Bearbeiten der Substanz gibt es keinen Scan', as
   await edit.locator('[data-substance-selected]').getByRole('button', { name: 'Auswahl lösen' }).click()
   await expect(edit.getByRole('searchbox')).toBeVisible()
   await expect(edit.locator('[data-substance-scan]')).toHaveCount(0)
+})
+
+/**
+ * Kamera und Leser nachgebildet: ein Canvas als Kamerabild, ein
+ * `BarcodeDetector`, der den Data-Matrix-Code einer Arzneimittelpackung
+ * „sieht" (IFA-Format: PZN 01234562, Charge AB12C, Verfall 06/2027).
+ */
+async function packungsKamera(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const code = '[)>\x1e06\x1d9N110123456242\x1d1TAB12C\x1dD270600\x1dS1234567890AB\x1e\x04'
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia: async () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = 640
+          canvas.height = 480
+          const ctx = canvas.getContext('2d')!
+          const malen = () => { ctx.fillStyle = '#334'; ctx.fillRect(0, 0, 640, 480); requestAnimationFrame(malen) }
+          malen()
+          return canvas.captureStream(15)
+        },
+      },
+    })
+    class Leser {
+      static async getSupportedFormats() { return ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'data_matrix'] }
+      async detect() { return [{ rawValue: code }] }
+    }
+    ;(globalThis as unknown as { BarcodeDetector: unknown }).BarcodeDetector = Leser
+  })
+}
+
+test('Medikament: erst der Packungscode, dann das Etikett — Ester wählen, Verfall und Charge stehen im Assistenten', async ({ page, mock }) => {
+  await packungsKamera(page)
+  mock.labelExtract.label = {
+    name: 'Testosteron 250 mg/ml', brand: 'Pharma X', dosage_form: 'ampoule',
+    ingredients: [{ name: null, amount: 250, unit: 'mg', per_amount: 1, per_unit: 'ml' }],
+  }
+  const { wizard, scanner } = await scannerOeffnen(page)
+
+  // Der Code traegt keinen Namen: die App bittet ums Etikett.
+  await expect(scanner.locator('[data-scan-hint]')).toContainText('Packungscode gelesen')
+  await scanner.locator('[data-scan-file-input]').setInputFiles(ETIKETT)
+  const einwilligung = scanner.locator('[data-ai-consent]')
+  await einwilligung.locator('[data-ai-consent-check]').check()
+  await einwilligung.locator('[data-ai-consent-accept]').click()
+
+  const ergebnis = scanner.locator('[data-scan-result]')
+  await expect(ergebnis).toContainText('30.06.2027')
+  await expect(ergebnis).toContainText('AB12C')
+  await expect(ergebnis).toContainText('01234562')
+
+  // Welcher Ester? Das Etikett sagt es nicht — ohne Wahl geht es nicht weiter.
+  const uebernehmen = ergebnis.locator('[data-scan-apply]')
+  await expect(uebernehmen).toBeDisabled()
+  await ergebnis.getByRole('button', { name: 'Testosteron Enantat' }).click()
+  await uebernehmen.click()
+  await expect(scanner).toBeHidden()
+  await expect(wizard.locator(`[data-substance-selected="${mock.catalogId('Testosteron Enantat')}"]`)).toBeVisible()
+  await expect(wizard.getByRole('radio', { name: 'Ampulle' })).toHaveAttribute('aria-checked', 'true')
+
+  await next(wizard, 'Zusammensetzung')
+  await expect(wizard.locator('[data-field="inventory.expiresAt"]')).toHaveValue('2027-06-30')
 })

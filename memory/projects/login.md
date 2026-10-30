@@ -98,13 +98,95 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   - Trockenlauf PG 16 2× (Verhalten, Rechte, Rollback bei vorhandenen Doppeln), dann Produktion.
     Nachzählung: 14 Konten, 13 Profile, Versuche 0, Index da, Rauchtest (1 Fehlversuch gezählt,
     wieder entfernt).
+- **Login-Dot wie in der App (Nutzer 28.10.2026):** Ziehen/Werfen über die App-Physik (`dragTo`,
+  `release`, Wände mit Andocken und Abplatten), über das ganze Display inkl. Insel und Ecken.
+  Geworfen klebt er an der Wand (1,2 s Ruhe), löst sich langsam (`loesen`, Abplattung baut sich
+  mit Tempo 1,4 ab) und federt dann zur Bühne zurück (rueckK 16,2). Ohne Wand nach 0,45 s zurück.
+  Eröffnung aus Partikeln bleibt (Nutzer). Würfe ändern seinen App-Platz nicht (`appPlatz`).
+  Login-Seite hebt den Safe-Area-Abstand von body auf (stand doppelt, Seite war höher als das
+  Display). Dabei gefunden: negativer Bildschritt (rAF-Zeitstempel vor `performance.now()` aus
+  `laufen`) ließ Dot unter Last explodieren — dt jetzt ≥ 0. E2E „Wurf" in `e2e/login.spec.ts`.
+- **Eröffnung nur oberhalb des Formulars (Nutzer 28.10.):** Partikel kommen von links, oben und
+  rechts nur bis zur Unterkante der Bühne. Vollbild: in Safari bleibt die Statusleiste Safaris
+  eigener Streifen; ganz bis oben nur als installierte Web-App (Home-Bildschirm).
+  Vorschau zum Testen: Branch `login-dot-wand` auf Vercel (geschützt, Vercel-Anmeldung nötig).
 - Docker Desktop startete nicht (verwaiste Unix-Sockets in `%LOCALAPPDATA%\Docker\run`, beim
   zweiten Mal auch `%LOCALAPPDATA%\docker-secrets-engine`); Ordner umbenannt (`*.alt*`), danach
   lief es. Docker nach dem Start nicht hart beenden, sonst verwaisen die Sockets wieder.
 - Prüfen ohne Fenster: Ausschnitt-Screenshots bei deviceScaleFactor 2 zeigen die WebGL-Ebene falsch
   skaliert (Artefakt von Edge/Playwright, nicht der App). Ganze Seite oder Faktor 1/3 nehmen.
 
+- **Gesten im Raum (Nutzer 28.10.2026):** Auswahl im Gesten-Mockup (Artefakt
+  https://claude.ai/artifact/8MhVn2TeEV7YVvEZRZQSvN, Version 6): Begrüßung **D1 (ein Arm winkt)
+  und D4 (beide Hände winken) im Wechsel** (`tyd.dot.gruss` im localStorage, auch über Besuche),
+  Herz C (Herz in Dot, rosa), Fehler A (Kugel schüttelt sich, rot), Kein Netz B (Dot sucht, Schalen,
+  orange), Erfolg A (Haken zeichnet sich, wird grün; auch nach dem Registrieren). Arme: dünne
+  Gummiarme mit Comic-Hand (Daumen + drei Finger) aus Dots eigenen 460 Punkten, die Kugel schließt
+  sich gleichmäßig darüber (Nutzer verwarf vorher Stummelarme und die flache Hand).
+  Code: `engine/gesten.ts` (aus dem Mockup portiert), Engine liest je Bild Lage/Licht/Rosa;
+  `formen.ts` nur noch Schrift und Herzschlag. Winken 3,9 s (`GRUSS_DAUER`), Haken 1,2 s.
+  Gefunden: die runden Enden des Hakens blieben dunkel (Lauf > 1), behoben.
+
+- **Überarbeitung (Nutzer 28.10.2026, später):** Fehler zeigt **Heute (flaches X), A (Kugel) und C
+  (X aus Balken) zufällig im Wechsel**, nie zweimal dasselbe hintereinander (`naechsterFehler`).
+  Eröffnung ruhiger und klarer: ein Kind je Punkt statt fünf, Punkte 0,8 statt 0,47 groß, kein
+  Schweif, Wirbel 0,35, Startschwung 0,4; unter der Bühne (über dem Formular) verblassen die
+  Partikel auf 18 px. Arme: Nutzer will dickere Arme und weniger detaillierte Hände — Mockup
+  Version 7 zeigt E1–E5 (Schlauch/Kegel × Fäustling/drei Finger/Kugelhand/Umriss), Punkte dort in
+  Login-Größe. Danach (Nutzer): **Hand weg, nur der Arm** — eingebaut ist der Kegelarm ohne
+  Hand (Mockup V8 F1/F3): 20 Ringe à 4 Punkte, an der Schulter dick, runde Kuppe, Ende schwingt
+  beim Winken nach, schräg nach oben statt steil (sonst wirken zwei Arme wie Hörner).
+- **Auswahl bestätigt (Nutzer 28.10.2026, abends):** F1 und F3; Fehler Heute, A und C; **Kein Netz
+  A und B im Wechsel** (A: WLAN aus Röhren mit Schrägstrich, Suchlicht läuft nach außen; erste
+  Variante zufällig); Erfolg A. Nicht zufrieden auf dem Handy: die **Animation nach dem Erfolg**
+  (Portal/Heimflug) und die **Eröffnung** — beide sollen noch einmal überarbeitet werden.
+
+- **Eröffnung neu (Nutzer 28.10.2026, nachts):** Aufnahme vom iPhone zeigte nach dem Erfolg einen
+  schwarzen Moment, einen körnigen Rahmen, Konfetti über der App und Dot groß auf „Guten Abend“;
+  die Eröffnung war zu übertrieben. Mockup „Dots Auftritte“ mit E1–E6 und S1–S8. Gewählt für die
+  Eröffnung: **E1 (vom Rand), E2 (aus dem Dunkel), E5 (Ringe) im Zufall**, wieder schnell (1,6–1,9 s);
+  E3 Spirale, E4 Aufblühen, E6 Abtasten bleiben für spätere Updates. In der Engine laufen die Punkte
+  auf festen Bahnen (`bahn`), ohne Federn und ohne Kinder; die alten vier Feder-Varianten sind weg.
+  Gefunden: die erste Eröffnung schloss die Start-Variante aus (E1 bzw. früher „strudel“ kam beim
+  ersten Besuch nie), jetzt beginnt die Wahl bei null.
+
+- **Erfolg neu (Nutzer 28.10.2026, nachts):** S5 mit Änderung, im Mockup als S9 (S5 bleibt daneben):
+  grüner Haken → wird Dot → brodelt immer stärker (0,55 s) → Explosion zum Portal, Rahmen unruhig, aber
+  durchgehend (jeder Punkt hat seinen Platz am Umriss, eine weiche Welle und wechselnde Dicke) →
+  kurz am Rand → Punkte sammeln sich in der Mitte des Displays → Heimflug im Bogen wie S2. Rund 3,4 s
+  ab erfolg(). Die Anmeldung bleibt stehen, bis das Portal aufgeht (`PORTAL_AUF`, 0,9 s). Gefunden:
+  das „Konfetti“ der alten Fassung waren die Punkte auf dem Weg vom Rand zur Mitte, in voller Größe
+  und mit hochgerechneter Farbe (rosa); jetzt klein und in Dots Farben, ohne Schweif.
+  Danach (Nutzer): die Punkte haften **gleichmäßig am Rand wie lebender Schleim**, bewegen sich nur
+  leicht auf der Stelle, nur nach innen; Ruhe am Rand 0,6 s statt 0,25 s, damit man es sieht.
+  Danach (Nutzer 29.10.): zu dünn. Jetzt **Dot wird der Rahmen**: alle 2760 Punkte (mit den Kindern)
+  als dicke, ungleichmäßige Schicht (10–36 px, Beulen schwellen langsam) am äußersten Rand, jeder
+  Punkt bewegt sich leicht auf der Stelle; Ruhe am Rand 0,9 s. Beim Sammeln verblassen die Kinder.
+  Danach (Nutzer 29.10.): **S5 eingebaut** — Haken wird unruhiger Ring (0,45 s), schnelles Portal mit
+  dünnem, klumpigem Rahmen zum Display-Rand, kurze Ruhe, Sammeln in der Mitte, Heimflug. S9 liegt in Git.
+
+- **Hoku führt (Nutzer 29.10.2026):** Das Maskottchen heißt jetzt **Hoku** (Code noch `dot`). Spec
+  `docs/superpowers/specs/2026-10-29-hoku-login-fuehrung-design.md`, Plan unter `docs/superpowers/plans/`,
+  Mockup „Dots Auftritte“ Version 12 (https://claude.ai/artifact/Ab6uRmqzVNDBHgBDRYbnS5).
+  Eingebaut: Hinweise bei Stille (Start 6 s/12 s, Formular 10 s, ein Hinweis je Stille, nach 30 s
+  Klopfen „Noch da?“), Hoku fliegt dabei klein zum Feld/Knopf an einer weichen Feder, auch hinter
+  den Knopf, und tippt zweimal darauf (Knopf gibt nach); Klopfen = dreimal ganz nah gegen die Scheibe.
+  Freude F1/F2/F3 im Wechsel nach dem Begrüßungssatz („Willkommen zurück!“ u. a. im Zufall),
+  Warten W2 Lichtwelle / W3 Denkwolken im Wechsel, Haken und X wachsen aus Hoku
+  und nur das Zeichen färbt sich, Sanduhr bei zu vielen Versuchen, Brief nach „Konto erstellt“,
+  Name beim Tippen geprüft (Nicken grün / Kopfschütteln rot), Abbruch bei Apple/Google ohne X,
+  „Wieder online!“, Startknöpfe mit „oder“ auseinander. Schulterzucken gestrichen.
+  Danach (29.10.): Hinweis neu als K4 (zwei Runden auf flachem Ring wie um die Uhr, direkt nach der
+  Begrüßung); Erfolg S3 + S5 (Kreis öffnet die App, Partikel bleiben am Geräterand, dann Sammeln und
+  Heimflug); Augen zuhalten gestrichen (Tastatur fährt aus, Hoku ist dann nicht zu sehen), im
+  Passwortfeld hört er wieder nur zu. Später am 29.10. zurück, aber nur beim Tipp auf „Passwort
+  anzeigen“, solange Hoku zu sehen ist: Arme und Blase genau wie Mockup G1 v13, ohne Wegdrehen.
+
 ## Offen
-- Dauer des Erfolgs (Tempo 0,6 ≈ 9 s) prüft der Nutzer auf dem Gerät.
+- **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
+  Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand
+  (SMTP) in Supabase, Einstellung „E-Mail bestätigen“ (beeinflusst auch #22 „schon ein Konto“).
+- Umbenennung Dot → Hoku in App-Texten und Code (eigene Aufgabe vorgeschlagen).
+- Gesten auf dem iPhone abnehmen (Fluss des Winkens, Größe der Hand bei Dots kleinen Punkten).
 - Ecken-Radius pro Gerät (Mockup fest 48 px).
 - Offizielle Apple-/Google-Knöpfe, Edge Function für Benutzername-Login, Face-ID-Plugin.
