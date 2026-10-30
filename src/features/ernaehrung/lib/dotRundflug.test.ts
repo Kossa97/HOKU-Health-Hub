@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { dotText } from '../../dot/texte'
 import { DEFAULT_GOALS } from './nutrition'
-import { RF_ABSTAND_MS, RF_ZEIT, haltPunkt, merkeRundflug, rundflugBahn, rundflugFaellig, rundflugPlan, rundflugTexte, type Lage } from './dotRundflug'
+import { RF_ABSTAND_MS, RF_ZEIT, haltPunkt, merkeRundflug, rundflugBahn, rundflugFaellig, rundflugPlan, rundflugTexte, zaehleBesuch, type Lage } from './dotRundflug'
 
 const lage: Lage = {
   main: { x: 195, y: 130, r: 90 },
@@ -102,6 +102,28 @@ describe('rundflugFaellig', () => {
     merkeRundflug(t)
     expect(rundflugFaellig(t + RF_ABSTAND_MS - 1000)).toBe(false)
     expect(rundflugFaellig(t + RF_ABSTAND_MS)).toBe(true)
+  })
+
+  it('zusätzlich beim dritten Hineinnavigieren seit dem letzten Rundflug', () => {
+    const t = Date.parse('2026-10-29T12:00:00Z')
+    merkeRundflug(t) // geflogen beim Öffnen
+    zaehleBesuch() // 1.
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch() // 2.
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch() // 3. → fliegt
+    expect(rundflugFaellig(t + 60_000)).toBe(true)
+    merkeRundflug(t + 60_000)
+    zaehleBesuch()
+    expect(rundflugFaellig(t + 120_000)).toBe(false)
+  })
+
+  it('alter Speicherstand (nur die Zeit) gilt weiter', () => {
+    const t = Date.parse('2026-10-29T12:00:00Z')
+    localStorage.setItem('tyd.dot.rundflug.v1', String(t))
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch(); zaehleBesuch(); zaehleBesuch()
+    expect(rundflugFaellig(t + 60_000)).toBe(true)
   })
 
   it('Uhr zurückgestellt (gemerkte Zeit in der Zukunft): fällig', () => {

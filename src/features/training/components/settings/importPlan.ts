@@ -167,8 +167,8 @@ export function replaceUnknownExercises(
   })
 }
 
-/** Dateiname fuer den Export, z. B. `TYD-Training-2026-10-18.csv`. */
+/** Dateiname fuer den Export, z. B. `HOKU-Training-2026-10-18.csv`. */
 export function exportFileName(now: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `TYD-Training-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.csv`
+  return `HOKU-Training-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.csv`
 }

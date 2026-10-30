@@ -1,6 +1,6 @@
 # Erscheinungsbild (Looks)
 
-Vier Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
+Sechs Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
 Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
 
 - **Schwarz** (Standard): reines Schwarz, helle Taschenlampen-Kante.
@@ -12,6 +12,23 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
   wie ein Messgerät — reines Schwarz, feste Flächen #0b0c0e mit Haarlinie,
   kein Glas/Glanz/Glow, weißer Hauptknopf, Cyan nur für Daten („jetzt").
   Mockup: https://claude.ai/artifact/QWVFNb3XebtLZUf72NoPZK
+- **Soft Dark** (29.10.2026, Nutzer gab eine Wetter-App als Referenz vor):
+  weiches Anthrazit (#1f2023, oben heller), jede Fläche leicht erhaben
+  (Verlauf #303136 → #27282c, Lichtsaum oben, weicher Schatten) — ausdrücklich
+  **nicht eingelassen** (Nutzer). Blau (#4ea8ff, Hauptknopf als Verlauf mit
+  Schein) ist die Farbe der Bedienung, Cyan bleibt den Daten. Leiste: erhabene
+  Kapsel, aktiver Reiter blau mit leichtem Leuchten. Gedrückt: Schatten flacher,
+  Karten 0,985. Sterne im Hintergrund lehnte der Nutzer ab (beißen sich mit
+  Dots Partikeln). Mockup aller Screens: https://claude.ai/artifact/MehxjrTT48ZnjZHVzC372K
+  (Seite „Soft Dark"); dort auch Dot in der Mitte der Leiste — in der App bisher
+  nur CSS, die Leiste behält ihren Aufbau.
+  **Nachgeschärft (30.10.2026, Nutzer: „noch etwas dunkler wie im Foto“, Kanten
+  „sehr dünn, weich und dezent“; dann „die selben Farbtöne wie im Screenshot“):
+  dann „mit einer Pipette“): Werte per Pipette (Median kleiner Flächen) aus dem
+  Referenzfoto — Grund #17181c (oben #232429), Flächen #21252a → #20242a →
+  #1e2026, Knöpfe #23272d → #1f2228, Kante kaum sichtbar (oben weiß 6 %, sonst
+  2–3 %), kein innerer Lichtsaum. Blau 1:1 aus dem Foto: #4ebbfe → #3c8bf0 →
+  #347cef (weiße Schrift darauf nur ~3,4:1 — vom Nutzer so gewollt).
 
 Injektionstracker (22.10.2026): bei Nacht Kantenlichter der Figur links
 cyan, rechts violett (Hauptlicht und Haut wie „Studio“), Bühne als
@@ -70,3 +87,14 @@ Favicon als Kleinfassung (Kugel größer und heller). Kit: `docs/logo/dot/kit/RE
 **Fassung 3 (29.10.2026): App-Icon ist das Dot-Bild von Codex** (Nutzer: „perfekt, ändere alle Logos der App“).
 Quelle und Export in `docs/logo/dot/codex/`; ersetzt iOS, Android, Web/PWA, Favicon und Benachrichtigungs-Icon.
 Web-Dateien heißen `icons/dot-codex-*`. Tab-Leisten-Logo (`DotLogo.tsx`) unverändert.
+
+**Fassung 4 (30.10.2026): HOKU-Brand-Kit v1** (`docs/logo/hoku/brand-kit-v1`, Maskottchen heißt dort Hoku).
+App-Icon = blaue Fassung aus dem Kit überall (iOS, Android, Web, Favicon aus dem Kit, Benachrichtigungen),
+dazu neue Startbildschirme (vorher Capacitor-Standardkreuz). Einbau: `docs/logo/hoku/EINBAU.md`.
+Name der App noch nicht auf HOKU umgestellt.
+
+**Name (30.10.2026, Nutzer):** App heißt **„HOKU: Health Hub“** (Startbildschirm/Kurzname „HOKU“), der Assistent
+heißt **Hoku** statt Dot. Umgestellt in allen sichtbaren de/en-Texten, Rechtstexten, PDFs (Dateinamen `HOKU-…`),
+iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-Prompt. Unverändert: App-ID
+`com.kossa97.tyd`, Speicherschlüssel `tyd_*`, Code-Bezeichner (`features/dot`, `Dot…`), die zwölf weiteren Sprachen
+(CLAUDE.md), User-Agent der Lebensmittel-Suche.

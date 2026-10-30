@@ -26,7 +26,7 @@ export function usePeptipediaHead(locale: PeptipediaLocale, slug?: string, enabl
     if (meta.noindex) tag('meta', { name: 'robots', content: 'noindex' })
     return () => {
       document.head.querySelectorAll('[data-peptipedia]').forEach(node => node.remove())
-      document.title = 'TYD · Track Your Dose'
+      document.title = 'HOKU: Health Hub'
       document.documentElement.lang = oldLang
       document.documentElement.dir = oldDir
     }

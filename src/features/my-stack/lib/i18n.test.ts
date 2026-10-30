@@ -1298,6 +1298,27 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_nothing_open',
   'bundle_confirm_open',
   'bundle_empty_hint',
+  'bundle_undo',
+  'bundle_added',
+  'bundle_created',
+  'bundle_created_hint',
+  'bundle_taken_out',
+  'bundle_dissolved',
+  'bundle_period_only',
+  'bundle_stays_in',
+  'bundle_drop_single',
+  'bundle_not_created',
+  'bundle_discarded',
+  'bundle_card_label',
+  'bundle_naming',
+  'bundle_remove_item',
+  'bundle_discard',
+  'bundle_done',
+  'bundle_edit_short',
+  'day_confirmed_label',
+  'bundle_period_locked',
+  'syringe_draw_units',
+  'dose_once',
   'my_stack_scan',
   'my_stack_scan_hint',
   'my_stack_scan_hint_photo',
@@ -1420,28 +1441,30 @@ const EXPECTED_MY_STACK_KEYS = [
 // den vierten Look (nur de/en); look_night ist neu (englischer Platzhalter).
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Instrument" — look_hint
 // nennt den fuenften Look (nur de/en); look_instrument ist neu.
+// Bewusst geaendert (Oktober 2026): Erscheinungsbild „Soft Dark" — look_hint
+// nennt den sechsten Look (nur de/en); look_softdark ist neu (englischer Platzhalter).
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '72770732534a91a3f833cf44df4b9e1cc18e92634b58f4e62e41248f845b352d',
-  en: '26a2b95ce270b6d2445f8316b40e7b613847f1165f92a4e393bdef3e3be2930f',
+  de: 'f32b2b5028677e6fe525f3280d39f3f8aa4540ee04eebcdd33c7d511026cf345',
+  en: '5edda24c684706c898084fef3d64f5ae439cfe71014fbe4673b9408793f7eb06',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'cca571ebb376abe0ea2eb169a2981b7e9c760306b270cb75bdc2ee74778369d2',
-  es: '866fad5ec41e9bfd8f9165865b2fe52763dcfb0c97b42f699f15b54d01eb0540',
-  fr: 'ca8560827a1fa408f9f1f7cad9d0fc0142d9ebb19255be57e7cd417bb4a6c1a1',
-  hi: 'e2a29bf0c12f829d8ddd275af33757bcba99353ce800afa30426d3fb55c0f2c5',
-  id: '75a3c4854077a159d6b52ede119ae9b8b2617e44b941b4314456cee26820eadb',
-  it: 'd3a8c6ec31470248c14a85c5fc9a3e1bd7f924149041aed4c5e39513f1d047fa',
-  ja: 'd7ea41dad669615368c3fe1e31a48931ba90622ec13f5629fe0c6bcc6ae82547',
-  ko: 'df4100dae41b47202e1fccff3d3bfebcef54aa2ad4926a60db6afe1a6bd31332',
-  pt: '04d56189e5fe90ed1bf338672dd5d189ce9db03a1f3b3582d719df2ea1f79d6d',
-  ru: '891e405270a12777e96cf79d8ee8e6fc044cc33f36d307df9798376d561c66a4',
-  tr: '0b1239650e1de515fc6b8fa0217459622a9b093a31e255128a46b7f2865a2d7e',
-  zh: 'dce7ff6ef708ec2a7310383025230eb6867a1a647cf7a831dbe21d179dc5733e',
+  ar: '91fe287fc3c07359cecb76f39979bec7a8a21ad759bbc5b3e46fbf41cf1c8b53',
+  es: 'eb3bdb7047e761dfd70eb5783949f78c8b242ae824574a532ee65bd84a7c4e8e',
+  fr: 'effa941d5cf08b01dbf81fd914080266ca1d2212afaf90035b9eef05ec0bde2a',
+  hi: '77debddb520cf1de640749f77a0c720418fbe6a7a9f51afa8dc643fb636a0fb3',
+  id: '6c44b6286cdae1f623a38e1f33d527ccbe9faae4de2fb04d0d45c0e8d4e4145e',
+  it: 'c7b2cb8cc015797b57876b8426271c0ccf773e3f031c41ab445faa7dc120dc7b',
+  ja: '5d5e1f97b87bf3837d35e775a9960c826865ee70188e856de9d0710ff9bf219a',
+  ko: '58db4e2963020f63108abf0f5f850420dab10d38b2838a4c75440b75419faeea',
+  pt: 'eac1b3b5877a617e47f32e66d4516578796c8ca632f2f111496a0c7088b6bfca',
+  ru: '9b7c3b70284314c0f4d7ec15ae5c91acc84356abfa5ffda0d8f33e73ea42c51d',
+  tr: '1da98f2cefc26191f42e2316cde8becd175e9975114f69f72c9fae57ff8a9102',
+  zh: 'aa30521ea6d0665c042de3935509c70fcc5f854144d01807cc1e3e2f581e9841',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

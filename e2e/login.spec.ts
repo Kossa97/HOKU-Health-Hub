@@ -3,9 +3,9 @@ import { STORAGE_KEY } from './support/mockSupabase'
 import { expect, test } from './support/fixtures'
 
 /**
- * Anmeldung mit Dot (docs/login/UEBERGABE.md): Start abgemeldet auf /auth.
+ * Anmeldung mit Hoku (docs/login/UEBERGABE.md): Start abgemeldet auf /auth.
  * Fehler im Gerät fragen den Server nicht; falsche Zugangsdaten kommen vom
- * Server; Erfolg öffnet Dots Portal in die App und er fliegt in die Leiste.
+ * Server; Erfolg öffnet Hokus Portal in die App und er fliegt in die Leiste.
  */
 
 const abgemeldet = async (page: Page) => {
@@ -35,14 +35,14 @@ test('Fehler im Gerät: leeres Feld markiert, Satz darunter, keine Anfrage', asy
   expect(mock.log.filter(z => z.includes('/auth/v1/token'))).toEqual([])
 })
 
-test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page, mock }) => {
+test('Erfolg: Haken, Portal in die App, Hoku fliegt in die Leiste', async ({ page, mock }) => {
   await abgemeldet(page)
   await zumFormular(page)
   await page.locator('#auth-kennung').fill('test@example.test')
   await page.locator('#auth-pw').fill('geheim1')
   await page.locator('[data-auth-submit]').click()
-  // Denken 1 s, Haken 0,8 s, ausblenden, Portal, Ruhe, Zusammenfinden, Heimflug (Tempo 0,6)
-  await lassLaufen(page, 2500)
+  // Denken 1 s, Haken 1,2 s (zeichnet sich, wird grün), Ring 0,45 s, dann Portal, Sammeln, Heimflug
+  await lassLaufen(page, 3500)
   await expect(page).toHaveURL(/\/$/)
   const portal = page.locator('[data-dot-portal]')
   await expect(portal).toBeAttached()
@@ -52,6 +52,86 @@ test('Erfolg: Haken, Portal in die App, Dot fliegt in die Leiste', async ({ page
   await expect(page.locator('[data-tyd-slot="dot"]')).toHaveAttribute('data-dot-drinnen', 'true')
   expect(await portal.evaluate(el => el.style.clipPath)).toBe('')
   expect(mock.log.filter(z => z.includes('/auth/v1/token')).length).toBe(1)
+})
+
+test('Wurf: Hoku klebt an der Wand wie in der App, löst sich und kehrt zur Bühne zurück', async ({ page }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  const treffer = page.locator('.tyd-dot-treffer')
+  const lage = () => treffer.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, w: r.width } })
+  const platz = () => page.evaluate(() => localStorage.getItem('tyd.dot.platz.v1'))
+  const vorher = await lage(), platzVorher = await platz()
+  // schnell nach rechts geworfen
+  await treffer.evaluate((el, s) => {
+    const ev = (t: string, x: number) => el.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: x, clientY: s.y, bubbles: true, cancelable: true }))
+    ev('pointerdown', s.x)
+    for (let i = 1; i <= 6; i++) ev('pointermove', s.x + i * 25)
+    ev('pointerup', s.x + 150)
+  }, { x: vorher.x, y: await treffer.evaluate(el => { const r = el.getBoundingClientRect(); return r.top + r.height / 2 }) })
+  // über 3 s: am weitesten rechts und am schmalsten (abgeplattet an der Wand)
+  let rechts = 0, schmal = Infinity
+  for (let t = 0; t < 3000; t += 100) {
+    await page.clock.runFor(100)
+    const l = await lage(); rechts = Math.max(rechts, l.x); schmal = Math.min(schmal, l.w)
+  }
+  expect(rechts).toBeGreaterThan(page.viewportSize()!.width - 70)
+  expect(schmal).toBeLessThan(vorher.w * 0.92)
+  // zurück auf der Bühne (danach darf ein Hinweis ihn wieder losschicken)
+  let daheim = false
+  for (let t = 0; t < 7000 && !daheim; t += 100) { await page.clock.runFor(100); daheim = Math.abs((await lage()).x - vorher.x) < 3 }
+  expect(daheim).toBe(true)
+  // sein Platz in der App bleibt, wo er war
+  expect(await platz()).toBe(platzVorher)
+})
+
+test('Wurf in die runde Ecke unten rechts: Hoku liegt dort still, statt zu zucken, und kehrt zurück', async ({ page }) => {
+  await abgemeldet(page)
+  // iPhone mit runden Bildschirmecken: die Engine misst env(safe-area-inset-*) an ihrer Sonde
+  await page.addInitScript(() => {
+    const s = document.createElement('style')
+    s.textContent = 'div[style*="padding-bottom: env(safe-area-inset-bottom)"]{padding-top:47px!important;padding-bottom:34px!important}'
+    document.addEventListener('readystatechange', () => { if (document.readyState === 'interactive') document.head.appendChild(s) })
+  })
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  const treffer = page.locator('.tyd-dot-treffer')
+  const lage = () => treffer.evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
+  const vorher = await lage()
+  await treffer.evaluate((el, s) => {
+    const ev = (t: string, d: number) => el.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: s.x + d, clientY: s.y + d, bubbles: true, cancelable: true }))
+    ev('pointerdown', 0)
+    for (let i = 1; i <= 6; i++) ev('pointermove', i * 60)
+    ev('pointerup', 420)
+  }, vorher)
+  const { width, height } = page.viewportSize()!
+  await lassLaufen(page, 900)
+  const ecke = await lage()
+  expect(ecke.x).toBeGreaterThan(width - 70)
+  expect(ecke.y).toBeGreaterThan(height - 70)
+  // Zuckte er (die Ecke stieß ihn hinaus, sein Ziel zog ihn zurück), kam er nie zur Ruhe und
+  // löste sich nie. Liegt er still, löst er sich nach 1,2 s und ist bald zurück auf der Bühne
+  // (dort darf ihn ein Hinweis zum Schriftzug machen: dann sitzt die Trefferfläche anders)
+  const buehne = await page.locator('.tyd-auth-buehne').boundingBox()
+  let daheim = false
+  for (let t = 0; t < 6000 && !daheim; t += 100) {
+    await page.clock.runFor(100)
+    const l = await lage()
+    daheim = l.x > buehne!.x && l.x < buehne!.x + buehne!.width && l.y > buehne!.y && l.y < buehne!.y + buehne!.height
+  }
+  expect(daheim).toBe(true)
+})
+
+test('Start und Anmelden füllen das Display: Karte und Fußzeile sitzen unten, die Bühne nimmt den Rest', async ({ page }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  const unten = () => page.locator('main.tyd-auth').evaluate(el => (el.lastElementChild as HTMLElement).getBoundingClientRect().bottom)
+  const hoehe = page.viewportSize()!.height
+  // .tyd-auth hat unten 16 px Innenabstand
+  expect(await unten()).toBeGreaterThan(hoehe - 24)
+  await page.locator('[data-auth-start-login]').click()
+  await expect(page.locator('#auth-kennung')).toBeVisible()
+  expect(await unten()).toBeGreaterThan(hoehe - 24)
 })
 
 test('Benutzername: Anmelden über die Edge Function, falsches Passwort bekommt X und Satz', async ({ page, mock }) => {
@@ -127,7 +207,7 @@ test('Apple/Google eingerichtet: Knöpfe stehen oben, Google leitet zu Supabase 
   expect(decodeURIComponent(ziel)).toContain('/auth?anbieter=google')
 })
 
-test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Dot landet in der Leiste', async ({ page, mock }) => {
+test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Hoku landet in der Leiste', async ({ page, mock }) => {
   void mock
   await page.goto('/auth?anbieter=google')
   await lassLaufen(page, 2500)
@@ -139,9 +219,118 @@ test('Zurück vom Anbieter mit Sitzung: Haken, Portal, Dot landet in der Leiste'
 test('Zurück vom Anbieter mit Fehler: Satz und X, Adresse bereinigt', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
-  await page.goto('/auth?anbieter=apple&error=access_denied&error_description=abgebrochen')
+  await page.goto('/auth?anbieter=apple&error=server_error&error_description=kaputt')
   await expect(page.getByRole('alert')).toHaveText('Das hat nicht geklappt. Versuch es noch einmal.')
   await expect(page).toHaveURL(/\/auth$/)
+})
+
+test('Zurück vom Anbieter, selbst abgebrochen: kein Fehler, Hoku bleibt ruhig, Adresse bereinigt', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth?anbieter=apple&error=access_denied&error_description=abgebrochen')
+  await lassLaufen(page, 3000)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page).toHaveURL(/\/auth$/)
+  await expect(page.locator('[data-auth-submit]')).toBeEnabled()
+})
+
+// Hoku führt (Spec 2026-10-29): Hinweise bei Stille, Abbruch durch Eingabe, Name beim Tippen, Sprache
+const bisAttribut = async (page: Page, sel: string, attr: string, maxMs: number) => {
+  for (let t = 0; t < maxMs; t += 100) {
+    await page.clock.runFor(100)
+    if ((await page.locator(sel).getAttribute(attr)) !== null) return t
+  }
+  return -1
+}
+const hokuSagt = (page: Page) => page.locator('main p[role="status"]').first()
+
+test('Start: nach der Begrüßung Hinweise auf Anmelden und Registrieren, dann klopft Hoku', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth')
+  expect(await bisAttribut(page, '[data-auth-start-login]', 'data-dot-ziel', 26000)).toBeGreaterThan(0)
+  expect(await bisAttribut(page, '[data-auth-start-register]', 'data-dot-ziel', 16000)).toBeGreaterThan(0)
+  let gefragt = false
+  // das Klopfen kommt eine halbe Minute nach dem Ende des letzten Hinweises
+  for (let t = 0; t < 40000 && !gefragt; t += 200) { await page.clock.runFor(200); gefragt = (await hokuSagt(page).textContent()) === 'Noch da?' }
+  expect(gefragt).toBe(true)
+})
+
+test('Anmelden: nach 10 s Stille fliegt Hoku zum leeren Feld, Tippen bricht das sofort ab', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  expect(await bisAttribut(page, '#auth-kennung', 'data-dot-ziel', 20000)).toBeGreaterThan(0)
+  await expect(hokuSagt(page)).toHaveText('Hier deine E-Mail rein')
+  await page.locator('#auth-kennung').pressSequentially('a')
+  await page.clock.runFor(200)
+  await expect(page.locator('#auth-kennung')).not.toHaveAttribute('data-dot-ziel')
+})
+
+test('Anmelden: Absenden während des Hinweises bricht ihn ab', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await page.locator('#auth-kennung').fill('test@example.test')
+  await page.locator('#auth-pw').fill('geheim1')
+  await page.locator('#auth-pw').blur()
+  expect(await bisAttribut(page, '[data-auth-submit]', 'data-dot-ziel', 20000)).toBeGreaterThan(0)
+  // wie Enter im Feld: das Formular wird abgeschickt, ohne dass ein Feld den Fokus bekommt
+  await page.locator('form').evaluate(f => (f as HTMLFormElement).requestSubmit())
+  await page.clock.runFor(200)
+  await expect(page.locator('[data-auth-submit]')).not.toHaveAttribute('data-dot-ziel')
+})
+
+test('Anmelden: solange eine Fehlerzeile steht, drängt Hoku nicht', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await page.locator('[data-auth-submit]').click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  expect(await bisAttribut(page, '#auth-kennung', 'data-dot-ziel', 16000)).toBe(-1)
+})
+
+test('Registrieren: der Name wird beim Tippen geprüft, vergeben zeigt die Zeile ohne Absenden', async ({ page, mock }) => {
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await page.locator('[data-auth-start-register]').click()
+  await page.locator('#auth-user').fill('e2e')
+  await lassLaufen(page, 1500)
+  await expect(page.getByRole('alert')).toHaveText('Dieser Benutzername ist schon vergeben.')
+  await page.locator('#auth-user').fill('neuer.name')
+  await lassLaufen(page, 1500)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  expect(mock.rpcCalls.filter(c => c.name === 'benutzername_frei')).toHaveLength(2)
+  expect(mock.log.filter(z => z.includes('/auth/v1/signup'))).toEqual([])
+})
+
+test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6500)
+  await expect(hokuSagt(page)).toHaveText('Hi! Willkommen bei Hoku')
+  await page.locator('.tyd-auth-sprache button[lang="en"]').click()
+  await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
+})
+
+test('Passwort einblenden: Hoku hält sich die Augen zu und sagt, dass er nichts sieht', async ({ page, mock }) => {
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.locator('#auth-pw').fill('geheim1')
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 1200)
+  const blase = page.locator('.tyd-dot-blase')
+  await expect(blase).toHaveText('Keine Sorge, ich sehe nichts.')
+  await expect(blase).toHaveAttribute('data-zeigen', 'true')
+  await lassLaufen(page, 3500)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
+  // wieder ausblenden: keine Blase
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 1200)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
 })
 
 test('Face ID (Passkey): nach der Landung einrichten, danach mit einem Tipp anmelden', async ({ page, mock }) => {

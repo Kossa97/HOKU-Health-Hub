@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CORE_TEXTS } from './coreTexts'
+import { EDITOR_TEXTS } from './editorTexts'
+import { LIVE_TEXTS } from './liveTexts'
 import { PROGRESS_TEXTS } from './progressTexts'
 import { SETTINGS_TEXTS } from './settingsTexts'
 
@@ -19,8 +21,8 @@ import { SETTINGS_TEXTS } from './settingsTexts'
  */
 
 export const TRAINING_TEXTS = {
-  de: { ...CORE_TEXTS.de, ...PROGRESS_TEXTS.de, ...SETTINGS_TEXTS.de },
-  en: { ...CORE_TEXTS.en, ...PROGRESS_TEXTS.en, ...SETTINGS_TEXTS.en },
+  de: { ...CORE_TEXTS.de, ...PROGRESS_TEXTS.de, ...SETTINGS_TEXTS.de, ...LIVE_TEXTS.de, ...EDITOR_TEXTS.de },
+  en: { ...CORE_TEXTS.en, ...PROGRESS_TEXTS.en, ...SETTINGS_TEXTS.en, ...LIVE_TEXTS.en, ...EDITOR_TEXTS.en },
 }
 
 export type TrainingTextKey = keyof typeof TRAINING_TEXTS.de

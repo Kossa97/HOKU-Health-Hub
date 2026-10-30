@@ -9,7 +9,7 @@ import { createDot, warDraussen, type DotApi } from './engine/dotEngine'
 import { dauerText } from './engine/geometry'
 import { dotStore, useDotStand } from './dotStore'
 import { localDateTimeKey } from '../../lib/planTimeline'
-import { heuteOffen, kontextVonHeute, ladeDotKontext, type DotKontext } from './lib/dotKontext'
+import { heuteHinweis, heuteOffen, kontextVonHeute, ladeDotKontext, type DotKontext } from './lib/dotKontext'
 import { useDotZugang } from './lib/zugang'
 import { useDotText } from './texte'
 import { CoachPanel, type DotSeite } from './chat/CoachPanel'
@@ -132,13 +132,13 @@ export function DotLayer() {
         tschuess: () => t('tschuess'),
         daBin: () => t('da_bin'),
         gruss: () => {
+          // Gibt die Seite ihm etwas mit (Training: was heute dran ist), grüßt er damit
+          const seitenHinweis = dotStore.stand().hinweis
+          if (seitenHinweis) return `${tagesgruss()} ${seitenHinweis}`
           const k = aktuellerKontext.current()
           if (!k) return tagesgruss()
-          const h = heuteOffen(k, jetztIn(k))
-          const rest = h.naechste
-            ? t(h.naechste.menge ? 'naechste_menge' : 'naechste', { zeit: h.naechste.zeit, substanz: h.naechste.substanz, menge: h.naechste.menge ?? '' })
-            : h.geplant ? t('alles_erledigt') : t('nichts_geplant')
-          return `${tagesgruss()} ${rest}`
+          const hinweis = heuteHinweis(heuteOffen(k, jetztIn(k)))
+          return `${tagesgruss()} ${t(hinweis.schluessel, hinweis.werte)}`
         },
         uhr: () => {
           const jetzt = new Date()
@@ -182,6 +182,17 @@ export function DotLayer() {
     window.addEventListener(AUTO_EREIGNIS, beiAuto)
     return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
   }, [dot])
+
+  // Hinweis der Seite: ist er draußen, sagt er ihn – jeden Text nur einmal,
+  // bis die Seite ihn zurücknimmt (verlassen) und wieder setzt
+  const gesagt = useRef<string | null>(null)
+  useEffect(() => {
+    if (!stand.hinweis) { gesagt.current = null; return }
+    if (!dot || stand.hinweis === gesagt.current) return
+    if (stand.modus !== 'home') return
+    gesagt.current = stand.hinweis
+    dot.sag(stand.hinweis, 4500)
+  }, [dot, stand.hinweis, stand.modus])
 
   // Anmeldung: auf ihre Bühne. Sonst verlässt er sie (vorerst still ins Haus;
   // der Flug in die Leiste kommt mit dem Erfolg der Anmeldung)

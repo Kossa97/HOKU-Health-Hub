@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Play, Settings } from 'lucide-react'
 import type { TrainingRoutine, TrainingSession } from './types'
 import { useTrainingText } from './i18n'
-import { useTrainingData } from './hooks/useTrainingData'
+import { useTrainingData, type TrainingData } from './hooks/useTrainingData'
 import { useActiveWorkout } from './hooks/useActiveWorkout'
-import { startWorkout, workoutFromSession } from './lib/activeWorkout'
+import { startWorkout, workoutFromSession, type ActiveWorkout } from './lib/activeWorkout'
 import { formatClock } from './lib/format'
+import { buildSuggestFn } from './lib/suggest'
 import { Button, Card, TRAINING_ACCENT, TRAINING_CSS } from './components/ui'
 import { TodayTab } from './components/today/TodayTab'
 import { HistoryTab } from './components/history/HistoryTab'
@@ -14,6 +15,7 @@ import { SessionDetailSheet } from './components/history/SessionDetailSheet'
 import { ProgressTab } from './components/progress/ProgressTab'
 import { SettingsSheet } from './components/settings/SettingsSheet'
 import { LiveWorkout } from './components/live/LiveWorkout'
+import { describeNextSet } from './components/live/nextSet'
 import { QuickLogSheet } from './components/QuickLogSheet'
 import { RoutineEditor } from './components/RoutineEditor'
 import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
@@ -49,14 +51,19 @@ export function TrainingPage() {
   }
 
   const { workout, begin } = active
+  // Vorschlag (Doppelprogression) fuer die Startwerte der Saetze.
+  const suggest = useMemo(
+    () => buildSuggestFn({ history: data.sessions, unit: data.settings.unit, customExercises: data.customExercises }),
+    [data.sessions, data.settings.unit, data.customExercises],
+  )
   const startEmpty = useCallback(() => {
-    if (!workout) begin(startWorkout({ history: data.sessions }))
+    if (!workout) begin(startWorkout({ history: data.sessions, suggest }))
     setLiveOpen(true)
-  }, [workout, begin, data.sessions])
+  }, [workout, begin, data.sessions, suggest])
 
   const startRoutine = (routine: TrainingRoutine) => {
     if (workout && !window.confirm(tt('discard_confirm'))) { setLiveOpen(true); return }
-    begin(startWorkout({ routine, history: data.sessions }))
+    begin(startWorkout({ routine, history: data.sessions, suggest }))
     setLiveOpen(true)
   }
 
@@ -133,7 +140,7 @@ export function TrainingPage() {
         ))}
       </div>
 
-      {workout && !liveOpen && <RunningBanner startedAt={workout.startedAt} title={workout.title} editing={!!workout.sessionId} onResume={() => setLiveOpen(true)} />}
+      {workout && !liveOpen && <RunningBanner workout={workout} data={data} onResume={() => setLiveOpen(true)} />}
 
       {/* Laden: der Umriss der Karten statt eines Textes (wie überall in der App) */}
       {data.state === 'loading' && <Silhouette label={tt('loading')} abdruck><KurvenUmriss /></Silhouette>}
@@ -149,6 +156,7 @@ export function TrainingPage() {
           {tab === 'today' && (
             <TodayTab
               data={data}
+              dotQuiet={liveOpen}
               onStartRoutine={startRoutine}
               onStartEmpty={startEmpty}
               onLogActivity={() => setQuickLog({ session: null })}
@@ -181,27 +189,47 @@ export function TrainingPage() {
           onClose={() => setQuickLog(null)}
         />
       )}
-      {routineEdit && <RoutineEditor routine={routineEdit.routine} data={data} onClose={() => setRoutineEdit(null)} />}
+      {routineEdit && (
+        <RoutineEditor
+          routine={routineEdit.routine}
+          data={data}
+          onClose={() => setRoutineEdit(null)}
+          onStart={routine => { setRoutineEdit(null); startRoutine(routine) }}
+        />
+      )}
       {detail && <SessionDetailSheet session={detail} data={data} onEdit={() => editSession(detail)} onClose={() => setDetail(null)} />}
       {settingsOpen && <SettingsSheet data={data} onClose={() => setSettingsOpen(false)} />}
     </div>
   )
 }
 
-function RunningBanner({ startedAt, title, editing, onResume }: { startedAt: string; title: string; editing: boolean; onResume: () => void }) {
-  const { tt } = useTrainingText()
+/**
+ * Minimierte Leiste: Titel, Dauer und — laeuft gerade eine Pause — der
+ * Countdown mit dem naechsten Satz, im Sekundentakt.
+ */
+function RunningBanner({ workout, data, onResume }: { workout: ActiveWorkout; data: TrainingData; onResume: () => void }) {
+  const { tt, lang, locale } = useTrainingText()
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(id)
   }, [])
+  const editing = !!workout.sessionId
+  // Eine abgelaufene Pause raeumt erst der Timer im Logger weg; hier zaehlt nur, was noch laeuft.
+  const restLeftS = workout.restEndsAt != null && workout.restEndsAt > now ? Math.ceil((workout.restEndsAt - now) / 1000) : null
+  const next = restLeftS != null ? describeNextSet(workout, lang, locale, data.settings.unit, data.customExercises) : null
+  const sub = [
+    editing ? null : formatClock((now - Date.parse(workout.startedAt)) / 1000),
+    restLeftS != null && next ? tt('banner_rest', { clock: formatClock(restLeftS), set: next.set }) : null,
+    next ? [next.exercise, next.target].filter(Boolean).join(' ') : null,
+  ].filter(Boolean).join(' · ')
   return (
     <Card onClick={onResume} style={{ padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${TRAINING_ACCENT}33` }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title || tt('running_banner')}</div>
-          {!editing && <div style={{ fontSize: 13, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>{formatClock((now - Date.parse(startedAt)) / 1000)}</div>}
+          <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{workout.title || tt('running_banner')}</div>
+          {sub && <div style={{ fontSize: 13, color: restLeftS != null ? TRAINING_ACCENT : 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}
         </div>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: TRAINING_ACCENT }}>
           <Play size={16} aria-hidden="true" /> {tt('resume')}

@@ -2,7 +2,7 @@
  * Substanz-Scan: Barcode ueber `food-lookup` (Open Food Facts, nur Name und
  * Marke), Etikettfoto ueber `label-extract` (Anthropic, mit Einwilligung).
  */
-import { supabase } from '../../../lib/supabase'
+import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import { EINWILLIGUNG_FEHLT } from '../../blutwerte/lib/aiConsent'
 import { parseBarcodeProdukt, parseEtikett, type BarcodeProdukt, type Etikett } from '../lib/substanzScan'
 
@@ -28,7 +28,7 @@ async function fehlerCode(response: Response | undefined): Promise<string | null
 
 /** `null` = Open Food Facts kennt den Barcode nicht. */
 export async function sucheBarcode(barcode: string, lang: 'de' | 'en'): Promise<BarcodeProdukt | null> {
-  const { data, error } = await supabase.functions.invoke('food-lookup', { body: { barcode, lang, kind: 'item' } })
+  const { data, error } = await supabase.functions.invoke('food-lookup', { body: { barcode, lang, kind: 'item' }, region: FUNKTIONS_REGION })
   if (error || !data || typeof data !== 'object') throw new ScanFehler(null, 'my_stack_scan_err_lookup')
   return parseBarcodeProdukt(data)
 }
@@ -39,6 +39,7 @@ export async function sucheBarcode(barcode: string, lang: 'de' | 'en'): Promise<
  */
 export async function liesEtikett(base64: string, mimeType: string, names: string[]): Promise<Etikett> {
   const { data, error, response } = await supabase.functions.invoke('label-extract', {
+    region: FUNKTIONS_REGION,
     body: { file: base64, mimeType, names },
   })
   if (error) {

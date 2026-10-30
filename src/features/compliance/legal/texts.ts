@@ -34,7 +34,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
     {
       heading: '1. Verantwortlicher',
       paragraphs: [
-        'Verantwortlich für die Verarbeitung deiner Daten in TYD — Track Your Dose ist: [[Vor- und Nachname bzw. Firma]], [[Straße und Hausnummer]], [[PLZ und Ort]], [[Land]]. E-Mail: [[Kontakt-E-Mail]].',
+        'Verantwortlich für die Verarbeitung deiner Daten in HOKU: Health Hub ist: [[Vor- und Nachname bzw. Firma]], [[Straße und Hausnummer]], [[PLZ und Ort]], [[Land]]. E-Mail: [[Kontakt-E-Mail]].',
       ],
     },
     {
@@ -64,14 +64,14 @@ const DATENSCHUTZ_DE: LegalDoc = {
     {
       heading: '5. Empfänger und Dienstleister',
       paragraphs: [
-        'Supabase (Datenbank, Anmeldung, Dateispeicher) — Supabase Inc., Rechenzentrum in der EU (Irland). Hier liegen dein Konto und alle deine Einträge.',
-        'Vercel (Auslieferung der App und Server-Funktionen für Erinnerungen) — Vercel Inc., USA. [[Region der Server-Funktionen eintragen]]. Datenübermittlung auf Grundlage des EU-US Data Privacy Framework bzw. von Standardvertragsklauseln.',
+        'Supabase (Datenbank, Anmeldung, Dateispeicher, Server-Funktionen) — Supabase Inc., Rechenzentrum in der EU (Irland). Hier liegen dein Konto und alle deine Einträge. Auch die Server-Funktionen (etwa für Hoku, die Befund- und die Essenserkennung) laufen dort.',
+        'Vercel (Auslieferung der App und Server-Funktionen für Erinnerungen) — Vercel Inc., USA. Die App wird über das weltweite Netz von Vercel ausgeliefert; die Server-Funktionen für Erinnerungen laufen in der EU (Irland). Datenübermittlung auf Grundlage des EU-US Data Privacy Framework bzw. von Standardvertragsklauseln.',
         'Sentry (Fehlerberichte) — Functional Software Inc., Speicherort EU (Deutschland). Vor dem Senden werden alle Nutzerinhalte entfernt; die IP-Adresse wird nicht gespeichert.',
         'Open Food Facts (Produktdaten beim Barcode-Scan in Ernährung und My Stack) — Open Food Facts, gemeinnütziger Verein, Frankreich. Wenn du einen Barcode scannst oder nach einem Lebensmittel suchst, fragt unser Server dort die Ziffern bzw. den Suchbegriff ab. Open Food Facts sieht weder deine IP-Adresse noch dein Konto; zurück kommen nur Produktname, Marke und Nährwerte.',
-        'Anthropic (KI-Auswertung von Laborbefunden und Etiketten, optional) — Anthropic, PBC, USA. Nur wenn du einen Befund importierst oder ein Etikett fotografierst und eingewilligt hast: Das Foto bzw. PDF wird zur Auswertung übertragen, zurück kommen nur die erkannten Laborwerte bzw. Name, Darreichungsform und Stärke der Substanz. Auf einem Befund oder Apothekenetikett können auch Name, Geburtsdatum und Anschrift stehen — die App empfiehlt, sie vorher abzudecken. TYD speichert die Datei nicht. [[Speicherdauer und Nutzung bei Anthropic laut Vertrag eintragen; Grundlage der Übermittlung in die USA (EU-US Data Privacy Framework oder Standardvertragsklauseln) prüfen]]',
-        'Anthropic (KI-Erkennung von Mahlzeiten, optional) — derselbe Dienst. Nur wenn du „Dot erkennt dein Essen" nutzt und dafür gesondert eingewilligt hast: Das Foto (verkleinert) und/oder deine Notiz zum Gericht werden übertragen, zurück kommen nur der Name des Gerichts und mögliche Zutaten — keine Mengen und keine Nährwerte; die wählst du selbst aus der Lebensmitteldatenbank. TYD speichert weder Foto noch Notiz, sondern nur den Zeitpunkt der Anfrage (für das Tageslimit). Achte darauf, dass keine Personen auf dem Foto sind. Für Speicherdauer bei Anthropic und Übermittlungsgrundlage gilt dasselbe wie beim Befund-Import.',
-        'Anthropic (Dot, der KI-Coach, optional) — derselbe Dienst. Nur wenn du mit Dot chattest und dafür gesondert eingewilligt hast: Deine Frage und eine Zusammenfassung deiner Daten (Stack, Einnahmeplan und Einträge der letzten 7 Tage, letzte Blutwerte, heutige Ernährung mit Kalorien und Makros) werden übertragen, zurück kommt die Antwort. TYD speichert weder Frage noch Antwort auf dem Server, sondern nur, wie viele Fragen du an einem Tag gestellt hast (für das Tageslimit). Den Verlauf hält die App nur auf deinem Gerät. Für Speicherdauer bei Anthropic und Übermittlungsgrundlage gilt dasselbe wie beim Befund-Import.',
-        'Spracheingabe bei Dot (optional) — wenn du im Chat auf das Mikrofon tippst, wandelt die Spracherkennung deines Browsers bzw. Betriebssystems das Gesprochene in Text um: unter iOS und in Safari die von Apple, in Chrome die von Google. Diese Anbieter verarbeiten die Sprache nach ihren eigenen Datenschutzbestimmungen. TYD bekommt nur den erkannten Text und behandelt ihn wie eine getippte Frage an Dot; die App nimmt nichts auf und speichert keine Aufnahmen.',
+        'Anthropic (KI-Auswertung von Laborbefunden und Etiketten, optional) — Anthropic, PBC, USA. Nur wenn du einen Befund importierst oder ein Etikett fotografierst und eingewilligt hast: Das Foto bzw. PDF wird zur Auswertung übertragen, zurück kommen nur die erkannten Laborwerte bzw. Name, Darreichungsform und Stärke der Substanz. Auf einem Befund oder Apothekenetikett können auch Name, Geburtsdatum und Anschrift stehen — die App empfiehlt, sie vorher abzudecken. HOKU speichert die Datei nicht. Anthropic verarbeitet die Daten in unserem Auftrag nach seinem Auftragsverarbeitungsvertrag; Grundlage der Übermittlung in die USA sind die Standardvertragsklauseln der EU-Kommission (Art. 46 Abs. 2 lit. c DSGVO). Anthropic verwendet die Daten nicht zum Training seiner Modelle. [[Speicherdauer bei Anthropic eintragen: Standardfrist laut Anthropic bzw. keine Speicherung bei Zero Data Retention]] Stuft die automatische Missbrauchserkennung von Anthropic eine Anfrage als möglichen Verstoß gegen die Nutzungsrichtlinien ein, kann Anthropic sie bis zu 2 Jahre aufbewahren.',
+        'Anthropic (KI-Erkennung von Mahlzeiten, optional) — derselbe Dienst. Nur wenn du „Hoku erkennt dein Essen" nutzt und dafür gesondert eingewilligt hast: Das Foto (verkleinert) und/oder deine Notiz zum Gericht werden übertragen, zurück kommen nur der Name des Gerichts und mögliche Zutaten — keine Mengen und keine Nährwerte; die wählst du selbst aus der Lebensmitteldatenbank. HOKU speichert weder Foto noch Notiz, sondern nur den Zeitpunkt der Anfrage (für das Tageslimit). Achte darauf, dass keine Personen auf dem Foto sind. Für Speicherdauer bei Anthropic und Übermittlungsgrundlage gilt dasselbe wie beim Befund-Import.',
+        'Anthropic (Hoku, der KI-Coach, optional) — derselbe Dienst. Nur wenn du mit Hoku chattest und dafür gesondert eingewilligt hast: Deine Frage und eine Zusammenfassung deiner Daten (Stack, Einnahmeplan und Einträge der letzten 7 Tage, letzte Blutwerte, heutige Ernährung mit Kalorien und Makros) werden übertragen, zurück kommt die Antwort. HOKU speichert weder Frage noch Antwort auf dem Server, sondern nur, wie viele Fragen du an einem Tag gestellt hast (für das Tageslimit). Den Verlauf hält die App nur auf deinem Gerät. Für Speicherdauer bei Anthropic und Übermittlungsgrundlage gilt dasselbe wie beim Befund-Import.',
+        'Spracheingabe bei Hoku (optional) — wenn du im Chat auf das Mikrofon tippst, wandelt die Spracherkennung deines Browsers bzw. Betriebssystems das Gesprochene in Text um: unter iOS und in Safari die von Apple, in Chrome die von Google. Diese Anbieter verarbeiten die Sprache nach ihren eigenen Datenschutzbestimmungen. HOKU bekommt nur den erkannten Text und behandelt ihn wie eine getippte Frage an Hoku; die App nimmt nichts auf und speichert keine Aufnahmen.',
         'Push-Dienste — wenn du Erinnerungen einschaltest, stellt der Push-Dienst deines Betriebssystems bzw. Browsers (Apple, Google oder Mozilla) die Benachrichtigung zu. Die Nachricht enthält den Namen der Substanz, die Menge und den Zeitpunkt — sie kann auf dem Sperrbildschirm sichtbar sein.',
         'Mit allen Dienstleistern bestehen Verträge zur Auftragsverarbeitung (Art. 28 DSGVO). [[Prüfen und bestätigen]]',
       ],
@@ -110,7 +110,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
     {
       heading: '1. Controller',
       paragraphs: [
-        'The controller responsible for processing your data in TYD — Track Your Dose is: [[full name or company]], [[street and number]], [[postcode and city]], [[country]]. Email: [[contact email]].',
+        'The controller responsible for processing your data in HOKU: Health Hub is: [[full name or company]], [[street and number]], [[postcode and city]], [[country]]. Email: [[contact email]].',
       ],
     },
     {
@@ -140,14 +140,14 @@ const DATENSCHUTZ_EN: LegalDoc = {
     {
       heading: '5. Recipients and service providers',
       paragraphs: [
-        'Supabase (database, sign-in, file storage) — Supabase Inc., data centre in the EU (Ireland). Your account and all your entries are stored here.',
-        'Vercel (app delivery and server functions for reminders) — Vercel Inc., USA. [[enter region of server functions]]. Transfers are based on the EU-US Data Privacy Framework or standard contractual clauses.',
+        'Supabase (database, sign-in, file storage, server functions) — Supabase Inc., data centre in the EU (Ireland). Your account and all your entries are stored here. The server functions (for example for Hoku and for reading lab reports and meals) run there too.',
+        'Vercel (app delivery and server functions for reminders) — Vercel Inc., USA. The app is delivered through Vercel’s worldwide network; the server functions for reminders run in the EU (Ireland). Transfers are based on the EU-US Data Privacy Framework or standard contractual clauses.',
         'Sentry (crash reports) — Functional Software Inc., storage in the EU (Germany). All user content is removed before sending; IP addresses are not stored.',
         'Open Food Facts (product data for barcode scans in Nutrition and My Stack) — Open Food Facts, non-profit association, France. When you scan a barcode or search for a food, our server looks up the digits or the search term there. Open Food Facts sees neither your IP address nor your account; only the product name, brand and nutrition values come back.',
-        'Anthropic (AI reading of lab reports and labels, optional) — Anthropic, PBC, USA. Only if you import a lab report or photograph a label and have consented: the photo or PDF is sent for reading, and only the recognised lab values or the substance’s name, dosage form and strength come back. A lab report or pharmacy label may also show your name, date of birth and address — the app recommends covering them first. TYD does not store the file. [[enter retention and use at Anthropic according to the contract; check the basis for the transfer to the USA (EU-US Data Privacy Framework or standard contractual clauses)]]',
-        'Anthropic (AI meal recognition, optional) — the same provider. Only if you use "Dot recognises your meal" and have given separate consent for it: the photo (downscaled) and/or your note about the dish are sent, and only the name of the dish and possible ingredients come back — no amounts and no nutrition values; you choose those yourself from the food database. TYD stores neither the photo nor the note, only the time of the request (for the daily limit). Make sure no people are in the photo. Retention at Anthropic and the basis for the transfer are the same as for the lab report import.',
-        'Anthropic (Dot, the AI coach, optional) — the same provider. Only if you chat with Dot and have given separate consent for it: your question and a summary of your data (stack, intake plan and entries of the last 7 days, latest blood values, today’s nutrition with calories and macros) are sent, and the answer comes back. TYD stores neither the question nor the answer on the server, only how many questions you asked on a given day (for the daily limit). The app keeps the chat history on your device only. Retention at Anthropic and the basis for the transfer are the same as for the lab report import.',
-        'Voice input for Dot (optional) — if you tap the microphone in the chat, the speech recognition of your browser or operating system turns what you say into text: Apple’s on iOS and in Safari, Google’s in Chrome. These providers process the speech under their own privacy policies. TYD only receives the recognised text and treats it like a typed question to Dot; the app records nothing and stores no recordings.',
+        'Anthropic (AI reading of lab reports and labels, optional) — Anthropic, PBC, USA. Only if you import a lab report or photograph a label and have consented: the photo or PDF is sent for reading, and only the recognised lab values or the substance’s name, dosage form and strength come back. A lab report or pharmacy label may also show your name, date of birth and address — the app recommends covering them first. HOKU does not store the file. Anthropic processes the data on our behalf under its data processing agreement; the transfer to the USA is based on the European Commission’s standard contractual clauses (Art. 46(2)(c) GDPR). Anthropic does not use the data to train its models. [[enter retention at Anthropic: standard period according to Anthropic, or no storage under zero data retention]] If Anthropic’s automated abuse detection flags a request as a possible breach of its usage policies, Anthropic may keep it for up to 2 years.',
+        'Anthropic (AI meal recognition, optional) — the same provider. Only if you use "Hoku recognises your meal" and have given separate consent for it: the photo (downscaled) and/or your note about the dish are sent, and only the name of the dish and possible ingredients come back — no amounts and no nutrition values; you choose those yourself from the food database. HOKU stores neither the photo nor the note, only the time of the request (for the daily limit). Make sure no people are in the photo. Retention at Anthropic and the basis for the transfer are the same as for the lab report import.',
+        'Anthropic (Hoku, the AI coach, optional) — the same provider. Only if you chat with Hoku and have given separate consent for it: your question and a summary of your data (stack, intake plan and entries of the last 7 days, latest blood values, today’s nutrition with calories and macros) are sent, and the answer comes back. HOKU stores neither the question nor the answer on the server, only how many questions you asked on a given day (for the daily limit). The app keeps the chat history on your device only. Retention at Anthropic and the basis for the transfer are the same as for the lab report import.',
+        'Voice input for Hoku (optional) — if you tap the microphone in the chat, the speech recognition of your browser or operating system turns what you say into text: Apple’s on iOS and in Safari, Google’s in Chrome. These providers process the speech under their own privacy policies. HOKU only receives the recognised text and treats it like a typed question to Hoku; the app records nothing and stores no recordings.',
         'Push services — if you turn on reminders, your operating system\'s or browser\'s push service (Apple, Google or Mozilla) delivers the notification. It contains the substance name, amount and time — it may be visible on your lock screen.',
         'Data processing agreements (Art. 28 GDPR) are in place with all providers. [[check and confirm]]',
       ],
@@ -204,7 +204,7 @@ const IMPRESSUM_DE: LegalDoc = {
     {
       heading: 'Hinweis',
       paragraphs: [
-        'TYD ist ein persönliches Tracking-Werkzeug und kein Medizinprodukt. Inhalte der App und Erfahrungen anderer Nutzer sind keine medizinische Beratung und keine Empfehlung.',
+        'HOKU ist ein persönliches Tracking-Werkzeug und kein Medizinprodukt. Inhalte der App und Erfahrungen anderer Nutzer sind keine medizinische Beratung und keine Empfehlung.',
       ],
     },
   ],
@@ -235,7 +235,7 @@ const IMPRESSUM_EN: LegalDoc = {
     {
       heading: 'Note',
       paragraphs: [
-        'TYD is a personal tracking tool and not a medical device. Content in the app and other users\' experiences are not medical advice and not a recommendation.',
+        'HOKU is a personal tracking tool and not a medical device. Content in the app and other users\' experiences are not medical advice and not a recommendation.',
       ],
     },
   ],
@@ -248,19 +248,19 @@ const BEDINGUNGEN_DE: LegalDoc = {
     {
       heading: '1. Anbieter und Geltungsbereich',
       paragraphs: [
-        'Diese Bedingungen gelten für die Nutzung von TYD — Track Your Dose (App und Web) und werden mit [[Vor- und Nachname bzw. Firma]] (Angaben im Impressum) vereinbart.',
+        'Diese Bedingungen gelten für die Nutzung von HOKU: Health Hub (App und Web) und werden mit [[Vor- und Nachname bzw. Firma]] (Angaben im Impressum) vereinbart.',
       ],
     },
     {
       heading: '2. Mindestalter',
-      paragraphs: ['Du musst mindestens 18 Jahre alt sein, um TYD zu nutzen. Mit der Registrierung bestätigst du das.'],
+      paragraphs: ['Du musst mindestens 18 Jahre alt sein, um HOKU zu nutzen. Mit der Registrierung bestätigst du das.'],
     },
     {
       heading: '3. Kein Medizinprodukt, keine Beratung',
       paragraphs: [
-        'TYD ist ein persönliches Werkzeug, um festzuhalten, was du nimmst und wie es dir geht. Es ist kein Medizinprodukt, stellt keine Diagnosen und gibt keine Behandlungs- oder Dosierungsempfehlungen.',
+        'HOKU ist ein persönliches Werkzeug, um festzuhalten, was du nimmst und wie es dir geht. Es ist kein Medizinprodukt, stellt keine Diagnosen und gibt keine Behandlungs- oder Dosierungsempfehlungen.',
         'Rechner, Umrechner und die Blutspiegel-Simulation rechnen nur mit den Werten, die du eingibst, bzw. mit Durchschnittswerten aus der Literatur. Die Ergebnisse sind Rechenhilfen, keine Empfehlung, und können von der Wirklichkeit abweichen. Prüfe jede Dosis mit einer Ärztin, einem Arzt oder in der Apotheke.',
-        'Du bist selbst dafür verantwortlich, dass das, was du einnimmst und einträgst, nach dem für dich geltenden Recht erlaubt ist. TYD unterstützt weder Erwerb noch Handel von Substanzen.',
+        'Du bist selbst dafür verantwortlich, dass das, was du einnimmst und einträgst, nach dem für dich geltenden Recht erlaubt ist. HOKU unterstützt weder Erwerb noch Handel von Substanzen.',
       ],
     },
     {
@@ -278,7 +278,7 @@ const BEDINGUNGEN_DE: LegalDoc = {
         '— Dosierungsanleitungen oder Aufforderungen an andere, eine Substanz zu nehmen;',
         '— Beleidigungen, Belästigung, Hassrede, Drohungen und Inhalte, die Rechte Dritter verletzen.',
         'Ein Filter prüft öffentliche Texte vor dem Speichern. Jeder Inhalt kann gemeldet und jedes Profil blockiert werden. Gemeldete Inhalte prüfen wir innerhalb von 24 Stunden und blenden sie aus, wenn sie gegen diese Regeln verstoßen; wiederholte oder schwere Verstöße führen zur Sperrung des Kontos.',
-        'Deine Inhalte bleiben deine. Du erlaubst uns, sie innerhalb von TYD so anzuzeigen, wie du sie freigegeben hast, bis du sie löschst oder die Freigabe zurücknimmst.',
+        'Deine Inhalte bleiben deine. Du erlaubst uns, sie innerhalb von HOKU so anzuzeigen, wie du sie freigegeben hast, bis du sie löschst oder die Freigabe zurücknimmst.',
       ],
     },
     {
@@ -308,19 +308,19 @@ const BEDINGUNGEN_EN: LegalDoc = {
     {
       heading: '1. Provider and scope',
       paragraphs: [
-        'These terms govern the use of TYD — Track Your Dose (app and web) and are agreed with [[full name or company]] (details in the legal notice).',
+        'These terms govern the use of HOKU: Health Hub (app and web) and are agreed with [[full name or company]] (details in the legal notice).',
       ],
     },
     {
       heading: '2. Minimum age',
-      paragraphs: ['You must be at least 18 years old to use TYD. By registering you confirm this.'],
+      paragraphs: ['You must be at least 18 years old to use HOKU. By registering you confirm this.'],
     },
     {
       heading: '3. Not a medical device, no advice',
       paragraphs: [
-        'TYD is a personal tool for recording what you take and how you feel. It is not a medical device, does not diagnose and does not give treatment or dosing recommendations.',
+        'HOKU is a personal tool for recording what you take and how you feel. It is not a medical device, does not diagnose and does not give treatment or dosing recommendations.',
         'Calculators, converters and the blood level simulation only compute with the values you enter or with average values from the literature. The results are calculation aids, not a recommendation, and may differ from reality. Check every dose with a doctor or pharmacist.',
-        'You are responsible for ensuring that what you take and record is permitted under the law that applies to you. TYD does not support buying or trading substances.',
+        'You are responsible for ensuring that what you take and record is permitted under the law that applies to you. HOKU does not support buying or trading substances.',
       ],
     },
     {
@@ -338,7 +338,7 @@ const BEDINGUNGEN_EN: LegalDoc = {
         '— dosing instructions or encouraging others to take a substance;',
         '— insults, harassment, hate speech, threats and content that infringes the rights of others.',
         'A filter checks public texts before they are saved. Any content can be reported and any profile can be blocked. We review reported content within 24 hours and hide it if it breaks these rules; repeated or serious violations lead to the account being suspended.',
-        'Your content remains yours. You allow us to display it within TYD as you have shared it until you delete it or stop sharing it.',
+        'Your content remains yours. You allow us to display it within HOKU as you have shared it until you delete it or stop sharing it.',
       ],
     },
     {

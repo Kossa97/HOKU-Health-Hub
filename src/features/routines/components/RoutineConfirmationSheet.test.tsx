@@ -15,6 +15,7 @@ vi.mock('react-i18next', () => ({
       }
       return value
     },
+    i18n: { language: 'de' },
   }),
 }))
 
@@ -85,13 +86,36 @@ describe('RoutineConfirmationSheet', () => {
     render(<RoutineConfirmationSheet group={group()} onClose={() => undefined} onConfirm={async () => []} />)
 
     expect(screen.getAllByRole('button', { name: 'Einmalige Abweichung' })).toHaveLength(2)
-    expect(screen.getByText('Geplant: 25 mg')).toBeTruthy()
-    expect(screen.getByText('Geplant: 100 mg')).toBeTruthy()
-    expect(screen.queryByText('Geplant: Menge nicht getrackt')).toBeNull()
+    expect(screen.getByText('25 mg')).toBeTruthy()
+    expect(screen.getByText('100 mg')).toBeTruthy()
+    expect(screen.queryByText('Menge nicht getrackt')).toBeNull()
     expect(screen.queryByLabelText('Menge für Vitamin D3')).toBeNull()
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Einmalige Abweichung' })[0])
     expect((screen.getByLabelText('Menge für Zink') as HTMLInputElement).value).toBe('25')
+  })
+
+  it('marks a one-off change and recalculates the syringe units from it', () => {
+    const einheitenFuer = vi.fn((stackItemId: string, dose: number | null) => (
+      stackItemId === 'stack-testosterone' && dose != null ? dose / 10 : null
+    ))
+    render(<RoutineConfirmationSheet group={group()} onClose={() => undefined} onConfirm={async () => []} einheitenFuer={einheitenFuer} />)
+
+    expect(screen.getByText('10 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.queryByText('einmalig')).toBeNull()
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Einmalige Abweichung' })[1])
+    fireEvent.change(screen.getByLabelText('Menge für Testosteron'), { target: { value: '120' } })
+    expect(screen.getByText('12 Einheiten aufziehen')).toBeTruthy()
+    expect(screen.getByText('einmalig')).toBeTruthy()
+    // Die geplante Menge bleibt durchgestrichen stehen.
+    expect(screen.getByText('100 mg').tagName).toBe('S')
+    expect(screen.getByText('120 mg')).toBeTruthy()
+
+    // Zurück auf den Plan: kein „einmalig" mehr, Einheiten wieder wie geplant.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Einmalige Abweichung' })[1])
+    expect(screen.queryByText('einmalig')).toBeNull()
+    expect(screen.getByText('10 Einheiten aufziehen')).toBeTruthy()
   })
 
   it('submits an actual-dose override without mutating the planned intake', async () => {

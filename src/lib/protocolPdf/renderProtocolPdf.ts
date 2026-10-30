@@ -134,7 +134,7 @@ const COPY: Record<PdfLang, Copy> = {
     disclaimerTitle: 'Hinweis',
     disclaimer: 'Dieses Dokument dient ausschließlich der persönlichen Dokumentation und Forschung. Es ist kein medizinischer Rat, keine Diagnose und keine Therapieempfehlung. Angaben werden vom Nutzer selbst erfasst. Konsultiere vor Entscheidungen eine medizinische Fachperson.',
     noData: 'Keine Daten im gewählten Zeitraum.',
-    footer: 'Erstellt mit TYD – Track Your Dose',
+    footer: 'Erstellt mit HOKU: Health Hub',
   },
   en: {
     docTitle: 'Substance Protocol',
@@ -175,7 +175,7 @@ const COPY: Record<PdfLang, Copy> = {
     disclaimerTitle: 'Note',
     disclaimer: 'This document is for personal documentation and research only. It is not medical advice, diagnosis, or treatment recommendation. All data is self-reported by the user. Consult a medical professional before making decisions.',
     noData: 'No data in the selected period.',
-    footer: 'Created with TYD – Track Your Dose',
+    footer: 'Created with HOKU: Health Hub',
   },
 }
 
@@ -185,13 +185,13 @@ function applyMedicalCopy(base: Copy, lang: PdfLang): Copy {
     return {
       ...base,
       docTitle: 'Befundbericht',
-      brand: 'TYD · MEDIZINISCHE DOKUMENTATION',
+      brand: 'HOKU · MEDIZINISCHE DOKUMENTATION',
       coverPurpose: 'Zur Vorlage bei der behandelnden Fachperson',
       coverSubtitle: 'Persönliche Verlaufs- und Labordokumentation',
       coverDocKind: 'Befundbericht (Selbstauskunft)',
       subject: 'Patient',
       contents: 'Gliederung',
-      footer: 'Vertraulich — persönliche medizinische Dokumentation · TYD',
+      footer: 'Vertraulich — persönliche medizinische Dokumentation · HOKU',
       sectionTitles: {
         ...base.sectionTitles,
         personal: 'Patientendaten',
@@ -213,13 +213,13 @@ function applyMedicalCopy(base: Copy, lang: PdfLang): Copy {
   return {
     ...base,
     docTitle: 'Medical Report',
-    brand: 'TYD · MEDICAL DOCUMENTATION',
+    brand: 'HOKU · MEDICAL DOCUMENTATION',
     coverPurpose: 'For review by the treating clinician',
     coverSubtitle: 'Personal progress and lab documentation',
     coverDocKind: 'Medical report (self-reported)',
     subject: 'Patient',
     contents: 'Contents',
-    footer: 'Confidential — personal medical documentation · TYD',
+    footer: 'Confidential — personal medical documentation · HOKU',
     sectionTitles: {
       ...base.sectionTitles,
       personal: 'Patient details',
@@ -244,13 +244,13 @@ function applyCoachCopy(base: Copy, lang: PdfLang): Copy {
     return {
       ...base,
       docTitle: 'Coaching-Report',
-      brand: 'TYD · COACHING',
+      brand: 'HOKU · COACHING',
       coverPurpose: 'Zur Abstimmung mit dem Coach',
       coverSubtitle: 'Adherence, Wohlbefinden und Feedback auf einen Blick',
       coverDocKind: 'Coaching-Report (Selbstauskunft)',
       subject: 'Athlet',
       contents: 'Übersicht',
-      footer: 'Persönlicher Coaching-Report · TYD',
+      footer: 'Persönlicher Coaching-Report · HOKU',
       sectionTitles: {
         ...base.sectionTitles,
         personal: 'Profil',
@@ -271,13 +271,13 @@ function applyCoachCopy(base: Copy, lang: PdfLang): Copy {
   return {
     ...base,
     docTitle: 'Coaching Report',
-    brand: 'TYD · COACHING',
+    brand: 'HOKU · COACHING',
     coverPurpose: 'For review with your coach',
     coverSubtitle: 'Adherence, well-being and feedback at a glance',
     coverDocKind: 'Coaching report (self-reported)',
     subject: 'Athlete',
     contents: 'Overview',
-    footer: 'Personal coaching report · TYD',
+    footer: 'Personal coaching report · HOKU',
     sectionTitles: {
       ...base.sectionTitles,
       personal: 'Profile',
@@ -301,13 +301,13 @@ function applyForumCopy(base: Copy, lang: PdfLang): Copy {
     return {
       ...base,
       docTitle: 'Community-Protokoll',
-      brand: 'TYD · ANONYM',
+      brand: 'HOKU · ANONYM',
       coverPurpose: 'Ohne Personendaten',
       coverSubtitle: 'Anonymisiertes Protokoll zum Teilen in Foren und Gruppen',
       coverDocKind: 'Community-Protokoll (anonym)',
       subject: 'Nutzer',
       contents: 'Inhalt',
-      footer: 'Anonymisiert zum Teilen · TYD',
+      footer: 'Anonymisiert zum Teilen · HOKU',
       sectionTitles: {
         ...base.sectionTitles,
         summary: 'Überblick',
@@ -326,13 +326,13 @@ function applyForumCopy(base: Copy, lang: PdfLang): Copy {
   return {
     ...base,
     docTitle: 'Community Protocol',
-    brand: 'TYD · ANONYMOUS',
+    brand: 'HOKU · ANONYMOUS',
     coverPurpose: 'No personal data',
     coverSubtitle: 'Anonymised protocol for forums and communities',
     coverDocKind: 'Community protocol (anonymous)',
     subject: 'User',
     contents: 'Contents',
-    footer: 'Anonymised for sharing · TYD',
+    footer: 'Anonymised for sharing · HOKU',
     sectionTitles: {
       ...base.sectionTitles,
       summary: 'Overview',
@@ -1166,13 +1166,13 @@ export async function buildProtocolPdf(data: ProtocolData, opts: PdfBuildOptions
 
 export function pdfFileName(opts: PdfBuildOptions): string {
   if (opts.preset === 'arzt') {
-    return `TYD-${opts.lang === 'de' ? 'Befund' : 'Report'}-${opts.range.to}.pdf`
+    return `HOKU-${opts.lang === 'de' ? 'Befund' : 'Report'}-${opts.range.to}.pdf`
   }
   if (opts.preset === 'coach') {
-    return `TYD-${opts.lang === 'de' ? 'Coaching-Report' : 'Coaching-Report'}-${opts.range.to}.pdf`
+    return `HOKU-${opts.lang === 'de' ? 'Coaching-Report' : 'Coaching-Report'}-${opts.range.to}.pdf`
   }
   if (opts.preset === 'forum') {
-    return `TYD-${opts.lang === 'de' ? 'Community' : 'Community'}-${opts.range.to}.pdf`
+    return `HOKU-${opts.lang === 'de' ? 'Community' : 'Community'}-${opts.range.to}.pdf`
   }
-  return `TYD-${opts.lang === 'de' ? 'Protokoll' : 'Protocol'}-${opts.range.to}.pdf`
+  return `HOKU-${opts.lang === 'de' ? 'Protokoll' : 'Protocol'}-${opts.range.to}.pdf`
 }

@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
+import { useDotStand } from './features/dot/dotStore'
 import { DotLayer } from './features/dot/DotLayer'
 import { Auth } from './pages/Auth'
 import { publicPeptipediaRoutes } from './features/peptipedia/publicRoutes'
@@ -43,9 +44,11 @@ const Legal = lazyPage(() => import('./pages/Legal'), 'Legal')
 // Vorschau-Seiten nur in der Entwicklung — im fertigen Build fehlen Route und Code.
 const DevPreviews = import.meta.env.DEV ? lazyPage(() => import('./pages/__DevPreviews'), 'DevPreviews') : null
 
-// Während der Code einer Seite lädt, steht ihr Umriss da
+// Während der Code einer Seite lädt, steht ihr Umriss da; nicht im Portal nach der Anmeldung
 function RouteFallback() {
   const { pathname } = useLocation()
+  const { modus } = useDotStand()
+  if (modus === 'portal') return null
   return <SeitenSilhouette art={silhouetteFuerPfad(pathname)} pfad={pathname} />
 }
 

@@ -1,12 +1,24 @@
-import { useState } from 'react'
+import { useRef, useState, type Ref } from 'react'
 import { Check } from 'lucide-react'
+import { hapticTick } from '../../../../lib/haptics'
 import type { TrackingMode, TrainingSet, WeightUnit } from '../../types'
 import { useTrainingText } from '../../i18n'
 import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exerciseLookup'
 import { formatClock, formatNumber, parseDecimal, parseStopwatchDigits, stopwatchDigits } from '../../lib/format'
-import { fromDisplayWeight, toDisplayWeight } from '../../lib/stats'
+import { toDisplayWeight } from '../../lib/stats'
+import { TRAINING_ACCENT } from '../ui'
+import { SetWheelSheet } from './SetWheelSheet'
 
-/** Eine Satzzeile im Logger: Nummer/Art · Vorher · Werte · Haken. */
+/**
+ * Eine Satzzeile im Logger: Nummer/Art · Vorher · Werte · Haken.
+ *
+ * Der naechste offene Satz traegt einen Ring in Akzentfarbe. Werte, die noch
+ * vom Vorschlag stammen (nicht getippt, nicht abgehakt), stehen kursiv in
+ * Akzentfarbe — sobald der Nutzer tippt oder abhakt, werden sie zu seinen.
+ *
+ * Gewicht und Wiederholungen werden nicht getippt, sondern per Rad gewaehlt
+ * (`SetWheelSheet`); Distanz und Dauer bleiben Eingabefelder.
+ */
 
 export const DONE_TINT = 'rgba(48,209,88,0.16)'
 const DONE_COLOR = '#30d158'
@@ -51,45 +63,34 @@ function displayValue(kind: CellKind, set: TrainingSet, unit: WeightUnit, locale
   }
 }
 
-function editValue(kind: CellKind, set: TrainingSet, unit: WeightUnit, locale: string): string {
+type InputKind = 'distance' | 'duration'
+
+function editValue(kind: InputKind, set: TrainingSet, unit: WeightUnit, locale: string): string {
   if (kind === 'duration') return set.durationS == null ? '' : stopwatchDigits(set.durationS)
   return displayValue(kind, set, unit, locale)
 }
 
-function parseCell(kind: CellKind, text: string, unit: WeightUnit): Partial<TrainingSet> | null {
-  switch (kind) {
-    case 'weight': {
-      if (!text.trim()) return { weightKg: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 2000 ? null : { weightKg: fromDisplayWeight(v, unit) }
-    }
-    case 'reps': {
-      if (!text.trim()) return { reps: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 1000 ? null : { reps: Math.round(v) }
-    }
-    case 'distance': {
-      if (!text.trim()) return { distanceM: null }
-      const v = parseDecimal(text)
-      return v == null || v < 0 || v > 1_000_000 ? null : { distanceM: Math.round(v) }
-    }
-    case 'duration':
-      return { durationS: parseStopwatchDigits(text) }
-  }
+function parseCell(kind: InputKind, text: string): Partial<TrainingSet> | null {
+  if (kind === 'duration') return { durationS: parseStopwatchDigits(text) }
+  if (!text.trim()) return { distanceM: null }
+  const v = parseDecimal(text)
+  return v == null || v < 0 || v > 1_000_000 ? null : { distanceM: Math.round(v) }
 }
 
 /**
- * Zahlenfeld, das waehrend der Eingabe den Text haelt („82," ist noch keine
- * Zahl) und erst gueltige Werte nach oben gibt. Ohne Fokus zeigt es den
+ * Zahlenfeld fuer Distanz und Dauer, das waehrend der Eingabe den Text haelt
+ * („12" ist noch keine fertige Dauer) und erst gueltige Werte nach oben gibt. Ohne Fokus zeigt es den
  * gespeicherten Wert; leer zeigt es grau den Wert vom letzten Mal.
  */
-function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
-  kind: CellKind
+function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange }: {
+  kind: InputKind
   set: TrainingSet
   unit: WeightUnit
   locale: string
   placeholder: string
   label: string
+  /** Wert stammt noch vom Vorschlag: Akzentfarbe, leicht kursiv. */
+  suggested: boolean
   onChange: (patch: Partial<TrainingSet>) => void
 }) {
   const [focused, setFocused] = useState(false)
@@ -97,11 +98,11 @@ function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
 
   return (
     <input
-      className="tyd-train-input"
+      className={suggested ? 'tyd-train-input sug' : 'tyd-train-input'}
       aria-label={label}
       value={focused ? text : displayValue(kind, set, unit, locale)}
       placeholder={placeholder}
-      inputMode={kind === 'weight' ? 'decimal' : 'numeric'}
+      inputMode="numeric"
       enterKeyHint="done"
       autoComplete="off"
       onFocus={event => {
@@ -113,7 +114,7 @@ function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
       onBlur={() => setFocused(false)}
       onChange={event => {
         setText(event.target.value)
-        const patch = parseCell(kind, event.target.value, unit)
+        const patch = parseCell(kind, event.target.value)
         if (patch) onChange(patch)
       }}
       style={{
@@ -121,24 +122,67 @@ function Cell({ kind, set, unit, locale, placeholder, label, onChange }: {
         fontSize: 16, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
         background: set.done ? 'transparent' : 'var(--lg-fill)',
         border: 0,
-        color: 'var(--lg-text)', padding: '0 4px',
+        color: suggested && !set.done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
+        transition: 'background 160ms ease-out',
       }}
     />
   )
 }
 
-export function SetRow({ set, number, previous, tracking, unit, onChange, onToggleDone, onOpenSetMenu }: {
+/** Wert in der Zeile; tippen oeffnet die Raeder. Leer zeigt er grau den Wert vom letzten Mal. */
+function ValueButton({ value, placeholder, label, done, suggested, onOpen, buttonRef }: {
+  value: string
+  placeholder: string
+  label: string
+  done: boolean
+  suggested: boolean
+  onOpen: () => void
+  buttonRef: Ref<HTMLButtonElement>
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onOpen}
+      aria-label={value ? `${label}: ${value}` : label}
+      aria-haspopup="dialog"
+      className={suggested ? 'tyd-train-press tyd-train-input sug' : 'tyd-train-press tyd-train-input'}
+      style={{
+        width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
+        fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
+        background: done ? 'transparent' : 'var(--lg-fill)',
+        border: `1px solid ${done ? 'transparent' : 'var(--lg-separator)'}`,
+        color: !value ? 'var(--lg-text-3)' : suggested && !done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
+        fontStyle: !value ? 'normal' : undefined,
+        transition: 'background 160ms ease-out',
+      }}
+    >
+      {value || placeholder || '–'}
+    </button>
+  )
+}
+
+export function SetRow({ set, number, previous, tracking, unit, isNext = false, suggested = false, onChange, onToggleDone, onOpenSetMenu }: {
   set: TrainingSet
   /** Laufende Nummer der Arbeitssaetze; Aufwaermsaetze zaehlen nicht mit. */
   number: number
   previous: TrainingSet | undefined
   tracking: TrackingMode
   unit: WeightUnit
+  /** Der naechste offene Satz des Trainings: bekommt den Ring. */
+  isNext?: boolean
+  /** Die Werte stammen noch vom Vorschlag. */
+  suggested?: boolean
   onChange: (patch: Partial<TrainingSet>) => void
   onToggleDone: () => void
   onOpenSetMenu: () => void
 }) {
   const { tt, locale } = useTrainingText()
+  // Der Haken federt nur beim Abhaken, nicht beim ersten Zeichnen eines schon erledigten Satzes.
+  const [popping, setPopping] = useState(false)
+  const [wheel, setWheel] = useState<'weight' | 'reps' | null>(null)
+  const weightButton = useRef<HTMLButtonElement>(null)
+  const repsButton = useRef<HTMLButtonElement>(null)
   const label = set.type === 'warmup' ? tt('set_warmup_short')
     : set.type === 'drop' ? tt('set_drop_short')
     : set.type === 'failure' ? tt('set_failure_short')
@@ -153,6 +197,7 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
         display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, alignItems: 'center',
         padding: '4px 6px', borderRadius: 12,
         background: set.done ? DONE_TINT : 'transparent',
+        boxShadow: isNext && !set.done ? `inset 0 0 0 1.5px ${TRAINING_ACCENT}99` : undefined,
         transition: 'background 160ms ease-out',
       }}
     >
@@ -168,10 +213,10 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
       <span style={{ fontSize: 13, color: 'var(--lg-text-3)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {previousLabel(previous, tracking, unit, locale)}
       </span>
-      {usesWeight(tracking) && <Cell kind="weight" set={set} unit={unit} locale={locale} placeholder={ph('weight')} label={weightLabel} onChange={onChange} />}
-      {usesReps(tracking) && <Cell kind="reps" set={set} unit={unit} locale={locale} placeholder={ph('reps')} label={tt('col_reps')} onChange={onChange} />}
-      {usesDistance(tracking) && <Cell kind="distance" set={set} unit={unit} locale={locale} placeholder={ph('distance')} label={tt('col_distance')} onChange={onChange} />}
-      {usesDuration(tracking) && <Cell kind="duration" set={set} unit={unit} locale={locale} placeholder={ph('duration')} label={tt('col_time')} onChange={onChange} />}
+      {usesWeight(tracking) && <ValueButton value={displayValue('weight', set, unit, locale)} placeholder={ph('weight')} label={weightLabel} done={set.done} suggested={suggested} onOpen={() => setWheel('weight')} buttonRef={weightButton} />}
+      {usesReps(tracking) && <ValueButton value={displayValue('reps', set, unit, locale)} placeholder={ph('reps')} label={tt('col_reps')} done={set.done} suggested={suggested} onOpen={() => setWheel('reps')} buttonRef={repsButton} />}
+      {usesDistance(tracking) && <Cell kind="distance" set={set} unit={unit} locale={locale} placeholder={ph('distance')} label={tt('col_distance')} suggested={suggested} onChange={onChange} />}
+      {usesDuration(tracking) && <Cell kind="duration" set={set} unit={unit} locale={locale} placeholder={ph('duration')} label={tt('col_time')} suggested={suggested} onChange={onChange} />}
       <button
         type="button"
         role="checkbox"
@@ -187,9 +232,12 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
             if (usesDuration(tracking) && set.durationS == null && previous.durationS != null) fill.durationS = previous.durationS
             if (Object.keys(fill).length) onChange(fill)
           }
+          void hapticTick()
+          setPopping(!set.done)
           onToggleDone()
         }}
-        className="tyd-train-press"
+        onAnimationEnd={() => setPopping(false)}
+        className={`tyd-train-press tyd-train-check${popping && set.done ? ' is-popping' : ''}`}
         style={{
           width: 44, height: 40, borderRadius: 12,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -200,6 +248,30 @@ export function SetRow({ set, number, previous, tracking, unit, onChange, onTogg
       >
         <Check size={20} strokeWidth={3} aria-hidden="true" />
       </button>
+      {wheel && (
+        <SetWheelSheet
+          title={`${tt('col_set')} ${label}`}
+          previousText={previous ? previousLabel(previous, tracking, unit, locale) : undefined}
+          set={set}
+          previous={previous}
+          tracking={tracking}
+          unit={unit}
+          weightLabel={weightLabel}
+          focus={wheel}
+          onClose={(patch, markDone) => {
+            // Fokus zurueck auf den Wert, von dem aus geoeffnet wurde.
+            const opener = wheel === 'weight' ? weightButton : repsButton
+            opener.current?.focus({ preventScroll: true })
+            setWheel(null)
+            if (patch) onChange(patch)
+            if (markDone) {
+              void hapticTick()
+              setPopping(true)
+              onToggleDone()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

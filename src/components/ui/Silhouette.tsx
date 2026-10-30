@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { getDosageForm } from '../../features/my-stack/lib/dosageForms'
 import { FORM_UMRISSE, type BuehnenForm } from '../../features/my-stack/stage/formUmrisse'
 import type { DosageFormKey } from '../../features/my-stack/types'
+import { useDotStand } from '../../features/dot/dotStore'
 import { abdruckAb, inhaltsUrsprung, leseAbdruck, type Abdruck } from './umrissAbdruck'
 import { ketteBeenden, kettenStart, SICHTBAR_NACH, silhouetteFuerPfad, type SilhouettenArt } from './silhouetteTakt'
 
@@ -427,8 +428,13 @@ export function SeitenSilhouette({ art, pfad, className }: { art: SilhouettenArt
   return <Silhouette className={className}>{abdruck ? <AbdruckUmriss abdruck={abdruck} /> : <Umriss />}</Silhouette>
 }
 
-/** Umriss außerhalb des Seitengerüsts (Anmeldung, Zustimmung): dieselben Ränder wie <main>. */
+/**
+ * Umriss außerhalb des Seitengerüsts (Anmeldung, Zustimmung): dieselben Ränder wie <main>. Während Hoku
+ * nach der Anmeldung das Portal in die App öffnet, steht hier nichts: der Übergang zeigt gleich die App.
+ */
 export function SilhouettenHuelle({ pfad }: { pfad: string }) {
+  const { modus } = useDotStand()
+  if (modus === 'portal') return null
   return <div className="px-3 pt-4"><SeitenSilhouette art={silhouetteFuerPfad(pfad)} pfad={pfad} /></div>
 }
 

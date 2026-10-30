@@ -236,7 +236,7 @@ function stackItemIngredientColumns(includeCatalog: boolean): string {
   `
 }
 
-function stackItemColumns(options: { includeInventory: boolean; includeIngredientCatalog: boolean }): string {
+export function stackItemColumns(options: { includeInventory: boolean; includeIngredientCatalog: boolean }): string {
   return `
     *,
     ${options.includeInventory ? `${STACK_ITEM_INVENTORY_COLUMNS},` : ''}

@@ -1,23 +1,29 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, Link2, MoreHorizontal, Plus, StickyNote, Timer, Trash2, Weight } from 'lucide-react'
-import type { SessionExercise, TrainingSet, TrainingSettings } from '../../types'
+import { ArrowDown, ArrowUp, ArrowLeftRight, Link2, MoreHorizontal, Plus, Sparkles, StickyNote, Timer, Trash2, Weight, X } from 'lucide-react'
+import type { SessionExercise, TrainingSet, TrainingSettings, WeightUnit } from '../../types'
 import { useTrainingText } from '../../i18n'
 import type { ExerciseInfo } from '../../lib/exerciseLookup'
 import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exerciseLookup'
 import { formatNumber, formatWeight } from '../../lib/format'
+import type { Suggestion } from '../../lib/progression'
 import { platesPerSide, toDisplayWeight } from '../../lib/stats'
+import { setMatchesSuggestion, suggestionApplied } from '../../lib/suggest'
 import { Button, Chip, TrainingSheet, TRAINING_ACCENT, inputStyle } from '../ui'
-import { SetRow, gridColumns } from './SetRow'
+import { SetRow, gridColumns, previousLabel } from './SetRow'
 
-/** Eine Uebung im laufenden Training: Kopf, Spaltenkoepfe, Saetze, „+ Satz". */
+/**
+ * Eine Uebung im laufenden Training: Kopf, Vorschlag mit Begruendung,
+ * Spaltenkoepfe, Saetze, „+ Satz". `data-exercise-index` ist stabil, damit
+ * der Supersatz-Sprung die Partneruebung findet.
+ */
 
 const REST_OPTIONS = [0, 30, 45, 60, 90, 120, 150, 180, 240, 300]
 const BARBELL_LIKE = new Set(['barbell', 'smith', 'trap_bar', 'ez_bar'])
 export const SUPERSET_COLORS = ['#ff9f0a', '#64d2ff', '#bf5af2', '#30d158', '#ffd60a', '#ff453a']
 
 export function ExerciseBlock({
-  exercise, info, index, total, previous, settings, onSetChange, onToggleDone, onCycleType, onRemoveSet,
-  onAddSet, onRemove, onMove, onToggleSuperset, onRest, onNotes, supersetNext,
+  exercise, info, index, total, previous, settings, suggestion, nextSetIndex, onSetChange, onToggleDone, onCycleType, onRemoveSet,
+  onAddSet, onRemove, onReplace, onMove, onToggleSuperset, onRest, onNotes, onApplySuggestion, supersetNext,
 }: {
   exercise: SessionExercise
   info: ExerciseInfo | null
@@ -25,16 +31,23 @@ export function ExerciseBlock({
   total: number
   previous: TrainingSet[]
   settings: TrainingSettings
+  /** Vorschlag fuer heute (`suggestNextSets`), null wenn es keinen gibt. */
+  suggestion: Suggestion | null
+  /** Position des naechsten offenen Satzes, wenn er in dieser Uebung liegt. */
+  nextSetIndex: number | null
   onSetChange: (setIndex: number, patch: Partial<TrainingSet>) => void
   onToggleDone: (setIndex: number) => void
   onCycleType: (setIndex: number, type: TrainingSet['type']) => void
   onRemoveSet: (setIndex: number) => void
   onAddSet: () => void
   onRemove: () => void
+  /** „Übung tauschen": oeffnet die Auswahl, der Aufrufer tauscht. */
+  onReplace: () => void
   onMove: (delta: -1 | 1) => void
   onToggleSuperset: () => void
   onRest: (restS: number | null) => void
   onNotes: (notes: string) => void
+  onApplySuggestion: (sets: Suggestion['sets']) => void
   /** Ist die naechste Uebung schon im selben Supersatz? */
   supersetNext: boolean
 }) {
@@ -43,8 +56,11 @@ export function ExerciseBlock({
   const [openSet, setOpenSet] = useState<number | null>(null)
   const [plates, setPlates] = useState(false)
   const [notesOpen, setNotesOpen] = useState(!!exercise.notes)
+  const [suggestionHidden, setSuggestionHidden] = useState(false)
   const tracking = info?.tracking ?? 'weight_reps'
   const unit = settings.unit
+  const allDone = exercise.sets.length > 0 && exercise.sets.every(s => s.done)
+  const showSuggestion = suggestion != null && !suggestionHidden && !allDone
   const groupColor = exercise.supersetGroup != null ? SUPERSET_COLORS[(exercise.supersetGroup - 1) % SUPERSET_COLORS.length] : null
   const restS = exercise.restS ?? settings.defaultRestS
 
@@ -63,6 +79,7 @@ export function ExerciseBlock({
   return (
     <section
       aria-label={info?.name ?? exercise.exerciseId}
+      data-exercise-index={index}
       className="lg-surface lg-flat"
       style={{
         padding: '12px 8px 10px',
@@ -92,6 +109,17 @@ export function ExerciseBlock({
           </span>
         </button>
       </div>
+
+      {showSuggestion && (
+        <SuggestionBox
+          suggestion={suggestion}
+          tracking={tracking}
+          unit={unit}
+          applied={suggestionApplied(exercise.sets, suggestion)}
+          onApply={() => onApplySuggestion(suggestion.sets)}
+          onHide={() => setSuggestionHidden(true)}
+        />
+      )}
 
       {notesOpen && (
         <div style={{ padding: '0 6px 8px' }}>
@@ -132,6 +160,8 @@ export function ExerciseBlock({
               previous={previousFor[i]}
               tracking={tracking}
               unit={unit}
+              isNext={nextSetIndex === i}
+              suggested={suggestion != null && !set.done && !set.touched && setMatchesSuggestion(set, suggestion.sets[i])}
               onChange={patch => onSetChange(i, patch)}
               onToggleDone={() => onToggleDone(i)}
               onOpenSetMenu={() => setOpenSet(i)}
@@ -159,6 +189,7 @@ export function ExerciseBlock({
             </div>
             {/* Aktionen als gruppierte Liste wie in iOS */}
             <div className="tyd-train-menu">
+            <MenuItem icon={ArrowLeftRight} label={tt('replace_exercise')} onClick={() => { onReplace(); setMenu(false) }} />
             <MenuItem icon={StickyNote} label={tt('notes')} onClick={() => { setNotesOpen(true); setMenu(false) }} />
             {index < total - 1 && (
               <MenuItem icon={Link2} label={supersetNext ? tt('superset_remove') : tt('superset_with_next')} onClick={() => { onToggleSuperset(); setMenu(false) }} />
@@ -211,6 +242,73 @@ export function ExerciseBlock({
         <PlateSheet targetKg={heaviest} settings={settings} onClose={() => setPlates(false)} />
       )}
     </section>
+  )
+}
+
+/**
+ * Vorschlag fuer heute: „Vorschlag 82,5 kg × 8" plus die Begruendung in einer
+ * Zeile. „Übernehmen" schreibt ihn in die offenen, nicht getippten Saetze —
+ * steht er dort schon, bleibt nur das X zum Ausblenden.
+ */
+function SuggestionBox({ suggestion, tracking, unit, applied, onApply, onHide }: {
+  suggestion: Suggestion
+  tracking: ExerciseInfo['tracking']
+  unit: WeightUnit
+  applied: boolean
+  onApply: () => void
+  onHide: () => void
+}) {
+  const { tt, locale } = useTrainingText()
+  const working = suggestion.sets.find(s => s.type !== 'warmup') ?? suggestion.sets[0]
+  const target = working ? previousLabel({ ...working, done: false }, tracking, unit, locale) : '—'
+  // Rohe kg aus `reasonVars` in die Anzeigeeinheit; Wdh. und Saetze bleiben Zahlen.
+  const vars: Record<string, string | number> = {}
+  for (const [key, value] of Object.entries(suggestion.reasonVars)) {
+    vars[key] = typeof value === 'number' && (key === 'weight' || key === 'next' || key === 'inc')
+      ? formatWeight(value, unit, locale)
+      : value
+  }
+  return (
+    <div
+      className="tyd-train-pop"
+      role="note"
+      aria-label={`${tt('suggestion')} ${target}`}
+      style={{
+        margin: '0 6px 8px', padding: '8px 8px 8px 10px', borderRadius: 12,
+        background: `${TRAINING_ACCENT}14`, border: `1px dashed ${TRAINING_ACCENT}66`,
+        display: 'flex', gap: 8, alignItems: 'flex-start',
+      }}
+    >
+      <Sparkles size={16} aria-hidden="true" style={{ flex: 'none', marginTop: 3, color: TRAINING_ACCENT }} />
+      <div style={{ flex: 1, minWidth: 0, fontSize: '0.8rem', lineHeight: 1.35, color: 'var(--lg-text)' }}>
+        <div style={{ fontWeight: 800 }}>
+          {tt('suggestion')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{target !== '—' ? target : ''}</span>
+        </div>
+        <div style={{ color: 'var(--lg-text-3)' }}>{tt(suggestion.reasonKey, vars)}</div>
+        {!applied && (
+          <button
+            type="button"
+            onClick={onApply}
+            className="tyd-train-press"
+            style={{
+              marginTop: 6, minHeight: 32, padding: '0 12px', borderRadius: 999,
+              background: TRAINING_ACCENT, color: '#140800', fontWeight: 800, fontSize: '0.8rem',
+            }}
+          >
+            {tt('suggestion_apply')}
+          </button>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onHide}
+        aria-label={tt('suggestion_hide')}
+        className="tyd-train-press"
+        style={{ width: 32, height: 32, flex: 'none', borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)' }}
+      >
+        <X size={16} aria-hidden="true" />
+      </button>
+    </div>
   )
 }
 

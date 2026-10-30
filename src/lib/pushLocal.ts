@@ -5,7 +5,7 @@ export type PushPayloadMessage = {
   url?: string
 }
 
-const TEST_TITLE = '✅ TYD – Test erfolgreich'
+const TEST_TITLE = '✅ HOKU – Test erfolgreich'
 const TEST_BODY  = 'Push-Notifications funktionieren!'
 
 /** Wartet auf PUSH_RECEIVED vom Service Worker (Push ist am Gerät angekommen). */
@@ -36,18 +36,21 @@ export function showPageNotification(
   title = TEST_TITLE,
   body = TEST_BODY,
   url = '/kalender',
+  tag = 'tyd-test',
 ): boolean {
-  if (Notification.permission !== 'granted') return false
+  // iOS-Safari (nicht als PWA) kennt `Notification` nicht.
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return false
   try {
     const n = new Notification(title, {
       body,
       icon: new URL('/icon-192.png', window.location.origin).href,
-      tag:  'tyd-test',
+      tag,
       data: { url },
     })
     n.onclick = () => {
       window.focus()
-      window.location.assign(url)
+      // Schon auf der Seite: nur nach vorn holen, nicht neu laden (offene Eingaben bleiben)
+      if (window.location.pathname !== url) window.location.assign(url)
     }
     return true
   } catch {
