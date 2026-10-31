@@ -25,10 +25,10 @@ const RING_KEYS = Object.keys(RING_COLORS) as RingKey[]
 
 const ARROWS = { up: '↑', down: '↓', flat: '→' } as const
 const TONE: Record<ValueOverviewRow['tone'], string> = {
-  positive: '#30d158',
-  neutral: 'rgba(235, 240, 255, 0.52)',
-  warning: '#ff9f0a',
-  negative: '#ff453a',
+  positive: 'var(--lg-good-text, #30d158)',
+  neutral: 'var(--lg-text-3, rgba(235, 240, 255, 0.52))',
+  warning: 'var(--lg-warn-text, #ff9f0a)',
+  negative: 'var(--lg-bad-text, #ff453a)',
 }
 
 const one = (value: number) => formatNumber(value, 1)
@@ -157,7 +157,7 @@ function RingDetail({ ringKey, logs, range }: { ringKey: RingKey; logs: DailyLog
             key={d.date}
             data-empty={d.value == null}
             title={`${formatDaySafe(d.date, 'full')}: ${d.value ?? '–'}`}
-            style={{ height: `${d.value == null ? 5 : d.value * 10}%`, animationDelay: `${i * 18}ms` }}
+            style={{ height: `${d.value == null ? 5 : d.value * 10}%`, animationDelay: `${i * 16}ms` }}
           />
         ))}
       </div>

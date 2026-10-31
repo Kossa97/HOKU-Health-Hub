@@ -17,8 +17,7 @@ export const WELLNESS_SLIDER_CSS = `
     height: 6px;
     border-radius: 99px;
     background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    border: 0;
   }
   input.tyd-wellness-slider.is-set::-webkit-slider-runnable-track {
     background: linear-gradient(
@@ -34,21 +33,16 @@ export const WELLNESS_SLIDER_CSS = `
     appearance: none;
     width: 22px;
     height: 22px;
-    margin-top: -9px;
+    margin-top: -8px;
     border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #ffffff 0%, #ececec 45%, #c8c8c8 100%);
-    border: 2.5px solid rgba(255,255,255,0.95);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    background: #eceef2;
+    border: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
     cursor: grab;
-    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition: box-shadow 0.15s cubic-bezier(0.22, 1, 0.36, 1), transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
   }
   input.tyd-wellness-slider.is-set::-webkit-slider-thumb {
-    background: radial-gradient(circle at 32% 28%, #7ef0ff 0%, #00ccf5 42%, #008fbd 100%);
-    border: 2.5px solid rgba(255,255,255,0.92);
-    box-shadow:
-      0 0 0 3px rgba(0,204,245,0.16),
-      0 3px 10px rgba(0,0,0,0.4),
-      0 0 14px rgba(0,204,245,0.3);
+    box-shadow: 0 0 0 2px var(--accent), 0 1px 4px rgba(0,0,0,0.35);
   }
   input.tyd-wellness-slider:active::-webkit-slider-thumb {
     cursor: grabbing;
@@ -58,7 +52,7 @@ export const WELLNESS_SLIDER_CSS = `
     height: 6px;
     border-radius: 99px;
     background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 0;
   }
   input.tyd-wellness-slider.is-set::-moz-range-progress {
     height: 6px;
@@ -69,19 +63,14 @@ export const WELLNESS_SLIDER_CSS = `
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #ffffff 0%, #ececec 45%, #c8c8c8 100%);
-    border: 2.5px solid rgba(255,255,255,0.95);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    background: #eceef2;
+    border: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
     cursor: grab;
-    transition: background 0.15s ease, box-shadow 0.15s ease;
+    transition: box-shadow 0.15s cubic-bezier(0.22, 1, 0.36, 1);
   }
   input.tyd-wellness-slider.is-set::-moz-range-thumb {
-    background: radial-gradient(circle at 32% 28%, #7ef0ff 0%, #00ccf5 42%, #008fbd 100%);
-    border: 2.5px solid rgba(255,255,255,0.92);
-    box-shadow:
-      0 0 0 3px rgba(0,204,245,0.16),
-      0 3px 10px rgba(0,0,0,0.4),
-      0 0 14px rgba(0,204,245,0.3);
+    box-shadow: 0 0 0 2px var(--accent), 0 1px 4px rgba(0,0,0,0.35);
   }
 `
 
@@ -99,7 +88,7 @@ export const dateFieldStyle: CSSProperties = {
   background: 'transparent',
   color: 'var(--text)',
   fontSize: '0.92rem',
-  fontWeight: 800,
+  fontWeight: 500,
   fontFamily: 'inherit',
   textAlign: 'right',
   colorScheme: 'dark',
@@ -107,13 +96,13 @@ export const dateFieldStyle: CSSProperties = {
 
 export const compactInputStyle: CSSProperties = {
   width: '100%',
-  padding: '9px 11px',
-  borderRadius: 12,
+  padding: '8px 12px',
+  borderRadius: 10,
   background: 'var(--surface-input)',
   border: '1px solid var(--border)',
   color: 'var(--text-dim)',
   fontSize: '0.84rem',
-  fontWeight: 700,
+  fontWeight: 500,
   boxSizing: 'border-box',
   fontFamily: 'inherit',
 }
@@ -132,8 +121,8 @@ export function WellnessSliderRow({ label, value, onChange }: Props) {
   return (
     <div style={{
       marginBottom: 8,
-      padding: '9px 11px 8px',
-      borderRadius: 14,
+      padding: '8px 12px',
+      borderRadius: 12,
       background: 'var(--surface-input)',
       border: '1px solid var(--border)',
     }}>
@@ -141,19 +130,20 @@ export function WellnessSliderRow({ label, value, onChange }: Props) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 7,
+        marginBottom: 8,
         gap: 8,
       }}>
-        <label style={{ ...fieldLabel, marginBottom: 0, fontSize: '0.68rem' }}>
+        <label style={{ ...fieldLabel, marginBottom: 0 }}>
           {label}
         </label>
         <span style={{
+          fontFamily: 'var(--font-mono)',
           fontSize: '0.82rem',
-          fontWeight: 900,
-          color: isSet ? 'var(--accent)' : 'var(--text-muted)',
+          fontWeight: 500,
+          color: isSet ? 'var(--lg-accent-text, var(--accent))' : 'var(--text-muted)',
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {display}<span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)' }}>/10</span>
+          {display}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>/10</span>
         </span>
       </div>
 

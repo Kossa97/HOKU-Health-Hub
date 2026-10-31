@@ -15,7 +15,7 @@ export function BlutspiegelManuell() {
         to={UEBERSICHT_PFAD}
         className="lg-glass lg-btn lg-btn-glass lg-btn-compact w-fit !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
       >
-        <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+        <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
         {t('pk_title')}
       </Link>
       <MedicalNotice />

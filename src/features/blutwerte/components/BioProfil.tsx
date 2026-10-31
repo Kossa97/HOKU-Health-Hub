@@ -64,7 +64,7 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
       </div>
       <div>
         <p className="label" id={`${idPrefix}-sex-label`}>{t('bw_bio_sex')}</p>
-        <div role="radiogroup" aria-labelledby={`${idPrefix}-sex-label`} className="flex rounded-full p-0.5" style={{ background: 'var(--lg-fill)' }} data-bio-sex>
+        <div role="radiogroup" aria-labelledby={`${idPrefix}-sex-label`} className="flex rounded-[10px] p-0.5" style={{ background: 'var(--lg-fill)' }} data-bio-sex>
           {optionen.map(([key, label]) => {
             const aktiv = value.sex === key
             return (
@@ -75,7 +75,7 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
                 aria-checked={aktiv}
                 disabled={disabled}
                 onClick={() => onChange({ ...value, sex: key })}
-                className={`min-h-10 flex-1 whitespace-nowrap rounded-full px-1 text-[13px] transition-colors disabled:opacity-50 ${aktiv ? 'bg-[var(--lg-fill-selected)] font-semibold text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'font-semibold text-[var(--lg-text-2)]'}`}
+                className={`min-h-10 flex-1 whitespace-nowrap rounded-lg px-1 text-[13px] transition-colors disabled:opacity-50 ${aktiv ? 'bg-[var(--lg-fill-selected)] font-medium text-[var(--lg-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]' : 'font-medium text-[var(--lg-text-2)]'}`}
                 data-bio-sex-option={key ?? 'none'}
               >
                 {label}
@@ -83,7 +83,7 @@ export function BioProfilFelder({ value, onChange, onUnvollstaendig, idPrefix, h
             )
           })}
         </div>
-        <p className="mt-1.5 text-xs text-[var(--lg-text-3)]">{t('bw_bio_sex_hint')}</p>
+        <p className="mt-2 text-xs text-[var(--lg-text-3)]">{t('bw_bio_sex_hint')}</p>
       </div>
     </div>
   )
@@ -142,8 +142,8 @@ export function BioProfilKarte() {
   const { profil, fehler, erneut, speichern } = useBioProfil()
   return (
     <div className="card space-y-3 mb-4" data-bio-profile-card>
-      <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
-        <CalendarHeart size={17} className="text-[var(--lg-accent-text)]" aria-hidden="true" /> {t('bw_bio_title')}
+      <h2 className="flex items-center gap-2 text-[17px] font-medium text-[var(--lg-text)]">
+        <CalendarHeart size={18} strokeWidth={1.5} className="text-[var(--lg-text-2)]" aria-hidden="true" /> {t('bw_bio_title')}
       </h2>
       <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{t('bw_bio_desc')}</p>
       {profil
@@ -153,7 +153,7 @@ export function BioProfilKarte() {
           ? (
             <div data-bio-load-error>
               <p className="text-[15px] text-[var(--lg-text-2)]">{t('bw_bio_load_error')}</p>
-              <button type="button" onClick={erneut} className="mt-1 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)]">{t('ai_consent_retry')}</button>
+              <button type="button" onClick={erneut} className="mt-1 min-h-11 text-[15px] font-medium text-[var(--lg-accent-text)]">{t('ai_consent_retry')}</button>
             </div>
           )
           : <p className="text-[15px] text-[var(--lg-text-3)]">{t('loading')}</p>}
@@ -175,7 +175,7 @@ export function BioProfilSheet({ start, speichern, onClose }: {
       <div className="flex items-start justify-between gap-3">
         <h2 id="bio-sheet-title" className="lg-title2 pt-2">{t('bw_bio_title')}</h2>
         <button type="button" data-app-back-close disabled={busy} onClick={onClose} aria-label={t('close')} className="lg-icon-btn -mr-2 shrink-0 text-[var(--lg-text-2)]">
-          <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--lg-fill)]"><X size={16} strokeWidth={1.5} aria-hidden="true" /></span>
         </button>
       </div>
       <p className="mt-1 mb-4 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('bw_bio_desc')}</p>
@@ -188,19 +188,19 @@ export function BioProfilSheet({ start, speichern, onClose }: {
 export function BioProfilHinweis({ onOeffnen, onAusblenden }: { onOeffnen: () => void; onAusblenden: () => void }) {
   const { t } = useTranslation()
   return (
-    <div className="lg-surface mb-4 flex items-start gap-3 py-3.5 pl-4 pr-1.5" data-bio-hint>
-      <span className="lg-icon-tile mt-0.5" style={{ background: '#0a84ff' }} aria-hidden="true">
-        <CalendarHeart size={17} />
+    <div className="lg-surface mb-4 flex items-start gap-3 py-4 pl-4 pr-2" data-bio-hint>
+      <span className="lg-icon-tile mt-0.5" style={{ background: 'var(--lg-fill-selected)', color: 'var(--lg-text-2)' }} aria-hidden="true">
+        <CalendarHeart size={16} strokeWidth={1.5} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-semibold" style={{ color: TEXT }}>{t('bw_bio_hint_title')}</p>
+        <p className="text-[15px] font-medium" style={{ color: TEXT }}>{t('bw_bio_hint_title')}</p>
         <p className="mt-0.5 text-[13px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t('bw_bio_hint_body')}</p>
-        <button type="button" onClick={onOeffnen} className="mt-1 -mb-2 min-h-11 text-[15px] font-semibold text-[var(--lg-accent-text)]" data-bio-hint-open>
+        <button type="button" onClick={onOeffnen} className="mt-1 -mb-2 min-h-11 text-[15px] font-medium text-[var(--lg-accent-text)]" data-bio-hint-open>
           {t('bw_bio_hint_action')}
         </button>
       </div>
-      <button type="button" onClick={onAusblenden} aria-label={t('bw_bio_hint_dismiss')} title={t('bw_bio_hint_dismiss')} className="-mt-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ color: 'var(--lg-text-3)' }} data-bio-hint-dismiss>
-        <X size={16} aria-hidden="true" />
+      <button type="button" onClick={onAusblenden} aria-label={t('bw_bio_hint_dismiss')} title={t('bw_bio_hint_dismiss')} className="-mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ color: 'var(--lg-text-3)' }} data-bio-hint-dismiss>
+        <X size={16} strokeWidth={1.5} aria-hidden="true" />
       </button>
     </div>
   )

@@ -88,7 +88,7 @@ export function BefundListe({ reports, entries, profil, onChanged }: Props) {
               onClick={() => setOpenId(null)}
               aria-label={t('back')}
             >
-              <ChevronLeft size={22} />
+              <ChevronLeft size={20} strokeWidth={2} />
             </button>
             <div className="min-w-0 flex-1">
               <p className="lg-title2 truncate">{formatDisplayDate(report.tested_at)}</p>
@@ -99,24 +99,24 @@ export function BefundListe({ reports, entries, profil, onChanged }: Props) {
 
           {values.length > 1 && (
             <div className="flex justify-end mb-3">
-              <div className="flex gap-0.5 p-0.5 rounded-full" style={{ background: 'var(--lg-fill)' }}>
+              <div className="flex gap-0.5 p-0.5 rounded-[10px]" style={{ background: 'var(--lg-fill)' }}>
                 <button
                   onClick={() => chooseLayout('liste')}
                   aria-label={t('bw_list_view')}
                   aria-pressed={layout === 'liste'}
-                  className="grid h-8 w-10 place-items-center rounded-full transition-colors"
+                  className="grid h-8 w-10 place-items-center rounded-lg transition-colors"
                   style={layout === 'liste' ? { background: 'var(--lg-fill-selected)', color: TEXT } : { color: 'var(--lg-text-2)' }}
                 >
-                  <List size={16} />
+                  <List size={16} strokeWidth={1.5} />
                 </button>
                 <button
                   onClick={() => chooseLayout('raster')}
                   aria-label={t('bw_grid_view')}
                   aria-pressed={layout === 'raster'}
-                  className="grid h-8 w-10 place-items-center rounded-full transition-colors"
+                  className="grid h-8 w-10 place-items-center rounded-lg transition-colors"
                   style={layout === 'raster' ? { background: 'var(--lg-fill-selected)', color: TEXT } : { color: 'var(--lg-text-2)' }}
                 >
-                  <LayoutGrid size={16} />
+                  <LayoutGrid size={16} strokeWidth={1.5} />
                 </button>
               </div>
             </div>
@@ -132,13 +132,13 @@ export function BefundListe({ reports, entries, profil, onChanged }: Props) {
                 const { range, auffaellig } = bewertung(entry, profil)
                 const referenz = formatRange(range.min, range.max, entry.unit)
                 return (
-                  <div key={entry.id} className="lg-surface !rounded-[20px] p-3.5">
-                    <p className="text-[13px] font-semibold leading-tight" style={{ color: TEXT }}>{markerName(entry.marker, sprache)}</p>
-                    <p className="text-[17px] font-bold mt-1.5 tabular-nums" style={{ color: auffaellig ? RED : TEXT }}>
+                  <div key={entry.id} className="lg-surface !rounded-2xl p-4">
+                    <p className="text-[13px] font-medium leading-tight" style={{ color: TEXT }}>{markerName(entry.marker, sprache)}</p>
+                    <p className="text-[17px] font-medium mt-2 tabular-nums" style={{ color: auffaellig ? RED : TEXT }}>
                       {formatNumber(entry.value)}{' '}
-                      <span className="text-xs font-semibold" style={{ color: MUTED }}>{entry.unit}</span>
+                      <span className="font-mono text-xs font-normal" style={{ color: MUTED }}>{entry.unit}</span>
                     </p>
-                    {referenz && <p className="text-[11px] mt-1 leading-tight" style={{ color: MUTED }}>{referenz}</p>}
+                    {referenz && <p className="font-mono text-[11px] mt-1 leading-tight" style={{ color: MUTED }}>{referenz}</p>}
                   </div>
                 )
               })}
@@ -151,15 +151,15 @@ export function BefundListe({ reports, entries, profil, onChanged }: Props) {
                 return (
                   <div
                     key={entry.id}
-                    className="flex min-h-[56px] items-center justify-between gap-3 px-4 py-2.5"
+                    className="flex min-h-[56px] items-center justify-between gap-3 px-4 py-3"
                   >
                     <div className="min-w-0">
                       <p className="text-[16px]" style={{ color: TEXT }}>{markerName(entry.marker, sprache)}</p>
                       {referenz && <p className="text-[13px] mt-0.5" style={{ color: MUTED }}>{t('bw_reference', { range: referenz })}</p>}
                     </div>
-                    <span className="shrink-0 text-[16px] font-semibold tabular-nums" style={{ color: auffaellig ? RED : TEXT }}>
+                    <span className="shrink-0 text-[16px] font-medium tabular-nums" style={{ color: auffaellig ? RED : TEXT }}>
                       {formatNumber(entry.value)}{' '}
-                      <span className="text-xs font-semibold" style={{ color: MUTED }}>{entry.unit}</span>
+                      <span className="font-mono text-xs font-normal" style={{ color: MUTED }}>{entry.unit}</span>
                     </span>
                   </div>
                 )
@@ -189,18 +189,18 @@ export function BefundListe({ reports, entries, profil, onChanged }: Props) {
           <button
             key={report.id}
             type="button"
-            className="w-full flex min-h-[60px] items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors active:bg-white/[0.06]"
+            className="w-full flex min-h-[60px] items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
             onClick={() => setOpenId(report.id)}
           >
             <div className="min-w-0">
-              <p className="text-[16px] font-semibold" style={{ color: TEXT }}>{formatDisplayDate(report.tested_at)}</p>
+              <p className="font-mono text-[15px]" style={{ color: TEXT }}>{formatDisplayDate(report.tested_at)}</p>
               <p className="text-[13px] mt-0.5" style={{ color: 'var(--lg-text-2)' }}>
                 {report.lab_name ? `${report.lab_name} · ` : ''}
                 {werteLabel(values.length)}
                 {auffaelligCount > 0 && <span style={{ color: RED }}> · {t('bw_out_of_range_count', { count: auffaelligCount })}</span>}
               </p>
             </div>
-            <ChevronRight size={18} className="shrink-0" style={{ color: MUTED }} />
+            <ChevronRight size={18} strokeWidth={1.5} className="shrink-0" style={{ color: MUTED }} />
           </button>
         )
       })}

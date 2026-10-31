@@ -285,8 +285,11 @@ export const StocksChart = memo(function StocksChart({
     ctx.clearRect(0, 0, width, h)
 
     const muted = cssVar(canvas, '--text-muted', '#8a94a6')
-    const grid = 'rgba(148,163,184,0.16)'
+    // Ruhiges Gitter als Haarlinie, Achsen in Mono wie auf einem Laborbefund
+    const grid = cssVar(canvas, '--lg-hair', 'rgba(148,163,184,0.16)')
     const surface = cssVar(canvas, '--surface', '#05060d')
+    const sans = cssVar(canvas, '--font-sans', 'ui-sans-serif, system-ui, -apple-system, sans-serif')
+    const mono = cssVar(canvas, '--font-mono', 'ui-monospace, Menlo, monospace')
 
     const plotL = propsRef.current.axisWidth
     // Rechts derselbe Rand wie links fuer die Werte: der Graph steht mittig.
@@ -370,7 +373,7 @@ export const StocksChart = memo(function StocksChart({
         if (b.label && reveal >= 1 && laneHeight >= 12) {
           // Name links im Balken, in Textfarbe
           ctx.save()
-          ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif'
+          ctx.font = `500 10px ${sans}`
           ctx.textBaseline = 'middle'
           ctx.textAlign = 'left'
           const links = b.start != null && xOf(b.start) >= plotL ? x + 7 : x + 5
@@ -406,7 +409,7 @@ export const StocksChart = memo(function StocksChart({
     }
 
     // Horizontale Linien + Werte rechts (die Ziel-Ticks, mit gleitender Lage)
-    ctx.font = '500 11px ui-sans-serif, system-ui, -apple-system, sans-serif'
+    ctx.font = `400 10px ${mono}`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'right'
     ctx.lineWidth = 1
@@ -441,7 +444,7 @@ export const StocksChart = memo(function StocksChart({
 
     // Zeitabschnitte (Zyklusphasen) und senkrechte Linien (Bluttests)
     ctx.textBaseline = 'top'
-    ctx.font = '700 9px ui-sans-serif, system-ui, -apple-system, sans-serif'
+    ctx.font = `500 9px ${sans}`
     for (const b of propsRef.current.xBands ?? []) {
       const x1 = Math.max(plotL, xOf(b.x1))
       const x2 = Math.min(plotR, xOf(b.x2))
@@ -517,7 +520,7 @@ export const StocksChart = memo(function StocksChart({
 
       const paint = (dim: boolean) => {
         const grad = ctx.createLinearGradient(0, plotT, 0, plotB)
-        grad.addColorStop(0, hexAlpha(stroke, dim ? 0.08 : 0.32))
+        grad.addColorStop(0, hexAlpha(stroke, dim ? 0.06 : 0.2))
         grad.addColorStop(1, hexAlpha(stroke, 0))
         ctx.fillStyle = grad
         ctx.fill(area)
@@ -606,7 +609,7 @@ export const StocksChart = memo(function StocksChart({
 
     // Markierungen (manuelle Simulation)
     if (markerList.length && reveal >= 1) {
-      ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif'
+      ctx.font = `500 10px ${sans}`
       ctx.textBaseline = 'bottom'
       for (const m of markerList) {
         const lv = levelAt(pts, m.ts)
@@ -663,10 +666,10 @@ export const StocksChart = memo(function StocksChart({
           .filter((part): part is { name: string; v: number; c: string } => part.v != null)
           .map(part => ({ text: `${part.name} ${label.value(part.v)}`.trim(), c: part.c }))
         ctx.textBaseline = 'alphabetic'
-        ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `400 13px ${sans}`
         const dateText = label.date(scrubTs)
         const wDate = ctx.measureText(dateText).width
-        ctx.font = '800 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `500 13px ${sans}`
         const gap = 10
         const widths = parts.map(part => ctx.measureText(part.text).width)
         const total = widths.reduce((sum, w) => sum + w, 0) + gap * Math.max(0, parts.length - 1)
@@ -674,10 +677,10 @@ export const StocksChart = memo(function StocksChart({
         const cx = Math.min(Math.max(x, plotL + half), width - half)
         ctx.textAlign = 'center'
         ctx.fillStyle = cssVar(canvas, '--text', '#e2e8f0')
-        ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `400 13px ${sans}`
         ctx.fillText(dateText, cx, 14)
         ctx.textAlign = 'left'
-        ctx.font = '800 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `500 13px ${sans}`
         let left = cx - total / 2
         parts.forEach((part, i) => {
           ctx.fillStyle = part.c
@@ -690,20 +693,20 @@ export const StocksChart = memo(function StocksChart({
         const valueText = label.value(lv)
         ctx.textAlign = 'center'
         ctx.textBaseline = 'alphabetic'
-        ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `400 13px ${sans}`
         const wDate = ctx.measureText(dateText).width
-        ctx.font = '800 16px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `500 16px ${sans}`
         const wValue = ctx.measureText(valueText).width
         const half = Math.max(wDate, wValue) / 2
         const cx = Math.min(Math.max(x, plotL + half), width - half)
         ctx.fillStyle = cssVar(canvas, '--text', '#e2e8f0')
-        ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `400 13px ${sans}`
         ctx.fillText(dateText, cx, 14)
         const note = label.note?.(scrubTs) ?? null
-        ctx.font = '800 16px ui-sans-serif, system-ui, -apple-system, sans-serif'
+        ctx.font = `500 16px ${sans}`
         if (note) {
           // Wert in Linienfarbe, Zusatz gedaempft dahinter — zusammen mittig
-          ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+          ctx.font = `400 13px ${sans}`
           // Passt der Zusatz nicht neben den Wert, wird er mit „…" gekuerzt.
           const platz = width - plotL - wValue - 6
           let noteText = `  ${note}`
@@ -716,10 +719,10 @@ export const StocksChart = memo(function StocksChart({
           const total = wValue + wNote
           const left = Math.min(Math.max(x - total / 2, plotL), width - total)
           ctx.textAlign = 'left'
-          ctx.font = '800 16px ui-sans-serif, system-ui, -apple-system, sans-serif'
+          ctx.font = `500 16px ${sans}`
           ctx.fillStyle = scrubColor
           ctx.fillText(valueText, left, 33)
-          ctx.font = '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif'
+          ctx.font = `400 13px ${sans}`
           ctx.fillStyle = muted
           ctx.fillText(noteText, left + wValue, 33)
         } else {
@@ -1008,7 +1011,7 @@ export const StocksChart = memo(function StocksChart({
           type="button"
           onClick={() => pan.onPan(pan.max)}
           data-chart-jump-now
-          className="absolute bottom-7 right-1 min-h-8 rounded-full px-3 text-xs font-bold"
+          className="absolute bottom-7 right-1 min-h-8 rounded-lg px-3 text-xs font-medium"
           style={{ background: 'var(--surface-raised)', border: '1px solid var(--border)', color: 'var(--text)' }}
         >
           {pan.jumpLabel}

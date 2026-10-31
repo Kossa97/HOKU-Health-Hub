@@ -239,7 +239,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
           className="lg-glass lg-btn lg-btn-glass lg-btn-compact !pl-2.5 !pr-4 !gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
           aria-label={t('back')}
         >
-          <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+          <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
           {t('bw_title')}
         </button>
         <button
@@ -248,7 +248,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
           aria-label={t('bw_add_value_aria')}
           className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >
-          <Plus size={22} aria-hidden="true" />
+          <Plus size={20} strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
 
@@ -266,14 +266,14 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       <div className="lg-surface p-5" data-bw-hero>
         {latest && shownValue != null ? (
           <div className="flex flex-col gap-3">
-            <p className="-mb-2 text-sm font-semibold" style={{ color: MUTED }} data-bw-hero-label>{t('bw_current_label')}</p>
+            <p className="-mb-2 text-sm font-medium" style={{ color: MUTED }} data-bw-hero-label>{t('bw_current_label')}</p>
             <div className="flex items-end justify-between gap-3">
-              <p className="text-[34px] font-bold leading-tight tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-hero-value>
+              <p className="text-[34px] font-medium leading-tight tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-hero-value>
                 {formatNumber(shownValue)}
-                <span className="ml-1.5 text-base font-semibold" style={{ color: MUTED }}>{shownUnit}</span>
+                <span className="ml-2 font-mono text-sm font-normal" style={{ color: MUTED }}>{shownUnit}</span>
               </p>
               {trend && (
-                <div className="flex items-center gap-1 text-sm font-semibold tabular-nums" style={{ color: trendColor(summary) }}>
+                <div className="flex items-center gap-1 text-sm font-medium tabular-nums" style={{ color: trendColor(summary) }}>
                   <TrendIcon trend={trend} />
                   {trend === 'same' ? t('bw_trend_same') : formatNumber(Math.abs(summary.diff))}
                 </div>
@@ -292,7 +292,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                   <label className="text-xs" style={{ color: MUTED }} htmlFor="bw-marker-unit">{t('bw_unit_label')}</label>
                   <select
                     id="bw-marker-unit"
-                    className="min-h-9 cursor-pointer rounded-full border-0 pl-3 pr-2 text-[13px] font-semibold"
+                    className="min-h-9 cursor-pointer rounded-lg border-0 pl-3 pr-2 text-[13px] font-medium"
                     style={{ color: TEXT, background: 'var(--lg-fill)' }}
                     value={markerUnit && choices.includes(markerUnit) ? markerUnit : ''}
                     onChange={e => onMarkerUnit(e.target.value || null)}
@@ -327,10 +327,10 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
 
       {/* Verlauf */}
       {allPoints.length > 0 && (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {/* Zeitraum ueber dem Graph */}
           <GlassSegmented
-            className="mb-1.5"
+            className="mb-2"
             material="fill"
             equal
             ariaLabel={t('bw_period_aria')}
@@ -377,7 +377,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       )}
 
       {/* Hinweise und Ursachen */}
-      <section aria-labelledby="bw-meaning-title" className="flex flex-col gap-2.5">
+      <section aria-labelledby="bw-meaning-title" className="flex flex-col gap-3">
         <h2 id="bw-meaning-title" className={sectionTitle} style={{ color: TEXT }}>{t('bw_assessment_title')}</h2>
         {/* Die Kurzerklaerung steht oben unter dem Namen. */}
         {!def && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>{t('bw_no_explanation')}</p>}
@@ -399,7 +399,7 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                       aria-expanded={auf}
                       aria-controls={panelId}
                       onClick={() => setOffen(auf ? null : key)}
-                      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left text-[16px] font-semibold"
+                      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left text-[16px] font-medium"
                       style={{ color: TEXT }}
                     >
                       <span className="flex-1">{t(label)}</span>
@@ -412,10 +412,10 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                       />
                     </button>
                     {auf && (
-                      <div id={panelId} className="flex flex-col gap-2.5 px-4 pb-4 text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>
+                      <div id={panelId} className="flex flex-col gap-3 px-4 pb-4 text-[15px] leading-relaxed" style={{ color: 'var(--lg-text-2)' }}>
                         {items.map((item: GuidanceItem, j: number) => (
                           <p key={j} style={item.label ? undefined : { color: TEXT }}>
-                            {item.label && <><strong style={{ color: TEXT }}>{item.label}</strong><br /></>}
+                            {item.label && <><strong className="font-medium" style={{ color: TEXT }}>{item.label}</strong><br /></>}
                             {item.text}
                           </p>
                         ))}
@@ -442,17 +442,17 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
             data-bw-history-toggle
           >
             <span id="bw-history-title">{t('bw_measurements')}</span>
-            {/* Anzahl als Plakette wie bei „Auffällige", nur neutral */}
+            {/* Anzahl als ruhiger Zähler in Mono */}
             <span
               data-bw-measurement-count
-              className="min-w-6 rounded-full px-2 text-sm font-bold leading-6 tabular-nums text-center"
-              style={{ background: 'var(--lg-fill)', color: TEXT }}
+              className="min-w-6 px-1 font-mono text-sm font-normal leading-6 tabular-nums text-center"
+              style={{ color: MUTED }}
             >
               {summary.entries.length}
             </span>
             <ChevronDown
-              size={20}
-              strokeWidth={2.2}
+              size={18}
+              strokeWidth={1.5}
               aria-hidden="true"
               className="ml-auto transition-transform duration-200"
               style={{ color: MUTED, transform: messungenOffen ? 'rotate(180deg)' : undefined }}
@@ -496,15 +496,15 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
                   style={{ color: TEXT }}
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-[16px] font-semibold tabular-nums">{formatDisplayDate(e.tested_at)}</span>
+                    <span className="font-mono text-[15px] tabular-nums">{formatDisplayDate(e.tested_at)}</span>
                     <span className="truncate text-[13px]" style={{ color: MUTED }}>{source}</span>
                   </span>
                   <span className="text-right tabular-nums">
-                    <span className="block text-[16px] font-semibold">{formatNumber(v)}</span>
-                    <span className="block text-xs" style={{ color: MUTED }}>{u}</span>
+                    <span className="block text-[16px] font-medium">{formatNumber(v)}</span>
+                    <span className="block font-mono text-xs" style={{ color: MUTED }}>{u}</span>
                   </span>
                   <span
-                    className="min-w-[62px] rounded-[7px] px-2 py-[5px] text-right text-[13px] font-bold tabular-nums text-white"
+                    className="min-w-[62px] rounded-md px-2 py-1 text-right text-[13px] font-medium tabular-nums text-white"
                     style={{ background: pillColor }}
                   >
                     {diff != null ? signed(diff) : p.value != null ? t('bw_first_value') : '–'}
@@ -532,10 +532,10 @@ export function MarkerDetail({ summary, zyklen, reports = [], onBack, onAdd, onE
       {/* Quellen ganz unten, gebuendelt und eingeklappt */}
       {guidance && (
         <details className="text-xs leading-relaxed" style={{ color: MUTED }} data-bw-sources>
-          <summary className="min-h-9 cursor-pointer py-2 font-semibold" style={{ color: CYAN }}>
+          <summary className="min-h-9 cursor-pointer py-2 font-medium" style={{ color: 'var(--lg-accent-text, var(--accent))' }}>
             {t('bw_sources_count', { count: guidance.quellen.length })}
           </summary>
-          <ul className="flex flex-col gap-1.5 pb-2">
+          <ul className="flex flex-col gap-2 pb-2">
             {guidance.quellen.map(q => (
               <li key={q.url}>
                 <a href={q.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline" style={{ color: CYAN }}>{q.label}</a>
@@ -608,7 +608,7 @@ function LaufName({ text }: { text: string }) {
         color: TEXT,
         ...(ruhig ? { textOverflow: 'ellipsis' } : {}),
         // Weiche Kante rechts, damit der laufende Name nicht hart abgeschnitten wirkt
-        ...(laeuft ? { maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' } : {}),
+        ...(laeuft ? { maskImage: 'linear-gradient(to right, #000 calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 16px), transparent)' } : {}),
       }}
       title={ueber > 0 ? text : undefined}
       data-bw-name

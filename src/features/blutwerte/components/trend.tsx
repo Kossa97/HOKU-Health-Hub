@@ -3,9 +3,9 @@ import type { MarkerSummary, Trend } from '../lib/bloodwork'
 import { GREEN, MUTED, RED } from '../styles'
 
 export const TrendIcon = ({ trend, size = 16 }: { trend: Trend; size?: number }) => {
-  if (trend === 'up') return <TrendingUp size={size} />
-  if (trend === 'down') return <TrendingDown size={size} />
-  if (trend === 'same') return <Minus size={size} />
+  if (trend === 'up') return <TrendingUp size={size} strokeWidth={1.5} />
+  if (trend === 'down') return <TrendingDown size={size} strokeWidth={1.5} />
+  if (trend === 'same') return <Minus size={size} strokeWidth={1.5} />
   return null
 }
 

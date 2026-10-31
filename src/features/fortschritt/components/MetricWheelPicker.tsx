@@ -143,26 +143,26 @@ export function MetricWheelPicker({
 
   const triggerStyle: CSSProperties = {
     width: '100%',
-    padding: '9px 11px',
-    borderRadius: 12,
+    padding: '8px 12px',
+    borderRadius: 10,
     background: 'var(--surface-input)',
     border: `1px solid ${open ? 'var(--accent)' : 'var(--border)'}`,
     color: value != null ? 'var(--text)' : 'var(--text-dim)',
     fontSize: '0.84rem',
-    fontWeight: 700,
+    fontWeight: 500,
     boxSizing: 'border-box',
     fontFamily: 'inherit',
     textAlign: 'center',
     fontVariantNumeric: 'tabular-nums',
     cursor: 'pointer',
     touchAction: 'manipulation',
-    boxShadow: open ? '0 0 0 1px rgba(0,204,245,0.2)' : undefined,
+    boxShadow: open ? '0 0 0 1px var(--accent-weak, rgba(0,204,245,0.2))' : undefined,
   }
 
   const wheelFrame: CSSProperties = {
     position: 'relative',
-    marginTop: 6,
-    borderRadius: 12,
+    marginTop: 8,
+    borderRadius: 10,
     background: 'var(--surface-input)',
     border: '1px solid var(--border)',
     overflow: 'hidden',
@@ -177,8 +177,8 @@ export function MetricWheelPicker({
     transform: 'translateY(-50%)',
     borderTop: '1px solid var(--border)',
     borderBottom: '1px solid var(--border)',
-    background: 'rgba(0,204,245,0.06)',
-    borderRadius: 8,
+    background: 'var(--lg-fill, rgba(255,255,255,0.06))',
+    borderRadius: 6,
     pointerEvents: 'none',
     zIndex: 1,
   }
@@ -217,7 +217,7 @@ export function MetricWheelPicker({
 
   return (
     <div>
-      <label style={{ ...fieldLabel, fontSize: '0.68rem', marginBottom: 5, display: 'block' }}>
+      <label style={{ ...fieldLabel, marginBottom: 4, display: 'block' }}>
         {label}
       </label>
 

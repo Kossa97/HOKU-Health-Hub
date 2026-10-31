@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { markerName } from '../../lib/markerCatalog.en'
 import type { MergeConflict } from '../../lib/mergeRows'
 import { formatNumber } from '../../lib/format'
-import { CYAN, MUTED, TEXT } from '../../styles'
+import { MUTED, TEXT } from '../../styles'
 import { SheetGriff } from '../../../../components/ui/SheetGriff'
 
 interface Props {
@@ -38,8 +38,8 @@ export function ConflictResolver({ conflicts, onResolve, onCancel }: Props) {
         {conflicts.map(c => {
           const replace = choices[c.key] ?? false
           return (
-            <div key={c.key} className="rounded-[20px] p-4" style={{ background: 'var(--lg-surface-2)' }}>
-              <p className="text-sm font-bold mb-2" style={{ color: TEXT }}>{markerName(c.incoming.marker, i18n.resolvedLanguage ?? i18n.language)}</p>
+            <div key={c.key} className="rounded-2xl p-4" style={{ background: 'var(--lg-surface-2)' }}>
+              <p className="text-sm font-medium mb-2" style={{ color: TEXT }}>{markerName(c.incoming.marker, i18n.resolvedLanguage ?? i18n.language)}</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => pick(c.key, false)}
@@ -50,8 +50,8 @@ export function ConflictResolver({ conflicts, onResolve, onCancel }: Props) {
                     opacity: !replace ? 1 : 0.6,
                   }}
                 >
-                  <p className="text-[0.65rem] uppercase tracking-wide" style={{ color: MUTED }}>{t('bw_keep')}</p>
-                  <p className="text-sm font-bold" style={{ color: TEXT }}>
+                  <p className="text-xs" style={{ color: MUTED }}>{t('bw_keep')}</p>
+                  <p className="mt-1 text-sm font-medium tabular-nums" style={{ color: TEXT }}>
                     {formatNumber(c.existing.value)} <span style={{ color: MUTED }}>{c.existing.unit}</span>
                   </p>
                 </button>
@@ -64,8 +64,8 @@ export function ConflictResolver({ conflicts, onResolve, onCancel }: Props) {
                     opacity: replace ? 1 : 0.6,
                   }}
                 >
-                  <p className="text-[0.65rem] uppercase tracking-wide" style={{ color: CYAN }}>{t('bw_replace')}</p>
-                  <p className="text-sm font-bold" style={{ color: TEXT }}>
+                  <p className="text-xs" style={{ color: 'var(--lg-accent-text, var(--accent))' }}>{t('bw_replace')}</p>
+                  <p className="mt-1 text-sm font-medium tabular-nums" style={{ color: TEXT }}>
                     {formatNumber(c.incoming.value)} <span style={{ color: MUTED }}>{c.incoming.unit}</span>
                   </p>
                 </button>

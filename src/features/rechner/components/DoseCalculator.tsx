@@ -146,7 +146,7 @@ export function DoseCalculator() {
         aria-describedby={[result.fieldErrors[field] ? `dose-${field}-error` : '', sourceLocked && field !== 'target' ? 'dose-source-note' : ''].filter(Boolean).join(' ') || undefined}
         onChange={event => edit(field, event.target.value)} />
       {typeof suffix === 'string' ? <span className="rechner-input-suffix" aria-hidden="true">{suffix}</span> : suffix}
-      {sourceLocked && field !== 'target' && <LockKeyhole className="rechner-field-lock" size={15} aria-hidden="true" />}
+      {sourceLocked && field !== 'target' && <LockKeyhole className="rechner-field-lock" strokeWidth={1.5} size={15} aria-hidden="true" />}
     </div>
     {result.fieldErrors[field] && <span className="rechner-error" id={`dose-${field}-error`}>
       {t(result.fieldErrors[field] === 'numeric_range' ? 'rechner_numeric_range' : 'rechner_positive')}
@@ -186,9 +186,9 @@ export function DoseCalculator() {
     <form className="rechner-scroll-form" aria-label={t('rechner_inputs')} onSubmit={event => event.preventDefault()}>
       <section className="rechner-card lg-surface lg-flat" aria-labelledby="dose-solution-title">
         <div className="rechner-card-heading">
-          <h2 id="dose-solution-title"><span className="rechner-step-number">1</span><FlaskConical size={18} aria-hidden="true" />{t('rechner_step_solution')}</h2>
+          <h2 id="dose-solution-title"><span className="rechner-step-number">1</span><FlaskConical strokeWidth={1.5} size={18} aria-hidden="true" />{t('rechner_step_solution')}</h2>
           <button type="button" className="rechner-button rechner-reset-button" onClick={reset} aria-label={t('rechner_reset')} title={t('rechner_reset')}>
-            <RotateCcw size={16} aria-hidden="true" /><span>{t('rechner_reset')}</span>
+            <RotateCcw strokeWidth={1.5} size={16} aria-hidden="true" /><span>{t('rechner_reset')}</span>
           </button>
         </div>
         <div className="rechner-step-content">
@@ -208,13 +208,13 @@ export function DoseCalculator() {
                   role="group" tabIndex={-1} aria-labelledby="dose-selected-source" aria-describedby="dose-source-note">
                   <div>
                     <span className="rechner-converter-scope-label">{t('rechner_selected_substance')}</span>
-                    <span id="dose-selected-source" className="rechner-converter-marker"><LockKeyhole size={14} aria-hidden="true" />{source?.label}</span>
+                    <span id="dose-selected-source" className="rechner-converter-marker"><LockKeyhole strokeWidth={1.5} size={14} aria-hidden="true" />{source?.label}</span>
                   </div>
                   <button type="button" className="rechner-converter-remove" aria-label={t('rechner_release_substance')}
                     aria-describedby="dose-selected-source" onClick={() => {
                       focusAfterSelection.current = 'source'
                       setSelected('')
-                    }}><X size={18} aria-hidden="true" /></button>
+                    }}><X strokeWidth={1.5} size={18} aria-hidden="true" /></button>
                 </div> : <label className="rechner-field" htmlFor="dose-source">
                   <span>{t('rechner_stack_source')}</span>
                   <select ref={sourcePickerRef} id="dose-source" className="rechner-select" value={selected} onChange={event => {
@@ -267,7 +267,7 @@ export function DoseCalculator() {
         </div>
       </section>
       <section className="rechner-card lg-surface lg-flat" aria-labelledby="dose-target-title">
-        <h2 id="dose-target-title"><span className="rechner-step-number">2</span><Syringe size={18} aria-hidden="true" />{t('rechner_withdrawal')}</h2>
+        <h2 id="dose-target-title"><span className="rechner-step-number">2</span><Syringe strokeWidth={1.5} size={18} aria-hidden="true" />{t('rechner_withdrawal')}</h2>
         <div className="rechner-step-content">
           {input('target', targetUnitSelect)}
           {unitNotice && <p className="rechner-muted" role="status">{t(unitNotice)}</p>}

@@ -245,14 +245,14 @@ export function BefundEditor({ report, entries, onClose, onSaved }: Props) {
         </h2>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: MUTED }}>
+          <p className="text-[13px] font-medium mb-2" style={{ color: MUTED }}>
             {t('bw_already_saved', { count: entries.length })}
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {entries.map(entry => (
               <div key={entry.id} className="flex items-center justify-between text-sm">
                 <span style={{ color: MUTED }}>{markerName(entry.marker, sprache)}</span>
-                <span style={{ color: MUTED }}>
+                <span className="font-mono text-[13px] tabular-nums" style={{ color: MUTED }}>
                   {formatNumber(entry.value)} {entry.unit}
                 </span>
               </div>
@@ -261,7 +261,7 @@ export function BefundEditor({ report, entries, onClose, onSaved }: Props) {
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: MUTED }}>
+          <p className="text-[13px] font-medium mb-2" style={{ color: MUTED }}>
             {t('bw_new_values')}
           </p>
           <ReviewTable

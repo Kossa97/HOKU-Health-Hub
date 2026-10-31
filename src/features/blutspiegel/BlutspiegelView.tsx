@@ -67,7 +67,7 @@ const TickerStrip = memo(function TickerStrip({
       role="group"
       aria-label={f.t('pk_select_substance')}
       style={{
-        display: 'flex', gap: compact ? 6 : 8, overflowX: 'auto', scrollbarWidth: 'none',
+        display: 'flex', gap: compact ? 4 : 8, overflowX: 'auto', scrollbarWidth: 'none',
         margin: '0 -16px', padding: '0 16px 2px', WebkitOverflowScrolling: 'touch',
       }}
     >
@@ -82,17 +82,17 @@ const TickerStrip = memo(function TickerStrip({
             onClick={() => onSelect(entry.key)}
             style={{
               flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 44,
-              padding: compact ? '6px 10px' : '8px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
+              padding: compact ? '8px 10px' : '8px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
               background: selected ? 'var(--lg-fill)' : 'transparent',
               textAlign: 'left', fontFamily: 'inherit',
-              transition: 'background 0.2s ease',
+              transition: 'background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
             }}
           >
             <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {entry.name}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 400, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>
                 {curve?.current != null ? `${f.pct(curve.current)} %` : '—'}
               </span>
             </span>
@@ -107,7 +107,7 @@ const TickerStrip = memo(function TickerStrip({
 function RangeControl({ value, onChange }: { value: ChartRange; onChange: (r: ChartRange) => void }) {
   const { t } = useTranslation()
   return (
-    <div role="radiogroup" aria-label={t('pk_range_select')} style={{ display: 'flex', gap: 0, padding: 2, borderRadius: 999, background: 'var(--lg-fill)' }}>
+    <div role="radiogroup" aria-label={t('pk_range_select')} style={{ display: 'flex', gap: 0, padding: 2, borderRadius: 10, background: 'var(--lg-fill)' }}>
       {CHART_RANGES.map(range => {
         const active = range === value
         return (
@@ -118,12 +118,12 @@ function RangeControl({ value, onChange }: { value: ChartRange; onChange: (r: Ch
             aria-checked={active}
             onClick={() => onChange(range)}
             style={{
-              flex: '1 1 0', minHeight: 36, padding: '0 10px', borderRadius: 999, border: 'none',
+              flex: '1 1 0', minHeight: 36, padding: '0 10px', borderRadius: 8, border: 'none',
               background: active ? 'var(--lg-fill-selected)' : 'transparent',
-              boxShadow: active ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
+              boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.06)' : 'none',
               color: active ? 'var(--lg-text)' : 'var(--lg-text-2)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-              transition: 'background 0.2s ease, color 0.2s ease',
+              fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
             }}
           >
             {t(`pk_range_${range}`)}
@@ -139,12 +139,12 @@ function StatTable({ rows }: { rows: Array<{ label: string; value: string }> }) 
   return (
     <dl
       className="blutspiegel-stats lg-surface"
-      style={{ display: 'grid', columnGap: 16, rowGap: 0, margin: 0, padding: '12px 18px', borderRadius: 22 }}
+      style={{ display: 'grid', columnGap: 16, rowGap: 0, margin: 0, padding: '12px 20px', borderRadius: 16 }}
     >
       {rows.map(row => (
-        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '7px 0', minWidth: 0 }}>
+        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '8px 0', minWidth: 0 }}>
           <dt style={{ ...MUTED, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.label}</dt>
-          <dd style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</dd>
+          <dd style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 400, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{row.value}</dd>
         </div>
       ))}
     </dl>
@@ -228,17 +228,17 @@ const DetailStats = memo(function DetailStats({
           style={{
             width: '100%', minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             background: 'none', border: 'none', padding: '0 16px', cursor: 'pointer', fontFamily: 'inherit',
-            fontSize: 16, fontWeight: 600, color: 'var(--lg-text)',
+            fontSize: 16, fontWeight: 500, color: 'var(--lg-text)',
           }}
         >
           {t('pk_explain_title')}
-          <ChevronDown size={18} style={{ transform: explainOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease', color: 'var(--lg-text-3)' }} />
+          <ChevronDown size={18} strokeWidth={1.5} style={{ transform: explainOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)', color: 'var(--lg-text-3)' }} />
         </button>
         {explainOpen && (
-          <dl style={{ margin: 0, padding: '0 16px 10px' }}>
+          <dl style={{ margin: 0, padding: '0 16px 12px' }}>
             {explanations.map(e => (
               <div key={e.label} style={{ padding: '8px 0' }}>
-                <dt style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)' }}>{e.label}</dt>
+                <dt style={{ fontSize: 15, fontWeight: 500, color: 'var(--lg-text)' }}>{e.label}</dt>
                 <dd style={{ margin: '2px 0 0', fontSize: 14, lineHeight: 1.5, color: 'var(--lg-text-2)' }}>{e.text}</dd>
               </div>
             ))}
@@ -375,8 +375,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   if (!selected && einzeln && pickedKey) {
     return (
       <div style={{ padding: '24px 0', textAlign: 'center' }} data-bs-not-found>
-        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', marginBottom: 6 }}>{t('pk_not_found')}</p>
-        <Link to={UEBERSICHT_PFAD} style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{t('pk_back_overview')}</Link>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', marginBottom: 8 }}>{t('pk_not_found')}</p>
+        <Link to={UEBERSICHT_PFAD} style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-accent-text, var(--accent))' }}>{t('pk_back_overview')}</Link>
       </div>
     )
   }
@@ -388,9 +388,9 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           ? <div className="lg-group lg-rows">{missing.map(entry => <NoCurveRow key={entry.key} entry={entry} />)}</div>
           : (
             <div style={{ padding: '24px 0', textAlign: 'center' }}>
-              <p style={{ fontSize: 14, color: 'var(--lg-text-3)', marginBottom: 6 }}>{t('pk_no_ready_items')}</p>
+              <p style={{ fontSize: 14, color: 'var(--lg-text-3)', marginBottom: 8 }}>{t('pk_no_ready_items')}</p>
               {compact && (
-                <Link to="/simulation" style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{t('pk_open_simulation')}</Link>
+                <Link to="/simulation" style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-accent-text, var(--accent))' }}>{t('pk_open_simulation')}</Link>
               )}
             </div>
           )}
@@ -410,16 +410,16 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   const subline = t(`pk_range_label_${effectiveRange}`)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 10 : 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 12 : 16 }}>
       {data.ready.length > 1 && !einzeln && (
         <TickerStrip entries={data.ready} curves={data.curves} selectedKey={selected.key} onSelect={select} compact={compact} now={asOf} />
       )}
 
       {/* Kopf: Name, Wert, Veraenderung */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, paddingBottom: compact ? 6 : 4 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, minWidth: 0, paddingBottom: compact ? 8 : 4 }}>
           <h2 style={{
-            fontSize: compact ? 22 : 34, fontWeight: 700, letterSpacing: compact ? '-0.01em' : '0.011em', color: 'var(--lg-text)', lineHeight: compact ? 1.05 : '41px',
+            fontSize: compact ? 22 : 34, fontWeight: 500, letterSpacing: compact ? '-0.01em' : '-0.02em', color: 'var(--lg-text)', lineHeight: compact ? 1.05 : '41px',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
           }}>
             {selected.name}
@@ -432,29 +432,29 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           {compact && (
             <Link
               to={detailPfad(selected.key)}
-              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', minHeight: 44, fontSize: 14, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}
+              style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', minHeight: 44, fontSize: 14, fontWeight: 500, color: 'var(--lg-accent-text, var(--accent))', flexShrink: 0 }}
             >
-              {t('pk_more')} <ChevronRight size={16} />
+              {t('pk_more')} <ChevronRight size={16} strokeWidth={1.5} />
             </Link>
           )}
         </div>
-        <div style={{ marginTop: compact ? 0 : 10 }}>
-          <p style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ fontSize: compact ? 22 : 28, fontWeight: 700, color: 'var(--lg-text)' }}>
+        <div style={{ marginTop: compact ? 0 : 8 }}>
+          <p style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: compact ? 22 : 28, fontWeight: 500, color: 'var(--lg-text)' }}>
               {shown ? `${f.pct(shown.level)} %` : '—'}
             </span>
             {change != null && (
-              <span style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: changeColor }}>{f.signed(change)}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: compact ? 14 : 16, fontWeight: 400, color: changeColor }}>{f.signed(change)}</span>
             )}
           </p>
           <p style={{ fontSize: compact ? 13 : 15, color: 'var(--lg-text-2)', marginTop: 2 }}>{subline}</p>
           {!compact && <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 2 }}>{t('pk_model_note')}</p>}
         </div>
-        <div style={{ marginTop: 6 }}>
+        <div style={{ marginTop: 8 }}>
           <LiveStatus asOf={asOf} refreshing={data.refreshing} naechsterTakt={data.naechsterTakt} interrupted={curve?.interruptedAt != null} />
         </div>
         {curve?.interruptedAt != null && (
-          <p role="status" style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: 'var(--lg-warn-text)' }}>{t('pk_interrupted')}</p>
+          <p role="status" style={{ marginTop: 8, fontSize: 13, fontWeight: 500, color: 'var(--lg-warn-text)' }}>{t('pk_interrupted')}</p>
         )}
       </div>
 

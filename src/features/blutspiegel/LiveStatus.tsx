@@ -3,7 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { BLUTSPIEGEL_COUNTDOWN_MS } from './useBlutspiegelData'
 
-const ROT = '#ef4444'
+const ROT = 'var(--lg-bad-text, #ef4444)'
 
 /** Restzeit bis null, als „4.37“ — zwei Nachkommastellen wie im alten Karussell. */
 function restAnzeige(naechsterTakt: number): string {
@@ -42,7 +42,7 @@ export function LiveStatus({ asOf, refreshing, naechsterTakt, interrupted = fals
 
   if (interrupted) {
     return (
-      <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: 'var(--text-muted)' }} data-bs-live>
+      <div className="flex items-center gap-2 font-mono text-[12px]" style={{ color: 'var(--text-muted)' }} data-bs-live>
         <span className="tabular-nums">{t('pk_overview_as_of', { time: asOf ? fmt.format(asOf) : '—' })}</span>
       </div>
     )
@@ -50,18 +50,18 @@ export function LiveStatus({ asOf, refreshing, naechsterTakt, interrupted = fals
 
   return (
     <div
-      className="flex items-center gap-1.5 font-mono text-[12px] tracking-[0.04em]"
+      className="flex items-center gap-2 font-mono text-[12px]"
       style={{ color: ROT }}
       role="status"
       aria-label={t('pk_live_auto')}
       title={t('pk_live_auto')}
       data-bs-live
     >
-      <span className="bs-live-punkt h-[7px] w-[7px] shrink-0 rounded-full" style={{ background: ROT }} aria-hidden="true" />
-      <span className="font-bold uppercase" aria-hidden="true">{t('pk_live_label')}</span>
+      <span className="bs-live-punkt h-2 w-2 shrink-0 rounded-full" style={{ background: ROT }} aria-hidden="true" />
+      <span className="font-medium" aria-hidden="true">{t('pk_live_label')}</span>
       <span className="inline-flex min-w-[4ch] items-center tabular-nums" aria-hidden="true">
         {refreshing
-          ? <RefreshCw size={12} strokeWidth={2.5} className="bs-live-dreh" data-bs-refresh-icon />
+          ? <RefreshCw size={12} strokeWidth={2} className="bs-live-dreh" data-bs-refresh-icon />
           : <span data-bs-countdown>{anzeige}</span>}
       </span>
       <style>{`

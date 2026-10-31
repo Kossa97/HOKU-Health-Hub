@@ -28,10 +28,10 @@ export function ReviewTable({ rows, onChange }: Props) {
         return (
           <div
             key={index}
-            className="rounded-[20px] p-4"
+            className="rounded-2xl p-4"
             style={{
               background: 'var(--lg-surface-2)',
-              boxShadow: row.selected ? 'inset 0 0 0 1px rgba(0, 204, 245, 0.45)' : undefined,
+              boxShadow: row.selected ? 'inset 0 0 0 1px var(--accent-border, rgba(0, 204, 245, 0.45))' : undefined,
               opacity: row.selected ? 1 : 0.5,
             }}
           >
@@ -109,7 +109,7 @@ export function ReviewTable({ rows, onChange }: Props) {
             {(() => {
               const hint = conversionHint(row.marker, row.unit, row.value)
               return hint ? (
-                <p className="text-xs mt-2" style={{ color: CYAN }}>
+                <p className="text-xs mt-2" style={{ color: 'var(--lg-accent-text, var(--accent))' }}>
                   {hint} <span style={{ color: MUTED }}>{t('bw_conversion_note')}</span>
                 </p>
               ) : null
@@ -119,7 +119,7 @@ export function ReviewTable({ rows, onChange }: Props) {
       })}
 
       <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
-        <span className="font-bold" style={{ color: TEXT }}>{t('bw_check_title')}</span>{' '}
+        <span className="font-medium" style={{ color: TEXT }}>{t('bw_check_title')}</span>{' '}
         {t('bw_check_desc')}
       </p>
     </div>

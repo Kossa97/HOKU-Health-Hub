@@ -87,11 +87,11 @@ export function UnitConverter() {
         {marker ? <div className="rechner-converter-scope">
           <div>
             <span className="rechner-converter-scope-label">{t('rechner_converter_marker_selected')}</span>
-            <span id="converter-marker-name" className="rechner-converter-marker"><Droplet size={15} aria-hidden="true" />{marker === 'Vitamin D' ? 'Vitamin D (25-OH)' : marker}</span>
+            <span id="converter-marker-name" className="rechner-converter-marker"><Droplet strokeWidth={1.5} size={15} aria-hidden="true" />{marker === 'Vitamin D' ? 'Vitamin D (25-OH)' : marker}</span>
           </div>
           <button type="button" className="rechner-converter-remove" onClick={() => chooseMarker('')}
             aria-label={t('rechner_converter_remove_marker')} aria-describedby="converter-marker-name">
-            <X size={18} aria-hidden="true" />
+            <X strokeWidth={1.5} size={18} aria-hidden="true" />
           </button>
         </div> : <label className="rechner-field" htmlFor="converter-marker">
           <span>{t('rechner_converter_marker')}</span>
@@ -118,7 +118,7 @@ export function UnitConverter() {
           </div>
           <div className="rechner-converter-swap">
             <button type="button" className="rechner-button" onClick={() => { setFrom(to); setTo(from) }}>
-              <ArrowDownUp size={15} aria-hidden="true" /> {t('rechner_converter_swap')}
+              <ArrowDownUp strokeWidth={1.5} size={15} aria-hidden="true" /> {t('rechner_converter_swap')}
             </button>
           </div>
           <div className="rechner-field">

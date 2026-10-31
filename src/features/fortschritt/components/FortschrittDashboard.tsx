@@ -90,7 +90,7 @@ export function FortschrittDashboard({ state, rangeChip, onLogToday, onReload }:
 
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <VerlaufSection
         ref={heroRef}
         state={state}

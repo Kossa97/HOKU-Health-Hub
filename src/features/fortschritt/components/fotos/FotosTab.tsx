@@ -153,13 +153,13 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' }}>{t('fortschritt_photos')}</h2>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: 'var(--text)' }}>{t('fortschritt_photos')}</h2>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
             {t(photos.length === 1 ? 'fortschritt_photos_count_singular' : 'fortschritt_photos_count_plural', { n: photos.length })}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <div role="group" aria-label={t('fortschritt_grid_size')} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: 3, borderRadius: 12, background: 'var(--surface-input)', border: '1px solid var(--border)' }}>
+          <div role="group" aria-label={t('fortschritt_grid_size')} style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 2, borderRadius: 10, background: 'var(--surface-input)', border: '1px solid var(--border)' }}>
             {PHOTO_GRID_OPTIONS.map(option => (
               <button
                 key={option.value}
@@ -167,10 +167,10 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
                 aria-pressed={gridSize === option.value}
                 onClick={() => handleGridSizeChange(option.value)}
                 style={{
-                  border: 'none', borderRadius: 9, padding: '8px 10px', minHeight: 34,
-                  background: gridSize === option.value ? 'var(--accent-weak)' : 'transparent',
-                  color: gridSize === option.value ? 'var(--accent)' : 'var(--text-muted)',
-                  fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer',
+                  border: 'none', borderRadius: 8, padding: '8px 10px', minHeight: 36,
+                  background: gridSize === option.value ? 'var(--lg-fill-selected, var(--accent-weak))' : 'transparent',
+                  color: gridSize === option.value ? 'var(--text)' : 'var(--text-muted)',
+                  fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
                 }}
               >
                 {t(`fortschritt_grid_${option.value}`)}
@@ -182,33 +182,33 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
             onClick={openSheet}
             aria-label={t('fortschritt_photo_add')}
             style={{
-              width: 44, height: 44, borderRadius: 16, flexShrink: 0,
-              background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-              color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+              background: 'var(--surface-input)', border: '1px solid var(--border)',
+              color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <Plus size={20} />
+            <Plus size={18} strokeWidth={2} />
           </button>
         </div>
       </div>
 
       {photos.length === 0 ? (
-        <div style={{ ...panel, padding: '52px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
-          <div style={{ width: 68, height: 68, borderRadius: 22, background: 'var(--accent-weak)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ImageOff size={30} color="var(--accent)" />
+        <div style={{ ...panel, padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--surface-input)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ImageOff size={24} strokeWidth={1.5} color="var(--text-dim)" />
           </div>
           <div>
-            <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-dim)', marginBottom: 6 }}>{t('fortschritt_photos_empty_title')}</p>
-            <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-dim)', marginBottom: 8 }}>{t('fortschritt_photos_empty_title')}</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {t('fortschritt_photos_empty_body')}
             </p>
           </div>
-          <button type="button" onClick={openSheet} className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Camera size={15} /> {t('fortschritt_photo_add')}
+          <button type="button" onClick={openSheet} className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Camera size={16} strokeWidth={1.5} /> {t('fortschritt_photo_add')}
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${photoGridColumns(gridSize)}, 1fr)`, gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${photoGridColumns(gridSize)}, 1fr)`, gap: 8 }}>
           {photos.map(photo => (
             <button
               key={photo.id}
@@ -216,16 +216,16 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
               onClick={() => openPhoto(photo)}
               style={{
                 background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 18, overflow: 'hidden', padding: 0, textAlign: 'left', cursor: 'pointer',
+                borderRadius: 14, overflow: 'hidden', padding: 0, textAlign: 'left', cursor: 'pointer',
               }}
             >
               <div style={{ aspectRatio: '3/4', overflow: 'hidden' }}>
                 <img src={photo.display_url} alt={fmtDate(photo.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
-              <div style={{ padding: '9px 11px' }}>
-                <p style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-dim)' }}>{fmtDate(photo.taken_at)}</p>
+              <div style={{ padding: '8px 12px' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-dim)' }}>{fmtDate(photo.taken_at)}</p>
                 {photo.weight_kg != null && (
-                  <p style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 700 }}>{formatNumber(photo.weight_kg)} kg</p>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400 }}>{formatNumber(photo.weight_kg)} kg</p>
                 )}
               </div>
             </button>
@@ -234,21 +234,21 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
       )}
       {lightbox.mounted && shownPhoto && (
         <div className="fs-backdrop" data-shown={lightbox.shown} inert={!activePhoto} onClick={() => setActivePhoto(null)} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.93)', display: 'flex', flexDirection: 'column' }}>
-          <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
             <div>
-              <p style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text)' }}>{fmtDate(shownPhoto.taken_at)}</p>
+              <p style={{ fontSize: '0.92rem', fontWeight: 500, color: 'var(--text)' }}>{fmtDate(shownPhoto.taken_at)}</p>
               {shownPhoto.weight_kg != null && (
-                <p style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, marginTop: 2 }}>{formatNumber(shownPhoto.weight_kg)} kg</p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400, marginTop: 2 }}>{formatNumber(shownPhoto.weight_kg)} kg</p>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" aria-label={t('fortschritt_photo_delete')} onClick={e => { e.stopPropagation(); void deletePhoto(shownPhoto) }}
-                style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(244,63,94,0.14)', border: '1px solid rgba(244,63,94,0.24)', color: '#f43f5e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Trash2 size={16} />
+                style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--lg-danger-fill, rgba(244,63,94,0.14))', border: '1px solid rgba(244,63,94,0.24)', color: 'var(--lg-bad-text, #f43f5e)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Trash2 size={16} strokeWidth={1.5} />
               </button>
               <button type="button" aria-label={t('close')} onClick={e => { e.stopPropagation(); setActivePhoto(null) }}
-                style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--surface-input)', border: '1px solid var(--border)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X size={16} />
+                style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--surface-input)', border: '1px solid var(--border)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={16} strokeWidth={1.5} />
               </button>
             </div>
           </div>
@@ -256,8 +256,8 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
             <img src={shownPhoto.display_url} alt={fmtDate(shownPhoto.taken_at)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
           {shownPhoto.notes && (
-            <div onClick={e => e.stopPropagation()} style={{ padding: '14px 18px', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', lineHeight: 1.55 }}>{shownPhoto.notes}</p>
+            <div onClick={e => e.stopPropagation()} style={{ padding: '16px 20px', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>{shownPhoto.notes}</p>
             </div>
           )}
         </div>
@@ -267,14 +267,14 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
       <div className="fs-sheet" data-shown={sheetOpen} inert={!sheetOpen} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px 24px 0 0',
-        padding: '0 18px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: 'calc(100dvh - var(--tyd-popup-top))', overflowY: 'auto',
+        padding: '0 20px calc(24px + env(safe-area-inset-bottom, 0px))', maxHeight: 'calc(100dvh - var(--tyd-popup-top))', overflowY: 'auto',
         overscrollBehavior: 'contain',
       }}>
-        <div style={{ position: 'sticky', top: 0, paddingTop: 16, paddingBottom: 14, background: 'inherit', zIndex: 1 }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)', margin: '0 auto 18px' }} />
+        <div style={{ position: 'sticky', top: 0, paddingTop: 16, paddingBottom: 16, background: 'inherit', zIndex: 1 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)', margin: '0 auto 16px' }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>{t('fortschritt_photo_add')}</h2>
-            <button type="button" onClick={closeSheet} aria-label={t('close')} style={{ color: 'var(--text-muted)', display: 'flex' }}><X size={20} /></button>
+            <h2 style={{ fontSize: '1.0625rem', fontWeight: 500, color: 'var(--text)' }}>{t('fortschritt_photo_add')}</h2>
+            <button type="button" onClick={closeSheet} aria-label={t('close')} style={{ color: 'var(--text-muted)', display: 'flex' }}><X size={18} strokeWidth={1.5} /></button>
           </div>
         </div>
 
@@ -286,9 +286,9 @@ export function FotosTab({ photos, onChange, initialPhotoId = null, initialAdd =
           </div>
         ) : (
           <button type="button" onClick={() => fileInputRef.current?.click()}
-            style={{ width: '100%', padding: '30px 0', borderRadius: 18, marginBottom: 16, border: '2px dashed var(--accent-border)', background: 'var(--accent-weak)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: 'var(--accent)', cursor: 'pointer' }}>
-            <Camera size={30} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>{t('fortschritt_photo_pick')}</span>
+            style={{ width: '100%', padding: '32px 0', borderRadius: 14, marginBottom: 16, border: '1px dashed var(--border-strong, var(--border))', background: 'var(--surface-input)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: 'var(--text-dim)', cursor: 'pointer' }}>
+            <Camera size={24} strokeWidth={1.5} />
+            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t('fortschritt_photo_pick')}</span>
           </button>
         )}
 

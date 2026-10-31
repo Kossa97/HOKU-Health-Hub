@@ -41,7 +41,7 @@ function CardSparkline({ summary, color }: { summary: MarkerSummary; color: stri
     <div style={{ position: 'relative' }}>
     <svg width="100%" height={SPARK_H} viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} preserveAspectRatio="none" aria-hidden="true" style={{ display: 'block', overflow: 'visible' }}>
       {g.bounds.map((y, i) => (
-        <line key={i} x1={0} x2={SPARK_W} y1={y} y2={y} stroke={color} strokeOpacity={0.75} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+        <line key={i} x1={0} x2={SPARK_W} y1={y} y2={y} stroke={color} strokeOpacity={0.5} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
       ))}
       {g.area && <path d={g.area} fill={color} fillOpacity={0.16} />}
       {g.line && <path d={g.line} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
@@ -69,12 +69,12 @@ function RowSparkline({ summary, color }: { summary: MarkerSummary; color: strin
     <svg width={ROW_SPARK_W} height={ROW_SPARK_H} viewBox={`0 0 ${ROW_SPARK_W} ${ROW_SPARK_H}`} aria-hidden="true" style={{ flexShrink: 0, overflow: 'visible' }}>
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+          <stop offset="0%" stopColor={color} stopOpacity={0.2} />
           <stop offset="100%" stopColor={color} stopOpacity={0} />
         </linearGradient>
       </defs>
       {g.bounds.map((y, i) => (
-        <line key={i} x1={0} x2={ROW_SPARK_W} y1={y} y2={y} stroke={color} strokeOpacity={0.75} strokeWidth={1} strokeDasharray="3 3" />
+        <line key={i} x1={0} x2={ROW_SPARK_W} y1={y} y2={y} stroke={color} strokeOpacity={0.5} strokeWidth={1} strokeDasharray="3 3" />
       ))}
       {g.area && <path d={g.area} fill={`url(#${gradId})`} />}
       {g.line && <path d={g.line} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />}
@@ -137,16 +137,16 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
       />
       <div
         style={{
-          position: 'relative', minHeight: 180, boxSizing: 'border-box', padding: '14px 12px 12px 14px', pointerEvents: 'none',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6,
+          position: 'relative', minHeight: 180, boxSizing: 'border-box', padding: '16px 12px 12px 16px', pointerEvents: 'none',
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 8,
         }}
       >
         {/* Name, Datum und Wert stehen schon im Label der Karte. */}
         <div aria-hidden="true" style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: TEXT, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 500, color: TEXT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {name}
           </p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-mono)', fontSize: 12, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {latest ? formatDisplayDate(latest.tested_at) : t('bw_no_test')}
           </p>
         </div>
@@ -157,8 +157,8 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
           // Plakette immer so breit wie der laengere ihrer beiden Texte.
           <div className="bw-card-bottom">
             <div aria-hidden="true" style={{ flexShrink: 0, maxWidth: '100%', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-              <p style={{ margin: 0, fontSize: 20, fontWeight: 800, lineHeight: 1.1, color: TEXT }}>{formatNumber(shownValue!)}</p>
-              <p style={{ margin: 0, fontSize: 11, color: MUTED, overflow: 'hidden', textOverflow: 'ellipsis' }}>{shownUnit}</p>
+              <p style={{ margin: 0, fontSize: 20, fontWeight: 500, lineHeight: 1.1, color: TEXT }}>{formatNumber(shownValue!)}</p>
+              <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: MUTED, overflow: 'hidden', textOverflow: 'ellipsis' }}>{shownUnit}</p>
             </div>
             <button
               type="button"
@@ -168,8 +168,8 @@ function MarkerCard({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
               style={{
                 pointerEvents: 'auto', flexShrink: 0, minWidth: 56, marginLeft: 'auto', minHeight: 32,
                 padding: longest > 7 ? '0 6px' : '0 8px',
-                borderRadius: 7, border: 'none', background: color, color: '#fff', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: longest > 9 ? 11 : longest > 7 ? 12 : 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap',
+                borderRadius: 6, border: 'none', background: color, color: '#fff', cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: longest > 9 ? 11 : longest > 7 ? 12 : 13, fontWeight: 500, fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap',
               }}
             >
               {/* Beide Texte in derselben Zelle; der nicht gezeigte haelt nur die Breite. */}
@@ -202,20 +202,20 @@ function MarkerRow({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
         }}
       >
         <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 17, fontWeight: 800, color: TEXT, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ display: 'block', fontSize: 17, fontWeight: 500, color: TEXT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {name}
           </span>
-          <span style={{ display: 'block', marginTop: 2, fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--font-mono)', fontSize: 13, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {latest ? formatDisplayDate(latest.tested_at) : t('bw_no_test')}
           </span>
         </span>
         {latest && <RowSparkline summary={summary} color={color} />}
         {latest && (
           <span style={{ flexShrink: 0, minWidth: 44, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: TEXT, whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'block', fontSize: 18, fontWeight: 500, color: TEXT, whiteSpace: 'nowrap' }}>
               {formatNumber(shownValue!)}
             </span>
-            <span style={{ display: 'block', fontSize: 12, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 12, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {shownUnit}
             </span>
           </span>
@@ -228,9 +228,9 @@ function MarkerRow({ summary, pillMode, onSelect, onTogglePill }: CardProps) {
           aria-label={pillAria}
           data-bw-status={status}
           style={{
-            marginLeft: 8, flexShrink: 0, minWidth: 66, minHeight: 32, padding: '0 8px', borderRadius: 7, border: 'none',
+            marginLeft: 8, flexShrink: 0, minWidth: 66, minHeight: 32, padding: '0 8px', borderRadius: 6, border: 'none',
             background: color, color: '#fff', cursor: 'pointer', fontFamily: 'inherit',
-            fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap',
+            fontSize: 14, fontWeight: 500, fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap',
           }}
         >
           {pillText}
@@ -308,11 +308,11 @@ export function MarkerList({ summaries, layout, grouped, pillMode, onTogglePill,
             style={{
               width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               background: 'none', border: 'none', padding: '0 4px',
-              cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, color: MUTED,
+              cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 500, color: MUTED,
             }}
           >
             {t('bw_untested_count', { count: untested.length })}
-            <ChevronDown size={18} style={{ transform: showUntested ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            <ChevronDown size={18} strokeWidth={1.5} style={{ transform: showUntested ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)' }} />
           </button>
           {showUntested && block(untested)}
         </div>

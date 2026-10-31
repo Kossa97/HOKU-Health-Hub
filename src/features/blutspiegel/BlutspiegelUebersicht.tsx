@@ -40,7 +40,7 @@ function Verlauf({ points, now, color, ruhig }: { points: LevelPoint[]; now: num
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" style={{ flexShrink: 0 }}>
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.28} />
+          <stop offset="0%" stopColor={color} stopOpacity={0.2} />
           <stop offset="100%" stopColor={color} stopOpacity={0} />
         </linearGradient>
       </defs>
@@ -65,13 +65,13 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
       <Link
         to={detailPfad(entry.key)}
         // Rueckmeldung beim Druecken, nicht erst beim Loslassen.
-        className="flex min-h-[64px] items-center gap-3 px-4 py-2.5 transition-colors duration-100 active:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--lg-accent)]"
+        className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors duration-100 active:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--lg-accent)]"
         style={{ color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
         data-bs-row={entry.key}
         data-bs-decayed={abgeklungen || undefined}
       >
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-[17px] font-semibold">{entry.name}</span>
+          <span className="truncate text-[17px] font-medium">{entry.name}</span>
           <span className="truncate text-[13px]" style={{ color: 'var(--lg-text-2)' }}>
             {pausiert ? t('pk_overview_paused') : naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
           </span>
@@ -83,10 +83,10 @@ function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | u
           </span>
         ) : (
           <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
-            <span className="text-[17px] font-semibold" style={pausiert ? { color: 'var(--lg-text-2)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
+            <span className="text-[17px] font-medium" style={pausiert ? { color: 'var(--lg-text-2)' } : undefined}>{curve?.current != null ? `${f.pct(curve.current)} %` : '—'}</span>
             <span
-              className="min-w-[56px] rounded-[7px] px-1.5 py-[2px] text-right text-[13px] font-semibold"
-              style={{ background: 'var(--lg-fill)', color: 'var(--lg-text-2)' }}
+              className="min-w-[56px] text-right font-mono text-[12px]"
+              style={{ color: 'var(--lg-text-3)' }}
               data-bs-change
             >
               {change == null ? '—' : f.signed(change)}
@@ -111,7 +111,7 @@ function Kopf({ asOf, refreshing, naechsterTakt }: { asOf: number; refreshing: b
         className="lg-glass lg-icon-btn lg-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         data-bs-manual
       >
-        <Plus size={22} />
+        <Plus size={20} strokeWidth={2} />
       </Link>
       <p className="col-span-2 mt-1 max-w-[34ch] text-[15px] leading-snug" style={{ color: 'var(--lg-text-2)' }} data-bs-intro>
         {t('pk_overview_intro')}
@@ -144,7 +144,7 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {kopf}
       {data.ready.length > 0 ? (
         <section aria-label={t('pk_overview_list')}>

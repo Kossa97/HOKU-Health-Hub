@@ -30,18 +30,18 @@ export function KiEinwilligung({ onErteilt, onAbbrechen }: { onErteilt: () => Pr
   return (
     <div data-ai-consent className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
-        <span className="lg-icon-tile mt-0.5 !h-9 !w-9" style={{ background: 'rgba(0, 204, 245, 0.15)' }}>
+        <span className="lg-icon-tile mt-0.5 !h-9 !w-9" style={{ background: 'var(--lg-fill-selected)' }}>
           <DotZeichen groesse={22} />
         </span>
         <div className="min-w-0">
-          <h3 id="ai-consent-title" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('ai_consent_title')}</h3>
+          <h3 id="ai-consent-title" className="text-[17px] font-medium text-[var(--lg-text)]">{t('ai_consent_title')}</h3>
           <p className="mt-0.5 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('ai_consent_intro')}</p>
         </div>
       </div>
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-snug text-[var(--lg-text-2)]">
+      <ul className="flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug text-[var(--lg-text-2)]">
         {punkte.map(key => <li key={key}>{t(key)}</li>)}
       </ul>
-      <label className="flex cursor-pointer items-start gap-3 rounded-[18px] bg-[var(--lg-surface-2)] p-3.5 text-[15px] leading-snug text-[var(--lg-text)]">
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-[var(--lg-surface-2)] p-4 text-[15px] leading-snug text-[var(--lg-text)]">
         <input
           type="checkbox"
           data-ai-consent-check

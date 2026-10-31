@@ -20,7 +20,7 @@ export function Rechner() {
         { id: 'units', label: t('rechner_units_tab'), icon: ArrowLeftRight },
       ] as const).map(({ id, label, icon: Icon }) => <button key={id} type="button"
         aria-pressed={mode === id} aria-controls={`rechner-${id}`} onClick={() => setMode(id)}>
-        <Icon size={18} aria-hidden="true" />{label}
+        <Icon size={18} strokeWidth={1.5} aria-hidden="true" />{label}
       </button>)}
     </div>
     <MedicalNotice />

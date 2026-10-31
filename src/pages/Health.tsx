@@ -122,17 +122,11 @@ function WeightSparkline({ entries }: { entries: WeightLog[] }) {
 
   return (
     <svg viewBox="0 0 140 84" className="h-20 w-full overflow-visible" role="img" aria-label="Gewichtsverlauf">
-      <defs>
-        <linearGradient id="weightLine" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="#00ccf5" stopOpacity="0.65" />
-          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.9" />
-        </linearGradient>
-      </defs>
       <path d="M8 74 H132" stroke="var(--lg-separator)" strokeWidth="0.5" />
-      <polyline points={points} fill="none" stroke="url(#weightLine)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={points} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {points.split(' ').map(point => {
         const [x, y] = point.split(',')
-        return <circle key={point} cx={x} cy={y} r="3.5" fill="#000" stroke="var(--accent)" strokeWidth="2" />
+        return <circle key={point} cx={x} cy={y} r="3" fill="var(--surface)" stroke="var(--accent)" strokeWidth="1.5" />
       })}
     </svg>
   )
@@ -144,13 +138,13 @@ function DeviceCard({ metric }: { metric: DeviceMetric }) {
   return (
     <div className="lg-surface flex min-h-[124px] flex-col justify-between gap-3 p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="lg-icon-tile" style={{ background: metric.color }}>
-          <metric.icon size={17} strokeWidth={2.4} aria-hidden="true" />
+        <span className="lg-icon-tile" style={{ background: 'var(--lg-fill-selected)', color: 'var(--lg-text-2)' }}>
+          <metric.icon size={16} strokeWidth={1.5} aria-hidden="true" />
         </span>
-        {!isNative && <Shield size={14} className="text-[var(--lg-text-4)]" aria-hidden="true" />}
+        {!isNative && <Shield size={14} strokeWidth={1.5} className="text-[var(--lg-text-4)]" aria-hidden="true" />}
       </div>
       <div>
-        <p className={`font-semibold leading-tight ${!isNative ? 'text-[15px] text-[var(--lg-text-2)]' : 'text-[22px] text-[var(--lg-text)]'}`}>
+        <p className={`font-medium leading-tight ${!isNative ? 'text-[15px] text-[var(--lg-text-2)]' : 'text-[22px] tabular-nums text-[var(--lg-text)]'}`}>
           {!isNative ? 'Nur in der App verfügbar' : metric.loading ? '...' : metric.value}
         </p>
         <p className="mt-1 text-[13px] text-[var(--lg-text-3)]">{metric.label}</p>
@@ -323,7 +317,7 @@ export function Health() {
   }
 
   return (
-    <div className="space-y-7 pb-4">
+    <div className="space-y-8 pb-4">
       <header>
         <h1 className="lg-large-title">Health</h1>
         <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">Deine Körperdaten</p>
@@ -333,21 +327,21 @@ export function Health() {
       <section className="lg-surface p-5">
         <div className="mb-3 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[15px] font-semibold text-[var(--lg-text-2)]">
-              <Scale size={16} className="text-[var(--lg-accent-text)]" aria-hidden="true" />
+            <div className="mb-2 flex items-center gap-2 text-[15px] font-medium text-[var(--lg-text-2)]">
+              <Scale size={16} strokeWidth={1.5} className="text-[var(--lg-text-2)]" aria-hidden="true" />
               Gewicht
             </div>
             {loadingWeight ? (
-              <p className="text-[34px] font-bold leading-tight text-[var(--lg-text-3)]">...</p>
+              <p className="text-[34px] font-medium leading-tight text-[var(--lg-text-3)]">...</p>
             ) : latestWeight ? (
               <>
-                <p className="text-[44px] font-bold leading-none tracking-[-0.03em] text-[var(--lg-text)] tabular-nums">
-                  {fmtNum(latestWeight.weight_kg)} <span className="text-[17px] font-semibold tracking-normal text-[var(--lg-text-2)]">kg</span>
+                <p className="text-[44px] font-medium leading-none tracking-[-0.02em] text-[var(--lg-text)] tabular-nums">
+                  {fmtNum(latestWeight.weight_kg)} <span className="font-mono text-[15px] font-normal tracking-normal text-[var(--lg-text-3)]">kg</span>
                 </p>
-                <p className="mt-2 text-[13px] text-[var(--lg-text-3)]">Letzter Eintrag {fmtDate(latestWeight.logged_at)}</p>
+                <p className="mt-2 font-mono text-[12px] text-[var(--lg-text-3)]">Letzter Eintrag {fmtDate(latestWeight.logged_at)}</p>
               </>
             ) : (
-              <p className="text-[28px] font-bold leading-tight text-[var(--lg-text-3)]">Noch kein Wert</p>
+              <p className="text-[28px] font-medium leading-tight text-[var(--lg-text-3)]">Noch kein Wert</p>
             )}
           </div>
           <button
@@ -356,7 +350,7 @@ export function Health() {
             className="lg-btn lg-btn-tint !min-h-11 !w-11 shrink-0 !rounded-full !p-0"
             onClick={openWeightForm}
           >
-            <Plus size={22} strokeWidth={2.6} />
+            <Plus size={20} strokeWidth={2} />
           </button>
         </div>
         <WeightSparkline entries={weightLogs} />
@@ -370,14 +364,14 @@ export function Health() {
 
       {/* ── Körperprofil + Berechnungen ──────────────────────────────────── */}
       <section>
-        <div className="mb-[7px] flex items-end justify-between gap-3 pr-1">
+        <div className="mb-2 flex items-end justify-between gap-3 pr-1">
           <p className="lg-group-title !mb-0">Körperprofil</p>
           <button
             type="button"
-            className="-my-2 flex min-h-11 items-center gap-1.5 px-2 text-[15px] font-semibold text-[var(--lg-accent-text)]"
+            className="-my-2 flex min-h-11 items-center gap-2 px-2 text-[15px] font-medium text-[var(--lg-accent-text)]"
             onClick={openProfileForm}
           >
-            <Pencil size={14} aria-hidden="true" /> Bearbeiten
+            <Pencil size={14} strokeWidth={1.5} aria-hidden="true" /> Bearbeiten
           </button>
         </div>
 
@@ -390,7 +384,7 @@ export function Health() {
             value={bmi && bmiInfo ? (
               <>
                 <span className="tabular-nums">{fmtNum(bmi, 1)}</span>
-                <span className="block text-[13px] font-semibold" style={{ color: bmiInfo.color }}>{bmiInfo.text}</span>
+                <span className="block text-[13px] font-medium" style={{ color: bmiInfo.color }}>{bmiInfo.text}</span>
               </>
             ) : null}
           />
@@ -431,9 +425,9 @@ export function Health() {
       <section>
         <p className="lg-group-title">Schnellzugriff</p>
         <div className="lg-group lg-rows">
-          <QuickLink to="/blutwerte" icon={<Droplets size={17} strokeWidth={2.4} />} color="#ff375f"
+          <QuickLink to="/blutwerte" icon={<Droplets size={16} strokeWidth={1.5} />}
             title="Blutwerte" sub="Labormarker · IGF-1 · Hormone · CRP" />
-          <QuickLink to="/protokoll" icon={<FileText size={17} strokeWidth={2.4} />} color="#5e5ce6"
+          <QuickLink to="/protokoll" icon={<FileText size={16} strokeWidth={1.5} />}
             title="Protokoll" sub="PDF-Report · Adherence-Auswertung · Charts" />
         </div>
       </section>
@@ -526,17 +520,17 @@ function ProfileRow({ label, value, note }: { label: string; value: React.ReactN
   )
 }
 
-function QuickLink({ to, icon, color, title, sub }: {
-  to: string; icon: React.ReactNode; color: string; title: string; sub: string
+function QuickLink({ to, icon, title, sub }: {
+  to: string; icon: React.ReactNode; title: string; sub: string
 }) {
   return (
-    <Link to={to} className="flex min-h-[60px] items-center gap-3.5 px-4 py-2.5 transition-colors active:bg-white/[0.06]">
-      <span className="lg-icon-tile" style={{ background: color }} aria-hidden="true">{icon}</span>
+    <Link to={to} className="flex min-h-[60px] items-center gap-3 px-4 py-3 transition-colors active:bg-white/[0.06]">
+      <span className="lg-icon-tile" style={{ background: 'var(--lg-fill-selected)', color: 'var(--lg-text-2)' }} aria-hidden="true">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-[17px] text-[var(--lg-text)]">{title}</span>
         <span className="mt-0.5 block text-[13px] leading-snug text-[var(--lg-text-3)]">{sub}</span>
       </span>
-      <ChevronRight size={18} className="shrink-0 text-[var(--lg-text-4)]" aria-hidden="true" />
+      <ChevronRight size={18} strokeWidth={1.5} className="shrink-0 text-[var(--lg-text-4)]" aria-hidden="true" />
     </Link>
   )
 }

@@ -8,7 +8,7 @@ import type { BloodworkEntry, BloodworkReport } from './types'
 import { AUFFAELLIG, auffaelligeWerte, buildMarkerSummaries, filterByKategorie, sortSummaries, ungepruefteWerte, type MarkerFilter, type SortMode } from './lib/bloodwork'
 import { formatDisplayDate, formatEingabe, formatLongDate } from './lib/format'
 import { SONSTIGE, normalizeMarker } from './lib/markerCatalog'
-import { CYAN, TEXT, MUTED } from './styles'
+import { TEXT, MUTED } from './styles'
 import { markerName } from './lib/markerCatalog.en'
 import { Sheet } from '../compliance/components/Sheet'
 import { GlassSegmented } from '../../components/ui/GlassSegmented'
@@ -325,8 +325,8 @@ export function BlutwertePage() {
   const loeschenSheet = loeschen && (
     <Sheet labelledBy="bw-delete-title" busy={loescht} onClose={loeschenAbbrechen} role="alertdialog" data-bw-delete-sheet>
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_18%,transparent)] text-[var(--lg-bad-text)]">
-          <Trash2 size={18} aria-hidden="true" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] text-[var(--lg-bad-text)]">
+          <Trash2 size={18} strokeWidth={1.5} aria-hidden="true" />
         </span>
         <div className="min-w-0">
           <h2 id="bw-delete-title" className="lg-title2">{t('bw_delete_title')}</h2>
@@ -339,7 +339,7 @@ export function BlutwertePage() {
         <button type="button" autoFocus data-app-back-close disabled={loescht} onClick={loeschenAbbrechen} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
           {t('cancel')}
         </button>
-        <button type="button" data-bw-delete-confirm disabled={loescht} onClick={() => void loeschenBestaetigt()} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px] !font-semibold">
+        <button type="button" data-bw-delete-confirm disabled={loescht} onClick={() => void loeschenBestaetigt()} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px] !font-medium">
           {t('delete')}
         </button>
       </div>
@@ -411,11 +411,11 @@ export function BlutwertePage() {
               title={t(markerLayout === 'raster' ? 'bw_list_view' : 'bw_grid_view')}
               data-bw-layout-toggle={markerLayout}
             >
-              {markerLayout === 'raster' ? <List size={20} /> : <LayoutGrid size={19} />}
+              {markerLayout === 'raster' ? <List size={18} strokeWidth={1.5} /> : <LayoutGrid size={18} strokeWidth={1.5} />}
             </button>
           )}
           <button type="button" className={headerButton} onClick={() => setShowAdd(true)} aria-label={t('bw_add_title')} title={t('bw_add_title')} aria-haspopup="dialog">
-            <Plus size={22} />
+            <Plus size={20} strokeWidth={2} />
           </button>
         </div>
         <p className="lg-title2 col-span-2 truncate !text-[var(--lg-text-3)]">
@@ -472,7 +472,7 @@ export function BlutwertePage() {
             // Nie „keine Werte“ zeigen, wenn nur das Laden scheiterte — unter keinem Filter.
             <div className="py-8 mb-4 text-center" data-bw-load-error data-umriss-nicht-merken>
               <p className="text-sm" style={{ color: TEXT }}>{t('bw_load_error')}</p>
-              <button type="button" className="mt-3 min-h-11 px-3 text-sm font-semibold" style={{ color: CYAN }} onClick={() => void load()}>
+              <button type="button" className="mt-3 min-h-11 px-3 text-sm font-medium" style={{ color: 'var(--lg-accent-text, var(--accent))' }} onClick={() => void load()}>
                 {t('ai_consent_retry')}
               </button>
             </div>

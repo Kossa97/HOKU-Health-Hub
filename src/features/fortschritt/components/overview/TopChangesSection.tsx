@@ -39,8 +39,8 @@ function Spark({ values, color }: { values: number[]; color: string }) {
   const d = values.map((v, i) => `${i ? 'L' : 'M'}${((i / (values.length - 1)) * 200).toFixed(1)},${(56 - ((v - min) / span) * 46).toFixed(1)}`).join('')
   return (
     <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden>
-      <path d={`${d}L200,60L0,60Z`} fill={color} fillOpacity="0.12" />
-      <path d={d} fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      <path d={`${d}L200,60L0,60Z`} fill={color} fillOpacity="0.08" />
+      <path d={d} fill="none" stroke={color} strokeOpacity="0.7" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
     </svg>
   )
 }

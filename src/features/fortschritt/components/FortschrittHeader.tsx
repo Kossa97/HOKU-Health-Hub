@@ -24,14 +24,14 @@ export function FortschrittHeader({
         <div className="fg-subline">
           <span>{rangeLabel}</span>
           {hasTodayEntry && (
-            <span className="fg-done"><Check size={13} strokeWidth={3} aria-hidden />{t('fortschritt_done')}</span>
+            <span className="fg-done"><Check size={14} strokeWidth={2} aria-hidden />{t('fortschritt_done')}</span>
           )}
         </div>
       </div>
 
       {hasTodayEntry ? (
         <button type="button" onClick={onLogToday} className="lg-btn lg-btn-compact lg-btn-glass lg-glass">
-          <Pencil size={17} aria-hidden />
+          <Pencil size={16} strokeWidth={1.5} aria-hidden />
           {t('fortschritt_edit_today')}
         </button>
       ) : (
@@ -41,7 +41,7 @@ export function FortschrittHeader({
           className="lg-btn lg-btn-compact lg-btn-tint"
           data-invite={dataReady}
         >
-          <Plus size={18} strokeWidth={2.6} aria-hidden />
+          <Plus size={18} strokeWidth={2} aria-hidden />
           {t('fortschritt_log_today')}
         </button>
       )}

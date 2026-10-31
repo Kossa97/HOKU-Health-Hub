@@ -24,10 +24,10 @@ export function ActiveSubstancesSection({ cycles, ongoing, onSelect }: Props) {
   if (total === 0) return null
 
   return (
-    <section style={{ ...panel, padding: '16px 18px' }}>
+    <section style={{ ...panel, padding: '16px 20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <p style={sectionLabel}>Aktive Substanzen</p>
-        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)' }}>{total}</span>
+        <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--text-muted)' }}>{total}</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -35,7 +35,7 @@ export function ActiveSubstancesSection({ cycles, ongoing, onSelect }: Props) {
           if (kind === 'ongoing' && showDivider && index === cycles.length) {
             return (
               <div key={`div-${item.id}`}>
-                <p style={{ ...sectionLabel, margin: '4px 0 10px', fontSize: '0.55rem' }}>dauerhaft</p>
+                <p style={{ ...sectionLabel, margin: '4px 0 10px' }}>dauerhaft</p>
                 <SubstanceRow
                   name={item.name}
                   color={item.color}
@@ -85,7 +85,7 @@ export function ActiveSubstancesSection({ cycles, ongoing, onSelect }: Props) {
             border: 'none',
             color: 'var(--accent)',
             fontSize: '0.75rem',
-            fontWeight: 800,
+            fontWeight: 500,
             cursor: 'pointer',
           }}
         >
@@ -135,11 +135,11 @@ function SubstanceRow({
           border: `2px solid ${color}`,
           flexShrink: 0,
         }} />
-        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {name}
         </span>
       </div>
-      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>
+      <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--text-muted)', flexShrink: 0 }}>
         {detail}
       </span>
     </button>

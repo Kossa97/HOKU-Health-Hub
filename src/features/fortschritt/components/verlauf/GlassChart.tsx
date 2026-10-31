@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import type { DateRange } from '../../types'
 import type { SeriesPoint } from '../../lib/metrics'
 import { assignLanes } from '../../lib/cycleLanes'
@@ -45,6 +45,11 @@ const PLOT_W = W - PR
 const Y0 = PT
 const Y1 = H - PB
 const SNAP_PX = 9
+
+// Achsen wie auf einem Laborbefund: Mono, gedämpft; Gitter als Haarlinie
+const AXIS_STYLE: CSSProperties = { fontFamily: 'var(--font-mono)', fill: 'var(--lg-text-3, rgba(235,240,255,0.52))' }
+const GRID_STYLE: CSSProperties = { stroke: 'var(--lg-hair, rgba(255,255,255,0.07))' }
+const RING_STYLE: CSSProperties = { stroke: 'var(--app-bg, #000)' }
 
 const ts = (iso: string) => dayToTsSafe(iso, 12) ?? 0
 
@@ -148,12 +153,9 @@ export function GlassChart({ points, range, color, bands, newBandSubstance, aria
       <svg viewBox={`0 0 ${W} ${H}`} aria-hidden>
         <defs>
           <linearGradient id="fg-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={color} stopOpacity="0.32" />
+            <stop offset="0" stopColor={color} stopOpacity="0.2" />
             <stop offset="1" stopColor={color} stopOpacity="0" />
           </linearGradient>
-          <filter id="fg-line-glow" x="-10%" y="-40%" width="120%" height="180%">
-            <feGaussianBlur stdDeviation="3" />
-          </filter>
         </defs>
 
         {laid.map(b => (
@@ -172,7 +174,7 @@ export function GlassChart({ points, range, color, bands, newBandSubstance, aria
               <line x1={b.x2} x2={b.x2} y1={b.y} y2={b.y + b.h} stroke={b.color} strokeOpacity={0.6} strokeDasharray="2 3" />
             )}
             {b.h >= 15 && b.x2 - b.x1 > 60 && (
-              <text x={b.x1 + 7} y={b.y + Math.min(15, b.h / 2 + 4)} fontSize="10" fontWeight="700" fill={b.color} fontFamily="system-ui, sans-serif">
+              <text x={b.x1 + 8} y={b.y + Math.min(15, b.h / 2 + 4)} fontSize="10" fontWeight="500" fill={b.color} style={{ fontFamily: 'var(--font-sans)' }}>
                 {b.name}
               </text>
             )}
@@ -181,8 +183,8 @@ export function GlassChart({ points, range, color, bands, newBandSubstance, aria
 
         {grid.map(g => (
           <g key={g.y}>
-            <line x1="0" x2={PLOT_W} y1={g.y} y2={g.y} stroke="rgba(255,255,255,0.07)" />
-            <text x={W - 2} y={g.y + 3.5} fontSize="10" textAnchor="end" fill="rgba(235,240,255,0.52)" fontFamily="system-ui, sans-serif">
+            <line x1="0" x2={PLOT_W} y1={g.y} y2={g.y} style={GRID_STYLE} />
+            <text x={W - 2} y={g.y + 3.5} fontSize="10" textAnchor="end" style={AXIS_STYLE}>
               {formatNumber(Math.round(g.v * 10) / 10)}
             </text>
           </g>
@@ -191,25 +193,24 @@ export function GlassChart({ points, range, color, bands, newBandSubstance, aria
         {starts.map(s => (
           <g key={`start-${s.key}`}>
             <line x1={x(s.startTs)} x2={x(s.startTs)} y1={Y0} y2={Y1} stroke={s.color} strokeWidth="1.4" strokeOpacity="0.9" />
-            <circle cx={x(s.startTs)} cy={Y1} r="4" fill={s.color} stroke="#000" strokeWidth="1.5" />
+            <circle cx={x(s.startTs)} cy={Y1} r="4" fill={s.color} strokeWidth="1.5" style={RING_STYLE} />
           </g>
         ))}
 
         <g className="fg-chart-body" key={`${range.from}|${range.to}|${color}|${pts.length}`}>
           {area && <path d={area} fill="url(#fg-area)" />}
-          {pts.length > 1 && <path d={line} fill="none" stroke={color} strokeWidth="4" strokeOpacity="0.35" filter="url(#fg-line-glow)" />}
           {pts.length > 1 && <path d={line} fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />}
           {showDots && pts.map(p => <circle key={p.date} cx={x(p.t)} cy={y(p.value)} r="2.4" fill={color} />)}
-          {last && <circle cx={x(last.t)} cy={y(last.value)} r="5" fill={color} stroke="#000" strokeWidth="2" />}
+          {last && <circle cx={x(last.t)} cy={y(last.value)} r="5" fill={color} strokeWidth="2" style={RING_STYLE} />}
         </g>
 
-        <text x="2" y={H - 7} fontSize="10.5" fill="rgba(235,240,255,0.52)" fontFamily="system-ui, sans-serif">{formatDaySafe(range.from)}</text>
-        <text x={PLOT_W / 2} y={H - 7} fontSize="10.5" textAnchor="middle" fill="rgba(235,240,255,0.52)" fontFamily="system-ui, sans-serif">{formatDaySafe(midIso)}</text>
-        <text x={PLOT_W} y={H - 7} fontSize="10.5" textAnchor="end" fill="rgba(235,240,255,0.52)" fontFamily="system-ui, sans-serif">{formatDaySafe(range.to)}</text>
+        <text x="2" y={H - 7} fontSize="10" style={AXIS_STYLE}>{formatDaySafe(range.from)}</text>
+        <text x={PLOT_W / 2} y={H - 7} fontSize="10" textAnchor="middle" style={AXIS_STYLE}>{formatDaySafe(midIso)}</text>
+        <text x={PLOT_W} y={H - 7} fontSize="10" textAnchor="end" style={AXIS_STYLE}>{formatDaySafe(range.to)}</text>
 
         {cursor && (
           <g>
-            <line x1={cursor.x} x2={cursor.x} y1={Y0} y2={Y1} stroke="rgba(255,255,255,0.75)" />
+            <line x1={cursor.x} x2={cursor.x} y1={Y0} y2={Y1} stroke="rgba(255,255,255,0.5)" />
             <circle className="fg-scrub-dot" cx={cursor.dotX} cy={cursor.y} r="6.5" fill={color} stroke="#fff" strokeWidth="2" />
           </g>
         )}

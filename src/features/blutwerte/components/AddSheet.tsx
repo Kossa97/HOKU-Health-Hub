@@ -42,8 +42,8 @@ export function AddSheet({ onPick, onClose }: Props) {
               onClick={() => onPick(key)}
               className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
             >
-              <span className="lg-icon-tile relative !h-9 !w-9" style={{ background: ki ? '#0a84ff' : '#636366' }}>
-                <Icon size={18} aria-hidden="true" />
+              <span className="lg-icon-tile relative !h-9 !w-9" style={{ background: 'var(--lg-fill-selected)', color: 'var(--lg-text-2)' }}>
+                <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
                 {/* Dot: diese Wege liest er aus */}
                 {ki && (
                   <span data-bw-ki-badge className="absolute -right-2 -top-2 flex rounded-full bg-[var(--lg-surface,#1c1c1e)] p-[2px]">
@@ -52,10 +52,10 @@ export function AddSheet({ onPick, onClose }: Props) {
                 )}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[16px] font-semibold" style={{ color: TEXT }}>{t(title)}</span>
+                <span className="block text-[16px] font-medium" style={{ color: TEXT }}>{t(title)}</span>
                 <span className="block text-[13px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t(desc)}</span>
               </span>
-              <ChevronRight size={18} aria-hidden="true" style={{ color: MUTED }} />
+              <ChevronRight size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: MUTED }} />
             </button>
           ))}
         </div>

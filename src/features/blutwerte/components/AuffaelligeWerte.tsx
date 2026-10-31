@@ -1,7 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { MarkerSummary } from '../lib/bloodwork'
-import { CYAN, GREEN, MUTED, TEXT } from '../styles'
+import { GREEN, MUTED, TEXT } from '../styles'
 import { MarkerList, type MarkerLayout, type PillMode } from './MarkerList'
 
 interface Props {
@@ -33,13 +33,13 @@ export function AuffaelligeWerte({ summaries, ungeprueft, hatWerte, onSelect, on
     const allesGeprueft = hatWerte && ungeprueft === 0
     return (
       <div className="py-8 mb-4 text-center" data-bw-flagged-empty>
-        {allesGeprueft && <CheckCircle2 size={22} className="mx-auto mb-2" style={{ color: GREEN }} aria-hidden="true" />}
+        {allesGeprueft && <CheckCircle2 size={20} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: GREEN }} aria-hidden="true" />}
         <p className="text-sm" style={{ color: hatWerte ? TEXT : MUTED }}>
           {t(!hatWerte ? 'bw_flagged_no_data' : allesGeprueft ? 'bw_flagged_none' : 'bw_flagged_none_checked')}
         </p>
         {hatWerte && ungeprueftHinweis}
         {hatWerte && (
-          <button type="button" className="mt-3 min-h-11 px-3 text-sm font-semibold" style={{ color: CYAN }} onClick={onAlleMarker}>
+          <button type="button" className="mt-3 min-h-11 px-3 text-sm font-medium" style={{ color: 'var(--lg-accent-text, var(--accent))' }} onClick={onAlleMarker}>
             {t('bw_flagged_show_all')}
           </button>
         )}

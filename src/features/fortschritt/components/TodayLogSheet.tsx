@@ -301,16 +301,16 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
             overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
-            padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 14px 4px',
+            padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 16px 4px',
             background: SHEET_BG,
           }}>
             <h2
               id="today-log-title"
               style={{
-                fontSize: '1.05rem',
-                fontWeight: 900,
+                fontSize: '1.0625rem',
+                fontWeight: 500,
                 color: 'var(--text)',
-                marginBottom: 10,
+                marginBottom: 12,
               }}
             >
               {t('fortschritt_log_title')}
@@ -321,8 +321,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
               alignItems: 'center',
               gap: 12,
               marginBottom: 12,
-              padding: '10px 12px',
-              borderRadius: 14,
+              padding: '8px 12px',
+              borderRadius: 12,
               background: 'var(--surface-input)',
               border: '1px solid var(--border)',
             }}>
@@ -380,7 +380,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          padding: '6px 14px max(8px, env(safe-area-inset-bottom))',
+          padding: '8px 16px max(8px, env(safe-area-inset-bottom))',
           borderTop: '1px solid var(--border)',
           background: SHEET_BG,
         }}>
@@ -394,7 +394,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
             style={{ flex: 1, minWidth: 0 }}
           >
             {saved
-              ? <><Check size={20} strokeWidth={3} aria-hidden className="lg-pop" />{t('fortschritt_saved_short')}</>
+              ? <><Check size={18} strokeWidth={2} aria-hidden className="lg-pop" />{t('fortschritt_saved_short')}</>
               : saving
                 ? <><span className="lg-spinner" aria-hidden />{t('fortschritt_saving')}</>
                 : t('fortschritt_save_entry')}
@@ -418,7 +418,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
               cursor: 'pointer',
             }}
           >
-            <X size={16} />
+            <X size={18} strokeWidth={1.5} />
           </button>
         </footer>
       </div>

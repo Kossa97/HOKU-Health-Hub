@@ -63,7 +63,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
               </button>
             )}
             <button type="button" className="lg-icon-btn lg-glass" aria-label={t('fortschritt_photo_add')} onClick={() => openSheet({ kind: 'add' })}>
-              <Plus size={20} strokeWidth={2.4} />
+              <Plus size={18} strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -83,11 +83,11 @@ export function FotosCard({ photos, range, onChange }: Props) {
             <img src={before.display_url} alt={formatDaySafe(before.taken_at, 'full')} draggable={false} />
           </button>
         ) : (
-          <div className="lg-empty" style={{ padding: '18px 8px 6px' }}>
+          <div className="lg-empty" style={{ padding: '16px 8px 8px' }}>
             <p>{photos.length > 0 ? t('fortschritt_photos_none_in_range') : t('fortschritt_photos_empty_title')}</p>
             <p>{t('fortschritt_photos_empty_body')}</p>
             <button type="button" className="lg-btn lg-btn-primary" style={{ marginTop: 16 }} onClick={() => openSheet({ kind: 'add' })}>
-              <Camera size={20} aria-hidden />
+              <Camera size={18} strokeWidth={1.5} aria-hidden />
               {t('fortschritt_photo_add')}
             </button>
           </div>
@@ -128,7 +128,7 @@ export function FotosCard({ photos, range, onChange }: Props) {
                 justifyContent: 'center',
               }}
             >
-              <X size={18} />
+              <X size={18} strokeWidth={1.5} />
             </button>
           </div>
           <div style={{ padding: '0 12px calc(24px + env(safe-area-inset-bottom, 0px))', flex: 1 }}>
@@ -230,7 +230,7 @@ function Compare({ before, after, split, onSplit, dragging, onDragging, onOpen }
         aria-valuenow={Math.round(split * 100)}
         onKeyDown={onKey}
       >
-        <span className="fg-knob lg-glass" aria-hidden><ChevronsLeftRight size={20} /></span>
+        <span className="fg-knob lg-glass" aria-hidden><ChevronsLeftRight size={18} strokeWidth={1.5} /></span>
       </div>
     </div>
   )

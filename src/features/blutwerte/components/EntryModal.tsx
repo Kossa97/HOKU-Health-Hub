@@ -161,8 +161,8 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
           <label className="label" htmlFor="bw-entry-marker">{t('bw_marker')}</label>
           {markerLocked ? (
             <div
-              className="rounded-2xl px-4 py-3 font-semibold"
-              style={{ background: 'var(--lg-fill)', color: 'var(--lg-accent-text)' }}
+              className="rounded-xl px-4 py-3 font-medium"
+              style={{ background: 'var(--lg-fill)', color: TEXT }}
             >
               {markerName(draft.marker, sprache)}
             </div>
@@ -204,7 +204,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
             onChange={e => onChange({ ...draft, tested_at: e.target.value })}
           />
           {draft.reportId && (
-            <p id="bw-date-from-report" className="text-xs mt-1.5" style={{ color: MUTED }}>{t('bw_date_from_report')}</p>
+            <p id="bw-date-from-report" className="text-xs mt-2" style={{ color: MUTED }}>{t('bw_date_from_report')}</p>
           )}
         </div>
 
@@ -265,7 +265,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
         {wechseljahreFragen && (
           <fieldset data-bw-menopause>
             <legend className="label">{t('bw_menopause_label')}</legend>
-            <div role="radiogroup" aria-label={t('bw_menopause_label')} className="flex rounded-full p-0.5" style={{ background: 'var(--lg-fill)' }}>
+            <div role="radiogroup" aria-label={t('bw_menopause_label')} className="flex rounded-[10px] p-0.5" style={{ background: 'var(--lg-fill)' }}>
               {([['pre', 'bw_menopause_pre'], ['post', 'bw_menopause_post'], ['', 'bw_menopause_unknown']] as const).map(([key, label]) => {
                 const aktiv = (draft.menopause ?? '') === key
                 return (
@@ -275,15 +275,15 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
                     role="radio"
                     aria-checked={aktiv}
                     onClick={() => onChange({ ...draft, menopause: key })}
-                    className="min-h-10 flex-1 rounded-full px-2 text-sm transition-colors"
-                    style={aktiv ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 600, boxShadow: '0 3px 8px rgba(0,0,0,0.25)' } : { color: 'var(--lg-text-2)', fontWeight: 600 }}
+                    className="min-h-10 flex-1 rounded-lg px-2 text-sm transition-colors"
+                    style={aktiv ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 500, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' } : { color: 'var(--lg-text-2)', fontWeight: 500 }}
                   >
                     {t(label)}
                   </button>
                 )
               })}
             </div>
-            <p className="text-xs mt-1.5" style={{ color: MUTED }}>{t('bw_menopause_hint')}</p>
+            <p className="text-xs mt-2" style={{ color: MUTED }}>{t('bw_menopause_hint')}</p>
           </fieldset>
         )}
 
@@ -308,7 +308,7 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
             />
           </div>
           {katalogBereich && !draft.refMin.trim() && !draft.refMax.trim() && (
-            <p className="text-xs mt-1.5" style={{ color: MUTED }}>{t('bw_ref_default', { range: katalogBereich })}</p>
+            <p className="text-xs mt-2" style={{ color: MUTED }}>{t('bw_ref_default', { range: katalogBereich })}</p>
           )}
         </fieldset>
 
@@ -322,11 +322,11 @@ export function EntryModal({ draft, markerLocked, saving, onChange, onCancel, on
           <button
             type="button"
             data-bw-entry-delete
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-[var(--lg-bad-text)]"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-medium text-[var(--lg-bad-text)]"
             disabled={saving}
             onClick={onDelete}
           >
-            <Trash2 size={16} aria-hidden="true" />
+            <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />
             {t('bw_delete_entry')}
           </button>
         )}

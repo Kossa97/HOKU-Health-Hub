@@ -55,19 +55,19 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
               aria-pressed={active}
               // Sichtbarer Text plus Anzahl: „Auffällige (2)“ — Sprachsteuerung findet ihn am Namen.
               aria-label={chip.key === AUFFAELLIG && auffaellig > 0 ? `${chip.label} (${auffaellig})` : undefined}
-              className="inline-flex min-h-9 items-center gap-1.5 px-3.5 rounded-full text-sm whitespace-nowrap transition-colors"
+              className="inline-flex min-h-9 items-center gap-2 px-3 rounded-lg text-sm whitespace-nowrap transition-colors"
               style={
                 active
-                  ? { background: 'var(--lg-fill-selected)', color: 'var(--lg-text)', fontWeight: 700 }
-                  : { color: 'var(--lg-text-2)', fontWeight: 600 }
+                  ? { background: 'var(--lg-fill-selected)', color: 'var(--lg-text)', fontWeight: 500 }
+                  : { color: 'var(--lg-text-2)', fontWeight: 500 }
               }
             >
               {chip.label}
               {chip.key === AUFFAELLIG && auffaellig > 0 && (
                 <span
                   aria-hidden="true"
-                  className="min-w-5 rounded-full px-1.5 text-xs font-bold leading-5 tabular-nums text-center"
-                  style={{ background: 'color-mix(in srgb, var(--lg-bad) 22%, transparent)', color: RED }}
+                  className="min-w-4 font-mono text-xs font-normal leading-5 tabular-nums text-center"
+                  style={{ color: 'var(--lg-bad-text, #ff6961)' }}
                   data-bw-flagged-count
                 >
                   {auffaellig}
@@ -83,12 +83,12 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
       <div className="flex items-center gap-2">
         {/* Sortieren greift nur im Raster, nicht in der Liste der Auffaelligen. */}
         {kategorie !== AUFFAELLIG && (
-          <div className="relative flex h-8 min-w-0 items-center rounded-full" style={PILL}>
+          <div className="relative flex h-8 min-w-0 items-center rounded-lg" style={PILL}>
             <label className="sr-only" htmlFor="blutwerte-sort">{t('bw_sort')}</label>
-            <ArrowUpDown size={13} aria-hidden="true" className="pointer-events-none absolute left-2.5" style={{ color: MUTED }} />
+            <ArrowUpDown size={14} strokeWidth={1.5} aria-hidden="true" className="pointer-events-none absolute left-2" style={{ color: MUTED }} />
             <select
               id="blutwerte-sort"
-              className="h-full min-w-0 cursor-pointer appearance-none truncate rounded-full bg-transparent pl-7 pr-7 text-xs font-semibold"
+              className="h-full min-w-0 cursor-pointer appearance-none truncate rounded-lg bg-transparent pl-7 pr-7 text-xs font-medium"
               style={{ color: TEXT, border: 'none', outline: 'none' }}
               value={sortMode}
               onChange={e => onSortMode(e.target.value as SortMode)}
@@ -97,21 +97,21 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
                 <option key={mode} value={mode}>{t(SORT_LABELS[mode])}</option>
               ))}
             </select>
-            <ChevronDown size={13} aria-hidden="true" className="pointer-events-none absolute right-2.5" style={{ color: MUTED }} />
+            <ChevronDown size={14} strokeWidth={1.5} aria-hidden="true" className="pointer-events-none absolute right-2" style={{ color: MUTED }} />
           </div>
         )}
 
         {/* Bei „Auffällige“ steht links, was die Liste zeigt — neben dem Schalter statt darueber.
             Zwei Zeilen à 16 px = Hoehe des Schalters; nur auf sehr schmalen Geraeten wird es hoeher. */}
         {kategorie === AUFFAELLIG && auffaellig > 0 && (
-          <p className="flex min-h-8 min-w-0 flex-1 items-center gap-1.5 text-[11px] leading-4" style={{ color: MUTED }} data-bw-flagged-hint>
-            <AlertTriangle size={14} className="shrink-0" style={{ color: RED }} aria-hidden="true" />
+          <p className="flex min-h-8 min-w-0 flex-1 items-center gap-2 text-[11px] leading-4" style={{ color: MUTED }} data-bw-flagged-hint>
+            <AlertTriangle size={14} strokeWidth={1.5} className="shrink-0" style={{ color: RED }} aria-hidden="true" />
             {t('bw_flagged_hint')}
           </p>
         )}
 
         {/* Einheiten: konventionell (z.B. ng/dL) oder SI (z.B. nmol/L), fuer alle Marker. */}
-        <div role="group" aria-label={t('bw_units')} className="ml-auto flex h-8 shrink-0 items-center rounded-full p-0.5" style={PILL}>
+        <div role="group" aria-label={t('bw_units')} className="ml-auto flex h-8 shrink-0 items-center rounded-lg p-0.5" style={PILL}>
           {([['konventionell', t('bw_units_conventional')], ['si', t('bw_units_si')]] as [UnitSystem, string][]).map(([key, label]) => (
             <button
               key={key}
@@ -119,10 +119,10 @@ export function GridControls({ kategorie, auffaellig, sortMode, unitSystem, unit
               onClick={() => onUnitSystem(key)}
               disabled={!unitsReady}
               aria-pressed={unitSystem === key}
-              className="h-full rounded-full px-3 text-xs whitespace-nowrap transition-colors"
+              className="h-full rounded-md px-3 text-xs whitespace-nowrap transition-colors"
               style={unitSystem === key
-                ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 700, boxShadow: '0 3px 8px rgba(0,0,0,0.25)' }
-                : { color: 'var(--lg-text-2)', fontWeight: 600 }}
+                ? { background: 'var(--lg-fill-selected)', color: TEXT, fontWeight: 500, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }
+                : { color: 'var(--lg-text-2)', fontWeight: 500 }}
             >
               {label}
             </button>

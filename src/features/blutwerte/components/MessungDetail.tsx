@@ -28,23 +28,23 @@ export function MessungDetail({ id, entry, value, unit, diff, range, inRange, on
     <div
       id={id}
       data-bw-entry-detail
-      className="bw-messung-detail mx-3 mb-3 mt-1 flex flex-col gap-3 rounded-[20px] p-4"
+      className="bw-messung-detail mx-3 mb-3 mt-1 flex flex-col gap-3 rounded-2xl p-4"
       style={{ background: 'var(--lg-surface-2)' }}
     >
       <style>{`
         /* Aufklappen: kurz einblenden und 4 px nachruecken, beim Schliessen sofort weg */
-        .bw-messung-detail { transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+        .bw-messung-detail { transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1); }
         @starting-style { .bw-messung-detail { opacity: 0; transform: translateY(-4px); } }
         @media (prefers-reduced-motion: reduce) {
           @starting-style { .bw-messung-detail { transform: none; } }
         }
       `}</style>
       <div className="flex items-end justify-between gap-3">
-        <p className="text-2xl font-bold tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-entry-value>
+        <p className="text-2xl font-medium tabular-nums" style={{ color: inRange === false ? RED : 'var(--lg-accent-text)' }} data-bw-entry-value>
           {formatNumber(value ?? entry.value)}
-          <span className="ml-1.5 text-sm font-semibold" style={{ color: MUTED }}>{unit}</span>
+          <span className="ml-2 font-mono text-[13px] font-normal" style={{ color: MUTED }}>{unit}</span>
         </p>
-        <p className="text-sm font-semibold tabular-nums" style={{ color: MUTED }}>
+        <p className="font-mono text-[13px] tabular-nums" style={{ color: MUTED }}>
           {diff != null ? t('bw_entry_change', { value: `${signed(diff)} ${unit}` }) : t('bw_first_value')}
         </p>
       </div>
@@ -68,7 +68,7 @@ export function MessungDetail({ id, entry, value, unit, diff, range, inRange, on
           data-bw-entry-edit
           className="lg-gray-btn !min-h-10 !px-4 !text-sm"
         >
-          <Pencil size={15} strokeWidth={2.2} aria-hidden="true" />
+          <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
           {t('bw_edit')}
         </button>
       </div>
