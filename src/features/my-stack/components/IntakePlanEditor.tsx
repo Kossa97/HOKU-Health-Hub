@@ -32,6 +32,8 @@ import type {
   TrackingLevel,
 } from '../types'
 import { denyProps } from '../../../lib/denyFeedback'
+import { requestNotificationPermission } from '../../../lib/notificationPermission'
+import { ReminderNotificationStatus } from './ReminderNotificationStatus'
 
 export interface IntakePlanEditorProps {
   scheduleOnly?: boolean
@@ -173,6 +175,9 @@ export function IntakePlanEditor({
     ))
 
   function toggleReminder(value: string): void {
+    // Erst hier, beim Waehlen einer Erinnerung, fragt das System nach der
+    // Erlaubnis — nicht beim App-Start. Synchron aus dem Tippen heraus.
+    if (!plan.reminders.includes(value)) void requestNotificationPermission()
     onChange({
       reminders: plan.reminders.includes(value)
         ? plan.reminders.filter(eintrag => eintrag !== value)
@@ -998,6 +1003,7 @@ export function IntakePlanEditor({
             ))}
           </div>
         )}
+        {!onDemand && <ReminderNotificationStatus active={plan.reminders.length > 0} />}
       </section>
 
       {/* Was gerade dasteht, in einem Satz. Der Plan besteht aus drei Achsen

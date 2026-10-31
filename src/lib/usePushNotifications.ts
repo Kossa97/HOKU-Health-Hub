@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core'
 import { supabase } from './supabase'
 import type { User } from '@supabase/supabase-js'
 import { showPageNotification, waitForServiceWorkerPush, TEST_BODY, TEST_TITLE } from './pushLocal'
+import { isInstalledPWA, isIOSDevice, NOTIFICATION_PERMISSION_EVENT } from './notificationPermission'
 
 const VITE_VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
 
@@ -15,20 +16,6 @@ async function fetchServerVapidPublicKey(): Promise<string | null> {
   } catch {
     return null
   }
-}
-
-function isIOSDevice(): boolean {
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  )
-}
-
-function isInstalledPWA(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    !!(window.navigator as unknown as { standalone?: boolean }).standalone
-  )
 }
 
 function urlBase64ToArrayBuffer(base64: string): ArrayBuffer {
@@ -59,6 +46,14 @@ interface UsePushNotificationsReturn {
 
 export function usePushNotifications(user: User | null): UsePushNotificationsReturn {
   const [state, setState] = useState<PushState>('loading')
+  // Antwortet jemand anderswo auf den Systemdialog (Erinnerung im Stack,
+  // Training), zieht der Stand hier nach, ohne neu zu laden.
+  const [permissionTick, setPermissionTick] = useState(0)
+  useEffect(() => {
+    const onChange = () => setPermissionTick(n => n + 1)
+    window.addEventListener(NOTIFICATION_PERMISSION_EVENT, onChange)
+    return () => window.removeEventListener(NOTIFICATION_PERMISSION_EVENT, onChange)
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -108,11 +103,17 @@ export function usePushNotifications(user: User | null): UsePushNotificationsRet
         }
       })
       .catch(() => setState('default'))
-  }, [user])
+  }, [user, permissionTick])
 
   const saveSubscription = useCallback(async (forceFresh: boolean): Promise<boolean> => {
     if (!user) return false
     if (!('PushManager' in window)) return false
+
+    // Zuerst der Systemdialog: Safari zeigt ihn nur, solange der Aufruf noch
+    // zum Tippen gehoert — nach einem Netzabruf davor waere das vorbei.
+    const permission = await Notification.requestPermission()
+    window.dispatchEvent(new Event(NOTIFICATION_PERMISSION_EVENT))
+    if (permission !== 'granted') { setState(permission === 'denied' ? 'denied' : 'default'); return false }
 
     const serverKey = await fetchServerVapidPublicKey()
     const vapidKey  = serverKey ?? VITE_VAPID_PUBLIC_KEY?.trim() ?? null
@@ -123,9 +124,6 @@ export function usePushNotifications(user: User | null): UsePushNotificationsRet
     if (serverKey && VITE_VAPID_PUBLIC_KEY && serverKey !== VITE_VAPID_PUBLIC_KEY.trim()) {
       console.warn('[Push] VITE_VAPID_PUBLIC_KEY ≠ Server – nutze Server-Key')
     }
-
-    const permission = await Notification.requestPermission()
-    if (permission !== 'granted') { setState('denied'); return false }
 
     const reg = await navigator.serviceWorker.ready
 

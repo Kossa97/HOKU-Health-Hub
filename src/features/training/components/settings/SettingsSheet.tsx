@@ -2,6 +2,8 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { RefreshCw, ShieldCheck } from 'lucide-react'
 import { isAndroid, isIOS, isNative, requestPermissions } from '../../../../lib/health'
+import { requestNotificationPermission, useNotificationSupport } from '../../../../lib/notificationPermission'
+import { NotificationHint } from '../../../../components/NotificationHint'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import { formatNumber, parseDecimal } from '../../lib/format'
@@ -61,6 +63,7 @@ export function SettingsSheet({ data, onClose }: { data: TrainingData; onClose: 
 type Save = (patch: Partial<TrainingSettings>) => Promise<void>
 
 function GeneralSection({ settings, save, locale }: { settings: TrainingSettings; save: Save; locale: string }) {
+  const notificationSupport = useNotificationSupport()
   const { tt } = useTrainingText()
   const { unit } = settings
   const plates = [...new Set([...STANDARD_PLATES_KG, ...settings.platesKg])].sort((a, b) => b - a)
@@ -106,13 +109,12 @@ function GeneralSection({ settings, save, locale }: { settings: TrainingSettings
           checked={settings.restNotify}
           onChange={next => {
             // Erlaubnis nur auf ausdruecklichen Wunsch und aus dem Tippen heraus
-            try {
-              if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') void Notification.requestPermission().catch(() => {})
-            } catch { /* kein Notification-API */ }
+            if (next) void requestNotificationPermission()
             void save({ restNotify: next })
           }}
           label={tt('rest_notify')}
         />
+        {settings.restNotify && <NotificationHint state={notificationSupport} />}
 
         <ChipGroup
           label={tt('settings_weekly_goal')}
