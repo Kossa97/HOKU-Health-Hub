@@ -18,8 +18,8 @@
     "semantic_hash": ""
   },
   "android/app/capacitor.build.gradle": {
-    "mtime": 1793421498.9685814,
-    "seen": 1793421697.879737,
+    "mtime": 1793421957.2630417,
+    "seen": 1793421997.7549653,
     "ast_hash": "b5409842883de7de93c9261e7df38d04",
     "semantic_hash": ""
   },
@@ -48,8 +48,8 @@
     "semantic_hash": ""
   },
   "android/capacitor.settings.gradle": {
-    "mtime": 1793421498.9675817,
-    "seen": 1793421697.8797426,
+    "mtime": 1793421957.2630417,
+    "seen": 1793421997.7549706,
     "ast_hash": "69e1c96d0ade8b7101f283f35fbf7f17",
     "semantic_hash": ""
   },
@@ -708,9 +708,9 @@
     "semantic_hash": ""
   },
   "src/lib/health.ts": {
-    "mtime": 1793418324.6047428,
-    "seen": 1793418407.8207028,
-    "ast_hash": "788dd506be0fbfb107bff969ce7bc82c",
+    "mtime": 1793421866.783395,
+    "seen": 1793421997.7557101,
+    "ast_hash": "bb43f55fe7830fb0d166be417a6fb2fc",
     "semantic_hash": ""
   },
   "src/lib/injectionDeepLink.test.ts": {
@@ -5538,9 +5538,9 @@
     "semantic_hash": ""
   },
   "src/pages/Legal.tsx": {
-    "mtime": 1793420745.5514438,
-    "seen": 1793421697.8805625,
-    "ast_hash": "249986d8e36cbd2edab4e25bc97954fe",
+    "mtime": 1793421892.418105,
+    "seen": 1793421997.755785,
+    "ast_hash": "154f3551a2f8c68a725ba8d4749ff382",
     "semantic_hash": ""
   },
   "src/pages/__DevPreviews.tsx": {
@@ -21780,9 +21780,15 @@
     "semantic_hash": ""
   },
   "docs/android/health-connect-play-console.md": {
-    "mtime": 1793420948.27205,
-    "seen": 1793421697.8807168,
-    "ast_hash": "6bd1d8f23a7f6dcaa1feb4c23cfa5d30",
+    "mtime": 1793421866.7884152,
+    "seen": 1793421997.755979,
+    "ast_hash": "223ac306db51a08352fbc209972af74e",
+    "semantic_hash": ""
+  },
+  "src/pages/Legal.test.tsx": {
+    "mtime": 1793421879.428726,
+    "seen": 1793421997.7557843,
+    "ast_hash": "05891302302afd7fd7f3b5cd3ffe76da",
     "semantic_hash": ""
   }
 }
