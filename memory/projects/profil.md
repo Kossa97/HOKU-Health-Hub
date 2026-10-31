@@ -25,8 +25,9 @@ Schlafabschnitte vereinigt, Schritte/kcal je Tag nur aus der stärksten Quelle, 
 health_daily schreiben nur mit Einwilligung, leere Werte werden nie gesendet.
 
 ## Offen
-- **Migration `supabase-profil-p1-datenbasis.sql` gegen Produktion erst nach Freigabe**, vorher
-  prüfen, dass keine der 7 Spalten existiert; muss vor dem Merge laufen.
+- Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
+  Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
+  nachher 7 Spalten, 2 Tabellen mit RLS, Bucket privat 1 MB JPEG, 4+4 Policies, 13 Profile unverändert.
 - Ende-zu-Ende-Test (Wert landet in health_daily) auf iPhone und Android nach dem Produktivlauf;
   echtes Android-Gerät vor Store-Start.
 - Divers-Zeichen: ⚧ ist Platzhalter, Bild des Nutzers kam nicht an.
