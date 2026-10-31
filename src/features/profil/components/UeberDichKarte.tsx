@@ -21,6 +21,8 @@ export interface UeberDichWerte {
 
 interface Props {
   userId: string
+  /** Erst nach erfolgreichem Laden der Profilzeile bedienbar — sonst ersetzte eine aus [] gebaute Liste die gespeicherte. */
+  geladen: boolean
   goals: GoalTag[]
   country: string | null
   gender: ProfileGender | null
@@ -30,7 +32,7 @@ interface Props {
 
 type GenderKey = ProfileGender | 'none'
 
-export function UeberDichKarte({ userId, goals, country, gender, onChange }: Props) {
+export function UeberDichKarte({ userId, geladen, goals, country, gender, onChange }: Props) {
   const { t, i18n } = useTranslation()
   const [landOffen, setLandOffen] = useState(false)
   const locale = i18n?.language?.split('-')[0] || 'en'
@@ -39,6 +41,7 @@ export function UeberDichKarte({ userId, goals, country, gender, onChange }: Pro
 
   /** Neuer Stand sofort sichtbar, dann speichern; bei Fehler zurück und melden. */
   const speichere = async <K extends keyof UeberDichWerte>(feld: K, neu: UeberDichWerte[K], alt: UeberDichWerte[K]) => {
+    if (!geladen) return
     onChange({ [feld]: neu })
     const { error } = await supabase.from('profiles').update({ [feld]: neu }).eq('id', userId)
     if (error) {
@@ -65,6 +68,7 @@ export function UeberDichKarte({ userId, goals, country, gender, onChange }: Pro
         <UserRound size={17} className="text-[var(--lg-accent-text)]" aria-hidden="true" /> {t('profil_ueber_dich')}
       </h2>
 
+      <fieldset disabled={!geladen} aria-busy={!geladen} className="min-w-0 space-y-4 disabled:opacity-60">
       <div>
         <p className="label" id="ueber-dich-ziele">{t('profil_ziele')}</p>
         <div
@@ -119,6 +123,7 @@ export function UeberDichKarte({ userId, goals, country, gender, onChange }: Pro
           scroll
         />
       </div>
+      </fieldset>
 
       {landOffen && (
         <LandSheet

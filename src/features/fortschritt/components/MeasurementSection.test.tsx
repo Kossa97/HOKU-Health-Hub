@@ -19,7 +19,7 @@ function renderSection(over: Partial<Parameters<typeof MeasurementSection>[0]> =
     date: '2026-10-31',
     typed: {},
     onTyped: vi.fn(),
-    onSitesChange: vi.fn(),
+    onSitesChange: vi.fn() as Parameters<typeof MeasurementSection>[0]['onSitesChange'],
     ...over,
   }
   return { props, ...render(<MeasurementSection {...props} />) }
@@ -60,6 +60,14 @@ describe('MeasurementSection', () => {
     expect(getAllByRole('checkbox')).toHaveLength(9)
     fireEvent.click(getByRole('checkbox', { name: 'umfang_chest' }))
     expect(props.onSitesChange).toHaveBeenCalledWith(['chest'])
+  })
+
+  it('ohne geladene Wahl (onSitesChange null) ist die Auswahl gesperrt', () => {
+    const { getByRole, queryAllByRole } = renderSection({ sites: [], onSitesChange: null })
+    const knopf = getByRole('button', { name: 'umfaenge_choose_sites' }) as HTMLButtonElement
+    expect(knopf.disabled).toBe(true)
+    fireEvent.click(knopf)
+    expect(queryAllByRole('checkbox')).toHaveLength(0)
   })
 
   it('Abwählen entfernt die Stelle aus der Wahl', () => {

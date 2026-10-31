@@ -21,7 +21,7 @@ beforeEach(() => {
 afterEach(cleanup)
 
 function renderKarte(over: Partial<Parameters<typeof UeberDichKarte>[0]> = {}) {
-  const props = { userId: 'u1', goals: ['kraft'] as GoalTag[], country: null, gender: null, onChange: vi.fn(), ...over }
+  const props = { userId: 'u1', geladen: true, goals: ['kraft'] as GoalTag[], country: null, gender: null, onChange: vi.fn(), ...over }
   return { props, ...render(<UeberDichKarte {...props} />) }
 }
 
@@ -82,6 +82,19 @@ describe('UeberDichKarte', () => {
     fireEvent.click(getAllByRole('button').find(b => b.getAttribute('data-country-option') === 'DE')!)
     expect(props.onChange).toHaveBeenCalledWith({ country: 'DE' })
     expect(update).toHaveBeenCalledWith({ country: 'DE' })
+  })
+
+  it('vor dem Laden (oder nach Ladefehler) gesperrt und schreibt nichts', () => {
+    const { getByText, getByRole, props } = renderKarte({ geladen: false, goals: [] })
+    const ziel = getByText('ziel_schlaf')
+    expect(ziel.matches(':disabled')).toBe(true)
+    expect(getByRole('button', { name: /profil_land/ }).matches(':disabled')).toBe(true)
+    expect(getByRole('button', { name: 'geschlecht_female' }).matches(':disabled')).toBe(true)
+    // Auch ein durchgereichter Klick schreibt keine aus [] gebaute Liste.
+    fireEvent.click(ziel)
+    fireEvent.click(getByRole('button', { name: 'geschlecht_female' }))
+    expect(props.onChange).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
   })
 
   it('Land: Keine Angabe schreibt null', () => {

@@ -52,6 +52,8 @@ export function Profil() {
   const [copied, setCopied] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [ueberDich, setUeberDich] = useState<UeberDichWerte>({ goals: [], country: null, profile_gender: null })
+  // „Über dich" ist erst nach erfolgreichem Laden bedienbar (sonst schriebe ein Tippen eine Liste aus []).
+  const [ueberDichGeladen, setUeberDichGeladen] = useState(false)
   const [bilder, setBilder] = useState<{ avatar: string | null; cover: string | null }>({ avatar: null, cover: null })
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export function Profil() {
         country: knownCountry(data.country),
         profile_gender: isProfileGender(data.profile_gender) ? data.profile_gender : null,
       })
+      if (data) setUeberDichGeladen(true)
       if (data) setProfile({
         username: data.username ?? '', display_name: data.display_name ?? '',
         age: data.age, weight_kg: data.weight_kg, height_cm: data.height_cm,
@@ -145,6 +148,7 @@ export function Profil() {
 
       <UeberDichKarte
         userId={user!.id}
+        geladen={ueberDichGeladen}
         goals={ueberDich.goals}
         country={ueberDich.country}
         gender={ueberDich.profile_gender}

@@ -23,6 +23,8 @@ export function FortschrittPage() {
   const { state, reload } = useFortschrittData()
   const { user } = useAuth()
   const [measurementSites, setMeasurementSites] = useState<MeasurementSite[]>([])
+  // Erst nach erfolgreichem Laden darf die Wahl geschrieben werden — sonst ersetzte [site] die gespeicherte Liste.
+  const [sitesLoaded, setSitesLoaded] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const [logOpen, setLogOpen] = useState(false)
   const [rangeChip, setRangeChip] = useState<RangeChipKey>(DEFAULT_RANGE_CHIP)
@@ -33,8 +35,9 @@ export function FortschrittPage() {
     }
   }, [searchParams, setSearchParams])
 
+  // Nach einem Ladefehler versucht es das naechste Oeffnen des Eintrags noch einmal.
   useEffect(() => {
-    if (!user) return
+    if (!user || sitesLoaded) return
     let cancelled = false
     void supabase
       .from('profiles')
@@ -51,12 +54,13 @@ export function FortschrittPage() {
         if (Array.isArray(stored)) {
           setMeasurementSites(MEASUREMENT_SITES.filter(site => stored.includes(site)))
         }
+        setSitesLoaded(true)
       })
     return () => { cancelled = true }
-  }, [user])
+  }, [user, sitesLoaded, logOpen])
 
   const changeMeasurementSites = async (next: MeasurementSite[]) => {
-    if (!user) return
+    if (!user || !sitesLoaded) return
     const previous = measurementSites
     setMeasurementSites(next)
     const { error } = await supabase.from('profiles').update({ measurement_sites: next }).eq('id', user.id)
@@ -112,7 +116,7 @@ export function FortschrittPage() {
         weightLogs={state.weightLogs}
         measurements={state.measurements}
         measurementSites={measurementSites}
-        onMeasurementSitesChange={sites => void changeMeasurementSites(sites)}
+        onMeasurementSitesChange={sitesLoaded ? sites => void changeMeasurementSites(sites) : null}
         open={logOpen}
         onClose={() => setLogOpen(false)}
         onSaved={() => reload()}

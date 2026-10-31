@@ -74,7 +74,8 @@ interface Props {
   weightLogs: WeightLogEntry[]
   measurements: BodyMeasurementEntry[]
   measurementSites: MeasurementSite[]
-  onMeasurementSitesChange: (sites: MeasurementSite[]) => void
+  /** `null`, solange die gespeicherte Wahl nicht geladen ist. */
+  onMeasurementSitesChange: ((sites: MeasurementSite[]) => void) | null
   open: boolean
   onClose: () => void
   onSaved: () => void | Promise<void>

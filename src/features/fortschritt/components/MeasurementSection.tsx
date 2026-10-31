@@ -37,7 +37,8 @@ interface Props {
   date: string
   typed: TypedMeasurements
   onTyped: (site: MeasurementSite, text: string) => void
-  onSitesChange: (sites: MeasurementSite[]) => void
+  /** `null`, solange die gespeicherte Wahl nicht geladen ist: dann ist die Auswahl gesperrt. */
+  onSitesChange: ((sites: MeasurementSite[]) => void) | null
 }
 
 export function MeasurementSection({ sites, entries, date, typed, onTyped, onSitesChange }: Props) {
@@ -46,6 +47,7 @@ export function MeasurementSection({ sites, entries, date, typed, onTyped, onSit
   const [choosing, setChoosing] = useState(false)
 
   const toggleSite = (site: MeasurementSite) => {
+    if (!onSitesChange) return
     const next = sites.includes(site) ? sites.filter(s => s !== site) : [...sites, site]
     onSitesChange(MEASUREMENT_SITES.filter(s => next.includes(s)))
   }
@@ -134,7 +136,8 @@ export function MeasurementSection({ sites, entries, date, typed, onTyped, onSit
           <button
             type="button"
             onClick={() => setChoosing(v => !v)}
-            aria-expanded={choosing}
+            aria-expanded={choosing && onSitesChange !== null}
+            disabled={onSitesChange === null}
             style={{
               alignSelf: 'flex-start',
               padding: '8px 14px',
@@ -150,7 +153,7 @@ export function MeasurementSection({ sites, entries, date, typed, onTyped, onSit
             {t('umfaenge_choose_sites')}
           </button>
 
-          {choosing && (
+          {choosing && onSitesChange && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {MEASUREMENT_SITES.map(site => (
                 <label
