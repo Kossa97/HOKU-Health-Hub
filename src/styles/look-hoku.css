@@ -14,9 +14,13 @@
    - Erkennungszeichen: Messstriche. Fortschritt und Bestand stehen auf einer
      Skala wie auf einer Spritze (.hk-scale), sonst nirgends.
 
-   Umsetzung: eine graue Rampe mit einem Hauch Tinte, Flächen fest mit
-   Haarlinie, kein Glas, kein Glanz, kein Leuchten. Hauptknopf gebrochenes
-   Weiß mit dunkler Schrift; das Blau aus dem App-Icon nur für Auswahl,
+   Umsetzung (Fassung 2, Nutzer 31.10.2026: „ich mag das Liquid Glass …
+   schön dunkel, damit Hoku gut zur Geltung kommt"): reines Schwarz als
+   Grund, Inhalt auf dunklem Glas mit leiser Lichtkante und Glanz von oben,
+   die schwebende Ebene (Leiste, Blätter, Menüs, Knöpfe) aus klarem Glas mit
+   Unschärfe. Kein farbiges Leuchten — das einzige Licht ist Hoku. Aufbau,
+   Schrift, Texte und Abstände bleiben wie im unslop-Durchgang. Hauptknopf
+   gebrochenes Weiß mit dunkler Schrift; das Blau aus dem App-Icon nur für Auswahl,
    Verweise und die eine Zahl, die zählt. IBM Plex Sans für die Oberfläche,
    IBM Plex Mono (aus dem Marken-Kit) für Zahlen und Meta. Gewichte 400–600.
    Eine Kurve für alle Bewegung, kein Federn, kein Atmen.
@@ -26,11 +30,17 @@
 
 html[data-look='hoku'] {
   /* ── Rampe ── */
-  --hk-deep: #0a0b0d;
-  --hk-bg: #0e0f12;
-  --hk-card: #15161a;
-  --hk-raised: #1d1f24;
-  --hk-raised-2: #25272d;
+  --hk-deep: rgba(255, 255, 255, 0.04);
+  --hk-bg: #000;
+  --hk-card: #0d0d0f;
+  --hk-raised: rgba(255, 255, 255, 0.08);
+  --hk-raised-2: rgba(255, 255, 255, 0.13);
+  /* Glas: Füllung, Kante und Glanz (hell oben links, fast nichts in der Mitte) */
+  --hk-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.035) 100%);
+  --hk-glass-blur: blur(26px) saturate(170%);
+  --hk-glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  --hk-stone: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.09) 100%);
+  --hk-stone-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
   --hk-line: rgba(236, 238, 243, 0.08);
   --hk-line-strong: rgba(236, 238, 243, 0.14);
   --hk-text: #eceef2;
@@ -72,10 +82,10 @@ html[data-look='hoku'] {
 
   /* Grundwerte der App */
   --app-bg: var(--hk-bg);
-  --surface: var(--hk-card);
-  --surface-raised: var(--hk-raised);
-  --surface-input: var(--hk-bg);
-  --glass-bg: var(--hk-raised);
+  --surface: rgba(18, 18, 21, 0.97);
+  --surface-raised: rgba(44, 44, 48, 0.94);
+  --surface-input: rgba(255, 255, 255, 0.06);
+  --glass-bg: rgba(26, 26, 30, 0.72);
   --text: var(--hk-text);
   --text-dim: var(--hk-text-2);
   --text-muted: var(--hk-text-3);
@@ -113,33 +123,36 @@ html[data-look='hoku'] {
   --lg-accent-text: var(--hk-accent-ink);
   --lg-surface-2: rgba(236, 238, 243, 0.05);
 
-  /* Materialien: alles fest, Tiefe aus Flächenstufen und Haarlinie */
-  --lg-glass-fill: var(--hk-raised);
-  --lg-glass-filter: none;
-  --lg-glass-shadow: inset 0 0 0 1px var(--hk-line);
-  --lg-rim: none;
-  --lg-sheen: none;
-  --lg-primary-fill: var(--hk-text);
-  --lg-danger-fill: rgba(229, 72, 77, 0.14);
-  --lg-surface-fill: var(--hk-card);
-  --lg-surface-bg: var(--hk-card);
+  /* Materialien: Liquid Glass auf Schwarz.
+     Bedien-Ebene: klares Glas mit Unschärfe, Kante als Innenschatten, Glanz.
+     Inhalt: dunkles Glas ohne Unschärfe (auf Schwarz bricht sie nichts und
+     kostet je Karte eine Ebene) — sichtbar durch Lichtkante und Glanz. */
+  --lg-glass-fill: var(--hk-glass);
+  --lg-glass-filter: var(--hk-glass-blur);
+  --lg-glass-shadow: var(--hk-glass-edge), 0 12px 32px rgba(0, 0, 0, 0.55);
+  --lg-rim: linear-gradient(transparent, transparent);
+  --lg-sheen: radial-gradient(120% 70% at 18% 0%, rgba(255, 255, 255, 0.12), transparent 55%);
+  --lg-primary-fill: linear-gradient(180deg, #ffffff 0%, #e4e6eb 100%);
+  --lg-danger-fill: linear-gradient(180deg, rgba(229, 72, 77, 0.30), rgba(229, 72, 77, 0.14));
+  --lg-surface-fill: rgba(255, 255, 255, 0.04);
+  --lg-surface-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.018) 100%);
   --lg-surface-blur: none;
-  --lg-surface-shadow: inset 0 0 0 1px var(--hk-line);
-  --lg-card-rim: none;
-  --lg-card-sheen: none;
-  --lg-sheet-bg: var(--hk-card);
-  --lg-sheet-solid: var(--hk-card);
-  --lg-sheet-blur: none;
-  --lg-fill: rgba(236, 238, 243, 0.06);
-  --lg-fill-selected: var(--hk-raised-2);
-  --lg-pill-fill: var(--hk-raised-2);
-  --lg-pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 1px var(--hk-line);
+  --lg-surface-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 16px 40px rgba(0, 0, 0, 0.7);
+  --lg-card-rim: linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.10) 30%, rgba(255, 255, 255, 0.025) 55%, rgba(255, 255, 255, 0.07) 78%, rgba(255, 255, 255, 0.28));
+  --lg-card-sheen: radial-gradient(90% 60% at 20% -10%, rgba(255, 255, 255, 0.08), transparent 60%);
+  --lg-sheet-bg: rgba(24, 24, 28, 0.74);
+  --lg-sheet-solid: #121215;
+  --lg-sheet-blur: blur(40px) saturate(180%);
+  --lg-fill: rgba(255, 255, 255, 0.07);
+  --lg-fill-selected: rgba(255, 255, 255, 0.16);
+  --lg-pill-fill: var(--hk-stone);
+  --lg-pill-shadow: var(--hk-stone-edge);
 
-  --shadow-btn-primary: none;
-  --shadow-input: inset 0 0 0 1px var(--hk-line);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 8px 22px rgba(0, 0, 0, 0.5);
+  --shadow-input: inset 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
   --shadow-input-focus: inset 0 0 0 1px var(--hk-accent), 0 0 0 3px rgba(106, 166, 255, 0.18);
 
-  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(236, 238, 243, 0.07), rgba(236, 238, 243, 0) 70%), var(--hk-bg);
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(255, 244, 230, 0.09), rgba(255, 244, 230, 0) 70%), #000;
 }
 
 html[data-look='hoku'] body {
@@ -150,7 +163,7 @@ html[data-look='hoku'] body {
 html[data-look='hoku'] .lg-backdrop { background-color: var(--hk-bg); }
 html[data-look='hoku'] ::selection { background: rgba(106, 166, 255, 0.3); }
 html[data-look='hoku'] input[type='checkbox'] { accent-color: var(--hk-accent); }
-html[data-look='hoku'] select option { background: var(--hk-raised); color: var(--hk-text); }
+html[data-look='hoku'] select option { background: #1c1c1f; color: var(--hk-text); }
 
 /* ── Schrift: Hierarchie aus Größe und Farbe, nicht aus Gewicht ── */
 html[data-look='hoku'] :is(h1, h2, h3) { font-weight: 500; letter-spacing: -0.01em; }
@@ -191,21 +204,17 @@ html[data-look='hoku'] .lg-btn {
 html[data-look='hoku'] .lg-btn:active { transform: scale(0.98); filter: none; }
 html[data-look='hoku'] .lg-btn-compact { border-radius: 10px; font-size: 15px; }
 html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary) { color: var(--hk-bg); }
-html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):active { background: #d3d6dd; filter: none; }
+html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):active { filter: brightness(0.9); }
+/* Getöntes Glas ohne Farbe: klares Glas, Schrift hell, kein Atmen */
 html[data-look='hoku'] .lg-btn-tint {
   color: var(--hk-text);
-  background: var(--hk-raised);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px var(--hk-line);
+  background: var(--hk-glass);
+  -webkit-backdrop-filter: var(--hk-glass-blur);
+  backdrop-filter: var(--hk-glass-blur);
+  box-shadow: var(--hk-glass-edge), 0 8px 22px rgba(0, 0, 0, 0.45);
   animation: none;
 }
-html[data-look='hoku'] :is(.lg-btn-danger, .btn-danger) {
-  color: var(--lg-bad-text);
-  box-shadow: inset 0 0 0 1px rgba(229, 72, 77, 0.24);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
+html[data-look='hoku'] :is(.lg-btn-danger, .btn-danger) { color: var(--lg-bad-text); }
 html[data-look='hoku'] :is(.btn-primary, .btn-secondary, .btn-danger) {
   border-radius: 12px;
   font: 500 15px/1.15 var(--font-sans);
@@ -213,20 +222,18 @@ html[data-look='hoku'] :is(.btn-primary, .btn-secondary, .btn-danger) {
   transition: transform 160ms var(--hk-ease), background-color 160ms var(--hk-ease), opacity 160ms var(--hk-ease);
 }
 html[data-look='hoku'] :is(.btn-primary, .btn-secondary, .btn-danger):active { transform: scale(0.98); }
-html[data-look='hoku'] .btn-secondary { -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-look='hoku'] .lg-gray-btn { border-radius: 10px; font: 500 15px/1.2 var(--font-sans); letter-spacing: 0; }
-html[data-look='hoku'] .lg-gray-btn:active { transform: scale(0.98); filter: none; background: var(--hk-raised-2); }
+html[data-look='hoku'] .lg-gray-btn:active { transform: scale(0.98); filter: brightness(1.3); }
 html[data-look='hoku'] .lg-icon-btn { transition: transform 160ms var(--hk-ease), background-color 160ms var(--hk-ease); }
 html[data-look='hoku'] .lg-icon-btn:active { transform: scale(0.96); }
 @media (hover: hover) and (pointer: fine) {
-  html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):hover { filter: none; background: #f6f7f9; }
-  html[data-look='hoku'] :is(.lg-btn-glass, .lg-btn-tint, .btn-secondary, .lg-gray-btn):hover { filter: none; background: var(--hk-raised-2); }
-  html[data-look='hoku'] :is(.lg-btn-danger, .btn-danger):hover { filter: none; background: rgba(229, 72, 77, 0.2); }
+  html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):hover { filter: brightness(1.04); }
+  html[data-look='hoku'] :is(.lg-btn-glass, .lg-btn-tint, .btn-secondary, .lg-gray-btn, .lg-btn-danger, .btn-danger):hover { filter: brightness(1.18); }
 }
 /* Hauptknopf auf voller Akzentfläche (bg-sky-500 als Knopf): gebrochenes Weiß */
 html[data-look='hoku'] button.bg-sky-500:not(.btn-primary) {
-  background: var(--hk-text) !important;
-  box-shadow: none !important;
+  background: var(--lg-primary-fill) !important;
+  box-shadow: var(--shadow-btn-primary) !important;
   color: var(--hk-bg) !important;
   font-weight: 500 !important;
 }
@@ -237,23 +244,23 @@ html[data-look='hoku'] .lg-seg-pill { border-radius: 8px; }
 html[data-look='hoku'] .lg-seg > button { border-radius: 8px; font: 500 14px var(--font-sans); }
 html[data-look='hoku'] .lg-seg > button:active { transform: scale(0.97); }
 html[data-look='hoku'] .lg-seg-scroll { border-radius: 10px; }
-html[data-look='hoku'] .lg-seg-fill { background: var(--hk-deep); box-shadow: inset 0 0 0 1px var(--hk-line); }
-html[data-look='hoku'] .lg-seg-fill .lg-seg-pill { background: var(--hk-raised-2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+html[data-look='hoku'] .lg-seg-fill { background: var(--lg-fill); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 -0.5px 0 rgba(255, 255, 255, 0.06); }
+html[data-look='hoku'] .lg-seg-fill .lg-seg-pill { background: var(--hk-stone); box-shadow: var(--hk-stone-edge); }
 html[data-look='hoku'] .lg-seg-pill[data-animate='true'] { transition: transform 280ms var(--hk-ease), width 280ms var(--hk-ease); }
 /* Muster bg-slate-800 rounded-xl p-1 aus index.css */
 html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) {
-  background: var(--hk-deep) !important;
+  background: var(--lg-fill) !important;
   border-radius: 10px !important;
-  box-shadow: inset 0 0 0 1px var(--hk-line) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) button { border-radius: 8px !important; }
 html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) .bg-slate-700 {
-  background: var(--hk-raised-2) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  background: var(--hk-stone) !important;
+  box-shadow: var(--hk-stone-edge) !important;
 }
 html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) :is(.bg-sky-500, .bg-emerald-500, .bg-amber-500) {
-  background: var(--hk-raised-2) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  background: var(--hk-stone) !important;
+  box-shadow: var(--hk-stone-edge) !important;
   color: var(--hk-text) !important;
   font-weight: 500 !important;
 }
@@ -262,8 +269,8 @@ html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) :is(.bg-sky-500, .b
 html[data-look='hoku'] .lg-chip { border-radius: 8px; font: 500 14px var(--font-sans); }
 html[data-look='hoku'] .lg-chip:active { transform: scale(0.97); }
 html[data-look='hoku'] .lg-chip[aria-pressed='true'] {
-  background: var(--hk-raised-2);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
 }
 html[data-look='hoku'] .lg-chip[aria-pressed='true'] .lg-chip-dot { transform: none; }
 html[data-look='hoku'] .lg-chip[data-hint='true']::after { display: none; }
@@ -272,24 +279,32 @@ html[data-look='hoku'] .lg-tag[data-tone='accent'] { background: var(--accent-we
 html[data-look='hoku'] button.bg-slate-800 { background: var(--lg-fill) !important; }
 html[data-look='hoku'] .lg-icon-tile {
   border-radius: 8px;
-  background: var(--hk-raised-2) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.2);
   color: var(--hk-text-2) !important;
 }
 
-/* ── Flächen, Blätter, Menüs ── */
-html[data-look='hoku'] :is(.lg-glass, .lg-surface, .lg-group, .card, .glass) {
+/* ── Flächen, Blätter, Menüs ──
+   Inhaltsflächen ohne Unschärfe (siehe oben), die schwebende Ebene mit. */
+html[data-look='hoku'] :is(.lg-surface, .lg-group, .card) {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-html[data-look='hoku'] .glass { background: var(--hk-raised); border-color: var(--hk-line); }
+html[data-look='hoku'] .glass {
+  background: var(--hk-glass);
+  border-color: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: var(--hk-glass-blur);
+  backdrop-filter: var(--hk-glass-blur);
+}
 html[data-look='hoku'] .rounded-2xl { border-radius: 16px !important; }
 html[data-look='hoku'] .lg-sheet {
-  border-radius: 24px;
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--hk-line);
+  border-radius: 28px;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
+/* Blätter mit scrollendem Inhalt bleiben fest (Unschärfe stört dort iOS) */
 html[data-look='hoku'] .rounded-t-2xl {
-  background: var(--hk-card) !important;
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hk-line) !important;
+  background: #121215 !important;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
 }
 @media (max-width: 639px) {
   html[data-look='hoku'] .rounded-t-2xl {
@@ -297,22 +312,23 @@ html[data-look='hoku'] .rounded-t-2xl {
     border-top-right-radius: 24px !important;
   }
 }
-html[data-look='hoku'] .sticky.top-0 { background: rgba(14, 15, 18, 0.94) !important; }
-html[data-look='hoku'] :is(.rounded-t-2xl, [role='dialog']) .sticky.top-0 { background: var(--hk-card) !important; }
+html[data-look='hoku'] .sticky.top-0 { background: rgba(0, 0, 0, 0.9) !important; }
+html[data-look='hoku'] :is(.rounded-t-2xl, [role='dialog']) .sticky.top-0 { background: #121215 !important; }
+/* Menüs und Popover: dichtes Glas über dem Inhalt */
 html[data-look='hoku'] :is(.shadow-xl, .lg-menu) {
-  background: var(--hk-raised) !important;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--hk-line) !important;
+  background: rgba(30, 30, 34, 0.74) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 1px 1px 0 rgba(255, 255, 255, 0.18), inset -1px -1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 html[data-look='hoku'] .lg-menu { animation-duration: 200ms; animation-timing-function: var(--hk-ease); }
-html[data-look='hoku'] .lg-menu-row:active { background-color: var(--hk-raised-2); }
+html[data-look='hoku'] .lg-menu-row:active { background-color: rgba(255, 255, 255, 0.08); }
 html[data-look='hoku'] .lg-menu-tile { border-radius: 14px; }
-html[data-look='hoku'] .lg-row:active { background-color: rgba(236, 238, 243, 0.04); }
+html[data-look='hoku'] .lg-row:active { background-color: rgba(255, 255, 255, 0.06); }
 html[data-look='hoku'] .lg-grabber { background: rgba(236, 238, 243, 0.2); }
 html[data-look='hoku'] .lg-dots > i[data-on='true'] { width: 16px; }
 html[data-look='hoku'] .lg-form-row:focus-within { background: var(--lg-fill); }
-html[data-look='hoku'] :is(.input, .select):focus { background: var(--hk-bg); }
+html[data-look='hoku'] :is(.input, .select):focus { background: rgba(255, 255, 255, 0.09); }
 
 /* ── Kein Leuchten, keine Verläufe auf Text ── */
 html[data-look='hoku'] :is(.shadow-glow-sm, .shadow-glow-md, .shadow-glow-violet, .shadow-glow-green, .shadow-btn-primary, .glow-cyan-sm, .glow-cyan-md, .glow-violet, .animate-pulse-glow) {
@@ -326,7 +342,7 @@ html[data-look='hoku'] .text-gradient-cyan {
 }
 html[data-look='hoku'] .bg-sky-500:not(button):not(div),
 html[data-look='hoku'] .bg-sky-400.rounded-full { box-shadow: none; }
-html[data-look='hoku'] .nav-item-active { background: var(--hk-raised); box-shadow: inset 0 0 0 1px var(--hk-line); }
+html[data-look='hoku'] .nav-item-active { background: var(--hk-glass); box-shadow: var(--hk-glass-edge); }
 html[data-look='hoku'] .nav-item-active svg,
 html[data-look='hoku'] .nav-item-inactive:hover svg { filter: none; }
 html[data-look='hoku'] .nav-item-active span { color: var(--hk-text); letter-spacing: 0; }
@@ -348,12 +364,12 @@ html[data-look='hoku'] .expiry-banner {
 }
 html[data-look='hoku'] .expiry-banner--soon {
   --expiry-banner-border: rgba(229, 161, 58, 0.32);
-  --expiry-banner-bg: var(--hk-card);
+  --expiry-banner-bg: var(--lg-surface-bg);
   --expiry-banner-fg: var(--lg-warn-text);
 }
 html[data-look='hoku'] .expiry-banner--expired {
   --expiry-banner-border: rgba(229, 72, 77, 0.32);
-  --expiry-banner-bg: var(--hk-card);
+  --expiry-banner-bg: var(--lg-surface-bg);
   --expiry-banner-fg: var(--lg-bad-text);
 }
 html[data-look='hoku'] .expiry-banner__message { font-weight: 500; font-size: 13px; }
@@ -364,31 +380,18 @@ html[data-look='hoku'] .tyd-expired-badge::after { display: none; }
 html[data-look='hoku'] .tyd-expired-text-alarm { display: none; }
 html[data-look='hoku'] .tyd-expired-text-since { opacity: 1; transform: none; }
 
-/* ── Leiste unten: feste Kapsel mit Haarlinie, ohne Glas und Federn ── */
-html[data-look='hoku'] .tyd-tabbar {
-  background: var(--hk-card);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px var(--hk-line), 0 8px 24px rgba(0, 0, 0, 0.5);
-  transition: transform 200ms var(--hk-ease);
-}
-html[data-look='hoku'] .tyd-tabbar[data-gedrueckt='true'] { transform: scale(1.01); }
-html[data-look='hoku'] .tyd-tabbar::before,
-html[data-look='hoku'] .tyd-tabbar::after { display: none; }
+/* ── Leiste unten: schwebende Glaskapsel wie in iOS 26 (Lichtrand und
+   Schimmer aus index.css), die Pille ein Glasstein; Bewegung ohne Federn ── */
+html[data-look='hoku'] .tyd-tabbar { transition: transform 200ms var(--hk-ease); }
+html[data-look='hoku'] .tyd-tabbar[data-gedrueckt='true'] { transform: scale(1.015); }
 html[data-look='hoku'] .tyd-tabbar-pill {
-  background: var(--hk-raised-2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition:
     transform 320ms var(--hk-ease),
     width 320ms var(--hk-ease),
     opacity 200ms linear;
 }
-html[data-look='hoku'] .tyd-tabbar-pill[data-gehalten='true'] {
-  background: #2e3037;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  scale: 1.03;
-}
-html[data-look='hoku'] .tyd-tabbar-item { color: var(--hk-text-3); }
+html[data-look='hoku'] .tyd-tabbar-pill[data-gehalten='true'] { scale: 1.04; }
+html[data-look='hoku'] .tyd-tabbar-item { color: var(--hk-text-2); }
 html[data-look='hoku'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: var(--hk-text); }
 html[data-look='hoku'] .tyd-tabbar-item:active { transform: scale(0.96); }
 html[data-look='hoku'] .tyd-tabdock-action { transition: transform 160ms var(--hk-ease); }
@@ -396,24 +399,14 @@ html[data-look='hoku'] .tyd-tabdock-action:active { transform: scale(0.96); }
 
 /* ── Erkennungszeichen: Messstriche ──────────────────────────────────────
    Eine Spur (Fortschritt, Bestand, Ziel) wird zur Skala wie auf einer
-   Spritze: alle 10 % ein Strich in der Farbe der Fläche, der Füllung und
-   Spur teilt. Nur in HOKU; die anderen Looks zeigen die Spur wie bisher. */
+   Spritze: alle 10 % eine 2-px-Lücke, die Füllung und Spur teilt. Als Maske,
+   damit die Lücke auf jedem Grund stimmt — auch auf durchscheinendem Glas.
+   Nur in HOKU; die anderen Looks zeigen die Spur wie bisher. */
 html[data-look='hoku'] .hk-scale {
   position: relative;
   overflow: hidden;
-}
-html[data-look='hoku'] .hk-scale::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0,
-    transparent calc(10% - 2px),
-    var(--hk-scale-gap, var(--hk-card)) calc(10% - 2px),
-    var(--hk-scale-gap, var(--hk-card)) 10%
-  );
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0, #000 calc(10% - 2px), transparent calc(10% - 2px), transparent 10%);
+  mask-image: repeating-linear-gradient(90deg, #000 0, #000 calc(10% - 2px), transparent calc(10% - 2px), transparent 10%);
 }
 
 /* ── Einzelstücke aus index.css ── */

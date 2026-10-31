@@ -17,6 +17,13 @@ Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`, HOKU in
   umstellt. Wer nie gewählt hat, bekommt HOKU; gespeicherte Wahl bleibt.
   Gemeinsame Aufräumarbeiten (Gewichte, Versal-Labels, Emoji, Glows,
   `transition-all`) gelten für alle Looks.
+  **Fassung 2 (31.10.2026, Nutzer: „ich mag das Liquid Glass … schön dunkel,
+  damit Hoku gut zur Geltung kommt"):** Aufbau, Schrift, Texte, Abstände und
+  Blau bleiben; nur die Optik ist Glas: Grund reines Schwarz, Karten dunkles
+  Glas mit Lichtkante und Glanz (ohne Unschärfe), Leiste/Blätter/Menüs/Knöpfe
+  klares Glas mit Unschärfe, Auswahl als Glasstein, Hauptknopf weißes Glas.
+  Kein farbiges Leuchten — Hoku ist das einzige Licht. Messstriche jetzt per
+  Maske (passen auf jedem Grund, `--hk-scale-gap` entfällt).
 
 - **Schwarz** (bis 31.10.2026 Standard): reines Schwarz, helle Taschenlampen-Kante.
 - **Satin**: dicke, matte Kante mit wanderndem Reflex.

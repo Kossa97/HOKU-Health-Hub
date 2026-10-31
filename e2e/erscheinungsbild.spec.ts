@@ -31,13 +31,13 @@ test('Erscheinungsbild: Soft Dark — Anthrazit statt Schwarz, blaue Bedienung',
   await expect(page.locator('html')).toHaveAttribute('data-look', 'softdark')
 })
 
-test('Erscheinungsbild: HOKU ist Standard — fester Grund, Plex, kein Glas', async ({ page, mock }) => {
+test('Erscheinungsbild: HOKU ist Standard — schwarzer Grund, Plex, Leiste aus Glas', async ({ page, mock }) => {
   void mock
   await page.goto('/profil')
   await expect(page.locator('html')).toHaveAttribute('data-look', 'hoku')
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(14, 15, 18)')
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(0, 0, 0)')
   await expect(page.locator('body')).toHaveCSS('font-family', /IBM Plex Sans/)
-  await expect(page.locator('.tyd-tabbar')).toHaveCSS('backdrop-filter', 'none')
+  await expect(page.locator('.tyd-tabbar')).toHaveCSS('backdrop-filter', /blur/)
   const umschalter = page.locator('[data-look-switcher]')
   await expect(umschalter.getByRole('button', { name: 'HOKU' })).toHaveAttribute('aria-pressed', 'true')
 })

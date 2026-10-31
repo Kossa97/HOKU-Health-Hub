@@ -1,6 +1,6 @@
 import { AUTO_EREIGNIS } from '../features/dot/autoTracking/autoTracking'
 import { useDotText } from '../features/dot/texte'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -3012,7 +3012,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             <span
               aria-hidden="true"
               className="hk-scale block h-2 w-24 rounded-[2px] bg-[var(--lg-fill)]"
-              style={{ '--hk-scale-gap': 'var(--hk-bg)' } as CSSProperties}
             >
               <span
                 className="block h-full origin-left bg-[var(--lg-good)] transition-transform duration-300 motion-reduce:transition-none"
