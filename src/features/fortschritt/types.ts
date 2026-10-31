@@ -121,6 +121,7 @@ export interface FortschrittOverviewState {
   dailyLogs: DailyLogEntry[]
   weightLogs: WeightLogEntry[]
   bloodwork: BloodworkEntry[]
+  measurements: BodyMeasurementEntry[]
   photos: ProgressPhotoEntry[]
   doseLogs: DoseLogEntry[]
   stackItemNames: Map<string, string>

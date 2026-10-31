@@ -1,7 +1,8 @@
 import { METRIC_THRESHOLDS, MAX_TOP_CHANGES, MIN_POINTS_FOR_TREND, WELLNESS_FIELDS } from '../constants'
-import type { BloodworkEntry, DailyLogEntry, DateRange, DoseLogEntry, MetricChange, MetricKey, WeightLogEntry } from '../types'
+import type { BloodworkEntry, BodyMeasurementEntry, DailyLogEntry, DateRange, DoseLogEntry, MetricChange, MetricKey, WeightLogEntry } from '../types'
 import { dateKeyFromTimestamp } from './substances'
 import { filterByDateRange } from './range'
+import { measurementSeries, siteFromMetricKey } from './measurements'
 import { normalizeMarker } from '../../blutwerte/lib/markerCatalog'
 import { convert } from '../../blutwerte/lib/unitConversion'
 import { pickDisplayUnit } from '../../blutwerte/lib/bloodwork'
@@ -248,7 +249,12 @@ export function buildMetricSeries(
   weights: WeightLogEntry[],
   dailyLogs: DailyLogEntry[],
   bloodwork: BloodworkEntry[],
+  measurements: BodyMeasurementEntry[] = [],
 ): SeriesPoint[] {
+  if (key.startsWith('umfang:')) {
+    const site = siteFromMetricKey(key)
+    return site ? measurementSeries(measurements, site, range) : []
+  }
   if (key === 'weight') return weightSeries(weights, range)
   if (key === 'body_fat') return dailyFieldSeries(dailyLogs, range, 'body_fat_pct')
   if (key === 'energie' || key === 'schlaf' || key === 'wohlbefinden' || key === 'libido') {

@@ -20,4 +20,5 @@ export const METRIC_COLORS: Record<string, string> = {
   wohlbefinden: '#10b981',
   libido: '#f472b6',
   body_fat: '#f87171',
+  umfang: '#38bdf8',
 }
