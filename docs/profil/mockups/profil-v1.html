@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil Mockup</title>
+<style>
+  :root {
+    --bg: #1f2023; --bg-top: #2a2b2f;
+    --s1: #303136; --s2: #27282c;
+    --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45);
+    --hair: rgba(255,255,255,.08);
+    --blue: #4ea8ff; --cyan: #64d2ff;
+    --good: #5fe07f; --warn: #ffb340; --bad: #ff6961;
+    --ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+    --disp: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #141518; color: var(--text); font-family: var(--ui); }
+  .wrap { display: flex; gap: 28px; padding: 24px 16px 48px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+
+  /* Steuerung neben dem Telefon */
+  .ctrl { width: 300px; position: sticky; top: 24px; }
+  .ctrl h1 { font: 600 20px/1.2 var(--disp); margin: 0 0 4px; }
+  .ctrl p { color: var(--t2); font-size: 13px; line-height: 1.45; margin: 0 0 14px; }
+  .ctrl .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 0 8px; }
+  .views { display: grid; gap: 6px; }
+  .views button { text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--hair); background: var(--s2); color: var(--text); font: 500 14px var(--ui); cursor: pointer; }
+  .views button small { display: block; color: var(--t3); font-size: 12px; font-weight: 400; margin-top: 2px; }
+  .views button.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 18px rgba(78,168,255,.18); }
+  .legend { display: grid; gap: 6px; font-size: 13px; color: var(--t2); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); cursor: pointer; margin-top: 8px; }
+
+  /* Telefon */
+  .phone { width: 390px; max-width: 100%; height: 844px; border-radius: 46px; background: linear-gradient(180deg, var(--bg-top), var(--bg) 30%); border: 1px solid rgba(255,255,255,.07); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; position: relative; }
+  .scroll { height: 100%; overflow-y: auto; padding: 0 16px 110px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .bar { height: 50px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 12px 6px; font-size: 14px; font-weight: 600; }
+
+  .card { background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); position: relative; }
+  .card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card h3 .sub { color: var(--t3); font-size: 12px; font-weight: 400; }
+
+  /* Kopf */
+  .cover { height: 150px; border-radius: 24px; margin-top: 4px; position: relative; overflow: hidden;
+    background: radial-gradient(80% 90% at 20% 20%, rgba(100,210,255,.35), transparent 60%), radial-gradient(70% 80% at 85% 70%, rgba(175,120,255,.32), transparent 60%), linear-gradient(160deg, #2c3546, #1d2029); }
+  .cover .tag { position: absolute; left: 12px; top: 12px; font-size: 11px; color: rgba(255,255,255,.75); background: rgba(0,0,0,.35); padding: 3px 8px; border-radius: 99px; }
+  .head { display: flex; align-items: flex-end; gap: 12px; margin-top: -40px; padding: 0 6px; position: relative; }
+  .avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--bg); background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 30px var(--disp); flex: none; }
+  .who { padding-bottom: 4px; min-width: 0; }
+  .who .name { font: 600 21px/1.15 var(--disp); }
+  .who .nick { color: var(--t2); font-size: 14px; }
+  .bio { color: var(--t2); font-size: 14px; line-height: 1.45; margin: 12px 6px 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 6px 0; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(78,168,255,.14); color: #9ccdff; }
+  .meta { display: flex; gap: 14px; margin: 12px 6px 0; color: var(--t3); font-size: 12px; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; }
+  .btn { flex: 1; padding: 11px; border-radius: 14px; border: none; font: 600 14px var(--ui); color: #fff; cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); box-shadow: 0 6px 18px rgba(78,168,255,.3); }
+  .btn.ghost { background: linear-gradient(180deg, var(--s1), var(--s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+
+  /* Gesamtfortschritt */
+  .total { display: flex; gap: 16px; align-items: center; cursor: pointer; }
+  .ring { width: 108px; height: 108px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .num { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .ring .num b { font: 600 28px/1 var(--disp); color: var(--cyan); display: block; }
+  .ring .num small { font-size: 11px; color: var(--t3); }
+  .parts { flex: 1; display: grid; gap: 8px; }
+  .part { font-size: 12px; color: var(--t2); }
+  .part .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 99px; background: var(--cyan); }
+  .hint { color: var(--t3); font-size: 12px; margin-top: 10px; }
+
+  /* Wertekacheln */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { background: rgba(255,255,255,.035); border-radius: 14px; padding: 10px 12px; position: relative; }
+  .tile .k { font-size: 12px; color: var(--t3); }
+  .tile .v { font: 600 19px/1.25 var(--disp); margin-top: 2px; }
+  .tile .v small { font: 400 12px var(--ui); color: var(--t3); margin-left: 2px; }
+  .delta { font-size: 12px; margin-top: 2px; }
+  .up { color: var(--good); } .down { color: var(--bad); } .neutral { color: var(--t3); }
+  .list { display: grid; gap: 8px; }
+  .li { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--hair); }
+  .li:last-child { border-bottom: none; }
+  .li .r { color: var(--t2); font-size: 13px; }
+  .badges { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+  .badge { flex: none; width: 74px; text-align: center; font-size: 11px; color: var(--t2); }
+  .badge .ic { width: 56px; height: 56px; margin: 0 auto 6px; border-radius: 18px; display: grid; place-items: center; font-size: 24px; background: linear-gradient(160deg, rgba(100,210,255,.22), rgba(138,107,255,.22)); }
+
+  /* Sichtbarkeit */
+  .vis { font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--t2); cursor: pointer; white-space: nowrap; font-family: var(--ui); font-weight: 500; }
+  .vis[data-v="ich"] { color: var(--t2); }
+  .vis[data-v="freunde"] { color: #9ccdff; border-color: rgba(78,168,255,.4); }
+  .vis[data-v="alle"] { color: var(--good); border-color: rgba(95,224,127,.4); }
+  .tile .vis { position: absolute; right: 8px; top: 8px; font-size: 10px; padding: 2px 6px; }
+  .neu { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 6px; border: 1px dashed var(--warn); color: var(--warn); margin-left: 6px; vertical-align: middle; font-weight: 500; }
+  body:not(.show-neu) .neu { display: none; }
+
+  /* Gesperrt / Web */
+  .locked { text-align: center; padding: 20px 16px; }
+  .locked .ic { font-size: 26px; margin-bottom: 6px; }
+  .locked p { color: var(--t2); font-size: 13px; margin: 4px 0 12px; }
+  .webbar { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: #e9eaee; color: #333; display: flex; align-items: flex-end; padding: 0 14px 8px; font-size: 13px; z-index: 3; }
+  .webbar span { background: #fff; border-radius: 10px; padding: 5px 10px; width: 100%; text-align: center; }
+  .cta { position: sticky; bottom: 16px; margin-top: 16px; }
+  .note { font-size: 11px; color: var(--t3); text-align: center; margin-top: 12px; }
+
+  /* Blatt: Aufschluesselung */
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 5; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 82%; overflow-y: auto; background: #232428; border-radius: 28px 28px 0 0; padding: 10px 16px 28px; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); z-index: 6; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+  .open .sheet-bg { opacity: 1; pointer-events: auto; }
+  .open .sheet { transform: none; }
+  .grab { width: 38px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
+  .sheet h2 { font: 600 18px var(--disp); margin: 0 0 4px; }
+  .sheet .sub { color: var(--t3); font-size: 13px; margin-bottom: 12px; line-height: 1.4; }
+  .grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 16px 0 6px; }
+  .mrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--hair); font-size: 14px; }
+  .mrow .d { color: var(--t3); font-size: 12px; }
+  .mrow .score { font-size: 13px; text-align: right; }
+  .dir { grid-column: 1 / -1; display: flex; gap: 4px; }
+  .dir button { flex: 1; font: 500 11px var(--ui); padding: 5px 4px; border-radius: 8px; border: 1px solid var(--hair); background: transparent; color: var(--t2); cursor: pointer; }
+  .dir button.on { background: rgba(78,168,255,.18); border-color: rgba(78,168,255,.5); color: #cfe6ff; }
+  .dir.ro button { pointer-events: none; }
+  .mrow.off { opacity: .45; }
+</style>
+</head>
+<body class="show-neu">
+<div class="wrap">
+  <div class="ctrl">
+    <h1>Profil · Entwurf 1</h1>
+    <p>Klick dich durch. Oben wechselst du die Ansicht. In „Mein Profil“ kannst du auf die Sichtbarkeits-Chips tippen. Ein Tipp auf den Gesamtfortschritt öffnet die Aufschlüsselung mit den Richtungen.</p>
+    <div class="lbl">Ansicht</div>
+    <div class="views" id="views">
+      <button data-view="ich" class="on">Mein Profil<small>bearbeiten, Sichtbarkeit pro Feld</small></button>
+      <button data-view="freunde">Als Freund<small>sieht „Freunde“ + „Alle“</small></button>
+      <button data-view="alle">Als anderer App-Nutzer<small>sieht nur „Alle“</small></button>
+      <button data-view="web">Geteilter Link im Browser<small>ohne App: feste kleine Vorschau</small></button>
+    </div>
+    <div class="lbl">Sichtbarkeit</div>
+    <div class="legend">
+      <span><span class="vis" data-v="ich">🔒 Nur ich</span> Standard für alles</span>
+      <span><span class="vis" data-v="freunde">Freunde</span> bestätigte Kontakte</span>
+      <span><span class="vis" data-v="alle">Alle</span> alle angemeldeten App-Nutzer</span>
+    </div>
+    <label class="toggle"><input type="checkbox" id="neuToggle" checked> Markieren, was es in der App noch nicht gibt <span class="neu">neu</span></label>
+  </div>
+
+  <div class="phone" id="phone">
+    <div class="scroll" id="scroll"></div>
+    <div class="sheet-bg" id="sheetBg"></div>
+    <div class="sheet" id="sheet"></div>
+  </div>
+</div>
+
+<script>
+// Sichtbarkeit pro Feld. Standard waere ueberall "ich"; fuer den Entwurf ist
+// ein gemischter Stand gesetzt, damit die anderen Ansichten etwas zeigen.
+const vis = {
+  statusbild: 'alle', bio: 'alle', ziele: 'alle', streak: 'alle', abzeichen: 'alle',
+  gesamt: 'freunde', gewicht: 'freunde', kfa: 'freunde', groesse: 'ich', umfaenge: 'ich',
+  einnahmen: 'freunde', substanzen: 'freunde', blut: 'ich', training: 'alle', prs: 'alle',
+  erfahrungen: 'alle',
+}
+const ORDER = ['ich', 'freunde', 'alle']
+const VIS_LABEL = { ich: '🔒 Nur ich', freunde: 'Freunde', alle: 'Alle' }
+let view = 'ich'
+
+// Werte fuer den Gesamtfortschritt: Richtung je Wert, vom Nutzer aenderbar.
+const metrics = [
+  { grp: 'Körper', name: 'Körperfett', start: '19,4 %', now: '15,8 %', dir: 'down', score: 82 },
+  { grp: 'Körper', name: 'Gewicht', start: '84,2 kg', now: '81,0 kg', dir: 'down', score: 70, ziel: true },
+  { grp: 'Körper', name: 'Taille', start: '89 cm', now: '84 cm', dir: 'down', score: 75, neu: true, ziel: true },
+  { grp: 'Körper', name: 'Oberarm', start: '36,5 cm', now: '37,5 cm', dir: 'up', score: 60, neu: true, ziel: true },
+  { grp: 'Blut', name: 'Ferritin', start: '18 µg/l', now: '64 µg/l', dir: 'range', score: 100, range: '30–300' },
+  { grp: 'Blut', name: 'Vitamin D', start: '22 ng/ml', now: '41 ng/ml', dir: 'range', score: 90, range: '30–100' },
+  { grp: 'Blut', name: 'LDL', start: '142 mg/dl', now: '128 mg/dl', dir: 'range', score: 45, range: '< 116' },
+  { grp: 'Training', name: 'Bankdrücken (e1RM)', start: '82 kg', now: '97 kg', dir: 'up', score: 78 },
+  { grp: 'Training', name: 'Workouts pro Woche', start: '2,1', now: '3,6', dir: 'up', score: 72 },
+  { grp: 'Einnahmen', name: 'Adherence', start: '78 %', now: '94 %', dir: 'up', score: 94 },
+]
+const DIRS = [['up', '↑ mehr ist gut'], ['down', '↓ weniger ist gut'], ['range', '◎ Zielbereich'], ['off', 'zählt nicht']]
+
+function canSee(key) {
+  if (view === 'ich') return true
+  if (view === 'web') return false
+  if (view === 'freunde') return vis[key] !== 'ich'
+  return vis[key] === 'alle'
+}
+function chip(key) {
+  return view === 'ich' ? `<button class="vis" data-key="${key}" data-v="${vis[key]}">${VIS_LABEL[vis[key]]}</button>` : ''
+}
+const neu = (t = 'neu') => `<span class="neu">${t}</span>`
+
+function groupScores() {
+  const g = {}
+  for (const m of metrics) {
+    if (m.dir === 'off') continue
+    ;(g[m.grp] ||= []).push(m.score)
+  }
+  const parts = Object.entries(g).map(([k, a]) => [k, Math.round(a.reduce((s, x) => s + x, 0) / a.length)])
+  const total = Math.round(parts.reduce((s, [, v]) => s + v, 0) / parts.length)
+  return { parts, total }
+}
+
+function ring(p, size = 108) {
+  const r = size / 2 - 8, c = 2 * Math.PI * r
+  return `<svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="url(#gr)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - p / 100)}"/>
+    <defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#8a6bff"/></linearGradient></defs></svg>`
+}
+
+function section(key, html) { return canSee(key) ? html : '' }
+
+function render() {
+  const s = document.getElementById('scroll')
+  if (view === 'web') { s.innerHTML = renderWeb(); return }
+  const { parts, total } = groupScores()
+  const own = view === 'ich'
+  const hidden = Object.keys(vis).filter(k => !canSee(k)).length
+
+  s.innerHTML = `
+  <div class="bar"><span>9:41</span><span>${own ? 'Profil' : '@mara.lifts'}</span><span>●●●</span></div>
+
+  ${section('statusbild', `<div class="cover"><span class="tag">Statusbild · nur 1${own ? ' · ändern' : ''}</span>${own ? `<div style="position:absolute;right:10px;top:10px">${chip('statusbild')}</div>` : ''}</div>`) || '<div class="cover" style="background:linear-gradient(160deg,#2a2c32,#222327)"></div>'}
+  <div class="head">
+    <div class="avatar">M${own ? '' : ''}</div>
+    <div class="who"><div class="name">Mara K.</div><div class="nick">@mara.lifts</div></div>
+  </div>
+  ${own ? `<div class="note" style="text-align:left;margin:8px 6px 0">Name, Nickname und Profilbild sind immer sichtbar, sobald dich jemand findet. ${neu('Profilbild neu')}</div>` : ''}
+
+  ${section('bio', `<div class="bio">Recomp seit März. Viel Grundübungen, Blutbild alle 3 Monate. ${chip('bio')}</div>`)}
+  ${section('ziele', `<div class="tags"><span class="chip">Recomp</span><span class="chip">Kraft</span><span class="chip">Longevity</span> ${chip('ziele')} ${neu('Ziel-Tags neu')}</div>`)}
+  ${section('streak', `<div class="meta"><span>🔥 41 Tage Streak</span><span>Mitglied seit März 2026</span> ${chip('streak')}</div>`)}
+
+  <div class="actions">
+    ${own
+      ? `<button class="btn">Profil teilen · QR</button><button class="btn ghost">Bearbeiten</button>`
+      : view === 'freunde'
+        ? `<button class="btn">Nachricht</button><button class="btn ghost">Freunde ✓</button>`
+        : `<button class="btn">Als Freund hinzufügen</button><button class="btn ghost">…</button>`}
+  </div>
+
+  ${section('gesamt', `<div class="card">
+    <h3>Gesamtfortschritt <span class="sub">seit Start · 14.03.2026 ${neu()}</span> ${chip('gesamt')}</h3>
+    <div class="total" id="openSheet">
+      <div class="ring">${ring(total)}<div class="num"><div><b>${total} %</b><small>gesamt</small></div></div></div>
+      <div class="parts">${parts.map(([k, v]) => `<div class="part"><div class="row"><span>${k}</span><span>${v} %</span></div><div class="track"><i style="width:${v}%"></i></div></div>`).join('')}</div>
+    </div>
+    <div class="hint">Tippen für die Aufschlüsselung${own ? ' und die Richtung je Wert' : ''} ›</div>
+  </div>`)}
+
+  ${(canSee('gewicht') || canSee('kfa') || canSee('groesse') || canSee('umfaenge')) ? `<div class="card">
+    <h3>Körper <span class="sub">letzte Messung 28.10.</span></h3>
+    <div class="grid">
+      ${section('gewicht', `<div class="tile">${chip('gewicht')}<div class="k">Gewicht</div><div class="v">81,0<small>kg</small></div><div class="delta neutral">−3,2 kg seit Start</div></div>`)}
+      ${section('kfa', `<div class="tile">${chip('kfa')}<div class="k">Körperfett</div><div class="v">15,8<small>%</small></div><div class="delta up">−3,6 % seit Start</div></div>`)}
+      ${section('groesse', `<div class="tile">${chip('groesse')}<div class="k">Größe</div><div class="v">172<small>cm</small></div></div>`)}
+      ${section('umfaenge', `<div class="tile">${chip('umfaenge')}<div class="k">Umfänge ${neu()}</div><div class="v" style="font-size:14px;line-height:1.5">Taille 84 · Arm 37,5<br>Brust 98 · Bein 58</div><div class="delta up">Taille −5 cm</div></div>`)}
+    </div>
+  </div>` : ''}
+
+  ${(canSee('einnahmen') || canSee('substanzen')) ? `<div class="card">
+    <h3>Einnahmen <span class="sub">letzte 90 Tage</span></h3>
+    <div class="grid">
+      ${section('einnahmen', `<div class="tile">${chip('einnahmen')}<div class="k">Adherence</div><div class="v">94<small>%</small></div><div class="delta neutral">212 bestätigt · 13 verpasst</div></div>`)}
+      ${section('substanzen', `<div class="tile">${chip('substanzen')}<div class="k">Substanzen im Stack</div><div class="v">6</div><div class="delta neutral">nur die Anzahl, nie Namen</div></div>`)}
+    </div>
+  </div>` : ''}
+
+  ${section('blut', `<div class="card">
+    <h3>Blutwerte <span class="sub">3 Befunde</span> ${chip('blut')}</h3>
+    <div class="grid">
+      <div class="tile"><div class="k">Marker erfasst</div><div class="v">24</div></div>
+      <div class="tile"><div class="k">im Zielbereich</div><div class="v">19<small>/ 24</small></div><div class="delta up">+5 seit erstem Befund</div></div>
+    </div>
+  </div>`)}
+
+  ${(canSee('training') || canSee('prs')) ? `<div class="card">
+    <h3>Training</h3>
+    ${section('training', `<div class="list" style="margin-bottom:6px">
+      <div class="li"><span>Workouts getrackt</span><span class="r">86 · 3,6 / Woche</span></div>
+      <div class="li"><span>Aktuelle Routine</span><span class="r">Upper / Lower</span></div>
+      <div class="li"><span>Lieblingsübung</span><span class="r">Kreuzheben</span></div>
+      ${own ? `<div class="li" style="border:none;padding-top:0"><span></span>${chip('training')}</div>` : ''}
+    </div>`)}
+    ${section('prs', `<div class="k" style="font-size:12px;color:var(--t3);margin:8px 0 6px;display:flex;justify-content:space-between">Bestleistungen (e1RM) ${chip('prs')}</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="tile"><div class="k">Kreuzheben</div><div class="v" style="font-size:16px">142<small>kg</small></div></div>
+      <div class="tile"><div class="k">Kniebeuge</div><div class="v" style="font-size:16px">118<small>kg</small></div></div>
+      <div class="tile"><div class="k">Bank</div><div class="v" style="font-size:16px">97<small>kg</small></div></div>
+    </div>`)}
+  </div>` : ''}
+
+  ${section('abzeichen', `<div class="card">
+    <h3>Abzeichen ${neu()} ${chip('abzeichen')}</h3>
+    <div class="badges">
+      <div class="badge"><div class="ic">🔥</div>30 Tage ohne Lücke</div>
+      <div class="badge"><div class="ic">🩸</div>Erstes Blutbild</div>
+      <div class="badge"><div class="ic">🏋️</div>50 Workouts</div>
+      <div class="badge"><div class="ic">📉</div>−3 % KFA</div>
+      <div class="badge"><div class="ic">🎯</div>Alle Marker geprüft</div>
+    </div>
+  </div>`)}
+
+  ${section('erfahrungen', `<div class="card">
+    <h3>Erfahrungsberichte <span class="sub">12 Berichte</span> ${chip('erfahrungen')}</h3>
+    <div class="list">
+      <div class="li"><span>Wirkung · Verträglichkeit · Wieder nehmen</span><span class="r">★ 4,3</span></div>
+      <div class="li"><span class="r">Nur in der App sichtbar, nie im Web-Link.</span></div>
+    </div>
+  </div>`)}
+
+  ${!own && hidden ? `<div class="note">${hidden} Bereiche sind für dich nicht freigegeben.</div>` : ''}
+  `
+  wire()
+}
+
+function renderWeb() {
+  const { total } = groupScores()
+  return `
+  <div class="webbar"><span>hoku.app/u/mara.lifts</span></div>
+  <div style="height:58px"></div>
+  ${vis.statusbild === 'alle' ? '<div class="cover"></div>' : '<div class="cover" style="background:linear-gradient(160deg,#2a2c32,#222327)"></div>'}
+  <div class="head"><div class="avatar">M</div><div class="who"><div class="name">Mara K.</div><div class="nick">@mara.lifts</div></div></div>
+  <div class="tags"><span class="chip">Recomp</span><span class="chip">Kraft</span><span class="chip">Longevity</span></div>
+  <div class="meta"><span>🔥 41 Tage Streak</span><span>Mitglied seit März 2026</span></div>
+
+  <div class="card"><h3>Gesamtfortschritt <span class="sub">seit Start</span></h3>
+    <div class="total" style="cursor:default"><div class="ring">${ring(total)}<div class="num"><div><b>${total} %</b><small>gesamt</small></div></div></div>
+    <div class="parts" style="color:var(--t2);font-size:13px;line-height:1.45">Körper, Blutwerte, Training und Einnahmen, gegenüber dem eigenen Start.</div></div>
+  </div>
+
+  <div class="card"><h3>Abzeichen</h3><div class="badges">
+    <div class="badge"><div class="ic">🔥</div>30 Tage ohne Lücke</div><div class="badge"><div class="ic">🏋️</div>50 Workouts</div><div class="badge"><div class="ic">📉</div>−3 % KFA</div></div></div>
+
+  <div class="card locked"><div class="ic">🔒</div><b>12 Erfahrungsberichte, Werte und Training</b>
+    <p>Nur in der App sichtbar, und nur wenn Mara sie freigibt.</p>
+    <button class="btn" style="width:100%">In Hoku öffnen</button></div>
+
+  <div class="note">Feste Auswahl: Bild, Name, Ziele, Streak, Gesamtfortschritt, Abzeichen.<br>Nur wenn das jeweilige Feld auf „Alle“ steht. Keine Gesundheitswerte, keine Substanzen.</div>
+  `
+}
+
+function renderSheet() {
+  const own = view === 'ich'
+  const { parts, total } = groupScores()
+  let html = `<div class="grab"></div><h2>Gesamtfortschritt · ${total} %</h2>
+    <div class="sub">Jeder Wert wird mit deinem Startwert verglichen. Bereiche zählen gleich viel. Ein Wert zählt ab zwei Messungen.${own ? ' Die Richtung kannst du je Wert ändern.' : ''}</div>`
+  for (const [grp, v] of parts.concat(metrics.some(m => m.dir === 'off') ? [] : [])) {
+    html += `<div class="grp">${grp} · ${v} %</div>`
+    html += metrics.map((m, i) => m.grp !== grp ? '' : `
+      <div class="mrow ${m.dir === 'off' ? 'off' : ''}">
+        <div>${m.name}${m.neu ? neu() : ''}<div class="d">${m.start} → ${m.now}${m.range ? ' · Zielbereich ' + m.range : ''}${m.ziel ? ' · Standard aus Ziel „Recomp“' : ''}</div></div>
+        <div class="score">${m.dir === 'off' ? '—' : m.score + ' %'}</div>
+        ${own ? `<div class="dir">${DIRS.map(([d, l]) => `<button data-i="${i}" data-d="${d}" class="${m.dir === d ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
+      </div>`).join('')
+  }
+  const offs = metrics.filter(m => m.dir === 'off' && !parts.find(([g]) => g === m.grp))
+  if (offs.length) html += `<div class="grp">Ausgeschlossen</div>` + offs.map(m => `<div class="mrow off"><div>${m.name}</div><div class="score">—</div></div>`).join('')
+  document.getElementById('sheet').innerHTML = html
+  document.querySelectorAll('.dir button').forEach(b => b.onclick = () => {
+    metrics[+b.dataset.i].dir = b.dataset.d
+    renderSheet(); render()
+  })
+}
+
+function wire() {
+  document.querySelectorAll('#scroll .vis[data-key]').forEach(b => b.onclick = e => {
+    e.stopPropagation()
+    const k = b.dataset.key
+    vis[k] = ORDER[(ORDER.indexOf(vis[k]) + 1) % 3]
+    render()
+  })
+  const o = document.getElementById('openSheet')
+  if (o) o.onclick = () => { renderSheet(); document.getElementById('phone').classList.add('open') }
+}
+document.getElementById('sheetBg').onclick = () => document.getElementById('phone').classList.remove('open')
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => {
+  view = b.dataset.view
+  document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x === b))
+  document.getElementById('phone').classList.remove('open')
+  render()
+  document.getElementById('scroll').scrollTop = 0
+})
+document.getElementById('neuToggle').onchange = e => document.body.classList.toggle('show-neu', e.target.checked)
+render()
+</script>
+</body>
+</html>

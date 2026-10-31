@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil Mockup v3</title>
+<style>
+  :root {
+    --bg: #1f2023; --bg-top: #2a2b2f;
+    --s1: #303136; --s2: #27282c;
+    --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45);
+    --hair: rgba(255,255,255,.08);
+    --blue: #4ea8ff; --cyan: #64d2ff;
+    --good: #5fe07f; --warn: #ffb340; --bad: #ff6961;
+    --ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+    --disp: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #141518; color: var(--text); font-family: var(--ui); }
+  button { font-family: var(--ui); }
+  .wrap { display: flex; gap: 28px; padding: 24px 16px 48px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+
+  .ctrl { width: 300px; position: sticky; top: 24px; }
+  .ctrl h1 { font: 600 20px/1.2 var(--disp); margin: 0 0 4px; }
+  .ctrl p { color: var(--t2); font-size: 13px; line-height: 1.45; margin: 0 0 14px; }
+  .ctrl .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 0 8px; }
+  .views { display: grid; gap: 6px; }
+  .views button { text-align: left; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hair); background: var(--s2); color: var(--text); font: 500 14px var(--ui); cursor: pointer; }
+  .views button small { display: block; color: var(--t3); font-size: 12px; font-weight: 400; margin-top: 2px; }
+  .views button.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 18px rgba(78,168,255,.18); }
+  .legend { display: grid; gap: 6px; font-size: 13px; color: var(--t2); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); cursor: pointer; margin-top: 8px; }
+
+  .phone { width: 390px; max-width: 100%; height: 844px; border-radius: 46px; background: linear-gradient(180deg, var(--bg-top), var(--bg) 30%); border: 1px solid rgba(255,255,255,.07); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; position: relative; }
+  .scroll { height: 100%; overflow-y: auto; padding: 0 16px 40px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .bar { height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px 8px; font-size: 15px; font-weight: 600; gap: 8px; }
+  .bar .ttl { flex: 1; text-align: center; }
+  .icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: linear-gradient(180deg, var(--s1), var(--s2)); color: var(--text); font-size: 16px; cursor: pointer; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); display: grid; place-items: center; }
+  .icb .dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 99px; background: var(--bad); font: 600 11px/18px var(--ui); color: #fff; padding: 0 5px; }
+  .icons { display: flex; gap: 6px; }
+
+  .card { background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); position: relative; }
+  .card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .card h3 .sub { color: var(--t3); font-size: 12px; font-weight: 400; }
+
+  .cover { height: 140px; border-radius: 24px; position: relative; overflow: hidden;
+    background: radial-gradient(80% 90% at 20% 20%, rgba(100,210,255,.35), transparent 60%), radial-gradient(70% 80% at 85% 70%, rgba(175,120,255,.32), transparent 60%), linear-gradient(160deg, #2c3546, #1d2029); }
+  .cover.empty { background: linear-gradient(160deg, #2a2c32, #222327); }
+  .cover .tag { position: absolute; left: 12px; top: 12px; font-size: 11px; color: rgba(255,255,255,.75); background: rgba(0,0,0,.35); padding: 3px 8px; border-radius: 99px; }
+  .cover .cv { position: absolute; right: 10px; top: 10px; }
+  .head { display: flex; align-items: flex-end; gap: 12px; margin-top: -42px; padding: 0 6px; position: relative; }
+  .av-wrap { position: relative; flex: none; cursor: pointer; }
+  .ring-story { padding: 3px; border-radius: 50%; background: conic-gradient(from 200deg, #64d2ff, #8a6bff, #ff6fb5, #64d2ff); }
+  .ring-story.none { background: var(--bg); }
+  .avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--bg); background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 30px var(--disp); }
+  .av-plus { position: absolute; right: 0; bottom: 2px; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); border: 3px solid var(--bg); display: grid; place-items: center; font: 700 15px/1 var(--ui); }
+  .who { padding-bottom: 4px; min-width: 0; }
+  .who .name { font: 600 21px/1.15 var(--disp); }
+  .who .nick { color: var(--t2); font-size: 14px; }
+  .bio { color: var(--t2); font-size: 14px; line-height: 1.45; margin: 12px 6px 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 6px 0; align-items: center; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(78,168,255,.14); color: #9ccdff; }
+  .meta { display: flex; gap: 14px; margin: 12px 6px 0; color: var(--t3); font-size: 12px; align-items: center; flex-wrap: wrap; }
+  .counts { display: flex; margin: 14px 0 0; background: rgba(255,255,255,.035); border-radius: 16px; }
+  .counts button { flex: 1; background: none; border: none; color: var(--text); padding: 10px 4px; cursor: pointer; }
+  .counts b { display: block; font: 600 17px var(--disp); }
+  .counts small { color: var(--t3); font-size: 11px; }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .btn { flex: 1; padding: 11px; border-radius: 14px; border: none; font: 600 14px var(--ui); color: #fff; cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); box-shadow: 0 6px 18px rgba(78,168,255,.3); }
+  .btn.ghost { background: linear-gradient(180deg, var(--s1), var(--s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+  .btn.sm { flex: none; padding: 7px 12px; font-size: 13px; border-radius: 11px; }
+
+  .total { display: flex; gap: 16px; align-items: center; cursor: pointer; }
+  .ring { width: 108px; height: 108px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .num { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .ring .num b { font: 600 28px/1 var(--disp); color: var(--cyan); display: block; }
+  .ring .num small { font-size: 11px; color: var(--t3); }
+  .parts { flex: 1; display: grid; gap: 7px; }
+  .part { font-size: 12px; color: var(--t2); }
+  .part .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 99px; background: var(--cyan); }
+  .hint { color: var(--t3); font-size: 12px; margin-top: 10px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { background: rgba(255,255,255,.035); border-radius: 14px; padding: 10px 12px; position: relative; min-height: 64px; }
+  .tile .k { font-size: 12px; color: var(--t3); padding-right: 52px; }
+  .tile .v { font: 600 19px/1.25 var(--disp); margin-top: 2px; }
+  .tile .v small { font: 400 12px var(--ui); color: var(--t3); margin-left: 2px; }
+  .delta { font-size: 12px; margin-top: 2px; }
+  .up { color: var(--good); } .down { color: var(--bad); } .neutral { color: var(--t3); }
+  .list { display: grid; }
+  .li { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 9px 0; border-bottom: 1px solid var(--hair); gap: 10px; }
+  .li:last-child { border-bottom: none; }
+  .li .r { color: var(--t2); font-size: 13px; text-align: right; }
+  .badges { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+  .badge { flex: none; width: 74px; text-align: center; font-size: 11px; color: var(--t2); }
+  .badge .ic { width: 56px; height: 56px; margin: 0 auto 6px; border-radius: 18px; display: grid; place-items: center; font-size: 24px; background: linear-gradient(160deg, rgba(100,210,255,.22), rgba(138,107,255,.22)); }
+  .src { font-size: 11px; color: var(--t3); background: rgba(255,255,255,.06); padding: 3px 8px; border-radius: 99px; font-weight: 400; }
+
+  .vis { font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--t2); cursor: pointer; white-space: nowrap; font-weight: 500; }
+  .vis[data-v="freunde"] { color: #9ccdff; border-color: rgba(78,168,255,.4); }
+  .vis[data-v="alle"] { color: var(--good); border-color: rgba(95,224,127,.4); }
+  .tile .vis { position: absolute; right: 8px; top: 8px; font-size: 10px; padding: 2px 6px; }
+  .neu { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 6px; border: 1px dashed var(--warn); color: var(--warn); margin-left: 6px; vertical-align: middle; font-weight: 500; }
+  body:not(.show-neu) .neu { display: none; }
+
+  .locked { text-align: center; padding: 20px 16px; }
+  .locked .ic { font-size: 26px; margin-bottom: 6px; }
+  .locked p { color: var(--t2); font-size: 13px; margin: 4px 0 12px; }
+  .webbar { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: #e9eaee; color: #333; display: flex; align-items: flex-end; padding: 0 14px 8px; font-size: 13px; z-index: 3; }
+  .webbar span { background: #fff; border-radius: 10px; padding: 5px 10px; width: 100%; text-align: center; }
+  .note { font-size: 11px; color: var(--t3); text-align: center; margin-top: 12px; line-height: 1.45; }
+
+  /* Listen: Freunde, Chats */
+  .seg { display: flex; background: rgba(255,255,255,.05); border-radius: 12px; padding: 3px; margin-top: 4px; }
+  .seg button { flex: 1; border: none; background: none; color: var(--t2); padding: 8px; border-radius: 9px; font: 500 13px var(--ui); cursor: pointer; }
+  .seg button.on { background: linear-gradient(180deg, #3a3b41, #313238); color: var(--text); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+  .search { width: 100%; margin-top: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--hair); background: rgba(0,0,0,.2); color: var(--text); font: 15px var(--ui); }
+  .person { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hair); cursor: pointer; }
+  .person:last-child { border-bottom: none; }
+  .pav { width: 46px; height: 46px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 700 17px var(--disp); }
+  .pav.story { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #8a6bff; }
+  .pmain { flex: 1; min-width: 0; }
+  .pmain b { font-size: 15px; font-weight: 600; display: block; }
+  .pmain span { color: var(--t3); font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptime { color: var(--t3); font-size: 12px; text-align: right; }
+  .unread { display: inline-block; min-width: 18px; height: 18px; border-radius: 99px; background: var(--blue); color: #fff; font: 600 11px/18px var(--ui); text-align: center; margin-top: 4px; padding: 0 5px; }
+  .stories { display: flex; gap: 12px; overflow-x: auto; padding: 12px 2px 4px; scrollbar-width: none; }
+  .stories div { text-align: center; font-size: 11px; color: var(--t2); flex: none; width: 58px; }
+  .stories .pav { margin: 0 auto 6px; width: 54px; height: 54px; }
+
+  /* Chat */
+  .chat { display: flex; flex-direction: column; height: 100%; }
+  .chat .msgs { flex: 1; overflow-y: auto; padding: 8px 14px; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; }
+  .bub { max-width: 76%; padding: 9px 12px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+  .bub.in { background: #34353b; align-self: flex-start; border-bottom-left-radius: 6px; }
+  .bub.out { background: linear-gradient(180deg, #5db2ff, #3a8fe8); align-self: flex-end; border-bottom-right-radius: 6px; }
+  .bub.card-msg { background: linear-gradient(180deg, var(--s1), var(--s2)); border: 1px solid var(--hair); align-self: flex-end; }
+  .day { text-align: center; color: var(--t3); font-size: 11px; margin: 8px 0; }
+  .composer { display: flex; gap: 8px; padding: 10px 12px 26px; border-top: 1px solid var(--hair); align-items: center; }
+  .composer input { flex: 1; padding: 10px 14px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--text); font: 15px var(--ui); }
+  .safety { margin: 6px 14px; font-size: 12px; color: var(--t2); background: rgba(255,179,64,.08); border: 1px solid rgba(255,179,64,.25); border-radius: 12px; padding: 8px 10px; line-height: 1.4; }
+
+  /* Einstellungen */
+  .set { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--hair); font-size: 14px; gap: 10px; }
+  .set:last-child { border-bottom: none; }
+  .set .r { color: var(--t2); font-size: 13px; }
+  .sw { width: 46px; height: 28px; border-radius: 99px; background: rgba(255,255,255,.14); position: relative; flex: none; cursor: pointer; border: none; }
+  .sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .sw.on { background: var(--blue); }
+  .sw.on::after { transform: translateX(18px); }
+  .pick { border: 1px solid var(--hair); background: rgba(0,0,0,.2); color: var(--t2); border-radius: 10px; padding: 5px 8px; font: 13px var(--ui); cursor: pointer; }
+
+  /* Story */
+  .story { position: absolute; inset: 0; z-index: 8; background: #000; display: none; }
+  .story.show { display: block; }
+  .story .img { position: absolute; inset: 0; background: radial-gradient(70% 50% at 50% 40%, rgba(100,210,255,.35), transparent 70%), radial-gradient(60% 40% at 60% 80%, rgba(255,111,181,.25), transparent 70%), linear-gradient(180deg, #1b2230, #0d0f14); display: grid; place-items: center; }
+  .story .img span { font: 600 26px var(--disp); text-align: center; opacity: .9; }
+  .story .prog { position: absolute; top: 50px; left: 12px; right: 12px; height: 3px; border-radius: 9px; background: rgba(255,255,255,.3); overflow: hidden; }
+  .story .prog i { display: block; height: 100%; width: 0; background: #fff; }
+  .story.show .prog i { animation: prog 5s linear forwards; }
+  @keyframes prog { to { width: 100%; } }
+  .story .top { position: absolute; top: 62px; left: 12px; right: 12px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .story .top .pav { width: 34px; height: 34px; font-size: 13px; }
+  .story .top small { color: rgba(255,255,255,.7); }
+  .story .x { margin-left: auto; background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+  .story .bottom { position: absolute; bottom: 26px; left: 12px; right: 12px; display: flex; gap: 8px; }
+  .story .bottom input { flex: 1; padding: 11px 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; font: 14px var(--ui); }
+
+  /* Blatt */
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 5; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 84%; overflow-y: auto; background: #232428; border-radius: 28px 28px 0 0; padding: 10px 16px 28px; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); z-index: 6; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+  .open .sheet-bg { opacity: 1; pointer-events: auto; }
+  .open .sheet { transform: none; }
+  .grab { width: 38px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
+  .sheet h2 { font: 600 18px var(--disp); margin: 0 0 4px; }
+  .sheet .sub { color: var(--t3); font-size: 13px; margin-bottom: 12px; line-height: 1.4; }
+  .grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 16px 0 6px; }
+  .mrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--hair); font-size: 14px; }
+  .mrow .d { color: var(--t3); font-size: 12px; }
+  .mrow .score { font-size: 13px; text-align: right; }
+  .dir { grid-column: 1 / -1; display: flex; gap: 4px; }
+  .dir button { flex: 1; font: 500 11px var(--ui); padding: 5px 4px; border-radius: 8px; border: 1px solid var(--hair); background: transparent; color: var(--t2); cursor: pointer; }
+  .dir button.on { background: rgba(78,168,255,.18); border-color: rgba(78,168,255,.5); color: #cfe6ff; }
+  .mrow.off { opacity: .45; }
+</style>
+</head>
+<body class="show-neu">
+<div class="wrap">
+  <div class="ctrl">
+    <h1>Profil · Entwurf 3</h1>
+    <p>Neu: Geschlecht, Warnung im Chat bei Verdacht auf Handel, Menü ⋯ mit Melden / Blockieren / Einschränken, Einstellungen nach Vorbild sozialer Netzwerke.</p>
+    <div class="lbl">Ansicht</div>
+    <div class="views" id="views">
+      <button data-view="ich" class="on">Mein Profil<small>bearbeiten, Sichtbarkeit pro Feld</small></button>
+      <button data-view="freunde">Als Freund<small>sieht „Freunde“ + „Alle“</small></button>
+      <button data-view="alle">Als anderer App-Nutzer<small>sieht nur „Alle“</small></button>
+      <button data-view="web">Geteilter Link im Browser<small>ohne App: feste kleine Vorschau</small></button>
+    </div>
+    <div class="lbl">Direkt springen</div>
+    <div class="views" id="jump">
+      <button data-screen="freunde">Freunde &amp; Anfragen</button>
+      <button data-screen="chats">Chats</button>
+      <button data-screen="einstellungen">Einstellungen</button>
+    </div>
+    <div class="lbl">Sichtbarkeit</div>
+    <div class="legend">
+      <span><span class="vis" data-v="ich">🔒 Nur ich</span> Standard für alles</span>
+      <span><span class="vis" data-v="freunde">Freunde</span> bestätigte Kontakte</span>
+      <span><span class="vis" data-v="alle">Alle</span> alle angemeldeten App-Nutzer</span>
+    </div>
+    <label class="toggle"><input type="checkbox" id="neuToggle" checked> Markieren, was es in der App noch nicht gibt <span class="neu">neu</span></label>
+  </div>
+
+  <div class="phone" id="phone">
+    <div class="scroll" id="scroll"></div>
+    <div class="sheet-bg" id="sheetBg"></div>
+    <div class="sheet" id="sheet"></div>
+    <div class="story" id="story">
+      <div class="img"><span>Beintag ✓<br><small style="font-size:14px;opacity:.7">Kniebeuge 118 kg · neuer PR</small></span></div>
+      <div class="prog"><i></i></div>
+      <div class="top"><div class="pav" style="background:linear-gradient(140deg,#6fb6ff,#8a6bff)">M</div><div><b>mara.lifts</b><br><small>vor 3 Std. · noch 21 Std.</small></div><button class="x" id="storyX">✕</button></div>
+      <div class="bottom" id="storyBottom"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Sichtbarkeit pro Feld. Standard waere ueberall "ich"; fuer den Entwurf ist
+// ein gemischter Stand gesetzt, damit die anderen Ansichten etwas zeigen.
+const vis = {
+  titelbild: 'alle', story: 'freunde', bio: 'alle', ziele: 'alle', streak: 'alle', abzeichen: 'alle',
+  alter: 'freunde', geschlecht: 'freunde', land: 'alle', groesse: 'freunde', gewicht: 'freunde',
+  gesamt: 'freunde', kfa: 'freunde', umfaenge: 'ich', muskel: 'ich',
+  einnahmen: 'freunde', substanzen: 'freunde', blut: 'ich', training: 'alle', prs: 'alle',
+  schritte: 'alle', ruhepuls: 'freunde', hrv: 'freunde', schlaf: 'freunde', vo2: 'alle', kcal: 'ich', spo2: 'ich', blutdruck: 'ich',
+  erfahrungen: 'alle',
+}
+const ORDER = ['ich', 'freunde', 'alle']
+const VIS_LABEL = { ich: '🔒 Nur ich', freunde: 'Freunde', alle: 'Alle' }
+let view = 'ich'
+let screen = 'profil'
+let friendTab = 'freunde'
+const settings = { webLink: true, anfragen: 'alle', nachrichten: 'freunde', aktivStatus: false, gelesen: true, auffindbar: true,
+  privat: false, storyWer: 'Freunde', storyAntwort: 'Freunde', unscharf: true, freundesliste: 'Freunde' }
+
+const metrics = [
+  { grp: 'Körper', name: 'Körperfett', start: '19,4 %', now: '15,8 %', dir: 'down', score: 82 },
+  { grp: 'Körper', name: 'Gewicht', start: '84,2 kg', now: '81,0 kg', dir: 'down', score: 70, ziel: true },
+  { grp: 'Körper', name: 'Taille', start: '89 cm', now: '84 cm', dir: 'down', score: 75, neu: true, ziel: true },
+  { grp: 'Körper', name: 'Oberarm', start: '36,5 cm', now: '37,5 cm', dir: 'up', score: 60, neu: true, ziel: true },
+  { grp: 'Blut', name: 'Ferritin', start: '18 µg/l', now: '64 µg/l', dir: 'range', score: 100, range: '30–300' },
+  { grp: 'Blut', name: 'Vitamin D', start: '22 ng/ml', now: '41 ng/ml', dir: 'range', score: 90, range: '30–100' },
+  { grp: 'Blut', name: 'LDL', start: '142 mg/dl', now: '128 mg/dl', dir: 'range', score: 45, range: '< 116' },
+  { grp: 'Training', name: 'Bankdrücken (e1RM)', start: '82 kg', now: '97 kg', dir: 'up', score: 78 },
+  { grp: 'Training', name: 'Workouts pro Woche', start: '2,1', now: '3,6', dir: 'up', score: 72 },
+  { grp: 'Einnahmen', name: 'Adherence', start: '78 %', now: '94 %', dir: 'up', score: 94 },
+  { grp: 'Erholung & Fitness', name: 'Ruhepuls', start: '61', now: '54', dir: 'down', score: 80 },
+  { grp: 'Erholung & Fitness', name: 'HRV', start: '52 ms', now: '68 ms', dir: 'up', score: 74, neu: true },
+  { grp: 'Erholung & Fitness', name: 'Schlaf', start: 'Ø 6:20 h', now: 'Ø 7:12 h', dir: 'range', score: 85, range: '7–9 h' },
+  { grp: 'Erholung & Fitness', name: 'VO2max', start: '41', now: '46', dir: 'up', score: 70, neu: true },
+  { grp: 'Erholung & Fitness', name: 'Schritte', start: 'Ø 6.100', now: 'Ø 9.840', dir: 'up', score: 88 },
+]
+const DIRS = [['up', '↑ mehr ist gut'], ['down', '↓ weniger ist gut'], ['range', '◎ Zielbereich'], ['off', 'zählt nicht']]
+
+const people = [
+  { n: 'Jonas R.', u: 'jonas.recomp', c: '#ff9f6b,#ff6fb5', story: true, last: 'Wie hast du die Taille so schnell runter?', t: '14:02', un: 2 },
+  { n: 'Lea S.', u: 'lea.longevity', c: '#5fe07f,#2bb8a0', story: true, last: 'Du: Danke, schick ich dir gleich', t: 'gestern' },
+  { n: 'Tim B.', u: 'timbulk', c: '#ffd45f,#ff9f0a', story: false, last: 'Push Day 💪', t: 'Mo' },
+  { n: 'Sara M.', u: 'sara.m', c: '#9ccdff,#4ea8ff', story: false, last: 'Hat dein Ferritin auch so lange gebraucht?', t: '24.10.' },
+]
+const requests = [
+  { n: 'Kai W.', u: 'kai.cuts', c: '#c39bff,#8a6bff', info: '3 gemeinsame Freunde · Ziel: Fettabbau' },
+  { n: 'Nina P.', u: 'ninapower', c: '#ff8f8f,#ff453a', info: 'über deinen QR-Code' },
+]
+
+function canSee(key) {
+  if (view === 'ich') return true
+  if (view === 'web') return false
+  if (view === 'freunde') return vis[key] !== 'ich'
+  return vis[key] === 'alle'
+}
+const chip = key => view === 'ich' ? `<button class="vis" data-key="${key}" data-v="${vis[key]}">${VIS_LABEL[vis[key]]}</button>` : ''
+const neu = (t = 'neu') => `<span class="neu">${t}</span>`
+const sec = (key, html) => canSee(key) ? html : ''
+const any = (...keys) => keys.some(canSee)
+const pav = (p, cls = '') => `<div class="pav ${cls}" style="background:linear-gradient(140deg,${p.c})">${p.n[0]}</div>`
+function tile(key, k, v, d = '', dcls = 'neutral', isNeu = false) {
+  return sec(key, `<div class="tile">${chip(key)}<div class="k">${k}${isNeu ? neu() : ''}</div><div class="v">${v}</div>${d ? `<div class="delta ${dcls}">${d}</div>` : ''}</div>`)
+}
+
+function groupScores() {
+  const g = {}
+  for (const m of metrics) { if (m.dir !== 'off') (g[m.grp] ||= []).push(m.score) }
+  const parts = Object.entries(g).map(([k, a]) => [k, Math.round(a.reduce((s, x) => s + x, 0) / a.length)])
+  const total = Math.round(parts.reduce((s, [, v]) => s + v, 0) / parts.length)
+  return { parts, total }
+}
+function ring(p, size = 108) {
+  const r = size / 2 - 8, c = 2 * Math.PI * r
+  return `<svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="url(#gr)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - p / 100)}"/>
+    <defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#8a6bff"/></linearGradient></defs></svg>`
+}
+
+function render() {
+  const s = document.getElementById('scroll')
+  s.style.padding = screen === 'chat' ? '0' : ''
+  if (view === 'web') s.innerHTML = renderWeb()
+  else if (screen === 'freunde') s.innerHTML = renderFreunde()
+  else if (screen === 'chats') s.innerHTML = renderChats()
+  else if (screen === 'chat') s.innerHTML = renderChat()
+  else if (screen === 'einstellungen') s.innerHTML = renderSettings()
+  else s.innerHTML = renderProfil()
+  wire()
+}
+
+function renderProfil() {
+  const { parts, total } = groupScores()
+  const own = view === 'ich'
+  const hidden = Object.keys(vis).filter(k => !canSee(k)).length
+  const hasStory = canSee('story')
+  return `
+  <div class="bar">
+    ${own ? `<button class="icb" data-go="freunde" title="Freunde">👥<span class="dot">2</span></button>` : `<button class="icb">‹</button>`}
+    <span class="ttl">${own ? 'Profil' : '@mara.lifts'}</span>
+    ${own ? `<span class="icons"><button class="icb" data-go="chats" title="Chats">💬<span class="dot">2</span></button><button class="icb" data-go="einstellungen" title="Einstellungen">⚙︎</button></span>`
+          : `<button class="icb" id="more">⋯</button>`}
+  </div>
+
+  ${sec('titelbild', `<div class="cover"><span class="tag">Titelbild${own ? ' · ändern' : ''}</span>${own ? `<span class="cv">${chip('titelbild')}</span>` : ''}</div>`) || '<div class="cover empty"></div>'}
+  <div class="head">
+    <div class="av-wrap" id="openStory">
+      <div class="ring-story ${hasStory ? '' : 'none'}"><div class="avatar">M</div></div>
+      ${own ? '<div class="av-plus">+</div>' : ''}
+    </div>
+    <div class="who"><div class="name">Mara K. ${sec('land', '🇩🇪')}</div><div class="nick">@mara.lifts</div></div>
+  </div>
+  ${own ? `<div class="meta">Story (24 h, immer nur 1 Bild) ${chip('story')} ${neu()} · Profilbild ${neu()}</div>` : ''}
+
+  ${sec('bio', `<div class="bio">Recomp seit März. Viel Grundübungen, Blutbild alle 3 Monate. ${chip('bio')}</div>`)}
+  ${sec('ziele', `<div class="tags"><span class="chip">Recomp</span><span class="chip">Kraft</span><span class="chip">Longevity</span> ${chip('ziele')} ${neu('Ziel-Tags')}</div>`)}
+  ${sec('streak', `<div class="meta"><span>🔥 41 Tage Streak</span><span>Mitglied seit März 2026</span> ${chip('streak')}</div>`)}
+
+  <div class="counts">
+    <button ${own ? 'data-go="freunde"' : ''}><b>38</b><small>Freunde</small></button>
+    <button><b>86</b><small>Workouts</small></button>
+    <button><b>12</b><small>Berichte</small></button>
+  </div>
+
+  <div class="actions">
+    ${own ? `<button class="btn" id="share">Profil teilen · QR</button><button class="btn ghost">Bearbeiten</button>`
+      : view === 'freunde' ? `<button class="btn" data-go="chat">Nachricht</button><button class="btn ghost">Freunde ✓</button>`
+      : `<button class="btn" id="add">Als Freund hinzufügen</button><button class="btn ghost" data-go="chat">Nachricht</button>`}
+  </div>
+
+  ${any('alter', 'geschlecht', 'land', 'groesse', 'gewicht') ? `<div class="card">
+    <h3>Über mich</h3>
+    <div class="grid">
+      ${tile('alter', 'Alter', '29')}
+      ${tile('geschlecht', 'Geschlecht', '<span style="font-size:15px">weiblich</span>')}
+      ${tile('land', 'Herkunft', '🇩🇪 <span style="font-size:15px">Deutschland</span>', '', 'neutral', true)}
+      ${tile('groesse', 'Größe', '172<small>cm</small>')}
+      ${tile('gewicht', 'Gewicht', '81,0<small>kg</small>', '−3,2 kg seit Start')}
+    </div>
+  </div>` : ''}
+
+  ${sec('gesamt', `<div class="card">
+    <h3>Gesamtfortschritt <span class="sub">seit Start · 14.03.2026 ${neu()}</span> ${chip('gesamt')}</h3>
+    <div class="total" id="openSheet">
+      <div class="ring">${ring(total)}<div class="num"><div><b>${total} %</b><small>gesamt</small></div></div></div>
+      <div class="parts">${parts.map(([k, v]) => `<div class="part"><div class="row"><span>${k}</span><span>${v} %</span></div><div class="track"><i style="width:${v}%"></i></div></div>`).join('')}</div>
+    </div>
+    <div class="hint">Tippen für die Aufschlüsselung${own ? ' und die Richtung je Wert' : ''} ›</div>
+  </div>`)}
+
+  ${any('kfa', 'umfaenge', 'muskel') ? `<div class="card">
+    <h3>Körper <span class="sub">letzte Messung 28.10.</span></h3>
+    <div class="grid">
+      ${tile('kfa', 'Körperfett', '15,8<small>%</small>', '−3,6 % seit Start', 'up')}
+      ${tile('muskel', 'Muskelmasse', '38,9<small>kg</small>', '+1,4 kg seit Start', 'up')}
+      ${sec('umfaenge', `<div class="tile" style="grid-column:1/-1">${chip('umfaenge')}<div class="k">Umfänge ${neu()}</div><div class="v" style="font-size:14px;line-height:1.6">Taille 84 · Oberarm 37,5 · Brust 98 · Oberschenkel 58 · Hüfte 96</div><div class="delta up">Taille −5 cm · Oberarm +1 cm</div></div>`)}
+    </div>
+  </div>` : ''}
+
+  ${any('einnahmen', 'substanzen') ? `<div class="card">
+    <h3>Einnahmen <span class="sub">letzte 90 Tage</span></h3>
+    <div class="grid">
+      ${tile('einnahmen', 'Adherence', '94<small>%</small>', '212 bestätigt · 13 verpasst')}
+      ${tile('substanzen', 'Substanzen', '6', 'davon 2 Zyklen aktiv · nie Namen')}
+    </div>
+  </div>` : ''}
+
+  ${sec('blut', `<div class="card">
+    <h3>Blutwerte <span class="sub">3 Befunde</span> ${chip('blut')}</h3>
+    <div class="grid">
+      <div class="tile"><div class="k">Marker erfasst</div><div class="v">24</div></div>
+      <div class="tile"><div class="k">im Zielbereich</div><div class="v">19<small>/ 24</small></div><div class="delta up">+5 seit erstem Befund</div></div>
+    </div>
+  </div>`)}
+
+  ${any('schritte', 'ruhepuls', 'hrv', 'schlaf', 'vo2', 'kcal', 'spo2', 'blutdruck') ? `<div class="card">
+    <h3>Gesundheit &amp; Wearables <span class="src">Apple Health · Health Connect</span></h3>
+    <div class="grid">
+      ${tile('schritte', 'Schritte Ø 7 Tage', '9.840', '+3.700 seit Start', 'up')}
+      ${tile('ruhepuls', 'Ruhepuls', '54<small>bpm</small>', '−7 seit Start', 'up')}
+      ${tile('schlaf', 'Schlaf Ø', '7:12<small>h</small>', '+52 min seit Start', 'up')}
+      ${tile('hrv', 'HRV', '68<small>ms</small>', '+16 ms seit Start', 'up', true)}
+      ${tile('vo2', 'VO2max', '46', '+5 seit Start', 'up', true)}
+      ${tile('kcal', 'Aktive kcal Ø', '620', '', 'neutral', true)}
+      ${tile('spo2', 'Sauerstoff (SpO2)', '97<small>%</small>', '', 'neutral', true)}
+      ${tile('blutdruck', 'Blutdruck', '121/78', 'manuell vorhanden, Wearable neu')}
+    </div>
+    ${own ? `<div class="note" style="text-align:left">Zyklus, Blutzucker und Medikamente aus Apple Health bleiben immer privat und haben keinen Sichtbarkeits-Chip.</div>` : ''}
+  </div>` : ''}
+
+  ${any('training', 'prs') ? `<div class="card">
+    <h3>Training</h3>
+    ${sec('training', `<div class="list" style="margin-bottom:6px">
+      <div class="li"><span>Workouts getrackt</span><span class="r">86 · 3,6 / Woche</span></div>
+      <div class="li"><span>Aktuelle Routine</span><span class="r">Upper / Lower</span></div>
+      <div class="li"><span>Lieblingsübung</span><span class="r">Kreuzheben</span></div>
+      ${own ? `<div class="li" style="border:none;padding-top:0"><span></span>${chip('training')}</div>` : ''}
+    </div>`)}
+    ${sec('prs', `<div style="font-size:12px;color:var(--t3);margin:8px 0 6px;display:flex;justify-content:space-between">Bestleistungen (e1RM) ${chip('prs')}</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="tile" style="min-height:0"><div class="k" style="padding:0">Kreuzheben</div><div class="v" style="font-size:16px">142<small>kg</small></div></div>
+      <div class="tile" style="min-height:0"><div class="k" style="padding:0">Kniebeuge</div><div class="v" style="font-size:16px">118<small>kg</small></div></div>
+      <div class="tile" style="min-height:0"><div class="k" style="padding:0">Bank</div><div class="v" style="font-size:16px">97<small>kg</small></div></div>
+    </div>`)}
+  </div>` : ''}
+
+  ${sec('abzeichen', `<div class="card">
+    <h3>Abzeichen ${neu()} ${chip('abzeichen')}</h3>
+    <div class="badges">
+      <div class="badge"><div class="ic">🔥</div>30 Tage ohne Lücke</div>
+      <div class="badge"><div class="ic">🩸</div>Erstes Blutbild</div>
+      <div class="badge"><div class="ic">🏋️</div>50 Workouts</div>
+      <div class="badge"><div class="ic">📉</div>−3 % KFA</div>
+      <div class="badge"><div class="ic">😴</div>7 Nächte über 7 h</div>
+    </div>
+  </div>`)}
+
+  ${sec('erfahrungen', `<div class="card">
+    <h3>Erfahrungsberichte <span class="sub">12 Berichte</span> ${chip('erfahrungen')}</h3>
+    <div class="list">
+      <div class="li"><span>Wirkung · Verträglichkeit · Wieder nehmen</span><span class="r">★ 4,3</span></div>
+      <div class="li"><span class="r" style="text-align:left">Nur in der App sichtbar, nie im Web-Link.</span></div>
+    </div>
+  </div>`)}
+
+  ${!own && hidden ? `<div class="note">${hidden} Bereiche sind für dich nicht freigegeben.</div>` : ''}
+  <div style="height:30px"></div>`
+}
+
+function renderWeb() {
+  const { total } = groupScores()
+  return `
+  <div class="webbar"><span>hoku.app/u/mara.lifts</span></div>
+  <div style="height:58px"></div>
+  ${vis.titelbild === 'alle' ? '<div class="cover"></div>' : '<div class="cover empty"></div>'}
+  <div class="head"><div class="av-wrap"><div class="ring-story none"><div class="avatar">M</div></div></div><div class="who"><div class="name">Mara K. ${vis.land === 'alle' ? '🇩🇪' : ''}</div><div class="nick">@mara.lifts</div></div></div>
+  <div class="tags"><span class="chip">Recomp</span><span class="chip">Kraft</span><span class="chip">Longevity</span></div>
+  <div class="meta"><span>🔥 41 Tage Streak</span><span>Mitglied seit März 2026</span></div>
+  <div class="card"><h3>Gesamtfortschritt <span class="sub">seit Start</span></h3>
+    <div class="total" style="cursor:default"><div class="ring">${ring(total)}<div class="num"><div><b>${total} %</b><small>gesamt</small></div></div></div>
+    <div class="parts" style="color:var(--t2);font-size:13px;line-height:1.45">Körper, Blutwerte, Training, Einnahmen und Erholung, gegenüber dem eigenen Start.</div></div>
+  </div>
+  <div class="card"><h3>Abzeichen</h3><div class="badges">
+    <div class="badge"><div class="ic">🔥</div>30 Tage ohne Lücke</div><div class="badge"><div class="ic">🏋️</div>50 Workouts</div><div class="badge"><div class="ic">📉</div>−3 % KFA</div></div></div>
+  <div class="card locked"><div class="ic">🔒</div><b>Story, 12 Erfahrungsberichte, Werte und Training</b>
+    <p>Nur in der App sichtbar, und nur wenn Mara sie freigibt.</p>
+    <button class="btn" style="width:100%">In Hoku öffnen</button></div>
+  <div class="note">Feste Auswahl: Titelbild, Profilbild, Name, Land, Ziele, Streak, Gesamtfortschritt, Abzeichen.<br>Nur wenn das jeweilige Feld auf „Alle“ steht. Keine Story, keine Gesundheitswerte, keine Substanzen.<br>Der Web-Link lässt sich in den Einstellungen ganz abschalten.</div>`
+}
+
+function renderFreunde() {
+  const list = friendTab === 'freunde'
+    ? `<input class="search" placeholder="Freunde durchsuchen">
+       <div class="stories">${people.filter(p => p.story).map(p => `<div>${pav(p, 'story')}${p.n.split(' ')[0]}</div>`).join('')}<div style="opacity:.5"><div class="pav" style="background:#2c2d32">…</div>Storys</div></div>
+       <div class="list">${people.map(p => `<div class="person">${pav(p, p.story ? 'story' : '')}<div class="pmain"><b>${p.n}</b><span>@${p.u}</span></div><button class="btn ghost sm" data-go="chat">💬</button></div>`).join('')}</div>`
+    : friendTab === 'anfragen'
+    ? `<div class="list" style="margin-top:8px">${requests.map(p => `<div class="person">${pav(p)}<div class="pmain"><b>${p.n}</b><span>${p.info}</span></div><button class="btn sm">Annehmen</button><button class="btn ghost sm">✕</button></div>`).join('')}</div>
+       <div class="note">Gesendete Anfragen: 1 offen · Anfragen ablehnen ist für die andere Person unsichtbar.</div>`
+    : `<input class="search" placeholder="@nickname suchen">
+       <div class="card" style="text-align:center">
+         <div style="width:150px;height:150px;margin:4px auto 10px;border-radius:18px;background:repeating-conic-gradient(#f2f4f8 0 25%,#1f2023 0 50%) 0 0/18px 18px;border:10px solid #f2f4f8"></div>
+         <b>Dein Code: HOKU-MARA-7Q2</b>
+         <div class="actions"><button class="btn">Link teilen</button><button class="btn ghost">QR scannen</button></div>
+       </div>
+       <div class="note">Vorschläge nur aus gemeinsamen Freunden. Keine Kontakte-Synchronisation zum Start.</div>`
+  return `
+  <div class="bar"><button class="icb" data-go="profil">‹</button><span class="ttl">Freunde</span><span style="width:36px"></span></div>
+  <div class="seg">
+    <button data-ft="freunde" class="${friendTab === 'freunde' ? 'on' : ''}">Freunde · 38</button>
+    <button data-ft="anfragen" class="${friendTab === 'anfragen' ? 'on' : ''}">Anfragen · 2</button>
+    <button data-ft="hinzu" class="${friendTab === 'hinzu' ? 'on' : ''}">Hinzufügen</button>
+  </div>
+  ${list} ${neu('alles neu')}`
+}
+
+function renderChats() {
+  return `
+  <div class="bar"><button class="icb" data-go="profil">‹</button><span class="ttl">Chats</span><button class="icb">✎</button></div>
+  <input class="search" placeholder="Suchen">
+  <div class="list" style="margin-top:6px">${people.map(p => `<div class="person" data-go="chat">${pav(p)}<div class="pmain"><b>${p.n}</b><span>${p.last}</span></div><div class="ptime">${p.t}${p.un ? `<br><span class="unread">${p.un}</span>` : ''}</div></div>`).join('')}
+  <div class="person" style="opacity:.75">${pav({ n: 'Hoku', c: '#64d2ff,#8a6bff' })}<div class="pmain"><b>Hoku · Coach</b><span>Dein KI-Coach, bleibt privat</span></div><div class="ptime">bisher</div></div></div>
+  <div class="note">Nachrichtenanfragen von Nicht-Freunden landen getrennt (je nach Einstellung). ${neu('alles neu')}</div>`
+}
+
+function renderChat() {
+  const p = people[0]
+  return `<div class="chat">
+    <div class="bar" style="padding:0 12px 8px"><button class="icb" data-go="chats">‹</button><span class="ttl" style="display:flex;align-items:center;gap:8px;justify-content:center">${pav(p).replace('pav', 'pav" style="width:30px;height:30px;font-size:12px;background:linear-gradient(140deg,' + p.c + ')"')} ${p.n}</span><button class="icb" id="more">⋯</button></div>
+    <div class="msgs">
+      <div class="day">Heute</div>
+      <div class="bub in">Hey! Hab dein Profil gesehen, 84 → 81 kg bei mehr Kraft ist stark.</div>
+      <div class="bub in">Wie hast du die Taille so schnell runter?</div>
+      <div class="bub out">Danke! Hauptsächlich Schritte hoch und konsequent Protein. Ich schick dir meine Routine.</div>
+      <div class="bub card-msg"><div style="font-size:11px;color:var(--t3)">Geteilte Routine</div><b>Upper / Lower · 4 Tage</b><div style="font-size:12px;color:var(--t2)">22 Übungen · in Training übernehmen</div></div>
+      <div class="bub in">Nice, übernehme ich 🙌</div>
+      <div class="bub card-msg" style="align-self:flex-start"><div style="font-size:11px;color:var(--t3)">Geteilter Stack-Eintrag</div><b>Substanz · 3×/Woche</b><div style="font-size:12px;color:var(--t2)">Teilen ist erlaubt</div></div>
+      <div class="safety" style="margin:4px 0;align-self:stretch">⚠︎ <b>Hoku hat diese Nachricht ausgeblendet.</b> Sie sieht nach Kauf oder Verkauf von Substanzen aus. Handel ist in Hoku verboten und wird gesperrt.
+        <div style="display:flex;gap:6px;margin-top:8px"><button class="btn ghost sm">Trotzdem anzeigen</button><button class="btn sm" style="background:linear-gradient(180deg,#ff7a70,#e5483e);box-shadow:none" id="reportMsg">Melden</button></div></div>
+    </div>
+    <div class="safety" style="background:rgba(255,255,255,.04);border-color:var(--hair)">Teilen ist frei. Lange drücken auf eine Nachricht: Melden · Löschen. ⋯ oben: Blockieren · Einschränken · Stummschalten.</div>
+    <div class="composer"><button class="icb">＋</button><input placeholder="Nachricht"><button class="icb" style="background:linear-gradient(180deg,#5db2ff,#3a8fe8)">↑</button></div>
+  </div>`
+}
+
+function renderSettings() {
+  const sw = k => `<button class="sw ${settings[k] ? 'on' : ''}" data-sw="${k}"></button>`
+  const pick = (k, opts) => `<button class="pick" data-pick="${k}" data-opts="${opts.join('|')}">${settings[k]} ▾</button>`
+  return `
+  <div class="bar"><button class="icb" data-go="profil">‹</button><span class="ttl">Einstellungen</span><span style="width:36px"></span></div>
+  <div class="card"><h3>Profil &amp; Sichtbarkeit ${neu()}</h3>
+    <div class="set"><span>Privates Profil<br><small style="color:var(--t3)">Nicht-Freunde sehen nur Bild, Name, Nickname</small></span>${sw('privat')}</div>
+    <div class="set"><span>Wer sieht was<br><small style="color:var(--t3)">alle Felder auf einer Liste, wie die Chips</small></span><span class="r">›</span></div>
+    <div class="set"><span>Profil ansehen als …<br><small style="color:var(--t3)">Freund · App-Nutzer · Web-Link</small></span><span class="r">›</span></div>
+    <div class="set"><span>Neue Felder standardmäßig</span><span class="r">🔒 Nur ich</span></div>
+    <div class="set"><span>Über Suche auffindbar</span>${sw('auffindbar')}</div>
+    <div class="set"><span>Web-Link (hoku.app/u/…)</span>${sw('webLink')}</div>
+  </div>
+  <div class="card"><h3>Story ${neu()}</h3>
+    <div class="set"><span>Wer sieht meine Story</span>${pick('storyWer', ['Freunde', 'Enge Freunde', 'Alle'])}</div>
+    <div class="set"><span>Enge Freunde</span><span class="r">6 ›</span></div>
+    <div class="set"><span>Story ausblenden vor</span><span class="r">2 Personen ›</span></div>
+    <div class="set"><span>Antworten auf Story</span>${pick('storyAntwort', ['Freunde', 'niemand'])}</div>
+  </div>
+  <div class="card"><h3>Freunde &amp; Nachrichten ${neu()}</h3>
+    <div class="set"><span>Wer darf Anfragen senden</span>${pick('anfragen', ['alle', 'Freunde von Freunden', 'niemand'])}</div>
+    <div class="set"><span>Wer darf mir schreiben</span>${pick('nachrichten', ['freunde', 'alle → als Anfrage', 'niemand'])}</div>
+    <div class="set"><span>Bilder von Nicht-Freunden unscharf</span>${sw('unscharf')}</div>
+    <div class="set"><span>Freundesliste sichtbar für</span>${pick('freundesliste', ['Freunde', 'nur ich', 'Alle'])}</div>
+    <div class="set"><span>Online-Status zeigen</span>${sw('aktivStatus')}</div>
+    <div class="set"><span>Lesebestätigungen</span>${sw('gelesen')}</div>
+  </div>
+  <div class="card"><h3>Kontrolle ${neu()}</h3>
+    <div class="set"><span>Blockiert</span><span class="r">1 ›</span></div>
+    <div class="set"><span>Eingeschränkt<br><small style="color:var(--t3)">merkt nichts, Nachrichten landen in Anfragen</small></span><span class="r">0 ›</span></div>
+    <div class="set"><span>Stummgeschaltet</span><span class="r">2 ›</span></div>
+    <div class="set"><span>Meine Meldungen und ihr Stand</span><span class="r">›</span></div>
+  </div>
+  <div class="card"><h3>Datenquellen</h3>
+    <div class="set"><span>Apple Health / Health Connect</span><span class="r">verbunden ›</span></div>
+    <div class="set"><span>Was wird gelesen</span><span class="r">8 Datentypen ›</span></div>
+  </div>
+  <div class="card"><h3>Konto &amp; App</h3>
+    <div class="set"><span>Sprache</span><span class="r">Deutsch ›</span></div>
+    <div class="set"><span>Erscheinungsbild</span><span class="r">Soft Dark ›</span></div>
+    <div class="set"><span>Benachrichtigungen</span><span class="r">›</span></div>
+    <div class="set"><span>Passkey · Einwilligungen · Daten exportieren</span><span class="r">›</span></div>
+    <div class="set"><span style="color:var(--bad)">Abmelden</span><span></span></div>
+  </div>
+  <div class="note">Heute steht das alles auf einer langen Profilseite. Neu wäre: Profil = Schaufenster, Einstellungen = eigener Bildschirm hinter ⚙︎.</div>
+  <div style="height:30px"></div>`
+}
+
+function renderSheet() {
+  const own = view === 'ich'
+  const { parts, total } = groupScores()
+  let html = `<div class="grab"></div><h2>Gesamtfortschritt · ${total} %</h2>
+    <div class="sub">Jeder Wert wird mit deinem Startwert verglichen. Bereiche zählen gleich viel. Ein Wert zählt ab zwei Messungen.${own ? ' Die Richtung kannst du je Wert ändern.' : ''}</div>`
+  const groups = [...new Set(metrics.map(m => m.grp))]
+  for (const grp of groups) {
+    const p = parts.find(([g]) => g === grp)
+    html += `<div class="grp">${grp} · ${p ? p[1] + ' %' : 'zählt nicht'}</div>`
+    html += metrics.map((m, i) => m.grp !== grp ? '' : `
+      <div class="mrow ${m.dir === 'off' ? 'off' : ''}">
+        <div>${m.name}${m.neu ? neu() : ''}<div class="d">${m.start} → ${m.now}${m.range ? ' · Zielbereich ' + m.range : ''}${m.ziel ? ' · Standard aus Ziel „Recomp“' : ''}</div></div>
+        <div class="score">${m.dir === 'off' ? '—' : m.score + ' %'}</div>
+        ${own ? `<div class="dir">${DIRS.map(([d, l]) => `<button data-i="${i}" data-d="${d}" class="${m.dir === d ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
+      </div>`).join('')
+  }
+  document.getElementById('sheet').innerHTML = html
+  document.querySelectorAll('.dir button').forEach(b => b.onclick = () => {
+    metrics[+b.dataset.i].dir = b.dataset.d
+    renderSheet(); render()
+  })
+}
+
+function showSheet(html) {
+  document.getElementById('sheet').innerHTML = '<div class="grab"></div>' + html
+  document.getElementById('phone').classList.add('open')
+  const r = document.getElementById('toReport'); if (r) r.onclick = () => openReport()
+}
+function openMenu() {
+  showSheet(`<h2>@mara.lifts</h2>
+    <div class="list">
+      <div class="set"><span>Profil teilen</span><span class="r">›</span></div>
+      <div class="set"><span>Stummschalten<br><small style="color:var(--t3)">keine Storys und Hinweise mehr, bleibt befreundet</small></span><span class="r">›</span></div>
+      <div class="set"><span>Einschränken<br><small style="color:var(--t3)">Nachrichten landen in Anfragen, sie merkt nichts</small></span><span class="r">›</span></div>
+      <div class="set" id="toReport" style="cursor:pointer"><span style="color:var(--warn)">Melden</span><span class="r">›</span></div>
+      <div class="set"><span style="color:var(--bad)">Blockieren<br><small style="color:var(--t3)">sieht dich nicht mehr, kann nicht schreiben, auch nicht mit neuem Konto auf demselben Gerät</small></span><span class="r">›</span></div>
+    </div>`)
+}
+function openReport() {
+  showSheet(`<h2>Melden</h2><div class="sub">Worum geht es? Die Person erfährt nicht, wer gemeldet hat.</div>
+    <div class="list">
+      ${['Handel mit Substanzen', 'Belästigung oder Drohung', 'Nacktheit oder sexuelle Inhalte', 'Spam oder Betrug', 'Gefährliche Dosierungstipps', 'Minderjährig', 'Etwas anderes'].map(x => `<div class="set"><span>${x}</span><span class="r">›</span></div>`).join('')}
+    </div>
+    <div class="set" style="border:none"><span>Zusätzlich blockieren</span><button class="sw on"></button></div>
+    <div class="note">Die gemeldete Nachricht und die 10 davor gehen an die Moderation. Du bekommst Bescheid, was entschieden wurde.</div>`)
+}
+
+function go(to) { screen = to; render(); document.getElementById('scroll').scrollTop = 0 }
+
+function wire() {
+  document.querySelectorAll('#scroll .vis[data-key]').forEach(b => b.onclick = e => {
+    e.stopPropagation()
+    const k = b.dataset.key
+    vis[k] = ORDER[(ORDER.indexOf(vis[k]) + 1) % 3]
+    render()
+  })
+  document.querySelectorAll('#scroll [data-go]').forEach(b => b.onclick = e => { e.stopPropagation(); go(b.dataset.go) })
+  document.querySelectorAll('#scroll [data-ft]').forEach(b => b.onclick = () => { friendTab = b.dataset.ft; render() })
+  document.querySelectorAll('#scroll [data-sw]').forEach(b => b.onclick = () => { settings[b.dataset.sw] = !settings[b.dataset.sw]; render() })
+  document.querySelectorAll('#scroll [data-pick]').forEach(b => b.onclick = () => {
+    const o = b.dataset.opts.split('|'); settings[b.dataset.pick] = o[(o.indexOf(settings[b.dataset.pick]) + 1) % o.length]; render()
+  })
+  const o = document.getElementById('openSheet')
+  if (o) o.onclick = () => { renderSheet(); document.getElementById('phone').classList.add('open') }
+  const more = document.getElementById('more')
+  if (more) more.onclick = () => openMenu()
+  const rm = document.getElementById('reportMsg')
+  if (rm) rm.onclick = () => openReport()
+  const st = document.getElementById('openStory')
+  if (st && canSee('story')) st.onclick = () => {
+    document.getElementById('storyBottom').innerHTML = view === 'ich'
+      ? '<button class="btn ghost" style="flex:1">👁 14 Aufrufe</button><button class="btn ghost" style="flex:1">Ersetzen</button><button class="btn ghost" style="flex:none;padding:11px 14px">🗑</button>'
+      : '<input placeholder="Antworten …"><button class="btn ghost" style="flex:none;padding:11px 14px">🔥</button>'
+    const el = document.getElementById('story'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show')
+  }
+}
+document.getElementById('storyX').onclick = () => document.getElementById('story').classList.remove('show')
+document.getElementById('sheetBg').onclick = () => document.getElementById('phone').classList.remove('open')
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => {
+  view = b.dataset.view; screen = 'profil'
+  document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x === b))
+  document.getElementById('phone').classList.remove('open')
+  render(); document.getElementById('scroll').scrollTop = 0
+})
+document.querySelectorAll('#jump button').forEach(b => b.onclick = () => {
+  view = 'ich'; document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x.dataset.view === 'ich'))
+  go(b.dataset.screen)
+})
+document.getElementById('neuToggle').onchange = e => document.body.classList.toggle('show-neu', e.target.checked)
+render()
+</script>
+</body>
+</html>
