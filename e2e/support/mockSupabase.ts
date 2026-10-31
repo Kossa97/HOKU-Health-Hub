@@ -272,6 +272,9 @@ export class MockSupabase {
       username: 'e2e',
       is_public: false,
       is_admin: false,
+      field_visibility: {},
+      profile_private: false,
+      web_link_enabled: false,
       age_confirmed_at: '2026-01-01T00:00:00.000Z',
       terms_accepted_at: '2026-01-01T00:00:00.000Z',
       terms_version: TERMS_VERSION,
@@ -993,6 +996,52 @@ export class MockSupabase {
             wirkung: row.wirkung ?? null, vertraeglichkeit: row.vertraeglichkeit ?? null, wieder_nehmen: row.wieder_nehmen ?? null,
             monat: String(row.created_at).slice(0, 7),
           })),
+      }
+    })
+
+    // Nachbild von profile_view (supabase-profil-p2a-sichtbarkeit.sql): Eigentuemer
+    // sieht alles (oder mit p_as eine andere Stufe), andere angemeldete nur "all".
+    // Der Testnutzer ist immer angemeldet; "web" nur ueber p_as.
+    this.onRpc('profile_view', params => {
+      const name = String(params.p_username ?? '').trim().toLowerCase()
+      const p = this.table('profiles').find(row => String(row.username ?? '').toLowerCase() === name)
+      if (!p) return null
+      const eigen = p.id === TEST_USER.id
+      if (!eigen && p.hidden_by_moderation === true) return null
+      if (!eigen && this.table('user_blocks').some(row =>
+        (row.blocker_id === TEST_USER.id && row.blocked_id === p.id) || (row.blocker_id === p.id && row.blocked_id === TEST_USER.id))) {
+        return { username: p.username, blocked: true, own: false }
+      }
+      const als = eigen && ['friends', 'all', 'web'].includes(String(params.p_as)) ? String(params.p_as) : null
+      const stufe = eigen ? (als ?? 'owner') : 'all'
+      const vis = (p.field_visibility ?? {}) as Record<string, string>
+      if (stufe === 'web' && (p.web_link_enabled !== true || p.profile_private === true)) return null
+      const erlaubt = (key: string) => stufe === 'owner'
+        || (p.profile_private !== true && (stufe === 'friends' ? ['friends', 'all'].includes(vis[key]) : vis[key] === 'all')
+          && (stufe !== 'web' || key === 'bio'))
+      const fields: Record<string, unknown> = {}
+      const zeile: Record<string, unknown> = {
+        bio: p.public_bio || undefined,
+        goals: Array.isArray(p.goals) && p.goals.length > 0 ? p.goals : undefined,
+        country: p.country ?? undefined,
+        gender: p.profile_gender ?? undefined,
+        member_since: typeof p.created_at === 'string' ? p.created_at.slice(0, 7) : undefined,
+        cover: p.cover_path && (stufe === 'owner' || p.cover_status === 'approved') ? p.cover_path : undefined,
+      }
+      const snap = (this.table('profile_snapshots').find(row => row.user_id === p.id)?.data ?? {}) as Record<string, unknown>
+      for (const [key, value] of Object.entries({ ...snap, ...zeile })) {
+        if (value !== undefined && erlaubt(key)) fields[key] = value
+      }
+      return {
+        username: p.username, display_name: p.display_name ?? null, own: eigen, blocked: false,
+        ...(eigen ? { as: stufe } : {}),
+        ...(stufe !== 'owner' ? { private: p.profile_private === true } : {}),
+        avatar: p.avatar_path && (stufe === 'owner' || p.avatar_status === 'approved') ? p.avatar_path : null,
+        fields,
+        ...(stufe === 'owner' ? {
+          visibility: vis, profile_private: p.profile_private === true, web_link_enabled: p.web_link_enabled === true,
+          avatar_status: p.avatar_status ?? null, cover_status: p.cover_status ?? null,
+        } : {}),
       }
     })
 

@@ -81,7 +81,7 @@ test('Fremdes Profil: Erfahrung melden, Profil blockieren, im eigenen Profil wie
   await expect(page.locator('[data-profile-blocked]')).toBeVisible()
   await expect(page.getByText('Geteilt von Max')).toHaveCount(0)
 
-  await page.goto('/profil')
+  await page.goto('/profil/blockiert')
   const liste = page.locator('[data-blocked-list]')
   await expect(liste).toContainText('@max')
   await liste.locator('[data-unblock="max"]').click()
@@ -164,7 +164,7 @@ test('Admin: gemeldetes Profil ausblenden — danach ist es nicht mehr erreichba
 test('Konto löschen: erst das Wort, dann Dateien, Konto und Abmeldung', async ({ page, mock }) => {
   mock.storage.set('progress-photos', [`${TEST_USER.id}/1.jpg`, `${TEST_USER.id}/2.jpg`, 'jemand-anders/3.jpg'])
   mock.storage.set('batch-files', [`${TEST_USER.id}/analyse.pdf`, `progress/${TEST_USER.id}/alt.jpg`, 'progress/jemand-anders/x.jpg'])
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
 
   await page.locator('[data-account-delete-open]').click()
   const sheet = page.locator('[data-account-delete-sheet]')

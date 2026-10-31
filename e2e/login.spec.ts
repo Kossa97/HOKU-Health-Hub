@@ -374,7 +374,7 @@ test('Profil: Passkeys sehen und entfernen; der letzte nimmt den Face-ID-Knopf m
   test.skip(process.env.VITE_AUTH_PASSKEY !== '1', 'nur im Build mit Passkeys')
   mock.passkeys.push({ id: 'pk-1', credentialId: 'x', created_at: '2026-10-01T10:00:00.000Z' })
   await page.addInitScript(() => localStorage.setItem('tyd.passkey', '1'))
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
   const bereich = page.locator('[data-passkey-einstellung]')
   await expect(bereich).toContainText('Virtueller Schlüssel')
   await bereich.getByRole('button', { name: 'Virtueller Schlüssel entfernen' }).click()

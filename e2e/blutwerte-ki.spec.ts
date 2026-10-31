@@ -54,7 +54,7 @@ test('Abbrechen bei der Einwilligung: nichts gespeichert, nichts gesendet', asyn
 
 test('Widerruf im Profil: danach fragt der Import wieder', async ({ page, mock }) => {
   Object.assign(mock.table('profiles').find(row => row.id === TEST_USER.id)!, { ai_import_consent_at: '2026-10-01T08:00:00.000Z' })
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
   const karte = page.locator('[data-ai-consent-profile]')
   await expect(karte).toContainText('Erlaubt seit')
   await karte.locator('[data-ai-consent-withdraw]').click()
