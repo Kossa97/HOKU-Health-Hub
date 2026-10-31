@@ -12,14 +12,16 @@ const MAX_ID = '00000000-0000-4000-8000-0000000000f2'
 
 /** Max: Alter und KFA auf „Alle“, Gewicht auf „Freunde“, Berichte auf „Alle“. */
 function max(mock: MockSupabase, extra: Record<string, unknown> = {}) {
+  const avatar = `${MAX_ID}/avatar-1.jpg`
+  mock.storage.set('profile-media', [avatar])
   mock.insert('profiles', {
     id: MAX_ID, username: 'max', display_name: 'Max Muster', public_bio: 'Kraft und Ausdauer.',
     field_visibility: { bio: 'all', age: 'all', weight: 'friends', body_fat: 'all', reviews: 'all' },
     profile_private: false, web_link_enabled: true,
-    avatar_path: `${MAX_ID}/avatar-1.jpg`, avatar_status: 'approved',
+    // freigegeben: der Bild-Check hat genau diese Datei geprüft
+    avatar_path: avatar, avatar_status: 'approved', avatar_object_id: mock.objektId('profile-media', avatar),
     ...extra,
   })
-  mock.storage.set('profile-media', [`${MAX_ID}/avatar-1.jpg`])
   mock.insert('profile_snapshots', {
     user_id: MAX_ID,
     data: { age: { v: 31 }, weight: { v: 84.2, unit: 'kg' }, body_fat: { v: 14.5, unit: '%' }, reviews: { count: 1, avgRating: 4 } },
@@ -58,6 +60,15 @@ test('Angemeldet: nur Werte auf „Alle“, zwei Ein-Wert-Karten nebeneinander, 
   await page.locator('[data-profile-more]').click()
   await expect(page.locator('[data-profile-more-sheet] [data-report-profile]')).toBeVisible()
   await expect(page.locator('[data-profile-more-sheet] [data-block-open]')).toBeVisible()
+})
+
+test('Freigegebenes Bild gelöscht und unter gleichem Namen neu angelegt: andere sehen es nicht mehr', async ({ page, mock }) => {
+  max(mock)
+  mock.ersetzeDatei('profile-media', `${MAX_ID}/avatar-1.jpg`)
+  await page.goto('/u/max')
+  await expect(page.locator('[data-profile-name]')).toContainText('Max Muster')
+  await expect(page.locator('[data-profile-avatar]')).toBeVisible()
+  await expect(page.locator('[data-profile-avatar] img')).toHaveCount(0)
 })
 
 test('Berichte nur bei Freigabe: ohne „Alle“ keine Liste und keine Anfrage', async ({ page, mock }) => {

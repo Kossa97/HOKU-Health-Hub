@@ -32,6 +32,8 @@ test('Offene Prüfung bestanden: Marke verschwindet, andere sehen das Bild', asy
   await page.goto('/profil')
   await expect.poll(() => mock.table('profiles')[0].avatar_status).toBe('approved')
   await expect(page.locator('[data-media-pending]')).toHaveCount(0)
+  // Freigegeben ist genau die geprüfte Datei (ihre Objekt-ID), nicht nur der Name.
+  expect(mock.table('profiles')[0].avatar_object_id).toBe(mock.objektId('profile-media', AVATAR))
 })
 
 test('Hochladen → „wird geprüft“; abgelehnt → Hinweis, „Anderes wählen“, OK quittiert', async ({ page, mock }) => {

@@ -124,19 +124,23 @@ function parseSelect(select: string): SelectField[] {
 }
 
 /**
- * Nachbild des Triggers protect_profile_media_status: Den Bildstatus setzt nur
- * der Bild-Check. Ein neuer Pfad macht ihn `pending`, ohne Pfad darf der Client
- * ihn auf `null` setzen (Hinweis „abgelehnt“ quittieren), sonst bleibt er.
+ * Nachbild des Triggers protect_profile_media_status: Den Bildstatus und die
+ * Objekt-ID der freigegebenen Datei setzt nur der Bild-Check. Ein neuer Pfad
+ * macht den Status `pending` und leert die Objekt-ID, ohne Pfad darf der Client
+ * den Status auf `null` setzen (Hinweis „abgelehnt“ quittieren), sonst bleibt er.
  */
 function schuetzeBildstatus(alt: Row, patch: Row): Row {
   const neu = { ...patch }
   for (const kind of ['avatar', 'cover'] as const) {
     const pfad = `${kind}_path`
     const status = `${kind}_status`
+    const objekt = `${kind}_object_id`
     const neuerPfad = pfad in neu ? neu[pfad] : alt[pfad]
     if (neuerPfad !== alt[pfad]) neu[status] = neuerPfad == null ? null : 'pending'
     else if (neuerPfad == null && status in neu && neu[status] === null) neu[status] = null
     else delete neu[status]
+    if (neuerPfad !== alt[pfad]) neu[objekt] = null
+    else delete neu[objekt]
   }
   return neu
 }
@@ -318,6 +322,42 @@ export class MockSupabase {
 
   /** Dateien im Speicher je Bucket (`<user-id>/<name>`). */
   readonly storage = new Map<string, string[]>()
+
+  /** storage.objects.id je Datei (`<bucket>/<pfad>`); neu hochgeladen = neue id. */
+  private readonly objektIds = new Map<string, string>()
+
+  /** Datei löschen und unter demselben Namen neu anlegen (wie storage.objects: neue id). */
+  ersetzeDatei(bucket: string, pfad: string): void {
+    this.storage.set(bucket, [...(this.storage.get(bucket) ?? []).filter(path => path !== pfad), pfad])
+    this.objektIds.set(`${bucket}/${pfad}`, randomUUID())
+  }
+
+  /** id der Datei wie in storage.objects; `null`, wenn sie nicht (mehr) da ist. */
+  objektId(bucket: string, pfad: string): string | null {
+    if (!(this.storage.get(bucket) ?? []).includes(pfad)) return null
+    const key = `${bucket}/${pfad}`
+    const id = this.objektIds.get(key) ?? randomUUID()
+    this.objektIds.set(key, id)
+    return id
+  }
+
+  /**
+   * Nachbild der Storage-Policies fuer `profile-media`: eigener Ordner, oder ein
+   * freigegebenes Bild (Status `approved` und noch genau die gepruefte Datei)
+   * fuer erlaubte Betrachter (profile_media_visible).
+   */
+  private medienSichtbar(pfad: string): boolean {
+    const betrachter = this.betrachter()
+    if (betrachter && pfad.split('/')[0] === betrachter) return true
+    const id = this.objektId('profile-media', pfad)
+    return id !== null && this.table('profiles').some(p =>
+      p.hidden_by_moderation !== true && !(betrachter && this.blockiertZwischen(betrachter, p.id)) && (
+        (p.avatar_path === pfad && p.avatar_status === 'approved' && p.avatar_object_id === id
+          && (betrachter !== null || (p.web_link_enabled === true && p.profile_private !== true)))
+        || (p.cover_path === pfad && p.cover_status === 'approved' && p.cover_object_id === id
+          && betrachter !== null && p.profile_private !== true
+          && (p.field_visibility as Record<string, string> | undefined)?.cover === 'all')))
+  }
 
   /** Der echte Katalog aus der Quelldatei — dieselbe, aus der die SQL entsteht. */
   private seedCatalog(): void {
@@ -553,8 +593,9 @@ export class MockSupabase {
   /**
    * Nachbild von supabase/functions/profile-image-check: prueft nur das Bild
    * der Testperson mit Status `pending` (Pfad aus der Profilzeile, nie aus der
-   * Anfrage). `imageCheck.urteil`: `approved` gibt frei, `rejected` loescht
-   * Datei und Pfad, `pending` spielt einen Fehler beim Pruefen nach.
+   * Anfrage). `imageCheck.urteil`: `approved` gibt genau die vorhandene Datei
+   * frei (Objekt-ID), `rejected` loescht Datei und Pfad, `pending` spielt einen
+   * Fehler beim Pruefen nach; ohne Datei bleibt es `pending`.
    */
   readonly imageCheck: { urteil: 'approved' | 'rejected' | 'pending'; calls: { kind: string }[] } = { urteil: 'approved', calls: [] }
 
@@ -567,10 +608,11 @@ export class MockSupabase {
     const pfad = profil[`${kind}_path`] as string | null | undefined
     const status = (profil[`${kind}_status`] as string | null | undefined) ?? null
     if (!pfad || status !== 'pending') return route.fulfill({ headers: corsHeaders(), json: { status } })
-    const urteil = this.imageCheck.urteil
-    if (urteil === 'approved') profil[`${kind}_status`] = 'approved'
+    const objektId = this.objektId('profile-media', pfad)
+    const urteil = objektId ? this.imageCheck.urteil : 'pending'
+    if (urteil === 'approved') Object.assign(profil, { [`${kind}_status`]: 'approved', [`${kind}_object_id`]: objektId })
     if (urteil === 'rejected') {
-      Object.assign(profil, { [`${kind}_path`]: null, [`${kind}_status`]: 'rejected' })
+      Object.assign(profil, { [`${kind}_path`]: null, [`${kind}_status`]: 'rejected', [`${kind}_object_id`]: null })
       this.storage.set('profile-media', (this.storage.get('profile-media') ?? []).filter(p => p !== pfad))
     }
     return route.fulfill({ headers: corsHeaders(), json: { status: urteil } })
@@ -625,7 +667,7 @@ export class MockSupabase {
       const pfad = rest.slice('sign/'.length)
       const bucket = pfad.split('/')[0]
       const datei = decodeURIComponent(pfad.slice(bucket.length + 1))
-      if (!(this.storage.get(bucket) ?? []).includes(datei)) {
+      if (!(this.storage.get(bucket) ?? []).includes(datei) || (bucket === 'profile-media' && !this.medienSichtbar(datei))) {
         return route.fulfill({ status: 400, headers: corsHeaders(), json: { statusCode: '404', error: 'not_found', message: 'Object not found' } })
       }
       return route.fulfill({ headers: corsHeaders(), json: { signedURL: `/object/sign/${bucket}/${datei}?token=e2e` } })
@@ -654,13 +696,16 @@ export class MockSupabase {
     if (method === 'POST' && !rest.startsWith('list/') && !rest.startsWith('sign/')) {
       const bucket = rest.split('/')[0]
       const pfad = decodeURIComponent(rest.slice(bucket.length + 1))
-      this.storage.set(bucket, [...(this.storage.get(bucket) ?? []), pfad])
-      return route.fulfill({ headers: corsHeaders(), json: { Key: `${bucket}/${pfad}`, Id: randomUUID() } })
+      this.storage.set(bucket, [...(this.storage.get(bucket) ?? []).filter(path => path !== pfad), pfad])
+      const id = randomUUID()
+      this.objektIds.set(`${bucket}/${pfad}`, id)
+      return route.fulfill({ headers: corsHeaders(), json: { Key: `${bucket}/${pfad}`, Id: id } })
     }
     if (method === 'DELETE') {
       const bucket = rest
       const { prefixes = [] } = (route.request().postDataJSON() ?? {}) as { prefixes?: string[] }
       this.storage.set(bucket, (this.storage.get(bucket) ?? []).filter(path => !prefixes.includes(path)))
+      for (const name of prefixes) this.objektIds.delete(`${bucket}/${name}`)
       return route.fulfill({ headers: corsHeaders(), json: prefixes.map(name => ({ name })) })
     }
     this.unhandled.push(`STORAGE ${method} ${url.pathname}`)
