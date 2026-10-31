@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { HEALTH_SECTION_ID, LEGAL_DOCS, hatPlatzhalter, legalLang, teileAbsatz } from './texts'
+import { HEALTH_SECTION_ID, LEGAL_DOCS, PROFILE_SECTION_ID, hatPlatzhalter, legalLang, teileAbsatz } from './texts'
 
 describe('Rechtstexte', () => {
   it('haben fuer jede Seite Deutsch und Englisch mit gleicher Gliederung', () => {
@@ -60,6 +60,26 @@ describe('Rechtstexte', () => {
     expect(HEALTH_SECTION_ID).toBe('gesundheitsdaten')
     expect(LEGAL_DOCS.datenschutz.de.sections[3].id).toBe(HEALTH_SECTION_ID)
     expect(LEGAL_DOCS.datenschutz.en.sections[3].id).toBe(HEALTH_SECTION_ID)
+  })
+
+  it('beschreibt Profil und Sichtbarkeit: Stufen, privates Profil, Schnappschuss, Web-Link', () => {
+    const abschnitt = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections.find(s => s.id === PROFILE_SECTION_ID)
+    const de = abschnitt('de')
+    const en = abschnitt('en')
+    expect(de?.heading).toBe('6. Profil und Sichtbarkeit')
+    expect(en?.heading).toBe('6. Profile and visibility')
+    const deText = de?.paragraphs.join(' ') ?? ''
+    const enText = en?.paragraphs.join(' ') ?? ''
+    for (const wert of ['„Nur ich“', '„Freunde“', '„Alle“', 'angemeldete Hoku-Nutzer', 'Freunde-Funktion', 'Profilbild', 'privat', 'nie ihre Namen', 'Menstruationszyklus, Blutzucker und Medikamente', 'Profilwerte-Schnappschuss', 'mit deinem Konto gelöscht', 'standardmäßig aus', 'Erfahrungsberichte und alle anderen Werte sind ohne Anmeldung nie zu sehen']) expect(deText).toContain(wert)
+    for (const wert of ['“Only me”', '“Friends”', '“Everyone”', 'signed-in Hoku users', 'friends feature', 'profile picture', 'private', 'never their names', 'Menstrual cycle, blood sugar and medications', 'Profile values snapshot', 'deleted with your account', 'off by default', 'Experience reports and all other values are never visible without signing in']) expect(enText).toContain(wert)
+  })
+
+  it('nennt den Bild-Check ueber Anthropic (USA) als Empfaenger', () => {
+    const empfaenger = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections[4].paragraphs
+    const de = empfaenger('de').find(p => p.startsWith('Anthropic (Bild-Check')) ?? ''
+    const en = empfaenger('en').find(p => p.startsWith('Anthropic (picture check')) ?? ''
+    for (const wert of ['Profil- und Titelbild', 'USA', 'Claude', 'bevor andere es sehen', 'abgelehntes Bild löschen wir sofort', 'nur den Zeitpunkt']) expect(de).toContain(wert)
+    for (const wert of ['profile and cover picture', 'USA', 'Claude', 'before others see it', 'delete a rejected picture immediately', 'only the time']) expect(en).toContain(wert)
   })
 
   it('zeigt Deutsch nur fuer Deutsch, sonst Englisch', () => {
