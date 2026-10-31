@@ -9,6 +9,8 @@ import { isGlp1Substance, type WeightPoint } from '../lib/glp1'
 import { dedupeAgainst, mapHealthWorkout } from '../lib/healthImport'
 import { localDateKey } from '../lib/energy'
 import type { ReadinessInput } from '../lib/readiness'
+import { useHealthStoreConsent } from '../../wearables/hooks/useHealthStoreConsent'
+import { loadHealthStoreConsent } from '../../wearables/services/healthStore'
 
 /**
  * Alles, was der Workout-Tracker liest — eigene Daten und der Kontext aus dem
@@ -150,6 +152,10 @@ export function useTrainingData() {
   const [context, setContext] = useState<TrainingContext>(EMPTY_CONTEXT)
   const [reloadKey, setReloadKey] = useState(0)
   const syncedRef = useRef(false)
+  const { consent: healthConsent, reload: reloadHealthConsent } = useHealthStoreConsent(userId)
+  // Uhr-Daten nur mit Einstellung UND Einwilligung (Art. 9 DSGVO). Fehlt die Einwilligung, pausiert der Import.
+  const healthAllowed = settings.healthImport && !!healthConsent
+  const healthImportPaused = state === 'ready' && settings.healthImport && healthConsent === null
 
   useEffect(() => {
     if (!userId) return
@@ -175,11 +181,11 @@ export function useTrainingData() {
 
   // Uhr-Daten nur mit ausdruecklicher Einstellung — sonst fragt die App nie nach Health.
   useEffect(() => {
-    if (state !== 'ready' || !settings.healthImport || !isNative) return
+    if (state !== 'ready' || !healthAllowed || !isNative) return
     let cancelled = false
     loadHealthReadiness().then(health => { if (!cancelled) setContext(prev => ({ ...prev, health })) }).catch(() => {})
     return () => { cancelled = true }
-  }, [state, settings.healthImport])
+  }, [state, healthAllowed])
 
   const reload = useCallback(() => setReloadKey(k => k + 1), [])
 
@@ -254,6 +260,8 @@ export function useTrainingData() {
    */
   const syncHealthWorkouts = useCallback(async (): Promise<{ created: number; enriched: number }> => {
     if (!userId || !isNative) return { created: 0, enriched: 0 }
+    // Frisch gelesen: auf einem anderen Geraet widerrufen heisst hier sofort kein Import mehr.
+    if (!(await loadHealthStoreConsent(userId))) return { created: 0, enriched: 0 }
     const platform = isIOS ? 'ios' : 'android'
     // Puls nur fuer Workouts nachschlagen, die noch nicht uebernommen sind —
     // sonst fragt jeder Seitenaufruf HealthKit fuer alle 30 Tage erneut ab.
@@ -274,18 +282,20 @@ export function useTrainingData() {
   }, [userId, sessions, settings.dismissedExternalIds, reload])
 
   useEffect(() => {
-    if (state !== 'ready' || !settings.healthImport || syncedRef.current) return
+    if (state !== 'ready' || !healthAllowed || syncedRef.current) return
     syncedRef.current = true
     syncHealthWorkouts().catch(() => {})
-  }, [state, settings.healthImport, syncHealthWorkouts])
+  }, [state, healthAllowed, syncHealthWorkouts])
 
   const glp1Active = settings.glp1Mode ?? context.glp1Names.length > 0
 
   return useMemo(() => ({
     state, sessions, routines, customExercises, settings, context, glp1Active,
+    healthConsent, healthImportPaused, reloadHealthConsent,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
     updateSettings, importSessions, syncHealthWorkouts,
   }), [state, sessions, routines, customExercises, settings, context, glp1Active,
+    healthConsent, healthImportPaused, reloadHealthConsent,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
     updateSettings, importSessions, syncHealthWorkouts])
 }

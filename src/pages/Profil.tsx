@@ -17,6 +17,7 @@ import { PASSKEY_AN } from '../features/auth/lib/passkey'
 import { PasskeyEinstellung } from '../features/auth/components/PasskeyEinstellung'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
+import { HealthStoreProfile } from '../features/wearables/components/HealthStoreProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { UeberDichKarte, type UeberDichWerte } from '../features/profil/components/UeberDichKarte'
 import { ProfilBilder } from '../features/profil/components/ProfilBilder'
@@ -293,6 +294,7 @@ export function Profil() {
       <div>
         <KiEinwilligungProfil />
         <PhotoConsentProfile />
+        <HealthStoreProfile />
       </div>
 
       {/* ── Face ID / Passkeys ── */}

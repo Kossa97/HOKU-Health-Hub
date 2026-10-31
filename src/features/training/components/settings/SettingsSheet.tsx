@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { RefreshCw, ShieldCheck } from 'lucide-react'
 import { isAndroid, isIOS, isNative, requestPermissions } from '../../../../lib/health'
+import { HealthStoreConsentSheet } from '../../../wearables/components/HealthStoreConsentSheet'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import { formatNumber, parseDecimal } from '../../lib/format'
@@ -170,11 +171,14 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
   const [note, setNote] = useState<TrainingTextKey | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
+  const [consentOpen, setConsentOpen] = useState(false)
 
   async function toggle(next: boolean) {
     // Ausschalten geht immer — auch im Browser, die Einstellung gilt fuer alle Geraete.
     if (!next) { setNote(null); await save({ healthImport: false }); return }
     if (!isNative) { setNote('settings_health_web'); return }
+    // Ohne Einwilligung erst fragen; das Sheet holt auch die Berechtigungen.
+    if (!data.healthConsent) { setConsentOpen(true); return }
     setPending(true)
     try {
       const result = await requestPermissions()
@@ -187,6 +191,14 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
     } finally {
       setPending(false)
     }
+  }
+
+  function consentDone(granted: boolean) {
+    setConsentOpen(false)
+    if (!granted) return
+    setNote(null)
+    data.reloadHealthConsent()
+    if (!enabled) void save({ healthImport: true })
   }
 
   async function syncNow() {
@@ -220,8 +232,18 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
         />
         <p style={hintStyle}>{tt(platformHint)}</p>
         {note && note !== platformHint && <p role="status" style={noteStyle}>{tt(note)}</p>}
+        {data.healthImportPaused && (
+          <>
+            <p role="status" style={noteStyle}>{tt('health_import_paused')}</p>
+            {isNative && (
+              <div>
+                <Button tone="ghost" onClick={() => setConsentOpen(true)}>{tt('settings_health_consent_give')}</Button>
+              </div>
+            )}
+          </>
+        )}
         {/* Nur iOS liest Workouts; auf Android gaebe der Knopf immer „0 neu". */}
-        {enabled && isIOS && (
+        {enabled && isIOS && !data.healthImportPaused && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <Button tone="ghost" onClick={syncNow} disabled={syncing}>
               <RefreshCw size={16} aria-hidden="true" />
@@ -231,6 +253,7 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
           </div>
         )}
       </Card>
+      <HealthStoreConsentSheet open={consentOpen} onDone={consentDone} />
     </section>
   )
 }

@@ -59,6 +59,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
       paragraphs: [
         'Wenn du es erlaubst, liest die App aus Apple Health (iOS) bzw. Health Connect (Android) Gewicht, Schritte, Aktivität und Herzfrequenz, um sie neben deinen Einträgen anzuzeigen. Die App schreibt nichts dorthin.',
         'Diese Daten werden nicht für Werbung, nicht für Marketing und nicht zur Profilbildung verwendet und nicht an Dritte weitergegeben. Du kannst die Erlaubnis jederzeit in den Einstellungen deines Geräts entziehen.',
+        'Daten aus Apple Health / Health Connect in deinem Konto: Nur wenn du dem in der App gesondert zustimmst, speichert HOKU daraus Tageswerte in deinem Konto (Supabase, EU, siehe Abschnitt 5) — Schritte, Ruhepuls, Schlafdauer, aktive Kalorien, Sauerstoffsättigung (SpO2), Atemfrequenz und Blutdruck, je Tag ein Wert und keine einzelnen Messungen — sowie die Workouts, die du ins Training übernimmst. Zweck ist dein Verlauf in der App, später auch in deinem Profil; sehen kannst nur du die Werte, bis du selbst etwas freigibst. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 9 Abs. 2 lit. a DSGVO). Im Profil kannst du sie jederzeit widerrufen und die gespeicherten Tageswerte löschen; übernommene Workouts bleiben als Trainingsverlauf und lassen sich dort wie jedes Training löschen. Die Rechtmäßigkeit der Verarbeitung bis zum Widerruf bleibt unberührt. Auch diese Daten geben wir nicht an Dritte weiter und nutzen sie nicht für Werbung oder Marketing (Vorgabe von Apple und Google).',
       ],
     },
     {
@@ -135,6 +136,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
       paragraphs: [
         'If you allow it, the app reads weight, steps, activity and heart rate from Apple Health (iOS) or Health Connect (Android) to show them next to your entries. The app does not write anything there.',
         'This data is not used for advertising, marketing or profiling and is not shared with third parties. You can revoke access at any time in your device settings.',
+        'Data from Apple Health / Health Connect in your account: only if you agree to it separately in the app, HOKU stores daily values from it in your account (Supabase, EU, see section 5) — steps, resting heart rate, sleep duration, active calories, oxygen saturation (SpO2), respiratory rate and blood pressure, one value per day and no individual measurements — as well as the workouts you bring into Training. The purpose is your history in the app and, later, in your profile; only you can see the values until you choose to share something. The legal basis is your explicit consent (Art. 9(2)(a) GDPR). In your profile you can withdraw it at any time and delete the stored daily values; workouts you brought in stay in your training history and can be deleted there like any other workout. This does not affect the lawfulness of processing before withdrawal. We do not share this data with third parties either, and we do not use it for advertising or marketing (an Apple and Google requirement).',
       ],
     },
     {

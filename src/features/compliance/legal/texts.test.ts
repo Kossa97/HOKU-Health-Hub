@@ -30,6 +30,14 @@ describe('Rechtstexte', () => {
     ])
   })
 
+  it('beschreibt die gespeicherten Daten aus Apple Health / Health Connect mit Einwilligung, Widerruf und Loeschen', () => {
+    const absatz = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections[3].paragraphs.find(p => p.startsWith('Data from Apple Health') || p.startsWith('Daten aus Apple Health')) ?? ''
+    const de = absatz('de')
+    const en = absatz('en')
+    for (const wert of ['Schritte', 'Ruhepuls', 'Schlaf', 'aktive Kalorien', 'SpO2', 'Atemfrequenz', 'Blutdruck', 'Art. 9 Abs. 2 lit. a DSGVO', 'widerrufen', 'löschen', 'Werbung']) expect(de).toContain(wert)
+    for (const wert of ['steps', 'resting heart rate', 'sleep', 'active calories', 'SpO2', 'respiratory rate', 'blood pressure', 'Art. 9(2)(a) GDPR', 'withdraw', 'delete', 'advertising']) expect(en).toContain(wert)
+  })
+
   it('zeigt Deutsch nur fuer Deutsch, sonst Englisch', () => {
     expect(legalLang('de-AT')).toBe('de')
     expect(legalLang('fr')).toBe('en')
