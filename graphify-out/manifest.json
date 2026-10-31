@@ -600,87 +600,87 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/ar.json": {
-    "mtime": 1793414920.615127,
-    "seen": 1793414996.9682548,
-    "ast_hash": "4a410c81e866c195275cd3bf2c5f55fc",
+    "mtime": 1793415987.0933144,
+    "seen": 1793416115.2918127,
+    "ast_hash": "a6ce9bef45ca4b2aff3c3336e695f8e5",
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1793414920.6161268,
-    "seen": 1793414996.9682553,
-    "ast_hash": "b157e4e22356e693b07c3273d75ce902",
+    "mtime": 1793415987.095314,
+    "seen": 1793416115.2918134,
+    "ast_hash": "4a6cbe9fe5d500642b53a19629415e5b",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1793414920.6171267,
-    "seen": 1793414996.9682558,
-    "ast_hash": "9c7ebefb5d67ef8afa6c0bf9f54b58c3",
+    "mtime": 1793415987.0963137,
+    "seen": 1793416115.2918139,
+    "ast_hash": "e7947a115d42f8f6f6a2b3396517c69c",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
-    "mtime": 1793414920.6181269,
-    "seen": 1793414996.9682562,
-    "ast_hash": "891eca508756748d1cf2642df52d86e5",
+    "mtime": 1793415987.0983143,
+    "seen": 1793416115.2918146,
+    "ast_hash": "9c5843318c54a7192db82d09d32382f7",
     "semantic_hash": ""
   },
   "src/i18n/locales/fr.json": {
-    "mtime": 1793414920.619127,
-    "seen": 1793414996.9682567,
-    "ast_hash": "8b35c7e996b02b1fbb265f841cf28382",
+    "mtime": 1793415987.0993137,
+    "seen": 1793416115.2918155,
+    "ast_hash": "df06f9ef655c1452127ed607acc28a91",
     "semantic_hash": ""
   },
   "src/i18n/locales/hi.json": {
-    "mtime": 1793414920.6201265,
-    "seen": 1793414996.9682572,
-    "ast_hash": "7c08eebfefb5b965ff7de724a7225a8c",
+    "mtime": 1793415987.100314,
+    "seen": 1793416115.291816,
+    "ast_hash": "0b970194c3f08ea985951f678a772957",
     "semantic_hash": ""
   },
   "src/i18n/locales/id.json": {
-    "mtime": 1793414920.621127,
-    "seen": 1793414996.968258,
-    "ast_hash": "4bc10f00e0b1ed52b09b6fb3fd89e404",
+    "mtime": 1793415987.1023142,
+    "seen": 1793416115.2918165,
+    "ast_hash": "8ac04b9c34a0ba2a2506c7cd938c8304",
     "semantic_hash": ""
   },
   "src/i18n/locales/it.json": {
-    "mtime": 1793414920.622127,
-    "seen": 1793414996.9682584,
-    "ast_hash": "9ca592afa9a1e2c99cbb995d45f2a9bb",
+    "mtime": 1793415987.1033142,
+    "seen": 1793416115.291817,
+    "ast_hash": "19a3c4b976f0e9f020982292763e4ced",
     "semantic_hash": ""
   },
   "src/i18n/locales/ja.json": {
-    "mtime": 1793414920.6231265,
-    "seen": 1793414996.9682589,
-    "ast_hash": "c1aef8e101d96e4abc5eb993be8bf9c7",
+    "mtime": 1793415987.1043136,
+    "seen": 1793416115.2918177,
+    "ast_hash": "f4dfc348b641878ec869c7c3972d184d",
     "semantic_hash": ""
   },
   "src/i18n/locales/ko.json": {
-    "mtime": 1793414920.6241267,
-    "seen": 1793414996.9682593,
-    "ast_hash": "cfdf9c2a388d63d0306797d8b8100ce6",
+    "mtime": 1793415987.1053138,
+    "seen": 1793416115.2918184,
+    "ast_hash": "4489cab808c49f326c85af1f58c5852b",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.json": {
-    "mtime": 1793414920.6251273,
-    "seen": 1793414996.9682598,
-    "ast_hash": "3206d44377b501a97036bfa919614ab0",
+    "mtime": 1793415987.106817,
+    "seen": 1793416115.2918193,
+    "ast_hash": "e577887716444b50205936dfbc0f2ce5",
     "semantic_hash": ""
   },
   "src/i18n/locales/ru.json": {
-    "mtime": 1793414920.6261275,
-    "seen": 1793414996.9682603,
-    "ast_hash": "3ef667fdc655d081a4285a3f26884caf",
+    "mtime": 1793415987.1078217,
+    "seen": 1793416115.2918198,
+    "ast_hash": "f20d11c5cea6fc72fe9850d03bbe9e85",
     "semantic_hash": ""
   },
   "src/i18n/locales/tr.json": {
-    "mtime": 1793414920.6271274,
-    "seen": 1793414996.9682608,
-    "ast_hash": "01d3a2927a153b56e8ec2daf9cdac48c",
+    "mtime": 1793415987.110603,
+    "seen": 1793416115.2918203,
+    "ast_hash": "34f09fcc671dac6b16030ac3d70c4ab6",
     "semantic_hash": ""
   },
   "src/i18n/locales/zh.json": {
-    "mtime": 1793414920.6271274,
-    "seen": 1793414996.9682615,
-    "ast_hash": "4e9f6885fa508f643a5ec1cf964773c1",
+    "mtime": 1793415987.111604,
+    "seen": 1793416115.2918212,
+    "ast_hash": "3157168270c4e9be37048a087e7088a3",
     "semantic_hash": ""
   },
   "src/lib/dailyLogs.ts": {
@@ -1566,15 +1566,15 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/hooks/useFortschrittData.ts": {
-    "mtime": 1793058062.9621954,
-    "seen": 1793414996.9679337,
-    "ast_hash": "0030bcedef228671ff3d368f699c48a5",
+    "mtime": 1793415978.7747815,
+    "seen": 1793416115.2914891,
+    "ast_hash": "7a0b28e8e7a2eaeb7526bd8ca0275ca2",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/colors.ts": {
-    "mtime": 1783215233.0335603,
-    "seen": 1793414996.967936,
-    "ast_hash": "8864a4aa058a6809d37f865d57a2cafe",
+    "mtime": 1793415978.6779096,
+    "seen": 1793416115.2914915,
+    "ast_hash": "bc68087916f8901f18e41e78a2bf1a7c",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/cycleLanes.test.ts": {
@@ -1590,21 +1590,21 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metricDefinitions.ts": {
-    "mtime": 1783215233.034561,
-    "seen": 1793414996.967941,
-    "ast_hash": "2e1b224e226a23fb8b081d3772bbe623",
+    "mtime": 1793415978.6779096,
+    "seen": 1793416115.2915018,
+    "ast_hash": "4e061142fc015329461eb48e1710f3f7",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metrics.test.ts": {
-    "mtime": 1784845751.6588714,
-    "seen": 1793414996.9679427,
-    "ast_hash": "24707029ec1d260f75b0043cfa59b98e",
+    "mtime": 1793415960.7342496,
+    "seen": 1793416115.2915032,
+    "ast_hash": "8bae8dbd4b7d69f463bab524418007c1",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metrics.ts": {
-    "mtime": 1793058062.9652202,
-    "seen": 1793414996.9679432,
-    "ast_hash": "628c76025728d0b7dafebc114a69ec05",
+    "mtime": 1793415987.0496264,
+    "seen": 1793416115.291504,
+    "ast_hash": "9e400f3031f8f22e4d9b2e20d29f3306",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/range.ts": {
@@ -1638,9 +1638,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/types.ts": {
-    "mtime": 1793415808.2733333,
-    "seen": 1793415869.8434064,
-    "ast_hash": "050b465d33cf3c916633fd78e732f796",
+    "mtime": 1793415978.6859093,
+    "seen": 1793416115.2915123,
+    "ast_hash": "1617cd4c302efcfc129a2449d0cf3a32",
     "semantic_hash": ""
   },
   "supabase-fortschritt-redesign.sql": {
@@ -1914,9 +1914,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/verlauf/VerlaufSection.tsx": {
-    "mtime": 1793058062.960682,
-    "seen": 1793414996.96793,
-    "ast_hash": "96d15cccd0d5b286c22a49c07c5e9fc9",
+    "mtime": 1793415978.701909,
+    "seen": 1793416115.2914839,
+    "ast_hash": "23c5b904f011816819711b0d8fafb62e",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/dates.ts": {
@@ -3504,9 +3504,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1793414920.592124,
-    "seen": 1793414996.96803,
-    "ast_hash": "b67ba3c0a324c746eab446f3bf5d3c9a",
+    "mtime": 1793416032.6862822,
+    "seen": 1793416115.2915986,
+    "ast_hash": "eccf78cb08ef0d60d924ec9ec2410d79",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793322509.4370139,
-    "seen": 1793414996.968408,
+    "mtime": 1793416072.1988297,
+    "seen": 1793416115.2919805,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7158,9 +7158,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metricLabels.ts": {
-    "mtime": 1793058062.9652202,
-    "seen": 1793414996.967942,
-    "ast_hash": "5b232d2e013a9d435b93796cd91a3cfa",
+    "mtime": 1793415978.6859093,
+    "seen": 1793416115.2915025,
+    "ast_hash": "8085f2b245d80a7ea1078574b26235df",
     "semantic_hash": ""
   },
   "src/lib/flashlight.test.ts": {
@@ -21615,6 +21615,12 @@
     "mtime": 1793415379.3298745,
     "seen": 1793415869.8441527,
     "ast_hash": "11c4bbc7cd92386c224fdb76b5b0b7e3",
+    "semantic_hash": ""
+  },
+  "src/features/fortschritt/lib/metricDefinitions.test.ts": {
+    "mtime": 1793415960.7342496,
+    "seen": 1793416115.2915006,
+    "ast_hash": "a72b14b7823f1f50af374b7ece4feddc",
     "semantic_hash": ""
   }
 }
