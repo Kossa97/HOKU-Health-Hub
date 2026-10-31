@@ -9,8 +9,8 @@ afterEach(() => {
 })
 
 describe('Erscheinungsbild', () => {
-  it('ist ohne Wahl schwarz', () => {
-    expect(getLook()).toBe('schwarz')
+  it('ist ohne Wahl HOKU', () => {
+    expect(getLook()).toBe('hoku')
   })
 
   it('setzt data-look am html', () => {
@@ -36,14 +36,19 @@ describe('Erscheinungsbild', () => {
     expect(getLook()).toBe('nacht')
   })
 
+  it('kennt Schwarz weiterhin', () => {
+    localStorage.setItem('tyd_look', 'schwarz')
+    expect(getLook()).toBe('schwarz')
+  })
+
   it('kennt Instrument', () => {
     localStorage.setItem('tyd_look', 'instrument')
     expect(getLook()).toBe('instrument')
   })
 
-  it('nimmt unbekannte Werte als schwarz', () => {
+  it('nimmt unbekannte Werte als HOKU', () => {
     localStorage.setItem('tyd_look', 'neon')
-    expect(getLook()).toBe('schwarz')
+    expect(getLook()).toBe('hoku')
   })
 
   it('folgt dem Look am html', async () => {

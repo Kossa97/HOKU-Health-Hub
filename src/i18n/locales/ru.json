@@ -2082,6 +2082,7 @@
   "fortschritt_saved_short": "Saved",
   "fortschritt_save_entry": "Save entry",
   "fortschritt_chart_value_of": "{{metric}} from {{date}}",
+  "look_hoku": "HOKU",
   "look_black": "Black",
   "look_light": "Glow",
   "look_hint": "Black: glass with a lit edge on pure black. Glow: coloured light shines through the glass.",

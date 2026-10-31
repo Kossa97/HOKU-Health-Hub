@@ -89,6 +89,32 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* ── Semantic theme tokens (dark defaults) ── */
+  /* Schriften und Tailwind-Paletten als Variablen (tailwind.config.js),
+     damit ein Look sie umstellen kann (look-hoku.css). */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --tw-slate-50: 245 245 247;
+  --tw-slate-100: 235 235 240;
+  --tw-slate-200: 209 209 214;
+  --tw-slate-300: 174 174 178;
+  --tw-slate-400: 152 152 157;
+  --tw-slate-500: 124 124 130;
+  --tw-slate-600: 84 84 88;
+  --tw-slate-700: 44 44 46;
+  --tw-slate-800: 28 28 30;
+  --tw-slate-900: 18 18 20;
+  --tw-slate-950: 5 5 6;
+  --tw-sky-50: 234 250 255;
+  --tw-sky-100: 192 243 255;
+  --tw-sky-200: 128 232 255;
+  --tw-sky-300: 68 218 255;
+  --tw-sky-400: 0 204 245;
+  --tw-sky-500: 0 170 212;
+  --tw-sky-600: 0 136 170;
+  --tw-sky-700: 0 102 128;
+  --tw-sky-800: 0 68 85;
+  --tw-sky-900: 0 34 43;
+  --tw-sky-950: 0 17 26;
   /* Zyklus-Spuren im Blutwert-Verlauf: feste Farbplaetze je Substanz,
      mit dem dataviz-Validator gegen die dunkle Flaeche geprueft. Kein Gruen,
      Aqua oder Rot — die stehen dort fuer „im/ausser Bereich". */
@@ -432,7 +458,7 @@
 
   /* ── Checkbox ────────────────────────────────────────────────────────────── */
   input[type='checkbox'] {
-    accent-color: #00ccf5;
+    accent-color: var(--accent);
     width: 15px; height: 15px;
   }
 

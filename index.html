@@ -26,7 +26,7 @@
     <!-- Erscheinungsbild vor dem ersten Zeichnen setzen (src/lib/look.ts),
          sonst blitzt beim Start kurz das andere auf. -->
     <script>
-      try { var l = localStorage.getItem('tyd_look'); document.documentElement.setAttribute('data-look', l === 'licht' || l === 'satin' || l === 'nacht' || l === 'instrument' ? l : 'schwarz') } catch (e) {}
+      try { var l = localStorage.getItem('tyd_look'); document.documentElement.setAttribute('data-look', l === 'schwarz' || l === 'licht' || l === 'satin' || l === 'nacht' || l === 'instrument' || l === 'softdark' ? l : 'hoku') } catch (e) {}
     </script>
   </head>
   <body>

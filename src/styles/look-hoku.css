@@ -1,0 +1,417 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Erscheinungsbild „HOKU" (Standard)
+
+   Richtung (unslop-Durchgang, 31.10.2026):
+   - Produkt: HOKU führt den eigenen Stack — Peptide, Supplements, Medikamente —
+     mit Einnahmen, Injektionen, Blutwerten, Ernährung und Training, für
+     Menschen, die ihr Protokoll selbst verantworten.
+   - Charakter: genau, ruhig, diskret.
+   - Welt: Apothekenregal und Laborbefund am Abend — Vials, Etiketten,
+     die Skala einer Spritze, ein gedruckter Messwert.
+   - Momente: das gerenderte Vial in My Stack, Hoku selbst (die Punktkugel),
+     die Körperfigur der Injektionen und die Kurven von Blutspiegel und
+     Blutwerten. Nur dort Farbe und Material.
+   - Erkennungszeichen: Messstriche. Fortschritt und Bestand stehen auf einer
+     Skala wie auf einer Spritze (.hk-scale), sonst nirgends.
+
+   Umsetzung: eine graue Rampe mit einem Hauch Tinte, Flächen fest mit
+   Haarlinie, kein Glas, kein Glanz, kein Leuchten. Hauptknopf gebrochenes
+   Weiß mit dunkler Schrift; das Blau aus dem App-Icon nur für Auswahl,
+   Verweise und die eine Zahl, die zählt. IBM Plex Sans für die Oberfläche,
+   IBM Plex Mono (aus dem Marken-Kit) für Zahlen und Meta. Gewichte 400–600.
+   Eine Kurve für alle Bewegung, kein Federn, kein Atmen.
+
+   Nach unslop von Damir Sokolovsky (@heydamir), CC BY 4.0.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-look='hoku'] {
+  /* ── Rampe ── */
+  --hk-deep: #0a0b0d;
+  --hk-bg: #0e0f12;
+  --hk-card: #15161a;
+  --hk-raised: #1d1f24;
+  --hk-raised-2: #25272d;
+  --hk-line: rgba(236, 238, 243, 0.08);
+  --hk-line-strong: rgba(236, 238, 243, 0.14);
+  --hk-text: #eceef2;
+  --hk-text-2: #a3a7b1;
+  --hk-text-3: #808590;
+  --hk-accent: #6aa6ff;
+  --hk-accent-ink: #8cbaff;
+  --hk-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tailwind-Paletten: Graphit mit Hauch Tinte, Blau statt Cyan */
+  --tw-slate-50: 243 244 247;
+  --tw-slate-100: 236 238 242;
+  --tw-slate-200: 211 214 221;
+  --tw-slate-300: 182 186 195;
+  --tw-slate-400: 163 167 177;
+  --tw-slate-500: 128 133 144;
+  --tw-slate-600: 86 90 99;
+  --tw-slate-700: 42 44 50;
+  --tw-slate-800: 29 31 36;
+  --tw-slate-900: 21 22 26;
+  --tw-slate-950: 10 11 13;
+  --tw-sky-50: 238 245 255;
+  --tw-sky-100: 217 232 255;
+  --tw-sky-200: 184 212 255;
+  --tw-sky-300: 140 186 255;
+  --tw-sky-400: 106 166 255;
+  --tw-sky-500: 79 143 240;
+  --tw-sky-600: 59 116 209;
+  --tw-sky-700: 47 92 166;
+  --tw-sky-800: 35 68 122;
+  --tw-sky-900: 23 45 80;
+  --tw-sky-950: 13 26 48;
+
+  /* Schrift */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --lg-ui: var(--font-sans);
+  --lg-display: var(--font-sans);
+
+  /* Grundwerte der App */
+  --app-bg: var(--hk-bg);
+  --surface: var(--hk-card);
+  --surface-raised: var(--hk-raised);
+  --surface-input: var(--hk-bg);
+  --glass-bg: var(--hk-raised);
+  --text: var(--hk-text);
+  --text-dim: var(--hk-text-2);
+  --text-muted: var(--hk-text-3);
+  --border: var(--hk-line);
+  --border-strong: var(--hk-line-strong);
+  --card-border: var(--hk-line);
+  --accent: var(--hk-accent);
+  --accent-weak: rgba(106, 166, 255, 0.14);
+  --accent-border: rgba(106, 166, 255, 0.36);
+  --accent-contrast: #07111f;
+  --glow-accent: none;
+  --c-cyan-20: rgba(106, 166, 255, 0.20);
+
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+
+  --t-fast: 0.14s var(--hk-ease);
+  --t-std: 0.2s var(--hk-ease);
+  --t-slow: 0.32s var(--hk-ease);
+  --lg-ease-out: var(--hk-ease);
+
+  --lg-text-2: var(--hk-text-2);
+  --lg-text-3: var(--hk-text-3);
+  --lg-text-4: rgba(236, 238, 243, 0.28);
+  --lg-hair: var(--hk-line);
+  --lg-separator: var(--hk-line);
+  --lg-good: #4cc38a;
+  --lg-good-text: #72d3a4;
+  --lg-warn: #e5a13a;
+  --lg-warn-text: #f0b960;
+  --lg-bad: #e5484d;
+  --lg-bad-text: #ff8589;
+  --lg-accent-text: var(--hk-accent-ink);
+  --lg-surface-2: rgba(236, 238, 243, 0.05);
+
+  /* Materialien: alles fest, Tiefe aus Flächenstufen und Haarlinie */
+  --lg-glass-fill: var(--hk-raised);
+  --lg-glass-filter: none;
+  --lg-glass-shadow: inset 0 0 0 1px var(--hk-line);
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: var(--hk-text);
+  --lg-danger-fill: rgba(229, 72, 77, 0.14);
+  --lg-surface-fill: var(--hk-card);
+  --lg-surface-bg: var(--hk-card);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 0 0 1px var(--hk-line);
+  --lg-card-rim: none;
+  --lg-card-sheen: none;
+  --lg-sheet-bg: var(--hk-card);
+  --lg-sheet-solid: var(--hk-card);
+  --lg-sheet-blur: none;
+  --lg-fill: rgba(236, 238, 243, 0.06);
+  --lg-fill-selected: var(--hk-raised-2);
+  --lg-pill-fill: var(--hk-raised-2);
+  --lg-pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 1px var(--hk-line);
+
+  --shadow-btn-primary: none;
+  --shadow-input: inset 0 0 0 1px var(--hk-line);
+  --shadow-input-focus: inset 0 0 0 1px var(--hk-accent), 0 0 0 3px rgba(106, 166, 255, 0.18);
+
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(236, 238, 243, 0.07), rgba(236, 238, 243, 0) 70%), var(--hk-bg);
+}
+
+html[data-look='hoku'] body {
+  background: var(--hk-bg);
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+html[data-look='hoku'] .lg-backdrop { background-color: var(--hk-bg); }
+html[data-look='hoku'] ::selection { background: rgba(106, 166, 255, 0.3); }
+html[data-look='hoku'] input[type='checkbox'] { accent-color: var(--hk-accent); }
+html[data-look='hoku'] select option { background: var(--hk-raised); color: var(--hk-text); }
+
+/* ── Schrift: Hierarchie aus Größe und Farbe, nicht aus Gewicht ── */
+html[data-look='hoku'] :is(h1, h2, h3) { font-weight: 500; letter-spacing: -0.01em; }
+html[data-look='hoku'] .lg-large-title { font-size: 32px; line-height: 38px; font-weight: 500; letter-spacing: -0.02em; }
+html[data-look='hoku'] .lg-title2 { font-size: 20px; line-height: 26px; font-weight: 500; letter-spacing: -0.01em; }
+html[data-look='hoku'] .lg-h3 { font-size: 17px; font-weight: 500; letter-spacing: 0; }
+html[data-look='hoku'] .lg-meta { font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: 0; }
+html[data-look='hoku'] .lg-eyebrow {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-look='hoku'] .lg-group-title {
+  margin: 0 16px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-look='hoku'] .lg-empty p { font-weight: 500; }
+html[data-look='hoku'] .lg-empty p + p { font-weight: 400; }
+html[data-look='hoku'] .label { font-weight: 400; }
+html[data-look='hoku'] .badge { font-weight: 500; letter-spacing: 0; }
+/* Zahlen gleich breit, überall wo Tailwind sie als solche markiert */
+html[data-look='hoku'] :is(.tabular-nums, .font-mono) { font-variant-numeric: tabular-nums; }
+/* Sicherheitsnetz: was noch 700–900 trägt, steht bei 600 */
+html[data-look='hoku'] :is(.font-bold, .font-extrabold, .font-black) { font-weight: 600; }
+
+/* ── Knöpfe: Rundung nach Größe statt Kapsel ── */
+html[data-look='hoku'] .lg-btn {
+  border-radius: 12px;
+  font: 500 16px/1 var(--font-sans);
+  letter-spacing: 0;
+  transition: transform 160ms var(--hk-ease), background-color 160ms var(--hk-ease), opacity 160ms var(--hk-ease);
+}
+html[data-look='hoku'] .lg-btn:active { transform: scale(0.98); filter: none; }
+html[data-look='hoku'] .lg-btn-compact { border-radius: 10px; font-size: 15px; }
+html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary) { color: var(--hk-bg); }
+html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):active { background: #d3d6dd; filter: none; }
+html[data-look='hoku'] .lg-btn-tint {
+  color: var(--hk-text);
+  background: var(--hk-raised);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--hk-line);
+  animation: none;
+}
+html[data-look='hoku'] :is(.lg-btn-danger, .btn-danger) {
+  color: var(--lg-bad-text);
+  box-shadow: inset 0 0 0 1px rgba(229, 72, 77, 0.24);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-look='hoku'] :is(.btn-primary, .btn-secondary, .btn-danger) {
+  border-radius: 12px;
+  font: 500 15px/1.15 var(--font-sans);
+  letter-spacing: 0;
+  transition: transform 160ms var(--hk-ease), background-color 160ms var(--hk-ease), opacity 160ms var(--hk-ease);
+}
+html[data-look='hoku'] :is(.btn-primary, .btn-secondary, .btn-danger):active { transform: scale(0.98); }
+html[data-look='hoku'] .btn-secondary { -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-look='hoku'] .lg-gray-btn { border-radius: 10px; font: 500 15px/1.2 var(--font-sans); letter-spacing: 0; }
+html[data-look='hoku'] .lg-gray-btn:active { transform: scale(0.98); filter: none; background: var(--hk-raised-2); }
+html[data-look='hoku'] .lg-icon-btn { transition: transform 160ms var(--hk-ease), background-color 160ms var(--hk-ease); }
+html[data-look='hoku'] .lg-icon-btn:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  html[data-look='hoku'] :is(.lg-btn-primary, .btn-primary):hover { filter: none; background: #f6f7f9; }
+  html[data-look='hoku'] :is(.lg-btn-glass, .lg-btn-tint, .btn-secondary, .lg-gray-btn):hover { filter: none; background: var(--hk-raised-2); }
+  html[data-look='hoku'] :is(.lg-btn-danger, .btn-danger):hover { filter: none; background: rgba(229, 72, 77, 0.2); }
+}
+/* Hauptknopf auf voller Akzentfläche (bg-sky-500 als Knopf): gebrochenes Weiß */
+html[data-look='hoku'] button.bg-sky-500:not(.btn-primary) {
+  background: var(--hk-text) !important;
+  box-shadow: none !important;
+  color: var(--hk-bg) !important;
+  font-weight: 500 !important;
+}
+
+/* ── Umschalter ── */
+html[data-look='hoku'] .lg-seg { border-radius: 10px; }
+html[data-look='hoku'] .lg-seg-pill { border-radius: 8px; }
+html[data-look='hoku'] .lg-seg > button { border-radius: 8px; font: 500 14px var(--font-sans); }
+html[data-look='hoku'] .lg-seg > button:active { transform: scale(0.97); }
+html[data-look='hoku'] .lg-seg-scroll { border-radius: 10px; }
+html[data-look='hoku'] .lg-seg-fill { background: var(--hk-deep); box-shadow: inset 0 0 0 1px var(--hk-line); }
+html[data-look='hoku'] .lg-seg-fill .lg-seg-pill { background: var(--hk-raised-2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+html[data-look='hoku'] .lg-seg-pill[data-animate='true'] { transition: transform 280ms var(--hk-ease), width 280ms var(--hk-ease); }
+/* Muster bg-slate-800 rounded-xl p-1 aus index.css */
+html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) {
+  background: var(--hk-deep) !important;
+  border-radius: 10px !important;
+  box-shadow: inset 0 0 0 1px var(--hk-line) !important;
+}
+html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) button { border-radius: 8px !important; }
+html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) .bg-slate-700 {
+  background: var(--hk-raised-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+html[data-look='hoku'] :is(.rounded-xl.p-1, .rounded-lg.p-1) :is(.bg-sky-500, .bg-emerald-500, .bg-amber-500) {
+  background: var(--hk-raised-2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: var(--hk-text) !important;
+  font-weight: 500 !important;
+}
+
+/* ── Chips und Kapseln ── */
+html[data-look='hoku'] .lg-chip { border-radius: 8px; font: 500 14px var(--font-sans); }
+html[data-look='hoku'] .lg-chip:active { transform: scale(0.97); }
+html[data-look='hoku'] .lg-chip[aria-pressed='true'] {
+  background: var(--hk-raised-2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+}
+html[data-look='hoku'] .lg-chip[aria-pressed='true'] .lg-chip-dot { transform: none; }
+html[data-look='hoku'] .lg-chip[data-hint='true']::after { display: none; }
+html[data-look='hoku'] .lg-tag { border-radius: 6px; font: 500 12px/1 var(--font-sans); min-height: 24px; padding: 0 8px; }
+html[data-look='hoku'] .lg-tag[data-tone='accent'] { background: var(--accent-weak); }
+html[data-look='hoku'] button.bg-slate-800 { background: var(--lg-fill) !important; }
+html[data-look='hoku'] .lg-icon-tile {
+  border-radius: 8px;
+  background: var(--hk-raised-2) !important;
+  color: var(--hk-text-2) !important;
+}
+
+/* ── Flächen, Blätter, Menüs ── */
+html[data-look='hoku'] :is(.lg-glass, .lg-surface, .lg-group, .card, .glass) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-look='hoku'] .glass { background: var(--hk-raised); border-color: var(--hk-line); }
+html[data-look='hoku'] .rounded-2xl { border-radius: 16px !important; }
+html[data-look='hoku'] .lg-sheet {
+  border-radius: 24px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--hk-line);
+}
+html[data-look='hoku'] .rounded-t-2xl {
+  background: var(--hk-card) !important;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hk-line) !important;
+}
+@media (max-width: 639px) {
+  html[data-look='hoku'] .rounded-t-2xl {
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+  }
+}
+html[data-look='hoku'] .sticky.top-0 { background: rgba(14, 15, 18, 0.94) !important; }
+html[data-look='hoku'] :is(.rounded-t-2xl, [role='dialog']) .sticky.top-0 { background: var(--hk-card) !important; }
+html[data-look='hoku'] :is(.shadow-xl, .lg-menu) {
+  background: var(--hk-raised) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--hk-line) !important;
+}
+html[data-look='hoku'] .lg-menu { animation-duration: 200ms; animation-timing-function: var(--hk-ease); }
+html[data-look='hoku'] .lg-menu-row:active { background-color: var(--hk-raised-2); }
+html[data-look='hoku'] .lg-menu-tile { border-radius: 14px; }
+html[data-look='hoku'] .lg-row:active { background-color: rgba(236, 238, 243, 0.04); }
+html[data-look='hoku'] .lg-grabber { background: rgba(236, 238, 243, 0.2); }
+html[data-look='hoku'] .lg-dots > i[data-on='true'] { width: 16px; }
+html[data-look='hoku'] .lg-form-row:focus-within { background: var(--lg-fill); }
+html[data-look='hoku'] :is(.input, .select):focus { background: var(--hk-bg); }
+
+/* ── Kein Leuchten, keine Verläufe auf Text ── */
+html[data-look='hoku'] :is(.shadow-glow-sm, .shadow-glow-md, .shadow-glow-violet, .shadow-glow-green, .shadow-btn-primary, .glow-cyan-sm, .glow-cyan-md, .glow-violet, .animate-pulse-glow) {
+  box-shadow: none !important;
+  animation: none !important;
+}
+html[data-look='hoku'] .text-gradient-cyan {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--hk-accent-ink);
+}
+html[data-look='hoku'] .bg-sky-500:not(button):not(div),
+html[data-look='hoku'] .bg-sky-400.rounded-full { box-shadow: none; }
+html[data-look='hoku'] .nav-item-active { background: var(--hk-raised); box-shadow: inset 0 0 0 1px var(--hk-line); }
+html[data-look='hoku'] .nav-item-active svg,
+html[data-look='hoku'] .nav-item-inactive:hover svg { filter: none; }
+html[data-look='hoku'] .nav-item-active span { color: var(--hk-text); letter-spacing: 0; }
+html[data-look='hoku'] .carousel-dot--active { box-shadow: none; background: var(--hk-text); width: 16px; }
+html[data-look='hoku'] .carousel-counter {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--hk-text-3);
+}
+html[data-look='hoku'] .carousel-counter--amber { color: var(--lg-warn-text); }
+
+/* Haltbarkeit: ruhige Fläche, der Ton steckt in Haarlinie und Schrift */
+html[data-look='hoku'] .expiry-banner {
+  border-radius: 14px;
+  --expiry-banner-shadow: none;
+}
+html[data-look='hoku'] .expiry-banner--soon {
+  --expiry-banner-border: rgba(229, 161, 58, 0.32);
+  --expiry-banner-bg: var(--hk-card);
+  --expiry-banner-fg: var(--lg-warn-text);
+}
+html[data-look='hoku'] .expiry-banner--expired {
+  --expiry-banner-border: rgba(229, 72, 77, 0.32);
+  --expiry-banner-bg: var(--hk-card);
+  --expiry-banner-fg: var(--lg-bad-text);
+}
+html[data-look='hoku'] .expiry-banner__message { font-weight: 500; font-size: 13px; }
+
+/* Abgelaufen: der Zustand steht still da, statt endlos zu blinken */
+html[data-look='hoku'] :is(.tyd-expired-icon, .tyd-alarm-knopf, .tyd-expired-text-since) { animation: none; }
+html[data-look='hoku'] .tyd-expired-badge::after { display: none; }
+html[data-look='hoku'] .tyd-expired-text-alarm { display: none; }
+html[data-look='hoku'] .tyd-expired-text-since { opacity: 1; transform: none; }
+
+/* ── Leiste unten: feste Kapsel mit Haarlinie, ohne Glas und Federn ── */
+html[data-look='hoku'] .tyd-tabbar {
+  background: var(--hk-card);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--hk-line), 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: transform 200ms var(--hk-ease);
+}
+html[data-look='hoku'] .tyd-tabbar[data-gedrueckt='true'] { transform: scale(1.01); }
+html[data-look='hoku'] .tyd-tabbar::before,
+html[data-look='hoku'] .tyd-tabbar::after { display: none; }
+html[data-look='hoku'] .tyd-tabbar-pill {
+  background: var(--hk-raised-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 320ms var(--hk-ease),
+    width 320ms var(--hk-ease),
+    opacity 200ms linear;
+}
+html[data-look='hoku'] .tyd-tabbar-pill[data-gehalten='true'] {
+  background: #2e3037;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  scale: 1.03;
+}
+html[data-look='hoku'] .tyd-tabbar-item { color: var(--hk-text-3); }
+html[data-look='hoku'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: var(--hk-text); }
+html[data-look='hoku'] .tyd-tabbar-item:active { transform: scale(0.96); }
+html[data-look='hoku'] .tyd-tabdock-action { transition: transform 160ms var(--hk-ease); }
+html[data-look='hoku'] .tyd-tabdock-action:active { transform: scale(0.96); }
+
+/* ── Erkennungszeichen: Messstriche ──────────────────────────────────────
+   Eine Spur (Fortschritt, Bestand, Ziel) wird zur Skala wie auf einer
+   Spritze: alle 10 % ein Strich in der Farbe der Fläche, der Füllung und
+   Spur teilt. Nur in HOKU; die anderen Looks zeigen die Spur wie bisher. */
+html[data-look='hoku'] .hk-scale {
+  position: relative;
+  overflow: hidden;
+}
+html[data-look='hoku'] .hk-scale::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(10% - 2px),
+    var(--hk-scale-gap, var(--hk-card)) calc(10% - 2px),
+    var(--hk-scale-gap, var(--hk-card)) 10%
+  );
+}

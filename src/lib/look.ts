@@ -3,6 +3,10 @@ import { useCallback, useEffect, useState } from 'react'
 /**
  * Das Erscheinungsbild der App, auf diesem Gerät gespeichert.
  *
+ * - `hoku` (Standard): ruhiges Graphit, feste Flächen mit Haarlinie, kein
+ *   Glas und kein Leuchten; IBM Plex Sans und Mono, ein Blau aus dem
+ *   App-Icon nur für Auswahl und die eine Zahl, die zählt. Messstriche
+ *   (.hk-scale) als Erkennungszeichen auf Fortschritt und Bestand.
  * - `schwarz`: reines Schwarz, Karten aus dunklem Glas mit Lichtkante
  * - `satin`: reines Schwarz, Karten mit dicker, matter Glaskante, hellem
  *   Innenrand und einem Lichtreflex, der beim Scrollen und Berühren wandert
@@ -19,18 +23,18 @@ import { useCallback, useEffect, useState } from 'react'
  * Gesetzt wird nur `data-look` am `<html>`; was sich ändert, steht in
  * liquid-glass.css unter `html[data-look='…']`.
  */
-export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument' | 'softdark'
+export type Look = 'hoku' | 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument' | 'softdark'
 
-export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument', 'softdark']
+export const LOOKS: readonly Look[] = ['hoku', 'schwarz', 'satin', 'licht', 'nacht', 'instrument', 'softdark']
 
 const STORAGE_KEY = 'tyd_look'
 
 export function getLook(): Look {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return LOOKS.find(look => look === stored) ?? 'schwarz'
+    return LOOKS.find(look => look === stored) ?? 'hoku'
   } catch {
-    return 'schwarz'
+    return 'hoku'
   }
 }
 
@@ -56,7 +60,7 @@ export function useLook() {
 
 function documentLook(): Look {
   const current = document.documentElement.getAttribute('data-look')
-  return LOOKS.find(look => look === current) ?? 'schwarz'
+  return LOOKS.find(look => look === current) ?? 'hoku'
 }
 
 /** Der gerade gezeigte Look; folgt jedem Wechsel am `<html>` (z. B. für 3D-Licht). */

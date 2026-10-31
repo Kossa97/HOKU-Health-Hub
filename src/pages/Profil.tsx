@@ -278,6 +278,7 @@ function LookSwitcher() {
   const { t } = useTranslation()
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
+    { key: 'hoku', label: String(t('look_hoku', { defaultValue: 'HOKU' })) },
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
     { key: 'softdark', label: String(t('look_softdark', { defaultValue: 'Soft Dark' })) },
     { key: 'instrument', label: String(t('look_instrument', { defaultValue: 'Instrument' })) },
@@ -301,7 +302,7 @@ function LookSwitcher() {
       />
       {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung.' })}
+        {t('look_hint', { defaultValue: 'HOKU: ruhiges Graphit, klare Flächen, Blau nur für das Wichtige. Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung.' })}
       </p>
       </div>
     </div>
