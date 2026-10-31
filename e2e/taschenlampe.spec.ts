@@ -8,6 +8,8 @@ import { seedTrackedIntake } from './support/intake'
  */
 test('Taschenlampen-Kante: der Glanz zeigt zum Licht und wandert beim Scrollen', async ({ page, mock }) => {
   seedTrackedIntake(mock)
+  // Seit HOKU Standard ist, muss „Schwarz" ausdrücklich gewählt sein
+  await page.addInitScript(() => { try { localStorage.setItem('tyd_look', 'schwarz') } catch { /* ohne Speicher */ } })
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('data-look', 'schwarz')
   const karten = page.locator('main .lg-surface')

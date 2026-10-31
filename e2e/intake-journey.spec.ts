@@ -17,7 +17,9 @@ test('Plan anlegen → Home bestätigen → Kalender → Bestand bleibt nach Neu
   // Nach dem Neuladen baut Home die 3D-Torso-Vorschau neu auf. Im Test laeuft
   // WebGL in Software, das dauert hier allein rund 5 s (gemessen: ohne die
   // Vorschau 1,2 s, mit ihr 5–7 s) — die uebliche Grenze von 8 s reicht dafuer nicht.
-  await expect(page.getByText('1/1 Einnahmen geloggt', { exact: true })).toBeVisible({ timeout: 20_000 })
+  // Heute-Karte: Bezeichnung über der Zahl „geloggt/geplant"
+  const heute = page.locator('div', { has: page.getByText('Einnahmen geloggt', { exact: true }) }).last()
+  await expect(heute).toContainText('1/1', { timeout: 20_000 })
   await expect(page.getByRole('button', { name: /Alle als eingenommen markieren –/ })).toHaveCount(0)
   await expectCalendarTaken(page)
   await expectStockVisible(page)

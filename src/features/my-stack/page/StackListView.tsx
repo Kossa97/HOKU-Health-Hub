@@ -362,7 +362,7 @@ function StackListRow({
         }}
         // `select-none` und kein Callout: langes Halten beim Wischen markiert
         // nichts und oeffnet kein Menue.
-        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-[var(--lg-surface-fill)] py-2.5 pl-3 pr-3 text-left [-webkit-touch-callout:none] active:bg-[var(--surface-raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
+        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-[var(--lg-surface-fill)] py-2 pl-3 pr-3 text-left [-webkit-touch-callout:none] active:bg-[var(--surface-raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
       >
         {/* Feste Flaeche: das Objekt wird hineingepasst, nicht umgekehrt. */}
         <span ref={objektRef} data-list-object className="flex h-14 w-11 shrink-0">

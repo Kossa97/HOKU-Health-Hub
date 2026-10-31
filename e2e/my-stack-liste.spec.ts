@@ -79,7 +79,7 @@ test('Liste: abgelaufen steht ausgeschrieben da, wie im Karussell', async ({ pag
   })
   await page.goto('/my-stack')
   // Ausgeschrieben, ohne Rahmen: alarmieren tut nur das Symbol.
-  await expect(zeile(page, 'BPC-157').locator('[data-expired-badge]')).toHaveText('Seit 8 Tagen abgelaufen!')
+  await expect(zeile(page, 'BPC-157').locator('[data-expired-badge]')).toHaveText('Seit 8 Tagen abgelaufen')
 
   // Dieselbe Substanz im Karussell: das Abzeichen im Wechsel — „Abgelaufen"
   // und „seit 8 Tagen", vorgelesen zusammen.
@@ -104,7 +104,7 @@ test('Vollbild: Haltbarkeit oben links; abgelaufen angemischt — der Anmisch-Kn
 
   await page.getByRole('button', { name: 'BPC-157 öffnen' }).click()
   const detail = page.getByRole('dialog', { name: 'BPC-157' })
-  await expect(detail.locator('[data-stage-detail-top-left] [data-expired-badge]')).toHaveText('Seit 11 Tagen abgelaufen!')
+  await expect(detail.locator('[data-stage-detail-top-left] [data-expired-badge]')).toHaveText('Seit 11 Tagen abgelaufen')
   await expect(detail.getByRole('button', { name: 'Neu rekonstituieren' })).toHaveAttribute('data-anmischen-alarm', 'true')
   await page.goBack()
 
