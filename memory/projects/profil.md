@@ -69,5 +69,10 @@ Prüffehler = bleibt privat.
   Bearbeiten-Sheet), /profil/einstellungen, /profil/sichtbarkeit, /profil/blockiert. Freitext (Routine,
   Lieblingsuebung, e1RM-Namen) filtert profile_view fuer andere mit oeffentlicher_text_fehler (Migration ergaenzt).
   Offen: andere Felder im Schnappschuss sind weiter vom Geraet geschrieben und nur auf Form geprueft.
+- 2a Sicherheitsprüfung (31.10.): Bildfreigabe hängt an `storage.objects.id` (`*_object_id`, RPCs
+  `profile_media_object_id`/`profile_media_approve` nur Dienstrolle), Update-Policy auf `profile-media` entfällt;
+  `display_name` geht an andere nur nach `oeffentlicher_text_fehler`. Vor dem Produktivlauf: Prüfabfrage
+  Nutzernamen (Kopf der Migration) zählen, Treffer von Hand klären. Rest: Ein schon ausgestellter signierter
+  Link (1 h) liefert nach Löschen + Neuanlegen unter gleichem Namen den neuen Inhalt.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
