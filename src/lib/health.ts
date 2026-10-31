@@ -327,25 +327,28 @@ export async function getSteps(options?: HealthQueryOptions): Promise<HealthStep
   return null;
 }
 
-/** Schritte je lokalem Tag (Standard: die letzten 30 Tage); `start` ist der Tagesbeginn. */
-export async function getStepsByDay(options?: HealthQueryOptions): Promise<{ start: Date; count: number }[]> {
+/**
+ * Schritte je lokalem Tag und Quelle (Standard: die letzten 30 Tage); `start` ist der
+ * Tagesbeginn. Quellen bleiben getrennt, damit Telefon und Uhr nicht doppelt zaehlen.
+ */
+export async function getStepsByDay(options?: HealthQueryOptions): Promise<{ start: Date; count: number; source?: string }[]> {
   if (!isNative) return [];
 
   const { startDate, endDate } = queryRange(options, 30);
   const range = { startDate, endDate };
-  let samples: { start: Date; count: number }[] = [];
+  let samples: { start: Date; count: number; source?: string }[] = [];
 
   if (isIOS) {
     const rows = await queryHealthKit<OtherData>('stepCount', range);
-    samples = rows.map(row => ({ start: toDate(row.startDate), count: row.value }));
+    samples = rows.map(row => ({ start: toDate(row.startDate), count: row.value, source: getHealthKitSource(row) }));
   } else if (isAndroid) {
     const records = await readHealthConnectRecords<HealthConnectStepsRecord>('Steps', range, 30, true);
-    samples = records.map(record => ({ start: toDate(record.startTime), count: record.count }));
+    samples = records.map(record => ({ start: toDate(record.startTime), count: record.count, source: record.metadata.dataOrigin }));
   }
 
-  const byDay = new Map<string, { start: Date; count: number }>();
+  const byDay = new Map<string, { start: Date; count: number; source?: string }>();
   for (const sample of samples) {
-    const key = localDay(sample.start);
+    const key = `${localDay(sample.start)}|${sample.source ?? ''}`;
     const entry = byDay.get(key);
     if (entry) {
       entry.count += sample.count;
@@ -353,6 +356,7 @@ export async function getStepsByDay(options?: HealthQueryOptions): Promise<{ sta
       byDay.set(key, {
         start: new Date(sample.start.getFullYear(), sample.start.getMonth(), sample.start.getDate()),
         count: sample.count,
+        source: sample.source,
       });
     }
   }
@@ -529,7 +533,7 @@ function energyToKcal(energy: { unit: string; value: number }): number {
 }
 
 /** Aktive Energie je Probe in kcal (Standard: die letzten 30 Tage), neueste zuerst. */
-export async function getActiveEnergy(options?: HealthQueryOptions): Promise<{ start: Date; end: Date; kcal: number }[]> {
+export async function getActiveEnergy(options?: HealthQueryOptions): Promise<{ start: Date; end: Date; kcal: number; source?: string }[]> {
   if (!isNative) return [];
 
   const { startDate, endDate } = queryRange(options, 30);
@@ -541,6 +545,7 @@ export async function getActiveEnergy(options?: HealthQueryOptions): Promise<{ s
       start: toDate(sample.startDate),
       end: toDate(sample.endDate),
       kcal: sample.value,
+      source: getHealthKitSource(sample),
     }));
   }
 
@@ -550,6 +555,7 @@ export async function getActiveEnergy(options?: HealthQueryOptions): Promise<{ s
       start: toDate(record.startTime),
       end: toDate(record.endTime),
       kcal: energyToKcal(record.energy),
+      source: record.metadata.dataOrigin,
     }));
   }
 
