@@ -50,7 +50,6 @@ den Datenschutz-Hinweis tippt.
 | `READ_STEPS` | Schritte pro Tag für den eigenen Aktivitätsverlauf. | Steps per day for the user's own activity history. |
 | `READ_HEART_RATE` | Herzfrequenz der letzten 24 Stunden, nur zur Anzeige auf der Seite „Gesundheit“; wird nicht im Konto gespeichert. | Heart rate of the last 24 hours, shown on the "Health" page only; not stored in the account. |
 | `READ_RESTING_HEART_RATE` | Ruhepuls pro Tag für den eigenen Verlauf. | Resting heart rate per day for the user's own history. |
-| `READ_WEIGHT` | Gewicht, um es neben den eigenen Einträgen anzuzeigen; wird nicht als Tageswert gespeichert. | Weight, to show it next to the user's own entries; not stored as a daily value. |
 | `READ_ACTIVE_CALORIES_BURNED` | Aktive Kalorien pro Tag für den eigenen Aktivitätsverlauf. | Active calories per day for the user's own activity history. |
 | `READ_OXYGEN_SATURATION` | Sauerstoffsättigung (SpO2) als Tageswert für den eigenen Verlauf. | Oxygen saturation (SpO2) as a daily value for the user's own history. |
 | `READ_RESPIRATORY_RATE` | Atemfrequenz als Tageswert für den eigenen Verlauf. | Respiratory rate as a daily value for the user's own history. |
@@ -61,10 +60,8 @@ den Datenschutz-Hinweis tippt.
 - Nicht angefragt: Training/Workouts (`READ_EXERCISE`) — `capacitor-health-connect`
   0.7 kann diese Einträge nicht lesen. Schlaf kommt auf Android derzeit nicht
   aus Health Connect.
-- Offen vor dem Einreichen: `READ_WEIGHT` wird angefragt, aber `getWeight`
-  in `src/lib/health.ts` hat derzeit keinen Aufrufer in der App. Google prüft,
-  ob jede Berechtigung genutzt wird — entweder das Gewicht anzeigen oder die
-  Berechtigung streichen.
+- Gewicht (`READ_WEIGHT`) wird auf Android nicht angefragt, weil die App es
+  dort nicht liest; es kommt dazu, sobald die App Gewicht aus Health Connect anzeigt.
 - Kommt ein Typ dazu, muss er an drei Stellen gleich stehen: Manifest,
   `ANDROID_READ_PERMISSIONS` und diese Liste (plus Datenschutzerklärung).
 - Vor dem Store-Start steht ein Test auf echter Hardware aus.

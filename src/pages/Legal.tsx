@@ -18,7 +18,10 @@ export function Legal() {
   const navigate = useNavigate()
   // Sprungmarke wie /datenschutz#gesundheitsdaten (Android: Health-Connect-Erklaerung)
   useEffect(() => {
-    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+    if (!hash) return
+    let id = hash.slice(1)
+    try { id = decodeURIComponent(id) } catch { /* kaputte Kodierung wie #%: Rohwert nehmen */ }
+    document.getElementById(id)?.scrollIntoView()
   }, [hash])
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">

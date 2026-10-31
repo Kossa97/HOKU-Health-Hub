@@ -17,8 +17,10 @@ const IOS_READ_PERMISSIONS = [
 // 'ExerciseSession' fehlt mit Absicht: capacitor-health-connect 0.7 kann solche
 // Eintraege nicht lesen (siehe getWorkouts). Jede Health-Connect-Berechtigung
 // muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
+// 'Weight' fehlt, solange die App auf Android kein Gewicht liest (getWeight hat
+// keinen Aufrufer) - Google lehnt ungenutzte Gesundheitsberechtigungen ab.
 const ANDROID_READ_PERMISSIONS: RecordType[] = [
-  'Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate',
+  'Steps', 'HeartRateSeries', 'RestingHeartRate',
   'ActiveCaloriesBurned', 'OxygenSaturation', 'RespiratoryRate', 'BloodPressure',
 ];
 
