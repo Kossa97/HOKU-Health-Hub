@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -11,7 +12,7 @@ import { ORDER, PAGE_SIZE, searchFilter, type SortBy } from './tagebuch/query'
 import { intakeDose, intakeGap } from './tagebuch/intake'
 import { Sheet } from '../features/compliance/components/Sheet'
 import { Auswertung } from './tagebuch/Auswertung'
-import { EntryForm } from './tagebuch/EntryForm'
+import { EntryForm, type EntryPrefill } from './tagebuch/EntryForm'
 import { SymptomChip } from './tagebuch/SymptomChip'
 import { ENTRY_SELECT, sortedChips, type DiaryEntry } from './tagebuch/entry'
 import { chipAria, chipLabel, durationText, fromRow, kindColor } from './tagebuch/chips'
@@ -35,6 +36,7 @@ export function Tagebuch() {
     [t('sehr_leicht'), t('leicht'), t('mittel'), t('stark'), t('sehr_stark')][n - 1]
   const [effects, setEffects]   = useState<Effect[]>([])
   const [stackItems, setStackItems] = useState<StackItem[]>([])
+  const [stackItemsLoaded, setStackItemsLoaded] = useState(false)
   const [filter, setFilter]     = useState<'all' | 'effect' | 'side_effect'>('all')
   const [search, setSearch]     = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -56,7 +58,11 @@ export function Tagebuch() {
   useEffect(() => {
     let cancelled = false
     supabase.from('stack_items').select('id, display_name').eq('user_id', userId).order('display_name')
-      .then(({ data }) => { if (!cancelled && data) setStackItems(data) })
+      .then(({ data }) => {
+        if (cancelled) return
+        if (data) setStackItems(data)
+        setStackItemsLoaded(true)
+      })
     return () => { cancelled = true }
   }, [userId])
 
@@ -96,8 +102,33 @@ export function Tagebuch() {
     return () => { cancelled = true }
   }, [userId, filter, orFilter, sortBy, limit, reloadToken, t])
 
-  const openNew = () => { setEditing(null); setShowForm(true) }
-  const openEdit = (e: Effect) => { setEditing(e); setShowForm(true) }
+  // Aus dem Kalender: /tagebuch?einnahme=<id> öffnet einen neuen Eintrag mit
+  // Substanz und genau dieser Einnahme.
+  const [prefill, setPrefill] = useState<EntryPrefill | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const fromIntake = searchParams.get('einnahme')
+  useEffect(() => {
+    // Erst mit geladener Substanzliste — sonst steht die Auswahl kurz auf „keine Substanz".
+    if (!fromIntake || !stackItemsLoaded) return
+    let cancelled = false
+    supabase.from('dose_logs').select('id, stack_item_id, logged_at')
+      .eq('user_id', userId).eq('id', fromIntake).eq('taken', true).maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        // Bei einem Ladefehler bleibt der Parameter: Neu laden versucht es noch einmal.
+        if (error) { toast.error(t('tagebuch_load_error')); return }
+        setSearchParams(params => { params.delete('einnahme'); return params }, { replace: true })
+        if (!data?.stack_item_id) { toast.error(t('tagebuch_einnahme_nicht_gefunden')); return }
+        setPrefill({ stack_item_id: data.stack_item_id, dose_log_id: data.id, occurred_at: new Date(data.logged_at) })
+        setEditing(null)
+        setView('liste')
+        setShowForm(true)
+      })
+    return () => { cancelled = true }
+  }, [fromIntake, stackItemsLoaded, userId, setSearchParams, t])
+
+  const openNew = () => { setPrefill(null); setEditing(null); setShowForm(true) }
+  const openEdit = (e: Effect) => { setPrefill(null); setEditing(e); setShowForm(true) }
 
   const remove = async () => {
     if (!deleting) return
@@ -273,8 +304,10 @@ export function Tagebuch() {
       </div>
       )}
 
+      {/* key: ein neuer Bezug (z. B. ein weiterer Link aus dem Kalender) baut das Formular neu auf */}
       {showForm && (
-        <EntryForm userId={userId} stackItems={stackItems} entry={editing}
+        <EntryForm key={prefill?.dose_log_id ?? editing?.id ?? 'neu'}
+          userId={userId} stackItems={stackItems} entry={editing} prefill={prefill}
           onClose={() => setShowForm(false)}
           onSaved={() => { setShowForm(false); reload() }} />
       )}

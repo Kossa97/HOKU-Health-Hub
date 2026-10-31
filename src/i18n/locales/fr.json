@@ -190,6 +190,8 @@
   "tagebuch_abstand_h": "{{n}} h",
   "tagebuch_abstand_tage": "{{n}} days",
   "tagebuch_einnahme_fremd": "The selected intake doesn't match this substance.",
+  "tagebuch_aus_einnahme": "Journal entry",
+  "tagebuch_einnahme_nicht_gefunden": "The intake could not be found.",
   "tagebuch_tab_liste": "List",
   "tagebuch_tab_auswertung": "Insights",
   "tagebuch_zeitraum": "Time range",

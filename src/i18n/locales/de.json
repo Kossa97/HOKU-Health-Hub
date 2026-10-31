@@ -283,6 +283,8 @@
   "tagebuch_abstand_h": "{{n}} h",
   "tagebuch_abstand_tage": "{{n}} Tage",
   "tagebuch_einnahme_fremd": "Die gewählte Einnahme passt nicht zu dieser Substanz.",
+  "tagebuch_aus_einnahme": "Tagebuch-Eintrag",
+  "tagebuch_einnahme_nicht_gefunden": "Die Einnahme wurde nicht gefunden.",
   "tagebuch_tab_liste": "Liste",
   "tagebuch_tab_auswertung": "Auswertung",
   "tagebuch_zeitraum": "Zeitraum",
