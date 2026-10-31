@@ -5442,15 +5442,15 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.test.ts": {
-    "mtime": 1793419248.374355,
-    "seen": 1793419390.794372,
-    "ast_hash": "57952138b5feed1d69c3acebafe24c52",
+    "mtime": 1793419899.741562,
+    "seen": 1793419969.337526,
+    "ast_hash": "fdc84acfcea49cf88d6b22e06a06178e",
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793419234.9861026,
-    "seen": 1793419390.7943726,
-    "ast_hash": "8b356b0c0ecd6d26979af58cb6f6d97e",
+    "mtime": 1793419899.7043643,
+    "seen": 1793419969.3375273,
+    "ast_hash": "a447c1254e4b22eb7f51832c35f21bcc",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -6630,9 +6630,9 @@
     "semantic_hash": ""
   },
   "src/features/training/hooks/useTrainingData.ts": {
-    "mtime": 1793419017.4270384,
-    "seen": 1793419390.7947466,
-    "ast_hash": "39dc03acfe23179d32edd3518b0e7eb2",
+    "mtime": 1793419856.374693,
+    "seen": 1793419969.3378997,
+    "ast_hash": "b26f79039004c45d25e51ca68cd0f5c4",
     "semantic_hash": ""
   },
   "src/features/training/i18n/coreTexts.ts": {
@@ -21606,9 +21606,9 @@
     "semantic_hash": ""
   },
   "supabase-profil-p1-datenbasis.sql": {
-    "mtime": 1793415563.847798,
-    "seen": 1793415869.8439574,
-    "ast_hash": "004f770f88b6b059338bfe132c01491b",
+    "mtime": 1793419692.4349635,
+    "seen": 1793419969.3381462,
+    "ast_hash": "81d2e10d0508555ae151c4867b4f8a8b",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-31-profil-p1-datenbasis.md": {
@@ -21714,15 +21714,15 @@
     "semantic_hash": ""
   },
   "src/features/training/hooks/useTrainingData.health.test.ts": {
-    "mtime": 1793418958.067389,
-    "seen": 1793419390.7947462,
-    "ast_hash": "35fc4727eb2779250e0bead82098ea18",
+    "mtime": 1793419823.6359458,
+    "seen": 1793419969.3378992,
+    "ast_hash": "caf02f48cdd737417fecbcffecd180f6",
     "semantic_hash": ""
   },
   "src/features/wearables/components/HealthStore.test.tsx": {
-    "mtime": 1793418930.5959752,
-    "seen": 1793419390.7947795,
-    "ast_hash": "4c393ec768bde9e3f73a3a76da8fc304",
+    "mtime": 1793419823.6349459,
+    "seen": 1793419969.3379333,
+    "ast_hash": "f21c15a3d797e70bd7ac6397c38cd620",
     "semantic_hash": ""
   },
   "src/features/wearables/components/HealthStoreConsentSheet.tsx": {
@@ -21732,21 +21732,21 @@
     "semantic_hash": ""
   },
   "src/features/wearables/components/HealthStoreProfile.tsx": {
-    "mtime": 1793418899.1904395,
-    "seen": 1793419390.794781,
-    "ast_hash": "873c95dc44a9bf09f58e0b301734ee51",
+    "mtime": 1793419856.374693,
+    "seen": 1793419969.3379345,
+    "ast_hash": "980d01aa693a865ae49b41d47f61dbf7",
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthDailySync.test.ts": {
-    "mtime": 1793418792.4437943,
-    "seen": 1793419390.7947817,
-    "ast_hash": "50f77677d38be56859b7e2ecd462f58d",
+    "mtime": 1793419823.6349459,
+    "seen": 1793419969.3379352,
+    "ast_hash": "d893e20b5bd2d279582d9f3ab87d028c",
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthDailySync.ts": {
-    "mtime": 1793418831.1759765,
-    "seen": 1793419390.7947822,
-    "ast_hash": "ba5bc341482f0c677977fc3bde4aa48f",
+    "mtime": 1793419856.373693,
+    "seen": 1793419969.3379362,
+    "ast_hash": "6eac52f5b6ff615b350fa198ef637193",
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthStoreConsent.ts": {
@@ -21756,15 +21756,15 @@
     "semantic_hash": ""
   },
   "src/features/wearables/services/healthStore.test.ts": {
-    "mtime": 1793418766.2021406,
-    "seen": 1793419390.7947855,
-    "ast_hash": "3672af4f2490f6d36ea534f21a9dbb47",
+    "mtime": 1793419823.633945,
+    "seen": 1793419969.3379412,
+    "ast_hash": "3054bbde6291cc1bf2742e4bf1fb76cd",
     "semantic_hash": ""
   },
   "src/features/wearables/services/healthStore.ts": {
-    "mtime": 1793418814.3919318,
-    "seen": 1793419390.7947862,
-    "ast_hash": "cd6c00b42ceb1c3fe92abac4c3641b8e",
+    "mtime": 1793419856.3726923,
+    "seen": 1793419969.3379424,
+    "ast_hash": "5de55927d71c03744f7cbab9d2ea8f86",
     "semantic_hash": ""
   }
 }
