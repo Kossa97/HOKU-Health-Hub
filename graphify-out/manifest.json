@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793400155.1762538,
-    "seen": 1793400497.1666718,
-    "ast_hash": "222235a124db70e50c32719e61928bee",
+    "mtime": 1793407878.3605976,
+    "seen": 1793408162.8361485,
+    "ast_hash": "208dcb540f3a8b648bddd7f85a0affc6",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8124,9 +8124,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/formen.ts": {
-    "mtime": 1793400155.1762538,
-    "seen": 1793400497.1666737,
-    "ast_hash": "ddc864f2a4d928cd482eab628849bf1e",
+    "mtime": 1793407878.3582692,
+    "seen": 1793408162.8361557,
+    "ast_hash": "eb2b572535c4b282211b851181b520d4",
     "semantic_hash": ""
   },
   "supabase-auto-tracking.sql": {
@@ -8418,9 +8418,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793400458.8098285,
-    "seen": 1793400497.1685965,
-    "ast_hash": "7aa57a7e3e260468e7a3d30c37112cd4",
+    "mtime": 1793408127.5823548,
+    "seen": 1793408162.871382,
+    "ast_hash": "01bbc3e686e3718c2ec14cd8a319429c",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
@@ -19167,6 +19167,18 @@
     "mtime": 1793400155.1922538,
     "seen": 1793400497.1675162,
     "ast_hash": "7e1779125c2c13ec178c7698ed01340f",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/schrift.test.ts": {
+    "mtime": 1793407878.357899,
+    "seen": 1793408162.8363817,
+    "ast_hash": "50dcd388bd41a9ddc070e52942b03d6e",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/schrift.ts": {
+    "mtime": 1793407997.5182297,
+    "seen": 1793408162.8363855,
+    "ast_hash": "8fc3f81bb6c4ec4e1eb3a0e49e6d3077",
     "semantic_hash": ""
   },
   "package-lock.json": {
