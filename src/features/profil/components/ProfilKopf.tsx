@@ -1,5 +1,5 @@
 /**
- * Kopf des Profils: Titelbild, rundes Profilbild, Name mit Geschlecht-Zeichen
+ * Kopf des Profils: Titelbild, rundes Profilbild, Name mit Geschlechtszeichen
  * und Herkunft (Flagge + Kürzel), @nick; darunter Bio, Ziel-Tags als wischbare
  * Zeile, Streak · Mitglied seit, Zahlenzeile (Workouts · Berichte) und Platz
  * für Knöpfe. Zeigt nur, was in `fields` steht; mit `visibility` (eigene

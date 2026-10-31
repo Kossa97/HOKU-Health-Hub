@@ -96,7 +96,7 @@ function renderAt(path: string) {
 
 /** Alter Abschnitt → wo er jetzt steht (Selektor auf der jeweiligen Seite). */
 const AUF_PROFIL = {
-  'Name und Geschlecht-Zeichen': '[data-profile-name]',
+  'Name und Geschlechtszeichen': '[data-profile-name]',
   'Profil teilen (Link)': '[data-profile-share]',
 }
 const IM_BEARBEITEN = {

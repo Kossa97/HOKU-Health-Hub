@@ -96,7 +96,7 @@ test('„Ansehen als“: App-Nutzer sieht nur „Alle“, Freund auch „Freunde
   mock.insert('profile_snapshots', { user_id: TEST_USER.id, data: { age: { v: 29 }, weight: { v: 61, unit: 'kg' }, height: { v: 168, unit: 'cm' } } })
 
   await page.goto('/u/e2e?als=all')
-  await expect(page.locator('[data-view-as="all"]')).toContainText('So sieht dich: App-Nutzer')
+  await expect(page.locator('[data-view-as="all"]')).toContainText('Ansehen als: App-Nutzer')
   await expect(page.locator('[data-profile-tile="age"]')).toBeVisible()
   await expect(page.locator('[data-profile-tile="weight"]')).toHaveCount(0)
   await expect(page.locator('[data-profile-tile="height"]')).toHaveCount(0)

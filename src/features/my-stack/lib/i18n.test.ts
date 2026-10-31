@@ -1478,9 +1478,11 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (Oktober 2026): Bild-Check (Profil 2a) — profil_bild_wird_geprueft,
 // profil_bild_abgelehnt, profil_bild_anderes, profil_bild_ok, profil_bilder_pruefung
 // (ersetzt in der Oberflaeche profil_bilder_privat; de/en echt, sonst englischer Platzhalter).
+// Bewusst geaendert (Oktober 2026): Durchsicht der Profil-2a-Texte, nur de/en
+// (Geschlechtszeichen, Menstruationszyklus, Profilbild, Ansehen als, Freunde-Funktion).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'b799d0dd7a3a4b9937e22bbf71ff5f4f1a3666104752bbd249da1698aef56f9b',
-  en: '4cab4f8355be885c0132cd862f891cce0fa0f880e5024c4daf8a9c1eef3f4eb7',
+  de: 'c8982394a71cf05bb40dad47216d108fbe206c56b05218144ee739318dae6142',
+  en: '6fa7ff5cd235044b83519a46c8371932d5a08de34786ab70c08b4aef548b0df0',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
