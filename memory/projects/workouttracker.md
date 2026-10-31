@@ -143,6 +143,25 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - Die Karte „Heute geplant/Als Nächstes“ (`NextInPlanCard`) und die leere
   Bereitschaftskarte sind entfallen.
 
+## Pläne, Workouts, Favoriten (Entscheidung Nutzer, 31.10.2026)
+
+- **Begriffe, verbindlich:** **Plan** enthält **Workouts**, ein Workout enthält **Übungen**,
+  eine Übung enthält Sätze, Wiederholungen, Pausen usw. Das Wort **„Routine" entfällt**
+  überall in der Oberfläche (de/en: Plan/Workout). Im Code heißt das bisherige
+  `TrainingRoutine` = Workout, `folder` = Plan.
+- **Zeitplan am Plan:** feste Wochentage · X-mal pro Woche · alle X Tage. Bei X-mal/alle X
+  Tage laufen die Workouts der Reihe nach; „alle X Tage" zählt ab der letzten Einheit.
+- **Kopieren, Einfügen, Duplizieren, Verschieben** für Pläne, Workouts und Übungen;
+  Übungen per Mehrfachauswahl (lange drücken → antippen → Leiste unten). Zwischenablage in
+  der App. Ein Workout gehört zu genau einem Plan (Kopie statt Verknüpfung).
+- **Werte:** kopierte/verschobene Übungen behalten Sätze, Gewichte, Wdh., Pausen, Notiz;
+  neu hinzugefügte sind leer („Wie letztes Mal" bleibt als Vorschlag im Training).
+- **Favoriten-Stern** an Übungen: oben in der Übungsauswahl + Filter; in
+  `training_settings.settings` (jsonb), keine Migration.
+- Pläne mit Zeitplan brauchen eine eigene Tabelle; vorhandene Ordnernamen werden
+  übernommen, `folder` bleibt stehen. Migration nach Datenbankregel (Trockenlauf, Zustimmung).
+- Reihenfolge: Favoriten → Mehrfachauswahl/Kopieren → Pläne mit Zeitplan.
+
 ## Offen
 
 | Punkt | Stand |
@@ -153,6 +172,6 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 | HRV | liefert keins der Plugins; Bereitschaft nutzt Schlaf, Ruhepuls, Tagesform, Last |
 | Hevy/Strong-CSV | Formate aus Sekundärquellen; mit echten Exportdateien gegenprüfen |
 | Hyrox | Mixed Doubles fehlt (Quellen widersprüchlich); Women-Open-Wall-Balls 100 angenommen |
-| Schnellzugriff-Label | „Training starten" hart deutsch wie die übrigen Einträge in `Layout.tsx` |
+| Schnellzugriff-Label | „Training" (öffnet den Bereich, 30.10.2026) hart deutsch wie die übrigen Einträge in `Layout.tsx` |
 | Live Activity / Apple Watch | braucht nativen Swift-Code, v2 |
 | Auto-Progression / Deload-Vorschlag | v2 |
