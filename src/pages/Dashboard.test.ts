@@ -597,8 +597,9 @@ describe('Dashboard normalized timeline path', () => {
     if (kind === 'legacy') {
       expect(queries.some(query => (query.gte as ReturnType<typeof vi.fn>).mock.calls
         .some(call => call[1] === '2026-09-17T22:00:00.000Z'))).toBe(true)
+      // Einen Tag laenger: nach Mitternacht Bestaetigtes gehoert zum gewaehlten Tag.
       expect(queries.some(query => (query.lt as ReturnType<typeof vi.fn>).mock.calls
-        .some(call => call[1] === '2026-09-18T22:00:00.000Z'))).toBe(true)
+        .some(call => call[1] === '2026-09-19T22:00:00.000Z'))).toBe(true)
     }
   })
 
@@ -1164,6 +1165,31 @@ describe('Dashboard normalized timeline path', () => {
     })])
   })
 
+  it('zeigt eine nach Mitternacht bestätigte Einnahme am Tag ihres Platzes, mit dem Tag der Einnahme', async () => {
+    // Platz am 18. um 08:00, genommen am 19. um 00:30 (Berlin): sie gehört
+    // zum 18., nicht in die Liste des 19.
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: true,
+      routine_slot_key: 'timeline-cycle@2026-09-18T08:00', logged_at: '2026-09-18T22:30:00.000Z' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
+
+    // Heute (19.): nichts Protokolliertes.
+    await waitFor(() => expect(screen.getAllByRole('status')
+      .some(element => element.textContent?.includes('Lädt'))).toBe(false))
+    expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
+
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    const zeile = await waitFor(() => {
+      const row = document.querySelector('[data-log-row]')
+      expect(row).toBeTruthy()
+      return row as HTMLElement
+    })
+    expect(zeile.textContent).toContain('00:30')
+    expect(zeile.querySelector('[data-log-anderer-tag]')?.textContent).toMatch(/Sa/)
+  })
+
   it('lässt eine nachgetragene Einnahme ausgelassen, wenn das Speichern scheitert', async () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
@@ -1690,7 +1716,8 @@ describe('Dashboard normalized timeline path', () => {
     expect(await screen.findByText('Bereits protokolliert')).toBeTruthy()
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(client.logQueries[0].gte).toHaveBeenCalledWith('logged_at', '2026-08-30T22:00:00.000Z')
-    expect(client.logQueries[0].lt).toHaveBeenCalledWith('logged_at', '2026-10-04T22:00:00.000Z')
+    // Einen Tag ueber das Raster hinaus: der letzte Abend kann nach Mitternacht bestaetigt sein.
+    expect(client.logQueries[0].lt).toHaveBeenCalledWith('logged_at', '2026-10-05T22:00:00.000Z')
   })
 
   it('retries only inventory after a committed normalized pending confirmation', async () => {

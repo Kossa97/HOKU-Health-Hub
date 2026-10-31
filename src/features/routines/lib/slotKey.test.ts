@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveTimelineIntakesForDay } from '../../../lib/intakeSchedule'
-import { istSlotSchluessel, slotSchluessel, slotSchluesselFuerZeitpunkt, slotSchluesselGrenze } from './slotKey'
+import { istSlotSchluessel, planTagAusSchluessel, slotSchluessel, slotSchluesselFuerZeitpunkt, slotSchluesselGrenze } from './slotKey'
 
 const ZYKLUS = '11111111-1111-4111-8111-111111111111'
 
@@ -145,5 +145,18 @@ describe('der Schluessel reist mit', () => {
 
     // Der Zeitpunkt verschiebt sich sehr wohl -- nur die Identitaet nicht.
     expect(tokio[0]!.scheduledAt).not.toBe(berlin[0]!.scheduledAt)
+  })
+})
+
+describe('planTagAusSchluessel', () => {
+  it('liest den Tag im Plan, nicht den der Einnahme', () => {
+    expect(planTagAusSchluessel(`${ZYKLUS}@2026-10-29T20:00`)).toBe('2026-10-29')
+  })
+
+  it('gibt null ohne gueltigen Schluessel (alte Zeilen, bei Bedarf)', () => {
+    expect(planTagAusSchluessel(null)).toBeNull()
+    expect(planTagAusSchluessel('')).toBeNull()
+    expect(planTagAusSchluessel(ZYKLUS)).toBeNull()
+    expect(planTagAusSchluessel(`${ZYKLUS}@2026-09-22T06:00:00.000Z`)).toBeNull()
   })
 })
