@@ -14,7 +14,7 @@ import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { KEINE_ZUSTIMMUNG, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
-import { geschlechtFelder, type ProfileGender } from '../features/profil/lib/profileFields'
+import { registrierungsGeschlecht, type ProfileGender } from '../features/profil/lib/profileFields'
 import { BENUTZERNAME, istEmail, pruefeLogin, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
@@ -503,7 +503,7 @@ export function Auth() {
     }
     // Registrieren bleibt immer angemeldet
     merkeAngemeldetBleiben(true)
-    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...geschlechtFelder(geschlecht) })
+    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...registrierungsGeschlecht(geschlecht) })
       .then(r => r, (err: unknown) => ({ error: err }))
     if (gen !== lauf.current) return
     if (antwort.data.session) {

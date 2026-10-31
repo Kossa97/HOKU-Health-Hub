@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bioVollstaendig } from '../../blutwerte/lib/bioProfile'
-import { GOAL_TAGS, countryOptions, genderSymbol, geschlechtFelder, isCountryCode, isProfileGender } from './profileFields'
+import { GOAL_TAGS, countryOptions, genderSymbol, geschlechtFelder, isCountryCode, isProfileGender, registrierungsGeschlecht } from './profileFields'
 
 describe('geschlechtFelder', () => {
   it('weiblich und maennlich setzen auch bio_sex', () => {
@@ -22,6 +22,20 @@ describe('geschlechtFelder', () => {
 
   it('ohne bio_sex bleibt der Blutwerte-Hinweis sichtbar (zeigeBioHinweis = nicht vollstaendig)', () => {
     expect(bioVollstaendig({ birthDate: '1990-01-01', sex: null })).toBe(false)
+  })
+})
+
+describe('registrierungsGeschlecht', () => {
+  it('ohne Auswahl keine Spalten: der Upsert bleibt wie vor der Aenderung', () => {
+    expect(registrierungsGeschlecht(null)).toEqual({})
+    const zeile = { id: 'u', username: 'x', ...registrierungsGeschlecht(null) }
+    expect('profile_gender' in zeile).toBe(false)
+    expect('bio_sex' in zeile).toBe(false)
+  })
+
+  it('mit Auswahl wie geschlechtFelder (weiblich: auch bio_sex, divers: ohne)', () => {
+    expect(registrierungsGeschlecht('female')).toEqual({ profile_gender: 'female', bio_sex: 'female' })
+    expect(registrierungsGeschlecht('diverse')).toEqual({ profile_gender: 'diverse' })
   })
 })
 
