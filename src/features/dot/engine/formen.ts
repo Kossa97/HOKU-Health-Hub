@@ -73,26 +73,68 @@ function abtasten(zeichne: Zeichnung, anzahl: number, gitter?: number): Float32A
   return out
 }
 
-// Schrift: Space Grotesk 700, zentriert, höchstens 300 breit (sonst kleiner)
+// Schrift: Space Grotesk 700, zentriert, höchstens 300 breit (sonst kleiner). Die Wahl einer
+// futuristischeren Schrift läuft noch (Mockup „Hokus Schrift", Runde 2); hier und in index.html tauschen.
 const SCHRIFT = '"Space Grotesk", system-ui, sans-serif'
-function zeilen(text: string[], groesse: number): Zeichnung {
+/** Ein Buchstabe im Satz: links, rechts, Mitte der Zeile (px). */
+interface Buchstabe { x0: number; x1: number; y: number }
+function zeilen(text: string[], groesse: number, buchst: Buchstabe[]): Zeichnung {
   return c => {
     c.textAlign = 'center'; c.textBaseline = 'middle'
     let fs = groesse
     for (const z of text) { c.font = `700 ${fs}px ${SCHRIFT}`; const w = c.measureText(z).width; if (w > 300) fs = Math.floor((fs * 300) / w) }
     c.font = `700 ${fs}px ${SCHRIFT}`
     const lh = fs * 1.1, y0 = (-lh * (text.length - 1)) / 2
-    text.forEach((z, i) => c.fillText(z, 0, y0 + i * lh))
+    text.forEach((z, i) => {
+      // Buchstaben merken, damit Hoku Buchstabe für Buchstabe und in Leserichtung schreiben kann
+      // Grenzen über die Breite des Anfangs der Zeile gemessen, so zählen Unterschneidungen mit wie beim Zeichnen
+      const x0 = -c.measureText(z).width / 2
+      let vorne = ''
+      for (const ch of Array.from(z)) {
+        const links = x0 + c.measureText(vorne).width
+        vorne += ch
+        if (ch.trim()) buchst.push({ x0: links, x1: x0 + c.measureText(vorne).width, y: y0 + i * lh })
+      }
+      c.fillText(z, 0, y0 + i * lh)
+    })
   }
 }
 
-const texte = new Map<string, Float32Array>()
-/** Text (Zeilen durch Zeilenumbruch getrennt) als Punkte, Abstand `dichte` im 640er-Raster; nicht genutzte Punkte < 0. */
-export function textForm(text: string, anzahl: number, dichte: number): Float32Array {
+/**
+ * Ein Satz als Punkte: Lage und Dicke je Punkt (`p`, nicht genutzte Punkte mit z < 0),
+ * dazu je Punkt sein Buchstabe (`bi`) und die Lesereihenfolge 0…1 (`lese`), und die
+ * Mitte jedes Buchstabens (`mitte`, x/y abwechselnd).
+ */
+export interface TextForm { p: Float32Array; bi: Int16Array; lese: Float32Array; mitte: Float32Array; n: number }
+const texte = new Map<string, TextForm>()
+/** Text (Zeilen durch Zeilenumbruch getrennt) als Punkte, Abstand `dichte` im 640er-Raster. */
+export function textForm(text: string, anzahl: number, dichte: number): TextForm {
   const key = `${anzahl}|${dichte}|${text}`
   let f = texte.get(key)
-  if (!f) { f = abtasten(zeilen(text.split('\n'), 64), anzahl, dichte); texte.set(key, f) }
+  if (!f) {
+    const buchst: Buchstabe[] = []
+    const p = abtasten(zeilen(text.split('\n'), 64, buchst), anzahl, dichte)
+    f = { p, ...buchstabenJePunkt(p, buchst) }
+    texte.set(key, f)
+  }
   return f
+}
+// Jeder Punkt gehört zum nächsten Buchstaben (quer zur Zeile weniger streng); Lesereihenfolge = Buchstabe + Lage darin
+function buchstabenJePunkt(p: Float32Array, buchst: Buchstabe[]) {
+  const anzahl = p.length / 3, n = Math.max(1, buchst.length), bi = new Int16Array(anzahl), lese = new Float32Array(anzahl)
+  const mitte = new Float32Array(n * 2)
+  buchst.forEach((b, j) => { mitte[j * 2] = (b.x0 + b.x1) / 2; mitte[j * 2 + 1] = b.y })
+  for (let i = 0; i < anzahl && buchst.length; i++) {
+    const x = p[i * 3], y = p[i * 3 + 1]
+    let best = 0, bd = Infinity
+    buchst.forEach((b, j) => {
+      const dx = x < b.x0 ? b.x0 - x : x > b.x1 ? x - b.x1 : 0, dy = (y - b.y) * 0.6, dd = dx * dx + dy * dy
+      if (dd < bd) { bd = dd; best = j }
+    })
+    const b = buchst[best]
+    bi[i] = best; lese[i] = (best + Math.min(1, Math.max(0, (x - b.x0) / Math.max(1, b.x1 - b.x0)))) / n
+  }
+  return { bi, lese, mitte, n }
 }
 
 /** Die Schrift laden, bevor Text abgetastet wird (sonst misst die Canvas die Ersatzschrift). */

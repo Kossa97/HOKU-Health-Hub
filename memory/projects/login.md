@@ -186,6 +186,17 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   auf 0,74 bzw. 0,64 verkleinert und (D1) nach rechts gerückt, damit der Arm Platz hat. Jetzt bleibt er
   mittig und in voller Größe, nur der Arm kommt dazu; Neigung und Hüpfer (D4, relativ 0,22) bleiben.
 
+- **Hokus Schrift (Nutzer 30./31.10.2026):** Mockup „Hokus Schrift“ (https://claude.ai/artifact/AcgZFNJpNiPasN2YGuu97c,
+  Runde 2). Nutzer: alle Animationen nehmen, **jeder Satz eine andere**, egal welcher Text und wo in der App;
+  der Übergang von „Heute“ (Wirbel) gefällt am besten. Eingebaut in der Engine (`engine/schrift.ts`): wirbel
+  (bisher), klar (Feder ohne Wirbel, Leserichtung), feder, pop, klappen, rasten; gemischter Stapel, nie zweimal
+  dieselbe hintereinander, letzte Art in `tyd.dot.schrift` (auch über Besuche). Bahn-Arten laufen auf festen
+  Bahnen, danach Federn. Schrift war blass: Punkte jetzt **so groß wie Hokus im Schnitt** (nach Helligkeit
+  gewichtet, Größe 0,8), Gitter 9 statt 5,5, Sichtbarkeit nie unter 0,8, Licht 50 %/15 %.
+  Offen: **futuristischere Schrift** — Runde 2 zeigt Orbitron, Audiowide, Michroma, Oxanium, Chakra Petch,
+  Exo 2, Zen Dots, Tomorrow, Russo One, Turret Road, Syncopate; Wahl des Nutzers steht aus (dann `SCHRIFT` in
+  `formen.ts` und Google-Fonts-Link in `index.html` tauschen).
+
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
   Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand

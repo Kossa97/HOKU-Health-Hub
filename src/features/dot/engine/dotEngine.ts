@@ -15,7 +15,8 @@ import {
   kastenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt, winkelAbstand,
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
-import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
+import { FORM_R, herzSchlag, ladeSchrift, textForm, type TextForm } from './formen'
+import { BAHN_DAUER, bahn as schriftBahn, istBahn, lichtLauf, naechsteSchrift, schriftSicht, type BahnArt, type BahnLage, type BahnPunkt, type SchriftArt } from './schrift'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
 import { FREUDE, GESTE_FERN, GESTE_N, GESTE_PLATZ, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 
@@ -178,8 +179,13 @@ const SCHUETTELN = { start: 0.35, dauer: 0.8, staerke: 24, schwingungen: 3.5 }
 const LOGIN = { warten: 0.45, haften: 1.2, loesen: 1.4, rueckK: 16.2 }
 // Formwechsel als Feder je Punkt (Mockup „trans"): Tempo, Nachschwingen, Staffel, Wirbel
 const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
-// Schrift: Gitterabstand 5,5, Punktgröße 1,6 statt 4,3; Lichtlauf 100 %, Flackern 40 %
-const TEXT = { dichte: 5.5, groesse: 1.6 / 4.3, licht: 1, funkeln: 0.4 }
+// Schrift (Nutzer 31.10.2026, Mockup „Hokus Schrift"): Punkte im Schnitt so groß wie Hokus eigene
+// (nach Helligkeit gewichtet 0,8), dafür weiter auseinander (Gitter 9 statt 5,5), damit sie nicht
+// verlaufen; Lichtlauf 50 %, Flackern 15 %
+const TEXT = { dichte: 9, groesse: 0.8, licht: 0.5, funkeln: 0.15 }
+// So schreibt Hoku: die bisherige Feder mit Wirbel, „klar" (ohne Wirbel, in Leserichtung), vier Bahnen; im Wechsel
+const KLAR = { tempo: 1.25, nachschwingen: 0.15, wirbel: 0 }
+const SCHRIFT_FOLGE = 'tyd.dot.schrift'
 // Eröffnung (Nutzer 28.10.2026, Mockup „Dots Auftritte"): wieder schnell, im Zufall E1 vom Rand, E2 aus
 // dem Dunkel, E5 Ringe; Länge je Variante in s. Jeder Punkt folgt einer festen Bahn, ohne Federn und
 // ohne Kinder, nichts über dem Formular. E3, E4 und E6 aus dem Mockup bleiben für später.
@@ -362,7 +368,10 @@ export function createDot(host: DotHost): DotApi {
     flash: 0, navFlash: 0, inselFlash: 0, sparks: [] as Funke[],
     state: 'idle' as DotStimmung, cur: { ...TARGETS.idle }, voice: 0, joyT: 9, poke: 9, rot: 0,
     pts: punkte(), shape: 'sphere', trans: 9, swirl: 0, erstes: true,
-    text: null as string | null, textF: null as Float32Array | null, kinderAn: false, kinderBis: 0,
+    text: null as string | null, textF: null as TextForm | null, kinderAn: false, kinderBis: 0,
+    // Art, mit der er gerade schreibt; Phase ein/aus, solange sie läuft; alt = der Satz, aus dem er zurückkehrt
+    // direkt = von einem Satz gleich in den nächsten (dann federn, die Bahnen beginnen in der Kugel)
+    schrift: { art: null as SchriftArt | null, stapel: [] as SchriftArt[], phase: null as null | 'ein' | 'aus', alt: null as TextForm | null, direkt: false },
     // v: zuletzt gezeigte Eröffnung; null = noch keine, dann ist jede möglich
     intro: { an: false, t0: 0, v: null as Variante | null },
     // Erfolg: Phase, Start der Phase, Fortschritt des Rahmens, Flugbahn; kMul macht die Federn weich
@@ -388,6 +397,8 @@ export function createDot(host: DotHost): DotApi {
   const TX = new Float32Array(ALLE), TY = new Float32Array(ALLE), TZ = new Float32Array(ALLE)
   const OX = new Float32Array(ALLE), OY = new Float32Array(ALLE), OZ = new Float32Array(ALLE)
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
+  // Lage beim Wechsel (Anfang der Bahnen, wenn Hoku zu schreiben beginnt)
+  const AX = new Float32Array(ALLE), AY = new Float32Array(ALLE), AZ = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
   const GB: GestenBild = { P: new Float32Array(GESTE_PLATZ * 3), L: new Float32Array(GESTE_PLATZ), H: new Float32Array(GESTE_PLATZ) }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
@@ -1391,20 +1402,33 @@ export function createDot(host: DotHost): DotApi {
   }
   function setText(text: string | null) {
     if (text && !B.kinderAn) { kinderAnsetzen(); B.kinderAn = true }
+    const alt = B.textF
+    // jeder Satz bekommt die nächste Art, egal welcher und wo (über Besuche hinweg nie dieselbe wie zuletzt)
+    if (text) {
+      let letzte = B.schrift.art
+      if (!letzte) try { letzte = localStorage.getItem(SCHRIFT_FOLGE) as SchriftArt | null } catch { /* kein Speicher */ }
+      B.schrift.art = naechsteSchrift(B.schrift.stapel, letzte)
+      try { localStorage.setItem(SCHRIFT_FOLGE, B.schrift.art) } catch { /* kein Speicher */ }
+    }
+    B.schrift.direkt = !!text && !!B.text
     B.text = text; B.textF = text ? textForm(text, ALLE, TEXT.dichte) : null
     B.shape = text ? 'text' : SHAPE[B.state]; B.form = null; B.formT = 0
-    wechsel()
+    B.schrift.alt = text ? null : alt
+    wechsel(text ? 'ein' : alt ? 'aus' : null)
   }
   /** Neues Ziel: jeder Punkt startet gestaffelt von dort, wo sein altes Ziel lag. */
-  function wechsel() {
-    const tf = B.textF
+  function wechsel(schrift: 'ein' | 'aus' | null = null) {
+    const tf = B.textF, art = B.schrift.art, klar = schrift && art === 'klar', lese = (tf ?? B.schrift.alt)?.lese
+    B.schrift.phase = schrift
     for (let i = 0; i < ALLE; i++) {
-      OX[i] = TX[i]; OY[i] = TY[i]; OZ[i] = TZ[i]
+      OX[i] = TX[i]; OY[i] = TY[i]; OZ[i] = TZ[i]; AX[i] = QX[i]; AY[i] = QY[i]; AZ[i] = QZ[i]
       const k = B.pts[i].k
-      // Schrift entsteht aus der Mitte nach außen
-      DEL[i] = tf ? k * 0.12 + (Math.abs(tf[i * 3]) / 150) * 0.4 : k * FEDER.staffel
+      // Schrift entsteht aus der Mitte nach außen, „klar" in Leserichtung (und geht von rechts nach links)
+      DEL[i] = klar && lese ? (schrift === 'ein' ? lese[i] * 0.45 : (1 - lese[i]) * 0.3) + k * 0.06
+        : tf ? k * 0.12 + (Math.abs(tf.p[i * 3]) / 150) * 0.4 : k * FEDER.staffel
     }
-    B.trans = 0; B.swirl = weniger ? 0 : 1
+    // ohne Wirbel bei „klar" und auf Bahnen (der Wirbel klänge sonst nach, wenn die Federn übernehmen)
+    B.trans = 0; B.swirl = weniger || klar || (schrift && art && istBahn(art)) ? 0 : 1
   }
   /** Kinder sitzen unsichtbar in ihren Eltern, bevor sie heraustreten. */
   function kinderAnsetzen() {
@@ -1478,12 +1502,12 @@ export function createDot(host: DotHost): DotApi {
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum
-        const f = B.textF, j = p.i * 3
+        const f = B.textF?.p, j = p.i * 3
         if (!f) return ziel(0, 0, 0)
         const x0 = f[j] * TEXT_SC, y0 = f[j + 1] * TEXT_SC
-        const licht = 1 + TEXT.licht * Math.max(0, Math.sin(t * 2.2 - x0 * 0.028)) + TEXT.funkeln * Math.sin(t * 3.1 + p.s * 4)
+        const licht = lichtLauf(t, x0, p.s, TEXT.licht, TEXT.funkeln)
         const x = x0 + Math.sin(t * 1.3 + p.s) * 0.4, y = y0 + Math.cos(t * 1.1 + p.s * 1.7) * 0.4
-        return ziel(x / B.r, y / B.r, f[j + 2] < 0 ? 0 : 0.55 + 0.45 * f[j + 2], licht)
+        return ziel(x / B.r, y / B.r, schriftSicht(f[j + 2]), licht)
       }
       default: {
         const X = p.x * ROT_C + p.z * ROT_S, Z0 = -p.x * ROT_S + p.z * ROT_C, ct = Math.cos(0.38), st = Math.sin(0.38)
@@ -1504,8 +1528,16 @@ export function createDot(host: DotHost): DotApi {
   function federSchritt(dt: number, t: number, anzahl: number) {
     const te = B.trans, f = Math.min(dt * 60, 3), schritte = Math.max(1, Math.ceil(f / 1.2)), h = f / schritte
     B.swirl *= Math.pow(0.955, f)
-    const sw0 = B.swirl > 0.01 ? B.swirl * 0.028 * FEDER.wirbel : 0
-    const tempo2 = FEDER.tempo * FEDER.tempo, dBase = 0.58 + 0.24 * FEDER.nachschwingen
+    // „klar": steifere, kaum nachschwingende Federn ohne Wirbel, solange er schreibt oder zurückkehrt
+    const Sch = B.schrift, fp = Sch.phase && Sch.art === 'klar' ? KLAR : FEDER
+    const sw0 = B.swirl > 0.01 ? B.swirl * 0.028 * fp.wirbel : 0
+    const tempo2 = fp.tempo * fp.tempo, dBase = 0.58 + 0.24 * fp.nachschwingen
+    // Bahnen statt Federn, solange eine Bahn-Art schreibt oder zurückkehrt
+    const bArt = Sch.art && istBahn(Sch.art) ? Sch.art : null, ein = Sch.phase === 'ein' && B.shape === 'text'
+    const bf = ein ? B.textF : Sch.phase === 'aus' ? Sch.alt : null
+    const aufBahn = !!bArt && !!bf && !weniger && !Sch.direkt && te < BAHN_DAUER[bArt][ein ? 'ein' : 'aus']
+    // vorbei: wieder die gewohnten Federn (die Schrift selbst hält „klar" mit seinen Federn)
+    if (Sch.phase && (bArt ? !aufBahn && te > 0 : Sch.phase === 'aus' && te > 2)) Sch.phase = null
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
     // Kinder haben eigene Ziele nur in der Schrift und als Arme beim Augen zuhalten
@@ -1530,11 +1562,12 @@ export function createDot(host: DotHost): DotApi {
         const z = shapeTarget(p, t)
         tx = z[0]; ty = z[1]; tz = z[2]; licht = z[3]; rosa = z[4]
         // bis zu seiner Staffel behält der Punkt sein altes Ziel, auch die Farbe
-        if (te < DEL[i]) { tx = OX[i]; ty = OY[i]; tz = OZ[i]; rosa = ROSA[i] }
+        if (te < DEL[i] && !aufBahn) { tx = OX[i]; ty = OY[i]; tz = OZ[i]; rosa = ROSA[i] }
       }
       TX[i] = tx; TY[i] = ty; TZ[i] = tz; LICHT[i] = licht
       // die Eröffnung führt nur Dots eigene Punkte; Kinder (Schrift) folgen ihren Federn
       if (I.an && !kind) { bahn(i, ti, tx, ty, tz, R); ROSA[i] = rosa; continue }
+      if (aufBahn && bArt && bf) { schriftPunkt(bArt, ein, bf, i, te, t, tx, ty, tz, R); ROSA[i] += (rosa - ROSA[i]) * zA; continue }
       SZ[i] += (groesse - SZ[i]) * sA
       // die Arme beim Augen zuhalten federn schon in ihrer Bahn (Mockup G1): ohne zweite Feder, sonst verwischen sie
       if (sofort || (kind && B.shape === 'augen')) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
@@ -1548,6 +1581,19 @@ export function createDot(host: DotHost): DotApi {
       }
       QZ[i] += (tz - QZ[i]) * zA; ROSA[i] += (rosa - ROSA[i]) * zA
     }
+  }
+  // Ein Punkt auf der Bahn seiner Schreib-Art, von seiner Lage beim Wechsel zu seinem Ziel: beim Schreiben
+  // im Satz, beim Zurückkehren in der Kugel (in px gerechnet, wie im Mockup)
+  const BP: BahnPunkt = { ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, k: 0, s: 0, kind: false, lese: 0, bi: 0, mx: 0, my: 0, n: 1 }
+  const BL: BahnLage = [0, 0, 0, 1, 1]
+  function schriftPunkt(art: BahnArt, ein: boolean, f: TextForm, i: number, pt: number, t: number, tx: number, ty: number, tz: number, R: number) {
+    const p = B.pts[i], bi = f.bi[i]
+    BP.ax = AX[i] * R; BP.ay = AY[i] * R; BP.az = AZ[i]
+    BP.bx = tx * R; BP.by = ty * R; BP.bz = tz
+    BP.k = p.k; BP.s = p.s; BP.kind = i >= PUNKTE
+    BP.lese = f.lese[i]; BP.bi = bi; BP.mx = f.mitte[bi * 2] * TEXT_SC; BP.my = f.mitte[bi * 2 + 1] * TEXT_SC; BP.n = f.n
+    schriftBahn(art, ein, pt, BP, TEXT.groesse, t, TEXT, BL)
+    QX[i] = BL[0] / R; QY[i] = BL[1] / R; QZ[i] = BL[2]; LICHT[i] = BL[3]; SZ[i] = BL[4]; VX[i] = VY[i] = 0
   }
   /* ── Erfolg: Portal und Heimweg ───────────────────────────────────────── */
   // So weit muss der Kreis um Hokus Platz wachsen, bis er das ganze Display bedeckt
