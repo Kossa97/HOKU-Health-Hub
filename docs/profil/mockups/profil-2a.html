@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoku Profil 2a</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: wie profil-v3 — Steuerung links, ein Handy rechts; schmal untereinander.
+   Bewusst nur dunkel, Farben aus profil-v3 (Soft Dark). */
+:root {
+  --page: #141518;
+  --bg: #1f2023; --bg-top: #2a2b2f;
+  --s1: #303136; --s2: #27282c;
+  --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45);
+  --hair: rgba(255,255,255,.08);
+  --blue: #4ea8ff; --blue-soft: #9ccdff; --cyan: #64d2ff;
+  --good: #5fe07f; --warn: #ffb340; --bad: #ff6961;
+  --ui: -apple-system, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --disp: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--text); font-family: var(--ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+button { font-family: var(--ui); color: inherit; }
+button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.wrap { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+
+.ctrl { width: 300px; max-width: 100%; display: grid; gap: 0; }
+.ctrl h1 { font: 600 20px/1.2 var(--disp); margin: 0 0 4px; }
+.ctrl p { color: var(--t2); font-size: 13px; line-height: 1.45; margin: 0; }
+.ctrl .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 0 8px; }
+.views { display: grid; gap: 6px; }
+.views button { text-align: left; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hair); background: var(--s2); font: 500 14px var(--ui); cursor: pointer; }
+.views button small { display: block; color: var(--t3); font-size: 12px; font-weight: 400; margin-top: 2px; }
+.views button.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 18px rgba(78,168,255,.18); }
+.views.row { grid-template-columns: repeat(3, 1fr); }
+.views.row button { text-align: center; padding: 8px 6px; font-size: 13px; }
+.legend { display: grid; gap: 6px; font-size: 13px; color: var(--t2); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); cursor: pointer; margin-top: 12px; }
+.regel { font-size: 12px; color: var(--t3); line-height: 1.5; margin-top: 8px; }
+
+.phone { width: 390px; max-width: 100%; height: 844px; border-radius: 46px; background: linear-gradient(180deg, var(--bg-top), var(--bg) 30%); border: 1px solid rgba(255,255,255,.07); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; position: relative; }
+.scroll { height: 100%; overflow-y: auto; padding: 0 16px 40px; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.bar { height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px 8px; font-size: 15px; font-weight: 600; gap: 8px; }
+.bar .ttl { flex: 1; text-align: center; }
+.icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: linear-gradient(180deg, var(--s1), var(--s2)); font-size: 16px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); display: grid; place-items: center; flex: none; }
+.icb.leer { visibility: hidden; }
+
+.card { background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); position: relative; }
+.card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.card h3 .sub { color: var(--t3); font-size: 12px; font-weight: 400; }
+.src { font-size: 11px; color: var(--t3); background: rgba(255,255,255,.06); padding: 3px 8px; border-radius: 99px; font-weight: 400; }
+
+.cover { height: 140px; border-radius: 24px; position: relative; overflow: hidden;
+  background: radial-gradient(80% 90% at 20% 20%, rgba(100,210,255,.35), transparent 60%), radial-gradient(70% 80% at 85% 70%, rgba(175,120,255,.32), transparent 60%), linear-gradient(160deg, #2c3546, #1d2029); }
+.cover.neutral { background: linear-gradient(160deg, #2a2c32, #222327); }
+.cover .tag { position: absolute; left: 12px; top: 12px; font-size: 11px; color: rgba(255,255,255,.75); background: rgba(0,0,0,.35); padding: 3px 8px; border-radius: 99px; }
+.cover .cv { position: absolute; right: 10px; top: 10px; }
+.head { display: flex; align-items: flex-end; gap: 12px; margin-top: -42px; padding: 0 6px; position: relative; }
+.av-wrap { position: relative; flex: none; }
+.avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--bg); background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 30px var(--disp); }
+.avatar.initialen { background: #3a3b41; color: var(--t2); }
+.av-state { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); white-space: nowrap; font-size: 10px; padding: 2px 7px; border-radius: 99px; background: #2b2c31; border: 1px solid rgba(255,179,64,.5); color: var(--warn); }
+.who { padding-bottom: 4px; min-width: 0; }
+.who .name { font: 600 21px/1.15 var(--disp); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.who .sym { color: var(--t2); font: 500 17px var(--ui); }
+.who .nick { color: var(--t2); font-size: 14px; }
+.who .vis { margin-left: 2px; }
+.bio { color: var(--t2); font-size: 14px; line-height: 1.45; margin: 12px 6px 0; }
+.tags { display: flex; gap: 6px; margin: 10px 0 0; padding: 0 6px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+.chip { flex: none; font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(78,168,255,.14); color: var(--blue-soft); }
+.meta { display: flex; gap: 14px; margin: 12px 6px 0; color: var(--t3); font-size: 12px; align-items: center; flex-wrap: wrap; }
+.counts { display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); margin: 14px 0 0; background: rgba(255,255,255,.035); border-radius: 16px; }
+.counts div { text-align: center; padding: 10px 4px; }
+.counts b { display: block; font: 600 17px var(--disp); font-variant-numeric: tabular-nums; }
+.counts small { color: var(--t3); font-size: 11px; }
+.actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn { flex: 1; padding: 11px; border-radius: 14px; border: none; font: 600 14px var(--ui); color: #fff; cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); box-shadow: 0 6px 18px rgba(78,168,255,.3); }
+.btn.ghost { background: linear-gradient(180deg, var(--s1), var(--s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.btn.sm { flex: none; padding: 7px 12px; font-size: 13px; border-radius: 11px; }
+
+/* Raster: Anzahl bestimmt die Spalten, ein ungerader Rest geht über die volle Breite */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid.r1 { grid-template-columns: 1fr; }
+.grid.r3 { grid-template-columns: repeat(3, 1fr); }
+.grid.rest > .tile:last-child { grid-column: 1 / -1; }
+.grid.r3 .tile .k { padding-right: 0; }
+.grid.r3 .tile .vis { position: static; display: inline-block; margin-top: 6px; }
+.who .land { font: 600 13px var(--ui); color: var(--t2); background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 8px; letter-spacing: .04em; }
+.tile { background: rgba(255,255,255,.035); border-radius: 14px; padding: 10px 12px; position: relative; min-height: 64px; min-width: 0; }
+.tile .k { font-size: 12px; color: var(--t3); padding-right: 56px; }
+.tile .v { font: 600 19px/1.25 var(--disp); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .v.txt { font: 600 15px/1.4 var(--disp); }
+.tile .v small { font: 400 12px var(--ui); color: var(--t3); margin-left: 2px; }
+.delta { font-size: 12px; margin-top: 2px; }
+.up { color: var(--good); } .neutral { color: var(--t3); }
+.list { display: grid; }
+.li { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 9px 0; border-bottom: 1px solid var(--hair); gap: 10px; }
+.li:last-child { border-bottom: none; }
+.li .r { color: var(--t2); font-size: 13px; text-align: right; display: flex; align-items: center; gap: 8px; }
+.pr-k { font-size: 12px; color: var(--t3); margin: 12px 0 8px; display: flex; justify-content: space-between; align-items: center; }
+.list + .pr-k { margin-top: 12px; }
+.card > .pr-k:first-of-type { margin-top: 0; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.pair .card { margin-top: 0; }
+.pair .card h3 { font-size: 14px; margin-bottom: 8px; }
+.pair .tile { padding: 0; background: none; min-height: 0; }
+.pair .tile .k { padding-right: 0; }
+.note { font-size: 11px; color: var(--t3); text-align: center; margin-top: 12px; line-height: 1.45; }
+
+.vis { font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--t2); cursor: pointer; white-space: nowrap; font-weight: 500; }
+.vis[data-v="1"] { color: var(--blue-soft); border-color: rgba(78,168,255,.4); }
+.vis[data-v="2"] { color: var(--good); border-color: rgba(95,224,127,.4); }
+.tile .vis { position: absolute; right: 8px; top: 8px; font-size: 10px; padding: 2px 6px; }
+.pair .tile .vis { position: static; }
+.spaeter { margin-top: 12px; border: 1px dashed rgba(255,179,64,.45); border-radius: 22px; padding: 14px 16px; color: var(--t3); font-size: 13px; display: flex; justify-content: space-between; gap: 10px; }
+.spaeter b { color: var(--t2); font-weight: 600; }
+.later { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 6px; border: 1px dashed var(--warn); color: var(--warn); font-weight: 500; white-space: nowrap; }
+body:not(.zeige-spaeter) .spaeter, body:not(.zeige-spaeter) .nur-spaeter { display: none; }
+.banner { margin-top: 12px; border-radius: 16px; padding: 10px 12px; font-size: 13px; line-height: 1.4; background: rgba(255,105,97,.1); border: 1px solid rgba(255,105,97,.35); color: var(--text); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+.locked { text-align: center; padding: 20px 16px; }
+.locked .ic { font-size: 26px; margin-bottom: 6px; }
+.locked p { color: var(--t2); font-size: 13px; margin: 4px 0 12px; line-height: 1.45; }
+.webbar { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: #e9eaee; color: #333; display: flex; align-items: flex-end; padding: 0 14px 8px; font-size: 13px; z-index: 3; }
+.webbar span { background: #fff; border-radius: 10px; padding: 5px 10px; width: 100%; text-align: center; }
+
+/* Einstellungen */
+.set { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--hair); font-size: 14px; gap: 10px; width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
+.set:last-child { border-bottom: none; }
+.set small { color: var(--t3); font-size: 12px; }
+.set .r { color: var(--t2); font-size: 13px; white-space: nowrap; }
+button.set { cursor: pointer; }
+.set.dim { opacity: .45; }
+.sw { width: 46px; height: 28px; border-radius: 99px; background: rgba(255,255,255,.14); position: relative; flex: none; cursor: pointer; border: none; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.sw.on { background: var(--blue); }
+.sw.on::after { transform: translateX(18px); }
+@media (prefers-reduced-motion: reduce) { .sw::after, .sheet, .sheet-bg { transition: none !important; } }
+.grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 4px 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.grp button { background: none; border: 0; color: var(--blue-soft); font: 500 12px var(--ui); letter-spacing: 0; text-transform: none; cursor: pointer; padding: 0; }
+.seg3 { display: flex; background: rgba(255,255,255,.05); border-radius: 10px; padding: 2px; flex: none; }
+.seg3 button { border: none; background: none; color: var(--t3); padding: 5px 8px; border-radius: 8px; font: 500 12px var(--ui); cursor: pointer; }
+.seg3 button.on { background: linear-gradient(180deg, #3a3b41, #313238); color: var(--text); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.seg3 button.on[data-l="1"] { color: var(--blue-soft); }
+.seg3 button.on[data-l="2"] { color: var(--good); }
+.seg3.gesperrt { opacity: .4; pointer-events: none; }
+
+/* Blatt */
+.sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 5; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 84%; overflow-y: auto; background: #232428; border-radius: 28px 28px 0 0; padding: 10px 16px 28px; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); z-index: 6; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.open .sheet-bg { opacity: 1; pointer-events: auto; }
+.open .sheet { transform: none; }
+.grab { width: 38px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
+.sheet h2 { font: 600 18px var(--disp); margin: 0 0 4px; }
+.sheet .sub { color: var(--t3); font-size: 13px; margin-bottom: 8px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="ctrl">
+    <h1>Profil · Entwurf 2a</h1>
+    <p>Aufbau aus profil-v3, Umfang von Schritt 2a: Sichtbarkeit pro Feld, neues Profil, eigener Einstellungen-Bildschirm, Bild-Check. Tipp im eigenen Profil auf einen Chip, er wechselt Nur ich → Freunde → Alle. Daten erfunden.</p>
+
+    <div class="lbl">Ansicht</div>
+    <div class="views" id="views">
+      <button type="button" data-view="ich" class="on">Mein Profil<small>alles, mit Chip an jedem Wert</small></button>
+      <button type="button" data-view="freunde">Als Freund<small>sieht „Freunde“ + „Alle“, ab Teilprojekt 3</small></button>
+      <button type="button" data-view="alle">Als anderer App-Nutzer<small>sieht nur „Alle“</small></button>
+      <button type="button" data-view="web">Link im Browser<small>2a: nur Name, Bio, „In Hoku öffnen“</small></button>
+    </div>
+
+    <div class="lbl">Springen zu</div>
+    <div class="views row" id="jump">
+      <button type="button" data-go="profil" class="on">Profil</button>
+      <button type="button" data-go="einst">Einstellungen</button>
+      <button type="button" data-go="wer">Wer sieht was</button>
+    </div>
+
+    <div class="lbl">Bild-Check (Profil- und Titelbild)</div>
+    <div class="views row" id="check">
+      <button type="button" data-z="ok" class="on">Frei</button>
+      <button type="button" data-z="pruef">Prüfung</button>
+      <button type="button" data-z="nein">Abgelehnt</button>
+    </div>
+
+    <div class="lbl">Stufen</div>
+    <div class="legend">
+      <span><button type="button" class="vis" data-v="0" tabindex="-1">🔒 Nur ich</button> Standard für jedes neue Feld</span>
+      <span><button type="button" class="vis" data-v="1" tabindex="-1">Freunde</button> bis Teilprojekt 3 nur du</span>
+      <span><button type="button" class="vis" data-v="2" tabindex="-1">Alle</button> alle angemeldeten Hoku-Nutzer</span>
+    </div>
+    <label class="toggle"><input type="checkbox" id="spaeterToggle" checked> Plätze für spätere Schritte zeigen <span class="later">2b · 2c · 3</span></label>
+    <p class="regel">Verborgene Werte hinterlassen keine Lücke: Kacheln ordnen sich nach Anzahl (2 Spalten, ungerader Rest über die volle Breite, 3er bei Bestleistungen), Karten mit nur einem Wert stehen als halbe Karten paarweise, leere Karten fallen weg, die Zahlenzeile verteilt sich auf ihre Anzahl.</p>
+  </div>
+
+  <div class="phone" id="phone">
+    <div class="scroll" id="scroll"></div>
+    <div class="sheet-bg" id="sheetBg"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  </div>
+</div>
+
+<script>
+const VIS = ['🔒 Nur ich', 'Freunde', 'Alle'];
+const VIS_KURZ = ['Ich', 'Freunde', 'Alle'];
+
+// Jeder Wert ein Feld mit eigener Stufe. Name, Nickname, Profilbild sind fest sichtbar.
+const F = {
+  cover:      { n: 'Titelbild' },
+  geschlecht: { n: 'Geschlecht-Zeichen' },
+  bio:        { n: 'Bio' },
+  ziele:      { n: 'Ziel-Tags' },
+  streak:     { n: 'Streak' },
+  seit:       { n: 'Mitglied seit' },
+  alter:      { n: 'Alter', k: 'Alter', v: '29' },
+  land:       { n: 'Herkunft (Flagge und Kürzel oben)' },
+  groesse:    { n: 'Größe', k: 'Größe', v: '172', u: 'cm' },
+  gewicht:    { n: 'Gewicht', k: 'Gewicht', v: '81,0', u: 'kg', d: '−3,2 kg seit Start', dc: 'neutral' },
+  kfa:        { n: 'Körperfett', k: 'Körperfett', v: '15,8', u: '%', d: '−3,6 % seit Start', dc: 'up' },
+  muskel:     { n: 'Muskelmasse', k: 'Muskelmasse', v: '38,9', u: 'kg', d: '+1,4 kg seit Start', dc: 'up' },
+  umfaenge:   { n: 'Umfänge', k: 'Umfänge', v: 'Taille 84 · Oberarm 37,5 · Brust 98 · Oberschenkel 58 · Hüfte 96', txt: true, d: 'Taille −5 cm · Oberarm +1 cm', dc: 'up' },
+  adherence:  { n: 'Adherence', k: 'Adherence', v: '94', u: '%', d: '212 bestätigt · 13 verpasst', dc: 'neutral' },
+  substanzen: { n: 'Anzahl Substanzen', k: 'Substanzen', v: '6', d: 'davon 2 Zyklen aktiv · nie Namen', dc: 'neutral' },
+  marker:     { n: 'Erfasste Marker', k: 'Marker erfasst', v: '24' },
+  ziel:       { n: 'Im Zielbereich', k: 'Im Zielbereich', v: '19', u: '/ 24', d: '+5 seit erstem Befund', dc: 'up' },
+  schritte:   { n: 'Schritte', k: 'Schritte Ø 7 Tage', v: '9.840', d: '+3.700 seit Start', dc: 'up' },
+  ruhepuls:   { n: 'Ruhepuls', k: 'Ruhepuls', v: '54', u: 'bpm', d: '−7 seit Start', dc: 'up' },
+  schlaf:     { n: 'Schlaf', k: 'Schlaf Ø', v: '7:12', u: 'h', d: '+52 min seit Start', dc: 'up' },
+  kcal:       { n: 'Aktive kcal', k: 'Aktive kcal Ø', v: '620' },
+  spo2:       { n: 'Sauerstoff (SpO2)', k: 'Sauerstoff (SpO2)', v: '97', u: '%' },
+  blutdruck:  { n: 'Blutdruck', k: 'Blutdruck', v: '121/78', d: 'manuell oder Wearable', dc: 'neutral' },
+  hrv:        { n: 'HRV', k: 'HRV', v: '–', d: 'ab Schritt 1b', dc: 'neutral', spaeter: true },
+  vo2:        { n: 'VO2max', k: 'VO2max', v: '–', d: 'ab Schritt 1b', dc: 'neutral', spaeter: true },
+  workouts:   { n: 'Workouts getrackt', k: 'Workouts getrackt', v: '86 · 3,6 / Woche' },
+  routine:    { n: 'Aktuelle Routine', k: 'Aktuelle Routine', v: 'Upper / Lower' },
+  lieblings:  { n: 'Lieblingsübung', k: 'Lieblingsübung', v: 'Kreuzheben' },
+  prs:        { n: 'Bestleistungen (e1RM)', k: 'Bestleistungen', v: '142 · 118 · 97', u: 'kg' },
+  berichte:   { n: 'Erfahrungsberichte', k: '12 Berichte', v: '★ 4,3', d: 'nur in der App, nie im Web', dc: 'neutral' },
+};
+const KARTEN = [
+  { id: 'kopf', t: 'Kopf', f: ['cover', 'geschlecht', 'land'], nurEinst: true },
+  { id: 'kurz', t: 'Kurzinfo', f: ['bio', 'ziele', 'streak', 'seit'], nurEinst: true },
+  { id: 'ueber', t: 'Über mich', f: ['alter', 'groesse', 'gewicht'] },
+  { id: 'gesamt', spaeter: '2b', t: 'Gesamtfortschritt', txt: 'Ring mit Aufschlüsselung je Bereich, Richtung je Wert' },
+  { id: 'koerper', t: 'Körper', sub: 'letzte Messung 28.10.', f: ['kfa', 'muskel', 'umfaenge'] },
+  { id: 'einnahmen', t: 'Einnahmen', sub: 'letzte 90 Tage', f: ['adherence', 'substanzen'] },
+  { id: 'blut', t: 'Blutwerte', sub: '3 Befunde', f: ['marker', 'ziel'] },
+  { id: 'gesundheit', t: 'Gesundheit & Wearables', src: 'Apple Health · Health Connect', f: ['schritte', 'ruhepuls', 'schlaf', 'kcal', 'spo2', 'blutdruck', 'hrv', 'vo2'] },
+  { id: 'training', t: 'Training', f: ['workouts', 'routine', 'lieblings', 'prs'], art: 'training' },
+  { id: 'abzeichen', spaeter: '2b', t: 'Abzeichen', txt: '„30 Tage ohne Lücke“, „Erstes Blutbild“ …' },
+  { id: 'berichte', t: 'Erfahrungsberichte', f: ['berichte'] },
+];
+
+// Beispielstand (echte Konten starten alle bei „Nur ich“).
+const vis = Object.fromEntries(Object.keys(F).map(k => [k, 0]));
+Object.assign(vis, { cover: 2, geschlecht: 1, bio: 2, ziele: 2, streak: 2, seit: 2, alter: 1, land: 2, groesse: 1, gewicht: 1,
+  kfa: 1, adherence: 1, substanzen: 1, schritte: 2, ruhepuls: 1, schlaf: 1, vo2: 2, hrv: 1, workouts: 2, routine: 2, lieblings: 2, prs: 2, berichte: 2 });
+
+const st = { view: 'ich', screen: 'profil', bild: 'ok', privat: false, web: true, blockiert: ['@tom_lifts', '@nachtmensch'] };
+const $ = s => document.querySelector(s);
+
+const sicht = k => {
+  if (st.view === 'ich') return true;
+  if (st.privat) return false;
+  // Ohne Messwert (HRV, VO2max bis 1b) zeigt das Profil anderen nichts, auch kein Strich.
+  if (F[k].spaeter) return false;
+  return vis[k] >= (st.view === 'freunde' ? 1 : 2);
+};
+const own = () => st.view === 'ich';
+const chip = k => own() ? `<button type="button" class="vis" data-key="${k}" data-v="${vis[k]}" aria-label="Sichtbarkeit ${F[k].n}: ${VIS[vis[k]]}">${VIS[vis[k]]}</button>` : '';
+// Abgelehnt: Datei geloescht, auch du siehst Initialen. In Pruefung: nur du siehst das Bild.
+const bildDa = () => st.bild === 'ok' || (own() && st.bild === 'pruef');
+
+function tile(k) {
+  const f = F[k];
+  return `<div class="tile"><div class="k">${f.k}${f.spaeter ? ' <span class="later nur-spaeter">1b</span>' : ''}</div>${chip(k)}
+    <div class="v ${f.txt ? 'txt' : ''}">${f.v}${f.u ? `<small>${f.u}</small>` : ''}</div>${f.d ? `<div class="delta ${f.dc || ''}">${f.d}</div>` : ''}</div>`;
+}
+// 1 → volle Breite; 3 kurze Werte → eine Reihe; sonst 2 Spalten, ungerader Rest über die volle Breite.
+function raster(ks) {
+  const n = ks.length;
+  if (n === 1) return 'r1';
+  if (n === 3 && !ks.some(k => F[k].txt)) return 'r3';
+  return n % 2 ? 'rest' : '';
+}
+function titel(c) {
+  return `<h3><span>${c.t}</span>${c.sub ? `<span class="sub">${c.sub}</span>` : ''}${c.src ? `<span class="src">${c.src}</span>` : ''}</h3>`;
+}
+function kartenInhalt(c, ks) {
+  if (c.art === 'training') {
+    const zeilen = ks.filter(k => k !== 'prs');
+    let h = zeilen.length ? `<div class="list">${zeilen.map(k => `<div class="li"><span>${F[k].k}</span><span class="r">${F[k].v} ${chip(k)}</span></div>`).join('')}</div>` : '';
+    if (ks.includes('prs')) h += `<div class="pr-k"><span>Bestleistungen (e1RM)</span>${chip('prs')}</div><div class="grid r3">${[['Kreuzheben', '142'], ['Kniebeuge', '118'], ['Bank', '97']].map(([n, v]) =>
+      `<div class="tile"><div class="k" style="padding-right:0">${n}</div><div class="v">${v}<small>kg</small></div></div>`).join('')}</div>`;
+    return h;
+  }
+  return `<div class="grid ${raster(ks)}">${ks.map(tile).join('')}</div>`;
+}
+
+function renderProfil() {
+  if (st.view === 'web') return renderWeb();
+  let h = '';
+  h += own()
+    ? `<div class="bar"><span class="icb leer"></span><span class="ttl">Profil</span><button type="button" class="icb" data-go="einst" aria-label="Einstellungen">⚙︎</button></div>`
+    : `<div class="bar"><button type="button" class="icb" aria-label="Zurück">‹</button><span class="ttl">@mara.lifts</span><button type="button" class="icb" id="mehr" aria-label="Mehr">⋯</button></div>`;
+  if (own() && st.bild === 'nein') h += `<div class="banner"><span>Dieses Bild können wir nicht zeigen. Es wurde gelöscht.</span><button type="button" class="btn sm">Anderes wählen</button></div>`;
+  const coverZeigen = sicht('cover') && bildDa();
+  h += `<div class="cover ${coverZeigen ? '' : 'neutral'}">${own() ? `<span class="tag">Titelbild · ändern</span><span class="cv">${chip('cover')}</span>` : ''}</div>`;
+  h += `<div class="head"><div class="av-wrap"><div class="avatar ${bildDa() ? '' : 'initialen'}">M</div>${own() && st.bild === 'pruef' ? '<span class="av-state">wird geprüft</span>' : ''}</div>
+    <div class="who"><div class="name">Mara K.${sicht('geschlecht') ? ` <span class="sym" title="weiblich">♀</span>${chip('geschlecht')}` : ''}${sicht('land') ? ` <span class="land" title="Herkunft: Deutschland">🇩🇪 DE</span>${chip('land')}` : ''}</div><div class="nick">@mara.lifts</div></div></div>`;
+
+  if (!own() && st.privat) {
+    h += `<div class="card locked"><div class="ic">🔒</div><b>Privates Profil</b><p>Mara zeigt hier nur Bild, Name und Nickname.</p></div>`;
+    return h;
+  }
+  if (sicht('bio')) h += `<div class="bio">Recomp seit März. Viel Grundübungen, Blutbild alle 3 Monate. ${chip('bio')}</div>`;
+  if (sicht('ziele')) h += `<div class="tags">${['Recomp', 'Kraft', 'Longevity', 'Blutwerte optimieren', 'Schlaf & Erholung'].map(t => `<span class="chip">${t}</span>`).join('')}${chip('ziele')}</div>`;
+  const meta = [];
+  if (sicht('streak')) meta.push(`<span>🔥 41 Tage Streak ${chip('streak')}</span>`);
+  if (sicht('seit')) meta.push(`<span>Mitglied seit März 2026 ${chip('seit')}</span>`);
+  if (meta.length) h += `<div class="meta">${meta.join('')}</div>`;
+  const counts = [];
+  if (sicht('workouts')) counts.push('<div><b>86</b><small>Workouts</small></div>');
+  if (sicht('berichte')) counts.push('<div><b>12</b><small>Berichte</small></div>');
+  if (counts.length) h += `<div class="counts" style="--n:${counts.length}">${counts.join('')}</div>`;
+  if (own()) h += `<div class="actions"><button type="button" class="btn">Profil teilen</button><button type="button" class="btn ghost">Bearbeiten</button></div>
+    <div class="spaeter"><span><b>Freunde-Zähler, QR-Code</b> neben „Profil teilen“</span><span class="later">3 · 2c</span></div>`;
+  else h += `<div class="spaeter"><span><b>Als Freund hinzufügen · Nachricht</b></span><span class="later">3 · 4</span></div>`;
+
+  // Karten mit sichtbaren Werten; Ein-Wert-Karten paaren sich, leere fallen weg.
+  const sichtbare = [];
+  for (const c of KARTEN) {
+    if (c.nurEinst) continue;
+    if (c.spaeter) { if (own()) sichtbare.push({ c, ks: null }); continue; }
+    const ks = c.f.filter(sicht);
+    if (ks.length) sichtbare.push({ c, ks });
+  }
+  for (let i = 0; i < sichtbare.length; i++) {
+    const { c, ks } = sichtbare[i];
+    if (!ks) { h += `<div class="spaeter"><span><b>${c.t}</b> · ${c.txt}</span><span class="later">${c.spaeter}</span></div>`; continue; }
+    const next = sichtbare[i + 1];
+    if (ks.length === 1 && next?.ks?.length === 1) {
+      h += `<div class="pair">${[sichtbare[i], next].map(x => `<div class="card"><h3><span>${x.c.t}</span></h3>${halb(x.ks[0])}</div>`).join('')}</div>`;
+      i++; continue;
+    }
+    h += `<div class="card">${titel(c)}${kartenInhalt(c, ks)}</div>`;
+  }
+  if (own()) h += `<p class="note">Zyklus, Blutzucker und Medikamente aus Apple Health bleiben immer privat und haben keinen Chip.</p>`;
+  h += '<div style="height:20px"></div>';
+  return h;
+}
+function halb(k) {
+  const f = F[k];
+  const v = k === 'prs' ? 'Kreuzheben 142' : f.v;
+  const u = k === 'prs' ? 'kg' : f.u;
+  return `<div class="tile"><div class="k">${f.k === '12 Berichte' ? '12 Berichte' : f.k}</div>
+    <div class="v ${f.txt || String(v).length > 9 ? 'txt' : ''}">${v}${u ? `<small>${u}</small>` : ''}</div>${f.d ? `<div class="delta ${f.dc || ''}">${f.d}</div>` : ''}${chip(k)}</div>`;
+}
+
+function renderWeb() {
+  let h = `<div class="webbar"><span>hoku.app/u/mara.lifts</span></div><div style="height:62px"></div>`;
+  if (!st.web) return h + `<div class="card locked"><div class="ic">🔍</div><b>Seite nicht gefunden</b><p>Mara hat den Web-Link abgeschaltet.</p></div>`;
+  h += `<div class="cover neutral"></div>
+    <div class="head"><div class="av-wrap"><div class="avatar ${st.bild === 'ok' ? '' : 'initialen'}">M</div></div><div class="who"><div class="name">Mara K.</div><div class="nick">@mara.lifts</div></div></div>`;
+  if (!st.privat && vis.bio === 2) h += `<div class="bio">Recomp seit März. Viel Grundübungen, Blutbild alle 3 Monate.</div>`;
+  h += `<div class="card locked" style="margin-top:16px"><div class="ic">🔒</div><b>Profil, Werte und Erfahrungsberichte</b><p>Nur in der App sichtbar, und nur, was Mara freigibt.</p><button type="button" class="btn" style="width:100%">In Hoku öffnen</button></div>
+    <div class="spaeter"><span><b>Volle Web-Vorschau</b>: Titelbild, Land, Ziele, Streak, Gesamtfortschritt, Abzeichen (jeweils nur bei „Alle“)</span><span class="later">2c</span></div>
+    <p class="note">In 2a fest: Profilbild (nach Bild-Check), Name, Nickname, Bio bei „Alle“.<br>Keine Erfahrungsberichte mehr ohne Anmeldung. Der Link lässt sich abschalten.</p>`;
+  return h;
+}
+
+function renderEinst() {
+  const sw = (id, on) => `<button type="button" class="sw ${on ? 'on' : ''}" data-sw="${id}" role="switch" aria-checked="${on}"></button>`;
+  return `<div class="bar"><button type="button" class="icb" data-go="profil" aria-label="Zurück">‹</button><span class="ttl">Einstellungen</span><span class="icb leer"></span></div>
+  <div class="card"><h3>Profil &amp; Sichtbarkeit</h3>
+    <div class="set"><span>Privates Profil<br><small>Andere sehen nur Bild, Name, Nickname. Deine Stufen bleiben gespeichert.</small></span>${sw('privat', st.privat)}</div>
+    <button type="button" class="set" data-go="wer"><span>Wer sieht was<br><small>alle 30 Werte auf einer Liste, wie die Chips</small></span><span class="r">›</span></button>
+    <button type="button" class="set" id="ansehenAls"><span>Profil ansehen als …<br><small>Freund · App-Nutzer · Web-Link</small></span><span class="r">›</span></button>
+    <div class="set"><span>Neue Felder standardmäßig</span><span class="r">🔒 Nur ich</span></div>
+    <div class="set"><span>Web-Link (hoku.app/u/mara.lifts)<br><small>ohne Anmeldung: Name, Bio, „In Hoku öffnen“</small></span>${sw('web', st.web)}</div>
+    <div class="set dim nur-spaeter"><span>Über Suche auffindbar</span><span class="later">3</span></div>
+  </div>
+  <div class="card"><h3>Kontrolle</h3>
+    <button type="button" class="set" data-go="blockiert"><span>Blockiert</span><span class="r">${st.blockiert.length} ›</span></button>
+    <div class="set dim nur-spaeter"><span>Eingeschränkt · Stummgeschaltet · Meine Meldungen</span><span class="later">3 · 4</span></div>
+  </div>
+  <div class="spaeter"><span><b>Story · Freunde &amp; Nachrichten</b> (wer sieht die Story, wer darf schreiben, Lesebestätigungen …)</span><span class="later">3 · 4</span></div>
+  <div class="card"><h3>Datenquellen</h3>
+    <div class="set"><span>Apple Health / Health Connect</span><span class="r">verbunden ›</span></div>
+    <div class="set"><span>Tageswerte im Konto speichern</span><span class="r">eingewilligt ›</span></div>
+  </div>
+  <div class="card"><h3>Konto &amp; App</h3>
+    <div class="set"><span>Sprache</span><span class="r">Deutsch ›</span></div>
+    <div class="set"><span>Erscheinungsbild</span><span class="r">Soft Dark ›</span></div>
+    <div class="set"><span>Benachrichtigungen</span><span class="r">›</span></div>
+    <div class="set"><span>Passkey · Einwilligungen · Daten exportieren</span><span class="r">›</span></div>
+    <div class="set"><span style="color:var(--bad)">Abmelden</span><span></span></div>
+  </div>
+  <p class="note">Profil = Schaufenster. Alles Einstellbare steht hier, hinter ⚙︎ oben rechts im Profil.</p><div style="height:20px"></div>`;
+}
+
+function renderWer() {
+  let h = `<div class="bar"><button type="button" class="icb" data-go="einst" aria-label="Zurück">‹</button><span class="ttl">Wer sieht was</span><span class="icb leer"></span></div>
+    <div class="card"><div class="set"><span>Name, Nickname, Profilbild</span><span class="r">immer sichtbar</span></div></div>`;
+  if (st.privat) h += `<p class="note">Privates Profil ist an: die Stufen sind gespeichert, gelten aber erst wieder, wenn du es ausschaltest.</p>`;
+  for (const c of KARTEN) {
+    if (c.spaeter) continue;
+    h += `<div class="grp"><span>${c.t}</span>${st.privat ? '' : `<span><button type="button" data-all="${c.id}" data-l="0">Alle auf Ich</button> · <button type="button" data-all="${c.id}" data-l="2">Alle auf Alle</button></span>`}</div><div class="card" style="margin-top:0;padding:4px 14px">`;
+    h += c.f.map(k => `<div class="set"><span>${F[k].n}${F[k].spaeter ? ' <span class="later">1b</span>' : ''}</span><span class="seg3 ${st.privat ? 'gesperrt' : ''}">${VIS_KURZ.map((n, i) =>
+      `<button type="button" data-key="${k}" data-l="${i}" class="${vis[k] === i ? 'on' : ''}">${n}</button>`).join('')}</span></div>`).join('');
+    h += '</div>';
+  }
+  return h + '<div style="height:20px"></div>';
+}
+
+function renderBlockiert() {
+  return `<div class="bar"><button type="button" class="icb" data-go="einst" aria-label="Zurück">‹</button><span class="ttl">Blockiert</span><span class="icb leer"></span></div>
+  <div class="card">${st.blockiert.length ? st.blockiert.map(n => `<div class="set"><span>${n}</span><button type="button" class="btn ghost sm" data-ent="${n}">Entsperren</button></div>`).join('')
+    : '<div class="set"><span style="color:var(--t3)">Niemand blockiert.</span></div>'}</div>
+  <p class="note">Blockierte sehen dein Profil nicht und können dich nicht finden. Sie erfahren nichts davon.</p>`;
+}
+
+function render() {
+  const sc = $('#scroll');
+  const y = sc.scrollTop;
+  const scr = st.view === 'ich' ? st.screen : 'profil';
+  sc.innerHTML = scr === 'einst' ? renderEinst() : scr === 'wer' ? renderWer() : scr === 'blockiert' ? renderBlockiert() : renderProfil();
+  sc.scrollTop = y;
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.view === st.view));
+  document.querySelectorAll('#jump button').forEach(b => b.classList.toggle('on', st.view === 'ich' && b.dataset.go === scr));
+  document.querySelectorAll('#check button').forEach(b => b.classList.toggle('on', b.dataset.z === st.bild));
+}
+function go(screen) { st.view = 'ich'; st.screen = screen; render(); $('#scroll').scrollTop = 0; }
+
+function sheet(html) { $('#sheet').innerHTML = `<div class="grab"></div>${html}`; $('#phone').classList.add('open'); }
+function closeSheet() { $('#phone').classList.remove('open'); }
+$('#sheetBg').addEventListener('click', closeSheet);
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.closest('#views')) { st.view = t.dataset.view; st.screen = 'profil'; render(); $('#scroll').scrollTop = 0; return; }
+  if (t.closest('#check')) { st.bild = t.dataset.z; render(); return; }
+  if (t.closest('.legend')) return;
+  if (t.dataset.go) { go(t.dataset.go); return; }
+  if (t.classList.contains('vis') && t.dataset.key) { vis[t.dataset.key] = (vis[t.dataset.key] + 1) % 3; render(); return; }
+  if (t.dataset.key && t.dataset.l) { vis[t.dataset.key] = Number(t.dataset.l); render(); return; }
+  if (t.dataset.all) { KARTEN.find(c => c.id === t.dataset.all).f.forEach(k => { vis[k] = Number(t.dataset.l); }); render(); return; }
+  if (t.dataset.sw) { st[t.dataset.sw] = !st[t.dataset.sw]; render(); return; }
+  if (t.dataset.ent) { st.blockiert = st.blockiert.filter(n => n !== t.dataset.ent); render(); return; }
+  if (t.id === 'ansehenAls') {
+    sheet(`<h2>Profil ansehen als …</h2><div class="sub">So sieht dein Profil für andere aus.</div>
+      <button type="button" class="set" data-as="freunde"><span>Freund<br><small>ab Teilprojekt 3</small></span><span class="r">›</span></button>
+      <button type="button" class="set" data-as="alle"><span>Anderer App-Nutzer</span><span class="r">›</span></button>
+      <button type="button" class="set" data-as="web"><span>Web-Link ohne Anmeldung</span><span class="r">›</span></button>`);
+    return;
+  }
+  if (t.dataset.as) { closeSheet(); st.view = t.dataset.as; st.screen = 'profil'; render(); $('#scroll').scrollTop = 0; return; }
+  if (t.id === 'mehr') {
+    sheet(`<h2>@mara.lifts</h2><div class="sub">Gibt es heute schon für Profile und Berichte.</div>
+      <button type="button" class="set" data-close="1"><span style="color:var(--warn)">Melden</span><span class="r">›</span></button>
+      <button type="button" class="set" data-close="1"><span style="color:var(--bad)">Blockieren</span><span class="r">›</span></button>`);
+    return;
+  }
+  if (t.dataset.close) closeSheet();
+});
+$('#spaeterToggle').addEventListener('change', e => document.body.classList.toggle('zeige-spaeter', e.target.checked));
+document.body.classList.add('zeige-spaeter');
+render();
+</script>
+</body>
+</html>

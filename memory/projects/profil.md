@@ -24,6 +24,22 @@ Entscheidungen beim Bau: Schlaf zählt zur Nacht (Ende ab 18 Uhr → Folgetag), 
 Schlafabschnitte vereinigt, Schritte/kcal je Tag nur aus der stärksten Quelle, Server-Policy:
 health_daily schreiben nur mit Einwilligung, leere Werte werden nie gesendet.
 
+## Teilprojekt 2 geplant (31.10.2026)
+PR #114 (P1) grün, nicht gemergt (wartet auf ausdrückliches „mergen“).
+Zuschnitt [Nutzer]: 2a Sichtbarkeit + neues Profil + Einstellungen + Bild-Check; 2b Gesamtfortschritt +
+Abzeichen; 2c volle Web-Vorschau + QR — je eigener PR.
+Spec `docs/superpowers/specs/2026-10-31-profil-p2a-sichtbarkeit-design.md`, Plan
+`docs/superpowers/plans/2026-10-31-profil-p2a-sichtbarkeit.md`, Mockup `docs/profil/mockups/profil-2a.html`
+(Aufbau aus profil-v3; als Artefakt https://claude.ai/artifact/FcsYFtHwcXoE6RHkYGN1DJ).
+Entschieden [Nutzer]: streng pro Feld (30 Felder), drei Stufen gespeichert („Freunde“ wirkt ab P3),
+Chips am Wert, keine Lücke aber symmetrisch (Raster nach Anzahl, Ein-Wert-Karten paarweise), Herkunft als
+Flagge + Kürzel oben, Über mich = 3 Kacheln, Bild-Check per Claude auf dem Server, abgelehnt = löschen ohne
+Strike, /u/<name> ohne Anmeldung ab 2a ohne Berichte, Bestand: alles Nur ich, is_public behält Bio + Berichte,
+Muskelmasse neu im Tageseintrag, Lieblingsübung/Routine selbst wählen. Einstellungen in 2a: privat, Wer sieht
+was, Ansehen als, Web-Link, Blockiert.
+Zur Durchsicht [Claude, ungeprüft]: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
+Prüffehler = bleibt privat.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
