@@ -145,6 +145,17 @@ function schuetzeBildstatus(alt: Row, patch: Row): Row {
   return neu
 }
 
+/**
+ * Nachbild von oeffentlicher_text_fehler (supabase-store-compliance-2.sql), ohne
+ * die Wortliste aus moderation_terms: Link oder Handelswort → Fehlerschlüssel.
+ */
+function oeffentlicherTextFehler(text: unknown): string | null {
+  const t = String(text ?? '').toLowerCase()
+  if (/(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|de|net|org|io|shop|store|eu|co|me|at|ch|nl|ru)\b|@[a-z0-9_]{3,})/.test(t)) return 'oeffentlicher_text_link'
+  if (/\b(verkaufe|verkaufen|verkauf|bezugsquelle|bezugsquellen|lieferant|rabattcode|gutscheincode|vendor|supplier|sell|selling|telegram|whatsapp|wickr|threema)\b/.test(t)) return 'oeffentlicher_text_handel'
+  return null
+}
+
 function toNumberish(value: string): unknown {
   if (value === 'true') return true
   if (value === 'false') return false
@@ -1128,7 +1139,8 @@ export class MockSupabase {
       if (!eigen && (profil.profile_private === true || vis.reviews !== 'all')) return null
       const substanz = (id: unknown) => this.table('stack_items').find(row => row.id === id)?.display_name ?? null
       return {
-        username: profil.username, display_name: profil.display_name ?? null,
+        username: profil.username,
+        display_name: eigen || oeffentlicherTextFehler(profil.display_name) === null ? profil.display_name ?? null : null,
         public_bio: eigen || vis.bio === 'all' ? profil.public_bio ?? null : null, blocked: false,
         own: eigen,
         reviews: this.table('reviews')
@@ -1177,7 +1189,9 @@ export class MockSupabase {
         if (value !== undefined && erlaubt(key)) fields[key] = value
       }
       return {
-        username: p.username, display_name: p.display_name ?? null, own: eigen, blocked: false,
+        username: p.username, own: eigen, blocked: false,
+        // Andere bekommen den Anzeigenamen nur, wenn er den Textfilter besteht.
+        ...(stufe === 'owner' || oeffentlicherTextFehler(p.display_name) === null ? { display_name: p.display_name ?? null } : {}),
         ...(eigen ? { as: stufe } : {}),
         ...(stufe !== 'owner' ? { private: p.profile_private === true } : {}),
         avatar: p.avatar_path && (stufe === 'owner' || p.avatar_status === 'approved') ? p.avatar_path : null,

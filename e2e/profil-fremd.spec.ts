@@ -71,6 +71,14 @@ test('Freigegebenes Bild gelöscht und unter gleichem Namen neu angelegt: andere
   await expect(page.locator('[data-profile-avatar] img')).toHaveCount(0)
 })
 
+test('Anzeigename besteht den Textfilter nicht: andere sehen den Nutzernamen statt des Namens', async ({ page, mock }) => {
+  max(mock, { display_name: 'vendor shop' })
+  await page.goto('/u/max')
+  await expect(page.locator('[data-profile-name]')).toHaveText('max')
+  await expect(page.getByText('vendor shop')).toHaveCount(0)
+  await expect(page.locator('[data-profile-tile="age"]')).toContainText('31')
+})
+
 test('Berichte nur bei Freigabe: ohne „Alle“ keine Liste und keine Anfrage', async ({ page, mock }) => {
   max(mock, { field_visibility: { age: 'all', reviews: 'friends' } })
   await page.goto('/u/max')

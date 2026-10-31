@@ -17,6 +17,16 @@
 -- verboten (Policy "Own profile media update" faellt weg); Loeschen und neu
 -- Anlegen ergibt eine neue id und ist damit unsichtbar, bis erneut geprueft.
 --
+-- Anzeigename: Andere bekommen display_name nur, wenn er oeffentlicher_text_fehler
+-- besteht (aeltere Namen wurden nur bei is_public geprueft); sonst zeigt die App
+-- den Nutzernamen. Den Nutzernamen selbst kann profile_view nicht verbergen.
+--
+-- VOR dem Produktivlauf (nur zaehlen, Inhalte nicht ausgeben):
+--   select count(*) from public.profiles
+--    where public.oeffentlicher_text_fehler(username) is not null;                         -- 0
+-- Jeder Treffer ist ein Nutzername, den nach dem Lauf jeder angemeldete Nutzer
+-- sieht, obwohl er den Filter nicht besteht: vor dem Start von Hand klaeren.
+--
 -- Freitext im Schnappschuss (Routinename, Lieblingsuebung, Namen der Bestleistungen)
 -- gibt profile_view an andere nur heraus, wenn er oeffentlicher_text_fehler besteht.
 -- Den ganzen Schnappschuss baut profile_view fuer andere vorher auf seine bekannte
@@ -651,7 +661,10 @@ begin
 
   return jsonb_strip_nulls(jsonb_build_object(
     'username', p.username,
-    'display_name', p.display_name,
+    -- Aeltere Anzeigenamen wurden nur bei is_public geprueft: andere bekommen
+    -- ihn nur, wenn er den Textfilter besteht (sonst zeigt die App den Nutzernamen).
+    'display_name', case when stufe = 'owner' or public.oeffentlicher_text_fehler(p.display_name) is null
+                         then p.display_name end,
     'own', eigen,
     'blocked', false,
     'as', case when eigen then stufe end,
@@ -706,7 +719,8 @@ begin
 
   return jsonb_build_object(
     'username', profil.username,
-    'display_name', profil.display_name,
+    'display_name', case when eigen or public.oeffentlicher_text_fehler(profil.display_name) is null
+                         then profil.display_name end,
     'public_bio', case when eigen or profil.field_visibility ->> 'bio' = 'all' then profil.public_bio end,
     'blocked', false,
     'own', eigen,
