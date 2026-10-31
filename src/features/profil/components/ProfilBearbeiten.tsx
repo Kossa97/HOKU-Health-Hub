@@ -21,6 +21,7 @@ import { insertCustomExercise, isMissingTable, loadCustomExercises, loadRoutines
 import type { CustomExercise, TrainingRoutine, TrainingSession } from '../../training/types'
 import { requestProfileSnapshot } from '../hooks/useProfileSnapshotSync'
 import type { MediaKind } from '../services/profileMedia'
+import type { MediaStatus } from '../lib/profileView'
 import { ProfilBilder } from './ProfilBilder'
 import { UeberDichKarte, type UeberDichWerte } from './UeberDichKarte'
 
@@ -30,6 +31,8 @@ export interface BearbeitenWerte extends UeberDichWerte {
   public_bio: string
   avatar_path: string | null
   cover_path: string | null
+  avatar_status: MediaStatus | null
+  cover_status: MediaStatus | null
   favorite_exercise: string | null
   profile_routine_id: string | null
 }
@@ -110,8 +113,10 @@ export function ProfilBearbeiten({ userId, werte, onChange, onClose }: {
           userId={userId}
           avatarPath={werte.avatar_path}
           coverPath={werte.cover_path}
-          onChange={(kind: MediaKind, pfad) => {
-            onChange({ werte: kind === 'avatar' ? { avatar_path: pfad } : { cover_path: pfad } })
+          avatarStatus={werte.avatar_status}
+          coverStatus={werte.cover_status}
+          onChange={(kind: MediaKind, pfad, status) => {
+            onChange({ werte: kind === 'avatar' ? { avatar_path: pfad, avatar_status: status } : { cover_path: pfad, cover_status: status } })
             requestProfileSnapshot()
           }}
         />

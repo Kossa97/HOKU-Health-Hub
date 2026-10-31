@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Fake-Client: protokolliert alle Aufrufe in Reihenfolge.
 const log: string[] = []
 const state = { altPfad: null as string | null, zeilen: 1, updateFehler: null as string | null, uploadFehler: null as string | null }
+const pruefung = { antwort: { data: { status: 'approved' } as unknown, error: null as unknown } as { data: unknown; error: unknown } | Error }
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
@@ -27,6 +28,13 @@ vi.mock('../../../lib/supabase', () => ({
         }),
       }),
     }),
+    functions: {
+      invoke: async (name: string, opts: { body: unknown }) => {
+        log.push(`invoke ${name} ${JSON.stringify(opts.body)}`)
+        if (pruefung.antwort instanceof Error) throw pruefung.antwort
+        return pruefung.antwort
+      },
+    },
     storage: {
       from: (bucket: string) => ({
         upload: async (pfad: string, _blob: Blob, opts: Record<string, unknown>) => {
@@ -47,7 +55,7 @@ vi.mock('../../../lib/supabase', () => ({
 }))
 vi.mock('../../../lib/monitoring', () => ({ reportError: vi.fn() }))
 
-import { BildZuGrossError, prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
+import { BildZuGrossError, checkProfileMedia, dismissRejectedMedia, prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
 
 describe('targetSize', () => {
   it('Profilbild: mittiger Quadrat-Zuschnitt, 512 Pixel', () => {
@@ -281,5 +289,37 @@ describe('Speicher und Profilzeile', () => {
     expect(await signedMediaUrl('u1/a.jpg')).toBe('https://signiert/u1/a.jpg')
     expect(log).toContain('sign profile-media u1/a.jpg 3600')
     expect(await signedMediaUrl('kaputt')).toBeNull()
+  })
+})
+
+describe('Bild-Check', () => {
+  beforeEach(() => {
+    log.length = 0
+    state.zeilen = 1
+    state.updateFehler = null
+  })
+
+  it('schickt nur die Art, nie einen Pfad, und gibt den neuen Stand zurück', async () => {
+    pruefung.antwort = { data: { status: 'rejected' }, error: null }
+    expect(await checkProfileMedia('cover')).toBe('rejected')
+    expect(log).toEqual(['invoke profile-image-check {"kind":"cover"}'])
+    pruefung.antwort = { data: { status: null }, error: null }
+    expect(await checkProfileMedia('avatar')).toBeNull()
+  })
+
+  it('Fehler, Tageslimit, Netz oder unbekannte Antwort: wird geprüft', async () => {
+    pruefung.antwort = { data: null, error: { message: 'rate_limit' } }
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+    pruefung.antwort = { data: { status: 'ok' }, error: null }
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+    pruefung.antwort = new Error('offline')
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+  })
+
+  it('Hinweis quittieren setzt nur den Status auf null', async () => {
+    await dismissRejectedMedia('u1', 'avatar')
+    expect(log).toEqual(['update profiles {"avatar_status":null}'])
+    state.zeilen = 0
+    await expect(dismissRejectedMedia('u1', 'avatar')).rejects.toThrow()
   })
 })

@@ -34,7 +34,15 @@ vi.mock('../lib/supabase', () => ({
 vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1', email: 'a@b.c' }, signOut: vi.fn() }) }))
 vi.mock('react-hot-toast', () => ({ default: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('../features/profil/hooks/useProfileSnapshotSync', () => ({ requestProfileSnapshot: vi.fn() }))
-vi.mock('../features/profil/services/profileMedia', () => ({ signedMediaUrl: vi.fn(async () => null) }))
+const media = vi.hoisted(() => ({
+  check: vi.fn(async (_k: string): Promise<string | null> => 'pending'),
+  dismiss: vi.fn(async (_u: string, _k: string): Promise<void> => undefined),
+}))
+vi.mock('../features/profil/services/profileMedia', () => ({
+  signedMediaUrl: vi.fn(async () => null),
+  checkProfileMedia: (k: string) => media.check(k),
+  dismissRejectedMedia: (u: string, k: string) => media.dismiss(u, k),
+}))
 vi.mock('../features/profil/services/profileSnapshotStore', () => ({ loadProfileSnapshotInput: vi.fn(async () => { throw new Error('offline') }) }))
 vi.mock('../features/training/services/trainingRepo', () => ({
   loadSessions: vi.fn(async () => []), loadRoutines: vi.fn(async () => []), loadCustomExercises: vi.fn(async () => []),
@@ -146,6 +154,30 @@ describe('Alte Profilseite: jeder Abschnitt bleibt erreichbar', () => {
     const { container } = renderAt('/profil/sichtbarkeit')
     await waitFor(() => expect(container.querySelector('[data-wer-sieht-was]')).not.toBeNull())
     expect(container.querySelector('[data-profile-public-content] a[href="/bewertungen"]')).not.toBeNull()
+  })
+})
+
+describe('Bild-Check im eigenen Profil', () => {
+  it('offene Prüfung wird beim Öffnen nachgeholt; bis dahin „wird geprüft“ am Bild', async () => {
+    db.row = { ...db.row, avatar_path: 'u1/a.jpg', avatar_status: 'pending', cover_path: 'u1/c.jpg', cover_status: 'approved' }
+    let loese!: (s: string) => void
+    media.check.mockImplementationOnce(() => new Promise(resolve => { loese = resolve }))
+    const { container } = renderAt('/profil')
+    await waitFor(() => expect(container.querySelector('[data-media-pending="avatar"]')).toBeTruthy())
+    expect(media.check.mock.calls).toEqual([['avatar']])
+    await act(async () => { loese('approved') })
+    expect(container.querySelector('[data-media-pending]')).toBeNull()
+  })
+
+  it('abgelehnt: Hinweis mit „Anderes wählen“; OK quittiert', async () => {
+    db.row = { ...db.row, avatar_path: 'u1/a.jpg', avatar_status: 'pending' }
+    media.check.mockResolvedValueOnce('rejected')
+    const { container } = renderAt('/profil')
+    await waitFor(() => expect(container.querySelector('[data-media-rejected="avatar"]')).toBeTruthy())
+    expect(container.querySelector('[data-media-pending]')).toBeNull()
+    fireEvent.click(container.querySelector('[data-media-dismiss]')!)
+    await waitFor(() => expect(container.querySelector('[data-media-rejected]')).toBeNull())
+    expect(media.dismiss).toHaveBeenCalledWith('u1', 'avatar')
   })
 })
 

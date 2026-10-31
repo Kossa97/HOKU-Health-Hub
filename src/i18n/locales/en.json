@@ -3038,5 +3038,10 @@
   "profil_als_band": "How you appear to: {{wer}}",
   "profil_als_wer_friends": "Friend",
   "profil_als_wer_all": "App user",
-  "profil_als_wer_web": "Web"
+  "profil_als_wer_web": "Web",
+  "profil_bild_wird_geprueft": "in review",
+  "profil_bild_abgelehnt": "We can't show this picture. Please choose another one.",
+  "profil_bild_anderes": "Choose another",
+  "profil_bild_ok": "OK",
+  "profil_bilder_pruefung": "Others see new pictures only after a short automatic check."
 }

@@ -422,6 +422,7 @@ export class MockSupabase {
       if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
       if (url.pathname === '/functions/v1/coach') return await this.handleCoach(route)
       if (url.pathname === '/functions/v1/login-name') return await this.handleLoginName(route)
+      if (url.pathname === '/functions/v1/profile-image-check') return await this.handleProfileImageCheck(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -548,6 +549,32 @@ export class MockSupabase {
     error: { status: number; code: string } | null
     calls: { nachrichten: { rolle: string; text: string }[]; kontext: unknown; seite: string; sprache: string }[]
   } = { antwort: 'Heute ist nichts geplant.', meldungen: [], anlagen: [], error: null, calls: [] }
+
+  /**
+   * Nachbild von supabase/functions/profile-image-check: prueft nur das Bild
+   * der Testperson mit Status `pending` (Pfad aus der Profilzeile, nie aus der
+   * Anfrage). `imageCheck.urteil`: `approved` gibt frei, `rejected` loescht
+   * Datei und Pfad, `pending` spielt einen Fehler beim Pruefen nach.
+   */
+  readonly imageCheck: { urteil: 'approved' | 'rejected' | 'pending'; calls: { kind: string }[] } = { urteil: 'approved', calls: [] }
+
+  private async handleProfileImageCheck(route: Route): Promise<void> {
+    const body = (route.request().postDataJSON() ?? {}) as { kind?: string }
+    const kind = body.kind === 'avatar' || body.kind === 'cover' ? body.kind : null
+    if (!kind) return route.fulfill({ status: 400, headers: corsHeaders(), json: { error: 'invalid_body' } })
+    this.imageCheck.calls.push({ kind })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)!
+    const pfad = profil[`${kind}_path`] as string | null | undefined
+    const status = (profil[`${kind}_status`] as string | null | undefined) ?? null
+    if (!pfad || status !== 'pending') return route.fulfill({ headers: corsHeaders(), json: { status } })
+    const urteil = this.imageCheck.urteil
+    if (urteil === 'approved') profil[`${kind}_status`] = 'approved'
+    if (urteil === 'rejected') {
+      Object.assign(profil, { [`${kind}_path`]: null, [`${kind}_status`]: 'rejected' })
+      this.storage.set('profile-media', (this.storage.get('profile-media') ?? []).filter(p => p !== pfad))
+    }
+    return route.fulfill({ headers: corsHeaders(), json: { status: urteil } })
+  }
 
   /**
    * Nachbild von supabase/functions/login-name: Name (Groß/klein egal) und

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
@@ -11,7 +11,9 @@ import { useEigenesProfil, type ProfilZeile } from '../features/profil/hooks/use
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
 import { requestProfileSnapshot } from '../features/profil/hooks/useProfileSnapshotSync'
 import { GOAL_TAGS, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
-import { parseFields, profileUrl, type ProfileViewFields } from '../features/profil/lib/profileView'
+import { isMediaStatus, parseFields, profileUrl, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
+import { useBildPruefungNachholen } from '../features/profil/hooks/useBildPruefungNachholen'
+import { dismissRejectedMedia, type MediaKind } from '../features/profil/services/profileMedia'
 import { importWithReload } from '../lib/staleChunkReload'
 
 // Übungskatalog und Auswahl erst beim Öffnen laden
@@ -20,6 +22,7 @@ const ProfilBearbeiten = lazy(importWithReload(() => import('../features/profil/
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '')
 const strOrNull = (v: unknown) => (typeof v === 'string' && v ? v : null)
+const statusOrNull = (v: unknown): MediaStatus | null => (isMediaStatus(v) ? v : null)
 
 function bearbeitenWerte(row: ProfilZeile): BearbeitenWerte {
   return {
@@ -28,6 +31,8 @@ function bearbeitenWerte(row: ProfilZeile): BearbeitenWerte {
     public_bio: str(row.public_bio),
     avatar_path: strOrNull(row.avatar_path),
     cover_path: strOrNull(row.cover_path),
+    avatar_status: statusOrNull(row.avatar_status),
+    cover_status: statusOrNull(row.cover_status),
     favorite_exercise: strOrNull(row.favorite_exercise),
     profile_routine_id: strOrNull(row.profile_routine_id),
     goals: Array.isArray(row.goals) ? GOAL_TAGS.filter(g => (row.goals as unknown[]).includes(g)) : [],
@@ -95,10 +100,37 @@ export function Profil() {
       username: str(row.username) || s.view.username,
       displayName: strOrNull(row.display_name),
       avatar: strOrNull(row.avatar_path),
+      avatarStatus: statusOrNull(row.avatar_status),
+      coverStatus: statusOrNull(row.cover_status),
       fields: felderAusZeile(s.view.fields, row, aenderung),
     }
     return { ...s, row, view }
   })
+
+  const setzeBild = (kind: MediaKind, status: MediaStatus | null) => aendern({
+    werte: kind === 'avatar'
+      ? { avatar_status: status, ...(status === 'rejected' ? { avatar_path: null } : {}) }
+      : { cover_status: status, ...(status === 'rejected' ? { cover_path: null } : {}) },
+  })
+
+  // Beim Öffnen: Bilder, deren Prüfung noch aussteht, jetzt prüfen lassen
+  const offenePruefungen = useMemo(() => geladen
+    ? (['avatar', 'cover'] as const).filter(kind => geladen.row[`${kind}_path`] && geladen.row[`${kind}_status`] === 'pending')
+    : null, [geladen])
+  useBildPruefungNachholen(offenePruefungen, setzeBild)
+
+  const abgelehnt = geladen
+    ? (['avatar', 'cover'] as const).find(kind => !geladen.row[`${kind}_path`] && geladen.row[`${kind}_status`] === 'rejected') ?? null
+    : null
+  const quittieren = async (kind: MediaKind) => {
+    if (!user) return
+    try {
+      await dismissRejectedMedia(user.id, kind)
+      setzeBild(kind, null)
+    } catch {
+      toast.error(t('error'))
+    }
+  }
 
   return (
     <div data-profile-page>
@@ -131,6 +163,7 @@ export function Profil() {
             fields={geladen.view.fields}
             visibility={sichtbarkeit.map}
             onChangeVisibility={(field, v) => void sichtbarkeit.setField(field, v)}
+            bildStatus={{ avatar: geladen.view.avatarStatus, cover: geladen.view.coverStatus }}
           >
             <div className="mt-4 grid grid-cols-2 gap-2.5">
               <button type="button" className="lg-btn lg-btn-primary !min-h-11" onClick={() => void teilen()} data-profile-share>
@@ -141,6 +174,20 @@ export function Profil() {
               </button>
             </div>
           </ProfilKopf>
+
+          {abgelehnt && (
+            <div className="card mb-3 flex flex-col gap-3" role="status" data-media-rejected={abgelehnt}>
+              <p className="text-[15px] leading-snug text-[var(--lg-text)]">{t('profil_bild_abgelehnt')}</p>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button type="button" className="lg-btn lg-btn-primary !min-h-11" onClick={() => setBearbeiten(true)} data-media-choose-other>
+                  {t('profil_bild_anderes')}
+                </button>
+                <button type="button" className="lg-gray-btn !min-h-11" onClick={() => void quittieren(abgelehnt)} data-media-dismiss>
+                  {t('profil_bild_ok')}
+                </button>
+              </div>
+            </div>
+          )}
 
           <ProfilKarten
             fields={geladen.view.fields}

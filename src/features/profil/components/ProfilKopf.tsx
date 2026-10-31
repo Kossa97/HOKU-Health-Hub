@@ -10,10 +10,11 @@ import { useTranslation } from 'react-i18next'
 import { User } from 'lucide-react'
 import { flagOf, genderSymbol } from '../lib/profileFields'
 import { monthYear, numberFormat } from '../lib/profileFormat'
-import type { ProfileViewFields } from '../lib/profileView'
+import type { MediaStatus, ProfileViewFields } from '../lib/profileView'
 import { visibilityOf, type ProfileField, type Visibility, type VisibilityMap } from '../lib/profileVisibility'
 import { useSignedUrl } from '../hooks/useSignedUrl'
 import { SichtbarkeitsChip } from './SichtbarkeitsChip'
+import { PrueftMarke } from './PrueftMarke'
 
 export interface ProfilKopfProps {
   name: string
@@ -23,11 +24,13 @@ export interface ProfilKopfProps {
   fields: ProfileViewFields
   visibility?: VisibilityMap
   onChangeVisibility?: (field: ProfileField, next: Visibility) => void
+  /** Nur eigene Sicht: Stand des Bild-Checks; `pending` zeigt „wird geprüft“ am Bild. */
+  bildStatus?: { avatar: MediaStatus | null; cover: MediaStatus | null }
   /** Knöpfe unter der Zahlenzeile (eigenes Profil: Teilen, Bearbeiten). */
   children?: ReactNode
 }
 
-export function ProfilKopf({ name, username, avatarPath, fields, visibility, onChangeVisibility, children }: ProfilKopfProps) {
+export function ProfilKopf({ name, username, avatarPath, fields, visibility, onChangeVisibility, bildStatus, children }: ProfilKopfProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n?.language || 'de'
   const { n } = numberFormat(locale)
@@ -51,13 +54,19 @@ export function ProfilKopf({ name, username, avatarPath, fields, visibility, onC
         {fields.cover && visibility && (
           <span className="absolute right-2.5 top-2.5 rounded-full bg-black/45 px-2 py-1">{chip('cover')}</span>
         )}
+        {fields.cover && bildStatus?.cover === 'pending' && <PrueftMarke kind="cover" className="absolute left-2.5 top-2.5" />}
       </div>
 
       <div className="relative z-[1] -mt-9 flex items-end gap-3 px-2">
-        <div className="grid h-[84px] w-[84px] shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[var(--app-bg)] bg-[var(--lg-fill)]" data-profile-avatar>
-          {avatarUrl
-            ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-            : <User size={38} className="text-[var(--lg-text-2)]" aria-hidden="true" />}
+        <div className="relative shrink-0">
+          <div className="grid h-[84px] w-[84px] place-items-center overflow-hidden rounded-full border-[3px] border-[var(--app-bg)] bg-[var(--lg-fill)]" data-profile-avatar>
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              : <User size={38} className="text-[var(--lg-text-2)]" aria-hidden="true" />}
+          </div>
+          {avatarPath && bildStatus?.avatar === 'pending' && (
+            <PrueftMarke kind="avatar" className="absolute -bottom-1 left-1/2 -translate-x-1/2" />
+          )}
         </div>
         <div className="min-w-0 flex-1 pb-1">
           <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1" data-profile-name>

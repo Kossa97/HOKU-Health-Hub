@@ -3038,5 +3038,10 @@
   "profil_als_band": "So sieht dich: {{wer}}",
   "profil_als_wer_friends": "Freund",
   "profil_als_wer_all": "App-Nutzer",
-  "profil_als_wer_web": "Web"
+  "profil_als_wer_web": "Web",
+  "profil_bild_wird_geprueft": "wird geprüft",
+  "profil_bild_abgelehnt": "Dieses Bild können wir nicht zeigen. Wähle ein anderes.",
+  "profil_bild_anderes": "Anderes wählen",
+  "profil_bild_ok": "OK",
+  "profil_bilder_pruefung": "Andere sehen neue Bilder erst nach einer kurzen automatischen Prüfung."
 }

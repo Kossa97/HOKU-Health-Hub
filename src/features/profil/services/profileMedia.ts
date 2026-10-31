@@ -8,6 +8,7 @@
  */
 import { supabase } from '../../../lib/supabase'
 import { reportError } from '../../../lib/monitoring'
+import { isMediaStatus, type MediaStatus } from '../lib/profileView'
 
 export type MediaKind = 'avatar' | 'cover'
 
@@ -154,6 +155,30 @@ export async function removeProfileMedia(userId: string, kind: MediaKind, path: 
   if (error || !zeilen?.length) throw new Error(error?.message ?? 'profiles: no row updated')
   const { error: loeschFehler } = await supabase.storage.from(PROFILE_MEDIA_BUCKET).remove([path])
   if (loeschFehler) reportError(loeschFehler, 'profil.media-delete')
+}
+
+/**
+ * Bild-Check anstoßen (Funktion `profile-image-check`). Welches Bild geprüft
+ * wird, liest der Server selbst aus `profiles`. Antwort: neuer Stand, `null`
+ * ohne Bild. Jeder Fehler (Netz, Tageslimit, Dienst) heißt „wird geprüft“ —
+ * beim nächsten Öffnen des Profils wird erneut gefragt.
+ */
+export async function checkProfileMedia(kind: MediaKind): Promise<MediaStatus | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('profile-image-check', { body: { kind } })
+    if (error) return 'pending'
+    const status = (data as { status?: unknown } | null)?.status
+    if (status === null) return null
+    return isMediaStatus(status) ? status : 'pending'
+  } catch {
+    return 'pending'
+  }
+}
+
+/** Hinweis „abgelehnt“ quittieren: ohne Bild darf der Status leer werden (Trigger). */
+export async function dismissRejectedMedia(userId: string, kind: MediaKind): Promise<void> {
+  const { data: zeilen, error } = await supabase.from('profiles').update({ [`${kind}_status`]: null }).eq('id', userId).select('id')
+  if (error || !zeilen?.length) throw new Error(error?.message ?? 'profiles: no row updated')
 }
 
 /** Eine Stunde gültige URL für ein Bild im privaten Bucket. */

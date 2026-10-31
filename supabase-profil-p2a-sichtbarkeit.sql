@@ -25,6 +25,7 @@
 --   select count(*) from information_schema.columns
 --    where table_schema = 'public' and table_name = 'daily_logs' and column_name = 'muscle_mass_kg'; -- 1
 --   select count(*) from pg_class where relname = 'profile_snapshots' and relrowsecurity;    -- 1
+--   select count(*) from pg_class where relname = 'profile_image_checks' and relrowsecurity; -- 1
 --   select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --    where n.nspname = 'public' and p.proname in ('profile_view','profile_media_visible',
 --          'profile_visibility_ok','protect_profile_media_status');                          -- 4
@@ -140,14 +141,16 @@ begin
       new.avatar_status := case when new.avatar_path is null then null else 'pending' end;
       new.cover_status := case when new.cover_path is null then null else 'pending' end;
     else
+      -- Ohne Pfad darf der Eigentuemer den Status nur leeren (Hinweis
+      -- „abgelehnt“ quittieren); alles andere bleibt, wie der Bild-Check es setzte.
       if new.avatar_path is distinct from old.avatar_path then
         new.avatar_status := case when new.avatar_path is null then null else 'pending' end;
-      else
+      elsif not (new.avatar_path is null and new.avatar_status is null) then
         new.avatar_status := old.avatar_status;
       end if;
       if new.cover_path is distinct from old.cover_path then
         new.cover_status := case when new.cover_path is null then null else 'pending' end;
-      else
+      elsif not (new.cover_path is null and new.cover_status is null) then
         new.cover_status := old.cover_status;
       end if;
     end if;
@@ -160,6 +163,21 @@ drop trigger if exists profiles_protect_media_status on public.profiles;
 create trigger profiles_protect_media_status
 before insert or update on public.profiles
 for each row execute function public.protect_profile_media_status();
+
+-- Zaehler fuer das Tageslimit des Bild-Checks (20 je Nutzer und 24 Stunden).
+-- Schreibt nur die Funktion profile-image-check (Dienstrolle); der Nutzer darf
+-- seine Zeilen lesen. Kein Bild, kein Ergebnis — nur der Zeitpunkt.
+create table if not exists public.profile_image_checks (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists profile_image_checks_user_created_idx
+  on public.profile_image_checks (user_id, created_at desc);
+alter table public.profile_image_checks enable row level security;
+drop policy if exists "Read own profile image checks" on public.profile_image_checks;
+create policy "Read own profile image checks" on public.profile_image_checks
+  for select to authenticated using (auth.uid() = user_id);
 
 -- 4. Bestand ------------------------------------------------------------------
 -- Vor dem neuen Textfilter (Abschnitt 5): die bisher oeffentliche Bio wurde
