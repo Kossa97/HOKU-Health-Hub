@@ -56,5 +56,10 @@ Prüffehler = bleibt privat.
 - 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
   Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
   `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
+- graphify: `graphify update .` lehnt im Cloud-Container ab (10.574 statt 11.095 Knoten, lokale Dateien fehlen).
+  Nutzer-Entscheidung 31.10.: nicht erzwingen; Code ohne Graph-Update committen, Nutzer zieht lokal nach.
+- 2a Stand: Migration `supabase-profil-p2a-sichtbarkeit.sql` geschrieben und im Container geprüft (3 Läufe,
+  Proben bestanden), NICHT gegen Produktion — erst kurz vor dem Merge von 2a laufen lassen (alte App kennt
+  die Stufen nicht). Task 2 (`profileVisibility.ts`) fertig; Task 3+4 in Arbeit.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
