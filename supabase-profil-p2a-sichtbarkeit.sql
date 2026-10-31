@@ -322,6 +322,16 @@ $$;
 revoke all on function public.profile_media_visible(text, uuid) from public;
 grant execute on function public.profile_media_visible(text, uuid) to anon, authenticated;
 
+-- Fruehere Fassung ohne Objekt-ID (nur falls ein frueherer Stand dieser Datei
+-- lief): bleibt stehen, ist aber fuer niemanden mehr aufrufbar.
+do $$
+begin
+  if to_regprocedure('public.profile_media_visible(text)') is not null then
+    revoke all on function public.profile_media_visible(text) from public, anon, authenticated;
+  end if;
+end;
+$$;
+
 drop policy if exists "Visible profile media select" on storage.objects;
 create policy "Visible profile media select" on storage.objects
   for select to anon, authenticated
