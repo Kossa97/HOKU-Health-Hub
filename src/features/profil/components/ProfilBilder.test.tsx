@@ -45,6 +45,29 @@ describe('ProfilBilder', () => {
     expect(quellen).toContain('https://signiert/u1/cover-1.jpg')
   })
 
+  it('neues Bild: das alte bleibt sichtbar, bis die neue URL da ist; ohne Pfad wieder Platzhalter', async () => {
+    const { container, rerender } = renderBilder({ avatarPath: 'u1/avatar-1.jpg' })
+    const avatarSrc = () => container.querySelector('[data-media-open="avatar"] img')?.getAttribute('src') ?? null
+    await waitFor(() => expect(avatarSrc()).toBe('https://signiert/u1/avatar-1.jpg'))
+
+    let loese!: (url: string) => void
+    signedMediaUrl.mockImplementationOnce(() => new Promise<string>(resolve => { loese = resolve }))
+    rerender(<ProfilBilder userId="u1" avatarPath="u1/avatar-2.jpg" coverPath={null} onChange={vi.fn()}><p>Name und Mail</p></ProfilBilder>)
+    expect(avatarSrc()).toBe('https://signiert/u1/avatar-1.jpg')
+    loese('https://signiert/u1/avatar-2.jpg')
+    await waitFor(() => expect(avatarSrc()).toBe('https://signiert/u1/avatar-2.jpg'))
+
+    rerender(<ProfilBilder userId="u1" avatarPath={null} coverPath={null} onChange={vi.fn()}><p>Name und Mail</p></ProfilBilder>)
+    expect(avatarSrc()).toBeNull()
+
+    // Danach ein neues Bild: bis zu seiner URL Platzhalter, nicht das entfernte.
+    signedMediaUrl.mockImplementationOnce(() => new Promise<string>(resolve => { loese = resolve }))
+    rerender(<ProfilBilder userId="u1" avatarPath="u1/avatar-3.jpg" coverPath={null} onChange={vi.fn()}><p>Name und Mail</p></ProfilBilder>)
+    expect(avatarSrc()).toBeNull()
+    loese('https://signiert/u1/avatar-3.jpg')
+    await waitFor(() => expect(avatarSrc()).toBe('https://signiert/u1/avatar-3.jpg'))
+  })
+
   it('ohne Bild oeffnet Tippen sofort die Dateiauswahl', () => {
     const { getByRole, container } = renderBilder()
     const eingabe = container.querySelector<HTMLInputElement>('input[data-media-input="avatar"]')!

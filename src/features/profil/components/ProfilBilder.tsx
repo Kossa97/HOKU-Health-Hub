@@ -21,15 +21,18 @@ interface Props {
   children?: ReactNode
 }
 
+/** Bis die URL eines neuen Pfads da ist, bleibt die vorige stehen — kein Aufblitzen des Platzhalters. */
 function useSignedUrl(path: string | null) {
-  const [url, setUrl] = useState<string | null>(null)
+  const [signiert, setSigniert] = useState<{ path: string; url: string | null } | null>(null)
   useEffect(() => {
+    if (!path) return
     let aktiv = true
-    setUrl(null)
-    if (path) void signedMediaUrl(path).then(u => { if (aktiv) setUrl(u) })
+    void signedMediaUrl(path).then(url => { if (aktiv) setSigniert({ path, url }) })
     return () => { aktiv = false }
   }, [path])
-  return url
+  // Ohne Pfad (entfernt) vergessen: ein späteres neues Bild zeigt nicht kurz das entfernte.
+  if (!path && signiert) setSigniert(null)
+  return path ? signiert?.url ?? null : null
 }
 
 export function ProfilBilder({ userId, avatarPath, coverPath, onChange, children }: Props) {
