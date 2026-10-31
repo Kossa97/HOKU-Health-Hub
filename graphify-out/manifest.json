@@ -1638,9 +1638,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/types.ts": {
-    "mtime": 1784924362.353619,
-    "seen": 1793414996.967951,
-    "ast_hash": "d718c841379582ea448e9339ce40a3b0",
+    "mtime": 1793415808.2733333,
+    "seen": 1793415869.8434064,
+    "ast_hash": "050b465d33cf3c916633fd78e732f796",
     "semantic_hash": ""
   },
   "supabase-fortschritt-redesign.sql": {
@@ -21591,6 +21591,30 @@
     "mtime": 1793368366.416266,
     "seen": 1793414996.9698737,
     "ast_hash": "f06f6d032a7a6f5a3b0472972f92e7fa",
+    "semantic_hash": ""
+  },
+  "src/features/fortschritt/lib/measurements.test.ts": {
+    "mtime": 1793415794.4063303,
+    "seen": 1793415869.8433914,
+    "ast_hash": "f2f867e9d13bb369365c2345f89a2227",
+    "semantic_hash": ""
+  },
+  "src/features/fortschritt/lib/measurements.ts": {
+    "mtime": 1793415808.2439983,
+    "seen": 1793415869.8433928,
+    "ast_hash": "cc2d6e7e244e7d55932a36dd6d0cbd0c",
+    "semantic_hash": ""
+  },
+  "supabase-profil-p1-datenbasis.sql": {
+    "mtime": 1793415563.847798,
+    "seen": 1793415869.8439574,
+    "ast_hash": "004f770f88b6b059338bfe132c01491b",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-10-31-profil-p1-datenbasis.md": {
+    "mtime": 1793415379.3298745,
+    "seen": 1793415869.8441527,
+    "ast_hash": "11c4bbc7cd92386c224fdb76b5b0b7e3",
     "semantic_hash": ""
   }
 }
