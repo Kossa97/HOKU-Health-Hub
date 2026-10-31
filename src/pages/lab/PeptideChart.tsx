@@ -16,25 +16,25 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
     <div className="card mb-4">
       {/* Stat tiles */}
       <div className="flex gap-2 mb-4">
-        <div className="flex-1 bg-black/25 rounded-xl p-3 text-center">
-          <div className="text-lg font-black text-sky-400">
+        <div className="flex-1 bg-[var(--lg-fill)] rounded-xl p-3 text-center">
+          <div className="text-lg font-medium tabular-nums text-[var(--lg-text)]">
             {totalFound > 0 ? totalFound : '—'}
           </div>
-          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
+          <div className="text-xs text-[var(--lg-text-3)] mt-0.5">
             Treffer
           </div>
         </div>
-        <div className="flex-1 bg-black/25 rounded-xl p-3 text-center">
-          <div className="text-lg font-black text-emerald-400">
+        <div className="flex-1 bg-[var(--lg-fill)] rounded-xl p-3 text-center">
+          <div className="text-lg font-medium tabular-nums text-[var(--lg-text)]">
             {chartLoading ? '…' : activePeptides || '—'}
           </div>
-          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
+          <div className="text-xs text-[var(--lg-text-3)] mt-0.5">
             Peptide
           </div>
         </div>
-        <div className="flex-1 bg-black/25 rounded-xl p-3 text-center">
-          <div className="text-lg font-black text-orange-400">{currentYear}</div>
-          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--lg-text-3)] mt-0.5">
+        <div className="flex-1 bg-[var(--lg-fill)] rounded-xl p-3 text-center">
+          <div className="text-lg font-medium tabular-nums text-[var(--lg-text)]">{currentYear}</div>
+          <div className="text-xs text-[var(--lg-text-3)] mt-0.5">
             Aktuell
           </div>
         </div>
@@ -71,7 +71,7 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
               type="category"
               dataKey="name"
               width={72}
-              tick={{ fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'inherit' }}
+              tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'var(--font-mono, inherit)' }}
               tickLine={false}
               axisLine={false}
             />
@@ -85,12 +85,13 @@ export function LabStats({ chartData, chartLoading, totalFound }: LabStatsProps)
                 padding: '6px 10px',
               }}
               itemStyle={{ color: 'var(--text-muted)' }}
-              labelStyle={{ color: 'var(--text)', fontWeight: 700 }}
+              labelStyle={{ color: 'var(--text)', fontWeight: 500 }}
               formatter={(value) => [`${Number(value).toLocaleString('de-DE')} Studien`, '']}
             />
             <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={12}>
-              {chartData.map(entry => (
-                <Cell key={entry.name} fill={entry.color} fillOpacity={0.85} />
+              {/* Ein Akzent: das meistuntersuchte Peptid, der Rest neutral */}
+              {chartData.map((entry, i) => (
+                <Cell key={entry.name} fill={i === 0 ? 'var(--accent)' : 'var(--lg-text-3)'} fillOpacity={i === 0 ? 1 : 0.5} />
               ))}
             </Bar>
           </BarChart>

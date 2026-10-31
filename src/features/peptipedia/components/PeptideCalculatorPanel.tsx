@@ -4,7 +4,7 @@ import { PEPTIPEDIA_UI_COPY } from '../content/uiCopy'
 import { calculateReconstitution } from '../lib/reconstitution'
 
 const fields = ['vialAmountMg', 'diluentMl', 'targetDose', 'syringeCapacityMl', 'syringeUnits'] as const
-const inputClass = 'mt-1.5 min-h-11 w-full min-w-0 bg-[var(--lg-fill)] border border-transparent rounded-xl px-3 py-2.5 text-[16px] text-[var(--lg-text)] outline-none focus:border-[var(--lg-accent)]'
+const inputClass = 'mt-2 min-h-11 w-full min-w-0 bg-[var(--lg-fill)] border border-transparent rounded-[10px] px-3 py-2.5 text-[16px] tabular-nums text-[var(--lg-text)] outline-none focus:border-[var(--lg-accent)]'
 
 export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale }) {
   const copy = PEPTIPEDIA_UI_COPY[locale].calculator
@@ -37,11 +37,11 @@ export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale })
         }
       }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {fields.map(field => <label key={field} className="min-w-0 text-[13px] font-medium text-[var(--lg-text-2)]">{labels[field]}
+          {fields.map(field => <label key={field} className="min-w-0 text-[13px] text-[var(--lg-text-2)]">{labels[field]}
             <input type="number" inputMode="decimal" step="any" value={values[field]} className={inputClass}
               onChange={event => { setValues({ ...values, [field]: event.target.value }); setResult(null); setError('') }} />
           </label>)}
-          <label className="text-[13px] font-medium text-[var(--lg-text-2)]">{copy.targetUnit}
+          <label className="text-[13px] text-[var(--lg-text-2)]">{copy.targetUnit}
             <select value={unit} className={inputClass} onChange={event => { setUnit(event.target.value); setResult(null); setError('') }}>
               <option value="">{locale === 'de' ? 'Bitte wählen' : 'Choose a unit'}</option><option value="mcg">µg (mcg)</option><option value="mg">mg</option>
             </select>
@@ -49,8 +49,8 @@ export function PeptideCalculatorPanel({ locale }: { locale: PeptipediaLocale })
         </div>
         <button type="submit" className="lg-btn lg-btn-primary w-full">{copy.calculate}</button>
         {error && <p role="alert" className="text-[15px] text-[var(--lg-bad-text)]">{error}</p>}
-        {result && <div role="status" className="rounded-[16px] bg-[var(--lg-surface-2)] px-4 py-3 text-[15px] text-[var(--lg-text-2)] space-y-2">
-          <p>{copy.result}: <strong className="text-[var(--lg-accent-text)]">{format(result.drawMl)} ml</strong> · {format(result.drawUnits)} {locale === 'de' ? 'Skaleneinheiten' : 'scale units'}</p>
+        {result && <div role="status" className="rounded-xl bg-[var(--lg-surface-2)] px-4 py-3 text-[15px] tabular-nums text-[var(--lg-text-2)] space-y-2">
+          <p>{copy.result}: <strong className="font-medium text-[var(--lg-accent-text)]">{format(result.drawMl)} ml</strong> · {format(result.drawUnits)} {locale === 'de' ? 'Skaleneinheiten' : 'scale units'}</p>
           <p>{format(result.concentrationMcgPerMl)} µg/ml · {result.dosesPerVial} {locale === 'de' ? 'vollständige Zielmengen pro Vial' : 'complete target amounts per vial'}</p>
         </div>}
       </form>

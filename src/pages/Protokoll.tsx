@@ -3,22 +3,11 @@ import { format, parseISO, subDays, differenceInCalendarDays } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import {
-  BarChart3,
   CalendarDays,
-  CheckCircle2,
   ChevronRight,
-  Dna,
   Download,
-  FileText,
-  Flame,
-  FlaskConical,
   Link2,
-  Scale,
-  Syringe,
-  XCircle,
-  Zap,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { StocksChart, type ExtraSeries } from '../features/blutspiegel/chart/StocksChart'
 import { levelAt, type LevelPoint } from '../features/blutspiegel/chart/stocksChartMath'
 import { supabase } from '../lib/supabase'
@@ -151,7 +140,7 @@ const COPY: Record<'de' | 'en', ProtocolCopy> = {
     generatePdf: 'PDF generieren',
     generatingPdf: 'PDF wird erstellt...',
     share: 'Share-Link',
-    copied: 'Link kopiert!',
+    copied: 'Link kopiert',
     exportError: 'PDF konnte nicht erstellt werden',
     loading: 'Daten werden geladen...',
     emptyChart: 'Keine Daten im gewählten Zeitraum.',
@@ -186,7 +175,7 @@ const COPY: Record<'de' | 'en', ProtocolCopy> = {
     generatePdf: 'Generate PDF',
     generatingPdf: 'Generating PDF...',
     share: 'Share link',
-    copied: 'Link copied!',
+    copied: 'Link copied',
     exportError: 'Could not create PDF',
     loading: 'Loading data...',
     emptyChart: 'No data in the selected period.',
@@ -244,14 +233,14 @@ const SERIES_COLORS: Record<string, string> = {
   'Libido':      '#f43f5e',
 }
 
-const PRESETS: { key: string; label: string; icon: LucideIcon; markers: string[] }[] = [
-  { key: 'weight-igf1',  label: 'Gewicht + IGF-1', icon: Scale,       markers: ['Gewicht', 'IGF-1'] },
-  { key: 'gh-panel',     label: 'GH-Panel',         icon: Syringe,     markers: ['Gewicht', 'IGF-1', 'Vitamin D'] },
-  { key: 'inflammation', label: 'Entzündung',       icon: Flame,       markers: ['Gewicht', 'CRP'] },
-  { key: 'metabolismus', label: 'Metabolismus',     icon: Dna,         markers: ['Gewicht', 'Insulin'] },
-  { key: 'hormone',      label: 'Hormone',          icon: FlaskConical, markers: ['Testosteron', 'IGF-1', 'Insulin'] },
-  { key: 'wellness',     label: 'Befinden',         icon: Zap,         markers: ['Energie', 'Schlaf', 'Libido'] },
-  { key: 'full',         label: 'Alle Marker',      icon: BarChart3,   markers: [] },
+const PRESETS: { key: string; label: string; markers: string[] }[] = [
+  { key: 'weight-igf1',  label: 'Gewicht + IGF-1', markers: ['Gewicht', 'IGF-1'] },
+  { key: 'gh-panel',     label: 'GH-Panel',         markers: ['Gewicht', 'IGF-1', 'Vitamin D'] },
+  { key: 'inflammation', label: 'Entzündung',       markers: ['Gewicht', 'CRP'] },
+  { key: 'metabolismus', label: 'Metabolismus',     markers: ['Gewicht', 'Insulin'] },
+  { key: 'hormone',      label: 'Hormone',          markers: ['Testosteron', 'IGF-1', 'Insulin'] },
+  { key: 'wellness',     label: 'Befinden',         markers: ['Energie', 'Schlaf', 'Libido'] },
+  { key: 'full',         label: 'Alle Marker',      markers: [] },
 ]
 
 const CYCLE_COLORS = ['#00ccf5', '#8b5cf6', '#10b981', '#f59e0b', '#f43f5e', '#38bdf8']
@@ -363,7 +352,7 @@ function isLogWithinRange(log: DoseLog, range: DateRange) {
 
 function EmptyChart({ label }: { label: string }) {
   return (
-    <div className="h-56 rounded-[18px] bg-[var(--lg-surface-2)] flex items-center justify-center text-sm text-[var(--lg-text-2)]">
+    <div className="h-56 rounded-2xl bg-[var(--lg-surface-2)] flex items-center justify-center text-sm text-[var(--lg-text-2)]">
       {label}
     </div>
   )
@@ -371,12 +360,13 @@ function EmptyChart({ label }: { label: string }) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function KpiCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
+/** Kennzahl: Label, Zahl, Vergleich. Farbe nur, wenn sie etwas bedeutet (besser/schlechter). */
+function KpiCard({ label, value, sub, color = 'var(--lg-text)' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="lg-surface lg-flat" style={{ borderRadius: 18, padding: '10px 10px 11px', minWidth: 0 }}>
-      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--lg-text-2)', marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
-      <p style={{ fontSize: 'clamp(13px, 4vw, 17px)', fontWeight: 700, color, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }} title={value}>{value}</p>
-      {sub && <p style={{ fontSize: 11, color: 'var(--lg-text-3)', marginTop: 4 }}>{sub}</p>}
+    <div className="lg-surface lg-flat" style={{ borderRadius: 14, padding: 12, minWidth: 0 }}>
+      <p style={{ fontSize: 12, color: 'var(--lg-text-2)', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+      <p style={{ fontSize: 'clamp(13px, 4vw, 17px)', fontWeight: 500, color, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={value}>{value}</p>
+      {sub && <p style={{ fontSize: 12, color: 'var(--lg-text-3)', marginTop: 4 }}>{sub}</p>}
     </div>
   )
 }
@@ -405,7 +395,7 @@ function SmallMultiples({ series, start, end, language }: { series: SmallMultipl
   const formatTick = useCallback((ts: number) => dayFmt.format(ts), [dayFmt])
   return (
     <>
-      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)', minHeight: 18, marginBottom: 4 }} aria-live="polite">
+      <p style={{ fontSize: 13, fontFamily: 'var(--font-mono, inherit)', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)', minHeight: 20, marginBottom: 4 }} aria-live="polite">
         {syncTs != null ? formatDate(format(new Date(syncTs), 'yyyy-MM-dd'), language) : ''}
       </p>
       {series.map((row, i) => {
@@ -416,13 +406,13 @@ function SmallMultiples({ series, start, end, language }: { series: SmallMultipl
           <div key={row.marker} style={{ marginBottom: isLast ? 0 : 6 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2, paddingLeft: 4 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: row.color }}>{row.marker}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: row.color }}>{row.marker}</span>
                 <span style={{ fontSize: 12, color: 'var(--lg-text-2)' }}>{row.unit}</span>
                 {row.normalMin != null && row.normalMax != null && (
-                  <span style={{ fontSize: 11, color: 'var(--lg-text-3)' }}>Norm: {row.normalMin}–{row.normalMax}</span>
+                  <span style={{ fontSize: 12, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>Norm: {row.normalMin}–{row.normalMax}</span>
                 )}
               </div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: row.color, fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums' }}>
                 {shown != null ? `${formatNumber(shown, language, 2)} ${row.unit}` : '–'}
               </span>
             </div>
@@ -859,14 +849,14 @@ export function Protokoll() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="lg-large-title">{copy.title}</h1>
-          <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">{copy.subtitle}</p>
+          <p className="mt-1 text-[15px] text-[var(--lg-text-2)]">{copy.subtitle}</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" data-quiet className="lg-gray-btn shrink-0 !min-h-12 !px-3.5 whitespace-nowrap max-[379px]:!text-[14px]" onClick={handleShare}>
-            <Link2 size={16} /> {copy.share}
+          <button type="button" data-quiet className="lg-gray-btn shrink-0 !min-h-12 !px-3 whitespace-nowrap max-[379px]:!text-[14px]" onClick={handleShare}>
+            <Link2 size={16} strokeWidth={1.5} /> {copy.share}
           </button>
           <button type="button" className="lg-btn lg-btn-primary min-w-0 flex-1 sm:flex-none !px-4 max-[379px]:!px-3 max-[379px]:!text-[15px]" onClick={openPdfModal} disabled={loadingBase}>
-            <Download size={16} /> {copy.generatePdf}
+            <Download size={16} strokeWidth={1.5} /> {copy.generatePdf}
           </button>
         </div>
       </header>
@@ -880,23 +870,23 @@ export function Protokoll() {
 
       {/* ── KPI Strip ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-        <KpiCard label="Adherence" color="var(--lg-good-text)"
+        <KpiCard label="Adherence"
           value={kpiValues.adherencePct != null ? `${kpiValues.adherencePct}%` : '—'}
           sub={kpiValues.adherencePct != null && kpiValues.adherencePct >= 80 ? '↑ gut' : undefined} />
-        <KpiCard label="Gewicht Δ" color="var(--lg-accent-text)"
+        <KpiCard label="Gewicht Δ"
           value={kpiValues.weightDelta != null ? `${kpiValues.weightDelta > 0 ? '+' : ''}${formatNumber(kpiValues.weightDelta, language, 1)} kg` : '—'} />
-        <KpiCard label="IGF-1 Δ" color="#bf5af2"
+        <KpiCard label="IGF-1 Δ"
           value={kpiValues.igf1Delta != null ? `${kpiValues.igf1Delta > 0 ? '+' : ''}${kpiValues.igf1Delta}%` : '—'} />
-        <KpiCard label="CRP Δ" color={kpiValues.crpDelta != null && kpiValues.crpDelta < 0 ? 'var(--lg-good-text)' : 'var(--lg-bad-text)'}
+        <KpiCard label="CRP Δ" color={kpiValues.crpDelta == null ? undefined : kpiValues.crpDelta < 0 ? 'var(--lg-good-text)' : 'var(--lg-bad-text)'}
           value={kpiValues.crpDelta != null ? `${kpiValues.crpDelta > 0 ? '+' : ''}${kpiValues.crpDelta}%` : '—'} />
       </div>
 
       <section className="lg-surface lg-flat p-4">
-        <div className="grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5 mb-4">
+        <div className="grid grid-cols-2 rounded-[10px] bg-[var(--lg-fill)] p-0.5 mb-4">
           <button
             type="button"
             aria-pressed={selectorMode === 'current'}
-            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'current' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
+            className={`min-h-9 rounded-lg px-2 text-[13px] leading-tight font-medium transition-colors ${selectorMode === 'current' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => {
               setSelectorMode('current')
               setRange(currentCycleRange)
@@ -908,7 +898,7 @@ export function Protokoll() {
           <button
             type="button"
             aria-pressed={selectorMode === 'custom'}
-            className={`min-h-9 rounded-full px-2 text-[13px] leading-tight font-semibold transition-colors ${selectorMode === 'custom' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'}`}
+            className={`min-h-9 rounded-lg px-2 text-[13px] leading-tight font-medium transition-colors ${selectorMode === 'custom' ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'}`}
             onClick={() => setSelectorMode('custom')}
           >
             {copy.customRange}
@@ -938,15 +928,15 @@ export function Protokoll() {
             </div>
           </div>
         ) : (
-          <div className="rounded-[16px] bg-[var(--lg-surface-2)] p-3">
-            <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.activeCycles}</p>
+          <div className="rounded-xl bg-[var(--lg-surface-2)] p-3">
+            <p className="mb-2 text-[13px] text-[var(--lg-text-3)]">{copy.activeCycles}</p>
             {activeCycles.length > 0 ? (
               <div className="space-y-2">
                 {activeCycles.map(cycle => (
                   <div key={cycle.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-[var(--lg-text)] font-semibold">{cycle.stack_items?.display_name ?? cycle.name}</span>
-                    <span className="text-[var(--lg-text-2)] text-[13px]">
-                      {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
+                    <span className="text-[var(--lg-text)] font-medium">{cycle.stack_items?.display_name ?? cycle.name}</span>
+                    <span className="text-[var(--lg-text-2)] text-[13px] tabular-nums">
+                      {formatDate(cycle.start_date, language)} – {formatDate(cycleEnd(cycle), language)}
                     </span>
                   </div>
                 ))}
@@ -958,9 +948,9 @@ export function Protokoll() {
         )}
 
         <div className="mt-4 flex items-center gap-2 text-sm text-[var(--lg-text-2)]">
-          <CalendarDays size={15} className="text-[var(--lg-accent-text)]" />
+          <CalendarDays size={16} strokeWidth={1.5} className="text-[var(--lg-text-3)]" />
           <span>
-            {copy.period}: <span className="text-[var(--lg-text)] font-semibold">{formatDate(range.from, language)} - {formatDate(range.to, language)}</span>
+            {copy.period}: <span className="text-[var(--lg-text)] font-medium tabular-nums">{formatDate(range.from, language)} – {formatDate(range.to, language)}</span>
           </span>
         </div>
       </section>
@@ -976,55 +966,50 @@ export function Protokoll() {
         {/* ── Schnell-Ansichten ── */}
         <div>
           <p className="lg-group-title !mx-1">Schnell-Ansichten</p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
             {PRESETS.map(p => (
               <button key={p.key} type="button" aria-pressed={selectedPreset === p.key} onClick={() => applyPreset(p.key)} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36,
-                padding: '0 14px', borderRadius: 999, fontSize: 14, fontWeight: 500,
+                display: 'inline-flex', alignItems: 'center', minHeight: 36,
+                padding: '0 12px', borderRadius: 8, fontSize: 14, fontWeight: 400,
                 cursor: 'pointer', whiteSpace: 'nowrap', border: 'none',
                 background: selectedPreset === p.key ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--lg-fill)',
                 color: selectedPreset === p.key ? 'var(--lg-accent-text)' : 'var(--lg-text-2)',
                 transition: 'background-color 0.18s, color 0.18s',
-              }}><p.icon size={14} />{p.label}</button>
+              }}>{p.label}</button>
             ))}
           </div>
         </div>
 
         {/* ── Marker-Toggles ── */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
           {availableMarkers.map(marker => {
             const on = activeMarkers.includes(marker)
             const color = getSeriesColor(marker)
             return (
               <button key={marker} type="button" aria-pressed={on} onClick={() => toggleMarker(marker)} style={{
-                display: 'flex', alignItems: 'center', gap: 7, minHeight: 36, padding: '0 13px', borderRadius: 999,
-                fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none',
+                display: 'flex', alignItems: 'center', gap: 8, minHeight: 36, padding: '0 12px', borderRadius: 8,
+                fontSize: 14, fontWeight: 400, cursor: 'pointer', border: 'none',
                 background: on ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
                 color: on ? 'var(--lg-text)' : 'var(--lg-text-2)', transition: 'background-color 0.18s, color 0.18s',
               }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: color, opacity: on ? 1 : 0.35, flexShrink: 0 }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, opacity: on ? 1 : 0.35, flexShrink: 0 }} />
                 {marker}
               </button>
             )
           })}
         </div>
 
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">{copy.period}</p>
-            <p className="lg-title2">{formatDate(range.from, language)} - {formatDate(range.to, language)}</p>
-          </div>
-          <span className="lg-icon-tile" style={{ background: '#0a84ff' }} aria-hidden="true">
-            <FileText size={17} />
-          </span>
+        <div>
+          <p className="text-[13px] text-[var(--lg-text-3)]">{copy.period}</p>
+          <p className="lg-title2 tabular-nums">{formatDate(range.from, language)} – {formatDate(range.to, language)}</p>
         </div>
 
         {/* ── Chart 1: % Veränderung ── */}
-        <section className="lg-surface lg-flat" style={{ padding: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+        <section className="lg-surface lg-flat" style={{ padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <p className="lg-title2" style={{ fontSize: 17 }}>Verlauf — % Veränderung</p>
-              <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 4 }}>Normalisiert ab Start · Zyklusphasen im Hintergrund</p>
             </div>
             <span className="lg-tag shrink-0" data-tone="accent">% Δ ab Start</span>
           </div>
@@ -1053,7 +1038,7 @@ export function Protokoll() {
                 xBands={percentChart.xBands}
                 xLines={percentChart.xLines}
               />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', marginTop: 8, fontSize: 13, fontWeight: 500, color: 'var(--lg-text-2)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: 8, fontSize: 13, color: 'var(--lg-text-2)' }}>
                 {percentSeries.map(series => (
                   <span key={series.marker} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span aria-hidden="true" style={{ width: 10, height: 3, borderRadius: 2, background: series.color }} />
@@ -1069,11 +1054,11 @@ export function Protokoll() {
 
         {/* ── Chart 2: Small Multiples ── */}
         {smallMultiplesData.length > 0 && (
-          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+          <section className="lg-surface lg-flat" style={{ padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
                 <p className="lg-title2" style={{ fontSize: 17 }}>Detailansicht — echte Einheiten</p>
-                <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 2 }}>Absolute Werte · Farbband = Normalbereich</p>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginTop: 4 }}>Absolute Werte · Farbband = Normalbereich</p>
               </div>
             </div>
             <SmallMultiples series={smallMultiplesData} start={chartWindow.start} end={chartWindow.end} language={language} />
@@ -1082,18 +1067,18 @@ export function Protokoll() {
 
         {/* ── Persönliche Insights ── */}
         {(sideEffectStats.length > 0 || substanceEffectStats.length > 0 || substanceReviewStats.length > 0) && (
-          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
-            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{t('protokoll_insights_title')}</p>
+          <section className="lg-surface lg-flat" style={{ padding: 16 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 4 }}>{t('protokoll_insights_title')}</p>
             <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 16 }}>{t('protokoll_insights_sub')}</p>
 
             {sideEffectStats.length > 0 ? (
-              <div style={{ marginBottom: 18 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-warn-text)', marginBottom: 8 }}>
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 8 }}>
                   {t('protokoll_side_effects_title')}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sideEffectStats.map(item => (
-                    <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)', lineHeight: 1.35 }}>{item.text}</span>
                       <span className="lg-tag" data-tone="warn">
                         ×{item.count}
@@ -1103,18 +1088,18 @@ export function Protokoll() {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 14 }}>{t('protokoll_side_effects_empty')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 16 }}>{t('protokoll_side_effects_empty')}</p>
             )}
 
             {substanceEffectStats.length > 0 && (
-              <div style={{ marginBottom: substanceReviewStats.length > 0 ? 18 : 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#bf5af2', marginBottom: 8 }}>
+              <div style={{ marginBottom: substanceReviewStats.length > 0 ? 20 : 0 }}>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 8 }}>
                   {t('protokoll_effects_by_peptide')}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {substanceEffectStats.map(row => (
                     <div key={row.name}>
-                      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)', marginBottom: 2 }}>{row.name}</p>
+                      <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--lg-text)', marginBottom: 2 }}>{row.name}</p>
                       <p style={{ fontSize: 13, color: 'var(--lg-text-2)' }}>
                         {t('protokoll_effect_count', { effects: row.effects, side: row.sideEffects, severity: row.avgSeverity })}
                       </p>
@@ -1126,13 +1111,13 @@ export function Protokoll() {
 
             {substanceReviewStats.length > 0 && (
               <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-good-text)', marginBottom: 8 }}>
+                <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginBottom: 8 }}>
                   {t('protokoll_reviews_by_peptide')}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {substanceReviewStats.map(row => (
                     <div key={row.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text)' }}>{row.name}</span>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--lg-text)', whiteSpace: 'nowrap' }}>{row.name}</span>
                       <span style={{ fontSize: 13, color: 'var(--lg-text-2)', textAlign: 'right' }}>
                         {t('protokoll_review_stat', { rating: row.avgRating, count: row.count })}
                         {/* Bewertungen v2: Kriterien, sobald es welche gibt. */}
@@ -1156,17 +1141,17 @@ export function Protokoll() {
 
         {/* ── Adherence je Substanz ── */}
         {adherencePerSubstance.length > 0 && (
-          <section className="lg-surface lg-flat" style={{ padding: 18 }}>
-            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 2 }}>{copy.adherenceTitle}</p>
-            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 14 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <section className="lg-surface lg-flat" style={{ padding: 16 }}>
+            <p className="lg-title2" style={{ fontSize: 17, marginBottom: 4 }}>{copy.adherenceTitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-2)', marginBottom: 16 }}>Anteil eingenommener Dosen im Zeitraum je Substanz</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {adherencePerSubstance.map(({ name, pct, color }) => (
-                <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--lg-text)', width: 96, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                  <div style={{ flex: 1, height: 6, background: 'var(--lg-fill)', borderRadius: 6, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 6, background: `linear-gradient(90deg,${color},${color}aa)`, transition: 'width 0.5s cubic-bezier(.4,0,.2,1)' }} />
+                  <div className="hk-scale" style={{ flex: 1, height: 6, background: 'var(--lg-fill)', borderRadius: 6, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 6, background: color }} />
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, width: 40, textAlign: 'right', flexShrink: 0, color }}>{pct}%</span>
+                  <span className="font-mono" style={{ fontSize: 13, width: 40, textAlign: 'right', flexShrink: 0, color: 'var(--lg-text-2)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
                 </div>
               ))}
             </div>
@@ -1191,30 +1176,28 @@ export function Protokoll() {
                   key={cycle.id}
                   type="button"
                   aria-pressed={selected}
-                  className={`w-full px-4 py-3.5 text-left transition-colors active:bg-white/[0.06] ${selected ? 'bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]' : ''}`}
+                  className={`w-full px-4 py-3 text-left transition-colors active:bg-[var(--lg-fill)] ${selected ? 'bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]' : ''}`}
                   onClick={() => selectCycle(cycle)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-[17px] font-semibold text-[var(--lg-text)] truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
-                      <p className="text-[13px] text-[var(--lg-text-2)] mt-0.5">
-                        {formatDate(cycle.start_date, language)} - {formatDate(cycleEnd(cycle), language)}
+                      <p className="text-[17px] font-medium text-[var(--lg-text)] truncate">{cycle.stack_items?.display_name ?? cycle.name}</p>
+                      <p className="text-[13px] tabular-nums text-[var(--lg-text-2)] mt-0.5">
+                        {formatDate(cycle.start_date, language)} – {formatDate(cycleEnd(cycle), language)}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
                         <span className="lg-tag" data-tone="accent">
                           {copy.duration}: {cycleDuration(cycle)} {copy.days}
                         </span>
                         <span className="lg-tag" data-tone="good">
-                          <CheckCircle2 size={12} />
                           {copy.adherenceRate}: {adherence == null ? '-' : `${adherence}%`}
                         </span>
                         <span className="lg-tag">
-                          <XCircle size={12} />
                           inactive
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-[var(--lg-text-3)] shrink-0 mt-1" />
+                    <ChevronRight size={18} strokeWidth={1.5} className="text-[var(--lg-text-3)] shrink-0 mt-1" />
                   </div>
                 </button>
               )

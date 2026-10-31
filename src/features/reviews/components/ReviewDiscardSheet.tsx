@@ -34,14 +34,14 @@ export function ReviewDiscardSheet({ onKeep, onDiscard }: {
         }}
       >
         <div className="overflow-hidden rounded-[14px] bg-[var(--lg-sheet-solid)]">
-          <div className="px-4 pb-3 pt-3.5 text-center">
-            <h2 id={`${id}-titel`} className="text-[13px] font-semibold text-[var(--lg-text-2)]">{t('review_discard_title')}</h2>
+          <div className="px-4 pb-3 pt-4 text-center">
+            <h2 id={`${id}-titel`} className="text-[13px] font-medium text-[var(--lg-text-2)]">{t('review_discard_title')}</h2>
             <p id={`${id}-text`} className="mt-1 text-[13px] text-[var(--lg-text-3)]">{t('review_discard_desc')}</p>
           </div>
           <button
             type="button"
             onClick={onDiscard}
-            className="block min-h-14 w-full border-t-[0.5px] border-[var(--lg-separator)] text-[20px] text-[var(--lg-bad-text)] active:bg-white/[0.06]"
+            className="block min-h-14 w-full border-t-[0.5px] border-[var(--lg-separator)] text-[17px] text-[var(--lg-bad-text)] active:bg-[var(--lg-fill)]"
           >
             {t('review_discard')}
           </button>
@@ -51,7 +51,7 @@ export function ReviewDiscardSheet({ onKeep, onDiscard }: {
           autoFocus
           data-app-back-close
           onClick={onKeep}
-          className="block min-h-14 w-full rounded-[14px] bg-[var(--lg-sheet-solid)] text-[20px] font-semibold text-[var(--lg-accent-text)] active:bg-white/[0.06]"
+          className="block min-h-14 w-full rounded-[14px] bg-[var(--lg-sheet-solid)] text-[17px] font-medium text-[var(--lg-accent-text)] active:bg-[var(--lg-fill)]"
         >
           {t('review_keep_editing')}
         </button>

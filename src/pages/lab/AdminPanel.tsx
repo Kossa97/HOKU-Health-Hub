@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft, Sparkles, Plus, RefreshCw, Save, X, Loader2,
+  ArrowLeft, Plus, RefreshCw, Save, X, Loader2,
   CheckCircle, AlertTriangle, Activity, Trash2,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -120,19 +120,18 @@ async function callAI(
 function PreviewField({ label, value }: { label: string; value: unknown }) {
   if (value === null || value === undefined) return null
   return (
-    <div className="border-b border-white/[0.05] pb-3 last:border-0 last:pb-0">
-      <p className="text-[0.52rem] font-black uppercase tracking-[0.18em] text-sky-400/50 mb-1"
-        style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{label}</p>
+    <div className="border-b border-[var(--lg-hair)] pb-3 last:border-0 last:pb-0">
+      <p className="text-[13px] text-[var(--lg-text-3)] mb-1">{label}</p>
       {Array.isArray(value) ? (
         <ul className="space-y-0.5">
           {(value as string[]).map((v, i) => (
-            <li key={i} className="text-xs text-slate-300 flex gap-2">
-              <span className="text-slate-600">·</span><span>{v}</span>
+            <li key={i} className="text-xs text-[var(--lg-text-2)] flex gap-2">
+              <span className="text-[var(--lg-text-3)]">·</span><span>{v}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-xs text-slate-300 leading-relaxed">{String(value)}</p>
+        <p className="text-xs text-[var(--lg-text-2)] leading-relaxed">{String(value)}</p>
       )}
     </div>
   )
@@ -143,15 +142,14 @@ function EvidencePreview({ result }: { result: Record<string, unknown> }) {
     <div className="flex items-center gap-4">
       {(['evidence_human', 'evidence_animal', 'evidence_clinical'] as const).map((k, i) => (
         <div key={k} className="flex items-center gap-1.5">
-          <span className="text-[0.52rem] text-slate-600 uppercase tracking-widest"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+          <span className="text-xs text-[var(--lg-text-3)]">
             {['Human', 'Tier', 'Klinisch'][i]}
           </span>
           <span className="text-xs text-slate-400">{String(result[k])}</span>
         </div>
       ))}
       <div className="ml-auto flex items-center gap-1">
-        <span className="text-xs font-black text-sky-400">{String(result.evidence_score)}</span>
+        <span className="text-xs font-medium tabular-nums text-[var(--lg-text)]">{String(result.evidence_score)}</span>
         <span className="text-xs text-slate-600">/10</span>
       </div>
     </div>
@@ -160,7 +158,7 @@ function EvidencePreview({ result }: { result: Record<string, unknown> }) {
 
 // ─── Shared input style ───────────────────────────────────────────────────────
 
-const inp = "w-full bg-[#111827] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-sky-500/50 transition-colors"
+const inp = "w-full bg-[var(--surface-input)] border border-[var(--lg-hair)] rounded-xl px-4 py-2 text-sm text-[var(--lg-text)] placeholder:text-[var(--lg-text-3)] outline-none focus:border-[var(--accent-border)] transition-colors"
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -325,10 +323,8 @@ export function AdminPanel() {
   if (!isAdmin) {
     return (
       <div className="max-w-md mx-auto pt-16 flex flex-col items-center gap-5 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <AlertTriangle size={28} className="text-red-400" />
-        </div>
-        <h1 className="text-xl font-black text-white">Kein Zugriff</h1>
+        <AlertTriangle size={28} strokeWidth={1.5} className="text-[var(--lg-text-3)]" />
+        <h1 className="text-xl font-medium text-[var(--lg-text)]">Kein Zugriff</h1>
         <p className="text-sm text-slate-500">Du benötigst Admin-Rechte um diesen Bereich zu nutzen.</p>
         <button onClick={() => navigate(-1)} className="btn-secondary flex items-center gap-2">
           <ArrowLeft size={14} /> Zurück
@@ -344,24 +340,21 @@ export function AdminPanel() {
       {/* Header */}
       <button type="button" onClick={() => navigate('/lab/peptipedia')}
         className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-4">
-        <ArrowLeft size={12} />
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Bibliothek</span>
+        <ArrowLeft size={16} strokeWidth={1.5} />
+        <span>Bibliothek</span>
       </button>
 
-      <div className="flex items-center gap-2 mb-1">
-        <Sparkles size={16} className="text-violet-400" />
-        <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-          Admin-Panel
-        </h1>
-      </div>
+      <h1 className="mb-1 text-2xl font-medium text-[var(--lg-text)]">
+        Admin-Panel
+      </h1>
       <p className="text-xs text-slate-500 mb-6">
-        KI-Bibliothek & Pharmakokinetische Profile. Änderungen sofort live.
+        KI-Bibliothek und pharmakokinetische Profile. Änderungen sind sofort live.
       </p>
 
-      <div className="flex items-start gap-2 bg-blue-500/5 border border-blue-500/15 rounded-xl px-4 py-3 mb-5">
-        <AlertTriangle size={13} className="text-blue-400/60 shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-300/55 leading-relaxed">
-          KI-Funktionen laufen über Vercel. Lokal: <code className="text-blue-300/70">vercel dev</code> statt <code className="text-blue-300/70">npm run dev</code>.
+      <div className="flex items-start gap-2 rounded-xl bg-[var(--lg-fill)] px-4 py-3 mb-6">
+        <AlertTriangle size={16} strokeWidth={1.5} className="text-[var(--lg-text-3)] shrink-0" />
+        <p className="text-xs text-[var(--lg-text-2)] leading-relaxed">
+          KI-Funktionen laufen über Vercel. Lokal: <code className="font-mono">vercel dev</code> statt <code className="font-mono">npm run dev</code>.
         </p>
       </div>
 
@@ -369,7 +362,7 @@ export function AdminPanel() {
       <ModerationQueue />
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#0B1220] border border-white/[0.07] rounded-xl p-1 mb-6">
+      <div className="flex gap-1 rounded-xl bg-[var(--lg-fill)] p-1 mb-6">
         {([
           { id: 'update', icon: RefreshCw, label: 'Aktualisieren' },
           { id: 'create', icon: Plus,      label: 'Hinzufügen' },
@@ -377,11 +370,11 @@ export function AdminPanel() {
         ] as const).map(t => (
           <button key={t.id} type="button"
             onClick={() => { setTab(t.id); setResult(null); setStatus('idle') }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-              tab === t.id ? 'bg-sky-500 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
+              tab === t.id ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]' : 'text-[var(--lg-text-2)] hover:text-[var(--lg-text)]'
             }`}
           >
-            <t.icon size={13} />{t.label}
+            <t.icon size={16} strokeWidth={1.5} />{t.label}
           </button>
         ))}
       </div>
@@ -389,9 +382,8 @@ export function AdminPanel() {
       {/* ── UPDATE TAB ──────────────────────────────────────────────────────── */}
       {tab === 'update' && (
         <div className="space-y-4">
-          <div className="bg-[#0B1220] border border-white/[0.07] rounded-2xl p-5">
-            <p className="text-[0.55rem] font-black uppercase tracking-[0.18em] text-sky-400/55 mb-3"
-              style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Peptid wählen</p>
+          <div className="lg-surface lg-flat !rounded-2xl p-5">
+            <p className="text-[13px] text-[var(--lg-text-3)] mb-3">Peptid wählen</p>
             <select value={selected?.slug ?? ''} onChange={e => setSelected(peptides.find(p => p.slug === e.target.value) ?? null)}
               disabled={isLoading} className={`${inp} mb-4`}>
               {peptides.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
@@ -405,7 +397,7 @@ export function AdminPanel() {
             )}
             <button type="button" onClick={handleUpdate} disabled={isLoading} {...denyProps(!isLoading && !selected, 'Wähle zuerst eine Substanz aus.')}
               className="btn-primary w-full flex items-center justify-center gap-2">
-              {status === 'loading' ? <><Loader2 size={14} className="animate-spin" /> KI analysiert…</> : <><Sparkles size={14} /> KI-Update starten</>}
+              {status === 'loading' ? <><Loader2 size={14} className="animate-spin" /> KI analysiert…</> : <>KI-Update starten</>}
             </button>
           </div>
         </div>
@@ -413,15 +405,14 @@ export function AdminPanel() {
 
       {/* ── CREATE TAB ──────────────────────────────────────────────────────── */}
       {tab === 'create' && (
-        <div className="bg-[#0B1220] border border-white/[0.07] rounded-2xl p-5">
-          <p className="text-[0.55rem] font-black uppercase tracking-[0.18em] text-sky-400/55 mb-3"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Neue Substanz</p>
+        <div className="lg-surface lg-flat !rounded-2xl p-5">
+          <p className="text-[13px] text-[var(--lg-text-3)] mb-3">Neue Substanz</p>
           <input value={newName} onChange={e => setNewName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void handleCreate() }} disabled={isLoading}
             placeholder="z.B. Hexarelin, PT-141, Melanotan II…" className={`${inp} mb-4`} />
           <button type="button" onClick={() => void handleCreate()} disabled={isLoading} {...denyProps(!isLoading && !newName.trim())}
             className="btn-primary w-full flex items-center justify-center gap-2">
-            {status === 'loading' ? <><Loader2 size={14} className="animate-spin" /> KI generiert Profil…</> : <><Sparkles size={14} /> Profil generieren</>}
+            {status === 'loading' ? <><Loader2 size={14} className="animate-spin" /> KI generiert Profil…</> : <>Profil generieren</>}
           </button>
         </div>
       )}
@@ -433,7 +424,7 @@ export function AdminPanel() {
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-400 font-medium">{pkProfiles.length} Profile</p>
             <button type="button" onClick={() => setShowPkForm(v => !v)}
-              className="flex items-center gap-1.5 text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors">
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--lg-accent-text)] transition-colors">
               {showPkForm ? <X size={13} /> : <Plus size={13} />}
               {showPkForm ? 'Abbrechen' : 'Neu hinzufügen'}
             </button>
@@ -441,46 +432,45 @@ export function AdminPanel() {
 
           {/* Inline form */}
           {showPkForm && (
-            <div className="bg-[#0B1220] border border-sky-500/20 rounded-2xl p-5 space-y-3">
-              <p className="text-[0.55rem] font-black uppercase tracking-[0.18em] text-sky-400/55 mb-1"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Neues PK-Profil</p>
+            <div className="lg-surface lg-flat !rounded-2xl p-5 space-y-3">
+              <p className="text-[13px] text-[var(--lg-text-3)] mb-1">Neues PK-Profil</p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Name *</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Name *</label>
                   <input value={pkName} onChange={e => setPkName(e.target.value)} placeholder="z.B. BPC-157" className={inp} />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Aliases (kommagetrennt)</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Aliases (kommagetrennt)</label>
                   <input value={pkAliases} onChange={e => setPkAliases(e.target.value)} placeholder="BPC157, Booly Protection Compound..." className={inp} />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Halbwertzeit (h) *</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Halbwertzeit (h) *</label>
                   <input type="number" value={pkHalfLife} onChange={e => setPkHalfLife(e.target.value)} placeholder="4.5" className={inp} />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Tmax (h) *</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Tmax (h) *</label>
                   <input type="number" value={pkTmax} onChange={e => setPkTmax(e.target.value)} placeholder="1.5" className={inp} />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Bioverfügbarkeit SC (0–1)</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Bioverfügbarkeit SC (0–1)</label>
                   <input type="number" step="0.05" min="0" max="1" value={pkBioavail} onChange={e => setPkBioavail(e.target.value)} className={inp} />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Vd (L/kg)</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Vd (L/kg)</label>
                   <input type="number" step="0.1" value={pkVd} onChange={e => setPkVd(e.target.value)} className={inp} />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Kategorie</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Kategorie</label>
                   <select value={pkCategory} onChange={e => setPkCategory(e.target.value)} className={inp}>
                     {PK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[0.6rem] text-slate-500 uppercase tracking-wider block mb-1">Notizen</label>
+                  <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Notizen</label>
                   <textarea value={pkNotes} onChange={e => setPkNotes(e.target.value)} rows={2}
                     placeholder="Quellen, Besonderheiten…"
-                    className="w-full bg-[#111827] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-sky-500/50 transition-colors resize-none" />
+                    className="w-full bg-[var(--surface-input)] border border-[var(--lg-hair)] rounded-xl px-4 py-2 text-sm text-[var(--lg-text)] placeholder:text-[var(--lg-text-3)] outline-none focus:border-[var(--accent-border)] transition-colors resize-none" />
                 </div>
               </div>
 
@@ -488,7 +478,7 @@ export function AdminPanel() {
                 disabled={pkSaving}
                 {...denyProps(!pkSaving && (!pkName.trim() || !pkHalfLife || !pkTmax))}
                 className="btn-primary w-full flex items-center justify-center gap-2 mt-2">
-                {pkSaving ? <><Loader2 size={14} className="animate-spin" /> Speichern…</> : <><Save size={14} /> PK-Profil speichern</>}
+                {pkSaving ? <><Loader2 size={14} className="animate-spin" /> Speichern…</> : <><Save size={16} strokeWidth={1.5} /> PK-Profil speichern</>}
               </button>
             </div>
           )}
@@ -497,35 +487,34 @@ export function AdminPanel() {
           {pkLoading ? (
             <div className="flex justify-center py-8"><Loader2 size={18} className="animate-spin text-sky-400" /></div>
           ) : pkProfiles.length === 0 ? (
-            <div className="bg-[#0B1220] border border-white/[0.07] rounded-2xl p-8 text-center">
+            <div className="lg-surface lg-flat !rounded-2xl p-8 text-center">
               <p className="text-sm text-slate-500">Noch keine PK-Profile. Füge dein erstes hinzu.</p>
             </div>
           ) : (
-            <div className="bg-[#0B1220] border border-white/[0.07] rounded-2xl overflow-hidden">
+            <div className="lg-surface lg-flat !rounded-2xl overflow-hidden">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-2.5 border-b border-white/[0.06]"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-2 border-b border-[var(--lg-hair)]">
                 {['Name', 'T½ (h)', 'Tmax (h)', 'Kat.', ''].map((h, i) => (
-                  <span key={i} className="text-[0.5rem] uppercase tracking-widest text-slate-600">{h}</span>
+                  <span key={i} className="text-xs text-[var(--lg-text-3)]">{h}</span>
                 ))}
               </div>
               {pkProfiles.map((pk, i) => (
                 <div key={pk.id}
-                  className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 items-center px-4 py-3 ${i < pkProfiles.length - 1 ? 'border-b border-white/[0.04]' : ''}`}>
+                  className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 items-center px-4 py-3 ${i < pkProfiles.length - 1 ? 'border-b border-[var(--lg-hair)]' : ''}`}>
                   <div>
-                    <p className="text-sm font-semibold text-white">{pk.name}</p>
+                    <p className="text-sm font-medium text-[var(--lg-text)]">{pk.name}</p>
                     {pk.aliases.length > 0 && (
-                      <p className="text-[0.6rem] text-slate-600 truncate">{pk.aliases.join(', ')}</p>
+                      <p className="text-xs text-[var(--lg-text-3)] truncate">{pk.aliases.join(', ')}</p>
                     )}
                   </div>
                   <span className="text-xs text-slate-400 tabular-nums">{pk.half_life_hours}</span>
                   <span className="text-xs text-slate-400 tabular-nums">{pk.tmax_hours}</span>
-                  <span className="text-[0.6rem] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/15 whitespace-nowrap">
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--lg-fill)] text-[var(--lg-text-2)] whitespace-nowrap">
                     {pk.category}
                   </span>
                   <button type="button" onClick={() => void deletePkProfile(pk.id, pk.name)}
-                    className="text-slate-600 hover:text-red-400 transition-colors p-1">
-                    <Trash2 size={13} />
+                    className="text-[var(--lg-text-3)] hover:text-[var(--lg-bad-text)] transition-colors p-1">
+                    <Trash2 size={16} strokeWidth={1.5} />
                   </button>
                 </div>
               ))}
@@ -536,59 +525,54 @@ export function AdminPanel() {
 
       {/* ── ERROR ───────────────────────────────────────────────────────────── */}
       {status === 'error' && (
-        <div className="mt-4 bg-red-950/30 border border-red-500/20 rounded-2xl p-4 flex gap-3">
-          <X size={16} className="text-red-400 shrink-0 mt-0.5" />
+        <div className="mt-4 lg-surface lg-flat !rounded-2xl p-4 flex gap-3" data-tone="bad">
+          <X size={16} strokeWidth={1.5} className="text-[var(--lg-bad-text)] shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm text-red-300 font-medium mb-1">Fehler</p>
-            <p className="text-xs text-red-300/70">{errorMsg}</p>
+            <p className="text-sm text-[var(--lg-bad-text)] font-medium mb-1">Fehler</p>
+            <p className="text-xs text-[var(--lg-text-2)]">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* ── SUCCESS ─────────────────────────────────────────────────────────── */}
       {status === 'done' && (
-        <div className="mt-4 bg-emerald-950/30 border border-emerald-500/20 rounded-2xl p-4 flex gap-3">
-          <CheckCircle size={16} className="text-emerald-400 shrink-0 mt-0.5" />
-          <p className="text-sm text-emerald-300">{savedMsg}</p>
+        <div className="mt-4 lg-surface lg-flat !rounded-2xl p-4 flex gap-3">
+          <CheckCircle size={16} strokeWidth={1.5} className="text-[var(--lg-good-text)] shrink-0 mt-0.5" />
+          <p className="text-sm text-[var(--lg-text)]">{savedMsg}</p>
         </div>
       )}
 
       {/* ── PREVIEW ─────────────────────────────────────────────────────────── */}
       {showPreview && result && (
-        <div className="mt-5 bg-[#0B1220] border border-sky-500/20 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/[0.06]">
+        <div className="mt-6 lg-surface lg-flat !rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[var(--lg-hair)]">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[0.55rem] font-black uppercase tracking-[0.18em] text-sky-400/55"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}>KI-Vorschau — vor dem Speichern bearbeiten</p>
+              <p className="text-[13px] text-[var(--lg-text-3)]">KI-Vorschau — vor dem Speichern bearbeiten</p>
               <button type="button" onClick={() => { setResult(null); setStatus('idle') }}
-                className="text-slate-600 hover:text-slate-400 transition-colors"><X size={16} /></button>
+                className="text-[var(--lg-text-3)] hover:text-[var(--lg-text-2)] transition-colors"><X size={16} strokeWidth={1.5} /></button>
             </div>
             <div className="space-y-2">
               <div>
-                <label className="text-[0.52rem] uppercase tracking-widest text-slate-600 block mb-1"
-                  style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Name (editierbar)</label>
+                <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Name (editierbar)</label>
                 <input value={editedName} onChange={e => {
                   setEditedName(e.target.value)
                   setEditedSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))
-                }} className="w-full bg-[#111827] border border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none focus:border-sky-500/50 transition-colors" />
+                }} className="w-full bg-[var(--surface-input)] border border-[var(--lg-hair)] rounded-lg px-3 py-2 text-sm font-medium text-[var(--lg-text)] outline-none focus:border-[var(--accent-border)] transition-colors" />
               </div>
               <div>
-                <label className="text-[0.52rem] uppercase tracking-widest text-slate-600 block mb-1"
-                  style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Slug (URL)</label>
+                <label className="text-[13px] text-[var(--lg-text-3)] block mb-1">Slug (URL)</label>
                 <input value={editedSlug} onChange={e => setEditedSlug(e.target.value)}
-                  className="w-full bg-[#111827] border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-400 outline-none focus:border-sky-500/50 transition-colors"
-                  style={{ fontFamily: "'IBM Plex Mono', monospace" }} />
+                  className="w-full bg-[var(--surface-input)] border border-[var(--lg-hair)] rounded-lg px-3 py-2 font-mono text-xs text-[var(--lg-text-2)] outline-none focus:border-[var(--accent-border)] transition-colors" />
               </div>
             </div>
           </div>
-          <div className="px-5 py-3 border-b border-white/[0.06]"><EvidencePreview result={result} /></div>
+          <div className="px-5 py-3 border-b border-[var(--lg-hair)]"><EvidencePreview result={result} /></div>
           {Array.isArray(result.tags) && result.tags.length > 0 && (
-            <div className="px-5 py-3 border-b border-white/[0.06]">
-              <p className="text-[0.52rem] uppercase tracking-widest text-slate-600 mb-2"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}>Tags</p>
+            <div className="px-5 py-3 border-b border-[var(--lg-hair)]">
+              <p className="text-[13px] text-[var(--lg-text-3)] mb-2">Tags</p>
               <div className="flex flex-wrap gap-1.5">
                 {(result.tags as string[]).map((tag, i) => (
-                  <span key={i} className="text-[0.6rem] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20">{tag}</span>
+                  <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-[var(--lg-fill)] text-[var(--lg-text-2)]">{tag}</span>
                 ))}
               </div>
             </div>
@@ -602,11 +586,11 @@ export function AdminPanel() {
             <PreviewField label="Nebenwirkungen"   value={result.side_effects} />
             <PreviewField label="Wissenslücken"    value={result.research_gaps} />
           </div>
-          <div className="px-5 py-4 border-t border-white/[0.06] flex gap-3">
+          <div className="px-5 py-4 border-t border-[var(--lg-hair)] flex gap-3">
             <button type="button" onClick={() => { setResult(null); setStatus('idle') }} className="btn-secondary flex-1 text-sm">Verwerfen</button>
             <button type="button" onClick={tab === 'update' ? () => void saveUpdate() : () => void saveNew()}
               disabled={isSaving} className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm">
-              {isSaving ? <><Loader2 size={14} className="animate-spin" /> Speichern…</> : <><Save size={14} /> In Bibliothek speichern</>}
+              {isSaving ? <><Loader2 size={14} className="animate-spin" /> Speichern…</> : <><Save size={16} strokeWidth={1.5} /> In Bibliothek speichern</>}
             </button>
           </div>
         </div>

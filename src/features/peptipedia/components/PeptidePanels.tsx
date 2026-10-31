@@ -47,20 +47,20 @@ function SourceLinks({ sources, locale }: { sources: PeptipediaSource[]; locale:
   if (!sources.length) return null
   return <ul className="mt-3 overflow-hidden rounded-[16px] bg-[var(--lg-surface-2)] lg-rows">{sources.map(source => <li key={source.id} className="px-4 py-3">
     <a href={source.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1.5 text-[15px] leading-snug text-[var(--lg-accent-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lg-accent)] rounded-sm break-words">
-      <span>{source.title}</span><ExternalLink size={13} className="shrink-0 mt-1" />
+      <span>{source.title}</span><ExternalLink size={16} strokeWidth={1.5} className="shrink-0 mt-0.5" />
     </a>
     <div className="mt-2 flex flex-wrap items-center gap-2">
-      <span className="lg-tag !min-h-[22px] !px-2 !text-[12px]" data-tone="accent">{copy.kind[source.kind]}</span>
-      <span className="text-[13px] text-[var(--lg-text-3)]">{source.year}</span>
+      <span className="lg-tag !min-h-6 !px-2 !text-[12px]" data-tone="accent">{copy.kind[source.kind]}</span>
+      <span className="font-mono text-xs tabular-nums text-[var(--lg-text-3)]">{source.year}</span>
     </div>
-    <p className="mt-1.5 text-[13px] text-[var(--lg-text-2)]">{source.publisherOrAuthors}</p>
-    <p className="mt-0.5 text-[12px] text-[var(--lg-text-3)]">{copy.accessed}: <time dateTime={source.accessedAt}>{source.accessedAt}</time></p>
-    {source.kind === 'catalog' && <p className="mt-1.5 text-[12px] text-[var(--lg-warn-text)]">{copy.catalogueNote}</p>}
+    <p className="mt-2 text-[13px] text-[var(--lg-text-2)]">{source.publisherOrAuthors}</p>
+    <p className="mt-0.5 text-[12px] text-[var(--lg-text-3)]">{copy.accessed}: <time className="font-mono tabular-nums" dateTime={source.accessedAt}>{source.accessedAt}</time></p>
+    {source.kind === 'catalog' && <p className="mt-2 text-[12px] text-[var(--lg-warn-text)]">{copy.catalogueNote}</p>}
   </li>)}</ul>
 }
 
 function TextList({ items, empty }: { items: string[]; empty: string }) {
-  return items.length ? <ul className="space-y-2">{items.map(item => <li key={item} className="flex gap-2.5 text-[15px] text-[var(--lg-text-2)] leading-relaxed"><span className="text-[var(--lg-text-3)] shrink-0">·</span><span>{item}</span></li>)}</ul> : <p className="text-[15px] text-[var(--lg-text-2)] leading-relaxed">{empty}</p>
+  return items.length ? <ul className="space-y-2">{items.map(item => <li key={item} className="flex gap-2 text-[15px] text-[var(--lg-text-2)] leading-relaxed"><span className="text-[var(--lg-text-3)] shrink-0">·</span><span>{item}</span></li>)}</ul> : <p className="text-[15px] text-[var(--lg-text-2)] leading-relaxed">{empty}</p>
 }
 
 export function OverviewPanel({ peptide }: { peptide: PeptipediaView }) {
@@ -68,7 +68,7 @@ export function OverviewPanel({ peptide }: { peptide: PeptipediaView }) {
   const matrix = copy.evidence
   const approvals = peptide.approvals?.filter(approval => approval.status === 'approved') ?? []
   return <div className="space-y-6">
-    <SectionCard label={copy.headings.researchAreas}><div className="flex flex-wrap gap-2">{peptide.researchAreas.map(area => <span key={area} className="lg-tag !font-medium !whitespace-normal !py-1 leading-snug">{area}</span>)}</div></SectionCard>
+    <SectionCard label={copy.headings.researchAreas}><div className="flex flex-wrap gap-2">{peptide.researchAreas.map(area => <span key={area} className="lg-tag !whitespace-normal !py-1 leading-snug">{area}</span>)}</div></SectionCard>
     <SectionGroup label={matrix.heading} footer={matrix.note}>
       <dl className="lg-group lg-rows lg-flat relative">
         <EvidenceRow label={matrix.dimensions.identity} value={matrix.identity[peptide.identity.status]} detail={peptide.identity.description[peptide.locale]} />
@@ -114,5 +114,5 @@ export function SafetyPanel({ peptide }: { peptide: PeptipediaView }) {
 export function SourcesPanel({ peptide }: { peptide: PeptipediaView }) {
   const copy = PEPTIPEDIA_UI_COPY[peptide.locale]
   const versionLabel = peptide.locale === 'de' ? 'Fassung' : 'Version'
-  return <SectionCard label={copy.tabs.sources}><p className="text-[13px] text-[var(--lg-text-3)]">{copy.reviewed}: <time dateTime={peptide.reviewedAt}>{peptide.reviewedAt}</time> · {versionLabel} {peptide.contentVersion}</p><SourceLinks locale={peptide.locale} sources={peptide.sources} /></SectionCard>
+  return <SectionCard label={copy.tabs.sources}><p className="text-[13px] text-[var(--lg-text-3)]">{copy.reviewed}: <time className="font-mono tabular-nums" dateTime={peptide.reviewedAt}>{peptide.reviewedAt}</time> · {versionLabel} {peptide.contentVersion}</p><SourceLinks locale={peptide.locale} sources={peptide.sources} /></SectionCard>
 }

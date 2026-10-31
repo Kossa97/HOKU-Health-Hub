@@ -15,83 +15,31 @@ import { denyProps } from '../../lib/denyFeedback'
 
 // ─── Style Configs ────────────────────────────────────────────────────────────
 
-interface StudyTypeConfig {
-  badge:     string
-}
-
-const STUDY_TYPE_CONFIG: Record<StudyType, StudyTypeConfig> = {
-  clinical: {
-    badge:     'bg-violet-500/15 text-violet-300',
-  },
-  meta: {
-    badge:     'bg-blue-500/15 text-blue-300',
-  },
-  human: {
-    badge:     'bg-emerald-500/15 text-emerald-300',
-  },
-  animal: {
-    badge:     'bg-orange-500/15 text-orange-300',
-  },
-  study: {
-    badge:     'bg-slate-700/50 text-[var(--lg-text-2)]',
-  },
-}
-
+// Evidenz ist eine Rangfolge: ein Punkt in Ampelfarbe, die Spur füllt sich
+// in Vierteln. Alles andere bleibt neutral.
 interface EvidenceConfig {
-  badge:     string
-  textColor: string
-  barColor:  string
-  barWidth:  string
-  dotGlow:   string
+  dot:      string
+  barWidth: string
 }
 
 const EVIDENCE_CONFIG: Record<EvidenceScore, EvidenceConfig> = {
-  strong: {
-    badge:     'bg-emerald-500/15 text-emerald-300',
-    textColor: 'text-emerald-300',
-    barColor:  'bg-emerald-500',
-    barWidth:  'w-full',
-    dotGlow:   'bg-emerald-400',
-  },
-  moderate: {
-    badge:     'bg-amber-500/15 text-amber-300',
-    textColor: 'text-amber-300',
-    barColor:  'bg-amber-500',
-    barWidth:  'w-2/3',
-    dotGlow:   'bg-amber-400',
-  },
-  preclinical: {
-    badge:     'bg-rose-500/15 text-rose-300',
-    textColor: 'text-rose-300',
-    barColor:  'bg-rose-500',
-    barWidth:  'w-1/3',
-    dotGlow:   'bg-rose-400',
-  },
-  unknown: {
-    badge:     'bg-slate-700/40 text-[var(--lg-text-2)]',
-    textColor: 'text-[var(--lg-text-2)]',
-    barColor:  'bg-slate-600',
-    barWidth:  'w-1/4',
-    dotGlow:   'bg-slate-500',
-  },
+  strong:      { dot: 'var(--lg-good)', barWidth: '100%' },
+  moderate:    { dot: 'var(--lg-warn)', barWidth: '70%' },
+  preclinical: { dot: 'var(--lg-bad)',  barWidth: '30%' },
+  unknown:     { dot: 'var(--lg-text-3)', barWidth: '20%' },
 }
 
-// Peptide pill tag colors
-const PEPTIDE_TAG_COLORS: Record<string, string> = {
-  'BPC-157':    'bg-sky-500/10 text-sky-300',
-  'TB-500':     'bg-violet-500/10 text-violet-300',
-  'Ipamorelin': 'bg-emerald-500/10 text-emerald-300',
-  'CJC-1295':   'bg-orange-500/10 text-orange-300',
-  'Semaglutide':'bg-teal-500/10 text-teal-300',
-  'Tirzepatide':'bg-indigo-500/10 text-indigo-300',
-  'Selank':     'bg-pink-500/10 text-pink-300',
-  'Epithalon':  'bg-amber-500/10 text-amber-300',
-}
+const KNOWN_PEPTIDES = [
+  'BPC-157', 'TB-500', 'Ipamorelin', 'CJC-1295',
+  'Semaglutide', 'Tirzepatide', 'Selank', 'Epithalon',
+]
+
+const TAG = 'inline-flex items-center rounded-md bg-[var(--lg-fill)] px-2 py-0.5 text-xs text-[var(--lg-text-2)]'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function detectTags(title: string): string[] {
-  return Object.keys(PEPTIDE_TAG_COLORS).filter(p =>
+  return KNOWN_PEPTIDES.filter(p =>
     title.toUpperCase().includes(p.toUpperCase())
   )
 }
@@ -103,25 +51,20 @@ function formatAuthors(authors: string[]): string {
 
 // ─── Sub-Components ───────────────────────────────────────────────────────────
 
-function StudyTypeBadge({ type }: { type: StudyType }) {
+export function StudyTypeBadge({ type }: { type: StudyType }) {
   const { t } = useTranslation()
-  return (
-    <span
-      className={`inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-md ${STUDY_TYPE_CONFIG[type].badge}`}
-    >
-      {t(getStudyTypeLabel(type))}
-    </span>
-  )
+  return <span className={TAG}>{t(getStudyTypeLabel(type))}</span>
 }
 
-function EvidencePill({ score }: { score: EvidenceScore }) {
+export function EvidencePill({ score }: { score: EvidenceScore }) {
   const { t } = useTranslation()
-  const c = EVIDENCE_CONFIG[score]
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full ${c.badge}`}
-    >
-      <span className={`w-1 h-1 rounded-full shrink-0 ${c.dotGlow}`} />
+    <span className="inline-flex items-center gap-1.5 text-xs text-[var(--lg-text-2)]">
+      <span
+        aria-hidden="true"
+        className="h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ background: EVIDENCE_CONFIG[score].dot }}
+      />
       {t(getEvidenceLabel(score))}
     </span>
   )
@@ -132,22 +75,13 @@ function EvidenceBar({ score }: { score: EvidenceScore }) {
   const c = EVIDENCE_CONFIG[score]
   return (
     <div className="flex items-center gap-3">
-      <span
-        className="text-[11px] uppercase tracking-[0.04em] text-[var(--lg-text-3)] shrink-0"
-      >
+      <span className="shrink-0 text-[13px] text-[var(--lg-text-3)]">
         {t('lab_evidence_bar_label')}
       </span>
-      <div className="flex-1 h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${c.barColor} ${c.barWidth}`} />
+      <div className="hk-scale h-1 flex-1 overflow-hidden rounded-full bg-[var(--lg-fill)]">
+        <div className="h-full rounded-full" style={{ width: c.barWidth, background: c.dot }} />
       </div>
-      <div className={`flex items-center gap-1.5 ${c.textColor}`}>
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dotGlow}`} />
-        <span
-          className="text-[11px] font-semibold uppercase tracking-[0.04em]"
-        >
-          {t(getEvidenceLabel(score))}
-        </span>
-      </div>
+      <EvidencePill score={score} />
     </div>
   )
 }
@@ -157,35 +91,19 @@ function PeptideTags({ tags }: { tags: string[] }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {tags.map(tag => (
-        <span
-          key={tag}
-          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-            PEPTIDE_TAG_COLORS[tag] ?? 'bg-slate-700/40 text-[var(--lg-text-2)]'
-          }`}
-        >
-          {tag}
-        </span>
+        <span key={tag} className={TAG}>{tag}</span>
       ))}
     </div>
   )
 }
 
-function SectionDivider({ label, suffix }: { label: string; suffix?: string }) {
+function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span
-        className="text-[11px] font-semibold uppercase tracking-[0.04em] text-sky-400/55 shrink-0"
-      >
+      <span className="shrink-0 text-[13px] text-[var(--lg-text-3)]">
         {label}
       </span>
-      <div className="flex-1 h-px bg-white/[0.05]" />
-      {suffix && (
-        <span
-          className="text-[11px] text-[var(--lg-text-3)] uppercase tracking-[0.04em] shrink-0"
-        >
-          {suffix}
-        </span>
-      )}
+      <div className="h-px flex-1 bg-[var(--lg-hair)]" />
     </div>
   )
 }
@@ -217,7 +135,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
     return (
       <article
-        className="group lg-surface lg-flat mb-5 cursor-pointer overflow-hidden transition-transform duration-200 active:scale-[0.99]"
+        className="lg-surface lg-flat mb-4 cursor-pointer overflow-hidden transition-transform duration-200 active:scale-[0.98]"
         onClick={openDetail}
       >
 
@@ -230,9 +148,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
               <EvidencePill score={evidenceScore} />
             </div>
             {article.pubdate && (
-              <span
-                className="text-[11px] text-[var(--lg-text-3)] shrink-0 mt-0.5"
-              >
+              <span className="mt-0.5 shrink-0 font-mono text-xs tabular-nums text-[var(--lg-text-3)]">
                 {article.pubdate}
               </span>
             )}
@@ -241,23 +157,23 @@ export function StudyCard({ article, variant }: StudyCardProps) {
           {/* ── Title + Authors ───────────────────────────────────────────── */}
           <div>
             <h2
-              className="text-[19px] font-semibold text-[var(--lg-text)] leading-snug mb-1.5 group-hover:text-sky-50 transition-colors duration-200"
+              className="mb-1 text-[19px] font-medium leading-snug text-[var(--lg-text)]"
             >
               {article.title}
             </h2>
             {(article.authors.length > 0 || article.journal) && (
-              <p className="text-xs text-[var(--lg-text-2)]">
+              <p className="text-[13px] text-[var(--lg-text-2)]">
                 {article.authors.length > 0 && formatAuthors(article.authors)}
                 {article.journal && (
-                  <span className="text-sky-400/50"> · {article.journal}</span>
+                  <span className="text-[var(--lg-text-3)]"> · {article.journal}</span>
                 )}
               </p>
             )}
           </div>
 
-          {/* ── AI Summary ───────────────────────────────────────────────── */}
+          {/* ── Abstract-Auszug ───────────────────────────────────────────── */}
           <div>
-            <SectionDivider label={t('lab_summary')} suffix="AI" />
+            <SectionDivider label={t('lab_summary')} />
             <p className="text-sm text-[var(--lg-text)] leading-relaxed mt-2">{snippet}</p>
           </div>
 
@@ -267,8 +183,8 @@ export function StudyCard({ article, variant }: StudyCardProps) {
               <SectionDivider label={t('lab_key_findings')} />
               <ul className="space-y-2 mt-2">
                 {keyFindings.slice(0, 3).map((f, i) => (
-                  <li key={i} className="flex gap-2.5 text-xs text-[var(--lg-text-2)] leading-relaxed">
-                    <ArrowRight size={11} className="text-sky-400/40 shrink-0 mt-0.5" />
+                  <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-[var(--lg-text-2)]">
+                    <span aria-hidden="true" className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-[var(--lg-text-3)]" />
                     <span>{f.endsWith('.') ? f : `${f}.`}</span>
                   </li>
                 ))}
@@ -287,23 +203,20 @@ export function StudyCard({ article, variant }: StudyCardProps) {
             <button
               type="button"
               onClick={openDetail}
-              className="btn-primary text-sm flex-1 flex items-center justify-center gap-2 group/btn"
+              className="btn-primary text-sm flex-1 flex items-center justify-center gap-2"
             >
               {t('lab_read_summary')}
-              <ArrowRight
-                size={14}
-                className="opacity-60 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 transition-all duration-200"
-              />
+              <ArrowRight size={16} strokeWidth={1.5} />
             </button>
             {article.link && (
               <a
                 href={article.link}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-secondary flex items-center justify-center px-3 hover:text-sky-400 transition-colors"
+                className="btn-secondary flex items-center justify-center px-3 transition-colors hover:text-[var(--lg-accent-text)]"
                 title="PubMed"
               >
-                <ExternalLink size={14} />
+                <ExternalLink size={16} strokeWidth={1.5} />
               </a>
             )}
           </div>
@@ -315,12 +228,12 @@ export function StudyCard({ article, variant }: StudyCardProps) {
   // ── Compact Card ──────────────────────────────────────────────────────────
   return (
     <article
-      className="group lg-surface lg-flat !rounded-[22px] p-4 cursor-pointer transition-transform duration-200 active:scale-[0.99]"
+      className="lg-surface lg-flat !rounded-2xl p-4 cursor-pointer transition-transform duration-200 active:scale-[0.98]"
       onClick={openDetail}
     >
       {/* Badges + Date */}
       <div
-        className="flex items-start justify-between gap-2 mb-2.5"
+        className="mb-3 flex items-start justify-between gap-2"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex flex-wrap items-center gap-1.5">
@@ -328,9 +241,7 @@ export function StudyCard({ article, variant }: StudyCardProps) {
           <EvidencePill score={evidenceScore} />
         </div>
         {article.pubdate && (
-          <span
-            className="text-[11px] text-[var(--lg-text-3)] shrink-0"
-          >
+          <span className="shrink-0 font-mono text-xs tabular-nums text-[var(--lg-text-3)]">
             {article.pubdate}
           </span>
         )}
@@ -338,15 +249,14 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
       {/* Title */}
       <h2
-        className="text-[16px] font-semibold text-[var(--lg-text)] leading-snug line-clamp-2 mb-2
-          group-hover:text-sky-50 transition-colors duration-200"
+        className="mb-2 line-clamp-2 text-[16px] font-medium leading-snug text-[var(--lg-text)]"
       >
         {article.title}
       </h2>
 
       {/* Abstract snippet */}
       {article.abstract && (
-        <p className="text-xs text-[var(--lg-text-2)] line-clamp-2 leading-relaxed mb-2.5">
+        <p className="mb-3 line-clamp-2 text-[13px] leading-relaxed text-[var(--lg-text-2)]">
           {article.abstract.length > 130
             ? `${article.abstract.slice(0, 130).trim()}…`
             : article.abstract}
@@ -357,8 +267,8 @@ export function StudyCard({ article, variant }: StudyCardProps) {
       {keyFindings.length > 0 && (
         <ul className="space-y-1 mb-3">
           {keyFindings.slice(0, 2).map((f, i) => (
-            <li key={i} className="flex gap-1.5 text-xs text-[var(--lg-text-3)] leading-snug">
-              <ArrowRight size={9} className="text-sky-400/35 shrink-0 mt-0.5" />
+            <li key={i} className="flex gap-2 text-xs leading-snug text-[var(--lg-text-3)]">
+              <span aria-hidden="true" className="mt-[6px] h-1 w-1 shrink-0 rounded-full bg-[var(--lg-text-3)]" />
               <span className="line-clamp-1">{f}</span>
             </li>
           ))}
@@ -374,15 +284,15 @@ export function StudyCard({ article, variant }: StudyCardProps) {
 
       {/* Footer: Save + PubMed */}
       <div
-        className="flex items-center justify-between pt-2.5 border-t border-[var(--lg-separator)]"
+        className="flex items-center justify-between border-t border-[var(--lg-separator)] pt-3"
         onClick={e => e.stopPropagation()}
       >
         <button
           type="button"
-          className="flex items-center gap-1.5 text-xs text-[var(--lg-text-3)] transition-colors"
+          className="flex min-h-8 items-center gap-1.5 text-[13px] text-[var(--lg-text-3)] transition-colors"
           {...denyProps(true, String(t('lab_save_soon', { defaultValue: 'Studien merken kommt bald.' })))}
         >
-          <Bookmark size={11} />
+          <Bookmark size={16} strokeWidth={1.5} />
           {t('lab_save')}
         </button>
         {article.link && (
@@ -390,14 +300,10 @@ export function StudyCard({ article, variant }: StudyCardProps) {
             href={article.link}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-[var(--lg-text-3)] hover:text-sky-400 transition-colors duration-150"
+            className="flex min-h-8 items-center gap-1.5 text-[13px] text-[var(--lg-text-3)] transition-colors duration-150 hover:text-[var(--lg-accent-text)]"
           >
-            <ExternalLink size={12} />
-            <span
-              className="text-[11px] opacity-0 group-hover:opacity-60 transition-opacity duration-200"
-            >
-              PubMed
-            </span>
+            PubMed
+            <ExternalLink size={16} strokeWidth={1.5} />
           </a>
         )}
       </div>

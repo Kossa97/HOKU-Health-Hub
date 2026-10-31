@@ -8,36 +8,18 @@ import type { PubMedArticle } from './lab/pubmed'
 import {
   getEvidenceScore,
   getStudyType,
-  getStudyTypeLabel,
-  getEvidenceLabel,
   getEvidenceContext,
   getKeyFindings,
   getLimitationsAndRisks,
   getDefaultLimitationKey,
 } from './lab/labUtils'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
-
-const STUDY_TYPE_STYLES: Record<string, string> = {
-  clinical: 'bg-violet-500/15 text-violet-400',
-  meta:     'bg-blue-500/15 text-blue-400',
-  human:    'bg-emerald-500/15 text-emerald-400',
-  animal:   'bg-orange-500/15 text-orange-400',
-  study:    'bg-slate-700/40 text-[var(--lg-text-2)]',
-}
-
-const EVIDENCE_STYLES: Record<string, string> = {
-  strong:      'bg-emerald-500/15 text-emerald-400',
-  moderate:    'bg-yellow-500/15 text-yellow-400',
-  preclinical: 'bg-red-500/15 text-red-400',
-  unknown:     'bg-slate-700/40 text-[var(--lg-text-2)]',
-}
+import { EvidencePill, StudyTypeBadge } from './lab/StudyCard'
 
 function SectionCard({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="lg-surface lg-flat p-5">
-      <p
-        className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)] mb-3"
-      >
+      <p className="mb-3 text-[13px] text-[var(--lg-text-3)]">
         {label}
       </p>
       {children}
@@ -57,7 +39,8 @@ export function StudyDetail() {
       <div className="text-center py-16">
         <p className="text-[var(--lg-text-2)] text-sm mb-4">{t('lab_study_not_found')}</p>
         <button type="button" onClick={() => navigate('/lab')} className="btn-secondary text-sm">
-          ← {t('lab_back_to_research')}
+          <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+          {t('lab_back_to_research')}
         </button>
       </div>
     )
@@ -89,28 +72,16 @@ export function StudyDetail() {
       {/* Header */}
       <div>
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
-          >
-            {t(getStudyTypeLabel(studyType))}
-          </span>
-          <span
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
-          >
-            {t(getEvidenceLabel(evidenceScore))}
-          </span>
+          <StudyTypeBadge type={studyType} />
+          <EvidencePill score={evidenceScore} />
           {article.pubdate && (
-            <span
-              className="text-[11px] text-[var(--lg-text-3)]"
-            >
+            <span className="font-mono text-xs tabular-nums text-[var(--lg-text-3)]">
               {article.pubdate}
             </span>
           )}
         </div>
 
-        <h1
-          className="text-[26px] font-bold leading-tight tracking-[0.01em] text-[var(--lg-text)] mb-2"
-        >
+        <h1 className="mb-2 text-[24px] font-medium leading-tight text-[var(--lg-text)]">
           {article.title}
         </h1>
 
@@ -122,7 +93,7 @@ export function StudyDetail() {
               </span>
             )}
             {article.journal && (
-              <span className="text-[var(--lg-accent-text)]"> · {article.journal}</span>
+              <span className="text-[var(--lg-text-3)]"> · {article.journal}</span>
             )}
           </p>
         )}
@@ -141,7 +112,7 @@ export function StudyDetail() {
           <ul className="space-y-2">
             {keyFindings.map((finding, i) => (
               <li key={i} className="flex gap-3 text-sm text-[var(--lg-text)]">
-                <span className="text-sky-400/60 shrink-0 mt-0.5">•</span>
+                <span aria-hidden="true" className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-[var(--lg-text-3)]" />
                 <span>{finding.endsWith('.') ? finding : `${finding}.`}</span>
               </li>
             ))}
@@ -154,8 +125,8 @@ export function StudyDetail() {
         {limitations.length > 0 ? (
           <ul className="space-y-2">
             {limitations.map((line, i) => (
-              <li key={i} className="flex gap-3 text-sm text-amber-200/80">
-                <span className="text-amber-400/60 shrink-0 mt-0.5">!</span>
+              <li key={i} className="flex gap-3 text-sm text-[var(--lg-text)]">
+                <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lg-warn)]" />
                 <span>{line.endsWith('.') ? line : `${line}.`}</span>
               </li>
             ))}
@@ -169,23 +140,15 @@ export function StudyDetail() {
       <SectionCard label={t('lab_evidence_analysis')}>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--lg-text-2)]">{t('lab_study_type_label')}</span>
-            <span
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${STUDY_TYPE_STYLES[studyType]}`}
-            >
-              {t(getStudyTypeLabel(studyType))}
-            </span>
+            <span className="text-[13px] text-[var(--lg-text-2)]">{t('lab_study_type_label')}</span>
+            <StudyTypeBadge type={studyType} />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--lg-text-2)]">{t('lab_evidence_level')}</span>
-            <span
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${EVIDENCE_STYLES[evidenceScore]}`}
-            >
-              {t(getEvidenceLabel(evidenceScore))}
-            </span>
+            <span className="text-[13px] text-[var(--lg-text-2)]">{t('lab_evidence_level')}</span>
+            <EvidencePill score={evidenceScore} />
           </div>
           <div className="border-t-[0.5px] border-[var(--lg-separator)] pt-3">
-            <p className="text-xs text-[var(--lg-text-2)] leading-relaxed">
+            <p className="text-[13px] text-[var(--lg-text-2)] leading-relaxed">
               {t(getEvidenceContext(evidenceScore))}
             </p>
           </div>
@@ -199,12 +162,12 @@ export function StudyDetail() {
           onClick={() => setAbstractOpen(o => !o)}
           className="flex items-center justify-between w-full min-h-[52px] px-5 text-left"
         >
-          <span className="text-[16px] font-semibold text-[var(--lg-text)]">
+          <span className="text-[16px] font-medium text-[var(--lg-text)]">
             {t('lab_original_abstract')}
           </span>
           {abstractOpen
-            ? <ChevronUp size={14} className="text-[var(--lg-text-2)]" />
-            : <ChevronDown size={14} className="text-[var(--lg-text-2)]" />
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-[var(--lg-text-2)]" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-[var(--lg-text-2)]" />
           }
         </button>
         {abstractOpen && (
@@ -224,7 +187,7 @@ export function StudyDetail() {
           rel="noreferrer"
           className="lg-btn lg-btn-primary w-full"
         >
-          {t('lab_open_pubmed')} <ExternalLink size={14} />
+          {t('lab_open_pubmed')} <ExternalLink size={16} strokeWidth={1.5} />
         </a>
       )}
     </div>

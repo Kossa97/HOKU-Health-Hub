@@ -167,7 +167,7 @@ export function ReviewSheet({
           <div className="flex items-center justify-between pl-5 pr-2 pt-1 pb-1">
             <h3 className="lg-title2">{titel}</h3>
             <button ref={kreuzRef} type="button" onClick={kreuz} data-app-back-close aria-label={String(t('review_close'))} className="lg-icon-btn !text-[var(--lg-text-2)]">
-              <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--lg-fill)]"><X size={16} strokeWidth={1.5} aria-hidden="true" /></span>
             </button>
           </div>
 
@@ -218,7 +218,7 @@ export function ReviewSheet({
                 </AuswahlZeile>
               </div>
               {kontext && (
-                <p data-review-context className="mt-3 rounded-[14px] bg-[var(--lg-surface-2)] px-3.5 py-2.5 text-[15px] text-[var(--lg-text)]">
+                <p data-review-context className="mt-3 rounded-[14px] bg-[var(--lg-surface-2)] px-4 py-3 text-[15px] text-[var(--lg-text)]">
                   {[kontext.zeitraum, kontext.dauer, kontext.dosis, kontext.rhythmus].filter(Boolean).map((teil, index) => (
                     // Jede Angabe am Stueck: „250 mcg" bricht nicht zwischen Zahl und Einheit,
                     // umbrochen wird nur zwischen den Angaben.
@@ -272,7 +272,7 @@ export function ReviewSheet({
                 </Feld>
                 {/* Positiv und Negativ teilen sich ein Feld; der Punkt am Tab sagt, wo schon Text steht. */}
                 <div className="space-y-2">
-                  <div role="tablist" aria-label={`${t('review_positive')} / ${t('review_negative')}`} className="grid grid-cols-2 gap-0.5 rounded-full bg-[var(--lg-fill)] p-0.5">
+                  <div role="tablist" aria-label={`${t('review_positive')} / ${t('review_negative')}`} className="grid grid-cols-2 gap-0.5 rounded-[10px] bg-[var(--lg-fill)] p-0.5">
                     {(['pos', 'neg'] as const).map(key => {
                       const an = tab === key
                       const text = key === 'pos' ? draft.pros : draft.cons
@@ -285,11 +285,11 @@ export function ReviewSheet({
                           aria-selected={an}
                           aria-controls={`${tabId}-feld`}
                           onClick={() => setTab(key)}
-                          className={`flex h-9 items-center justify-center gap-1.5 rounded-full text-[15px] font-semibold transition-colors ${an
-                            ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                          className={`flex h-9 items-center justify-center gap-1.5 rounded-lg text-[15px] font-medium transition-colors ${an
+                            ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
                             : 'text-[var(--lg-text-2)]'}`}
                         >
-                          <span aria-hidden="true" className={`font-bold ${key === 'pos' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-bad-text)]'}`}>{key === 'pos' ? '+' : '−'}</span>
+                          <span aria-hidden="true" className={`font-medium ${key === 'pos' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-bad-text)]'}`}>{key === 'pos' ? '+' : '−'}</span>
                           {key === 'pos' ? t('review_positive') : t('review_negative')}
                           {text.trim() && <span aria-hidden="true" data-review-tab-filled className={`h-1.5 w-1.5 rounded-full ${key === 'pos' ? 'bg-[var(--lg-good)]' : 'bg-[var(--lg-bad)]'}`} />}
                         </button>
@@ -314,11 +314,11 @@ export function ReviewSheet({
               aria-describedby={publicHinweisId}
               data-review-public
               onClick={() => setze({ is_public: !draft.is_public })}
-              className="flex w-full items-center gap-3 rounded-[16px] bg-[var(--lg-surface-2)] px-3.5 py-3 text-left transition-transform duration-100 ease-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
+              className="flex w-full items-center gap-3 rounded-[14px] bg-[var(--lg-surface-2)] px-4 py-3 text-left transition-transform duration-100 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
             >
               <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5 text-[16px] font-semibold text-[var(--lg-text)]">
-                  {draft.is_public ? <Globe size={14} aria-hidden="true" /> : <Lock size={14} aria-hidden="true" />}
+                <span className="flex items-center gap-2 text-[16px] font-medium text-[var(--lg-text)]">
+                  {draft.is_public ? <Globe size={16} strokeWidth={1.5} aria-hidden="true" /> : <Lock size={16} strokeWidth={1.5} aria-hidden="true" />}
                   {t('review_public')}
                 </span>
                 <span id={publicHinweisId} className="mt-0.5 block text-[13px] text-[var(--lg-text-2)]">
@@ -332,14 +332,14 @@ export function ReviewSheet({
             {/* Das Fazit zuletzt: erst erinnern, wie es war, dann urteilen. */}
             <section
               data-review-verdict
-              className={`rounded-[16px] bg-[var(--lg-surface-2)] px-4 pb-2.5 pt-3.5 transition-shadow ${erinnert && fehltSterne ? 'shadow-[inset_0_0_0_1.5px_var(--lg-bad)]' : ''}`}
+              className={`rounded-[14px] bg-[var(--lg-surface-2)] px-4 pb-3 pt-4 transition-shadow ${erinnert && fehltSterne ? 'shadow-[inset_0_0_0_1.5px_var(--lg-bad)]' : ''}`}
             >
-              <h4 className={`mb-1 flex items-baseline gap-2 text-[13px] font-semibold uppercase tracking-[0.04em] ${erinnert && fehltSterne ? 'text-[var(--lg-bad-text)]' : 'text-[var(--lg-text-3)]'}`}>
+              <h4 className={`mb-1 flex items-baseline gap-2 text-[13px] font-medium ${erinnert && fehltSterne ? 'text-[var(--lg-bad-text)]' : 'text-[var(--lg-text-3)]'}`}>
                 {t('review_overall')}
-                <span className="font-medium normal-case tracking-normal text-[var(--lg-text-3)]">{t('review_verdict_hint')}</span>
+                <span className="font-normal text-[var(--lg-text-3)]">{t('review_verdict_hint')}</span>
               </h4>
               <Sterne wert={draft.rating} onChange={rating => setze({ rating })} />
-              <p data-review-verdict-word className="mt-0.5 min-h-[18px] text-[13px] text-[var(--lg-text-2)]">
+              <p data-review-verdict-word className="mt-0.5 min-h-5 text-[13px] text-[var(--lg-text-2)]">
                 {draft.rating ? t(`review_verdict_${draft.rating}`) : t('review_verdict_prompt')}
               </p>
             </section>
@@ -400,12 +400,12 @@ function AuswahlZeile({ label, wert, leer = false, fehlt = false, gesperrt = fal
 }) {
   return (
     <label
-      className={`relative flex min-h-12 items-center justify-between gap-3 pl-4 pr-3.5 transition-colors focus-within:shadow-[inset_0_0_0_2px_var(--lg-accent)] ${gesperrt ? 'opacity-45' : 'cursor-pointer active:bg-white/[0.06]'}`}
+      className={`relative flex min-h-12 items-center justify-between gap-3 pl-4 pr-3 transition-colors focus-within:shadow-[inset_0_0_0_2px_var(--lg-accent)] ${gesperrt ? 'opacity-45' : 'cursor-pointer active:bg-[var(--lg-fill)]'}`}
     >
       <span className={`shrink-0 text-[16px] ${fehlt ? 'text-[var(--lg-bad-text)]' : 'text-[var(--lg-text)]'}`}>{label}</span>
       <span className={`flex min-w-0 items-center gap-1.5 text-[16px] ${leer ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text-2)]'}`}>
         <span className="truncate">{wert}</span>
-        <ChevronsUpDown size={15} aria-hidden="true" className="shrink-0" />
+        <ChevronsUpDown size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
       </span>
       <span className="absolute inset-0 [&>select]:h-full [&>select]:w-full [&>select]:cursor-pointer [&>select]:appearance-none [&>select]:opacity-0 [&>select]:text-[16px] [&>select:disabled]:cursor-not-allowed">
         {children}
@@ -417,9 +417,9 @@ function AuswahlZeile({ label, wert, leer = false, fehlt = false, gesperrt = fal
 function Abschnitt({ titel, zusatz, children }: { titel: string; zusatz?: string; children: ReactNode }) {
   return (
     <section>
-      <h4 className="mb-2 flex items-baseline gap-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">
+      <h4 className="mb-2 flex items-baseline gap-2 text-[13px] font-medium text-[var(--lg-text-3)]">
         {titel}
-        {zusatz && <span className="font-medium normal-case tracking-normal text-[var(--lg-text-3)]">{zusatz}</span>}
+        {zusatz && <span className="font-normal text-[var(--lg-text-3)]">{zusatz}</span>}
       </h4>
       {children}
     </section>
@@ -454,7 +454,7 @@ function Chips({ name, optionen, wert, onChange }: {
             role="radio"
             aria-checked={aktiv}
             onClick={() => onChange(option.wert)}
-            className={`min-h-[40px] rounded-full px-3.5 text-[15px] font-semibold transition-colors ${aktiv
+            className={`min-h-10 rounded-lg px-3 text-[15px] transition-colors ${aktiv
               ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]'
               : 'bg-[var(--lg-fill)] text-[var(--lg-text)]'}`}
           >
@@ -540,10 +540,11 @@ function Sterne({ wert, onChange }: { wert: number | null; onChange: (wert: numb
             aria-checked={wert === stern}
             aria-label={String(t(stern === 1 ? 'review_star_one' : 'review_star_many', { n: stern }))}
             onClick={() => onChange(stern)}
-            className="grid h-11 w-11 place-items-center rounded-xl transition-transform duration-100 ease-out active:scale-90"
+            className="grid h-11 w-11 place-items-center rounded-xl transition-transform duration-100 ease-out active:scale-[0.92]"
           >
             <Star
               size={30}
+              strokeWidth={1.5}
               aria-hidden="true"
               className={`transition-colors duration-150 ${an ? 'text-amber-400' : 'text-[var(--lg-text-3)]'}`}
               fill={an ? 'currentColor' : 'transparent'}
@@ -565,7 +566,7 @@ function Stufen({ name, wert, onChange, links, rechts }: {
 }) {
   return (
     <div>
-      <div role="radiogroup" aria-label={name} className="grid grid-cols-5 gap-0.5 rounded-full bg-[var(--lg-fill)] p-0.5">
+      <div role="radiogroup" aria-label={name} className="grid grid-cols-5 gap-0.5 rounded-[10px] bg-[var(--lg-fill)] p-0.5">
         {[1, 2, 3, 4, 5].map(stufe => {
           const aktiv = wert === stufe
           return (
@@ -577,8 +578,8 @@ function Stufen({ name, wert, onChange, links, rechts }: {
               aria-label={`${name}: ${stufe} / 5`}
               data-stufe-darunter={(wert !== null && stufe < wert) || undefined}
               onClick={() => onChange(aktiv ? null : stufe)}
-              className={`h-10 rounded-full text-[15px] font-semibold tabular-nums transition-colors ${aktiv
-                ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+              className={`h-10 rounded-lg font-mono text-[15px] tabular-nums transition-colors ${aktiv
+                ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
                 : wert !== null && stufe < wert
                   ? 'text-[var(--lg-accent-text)]'
                   : 'text-[var(--lg-text-2)]'}`}
@@ -588,7 +589,7 @@ function Stufen({ name, wert, onChange, links, rechts }: {
           )
         })}
       </div>
-      <div className="mt-1.5 flex justify-between px-1 text-[12px] text-[var(--lg-text-3)]">
+      <div className="mt-2 flex justify-between px-1 text-xs text-[var(--lg-text-3)]">
         <span>{links}</span>
         <span>{rechts}</span>
       </div>

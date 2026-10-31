@@ -97,7 +97,7 @@ export function TheLab() {
           body={t('lab_disclaimer_body')}
         />
 
-        {/* Cinematic Hero */}
+        {/* Kopf: Titel, Suche, Schnellsuche */}
         <LabHero onSearch={handleHeroSearch} loading={loading} />
 
         {/* Research Snapshot */}
@@ -117,11 +117,11 @@ export function TheLab() {
             type="button"
             onClick={() => setFilterSheetOpen(true)}
             data-quiet={activeFilterCount === 0 || undefined}
-            className="lg-gray-btn relative !min-h-9 !px-3.5 !text-[14px]"
+            className="lg-gray-btn !min-h-9 !px-3 !text-[14px]"
           >
             {t('lab_filter_button')}
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--lg-accent)] px-1 text-[11px] font-bold text-black">
+              <span className="ml-1.5 font-mono text-[13px] tabular-nums text-[var(--lg-accent-text)]">
                 {activeFilterCount}
               </span>
             )}

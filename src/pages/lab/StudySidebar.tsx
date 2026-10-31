@@ -9,9 +9,7 @@ interface StudySidebarProps {
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p
-      className="text-[11px] uppercase tracking-widest text-[var(--lg-text-3)] mb-2"
-    >
+    <p className="mb-2 text-[13px] text-[var(--lg-text-3)]">
       {children}
     </p>
   )
@@ -24,13 +22,13 @@ function FilterOption({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 text-xs w-full text-left py-0.5 transition-colors duration-150 ${
-        active ? 'text-sky-400' : 'text-[var(--lg-text-2)] hover:text-[var(--lg-text)]'
+      className={`flex min-h-8 w-full items-center gap-2 text-left text-[13px] transition-colors duration-150 ${
+        active ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-2)] hover:text-[var(--lg-text)]'
       }`}
     >
       <span
         className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-150 ${
-          active ? 'bg-sky-400 shadow-[0_0_6px_rgba(0,204,245,0.6)]' : 'bg-slate-700'
+          active ? 'bg-[var(--accent)]' : 'bg-[var(--lg-fill)]'
         }`}
       />
       {label}
@@ -55,7 +53,7 @@ export function StudySidebar({ filters, onFilterChange }: StudySidebarProps) {
 
   return (
     <aside className="space-y-6">
-      <div className="space-y-1.5">
+      <div>
         <SectionLabel>{t('lab_filter_studytype')}</SectionLabel>
         {studyTypeOptions.map(opt => (
           <FilterOption
@@ -67,7 +65,7 @@ export function StudySidebar({ filters, onFilterChange }: StudySidebarProps) {
         ))}
       </div>
 
-      <div className="space-y-1.5">
+      <div>
         <SectionLabel>{t('lab_filter_sort')}</SectionLabel>
         {(['date', 'relevance'] as SortMode[]).map(s => (
           <FilterOption
@@ -79,7 +77,7 @@ export function StudySidebar({ filters, onFilterChange }: StudySidebarProps) {
         ))}
       </div>
 
-      <div className="space-y-1.5">
+      <div>
         <SectionLabel>{t('lab_filter_year')}</SectionLabel>
         {(['all', '2024plus', '2025'] as YearFilter[]).map(y => (
           <FilterOption

@@ -85,12 +85,12 @@ export function FilterSheet({
               aria-label={t('close')}
               className="lg-icon-btn text-[var(--lg-text-2)]"
             >
-              <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--lg-fill)]"><X size={16} strokeWidth={1.5} /></span>
             </button>
           </div>
 
           {/* Scrollable content — NO backdrop-filter here (breaks overflow-y on iOS Safari) */}
-          <div className="overflow-y-auto max-h-[55vh] px-5 pt-2 pb-4 space-y-5">
+          <div className="overflow-y-auto max-h-[55vh] px-5 pt-2 pb-4 space-y-6">
             {/* Peptid */}
             <div>
               <p className="label">{t('lab_filter_peptide')}</p>
@@ -103,7 +103,7 @@ export function FilterSheet({
                       type="button"
                       onClick={() => togglePeptide(p)}
                       aria-pressed={active}
-                      className={`min-h-9 px-3.5 rounded-full text-[14px] font-medium transition-colors ${
+                      className={`min-h-9 rounded-lg px-3 text-[14px] transition-colors ${
                         active
                           ? 'bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-[var(--lg-accent-text)]'
                           : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
@@ -119,16 +119,16 @@ export function FilterSheet({
             {/* Sortieren */}
             <div>
               <p className="label">{t('lab_filter_sort')}</p>
-              <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5">
+              <div className="flex rounded-[10px] bg-[var(--lg-fill)] p-0.5">
                 {(['date', 'relevance'] as SortMode[]).map(s => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => onChange({ ...filters, sort: s })}
                     aria-pressed={filters.sort === s}
-                    className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+                    className={`flex-1 min-h-9 rounded-lg text-[14px] font-medium transition-colors ${
                       filters.sort === s
-                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
                         : 'text-[var(--lg-text-2)]'
                     }`}
                   >
@@ -141,16 +141,16 @@ export function FilterSheet({
             {/* Jahr */}
             <div>
               <p className="label">{t('lab_filter_year_label')}</p>
-              <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5">
+              <div className="flex rounded-[10px] bg-[var(--lg-fill)] p-0.5">
                 {(['all', '2024plus', '2025'] as YearFilter[]).map(y => (
                   <button
                     key={y}
                     type="button"
                     onClick={() => onChange({ ...filters, year: y })}
                     aria-pressed={filters.year === y}
-                    className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
+                    className={`flex-1 min-h-9 rounded-lg text-[14px] font-medium transition-colors ${
                       filters.year === y
-                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+                        ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
                         : 'text-[var(--lg-text-2)]'
                     }`}
                   >
@@ -162,7 +162,7 @@ export function FilterSheet({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 px-4 pt-2 pb-4">
+          <div className="flex gap-3 px-5 pt-2 pb-4">
             <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" onClick={reset}>
               {t('lab_filter_reset')}
             </button>

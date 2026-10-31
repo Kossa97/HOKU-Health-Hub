@@ -1,5 +1,5 @@
 // src/pages/lab/StudyFeed.tsx
-import { Flame, BookOpen, Search } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { PubMedArticle, FilterState } from './pubmed'
 import { StudyCard } from './StudyCard'
@@ -44,34 +44,16 @@ export function StudyFeed({
         {!loading && !errorMessage && articles.length > 0 && (
           <div className="flex items-end justify-between border-b border-[var(--lg-separator)] pb-2 mb-4">
             <div>
-              {isTrending ? (
-                <div className="flex items-center gap-1.5">
-                  <Flame size={13} className="text-orange-400" />
-                  <span
-                    className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-2)]"
-                  >
-                    {t('lab_trending_label')}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <Search size={12} className="text-[var(--lg-text-2)]" />
-                  <span
-                    className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-2)]"
-                  >
-                    „{lastQuery}"
-                  </span>
-                </div>
-              )}
-              <p className="text-[11px] text-[var(--lg-text-3)] mt-0.5">
+              <p className="text-[13px] font-medium text-[var(--lg-text-2)]">
+                {isTrending ? t('lab_trending_label') : `„${lastQuery}"`}
+              </p>
+              <p className="mt-0.5 text-xs tabular-nums text-[var(--lg-text-3)]">
                 {isTrending
                   ? t('lab_trending_sub')
                   : t('lab_results_count', { count: articles.length })}
               </p>
             </div>
-            <span
-              className="text-[11px] text-[var(--lg-text-3)]"
-            >
+            <span className="font-mono text-xs text-[var(--lg-text-3)]">
               {t('lab_source_label')}
             </span>
           </div>
@@ -97,7 +79,7 @@ export function StudyFeed({
         {/* Empty */}
         {!loading && !errorMessage && articles.length === 0 && (
           <div className="lg-surface lg-flat text-center py-10 text-[var(--lg-text-2)]">
-            <BookOpen size={28} className="mx-auto mb-2 opacity-30" />
+            <BookOpen size={28} strokeWidth={1.5} className="mx-auto mb-2 text-[var(--lg-text-3)]" />
             <p className="text-sm">
               {isTrending ? t('lab_no_studies') : t('lab_no_results_query', { query: lastQuery })}
             </p>

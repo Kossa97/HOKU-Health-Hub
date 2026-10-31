@@ -23,13 +23,13 @@ export function PeptideSummary({ peptide, mode = 'public' }: { peptide: Peptiped
           {peptide.name}
         </h1>
         {peptide.fullName && (
-          <p className="mt-0.5 mb-3 text-[15px] text-[var(--lg-text-3)]">
+          <p className="mt-1 mb-3 text-[15px] text-[var(--lg-text-3)]">
             {peptide.fullName}
           </p>
         )}
         <p className="text-[15px] text-[var(--lg-text-2)] leading-relaxed">{peptide.tldr}</p>
         {!!peptide.approvals?.length && <div className="mt-4">
-          <p className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{peptide.locale === 'de' ? 'Zulassungen' : 'Approvals'}</p>
+          <p className="mb-2 text-[13px] text-[var(--lg-text-3)]">{peptide.locale === 'de' ? 'Zulassungen' : 'Approvals'}</p>
           <div className="flex flex-wrap gap-2">{peptide.approvals.map(approval => <span
             key={`${approval.region}-${approval.product}`}
             title={`${approval.product}: ${approval.indication}`}
@@ -38,7 +38,7 @@ export function PeptideSummary({ peptide, mode = 'public' }: { peptide: Peptiped
           >{approval.region} · {approval.status === 'approved' ? (peptide.locale === 'de' ? 'Zugelassen' : 'Approved') : (peptide.locale === 'de' ? 'Antrag zurückgezogen' : 'Application withdrawn')}</span>)}</div>
         </div>}
         {peptide.blend && <div className="lg-surface lg-flat mt-4 p-4">
-          <h2 className="mb-2 text-[13px] font-semibold text-[var(--lg-text-3)]">{peptide.locale === 'de' ? 'Bestandteile laut Katalog' : 'Components listed in the catalogue'}</h2>
+          <h2 className="mb-2 text-[13px] font-normal text-[var(--lg-text-3)]">{peptide.locale === 'de' ? 'Bestandteile laut Katalog' : 'Components listed in the catalogue'}</h2>
           <ul className="flex flex-wrap gap-2">{peptide.blend.components.map(component => <li key={component.name} className="lg-tag !whitespace-normal !py-1 leading-snug">
             {component.slug ? <Link className="text-[var(--lg-accent-text)]" to={peptipediaDetailPath(peptide.locale, component.slug, mode)}>{component.name}</Link> : <span>{component.name}</span>}
           </li>)}</ul>

@@ -44,10 +44,7 @@ const TRACKER_FULLSCREEN_HEIGHT = '100dvh'
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const panelStyle: CSSProperties = {
-  background: 'linear-gradient(145deg, var(--surface), var(--surface))',
-  border: '1px solid var(--border)',
-  borderRadius: 22,
-  boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
+  background: 'var(--surface)',
   position: 'relative',
   overflow: 'hidden',
 }
@@ -374,7 +371,7 @@ export function InjektionsTracker() {
             className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             style={{ top: 'calc(144px + env(safe-area-inset-top))' }}
           >
-            <ListChecks size={19} aria-hidden="true" />
+            <ListChecks size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
 
           {activeLog && visibleLogIds.has(activeLog.id) && (
@@ -384,14 +381,14 @@ export function InjektionsTracker() {
               style={{ top: 'calc(78px + env(safe-area-inset-top))' }}
             >
               <div
-                className="lg-glass flex min-h-11 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full px-4 text-[15px] font-semibold text-[var(--lg-text)]"
+                className="lg-glass flex min-h-11 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-xl px-4 text-[15px] font-medium text-[var(--lg-text)]"
               >
                 <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ background: getInjectionPinAgeColor(activeLog.logged_at), boxShadow: '0 0 14px ' + getInjectionPinAgeColor(activeLog.logged_at) }}
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: getInjectionPinAgeColor(activeLog.logged_at) }}
                 />
                 <span className="truncate">
-                  {getInjectionPinSubstance(activeLog)} - {formatInjectionPinAge(activeLog.logged_at)}
+                  {getInjectionPinSubstance(activeLog)} · <span className="tabular-nums text-[var(--lg-text-2)]">{formatInjectionPinAge(activeLog.logged_at)}</span>
                 </span>
               </div>
             </div>
@@ -404,11 +401,11 @@ export function InjektionsTracker() {
               style={{ top: 'calc(126px + env(safe-area-inset-top))' }}
             >
               <div
-                className="lg-glass flex min-h-10 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full px-4 text-[13px] font-semibold text-[var(--lg-text)]"
+                className="lg-glass flex min-h-10 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-xl px-4 text-[13px] font-medium text-[var(--lg-text)]"
               >
-                <span className="shrink-0 text-[12px] font-semibold uppercase text-[var(--lg-accent-text)]">{t('injection_selected_chip', { defaultValue: 'Ausgewählt' })}</span>
+                <span className="shrink-0 text-[13px] text-[var(--lg-accent-text)]">{t('injection_selected_chip', { defaultValue: 'Ausgewählt' })}</span>
                 <span className="min-w-0 flex-1 truncate">{activeTargetIntake.stackItemName}</span>
-                <span className="shrink-0 text-[var(--lg-text-2)]">{activeTargetIntake.dose} {activeTargetIntake.unit} - {format(parseISO(activeTargetIntake.scheduledAt), 'HH:mm')}</span>
+                <span className="shrink-0 font-mono tabular-nums text-[var(--lg-text-2)]">{activeTargetIntake.dose} {activeTargetIntake.unit} · {format(parseISO(activeTargetIntake.scheduledAt), 'HH:mm')}</span>
               </div>
             </div>
           )}
@@ -444,14 +441,14 @@ export function InjektionsTracker() {
       </section>
 
       {inventoryRetryIds.length > 0 && (
-        <div role="alert" className="lg-sheet fixed left-4 right-4 top-24 z-50 !rounded-[22px] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)] shadow-2xl">
+        <div role="alert" className="lg-sheet fixed left-4 right-4 top-24 z-50 !rounded-2xl p-4 text-[15px] font-medium text-[var(--lg-warn-text)] shadow-2xl">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"
             onClick={() => void Promise.all(inventoryRetryIds.map(retryCommittedStock))}
             className="lg-gray-btn mt-3 !text-[var(--lg-warn-text)]"
           >
-            <RefreshCw size={15} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
+            <RefreshCw size={16} strokeWidth={1.5} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
           </button>
         </div>
       )}
