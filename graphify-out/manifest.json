@@ -18,8 +18,8 @@
     "semantic_hash": ""
   },
   "android/app/capacitor.build.gradle": {
-    "mtime": 1793058410.616087,
-    "seen": 1793414996.9675918,
+    "mtime": 1793416185.6253684,
+    "seen": 1793416256.2336931,
     "ast_hash": "ccd94ccf7a3728fa0a13c11f50e20243",
     "semantic_hash": ""
   },
@@ -42,14 +42,14 @@
     "semantic_hash": ""
   },
   "android/build.gradle": {
-    "mtime": 1793058410.617087,
-    "seen": 1793414996.9675956,
+    "mtime": 1793416185.6263678,
+    "seen": 1793416256.233697,
     "ast_hash": "b95f9e29858c7922abff1b6f139723ea",
     "semantic_hash": ""
   },
   "android/capacitor.settings.gradle": {
-    "mtime": 1793058410.617087,
-    "seen": 1793414996.9675963,
+    "mtime": 1793416185.6263678,
+    "seen": 1793416256.2336981,
     "ast_hash": "c8ff4ea29f39916bb15551f15f80e925",
     "semantic_hash": ""
   },
@@ -66,8 +66,8 @@
     "semantic_hash": ""
   },
   "android/variables.gradle": {
-    "mtime": 1793058410.617087,
-    "seen": 1793414996.9675992,
+    "mtime": 1793416185.6263678,
+    "seen": 1793416256.2337012,
     "ast_hash": "c3ee7e06874be7d2fe8827cf06eb3833",
     "semantic_hash": ""
   },
@@ -600,86 +600,86 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/ar.json": {
-    "mtime": 1793415987.0933144,
-    "seen": 1793416115.2918127,
+    "mtime": 1793416185.7933247,
+    "seen": 1793416256.2343993,
     "ast_hash": "a6ce9bef45ca4b2aff3c3336e695f8e5",
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1793415987.095314,
-    "seen": 1793416115.2918134,
+    "mtime": 1793416185.7943258,
+    "seen": 1793416256.2344,
     "ast_hash": "4a6cbe9fe5d500642b53a19629415e5b",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1793415987.0963137,
-    "seen": 1793416115.2918139,
+    "mtime": 1793416185.795325,
+    "seen": 1793416256.2344005,
     "ast_hash": "e7947a115d42f8f6f6a2b3396517c69c",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
-    "mtime": 1793415987.0983143,
-    "seen": 1793416115.2918146,
+    "mtime": 1793416185.7963288,
+    "seen": 1793416256.234401,
     "ast_hash": "9c5843318c54a7192db82d09d32382f7",
     "semantic_hash": ""
   },
   "src/i18n/locales/fr.json": {
-    "mtime": 1793415987.0993137,
-    "seen": 1793416115.2918155,
+    "mtime": 1793416185.7973285,
+    "seen": 1793416256.2344017,
     "ast_hash": "df06f9ef655c1452127ed607acc28a91",
     "semantic_hash": ""
   },
   "src/i18n/locales/hi.json": {
-    "mtime": 1793415987.100314,
-    "seen": 1793416115.291816,
+    "mtime": 1793416185.798836,
+    "seen": 1793416256.2344024,
     "ast_hash": "0b970194c3f08ea985951f678a772957",
     "semantic_hash": ""
   },
   "src/i18n/locales/id.json": {
-    "mtime": 1793415987.1023142,
-    "seen": 1793416115.2918165,
+    "mtime": 1793416185.7998428,
+    "seen": 1793416256.234403,
     "ast_hash": "8ac04b9c34a0ba2a2506c7cd938c8304",
     "semantic_hash": ""
   },
   "src/i18n/locales/it.json": {
-    "mtime": 1793415987.1033142,
-    "seen": 1793416115.291817,
+    "mtime": 1793416185.800851,
+    "seen": 1793416256.2344034,
     "ast_hash": "19a3c4b976f0e9f020982292763e4ced",
     "semantic_hash": ""
   },
   "src/i18n/locales/ja.json": {
-    "mtime": 1793415987.1043136,
-    "seen": 1793416115.2918177,
+    "mtime": 1793416185.8018496,
+    "seen": 1793416256.2344038,
     "ast_hash": "f4dfc348b641878ec869c7c3972d184d",
     "semantic_hash": ""
   },
   "src/i18n/locales/ko.json": {
-    "mtime": 1793415987.1053138,
-    "seen": 1793416115.2918184,
+    "mtime": 1793416185.8028474,
+    "seen": 1793416256.2344046,
     "ast_hash": "4489cab808c49f326c85af1f58c5852b",
     "semantic_hash": ""
   },
   "src/i18n/locales/pt.json": {
-    "mtime": 1793415987.106817,
-    "seen": 1793416115.2918193,
+    "mtime": 1793416185.803847,
+    "seen": 1793416256.234405,
     "ast_hash": "e577887716444b50205936dfbc0f2ce5",
     "semantic_hash": ""
   },
   "src/i18n/locales/ru.json": {
-    "mtime": 1793415987.1078217,
-    "seen": 1793416115.2918198,
+    "mtime": 1793416185.8048468,
+    "seen": 1793416256.2344055,
     "ast_hash": "f20d11c5cea6fc72fe9850d03bbe9e85",
     "semantic_hash": ""
   },
   "src/i18n/locales/tr.json": {
-    "mtime": 1793415987.110603,
-    "seen": 1793416115.2918203,
+    "mtime": 1793416185.8058488,
+    "seen": 1793416256.2344065,
     "ast_hash": "34f09fcc671dac6b16030ac3d70c4ab6",
     "semantic_hash": ""
   },
   "src/i18n/locales/zh.json": {
-    "mtime": 1793415987.111604,
-    "seen": 1793416115.2918212,
+    "mtime": 1793416185.8068469,
+    "seen": 1793416256.2344072,
     "ast_hash": "3157168270c4e9be37048a087e7088a3",
     "semantic_hash": ""
   },
@@ -1566,14 +1566,14 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/hooks/useFortschrittData.ts": {
-    "mtime": 1793415978.7747815,
-    "seen": 1793416115.2914891,
+    "mtime": 1793416185.7893257,
+    "seen": 1793416256.2340813,
     "ast_hash": "7a0b28e8e7a2eaeb7526bd8ca0275ca2",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/colors.ts": {
-    "mtime": 1793415978.6779096,
-    "seen": 1793416115.2914915,
+    "mtime": 1793416185.7893257,
+    "seen": 1793416256.234084,
     "ast_hash": "bc68087916f8901f18e41e78a2bf1a7c",
     "semantic_hash": ""
   },
@@ -1590,20 +1590,20 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metricDefinitions.ts": {
-    "mtime": 1793415978.6779096,
-    "seen": 1793416115.2915018,
+    "mtime": 1793416185.7903252,
+    "seen": 1793416256.234093,
     "ast_hash": "4e061142fc015329461eb48e1710f3f7",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metrics.test.ts": {
-    "mtime": 1793415960.7342496,
-    "seen": 1793416115.2915032,
+    "mtime": 1793416185.791325,
+    "seen": 1793416256.2340944,
     "ast_hash": "8bae8dbd4b7d69f463bab524418007c1",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metrics.ts": {
-    "mtime": 1793415987.0496264,
-    "seen": 1793416115.291504,
+    "mtime": 1793416185.791325,
+    "seen": 1793416256.234095,
     "ast_hash": "9e400f3031f8f22e4d9b2e20d29f3306",
     "semantic_hash": ""
   },
@@ -1638,8 +1638,8 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/types.ts": {
-    "mtime": 1793415978.6859093,
-    "seen": 1793416115.2915123,
+    "mtime": 1793416185.791325,
+    "seen": 1793416256.2341044,
     "ast_hash": "1617cd4c302efcfc129a2449d0cf3a32",
     "semantic_hash": ""
   },
@@ -1914,8 +1914,8 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/verlauf/VerlaufSection.tsx": {
-    "mtime": 1793415978.701909,
-    "seen": 1793416115.2914839,
+    "mtime": 1793416185.7883253,
+    "seen": 1793416256.2340765,
     "ast_hash": "23c5b904f011816819711b0d8fafb62e",
     "semantic_hash": ""
   },
@@ -3504,9 +3504,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1793416032.6862822,
-    "seen": 1793416115.2915986,
-    "ast_hash": "eccf78cb08ef0d60d924ec9ec2410d79",
+    "mtime": 1793416185.792325,
+    "seen": 1793416256.2341928,
+    "ast_hash": "f3f44a3eab31a42b6602dfd48e205618",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793416072.1988297,
-    "seen": 1793416115.2919805,
+    "mtime": 1793416152.3738685,
+    "seen": 1793416256.2345648,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7158,8 +7158,8 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/metricLabels.ts": {
-    "mtime": 1793415978.6859093,
-    "seen": 1793416115.2915025,
+    "mtime": 1793416185.7903252,
+    "seen": 1793416256.234094,
     "ast_hash": "8085f2b245d80a7ea1078574b26235df",
     "semantic_hash": ""
   },
@@ -17376,15 +17376,15 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/build.cjs": {
-    "mtime": 1793323301.8129995,
-    "seen": 1793414996.967626,
-    "ast_hash": "5b768042ccdc01ebc4b89d906f396f80",
+    "mtime": 1793416185.7035594,
+    "seen": 1793416256.2337294,
+    "ast_hash": "d71d3ed13e1bcab7c217abf3d1d96e4c",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/QUELLEN/verify.cjs": {
-    "mtime": 1793323301.8135118,
-    "seen": 1793414996.967629,
-    "ast_hash": "f7342aed5ba113abfe41354865b36aae",
+    "mtime": 1793416185.7035594,
+    "seen": 1793416256.2337332,
+    "ast_hash": "d0b8fd1647313df705c188020da9b457",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/05-Schriften/IBMPlexMono-OFL.txt": {
@@ -17400,21 +17400,21 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.html": {
-    "mtime": 1793325687.8293395,
-    "seen": 1793414996.9684875,
+    "mtime": 1793416185.7025602,
+    "seen": 1793416256.2346509,
     "ast_hash": "f52454171871828031c6b1389861929b",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/HOKU-Brand-Guide.md": {
-    "mtime": 1793325687.8134866,
-    "seen": 1793414996.9684882,
-    "ast_hash": "13d84617df2b6beed5f1c22582e4336b",
+    "mtime": 1793416185.7025602,
+    "seen": 1793416256.2346513,
+    "ast_hash": "0fa1e995754f5308953d073c133938de",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/README.md": {
-    "mtime": 1793325687.8298457,
-    "seen": 1793414996.9684887,
-    "ast_hash": "09eaca2d2707246061a10027e0f31697",
+    "mtime": 1793416185.7045598,
+    "seen": 1793416256.234652,
+    "ast_hash": "1a68582d8ded32a651f1b06e75eb1403",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png": {
