@@ -1,5 +1,5 @@
 /**
- * Substanz-Scan: Barcode zuerst in den gemerkten Produkten (`scan_produkte`),
+ * Substanz-Scan: Barcode zuerst in den gemerkten Etiketten (`scan_etiketten`),
  * dann ueber `food-lookup` (Open Food Facts, nur Name und Marke), Etikettfoto
  * ueber `label-extract` (Anthropic, mit Einwilligung).
  */
@@ -28,23 +28,24 @@ async function fehlerCode(response: Response | undefined): Promise<string | null
 }
 
 /**
- * Das Etikett, das jemand zu diesem Barcode schon fotografiert hat. `null`,
- * wenn keins hinterlegt ist — oder die Abfrage scheitert: dann geht es
- * einfach ueber Open Food Facts weiter.
+ * Das Etikett zu diesem Barcode: das eigene, sonst eins, das mindestens zwei
+ * Nutzer gleich hinterlegt haben (`scan_produkt_laden`). `null`, wenn es
+ * keins gibt — oder die Abfrage scheitert: dann geht es einfach ueber Open
+ * Food Facts weiter.
  */
 export async function gemerktesEtikett(ean: string): Promise<Etikett | null> {
-  const { data, error } = await supabase.from('scan_produkte').select('etikett').eq('ean', ean).maybeSingle()
+  const { data, error } = await supabase.rpc('scan_produkt_laden', { p_ean: ean })
   if (error || !data) return null
-  return parseEtikett({ label: (data as { etikett: unknown }).etikett })
+  return parseEtikett({ label: data })
 }
 
 /**
- * Das Etikett zum Barcode merken, fuer den naechsten Scan. Der erste Eintrag
- * bleibt; scheitert das Speichern, merkt der Nutzer nichts davon.
+ * Das Etikett zum Barcode fuer sich merken. Neu fotografiert ueberschreibt
+ * es den eigenen Eintrag; scheitert das Speichern, merkt der Nutzer nichts.
  */
 export async function merkeEtikett(ean: string, etikett: Etikett): Promise<void> {
-  const { error } = await supabase.from('scan_produkte')
-    .upsert({ ean, etikett }, { onConflict: 'ean', ignoreDuplicates: true })
+  const { error } = await supabase.from('scan_etiketten')
+    .upsert({ ean, etikett, updated_at: new Date().toISOString() }, { onConflict: 'user_id,ean' })
   if (error) throw error
 }
 

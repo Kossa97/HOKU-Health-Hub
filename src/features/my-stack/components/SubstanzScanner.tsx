@@ -118,7 +118,7 @@ export function SubstanzScanner({ katalog, onUebernehmen, onClose }: {
   const [packung, setPackung] = useState<Packungscode | null>(null)
   // Der gescannte EAN, solange es um dasselbe Produkt geht, und das Etikett
   // dazu, sobald es gelesen ist: beim Uebernehmen fuer den naechsten Scan
-  // gemerkt (`scan_produkte`).
+  // gemerkt (`scan_etiketten`).
   const [merken, setMerken] = useState<{ ean: string; etikett?: Etikett } | null>(null)
   const dateiRef = useRef<HTMLInputElement>(null)
   const { einwilligung, fehler: einwilligungFehler, setze, vergessen, neuLaden } = useKiEinwilligung()
