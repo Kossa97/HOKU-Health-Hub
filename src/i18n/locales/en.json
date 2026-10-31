@@ -3027,5 +3027,16 @@
   "profil_privat_gesperrt": "Private profile is on: your levels are saved and apply again once you turn it off.",
   "profil_alle_auf_ich": "All to me",
   "profil_alle_auf_alle": "All to everyone",
-  "profil_noch_ohne_wert": "no value yet"
+  "profil_noch_ohne_wert": "no value yet",
+  "public_profile_more": "More",
+  "public_profile_not_found": "Profile not found",
+  "public_profile_not_found_desc": "There is no profile under this name that you can see.",
+  "public_profile_private_text": "This profile is private.",
+  "web_page_not_found": "Page not found",
+  "web_open_in_hoku": "Open in Hoku",
+  "web_profile_app_only": "Profile, stats and experience reports are only visible in the app.",
+  "profil_als_band": "How you appear to: {{wer}}",
+  "profil_als_wer_friends": "Friend",
+  "profil_als_wer_all": "App user",
+  "profil_als_wer_web": "Web"
 }

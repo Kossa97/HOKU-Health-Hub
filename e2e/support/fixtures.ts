@@ -18,14 +18,16 @@ export const NOW = new Date('2026-09-28T10:00:00+02:00')
  * Ziehen zu spät auslösen. Tests, die nicht von Dot handeln, lassen ihn
  * deshalb im Haus; die Dot-Tests setzen `test.use({ dotFrei: true })`.
  */
-export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now: Date; dotFrei: boolean }>({
+export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now: Date; dotFrei: boolean; angemeldet: boolean }>({
   language: ['de', { option: true }],
+  // `false`: Besuch ohne Sitzung (z. B. Web-Link /u/<name>).
+  angemeldet: [true, { option: true }],
   dotFrei: [false, { option: true }],
   now: [NOW, { option: true }],
   locale: async ({ language }, provide) => {
     await provide(language === 'de' ? 'de-DE' : 'en-GB')
   },
-  mock: async ({ page, language, now, dotFrei }, provide) => {
+  mock: async ({ page, language, now, dotFrei, angemeldet }, provide) => {
     const mock = new MockSupabase({ now })
     if (!dotFrei) await page.addInitScript(() => { try { localStorage.setItem('tyd.e2e.dot-im-haus', '1') } catch { /* ohne Speicher */ } })
     const pageErrors: string[] = []
@@ -38,7 +40,7 @@ export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now
       pageErrors.push(error.message)
     })
     await page.clock.install({ time: now })
-    await mock.install(page, { language })
+    await mock.install(page, { language, angemeldet })
     await provide(mock)
     expect(mock.unhandled, 'Anfragen ohne Nachbildung').toEqual([])
     expect(pageErrors, 'unbehandelte Fehler in der Seite').toEqual([])

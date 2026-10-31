@@ -27,6 +27,14 @@ export interface ProfileRowFields {
 
 export type ProfileViewFields = ProfileSnapshotData & ProfileRowFields
 
+/** Stufe der Antwort: `owner` = eigene Sicht; sonst „Ansehen als …“. */
+export type ViewAs = 'owner' | 'friends' | 'all' | 'web'
+export const VIEW_AS: readonly ViewAs[] = ['owner', 'friends', 'all', 'web']
+
+/** Stand des Bild-Checks (`profiles.avatar_status` / `cover_status`). */
+export type MediaStatus = 'pending' | 'approved' | 'rejected'
+export const isMediaStatus = (v: unknown): v is MediaStatus => v === 'pending' || v === 'approved' || v === 'rejected'
+
 export interface ProfileView {
   username: string
   displayName: string | null
@@ -41,6 +49,11 @@ export interface ProfileView {
   visibility: VisibilityMap | null
   profilePrivate: boolean | null
   webLinkEnabled: boolean | null
+  /** Nur für den Eigentümer: in welcher Stufe der Server geantwortet hat. */
+  as: ViewAs | null
+  /** Nur in der eigenen Sicht: Stand des Bild-Checks. */
+  avatarStatus: MediaStatus | null
+  coverStatus: MediaStatus | null
 }
 
 // ─── Prüfen ─────────────────────────────────────────────────────────────────
@@ -167,6 +180,9 @@ export function parseProfileView(raw: unknown): ProfileView | null {
     visibility: isObj(raw.visibility) ? parseVisibilityMap(raw.visibility) : null,
     profilePrivate: bool(raw.profile_private),
     webLinkEnabled: bool(raw.web_link_enabled),
+    as: (VIEW_AS as readonly unknown[]).includes(raw.as) ? raw.as as ViewAs : null,
+    avatarStatus: isMediaStatus(raw.avatar_status) ? raw.avatar_status : null,
+    coverStatus: isMediaStatus(raw.cover_status) ? raw.cover_status : null,
   }
 }
 
@@ -195,6 +211,9 @@ export function localProfileView(row: Obj, snapshot: ProfileSnapshotData | null)
     visibility: parseVisibilityMap(row.field_visibility),
     profilePrivate: row.profile_private === true,
     webLinkEnabled: row.web_link_enabled === true,
+    as: 'owner',
+    avatarStatus: isMediaStatus(row.avatar_status) ? row.avatar_status : null,
+    coverStatus: isMediaStatus(row.cover_status) ? row.cover_status : null,
   }
 }
 

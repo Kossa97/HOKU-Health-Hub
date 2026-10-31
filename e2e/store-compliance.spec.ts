@@ -11,9 +11,10 @@ import { TERMS_VERSION } from '../src/features/compliance/lib/consent'
 
 const FREMD_ID = '00000000-0000-4000-8000-0000000000f1'
 
-/** Ein fremdes, oeffentliches Profil mit einer freigegebenen Erfahrung. */
+/** Ein fremdes Profil mit Erfahrungsberichten auf „Alle“ und einer freigegebenen Erfahrung. */
 function fremdesProfil(mock: MockSupabase) {
-  mock.insert('profiles', { id: FREMD_ID, username: 'max', display_name: 'Max', is_public: true })
+  mock.insert('profiles', { id: FREMD_ID, username: 'max', display_name: 'Max', field_visibility: { reviews: 'all' }, profile_private: false })
+  mock.insert('profile_snapshots', { user_id: FREMD_ID, data: { reviews: { count: 1, avgRating: 3 } } })
   const item = mock.insert('stack_items', { user_id: FREMD_ID, display_name: 'TB-500', category: 'peptide', archived: false })
   return mock.insert('reviews', {
     user_id: FREMD_ID, stack_item_id: item.id, cycle_id: null, rating: 3, title: 'Geteilt von Max', body: 'Lief gut.',
@@ -68,7 +69,8 @@ test('Fremdes Profil: Erfahrung melden, Profil blockieren, im eigenen Profil wie
     expect.objectContaining({ review_id: review.id, reporter_id: TEST_USER.id, reason: 'werbung', details: 'Nennt einen Shop.', status: 'offen' }),
   ])
 
-  // Auch das ganze Profil (Name, Bio) laesst sich melden.
+  // Auch das ganze Profil (Name, Bio) laesst sich melden — ueber ⋯.
+  await page.locator('[data-profile-more]').click()
   await page.locator('[data-report-profile]').click()
   await expect(page.getByRole('heading', { name: 'Profil melden' })).toBeVisible()
   await page.locator('[data-report-reason="beleidigung"]').check()
@@ -76,6 +78,7 @@ test('Fremdes Profil: Erfahrung melden, Profil blockieren, im eigenen Profil wie
   await expect(page.locator('[data-report-sheet]')).toBeHidden()
   expect(mock.table('content_reports').filter(row => row.review_id === null)).toHaveLength(1)
 
+  await page.locator('[data-profile-more]').click()
   await page.locator('[data-block-open]').click()
   await page.locator('[data-block-confirm]').click()
   await expect(page.locator('[data-profile-blocked]')).toBeVisible()
@@ -89,20 +92,20 @@ test('Fremdes Profil: Erfahrung melden, Profil blockieren, im eigenen Profil wie
   expect(mock.table('user_blocks')).toHaveLength(0)
 })
 
-test('Eigenes öffentliches Profil: weder Melden noch Blockieren', async ({ page, mock }) => {
+test('Eigenes Profil „Ansehen als App-Nutzer“: weder Melden noch Blockieren', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-08-12' })
-  Object.assign(mock.table('profiles')[0], { username: 'anna', is_public: true })
+  Object.assign(mock.table('profiles')[0], { username: 'anna', field_visibility: { reviews: 'all' } })
+  mock.insert('profile_snapshots', { user_id: TEST_USER.id, data: { reviews: { count: 1, avgRating: 4 } } })
   const item = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
   mock.insert('reviews', {
     user_id: TEST_USER.id, stack_item_id: item.id, cycle_id: null, rating: 4, title: 'Meins', body: null, pros: null, cons: null,
     experience: 'gut', wirkung: null, vertraeglichkeit: null, wieder_nehmen: null, is_public: true,
     created_at: '2026-09-01T10:00:00.000Z', updated_at: null,
   })
-  await page.goto('/u/anna')
+  await page.goto('/u/anna?als=all')
   await expect(page.locator('[data-public-review]')).toContainText('Meins')
   await expect(page.locator('[data-report-open]')).toHaveCount(0)
-  await expect(page.locator('[data-report-profile]')).toHaveCount(0)
-  await expect(page.locator('[data-block-open]')).toHaveCount(0)
+  await expect(page.locator('[data-profile-more]')).toHaveCount(0)
 })
 
 test('Öffentliche Erfahrung mit Link: Filter sagt warum, das Sheet bleibt offen', async ({ page, mock }) => {
@@ -158,7 +161,7 @@ test('Admin: gemeldetes Profil ausblenden — danach ist es nicht mehr erreichba
   await expect(page.getByText('Keine offenen Meldungen.')).toBeVisible()
 
   await page.goto('/u/max')
-  await expect(page.getByText('Profil nicht verfügbar')).toBeVisible()
+  await expect(page.getByText('Profil nicht gefunden')).toBeVisible()
 })
 
 test('Konto löschen: erst das Wort, dann Dateien, Konto und Abmeldung', async ({ page, mock }) => {

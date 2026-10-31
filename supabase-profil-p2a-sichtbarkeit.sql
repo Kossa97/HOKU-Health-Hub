@@ -687,4 +687,38 @@ $$;
 revoke all on function public.report_public_profile(text, text, text) from public, anon;
 grant execute on function public.report_public_profile(text, text, text) to authenticated;
 
+-- Eine Erfahrung melden: jede, die angemeldete andere sehen (Feld "reviews" auf
+-- "Alle", Profil nicht privat), nicht mehr nur bei is_public.
+create or replace function public.report_public_review(p_review_id uuid, p_reason text, p_details text default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  r record;
+begin
+  perform public.melde_grenze_pruefen();
+  select rv.user_id, rv.title, rv.body, rv.pros, rv.cons, s.display_name as substanz, p.username
+    into r
+    from public.reviews rv
+    join public.profiles p on p.id = rv.user_id
+    left join public.stack_items s on s.id = rv.stack_item_id
+   where rv.id = p_review_id and rv.is_public and not rv.hidden_by_moderation
+     and not p.hidden_by_moderation and not p.profile_private
+     and p.field_visibility ->> 'reviews' = 'all';
+  if r.user_id is null or r.user_id = auth.uid() then
+    raise exception 'meldung_nicht_moeglich' using errcode = 'P0001';
+  end if;
+  insert into public.content_reports (review_id, reported_user_id, reporter_id, reason, details, snapshot)
+  values (p_review_id, r.user_id, auth.uid(), p_reason, nullif(left(trim(coalesce(p_details, '')), 1000), ''),
+          jsonb_build_object('art', 'erfahrung', 'username', r.username, 'substanz', r.substanz,
+                             'title', r.title, 'body', r.body, 'pros', r.pros, 'cons', r.cons))
+  on conflict do nothing;
+end;
+$$;
+
+revoke all on function public.report_public_review(uuid, text, text) from public, anon;
+grant execute on function public.report_public_review(uuid, text, text) to authenticated;
+
 commit;

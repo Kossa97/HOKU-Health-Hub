@@ -3027,5 +3027,16 @@
   "profil_privat_gesperrt": "Privates Profil ist an: Deine Stufen sind gespeichert und gelten wieder, sobald du es ausschaltest.",
   "profil_alle_auf_ich": "Alle auf Ich",
   "profil_alle_auf_alle": "Alle auf Alle",
-  "profil_noch_ohne_wert": "noch ohne Wert"
+  "profil_noch_ohne_wert": "noch ohne Wert",
+  "public_profile_more": "Mehr",
+  "public_profile_not_found": "Profil nicht gefunden",
+  "public_profile_not_found_desc": "Unter diesem Namen gibt es kein Profil, das du sehen kannst.",
+  "public_profile_private_text": "Dieses Profil ist privat.",
+  "web_page_not_found": "Seite nicht gefunden",
+  "web_open_in_hoku": "In Hoku öffnen",
+  "web_profile_app_only": "Profil, Werte und Erfahrungsberichte sind nur in der App sichtbar.",
+  "profil_als_band": "So sieht dich: {{wer}}",
+  "profil_als_wer_friends": "Freund",
+  "profil_als_wer_all": "App-Nutzer",
+  "profil_als_wer_web": "Web"
 }

@@ -36,6 +36,13 @@ describe('parseProfileView', () => {
     expect(parseProfileView({ own: true })).toBeNull()
   })
 
+  it('liest Stufe der Antwort und Bildstatus; Unbekanntes wird null', () => {
+    expect(parseProfileView({ username: 'mara', own: true, as: 'web', avatar_status: 'pending', cover_status: 'rejected' }))
+      .toMatchObject({ as: 'web', avatarStatus: 'pending', coverStatus: 'rejected' })
+    expect(parseProfileView({ username: 'mara', own: true, as: 'admin', avatar_status: 'ok' }))
+      .toMatchObject({ as: null, avatarStatus: null, coverStatus: null })
+  })
+
   it('fremde Sicht ohne Stufen', () => {
     expect(parseProfileView({ username: 'max', own: false, fields: {} })?.visibility).toBeNull()
   })
