@@ -119,3 +119,14 @@
 .tyd-auth-zeile { display: flex; gap: 10px; }
 .tyd-auth-zeile > .tyd-auth-knopf:first-child { flex: 1; }
 .tyd-auth-knopf[data-symbol] { width: 50px; flex: none; padding: 0; }
+
+/* Geschlecht beim Registrieren: Frage, darunter vier Chips in einer Zeile */
+.tyd-auth-geschlecht { display: flex; flex-direction: column; gap: 8px; }
+.tyd-auth-geschlecht p { margin: 0; font-size: 13px; color: var(--lg-text-2); }
+.tyd-auth-chips { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+.tyd-auth-chips::-webkit-scrollbar { display: none; }
+.tyd-auth-chips button {
+  flex: 1 1 auto; min-height: 40px; padding: 0 6px; border-radius: 20px; border: 1px solid transparent; font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap;
+  background: rgba(118, 118, 128, 0.16); color: var(--lg-text-2); cursor: pointer; transition: background 0.2s, color 0.2s;
+}
+.tyd-auth-chips button[aria-checked='true'] { background: var(--lg-fill-selected); color: var(--lg-text); border-color: rgba(0, 204, 245, 0.5); }

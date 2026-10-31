@@ -18,6 +18,8 @@ import { PasskeyEinstellung } from '../features/auth/components/PasskeyEinstellu
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
+import { UeberDichKarte, type UeberDichWerte } from '../features/profil/components/UeberDichKarte'
+import { GOAL_TAGS, genderSymbol, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
 import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
 
@@ -47,10 +49,16 @@ export function Profil() {
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [ueberDich, setUeberDich] = useState<UeberDichWerte>({ goals: [], country: null, profile_gender: null })
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', user!.id).single().then(({ data }) => {
       if (data) setIsAdmin(data.is_admin === true)
+      if (data) setUeberDich({
+        goals: Array.isArray(data.goals) ? GOAL_TAGS.filter(g => data.goals.includes(g)) : [],
+        country: knownCountry(data.country),
+        profile_gender: isProfileGender(data.profile_gender) ? data.profile_gender : null,
+      })
       if (data) setProfile({
         username: data.username ?? '', display_name: data.display_name ?? '',
         age: data.age, weight_kg: data.weight_kg, height_cm: data.height_cm,
@@ -112,8 +120,27 @@ export function Profil() {
         <div className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-[var(--lg-fill)]">
           <User size={38} className="text-[var(--lg-text-2)]" />
         </div>
+        {/* Name mit kleinem Geschlechtszeichen; ohne Angabe steht dort nichts */}
+        {(profile.display_name || profile.username) && (
+          <p className="mb-0.5 flex items-baseline gap-1.5 text-[19px] font-semibold text-[var(--lg-text)]" data-profile-name>
+            <span className="truncate">{profile.display_name || profile.username}</span>
+            {genderSymbol(ueberDich.profile_gender) && (
+              <span className="text-[13px] font-normal text-[var(--lg-text-3)]" role="img" aria-label={t(`geschlecht_${ueberDich.profile_gender}`)} data-profile-gender-symbol>
+                {genderSymbol(ueberDich.profile_gender)}
+              </span>
+            )}
+          </p>
+        )}
         <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
       </div>
+
+      <UeberDichKarte
+        userId={user!.id}
+        goals={ueberDich.goals}
+        country={ueberDich.country}
+        gender={ueberDich.profile_gender}
+        onChange={patch => setUeberDich(v => ({ ...v, ...patch }))}
+      />
 
       {/* ── Profil teilen ─────────────────────────────────────────────────── */}
       <div className="card mb-4">

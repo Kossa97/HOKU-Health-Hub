@@ -14,6 +14,7 @@ import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { KEINE_ZUSTIMMUNG, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
+import { geschlechtFelder, type ProfileGender } from '../features/profil/lib/profileFields'
 import { BENUTZERNAME, istEmail, pruefeLogin, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
@@ -52,6 +53,11 @@ const AUGEN_BLASE = { ab: 850, bis: 3000 }
 // alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
 const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
 
+// Geschlecht beim Registrieren (freiwillig, vorgewählt: keine Angabe)
+const GESCHLECHT_WAHL: [ProfileGender | null, string][] = [
+  ['male', 'geschlecht_male'], ['female', 'geschlecht_female'], ['diverse', 'geschlecht_diverse'], [null, 'geschlecht_none'],
+]
+
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
 export function Auth() {
@@ -75,6 +81,7 @@ export function Auth() {
   const [passwort2, setPasswort2] = useState('')
   const [benutzer, setBenutzer] = useState('')
   const [zustimmung, setZustimmung] = useState(KEINE_ZUSTIMMUNG)
+  const [geschlecht, setGeschlecht] = useState<ProfileGender | null>(null)
   const [zeigePw, setZeigePw] = useState(false)
   const [meldung, setMeldung] = useState<Meldung | null>(null)
   const [laeuft, setLaeuft] = useState(() => !!zurueck.anbieter && !zurueck.fehler && !zurueck.abgebrochen)
@@ -486,7 +493,7 @@ export function Auth() {
     if (frei === 'netz') return void serverAntwort(gen, 'netz', seit, null, 'login_err_generic')
     if (frei === false) return void serverAntwort(gen, 'falsch', seit, 'benutzer', 'login_err_user_taken')
     const felder = zustimmungsZeile(new Date())
-    const antwort = await supabase.auth.signUp({ email: email.trim(), password: passwort, options: { data: { username: name, ...felder } } })
+    const antwort = await supabase.auth.signUp({ email: email.trim(), password: passwort, options: { data: { username: name, ...felder, ...(geschlecht ? { profile_gender: geschlecht } : {}) } } })
       .then(r => r, (err: unknown) => ({ data: { user: null, session: null }, error: err }))
     const error: unknown = antwort.error
     if (gen !== lauf.current) return
@@ -496,7 +503,7 @@ export function Auth() {
     }
     // Registrieren bleibt immer angemeldet
     merkeAngemeldetBleiben(true)
-    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder })
+    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...geschlechtFelder(geschlecht) })
       .then(r => r, (err: unknown) => ({ error: err }))
     if (gen !== lauf.current) return
     if (antwort.data.session) {
@@ -695,6 +702,17 @@ export function Auth() {
               <input id="auth-reg-pw2" type={zeigePw ? 'text' : 'password'} autoComplete="new-password"
                 placeholder={t('login_pw_repeat')} value={passwort2} onChange={tippe(setPasswort2)}
                 onFocus={() => beiFokus(true)} onBlur={beiVerlassen} {...feldProps('passwort2')} />
+            </div>
+            <div className="tyd-auth-geschlecht" data-auth-geschlecht>
+              <p id="auth-geschlecht">{t('register_geschlecht_frage')}</p>
+              <div className="tyd-auth-chips" role="radiogroup" aria-labelledby="auth-geschlecht">
+                {GESCHLECHT_WAHL.map(([wert, schluessel]) => (
+                  <button key={schluessel} type="button" role="radio" aria-checked={geschlecht === wert} data-gender={wert ?? 'none'}
+                    onClick={() => { eingabe(); setGeschlecht(wert) }}>
+                    {t(schluessel)}
+                  </button>
+                ))}
+              </div>
             </div>
             <div data-auth-zustimmung {...(fehlerAn('zustimmung') ? { 'aria-describedby': 'auth-meldung' } : {})}>
               <ConsentChecks value={zustimmung} onChange={v => { eingabe(); setZustimmung(v); if (fehlerAn('zustimmung')) setMeldung(null) }} />
