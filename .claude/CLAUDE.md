@@ -36,6 +36,7 @@ ist typischerweise `graphify` (orientieren) → arbeiten → `graphify update .`
 | Wo lohnt sich Bewegung, wo nicht | `find-animation-opportunities` |
 | alle Animationen prüfen und Pläne schreiben | `improve-animations` |
 | UI-Feinschliff, Gesten, Sheets, Federn, Apple-Gefühl | `emil-design-eng`, `apple-design` |
+| Oberfläche wirkt KI-generiert / generisch: Glow, Verläufe, Emoji, Versal-Labels, Abstände; Screen oder App „unsloppen“ | `unslop` |
 | Web-App soll sich auf dem Handy nativ anfühlen (100vh, Tap-Highlight, Safe Area, Zoom bei Eingaben) | `mobile-native` |
 | Komponente mit Extremdaten testen (lange Namen, leere Listen, große Zahlen) | `break-ui` |
 | Bewegung benennen („wie heißt das …“) | `animation-vocabulary` |
@@ -52,6 +53,13 @@ er auf die Aufgabe, wird er benutzt, auch wenn er hier fehlt.
 `ask-sonner` (die App nutzt react-hot-toast). Die Skills sind Ratgeber, keine
 Projektregeln: Wo sie etwas empfehlen, das hier anders entschieden ist (z. B.
 eine neue Bibliothek), gilt das Projekt. Sprache der App-Texte bleibt de/en.
+
+## unslop (Damir Sokolovsky)
+
+Übernommen aus https://github.com/heydamir/unslop (CC BY 4.0, Stand Commit
+4652254, 2026-10-31), Lizenz in `.claude/skills/unslop/LICENSE`. Die
+Namensnennung im Skill bleibt erhalten. Wie bei den Emil-Skills gilt: Ratgeber,
+keine Projektregel; App-Texte bleiben de/en.
 
 ## graphify
 
