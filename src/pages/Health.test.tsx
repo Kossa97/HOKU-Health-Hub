@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -13,15 +13,17 @@ vi.mock('react-i18next', () => ({
 }))
 vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }))
+const platform = vi.hoisted(() => ({ native: false }))
 vi.mock('../lib/health', () => ({
-  isNative: false, requestPermissions: vi.fn(), getHeartRate: vi.fn(), getSleep: vi.fn(), getSteps: vi.fn(),
+  get isNative() { return platform.native }, requestPermissions: vi.fn(), getHeartRate: vi.fn(), getSleep: vi.fn(), getSteps: vi.fn(),
 }))
 
-const db = vi.hoisted(() => ({ results: {} as Record<string, { data: unknown; error: unknown }> }))
+const db = vi.hoisted(() => ({ results: {} as Record<string, { data: unknown; error: unknown }>, fetches: 0 }))
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: (table: string) => {
       const q: Record<string, unknown> = {}
+      if (table === 'health_daily') db.fetches += 1
       for (const m of ['select', 'eq', 'order', 'limit']) q[m] = () => q
       q.single = () => Promise.resolve({ data: null, error: null })
       q.then = (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
@@ -31,10 +33,25 @@ vi.mock('../lib/supabase', () => ({
   },
 }))
 
-const consent = vi.hoisted(() => ({ value: { consent: '2026-10-30T08:00:00Z' as string | null | undefined, error: false, reload: vi.fn() } }))
-vi.mock('../features/wearables/hooks/useHealthStoreConsent', () => ({
-  useHealthStoreConsent: () => ({ ...consent.value, set: vi.fn() }),
+const consent = vi.hoisted(() => ({
+  value: { consent: '2026-10-30T08:00:00Z' as string | null | undefined, error: false, reload: vi.fn() },
+  reloadTo: undefined as string | null | undefined,
 }))
+vi.mock('../features/wearables/hooks/useHealthStoreConsent', async () => {
+  const { useState } = await import('react')
+  return {
+    useHealthStoreConsent: () => {
+      const [granted, setGranted] = useState(consent.value.consent)
+      return {
+        consent: granted,
+        error: consent.value.error,
+        set: vi.fn(),
+        // Wie der echte Hook: nach dem Neuladen steht die inzwischen gespeicherte Einwilligung da.
+        reload: () => { consent.value.reload(); if (consent.reloadTo !== undefined) setGranted(consent.reloadTo) },
+      }
+    },
+  }
+})
 vi.mock('../features/wearables/components/HealthStoreConsentSheet', () => ({
   HealthStoreConsentSheet: ({ open, onDone }: { open: boolean; onDone: (granted: boolean) => void }) =>
     open ? <div data-testid="consent-sheet"><button onClick={() => onDone(true)}>sheet-accept</button></div> : null,
@@ -52,6 +69,9 @@ const row = (day: string, values: Record<string, number | null> = {}) => ({
 beforeEach(() => {
   lang.value = 'de'
   db.results = {}
+  db.fetches = 0
+  platform.native = false
+  consent.reloadTo = undefined
   consent.value = { consent: '2026-10-30T08:00:00Z', error: false, reload: vi.fn() }
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
@@ -116,6 +136,7 @@ describe('Health: Werte aus health_daily', () => {
   })
 
   it('zeigt ohne Einwilligung statt der Kacheln einen Hinweis, dessen Knopf das Sheet oeffnet', async () => {
+    platform.native = true
     consent.value = { consent: null, error: false, reload: vi.fn() }
     db.results.health_daily = { data: [row('2026-10-31', { active_kcal: 620 })], error: null }
     renderHealth()
@@ -144,5 +165,58 @@ describe('Health: Werte aus health_daily', () => {
     expect(await screen.findByText('health_consent_load_error')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'lab_retry' }))
     expect(consent.value.reload).toHaveBeenCalled()
+  })
+
+  it('zeigt im Web ohne Einwilligung weder Hinweis noch Kacheln', async () => {
+    consent.value = { consent: null, error: false, reload: vi.fn() }
+    renderHealth()
+    await screen.findByText('Health')
+    expect(screen.queryByText('health_daily_hint')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'health_daily_hint_action' })).toBeNull()
+    expect(tiles()).toBeNull()
+    expect(db.fetches).toBe(0)
+  })
+
+  it('zeigt im Web die Kacheln, wenn am Handy zugestimmt wurde', async () => {
+    db.results.health_daily = { data: [row('2026-10-31', { active_kcal: 620 })], error: null }
+    renderHealth()
+    await waitFor(() => expect(within(tiles()).getByText('620 kcal')).toBeTruthy())
+  })
+})
+
+describe('Health: erster Abgleich nach der Einwilligung', () => {
+  const accept = async () => {
+    platform.native = true
+    consent.value = { consent: null, error: false, reload: vi.fn() }
+    consent.reloadTo = '2026-10-31T09:00:00Z'
+    db.results.health_daily = { data: [], error: null }
+    const view = renderHealth()
+    fireEvent.click(await screen.findByRole('button', { name: 'health_daily_hint_action' }))
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fireEvent.click(screen.getByText('sheet-accept'))
+    return view
+  }
+  afterEach(() => { vi.useRealTimers() })
+
+  it('liest nach etwa 4 Sekunden einmal neu', async () => {
+    await accept()
+    expect(db.fetches).toBe(1)
+    db.results.health_daily = { data: [row('2026-10-31', { active_kcal: 620 })], error: null }
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(db.fetches).toBe(1)
+    await vi.advanceTimersByTimeAsync(200)
+    vi.useRealTimers()
+    await waitFor(() => expect(within(tiles()).getByText('620 kcal')).toBeTruthy())
+    expect(db.fetches).toBe(2)
+    await new Promise(r => setTimeout(r, 50))
+    expect(db.fetches).toBe(2)
+  })
+
+  it('liest nach dem Verlassen der Seite nicht mehr', async () => {
+    const view = await accept()
+    expect(db.fetches).toBe(1)
+    view.unmount()
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000) })
+    expect(db.fetches).toBe(1)
   })
 })

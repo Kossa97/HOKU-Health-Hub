@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Flame, Gauge, HeartPulse, Wind, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { isNative } from '../../../lib/health'
 import { supabase } from '../../../lib/supabase'
 import { useHealthStoreConsent } from '../hooks/useHealthStoreConsent'
 import type { HealthDailyRow } from '../lib/healthDaily'
 import { HealthStoreConsentSheet } from './HealthStoreConsentSheet'
 
 type DailyValues = Pick<HealthDailyRow, 'day' | 'active_kcal' | 'spo2_pct' | 'resp_rate' | 'bp_sys' | 'bp_dia'>
+
+/** Der erste Abgleich nach der Einwilligung laeuft im Sheet im Hintergrund; so lange danach wird einmal neu gelesen. */
+const FIRST_SYNC_REFETCH_MS = 4000
 
 /** So weit zurueck wird nach dem letzten Wert gesucht (eine Zeile je Tag). */
 const LOOKBACK_DAYS = 90
@@ -23,7 +27,16 @@ export function HealthDailyTiles({ userId }: { userId: string }) {
   const { consent, error: consentError, reload } = useHealthStoreConsent(userId)
   const [loaded, setLoaded] = useState<{ for: string; rows: DailyValues[] } | { for: string; failed: true } | null>(null)
   const [asking, setAsking] = useState(false)
+  const [afterConsent, setAfterConsent] = useState(false)
+  const [round, setRound] = useState(0)
   const granted = Boolean(consent)
+
+  // Einmal nachlesen, wenn der erste Abgleich nach der Einwilligung fertig sein duerfte.
+  useEffect(() => {
+    if (!afterConsent) return
+    const id = setTimeout(() => { setAfterConsent(false); setRound(n => n + 1) }, FIRST_SYNC_REFETCH_MS)
+    return () => clearTimeout(id)
+  }, [afterConsent])
 
   useEffect(() => {
     if (!granted) return
@@ -37,7 +50,7 @@ export function HealthDailyTiles({ userId }: { userId: string }) {
         setLoaded(error ? { for: userId, failed: true } : { for: userId, rows: (data ?? []) as DailyValues[] })
       }, () => { if (current) setLoaded({ for: userId, failed: true }) })
     return () => { current = false }
-  }, [userId, granted])
+  }, [userId, granted, round])
 
   if (consentError) {
     return (
@@ -49,6 +62,8 @@ export function HealthDailyTiles({ userId }: { userId: string }) {
   }
   if (consent === undefined) return null
 
+  // Im Web gibt es nichts zu erlauben (das Sheet fragt das System); wer am Handy zugestimmt hat, sieht die Kacheln trotzdem.
+  if (!granted && !isNative) return null
   if (!granted) {
     return (
       <div className="lg-surface mt-3 space-y-3 p-4">
@@ -56,7 +71,7 @@ export function HealthDailyTiles({ userId }: { userId: string }) {
         <button type="button" className="lg-btn lg-btn-tint" onClick={() => setAsking(true)}>{t('health_daily_hint_action')}</button>
         <HealthStoreConsentSheet
           open={asking}
-          onDone={ok => { setAsking(false); if (ok) reload() }}
+          onDone={ok => { setAsking(false); if (ok) { reload(); setAfterConsent(true) } }}
         />
       </div>
     )
