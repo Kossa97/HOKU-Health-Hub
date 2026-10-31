@@ -16,7 +16,7 @@ import { denyProps } from '../../lib/denyFeedback'
 // ─── Style Configs ────────────────────────────────────────────────────────────
 
 // Evidenz ist eine Rangfolge: ein Punkt in Ampelfarbe, die Spur füllt sich
-// in Vierteln. Alles andere bleibt neutral.
+// in Stufen von 100/70/30/20 % — auf den Messstrichen (10 %) im Look HOKU. Alles andere bleibt neutral.
 interface EvidenceConfig {
   dot:      string
   barWidth: string

@@ -1276,8 +1276,11 @@ const iconBoxStyle: CSSProperties = {
  * Die Füllung wächst über `scaleX`, nicht über die Breite.
  */
 function TodayProgress({ label, logged, planned, percent }: { label: string; logged: number; planned: number; percent: number }) {
+  const { i18n } = useTranslation()
   const p = Math.max(0, Math.min(100, percent)) / 100
   const done = percent >= 100
+  // „50 %" im Deutschen, „50%" im Englischen: das Format kommt aus der Sprache
+  const percentLabel = new Intl.NumberFormat(i18n?.language ?? 'de', { style: 'percent', maximumFractionDigits: 0 }).format(percent / 100)
   return (
     <div>
       <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{label}</p>
@@ -1286,18 +1289,18 @@ function TodayProgress({ label, logged, planned, percent }: { label: string; log
           {logged}<span style={{ color: 'var(--lg-text-3)' }}>/{planned}</span>
         </span>
         <span className="tabular-nums" style={{ fontSize: 15, color: done ? 'var(--lg-good-text)' : 'var(--lg-text-2)' }}>
-          {percent} %
+          {percentLabel}
         </span>
       </div>
       <div
         aria-hidden="true"
         className="hk-scale"
-        style={{ marginTop: 12, height: 8, borderRadius: 4, background: 'var(--lg-fill)' }}
+        style={{ marginTop: 12, height: 8, borderRadius: 4, overflow: 'hidden', background: 'var(--lg-fill)' }}
       >
+        {/* Ohne eigene Rundung: scaleX würde sie mitstauchen; die Spur rundet links */}
         <div
           style={{
             height: '100%',
-            borderRadius: 4,
             background: done ? 'var(--lg-good)' : 'var(--accent)',
             transform: `scaleX(${p})`,
             transformOrigin: 'left center',
