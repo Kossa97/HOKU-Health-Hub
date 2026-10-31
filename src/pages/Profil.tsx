@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, ChevronRight, HelpCircle } from 'lucide-react'
+import { LogOut, Save, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, ChevronRight, HelpCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +19,7 @@ import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwill
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { UeberDichKarte, type UeberDichWerte } from '../features/profil/components/UeberDichKarte'
+import { ProfilBilder } from '../features/profil/components/ProfilBilder'
 import { GOAL_TAGS, genderSymbol, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
 import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
@@ -50,10 +51,15 @@ export function Profil() {
   const [copied, setCopied] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [ueberDich, setUeberDich] = useState<UeberDichWerte>({ goals: [], country: null, profile_gender: null })
+  const [bilder, setBilder] = useState<{ avatar: string | null; cover: string | null }>({ avatar: null, cover: null })
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', user!.id).single().then(({ data }) => {
       if (data) setIsAdmin(data.is_admin === true)
+      if (data) setBilder({
+        avatar: typeof data.avatar_path === 'string' ? data.avatar_path : null,
+        cover: typeof data.cover_path === 'string' ? data.cover_path : null,
+      })
       if (data) setUeberDich({
         goals: Array.isArray(data.goals) ? GOAL_TAGS.filter(g => data.goals.includes(g)) : [],
         country: knownCountry(data.country),
@@ -115,11 +121,13 @@ export function Profil() {
         </button>
       </div>
 
-      {/* Avatar */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-[var(--lg-fill)]">
-          <User size={38} className="text-[var(--lg-text-2)]" />
-        </div>
+      {/* Titelbild und Profilbild; Name und E-Mail stehen darunter */}
+      <ProfilBilder
+        userId={user!.id}
+        avatarPath={bilder.avatar}
+        coverPath={bilder.cover}
+        onChange={(kind, pfad) => setBilder(b => ({ ...b, [kind]: pfad }))}
+      >
         {/* Name mit kleinem Geschlechtszeichen; ohne Angabe steht dort nichts */}
         {(profile.display_name || profile.username) && (
           <p className="mb-0.5 flex items-baseline gap-1.5 text-[19px] font-semibold text-[var(--lg-text)]" data-profile-name>
@@ -132,7 +140,7 @@ export function Profil() {
           </p>
         )}
         <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
-      </div>
+      </ProfilBilder>
 
       <UeberDichKarte
         userId={user!.id}

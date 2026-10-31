@@ -2889,5 +2889,10 @@
   "profil_land": "Land",
   "profil_land_suchen": "Land suchen",
   "profil_geschlecht": "Geschlecht",
-  "register_geschlecht_frage": "Geschlecht (freiwillig)"
+  "register_geschlecht_frage": "Geschlecht (freiwillig)",
+  "profil_bilder_privat": "Nur du siehst deine Bilder — bis das Profil für andere freigeschaltet wird.",
+  "profil_profilbild": "Profilbild",
+  "profil_titelbild": "Titelbild",
+  "profil_bild_aendern": "Ändern",
+  "profil_bild_fehler": "Bild konnte nicht gespeichert werden"
 }

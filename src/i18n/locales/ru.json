@@ -2657,5 +2657,10 @@
   "profil_land": "Country",
   "profil_land_suchen": "Search country",
   "profil_geschlecht": "Gender",
-  "register_geschlecht_frage": "Gender (optional)"
+  "register_geschlecht_frage": "Gender (optional)",
+  "profil_bilder_privat": "Only you can see your pictures — until you open your profile to others.",
+  "profil_profilbild": "Profile picture",
+  "profil_titelbild": "Cover picture",
+  "profil_bild_aendern": "Change",
+  "profil_bild_fehler": "Picture could not be saved"
 }
