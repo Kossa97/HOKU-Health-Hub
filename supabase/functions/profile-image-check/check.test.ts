@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  DAILY_LIMIT, RESULT_SCHEMA, buildPrompt, decide, parseKind, parseVerdict, resetsAt, shouldCheck, sniffImage, toBase64,
+  DAILY_LIMIT, RESULT_SCHEMA, approveParams, buildPrompt, decide, parseKind, parseObjectId, parseVerdict, resetsAt, shouldCheck,
+  sniffImage, toBase64,
 } from './check'
 
 describe('parseVerdict', () => {
@@ -93,5 +94,25 @@ describe('Anfrage', () => {
     expect(DAILY_LIMIT).toBe(20)
     expect(resetsAt('2026-10-31T10:00:00.000Z')).toBe('2026-11-01T10:00:00.000Z')
     expect(resetsAt(null)).toBeNull()
+  })
+})
+
+describe('parseObjectId', () => {
+  it('nimmt nur eine UUID (storage.objects.id)', () => {
+    expect(parseObjectId('3f2b8c1e-0a4d-4e8f-9b7a-1c2d3e4f5a6b')).toBe('3f2b8c1e-0a4d-4e8f-9b7a-1c2d3e4f5a6b')
+  })
+
+  it('keine Datei oder unbrauchbare Antwort → null (Status bleibt pending)', () => {
+    for (const data of [null, undefined, '', 'u1/avatar-1.jpg', 42, {}, ['3f2b8c1e-0a4d-4e8f-9b7a-1c2d3e4f5a6b'], '3f2b8c1e-0a4d-4e8f-9b7a-1c2d3e4f5a6b ']) {
+      expect(parseObjectId(data), String(data)).toBeNull()
+    }
+  })
+})
+
+describe('approveParams', () => {
+  it('bindet die Freigabe an Nutzer, Art, Pfad und die vorher gelesene Objekt-ID', () => {
+    expect(approveParams('u1', 'cover', 'u1/cover-1.jpg', 'id-1')).toEqual({
+      p_user: 'u1', p_kind: 'cover', p_name: 'u1/cover-1.jpg', p_object_id: 'id-1',
+    })
   })
 })

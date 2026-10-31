@@ -127,6 +127,8 @@ export async function uploadProfileMedia(userId: string, kind: MediaKind, file: 
   const { data: alt } = await supabase.from('profiles').select(spalte).eq('id', userId).maybeSingle()
   const altPfad = (alt as Record<string, string | null> | null)?.[spalte] ?? null
 
+  // Immer ein neuer Name, nie überschreiben: Die Freigabe des Bild-Checks hängt
+  // an genau dieser Datei (storage.objects.id); Überschreiben verbietet die Policy.
   const pfad = `${userId}/${kind}-${Date.now()}.jpg`
   const ablage = supabase.storage.from(PROFILE_MEDIA_BUCKET)
   const { error: upFehler } = await ablage.upload(pfad, blob, { contentType: 'image/jpeg', upsert: false })

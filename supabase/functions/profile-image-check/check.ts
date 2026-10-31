@@ -6,6 +6,8 @@
  * Grundsätze (Spec Abschnitt 6):
  * - Geprüft wird nur ein Bild mit Status `pending`; Pfad und Status kommen aus
  *   `profiles`, nie aus der Anfrage.
+ * - Freigegeben wird eine bestimmte Datei (storage.objects.id), nicht nur ein
+ *   Name: Wird sie während der Prüfung ersetzt, bleibt der Status `pending`.
  * - Claude antwortet nur mit `{ "zeigbar": boolean }`. Alles andere — unklare
  *   Antwort, abgeschnitten, Netzfehler — lässt den Status auf `pending`:
  *   lieber zu lange privat als ungeprüft öffentlich.
@@ -25,6 +27,20 @@ export const BUCKET = 'profile-media'
 export function parseKind(body: unknown): MediaKind | null {
   const kind = body && typeof body === 'object' ? (body as { kind?: unknown }).kind : undefined
   return kind === 'avatar' || kind === 'cover' ? kind : null
+}
+
+/** Objekt-ID aus `profile_media_object_id`; `null`, wenn keine Datei unter dem Namen liegt. */
+export function parseObjectId(data: unknown): string | null {
+  return typeof data === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data) ? data : null
+}
+
+/**
+ * Parameter für `profile_media_approve`: Freigabe gilt nur für genau die
+ * Datei, deren id vor dem Herunterladen gelesen wurde. Liegt unter dem Namen
+ * inzwischen eine andere Datei, gibt die Datenbank nichts frei.
+ */
+export function approveParams(userId: string, kind: MediaKind, path: string, objectId: string) {
+  return { p_user: userId, p_kind: kind, p_name: path, p_object_id: objectId }
 }
 
 /** Nur ein vorhandenes Bild im Status „wird geprüft“ geht zur Prüfung. */

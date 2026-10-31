@@ -5,7 +5,10 @@
  * `{ kind: 'avatar' | 'cover' }`. Welches Bild geprüft wird, steht in
  * `profiles` (gelesen mit Dienstrechten) — nie in der Anfrage.
  *
- * Freigegeben → Status `approved`; andere dürfen das Bild laden (Storage-Policy).
+ * Freigegeben → Status `approved` und die Objekt-ID der geprüften Datei; andere
+ * dürfen genau diese Datei laden (Storage-Policy). Die id wird vor dem
+ * Herunterladen gelesen; liegt beim Freigeben unter dem Namen eine andere
+ * Datei, bleibt der Status `pending`.
  * Abgelehnt → Datei gelöscht, Pfad leer, Status `rejected` (die App zeigt den
  * Hinweis). Fehler jeder Art → Status bleibt `pending`, die App fragt später
  * wieder. Höchstens 20 Prüfungen je Nutzer und 24 Stunden; gezählt wird nur
@@ -15,7 +18,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'npm:@anthropic-ai/sdk@0.135.0'
 import {
   BUCKET, DAILY_LIMIT, MAX_IMAGE_BYTES, RESULT_SCHEMA,
-  buildPrompt, decide, parseKind, resetsAt, shouldCheck, sniffImage, toBase64,
+  approveParams, buildPrompt, decide, parseKind, parseObjectId, resetsAt, shouldCheck, sniffImage, toBase64,
   type MediaStatus,
 } from './check.ts'
 
@@ -72,6 +75,11 @@ Deno.serve(async (request: Request) => {
 
   // Nur Bilder des Nutzers selbst (erster Pfadteil = Nutzer-ID, wie die Storage-Policies).
   if (pfad.split('/')[0] !== userId) return offen()
+  // Erst die id der Datei, dann der Inhalt: Ersetzt der Nutzer die Datei
+  // dazwischen, passt die id beim Freigeben nicht mehr.
+  const { data: idDaten, error: idFehler } = await supabase.rpc('profile_media_object_id', { p_name: pfad })
+  const objektId = parseObjectId(idDaten)
+  if (idFehler || !objektId) return offen()
   const { data: datei, error: ladeFehler } = await supabase.storage.from(BUCKET).download(pfad)
   if (ladeFehler || !datei) return offen()
   const bytes = new Uint8Array(await datei.arrayBuffer())
@@ -120,21 +128,26 @@ Deno.serve(async (request: Request) => {
 
   if (neu === 'pending') return offen()
 
+  if (neu === 'approved') {
+    // In einem Schritt in der Datenbank: noch derselbe Pfad, noch pending und
+    // unter dem Namen noch die geprüfte Datei — sonst wird nichts freigegeben.
+    const { data: frei, error: freiFehler } = await supabase
+      .rpc('profile_media_approve', approveParams(userId, kind, pfad, objektId))
+    if (freiFehler || frei !== true) return offen()
+    return json({ status: neu })
+  }
+
   // Nur setzen, wenn noch dasselbe Bild hinterlegt ist (der Nutzer kann
   // inzwischen ein neues hochgeladen haben). Die Dienstrolle übergeht der
   // Trigger protect_profile_media_status nicht.
-  const patch = neu === 'approved'
-    ? { [statusSpalte]: 'approved' }
-    : { [pfadSpalte]: null, [statusSpalte]: 'rejected' }
   const { data: geaendert, error: setzFehler } = await supabase
-    .from('profiles').update(patch).eq('id', userId).eq(pfadSpalte, pfad).select('id')
+    .from('profiles').update({ [pfadSpalte]: null, [statusSpalte]: 'rejected' })
+    .eq('id', userId).eq(pfadSpalte, pfad).eq(statusSpalte, 'pending').select('id')
   if (setzFehler) return offen()
   if (!geaendert?.length) return json({ status: 'pending' })
 
-  if (neu === 'rejected') {
-    // Pfad ist schon leer; scheitert das Löschen, bleibt die Datei unsichtbar
-    // (die Storage-Policy gibt nur hinterlegte, freigegebene Pfade heraus).
-    await supabase.storage.from(BUCKET).remove([pfad])
-  }
+  // Pfad ist schon leer; scheitert das Löschen, bleibt die Datei unsichtbar
+  // (die Storage-Policy gibt nur hinterlegte, freigegebene Dateien heraus).
+  await supabase.storage.from(BUCKET).remove([pfad])
   return json({ status: neu })
 })

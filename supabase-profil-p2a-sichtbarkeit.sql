@@ -11,6 +11,12 @@
 -- Sichtbarkeit bekommen Bio und Erfahrungsberichte auf "Alle" und den Web-Link an.
 -- Bilder aus Teilprojekt 1 ohne Status gelten als "wird geprueft".
 --
+-- Freigabe bindet an die Datei, nicht nur an den Namen: Der Bild-Check merkt sich
+-- die storage.objects.id der geprueften Datei (avatar_object_id, cover_object_id);
+-- andere sehen nur genau dieses Objekt. Ueberschreiben an Ort und Stelle ist
+-- verboten (Policy "Own profile media update" faellt weg); Loeschen und neu
+-- Anlegen ergibt eine neue id und ist damit unsichtbar, bis erneut geprueft.
+--
 -- Freitext im Schnappschuss (Routinename, Lieblingsuebung, Namen der Bestleistungen)
 -- gibt profile_view an andere nur heraus, wenn er oeffentlicher_text_fehler besteht.
 -- Den ganzen Schnappschuss baut profile_view fuer andere vorher auf seine bekannte
@@ -21,16 +27,23 @@
 --   select count(*) from information_schema.columns
 --    where table_schema = 'public' and table_name = 'profiles'
 --      and column_name in ('field_visibility','profile_private','web_link_enabled','avatar_status',
---                          'cover_status','favorite_exercise','profile_routine_id');      -- 7
+--                          'cover_status','favorite_exercise','profile_routine_id',
+--                          'avatar_object_id','cover_object_id');                         -- 9
 --   select count(*) from information_schema.columns
 --    where table_schema = 'public' and table_name = 'daily_logs' and column_name = 'muscle_mass_kg'; -- 1
 --   select count(*) from pg_class where relname = 'profile_snapshots' and relrowsecurity;    -- 1
 --   select count(*) from pg_class where relname = 'profile_image_checks' and relrowsecurity; -- 1
 --   select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --    where n.nspname = 'public' and p.proname in ('profile_view','profile_media_visible',
---          'profile_visibility_ok','protect_profile_media_status');                          -- 4
+--          'profile_visibility_ok','protect_profile_media_status',
+--          'profile_media_object_id','profile_media_approve');                               -- 6
 --   select count(*) from pg_policies where schemaname = 'storage' and tablename = 'objects'
 --      and policyname = 'Visible profile media select';                                     -- 1
+--   select count(*) from pg_policies where schemaname = 'storage' and tablename = 'objects'
+--      and policyname = 'Own profile media update';                                         -- 0
+--   select count(*) from public.profiles
+--    where (avatar_status = 'approved' and avatar_object_id is null)
+--       or (cover_status = 'approved' and cover_object_id is null);                          -- 0
 --   select count(*) from public.profiles;                         -- unveraendert gegenueber vorher
 --   select count(*) from public.profiles where field_visibility <> '{}'::jsonb;  -- = Zahl mit is_public
 --
@@ -47,7 +60,10 @@ alter table public.profiles
   add column if not exists avatar_status text,
   add column if not exists cover_status text,
   add column if not exists favorite_exercise text,
-  add column if not exists profile_routine_id uuid;
+  add column if not exists profile_routine_id uuid,
+  -- storage.objects.id der Datei, die der Bild-Check freigegeben hat
+  add column if not exists avatar_object_id uuid,
+  add column if not exists cover_object_id uuid;
 
 alter table public.daily_logs
   add column if not exists muscle_mass_kg numeric(4,1);
@@ -130,6 +146,7 @@ create policy "Own profile snapshot" on public.profile_snapshots
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- 3. Bildstatus: nur der Bild-Check (Dienstrolle) setzt "approved"/"rejected" --
+-- und die Objekt-ID der freigegebenen Datei; der Eigentuemer aendert keins davon.
 create or replace function public.protect_profile_media_status()
 returns trigger
 language plpgsql
@@ -140,19 +157,39 @@ begin
     if tg_op = 'INSERT' then
       new.avatar_status := case when new.avatar_path is null then null else 'pending' end;
       new.cover_status := case when new.cover_path is null then null else 'pending' end;
+      new.avatar_object_id := null;
+      new.cover_object_id := null;
     else
       -- Ohne Pfad darf der Eigentuemer den Status nur leeren (Hinweis
       -- „abgelehnt“ quittieren); alles andere bleibt, wie der Bild-Check es setzte.
       if new.avatar_path is distinct from old.avatar_path then
         new.avatar_status := case when new.avatar_path is null then null else 'pending' end;
-      elsif not (new.avatar_path is null and new.avatar_status is null) then
-        new.avatar_status := old.avatar_status;
+        new.avatar_object_id := null;
+      else
+        if not (new.avatar_path is null and new.avatar_status is null) then
+          new.avatar_status := old.avatar_status;
+        end if;
+        new.avatar_object_id := old.avatar_object_id;
       end if;
       if new.cover_path is distinct from old.cover_path then
         new.cover_status := case when new.cover_path is null then null else 'pending' end;
-      elsif not (new.cover_path is null and new.cover_status is null) then
-        new.cover_status := old.cover_status;
+        new.cover_object_id := null;
+      else
+        if not (new.cover_path is null and new.cover_status is null) then
+          new.cover_status := old.cover_status;
+        end if;
+        new.cover_object_id := old.cover_object_id;
       end if;
+    end if;
+  elsif tg_op = 'UPDATE' then
+    -- Auch fuer die Dienstrolle: ein anderer Pfad gehoert nie zur alten Freigabe.
+    if new.avatar_path is distinct from old.avatar_path
+       and new.avatar_object_id is not distinct from old.avatar_object_id then
+      new.avatar_object_id := null;
+    end if;
+    if new.cover_path is distinct from old.cover_path
+       and new.cover_object_id is not distinct from old.cover_object_id then
+      new.cover_object_id := null;
     end if;
   end if;
   return new;
@@ -190,6 +227,11 @@ update public.profiles
 
 update public.profiles set avatar_status = 'pending' where avatar_path is not null and avatar_status is null;
 update public.profiles set cover_status = 'pending' where cover_path is not null and cover_status is null;
+-- Freigaben ohne Objekt-ID (vor der Bindung an die Datei) werden neu geprueft.
+update public.profiles set avatar_status = 'pending'
+ where avatar_path is not null and avatar_status = 'approved' and avatar_object_id is null;
+update public.profiles set cover_status = 'pending'
+ where cover_path is not null and cover_status = 'approved' and cover_object_id is null;
 
 -- 5. Textfilter: Name und Nickname sieht jeder, der das Profil findet; die Bio,
 --    sobald sie nicht auf "Nur ich" steht.
@@ -242,7 +284,9 @@ $$;
 revoke all on function public.profile_blocked_between(uuid, uuid) from public, anon, authenticated;
 
 -- 7. Bilder anderer: nur freigegebene, nur fuer erlaubte Betrachter -------------
-create or replace function public.profile_media_visible(p_name text)
+-- Freigegeben ist genau die Datei mit der gemerkten Objekt-ID; eine neue Datei
+-- unter demselben Namen (Loeschen + neu Anlegen) hat eine andere id.
+create or replace function public.profile_media_visible(p_name text, p_object_id uuid)
 returns boolean
 language sql
 stable
@@ -256,22 +300,80 @@ as $$
        and (
          -- Profilbild: immer sichtbar, sobald jemand das Profil findet;
          -- ohne Anmeldung nur bei eingeschaltetem Web-Link.
-         (p.avatar_path = p_name and p.avatar_status = 'approved'
+         (p.avatar_path = p_name and p.avatar_status = 'approved' and p.avatar_object_id = p_object_id
            and (auth.uid() is not null or (p.web_link_enabled and not p.profile_private)))
          -- Titelbild: nur angemeldet, nicht privat, Stufe "Alle" (Freunde ab Teilprojekt 3).
-         or (p.cover_path = p_name and p.cover_status = 'approved'
+         or (p.cover_path = p_name and p.cover_status = 'approved' and p.cover_object_id = p_object_id
            and auth.uid() is not null and not p.profile_private
            and p.field_visibility ->> 'cover' = 'all')
        ));
 $$;
 
-revoke all on function public.profile_media_visible(text) from public;
-grant execute on function public.profile_media_visible(text) to anon, authenticated;
+revoke all on function public.profile_media_visible(text, uuid) from public;
+grant execute on function public.profile_media_visible(text, uuid) to anon, authenticated;
 
 drop policy if exists "Visible profile media select" on storage.objects;
 create policy "Visible profile media select" on storage.objects
   for select to anon, authenticated
-  using (bucket_id = 'profile-media' and public.profile_media_visible(name));
+  using (bucket_id = 'profile-media' and public.profile_media_visible(name, id));
+
+-- Kein Ueberschreiben an Ort und Stelle (upsert, update, move): sonst bekaeme
+-- neuer Inhalt die id der geprueften Datei. Die App laedt jedes Bild unter
+-- neuem Namen hoch (upsert: false) und loescht das alte. Teilprojekt 1 hatte
+-- diese Policy angelegt.
+drop policy if exists "Own profile media update" on storage.objects;
+
+-- 7a. Fuer den Bild-Check (nur Dienstrolle) --------------------------------------
+-- Objekt-ID einer Datei im Bucket; die Funktion liest sie vor dem Herunterladen.
+create or replace function public.profile_media_object_id(p_name text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select o.id from storage.objects o where o.bucket_id = 'profile-media' and o.name = p_name;
+$$;
+
+-- Freigeben, nur wenn noch dasselbe Bild hinterlegt ist, es noch auf die
+-- Pruefung wartet und unter dem Namen noch genau die gepruefte Datei liegt.
+-- Die Sperre haelt die Datei bis zum Ende der Transaktion fest. false = nichts
+-- geaendert (Status bleibt pending, die App fragt spaeter wieder).
+create or replace function public.profile_media_approve(p_user uuid, p_kind text, p_name text, p_object_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  n integer;
+begin
+  perform 1 from storage.objects o
+   where o.id = p_object_id and o.bucket_id = 'profile-media' and o.name = p_name
+   for share;
+  if not found then
+    return false;
+  end if;
+  if p_kind = 'avatar' then
+    update public.profiles
+       set avatar_status = 'approved', avatar_object_id = p_object_id
+     where id = p_user and avatar_path = p_name and avatar_status = 'pending';
+  elsif p_kind = 'cover' then
+    update public.profiles
+       set cover_status = 'approved', cover_object_id = p_object_id
+     where id = p_user and cover_path = p_name and cover_status = 'pending';
+  else
+    return false;
+  end if;
+  get diagnostics n = row_count;
+  return n > 0;
+end;
+$$;
+
+revoke all on function public.profile_media_object_id(text) from public, anon, authenticated;
+grant execute on function public.profile_media_object_id(text) to service_role;
+revoke all on function public.profile_media_approve(uuid, text, text, uuid) from public, anon, authenticated;
+grant execute on function public.profile_media_approve(uuid, text, text, uuid) to service_role;
 
 -- 7b. Schnappschuss fuer andere auf seine bekannte Form bringen ---------------
 -- Den Schnappschuss schreibt das Geraet des Eigentuemers; fuer andere ist er
