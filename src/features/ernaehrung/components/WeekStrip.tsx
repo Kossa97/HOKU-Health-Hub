@@ -169,14 +169,14 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, 
   }
 
   return (
-    <section aria-labelledby="nutr-week" className={`${CARD} px-2 pb-1.5 pt-1`}>
+    <section aria-labelledby="nutr-week" className={`${CARD} px-2 pb-2 pt-1`}>
       <div className="flex items-center justify-between gap-2 pl-2">
-        <h2 id="nutr-week" className={`text-[12px] font-semibold tabular-nums ${MUTED}`}>
+        <h2 id="nutr-week" className={`text-[13px] font-normal tabular-nums ${MUTED}`}>
           <span className="sr-only">{t('nutr_week_calendar')}: </span>{rangeText(days[0], days[6], i18n.language ?? 'de')}
         </h2>
         <button type="button" onClick={onOpenMonth} aria-label={t('nutr_month_open')} aria-haspopup="dialog"
           className="lg-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--lg-text-2)]">
-          <CalendarDays size={17} aria-hidden="true" />
+          <CalendarDays size={18} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
       {/* Tageswechsel ansagen (die Tage selbst sind keine Live-Bereiche). */}
@@ -194,15 +194,15 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, 
                 return (
                   <button key={d} type="button" onClick={() => onPick(d)} disabled={future} aria-pressed={selected}
                     aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goals, t)} data-nutr-day={d}
-                    className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[12px] pb-1.5 pt-1 transition-colors duration-200 disabled:pointer-events-none disabled:cursor-default ${
+                    className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[10px] pb-2 pt-1 transition-colors duration-200 disabled:pointer-events-none disabled:cursor-default ${
                       selected ? 'bg-[var(--lg-fill)]' : ''} ${dropDay === d ? 'scale-110 bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] ring-2 ring-[var(--accent)] transition-transform' : ''}`}>
                     <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goals} size={28} dim={future} />
                     <span className={`text-[14px] leading-none tabular-nums ${
-                      d === today ? 'font-bold text-[var(--accent)]' : selected ? 'font-bold text-[var(--lg-text)]' : 'font-medium text-[var(--lg-text)]'
+                      d === today ? 'font-medium text-[var(--lg-accent-text)]' : selected ? 'font-medium text-[var(--lg-text)]' : 'font-normal text-[var(--lg-text)]'
                     } ${future ? 'opacity-35' : ''}`}>
                       {format(parseISO(d), 'd')}
                     </span>
-                    <span className={`text-[10px] font-semibold uppercase leading-none tracking-[0.3px] ${d === today ? 'text-[var(--accent)]' : MUTED}`}>
+                    <span className={`text-[11px] leading-none ${d === today ? 'text-[var(--lg-accent-text)]' : MUTED}`}>
                       {format(parseISO(d), 'EEEEEE', { locale })}
                     </span>
                   </button>

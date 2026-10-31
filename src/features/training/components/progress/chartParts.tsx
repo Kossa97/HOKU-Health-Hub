@@ -14,7 +14,7 @@ export function TooltipBox({ title, rows }: {
     <div
       style={{
         background: 'var(--lg-sheet-solid)', border: '0.5px solid var(--lg-separator)',
-        borderRadius: 12, padding: '8px 10px', boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
         fontSize: 12, color: 'var(--lg-text)', minWidth: 120, maxWidth: 220,
       }}
     >
@@ -22,7 +22,7 @@ export function TooltipBox({ title, rows }: {
       {rows.map(row => (
         <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           {row.color && <span aria-hidden="true" style={{ width: 10, height: 2, borderRadius: 1, background: row.color, flexShrink: 0 }} />}
-          <strong style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{row.value}</strong>
+          <strong style={{ fontWeight: 500, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>{row.value}</strong>
           {row.label && (
             <span style={{ color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.label}</span>
           )}
@@ -44,7 +44,7 @@ export function TableView({ summary, head, rows }: {
         className="tyd-train-press"
         style={{
           minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', listStyle: 'revert',
+          fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)', listStyle: 'revert',
         }}
       >
         {summary}
@@ -54,7 +54,7 @@ export function TableView({ summary, head, rows }: {
           <thead>
             <tr>
               {head.map((cell, i) => (
-                <th key={i} scope="col" style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: 'var(--lg-text-3)', fontWeight: 600, borderBottom: '0.5px solid var(--lg-separator)', whiteSpace: 'nowrap' }}>{cell}</th>
+                <th key={i} scope="col" style={{ textAlign: i === 0 ? 'left' : 'right', padding: '6px 4px', color: 'var(--lg-text-3)', fontWeight: 500, borderBottom: '0.5px solid var(--lg-separator)', whiteSpace: 'nowrap' }}>{cell}</th>
               ))}
             </tr>
           </thead>
@@ -76,11 +76,11 @@ export function TableView({ summary, head, rows }: {
 /** Legenden-Eintrag: Form wie die Marke (Rechteck fuer Balken, Strich fuer Linien). */
 export function LegendItem({ color, label, shape = 'rect' }: { color: string; label: string; shape?: 'rect' | 'line' }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--lg-text-3)', fontWeight: 500, minWidth: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--lg-text-3)', fontWeight: 400, minWidth: 0 }}>
       <span
         aria-hidden="true"
         style={shape === 'rect'
-          ? { width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }
+          ? { width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }
           : { width: 14, height: 2, borderRadius: 1, background: color, flexShrink: 0 }}
       />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>

@@ -7,8 +7,8 @@ export function SectionHeading({ id, children }: { id: string; children: ReactNo
     <h3
       id={id}
       style={{
-        margin: '22px 16px 7px', fontSize: 13, fontWeight: 600,
-        letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--lg-text-3)',
+        margin: '24px 16px 8px', fontSize: 13, fontWeight: 500,
+        color: 'var(--lg-text-3)',
       }}
     >
       {children}

@@ -4,6 +4,7 @@ import { showPageNotification } from '../../../../lib/pushLocal'
 import { useTrainingText } from '../../i18n'
 import { formatClock } from '../../lib/format'
 import { Button, TRAINING_ACCENT } from '../ui'
+import { trainingTint } from '../accent'
 import type { NextSetInfo } from './nextSet'
 
 /**
@@ -81,21 +82,21 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
       aria-live="off"
       aria-label={`${tt('rest_timer')} ${formatClock(remainingS)}`}
       style={{
-        position: 'relative', overflow: 'hidden', borderRadius: 22,
-        background: 'var(--lg-surface-2)', border: `1px solid ${TRAINING_ACCENT}55`,
-        padding: '10px 12px 10px 16px', display: 'flex', alignItems: 'center',
+        position: 'relative', overflow: 'hidden', borderRadius: 16,
+        background: 'var(--lg-surface-2)', border: '1px solid var(--lg-hair)',
+        padding: '12px 12px 12px 16px', display: 'flex', alignItems: 'center',
       }}
     >
       <div
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, transformOrigin: 'left',
-          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}2e`,
+          transform: `scaleX(${progress})`, background: trainingTint(16),
           transition: 'transform 250ms linear',
         }}
       />
       <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, fontSize: 13, fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, fontSize: 13, fontWeight: 500 }}>
           <span style={{ flexShrink: 0, color: 'var(--lg-text-2)' }}>{title}</span>
           {targetLine && (
             <span style={{ flex: 1, minWidth: 0, color: TRAINING_ACCENT, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -103,13 +104,13 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ flex: 1, minWidth: 72, fontSize: 28, lineHeight: '34px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ flex: 1, minWidth: 72, fontSize: 28, lineHeight: '36px', fontWeight: 400, fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text)' }}>
             {formatClock(remainingS)}
           </span>
-          <Button tone="ghost" onClick={() => onAdjust(-15)} aria-label="−15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 999, fontSize: 15 }}>−15</Button>
-          <Button tone="ghost" onClick={() => onAdjust(15)} aria-label="+15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 999, fontSize: 15 }}>+15</Button>
-          <Button onClick={onSkip} style={{ minHeight: 40, padding: '0 14px' }}>{tt('rest_continue')}</Button>
+          <Button tone="ghost" onClick={() => onAdjust(-15)} aria-label="−15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 10, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>−15</Button>
+          <Button tone="ghost" onClick={() => onAdjust(15)} aria-label="+15 s" style={{ minWidth: 48, minHeight: 40, padding: '0 8px', borderRadius: 10, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>+15</Button>
+          <Button onClick={onSkip} style={{ minHeight: 40, padding: '0 16px', borderRadius: 10 }}>{tt('rest_continue')}</Button>
         </div>
       </div>
     </div>

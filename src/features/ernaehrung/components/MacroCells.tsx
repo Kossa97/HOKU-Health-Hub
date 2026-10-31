@@ -16,10 +16,10 @@ export function MacroCells({ nutrients: nu, hideKcal, compact = false }: { nutri
     { key: 'f', value: nu?.fat, unit: ' g', name: t('nutr_fat'), color: MACRO_COLORS.fat },
   ]
   return (
-    <div className={`grid ${compact ? 'gap-1.5' : 'gap-2'} ${cells.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`} aria-live="polite">
+    <div className={`grid gap-2 ${cells.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`} aria-live="polite">
       {cells.map(c => (
-        <div key={c.key} className={`min-w-0 bg-[var(--lg-surface-2)] px-1 text-center ${compact ? 'rounded-[12px] py-1.5' : 'rounded-[14px] py-2.5'}`}>
-          <div className={`${compact ? 'text-[16px]' : 'text-[17px]'} font-semibold tabular-nums text-[var(--lg-text)]`}>{c.value == null ? '–' : `${Math.round(c.value)}${c.unit}`}</div>
+        <div key={c.key} className={`min-w-0 bg-[var(--lg-surface-2)] px-1 text-center ${compact ? 'rounded-[10px] py-2' : 'rounded-[12px] py-3'}`}>
+          <div className={`${compact ? 'text-[16px]' : 'text-[17px]'} font-medium tabular-nums text-[var(--lg-text)]`}>{c.value == null ? '–' : `${Math.round(c.value)}${c.unit}`}</div>
           <div className={`mt-0.5 flex items-center justify-center gap-1 ${compact ? 'text-[11px]' : 'text-[12px]'} leading-tight ${MUTED}`}>
             <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: c.color }} />
             {'long' in c && c.long

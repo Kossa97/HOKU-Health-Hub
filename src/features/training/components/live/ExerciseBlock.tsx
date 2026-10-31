@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, ArrowLeftRight, Link2, MoreHorizontal, Plus, Sparkles, StickyNote, Timer, Trash2, Weight, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowLeftRight, Check, Link2, MoreHorizontal, Plus, StickyNote, Timer, TrendingUp, Trash2, Weight, X } from 'lucide-react'
 import type { SessionExercise, TrainingSet, TrainingSettings, WeightUnit } from '../../types'
 import { useTrainingText } from '../../i18n'
 import type { ExerciseInfo } from '../../lib/exerciseLookup'
@@ -8,7 +8,8 @@ import { formatNumber, formatWeight } from '../../lib/format'
 import type { Suggestion } from '../../lib/progression'
 import { platesPerSide, toDisplayWeight } from '../../lib/stats'
 import { setMatchesSuggestion, suggestionApplied } from '../../lib/suggest'
-import { Button, Chip, TrainingSheet, TRAINING_ACCENT, inputStyle } from '../ui'
+import { Button, Chip, TrainingSheet, TRAINING_ACCENT, TRAINING_INK, inputStyle } from '../ui'
+import { trainingTint } from '../accent'
 import { SetRow, gridColumns, previousLabel } from './SetRow'
 
 /**
@@ -82,18 +83,18 @@ export function ExerciseBlock({
       data-exercise-index={index}
       className="lg-surface lg-flat"
       style={{
-        padding: '12px 8px 10px',
+        padding: '12px 8px 12px',
         // Supersatz: ein schmaler Farbbalken innen am linken Rand
         boxShadow: groupColor ? `var(--lg-surface-shadow), inset 4px 0 0 ${groupColor}` : undefined,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px 8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px 8px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: 17, fontWeight: 600, color: TRAINING_ACCENT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h3 style={{ fontSize: 17, fontWeight: 500, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {info?.name ?? exercise.exerciseId}
           </h3>
           <div style={{ fontSize: 13, color: 'var(--lg-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {groupColor && <span style={{ color: groupColor, fontWeight: 600 }}>{tt('superset')}</span>}
+            {groupColor && <span style={{ color: groupColor, fontWeight: 500 }}>{tt('superset')}</span>}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Timer size={12} aria-hidden="true" /> {restS > 0 ? `${restS} s` : tt('rest_off')}</span>
           </div>
         </div>
@@ -140,7 +141,7 @@ export function ExerciseBlock({
           role="row"
           style={{
             display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, padding: '0 6px 4px',
-            fontSize: 12, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em', textAlign: 'center',
+            fontSize: 12, fontWeight: 400, color: 'var(--lg-text-3)', textAlign: 'center',
           }}
         >
           <span role="columnheader">{tt('col_set')}</span>
@@ -149,7 +150,7 @@ export function ExerciseBlock({
           {usesReps(tracking) && <span role="columnheader">{tt('col_reps')}</span>}
           {usesDistance(tracking) && <span role="columnheader">{tt('col_distance')}</span>}
           {usesDuration(tracking) && <span role="columnheader">{tt('col_time')}</span>}
-          <span role="columnheader" aria-label={tt('mark_done')}>✓</span>
+          <span role="columnheader" aria-label={tt('mark_done')} style={{ display: 'grid', placeItems: 'center' }}><Check size={14} strokeWidth={2} aria-hidden="true" /></span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {exercise.sets.map((set, i) => (
@@ -180,7 +181,7 @@ export function ExerciseBlock({
         <TrainingSheet title={info?.name ?? ''} onClose={() => setMenu(false)} zIndex={110}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', marginBottom: 8 }}>{tt('rest_time')}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)', marginBottom: 8 }}>{tt('rest_time')}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {REST_OPTIONS.map(s => (
                   <Chip key={s} active={restS === s} onClick={() => onRest(s)}>{s === 0 ? tt('rest_off') : `${s} s`}</Chip>
@@ -217,7 +218,7 @@ export function ExerciseBlock({
                 {tt(`set_type_${type}`)}
               </Chip>
             ))}
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('col_rpe')}</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('col_rpe')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {[6, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(rpe => (
                 <Chip
@@ -274,14 +275,14 @@ function SuggestionBox({ suggestion, tracking, unit, applied, onApply, onHide }:
       role="note"
       aria-label={`${tt('suggestion')} ${target}`}
       style={{
-        margin: '0 6px 8px', padding: '8px 8px 8px 10px', borderRadius: 12,
-        background: `${TRAINING_ACCENT}14`, border: `1px dashed ${TRAINING_ACCENT}66`,
+        margin: '0 6px 8px', padding: '8px 8px 8px 12px', borderRadius: 12,
+        background: trainingTint(8), border: `1px solid ${trainingTint(32)}`,
         display: 'flex', gap: 8, alignItems: 'flex-start',
       }}
     >
-      <Sparkles size={16} aria-hidden="true" style={{ flex: 'none', marginTop: 3, color: TRAINING_ACCENT }} />
-      <div style={{ flex: 1, minWidth: 0, fontSize: '0.8rem', lineHeight: 1.35, color: 'var(--lg-text)' }}>
-        <div style={{ fontWeight: 800 }}>
+      <TrendingUp size={16} strokeWidth={1.5} aria-hidden="true" style={{ flex: 'none', marginTop: 2, color: TRAINING_ACCENT }} />
+      <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35, color: 'var(--lg-text)' }}>
+        <div style={{ fontWeight: 500 }}>
           {tt('suggestion')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{target !== '—' ? target : ''}</span>
         </div>
         <div style={{ color: 'var(--lg-text-3)' }}>{tt(suggestion.reasonKey, vars)}</div>
@@ -291,8 +292,8 @@ function SuggestionBox({ suggestion, tracking, unit, applied, onApply, onHide }:
             onClick={onApply}
             className="tyd-train-press"
             style={{
-              marginTop: 6, minHeight: 32, padding: '0 12px', borderRadius: 999,
-              background: TRAINING_ACCENT, color: '#140800', fontWeight: 800, fontSize: '0.8rem',
+              marginTop: 8, minHeight: 32, padding: '0 12px', borderRadius: 8,
+              background: TRAINING_ACCENT, color: TRAINING_INK, fontWeight: 500, fontSize: 13,
             }}
           >
             {tt('suggestion_apply')}
@@ -324,11 +325,11 @@ function MenuItem({ icon: Icon, label, onClick, danger }: {
       onClick={onClick}
       className="tyd-train-press"
       style={{
-        minHeight: 50, width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
+        minHeight: 48, width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
         fontSize: 17, fontWeight: 400, color: danger ? 'var(--lg-bad-text)' : 'var(--lg-text)', textAlign: 'left',
       }}
     >
-      <Icon size={20} aria-hidden="true" style={{ color: danger ? 'var(--lg-bad-text)' : 'var(--lg-accent-text)', flexShrink: 0 }} /> {label}
+      <Icon size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: danger ? 'var(--lg-bad-text)' : 'var(--lg-text-2)', flexShrink: 0 }} /> {label}
     </button>
   )
 }
@@ -340,7 +341,7 @@ function PlateSheet({ targetKg, settings, onClose }: { targetKg: number; setting
   const maxPlate = Math.max(...settings.platesKg, 1)
   return (
     <TrainingSheet title={`${tt('plate_calc')} · ${formatWeight(targetKg, settings.unit, locale)}`} onClose={onClose} zIndex={110}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
         <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>
           {tt('plates_bar', { kg: formatWeight(settings.barKg, settings.unit, locale) })} · {tt('plates_per_side')}
         </div>
@@ -353,10 +354,10 @@ function PlateSheet({ targetKg, settings, onClose }: { targetKg: number; setting
               <div
                 key={i}
                 style={{
-                  width: 22, height: 40 + 80 * (p / maxPlate), borderRadius: 5,
+                  width: 22, height: 40 + 80 * (p / maxPlate), borderRadius: 4,
                   background: TRAINING_ACCENT, opacity: 0.55 + 0.45 * (p / maxPlate),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  writingMode: 'vertical-rl', fontSize: 11, fontWeight: 700, color: '#140800',
+                  writingMode: 'vertical-rl', fontSize: 11, fontWeight: 500, fontFamily: 'var(--font-mono)', color: TRAINING_INK,
                 }}
               >
                 {formatNumber(toDisplayWeight(p, settings.unit), locale, 2)}

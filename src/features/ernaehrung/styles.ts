@@ -4,7 +4,7 @@
  * Knöpfe und Schrift dieselben sind wie auf den anderen Seiten.
  */
 
-/** Makro-Farben als iOS-Systemfarben: Ringe und Balken, sonst nichts Buntes. */
+/** Makro-Farben als iOS-Systemfarben: Datenfarben (Kugel, Monde, Punkte), sonst nichts Buntes. Wasser trägt den Akzent. */
 /** Übersetzungsschlüssel der Makro-Namen. */
 export const MACRO_NAME = { protein: 'nutr_protein', carbs: 'nutr_carbs', fat: 'nutr_fat' } as const
 
@@ -13,7 +13,7 @@ export const MACRO_COLORS = {
   protein: '#30d158',
   carbs: '#bf5af2',
   fat: '#ff9f0a',
-  water: '#64d2ff',
+  water: 'var(--accent)',
 } as const
 
 /** Fläche einer Karte (ohne Weichzeichner — auf Schwarz zeigt er nichts). */
@@ -29,10 +29,10 @@ export const ERROR_TEXT = 'text-[13px] text-[var(--lg-bad-text)]'
 /** Hinweisfläche (Bernstein) mit Symbol. */
 export const WARN_BOX = 'flex gap-2 rounded-[14px] bg-[color-mix(in_srgb,var(--lg-warn)_14%,transparent)] p-3 text-[13px] leading-snug text-[var(--lg-text-2)]'
 
-/** Auswahl-Pille (Mahlzeit, Menge, Einheit …): gewählt hell, sonst Füllung. */
+/** Auswahl-Chip (Mahlzeit, Menge, Einheit …): gewählt eine Flächenstufe heller mit Haarlinie, sonst Füllung. */
 export const chip = (active: boolean) =>
-  `min-h-9 rounded-full px-3.5 text-[15px] font-medium transition-colors ${active
-    ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+  `min-h-9 rounded-lg px-3 text-[15px] font-medium transition-colors ${active
+    ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[inset_0_0_0_1px_var(--lg-hair)]'
     : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`
 
 

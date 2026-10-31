@@ -163,19 +163,19 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
         <div className="absolute left-1 top-1 z-[2]">
           <button type="button" data-app-page-close onClick={onClose} aria-label={t('nutr_close_page')}
             className="lg-icon-btn !text-[var(--lg-text-2)]">
-            <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} aria-hidden="true" /></span>
+            <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={18} strokeWidth={1.5} aria-hidden="true" /></span>
           </button>
         </div>
         {/* Eigener Rahmen: .lg-glass setzt position: relative. */}
         <div className="absolute right-3 top-1.5 z-[2]">
           <button type="button" onClick={onOpenGoals}
-            className="lg-glass lg-press flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-[var(--lg-text)]">
-            <Target size={14} aria-hidden="true" />{t('nutr_goals')}
+            className="lg-glass lg-press flex min-h-9 items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-medium text-[var(--lg-text)]">
+            <Target size={16} strokeWidth={1.5} aria-hidden="true" />{t('nutr_goals')}
           </button>
         </div>
         <div role="status" aria-live="polite" className="pointer-events-none absolute left-0 top-0 z-[3] h-0 w-0 overflow-visible">
           {focus && focused && !focus.still && (
-            <div ref={el => engineRef.current?.setLabel(el)} className="absolute flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-[12px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] px-2.5 py-1.5 text-[13px] font-medium tabular-nums text-[var(--lg-text)] shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
+            <div ref={el => engineRef.current?.setLabel(el)} className="absolute flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-[8px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] px-2.5 py-1.5 text-[13px] font-medium tabular-nums text-[var(--lg-text)] shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
               style={{ left: focus.x, top: focus.y, transform: 'translate(-50%, calc(-100% - 10px))' }}>
               <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: MACRO_COLORS[focus.key] }} />
               {t(MACRO_NAME[focus.key])} {gramText(focused.value, focused.goal)}
@@ -186,11 +186,11 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
         {/* Zwei Zeilen: Zahl mit Ziel, darunter die Makros über die ganze Breite. */}
         <div className="absolute inset-x-0 bottom-1 z-[2] flex flex-col items-center px-4">
           <p className="pointer-events-none flex items-baseline gap-1.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums text-[var(--lg-text)]">{bigValue}</span>
+            <span className="text-[28px] font-medium leading-none tabular-nums text-[var(--lg-text)]">{bigValue}</span>
             <span className={`text-[14px] tabular-nums ${MUTED}`}>
               {t('nutr_slash_goal', { goal: goals.hideKcal ? goals.proteinG : goals.kcal, unit: goals.hideKcal ? 'g' : 'kcal' })}
             </span>
-            {plus > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plus}</span>}
+            {plus > 0 && <span className="text-[13px] font-medium tabular-nums text-[var(--lg-accent-text)]">+{plus}</span>}
           </p>
           <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[clamp(9px,2.8vw,11px)]' : 'text-[clamp(10px,3.1vw,12px)]'}`}>
             {macros.map(m => (

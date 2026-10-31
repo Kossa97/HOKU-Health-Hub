@@ -90,12 +90,12 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
     undoTextRef.current = null
     toast(t => (
       <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ flex: 1, fontWeight: 700 }}>{text}</span>
+        <span style={{ flex: 1, fontWeight: 500 }}>{text}</span>
         <button
           type="button"
           className="tyd-train-press"
           onClick={() => { dispatch({ type: 'undo', id: undoId }); toast.dismiss(t.id) }}
-          style={{ minHeight: 36, padding: '0 8px', borderRadius: 10, fontWeight: 800, color: TRAINING_ACCENT }}
+          style={{ minHeight: 36, padding: '0 8px', borderRadius: 8, fontWeight: 500, color: TRAINING_ACCENT }}
         >
           {tt('undo')}
         </button>
@@ -181,12 +181,12 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
             aria-label={tt('workout_title_placeholder')}
             maxLength={80}
             className="tyd-train-input rounded-md"
-            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--lg-text)', fontSize: 17, fontWeight: 600, padding: 0 }}
+            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--lg-text)', fontSize: 17, fontWeight: 500, padding: 0 }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.75rem', fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>
             {!editing && <ElapsedClock startedAt={workout.startedAt} />}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <Check size={12} strokeWidth={3} aria-hidden="true" style={{ color: '#10b981', flexShrink: 0 }} />
+              <Check size={12} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--lg-good-text, #10b981)', flexShrink: 0 }} />
               {tt('saved_on_device')}
             </span>
           </div>
@@ -319,7 +319,7 @@ function ElapsedClock({ startedAt }: { startedAt: string }) {
     return () => window.clearInterval(id)
   }, [])
   return (
-    <span style={{ fontSize: 13, color: TRAINING_ACCENT, fontWeight: 600, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+    <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: TRAINING_ACCENT, fontWeight: 500, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
       {formatClock(Math.max(0, (now - Date.parse(startedAt)) / 1000))}
     </span>
   )

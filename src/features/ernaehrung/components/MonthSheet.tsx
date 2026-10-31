@@ -101,17 +101,17 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
       {/* Vormonat links neben dem Titel, Folgemonat als Pfeil dahinter: eine Zeile statt zwei. */}
       <div className="flex items-center gap-1">
         <button type="button" onClick={() => shift(-1)}
-          className="-ml-1 flex min-h-11 shrink-0 items-center gap-0.5 pr-1.5 text-[15px] font-medium text-[var(--accent)]">
+          className="-ml-1 flex min-h-11 shrink-0 items-center gap-0.5 pr-2 text-[15px] font-medium text-[var(--lg-accent-text)]">
           <ChevronLeft size={20} aria-hidden="true" /><span className="sr-only">{t('prev_month')}: </span>{format(addMonths(parseISO(month), -1), 'LLLL', { locale })}
         </button>
-        <h2 id="nutr-month-title" className="min-w-0 truncate text-[19px] font-bold leading-tight text-[var(--lg-text)]" aria-live="polite">
+        <h2 id="nutr-month-title" className="min-w-0 truncate text-[20px] font-medium leading-tight text-[var(--lg-text)]" aria-live="polite">
           {format(parseISO(month), 'LLLL yyyy', { locale })}
         </h2>
         {!isCurrentMonth && (
           <button type="button" onClick={() => shift(1)}
             aria-label={`${t('next_month')}: ${format(addMonths(parseISO(month), 1), 'LLLL', { locale })}`}
-            className="grid min-h-11 min-w-10 shrink-0 place-items-center text-[var(--accent)]">
-            <ChevronRight size={22} aria-hidden="true" />
+            className="grid min-h-11 min-w-10 shrink-0 place-items-center text-[var(--lg-accent-text)]">
+            <ChevronRight size={20} aria-hidden="true" />
           </button>
         )}
         <span className="ml-auto shrink-0"><SheetClose onClick={onClose} /></span>
@@ -119,7 +119,7 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
 
       <div className="mt-2 grid grid-cols-7 text-center" aria-hidden="true">
         {weekDays(today).map(d => (
-          <span key={d} className={`text-[12px] font-semibold ${MUTED}`}>{format(parseISO(d), 'EEEEEE', { locale })}</span>
+          <span key={d} className={`text-[12px] font-normal ${MUTED}`}>{format(parseISO(d), 'EEEEEE', { locale })}</span>
         ))}
       </div>
 
@@ -141,8 +141,8 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
                 aria-label={totals ? dayAria(d, totals[d], goals, t) : format(parseISO(d), 'PPPP', { locale })}
                 onClick={() => { onPick(d); onClose() }}
                 className={`relative flex min-w-0 touch-manipulation select-none flex-col items-center rounded-[12px] disabled:cursor-default ${stacked ? 'gap-0.5 py-0.5' : 'justify-center'}`}>
-                <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[12px] font-semibold tabular-nums ${
-                  selected ? 'bg-[var(--accent)] text-[var(--accent-contrast)]' : d === today ? 'text-[var(--accent)]' : 'text-[var(--lg-text)]'
+                <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[12px] font-medium tabular-nums ${
+                  selected ? 'bg-[var(--accent)] text-[var(--accent-contrast)]' : d === today ? 'text-[var(--lg-accent-text)]' : 'text-[var(--lg-text)]'
                 } ${future ? 'opacity-35' : ''} ${stacked ? '' : 'absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2'}`}>
                   {format(parseISO(d), 'd')}
                 </span>

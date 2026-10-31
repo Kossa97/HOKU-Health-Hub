@@ -7,6 +7,7 @@ import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exer
 import { formatClock, formatNumber, parseDecimal, parseStopwatchDigits, stopwatchDigits } from '../../lib/format'
 import { toDisplayWeight } from '../../lib/stats'
 import { TRAINING_ACCENT } from '../ui'
+import { trainingTint } from '../accent'
 import { SetWheelSheet } from './SetWheelSheet'
 
 /**
@@ -20,8 +21,8 @@ import { SetWheelSheet } from './SetWheelSheet'
  * (`SetWheelSheet`); Distanz und Dauer bleiben Eingabefelder.
  */
 
-export const DONE_TINT = 'rgba(48,209,88,0.16)'
-const DONE_COLOR = '#30d158'
+export const DONE_TINT = 'color-mix(in srgb, var(--lg-good, #30d158) 14%, transparent)'
+const DONE_COLOR = 'var(--lg-good, #30d158)'
 
 export const SET_TYPE_COLOR: Record<TrainingSet['type'], string> = {
   normal: 'var(--lg-text)',
@@ -119,7 +120,7 @@ function Cell({ kind, set, unit, locale, placeholder, label, suggested, onChange
       }}
       style={{
         width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
-        fontSize: 16, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+        fontSize: 16, fontWeight: 500, fontVariantNumeric: 'tabular-nums',
         background: set.done ? 'transparent' : 'var(--lg-fill)',
         border: 0,
         color: suggested && !set.done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
@@ -149,7 +150,7 @@ function ValueButton({ value, placeholder, label, done, suggested, onOpen, butto
       className={suggested ? 'tyd-train-press tyd-train-input sug' : 'tyd-train-press tyd-train-input'}
       style={{
         width: '100%', height: 40, borderRadius: 10, textAlign: 'center',
-        fontSize: 16, fontWeight: 750, fontVariantNumeric: 'tabular-nums',
+        fontSize: 16, fontWeight: 500, fontVariantNumeric: 'tabular-nums',
         background: done ? 'transparent' : 'var(--lg-fill)',
         border: `1px solid ${done ? 'transparent' : 'var(--lg-separator)'}`,
         color: !value ? 'var(--lg-text-3)' : suggested && !done ? TRAINING_ACCENT : 'var(--lg-text)', padding: '0 4px',
@@ -197,7 +198,7 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
         display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, alignItems: 'center',
         padding: '4px 6px', borderRadius: 12,
         background: set.done ? DONE_TINT : 'transparent',
-        boxShadow: isNext && !set.done ? `inset 0 0 0 1.5px ${TRAINING_ACCENT}99` : undefined,
+        boxShadow: isNext && !set.done ? `inset 0 0 0 1px ${trainingTint(60)}` : undefined,
         transition: 'background 160ms ease-out',
       }}
     >
@@ -206,7 +207,7 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
         onClick={onOpenSetMenu}
         aria-label={`${tt('col_set')} ${label}: ${tt(`set_type_${set.type}`)}`}
         className="tyd-train-press"
-        style={{ height: 36, borderRadius: 10, fontSize: 15, fontWeight: 600, color: SET_TYPE_COLOR[set.type], background: 'var(--lg-fill)' }}
+        style={{ height: 36, borderRadius: 8, fontSize: 15, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: SET_TYPE_COLOR[set.type], background: 'var(--lg-fill)' }}
       >
         {label}
       </button>
@@ -243,10 +244,10 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           background: set.done ? DONE_COLOR : 'var(--lg-fill)',
           border: 0,
-          color: set.done ? '#fff' : 'var(--lg-text-3)',
+          color: set.done ? '#06140d' : 'var(--lg-text-3)',
         }}
       >
-        <Check size={20} strokeWidth={3} aria-hidden="true" />
+        <Check size={18} strokeWidth={2.5} aria-hidden="true" />
       </button>
       {wheel && (
         <SetWheelSheet

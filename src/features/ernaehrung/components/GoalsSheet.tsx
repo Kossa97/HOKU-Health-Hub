@@ -66,14 +66,14 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
         <SheetClose onClick={onClose} disabled={busy} />
       </div>
 
-      <section aria-labelledby="nutr-suggest" className="mt-3 rounded-[18px] bg-[var(--lg-surface-2)] p-4">
-        <h3 id="nutr-suggest" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_suggest_title')}</h3>
+      <section aria-labelledby="nutr-suggest" className="mt-3 rounded-[16px] bg-[var(--lg-surface-2)] p-4">
+        <h3 id="nutr-suggest" className="text-[17px] font-medium text-[var(--lg-text)]">{t('nutr_suggest_title')}</h3>
         {body === null && <p className={`mt-1 text-[13px] ${MUTED}`}>…</p>}
         {body === 'error' && <p className={`mt-1 text-[13px] ${MUTED}`}>{t('nutr_body_error')}</p>}
         {missing && (
           <p className={`mt-1 text-[13px] leading-snug ${DIM}`}>
             {t('nutr_suggest_missing', { fields: missing })}{' '}
-            <Link to="/health" className="font-semibold text-[var(--lg-accent-text)]">{t('nutr_suggest_open_profile')}</Link>
+            <Link to="/health" className="font-medium text-[var(--lg-accent-text)]">{t('nutr_suggest_open_profile')}</Link>
           </p>
         )}
         {complete && (
@@ -82,14 +82,14 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
               {t('nutr_suggest_basis', { weight: complete.weightKg, height: complete.heightCm, age })}
             </p>
             <p className="label mt-3" id="nutr-activity-label">{t('nutr_activity')}</p>
-            <div role="radiogroup" aria-labelledby="nutr-activity-label" className="grid grid-cols-2 gap-1.5">
+            <div role="radiogroup" aria-labelledby="nutr-activity-label" className="grid grid-cols-2 gap-2">
               {(['sedentary', 'light', 'moderate', 'high'] as const).map(a => (
                 <button key={a} type="button" role="radio" aria-checked={activity === a} onClick={() => setActivity(a)}
                   className={chip(activity === a)}>{t(`nutr_act_${a}`)}</button>
               ))}
             </div>
             <p className="label mt-3" id="nutr-goalkind-label">{t('nutr_goal')}</p>
-            <div role="radiogroup" aria-labelledby="nutr-goalkind-label" className="grid grid-cols-3 gap-1.5">
+            <div role="radiogroup" aria-labelledby="nutr-goalkind-label" className="grid grid-cols-3 gap-2">
               {(['lose', 'maintain', 'gain'] as const).map(g => (
                 <button key={g} type="button" role="radio" aria-checked={goal === g} onClick={() => setGoal(g)}
                   className={chip(goal === g)}>{t(`nutr_goal_${g}`)}</button>
@@ -98,7 +98,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
             <button type="button" onClick={applySuggestion} className="lg-gray-btn mt-3 w-full">{t('nutr_suggest_apply')}</button>
           </>
         )}
-        <p className={`mt-2.5 text-[12px] leading-relaxed ${MUTED}`}>{t('nutr_suggest_note')}</p>
+        <p className={`mt-3 text-[12px] leading-relaxed ${MUTED}`}>{t('nutr_suggest_note')}</p>
       </section>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
@@ -140,7 +140,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
 /** iOS-Schalter; darunter bleibt ein echtes Kontrollkästchen (Tastatur, Screenreader). */
 function SwitchRow({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (on: boolean) => void }) {
   return (
-    <label className="mt-4 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-[18px] bg-[var(--lg-surface-2)] px-4 py-3">
+    <label className="mt-4 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-[16px] bg-[var(--lg-surface-2)] px-4 py-3">
       <span className="min-w-0 flex-1">
         <span className="block text-[17px] text-[var(--lg-text)]">{label}</span>
         <span className={`mt-0.5 block text-[13px] leading-snug ${MUTED}`}>{hint}</span>

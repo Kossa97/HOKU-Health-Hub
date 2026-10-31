@@ -4,7 +4,7 @@ import type { TrainingData } from '../../hooks/useTrainingData'
 import { matchesSearch } from '../../lib/exerciseLookup'
 import { formatDate } from '../../lib/format'
 import { useTrainingText } from '../../i18n'
-import { Card, SectionTitle, TRAINING_ACCENT, inputStyle } from '../ui'
+import { Card, SectionTitle, inputStyle } from '../ui'
 import { WeeklyChart } from './WeeklyChart'
 import { MuscleBalance } from './MuscleBalance'
 import { ExerciseDetailSheet } from './ExerciseDetailSheet'
@@ -61,14 +61,14 @@ export function ProgressTab({ data }: { data: TrainingData }) {
         <span
           aria-hidden="true"
           style={{
-            width: 48, height: 48, borderRadius: 13, margin: '0 auto 12px',
+            width: 48, height: 48, borderRadius: 12, margin: '0 auto 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: TRAINING_ACCENT, color: '#fff',
+            background: 'var(--lg-fill)', color: 'var(--lg-text-2)',
           }}
         >
-          <LineChartIcon size={24} />
+          <LineChartIcon size={24} strokeWidth={1.5} />
         </span>
-        <h2 className="lg-title2" style={{ marginBottom: 6 }}>{tt('progress_empty_title')}</h2>
+        <h2 className="lg-title2" style={{ marginBottom: 8 }}>{tt('progress_empty_title')}</h2>
         <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.45, maxWidth: 340, margin: '0 auto' }}>{tt('progress_empty_body')}</p>
       </Card>
     )
@@ -94,7 +94,7 @@ export function ProgressTab({ data }: { data: TrainingData }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <WeeklyChart sessions={data.sessions} unit={unit} now={now} />
       <MuscleBalance sessions={data.sessions} custom={data.customExercises} now={now} />
 
@@ -102,7 +102,7 @@ export function ProgressTab({ data }: { data: TrainingData }) {
         <SectionTitle><span id="progress-exercises-title">{tt('progress_exercises_title')}</span></SectionTitle>
 
         {summaries.length > 0 && (
-          <label style={{ position: 'relative', display: 'block', marginBottom: 10 }}>
+          <label style={{ position: 'relative', display: 'block', marginBottom: 12 }}>
             <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>
               {tt('progress_search_label')}
             </span>

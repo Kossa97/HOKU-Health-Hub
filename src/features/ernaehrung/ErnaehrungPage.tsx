@@ -154,7 +154,7 @@ export function ErnaehrungPage() {
       toast(tt => (
         <span className="flex items-center gap-3">
           <span>{where}</span>
-          <button type="button" className="font-semibold text-[var(--lg-accent-text)]"
+          <button type="button" className="font-medium text-[var(--lg-accent-text)]"
             onClick={() => {
               toast.dismiss(tt.id)
               // Den aktuellen Stand zurückschieben (falls inzwischen bearbeitet), sonst den gespeicherten.
@@ -260,7 +260,7 @@ export function ErnaehrungPage() {
     toast(tt => (
       <span className="flex items-center gap-3">
         <span>{t('nutr_deleted', { name: entry.name })}</span>
-        <button type="button" className="font-semibold text-[var(--lg-accent-text)]"
+        <button type="button" className="font-medium text-[var(--lg-accent-text)]"
           onClick={() => { toast.dismiss(tt.id); n.restore(entry).catch(() => toast.error(t('nutr_error'))) }}>
           {t('nutr_undo')}
         </button>
@@ -329,7 +329,7 @@ export function ErnaehrungPage() {
 
       {!sheet && (<>
       {n.loadError && (
-        <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] p-3.5 text-[15px] text-[var(--lg-text)]">
+        <div role="alert" className="mt-2 flex items-center justify-between gap-3 rounded-[16px] bg-[color-mix(in_srgb,var(--lg-bad)_14%,transparent)] p-4 text-[15px] text-[var(--lg-text)]">
           {t('nutr_load_error')}
           <button type="button" data-quiet className="lg-gray-btn shrink-0" onClick={n.reload}>{t('lab_retry')}</button>
         </div>
@@ -337,10 +337,10 @@ export function ErnaehrungPage() {
 
       {n.goalsSet === false && (
         <button type="button" onClick={() => setSheet({ kind: 'goals' })}
-          className="lg-surface lg-flat mt-2 flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors active:bg-[var(--lg-surface-2)]">
-          <span className="lg-icon-tile" style={{ background: 'var(--accent)', color: 'var(--accent-contrast)' }} aria-hidden="true"><Target size={17} /></span>
+          className="lg-surface lg-flat mt-2 flex w-full items-center gap-3 p-4 text-left transition-colors active:bg-[var(--lg-surface-2)]">
+          <Target size={18} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-[var(--lg-text-2)]" />
           <span className="min-w-0 flex-1 text-[15px] leading-snug">
-            <span className="font-semibold text-[var(--lg-text)]">{t('nutr_set_goals')}</span>{' '}
+            <span className="font-medium text-[var(--lg-text)]">{t('nutr_set_goals')}</span>{' '}
             <span className={DIM}>{t('nutr_set_goals_hint')}</span>
           </span>
         </button>
@@ -480,7 +480,7 @@ export function ErnaehrungPage() {
           <p className={`mt-1 text-[15px] ${DIM}`}>
             {n.goals.hideKcal ? '' : `${Math.round(sheet.entry.nutrients.kcal)} kcal · `}{Math.round(sheet.entry.nutrients.protein)} g {t('nutr_protein')}
           </p>
-          <div role="radiogroup" aria-label={t('nutr_meal')} className="mt-4 flex flex-wrap gap-1.5">
+          <div role="radiogroup" aria-label={t('nutr_meal')} className="mt-4 flex flex-wrap gap-2">
             {MEALS.map(m => (
               <button key={m} type="button" role="radio" aria-checked={sheet.entry.meal === m} disabled={busy}
                 onClick={() => run(async () => { await n.update(sheet.entry, { meal: m }); setSheet(null) })}

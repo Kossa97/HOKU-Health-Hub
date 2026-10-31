@@ -34,11 +34,11 @@ function PhotoConsentRow({ userId }: { userId: string }) {
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage ?? i18n.language, { dateStyle: 'medium' }).format(new Date(consent))
   return (
     <div className="card mt-3 space-y-2" data-photo-consent-profile>
-      <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
-        <Camera size={16} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('nutr_photo_consent_profile_title')}
+      <h2 className="flex items-center gap-2 text-[17px] font-medium text-[var(--lg-text)]">
+        <Camera size={16} strokeWidth={1.5} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('nutr_photo_consent_profile_title')}
       </h2>
       <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{t('nutr_photo_consent_profile_on', { date })}</p>
-      <button type="button" disabled={busy} onClick={() => void revoke()} className="min-h-11 text-[15px] font-semibold text-[var(--lg-bad-text)] disabled:opacity-50">
+      <button type="button" disabled={busy} onClick={() => void revoke()} className="min-h-11 text-[15px] font-medium text-[var(--lg-bad-text)] disabled:opacity-50">
         {t('nutr_photo_consent_revoke')}
       </button>
     </div>

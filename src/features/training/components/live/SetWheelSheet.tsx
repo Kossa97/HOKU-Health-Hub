@@ -21,7 +21,7 @@ import { WHEEL_HEIGHT, WHEEL_ITEM_H } from './wheelGeometry'
  * letzte Einheit.
  */
 
-const DONE_COLOR = '#10b981'
+const DONE_COLOR = 'var(--lg-good, #10b981)'
 
 export function SetWheelSheet({ title, previousText, set, previous, tracking, unit, weightLabel, focus, onClose }: {
   title: string
@@ -101,10 +101,10 @@ export function SetWheelSheet({ title, previousText, set, previous, tracking, un
         onClick={event => event.stopPropagation()}
         // Wie TrainingSheet: schwebendes iOS-Sheet mit Griff
         className="lg-sheet lg-sheet-solid tyd-train-sheet"
-        style={{ width: '100%', maxWidth: 560, color: 'var(--lg-text)', padding: '0 16px 14px' }}
+        style={{ width: '100%', maxWidth: 560, color: 'var(--lg-text)', padding: '0 16px 16px' }}
       >
         <SheetGriff style={{ marginTop: 8, marginBottom: 4 }} onClose={() => close(false)} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             type="button"
             onClick={() => close(false)}
@@ -112,17 +112,17 @@ export function SetWheelSheet({ title, previousText, set, previous, tracking, un
             className="tyd-train-press"
             style={{ width: 40, height: 40, borderRadius: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--lg-fill)', color: 'var(--lg-text-3)', flexShrink: 0 }}
           >
-            <ChevronDown size={22} aria-hidden="true" />
+            <ChevronDown size={20} aria-hidden="true" />
           </button>
-          <h2 id={titleId} style={{ flex: 1, minWidth: 0, fontSize: '1.05rem', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h2>
+          <h2 id={titleId} style={{ flex: 1, minWidth: 0, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h2>
           <button
             type="button"
             onClick={() => close(!set.done)}
             aria-label={set.done ? tt('wheel_save') : tt('wheel_save_done')}
             className="tyd-train-press"
-            style={{ width: 48, height: 48, borderRadius: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: DONE_COLOR, color: '#04140d', boxShadow: `0 6px 18px ${DONE_COLOR}55`, flexShrink: 0 }}
+            style={{ width: 48, height: 48, borderRadius: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: DONE_COLOR, color: '#04140d', flexShrink: 0 }}
           >
-            <Check size={24} strokeWidth={3} aria-hidden="true" />
+            <Check size={22} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
 
@@ -135,20 +135,20 @@ export function SetWheelSheet({ title, previousText, set, previous, tracking, un
             }}
             className="tyd-train-press"
             style={{
-              marginTop: 10, height: 34, maxWidth: '100%', padding: '0 12px', borderRadius: 17,
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'var(--lg-fill)', color: 'var(--lg-text)', fontWeight: 700, fontSize: '0.82rem',
+              marginTop: 12, height: 36, maxWidth: '100%', padding: '0 12px', borderRadius: 8,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'var(--lg-fill)', color: 'var(--lg-text)', fontWeight: 500, fontSize: 13,
               fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden',
             }}
           >
             <RotateCcw size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {tt('wheel_same_as_last')}{previousText ? <span style={{ color: 'var(--lg-text-3)', fontWeight: 600 }}> · {previousText}</span> : null}
+              {tt('wheel_same_as_last')}{previousText ? <span style={{ color: 'var(--lg-text-3)', fontWeight: 400 }}> · {previousText}</span> : null}
             </span>
           </button>
         )}
 
-        <div style={{ display: 'flex', fontSize: '0.7rem', fontWeight: 800, color: 'var(--lg-text-3)', textTransform: 'uppercase', textAlign: 'center', marginTop: 14 }}>
+        <div style={{ display: 'flex', fontSize: 12, fontWeight: 400, color: 'var(--lg-text-3)', textAlign: 'center', marginTop: 16 }}>
           {withReps && <span style={{ flex: 1 }}>{tt('col_reps')}</span>}
           {withReps && withWeight && <span style={{ width: 28 }} />}
           {withWeight && <span style={{ flex: 1.6 }}>{weightLabel}</span>}
@@ -169,7 +169,7 @@ export function SetWheelSheet({ title, previousText, set, previous, tracking, un
             </div>
           )}
           {withReps && withWeight && (
-            <span aria-hidden="true" style={{ width: 28, textAlign: 'center', position: 'relative', fontSize: 18, fontWeight: 700, color: 'var(--lg-text-3)' }}>×</span>
+            <span aria-hidden="true" style={{ width: 28, textAlign: 'center', position: 'relative', fontSize: 18, fontWeight: 400, color: 'var(--lg-text-3)' }}>×</span>
           )}
           {withWeight && (
             <div style={{ flex: 1.6, position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -179,7 +179,7 @@ export function SetWheelSheet({ title, previousText, set, previous, tracking, un
               <div className="tyd-wheel-wrap" style={{ width: 64 }}>
                 <WheelPicker count={fractions.length} index={draft.frac} onChange={i => update({ frac: i })} format={formatFrac} numberAt={i => fractions[i]} label={`${weightLabel} ${tt('wheel_decimals')}`} align="left" />
               </div>
-              <span aria-hidden="true" style={{ width: 30, fontSize: 15, fontWeight: 700, color: 'var(--lg-text-3)' }}>{unit}</span>
+              <span aria-hidden="true" style={{ width: 32, fontSize: 15, fontWeight: 400, fontFamily: 'var(--font-mono)', color: 'var(--lg-text-3)' }}>{unit}</span>
             </div>
           )}
         </div>

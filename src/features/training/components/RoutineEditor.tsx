@@ -25,7 +25,7 @@ import { useDragReorder } from './plan/useDragReorder'
 
 const REST_OPTIONS = [60, 90, 120, 180]
 const TYPE_ORDER: SetType[] = ['normal', 'warmup', 'drop', 'failure']
-const TYPE_COLOR: Record<SetType, string> = { normal: 'var(--lg-text)', warmup: '#f59e0b', drop: '#a855f7', failure: '#f43f5e' }
+const TYPE_COLOR: Record<SetType, string> = { normal: 'var(--lg-text)', warmup: 'var(--lg-warn-text)', drop: '#da8fff', failure: 'var(--lg-bad-text)' }
 const MAX_SETS = 20
 
 type Column = 'type' | 'min' | 'dash' | 'max' | 'duration' | 'distance' | 'weight' | 'rpe'
@@ -193,7 +193,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           type="button"
           onClick={() => { setExercises(snapshot); toast.dismiss(t.id) }}
           className="tyd-train-press"
-          style={{ color: TRAINING_ACCENT, fontWeight: 800, minHeight: 32, padding: '0 6px' }}
+          style={{ color: TRAINING_ACCENT, fontWeight: 500, minHeight: 32, padding: '0 8px' }}
         >
           {tt('undo')}
         </button>
@@ -248,10 +248,10 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
       tall
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('editor_saves_on_close')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--lg-text-3)' }}>{tt('editor_saves_on_close')}</span>
           {onStart && (
-            <Button tone="ghost" disabled={busy} onClick={start} style={{ minHeight: 38, padding: '0 12px', fontSize: '0.85rem' }}>
+            <Button tone="ghost" disabled={busy} onClick={start} style={{ minHeight: 36, padding: '0 12px', fontSize: 14 }}>
               <Play size={14} aria-hidden="true" /> {tt('start')}
             </Button>
           )}
@@ -264,11 +264,11 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
             placeholder={tt('routine_name_placeholder')}
             aria-label={tt('routine_name')}
             maxLength={60}
-            style={{ ...inputStyle, fontWeight: 750, fontSize: 17, minHeight: 46 }}
+            style={{ ...inputStyle, fontWeight: 500, fontSize: 17, minHeight: 48 }}
           />
           <div style={rowStyle}>
             <span style={rowLabel}>{tt('routine_folder')}</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
               {folders.map(f => (
                 <Chip key={f} active={!newFolder && folder === f} onClick={() => { setFolder(f); setNewFolder(false) }}>{f}</Chip>
               ))}
@@ -283,7 +283,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                   onChange={e => setFolder(e.target.value.trim() || null)}
                   onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); setNewFolder(false) } }}
                   onBlur={() => setNewFolder(false)}
-                  style={{ ...inputStyle, minHeight: 36, padding: '4px 12px', borderRadius: 999, width: 'auto', flex: '1 1 10em', fontWeight: 700 }}
+                  style={{ ...inputStyle, minHeight: 36, padding: '4px 12px', borderRadius: 8, width: 'auto', flex: '1 1 10em', fontWeight: 500 }}
                 />
               ) : (
                 <Chip active={false} onClick={() => { setFolder(null); setNewFolder(true) }}>{tt('folder_new')}</Chip>
@@ -306,7 +306,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           </div>
         </section>
 
-        {exercises.length === 0 && <p style={{ color: 'var(--lg-text-3)', padding: '4px 2px', fontSize: '0.9rem' }}>{tt('routine_no_exercises')}</p>}
+        {exercises.length === 0 && <p style={{ color: 'var(--lg-text-3)', padding: '4px', fontSize: 15 }}>{tt('routine_no_exercises')}</p>}
         <ul {...drag.containerProps} style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {exercises.map((ex, index) => {
             const exInfo = info(ex.exerciseId)
@@ -324,7 +324,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                 key={`${ex.exerciseId}-${index}`}
                 data-drag-row
                 style={{
-                  ...cardStyle, gap: 6, padding: '8px 8px 10px',
+                  ...cardStyle, gap: 8, padding: '8px 8px 12px',
                   borderLeft: groupColor ? `4px solid ${groupColor}` : undefined,
                   ...drag.rowStyle(index),
                 }}
@@ -339,8 +339,8 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                     <GripVertical size={18} aria-hidden="true" />
                   </button>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exName}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {exInfo?.primary.map(m => tt(`muscle_${m}` as TrainingTextKey)).join(', ')}
                     </div>
                   </div>
@@ -375,7 +375,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                   </button>
                 </div>
 
-                <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: grid, gap: 6, padding: '2px 4px 0', fontSize: '0.62rem', fontWeight: 800, color: 'var(--lg-text-3)', textTransform: 'uppercase', textAlign: 'center', letterSpacing: '0.04em' }}>
+                <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: grid, gap: 6, padding: '4px 4px 0', fontSize: 11, fontWeight: 400, color: 'var(--lg-text-3)', textAlign: 'center' }}>
                   {columns.map(col => <span key={col}>{columnHeader(col, tt, unit)}</span>)}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -393,7 +393,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                                   onClick={() => cycleType(index, setIndex)}
                                   aria-label={`${tt('set_type')}: ${tt(`set_type_${set.type}` as TrainingTextKey)}`}
                                   className="tyd-train-press"
-                                  style={{ height: 38, borderRadius: 10, fontWeight: 800, fontSize: '0.85rem', background: 'var(--lg-fill)', color: TYPE_COLOR[set.type] }}
+                                  style={{ height: 36, borderRadius: 8, fontWeight: 500, fontSize: 14, fontVariantNumeric: 'tabular-nums', background: 'var(--lg-fill)', color: TYPE_COLOR[set.type] }}
                                 >
                                   {set.type === 'normal' ? number : tt(`set_${set.type}_short` as TrainingTextKey)}
                                 </button>
@@ -429,9 +429,9 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                     )
                   })}
                 </div>
-                <div style={{ display: 'flex', gap: 6, padding: '4px 4px 0' }}>
-                  <Button tone="ghost" onClick={() => addSet(index)} disabled={ex.sets.length >= MAX_SETS} aria-label={tt('add_set')} style={{ minHeight: 36, fontSize: '0.82rem', flex: 1 }}>{tt('add_set_short')}</Button>
-                  <Button tone="ghost" onClick={() => removeSet(index)} disabled={ex.sets.length <= 1} aria-label={tt('remove_set')} style={{ minHeight: 36, fontSize: '0.82rem', color: 'var(--lg-text-3)' }}>{tt('remove_set_short')}</Button>
+                <div style={{ display: 'flex', gap: 8, padding: '4px 4px 0' }}>
+                  <Button tone="ghost" onClick={() => addSet(index)} disabled={ex.sets.length >= MAX_SETS} aria-label={tt('add_set')} style={{ minHeight: 36, fontSize: 14, flex: 1 }}>{tt('add_set_short')}</Button>
+                  <Button tone="ghost" onClick={() => removeSet(index)} disabled={ex.sets.length <= 1} aria-label={tt('remove_set')} style={{ minHeight: 36, fontSize: 14, color: 'var(--lg-text-3)' }}>{tt('remove_set_short')}</Button>
                 </div>
                 {notesOpen && (
                   <textarea
@@ -440,7 +440,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                     placeholder={tt('notes_placeholder')}
                     aria-label={tt('notes')}
                     rows={2}
-                    style={{ ...inputStyle, minHeight: 56, resize: 'vertical', fontSize: 16, margin: '2px 4px 0', width: 'calc(100% - 8px)' }}
+                    style={{ ...inputStyle, minHeight: 56, resize: 'vertical', fontSize: 16, margin: '4px 4px 0', width: 'calc(100% - 8px)' }}
                   />
                 )}
               </li>
@@ -448,21 +448,21 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           })}
         </ul>
 
-        <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 52, borderStyle: 'dashed', color: TRAINING_ACCENT }}>
+        <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 48, color: TRAINING_ACCENT }}>
           <Plus size={18} aria-hidden="true" /> {tt('add_from_catalog')}
         </Button>
 
-        <section style={{ ...cardStyle, padding: '14px 16px' }} aria-labelledby="routine-muscle-title">
+        <section style={{ ...cardStyle, padding: 16 }} aria-labelledby="routine-muscle-title">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-            <h3 id="routine-muscle-title" style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lg-text-3)' }}>{tt('sets_per_muscle')}</h3>
-            <span style={{ fontSize: '0.72rem', color: 'var(--lg-text-3)' }}>{tt('muscle_routine_times', { count: times })}</span>
+            <h3 id="routine-muscle-title" style={{ margin: 0, fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)' }}>{tt('sets_per_muscle')}</h3>
+            <span style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>{tt('muscle_routine_times', { count: times })}</span>
           </div>
           {muscleRows.length === 0 ? (
-            <p style={{ fontSize: '0.85rem', color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('muscle_empty_editor')}</p>
+            <p style={{ fontSize: 14, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('muscle_empty_editor')}</p>
           ) : (
-            <div style={{ marginTop: 10 }}><MuscleBars rows={muscleRows} /></div>
+            <div style={{ marginTop: 12 }}><MuscleBars rows={muscleRows} /></div>
           )}
-          <p style={{ margin: '10px 0 0', fontSize: '0.72rem', color: 'var(--lg-text-3)', lineHeight: 1.4 }}>{tt('muscle_band_hint')}</p>
+          <p style={{ margin: '12px 0 0', fontSize: 12, color: 'var(--lg-text-3)', lineHeight: 1.4 }}>{tt('muscle_band_hint')}</p>
         </section>
 
         {routine?.id && (
@@ -474,7 +474,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 
       {menu != null && menuExercise && (
         <TrainingSheet title={info(menuExercise.exerciseId)?.name ?? menuExercise.exerciseId} onClose={() => setMenu(null)} zIndex={100}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 8 }}>
             <MenuItem icon={<ArrowUp size={18} aria-hidden="true" />} disabled={menu === 0} onClick={() => { move(menu, menu - 1); setMenu(null) }}>{tt('move_up')}</MenuItem>
             <MenuItem icon={<ArrowDown size={18} aria-hidden="true" />} disabled={menu === exercises.length - 1} onClick={() => { move(menu, menu + 1); setMenu(null) }}>{tt('move_down')}</MenuItem>
             <MenuItem icon={<StickyNote size={18} aria-hidden="true" />} onClick={() => { setOpenNotes(prev => (prev.includes(menu) ? prev : [...prev, menu])); setMenu(null) }}>
@@ -491,17 +491,17 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 // ─── Bausteine ──────────────────────────────────────────────────────────────
 
 const cardStyle: CSSProperties = {
-  display: 'flex', flexDirection: 'column', gap: 10, padding: '12px 14px', borderRadius: 18,
+  display: 'flex', flexDirection: 'column', gap: 12, padding: '12px 16px', borderRadius: 16,
   background: 'var(--lg-surface-2)', border: '1px solid var(--lg-separator)',
 }
 const rowStyle: CSSProperties = { display: 'flex', gap: 8, alignItems: 'flex-start' }
-const rowLabel: CSSProperties = { fontSize: '0.75rem', color: 'var(--lg-text-3)', fontWeight: 700, width: '4em', flexShrink: 0, paddingTop: 10 }
+const rowLabel: CSSProperties = { fontSize: 13, color: 'var(--lg-text-3)', fontWeight: 400, width: '4em', flexShrink: 0, paddingTop: 8 }
 
 const smallChip = (active: boolean, color = TRAINING_ACCENT): CSSProperties => ({
-  minHeight: 30, padding: '0 9px', borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
-  fontSize: '0.72rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-  background: active ? `${color}22` : 'var(--lg-fill)',
-  border: `1px solid ${active ? `${color}66` : 'var(--lg-separator)'}`,
+  minHeight: 32, padding: '0 8px', borderRadius: 8, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
+  fontSize: 12, fontWeight: 500, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
+  background: active ? `color-mix(in srgb, ${color} 14%, transparent)` : 'var(--lg-fill)',
+  border: `1px solid ${active ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--lg-separator)'}`,
   color: active ? color : 'var(--lg-text-3)',
 })
 
@@ -570,7 +570,7 @@ function NumField({ value, onCommit, format, parse, label, placeholder, inputMod
         setText(parsed == null ? '' : format(parsed))
       }}
       onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
-      style={{ ...inputStyle, minHeight: 38, height: 38, padding: '0 4px', borderRadius: 10, textAlign: 'center', fontWeight: 750, fontVariantNumeric: 'tabular-nums' }}
+      style={{ ...inputStyle, minHeight: 36, height: 36, padding: '0 4px', borderRadius: 8, textAlign: 'center', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}
     />
   )
 }
@@ -583,8 +583,8 @@ function MenuItem({ icon, children, onClick, disabled, danger }: { icon: ReactNo
       disabled={disabled}
       className="tyd-train-press"
       style={{
-        minHeight: 50, display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '0 16px', borderRadius: 14,
-        fontWeight: 500, fontSize: 17, background: 'var(--lg-surface-2)', border: 0,
+        minHeight: 48, display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '0 16px', borderRadius: 12,
+        fontWeight: 400, fontSize: 17, background: 'var(--lg-surface-2)', border: 0,
         color: danger ? 'var(--lg-bad-text)' : 'var(--lg-text)', opacity: disabled ? 0.4 : 1, cursor: disabled ? 'default' : 'pointer',
       }}
     >

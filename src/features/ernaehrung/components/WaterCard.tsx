@@ -10,15 +10,16 @@ export function WaterCard({ ml, goalMl, onChange }: { ml: number; goalMl: number
   return (
     <section aria-labelledby="nutr-water" className={`${CARD} p-4`}>
       <div className="flex items-center justify-between">
-        <h2 id="nutr-water" className="flex items-center gap-2.5 text-[17px] font-semibold text-[var(--lg-text)]">
-          <span className="lg-icon-tile" style={{ background: '#0a84ff' }} aria-hidden="true"><Droplets size={16} /></span>{t('nutr_water')}
+        <h2 id="nutr-water" className="flex items-center gap-2 text-[17px] font-medium text-[var(--lg-text)]">
+          <Droplets size={18} strokeWidth={1.5} aria-hidden="true" className="text-[var(--lg-text-2)]" />{t('nutr_water')}
         </h2>
         <span className={`text-[15px] tabular-nums ${MUTED}`} aria-live="polite">
           {(ml / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })} / {(goalMl / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })} l
         </span>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]">
-        <div className="h-full rounded-full" style={{ width: `${Math.min(100, share(ml, goalMl) * 100)}%`, background: MACRO_COLORS.water, transition: 'width 300ms cubic-bezier(0.23, 1, 0.32, 1)' }} />
+      {/* Spur mit Messstrichen; die Füllung wächst per scaleX, nicht per Breite */}
+      <div className="hk-scale mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]">
+        <div className="h-full origin-left" style={{ transform: `scaleX(${Math.min(1, share(ml, goalMl))})`, background: MACRO_COLORS.water, transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)' }} />
       </div>
       <div className="mt-3 flex gap-2">
         <button type="button" disabled={ml <= 0} onClick={() => onChange(Math.max(0, ml - WATER_STEP_ML))}

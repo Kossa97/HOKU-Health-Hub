@@ -15,7 +15,7 @@ import { formatClock, formatDistance, formatVolume, formatWeight } from '../../l
 const DAY = 24 * 60 * 60 * 1000
 
 /** Achsenbeschriftung aller Fortschritts-Charts: Text-Farbe, nie Datenfarbe. */
-export const AXIS_TICK = { fill: 'var(--lg-text-3)', fontSize: 11, fontFamily: 'inherit' } as const
+export const AXIS_TICK = { fill: 'var(--lg-text-3)', fontSize: 11, fontFamily: 'var(--font-mono, inherit)' } as const
 
 // ─── Wochen ─────────────────────────────────────────────────────────────────
 

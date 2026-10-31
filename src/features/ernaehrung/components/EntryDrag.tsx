@@ -218,7 +218,7 @@ export function useEntryDrag({ date, onDrop, onSpringDay, renderGhost }: {
 
   const ghost = drag && createPortal(
     <div ref={ghostRef} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[70]" style={{ width: drag.width }}>
-      <div className={`rounded-[16px] bg-[var(--lg-sheet-solid)] shadow-[0_18px_40px_rgba(0,0,0,0.45)] ring-1 ring-[var(--lg-hair)] ${reduce ? '' : 'animate-[nutr-lift_220ms_cubic-bezier(0.2,0.9,0.3,1.2)_forwards]'}`}>
+      <div className={`rounded-[16px] bg-[var(--lg-sheet-solid)] shadow-[0_18px_40px_rgba(0,0,0,0.45)] ring-1 ring-[var(--lg-hair)] ${reduce ? '' : 'animate-[nutr-lift_220ms_cubic-bezier(0.22,1,0.36,1)_forwards]'}`}>
         <div className="flex min-h-[56px] items-center justify-between gap-3 py-2 pl-2 pr-4">{renderGhost(drag.entry)}</div>
       </div>
     </div>,

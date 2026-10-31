@@ -6,6 +6,6 @@ export const hintStyle: CSSProperties = { fontSize: 13, lineHeight: 1.4, color: 
 
 export const noteStyle: CSSProperties = {
   fontSize: 15, lineHeight: 1.4, color: 'var(--lg-text-2)',
-  padding: '10px 14px', borderRadius: 14,
+  padding: '12px 16px', borderRadius: 14,
   background: 'var(--lg-fill)',
 }

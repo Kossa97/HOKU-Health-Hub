@@ -30,12 +30,12 @@ export function EntryRowContent({ entry: e, hideKcal, goalKcal, pieceOf }: {
       <FoodOrb values={e.nutrients} goalKcal={goalKcal} size={44} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[17px] text-[var(--lg-text)]">{e.name}</span>
-        <span className={`block truncate text-[13px] tabular-nums ${MUTED}`}>
+        <span className={`block truncate font-mono text-[12px] tabular-nums ${MUTED}`}>
           {amountText()}
           {Math.round(e.nutrients.protein)} {t('nutr_p')} · {Math.round(e.nutrients.carbs)} {t('nutr_c')} · {Math.round(e.nutrients.fat)} {t('nutr_f')}
         </span>
       </span>
-      <span className="flex shrink-0 items-center gap-2.5">
+      <span className="flex shrink-0 items-center gap-3">
         <ScoreBadge per100={per100FromEntry(e)} unit={e.unit} />
         {!hideKcal && <span className={`text-[15px] tabular-nums ${DIM}`}>{Math.round(e.nutrients.kcal)}</span>}
       </span>
@@ -83,15 +83,15 @@ export function MealSection({ meal, entries, hideKcal, goalKcal, busy, pieceOf, 
     <section aria-labelledby={headingId} className={CARD} data-meal={meal} data-drop-ready={ready ? 'true' : undefined}>
       {/* Titel · Summe · Hinzufügen in einer Zeile. */}
       <div className="flex items-center gap-2 pl-4 pr-2 pt-2">
-        <h2 id={headingId} className="min-w-0 flex-1 truncate text-[17px] font-semibold text-[var(--lg-text)]">{t(`nutr_meal_${meal}`)}</h2>
+        <h2 id={headingId} className="min-w-0 flex-1 truncate text-[17px] font-medium text-[var(--lg-text)]">{t(`nutr_meal_${meal}`)}</h2>
         {entries.length > 0 && (
-          <span className={`shrink-0 text-[15px] tabular-nums ${MUTED}`}>
+          <span className={`shrink-0 font-mono text-[13px] tabular-nums ${MUTED}`}>
             {hideKcal ? `${Math.round(sum.protein)} g ${t('nutr_protein_short')}` : `${Math.round(sum.kcal)} kcal`}
           </span>
         )}
         <button type="button" onClick={onAdd} disabled={busy}
-          className="flex min-h-11 shrink-0 touch-manipulation select-none items-center gap-1 rounded-full px-2.5 text-[15px] font-semibold text-[var(--accent)] transition-opacity active:opacity-60 disabled:opacity-40">
-          <Plus size={18} strokeWidth={2.4} aria-hidden="true" />{t('nutr_add')}
+          className="flex min-h-11 shrink-0 touch-manipulation select-none items-center gap-1 rounded-[10px] px-3 text-[15px] font-medium text-[var(--lg-accent-text)] transition-opacity active:opacity-60 disabled:opacity-40">
+          <Plus size={18} strokeWidth={2} aria-hidden="true" />{t('nutr_add')}
         </button>
       </div>
 
@@ -120,11 +120,11 @@ export function MealSection({ meal, entries, hideKcal, goalKcal, busy, pieceOf, 
         <div className="flex px-3 pb-3 pt-2">
           <button type="button" onClick={onSaveAsDish} disabled={busy} data-quiet
             aria-label={t('nutr_save_as_dish_aria', { meal: t(`nutr_meal_${meal}`) })}
-            className="lg-gray-btn !px-3.5 !text-[13px]">
-            <ChefHat size={14} aria-hidden="true" />{t('nutr_save_as_dish')}
+            className="lg-gray-btn !px-3 !text-[13px]">
+            <ChefHat size={16} strokeWidth={1.5} aria-hidden="true" />{t('nutr_save_as_dish')}
           </button>
         </div>
-      ) : <div className={entries.length > 0 ? 'h-1.5' : 'h-2'} />}
+      ) : <div className="h-2" />}
     </section>
   )
 }

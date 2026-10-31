@@ -160,10 +160,10 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
       {showConsentGate && consent === null && (
         <div className="mt-3 flex flex-col gap-3" data-photo-consent>
           <p className={`text-[15px] leading-snug ${DIM}`}>{t('nutr_photo_consent_intro')}</p>
-          <ul className={`flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-snug ${DIM}`}>
+          <ul className={`flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug ${DIM}`}>
             {['nutr_photo_consent_point_store', 'nutr_photo_consent_point_check', 'nutr_photo_consent_point_alt'].map(k => <li key={k}>{t(k)}</li>)}
           </ul>
-          <label className="flex cursor-pointer items-start gap-3 rounded-[18px] bg-[var(--lg-surface-2)] p-3.5 text-[15px] leading-snug text-[var(--lg-text)]">
+          <label className="flex cursor-pointer items-start gap-3 rounded-[16px] bg-[var(--lg-surface-2)] p-4 text-[15px] leading-snug text-[var(--lg-text)]">
             <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-sky-500" />
             <span>{t('nutr_photo_consent_checkbox')}</span>
           </label>
@@ -185,7 +185,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
 
       {step.kind === 'analyzing' && (
         <div className="mt-4 flex flex-col items-center">
-          {preview && <img src={preview} alt="" className="h-40 w-40 rounded-[18px] object-cover opacity-80" />}
+          {preview && <img src={preview} alt="" className="h-40 w-40 rounded-[16px] object-cover opacity-80" />}
           <DotArbeitet text={t('nutr_photo_analyzing')} />
         </div>
       )}
@@ -205,7 +205,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
       {stage === 'capture' && consent && step.kind === 'idle' && (
         <div className="mt-3">
           <div className={INFO_BOX}>
-            <Lightbulb size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-[#ffd60a]" />
+            <Lightbulb size={16} strokeWidth={1.5} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--lg-text-2)]" />
             <span>{t('nutr_photo_note_tip')}</span>
           </div>
           <div className="mt-3">{noteField('nutr-photo-hint')}</div>
@@ -328,7 +328,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
           </ul>
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => onFlow({ step: 'select' })} disabled={busy}
-              data-quiet className="lg-gray-btn !px-3.5">
+              data-quiet className="lg-gray-btn !px-3">
               <ArrowLeft size={16} aria-hidden="true" />{t('nutr_photo_back_to_select')}
             </button>
             <button type="button" onClick={() => onPickRow(null)} disabled={busy} className="lg-gray-btn flex-1">
@@ -344,7 +344,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
           )}
 
           <p className="label mt-4" id="nutr-photo-meal">{t('nutr_meal')}</p>
-          <div role="radiogroup" aria-labelledby="nutr-photo-meal" className="flex flex-wrap gap-1.5">
+          <div role="radiogroup" aria-labelledby="nutr-photo-meal" className="flex flex-wrap gap-2">
             {MEALS.map(m => (
               <button key={m} type="button" role="radio" aria-checked={meal === m} onClick={() => onMeal(m)} className={chip(meal === m)}>
                 {t(`nutr_meal_${m}`)}
@@ -356,7 +356,7 @@ export function PhotoSheet({ userId, meal, flow, myDishes, hideKcal, busy, onFlo
 
           <div className="mt-5 flex gap-2">
             {chosen.length >= 2 && (
-              <button type="button" data-quiet className="lg-gray-btn !min-h-12 shrink-0 !px-3.5" disabled={busy}
+              <button type="button" data-quiet className="lg-gray-btn !min-h-12 shrink-0 !px-3" disabled={busy}
                 onClick={() => onSaveAsDish(result?.dish || flow.hint.trim(), chosen)}>
                 <ChefHat size={16} aria-hidden="true" />{t('nutr_photo_as_dish')}
               </button>

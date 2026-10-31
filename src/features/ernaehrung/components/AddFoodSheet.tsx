@@ -30,19 +30,19 @@ function FoodRow({ food, hint, hideKcal, goalKcal, onPick }: { food: Food; hint?
         <FoodOrb values={nutrientsFor(food.per100, per)} goalKcal={goalKcal} size={40} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
-            {food.favorite && <Star size={13} aria-hidden="true" className="shrink-0 fill-[#ffd60a] text-[#ffd60a]" />}
+            {food.favorite && <Star size={12} aria-hidden="true" className="shrink-0 fill-current text-[var(--lg-text-2)]" />}
             <span className="truncate text-[17px] text-[var(--lg-text)]">{food.name}</span>
           </span>
-          <span className={`mt-0.5 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
+          <span className={`mt-0.5 flex items-center gap-2 text-[13px] ${MUTED}`}>
             <SourceBadge source={food.source} own={food.itemId !== null} />
             <span className="truncate">{[sub, hint].filter(Boolean).join(' · ')}</span>
           </span>
         </span>
-        <span className="flex shrink-0 items-center gap-2.5">
+        <span className="flex shrink-0 items-center gap-3">
         <ScoreBadge per100={food.per100} unit={food.unit} />
         <span className={`text-right text-[15px] tabular-nums ${DIM}`}>
           {hideKcal ? `${Math.round(food.per100.protein * per / 100)} g P` : `${Math.round(food.per100.kcal * per / 100)} kcal`}
-          <span className={`block text-[12px] ${MUTED}`}>{portion ? t('nutr_per_portion_short') : `/ 100 ${food.unit}`}</span>
+          <span className={`block font-mono text-[11px] ${MUTED}`}>{portion ? t('nutr_per_portion_short') : `/ 100 ${food.unit}`}</span>
         </span>
         </span>
       </button>
@@ -144,7 +144,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
           <input type="search" value={query} onChange={e => setQuery(e.target.value)} enterKeyHint="search"
             autoComplete="off" autoCorrect="off" spellCheck={false}
             aria-label={t('nutr_search_label')} placeholder={t('nutr_search_placeholder')}
-            className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" />
+            className="min-h-11 w-full rounded-[12px] border-0 bg-[var(--lg-fill)] py-2 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" />
         </div>
         {onPhoto && (
           <button type="button" onClick={onPhoto} aria-label={t('nutr_photo_title')} className="lg-gray-btn !w-11 shrink-0 !px-0" data-dot-knopf>
@@ -157,11 +157,11 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
       </form>
 
       {!q && (
-        <div role="tablist" aria-label={t('nutr_lists')} className={`mt-3 grid rounded-full bg-[var(--lg-fill)] p-0.5 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div role="tablist" aria-label={t('nutr_lists')} className={`mt-3 grid rounded-[10px] bg-[var(--lg-fill)] p-0.5 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {tabs.map(id => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-              className={`min-h-9 rounded-full text-[15px] font-semibold transition-colors ${tab === id
-                ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+              className={`min-h-9 rounded-[8px] text-[15px] font-medium transition-colors ${tab === id
+                ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[inset_0_0_0_1px_var(--lg-hair)]'
                 : 'text-[var(--lg-text-2)]'}`}>{t(TAB_LABEL[id])}</button>
           ))}
         </div>
@@ -190,7 +190,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
               ? <ul className="lg-rows">{sorted(dishes).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} goalKcal={goalKcal} onPick={() => onPick(f)} />)}</ul>
               : (
                 <p className={`flex flex-col items-center gap-2 px-6 py-6 text-center text-[15px] ${MUTED}`}>
-                  <ChefHat size={28} aria-hidden="true" />{t('nutr_dishes_empty')}
+                  <ChefHat size={28} strokeWidth={1.5} aria-hidden="true" />{t('nutr_dishes_empty')}
                 </p>
               )}
           </>
@@ -206,7 +206,7 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
             )}
             {!remoteForQuery && q.length >= 2 && (
               <button type="button" onClick={runSearch} className="lg-gray-btn mx-5 mt-2 !w-[calc(100%-2.5rem)]">
-                <Search size={15} aria-hidden="true" />{t('nutr_search_brands', { query: q })}
+                <Search size={16} strokeWidth={1.5} aria-hidden="true" />{t('nutr_search_brands', { query: q })}
               </button>
             )}
             {remoteForQuery?.state === 'loading' && <p className={`px-5 py-3 text-center text-[15px] ${MUTED}`}>{t('nutr_searching')}</p>}
@@ -236,11 +236,11 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
         ) : (
           <div className="flex gap-2">
             <button type="button" onClick={() => onCreate(q)} className="lg-gray-btn flex-1">
-              <PenLine size={15} aria-hidden="true" />{t('nutr_create')}
+              <PenLine size={16} strokeWidth={1.5} aria-hidden="true" />{t('nutr_create')}
             </button>
             {onQuick && (
               <button type="button" onClick={() => setQuick({ kcal: '', protein: '' })} className="lg-gray-btn flex-1">
-                <Zap size={15} aria-hidden="true" />{t('nutr_quick')}
+                <Zap size={16} strokeWidth={1.5} aria-hidden="true" />{t('nutr_quick')}
               </button>
             )}
           </div>

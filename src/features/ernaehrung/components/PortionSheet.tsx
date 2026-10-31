@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, ChevronsUpDown, Info, Minus, PenLine, Plus, Star, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, ChevronsUpDown, Info, Minus, PenLine, Plus, Star, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { MAX_AMOUNT, MEALS, type Food, type Meal, amountValid, macroMismatch, nutrientsFor, parseAmount, showDecimal } from '../lib/nutrition'
@@ -195,14 +195,14 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
         <FoodOrb ref={orb} values={nu ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }} goalKcal={goalKcal} size={64} fullFrac={0.73} spin />
         <div className="col-start-2 row-start-1 min-w-0 pt-1 max-[379px]:col-span-3 max-[379px]:col-start-1 max-[379px]:row-start-2 max-[379px]:mt-2 max-[379px]:pt-0">
           {/* Alles ausgeschrieben: der Name darf umbrechen (höchstens drei Zeilen), Abzeichen stehen darunter. */}
-          <h2 id="nutr-portion-title" lang={lang} className="line-clamp-3 hyphens-auto text-[20px] font-bold leading-tight text-[var(--lg-text)] [overflow-wrap:anywhere]">{food.name}</h2>
-          <div className={`mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-snug ${MUTED}`}>
+          <h2 id="nutr-portion-title" lang={lang} className="line-clamp-3 hyphens-auto text-[20px] font-medium leading-tight text-[var(--lg-text)] [overflow-wrap:anywhere]">{food.name}</h2>
+          <div className={`mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-snug ${MUTED}`}>
             {hasScore && (
               <span className="inline-flex items-center">
                 <ScoreBadge per100={food.per100} unit={food.unit} size="lg" />
                 <button type="button" onClick={() => { setMealMenu(false); setInfo(true) }} aria-label={t('nutr_score_info')} disabled={busy || flying}
                   className="-my-2 grid h-9 w-9 place-items-center text-[var(--lg-text-2)]">
-                  <Info size={17} aria-hidden="true" />
+                  <Info size={18} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               </span>
             )}
@@ -210,7 +210,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             {food.brand && <span>{food.brand}</span>}
           </div>
           {details.length > 0 && (
-            <p className={`mt-1 flex flex-wrap gap-x-1 text-[13px] leading-snug tabular-nums ${MUTED}`}>
+            <p className={`mt-1 flex flex-wrap gap-x-1 font-mono text-[12px] leading-snug tabular-nums ${MUTED}`}>
               {details.map((d, i) => <span key={d} className="whitespace-nowrap">{i > 0 && '· '}{d}</span>)}
             </p>
           )}
@@ -220,7 +220,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             <button type="button" onClick={onToggleFavorite} disabled={busy} aria-pressed={food.favorite}
               aria-label={t(food.favorite ? 'nutr_unfavorite' : 'nutr_favorite')}
               className="lg-icon-btn">
-              <Star size={20} className={food.favorite ? 'fill-[#ffd60a] text-[#ffd60a]' : 'text-[var(--lg-text-2)]'} />
+              <Star size={20} strokeWidth={1.5} className={food.favorite ? 'fill-current text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'} />
             </button>
           )}
           <SheetClose onClick={onClose} disabled={busy || flying} />
@@ -233,13 +233,13 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
           <span className="min-w-0 flex-1">
             {t('nutr_mismatch')}
             {onCorrect && mode !== 'edit' && (
-              <button type="button" onClick={onCorrect} disabled={busy} className="mt-1 block font-semibold text-[var(--lg-accent-text)]">{t('nutr_correct')}</button>
+              <button type="button" onClick={onCorrect} disabled={busy} className="mt-1 block font-medium text-[var(--lg-accent-text)]">{t('nutr_correct')}</button>
             )}
           </span>
         </div>
       )}
 
-      <div className="mt-3.5 flex items-center gap-2.5">
+      <div className="mt-4 flex items-center gap-3">
         <label htmlFor="nutr-amount" className="w-[5.75rem] shrink-0 text-[16px] text-[var(--lg-text-2)]">{t('nutr_amount_label')}</label>
         <div className="input !flex !h-12 min-w-0 flex-1 items-center !p-0 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-[var(--accent)]">
           <input id="nutr-amount" inputMode="decimal" enterKeyHint="done" autoFocus={mode !== 'edit' && !per}
@@ -248,11 +248,11 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
             onChange={e => typeAmount(e.target.value)} onFocus={e => e.currentTarget.select()}
             onKeyDown={e => { if (e.key === 'Enter') void save() }}
             aria-invalid={!valid} aria-describedby={!valid ? 'nutr-amount-error' : undefined}
-            className="h-full min-w-0 flex-1 bg-transparent pl-3 pr-1.5 text-right text-[20px] font-semibold tabular-nums text-[var(--lg-text)] outline-none" />
+            className="h-full min-w-0 flex-1 bg-transparent pl-3 pr-1.5 text-right text-[20px] font-medium tabular-nums text-[var(--lg-text)] outline-none" />
           <span className="relative flex h-full shrink-0 items-center">
             <select aria-label={t('nutr_amount_unit')} value={big ? 'big' : 'base'}
               onChange={e => { setBig(e.target.value === 'big'); setAmountText(null) }}
-              className="h-full appearance-none bg-transparent pl-0.5 pr-7 text-[17px] font-semibold text-[var(--lg-accent-text)] outline-none">
+              className="h-full appearance-none bg-transparent pl-0.5 pr-7 text-[17px] font-medium text-[var(--lg-accent-text)] outline-none">
               <option value="base">{food.unit}</option>
               <option value="big">{food.unit === 'ml' ? 'l' : 'kg'}</option>
             </select>
@@ -262,12 +262,12 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       </div>
 
       {piece && per && (
-        <div className="mt-2 flex items-center gap-2.5">
+        <div className="mt-2 flex items-center gap-3">
           <label htmlFor="nutr-count" className="w-[5.75rem] shrink-0 text-[16px] leading-tight text-[var(--lg-text-2)]">
             {countWord}
-            <span className={`block text-[12px] tabular-nums ${MUTED}`}>{t('nutr_count_each', { amount: Math.round(per), unit: food.unit })}</span>
+            <span className={`block font-mono text-[12px] tabular-nums ${MUTED}`}>{t('nutr_count_each', { amount: Math.round(per), unit: food.unit })}</span>
           </label>
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <button type="button" onClick={() => step(-1)} aria-label={t('nutr_count_less')}
               disabled={shownCount != null && Number.isFinite(shownCount) && shownCount <= 0.5}
               className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0"><Minus size={18} aria-hidden="true" /></button>
@@ -276,7 +276,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
               value={countText ?? (count != null && Number.isFinite(count) ? shown(count, lang) : '')}
               onChange={e => typeCount(e.target.value)} onFocus={e => e.currentTarget.select()}
               onKeyDown={e => { if (e.key === 'Enter') void save() }}
-              className="input !h-12 min-w-0 flex-1 !px-2 text-center !text-[20px] font-semibold tabular-nums" />
+              className="input !h-12 min-w-0 flex-1 !px-2 text-center !text-[20px] font-medium tabular-nums" />
             <button type="button" onClick={() => step(1)} aria-label={t('nutr_count_more')}
               className="lg-gray-btn !min-h-12 !w-12 shrink-0 !px-0"><Plus size={18} aria-hidden="true" /></button>
           </div>
@@ -284,7 +284,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       )}
 
       {!valid && (amountText ?? countText ?? 'x').trim() !== '' && (
-        <p id="nutr-amount-error" role="alert" className={`mt-1.5 px-1 ${ERROR_TEXT}`}>
+        <p id="nutr-amount-error" role="alert" className={`mt-2 px-1 ${ERROR_TEXT}`}>
           {/* Grenze in der Einheit des Felds, in das man gerade tippt. */}
           {countText != null && per
             ? t('nutr_amount_invalid', { max: showDecimal(Math.floor((MAX_AMOUNT / per) * 10) / 10, lang), unit: t(`nutr_count_word_${piece!.kind}`, { count: 2 }) })
@@ -292,29 +292,29 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
         </p>
       )}
 
-      <div className="mt-3.5"><MacroCells nutrients={nu} hideKcal={hideKcal} compact /></div>
+      <div className="mt-4"><MacroCells nutrients={nu} hideKcal={hideKcal} compact /></div>
 
-      <div className="mt-3.5 flex gap-2">
+      <div className="mt-4 flex gap-2">
         {mode !== 'ingredient' && (
           <div ref={mealRef} className="relative shrink-0"
             onKeyDown={e => { if (e.key === 'Escape' && mealMenu) { e.stopPropagation(); setMealMenu(false) } }}>
             {mealMenu && (
               <div role="listbox" aria-label={t('nutr_meal')}
-                className="absolute bottom-[calc(100%+8px)] left-0 z-10 flex w-52 flex-col gap-0.5 rounded-[16px] border border-[var(--lg-hair)] bg-[var(--lg-sheet-solid)] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
+                className="absolute bottom-[calc(100%+8px)] left-0 z-10 flex w-52 flex-col gap-0.5 rounded-[14px] border border-[var(--lg-hair)] bg-[var(--lg-sheet-solid)] p-1 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
                 {MEALS.map(m => (
                   <button key={m} type="button" role="option" aria-selected={meal === m}
                     onClick={() => { setMeal(m); setMealMenu(false) }}
                     className={`flex min-h-11 items-center justify-between rounded-[10px] px-3 text-left text-[16px] text-[var(--lg-text)] ${meal === m ? 'bg-[var(--lg-fill)]' : ''}`}>
                     {t(`nutr_meal_${m}`)}
-                    {meal === m && <span aria-hidden="true" className="font-bold text-[var(--accent)]">✓</span>}
+                    {meal === m && <Check size={16} strokeWidth={2} aria-hidden="true" className="text-[var(--lg-accent-text)]" />}
                   </button>
                 ))}
               </div>
             )}
             <button type="button" onClick={() => setMealMenu(v => !v)} aria-haspopup="listbox" aria-expanded={mealMenu}
               aria-label={`${t('nutr_meal')}: ${t(`nutr_meal_${meal}`)}`}
-              className="lg-gray-btn !min-h-12 gap-1 !px-3.5 !text-[15px]">
-              {t(`nutr_meal_${meal}`)}<ChevronsUpDown size={15} aria-hidden="true" className="opacity-70" />
+              className="lg-gray-btn !min-h-12 gap-1 !px-3 !text-[15px]">
+              {t(`nutr_meal_${meal}`)}<ChevronsUpDown size={16} strokeWidth={1.5} aria-hidden="true" className="opacity-70" />
             </button>
           </div>
         )}

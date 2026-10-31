@@ -211,7 +211,7 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
   return (
     <section aria-labelledby="training-settings-health">
       <SectionHeading id="training-settings-health">{tt('settings_section_health')}</SectionHeading>
-      <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <Card style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <Switch
           checked={enabled}
           onChange={next => void toggle(next)}
@@ -248,7 +248,7 @@ function Glp1Section({ data, save }: { data: TrainingData; save: Save }) {
   return (
     <section aria-labelledby="training-settings-glp1">
       <SectionHeading id="training-settings-glp1">{tt('settings_section_glp1')}</SectionHeading>
-      <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <Card style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <p style={hintStyle}>{tt('settings_glp1_hint')}</p>
         <div role="group" aria-label={tt('settings_section_glp1')} style={rowStyle}>
           {options.map(option => (

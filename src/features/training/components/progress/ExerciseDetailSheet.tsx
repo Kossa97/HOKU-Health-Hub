@@ -165,7 +165,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
         )}
 
         {metric && domain && (
-          <Card style={{ padding: '14px 12px 10px' }}>
+          <Card style={{ padding: '16px 12px 12px' }}>
             <div style={{ fontSize: 12, color: 'var(--lg-text-3)', fontWeight: 500, margin: '0 4px 4px' }}>
               {tt(METRIC_KEY[metric])}{axisUnit ? ` (${axisUnit})` : ''}
             </div>
@@ -240,7 +240,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
             </div>
 
             {points.length < 2 && (
-              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 6 }}>{tt('progress_single_point')}</p>
+              <p style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 8 }}>{tt('progress_single_point')}</p>
             )}
 
             {presentKinds.length > 0 && (
@@ -282,7 +282,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
           <section>
             <SectionTitle>{tt('progress_records_title')}</SectionTitle>
             <Card>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
                 {records.map(({ kind, best }) => (
                   <Stat
                     key={kind}
@@ -307,14 +307,14 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                 return acc
               }, [])
               return (
-                <Card key={point.sessionId} style={{ padding: '12px 14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0 }}>{formatDate(point.date, locale)}</span>
+                <Card key={point.sessionId} style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 500, fontSize: 15, flexShrink: 0 }}>{formatDate(point.date, locale)}</span>
                     {session?.title && (
                       <span style={{ fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{session.title}</span>
                     )}
                   </div>
-                  <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {sets.map((set, i) => {
                       const warm = set.type === 'warmup'
                       const e1rm = tracking === 'weight_reps' && !warm ? estimateOneRepMax(set.weightKg, set.reps) : null
@@ -322,7 +322,7 @@ export function ExerciseDetailSheet({ exerciseId, data, onClose }: {
                         <li key={i} style={{ display: 'grid', gridTemplateColumns: '1.6rem minmax(0, 1fr) auto', gap: 8, alignItems: 'baseline', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
                           <span
                             title={warm ? tt('progress_set_warmup_label') : undefined}
-                            style={{ color: warm ? 'var(--lg-warn-text)' : 'var(--lg-text-3)', fontWeight: 600 }}
+                            style={{ color: warm ? 'var(--lg-warn-text)' : 'var(--lg-text-3)', fontWeight: 500 }}
                           >
                             {warm ? tt('progress_set_warmup') : numbers[i]}
                           </span>

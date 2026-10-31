@@ -119,13 +119,13 @@ export function Tagebuch() {
         </button>
       </div>
 
-      <div className="flex rounded-full bg-[var(--lg-fill)] p-0.5 mb-4" role="tablist" aria-label={t('tagebuch_title')}>
+      <div className="flex rounded-[10px] bg-[var(--lg-fill)] p-0.5 mb-4" role="tablist" aria-label={t('tagebuch_title')}>
         {(['liste', 'auswertung'] as const).map(key => (
           <button key={key} type="button" role="tab" id={`tagebuch-tab-${key}`}
             aria-selected={view === key} aria-controls={`tagebuch-panel-${key}`}
             onClick={() => setView(key)}
-            className={`flex-1 min-h-9 rounded-full text-[14px] font-semibold transition-colors ${
-              view === key ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'text-[var(--lg-text-2)]'
+            className={`flex-1 min-h-9 rounded-[8px] text-[14px] font-medium transition-colors ${
+              view === key ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[inset_0_0_0_1px_var(--lg-hair)]' : 'text-[var(--lg-text-2)]'
             }`}>
             {t(key === 'liste' ? 'tagebuch_tab_liste' : 'tagebuch_tab_auswertung')}
           </button>
@@ -143,7 +143,7 @@ export function Tagebuch() {
         {([['all', t('alle')], ['effect', t('wirkungen')], ['side_effect', t('nebenwirkungen')]] as const).map(([val, label]) => (
           <button key={val} type="button" aria-pressed={filter === val}
             onClick={() => { setFilter(val as typeof filter); setLimit(PAGE_SIZE) }}
-            className={`shrink-0 min-h-9 rounded-full px-3.5 text-[14px] font-medium transition-colors ${
+            className={`shrink-0 min-h-9 rounded-[8px] px-3 text-[14px] font-medium transition-colors ${
               filter === val ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'
             }`}>
             {label}
@@ -154,11 +154,11 @@ export function Tagebuch() {
       {/* Suche + Sortierung */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search size={16} aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
-          <input className="min-h-11 w-full rounded-full border-0 bg-[var(--lg-fill)] py-2.5 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" type="search" aria-label={t('suchen_placeholder')} placeholder={t('suchen_placeholder')}
+          <Search size={16} strokeWidth={1.5} aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
+          <input className="min-h-11 w-full rounded-[12px] border-0 bg-[var(--lg-fill)] py-2 pl-10 pr-4 text-[16px] text-[var(--lg-text)] outline-none placeholder:text-[var(--lg-text-3)] focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]" type="search" aria-label={t('suchen_placeholder')} placeholder={t('suchen_placeholder')}
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="min-h-11 shrink-0 cursor-pointer rounded-full border-0 bg-[var(--lg-fill)] pl-3.5 pr-8 text-[15px] text-[var(--lg-text)]" value={sortBy} aria-label={t('tagebuch_sortierung')}
+        <select className="min-h-11 shrink-0 cursor-pointer rounded-[12px] border-0 bg-[var(--lg-fill)] pl-3 pr-8 text-[15px] text-[var(--lg-text)]" value={sortBy} aria-label={t('tagebuch_sortierung')}
           onChange={e => { setSortBy(e.target.value as SortBy); setLimit(PAGE_SIZE) }}>
           <option value="date_new">{t('neueste')}</option>
           <option value="date_old">{t('aelteste')}</option>
@@ -169,13 +169,13 @@ export function Tagebuch() {
 
       {loadError ? (
         <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]" role="alert">
-          <AlertTriangle size={30} className="mx-auto mb-2 text-[var(--lg-warn-text)]" />
+          <AlertTriangle size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2 text-[var(--lg-warn-text)]" />
           <p>{t('tagebuch_load_error')}</p>
           <button type="button" data-quiet className="lg-gray-btn mx-auto mt-4" onClick={reload}>{t('lab_retry')}</button>
         </div>
       ) : loaded && effects.length === 0 && (
         <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]">
-          <BookHeart size={30} aria-hidden="true" className="mx-auto mb-2 text-[var(--lg-text-3)]" />
+          <BookHeart size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-2 text-[var(--lg-text-3)]" />
           <p>{debouncedSearch ? t('nichts_gefunden', { search: debouncedSearch }) : t('noch_keine_eintraege')}</p>
         </div>
       )}
@@ -183,15 +183,15 @@ export function Tagebuch() {
       {/* ── Eintrags-Liste ──────────────────────────────────────────────────── */}
       <ul className="space-y-3">
         {effects.map(e => (
-          <li key={e.id} className="lg-surface lg-flat !rounded-[22px] py-3.5 pl-4 pr-2">
+          <li key={e.id} className="lg-surface lg-flat !rounded-[16px] py-4 pl-4 pr-2">
             {/* Kopf: Titel und Meta links, Bearbeiten/Löschen oben rechts — darunter haben die Chips die volle Breite */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-[17px] font-semibold text-[var(--lg-text)]">{e.description}</p>
+                <p className="text-[17px] font-medium text-[var(--lg-text)]">{e.description}</p>
 
                 {/* Meta */}
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[var(--lg-text-2)] text-[13px]">
-                  <span>{format(new Date(e.occurred_at), 'dd.MM.yyyy HH:mm', { locale })}</span>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1 text-[var(--lg-text-2)] text-[13px]">
+                  <span className="font-mono text-[12px] tabular-nums">{format(new Date(e.occurred_at), 'dd.MM.yyyy HH:mm', { locale })}</span>
                   {e.stack_items && <span className="text-[var(--lg-accent-text)]">{e.stack_items.display_name}</span>}
                   {e.dose_logs && (() => {
                     const gap = intakeGap(e.dose_logs.logged_at, e.occurred_at, t)
@@ -206,28 +206,28 @@ export function Tagebuch() {
                 <button type="button" aria-label={t('tagebuch_eintrag_bearbeiten')}
                   className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-accent-text)]"
                   onClick={() => openEdit(e)}>
-                  <Pencil size={15} aria-hidden="true" />
+                  <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
                 <button type="button" aria-label={t('eintrag_loeschen')}
                   className="lg-icon-btn !h-10 !w-10 text-[var(--lg-text-3)] hover:text-[var(--lg-bad-text)]"
                   onClick={() => setDeleting(e)}>
-                  <Trash2 size={15} aria-hidden="true" />
+                  <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               </div>
             </div>
             <div className="pr-2">
               {e.effect_symptoms?.length ? (
                 /* Getrennt nach Art: erst Wirkungen, dann Nebenwirkungen */
-                <div className="mt-2.5 space-y-2.5">
+                <div className="mt-3 space-y-3">
                   {(['effect', 'side_effect'] as const).map(kind => {
                     const rows = sortedChips(e).filter(row => row.kind === kind)
                     if (!rows.length) return null
                     return (
                       <div key={kind} data-tagebuch-art={kind}>
-                        <p className="mb-1.5 text-[12px] font-semibold" style={{ color: kindColor(kind) }}>
+                        <p className="mb-2 text-[13px] font-medium" style={{ color: kindColor(kind) }}>
                           {t(kind === 'effect' ? 'wirkungen' : 'nebenwirkungen')}
                         </p>
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-2">
                           {rows.map(row => {
                             const chip = fromRow(row)
                             return (
@@ -252,7 +252,7 @@ export function Tagebuch() {
                   <span className={SEVERITY_COLORS[e.severity]}>{severityLabel(e.severity)}</span>
                   {e.duration && (
                     <span className="flex items-center gap-1 text-[var(--lg-text-2)] font-normal">
-                      <Clock size={11} aria-hidden="true" />
+                      <Clock size={12} aria-hidden="true" />
                       {durationLabel(e.duration, t)}
                     </span>
                   )}

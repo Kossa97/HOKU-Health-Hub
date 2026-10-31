@@ -110,11 +110,11 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
       <input id="nutr-f-brand" value={brand} maxLength={120} onChange={e => setBrand(e.target.value)} enterKeyHint="next" className="input" />
 
       <p className="label mt-3" id="nutr-unit-label">{t('nutr_f_unit')}</p>
-      <div role="radiogroup" aria-labelledby="nutr-unit-label" className="grid grid-cols-2 rounded-full bg-[var(--lg-fill)] p-0.5">
+      <div role="radiogroup" aria-labelledby="nutr-unit-label" className="grid grid-cols-2 rounded-[10px] bg-[var(--lg-fill)] p-0.5">
         {(['g', 'ml'] as const).map(u => (
           <button key={u} type="button" role="radio" aria-checked={unit === u} onClick={() => setUnit(u)}
-            className={`min-h-9 rounded-full text-[15px] font-semibold transition-colors ${unit === u
-              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
+            className={`min-h-9 rounded-[8px] text-[15px] font-medium transition-colors ${unit === u
+              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[inset_0_0_0_1px_var(--lg-hair)]'
               : 'text-[var(--lg-text-2)]'}`}>
             {t(u === 'g' ? 'nutr_unit_g' : 'nutr_unit_ml')}
           </button>

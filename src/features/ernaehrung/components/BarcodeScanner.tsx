@@ -30,14 +30,14 @@ export function BarcodeScanner({ busy, onCode, onClose }: { busy: boolean; onCod
   return (
     <Sheet labelledBy="nutr-scan-title" busy={busy} onClose={onClose}>
       <div className="flex items-center justify-between gap-2">
-        <h2 id="nutr-scan-title" className="lg-title2 flex items-center gap-2.5">
-          <span className="lg-icon-tile" style={{ background: '#0a84ff' }} aria-hidden="true"><ScanBarcode size={16} /></span>{t('nutr_scan')}
+        <h2 id="nutr-scan-title" className="lg-title2 flex items-center gap-2">
+          <ScanBarcode size={18} strokeWidth={1.5} aria-hidden="true" className="text-[var(--lg-text-2)]" />{t('nutr_scan')}
         </h2>
         <SheetClose onClick={onClose} />
       </div>
 
       {cam !== 'unavailable' && (
-        <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-[18px] bg-black">
+        <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-[16px] bg-black">
           <video ref={videoRef} playsInline muted autoPlay className="h-full w-full object-cover" aria-label={t('nutr_scan_camera')} />
           {cam === 'scanning' && (
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-[12%] top-1/2 h-[34%] -translate-y-1/2 rounded-xl"

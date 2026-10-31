@@ -224,9 +224,9 @@ export function DishStage({ draft, goals, focus }: { draft: DishDraft; goals: Go
         </p>
         <div className="absolute inset-x-0 bottom-1 z-[2] flex flex-col items-center px-4">
           <p className="flex items-center gap-1.5">
-            <span className="text-[28px] font-bold leading-none tabular-nums text-[var(--lg-text)]">{big}</span>
+            <span className="text-[28px] font-medium leading-none tabular-nums text-[var(--lg-text)]">{big}</span>
             <span className={`text-[14px] ${MUTED}`}>{t('nutr_dish_orb_unit', { unit: hide ? `g ${t('nutr_protein')}` : 'kcal' })}</span>
-            {plusText > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plusText}</span>}
+            {plusText > 0 && <span className="text-[13px] font-medium tabular-nums text-[var(--lg-accent-text)]">+{plusText}</span>}
             <ScoreBadge per100={model.per100} unit="g" />
           </p>
           <div className="mt-1.5 flex w-full justify-between gap-2 text-[12px]">

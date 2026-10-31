@@ -83,21 +83,21 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
   }, [hint, dotQuiet])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <WeekStrip key={now.toDateString()} data={data} now={now} />
 
-      <Button block onClick={onStartEmpty} style={{ minHeight: 52, fontSize: '1rem', borderRadius: 16 }}>
-        <Plus size={20} strokeWidth={2.5} aria-hidden="true" /> {tt('start_empty_cta')}
+      <Button block onClick={onStartEmpty} style={{ minHeight: 48, fontSize: 16, borderRadius: 12 }}>
+        <Plus size={18} strokeWidth={2} aria-hidden="true" /> {tt('start_empty_cta')}
       </Button>
 
       <PlanSection data={data} next={next} restDay={restDay} now={now} onStartRoutine={onStartRoutine} onEditRoutine={onEditRoutine} />
 
-      <Card onClick={onLogActivity} style={{ padding: 14 }}>
+      <Card onClick={onLogActivity} style={{ padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Timer size={20} aria-hidden="true" style={{ color: '#10b981', flexShrink: 0 }} />
+          <Timer size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--lg-text-2)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800 }}>{tt('log_activity')}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('log_activity_hint')}</div>
+            <div style={{ fontWeight: 500 }}>{tt('log_activity')}</div>
+            <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{tt('log_activity_hint')}</div>
           </div>
           <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--lg-text-3)' }} />
         </div>
@@ -106,19 +106,19 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
       <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <SectionTitle>{tt('this_week')}</SectionTitle>
         <Card>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
             <Stat label={tt('week_sessions')} value={tt('week_goal', { done: week.sessions, goal: week.goal })} />
             <Stat label={tt('week_time')} value={formatDuration(week.durationS, tt('min'))} />
             <Stat label={tt('week_volume')} value={formatVolume(week.volumeKg, data.settings.unit, locale)} />
             <Stat label={tt('week_kcal')} value={week.kcal > 0 ? formatNumber(week.kcal, locale, 0) : '—'} />
           </div>
-          <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 14 }}>
+          <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 16 }}>
             {Array.from({ length: Math.max(week.goal, week.sessions) }, (_, i) => (
-              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
+              <span key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
             ))}
           </div>
           {week.streakWeeks > 1 && (
-            <div style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 10 }}>🔥 {tt('streak_weeks', { count: week.streakWeeks })}</div>
+            <div style={{ fontSize: 13, color: 'var(--lg-text-3)', marginTop: 12 }}>{tt('streak_weeks', { count: week.streakWeeks })}</div>
           )}
         </Card>
         <WeeklyMuscleCard data={data} now={now} />
@@ -150,7 +150,7 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
   )
 }
 
-const LEVEL_COLOR = { high: '#30d158', normal: '#64d2ff', low: '#ff9f0a' } as const
+const LEVEL_COLOR = { high: 'var(--lg-good)', normal: 'var(--accent)', low: 'var(--lg-warn)' } as const
 /** Schrift in der hellen Variante, damit sie auf Schwarz gut lesbar bleibt */
 const LEVEL_TEXT = { high: 'var(--lg-good-text)', normal: 'var(--lg-accent-text)', low: 'var(--lg-warn-text)' } as const
 
@@ -165,7 +165,7 @@ function ReadinessCard({ result }: { result: NonNullable<ReturnType<typeof compu
   })
   return (
     <Card>
-      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
         <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label={`${tt('readiness')} ${result.score}`} style={{ flexShrink: 0 }}>
           <circle cx="32" cy="32" r="26" fill="none" stroke="var(--lg-fill)" strokeWidth="6" />
           <circle
@@ -173,17 +173,17 @@ function ReadinessCard({ result }: { result: NonNullable<ReturnType<typeof compu
             strokeDasharray={`${(result.score / 100) * circumference} ${circumference}`}
             transform="rotate(-90 32 32)"
           />
-          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="600" fill="var(--lg-text)">{result.score}</text>
+          <text x="32" y="38" textAnchor="middle" fontSize="18" fontWeight="500" fill="var(--lg-text)" style={{ fontVariantNumeric: 'tabular-nums' }}>{result.score}</text>
         </svg>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{tt('readiness')}</div>
-          <div style={{ fontWeight: 700, fontSize: 20, color: LEVEL_TEXT[result.level] }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
-          <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 2 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--lg-text-3)' }}>{tt('readiness')}</div>
+          <div style={{ fontWeight: 500, fontSize: 20, color: LEVEL_TEXT[result.level] }}>{tt(`readiness_${result.level}` as TrainingTextKey)}</div>
+          <p style={{ fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)', marginTop: 4 }}>{tt(`readiness_${result.level}_hint` as TrainingTextKey)}</p>
         </div>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
         {result.factors.map(f => (
-          <span key={f.key} className="lg-tag" data-tone={f.points < -2 ? 'warn' : f.points > 2 ? 'good' : undefined} style={{ whiteSpace: 'normal', lineHeight: 1.25, padding: '4px 10px' }}>
+          <span key={f.key} className="lg-tag" data-tone={f.points < -2 ? 'warn' : f.points > 2 ? 'good' : undefined} style={{ whiteSpace: 'normal', lineHeight: 1.25, padding: '4px 8px' }}>
             {factorText(f)}
           </span>
         ))}

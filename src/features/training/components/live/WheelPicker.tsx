@@ -247,7 +247,7 @@ export function WheelPicker({ count, index, onChange, format, numberAt = identit
       }}
       style={{
         height: WHEEL_HEIGHT, overflowY: 'auto', overscrollBehavior: 'contain',
-        fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
+        fontSize: 22, fontWeight: 500, fontVariantNumeric: 'tabular-nums',
         color: 'var(--lg-text)', touchAction: 'pan-y', outline: 'none',
         WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',
         maskImage: 'linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent)',

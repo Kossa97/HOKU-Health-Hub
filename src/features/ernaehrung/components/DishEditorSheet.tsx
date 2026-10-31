@@ -80,7 +80,7 @@ export function DishEditorSheet({ draft, busy, hideKcal, focus, onFocus, onChang
         <span className={`text-[12px] ${MUTED}`}>{t('nutr_dish_meal_hint')}</span>
       </div>
       {/* Umschalter statt Radio: erneutes Antippen hebt die Zuordnung auf. */}
-      <div role="group" aria-labelledby="nutr-dish-meal" className="mt-1.5 flex flex-wrap gap-1.5">
+      <div role="group" aria-labelledby="nutr-dish-meal" className="mt-2 flex flex-wrap gap-2">
         {MEALS.map(m => (
           <button key={m} type="button" aria-pressed={draft.meal === m}
             onClick={() => onChange({ ...draft, meal: draft.meal === m ? null : m })} className={chip(draft.meal === m)}>

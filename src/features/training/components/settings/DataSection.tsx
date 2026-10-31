@@ -140,11 +140,11 @@ export function ImportSection({ data, onBusyChange }: { data: TrainingData; onBu
         {fileError && <p role="alert" style={noteStyle}>{tt(fileError)}</p>}
 
         {file && preview && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontWeight: 600 }}>{tt('settings_import_detected', { format: FORMAT_LABEL[file.format] })}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ fontWeight: 500 }}>{tt('settings_import_detected', { format: FORMAT_LABEL[file.format] })}</p>
 
             {file.needsUnit && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span className="label" style={{ marginBottom: 0 }}>{tt('settings_import_strong_unit')}</span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Chip active={strongUnit === 'kg'} onClick={() => setStrongUnit('kg')}>kg</Chip>
@@ -157,7 +157,7 @@ export function ImportSection({ data, onBusyChange }: { data: TrainingData; onBu
               <p style={noteStyle}>{tt('settings_import_empty')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <p style={{ fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                <p style={{ fontSize: 17, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
                   {plural('settings_import_sessions_one', 'settings_import_sessions', preview.sessionCount)}
                 </p>
                 {preview.firstAt && preview.lastAt && (

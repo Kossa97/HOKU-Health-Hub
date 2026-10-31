@@ -8,6 +8,7 @@ import type { SessionKind } from '../types'
 import { useTrainingText } from '../i18n'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { SheetGriff } from '../../../components/ui/SheetGriff'
+import { trainingTint } from './accent'
 
 
 /**
@@ -16,7 +17,7 @@ import { SheetGriff } from '../../../components/ui/SheetGriff'
  * Orange ist der Akzent des Trainings — sparsam: Kacheln, Ringe, Linien.
  */
 
-export const TRAINING_ACCENT = '#ff9f0a'
+export { TRAINING_ACCENT, TRAINING_INK } from './accent'
 
 /** iOS-Systemfarben je Art; `ink` ist die Symbolfarbe auf der Kachel. */
 export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string; ink?: string }> = {
@@ -35,16 +36,20 @@ export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string; 
   other: { icon: Activity, color: '#8e8e93' },
 }
 
-/** Art als Icon-Kachel wie in den iOS-Einstellungen: volle Farbe, Symbol hell. */
-export function KindBadge({ kind, size = 38 }: { kind: SessionKind; size?: number }) {
-  const { icon: Icon, color, ink } = KIND_STYLE[kind]
+/**
+ * Art als ruhige Icon-Kachel: Symbol in der Textfarbe, die Farbe der Art
+ * steht als kleiner Punkt an der Kachel (dieselbe Farbe wie in den Diagrammen).
+ */
+export function KindBadge({ kind, size = 36 }: { kind: SessionKind; size?: number }) {
+  const { icon: Icon, color } = KIND_STYLE[kind]
   return (
     <span
       aria-hidden="true"
       className="lg-icon-tile"
-      style={{ width: size, height: size, borderRadius: Math.round(size * 0.27), background: color, color: ink ?? '#fff' }}
+      style={{ position: 'relative', width: size, height: size, borderRadius: size >= 32 ? 10 : 8, background: 'var(--lg-fill)', color: 'var(--lg-text-2)' }}
     >
-      <Icon size={Math.round(size * 0.52)} />
+      <Icon size={size >= 32 ? 18 : 16} strokeWidth={1.5} />
+      <span style={{ position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: '50%', background: color }} />
     </span>
   )
 }
@@ -78,7 +83,7 @@ export function Card({ children, style, onClick, as = 'div', ariaLabel }: {
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '14px 0 7px', minHeight: 24 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '16px 0 8px', minHeight: 24 }}>
       <h2 className="lg-group-title" style={{ margin: '0 16px' }}>
         {children}
       </h2>
@@ -99,8 +104,8 @@ export function Button({ tone = 'primary', block, style, className, children, ..
       data-quiet={tone === 'ghost' ? '' : undefined}
       data-tone={tone === 'danger' ? 'bad' : undefined}
       style={{
-        minHeight: 44, padding: '0 18px', gap: 8,
-        fontSize: 16, fontWeight: 600,
+        minHeight: 44, padding: '0 16px', gap: 8,
+        fontSize: 16, fontWeight: 500,
         display: block ? 'flex' : 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: block ? '100%' : undefined,
         ...style,
@@ -128,12 +133,12 @@ export function Chip({ active, children, onClick, color, ariaLabel }: {
       onClick={onClick}
       className="tyd-train-press"
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7,
-        minHeight: 36, padding: '0 14px', borderRadius: 999, flexShrink: 0,
-        fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', border: 0,
-        // Gewählt wie ein iOS-Segment: fester grauer Stein, Schrift hell
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        minHeight: 36, padding: '0 12px', borderRadius: 8, flexShrink: 0,
+        fontSize: 15, fontWeight: 500, whiteSpace: 'nowrap', border: 0,
+        // Gewählt: eine Flächenstufe heller mit Haarlinie, Schrift hell
         background: active ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
-        boxShadow: active ? '0 3px 8px rgba(0,0,0,0.25)' : undefined,
+        boxShadow: active ? 'inset 0 0 0 1px var(--lg-hair)' : undefined,
         color: active ? 'var(--lg-text)' : 'var(--lg-text-2)',
         cursor: 'pointer',
       }}
@@ -148,7 +153,7 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
   return (
     <div style={{ minWidth: 0 }}>
       <div style={{ fontSize: 13, color: 'var(--lg-text-3)', fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 500, color: 'var(--lg-text)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
       {sub && <div style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{sub}</div>}
     </div>
   )
@@ -165,13 +170,13 @@ export function Field({ label, children, hint, group = false }: { label: string;
   const note = hint && <span style={{ fontSize: 13, lineHeight: 1.35, color: 'var(--lg-text-3)', paddingInline: 4 }}>{hint}</span>
   if (group) {
     return (
-      <div role="group" aria-labelledby={labelId} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div role="group" aria-labelledby={labelId} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {caption}{children}{note}
       </div>
     )
   }
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {caption}{children}{note}
     </label>
   )
@@ -179,7 +184,7 @@ export function Field({ label, children, hint, group = false }: { label: string;
 
 /** Eingelassenes Feld wie `.input` der App: dunkler als die Fläche, 16 px. */
 export const inputStyle: CSSProperties = {
-  width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 'var(--r-md)',
+  width: '100%', minHeight: 44, padding: '8px 12px', borderRadius: 'var(--r-md)',
   background: 'var(--surface-input)', border: '1px solid transparent',
   boxShadow: 'var(--shadow-input)',
   color: 'var(--lg-text)', fontSize: 16,
@@ -238,7 +243,7 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
         }}
       >
         <SheetGriff style={{ marginTop: 8 }} onClose={onClose} disabled={busy} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px 8px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px 8px 20px' }}>
           <h2 id={titleId} className="lg-title2" style={{ flex: 1, minWidth: 0 }}>{title}</h2>
           <SheetClose onClick={onClose} disabled={busy} label={closeLabel} />
         </div>
@@ -246,7 +251,7 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
           {children}
         </div>
         {footer && (
-          <div style={{ padding: '10px 20px 16px', borderTop: '0.5px solid var(--lg-separator)' }}>
+          <div style={{ padding: '12px 20px 16px', borderTop: '0.5px solid var(--lg-separator)' }}>
             {footer}
           </div>
         )}
@@ -264,6 +269,10 @@ export function TrainingSheet({ title, onClose, children, footer, tall = false, 
  * Auswahlrad (live/WheelPicker): ohne Scrollleiste, Fokusring nur per Tastatur.
  */
 export const TRAINING_CSS = `
+/* Look HOKU: ein Akzent für die ganze App — das Training übernimmt das Blau
+   statt eigenem Orange; Vorschläge ohne Kursiv (die Farbe zeigt sie schon). */
+html[data-look='hoku'] { --tyd-train-accent: var(--hk-accent); --tyd-train-ink: var(--accent-contrast); }
+html[data-look='hoku'] .tyd-train-input.sug { font-style: normal; }
 .tyd-train-press { touch-action: manipulation; -webkit-user-select: none; user-select: none; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), opacity 140ms ease-out; }
 .tyd-train-press:active:not(:disabled) { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) { .tyd-train-press:hover:not(:disabled) { opacity: 0.85; } }
@@ -273,7 +282,7 @@ export const TRAINING_CSS = `
 @keyframes tydTrainPop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .tyd-train-check { transition: transform 140ms cubic-bezier(0.23,1,0.32,1), background 160ms ease-out, opacity 140ms ease-out; }
 .tyd-train-check.is-popping { animation: tydTrainCheckPop 240ms cubic-bezier(0.23,1,0.32,1); }
-@keyframes tydTrainCheckPop { 0% { transform: scale(0.92); } 55% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes tydTrainCheckPop { 0% { transform: scale(0.92); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   .tyd-train-sheet, .tyd-train-pop, .tyd-train-check.is-popping { animation: none; }
   .tyd-train-press:active:not(:disabled) { transform: none; opacity: 0.7; }
@@ -292,7 +301,7 @@ export const TRAINING_CSS = `
 .tyd-wheel { scrollbar-width: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .tyd-wheel::-webkit-scrollbar { display: none; }
 .tyd-wheel-wrap { border-radius: 12px; }
-.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px ${TRAINING_ACCENT}8c; }
+.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px ${trainingTint(55)}; }
 /* Tastatur: sichtbarer Fokus statt keinem */
 .tyd-train-input { outline: none; }
 .tyd-train-input:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }
