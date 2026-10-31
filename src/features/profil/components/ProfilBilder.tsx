@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { Camera, User } from 'lucide-react'
 import { Sheet } from '../../compliance/components/Sheet'
-import { removeProfileMedia, signedMediaUrl, uploadProfileMedia, type MediaKind } from '../services/profileMedia'
+import { BildZuGrossError, removeProfileMedia, signedMediaUrl, uploadProfileMedia, type MediaKind } from '../services/profileMedia'
 
 interface Props {
   userId: string
@@ -53,8 +53,8 @@ export function ProfilBilder({ userId, avatarPath, coverPath, onChange, children
     setArbeitet(kind)
     try {
       onChange(kind, await uploadProfileMedia(userId, kind, datei))
-    } catch {
-      toast.error(t('profil_bild_fehler'))
+    } catch (fehler) {
+      toast.error(t(fehler instanceof BildZuGrossError ? 'profil_bild_zu_gross' : 'profil_bild_fehler'))
     } finally {
       setArbeitet(null)
     }

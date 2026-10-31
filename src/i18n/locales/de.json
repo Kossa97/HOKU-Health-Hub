@@ -2894,5 +2894,6 @@
   "profil_profilbild": "Profilbild",
   "profil_titelbild": "Titelbild",
   "profil_bild_aendern": "Ändern",
-  "profil_bild_fehler": "Bild konnte nicht gespeichert werden"
+  "profil_bild_fehler": "Bild konnte nicht gespeichert werden",
+  "profil_bild_zu_gross": "Das Bild ist zu groß (höchstens 25 MB)."
 }

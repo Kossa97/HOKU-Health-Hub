@@ -14,12 +14,21 @@ export type MediaKind = 'avatar' | 'cover'
 export const PROFILE_MEDIA_BUCKET = 'profile-media'
 const URL_TTL_SECONDS = 60 * 60
 const MAX_BYTES = 500 * 1024
+/** Größere Dateien werden nicht erst dekodiert (Speicher in der WebView). */
+const MAX_FILE_BYTES = 25 * 1024 * 1024
+/** So viele Quellpixel je Ausgabepixel bleiben beim Dekodieren mindestens erhalten. */
+const DEKODIER_RESERVE = 2
 const START_QUALITY = 0.82
 const MIN_QUALITY = 0.5
 
 const AUSGABE: Record<MediaKind, { breite: number; verhaeltnis: number }> = {
   avatar: { breite: 512, verhaeltnis: 1 },
   cover: { breite: 1500, verhaeltnis: 3 },
+}
+
+/** Datei über 25 MB — die Oberfläche zeigt dafür einen eigenen Text. */
+export class BildZuGrossError extends Error {
+  constructor() { super('Bild zu gross') }
 }
 
 export interface Zuschnitt { sx: number; sy: number; sw: number; sh: number; outW: number; outH: number }
@@ -46,9 +55,51 @@ function alsJpeg(canvas: HTMLCanvasElement, qualitaet: number): Promise<Blob> {
   })
 }
 
+/** Größe des Bildes (mit Drehung laut EXIF) ohne es voll zu dekodieren; `null`, wenn nicht ermittelbar. */
+function leseGroesse(file: File): Promise<{ w: number; h: number } | null> {
+  return new Promise(resolve => {
+    let url: string
+    try { url = URL.createObjectURL(file) } catch { resolve(null); return }
+    const img = new Image()
+    const fertig = (wert: { w: number; h: number } | null) => { URL.revokeObjectURL(url); resolve(wert) }
+    img.onload = () => fertig(img.naturalWidth > 0 && img.naturalHeight > 0 ? { w: img.naturalWidth, h: img.naturalHeight } : null)
+    img.onerror = () => fertig(null)
+    img.src = url
+  })
+}
+
+/**
+ * Bild dekodieren. EXIF-Drehung wird ausdrücklich angefordert (nicht jede
+ * WebView wendet sie von selbst an). Ist die Quelle viel größer als nötig,
+ * wird gleich verkleinert dekodiert (mit Reserve, damit die Ausgabe nicht
+ * unscharf wird) — der Zuschnitt wird danach aus den echten Maßen des
+ * Bitmaps berechnet, nicht aus der geschätzten Größe.
+ */
+async function dekodiere(file: File, kind: MediaKind): Promise<ImageBitmap> {
+  const optionen = { imageOrientation: 'from-image' } as const
+  const groesse = await leseGroesse(file)
+  if (groesse) {
+    const z = targetSize(groesse.w, groesse.h, kind)
+    const faktor = z.sw / z.outW
+    if (faktor > DEKODIER_RESERVE) {
+      const skala = DEKODIER_RESERVE / faktor
+      try {
+        return await createImageBitmap(file, {
+          ...optionen,
+          resizeWidth: Math.max(1, Math.round(groesse.w * skala)),
+          resizeHeight: Math.max(1, Math.round(groesse.h * skala)),
+          resizeQuality: 'high',
+        })
+      } catch { /* Resize-Optionen nicht unterstützt: voll dekodieren */ }
+    }
+  }
+  return createImageBitmap(file, optionen)
+}
+
 /** Zuschneiden, verkleinern, als JPEG neu kodieren (ohne EXIF), Ziel unter 500 KB. */
 export async function prepareImage(file: File, kind: MediaKind): Promise<Blob> {
-  const bild = await createImageBitmap(file)
+  if (file.size > MAX_FILE_BYTES) throw new BildZuGrossError()
+  const bild = await dekodiere(file, kind)
   try {
     const z = targetSize(bild.width, bild.height, kind)
     const canvas = document.createElement('canvas')
@@ -98,8 +149,9 @@ export async function uploadProfileMedia(userId: string, kind: MediaKind, file: 
 
 /** Pfad aus der Profilzeile nehmen, dann die Datei löschen. */
 export async function removeProfileMedia(userId: string, kind: MediaKind, path: string): Promise<void> {
-  const { error } = await supabase.from('profiles').update({ [`${kind}_path`]: null }).eq('id', userId).select('id')
-  if (error) throw new Error(error.message)
+  // RLS ohne Treffer liefert keinen Fehler, nur null Zeilen.
+  const { data: zeilen, error } = await supabase.from('profiles').update({ [`${kind}_path`]: null }).eq('id', userId).select('id')
+  if (error || !zeilen?.length) throw new Error(error?.message ?? 'profiles: no row updated')
   const { error: loeschFehler } = await supabase.storage.from(PROFILE_MEDIA_BUCKET).remove([path])
   if (loeschFehler) reportError(loeschFehler, 'profil.media-delete')
 }

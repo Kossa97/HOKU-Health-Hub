@@ -2659,5 +2659,6 @@
   "profil_profilbild": "Profile picture",
   "profil_titelbild": "Cover picture",
   "profil_bild_aendern": "Change",
-  "profil_bild_fehler": "Picture could not be saved"
+  "profil_bild_fehler": "Picture could not be saved",
+  "profil_bild_zu_gross": "The picture is too large (25 MB max)."
 }

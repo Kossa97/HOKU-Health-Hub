@@ -47,7 +47,7 @@ vi.mock('../../../lib/supabase', () => ({
 }))
 vi.mock('../../../lib/monitoring', () => ({ reportError: vi.fn() }))
 
-import { prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
+import { BildZuGrossError, prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
 
 describe('targetSize', () => {
   it('Profilbild: mittiger Quadrat-Zuschnitt, 512 Pixel', () => {
@@ -90,12 +90,26 @@ describe('targetSize', () => {
 
 // jsdom kann keine Bilder dekodieren und kein Canvas zeichnen — die Browser-Teile
 // werden hier ersetzt; geprueft wird die Logik drumherum (Zuschnitt, Qualitaetsstufen).
-function canvasAttrappe(groessen: number[]) {
+// `quelle` ist die Groesse, die der Probe-<img> meldet (null: nicht ermittelbar).
+function canvasAttrappe(groessen: number[], quelle: { w: number; h: number } | null = { w: 4000, h: 3000 }) {
   const zeichnungen: unknown[][] = []
   const qualitaeten: (number | undefined)[] = []
   const dims: { width: number; height: number }[] = []
   let aufruf = 0
-  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 4000, height: 3000, close: vi.fn() })))
+  const bitmap = vi.fn(async (_datei: Blob, opts?: { resizeWidth?: number; resizeHeight?: number }) => {
+    if (!quelle) throw new Error('decode')
+    return { width: opts?.resizeWidth ?? quelle.w, height: opts?.resizeHeight ?? quelle.h, close: vi.fn() }
+  })
+  vi.stubGlobal('createImageBitmap', bitmap)
+  vi.stubGlobal('Image', class {
+    naturalWidth = quelle?.w ?? 0
+    naturalHeight = quelle?.h ?? 0
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    set src(_: string) { queueMicrotask(() => (quelle ? this.onload : this.onerror)?.()) }
+  })
+  URL.createObjectURL = vi.fn(() => 'blob:x')
+  URL.revokeObjectURL = vi.fn()
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((() => ({
     drawImage: (...args: unknown[]) => { zeichnungen.push(args) },
   })) as never)
@@ -105,19 +119,75 @@ function canvasAttrappe(groessen: number[]) {
     const groesse = groessen[Math.min(aufruf++, groessen.length - 1)]
     cb(new Blob([new Uint8Array(groesse)], { type: 'image/jpeg' }))
   })
-  return { zeichnungen, qualitaeten, dims }
+  return { zeichnungen, qualitaeten, dims, bitmap }
 }
+
+const png = () => new File(['x'], 'a.png', { type: 'image/png' })
 
 describe('prepareImage', () => {
   afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
-  it('schneidet zu, kodiert als JPEG 0.82 neu und bleibt, wenn klein genug', async () => {
-    const { zeichnungen, qualitaeten, dims } = canvasAttrappe([100_000])
-    const blob = await prepareImage(new File(['x'], 'a.png', { type: 'image/png' }), 'avatar')
+  it('fordert die EXIF-Drehung ausdruecklich an; kleine Quelle wird nicht verkleinert dekodiert', async () => {
+    const { zeichnungen, qualitaeten, dims, bitmap } = canvasAttrappe([100_000], { w: 800, h: 600 })
+    const datei = png()
+    const blob = await prepareImage(datei, 'avatar')
+    expect(bitmap).toHaveBeenCalledTimes(1)
+    expect(bitmap).toHaveBeenCalledWith(datei, { imageOrientation: 'from-image' })
     expect(blob.size).toBe(100_000)
     expect(qualitaeten).toEqual([0.82])
     expect(dims).toEqual([{ width: 512, height: 512 }])
-    expect(zeichnungen[0].slice(1)).toEqual([500, 0, 3000, 3000, 0, 0, 512, 512])
+    // 800x600: mittiger Quadrat-Zuschnitt aus den echten Bitmap-Massen
+    expect(zeichnungen[0].slice(1)).toEqual([100, 0, 600, 600, 0, 0, 512, 512])
+  })
+
+  it('riesige Quelle: verkleinert dekodieren (mit Reserve) und Zuschnitt aus den Bitmap-Massen', async () => {
+    const { zeichnungen, dims, bitmap } = canvasAttrappe([100_000], { w: 8000, h: 6000 })
+    await prepareImage(png(), 'avatar')
+    // 6000 Quellpixel je 512 Ausgabepixel -> Skala 2/11,72 = 0,1707 -> 1365x1024
+    expect(bitmap).toHaveBeenCalledWith(expect.anything(), {
+      imageOrientation: 'from-image', resizeWidth: 1365, resizeHeight: 1024, resizeQuality: 'high',
+    })
+    // Zuschnitt rechnet auf dem verkleinerten Bitmap: Quadrat 1024, mittig; Ausgabe bleibt voll 512
+    expect(zeichnungen[0].slice(1)).toEqual([170, 0, 1024, 1024, 0, 0, 512, 512])
+    expect(dims).toEqual([{ width: 512, height: 512 }])
+  })
+
+  it('riesiges Titelbild: bleibt nach dem Verkleinern gross genug fuer 1500x500', async () => {
+    const { zeichnungen, dims, bitmap } = canvasAttrappe([100_000], { w: 9000, h: 3000 })
+    await prepareImage(png(), 'cover')
+    expect(bitmap).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ resizeWidth: 3000, resizeHeight: 1000 }))
+    expect(zeichnungen[0].slice(1)).toEqual([0, 0, 3000, 1000, 0, 0, 1500, 500])
+    expect(dims).toEqual([{ width: 1500, height: 500 }])
+  })
+
+  it('Resize-Optionen nicht unterstuetzt: faellt auf volles Dekodieren zurueck', async () => {
+    const { bitmap, zeichnungen } = canvasAttrappe([100_000], { w: 8000, h: 6000 })
+    bitmap.mockImplementationOnce(async () => { throw new Error('resize') })
+    await prepareImage(png(), 'avatar')
+    expect(bitmap).toHaveBeenCalledTimes(2)
+    expect(bitmap.mock.calls[1][1]).toEqual({ imageOrientation: 'from-image' })
+    expect(zeichnungen[0].slice(1)).toEqual([1000, 0, 6000, 6000, 0, 0, 512, 512])
+  })
+
+  it('Groesse nicht ermittelbar: normal dekodieren statt zu haengen', async () => {
+    const { bitmap } = canvasAttrappe([100_000], { w: 800, h: 600 })
+    vi.stubGlobal('Image', class {
+      onerror: (() => void) | null = null
+      set src(_: string) { queueMicrotask(() => this.onerror?.()) }
+    })
+    await prepareImage(png(), 'avatar')
+    expect(bitmap).toHaveBeenCalledWith(expect.anything(), { imageOrientation: 'from-image' })
+  })
+
+  it('Datei ueber 25 MB: eigener Fehler, nichts wird dekodiert', async () => {
+    const { bitmap } = canvasAttrappe([100_000])
+    const gross = png()
+    Object.defineProperty(gross, 'size', { value: 25 * 1024 * 1024 + 1 })
+    await expect(prepareImage(gross, 'avatar')).rejects.toBeInstanceOf(BildZuGrossError)
+    expect(bitmap).not.toHaveBeenCalled()
+    const grenze = png()
+    Object.defineProperty(grenze, 'size', { value: 25 * 1024 * 1024 })
+    await expect(prepareImage(grenze, 'avatar')).resolves.toBeInstanceOf(Blob)
   })
 
   it('senkt die Qualitaet in 0,1-Schritten, bis das Bild unter 500 KB liegt', async () => {
@@ -136,7 +206,7 @@ describe('prepareImage', () => {
   })
 
   it('wirft, wenn das Bild nicht lesbar ist', async () => {
-    vi.stubGlobal('createImageBitmap', vi.fn(async () => { throw new Error('decode') }))
+    canvasAttrappe([100_000], null)
     await expect(prepareImage(new File(['x'], 'a.txt'), 'avatar')).rejects.toThrow()
   })
 })
@@ -198,6 +268,12 @@ describe('Speicher und Profilzeile', () => {
   it('Entfernen: scheitert die Zeile, bleibt die Datei', async () => {
     state.updateFehler = 'rls'
     await expect(removeProfileMedia('u1', 'cover', 'u1/cover-1.jpg')).rejects.toThrow('rls')
+    expect(log.some(z => z.startsWith('remove'))).toBe(false)
+  })
+
+  it('Entfernen trifft keine Zeile: wie ein Fehler, Datei bleibt', async () => {
+    state.zeilen = 0
+    await expect(removeProfileMedia('u1', 'cover', 'u1/cover-1.jpg')).rejects.toThrow()
     expect(log.some(z => z.startsWith('remove'))).toBe(false)
   })
 

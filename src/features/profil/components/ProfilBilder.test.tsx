@@ -6,7 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const signedMediaUrl = vi.fn(async (pfad: string) => `https://signiert/${pfad}`)
 const uploadProfileMedia = vi.fn(async (_u: string, kind: string, _f: File) => `u1/${kind}-neu.jpg`)
 const removeProfileMedia = vi.fn(async (_u: string, _k: string, _p: string): Promise<void> => undefined)
+const { BildZuGrossError } = vi.hoisted(() => ({ BildZuGrossError: class extends Error {} }))
 vi.mock('../services/profileMedia', () => ({
+  BildZuGrossError,
   signedMediaUrl: (p: string) => signedMediaUrl(p),
   uploadProfileMedia: (u: string, k: string, f: File) => uploadProfileMedia(u, k, f),
   removeProfileMedia: (u: string, k: string, p: string) => removeProfileMedia(u, k, p),
@@ -85,6 +87,14 @@ describe('ProfilBilder', () => {
     const { container, props } = renderBilder()
     fireEvent.change(container.querySelector('input[data-media-input="cover"]')!, { target: { files: [new File(['x'], 'a.png')] } })
     await waitFor(() => expect(toastError).toHaveBeenCalledWith('profil_bild_fehler'))
+    expect(props.onChange).not.toHaveBeenCalled()
+  })
+
+  it('Datei zu gross: eigener Text', async () => {
+    uploadProfileMedia.mockRejectedValueOnce(new BildZuGrossError())
+    const { container, props } = renderBilder()
+    fireEvent.change(container.querySelector('input[data-media-input="avatar"]')!, { target: { files: [new File(['x'], 'a.png')] } })
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('profil_bild_zu_gross'))
     expect(props.onChange).not.toHaveBeenCalled()
   })
 
