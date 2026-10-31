@@ -123,6 +123,23 @@ describe('health_daily', () => {
     expect(Object.keys(sent).sort()).toEqual(['day', 'source', 'steps', 'updated_at', 'user_id'])
   })
 
+  it('schreibt Zeilen mit verschiedenen Spalten in getrennten Upserts mit einheitlichen Spalten', async () => {
+    // postgrest-js bildet `columns` aus der Vereinigung aller Schluessel: gemischt in einem
+    // Aufruf wuerde eine fehlende Spalte trotz defaultToNull: false auf NULL gesetzt.
+    await upsertHealthDaily('u1', [
+      { day: '2026-10-29', steps: 7000, resting_hr: 60 },
+      { day: '2026-10-30', steps: 8000 },
+      { day: '2026-10-31', resting_hr: 57, steps: 3000 },
+    ], 'healthkit')
+    expect(db.state.calls).toHaveLength(2)
+    const sent = db.state.calls.map(c => c.ops[0][1][0] as Record<string, unknown>[])
+    for (const chunk of sent) {
+      const keySets = new Set(chunk.map(r => Object.keys(r).sort().join(',')))
+      expect(keySets.size).toBe(1)
+    }
+    expect(sent.map(chunk => chunk.map(r => r.day))).toEqual([['2026-10-29', '2026-10-31'], ['2026-10-30']])
+  })
+
   it('schreibt ohne Zeilen nichts', async () => {
     await upsertHealthDaily('u1', [], 'health_connect')
     expect(db.state.calls).toHaveLength(0)

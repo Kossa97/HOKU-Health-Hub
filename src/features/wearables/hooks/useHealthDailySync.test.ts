@@ -175,9 +175,22 @@ describe('useHealthDailySync', () => {
       expect(row).not.toHaveProperty('bp_sys')
       expect(row).not.toHaveProperty('bp_dia')
       expect(row).toHaveProperty('steps')
-      expect(row).toHaveProperty('sleep_min')
     }
     expect(localStorage.getItem(`hoku.healthDaily.last.${userId}`)).toBeNull()
+  })
+
+  it('schickt eine an einem Tag fehlende Kennzahl nicht als NULL (gespeicherter Wert bleibt)', async () => {
+    const userId = nextUser()
+    store.loadHealthStoreConsent.mockResolvedValue(CONSENT)
+    // Ruhepuls nur fuer den 30.10.; heute (31.10.) fehlt er. iOS liefert bei verweigertem Lesen ebenfalls [].
+    health.getRestingHeartRate.mockResolvedValue([{ bpm: 58, date: new Date(2026, 9, 30, 7, 0) }])
+    await expect(syncHealthDaily(userId)).resolves.toBe(true)
+    const rows = store.upsertHealthDaily.mock.calls[0][1] as Record<string, unknown>[]
+    expect(rows).toEqual([
+      { day: '2026-10-30', steps: 8000, resting_hr: 58 },
+      { day: '2026-10-31', steps: 3000 },
+    ])
+    for (const row of rows) expect(Object.values(row)).not.toContain(null)
   })
 
   it('schreibt keine Zeile, wenn keine einzige Kennzahl gelesen werden konnte', async () => {

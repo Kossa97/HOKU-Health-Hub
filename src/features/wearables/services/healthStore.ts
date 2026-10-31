@@ -39,13 +39,24 @@ export async function setHealthStoreConsent(userId: string, granted: boolean): P
 /**
  * Schreibt die Tage per Upsert auf (user_id, day), in Bloecken zu 100. Gesendet
  * (und beim Zusammenfuehren ueberschrieben) werden nur die Spalten in `rows`.
+ * Ein Aufruf je Spaltensatz: postgrest-js bildet `columns` aus der Vereinigung
+ * aller Schluessel, gemischte Zeilen setzten die fehlenden Spalten auf NULL.
  */
 export async function upsertHealthDaily(userId: string, rows: HealthDailyPatch[], source: HealthDailySource): Promise<void> {
   const updatedAt = new Date().toISOString()
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const chunk = rows.slice(i, i + CHUNK).map(row => ({ ...row, user_id: userId, source, updated_at: updatedAt }))
-    const { error } = await supabase.from('health_daily').upsert(chunk, { onConflict: 'user_id,day', defaultToNull: false })
-    if (error) throw error
+  const groups = new Map<string, HealthDailyPatch[]>()
+  for (const row of rows) {
+    const key = Object.keys(row).sort().join(',')
+    const group = groups.get(key)
+    if (group) group.push(row)
+    else groups.set(key, [row])
+  }
+  for (const group of groups.values()) {
+    for (let i = 0; i < group.length; i += CHUNK) {
+      const chunk = group.slice(i, i + CHUNK).map(row => ({ ...row, user_id: userId, source, updated_at: updatedAt }))
+      const { error } = await supabase.from('health_daily').upsert(chunk, { onConflict: 'user_id,day', defaultToNull: false })
+      if (error) throw error
+    }
   }
 }
 

@@ -33,9 +33,14 @@ function writeStand(userId: string, day: string, consent: string) {
 
 type MetricColumn = Exclude<keyof HealthDailyRow, 'day'>
 
-function withoutColumns(row: HealthDailyRow, columns: Set<MetricColumn>): HealthDailyPatch {
-  if (!columns.size) return row
-  return Object.fromEntries(Object.entries(row).filter(([key]) => !columns.has(key as MetricColumn))) as HealthDailyPatch
+/**
+ * Nur Kennzahlen mit Wert. Ein fehlender Wert ist kein Beleg fuer „keiner": iOS
+ * liefert bei verweigertem Lesen [], und ein neues Geraet liest 30 Tage neu — NULL
+ * ueberschriebe gespeicherte Werte. Bewusst in Kauf genommen: ein an der Quelle
+ * geloeschter Wert bleibt hier stehen.
+ */
+function withoutNulls(row: HealthDailyRow): HealthDailyPatch {
+  return Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)) as HealthDailyPatch
 }
 
 // Modulweit: das Layout kann neu eingehaengt werden, der App-Start bleibt einer.
@@ -64,8 +69,8 @@ export async function syncHealthDaily(userId: string, { force = false } = {}): P
     const [y, m, d] = window.from.split('-').map(Number)
     // Ab Mitternacht des Vortags lesen: Schlaf, der dort nach 18 Uhr endet, zaehlt zu `from`.
     const options = { startDate: new Date(y, m - 1, d - 1), endDate: new Date() }
-    // Scheitert eine Abfrage (etwa eine fehlende Berechtigung), fehlen ihre Spalten
-    // im Upsert — sonst ueberschriebe NULL die gespeicherten Werte.
+    // Scheitert eine Abfrage (etwa eine fehlende Berechtigung), liefert sie keine Werte;
+    // ihre Spalten fehlen dann im Upsert, und der Stand bleibt stehen.
     const failed = new Set<MetricColumn>()
     const read = <T,>(columns: MetricColumn[], query: Promise<T[]>) =>
       query.catch(() => { columns.forEach(c => failed.add(c)); return [] as T[] })
@@ -80,7 +85,7 @@ export async function syncHealthDaily(userId: string, { force = false } = {}): P
     ])
     const rows = aggregateHealthDaily({ steps, restingHr, sleep, activeEnergy, spo2, respRate, bloodPressure })
       .filter(row => row.day >= window.from && row.day <= window.to)
-      .map(row => withoutColumns(row, failed))
+      .map(withoutNulls)
       .filter(row => Object.keys(row).length > 1)
 
     if ((await loadHealthStoreConsent(userId)) !== consent) return false
