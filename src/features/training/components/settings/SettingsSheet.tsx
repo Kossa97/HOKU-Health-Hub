@@ -178,7 +178,8 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
     if (!next) { setNote(null); await save({ healthImport: false }); return }
     if (!isNative) { setNote('settings_health_web'); return }
     // Ohne Einwilligung erst fragen; das Sheet holt auch die Berechtigungen.
-    if (!data.healthConsent) { setConsentOpen(true); return }
+    // Nur bei geladenem „keine" (null) — undefined heisst: wird noch geladen.
+    if (data.healthConsent === null) { setConsentOpen(true); return }
     setPending(true)
     try {
       const result = await requestPermissions()

@@ -124,6 +124,17 @@ describe('SettingsSheet', () => {
     expect(screen.queryByRole('dialog', { name: 'Einwilligung' })).toBeNull()
   })
 
+  it('oeffnet die Einwilligung nicht, solange sie noch geladen wird (undefined ist nicht null)', async () => {
+    healthMock.isNative = true
+    healthMock.requestPermissions.mockResolvedValue({ platform: 'ios', available: true, granted: true })
+    const data = makeData({ healthConsent: undefined })
+    render(<SettingsSheet data={data} onClose={() => {}} />)
+    fireEvent.click(screen.getByRole('switch', { name: 'Daten von der Uhr übernehmen' }))
+    expect(screen.queryByRole('dialog', { name: 'Einwilligung' })).toBeNull()
+    await waitFor(() => expect(data.updateSettings).toHaveBeenCalledWith(expect.objectContaining({ healthImport: true })))
+    expect(data.reloadHealthConsent).not.toHaveBeenCalled()
+  })
+
   it('zeigt einen pausierten Import mit Knopf zum Nachholen der Einwilligung', async () => {
     healthMock.isNative = true
     healthMock.isIOS = true
