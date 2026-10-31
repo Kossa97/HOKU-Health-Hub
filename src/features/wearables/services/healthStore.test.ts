@@ -54,6 +54,10 @@ describe('syncWindow', () => {
     expect(syncWindow('2027-01-01', '2027-01-02')).toEqual({ from: '2026-12-31', to: '2027-01-02' })
   })
 
+  it('liest hoechstens 30 Tage zurueck, auch bei sehr altem Stand', () => {
+    expect(syncWindow('2026-01-01', '2026-10-31')).toEqual({ from: '2026-10-01', to: '2026-10-31' })
+  })
+
   it('liest nie in die Zukunft, wenn der Stand nach heute liegt (Uhr verstellt)', () => {
     expect(syncWindow('2026-11-05', '2026-10-31')).toEqual({ from: '2026-10-31', to: '2026-10-31' })
   })
@@ -106,11 +110,17 @@ describe('health_daily', () => {
     for (const call of db.state.calls) {
       expect(call.table).toBe('health_daily')
       expect(call.ops[0][0]).toBe('upsert')
-      expect(call.ops[0][1][1]).toEqual({ onConflict: 'user_id,day' })
+      expect(call.ops[0][1][1]).toEqual({ onConflict: 'user_id,day', defaultToNull: false })
     }
     const first = (db.state.calls[0].ops[0][1][0] as Record<string, unknown>[])[0]
     expect(first).toMatchObject({ ...rows[0], user_id: 'u1', source: 'healthkit' })
     expect(typeof first.updated_at).toBe('string')
+  })
+
+  it('schickt nur die Spalten, die in den Zeilen stehen', async () => {
+    await upsertHealthDaily('u1', [{ day: '2026-10-30', steps: 5000 }], 'healthkit')
+    const sent = (db.state.calls[0].ops[0][1][0] as Record<string, unknown>[])[0]
+    expect(Object.keys(sent).sort()).toEqual(['day', 'source', 'steps', 'updated_at', 'user_id'])
   })
 
   it('schreibt ohne Zeilen nichts', async () => {

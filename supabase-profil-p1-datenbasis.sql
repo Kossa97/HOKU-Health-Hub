@@ -18,6 +18,8 @@
 --      and relrowsecurity = true;                                                          -- 2
 --   select count(*) from storage.buckets
 --    where id = 'profile-media' and public = false;                                        -- 1
+--   select count(*) from pg_policies
+--    where schemaname = 'public' and tablename = 'health_daily';                           -- 4
 --   select count(*) from public.profiles;                         -- unveraendert gegenueber vorher
 --
 -- Stellenliste (Koerpermasse): neck, chest, waist, belly, hips, upper_arm, forearm,
@@ -120,9 +122,29 @@ create table if not exists public.health_daily (
 );
 
 alter table public.health_daily enable row level security;
+-- Lesen und Loeschen immer (Loeschen auch nach Widerruf). Schreiben nur mit
+-- Einwilligung im eigenen Profil: ein Abgleich, der den Widerruf verpasst hat,
+-- wird hier abgewiesen (Art. 9 Abs. 2 lit. a DSGVO).
 drop policy if exists "Own health daily" on public.health_daily;
-create policy "Own health daily" on public.health_daily
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Own health daily select" on public.health_daily;
+create policy "Own health daily select" on public.health_daily
+  for select using (auth.uid() = user_id);
+drop policy if exists "Own health daily delete" on public.health_daily;
+create policy "Own health daily delete" on public.health_daily
+  for delete using (auth.uid() = user_id);
+drop policy if exists "Own health daily insert with consent" on public.health_daily;
+create policy "Own health daily insert with consent" on public.health_daily
+  for insert with check (
+    auth.uid() = user_id
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.health_store_consent_at is not null)
+  );
+drop policy if exists "Own health daily update with consent" on public.health_daily;
+create policy "Own health daily update with consent" on public.health_daily
+  for update using (auth.uid() = user_id)
+  with check (
+    auth.uid() = user_id
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.health_store_consent_at is not null)
+  );
 
 -- 4. Privater Speicher fuer Profil- und Titelbild; Ordner = Nutzer-ID.
 insert into storage.buckets (id, name, public)

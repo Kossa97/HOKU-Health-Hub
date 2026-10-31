@@ -274,6 +274,9 @@ export function useTrainingData() {
     const result = dedupeAgainst(sessions, workouts
       .map(w => mapHealthWorkout(w, platform))
       .filter(w => !w.externalId || !dismissed.has(w.externalId)))
+    if (!result.create.length && !result.enrich.length) return { created: 0, enriched: 0 }
+    // Noch einmal frisch, direkt vor dem Schreiben (Widerruf waehrend des Lesens).
+    if (!(await loadHealthStoreConsent(userId))) return { created: 0, enriched: 0 }
     let created = 0
     if (result.create.length) created = await repo.importSessions(userId, result.create)
     for (const patch of result.enrich) await repo.enrichSession(userId, patch.id, patch)

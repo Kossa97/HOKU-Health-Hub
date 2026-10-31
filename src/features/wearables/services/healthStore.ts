@@ -10,8 +10,11 @@ import type { HealthDailyRow } from '../lib/healthDaily'
 
 export type HealthDailySource = 'healthkit' | 'health_connect'
 
+/** Ein Tag mit den Kennzahlen, die dieser Lauf lesen konnte; fehlende Spalten bleiben serverseitig unberuehrt. */
+export type HealthDailyPatch = Pick<HealthDailyRow, 'day'> & Partial<Omit<HealthDailyRow, 'day'>>
+
 const CHUNK = 100
-const FIRST_SYNC_DAYS = 30
+const MAX_SYNC_DAYS = 30
 
 // ─── Einwilligung ───────────────────────────────────────────────────────
 
@@ -33,12 +36,15 @@ export async function setHealthStoreConsent(userId: string, granted: boolean): P
 
 // ─── Tageswerte ─────────────────────────────────────────────────────────
 
-/** Schreibt die Tage per Upsert auf (user_id, day), in Bloecken zu 100. */
-export async function upsertHealthDaily(userId: string, rows: HealthDailyRow[], source: HealthDailySource): Promise<void> {
+/**
+ * Schreibt die Tage per Upsert auf (user_id, day), in Bloecken zu 100. Gesendet
+ * (und beim Zusammenfuehren ueberschrieben) werden nur die Spalten in `rows`.
+ */
+export async function upsertHealthDaily(userId: string, rows: HealthDailyPatch[], source: HealthDailySource): Promise<void> {
   const updatedAt = new Date().toISOString()
   for (let i = 0; i < rows.length; i += CHUNK) {
     const chunk = rows.slice(i, i + CHUNK).map(row => ({ ...row, user_id: userId, source, updated_at: updatedAt }))
-    const { error } = await supabase.from('health_daily').upsert(chunk, { onConflict: 'user_id,day' })
+    const { error } = await supabase.from('health_daily').upsert(chunk, { onConflict: 'user_id,day', defaultToNull: false })
     if (error) throw error
   }
 }
@@ -69,9 +75,12 @@ function shiftDay(day: string, days: number): string {
 
 /**
  * Welche Tage ein Lauf neu liest. Ohne Stand 30 Tage zurueck; sonst ab dem Tag
- * vor dem letzten Stand, damit ein damals angefangener Tag nachgezogen wird.
+ * vor dem letzten Stand, damit ein damals angefangener Tag nachgezogen wird —
+ * aber nie mehr als 30 Tage (etwa wenn eine Berechtigung dauerhaft fehlt).
  */
 export function syncWindow(lastSyncedDay: string | null, today: string): { from: string; to: string } {
-  const from = lastSyncedDay ? shiftDay(lastSyncedDay, -1) : shiftDay(today, -FIRST_SYNC_DAYS)
-  return { from: from < today ? from : today, to: today }
+  const earliest = shiftDay(today, -MAX_SYNC_DAYS)
+  const from = lastSyncedDay ? shiftDay(lastSyncedDay, -1) : earliest
+  const clamped = from < earliest ? earliest : from
+  return { from: clamped < today ? clamped : today, to: today }
 }

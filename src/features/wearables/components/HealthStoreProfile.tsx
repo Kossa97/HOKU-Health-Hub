@@ -57,9 +57,11 @@ function HealthStoreRow({ userId }: { userId: string }) {
   const remove = async () => {
     setBusy(true)
     try {
+      // Erst widerrufen (immer, der lokale Stand kann veraltet sein): ab dann weist
+      // die Datenbank jeden Schreibversuch eines laufenden Abgleichs ab.
+      await set(false)
       await deleteHealthDaily(userId)
       setStored(0)
-      if (consent) await set(false)
       setConfirming(false)
       toast.success(t('health_profile_deleted'))
     } catch {

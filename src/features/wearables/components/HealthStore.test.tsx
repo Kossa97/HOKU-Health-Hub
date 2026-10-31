@@ -86,7 +86,7 @@ describe('HealthStoreProfile', () => {
     expect(container.querySelector('[data-health-store-profile]')).toBeNull()
   })
 
-  it('loescht nach Bestaetigung erst die Tageswerte, dann widerruft es', async () => {
+  it('widerruft nach Bestaetigung erst, dann loescht es die Tageswerte', async () => {
     store.loadHealthStoreConsent.mockResolvedValue('2026-10-30T10:00:00Z')
     store.countHealthDaily.mockResolvedValue(5)
     render(<HealthStoreProfile />)
@@ -94,7 +94,7 @@ describe('HealthStoreProfile', () => {
     expect(store.deleteHealthDaily).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'health_profile_delete_yes' }))
     await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith('health_profile_deleted'))
-    expect(order).toEqual(['delete', 'consent:false'])
+    expect(order).toEqual(['consent:false', 'delete'])
     expect(store.deleteHealthDaily).toHaveBeenCalledWith('u1')
   })
 
@@ -125,6 +125,7 @@ describe('HealthStoreProfile', () => {
     fireEvent.click(screen.getByRole('button', { name: 'health_profile_delete' }))
     fireEvent.click(screen.getByRole('button', { name: 'health_profile_delete_yes' }))
     await waitFor(() => expect(store.deleteHealthDaily).toHaveBeenCalledWith('u1'))
-    expect(store.setHealthStoreConsent).not.toHaveBeenCalled()
+    // Auch hier zuerst widerrufen: der lokale Stand kann veraltet sein.
+    expect(order).toEqual(['consent:false', 'delete'])
   })
 })

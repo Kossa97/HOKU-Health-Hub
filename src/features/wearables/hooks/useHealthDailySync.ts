@@ -4,8 +4,8 @@ import {
   getActiveEnergy, getBloodPressure, getOxygenSaturation, getRespiratoryRate, getRestingHeartRate,
   getSleep, getStepsByDay, isIOS, isNative,
 } from '../../../lib/health'
-import { aggregateHealthDaily, localDay } from '../lib/healthDaily'
-import { loadHealthStoreConsent, syncWindow, upsertHealthDaily } from '../services/healthStore'
+import { aggregateHealthDaily, localDay, type HealthDailyRow } from '../lib/healthDaily'
+import { loadHealthStoreConsent, syncWindow, upsertHealthDaily, type HealthDailyPatch } from '../services/healthStore'
 
 /** Im Vordergrund hoechstens alle 6 h ein neuer Lauf. */
 export const HEALTH_SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000
@@ -31,7 +31,15 @@ function writeStand(userId: string, day: string, consent: string) {
   try { localStorage.setItem(standKey(userId), JSON.stringify({ day, consent })) } catch { /* kein Speicher */ }
 }
 
+type MetricColumn = Exclude<keyof HealthDailyRow, 'day'>
+
+function withoutColumns(row: HealthDailyRow, columns: Set<MetricColumn>): HealthDailyPatch {
+  if (!columns.size) return row
+  return Object.fromEntries(Object.entries(row).filter(([key]) => !columns.has(key as MetricColumn))) as HealthDailyPatch
+}
+
 // Modulweit: das Layout kann neu eingehaengt werden, der App-Start bleibt einer.
+// Gesetzt erst nach einem fertigen Lauf: ein Netzfehler sperrt keine 6 h.
 const lastRunAt = new Map<string, number>()
 const running = new Set<string>()
 
@@ -48,31 +56,38 @@ export async function syncHealthDaily(userId: string, { force = false } = {}): P
   const last = lastRunAt.get(userId)
   if (!force && last !== undefined && Date.now() - last < HEALTH_SYNC_INTERVAL_MS) return false
   running.add(userId)
-  lastRunAt.set(userId, Date.now())
   try {
     const consent = await loadHealthStoreConsent(userId)
-    if (!consent) return false
+    if (!consent) { lastRunAt.set(userId, Date.now()); return false }
 
     const window = syncWindow(readStand(userId, consent), localDay(new Date()))
     const [y, m, d] = window.from.split('-').map(Number)
     // Ab Mitternacht des Vortags lesen: Schlaf, der dort nach 18 Uhr endet, zaehlt zu `from`.
     const options = { startDate: new Date(y, m - 1, d - 1), endDate: new Date() }
-    // Fehlt eine einzelne Berechtigung, bleiben nur diese Werte leer.
+    // Scheitert eine Abfrage (etwa eine fehlende Berechtigung), fehlen ihre Spalten
+    // im Upsert — sonst ueberschriebe NULL die gespeicherten Werte.
+    const failed = new Set<MetricColumn>()
+    const read = <T,>(columns: MetricColumn[], query: Promise<T[]>) =>
+      query.catch(() => { columns.forEach(c => failed.add(c)); return [] as T[] })
     const [steps, restingHr, sleep, activeEnergy, spo2, respRate, bloodPressure] = await Promise.all([
-      getStepsByDay(options).catch(() => []),
-      getRestingHeartRate(options).catch(() => []),
-      getSleep(options).catch(() => []),
-      getActiveEnergy(options).catch(() => []),
-      getOxygenSaturation(options).catch(() => []),
-      getRespiratoryRate(options).catch(() => []),
-      getBloodPressure(options).catch(() => []),
+      read(['steps'], getStepsByDay(options)),
+      read(['resting_hr'], getRestingHeartRate(options)),
+      read(['sleep_min'], getSleep(options)),
+      read(['active_kcal'], getActiveEnergy(options)),
+      read(['spo2_pct'], getOxygenSaturation(options)),
+      read(['resp_rate'], getRespiratoryRate(options)),
+      read(['bp_sys', 'bp_dia'], getBloodPressure(options)),
     ])
     const rows = aggregateHealthDaily({ steps, restingHr, sleep, activeEnergy, spo2, respRate, bloodPressure })
       .filter(row => row.day >= window.from && row.day <= window.to)
+      .map(row => withoutColumns(row, failed))
+      .filter(row => Object.keys(row).length > 1)
 
     if ((await loadHealthStoreConsent(userId)) !== consent) return false
     await upsertHealthDaily(userId, rows, isIOS ? 'healthkit' : 'health_connect')
-    writeStand(userId, window.to, consent)
+    // Mit Luecken bleibt der Stand stehen: der naechste Lauf liest diese Tage noch einmal.
+    if (!failed.size) writeStand(userId, window.to, consent)
+    lastRunAt.set(userId, Date.now())
     return true
   } finally {
     running.delete(userId)

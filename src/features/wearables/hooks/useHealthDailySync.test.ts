@@ -151,9 +151,43 @@ describe('useHealthDailySync', () => {
     expect(options.startDate).toEqual(new Date(2026, 8, 30))
   })
 
-  it('schreibt nichts, wenn die Einwilligung nicht gelesen werden kann', async () => {
+  it('schreibt nichts, wenn die Einwilligung nicht gelesen werden kann, und versucht es danach ohne 6-h-Sperre wieder', async () => {
+    const userId = nextUser()
     store.loadHealthStoreConsent.mockRejectedValue(new Error('offline'))
-    await expect(syncHealthDaily(nextUser())).rejects.toThrow('offline')
+    await expect(syncHealthDaily(userId)).rejects.toThrow('offline')
     expect(store.upsertHealthDaily).not.toHaveBeenCalled()
+    store.loadHealthStoreConsent.mockResolvedValue(CONSENT)
+    await expect(syncHealthDaily(userId)).resolves.toBe(true)
+    expect(store.upsertHealthDaily).toHaveBeenCalledTimes(1)
+  })
+
+  it('laesst eine fehlgeschlagene Kennzahl ganz aus dem Upsert weg und schiebt den Stand nicht vor', async () => {
+    const userId = nextUser()
+    store.loadHealthStoreConsent.mockResolvedValue(CONSENT)
+    // Gespeicherter Ruhepuls existiert serverseitig; dieser Lauf kann ihn nicht lesen.
+    health.getRestingHeartRate.mockRejectedValue(new Error('SecurityException'))
+    health.getBloodPressure.mockRejectedValue(new Error('SecurityException'))
+    await expect(syncHealthDaily(userId)).resolves.toBe(true)
+    const rows = store.upsertHealthDaily.mock.calls[0][1] as Record<string, unknown>[]
+    expect(rows).toHaveLength(2)
+    for (const row of rows) {
+      expect(row).not.toHaveProperty('resting_hr')
+      expect(row).not.toHaveProperty('bp_sys')
+      expect(row).not.toHaveProperty('bp_dia')
+      expect(row).toHaveProperty('steps')
+      expect(row).toHaveProperty('sleep_min')
+    }
+    expect(localStorage.getItem(`hoku.healthDaily.last.${userId}`)).toBeNull()
+  })
+
+  it('schreibt keine Zeile, wenn keine einzige Kennzahl gelesen werden konnte', async () => {
+    const userId = nextUser()
+    store.loadHealthStoreConsent.mockResolvedValue(CONSENT)
+    for (const fn of [health.getStepsByDay, health.getRestingHeartRate, health.getSleep, health.getActiveEnergy,
+      health.getOxygenSaturation, health.getRespiratoryRate, health.getBloodPressure]) fn.mockRejectedValue(new Error('x'))
+    await syncHealthDaily(userId)
+    const rows = store.upsertHealthDaily.mock.calls[0]?.[1] as unknown[] | undefined
+    expect(rows ?? []).toEqual([])
+    expect(localStorage.getItem(`hoku.healthDaily.last.${userId}`)).toBeNull()
   })
 })

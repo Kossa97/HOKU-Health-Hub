@@ -36,6 +36,16 @@ describe('Rechtstexte', () => {
     const en = absatz('en')
     for (const wert of ['Schritte', 'Ruhepuls', 'Schlaf', 'aktive Kalorien', 'SpO2', 'Atemfrequenz', 'Blutdruck', 'Art. 9 Abs. 2 lit. a DSGVO', 'widerrufen', 'löschen', 'Werbung']) expect(de).toContain(wert)
     for (const wert of ['steps', 'resting heart rate', 'sleep', 'active calories', 'SpO2', 'respiratory rate', 'blood pressure', 'Art. 9(2)(a) GDPR', 'withdraw', 'delete', 'advertising']) expect(en).toContain(wert)
+    // Widerruf loescht nicht von selbst.
+    expect(de).toContain('bereits gespeicherte Tageswerte bleiben erhalten, bis du sie im Profil löschst')
+    expect(en).toContain('daily values already stored stay until you delete them in your profile')
+  })
+
+  it('nennt im ersten Absatz zu Apple Health / Health Connect dieselben Werte, die die App liest', () => {
+    const [de] = LEGAL_DOCS.datenschutz.de.sections[3].paragraphs
+    const [en] = LEGAL_DOCS.datenschutz.en.sections[3].paragraphs
+    for (const wert of ['Gewicht', 'Schritte', 'Workouts', 'Schlaf', 'Ruhepuls', 'aktive Kalorien', 'SpO2', 'Atemfrequenz', 'Blutdruck']) expect(de).toContain(wert)
+    for (const wert of ['weight', 'steps', 'workouts', 'sleep', 'resting heart rate', 'active calories', 'SpO2', 'respiratory rate', 'blood pressure']) expect(en).toContain(wert)
   })
 
   it('zeigt Deutsch nur fuer Deutsch, sonst Englisch', () => {

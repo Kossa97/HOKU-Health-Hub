@@ -78,6 +78,33 @@ describe('useTrainingData: Workout-Import nur mit Einwilligung', () => {
     expect(result.current.healthImportPaused).toBe(false)
   })
 
+  it('prueft die Einwilligung direkt vor dem Uebernehmen noch einmal', async () => {
+    const workout = {
+      externalId: 'w1', activityType: 'Running', startDate: new Date(2026, 9, 30, 7), endDate: new Date(2026, 9, 30, 8),
+      durationS: 3600, distanceM: null, kcal: null, avgHr: null,
+    }
+    health.getWorkouts.mockResolvedValue([workout])
+    repo.importSessions.mockResolvedValue(1)
+    // 1. Hook-Stand, 2. vor dem Lesen, 3. vor dem Schreiben — dazwischen widerrufen.
+    store.loadHealthStoreConsent.mockResolvedValueOnce('c').mockResolvedValueOnce('c').mockResolvedValue(null)
+    renderHook(() => useTrainingData())
+    await waitFor(() => expect(health.getWorkouts).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(store.loadHealthStoreConsent).toHaveBeenCalledTimes(3))
+    await flush()
+    expect(repo.importSessions).not.toHaveBeenCalled()
+  })
+
+  it('uebernimmt neue Workouts mit Einwilligung', async () => {
+    health.getWorkouts.mockResolvedValue([{
+      externalId: 'w1', activityType: 'Running', startDate: new Date(2026, 9, 30, 7), endDate: new Date(2026, 9, 30, 8),
+      durationS: 3600, distanceM: null, kcal: null, avgHr: null,
+    }])
+    repo.importSessions.mockResolvedValue(1)
+    store.loadHealthStoreConsent.mockResolvedValue('c')
+    renderHook(() => useTrainingData())
+    await waitFor(() => expect(repo.importSessions).toHaveBeenCalledTimes(1))
+  })
+
   it('„Jetzt synchronisieren" prueft die Einwilligung frisch (Widerruf auf anderem Geraet)', async () => {
     store.loadHealthStoreConsent.mockResolvedValue('2026-10-30T10:00:00Z')
     const { result } = renderHook(() => useTrainingData())
