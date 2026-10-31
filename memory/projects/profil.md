@@ -60,7 +60,11 @@ Prüffehler = bleibt privat.
   Nutzer-Entscheidung 31.10.: nicht erzwingen; Code ohne Graph-Update committen, Nutzer zieht lokal nach.
 - 2a Stand: Migration `supabase-profil-p2a-sichtbarkeit.sql` geschrieben und im Container geprüft (3 Läufe,
   Proben bestanden), NICHT gegen Produktion — erst kurz vor dem Merge von 2a laufen lassen (alte App kennt
-  die Stufen nicht). Task 2 (`profileVisibility.ts`) fertig; Task 3+4 in Arbeit.
+  die Stufen nicht). Tasks 1–8 gebaut (Stand 31.10.): Schnappschuss, Muskelmasse, neues Profil, Einstellungen,
+  fremdes Profil/Web-Link, Bild-Check (Edge Function `profile-image-check`, nicht deployt, braucht ANTHROPIC_API_KEY;
+  Tageslimit 20 über `profile_image_checks`). `profile_view` baut fremde Schnappschüsse serverseitig auf die
+  bekannte Form neu (echter Schnappschuss: 22/22 Felder kommen an). Offen: Task 9 (Datenschutz, Texte, e2e),
+  Task 10 (Gesamtprüfung, security-review, PR). Zu bestätigen: Modell-Ablehnung (refusal) = Bild abgelehnt.
 - 2a Task 5+6 gebaut (31.10.): /profil als Schaufenster (ProfilKopf, ProfilKarten, SichtbarkeitsChip,
   Bearbeiten-Sheet), /profil/einstellungen, /profil/sichtbarkeit, /profil/blockiert. Freitext (Routine,
   Lieblingsuebung, e1RM-Namen) filtert profile_view fuer andere mit oeffentlicher_text_fehler (Migration ergaenzt).
