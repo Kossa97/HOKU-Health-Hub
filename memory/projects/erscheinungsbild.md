@@ -1,9 +1,24 @@
 # Erscheinungsbild (Looks)
 
-Sechs Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
-Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`.
+Sieben Looks, gewählt im Profil, gespeichert als `tyd_look` (`src/lib/look.ts`),
+Werte in `src/styles/liquid-glass.css` unter `html[data-look='…']`, HOKU in
+`src/styles/look-hoku.css`.
 
-- **Schwarz** (Standard): reines Schwarz, helle Taschenlampen-Kante.
+- **HOKU** (31.10.2026, **neuer Standard**, Nutzer: App mit dem Skill `unslop`
+  überarbeiten; „Neuer Look + Basis", „Alles darf neu", „Ganze App"):
+  Richtung genau, ruhig, diskret; Welt Apothekenregal/Laborbefund. Graphit mit
+  Hauch Tinte (#0e0f12 Grund, #15161a Karte, Haarlinie 8 %), kein Glas/Glanz/
+  Glow, Hauptknopf gebrochenes Weiß, Blau #6aa6ff aus dem App-Icon nur für
+  Auswahl/Verweise/Schlüsselzahl, IBM Plex Sans + Mono (Mono aus dem
+  Marken-Kit), Gewichte 400–600, Radien nach Größe statt Kapseln.
+  Erkennungszeichen **Messstriche** (`.hk-scale` auf Fortschritts-/Bestandsspuren).
+  Momente: Vial, Hoku-Kugel, 3D-Figur, Kurven. Tailwind `slate`/`sky` und die
+  Schriften laufen über CSS-Variablen (`--tw-*`, `--font-*`), damit ein Look sie
+  umstellt. Wer nie gewählt hat, bekommt HOKU; gespeicherte Wahl bleibt.
+  Gemeinsame Aufräumarbeiten (Gewichte, Versal-Labels, Emoji, Glows,
+  `transition-all`) gelten für alle Looks.
+
+- **Schwarz** (bis 31.10.2026 Standard): reines Schwarz, helle Taschenlampen-Kante.
 - **Satin**: dicke, matte Kante mit wanderndem Reflex.
 - **Licht**: farbiges Umgebungslicht, Karten ohne Kante.
 - **Nacht** (22.10.2026): Umgebungslicht bei 55 %, leise getönte Kante,
