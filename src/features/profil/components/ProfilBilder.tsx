@@ -36,6 +36,8 @@ export function ProfilBilder({ userId, avatarPath, coverPath, avatarStatus = nul
   const [menue, setMenue] = useState<MediaKind | null>(null)
   const [arbeitet, setArbeitet] = useState<MediaKind | null>(null)
   const eingaben = useRef<Record<MediaKind, HTMLInputElement | null>>({ avatar: null, cover: null })
+  // Zählt Hochladen/Entfernen je Bild: ein Prüfergebnis gilt nur, wenn danach nichts mehr geändert wurde
+  const auftrag = useRef<Record<MediaKind, number>>({ avatar: 0, cover: 0 })
   const avatarUrl = useSignedUrl(avatarPath)
   const coverUrl = useSignedUrl(coverPath)
   const pfade: Record<MediaKind, string | null> = { avatar: avatarPath, cover: coverPath }
@@ -52,6 +54,7 @@ export function ProfilBilder({ userId, avatarPath, coverPath, avatarStatus = nul
     const datei = event.target.files?.[0]
     event.target.value = '' // dieselbe Datei darf nochmal gewählt werden
     if (!datei) return
+    const nummer = ++auftrag.current[kind]
     setArbeitet(kind)
     let pfad: string
     try {
@@ -65,13 +68,15 @@ export function ProfilBilder({ userId, avatarPath, coverPath, avatarStatus = nul
     onChange(kind, pfad, 'pending')
     // Prüfen lassen; Fehler bleiben „wird geprüft“ und werden später nachgeholt.
     const status = (await checkProfileMedia(kind)) ?? 'pending'
-    if (status !== 'pending') onChange(kind, status === 'rejected' ? null : pfad, status)
+    if (status === 'pending' || auftrag.current[kind] !== nummer) return
+    onChange(kind, status === 'rejected' ? null : pfad, status)
   }
 
   const entferne = async (kind: MediaKind) => {
     const pfad = pfade[kind]
     setMenue(null)
     if (!pfad) return
+    auftrag.current[kind]++
     setArbeitet(kind)
     try {
       await removeProfileMedia(userId, kind, pfad)

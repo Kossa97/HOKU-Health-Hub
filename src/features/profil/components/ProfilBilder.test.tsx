@@ -129,6 +129,21 @@ describe('ProfilBilder', () => {
     expect(props.onChange.mock.calls).toEqual([['avatar', 'u1/avatar-neu.jpg', 'pending']])
   })
 
+  it('Bild während der Prüfung entfernt: das spätere Ergebnis bringt den alten Pfad nicht zurück', async () => {
+    let loese!: (s: string) => void
+    checkProfileMedia.mockImplementationOnce(() => new Promise(resolve => { loese = resolve }))
+    const { container, props, rerender, getByRole } = renderBilder()
+    fireEvent.change(container.querySelector('input[data-media-input="avatar"]')!, { target: { files: [new File(['x'], 'a.png')] } })
+    await waitFor(() => expect(checkProfileMedia).toHaveBeenCalled())
+    rerender(<ProfilBilder userId="u1" avatarPath="u1/avatar-neu.jpg" avatarStatus="pending" coverPath={null} onChange={props.onChange} />)
+    fireEvent.click(getByRole('button', { name: 'profil_profilbild' }))
+    fireEvent.click(getByRole('button', { name: 'entfernen' }))
+    await waitFor(() => expect(props.onChange).toHaveBeenLastCalledWith('avatar', null, null))
+    loese('approved')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(props.onChange).toHaveBeenLastCalledWith('avatar', null, null)
+  })
+
   it('Status pending: „wird geprüft“ am Bild; abgelehnt: Hinweis mit „Anderes wählen“', () => {
     const { container, rerender, getByText } = renderBilder({ avatarPath: 'u1/avatar-1.jpg', avatarStatus: 'pending', coverPath: 'u1/cover-1.jpg', coverStatus: 'approved' })
     expect(container.querySelector('[data-media-pending="avatar"]')?.textContent).toBe('profil_bild_wird_geprueft')

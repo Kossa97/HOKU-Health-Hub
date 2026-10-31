@@ -92,8 +92,8 @@ export function Profil() {
     }
   }
 
-  const aendern = (aenderung: BearbeitenAenderung) => setState(s => {
-    if (s.status !== 'ok') return s
+  const aendern = (aenderung: BearbeitenAenderung, gilt?: (row: ProfilZeile) => boolean) => setState(s => {
+    if (s.status !== 'ok' || (gilt && !gilt(s.row))) return s
     const row = { ...s.row, ...aenderung.werte }
     const view = {
       ...s.view,
@@ -107,15 +107,19 @@ export function Profil() {
     return { ...s, row, view }
   })
 
-  const setzeBild = (kind: MediaKind, status: MediaStatus | null) => aendern({
+  /** Neuer Bildstatus; mit `pfad` nur, solange noch dieses Bild hinterlegt ist. */
+  const setzeBild = (kind: MediaKind, status: MediaStatus | null, pfad?: string) => aendern({
     werte: kind === 'avatar'
       ? { avatar_status: status, ...(status === 'rejected' ? { avatar_path: null } : {}) }
       : { cover_status: status, ...(status === 'rejected' ? { cover_path: null } : {}) },
-  })
+  }, pfad === undefined ? undefined : row => row[`${kind}_path`] === pfad)
 
   // Beim Öffnen: Bilder, deren Prüfung noch aussteht, jetzt prüfen lassen
   const offenePruefungen = useMemo(() => geladen
-    ? (['avatar', 'cover'] as const).filter(kind => geladen.row[`${kind}_path`] && geladen.row[`${kind}_status`] === 'pending')
+    ? (['avatar', 'cover'] as const).flatMap(kind => {
+      const pfad = geladen.row[`${kind}_path`]
+      return typeof pfad === 'string' && pfad && geladen.row[`${kind}_status`] === 'pending' ? [{ kind, pfad }] : []
+    })
     : null, [geladen])
   useBildPruefungNachholen(offenePruefungen, setzeBild)
 

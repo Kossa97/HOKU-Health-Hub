@@ -14,25 +14,26 @@ beforeEach(() => { checkProfileMedia.mockReset(); checkProfileMedia.mockResolved
 describe('useBildPruefungNachholen', () => {
   it('wartet, bis bekannt ist, was offen ist; prüft dann einmal je Bild', async () => {
     const onErgebnis = vi.fn()
-    const { rerender } = renderHook(({ offen }: { offen: MediaKind[] | null }) => useBildPruefungNachholen(offen, onErgebnis), {
-      initialProps: { offen: null as MediaKind[] | null },
+    type Offen = { kind: MediaKind; pfad: string }[] | null
+    const { rerender } = renderHook(({ offen }: { offen: Offen }) => useBildPruefungNachholen(offen, onErgebnis), {
+      initialProps: { offen: null as Offen },
     })
     expect(checkProfileMedia).not.toHaveBeenCalled()
 
     checkProfileMedia.mockImplementation(async k => (k === 'cover' ? 'rejected' : 'approved'))
-    rerender({ offen: ['avatar', 'cover'] })
+    rerender({ offen: [{ kind: 'avatar', pfad: 'u1/a.jpg' }, { kind: 'cover', pfad: 'u1/c.jpg' }] })
     await waitFor(() => expect(onErgebnis).toHaveBeenCalledTimes(2))
-    expect(onErgebnis).toHaveBeenCalledWith('avatar', 'approved')
-    expect(onErgebnis).toHaveBeenCalledWith('cover', 'rejected')
+    expect(onErgebnis).toHaveBeenCalledWith('avatar', 'approved', 'u1/a.jpg')
+    expect(onErgebnis).toHaveBeenCalledWith('cover', 'rejected', 'u1/c.jpg')
 
-    rerender({ offen: ['avatar'] })
+    rerender({ offen: [{ kind: 'avatar', pfad: 'u1/a.jpg' }] })
     expect(checkProfileMedia).toHaveBeenCalledTimes(2)
   })
 
   it('bleibt es bei „wird geprüft“, meldet es nichts', async () => {
     checkProfileMedia.mockResolvedValue('pending')
     const onErgebnis = vi.fn()
-    renderHook(() => useBildPruefungNachholen(['avatar'], onErgebnis))
+    renderHook(() => useBildPruefungNachholen([{ kind: 'avatar', pfad: 'u1/a.jpg' }], onErgebnis))
     await waitFor(() => expect(checkProfileMedia).toHaveBeenCalledTimes(1))
     await Promise.resolve()
     expect(onErgebnis).not.toHaveBeenCalled()
