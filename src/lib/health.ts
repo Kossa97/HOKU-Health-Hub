@@ -3,15 +3,24 @@ import { CapacitorHealthkit } from '@perfood/capacitor-healthkit';
 import type { ActivityData, OtherData, SleepData } from '@perfood/capacitor-healthkit';
 import { HealthConnect } from 'capacitor-health-connect';
 import type { Record as HealthConnectRecord, RecordType } from 'capacitor-health-connect';
+import { localDay } from '../features/wearables/lib/healthDaily';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_HEALTH_CONNECT_PAGES = 50;
 
 // 'activity' gibt in @perfood/capacitor-healthkit Schlaf UND Workouts frei.
-const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'heartRate', 'restingHeartRate'];
+// 'calories' ist bei diesem Plugin die aktive Energie (activeEnergyBurned).
+const IOS_READ_PERMISSIONS = [
+  'weight', 'steps', 'activity', 'heartRate', 'restingHeartRate',
+  'calories', 'oxygenSaturation', 'respiratoryRate', 'bloodPressureSystolic', 'bloodPressureDiastolic',
+];
 // 'ExerciseSession' fehlt mit Absicht: capacitor-health-connect 0.7 kann solche
 // Eintraege nicht lesen (siehe getWorkouts). Jede Health-Connect-Berechtigung
 // muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
-const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate'];
+const ANDROID_READ_PERMISSIONS: RecordType[] = [
+  'Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate',
+  'ActiveCaloriesBurned', 'OxygenSaturation', 'RespiratoryRate', 'BloodPressure',
+];
 
 export const isNative = Capacitor.isNativePlatform();
 export const isIOS = Capacitor.getPlatform() === 'ios';
@@ -59,6 +68,18 @@ export interface HealthHeartRate {
   source?: string;
 }
 
+/** Ein Einzelwert (SpO2 in Prozent, Atemfrequenz in 1/min). */
+export interface HealthSample {
+  date: Date;
+  value: number;
+}
+
+export interface HealthBloodPressure {
+  date: Date;
+  systolic: number;
+  diastolic: number;
+}
+
 /** Ein Workout, wie es die Plattform aufgezeichnet hat (Uhr, Fitness-App). */
 export interface HealthWorkout {
   /** Plattform-ID: HKWorkout-UUID bzw. Health-Connect-Record-ID. */
@@ -85,6 +106,10 @@ type HealthConnectWeightRecord = HealthConnectStoredRecord & Extract<HealthConne
 type HealthConnectStepsRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'Steps' }>;
 type HealthConnectHeartRateRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'HeartRateSeries' }>;
 type HealthConnectRestingHeartRateRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'RestingHeartRate' }>;
+type HealthConnectActiveEnergyRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'ActiveCaloriesBurned' }>;
+type HealthConnectOxygenRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'OxygenSaturation' }>;
+type HealthConnectRespiratoryRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'RespiratoryRate' }>;
+type HealthConnectBloodPressureRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'BloodPressure' }>;
 
 function platform(): HealthPlatform {
   return Capacitor.getPlatform();
@@ -131,20 +156,32 @@ async function readHealthConnectRecords<T extends HealthConnectStoredRecord>(
   type: RecordType,
   options?: HealthQueryOptions,
   fallbackDays = 1,
+  /** Alle Seiten lesen (hoechstens MAX_HEALTH_CONNECT_PAGES) statt nur die erste. */
+  allPages = false,
 ) {
   const { startDate, endDate, limit } = queryRange(options, fallbackDays);
-  const response = await HealthConnect.readRecords({
-    type,
-    timeRangeFilter: {
-      type: 'between',
-      startTime: startDate,
-      endTime: endDate,
-    },
-    ascendingOrder: false,
-    pageSize: limit > 0 ? limit : 1000,
-  });
+  const records: T[] = [];
+  let pageToken: string | undefined;
 
-  return response.records as T[];
+  for (let page = 0; page < MAX_HEALTH_CONNECT_PAGES; page += 1) {
+    const response = await HealthConnect.readRecords({
+      type,
+      timeRangeFilter: {
+        type: 'between',
+        startTime: startDate,
+        endTime: endDate,
+      },
+      ascendingOrder: false,
+      pageSize: limit > 0 ? limit : 1000,
+      ...(pageToken ? { pageToken } : {}),
+    });
+
+    records.push(...(response.records as T[]));
+    pageToken = response.pageToken;
+    if (!allPages || !pageToken) break;
+  }
+
+  return records;
 }
 
 export async function requestPermissions(): Promise<HealthPermissionResult> {
@@ -288,6 +325,39 @@ export async function getSteps(options?: HealthQueryOptions): Promise<HealthStep
   }
 
   return null;
+}
+
+/** Schritte je lokalem Tag (Standard: die letzten 30 Tage); `start` ist der Tagesbeginn. */
+export async function getStepsByDay(options?: HealthQueryOptions): Promise<{ start: Date; count: number }[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate } = queryRange(options, 30);
+  const range = { startDate, endDate };
+  let samples: { start: Date; count: number }[] = [];
+
+  if (isIOS) {
+    const rows = await queryHealthKit<OtherData>('stepCount', range);
+    samples = rows.map(row => ({ start: toDate(row.startDate), count: row.value }));
+  } else if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectStepsRecord>('Steps', range, 30, true);
+    samples = records.map(record => ({ start: toDate(record.startTime), count: record.count }));
+  }
+
+  const byDay = new Map<string, { start: Date; count: number }>();
+  for (const sample of samples) {
+    const key = localDay(sample.start);
+    const entry = byDay.get(key);
+    if (entry) {
+      entry.count += sample.count;
+    } else {
+      byDay.set(key, {
+        start: new Date(sample.start.getFullYear(), sample.start.getMonth(), sample.start.getDate()),
+        count: sample.count,
+      });
+    }
+  }
+
+  return [...byDay.values()].sort((a, b) => b.start.getTime() - a.start.getTime());
 }
 
 export async function getSleep(options?: HealthQueryOptions): Promise<HealthSleep[]> {
@@ -437,6 +507,139 @@ export async function getRestingHeartRate(options?: HealthQueryOptions): Promise
       bpm: record.beatsPerMinute,
       date: toDate(record.time),
       source: record.metadata.dataOrigin,
+    }));
+  }
+
+  return [];
+}
+
+/** SpO2 immer in Prozent: HealthKit liefert einen Bruch (0.97), Health Connect Prozent (97). */
+export function spo2Percent(value: number): number {
+  const percent = value <= 1 ? value * 100 : value;
+  return Math.round(percent * 10) / 10;
+}
+
+function energyToKcal(energy: { unit: string; value: number }): number {
+  switch (energy.unit) {
+    case 'calories': return energy.value / 1000;
+    case 'joules': return energy.value / 4184;
+    case 'kilojoules': return energy.value / 4.184;
+    default: return energy.value;
+  }
+}
+
+/** Aktive Energie je Probe in kcal (Standard: die letzten 30 Tage), neueste zuerst. */
+export async function getActiveEnergy(options?: HealthQueryOptions): Promise<{ start: Date; end: Date; kcal: number }[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate } = queryRange(options, 30);
+  const range = { startDate, endDate };
+
+  if (isIOS) {
+    const samples = await queryHealthKit<OtherData>('activeEnergyBurned', range);
+    return sortByDateDesc(samples, sample => toDate(sample.endDate)).map(sample => ({
+      start: toDate(sample.startDate),
+      end: toDate(sample.endDate),
+      kcal: sample.value,
+    }));
+  }
+
+  if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectActiveEnergyRecord>('ActiveCaloriesBurned', range, 30, true);
+    return sortByDateDesc(records, record => toDate(record.endTime)).map(record => ({
+      start: toDate(record.startTime),
+      end: toDate(record.endTime),
+      kcal: energyToKcal(record.energy),
+    }));
+  }
+
+  return [];
+}
+
+/** Sauerstoffsaettigung in Prozent (Standard: die letzten 30 Tage), neueste zuerst. */
+export async function getOxygenSaturation(options?: HealthQueryOptions): Promise<HealthSample[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate } = queryRange(options, 30);
+  const range = { startDate, endDate };
+
+  if (isIOS) {
+    const samples = await queryHealthKit<OtherData>('oxygenSaturation', range);
+    return sortByDateDesc(samples, sample => toDate(sample.endDate)).map(sample => ({
+      date: toDate(sample.endDate),
+      value: spo2Percent(sample.value),
+    }));
+  }
+
+  if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectOxygenRecord>('OxygenSaturation', range, 30, true);
+    return sortByDateDesc(records, record => toDate(record.time)).map(record => ({
+      date: toDate(record.time),
+      value: spo2Percent(record.percentage.value),
+    }));
+  }
+
+  return [];
+}
+
+/** Atemfrequenz in 1/min (Standard: die letzten 30 Tage), neueste zuerst. */
+export async function getRespiratoryRate(options?: HealthQueryOptions): Promise<HealthSample[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate } = queryRange(options, 30);
+  const range = { startDate, endDate };
+
+  if (isIOS) {
+    const samples = await queryHealthKit<OtherData>('respiratoryRate', range);
+    return sortByDateDesc(samples, sample => toDate(sample.endDate)).map(sample => ({
+      date: toDate(sample.endDate),
+      value: sample.value,
+    }));
+  }
+
+  if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectRespiratoryRecord>('RespiratoryRate', range, 30, true);
+    return sortByDateDesc(records, record => toDate(record.time)).map(record => ({
+      date: toDate(record.time),
+      value: record.rate,
+    }));
+  }
+
+  return [];
+}
+
+/** Blutdruck in mmHg (Standard: die letzten 30 Tage), neueste zuerst. */
+export async function getBloodPressure(options?: HealthQueryOptions): Promise<HealthBloodPressure[]> {
+  if (!isNative) return [];
+
+  const { startDate, endDate } = queryRange(options, 30);
+  const range = { startDate, endDate };
+
+  if (isIOS) {
+    // HealthKit liefert Systole und Diastole als getrennte Proben; ein Messvorgang
+    // hat bei beiden dieselbe endDate.
+    const [systolic, diastolic] = await Promise.all([
+      queryHealthKit<OtherData>('bloodPressureSystolic', range),
+      queryHealthKit<OtherData>('bloodPressureDiastolic', range),
+    ]);
+    const diastolicByEnd = new Map(diastolic.map(sample => [toDate(sample.endDate).getTime(), sample.value]));
+    const pairs: HealthBloodPressure[] = [];
+
+    for (const sample of systolic) {
+      const date = toDate(sample.endDate);
+      const dia = diastolicByEnd.get(date.getTime());
+      if (dia !== undefined) pairs.push({ date, systolic: sample.value, diastolic: dia });
+    }
+
+    return sortByDateDesc(pairs, pair => pair.date);
+  }
+
+  if (isAndroid) {
+    const records = await readHealthConnectRecords<HealthConnectBloodPressureRecord>('BloodPressure', range, 30, true);
+    return sortByDateDesc(records, record => toDate(record.time)).map(record => ({
+      date: toDate(record.time),
+      systolic: record.systolic.value,
+      diastolic: record.diastolic.value,
     }));
   }
 
