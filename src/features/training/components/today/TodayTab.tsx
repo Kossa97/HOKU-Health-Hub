@@ -7,7 +7,7 @@ import { sessionKcal } from '../../lib/energy'
 import { computeReadiness, type ReadinessFactor } from '../../lib/readiness'
 import { weekSummary } from '../../lib/stats'
 import { formatDuration, formatNumber, formatVolume } from '../../lib/format'
-import { Button, Card, SectionTitle, Stat, TRAINING_ACCENT } from '../ui'
+import { Button, Card, SectionTitle, Stat } from '../ui'
 import { Glp1Card } from './Glp1Card'
 import { SessionRow } from '../history/SessionRow'
 import { nextInPlan } from '../../lib/planRotation'
@@ -114,7 +114,7 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
           </div>
           <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 14 }}>
             {Array.from({ length: Math.max(week.goal, week.sessions) }, (_, i) => (
-              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
+              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? 'var(--lg-good)' : 'var(--lg-fill)' }} />
             ))}
           </div>
           {week.streakWeeks > 1 && (

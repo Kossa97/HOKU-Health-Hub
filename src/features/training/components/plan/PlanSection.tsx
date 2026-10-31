@@ -11,7 +11,7 @@ import { sortedMuscles } from '../../lib/muscleVolume'
 import { setsPerMuscle, startOfWeek } from '../../lib/stats'
 import { createPlanRoutines, TRAINING_PLANS, type TrainingPlan } from '../../data/plans'
 import { HYROX_DIVISIONS, hyroxRoutine, type HyroxDivisionId } from '../../data/hyrox'
-import { Button, Card, Chip, SectionTitle, TrainingSheet, TRAINING_ACCENT } from '../ui'
+import { Button, Card, Chip, SectionTitle, TrainingSheet } from '../ui'
 import { BandLegend, MuscleBars } from './MuscleVolume'
 
 /**
@@ -72,7 +72,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   }
 
   const newRoutineAction = (
-    <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: TRAINING_ACCENT, fontWeight: 750, fontSize: '0.85rem' }}>
+    <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: 'var(--accent)', fontWeight: 750, fontSize: '0.85rem' }}>
       <Plus size={16} aria-hidden="true" /> {tt('new_routine')}
     </button>
   )
@@ -98,7 +98,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                 </div>
               )}
               {group.routines.map(r => r.id === next?.routine.id ? (
-                <Card key={r.id} style={{ padding: 14, boxShadow: restDay ? undefined : `var(--lg-surface-shadow), inset 0 0 0 1.5px ${TRAINING_ACCENT}99` }}>
+                <Card key={r.id} style={{ padding: 14, boxShadow: restDay ? undefined : `var(--lg-surface-shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 60%, transparent)` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: '1.05rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
                     {restDay ? (
@@ -106,7 +106,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                         <Moon size={12} aria-hidden="true" /> {tt('rest_day')}
                       </span>
                     ) : (
-                      <span style={{ flexShrink: 0, minHeight: 24, padding: '2px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 750, display: 'inline-flex', alignItems: 'center', background: `${TRAINING_ACCENT}24`, color: TRAINING_ACCENT }}>
+                      <span style={{ flexShrink: 0, minHeight: 24, padding: '2px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 750, display: 'inline-flex', alignItems: 'center', background: 'color-mix(in srgb, var(--accent) 16%, transparent)', color: 'var(--accent)' }}>
                         {next.plannedToday ? tt('planned_today') : tt('plan_next_title')}
                       </span>
                     )}
@@ -160,7 +160,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                         {tt('routines_count', { count: plan.days.length })} · {tt('plan_days_per_week', { count: plan.days.length })}
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 750, color: TRAINING_ACCENT }}>{tt('plan_create')}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 750, color: 'var(--accent)' }}>{tt('plan_create')}</span>
                   </div>
                 </Card>
               ))}
@@ -196,7 +196,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                     <div style={{ fontWeight: 750 }}>{day.name[lang]}</div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('exercises_count', { count: day.exercises.length })}</div>
                   </div>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: TRAINING_ACCENT }}>{weekdayList(day.weekdays)}</span>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent)' }}>{weekdayList(day.weekdays)}</span>
                 </li>
               ))}
             </ul>
