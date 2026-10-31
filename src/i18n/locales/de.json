@@ -2917,5 +2917,12 @@
   "health_profile_delete_confirm": "Alle gespeicherten Tageswerte aus Apple Health / Health Connect endgültig löschen? Danach werden keine neuen Werte mehr gespeichert. Übernommene Workouts bleiben im Training.",
   "health_profile_delete_yes": "Endgültig löschen",
   "health_profile_deleted": "Gespeicherte Werte gelöscht. Es werden keine neuen mehr gespeichert.",
-  "health_error": "Das hat nicht geklappt. Bitte versuch es noch einmal."
+  "health_error": "Das hat nicht geklappt. Bitte versuch es noch einmal.",
+  "health_daily_kcal": "Aktive Energie",
+  "health_daily_spo2": "Sauerstoffsättigung",
+  "health_daily_resp": "Atemfrequenz",
+  "health_daily_bp": "Blutdruck (mmHg)",
+  "health_daily_hint": "Speichere deine Tageswerte aus Apple Health bzw. Health Connect, dann siehst du hier aktive Energie, Sauerstoffsättigung, Atemfrequenz und Blutdruck.",
+  "health_daily_hint_action": "Einwilligung ansehen",
+  "health_daily_load_error": "Die gespeicherten Tageswerte konnten nicht geladen werden."
 }

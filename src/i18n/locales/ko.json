@@ -2682,5 +2682,12 @@
   "health_profile_delete_confirm": "Permanently delete all daily values stored from Apple Health / Health Connect? No new values will be stored afterwards. Workouts you brought into Training stay there.",
   "health_profile_delete_yes": "Delete permanently",
   "health_profile_deleted": "Stored values deleted. No new values will be stored.",
-  "health_error": "That didn’t work. Please try again."
+  "health_error": "That didn’t work. Please try again.",
+  "health_daily_kcal": "Active energy",
+  "health_daily_spo2": "Blood oxygen",
+  "health_daily_resp": "Respiratory rate",
+  "health_daily_bp": "Blood pressure (mmHg)",
+  "health_daily_hint": "Store your daily values from Apple Health or Health Connect and you will see active energy, blood oxygen, respiratory rate and blood pressure here.",
+  "health_daily_hint_action": "Review consent",
+  "health_daily_load_error": "Your stored daily values could not be loaded."
 }
