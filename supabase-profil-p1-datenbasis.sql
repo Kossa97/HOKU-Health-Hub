@@ -4,7 +4,8 @@
 -- Rein additiv und idempotent: neue Spalten (add column if not exists), zwei neue
 -- Tabellen (create table if not exists), Pruefungen nur wenn noch nicht da,
 -- Policies per drop policy if exists + create policy, Bucket per on conflict do
--- nothing. Nichts wird geloescht oder umgeschrieben; bestehende Profilzeilen
+-- update (bleibt privat, hoechstens 1 MB, nur JPEG). Nichts wird geloescht oder
+-- umgeschrieben; bestehende Profilzeilen
 -- behalten alle Werte (neue Spalten: goals = '{}', der Rest NULL).
 --
 -- Ausfuehren: Supabase -> SQL Editor -> diese Datei einfuegen -> Run.
@@ -17,7 +18,8 @@
 --    where relname in ('body_measurements','health_daily') and relkind = 'r'
 --      and relrowsecurity = true;                                                          -- 2
 --   select count(*) from storage.buckets
---    where id = 'profile-media' and public = false;                                        -- 1
+--    where id = 'profile-media' and public = false and file_size_limit = 1048576
+--      and allowed_mime_types = '{image/jpeg}';                                            -- 1
 --   select count(*) from pg_policies
 --    where schemaname = 'public' and tablename = 'health_daily';                           -- 4
 --   select count(*) from public.profiles;                         -- unveraendert gegenueber vorher
@@ -147,9 +149,10 @@ create policy "Own health daily update with consent" on public.health_daily
   );
 
 -- 4. Privater Speicher fuer Profil- und Titelbild; Ordner = Nutzer-ID.
-insert into storage.buckets (id, name, public)
-values ('profile-media', 'profile-media', false)
-on conflict (id) do nothing;
+-- Die App laedt nur JPEG bis 500 KB hoch; der Bucket laesst hoechstens 1 MB JPEG zu.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('profile-media', 'profile-media', false, 1048576, '{image/jpeg}')
+on conflict (id) do update set public = false, file_size_limit = 1048576, allowed_mime_types = '{image/jpeg}';
 
 drop policy if exists "Own profile media select" on storage.objects;
 create policy "Own profile media select" on storage.objects
