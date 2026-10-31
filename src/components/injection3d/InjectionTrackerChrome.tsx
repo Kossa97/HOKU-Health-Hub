@@ -48,13 +48,13 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: 13, fontWeight: 600,
+          fontSize: 13, fontWeight: 500,
           color: 'var(--lg-text-2)',
           textShadow,
         }}>
           {t('injection_pro_title', { defaultValue: 'Injektionstracker Pro' })}
         </p>
-        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 700, lineHeight: '34px', letterSpacing: '0.013em', color: 'var(--lg-text)', textShadow }}>
+        <h1 className="truncate" style={{ fontSize: 28, fontWeight: 500, lineHeight: '34px', letterSpacing: '-0.01em', color: 'var(--lg-text)', textShadow }}>
           {t('injection_map_title', { defaultValue: '3D Injektionskarte' })}
         </h1>
       </div>
@@ -68,13 +68,13 @@ export function InjectionTrackerHeader({ onBack, overlay = false }: { onBack: ()
 export function InjectionTrackerUnavailable({ title, hint, onRetry }: { title: string; hint?: string; onRetry: () => void }) {
   const { t } = useTranslation()
   return (
-    <div role="alert" className="lg-surface" style={{ padding: 22, textAlign: 'center' }}>
+    <div role="alert" className="lg-surface" style={{ padding: 24, textAlign: 'center' }}>
       <div className="lg-icon-tile" style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--lg-warn)', margin: '0 auto 14px' }}>
         <AlertTriangle size={24} aria-hidden="true" />
       </div>
-      <h2 className="lg-title2" style={{ marginBottom: hint ? 8 : 18 }}>{title}</h2>
+      <h2 className="lg-title2" style={{ marginBottom: hint ? 8 : 20 }}>{title}</h2>
       {hint && (
-        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.5, marginBottom: 18 }}>{hint}</p>
+        <p style={{ fontSize: 15, color: 'var(--lg-text-3)', lineHeight: 1.5, marginBottom: 20 }}>{hint}</p>
       )}
       <button type="button" data-quiet className="lg-gray-btn min-h-11 w-full" onClick={onRetry}>
         <RefreshCw size={14} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}

@@ -162,7 +162,7 @@ export function InjectionLogSheet({
         }}
       >
         <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-3">
-          <h2 id="injection-log-title" className="min-w-0 truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{title}</h2>
+          <h2 id="injection-log-title" className="min-w-0 truncate text-[28px] font-medium leading-[34px] text-[var(--lg-text)]">{title}</h2>
           <button
             type="button"
             aria-label={String(t('injection_position_cancel', { defaultValue: 'Abbrechen' }))}
@@ -176,7 +176,7 @@ export function InjectionLogSheet({
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 py-3">
           {warning.level !== 'none' && (
-            <div className="mb-3 flex gap-2 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-3.5 text-[15px] text-[var(--lg-warn-text)]">
+            <div className="mb-3 flex gap-2 rounded-[14px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4 text-[15px] text-[var(--lg-warn-text)]">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
               <p>{warning.level === 'strong'
                 ? t('injection_warning_strong', { defaultValue: 'Sehr nahe an einer kürzlichen Injektion.' })
@@ -202,7 +202,7 @@ export function InjectionLogSheet({
 
           {view === 'confirm' && intake && (
             <div className="space-y-3">
-              <div className="rounded-[20px] bg-[var(--lg-surface-fill)] p-3.5 shadow-[inset_0_0_0_1.5px_rgba(100,210,255,0.55)]">
+              <div className="rounded-[16px] bg-[var(--lg-surface-fill)] p-4 shadow-[inset_0_0_0_1px_var(--accent-border)]">
                 <InjectionIntakeSummary intake={intake} />
               </div>
 
@@ -347,7 +347,7 @@ function Disclosure({
   children: ReactNode
 }) {
   return (
-    <div className="overflow-hidden rounded-[20px] bg-[var(--lg-surface-fill)]">
+    <div className="overflow-hidden rounded-[16px] bg-[var(--lg-surface-fill)]">
       <button
         type="button"
         aria-expanded={open}

@@ -97,7 +97,7 @@ export function InjectionTrackerTabs({
                 <X size={20} aria-hidden="true" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{labels.open}</h2>
+                <h2 className="truncate text-[28px] font-medium leading-[34px] text-[var(--lg-text)]">{labels.open}</h2>
                 <p className="mt-1 text-[13px] leading-snug text-[var(--lg-text-3)]">
                   {t('injection_intakes_hint', { defaultValue: 'Einnahme wählen, dann die Stelle auf der Karte markieren.' })}
                 </p>

@@ -95,8 +95,8 @@ export function ConsentGate({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10" data-consent-gate>
       <form onSubmit={bestaetigen} className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 grid h-16 w-16 place-items-center rounded-[16px] bg-[linear-gradient(180deg,#0a84ff,#00a9d4)]">
-            <FlaskConical className="text-white" size={32} aria-hidden="true" />
+          <div className="mb-4 grid h-16 w-16 place-items-center rounded-[16px] bg-[var(--lg-fill)] shadow-[inset_0_0_0_1px_var(--border)]">
+            <FlaskConical className="text-[var(--lg-text-2)]" size={28} strokeWidth={1.5} aria-hidden="true" />
           </div>
           <h1 className="lg-title2 !text-[24px]">{t('consent_title')}</h1>
           <p className="mt-1 text-[15px] leading-snug text-[var(--lg-text-2)]">{t('consent_desc')}</p>

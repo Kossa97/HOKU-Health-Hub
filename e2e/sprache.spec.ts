@@ -14,7 +14,7 @@ test('Erster Start: Auswahl zeigt nur Deutsch und Englisch, die Wahl gilt sofort
 
   const auswahl = page.getByRole('dialog', { name: 'Wähle deine Sprache' })
   await expect(auswahl).toBeVisible()
-  await expect(auswahl.getByRole('radio')).toHaveText(['🇩🇪Deutsch', '🇬🇧English'])
+  await expect(auswahl.getByRole('radio')).toHaveText(['Deutsch', 'English'])
   await expect(auswahl.getByRole('radio', { name: /Deutsch/ })).toHaveAttribute('aria-checked', 'true')
   await page.screenshot({ path: 'test-results/sprache-start-de.png' })
 

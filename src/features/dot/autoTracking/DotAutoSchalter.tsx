@@ -45,7 +45,7 @@ export function DotAutoSchalter({ seit, text, speichern, kompakt = false, hinwei
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-[17px] text-[var(--lg-text)]">{dt('auto_titel')}</span>
-          {ohnePro && <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-[var(--lg-accent-text)]" style={{ background: 'rgba(0, 204, 245, 0.15)' }}>{dt('auto_pro')}</span>}
+          {ohnePro && <span className="rounded-md bg-[var(--lg-fill)] px-1.5 py-0.5 text-xs font-medium text-[var(--lg-text-3)]">{dt('auto_pro')}</span>}
         </div>
         <p className="mt-0.5 text-[13px] leading-snug text-[var(--lg-text-3)]">{dt(text)}</p>
         {hinweis && <p className="mt-1 text-[13px] leading-snug text-[var(--lg-accent-text)]">{hinweis}</p>}

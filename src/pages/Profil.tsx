@@ -101,16 +101,16 @@ export function Profil() {
     <div>
       <div className="flex items-center justify-between gap-3 mb-4">
         <h1 className="lg-large-title min-w-0 truncate">{t('mein_profil')}</h1>
-        <button data-tone="bad" className="lg-gray-btn shrink-0 !min-h-10 !px-3.5 !text-[14px]"
+        <button data-tone="bad" className="lg-gray-btn shrink-0 !min-h-10 !px-4 !text-[14px]"
           onClick={() => { if (confirm(t('abmelden_confirm'))) signOut() }}>
-          <LogOut size={15} /> {t('abmelden_btn')}
+          <LogOut size={16} strokeWidth={1.5} /> {t('abmelden_btn')}
         </button>
       </div>
 
       {/* Avatar */}
       <div className="flex flex-col items-center mb-6">
         <div className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-[var(--lg-fill)]">
-          <User size={38} className="text-[var(--lg-text-2)]" />
+          <User size={38} strokeWidth={1.5} className="text-[var(--lg-text-2)]" />
         </div>
         <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
       </div>
@@ -121,9 +121,9 @@ export function Profil() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             {profile.is_public
-              ? <Globe size={17} className="text-[var(--lg-accent-text)]" />
-              : <Lock size={17} className="text-[var(--lg-text-2)]" />}
-            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('profil_teilen')}</h2>
+              ? <Globe size={18} strokeWidth={1.5} className="text-[var(--lg-accent-text)]" />
+              : <Lock size={18} strokeWidth={1.5} className="text-[var(--lg-text-2)]" />}
+            <h2 className="text-[17px] font-medium text-[var(--lg-text)]">{t('profil_teilen')}</h2>
           </div>
           <button
             type="button"
@@ -146,8 +146,8 @@ export function Profil() {
               </div>
               <button className="btn-secondary px-3 shrink-0" onClick={copyLink}>
                 {copied
-                  ? <Check size={16} className="text-[var(--lg-good-text)]" />
-                  : <Copy size={16} />}
+                  ? <Check size={16} strokeWidth={1.5} className="text-[var(--lg-good-text)]" />
+                  : <Copy size={16} strokeWidth={1.5} />}
               </button>
             </div>
 
@@ -163,12 +163,12 @@ export function Profil() {
             {/* Was Besucher sehen: nur einzeln freigegebene Bewertungen.
                 Stack, Kalender und Tagebuch sind (noch) nie oeffentlich —
                 die alten Schalter wirkten fuer Besucher nie und sind weg. */}
-            <div data-profile-public-content className="rounded-[18px] bg-[var(--lg-surface-2)] p-3.5">
-              <p className="flex items-center gap-1.5 text-[15px] font-semibold text-[var(--lg-text)]">
-                <Star size={15} aria-hidden="true" className="text-amber-400" /> {t('review_public_profile_title')}
+            <div data-profile-public-content className="rounded-[12px] bg-[var(--lg-surface-2)] p-4">
+              <p className="flex items-center gap-2 text-[15px] font-medium text-[var(--lg-text)]">
+                <Star size={16} strokeWidth={1.5} aria-hidden="true" className="text-[var(--lg-text-3)]" /> {t('review_public_profile_title')}
               </p>
               <p className="mt-1 text-[13px] text-[var(--lg-text-2)]">{t('review_public_profile_desc')}</p>
-              <Link to="/bewertungen" className="mt-1 inline-flex min-h-11 items-center text-[15px] font-semibold text-[var(--lg-accent-text)]">
+              <Link to="/bewertungen" className="mt-1 inline-flex min-h-11 items-center text-[15px] font-medium text-[var(--lg-accent-text)]">
                 {t('review_public_profile_link')}
               </Link>
             </div>
@@ -183,8 +183,8 @@ export function Profil() {
       {/* ── Sicherheit & Datenschutz ── */}
       <div className="card mb-4 space-y-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck size={17} className="text-[var(--lg-warn-text)]" />
-          <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('profil_safety_title')}</h2>
+          <ShieldCheck size={18} strokeWidth={1.5} className="text-[var(--lg-text-2)]" />
+          <h2 className="text-[17px] font-medium text-[var(--lg-text)]">{t('profil_safety_title')}</h2>
         </div>
         <ResearchDisclaimer
           compact
@@ -193,24 +193,24 @@ export function Profil() {
         />
         <ul className="space-y-2 text-[15px] text-[var(--lg-text-2)] leading-snug">
           <li className="flex gap-2">
-            <FileText size={15} className="text-[var(--lg-accent-text)] shrink-0 mt-0.5" />
+            <FileText size={16} strokeWidth={1.5} className="text-[var(--lg-text-3)] shrink-0 mt-0.5" />
             <span>{t('profil_safety_export')}</span>
           </li>
           <li className="flex gap-2">
-            <Lock size={15} className="text-[var(--lg-accent-text)] shrink-0 mt-0.5" />
+            <Lock size={16} strokeWidth={1.5} className="text-[var(--lg-text-3)] shrink-0 mt-0.5" />
             <span>{t('profil_safety_data')}</span>
           </li>
           <li>{t('profil_safety_medical')}</li>
         </ul>
         <Link to="/protokoll" data-quiet className="lg-gray-btn w-full">
-          <FileText size={15} />
+          <FileText size={16} strokeWidth={1.5} />
           {t('tile_protokoll')}
         </Link>
       </div>
 
       {/* ── Account ──────────────────────────────────────────────────────── */}
       <div className="card space-y-4 mb-4">
-        <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">Account</h2>
+        <h2 className="text-[17px] font-medium text-[var(--lg-text)]">Account</h2>
         <div>
           <label className="label">{t('benutzername_pflicht')}</label>
           <input className="input" placeholder={t('username_placeholder')}
@@ -227,7 +227,7 @@ export function Profil() {
       </div>
 
       <button className="lg-btn lg-btn-primary w-full" onClick={save} disabled={saving}>
-        <Save size={16} /> {saving ? t('saving') : t('profil_speichern')}
+        <Save size={16} strokeWidth={1.5} /> {saving ? t('saving') : t('profil_speichern')}
       </button>
 
       {/* ── Sprache / Language ── */}
@@ -243,9 +243,9 @@ export function Profil() {
       <div className="mt-6">
         <p className="lg-group-title">{t('tile_faq_desc')}</p>
         <Link to="/faq" data-profile-faq className="flex min-h-[52px] items-center gap-3 rounded-[var(--r-xl)] bg-[var(--lg-surface-2)] px-4 transition-colors active:bg-white/[0.1]">
-          <span className="lg-icon-tile" style={{ background: '#30d158' }}><HelpCircle size={17} aria-hidden="true" /></span>
+          <span className="lg-icon-tile" style={{ background: 'var(--lg-good)' }}><HelpCircle size={18} strokeWidth={1.5} aria-hidden="true" /></span>
           <span className="flex-1 text-[16px] font-medium text-[var(--lg-text)]">{t('tile_faq')}</span>
-          <ChevronRight size={18} aria-hidden="true" className="text-[var(--lg-text-3)]" />
+          <ChevronRight size={18} strokeWidth={1.5} aria-hidden="true" className="text-[var(--lg-text-3)]" />
         </Link>
       </div>
 
@@ -301,7 +301,7 @@ function LookSwitcher() {
         scroll
       />
       {look === 'schwarz' && <TiltToggle />}
-      <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+      <p style={{ marginTop: 12, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
         {t('look_hint', { defaultValue: 'HOKU: ruhiges Graphit, klare Flächen, Blau nur für das Wichtige. Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung.' })}
       </p>
       </div>
@@ -373,7 +373,7 @@ function StoerungsSchalter() {
           <span style={{ flex: 1, fontSize: 15, color: 'var(--lg-text)' }}>{t('stoerung_schalter')}</span>
           <Schalter an={simuliert} />
         </button>
-        <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+        <p style={{ marginTop: 12, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
           {t('stoerung_schalter_hinweis')}
         </p>
       </div>
@@ -394,7 +394,7 @@ function PushSettings() {
     setSubscribing(true)
     const ok = await subscribe()
     setSubscribing(false)
-    if (ok) toast.success('Notifications aktiviert ✓')
+    if (ok) toast.success('Notifications aktiviert')
     else toast.error('Activation fehlgeschlagen – Permission verweigert?')
   }
 
@@ -436,7 +436,7 @@ function PushSettings() {
     'ios-native-app':    'Nur Home-Bildschirm-App',
     denied:              'Vom Browser blockiert',
     default:             'Nicht aktiviert',
-    subscribed:          'Aktiv ✓',
+    subscribed:          'Aktiv',
   }
   const stateColors: Record<string, string> = {
     loading:             'var(--lg-text-2)',
@@ -455,15 +455,15 @@ function PushSettings() {
       </p>
       <div className="card">
         {/* Status row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <span className="lg-icon-tile" style={{ background: state === 'subscribed' ? '#30d158' : '#636366' }}>
-            {state === 'subscribed' ? <Bell size={16} /> : <BellOff size={16} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <span className="lg-icon-tile" style={{ background: state === 'subscribed' ? 'var(--lg-good)' : 'var(--lg-fill-selected)' }}>
+            {state === 'subscribed' ? <Bell size={16} strokeWidth={1.5} /> : <BellOff size={16} strokeWidth={1.5} />}
           </span>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--lg-text)' }}>
+            <p style={{ fontSize: 17, fontWeight: 500, color: 'var(--lg-text)' }}>
               Einnahme-Erinnerungen
             </p>
-            <p style={{ fontSize: 13, marginTop: 1, color: stateColors[state] ?? 'var(--lg-text-2)', fontWeight: 500 }}>
+            <p style={{ fontSize: 13, marginTop: 2, color: stateColors[state] ?? 'var(--lg-text-2)', fontWeight: 500 }}>
               {stateLabels[state] ?? state}
             </p>
           </div>
@@ -471,7 +471,7 @@ function PushSettings() {
 
         {/* iOS install hint */}
         {state === 'ios-needs-install' && (
-          <div style={{ padding: '10px 12px', borderRadius: 14, marginBottom: 10, background: 'var(--lg-surface-2)' }}>
+          <div style={{ padding: 12, borderRadius: 12, marginBottom: 12, background: 'var(--lg-surface-2)' }}>
             <p style={{ fontSize: 13, color: 'var(--lg-warn-text)', lineHeight: 1.5 }}>
               1. Tippe unten auf das <strong>Teilen-Symbol ↑</strong>{'\n'}
               2. Wähle <strong>„Zum Home-Bildschirm"</strong>{'\n'}
@@ -482,7 +482,7 @@ function PushSettings() {
 
 
         {state === 'ios-native-app' && (
-          <div style={{ padding: '10px 12px', borderRadius: 14, marginBottom: 10, background: 'var(--lg-surface-2)' }}>
+          <div style={{ padding: 12, borderRadius: 12, marginBottom: 12, background: 'var(--lg-surface-2)' }}>
             <p style={{ fontSize: 13, color: 'var(--lg-warn-text)', lineHeight: 1.5 }}>
               Store-/Xcode-App: keine Web-Push-Mitteilungszentrale. Safari → <strong>Zum Home-Bildschirm</strong> → Icon-App nutzen.
             </p>
@@ -490,7 +490,7 @@ function PushSettings() {
         )}
 
         {state === 'subscribed' && (
-          <p style={{ fontSize: 13, color: 'var(--lg-text-2)', lineHeight: 1.45, marginBottom: 10 }}>
+          <p style={{ fontSize: 13, color: 'var(--lg-text-2)', lineHeight: 1.45, marginBottom: 12 }}>
             iPhone: Einstellungen → Mitteilungen → HOKU erlauben. Test mit geschlossener App oder gesperrtem Display.
           </p>
         )}
@@ -503,7 +503,7 @@ function PushSettings() {
               disabled={subscribing}
               className="lg-gray-btn flex-1"
             >
-              <Bell size={14} />
+              <Bell size={16} strokeWidth={1.5} />
               {subscribing ? 'Aktiviere…' : 'Aktivieren'}
             </button>
           )}
@@ -516,22 +516,22 @@ function PushSettings() {
                 data-tone="good"
                 className="lg-gray-btn flex-1"
               >
-                <Send size={14} />
+                <Send size={16} strokeWidth={1.5} />
                 {testing ? 'Sende…' : 'Test senden'}
               </button>
               <button
                 onClick={handleReconnect}
                 disabled={reconnecting}
-                className="lg-gray-btn !px-3.5"
+                className="lg-gray-btn !px-4"
               >
                 {reconnecting ? '…' : 'Neu'}
               </button>
               <button
                 onClick={handleUnsubscribe}
                 data-tone="bad"
-                className="lg-gray-btn !px-3.5"
+                className="lg-gray-btn !px-4"
               >
-                <BellOff size={14} />
+                <BellOff size={16} strokeWidth={1.5} />
                 Aus
               </button>
             </>
@@ -551,7 +551,7 @@ function PushSettings() {
 function LanguageSwitcher() {
   const { i18n, t } = useTranslation()
   const current = LANGUAGES.find(l => l.code === i18n.language?.split('-')[0])?.code ?? 'en'
-  const options: SegmentOption<LanguageCode>[] = LANGUAGES.map(l => ({ key: l.code, label: `${l.flag} ${l.name}` }))
+  const options: SegmentOption<LanguageCode>[] = LANGUAGES.map(l => ({ key: l.code, label: l.name }))
   return (
     <div className="mt-6">
       <p className="lg-group-title">

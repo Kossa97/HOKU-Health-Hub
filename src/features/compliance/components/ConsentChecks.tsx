@@ -14,7 +14,7 @@ import type { ConsentState } from '../lib/consent'
 export function ConsentChecks({ value, onChange }: { value: ConsentState; onChange: (next: ConsentState) => void }) {
   const { t } = useTranslation()
   const [offen, setOffen] = useState<LegalPageKey | null>(null)
-  const linkKlasse = 'font-semibold text-[var(--lg-accent-text)] underline underline-offset-2'
+  const linkKlasse = 'font-medium text-[var(--lg-accent-text)] underline underline-offset-2'
   const zeile = (key: keyof ConsentState, label: React.ReactNode) => (
     <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-snug text-[var(--lg-text)]">
       <input

@@ -56,9 +56,9 @@ export function ModerationQueue() {
 
   return (
     <section data-moderation-queue className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-200">
-        <Flag size={14} aria-hidden="true" /> {t('moderation_title')}
-        {meldungen && meldungen.length > 0 && <span className="rounded-full bg-amber-500 px-2 text-xs font-bold text-slate-950">{meldungen.length}</span>}
+      <h2 className="flex items-center gap-2 text-sm font-medium text-amber-200">
+        <Flag size={16} strokeWidth={1.5} aria-hidden="true" /> {t('moderation_title')}
+        {meldungen && meldungen.length > 0 && <span className="font-mono text-xs tabular-nums text-amber-200/70">{meldungen.length}</span>}
       </h2>
       {meldungen === null ? null : meldungen.length === 0 ? (
         <p className="mt-2 text-xs text-slate-400">{t('moderation_empty')}</p>
@@ -70,18 +70,18 @@ export function ModerationQueue() {
                 {t(`report_reason_${m.reason}`)} · {datum(m.created_at)}
                 {m.username && <> · @{m.username}</>}
               </p>
-              {m.details && <p className="mt-1 text-xs italic text-slate-400">„{m.details}"</p>}
+              {m.details && <p className="mt-1 text-xs text-slate-400">„{m.details}"</p>}
               <div className="mt-2 rounded-lg bg-slate-900 p-2 text-slate-300">
                 {m.art === 'profil' ? (
                   <>
-                    <p className="text-xs font-semibold text-sky-400">{t('moderation_profile_report')}</p>
-                    {m.snapshot?.display_name && <p className="font-semibold text-white">{m.snapshot.display_name}</p>}
+                    <p className="text-xs font-medium text-sky-400">{t('moderation_profile_report')}</p>
+                    {m.snapshot?.display_name && <p className="font-medium text-white">{m.snapshot.display_name}</p>}
                     {m.snapshot?.public_bio && <p className="mt-1 whitespace-pre-wrap">{m.snapshot.public_bio}</p>}
                   </>
                 ) : (
                   <>
-                    {m.snapshot?.substanz && <p className="text-xs font-semibold text-sky-400">{m.snapshot.substanz}</p>}
-                    {m.snapshot?.title && <p className="font-semibold text-white">{m.snapshot.title}</p>}
+                    {m.snapshot?.substanz && <p className="text-xs font-medium text-sky-400">{m.snapshot.substanz}</p>}
+                    {m.snapshot?.title && <p className="font-medium text-white">{m.snapshot.title}</p>}
                     {m.snapshot?.body && <p className="mt-1 whitespace-pre-wrap">{m.snapshot.body}</p>}
                     {m.snapshot?.pros && <p className="mt-1 text-xs">+ {m.snapshot.pros}</p>}
                     {m.snapshot?.cons && <p className="mt-1 text-xs">− {m.snapshot.cons}</p>}
@@ -90,10 +90,10 @@ export function ModerationQueue() {
                 )}
               </div>
               <div className="mt-3 flex gap-2">
-                <button type="button" data-moderation-dismiss disabled={busy !== null} onClick={() => void entscheiden(m, 'ablehnen')} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 text-xs font-semibold text-slate-300 disabled:opacity-50">
+                <button type="button" data-moderation-dismiss disabled={busy !== null} onClick={() => void entscheiden(m, 'ablehnen')} className="min-h-11 flex-1 rounded-xl border border-slate-700 bg-slate-900 text-xs font-medium text-slate-300 disabled:opacity-50">
                   {t('moderation_dismiss')}
                 </button>
-                <button type="button" data-moderation-hide disabled={busy !== null || (m.art === 'erfahrung' && !m.review_exists)} onClick={() => void entscheiden(m, 'ausblenden')} className="min-h-11 flex-1 rounded-xl bg-amber-500 text-xs font-bold text-slate-950 disabled:opacity-50">
+                <button type="button" data-moderation-hide disabled={busy !== null || (m.art === 'erfahrung' && !m.review_exists)} onClick={() => void entscheiden(m, 'ausblenden')} className="min-h-11 flex-1 rounded-xl bg-amber-500 text-xs font-medium text-slate-950 disabled:opacity-50">
                   {t('moderation_hide')}
                 </button>
               </div>

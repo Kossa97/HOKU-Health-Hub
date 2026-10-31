@@ -122,10 +122,10 @@ export function InjectionTrackerHero({
         <TorsoPreview pins={pins} />
 
         <div className="min-w-0">
-          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: 'var(--lg-text-2)' }}>
-            <Rotate3D size={14} aria-hidden="true" /> {t('injection_hero_kicker', { defaultValue: 'Pro Feature' })}
+          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium" style={{ color: 'var(--lg-text-3)' }}>
+            <Rotate3D size={16} strokeWidth={1.5} aria-hidden="true" /> {t('injection_hero_kicker', { defaultValue: 'Pro Feature' })}
           </div>
-          <h2 className="text-[20px] font-bold tracking-[0.019em] text-white">{t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' })}</h2>
+          <h2 className="text-[20px] font-medium text-[var(--lg-text)]">{t('injection_pro_title', { defaultValue: '3D-Injektionstracker Pro' })}</h2>
           <p className="mt-1 text-[15px] leading-snug" style={{ color: 'var(--lg-text-2)' }}>{t('injection_pro_subtitle', { defaultValue: 'Tracke deine Injektionen präzise und einfach auf einem 3D-Torso' })}</p>
         </div>
       </div>

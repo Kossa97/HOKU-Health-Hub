@@ -49,7 +49,7 @@ function FehlerAnzeige() {
   return (
     <div role="alert" data-fehler-grenze className="mx-auto flex min-h-[60dvh] max-w-sm flex-col items-center justify-center gap-4 px-6 text-center">
       <AlertTriangle size={36} aria-hidden="true" className="text-[var(--lg-warn-text)]" />
-      <h1 className="text-[20px] font-semibold text-[var(--lg-text)]">{t('fehler_titel')}</h1>
+      <h1 className="text-[20px] font-medium text-[var(--lg-text)]">{t('fehler_titel')}</h1>
       <p className="text-[15px] leading-snug text-[var(--lg-text-2)]">{t('fehler_text')}</p>
       <div className="flex w-full flex-col gap-2">
         <button type="button" className="lg-btn lg-btn-primary w-full" onClick={() => window.location.reload()}>

@@ -17,25 +17,25 @@ interface Category extends FaqCategory {
 
 // Farbiges Symbol-Quadrat wie in den iOS-Einstellungen (Systemfarben)
 const CAT_META: Record<string, { icon: React.ReactNode; color: string }> = {
-  start: { icon: <HelpCircle size={17} />, color: '#0a84ff' },
-  kalender: { icon: <CalendarDays size={17} />, color: '#5e5ce6' },
-  peptide: { icon: <FlaskConical size={17} />, color: '#0a84ff' },
-  rechner: { icon: <Calculator size={17} />, color: '#30d158' },
-  zyklen: { icon: <CalendarDays size={17} />, color: '#5e5ce6' },
-  escalation: { icon: <TrendingUp size={17} />, color: '#ff9f0a' },
-  tagebuch: { icon: <BookHeart size={17} />, color: '#30d158' },
-  bewertungen: { icon: <Star size={17} />, color: '#ff9f0a' },
-  profil: { icon: <User size={17} />, color: '#8e8e93' },
-  erinnerung: { icon: <Bell size={17} />, color: '#ff375f' },
-  injections: { icon: <Syringe size={17} />, color: '#30d158' },
-  inventory: { icon: <Archive size={17} />, color: '#32ade6' },
-  reports: { icon: <FileText size={17} />, color: '#0a84ff' },
-  technik: { icon: <Shield size={17} />, color: '#8e8e93' },
+  start: { icon: <HelpCircle size={18} strokeWidth={1.5} />, color: '#0a84ff' },
+  kalender: { icon: <CalendarDays size={18} strokeWidth={1.5} />, color: '#5e5ce6' },
+  peptide: { icon: <FlaskConical size={18} strokeWidth={1.5} />, color: '#0a84ff' },
+  rechner: { icon: <Calculator size={18} strokeWidth={1.5} />, color: '#30d158' },
+  zyklen: { icon: <CalendarDays size={18} strokeWidth={1.5} />, color: '#5e5ce6' },
+  escalation: { icon: <TrendingUp size={18} strokeWidth={1.5} />, color: '#ff9f0a' },
+  tagebuch: { icon: <BookHeart size={18} strokeWidth={1.5} />, color: '#30d158' },
+  bewertungen: { icon: <Star size={18} strokeWidth={1.5} />, color: '#ff9f0a' },
+  profil: { icon: <User size={18} strokeWidth={1.5} />, color: '#8e8e93' },
+  erinnerung: { icon: <Bell size={18} strokeWidth={1.5} />, color: '#ff375f' },
+  injections: { icon: <Syringe size={18} strokeWidth={1.5} />, color: '#30d158' },
+  inventory: { icon: <Archive size={18} strokeWidth={1.5} />, color: '#32ade6' },
+  reports: { icon: <FileText size={18} strokeWidth={1.5} />, color: '#0a84ff' },
+  technik: { icon: <Shield size={18} strokeWidth={1.5} />, color: '#8e8e93' },
 }
 
 function toDisplayCategories(cats: FaqCategory[]): Category[] {
   return cats.map(cat => {
-    const meta = CAT_META[cat.id] ?? { icon: <Package size={17} />, color: '#8e8e93' }
+    const meta = CAT_META[cat.id] ?? { icon: <Package size={18} strokeWidth={1.5} />, color: '#8e8e93' }
     return { ...cat, ...meta }
   })
 }
@@ -50,7 +50,7 @@ function AccordionItem({ item }: { item: QA }) {
         className="w-full min-h-[48px] text-start flex items-start justify-between gap-3 py-3 pl-[60px] pr-4 transition-colors active:bg-white/[0.06]"
         onClick={() => setOpen(o => !o)}
       >
-        <span className={`text-[16px] leading-snug ${open ? 'font-semibold text-[var(--lg-text)]' : 'text-[var(--lg-text)]'}`}>
+        <span className={`text-[16px] leading-snug ${open ? 'font-medium text-[var(--lg-text)]' : 'text-[var(--lg-text)]'}`}>
           {item.q}
         </span>
         {open
@@ -139,7 +139,7 @@ export function FAQ() {
       </p>
 
       <div className="relative mb-5">
-        <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
+        <Search size={18} strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--lg-text-3)] pointer-events-none" />
         <input
           type="search"
           aria-label={ui.searchPlaceholder}
@@ -166,9 +166,9 @@ export function FAQ() {
               className="w-full min-h-[56px] flex items-center justify-between gap-3 px-4 py-2.5 text-start transition-colors active:bg-white/[0.06]"
               onClick={() => !q && toggleCat(cat.id)}
             >
-              <span className="flex min-w-0 items-center gap-3.5">
+              <span className="flex min-w-0 items-center gap-3">
                 <span className="lg-icon-tile" style={{ background: cat.color }} aria-hidden="true">{cat.icon}</span>
-                <span className="min-w-0 text-[16px] font-semibold text-[var(--lg-text)]">{cat.title}</span>
+                <span className="min-w-0 text-[16px] font-medium text-[var(--lg-text)]">{cat.title}</span>
                 <span className="lg-tag !min-h-[22px] !px-2 !text-[12px] shrink-0">{cat.items.length}</span>
               </span>
               {!q && (

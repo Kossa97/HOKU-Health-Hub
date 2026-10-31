@@ -101,7 +101,7 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
       >
         <SheetGriff className="mt-2 shrink-0" onClose={requestClose} />
         <div className="flex shrink-0 items-center justify-between pl-5 pr-2 pt-1">
-          <h2 id={titleId} className="text-[20px] font-bold tracking-[-0.01em] text-[var(--lg-text)]">{t.title}</h2>
+          <h2 id={titleId} className="text-[20px] font-medium tracking-[-0.01em] text-[var(--lg-text)]">{t.title}</h2>
           <button ref={closeRef} type="button" data-app-back-close onClick={requestClose} aria-label={t.close} className="lg-icon-btn !text-[var(--lg-text-2)]">
             <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[var(--lg-fill)]"><X size={17} /></span>
           </button>
@@ -112,7 +112,7 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
 
           {/* Ablauf als kleine Grafik: drei Stationen auf einer Linie */}
           <ol className="relative grid grid-cols-3 gap-1.5">
-            <span aria-hidden="true" className="absolute left-[16%] right-[16%] top-[25px] h-0.5 bg-gradient-to-r from-[color-mix(in_srgb,var(--accent)_60%,transparent)] to-[color-mix(in_srgb,var(--accent)_15%,transparent)]" />
+            <span aria-hidden="true" className="absolute left-[16%] right-[16%] top-[25px] h-px bg-[var(--border)]" />
             {t.steps.map((step, i) => {
               const Icon = STEP_ICONS[i]
               return (
@@ -122,12 +122,12 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
                     className={`grid h-[52px] w-[52px] place-items-center rounded-full ${
                       i === 0
                         ? 'bg-[var(--lg-accent)] text-[var(--accent-contrast)]'
-                        : 'bg-[#2c3a40] text-[var(--lg-accent-text)] shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--accent)_60%,transparent)]'
+                        : 'bg-[var(--lg-surface-fill,var(--surface))] text-[var(--lg-text-2)] shadow-[inset_0_0_0_1px_var(--border)]'
                     }`}
                   >
-                    <Icon size={22} strokeWidth={2.2} />
+                    <Icon size={20} strokeWidth={1.5} />
                   </span>
-                  <span className="text-[13px] font-semibold text-[var(--lg-text)]">{step.title}</span>
+                  <span className="text-[13px] font-medium text-[var(--lg-text)]">{step.title}</span>
                   <span className="text-[12px] leading-[1.35] text-[var(--lg-text-2)]">{step.text}</span>
                 </li>
               )
@@ -135,11 +135,11 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
           </ol>
 
           <div>
-            <h3 className="mb-2.5 text-[15px] font-semibold text-[var(--lg-text)]">{t.matrixTitle}</h3>
+            <h3 className="mb-3 text-[15px] font-semibold text-[var(--lg-text)]">{t.matrixTitle}</h3>
             <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-[14px] bg-[color-mix(in_srgb,var(--lg-fill)_60%,transparent)] text-left">
               <thead>
                 <tr className="text-[12px] font-semibold text-[var(--lg-text-2)]">
-                  <th scope="col" className="px-3.5 py-2 font-semibold">{t.content}</th>
+                  <th scope="col" className="px-4 py-2 font-semibold">{t.content}</th>
                   {PRESETS.map(p => (
                     <th key={p.id} scope="col" className="w-12 py-2 text-center font-semibold">{p.label[lang]}</th>
                   ))}
@@ -148,7 +148,7 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
               <tbody>
                 {SECTIONS.map(s => (
                   <tr key={s.id}>
-                    <th scope="row" lang={lang} className={`border-t border-white/[0.06] px-3.5 py-[7px] text-[13px] font-normal leading-tight text-[var(--lg-text)] ${lang === 'de' ? 'hyphens-auto' : ''}`}>
+                    <th scope="row" lang={lang} className={`border-t border-white/[0.06] px-4 py-2 text-[13px] font-normal leading-tight text-[var(--lg-text)] ${lang === 'de' ? 'hyphens-auto' : ''}`}>
                       {s.label[lang]}
                     </th>
                     {PRESETS.map(p => {
@@ -177,18 +177,18 @@ export function PdfInfoSheet({ lang, onClose }: Props) {
               { id: 'custom', label: t.customLabel, text: t.customText },
             ].map(p => (
               <div key={p.id} className="flex items-start gap-3">
-                <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] text-[13px] font-bold text-[var(--lg-accent-text)]">
+                <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--lg-fill)] text-[13px] font-medium text-[var(--lg-text-2)]">
                   {p.label.charAt(0)}
                 </span>
                 <div>
-                  <div className="text-[15px] font-semibold text-[var(--lg-text)]">{p.label}</div>
+                  <div className="text-[15px] font-medium text-[var(--lg-text)]">{p.label}</div>
                   <div className="text-[13px] leading-[1.4] text-[var(--lg-text-2)]">{p.text}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="flex gap-3 rounded-[14px] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] p-3.5 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_25%,transparent)]">
+          <div className="flex gap-3 rounded-[14px] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] p-4 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_25%,transparent)]">
             <ShieldCheck size={22} className="shrink-0 text-[var(--lg-accent-text)]" aria-hidden="true" />
             <p className="text-[13px] leading-[1.45] text-[var(--lg-text-2)]">
               <strong className="font-semibold text-[var(--lg-text)]">{t.anonTitle}</strong> {t.anonText}

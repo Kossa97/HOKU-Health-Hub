@@ -497,7 +497,7 @@ function PdfPageViewer({ pages, initialPage, labels, onClose }: ViewerProps) {
       </div>
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute bottom-[max(1.75rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-[rgba(44,44,48,0.92)] px-3.5 py-2 text-[12px] text-white/85 transition-opacity duration-300 ${hint ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-none absolute bottom-[max(1.75rem,calc(env(safe-area-inset-bottom)+0.75rem))] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-[rgba(44,44,48,0.92)] px-4 py-2 text-[12px] text-white/85 transition-opacity duration-300 ${hint ? 'opacity-100' : 'opacity-0'}`}
       >
         {labels.zoomHint}
       </span>

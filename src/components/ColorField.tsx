@@ -171,7 +171,7 @@ export function ColorField({ value, onChange }: ColorFieldProps) {
               background: `radial-gradient(circle at 32% 26%, rgba(255,255,255,0.45), rgba(255,255,255,0.06) 42%, rgba(0,0,0,0.30) 100%), ${hex}`,
             }}
           />
-          <span className="font-mono text-[11px] uppercase tracking-wide text-slate-400">{hex}</span>
+          <span className="font-mono text-xs uppercase text-slate-400">{hex}</span>
         </div>
       </div>
 

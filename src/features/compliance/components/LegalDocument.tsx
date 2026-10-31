@@ -10,14 +10,14 @@ export function LegalDocument({ page, headingId }: { page: LegalPageKey; heading
       <h1 id={headingId} className="lg-title2 !text-[26px] !leading-tight">{doc.title}</h1>
       <p className="mt-1 text-[13px] text-[var(--lg-text-3)]">{doc.updated}</p>
       {hatPlatzhalter(doc) && (
-        <p data-legal-draft className="mt-3 rounded-[14px] bg-[var(--lg-surface-2)] px-3.5 py-2.5 text-[13px] text-[var(--lg-warn-text)]">
+        <p data-legal-draft className="mt-3 rounded-[14px] bg-[var(--lg-surface-2)] px-4 py-2.5 text-[13px] text-[var(--lg-warn-text)]">
           {t('legal_draft')}
         </p>
       )}
       <div className="mt-5 flex flex-col gap-5">
         {doc.sections.map(section => (
           <section key={section.heading}>
-            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{section.heading}</h2>
+            <h2 className="text-[17px] font-medium text-[var(--lg-text)]">{section.heading}</h2>
             <div className="mt-1.5 flex flex-col gap-2 text-[15px] leading-relaxed">
               {section.paragraphs.map((absatz, i) => (
                 <p key={i}>

@@ -114,7 +114,7 @@ export function InjectionEditSheet({
 
         <div className="space-y-4">
           {linked ? (
-            <div className="flex gap-2 rounded-[18px] bg-[var(--lg-surface-2)] p-3.5 text-[13px] leading-5 text-[var(--lg-text-2)]">
+            <div className="flex gap-2 rounded-[14px] bg-[var(--lg-surface-2)] p-4 text-[13px] leading-5 text-[var(--lg-text-2)]">
               <Info size={15} className="mt-0.5 shrink-0 text-[var(--lg-accent-text)]" aria-hidden="true" />
               <div>
                 <p className="font-semibold text-[var(--lg-text)]">
@@ -182,8 +182,8 @@ export function InjectionEditSheet({
 
           <div className="border-t border-[var(--lg-separator)] pt-4">
             {confirmDelete ? (
-              <div ref={confirmRef} role="alert" className="space-y-3 rounded-[18px] bg-[rgba(255,69,58,0.12)] p-3.5">
-                <p className="text-[15px] font-semibold text-[var(--lg-bad-text)]">
+              <div ref={confirmRef} role="alert" className="space-y-3 rounded-[14px] bg-[rgba(255,69,58,0.12)] p-4">
+                <p className="text-[15px] font-medium text-[var(--lg-bad-text)]">
                   {linked
                     ? t('injection_delete_confirm_linked', { defaultValue: 'Nur die Injektionsstelle wird entfernt. Die verknüpfte Einnahme bleibt, wie sie ist.' })
                     : t('injection_delete_confirm', { defaultValue: 'Diese Injektion wird endgültig gelöscht.' })}

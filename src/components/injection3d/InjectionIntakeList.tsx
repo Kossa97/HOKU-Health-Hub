@@ -61,7 +61,7 @@ export function InjectionIntakeList({
                 type="button"
                 aria-pressed={active}
                 onClick={() => setSubstanceId(item.id)}
-                className={`min-h-10 shrink-0 rounded-full px-4 text-[15px] font-semibold transition-colors ${active ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
+                className={`min-h-10 shrink-0 rounded-[10px] px-4 text-[15px] font-medium transition-colors ${active ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] ' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
               >
                 {item.label}
               </button>
@@ -75,7 +75,7 @@ export function InjectionIntakeList({
           {t('injection_filter_period', { defaultValue: 'Zeitraum' })}
         </span>
         <select
-          className="h-10 rounded-full border-0 bg-[var(--lg-fill)] px-3.5 text-[16px] text-[var(--lg-text)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
+          className="h-10 rounded-full border-0 bg-[var(--lg-fill)] px-4 text-[16px] text-[var(--lg-text)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
           value={days}
           onChange={event => {
             const value = event.target.value
@@ -91,7 +91,7 @@ export function InjectionIntakeList({
       {visible.length === 0 ? (
         <div className="lg-surface px-5 py-7 text-center">
           <CheckCircle2 size={28} className="mx-auto mb-2 text-[var(--lg-good)]" aria-hidden="true" />
-          <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_intakes_empty_title', { defaultValue: 'Keine Einnahmen ohne Stelle' })}</p>
+          <p className="text-[17px] font-medium text-[var(--lg-text)]">{t('injection_intakes_empty_title', { defaultValue: 'Keine Einnahmen ohne Stelle' })}</p>
           <p className="mt-1 text-[15px] leading-5 text-[var(--lg-text-3)]">{t('injection_intakes_empty_body', { defaultValue: 'In diesem Zeitraum hat jede Einnahme schon eine Stelle.' })}</p>
         </div>
       ) : (
@@ -114,11 +114,11 @@ export function InjectionIntakeSummary({ intake }: { intake: OpenInjectionIntake
   const confirmed = intake.status === 'confirmed'
   return (
     <div className="flex w-full min-w-0 items-center gap-3 overflow-hidden text-left">
-      <div className="lg-icon-tile !h-10 !w-10 !rounded-xl" style={{ background: confirmed ? 'var(--lg-good)' : '#ff9f0a' }}>
+      <div className="lg-icon-tile !h-10 !w-10 !rounded-xl" style={{ background: confirmed ? 'var(--lg-good)' : 'var(--lg-warn)' }}>
         {confirmed ? <Check size={16} aria-hidden="true" /> : <Clock size={16} aria-hidden="true" />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{intake.stackItemName}</p>
+        <p className="truncate text-[17px] font-medium text-[var(--lg-text)]">{intake.stackItemName}</p>
         <p className="text-[13px] text-[var(--lg-text-3)]">
           <span className={confirmed ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}>
             {confirmed
@@ -130,7 +130,7 @@ export function InjectionIntakeSummary({ intake }: { intake: OpenInjectionIntake
         </p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{intake.dose} {intake.unit}</p>
+        <p className="text-[15px] font-medium tabular-nums text-[var(--lg-text)]">{intake.dose} {intake.unit}</p>
         <p className="text-[12px] text-[var(--lg-text-3)]">{methodLabel(t, intake.method)}</p>
       </div>
     </div>
@@ -142,7 +142,7 @@ function InjectionIntakeRow({ intake, onSelect }: { intake: OpenInjectionIntake;
     <button
       type="button"
       onClick={onSelect}
-      className="lg-surface w-full cursor-pointer p-3.5 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
+      className="lg-surface w-full cursor-pointer p-4 text-left transition-colors active:bg-[var(--lg-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
     >
       <InjectionIntakeSummary intake={intake} />
     </button>

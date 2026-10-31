@@ -47,7 +47,7 @@ export function BottomNavigation({
     return {
       id: tab.id,
       label: tab.labelKey ? String(t(tab.labelKey, { defaultValue: tab.fallbackLabel })) : tab.fallbackLabel,
-      icon: <Icon size={25} aria-hidden="true" />,
+      icon: <Icon size={25} strokeWidth={1.75} aria-hidden="true" />,
       render: ({ className, children, ...rest }) => (
         <NavLink
           to={tab.route}
@@ -115,7 +115,7 @@ export function BottomNavigation({
         aria-label={String(t('home_quick_actions', { defaultValue: 'Quick Actions' }))}
         className="tyd-tabdock-action lg-btn-primary"
       >
-        <Plus size={26} strokeWidth={2.6} aria-hidden="true" />
+        <Plus size={26} strokeWidth={2} aria-hidden="true" />
       </button>
     </div>
   )

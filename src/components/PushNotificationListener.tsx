@@ -1,3 +1,4 @@
+import { Bell } from 'lucide-react'
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 
@@ -42,7 +43,7 @@ export function PushNotificationListener() {
         body ? `${title}\n${body}` : title,
         {
           duration: 6000,
-          icon: '🔔',
+          icon: <Bell size={16} strokeWidth={1.5} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--lg-text-2)' }} />,
           style: { whiteSpace: 'pre-line', maxWidth: 'min(92vw, 360px)' },
         },
       )

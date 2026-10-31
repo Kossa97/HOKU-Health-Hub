@@ -134,6 +134,10 @@ export function LiveBlutspiegelChart({
       const tokenBorder = docStyle.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.06)'
       const tokenMuted  = docStyle.getPropertyValue('--text-muted').trim() || 'rgba(255,255,255,0.28)'
       const tokenSurface = docStyle.getPropertyValue('--surface').trim() || 'rgba(6,10,24,0.92)'
+      // Akzent und Bedeutungsfarben aus dem Look, damit Linie und Legende zusammenpassen
+      const tokenAccent = docStyle.getPropertyValue('--accent').trim() || '#00ccf5'
+      const tokenGood   = docStyle.getPropertyValue('--lg-good').trim() || '#10b981'
+      const tokenBad    = docStyle.getPropertyValue('--lg-bad').trim() || '#ef4444'
 
       // ── Horizontal gridlines ────────────────────────────────────────────
       ctx.strokeStyle = tokenBorder
@@ -164,7 +168,7 @@ export function LiveBlutspiegelChart({
       // ── "Jetzt" line ────────────────────────────────────────────────────
       const nowX = tsToX(now)
       if (nowX >= dX && nowX <= dX + dW) {
-        ctx.strokeStyle = '#00ccf5'
+        ctx.strokeStyle = tokenAccent
         ctx.lineWidth   = 1.5
         ctx.setLineDash([4, 3])
         ctx.beginPath(); ctx.moveTo(nowX, dY); ctx.lineTo(nowX, dY + dH); ctx.stroke()
@@ -172,7 +176,7 @@ export function LiveBlutspiegelChart({
         ctx.font         = '9px ui-monospace,monospace'
         ctx.textAlign    = 'center'
         ctx.textBaseline = 'top'
-        ctx.fillStyle    = '#00ccf5'
+        ctx.fillStyle    = tokenAccent
         ctx.fillText(i18n.t('pk_axis_now_title'), nowX, dY + 2)
       }
 
@@ -231,20 +235,23 @@ export function LiveBlutspiegelChart({
 
           if (m.status === 'taken') {
             // Vertical dashed stem
-            ctx.strokeStyle = 'rgba(16,185,129,0.30)'
+            ctx.save()
+            ctx.globalAlpha = 0.3
+            ctx.strokeStyle = tokenGood
             ctx.lineWidth   = 1
             ctx.setLineDash([3, 3])
             ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x, dY + dH); ctx.stroke()
+            ctx.restore()
             ctx.setLineDash([])
             // Green dot
-            ctx.fillStyle   = '#10b981'
+            ctx.fillStyle   = tokenGood
             ctx.strokeStyle = 'rgba(5,8,20,0.8)'
             ctx.lineWidth   = 1.5
             ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
           } else {
             // Red ×
             const s = 4
-            ctx.strokeStyle = '#ef4444'
+            ctx.strokeStyle = tokenBad
             ctx.lineWidth   = 2
             ctx.setLineDash([])
             ctx.beginPath()
@@ -254,10 +261,8 @@ export function LiveBlutspiegelChart({
           }
         }
 
-        // Peak markers (▲)
+        // Peak markers (▲) — flach, ohne Schein
         ctx.save()
-        ctx.shadowColor = cycle.accent
-        ctx.shadowBlur  = 8
         ctx.fillStyle   = cycle.accent
         for (const pk of cycle.peakMarkers) {
           const x = tsToX(pk.timestamp)
@@ -419,11 +424,11 @@ export function LiveBlutspiegelChart({
   if (!cycles.length) return null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
       {/* Cycle toggle buttons */}
       {cycles.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {cycles.map(c => {
             const active = activeCycleIds.has(c.cycleId)
             return (
@@ -431,14 +436,17 @@ export function LiveBlutspiegelChart({
                 key={c.cycleId}
                 onClick={() => toggleCycle(c.cycleId)}
                 style={{
-                  padding: '4px 11px', borderRadius: 99,
-                  fontSize: '0.68rem', fontWeight: 800, fontFamily: 'inherit',
-                  border: `1px solid ${c.accent}50`,
-                  background: active ? c.accent + '22' : 'transparent',
-                  color: active ? c.accent : 'var(--text-muted)',
-                  cursor: 'pointer', transition: 'all 0.15s',
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '4px 12px', borderRadius: 8,
+                  fontSize: 13, fontWeight: 500, fontFamily: 'inherit',
+                  border: `1px solid ${active ? 'var(--border-strong, var(--border))' : 'var(--border)'}`,
+                  background: active ? 'var(--lg-fill)' : 'transparent',
+                  color: active ? 'var(--text)' : 'var(--text-muted)',
+                  cursor: 'pointer', transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
                 }}
               >
+                {/* Die Zyklusfarbe ist Datenfarbe: sie steht als Punkt, nicht als Knopffarbe */}
+                <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: c.accent, opacity: active ? 1 : 0.45, flexShrink: 0 }} />
                 {c.peptideName}
               </button>
             )
@@ -473,24 +481,24 @@ export function LiveBlutspiegelChart({
                 ),
                 top: PAD.top,
                 background: 'var(--surface)',
-                border: '1px solid var(--accent-border)',
+                border: '1px solid var(--border-strong, var(--border))',
                 borderRadius: 10,
-                padding: '8px 10px',
+                padding: '8px 12px',
                 pointerEvents: 'none',
                 zIndex: 10,
                 minWidth: 124,
               }}
             >
-              <p style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginBottom: 5, fontFamily: 'monospace' }}>
+              <p className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
                 {format(new Date(tooltip.timestamp), 'EEE dd.MM · HH:mm', { locale: getDateLocale() })}
               </p>
               {tooltip.items.map(item => (
-                <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: item.accent, flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-dim)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.name}
                   </span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 900, color: item.accent, fontFamily: 'monospace', flexShrink: 0 }}>
+                  <span className="font-mono tabular-nums" style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', flexShrink: 0 }}>
                     {item.level.toFixed(1)}%
                   </span>
                 </div>
@@ -504,10 +512,10 @@ export function LiveBlutspiegelChart({
           <button
             onClick={() => { cancelMomentum(); panOffsetRef.current = 0; setShowJetzt(false); scheduleRedraw() }}
             style={{
-              position: 'absolute', bottom: 40, right: 14,
-              fontSize: '0.55rem', fontWeight: 800, color: 'var(--accent)',
+              position: 'absolute', bottom: 40, right: 16,
+              fontSize: 12, fontWeight: 500, color: 'var(--lg-accent-text)',
               background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
-              borderRadius: 6, padding: '3px 7px', cursor: 'pointer', fontFamily: 'inherit',
+              borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
             {t('pk_axis_now_title')} ↩
@@ -518,13 +526,13 @@ export function LiveBlutspiegelChart({
       {/* Legend */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {[
-          { dot: <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />, label: t('pk_legend_intake') },
-          { dot: <span style={{ fontSize: '0.8rem', color: '#ef4444', lineHeight: 1 }}>×</span>, label: t('pk_legend_skipped') },
-          { dot: <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1 }}>▲</span>, label: t('pk_legend_peak') },
+          { dot: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lg-good)', display: 'inline-block' }} />, label: t('pk_legend_intake') },
+          { dot: <span style={{ fontSize: 13, color: 'var(--lg-bad)', lineHeight: 1 }}>×</span>, label: t('pk_legend_skipped') },
+          { dot: <span style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1 }}>▲</span>, label: t('pk_legend_peak') },
         ].map(({ dot, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {dot}
-            <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{label}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
           </div>
         ))}
       </div>

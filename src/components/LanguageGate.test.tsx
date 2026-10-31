@@ -27,7 +27,7 @@ describe('LanguageGate', () => {
   it('bietet beim ersten Start genau Deutsch und Englisch an, Gerätesprache vorgewählt', () => {
     render(<LanguageGate />)
     const optionen = screen.getAllByRole('radio')
-    expect(optionen.map(o => o.textContent)).toEqual(['🇩🇪Deutsch', '🇬🇧English'])
+    expect(optionen.map(o => o.textContent)).toEqual(['Deutsch', 'English'])
     expect(screen.getByRole('radio', { name: /English/ }).getAttribute('aria-checked')).toBe('true')
   })
 

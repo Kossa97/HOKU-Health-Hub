@@ -28,7 +28,7 @@ export function VerbindungsHinweis() {
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        padding: simuliert ? '4px 4px 4px 12px' : '7px 14px',
+        padding: simuliert ? '4px 4px 4px 12px' : '8px 16px',
         borderRadius: 999,
         background: '#2c2c2e',
         color: '#fff',
@@ -48,7 +48,7 @@ export function VerbindungsHinweis() {
         <button
           type="button"
           onClick={() => setzeStoerungSimuliert(false)}
-          style={{ minHeight: 30, padding: '0 12px', borderRadius: 999, border: 0, fontSize: 13, fontWeight: 600, background: 'rgba(255,255,255,0.14)', color: '#fff', cursor: 'pointer' }}
+          style={{ minHeight: 32, padding: '0 12px', borderRadius: 999, border: 0, fontSize: 13, fontWeight: 500, background: 'rgba(255,255,255,0.14)', color: '#fff', cursor: 'pointer' }}
         >
           {t('stoerung_beenden')}
         </button>

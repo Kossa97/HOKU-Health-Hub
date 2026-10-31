@@ -19,8 +19,8 @@ function alertMessage(alert: PeptideExpiryAlert, t: (key: string, opts?: Record<
 }
 
 function AlertIcon({ status }: { status: PeptideExpiryAlert['status'] }) {
-  if (status === 'expired') return <XCircle size={16} />
-  return <AlertTriangle size={16} />
+  if (status === 'expired') return <XCircle size={16} strokeWidth={1.5} />
+  return <AlertTriangle size={16} strokeWidth={1.5} />
 }
 
 export function ExpiryWarningBanners({ alerts }: { alerts: PeptideExpiryAlert[] }) {
@@ -59,7 +59,7 @@ export function ExpiryWarningBanners({ alerts }: { alerts: PeptideExpiryAlert[] 
             onClick={() => setDismissed(prev => new Set(prev).add(alert.id))}
             aria-label={String(t('close'))}
           >
-            <X size={14} />
+            <X size={14} strokeWidth={1.5} />
           </button>
         </div>
       ))}

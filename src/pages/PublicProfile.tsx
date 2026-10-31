@@ -93,7 +93,7 @@ export function PublicProfile() {
   if (zustand !== 'da' || !profil) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-[var(--lg-text-2)]">
       <Lock size={40} aria-hidden="true" className="opacity-30" />
-      <p className="text-[17px] font-semibold text-[var(--lg-text)]">
+      <p className="text-[17px] font-medium text-[var(--lg-text)]">
         {zustand === 'fehler' ? t('public_profile_error') : t('public_profile_unavailable')}
       </p>
       <p className="text-sm">{zustand === 'fehler' ? null : t('public_profile_unavailable_desc', { name: username })}</p>
@@ -134,7 +134,7 @@ export function PublicProfile() {
   if (profil.blocked) return (
     <div data-profile-blocked className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-[var(--lg-text-2)]">
       <Ban size={40} aria-hidden="true" className="opacity-30" />
-      <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('blocked_profile_title')}</p>
+      <p className="text-[17px] font-medium text-[var(--lg-text)]">{t('blocked_profile_title')}</p>
       <p className="text-sm">@{profil.username}</p>
       <button type="button" data-unblock disabled={busy} onClick={() => void setzeBlock(false)} data-quiet className="lg-gray-btn">
         {t('unblock_action')}
@@ -149,23 +149,23 @@ export function PublicProfile() {
     .format(new Date(`${wert}-01T00:00:00.000Z`))
 
   return (
-    <div className="min-h-screen bg-black text-[var(--lg-text)]">
+    <div className="min-h-screen bg-[var(--app-bg,#000)] text-[var(--lg-text)]">
       <div className="mx-auto max-w-lg px-4 py-8">
         <header className="mb-8 flex flex-col items-center text-center">
-          <h1 className="text-[28px] font-bold leading-tight">{profil.display_name || profil.username}</h1>
-          <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">@{profil.username}</p>
+          <h1 className="text-[28px] font-medium leading-tight">{profil.display_name || profil.username}</h1>
+          <p className="mt-1 font-mono text-[14px] text-[var(--lg-text-2)]">@{profil.username}</p>
           {profil.public_bio && <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-[var(--lg-text)]">{profil.public_bio}</p>}
-          <p className="mt-4 flex items-center gap-2 rounded-full bg-[var(--lg-fill)] px-3 py-1.5 text-[13px] text-[var(--lg-text-2)]">
-            <FlaskConical size={11} aria-hidden="true" /> {t('public_profile_badge')}
+          <p className="mt-4 flex items-center gap-2 rounded-lg bg-[var(--lg-fill)] px-3 py-1.5 text-[13px] text-[var(--lg-text-2)]">
+            <FlaskConical size={14} strokeWidth={1.5} aria-hidden="true" /> {t('public_profile_badge')}
           </p>
           {!istEigenes && (
             <div className="mt-3 flex items-center gap-2">
               <button type="button" data-report-profile onClick={() => meldenOeffnen({ art: 'profil' })} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-[13px] text-[var(--lg-text-3)] hover:text-[var(--lg-warn-text)]">
-                <Flag size={12} aria-hidden="true" /> {t('report_profile_action')}
+                <Flag size={14} strokeWidth={1.5} aria-hidden="true" /> {t('report_profile_action')}
               </button>
               {user && (
                 <button type="button" data-block-open onClick={() => setBlockt(true)} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-[13px] text-[var(--lg-text-3)] hover:text-[var(--lg-bad-text)]">
-                  <Ban size={12} aria-hidden="true" /> {t('block_action')}
+                  <Ban size={14} strokeWidth={1.5} aria-hidden="true" /> {t('block_action')}
                 </button>
               )}
             </div>
@@ -173,8 +173,8 @@ export function PublicProfile() {
         </header>
 
         <section aria-labelledby="public-reviews">
-          <h2 id="public-reviews" className="mb-3 flex items-center gap-2 px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--lg-text-3)]">
-            <Star size={13} aria-hidden="true" /> {t('bewertungen_title')}
+          <h2 id="public-reviews" className="mb-3 flex items-center gap-2 px-1 text-[13px] font-medium text-[var(--lg-text-3)]">
+            <Star size={14} strokeWidth={1.5} aria-hidden="true" /> {t('bewertungen_title')}
           </h2>
           <p data-review-disclaimer className="-mt-1 mb-3 px-1 text-[13px] text-[var(--lg-text-2)]">{t('review_disclaimer')}</p>
           {reviews.length === 0 ? (
@@ -190,20 +190,20 @@ export function PublicProfile() {
                   r.wieder_nehmen ? `${t('review_again')} ${t(`review_again_${r.wieder_nehmen}`)}` : null,
                 ].filter(Boolean)
                 return (
-                  <li key={r.id} data-public-review className="lg-surface lg-flat !rounded-[22px] px-4 py-3.5">
+                  <li key={r.id} data-public-review className="lg-surface lg-flat !rounded-[16px] px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="min-w-0 truncate text-[15px] font-semibold text-[var(--lg-accent-text)]">{r.substanz}</p>
+                      <p className="min-w-0 truncate text-[15px] font-medium text-[var(--lg-text-2)]">{r.substanz}</p>
                       <span className="flex shrink-0 gap-0.5" role="img" aria-label={String(t(r.rating === 1 ? 'review_star_one' : 'review_star_many', { n: r.rating }))}>
                         {[1, 2, 3, 4, 5].map(stern => (
                           <Star key={stern} size={13} aria-hidden="true" className={stern <= r.rating ? 'text-amber-400' : 'text-[var(--lg-text-3)]'} fill={stern <= r.rating ? 'currentColor' : 'transparent'} />
                         ))}
                       </span>
                     </div>
-                    {r.title && <p className="mt-1 text-[17px] font-semibold text-[var(--lg-text)]">{r.title}</p>}
+                    {r.title && <p className="mt-1 text-[17px] font-medium text-[var(--lg-text)]">{r.title}</p>}
                     {kriterien.length > 0 && <p className="mt-1 text-[13px] text-[var(--lg-text-2)]">{kriterien.join(' · ')}</p>}
                     {r.body && <p className="mt-1.5 text-[15px] leading-snug text-[var(--lg-text)]">{r.body}</p>}
-                    {r.pros && <p className="mt-1.5 text-[13px]"><span className="font-semibold text-[var(--lg-good-text)]">+ </span><span className="text-[var(--lg-text-2)]">{r.pros}</span></p>}
-                    {r.cons && <p className="mt-1 text-[13px]"><span className="font-semibold text-[var(--lg-bad-text)]">− </span><span className="text-[var(--lg-text-2)]">{r.cons}</span></p>}
+                    {r.pros && <p className="mt-2 text-[13px]"><span className="font-medium text-[var(--lg-good-text)]">+ </span><span className="text-[var(--lg-text-2)]">{r.pros}</span></p>}
+                    {r.cons && <p className="mt-1 text-[13px]"><span className="font-medium text-[var(--lg-bad-text)]">− </span><span className="text-[var(--lg-text-2)]">{r.cons}</span></p>}
                     <div className="mt-1 flex items-center justify-between gap-3">
                       <p className="text-[12px] text-[var(--lg-text-3)]">{monat(r.monat)}</p>
                       {!istEigenes && (

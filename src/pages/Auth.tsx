@@ -550,14 +550,14 @@ export function Auth() {
   const kopf = (titel: string) => (
     <div className="tyd-auth-kopf">
       <button type="button" className="tyd-auth-zurueck" onClick={() => wechsle('start')} aria-label={t('back')}>
-        <ChevronLeft size={22} aria-hidden="true" />
+        <ChevronLeft size={22} strokeWidth={1.75} aria-hidden="true" />
       </button>
       <h2>{titel}</h2>
     </div>
   )
   const auge = (
     <button type="button" className="tyd-auth-auge" onClick={() => { if (!zeigePw) augenZu(); setZeigePw(!zeigePw) }} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
-      {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+      {zeigePw ? <EyeOff size={20} strokeWidth={1.5} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.5} aria-hidden="true" />}
     </button>
   )
   const sprache = i18n.language?.split('-')[0]
@@ -660,7 +660,7 @@ export function Auth() {
               {faceId && (
                 <button type="button" className="tyd-auth-knopf" data-art="glas" data-symbol disabled={laeuft} onClick={() => void mitFaceId()}
                   aria-label={t('login_faceid', { art: passkeyArt() })} data-auth-faceid>
-                  <ScanFace size={26} aria-hidden="true" />
+                  <ScanFace size={24} strokeWidth={1.5} aria-hidden="true" />
                 </button>
               )}
             </div>

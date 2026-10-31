@@ -415,7 +415,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
 
   // Sprache des PDFs: kleiner Umschalter wie ein iOS-Segment.
   const langToggle = (
-    <div role="group" aria-label={t.language} title={t.language} className="mr-1 flex rounded-full bg-[var(--lg-fill)] p-0.5">
+    <div role="group" aria-label={t.language} title={t.language} className="mr-1 flex rounded-[10px] bg-[var(--lg-fill)] p-0.5">
       {(['de', 'en'] as const).map(l => (
         <button
           key={l}
@@ -423,9 +423,9 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
           aria-pressed={lang === l}
           onClick={() => setLang(l)}
           // Sichtbar 28 px hoch, getroffen wird auf 44 px.
-          className={`tyd-press relative h-7 min-w-10 rounded-full px-2.5 text-[12px] font-semibold tracking-[0.02em] before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] ${
+          className={`tyd-press relative h-7 min-w-10 rounded-lg px-2.5 font-mono text-[12px] font-medium before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] ${
             lang === l
-              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_2px_6px_rgba(0,0,0,0.25)]'
+              ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)]'
               : 'text-[var(--lg-text-3)]'
           }`}
         >
@@ -532,7 +532,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                   >
                     <Icon size={18} strokeWidth={2.2} />
                   </span>
-                  <span className="max-w-full truncate text-[13px] font-semibold tracking-[-0.01em] text-[var(--lg-text)]">
+                  <span className="max-w-full truncate text-[13px] font-medium text-[var(--lg-text)]">
                     {card.label}
                   </span>
                 </button>
@@ -549,7 +549,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
             <div role="group" aria-label={t.period} className="relative mb-2 grid grid-cols-4 rounded-[12px] bg-[var(--lg-fill)] p-0.5">
               <span
                 aria-hidden="true"
-                className="absolute left-0.5 top-0.5 h-8 w-[calc((100%-4px)/4)] rounded-[10px] bg-[var(--lg-fill-selected)] shadow-[0_3px_8px_rgba(0,0,0,0.28)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.32,0.72,0,1)]"
+                className="absolute left-0.5 top-0.5 h-8 w-[calc((100%-4px)/4)] rounded-[10px] bg-[var(--lg-fill-selected)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.32,0.72,0,1)]"
                 style={{ transform: `translateX(${rangeIndex * 100}%)` }}
               />
               {rangeOptions.map((opt, i) => (
@@ -558,7 +558,7 @@ export function ProtocolPdfModal({ userId, initialRange, uiLang, onClose, previe
                   type="button"
                   aria-pressed={rangeIndex === i}
                   onClick={() => pickRange(opt.days)}
-                  className={`relative h-8 text-[13px] font-semibold transition-colors ${rangeIndex === i ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'}`}
+                  className={`relative h-8 text-[13px] font-medium transition-colors ${rangeIndex === i ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-2)]'}`}
                 >
                   {opt.label}
                 </button>

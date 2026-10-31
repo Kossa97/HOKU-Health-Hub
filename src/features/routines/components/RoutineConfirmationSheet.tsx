@@ -153,16 +153,16 @@ export function RoutineConfirmationSheet({
       >
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-cyan-300">
+            <p className="text-[13px] font-medium text-slate-500">
               {group.label ?? t('routine_group_label', {
                 defaultValue: '{{group}}-Routine',
                 group: t(GROUP_LABEL_KEYS[group.key]),
               })}
             </p>
-            <h2 id={titleId} className="mt-1 text-lg font-black text-white">
+            <h2 id={titleId} className="mt-1 text-lg font-medium text-white">
               {t('routine_confirmation_title', { defaultValue: 'Gemeinsam bestätigen' })}
             </h2>
-            <p className="mt-1 text-sm font-semibold text-slate-400">
+            <p className="mt-1 text-sm text-slate-400">
               {t('routine_confirmation_hint', { defaultValue: 'Auswahl und Mengen vor dem Speichern prüfen.' })}
             </p>
           </div>
@@ -172,7 +172,7 @@ export function RoutineConfirmationSheet({
             data-app-back-close
             aria-label={String(t('close', { defaultValue: 'Schließen' }))}
             onClick={requestClose}
-            className="tyd-press grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            className="tyd-press grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -180,11 +180,11 @@ export function RoutineConfirmationSheet({
 
         {confirmed ? (
           <div className="space-y-3">
-            <div className="flex min-h-11 items-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-3 text-sm font-bold text-emerald-300">
+            <div className="flex min-h-11 items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 text-sm font-medium text-emerald-300">
               <Check size={17} aria-hidden="true" /> {t('routine_confirmation_saved', { defaultValue: 'Routine gespeichert' })}
             </div>
             {inventoryRetry && (
-              <div role="alert" className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-bold text-amber-200">
+              <div role="alert" className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-medium text-amber-200">
                 <p>{t('routine_inventory_committed_retry', { defaultValue: 'Die Routine ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
                 <button
                   type="button"
@@ -194,7 +194,7 @@ export function RoutineConfirmationSheet({
                     void runAfterConfirm(inventoryRetry.entries, inventoryRetry.savedLogIds)
                       .finally(() => setRetryingInventory(false))
                   }}
-                  className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/15 px-3 text-sm font-black text-amber-100 transition-colors hover:bg-amber-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/15 px-3 text-sm font-medium text-amber-100 transition-colors hover:bg-amber-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <RotateCcw size={15} aria-hidden="true" /> {t('routine_inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
                 </button>
@@ -209,7 +209,7 @@ export function RoutineConfirmationSheet({
                   substanceName: item.entry.stackItemName,
                 }))}
                 onClick={() => onAddInjection?.(item.entry, item.doseLogId)}
-                className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-sky-500/25 bg-sky-500/15 px-3 text-sm font-black text-sky-300 transition-colors hover:bg-sky-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-sky-500/25 bg-sky-500/15 px-3 text-sm font-medium text-sky-300 transition-colors hover:bg-sky-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
               >
                 <Syringe size={16} aria-hidden="true" /> {t('routine_add_injection', { defaultValue: 'Injektionsstelle ergänzen' })}
               </button>
@@ -217,7 +217,7 @@ export function RoutineConfirmationSheet({
             <button
               type="button"
               onClick={requestClose}
-              className="tyd-press min-h-11 w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              className="tyd-press min-h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-slate-200 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             >
               {t('routine_confirmation_done', { defaultValue: 'Fertig' })}
             </button>
@@ -227,14 +227,14 @@ export function RoutineConfirmationSheet({
             {initialTime !== undefined && (
               <div className="mb-3">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <label htmlFor={timeId} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                  <label htmlFor={timeId} className="text-[13px] font-medium text-slate-400">
                     {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                   </label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => { setTime(format(new Date(), 'HH:mm')); setHeute(true) }}
-                      className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                      className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-medium text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                     >
                       <Clock size={12} aria-hidden="true" />
                       {t('confirm_time_now', { defaultValue: 'Jetzt' })}
@@ -243,7 +243,7 @@ export function RoutineConfirmationSheet({
                       <button
                         type="button"
                         onClick={() => { setTime(plannedTime); setHeute(false) }}
-                        className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                        className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-medium text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
                         {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: plannedTime })}
                       </button>
@@ -255,7 +255,7 @@ export function RoutineConfirmationSheet({
                   type="time"
                   value={time}
                   onChange={event => setTime(event.target.value)}
-                  className="input min-h-11 text-base font-bold"
+                  className="input min-h-11 text-base font-medium tabular-nums"
                 />
               </div>
             )}
@@ -274,7 +274,7 @@ export function RoutineConfirmationSheet({
                   ? einheitenFuer?.(entry.stackItemId, entry.actualDose, entry.actualUnit) ?? null
                   : null
                 return (
-                  <li key={entry.key} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+                  <li key={entry.key} className="rounded-xl border border-white/10 bg-white/[0.035] p-3">
                     <div className="flex min-h-11 items-center gap-3">
                       <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
                         <input
@@ -288,14 +288,14 @@ export function RoutineConfirmationSheet({
                           className="h-5 w-5 shrink-0 cursor-pointer accent-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
                         />
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-black text-white">{entry.stackItemName}</span>
+                          <span className="block truncate text-sm font-medium text-white">{entry.stackItemName}</span>
                           {plannedQuantity && (
-                            <span data-routine-quantity className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-slate-400">
+                            <span data-routine-quantity className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-400">
                               {changed ? (
                                 <>
                                   <s className="text-slate-500">{plannedQuantity}</s>
-                                  <span className="text-[var(--accent)]">{actualQuantity}</span>
-                                  <span className="rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-1.5 py-px text-[11px] font-bold text-[var(--accent)]">
+                                  <span className="text-[var(--lg-accent-text)]">{actualQuantity}</span>
+                                  <span className="rounded-md bg-[var(--lg-fill)] px-1.5 py-px text-xs text-slate-400">
                                     {t('dose_once', { defaultValue: 'einmalig' })}
                                   </span>
                                 </>
@@ -303,7 +303,7 @@ export function RoutineConfirmationSheet({
                             </span>
                           )}
                           {units != null && (
-                            <span data-routine-units className="mt-0.5 block text-xs font-bold tabular-nums text-[var(--accent)]">
+                            <span data-routine-units className="mt-0.5 block font-mono text-xs tabular-nums text-[var(--lg-accent-text)]">
                               {t('syringe_draw_units', {
                                 defaultValue: '{{units}} Einheiten aufziehen',
                                 units: formatAmount(units, i18n.language),
@@ -327,7 +327,7 @@ export function RoutineConfirmationSheet({
                               setEditingKeys(current => [...current, entry.key])
                             }
                           }}
-                          className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-full text-[var(--accent)] transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                          className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-full text-[var(--lg-accent-text)] transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                         >
                           {editing ? <RotateCcw size={17} aria-hidden="true" /> : <Pencil size={17} aria-hidden="true" />}
                         </button>
@@ -364,9 +364,9 @@ export function RoutineConfirmationSheet({
                                 })
                               : currentEntry))
                           }}
-                          className="min-h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-[var(--surface-input)] px-3 text-base font-black text-white outline-none focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-300"
+                          className="min-h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-[var(--surface-input)] px-3 text-base font-medium tabular-nums text-white outline-none focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300"
                         />
-                        <span className="text-sm font-bold text-slate-300">{entry.actualUnit}</span>
+                        <span className="font-mono text-sm text-slate-300">{entry.actualUnit}</span>
                       </div>
                     )}
                   </li>
@@ -375,12 +375,12 @@ export function RoutineConfirmationSheet({
             </ul>
 
             {error && (
-              <div role="alert" className="mt-3 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-sm font-bold text-red-300">
+              <div role="alert" className="mt-3 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-sm font-medium text-red-300">
                 <p>{t('routine_confirmation_save_error', { defaultValue: 'Gruppe konnte nicht gespeichert werden. Deine Auswahl bleibt erhalten.' })}</p>
                 <button
                   type="button"
                   onClick={() => void save()}
-                  className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-red-400/25 bg-red-500/15 px-3 text-sm font-black text-red-200 transition-colors hover:bg-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                  className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-red-400/25 bg-red-500/15 px-3 text-sm font-medium text-red-200 transition-colors hover:bg-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                 >
                   <RotateCcw size={15} aria-hidden="true" /> {t('routine_confirmation_retry', { defaultValue: 'Erneut versuchen' })}
                 </button>
@@ -391,7 +391,7 @@ export function RoutineConfirmationSheet({
               <button
                 type="button"
                 onClick={requestClose}
-                className="tyd-press min-h-11 cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-black text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                className="tyd-press min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
               >
                 {t('routine_confirmation_cancel', { defaultValue: 'Abbrechen' })}
               </button>
@@ -400,7 +400,7 @@ export function RoutineConfirmationSheet({
                 disabled={saving}
                 {...denyProps(!saving && !canConfirm)}
                 onClick={() => void save()}
-                className="tyd-press flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-black text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:opacity-50"
+                className="tyd-press flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/15 px-3 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:opacity-50"
               >
                 <Check size={16} aria-hidden="true" /> {saving
                   ? t('routine_confirmation_saving', { defaultValue: 'Speichert …' })

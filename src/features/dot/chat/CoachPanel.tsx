@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowUp, Ellipsis, X } from 'lucide-react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { AUTO_EREIGNIS, ladeAutoKarte } from '../autoTracking/autoTracking'
@@ -243,10 +244,10 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
       style={stil}
     >
       <header className="tyd-dot-chat-kopf">
-        <button type="button" className="tyd-dot-rund" onClick={schliessen} aria-label={dt('chat_schliessen')} data-app-back-close>✕</button>
+        <button type="button" className="tyd-dot-rund" onClick={schliessen} aria-label={dt('chat_schliessen')} data-app-back-close><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
         <span className="tyd-dot-chat-titel">{dt('chat_titel')}</span>
         <div className="tyd-dot-menue-anker">
-          <button type="button" className="tyd-dot-rund" aria-haspopup="menu" aria-expanded={menue} onClick={() => setMenue(m => !m)} aria-label="…">⋯</button>
+          <button type="button" className="tyd-dot-rund" aria-haspopup="menu" aria-expanded={menue} onClick={() => setMenue(m => !m)} aria-label="…"><Ellipsis size={18} strokeWidth={1.5} aria-hidden="true" /></button>
           {menue && (
             <div className="tyd-dot-menue" role="menu">
               <button type="button" role="menuitem" onClick={() => { setVerlauf([]); if (user) loescheVerlauf(user.id); setMenue(false) }}>{dt('chat_leeren')}</button>
@@ -309,13 +310,13 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
                     aria-pressed={sprache.hoert}
                     onClick={() => (sprache.hoert ? sprache.beenden() : sprache.starten())}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="3" width="6" height="11" rx="3" />
                       <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
                     </svg>
                   </button>
                 ) : (
-                  <button key="senden" type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}>↑</button>
+                  <button key="senden" type="submit" className="tyd-dot-senden" aria-label={dt('chat_senden')} disabled={!eingabe.trim()}><ArrowUp size={20} strokeWidth={2} aria-hidden="true" /></button>
                 )}
               </form>
               <p className="tyd-dot-hinweis">{dt('hinweis_unten')}</p>

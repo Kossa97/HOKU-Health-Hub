@@ -54,7 +54,7 @@ export function AccountSection() {
   return (
     <div className="mt-6 flex flex-col gap-4" data-account-section>
       <div className="card space-y-2">
-        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
+        <h2 className="flex items-center gap-2 text-[17px] font-medium text-[var(--lg-text)]">
           <Ban size={16} className="text-[var(--lg-text-3)]" aria-hidden="true" /> {t('blocked_list_title')}
         </h2>
         {blockiert === null ? null : blockiert.length === 0 ? (

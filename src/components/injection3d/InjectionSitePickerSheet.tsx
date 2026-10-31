@@ -67,7 +67,7 @@ export function InjectionSitePickerSheet({
             if (presets.length === 0) return null
             return (
               <fieldset key={region} className="min-w-0">
-                <legend className="mb-2 px-1 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
+                <legend className="mb-2 px-1 text-[13px] font-medium text-[var(--lg-text-3)]">
                   {regionLabel(region)}
                 </legend>
                 <div className="grid grid-cols-2 gap-2">
@@ -76,7 +76,7 @@ export function InjectionSitePickerSheet({
                       key={injectionSitePresetKey(preset)}
                       type="button"
                       onClick={() => onSelect(preset)}
-                      className="lg-gray-btn !min-h-11 !rounded-2xl !px-3 !text-[15px]" data-quiet
+                      className="lg-gray-btn !min-h-11 !rounded-xl !px-3 !text-[15px]" data-quiet
                     >
                       {t('injection_site_option', {
                         region: regionLabel(region),

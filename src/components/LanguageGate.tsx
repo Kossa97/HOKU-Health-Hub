@@ -51,27 +51,27 @@ export function LanguageGate() {
         className="w-full max-w-md"
         style={{
           background: 'var(--surface)',
-          border: '1px solid var(--accent-weak)',
+          border: '1px solid var(--border)',
           borderRadius: 20,
-          padding: '24px 18px 18px',
-          boxShadow: '0 -4px 40px rgba(0,0,0,0.7), 0 0 40px rgba(0,204,245,0.06)',
+          padding: '24px 20px 20px',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
         }}
       >
         <h1
           id="language-gate-title"
-          className="text-center font-bold mb-1"
-          style={{ fontSize: '1.15rem', color: 'var(--text-dim)', letterSpacing: '-0.02em' }}
+          className="text-center font-medium mb-1"
+          style={{ fontSize: 20, color: 'var(--text)', letterSpacing: '-0.01em' }}
         >
           {t('lang_gate_title')}
         </h1>
         <p
-          className="text-center mb-5"
-          style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}
+          className="text-center mb-6"
+          style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}
         >
           {t('lang_gate_subtitle')}
         </p>
 
-        <div role="radiogroup" aria-labelledby="language-gate-title" className="grid grid-cols-2 gap-3 mb-5">
+        <div role="radiogroup" aria-labelledby="language-gate-title" className="grid grid-cols-2 gap-3 mb-6">
           {LANGUAGES.map(lang => {
             const isSelected = lang.code === selected
             return (
@@ -87,22 +87,21 @@ export function LanguageGate() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 8,
                   padding: '20px 12px',
-                  borderRadius: 16,
+                  borderRadius: 12,
                   cursor: 'pointer',
                   border: `1px solid ${isSelected ? 'var(--accent-border)' : 'var(--border)'}`,
                   background: isSelected ? 'var(--accent-weak)' : 'transparent',
-                  color: isSelected ? 'var(--accent)' : 'var(--text-dim)',
-                  fontWeight: isSelected ? 700 : 500,
-                  fontSize: '0.95rem',
+                  color: isSelected ? 'var(--text)' : 'var(--text-dim)',
+                  fontWeight: 500,
+                  fontSize: 16,
+                  transition: 'background-color 160ms, border-color 160ms, color 160ms',
                 }}
               >
-                <span style={{ fontSize: 34, lineHeight: 1 }} aria-hidden="true">{lang.flag}</span>
                 <span>{lang.name}</span>
                 {isSelected && (
-                  <span style={{ position: 'absolute', top: 10, insetInlineEnd: 10, display: 'flex' }} aria-hidden="true">
-                    <Check size={14} />
+                  <span style={{ position: 'absolute', top: 8, insetInlineEnd: 8, display: 'flex', color: 'var(--lg-accent-text)' }} aria-hidden="true">
+                    <Check size={16} strokeWidth={1.5} />
                   </span>
                 )}
               </button>
@@ -113,25 +112,11 @@ export function LanguageGate() {
         <button
           type="button"
           onClick={finish}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            padding: '12px 18px',
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #00ccf5, #0088dd)',
-            border: '1px solid var(--accent-border)',
-            color: '#07091a',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(0,204,245,0.25)',
-          }}
+          className="lg-btn lg-btn-primary"
+          style={{ width: '100%' }}
         >
           {t('lang_gate_continue')}
-          <ChevronRight size={16} />
+          <ChevronRight size={18} strokeWidth={1.5} />
         </button>
       </div>
     </div>

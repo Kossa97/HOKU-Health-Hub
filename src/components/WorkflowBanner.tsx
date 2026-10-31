@@ -22,7 +22,7 @@ const panelStyle: CSSProperties = {
 
 const labelStyle: CSSProperties = {
   fontSize: 13,
-  fontWeight: 600,
+  fontWeight: 500,
   color: 'var(--lg-text-3)',
 }
 
@@ -33,8 +33,8 @@ const iconBoxBase: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'var(--accent-weak)',
-  color: 'var(--accent)',
+  background: 'var(--lg-fill)',
+  color: 'var(--lg-text-2)',
 }
 
 function storageKey(userId: string) {
@@ -69,21 +69,11 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
 
   return (
     <>
-      <style>{`
-        @keyframes tyd-stock-step-glow {
-          0%, 100% {
-            box-shadow: 0 0 0 1px rgba(0,204,245,0.4), 0 0 14px rgba(0,204,245,0.25);
-          }
-          50% {
-            box-shadow: 0 0 0 1px rgba(0,204,245,0.95), 0 0 26px rgba(0,204,245,0.55);
-          }
-        }
-      `}</style>
 
       <section>
         <div className="lg-surface" style={panelStyle}>
           <div
-            style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}
+            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}
             onClick={stopNav}
           >
             <button
@@ -101,18 +91,18 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
                 color: 'var(--lg-text-2)',
               }}
             >
-              <X size={16} />
+              <X size={16} strokeWidth={1.5} />
             </button>
             <label
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                fontSize: '0.58rem',
+                fontSize: 12,
                 color: 'var(--text-muted)',
                 cursor: 'pointer',
                 userSelect: 'none',
-                maxWidth: 120,
+                maxWidth: 128,
                 lineHeight: 1.3,
                 textAlign: 'right',
               }}
@@ -121,16 +111,16 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
                 type="checkbox"
                 checked={dontShowAgain}
                 onChange={e => setDontShowAgain(e.target.checked)}
-                style={{ width: 13, height: 13, accentColor: 'var(--accent)', flexShrink: 0 }}
+                style={{ width: 16, height: 16, accentColor: 'var(--accent)', flexShrink: 0 }}
               />
               {t('home_workflow_hide', { defaultValue: 'Nicht mehr anzeigen' })}
             </label>
           </div>
 
           {/* Abstand nach unten: Schließen-Knopf und „Nicht mehr anzeigen" ragen bis ~84 px herab */}
-          <div style={{ marginBottom: 22, paddingRight: 56 }}>
+          <div style={{ marginBottom: 24, paddingRight: 56 }}>
             <p style={labelStyle}>{t('home_workflow', { defaultValue: 'Workflow' })}</p>
-            <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', marginTop: 2 }}>
               {t('home_workflow_title', { defaultValue: 'Vom Vial zum Report' })}
             </h2>
           </div>
@@ -143,9 +133,9 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
               return (
                 <div key={step.labelKey} style={{ position: 'relative' }}>
                   {index < WORKFLOW_STEPS.length - 1 && (
-                    <div style={{ position: 'absolute', top: 22, left: '58%', right: '-42%', height: 1, background: 'linear-gradient(90deg, var(--accent-border), transparent)' }} />
+                    <div style={{ position: 'absolute', top: 22, left: '58%', right: '-42%', height: 1, background: 'var(--border)' }} />
                   )}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center', position: 'relative' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center', position: 'relative' }}>
                     {isStockStep ? (
                       <button
                         type="button"
@@ -154,28 +144,28 @@ export function WorkflowBanner({ userId }: { userId: string | undefined }) {
                         style={{
                           ...iconBoxBase,
                           cursor: 'pointer',
-                          animation: 'tyd-stock-step-glow 2.2s ease-in-out infinite',
                           background: 'var(--accent-weak)',
-                          border: '1px solid rgba(0,204,245,0.55)',
+                          color: 'var(--lg-accent-text)',
+                          border: '1px solid var(--accent-border)',
                         }}
                       >
-                        <Icon size={16} />
+                        <Icon size={18} strokeWidth={1.5} />
                       </button>
                     ) : (
                       <div style={iconBoxBase}>
-                        <Icon size={16} />
+                        <Icon size={18} strokeWidth={1.5} />
                       </div>
                     )}
                     <div>
                       <p style={{
-                        fontSize: '0.68rem',
-                        color: isStockStep ? 'var(--accent)' : 'var(--text)',
-                        fontWeight: 800,
+                        fontSize: 13,
+                        color: isStockStep ? 'var(--lg-accent-text)' : 'var(--text)',
+                        fontWeight: 500,
                         lineHeight: 1.2,
                       }}>
                         {t(step.labelKey, { defaultValue: step.label })}
                       </p>
-                      <p style={{ fontSize: '0.55rem', color: 'var(--text-muted)', lineHeight: 1.25, marginTop: 2 }}>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.3, marginTop: 2 }}>
                         {t(step.descKey, { defaultValue: step.desc })}
                       </p>
                     </div>

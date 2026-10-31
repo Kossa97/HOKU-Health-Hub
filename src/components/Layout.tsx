@@ -19,21 +19,21 @@ import { PASSKEY_AN } from '../features/auth/lib/passkey'
 import { PasskeyNachfrage } from '../features/auth/components/PasskeyNachfrage'
 
 const QUICK_ACTIONS = [
-  { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
-  { icon: FlaskConical, label: 'Substanz hinzufügen', path: '/my-stack#new-substance', color: '#00ccf5' },
-  { icon: Syringe,      label: 'Injektion loggen',  path: '/injektionen',  color: '#10b981' },
-  { icon: Dumbbell,     label: 'Training',          path: '/training',     color: '#f97316' },
-  { icon: Utensils,     label: 'Essen eintragen',   path: '/ernaehrung',   color: '#f59e0b' },
-  { icon: CalendarDays, label: 'Kalender / Zyklus', path: '/kalender',     color: '#8b5cf6' },
-  { icon: Activity,     label: 'Blutspiegel',       path: '/simulation',   color: '#06b6d4' },
-  { icon: Droplets,     label: 'Blutwerte',         path: '/blutwerte',    color: '#f43f5e' },
+  { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes' },
+  { icon: FlaskConical, label: 'Substanz hinzufügen', path: '/my-stack#new-substance' },
+  { icon: Syringe,      label: 'Injektion loggen',  path: '/injektionen' },
+  { icon: Dumbbell,     label: 'Training',          path: '/training' },
+  { icon: Utensils,     label: 'Essen eintragen',   path: '/ernaehrung' },
+  { icon: CalendarDays, label: 'Kalender / Zyklus', path: '/kalender' },
+  { icon: Activity,     label: 'Blutspiegel',       path: '/simulation' },
+  { icon: Droplets,     label: 'Blutwerte',         path: '/blutwerte' },
 ] as const
 
 const QUICK_TILES = [
-  { icon: Calculator,  label: 'Rechner',   path: '/rechner', color: '#3b82f6' },
-  { icon: Microscope,  label: 'The Lab',   path: '/lab',     color: '#8b5cf6' },
-  { icon: BookHeart,   label: 'Tagebuch',  path: '/tagebuch',color: '#ec4899' },
-  { icon: FlaskConical,label: 'Peptipedia',path: '/lab/peptipedia', color: '#06b6d4' },
+  { icon: Calculator,  label: 'Rechner',   path: '/rechner' },
+  { icon: Microscope,  label: 'The Lab',   path: '/lab' },
+  { icon: BookHeart,   label: 'Tagebuch',  path: '/tagebuch' },
+  { icon: FlaskConical,label: 'Peptipedia',path: '/lab/peptipedia' },
 ] as const
 
 const PUSH_DISMISSED_KEY    = 'tyd_push_dismissed'
@@ -116,13 +116,10 @@ export function Layout() {
       {/* ── iOS install guide banner ── */}
       {showIOSBanner && (
         <PushBanner
-          icon={<Share size={15} color="#f59e0b" />}
-          iconBg="rgba(245,158,11,0.15)"
-          iconBorder="rgba(245,158,11,0.28)"
+          icon={<Share size={16} strokeWidth={1.5} color="var(--lg-warn-text)" />}
           title="App installieren für Notifications"
           desc={'Tippe auf ↑ Teilen → „Zum Home-Bildschirm" → dann Notifications aktivieren'}
           ctaLabel={undefined}
-          ctaColor="#f59e0b"
           onCta={undefined}
           onDismiss={handleIOSDismiss}
         />
@@ -131,13 +128,10 @@ export function Layout() {
       {/* ── Push permission banner ── */}
       {showPushBanner && (
         <PushBanner
-          icon={<Bell size={15} color="#00ccf5" />}
-          iconBg="rgba(0,204,245,0.15)"
-          iconBorder="rgba(0,204,245,0.28)"
+          icon={<Bell size={16} strokeWidth={1.5} color="var(--lg-accent-text)" />}
           title={t('push_banner_title', { defaultValue: 'Einnahme-Erinnerungen' })}
           desc={t('push_banner_desc', { defaultValue: 'Zur eingestellten Zeit automatisch benachrichtigt werden.' })}
           ctaLabel={t('push_banner_allow', { defaultValue: 'Aktivieren' })}
-          ctaColor="#00ccf5"
           onCta={handlePushAccept}
           onDismiss={handlePushDismiss}
         />
@@ -179,13 +173,13 @@ export function Layout() {
           {/* Glas-Menü, das aus dem Plus-Knopf unten rechts herauswächst */}
           <div className="lg-glass lg-menu" style={{
             position: 'fixed',
-            bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 10px)',
+            bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 12px)',
             left: 'max(16px, env(safe-area-inset-left))',
             right: 'max(16px, env(safe-area-inset-right))',
             maxWidth: 480,
             marginInline: 'auto',
             zIndex: 46,
-            borderRadius: 28,
+            borderRadius: 24,
             overflow: 'hidden',
           }}
             data-app-modal
@@ -206,12 +200,12 @@ export function Layout() {
                 data-last={i === QUICK_ACTIONS.length - 1}
               >
                 <div style={{
-                  width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                  background: action.color,
+                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                  background: 'var(--lg-fill)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff',
+                  color: 'var(--lg-text-2)',
                 }}>
-                  <action.icon size={17} strokeWidth={2.2} />
+                  <action.icon size={18} strokeWidth={1.5} />
                 </div>
                 <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)' }}>
                   {action.label}
@@ -220,15 +214,15 @@ export function Layout() {
             ))}
 
             {/* Tile grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: 12 }}>
               {QUICK_TILES.map(tile => (
                 <button
                   key={tile.path + tile.label}
                   onClick={() => handleQuickNav(tile.path)}
                   className="lg-menu-tile"
                 >
-                  <tile.icon size={20} color={tile.color} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                  <tile.icon size={18} strokeWidth={1.5} color="var(--lg-text-2)" />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                     {tile.label}
                   </span>
                 </button>
@@ -258,16 +252,13 @@ export function Layout() {
 // ── PushBanner ────────────────────────────────────────────────────────────────
 
 function PushBanner({
-  icon, iconBg, iconBorder, title, desc,
-  ctaLabel, ctaColor, onCta, onDismiss,
+  icon, title, desc,
+  ctaLabel, onCta, onDismiss,
 }: {
   icon: React.ReactNode
-  iconBg: string
-  iconBorder: string
   title: string
   desc: string
   ctaLabel?: string
-  ctaColor: string
   onCta?: () => void
   onDismiss: () => void
 }) {
@@ -278,23 +269,23 @@ function PushBanner({
       borderBottom: '1px solid var(--border)',
       backdropFilter: 'blur(18px)',
       WebkitBackdropFilter: 'blur(18px)',
-      padding: '12px 14px',
+      padding: '12px 16px',
       paddingTop: 'calc(12px + env(safe-area-inset-top))',
-      display: 'flex', alignItems: 'center', gap: 10,
+      display: 'flex', alignItems: 'center', gap: 12,
       boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
     }}>
       <div style={{
-        width: 34, height: 34, borderRadius: 11, flexShrink: 0,
-        background: iconBg, border: `1px solid ${iconBorder}`,
+        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+        background: 'var(--lg-fill)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {icon}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', lineHeight: 1.3 }}>
           {title}
         </p>
-        <p style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>
           {desc}
         </p>
       </div>
@@ -302,9 +293,9 @@ function PushBanner({
         <button
           onClick={onCta}
           style={{
-            padding: '7px 12px', borderRadius: 11, flexShrink: 0,
-            background: `${ctaColor}22`, border: `1px solid ${ctaColor}40`,
-            color: ctaColor, fontSize: '0.7rem', fontWeight: 800,
+            padding: '8px 12px', borderRadius: 8, flexShrink: 0,
+            background: 'var(--accent-weak)', border: '1px solid var(--accent-border)',
+            color: 'var(--lg-accent-text)', fontSize: 13, fontWeight: 500,
             whiteSpace: 'nowrap',
           }}
         >
@@ -315,14 +306,14 @@ function PushBanner({
         onClick={onDismiss}
         aria-label="Schließen"
         style={{
-          width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(255,255,255,0.05)',
+          background: 'var(--lg-fill)',
           border: '1px solid var(--border)',
           color: 'var(--text-muted)',
         }}
       >
-        <X size={12} />
+        <X size={14} strokeWidth={1.5} />
       </button>
     </div>
   )

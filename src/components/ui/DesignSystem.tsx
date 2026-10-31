@@ -2,14 +2,17 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 // Shared dashboard primitives used to keep refreshed screens visually consistent.
-const accentAlpha = (accent: string, alpha: string) => `${accent}${alpha}`
+// Farben laufen über Tokens (`var(--accent)` …), damit jeder Look passt;
+// ein übergebener Hex-Wert funktioniert genauso.
+const tint = (accent: string, percent: number) => `color-mix(in srgb, ${accent} ${percent}%, transparent)`
+const DEFAULT_ACCENT = 'var(--accent)'
 
 type PaddingSize = 'sm' | 'md' | 'lg'
 
 const paddingMap: Record<PaddingSize, string> = {
   sm: '12px',
-  md: '14px',
-  lg: '18px',
+  md: '16px',
+  lg: '20px',
 }
 
 function combineClassNames(...classes: Array<string | undefined | false>) {
@@ -31,7 +34,7 @@ export function PageShell({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 18,
+        gap: 20,
         paddingBottom: 8,
         ...style,
       }}
@@ -45,7 +48,7 @@ export function GlassPanel({
   children,
   className,
   style,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
   padding = 'md',
   asButton = false,
   onClick,
@@ -68,10 +71,10 @@ export function GlassPanel({
         width: asButton ? '100%' : undefined,
         textAlign: asButton ? 'left' : undefined,
         cursor: asButton ? 'pointer' : undefined,
-        transition: asButton ? 'transform 0.16s ease, border-color 0.16s ease' : undefined,
+        transition: asButton ? 'transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.16s cubic-bezier(0.22, 1, 0.36, 1)' : undefined,
         padding: paddingMap[padding],
-        borderRadius: 24,
-        border: `1px solid ${accentAlpha(accent, '18')}`,
+        borderRadius: 18,
+        border: accent === DEFAULT_ACCENT ? '1px solid var(--border)' : `1px solid ${tint(accent, 10)}`,
         background: 'var(--surface)',
         boxShadow: 'var(--shadow-card)',
         position: 'relative',
@@ -86,7 +89,7 @@ export function GlassPanel({
 
 export function IconBadge({
   icon: Icon,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
   size = 40,
 }: {
   icon: LucideIcon
@@ -98,18 +101,19 @@ export function IconBadge({
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.38),
+        borderRadius: size >= 40 ? 10 : 8,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: accentAlpha(accent, '18'),
-        border: `1px solid ${accentAlpha(accent, '28')}`,
-        color: accent,
-        boxShadow: `0 0 22px ${accentAlpha(accent, '18')}`,
+        // Ruhige Kachel: Fläche und Icon in der Textrolle, die Akzentfarbe
+        // bleibt als feiner Rand stehen
+        background: 'var(--lg-fill)',
+        border: accent === DEFAULT_ACCENT ? '1px solid var(--border)' : `1px solid ${tint(accent, 24)}`,
+        color: 'var(--lg-text-2)',
         flexShrink: 0,
       }}
     >
-      <Icon size={Math.round(size * 0.45)} />
+      <Icon size={size >= 40 ? 18 : 16} strokeWidth={1.5} />
     </div>
   )
 }
@@ -119,7 +123,7 @@ export function PageHero({
   title,
   subtitle,
   icon,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
   action,
   children,
 }: {
@@ -135,19 +139,17 @@ export function PageHero({
 
   return (
     <GlassPanel padding="lg" accent={accent}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: compact ? 'center' : 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: compact ? 'center' : 'flex-start' }}>
         <div style={{ display: 'flex', gap: 12, minWidth: 0, alignItems: compact ? 'center' : 'flex-start' }}>
           {icon && <IconBadge icon={icon} accent={accent} size={44} />}
           <div style={{ minWidth: 0 }}>
             {kicker && (
               <p
                 style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 850,
-                  letterSpacing: '0.13em',
-                  textTransform: 'uppercase',
-                  color: accentAlpha(accent, 'c9'),
-                  marginBottom: 5,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: 'var(--lg-text-3)',
+                  marginBottom: 4,
                 }}
               >
                 {kicker}
@@ -155,9 +157,9 @@ export function PageHero({
             )}
             <h1
               style={{
-                fontSize: '1.72rem',
-                fontWeight: 900,
-                letterSpacing: '-0.045em',
+                fontSize: 28,
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
                 color: 'var(--text)',
                 lineHeight: 1.05,
                 margin: 0,
@@ -166,7 +168,7 @@ export function PageHero({
               {title}
             </h1>
             {subtitle && (
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', lineHeight: 1.55, marginTop: 8 }}>
+              <p style={{ fontSize: 14, color: 'var(--text-dim)', lineHeight: 1.5, marginTop: 8 }}>
                 {subtitle}
               </p>
             )}
@@ -185,7 +187,7 @@ export function SectionHeader({
   subtitle,
   action,
   icon,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
 }: {
   kicker?: ReactNode
   title: ReactNode
@@ -202,10 +204,8 @@ export function SectionHeader({
         {kicker && (
           <p
             style={{
-              fontSize: '0.62rem',
-              fontWeight: 850,
-              letterSpacing: '0.13em',
-              textTransform: 'uppercase',
+              fontSize: 13,
+              fontWeight: 500,
               color: 'var(--text-muted)',
             }}
           >
@@ -213,11 +213,11 @@ export function SectionHeader({
           </p>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: kicker ? 2 : 0 }}>
-          {Icon && <Icon size={17} color={accent} />}
-          <h2 style={{ fontSize: '1rem', fontWeight: 850, color: 'var(--text)', lineHeight: 1.25 }}>{title}</h2>
+          {Icon && <Icon size={18} strokeWidth={1.5} color={accent === DEFAULT_ACCENT ? 'var(--lg-text-2)' : accent} />}
+          <h2 style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', lineHeight: 1.25 }}>{title}</h2>
         </div>
         {subtitle && (
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 3, lineHeight: 1.45 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.45 }}>
             {subtitle}
           </p>
         )}
@@ -232,7 +232,7 @@ export function MetricCard({
   label,
   value,
   hint,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
   onClick,
 }: {
   icon: LucideIcon
@@ -244,16 +244,16 @@ export function MetricCard({
 }) {
   return (
     <GlassPanel asButton={!!onClick} onClick={onClick} padding="sm" accent={accent} style={{ minHeight: 112 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-        <IconBadge icon={icon} accent={accent} size={36} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+        <IconBadge icon={icon} accent={accent} size={32} />
       </div>
-      <p style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 13 }}>
+      <p className="tabular-nums" style={{ fontSize: 24, fontWeight: 500, color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1, marginTop: 12 }}>
         {value}
       </p>
-      <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 760, marginTop: 5 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400, marginTop: 4 }}>
         {label}
       </p>
-      {hint && <p style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2 }}>{hint}</p>}
+      {hint && <p className="font-mono" style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{hint}</p>}
     </GlassPanel>
   )
 }
@@ -273,16 +273,16 @@ export function ResearchDisclaimer({
     <div
       // Ruhige Fußnoten-Fläche wie der Medizin-Hinweis; der Titel trägt die Farbe
       style={{
-        padding: compact ? '10px 14px' : '12px 16px',
-        borderRadius: 18,
+        padding: compact ? '12px 16px' : '16px',
+        borderRadius: 16,
         background: 'var(--lg-surface-2)',
       }}
     >
       <p
         style={{
           fontSize: 13,
-          fontWeight: 600,
-          color: accent === '#f59e0b' ? 'var(--lg-warn-text)' : accent === '#00ccf5' ? 'var(--lg-accent-text)' : accent,
+          fontWeight: 500,
+          color: accent === '#f59e0b' ? 'var(--lg-warn-text)' : accent === '#00ccf5' || accent === DEFAULT_ACCENT ? 'var(--lg-accent-text)' : accent,
           marginBottom: 2,
         }}
       >
@@ -351,7 +351,7 @@ export function ActionTile({
   icon,
   label,
   description,
-  accent = '#00ccf5',
+  accent = DEFAULT_ACCENT,
   onClick,
   className,
 }: {
@@ -369,14 +369,14 @@ export function ActionTile({
       style={{
         minHeight: 104,
         width: '100%',
-        padding: '12px 10px',
-        borderRadius: 20,
-        border: `1px solid ${accentAlpha(accent, '33')}`,
-        background: `linear-gradient(155deg, ${accentAlpha(accent, '20')}, var(--surface))`,
+        padding: '12px',
+        borderRadius: 16,
+        border: accent === DEFAULT_ACCENT ? '1px solid var(--border)' : `1px solid ${tint(accent, 20)}`,
+        background: 'var(--surface)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        gap: 9,
+        gap: 8,
         textAlign: 'left',
         position: 'relative',
         overflow: 'hidden',
@@ -384,9 +384,9 @@ export function ActionTile({
     >
       <IconBadge icon={icon} accent={accent} size={34} />
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <p style={{ fontSize: '0.78rem', fontWeight: 850, color: 'var(--text)', lineHeight: 1.16 }}>{label}</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', lineHeight: 1.2 }}>{label}</p>
         {description && (
-          <p style={{ fontSize: '0.61rem', color: 'var(--text-dim)', lineHeight: 1.32, marginTop: 3 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.35, marginTop: 4 }}>
             {description}
           </p>
         )}

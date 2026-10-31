@@ -55,7 +55,7 @@ export function InjectionHistorySheet({
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <History size={16} color="var(--accent)" aria-hidden="true" />
-            <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{t('injection_history', { defaultValue: 'Historie' })}</h2>
+            <h2 className="text-[17px] font-medium text-[var(--lg-text)]">{t('injection_history', { defaultValue: 'Historie' })}</h2>
           </div>
           <HistoryDaysSelect historyDays={historyDays} onHistoryDaysChange={onHistoryDaysChange} />
         </div>
@@ -67,7 +67,7 @@ export function InjectionHistorySheet({
         )}
         {groups.map(group => (
           <div key={group.label}>
-            <p className="mb-2 px-1 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">{group.label}</p>
+            <p className="mb-2 px-1 text-[13px] font-medium text-[var(--lg-text-3)]">{group.label}</p>
             <div className="space-y-2">
               {group.logs.map(log => {
                 const visible = visibleLogIds.has(log.id)
@@ -81,7 +81,7 @@ export function InjectionHistorySheet({
                   : t('injection_pin_show', { defaultValue: 'Pin dauerhaft anzeigen' })
 
                 return (
-                  <article key={log.id} className={`rounded-[20px] p-3 ${confirmationOpen ? 'bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)]' : 'bg-[var(--lg-surface-2)]'}`}>
+                  <article key={log.id} className={`rounded-[16px] p-3 ${confirmationOpen ? 'bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)]' : 'bg-[var(--lg-surface-2)]'}`}>
                     <div className="flex items-start gap-2.5">
                       <div className="flex shrink-0 gap-1.5">
                         <button
@@ -89,7 +89,7 @@ export function InjectionHistorySheet({
                           aria-label={String(pinLabel)}
                           title={String(pinLabel)}
                           onClick={() => onToggleLog(log.id)}
-                          className={`lg-icon-btn transition-colors ${visible ? 'bg-[rgba(0,204,245,0.18)] !text-[var(--lg-accent-text)]' : 'bg-[var(--lg-fill)] !text-[var(--lg-text-3)]'}`}
+                          className={`lg-icon-btn transition-colors ${visible ? 'bg-[var(--accent-weak)] !text-[var(--lg-accent-text)]' : 'bg-[var(--lg-fill)] !text-[var(--lg-text-3)]'}`}
                         >
                           {visible ? <Eye size={16} aria-hidden="true" /> : <EyeOff size={16} aria-hidden="true" />}
                         </button>
@@ -108,9 +108,9 @@ export function InjectionHistorySheet({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{substance}</p>
+                        <p className="truncate text-[17px] font-medium text-[var(--lg-text)]">{substance}</p>
                         <p className="mt-0.5 text-[13px] leading-5 text-[var(--lg-text-2)]">{formatInjectionSite(log)}</p>
-                        <p className="mt-0.5 text-[12px] text-[var(--lg-text-3)]">{metadata}</p>
+                        <p className="mt-0.5 font-mono text-[12px] tabular-nums text-[var(--lg-text-3)]">{metadata}</p>
                         {confirmationOpen && (
                           <p className="lg-tag mt-2" data-tone="warn">
                             <AlertCircle size={12} aria-hidden="true" /> {t('injection_confirmation_open', { defaultValue: 'Einnahmebestätigung offen' })}
@@ -159,7 +159,7 @@ export function HistoryDaysSelect({
     <label className={className}>
       <span className="sr-only">{t('injection_history_period', { defaultValue: 'Historienzeitraum' })}</span>
       <select
-        className="h-9 rounded-full bg-[var(--lg-fill)] px-3 text-[13px] font-semibold text-[var(--lg-text)] outline-none"
+        className="h-9 rounded-[10px] bg-[var(--lg-fill)] px-3 text-[13px] font-medium text-[var(--lg-text)] outline-none"
         value={historyDays}
         onChange={event => {
           const value = event.target.value
