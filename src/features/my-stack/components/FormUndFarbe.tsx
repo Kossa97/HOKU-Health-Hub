@@ -54,7 +54,7 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
         aria-describedby={error ? 'stack-dosage-form-error' : undefined}
         className="stack-reveal min-w-0"
       >
-        <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <legend className="mb-2 text-[13px] font-medium text-slate-500">
           {t('my_stack_form_question', { defaultValue: 'In welcher Form?' })}
         </legend>
         <div
@@ -90,9 +90,9 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
                     ? <DosageFormPreview dosageForm={key} colorHex={gewaehlt && farbe ? farbe : NEUTRAL} size="mini" showLabel={false} />
                     : <DosageFormIcon form={key} size={34} />}
                 </span>
-                <span className={`text-sm font-semibold transition-colors duration-200 ${gewaehlt ? 'text-white' : 'text-slate-500'}`}>{t(form.labelKey)}</span>
+                <span className={`text-sm font-medium transition-colors duration-200 ${gewaehlt ? 'text-white' : 'text-slate-500'}`}>{t(form.labelKey)}</span>
                 {vorschlag.has(key)
-                  ? <span data-form-recommended className="text-[10.5px] font-bold tracking-[0.02em] text-sky-300">{t('my_stack_form_recommended', { defaultValue: 'Empfohlen' })}</span>
+                  ? <span data-form-recommended className="text-[11px] font-medium text-sky-300">{t('my_stack_form_recommended', { defaultValue: 'Empfohlen' })}</span>
                   : <span aria-hidden="true" className={`size-1.5 rounded-full transition-colors duration-200 ${gewaehlt ? 'bg-sky-400' : 'bg-transparent'}`} />}
               </button>
             )
@@ -107,7 +107,7 @@ export function FormUndFarbe({ value, suggestedForms, colorHex, displayName, err
 
       {value && showsColor(value) && (
         <div key={value} role="group" aria-labelledby="stack-color-label" data-form-color className="stack-reveal">
-          <p id="stack-color-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <p id="stack-color-label" className="mb-2 text-[13px] font-medium text-slate-500">
             {hatFluessigkeit(value)
               ? t('my_stack_color_of_liquid', { defaultValue: 'Farbe der Flüssigkeit' })
               : t('my_stack_color_optional', { defaultValue: 'Farbe (optional)' })}

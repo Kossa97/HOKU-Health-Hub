@@ -66,7 +66,7 @@ export function IngredientCatalogPicker({
       >
         <Check aria-hidden="true" size={18} className="shrink-0 text-[color:var(--accent)]" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-white">{entry.canonical_name}</span>
+          <span className="block truncate font-medium text-white">{entry.canonical_name}</span>
           <span className="block truncate text-[12px] text-slate-400">
             {entry.pk_profile_id
               ? t('my_stack_from_catalog_pk', { defaultValue: 'Aus dem Katalog · PK-Profil vorhanden' })

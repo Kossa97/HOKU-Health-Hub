@@ -6,7 +6,7 @@ import { Plus, FlaskConical, List, Search, MoreHorizontal, X, Archive, ChevronRi
 import { type Peptide, type PeptideSortKey, PEPTIDE_SORT_GROUPS, SORT_OPTION_LABEL_KEYS } from './model'
 
 /** Glas-Knopf der Titelzeile: 44 px rund, wie der Profil-Knopf der Startseite. */
-const GLASS_BUTTON = 'stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400'
+const GLASS_BUTTON = 'stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
 
 /**
  * Kopfzeile: Titel mit Anzahl, dann Suche · Menue · Plus.
@@ -80,7 +80,7 @@ export function MyStackHeader({
         <div className={`flex min-w-0 items-baseline gap-2 overflow-hidden transition-[max-width,opacity] duration-300 ${searchOpen ? 'max-w-0 opacity-0' : 'max-w-[70%] opacity-100'}`}>
           <h2 className="lg-large-title min-w-0 truncate">{t('meine_peptide')}</h2>
           {peptides.length > 0 && (
-            <span className="shrink-0 text-xl font-semibold tabular-nums text-[var(--lg-text-3)]">{peptides.length}</span>
+            <span className="shrink-0 font-mono text-xl tabular-nums text-[var(--lg-text-3)]">{peptides.length}</span>
           )}
         </div>
 
@@ -131,7 +131,7 @@ export function MyStackHeader({
                 {filterOpen && (
                   <>
                     <div className="fixed inset-0 z-20" onClick={() => setFilterOpen(false)} />
-                    <div className="stack-menu lg-glass absolute right-0 top-full z-30 mt-2 w-64 space-y-3 rounded-[22px] p-3">
+                    <div className="stack-menu lg-glass absolute right-0 top-full z-30 mt-2 w-64 space-y-3 rounded-2xl p-3">
                       <div>
                         <p className="stack-menu-label">{t('my_stack_view')}</p>
                         <div role="radiogroup" aria-label={t('my_stack_view')} className="stack-menu-seg">
@@ -142,7 +142,7 @@ export function MyStackHeader({
                               role="radio"
                               aria-checked={viewMode === mode}
                               onClick={() => setViewMode(mode)}
-                              className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-semibold"
+                              className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium"
                             >
                               <Icon size={15} /> {label}
                             </button>
@@ -175,14 +175,14 @@ export function MyStackHeader({
                           onClick={() => { setFilterOpen(false); setArchiveViewOpen(true) }}
                           aria-label={t('archiv')}
                           data-my-stack-archive
-                          className="stack-head-btn flex min-h-11 w-full items-center gap-3 rounded-2xl px-2 text-[15px] font-semibold text-[var(--lg-text)] transition-colors active:bg-white/[0.08]"
+                          className="stack-head-btn flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-[15px] font-medium text-[var(--lg-text)] transition-colors active:bg-white/[0.08]"
                         >
                           <span aria-hidden="true" className="lg-icon-tile !h-7 !w-7 bg-[#8e8e93]">
                             <Archive size={15} />
                           </span>
                           <span className="flex-1 text-left">{t('archiv')}</span>
                           {archivedCount > 0 && (
-                            <span className="text-[15px] tabular-nums text-[var(--lg-text-3)]">{archivedCount}</span>
+                            <span className="font-mono text-[15px] tabular-nums text-[var(--lg-text-3)]">{archivedCount}</span>
                           )}
                           <ChevronRight size={16} className="text-[var(--lg-text-4)]" />
                         </button>
@@ -206,7 +206,7 @@ export function MyStackHeader({
               aria-label={String(t('neues_peptid_title'))}
               title={String(t('neues_peptid_title'))}
               data-my-stack-add
-              className="stack-head-btn lg-btn-primary lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+              className="stack-head-btn lg-btn-primary lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <Plus size={22} strokeWidth={2.4} aria-hidden="true" />
             </button>

@@ -106,7 +106,7 @@ export function SubstanceSearch({
   return (
     <div className="space-y-5">
       <div>
-        <label htmlFor="stack-substance-search" className="mb-2 block text-sm font-semibold text-slate-200">
+        <label htmlFor="stack-substance-search" className="mb-2 block text-sm font-medium text-slate-200">
           {question ?? t('my_stack_question', { defaultValue: 'Was möchtest du hinzufügen?' })}
         </label>
         {selectedEntry ? (
@@ -116,7 +116,7 @@ export function SubstanceSearch({
           >
             <Check aria-hidden="true" size={18} className="shrink-0 text-[color:var(--accent)]" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold text-white">{selectedEntry.canonical_name}</span>
+              <span className="block truncate font-medium text-white">{selectedEntry.canonical_name}</span>
               <span data-substance-selected-hint className="block truncate text-[12px] text-slate-400">
                 {istKombination(selectedEntry)
                   ? kombinationsHinweis(selectedEntry)
@@ -141,7 +141,7 @@ export function SubstanceSearch({
           >
             <Check aria-hidden="true" size={18} className="shrink-0 text-[color:var(--accent)]" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold text-white">{query}</span>
+              <span className="block truncate font-medium text-white">{query}</span>
               <span className="block truncate text-[12px] text-slate-400">{t('my_stack_custom_substance', { defaultValue: 'Eigene Substanz' })}</span>
             </span>
             {onUndoCustom && (
@@ -221,7 +221,7 @@ export function SubstanceSearch({
                 : 'border-slate-400/20 bg-slate-400/[0.06] hover:border-sky-400/30 hover:bg-sky-400/[0.06]'
               }`}
             >
-              <span className="block font-semibold text-white">{entry.canonical_name}</span>
+              <span className="block font-medium text-white">{entry.canonical_name}</span>
               {istKombination(entry) && (
                 <span data-substance-combination className="mt-1 block text-sm text-[color:var(--accent)]">
                   {kombinationsHinweis(entry)}
@@ -246,7 +246,7 @@ export function SubstanceSearch({
         <button
           type="button"
           onClick={() => onAddCustom(query)}
-          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-400/[0.06] px-4 py-3 font-semibold text-sky-300 transition-colors duration-200 hover:bg-sky-400/[0.11] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-400/[0.06] px-4 py-3 font-medium text-sky-300 transition-colors duration-200 hover:bg-sky-400/[0.11] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
         >
           <Plus aria-hidden="true" size={18} />
           {t('my_stack_add_custom', { defaultValue: 'Als eigene Substanz hinzufügen' })}
@@ -266,7 +266,7 @@ export function SubstanceSearch({
           Wahl. Sichtbar bleibt sie in der Zusammenfassung. */}
       {!selectedEntry && customConfirmed && (
       <div>
-        <label htmlFor="stack-category" className="mb-2 block text-sm font-semibold text-slate-200">
+        <label htmlFor="stack-category" className="mb-2 block text-sm font-medium text-slate-200">
           {t('my_stack_category', { defaultValue: 'Kategorie' })}
         </label>
         <select

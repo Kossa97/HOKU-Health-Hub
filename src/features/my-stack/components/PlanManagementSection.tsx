@@ -357,9 +357,9 @@ export function PlanManagementSection({
     return (
       <section
         data-testid={`plan-management-${timeline.cycle.id}`}
-        className="lg-surface !bg-[rgba(255,159,10,0.10)] p-4"
+        className="lg-surface !bg-[color-mix(in_srgb,var(--lg-warn)_10%,transparent)] p-4"
       >
-        <p className="text-[17px] font-semibold text-[#ffb340]">
+        <p className="text-[17px] font-medium text-[var(--lg-warn-text)]">
           {t('my_stack_plan_conflict_title', { defaultValue: 'Welcher Plan läuft wirklich?' })}
         </p>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
@@ -367,7 +367,7 @@ export function PlanManagementSection({
             defaultValue: 'Wähle den Plan, der gerade tatsächlich läuft. Deine bisherigen Einnahmen und der gesamte Verlauf bleiben erhalten.',
           })}
         </p>
-        <p className="mt-3 text-xs font-semibold text-slate-400">
+        <p className="mt-3 text-xs font-medium text-slate-400">
           {t('my_stack_plan_conflict_started', {
             defaultValue: 'Gestartet am {{date}}',
             date: dateLabel(timeline.cycle.started_at, language, timeZone),
@@ -377,7 +377,7 @@ export function PlanManagementSection({
           type="button"
           disabled={pending || !onResolveConflict}
           onClick={() => void resolveConflict()}
-          className="lg-gray-btn mt-4 w-full !text-[#ffb340]"
+          className="lg-gray-btn mt-4 w-full !text-[var(--lg-warn-text)]"
         >
           {t('my_stack_plan_conflict_keep', { defaultValue: 'Diesen laufenden Plan behalten' })}
         </button>
@@ -394,7 +394,7 @@ export function PlanManagementSection({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
+          <p className="text-[13px] font-medium text-[var(--lg-text-3)]">
             {t('my_stack_plan_management', { defaultValue: 'Einnahmeplan' })}
           </p>
           <span
@@ -411,10 +411,10 @@ export function PlanManagementSection({
 
       {!isEnded && !displayVersion ? null : (
         <>
-          <div className="mt-4 flex items-center gap-2.5">
+          <div className="mt-4 flex items-center gap-3">
             <span aria-hidden="true" className={`lg-icon-tile ${isActive ? 'bg-[var(--lg-good)]' : 'bg-[#0a84ff]'}`}><CalendarDays size={16} /></span>
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-white">
+              <p className="text-[15px] font-medium tabular-nums text-white">
                 {dateLabel(`${period.first}|00:00:00`, language, timeZone)}
                 {!neverRan && ' – '}
                 {neverRan
@@ -445,9 +445,9 @@ export function PlanManagementSection({
           </div>
 
           {panelVersion && (
-            <div className="mt-4 rounded-[20px] bg-[#2c2c2e] p-4">
+            <div className="mt-4 rounded-2xl bg-[var(--surface-raised)] p-4">
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-medium text-white">
                   {isEnded
                     ? t('my_stack_plan_last_plan', { defaultValue: 'Zuletzt' })
                     : resolved.status === 'planned'
@@ -476,15 +476,15 @@ export function PlanManagementSection({
               {panelSlots.length > 0 && syringe && <div className="mt-2"><SyringeNote syringe={syringe} language={language} t={t} /></div>}
 
               {isEnded ? null : resolved.status === 'paused' ? (
-                <p className="mt-4 rounded-2xl bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[15px] text-[#ffb340]">
+                <p className="mt-4 rounded-2xl bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] px-4 py-2.5 text-[15px] text-[var(--lg-warn-text)]">
                   {t('my_stack_plan_pause_neutral', { defaultValue: 'Während der Pause ist keine Einnahme fällig.' })}
                 </p>
               ) : (
-                <div className="mt-3 flex items-start gap-2 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-2.5">
-                  <Clock size={15} className="mt-0.5 shrink-0 text-[#64d2ff]" />
+                <div className="mt-3 flex items-start gap-2 rounded-2xl bg-[var(--lg-fill)] px-4 py-2.5">
+                  <Clock size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[var(--lg-text-3)]" />
                   <div>
                     <p className="text-xs text-slate-500">{t('my_stack_plan_next_intake', { defaultValue: 'Nächste Einnahme' })}</p>
-                    <p className="mt-0.5 text-sm font-semibold text-slate-100">
+                    <p className="mt-0.5 text-sm font-medium text-slate-100">
                       {nextIntake
                         ? nextIntakeLabel(nextIntake, today, language, t)
                         : t('my_stack_plan_next_intake_none', { defaultValue: 'Keine feste Einnahme geplant' })}
@@ -510,11 +510,11 @@ export function PlanManagementSection({
           {showHistory && (
             <div className="mt-5">
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-medium text-white">
                   {t('my_stack_plan_dose_history', { defaultValue: 'Dosisverlauf' })}
                 </h3>
                 {futureSegments.length > 0 && !isEnded && (
-                  <p className="text-[11.5px] text-slate-500">
+                  <p className="text-xs tabular-nums text-slate-500">
                     {t('my_stack_plan_planned_count', {
                       planned: futureSegments.length,
                       defaultValue: '{{planned}} geplant',
@@ -544,7 +544,7 @@ export function PlanManagementSection({
                           defaultValue: 'Geplante Änderung vom {{date}} bearbeiten',
                           date: effectiveDate,
                         }))}
-                        className="grid h-11 w-11 place-items-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-violet-200 disabled:opacity-50"
+                        className="grid h-11 w-11 place-items-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-[var(--lg-text)] disabled:opacity-50"
                       >
                         <Pencil size={15} />
                       </button>
@@ -569,16 +569,16 @@ export function PlanManagementSection({
                     <>
                       <div className="flex items-start gap-2">
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                          <p className={`text-[13px] font-bold ${segment.status === 'future' ? 'text-violet-100' : segment.status === 'current' ? 'text-white' : 'text-slate-300'}`}>
+                          <p className={`text-[13px] font-medium ${segment.status === 'future' ? 'text-slate-200' : segment.status === 'current' ? 'text-white' : 'text-slate-300'}`}>
                             {effectiveDate} · {stepKindLabel(segment.version, t)}
                           </p>
                           {segment.status === 'current' && (
-                            <span className="rounded-full bg-emerald-400/15 px-2 py-px text-[11px] font-bold text-emerald-200">
+                            <span className="rounded-md bg-emerald-400/15 px-1.5 py-px text-[11px] font-medium text-emerald-200">
                               {t('my_stack_plan_step_current', { defaultValue: 'gilt jetzt' })}
                             </span>
                           )}
                           {segment.status === 'future' && (
-                            <span className="rounded-full bg-violet-300/15 px-2 py-px text-[11px] font-bold text-violet-200">
+                            <span className="rounded-md bg-white/[0.08] px-1.5 py-px text-[11px] font-medium text-slate-300">
                               {t('my_stack_plan_step_planned', { defaultValue: 'geplant' })}
                             </span>
                           )}
@@ -586,7 +586,7 @@ export function PlanManagementSection({
                         {actions}
                       </div>
                       {(previousRhythm === null || previousRhythm !== rhythm) && (
-                        <p className="mt-1 text-[11.5px] text-slate-400">
+                        <p className="mt-1 text-xs text-slate-400">
                           {previousRhythm !== null && <span className="text-slate-500">{previousRhythm} → </span>}
                           {rhythm}
                         </p>
@@ -604,16 +604,16 @@ export function PlanManagementSection({
                     <li key={segment.version.id} className="flex gap-3">
                       <div aria-hidden="true" className="flex w-4 shrink-0 flex-col items-center">
                         {segment.status === 'current' ? (
-                          <span className="mt-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.18)]" />
+                          <span className="mt-0.5 h-3.5 w-3.5 rounded-full bg-[var(--lg-good)]" />
                         ) : segment.status === 'future' ? (
-                          <span className="mt-1 h-3 w-3 rounded-full border-2 border-dashed border-violet-300" />
+                          <span className="mt-1 h-3 w-3 rounded-full border-2 border-dashed border-slate-400" />
                         ) : (
                           <span className="mt-1 h-3 w-3 rounded-full border-2 border-slate-500" />
                         )}
-                        {!isLast && <span className={`w-0.5 flex-1 ${steps[index + 1]?.status === 'future' ? 'bg-violet-300/35' : 'bg-slate-400/25'}`} />}
+                        {!isLast && <span className={`w-0.5 flex-1 ${steps[index + 1]?.status === 'future' ? 'bg-slate-400/15' : 'bg-slate-400/25'}`} />}
                       </div>
                       {segment.status === 'future' ? (
-                        <div className={`-mt-1.5 min-w-0 flex-1 rounded-xl border border-violet-300/20 bg-violet-300/5 p-2.5 pl-3 ${isLast ? '' : 'mb-4'}`}>
+                        <div className={`-mt-1.5 min-w-0 flex-1 rounded-xl border border-dashed border-white/10 p-3 ${isLast ? '' : 'mb-4'}`}>
                           {header}
                         </div>
                       ) : (
@@ -631,7 +631,7 @@ export function PlanManagementSection({
               type="button"
               disabled={pending}
               onClick={() => onAddStep(addStep.version, addStep.dates)}
-              className={`${showHistory ? 'ml-7 mt-3 w-[calc(100%-1.75rem)]' : 'mt-4 w-full'} lg-gray-btn !text-[#da8fff]`}
+              className={`${showHistory ? 'ml-7 mt-3 w-[calc(100%-1.75rem)]' : 'mt-4 w-full'} lg-gray-btn !text-[var(--lg-accent-text)]`}
             >
               {t('my_stack_plan_add_step', { defaultValue: 'Stufe hinzufügen' })}
               <Plus size={15} aria-hidden="true" />
@@ -667,7 +667,7 @@ export function PlanManagementSection({
                       type="button"
                       disabled={pending}
                       onClick={() => openDialog({ kind: 'pause_end' })}
-                      className="lg-gray-btn flex-1 !text-[#ffb340]"
+                      className="lg-gray-btn flex-1 !text-[var(--lg-warn-text)]"
                     >
                       {t('my_stack_plan_pause_end', { defaultValue: 'Pausenende festlegen' })}
                     </button>
@@ -677,7 +677,7 @@ export function PlanManagementSection({
                     type="button"
                     disabled={pending}
                     onClick={() => openDialog({ kind: 'pause' })}
-                    className="lg-gray-btn flex-1 !text-[#ffb340]"
+                    className="lg-gray-btn flex-1 !text-[var(--lg-warn-text)]"
                   >
                     <Pause size={14} /> {t('my_stack_plan_pause', { defaultValue: 'Pausieren' })}
                   </button>
@@ -686,7 +686,7 @@ export function PlanManagementSection({
                   type="button"
                   disabled={pending}
                   onClick={() => openDialog({ kind: 'end' })}
-                  className="lg-gray-btn flex-1 !text-[#ff6961]"
+                  className="lg-gray-btn flex-1 !text-[var(--lg-bad-text)]"
                 >
                   <Flag size={14} /> {t('my_stack_plan_end', { defaultValue: 'Beenden' })}
                 </button>
@@ -705,10 +705,10 @@ export function PlanManagementSection({
             aria-modal="true"
             aria-label={String(dialogTitle)}
             tabIndex={-1}
-            className="max-h-full w-full max-w-md overflow-y-auto overscroll-contain rounded-[28px] bg-[#1c1c1e] p-5 shadow-2xl"
+            className="max-h-full w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl bg-[var(--surface)] p-5 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-[20px] font-bold text-[var(--lg-text)]">{dialogTitle}</h3>
+              <h3 className="text-[20px] font-medium text-[var(--lg-text)]">{dialogTitle}</h3>
               <button
                 type="button"
                 disabled={pending}

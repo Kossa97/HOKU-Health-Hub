@@ -23,12 +23,12 @@ export function HaltbarkeitAngaben({ dosageForm, category, inventory, onChange }
   const haltbarkeitFalsch = !gueltigeHaltbarkeit(inventory.useWithinDays)
   const bis = art ? aufbrauchenBis(inventory.openedAt, inventory.useWithinDays, inventory.expiresAt) : null
   const eingabe = 'input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400'
-  const beschriftung = 'mb-2 block text-sm font-semibold text-slate-200'
+  const beschriftung = 'mb-2 block text-sm font-medium text-slate-200'
   const optional = t('my_stack_plan_optional', { defaultValue: 'optional' })
 
   return (
     <section data-haltbarkeit={art ?? 'ablauf'} aria-labelledby={`${id}-title`} className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-      <h3 id={`${id}-title`} className="text-sm font-semibold text-white">{t('my_stack_shelf_life', { defaultValue: 'Haltbarkeit' })}</h3>
+      <h3 id={`${id}-title`} className="text-sm font-medium text-white">{t('my_stack_shelf_life', { defaultValue: 'Haltbarkeit' })}</h3>
       {dosageForm === 'ampoule' && (
         <p className="text-sm text-slate-400">{t('my_stack_shelf_ampoule_hint')}</p>
       )}
@@ -87,7 +87,7 @@ export function HaltbarkeitAngaben({ dosageForm, category, inventory, onChange }
       {bis && (
         <p data-haltbarkeit-bis className="flex items-baseline justify-between gap-3 border-t border-white/10 pt-3 text-sm text-slate-400">
           <span>{t('my_stack_shelf_use_by')}</span>
-          <span className="font-semibold tabular-nums text-white">{formatLocalDay(bis, i18n?.language || 'de')}</span>
+          <span className="font-medium tabular-nums text-white">{formatLocalDay(bis, i18n?.language || 'de')}</span>
         </p>
       )}
     </section>

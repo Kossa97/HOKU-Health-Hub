@@ -45,7 +45,7 @@ export function IngredientEditor({
           der Schritt beantwortet. Dieselbe Teilung wie im Tiefenschritt
           („Tracking-Tiefe" oben, „Wie genau moechtest du tracken?" hier). */}
       <div>
-        <h3 className="text-base font-semibold text-white">
+        <h3 className="text-base font-medium text-white">
           {t('my_stack_ingredients_question', { defaultValue: 'Was steckt in deinem Produkt?' })}
         </h3>
         <p className="mt-1 text-[13px] leading-snug text-slate-400">
@@ -66,7 +66,7 @@ export function IngredientEditor({
           return (
             <div key={`${ingredient.position}-${ingredient.catalog_substance_id ?? 'custom'}`} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <label htmlFor={`stack-ingredient-${index}`} className="text-sm font-semibold text-slate-200">
+                <label htmlFor={`stack-ingredient-${index}`} className="text-sm font-medium text-slate-200">
                   {t(labelKey, { defaultValue: `Inhaltsstoff ${index + 1}` })}
                 </label>
                 {ingredients.length > 1 && (
@@ -137,7 +137,7 @@ export function IngredientEditor({
       <button
         type="button"
         onClick={onAddIngredient}
-        className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-semibold text-slate-200 transition-colors duration-200 hover:border-sky-400/25 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-medium text-slate-200 transition-colors duration-200 hover:border-sky-400/25 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
       >
         <Plus aria-hidden="true" size={18} />
         {t('my_stack_add_ingredient', { defaultValue: 'Inhaltsstoff hinzufügen' })}

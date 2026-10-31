@@ -940,7 +940,7 @@ export function StackItemWizard({
         // Form und Farbe waehlt man auf derselben Seite — sie stehen hier mit.
         return (
           <>
-            <span className="block break-words text-sm font-semibold text-slate-100">{draft.displayName}</span>
+            <span className="block break-words text-sm font-medium text-slate-100">{draft.displayName}</span>
             <span className="flex items-center gap-2 text-sm text-slate-400">
               {showsColor(draft.dosageForm ?? 'other') && draft.colorHex && (
                 <span aria-hidden="true" className="size-3 shrink-0 rounded-full border border-white/20" style={{ backgroundColor: draft.colorHex }} />
@@ -960,7 +960,7 @@ export function StackItemWizard({
               const name = ingredientName(ingredient, index)
               const staerke = ingredientStrength(ingredient)
               return (
-                <span key={ingredient.position} className="block break-words text-sm font-semibold text-slate-100">
+                <span key={ingredient.position} className="block break-words text-sm font-medium text-slate-100">
                   {draft.ingredients.length > 1 && staerke ? `${name} · ${staerke}` : staerke || name}
                 </span>
               )
@@ -987,7 +987,7 @@ export function StackItemWizard({
         }
         return (
           <>
-            {angaben.length > 0 && <span className="block break-words text-sm font-semibold text-slate-100">{angaben.join(' · ')}</span>}
+            {angaben.length > 0 && <span className="block break-words text-sm font-medium text-slate-100">{angaben.join(' · ')}</span>}
             {notiz && <span className="line-clamp-2 break-words text-sm text-slate-400">{notiz}</span>}
           </>
         )
@@ -1007,10 +1007,10 @@ export function StackItemWizard({
               className="flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors duration-200 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-400 motion-reduce:transition-none"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">{editSectionLabel(section)}</span>
+                <span className="block text-[13px] font-medium text-slate-500">{editSectionLabel(section)}</span>
                 <span className="mt-1 block">{editSectionValue(section)}</span>
               </span>
-              <span className="flex shrink-0 items-center gap-0.5 text-sm font-semibold text-sky-300">
+              <span className="flex shrink-0 items-center gap-0.5 text-sm font-medium text-sky-300">
                 {t('my_stack_edit_change', { defaultValue: 'Ändern' })}
                 <ChevronRight aria-hidden="true" size={16} />
               </span>
@@ -1118,7 +1118,7 @@ export function StackItemWizard({
             {state.draft.trackingLevel !== 'complete' ? (
               <div data-strength-skipped className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                 <p className="text-sm text-slate-300">
-                  <span className="font-semibold text-white">{t('my_stack_strength_skipped_title')}</span>{' '}
+                  <span className="font-medium text-white">{t('my_stack_strength_skipped_title')}</span>{' '}
                   {/* Aeltere Eintraege haken nur ab — dort wird auch keine Menge gefuehrt. */}
                   {state.draft.trackingLevel === 'intake_only'
                     ? t('my_stack_tracking_intake_only_subtitle', { defaultValue: 'Nur Einnahme' })
@@ -1128,7 +1128,7 @@ export function StackItemWizard({
                   type="button"
                   data-strength-unskip
                   onClick={() => dispatch({ type: 'tracking_level_selected', trackingLevel: 'complete' })}
-                  className="min-h-11 text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                  className="min-h-11 text-sm font-medium text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                 >
                   {t('my_stack_strength_unskip')}
                 </button>
@@ -1164,7 +1164,7 @@ export function StackItemWizard({
                   dispatch({ type: 'ingredient_added' })
                   dispatch({ type: 'step_selected', step: 'ingredients' })
                 }}
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 text-sm font-semibold text-slate-300 transition-colors hover:border-white/30 hover:text-white"
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 text-sm font-medium text-slate-300 transition-colors hover:border-white/30 hover:text-white"
               >
                 <Plus size={15} />
                 {t('my_stack_strength_add_ingredient', { defaultValue: 'Weiterer Wirkstoff' })}
@@ -1179,7 +1179,7 @@ export function StackItemWizard({
                 dispatch({ type: 'tracking_level_selected', trackingLevel: 'with_amount' })
                 setShowErrors(false)
               }}
-              className="min-h-11 text-sm font-semibold text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+              className="min-h-11 text-sm font-medium text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
             >
               {t('my_stack_strength_skip')}
             </button>
@@ -1198,12 +1198,12 @@ export function StackItemWizard({
           <div className="space-y-5">
             {planEditContext && (
               <fieldset className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                <legend className="px-1 text-sm font-semibold text-slate-200">
+                <legend className="px-1 text-sm font-medium text-slate-200">
                   {t('my_stack_plan_effective_title', { defaultValue: 'Gültig ab' })}
                 </legend>
                 {planEditContext.target.mode === 'new_change' && (
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 px-3 text-sm font-semibold text-slate-200">
+                    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 px-3 text-sm font-medium text-slate-200">
                       <input
                         type="radio"
                         name="plan-effective-kind"
@@ -1213,7 +1213,7 @@ export function StackItemWizard({
                       />
                       {t('my_stack_plan_effective_now', { defaultValue: 'Ab sofort' })}
                     </label>
-                    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 px-3 text-sm font-semibold text-slate-200">
+                    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 px-3 text-sm font-medium text-slate-200">
                       <input
                         type="radio"
                         name="plan-effective-kind"
@@ -1274,7 +1274,7 @@ export function StackItemWizard({
                 tabIndex={-1}
                 className="rounded-2xl border border-sky-400/25 bg-sky-400/[0.06] p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
-                <legend className="px-1 text-sm font-semibold text-sky-100">
+                <legend className="px-1 text-sm font-medium text-sky-100">
                   {pkRoutes.length
                     ? t('my_stack_pk_route_title')
                     : t('my_stack_pk_method_title', { defaultValue: 'PK-Route bestätigen' })}
@@ -1349,7 +1349,7 @@ export function StackItemWizard({
 
             {!planEditContext && (
             <div>
-              <label htmlFor="stack-notes" className="mb-2 block text-sm font-semibold text-slate-200">
+              <label htmlFor="stack-notes" className="mb-2 block text-sm font-medium text-slate-200">
                 {t('my_stack_notes_optional', { defaultValue: 'Notizen (optional)' })}
               </label>
               <textarea
@@ -1375,7 +1375,7 @@ export function StackItemWizard({
                 aria-describedby={identityChoiceError ? 'stack-save-mode-error' : undefined}
                 className="rounded-2xl border border-sky-400/25 bg-sky-400/[0.06] p-4"
               >
-                <legend className="px-1 text-sm font-semibold text-sky-100">
+                <legend className="px-1 text-sm font-medium text-sky-100">
                   {t('my_stack_identity_changed', { defaultValue: 'Wie möchtest du mit der geänderten Variante fortfahren?' })}
                 </legend>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -1383,7 +1383,7 @@ export function StackItemWizard({
                     type="button"
                     aria-pressed={identityChoiceMade && state.saveMode === 'update'}
                     onClick={() => chooseSaveMode('update')}
-                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm font-semibold text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm font-medium text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
                   >
                     {t('my_stack_update_existing', { defaultValue: 'Bestehenden Eintrag ändern' })}
                   </button>
@@ -1391,7 +1391,7 @@ export function StackItemWizard({
                     type="button"
                     aria-pressed={identityChoiceMade && state.saveMode === 'duplicate'}
                     onClick={() => chooseSaveMode('duplicate')}
-                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm font-semibold text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm font-medium text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
                   >
                     {t('my_stack_create_variant', { defaultValue: 'Als neue Variante anlegen' })}
                   </button>
@@ -1406,7 +1406,7 @@ export function StackItemWizard({
 
             {editOverview ? renderEditOverview() : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-              <h3 className="font-semibold text-white">{state.draft.displayName}</h3>
+              <h3 className="font-medium text-white">{state.draft.displayName}</h3>
               <dl className="mt-4 space-y-3 text-sm">
                 <div className="flex flex-wrap justify-between gap-2">
                   <dt className="text-slate-400">{t('my_stack_category', { defaultValue: 'Kategorie' })}</dt>
@@ -1554,7 +1554,7 @@ export function StackItemWizard({
                 <div className="flex items-start gap-3">
                   <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0 text-amber-300" size={19} />
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-amber-100">
+                    <h3 className="font-medium text-amber-100">
                       {t('my_stack_duplicate_found', { defaultValue: 'Diese Variante ist bereits in My Stack.' })}
                     </h3>
                     <p className="mt-1 break-words text-sm text-amber-100/80">{duplicateCandidate.display_name}</p>
@@ -1570,7 +1570,7 @@ export function StackItemWizard({
                       onClose()
                     }}
                     disabled={saving}
-                    className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-3 font-semibold text-slate-950 transition-colors duration-200 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+                    className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-3 font-medium text-slate-950 transition-colors duration-200 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
                   >
                     <ExternalLink aria-hidden="true" size={18} />
                     {t('my_stack_open_existing', { defaultValue: 'Bestehenden Eintrag öffnen' })}
@@ -1579,7 +1579,7 @@ export function StackItemWizard({
                     type="button"
                     onClick={() => void handleSave(true)}
                     disabled={saving}
-                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-semibold text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+                    className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-medium text-slate-200 transition-colors duration-200 hover:border-sky-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
                   >
                     {t('my_stack_add_separately', { defaultValue: 'Trotzdem separat hinzufügen' })}
                   </button>
@@ -1587,7 +1587,7 @@ export function StackItemWizard({
                     type="button"
                     onClick={() => { if (!saving) setDuplicateCandidate(null) }}
                     disabled={saving}
-                    className="min-h-11 cursor-pointer rounded-xl px-4 py-3 font-semibold text-slate-400 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+                    className="min-h-11 cursor-pointer rounded-xl px-4 py-3 font-medium text-slate-400 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
                   >
                     {t('cancel', { defaultValue: 'Abbrechen' })}
                   </button>
@@ -1613,15 +1613,15 @@ export function StackItemWizard({
         aria-labelledby="stack-item-wizard-title"
         aria-describedby="stack-item-wizard-description"
         onKeyDown={handleDialogKeyDown}
-        className="lg-backdrop flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-[28px] sm:bg-[#1c1c1e]"
+        className="lg-backdrop flex h-[100dvh] max-h-[100dvh] w-full min-w-0 flex-col overflow-hidden shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:max-w-2xl sm:rounded-3xl sm:bg-[var(--surface)]"
       >
         <header className="shrink-0 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">
+              <p className="text-[13px] font-medium text-[var(--lg-text-3)]">
                 {t('my_stack_title', { defaultValue: 'My Stack' })}
               </p>
-              <h2 id="stack-item-wizard-title" className="mt-0.5 text-[24px] font-bold leading-[30px] tracking-[0.01em] text-[var(--lg-text)]">
+              <h2 id="stack-item-wizard-title" className="mt-0.5 text-[24px] font-medium leading-[30px] text-[var(--lg-text)]">
                 {planEditContext?.purpose === 'add_step'
                   ? t('my_stack_plan_add_step', { defaultValue: 'Stufe hinzufügen' })
                   : planEditContext?.purpose === 'adjust'
@@ -1670,7 +1670,7 @@ export function StackItemWizard({
             {steps.map((step, index) => (
               <span
                 key={step}
-                className={`h-[5px] flex-1 rounded-full transition-colors duration-300 ${index <= currentStepIndex ? 'bg-[var(--accent)]' : 'bg-white/[0.14]'}`}
+                className={`h-1 flex-1 rounded-full transition-colors duration-300 ${index <= currentStepIndex ? 'bg-[var(--accent)]' : 'bg-white/[0.14]'}`}
               />
             ))}
           </div>}
@@ -1693,7 +1693,7 @@ export function StackItemWizard({
                 sloshEngine={sloshEngine}
               />
             </span>
-            <span className="max-w-full truncate text-sm font-semibold text-white">
+            <span className="max-w-full truncate text-sm font-medium text-white">
               {state.step === 'substance'
                 ? t(`dosage_form_${state.draft.dosageForm}`)
                 : state.draft.displayName.trim() || t('my_stack_this_substance', { defaultValue: 'diese Substanz' })}

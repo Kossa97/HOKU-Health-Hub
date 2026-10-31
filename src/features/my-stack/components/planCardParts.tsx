@@ -15,9 +15,9 @@ import {
 /** Bausteine der Plan-Darstellung, geteilt von Plan-Uebersicht und Kurzfassung. */
 
 export function RoutineIcon({ group }: { group: ResolvedRoutineGroup }) {
-  if (group === 'morning') return <Sunrise size={16} aria-hidden="true" className="shrink-0 text-amber-300" />
-  if (group === 'midday') return <Sun size={16} aria-hidden="true" className="shrink-0 text-yellow-200" />
-  return <Moon size={16} aria-hidden="true" className="shrink-0 text-indigo-300" />
+  if (group === 'morning') return <Sunrise size={16} aria-hidden="true" className="shrink-0 text-[var(--lg-text-3)]" />
+  if (group === 'midday') return <Sun size={16} aria-hidden="true" className="shrink-0 text-[var(--lg-text-3)]" />
+  return <Moon size={16} aria-hidden="true" className="shrink-0 text-[var(--lg-text-3)]" />
 }
 
 export function DayChips({ days, language }: { days: string[]; language: string }) {
@@ -29,8 +29,8 @@ export function DayChips({ days, language }: { days: string[]; language: string 
         return (
           <span
             key={day}
-            className={`grid h-5 min-w-5 place-items-center rounded-full px-0.5 text-[10px] font-bold ${active
-              ? 'bg-cyan-300/15 text-cyan-100'
+            className={`grid h-5 min-w-5 place-items-center rounded-md px-0.5 text-[11px] font-medium ${active
+              ? 'bg-sky-300/15 text-sky-100'
               : 'border border-white/10 text-slate-600'}`}
           >
             {labels[index]}
@@ -100,10 +100,10 @@ export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: P
   const dose = slotDoseLabel(slot)
   const hinweis = einnahmeHinweis(slot, syringe, stueck, t, language, false)
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-3">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-[var(--lg-fill)] px-4 py-3">
       <RoutineIcon group={slot.routineGroup} />
       <div className="min-w-0">
-        <p className="text-[15px] font-semibold text-[var(--lg-text)]">
+        <p className="text-[15px] font-medium text-[var(--lg-text)]">
           {zeitLabel(slot, t)}
         </p>
         {slot.days.length > 0 && (
@@ -112,8 +112,8 @@ export function CurrentSlotRow({ slot, language, t, syringe, stueck }: { slot: P
       </div>
       {dose && (
         <p className="flex flex-col items-end whitespace-nowrap">
-          <span className="text-[17px] font-bold tabular-nums text-[var(--lg-text)]">{dose}</span>
-          {hinweis && <span data-einnahme-hinweis className="text-[13px] font-semibold text-[#64d2ff]">{hinweis}</span>}
+          <span className="text-[17px] font-medium tabular-nums text-[var(--lg-text)]">{dose}</span>
+          {hinweis && <span data-einnahme-hinweis className="text-[13px] font-medium text-[var(--lg-accent-text)]">{hinweis}</span>}
         </p>
       )}
       {slot.days.length > 0 && (
@@ -129,7 +129,7 @@ export function ChangeMarker({ change, t }: { change: PlanStepRow['change']; t: 
   if (change === 'initial') return null
   if (change === 'same') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/25 px-1.5 py-px text-[10.5px] font-semibold text-slate-400">
+      <span className="inline-flex items-center gap-1 rounded-md border border-slate-500/25 px-1.5 py-px text-[11px] font-medium text-slate-400">
         <span aria-hidden="true" className="text-xs leading-none">=</span>
         {String(t('my_stack_plan_change_same', { defaultValue: 'gleich' }))}
       </span>
@@ -138,12 +138,12 @@ export function ChangeMarker({ change, t }: { change: PlanStepRow['change']; t: 
   const copy = {
     increased: { text: t('my_stack_plan_change_increased', { defaultValue: 'erhöht' }), arrow: '↑', tone: 'bg-emerald-400/15 text-emerald-200' },
     decreased: { text: t('my_stack_plan_change_decreased', { defaultValue: 'reduziert' }), arrow: '↓', tone: 'bg-amber-300/15 text-amber-100' },
-    changed: { text: t('my_stack_plan_change_changed', { defaultValue: 'geändert' }), arrow: '', tone: 'bg-violet-300/15 text-violet-100' },
-    new: { text: t('my_stack_plan_change_new', { defaultValue: 'neu' }), arrow: '', tone: 'bg-cyan-300/15 text-cyan-100' },
+    changed: { text: t('my_stack_plan_change_changed', { defaultValue: 'geändert' }), arrow: '', tone: 'bg-white/[0.08] text-slate-200' },
+    new: { text: t('my_stack_plan_change_new', { defaultValue: 'neu' }), arrow: '', tone: 'bg-sky-300/15 text-sky-100' },
     removed: { text: t('my_stack_plan_change_removed', { defaultValue: 'entfällt' }), arrow: '', tone: 'bg-rose-300/10 text-rose-200' },
   }[change]
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-px text-[10.5px] font-bold ${copy.tone}`}>
+    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-px text-[11px] font-medium ${copy.tone}`}>
       {copy.arrow && <span aria-hidden="true">{copy.arrow}</span>}
       {String(copy.text)}
     </span>
@@ -161,26 +161,26 @@ export function StepSlotRow({ row, language, t, syringe, stueck }: { row: PlanSt
   const days = slot.days.map(day => weekdayLabel(day, language)).join(', ')
   return (
     <li
-      className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border px-2.5 py-2 ${quiet
+      className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border px-3 py-2 ${quiet
         ? 'border-white/[0.04]'
         : 'border-white/[0.08] bg-white/[0.045]'}`}
     >
       <RoutineIcon group={slot.routineGroup} />
       <div className="min-w-0">
-        <p className={`text-[13px] font-semibold ${quiet ? 'text-slate-400' : 'text-slate-100'}`}>
+        <p className={`text-[13px] font-medium ${quiet ? 'text-slate-400' : 'text-slate-100'}`}>
           {routineLabel(slot, t)} · {timeMoved && <span className="font-medium text-slate-500">{previous.time} → </span>}{slot.time}
         </p>
-        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11.5px] text-slate-400">
+        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
           {days && <span>{days}</span>}
           <ChangeMarker change={change} t={t} />
         </p>
       </div>
       {dose && (
-        <p className={`flex flex-col items-end whitespace-nowrap text-sm font-bold ${quiet ? 'text-slate-400' : 'text-white'} ${change === 'removed' ? 'line-through' : ''}`}>
+        <p className={`flex flex-col items-end whitespace-nowrap text-sm font-medium tabular-nums ${quiet ? 'text-slate-400' : 'text-white'} ${change === 'removed' ? 'line-through' : ''}`}>
           {doseMoved && previousDose && (
-            <span className="text-[11px] font-medium text-slate-500">{previousDose} →</span>
+            <span className="text-[11px] tabular-nums text-slate-500">{previousDose} →</span>
           )}
-          <span>{dose}{hinweis && <span className="font-semibold text-cyan-300"> · {hinweis}</span>}</span>
+          <span>{dose}{hinweis && <span className="font-medium text-sky-300"> · {hinweis}</span>}</span>
         </p>
       )}
     </li>
@@ -224,20 +224,20 @@ export function SlotList({ slots, planDays, language, t, syringe, stueck, classN
   return (
     <ul data-plan-days className={className}>
       {tage.map(({ tag, slots: amTag }) => (
-        <li key={tag} data-plan-day={tag} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-3 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-3">
-          <span className="pt-0.5 text-[15px] font-bold text-[var(--lg-text)]">{weekdayLabel(tag, language)}</span>
+        <li key={tag} data-plan-day={tag} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-start gap-3 rounded-2xl bg-[var(--lg-fill)] px-4 py-3">
+          <span className="pt-0.5 text-[15px] font-medium text-[var(--lg-text)]">{weekdayLabel(tag, language)}</span>
           <div className="min-w-0 space-y-2">
             {amTag.map(slot => {
               const dose = slotDoseLabel(slot)
               const hinweis = einnahmeHinweis(slot, syringe, stueck, t, language, false)
               return (
-                <div key={slot.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
+                <div key={slot.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
                   <RoutineIcon group={slot.routineGroup} />
-                  <p className="min-w-0 truncate text-[15px] font-semibold text-[var(--lg-text)]">{zeitLabel(slot, t)}</p>
+                  <p className="min-w-0 truncate text-[15px] font-medium text-[var(--lg-text)]">{zeitLabel(slot, t)}</p>
                   {dose && (
                     <p className="flex flex-col items-end whitespace-nowrap">
-                      <span className="text-[17px] font-bold tabular-nums text-[var(--lg-text)]">{dose}</span>
-                      {hinweis && <span data-einnahme-hinweis className="text-[13px] font-semibold text-[#64d2ff]">{hinweis}</span>}
+                      <span className="text-[17px] font-medium tabular-nums text-[var(--lg-text)]">{dose}</span>
+                      {hinweis && <span data-einnahme-hinweis className="text-[13px] font-medium text-[var(--lg-accent-text)]">{hinweis}</span>}
                     </p>
                   )}
                 </div>

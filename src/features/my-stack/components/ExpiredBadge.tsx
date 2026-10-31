@@ -24,7 +24,7 @@ function expiredSinceLabel(t: Translate, daysSince: number): string {
  * ganze Satz. Kein Rahmen, kein Gluehen, kein Textwechsel.
  *
  * `wechsel` (Karussell): das rote Abzeichen mit duennem Rand, so hoch wie
- * das „Aktiv"-Abzeichen daneben (26 px, 13 px Schrift). Endlos im
+ * das „Aktiv"-Abzeichen daneben (24 px, 12 px Schrift). Endlos im
  * 6-Sekunden-Takt: 3 s „Abgelaufen!" mit blinkendem Symbol und gluehendem
  * Rand, dann 3 s „seit X Tagen". Beide Texte liegen uebereinander und
  * mittig, das Abzeichen springt beim Wechsel nicht; vorgelesen wird beides zusammen.
@@ -43,7 +43,7 @@ export function ExpiredBadge({ daysSince, variante = 'still' }: { daysSince: num
     return (
       <span
         data-expired-badge="wechsel"
-        className="tyd-expired-badge inline-flex min-h-[26px] items-center gap-1.5 rounded-full border border-red-500/35 bg-red-500/10 px-2.5 text-[13px] font-semibold leading-none text-red-300"
+        className="tyd-expired-badge inline-flex min-h-6 items-center gap-1.5 rounded-md border border-red-500/35 bg-red-500/10 px-2 text-xs font-medium leading-none text-red-300"
       >
         <AlertTriangle size={12} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
         <span className="sr-only">{String(t('my_stack_expired_aria', { since }))}</span>
@@ -58,7 +58,7 @@ export function ExpiredBadge({ daysSince, variante = 'still' }: { daysSince: num
   return (
     <span
       data-expired-badge="still"
-      className="inline-flex items-center gap-1.5 whitespace-nowrap py-1 font-semibold text-red-300"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap py-1 font-medium text-red-300"
     >
       <AlertTriangle size={14} aria-hidden="true" className="tyd-expired-icon shrink-0 text-red-400" />
       {expiredLabel(t, daysSince)}

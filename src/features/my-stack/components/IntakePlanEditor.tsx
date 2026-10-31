@@ -287,8 +287,8 @@ export function IntakePlanEditor({
   // beginnt der Name des Feldes mit dem, was man sieht.
   const mengeUndEinheit = (index: number, kompakt = false) => {
     const labelClass = kompakt
-      ? 'mb-1.5 block text-xs font-semibold text-slate-400'
-      : 'mb-2 block text-sm font-semibold text-slate-200'
+      ? 'mb-1.5 block text-xs font-medium text-slate-400'
+      : 'mb-2 block text-sm font-medium text-slate-200'
     const mengenName = t('my_stack_plan_quantity', { defaultValue: quantityLabel(form) })
     return (
     <div className="min-w-0">
@@ -338,7 +338,7 @@ export function IntakePlanEditor({
             </datalist>
           </div>
         ) : plan.unit?.trim() ? (
-          <span className="flex h-11 shrink-0 items-center text-sm font-semibold text-slate-400">
+          <span className="flex h-11 shrink-0 items-center text-sm font-medium text-slate-400">
             {plan.unit}
           </span>
         ) : null}
@@ -372,7 +372,7 @@ export function IntakePlanEditor({
                 changeSlot(index, { dose: fraction.value })
                 if (!plan.unit) onChange({ unit: 'tablet' })
               }}
-              className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-sm font-semibold text-slate-300 transition-colors duration-200 hover:border-sky-400/30 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+              className="min-h-11 cursor-pointer rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-sm font-medium text-slate-300 transition-colors duration-200 hover:border-sky-400/30 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
             >
               {fraction.label}
             </button>
@@ -386,7 +386,7 @@ export function IntakePlanEditor({
   // unter „Tage & Methode", und auf dem iPhone fand man „Intramuskulaer" nicht.
   const methodeBereich = methodChoices.length > 1 ? (
     <section data-plan-method className="min-w-0">
-      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <h3 className="mb-2 text-[13px] font-medium text-slate-500">
         {t('my_stack_plan_section_how', { defaultValue: 'Wie' })}
       </h3>
       <div
@@ -407,7 +407,7 @@ export function IntakePlanEditor({
               role="radio"
               aria-checked={gewaehlt}
               onClick={() => onChange({ method })}
-              className={`min-h-10 min-w-0 flex-1 truncate rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+              className={`min-h-10 min-w-0 flex-1 truncate rounded-lg px-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
                 gewaehlt ? 'bg-white text-black shadow-sm' : 'text-slate-300 hover:text-white'
               }`}
             >
@@ -430,7 +430,7 @@ export function IntakePlanEditor({
     <>
         {/* ── AN WELCHEN TAGEN ────────────────────────────────────────────── */}
         <section className="min-w-0 space-y-4">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="text-[13px] font-medium text-slate-500">
           {t('my_stack_plan_section_when', { defaultValue: 'An welchen Tagen' })}
         </h3>
         <fieldset data-field="plan.frequency" tabIndex={-1} className="min-w-0">
@@ -445,7 +445,7 @@ export function IntakePlanEditor({
                 aria-pressed={rhythm.kind === kind}
                 data-rhythm-kind={kind}
                 onClick={() => selectKind(kind)}
-                className={`flex min-h-11 min-w-0 items-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${rhythm.kind === kind
+                className={`flex min-h-11 min-w-0 items-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${rhythm.kind === kind
                   ? 'border-sky-400/50 bg-sky-400/10 text-sky-200'
                   : 'cursor-pointer border-white/10 bg-white/[0.035] text-slate-300 hover:border-sky-400/25'
                 }`}
@@ -466,7 +466,7 @@ export function IntakePlanEditor({
               type="button"
               data-rhythm-per-day
               onClick={() => changeRhythm({ kind: 'weekdays', weekdays: [...WEEKDAY_KEYS] })}
-              className="mt-3 min-h-11 cursor-pointer text-left text-sm font-semibold text-sky-300 underline decoration-sky-400/40 underline-offset-4 transition-colors duration-200 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+              className="mt-3 min-h-11 cursor-pointer text-left text-sm font-medium text-sky-300 underline decoration-sky-400/40 underline-offset-4 transition-colors duration-200 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
             >
               {t('my_stack_plan_daily_per_day', {
                 defaultValue: 'An jedem Tag eine andere Tageszeit?',
@@ -489,7 +489,7 @@ export function IntakePlanEditor({
                       type="button"
                       aria-pressed={selected}
                       onClick={() => toggleWeekday(day)}
-                      className={`min-h-11 min-w-0 cursor-pointer rounded-xl border px-2 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${selected
+                      className={`min-h-11 min-w-0 cursor-pointer rounded-xl border px-2 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${selected
                         ? 'border-sky-400/50 bg-sky-400/15 text-sky-200'
                         : 'border-white/10 bg-white/[0.035] text-slate-400 hover:border-sky-400/25 hover:text-slate-200'
                       }`}
@@ -547,7 +547,7 @@ export function IntakePlanEditor({
           {!onDemand && rhythm.kind === 'cycle' && (
             <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2">
               <label className="min-w-0 text-sm text-slate-300">
-                <span className="mb-1 block font-semibold text-slate-200">
+                <span className="mb-1 block font-medium text-slate-200">
                   {t('my_stack_rhythm_cycle_on', { defaultValue: 'Tage an' })}
                 </span>
                 <input
@@ -563,7 +563,7 @@ export function IntakePlanEditor({
                 />
               </label>
               <label className="min-w-0 text-sm text-slate-300">
-                <span className="mb-1 block font-semibold text-slate-200">
+                <span className="mb-1 block font-medium text-slate-200">
                   {t('my_stack_rhythm_cycle_off', { defaultValue: 'Tage Pause' })}
                 </span>
                 <input
@@ -596,7 +596,7 @@ export function IntakePlanEditor({
         {/* ── TAGESZEIT — direkt hinter den Tagen, denn die Zeitpunkte gehoeren
                zu ihnen und nicht hinter den Zeitraum. */}
         <section className="min-w-0 space-y-3">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="text-[13px] font-medium text-slate-500">
           {t('my_stack_plan_section_each', { defaultValue: 'Tageszeit' })}
         </h3>
 
@@ -629,7 +629,7 @@ export function IntakePlanEditor({
                     count: anzahl,
                   }))}
                   onClick={() => setGewaehlterTag(tag)}
-                  className={`flex min-h-11 shrink-0 snap-start cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${offen
+                  className={`flex min-h-11 shrink-0 snap-start cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none ${offen
                     ? 'border-sky-400/50 bg-sky-400/15 text-sky-200'
                     : 'border-white/10 bg-white/[0.035] text-slate-400 hover:border-sky-400/25 hover:text-slate-200'
                   }`}
@@ -637,7 +637,7 @@ export function IntakePlanEditor({
                   <span aria-hidden="true">{tag}</span>
                   <span
                     aria-hidden="true"
-                    className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-semibold ${offen ? 'bg-sky-400/25 text-sky-100' : 'bg-white/[0.06] text-slate-400'}`}
+                    className={`font-mono text-xs tabular-nums ${offen ? 'text-sky-100' : 'text-slate-500'}`}
                   >
                     {anzahl}
                   </span>
@@ -675,7 +675,7 @@ export function IntakePlanEditor({
                 der Reiter die einzige Stelle, die sagt, wovon die Karten
                 darunter handeln — und den liest man beim Tippen nicht mehr. */}
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-              <h4 data-plan-day-question className="min-w-0 text-sm font-semibold text-slate-200">
+              <h4 data-plan-day-question className="min-w-0 text-sm font-medium text-slate-200">
                 {offenerTag
                   ? t('my_stack_plan_day_question', {
                       defaultValue: 'Wie oft nimmst du {{day}} ein?',
@@ -702,7 +702,7 @@ export function IntakePlanEditor({
                 </button>
                 <span
                   aria-live="polite"
-                  className="min-w-8 text-center text-base font-semibold tabular-nums text-slate-100"
+                  className="min-w-8 text-center text-base font-medium tabular-nums text-slate-100"
                 >
                   {sichtbareSlots.length}
                 </span>
@@ -730,7 +730,7 @@ export function IntakePlanEditor({
             >
               {/* Aufschrift und Papierkorb in einer Zeile. */}
               <div className="flex min-h-11 items-center justify-between gap-2">
-                <span id={`stack-plan-slot-title-${index}`} className="text-sm font-semibold text-slate-200">
+                <span id={`stack-plan-slot-title-${index}`} className="text-sm font-medium text-slate-200">
                   {/* `einnahme_nr` gibt es laengst in allen vierzehn Sprachen. Bei
                       einem einzigen Zeitpunkt bleibt die Aufschrift, wie sie war —
                       „Einnahme 1 von 1" waere eine Zahl ohne Anlass. */}
@@ -757,7 +757,7 @@ export function IntakePlanEditor({
                 {ROUTINE_GROUPS.map(({ value, labelKey, defaultValue, Icon }) => (
                   <label
                     key={value}
-                    className={`relative flex min-h-11 min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 py-2 text-center text-xs font-semibold leading-tight transition-colors duration-200 focus-within:ring-2 focus-within:ring-sky-400 motion-reduce:transition-none ${slot.routineGroup === value
+                    className={`relative flex min-h-11 min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 py-2 text-center text-xs font-medium leading-tight transition-colors duration-200 focus-within:ring-2 focus-within:ring-sky-400 motion-reduce:transition-none ${slot.routineGroup === value
                       ? 'border-sky-400/50 bg-sky-400/10 text-sky-200'
                       : 'border-white/10 bg-white/[0.035] text-slate-300 hover:border-sky-400/25'
                     }`}
@@ -800,7 +800,7 @@ export function IntakePlanEditor({
               ? 'grid-cols-1 min-[360px]:grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[9rem_minmax(0,1fr)]'
               : 'grid-cols-1'}`}>
               <div className="min-w-0">
-                <label htmlFor={`stack-plan-time-${index}`} className="mb-1.5 block text-xs font-semibold text-slate-400">
+                <label htmlFor={`stack-plan-time-${index}`} className="mb-1.5 block text-xs font-medium text-slate-400">
                   {t('my_stack_plan_time_short', { defaultValue: 'Uhrzeit' })}
                   {' '}
                   <span className="font-normal text-slate-500">
@@ -848,17 +848,17 @@ export function IntakePlanEditor({
   const zeitplanZeile = (
     <section data-plan-schedule-summary className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <p className="text-[13px] font-medium text-slate-500">
           {t('my_stack_plan_section_when', { defaultValue: 'An welchen Tagen' })}
         </p>
-        <p className="mt-0.5 truncate text-sm font-semibold text-slate-200">
+        <p className="mt-0.5 truncate text-sm font-medium text-slate-200">
           {rhythmText(rhythmSummary(rhythm), t)}
         </p>
       </div>
       <button
         type="button"
         onClick={() => setScheduleOpen(true)}
-        className="min-h-11 shrink-0 cursor-pointer rounded-lg px-2 text-sm font-semibold text-sky-300 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className="min-h-11 shrink-0 cursor-pointer rounded-lg px-2 text-sm font-medium text-sky-300 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
       >
         {t('my_stack_plan_schedule_change', { defaultValue: 'Ändern' })}
       </button>
@@ -885,13 +885,13 @@ export function IntakePlanEditor({
              Zeile: zwei kurze Felder, die untereinander die Erinnerung aus dem
              Blick schoben. */}
       <section className="min-w-0 space-y-3">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <h3 className="text-[13px] font-medium text-slate-500">
         {t('my_stack_plan_section_period', { defaultValue: 'Zeitraum' })}
       </h3>
       <div className="grid min-w-0 grid-cols-2 gap-3">
 
       <div className="min-w-0">
-        <label htmlFor="stack-plan-start-date" className="mb-2 block text-sm font-semibold text-slate-200">
+        <label htmlFor="stack-plan-start-date" className="mb-2 block text-sm font-medium text-slate-200">
           {t('my_stack_plan_start_date', { defaultValue: 'Start / gültig ab' })}
         </label>
         <input
@@ -925,7 +925,7 @@ export function IntakePlanEditor({
       {/* Das Ende. Fuer alles, was man laenger nimmt, bleibt es leer; eine
           Antibiotikakur oder ein Kortisonstoss hat hier ein Datum. */}
       <div className="min-w-0">
-        <label htmlFor="stack-plan-end-date" className="mb-2 block text-sm font-semibold text-slate-200">
+        <label htmlFor="stack-plan-end-date" className="mb-2 block text-sm font-medium text-slate-200">
           {t('my_stack_plan_end_date', { defaultValue: 'Ende (optional)' })}
         </label>
         <input
@@ -962,7 +962,7 @@ export function IntakePlanEditor({
           Eintrag wurde mit 'none' gespeichert. Ein Versprechen ohne
           Einloesung. */}
       <section className="min-w-0 space-y-3">
-        <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="flex items-center gap-2 text-[13px] font-medium text-slate-500">
           <BellRing aria-hidden="true" size={14} />
           {t('erinnerung_label', { defaultValue: 'Erinnerung' })}
         </h3>
@@ -982,7 +982,7 @@ export function IntakePlanEditor({
             {REMINDER_OPTIONS.map(({ value, labelKey, defaultValue }) => (
               <label
                 key={value}
-                className={`flex min-h-11 min-w-0 cursor-pointer items-center justify-center rounded-xl border px-2 py-2 text-center text-xs font-semibold leading-tight transition-colors duration-200 focus-within:ring-2 focus-within:ring-sky-400 motion-reduce:transition-none ${plan.reminders.includes(value)
+                className={`flex min-h-11 min-w-0 cursor-pointer items-center justify-center rounded-xl border px-2 py-2 text-center text-xs font-medium leading-tight transition-colors duration-200 focus-within:ring-2 focus-within:ring-sky-400 motion-reduce:transition-none ${plan.reminders.includes(value)
                   ? 'border-sky-400/50 bg-sky-400/10 text-sky-200'
                   : 'border-white/10 bg-white/[0.035] text-slate-300 hover:border-sky-400/25'
                 }`}

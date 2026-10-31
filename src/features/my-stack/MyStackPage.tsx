@@ -661,7 +661,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     try {
       await removePlanSegment(supabase, c.id, effectiveFrom)
       await loadCycles()
-      toast.success(String(t('my_stack_plan_step_removed', { defaultValue: 'Stufe zurückgenommen.' })))
+      toast.success(String(t('my_stack_plan_step_removed', { defaultValue: 'Stufe zurückgenommen' })))
     } catch {
       toast.error(String(t('my_stack_plan_step_remove_failed', {
         defaultValue: 'Die Stufe konnte nicht zurückgenommen werden.',
@@ -1286,7 +1286,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
     if (stufen.length <= 1) return null
     return (
       <div data-plan-steps className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-2">
-        <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-sky-300">
+        <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-sky-300">
           <CalendarRange size={13} /> {t('my_stack_plan_steps', { defaultValue: 'Planstufen' })}
         </p>
         <div className="space-y-1.5">
@@ -1302,7 +1302,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   : 'border-slate-700 bg-slate-950/70 text-slate-300'
               }`}
             >
-              <span className="shrink-0 font-semibold">
+              <span className="shrink-0 font-medium">
                 {t('my_stack_plan_step_from', {
                   defaultValue: 'ab {{date}}',
                   date: formatLocalDay(effectiveFrom, language),
@@ -1310,7 +1310,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               </span>
               <span className="min-w-0 flex-1 truncate">{stufenText(segment)}</span>
               {status === 'current' && (
-                <span className="shrink-0 rounded-md border border-sky-400/40 bg-sky-400/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-200">
+                <span className="shrink-0 rounded-md border border-sky-400/40 bg-sky-400/15 px-2 py-1 text-xs font-medium text-sky-200">
                   {t('my_stack_plan_step_current', { defaultValue: 'gilt jetzt' })}
                 </span>
               )}
@@ -1342,7 +1342,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
       <div className="mt-1 space-y-1 text-xs text-slate-500">
         {planned.map(segment => (
           <p key={segment.effectiveFrom}>
-            <span className="font-bold uppercase tracking-wide">{segment.status}</span>
+            <span className="font-medium">{segment.status}</span>
             {' · '}{formatLocalDay(segment.effectiveFrom, language)}: {segment.dose} {segment.unit}
           </p>
         ))}
@@ -1886,7 +1886,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                       return {
                         label: FELD_LABEL[feld], wide,
                         valueNode: (
-                          <BatchDateiLink className="text-[#64d2ff] hover:text-cyan-200" wert={a.url}>
+                          <BatchDateiLink className="text-[var(--lg-accent-text)] hover:text-[var(--lg-text)]" wert={a.url}>
                             {wert}
                           </BatchDateiLink>
                         ),
@@ -1990,7 +1990,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           type="button"
                           data-stack-detail-missing={fehlend}
                           onClick={() => openEditPeptide(eintrag)}
-                          className="mt-5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl text-[15px] font-semibold text-[#64d2ff] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                          className="mt-5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-2xl text-[15px] font-medium text-[var(--lg-accent-text)] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                         >
                           <Plus size={16} aria-hidden="true" />
                           {String(t('my_stack_detail_missing', { defaultValue: 'Fehlende Angaben ergänzen ({{n}})', n: fehlend }))}
@@ -2010,17 +2010,17 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                             closeStageDetail()
                             setCycleManagerPeptide(eintrag)
                           }}
-                          className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-violet-500/25 bg-slate-950/55 px-3 text-left transition-colors hover:border-violet-400/45"
+                          className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-[var(--lg-hair)] bg-slate-950/55 px-3 text-left transition-colors hover:border-[var(--border-strong)]"
                         >
                           <span
                             aria-hidden="true"
                             data-active-cycle-indicator
                             className="relative flex h-3 w-3 shrink-0 items-center justify-center"
                           >
-                            <span className="absolute h-3 w-3 rounded-full bg-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.45)]" />
+                            <span className="absolute h-3 w-3 rounded-full bg-emerald-400/20" />
                             <span className="relative h-2 w-2 rounded-full bg-emerald-400" />
                           </span>
-                          <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">
                             {activeCycle.name} {t('zyklus')}
                           </span>
                           <ChevronRight size={16} className="shrink-0 text-slate-600" />
@@ -2037,11 +2037,11 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                             closeStageDetail()
                             openNewCycle(eintrag)
                           }}
-                          className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/55 px-3 text-left transition-colors hover:border-violet-400/35"
+                          className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/55 px-3 text-left transition-colors hover:border-[var(--border-strong)]"
                         >
                           <Activity size={16} className="shrink-0 text-slate-600" />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold text-white">
+                            <span className="block truncate text-sm font-medium text-white">
                               {pCycles.length > 0 ? t('kein_aktiver_zyklus') : t('noch_kein_zyklus')}
                             </span>
                             <span className="mt-0.5 block truncate text-xs text-slate-500">
@@ -2052,7 +2052,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           </span>
                           {pCycles.length > 0
                             ? <ChevronRight size={16} className="shrink-0 text-slate-600" />
-                            : <Plus size={16} className="shrink-0 text-violet-300" />}
+                            : <Plus size={16} className="shrink-0 text-[var(--lg-accent-text)]" />}
                         </button>
                       )}
                     </div>}
@@ -2116,7 +2116,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                 type="button"
                 disabled={timelineLoading}
                 onClick={() => { void loadTimelines() }}
-                className="mt-2 min-h-10 rounded-lg border border-rose-200/30 px-3 font-semibold disabled:opacity-50"
+                className="mt-2 min-h-10 rounded-lg border border-rose-200/30 px-3 font-medium disabled:opacity-50"
               >
                 {t('lab_retry', { defaultValue: 'Erneut versuchen' })}
               </button>
@@ -2299,17 +2299,17 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
           <header className="shrink-0 pt-[env(safe-area-inset-top)]">
             <div className="mx-auto flex min-h-16 w-full max-w-3xl items-center justify-between gap-3 px-4">
               <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--lg-text-3)]">
-                  <Archive size={13} /> {t('archiv')}
+                <p className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--lg-text-3)]">
+                  <Archive size={14} strokeWidth={1.5} /> {t('archiv')}
                 </p>
-                <h2 id="archive-title" className="mt-0.5 truncate text-[24px] font-bold leading-[30px] text-[var(--lg-text)]">{t('archiv_title')}</h2>
+                <h2 id="archive-title" className="mt-0.5 truncate text-[24px] font-medium leading-[30px] text-[var(--lg-text)]">{t('archiv_title')}</h2>
               </div>
               <button
                 type="button"
                 ref={archiveCloseButtonRef}
                 onClick={() => setArchiveViewOpen(false)}
                 data-app-back-close
-                className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 aria-label={t('close')}
                 title={t('close')}
               >
@@ -2323,7 +2323,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
               {archivedPeptides.length === 0 && (
                 <div className="lg-surface mt-3 px-6 py-8 text-center">
                   <span aria-hidden="true" className="lg-icon-tile mx-auto mb-3 !h-11 !w-11 !rounded-xl bg-[#8e8e93]"><Archive size={22} /></span>
-                  <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('archiv_leer')}</p>
+                  <p className="text-[17px] font-medium text-[var(--lg-text)]">{t('archiv_leer')}</p>
                   <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">{t('archiv_leer_desc')}</p>
                 </div>
               )}
@@ -2348,7 +2348,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{p.name}</p>
+                          <p className="truncate text-[17px] font-medium text-[var(--lg-text)]">{p.name}</p>
                           {p.archived_at && (
                             <p className="mt-0.5 text-[13px] text-[var(--lg-text-3)]">
                               {t('archiviert_am', { date: archivedDate })}
@@ -2361,7 +2361,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                             type="button"
                             data-archive-info-button={p.id}
                             onClick={() => openArchiveInfo(p)}
-                            className="lg-icon-btn lg-press bg-[var(--lg-fill)] !text-[#64d2ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                            className="lg-icon-btn lg-press bg-[var(--lg-fill)] !text-[var(--lg-text-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             aria-label={t('infos')}
                             title={t('infos')}
                           >
@@ -2370,7 +2370,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           <button
                             type="button"
                             onClick={() => restorePeptide(p)}
-                            className="lg-icon-btn lg-press bg-[rgba(48,209,88,0.16)] !text-[var(--lg-good-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                            className="lg-icon-btn lg-press bg-[var(--lg-fill)] !text-[var(--lg-good-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             aria-label={t('wiederherstellen')}
                             title={t('wiederherstellen')}
                           >
@@ -2379,7 +2379,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           <button
                             type="button"
                             onClick={() => { setDeletePromptFromArchive(true); setDeletePromptPeptide(p) }}
-                            className="lg-icon-btn lg-press bg-[rgba(255,69,58,0.18)] !text-[#ff6961] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+                            className="lg-icon-btn lg-press bg-[var(--lg-fill)] !text-[var(--lg-bad-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             aria-label={t('endgueltig_loeschen')}
                             title={t('endgueltig_loeschen')}
                           >
@@ -2450,7 +2450,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                   ? (
                     <BatchDateiLink
                       wert={p.batch_file_url}
-                      className="inline-flex max-w-full items-center gap-2 text-[#64d2ff] hover:text-cyan-200"
+                      className="inline-flex max-w-full items-center gap-2 text-[var(--lg-accent-text)] hover:text-[var(--lg-text)]"
                     >
                       <span className="truncate">{p.batch_file_url.split('/').pop() || t('dokument_oeffnen')}</span>
                       <ExternalLink size={14} className="shrink-0" />
@@ -2498,15 +2498,15 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         })
                       }}
                       data-app-back-close
-                      className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                      className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       aria-label={t('back')}
                       title={t('back')}
                     >
                       <ChevronLeft size={22} />
                     </button>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">{t('archiv')}</p>
-                      <h2 id="archive-info-title" className="truncate text-[24px] font-bold leading-[30px] text-[var(--lg-text)]">{p.name}</h2>
+                      <p className="text-[13px] font-medium text-[var(--lg-text-3)]">{t('archiv')}</p>
+                      <h2 id="archive-info-title" className="truncate text-[24px] font-medium leading-[30px] text-[var(--lg-text)]">{p.name}</h2>
                     </div>
                   </div>
                 </header>
@@ -2524,7 +2524,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         />
                       </div>
                       <div className="min-w-0">
-                        <p className="break-words text-[22px] font-bold text-[var(--lg-text)]">{p.name}</p>
+                        <p className="break-words text-[22px] font-medium text-[var(--lg-text)]">{p.name}</p>
                         {p.archived_at && (
                           <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">
                             {t('archiviert_am', { date: archivedDate })}
@@ -2560,7 +2560,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                         onClick={() => setArchiveCyclesOpen(open => !open)}
                         aria-expanded={archiveCyclesOpen}
                         aria-controls="archive-cycle-list"
-                        className="lg-group flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                        className="lg-group flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         <span className="text-[16px] text-[var(--lg-text)]">
                           {t('zyklen_header')}
@@ -2584,7 +2584,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
                           {archivedCycles.map(c => (
                             <article key={c.id} data-archive-cycle className="p-4">
                               <div className="flex items-start justify-between gap-3">
-                                <p className="min-w-0 break-words text-[17px] font-semibold text-[var(--lg-text)]">{c.name}</p>
+                                <p className="min-w-0 break-words text-[17px] font-medium text-[var(--lg-text)]">{c.name}</p>
                                 <span className="lg-tag shrink-0" data-tone={c.active ? 'good' : undefined}>
                                   {t(c.active ? 'aktiv_badge' : 'inaktiv_badge')}
                                 </span>

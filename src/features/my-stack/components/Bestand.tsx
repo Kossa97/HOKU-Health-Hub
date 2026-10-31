@@ -51,9 +51,10 @@ function zahl(text: string): number | null {
 }
 
 function BarFill({ fraction }: { fraction: number }) {
-  const tone = fraction <= 0.1 ? 'bg-[#ff453a]' : fraction <= 0.3 ? 'bg-[#ff9f0a]' : 'bg-[var(--lg-good)]'
+  const tone = fraction <= 0.1 ? 'bg-[var(--lg-bad)]' : fraction <= 0.3 ? 'bg-[var(--lg-warn)]' : 'bg-[var(--lg-good)]'
   return (
-    <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]" aria-hidden="true">
+    // Die Spur traegt Messstriche (hk-scale) wie die Skala einer Spritze.
+    <div className="hk-scale mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]" aria-hidden="true">
       <div className={`h-full rounded-full ${tone}`} style={{ width: `${Math.round(Math.min(1, Math.max(0, fraction)) * 100)}%` }} />
     </div>
   )
@@ -154,17 +155,17 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
     case 'start':
       body = (
         <div className="grid gap-3">
-          <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+          <label className="grid gap-1.5 text-sm font-medium text-slate-200">
             {String(t('my_stack_stock_package_size'))}
             <input className={eingabe} inputMode="decimal" value={start.packung} onChange={event => setStart(s => ({ ...s, packung: event.target.value }))} autoFocus />
           </label>
-          <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+          <label className="grid gap-1.5 text-sm font-medium text-slate-200">
             {String(t('my_stack_stock_unit'))}
             <select className={`select ${eingabe}`} value={start.einheit} onChange={event => setStart(s => ({ ...s, einheit: event.target.value }))}>
               {choices.map(unit => <option key={unit} value={unit}>{stockUnitName(t, unit)}</option>)}
             </select>
           </label>
-          <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+          <label className="grid gap-1.5 text-sm font-medium text-slate-200">
             {String(t('my_stack_stock_current'))}
             <input className={eingabe} inputMode="decimal" value={start.rest} onChange={event => setStart(s => ({ ...s, rest: event.target.value }))} />
           </label>
@@ -177,12 +178,12 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
         <div className="grid gap-4">
           {aufteilung ? (
             <div className="grid grid-cols-2 gap-3">
-              <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+              <label className="grid gap-1.5 text-sm font-medium text-slate-200">
                 {String(t(`my_stack_stock_unopened_${behaelter}`))}
                 <input id={`${id}-voll`} className={eingabe} inputMode="numeric" value={geteilt.voll} onChange={event => setGeteilt(g => ({ ...g, voll: event.target.value }))} autoFocus />
               </label>
               <div className="grid gap-1.5">
-                <label htmlFor={`${id}-prozent`} className="text-sm font-semibold text-slate-200">
+                <label htmlFor={`${id}-prozent`} className="text-sm font-medium text-slate-200">
                   {String(t(loesung ? 'my_stack_stock_opened_solution_vial' : `my_stack_stock_opened_${behaelter}`))}
                 </label>
                 <span className="relative">
@@ -192,7 +193,7 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
               </div>
             </div>
           ) : (
-            <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+            <label className="grid gap-1.5 text-sm font-medium text-slate-200">
               <span>{String(t('my_stack_stock_current'))} · {stockUnitName(t, einheit)}</span>
               <input id={`${id}-menge`} className={eingabe} inputMode="decimal" value={menge} onChange={event => setMenge(event.target.value)} autoFocus />
             </label>
@@ -201,7 +202,7 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
             type="button"
             disabled={busy}
             onClick={() => onSubmit(() => actions.update({ enabled: false }))}
-            className="min-h-11 justify-self-center px-3 text-xs font-semibold text-slate-500 hover:text-slate-300"
+            className="min-h-11 justify-self-center px-3 text-xs font-medium text-slate-500 hover:text-slate-300"
           >
             {String(t('my_stack_stock_stop'))}
           </button>
@@ -212,12 +213,12 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
     case 'open_new':
       body = (
         <div className="grid gap-3">
-          <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+          <label className="grid gap-1.5 text-sm font-medium text-slate-200">
             {String(t(anmischen ? 'my_stack_stock_mixed_on' : 'my_stack_stock_opened_on'))}
             <input type="date" className={eingabe} value={text} onChange={event => setText(event.target.value)} />
           </label>
           {anmischen && (
-            <label className="grid gap-1.5 text-sm font-semibold text-slate-200">
+            <label className="grid gap-1.5 text-sm font-medium text-slate-200">
               {String(t('my_stack_stock_liquid'))} (ml)
               <input className={eingabe} inputMode="decimal" value={menge} onChange={event => setMenge(event.target.value)} />
             </label>
@@ -258,7 +259,7 @@ function BestandEditor({ editor, art, form, loesung, inventory, fallback, choice
         }}
       >
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
-          <h3 className="text-base font-bold text-white">{TITEL[editor]}</h3>
+          <h3 className="text-base font-medium text-white">{TITEL[editor]}</h3>
           <button type="button" onClick={onClose} data-app-back-close aria-label={String(t('my_stack_stock_close'))} className="grid h-11 w-11 place-items-center text-slate-400 hover:text-white">
             <X size={18} aria-hidden="true" />
           </button>
@@ -354,15 +355,15 @@ export function BestandCard({ dosageForm, inventory, ingredients, timelines, tim
       <div className="flex items-center gap-3">
         <span aria-hidden="true" className="lg-icon-tile bg-[#0a84ff]"><Package size={17} /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">{String(t('my_stack_stock_title'))}</span>
+          <span className="block text-[13px] font-medium text-[var(--lg-text-3)]">{String(t('my_stack_stock_title'))}</span>
           {zeilen && aktiv ? (
             <>
-              <span className="mt-0.5 block truncate text-[17px] font-semibold text-[var(--lg-text)]">
+              <span className="mt-0.5 block truncate text-[17px] font-medium tabular-nums text-[var(--lg-text)]">
                 {zeilen.gross}{zeilen.klein ? <span className="font-normal text-[var(--lg-text-2)]"> · {zeilen.klein}</span> : null}
               </span>
-              {range && <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
+              {range && <span className="mt-0.5 block truncate text-[13px] tabular-nums text-[var(--lg-text-3)]">{reichweiteLabel(t, range, aktiv.package_unit, language)}</span>}
               <BarFill fraction={zeilen.anteil} />
-              {!deductsIntakes && <span className="mt-2 block text-[13px] text-[#ffb340]">{String(t('my_stack_stock_needs_strength'))}</span>}
+              {!deductsIntakes && <span className="mt-2 block text-[13px] text-[var(--lg-warn-text)]">{String(t('my_stack_stock_needs_strength'))}</span>}
             </>
           ) : (
             <span className="mt-0.5 block text-[15px] text-[var(--lg-text-2)]">{String(t('my_stack_stock_not_tracked'))}</span>
@@ -372,7 +373,7 @@ export function BestandCard({ dosageForm, inventory, ingredients, timelines, tim
       <button
         type="button"
         onClick={() => onEdit(aktiv ? 'correct' : 'start')}
-        className="lg-gray-btn mt-3.5 w-full"
+        className="lg-gray-btn mt-4 w-full"
       >
         {String(t(aktiv ? 'my_stack_stock_edit' : 'my_stack_stock_start'))}
       </button>

@@ -29,10 +29,10 @@ export function PlanOverviewSheet({
             <div className="shrink-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-[var(--lg-text-3)]">
+                  <p className="text-[13px] font-medium text-[var(--lg-text-3)]">
                     {t('my_stack_plan_management', { defaultValue: 'Einnahmeplan' })}
                   </p>
-                  <h2 className="mt-0.5 truncate text-[28px] font-bold leading-[34px] text-[var(--lg-text)]">{currentCycleManagerPeptide.name}</h2>
+                  <h2 className="mt-0.5 truncate text-[28px] font-medium leading-[34px] text-[var(--lg-text)]">{currentCycleManagerPeptide.name}</h2>
                 </div>
                 <button
                   type="button"
@@ -52,7 +52,7 @@ export function PlanOverviewSheet({
               )}
               {timelinesOf(currentCycleManagerPeptide.id).length === 0 && (
                 <div className="lg-surface p-5 text-center">
-                  <p className="text-[17px] font-semibold text-[var(--lg-text)]">{t('noch_kein_zyklus')}</p>
+                  <p className="text-[17px] font-medium text-[var(--lg-text)]">{t('noch_kein_zyklus')}</p>
                   <p className="mt-1 text-[15px] text-[var(--lg-text-3)]">{t('noch_kein_zyklus_desc')}</p>
                 </div>
               )}

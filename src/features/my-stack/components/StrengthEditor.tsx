@@ -108,7 +108,7 @@ export function StrengthEditor({
 
   return (
     <fieldset className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <legend className="px-1 text-sm font-semibold text-slate-200">
+      <legend className="px-1 text-sm font-medium text-slate-200">
         {displayedIngredientName}
       </legend>
 
@@ -176,7 +176,7 @@ export function StrengthEditor({
 
         <div className="col-span-2 min-w-0 sm:col-span-1">
           <span aria-hidden="true" className="mb-2 hidden h-5 sm:block">&nbsp;</span>
-          <span className="flex min-h-6 items-center justify-center text-sm font-semibold text-cyan-300 sm:min-h-11">
+          <span className="flex min-h-6 items-center justify-center text-sm font-medium text-sky-300 sm:min-h-11">
             {t('my_stack_per', { defaultValue: 'pro' })}
           </span>
         </div>
@@ -233,7 +233,7 @@ export function StrengthEditor({
                 setFreiGewaehlt(false)
                 onChange({ basis_unit: null })
               }}
-              className="mt-1.5 text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+              className="mt-1.5 text-xs font-medium text-sky-300 hover:text-[var(--lg-text)]"
             >
               {t('my_stack_basis_unit_from_list', { defaultValue: 'Aus der Liste wählen' })}
             </button>
@@ -276,13 +276,13 @@ export function StrengthEditor({
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          className="mt-4 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.05] px-3 py-2 text-sm text-cyan-100"
+          className="mt-4 rounded-xl border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-sm text-sky-100"
         >
           {displayedIngredientName}: {ingredient.amount_value} {ingredient.amount_unit} {t('my_stack_per', { defaultValue: 'pro' })} {stockAmountLabel(t, ingredient.basis_value!, ingredient.basis_unit!, language)}
           {/* Was in einem Milliliter steckt, ist die Zahl, mit der man
               aufzieht — „10 mg pro 2 ml" allein sagt sie nicht. */}
           {konzentration && (
-            <span data-strength-concentration className="ml-1 font-semibold">
+            <span data-strength-concentration className="ml-1 font-medium">
               {t('my_stack_strength_concentration', {
                 defaultValue: '= {{value}} {{unit}}/ml',
                 value: konzentration.value,

@@ -46,7 +46,7 @@ const TONE = {
   active: 'border-transparent',
   neutral: 'border-transparent',
   empty: 'border-dashed border-white/20',
-  warning: 'border-transparent !bg-[rgba(255,159,10,0.10)]',
+  warning: 'border-transparent !bg-[color-mix(in_srgb,var(--lg-warn)_10%,transparent)]',
 } as const
 
 /**
@@ -110,12 +110,12 @@ export function PlanSummaryCard({
     </button>
   )
   const card = (state: string, tone: keyof typeof TONE, body: ReactNode) => (
-    <section data-plan-summary={state} aria-label={title} className={`lg-surface mt-3 flex flex-col gap-3.5 border p-4 ${TONE[tone]}`}>
+    <section data-plan-summary={state} aria-label={title} className={`lg-surface mt-3 flex flex-col gap-4 border p-4 ${TONE[tone]}`}>
       {body}
     </section>
   )
   const kicker = (
-    <p className="text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">{title}</p>
+    <p className="text-[13px] font-medium text-[var(--lg-text-3)]">{title}</p>
   )
 
   if (loadState !== 'ready') {
@@ -137,7 +137,7 @@ export function PlanSummaryCard({
   if (needsReview || timezoneReview) {
     return card('review', 'warning', (
       <>
-        <p className="text-[15px] font-semibold text-[#ffb340]">
+        <p className="text-[15px] font-medium text-[var(--lg-warn-text)]">
           {needsReview
             ? t('my_stack_plan_conflict_title', { defaultValue: 'Welcher Plan läuft wirklich?' })
             : t('my_stack_course_timezone_review', { defaultValue: 'Die ursprünglichen Start- und Enddaten benötigen eine Zeitzone. Bis zur Bestätigung bleiben Einnahmen und Erinnerungen gesperrt.' })}
@@ -153,7 +153,7 @@ export function PlanSummaryCard({
       <>
         <div>
           {kicker}
-          <p className="mt-1 text-[17px] font-semibold text-[var(--lg-text)]">
+          <p className="mt-1 text-[17px] font-medium text-[var(--lg-text)]">
             {plan.best
               ? t('kein_aktiver_zyklus', { defaultValue: 'Kein aktiver Zyklus' })
               : t('noch_kein_zyklus', { defaultValue: 'Noch kein Zyklus' })}
@@ -218,7 +218,7 @@ export function PlanSummaryCard({
           {isActive && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--lg-good)]" />}
           {statusLabel}
         </span>
-        <span className="text-[13px] text-[var(--lg-text-3)]">
+        <span className="text-[13px] tabular-nums text-[var(--lg-text-3)]">
           {status === 'planned' || today < period.first
             ? t('my_stack_plan_from_date', { defaultValue: 'Ab {{date}}', date: dateLabel(`${period.first}|00:00:00`, language, timeZone) })
             : t('my_stack_plan_since_day', {
@@ -230,7 +230,7 @@ export function PlanSummaryCard({
       </div>
 
       <div>
-        <p className="text-[15px] font-semibold text-[var(--lg-text)]">
+        <p className="text-[15px] font-medium text-[var(--lg-text)]">
           {rhythmLabelWithDay(version, tr, language, nextIntake?.localDate)}
           {slotCountSuffix(slots.length, tr)}
         </p>
@@ -242,16 +242,16 @@ export function PlanSummaryCard({
 
       <div className={`grid gap-2 ${nextStepText ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {status === 'paused' ? (
-          <p className="rounded-2xl bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[13px] text-[#ffb340]">
+          <p className="rounded-2xl bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] px-4 py-2.5 text-[13px] text-[var(--lg-warn-text)]">
             {t('my_stack_plan_pause_neutral', { defaultValue: 'Während der Pause ist keine Einnahme fällig.' })}
           </p>
         ) : (
-          <div className="min-w-0 rounded-2xl bg-[var(--lg-fill)] px-3.5 py-2.5">
+          <div className="min-w-0 rounded-2xl bg-[var(--lg-fill)] px-4 py-2.5">
             <p className="flex items-center gap-1.5 text-[13px] text-[var(--lg-text-3)]">
-              <Clock size={12} aria-hidden="true" />
+              <Clock size={14} strokeWidth={1.5} aria-hidden="true" />
               {t('my_stack_plan_next_intake', { defaultValue: 'Nächste Einnahme' })}
             </p>
-            <p className="mt-0.5 text-[15px] font-semibold text-[var(--lg-text)]">
+            <p className="mt-0.5 text-[15px] font-medium text-[var(--lg-text)]">
               {nextIntake
                 ? nextIntakeLabel(nextIntake, today, language, tr)
                 : t('my_stack_plan_next_intake_none', { defaultValue: 'Keine feste Einnahme geplant' })}
@@ -259,9 +259,9 @@ export function PlanSummaryCard({
           </div>
         )}
         {nextStep && nextStepText && (
-          <div className="min-w-0 rounded-2xl bg-[rgba(191,90,242,0.12)] px-3.5 py-2.5">
+          <div className="min-w-0 rounded-2xl bg-[var(--lg-fill)] px-4 py-2.5">
             <p className="text-[13px] text-[var(--lg-text-3)]">{t('my_stack_plan_next_step', { defaultValue: 'Nächste Stufe' })}</p>
-            <p className="mt-0.5 text-[15px] font-semibold text-[#da8fff]">
+            <p className="mt-0.5 text-[15px] font-medium tabular-nums text-[var(--lg-text)]">
               {dateLabel(nextStep.effectiveFrom, language, timeZone)} · {nextStepText}
             </p>
           </div>

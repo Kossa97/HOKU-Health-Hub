@@ -72,7 +72,7 @@ export function ProductInventorySection({
   // Ein Vial mit fertiger Loesung wird geoeffnet wie eine Flasche.
   const art = istLoesungsVial(dosageForm, category) ? 'flasche' : anbruchArt(dosageForm)
   const eingabe = 'input min-h-11 w-full text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400'
-  const beschriftung = 'mb-2 block text-sm font-semibold text-slate-200'
+  const beschriftung = 'mb-2 block text-sm font-medium text-slate-200'
   const fluessigkeitFalsch = !gueltigeFluessigkeit(inventory.reconstitutionMl)
   const haltbarkeitFalsch = !gueltigeHaltbarkeit(inventory.useWithinDays)
 
@@ -83,7 +83,7 @@ export function ProductInventorySection({
         aria-expanded={expanded}
         aria-controls={contentId}
         onClick={() => setExpanded(current => !current)}
-        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-100 transition-colors duration-200 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-slate-100 transition-colors duration-200 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 motion-reduce:transition-none"
       >
         <span className="flex items-center gap-2">
           <Package size={17} aria-hidden="true" className="text-sky-300" />
@@ -101,7 +101,7 @@ export function ProductInventorySection({
       {expanded && (
         <div id={contentId} className="space-y-4 border-t border-white/10 p-4">
           <div>
-            <label htmlFor={`${contentId}-brand`} className="mb-2 block text-sm font-semibold text-slate-200">
+            <label htmlFor={`${contentId}-brand`} className="mb-2 block text-sm font-medium text-slate-200">
               {t('my_stack_brand_optional', { defaultValue: 'Marke (optional)' })}
             </label>
             <input
@@ -116,7 +116,7 @@ export function ProductInventorySection({
             <p data-inventory-needs-strength className="text-sm text-slate-400">{t('my_stack_inventory_needs_strength')}</p>
           )}
 
-          {showInventory && !bestandOhneStaerke && <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-slate-200">
+          {showInventory && !bestandOhneStaerke && <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-slate-200">
             <input
               type="checkbox"
               aria-label={String(t('my_stack_inventory_enabled', { defaultValue: 'Bestand mitverfolgen' }))}
@@ -130,7 +130,7 @@ export function ProductInventorySection({
           {showInventory && !bestandOhneStaerke && inventory.enabled && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor={`${contentId}-package-quantity`} className="mb-2 block text-sm font-semibold text-slate-200">
+                <label htmlFor={`${contentId}-package-quantity`} className="mb-2 block text-sm font-medium text-slate-200">
                   {t('my_stack_package_quantity', { defaultValue: 'Packungsgröße' })}
                 </label>
                 <input
@@ -145,7 +145,7 @@ export function ProductInventorySection({
                 />
               </div>
               <div>
-                <label htmlFor={`${contentId}-package-unit`} className="mb-2 block text-sm font-semibold text-slate-200">
+                <label htmlFor={`${contentId}-package-unit`} className="mb-2 block text-sm font-medium text-slate-200">
                   {t('my_stack_package_unit', { defaultValue: 'Packungseinheit' })}
                 </label>
                 <input
@@ -157,7 +157,7 @@ export function ProductInventorySection({
                 />
               </div>
               <div>
-                <label htmlFor={`${contentId}-remaining`} className="mb-2 block text-sm font-semibold text-slate-200">
+                <label htmlFor={`${contentId}-remaining`} className="mb-2 block text-sm font-medium text-slate-200">
                   {t('my_stack_remaining_quantity', { defaultValue: 'Aktueller Bestand' })}
                 </label>
                 <input
@@ -172,7 +172,7 @@ export function ProductInventorySection({
                 />
               </div>
               <div>
-                <label htmlFor={`${contentId}-batch`} className="mb-2 block text-sm font-semibold text-slate-200">
+                <label htmlFor={`${contentId}-batch`} className="mb-2 block text-sm font-medium text-slate-200">
                   {t('my_stack_batch_number_optional', { defaultValue: 'Chargennummer (optional)' })}
                 </label>
                 <input
@@ -184,7 +184,7 @@ export function ProductInventorySection({
               </div>
 {!haltbarkeitAnderswo && (
               <div className="sm:col-span-2">
-                <label htmlFor={`${contentId}-expires`} className="mb-2 block text-sm font-semibold text-slate-200">
+                <label htmlFor={`${contentId}-expires`} className="mb-2 block text-sm font-medium text-slate-200">
                   {art
                     ? `${t('my_stack_stock_expires_unopened')} (${t('my_stack_plan_optional', { defaultValue: 'optional' })})`
                     : t('my_stack_expires_at_optional', { defaultValue: 'Ablaufdatum (optional)' })}
@@ -319,7 +319,7 @@ export function ProductInventorySection({
                   <button
                     type="button"
                     onClick={() => onInventoryChange({ batchFile: null, batchFileUrl: null })}
-                    className="mt-1 min-h-11 px-1 text-sm font-semibold text-rose-300"
+                    className="mt-1 min-h-11 px-1 text-sm font-medium text-rose-300"
                   >
                     {t('my_stack_stock_document_remove')}
                   </button>

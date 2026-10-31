@@ -86,7 +86,7 @@ export function SubstanceBrowser({ entries, onSelect }: SubstanceBrowserProps) {
       >
         <span className="flex min-w-0 items-center gap-2.5">
           <Library aria-hidden="true" size={18} className="shrink-0 text-slate-400" />
-          <span className="min-w-0 text-sm font-semibold text-slate-200">
+          <span className="min-w-0 text-sm font-medium text-slate-200">
             {t('my_stack_browse_catalog', { defaultValue: 'Katalog durchblättern' })}
           </span>
           <span className="shrink-0 text-sm text-slate-500">{gesamt}</span>
@@ -141,7 +141,7 @@ export function SubstanceBrowser({ entries, onSelect }: SubstanceBrowserProps) {
                 <div key={gruppe.buchstabe}>
                   <div
                     data-katalog-buchstabe={gruppe.buchstabe}
-                    className="sticky top-0 z-10 bg-slate-950/95 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500 backdrop-blur"
+                    className="sticky top-0 z-10 bg-slate-950/95 py-1 text-[13px] font-medium text-slate-500"
                   >
                     {gruppe.buchstabe}
                   </div>
@@ -181,7 +181,7 @@ export function SubstanceBrowser({ entries, onSelect }: SubstanceBrowserProps) {
                       defaultValue: 'Zu {{letter}} springen',
                       letter: gruppe.buchstabe,
                     }))}
-                    className="w-6 cursor-pointer rounded text-[11px] font-semibold leading-[1.35] text-slate-500 transition-colors duration-200 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-400 motion-reduce:transition-none"
+                    className="w-6 cursor-pointer rounded text-[11px] font-medium leading-[1.35] text-slate-500 transition-colors duration-200 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-400 motion-reduce:transition-none"
                   >
                     {gruppe.buchstabe}
                   </button>

@@ -119,7 +119,7 @@ export function StageDetailSheet({
           onClick={onClose}
           data-app-back-close
           aria-label="Schließen"
-          className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className="lg-glass lg-icon-btn lg-press shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <X size={20} />
         </button>
@@ -135,7 +135,7 @@ export function StageDetailSheet({
             {sideActions}
           </div>
         </div>
-        <h2 className="mt-3 text-center text-[28px] font-bold leading-[34px] tracking-[0.013em] text-[var(--lg-text)]">{title}</h2>
+        <h2 className="mt-3 text-center text-[28px] font-medium leading-[34px] text-[var(--lg-text)]">{title}</h2>
         {belowTitle && <div className="mt-4 w-full max-w-xs">{belowTitle}</div>}
       </div>
 
@@ -143,7 +143,7 @@ export function StageDetailSheet({
           man dem Blick folgt statt alles auf einmal hinzuwerfen. */}
       <div
         data-stage-detail-body
-        className={`mx-auto mt-3 w-full max-w-xl flex-1 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] transition-all duration-300 ${
+        className={`mx-auto mt-3 w-full max-w-xl flex-1 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           gelandet ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
         }`}
       >

@@ -37,8 +37,8 @@ export function EscalationFormSheet({
 
             <div>
               <div className="flex items-center gap-2">
-                <SlidersHorizontal size={18} className="text-orange-400" />
-                <h2 className="text-lg font-bold">
+                <SlidersHorizontal size={18} strokeWidth={1.5} className="text-slate-400" />
+                <h2 className="text-lg font-medium">
                   {editingEscId ? t('esc_bearbeiten') : t('dose_plan_add_titration', { defaultValue: 'Titrationsschritt hinzufügen' })}
                 </h2>
               </div>
@@ -82,7 +82,7 @@ export function EscalationFormSheet({
                       return withEffectiveEscalationUnit(escForCycle, { ...f, start_type: opt.value })
                     })}
                     className={`py-2.5 rounded-xl text-xs font-medium transition-colors ${
-                      eForm.start_type === opt.value ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                      eForm.start_type === opt.value ? 'bg-[var(--accent)] text-[var(--accent-contrast)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                     }`}>
                     {t(opt.labelKey)}
                   </button>

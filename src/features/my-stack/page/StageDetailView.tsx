@@ -52,7 +52,7 @@ export function StageDetailView({
   // Dasselbe Symbol wie sonst; im Alarm blinkt es im Takt des Abzeichens,
   // und der Knopf pulsiert leicht mit (`.tyd-alarm-knopf` in index.css).
   const knopfSymbol = (alarm: boolean) => (
-    <RefreshCw size={17} aria-hidden="true" className={alarm ? 'tyd-expired-icon shrink-0 text-[#ff6961]' : 'shrink-0 text-[#64d2ff]'} />
+    <RefreshCw size={17} aria-hidden="true" className={alarm ? 'tyd-expired-icon shrink-0 text-[var(--lg-bad-text)]' : 'shrink-0 text-[var(--lg-text-2)]'} />
   )
   return (
     <>
@@ -101,7 +101,7 @@ export function StageDetailView({
                   type="button"
                   onClick={() => rekonstitutionWiederholen(activePeptide)}
                   data-anmischen-alarm={anmischenHilft || undefined}
-                  className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${anmischenHilft ? 'tyd-alarm-knopf' : ''}`}
+                  className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${anmischenHilft ? 'tyd-alarm-knopf' : ''}`}
                 >
                   {knopfSymbol(anmischenHilft)}
                   {neuAnbrechenLabel(t, activePeptide.dosage_form, istLoesungsVial(activePeptide.dosage_form, activePeptide.category))}
@@ -120,7 +120,7 @@ export function StageDetailView({
                   defaultValue: 'Nichts Ungeöffnetes mehr im Bestand.',
                 })))}
                 data-anmischen-alarm={(anmischenHilft && !nichtsZuOeffnen) || undefined}
-                className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 aria-disabled:opacity-40 ${anmischenHilft && !nichtsZuOeffnen ? 'tyd-alarm-knopf' : ''}`}
+                className={`lg-btn lg-btn-glass lg-glass lg-btn-compact w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] aria-disabled:opacity-40 ${anmischenHilft && !nichtsZuOeffnen ? 'tyd-alarm-knopf' : ''}`}
               >
                 {knopfSymbol(anmischenHilft && !nichtsZuOeffnen)}
                 {neuAnbrechenLabel(t, activePeptide.dosage_form, istLoesungsVial(activePeptide.dosage_form, activePeptide.category))}

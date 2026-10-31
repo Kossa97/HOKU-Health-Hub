@@ -150,7 +150,7 @@ export function StackListView({
               <li key={`gruppe-${gruppe}`} role="presentation" className={index === 0 ? 'pt-1' : 'pt-7'}>
                 <h3
                   data-list-group-title={gruppe}
-                  className={`lg-group-title ${gruppe === 'achtung' ? '!text-[#ff6961]' : ''}`}
+                  className={`lg-group-title ${gruppe === 'achtung' ? '!text-[var(--lg-bad-text)]' : ''}`}
                 >
                   {gruppenTitel(tr, gruppe)}
                 </h3>
@@ -326,7 +326,7 @@ function StackListRow({
           tabIndex={offen ? 0 : -1}
           onClick={() => { if (!klickVerschlucken()) onEdit() }}
           aria-label={String(t('bearbeiten'))}
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[#0a84ff] text-[12px] font-semibold text-white transition-[flex-grow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white group-data-[voll]/aktionen:grow-0"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 overflow-hidden whitespace-nowrap bg-[var(--surface-raised)] text-[12px] font-medium text-[var(--lg-text)] transition-[flex-grow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white group-data-[voll]/aktionen:grow-0"
         >
           <span className="flex flex-col items-center gap-1">
             <Pencil size={17} aria-hidden="true" style={AKTION_SYMBOL} />
@@ -341,7 +341,7 @@ function StackListRow({
           data-list-delete
           // Ganz durchgewischt wandert die Aufschrift an die linke Kante —
           // dorthin, wo der Finger ist.
-          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7 overflow-hidden whitespace-nowrap bg-[#ff453a] text-[12px] font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+          className="flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 group-data-[voll]/aktionen:items-start group-data-[voll]/aktionen:pl-7 overflow-hidden whitespace-nowrap bg-[var(--lg-bad)] text-[12px] font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
         >
           <span className="flex flex-col items-center gap-1">
             <Trash2 size={17} aria-hidden="true" style={AKTION_SYMBOL} />
@@ -362,7 +362,7 @@ function StackListRow({
         }}
         // `select-none` und kein Callout: langes Halten beim Wischen markiert
         // nichts und oeffnet kein Menue.
-        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-[var(--lg-surface-fill)] py-2.5 pl-3 pr-3 text-left [-webkit-touch-callout:none] active:bg-[#2c2c2e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+        className="relative flex w-full min-w-0 touch-pan-y select-none items-center gap-3 bg-[var(--lg-surface-fill)] py-2.5 pl-3 pr-3 text-left [-webkit-touch-callout:none] active:bg-[var(--surface-raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]"
       >
         {/* Feste Flaeche: das Objekt wird hineingepasst, nicht umgekehrt. */}
         <span ref={objektRef} data-list-object className="flex h-14 w-11 shrink-0">
@@ -387,7 +387,7 @@ function StackListRow({
 
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex min-w-0 items-center gap-2">
-            <span className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{p.name}</span>
+            <span className="truncate text-[17px] font-medium text-[var(--lg-text)]">{p.name}</span>
             {aktiv !== null && (
               <span
                 data-list-status={aktiv ? 'aktiv' : 'inaktiv'}

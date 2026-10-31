@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -32,7 +33,7 @@ export function VialPositionRow({ stagePeptides, activeIndex, addTileActive, sel
         aria-label={String(t('my_stack_go_to_add_tile', { defaultValue: 'Zur Kachel „Neue Substanz“' }))}
         aria-current={addTileActive || undefined}
         data-vial-add-dot
-        className="-my-[7px] flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+        className="-my-[7px] flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
       >
         <span className={`flex h-4 w-4 items-center justify-center rounded-full transition-colors duration-300 ${
           addTileActive ? 'bg-[var(--lg-text)] text-black' : 'bg-white/[0.16] text-[var(--lg-text-2)]'
@@ -50,19 +51,21 @@ export function VialPositionRow({ stagePeptides, activeIndex, addTileActive, sel
             aria-label={String(t('my_stack_go_to_item', { defaultValue: 'Zu {{name}}', name: p.name }))}
             aria-current={aktuell || undefined}
             data-vial-dot={index}
-            className="-my-[7px] flex h-6 min-w-5 items-center justify-center rounded-full px-[5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+            className="-my-[7px] flex h-6 min-w-5 items-center justify-center rounded-full px-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <span className="stack-dot" data-on={aktuell} />
           </button>
         )
       }) : (
         <div className="ml-1.5 h-1 w-24 overflow-hidden rounded-full bg-white/[0.16]">
+          {/* Verschoben per transform (eigene Breite × Position), nicht per
+              Rand — so laeuft die Leiste auf dem Compositor. */}
           <div
-            className={`h-full rounded-full transition-all duration-300 ${addTileActive ? 'bg-white/30' : 'bg-[var(--lg-text)]'}`}
+            className={`h-full rounded-full transition-[transform,background-color] duration-300 [transform:translateX(calc(var(--pos)*100%))] rtl:[transform:translateX(calc(var(--pos)*-100%))] ${addTileActive ? 'bg-white/30' : 'bg-[var(--lg-text)]'}`}
             style={{
               width: `${100 / stagePeptides.length}%`,
-              marginInlineStart: `${(activeIndex / stagePeptides.length) * 100}%`,
-            }}
+              '--pos': activeIndex,
+            } as CSSProperties}
           />
         </div>
       )}
@@ -72,7 +75,7 @@ export function VialPositionRow({ stagePeptides, activeIndex, addTileActive, sel
       {/* Absolut daneben: die Punkte bleiben mittig unter der Buehne und
           springen nicht, wenn die Zaehlung bei der „Neu"-Kachel verschwindet. */}
       {!addTileActive && stagePeptides.length > 0 && (
-        <span data-vial-counter className="absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-[11px] font-semibold leading-none tabular-nums text-[var(--lg-text-3)]">
+        <span data-vial-counter className="absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap font-mono text-[11px] leading-none tabular-nums text-[var(--lg-text-3)]">
           {activeIndex + 1} / {stagePeptides.length}
         </span>
       )}

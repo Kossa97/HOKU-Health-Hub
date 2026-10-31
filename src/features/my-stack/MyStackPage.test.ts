@@ -379,7 +379,7 @@ describe('My Stack page vial view', () => {
     // Waehrend des Ziehens kein Einrasten am Platz — per CSS am Streifen,
     // damit Druck und Loslassen nicht alle Objekte neu rendern.
     expect(text).toContain('data-dragging={isVialCarouselDragging || undefined}')
-    expect(text).toContain('snap-center snap-always transition-all duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none')
+    expect(text).toContain('snap-center snap-always transition-[transform,opacity,filter] duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none')
     expect(text).toContain('onPointerDown={handleVialCarouselPointerDown}')
     expect(text).toContain('onPointerMove={handleVialCarouselPointerMove}')
     expect(text).toContain('onPointerUp={handleVialCarouselPointerUp}')

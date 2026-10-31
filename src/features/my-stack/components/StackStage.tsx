@@ -98,7 +98,7 @@ export function StackStage({ item, fillPct, animateOnMount, showLabel, sloshEngi
       data-stack-renderer="unsupported"
       className="flex min-h-28 flex-col justify-center rounded-2xl border border-slate-700/70 bg-slate-950/80 px-5 py-4 shadow-[0_18px_45px_rgba(2,6,23,0.32)]"
     >
-      <p className="font-semibold text-white">{item.display_name}</p>
+      <p className="font-medium text-white">{item.display_name}</p>
       <p className="mt-1 text-sm text-slate-400">{t('my_stack_visual_pending')}</p>
     </div>
   )

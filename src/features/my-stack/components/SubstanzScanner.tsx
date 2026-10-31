@@ -74,7 +74,7 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
   return (
     <>
       {cam !== 'unavailable' && (
-        <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-[18px] bg-black">
+        <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black">
           <video ref={videoRef} playsInline muted autoPlay className="h-full w-full object-cover" aria-label={t('nutr_scan_camera')} />
           {bildLaeuft && (
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-[10%] inset-y-[14%] rounded-xl"
@@ -318,11 +318,11 @@ function ScanErgebnis({ vorschlag: gelesen, onUebernehmen, onNochmal }: {
 
   return (
     <div data-scan-result className="mt-3 space-y-3">
-      <div className="rounded-[18px] bg-[var(--lg-surface-2)] p-4">
-        <p data-scan-result-name className="break-words text-[17px] font-semibold text-[var(--lg-text)]">{vorschlag.name}</p>
+      <div className="rounded-2xl bg-[var(--lg-surface-2)] p-4">
+        <p data-scan-result-name className="break-words text-[17px] font-medium text-[var(--lg-text)]">{vorschlag.name}</p>
         {kandidaten.length > 0 && (
           <fieldset data-scan-candidates className="mt-3">
-            <legend className="text-[15px] font-semibold text-[var(--lg-text)]">{t('my_stack_scan_which')}</legend>
+            <legend className="text-[15px] font-medium text-[var(--lg-text)]">{t('my_stack_scan_which')}</legend>
             <p className="mt-0.5 text-[13px] text-[var(--lg-text-2)]">{t('my_stack_scan_which_hint')}</p>
             <div className="mt-2 flex flex-col gap-1.5">
               {kandidaten.map(kandidat => (
@@ -332,7 +332,7 @@ function ScanErgebnis({ vorschlag: gelesen, onUebernehmen, onNochmal }: {
                   aria-pressed={gewaehlt?.id === kandidat.id}
                   data-scan-candidate={kandidat.id}
                   onClick={() => setGewaehlt(kandidat)}
-                  className={`min-h-11 rounded-xl px-3 text-left text-[15px] transition-colors ${gewaehlt?.id === kandidat.id ? 'bg-[var(--lg-fill)] font-semibold text-[var(--lg-text)] ring-2 ring-[var(--lg-accent)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
+                  className={`min-h-11 rounded-xl px-3 text-left text-[15px] transition-colors ${gewaehlt?.id === kandidat.id ? 'bg-[var(--lg-fill)] font-medium text-[var(--lg-text)] ring-2 ring-[var(--lg-accent)]' : 'bg-[var(--lg-fill)] text-[var(--lg-text-2)]'}`}
                 >
                   {kandidat.canonical_name}
                 </button>

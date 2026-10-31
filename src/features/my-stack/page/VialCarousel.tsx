@@ -38,7 +38,7 @@ import { VialPositionRow } from './VialPositionRow'
  * Uebergang. Das steht im CSS und nicht als Prop: sonst renderte jeder
  * Druck und jedes Loslassen alle Objekte samt Zeichnung neu.
  */
-const PLATZ_BEWEGUNG = 'snap-center snap-always transition-all duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none'
+const PLATZ_BEWEGUNG = 'snap-center snap-always transition-[transform,opacity,filter] duration-300 group-data-[dragging]:[scroll-snap-align:none] group-data-[dragging]:[scroll-snap-stop:normal] group-data-[dragging]:transition-none'
 
 /**
  * Die Buehne: Reiter, Kopfzeile mit Haltbarkeit und Status, das Karussell mit Neu-Kachel und Objekten, darunter die Positionszeile.
@@ -123,10 +123,10 @@ export function VialCarousel({
               <button
                 type="button"
                 onClick={() => selectPeptideOffset(-1)}
-                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 aria-label="Vorheriges Peptid"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={18} strokeWidth={1.5} />
               </button>
               {addTileActive ? (
                 <span className="lg-tag" data-tone="accent">
@@ -144,7 +144,7 @@ export function VialCarousel({
                     {/* Aktiv: duenner gruener Rand wie beim Abgelaufen-Abzeichen,
                         dazu ein pulsierender Punkt — die Substanz laeuft. */}
                     {hasActive ? (
-                      <span data-active-badge className="inline-flex min-h-[26px] items-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2.5 text-[13px] font-semibold leading-none text-emerald-300">
+                      <span data-active-badge className="inline-flex min-h-6 items-center gap-2 whitespace-nowrap rounded-md border border-emerald-400/35 bg-emerald-500/10 px-2 text-xs font-medium leading-none text-emerald-300">
                         <span aria-hidden="true" className="tyd-active-dot" />
                         {t('aktiv_badge')}
                       </span>
@@ -157,10 +157,10 @@ export function VialCarousel({
               <button
                 type="button"
                 onClick={() => selectPeptideOffset(1)}
-                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                className="stack-head-btn lg-glass lg-icon-btn shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 aria-label="Nächstes Peptid"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={18} strokeWidth={1.5} />
               </button>
             </div>
 
@@ -169,11 +169,11 @@ export function VialCarousel({
                   Flaeche liess das Objekt in Dunst schweben. Was „steht
                   auf etwas" macht, ist ein SCHMALER Schatten direkt unter
                   ihm — und ein Licht, das nur die Mitte trifft, nicht die
-                  ganze Bahn. */}
+                  ganze Bahn. Das Licht ist neutral weiss, kein Farbschein. */}
               <div
                 data-vial-detail="carousel-spotlight"
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-1/4 top-6 bottom-14 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.16),rgba(34,211,238,0.05)_46%,transparent_74%)] blur-2xl"
+                className="pointer-events-none absolute inset-x-1/4 top-6 bottom-14 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12),rgba(255,255,255,0.03)_46%,transparent_74%)] blur-2xl"
               />
               <div
                 data-vial-detail="carousel-contact-shadow"
@@ -346,7 +346,7 @@ const CarouselItem = memo(function CarouselItem({
       {/* Die Zeile steht IMMER, auch wenn nichts darin steht — sonst huepfte
           die Positionsleiste darunter bei jedem Wisch mit. */}
       <p
-        className="mt-1 shrink-0 text-center text-[13px] font-semibold tabular-nums text-[var(--lg-text-3)]"
+        className="mt-1 shrink-0 text-center font-mono text-[13px] tabular-nums text-[var(--lg-text-3)]"
         aria-hidden={isActive && showsFillPct ? undefined : true}
       >
         {isActive && showsFillPct ? `${Math.round(vialPct)}%` : '\u00a0'}
