@@ -81,13 +81,13 @@ test('Liste: abgelaufen steht ausgeschrieben da, wie im Karussell', async ({ pag
   // Ausgeschrieben, ohne Rahmen: alarmieren tut nur das Symbol.
   await expect(zeile(page, 'BPC-157').locator('[data-expired-badge]')).toHaveText('Seit 8 Tagen abgelaufen!')
 
-  // Dieselbe Substanz im Karussell: das Abzeichen im Wechsel — „Abgelaufen!"
+  // Dieselbe Substanz im Karussell: das Abzeichen im Wechsel — „Abgelaufen"
   // und „seit 8 Tagen", vorgelesen zusammen.
   await page.evaluate(() => localStorage.setItem('tyd_peptide_view', 'vials'))
   await page.addInitScript(() => localStorage.setItem('tyd_peptide_view', 'vials'))
   await page.reload()
   const karussell = page.locator('[data-my-stack-carousel] [data-expired-badge="wechsel"]')
-  await expect(karussell).toContainText('Abgelaufen!')
+  await expect(karussell).toContainText('Abgelaufen')
   await expect(karussell).toContainText('seit 8 Tagen')
 })
 

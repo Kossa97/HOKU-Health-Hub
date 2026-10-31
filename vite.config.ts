@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
         name: 'HOKU: Health Hub',
         short_name: 'HOKU',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
-        theme_color: '#00ccf5',
+        theme_color: '#0e0f12',
         background_color: '#080b13',
         display: 'standalone',
         icons: [
