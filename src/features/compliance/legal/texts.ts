@@ -14,9 +14,15 @@ export type LegalPageKey = 'datenschutz' | 'impressum' | 'nutzungsbedingungen'
 export type LegalLang = 'de' | 'en'
 
 export interface LegalSection {
+  /** Sprungmarke (id im HTML), z. B. /datenschutz#gesundheitsdaten */
+  id?: string
   heading: string
   paragraphs: string[]
 }
+
+/** Abschnitt Apple Health / Health Connect. Android oeffnet ihn aus der
+ *  Health-Connect-Erklaerung (MainActivity.java nutzt denselben Wert). */
+export const HEALTH_SECTION_ID = 'gesundheitsdaten'
 
 export interface LegalDoc {
   title: string
@@ -55,6 +61,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
       ],
     },
     {
+      id: HEALTH_SECTION_ID,
       heading: '4. Apple Health und Health Connect',
       paragraphs: [
         'Wenn du es erlaubst, liest die App aus Apple Health (iOS) bzw. Health Connect (Android) — je nachdem, was die Plattform bereitstellt — Gewicht, Schritte, Workouts, Schlaf, Herzfrequenz und Ruhepuls, aktive Kalorien, Sauerstoffsättigung (SpO2), Atemfrequenz und Blutdruck, um sie neben deinen Einträgen anzuzeigen. Die App schreibt nichts dorthin.',
@@ -132,6 +139,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
       ],
     },
     {
+      id: HEALTH_SECTION_ID,
       heading: '4. Apple Health and Health Connect',
       paragraphs: [
         'If you allow it, the app reads — depending on what the platform provides — weight, steps, workouts, sleep, heart rate and resting heart rate, active calories, oxygen saturation (SpO2), respiratory rate and blood pressure from Apple Health (iOS) or Health Connect (Android) to show them next to your entries. The app does not write anything there.',

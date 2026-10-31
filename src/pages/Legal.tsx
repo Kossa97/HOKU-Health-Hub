@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
@@ -11,10 +12,14 @@ import { LEGAL_PATHS, type LegalPageKey } from '../features/compliance/legal/tex
  * jeder oeffnen kann.
  */
 export function Legal() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   const page = (Object.keys(LEGAL_PATHS) as LegalPageKey[]).find(key => LEGAL_PATHS[key] === pathname) ?? 'datenschutz'
   const { t } = useTranslation()
   const navigate = useNavigate()
+  // Sprungmarke wie /datenschutz#gesundheitsdaten (Android: Health-Connect-Erklaerung)
+  useEffect(() => {
+    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+  }, [hash])
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-2xl px-4 pb-12 pt-[calc(1rem+env(safe-area-inset-top))]">

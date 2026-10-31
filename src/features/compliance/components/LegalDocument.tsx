@@ -16,7 +16,7 @@ export function LegalDocument({ page, headingId }: { page: LegalPageKey; heading
       )}
       <div className="mt-5 flex flex-col gap-5">
         {doc.sections.map(section => (
-          <section key={section.heading}>
+          <section key={section.heading} id={section.id} className="scroll-mt-[calc(1rem+env(safe-area-inset-top))]">
             <h2 className="text-[17px] font-semibold text-[var(--lg-text)]">{section.heading}</h2>
             <div className="mt-1.5 flex flex-col gap-2 text-[15px] leading-relaxed">
               {section.paragraphs.map((absatz, i) => (
