@@ -1,6 +1,6 @@
 import { AUTO_EREIGNIS } from '../features/dot/autoTracking/autoTracking'
 import { useDotText } from '../features/dot/texte'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -2211,9 +2211,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       ? 'transparent'
       // Vergangen und noch unentschieden: sichtbar, aber warnfrei. Vorher war
       // das ein 14%-Weiss und damit von „nichts geplant" kaum zu unterscheiden.
-      : offenVergangen ? 'rgba(245,158,11,0.32)'
+      : offenVergangen ? 'color-mix(in srgb, var(--lg-warn) 32%, transparent)'
       // Vergangen und entschieden, aber nicht genommen — bewusst ausgelassen.
-      : isPastDay ? 'rgba(255,255,255,0.16)'
+      : isPastDay ? 'color-mix(in srgb, var(--lg-text) 16%, transparent)'
       // Heute oder kuenftig: steht noch an.
       : 'color-mix(in srgb, var(--accent) 35%, transparent)'
 
@@ -2274,16 +2274,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <button
           key={key}
           {...zelleProps}
-          className={['tyd-press gap-[7px] rounded-[16px]', ...grundKlassen].filter(Boolean).join(' ')}
+          className={['tyd-press gap-2 rounded-[12px]', ...grundKlassen].filter(Boolean).join(' ')}
           style={{
-            padding: '9px 0 10px',
+            padding: '8px 0',
             minHeight: 72,
             background: isSelected ? 'var(--lg-fill)' : 'transparent',
           }}
         >
           {balken}
           <span
-            className="text-[21px] font-bold leading-none tabular-nums tracking-[-0.02em] transition-colors duration-150"
+            className="text-[21px] font-medium leading-none tabular-nums transition-colors duration-150"
             style={{
               fontFamily: 'var(--lg-display)',
               color: isTodayDay ? 'var(--accent)'
@@ -2294,7 +2294,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {format(day, 'd')}
           </span>
           <span
-            className="text-[11px] font-bold uppercase leading-none tracking-[0.08em] transition-colors duration-150"
+            className="text-[12px] leading-none transition-colors duration-150"
             style={{ color: isSelected ? 'var(--accent)' : 'var(--lg-text-3)' }}
           >
             {format(day, 'EEEEEE', { locale })}
@@ -2317,9 +2317,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           style={{
             background: isSelected ? (isTodayDay ? 'var(--accent)' : 'var(--lg-text)') : 'transparent',
             color: isSelected
-              ? '#000'
+              ? (isTodayDay ? 'var(--accent-contrast)' : '#000')
               : isTodayDay ? 'var(--accent)' : inMonth ? 'var(--lg-text)' : 'var(--lg-text-3)',
-            fontWeight: isSelected || isTodayDay ? 700 : 500,
+            fontWeight: isSelected || isTodayDay ? 600 : 400,
           }}
         >
           {format(day, 'd')}
@@ -2353,7 +2353,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     const zeiten = eintrag.slots.map(slot => slot.time).filter(Boolean)
     const spanne = zeiten.length === 0 ? '' : zeiten[0] === zeiten[zeiten.length - 1] ? zeiten[0] : `${zeiten[0]}–${zeiten[zeiten.length - 1]}`
     const kopfzeile = (
-      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--accent)]">
+      <span className="block text-[13px] text-[var(--lg-text-3)]">
         {t('bundle_card_label', { defaultValue: 'Bündel · {{n}} Einnahmen', n: eintrag.anzahl })}
       </span>
     )
@@ -2361,7 +2361,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       return (
         <div key={eintrag.schluessel} data-bundle-row={eintrag.bundle.id} data-mitglieder={eintrag.mitglieder} data-periode={periode.key} data-offen="" className="lg-group tyd-buendel">
           <div className="flex items-center gap-3 px-3 pb-2 pt-3">
-            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
+            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={18} strokeWidth={1.5} /></span>
             <label className="min-w-0 flex-1">
               <span className="block">{t('bundle_naming', { defaultValue: 'Bündel benennen' })}</span>
               <input
@@ -2383,8 +2383,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <div key={slot.key} data-due-row={slot.key} className="flex min-h-[54px] items-center gap-3 pl-3 pr-2">
                   <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full" style={{ background: getStackItemColor(stackItems.findIndex(item => item.id === slot.cycle.stack_item_id)) }} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[16px] font-semibold text-[var(--lg-text)]">{name}</span>
-                    <span className="block truncate text-[13px] text-[var(--lg-text-3)]">{slot.time}</span>
+                    <span className="block truncate text-[15px] font-medium text-[var(--lg-text)]">{name}</span>
+                    <span className="block truncate font-mono text-[13px] text-[var(--lg-text-3)]">{slot.time}</span>
                   </span>
                   <button
                     type="button"
@@ -2392,14 +2392,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     onClick={() => void imBearbeitenHerausnehmen(bearbeitetes!, slot.cycle.stack_item_id)}
                     className="tyd-press grid h-11 w-11 shrink-0 place-items-center rounded-full"
                   >
-                    <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_20%,transparent)] text-[var(--lg-bad-text)]"><Minus size={14} strokeWidth={3} /></span>
+                    <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-[color-mix(in_srgb,var(--lg-bad)_20%,transparent)] text-[var(--lg-bad-text)]"><Minus size={14} strokeWidth={2} /></span>
                   </button>
                 </div>
               )
             })}
           </div>
           <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-1">
-            <button type="button" onClick={() => void bearbeitenBeenden(true)} data-quiet className="tyd-press min-h-11 text-[15px] font-semibold text-[var(--lg-text-2)]">
+            <button type="button" onClick={() => void bearbeitenBeenden(true)} data-quiet className="tyd-press min-h-11 text-[15px] font-medium text-[var(--lg-text-2)]">
               {bearbeiten.neu
                 ? t('bundle_undo', { defaultValue: 'Rückgängig' })
                 : t('bundle_discard', { defaultValue: 'Änderungen verwerfen' })}
@@ -2420,11 +2420,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             onClick={() => { if (!buendelZiehen.klickNachZiehen()) setOffenesBuendel(offen ? null : eintrag.schluessel) }}
             className="flex min-h-[64px] min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
-            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>
+            <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={18} strokeWidth={1.5} /></span>
             <span className="min-w-0 flex-1">
               {kopfzeile}
               {/* Zusammengelegt stehen zwei Namen da: umbrechen statt abschneiden. */}
-              <span className={`block text-[17px] font-semibold leading-snug text-[var(--lg-text)] ${eintrag.alle.length > 1 ? 'line-clamp-2 [overflow-wrap:anywhere]' : 'truncate'}`}>{eintrag.name}</span>
+              <span className={`block text-[17px] font-medium leading-snug text-[var(--lg-text)] ${eintrag.alle.length > 1 ? 'line-clamp-2 [overflow-wrap:anywhere]' : 'truncate'}`}>{eintrag.name}</span>
               {!offen && (
                 <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">
                   {[eintrag.intakes.map(intake => intake.stackItemName).join(' · '), spanne].filter(Boolean).join(' · ')}
@@ -2462,7 +2462,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <button
                   type="button"
                   onClick={() => setBuendelBearbeiten({ id: eintrag.bundle.id, periode: periode.key, name: eintrag.bundle.name, vorher: bundles, neu: false })}
-                  className="tyd-press min-h-11 px-2 text-[15px] font-semibold text-[var(--accent)]"
+                  className="tyd-press min-h-11 px-2 text-[15px] font-medium text-[var(--lg-accent-text)]"
                 >
                   {t('bundle_edit_short', { defaultValue: 'Bearbeiten' })}
                 </button>
@@ -2526,14 +2526,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 ? { art: 'keiner' }
                 : { art: 'slot', key: slot.key, gruppe: periode.key })
             }}
-            className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-1 text-left transition-colors active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
+            className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-1 text-left transition-colors active:bg-[var(--lg-fill)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
           >
             <span
-              className="h-2 w-2 shrink-0 rounded-full transition-[transform,box-shadow] duration-200 motion-reduce:transition-none"
+              className="h-2 w-2 shrink-0 rounded-full transition-transform duration-200 motion-reduce:transition-none"
               style={{
                 transform: offen ? 'scale(1.25)' : undefined,
                 background: farbe,
-                boxShadow: offen ? `0 0 12px ${farbe}80` : undefined,
               }}
             />
             <span className="min-w-0 flex-1">
@@ -2541,20 +2540,20 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   Tageszeit kann das nicht: „morgens" fasst alles vor zwoelf
                   zusammen, also auch 06:00 und 11:00 im selben Block. */}
               {offen && (
-                <span className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold tabular-nums text-[var(--accent)]">
-                  <PeriodenIcon size={12} aria-hidden="true" />
+                <span className="mb-1 flex items-center gap-2 font-mono text-[13px] tabular-nums text-[var(--lg-accent-text)]">
+                  <PeriodenIcon size={14} strokeWidth={1.5} aria-hidden="true" />
                   {slot.time || periode.label}
                 </span>
               )}
               <span className={offen
-                ? 'block text-[28px] font-bold leading-[34px] text-[var(--lg-text)] [overflow-wrap:anywhere]'
-                : 'block truncate text-[17px] font-semibold text-[var(--lg-text)]'}>
+                ? 'block text-[28px] font-medium leading-[34px] text-[var(--lg-text)] [overflow-wrap:anywhere]'
+                : 'block truncate text-[17px] font-medium text-[var(--lg-text)]'}>
                 {c.stack_items?.display_name}
               </span>
               <span className={offen
                 ? 'mt-0.5 block text-[17px] text-[var(--lg-text-2)]'
                 : 'mt-0.5 flex items-center gap-1.5 text-[13px] text-[var(--lg-text-3)]'}>
-                {!offen && <PeriodenIcon size={11} className="shrink-0" aria-hidden="true" />}
+                {!offen && <PeriodenIcon size={14} strokeWidth={1.5} className="shrink-0" aria-hidden="true" />}
                 {/* Eine Zeichenkette in EINEM Element: sonst greift `truncate`
                     nicht und die Trennpunkte bekommen doppelten Abstand. */}
                 <span className="truncate">
@@ -2601,7 +2600,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               data-tone="good"
               className="lg-gray-btn w-full !min-h-[52px] !text-[17px]"
             >
-              <Check size={20} aria-hidden="true" />
+              <Check size={18} strokeWidth={1.5} aria-hidden="true" />
               {isPastSelected ? t('dose_mark_taken', { defaultValue: 'Doch eingenommen' }) : t('eingenommen')}
             </button>
 
@@ -2643,7 +2642,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 onClick={() => openInjectionTrackerForSlot(slot)}
                 className={zweitKnopf}
               >
-                <Syringe size={15} aria-hidden="true" />
+                <Syringe size={16} strokeWidth={1.5} aria-hidden="true" />
                 {t('due_confirm_with_injection', { defaultValue: 'Mit Injektion tracken' })}
               </button>
             )}
@@ -2676,7 +2675,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
     const kopf = (
       <>
-        <Symbol size={18} aria-hidden="true" className={`shrink-0 ${ton}`} />
+        <Symbol size={18} strokeWidth={1.5} aria-hidden="true" className={`shrink-0 ${ton}`} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[17px] text-[var(--lg-text)]">
             {log.stack_items?.display_name ?? t('geloeschte_substanz')}
@@ -2685,7 +2684,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           <span className="block truncate text-[13px] text-[var(--lg-text-3)]">
             <span>{menge}</span>
             {log.method && <> · <span>{log.method}</span></>}
-            {' · '}<span className="tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
+            {' · '}<span className="font-mono tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
             {/* Genommen an einem anderen Tag als dem des Platzes (nach Mitternacht): der Tag dazu */}
             {(() => {
               const planTag = planTagAusSchluessel(log.routine_slot_key)
@@ -2709,16 +2708,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             type="button"
             aria-expanded={offen}
             onClick={() => setAufgeklappterLog(offen ? null : log.id)}
-            className="flex min-h-[60px] w-full cursor-pointer items-center gap-3.5 px-4 py-2.5 text-left transition-colors duration-150 active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
+            className="flex min-h-[60px] w-full cursor-pointer items-center gap-3.5 px-4 py-2 text-left transition-colors duration-150 active:bg-[var(--lg-fill)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
           >
             {kopf}
           </button>
         ) : (
-          <div className="flex min-h-[60px] items-center gap-3.5 px-4 py-2.5">{kopf}</div>
+          <div className="flex min-h-[60px] items-center gap-3.5 px-4 py-2">{kopf}</div>
         )}
 
         {offen && (
-          <div className="flex flex-wrap gap-2 pb-3 pl-[50px] pr-4">
+          <div className="flex flex-wrap gap-2 pb-3 pl-12 pr-4">
             {log.taken === null && <>
               <button
                 type="button"
@@ -2815,14 +2814,14 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       </header>
 
       {inventoryRetryIds.length > 0 && (
-        <div role="alert" className="rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4 text-[15px] font-semibold text-[var(--lg-warn-text)]">
+        <div role="alert" className="rounded-[16px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4 text-[15px] font-medium text-[var(--lg-warn-text)]">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"
             onClick={() => void Promise.all(inventoryRetryIds.map(id => applyGenericInventory(id)))}
             className="lg-gray-btn mt-3 !text-[var(--lg-warn-text)]"
           >
-            <RotateCcw size={15} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
+            <RotateCcw size={16} strokeWidth={1.5} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
           </button>
         </div>
       )}
@@ -2834,7 +2833,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <div className="flex flex-col gap-2">
 
           <div className="flex items-center justify-between gap-2 px-1">
-            <h2 className="min-w-0 truncate text-[17px] font-semibold text-[var(--lg-text)]">
+            <h2 className="min-w-0 truncate text-[17px] font-medium text-[var(--lg-text)]">
               {weekTitle}
             </h2>
             <div className="flex shrink-0 items-center">
@@ -2948,7 +2947,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
               <div className="grid grid-cols-7">
                 {[t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')].map(d => (
-                  <div key={d} className="pb-1 text-center text-[11px] font-semibold uppercase text-[var(--lg-text-3)]">{d}</div>
+                  <div key={d} className="pb-1 text-center text-[12px] text-[var(--lg-text-3)]">{d}</div>
                 ))}
               </div>
             </div>
@@ -2994,22 +2993,31 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           <h2 className="lg-title2 min-w-0 truncate">
             {selectedDayTitle}
           </h2>
-          <span className="shrink-0 text-[15px] tabular-nums text-[var(--lg-text-3)]">
+          <span className="shrink-0 font-mono text-[13px] tabular-nums text-[var(--lg-text-3)]">
             {format(selectedDay, 'dd.MM.yyyy')}
           </span>
         </div>
         {/* Nur solange etwas offen ist: ein vergangener Tag hat dafür seine
             Bilanz, ein erledigter Tag die Quittung darunter — beide nennen x/y. */}
         {(!FEATURES.planTimelineV2 || timelineReady) && totalDaySlots > 0 && dueSlots.length > 0 && !isPastSelected && (
-          <div data-tag-bestaetigt className="-mt-1.5 mb-3 flex items-center gap-2.5 px-1 text-[15px] tabular-nums text-[var(--lg-text-3)]">
-            <span>
+          <div data-tag-bestaetigt className="-mt-1 mb-4 flex items-center gap-3 px-1 text-[15px] tabular-nums text-[var(--lg-text-3)]">
+            <span className="shrink-0">
               {t('day_confirmed_label', { defaultValue: 'Bestätigt' })}{' '}
-              <b className={`font-semibold ${genommeneSlots >= totalDaySlots ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-text-2)]'}`}>
+              <b className={`font-mono font-medium ${genommeneSlots >= totalDaySlots ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-text-2)]'}`}>
                 {genommeneSlots}/{totalDaySlots}
               </b>
             </span>
-            <span aria-hidden="true" className="h-1 w-[72px] overflow-hidden rounded-full bg-[var(--lg-fill)]">
-              <span className="block h-full rounded-full bg-[var(--lg-good)] transition-[width] duration-300" style={{ width: `${Math.min(100, Math.round(genommeneSlots / totalDaySlots * 100))}%` }} />
+            {/* Die Spur mit Messstrichen (hk-scale) wie auf einer Spritze. Sie
+                liegt auf dem Seitengrund, die Striche nehmen dessen Ton. */}
+            <span
+              aria-hidden="true"
+              className="hk-scale block h-2 w-24 rounded-[2px] bg-[var(--lg-fill)]"
+              style={{ '--hk-scale-gap': 'var(--hk-bg)' } as CSSProperties}
+            >
+              <span
+                className="block h-full origin-left bg-[var(--lg-good)] transition-transform duration-300 motion-reduce:transition-none"
+                style={{ transform: `scaleX(${Math.min(1, genommeneSlots / totalDaySlots)})`, transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
+              />
             </span>
           </div>
         )}
@@ -3026,11 +3034,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           <Silhouette className="mb-3" abdruck><EinnahmenUmriss /></Silhouette>
         ))}
         {FEATURES.planTimelineV2 && timelineReady && timezoneReviewStackItemIds.length > 0 && (
-          <div role="alert" className="mb-4 rounded-[20px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4">
-            <div className="flex items-start gap-2.5">
-              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
+          <div role="alert" className="mb-4 rounded-[16px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[var(--lg-warn-text)]" aria-hidden="true" />
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold leading-5 text-[var(--lg-warn-text)]">
+                <p className="text-[15px] font-medium leading-5 text-[var(--lg-warn-text)]">
                   {t('my_stack_calendar_timezone_review', { defaultValue: 'Existing intake plans still need a time zone confirmation. They will not appear in the calendar until then.' })}
                 </p>
                 <button
@@ -3045,8 +3053,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         )}
         {selectedPause && (
-          <div className="lg-surface mb-4 px-4 py-3.5">
-            <p className="text-[15px] font-semibold text-[var(--lg-accent-text)]">
+          <div className="lg-surface mb-4 px-4 py-4">
+            <p className="text-[15px] font-medium text-[var(--lg-accent-text)]">
               <span>{t('my_stack_plan_status_paused', { defaultValue: 'Plan pausiert' })}</span>
               {selectedPauseRange && <span className="font-normal text-[var(--lg-text-2)]"> · {selectedPauseRange}</span>}
             </p>
@@ -3075,10 +3083,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('due_open_count', { defaultValue: '{{n}} offen', n: dueSlots.length })}
               </span>
             </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]">
+            {/* Messstriche (hk-scale) auf der Spur: Anteil des Tages wie auf einer Skala */}
+            <div aria-hidden="true" className="hk-scale mt-4 h-2 overflow-hidden rounded-[4px] bg-[var(--lg-fill)]">
               <span
-                className="block h-full rounded-full bg-[var(--lg-good)]"
-                style={{ width: totalDaySlots > 0 ? `${Math.round((genommeneSlots / totalDaySlots) * 100)}%` : '0%' }}
+                className="block h-full origin-left bg-[var(--lg-good)]"
+                style={{ transform: `scaleX(${totalDaySlots > 0 ? Math.min(1, genommeneSlots / totalDaySlots) : 0})` }}
               />
             </div>
           </div>
@@ -3089,24 +3098,29 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           <div
             data-due-receipt
             data-tone={alleGenommen ? 'good' : undefined}
-            className="lg-surface mb-4 flex flex-col items-center gap-2.5 px-6 py-7 text-center"
+            className="lg-surface mb-4 flex flex-col items-center gap-2 px-6 py-8 text-center"
           >
             <span
-              className="flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ background: alleGenommen ? 'var(--lg-good)' : verpassteHeute > 0 ? 'var(--lg-warn)' : '#636366' }}
+              className="flex h-12 w-12 items-center justify-center rounded-full"
+              style={{
+                background: alleGenommen ? 'color-mix(in srgb, var(--lg-good) 18%, transparent)'
+                  : verpassteHeute > 0 ? 'color-mix(in srgb, var(--lg-warn) 18%, transparent)'
+                  : 'var(--lg-fill)',
+                color: alleGenommen ? 'var(--lg-good-text)' : verpassteHeute > 0 ? 'var(--lg-warn-text)' : 'var(--lg-text-2)',
+              }}
             >
               {alleGenommen
-                ? <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
-                : <MinusCircle size={28} strokeWidth={2.4} className="text-white" aria-hidden="true" />}
+                ? <Check size={24} strokeWidth={2} aria-hidden="true" />
+                : <MinusCircle size={24} strokeWidth={1.5} aria-hidden="true" />}
             </span>
             <h3 className="lg-title2">
               {alleGenommen
-                ? t('all_intakes_done', { defaultValue: 'Alle geplanten Einnahmen sind bestätigt.' })
+                ? t('all_intakes_done', { defaultValue: 'Alle geplanten Einnahmen sind bestätigt' })
                 // Verpasst hat der Auto-Miss eingetragen, nicht der Nutzer —
                 // „alles protokolliert" stimmte dann nicht.
                 : verpassteHeute > 0
-                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert.' })
-                : t('all_intakes_logged', { defaultValue: 'Für diesen Tag ist alles protokolliert.' })}
+                ? t('calendar_day_incomplete', { defaultValue: 'Dieser Tag ist nicht vollständig protokolliert' })
+                : t('all_intakes_logged', { defaultValue: 'Für diesen Tag ist alles protokolliert' })}
             </h3>
             <p className="text-[15px] text-[var(--lg-text-3)]">
               {alleGenommen
@@ -3132,9 +3146,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             ziehen bildet ein Bündel (useBuendelZiehen). */}
         {tagesGruppen.map(gruppe => (
           <div key={gruppe.key} className="mb-6" data-periode-abschnitt={gruppe.key} onPointerDown={buendelZiehen.onPointerDown}>
-            <div className="mb-1.5 flex min-h-11 items-center justify-between gap-3 px-1">
-              <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
-                {(() => { const Ic = gruppe.icon; return <Ic size={14} aria-hidden="true" /> })()}
+            <div className="mb-2 flex min-h-11 items-center justify-between gap-3 px-1">
+              <p className="flex shrink-0 items-center gap-2 pl-3 text-[13px] font-medium text-[var(--lg-text-3)]">
+                {(() => { const Ic = gruppe.icon; return <Ic size={16} strokeWidth={1.5} aria-hidden="true" /> })()}
                 <span className="truncate">{gruppe.label}</span>
               </p>
               <span data-periode-sperre className="items-center gap-1.5 pr-2 text-[13px] text-[var(--lg-text-3)]">
@@ -3142,7 +3156,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('bundle_period_locked', { defaultValue: 'Nur innerhalb einer Tageszeit' })}
               </span>
             </div>
-            <div data-periode-bloecke className="space-y-2.5">
+            <div data-periode-bloecke className="space-y-3">
               {gruppe.bloecke.map(block => block.art === 'liste'
                 ? (
                     <div key={`liste-${block.slots[0].key}`} className="lg-group lg-rows">
@@ -3159,8 +3173,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             von ihnen offen ist. */}
         {(!FEATURES.planTimelineV2 || timelineReady) && (bundleRows.length > 0 || stackItems.length > 1) && (
           <section data-intake-bundles aria-labelledby="intake-bundles-title" className="mb-6 px-1">
-            <h3 id="intake-bundles-title" className="mb-2 flex items-center gap-2 pl-3 text-[13px] font-semibold uppercase tracking-[0.02em] text-[var(--lg-text-3)]">
-              <Layers size={14} aria-hidden="true" />
+            <h3 id="intake-bundles-title" className="mb-2 flex items-center gap-2 pl-3 text-[13px] font-medium text-[var(--lg-text-3)]">
+              <Layers size={16} strokeWidth={1.5} aria-hidden="true" />
               {t('bundle_section_title', { defaultValue: 'Meine Bündel' })}
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -3205,15 +3219,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               onClick={() => setCompletedExpanded(expanded => !expanded)}
               aria-expanded={completedExpanded}
               data-tone="good"
-              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
+              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2 text-left transition-colors active:bg-[var(--lg-surface-2)]"
             >
-              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
+              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={18} strokeWidth={2} /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-[17px] text-[var(--lg-text)]">
                   {t('completed_intakes_title', { defaultValue: 'Bereits protokolliert' })}
                 </p>
                 <p className="text-[13px] text-[var(--lg-text-3)]">
-                  {t('completed_intakes_hint', { defaultValue: 'Bestätigte Einnahmen.' })}
+                  {t('completed_intakes_hint', { defaultValue: 'Bestätigte Einnahmen' })}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -3239,16 +3253,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               type="button"
               onClick={() => setUnloggedExpanded(expanded => !expanded)}
               aria-expanded={unloggedExpanded}
-              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
+              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2 text-left transition-colors active:bg-[var(--lg-surface-2)]"
             >
               {/* Neutral: ausgelassen heisst entschieden, nicht falsch */}
-              <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><MinusCircle size={17} strokeWidth={2.4} /></span>
+              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-text-3)]"><MinusCircle size={18} strokeWidth={1.5} /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-[17px] text-[var(--lg-text)]">
                   {t('unlogged_intakes_title', { defaultValue: 'Nicht protokolliert' })}
                 </p>
                 <p className="text-[13px] text-[var(--lg-text-3)]">
-                  {t('unlogged_intakes_hint', { defaultValue: 'Übersprungene und verpasste Einnahmen.' })}
+                  {t('unlogged_intakes_hint', { defaultValue: 'Übersprungene und verpasste Einnahmen' })}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -3367,17 +3381,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {...bestaetigenSchliessen.closingProps}
             className="lg-sheet tyd-sheet fixed inset-x-2 bottom-2 z-50 max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
           >
-            <div style={{ padding: '8px 18px 0' }}>
+            <div style={{ padding: '8px 20px 0' }}>
               <SheetGriff className="mb-4" onClose={bestaetigenSchliessen.requestClose} />
-              <div className="mb-1 flex items-center gap-2.5">
-                <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
+              <div className="mb-1 flex items-center gap-3">
+                <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={18} strokeWidth={2} /></span>
                 <h2 id="confirm-sheet-title" className="lg-title2">{t('confirm_sheet_title', { defaultValue: 'Einnahme bestätigen' })}</h2>
               </div>
-              <p className="mb-5 mt-1.5 text-[15px] text-[var(--lg-text-2)]">
+              <p className="mb-5 mt-2 text-[15px] text-[var(--lg-text-2)]">
                 {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen?' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="confirm-sheet-time" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
+                <label htmlFor="confirm-sheet-time" className="text-[13px] text-[var(--lg-text-3)]">
                   {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
                 </label>
                 <div className="flex items-center gap-2">
@@ -3387,7 +3401,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     onClick={confirmJetzt}
                     className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
                   >
-                    <Clock size={13} />
+                    <Clock size={16} strokeWidth={1.5} />
                     {t('confirm_time_now', { defaultValue: 'Jetzt' })}
                   </button>
                   {confirmPlanTime && (
@@ -3407,7 +3421,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 type="time"
                 value={confirmTime}
                 onChange={e => setConfirmTime(e.target.value)}
-                className={`input font-semibold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
+                className={`input font-mono ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
                 style={{ colorScheme: 'dark' }}
               />
               {confirmDay && !isSameDay(confirmDay, selectedDay) && (
@@ -3422,7 +3436,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                       „Eingenommen" fuer die Uhrzeit, „Einmalige
                       Dosisaenderung" fuer die Menge, mit dem groesseren
                       Gruppen-Sheet dahinter. */}
-                  <label className="mb-2 block text-[13px] font-semibold text-[var(--lg-text-3)]">
+                  <label className="mb-2 block text-[13px] text-[var(--lg-text-3)]">
                     {t('confirm_sheet_dose_label', { defaultValue: 'Menge' })}
                   </label>
                   <div className="mb-5 flex items-center gap-2">
@@ -3434,7 +3448,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                       aria-label={String(t('confirm_sheet_dose_label', { defaultValue: 'Menge' }))}
                       value={confirmDoseText}
                       onChange={e => setConfirmDoseText(e.target.value)}
-                      className="input min-w-0 flex-1 font-semibold"
+                      className="input min-w-0 flex-1 font-mono"
                       style={{ colorScheme: 'dark' }}
                     />
                     <span className="text-[17px] text-[var(--lg-text-2)]">{confirmUnit}</span>
@@ -3448,12 +3462,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     return (
                       <p data-menge-hinweis className="-mt-3 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-[var(--lg-text-2)]">
                         {einheiten != null && (
-                          <span className="font-semibold tabular-nums text-[var(--accent)]">
+                          <span className="font-medium tabular-nums text-[var(--lg-accent-text)]">
                             {t('syringe_draw_units', { defaultValue: '{{units}} Einheiten aufziehen', units: einheitenText(einheiten) })}
                           </span>
                         )}
                         {einmalig && (
-                          <span className="rounded-full bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-2 py-0.5 text-[12px] font-semibold text-[var(--accent)]">
+                          <span className="rounded-[6px] bg-[var(--accent-weak)] px-2 py-0.5 text-[12px] font-medium text-[var(--lg-accent-text)]">
                             {t('dose_once', { defaultValue: 'einmalig' })}
                           </span>
                         )}
@@ -3472,7 +3486,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   data-tone="good"
                   className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
                 >
-                  <Check size={18} /> {t('eingenommen', { defaultValue: 'Eingenommen' })}
+                  <Check size={18} strokeWidth={1.5} /> {t('eingenommen', { defaultValue: 'Eingenommen' })}
                 </button>
               </div>
             </div>

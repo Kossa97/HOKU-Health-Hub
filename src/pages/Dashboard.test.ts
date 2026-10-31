@@ -577,7 +577,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     await waitFor(() => expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull())
-    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Bereits protokolliert')
+    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt' : 'Bereits protokolliert')
     const initialQueries = client.logQueries.length
     browseToNovember()
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(initialQueries))
@@ -1095,8 +1095,8 @@ describe('Dashboard normalized timeline path', () => {
     // Beide entschieden, aber nur eine genommen: die Zelle zeigt halb …
     await waitFor(() => expect(tagesBalken('2026-09-18')).toBe('50%'))
     // … und die Tagesmeldung behauptet nicht, alles sei bestätigt worden.
-    expect(screen.queryByText('Alle geplanten Einnahmen sind bestätigt.')).toBeNull()
-    expect(screen.getByText('Für diesen Tag ist alles protokolliert.')).toBeTruthy()
+    expect(screen.queryByText('Alle geplanten Einnahmen sind bestätigt')).toBeNull()
+    expect(screen.getByText('Für diesen Tag ist alles protokolliert')).toBeTruthy()
     expect(screen.getByText('1 genommen · 1 übersprungen')).toBeTruthy()
   })
 
@@ -1117,7 +1117,7 @@ describe('Dashboard normalized timeline path', () => {
 
     // Verpasst hat der Auto-Miss eingetragen — dann heißt der Tag nicht
     // „alles protokolliert", aber auch nicht rot.
-    const receipt = await screen.findByText('Dieser Tag ist nicht vollständig protokolliert.')
+    const receipt = await screen.findByText('Dieser Tag ist nicht vollständig protokolliert')
     const card = receipt.closest('[data-due-receipt]') as HTMLElement
     expect(card.textContent).toContain('0 genommen · 1 übersprungen · 1 verpasst')
     expect(card.querySelector('.lucide-check')).toBeNull()
@@ -1304,7 +1304,7 @@ describe('Dashboard normalized timeline path', () => {
     await act(async () => { finish() })
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(queriesBeforeCompletion))
     await waitFor(() => expect(screen.getAllByRole('status').some(element => element.textContent?.includes('Lädt'))).toBe(false))
-    expect(await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
+    expect(await screen.findByText('Alle geplanten Einnahmen sind bestätigt')).toBeTruthy()
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(document.querySelector('[data-due-row]')).toBeNull()
     const refreshedKeys: string[] = client.logQueries.slice(queriesBeforeCompletion)
@@ -1333,13 +1333,13 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
     await screen.findByText('Routine gespeichert')
     browseToNovember()
-    await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')
+    await screen.findByText('Alle geplanten Einnahmen sind bestätigt')
     await act(async () => { finishInventory() })
     fireEvent.click(await screen.findByRole('button', { name: 'Bestand erneut versuchen' }))
     await waitFor(() => expect(inventoryAttempts).toBe(2))
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Bestand erneut versuchen' })).toBeNull())
     expect(client.rpc.mock.calls.filter(call => call[0] === 'confirm_intake_group')).toHaveLength(1)
-    expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy()
+    expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt')).toBeTruthy()
   })
 
   it('keeps the original 08:00 occurrence in a pending group confirmation, taken now', async () => {
@@ -1560,7 +1560,7 @@ describe('Dashboard normalized timeline path', () => {
     await openSingle()
     fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
-    await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')
+    await screen.findByText('Alle geplanten Einnahmen sind bestätigt')
 
     fireEvent.click(screen.getByRole('button', { name: /Bereits protokolliert/ }))
     expect(screen.getByText('Menge nicht getrackt')).toBeTruthy()
@@ -1580,7 +1580,7 @@ describe('Dashboard normalized timeline path', () => {
     const dosLogsAbfragenVorher = client.selectCounts.get('dose_logs') ?? 0
     fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
-    await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')
+    await screen.findByText('Alle geplanten Einnahmen sind bestätigt')
     expect(client.selectCounts.get('dose_logs')).toBe(dosLogsAbfragenVorher)
   })
 
@@ -1700,7 +1700,7 @@ describe('Dashboard normalized timeline path', () => {
       logged_at: '2026-08-30T21:00:00.000Z', routine_slot_key: 'timeline-cycle@2026-09-01T08:00' }]
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
-    await waitFor(() => expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt.')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText('Alle geplanten Einnahmen sind bestätigt')).toBeTruthy())
     expect(screen.queryByRole('button', { name: 'eingenommen' })).toBeNull()
     // Die Abdeckung wird ueber den Schluesselbereich geholt, unabhaengig von
     // `logged_at` -- frueher ueber eine Aufzaehlung mit `in`.

@@ -7,9 +7,9 @@ import {
   BookHeart, Star, HelpCircle, User, ChevronRight,
   Microscope, Library, Droplets, Heart, FileText, type LucideIcon,
   Activity, CheckCircle2,
-  Clock3, Package, ShieldCheck,
+  Clock3, ShieldCheck,
   Syringe, TrendingUp, Bell, XCircle, RotateCcw,
-  Dumbbell, Dna, Zap, Moon, Brain, Bandage, HeartPulse, Lightbulb, Leaf, Bone, Utensils,
+  Dumbbell, Utensils,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -75,20 +75,20 @@ const ROUTINE_GROUP_LABELS: Record<RoutineGroupModel['key'], { key: string; defa
 }
 
 const PEPTIDE_STUDIES = [
-  { icon: FlaskConical, title: 'BPC-157 beschleunigt Sehnen- & Muskelheilung signifikant', source: 'J. Physiol. · 2024' },
-  { icon: Dumbbell,     title: 'TB-500 fördert Angiogenese & Wundheilung bei Gewebeschäden', source: 'Wound Rep. Reg. · 2023' },
-  { icon: Dna,          title: 'GHK-Cu aktiviert über 4.000 Gene – Gewebereparatur & Anti-Aging', source: 'Biomolecules · 2024' },
-  { icon: Zap,          title: 'Ipamorelin: selektive GH-Freisetzung ohne Cortisol- oder Prolaktin-Spitzen', source: 'Endocrinology · 2023' },
-  { icon: Moon,         title: 'Epitalon verlängert Telomere & hemmt Tumorwachstum in Langzeitstudie', source: 'Aging · 2023' },
-  { icon: Brain,        title: 'Selank (TP-7) zeigt anxiolytische Wirkung ohne Abhängigkeitspotenzial', source: 'Neuropharmacology · 2024' },
-  { icon: Microscope,   title: 'MOTS-c verbessert Insulinsensitivität & Mitochondrienfunktion', source: 'Cell Metab. · 2024' },
-  { icon: Bandage,      title: 'AOD-9604: gezielter Fettabbau ohne diabetogene Nebenwirkungen', source: 'Obes. Res. · 2023' },
-  { icon: HeartPulse,   title: 'Thymosin α1 stärkt Immunantwort bei chronischer Entzündung', source: 'Immunology · 2024' },
-  { icon: Lightbulb,    title: 'PT-141 (Bremelanotide) – erstes FDA-zugelassenes Peptid gegen Libidostörungen', source: 'FDA Approval · 2019' },
-  { icon: TrendingUp,   title: 'CJC-1295 hält IGF-1-Spiegel über 14 Tage erhöht', source: 'J. Clin. Endocrinol. · 2006' },
-  { icon: ShieldCheck,  title: 'Humanin schützt Neuronen vor amyloidbedingtem Zelltod – neue Daten', source: 'PNAS · 2024' },
-  { icon: Leaf,         title: 'Epithalon reduziert oxidativen Stress & verbessert Schlafqualität', source: 'Biogerontology · 2023' },
-  { icon: Bone,         title: 'BPC-157 fördert Knochenregeneration nach Fraktur – Tierstudie', source: 'Bone · 2024' },
+  { title: 'BPC-157 beschleunigt Sehnen- & Muskelheilung signifikant', source: 'J. Physiol. · 2024' },
+  { title: 'TB-500 fördert Angiogenese & Wundheilung bei Gewebeschäden', source: 'Wound Rep. Reg. · 2023' },
+  { title: 'GHK-Cu aktiviert über 4.000 Gene – Gewebereparatur & Anti-Aging', source: 'Biomolecules · 2024' },
+  { title: 'Ipamorelin: selektive GH-Freisetzung ohne Cortisol- oder Prolaktin-Spitzen', source: 'Endocrinology · 2023' },
+  { title: 'Epitalon verlängert Telomere & hemmt Tumorwachstum in Langzeitstudie', source: 'Aging · 2023' },
+  { title: 'Selank (TP-7) zeigt anxiolytische Wirkung ohne Abhängigkeitspotenzial', source: 'Neuropharmacology · 2024' },
+  { title: 'MOTS-c verbessert Insulinsensitivität & Mitochondrienfunktion', source: 'Cell Metab. · 2024' },
+  { title: 'AOD-9604: gezielter Fettabbau ohne diabetogene Nebenwirkungen', source: 'Obes. Res. · 2023' },
+  { title: 'Thymosin α1 stärkt Immunantwort bei chronischer Entzündung', source: 'Immunology · 2024' },
+  { title: 'PT-141 (Bremelanotide) – erstes FDA-zugelassenes Peptid gegen Libidostörungen', source: 'FDA Approval · 2019' },
+  { title: 'CJC-1295 hält IGF-1-Spiegel über 14 Tage erhöht', source: 'J. Clin. Endocrinol. · 2006' },
+  { title: 'Humanin schützt Neuronen vor amyloidbedingtem Zelltod – neue Daten', source: 'PNAS · 2024' },
+  { title: 'Epithalon reduziert oxidativen Stress & verbessert Schlafqualität', source: 'Biogerontology · 2023' },
+  { title: 'BPC-157 fördert Knochenregeneration nach Fraktur – Tierstudie', source: 'Bone · 2024' },
 ] as const
 const TODAY_STUDY = PEPTIDE_STUDIES[Math.floor(Date.now() / 86_400_000) % PEPTIDE_STUDIES.length]
 
@@ -99,7 +99,6 @@ interface TileDef {
   label?: string
   desc?: string
   path: string
-  color: string
 }
 
 interface QuickActionDef {
@@ -109,7 +108,6 @@ interface QuickActionDef {
   descKey: string
   desc: string
   path: string
-  accent: string
 }
 
 interface FeatureDef {
@@ -119,7 +117,6 @@ interface FeatureDef {
   descKey: string
   desc: string
   path: string
-  accent: string
   metric: string
 }
 
@@ -140,22 +137,22 @@ const EMPTY_OVERVIEW: OverviewStats = {
 }
 
 const TILE_DEFS: TileDef[] = [
-  { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender',             color: '#00ccf5'          },
-  { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen',          color: '#10b981'         },
-  { icon: Dumbbell,     labelKey: 'tile_training',    descKey: 'tile_training_desc',    path: '/training',             color: '#f97316', label: 'Training', desc: 'Kraft, Cardio, Hyrox' },
-  { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar', color: '#00ccf5'         },
-  { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack',             color: '#22d3ee'         },
-  { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner',              color: '#3b82f6'         },
-  { icon: Droplets,     labelKey: 'tile_blutwerte',   descKey: 'tile_blutwerte_desc',   path: '/blutwerte',            color: '#f43f5e', label: 'Blutwerte', desc: 'Laborwerte erfassen' },
-  { icon: Heart,        labelKey: 'tile_health',      descKey: 'tile_health_desc',      path: '/health',               color: '#f43f5e'          },
-  { icon: FileText,     labelKey: 'tile_protokoll',   descKey: 'tile_protokoll_desc',   path: '/protokoll',            color: '#00ccf5', label: 'PDF-Generator', desc: 'Report mit Live-Vorschau' },
-  { icon: Microscope,   labelKey: 'tile_lab',         descKey: 'tile_lab_desc',         path: '/lab',                  color: '#00ccf5'          },
-  { icon: Library,      labelKey: 'tile_bibliothek',  descKey: 'tile_bibliothek_desc',  path: '/lab/peptipedia',        color: '#8b5cf6'         },
-  { icon: Utensils,     labelKey: 'tile_ernaehrung',  descKey: 'tile_ernaehrung_desc',  path: '/ernaehrung',           color: '#f59e0b'         },
-  { icon: BookHeart,    labelKey: 'tile_tagebuch',    descKey: 'tile_tagebuch_desc',    path: '/tagebuch',             color: '#8b5cf6'         },
-  { icon: Star,         labelKey: 'tile_bewertungen', descKey: 'tile_bewertungen_desc', path: '/bewertungen',          color: '#f59e0b'         },
-  { icon: HelpCircle,   labelKey: 'tile_faq',         descKey: 'tile_faq_desc',         path: '/faq',                  color: '#10b981'         },
-  { icon: User,         labelKey: 'tile_profil',      descKey: 'tile_profil_desc',      path: '/profil',               color: '#f43f5e'          },
+  { icon: CalendarDays, labelKey: 'tile_kalender',    descKey: 'tile_kalender_desc',    path: '/kalender' },
+  { icon: Syringe,      labelKey: 'tile_injektionen', descKey: 'tile_injektionen_desc', path: '/injektionen' },
+  { icon: Dumbbell,     labelKey: 'tile_training',    descKey: 'tile_training_desc',    path: '/training', label: 'Training', desc: 'Kraft, Cardio, Hyrox' },
+  { icon: Archive,      labelKey: 'tile_lager',       descKey: 'tile_lager_desc',       path: '/my-stack?tab=inventar' },
+  { icon: FlaskConical, labelKey: 'tile_peptide',     descKey: 'tile_peptide_desc',     path: '/my-stack' },
+  { icon: Calculator,   labelKey: 'tile_rechner',     descKey: 'tile_rechner_desc',     path: '/rechner' },
+  { icon: Droplets,     labelKey: 'tile_blutwerte',   descKey: 'tile_blutwerte_desc',   path: '/blutwerte', label: 'Blutwerte', desc: 'Laborwerte erfassen' },
+  { icon: Heart,        labelKey: 'tile_health',      descKey: 'tile_health_desc',      path: '/health' },
+  { icon: FileText,     labelKey: 'tile_protokoll',   descKey: 'tile_protokoll_desc',   path: '/protokoll', label: 'PDF-Generator', desc: 'Report mit Live-Vorschau' },
+  { icon: Microscope,   labelKey: 'tile_lab',         descKey: 'tile_lab_desc',         path: '/lab' },
+  { icon: Library,      labelKey: 'tile_bibliothek',  descKey: 'tile_bibliothek_desc',  path: '/lab/peptipedia' },
+  { icon: Utensils,     labelKey: 'tile_ernaehrung',  descKey: 'tile_ernaehrung_desc',  path: '/ernaehrung' },
+  { icon: BookHeart,    labelKey: 'tile_tagebuch',    descKey: 'tile_tagebuch_desc',    path: '/tagebuch' },
+  { icon: Star,         labelKey: 'tile_bewertungen', descKey: 'tile_bewertungen_desc', path: '/bewertungen' },
+  { icon: HelpCircle,   labelKey: 'tile_faq',         descKey: 'tile_faq_desc',         path: '/faq' },
+  { icon: User,         labelKey: 'tile_profil',      descKey: 'tile_profil_desc',      path: '/profil' },
 ]
 
 const QUICK_ACTIONS: QuickActionDef[] = [
@@ -166,7 +163,6 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     descKey: 'home_action_log_desc',
     desc: 'Einnahmen bestätigen',
     path: '/kalender',
-    accent: '#10b981',
   },
   {
     icon: Syringe,
@@ -175,7 +171,6 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     descKey: 'home_action_injection_desc',
     desc: 'Stelle & Rotation tracken',
     path: '/injektionen',
-    accent: '#00ccf5',
   },
   {
     icon: Calculator,
@@ -184,7 +179,6 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     descKey: 'home_action_calc_desc',
     desc: 'Einheiten berechnen',
     path: '/rechner',
-    accent: '#3b82f6',
   },
   {
     icon: TrendingUp,
@@ -193,7 +187,6 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     descKey: 'home_action_progress_desc',
     desc: 'Gewicht & Fotos',
     path: '/progress',
-    accent: '#10b981',
   },
   {
     icon: Activity,
@@ -202,7 +195,6 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     descKey: 'home_action_simulation_desc',
     desc: 'PK-Kurve simulieren',
     path: '/simulation',
-    accent: '#00ccf5',
   },
 ]
 
@@ -214,7 +206,6 @@ const FEATURE_CARDS: FeatureDef[] = [
     descKey: 'home_feature_protocol_desc',
     desc: 'Arzt-, Coach- oder Forum-PDF mit Live-Vorschau erstellen.',
     path: '/protokoll',
-    accent: '#00ccf5',
     metric: 'Export',
   },
   {
@@ -224,7 +215,6 @@ const FEATURE_CARDS: FeatureDef[] = [
     descKey: 'home_feature_bloodwork_desc',
     desc: 'Laborwerte strukturiert erfassen und vergleichen.',
     path: '/blutwerte',
-    accent: '#f43f5e',
     metric: 'Blutwerte',
   },
   {
@@ -234,7 +224,6 @@ const FEATURE_CARDS: FeatureDef[] = [
     descKey: 'home_feature_research_desc',
     desc: 'PubMed-Studien und Peptipedia schneller finden.',
     path: '/lab',
-    accent: '#8b5cf6',
     metric: 'PubMed',
   },
 ]
@@ -242,7 +231,7 @@ const FEATURE_CARDS: FeatureDef[] = [
 const pageStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 26,
+  gap: 28,
   paddingBottom: 8,
 }
 
@@ -253,21 +242,21 @@ const panelStyle: CSSProperties = {
   overflow: 'hidden',
 }
 
-/** Großer Titel wie in iOS (34 pt, fett, leicht gesperrt). */
+/** Seitentitel: das Datum. Größe trägt die Hierarchie, nicht das Gewicht. */
 const largeTitleStyle: CSSProperties = {
-  marginTop: 2,
-  fontSize: 34,
-  lineHeight: '41px',
-  fontWeight: 700,
-  letterSpacing: '0.011em',
+  marginTop: 4,
+  fontSize: 28,
+  lineHeight: '34px',
+  fontWeight: 500,
+  letterSpacing: 0,
   color: 'var(--text)',
 }
 
-/** Abschnittstitel (Title 3): 20 pt fett. */
+/** Abschnittstitel: 20 px, mittleres Gewicht. */
 const sectionTitleStyle: CSSProperties = {
   fontSize: 20,
-  fontWeight: 700,
-  letterSpacing: '0.019em',
+  fontWeight: 500,
+  letterSpacing: 0,
   color: 'var(--text)',
 }
 
@@ -285,18 +274,18 @@ const takenStyle: CSSProperties = {
   color: 'var(--lg-good-text)',
 }
 
-/** „Alle als eingenommen markieren": grüne Kapsel, 44 px Tippfläche. */
+/** „Alle als eingenommen markieren": grün getönter Knopf, 44 px Tippfläche. */
 const confirmAllStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 6,
+  gap: 8,
   minHeight: 44,
-  padding: '0 14px',
-  borderRadius: 999,
+  padding: '0 12px',
+  borderRadius: 10,
   background: 'color-mix(in srgb, var(--lg-good) 16%, transparent)',
   color: 'var(--lg-good-text)',
   fontSize: 13,
-  fontWeight: 600,
+  fontWeight: 500,
 }
 
 interface HomeDoseLogPayloadInput {
@@ -428,7 +417,7 @@ const sectionHeaderStyle: CSSProperties = {
   justifyContent: 'space-between',
   gap: 12,
   minHeight: 44,
-  margin: '0 4px 6px',
+  margin: '0 4px 8px',
 }
 
 interface HomeProps {
@@ -799,10 +788,11 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
   }, [])
 
   const { t } = useTranslation()
-  const locale = getDateLocale()
-  const hour    = new Date().getHours()
-  const greeting = hour < 12 ? t('greeting_morning') : hour < 18 ? t('greeting_day') : t('greeting_evening')
-  const dateStr  = format(new Date(), "EEEE, d. MMMM", { locale })
+  // Der Titel ist der Tag selbst. Wochentag, Tag, Monat in der Reihenfolge
+  // der Sprache: „Montag, 28. September" / „Monday, September 28".
+  const dateStr = new Intl.DateTimeFormat(getDateLocale().code ?? 'de', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  }).format(new Date())
   const statusLabel = todayDone
     ? t('stat_today_done')
     : t('home_status_empty', { defaultValue: 'Kein aktiver Plan' })
@@ -995,14 +985,14 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
 
   return (
     <div style={pageStyle} className="stagger-in">
-      {/* ── Kopf: großer Titel wie in iOS, Profil als Glas-Knopf ── */}
+      {/* ── Kopf: der Tag ist der Titel — „Heute" darüber, das Datum groß ── */}
       <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, padding: '4px 4px 0' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--lg-text-2)' }}>
-            {dateStr}
+          <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--lg-text-2)' }}>
+            {t('today')}
           </p>
           <h1 style={largeTitleStyle}>
-            {greeting}
+            {dateStr}
           </h1>
         </div>
         <button
@@ -1015,25 +1005,20 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </button>
       </header>
 
-      {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
-      <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <TodayRing percent={completionLevel} done={completionLevel >= 100} />
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>
-              {t('home_completion', { defaultValue: 'Heute erledigt' })}
-            </p>
-            <p style={{ marginTop: 3, fontSize: 15, lineHeight: 1.35, color: 'var(--lg-text-2)' }}>
-              {`${overview.loggedToday}/${plannedToday} ${t('home_completion_unit', { defaultValue: 'Einnahmen geloggt' })}`}
-            </p>
-            {todayIntakes.length === 0 && (!FEATURES.planTimelineV2 || timelineLoadState === 'ready') && (
-              <p style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: todayDone ? 'var(--lg-good)' : 'var(--accent)' }}>
-                <ShieldCheck size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
-                {statusLabel}
-              </p>
-            )}
-          </div>
-        </div>
+      {/* ── Heute: geloggt gegen geplant, auf einer Skala wie an der Spritze ── */}
+      <section className="lg-surface" style={{ ...panelStyle, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <TodayProgress
+          label={String(t('home_completion_unit', { defaultValue: 'Einnahmen geloggt' }))}
+          logged={overview.loggedToday}
+          planned={plannedToday}
+          percent={completionLevel}
+        />
+        {todayIntakes.length === 0 && (!FEATURES.planTimelineV2 || timelineLoadState === 'ready') && (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 500, color: todayDone ? 'var(--lg-good-text)' : 'var(--lg-accent-text)' }}>
+            <ShieldCheck size={16} strokeWidth={1.5} aria-hidden="true" style={{ flexShrink: 0 }} />
+            {statusLabel}
+          </p>
+        )}
 
         {FEATURES.planTimelineV2 && timelineLoadState !== 'ready' && (
           timelineLoadState === 'loading'
@@ -1050,14 +1035,14 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
       </section>
 
       {homeInventoryRetryIds.length > 0 && (
-        <div role="alert" className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-bold text-amber-200">
+        <div role="alert" className="rounded-2xl bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-4 text-sm font-medium text-[var(--lg-warn-text)]">
           <p>{t('inventory_committed_retry', { defaultValue: 'Die Einnahme ist gespeichert, aber der Bestand wurde nicht aktualisiert.' })}</p>
           <button
             type="button"
             onClick={() => void Promise.all(homeInventoryRetryIds.map(applyHomeSingleInventory))}
-            className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/15 px-3 text-sm font-black text-amber-100 transition-colors hover:bg-amber-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+            className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 rounded-[10px] bg-[color-mix(in_srgb,var(--lg-warn)_16%,transparent)] px-3 text-sm font-medium text-[var(--lg-warn-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--lg-warn)_24%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-warn)]"
           >
-            <RotateCcw size={15} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
+            <RotateCcw size={16} strokeWidth={1.5} aria-hidden="true" /> {t('inventory_retry', { defaultValue: 'Bestand erneut versuchen' })}
           </button>
         </div>
       )}
@@ -1067,7 +1052,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         <section>
           <div style={sectionHeaderStyle}>
             <h2 style={sectionTitleStyle}>{t('home_upcoming_intakes', { defaultValue: 'Anstehende Einnahmen' })}</h2>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)' }}>{t('home_due_in', { defaultValue: 'fällig in:' })}</p>
+            <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{t('home_due_in', { defaultValue: 'Fällig in' })}</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {homeRoutineGroups.map(group => {
@@ -1076,9 +1061,9 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
                 .map(item => todayIntakeByKey.get(item.key))
                 .filter((intake): intake is TodayIntake => Boolean(intake))
               return (
-                <div key={group.key} className="lg-surface" style={{ ...panelStyle, padding: '12px 14px 14px' }}>
+                <div key={group.key} className="lg-surface" style={{ ...panelStyle, padding: '12px 16px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-2)' }}>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--lg-text-2)' }}>
                       {groupLabel}
                     </p>
                     <button
@@ -1088,7 +1073,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
                       className="lg-press"
                       style={confirmAllStyle}
                     >
-                      <CheckCircle2 size={15} aria-hidden="true" /> {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
+                      <CheckCircle2 size={16} strokeWidth={1.5} aria-hidden="true" /> {t('routine_confirmation_confirm_all', { defaultValue: 'Alle als eingenommen markieren' })}
                     </button>
                   </div>
                   <TodayIntakeCarousel
@@ -1141,36 +1126,31 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           <h2 style={sectionTitleStyle}>{t('home_overview_title', { defaultValue: 'Heute im Blick' })}</h2>
           <button
             onClick={() => navigate('/kalender')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--lg-accent-text)', fontSize: 15, fontWeight: 500 }}
           >
-            {t('today')} <ChevronRight size={16} />
+            {t('today')} <ChevronRight size={16} strokeWidth={1.5} />
           </button>
         </div>
         <div className="grid grid-cols-3 gap-2">
           <InsightCard
-            icon={CalendarDays}
             label={String(t('stat_active_cycles'))}
             value={String(overview.activeCycles)}
             hint={String(t('home_active_cycles_hint', { defaultValue: 'laufende Pläne' }))}
-            accent="#00ccf5"
             onClick={() => navigate('/kalender')}
           />
           <InsightCard
-            icon={FlaskConical}
             label={String(t('stat_peptides'))}
             value={String(overview.peptides)}
             hint={String(t('home_peptides_hint', { defaultValue: 'rekonstituiert' }))}
-            accent="#8b7cf0"
             onClick={() => navigate('/my-stack')}
           />
           <InsightCard
-            icon={Package}
             label={String(t('stat_vials'))}
             value={String(overview.inventoryVials)}
             hint={overview.lowStock > 0
               ? String(t('home_low_stock', { defaultValue: '{{count}} niedrig', count: overview.lowStock }))
               : String(t('home_stock_ok', { defaultValue: 'Vorrat erfasst' }))}
-            accent={overview.lowStock > 0 ? '#ff9f0a' : '#30d158'}
+            warn={overview.lowStock > 0}
             onClick={() => navigate('/my-stack?tab=inventar')}
           />
         </div>
@@ -1191,7 +1171,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
 
       <ExpiryWarningBanners alerts={expiryAlerts} />
 
-      {/* ── Direkt loslegen: Kacheln mit farbigem Symbol ── */}
+      {/* ── Direkt loslegen: Karten mit ruhigem Symbol ── */}
       <section>
         <div style={sectionHeaderStyle}>
           <h2 style={sectionTitleStyle}>{t('home_quick_title', { defaultValue: 'Direkt loslegen' })}</h2>
@@ -1207,7 +1187,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
                   icon={action.icon}
                   label={String(t(action.labelKey, { defaultValue: action.label }))}
                   desc={String(t(action.descKey, { defaultValue: action.desc }))}
-                  accent={action.accent}
                   wide={isLastOdd}
                   onClick={() => navigate(action.path)}
                 />
@@ -1216,31 +1195,21 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </div>
       </section>
 
-      {/* ── Studie des Tages ── */}
+      {/* ── Studie des Tages: Quelle wie auf einem Befund, ohne Bildchen ── */}
       <section className="lg-surface" style={{ ...panelStyle, padding: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <span style={{ ...iconTileStyle('#00b4e0'), width: 30, height: 30 }}>
-            {(() => { const StudyIcon = todayStudy.icon; return <StudyIcon size={17} /> })()}
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)' }}>{t('stat_study')}</p>
-            <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25 }}>
-              {t('home_daily_research', { defaultValue: 'Daily Research' })}
-            </p>
-          </div>
-        </div>
-        <p style={{ fontSize: 15, lineHeight: 1.45, color: 'var(--text)' }}>
+        <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{t('stat_study')}</p>
+        <p style={{ marginTop: 8, fontSize: 15, lineHeight: 1.45, color: 'var(--text)' }}>
           {todayStudy.title}
         </p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginTop: 8 }}>
-          <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginTop: 4 }}>
+          <p className="font-mono" style={{ fontSize: 12, color: 'var(--lg-text-3)' }}>
             {todayStudy.source}
           </p>
           <button
             onClick={() => navigate('/lab')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, color: 'var(--lg-accent-text)', fontSize: 15, fontWeight: 500 }}
           >
-            {t('lab_snapshot_discover', { defaultValue: 'Entdecken' })} <ChevronRight size={16} />
+            {t('lab_snapshot_discover', { defaultValue: 'Entdecken' })} <ChevronRight size={16} strokeWidth={1.5} />
           </button>
         </div>
       </section>
@@ -1259,7 +1228,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               desc={String(t(feature.descKey, { defaultValue: feature.desc }))}
               cta={String(t('home_feature_cta', { defaultValue: 'Öffnen' }))}
               metric={feature.metric}
-              accent={feature.accent}
               onClick={() => navigate(feature.path)}
             />
           ))}
@@ -1280,7 +1248,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               icon={tile.icon}
               label={String(t(tile.labelKey, { defaultValue: tile.label ?? tile.labelKey }))}
               desc={String(t(tile.descKey, { defaultValue: tile.desc ?? tile.descKey }))}
-              color={tile.color}
               onClick={() => navigate(tile.path)}
             />
           ))}
@@ -1290,57 +1257,54 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
   )
 }
 
-/** Kontrast nach WCAG zwischen zwei Hex-Farben (#rrggbb). */
-function contrast(a: string, b: string): number {
-  const lum = (hex: string) => {
-    const [r, g, bl] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
-      .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * bl
-  }
-  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m)
-  return (x + 0.05) / (y + 0.05)
+/**
+ * Symbol ohne Kachel: in der Farbe der Textrolle, immer in derselben
+ * 32-px-Spalte, damit Beschriftungen und Trennlinien (`.lg-row`) fluchten.
+ */
+const iconBoxStyle: CSSProperties = {
+  width: 32,
+  height: 32,
+  flexShrink: 0,
+  display: 'grid',
+  placeItems: 'center',
+  color: 'var(--lg-text-2)',
 }
 
 /**
- * Symbol-Quadrat wie in den iOS-Einstellungen: volle Farbe, Glyphe in der
- * lesbareren von Weiß/Dunkel. Erwartet #rrggbb (wie alle Kachel-Farben);
- * andere Formate bekommen eine weiße Glyphe.
+ * Heute: geloggt gegen geplant. Die Zahl steht vorn, darunter die Spur mit
+ * Messstrichen (`hk-scale`) — die Skala einer Spritze, nur im Look HOKU.
+ * Die Füllung wächst über `scaleX`, nicht über die Breite.
  */
-function iconTileStyle(color: string): CSSProperties {
-  const glyph = /^#[0-9a-f]{6}$/i.test(color) && contrast(color, '#00141c') > contrast(color, '#ffffff') ? '#00141c' : '#ffffff'
-  return {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    flexShrink: 0,
-    display: 'grid',
-    placeItems: 'center',
-    background: color,
-    color: glyph,
-  }
-}
-
-/** Tagesring wie die Aktivitätsringe: Verlauf entlang des Rings, voll = grün. */
-function TodayRing({ percent, done }: { percent: number; done: boolean }) {
+function TodayProgress({ label, logged, planned, percent }: { label: string; logged: number; planned: number; percent: number }) {
   const p = Math.max(0, Math.min(100, percent)) / 100
-  const [from, to] = done ? ['#1fae4b', '#a6f36b'] : ['#00a9d4', '#5ae0ff']
-  const ring = 'radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10.5px))'
+  const done = percent >= 100
   return (
-    <div style={{ position: 'relative', width: 76, height: 76, flexShrink: 0 }}>
+    <div>
+      <p style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{label}</p>
+      <div style={{ marginTop: 4, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{ fontSize: 32, lineHeight: 1, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
+          {logged}<span style={{ color: 'var(--lg-text-3)' }}>/{planned}</span>
+        </span>
+        <span className="tabular-nums" style={{ fontSize: 15, color: done ? 'var(--lg-good-text)' : 'var(--lg-text-2)' }}>
+          {percent} %
+        </span>
+      </div>
       <div
         aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          borderRadius: '50%',
-          background: `conic-gradient(${from} 0turn, ${to} ${p}turn, ${from}2e ${p}turn)`,
-          WebkitMask: ring,
-          mask: ring,
-        }}
-      />
-      <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
-        {percent}%
-      </span>
+        className="hk-scale"
+        style={{ marginTop: 12, height: 8, borderRadius: 4, background: 'var(--lg-fill)' }}
+      >
+        <div
+          style={{
+            height: '100%',
+            borderRadius: 4,
+            background: done ? 'var(--lg-good)' : 'var(--accent)',
+            transform: `scaleX(${p})`,
+            transformOrigin: 'left center',
+            transition: 'transform 400ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -1351,14 +1315,12 @@ function QuickAction({
   icon: Icon,
   label,
   desc,
-  accent,
   wide,
   onClick,
 }: {
   icon: LucideIcon
   label: string
   desc: string
-  accent: string
   wide?: boolean
   onClick: () => void
 }) {
@@ -1368,18 +1330,18 @@ function QuickAction({
       className={wide ? 'lg-surface col-span-2 lg-press' : 'lg-surface lg-press'}
       style={{
         ...panelStyle,
-        minHeight: 96,
-        padding: 14,
+        minHeight: wide ? 64 : 96,
+        padding: 16,
         display: 'flex',
         flexDirection: wide ? 'row' : 'column',
         alignItems: wide ? 'center' : 'flex-start',
-        gap: wide ? 12 : 10,
+        gap: wide ? 12 : 8,
         textAlign: 'left',
       }}
     >
-      <span style={iconTileStyle(accent)}><Icon size={17} /></span>
+      <Icon size={18} strokeWidth={1.5} color="var(--lg-text-2)" aria-hidden="true" style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25 }}>
+        <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: 'var(--text)', lineHeight: 1.25 }}>
           {label}
         </span>
         <span style={{ display: 'block', marginTop: 2, fontSize: 13, lineHeight: 1.3, color: 'var(--lg-text-3)' }}>
@@ -1390,19 +1352,18 @@ function QuickAction({
   )
 }
 
+/** Eine Kennzahl: Zahl, Bezeichnung, Hinweis. Kein Symbol zur Füllung. */
 function InsightCard({
-  icon: Icon,
   label,
   value,
   hint,
-  accent,
+  warn = false,
   onClick,
 }: {
-  icon: LucideIcon
   label: string
   value: string
   hint: string
-  accent: string
+  warn?: boolean
   onClick: () => void
 }) {
   return (
@@ -1412,23 +1373,21 @@ function InsightCard({
       style={{
         ...panelStyle,
         minWidth: 0,
-        minHeight: 112,
-        padding: '12px 12px 14px',
+        padding: 12,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         textAlign: 'left',
       }}
     >
-      <Icon size={18} color={accent} aria-hidden="true" />
-      <span style={{ marginTop: 10, fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </span>
       {/* Darf umbrechen: drei Spalten sind am iPhone SE nur ~90 px breit */}
-      <span style={{ marginTop: 6, fontSize: 13, fontWeight: 600, lineHeight: 1.25, color: 'var(--lg-text-2)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
+      <span style={{ marginTop: 8, fontSize: 13, lineHeight: 1.25, color: 'var(--lg-text-2)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
         {label}
       </span>
-      <span style={{ marginTop: 2, fontSize: 12, lineHeight: 1.25, color: 'var(--lg-text-3)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
+      <span style={{ marginTop: 4, fontSize: 12, lineHeight: 1.25, color: warn ? 'var(--lg-warn-text)' : 'var(--lg-text-3)', overflowWrap: 'anywhere', hyphens: 'auto' }}>
         {hint}
       </span>
     </button>
@@ -1527,12 +1486,12 @@ function HomeIntakeConfirmSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+      <div data-app-modal role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[24px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <SheetGriff className="-mt-3 mb-3" onClose={onClose} />
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-cyan-300">Anstehende Einnahme</p>
-            <h2 className="mt-1 text-[20px] font-bold leading-tight text-white">Wie möchtest du bestätigen?</h2>
+            <p className="text-[13px] font-medium text-[var(--lg-accent-text)]">Anstehende Einnahme</p>
+            <h2 className="mt-1 text-[20px] font-medium leading-tight text-[var(--lg-text)]">Wie möchtest du bestätigen?</h2>
             <p className="mt-1 truncate text-[15px] text-slate-300">
               {[intake.substance, intake.dose].filter(Boolean).join(' · ')} · {intake.time}
             </p>
@@ -1544,21 +1503,21 @@ function HomeIntakeConfirmSheet({
             aria-label={String(t('close'))}
             className="lg-press grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-300" style={{ background: 'var(--lg-fill)' }}
           >
-            <XCircle size={17} aria-hidden="true" />
+            <XCircle size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
         <div className="grid gap-2">
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={onTaken} className="lg-press flex min-h-12 items-center justify-center gap-2 rounded-full px-3 text-[15px] font-semibold" style={takenStyle}>
-              <CheckCircle2 size={16} aria-hidden="true" /> Eingenommen
+            <button type="button" onClick={onTaken} className="lg-press flex min-h-12 items-center justify-center gap-2 rounded-[12px] px-3 text-[15px] font-medium" style={takenStyle}>
+              <CheckCircle2 size={16} strokeWidth={1.5} aria-hidden="true" /> Eingenommen
             </button>
             <button type="button" onClick={onSkipped} className="btn-danger min-h-12">
-              <XCircle size={16} aria-hidden="true" /> Übersprungen
+              <XCircle size={16} strokeWidth={1.5} aria-hidden="true" /> Übersprungen
             </button>
           </div>
           {onInjection && (
             <button type="button" onClick={onInjection} className="btn-secondary min-h-12">
-              <Syringe size={16} aria-hidden="true" /> Mit Injektion bestätigen
+              <Syringe size={16} strokeWidth={1.5} aria-hidden="true" /> Mit Injektion bestätigen
             </button>
           )}
         </div>
@@ -1595,12 +1554,12 @@ function HomeIntakeTimeSheet({
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/70"
       />
-      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[34px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
+      <div data-app-modal data-app-back-dirty-on-interaction role="dialog" aria-modal="true" className="fixed inset-x-2 bottom-2 z-[60] max-h-[calc(100dvh-0.5rem-var(--tyd-popup-top))] overflow-y-auto overscroll-contain rounded-[24px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]" style={homeSheetStyle}>
         <SheetGriff className="-mt-3 mb-3" onClose={onClose} />
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-emerald-300">Einnahme bestätigen</p>
-            <h2 className="mt-1 text-[20px] font-bold leading-tight text-white">Wann hast du tatsächlich eingenommen?</h2>
+            <p className="text-[13px] font-medium text-[var(--lg-good-text)]">Einnahme bestätigen</p>
+            <h2 className="mt-1 text-[20px] font-medium leading-tight text-[var(--lg-text)]">Wann hast du tatsächlich eingenommen?</h2>
             <p className="mt-1 truncate text-[15px] text-slate-300">
               {[intake.substance, intake.dose].filter(Boolean).join(' · ')} · geplant {intake.time}
             </p>
@@ -1611,26 +1570,26 @@ function HomeIntakeTimeSheet({
             aria-label={String(t('close'))}
             className="lg-press grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-300" style={{ background: 'var(--lg-fill)' }}
           >
-            <XCircle size={17} aria-hidden="true" />
+            <XCircle size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
         <div className="mb-2 flex items-center justify-between gap-2">
-          <label className="text-[13px] font-semibold text-slate-400" htmlFor="home-intake-confirm-time">
+          <label className="text-[13px] text-[var(--lg-text-3)]" htmlFor="home-intake-confirm-time">
             Uhrzeit
           </label>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onNow}
-              className="lg-press flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
+              className="lg-press flex min-h-11 items-center gap-2 rounded-[10px] px-4 text-[15px] font-medium text-[var(--lg-accent-text)]" style={{ background: 'var(--lg-fill)' }}
             >
-              <Clock3 size={13} aria-hidden="true" /> Jetzt
+              <Clock3 size={16} strokeWidth={1.5} aria-hidden="true" /> Jetzt
             </button>
             <button
               type="button"
               onClick={onPlanned}
-              className="lg-press flex min-h-11 items-center rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
+              className="lg-press flex min-h-11 items-center rounded-[10px] px-4 font-mono text-[13px] text-[var(--lg-accent-text)]" style={{ background: 'var(--lg-fill)' }}
             >
               {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: format(new Date(intake.scheduledAt), 'HH:mm') })}
             </button>
@@ -1641,7 +1600,7 @@ function HomeIntakeTimeSheet({
           type="time"
           value={timeValue}
           onChange={event => onTimeChange(event.target.value)}
-          className="input mb-4 font-semibold"
+          className="input mb-4 font-mono"
           style={{ colorScheme: 'dark' }}
         />
         <div className="grid grid-cols-2 gap-2">
@@ -1649,7 +1608,7 @@ function HomeIntakeTimeSheet({
             Zurück
           </button>
           <button type="button" onClick={onSave} className="btn-primary min-h-12">
-            <CheckCircle2 size={16} aria-hidden="true" /> Speichern
+            <CheckCircle2 size={16} strokeWidth={1.5} aria-hidden="true" /> Speichern
           </button>
         </div>
       </div>
@@ -1678,7 +1637,6 @@ function IntakeRow({
   }, [time])
 
   const due = remaining <= 0
-  const c = due ? 'var(--lg-warn)' : 'var(--accent)'
 
   return (
     <button
@@ -1690,23 +1648,21 @@ function IntakeRow({
         padding: '0 2px', border: 0, background: 'none',
       }}
     >
-      <span style={{
-        width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center',
-        background: due ? 'color-mix(in srgb, var(--lg-warn) 18%, transparent)' : 'var(--accent-weak)', color: c,
-      }}>
-        {due ? <Bell size={15} className="pulse-soft" /> : <Clock3 size={15} />}
+      <span style={{ ...iconBoxStyle, color: due ? 'var(--lg-warn-text)' : 'var(--lg-text-3)' }}>
+        {due ? <Bell size={18} strokeWidth={1.5} /> : <Clock3 size={18} strokeWidth={1.5} />}
       </span>
-      <MarqueeText style={{ flex: 1, minWidth: 0, fontSize: 17, color: 'var(--text)' }}>
+      <MarqueeText style={{ flex: 1, minWidth: 0, fontSize: 15, color: 'var(--text)' }}>
         {[substance, dose].filter(Boolean).join(' · ') || t('stat_next_intake', { defaultValue: 'Nächste Einnahme' })}
         <span style={{ color: 'var(--lg-text-3)' }}>{` · ${t('home_at_time', { defaultValue: 'um' })} ${time}`}</span>
       </MarqueeText>
       {due ? (
-        <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: c }}>
-          <span className="pulse-soft" style={{ width: 7, height: 7, borderRadius: '50%', background: c, display: 'inline-block' }} />
+        <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 500, color: 'var(--lg-warn-text)' }}>
+          {/* Der eine Punkt, der lebt: fällig ist jetzt */}
+          <span className="pulse-soft" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lg-warn)', display: 'inline-block' }} />
           {t('home_due_label', { defaultValue: 'Jetzt fällig' })}
         </span>
       ) : (
-        <span style={{ flexShrink: 0, fontSize: 15, fontWeight: 600, color: 'var(--lg-text-2)', fontVariantNumeric: 'tabular-nums' }}>
+        <span className="font-mono" style={{ flexShrink: 0, fontSize: 13, color: 'var(--lg-text-2)', fontVariantNumeric: 'tabular-nums' }}>
           {fmtCountdown(remaining)}
         </span>
       )}
@@ -1750,7 +1706,6 @@ function FeatureCard({
   desc,
   cta,
   metric,
-  accent,
   onClick,
 }: {
   icon: LucideIcon
@@ -1758,7 +1713,6 @@ function FeatureCard({
   desc: string
   cta: string
   metric: string
-  accent: string
   onClick: () => void
 }) {
   return (
@@ -1777,47 +1731,45 @@ function FeatureCard({
         alignItems: 'flex-start',
       }}
     >
-      <span style={{ alignSelf: 'stretch', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <span style={iconTileStyle(accent)}><Icon size={17} /></span>
-        <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--lg-fill)', color: 'var(--lg-text-2)', fontSize: 12, fontWeight: 600 }}>
+      <span style={{ alignSelf: 'stretch', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <Icon size={18} strokeWidth={1.5} color="var(--lg-text-2)" aria-hidden="true" />
+        <span className="font-mono" style={{ color: 'var(--lg-text-3)', fontSize: 12 }}>
           {metric}
         </span>
       </span>
-      <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: 'var(--text)' }}>
+      <span style={{ display: 'block', fontSize: 17, fontWeight: 500, color: 'var(--text)' }}>
         {label}
       </span>
       <span style={{ display: 'block', marginTop: 4, fontSize: 13, lineHeight: 1.4, color: 'var(--lg-text-3)' }}>
         {desc}
       </span>
-      <span style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}>
-        {cta} <ChevronRight size={16} />
+      <span style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--lg-accent-text)', fontSize: 15, fontWeight: 500 }}>
+        {cta} <ChevronRight size={16} strokeWidth={1.5} />
       </span>
     </button>
   )
 }
 
-/** Eine Zeile der gruppierten Liste „Alle Tools" — wie eine Zeile der iOS-Einstellungen. */
+/** Eine Zeile der gruppierten Liste „Alle Tools": Symbol, Name, Zweck, Pfeil. */
 function TileButton({
   icon: Icon,
   label,
   desc,
-  color,
   onClick,
 }: {
   icon: LucideIcon
   label: string
   desc: string
-  color: string
   onClick: () => void
 }) {
   return (
     <button onClick={onClick} className="lg-row">
-      <span style={iconTileStyle(color)}><Icon size={17} /></span>
+      <span style={iconBoxStyle}><Icon size={18} strokeWidth={1.5} /></span>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: 17, color: 'var(--text)' }}>{label}</span>
-        <span style={{ ...ellipsis, marginTop: 1, fontSize: 13, color: 'var(--lg-text-3)' }}>{desc}</span>
+        <span style={{ ...ellipsis, marginTop: 2, fontSize: 13, color: 'var(--lg-text-3)' }}>{desc}</span>
       </span>
-      <ChevronRight size={18} color="var(--lg-text-4)" aria-hidden="true" style={{ flexShrink: 0 }} />
+      <ChevronRight size={18} strokeWidth={1.5} color="var(--lg-text-4)" aria-hidden="true" style={{ flexShrink: 0 }} />
     </button>
   )
 }
