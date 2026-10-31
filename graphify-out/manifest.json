@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "eslint.config.js": {
-    "mtime": 1789897592.0404458,
-    "seen": 1793414996.9676824,
-    "ast_hash": "0535f1d86073881b35c86cb1e51a8949",
+    "mtime": 1793423241.3770351,
+    "seen": 1793423508.1154318,
+    "ast_hash": "159c3b4e811f671a387601647977b54d",
     "semantic_hash": ""
   },
   "ios/App/App/AppDelegate.swift": {
@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793419129.9622889,
-    "seen": 1793419390.7949133,
-    "ast_hash": "8f48c5ee0a4cda68bc354c0269cc3ef1",
+    "mtime": 1793423082.1722243,
+    "seen": 1793423508.116153,
+    "ast_hash": "622fbb9a255d0e8882f0c2ce184f88ef",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -1512,9 +1512,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/FortschrittPage.tsx": {
-    "mtime": 1793416394.6061175,
-    "seen": 1793416521.5226598,
-    "ast_hash": "a864c132be775c15352f1a57cda3766c",
+    "mtime": 1793423082.1712244,
+    "seen": 1793423508.1156895,
+    "ast_hash": "6d4ffd0eab34db7472aee71780b0a8be",
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/FortschrittHeader.tsx": {
@@ -1530,9 +1530,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/TodayLogSheet.tsx": {
-    "mtime": 1793416385.4195693,
-    "seen": 1793416521.5226693,
-    "ast_hash": "2e363143351fae3fd0d7a724d5d1b94b",
+    "mtime": 1793423082.1712244,
+    "seen": 1793423508.1156974,
+    "ast_hash": "4f1b787230f6d26d386bc7944567fa42",
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/fotos/FotosTab.tsx": {
@@ -1932,9 +1932,9 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/TodayLogSheet.test.ts": {
-    "mtime": 1793416328.4276397,
-    "seen": 1793416521.5226688,
-    "ast_hash": "d6071b52628830cfc983c4996f43d93f",
+    "mtime": 1793423380.93178,
+    "seen": 1793423508.1156967,
+    "ast_hash": "4d71eed2dd64aada283d3e9241dad0e9",
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/WellnessSliderRow.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793416152.3738685,
-    "seen": 1793416256.2345648,
+    "mtime": 1793423403.7229264,
+    "seen": 1793423508.1162288,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -5442,15 +5442,15 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.test.ts": {
-    "mtime": 1793420755.9986222,
-    "seen": 1793421697.8800302,
-    "ast_hash": "c0ab6fbde0121b54758d6adf0d5dcbed",
+    "mtime": 1793423333.6172185,
+    "seen": 1793423508.1156147,
+    "ast_hash": "d3666974c6476aa5b27a73d8299ccd02",
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793420737.9179685,
-    "seen": 1793421697.8800306,
-    "ast_hash": "14fd984ccc35df4a853279f502f38198",
+    "mtime": 1793423341.8855832,
+    "seen": 1793423508.1156158,
+    "ast_hash": "6a90878ef50b7a0269d3eebc069752bc",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -6546,15 +6546,15 @@
     "semantic_hash": ""
   },
   "src/features/training/components/settings/SettingsSheet.test.tsx": {
-    "mtime": 1793419052.3333442,
-    "seen": 1793419390.7947316,
-    "ast_hash": "dec828ca7045a64c9395eb91615e3fe8",
+    "mtime": 1793423293.504523,
+    "seen": 1793423508.1159735,
+    "ast_hash": "f1a02c9c9d6592f4cbb35ba483c8a8da",
     "semantic_hash": ""
   },
   "src/features/training/components/settings/SettingsSheet.tsx": {
-    "mtime": 1793419074.640431,
-    "seen": 1793419390.794732,
-    "ast_hash": "231253a23553da0fc76070810e856251",
+    "mtime": 1793423303.8808305,
+    "seen": 1793423508.115974,
+    "ast_hash": "b08c31ebb49e27d49dcea6cd8a41c30d",
     "semantic_hash": ""
   },
   "src/features/training/components/settings/importPlan.test.ts": {
@@ -21594,21 +21594,21 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/measurements.test.ts": {
-    "mtime": 1793415794.4063303,
-    "seen": 1793415869.8433914,
-    "ast_hash": "f2f867e9d13bb369365c2345f89a2227",
+    "mtime": 1793423368.509021,
+    "seen": 1793423508.1157186,
+    "ast_hash": "825f6776a3d4bdbe9c2744a4334ea01a",
     "semantic_hash": ""
   },
   "src/features/fortschritt/lib/measurements.ts": {
-    "mtime": 1793415808.2439983,
-    "seen": 1793415869.8433928,
-    "ast_hash": "cc2d6e7e244e7d55932a36dd6d0cbd0c",
+    "mtime": 1793423380.930777,
+    "seen": 1793423508.1157198,
+    "ast_hash": "8023ab6f72050c60c924f81eb61d97a5",
     "semantic_hash": ""
   },
   "supabase-profil-p1-datenbasis.sql": {
-    "mtime": 1793419692.4349635,
-    "seen": 1793419969.3381462,
-    "ast_hash": "81d2e10d0508555ae151c4867b4f8a8b",
+    "mtime": 1793423151.4279683,
+    "seen": 1793423508.1162314,
+    "ast_hash": "b77bc6a2bea198f40e2fd2788068d902",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-31-profil-p1-datenbasis.md": {
@@ -21624,15 +21624,15 @@
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/MeasurementSection.test.tsx": {
-    "mtime": 1793416412.7877076,
-    "seen": 1793416521.5226645,
-    "ast_hash": "59ebd10ad4a8d4f4c563f5b4ce6945a2",
+    "mtime": 1793423368.5100248,
+    "seen": 1793423508.1156933,
+    "ast_hash": "c39951c1eb401cc2b7b84caaa18dd85c",
     "semantic_hash": ""
   },
   "src/features/fortschritt/components/MeasurementSection.tsx": {
-    "mtime": 1793416360.6672335,
-    "seen": 1793416521.5226655,
-    "ast_hash": "1392f882ff3617c29b4a37952612e2a1",
+    "mtime": 1793423380.93178,
+    "seen": 1793423508.115694,
+    "ast_hash": "2318a8b11b1e56174da47571e0fd5470",
     "semantic_hash": ""
   },
   "src/features/compliance/components/ConsentGate.profil.test.tsx": {
@@ -21642,15 +21642,15 @@
     "semantic_hash": ""
   },
   "src/features/profil/components/UeberDichKarte.test.tsx": {
-    "mtime": 1793416933.7516065,
-    "seen": 1793417065.491397,
-    "ast_hash": "1941ccd52bb2e5984ce2eba0866dcad5",
+    "mtime": 1793423017.0787477,
+    "seen": 1793423508.1159186,
+    "ast_hash": "948bf92a40059f4b236ba975e9fc817e",
     "semantic_hash": ""
   },
   "src/features/profil/components/UeberDichKarte.tsx": {
-    "mtime": 1793416781.6144993,
-    "seen": 1793417065.491398,
-    "ast_hash": "6ed1b1f28a0c14dd28e849485f09bed3",
+    "mtime": 1793423082.1722243,
+    "seen": 1793423508.1159194,
+    "ast_hash": "81965e468502a8bf17e66a2acafacce2",
     "semantic_hash": ""
   },
   "src/features/profil/lib/profileFields.test.ts": {
@@ -21666,15 +21666,15 @@
     "semantic_hash": ""
   },
   "src/features/profil/components/ProfilBilder.test.tsx": {
-    "mtime": 1793417832.0388477,
-    "seen": 1793417935.6816995,
-    "ast_hash": "63e41c84dd34ed74b8a91e597f2c711f",
+    "mtime": 1793422922.374671,
+    "seen": 1793423508.115917,
+    "ast_hash": "4faa5677071349304e39c739d6a9de57",
     "semantic_hash": ""
   },
   "src/features/profil/components/ProfilBilder.tsx": {
-    "mtime": 1793417774.5215278,
-    "seen": 1793417935.6817,
-    "ast_hash": "178822e4c0431599fb5bf5bd44bb3f5c",
+    "mtime": 1793422921.913513,
+    "seen": 1793423508.115918,
+    "ast_hash": "573e7f5b87a698cf15f078cd2673db64",
     "semantic_hash": ""
   },
   "src/features/profil/services/profileMedia.test.ts": {
@@ -21738,15 +21738,15 @@
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthDailySync.test.ts": {
-    "mtime": 1793419823.6349459,
-    "seen": 1793419969.3379352,
-    "ast_hash": "d893e20b5bd2d279582d9f3ab87d028c",
+    "mtime": 1793422738.2560284,
+    "seen": 1793423508.1160257,
+    "ast_hash": "f402c4bbce9747d9c12234a1817dbd60",
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthDailySync.ts": {
-    "mtime": 1793419856.373693,
-    "seen": 1793419969.3379362,
-    "ast_hash": "6eac52f5b6ff615b350fa198ef637193",
+    "mtime": 1793422756.2583692,
+    "seen": 1793423508.1160262,
+    "ast_hash": "bd9a2823c33637a1aab47a4ac055ab77",
     "semantic_hash": ""
   },
   "src/features/wearables/hooks/useHealthStoreConsent.ts": {
@@ -21756,15 +21756,15 @@
     "semantic_hash": ""
   },
   "src/features/wearables/services/healthStore.test.ts": {
-    "mtime": 1793419823.633945,
-    "seen": 1793419969.3379412,
-    "ast_hash": "3054bbde6291cc1bf2742e4bf1fb76cd",
+    "mtime": 1793422738.2560284,
+    "seen": 1793423508.1160295,
+    "ast_hash": "f1b9aebbd4d1d0a333ac9663b5f49278",
     "semantic_hash": ""
   },
   "src/features/wearables/services/healthStore.ts": {
-    "mtime": 1793419856.3726923,
-    "seen": 1793419969.3379424,
-    "ast_hash": "5de55927d71c03744f7cbab9d2ea8f86",
+    "mtime": 1793422756.25937,
+    "seen": 1793423508.1160302,
+    "ast_hash": "fd6b28b9b5fdfa9a24f42d2f54aca2c8",
     "semantic_hash": ""
   },
   "src/features/wearables/components/HealthDailyTiles.tsx": {
@@ -21789,6 +21789,18 @@
     "mtime": 1793421879.428726,
     "seen": 1793421997.7557843,
     "ast_hash": "05891302302afd7fd7f3b5cd3ffe76da",
+    "semantic_hash": ""
+  },
+  "src/features/fortschritt/FortschrittPage.test.tsx": {
+    "mtime": 1793423034.683795,
+    "seen": 1793423508.1156878,
+    "ast_hash": "0a1c205010e19396b39d09c3e27213a4",
+    "semantic_hash": ""
+  },
+  "src/pages/Profil.test.tsx": {
+    "mtime": 1793423054.5685666,
+    "seen": 1793423508.1161525,
+    "ast_hash": "a2ced294388e146b6fac0994192e63a1",
     "semantic_hash": ""
   }
 }
