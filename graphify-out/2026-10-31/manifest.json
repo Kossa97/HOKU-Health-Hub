@@ -708,9 +708,9 @@
     "semantic_hash": ""
   },
   "src/lib/health.ts": {
-    "mtime": 1793058063.048087,
-    "seen": 1793414996.96827,
-    "ast_hash": "aa3aa4bc77420603a31cb058274703b0",
+    "mtime": 1793418120.054595,
+    "seen": 1793418188.435319,
+    "ast_hash": "3f922a89fb87a8f94aac038293fb0cbb",
     "semantic_hash": ""
   },
   "src/lib/injectionDeepLink.test.ts": {
@@ -21687,6 +21687,18 @@
     "mtime": 1793417835.0377948,
     "seen": 1793417935.681705,
     "ast_hash": "e1c1aa045ae9e0692b3910bfa4fe0292",
+    "semantic_hash": ""
+  },
+  "src/features/wearables/lib/healthDaily.test.ts": {
+    "mtime": 1793418055.8284514,
+    "seen": 1793418188.435269,
+    "ast_hash": "67e7964224dff50e8d16fe1fd0880838",
+    "semantic_hash": ""
+  },
+  "src/features/wearables/lib/healthDaily.ts": {
+    "mtime": 1793418069.131376,
+    "seen": 1793418188.435271,
+    "ast_hash": "f83b4c3bf571730d442caae4d4d8485d",
     "semantic_hash": ""
   }
 }
