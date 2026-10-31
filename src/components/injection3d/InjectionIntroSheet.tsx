@@ -27,7 +27,7 @@ export function InjectionIntroSheet({
         <SheetGriff className="mb-4" onClose={onClose} />
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Hand size={17} color="var(--accent)" aria-hidden="true" />
+            <Hand size={18} strokeWidth={1.5} color="var(--lg-text-2)" aria-hidden="true" />
             <h2 id="injection-intro-title" className="lg-title2">{t('injection_intro_title', { defaultValue: 'Markierung setzen' })}</h2>
           </div>
           <button
