@@ -61,5 +61,9 @@ Prüffehler = bleibt privat.
 - 2a Stand: Migration `supabase-profil-p2a-sichtbarkeit.sql` geschrieben und im Container geprüft (3 Läufe,
   Proben bestanden), NICHT gegen Produktion — erst kurz vor dem Merge von 2a laufen lassen (alte App kennt
   die Stufen nicht). Task 2 (`profileVisibility.ts`) fertig; Task 3+4 in Arbeit.
+- 2a Task 5+6 gebaut (31.10.): /profil als Schaufenster (ProfilKopf, ProfilKarten, SichtbarkeitsChip,
+  Bearbeiten-Sheet), /profil/einstellungen, /profil/sichtbarkeit, /profil/blockiert. Freitext (Routine,
+  Lieblingsuebung, e1RM-Namen) filtert profile_view fuer andere mit oeffentlicher_text_fehler (Migration ergaenzt).
+  Offen: andere Felder im Schnappschuss sind weiter vom Geraet geschrieben und nur auf Form geprueft.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
