@@ -14,9 +14,15 @@ export type LegalPageKey = 'datenschutz' | 'impressum' | 'nutzungsbedingungen'
 export type LegalLang = 'de' | 'en'
 
 export interface LegalSection {
+  /** Sprungmarke (id im HTML), z. B. /datenschutz#gesundheitsdaten */
+  id?: string
   heading: string
   paragraphs: string[]
 }
+
+/** Abschnitt Apple Health / Health Connect. Android oeffnet ihn aus der
+ *  Health-Connect-Erklaerung (MainActivity.java nutzt denselben Wert). */
+export const HEALTH_SECTION_ID = 'gesundheitsdaten'
 
 export interface LegalDoc {
   title: string
@@ -40,7 +46,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
     {
       heading: '2. Welche Daten wir verarbeiten',
       paragraphs: [
-        'Konto: E-Mail-Adresse, Passwort (nur verschlüsselt gespeichert), Nutzername, freiwillig Anzeigename und Profiltext, Sprache und Einstellungen, Zeitpunkt deiner Zustimmung zu diesen Bedingungen und deiner Altersbestätigung.',
+        'Konto: E-Mail-Adresse, Passwort (nur verschlüsselt gespeichert), Nutzername, freiwillig Anzeigename, Profiltext, Profil- und Titelbild (nur für dich sichtbar), Land, Ziele und Geschlecht im Profil, Sprache und Einstellungen, Zeitpunkt deiner Zustimmung zu diesen Bedingungen und deiner Altersbestätigung.',
         'Gesundheitsdaten, die du selbst einträgst: Substanzen in deinem Stack, Einnahmepläne und -protokolle, Bestand, Blutwerte und Befunde, Gewicht und Körpermaße, Ernährung (Mahlzeiten, Lebensmittel und Gerichte, Wasser, Ernährungsziele), Fortschrittsfotos, Tagebuch und deine Erfahrungen. Das sind besondere Kategorien personenbezogener Daten nach Art. 9 DSGVO.',
         'Technische Daten: Fehlerberichte bei Abstürzen (ohne Gesundheitsdaten und ohne IP-Adresse, siehe Abschnitt 5) und, wenn du Erinnerungen einschaltest, die Push-Adresse deines Geräts.',
         'Kamera: Wenn du einen Barcode scannst, erkennt dein Gerät die Ziffern selbst — das Kamerabild wird dabei weder übertragen noch gespeichert. Fotos für die Erkennung von Mahlzeiten oder das Auslesen von Etiketten verlassen das Gerät nur, wenn du diese Funktionen nutzt (siehe Abschnitt 5).',
@@ -55,10 +61,12 @@ const DATENSCHUTZ_DE: LegalDoc = {
       ],
     },
     {
+      id: HEALTH_SECTION_ID,
       heading: '4. Apple Health und Health Connect',
       paragraphs: [
-        'Wenn du es erlaubst, liest die App aus Apple Health (iOS) bzw. Health Connect (Android) Gewicht, Schritte, Aktivität und Herzfrequenz, um sie neben deinen Einträgen anzuzeigen. Die App schreibt nichts dorthin.',
+        'Wenn du es erlaubst, liest die App aus Apple Health (iOS) bzw. Health Connect (Android) — je nachdem, was die Plattform bereitstellt — Gewicht, Schritte, Workouts, Schlaf, Herzfrequenz und Ruhepuls, aktive Kalorien, Sauerstoffsättigung (SpO2), Atemfrequenz und Blutdruck, um sie neben deinen Einträgen anzuzeigen. Die App schreibt nichts dorthin.',
         'Diese Daten werden nicht für Werbung, nicht für Marketing und nicht zur Profilbildung verwendet und nicht an Dritte weitergegeben. Du kannst die Erlaubnis jederzeit in den Einstellungen deines Geräts entziehen.',
+        'Daten aus Apple Health / Health Connect in deinem Konto: Nur wenn du dem in der App gesondert zustimmst, speichert HOKU daraus Tageswerte in deinem Konto (Supabase, EU, siehe Abschnitt 5) — Schritte, Ruhepuls, Schlafdauer, aktive Kalorien, Sauerstoffsättigung (SpO2), Atemfrequenz und Blutdruck, je Tag ein Wert und keine einzelnen Messungen — sowie die Workouts, die du ins Training übernimmst. Zweck ist dein Verlauf in der App, später auch in deinem Profil; sehen kannst nur du die Werte, bis du selbst etwas freigibst. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 9 Abs. 2 lit. a DSGVO). Im Profil kannst du sie jederzeit widerrufen und die gespeicherten Tageswerte löschen. Nach einem Widerruf kommen keine neuen Werte dazu; bereits gespeicherte Tageswerte bleiben erhalten, bis du sie im Profil löschst. Übernommene Workouts bleiben als Trainingsverlauf und lassen sich dort wie jedes Training löschen. Die Rechtmäßigkeit der Verarbeitung bis zum Widerruf bleibt unberührt. Auch diese Daten geben wir nicht an Dritte weiter und nutzen sie nicht für Werbung oder Marketing (Vorgabe von Apple und Google).',
       ],
     },
     {
@@ -116,7 +124,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
     {
       heading: '2. What data we process',
       paragraphs: [
-        'Account: email address, password (stored only in encrypted form), username, optionally display name and bio, language and settings, and when you accepted these terms and confirmed your age.',
+        'Account: email address, password (stored only in encrypted form), username, optionally display name, bio, profile and cover picture (visible only to you), country, goals and gender in your profile, language and settings, and when you accepted these terms and confirmed your age.',
         'Health data you enter yourself: substances in your stack, schedules and intake logs, inventory, blood values and lab reports, weight and body measurements, nutrition (meals, foods and recipes, water, nutrition goals), progress photos, journal and your experiences. These are special categories of personal data under Art. 9 GDPR.',
         'Technical data: crash reports (without health data and without IP address, see section 5) and, if you turn on reminders, your device\'s push address.',
         'Camera: when you scan a barcode, your device reads the digits itself — the camera image is neither sent nor stored. Photos for meal recognition or label reading only leave your device if you use those features (see section 5).',
@@ -131,10 +139,12 @@ const DATENSCHUTZ_EN: LegalDoc = {
       ],
     },
     {
+      id: HEALTH_SECTION_ID,
       heading: '4. Apple Health and Health Connect',
       paragraphs: [
-        'If you allow it, the app reads weight, steps, activity and heart rate from Apple Health (iOS) or Health Connect (Android) to show them next to your entries. The app does not write anything there.',
+        'If you allow it, the app reads — depending on what the platform provides — weight, steps, workouts, sleep, heart rate and resting heart rate, active calories, oxygen saturation (SpO2), respiratory rate and blood pressure from Apple Health (iOS) or Health Connect (Android) to show them next to your entries. The app does not write anything there.',
         'This data is not used for advertising, marketing or profiling and is not shared with third parties. You can revoke access at any time in your device settings.',
+        'Data from Apple Health / Health Connect in your account: only if you agree to it separately in the app, HOKU stores daily values from it in your account (Supabase, EU, see section 5) — steps, resting heart rate, sleep duration, active calories, oxygen saturation (SpO2), respiratory rate and blood pressure, one value per day and no individual measurements — as well as the workouts you bring into Training. The purpose is your history in the app and, later, in your profile; only you can see the values until you choose to share something. The legal basis is your explicit consent (Art. 9(2)(a) GDPR). In your profile you can withdraw it at any time and delete the stored daily values. After withdrawal no new values are added; daily values already stored stay until you delete them in your profile. Workouts you brought in stay in your training history and can be deleted there like any other workout. This does not affect the lawfulness of processing before withdrawal. We do not share this data with third parties either, and we do not use it for advertising or marketing (an Apple and Google requirement).',
       ],
     },
     {

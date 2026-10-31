@@ -5,6 +5,7 @@ import type { TrainingRoutine, TrainingSession } from './types'
 import { useTrainingText } from './i18n'
 import { useTrainingData, type TrainingData } from './hooks/useTrainingData'
 import { useActiveWorkout } from './hooks/useActiveWorkout'
+import { useHealthConsentAsk } from './hooks/useHealthConsentAsk'
 import { startWorkout, workoutFromSession, type ActiveWorkout } from './lib/activeWorkout'
 import { formatClock } from './lib/format'
 import { buildSuggestFn } from './lib/suggest'
@@ -19,6 +20,8 @@ import { describeNextSet } from './components/live/nextSet'
 import { QuickLogSheet } from './components/QuickLogSheet'
 import { RoutineEditor } from './components/RoutineEditor'
 import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
+import { useAuth } from '../../context/AuthContext'
+import { HealthStoreConsentSheet } from '../wearables/components/HealthStoreConsentSheet'
 
 /**
  * Der Workout-Tracker (`/training`).
@@ -43,6 +46,9 @@ export function TrainingPage() {
   const [routineEdit, setRoutineEdit] = useState<{ routine: (Omit<TrainingRoutine, 'id'> & { id?: string }) | null } | null>(null)
   const [detail, setDetail] = useState<TrainingSession | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const { user } = useAuth()
+  // Uhr-Import an, aber keine Einwilligung: einmal fragen, bis dahin pausiert der Import.
+  const consentAsk = useHealthConsentAsk(user?.id ?? null, data.healthImportPaused)
 
   const setTab = (next: Tab) => {
     const p = new URLSearchParams(params)
@@ -199,6 +205,10 @@ export function TrainingPage() {
       )}
       {detail && <SessionDetailSheet session={detail} data={data} onEdit={() => editSession(detail)} onClose={() => setDetail(null)} />}
       {settingsOpen && <SettingsSheet data={data} onClose={() => setSettingsOpen(false)} />}
+      <HealthStoreConsentSheet
+        open={consentAsk.open && !liveOpen && !settingsOpen}
+        onDone={granted => { consentAsk.done(); if (granted) data.reloadHealthConsent() }}
+      />
     </div>
   )
 }

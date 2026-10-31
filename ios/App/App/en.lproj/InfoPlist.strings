@@ -2,5 +2,5 @@
 "NSCameraUsageDescription" = "HOKU uses the camera to scan barcodes on food and products and, after your consent, to photograph labels that are sent to be read. No images are stored.";
 "NSMicrophoneUsageDescription" = "Hoku listens when you tap the microphone in the chat and writes what you say into the input field. Nothing is recorded or stored.";
 "NSSpeechRecognitionUsageDescription" = "Apple's speech recognition turns what you say to Hoku in the chat into text. HOKU does not store any recordings.";
-"NSHealthShareUsageDescription" = "HOKU reads health data to show weight, steps, sleep and heart rate in your records.";
+"NSHealthShareUsageDescription" = "HOKU reads steps, heart rate, resting heart rate, sleep, weight, active energy, blood oxygen, respiratory rate and blood pressure to show them in the app. With your consent, HOKU stores the daily values in your HOKU account.";
 "NSHealthUpdateUsageDescription" = "HOKU can save selected health data when you actively use this feature.";

@@ -4,7 +4,7 @@
  * Reihenfolge:
  *   1. `delete_my_account(true)` — loescht nichts, prueft nur, ob das
  *      Loeschen moeglich ist; sonst bleibt alles, wie es ist
- *   2. eigene Dateien im Speicher entfernen — Fortschrittsfotos und
+ *   2. eigene Dateien im Speicher entfernen — Fortschrittsfotos, Profil-/Titelbild und
  *      Chargen-Dokumente liegen unter `<user-id>/…`, alte Fotos noch unter
  *      `progress/<user-id>/…` in `batch-files`; SQL darf den Speicher nicht
  *      anfassen, deshalb tut es die App vorher selbst
@@ -18,6 +18,8 @@ export function nutzerOrdner(userId: string): [bucket: string, ordner: string][]
   return [
     ['progress-photos', userId],
     ['batch-files', userId],
+    // Profil- und Titelbild
+    ['profile-media', userId],
     // Fortschrittsfotos vor dem eigenen Bucket
     ['batch-files', `progress/${userId}`],
   ]

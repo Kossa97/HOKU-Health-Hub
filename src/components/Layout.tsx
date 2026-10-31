@@ -17,6 +17,7 @@ import { ambientForPath } from './ambient/palettes'
 import { dotStore } from '../features/dot/dotStore'
 import { PASSKEY_AN } from '../features/auth/lib/passkey'
 import { PasskeyNachfrage } from '../features/auth/components/PasskeyNachfrage'
+import { useHealthDailySync } from '../features/wearables/hooks/useHealthDailySync'
 
 const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
@@ -46,6 +47,8 @@ export function Layout() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { state: pushState, subscribe } = usePushNotifications(user)
+  // Tageswerte aus Apple Health / Health Connect — nur nativ und nur mit Einwilligung.
+  useHealthDailySync()
 
   const [showPushBanner,    setShowPushBanner]    = useState(false)
   const [showIOSBanner,     setShowIOSBanner]      = useState(false)

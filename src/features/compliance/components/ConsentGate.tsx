@@ -10,11 +10,13 @@ import { ConsentChecks } from './ConsentChecks'
 import { MedicalNotice } from './MedicalNotice'
 import { LegalLinks } from './LegalLinks'
 import { SilhouettenHuelle } from '../../../components/ui/Silhouette'
+import { geschlechtFelder, isProfileGender } from '../../profil/lib/profileFields'
 
 /**
  * `profiles.username` ist Pflicht: Gibt es noch keine Profilzeile (etwa
  * weil die Registrierung auf die E-Mail-Bestaetigung wartete), wird sie mit
- * dem Nutzernamen aus der Registrierung angelegt — sonst nur ergaenzt.
+ * dem Nutzernamen und dem Geschlecht aus der Registrierung angelegt — sonst
+ * nur ergaenzt.
  */
 async function speichereZustimmung(
   userId: string,
@@ -28,10 +30,11 @@ async function speichereZustimmung(
   }
   const ersatz = `user_${userId.slice(0, 8)}`
   const gewuenscht = typeof meta?.username === 'string' && meta.username.trim() ? meta.username.trim() : ersatz
-  const { error } = await supabase.from('profiles').insert({ id: userId, username: gewuenscht, ...zustimmung })
+  const geschlecht = isProfileGender(meta?.profile_gender) ? geschlechtFelder(meta.profile_gender) : {}
+  const { error } = await supabase.from('profiles').insert({ id: userId, username: gewuenscht, ...zustimmung, ...geschlecht })
   if (!error || gewuenscht === ersatz) return !error
   // Name inzwischen vergeben: mit Ersatznamen anlegen — aendern geht im Profil.
-  const { error: zweiterFehler } = await supabase.from('profiles').insert({ id: userId, username: ersatz, ...zustimmung })
+  const { error: zweiterFehler } = await supabase.from('profiles').insert({ id: userId, username: ersatz, ...zustimmung, ...geschlecht })
   return !zweiterFehler
 }
 

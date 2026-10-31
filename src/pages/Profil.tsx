@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { LogOut, Save, User, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, ChevronRight, HelpCircle } from 'lucide-react'
+import { LogOut, Save, Globe, Lock, Copy, Check, Star, Bell, BellOff, Send, ShieldCheck, FileText, ChevronRight, HelpCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,11 @@ import { PASSKEY_AN } from '../features/auth/lib/passkey'
 import { PasskeyEinstellung } from '../features/auth/components/PasskeyEinstellung'
 import { KiEinwilligungProfil } from '../features/blutwerte/components/KiEinwilligung'
 import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoConsentProfile'
+import { HealthStoreProfile } from '../features/wearables/components/HealthStoreProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
+import { UeberDichKarte, type UeberDichWerte } from '../features/profil/components/UeberDichKarte'
+import { ProfilBilder } from '../features/profil/components/ProfilBilder'
+import { GOAL_TAGS, genderSymbol, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
 import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
 
@@ -47,10 +51,24 @@ export function Profil() {
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [ueberDich, setUeberDich] = useState<UeberDichWerte>({ goals: [], country: null, profile_gender: null })
+  // „Über dich" ist erst nach erfolgreichem Laden bedienbar (sonst schriebe ein Tippen eine Liste aus []).
+  const [ueberDichGeladen, setUeberDichGeladen] = useState(false)
+  const [bilder, setBilder] = useState<{ avatar: string | null; cover: string | null }>({ avatar: null, cover: null })
 
   useEffect(() => {
     supabase.from('profiles').select('*').eq('id', user!.id).single().then(({ data }) => {
       if (data) setIsAdmin(data.is_admin === true)
+      if (data) setBilder({
+        avatar: typeof data.avatar_path === 'string' ? data.avatar_path : null,
+        cover: typeof data.cover_path === 'string' ? data.cover_path : null,
+      })
+      if (data) setUeberDich({
+        goals: Array.isArray(data.goals) ? GOAL_TAGS.filter(g => data.goals.includes(g)) : [],
+        country: knownCountry(data.country),
+        profile_gender: isProfileGender(data.profile_gender) ? data.profile_gender : null,
+      })
+      if (data) setUeberDichGeladen(true)
       if (data) setProfile({
         username: data.username ?? '', display_name: data.display_name ?? '',
         age: data.age, weight_kg: data.weight_kg, height_cm: data.height_cm,
@@ -107,13 +125,35 @@ export function Profil() {
         </button>
       </div>
 
-      {/* Avatar */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-[var(--lg-fill)]">
-          <User size={38} className="text-[var(--lg-text-2)]" />
-        </div>
+      {/* Titelbild und Profilbild; Name und E-Mail stehen darunter */}
+      <ProfilBilder
+        userId={user!.id}
+        avatarPath={bilder.avatar}
+        coverPath={bilder.cover}
+        onChange={(kind, pfad) => setBilder(b => ({ ...b, [kind]: pfad }))}
+      >
+        {/* Name mit kleinem Geschlechtszeichen; ohne Angabe steht dort nichts */}
+        {(profile.display_name || profile.username) && (
+          <p className="mb-0.5 flex items-baseline gap-1.5 text-[19px] font-semibold text-[var(--lg-text)]" data-profile-name>
+            <span className="truncate">{profile.display_name || profile.username}</span>
+            {genderSymbol(ueberDich.profile_gender) && (
+              <span className="text-[13px] font-normal text-[var(--lg-text-3)]" role="img" aria-label={t(`geschlecht_${ueberDich.profile_gender}`)} data-profile-gender-symbol>
+                {genderSymbol(ueberDich.profile_gender)}
+              </span>
+            )}
+          </p>
+        )}
         <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
-      </div>
+      </ProfilBilder>
+
+      <UeberDichKarte
+        userId={user!.id}
+        geladen={ueberDichGeladen}
+        goals={ueberDich.goals}
+        country={ueberDich.country}
+        gender={ueberDich.profile_gender}
+        onChange={patch => setUeberDich(v => ({ ...v, ...patch }))}
+      />
 
       {/* ── Profil teilen ─────────────────────────────────────────────────── */}
       <div className="card mb-4">
@@ -258,6 +298,7 @@ export function Profil() {
       <div>
         <KiEinwilligungProfil />
         <PhotoConsentProfile />
+        <HealthStoreProfile />
       </div>
 
       {/* ── Face ID / Passkeys ── */}

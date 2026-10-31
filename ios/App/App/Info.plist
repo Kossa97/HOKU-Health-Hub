@@ -31,7 +31,7 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Apple's speech recognition turns what you say to Hoku in the chat into text. HOKU does not store any recordings.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>HOKU reads health data to show weight, steps, sleep and heart rate in your records.</string>
+	<string>HOKU reads steps, heart rate, resting heart rate, sleep, weight, active energy, blood oxygen, respiratory rate and blood pressure to show them in the app. With your consent, HOKU stores the daily values in your HOKU account.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>HOKU can save selected health data when you actively use this feature.</string>
 	<key>UILaunchStoryboardName</key>

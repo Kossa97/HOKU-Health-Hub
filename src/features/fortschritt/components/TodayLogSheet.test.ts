@@ -18,4 +18,31 @@ describe('TodayLogSheet save flow', () => {
     expect(source).toContain('localStorage.setItem')
     expect(source.indexOf('readStoredSavedValues')).toBeLessThan(source.indexOf('loadLogFormValues(logs, weightLogs, date, savedValues)'))
   })
+
+  it('saves measurements only from typed values, after daily values and weight', () => {
+    const source = readFileSync(new URL('./TodayLogSheet.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('measurementRowsToSave(user.id, date, parsed.values)')
+    expect(source).not.toMatch(/measurementRowsToSave\([^)]*lastMeasurementUpTo/)
+    expect(source).toContain(".from('body_measurements')")
+    expect(source).toContain("onConflict: 'user_id,measured_on,site'")
+    expect(source.indexOf(".from('weight_logs')")).toBeLessThan(source.indexOf(".from('body_measurements')"))
+    expect(source.indexOf(".from('body_measurements')")).toBeLessThan(source.indexOf('await onSaved()'))
+  })
+
+  it('blocks saving on invalid measurements and treats a typed site as a value', () => {
+    const source = readFileSync(new URL('./TodayLogSheet.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("t('umfaenge_invalid')")
+    expect(source).toContain('!hasWellness && !hasWeight && !hasMeasurements')
+    expect(source.indexOf("t('umfaenge_invalid')")).toBeLessThan(source.indexOf('setSaving(true)'))
+  })
+
+  it('keeps the sheet open with umfaenge_save_failed and clears typed text on date change', () => {
+    const source = readFileSync(new URL('./TodayLogSheet.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("t('umfaenge_save_failed')")
+    expect(source).toContain('partiallySavedRef.current = true')
+    expect(source).toMatch(/setTyped\(\{\}\)/)
+  })
 })

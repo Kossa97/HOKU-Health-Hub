@@ -1447,26 +1447,44 @@ const EXPECTED_MY_STACK_KEYS = [
 // nennt den sechsten Look (nur de/en); look_softdark ist neu (englischer Platzhalter).
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Umfaenge im Verlauf — umfang_<stelle> und
+// umfaenge_title (de/en echt, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Umfaenge im Tageseintrag — umfaenge_choose_sites,
+// umfaenge_invalid, umfaenge_save_failed, umfaenge_sites_save_failed (de/en echt,
+// sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Profil-Geschlecht, Land und Ziele — ziel_<tag>,
+// geschlecht_<wert>, profil_ueber_dich, profil_ziele, profil_land(_suchen),
+// profil_geschlecht, register_geschlecht_frage (de/en echt, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Profilbild und Titelbild — profil_bilder_privat,
+// profil_profilbild, profil_titelbild, profil_bild_aendern, profil_bild_fehler,
+// profil_bild_zu_gross
+// (de/en echt, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Einwilligung fuer Daten aus Apple Health /
+// Health Connect — health_consent_*, health_profile_*, health_error
+// (de/en echt, sonst englischer Platzhalter).
+// Bewusst ergaenzt (Oktober 2026): Werte aus health_daily auf /health —
+// health_daily_kcal/_spo2/_resp/_bp, health_daily_hint(_action),
+// health_daily_load_error (de/en echt, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'f32b2b5028677e6fe525f3280d39f3f8aa4540ee04eebcdd33c7d511026cf345',
-  en: '5edda24c684706c898084fef3d64f5ae439cfe71014fbe4673b9408793f7eb06',
+  de: 'bb598e5fb8a6a45448ca6a9d1b21e1bf9afb0a44e42523f2e86973b52c874ee4',
+  en: '0cf3abc008aea7683b7ba8ca6946e3398f2c795ac52fe2dcf9c9a43f15ba82f3',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '91fe287fc3c07359cecb76f39979bec7a8a21ad759bbc5b3e46fbf41cf1c8b53',
-  es: 'eb3bdb7047e761dfd70eb5783949f78c8b242ae824574a532ee65bd84a7c4e8e',
-  fr: 'effa941d5cf08b01dbf81fd914080266ca1d2212afaf90035b9eef05ec0bde2a',
-  hi: '77debddb520cf1de640749f77a0c720418fbe6a7a9f51afa8dc643fb636a0fb3',
-  id: '6c44b6286cdae1f623a38e1f33d527ccbe9faae4de2fb04d0d45c0e8d4e4145e',
-  it: 'c7b2cb8cc015797b57876b8426271c0ccf773e3f031c41ab445faa7dc120dc7b',
-  ja: '5d5e1f97b87bf3837d35e775a9960c826865ee70188e856de9d0710ff9bf219a',
-  ko: '58db4e2963020f63108abf0f5f850420dab10d38b2838a4c75440b75419faeea',
-  pt: 'eac1b3b5877a617e47f32e66d4516578796c8ca632f2f111496a0c7088b6bfca',
-  ru: '9b7c3b70284314c0f4d7ec15ae5c91acc84356abfa5ffda0d8f33e73ea42c51d',
-  tr: '1da98f2cefc26191f42e2316cde8becd175e9975114f69f72c9fae57ff8a9102',
-  zh: 'aa30521ea6d0665c042de3935509c70fcc5f854144d01807cc1e3e2f581e9841',
+  ar: '58699915167b90bc6afb4679d048a19383da4f623a447d880f54c4b3aa8b2f04',
+  es: '44fcc5080f9660c560a039635a15f093bbadb55e10e94f47efb65fb671bf62cf',
+  fr: '0a034092cdd40a518e907134a17085544824ae648e4dfbb296af3c7b786eb50b',
+  hi: 'e3e0270a23cbda0c7c23488dda8d64d980d83fe32d1f28eb6adb373a75fbeccb',
+  id: '10599521a78cd0d274432fcf351d13d4365132a5e65d326aae86e3037b732862',
+  it: '402dc70613032405eca09f6200064077aa2127677863cf831016eaff86b0ba74',
+  ja: '636d9153870bc4e98a2cdfc51872302be50504316125f15797b0ee3f1564b3cc',
+  ko: 'd1fc7e08f7aae63e25217de167e18d2e91ca0fce68efb2a3bd884a286655d77b',
+  pt: '74e7f561ae4715e2d9fdffbc765ccfbe1f843a142a90bfa62fa510171e9be34e',
+  ru: 'b679b1d323bb6ab07209c8e5c26fae9d72a1903d23a9cbbeccc1162dcfc9a10c',
+  tr: '7792e3500584d13964a57ef43d56bc26f880984d8a153f061d7383b0cb52dc9e',
+  zh: '3fd4a92047f9fe2ed978b12a49e42dfb5d362a78a590cbc76604730ff5a8025b',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 
