@@ -721,6 +721,7 @@
   "home_completion_unit": "asupan dicatat",
   "home_due_label": "Jatuh tempo sekarang",
   "home_due": "Asupan jatuh tempo!",
+  "home_due_in": "Due in",
   "home_overdue_days": "terlambat sejak {{days}} hari",
   "home_at_time": "pukul",
   "theme_system": "Sistem",

@@ -720,6 +720,7 @@
   "home_completion_unit": "खुराकें लॉग की गईं",
   "home_due_label": "अभी देय",
   "home_due": "खुराक देय है!",
+  "home_due_in": "Due in",
   "home_overdue_days": "{{days}} दिनों से अतिदेय",
   "home_at_time": "बजे",
   "theme_system": "सिस्टम",

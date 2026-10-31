@@ -720,6 +720,7 @@
   "home_completion_unit": "доз записано",
   "home_due_label": "Сейчас назначено",
   "home_due": "Приём назначен!",
+  "home_due_in": "Due in",
   "home_overdue_days": "просрочено на {{days}} дн.",
   "home_at_time": "в",
   "theme_system": "Системная",

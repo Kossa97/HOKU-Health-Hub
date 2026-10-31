@@ -720,6 +720,7 @@
   "home_completion_unit": "已记录用药",
   "home_due_label": "即将到期",
   "home_due": "用药到期！",
+  "home_due_in": "Due in",
   "home_overdue_days": "已逾期 {{days}} 天",
   "home_at_time": "于",
   "theme_system": "跟随系统",

@@ -720,6 +720,7 @@
   "home_completion_unit": "tomas registradas",
   "home_due_label": "Ahora pendiente",
   "home_due": "¡Toma pendiente!",
+  "home_due_in": "Due in",
   "home_overdue_days": "hace {{days}} días sin tomar",
   "home_at_time": "a las",
   "theme_system": "Sistema",

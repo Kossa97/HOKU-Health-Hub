@@ -415,3 +415,9 @@ html[data-look='hoku'] .hk-scale::after {
     var(--hk-scale-gap, var(--hk-card)) 10%
   );
 }
+
+/* ── Einzelstücke aus index.css ── */
+/* „Aktiv" ist ein Zustand, kein Herzschlag: der Punkt steht still */
+html[data-look='hoku'] .tyd-active-dot { background: var(--lg-good); }
+html[data-look='hoku'] .tyd-active-dot::after { animation: none; display: none; }
+html[data-look='hoku'] .tyd-kreis { font-weight: 500; font-family: var(--font-mono); }

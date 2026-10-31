@@ -720,6 +720,7 @@
   "home_completion_unit": "doses registradas",
   "home_due_label": "Vence agora",
   "home_due": "Dose pendente!",
+  "home_due_in": "Due in",
   "home_overdue_days": "há {{days}} dias em atraso",
   "home_at_time": "às",
   "theme_system": "Sistema",

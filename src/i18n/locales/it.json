@@ -720,6 +720,7 @@
   "home_completion_unit": "assunzioni registrate",
   "home_due_label": "In scadenza ora",
   "home_due": "Assunzione in scadenza!",
+  "home_due_in": "Due in",
   "home_overdue_days": "in ritardo di {{days}} giorni",
   "home_at_time": "alle",
   "theme_system": "Sistema",

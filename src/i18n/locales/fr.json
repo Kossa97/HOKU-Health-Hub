@@ -720,6 +720,7 @@
   "home_completion_unit": "prises enregistrées",
   "home_due_label": "Dû maintenant",
   "home_due": "Prise due !",
+  "home_due_in": "Due in",
   "home_overdue_days": "en retard depuis {{days}} jours",
   "home_at_time": "à",
   "theme_system": "Système",

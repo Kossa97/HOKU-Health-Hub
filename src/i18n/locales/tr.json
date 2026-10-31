@@ -720,6 +720,7 @@
   "home_completion_unit": "alım kaydedildi",
   "home_due_label": "Şimdi vadesi var",
   "home_due": "Alım vadesi geldi!",
+  "home_due_in": "Due in",
   "home_overdue_days": "{{days}} gündür gecikmiş",
   "home_at_time": "saat",
   "theme_system": "Sistem",

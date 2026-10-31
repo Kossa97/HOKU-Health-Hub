@@ -720,6 +720,7 @@
   "home_completion_unit": "投与を記録済み",
   "home_due_label": "今すぐ実施",
   "home_due": "投与が必要です！",
+  "home_due_in": "Due in",
   "home_overdue_days": "{{days}}日遅延",
   "home_at_time": "時刻",
   "theme_system": "システム",

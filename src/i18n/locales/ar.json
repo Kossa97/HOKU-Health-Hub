@@ -720,6 +720,7 @@
   "home_completion_unit": "جرعات مسجلة",
   "home_due_label": "مستحق الآن",
   "home_due": "جرعة مستحقة!",
+  "home_due_in": "Due in",
   "home_overdue_days": "متأخر منذ {{days}} أيام",
   "home_at_time": "في",
   "theme_system": "النظام",

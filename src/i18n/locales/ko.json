@@ -720,6 +720,7 @@
   "home_completion_unit": "복용 기록됨",
   "home_due_label": "지금 예정",
   "home_due": "복용 예정!",
+  "home_due_in": "Due in",
   "home_overdue_days": "{{days}}일째 미완료",
   "home_at_time": "시",
   "theme_system": "시스템",
