@@ -46,7 +46,7 @@ const DATENSCHUTZ_DE: LegalDoc = {
     {
       heading: '2. Welche Daten wir verarbeiten',
       paragraphs: [
-        'Konto: E-Mail-Adresse, Passwort (nur verschlüsselt gespeichert), Nutzername, freiwillig Anzeigename und Profiltext, Sprache und Einstellungen, Zeitpunkt deiner Zustimmung zu diesen Bedingungen und deiner Altersbestätigung.',
+        'Konto: E-Mail-Adresse, Passwort (nur verschlüsselt gespeichert), Nutzername, freiwillig Anzeigename, Profiltext, Profil- und Titelbild (nur für dich sichtbar), Land, Ziele und Geschlecht im Profil, Sprache und Einstellungen, Zeitpunkt deiner Zustimmung zu diesen Bedingungen und deiner Altersbestätigung.',
         'Gesundheitsdaten, die du selbst einträgst: Substanzen in deinem Stack, Einnahmepläne und -protokolle, Bestand, Blutwerte und Befunde, Gewicht und Körpermaße, Ernährung (Mahlzeiten, Lebensmittel und Gerichte, Wasser, Ernährungsziele), Fortschrittsfotos, Tagebuch und deine Erfahrungen. Das sind besondere Kategorien personenbezogener Daten nach Art. 9 DSGVO.',
         'Technische Daten: Fehlerberichte bei Abstürzen (ohne Gesundheitsdaten und ohne IP-Adresse, siehe Abschnitt 5) und, wenn du Erinnerungen einschaltest, die Push-Adresse deines Geräts.',
         'Kamera: Wenn du einen Barcode scannst, erkennt dein Gerät die Ziffern selbst — das Kamerabild wird dabei weder übertragen noch gespeichert. Fotos für die Erkennung von Mahlzeiten oder das Auslesen von Etiketten verlassen das Gerät nur, wenn du diese Funktionen nutzt (siehe Abschnitt 5).',
@@ -124,7 +124,7 @@ const DATENSCHUTZ_EN: LegalDoc = {
     {
       heading: '2. What data we process',
       paragraphs: [
-        'Account: email address, password (stored only in encrypted form), username, optionally display name and bio, language and settings, and when you accepted these terms and confirmed your age.',
+        'Account: email address, password (stored only in encrypted form), username, optionally display name, bio, profile and cover picture (visible only to you), country, goals and gender in your profile, language and settings, and when you accepted these terms and confirmed your age.',
         'Health data you enter yourself: substances in your stack, schedules and intake logs, inventory, blood values and lab reports, weight and body measurements, nutrition (meals, foods and recipes, water, nutrition goals), progress photos, journal and your experiences. These are special categories of personal data under Art. 9 GDPR.',
         'Technical data: crash reports (without health data and without IP address, see section 5) and, if you turn on reminders, your device\'s push address.',
         'Camera: when you scan a barcode, your device reads the digits itself — the camera image is neither sent nor stored. Photos for meal recognition or label reading only leave your device if you use those features (see section 5).',

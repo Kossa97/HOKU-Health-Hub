@@ -41,6 +41,14 @@ describe('Rechtstexte', () => {
     expect(en).toContain('daily values already stored stay until you delete them in your profile')
   })
 
+  it('nennt bei den Kontodaten Profil- und Titelbild, Land, Ziele und Geschlecht im Profil', () => {
+    const konto = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections[1].paragraphs[0]
+    expect(konto('de')).toMatch(/^Konto: /)
+    expect(konto('en')).toMatch(/^Account: /)
+    for (const wert of ['Profil- und Titelbild', 'Land', 'Ziele', 'Geschlecht']) expect(konto('de')).toContain(wert)
+    for (const wert of ['profile and cover picture', 'country', 'goals', 'gender']) expect(konto('en')).toContain(wert)
+  })
+
   it('nennt im ersten Absatz zu Apple Health / Health Connect dieselben Werte, die die App liest', () => {
     const [de] = LEGAL_DOCS.datenschutz.de.sections[3].paragraphs
     const [en] = LEGAL_DOCS.datenschutz.en.sections[3].paragraphs
