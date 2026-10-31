@@ -3,8 +3,8 @@ import { expect, test } from './support/fixtures'
 test('Erscheinungsbild: Licht im Profil wählen, bleibt nach dem Neuladen', async ({ page, mock }) => {
   void mock
   await page.goto('/profil')
-  await expect(page.locator('html')).toHaveAttribute('data-look', 'schwarz')
-  // Schwarz: das Umgebungslicht ist unsichtbar
+  await expect(page.locator('html')).toHaveAttribute('data-look', 'hoku')
+  // HOKU (Standard): das Umgebungslicht ist unsichtbar
   await expect(page.locator('.lg-ambient')).toHaveCSS('visibility', 'hidden')
 
   const umschalter = page.locator('[data-look-switcher]')
@@ -29,4 +29,15 @@ test('Erscheinungsbild: Soft Dark — Anthrazit statt Schwarz, blaue Bedienung',
 
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-look', 'softdark')
+})
+
+test('Erscheinungsbild: HOKU ist Standard — fester Grund, Plex, kein Glas', async ({ page, mock }) => {
+  void mock
+  await page.goto('/profil')
+  await expect(page.locator('html')).toHaveAttribute('data-look', 'hoku')
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(14, 15, 18)')
+  await expect(page.locator('body')).toHaveCSS('font-family', /IBM Plex Sans/)
+  await expect(page.locator('.tyd-tabbar')).toHaveCSS('backdrop-filter', 'none')
+  const umschalter = page.locator('[data-look-switcher]')
+  await expect(umschalter.getByRole('button', { name: 'HOKU' })).toHaveAttribute('aria-pressed', 'true')
 })
