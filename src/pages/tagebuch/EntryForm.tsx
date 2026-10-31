@@ -4,6 +4,8 @@ import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { Info, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { enqueue, isNetworkError, newEntryId } from '../../lib/tagebuch/offlineQueue'
+import { stoerungsZustand } from '../../lib/stoerung'
 import { getDateLocale } from '../../i18n/dateLocales'
 import { INTAKE_OPTIONS, intakeDose, type IntakeOption } from './intake'
 import { SymptomChip } from './SymptomChip'
@@ -133,7 +135,20 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
       notes: form.notes.trim() || null,
     }
     const chips = chipPayload(form.chips)
-    const { error } = await supabase.rpc('save_diary_entry', { p_effect_id: entry?.id ?? null, p_entry: fields, p_chips: chips })
+    // Neue Einträge bekommen ihre id hier: ein späterer Versuch ohne Netz trifft
+    // dieselbe Zeile, statt eine zweite anzulegen.
+    const newId = entry ? null : newEntryId()
+    const { error } = await supabase.rpc('save_diary_entry', {
+      p_effect_id: entry?.id ?? null, p_entry: newId ? { ...fields, id: newId } : fields, p_chips: chips,
+    })
+    // Kein Netz — oder Supabase ausgefallen (502/503: stoerung.ts meldet dann „offline“)
+    if (error && (isNetworkError(error) || stoerungsZustand().verbindung === 'offline')) {
+      if (!newId) { toast.error(t('tagebuch_offline_bearbeiten')); return }
+      enqueue({ id: newId, user_id: userId, entry: fields, chips })
+      toast(t('tagebuch_offline_gemerkt'))
+      onSaved()
+      return
+    }
     if (error) {
       toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return
