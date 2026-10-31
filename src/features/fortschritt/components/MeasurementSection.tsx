@@ -5,7 +5,7 @@ import type { BodyMeasurementEntry } from '../types'
 import { fieldLabel } from '../styles'
 import { formatNumber } from '../lib/dates'
 import {
-  lastMeasurementBefore,
+  lastMeasurementUpTo,
   MEASUREMENT_SITES,
   parseCircumference,
   type MeasurementSite,
@@ -84,7 +84,8 @@ export function MeasurementSection({ sites, entries, date, typed, onTyped, onSit
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {MEASUREMENT_SITES.filter(site => sites.includes(site)).map(site => {
             const text = typed[site] ?? ''
-            const last = lastMeasurementBefore(entries, site, date)
+            // Schon gespeicherter Wert des gewählten Tages, sonst der letzte davor.
+            const last = lastMeasurementUpTo(entries, site, date)
             const invalid = text.trim() !== '' && parseCircumference(text) === null
             return (
               <div key={site}>

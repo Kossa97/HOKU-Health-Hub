@@ -34,6 +34,13 @@ describe('MeasurementSection', () => {
     expect(input.placeholder).not.toContain('88')
   })
 
+  it('zeigt für ein Datum mit gespeichertem Wert diesen Wert, nicht den davor', () => {
+    const { getByLabelText } = renderSection({ date: '2026-10-20' })
+    const input = getByLabelText('umfang_waist') as HTMLInputElement
+    expect(input.placeholder).toContain('86')
+    expect(input.placeholder).not.toContain('88')
+  })
+
   it('meldet getippten Text an den Eintrag', () => {
     const { getByLabelText, props } = renderSection()
     fireEvent.change(getByLabelText('umfang_waist'), { target: { value: '85,5' } })

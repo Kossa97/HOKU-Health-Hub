@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   MEASUREMENT_SITES,
-  lastMeasurementBefore,
+  lastMeasurementUpTo,
   measurementMetricKey,
   measurementRowsToSave,
   measurementSeries,
@@ -68,14 +68,15 @@ describe('measurementSeries', () => {
   })
 })
 
-describe('lastMeasurementBefore', () => {
-  it('nimmt den jüngsten Eintrag vor dem Datum, nicht am Datum', () => {
-    expect(lastMeasurementBefore(entries, 'waist', '2026-10-31')).toBe(85)
-    expect(lastMeasurementBefore(entries, 'waist', '2026-10-20')).toBe(87)
+describe('lastMeasurementUpTo', () => {
+  it('nimmt den Eintrag am Datum, sonst den jüngsten davor', () => {
+    expect(lastMeasurementUpTo(entries, 'waist', '2026-10-31')).toBe(84)
+    expect(lastMeasurementUpTo(entries, 'waist', '2026-10-20')).toBe(85)
+    expect(lastMeasurementUpTo(entries, 'waist', '2026-10-19')).toBe(87)
   })
-  it('gibt null ohne früheren Eintrag', () => {
-    expect(lastMeasurementBefore(entries, 'waist', '2026-09-01')).toBeNull()
-    expect(lastMeasurementBefore(entries, 'calf', '2026-10-31')).toBeNull()
+  it('gibt null ohne Eintrag bis zum Datum', () => {
+    expect(lastMeasurementUpTo(entries, 'waist', '2026-08-31')).toBeNull()
+    expect(lastMeasurementUpTo(entries, 'calf', '2026-10-31')).toBeNull()
   })
 })
 

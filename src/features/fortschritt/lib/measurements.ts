@@ -44,15 +44,15 @@ export function measurementSeries(
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
-/** Jüngster Wert dieser Stelle strikt vor `date` (YYYY-MM-DD), sonst null. */
-export function lastMeasurementBefore(
+/** Wert dieser Stelle am `date` (YYYY-MM-DD), sonst der jüngste davor, sonst null. */
+export function lastMeasurementUpTo(
   entries: BodyMeasurementEntry[],
   site: MeasurementSite,
   date: string,
 ): number | null {
   let latest: BodyMeasurementEntry | null = null
   for (const e of entries) {
-    if (e.site !== site || e.measured_on >= date) continue
+    if (e.site !== site || e.measured_on > date) continue
     if (latest === null || e.measured_on > latest.measured_on) latest = e
   }
   return latest ? latest.value_cm : null

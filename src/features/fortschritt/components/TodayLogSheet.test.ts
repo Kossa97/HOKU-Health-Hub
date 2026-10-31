@@ -23,7 +23,7 @@ describe('TodayLogSheet save flow', () => {
     const source = readFileSync(new URL('./TodayLogSheet.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain('measurementRowsToSave(user.id, date, parsed.values)')
-    expect(source).not.toMatch(/measurementRowsToSave\([^)]*lastMeasurementBefore/)
+    expect(source).not.toMatch(/measurementRowsToSave\([^)]*lastMeasurementUpTo/)
     expect(source).toContain(".from('body_measurements')")
     expect(source).toContain("onConflict: 'user_id,measured_on,site'")
     expect(source.indexOf(".from('weight_logs')")).toBeLessThan(source.indexOf(".from('body_measurements')"))
