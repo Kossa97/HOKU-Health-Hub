@@ -13,6 +13,8 @@
 --
 -- Freitext im Schnappschuss (Routinename, Lieblingsuebung, Namen der Bestleistungen)
 -- gibt profile_view an andere nur heraus, wenn er oeffentlicher_text_fehler besteht.
+-- Den ganzen Schnappschuss baut profile_view fuer andere vorher auf seine bekannte
+-- Form neu (profile_snapshot_clean): nur bekannte Schluessel, Zahlen als Zahlen.
 --
 -- Ausfuehren: Supabase -> SQL Editor -> diese Datei einfuegen -> Run.
 -- Danach pruefen (Erwartung in Klammern):
@@ -253,6 +255,152 @@ create policy "Visible profile media select" on storage.objects
   for select to anon, authenticated
   using (bucket_id = 'profile-media' and public.profile_media_visible(name));
 
+-- 7b. Schnappschuss fuer andere auf seine bekannte Form bringen ---------------
+-- Den Schnappschuss schreibt das Geraet des Eigentuemers; fuer andere ist er
+-- nicht vertrauenswuerdig. Jedes Feld wird hier neu gebaut: nur bekannte
+-- Schluessel, Zahlen nur als Zahlen (Betrag unter 1e9), feste Einheiten,
+-- Umfangsorte nur aus der Stellenliste, Texte und Listen in der Laenge begrenzt.
+-- Alles andere faellt weg. Form: src/features/profil/lib/profileSnapshot.ts.
+create or replace function public.profile_snap_num(v jsonb)
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when jsonb_typeof(v) = 'number' and abs((v #>> '{}')::numeric) < 1000000000 then v end;
+$$;
+
+create or replace function public.profile_snap_text(v jsonb, max_len integer)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when jsonb_typeof(v) = 'string' then nullif(left(btrim(v #>> '{}'), max_len), '') end;
+$$;
+
+create or replace function public.profile_snapshot_clean(s jsonb)
+returns jsonb
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  num constant jsonb := '{"height":"cm","weight":"kg","body_fat":"%","muscle_mass":"kg","steps":"steps",
+                          "resting_hr":"bpm","sleep":"min","active_kcal":"kcal","spo2":"%"}';
+  aus jsonb := '{}'::jsonb;
+  k text;
+  x jsonb;
+  liste jsonb;
+begin
+  if jsonb_typeof(s) is distinct from 'object' then
+    return aus;
+  end if;
+
+  if public.profile_snap_num(s #> '{age,v}') is not null then
+    aus := aus || jsonb_build_object('age', jsonb_build_object('v', s #> '{age,v}'));
+  end if;
+
+  for k in select jsonb_object_keys(num) loop
+    if public.profile_snap_num(s -> k -> 'v') is not null then
+      aus := aus || jsonb_build_object(k, jsonb_strip_nulls(jsonb_build_object(
+        'v', s -> k -> 'v', 'unit', num ->> k, 'delta', public.profile_snap_num(s -> k -> 'delta'))));
+    end if;
+  end loop;
+
+  if jsonb_typeof(s #> '{measurements,sites}') = 'array' then
+    select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+             'site', t.x ->> 'site', 'v', t.x -> 'v', 'delta', public.profile_snap_num(t.x -> 'delta'))) order by t.nr)
+      into liste
+      from (select distinct on (e.x ->> 'site') e.x, e.nr
+              from jsonb_array_elements(s #> '{measurements,sites}') with ordinality as e(x, nr)
+             where jsonb_typeof(e.x) = 'object'
+               and jsonb_typeof(e.x -> 'site') = 'string'
+               and e.x ->> 'site' in ('neck', 'chest', 'waist', 'belly', 'hips', 'upper_arm', 'forearm', 'thigh', 'calf')
+               and public.profile_snap_num(e.x -> 'v') is not null
+             order by e.x ->> 'site', e.nr) t;
+    if liste is not null then
+      aus := aus || jsonb_build_object('measurements', jsonb_build_object('unit', 'cm', 'sites', liste));
+    end if;
+  end if;
+
+  x := s -> 'adherence';
+  if public.profile_snap_num(x -> 'pct') is not null then
+    aus := aus || jsonb_build_object('adherence', jsonb_strip_nulls(jsonb_build_object(
+      'pct', x -> 'pct', 'confirmed', public.profile_snap_num(x -> 'confirmed'),
+      'missed', public.profile_snap_num(x -> 'missed'), 'days', public.profile_snap_num(x -> 'days'))));
+  end if;
+
+  x := s -> 'substances';
+  if public.profile_snap_num(x -> 'count') is not null then
+    aus := aus || jsonb_build_object('substances', jsonb_strip_nulls(jsonb_build_object(
+      'count', x -> 'count', 'activeCycles', public.profile_snap_num(x -> 'activeCycles'))));
+  end if;
+
+  if public.profile_snap_num(s #> '{markers,count}') is not null then
+    aus := aus || jsonb_build_object('markers', jsonb_build_object('count', s #> '{markers,count}'));
+  end if;
+
+  x := s -> 'in_range';
+  if public.profile_snap_num(x -> 'inRange') is not null and public.profile_snap_num(x -> 'of') is not null then
+    aus := aus || jsonb_build_object('in_range', jsonb_build_object('inRange', x -> 'inRange', 'of', x -> 'of'));
+  end if;
+
+  x := s -> 'blood_pressure';
+  if public.profile_snap_num(x -> 'sys') is not null and public.profile_snap_num(x -> 'dia') is not null then
+    aus := aus || jsonb_build_object('blood_pressure', jsonb_strip_nulls(jsonb_build_object(
+      'sys', x -> 'sys', 'dia', x -> 'dia', 'unit', 'mmHg',
+      'deltaSys', public.profile_snap_num(x -> 'deltaSys'), 'deltaDia', public.profile_snap_num(x -> 'deltaDia'))));
+  end if;
+
+  x := s -> 'workouts';
+  if public.profile_snap_num(x -> 'total') is not null then
+    aus := aus || jsonb_build_object('workouts', jsonb_strip_nulls(jsonb_build_object(
+      'total', x -> 'total', 'perWeek', public.profile_snap_num(x -> 'perWeek'))));
+  end if;
+
+  x := s -> 'reviews';
+  if public.profile_snap_num(x -> 'count') is not null then
+    aus := aus || jsonb_build_object('reviews', jsonb_strip_nulls(jsonb_build_object(
+      'count', x -> 'count', 'avgRating', public.profile_snap_num(x -> 'avgRating'))));
+  end if;
+
+  if public.profile_snap_num(s #> '{streak,days}') is not null then
+    aus := aus || jsonb_build_object('streak', jsonb_build_object('days', s #> '{streak,days}'));
+  end if;
+
+  if public.profile_snap_text(s #> '{routine,name}', 80) is not null then
+    aus := aus || jsonb_build_object('routine', jsonb_build_object('name', public.profile_snap_text(s #> '{routine,name}', 80)));
+  end if;
+
+  if public.profile_snap_text(s #> '{favorite_exercise,name}', 80) is not null then
+    aus := aus || jsonb_build_object('favorite_exercise', jsonb_build_object(
+      'id', coalesce(public.profile_snap_text(s #> '{favorite_exercise,id}', 80), ''),
+      'name', public.profile_snap_text(s #> '{favorite_exercise,name}', 80)));
+  end if;
+
+  if jsonb_typeof(s #> '{e1rm,top}') = 'array' then
+    select jsonb_agg(jsonb_build_object(
+             'id', coalesce(public.profile_snap_text(t.x -> 'id', 80), ''),
+             'name', public.profile_snap_text(t.x -> 'name', 80),
+             'v', t.x -> 'v') order by t.nr)
+      into liste
+      from (select e.x, e.nr
+              from jsonb_array_elements(s #> '{e1rm,top}') with ordinality as e(x, nr)
+             where jsonb_typeof(e.x) = 'object'
+               and public.profile_snap_text(e.x -> 'name', 80) is not null
+               and public.profile_snap_num(e.x -> 'v') is not null
+             order by e.nr
+             limit 3) t;
+    if liste is not null then
+      aus := aus || jsonb_build_object('e1rm', jsonb_build_object('unit', 'kg', 'top', liste));
+    end if;
+  end if;
+
+  return aus;
+end;
+$$;
+
 -- 8. Profilansicht: gibt nur freigegebene Felder heraus ------------------------
 -- Stufe des Betrachters: Eigentuemer alles (oder p_as: friends/all/web zum
 -- "Ansehen als"), angemeldet "all", ohne Anmeldung "web". "friends" gilt fuer
@@ -341,8 +489,12 @@ begin
       werte := werte || jsonb_build_object('cover', p.cover_path);
     end if;
 
-    -- Werte aus dem Schnappschuss, nur freigegebene Schluessel
+    -- Werte aus dem Schnappschuss, nur freigegebene Schluessel; fuer jede Sicht
+    -- ausser der eigenen erst auf die bekannte Form gebracht (Abschnitt 7b).
     select s.data into snap from public.profile_snapshots s where s.user_id = p.id;
+    if snap is not null and stufe <> 'owner' then
+      snap := public.profile_snapshot_clean(snap);
+    end if;
     if snap is not null then
       werte := werte || coalesce((
         select jsonb_object_agg(e.key, e.value)
@@ -354,42 +506,24 @@ begin
 
     -- Freitext im Schnappschuss (Routinename, eigene Uebungsnamen) geht an
     -- andere nur, wenn er den Textfilter besteht; das Geraet ist dafuer nicht
-    -- vertrauenswuerdig. Die drei Felder werden dabei auf ihre bekannte Form
-    -- neu gebaut, damit kein weiterer Schluessel ungeprueft mitreist.
+    -- vertrauenswuerdig. Die Form ist oben schon neu gebaut.
     if stufe <> 'owner' then
-      if werte ? 'routine' then
-        if jsonb_typeof(werte -> 'routine' -> 'name') = 'string'
-           and public.oeffentlicher_text_fehler(werte -> 'routine' ->> 'name') is null then
-          werte := jsonb_set(werte, '{routine}', jsonb_build_object('name', werte -> 'routine' ->> 'name'));
-        else
-          werte := werte - 'routine';
-        end if;
+      if werte ? 'routine' and public.oeffentlicher_text_fehler(werte #>> '{routine,name}') is not null then
+        werte := werte - 'routine';
       end if;
-      if werte ? 'favorite_exercise' then
-        if jsonb_typeof(werte -> 'favorite_exercise' -> 'name') = 'string'
-           and public.oeffentlicher_text_fehler(werte -> 'favorite_exercise' ->> 'name') is null then
-          werte := jsonb_set(werte, '{favorite_exercise}', jsonb_build_object(
-            'id', werte -> 'favorite_exercise' ->> 'id',
-            'name', werte -> 'favorite_exercise' ->> 'name'));
-        else
-          werte := werte - 'favorite_exercise';
-        end if;
+      if werte ? 'favorite_exercise' and public.oeffentlicher_text_fehler(werte #>> '{favorite_exercise,name}') is not null then
+        werte := werte - 'favorite_exercise';
       end if;
       if werte ? 'e1rm' then
         oben := coalesce((
-          select jsonb_agg(jsonb_build_object('id', t.x ->> 'id', 'name', t.x ->> 'name', 'v', t.x -> 'v') order by t.nr)
-            from jsonb_array_elements(
-                   case when jsonb_typeof(werte -> 'e1rm' -> 'top') = 'array' then werte -> 'e1rm' -> 'top' else '[]'::jsonb end
-                 ) with ordinality as t(x, nr)
-           where jsonb_typeof(t.x) = 'object'
-             and jsonb_typeof(t.x -> 'name') = 'string'
-             and jsonb_typeof(t.x -> 'v') = 'number'
-             and public.oeffentlicher_text_fehler(t.x ->> 'name') is null
+          select jsonb_agg(t.x order by t.nr)
+            from jsonb_array_elements(werte #> '{e1rm,top}') with ordinality as t(x, nr)
+           where public.oeffentlicher_text_fehler(t.x ->> 'name') is null
         ), '[]'::jsonb);
         if jsonb_array_length(oben) = 0 then
           werte := werte - 'e1rm';
         else
-          werte := jsonb_set(werte, '{e1rm}', jsonb_build_object('unit', 'kg', 'top', oben));
+          werte := jsonb_set(werte, '{e1rm,top}', oben);
         end if;
       end if;
     end if;
