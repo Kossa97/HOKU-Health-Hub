@@ -11,6 +11,9 @@
 -- Sichtbarkeit bekommen Bio und Erfahrungsberichte auf "Alle" und den Web-Link an.
 -- Bilder aus Teilprojekt 1 ohne Status gelten als "wird geprueft".
 --
+-- Freitext im Schnappschuss (Routinename, Lieblingsuebung, Namen der Bestleistungen)
+-- gibt profile_view an andere nur heraus, wenn er oeffentlicher_text_fehler besteht.
+--
 -- Ausfuehren: Supabase -> SQL Editor -> diese Datei einfuegen -> Run.
 -- Danach pruefen (Erwartung in Klammern):
 --   select count(*) from information_schema.columns
@@ -269,6 +272,7 @@ declare
   erlaubt text[];
   werte jsonb := '{}'::jsonb;
   snap jsonb;
+  oben jsonb;
 begin
   select pr.* into p
     from public.profiles pr
@@ -346,6 +350,48 @@ begin
          where e.key = any(erlaubt)
            and e.key not in ('bio', 'goals', 'country', 'gender', 'member_since', 'cover')
       ), '{}'::jsonb);
+    end if;
+
+    -- Freitext im Schnappschuss (Routinename, eigene Uebungsnamen) geht an
+    -- andere nur, wenn er den Textfilter besteht; das Geraet ist dafuer nicht
+    -- vertrauenswuerdig. Die drei Felder werden dabei auf ihre bekannte Form
+    -- neu gebaut, damit kein weiterer Schluessel ungeprueft mitreist.
+    if stufe <> 'owner' then
+      if werte ? 'routine' then
+        if jsonb_typeof(werte -> 'routine' -> 'name') = 'string'
+           and public.oeffentlicher_text_fehler(werte -> 'routine' ->> 'name') is null then
+          werte := jsonb_set(werte, '{routine}', jsonb_build_object('name', werte -> 'routine' ->> 'name'));
+        else
+          werte := werte - 'routine';
+        end if;
+      end if;
+      if werte ? 'favorite_exercise' then
+        if jsonb_typeof(werte -> 'favorite_exercise' -> 'name') = 'string'
+           and public.oeffentlicher_text_fehler(werte -> 'favorite_exercise' ->> 'name') is null then
+          werte := jsonb_set(werte, '{favorite_exercise}', jsonb_build_object(
+            'id', werte -> 'favorite_exercise' ->> 'id',
+            'name', werte -> 'favorite_exercise' ->> 'name'));
+        else
+          werte := werte - 'favorite_exercise';
+        end if;
+      end if;
+      if werte ? 'e1rm' then
+        oben := coalesce((
+          select jsonb_agg(jsonb_build_object('id', t.x ->> 'id', 'name', t.x ->> 'name', 'v', t.x -> 'v') order by t.nr)
+            from jsonb_array_elements(
+                   case when jsonb_typeof(werte -> 'e1rm' -> 'top') = 'array' then werte -> 'e1rm' -> 'top' else '[]'::jsonb end
+                 ) with ordinality as t(x, nr)
+           where jsonb_typeof(t.x) = 'object'
+             and jsonb_typeof(t.x -> 'name') = 'string'
+             and jsonb_typeof(t.x -> 'v') = 'number'
+             and public.oeffentlicher_text_fehler(t.x ->> 'name') is null
+        ), '[]'::jsonb);
+        if jsonb_array_length(oben) = 0 then
+          werte := werte - 'e1rm';
+        else
+          werte := jsonb_set(werte, '{e1rm}', jsonb_build_object('unit', 'kg', 'top', oben));
+        end if;
+      end if;
     end if;
   end if;
 
