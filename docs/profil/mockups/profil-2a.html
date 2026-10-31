@@ -90,7 +90,6 @@ button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .grid.r3 { grid-template-columns: repeat(3, 1fr); }
 .grid.rest > .tile:last-child { grid-column: 1 / -1; }
 .grid.r3 .tile .k { padding-right: 0; }
-.grid.r3 .tile .vis { position: static; display: inline-block; margin-top: 6px; }
 .who .land { font: 600 13px var(--ui); color: var(--t2); background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 8px; letter-spacing: .04em; }
 .tile { background: rgba(255,255,255,.035); border-radius: 14px; padding: 10px 12px; position: relative; min-height: 64px; min-width: 0; }
 .tile .k { font-size: 12px; color: var(--t3); padding-right: 56px; }
@@ -113,11 +112,17 @@ button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .pair .tile .k { padding-right: 0; }
 .note { font-size: 11px; color: var(--t3); text-align: center; margin-top: 12px; line-height: 1.45; }
 
-.vis { font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--t2); cursor: pointer; white-space: nowrap; font-weight: 500; }
-.vis[data-v="1"] { color: var(--blue-soft); border-color: rgba(78,168,255,.4); }
-.vis[data-v="2"] { color: var(--good); border-color: rgba(95,224,127,.4); }
-.tile .vis { position: absolute; right: 8px; top: 8px; font-size: 10px; padding: 2px 6px; }
-.pair .tile .vis { position: static; }
+/* Stufe: kleiner Punkt + Wort, in derselben Zeile rechts neben der Beschriftung */
+.vis { display: inline-flex; align-items: center; gap: 4px; font: 500 10px/1 var(--ui); color: var(--t3); background: none; border: 0; padding: 2px 0 2px 6px; cursor: pointer; white-space: nowrap; vertical-align: middle; }
+.vis .pt { width: 6px; height: 6px; border-radius: 50%; background: var(--t3); flex: none; }
+.vis[data-v="1"] { color: var(--blue-soft); } .vis[data-v="1"] .pt { background: var(--blue); }
+.vis[data-v="2"] { color: var(--good); } .vis[data-v="2"] .pt { background: var(--good); }
+.tile .k { padding-right: 0; display: flex; align-items: center; flex-wrap: nowrap; column-gap: 2px; white-space: nowrap; }
+.grid.r3 .tile { padding: 10px 8px; }
+.grid.r3 .tile .k { font-size: 11px; }
+.grid.r3 .vis, .who .vis { font-size: 9.5px; gap: 3px; padding-left: 4px; }
+.who .name { flex-wrap: nowrap; gap: 4px; white-space: nowrap; }
+.cv .vis { background: rgba(0,0,0,.45); border-radius: 99px; padding: 4px 8px; }
 .spaeter { margin-top: 12px; border: 1px dashed rgba(255,179,64,.45); border-radius: 22px; padding: 14px 16px; color: var(--t3); font-size: 13px; display: flex; justify-content: space-between; gap: 10px; }
 .spaeter b { color: var(--t2); font-weight: 600; }
 .later { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 6px; border: 1px dashed var(--warn); color: var(--warn); font-weight: 500; white-space: nowrap; }
@@ -192,9 +197,9 @@ button.set { cursor: pointer; }
 
     <div class="lbl">Stufen</div>
     <div class="legend">
-      <span><button type="button" class="vis" data-v="0" tabindex="-1">🔒 Nur ich</button> Standard für jedes neue Feld</span>
-      <span><button type="button" class="vis" data-v="1" tabindex="-1">Freunde</button> bis Teilprojekt 3 nur du</span>
-      <span><button type="button" class="vis" data-v="2" tabindex="-1">Alle</button> alle angemeldeten Hoku-Nutzer</span>
+      <span><button type="button" class="vis" data-v="0" tabindex="-1"><i class="pt"></i>Nur ich</button> Standard für jedes neue Feld</span>
+      <span><button type="button" class="vis" data-v="1" tabindex="-1"><i class="pt"></i>Freunde</button> bis Teilprojekt 3 nur du</span>
+      <span><button type="button" class="vis" data-v="2" tabindex="-1"><i class="pt"></i>Alle</button> alle angemeldeten Hoku-Nutzer</span>
     </div>
     <label class="toggle"><input type="checkbox" id="spaeterToggle" checked> Plätze für spätere Schritte zeigen <span class="later">2b · 2c · 3</span></label>
     <p class="regel">Verborgene Werte hinterlassen keine Lücke: Kacheln ordnen sich nach Anzahl (2 Spalten, ungerader Rest über die volle Breite, 3er bei Bestleistungen), Karten mit nur einem Wert stehen als halbe Karten paarweise, leere Karten fallen weg, die Zahlenzeile verteilt sich auf ihre Anzahl.</p>
@@ -274,13 +279,14 @@ const sicht = k => {
   return vis[k] >= (st.view === 'freunde' ? 1 : 2);
 };
 const own = () => st.view === 'ich';
-const chip = k => own() ? `<button type="button" class="vis" data-key="${k}" data-v="${vis[k]}" aria-label="Sichtbarkeit ${F[k].n}: ${VIS[vis[k]]}">${VIS[vis[k]]}</button>` : '';
+const VIS_TXT = ['Nur ich', 'Freunde', 'Alle'];
+const chip = k => own() ? `<button type="button" class="vis" data-key="${k}" data-v="${vis[k]}" aria-label="Sichtbarkeit ${F[k].n}: ${VIS_TXT[vis[k]]}"><i class="pt"></i>${VIS_TXT[vis[k]]}</button>` : '';
 // Abgelehnt: Datei geloescht, auch du siehst Initialen. In Pruefung: nur du siehst das Bild.
 const bildDa = () => st.bild === 'ok' || (own() && st.bild === 'pruef');
 
 function tile(k) {
   const f = F[k];
-  return `<div class="tile"><div class="k">${f.k}${f.spaeter ? ' <span class="later nur-spaeter">1b</span>' : ''}</div>${chip(k)}
+  return `<div class="tile"><div class="k">${f.k}${chip(k)}${f.spaeter ? ' <span class="later nur-spaeter">1b</span>' : ''}</div>
     <div class="v ${f.txt ? 'txt' : ''}">${f.v}${f.u ? `<small>${f.u}</small>` : ''}</div>${f.d ? `<div class="delta ${f.dc || ''}">${f.d}</div>` : ''}</div>`;
 }
 // 1 → volle Breite; 3 kurze Werte → eine Reihe; sonst 2 Spalten, ungerader Rest über die volle Breite.
@@ -296,8 +302,8 @@ function titel(c) {
 function kartenInhalt(c, ks) {
   if (c.art === 'training') {
     const zeilen = ks.filter(k => k !== 'prs');
-    let h = zeilen.length ? `<div class="list">${zeilen.map(k => `<div class="li"><span>${F[k].k}</span><span class="r">${F[k].v} ${chip(k)}</span></div>`).join('')}</div>` : '';
-    if (ks.includes('prs')) h += `<div class="pr-k"><span>Bestleistungen (e1RM)</span>${chip('prs')}</div><div class="grid r3">${[['Kreuzheben', '142'], ['Kniebeuge', '118'], ['Bank', '97']].map(([n, v]) =>
+    let h = zeilen.length ? `<div class="list">${zeilen.map(k => `<div class="li"><span>${F[k].k}${chip(k)}</span><span class="r">${F[k].v}</span></div>`).join('')}</div>` : '';
+    if (ks.includes('prs')) h += `<div class="pr-k"><span>Bestleistungen (e1RM)${chip('prs')}</span></div><div class="grid r3">${[['Kreuzheben', '142'], ['Kniebeuge', '118'], ['Bank', '97']].map(([n, v]) =>
       `<div class="tile"><div class="k" style="padding-right:0">${n}</div><div class="v">${v}<small>kg</small></div></div>`).join('')}</div>`;
     return h;
   }
@@ -360,8 +366,8 @@ function halb(k) {
   const f = F[k];
   const v = k === 'prs' ? 'Kreuzheben 142' : f.v;
   const u = k === 'prs' ? 'kg' : f.u;
-  return `<div class="tile"><div class="k">${f.k === '12 Berichte' ? '12 Berichte' : f.k}</div>
-    <div class="v ${f.txt || String(v).length > 9 ? 'txt' : ''}">${v}${u ? `<small>${u}</small>` : ''}</div>${f.d ? `<div class="delta ${f.dc || ''}">${f.d}</div>` : ''}${chip(k)}</div>`;
+  return `<div class="tile"><div class="k">${f.k}${chip(k)}</div>
+    <div class="v ${f.txt || String(v).length > 9 ? 'txt' : ''}">${v}${u ? `<small>${u}</small>` : ''}</div>${f.d ? `<div class="delta ${f.dc || ''}">${f.d}</div>` : ''}</div>`;
 }
 
 function renderWeb() {

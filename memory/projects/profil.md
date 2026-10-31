@@ -37,7 +37,7 @@ Flagge + Kürzel oben, Über mich = 3 Kacheln, Bild-Check per Claude auf dem Ser
 Strike, /u/<name> ohne Anmeldung ab 2a ohne Berichte, Bestand: alles Nur ich, is_public behält Bio + Berichte,
 Muskelmasse neu im Tageseintrag, Lieblingsübung/Routine selbst wählen. Einstellungen in 2a: privat, Wer sieht
 was, Ansehen als, Web-Link, Blockiert.
-Zur Durchsicht [Claude, ungeprüft]: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
+Vom Nutzer bestätigt: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
 Prüffehler = bleibt privat.
 
 ## Offen
@@ -48,6 +48,13 @@ Prüffehler = bleibt privat.
   echtes Android-Gerät vor Store-Start.
 - Divers-Zeichen: ⚧ ist Platzhalter, Bild des Nutzers kam nicht an.
 - 1b: HRV, VO2max, Android-Schlaf und Wach-Phasen brauchen Plugin-Wechsel.
-- Rechtlich prüfen: Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf.
+- Rechtlich prüfen (für den Nutzer im Kopf behalten, bei jedem Stand erinnern):
+  Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf;
+  Bild-Check über Anthropic (Einwilligung oder berechtigtes Interesse?);
+  Erfahrungsberichte mit Substanznamen für angemeldete Nutzer; Web-Vorschau (2c) vor dem Start;
+  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4).
+- 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
+  Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
+  `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
