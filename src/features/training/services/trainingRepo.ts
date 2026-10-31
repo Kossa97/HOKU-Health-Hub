@@ -8,6 +8,7 @@ import {
   type TrainingSession,
   type TrainingSettings,
 } from '../types'
+import { normalizeFavorites } from '../lib/favorites'
 
 /**
  * Lesen und Schreiben des Workout-Trackers in Supabase.
@@ -319,6 +320,7 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
     // Fehlt der Schluessel (Einstellungen aus v1), gilt der Standard „an".
     restSound: value.restSound !== false,
     restNotify: value.restNotify === true,
+    favoriteExercises: normalizeFavorites(value.favoriteExercises),
   }
 }
 

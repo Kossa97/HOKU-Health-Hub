@@ -223,6 +223,8 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
       <ExercisePicker
         sessions={data.sessions}
         customExercises={data.customExercises}
+        favorites={data.settings.favoriteExercises}
+        onToggleFavorite={data.toggleFavorite}
         onAddCustom={data.addCustomExercise}
         onClose={() => setPicker(false)}
         onPick={ids => {

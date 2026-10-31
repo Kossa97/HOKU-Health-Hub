@@ -9,6 +9,7 @@ import { isGlp1Substance, type WeightPoint } from '../lib/glp1'
 import { dedupeAgainst, mapHealthWorkout } from '../lib/healthImport'
 import { localDateKey } from '../lib/energy'
 import type { ReadinessInput } from '../lib/readiness'
+import { toggleFavorite as toggleFavoriteId } from '../lib/favorites'
 
 /**
  * Alles, was der Workout-Tracker liest — eigene Daten und der Kontext aus dem
@@ -150,6 +151,14 @@ export function useTrainingData() {
   const [context, setContext] = useState<TrainingContext>(EMPTY_CONTEXT)
   const [reloadKey, setReloadKey] = useState(0)
   const syncedRef = useRef(false)
+  // Einstellungen: der neueste Stand (auch vor dem naechsten Rendern) und der
+  // zuletzt gespeicherte. Gespeichert wird der Reihe nach, immer der neueste
+  // Stand — so ueberholt kein aelterer einen neueren, und schnelle Sterne
+  // bauen aufeinander auf. Schlaegt ein Speichern fehl, gilt wieder der
+  // zuletzt gespeicherte Stand.
+  const settingsRef = useRef(settings)
+  const savedSettingsRef = useRef(settings)
+  const settingsQueue = useRef<Promise<unknown>>(Promise.resolve())
 
   useEffect(() => {
     if (!userId) return
@@ -164,6 +173,8 @@ export function useTrainingData() {
     ]).then(([s, r, c, st]) => {
       if (cancelled) return
       setSessions(s); setRoutines(r); setCustomExercises(c); setSettings(st)
+      settingsRef.current = st
+      savedSettingsRef.current = st
       setState('ready')
     }).catch(error => {
       if (cancelled) return
@@ -183,6 +194,23 @@ export function useTrainingData() {
 
   const reload = useCallback(() => setReloadKey(k => k + 1), [])
 
+  const commitSettings = useCallback(async (next: TrainingSettings) => {
+    if (!userId) return
+    settingsRef.current = next
+    setSettings(next)
+    const save = settingsQueue.current.then(async () => {
+      const latest = settingsRef.current
+      await repo.saveSettings(userId, latest)
+      savedSettingsRef.current = latest
+    })
+    settingsQueue.current = save.catch(() => {})
+    try { await save } catch (error) {
+      settingsRef.current = savedSettingsRef.current
+      setSettings(savedSettingsRef.current)
+      throw error
+    }
+  }, [userId])
+
   const saveSession = useCallback(async (session: Omit<TrainingSession, 'id'> & { id?: string }) => {
     if (!userId) throw new Error('not signed in')
     const saved = session.id
@@ -200,15 +228,14 @@ export function useTrainingData() {
     setSessions(prev => prev.filter(s => s.id !== id))
     // Von der Uhr uebernommen? Dann merken, damit der Abgleich es nicht zurueckholt.
     if (removed?.externalId && (removed.source === 'healthkit' || removed.source === 'health_connect')) {
-      const next = {
-        ...settings,
-        dismissedExternalIds: [...settings.dismissedExternalIds.filter(x => x !== removed.externalId), removed.externalId]
+      const current = settingsRef.current
+      await commitSettings({
+        ...current,
+        dismissedExternalIds: [...current.dismissedExternalIds.filter(x => x !== removed.externalId), removed.externalId]
           .slice(-repo.MAX_DISMISSED),
-      }
-      setSettings(next)
-      await repo.saveSettings(userId, next).catch(() => {})
+      }).catch(() => {})
     }
-  }, [userId, sessions, settings])
+  }, [userId, sessions, commitSettings])
 
   const saveRoutine = useCallback(async (routine: Omit<TrainingRoutine, 'id'> & { id?: string }) => {
     if (!userId) throw new Error('not signed in')
@@ -233,12 +260,12 @@ export function useTrainingData() {
     return saved
   }, [userId])
 
-  const updateSettings = useCallback(async (next: TrainingSettings) => {
-    if (!userId) return
-    const previous = settings
-    setSettings(next)
-    try { await repo.saveSettings(userId, next) } catch (error) { setSettings(previous); throw error }
-  }, [userId, settings])
+  const updateSettings = useCallback((next: TrainingSettings) => commitSettings(next), [commitSettings])
+
+  const toggleFavorite = useCallback((exerciseId: string) => commitSettings({
+    ...settingsRef.current,
+    favoriteExercises: toggleFavoriteId(settingsRef.current.favoriteExercises, exerciseId),
+  }), [commitSettings])
 
   const importSessions = useCallback(async (incoming: Array<Omit<TrainingSession, 'id'>>) => {
     if (!userId) return 0
@@ -284,10 +311,10 @@ export function useTrainingData() {
   return useMemo(() => ({
     state, sessions, routines, customExercises, settings, context, glp1Active,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
-    updateSettings, importSessions, syncHealthWorkouts,
+    updateSettings, toggleFavorite, importSessions, syncHealthWorkouts,
   }), [state, sessions, routines, customExercises, settings, context, glp1Active,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
-    updateSettings, importSessions, syncHealthWorkouts])
+    updateSettings, toggleFavorite, importSessions, syncHealthWorkouts])
 }
 
 export type TrainingData = ReturnType<typeof useTrainingData>

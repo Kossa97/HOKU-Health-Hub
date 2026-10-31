@@ -127,6 +127,30 @@ test('Training: Schnellzugriff fuehrt nach Training, ohne zu starten', async ({ 
   expect(mock.table('training_sessions')).toHaveLength(2)
 })
 
+test('Training: Uebung mit Stern steht oben in der Auswahl', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/training?start=empty')
+  const live = page.getByRole('dialog', { name: 'Training' })
+  await live.getByRole('button', { name: 'Übung hinzufügen' }).click()
+  const picker = page.getByRole('dialog', { name: 'Übung wählen' })
+  await expect(picker.getByRole('region', { name: 'Favoriten' })).toHaveCount(0)
+  await picker.getByRole('searchbox').fill('kniebeuge')
+  const star = picker.getByRole('button', { name: /^Kniebeuge.*als Favorit markieren$/ }).first()
+  const name = (await star.getAttribute('aria-label'))!.replace(' als Favorit markieren', '')
+  await star.click()
+  await expect(picker.getByRole('button', { name: `${name}: Favorit entfernen` })).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => (mock.table('training_settings')[0]?.settings as { favoriteExercises?: string[] } | undefined)?.favoriteExercises?.length).toBe(1)
+
+  // Ohne Suche: eigener Abschnitt oben, dazu der Filter
+  await picker.getByRole('searchbox').fill('')
+  const favs = picker.getByRole('region', { name: 'Favoriten' })
+  await expect(favs.getByRole('listitem')).toHaveCount(1)
+  await expect(favs).toContainText(name)
+  await expect(picker.getByRole('region', { name: 'Alle Übungen' })).toBeVisible()
+  await picker.getByRole('button', { name: 'Favoriten', exact: true }).click()
+  await expect(picker.getByRole('listitem')).toHaveCount(1)
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')

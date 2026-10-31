@@ -206,6 +206,8 @@ export interface TrainingSettings {
   restSound: boolean
   /** Systembenachrichtigung am Ende der Pause, wenn die App im Hintergrund ist. */
   restNotify: boolean
+  /** Uebungen mit Stern (IDs), in der Reihenfolge des Markierens. */
+  favoriteExercises: string[]
 }
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
@@ -219,4 +221,5 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   dismissedExternalIds: [],
   restSound: true,
   restNotify: false,
+  favoriteExercises: [],
 }

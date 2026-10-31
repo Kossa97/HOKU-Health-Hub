@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Check, Plus, Search } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
+import { Check, Plus, Search, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { CustomExercise, ExerciseCategory, MuscleGroup, TrackingMode, TrainingSession } from '../types'
 import { useTrainingText, type TrainingTextKey } from '../i18n'
@@ -9,7 +9,9 @@ import { Button, Chip, Field, TrainingSheet, inputStyle } from './ui'
 /**
  * Uebung waehlen — Suche ueber Deutsch, Englisch und die Schreibweisen aus
  * Hevy/Strong, Filter nach Muskel, zuletzt benutzte oben. Mehrfachauswahl wie
- * bei Hevy: mehrere antippen, einmal hinzufuegen.
+ * bei Hevy: mehrere antippen, einmal hinzufuegen. Uebungen mit Stern
+ * (Favoriten) stehen ohne Suche und Filter in einem eigenen Abschnitt oben,
+ * bei einer Suche vor den uebrigen Treffern.
  */
 
 const MUSCLE_FILTERS: MuscleGroup[] = [
@@ -20,11 +22,17 @@ const MUSCLE_FILTERS: MuscleGroup[] = [
 const TRACKINGS: TrackingMode[] = ['weight_reps', 'bodyweight_reps', 'reps', 'duration', 'distance_duration', 'weight_distance']
 const CATEGORIES: ExerciseCategory[] = ['strength', 'cardio', 'hyrox', 'mobility', 'plyometric']
 
-type Filter = 'all' | 'recent' | 'custom' | MuscleGroup
+/** Gelb wie der Stern in iOS — nur fuer Favoriten. */
+const FAVORITE_COLOR = '#ffd60a'
 
-export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick, onClose, multiple = true }: {
+type Filter = 'all' | 'favorites' | 'recent' | 'custom' | MuscleGroup
+
+export function ExercisePicker({ sessions, customExercises, favorites, onToggleFavorite, onAddCustom, onPick, onClose, multiple = true }: {
   sessions: readonly TrainingSession[]
   customExercises: readonly CustomExercise[]
+  /** IDs der Uebungen mit Stern. */
+  favorites: readonly string[]
+  onToggleFavorite: (exerciseId: string) => Promise<void>
   onAddCustom: (exercise: Omit<CustomExercise, 'id'>) => Promise<CustomExercise>
   onPick: (exerciseIds: string[]) => void
   onClose: () => void
@@ -37,6 +45,11 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
   const [creating, setCreating] = useState(false)
 
   const all = useMemo(() => allExercises(lang, customExercises), [lang, customExercises])
+  const byId = useMemo(() => new Map(all.map(ex => [ex.id, ex])), [all])
+  const resolve = useCallback((ids: readonly string[]) => ids.map(id => byId.get(id)).filter((ex): ex is ExerciseInfo => !!ex), [byId])
+  // Nur Favoriten, die es (noch) gibt — eine geloeschte eigene Uebung zaehlt nicht.
+  const favoriteList = useMemo(() => resolve(favorites), [resolve, favorites])
+  const favoriteSet = useMemo(() => new Set(favoriteList.map(ex => ex.id)), [favoriteList])
 
   const recentIds = useMemo(() => {
     const seen: string[] = []
@@ -49,12 +62,27 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
 
   const visible = useMemo(() => {
     let list: ExerciseInfo[]
-    if (filter === 'recent') list = recentIds.map(id => all.find(ex => ex.id === id)).filter((ex): ex is ExerciseInfo => !!ex)
+    if (filter === 'favorites') list = favoriteList
+    else if (filter === 'recent') list = resolve(recentIds)
     else if (filter === 'custom') list = all.filter(ex => ex.custom)
     else if (filter === 'all') list = all
     else list = all.filter(ex => ex.primary.includes(filter))
     return list.filter(ex => matchesSearch(ex.id, query, lang, customExercises))
-  }, [all, filter, recentIds, query, lang, customExercises])
+  }, [all, filter, favoriteList, resolve, recentIds, query, lang, customExercises])
+
+  // Ohne Suche und Filter: Favoriten als eigener Abschnitt oben. Sonst stehen
+  // die Favoriten unter den Treffern zuerst.
+  const sections = useMemo(() => {
+    const isFavorite = (ex: ExerciseInfo) => favoriteSet.has(ex.id)
+    if (filter === 'all' && !query.trim() && favoriteList.length > 0) {
+      return [
+        { title: tt('picker_favorites'), items: favoriteList },
+        { title: tt('picker_all_exercises'), items: visible.filter(ex => !isFavorite(ex)) },
+      ].filter(section => section.items.length > 0)
+    }
+    if (filter === 'favorites') return [{ title: null, items: visible }]
+    return [{ title: null, items: [...visible.filter(isFavorite), ...visible.filter(ex => !isFavorite(ex))] }]
+  }, [filter, query, favoriteList, favoriteSet, visible, tt])
 
   const toggle = (id: string) => {
     if (!multiple) { onPick([id]); return }
@@ -104,6 +132,12 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
         </div>
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '10px 0 2px', scrollbarWidth: 'none' }}>
           <Chip active={filter === 'all'} onClick={() => setFilter('all')}>{tt('picker_all')}</Chip>
+          {/* Bleibt stehen, solange er gewaehlt ist — auch nach dem letzten Stern */}
+          {(favoriteList.length > 0 || filter === 'favorites') && (
+            <Chip active={filter === 'favorites'} onClick={() => setFilter('favorites')}>
+              <Star size={14} aria-hidden="true" fill="currentColor" />{tt('picker_favorites')}
+            </Chip>
+          )}
           {recentIds.length > 0 && <Chip active={filter === 'recent'} onClick={() => setFilter('recent')}>{tt('picker_recent')}</Chip>}
           {customExercises.length > 0 && <Chip active={filter === 'custom'} onClick={() => setFilter('custom')}>{tt('picker_custom')}</Chip>}
           {MUSCLE_FILTERS.map(m => (
@@ -112,47 +146,64 @@ export function ExercisePicker({ sessions, customExercises, onAddCustom, onPick,
         </div>
       </div>
 
-      <ul style={{ display: 'flex', flexDirection: 'column' }}>
-        {visible.map(ex => {
-          const isSelected = selected.includes(ex.id)
-          return (
-            <li key={ex.id}>
-              <button
-                type="button"
-                onClick={() => toggle(ex.id)}
-                aria-pressed={multiple ? isSelected : undefined}
-                className="tyd-train-press"
-                style={{
-                  width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 4px', textAlign: 'left', borderBottom: '0.5px solid var(--lg-separator)',
-                }}
-              >
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 17, fontWeight: 400, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</span>
-                  <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {[...ex.primary.slice(0, 2).map(m => tt(`muscle_${m}` as TrainingTextKey)), tt(`eq_${ex.equipment}` as TrainingTextKey)].join(' · ')}
-                  </span>
-                </span>
-                {multiple && (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      // Auswahlkreis wie in iOS-Listen
-                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: isSelected ? 'var(--lg-accent)' : 'transparent',
-                      boxShadow: isSelected ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
-                      color: 'var(--accent-contrast)',
-                    }}
+      {sections.map((section, sectionIndex) => (
+        <section key={section.title ?? sectionIndex} aria-label={section.title ?? undefined}>
+          {section.title && (
+            <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: sectionIndex === 0 ? '4px 4px 2px' : '18px 4px 2px' }}>
+              {section.title}
+            </h3>
+          )}
+          <ul style={{ display: 'flex', flexDirection: 'column' }}>
+            {section.items.map(ex => {
+              const isSelected = selected.includes(ex.id)
+              const isFavorite = favoriteSet.has(ex.id)
+              return (
+                <li key={ex.id} style={{ display: 'flex', alignItems: 'center', borderBottom: '0.5px solid var(--lg-separator)' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(ex.id)}
+                    aria-pressed={multiple ? isSelected : undefined}
+                    className="tyd-train-press"
+                    style={{ flex: 1, minWidth: 0, minHeight: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px', textAlign: 'left' }}
                   >
-                    {isSelected && <Check size={16} strokeWidth={3} />}
-                  </span>
-                )}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+                    {multiple && (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          // Auswahlkreis wie in iOS-Listen
+                          width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          background: isSelected ? 'var(--lg-accent)' : 'transparent',
+                          boxShadow: isSelected ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
+                          color: 'var(--accent-contrast)',
+                        }}
+                      >
+                        {isSelected && <Check size={16} strokeWidth={3} />}
+                      </span>
+                    )}
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 17, fontWeight: 400, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</span>
+                      <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {[...ex.primary.slice(0, 2).map(m => tt(`muscle_${m}` as TrainingTextKey)), tt(`eq_${ex.equipment}` as TrainingTextKey)].join(' · ')}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { onToggleFavorite(ex.id).catch(() => toast.error(tt('save_error'))) }}
+                    aria-pressed={isFavorite}
+                    aria-label={tt(isFavorite ? 'favorite_remove' : 'favorite_add', { name: ex.name })}
+                    className="tyd-train-press"
+                    style={{ width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: isFavorite ? FAVORITE_COLOR : 'var(--lg-text-4)' }}
+                  >
+                    <Star size={20} aria-hidden="true" fill={isFavorite ? 'currentColor' : 'none'} strokeWidth={1.8} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ))}
       {visible.length === 0 && (
         <p style={{ padding: '24px 4px', fontSize: 15, color: 'var(--lg-text-3)', textAlign: 'center' }}>{tt('picker_none')}</p>
       )}

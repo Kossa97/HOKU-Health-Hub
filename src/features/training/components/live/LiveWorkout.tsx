@@ -268,6 +268,8 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
         <ExercisePicker
           sessions={data.sessions}
           customExercises={data.customExercises}
+          favorites={data.settings.favoriteExercises}
+          onToggleFavorite={data.toggleFavorite}
           onAddCustom={data.addCustomExercise}
           onClose={() => setPicker(false)}
           onPick={ids => {
@@ -281,6 +283,8 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
         <ExercisePicker
           sessions={data.sessions}
           customExercises={data.customExercises}
+          favorites={data.settings.favoriteExercises}
+          onToggleFavorite={data.toggleFavorite}
           onAddCustom={data.addCustomExercise}
           multiple={false}
           onClose={() => setReplacing(null)}
