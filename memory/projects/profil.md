@@ -56,6 +56,8 @@ Gesamtfortschritt [Nutzer]:
   ab zwei Messungen; Aufschlüsselung im Profil sichtbar.
 Abzeichen [Nutzer]: alle Arten (Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft), „erstmal grob alles was zur
 App passt“, Feinschliff macht der Nutzer.
+Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
+Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
