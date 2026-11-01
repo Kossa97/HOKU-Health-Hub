@@ -40,6 +40,23 @@ was, Ansehen als, Web-Link, Blockiert.
 Vom Nutzer bestätigt: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
 Prüffehler = bleibt privat.
 
+## Teilprojekt 2b geplant (Brainstorming 01.11.2026)
+PR für 2a: https://github.com/Kossa97/HOKU-Health-Hub/pull/119 (Basis profil-p1-datenbasis). Nutzer „okay“ zu:
+Modell-Ablehnung beim Bild-Check = abgelehnt. NICHT freigegeben: Merge, Produktivlauf, TERMS_VERSION.
+Gesamtfortschritt [Nutzer]:
+- Prozent der positiven Veränderung vom Start bis jetzt, relativ zum Startwert: Gewicht 120 → 100 kg (Ziel runter)
+  = (120 − 100) / 120 = +16,67 %. Schlechter = negativ. Nutzer-Hinweis: Das ist Veränderung des Werts selbst,
+  nicht automatisch KFA oder Gesundheit — so soll es in der App auch erklärt werden.
+- Werte, die schon Prozent sind (KFA, Adherence): genauso relativ (22 → 18 % = +18,2 %).
+- Zielbereichs-Werte (Blutmarker, Schlaf): Anteil im Zielbereich, Start gegen jetzt, relativ (12/24 → 19/24 = +58 %).
+- Zusammenrechnen: Mittel je Bereich (Körper, Blut, Training, Einnahmen, Erholung & Fitness), dann Mittel der
+  Bereiche, OHNE Deckel.
+- Zeitraum: seit Start (erste Messung je Wert), Start neu setzbar, alter Start bleibt im Verlauf.
+- Aus Gesamtbild: Richtung je Wert fest/aus Ziel-Tags/Zielbereich, vom Nutzer änderbar oder ausschließbar; Wert zählt
+  ab zwei Messungen; Aufschlüsselung im Profil sichtbar.
+Abzeichen [Nutzer]: alle Arten (Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft), „erstmal grob alles was zur
+App passt“, Feinschliff macht der Nutzer.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
