@@ -185,6 +185,9 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
   wie „80 Kilo, 8 Wiederholungen", „gleich wie eben", „Pause 2 Minuten"). Halten-und-sprechen,
   kein Dauer-Zuhören, Rückgängig. In der iOS-App braucht es ein natives Spracherkennungs-Plugin
   (WKWebView hat keine Web Speech API) + Info.plist-Texte (Mikrofon, Spracherkennung).
+- **Im Training mit Hoku schreiben** (Textfeld neben dem Mikrofon): einfache Einträge („80 kg 8",
+  „gleich wie eben", „Pause") erkennt die App selbst (alle); Fragen/Änderungen („welches Gewicht?",
+  „tausch Bankdrücken gegen was mit Kurzhanteln") beantwortet Hoku (Pro), Änderungen nur nach Tipp.
 - Mockup: https://claude.ai/artifact/NbZvdksLa9Hoas3W261e8s (Boards 4 „Plan mit Hoku", 5 „Im Training sprechen").
 
 ## Offen
