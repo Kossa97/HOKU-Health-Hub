@@ -116,7 +116,8 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .copied{font-size:12px;color:var(--accent)}
 a.ghost{text-decoration:none;display:inline-block}
 a.fenster{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.fhint{font-size:12px;color:var(--muted);max-width:28ch}
+.fhint{font-size:13px;color:var(--fg);background:var(--accent-soft);border-radius:8px;padding:6px 10px;flex-basis:100%}
+.fhint strong{font-weight:700}
 .copybox{width:100%;font-size:13px}
 
 details.tech{border-top:1px dashed var(--line);padding-top:10px}
@@ -173,7 +174,7 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
 
   <div id="list" class="section"></div>
 
-  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten das Cloud-Fenster (auch am Handy), bei Arbeiten auf dem Computer das Fenster in der Claude-App.</p>
+  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
 </div>
 
 <script>
@@ -403,16 +404,18 @@ function fensterButton(a){
   const web=/^https:\/\/claude\.ai\//.test(link),app=/^claude:\/\//.test(link);
   if(!web&&!app)return null;
   const wrap=el("span",{class:"actions"});
-  const b=el("a",{class:"ghost fenster",href:link,text:"Zum Fenster"});
-  b.title=web?"Öffnet das Cloud-Fenster dieser Arbeit":"Öffnet das Fenster dieser Arbeit in der Claude-App am Computer";
-  if(web){b.target="_blank";b.rel="noopener"}
-  else b.addEventListener("click",()=>{
-    setTimeout(()=>{
-      if(document.hidden||!document.hasFocus()||wrap.querySelector(".fhint"))return;
-      const msg=el("span",{class:"fhint",text:"Nichts passiert? Das klappt nur am Computer mit der Claude-App. Der Link ist kopiert."});
-      try{navigator.clipboard.writeText(link).catch(()=>{})}catch(e){}
-      wrap.append(msg);setTimeout(()=>msg.remove(),6000);
-    },1500);
+  if(web){
+    wrap.append(el("a",{class:"ghost fenster",href:link,target:"_blank",rel:"noopener",title:"Öffnet das Cloud-Fenster dieser Arbeit",text:"Zum Fenster"}));
+    return wrap;
+  }
+  // Fenster auf dem Computer: Die Claude-App lässt aus dieser Seite keinen Sprung zu.
+  // Stattdessen den genauen Namen in der Seitenleiste zeigen.
+  const name=a.fensterTitel||a.titel;
+  const b=el("button",{type:"button",class:"ghost fenster",text:"Zum Fenster"});
+  b.addEventListener("click",()=>{
+    wrap.querySelector(".fhint")?.remove();
+    const msg=el("span",{class:"fhint"},"In der Claude-App links in der Seitenleiste: ",el("strong",{text:`„${name}“`}));
+    wrap.append(msg);setTimeout(()=>msg.remove(),10000);
   });
   wrap.append(b);return wrap;
 }
