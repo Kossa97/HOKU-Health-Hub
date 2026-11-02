@@ -132,6 +132,11 @@ Web-Vorschau gefällt, Farben im App-Stil, Grün für Fortschrittszahlen erlaubt
 Nutzer 02.11. zu Mockup v5: neutrale Karte = **Fassung 2 (Hoku-Licht)**, aber nur Cyan-Licht von unten (kein
 Violett). Dazu passende Link-Karte A1 und Rückfall C im selben Stil; Logo an verschiedenen Stellen/Anordnungen als
 Varianten → eigenes neues Mockup `docs/profil/mockups/profil-2c-karten.html`.
+Nutzer 02.11. zu Karten-Mockup (`profil-2c-karten.html`): neutrale Karte = **H (Hauptlogo Mitte)**, A1 und C =
+**H (Hauptlogo unten Mitte)**; zusätzlich für alle drei mehr Varianten „Bildmarke angeschnitten“ (B) zeigen.
+Fortschrittsfarbe **Cyan**. Karte C: „Wofür nutzt Mara Hoku?“ unsicher → lieber direkt grob sagen, was Hoku kann und
+macht, auf den Nutzer bezogen; Hoku ist viel mehr als Health/Fitness/Erholung — klarstellen, Interesse wecken.
+Neuer, richtig guter Slogan gesucht (gern tiefgründig, psychologisch).
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
