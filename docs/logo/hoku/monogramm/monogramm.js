@@ -116,6 +116,17 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
     for (let y = 0; y < N; y++) { for (let x = 0; x < N; x++) row[x] = f[y * N + x]; const o = d1(row, N); for (let x = 0; x < N; x++) f[y * N + x] = Math.sqrt(o[x]) }
     return f
   }
+  // Ecken runden (Logo-Feinschliff): Maske weichzeichnen und bei 50 % schneiden, rundet außen und innen
+  if (m.rund2) {
+    const a = document.createElement('canvas'); a.width = a.height = N
+    const ax = a.getContext('2d'), img = ax.createImageData(N, N)
+    for (let i = 0; i < N * N; i++) { const v = innen[i] ? 255 : 0; img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255 }
+    ax.putImageData(img, 0, 0)
+    const b = document.createElement('canvas'); b.width = b.height = N
+    const bx = b.getContext('2d'); bx.fillStyle = '#000'; bx.fillRect(0, 0, N, N); bx.filter = `blur(${m.rund2 * L}px)`; bx.drawImage(a, 0, 0)
+    const d = bx.getImageData(0, 0, N, N).data
+    for (let i = 0; i < N * N; i++) innen[i] = d[i * 4] > 127 ? 1 : 0
+  }
   if (m.mittig !== false && m.form) {
     let sx = 0, sy = 0, c = 0
     for (let i = 0; i < N * N; i++) if (innen[i]) { sx += i % N; sy += (i / N) | 0; c++ }
@@ -139,6 +150,11 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
     return [gx / l, gy / l]
   }
   feld.innen = innen; feld.N = N; feld.L = L
+  feld.luecke = (u, v) => {
+    const s0 = Math.max(0, feld(u, v)), [nx, ny] = feld.richtung(u, v)
+    for (let t = 0.01; t < 0.6; t += 0.01) if (feld(u + nx * t, v + ny * t) < s0 + 0.8 * t) return s0 + t
+    return 9
+  }
   // Kontur verfolgen (Moore-Nachbarschaft), Start: oberster Randpunkt
   let start = -1
   for (let i = 0; i < N * N && start < 0; i++) if (innen[i]) start = i
@@ -204,7 +220,8 @@ window.monogrammPupille = function (m = MONO) {
             const p = kz[Math.min(kz.length - 1, Math.floor(t * kz.length))], [nx, ny] = feld.richtung(p[0], p[1])
             tu = p[0] * K + nx * s2; tv = p[1] * K + ny * s2
           } else {
-            const [nx, ny] = feld.richtung(pa / K, pb / K), dl = Math.max(0, s2 - s)
+            const [nx, ny] = feld.richtung(pa / K, pb / K), g = M.eng ? feld.luecke(pa / K, pb / K) * K : 9
+            const dl = Math.max(0, Math.min(s2, s + (g - s) * 0.5) - s)
             tu = pa + nx * dl; tv = pb + ny * dl
           }
           const du = tu - pa, dv = tv - pb
@@ -232,7 +249,8 @@ window.monogrammPupille = function (m = MONO) {
           // geschlossen: jeder Partikel bekommt einen eigenen Abschnitt der Kontur, darin liegt er zufällig
           const t = M.geschlossen ? (i + (zufall(i + 31337) - 0.5) * M.geschlossen + 0.5) / n : zufall(i + 31337)
           const p = kz[((Math.floor(t * kz.length) % kz.length) + kz.length) % kz.length]
-          const q = Math.pow(zufall(i + 4711), M.randKurve ?? 0.5), s2 = 0.93 * M.band * q
+          const q = Math.pow(zufall(i + 4711), M.randKurve ?? 0.5)
+          const s2 = Math.min(0.93 * M.band * q, M.eng ? feld.luecke(p[0], p[1]) * K * 0.42 * (0.5 + q) : 9)
           const [nx, ny] = feld.richtung(p[0], p[1]), pa = p[0] * K + nx * s2, pb = p[1] * K + ny * s2 + (M.dy || 0)
           const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
           const x = G[0] * tt + pa * a.rx[0] + pb * a.uy[0], y = G[1] * tt + pb * a.uy[1], z = G[2] * tt + pa * a.rx[2] + pb * a.uy[2]
