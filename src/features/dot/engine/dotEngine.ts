@@ -127,6 +127,8 @@ export interface DotApi {
   schweige(): void
   /** Anmeldung: Hoku ist ganz zu sehen (nicht hinter der Tastatur, nicht aus dem Bild gescrollt). */
   imBlick(): boolean
+  /** Messwerte für die versteckte Anzeige auf der Anmeldung (Lage, Ausschnitt, Tastatur), zur Fehlersuche auf dem iPhone. */
+  diagnose(): Record<string, number | string>
   /** Wo er gerade ist und wo sein Platz ist (Bildschirm-px). */
   lage(): { x: number; y: number }
   platz(): { x: number; y: number }
@@ -825,7 +827,7 @@ export function createDot(host: DotHost): DotApi {
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
   // auch bei offener Tastatur (Seite gescrollt) zu sehen. Die Überschrift der Karte (`data-dot-frei`) bleibt
   // lesbar: sein unterer Rand endet knapp darüber (Nutzer 02.11.2026)
-  const KANTE = 0.45, TIPP_KLEIN = 26, TIPP_ECKE = 20
+  const KANTE = 0.45, TIPP_KLEIN = 26, TIPP_ECKE = 20, RUTSCH = { k: 40, z: 0.88 }
   const KEIN_PLATZ = { dx: 0, dy: 0, r: 0 }
   /**
    * Sein Platz, solange ein Feld der Karte den Fokus hat: Versatz zur Bühnenmitte und Radius (0 = normal).
@@ -864,8 +866,9 @@ export function createDot(host: DotHost): DotApi {
     L.rTipp = rz.r
     if (weniger) { L.rutsch = rz.dy; L.rv = 0; L.rutschX = rz.dx; L.rvx = 0 }
     else {
-      L.rv += (90 * (rz.dy - L.rutsch) - 2 * Math.sqrt(90) * 0.78 * L.rv) * h; L.rutsch += L.rv * h
-      L.rvx += (90 * (rz.dx - L.rutschX) - 2 * Math.sqrt(90) * 0.78 * L.rvx) * h; L.rutschX += L.rvx * h
+      // weich gleiten statt springen (Nutzer 02.11.2026: „bricht ab und setzt sich auf die Kante“)
+      L.rv += (RUTSCH.k * (rz.dy - L.rutsch) - 2 * Math.sqrt(RUTSCH.k) * RUTSCH.z * L.rv) * h; L.rutsch += L.rv * h
+      L.rvx += (RUTSCH.k * (rz.dx - L.rutschX) - 2 * Math.sqrt(RUTSCH.k) * RUTSCH.z * L.rvx) * h; L.rutschX += L.rvx * h
     }
     const Z = loginZiel()
     // In Ruhe ist er Teil der Seite: Scrollen und Layoutsprünge tragen ihn mit,
@@ -2419,6 +2422,18 @@ export function createDot(host: DotHost): DotApi {
     sag: (text, ms) => { sag(text, ms); laufen() },
     schweige: () => versteckeBlase(),
     imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },
+    diagnose: () => {
+      const vv = window.visualViewport, c = canvas.getBoundingClientRect()
+      const karte = B.stage?.parentElement?.querySelector('[data-dot-kante]')?.getBoundingClientRect()
+      const r1 = (n: number) => Math.round(n)
+      return {
+        modus: B.mode, phase: B.login.phase, x: r1(B.x), y: r1(B.y), r: r1(B.r), rTipp: r1(B.login.rTipp),
+        rutsch: r1(B.login.rutsch), rutschX: r1(B.login.rutschX), W, H, oben: OBEN, kb: r1(NAV.kb),
+        innerH: window.innerHeight, vvH: vv ? r1(vv.height) : -1, vvTop: vv ? r1(vv.offsetTop) : -1, vvPageTop: vv ? r1(vv.pageTop) : -1,
+        scrollY: r1(window.scrollY), ebeneTop: r1(c.top), ebeneH: r1(c.height), karteTop: karte ? r1(karte.top) : -1,
+        buehneTop: BUEHNE ? r1(BUEHNE.top) : -1, fokus: document.activeElement?.tagName ?? '',
+      }
+    },
     lage: () => ({ x: B.x, y: B.y }),
     platz: () => homeTarget(),
     rundflug: r => startTour(r),

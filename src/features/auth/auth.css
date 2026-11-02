@@ -119,3 +119,10 @@
 .tyd-auth-zeile { display: flex; gap: 10px; }
 .tyd-auth-zeile > .tyd-auth-knopf:first-child { flex: 1; }
 .tyd-auth-knopf[data-symbol] { width: 50px; flex: none; padding: 0; }
+
+/* Versteckte Messanzeige zur Fehlersuche (fünfmal auf die Zeile unter dem Formular tippen) */
+.tyd-auth-diagnose {
+  position: fixed; left: 6px; top: calc(env(safe-area-inset-top, 0px) + 4px); z-index: 80; margin: 0; padding: 6px 8px;
+  font: 10px/1.25 ui-monospace, monospace; color: #9ff; background: rgba(0, 0, 0, 0.72); border-radius: 8px;
+  pointer-events: none; white-space: pre;
+}
