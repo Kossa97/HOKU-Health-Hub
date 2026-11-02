@@ -90,8 +90,12 @@ andere sehen den Wert nicht. Es gibt keinen Rückfall auf „erste 7 Tage“.
 - Die Baseline wird beim Setzen des Starts einmal auf dem Gerät gelesen und
   gespeichert (sie ändert sich danach nicht mehr).
 - Android liest ohne die Zusatzberechtigung `READ_HEALTH_DATA_HISTORY` nur bis
-  30 Tage vor der Freigabe. 2b fragt diese Berechtigung nicht an; die Baseline
-  ist dort dann kürzer oder fällt auf die ersten 7 Tage zurück. **[Claude, ungeprüft]**
+  30 Tage vor der Freigabe. 2b fragt diese Berechtigung nicht an; reichen die
+  Tage nicht für die Schwelle, gilt die 28-Tage-Regel nach dem Start. **[Claude, ungeprüft]**
+- Auch die 28-Tage-Regel nach dem Start verlangt mindestens 14 Tage (bzw. Nächte)
+  mit Daten in diesen 28 Tagen, sonst sammelt der Wert weiter. **[Claude, ungeprüft]**
+- Anteilswerte, die schlechter werden: (jetzt − Start) ÷ Start, damit das Ergebnis
+  bei −100 % endet (alle Nächte bzw. Marker verloren). **[Claude, ungeprüft]**
 
 ## 3. Darstellung (Mockup `profil-2b.html`)
 
