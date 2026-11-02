@@ -1485,9 +1485,11 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (November 2026): Profil 2b, Gesamtfortschritt und Abzeichen —
 // pf_* (Karte, Zeitreise, Aufschluesselung, Start, Abzeichen; de/en echt, sonst
 // englischer Platzhalter). Namen der Abzeichen stehen de/en in badges.ts.
+// Bewusst geaendert (November 2026): Durchsicht der Profil-2b-Texte, nur de/en
+// (pf_erklaer_2, pf_erklaer_3, pf_neuer_start_text).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '9cfbf40db3feeb7b3c9bbf3872af50d7af4313f906c7edc93e7bd80be5786016',
-  en: 'b5221260a4a1965b47a39d03bc583a8438f3a99458ec1ec7672a4e673c5de8c5',
+  de: 'edfdd7c2431f76a68c9efbb71400ac1744f31d1faa5e6449626471feaa48d21e',
+  en: '0064626f347a456b74706b57e51f1eca74acce1a95645b0ca983f2a0b75f74ac',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

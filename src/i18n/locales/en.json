@@ -3113,7 +3113,7 @@
   "pf_wert_hrv": "HRV",
   "pf_neuer_start": "Set a new start",
   "pf_neuer_start_titel": "Set a new start?",
-  "pf_neuer_start_text": "From today, Hoku measures against where you are today. Your previous start ({{datum}}) stays saved and you can switch back to it. For values from Apple Health or Health Connect, Hoku reads the 60 days before once.",
+  "pf_neuer_start_text": "From today, Hoku measures against where you are today. Your previous start ({{datum}}) stays saved and you can switch back to it. For values from Apple Health or Health Connect, Hoku reads the 60 days before today once.",
   "pf_neuer_start_ok": "Start from today",
   "pf_start_gesetzt": "New start set",
   "pf_erklaer_titel": "How Hoku calculates",

@@ -166,12 +166,12 @@ export const BADGES: readonly BadgeDef[] = [
   b('training_weeks_4', 'bestaendigkeit', '🏋️', '4 Wochen Training in Folge', '4 training weeks in a row', f => weekRun(f.sessionDays, 4, f.today)),
   b('training_weeks_12', 'bestaendigkeit', '🏋️', '12 Wochen Training in Folge', '12 training weeks in a row', f => weekRun(f.sessionDays, 12, f.today)),
   b('training_weeks_52', 'bestaendigkeit', '🏋️', '52 Wochen Training in Folge', '52 training weeks in a row', f => weekRun(f.sessionDays, 52, f.today)),
-  b('intake_all_30', 'bestaendigkeit', '💊', '30 Tage alle Einnahmen bestätigt', '30 days all doses confirmed',
+  b('intake_all_30', 'bestaendigkeit', '💊', '30 Tage alle Einnahmen bestätigt', '30 days with all doses confirmed',
     f => dayRun(f.intakeDays.filter(d => d.all).map(d => d.day), 30, f.today)),
   b('weighed_weeks_8', 'bestaendigkeit', '⚖️', '8 Wochen jede Woche gewogen', 'Weighed in 8 weeks in a row', f => weekRun(f.weightDays, 8, f.today)),
   // Meilensteine
   b('first_daily_log', 'meilensteine', '✍️', 'Erster Tageseintrag', 'First daily entry', f => first(f.dailyLogDays)),
-  b('first_measurement', 'meilensteine', '📏', 'Erste Umfangsmessung', 'First circumference', f => first(f.measurementDays)),
+  b('first_measurement', 'meilensteine', '📏', 'Erste Umfangsmessung', 'First circumference measurement', f => first(f.measurementDays)),
   b('first_bloodwork', 'meilensteine', '🩸', 'Erstes Blutbild', 'First blood test', f => nth(f.bloodReports.map(r => r.day), 1)),
   b('bloodwork_3', 'meilensteine', '🩸', '3 Blutbilder', '3 blood tests', f => nth(f.bloodReports.map(r => r.day), 3)),
   b('workouts_10', 'meilensteine', '🏋️', '10 Workouts', '10 workouts', f => nth(f.sessionDays, 10)),
@@ -190,9 +190,9 @@ export const BADGES: readonly BadgeDef[] = [
   b('body_fat_20', 'fortschritt', '📉', '−20 % Körperfett', '−20% body fat', f => dropBy(f.bodyFat, 20)),
   b('weight_5', 'fortschritt', '⚖️', '−5 % Gewicht', '−5% body weight', f => dropBy(f.weight, 5)),
   b('first_pr', 'fortschritt', '🏆', 'Neue Bestleistung', 'New personal record', f => first(f.prDays)),
-  b('pr_3_month', 'fortschritt', '🏆', '3 Bestleistungen in einem Monat', '3 records in one month', f => prsInMonth(f.prDays, 3, f.today)),
+  b('pr_3_month', 'fortschritt', '🏆', '3 Bestleistungen in einem Monat', '3 personal records in one month', f => prsInMonth(f.prDays, 3, f.today)),
   b('all_markers_in_range', 'fortschritt', '🎯', 'Alle Blutwerte im Zielbereich', 'All blood markers in range', f => allMarkers(f.bloodReports)),
-  b('resting_hr_5', 'fortschritt', '❤️', 'Ruhepuls −5 bpm', 'Resting HR −5 bpm', f => {
+  b('resting_hr_5', 'fortschritt', '❤️', 'Ruhepuls −5 bpm', 'Resting heart rate −5 bpm', f => {
     const drop = f.restingHr ? Math.round((f.restingHr.start - f.restingHr.now) * 10) / 10 : 0
     return { earnedOn: drop >= 5 ? f.today : null, have: Math.max(0, drop), need: 5, unit: 'bpm_drop' }
   }),
