@@ -475,6 +475,30 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Folgenabschätzung: `docs/datenschutz/dsfa-ki.md` (Entwurf). Vor
   „Blutwerte-Hinweisen“ MDR neu prüfen.
 
+## Hokus Auge und Farbwahl (02.11.2026)
+Mockup „Hoku Varianten“ (https://claude.ai/artifact/Ra2CfkyYfG73VCYGfYPQvb), sieben Runden.
+- **Auge:** Pupille aus D3 als Irisblende (Punkte weichen an den Rand, dahinter liegende
+  verschwinden), Augapfel: der ganze Körper dreht sich zum Blick, kleine Blicke ruhig (D10,
+  k 70, ζ 1), große Bewegungen mit Masse (D11, k 46, ζ 0,72). Punkte rollen langsam um die
+  Blickachse. Blinzeln mit Lid aus Punkten (zu 90 ms, 50 ms zu, auf 170 ms, manchmal doppelt),
+  danach Pupille kurz weiter. Code: `engine/auge.ts`, angewendet in `shapeTarget` (Kugel).
+- **Regel:** Auge nur als Kugel (und bei „augen“), groß genug (r ≥ 16), nicht an der Wand,
+  nicht im Haus/Portal/Eröffnung. Verlässt er die Kugel, schließt er vorher das Auge (`wechsel`).
+- **Blickziel:** gezogen → Zugrichtung, Flug → Flugrichtung, sonst zuletzt getippt/fokussiert
+  (2,5–3 s), sonst Blicksprünge. Aufprall > 320 px/s → Blinzeln.
+- **Zuhören = Zuhören 4:** Kugel statt Ring; Pupille ×1,12, 10 % der Punkte lösen sich als
+  heller Irisring, der im Takt der Stimme dreht (`stimme()`: je gehörtem Wort im Chat 0,6, je
+  Tastendruck im Passwort 0,5).
+- **Herz = Herz 2:** Auge zu, Herz wie bisher (Gesten haben ohnehin kein Auge).
+- **Farbe:** Nutzer wählt im Profil (`HokuFarbAuswahl`, `lib/hokuFarbe.ts`, localStorage
+  `tyd.hoku.farbe`); Standard „Passend zum Design“: Schwarz Cyan-Weiß, Satin Schneeweiß,
+  Licht Weißlicht, Nacht Cyan-Violett (heute), Instrument Eiscyan, Soft Dark Schneeweiß.
+  Kräftige Farben halten hintere Punkte sichtbar (Handy, Sonne). Logo in der Leiste folgt.
+- **Login-Gesten** (Winken, Herz, Freude, Haken, Nicken …) laufen bisher nur auf der Anmeldung;
+  welche appweit kommen, wird später geplant (Nutzer 02.11.2026).
+- **Offen:** Auge in Gesten mit Kugelkörper (Freude F1–F3, Nicken, Kopfschütteln, Warten über
+  `kugelBild` in `gesten.ts`), Blick zu neuen Karten, Prüfung auf dem iPhone.
+
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
 - Zustände: Ruhe (Drehen, Atmen), Zuhören, Denken (Wirbeln), Sprechen (Pulsieren),

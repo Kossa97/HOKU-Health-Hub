@@ -265,6 +265,9 @@ export function Auth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur solange die Meldung steht
   }, [meldung])
 
+  // Jeder Tastendruck im Passwort treibt seinen Irisring an (er hört zu)
+  useEffect(() => { if (pwFokus.current) dotStore.api()?.stimme(0.5) }, [passwort, passwort2])
+
   if (session && !halten) return <Navigate to="/" replace />
 
   /** Alles Laufende abbrechen: Abläufe, Dots Form, Meldung. */
@@ -341,7 +344,7 @@ export function Auth() {
     }, 4000))
   }
 
-  // Fokus: im Passwort hört er zu (Kreis), sonst neigt er sich zum Formular
+  // Fokus: im Passwort hört er zu (Kugel mit Irisring), sonst neigt er sich zum Formular
   const beiFokus = (pw: boolean) => {
     eingabe()
     if (laeuft) return

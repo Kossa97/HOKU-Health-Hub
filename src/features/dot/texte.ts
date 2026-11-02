@@ -113,6 +113,21 @@ const de = {
   hinweis_unten: 'Hoku ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
   // Einwilligung (Art. 9 DSGVO, Apple 5.1.2(i))
+  // Hokus Farbe (Profil)
+  farbe_titel: 'Hokus Farbe',
+  farbe_auto: 'Passend zum Design',
+  farbe_auto_jetzt: 'Passend zum Design (jetzt {{farbe}})',
+  farbe_hinweis: '„Passend zum Design“ wechselt mit dem Erscheinungsbild. Kräftige Farben sind auch in der Sonne gut zu sehen.',
+  farbe_heute: 'Cyan-Violett',
+  farbe_cyanweiss: 'Cyan-Weiß',
+  farbe_eiscyan: 'Eiscyan',
+  farbe_schnee: 'Schneeweiß',
+  farbe_minze: 'Minze',
+  farbe_weiss: 'Weißlicht',
+  farbe_sonne: 'Sonnengold',
+  farbe_koralle: 'Koralle',
+  farbe_stimmung: 'Stimmungslicht',
+
   einw_titel: 'Bevor wir reden',
   einw_text: 'Damit Hoku antworten kann, schickt die App deine Frage und eine Zusammenfassung deiner Daten an Anthropic (Claude), einen KI-Anbieter in den USA: deinen Stack, deinen Einnahmeplan der letzten Tage, deine letzten Blutwerte und deine heutige Ernährung (Kalorien und Makros). Das sind Gesundheitsdaten.',
   einw_punkt_1: 'HOKU speichert deine Fragen nicht auf dem Server, nur wie viele es heute waren (für das Tageslimit).',
@@ -261,6 +276,21 @@ const en: Record<keyof typeof de, string> = {
   login_sehe_nichts: "Don't worry, I can't see a thing.",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Hoku is an AI and can be wrong. No diagnosis, no dose recommendations.',
+
+  // Hoku's colour (profile)
+  farbe_titel: 'Hoku’s colour',
+  farbe_auto: 'Matches the design',
+  farbe_auto_jetzt: 'Matches the design (now {{farbe}})',
+  farbe_hinweis: '“Matches the design” changes with the appearance. Strong colours stay visible in sunlight too.',
+  farbe_heute: 'Cyan-violet',
+  farbe_cyanweiss: 'Cyan-white',
+  farbe_eiscyan: 'Ice cyan',
+  farbe_schnee: 'Snow white',
+  farbe_minze: 'Mint',
+  farbe_weiss: 'White light',
+  farbe_sonne: 'Sun gold',
+  farbe_koralle: 'Coral',
+  farbe_stimmung: 'Mood light',
 
   einw_titel: 'Before we talk',
   einw_text: 'To answer, the app sends your question and a summary of your data to Anthropic (Claude), an AI provider in the USA: your stack, your intake plan for the last few days, your latest blood values and today’s nutrition (calories and macros). This is health data.',
