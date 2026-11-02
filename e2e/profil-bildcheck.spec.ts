@@ -38,12 +38,23 @@ test('Offene Prüfung bestanden: Marke verschwindet, andere sehen das Bild', asy
 
 test('Hochladen → „wird geprüft“; abgelehnt → Hinweis, „Anderes wählen“, OK quittiert', async ({ page, mock }) => {
   mock.imageCheck.urteil = 'pending'
+  // Diagnose: In WebKit (CI) kam das Hochladen nie bei „wird geprüft“ an; scheitert
+  // es, nennt der Fehler Toast, fehlgeschlagene Anfragen und Seitenfehler.
+  const diagnose: string[] = []
+  page.on('requestfailed', r => diagnose.push(`requestfailed ${r.method()} ${new URL(r.url()).pathname}: ${r.failure()?.errorText}`))
+  page.on('pageerror', e => diagnose.push(`pageerror ${e.message}`))
+  page.on('console', m => { if (m.type() === 'error') diagnose.push(`console ${m.text()}`) })
   await page.goto('/profil')
   await page.locator('[data-profile-edit]').click()
   const sheet = page.locator('[data-profile-edit-sheet]')
   await sheet.locator('input[data-media-input="avatar"]').setInputFiles({ name: 'ich.png', mimeType: 'image/png', buffer: PNG })
 
-  await expect(sheet.locator('[data-media-pending="avatar"]')).toHaveText('wird geprüft')
+  try {
+    await expect(sheet.locator('[data-media-pending="avatar"]')).toHaveText('wird geprüft')
+  } catch (fehler) {
+    const toasts = await page.locator('[role="status"]').allTextContents()
+    throw new Error(`${(fehler as Error).message}\nDiagnose: ${JSON.stringify({ toasts, diagnose, unhandled: mock.unhandled, storage: mock.storage.get('profile-media') ?? [] })}`, { cause: fehler })
+  }
   await expect(sheet).toContainText('Andere sehen neue Bilder erst nach einer kurzen automatischen Prüfung.')
   expect(mock.table('profiles')[0].avatar_status).toBe('pending')
   expect(mock.imageCheck.calls).toEqual([{ kind: 'avatar' }])
