@@ -66,19 +66,37 @@ Artefakt-Datenbank, gelesen und geschrieben mit dem Werkzeug `ArtifactData`.
 
 **Zu Beginn einer Arbeit:** `list` auf `arbeiten` ausführen. Gibt es schon eine Zeile für
 diese Arbeit, wird sie weiterverwendet. Danach `ideen` mit `arbeit == <id>`
-lesen; offene Ideen des Nutzers kurz ansprechen.
+lesen; offene Ideen des Nutzers kurz ansprechen. Ideen mit `uebernehmen: true`
+(ohne Arbeit) dem Nutzer vorschlagen: daraus eine neue Arbeit machen, sie danach
+mit `arbeit` verknüpfen und `uebernehmen` auf `false` setzen.
 
 **Am Ende jeder Runde, in der an der App gearbeitet wurde** (vor `wrap_up`),
 die eigene Zeile in `arbeiten` schreiben. `doc_id` ist ein kurzer, stabiler Slug
 der Arbeit (z. B. `profil`, `push-erinnerungen`). Bei bestehender Zeile wird
-`update` mit `if_version` benutzt:
+`update` mit `if_version` benutzt.
 
+**Der Nutzer programmiert nicht.** Alles auf der Seite ist Alltagssprache ohne
+Fachwörter (kein Branch, Merge, PR, Commit, Deploy, Migration). Technisches
+gehört nur in `offen`, `branch`, `ordner`, `pr`, die auf der Seite eingeklappt sind.
+
+Für den Nutzer, in Alltagssprache:
 - `titel`: kurzer Name der Arbeit
-- `status`: `laeuft` | `wartet` (die Runde endet mit einer Frage an den Nutzer) |
-  `pausiert` | `fertig`
-- `wartetAuf`: ein Satz, welche Antwort fehlt (sonst leer)
+- `wasIstDas`: ein Satz, was die Arbeit für die App bedeutet
+- `stufe`: `idee` | `geplant` | `bau` (wird gebaut) | `pruefung` (wird geprüft) |
+  `live` (ist in der App)
+- `status` (wer dran ist): `laeuft` (Claude) | `wartet` (die Runde endet mit
+  einer Frage an den Nutzer) | `pausiert` | `fertig`
+- `wartetAuf`: die offene Frage an den Nutzer, so gestellt, dass sie sich ohne
+  Vorwissen beantworten lässt (sonst leer)
 - `letzterSchritt`: ein Satz, was zuletzt passiert ist
-- `offen`: Liste der offenen Punkte (kurz)
+- `naechsterSchritt`: ein Satz, was als Nächstes passiert
+- `deinTeil`: Liste `{text, erledigt}` mit Aufgaben, die **nur der Nutzer** erledigen
+  kann (auf dem iPhone testen, Konto bei Apple, Entscheidung treffen). Vom Nutzer
+  abgehakte Einträge stehen lassen.
+- `fuerStart`: setzt der Nutzer selbst (Stern), nicht ungefragt ändern
+
+Technik (eingeklappt):
+- `offen`: offene Punkte, die Claude erledigt (kurz, Fachsprache erlaubt)
 - `branch`, `ordner` (Arbeitsordner der Sitzung), `pr` (volle URL oder leer)
 - `sitzungLink`: `link` aus `get_session("self")`
 - `aktualisiert`: jetzt, ISO-Zeit
