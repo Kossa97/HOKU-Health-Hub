@@ -333,6 +333,24 @@ test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen, zur Not k
   }
 })
 
+test('Passwort bei hochgeschobener Karte: Hoku wird kleiner, sitzt aber weiter auf der Kante', async ({ page }) => {
+  // Nutzer 02.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.setViewportSize({ width: 390, height: 360 })
+  await page.locator('#auth-pw').click()
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  for (const abstand of [110, 70]) {
+    await page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, abstand)
+    await lassLaufen(page, 1500)
+    const b = (await figur.boundingBox())!, karte = (await page.locator('[data-dot-kante]').boundingBox())!
+    expect(b.y + b.height * 0.2, String(abstand)).toBeGreaterThanOrEqual(0)
+    expect(b.y + b.height / 2, String(abstand)).toBeLessThan(karte.y)
+    expect(b.y + b.height, String(abstand)).toBeGreaterThan(karte.y)
+  }
+})
+
 test('iPhone-App: verschiebt sich Hokus Ebene mit der Seite, sitzt er trotzdem auf der Kante', async ({ page }) => {
   // gemessen 02.11.2026: bei offener Tastatur liegt die feste Ebene um den Scrollweg höher (ebeneTop -316 bei scrollY 316)
   await abgemeldet(page)
