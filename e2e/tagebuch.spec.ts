@@ -389,6 +389,34 @@ test('Einnahme: freiwillig, nur bestaetigte der Substanz vor dem Zeitpunkt, wird
   await expect(page.locator('[data-tagebuch-intake]')).toHaveText('2 h nach Einnahme · 250 mcg')
 })
 
+test('Einnahme: nach Mitternacht bestaetigt traegt den Platz; spaetere Einnahme als Hinweis mit Zeitpunkt uebernehmen', async ({ page, mock }) => {
+  seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
+  const bpc = mock.table('stack_items').find(row => row.display_name === 'BPC-157')!
+  // Donnerstag 20:00 und Freitag 20:00 (Berlin); die Freitagsdosis erst Samstag 04:00 bestaetigt.
+  const donnerstag = einnahme(mock, bpc.id, '2026-09-24T18:00:00.000Z', { routine_slot_key: 'c1@2026-09-24T20:00' })
+  const freitag = einnahme(mock, bpc.id, '2026-09-26T02:00:00.000Z', { routine_slot_key: 'c1@2026-09-25T20:00' })
+  // Der Eintrag steht versehentlich auf Freitag 04:00 statt Samstag.
+  eintrag(mock, { stack_item_id: bpc.id, dose_log_id: donnerstag.id, occurred_at: '2026-09-25T02:00:00.000Z' })
+  await page.goto('/tagebuch')
+  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  const dialog = page.getByRole('dialog')
+  const auswahl = dialog.getByLabel('Bezug zur Einnahme (optional)')
+  await expect(auswahl).toHaveValue(String(donnerstag.id))
+  await expect(auswahl.locator('option')).toHaveText(['Keine', 'Do. 24.09. 20:00 · 250 mcg'])
+
+  const hinweis = dialog.locator('[data-tagebuch-einnahme-spaeter]')
+  await expect(hinweis).toContainText('Spätere Einnahme: Sa. 26.09. 04:00 · für Fr. 20:00.')
+  await hinweis.getByRole('button', { name: 'Zeitpunkt übernehmen' }).click()
+  await expect(dialog.getByLabel('Zeitpunkt')).toHaveValue('2026-09-26T04:00')
+  await expect(auswahl).toHaveValue(String(freitag.id))
+  await expect(auswahl.locator('option', { hasText: 'Sa. 26.09. 04:00 · für Fr. 20:00 · 250 mcg' })).toHaveCount(1)
+  await expect(hinweis).toHaveCount(0)
+
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(dialog).toBeHidden()
+  expect(mock.table('effects')[0]).toMatchObject({ dose_log_id: freitag.id, occurred_at: '2026-09-26T02:00:00.000Z' })
+})
+
 test('Einnahme: ohne Wahl wird nichts verknuepft; Substanzwechsel leert die Wahl', async ({ page, mock }) => {
   seedPeptide(mock, 'BPC-157', { startDate: '2026-09-01' })
   seedPeptide(mock, 'TB-500', { startDate: '2026-09-01' })

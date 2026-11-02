@@ -15,7 +15,7 @@ export interface DiaryEntry {
   stack_item_id: string | null
   stack_items: { display_name: string } | null
   dose_log_id: string | null
-  dose_logs: Omit<IntakeOption, 'id'> | null
+  dose_logs: Omit<IntakeOption, 'id' | 'routine_slot_key'> | null
   effect_symptoms: ChipRow[]
 }
 

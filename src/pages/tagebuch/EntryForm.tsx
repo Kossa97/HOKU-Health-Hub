@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { Info, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getDateLocale } from '../../i18n/dateLocales'
-import { INTAKE_OPTIONS, intakeDose, type IntakeOption } from './intake'
+import { INTAKE_COLUMNS, INTAKE_OPTIONS, intakeDose, intakeWhen, type IntakeOption } from './intake'
 import { SymptomChip } from './SymptomChip'
 import { ChipEditor } from './ChipEditor'
 import { ChipInfo } from './ChipInfo'
@@ -69,6 +69,9 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
   const [editing, setEditing] = useState<{ chip: ChipDraft; index: number | null } | null>(null)
   const [infoOpen, setInfoOpen] = useState(false)
   const [intakeOptions, setIntakeOptions] = useState<IntakeOption[]>([])
+  // Die erste bestätigte Einnahme NACH dem Zeitpunkt — steht nicht zur Wahl,
+  // aber als Hinweis: oft ist nur der Tag des Eintrags verrutscht.
+  const [laterIntake, setLaterIntake] = useState<IntakeOption | null>(null)
 
   // Einnahmen zur Auswahl: bestätigte der gewählten Substanz vor dem Zeitpunkt.
   // Beim Bearbeiten bleibt die schon verknüpfte wählbar, auch wenn sie älter ist.
@@ -80,15 +83,19 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
     let cancelled = false
     // Das Formular kennt nur Minuten — eine Einnahme aus derselben Minute (mit Sekunden) zählt mit.
     const atIso = new Date(at.getTime() + 59_999).toISOString()
-    const recent = supabase.from('dose_logs').select('id, dose, unit, logged_at')
+    const recent = supabase.from('dose_logs').select(INTAKE_COLUMNS)
       .eq('user_id', userId).eq('stack_item_id', form.stack_item_id).eq('taken', true)
       .lte('logged_at', atIso).order('logged_at', { ascending: false }).limit(INTAKE_OPTIONS)
+    const later = supabase.from('dose_logs').select(INTAKE_COLUMNS)
+      .eq('user_id', userId).eq('stack_item_id', form.stack_item_id).eq('taken', true)
+      .gt('logged_at', atIso).order('logged_at', { ascending: true }).limit(1)
     const linked = linkedAtOpen
-      ? supabase.from('dose_logs').select('id, dose, unit, logged_at')
+      ? supabase.from('dose_logs').select(INTAKE_COLUMNS)
         .eq('user_id', userId).eq('id', linkedAtOpen).eq('stack_item_id', form.stack_item_id).lte('logged_at', atIso)
       : null
-    Promise.all([recent, linked]).then(([recentRes, linkedRes]) => {
+    Promise.all([recent, linked, later]).then(([recentRes, linkedRes, laterRes]) => {
       if (cancelled) return
+      setLaterIntake(((laterRes.data ?? []) as IntakeOption[])[0] ?? null)
       const options = [...((recentRes.data ?? []) as IntakeOption[])]
       for (const row of (linkedRes?.data ?? []) as IntakeOption[]) {
         if (!options.some(option => option.id === row.id)) options.push(row)
@@ -229,7 +236,7 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
               {stackItems.find(item => item.id === form.stack_item_id)?.display_name ?? t('tagebuch_substanz_keine')}
             </span>
             <select id="tagebuch-substanz" value={form.stack_item_id}
-              onChange={e => { const value = e.target.value; setIntakeOptions([]); setForm(f => ({ ...f, stack_item_id: value, dose_log_id: '' })) }}>
+              onChange={e => { const value = e.target.value; setIntakeOptions([]); setLaterIntake(null); setForm(f => ({ ...f, stack_item_id: value, dose_log_id: '' })) }}>
               <option value="">{t('tagebuch_substanz_keine')}</option>
               {stackItems.map(item => <option key={item.id} value={item.id}>{item.display_name}</option>)}
             </select>
@@ -252,12 +259,27 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
                 <option value="">{t('tagebuch_einnahme_keine')}</option>
                 {intakeOptions.map(option => (
                   <option key={option.id} value={option.id}>
-                    {[format(new Date(option.logged_at), 'dd.MM. HH:mm', { locale }), intakeDose(option, lang)].filter(Boolean).join(' · ')}
+                    {[intakeWhen(option, locale, t), intakeDose(option, lang)].filter(Boolean).join(' · ')}
                   </option>
                 ))}
               </select>
             ) : (
               <p id="tagebuch-einnahme" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
+            )}
+            {laterIntake && (
+              <div data-tagebuch-einnahme-spaeter className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
+                <p className="min-w-0 flex-1 text-xs text-[var(--lg-text-3)]">
+                  {t('tagebuch_einnahme_spaeter', { zeit: intakeWhen(laterIntake, locale, t) })}
+                </p>
+                <button type="button" className="min-h-[44px] text-xs font-semibold text-[var(--lg-accent-text)]"
+                  onClick={() => {
+                    const intake = laterIntake
+                    setLaterIntake(null)
+                    setForm(f => ({ ...f, occurred_at: format(new Date(intake.logged_at), "yyyy-MM-dd'T'HH:mm"), dose_log_id: intake.id }))
+                  }}>
+                  {t('tagebuch_einnahme_zeitpunkt_uebernehmen')}
+                </button>
+              </div>
             )}
           </div>
         )}

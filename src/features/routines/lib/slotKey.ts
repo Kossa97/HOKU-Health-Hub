@@ -112,7 +112,12 @@ export function istSlotSchluessel(schluessel: string | null | undefined, cycleId
  * genommen wurde sie trotzdem am Freitag (`logged_at`).
  */
 export function planTagAusSchluessel(schluessel: string | null | undefined): string | null {
-  if (!schluessel) return null
+  return planZeitAusSchluessel(schluessel)?.slice(0, 10) ?? null
+}
+
+/** Der geplante Platz als Wanduhr (`YYYY-MM-DDTHH:MM`), oder `null` ohne (gueltigen) Schluessel. */
+export function planZeitAusSchluessel(schluessel: string | null | undefined): string | null {
+  if (!schluessel || !schluessel.includes(TRENNER)) return null
   const zeit = schluessel.slice(schluessel.lastIndexOf(TRENNER) + 1)
-  return schluessel.includes(TRENNER) && ZEITTEIL.test(zeit) ? zeit.slice(0, 10) : null
+  return ZEITTEIL.test(zeit) ? zeit : null
 }
