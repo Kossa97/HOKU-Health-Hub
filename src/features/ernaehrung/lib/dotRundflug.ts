@@ -29,6 +29,8 @@ const SPEICHER = 'tyd.dot.rundflug.v1'
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 const easeIO = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 const easeOut3 = (t: number) => 1 - (1 - t) ** 3
+/** Bogen, der an beiden Enden ohne Tempo ein- und ausläuft (sin²): kein Ruck am Übergang. */
+const bogen = (q: number) => Math.sin(Math.PI * q) ** 2
 
 /** Gespeichert: wann zuletzt geflogen, wie oft seitdem hineinnavigiert (früher nur die Zeit als Zahl). */
 function lies(): { t: number; n: number } | null {
@@ -71,11 +73,12 @@ export function haltPunkt(i: number, lage: Lage, order: MacroKey[], rand: { l: n
   const mo = i > 0 ? lage.moons[order[i - 1]] : undefined
   if (!mo) return { x: main.x - main.r * 1.08, y: main.y + main.r * 0.42 }
   const dx = mo.x - main.x, dy = mo.y - main.y, d = Math.hypot(dx, dy) || 1
-  const a = mo.r + 38, x = mo.x + (dx / d) * a
-  const innen = (v: number) => Math.min(rand.r - 44, Math.max(rand.l + 44, v))
-  if (Math.abs(innen(x) - x) < 1) return { x, y: mo.y + (dy / d) * a + 12 }
-  // Außen ist kein Platz (Mond nah am Rand): unter den Mond
-  return { x: innen(mo.x), y: mo.y + mo.r + 34 }
+  const a = mo.r + 38, x = mo.x + (dx / d) * a, y = mo.y + (dy / d) * a + 12
+  const innen = Math.min(rand.r - 44, Math.max(rand.l + 44, x))
+  // Außen kein Platz (Mond nah am Rand): so weit, wie der Rand ihn hereinschiebt, rückt er unter den
+  // Mond — stetig, damit er beim Kreisen des Mondes nicht umspringt
+  const rein = Math.min(1, Math.abs(innen - x) / a)
+  return { x: innen, y: y + (mo.y + mo.r + 34 - y) * rein }
 }
 
 type Abschnitt = { t0: number; t1: number; art: 'herein' | 'weg' | 'halt' | 'heim'; i: number }
@@ -127,23 +130,23 @@ export function rundflugBahn(o: {
       if (s.art === 'herein') {
         // vom Rand im flachen Bogen an die Kugel
         const h = halt(0), e = easeOut3(q)
-        p = { x: o.start.x + (h.x - o.start.x) * e, y: o.start.y + (h.y - o.start.y) * e - Math.sin(Math.PI * q) * 26 }
+        p = { x: o.start.x + (h.x - o.start.x) * e, y: o.start.y + (h.y - o.start.y) * e - bogen(q) * 26 }
         blick = koerper(0)
       } else if (s.art === 'weg') {
         // zum nächsten Mond, leicht gebogen
         const a = halt(s.i - 1), b = halt(s.i), e = easeIO(q)
-        const nx = -(b.y - a.y), ny = b.x - a.x, nd = Math.hypot(nx, ny) || 1, bogen = Math.sin(Math.PI * q) * 34
-        p = { x: a.x + (b.x - a.x) * e + (nx / nd) * bogen, y: a.y + (b.y - a.y) * e + (ny / nd) * bogen }
+        const nx = -(b.y - a.y), ny = b.x - a.x, nd = Math.hypot(nx, ny) || 1, aus = bogen(q) * 34
+        p = { x: a.x + (b.x - a.x) * e + (nx / nd) * aus, y: a.y + (b.y - a.y) * e + (ny / nd) * aus }
         // das Auge springt voraus: schon beim Losfliegen auf den nächsten Mond
         blick = koerper(s.i)
       } else if (s.art === 'halt') {
         const h = halt(s.i)
-        p = { x: h.x, y: h.y + Math.sin(q * Math.PI * 2) * 2.5 }
+        p = { x: h.x, y: h.y + bogen(q) * 2.5 }
         blick = koerper(s.i)
         if (!gesagt.has(s.i)) { gesagt.add(s.i); o.beiHalt(s.i) }
       } else {
         const a = halt(s.i), h = o.platz(), e = easeIO(q)
-        p = { x: a.x + (h.x - a.x) * e, y: a.y + (h.y - a.y) * e + Math.sin(Math.PI * q) * 30 }
+        p = { x: a.x + (h.x - a.x) * e, y: a.y + (h.y - a.y) * e + bogen(q) * 30 }
         // auf seinen Platz; kurz vor der Landung gibt er den Blick frei (dann schaut er dich an)
         blick = q < 0.8 ? h : null
       }
