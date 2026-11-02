@@ -105,3 +105,10 @@ Der Nutzer hat **„Zeichen links“** als beste und hochwertigste Fassung gewä
 - Abschließende Zusammenstellung des Brand-Kits.
 
 Ältere Regeln in `../kit/README.md`, die Hoku als O zwingend vorsehen, beschreiben einen früheren Entwurf und werden durch die Auswahl des Hauptlogos in diesem Gespräch überholt.
+
+## Nav-Symbol – finale Auswahl vom 02.11.2026
+
+- Bestätigt: „Etwas dichter“ aus dem zweiten Variantenvergleich (3/3), nicht die spätere Reihe „Dezent feiner“.
+- Referenz: `hoku-nav-etwas-dichter.svg`. Die Partikelpositionen, Größen, Deckkraft und ausgesparte Pupille werden exakt übernommen.
+- Grundfarbe: `currentColor`, passend zu den übrigen Symbolen der Navleiste. Keine eigene Cyan-Füllung und keine Profilfarbwahl im Nav-Symbol.
+- Leuchten: bestehender Cyan-Effekt in `src/features/dot/dot.css`; Pulsieren, Wackeln und Zustandswechsel bleiben erhalten.

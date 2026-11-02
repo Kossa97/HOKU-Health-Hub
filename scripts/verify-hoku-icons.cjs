@@ -41,7 +41,7 @@ for (const m of html.matchAll(/href="(\/icons\/[^"?]+)(?:\?[^"]*)?"/g)) assert(f
 for (const name of ['hoku-dunkel-192.png', 'hoku-dunkel-512.png', 'hoku-dunkel-maskable-512.png']) assert(vite.includes('/icons/' + name) && fs.existsSync(path.join(root, 'public/icons', name)), 'Missing PWA icon: ' + name)
 assert(vite.includes("background_color: '#000101'"), 'PWA background mismatch')
 assert(read('android/app/src/main/res/values/ic_launcher_background.xml').toString().includes('#000101'), 'Android background mismatch')
-assert(read('src/features/dot/DotLogo.tsx').toString().includes('/icons/hoku-dunkel-symbol-128.png'), 'Navigation uses old mascot')
+assert(read('src/features/dot/DotLogo.tsx').toString().includes('fill="currentColor"'), 'Navigation does not inherit the icon color')
 for (const file of ['public/icon.svg', 'public/favicon.svg']) assert(read(file).length < 1024 * 1024, file + ': oversized embedded bitmap')
 const ios = JSON.parse(read('ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json'))
 for (const image of ios.images) if (image.filename) assert(fs.existsSync(path.join(root, 'ios/App/App/Assets.xcassets/AppIcon.appiconset', image.filename)), 'Missing iOS asset')

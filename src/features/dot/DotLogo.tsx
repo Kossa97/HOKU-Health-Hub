@@ -1,48 +1,78 @@
-import { useId } from 'react'
-import { useActiveLook } from '../../lib/look'
-import { aktiveHokuFarbe, PALETTEN, useHokuFarbWahl } from './lib/hokuFarbe'
+/** Freigegebener Entwurf „Etwas dichter“: ursprüngliche Punktkugel mit Pupille. */
+const PUNKTE = [
+  [16.937, 25.056, 1.028, 0.546],
+  [12.546, 23.903, 1.090, 0.656],
+  [15.373, 25.992, 0.894, 0.356],
+  [18.043, 22.626, 1.133, 0.739],
+  [9.461, 24.142, 0.983, 0.475],
+  [20.203, 24.687, 0.910, 0.374],
+  [13.275, 20.760, 1.193, 0.867],
+  [11.739, 25.150, 0.814, 0.271],
+  [22.013, 21.552, 1.071, 0.621],
+  [7.770, 21.076, 1.079, 0.636],
+  [18.453, 24.601, 0.769, 0.233],
+  [17.642, 19.104, 1.099, 0.960],
+  [7.454, 22.847, 0.850, 0.306],
+  [23.766, 21.621, 0.918, 0.385],
+  [9.703, 17.792, 1.194, 0.869],
+  [13.789, 23.734, 0.691, 0.184],
+  [22.359, 17.648, 1.146, 0.766],
+  [5.202, 19.479, 0.971, 0.457],
+  [22.069, 21.919, 0.747, 0.217],
+  [12.158, 17.215, 1.125, 0.999],
+  [8.423, 21.594, 0.714, 0.197],
+  [25.298, 17.838, 0.984, 0.476],
+  [6.378, 15.807, 1.116, 0.705],
+  [17.328, 21.551, 0.629, 0.161],
+  [22.081, 14.116, 1.084, 0.963],
+  [4.739, 18.289, 0.830, 0.286],
+  [24.837, 18.442, 0.788, 0.248],
+  [10.796, 12.710, 1.215, 0.932],
+  [11.299, 19.934, 0.610, 0.156],
+  [24.707, 13.906, 1.061, 0.603],
+  [4.375, 14.440, 0.989, 0.484],
+  [20.948, 18.591, 0.629, 0.766],
+  [17.227, 8.029, 1.096, 0.960],
+  [6.313, 17.017, 0.695, 0.187],
+  [25.929, 14.538, 0.863, 0.320],
+  [7.575, 10.906, 1.123, 0.719],
+  [14.814, 18.265, 0.504, 0.920],
+  [22.281, 10.267, 1.115, 0.769],
+  [4.275, 13.294, 0.844, 0.300],
+  [23.518, 15.004, 0.679, 0.681],
+  [13.102, 8.417, 1.174, 0.855],
+  [9.405, 15.265, 0.599, 0.657],
+  [25.021, 10.629, 0.939, 0.412],
+  [5.867, 9.590, 0.992, 0.489],
+  [21.012, 15.680, 0.512, 0.922],
+  [18.760, 7.264, 1.118, 0.759],
+  [6.139, 11.929, 0.717, 0.198],
+  [24.196, 11.104, 0.753, 0.222],
+  [10.235, 6.717, 1.073, 0.625],
+  [22.317, 7.166, 0.979, 0.469],
+  [6.345, 8.375, 0.853, 0.309],
+  [20.475, 10.842, 0.627, 0.898],
+  [15.297, 5.117, 1.053, 0.590],
+  [9.510, 9.884, 0.644, 0.165],
+  [22.456, 7.357, 0.816, 0.273],
+  [9.545, 5.507, 0.934, 0.406],
+  [18.497, 4.657, 0.943, 0.417],
+  [9.518, 6.689, 0.751, 0.220],
+  [19.352, 6.817, 0.712, 0.644],
+  [13.685, 4.079, 0.900, 0.363],
+  [13.619, 6.387, 0.687, 0.182],
+  [16.783, 4.664, 0.795, 0.254],
+] as const
 
-/** Hokus neues Leistenzeichen; folgt weiterhin der Profilfarbe und dem App-Design. */
+/** Grundfarbe wie die Nachbar-Icons; das Cyan-Leuchten übernimmt dot.css. */
 export function DotLogo() {
-  const id = useId()
-  const look = useActiveLook()
-  const [wahl] = useHokuFarbWahl()
-  const farbe = aktiveHokuFarbe(look, wahl)
-  const palette = farbe === 'heute' ? null : PALETTEN[farbe === 'stimmung' ? 'glut' : farbe]
-  const tint = `hoku-ton-${id}`, mask = `hoku-maske-${id}`, gradient = `hoku-verlauf-${id}`
-  const tones = (channel: number) => palette && [palette.hinten, palette.rand, palette.vorn].map(c => c[channel] / 255).join(' ')
-
   return (
     <svg viewBox="0 0 30 30" width={30} height={30} aria-hidden="true" className="tyd-dot-logo">
-      <defs>
-        {palette && farbe !== 'cyanweiss' && (
-          <filter id={tint} colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 1 0" />
-            <feComponentTransfer>
-              <feFuncR type="table" tableValues={tones(0) || undefined} />
-              <feFuncG type="table" tableValues={tones(1) || undefined} />
-              <feFuncB type="table" tableValues={tones(2) || undefined} />
-            </feComponentTransfer>
-          </filter>
-        )}
-        {farbe === 'heute' && (
-          <>
-            <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="rgb(110,230,255)" />
-              <stop offset=".65" stopColor="rgb(175,135,255)" />
-              <stop offset="1" stopColor="rgb(255,120,200)" />
-            </linearGradient>
-            <mask id={mask} maskUnits="userSpaceOnUse" x="0" y="0" width="30" height="30" style={{ maskType: 'alpha' }}>
-              <image href="/icons/hoku-dunkel-symbol-128.png" width={30} height={30} />
-            </mask>
-          </>
-        )}
-      </defs>
       <g className="tyd-dot-logo-glow">
         <g className="tyd-dot-logo-wob">
-          {farbe === 'heute'
-            ? <rect width={30} height={30} fill={`url(#${gradient})`} mask={`url(#${mask})`} />
-            : <image href="/icons/hoku-dunkel-symbol-128.png" width={30} height={30} filter={farbe === 'cyanweiss' ? undefined : `url(#${tint})`} />}
+          {PUNKTE.map(([cx, cy, r, opacity], i) => (
+            <circle key={i} cx={cx} cy={cy} r={r} opacity={opacity} fill="currentColor" />
+          ))}
         </g>
       </g>
     </svg>

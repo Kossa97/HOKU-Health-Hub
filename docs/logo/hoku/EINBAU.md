@@ -17,10 +17,10 @@ Erzeugen: `npm run icons:update`. Prüfen: `npm run icons:verify`. Die frühere 
 | Maskierbare PWA | `public/icons/hoku-dunkel-maskable-512.png` | 512 px, deckend, Hoku ca. 76 % |
 | Favicons | `public/favicon.ico`, `favicon.svg`, `icons/hoku-fav-dunkel-*.png` | 16 / 32 / 48 / 64 px, enger Ausschnitt mit ca. 94 % Hoku |
 | Benachrichtigungen / ältere Verweise | `public/icon-192.png`, `icon-512.png`, `icon.svg`, bisherige `icons/hoku-*.png` und `hoku-fav-blau-*.png` | Auch diese vorhandenen URLs enthalten das neue dunkle Motiv |
-| Untere App-Leiste | `src/features/dot/DotLogo.tsx`, `public/icons/hoku-dunkel-symbol-64.png`, `hoku-dunkel-symbol-128.png` | Transparenter Ableger, Anzeige 30 px, Hoku ca. 92 %; vorhandene Animationen erhalten |
+| Untere App-Leiste | `src/features/dot/DotLogo.tsx`, Referenz `branding/hoku-nav-etwas-dichter.svg` | Gewählter Vektor „Etwas dichter“, Anzeige 30 px; Grundfarbe wie Nachbar-Icons, Cyan-Leuchten und vorhandene Animationen erhalten |
 | Startbildschirme | iOS `Splash.imageset/splash-2732x2732*.png`, Android `drawable*/splash.png` | Bestehende Auflösungen erhalten, Hoku mittig, 24 % der kurzen Bildkante, keine zusätzliche dunkle Bildkachel |
 
-Die untere Leiste verwendet jetzt den aktuellen Hoku mit Pupille statt der älteren Punktkugel. Die auf main ergänzte Farbwahl im Profil und die automatische Anpassung an das App-Design bleiben dabei erhalten. Das separate KI-Button-Symbol mit Funkeln und der lebende Assistent werden nicht verändert.
+Für die untere Leiste wurde am 02.11.2026 die Vorschau „Etwas dichter“ (zweiter Vergleich, 3/3) gewählt: die frühere Punktkugel mit ausgesparter Pupille und hellerem Augenrand durch höhere Partikeldeckkraft. Der Vektor erbt über `currentColor` die Farbe der übrigen Nav-Symbole; das bestehende Leuchten bleibt Cyan. Das Zeichen ist direkt eingebettet und benötigt auch offline keine Bilddatei. Die Profilfarbe gilt weiterhin für den lebenden Hoku, nicht für das einfarbige Nav-Symbol. Das separate KI-Button-Symbol mit Funkeln bleibt unverändert.
 
 ## Sicherheitsbereiche und Hintergrund
 

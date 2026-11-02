@@ -1,51 +1,38 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { act, cleanup, render, waitFor } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, render } from '@testing-library/react'
 import { DotLogo } from './DotLogo'
-import { setzeFarbWahl } from './lib/hokuFarbe'
 
-beforeEach(() => {
-  localStorage.clear()
-  document.documentElement.setAttribute('data-look', 'schwarz')
-})
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  document.documentElement.removeAttribute('data-look')
 })
 
-describe('Hokus neues Leistenzeichen', () => {
-  it('zeigt im Standarddesign das freigestellte neue Hoku-Motiv', () => {
+describe('Hokus gewähltes Nav-Symbol „Etwas dichter“', () => {
+  it('zeigt die freigegebene Partikelgeometrie mit ausgesparter Pupille als direkt eingebetteten Vektor', () => {
+    const source = readFileSync('docs/logo/hoku/branding/hoku-nav-etwas-dichter.svg', 'utf8')
+    const reference = new DOMParser().parseFromString(source, 'image/svg+xml')
     const { container } = render(<DotLogo />)
-    expect(container.querySelector('image')?.getAttribute('href')).toBe('/icons/hoku-dunkel-symbol-128.png')
-    expect(container.querySelector('image')?.getAttribute('filter')).toBeNull()
+    const circles = container.querySelectorAll('circle')
+    expect(circles.length).toBeGreaterThan(50)
+    expect(container.querySelector('image')).toBeNull()
+    expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 30 30')
+    const geometry = (nodes: NodeListOf<Element>) => Array.from(nodes, circle => ['cx', 'cy', 'r', 'opacity'].map(key => Number(circle.getAttribute(key))))
+    expect(geometry(circles)).toEqual(geometry(reference.querySelectorAll('circle')))
+    for (const circle of circles) {
+      const x = Number(circle.getAttribute('cx')), y = Number(circle.getAttribute('cy'))
+      expect(Math.hypot(x - 16.5, y - 13.6) - Number(circle.getAttribute('r'))).toBeGreaterThan(3.5)
+    }
   })
 
-  it('behält das neue Motiv bei und folgt einer Änderung der Profilfarbe', () => {
+  it('erbt die Symbolfarbe der Navigation unabhängig von Hokus Profilfarbe und dem App-Design', () => {
+    localStorage.setItem('tyd.hoku.farbe', 'sonne')
+    document.documentElement.setAttribute('data-look', 'instrument')
     const { container } = render(<DotLogo />)
-    const tones = () => Array.from(container.querySelectorAll('feFuncR, feFuncG, feFuncB')).map(e => e.getAttribute('tableValues')).join('|')
-    act(() => setzeFarbWahl('minze'))
-    const mint = tones()
-    expect(mint).not.toBe('')
-    act(() => setzeFarbWahl('sonne'))
-    expect(tones()).not.toBe(mint)
-    expect(container.querySelector('image')?.getAttribute('href')).toBe('/icons/hoku-dunkel-symbol-128.png')
-  })
-
-  it('folgt bei automatischer Farbe dem Design, während eine eigene Wahl erhalten bleibt', async () => {
-    const { container } = render(<DotLogo />)
-    const tones = () => Array.from(container.querySelectorAll('feFuncR, feFuncG, feFuncB')).map(e => e.getAttribute('tableValues')).join('|')
-    document.documentElement.setAttribute('data-look', 'satin')
-    await waitFor(() => expect(tones()).not.toBe(''))
-    act(() => setzeFarbWahl('sonne'))
-    const sun = tones()
-    await act(async () => { document.documentElement.setAttribute('data-look', 'instrument') })
-    expect(tones()).toBe(sun)
-  })
-
-  it('erhält auch die wählbare Cyan-Violett-Stimmung auf der neuen Silhouette', () => {
-    localStorage.setItem('tyd.hoku.farbe', 'heute')
-    const { container } = render(<DotLogo />)
-    expect(container.querySelector('mask image')?.getAttribute('href')).toBe('/icons/hoku-dunkel-symbol-128.png')
-    expect(container.querySelectorAll('linearGradient stop')).toHaveLength(3)
+    expect(container.querySelectorAll('[fill="currentColor"]').length).toBeGreaterThan(50)
+    expect(container.querySelector('filter, linearGradient, image')).toBeNull()
+    expect(container.querySelector('[fill^="rgb"], [fill^="#"], [color]')).toBeNull()
   })
 })
