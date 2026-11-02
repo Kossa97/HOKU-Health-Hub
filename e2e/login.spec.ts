@@ -377,6 +377,29 @@ test('iPhone-App: verschiebt sich Hokus Ebene mit der Seite, sitzt er trotzdem a
   expect(b.y + b.height).toBeGreaterThan(karte.y)
 })
 
+test('iPhone-App: verschiebt sich Hokus Ebene, kommt er trotzdem oben und unten an den Bildschirmrand', async ({ page }) => {
+  // Nutzer 02.11.2026: „immer das gesamte Bild des Geräts ausnutzen“; die Ebene wird zurück an den Bildschirm geschoben
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  await page.evaluate(() => { (document.querySelector('.tyd-dot-ebene') as HTMLElement).style.transform = 'translateY(-200px)' })
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const { width: W, height: H } = page.viewportSize()!
+  for (const [zy, name] of [[H - 2, 'unten'], [2, 'oben']] as const) {
+    const b = (await figur.boundingBox())!
+    const x = b.x + b.width / 2, y = b.y + b.height / 2
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    for (let i = 1; i <= 20; i++) { await page.mouse.move(x + (W / 2 - x) * i / 20, y + (zy - y) * i / 20); await page.clock.runFor(16) }
+    await lassLaufen(page, 300)
+    const g = (await figur.boundingBox())!
+    await page.mouse.up()
+    await lassLaufen(page, 300)
+    if (name === 'unten') expect(g.y + g.height, name).toBeGreaterThan(H - 12)
+    else expect(g.y, name).toBeLessThan(10)
+  }
+})
+
 test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine neue Blase', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
