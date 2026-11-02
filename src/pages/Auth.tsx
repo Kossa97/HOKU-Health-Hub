@@ -266,30 +266,6 @@ export function Auth() {
   // Verlässt man die Anmeldung mit dem Fokus im Passwort, dreht er sich trotzdem wieder um
   useEffect(() => () => dotStore.api()?.wegsehen(false), [])
 
-  // Versteckte Messanzeige zur Fehlersuche auf dem iPhone (Nutzer 02.11.2026): fünfmal schnell auf die
-  // Zeile unter dem Formular tippen schaltet sie ein und aus; gemerkt nur auf diesem Gerät
-  const [diagnoseAn, setDiagnoseAn] = useState(() => { try { return localStorage.getItem('tyd.hoku.diagnose') === '1' } catch { return false } })
-  const [diagnose, setDiagnose] = useState('')
-  const diagnoseTippe = useRef<number[]>([])
-  const diagnoseTipp = () => {
-    const jetzt = performance.now()
-    diagnoseTippe.current = [...diagnoseTippe.current.filter(t => jetzt - t < 3000), jetzt]
-    if (diagnoseTippe.current.length < 5) return
-    diagnoseTippe.current = []
-    setDiagnoseAn(an => {
-      try { localStorage.setItem('tyd.hoku.diagnose', an ? '0' : '1') } catch { /* nur für diese Sitzung */ }
-      return !an
-    })
-  }
-  useEffect(() => {
-    if (!diagnoseAn) return
-    const id = window.setInterval(() => {
-      const d = dotStore.api()?.diagnose()
-      setDiagnose(d ? Object.entries(d).map(([k, v]) => `${k} ${v}`).join('\n') : 'kein Hoku')
-    }, 250)
-    return () => window.clearInterval(id)
-  }, [diagnoseAn])
-
   if (session && !halten) return <Navigate to="/" replace />
 
   /** Alles Laufende abbrechen: Abläufe, Dots Form, Meldung. */
@@ -731,8 +707,7 @@ export function Auth() {
         )}
       </div>
 
-      <p className="tyd-auth-fuss" onClick={diagnoseTipp}>{t('research_only')}</p>
-      {diagnoseAn && diagnose && <pre className="tyd-auth-diagnose" aria-hidden="true">{diagnose}</pre>}
+      <p className="tyd-auth-fuss">{t('research_only')}</p>
       <LegalLinks className="mt-3" />
     </main>
   )
