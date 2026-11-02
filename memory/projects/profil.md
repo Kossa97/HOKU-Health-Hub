@@ -124,6 +124,11 @@ Nutzer 02.11. zu Mockup v3: Karte **A1** (mit Abzeichen) gefällt am besten, abe
 Stelle; insgesamt zu viel Farbe → dezenter, seriöser, hochwertiger. Slogans „geht so“ → mehr Vorschläge (Idee Nutzer:
 „Du im Vergleich zum besseren Dir“). Web-Abzeichen: nur eine Reihe, die seltensten/schwersten zuerst, 3 zeigen,
 das letzte weichgezeichnet + „+x“ für den Rest. Teaser T1–T3 noch offen.
+Nutzer 02.11. zu Mockup v4: Teaser **T1** (Stufe). Rückfall **Karte C Text 1** („Wofür nutzt Mara Hoku?“ —
+Thema vom Nutzer, Formulierung als Frage von Claude). A1-Aufbau (Zonen) gut, Optik wieder im Stil wie vorher →
+mehrere Stile zur Wahl. Neutrale Karten: aktuelle + vorherige behalten, mehr Möglichkeiten. Für alle Karten
+**Brand-Kit v2** (`docs/logo/hoku/brand-kit-v2/` auf main) für Logos/Icons; Logo hochwertig einbauen.
+Web-Vorschau gefällt, Farben im App-Stil, Grün für Fortschrittszahlen erlaubt.
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
