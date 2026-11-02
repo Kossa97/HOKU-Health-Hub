@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793619616.8714797,
-    "seen": 1793619671.8468661,
+    "mtime": 1793620897.4592917,
+    "seen": 1793620991.485313,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7848,15 +7848,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.test.ts": {
-    "mtime": 1793618192.6702957,
-    "seen": 1793618368.127543,
-    "ast_hash": "8c07c848a2db5739df69392b6ff42c7a",
+    "mtime": 1793620658.383516,
+    "seen": 1793620991.484731,
+    "ast_hash": "27390e5f0ef2215e775790423627268a",
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.ts": {
-    "mtime": 1793618916.1691513,
-    "seen": 1793619232.7295346,
-    "ast_hash": "9c62295a56b181b0e266d72b60a418b7",
+    "mtime": 1793620689.8374422,
+    "seen": 1793620991.4847314,
+    "ast_hash": "9bec01211ae192a1d9a73ca6953f1a06",
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
@@ -18954,9 +18954,9 @@
     "semantic_hash": ""
   },
   "supabase-hoku-erkenntnisse.sql": {
-    "mtime": 1793617845.2251434,
-    "seen": 1793617987.990528,
-    "ast_hash": "ebfca764d2b21f4a06721ae07bcf1e3f",
+    "mtime": 1793620799.0706728,
+    "seen": 1793620991.485286,
+    "ast_hash": "94a5c052c81484103f35cf8f6af459be",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/tage.test.ts": {
@@ -18984,27 +18984,27 @@
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/analyse.test.ts": {
-    "mtime": 1793616258.2953978,
-    "seen": 1793616342.8806934,
-    "ast_hash": "d0585cc0059a7000c1d4c0555ca4395c",
+    "mtime": 1793620555.5251648,
+    "seen": 1793620991.485328,
+    "ast_hash": "1494cd35520fea52fab5ccb715a2748c",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/analyse.ts": {
-    "mtime": 1793616265.705109,
-    "seen": 1793616342.8806944,
-    "ast_hash": "f376b47f6c93e043756a6740bb381784",
+    "mtime": 1793620581.7494907,
+    "seen": 1793620991.4853287,
+    "ast_hash": "2e5c8e6057f2e395be3c41dd70f09bbc",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/detektoren.test.ts": {
-    "mtime": 1793615921.0601072,
-    "seen": 1793616074.489454,
-    "ast_hash": "bb13d6ebdb1a2217135951fbdb989916",
+    "mtime": 1793620518.1879487,
+    "seen": 1793620991.4853315,
+    "ast_hash": "ffde05580fed2dd83ccd4e4f64d9e7b4",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/detektoren.ts": {
-    "mtime": 1793615984.9162,
-    "seen": 1793616074.4894555,
-    "ast_hash": "0122c7993b48f3612d862a2cc3da61c2",
+    "mtime": 1793620573.966651,
+    "seen": 1793620991.4853323,
+    "ast_hash": "75d088c932d63246cf3dc8628a5e34d4",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/einrm.test.ts": {
@@ -19068,21 +19068,21 @@
     "semantic_hash": ""
   },
   "supabase/functions/erkenntnisse/index.ts": {
-    "mtime": 1793617901.813356,
-    "seen": 1793617987.9905925,
-    "ast_hash": "ed9bbf6f759b0f593a209b71a22daccf",
+    "mtime": 1793620627.680552,
+    "seen": 1793620991.4853485,
+    "ast_hash": "0cf788608cc5dc07ae8e5384db4c53ec",
     "semantic_hash": ""
   },
   "supabase/functions/erkenntnisse/laden.test.ts": {
-    "mtime": 1793617304.481979,
-    "seen": 1793617561.472131,
-    "ast_hash": "64aaed1321beeb9d1b8c91b224549ded",
+    "mtime": 1793620602.5176182,
+    "seen": 1793620991.4853492,
+    "ast_hash": "d274fa1b97e39a2caa8f7bd393b430c5",
     "semantic_hash": ""
   },
   "supabase/functions/erkenntnisse/laden.ts": {
-    "mtime": 1793617334.1051252,
-    "seen": 1793617561.4721317,
-    "ast_hash": "38f228eed9f3d7126eff9c3e587cf198",
+    "mtime": 1793620611.513601,
+    "seen": 1793620991.485351,
+    "ast_hash": "b050348953b316236f4955aea1f8705b",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/ErkenntnisseEinwilligung.tsx": {
@@ -19110,15 +19110,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/texte.ts": {
-    "mtime": 1793618816.3262444,
-    "seen": 1793619232.7295306,
-    "ast_hash": "1658fdcdbe29a33c100a7603af245fc7",
+    "mtime": 1793620684.5781336,
+    "seen": 1793620991.4847276,
+    "ast_hash": "d60a27f88c28d30f6d9f90863f41b9fd",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/ErkenntnissePage.tsx": {
-    "mtime": 1793619507.134509,
-    "seen": 1793619671.8463075,
-    "ast_hash": "06b7b39000079e95c3c07233c9224873",
+    "mtime": 1793620715.0752861,
+    "seen": 1793620991.4847157,
+    "ast_hash": "65186a86d2a8f3f0429cdb2b1857550c",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/FundDetail.tsx": {
@@ -19146,21 +19146,21 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/komponenten.test.tsx": {
-    "mtime": 1793618781.7930813,
-    "seen": 1793619232.7295291,
-    "ast_hash": "38577ab47e5c11d086d44ce6a255cd36",
+    "mtime": 1793620658.0852935,
+    "seen": 1793620991.484726,
+    "ast_hash": "f7ae1c596a9b546d0dbe09c21483055e",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/vorlagen.test.ts": {
-    "mtime": 1793618766.1121502,
-    "seen": 1793619232.7295313,
-    "ast_hash": "33a1a5b09656b12eeba6250d5f7b8b67",
+    "mtime": 1793620650.5930352,
+    "seen": 1793620991.4847283,
+    "ast_hash": "a0dba4eb20b0b743d8ee937184a9867b",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/vorlagen.ts": {
-    "mtime": 1793618861.4665668,
-    "seen": 1793619232.729532,
-    "ast_hash": "e4689c53894a52ec898b9e4313bd12b8",
+    "mtime": 1793620684.2889562,
+    "seen": 1793620991.4847288,
+    "ast_hash": "08597f984944da84f23178e97dfedd46",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/WochenUpdateHomeKarte.test.tsx": {
@@ -19173,6 +19173,12 @@
     "mtime": 1793619491.6879048,
     "seen": 1793619671.8463156,
     "ast_hash": "f0af82aee6f3a6e0e146c165ab2543fd",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/unterstuetzt.test.ts": {
+    "mtime": 1793620518.7630558,
+    "seen": 1793620991.4853396,
+    "ast_hash": "92230f8c8fbd57539165d5ecb4a57c36",
     "semantic_hash": ""
   }
 }
