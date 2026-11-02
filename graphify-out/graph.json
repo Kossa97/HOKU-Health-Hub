@@ -39763,7 +39763,7 @@
       "file_type": "code",
       "norm_label": "analysiere()",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L15"
+      "source_location": "L16"
     },
     {
       "id": "supabase_functions_shared_erkenntnisse_analyse_test_schlafroh",
@@ -173117,7 +173117,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -173129,7 +173129,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -173141,7 +173141,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -173153,7 +173153,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -173165,7 +173165,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L29",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -173177,7 +173177,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L31",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -393441,7 +393441,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "supabase/functions/_shared/erkenntnisse/analyse.ts",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -403216,5 +403216,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f1232b590d070d13b65de44d1cddb51d40e36e1c"
+  "built_at_commit": "5dca41872ff1ed203230ca38dc6bc93ab666e633"
 }
