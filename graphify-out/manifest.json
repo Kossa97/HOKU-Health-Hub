@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793632704.4499822,
-    "seen": 1793633269.0014641,
-    "ast_hash": "603258b66958ed51fff6896bd49d32ff",
+    "mtime": 1793633780.566856,
+    "seen": 1793634012.010225,
+    "ast_hash": "fa0c986e190c573ae79d6ac92e2b3745",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793632653.6036723,
-    "seen": 1793633269.0033498,
-    "ast_hash": "54ddaca6fb2d3d36c6941fd3e41c5d69",
+    "mtime": 1793633780.566856,
+    "seen": 1793634012.0474162,
+    "ast_hash": "d5a658694e4c5f52fd0b06c3c8542f81",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -17178,9 +17178,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793632653.2180047,
-    "seen": 1793633269.0008478,
-    "ast_hash": "7d584927056a0f6e9b95133e5872a65e",
+    "mtime": 1793633780.5664968,
+    "seen": 1793634012.0021014,
+    "ast_hash": "e78a5e9a61dd1dbcdcbcdedd5b54ce05",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
