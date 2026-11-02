@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793617449.3898385,
-    "seen": 1793617561.4721005,
+    "mtime": 1793617926.5752668,
+    "seen": 1793617987.9905553,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -18954,9 +18954,9 @@
     "semantic_hash": ""
   },
   "supabase-hoku-erkenntnisse.sql": {
-    "mtime": 1793615393.4207444,
-    "seen": 1793615698.1587582,
-    "ast_hash": "c8363cb17b1e2157d8ae1de802a4499f",
+    "mtime": 1793617845.2251434,
+    "seen": 1793617987.990528,
+    "ast_hash": "ebfca764d2b21f4a06721ae07bcf1e3f",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/tage.test.ts": {
@@ -19068,9 +19068,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/erkenntnisse/index.ts": {
-    "mtime": 1793617504.916671,
-    "seen": 1793617561.47213,
-    "ast_hash": "39ed2600ec7e9911625b50e0e68773d7",
+    "mtime": 1793617901.813356,
+    "seen": 1793617987.9905925,
+    "ast_hash": "ed9bbf6f759b0f593a209b71a22daccf",
     "semantic_hash": ""
   },
   "supabase/functions/erkenntnisse/laden.test.ts": {
