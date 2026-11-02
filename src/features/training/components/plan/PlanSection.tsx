@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { ChevronRight, Moon, Pencil, Play, Plus, Timer } from 'lucide-react'
 import toast from 'react-hot-toast'
-import type { TrainingRoutine } from '../../types'
+import { ROUTINE_FOLDER_MAX, type TrainingRoutine } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { exerciseInfo } from '../../lib/exerciseLookup'
@@ -11,7 +11,7 @@ import { sortedMuscles } from '../../lib/muscleVolume'
 import { setsPerMuscle, startOfWeek } from '../../lib/stats'
 import { createPlanRoutines, TRAINING_PLANS, type TrainingPlan } from '../../data/plans'
 import { HYROX_DIVISIONS, hyroxRoutine, type HyroxDivisionId } from '../../data/hyrox'
-import { Button, Card, Chip, SectionTitle, TrainingSheet } from '../ui'
+import { Button, Card, Chip, SectionTitle, TrainingSheet, inputStyle } from '../ui'
 import { BandLegend, MuscleBars } from './MuscleVolume'
 import { PlanEditor } from './PlanEditor'
 
@@ -40,12 +40,43 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   const [hyroxPick, setHyroxPick] = useState(false)
   const [busy, setBusy] = useState(false)
   const [editingPlan, setEditingPlan] = useState<string | null>(null)
+  const [newPlan, setNewPlan] = useState<string | null>(null)
 
-  // Die hervorgehobene Routine nach oben in ihrem Ordner.
-  const groups = useMemo(() => groupByFolder(data.routines).map(group => ({
-    ...group,
-    routines: [...group.routines].sort((a, b) => Number(b.id === next?.routine.id) - Number(a.id === next?.routine.id)),
-  })), [data.routines, next])
+  // Die hervorgehobene Routine nach oben in ihrem Ordner. Plaene ohne Workout
+  // (frisch angelegt) stehen hinter den uebrigen Plaenen, vor „Ohne Plan".
+  const groups = useMemo(() => {
+    const filled = groupByFolder(data.routines).map(group => ({
+      ...group,
+      routines: [...group.routines].sort((a, b) => Number(b.id === next?.routine.id) - Number(a.id === next?.routine.id)),
+    }))
+    const empty = data.plans
+      .filter(p => !filled.some(g => g.folder === p.name))
+      .map(p => ({ folder: p.name as string | null, routines: [] as TrainingRoutine[] }))
+    const loose = filled.filter(g => g.folder == null)
+    return [...filled.filter(g => g.folder != null), ...empty, ...loose]
+  }, [data.routines, data.plans, next])
+
+  const takenPlanNames = useMemo(
+    () => new Set([...data.routines.map(r => r.folder).filter((f): f is string => !!f), ...data.plans.map(p => p.name)]),
+    [data.routines, data.plans],
+  )
+  const newPlanName = (newPlan ?? '').trim().slice(0, ROUTINE_FOLDER_MAX)
+  const newPlanTaken = takenPlanNames.has(newPlanName)
+
+  /** Leeren Plan anlegen (nur sein Zeitplan, „Wochentage") und gleich oeffnen. */
+  const createEmptyPlan = async () => {
+    if (!newPlanName || newPlanTaken) return
+    setBusy(true)
+    try {
+      await data.savePlanSchedule(newPlanName, { mode: 'weekdays' })
+      setNewPlan(null)
+      setEditingPlan(newPlanName)
+    } catch {
+      toast.error(tt('save_error'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   // „zuletzt Freitag" fuer die letzten sechs Tage, davor mit Datum.
   const lastLabel = (iso: string | null) => {
@@ -81,10 +112,16 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
     }
   }
 
+  const actionStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: 'var(--accent)', fontWeight: 750, fontSize: '0.85rem' } as const
   const newRoutineAction = (
-    <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: 'var(--accent)', fontWeight: 750, fontSize: '0.85rem' }}>
-      <Plus size={16} aria-hidden="true" /> {tt('new_routine')}
-    </button>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', columnGap: 14 }}>
+      <button type="button" onClick={() => setNewPlan('')} className="tyd-train-press" style={actionStyle}>
+        <Plus size={16} aria-hidden="true" /> {tt('new_plan')}
+      </button>
+      <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={actionStyle}>
+        <Plus size={16} aria-hidden="true" /> {tt('new_routine')}
+      </button>
+    </div>
   )
 
   const hyroxLabel = <><Timer size={14} aria-hidden="true" /> {tt('hyrox_template')}</>
@@ -123,6 +160,18 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                     <span style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
                   </div>
                 )
+              )}
+              {group.routines.length === 0 && group.folder != null && (
+                <Card style={{ padding: 14 }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--lg-text-3)', margin: '0 0 10px' }}>{tt('plan_empty')}</p>
+                  <Button
+                    block
+                    tone="ghost"
+                    onClick={() => onEditRoutine({ name: '', kind: 'strength', weekdays: [], exercises: [], sortOrder: data.routines.length, folder: group.folder })}
+                  >
+                    <Plus size={16} aria-hidden="true" /> {tt('plan_add_workout')}
+                  </Button>
+                </Card>
               )}
               {group.routines.map(r => r.id === next?.routine.id ? (
                 <Card key={r.id} style={{ padding: 14, boxShadow: restDay ? undefined : `var(--lg-surface-shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 60%, transparent)` }}>
@@ -205,6 +254,35 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
           <p style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', margin: '8px 2px 0' }}>{tt('plan_template_hint')}</p>
         </div>
       </section>
+
+      {newPlan != null && (
+        <TrainingSheet
+          title={tt('new_plan')}
+          onClose={() => setNewPlan(null)}
+          busy={busy}
+          footer={<Button block disabled={busy || !newPlanName || newPlanTaken} onClick={() => { void createEmptyPlan() }}>{tt('plan_create')}</Button>}
+        >
+          <form
+            onSubmit={event => { event.preventDefault(); void createEmptyPlan() }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 8 }}
+          >
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '0 4px' }}>{tt('plan_name')}</span>
+              <input
+                autoFocus
+                value={newPlan}
+                onChange={event => setNewPlan(event.target.value)}
+                placeholder={tt('routine_folder_placeholder')}
+                maxLength={ROUTINE_FOLDER_MAX}
+                enterKeyHint="done"
+                style={{ ...inputStyle, fontWeight: 700, fontSize: 17, minHeight: 48 }}
+              />
+            </label>
+            {newPlanTaken && newPlanName && <p role="alert" style={{ fontSize: 14, color: 'var(--lg-bad-text)', margin: '0 4px' }}>{tt('plan_name_taken')}</p>}
+            <p style={{ fontSize: 14, color: 'var(--lg-text-3)', margin: '0 4px' }}>{tt('plan_new_hint')}</p>
+          </form>
+        </TrainingSheet>
+      )}
 
       {editingPlan != null && (
         <PlanEditor

@@ -98,9 +98,11 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
   const folders = useMemo(() => {
     const seen: string[] = []
     for (const r of data.routines) if (r.folder && !seen.includes(r.folder)) seen.push(r.folder)
+    // auch Plaene ohne Workout (frisch ueber „Neuer Plan" angelegt)
+    for (const p of data.plans) if (!seen.includes(p.name)) seen.push(p.name)
     if (folder && !seen.includes(folder)) seen.push(folder)
     return seen
-  }, [data.routines, folder])
+  }, [data.routines, data.plans, folder])
 
   const info = useCallback((id: string) => exerciseInfo(id, lang, data.customExercises), [lang, data.customExercises])
   const planSchedule = (folder ? data.schedules.get(folder) : undefined) ?? DEFAULT_SCHEDULE

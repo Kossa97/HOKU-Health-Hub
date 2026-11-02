@@ -246,6 +246,35 @@ test('Training: Plan mit Zeitplan, Workouts duplizieren und verschieben', async 
   await expect(page.getByText('Heute geplant', { exact: true })).toBeVisible()
 })
 
+test('Training: neuer Plan aus „Heute"', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/training')
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Neuer Plan' })
+  await sheet.getByRole('textbox').fill('Oberkörper/Unterkörper')
+  await sheet.getByRole('button', { name: 'Anlegen' }).click()
+
+  // Der Plan oeffnet sich gleich; noch ohne Workout
+  const plan = page.getByRole('dialog', { name: 'Plan' })
+  await expect(plan.getByRole('textbox')).toHaveValue('Oberkörper/Unterkörper')
+  await expect.poll(() => mock.table('training_plans').map(p => p.name)).toEqual(['Oberkörper/Unterkörper'])
+  await plan.getByRole('button', { name: 'Schließen und speichern' }).click()
+
+  // In „Heute" steht der leere Plan mit „Workout hinzufügen"; den Namen gibt es nur einmal
+  await expect(page.getByRole('button', { name: 'Plan · Oberkörper/Unterkörper – Plan bearbeiten' })).toBeVisible()
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  await sheet.getByRole('textbox').fill('Oberkörper/Unterkörper')
+  await expect(sheet.getByRole('alert')).toHaveText('Diesen Plan gibt es schon.')
+  await expect(sheet.getByRole('button', { name: 'Anlegen' })).toBeDisabled()
+  await sheet.getByRole('button', { name: /Schließen/ }).first().click()
+
+  await page.getByRole('button', { name: 'Workout hinzufügen' }).click()
+  const editor = page.getByRole('dialog', { name: 'Neues Workout' })
+  await editor.getByRole('textbox', { name: 'Name' }).fill('OK A')
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => (mock.table('training_routines').find(r => r.name === 'OK A') as { folder: string } | undefined)?.folder).toBe('Oberkörper/Unterkörper')
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')

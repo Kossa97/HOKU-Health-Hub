@@ -118,6 +118,10 @@ const de = {
   plan_duplicated: 'Plan dupliziert',
   plan_deleted: 'Plan gelöscht',
   plan_name_taken: 'Diesen Plan gibt es schon.',
+  new_plan: 'Neuer Plan',
+  plan_new_hint: 'Danach legst du den Zeitplan fest und fügst Workouts hinzu.',
+  plan_empty: 'Noch kein Workout in diesem Plan.',
+  plan_add_workout: 'Workout hinzufügen',
 }
 
 const en: Record<keyof typeof de, string> = {
@@ -226,6 +230,10 @@ const en: Record<keyof typeof de, string> = {
   plan_duplicated: 'Plan duplicated',
   plan_deleted: 'Plan deleted',
   plan_name_taken: 'This plan already exists.',
+  new_plan: 'New plan',
+  plan_new_hint: 'Next you set the schedule and add workouts.',
+  plan_empty: 'No workout in this plan yet.',
+  plan_add_workout: 'Add workout',
 }
 
 export const EDITOR_TEXTS = { de, en }
