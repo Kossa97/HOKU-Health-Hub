@@ -4,7 +4,7 @@
   "10": "PlanEditor.tsx",
   "11": "GoalsSheet.tsx",
   "16": "intakeSchedule.ts",
-  "24": "VerlaufSection.tsx",
+  "24": "GlassChart.tsx",
   "31": "progressModel.ts",
   "32": "legacyPlanTimeline.ts",
   "37": "StackItemWizard.interaction.test.tsx",
@@ -14,25 +14,15 @@
   "48": "useMyStackData.ts",
   "50": "My Stack: Planintegrität und versionierter kontinuierlicher Plan",
   "55": "useFortschrittData.ts",
-<<<<<<< HEAD
-  "67": "metricDefinitions.ts",
-  "82": "metrics.ts",
-=======
   "67": "File Map",
   "82": "VerlaufSection.tsx",
->>>>>>> origin/main
   "89": "generate-effect-duration-sql.mjs",
   "95": "InjectionIntakeList.tsx",
   "100": "supabase-perf-indexes.sql",
   "102": "MarkerDetail.tsx",
   "104": "CoachPanel.tsx",
-<<<<<<< HEAD
-  "124": "stackInventory.ts",
-  "133": "Animation Performance",
-=======
   "124": "metrics.ts",
   "133": "dot/texte.ts",
->>>>>>> origin/main
   "138": "brand-kit-v2/QUELLEN/build.cjs",
   "139": "MarkerList.tsx",
   "142": "EntryForm.tsx",
@@ -41,11 +31,9 @@
   "152": "BottomNavigation.tsx",
   "156": "markerGuidance.ts",
   "157": "wizardState.ts",
-  "158": "sharePdf.ts",
   "159": "App.tsx",
   "160": "intakeConfirmation.ts",
   "162": "BlutwertePage.tsx",
-  "163": "PeptidePanels.tsx",
   "164": "re",
   "165": "dot-meldungen.spec.ts",
   "167": "My Stack: die Tracking-Stufen aufgeräumt",
@@ -72,13 +60,8 @@
   "275": "my-stack/lib/i18n.test.ts",
   "277": "StageFormSpec",
   "279": "StackListView.tsx",
-<<<<<<< HEAD
-  "280": "substanceCatalog.ts",
-  "281": "SubstanceCatalogEntry",
-=======
   "280": "Nachtrag: Stufe 2 umgesetzt — Kombis stehen im Katalog",
   "281": "my-stack/types.ts",
->>>>>>> origin/main
   "285": "verify-hoku-icons.cjs",
   "289": "Ein Reiter je Tag",
   "291": "blutwerte-referenz.spec.ts",
@@ -88,7 +71,7 @@
   "305": "DoseCalculator.tsx",
   "307": "liquidCalculation.ts",
   "310": "My Stack — Stärke je Darreichungsform",
-  "311": "unitConversion.ts",
+  "311": "normalizeMarker",
   "312": "wake",
   "313": "1. Was der Nutzer erlebt",
   "317": "supabase-my-stack-foundation.sql",
@@ -98,11 +81,7 @@
   "322": "food-lookup/index.ts",
   "324": "nutrition.ts",
   "326": "app-dunkel.cjs",
-<<<<<<< HEAD
-  "327": "vialStock.ts",
-=======
   "327": "stackInventory.ts",
->>>>>>> origin/main
   "328": "brand-kit-v2/QUELLEN/verify.cjs",
   "329": "Rechner.tsx",
   "330": "PhotoSheet.tsx",
@@ -113,14 +92,9 @@
   "342": "Nachtrag am selben Tag: Bühne, Größe, Maus",
   "345": "spray",
   "346": "Typography for Logos",
-<<<<<<< HEAD
-  "347": "generate-my-stack-i18n.mjs",
-  "348": "dosageForms.ts",
-=======
   "347": "my-stack-plan-integrity.test.sql",
   "348": "lib/substanzScan.ts",
   "349": "liveBlutspiegelChart.ts",
->>>>>>> origin/main
   "353": "ki-symbol.cjs",
   "357": "HOKU in der App – dunkles Cyan-Icon",
   "358": "features.ts",
@@ -152,19 +126,12 @@
   "399": "healthImport.ts",
   "400": "My Stack: welche Darreichungsform gewählt ist, muss man sehen",
   "404": "StageDetailSheet.tsx",
-  "405": "File Structure",
+  "405": "Adaptives Fortschritt-Fotos-Raster Implementation Plan",
   "406": "TtlCache",
-<<<<<<< HEAD
-  "407": "Nachtrag 2026-09-11, siebter Teil: die Auswahl zeigt sich wieder in Farbe",
-  "409": "Erfahrungen (Bewertungen) — UI-Überarbeitung",
-  "410": "Worst-Case Catalog",
-=======
   "407": "Kategorie „Sonstiges\"",
   "409": "SheetGriff",
   "410": "Einnahmerhythmus: drei Achsen statt einer Liste",
->>>>>>> origin/main
   "411": "my-stack/lib/colors.ts",
-  "412": "denyProps",
   "414": "Discovery & the Design Brief",
   "415": "auth",
   "416": "Animation Performance",
@@ -172,32 +139,6 @@
   "423": "Review Focus",
   "425": "injection-atomic-confirm.test.sql",
   "426": "FotosTab.tsx",
-<<<<<<< HEAD
-  "427": "Nachtrag 2026-09-11, fünfter Teil: woher das Rot kam",
-  "428": "enzyme.ts",
-  "429": "niere.ts",
-  "431": "@testing-library/react",
-  "435": "KI-Coach (Maskottchen)",
-  "437": "FotosTab.tsx",
-  "438": "main.tsx",
-  "439": "protocolPdf/types.ts",
-  "440": "My Stack — Farbpalette aus unseren Farben",
-  "443": "Wertevergleich: metrikspezifischer Fallback",
-  "445": "Bildquellen und Ableitungen",
-  "446": "HOKU – dunkles Cyan-App-Icon",
-  "447": "HOKU – Brand-Kit v2 / Cyan",
-  "449": "Vor dem Einreichen — von dir",
-  "451": "gesten.test.ts",
-  "452": "capacitor.config.ts",
-  "453": "File Structure",
-  "454": "My Stack — Aufarbeitung des Anlege-Formulars",
-  "456": "schreibmarke.ts",
-  "457": "Blutwerte-Feinschliff – Design",
-  "458": "PeptideVialVisual.tsx",
-  "459": "supabase",
-  "460": "reflex.ts",
-  "462": "normalizeBarcode",
-=======
   "427": "Health.tsx",
   "428": "supabase-my-stack-tracking-depth.sql",
   "429": "substanzScan.test.ts",
@@ -228,7 +169,6 @@
   "467": "public.effect_symptoms",
   "468": "supabase-training.sql",
   "469": "Workflow",
->>>>>>> origin/main
   "470": "Animation der größten Veränderungen",
   "471": "MyStackPage.tsx",
   "472": "__VialPreview.tsx",

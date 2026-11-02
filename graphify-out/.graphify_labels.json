@@ -125,12 +125,9 @@
   "153": "compute-injection-site-presets.mjs",
   "154": "Auswertung.tsx",
   "155": "TrainingPage.tsx",
+  "158": "ProtocolPdfModal.tsx",
   "161": "training/i18n/index.ts",
-<<<<<<< HEAD
-  "165": "dot-meldungen.spec.ts",
-=======
   "163": "PeptideDetailPage.tsx",
->>>>>>> origin/main
   "166": "RoutineEditor.tsx",
   "169": "graphify skill trigger (/graphify)",
   "170": "Project graphify usage rules",
@@ -281,6 +278,7 @@
   "402": "The list",
   "403": "Erscheinungsbild (Looks)",
   "408": "Active Add-Vial Glow",
+  "412": "Ernährung: Kalorientracker (Etappe 1)",
   "413": "Hoku-Erkenntnisse (Stufe 1) — Design",
   "417": "Kalorientracker / Ernährung",
   "419": "Colour",
