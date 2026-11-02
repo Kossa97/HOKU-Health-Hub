@@ -853,8 +853,11 @@ export function createDot(host: DotHost): DotApi {
     const K = inEbene(karte.getBoundingClientRect()), fr = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
     const F = fr ? inEbene(fr) : undefined
     const r0 = loginGrundRadius(), vv = window.visualViewport
-    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste, im sichtbaren Ausschnitt
-    const oben = Math.max(0, vv ? vv.offsetTop : 0) - URS.y + OBEN + 4
+    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste, im sichtbaren Ausschnitt. Auf dem iPhone
+    // liegt die Ebene um offsetTop höher (URS.y = -offsetTop), die Rechtecke kommen aber schon bildschirmbezogen;
+    // in der Ebene ist der Bildschirmrand deshalb bei offsetTop (Messung 02.11.2026: oben ein zweites Mal
+    // URS abgezogen ließ ihn trotz Platz in die Ecke neben die Überschrift ausweichen)
+    const oben = Math.max(0, vv ? vv.offsetTop : 0) + OBEN + 4
     let unten = K.top + (1 - KANTE) * r0
     if (F && F.height) unten = Math.min(unten, F.top - 3)
     const raum = unten - oben
