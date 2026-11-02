@@ -818,7 +818,8 @@ export function createDot(host: DotHost): DotApi {
     return { x: S.x, y: S.y + B.login.n + B.login.rutsch }
   }
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
-  // auch bei offener Tastatur (Seite gescrollt) zu sehen (Nutzer 02.11.2026)
+  // auch bei offener Tastatur (Seite gescrollt) zu sehen. Die Überschrift der Karte (`data-dot-frei`) bleibt
+  // lesbar: sein unterer Rand endet knapp darüber (Nutzer 02.11.2026)
   const KANTE = 0.45
   function rutschZiel(mitte: number) {
     const el = document.activeElement
@@ -827,7 +828,10 @@ export function createDot(host: DotHost): DotApi {
     if (!karte || !karte.contains(el)) return 0
     // immer, solange ein Feld den Fokus hat: was das iPhone bei offener Tastatur als sichtbaren Bereich
     // meldet, ist nicht verlässlich; die Kante der Karte liegt dagegen sicher im Bild (dort wird getippt)
-    return Math.max(0, karte.getBoundingClientRect().top - KANTE * koerper() - mitte)
+    const r = koerper(), frei = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
+    let unten = karte.getBoundingClientRect().top + (1 - KANTE) * r
+    if (frei && frei.height) unten = Math.min(unten, frei.top - 3)
+    return Math.max(0, unten - r - mitte)
   }
   // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
