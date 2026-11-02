@@ -79,6 +79,7 @@ function hokuPunkte(o) {
     const u = zufall(i + 5001) * 2 - 1, w = zufall(i + 6001) * TAU, rr = Math.sqrt(1 - u * u)
     const d = 1.02 + 0.3 * Math.pow(zufall(i + 7001), 1.8), x = Math.cos(w) * rr * d, y = u * d, z = Math.sin(w) * rr
     const f = (z + 1) / 2, sicht = (0.15 + 0.55 * f) * (1 - (d - 1.02) / 0.34)
+    if (Math.hypot(x, y) < 0.92) continue // nicht vor der Kugel, nur am Rand
     out.push({ X: x, Y: y, Z: z, sicht, licht: 1, g: 0.5 + 0.5 * zufall(i + 8001) })
   }
   // zusätzliche Partikel der Form (gleichmäßige Kontur)

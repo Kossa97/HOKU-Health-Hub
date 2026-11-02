@@ -4,7 +4,7 @@
  * laufen innen in einem gerundeten Knick zusammen. Einheit: Armlänge = 1, Mitte (0, 0),
  * y nach unten. Gemessen an der Vorlage (1254 px): Mitte (627, 640), Armlänge 473 px.
  */
-window.MONO = { d: 0.275, w: 0.165, quer: 0.569, knick: 0.22, ende: 0.03 }
+window.MONO = { d: 0.275, w: 0.165, quer: 0.569, knick: 0.22, ende: 0.03, fuellen: true }
 
 /** Zeichnet das Monogramm in einen 2D-Kontext (Mitte cx, cy; Armlänge L px). w: Strichstärke. */
 window.zeichneMonogramm = function (ctx, cx, cy, L, m = MONO) {
@@ -36,6 +36,17 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
   zeichneMonogramm(ctx, N / 2, N / 2, L, m)
   const px = ctx.getImageData(0, 0, N, N).data, innen = new Uint8Array(N * N)
   for (let i = 0; i < N * N; i++) innen[i] = px[i * 4 + 3] > 127 ? 1 : 0
+  // Innenfläche füllen (Nutzer 02.11.2026: „das Innere weg"): alles, was von außen nicht
+  // erreichbar ist, gehört zur Form. Die offenen Kerben an den Armenden bleiben frei.
+  if (m.fuellen !== false) {
+    const aussen = new Uint8Array(N * N), stapel = [0]; aussen[0] = 1
+    while (stapel.length) {
+      const i = stapel.pop(), x = i % N, y = (i / N) | 0
+      for (const j of [x > 0 ? i - 1 : -1, x < N - 1 ? i + 1 : -1, y > 0 ? i - N : -1, y < N - 1 ? i + N : -1])
+        if (j >= 0 && !aussen[j] && !innen[j]) { aussen[j] = 1; stapel.push(j) }
+    }
+    for (let i = 0; i < N * N; i++) if (!aussen[i]) innen[i] = 1
+  }
   const edt = (ziel) => {
     const INF = 1e20, f = new Float64Array(N * N)
     for (let i = 0; i < N * N; i++) f[i] = innen[i] === ziel ? 0 : INF
@@ -70,6 +81,7 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
     return [gx / l, gy / l]
   }
   feld.innen = innen; feld.N = N; feld.L = L
+  let t = 0; for (let i = 0; i < N * N; i++) t = Math.min(t, S[i]); feld.tiefe = -t
   return feld
 }
 
@@ -87,11 +99,11 @@ window.monogrammPupille = function (m = MONO) {
   return {
     feld,
     punkt(a, x, y, z, aus, o) {
-      const M = o.mono, K = M.gross, W = M.band, h = (m.w / 2) * K
+      const M = o.mono, K = M.gross, W = M.band, h = feld.tiefe * K
       aus[0] = x; aus[1] = y; aus[2] = 1; aus[3] = 1; aus[4] = z
       const G = a.G, dd = x * G[0] + y * G[1] + z * G[2]
       if (dd > 0.2) {
-        const [pa, pb] = tang(a, x, y, z), s = feld(pa / K, pb / K) * K
+        const [pa, pb0] = tang(a, x, y, z), pb = pb0 - (M.dy || 0), s = feld(pa / K, pb / K) * K
         if (s < W) {
           const s2 = W * (s + h) / (W + h), dl = Math.max(0, s2 - s), [nx, ny] = feld.richtung(pa / K, pb / K)
           aus[0] += (nx * a.rx[0] + ny * a.uy[0]) * dl
@@ -100,7 +112,7 @@ window.monogrammPupille = function (m = MONO) {
         }
       } else if (z < 0) {
         // durch das Monogramm sähe man die Rückseite: dort nichts
-        const zf = Math.sqrt(Math.max(0, 1 - x * x - y * y)), [pa, pb] = tang(a, x, y, zf)
+        const zf = Math.sqrt(Math.max(0, 1 - x * x - y * y)), [pa, pb0] = tang(a, x, y, zf), pb = pb0 - (M.dy || 0)
         if (feld(pa / K, pb / K) < 0.01) aus[2] = 0.02
       }
     },
@@ -132,7 +144,7 @@ window.monogrammPupille = function (m = MONO) {
       konturPunkte.forEach(([u, v], i) => {
         // leicht außerhalb der Kante; mit konturStreu unregelmäßig in die Kante hinein verteilt
         const aus = M.band * (0.12 + st * Math.pow(zufall(i + 777), 1.6))
-        const [nx, ny] = feld.richtung(u, v), pa = (u * K) + nx * aus, pb = (v * K) + ny * aus
+        const [nx, ny] = feld.richtung(u, v), pa = (u * K) + nx * aus, pb = (v * K) + ny * aus + (M.dy || 0)
         const t = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb)), G = a.G
         const x = G[0] * t + pa * a.rx[0] + pb * a.uy[0], y = G[1] * t + pb * a.uy[1], z = G[2] * t + pa * a.rx[2] + pb * a.uy[2]
         const q = Math.min(1, aus / M.band)
