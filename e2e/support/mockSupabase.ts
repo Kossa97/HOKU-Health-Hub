@@ -1072,7 +1072,14 @@ export class MockSupabase {
         effect = Object.assign(found, fields)
         this.tables.set('effect_symptoms', this.table('effect_symptoms').filter(row => row.effect_id !== effect.id))
       } else {
-        effect = this.insert('effects', { user_id: TEST_USER.id, status: 'eingetreten', ...fields })
+        // Wie supabase-tagebuch-offline-id.sql: eine id vom Geraet macht das Anlegen wiederholbar.
+        const clientId = entry.id ? String(entry.id) : null
+        const existing = clientId ? this.table('effects').find(row => row.id === clientId) : undefined
+        if (existing) {
+          if (existing.user_id !== TEST_USER.id) throw new RpcError('diary_entry_id_taken')
+          return existing.id
+        }
+        effect = this.insert('effects', { ...(clientId ? { id: clientId } : {}), user_id: TEST_USER.id, status: 'eingetreten', ...fields })
       }
       chips.forEach((chip, position) => this.insert('effect_symptoms', {
         effect_id: effect.id, user_id: TEST_USER.id,

@@ -7,6 +7,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageGate } from './LanguageGate'
 import { useAuth } from '../context/AuthContext'
+import { useTagebuchOfflineSync } from '../pages/tagebuch/useTagebuchOfflineSync'
 import { usePushNotifications } from '../lib/usePushNotifications'
 import { PushNotificationListener } from './PushNotificationListener'
 import { BottomNavigation } from './navigation/BottomNavigation'
@@ -45,6 +46,7 @@ export function Layout() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { user } = useAuth()
+  useTagebuchOfflineSync(user?.id)
   const { state: pushState, subscribe } = usePushNotifications(user)
 
   const [showPushBanner,    setShowPushBanner]    = useState(false)

@@ -13,7 +13,7 @@ import {
   parseISO, startOfDay,
 } from 'date-fns'
 import {
-  AlertTriangle, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
+  AlertTriangle, BookHeart, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
   Layers, Lock, Minus, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -2670,7 +2670,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       : null
     const wiederOeffnen = log.taken !== null && kannWiederGeoeffnetWerden(log)
     const loeschbar = !FEATURES.planTimelineV2 || log.taken === null
-    const hatAktionen = wiederOeffnen || loeschbar || log.taken === null
+    // Genommen und einer Substanz zugeordnet: ein Tagebuch-Eintrag dazu ist ein Tipp entfernt
+    const tagebuch = log.taken === true && !!log.stack_item_id
+    const hatAktionen = wiederOeffnen || loeschbar || log.taken === null || tagebuch
     const offen = hatAktionen && aufgeklappterLog === log.id
     const menge = formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
 
@@ -2761,6 +2763,15 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 data-quiet
                 className="lg-gray-btn !px-3.5 !text-[13px]">
                 <RotateCcw size={14} aria-hidden="true" /> {t('dose_reopen', { defaultValue: 'Wieder öffnen' })}
+              </button>
+            )}
+            {tagebuch && (
+              <button
+                type="button"
+                data-tagebuch-aus-einnahme
+                onClick={() => navigate(`/tagebuch?einnahme=${encodeURIComponent(log.id)}`)}
+                className="lg-gray-btn !px-3.5 !text-[13px]">
+                <BookHeart size={14} aria-hidden="true" /> {t('tagebuch_aus_einnahme')}
               </button>
             )}
             {loeschbar && (

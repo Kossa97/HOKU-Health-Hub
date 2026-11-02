@@ -1,4 +1,5 @@
 import type { Breadcrumb, ErrorEvent } from '@sentry/react'
+import { NETWORK_FAILURE_MESSAGES } from './networkErrors'
 
 /**
  * Fehler-Monitoring (Sentry).
@@ -34,9 +35,7 @@ const SAFE_MESSAGES: readonly RegExp[] = [
   /^Invalid stack item( setup)? draft(: [\w., ]+)?$/,
   /^My Stack: kein angemeldeter Nutzer$/,
   /^(save_stack_item|save_stack_item_with_plan) returned no data$/,
-  /^Failed to fetch$/,
-  /^Load failed$/,
-  /^NetworkError when attempting to fetch resource\.?$/,
+  ...NETWORK_FAILURE_MESSAGES,
   /^The (operation|user) (was )?abort(ed|ed a request)\.?$/i,
   /^Failed to fetch dynamically imported module/,
   /^error loading dynamically imported module/,

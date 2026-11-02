@@ -1,0 +1,389 @@
+<title>Hoku Werkbank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: eine Spalte. Oben "Für dich zu tun", dann Filter, Ideen, Arbeiten nach "wer ist dran" gruppiert */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --line:#dfe3df; --fg:#1b2420; --muted:#5f6b65;
+  --accent:#1f6f5c; --accent-soft:#e2efea; --on-accent:#ffffff;
+  --wait:#b4541a; --wait-soft:#fbeadf; --run:#1f6f5c; --run-soft:#e2efea;
+  --pause:#5d6280; --pause-soft:#eceef4; --done:#6f7a74; --done-soft:#eef0ee;
+  --warn:#8a5a00; --warn-soft:#fff3d6; --star:#b07d00;
+  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --line:#2c3531; --fg:#e6ece9; --muted:#9aa7a0;
+  --accent:#5cc3a6; --accent-soft:#1f3a32; --on-accent:#0e1512;
+  --wait:#f0965c; --wait-soft:#3a2518; --run:#5cc3a6; --run-soft:#1f3a32;
+  --pause:#a6abc6; --pause-soft:#272a38; --done:#8b968f; --done-soft:#242a27;
+  --warn:#f2c453; --warn-soft:#3a3018; --star:#f2c453; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --line:#2c3531; --fg:#e6ece9; --muted:#9aa7a0;
+  --accent:#5cc3a6; --accent-soft:#1f3a32; --on-accent:#0e1512;
+  --wait:#f0965c; --wait-soft:#3a2518; --run:#5cc3a6; --run-soft:#1f3a32;
+  --pause:#a6abc6; --pause-soft:#272a38; --done:#8b968f; --done-soft:#242a27;
+  --warn:#f2c453; --warn-soft:#3a3018; --star:#f2c453; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+h2{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.section{display:flex;flex-direction:column;gap:10px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+
+/* Für dich zu tun */
+.todo{border:2px solid var(--wait);background:var(--surface)}
+.todo h2{color:var(--wait);font-size:15px;text-transform:none;letter-spacing:0}
+.task{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.task:first-of-type{border-top:0}
+.task input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.task .t{flex:1;min-width:0}
+.task .from{display:block;font-size:12px;color:var(--muted)}
+.task.done .txt{text-decoration:line-through;color:var(--muted)}
+.qmark{flex:none;width:18px;height:18px;border-radius:50%;background:var(--wait);color:var(--surface);font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:3px}
+.calm{color:var(--muted);font-size:14px}
+
+/* Filter */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip b{font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px}
+.warn strong{display:block}
+
+/* Eingaben */
+label.k,.k{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+textarea,input[type=text],select{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{width:100%;min-height:64px;resize:vertical}
+.row select{flex:1;min-width:0}
+button{font:inherit;cursor:pointer}
+.primary{font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:8px;padding:8px 16px}
+.ghost{font-size:13px;font-weight:600;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+.ghost[aria-pressed="true"]{border-color:var(--star);color:var(--star)}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Karten */
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.head h3{font-size:17px;margin:0;text-wrap:balance;min-width:0;flex:1}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.b-start{background:var(--warn-soft);color:var(--star)}
+.b-still{background:var(--pause-soft);color:var(--pause)}
+.what{color:var(--muted);margin:-6px 0 0;font-size:14px}
+.ask{background:var(--wait-soft);color:var(--wait);border-radius:10px;padding:10px 12px;font-size:14px}
+.ask strong{display:block}
+.lines{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.lines dt{color:var(--muted);font-weight:600}
+.lines dd{margin:0;min-width:0}
+.lines .ago{color:var(--muted);font-size:12px;margin-left:6px;white-space:nowrap}
+
+/* Fortschritts-Stufen */
+.steps{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.steps li{flex:1;display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--muted);min-width:0}
+.steps li::before{content:"";height:6px;border-radius:3px;background:var(--line)}
+.steps li.past::before{background:var(--c)}
+.steps li.now::before{background:var(--c)}
+.steps li.now{color:var(--fg);font-weight:700}
+.steps span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.actions select{font-size:13px;padding:6px 8px;border-radius:8px}
+.copied{font-size:12px;color:var(--accent)}
+.copybox{width:100%;font-size:13px}
+
+details.tech{border-top:1px dashed var(--line);padding-top:10px}
+details.tech summary{cursor:pointer;color:var(--muted);font-size:13px}
+details.tech .in{display:flex;flex-direction:column;gap:8px;margin-top:8px;font-size:13px}
+details.tech ul{margin:0;padding-left:18px}
+details.tech dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;color:var(--muted)}
+details.tech dd{margin:0;overflow-wrap:anywhere}
+details.tech a{color:var(--accent)}
+
+.ideas{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.idea{display:flex;gap:8px;align-items:flex-start;font-size:14px;flex-wrap:wrap}
+.idea input[type=checkbox]{margin-top:4px;accent-color:var(--accent)}
+.idea .txt{flex:1;min-width:0}
+.idea.done .txt{text-decoration:line-through;color:var(--muted)}
+.idea time{display:block;color:var(--muted);font-size:11px}
+.idea.done time{text-decoration:none}
+.idea .x{background:none;border:0;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
+.idea .take{font-size:12px;padding:3px 10px}
+.idea .taken{font-size:12px;color:var(--accent);width:100%;padding-left:26px}
+.addidea{display:flex;gap:6px}
+.addidea input{flex:1;min-width:0;font-size:15px;padding:6px 8px}
+.addidea button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:0 12px}
+details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:20px;color:var(--muted);font-size:14px}
+.note{color:var(--muted);font-size:13px}
+@media (max-width:420px){.steps span{font-size:10px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Hoku Werkbank</h1>
+    <p class="sub" id="status">Lade Arbeiten …</p>
+  </header>
+
+  <section class="box todo" aria-labelledby="todo-h">
+    <h2 id="todo-h">Für dich zu tun</h2>
+    <div id="todo"><p class="calm">Lade …</p></div>
+  </section>
+
+  <div class="section">
+    <div class="chips" id="chips" role="group" aria-label="Arbeiten filtern"></div>
+    <div id="warnings" class="section"></div>
+  </div>
+
+  <form class="box" id="quick">
+    <label class="k" for="q-text">Idee aufschreiben</label>
+    <textarea id="q-text" placeholder="Was ist dir eingefallen?"></textarea>
+    <div class="row">
+      <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört die Idee"></select>
+      <button class="primary" type="submit">Speichern</button>
+    </div>
+  </form>
+
+  <div id="list" class="section"></div>
+
+  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Fenster öffnen“ funktioniert nur in der Claude-App am Computer.</p>
+</div>
+
+<script>
+const ORDER=["wartet","laeuft","pausiert","fertig"];
+const META={
+  wartet:{label:"Wartet auf dich",short:"Du bist dran",c:"--wait",cs:"--wait-soft"},
+  laeuft:{label:"In Arbeit",short:"Claude ist dran",c:"--run",cs:"--run-soft"},
+  pausiert:{label:"Pausiert",short:"Pausiert",c:"--pause",cs:"--pause-soft"},
+  fertig:{label:"Erledigt",short:"Erledigt",c:"--done",cs:"--done-soft"}
+};
+const STUFEN=[["idee","Idee"],["geplant","Geplant"],["bau","Wird gebaut"],["pruefung","Wird geprüft"],["live","In der App"]];
+const STILL_TAGE=14;
+let arbeiten=[],ideen=[],filter=null,db=null,readOnly=false;
+const $=s=>document.querySelector(s);
+const el=(t,props={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(props)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}for(const k of kids)if(k!=null&&k!==false)e.append(k);return e};
+const tageHer=iso=>iso?Math.floor((Date.now()-new Date(iso))/864e5):0;
+function ago(iso){if(!iso)return"";const d=(Date.now()-new Date(iso))/60000;if(d<1)return"gerade eben";if(d<60)return`vor ${Math.round(d)} Min.`;const h=d/60;if(h<24)return`vor ${Math.round(h)} Std.`;const t=Math.round(h/24);return t===1?"gestern":`vor ${t} Tagen`}
+const liegtStill=a=>a.status!=="fertig"&&tageHer(a.aktualisiert)>=STILL_TAGE;
+const deinTeil=a=>Array.isArray(a.deinTeil)?a.deinTeil.map(x=>typeof x==="string"?{text:x,erledigt:false}:x):[];
+
+async function save(path,data){if(!db||readOnly)return;try{await db.doc(path).update(data)}catch(e){fail(e)}}
+function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#status").textContent="Speichern hat nicht geklappt. Bitte die Seite neu laden und noch einmal versuchen."}
+
+function render(){
+  // halbfertige Eingaben überleben neue Daten aus anderen Fenstern
+  const drafts={};document.querySelectorAll(".addidea input").forEach(i=>{if(i.value)drafts[i.id]=i.value});
+  const focusId=document.activeElement?.id;
+  draw();
+  for(const[id,v]of Object.entries(drafts)){const i=document.getElementById(id);if(i)i.value=v}
+  if(focusId)document.getElementById(focusId)?.focus();
+}
+
+function draw(){
+  drawTodo();drawChips();drawWarnings();drawQuickSelect();
+  const list=$("#list");list.replaceChildren();
+
+  const eingang=ideen.filter(i=>!i.arbeit||!arbeiten.some(a=>a.id===i.arbeit));
+  if(eingang.length&&!filter){
+    const s=el("section",{class:"section"},el("h2",{text:"Ideen ohne Arbeit"}));
+    s.append(el("div",{class:"box"},ideasBlock(eingang,"",true)));list.append(s);
+  }
+  if(!arbeiten.length){list.append(el("div",{class:"empty",text:"Noch keine Arbeiten eingetragen. Sobald ein Claude-Fenster seine Runde beendet, erscheint es hier."}));return}
+
+  let shown=arbeiten;
+  if(filter==="start")shown=arbeiten.filter(a=>a.fuerStart);
+  else if(filter==="still")shown=arbeiten.filter(liegtStill);
+  else if(filter)shown=arbeiten.filter(a=>a.status===filter);
+  if(!shown.length){list.append(el("div",{class:"empty",text:"Keine Arbeiten für diesen Filter."}));return}
+
+  for(const s of ORDER){
+    const items=shown.filter(a=>(a.status||"laeuft")===s).sort((a,b)=>(b.fuerStart?1:0)-(a.fuerStart?1:0)||(b.aktualisiert||"").localeCompare(a.aktualisiert||""));
+    if(!items.length)continue;
+    const g=el("section",{class:"section"});
+    if(s==="fertig"&&!filter){
+      const d=el("details",{class:"donegroup"},el("summary",{text:`${META[s].label} (${items.length})`}));
+      const inner=el("div",{class:"section"});inner.style.marginTop="10px";inner.append(...items.map(card));d.append(inner);g.append(d);
+    }else g.append(el("h2",{text:`${META[s].label} (${items.length})`}),...items.map(card));
+    list.append(g);
+  }
+}
+
+function drawTodo(){
+  const box=$("#todo");box.replaceChildren();
+  let n=0;
+  for(const a of arbeiten){
+    if(a.status==="wartet"&&a.wartetAuf){
+      n++;
+      const t=el("div",{class:"t"},el("span",{class:"txt",text:a.wartetAuf}),el("span",{class:"from",text:`Frage aus „${a.titel}“, im Fenster beantworten`}));
+      box.append(el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,copyButton(a)));
+    }
+    deinTeil(a).forEach((d,idx)=>{
+      if(d.erledigt)return;n++;
+      const cb=el("input",{type:"checkbox",id:`dt-${a.id}-${idx}`,"aria-label":"Erledigt"});cb.disabled=readOnly;
+      cb.addEventListener("change",()=>{const list=deinTeil(a);list[idx]={...list[idx],erledigt:cb.checked};save(`arbeiten/${a.id}`,{deinTeil:list})});
+      box.append(el("div",{class:"task"},cb,el("label",{class:"t",for:`dt-${a.id}-${idx}`},el("span",{class:"txt",text:d.text}),el("span",{class:"from",text:`für „${a.titel}“`}))));
+    });
+  }
+  if(!n)box.append(el("p",{class:"calm",text:"Gerade hängt nichts an dir."}));
+}
+
+function drawChips(){
+  const chips=$("#chips");chips.replaceChildren();
+  const add=(key,label,count,color)=>{
+    const b=el("button",{class:"chip",type:"button","aria-pressed":String(filter===key),onclick:()=>{filter=filter===key?null:key;render()}});
+    if(color){const d=el("span",{class:"dot"});d.style.background=`var(${color})`;b.append(d)}
+    b.append(el("span",{text:label}),el("b",{text:String(count)}));chips.append(b);
+  };
+  for(const s of ORDER)add(s,META[s].label,arbeiten.filter(a=>a.status===s).length,META[s].c);
+  add("start","★ Für den Start nötig",arbeiten.filter(a=>a.fuerStart&&a.status!=="fertig").length);
+  add("still","Liegt still",arbeiten.filter(liegtStill).length);
+}
+
+function drawWarnings(){
+  const w=$("#warnings");w.replaceChildren();
+  const byFolder={};
+  for(const a of arbeiten){if(a.status==="fertig"||!a.ordner)continue;(byFolder[a.ordner]??=[]).push(a)}
+  for(const list of Object.values(byFolder)){
+    if(list.length<2)continue;
+    const box=el("div",{class:"warn"},el("strong",{text:`${list.length} Arbeiten basteln an derselben Stelle`}));
+    box.append(document.createTextNode(`${list.map(a=>a.titel).join(", ")}. Sie können sich gegenseitig in die Quere kommen. Sag dem nächsten Fenster einer dieser Arbeiten: „Zieh in einen eigenen Arbeitsbereich um.“`));
+    w.append(box);
+  }
+}
+
+function drawQuickSelect(){
+  const sel=$("#q-arbeit"),cur=sel.value;sel.replaceChildren(el("option",{value:"",text:"Neue Arbeit / allgemein"}));
+  for(const a of arbeiten.filter(a=>a.status!=="fertig"))sel.append(el("option",{value:a.id,text:a.titel}));
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:"";
+}
+
+function copyButton(a){
+  const wrap=el("span",{class:"actions"});
+  const text=`Mach mit der Arbeit „${a.titel}“ weiter. Lies zuerst ihren Eintrag „${a.id}“ in der Hoku Werkbank: Stand, offene Punkte und meine Ideen.`;
+  const b=el("button",{class:"ghost",type:"button",text:"Weitermachen"});
+  b.title="Kopiert einen Satz, den du in ein neues Claude-Fenster einfügst";
+  b.addEventListener("click",()=>{
+    const done=()=>{b.textContent="Kopiert ✓";setTimeout(()=>b.textContent="Weitermachen",2000)};
+    const fallback=()=>{if(wrap.querySelector("input"))return;const i=el("input",{type:"text",class:"copybox","aria-label":"Text zum Kopieren"});i.value=text;wrap.append(i);i.select()};
+    try{navigator.clipboard.writeText(text).then(done,fallback)}catch(e){fallback()}
+  });
+  wrap.append(b);return wrap;
+}
+
+function card(a){
+  const m=META[a.status]||META.laeuft;
+  const c=el("article",{class:"card"});c.style.setProperty("--c",`var(${m.c})`);
+
+  const badges=el("div",{class:"badges"});
+  if(a.fuerStart)badges.append(el("span",{class:"badge b-start",text:"★ Für den Start"}));
+  if(liegtStill(a))badges.append(el("span",{class:"badge b-still",text:`Liegt seit ${tageHer(a.aktualisiert)} Tagen still`}));
+  c.append(el("div",{class:"head"},el("h3",{text:a.titel}),badges));
+  if(a.wasIstDas)c.append(el("p",{class:"what",text:a.wasIstDas}));
+
+  // Fortschritt
+  const idx=STUFEN.findIndex(([k])=>k===a.stufe);
+  if(idx>=0){
+    const ol=el("ol",{class:"steps","aria-label":`Fortschritt: ${STUFEN[idx][1]}`});
+    STUFEN.forEach(([,label],i)=>ol.append(el("li",{class:i<idx?"past":i===idx?"now":""},el("span",{text:label}))));
+    c.append(ol);
+  }
+
+  if(a.status==="wartet"&&a.wartetAuf)c.append(el("div",{class:"ask"},el("strong",{text:"Wartet auf deine Antwort"}),a.wartetAuf));
+
+  const dl=el("dl",{class:"lines"});
+  if(a.letzterSchritt)dl.append(el("dt",{text:"Zuletzt"}),el("dd",{},a.letzterSchritt,el("span",{class:"ago",text:ago(a.aktualisiert)})));
+  if(a.naechsterSchritt)dl.append(el("dt",{text:"Als Nächstes"}),el("dd",{text:a.naechsterSchritt}));
+  const offenDu=deinTeil(a).filter(d=>!d.erledigt);
+  if(offenDu.length)dl.append(el("dt",{text:"Von dir"}),el("dd",{text:offenDu.map(d=>d.text).join(" · ")}));
+  if(dl.childNodes.length)c.append(dl);
+
+  // Aktionen
+  const act=el("div",{class:"actions"});
+  const st=el("select",{"aria-label":`Wer ist dran bei ${a.titel}`,id:`st-${a.id}`});
+  for(const s of ORDER)st.append(el("option",{value:s,text:META[s].short}));
+  st.value=a.status||"laeuft";st.disabled=readOnly;
+  st.addEventListener("change",()=>save(`arbeiten/${a.id}`,{status:st.value,aktualisiert:new Date().toISOString()}));
+  const star=el("button",{class:"ghost",type:"button","aria-pressed":String(!!a.fuerStart),text:a.fuerStart?"★ Für den Start nötig":"☆ Für den Start nötig?"});
+  star.disabled=readOnly;star.addEventListener("click",()=>save(`arbeiten/${a.id}`,{fuerStart:!a.fuerStart}));
+  act.append(st,star);
+  if(a.status!=="fertig")act.append(copyButton(a));
+  c.append(act);
+
+  // Technik-Details
+  const offen=Array.isArray(a.offen)?a.offen:[];
+  const tech=el("details",{class:"tech"},el("summary",{text:`Technik-Details${offen.length?` · ${offen.length} ${offen.length===1?"offener Punkt":"offene Punkte"} für Claude`:""}`}));
+  const inner=el("div",{class:"in"});
+  if(offen.length){const u=el("ul");offen.forEach(o=>u.append(el("li",{text:o})));inner.append(el("div",{},el("div",{class:"k",text:"Offen für Claude"}),u))}
+  const meta=el("dl");
+  if(a.branch)meta.append(el("dt",{text:"Branch"}),el("dd",{text:a.branch}));
+  if(a.ordner)meta.append(el("dt",{text:"Ordner"}),el("dd",{text:a.ordner}));
+  if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("dt",{text:"Pull Request"}),el("dd",{},el("a",{href:a.pr,target:"_blank",rel:"noopener",text:a.pr.replace(/^https:\/\/github\.com\//,"")})));
+  if(a.sitzungLink&&/^claude:\/\//.test(a.sitzungLink))meta.append(el("dt",{text:"Fenster"}),el("dd",{},el("a",{href:a.sitzungLink,text:"Fenster öffnen"})));
+  if(meta.childNodes.length)inner.append(meta);
+  if(inner.childNodes.length){tech.append(inner);c.append(tech)}
+
+  c.append(ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id,false));
+  return c;
+}
+
+function ideasBlock(list,arbeitId,eingang){
+  const box=el("div",{class:"ideas"},eingang?null:el("div",{class:"k",text:list.length?`Ideen (${list.length})`:"Ideen"}));
+  if(eingang){box.style.borderTop="0";box.style.paddingTop="0"}
+  for(const i of [...list].sort((x,y)=>(x.erledigt-y.erledigt)||(y.am||"").localeCompare(x.am||""))){
+    const cb=el("input",{type:"checkbox","aria-label":"Erledigt",id:`i-${i.id}`});cb.checked=!!i.erledigt;cb.disabled=readOnly;
+    cb.addEventListener("change",()=>save(`ideen/${i.id}`,{erledigt:cb.checked}));
+    const row=el("div",{class:"idea"+(i.erledigt?" done":"")},cb,el("span",{class:"txt"},i.text,el("time",{text:ago(i.am)})));
+    if(eingang&&!i.erledigt&&!readOnly){
+      const take=el("button",{class:"ghost take",type:"button","aria-pressed":String(!!i.uebernehmen),text:i.uebernehmen?"Wird übernommen":"Daraus eine Arbeit machen"});
+      take.addEventListener("click",()=>save(`ideen/${i.id}`,{uebernehmen:!i.uebernehmen}));
+      row.append(take);
+    }
+    if(!readOnly){
+      const rm=el("button",{class:"x",type:"button","aria-label":"Idee löschen",text:"×"});
+      rm.addEventListener("click",async()=>{if(rm.dataset.armed){try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}}else{rm.dataset.armed="1";rm.textContent="löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.textContent="×"},3000)}});
+      row.append(rm);
+    }
+    if(eingang&&i.uebernehmen&&!i.erledigt)row.append(el("span",{class:"taken",text:"Das nächste Claude-Fenster legt daraus eine Arbeit an."}));
+    box.append(row);
+  }
+  if(!readOnly){
+    const inp=el("input",{type:"text",placeholder:eingang?"Noch eine Idee …":"Idee für diese Arbeit …",id:`add-${arbeitId||"allg"}`,"aria-label":"Neue Idee"});
+    const f=el("form",{class:"addidea"},inp,el("button",{type:"submit",text:"+"}));
+    f.addEventListener("submit",async ev=>{ev.preventDefault();const t=inp.value.trim();if(!t)return;inp.value="";await addIdea(t,arbeitId)});
+    box.append(f);
+  }
+  return box;
+}
+
+async function addIdea(text,arbeit){
+  if(!db)return;
+  try{await db.collection("ideen").add({text,arbeit:arbeit||"",am:new Date().toISOString(),erledigt:false,uebernehmen:false})}catch(e){fail(e)}
+}
+
+$("#quick").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#q-text").value.trim();if(!t)return;$("#q-text").value="";await addIdea(t,$("#q-arbeit").value)});
+
+render();
+(async()=>{
+  db=await window.claude?.use?.("db");
+  if(!db){$("#status").textContent="Die Daten sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet in claude.ai.";$("#quick").hidden=true;$("#todo").replaceChildren();return}
+  const timer=setTimeout(()=>{$("#status").textContent="Die Daten sind gerade nicht erreichbar. Was du siehst, ist vielleicht nicht aktuell."},10000);
+  let loaded=false;
+  db.collection("arbeiten").onSnapshot(s=>{
+    arbeiten=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(!s.metadata.fromCache){clearTimeout(timer);loaded=true}
+    const offen=arbeiten.filter(a=>a.status!=="fertig").length;
+    const du=arbeiten.reduce((n,a)=>n+(a.status==="wartet"&&a.wartetAuf?1:0)+deinTeil(a).filter(d=>!d.erledigt).length,0);
+    $("#status").textContent=loaded?`${offen} offene Arbeiten · ${du?`${du} ${du===1?"Sache wartet":"Sachen warten"} auf dich`:"nichts wartet auf dich"}`:"Lade Arbeiten …";
+    render();
+  },()=>{clearTimeout(timer);$("#status").textContent="Die Arbeiten konnten nicht geladen werden. Bitte die Seite neu laden."});
+  db.collection("ideen").onSnapshot(s=>{ideen=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{});
+})();
+</script>

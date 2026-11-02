@@ -4,6 +4,8 @@ import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { Info, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { enqueue, isNetworkError, newEntryId } from '../../lib/tagebuch/offlineQueue'
+import { stoerungsZustand } from '../../lib/stoerung'
 import { getDateLocale } from '../../i18n/dateLocales'
 import { INTAKE_COLUMNS, INTAKE_OPTIONS, intakeDose, intakeWhen, type IntakeOption } from './intake'
 import { SymptomChip } from './SymptomChip'
@@ -27,9 +29,17 @@ interface FormState {
   chips: ChipDraft[]
 }
 
-function initialState(entry: DiaryEntry | null): FormState {
+/** Neuer Eintrag zu einer bestimmten Einnahme (aus dem Kalender). */
+export interface EntryPrefill { stack_item_id: string; dose_log_id: string; occurred_at: Date }
+
+function initialState(entry: DiaryEntry | null, prefill?: EntryPrefill | null): FormState {
   if (!entry) {
-    return { title: '', occurred_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"), stack_item_id: '', dose_log_id: '', notes: '', chips: [] }
+    // Der Eintrag liegt nie vor der Einnahme — sonst stünde sie nicht zur Wahl.
+    const at = prefill && prefill.occurred_at.getTime() > Date.now() ? prefill.occurred_at : new Date()
+    return {
+      title: '', occurred_at: format(at, "yyyy-MM-dd'T'HH:mm"),
+      stack_item_id: prefill?.stack_item_id ?? '', dose_log_id: prefill?.dose_log_id ?? '', notes: '', chips: [],
+    }
   }
   const rows = sortedChips(entry)
   // Ältere Einträge ohne Chips: ihre Wirkung wird ein eigener Chip.
@@ -51,17 +61,18 @@ function initialState(entry: DiaryEntry | null): FormState {
  * Wirkungen/Nebenwirkungen als Chips mit eigenem Editor, Notizen.
  * Planung und Entscheidungen: memory/projects/tagebuch.md.
  */
-export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
+export function EntryForm({ userId, stackItems, entry, prefill, onClose, onSaved }: {
   userId: string
   stackItems: StackItem[]
   entry: DiaryEntry | null
+  prefill?: EntryPrefill | null
   onClose: () => void
   onSaved: () => void
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const locale = getDateLocale()
-  const [atOpen] = useState(() => initialState(entry))
+  const [atOpen] = useState(() => initialState(entry, prefill))
   const [form, setForm] = useState(atOpen)
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState<SymptomKind>('effect')
@@ -140,7 +151,20 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
       notes: form.notes.trim() || null,
     }
     const chips = chipPayload(form.chips)
-    const { error } = await supabase.rpc('save_diary_entry', { p_effect_id: entry?.id ?? null, p_entry: fields, p_chips: chips })
+    // Neue Einträge bekommen ihre id hier: ein späterer Versuch ohne Netz trifft
+    // dieselbe Zeile, statt eine zweite anzulegen.
+    const newId = entry ? null : newEntryId()
+    const { error } = await supabase.rpc('save_diary_entry', {
+      p_effect_id: entry?.id ?? null, p_entry: newId ? { ...fields, id: newId } : fields, p_chips: chips,
+    })
+    // Kein Netz — oder Supabase ausgefallen (502/503: stoerung.ts meldet dann „offline“)
+    if (error && (isNetworkError(error) || stoerungsZustand().verbindung === 'offline')) {
+      if (!newId) { toast.error(t('tagebuch_offline_bearbeiten')); return }
+      enqueue({ id: newId, user_id: userId, entry: fields, chips })
+      toast(t('tagebuch_offline_gemerkt'))
+      onSaved()
+      return
+    }
     if (error) {
       toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return

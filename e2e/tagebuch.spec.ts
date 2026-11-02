@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
 import { RpcError, TEST_USER, type MockSupabase } from './support/mockSupabase'
 import { seedPeptide } from './support/myStack'
+import { confirmHomeRoutine, expectCalendarTaken, seedTrackedIntake } from './support/intake'
 
 /**
  * Tagebuch v2: Eintrag mit Titel, optionaler Substanz und Chips (Wirkungen,
@@ -658,4 +659,97 @@ test('Auswertung: Tabellenkopf nennt Wirkung und Nebenwirkung in Worten', async 
     await page.locator('[data-tagebuch-substanzen]').scrollIntoViewIfNeeded()
     await page.screenshot({ path: info.outputPath('tabelle.png') })
   }
+})
+
+test('Ohne Netz: neuer Eintrag wird gemerkt und beim Zurueckkommen gesendet – genau einmal, mit Chips', async ({ page, mock }) => {
+  await page.goto('/tagebuch')
+  await expect(page.getByText('Noch keine Einträge', { exact: false })).toBeVisible()
+  // Nur das Speichern scheitert am Netz, wie in einem Funkloch.
+  await page.route('**/rest/v1/rpc/save_diary_entry', route => route.abort('internetdisconnected'))
+
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Im Funkloch')
+  await waehleChip(page, 'Rötung', 2)
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(page.locator('[data-tagebuch-offline]')).toHaveText('1 Eintrag wartet auf Verbindung.')
+  expect(mock.table('effects')).toHaveLength(0)
+
+  // Neu laden haelt den Eintrag – er liegt im Geraet.
+  await page.reload()
+  await expect(page.locator('[data-tagebuch-offline]')).toBeVisible()
+
+  await page.unroute('**/rest/v1/rpc/save_diary_entry')
+  await page.evaluate(() => window.dispatchEvent(new Event('online')))
+  await expect(page.locator('[data-tagebuch-offline]')).toHaveCount(0)
+  await expect(page.locator('ul > li').first()).toContainText('Im Funkloch')
+  expect(mock.table('effects')).toHaveLength(1)
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
+  expect(await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('tyd_tagebuch_offline_')))).toEqual([])
+})
+
+test('Ohne Netz: kam der erste Versuch doch an, legt der zweite nichts doppelt an', async ({ page, mock }) => {
+  await page.goto('/tagebuch')
+  // Die Anfrage erreicht den Server, nur die Antwort geht verloren.
+  await page.route('**/rest/v1/rpc/save_diary_entry', async route => {
+    const body = route.request().postDataJSON() as { p_entry: Record<string, unknown>; p_chips: unknown[] }
+    mock.callRpc('save_diary_entry', { p_effect_id: null, p_entry: body.p_entry, p_chips: body.p_chips })
+    await route.abort('internetdisconnected')
+  })
+  await page.getByRole('button', { name: 'Neu' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Doppelt?')
+  await waehleChip(page, 'Rötung', 2)
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.locator('[data-tagebuch-offline]')).toBeVisible()
+  expect(mock.table('effects')).toHaveLength(1)
+
+  await page.unroute('**/rest/v1/rpc/save_diary_entry')
+  await page.evaluate(() => window.dispatchEvent(new Event('online')))
+  await expect(page.locator('[data-tagebuch-offline]')).toHaveCount(0)
+  expect(mock.table('effects')).toHaveLength(1)
+  expect(mock.table('effect_symptoms')).toHaveLength(1)
+})
+
+test('Ohne Netz: Bearbeiten wird nicht gemerkt, sondern klar gemeldet', async ({ page, mock }) => {
+  eintrag(mock, {})
+  await page.goto('/tagebuch')
+  await page.route('**/rest/v1/rpc/save_diary_entry', route => route.abort('internetdisconnected'))
+  await page.getByRole('button', { name: 'Eintrag bearbeiten' }).click()
+  const dialog = formular(page)
+  await dialog.getByLabel('Titel').fill('Geaendert')
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(page.getByText('Keine Verbindung – Änderungen lassen sich nur online speichern.')).toBeVisible()
+  await expect(dialog).toBeVisible()
+  await expect(page.locator('[data-tagebuch-offline]')).toHaveCount(0)
+})
+
+test('Aus dem Kalender: „Tagebuch-Eintrag" an einer genommenen Einnahme oeffnet das Formular mit Substanz und Einnahme', async ({ page, mock }) => {
+  seedTrackedIntake(mock)
+  await page.goto('/')
+  await confirmHomeRoutine(page)
+  await expect.poll(() => mock.table('dose_logs').length).toBe(1)
+  const log = mock.table('dose_logs')[0]
+  await expectCalendarTaken(page)
+
+  await page.getByRole('button', { name: 'Tagebuch-Eintrag' }).click()
+  await expect(page).toHaveURL(/\/tagebuch$/)
+  const dialog = page.getByRole('dialog', { name: 'Neuer Tagebuch-Eintrag' })
+  await expect(dialog.getByLabel('Substanz')).toHaveValue(String(log.stack_item_id))
+  await expect(dialog.getByLabel('Bezug zur Einnahme (optional)')).toHaveValue(String(log.id))
+
+  await dialog.getByLabel('Titel').fill('Nach der Injektion')
+  await waehleChip(page, 'Rötung', 2)
+  await dialog.getByRole('button', { name: 'Speichern' }).click()
+  await expect(dialog).toBeHidden()
+  expect(mock.table('effects')[0]).toMatchObject({ description: 'Nach der Injektion', dose_log_id: log.id, stack_item_id: log.stack_item_id })
+})
+
+test('Aus dem Kalender: eine unbekannte Einnahme meldet sich, statt ein leeres Formular zu oeffnen', async ({ page, mock }) => {
+  void mock
+  await page.goto('/tagebuch?einnahme=00000000-0000-0000-0000-000000000000')
+  await expect(page.getByText('Die Einnahme wurde nicht gefunden.')).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page).toHaveURL(/\/tagebuch$/)
 })
