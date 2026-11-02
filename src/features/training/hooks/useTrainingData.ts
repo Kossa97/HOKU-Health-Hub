@@ -281,16 +281,25 @@ export function useTrainingData() {
     applyPlans(plansRef.current.map(p => (p.name === from ? { ...p, name: next } : p)))
   }, [userId])
 
-  /** Plan loeschen: seine Workouts und den Zeitplan. */
-  const removePlan = useCallback(async (name: string) => {
-    if (!userId) return
-    for (const routine of routines.filter(r => r.folder === name)) {
-      await repo.deleteRoutine(userId, routine.id)
-      setRoutines(prev => prev.filter(r => r.id !== routine.id))
+  /**
+   * Plan loeschen: seine Workouts (alle oder keins), dann der Zeitplan.
+   * Liefert false, wenn nur der Zeitplan stehen blieb — der Plan ist dann leer
+   * und weiter sichtbar, ein zweiter Versuch raeumt ihn weg.
+   */
+  const removePlan = useCallback(async (name: string): Promise<boolean> => {
+    if (!userId) return false
+    const result = await repo.deletePlan(userId, name)
+    setRoutines(prev => prev.filter(r => r.folder !== name))
+    if (!result.scheduleDeleted) {
+      // Sichtbar lassen: als leerer Plan (mit Zeile), auch wenn es noch keine gab
+      if (!plansRef.current.some(p => p.name === name)) {
+        applyPlans([...plansRef.current, { id: `local:${name}`, name, schedule: { mode: 'weekdays' }, sortOrder: plansRef.current.length }])
+      }
+      return false
     }
-    await repo.deletePlanSchedule(userId, name)
     applyPlans(plansRef.current.filter(p => p.name !== name))
-  }, [userId, routines])
+    return true
+  }, [userId])
 
   const addCustomExercise = useCallback(async (exercise: Omit<CustomExercise, 'id'>) => {
     if (!userId) throw new Error('not signed in')

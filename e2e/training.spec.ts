@@ -275,6 +275,33 @@ test('Training: neuer Plan aus „Heute"', async ({ page, mock }) => {
   await expect.poll(() => (mock.table('training_routines').find(r => r.name === 'OK A') as { folder: string } | undefined)?.folder).toBe('Oberkörper/Unterkörper')
 })
 
+test('Training: Plan loeschen mit Bestaetigung, Trainings bleiben', async ({ page, mock }) => {
+  seedHistory(mock)
+  for (const name of ['Push', 'Pull']) {
+    mock.insert('training_routines', { user_id: TEST_USER.id, name, kind: 'strength', weekdays: [], sort_order: 1, folder: 'PPL', exercises: [] })
+  }
+  mock.insert('training_plans', { user_id: TEST_USER.id, name: 'PPL', schedule: { mode: 'per_week', perWeek: 3 }, sort_order: 0 })
+  await page.goto('/training')
+  await expect(page.getByRole('heading', { name: 'Pläne & Workouts' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' }).click()
+  await page.getByRole('dialog', { name: 'Plan' }).getByRole('button', { name: 'Plan löschen' }).click()
+  const confirm = page.getByRole('dialog', { name: '„PPL" löschen?' })
+  await expect(confirm).toContainText('Mit dem Plan werden 2 Workouts gelöscht: Pull, Push.')
+  // Abbrechen laesst alles stehen
+  await confirm.getByRole('button', { name: 'Abbrechen' }).click()
+  expect(mock.table('training_routines').filter(r => r.folder === 'PPL')).toHaveLength(2)
+
+  await page.getByRole('dialog', { name: 'Plan' }).getByRole('button', { name: 'Plan löschen' }).click()
+  await confirm.getByRole('button', { name: 'Plan und 2 Workouts löschen' }).click()
+  await expect(page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' })).toHaveCount(0)
+  await expect.poll(() => mock.table('training_routines').filter(r => r.folder === 'PPL').length).toBe(0)
+  expect(mock.table('training_plans')).toHaveLength(0)
+  // Das Workout ohne Plan und die bisherigen Trainings bleiben
+  expect(mock.table('training_routines').map(r => r.name)).toEqual(['Push'])
+  expect(mock.table('training_sessions')).toHaveLength(2)
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')

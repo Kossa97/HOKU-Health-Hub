@@ -112,15 +112,16 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
     }
   }
 
-  const actionStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 36, color: 'var(--accent)', fontWeight: 750, fontSize: '0.85rem' } as const
-  const newRoutineAction = (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', columnGap: 14 }}>
-      <button type="button" onClick={() => setNewPlan('')} className="tyd-train-press" style={actionStyle}>
+  // Unter der Ueberschrift: zwei gleich breite Knoepfe (neben der Ueberschrift
+  // wird es auf dem Handy zu eng)
+  const newActions = (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+      <Button tone="ghost" onClick={() => setNewPlan('')} style={{ minHeight: 44, fontSize: '0.9rem', color: 'var(--accent)' }}>
         <Plus size={16} aria-hidden="true" /> {tt('new_plan')}
-      </button>
-      <button type="button" onClick={() => onEditRoutine(null)} className="tyd-train-press" style={actionStyle}>
+      </Button>
+      <Button tone="ghost" onClick={() => onEditRoutine(null)} style={{ minHeight: 44, fontSize: '0.9rem', color: 'var(--accent)' }}>
         <Plus size={16} aria-hidden="true" /> {tt('new_routine')}
-      </button>
+      </Button>
     </div>
   )
 
@@ -129,7 +130,8 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   return (
     <>
       <section>
-        <SectionTitle action={newRoutineAction}>{tt('routines')}</SectionTitle>
+        <SectionTitle>{tt('plans_and_workouts')}</SectionTitle>
+        {newActions}
         {data.routines.length === 0 && (
           <p style={{ fontSize: '0.88rem', color: 'var(--lg-text-3)', margin: '0 2px 10px' }}>{tt('routines_empty')}</p>
         )}

@@ -182,11 +182,18 @@ export function PlanEditor({ data, planName, now, onClose, onEditWorkout }: {
     if (schedule.mode !== 'weekdays') await data.savePlanSchedule(copyName, schedule)
   }, tt('plan_duplicated'))
 
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const deletePlan = () => {
-    if (!window.confirm(tt('plan_delete_confirm', { name: planName, count: workouts.length }))) return
     setBusy(true)
     data.removePlan(planName)
-      .then(() => { toast.success(tt('plan_deleted')); onClose() })
+      .then(complete => {
+        if (complete) { toast.success(tt('plan_deleted')); onClose(); return }
+        // Workouts sind weg, der leere Plan steht noch: Hinweis, Bildschirm bleibt offen
+        toast.error(tt('plan_delete_partial'))
+        setConfirmDelete(false)
+        setBusy(false)
+      })
+      // Nichts geloescht (alle Workouts oder keins)
       .catch(() => { toast.error(tt('delete_error')); setBusy(false) })
   }
 
@@ -316,7 +323,7 @@ export function PlanEditor({ data, planName, now, onClose, onEditWorkout }: {
 
         <div style={{ ...card, gap: 0, padding: 0, overflow: 'hidden' }}>
           <RowButton icon={<CopyPlus size={18} aria-hidden="true" />} disabled={busy} onClick={() => { void duplicatePlan() }}>{tt('plan_duplicate')}</RowButton>
-          <RowButton icon={<Trash2 size={18} aria-hidden="true" />} disabled={busy} danger onClick={deletePlan}>{tt('plan_delete')}</RowButton>
+          <RowButton icon={<Trash2 size={18} aria-hidden="true" />} disabled={busy} danger onClick={() => setConfirmDelete(true)}>{tt('plan_delete')}</RowButton>
         </div>
       </div>
 
@@ -330,6 +337,23 @@ export function PlanEditor({ data, planName, now, onClose, onEditWorkout }: {
             <MenuButton icon={<Copy size={18} aria-hidden="true" />} onClick={() => { copyWorkout(menu); toast.success(tt('workout_copied', { name: menu.name })); setMenu(null) }}>{tt('workout_copy')}</MenuButton>
             <MenuButton icon={<ArrowRightLeft size={18} aria-hidden="true" />} onClick={() => { setMoving(menu); setMenu(null) }}>{tt('workout_move')}</MenuButton>
             <MenuButton icon={<Trash2 size={18} aria-hidden="true" />} danger onClick={() => { const w = menu; setMenu(null); remove(w) }}>{tt('workout_delete')}</MenuButton>
+          </div>
+        </TrainingSheet>
+      )}
+
+      {confirmDelete && (
+        <TrainingSheet title={tt('plan_delete_title', { name: planName })} onClose={() => setConfirmDelete(false)} zIndex={100} busy={busy}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.45, color: 'var(--lg-text-2)', margin: 0 }}>
+              {workouts.length > 0
+                ? tt('plan_delete_body', { count: workouts.length, names: workouts.map(w => w.name).join(', ') })
+                : tt('plan_delete_body_empty')}
+            </p>
+            <p style={{ fontSize: 14, color: 'var(--lg-text-3)', margin: 0 }}>{tt('plan_delete_keeps')}</p>
+            <Button tone="danger" block disabled={busy} onClick={deletePlan} style={{ minHeight: 50 }}>
+              <Trash2 size={16} aria-hidden="true" /> {workouts.length > 0 ? tt('plan_delete_confirm_button', { count: workouts.length }) : tt('plan_delete')}
+            </Button>
+            <Button tone="ghost" block disabled={busy} onClick={() => setConfirmDelete(false)}>{tt('cancel')}</Button>
           </div>
         </TrainingSheet>
       )}

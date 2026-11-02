@@ -307,6 +307,24 @@ export async function renamePlan(userId: string, from: string, to: string) {
   if (plan.error && !isMissingTable(plan.error)) throw plan.error
 }
 
+/**
+ * Plan loeschen, nie halb: erst alle seine Workouts in EINER Anweisung (alle
+ * oder keins), dann der Zeitplan. Scheitert der zweite Schritt, steht der Plan
+ * leer, aber sichtbar in „Heute" und laesst sich erneut loeschen — es bleibt
+ * nichts Unsichtbares zurueck. Bisherige Trainings bleiben (sie verweisen nur
+ * per `routineId`, ohne Fremdschluessel).
+ */
+export async function deletePlan(userId: string, name: string): Promise<{ workoutsDeleted: boolean; scheduleDeleted: boolean }> {
+  const workouts = await supabase.from('training_routines').delete().eq('user_id', userId).eq('folder', name)
+  if (workouts.error) throw workouts.error
+  try {
+    await deletePlanSchedule(userId, name)
+    return { workoutsDeleted: true, scheduleDeleted: true }
+  } catch {
+    return { workoutsDeleted: true, scheduleDeleted: false }
+  }
+}
+
 /** Zeitplan-Zeile eines Plans entfernen (die Workouts bleiben, wie sie sind). */
 export async function deletePlanSchedule(userId: string, name: string) {
   const { error } = await supabase.from('training_plans').delete().eq('user_id', userId).eq('name', name)
