@@ -333,6 +333,20 @@ test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen, zur Not k
   }
 })
 
+test('iPhone-App: verschiebt sich Hokus Ebene mit der Seite, sitzt er trotzdem auf der Kante', async ({ page }) => {
+  // gemessen 02.11.2026: bei offener Tastatur liegt die feste Ebene um den Scrollweg höher (ebeneTop -316 bei scrollY 316)
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.locator('#auth-kennung').click()
+  await page.evaluate(() => { (document.querySelector('.tyd-dot-ebene') as HTMLElement).style.transform = 'translateY(-200px)' })
+  await lassLaufen(page, 1500)
+  const karte = (await page.locator('[data-dot-kante]').boundingBox())!
+  const b = (await page.getByRole('button', { name: /Hoku, dein KI-Coach/ }).boundingBox())!
+  expect(b.y + b.height / 2).toBeLessThan(karte.y)
+  expect(b.y + b.height).toBeGreaterThan(karte.y)
+})
+
 test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine neue Blase', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
