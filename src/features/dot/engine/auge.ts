@@ -19,7 +19,9 @@ import { clamp01 } from './geometry'
 /** Pupillenradius in der Tangentialebene (Einheit: Kugelradius). */
 export const PUPILLE = 0.4
 /** So groß wird sie beim Zuhören. */
-export const PUPILLE_HOEREN = 1.12
+export const PUPILLE_HOEREN = 1.22
+/** Irisring beim Zuhören: Abstand zur Pupille, Pulsieren mit der Stimme, wie weit er sich vom Körper hebt. */
+export const HOER_RING = { abstand: 1.32, puls: 0.16, heb: 1.15 }
 /** Anteil der Punkte, die beim Zuhören den Irisring bilden (nach `u`). */
 export const IRIS_ANTEIL = 0.1
 
@@ -132,7 +134,7 @@ export function augeSchritt(a: Auge, dt: number, e: AugenEingabe) {
   // Zuhören: Irisring löst sich, dreht im Takt der Stimme
   a.hoer += ((e.hoert ? 1 : 0) - a.hoer) * (e.weniger ? 1 : 1 - Math.exp(-dt * 4))
   a.stimme = e.hoert ? clamp01(e.stimme) : 0
-  if (!e.weniger) a.irisW += dt * (0.35 + 1.8 * a.stimme)
+  if (!e.weniger) a.irisW += dt * (0.5 + 2.6 * a.stimme)
 
   // Achsen für dieses Bild
   const cp = Math.cos(a.pitch), sp = Math.sin(a.pitch), cy = Math.cos(a.yaw), sy = Math.sin(a.yaw)
@@ -188,9 +190,9 @@ export function augePunkt(a: Auge, x: number, y: number, z: number, iris: boolea
 
   // Zuhören: Irispunkte lösen sich vom Körper und drehen sich um die Pupille
   if (iris && a.hoer > 0.01) {
-    const st = a.stimme, rho = rp * 1.28 * (1 + 0.06 * st)
+    const st = a.stimme, rho = rp * HOER_RING.abstand * (1 + HOER_RING.puls * st)
     const w = i * 2.399963 + a.irisW, c = Math.cos(w), s = Math.sin(w)
-    const tief = Math.sqrt(Math.max(0, 1 - rho * rho)), heb = 1.08
+    const tief = Math.sqrt(Math.max(0, 1 - rho * rho)), heb = HOER_RING.heb
     const ix = (G[0] * tief + rho * (c * rx[0] + s * uy[0])) * heb
     const iy = (G[1] * tief + rho * s * uy[1]) * heb
     const iz = (G[2] * tief + rho * (c * rx[2] + s * uy[2])) * heb
@@ -198,7 +200,7 @@ export function augePunkt(a: Auge, x: number, y: number, z: number, iris: boolea
     const L = a.hoer * offen
     aus[0] += (ix - aus[0]) * L; aus[1] += (iy - aus[1]) * L; aus[4] += (iz - aus[4]) * L
     aus[2] += (1 - 0.9 * unterLid - aus[2]) * L
-    aus[3] += (1.3 + 0.6 * st - aus[3]) * L
+    aus[3] += (1.5 + 0.8 * st - aus[3]) * L
   }
 }
 

@@ -17,6 +17,7 @@ import {
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
+import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibmarke'
 import { FREUDE, GESTE_FERN, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
 import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
@@ -304,8 +305,27 @@ export function createDot(host: DotHost): DotApi {
   const beiFokus = (e: FocusEvent) => {
     const el = e.target
     if (!(el instanceof HTMLElement) || el === hit) return
+    const m = istSchreibfeld(el) ? schreibmarke(el) : null
+    if (m) { blickAuf(m.x, m.y, 3000); return }
     const r = el.getBoundingClientRect()
     if (r.width || r.height) blickAuf(r.left + r.width / 2, r.top + r.height / 2, 3000)
+  }
+  // Schreiben, egal wo in der App: er hört zu und schaut auf die Schreibmarke (Nutzer 02.11.2026)
+  let schreibtBis = 0
+  const beiEingabe = (e: Event) => {
+    const el = e.target
+    if (!istSchreibfeld(el)) return
+    schreibtBis = performance.now() + 1800
+    B.voice = Math.min(1, B.voice + 0.35)
+    const m = schreibmarke(el)
+    if (m) blickAuf(m.x, m.y, 2500)
+  }
+  // Marke mit Pfeiltasten oder Tippen versetzt: er schaut mit, ohne zuzuhören
+  const beiAuswahl = () => {
+    const el = document.activeElement
+    if (!istSchreibfeld(el)) return
+    const m = schreibmarke(el)
+    if (m) blickAuf(m.x, m.y, 2500)
   }
   // Auf dem Handy übernimmt beim Wischen der Browser (Scrollen) und meldet keine Zeigerbewegung mehr;
   // Berührungen laufen weiter. Danach schaut er dem nachgleitenden Inhalt hinterher.
@@ -334,6 +354,8 @@ export function createDot(host: DotHost): DotApi {
   window.addEventListener('touchcancel', beiBeruehrung, { capture: true, passive: true })
   document.addEventListener('scroll', beiRollen, { capture: true, passive: true })
   document.addEventListener('focusin', beiFokus)
+  document.addEventListener('input', beiEingabe, { capture: true, passive: true })
+  document.addEventListener('selectionchange', beiAuswahl)
   // Farbe: Wahl im Profil, sonst passend zum App-Design
   let FARBE: HokuFarbe = 'heute', KRAEFTIG = false
   const leseLook = (): Look => LOOKS.find(l => l === document.documentElement.getAttribute('data-look')) ?? 'schwarz'
@@ -1771,7 +1793,7 @@ export function createDot(host: DotHost): DotApi {
     augeSchritt(AUGE, dt, {
       ziel, gross, weniger,
       sichtbar: kugel && draussen && B.r >= 16 && B.flat < 0.5,
-      hoert: B.state === 'listen' && B.shape === 'sphere',
+      hoert: (B.state === 'listen' || performance.now() < schreibtBis) && B.shape === 'sphere',
       stimme: B.voice,
     })
     LAGE.cp = Math.cos(AUGE.pitch); LAGE.sp = Math.sin(AUGE.pitch); LAGE.cy = Math.cos(AUGE.yaw); LAGE.sy = Math.sin(AUGE.yaw)
@@ -2354,6 +2376,9 @@ export function createDot(host: DotHost): DotApi {
       for (const art of ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const) window.removeEventListener(art, beiBeruehrung, true)
       document.removeEventListener('scroll', beiRollen, true)
       document.removeEventListener('focusin', beiFokus)
+      document.removeEventListener('input', beiEingabe, true)
+      document.removeEventListener('selectionchange', beiAuswahl)
+      schreibmarkeAufraeumen()
       farbeAb()
       sonde.remove()
     },

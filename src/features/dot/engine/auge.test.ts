@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUPILLE, augePunkt, augeSchritt, blickZu, blinzle, lidStand, neuesAuge, type AugenEingabe } from './auge'
+import { HOER_RING, PUPILLE, augePunkt, augeSchritt, blickZu, blinzle, lidStand, neuesAuge, type AugenEingabe } from './auge'
 
 const ein = (x: Partial<AugenEingabe> = {}): AugenEingabe => ({ ziel: null, gross: false, sichtbar: true, hoert: false, stimme: 0, weniger: false, zufall: () => 0.5, ...x })
 const laufe = (a = neuesAuge(), e = ein(), sek = 2) => { for (let t = 0; t < sek; t += 1 / 60) augeSchritt(a, 1 / 60, e); return a }
@@ -85,7 +85,7 @@ describe('Hokus Auge: Pupille', () => {
     a.lidP = 0; a.blinzelAb = -1; augeSchritt(a, 0, ein({ ziel: { gx: 0, gy: 0 }, hoert: true, stimme: 0.5 }))
     expect(a.rp).toBeGreaterThan(PUPILLE * 1.1)
     augePunkt(a, 0.6, -0.5, Math.sqrt(1 - 0.61), true, 7, aus)
-    expect(Math.hypot(aus[0], aus[1]) / 1.08).toBeCloseTo(a.rp * 1.28 * (1 + 0.06 * a.stimme), 1)
+    expect(Math.hypot(aus[0], aus[1]) / HOER_RING.heb).toBeCloseTo(a.rp * HOER_RING.abstand * (1 + HOER_RING.puls * a.stimme), 1)
     expect(aus[3]).toBeGreaterThan(1.3)
   })
 })

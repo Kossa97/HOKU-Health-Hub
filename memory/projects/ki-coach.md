@@ -527,3 +527,5 @@ Mockup „Hoku Varianten“ (https://claude.ai/artifact/Ra2CfkyYfG73VCYGfYPQvb),
 - „Augen zuhalten“ (Login, Passwort einblenden) komplett entfernt: Geste `augen`, Armpunkte, Satz `login_sehe_nichts`.
 - Irisring beim Zuhören: jeder zehnte Punkt über die ganze Kugel (`Punkt.iris`), nicht mehr eine Polkappe; die Kappe ließ ein Loch im Körper.
 - Blick folgt auf dem Handy auch beim Wischen (touch*-Ereignisse) und dem nachgleitenden Inhalt (scroll).
+- Schreiben überall in der App (input/textarea/contenteditable, kein Passwort): Hoku hört zu (1,8 s nach dem letzten Zeichen) und schaut auf die Schreibmarke (`engine/schreibmarke.ts`, Spiegel-Div). Zuhören deutlicher: Pupille ×1,22, Ring `HOER_RING` (1,32 / Puls 0,16 / heb 1,15), heller, schneller.
+- Offen: was Hoku bei der Passworteingabe tut (Vorschläge des Nutzers: wegdrehen + Blase, oder Pupille schließen + Blase). Bis zur Entscheidung bleibt das Zuhören aus Auth.tsx.
