@@ -42,6 +42,8 @@ const de = {
   t7_beleg: 'Gezählt wird jeder Tag mit einem Eintrag im Tagebuch.',
   r4_titel: 'Neuer Rekord',
   r4_satz: 'Neuer Rekord bei {{uebung}}: geschätzt {{kg}} kg (vorher {{vorher}} kg).',
+  // ohne Übungsnamen, wenn der Name am Regelwächter hängen bleibt (vorlagen.ts)
+  r4_satz_ohne_name: 'Neuer Rekord: geschätzt {{kg}} kg (vorher {{vorher}} kg).',
   r4_beleg: 'Geschätztes Maximum für eine Wiederholung, berechnet aus Gewicht und Wiederholungen deiner Sätze.',
 
   // Seite und Karten
@@ -100,6 +102,7 @@ const en: Record<keyof typeof de, string> = {
   t7_beleg: 'Every day with a diary entry counts.',
   r4_titel: 'New record',
   r4_satz: 'New record in {{uebung}}: an estimated {{kg}} kg (previously {{vorher}} kg).',
+  r4_satz_ohne_name: 'New record: an estimated {{kg}} kg (previously {{vorher}} kg).',
   r4_beleg: 'Estimated maximum for a single rep, calculated from the weight and reps of your sets.',
 
   seite_titel: 'Insights',

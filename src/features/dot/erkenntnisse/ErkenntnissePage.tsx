@@ -8,7 +8,7 @@ import { CUSTOM_PREFIX, exerciseName } from '../../training/lib/exerciseLookup'
 import { loadCustomExercises } from '../../training/services/trainingRepo'
 import type { CustomExercise } from '../../training/types'
 import { DotZeichen } from '../DotZeichen'
-import { useDotZugang } from '../lib/zugang'
+import { erkenntnisseSeitenModus, useDotZugang } from '../lib/zugang'
 import { ErkenntnisseEinwilligung } from './ErkenntnisseEinwilligung'
 import {
   aktualisiereZeitzone, blendeAus, ladeFunde, ladeWoche, markiereGelesen, setzeErkenntnisseEinwilligung,
@@ -24,7 +24,9 @@ import { WochenKarte } from './WochenKarte'
 /**
  * Seite `/erkenntnisse`: Wochen-Update und alle Funde. Solange
  * `ERKENNTNISSE_FREI` aus ist, nur für Tester; ohne Einwilligung steht dort
- * nur, worum es geht, und der Weg zur Einwilligung.
+ * nur, worum es geht, und der Weg zur Einwilligung. Wer eingewilligt hat, aber
+ * (nicht mehr) freigeschaltet ist, sieht nur den Widerruf
+ * (`erkenntnisseSeitenModus`).
  */
 export function ErkenntnissePage() {
   const { user } = useAuth()
@@ -45,13 +47,17 @@ export function ErkenntnissePage() {
   }, [user, geladen, darfErkenntnisse, erkenntnisseEinwilligung, hokuZeitzone])
 
   if (!geladen || !user) return <Laden />
-  if (!darfErkenntnisse) return <Navigate to="/" replace />
+  const modus = erkenntnisseSeitenModus(darfErkenntnisse, erkenntnisseEinwilligung)
+  if (modus === 'weg') return <Navigate to="/" replace />
 
+  const widerrufen = () => zugang.setErkenntnisseEinwilligung(null)
   return (
     <div className="flex flex-col gap-4" data-erkenntnisse-seite>
       <h1 className="lg-large-title">{et('seite_titel')}</h1>
-      {erkenntnisseEinwilligung ? (
-        <MitEinwilligung userId={user.id} onWiderrufen={() => zugang.setErkenntnisseEinwilligung(null)} />
+      {modus === 'nurWiderruf' ? (
+        <Widerruf userId={user.id} onWiderrufen={widerrufen} />
+      ) : erkenntnisseEinwilligung ? (
+        <MitEinwilligung userId={user.id} onWiderrufen={widerrufen} />
       ) : (
         <div className="card flex flex-col gap-4">
           <div className="flex items-start gap-3">
@@ -98,7 +104,6 @@ function MitEinwilligung({ userId, onWiderrufen }: { userId: string; onWiderrufe
   const [fehler, setFehler] = useState(false)
   const [versuch, setVersuch] = useState(0)
   const [offen, setOffen] = useState<GespeicherterFund | null>(null)
-  const [widerrufFrage, setWiderrufFrage] = useState(false)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -152,19 +157,6 @@ function MitEinwilligung({ userId, onWiderrufen }: { userId: string; onWiderrufe
     }
   }
 
-  const widerrufen = async () => {
-    setBusy(true)
-    try {
-      await setzeErkenntnisseEinwilligung(userId, false)
-      vergissErkenntnisseZugang(userId)
-      onWiderrufen()
-    } catch (e) {
-      console.error('[Erkenntnisse] Widerruf:', e)
-      toast.error(et('aktion_fehler'))
-      setBusy(false)
-    }
-  }
-
   return (
     <>
       {daten.woche ? (
@@ -180,13 +172,39 @@ function MitEinwilligung({ userId, onWiderrufen }: { userId: string; onWiderrufe
           : daten.funde.map(g => <FundKarte key={g.id} eintrag={g} namen={namen} onOeffnen={() => setOffen(g)} />)}
       </section>
 
-      <button type="button" className="btn-secondary mt-4 self-center" onClick={() => setWiderrufFrage(true)}>
-        {et('widerruf_knopf')}
-      </button>
+      <Widerruf userId={userId} onWiderrufen={onWiderrufen} />
 
       {offen && (
         <FundDetail eintrag={offen} namen={namen} busy={busy} onNichtHilfreich={() => void ausblenden()} onSchliessen={() => setOffen(null)} />
       )}
+    </>
+  )
+}
+
+/** Knopf „Einwilligung widerrufen" mit Rückfrage. Steht auch ohne Freischaltung auf der Seite. */
+function Widerruf({ userId, onWiderrufen }: { userId: string; onWiderrufen(): void }) {
+  const { et } = useErkenntnisseTexte()
+  const [widerrufFrage, setWiderrufFrage] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const widerrufen = async () => {
+    setBusy(true)
+    try {
+      await setzeErkenntnisseEinwilligung(userId, false)
+      vergissErkenntnisseZugang(userId)
+      onWiderrufen()
+    } catch (e) {
+      console.error('[Erkenntnisse] Widerruf:', e)
+      toast.error(et('aktion_fehler'))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="btn-secondary mt-4 self-center" onClick={() => setWiderrufFrage(true)}>
+        {et('widerruf_knopf')}
+      </button>
 
       {widerrufFrage && (
         <Sheet labelledBy="erkenntnisse-widerruf-titel" role="alertdialog" busy={busy} onClose={() => setWiderrufFrage(false)}>

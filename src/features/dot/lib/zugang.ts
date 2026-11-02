@@ -38,6 +38,16 @@ export function darfErkenntnisseSehen(frei: boolean, istAdmin: boolean, entwickl
   return frei || istTester(istAdmin, entwicklung)
 }
 
+/**
+ * Was die Seite `/erkenntnisse` zeigt. Wer eingewilligt hat, muss widerrufen können, auch ohne
+ * Freischaltung (Art. 7 Abs. 3 DSGVO, die Einwilligung verspricht es): dann nur der Widerruf,
+ * keine Funde. Ohne Freischaltung und ohne Einwilligung geht es zurück nach Home.
+ */
+export function erkenntnisseSeitenModus(darf: boolean, einwilligung: string | null): 'weg' | 'nurWiderruf' | 'voll' {
+  if (darf) return 'voll'
+  return einwilligung ? 'nurWiderruf' : 'weg'
+}
+
 export function hatPro(proBis: string | null | undefined, jetzt = new Date()) {
   if (!proBis) return false
   const t = Date.parse(proBis)

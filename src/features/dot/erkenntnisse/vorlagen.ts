@@ -1,5 +1,6 @@
 import type { Fund } from '../../../../supabase/functions/_shared/erkenntnisse/typen.ts'
-import { PFLICHTSATZ, type Sprache } from '../../../../supabase/functions/_shared/erkenntnisse/waechter.ts'
+import { PFLICHTSATZ, pruefeText, type Sprache } from '../../../../supabase/functions/_shared/erkenntnisse/waechter.ts'
+import { tagePlus } from '../../../../supabase/functions/_shared/erkenntnisse/zeit.ts'
 import { erkenntnisseText, type ErkenntnisseTextKey } from './texte'
 
 /**
@@ -21,23 +22,26 @@ function zahl(wert: Fund['werte'][string] | undefined, sprache: Sprache): string
   return sprache === 'de' ? s.replace('.', ',') : s
 }
 
-function lokalerTag(tag: string, versatz = 0): Date {
+function lokalerTag(tag: string): Date {
   const [j, m, t] = tag.split('-').map(Number)
-  return new Date(j, m - 1, t + versatz)
+  return new Date(j, m - 1, t)
 }
 
 /**
  * Zeitraum als lokalisierte Daten („21. Sept. 2026 – 1. Nov. 2026"). Steht in
  * der Oberfläche neben dem Text, nie im geprüften Satz oder Beleg.
  */
-export function datumsSpanne(von: string, bis: string, sprache: Sprache, mitJahr = true, vonVersatz = 0): string {
+export function datumsSpanne(von: string, bis: string, sprache: Sprache, mitJahr = true): string {
   const f = new Intl.DateTimeFormat(sprache, { day: 'numeric', month: 'short', ...(mitJahr ? { year: 'numeric' } : {}) })
-  return `${f.format(lokalerTag(von, vonVersatz))} – ${f.format(lokalerTag(bis))}`
+  return `${f.format(lokalerTag(von))} – ${f.format(lokalerTag(bis))}`
 }
 
-/** Woche (lokaler Sonntag) als Spanne Montag bis Sonntag. */
+/**
+ * Woche (lokaler Sonntag des Laufs) als die Tage, die in `tage_eingeflossen` gezählt sind:
+ * Sonntag davor bis Samstag (woche − 7 … woche − 1).
+ */
 export function wochenSpanne(sonntag: string, sprache: Sprache): string {
-  return datumsSpanne(sonntag, sonntag, sprache, false, -6)
+  return datumsSpanne(tagePlus(sonntag, -7), tagePlus(sonntag, -1), sprache, false)
 }
 
 export function fundText(fund: Fund, sprache: Sprache, namen: Namen): FundText {
@@ -75,11 +79,14 @@ export function fundText(fund: Fund, sprache: Sprache, namen: Namen): FundText {
       }
     case 'T7':
       return { titel: text('t7_titel'), satz: text('t7_satz', { tage: n(w.tage) }), beleg: text('t7_beleg') }
-    case 'R4':
-      return {
-        titel: text('r4_titel'),
-        satz: text('r4_satz', { uebung: namen.uebung(fund.bezug ?? ''), kg: n(w.kg), vorher: n(w.vorher) }),
-        beleg: text('r4_beleg'),
-      }
+    case 'R4': {
+      // Der Übungsname ist fremder Text (eigene Übungen, Katalognamen mit Ziffern): bleibt der
+      // Satz damit am Regelwächter hängen, kommt er ohne Namen.
+      const zahlen = { kg: n(w.kg), vorher: n(w.vorher) }
+      const beleg = text('r4_beleg')
+      const mitName = text('r4_satz', { uebung: namen.uebung(fund.bezug ?? ''), ...zahlen })
+      const satz = pruefeText(`${mitName} ${beleg}`, sprache, fund).ok ? mitName : text('r4_satz_ohne_name', zahlen)
+      return { titel: text('r4_titel'), satz, beleg }
+    }
   }
 }
