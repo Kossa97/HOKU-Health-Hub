@@ -1485,6 +1485,10 @@ function sortRows(rows: Row[], order: string): Row[] {
 }
 
 function isLocal(url: URL): boolean {
+  // blob:/data: entstehen im Browser selbst (z. B. URL.createObjectURL für ein
+  // gewähltes Bild). WebKit leitet sie durch page.route, Chromium nicht; ohne
+  // diese Ausnahme blockiert die Sperre unten sie in WebKit („Blocked by Web Inspector“).
+  if (url.protocol === 'blob:' || url.protocol === 'data:') return true
   return url.hostname === 'localhost' || url.hostname === '127.0.0.1'
 }
 
