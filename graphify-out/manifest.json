@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793615242.1711068,
-    "seen": 1793615420.2677548,
+    "mtime": 1793615633.7661033,
+    "seen": 1793615698.1587868,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -18951,6 +18951,36 @@
     "mtime": 1793611982.585194,
     "seen": 1793615420.2679193,
     "ast_hash": "2d3b30a6831edeeff4b63bb11ac530ff",
+    "semantic_hash": ""
+  },
+  "supabase-hoku-erkenntnisse.sql": {
+    "mtime": 1793615393.4207444,
+    "seen": 1793615698.1587582,
+    "ast_hash": "c8363cb17b1e2157d8ae1de802a4499f",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/tage.test.ts": {
+    "mtime": 1793615596.0192683,
+    "seen": 1793615698.1588013,
+    "ast_hash": "b8ebe4f560af813f4eeaa7cb420961f8",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/tage.ts": {
+    "mtime": 1793615622.2676008,
+    "seen": 1793615698.1588027,
+    "ast_hash": "c3cb45ff6d09fd695f88b3ae04c2b9e6",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/typen.ts": {
+    "mtime": 1793615611.9952412,
+    "seen": 1793615698.1588037,
+    "ast_hash": "7db307dd0437aeb72574d1ed73c07ed0",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/zeit.ts": {
+    "mtime": 1793615622.4147675,
+    "seen": 1793615698.1588042,
+    "ast_hash": "2b2f0dbd56ecbc6924f91c7044ead367",
     "semantic_hash": ""
   }
 }
