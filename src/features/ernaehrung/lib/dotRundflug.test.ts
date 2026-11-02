@@ -179,3 +179,28 @@ describe('rundflugFaellig', () => {
     expect(rundflugFaellig(t - 60_000)).toBe(true)
   })
 })
+
+describe('ohne Zucken', () => {
+  // Tempo direkt vor und nach jeder Grenze zwischen zwei Abschnitten (px/s)
+  const sprung = (b: { pos(t: number): { x: number; y: number } }, t: number) => {
+    const h = 0.001
+    const v = (t0: number) => { const a = b.pos(t0), c = b.pos(t0 + h); return { x: (c.x - a.x) / h, y: (c.y - a.y) / h } }
+    const vor = v(t - 2 * h), nach = v(t + h)
+    return Math.hypot(nach.x - vor.x, nach.y - vor.y)
+  }
+
+  it('Rundflug: an jedem Übergang (Kugel, Monde) gleich schnell weiter — kein Ruck', () => {
+    const bahn = rundflugBahn({ start: { x: -46, y: 110 }, lage: () => lage, platz: () => ({ x: 352, y: 450 }), rand: { l: 0, r: 390 }, order: ['fat', 'carbs', 'protein'], beiHalt: () => {} })
+    const { abschnitte } = rundflugPlan(3)
+    for (const a of abschnitte.slice(0, -1)) expect(sprung(bahn, a.t1), `${a.art} ${a.i}`).toBeLessThan(15)
+  })
+
+  it('Mond nah am Rand: der Halt rückt stetig, statt umzuspringen', () => {
+    const order = ['protein'] as const
+    const bei = (x: number) => haltPunkt(1, { main: lage.main, moons: { protein: { x, y: 140, r: 18 } } }, [...order], { l: 0, r: 390 })
+    for (let x = 280; x < 340; x += 0.5) {
+      const a = bei(x), b = bei(x + 0.5)
+      expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeLessThan(3)
+    }
+  })
+})
