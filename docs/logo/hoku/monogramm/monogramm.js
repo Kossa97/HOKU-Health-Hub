@@ -126,7 +126,7 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
 window.monogrammPupille = function (m = MONO) {
   const feld = monogrammFeld(m)
   const tang = (a, x, y, z) => [x * a.rx[0] + z * a.rx[2], x * a.uy[0] + y * a.uy[1] + z * a.uy[2]]
-  let konturPunkte = null, konturFuer = ''
+  let konturPunkte = null, konturFuer = '', versteckt = 0
   return {
     feld,
     punkt(a, x, y, z, aus, o) {
@@ -135,7 +135,7 @@ window.monogrammPupille = function (m = MONO) {
       const G = a.G, dd = x * G[0] + y * G[1] + z * G[2]
       if (dd > 0.2) {
         const [pa, pb0] = tang(a, x, y, z), pb = pb0 - (M.dy || 0), s = feld(pa / K, pb / K) * K
-        if (M.rand === 'app' && s < 0) { aus[2] = 0; return } // geht als Randpartikel in extra() auf
+        if (M.rand === 'app' && s < 0) { aus[2] = 0; versteckt++; return } // geht als Randpartikel in extra() auf
         if (s < W) {
           // wie engine/auge.ts: aus der Pupille auf [Rand, Rand + 0,93·Band], von dort außen dicht dahinter;
           // innen nach der Richtung von der Mitte (wie der Kreis), damit sich der Rand gleichmäßig füllt
@@ -166,10 +166,13 @@ window.monogrammPupille = function (m = MONO) {
       if (M.rand === 'app') {
         // Rand wie die Pupille in der App: die Partikel aus dem Monogramm liegen als Band dicht
         // am Rand (Abstand 0 … 0,93·Band, innen dichter und heller), gleichmäßig über die Kontur
-        const kz = feld.kontur, K = M.gross, n = M.randAnzahl, out = [], G = a.G
+        // Anzahl wie in der App: genau die Partikel, die im Monogramm lagen (organisch: zufällige Lage,
+        // wie Punkte gleichmäßig in einer Fläche liegen, Abstand q ~ √u, innen wenige, heller)
+        const kz = feld.kontur, K = M.gross, n = M.randAnzahl === 'auto' || !M.randAnzahl ? Math.round(versteckt * (M.randFaktor || 1)) : M.randAnzahl, out = [], G = a.G
+        versteckt = 0
         for (let i = 0; i < n; i++) {
-          const t = (i + zufall(i + 31337)) / n, p = kz[Math.floor(t * kz.length) % kz.length]
-          const q = Math.pow(zufall(i + 4711), M.randKurve || 1.6), s2 = 0.93 * M.band * q
+          const t = zufall(i + 31337), p = kz[Math.floor(t * kz.length) % kz.length]
+          const q = Math.pow(zufall(i + 4711), M.randKurve ?? 0.5), s2 = 0.93 * M.band * q
           const [nx, ny] = feld.richtung(p[0], p[1]), pa = p[0] * K + nx * s2, pb = p[1] * K + ny * s2 + (M.dy || 0)
           const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
           const x = G[0] * tt + pa * a.rx[0] + pb * a.uy[0], y = G[1] * tt + pb * a.uy[1], z = G[2] * tt + pa * a.rx[2] + pb * a.uy[2]
