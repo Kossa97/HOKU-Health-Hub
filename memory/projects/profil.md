@@ -61,6 +61,11 @@ Nutzer 02.11.: Schlaf = Methode A (Anteil Nächte 7–9 h im Bereich, Start gege
 Schritte [Nutzer]: Methode A (Ø, Richtung hoch, relativ), aber Startwert = Baseline aus den 1–2 Monaten vor dem
 Start aus Apple Health / Health Connect, wenn verfügbar (sonst erste 7 Tage).
 Nutzer 02.11.: Baseline gilt für ALLE Wearable-Werte (Schlaf, Ruhepuls, kcal, VO2max, Blutdruck); „jetzt“ = letzte 28 Tage.
+Nutzer 02.11.: Werte zählen erst mit belastbarer Baseline (Schwellen bestätigt): Wearables ≥14 Tage in 60 Tagen vor
+Start, sonst erste 28 Tage nach Start = Baseline, zählt ab Tag 29; Schlaf ≥14 Nächte bzw. 28; Körperwerte ab 2. Messung
+≥14 Tage nach der ersten; Blut ab 2. Befund; e1RM ab 3 Einheiten; Workouts/Woche und Adherence ab 4 Wochen.
+Kein Fallback „erste 7 Tage“. Untergrenze C verworfen (+600 % ist echter Fortschritt); Start 0 % → Prozentpunkte.
+Offen: Gewichtung von Anteilswerten (Schlaf/Blut) und Darstellung statt Ring (Nutzer: Ring passt nicht über 100 %).
 Spec `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`, Plan `docs/superpowers/plans/2026-11-02-profil-p2b-fortschritt.md`,
 Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Bau wartet auf Nutzer-Durchsicht.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
