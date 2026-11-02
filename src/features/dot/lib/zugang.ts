@@ -28,6 +28,16 @@ export function istTester(istAdmin: boolean, entwicklung: boolean) {
   return entwicklung || istAdmin
 }
 
+/**
+ * Hoku-Erkenntnisse (Seite, Karte): solange aus, sehen nur Tester sie. Wird erst
+ * nach Teil R (Einstufungsbegründung, Datenschutz) eingeschaltet.
+ */
+export const ERKENNTNISSE_FREI = false
+
+export function darfErkenntnisseSehen(frei: boolean, istAdmin: boolean, entwicklung: boolean) {
+  return frei || istTester(istAdmin, entwicklung)
+}
+
 export function hatPro(proBis: string | null | undefined, jetzt = new Date()) {
   if (!proBis) return false
   const t = Date.parse(proBis)

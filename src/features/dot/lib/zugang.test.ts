@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PRO_PFLICHT, hatPro, istTester } from './zugang'
+import { ERKENNTNISSE_FREI, PRO_PFLICHT, darfErkenntnisseSehen, hatPro, istTester } from './zugang'
 import { PRO_PFLICHT as PRO_PFLICHT_SERVER, hatZugang } from '../../../../supabase/functions/coach/prompt'
 
 describe('Dot: Zugang', () => {
@@ -14,6 +14,13 @@ describe('Dot: Zugang', () => {
     expect(istTester(false, false)).toBe(false)
     expect(istTester(false, true)).toBe(true)
     expect(istTester(true, false)).toBe(true)
+  })
+  it('Erkenntnisse: bis zur Freigabe nur für Tester', () => {
+    expect(ERKENNTNISSE_FREI).toBe(false)
+    expect(darfErkenntnisseSehen(false, false, false)).toBe(false)
+    expect(darfErkenntnisseSehen(false, true, false)).toBe(true)
+    expect(darfErkenntnisseSehen(false, false, true)).toBe(true)
+    expect(darfErkenntnisseSehen(true, false, false)).toBe(true)
   })
   it('App (ohne Entwicklungs-Build) und Edge Function entscheiden gleich', () => {
     for (const p of [{ pro_until: '2026-11-01T00:00:00Z' }, { pro_until: '2026-01-01T00:00:00Z' }, { is_admin: true }, {}] as { pro_until?: string; is_admin?: boolean }[]) {
