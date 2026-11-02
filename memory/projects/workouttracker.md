@@ -174,6 +174,22 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - Offen: Plan löschen nicht atomar; verwaiste Zeitplan-Zeile vererbt sich an gleichnamigen neuen Plan;
   „Neuer Plan" nur über den Plan-Chip im Workout-Editor; „Plan kopieren" (nur duplizieren).
 
+## KI-Plan mit Hoku (Entscheidung Nutzer, 2.11.2026, noch nicht gebaut)
+
+- Workout/Plan per Hoku erstellen, **tippen und sprechen gleichwertig** (Textfeld mit Senden, Mikrofon wenn leer). **Einstieg beides:** im Hoku-Chat und
+  per Knopf „Mit Hoku erstellen" im Blatt „Neuer Plan".
+- **Nur mit Pro** (es gibt eine Free-Version), wie der übrige Coach (Einwilligung, Tageslimit).
+- Muster wie `dotAnlage` (Substanz): Werkzeug in Edge Function `coach` liefert Plan-Entwurf →
+  Vorschau → Nutzer übernimmt. Nur Katalog-Übungen, Gewichte leer, keine medizinischen Aussagen.
+- **Spracheingabe im laufenden Training: auch ohne Pro** (keine KI, Gerät erkennt; feste Befehle
+  wie „80 Kilo, 8 Wiederholungen", „gleich wie eben", „Pause 2 Minuten"). Halten-und-sprechen,
+  kein Dauer-Zuhören, Rückgängig. In der iOS-App braucht es ein natives Spracherkennungs-Plugin
+  (WKWebView hat keine Web Speech API) + Info.plist-Texte (Mikrofon, Spracherkennung).
+- **Im Training mit Hoku schreiben** (Textfeld neben dem Mikrofon): einfache Einträge („80 kg 8",
+  „gleich wie eben", „Pause") erkennt die App selbst (alle); Fragen/Änderungen („welches Gewicht?",
+  „tausch Bankdrücken gegen was mit Kurzhanteln") beantwortet Hoku (Pro), Änderungen nur nach Tipp.
+- Mockup: https://claude.ai/artifact/NbZvdksLa9Hoas3W261e8s (Boards 4 „Plan mit Hoku", 5 „Im Training sprechen").
+
 ## Offen
 
 | Punkt | Stand |
@@ -187,3 +203,13 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 | Schnellzugriff-Label | „Training" (öffnet den Bereich, 30.10.2026) hart deutsch wie die übrigen Einträge in `Layout.tsx` |
 | Live Activity / Apple Watch | braucht nativen Swift-Code, v2 |
 | Auto-Progression / Deload-Vorschlag | v2 |
+
+## Plan mit Hoku (Teil 1, auf main seit 2026-11-02)
+- Edge Function `coach`: Werkzeug `plan_entwerfen` (strict), `pruefePlaene`; Seite `training` → effort medium.
+  Ungültige Anzahl → `pro_woche` mit Anzahl = Workouts.
+- App: `lib/hokuPlan.ts` (Katalog-Kontext, Lesen, Entwurf→Workouts), `HokuPlanChat` (Neuer-Plan-Blatt,
+  Pro-Gate über PRO_PFLICHT), `HokuPlanPreview` (Name, tauschen/entfernen, Übernehmen). Globaler Hoku-Chat auf
+  /training zeigt Karte „Plan ansehen" → Vorschau via `location.state.hokuPlan`.
+- Offen: Edge Function `coach` deployen (bis dahin liefert Hoku nur Text). Globaler Chat schickt den Katalog
+  ohne eigene Übungen/Plannamen (bewusst, Vorschau fängt doppelte Namen ab).
+- Nächste Teile: 2 = Schreiben/Sprechen im Live-Workout ohne KI, 3 = Hoku-Fragen im Training (Pro).

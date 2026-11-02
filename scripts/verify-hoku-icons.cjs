@@ -36,7 +36,10 @@ for (const [i, size] of [16, 32, 48, 64].entries()) {
   assert(ico[p] === size && bytes.readUInt32BE(16) === size && bytes.readUInt32BE(20) === size && hash(bytes) === hash(read(`public/icons/hoku-fav-dunkel-${size}.png`)), 'ICO entry ' + size)
 }
 const html = read('index.html').toString(), vite = read('vite.config.ts').toString()
-assert(html.includes('hoku-dunkel-180.png') && !html.includes('hoku-fav-blau'), 'HTML references old icons')
+assert(html.includes('/apple-touch-icon.png?v=hoku-touch-3') && !html.includes('hoku-fav-blau'), 'HTML references old icons')
+assert(hash(read('public/apple-touch-icon.png')) === hash(read('public/icons/hoku-dunkel-180.png')), 'Apple fallback differs from approved icon')
+assert(hash(read('public/icons/hoku-dunkel-1024.png')) === hash(read('ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png')), 'Large Apple icon differs from approved icon')
+assert(html.includes('sizes="1024x1024" href="/icons/hoku-dunkel-1024.png?v=hoku-touch-3"'), 'Large Apple icon is not linked')
 for (const m of html.matchAll(/href="(\/icons\/[^"?]+)(?:\?[^"]*)?"/g)) assert(fs.existsSync(path.join(root, 'public', m[1])), 'Missing HTML icon: ' + m[1])
 for (const name of ['hoku-dunkel-192.png', 'hoku-dunkel-512.png', 'hoku-dunkel-maskable-512.png']) assert(vite.includes('/icons/' + name) && fs.existsSync(path.join(root, 'public/icons', name)), 'Missing PWA icon: ' + name)
 assert(vite.includes("background_color: '#000101'"), 'PWA background mismatch')

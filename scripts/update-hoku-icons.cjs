@@ -96,6 +96,8 @@ for (const size of [180, 192, 512]) {
   app(`public/icons/hoku-dunkel-${size}.png`, size)
   app(`public/icons/hoku-${size}.png`, size)
 }
+app('public/apple-touch-icon.png', 180)
+app('public/icons/hoku-dunkel-1024.png', 1024)
 app('public/icons/hoku-dunkel-maskable-512.png', 512, .76, 'maskable')
 app('public/icons/hoku-maskable-512.png', 512, .76, 'maskable')
 for (const size of [192, 512]) app(`public/icon-${size}.png`, size)

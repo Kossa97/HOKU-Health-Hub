@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Play, Settings } from 'lucide-react'
 import type { TrainingRoutine, TrainingSession } from './types'
 import { useTrainingText } from './i18n'
@@ -18,6 +18,8 @@ import { LiveWorkout } from './components/live/LiveWorkout'
 import { describeNextSet } from './components/live/nextSet'
 import { QuickLogSheet } from './components/QuickLogSheet'
 import { RoutineEditor } from './components/RoutineEditor'
+import { HokuPlanPreview } from './components/plan/HokuPlanPreview'
+import { liesGesichertenPlan, type HokuPlan } from './lib/hokuPlan'
 import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 
 /**
@@ -85,6 +87,21 @@ export function TrainingPage() {
     }, 0)
     return () => window.clearTimeout(id)
   }, [data.state, params, setParams, startEmpty])
+
+  // Ein Plan aus dem Hoku-Chat („Plan ansehen"): Vorschau öffnen, den Zustand der URL leeren
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [hokuPlan, setHokuPlan] = useState<HokuPlan | null>(null)
+  useEffect(() => {
+    if (data.state !== 'ready') return
+    const plan = liesGesichertenPlan((location.state as { hokuPlan?: unknown } | null)?.hokuPlan)
+    if (!plan) return
+    const id = window.setTimeout(() => {
+      navigate(location.pathname + location.search, { replace: true, state: null })
+      setHokuPlan(plan)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [data.state, location.state, location.pathname, location.search, navigate])
 
   const editSession = (session: TrainingSession) => {
     setDetail(null)
@@ -196,6 +213,9 @@ export function TrainingPage() {
           onClose={() => setRoutineEdit(null)}
           onStart={routine => { setRoutineEdit(null); startRoutine(routine) }}
         />
+      )}
+      {hokuPlan && (
+        <HokuPlanPreview data={data} plan={hokuPlan} onClose={() => setHokuPlan(null)} onSaved={() => setHokuPlan(null)} />
       )}
       {detail && <SessionDetailSheet session={detail} data={data} onEdit={() => editSession(detail)} onClose={() => setDetail(null)} />}
       {settingsOpen && <SettingsSheet data={data} onClose={() => setSettingsOpen(false)} />}

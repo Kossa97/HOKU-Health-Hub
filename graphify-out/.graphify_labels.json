@@ -7,7 +7,6 @@
   "6": "stoerung.ts",
   "7": "StocksChart.tsx",
   "8": "svglib.py",
-  "9": "Worst-Case Catalog",
   "12": "bestand.ts",
   "13": "StudyCard.tsx",
   "14": "Silhouette.tsx",
@@ -37,7 +36,6 @@
   "46": "Biohacking Dashboard (KPI + Presets)",
   "47": "scripts",
   "49": "3D Injection Map Canvas",
-  "50": "My Stack: Planintegrität und versionierter kontinuierlicher Plan",
   "51": "TodayLogSheet.tsx",
   "52": "The Lab — Premium Redesign Spec",
   "53": "Evidence Scoring & Study Type Classification",
@@ -128,7 +126,11 @@
   "154": "Auswertung.tsx",
   "155": "TrainingPage.tsx",
   "161": "training/i18n/index.ts",
+<<<<<<< HEAD
   "165": "dot-meldungen.spec.ts",
+=======
+  "163": "PeptideDetailPage.tsx",
+>>>>>>> origin/main
   "166": "RoutineEditor.tsx",
   "169": "graphify skill trigger (/graphify)",
   "170": "Project graphify usage rules",
@@ -243,7 +245,6 @@
   "315": "react-router-dom",
   "316": "protocolPdf/types.ts",
   "318": "Die Entscheidungen",
-  "320": "merge-my-stack-i18n.mjs",
   "323": "injectionHistory.ts",
   "325": "futur.py",
   "332": "My Stack: Farbe wird ein eigener Schritt",
@@ -255,7 +256,6 @@
   "341": "Peptipedia Catalogue Implementation Plan",
   "343": "bloodwork-extract/index.ts",
   "344": "DishStage.tsx",
-  "349": "Live-Blutspiegel — IU-Substanzen verschwanden wortlos",
   "350": "hokuFarbe.ts",
   "351": "Substanzkatalog — Welle „Apotheke\"",
   "352": "fixtures.ts",
