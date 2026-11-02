@@ -346,6 +346,19 @@ describe('Baseline: Workouts pro Woche und Adherence ab 4 Wochen', () => {
     expect(workoutsValue(sessions(-3), START, addDays(START, 40)).baseline.status).toBe('none')
   })
 
+  it('die vier Wochen zaehlen ab dem ersten Training seit dem Start („erste Messung“)', () => {
+    expect(workoutsValue(sessions(20, 25), START, addDays(START, 40)).baseline)
+      .toEqual({ status: 'collecting', have: 2, need: 4, unit: 'weeks' })
+    const r = workoutsValue(sessions(20, 25, 48, 50), START, addDays(START, 50))
+    expect(r).toMatchObject({ start: 2 / 4, now: 3 / 4, baseline: { status: 'counts' } })
+  })
+
+  it('Adherence: erste faellige Einnahme nach Tag 28 — sammelt erst ab dort, Start nie leer', () => {
+    const days = Array.from({ length: 30 }, (_, i) => ({ day: addDays(START, 40 + i), taken: 1, due: 1 }))
+    expect(adherenceValue(days, START, addDays(START, 50)).baseline).toEqual({ status: 'collecting', have: 1, need: 4, unit: 'weeks' })
+    expect(adherenceValue(days, START, addDays(START, 69))).toMatchObject({ start: 100, now: 100, baseline: { status: 'counts' } })
+  })
+
   it('Adherence in %: erste 28 Tage → letzte 28 Tage', () => {
     const days = Array.from({ length: 60 }, (_, i) => ({ day: addDays(START, i), taken: i < 28 ? (i % 5 === 0 ? 0 : 1) : 1, due: 1 }))
     expect(adherenceValue(days, START, addDays(START, 20)).baseline).toEqual({ status: 'collecting', have: 2, need: 4, unit: 'weeks' })

@@ -311,49 +311,49 @@ export function bloodValue(reports: readonly BloodReport[], startOn: string, tod
   }
 }
 
-const weeksSince = (startOn: string, today: string) => Math.max(0, Math.floor(daysBetween(startOn, today) / 7))
-const rateReady = (startOn: string, today: string) => daysBetween(startOn, today) >= RATE_MIN_WEEKS * 7
-const rateCollecting = (startOn: string, today: string): BaselineState =>
-  ({ status: 'collecting', have: Math.min(RATE_MIN_WEEKS - 1, weeksSince(startOn, today)), need: RATE_MIN_WEEKS, unit: 'weeks' })
-
 /** Fenster [from, to] als Tage. */
 const within = (day: string, from: string, to: string) => day >= from && day <= to
 
 /**
- * Workouts pro Woche: Start = Mittel der ersten vier Wochen ab dem Start,
- * jetzt = Mittel der letzten vier Wochen (28 Tage bis heute). Ab vier Wochen;
- * ohne ein Training seit dem Start erscheint der Wert nicht.
+ * Raten (Workouts pro Woche, Adherence) zaehlen ab vier Wochen Daten, gerechnet
+ * ab dem ersten Datentag seit dem Start („erste Messung“): Start = diese ersten
+ * vier Wochen, jetzt = die letzten vier Wochen bis heute.
  */
+function rateValue(
+  id: MetricId, firstDay: string, today: string, rate: (from: string, to: string) => number | null,
+): ProgressValueInput {
+  const elapsed = daysBetween(firstDay, today)
+  if (elapsed < RATE_MIN_WEEKS * 7) {
+    const have = Math.min(RATE_MIN_WEEKS - 1, Math.floor(elapsed / 7))
+    return { id, start: null, now: null, baseline: { status: 'collecting', have, need: RATE_MIN_WEEKS, unit: 'weeks' } }
+  }
+  return {
+    id,
+    start: rate(firstDay, addDays(firstDay, RECENT_DAYS - 1)),
+    now: rate(addDays(today, -(RECENT_DAYS - 1)), today),
+    baseline: { status: 'counts' },
+  }
+}
+
+/** Workouts pro Woche; ohne ein Training seit dem Start erscheint der Wert nicht. */
 export function workoutsValue(sessionDays: readonly string[], startOn: string, today: string): ProgressValueInput {
-  const id: MetricId = 'workouts_per_week'
-  const days = sessionDays.filter(d => within(d, startOn, today))
-  if (days.length === 0) return { id, start: null, now: null, baseline: { status: 'none' } }
-  if (!rateReady(startOn, today)) return { id, start: null, now: null, baseline: rateCollecting(startOn, today) }
-  const startTo = addDays(startOn, RECENT_DAYS - 1)
-  const nowFrom = addDays(today, -(RECENT_DAYS - 1))
-  const perWeek = (from: string, to: string) => days.filter(d => within(d, from, to)).length / RATE_MIN_WEEKS
-  return { id, start: perWeek(startOn, startTo), now: perWeek(nowFrom, today), baseline: { status: 'counts' } }
+  const days = sessionDays.filter(d => within(d, startOn, today)).sort()
+  if (days.length === 0) return { id: 'workouts_per_week', start: null, now: null, baseline: { status: 'none' } }
+  return rateValue('workouts_per_week', days[0], today,
+    (from, to) => days.filter(d => within(d, from, to)).length / RATE_MIN_WEEKS)
 }
 
 export interface DoseDay { day: string; taken: number; due: number }
 
-/** Adherence in %: Start = erste 28 Tage ab dem Start, jetzt = letzte 28 Tage. Ab vier Wochen. */
+/** Adherence in % (bestaetigt ÷ faellig); ohne faellige Einnahme seit dem Start erscheint der Wert nicht. */
 export function adherenceValue(doseDays: readonly DoseDay[], startOn: string, today: string): ProgressValueInput {
-  const id: MetricId = 'adherence'
-  const days = doseDays.filter(d => within(d.day, startOn, today) && d.due > 0)
-  if (days.length === 0) return { id, start: null, now: null, baseline: { status: 'none' } }
-  if (!rateReady(startOn, today)) return { id, start: null, now: null, baseline: rateCollecting(startOn, today) }
-  const pct = (from: string, to: string) => {
+  const days = doseDays.filter(d => within(d.day, startOn, today) && d.due > 0).sort((a, b) => a.day.localeCompare(b.day))
+  if (days.length === 0) return { id: 'adherence', start: null, now: null, baseline: { status: 'none' } }
+  return rateValue('adherence', days[0].day, today, (from, to) => {
     const w = days.filter(d => within(d.day, from, to))
     const due = w.reduce((a, d) => a + d.due, 0)
     return due > 0 ? Math.min(1, w.reduce((a, d) => a + d.taken, 0) / due) * 100 : null
-  }
-  return {
-    id,
-    start: pct(startOn, addDays(startOn, RECENT_DAYS - 1)),
-    now: pct(addDays(today, -(RECENT_DAYS - 1)), today),
-    baseline: { status: 'counts' },
-  }
+  })
 }
 
 export interface ExerciseE1rm { exerciseId: string; points: readonly DatedValue[] }
@@ -526,14 +526,19 @@ export interface ProgressSnapshot {
   since: string
 }
 
-export function progressSnapshot(result: ProgressResult, startOn: string): ProgressSnapshot | undefined {
-  if (result.total === null) return undefined
+/** Bereiche mit Wert, auf eine Stelle gerundet (Schnappschuss und Wochenreihe). */
+function roundedAreas(result: ProgressResult): Partial<Record<ProgressArea, number>> {
   const areas: Partial<Record<ProgressArea, number>> = {}
   for (const a of PROGRESS_AREAS) {
     const v = result.areas[a]
     if (v !== null) areas[a] = round1(v)
   }
-  return { total: round1(result.total), areas, since: startOn }
+  return areas
+}
+
+export function progressSnapshot(result: ProgressResult, startOn: string): ProgressSnapshot | undefined {
+  if (result.total === null) return undefined
+  return { total: round1(result.total), areas: roundedAreas(result), since: startOn }
 }
 
 /** Ein Punkt der Zeitreise (`progress_settings.history`), Woche = Montag. */
@@ -548,12 +553,7 @@ export const HISTORY_MAX_WEEKS = 104
 const isDay = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
 
 export function historyEntry(result: ProgressResult, day: string): ProgressHistoryEntry {
-  const areas: Partial<Record<ProgressArea, number>> = {}
-  for (const a of PROGRESS_AREAS) {
-    const v = result.areas[a]
-    if (v !== null) areas[a] = round1(v)
-  }
-  return { week: weekOf(day), total: result.total === null ? null : round1(result.total), areas }
+  return { week: weekOf(day), total: result.total === null ? null : round1(result.total), areas: roundedAreas(result) }
 }
 
 /** Bereinigt `progress_settings.history`. */
