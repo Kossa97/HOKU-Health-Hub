@@ -100,6 +100,15 @@ Entschieden [Nutzer]:
   Scanner erst mit Freunden (P3).
 - „In Hoku öffnen“: Universal Links (iOS) / App Links (Android) — App öffnet das Profil, sonst Store. Braucht
   apple-app-site-association + assetlinks.json auf hoku.app und ein App-Update.
+Mockup 2c: `docs/profil/mockups/profil-2c.html` (Branch `profil-p2c-web`), Artefakt
+https://claude.ai/artifact/HVnY3jKnAdFug1uSPU8MSj. Nutzer 02.11. nach Mockup:
+- Link-Karte = Variante A (Gesamtfortschritt groß + Zahl der Web-Abzeichen); fällt auf C (Einladung, nur Bild+Name)
+  zurück, wenn Gesamtfortschritt nicht auf „Alle“; ohne Bild/Name auf „Alle“ neutrale Karte.
+- Web: Bereiche Blut und Einnahmen nie im Web (nur Gesamt + Körper, Training, Erholung & Fitness); App wie 2b.
+- Abzeichen zu Körperwerten (KFA, Gewicht, Ruhepuls) ab Werk wie Blut/Zyklen/Einnahmen aus.
+- Web-Link aus: Teilen geht trotzdem (nur App-Nutzer sehen das Profil), Hinweis + Schalter „Web-Link einschalten“.
+Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
+Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
