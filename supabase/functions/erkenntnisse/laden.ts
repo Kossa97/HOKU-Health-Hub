@@ -78,6 +78,18 @@ export function zuRohdaten(zeilen: Zeilen): Rohdaten {
   return roh
 }
 
+/**
+ * Eigene Übungen (training_custom_exercises) mit Erfassung `assisted_reps`, als IDs, wie sie in
+ * den Sätzen stehen (`custom:<id>`). R4 bewertet sie nicht: dort ist mehr Gewicht mehr Hilfe.
+ */
+export function eigeneMitUnterstuetzung(zeilen: unknown[]): Set<string> {
+  const ids = new Set<string>()
+  for (const z of zeilen) {
+    if (istObjekt(z) && typeof z.id === 'string' && z.tracking === 'assisted_reps') ids.add(`custom:${z.id}`)
+  }
+  return ids
+}
+
 /** Anzahl lokaler Tage in [von, bis] mit mindestens einem Datenpunkt (Schlaf, Tagebuch, Effekt, Essen, Training). */
 export function tageMitDaten(roh: Rohdaten, zone: string, von: string, bis: string): number {
   const mitDaten = new Set<string>()

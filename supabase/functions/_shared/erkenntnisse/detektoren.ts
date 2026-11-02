@@ -49,17 +49,20 @@ export function vergleiche(e: KatalogEintrag, tage: Tag[]): Kandidat | null {
   }
   const differenz = mittelA - mittelB
   if (Math.abs(differenz) < e.minEffekt) return null
+  // Gezeigt werden die gerundeten Mittel: die Differenz im Satz muss zu ihnen passen
+  const gerundetA = runde(mittelA, e.einheit)
+  const gerundetB = runde(mittelB, e.einheit)
 
   const zeitraum = { von: tage[0].datum, bis: tage[tage.length - 1].datum }
   const schluessel = `${e.id}:${namen.a}`
   const werte: Fund['werte'] = {
     gruppe_a: namen.a,
     gruppe_b: namen.b,
-    mittel_a: runde(mittelA, e.einheit),
-    mittel_b: runde(mittelB, e.einheit),
+    mittel_a: gerundetA,
+    mittel_b: gerundetB,
     n_a: a.length,
     n_b: b.length,
-    differenz: runde(differenz, e.einheit),
+    differenz: runde(gerundetA - gerundetB, e.einheit),
     einheit: e.einheit,
   }
   if (e.grenze !== undefined) werte.grenze = e.grenze
@@ -81,20 +84,25 @@ export function vergleiche(e: KatalogEintrag, tage: Tag[]): Kandidat | null {
 
 const MARKEN = [7, 14, 30, 60, 100, 365]
 
-/** T7: Tagebuch-Serie, die am letzten Tag endet und in den letzten 7 Tagen eine Marke erreicht hat. */
+/**
+ * T7: Tagebuch-Serie, die am letzten Tag endet und in den letzten 7 Tagen eine Marke erreicht hat.
+ * Der Schlüssel trägt den ersten Tag der Serie: eine spätere Serie mit derselben Marke ist ein
+ * neuer Fund. Dafür muss `tage` den Beginn jeder meldbaren Serie enthalten (größte Marke + 7 Tage).
+ */
 export function tagebuchSerie(tage: Tag[]): Fund | null {
   let laenge = 0
   while (laenge < tage.length && tage[tage.length - 1 - laenge].tagebuch) laenge++
   const marke = [...MARKEN].reverse().find((m) => m <= laenge)
   if (marke === undefined || laenge - marke > 6) return null
+  const von = tage[tage.length - laenge].datum
   return {
     id: 'T7',
-    schluessel: `T7:tagebuch:${marke}`,
+    schluessel: `T7:tagebuch:${marke}:${von}`,
     bezug: null,
     richtung: 'positiv',
     datenlage: 'deutlich',
     staerke: 0.6,
-    zeitraum: { von: tage[tage.length - laenge].datum, bis: tage[tage.length - 1].datum },
+    zeitraum: { von, bis: tage[tage.length - 1].datum },
     werte: { tage: marke },
   }
 }
@@ -110,8 +118,18 @@ function aufHalbeKg(x: number): number {
   return Math.round(x * 2) / 2
 }
 
-/** R4: neues bestes geschätztes Einer-Maximum je Übung in den letzten 7 Tagen (bis einschließlich `bis`). */
-export function kraftRekorde(trainings: Training[], zone: string, bis: string): Fund[] {
+/**
+ * Katalogübungen mit Erfassung `assisted_reps` (Gewicht = Hilfe, mehr ist leichter). Gleiche Liste wie
+ * im Übungskatalog der App, gepinnt in `unterstuetzt.test.ts`.
+ */
+export const UNTERSTUETZT: readonly string[] = ['chest_dip_assisted', 'pull_up_assisted']
+
+/**
+ * R4: neues bestes geschätztes Einer-Maximum je Übung in den letzten 7 Tagen (bis einschließlich `bis`).
+ * `trainings` ist die ganze Geschichte: „vorher“ heißt alle Einheiten davor, wie in der App.
+ * Übungen mit Unterstützung (`UNTERSTUETZT` und `ausschliessen`, z. B. eigene) zählen nicht.
+ */
+export function kraftRekorde(trainings: Training[], zone: string, bis: string, ausschliessen: ReadonlySet<string> = new Set()): Fund[] {
   const von = tagePlus(bis, -6)
   const je = new Map<string, { davor: number | null; einheitenDavor: number; jetzt: number | null }>()
 
@@ -120,6 +138,7 @@ export function kraftRekorde(trainings: Training[], zone: string, bis: string): 
     if (tag > bis) continue
     const bestJeUebung = new Map<string, number>()
     for (const ex of training.exercises) {
+      if (ausschliessen.has(ex.exerciseId) || UNTERSTUETZT.includes(ex.exerciseId)) continue
       for (const satz of ex.sets) {
         if (satz.type === 'warmup') continue
         const wert = einRM(satz.weightKg, satz.reps)

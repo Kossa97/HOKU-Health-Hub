@@ -61,8 +61,16 @@ describe('erkenntnisse: analysiere', () => {
     for (let i = 103; i >= 1; i--) roh.tagebuch.push({ log_date: tagePlus(HEUTE, -i), energie: null })
     const funde = analysiere(roh, ZONE, HEUTE)
     expect(funde).toHaveLength(1)
-    expect(funde[0]).toMatchObject({ id: 'T7', schluessel: 'T7:tagebuch:100' })
+    expect(funde[0]).toMatchObject({ id: 'T7', schluessel: `T7:tagebuch:100:${tagePlus(HEUTE, -103)}` })
     expect(funde[0].werte).toEqual({ tage: 100 })
+  })
+
+  it('T7: Serie von 370 Tagen trägt ihren echten Beginn im Schlüssel (sonst wanderte er täglich mit dem Fenster)', () => {
+    const roh: Rohdaten = { ...leer, tagebuch: [] }
+    for (let i = 370; i >= 1; i--) roh.tagebuch.push({ log_date: tagePlus(HEUTE, -i), energie: null })
+    const funde = analysiere(roh, ZONE, HEUTE)
+    expect(funde).toHaveLength(1)
+    expect(funde[0]).toMatchObject({ schluessel: `T7:tagebuch:365:${tagePlus(HEUTE, -370)}`, werte: { tage: 365 } })
   })
 
   it('T7: Serie von 40 Tagen hat Marke 30 vor 10 Tagen erreicht, kein Fund', () => {
@@ -82,5 +90,25 @@ describe('erkenntnisse: analysiere', () => {
     expect(funde.map((f) => f.id)).toEqual(['H1', 'T7', 'R4'])
     expect(funde[1].werte).toEqual({ tage: 7 })
     expect(funde[2].werte).toEqual({ kg: 105, vorher: 100 })
+  })
+
+  it('R4 vergleicht mit der ganzen Geschichte: eine Einheit vor über 90 Tagen mit höherem Wert verhindert den Rekord', () => {
+    // frische Arrays: schlafRoh teilt `leer.tagebuch`, das ein Test davor befüllt
+    const roh: Rohdaten = { health: [], tagebuch: [], effekte: [], essen: [], trainings: [] }
+    const bank =(d: string, kg: number) => ({ startedAt: `${d}T10:00:00Z`, kind: 'strength', exercises: [{ exerciseId: 'bank', sets: [{ weightKg: kg, reps: 1 }] }] })
+    for (const d of ['2026-09-01', '2026-09-08', '2026-09-15']) roh.trainings.push(bank(d, 100))
+    roh.trainings.push(bank('2026-10-30', 105))
+    expect(analysiere(roh, ZONE, HEUTE).map((f) => f.id)).toEqual(['R4'])
+    roh.trainings.unshift(bank('2026-03-01', 110)) // 246 Tage vor heute
+    expect(analysiere(roh, ZONE, HEUTE)).toEqual([])
+  })
+
+  it('reicht ausgeschlossene Übungen an R4 weiter', () => {
+    const roh: Rohdaten = { health: [], tagebuch: [], effekte: [], essen: [], trainings: [] }
+    const ex =(d: string, kg: number) => ({ startedAt: `${d}T10:00:00Z`, kind: 'strength', exercises: [{ exerciseId: 'custom:hilfe', sets: [{ weightKg: kg, reps: 5 }] }] })
+    for (const d of ['2026-09-01', '2026-09-08', '2026-09-15']) roh.trainings.push(ex(d, 20))
+    roh.trainings.push(ex('2026-10-30', 40))
+    expect(analysiere(roh, ZONE, HEUTE).map((f) => f.id)).toEqual(['R4'])
+    expect(analysiere(roh, ZONE, HEUTE, new Set(['custom:hilfe']))).toEqual([])
   })
 })

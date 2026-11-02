@@ -21,7 +21,7 @@ const h1: Fund = {
   werte: { gruppe_a: 'vor_grenze', gruppe_b: 'ab_grenze', mittel_a: 431, mittel_b: 381, n_a: 11, n_b: 9, differenz: 50, einheit: 'min', grenze: 21 },
 }
 const t7: Fund = {
-  id: 'T7', schluessel: 'T7:tagebuch:14', bezug: null, richtung: 'positiv', datenlage: 'deutlich', staerke: 0.6,
+  id: 'T7', schluessel: 'T7:tagebuch:14:2026-10-19',bezug: null, richtung: 'positiv', datenlage: 'deutlich', staerke: 0.6,
   zeitraum: { von: '2026-10-19', bis: '2026-11-01' }, werte: { tage: 14 },
 }
 const fH1: GespeicherterFund = { id: 'f1', fund: h1, datenlage: 'deutlich' }

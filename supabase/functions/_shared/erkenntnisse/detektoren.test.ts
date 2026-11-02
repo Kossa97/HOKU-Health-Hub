@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { KATALOG } from './katalog.ts'
-import { kraftRekorde, tagebuchSerie, vergleiche } from './detektoren.ts'
+import { UNTERSTUETZT, kraftRekorde, tagebuchSerie, vergleiche } from './detektoren.ts'
 import { tagePlus } from './zeit.ts'
 import type { Tag, Training } from './typen.ts'
 
@@ -130,6 +130,13 @@ describe('erkenntnisse: vergleiche', () => {
     expect(k.fund.werte).toMatchObject({ mittel_a: 8.1, mittel_b: 6, differenz: 2.1, einheit: 'punkte', grenze: 7, n_a: 8, n_b: 8 })
   })
 
+  it('Differenz aus den gerundeten Mitteln: Satz und Beleg passen zusammen', () => {
+    // 430,6 gegen 380,4 min: ungerundet 50,2 -> 50, gezeigt werden aber 431 und 380
+    const schlaf = [...Array(6).fill(431), ...Array(4).fill(430), ...Array(4).fill(381), ...Array(6).fill(380)]
+    const k = vergleiche(H1, schlafNachTraining([...Array(10).fill(18), ...Array(10).fill(22)], schlaf))!
+    expect(k.fund.werte).toMatchObject({ mittel_a: 431, mittel_b: 380, differenz: 51 })
+  })
+
   it('ist bei gleichen Daten reproduzierbar', () => {
     expect(vergleiche(H1, tageH1)).toEqual(vergleiche(H1, tageH1))
   })
@@ -145,7 +152,16 @@ describe('erkenntnisse: Tagebuch-Serie (T7)', () => {
   it('Serie von 15 Tagen bis zum letzten Tag: Marke 14', () => {
     const f = tagebuchSerie(serie(15))!
     expect(f.werte).toEqual({ tage: 14 })
-    expect(f).toMatchObject({ id: 'T7', schluessel: 'T7:tagebuch:14', bezug: null, richtung: 'positiv', datenlage: 'deutlich', staerke: 0.6 })
+    expect(f).toMatchObject({ id: 'T7', schluessel: `T7:tagebuch:14:${START}`, bezug: null, richtung: 'positiv', datenlage: 'deutlich', staerke: 0.6 })
+  })
+
+  it('Schlüssel trägt den Beginn der Serie: eine neue Serie mit derselben Marke ist ein neuer Fund', () => {
+    const erste = tagebuchSerie(serie(8))!
+    const zweite = tagebuchSerie(serie(8, 30))!
+    expect(erste.schluessel).toBe(`T7:tagebuch:7:${START}`)
+    expect(zweite.schluessel).toBe(`T7:tagebuch:7:${tagePlus(START, 30)}`)
+    // innerhalb einer Serie bleibt er gleich
+    expect(tagebuchSerie(serie(9))!.schluessel).toBe(erste.schluessel)
   })
 
   it('zeitraum reicht vom ersten Tag der Serie bis zum letzten Tag', () => {
@@ -249,6 +265,20 @@ describe('erkenntnisse: Kraft-Rekorde (R4)', () => {
     const alt = (id: string) => ['2026-09-01', '2026-09-08', '2026-09-15'].map((d) => einheit(`${d}T17:00:00Z`, id, [satz(50)]))
     const t = [...alt('squat'), ...alt('bank'), einheit('2026-10-30T17:00:00Z', 'squat', [satz(60)]), einheit('2026-10-31T17:00:00Z', 'bank', [satz(55)])]
     expect(kraftRekorde(t, ZONE, BIS).map((f) => f.bezug)).toEqual(['bank', 'squat'])
+  })
+
+  it('Übungen mit Unterstützung zählen nicht: mehr Gewicht heißt dort mehr Hilfe', () => {
+    for (const id of UNTERSTUETZT) {
+      const alt = ['2026-09-01', '2026-09-08', '2026-09-15'].map((d) => einheit(`${d}T17:00:00Z`, id, [satz(20, 5)]))
+      expect(kraftRekorde([...alt, einheit('2026-10-30T17:00:00Z', id, [satz(40, 5)])], ZONE, BIS)).toEqual([])
+    }
+  })
+
+  it('ausgeschlossene Übungen (eigene mit Unterstützung) zählen nicht, andere schon', () => {
+    const alt = (id: string) => ['2026-09-01', '2026-09-08', '2026-09-15'].map((d) => einheit(`${d}T17:00:00Z`, id, [satz(20, 5)]))
+    const t = [...alt('custom:abc'), ...alt('bank'), einheit('2026-10-30T17:00:00Z', 'custom:abc', [satz(40, 5)]), einheit('2026-10-30T17:00:00Z', 'bank', [satz(40, 5)])]
+    expect(kraftRekorde(t, ZONE, BIS, new Set(['custom:abc'])).map((f) => f.bezug)).toEqual(['bank'])
+    expect(kraftRekorde(t, ZONE, BIS).map((f) => f.bezug)).toEqual(['bank', 'custom:abc'])
   })
 
   it('Einheiten davor zählt je Einheit, nicht je Satz', () => {

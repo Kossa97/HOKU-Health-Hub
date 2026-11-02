@@ -12,12 +12,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { hatZugang } from '../coach/prompt.ts'
-import { analysiere } from '../_shared/erkenntnisse/analyse.ts'
+import { analysiere, SERIE_TAGE } from '../_shared/erkenntnisse/analyse.ts'
 import { abgleich, istSonntagLauf, sichtbarAb, waehleWoche } from '../_shared/erkenntnisse/auswahl.ts'
 import type { Gespeichert } from '../_shared/erkenntnisse/auswahl.ts'
 import type { Fund } from '../_shared/erkenntnisse/typen.ts'
 import { lokalerTag, tagePlus } from '../_shared/erkenntnisse/zeit.ts'
-import { alsGespeichert, baueKandidaten, tageMitDaten, zuRohdaten } from './laden.ts'
+import { alsGespeichert, baueKandidaten, eigeneMitUnterstuetzung, tageMitDaten, zuRohdaten } from './laden.ts'
 import type { FundZeile } from './laden.ts'
 
 const json = (body: unknown, status = 200) =>
@@ -106,19 +106,20 @@ async function verarbeite(db: Db, profil: Profil, jetzt: Date): Promise<boolean>
     return false // Zone, die Intl nicht kennt
   }
 
-  // daily_logs und effects: 366-Tage-Reihe für T7; alles andere 90 Tage plus Puffer.
+  // daily_logs und effects: Reihe über SERIE_TAGE für T7; health und food 90 Tage plus Puffer.
+  // Trainings: die ganze Geschichte, R4 vergleicht mit allen Einheiten davor (H1/E2 schneidet baueTage).
   // Zeitstempel mit einem Tag Spielraum, geschnitten wird in analysiere nach lokalem Tag.
   const ab = tagePlus(heute, -91)
-  const abLang = tagePlus(heute, -367)
-  const abZeit = `${tagePlus(ab, -1)}T00:00:00Z`
+  const abLang = tagePlus(heute, -(SERIE_TAGE + 1))
   const abZeitLang = `${tagePlus(abLang, -1)}T00:00:00Z`
 
-  const [health, daily, effects, food, training] = await Promise.all([
+  const [health, daily, effects, food, training, eigene] = await Promise.all([
     leseAlle((von, bis) => db.from('health_daily').select('day, sleep_min').eq('user_id', userId).gte('day', ab).order('day').range(von, bis)),
     leseAlle((von, bis) => db.from('daily_logs').select('log_date, energie').eq('user_id', userId).gte('log_date', abLang).order('log_date').order('id').range(von, bis)),
     leseAlle((von, bis) => db.from('effects').select('occurred_at').eq('user_id', userId).gte('occurred_at', abZeitLang).order('occurred_at').order('id').range(von, bis)),
     leseAlle((von, bis) => db.from('food_logs').select('log_date, protein_g, source').eq('user_id', userId).gte('log_date', ab).order('log_date').order('id').range(von, bis)),
-    leseAlle((von, bis) => db.from('training_sessions').select('started_at, kind, exercises').eq('user_id', userId).gte('started_at', abZeit).order('started_at').order('id').range(von, bis)),
+    leseAlle((von, bis) => db.from('training_sessions').select('started_at, kind, exercises').eq('user_id', userId).order('started_at').order('id').range(von, bis)),
+    leseAlle((von, bis) => db.from('training_custom_exercises').select('id, tracking').eq('user_id', userId).eq('tracking', 'assisted_reps').order('id').range(von, bis)),
   ])
 
   const roh = zuRohdaten({ health, daily, effects, food, training })
@@ -126,7 +127,7 @@ async function verarbeite(db: Db, profil: Profil, jetzt: Date): Promise<boolean>
   // Defensiv: zwei Funde mit demselben Schlüssel würden beim Einfügen an unique (user_id, schluessel)
   // scheitern und den ganzen Nutzer kippen. Der erste gewinnt.
   const gesehen = new Set<string>()
-  const funde: Fund[] = analysiere(roh, zone, heute).filter((f) => {
+  const funde: Fund[] = analysiere(roh, zone, heute, eigeneMitUnterstuetzung(eigene)).filter((f) => {
     if (gesehen.has(f.schluessel)) return false
     gesehen.add(f.schluessel)
     return true

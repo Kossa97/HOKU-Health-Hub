@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { baueKandidaten, tageMitDaten, zuRohdaten } from './laden.ts'
+import { baueKandidaten, eigeneMitUnterstuetzung, tageMitDaten, zuRohdaten } from './laden.ts'
 import type { Fund, Rohdaten } from '../_shared/erkenntnisse/typen.ts'
 
 const leer = { health: [], daily: [], effects: [], food: [], training: [] }
@@ -149,5 +149,23 @@ describe('baueKandidaten', () => {
   it('übernimmt die Datenlage aus der Spalte in den Fund', () => {
     const k = baueKandidaten([zeile('a', 'x', { datenlage: 'deutlich' })])
     expect(k[0].fund.datenlage).toBe('deutlich')
+  })
+})
+
+describe('eigeneMitUnterstuetzung', () => {
+  it('macht aus eigenen Übungen mit Erfassung assisted_reps die IDs der Sätze (custom:<id>)', () => {
+    const ids = eigeneMitUnterstuetzung([
+      { id: 'u1', tracking: 'assisted_reps' },
+      { id: 'u2', tracking: 'weight_reps' },
+      { id: 'u3', tracking: 'assisted_reps' },
+      { id: 7, tracking: 'assisted_reps' },
+      null,
+      'x',
+    ])
+    expect([...ids].sort()).toEqual(['custom:u1', 'custom:u3'])
+  })
+
+  it('ohne Zeilen eine leere Menge', () => {
+    expect(eigeneMitUnterstuetzung([]).size).toBe(0)
   })
 })
