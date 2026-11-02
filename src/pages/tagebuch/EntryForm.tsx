@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { enqueue, isNetworkError, newEntryId } from '../../lib/tagebuch/offlineQueue'
 import { stoerungsZustand } from '../../lib/stoerung'
 import { getDateLocale } from '../../i18n/dateLocales'
-import { INTAKE_COLUMNS, INTAKE_OPTIONS, intakeDose, intakeWhen, type IntakeOption } from './intake'
+import { INTAKE_COLUMNS, INTAKE_OPTIONS, groupByDay, intakeDay, intakeDose, intakeSlot, intakeTime, intakeWhen, type IntakeOption } from './intake'
 import { SymptomChip } from './SymptomChip'
 import { ChipEditor } from './ChipEditor'
 import { ChipInfo } from './ChipInfo'
@@ -120,6 +120,8 @@ export function EntryForm({ userId, stackItems, entry, prefill, onClose, onSaved
     return () => { cancelled = true }
   }, [form.stack_item_id, form.occurred_at, linkedAtOpen, userId])
 
+  const selectedIntake = intakeOptions.find(option => option.id === form.dose_log_id) ?? null
+  const showDose = new Set(intakeOptions.map(option => intakeDose(option, lang))).size > 1
   const chipLabel = (chip: Pick<ChipDraft, 'key' | 'customLabel'>) => labelOf(chip, lang)
   const chipAria = (chip: ChipDraft, selected: boolean) => ariaOf(chip, selected, t, lang)
 
@@ -271,31 +273,42 @@ export function EntryForm({ userId, stackItems, entry, prefill, onClose, onSaved
             <input id="tagebuch-zeitpunkt" type="datetime-local" value={form.occurred_at} required
               onChange={e => { const value = e.target.value; if (value) setForm(f => ({ ...f, occurred_at: value })) }} />
           </div>
+          {form.stack_item_id && intakeOptions.length > 0 && (
+            <div className="lg-form-row">
+              <label htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_kurz')}</label>
+              <span className="lg-form-value" aria-hidden="true">
+                {selectedIntake ? `${intakeDay(selectedIntake, locale)} ${format(intakeSlot(selectedIntake).zeit, 'HH:mm')}` : t('tagebuch_einnahme_keine')}
+              </span>
+              {/* Nach Tagen gruppiert; die Menge nur, wenn sie sich unterscheidet. */}
+              <select id="tagebuch-einnahme" aria-label={t('tagebuch_einnahme_label')} value={form.dose_log_id}
+                onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
+                <option value="">{t('tagebuch_einnahme_keine')}</option>
+                {groupByDay(intakeOptions, locale).map(group => (
+                  <optgroup key={group.tag} label={group.tag}>
+                    {group.options.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {[intakeTime(option, locale, t), showDose ? intakeDose(option, lang) : ''].filter(Boolean).join(' · ')}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Bezug zur Einnahme — freiwillig, nur mit Substanz */}
-        {form.stack_item_id && (
+        {form.stack_item_id && (intakeOptions.length === 0 || laterIntake) && (
           <div>
-            <label className="label" htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_label')}</label>
-            {intakeOptions.length > 0 ? (
-              <select id="tagebuch-einnahme" className="select" value={form.dose_log_id}
-                onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
-                <option value="">{t('tagebuch_einnahme_keine')}</option>
-                {intakeOptions.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {[intakeWhen(option, locale, t), intakeDose(option, lang)].filter(Boolean).join(' · ')}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p id="tagebuch-einnahme" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
+            {intakeOptions.length === 0 && (
+              <p id="tagebuch-einnahme-leer" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
             )}
             {laterIntake && (
-              <div data-tagebuch-einnahme-spaeter className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
-                <p className="min-w-0 flex-1 text-xs text-[var(--lg-text-3)]">
+              <div data-tagebuch-einnahme-spaeter className="-mt-1 flex flex-col items-start px-1">
+                <p className="text-xs text-[var(--lg-text-3)]">
                   {t('tagebuch_einnahme_spaeter', { zeit: intakeWhen(laterIntake, locale, t) })}
                 </p>
-                <button type="button" className="min-h-[44px] text-xs font-semibold text-[var(--lg-accent-text)]"
+                <button type="button" className="-ml-1 min-h-[44px] px-1 text-sm font-semibold text-[var(--lg-accent-text)]"
                   onClick={() => {
                     const intake = laterIntake
                     setLaterIntake(null)
