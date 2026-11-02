@@ -57,7 +57,10 @@ Gesamtfortschritt [Nutzer]:
 Abzeichen [Nutzer]: alle Arten (Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft), „erstmal grob alles was zur
 App passt“, Feinschliff macht der Nutzer.
 Nutzer 02.11.: Schlaf = Methode A (Anteil Nächte 7–9 h im Bereich, Start gegen jetzt, relativ). Gesamtrechnung
-(Mittel je Wert → je Bereich → über Bereiche, ohne Deckel) bestätigt. Schritte: Methode noch offen.
+(Mittel je Wert → je Bereich → über Bereiche, ohne Deckel) bestätigt.
+Schritte [Nutzer]: Methode A (Ø, Richtung hoch, relativ), aber Startwert = Baseline aus den 1–2 Monaten vor dem
+Start aus Apple Health / Health Connect, wenn verfügbar (sonst erste 7 Tage). Offen: gilt die Baseline für alle
+Wearable-Werte (Schlaf, Ruhepuls, kcal, VO2max …) und welches Fenster für „jetzt“.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
