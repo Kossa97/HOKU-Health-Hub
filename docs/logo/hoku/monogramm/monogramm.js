@@ -81,6 +81,37 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
     return [gx / l, gy / l]
   }
   feld.innen = innen; feld.N = N; feld.L = L
+  // Kontur verfolgen (Moore-Nachbarschaft), Start: oberster Randpunkt
+  let start = -1
+  for (let i = 0; i < N * N && start < 0; i++) if (innen[i]) start = i
+  const NB = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]]
+  const zug = []; let cx = start % N, cy = (start / N) | 0, rueck = 0
+  for (let schritt = 0; schritt < N * 16; schritt++) {
+    zug.push([cx, cy])
+    let gefunden = false
+    for (let k = 0; k < 8; k++) {
+      const r = (rueck + 1 + k) % 8, nx = cx + NB[r][0], ny = cy + NB[r][1]
+      if (nx >= 0 && ny >= 0 && nx < N && ny < N && innen[ny * N + nx]) { cx = nx; cy = ny; rueck = (r + 4) % 8; gefunden = true; break }
+    }
+    if (!gefunden || (cx === start % N && cy === ((start / N) | 0) && zug.length > 2)) break
+  }
+  // glätten und nach Bogenlänge abtasten
+  const glatt = zug.map((_, i) => { let x = 0, y = 0; for (let j = -3; j <= 3; j++) { const p = zug[(i + j + zug.length) % zug.length]; x += p[0]; y += p[1] } return [x / 7, y / 7] })
+  const bogen = [0]; for (let i = 1; i <= glatt.length; i++) { const a = glatt[i - 1], b = glatt[i % glatt.length]; bogen.push(bogen[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1])) }
+  const gesamt = bogen[glatt.length], M2 = 4096, kontur = []
+  for (let k = 0, j = 0; k < M2; k++) {
+    const ziel = (k / M2) * gesamt
+    while (bogen[j + 1] < ziel) j++
+    const a = glatt[j], b = glatt[(j + 1) % glatt.length], f = (ziel - bogen[j]) / Math.max(1e-9, bogen[j + 1] - bogen[j])
+    kontur.push([(a[0] + (b[0] - a[0]) * f + 0.5 - N / 2) / L, (a[1] + (b[1] - a[1]) * f + 0.5 - N / 2) / L])
+  }
+  // Startpunkt so legen, dass Winkel 0 (rechts) etwa beim Konturpunkt rechts der Mitte liegt
+  let beste = 0, bw = 1e9
+  kontur.forEach(([u, v], i) => { const w = Math.abs(Math.atan2(v, u)); if (w < bw && u > 0) { bw = w; beste = i } })
+  feld.kontur = kontur.slice(beste).concat(kontur.slice(0, beste))
+  // Umlaufsinn: Winkel soll mit dem Index steigen
+  const a1 = Math.atan2(feld.kontur[40][1], feld.kontur[40][0])
+  if (a1 < 0) feld.kontur = [feld.kontur[0], ...feld.kontur.slice(1).reverse()]
   let t = 0; for (let i = 0; i < N * N; i++) t = Math.min(t, S[i]); feld.tiefe = -t
   return feld
 }
@@ -104,11 +135,24 @@ window.monogrammPupille = function (m = MONO) {
       const G = a.G, dd = x * G[0] + y * G[1] + z * G[2]
       if (dd > 0.2) {
         const [pa, pb0] = tang(a, x, y, z), pb = pb0 - (M.dy || 0), s = feld(pa / K, pb / K) * K
+        if (M.rand === 'app' && s < 0) { aus[2] = 0; return } // geht als Randpartikel in extra() auf
         if (s < W) {
-          const s2 = W * (s + h) / (W + h), dl = Math.max(0, s2 - s), [nx, ny] = feld.richtung(pa / K, pb / K)
-          aus[0] += (nx * a.rx[0] + ny * a.uy[0]) * dl
-          aus[1] += ny * a.uy[1] * dl
-          aus[3] = 1 + M.hell * (1 - Math.min(1, s2 / W))
+          // wie engine/auge.ts: aus der Pupille auf [Rand, Rand + 0,93·Band], von dort außen dicht dahinter;
+          // innen nach der Richtung von der Mitte (wie der Kreis), damit sich der Rand gleichmäßig füllt
+          const q = (s + h) / (W + h), s2 = 0.93 * W * q
+          let tu, tv
+          if (s < 0 && M.richtung === 'winkel') {
+            const kz = feld.kontur, t = ((Math.atan2(pb, pa) / (2 * Math.PI)) + 1) % 1
+            const p = kz[Math.min(kz.length - 1, Math.floor(t * kz.length))], [nx, ny] = feld.richtung(p[0], p[1])
+            tu = p[0] * K + nx * s2; tv = p[1] * K + ny * s2
+          } else {
+            const [nx, ny] = feld.richtung(pa / K, pb / K), dl = Math.max(0, s2 - s)
+            tu = pa + nx * dl; tv = pb + ny * dl
+          }
+          const du = tu - pa, dv = tv - pb
+          aus[0] += du * a.rx[0] + dv * a.uy[0]
+          aus[1] += dv * a.uy[1]
+          aus[3] = 1 + M.hell * (1 - q)
         }
       } else if (z < 0) {
         // durch das Monogramm sähe man die Rückseite: dort nichts
@@ -119,6 +163,21 @@ window.monogrammPupille = function (m = MONO) {
     // gleichmäßig verteilte Partikel genau auf der Kante (Poisson-Scheibe), leicht außerhalb
     extra(a, o) {
       const M = o.mono
+      if (M.rand === 'app') {
+        // Rand wie die Pupille in der App: die Partikel aus dem Monogramm liegen als Band dicht
+        // am Rand (Abstand 0 … 0,93·Band, innen dichter und heller), gleichmäßig über die Kontur
+        const kz = feld.kontur, K = M.gross, n = M.randAnzahl, out = [], G = a.G
+        for (let i = 0; i < n; i++) {
+          const t = (i + zufall(i + 31337)) / n, p = kz[Math.floor(t * kz.length) % kz.length]
+          const q = Math.pow(zufall(i + 4711), M.randKurve || 1.6), s2 = 0.93 * M.band * q
+          const [nx, ny] = feld.richtung(p[0], p[1]), pa = p[0] * K + nx * s2, pb = p[1] * K + ny * s2 + (M.dy || 0)
+          const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
+          const x = G[0] * tt + pa * a.rx[0] + pb * a.uy[0], y = G[1] * tt + pb * a.uy[1], z = G[2] * tt + pa * a.rx[2] + pb * a.uy[2]
+          const u = zufall(i + 999), g = 1 + ((0.62 + 0.55 * u * u) - 1) * (o.streu || 0)
+          out.push({ x, y, z, licht: 1 + M.hell * (1 - q), g })
+        }
+        return out
+      }
       if (!M.kontur) return []
       const key = JSON.stringify(M)
       if (konturFuer !== key) {
