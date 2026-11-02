@@ -20,6 +20,9 @@ import { clamp01 } from './geometry'
 export const PUPILLE = 0.4
 /** So groß wird sie beim Zuhören. */
 export const PUPILLE_HOEREN = 1.22
+/** Denken: Pupille etwas enger, der Irisring halb so deutlich wie beim Zuhören. Sprechen: Pupille weitet sich mit jedem Wort. */
+export const DENKEN = { enger: 0.15, ring: 0.6 }
+export const SPRECHEN = { puls: 0.35 }
 /** Irisring beim Zuhören: Abstand zur Pupille, Pulsieren mit der Stimme, wie weit er sich vom Körper hebt. */
 export const HOER_RING = { abstand: 1.32, puls: 0.16, heb: 1.15 }
 /** Anteil der Punkte, die beim Zuhören den Irisring bilden (nach `u`). */
@@ -40,6 +43,8 @@ export interface Auge {
   offen: number
   /** Zuhören 0 … 1, und der Winkel des Irisrings. */
   hoer: number; irisW: number
+  /** Denken 0 … 1 (Irisring ruhig, Pupille enger), Sprechen 0 … 1 (Pupille pulsiert mit den Worten). */
+  denk: number; sprich: number
   t: number
   // je Bild abgeleitet
   G: [number, number, number]; rx: [number, number, number]; uy: [number, number, number]
@@ -49,7 +54,7 @@ export interface Auge {
 export function neuesAuge(): Auge {
   return {
     gx: 0, gy: 0, yaw: 0, pitch: 0, vyaw: 0, vpitch: 0, sx: 0, sy: 0, naechsterBlick: 1.5,
-    lidP: 0, blinzelAb: -1, zweites: -1, naechstesBlinzeln: 2.5, weit: 0, offen: 0, hoer: 0, irisW: 0, t: 0,
+    lidP: 0, blinzelAb: -1, zweites: -1, naechstesBlinzeln: 2.5, weit: 0, offen: 0, hoer: 0, irisW: 0, denk: 0, sprich: 0, t: 0,
     G: [0, 0, 1], rx: [1, 0, 0], uy: [0, 1, 0], rp: PUPILLE, lidKante: -PUPILLE, stimme: 0,
   }
 }
@@ -73,6 +78,10 @@ export interface AugenEingabe {
   hoert: boolean
   /** Lautstärke der Stimme 0 … 1 (beim Zuhören). */
   stimme: number
+  /** Denkt nach (Nutzer 02.11.2026: Denken und Sprechen mit Auge). */
+  denkt?: boolean
+  /** Spricht: Stärke der gerade erscheinenden Worte 0 … 1. */
+  spricht?: number
   weniger: boolean
   /** Wegdrehen (Passwort): -1 nach links, 1 nach rechts, 0 nicht; die Pupille geht hinter den Rand. */
   weg?: number
@@ -142,7 +151,11 @@ export function augeSchritt(a: Auge, dt: number, e: AugenEingabe) {
   // Zuhören: Irisring löst sich, dreht im Takt der Stimme
   a.hoer += ((e.hoert ? 1 : 0) - a.hoer) * (e.weniger ? 1 : 1 - Math.exp(-dt * 4))
   a.stimme = e.hoert ? clamp01(e.stimme) : 0
-  if (!e.weniger) a.irisW += dt * (0.5 + 2.6 * a.stimme)
+  // Denken: der Ring dreht ruhig und gleichmäßig; Sprechen: die Pupille pulsiert schnell mit
+  a.denk += ((e.denkt ? 1 : 0) - a.denk) * (e.weniger ? 1 : 1 - Math.exp(-dt * 3))
+  const sz = clamp01(e.spricht ?? 0)
+  a.sprich += (sz - a.sprich) * (e.weniger ? 1 : 1 - Math.exp(-dt * (sz > a.sprich ? 30 : 9)))
+  if (!e.weniger) a.irisW += dt * (0.5 + 2.6 * a.stimme + 0.4 * a.denk)
 
   // Achsen für dieses Bild
   const cp = Math.cos(a.pitch), sp = Math.sin(a.pitch), cy = Math.cos(a.yaw), sy = Math.sin(a.yaw)
@@ -154,7 +167,7 @@ export function augeSchritt(a: Auge, dt: number, e: AugenEingabe) {
   let ux = G[1] * a.rx[2] - G[2] * a.rx[1], uyy = G[2] * a.rx[0] - G[0] * a.rx[2], uz = G[0] * a.rx[1] - G[1] * a.rx[0]
   if (uyy < 0) { ux = -ux; uyy = -uyy; uz = -uz }
   a.uy[0] = ux; a.uy[1] = uyy; a.uy[2] = uz
-  a.rp = PUPILLE * (1 + 0.1 * a.weit) * (1 + (PUPILLE_HOEREN - 1) * a.hoer)
+  a.rp = PUPILLE * (1 + 0.1 * a.weit) * (1 + (PUPILLE_HOEREN - 1) * a.hoer) * (1 - DENKEN.enger * a.denk) * (1 + SPRECHEN.puls * a.sprich)
   // Lidkante: wandert mit dem Lid von oben (offen) nach unten (zu); geschlossen auch, wenn das Auge nicht zu sehen ist
   const lid = Math.max(a.lidP, 1 - a.offen)
   a.lidKante = -a.rp * 1.08 + 2.16 * a.rp * lid
@@ -207,7 +220,8 @@ export function augePunkt(a: Auge, x: number, y: number, z: number, iris: boolea
   }
 
   // Zuhören: Irispunkte lösen sich vom Körper und drehen sich um die Pupille
-  if (iris && a.hoer > 0.01) {
+  const ring = Math.max(a.hoer, DENKEN.ring * a.denk)
+  if (iris && ring > 0.01) {
     const st = a.stimme, rho = rp * HOER_RING.abstand * (1 + HOER_RING.puls * st)
     const w = i * 2.399963 + a.irisW, c = Math.cos(w), s = Math.sin(w)
     const tief = Math.sqrt(Math.max(0, 1 - rho * rho)), heb = HOER_RING.heb
@@ -215,7 +229,7 @@ export function augePunkt(a: Auge, x: number, y: number, z: number, iris: boolea
     const iy = (G[1] * tief + rho * s * uy[1]) * heb
     const iz = (G[2] * tief + rho * (c * rx[2] + s * uy[2])) * heb
     const unterLid = rho * s < a.lidKante - 1.1 * rho * rho * c * c ? 1 : 0
-    const L = a.hoer * offen
+    const L = ring * offen
     aus[0] += (ix - aus[0]) * L; aus[1] += (iy - aus[1]) * L; aus[4] += (iz - aus[4]) * L
     aus[2] += (1 - 0.9 * unterLid - aus[2]) * L
     aus[3] += (1.5 + 0.8 * st - aus[3]) * L

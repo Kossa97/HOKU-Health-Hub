@@ -148,7 +148,8 @@ const TARGETS: Record<DotStimmung, { spin: number; bright: number; glow: number;
   joy: { spin: 0.5, bright: 1.1, glow: 0.9, hue: 0.25 },
 }
 // Zuhören (Nutzer 02.11.2026, Zuhören 4): Kugel mit Auge, ein Irisring dreht im Takt der Stimme
-const SHAPE: Record<DotStimmung, string> = { idle: 'sphere', think: 'rings', speak: 'wave', joy: 'check', listen: 'sphere' }
+// Denken und Sprechen sind die Kugel mit Auge (Nutzer 02.11.2026), vorher Ringe und Welle
+const SHAPE: Record<DotStimmung, string> = { idle: 'sphere', think: 'sphere', speak: 'sphere', joy: 'check', listen: 'sphere' }
 const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200]
 // Fehlerfarben der App: --lg-bad und --lg-warn
 const BAD = [255, 69, 58], WARN = [255, 159, 10], GOOD = [48, 209, 88]
@@ -1538,19 +1539,7 @@ export function createDot(host: DotHost): DotApi {
   const ziel = (x: number, y: number, z: number, licht = 1, rosa = 0) => { ZIEL[0] = x; ZIEL[1] = y; ZIEL[2] = z; ZIEL[3] = licht; ZIEL[4] = rosa; return ZIEL }
   let TEXT_SC = 1
   function shapeTarget(p: Punkt, t: number): number[] {
-    const v = clamp01(B.voice), n = PUNKTE
     switch (B.shape) {
-      case 'rings': {
-        const ringI = p.i % 2, th = p.u * TAU * 2 + t * (ringI ? 2.4 : -1.9), rr = 1 + (p.k - 0.5) * 0.08
-        const x = Math.cos(th) * rr, y = Math.sin(th) * rr * Math.cos(1.15), z = Math.sin(th) * rr * Math.sin(1.15)
-        const g = ringI ? 0.55 : -0.55
-        return ziel(x * Math.cos(g) - y * Math.sin(g), x * Math.sin(g) + y * Math.cos(g), 0.25 + (0.75 * (z + 1)) / 2)
-      }
-      case 'wave': {
-        const band = p.i % 3, u = Math.floor(p.i / 3) / (n / 3), x = (u * 2 - 1) * 1.3, env = Math.exp(-x * x * 1.4)
-        const y = env * (0.14 + 0.6 * v) * [1, 0.7, 0.45][band] * Math.sin(x * 5.5 + t * 7 + band * 2.1) + (p.k - 0.5) * 0.03
-        return ziel(x, y, 0.9 - band * 0.15)
-      }
       case 'check': {
         const L1 = 0.566, L2 = 1.13, s = p.u * (L1 + L2), j = (p.k - 0.5) * 0.12, j2 = Math.sin(p.s) * 0.03
         let x: number, y: number
@@ -1823,6 +1812,11 @@ export function createDot(host: DotHost): DotApi {
     else if (tempo > 260) { const s = Math.min(0.55, tempo / 1400) / tempo; ziel = { gx: TEMPO.x * s, gy: TEMPO.y * s }; gross = true }
     // eine Geste mit Kugelkörper gibt den Blick vor (nicken, schütteln, Funken nachsehen …)
     else if (gestenKugel && GB.K!.blick) ziel = { gx: GB.K!.gx, gy: GB.K!.gy }
+    // beim Denken schaut er nachdenklich nach oben und lässt den Blick langsam wandern
+    else if (B.state === 'think' && B.shape === 'sphere' && !B.form) {
+      const ts = performance.now() / 1000
+      ziel = { gx: 0.32 * Math.sin(ts * 0.7), gy: -0.34 + 0.08 * Math.sin(ts * 1.3) }
+    }
     else if (performance.now() < BLICK.bis) ziel = blickZu(B.x, B.y, Math.max(B.r, 1), BLICK.x, BLICK.y)
     if (ziel && Math.hypot(ziel.gx - AUGE.gx, ziel.gy - AUGE.gy) > 0.35) gross = true
     const kugel = B.shape === 'sphere' || gestenKugel
@@ -1832,6 +1826,8 @@ export function createDot(host: DotHost): DotApi {
       sichtbar: kugel && draussen && B.r >= 16 && B.flat < 0.5,
       hoert: !WEG_SEITE && (B.state === 'listen' || performance.now() < schreibtBis) && B.shape === 'sphere',
       stimme: B.voice,
+      denkt: B.state === 'think' && B.shape === 'sphere',
+      spricht: B.state === 'speak' && B.shape === 'sphere' ? B.voice : 0,
     })
     LAGE.cp = Math.cos(AUGE.pitch); LAGE.sp = Math.sin(AUGE.pitch); LAGE.cy = Math.cos(AUGE.yaw); LAGE.sy = Math.sin(AUGE.yaw)
   }
