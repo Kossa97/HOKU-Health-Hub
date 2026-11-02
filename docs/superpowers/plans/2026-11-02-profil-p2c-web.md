@@ -1,0 +1,98 @@
+# Profil, Teilprojekt 2c: Web-Vorschau, Link-Karte und Hoku-Code — Bauplan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** `/u/<name>` zeigt ohne Anmeldung eine feste Seite mit den Feldern auf „Alle“ (ohne Blut, Einnahmen, Bio, Berichte), geteilte Links erscheinen im Chat als Karte A/C/neutral, das Profil lässt sich über ein Sheet mit lesbarem Hoku-Code teilen, Abzeichen sind je Abzeichen fürs Web schaltbar, und installierte Apps öffnen den Link direkt.
+
+**Architecture:** Filter nur auf dem Server: `profile_view` bekommt in der Stufe `web` eine feste Feldliste, beschnittene Bereiche, gefilterte Abzeichen (`profiles.web_badges`, Abweichungen vom Standard) und nur die Berichtezahl. Zwei Vercel-Funktionen (`api/u.js` für HTML mit Meta-Tags, `api/og.js` für das 1200×630-Bild) rufen `profile_view` mit dem anon-Schlüssel auf, nie mit der Dienstrolle. Der Hoku-Code ist ein selbst gezeichnetes SVG aus einer QR-Matrix (`qrcode-generator`, Fehlerkorrektur H), gelesen in Tests mit `zxing-wasm`. Deep Links über Universal Links / App Links und `@capacitor/app`.
+
+**Tech Stack:** wie 2a/2b (React 19 + TS, Vitest, Playwright-Mock, Supabase), dazu Vercel Node-Funktionen (`api/`, JS wie `send-reminders.js`), `@resvg/resvg-js` (wird `dependency`), `qrcode-generator`, `zxing-wasm` (vorhanden), `@capacitor/app` (neu).
+
+**Spec:** `docs/superpowers/specs/2026-11-02-profil-p2c-web-design.md`. Mockup: `docs/profil/mockups/profil-2c.html` (Link-Karten A/B/C/neutral — gewählt A mit Rückfall C; Web-Vorschau und 404; „Abzeichen im Web“; Hoku-Code im Sheet und Vollbild). Entscheidungen: `memory/projects/profil.md`, „Teilprojekt 2c geplant“. Baut auf 2b (PR #128) und 2a (PR #119) auf.
+
+## Global Constraints
+
+- Migration als Datei `supabase-profil-p2c-web.sql`, additiv und idempotent; Trockenlauf mit Postgres 16 unter `/var/tmp/…` als `postgres`, Ist-Zustand nach 2a + 2b nachgebaut, **zweimal** laufen lassen, nachzählen. Produktivlauf **nur nach ausdrücklichem Ja**, Reihenfolge 2a → 2b → 2c. Kein `drop`, `truncate`, `delete`/`update` ohne `where`.
+- Sichtbarkeit ist eine Sicherheitsgrenze: Web-Inhalte kommen **nur** aus `profile_view` (Stufe `web`). Vercel-Funktionen benutzen nur den anon-Schlüssel; kein `SUPABASE_SERVICE_ROLE_KEY` in `api/u.js`/`api/og.js`.
+- Nie im Web, auch nicht in Bild oder Meta-Tags: Gesundheitswerte, Bereiche Blut/Einnahmen, Substanzen, Berichte-Inhalte, Bio, Story, Freunde.
+- 404 identisch für Web-Link aus / privat / unbekannt / ausgeblendet (Status, HTML, Kopfzeilen, Karte).
+- Texte nur de/en, übrige zwölf Locales englischer Platzhalter, `i18n.test.ts` grün.
+- Nichts deployen, keine Domain-/DNS-/Firewall-Änderung, keine Store-Einreichung ohne den Nutzer.
+- Offene Fragen der Spec (Abschnitt „Offene Fragen“) gelten mit ihrer Empfehlung, bis der Nutzer anders entscheidet; Abweichungen im PR nennen.
+- Commit-Trailer wie gehabt; `graphify update .` macht der Nutzer lokal.
+
+## Review Focus
+
+1. **Leck Web-Stufe:** Als `anon` liefert `profile_view` nur `cover, country, goals, streak, progress, badges, reviews` (je nur bei „Alle“) plus Name/Nickname/Bild; `progress.areas` ohne `blut`/`einnahmen`, ohne Web-Bereich gar kein `progress`; `badges` nach Web-Freigabe; `reviews` nur `count`; keine `bio`. (Task 1, 2)
+2. **Gleiche 404:** aus / privat / unbekannt / ausgeblendet ergeben byte-gleiche Antworten von `api/u.js` und dieselbe neutrale Karte von `api/og.js`. (Task 6)
+3. **Keine Dienstrolle, kein zweiter Filter:** Bild und Meta-Tags entstehen nur aus der anon-`profile_view`-Antwort; Profil mit allem auf „Freunde“ → Karte C ohne Zahl. (Task 6)
+4. **Hoku-Code liest:** Adresse dekodiert exakt bei 124 px, 300 px, halber Auflösung, Weichzeichnung, ±10°; längster erlaubter Name. (Task 5)
+5. **Deep-Link-Routing:** Die App folgt nur `/u/<name>` mit Nutzernamen-Zeichen; alles andere wird ignoriert. (Task 7)
+6. **Escape:** Nutzername/Anzeigename in HTML-Attributen und SVG maskiert; `name`-Parameter außerhalb des Zeichensets → sofort 404. (Task 6)
+
+---
+
+### Task 1: Migration und Trockenlauf (`supabase-profil-p2c-web.sql`)
+
+- [ ] Kopf wie 2b: Zweck, „setzt 2a + 2b voraus“, „2a/2b danach nicht erneut laufen lassen“, Zählungen vor/nach (nur Zahlen).
+- [ ] `profiles.web_badges jsonb not null default '{}'` (`add column if not exists`); `profile_badge_web_sensitive()` (10 IDs aus Spec 6.1); `profile_web_badges_ok(v)` + Constraint `profiles_web_badges_check` nur wenn nicht vorhanden; `profile_web_fields()`.
+- [ ] `profile_view` neu: Stufe `web` mit fester Feldliste, `cover/country/goals` aus `profiles`, `streak/progress/badges/reviews` aus dem bereinigten Schnappschuss; `progress.areas` auf `koerper/training/erholung` beschnitten, leer → kein `progress`; `badges` nach `web_badges`/Standard; `reviews` nur `count`; Eigentümer erhält `web_badges`.
+- [ ] `profile_media_visible`: Titelbild für `anon` bei Web-Link an, nicht privat, `cover = all`, geprüft, Objekt-ID passt.
+- [ ] Trockenlauf: Postgres 16 als `postgres` unter `/var/tmp/p2c-…`; Schema aus Basis + P1 + 2a + 2b nachbauen; Probezeilen (Web-Link aus, privat, unbekannt, an mit allem auf „Alle“, an mit allem auf „Freunde“, nur Blut-Bereich, heikle Abzeichen mit und ohne Abweichung); Datei **zweimal** laufen lassen; Proben als `anon` (`set role anon`, leere JWT-Claims) zu Review Focus 1; Zählungen gleich nach beiden Läufen; ungültige `web_badges` (fremde ID, Nicht-Bool) werden abgewiesen.
+- [ ] Ergebnis (Zahlen, Proben) im Commit und im Projektgedächtnis. **Anhalten** für das Ja zum Produktivlauf (zusammen mit 2a und 2b, vor dem Merge).
+
+### Task 2: Lib und Filter auf dem Gerät (`badgeIds.ts`, `profileView.ts`)
+
+- [ ] `BADGES_WEB_SENSITIVE` in `src/features/profil/lib/badgeIds.ts`; Paritätstest gegen die SQL-Liste (wie `BADGE_IDS`).
+- [ ] `webBadgeEnabled(id, overrides)` und `webBadgeOverrides(set)` (Abweichungen vom Standard bilden, „zurücksetzen“ = `{}`), mit Tests.
+- [ ] `parseProfileView` versteht `web_badges` (nur Eigentümer) und die Web-Formen (`reviews.count`, beschnittenes `progress`); unbekannte Schlüssel weiter ignorieren.
+- [ ] Speichern von `web_badges` im Profildienst (Tipp-Reihenfolge wie die Sichtbarkeit aus 2a, Rücksetzen bei Fehler).
+
+### Task 3: Einstellung „Abzeichen im Web“ (`/profil/web-abzeichen`)
+
+- [ ] Eintrag unter Einstellungen › Web-Link; Bildschirm nach Mockup Abschnitt 3: Einleitung, Zähler „Im Web sichtbar x von y verdienten“, Gruppen mit „n/m an“, Zeilen mit Symbol, Name, „verrät Gesundheitsdaten“, verdient/noch nicht, Schalter; „Auf Standard zurücksetzen“; Kasten „Was die Schalter nicht ändern“.
+- [ ] Hinweis oben, wenn `badges` nicht auf „Alle“ oder Web-Link aus, mit Sprung zur Einstellung.
+- [ ] Komponententest: Standard (heikle aus), Abweichung, Zurücksetzen, Zähler.
+
+### Task 4: Web-Seite `/u/<name>` (`src/pages/PublicProfile.tsx`, `WebAnsicht`)
+
+- [ ] Aufbau nach Spec 1.1 und Mockup: Titelbild, Profilbild, Name, Flagge + Kürzel, @nick, Ziel-Tags, Streak, „In Hoku öffnen“, Berichte-Hinweis (nur `reviews.count > 0`), Gesamtfortschritt wie 2b-Karte Variante 1 mit nur den Web-Bereichen (kein Ring), Web-Abzeichen, „Was ist Hoku?“, Store-Knöpfe, Impressum/Datenschutz/Profil melden. Bio nicht mehr.
+- [ ] 404-Seite: „Seite nicht gefunden“ + „Was ist Hoku?“, gleich für alle drei Fälle; angemeldet bleibt die bisherige App-Meldung.
+- [ ] „Ansehen als › Web-Link“ zeigt dieselbe Seite.
+- [ ] „Profil melden“ ohne Konto nach Entscheidung zu Spec-Frage 8 (Empfehlung: kleines Formular in die bestehende Moderation); bis dahin Link auf die Kontaktadresse im Impressum.
+- [ ] e2e (`profil-web.spec.ts`, Supabase-Mock): nur Web-Felder, keine Bio, keine Bereiche Blut/Einnahmen, Abzeichen folgen `web_badges`, 404 gleich.
+
+### Task 5: Hoku-Code und Sheet „Profil teilen“
+
+- [ ] `qrcode-generator` mit exakter Version; `src/features/profil/lib/hokuCode.ts` (Matrix → SVG: Punkte, runde Suchmarken, Aussparung mit App-Symbol ≈ 7 %, Füllpunkte im Verlauf, deterministisch) + Komponente `HokuCode` (`role="img"`, `aria-label`), immer dunkel auf hell.
+- [ ] `hokuCode.read.test.ts`: resvg rastert, `zxing-wasm` dekodiert; 124/300 px, halbe Auflösung, Weichzeichnung, ±10°, kürzester/längster Name, Sonderzeichen; Matrix-Abdruck für eine feste Adresse.
+- [ ] `src/pages/Profil.tsx`: „Profil teilen“ öffnet das Sheet (Code klein → Vollbild, „Teilen …“, „Link kopieren“, Adresszeile, Statuszeile mit Kartenart und „Ändern ›“, Messenger-Hinweis); „Profil geteilt“ wie bisher.
+- [ ] Web-Link aus: Hinweis und Schalter „Web-Link einschalten“; privat: eigener Hinweis.
+- [ ] Kein Helligkeits-Knopf (kein Plugin, Spec-Frage 11).
+- [ ] e2e (`profil-teilen.spec.ts`): Sheet, Vollbild, Bildschirmfoto dekodieren, Web-Link-aus-Schalter.
+
+### Task 6: Link-Karte (Vercel-Funktionen)
+
+- [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl A / C / neutral (negativ → C, 0 Abzeichen ohne Zeile, kein Bild → Initiale), Texte de/en für Titel/Beschreibung/Bild, Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten.
+- [ ] `api/u.js`: anon-`profile_view`, gebautes `index.html` (über `functions.includeFiles`) mit Titel, `og:*`, `twitter:card`, `robots noindex`; 200/404; `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=60`, `Vary: Accept-Language`, `X-Robots-Tag: noindex`.
+- [ ] `api/og.js`: anon-`profile_view` + Profilbild über Storage (anon), SVG → PNG mit `@resvg/resvg-js` (Schriften im Paket, Lizenz geprüft), `v` veraltet → neutrale Karte, `s-maxage=600`.
+- [ ] `vercel.json`: Route `/u/([^/]+)/?` → `/api/u?name=$1` vor dem Rückfall; `functions`-Eintrag für `includeFiles`. `@resvg/resvg-js` nach `dependencies`.
+- [ ] Tests der Funktionen mit gemocktem Supabase: byte-gleiche 404 für die vier Fälle (Review Focus 2), „alles auf Freunde“ → C ohne Zahl (Review Focus 3), PNG-Maße, Escape.
+- [ ] Datenschutz-Hinweis im Sheet (Messenger speichern Vorschauen) ist in Task 5 drin; hier nur prüfen, dass Meta-Texte und Bild nie mehr als die Karte enthalten.
+
+### Task 7: „In Hoku öffnen“ (Universal Links / App Links)
+
+- [ ] `public/.well-known/apple-app-site-association` und `public/.well-known/assetlinks.json` mit Platzhaltern `<TEAM_ID>` und `<SHA256>` (Werte liefert der Nutzer); `vercel.json`-Route mit `Content-Type: application/json` für die AASA-Datei.
+- [ ] iOS: `App.entitlements` mit `com.apple.developer.associated-domains` = `applinks:<domain>`, im Xcode-Projekt eingetragen. Android: `intent-filter android:autoVerify="true"` (`VIEW`, `DEFAULT`, `BROWSABLE`, `https`, Host, `pathPrefix="/u/"`) an `MainActivity`.
+- [ ] `@capacitor/app`: `appUrlOpen` → nur `/u/<name>` navigieren (Test für erlaubte und abgewiesene Adressen).
+- [ ] Web-Seite: iOS Smart-App-Banner (`apple-itunes-app`, nur wenn App-ID gesetzt), Android-`intent://`-Knopf mit Store-Rückfall, Desktop Store-Knöpfe + Hoku-Code; ohne Store-Adressen → `/auth`.
+- [ ] Liste für den Nutzer im PR: Domain, Team-ID, SHA-256 (Play-App-Signatur + Upload/Debug), Store-Adressen, Xcode-Fähigkeit, App-Update in beide Stores, Prüfung nach Deploy (Apple-CDN, `adb shell pm get-app-links`).
+
+### Task 8: Texte, Datenschutz, Tests, Review, PR
+
+- [ ] de/en für alle neuen Schlüssel geschrieben und gegengelesen; zwölf Locales englischer Platzhalter; `i18n.test.ts` grün.
+- [ ] Datenschutzerklärung: Abschnitt Web-Link (was öffentlich ist, Vorschau durch Vercel, CDN-Zeiten, Messenger-Zwischenspeicher, `noindex`); `TERMS_VERSION` nach Spec-Frage 13.
+- [ ] `npm run lint`, `npm test`, `npm run test:e2e`, `npm run build` grün; `run`-Skill: Web-Seite, 404, Sheet, Vollbild im Browser ansehen; Lesetest einmal mit echtem Handy durch den Nutzer (Spec-Frage 12).
+- [ ] `code-review`, `security-review` (Web-Stufe, Funktionen, Deep Links), Befunde beheben.
+- [ ] `memory/projects/profil.md` nachziehen (Stand, offene Punkte, juristische Liste aus Spec 7.4).
+- [ ] PR gegen `profil-p2b-fortschritt` mit Nutzer-Aufgabenliste (Task 7) und Hinweis: Produktivlauf 2a → 2b → 2c nur nach Ja; kein Merge ohne ausdrückliches „mergen“.
