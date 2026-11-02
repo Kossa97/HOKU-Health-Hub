@@ -838,12 +838,12 @@ export function createDot(host: DotHost): DotApi {
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
   // auch bei offener Tastatur (Seite gescrollt) zu sehen. Die Überschrift der Karte (`data-dot-frei`) bleibt
   // lesbar: sein unterer Rand endet knapp darüber (Nutzer 02.11.2026)
-  const KANTE = 0.45, TIPP_KLEIN = 26, TIPP_ECKE = 20, RUTSCH = { k: 40, z: 0.88 }
+  const KANTE = 0.45, TIPP_ECKE = 20, RUTSCH = { k: 40, z: 0.88 }
   const KEIN_PLATZ = { dx: 0, dy: 0, r: 0 }
   /**
    * Sein Platz, solange ein Feld der Karte den Fokus hat: Versatz zur Bühnenmitte und Radius (0 = normal).
-   * Schiebt die Tastatur die Karte so weit hoch, dass über ihr kein Platz mehr ist (iPhone als App), wird er
-   * kleiner; reicht auch das nicht, sitzt er klein rechts in der Kopfzeile der Karte, die beim Tippen im Bild ist.
+   * Er bleibt so groß wie er ist; erst wenn die Tastatur die Karte so weit hochschiebt, dass seine Mitte unter
+   * der Statusleiste läge, sitzt er klein rechts in der Kopfzeile der Karte, die beim Tippen im Bild ist.
    */
   function rutschZiel(mx: number, my: number): { dx: number; dy: number; r: number } {
     const el = document.activeElement
@@ -858,13 +858,13 @@ export function createDot(host: DotHost): DotApi {
     // in der Ebene ist der Bildschirmrand deshalb bei offsetTop (Messung 02.11.2026: oben ein zweites Mal
     // URS abgezogen ließ ihn trotz Platz in die Ecke neben die Überschrift ausweichen)
     const oben = Math.max(0, vv ? vv.offsetTop : 0) + OBEN + 4
+    // immer in voller Größe auf der Kante, beim Passwort genauso wie bei der E-Mail, auch wenn die Tastatur das
+    // Formular dort noch ein Stück höher schiebt (Nutzer 02.11.2026: „von der Größe her nicht verändern“); sein
+    // unterer Rand endet knapp über der Überschrift, damit „Anmelden“ lesbar bleibt
     let unten = K.top + (1 - KANTE) * r0
     if (F && F.height) unten = Math.min(unten, F.top - 3)
-    const raum = unten - oben
-    if (raum >= 2 * TIPP_KLEIN) {
-      const r = Math.min(r0, raum / 2)
-      return { dx: 0, dy: Math.max(0, unten - r - my), r: r < r0 ? r : 0 }
-    }
+    // nur wenn selbst seine Mitte unter der Statusleiste verschwände, weicht er aus
+    if (unten - r0 >= oben) return { dx: 0, dy: Math.max(0, unten - r0 - my), r: 0 }
     // kein Platz über der Karte: klein rechts neben die Überschrift
     const cy = F && F.height ? F.top + F.height / 2 : K.top + TIPP_ECKE + 10
     return { dx: K.right - 16 - TIPP_ECKE - mx, dy: cy - my, r: TIPP_ECKE }
