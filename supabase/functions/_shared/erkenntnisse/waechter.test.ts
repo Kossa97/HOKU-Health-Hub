@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { PFLICHTSATZ, pruefeText } from './waechter.ts'
 import type { Fund } from './typen.ts'
@@ -135,5 +136,12 @@ describe('erkenntnisse: Regelwächter (Entscheidungen)', () => {
     expect(pruefeText('Ein Satz.', 'de', fund({ richtung: 'kritisch' })).ok).toBe(true)
     expect(pruefeText('A sentence. A connection, not proof.', 'en', fund({ richtung: 'neutral' })).ok).toBe(true)
     expect(pruefeText('A sentence. Zusammenhang, kein Beweis.', 'en', fund({ richtung: 'neutral' })).verstoesse).toEqual(['pflichtsatz'])
+  })
+})
+
+describe('erkenntnisse: Regelwächter (iOS-Verträglichkeit)', () => {
+  it('der Quelltext enthält kein Lookbehind (iOS 15 bis 16.3 würde beim Laden abstürzen)', () => {
+    const quelltext = readFileSync(new URL('./waechter.ts', import.meta.url), 'utf8')
+    expect(quelltext).not.toContain('(?<')
   })
 })

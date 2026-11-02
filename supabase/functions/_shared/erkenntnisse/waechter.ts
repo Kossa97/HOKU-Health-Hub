@@ -43,7 +43,8 @@ export const ALARM: Record<Sprache, string[]> = {
 }
 
 // \b versagt neben ä/ö/ü/ß, deshalb eigene Grenzen über Unicode-Buchstaben und -Ziffern.
-const VOR = '(?<![\\p{L}\\p{N}])'
+// Kein Lookbehind (iOS 15 bis 16.3 kennt es nicht): die Grenze davor ist Textanfang oder ein Nicht-Buchstabe.
+const VOR = '(?:^|[^\\p{L}\\p{N}])'
 const NACH = '(?![\\p{L}\\p{N}])'
 
 function maskiere(s: string): string {
@@ -52,10 +53,10 @@ function maskiere(s: string): string {
 
 function wortRegex(woerter: string[], staemme: string[] = []): RegExp | null {
   const teile = [
-    ...woerter.map((w) => `${VOR}${maskiere(w)}${NACH}`),
-    ...staemme.map((w) => `${VOR}${maskiere(w)}\\p{L}*`),
+    ...woerter.map((w) => `${maskiere(w)}${NACH}`),
+    ...staemme.map((w) => `${maskiere(w)}\\p{L}*`),
   ]
-  return teile.length ? new RegExp(teile.join('|'), 'iu') : null
+  return teile.length ? new RegExp(`${VOR}(?:${teile.join('|')})`, 'iu') : null
 }
 
 const EINHEIT_RE = new RegExp(`\\d+(?:[.,]\\d+)?\\s*(?:${EINHEITEN.map(maskiere).join('|')})${NACH}`, 'iu')
