@@ -129,6 +129,9 @@ Thema vom Nutzer, Formulierung als Frage von Claude). A1-Aufbau (Zonen) gut, Opt
 mehrere Stile zur Wahl. Neutrale Karten: aktuelle + vorherige behalten, mehr Möglichkeiten. Für alle Karten
 **Brand-Kit v2** (`docs/logo/hoku/brand-kit-v2/` auf main) für Logos/Icons; Logo hochwertig einbauen.
 Web-Vorschau gefällt, Farben im App-Stil, Grün für Fortschrittszahlen erlaubt.
+Nutzer 02.11. zu Mockup v5: neutrale Karte = **Fassung 2 (Hoku-Licht)**, aber nur Cyan-Licht von unten (kein
+Violett). Dazu passende Link-Karte A1 und Rückfall C im selben Stil; Logo an verschiedenen Stellen/Anordnungen als
+Varianten → eigenes neues Mockup `docs/profil/mockups/profil-2c-karten.html`.
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
