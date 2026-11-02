@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793617926.5752668,
-    "seen": 1793617987.9905553,
+    "mtime": 1793618307.2312398,
+    "seen": 1793618368.128078,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7848,15 +7848,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.test.ts": {
-    "mtime": 1793615176.6651213,
-    "seen": 1793615420.2672875,
-    "ast_hash": "ae0a2826f082c097dc1c1f058c3d2652",
+    "mtime": 1793618192.6702957,
+    "seen": 1793618368.127543,
+    "ast_hash": "8c07c848a2db5739df69392b6ff42c7a",
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.ts": {
-    "mtime": 1793615176.6651213,
-    "seen": 1793615420.267288,
-    "ast_hash": "9747766140f49d99383dba996627069a",
+    "mtime": 1793618214.3770933,
+    "seen": 1793618368.1275434,
+    "ast_hash": "9cad6f537a7c98bfc7a634a0b945271c",
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
@@ -19083,6 +19083,36 @@
     "mtime": 1793617334.1051252,
     "seen": 1793617561.4721317,
     "ast_hash": "38f228eed9f3d7126eff9c3e587cf198",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/ErkenntnisseEinwilligung.tsx": {
+    "mtime": 1793618239.1949742,
+    "seen": 1793618368.1275373,
+    "ast_hash": "cae89d49d15377008cdc5a2955180294",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/erkenntnisseService.test.ts": {
+    "mtime": 1793618285.0252137,
+    "seen": 1793618368.1275384,
+    "ast_hash": "83496072f75f42a5856532c6db91fa44",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/erkenntnisseService.ts": {
+    "mtime": 1793618225.6768687,
+    "seen": 1793618368.1275392,
+    "ast_hash": "3b6f5b6167deaecde1922ae48245c19f",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/texte.test.ts": {
+    "mtime": 1793618192.3729627,
+    "seen": 1793618368.1275396,
+    "ast_hash": "a32842b6c2ab4e091eb67c43f8743e4f",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/texte.ts": {
+    "mtime": 1793618225.9449222,
+    "seen": 1793618368.1275406,
+    "ast_hash": "5e964037fb1a27ec738e9d68c71266ea",
     "semantic_hash": ""
   }
 }
