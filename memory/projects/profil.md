@@ -56,6 +56,8 @@ Gesamtfortschritt [Nutzer]:
   ab zwei Messungen; Aufschlüsselung im Profil sichtbar.
 Abzeichen [Nutzer]: alle Arten (Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft), „erstmal grob alles was zur
 App passt“, Feinschliff macht der Nutzer.
+Nutzer 02.11.: Schlaf = Methode A (Anteil Nächte 7–9 h im Bereich, Start gegen jetzt, relativ). Gesamtrechnung
+(Mittel je Wert → je Bereich → über Bereiche, ohne Deckel) bestätigt. Schritte: Methode noch offen.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
