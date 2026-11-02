@@ -27,13 +27,61 @@ window.zeichneMonogramm = function (ctx, cx, cy, L, m = MONO) {
 }
 
 /**
+ * Eigene Pupillenformen (Logo-Design, 02.11.2026). Einheit wie oben, gefüllt in Weiß.
+ * - trihub: drei gleiche Arme im 120°-Abstand, jedes Ende mit einer H-Kerbe; Nabe gerundet.
+ * - h:      ein kräftiges, gerundetes H.
+ * - stern:  dreizackiger, weicher Stern (Hōkū = Stern), Seiten leicht eingezogen.
+ */
+window.zeichneForm = function (ctx, cx, cy, L, m) {
+  const f = m.form
+  if (!f || f === 'monogramm') return zeichneMonogramm(ctx, cx, cy, L, m)
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(L, L); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff'
+  const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill() }
+  if (f === 'trihub') {
+    const B = m.breite ?? 0.46, kb = m.kerbe ?? 0.17, kt = m.kerbTiefe ?? 0.3, r = m.rund ?? 0.07
+    for (const g of [-90, 30, 150]) {
+      ctx.save(); ctx.rotate(g * Math.PI / 180)
+      rr(0, -B / 2, 1, B, r)
+      ctx.globalCompositeOperation = 'destination-out'; rr(1 - kt, -kb / 2, kt + 0.2, kb, kb / 2); ctx.globalCompositeOperation = 'source-over'
+      ctx.restore()
+    }
+    ctx.beginPath(); ctx.arc(0, 0, (m.nabe ?? 0.36), 0, Math.PI * 2); ctx.fill()
+  } else if (f === 'h') {
+    const st = m.stamm ?? 0.38, hb = m.halbBreite ?? 0.72, qb = m.quer ?? 0.34, r = m.rund ?? 0.12
+    rr(-hb, -1, st, 2, r); rr(hb - st, -1, st, 2, r); rr(-hb + st * 0.5, -qb / 2, 2 * hb - st, qb, 0.02)
+  } else if (f === 'wirbel') {
+    // Wirbelstern: drei Zacken, die Vorderkante gewölbt, die Hinterkante eingezogen (dreht sich wie eine Blende)
+    const ri = m.innen ?? 0.3, dreh = (m.dreh ?? 22) * Math.PI / 180, bauch = m.bauch ?? 0.62
+    const P = (r, a) => [r * Math.cos(a), r * Math.sin(a)]
+    ctx.beginPath()
+    for (let k = 0; k < 3; k++) {
+      const a = (-90 + k * 120) * Math.PI / 180, ai = a + Math.PI / 3, an = a + 2 * Math.PI / 3
+      const tip = P(1, a), inn = P(ri, ai), next = P(1, an)
+      if (!k) ctx.moveTo(...tip)
+      ctx.quadraticCurveTo(...P(bauch, a + Math.PI / 6 + dreh), ...inn)        // Hinterkante
+      ctx.quadraticCurveTo(...P(ri * 1.05, an - Math.PI / 6 + dreh * 0.2), ...next) // Vorderkante
+    }
+    ctx.closePath(); ctx.lineJoin = 'round'; ctx.lineWidth = m.weich ?? 0.12; ctx.fill(); ctx.stroke()
+  } else if (f === 'stern') {
+    const ri = m.innen ?? 0.42, w = m.weich ?? 0.16
+    ctx.beginPath()
+    for (let k = 0; k < 6; k++) {
+      const a = (-90 + k * 60) * Math.PI / 180, r = k % 2 ? ri : 1 - w * 0.6
+      k ? ctx.lineTo(r * Math.cos(a), r * Math.sin(a)) : ctx.moveTo(r * Math.cos(a), r * Math.sin(a))
+    }
+    ctx.closePath(); ctx.lineJoin = 'round'; ctx.lineWidth = w; ctx.fill(); ctx.stroke()
+  }
+  ctx.restore()
+}
+
+/**
  * Abstandsfeld des Monogramms (exakte euklidische Distanztransformation, Felzenszwalb).
  * Liefert sdf(u, v) in Einheiten der Armlänge: < 0 innen, > 0 außen, und die Richtung nach außen.
  */
 window.monogrammFeld = function (m = MONO, N = 1024) {
   const c = document.createElement('canvas'); c.width = c.height = N
   const ctx = c.getContext('2d'), L = N * 0.38
-  zeichneMonogramm(ctx, N / 2, N / 2, L, m)
+  zeichneForm(ctx, N / 2, N / 2, L, m)
   const px = ctx.getImageData(0, 0, N, N).data, innen = new Uint8Array(N * N)
   for (let i = 0; i < N * N; i++) innen[i] = px[i * 4 + 3] > 127 ? 1 : 0
   // Innenfläche füllen (Nutzer 02.11.2026: „das Innere weg"): alles, was von außen nicht
@@ -67,6 +115,16 @@ window.monogrammFeld = function (m = MONO, N = 1024) {
     const row = new Float64Array(N)
     for (let y = 0; y < N; y++) { for (let x = 0; x < N; x++) row[x] = f[y * N + x]; const o = d1(row, N); for (let x = 0; x < N; x++) f[y * N + x] = Math.sqrt(o[x]) }
     return f
+  }
+  if (m.mittig !== false && m.form) {
+    let sx = 0, sy = 0, c = 0
+    for (let i = 0; i < N * N; i++) if (innen[i]) { sx += i % N; sy += (i / N) | 0; c++ }
+    const dx = Math.round(N / 2 - sx / c), dy = Math.round(N / 2 - sy / c)
+    if (dx || dy) {
+      const neu = new Uint8Array(N * N)
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const qx = x - dx, qy = y - dy; if (qx >= 0 && qy >= 0 && qx < N && qy < N) neu[y * N + x] = innen[qy * N + qx] }
+      innen.set(neu)
+    }
   }
   const zuInnen = edt(1), zuAussen = edt(0), S = new Float32Array(N * N)
   for (let i = 0; i < N * N; i++) S[i] = (innen[i] ? -zuAussen[i] : zuInnen[i]) / L
