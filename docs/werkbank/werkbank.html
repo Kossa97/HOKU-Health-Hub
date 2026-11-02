@@ -47,6 +47,21 @@ h2{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-t
 .task.done .txt{text-decoration:line-through;color:var(--muted)}
 .qmark{flex:none;width:18px;height:18px;border-radius:50%;background:var(--wait);color:var(--surface);font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:3px}
 .calm{color:var(--muted);font-size:14px}
+/* Verschieben: gedrückt halten, ziehen. Nur transform, Nachbarn gleiten per Übergang */
+.task{position:relative;background:var(--surface);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  transition:transform 200ms cubic-bezier(0.23,1,0.32,1),box-shadow 150ms cubic-bezier(0.23,1,0.32,1)}
+.task.lifted{z-index:2;transition:box-shadow 150ms cubic-bezier(0.23,1,0.32,1);box-shadow:0 8px 24px rgba(0,0,0,.18);border-radius:10px;border-top-color:transparent}
+.task.settling{transition:transform 200ms cubic-bezier(0.23,1,0.32,1)}
+.task:not(.done){cursor:grab}
+.task.lifted{cursor:grabbing}
+.task:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.task .ghost{flex:none;align-self:center}
+.bullet{flex:none;width:8px;height:8px;border-radius:50%;background:var(--wait);margin:8px 5px 0}
+.tick{flex:none;width:18px;color:var(--accent);font-weight:700;margin-top:1px;text-align:center}
+details.donelist{border-top:1px solid var(--line);padding-top:8px}
+details.donelist>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:4px 0}
+.todo .hint{color:var(--muted);font-size:12px;margin:-4px 0 0}
+@media (prefers-reduced-motion: reduce){.task,.task.settling{transition:box-shadow 150ms ease}}
 
 /* Filter */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -180,6 +195,7 @@ async function save(path,data){if(!db||readOnly)return;try{await db.doc(path).up
 function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#status").textContent="Speichern hat nicht geklappt. Bitte die Seite neu laden und noch einmal versuchen."}
 
 function render(){
+  if(dragging){renderPending=true;return}
   // halbfertige Eingaben überleben neue Daten aus anderen Fenstern
   const drafts={};document.querySelectorAll(".addidea input").forEach(i=>{if(i.value)drafts[i.id]=i.value});
   const focusId=document.activeElement?.id;
@@ -217,23 +233,133 @@ function draw(){
   }
 }
 
+function todoItems(){
+  const items=[];
+  for(const a of arbeiten){
+    if(a.status==="wartet"&&a.wartetAuf)items.push({key:`frage:${a.id}`,a,frage:true});
+    deinTeil(a).forEach((d,idx)=>{if(!d.erledigt)items.push({key:`teil:${a.id}:${d.text}`,a,d,idx})});
+  }
+  // eigene Reihenfolge zuerst, neue Einträge hinten anhängen
+  const pos=new Map(reihenfolge.map((k,i)=>[k,i]));
+  return items.map((it,i)=>({it,i})).sort((x,y)=>(pos.get(x.it.key)??1e6+x.i)-(pos.get(y.it.key)??1e6+y.i)).map(x=>x.it);
+}
+
+function setErledigt(a,idx,wert){
+  const list=deinTeil(a);
+  list[idx]=wert?{...list[idx],erledigt:true,erledigtAm:new Date().toISOString()}:{text:list[idx].text,erledigt:false};
+  save(`arbeiten/${a.id}`,{deinTeil:list});
+}
+
 function drawTodo(){
   const box=$("#todo");box.replaceChildren();
-  let n=0;
-  for(const a of arbeiten){
-    if(a.status==="wartet"&&a.wartetAuf){
-      n++;
+  const items=todoItems();
+  const list=el("div",{class:"tasks"});
+  if(!items.length)box.append(el("p",{class:"calm",text:"Gerade hängt nichts an dir."}));
+  else if(items.length>1&&!readOnly)box.append(el("p",{class:"hint",text:"Zeile gedrückt halten und ziehen, um die Reihenfolge zu ändern."}));
+  for(const it of items){
+    const{a}=it;let row;
+    if(it.frage){
       const t=el("div",{class:"t"},el("span",{class:"txt",text:a.wartetAuf}),el("span",{class:"from",text:`Frage aus „${a.titel}“, im Fenster beantworten`}));
-      box.append(el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,copyButton(a)));
+      row=el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,copyButton(a));
+    }else{
+      const t=el("div",{class:"t"},el("span",{class:"txt",text:it.d.text}),el("span",{class:"from",text:`für „${a.titel}“`}));
+      const done=el("button",{type:"button",class:"ghost",text:"Erledigt"});done.disabled=readOnly;
+      done.addEventListener("click",()=>setErledigt(a,it.idx,true));
+      row=el("div",{class:"task"},el("span",{class:"bullet","aria-hidden":"true"}),t,done);
     }
-    deinTeil(a).forEach((d,idx)=>{
-      if(d.erledigt)return;n++;
-      const cb=el("input",{type:"checkbox",id:`dt-${a.id}-${idx}`,"aria-label":"Erledigt"});cb.disabled=readOnly;
-      cb.addEventListener("change",()=>{const list=deinTeil(a);list[idx]={...list[idx],erledigt:cb.checked};save(`arbeiten/${a.id}`,{deinTeil:list})});
-      box.append(el("div",{class:"task"},cb,el("label",{class:"t",for:`dt-${a.id}-${idx}`},el("span",{class:"txt",text:d.text}),el("span",{class:"from",text:`für „${a.titel}“`}))));
-    });
+    row.dataset.key=it.key;
+    if(items.length>1&&!readOnly){
+      // Tastatur: Zeile anwählen, Pfeil hoch/runter
+      row.tabIndex=0;row.id=`row-${it.key}`;row.setAttribute("aria-label",`${row.querySelector(".txt").textContent}. Mit Pfeil hoch oder runter verschieben.`);
+      row.addEventListener("keydown",ev=>{
+        if(ev.target!==row)return;
+        const d=ev.key==="ArrowUp"?-1:ev.key==="ArrowDown"?1:0;if(!d)return;ev.preventDefault();
+        const keys=items.map(x=>x.key),i=keys.indexOf(it.key),j=i+d;if(j<0||j>=keys.length)return;
+        [keys[i],keys[j]]=[keys[j],keys[i]];saveOrder(keys);render();document.getElementById(row.id)?.focus();
+      });
+      enableDrag(row,list);
+    }
+    list.append(row);
   }
-  if(!n)box.append(el("p",{class:"calm",text:"Gerade hängt nichts an dir."}));
+  box.append(list);
+
+  // Erledigtes eingeklappt, neuestes oben
+  const erledigt=[];
+  for(const a of arbeiten)deinTeil(a).forEach((d,idx)=>{if(d.erledigt)erledigt.push({a,d,idx})});
+  if(erledigt.length){
+    erledigt.sort((x,y)=>(y.d.erledigtAm||"").localeCompare(x.d.erledigtAm||""));
+    const det=el("details",{class:"donelist",id:"todo-erledigt"},el("summary",{text:`Erledigt (${erledigt.length})`}));
+    if(openErledigt)det.open=true;
+    det.addEventListener("toggle",()=>{openErledigt=det.open});
+    for(const{a,d,idx}of erledigt){
+      const back=el("button",{type:"button",class:"ghost",text:"Zurückholen"});back.disabled=readOnly;
+      back.addEventListener("click",()=>setErledigt(a,idx,false));
+      det.append(el("div",{class:"task done"},el("span",{class:"tick","aria-hidden":"true",text:"✓"}),
+        el("div",{class:"t"},el("span",{class:"txt",text:d.text}),el("span",{class:"from",text:`für „${a.titel}“${d.erledigtAm?` · ${ago(d.erledigtAm)}`:""}`})),back));
+    }
+    box.append(det);
+  }
+}
+let openErledigt=false;
+
+let reihenfolge=[],dragging=false,renderPending=false;
+async function saveOrder(keys){
+  reihenfolge=keys;
+  if(!db||readOnly)return;
+  try{await db.doc("einstellungen/todo").set({reihenfolge:keys})}catch(e){fail(e)}
+}
+
+// Gedrückt halten (350 ms) hebt den Eintrag an, dann folgt er dem Finger; die anderen machen Platz.
+function enableDrag(row,box){
+  let timer=null,startY=0,startX=0,pid=null,rows=[],from=0,to=0,step=0;
+  const cancelWait=()=>{clearTimeout(timer);timer=null};
+  row.addEventListener("pointerdown",ev=>{
+    if(ev.button!==0||dragging)return;
+    if(ev.target.closest("input,a,button,.copybox"))return;
+    startY=ev.clientY;startX=ev.clientX;pid=ev.pointerId;
+    timer=setTimeout(()=>lift(),350);
+  });
+  row.addEventListener("pointermove",ev=>{
+    if(ev.pointerId!==pid)return;
+    if(timer&&Math.hypot(ev.clientX-startX,ev.clientY-startY)>8){cancelWait();return}
+    if(!dragging||!row.classList.contains("lifted"))return;
+    const dy=ev.clientY-startY;
+    row.style.transform=`translateY(${dy}px) scale(1.03)`;
+    // Ziel-Platz aus der Mitte des gezogenen Eintrags
+    const mid=rows[from].top+rows[from].h/2+dy;
+    to=rows.findIndex(r=>mid<r.top+r.h);if(to<0)to=rows.length-1;
+    rows.forEach((r,i)=>{if(i===from)return;
+      const shift=(from<to&&i>from&&i<=to)?-step:(from>to&&i<from&&i>=to)?step:0;
+      r.el.style.transform=shift?`translateY(${shift}px)`:""});
+  });
+  const end=ev=>{
+    if(ev&&ev.pointerId!==pid)return;
+    cancelWait();
+    if(!dragging||!row.classList.contains("lifted"))return;
+    // auf den Ziel-Platz gleiten, dann neue Reihenfolge übernehmen
+    const target=rows[to].top-rows[from].top+(to>from?rows[to].h-rows[from].h:0);
+    row.classList.remove("lifted");row.classList.add("settling");
+    row.style.transform=`translateY(${target}px)`;
+    const keys=rows.map(r=>r.el.dataset.key);const [k]=keys.splice(from,1);keys.splice(to,0,k);
+    // ein Klick auf das Label nach dem Ziehen soll nichts abhaken
+    row.addEventListener("click",e=>{e.preventDefault();e.stopPropagation()},{capture:true,once:true});
+    const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setTimeout(()=>{dragging=false;if(from!==to)saveOrder(keys);renderPending=false;render()},reduce?0:200);
+  };
+  row.addEventListener("pointerup",end);
+  row.addEventListener("pointercancel",end);
+  row.addEventListener("contextmenu",ev=>{if(timer||dragging)ev.preventDefault()});
+  // Während des Ziehens darf die Seite nicht scrollen
+  row.addEventListener("touchmove",ev=>{if(dragging)ev.preventDefault()},{passive:false});
+  function lift(){
+    timer=null;dragging=true;
+    rows=[...box.querySelectorAll(":scope>.task")].map(el=>{const r=el.getBoundingClientRect();return{el,top:r.top,h:r.height}});
+    from=to=rows.findIndex(r=>r.el===row);
+    step=rows[from].h;
+    try{row.setPointerCapture(pid)}catch(e){}
+    row.classList.add("lifted");row.style.transform="scale(1.03)";
+    navigator.vibrate?.(10);
+  }
 }
 
 function drawChips(){
@@ -390,5 +516,6 @@ render();
     render();
   },()=>{clearTimeout(timer);$("#status").textContent="Die Arbeiten konnten nicht geladen werden. Bitte die Seite neu laden."});
   db.collection("ideen").onSnapshot(s=>{ideen=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{});
+  db.doc("einstellungen/todo").onSnapshot(d=>{const r=d.exists?d.data().reihenfolge:null;if(Array.isArray(r)){reihenfolge=r;render()}},()=>{});
 })();
 </script>
