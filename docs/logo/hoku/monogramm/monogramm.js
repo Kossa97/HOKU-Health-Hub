@@ -171,7 +171,9 @@ window.monogrammPupille = function (m = MONO) {
         const kz = feld.kontur, K = M.gross, n = M.randAnzahl === 'auto' || !M.randAnzahl ? Math.round(versteckt * (M.randFaktor || 1)) : M.randAnzahl, out = [], G = a.G
         versteckt = 0
         for (let i = 0; i < n; i++) {
-          const t = zufall(i + 31337), p = kz[Math.floor(t * kz.length) % kz.length]
+          // geschlossen: jeder Partikel bekommt einen eigenen Abschnitt der Kontur, darin liegt er zufällig
+          const t = M.geschlossen ? (i + (zufall(i + 31337) - 0.5) * M.geschlossen + 0.5) / n : zufall(i + 31337)
+          const p = kz[((Math.floor(t * kz.length) % kz.length) + kz.length) % kz.length]
           const q = Math.pow(zufall(i + 4711), M.randKurve ?? 0.5), s2 = 0.93 * M.band * q
           const [nx, ny] = feld.richtung(p[0], p[1]), pa = p[0] * K + nx * s2, pb = p[1] * K + ny * s2 + (M.dy || 0)
           const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
