@@ -181,7 +181,11 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - **Nur mit Pro** (es gibt eine Free-Version), wie der übrige Coach (Einwilligung, Tageslimit).
 - Muster wie `dotAnlage` (Substanz): Werkzeug in Edge Function `coach` liefert Plan-Entwurf →
   Vorschau → Nutzer übernimmt. Nur Katalog-Übungen, Gewichte leer, keine medizinischen Aussagen.
-- Offen: Spracheingabe im laufenden Training (ohne KI, Gerät erkennt) — Nutzer fragt nach.
+- **Spracheingabe im laufenden Training: auch ohne Pro** (keine KI, Gerät erkennt; feste Befehle
+  wie „80 Kilo, 8 Wiederholungen", „gleich wie eben", „Pause 2 Minuten"). Halten-und-sprechen,
+  kein Dauer-Zuhören, Rückgängig. In der iOS-App braucht es ein natives Spracherkennungs-Plugin
+  (WKWebView hat keine Web Speech API) + Info.plist-Texte (Mikrofon, Spracherkennung).
+- Mockup: https://claude.ai/artifact/NbZvdksLa9Hoas3W261e8s (Boards 4 „Plan mit Hoku", 5 „Im Training sprechen").
 
 ## Offen
 
