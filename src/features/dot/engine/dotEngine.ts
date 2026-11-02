@@ -306,7 +306,8 @@ export function createDot(host: DotHost): DotApi {
   const BLICK = { x: 0, y: 0, bis: 0 }
   const TEMPO = { x: 0, y: 0, lx: NaN, ly: NaN }
   let letzteForm = 'sphere', letztesT = 0
-  const blickAuf = (x: number, y: number, ms: number) => { BLICK.x = x; BLICK.y = y; BLICK.bis = performance.now() + ms }
+  // x, y in Bildschirmkoordinaten (Finger, Schreibmarke, Fokus); umgerechnet in die Ebene (URS, s. messeBuehne)
+  const blickAuf = (x: number, y: number, ms: number) => { BLICK.x = x - URS.x; BLICK.y = y - URS.y; BLICK.bis = performance.now() + ms }
   const beiFingerAb = (e: PointerEvent) => blickAuf(e.clientX, e.clientY, 2500)
   const beiFingerZug = (e: PointerEvent) => { if (e.pointerType === 'mouse' || e.buttons) blickAuf(e.clientX, e.clientY, e.pointerType === 'mouse' ? 1600 : 2500) }
   const beiFokus = (e: FocusEvent) => {
@@ -521,7 +522,17 @@ export function createDot(host: DotHost): DotApi {
 
   // Die Bühne (Chat oder Anmeldung) wird einmal pro Bild gemessen; Physik und Zeichnen lesen diesen Wert
   let BUEHNE: DOMRect | null = null
-  const messeBuehne = () => { BUEHNE = B.stage?.isConnected ? B.stage.getBoundingClientRect() : null }
+  // Lage der Zeichenfläche auf dem Bildschirm. Normal 0, 0. Auf dem iPhone als App verschiebt sich die feste
+  // Ebene bei offener Tastatur mit der Seite (Messung 02.11.2026: Ebene -316 bei scrollY 316), während die Lage
+  // von Bühne, Karte, Finger und Schreibmarke weiter in Bildschirmkoordinaten kommt. Alles aus dem DOM wird
+  // deshalb um diesen Ursprung verschoben, sonst zeichnet er sich um den Scrollweg zu hoch, außerhalb des Bilds.
+  const URS = { x: 0, y: 0 }
+  const inEbene = (r: DOMRect) => URS.x || URS.y ? new DOMRect(r.left - URS.x, r.top - URS.y, r.width, r.height) : r
+  const messeBuehne = () => {
+    const c = canvas.getBoundingClientRect()
+    URS.x = c.left; URS.y = c.top
+    BUEHNE = B.stage?.isConnected ? inEbene(B.stage.getBoundingClientRect()) : null
+  }
   function stageCenter() {
     const s = BUEHNE
     return s ? { x: s.left + s.width / 2, y: s.top + s.height / 2 } : { x: W / 2, y: H * 0.3 }
@@ -839,10 +850,11 @@ export function createDot(host: DotHost): DotApi {
     if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return KEIN_PLATZ
     const karte = B.stage.parentElement?.querySelector('[data-dot-kante]')
     if (!karte || !karte.contains(el)) return KEIN_PLATZ
-    const K = karte.getBoundingClientRect(), F = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
+    const K = inEbene(karte.getBoundingClientRect()), fr = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
+    const F = fr ? inEbene(fr) : undefined
     const r0 = loginGrundRadius(), vv = window.visualViewport
-    // oberster sichtbarer Punkt in Seitenkoordinaten: unter der Statusleiste, im sichtbaren Ausschnitt
-    const oben = Math.max(0, vv ? vv.offsetTop : 0) + OBEN + 4
+    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste, im sichtbaren Ausschnitt
+    const oben = Math.max(0, vv ? vv.offsetTop : 0) - URS.y + OBEN + 4
     let unten = K.top + (1 - KANTE) * r0
     if (F && F.height) unten = Math.min(unten, F.top - 3)
     const raum = unten - oben
