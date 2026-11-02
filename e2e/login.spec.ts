@@ -333,19 +333,25 @@ test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen, zur Not k
   }
 })
 
-test('Passwort bei hochgeschobener Karte: Hoku wird kleiner, sitzt aber weiter auf der Kante', async ({ page }) => {
-  // Nutzer 02.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher
+test('Passwort bei hochgeschobener Karte: Hoku bleibt gleich groß und sitzt auf der Kante', async ({ page }) => {
+  // Nutzer 02.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher; Größe nicht ändern
   await abgemeldet(page)
   await zumFormular(page)
   await lassLaufen(page, 6000)
   await page.setViewportSize({ width: 390, height: 360 })
-  await page.locator('#auth-pw').click()
   const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
-  for (const abstand of [110, 70]) {
+  const kante = () => page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, 200)
+  await page.locator('#auth-kennung').click()
+  await kante()
+  await lassLaufen(page, 1500)
+  const email = (await figur.boundingBox())!
+  await page.locator('#auth-pw').click()
+  for (const abstand of [200, 150]) {
     await page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, abstand)
     await lassLaufen(page, 1500)
     const b = (await figur.boundingBox())!, karte = (await page.locator('[data-dot-kante]').boundingBox())!
-    expect(b.y + b.height * 0.2, String(abstand)).toBeGreaterThanOrEqual(0)
+    // gleich groß (Atmen und Wegdrehen bewegen die Trefferfläche um wenige px)
+    expect(Math.abs(b.height - email.height), String(abstand)).toBeLessThan(email.height * 0.05)
     expect(b.y + b.height / 2, String(abstand)).toBeLessThan(karte.y)
     expect(b.y + b.height, String(abstand)).toBeGreaterThan(karte.y)
   }
