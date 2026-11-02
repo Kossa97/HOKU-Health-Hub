@@ -1,0 +1,122 @@
+{
+  "approvedMasterSha256": "141d8d6ac40b6539080183c0bbac8d1577b0cfccea5d507204cb1ec65264aa1b",
+  "approvedSvgSha256": "2dac4d768fd89222950be3ddf5515cfbc139c743d91cbe36423e871d2a55b496",
+  "equalWidths": {
+    "HOKU": 920,
+    "HEALTH_HUB": 919
+  },
+  "pngs": [
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-cyan-1360.png",
+      "width": 1360,
+      "height": 1620,
+      "clear": 0,
+      "full": 2203200,
+      "sha256": "141d8d6ac40b6539080183c0bbac8d1577b0cfccea5d507204cb1ec65264aa1b"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-cyan-2400.png",
+      "width": 2400,
+      "height": 2859,
+      "clear": 0,
+      "full": 6861600,
+      "sha256": "bdf191ff60d2fd7458f033d1b77e6497037189d11e821d2bf57386f99af0cb8a"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-cyan-transparent-1360.png",
+      "width": 1360,
+      "height": 1620,
+      "clear": 1783805,
+      "full": 50215,
+      "sha256": "1f2f3e3bdec88dce907af655ace3f55028d617ed883202b95e17219d87e38b52"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-cyan-transparent-2400.png",
+      "width": 2400,
+      "height": 2859,
+      "clear": 5561631,
+      "full": 156770,
+      "sha256": "ef7b40781b53d638f3b47e295844f9a270313025461c824d2c0a6337b2c3f691"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-tracked-by-cyan-1360.png",
+      "width": 1360,
+      "height": 1840,
+      "clear": 0,
+      "full": 2502400,
+      "sha256": "af64d4422c95a20efa73f3559eb0b46136874796239c930697db2e38d63ad99c"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-tracked-by-cyan-2400.png",
+      "width": 2400,
+      "height": 3247,
+      "clear": 0,
+      "full": 7792800,
+      "sha256": "e374027640decd4f0f31c332fde046e6a2a4c7b300e372638f26b17bd837221e"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-tracked-by-cyan-transparent-1360.png",
+      "width": 1360,
+      "height": 1840,
+      "clear": 2064994,
+      "full": 64872,
+      "sha256": "ee57a19b39108e25d7a8777296b8796323c4c52362acdf8bef9878b234f702de"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-tracked-by-cyan-transparent-2400.png",
+      "width": 2400,
+      "height": 3247,
+      "clear": 6432385,
+      "full": 201022,
+      "sha256": "4b7477784265806f3bf2bd4769c4b820026488898d1b6cc38b3805dd3948ba41"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-umrandung-cyan-1360.png",
+      "width": 1360,
+      "height": 1620,
+      "clear": 0,
+      "full": 2203200,
+      "sha256": "3185bc30074591963ae3027ed2889c52c62b65646a50de901b5a54273ac49b3d"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-umrandung-cyan-2400.png",
+      "width": 2400,
+      "height": 2859,
+      "clear": 0,
+      "full": 6861600,
+      "sha256": "60bf96e7d9ff5c9162e1bd15ad39618d57280c57c114a4768070b6b6138f04d1"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-umrandung-cyan-transparent-1360.png",
+      "width": 1360,
+      "height": 1620,
+      "clear": 1773021,
+      "full": 60718,
+      "sha256": "34702f0b932f2c18859a093e9c9e558bdc81571671003e5eccf7b54000358fe3"
+    },
+    {
+      "file": "08-Vertikal-und-Plaketten/hoku-vertikal-v6-umrandung-cyan-transparent-2400.png",
+      "width": 2400,
+      "height": 2859,
+      "clear": 5523959,
+      "full": 184815,
+      "sha256": "494938de7570adff8d2b447729f66356edc6bc96429cc006e43c56298dd723a9"
+    },
+    {
+      "file": "HOKU-Vertikal-Uebersicht.png",
+      "width": 2000,
+      "height": 1110,
+      "clear": 0,
+      "full": 2220000,
+      "sha256": "29a49b8e0cdab2c96f443c58f7c6772fd8f1818a632d5b72a62b51f367b75d4c"
+    },
+    {
+      "file": "HOKU-Uebersicht.png",
+      "width": 2000,
+      "height": 2760,
+      "clear": 0,
+      "full": 5520000,
+      "sha256": "0d4c52dd9c9967550a9de05785626455e66d102bc10e24655c3e2724409322cd"
+    }
+  ]
+}

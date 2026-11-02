@@ -1,0 +1,74 @@
+[
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-24.png",
+    "width": 24,
+    "height": 24,
+    "sha256": "5667b3bde3dcffc25624589a9cdacc7d0579af0bf5fe4f6979389f7deaf56416"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-32.png",
+    "width": 32,
+    "height": 32,
+    "sha256": "139dd29cf5cf781110c3a55066eec8fd852ed30f9d4a116587695bf2dede6a6d"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-48.png",
+    "width": 48,
+    "height": 48,
+    "sha256": "65a276bc9b0a5446dcc284d7c77ccd0c543a2d37a1619e1d721eb4530880f3df"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-64.png",
+    "width": 64,
+    "height": 64,
+    "sha256": "f44a1b9608656e7cb206d0ac9bb5ad13547549912528b0ee9b9f5f0d2691a7db"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-128.png",
+    "width": 128,
+    "height": 128,
+    "sha256": "bfc825cfe5f1e50b37210db95e4bb7408f282ed68fb4d5e453d910e85a219108"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-256.png",
+    "width": 256,
+    "height": 256,
+    "sha256": "565c33ae30816851e68e4bd531f5487accc70808d19a1b1dbe1d888d80cb71ce"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-24.png",
+    "width": 24,
+    "height": 24,
+    "sha256": "4bf47ae03599ae0f5294401e82526479ce500863f0ab7740df927d94aa15c15c"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-32.png",
+    "width": 32,
+    "height": 32,
+    "sha256": "b5f865dfa7787aaf882109ece14990c68ca40622acd632086870be5bda5f0a32"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-48.png",
+    "width": 48,
+    "height": 48,
+    "sha256": "858af9425e7fa1d46f61e11952bbed179a75af2604a0afd70f32c09029d8929f"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-64.png",
+    "width": 64,
+    "height": 64,
+    "sha256": "b81914873b7c7fbad6d58d98b30f86ce9497554ca753ba3953e72ba609d1b618"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-128.png",
+    "width": 128,
+    "height": 128,
+    "sha256": "320a6cd55c74a47be4ac9f0e23f2f4d9c4ec673c9cc5f7acaaa5917a6f5c94d4"
+  },
+  {
+    "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-256.png",
+    "width": 256,
+    "height": 256,
+    "sha256": "8be67883e5df9f3bd007f7301f1d20fbb71fa6e1948adc5af37c1bea35524de8"
+  }
+]

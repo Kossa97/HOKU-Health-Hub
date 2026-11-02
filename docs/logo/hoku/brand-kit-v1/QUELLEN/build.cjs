@@ -123,3 +123,4 @@ write('README.md','# HOKU – Branding-Paket v1\n\nStart: **HOKU-Uebersicht.png*
 write('EXPORT-CHECKS.json',JSON.stringify({date:'2026-10-29',fonts:{headline:'Michroma 400',caption:'IBM Plex Mono 500'},equalWidths:{HOKU:410,HEALTH_HUB:sub.width*ss},compactEqualHeights:{HOKU:cap,Hoku:(bottom-top+1)*compactScale},pngs:checks},null,2));
 console.log(JSON.stringify({root,pngCount:checks.length,generatedFiles:files.length,compactHeight:cap,compactMascotHeight:(bottom-top+1)*compactScale,checks:'passed'}));
 require('./originale.cjs');
+if(fs.existsSync(path.join(root,'07-KI-Button-Symbol','hoku-ki-symbol-blau.svg')))require('./ki-symbol.cjs');
