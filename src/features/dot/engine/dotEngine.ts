@@ -308,8 +308,32 @@ export function createDot(host: DotHost): DotApi {
     const r = el.getBoundingClientRect()
     if (r.width || r.height) blickAuf(r.left + r.width / 2, r.top + r.height / 2, 3000)
   }
+  // Auf dem Handy übernimmt beim Wischen der Browser (Scrollen) und meldet keine Zeigerbewegung mehr;
+  // Berührungen laufen weiter. Danach schaut er dem nachgleitenden Inhalt hinterher.
+  let fingerAuf = false
+  const ROLL = new WeakMap<object, number>()
+  const beiBeruehrung = (e: TouchEvent) => {
+    const f = e.touches[0]
+    fingerAuf = !!f
+    if (f) blickAuf(f.clientX, f.clientY, 2500)
+  }
+  const beiRollen = (e: Event) => {
+    if (fingerAuf) return
+    const ziel = e.target === document ? document.scrollingElement : e.target
+    if (!(ziel instanceof Element)) return
+    const y = ziel.scrollTop, vorher = ROLL.get(ziel)
+    ROLL.set(ziel, y)
+    if (vorher === undefined || Math.abs(y - vorher) < 1) return
+    // rollt der Inhalt nach oben (weiter nach unten gescrollt), schaut er nach oben, und umgekehrt
+    blickAuf(B.x, B.y - Math.sign(y - vorher) * Math.max(B.r, 1) * 4, 450)
+  }
   window.addEventListener('pointerdown', beiFingerAb, { capture: true, passive: true })
   window.addEventListener('pointermove', beiFingerZug, { capture: true, passive: true })
+  window.addEventListener('touchstart', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchmove', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchend', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchcancel', beiBeruehrung, { capture: true, passive: true })
+  document.addEventListener('scroll', beiRollen, { capture: true, passive: true })
   document.addEventListener('focusin', beiFokus)
   // Farbe: Wahl im Profil, sonst passend zum App-Design
   let FARBE: HokuFarbe = 'heute', KRAEFTIG = false
@@ -2341,6 +2365,8 @@ export function createDot(host: DotHost): DotApi {
       glCanvas.removeEventListener('webglcontextlost', kontextWeg)
       window.removeEventListener('pointerdown', beiFingerAb, true)
       window.removeEventListener('pointermove', beiFingerZug, true)
+      for (const art of ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const) window.removeEventListener(art, beiBeruehrung, true)
+      document.removeEventListener('scroll', beiRollen, true)
       document.removeEventListener('focusin', beiFokus)
       farbeAb()
       sonde.remove()
