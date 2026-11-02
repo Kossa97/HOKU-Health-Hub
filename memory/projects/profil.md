@@ -89,6 +89,18 @@ Datenschutzerklärung (Oktober 2026) ggf. anheben; Spec-Wörter „wartet“ (Ka
 gelassen; andere sehen bei Freigabe auch den Starttag (`since`) — so im Datenschutztext; Rechtlich prüfen:
 Baseline-Lesen aus Health und Speichern der Baseline (Art. 9) über die bestehende Einwilligung.
 
+## Teilprojekt 2c geplant (Brainstorming 02.11.2026)
+Entschieden [Nutzer]:
+- Link-Karte (WhatsApp/iMessage, nur bei Web-Link an): Profilbild + Name (nur wenn auf „Alle“, sonst neutrale
+  Hoku-Karte) PLUS etwas, das Nicht-Nutzer neugierig macht / zum Ansehen oder Laden animiert. Braucht Server-Funktion
+  auf Vercel (Meta-Tags + Vorschaubild), die SPA kann das nicht.
+- Abzeichen im Web: Standard nur unbedenkliche (Beständigkeit, Training, Gemeinschaft); Nutzer kann je Abzeichen
+  ein- und ausschalten (auch heikle freigeben oder unbedenkliche verbergen).
+- Hoku-Code: im „Profil teilen“-Sheet, Antippen = Vollbild zum Vorzeigen; Scannen mit normaler Kamera; eigener
+  Scanner erst mit Freunden (P3).
+- „In Hoku öffnen“: Universal Links (iOS) / App Links (Android) — App öffnet das Profil, sonst Store. Braucht
+  apple-app-site-association + assetlinks.json auf hoku.app und ein App-Update.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
