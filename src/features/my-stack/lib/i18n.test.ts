@@ -1480,26 +1480,28 @@ const EXPECTED_MY_STACK_KEYS = [
 // (ersetzt in der Oberflaeche profil_bilder_privat; de/en echt, sonst englischer Platzhalter).
 // Bewusst geaendert (Oktober 2026): Durchsicht der Profil-2a-Texte, nur de/en
 // (Geschlechtszeichen, Menstruationszyklus, Profilbild, Ansehen als, Freunde-Funktion).
+// Bewusst ergaenzt (November 2026): Profil 2b — profil_feld_progress, profil_feld_badges,
+// profil_bereich_fortschritt (de/en echt, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'c8982394a71cf05bb40dad47216d108fbe206c56b05218144ee739318dae6142',
-  en: '6fa7ff5cd235044b83519a46c8371932d5a08de34786ab70c08b4aef548b0df0',
+  de: '6c932f7f5bd4eac67ca7094f099d1b07ce62d1d6944968affd3ab3eb157aaeb7',
+  en: '68ba6c6f05d9ffb6d016099610c1473edcaac636f62d40c93beaef89ae62e643',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'e87813f8f38c7e4954e471fdf52c88bd947e180865085cfca04bc9c11c36ae90',
-  es: 'bf65484dc23c93e358bf5cdd3f88dc65e70dfcf3ba5f3c7ad324037ac88f5951',
-  fr: 'f725e306029363e9bc3977e14cf5ee4cb8166684295bceb20f265e5c9b7db1eb',
-  hi: 'c5deda6853195650fa02d0b8e1ba9162ddcaad2332a99f3cb310448e4b616029',
-  id: 'ce5272b6a3241f236111dc9abdd351cf860ccb7078931208123603d6b7e1b8ab',
-  it: '7b3d4cab644ff2e7bbdab084c621bdc63761c22f3cb9223da020724d388dd117',
-  ja: 'bd2fc5abac834f98d1b28123c5d352af67ad47a7c793ddbe2a59ad603ab74674',
-  ko: '330daead775cfa16bacdea17683b2b0fbf65a7846cd309280fba37a1816c21a7',
-  pt: 'c7fe96effcfe99efbcdd8cb9f3ea59a622603891ca35df42aae7c0cbdda5c762',
-  ru: '4f6e04e260c3ce97aa78ec378ad576aaaab462da38d929823d68c61f2310a5b2',
-  tr: 'e5a70c736d381ccecc9a053de5e2588b414dc110da28eb96699463de17abbd4f',
-  zh: '7990e2dec0b8368c25610c2c3409372cdedefd205a4af27ee37acc4678e96c4a',
+  ar: 'df48529cc7a415b2601a6121d29ab7d9133f8afe08c4d897d0cb2c6d191d52fd',
+  es: 'd7f9798ebe45c87469e10ef371e4042df7e4954e9ec93bd37e8f0bebb4f8c840',
+  fr: '9655e3a3f6b1bca9ac56a978535c10555e241e7c5b6944627e49dc51fdafd84d',
+  hi: 'bd9b3efbd84699db085c59516177e7b81e95c7d48f6b6c6c9909dc5376dc5645',
+  id: '1c08c3ef351391ccf1fe4b9bc7a6f762d2965aea29e20797c2b1382628556e6a',
+  it: '55060f283c72176bd36d7dab51805e5e2f362332ec496c0dd31f0756eaf471cd',
+  ja: '735230a3d27ca7164344ccb2caede1ce49105cc0838e5762e52066c596f5d5ce',
+  ko: '8fa7ac14ca0c40e1a17527800be1f5b2a54667c01b46503bfebfc51d1f8982c2',
+  pt: '099ac905caf2e817521d3b61e59f872449bb67cdc85dac82ac57ed23d30dd589',
+  ru: '56f872c44773131be5228e9aac8230722b3d3ab80dbcdbb66d95f0f18d68b9e6',
+  tr: '1609c52822c2ce7c22b5fb891eee50e935ebdf6f347cc7751cdfaf8dfb266188',
+  zh: 'acf5ab39131fadfcc2d0e952e89d4fdc373ee2281c189924b61b369928c0e776',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

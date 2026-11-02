@@ -7,19 +7,32 @@ import {
 } from './profileVisibility'
 
 describe('Felder und Stufen', () => {
-  it('hat 30 Felder, jedes genau einem Bereich zugeordnet', () => {
-    expect(PROFILE_FIELDS).toHaveLength(30)
-    expect(new Set(PROFILE_FIELDS).size).toBe(30)
+  it('hat 32 Felder, jedes genau einem Bereich zugeordnet', () => {
+    expect(PROFILE_FIELDS).toHaveLength(32)
+    expect(new Set(PROFILE_FIELDS).size).toBe(32)
     const ausBereichen = PROFILE_SECTIONS.flatMap(fieldsOfSection)
     expect([...ausBereichen].sort()).toEqual([...PROFILE_FIELDS].sort())
   })
 
-  it('Feldliste stimmt mit der Pruefung in der Migration ueberein', () => {
-    const sql = readFileSync(resolve(__dirname, '../../../../supabase-profil-p2a-sichtbarkeit.sql'), 'utf8')
-    const block = sql.match(/profile_visibility_ok[\s\S]*?array\[([\s\S]*?)\]\)/)
+  it('Gesamtfortschritt und Abzeichen bilden den Bereich „fortschritt“ (2b)', () => {
+    expect(fieldsOfSection('fortschritt')).toEqual(['progress', 'badges'])
+  })
+
+  const sqlListe = (datei: string, funktion: RegExp) => {
+    const sql = readFileSync(resolve(__dirname, '../../../../', datei), 'utf8')
+    const block = sql.match(funktion)
     expect(block).not.toBeNull()
-    const ausSql = [...block![1].matchAll(/'([a-z_0-9]+)'/g)].map(m => m[1])
+    return [...block![1].matchAll(/'([a-z_0-9]+)'/g)].map(m => m[1])
+  }
+
+  it('Feldliste stimmt mit profile_fields() in der Migration 2b ueberein', () => {
+    const ausSql = sqlListe('supabase-profil-p2b-fortschritt.sql', /function public\.profile_fields\(\)[\s\S]*?array\[([\s\S]*?)\]::text\[\]/)
     expect([...ausSql].sort()).toEqual([...PROFILE_FIELDS].sort())
+  })
+
+  it('2b = Feldliste aus 2a plus progress und badges', () => {
+    const aus2a = sqlListe('supabase-profil-p2a-sichtbarkeit.sql', /profile_visibility_ok[\s\S]*?array\[([\s\S]*?)\]\)/)
+    expect([...aus2a, 'progress', 'badges'].sort()).toEqual([...PROFILE_FIELDS].sort())
   })
 
   it('Standard ist „Nur ich“, auch bei Unbekanntem', () => {

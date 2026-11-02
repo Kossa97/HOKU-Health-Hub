@@ -4,8 +4,12 @@
  *
  * Gespeichert in `profiles.field_visibility` (jsonb): fehlender Schluessel =
  * „Nur ich“, sonst `friends` oder `all`. So starten neue Felder automatisch
- * privat. Die Feldliste muss mit `profile_visibility_ok` in
- * `supabase-profil-p2a-sichtbarkeit.sql` uebereinstimmen (Test prueft das).
+ * privat. Die Feldliste muss mit `profile_fields()` in
+ * `supabase-profil-p2b-fortschritt.sql` uebereinstimmen (Test prueft das);
+ * `profile_visibility_ok` und die Eigentuemer-Sicht von `profile_view` lesen sie.
+ *
+ * Bereich `fortschritt` (2b): Gesamtfortschritt und Abzeichen sind eigene Karten
+ * direkt unter dem Kopf und eine eigene Gruppe in „Wer sieht was“.
  */
 
 export type Visibility = 'me' | 'friends' | 'all'
@@ -13,11 +17,11 @@ export type StoredVisibility = Exclude<Visibility, 'me'>
 export type VisibilityMap = Partial<Record<ProfileField, StoredVisibility>>
 
 export type ProfileSection =
-  | 'kopf' | 'kurzinfo' | 'ueber' | 'koerper' | 'einnahmen'
+  | 'kopf' | 'kurzinfo' | 'fortschritt' | 'ueber' | 'koerper' | 'einnahmen'
   | 'blut' | 'gesundheit' | 'training' | 'berichte'
 
 export const PROFILE_SECTIONS: readonly ProfileSection[] = [
-  'kopf', 'kurzinfo', 'ueber', 'koerper', 'einnahmen', 'blut', 'gesundheit', 'training', 'berichte',
+  'kopf', 'kurzinfo', 'fortschritt', 'ueber', 'koerper', 'einnahmen', 'blut', 'gesundheit', 'training', 'berichte',
 ]
 
 export const PROFILE_FIELDS = [
@@ -30,6 +34,7 @@ export const PROFILE_FIELDS = [
   'steps', 'resting_hr', 'sleep', 'active_kcal', 'spo2', 'blood_pressure', 'hrv', 'vo2max',
   'workouts', 'routine', 'favorite_exercise', 'e1rm',
   'reviews',
+  'progress', 'badges',
 ] as const
 
 export type ProfileField = typeof PROFILE_FIELDS[number]
@@ -45,6 +50,7 @@ export const FIELD_SECTION: Readonly<Record<ProfileField, ProfileSection>> = {
   spo2: 'gesundheit', blood_pressure: 'gesundheit', hrv: 'gesundheit', vo2max: 'gesundheit',
   workouts: 'training', routine: 'training', favorite_exercise: 'training', e1rm: 'training',
   reviews: 'berichte',
+  progress: 'fortschritt', badges: 'fortschritt',
 }
 
 export const isProfileField = (v: unknown): v is ProfileField =>
