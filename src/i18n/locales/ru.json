@@ -200,6 +200,8 @@
   "tagebuch_offline_gescheitert_other": "{{count}} saved entries could not be stored.",
   "tagebuch_offline_verwerfen_titel_one": "Discard {{count}} unsaved entry?",
   "tagebuch_offline_verwerfen_titel_other": "Discard {{count}} unsaved entries?",
+  "tagebuch_aus_einnahme": "Journal entry",
+  "tagebuch_einnahme_nicht_gefunden": "The intake could not be found.",
   "tagebuch_tab_liste": "List",
   "tagebuch_tab_auswertung": "Insights",
   "tagebuch_zeitraum": "Time range",

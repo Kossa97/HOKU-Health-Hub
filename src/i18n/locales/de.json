@@ -293,6 +293,8 @@
   "tagebuch_offline_gescheitert_other": "{{count}} gemerkte Einträge ließen sich nicht speichern.",
   "tagebuch_offline_verwerfen_titel_one": "{{count}} nicht gespeicherten Eintrag verwerfen?",
   "tagebuch_offline_verwerfen_titel_other": "{{count}} nicht gespeicherte Einträge verwerfen?",
+  "tagebuch_aus_einnahme": "Tagebuch-Eintrag",
+  "tagebuch_einnahme_nicht_gefunden": "Die Einnahme wurde nicht gefunden.",
   "tagebuch_tab_liste": "Liste",
   "tagebuch_tab_auswertung": "Auswertung",
   "tagebuch_zeitraum": "Zeitraum",

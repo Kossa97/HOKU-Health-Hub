@@ -406,8 +406,9 @@ describe('Dashboard normalized timeline path', () => {
     // unsichtbar und nicht mehr löschbar, denn der Löschknopf sitzt nur an
     // protokollierten Zeilen.
     const fixtures = startFixFixture()
+    // Substanz gelöscht: die Fremdschlüssel-Regel (on delete set null) leert den Verweis.
     fixtures.dose_logs = [{
-      ...pendingLog(), taken: true,
+      ...pendingLog(), taken: true, stack_item_id: null, stack_items: null,
       routine_slot_key: 'timeline-cycle@2026-09-18T17:30',
     }]
     renderDashboard(createDashboardClient(fixtures))
@@ -420,6 +421,16 @@ describe('Dashboard normalized timeline path', () => {
     // Ohne Aktion ist die Zeile auch nicht antippbar.
     expect(document.querySelector('[data-log-row]')).toBeTruthy()
     expect(document.querySelector('[data-log-row] button')).toBeNull()
+  })
+
+  it('bietet an einer genommenen Einnahme mit Substanz den Weg ins Tagebuch', async () => {
+    const fixtures = startFixFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T17:30' }]
+    renderDashboard(createDashboardClient(fixtures))
+    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
+    fireEvent.click(document.querySelector('[data-log-row] button')!)
+    expect(screen.getByRole('button', { name: 'tagebuch_aus_einnahme' })).toBeTruthy()
   })
 
   it('zeigt eine ausgelassene Einnahme als eine Zeile, Aktionen erst nach Antippen', async () => {
