@@ -206,7 +206,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
                 </button>
               </span>
             )}
-            <SourceBadge source={food.source} own={food.itemId !== null} long />
+            <SourceBadge source={food.source} edited={food.edited} long />
             {food.brand && <span>{food.brand}</span>}
           </div>
           {details.length > 0 && (

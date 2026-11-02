@@ -110,13 +110,13 @@ export function ErnaehrungPage() {
   /**
    * Ein Eintrag zeigt beim Bearbeiten SEINE Werte (Schnappschuss), nicht die
    * heutigen des Lebensmittels — sonst schriebe eine Mengenänderung alte Tage
-   * still um. Von „Meine Lebensmittel" kommen nur Stern, Portion und Barcode.
+   * still um. Von „Meine Lebensmittel" kommen nur Stern, „korrigiert“, Portion und Barcode.
    */
   const openEntry = (entry: LogEntry) => {
     const snapshot = foodFromEntry(entry)
     if (!snapshot) { setSheet({ kind: 'quick', entry }); return }
     const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
-    const food = mine ? { ...snapshot, favorite: mine.favorite, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
+    const food = mine ? { ...snapshot, favorite: mine.favorite, edited: mine.edited, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
     setSheet({ kind: 'edit', entry, food })
   }
 

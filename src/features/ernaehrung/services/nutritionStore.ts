@@ -57,6 +57,7 @@ export function rowToFood(r: Row): Food {
     },
     serving: r.serving_amount == null ? null : { amount: num(r.serving_amount), label: str(r.serving_label) },
     favorite: r.favorite === true,
+    edited: r.edited === true,
     recipe: ingredients?.length ? { portions: num(r.portions) || 1, ingredients } : null,
     meal: isMeal(r.meal) ? r.meal : null,
   }
@@ -248,6 +249,8 @@ export async function saveMyFood(userId: string, food: Food): Promise<Food> {
     ...per100Columns(food.per100),
     serving_amount: food.serving?.amount ?? null, serving_label: food.serving?.label ?? null,
     favorite: food.favorite, updated_at: new Date().toISOString(),
+    // Nur schicken, wenn bekannt — ein Stern auf einem gespeicherten Produkt lässt „korrigiert“ stehen.
+    ...(food.edited !== undefined ? { edited: food.edited } : {}),
     // Spalten nur bei Gerichten schicken: gewöhnliche Lebensmittel brauchen sie nicht.
     ...(food.recipe ? { ingredients: food.recipe.ingredients, portions: food.recipe.portions, meal: food.meal ?? null } : {}),
   }

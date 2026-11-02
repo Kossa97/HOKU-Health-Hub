@@ -12,10 +12,10 @@ import { FoodOrb } from './FoodOrb'
 import { ScoreBadge } from './ScoreBadge'
 import { DotZeichen } from '../../dot/DotZeichen'
 
-type Tab = 'frequent' | 'mine' | 'dishes'
+type Tab = 'favorites' | 'frequent' | 'mine' | 'dishes'
 type Remote = { query: string; state: 'loading' | 'done' | 'error'; results: Food[] }
 
-const TAB_LABEL: Record<Tab, string> = { frequent: 'nutr_tab_frequent', mine: 'nutr_tab_mine', dishes: 'nutr_tab_dishes' }
+const TAB_LABEL: Record<Tab, string> = { favorites: 'nutr_tab_favorites', frequent: 'nutr_tab_frequent', mine: 'nutr_tab_mine', dishes: 'nutr_tab_dishes' }
 
 function FoodRow({ food, hint, hideKcal, goalKcal, onPick }: { food: Food; hint?: string; hideKcal: boolean; goalKcal: number; onPick: () => void }) {
   const { t } = useTranslation()
@@ -34,7 +34,7 @@ function FoodRow({ food, hint, hideKcal, goalKcal, onPick }: { food: Food; hint?
             <span className="truncate text-[17px] text-[var(--lg-text)]">{food.name}</span>
           </span>
           <span className={`mt-0.5 flex items-center gap-1.5 text-[13px] ${MUTED}`}>
-            <SourceBadge source={food.source} own={food.itemId !== null} />
+            <SourceBadge source={food.source} edited={food.edited} />
             <span className="truncate">{[sub, hint].filter(Boolean).join(' · ')}</span>
           </span>
         </span>
@@ -79,11 +79,14 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   const { t, i18n } = useTranslation()
   const frequent = useMemo(() => (exclude ? allFrequent.filter(f => f.food.itemId !== exclude) : allFrequent), [allFrequent, exclude])
   const myFoods = useMemo(() => (exclude ? allMyFoods.filter(f => f.itemId !== exclude) : allMyFoods), [allMyFoods, exclude])
-  const tabs: Tab[] = mode === 'log' ? ['frequent', 'mine', 'dishes'] : ['frequent', 'mine']
-  const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : 'mine')
+  // Der Stern steht vorn als eigener Reiter (nur ein Symbol); er sammelt alles Gemerkte, auch Gerichte.
+  const tabs: Tab[] = mode === 'log' ? ['favorites', 'frequent', 'mine', 'dishes'] : ['favorites', 'frequent', 'mine']
   // Gerichte, die zu dieser Mahlzeit passen („Passt zu“), stehen oben; sonst bleibt die Reihenfolge.
   const dishes = useMemo(() => myFoods.filter(f => f.recipe).sort((a, b) => Number(b.meal === meal) - Number(a.meal === meal)), [myFoods, meal])
-  const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe), [myFoods])
+  // „Meine“: selbst angelegt oder mit korrigierten Werten — ein nur gemerktes Produkt steht unter dem Stern.
+  const plainFoods = useMemo(() => myFoods.filter(f => !f.recipe && (f.source === 'custom' || f.edited)), [myFoods])
+  const favorites = useMemo(() => myFoods.filter(f => f.favorite).sort((a, b) => a.name.localeCompare(b.name)), [myFoods])
+  const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : favorites.length ? 'favorites' : 'mine')
   const [query, setQuery] = useState(initialQuery)
   const [remote, setRemote] = useState<Remote | null>(null)
   const [quick, setQuick] = useState<{ kcal: string; protein: string } | null>(null)
@@ -157,12 +160,18 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
       </form>
 
       {!q && (
-        <div role="tablist" aria-label={t('nutr_lists')} className={`mt-3 grid rounded-full bg-[var(--lg-fill)] p-0.5 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div role="tablist" aria-label={t('nutr_lists')}
+          className={`mt-3 grid rounded-full bg-[var(--lg-fill)] p-0.5 ${tabs.length === 4 ? 'grid-cols-[2.75rem_repeat(3,minmax(0,1fr))]' : 'grid-cols-[2.75rem_repeat(2,minmax(0,1fr))]'}`}>
           {tabs.map(id => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-              className={`min-h-9 rounded-full text-[15px] font-semibold transition-colors ${tab === id
+              aria-label={id === 'favorites' ? t(TAB_LABEL[id]) : undefined}
+              className={`flex min-h-9 items-center justify-center rounded-full text-[15px] font-semibold transition-colors ${tab === id
                 ? 'bg-[var(--lg-fill-selected)] text-[var(--lg-text)] shadow-[0_3px_8px_rgba(0,0,0,0.25)]'
-                : 'text-[var(--lg-text-2)]'}`}>{t(TAB_LABEL[id])}</button>
+                : 'text-[var(--lg-text-2)]'}`}>
+              {id === 'favorites'
+                ? <Star size={16} aria-hidden="true" className={tab === id ? 'fill-[#ffd60a] text-[#ffd60a]' : ''} />
+                : t(TAB_LABEL[id])}
+            </button>
           ))}
         </div>
       )}
@@ -174,6 +183,10 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
                 hint={`${Math.round(f.lastAmount)} ${f.food.unit}`} onPick={() => onPick(f.food, f.lastAmount)} />
             ))}</ul>
           : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_frequent_empty')}</p>)}
+
+        {!q && tab === 'favorites' && (favorites.length
+          ? <ul className="lg-rows">{favorites.map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} goalKcal={goalKcal} onPick={() => onPick(f)} />)}</ul>
+          : <p className={`px-6 py-8 text-center text-[15px] ${MUTED}`}>{t('nutr_favorites_empty')}</p>)}
 
         {!q && tab === 'mine' && (plainFoods.length
           ? <ul className="lg-rows">{sorted(plainFoods).map(f => <FoodRow key={f.itemId!} food={f} hideKcal={hideKcal} goalKcal={goalKcal} onPick={() => onPick(f)} />)}</ul>
