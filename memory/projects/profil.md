@@ -107,6 +107,15 @@ https://claude.ai/artifact/HVnY3jKnAdFug1uSPU8MSj. Nutzer 02.11. nach Mockup:
 - Web: Bereiche Blut und Einnahmen nie im Web (nur Gesamt + Körper, Training, Erholung & Fitness); App wie 2b.
 - Abzeichen zu Körperwerten (KFA, Gewicht, Ruhepuls) ab Werk wie Blut/Zyklen/Einnahmen aus.
 - Web-Link aus: Teilen geht trotzdem (nur App-Nutzer sehen das Profil), Hinweis + Schalter „Web-Link einschalten“.
+Domains (Vercel, Nutzer): **hokuhealth.app** (Haupt, live) und **meethoku.com** (308 → hokuhealth.app);
+Profil-Links = `hokuhealth.app/u/<name>`. Passkey-RP-ID ist noch `tyd-track-your-dose.vercel.app` (Wechsel = alle Passkeys neu).
+Nutzer 02.11. zum Mockup v1:
+- Karte A: Gesamtfortschritt nur, wenn positiv; dazu, wie viele Dinge der Nutzer mit Hoku trackt und aus welchen
+  Bereichen (nicht im Detail); Ziel-Tags „super“; Abzeichen auf der Karte unsicher („hm“).
+- Karte C: gut, aber anderer Text — wofür nutzt der Nutzer Hoku?
+- Neutrale Karte: „sehr gut“, nur besseres Logo (Brand-Kit) und ein Slogan (gibt es noch nicht).
+- Web: Bio zeigen, wenn auf „Alle“.
+- Gesamtfortschritt zeigt im Web zu viel → mehr teasern (Frage, ob strategisch sinnvoll).
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
