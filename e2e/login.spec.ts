@@ -314,6 +314,25 @@ test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
   await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
+test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen, zur Not klein neben der Überschrift', async ({ page }) => {
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.setViewportSize({ width: 390, height: 360 })
+  await page.locator('#auth-kennung').click()
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  for (const abstand of [200, 95, 8]) {
+    await page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, abstand)
+    await lassLaufen(page, 1500)
+    const b = (await figur.boundingBox())!, mitte = b.y + b.height / 2
+    // seine Mitte liegt im Bild, und die Überschrift bleibt frei
+    expect(mitte, String(abstand)).toBeGreaterThan(0)
+    const titel = (await page.locator('[data-dot-frei]').boundingBox())!
+    if (abstand > 50) expect(mitte + b.height * 0.4, String(abstand)).toBeLessThanOrEqual(titel.y)
+    else expect(b.x, 'neben der Überschrift').toBeGreaterThan(titel.x + titel.width)
+  }
+})
+
 test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine neue Blase', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)

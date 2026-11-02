@@ -463,7 +463,7 @@ export function createDot(host: DotHost): DotApi {
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
     form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
-    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0 },
+    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0 },
   // Hinweis oder Klopfen auf der Anmeldung (Spec Hoku führt); quetsch staucht ihn beim Aufprall
   punktFarbe: PINK, auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
   }
@@ -525,7 +525,9 @@ export function createDot(host: DotHost): DotApi {
     return s ? { x: s.left + s.width / 2, y: s.top + s.height / 2 } : { x: W / 2, y: H * 0.3 }
   }
   // Auf der Anmeldung behält er auch an der Wand seine Bühnengröße
-  const loginRadius = () => BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
+  const loginGrundRadius = () => BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
+  // beim Tippen kann er kleiner werden, damit er über der Karte Platz hat (rutschZiel)
+  const loginRadius = () => B.login.rTipp || loginGrundRadius()
   const koerper = () => B.mode === 'login' ? loginRadius() : B.size
   function homeTarget() {
     const b = bounds(), r = koerper(), rest = restNow()
@@ -818,23 +820,37 @@ export function createDot(host: DotHost): DotApi {
   const loginGrenzen = () => { const b = bounds(); return { ...b, t: b.t + OBEN } }
   function loginZiel() {
     const S = stageCenter()
-    return { x: S.x, y: S.y + B.login.n + B.login.rutsch }
+    return { x: S.x + B.login.rutschX, y: S.y + B.login.n + B.login.rutsch }
   }
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
   // auch bei offener Tastatur (Seite gescrollt) zu sehen. Die Überschrift der Karte (`data-dot-frei`) bleibt
   // lesbar: sein unterer Rand endet knapp darüber (Nutzer 02.11.2026)
-  const KANTE = 0.45
-  function rutschZiel(mitte: number) {
+  const KANTE = 0.45, TIPP_KLEIN = 26, TIPP_ECKE = 20
+  const KEIN_PLATZ = { dx: 0, dy: 0, r: 0 }
+  /**
+   * Sein Platz, solange ein Feld der Karte den Fokus hat: Versatz zur Bühnenmitte und Radius (0 = normal).
+   * Schiebt die Tastatur die Karte so weit hoch, dass über ihr kein Platz mehr ist (iPhone als App), wird er
+   * kleiner; reicht auch das nicht, sitzt er klein rechts in der Kopfzeile der Karte, die beim Tippen im Bild ist.
+   */
+  function rutschZiel(mx: number, my: number): { dx: number; dy: number; r: number } {
     const el = document.activeElement
-    if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return 0
+    if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return KEIN_PLATZ
     const karte = B.stage.parentElement?.querySelector('[data-dot-kante]')
-    if (!karte || !karte.contains(el)) return 0
-    // immer, solange ein Feld den Fokus hat: was das iPhone bei offener Tastatur als sichtbaren Bereich
-    // meldet, ist nicht verlässlich; die Kante der Karte liegt dagegen sicher im Bild (dort wird getippt)
-    const r = koerper(), frei = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
-    let unten = karte.getBoundingClientRect().top + (1 - KANTE) * r
-    if (frei && frei.height) unten = Math.min(unten, frei.top - 3)
-    return Math.max(0, unten - r - mitte)
+    if (!karte || !karte.contains(el)) return KEIN_PLATZ
+    const K = karte.getBoundingClientRect(), F = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
+    const r0 = loginGrundRadius(), vv = window.visualViewport
+    // oberster sichtbarer Punkt in Seitenkoordinaten: unter der Statusleiste, im sichtbaren Ausschnitt
+    const oben = Math.max(0, vv ? vv.offsetTop : 0) + OBEN + 4
+    let unten = K.top + (1 - KANTE) * r0
+    if (F && F.height) unten = Math.min(unten, F.top - 3)
+    const raum = unten - oben
+    if (raum >= 2 * TIPP_KLEIN) {
+      const r = Math.min(r0, raum / 2)
+      return { dx: 0, dy: Math.max(0, unten - r - my), r: r < r0 ? r : 0 }
+    }
+    // kein Platz über der Karte: klein rechts neben die Überschrift
+    const cy = F && F.height ? F.top + F.height / 2 : K.top + TIPP_ECKE + 10
+    return { dx: K.right - 16 - TIPP_ECKE - mx, dy: cy - my, r: TIPP_ECKE }
   }
   // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
@@ -844,9 +860,13 @@ export function createDot(host: DotHost): DotApi {
     // die Neigung zum Formular weich, das Scrollen der Seite sofort
     L.n += (L.neigung - L.n) * (1 - Math.exp(-dt * 10))
     // nachrutschen mit etwas Schwung (Feder), zurück genauso
-    const rz = rutschZiel(stageCenter().y + L.n), h = Math.min(dt, 0.05)
-    if (weniger) { L.rutsch = rz; L.rv = 0 }
-    else { L.rv += (90 * (rz - L.rutsch) - 2 * Math.sqrt(90) * 0.78 * L.rv) * h; L.rutsch += L.rv * h }
+    const S0 = stageCenter(), rz = rutschZiel(S0.x, S0.y + L.n), h = Math.min(dt, 0.05)
+    L.rTipp = rz.r
+    if (weniger) { L.rutsch = rz.dy; L.rv = 0; L.rutschX = rz.dx; L.rvx = 0 }
+    else {
+      L.rv += (90 * (rz.dy - L.rutsch) - 2 * Math.sqrt(90) * 0.78 * L.rv) * h; L.rutsch += L.rv * h
+      L.rvx += (90 * (rz.dx - L.rutschX) - 2 * Math.sqrt(90) * 0.78 * L.rvx) * h; L.rutschX += L.rvx * h
+    }
     const Z = loginZiel()
     // In Ruhe ist er Teil der Seite: Scrollen und Layoutsprünge tragen ihn mit,
     // ohne Trägheit (sonst würde jeder Sprung den weichen Rand aufschaukeln)
@@ -930,7 +950,7 @@ export function createDot(host: DotHost): DotApi {
     B.x = B.lx = Z.x; B.y = B.ly = Z.y; B.vx = B.vy = B.lvx = B.lvy = 0
     // wächst auf der Bühne auf; die Eröffnung aus den Partikeln folgt später
     B.r = B.size * 0.3; B.rv = 0
-    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung, rutsch: 0, rv: 0 }
+    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0 }
     setState('idle'); arbeitet = false
     versteckeBlase(); zeigeTreffer(); melde(); laufen()
     // Gesten im Leerlauf vorab bauen, nicht im ersten Bild von Herz oder Haken
