@@ -145,6 +145,38 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:20px;color:var(--muted);font-size:14px}
 .note{color:var(--muted);font-size:13px}
 @media (max-width:420px){.steps span{font-size:10px}}
+.side,.board{display:flex;flex-direction:column;gap:22px;min-width:0}
+.more-btn{display:none}
+.colempty{display:none}
+.ghost-card{position:fixed;z-index:50;margin:0;pointer-events:none;box-shadow:0 16px 40px rgba(0,0,0,.25);transform-origin:center}
+
+/* Tafel ab Monitorbreite: links feste Spalte, rechts drei Spalten, jede scrollt für sich */
+@media (min-width:1200px){
+  html,body{height:100%}
+  body{padding-block:16px}
+  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:minmax(300px,360px) 1fr;grid-template-rows:auto 1fr;gap:16px 24px}
+  .wrap>header{grid-column:1/-1;display:flex;align-items:baseline;gap:16px}
+  .side{overflow-y:auto;min-height:0;padding-right:4px;gap:16px}
+  .board{min-height:0;gap:12px}
+  .topbar{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:12px}
+  .topbar #warnings{flex:1;min-width:280px}
+  #list{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:1fr auto;gap:16px}
+  #list>.col{min-height:0;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:14px;padding:12px;gap:10px;transition:background-color 150ms ease}
+  #list>.col.drop{background:var(--accent-soft)}
+  #list>.col>h2{position:sticky;top:-12px;background:inherit;padding:4px 0 6px;z-index:1}
+  #list>.col-fertig{grid-column:1/-1;max-height:40vh;border-top-width:1px}
+  #list>.col-fertig .donecards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  #list>.empty{grid-column:1/-1}
+  .colempty{display:block;color:var(--muted);font-size:13px;text-align:center;padding:24px 0;border:1px dashed var(--line);border-radius:10px}
+  .card{padding:12px;gap:10px;background:var(--bg);cursor:grab;-webkit-user-select:none;user-select:none}
+  .card input,.card textarea{-webkit-user-select:text;user-select:text}
+  .card .head h3{font-size:15px}
+  .card:not(.open) .detail{display:none}
+  .card .more-btn{display:inline-block;background:none;border:0;color:var(--accent);font-size:12px;font-weight:600;padding:2px 0;margin-left:auto}
+  .card.lifting{opacity:.35}
+  .ghost-card{cursor:grabbing}
+}
+@media (min-width:1200px) and (prefers-reduced-motion: reduce){#list>.col{transition:none}}
 </style>
 
 <div class="wrap">
@@ -153,28 +185,33 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
     <p class="sub" id="status">Lade Arbeiten …</p>
   </header>
 
-  <section class="box todo" aria-labelledby="todo-h">
-    <h2 id="todo-h">Für dich zu tun</h2>
-    <div id="todo"><p class="calm">Lade …</p></div>
-  </section>
+  <aside class="side">
+    <section class="box todo" aria-labelledby="todo-h">
+      <h2 id="todo-h">Für dich zu tun</h2>
+      <div id="todo"><p class="calm">Lade …</p></div>
+    </section>
 
-  <div class="section">
-    <div class="chips" id="chips" role="group" aria-label="Arbeiten filtern"></div>
-    <div id="warnings" class="section"></div>
-  </div>
+    <form class="box" id="quick">
+      <label class="k" for="q-text">Idee aufschreiben</label>
+      <textarea id="q-text" placeholder="Was ist dir eingefallen?"></textarea>
+      <div class="row">
+        <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört die Idee"></select>
+        <button class="primary" type="submit">Speichern</button>
+      </div>
+    </form>
 
-  <form class="box" id="quick">
-    <label class="k" for="q-text">Idee aufschreiben</label>
-    <textarea id="q-text" placeholder="Was ist dir eingefallen?"></textarea>
-    <div class="row">
-      <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört die Idee"></select>
-      <button class="primary" type="submit">Speichern</button>
+    <div id="eingang" class="section"></div>
+
+    <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
+  </aside>
+
+  <main class="board">
+    <div class="section topbar">
+      <div class="chips" id="chips" role="group" aria-label="Arbeiten filtern"></div>
+      <div id="warnings" class="section"></div>
     </div>
-  </form>
-
-  <div id="list" class="section"></div>
-
-  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
+    <div id="list" class="section"></div>
+  </main>
 </div>
 
 <script>
@@ -212,10 +249,10 @@ function draw(){
   drawTodo();drawChips();drawWarnings();drawQuickSelect();
   const list=$("#list");list.replaceChildren();
 
+  const eingangBox=$("#eingang");eingangBox.replaceChildren();
   const eingang=ideen.filter(i=>!i.arbeit||!arbeiten.some(a=>a.id===i.arbeit));
-  if(eingang.length&&!filter){
-    const s=el("section",{class:"section"},el("h2",{text:"Ideen ohne Arbeit"}));
-    s.append(el("div",{class:"box"},ideasBlock(eingang,"",true)));list.append(s);
+  if(eingang.length){
+    eingangBox.append(el("h2",{text:"Ideen ohne Arbeit"}),el("div",{class:"box"},ideasBlock(eingang,"",true)));
   }
   if(!arbeiten.length){list.append(el("div",{class:"empty",text:"Noch keine Arbeiten eingetragen. Sobald ein Claude-Fenster seine Runde beendet, erscheint es hier."}));return}
 
@@ -227,15 +264,25 @@ function draw(){
 
   for(const s of ORDER){
     const items=shown.filter(a=>(a.status||"laeuft")===s).sort((a,b)=>(b.fuerStart?1:0)-(a.fuerStart?1:0)||(b.aktualisiert||"").localeCompare(a.aktualisiert||""));
-    if(!items.length)continue;
-    const g=el("section",{class:"section"});
+    // auf der Tafel bleiben die drei offenen Spalten stehen, auch leer, damit man hineinziehen kann
+    if(!items.length&&(s==="fertig"||filter||!isBoard()))continue;
+    const g=el("section",{class:`section col col-${s}`});g.dataset.status=s;
+    g.style.setProperty("--c",`var(${META[s].c})`);
     if(s==="fertig"&&!filter){
-      const d=el("details",{class:"donegroup"},el("summary",{text:`${META[s].label} (${items.length})`}));
-      const inner=el("div",{class:"section"});inner.style.marginTop="10px";inner.append(...items.map(card));d.append(inner);g.append(d);
-    }else g.append(el("h2",{text:`${META[s].label} (${items.length})`}),...items.map(card));
+      const d=el("details",{class:"donegroup",id:"done-group"},el("summary",{text:`${META[s].label} (${items.length})`}));
+      if(openDone)d.open=true;d.addEventListener("toggle",()=>{openDone=d.open});
+      const inner=el("div",{class:"section donecards"});inner.style.marginTop="10px";inner.append(...items.map(card));d.append(inner);g.append(d);
+    }else{
+      g.append(el("h2",{text:`${META[s].label} (${items.length})`}),...items.map(card));
+      if(!items.length)g.append(el("p",{class:"colempty",text:"Hierher ziehen"}));
+    }
     list.append(g);
   }
 }
+let openDone=false,openCards=new Set();
+const BOARD=matchMedia("(min-width: 1200px)");
+const isBoard=()=>BOARD.matches;
+BOARD.addEventListener?.("change",()=>render());
 
 function todoItems(){
   const items=[];
@@ -435,14 +482,17 @@ function copyButton(a){
 
 function card(a){
   const m=META[a.status]||META.laeuft;
-  const c=el("article",{class:"card"});c.style.setProperty("--c",`var(${m.c})`);
+  const c=el("article",{class:"card"+(openCards.has(a.id)?" open":"")});c.style.setProperty("--c",`var(${m.c})`);c.dataset.id=a.id;
 
   const badges=el("div",{class:"badges"});
   if(a.fuerStart)badges.append(el("span",{class:"badge b-start",text:"★ Für den Start"}));
   badges.append(el("span",{class:"badge b-ort",text:a.ort==="cloud"?"Cloud":"Computer",title:a.ort==="cloud"?"Läuft in einem Cloud-Fenster (claude.ai)":"Läuft in einem Fenster auf deinem Computer"}));
   if(liegtStill(a))badges.append(el("span",{class:"badge b-still",text:`Liegt seit ${tageHer(a.aktualisiert)} Tagen still`}));
-  c.append(el("div",{class:"head"},el("h3",{text:a.titel}),badges));
-  if(a.wasIstDas)c.append(el("p",{class:"what",text:a.wasIstDas}));
+  // auf der Tafel: Karte kompakt, "Mehr" klappt Details auf
+  const more=el("button",{type:"button",class:"more-btn","aria-expanded":String(openCards.has(a.id)),text:openCards.has(a.id)?"Weniger":"Mehr"});
+  more.addEventListener("click",()=>{openCards.has(a.id)?openCards.delete(a.id):openCards.add(a.id);render()});
+  c.append(el("div",{class:"head"},el("h3",{text:a.titel}),badges,more));
+  if(a.wasIstDas)c.append(el("p",{class:"what detail",text:a.wasIstDas}));
 
   // Fortschritt
   const idx=STUFEN.findIndex(([k])=>k===a.stufe);
@@ -455,15 +505,15 @@ function card(a){
   if(a.status==="wartet"&&a.wartetAuf)c.append(el("div",{class:"ask"},el("strong",{text:"Wartet auf deine Antwort"}),a.wartetAuf));
 
   const dl=el("dl",{class:"lines"});
-  if(a.letzterSchritt)dl.append(el("dt",{text:"Zuletzt"}),el("dd",{},a.letzterSchritt,el("span",{class:"ago",text:ago(a.aktualisiert)})));
+  if(a.letzterSchritt)dl.append(el("dt",{class:"detail",text:"Zuletzt"}),el("dd",{class:"detail"},a.letzterSchritt,el("span",{class:"ago",text:ago(a.aktualisiert)})));
   if(a.naechsterSchritt)dl.append(el("dt",{text:"Als Nächstes"}),el("dd",{text:a.naechsterSchritt}));
   const offenDu=deinTeil(a).filter(d=>!d.erledigt);
-  if(offenDu.length)dl.append(el("dt",{text:"Von dir"}),el("dd",{text:offenDu.map(d=>d.text).join(" · ")}));
+  if(offenDu.length)dl.append(el("dt",{class:"detail",text:"Von dir"}),el("dd",{class:"detail",text:offenDu.map(d=>d.text).join(" · ")}));
   if(dl.childNodes.length)c.append(dl);
 
   // Aktionen
   const act=el("div",{class:"actions"});
-  const st=el("select",{"aria-label":`Wer ist dran bei ${a.titel}`,id:`st-${a.id}`});
+  const st=el("select",{class:"detail","aria-label":`Wer ist dran bei ${a.titel}`,id:`st-${a.id}`});
   for(const s of ORDER)st.append(el("option",{value:s,text:META[s].short}));
   st.value=a.status||"laeuft";st.disabled=readOnly;
   st.addEventListener("change",()=>save(`arbeiten/${a.id}`,{status:st.value,aktualisiert:new Date().toISOString()}));
@@ -471,12 +521,12 @@ function card(a){
   star.disabled=readOnly;star.addEventListener("click",()=>save(`arbeiten/${a.id}`,{fuerStart:!a.fuerStart}));
   act.append(st,star);
   const fb=fensterButton(a);if(fb)act.append(fb);
-  if(a.status!=="fertig")act.append(copyButton(a));
+  if(a.status!=="fertig"){const cp=copyButton(a);cp.classList.add("detail");act.append(cp)}
   c.append(act);
 
   // Technik-Details
   const offen=Array.isArray(a.offen)?a.offen:[];
-  const tech=el("details",{class:"tech"},el("summary",{text:`Technik-Details${offen.length?` · ${offen.length} ${offen.length===1?"offener Punkt":"offene Punkte"} für Claude`:""}`}));
+  const tech=el("details",{class:"tech detail"},el("summary",{text:`Technik-Details${offen.length?` · ${offen.length} ${offen.length===1?"offener Punkt":"offene Punkte"} für Claude`:""}`}));
   const inner=el("div",{class:"in"});
   if(offen.length){const u=el("ul");offen.forEach(o=>u.append(el("li",{text:o})));inner.append(el("div",{},el("div",{class:"k",text:"Offen für Claude"}),u))}
   const meta=el("dl");
@@ -486,8 +536,51 @@ function card(a){
   if(meta.childNodes.length)inner.append(meta);
   if(inner.childNodes.length){tech.append(inner);c.append(tech)}
 
-  c.append(ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id,false));
+  const ib=ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id,false);ib.classList.add("detail");c.append(ib);
+  if(isBoard()&&!readOnly&&!filter)enableCardDrag(c,a);
   return c;
+}
+
+// Tafel: Karte gedrückt halten und in eine andere Spalte ziehen ändert, wer dran ist.
+// Eine schwebende Kopie folgt dem Zeiger, damit sie nicht vom Scrollbereich der Spalte abgeschnitten wird.
+function enableCardDrag(c,a){
+  let timer=null,sx=0,sy=0,pid=null,ghost=null,rect=null,target=null;
+  const cols=()=>[...document.querySelectorAll("#list .col:not(.col-fertig)")];
+  c.addEventListener("pointerdown",ev=>{
+    if(ev.button!==0||dragging)return;
+    if(ev.target.closest("input,a,button,select,textarea,summary,.copybox,.ideas"))return;
+    sx=ev.clientX;sy=ev.clientY;pid=ev.pointerId;
+    timer=setTimeout(lift,350);
+  });
+  c.addEventListener("pointermove",ev=>{
+    if(ev.pointerId!==pid)return;
+    if(timer&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){clearTimeout(timer);timer=null;return}
+    if(!ghost)return;
+    ghost.style.transform=`translate(${ev.clientX-sx}px,${ev.clientY-sy}px) scale(1.03)`;
+    const over=cols().find(col=>{const r=col.getBoundingClientRect();return ev.clientX>=r.left&&ev.clientX<=r.right});
+    if(over!==target){target?.classList.remove("drop");target=over;if(target&&target.dataset.status!==a.status)target.classList.add("drop")}
+  });
+  const end=ev=>{
+    if(ev.pointerId!==pid)return;
+    clearTimeout(timer);timer=null;
+    if(!ghost)return;
+    const neu=target?.dataset.status;
+    target?.classList.remove("drop");ghost.remove();ghost=null;c.classList.remove("lifting");
+    dragging=false;
+    if(neu&&neu!==a.status){a.status=neu;save(`arbeiten/${a.id}`,{status:neu,aktualisiert:new Date().toISOString()})}
+    render();
+  };
+  c.addEventListener("pointerup",end);c.addEventListener("pointercancel",end);
+  c.addEventListener("touchmove",ev=>{if(ghost)ev.preventDefault()},{passive:false});
+  function lift(){
+    timer=null;dragging=true;rect=c.getBoundingClientRect();
+    ghost=c.cloneNode(true);ghost.classList.add("ghost-card");ghost.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));
+    Object.assign(ghost.style,{left:rect.left+"px",top:rect.top+"px",width:rect.width+"px"});
+    ghost.style.transform="scale(1.03)";
+    document.body.append(ghost);c.classList.add("lifting");
+    try{c.setPointerCapture(pid)}catch(e){}
+    navigator.vibrate?.(10);
+  }
 }
 
 function ideasBlock(list,arbeitId,eingang){
