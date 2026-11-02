@@ -39,7 +39,6 @@ export default defineConfig(({ mode }) => {
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['icons/hoku-dunkel-symbol-128.png'],
       injectManifest: {
         rollupFormat: 'es',
         // Der Service Worker entsteht nach dem Sentry-Upload; seine Map
