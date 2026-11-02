@@ -257,7 +257,9 @@ window.monogrammPupille = function (m = MONO) {
             const pa = p[0] * K + nx * o, pb = p[1] * K + ny * o
             const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
             const x = G[0] * tt + pa * a.rx[0] + pb * a.uy[0], y = G[1] * tt + pb * a.uy[1], z = G[2] * tt + pa * a.rx[2] + pb * a.uy[2]
-            out.push({ x, y, z, licht: 1 + M.hell * (1 - j / k), g: (M.groesse ?? 0.85) * (1 - 0.12 * j) * (1 + (zufall(id + 29) - 0.5) * 0.25) })
+            // organisch: Größe und Helligkeit streuen (M.lebendig 0 … 1)
+            const lb = M.lebendig || 0, gz = zufall(id + 29), hz = zufall(id + 37)
+            out.push({ x, y, z, licht: (1 + M.hell * (1 - j / k)) * (1 - 0.35 * lb * hz), g: (M.groesse ?? 0.85) * (1 - 0.12 * j) * (1 + (gz - 0.5) * (0.25 + 0.9 * lb)) })
           }
         }
         return out
