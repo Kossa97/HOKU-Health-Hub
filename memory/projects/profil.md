@@ -73,7 +73,7 @@ Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` 
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
-## Teilprojekt 2b gebaut (02.11.2026, Branch `profil-p2b-fortschritt`, nicht gepusht, kein PR)
+## Teilprojekt 2b gebaut (02.11.2026, Branch `profil-p2b-fortschritt`, PR https://github.com/Kossa97/HOKU-Health-Hub/pull/128, Basis 2a)
 Tasks 1–7 fertig: Migration `supabase-profil-p2b-fortschritt.sql` (progress_settings mit RLS nur Nutzer, Felder
 progress/badges, profile_snapshot_clean baut für andere nur Gesamt, fünf Bereiche, since und bekannte Abzeichen-IDs)
 — Trockenlauf zweimal im Container, NICHT gegen Produktion (nach 2a, vor dem Merge). Rechnung `progressScore.ts`,
@@ -83,7 +83,8 @@ Baseline aus Health beim Setzen des Starts (`progressBaseline.ts`, 60 Tage davor
 `profil-fortschritt.spec.ts`. Task 7: e1RM-Namen in App-Sprache (nie Kennung; auch Bestleistungen/Lieblingsübung aus
 dem Schnappschuss), Datenschutz Abschnitt 6 ergänzt (TERMS_VERSION unverändert), Texte de/en gegengelesen,
 code-review: Einnahme-/Wiegetage jetzt lokaler Kalendertag, profile_complete nie ohne Prüfpunkte.
-Offen 2b: Produktivlauf der Migration (Ja nötig, zusammen mit 2a); security-review vor dem PR; „Stand“ der
+security-review 02.11.: keine Funde. Bottom-Nav über „Gesamt“ im Screenshot war nur Artefakt des Ganzseiten-Screenshots.
+Offen 2b: Produktivlauf der Migration (Ja nötig, zusammen mit 2a); „Stand“ der
 Datenschutzerklärung (Oktober 2026) ggf. anheben; Spec-Wörter „wartet“ (Karte) und „positive Veränderung“ bewusst
 gelassen; andere sehen bei Freigabe auch den Starttag (`since`) — so im Datenschutztext; Rechtlich prüfen:
 Baseline-Lesen aus Health und Speichern der Baseline (Art. 9) über die bestehende Einwilligung.
@@ -100,7 +101,10 @@ Baseline-Lesen aus Health und Speichern der Baseline (Art. 9) über die bestehen
   Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf;
   Bild-Check über Anthropic (Einwilligung oder berechtigtes Interesse?);
   Erfahrungsberichte mit Substanznamen für angemeldete Nutzer; Web-Vorschau (2c) vor dem Start;
-  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4).
+  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4);
+  2b: Baseline aus Health über bestehende Einwilligung (Art. 9); freigegebener Bereichswert mit nur einem
+  Wert verrät dessen Verlauf (z. B. Blut), freigegebene Abzeichen-IDs verraten Gesundheitsfakten
+  (first_bloodwork, all_markers_in_range, first_cycle_done) — nur nach Freigabe, Standard „Nur ich“.
 - 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
   Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
   `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
