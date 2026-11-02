@@ -103,6 +103,9 @@ Technik (eingeklappt):
 - `ort`: `computer` (Fenster in der Desktop-App) oder `cloud` (claude.ai/code)
 - `sitzungLink`: `link` aus `get_session("self")`; in der Cloud die
   `https://claude.ai/code/...`-Adresse der Sitzung
+- `fensterTitel`: `title` aus `get_session("self")`, also der Name in der
+  Seitenleiste. Fenster auf dem Computer lassen sich aus der Seite nicht direkt
+  öffnen; der Knopf „Zum Fenster“ zeigt dann diesen Namen.
 - `aktualisiert`: jetzt, ISO-Zeit
 
 Keine Gesundheitsdaten von Nutzern in die Werkbank schreiben, nur die Arbeit
