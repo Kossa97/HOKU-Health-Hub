@@ -41,6 +41,7 @@ const BlutspiegelSimulation = lazyPage(() => import('./pages/BlutspiegelSimulati
 const BlutspiegelDetail = lazyPage(() => import('./pages/BlutspiegelDetail'), 'BlutspiegelDetail')
 const BlutspiegelManuell = lazyPage(() => import('./pages/BlutspiegelManuell'), 'BlutspiegelManuell')
 const Legal = lazyPage(() => import('./pages/Legal'), 'Legal')
+const ErkenntnissePage = lazyPage(() => import('./features/dot/erkenntnisse/ErkenntnissePage'), 'ErkenntnissePage')
 // Vorschau-Seiten nur in der Entwicklung — im fertigen Build fehlen Route und Code.
 const DevPreviews = import.meta.env.DEV ? lazyPage(() => import('./pages/__DevPreviews'), 'DevPreviews') : null
 
@@ -110,6 +111,7 @@ function PersonalApp() {
             <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />
             <Route path="progress" element={<LazyPage><Progress /></LazyPage>} />
             <Route path="training" element={<LazyPage><TrainingPage /></LazyPage>} />
+            <Route path="erkenntnisse" element={<LazyPage><ErkenntnissePage /></LazyPage>} />
             <Route path="simulation" element={<LazyPage><BlutspiegelSimulation /></LazyPage>} />
             <Route path="simulation/neu" element={<LazyPage><BlutspiegelManuell /></LazyPage>} />
             <Route path="simulation/:key" element={<LazyPage><BlutspiegelDetail /></LazyPage>} />

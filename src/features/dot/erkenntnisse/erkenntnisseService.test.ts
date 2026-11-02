@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Fund, FundId } from '../../../../supabase/functions/_shared/erkenntnisse/typen.ts'
-import { FUND_IDS, liesFund, ordneFunde } from './erkenntnisseService'
+import { FUND_IDS, liesFund, ordneFunde, sichtbareWochenFunde } from './erkenntnisseService'
 
 const gut = (): Record<string, unknown> => ({
   id: 'H1', schluessel: 'H1:vor_grenze', bezug: null, richtung: 'neutral', datenlage: 'hinweis',
@@ -84,5 +84,14 @@ describe('Erkenntnisse: ordneFunde', () => {
   it('Datenlage kommt aus der Spalte der Zeile', () => {
     expect(ordneFunde(['a'], [zeile('a', gut(), 'deutlich')])[0].datenlage).toBe('deutlich')
     expect(ordneFunde(['a'], [zeile('a', gut(), 'hinweis')])[0].datenlage).toBe('hinweis')
+  })
+})
+
+describe('Erkenntnisse: sichtbareWochenFunde', () => {
+  it('nur Funde der Woche, die noch gelten und nicht ausgeblendet sind, in Wochenreihenfolge', () => {
+    const g = (id: string) => ({ id, fund: liesFund(gut())!, datenlage: 'hinweis' as const })
+    const woche = { woche: '2026-11-01', tageEingeflossen: 7, gelesen: false, funde: [g('a'), g('b'), g('c')] }
+    expect(sichtbareWochenFunde(woche, [g('c'), g('a'), g('x')]).map(f => f.id)).toEqual(['a', 'c'])
+    expect(sichtbareWochenFunde(woche, [])).toEqual([])
   })
 })

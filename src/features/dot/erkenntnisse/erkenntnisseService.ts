@@ -62,6 +62,12 @@ export function ordneFunde(fundIds: string[], zeilen: FundZeile[]): Gespeicherte
   })
 }
 
+/** Funde der Woche, die noch gelten und nicht ausgeblendet sind (Schnitt mit `ladeFunde`). */
+export function sichtbareWochenFunde(woche: Woche, gueltige: GespeicherterFund[]): GespeicherterFund[] {
+  const ids = new Set(gueltige.map(g => g.id))
+  return woche.funde.filter(g => ids.has(g.id))
+}
+
 /** Jüngster sichtbarer Wochenzettel samt seinen Funden, oder null. */
 export async function ladeWoche(userId: string, jetzt = new Date()): Promise<Woche | null> {
   const { data, error } = await supabase.from('hoku_wochen')

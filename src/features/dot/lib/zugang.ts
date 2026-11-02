@@ -50,11 +50,27 @@ export interface DotZugang {
   /** Zeitpunkt der Einwilligung in den Chat, null = nicht erteilt. */
   einwilligung: string | null
   setEinwilligung(wert: string | null): void
+  /** Hoku-Erkenntnisse: Seite und Karte sichtbar (`darfErkenntnisseSehen`). */
+  darfErkenntnisse: boolean
+  /** Zeitpunkt der Einwilligung in die Erkenntnisse, null = nicht erteilt. */
+  erkenntnisseEinwilligung: string | null
+  setErkenntnisseEinwilligung(wert: string | null): void
+  /** Zeitzone, nach der die Nacht-Auswertung die Tage schneidet (`profiles.hoku_zeitzone`). */
+  hokuZeitzone: string | null
+}
+
+interface Stand {
+  fuer: string | null
+  darfRaus: boolean
+  einwilligung: string | null
+  darfErkenntnisse: boolean
+  erkenntnisseEinwilligung: string | null
+  hokuZeitzone: string | null
 }
 
 export function useDotZugang(): DotZugang {
   const { user } = useAuth()
-  const [stand, setStand] = useState<{ fuer: string | null; darfRaus: boolean; einwilligung: string | null }>({ fuer: null, darfRaus: false, einwilligung: null })
+  const [stand, setStand] = useState<Stand>({ fuer: null, darfRaus: false, einwilligung: null, darfErkenntnisse: false, erkenntnisseEinwilligung: null, hokuZeitzone: null })
 
   useEffect(() => {
     if (!user) return
@@ -65,7 +81,14 @@ export function useDotZugang(): DotZugang {
       if (aus) return
       const p = (data ?? {}) as Record<string, unknown>
       const darfRaus = !imHausFuerTests() && (!PRO_PFLICHT || hatPro(p.pro_until as string | null) || istTester(p.is_admin === true, import.meta.env.DEV))
-      setStand({ fuer: user.id, darfRaus, einwilligung: (p.coach_consent_at as string | null) ?? null })
+      setStand({
+        fuer: user.id,
+        darfRaus,
+        einwilligung: (p.coach_consent_at as string | null) ?? null,
+        darfErkenntnisse: darfErkenntnisseSehen(ERKENNTNISSE_FREI, p.is_admin === true, import.meta.env.DEV),
+        erkenntnisseEinwilligung: (p.erkenntnisse_consent_at as string | null) ?? null,
+        hokuZeitzone: (p.hoku_zeitzone as string | null) ?? null,
+      })
     })
     return () => { aus = true }
   }, [user])
@@ -76,5 +99,9 @@ export function useDotZugang(): DotZugang {
     darfRaus: geladen && stand.darfRaus,
     einwilligung: geladen ? stand.einwilligung : null,
     setEinwilligung: wert => setStand(s => ({ ...s, einwilligung: wert })),
+    darfErkenntnisse: geladen && stand.darfErkenntnisse,
+    erkenntnisseEinwilligung: geladen ? stand.erkenntnisseEinwilligung : null,
+    setErkenntnisseEinwilligung: wert => setStand(s => ({ ...s, erkenntnisseEinwilligung: wert })),
+    hokuZeitzone: geladen ? stand.hokuZeitzone : null,
   }
 }
