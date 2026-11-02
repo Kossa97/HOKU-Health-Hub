@@ -176,7 +176,7 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 
 ## KI-Plan mit Hoku (Entscheidung Nutzer, 2.11.2026, noch nicht gebaut)
 
-- Workout/Plan per Hoku erstellen, tippen oder sprechen. **Einstieg beides:** im Hoku-Chat und
+- Workout/Plan per Hoku erstellen, **tippen und sprechen gleichwertig** (Textfeld mit Senden, Mikrofon wenn leer). **Einstieg beides:** im Hoku-Chat und
   per Knopf „Mit Hoku erstellen" im Blatt „Neuer Plan".
 - **Nur mit Pro** (es gibt eine Free-Version), wie der übrige Coach (Einwilligung, Tageslimit).
 - Muster wie `dotAnlage` (Substanz): Werkzeug in Edge Function `coach` liefert Plan-Entwurf →
