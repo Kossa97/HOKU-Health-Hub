@@ -78,6 +78,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .badge{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
 .b-start{background:var(--warn-soft);color:var(--star)}
 .b-still{background:var(--pause-soft);color:var(--pause)}
+.b-ort{background:var(--bg);color:var(--muted);border:1px solid var(--line);font-weight:500}
 .what{color:var(--muted);margin:-6px 0 0;font-size:14px}
 .ask{background:var(--wait-soft);color:var(--wait);border-radius:10px;padding:10px 12px;font-size:14px}
 .ask strong{display:block}
@@ -154,7 +155,7 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
 
   <div id="list" class="section"></div>
 
-  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Fenster öffnen“ funktioniert nur in der Claude-App am Computer.</p>
+  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Fenster öffnen“ funktioniert nur in der Claude-App am Computer, „Cloud-Fenster öffnen“ überall.</p>
 </div>
 
 <script>
@@ -250,7 +251,7 @@ function drawChips(){
 function drawWarnings(){
   const w=$("#warnings");w.replaceChildren();
   const byFolder={};
-  for(const a of arbeiten){if(a.status==="fertig"||!a.ordner)continue;(byFolder[a.ordner]??=[]).push(a)}
+  for(const a of arbeiten){if(a.status==="fertig"||!a.ordner||a.ort==="cloud")continue;(byFolder[a.ordner]??=[]).push(a)}
   for(const list of Object.values(byFolder)){
     if(list.length<2)continue;
     const box=el("div",{class:"warn"},el("strong",{text:`${list.length} Arbeiten basteln an derselben Stelle`}));
@@ -284,6 +285,7 @@ function card(a){
 
   const badges=el("div",{class:"badges"});
   if(a.fuerStart)badges.append(el("span",{class:"badge b-start",text:"★ Für den Start"}));
+  badges.append(el("span",{class:"badge b-ort",text:a.ort==="cloud"?"Cloud":"Computer",title:a.ort==="cloud"?"Läuft in einem Cloud-Fenster (claude.ai)":"Läuft in einem Fenster auf deinem Computer"}));
   if(liegtStill(a))badges.append(el("span",{class:"badge b-still",text:`Liegt seit ${tageHer(a.aktualisiert)} Tagen still`}));
   c.append(el("div",{class:"head"},el("h3",{text:a.titel}),badges));
   if(a.wasIstDas)c.append(el("p",{class:"what",text:a.wasIstDas}));
@@ -326,7 +328,10 @@ function card(a){
   if(a.branch)meta.append(el("dt",{text:"Branch"}),el("dd",{text:a.branch}));
   if(a.ordner)meta.append(el("dt",{text:"Ordner"}),el("dd",{text:a.ordner}));
   if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("dt",{text:"Pull Request"}),el("dd",{},el("a",{href:a.pr,target:"_blank",rel:"noopener",text:a.pr.replace(/^https:\/\/github\.com\//,"")})));
-  if(a.sitzungLink&&/^claude:\/\//.test(a.sitzungLink))meta.append(el("dt",{text:"Fenster"}),el("dd",{},el("a",{href:a.sitzungLink,text:"Fenster öffnen"})));
+  if(a.sitzungLink&&/^(claude:\/\/|https:\/\/claude\.ai\/)/.test(a.sitzungLink)){
+    const web=a.sitzungLink.startsWith("https://");
+    meta.append(el("dt",{text:"Fenster"}),el("dd",{},el("a",{href:a.sitzungLink,...(web?{target:"_blank",rel:"noopener"}:{}),text:web?"Cloud-Fenster öffnen":"Fenster öffnen"})));
+  }
   if(meta.childNodes.length)inner.append(meta);
   if(inner.childNodes.length){tech.append(inner);c.append(tech)}
 
