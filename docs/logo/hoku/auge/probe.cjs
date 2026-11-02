@@ -3,7 +3,7 @@ const { chromium } = require('playwright'); const path = require('path'); const 
 ;(async () => {
   const [out, json, size = '512'] = process.argv.slice(2)
   const b = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
-  const p = await b.newPage(); await p.goto('file://' + path.join(__dirname, 'hoku-auge.html'))
+  const p = await b.newPage(); await p.goto('file://' + path.join(__dirname, process.env.SEITE || 'hoku-auge.html'))
   const url = await p.evaluate(([list, s]) => {
     const cs = list.map(o => downscale(renderHoku({ size: 2048, ...o }), s))
     const all = document.createElement('canvas'); all.width = s * cs.length; all.height = s

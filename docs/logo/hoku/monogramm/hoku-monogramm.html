@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Hoku mit Monogramm-Pupille</title>
+<!-- Renderer wie ../auge/hoku-auge.html, die Pupille hat die Form des HOKU-Monogramms (monogramm.js).
+     o.mono.geo überschreibt Maße des Monogramms (z. B. kräftigere Striche w). -->
+<body style="margin:0;background:#000">
+<script src="../auge/auge.bundle.js"></script>
+<script src="../auge/hoku-render.js"></script>
+<script src="monogramm.js"></script>
+<script>
+const formen = new Map()
+const formFuer = o => { const k = JSON.stringify(o.mono.geo || {}); if (!formen.has(k)) formen.set(k, monogrammPupille({ ...MONO, ...(o.mono.geo || {}) })); return formen.get(k) }
+window.FORM = { punkt: (a, x, y, z, aus, o) => formFuer(o).punkt(a, x, y, z, aus, o), extra: (a, o) => formFuer(o).extra(a, o) }
+</script>

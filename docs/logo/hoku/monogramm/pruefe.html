@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#000">
+<script src="monogramm.js"></script>
+<img id="v" src="vorlage-monogramm.webp" style="display:none">
+<canvas id="c" width="1254" height="1254"></canvas>
+<script>
+window.zeige = () => { const c = document.getElementById('c'), x = c.getContext('2d'); x.drawImage(document.getElementById('v'), 0, 0)
+  x.globalAlpha = 0.55; x.globalCompositeOperation = 'source-over'
+  const t = document.createElement('canvas'); t.width = t.height = 1254; zeichneMonogramm(t.getContext('2d'), 627, 640, 473)
+  const tc = t.getContext('2d'); tc.globalCompositeOperation = 'source-in'; tc.fillStyle = '#f30'; tc.fillRect(0, 0, 1254, 1254)
+  x.drawImage(t, 0, 0) }
+</script>
