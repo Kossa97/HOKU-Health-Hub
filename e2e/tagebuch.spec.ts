@@ -403,14 +403,19 @@ test('Einnahme: nach Mitternacht bestaetigt traegt den Platz; spaetere Einnahme 
   const dialog = page.getByRole('dialog')
   const auswahl = dialog.getByLabel('Bezug zur Einnahme (optional)')
   await expect(auswahl).toHaveValue(String(donnerstag.id))
-  await expect(auswahl.locator('option')).toHaveText(['Keine', 'Do. 24.09. 20:00 · 250 mcg'])
+  // Nach Tagen gruppiert, kurz; gleiche Menge wird nicht wiederholt.
+  await expect(auswahl.locator('optgroup')).toHaveAttribute('label', 'Do. 24.09.')
+  await expect(auswahl.locator('option')).toHaveText(['Keine', '20:00'])
+  await expect(dialog.locator('.lg-form-row:has(#tagebuch-einnahme)')).toContainText('Do. 24.09. 20:00')
 
   const hinweis = dialog.locator('[data-tagebuch-einnahme-spaeter]')
-  await expect(hinweis).toContainText('Spätere Einnahme: Sa. 26.09. 04:00 · für Fr. 20:00.')
+  await expect(hinweis).toContainText('Spätere Einnahme: Fr. 25.09. 20:00 · erst Sa. 04:00.')
   await hinweis.getByRole('button', { name: 'Zeitpunkt übernehmen' }).click()
   await expect(dialog.getByLabel('Zeitpunkt')).toHaveValue('2026-09-26T04:00')
   await expect(auswahl).toHaveValue(String(freitag.id))
-  await expect(auswahl.locator('option', { hasText: 'Sa. 26.09. 04:00 · für Fr. 20:00 · 250 mcg' })).toHaveCount(1)
+  // Steht beim Freitag (Tag des Plans), mit dem echten Zeitpunkt dahinter.
+  await expect(auswahl.locator('optgroup[label="Fr. 25.09."] option')).toHaveText(['20:00 · erst Sa. 04:00'])
+  await expect(dialog.locator('.lg-form-row:has(#tagebuch-einnahme)')).toContainText('Fr. 25.09. 20:00')
   await expect(hinweis).toHaveCount(0)
 
   await dialog.getByRole('button', { name: 'Speichern' }).click()

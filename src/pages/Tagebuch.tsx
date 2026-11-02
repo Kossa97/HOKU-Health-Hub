@@ -301,9 +301,9 @@ export function Tagebuch() {
                 /* Ältere Einträge ohne Chips: Art und Intensität wie bisher */
                 <div className="flex items-center gap-2 mt-1 flex-wrap text-[13px] font-medium">
                   {e.type === 'effect'
-                    ? <Zap size={14} aria-hidden="true" className="text-[var(--lg-good-text)] shrink-0" />
-                    : <AlertTriangle size={14} aria-hidden="true" className="text-[var(--lg-warn-text)] shrink-0" />}
-                  <span className={e.type === 'effect' ? 'text-[var(--lg-good-text)]' : 'text-[var(--lg-warn-text)]'}>
+                    ? <Zap size={14} aria-hidden="true" className="text-[var(--diary-effect-text)] shrink-0" />
+                    : <AlertTriangle size={14} aria-hidden="true" className="text-[var(--diary-side-effect-text)] shrink-0" />}
+                  <span className={e.type === 'effect' ? 'text-[var(--diary-effect-text)]' : 'text-[var(--diary-side-effect-text)]'}>
                     {e.type === 'effect' ? t('wirkung') : t('nebenwirkung')}
                   </span>
                   <span className={SEVERITY_COLORS[e.severity]}>{severityLabel(e.severity)}</span>

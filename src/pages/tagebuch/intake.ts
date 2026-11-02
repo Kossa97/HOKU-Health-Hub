@@ -44,16 +44,45 @@ export function intakeDose(option: Pick<IntakeOption, 'dose' | 'unit'>, language
 }
 
 /**
- * „Sa 31.10. 04:00" — mit Wochentag, damit man den Tag erkennt. Wurde die
- * Einnahme an einem anderen Tag bestätigt, als sie im Plan steht (Abenddosis
- * nach Mitternacht), steht der Platz dahinter: „für Fr 20:00".
+ * Wo eine Einnahme in der Auswahl steht: am Tag ihres Platzes im Plan (wie im
+ * Kalender), mit der Uhrzeit, zu der sie genommen wurde. Wurde sie erst am
+ * nächsten Tag bestätigt (Abenddosis nach Mitternacht), steht dort die
+ * geplante Uhrzeit, und `spaeter` trägt den echten Zeitpunkt.
  */
-export function intakeWhen(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>, locale: Locale, t: Translate): string {
+export function intakeSlot(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>): { tag: Date; zeit: Date; spaeter: Date | null } {
   const at = new Date(option.logged_at)
-  const when = format(at, 'EEE dd.MM. HH:mm', { locale })
   const plan = planZeitAusSchluessel(option.routine_slot_key)
-  if (!plan || plan.slice(0, 10) === format(at, 'yyyy-MM-dd')) return when
+  if (!plan || plan.slice(0, 10) === format(at, 'yyyy-MM-dd')) return { tag: at, zeit: at, spaeter: null }
   const [y, m, d] = plan.slice(0, 10).split('-').map(Number)
-  const planAt = new Date(y, m - 1, d, Number(plan.slice(11, 13)), Number(plan.slice(14, 16)))
-  return `${when} · ${t('tagebuch_einnahme_fuer', { zeit: format(planAt, 'EEE HH:mm', { locale }) })}`
+  const geplant = new Date(y, m - 1, d, Number(plan.slice(11, 13)), Number(plan.slice(14, 16)))
+  return { tag: geplant, zeit: geplant, spaeter: at }
+}
+
+/** „Fr. 30.10." — Kopf einer Tagesgruppe. */
+export function intakeDay(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>, locale: Locale): string {
+  return format(intakeSlot(option).tag, 'EEE dd.MM.', { locale })
+}
+
+/** „20:00" oder „20:00 · erst Sa. 04:00" — der Eintrag unter seinem Tag. */
+export function intakeTime(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>, locale: Locale, t: Translate): string {
+  const { zeit, spaeter } = intakeSlot(option)
+  const uhr = format(zeit, 'HH:mm', { locale })
+  return spaeter ? `${uhr} · ${t('tagebuch_einnahme_erst', { zeit: format(spaeter, 'EEE HH:mm', { locale }) })}` : uhr
+}
+
+/** „Fr. 30.10. 20:00 · erst Sa. 04:00" — für Hinweise außerhalb der Auswahl. */
+export function intakeWhen(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>, locale: Locale, t: Translate): string {
+  return `${intakeDay(option, locale)} ${intakeTime(option, locale, t)}`
+}
+
+/** Einnahmen nach Tag gruppiert, Reihenfolge wie übergeben. */
+export function groupByDay<T extends Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>>(options: T[], locale: Locale): { tag: string; options: T[] }[] {
+  const groups: { tag: string; options: T[] }[] = []
+  for (const option of options) {
+    const tag = intakeDay(option, locale)
+    const group = groups.find(g => g.tag === tag)
+    if (group) group.options.push(option)
+    else groups.push({ tag, options: [option] })
+  }
+  return groups
 }
