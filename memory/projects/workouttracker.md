@@ -174,6 +174,15 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - Offen: Plan löschen nicht atomar; verwaiste Zeitplan-Zeile vererbt sich an gleichnamigen neuen Plan;
   „Neuer Plan" nur über den Plan-Chip im Workout-Editor; „Plan kopieren" (nur duplizieren).
 
+## KI-Plan mit Hoku (Entscheidung Nutzer, 2.11.2026, noch nicht gebaut)
+
+- Workout/Plan per Hoku erstellen, tippen oder sprechen. **Einstieg beides:** im Hoku-Chat und
+  per Knopf „Mit Hoku erstellen" im Blatt „Neuer Plan".
+- **Nur mit Pro** (es gibt eine Free-Version), wie der übrige Coach (Einwilligung, Tageslimit).
+- Muster wie `dotAnlage` (Substanz): Werkzeug in Edge Function `coach` liefert Plan-Entwurf →
+  Vorschau → Nutzer übernimmt. Nur Katalog-Übungen, Gewichte leer, keine medizinischen Aussagen.
+- Offen: Spracheingabe im laufenden Training (ohne KI, Gerät erkennt) — Nutzer fragt nach.
+
 ## Offen
 
 | Punkt | Stand |
