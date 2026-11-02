@@ -59,7 +59,9 @@ Commits oder Artefakte kopieren.
 
 ## Werkbank: Übersicht aller Arbeiten
 
-Der Nutzer arbeitet in vielen Fenstern parallel. Den Überblick hält die Seite
+Der Nutzer arbeitet in vielen Fenstern parallel, auf dem Computer und in der
+Cloud (claude.ai/code; das Repo hieß dort früher TYD-TrackYourDose, heute
+HOKU-Health-Hub). Die Regel gilt für beide. Den Überblick hält die Seite
 **Hoku Werkbank**: https://claude.ai/artifact/1TdihdC4AWy2Vv79LpPbjG
 (Quelle: `docs/werkbank/werkbank.html`). Ihre Daten liegen in der
 Artefakt-Datenbank, gelesen und geschrieben mit dem Werkzeug `ArtifactData`.
@@ -98,7 +100,9 @@ Für den Nutzer, in Alltagssprache:
 Technik (eingeklappt):
 - `offen`: offene Punkte, die Claude erledigt (kurz, Fachsprache erlaubt)
 - `branch`, `ordner` (Arbeitsordner der Sitzung), `pr` (volle URL oder leer)
-- `sitzungLink`: `link` aus `get_session("self")`
+- `ort`: `computer` (Fenster in der Desktop-App) oder `cloud` (claude.ai/code)
+- `sitzungLink`: `link` aus `get_session("self")`; in der Cloud die
+  `https://claude.ai/code/...`-Adresse der Sitzung
 - `aktualisiert`: jetzt, ISO-Zeit
 
 Keine Gesundheitsdaten von Nutzern in die Werkbank schreiben, nur die Arbeit
