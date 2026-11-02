@@ -210,6 +210,7 @@ window.monogrammPupille = function (m = MONO) {
       if (dd > 0.2) {
         const [pa, pb0] = tang(a, x, y, z), pb = pb0 - (M.dy || 0), s = feld(pa / K, pb / K) * K
         if (M.rand === 'app' && s < 0) { aus[2] = 0; versteckt++; return } // geht als Randpartikel in extra() auf
+        if (M.rand === 'reihen' && s < M.band * (M.frei ?? 1)) { aus[2] = 0; return } // Platz für die Reihen
         if (s < W) {
           // wie engine/auge.ts: aus der Pupille auf [Rand, Rand + 0,93·Band], von dort außen dicht dahinter;
           // innen nach der Richtung von der Mitte (wie der Kreis), damit sich der Rand gleichmäßig füllt
@@ -238,6 +239,29 @@ window.monogrammPupille = function (m = MONO) {
     // gleichmäßig verteilte Partikel genau auf der Kante (Poisson-Scheibe), leicht außerhalb
     extra(a, o) {
       const M = o.mono
+      if (M.rand === 'reihen') {
+        // präziser Rand wie eine Irisblende: k Reihen parallel zur Kontur, gleichmäßig verteilt,
+        // jede Reihe um einen halben Schritt versetzt; innen dichter, größer und heller (wie in der App)
+        const kz = feld.kontur, K = M.gross, out = [], G = a.G, k = M.reihen || 3
+        let P = 0; for (let i = 1; i <= kz.length; i++) { const p = kz[i - 1], q = kz[i % kz.length]; P += Math.hypot(q[0] - p[0], q[1] - p[1]) }
+        P *= K
+        for (let j = 0; j < k; j++) {
+          const off = M.band * (j + 0.5) / k, sp = M.abstand * (1 + (M.weiter ?? 0.3) * j), n = Math.round(P / sp)
+          for (let i = 0; i < n; i++) {
+            const id = j * 100000 + i, jit = M.zufall ?? 0.15
+            const t = (i + 0.5 * (j % 2) + (zufall(id + 17) - 0.5) * jit) / n
+            const p = kz[((Math.floor(t * kz.length) % kz.length) + kz.length) % kz.length]
+            const [nx, ny] = feld.richtung(p[0], p[1])
+            let o = off + (zufall(id + 23) - 0.5) * jit * sp
+            if (M.eng) o = Math.min(o, feld.luecke(p[0], p[1]) * K * (0.25 + 0.5 * (j + 0.5) / k))
+            const pa = p[0] * K + nx * o, pb = p[1] * K + ny * o
+            const tt = Math.sqrt(Math.max(0, 1 - pa * pa - pb * pb))
+            const x = G[0] * tt + pa * a.rx[0] + pb * a.uy[0], y = G[1] * tt + pb * a.uy[1], z = G[2] * tt + pa * a.rx[2] + pb * a.uy[2]
+            out.push({ x, y, z, licht: 1 + M.hell * (1 - j / k), g: (M.groesse ?? 0.85) * (1 - 0.12 * j) * (1 + (zufall(id + 29) - 0.5) * 0.25) })
+          }
+        }
+        return out
+      }
       if (M.rand === 'app') {
         // Rand wie die Pupille in der App: die Partikel aus dem Monogramm liegen als Band dicht
         // am Rand (Abstand 0 … 0,93·Band, innen dichter und heller), gleichmäßig über die Kontur
