@@ -813,7 +813,10 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
   const todayIntakeByKey = new Map(todayIntakes.map(intake => [intake.key, intake]))
   const homeRoutineGroups = groupRoutineIntakes(todayIntakes.map(buildHomeRoutineIntake))
 
-  const defaultHomeConfirmTime = (intake: TodayIntake) => format(new Date(intake.scheduledAt), 'HH:mm')
+  const plannedHomeConfirmTime = (intake: TodayIntake) => format(new Date(intake.scheduledAt), 'HH:mm')
+  // Vorbelegt ist jetzt, wie im Kalender: gespeichert wird, wann wirklich
+  // genommen wurde; die geplante Zeit liegt auf dem Knopf daneben.
+  const defaultHomeConfirmTime = () => format(new Date(), 'HH:mm')
 
   const closeHomeIntakeSheets = () => {
     setSelectedHomeIntake(null)
@@ -822,12 +825,12 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
 
   const openTodayIntake = (intake: TodayIntake) => {
     setSelectedHomeIntake(intake)
-    setHomeConfirmTime(defaultHomeConfirmTime(intake))
+    setHomeConfirmTime(defaultHomeConfirmTime())
     setHomeConfirmStep('choice')
   }
 
-  const openHomeIntakeTimeForm = (intake: TodayIntake) => {
-    setHomeConfirmTime(defaultHomeConfirmTime(intake))
+  const openHomeIntakeTimeForm = () => {
+    setHomeConfirmTime(defaultHomeConfirmTime())
     setHomeConfirmStep('time')
   }
 
@@ -1116,7 +1119,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         <HomeIntakeConfirmSheet
           intake={selectedHomeIntake}
           onClose={closeHomeIntakeSheets}
-          onTaken={() => openHomeIntakeTimeForm(selectedHomeIntake)}
+          onTaken={openHomeIntakeTimeForm}
           onSkipped={() => confirmHomeIntake(selectedHomeIntake, false)}
           onInjection={isInjectableMethod(selectedHomeIntake.method) ? () => openHomeIntakeInjection(selectedHomeIntake) : undefined}
         />
@@ -1129,6 +1132,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           onBack={() => setHomeConfirmStep('choice')}
           onClose={closeHomeIntakeSheets}
           onNow={() => setHomeConfirmTime(format(new Date(), 'HH:mm'))}
+          onPlanned={() => setHomeConfirmTime(plannedHomeConfirmTime(selectedHomeIntake))}
           onTimeChange={setHomeConfirmTime}
           onSave={() => confirmHomeIntake(selectedHomeIntake, true, homeConfirmTime)}
         />
@@ -1572,6 +1576,7 @@ function HomeIntakeTimeSheet({
   onBack,
   onClose,
   onNow,
+  onPlanned,
   onTimeChange,
   onSave,
 }: {
@@ -1580,6 +1585,7 @@ function HomeIntakeTimeSheet({
   onBack: () => void
   onClose: () => void
   onNow: () => void
+  onPlanned: () => void
   onTimeChange: (value: string) => void
   onSave: () => void
 }) {
@@ -1616,13 +1622,22 @@ function HomeIntakeTimeSheet({
           <label className="text-[13px] font-semibold text-slate-400" htmlFor="home-intake-confirm-time">
             Uhrzeit
           </label>
-          <button
-            type="button"
-            onClick={onNow}
-            className="lg-press flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
-          >
-            <Clock3 size={13} aria-hidden="true" /> Jetzt
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onNow}
+              className="lg-press flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
+            >
+              <Clock3 size={13} aria-hidden="true" /> Jetzt
+            </button>
+            <button
+              type="button"
+              onClick={onPlanned}
+              className="lg-press flex min-h-11 items-center rounded-full px-4 text-[15px] font-semibold text-sky-300" style={{ background: 'var(--lg-fill)' }}
+            >
+              {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: format(new Date(intake.scheduledAt), 'HH:mm') })}
+            </button>
+          </div>
         </div>
         <input
           id="home-intake-confirm-time"

@@ -17,6 +17,8 @@ export interface IntakeBundle {
 }
 
 export const BUNDLE_NAME_MAX = 60
+/** Ab so vielen offenen Einnahmen einer Tageszeit steht ein Bündel als Bündel da. */
+export const BUNDLE_MIN_DUE = 2
 
 /**
  * Die offenen Einnahmen, die ein Tipp auf das Bündel bestaetigt.
@@ -47,22 +49,54 @@ export function bundleDueIntakes(
 /**
  * Die Bündel einer Tageszeit: jedes nimmt sich je Substanz die frueheste offene
  * Einnahme DIESER Tageszeit. Was ein Bündel genommen hat, steht dort nicht noch
- * einmal einzeln (`vergeben`). Steht eine Substanz in zwei Bündeln, gehoert die
- * Einnahme dem ersten; ein Bündel ohne offene Einnahme in dieser Tageszeit
- * erscheint dort nicht.
+ * einmal einzeln (`vergeben`).
+ *
+ * Ein Bündel erscheint nur, wenn an diesem Tag in dieser Tageszeit mindestens
+ * ZWEI seiner Substanzen geplant sind (`geplant`) — sonst stehen sie einzeln
+ * da. So gilt ein Sonntags-Bündel (Magnesium täglich, Melatonin nur sonntags)
+ * von selbst nur sonntags, und es folgt dem Plan, ohne eigene Wochentage.
+ * Gezählt wird das Geplante, nicht das Offene: ist eine der beiden schon
+ * bestätigt, bleibt das Bündel mit der übrigen stehen, statt sich mitten am
+ * Tag aufzulösen. Ohne `geplant` zählen die offenen.
+ *
+ * Stehen an einem Tag zwei solche Bündel da und teilen sich eine Substanz,
+ * werden sie EINE Karte (`alle`): „GHK-Cu mit Testosteron" und „GHK-Cu mit
+ * Retatrutid" heißt, an Tagen mit allen dreien nimmt man alle drei zusammen.
+ * Gespeichert bleibt jedes Bündel, wie es ist; an anderen Tagen steht jedes
+ * für sich. `bundle` ist das erste der Gruppe (Reihenfolge der Liste).
  */
 export function bundlesForPeriod<B>(
   bundles: readonly { bundle: B; itemIds: readonly string[] }[],
   periodIntakes: readonly RoutineIntake[],
-): { entries: { bundle: B; intakes: RoutineIntake[] }[]; vergeben: Set<string> } {
-  const vergeben = new Set<string>()
-  const entries: { bundle: B; intakes: RoutineIntake[] }[] = []
+  /** Die an diesem Tag in dieser Tageszeit geplanten Substanzen, auch die schon bestätigten. */
+  geplant?: ReadonlySet<string>,
+): { entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[]; vergeben: Set<string> } {
+  const offen = new Set(periodIntakes.map(intake => intake.stackItemId))
+  // Die Bündel, die heute hier als Bündel dastehen, zu Gruppen über gemeinsame
+  // Substanzen zusammengefasst — in der Reihenfolge ihres ersten Bündels.
+  const gruppen: { alle: B[]; mitglieder: string[] }[] = []
   for (const { bundle, itemIds } of bundles) {
+    const mitglieder = [...new Set(itemIds)].filter(id => (geplant ? geplant.has(id) : offen.has(id)))
+    if (mitglieder.length < BUNDLE_MIN_DUE) continue
+    const beruehrt = gruppen.filter(gruppe => gruppe.mitglieder.some(id => mitglieder.includes(id)))
+    const ziel = beruehrt[0] ?? { alle: [], mitglieder: [] }
+    if (!beruehrt.length) gruppen.push(ziel)
+    for (const andere of beruehrt.slice(1)) {
+      ziel.alle.push(...andere.alle)
+      ziel.mitglieder.push(...andere.mitglieder.filter(id => !ziel.mitglieder.includes(id)))
+      gruppen.splice(gruppen.indexOf(andere), 1)
+    }
+    ziel.alle.push(bundle)
+    ziel.mitglieder.push(...mitglieder.filter(id => !ziel.mitglieder.includes(id)))
+  }
+  const vergeben = new Set<string>()
+  const entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[] = []
+  for (const { alle, mitglieder } of gruppen) {
     const frei = periodIntakes.filter(intake => !vergeben.has(intake.key))
-    const intakes = bundleDueIntakes({ stack_item_ids: [...itemIds] }, frei)
+    const intakes = bundleDueIntakes({ stack_item_ids: mitglieder }, frei)
     if (intakes.length === 0) continue
     for (const intake of intakes) vergeben.add(intake.key)
-    entries.push({ bundle, intakes })
+    entries.push({ bundle: alle[0], alle, intakes, anzahl: mitglieder.length })
   }
   return { entries, vergeben }
 }
@@ -95,7 +129,7 @@ export interface IntakeBundleClient {
         }
       }
     }
-    insert(row: { user_id: string; name: string; stack_item_ids: string[]; sort_order: number }): {
+    insert(row: { id?: string; user_id: string; name: string; stack_item_ids: string[]; sort_order: number }): {
       select(columns: string): { single(): Result<IntakeBundle> }
     }
     update(row: { name: string; stack_item_ids: string[]; updated_at: string }): {
@@ -127,19 +161,20 @@ export async function loadIntakeBundles(client: IntakeBundleClient, userId: stri
 export async function saveIntakeBundle(
   client: IntakeBundleClient,
   userId: string,
-  draft: { id?: string; name: string; stackItemIds: string[]; sortOrder: number },
+  /** `neu` mit `id`: ein aufgelöstes Bündel mit seiner alten id wieder anlegen. */
+  draft: { id?: string; neu?: boolean; name: string; stackItemIds: string[]; sortOrder: number },
 ): Promise<IntakeBundle> {
   const name = normalizeBundleName(draft.name)
   const stack_item_ids = [...new Set(draft.stackItemIds)]
   if (!name) throw new Error('Bundle name is empty')
   if (stack_item_ids.length === 0) throw new Error('Bundle has no items')
-  const { data, error } = draft.id
+  const { data, error } = draft.id && !draft.neu
     ? await client.from('intake_bundles')
       .update({ name, stack_item_ids, updated_at: new Date().toISOString() })
       .eq('id', draft.id).eq('user_id', userId)
       .select(COLUMNS).single()
     : await client.from('intake_bundles')
-      .insert({ user_id: userId, name, stack_item_ids, sort_order: draft.sortOrder })
+      .insert({ ...(draft.id ? { id: draft.id } : {}), user_id: userId, name, stack_item_ids, sort_order: draft.sortOrder })
       .select(COLUMNS).single()
   if (error) throw new Error(error.message)
   if (!data) throw new Error('intake_bundles returned no row')

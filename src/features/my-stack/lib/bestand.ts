@@ -394,6 +394,26 @@ export function spritzenRechnung(
   }
 }
 
+/**
+ * Die Spritzenrechnung einer Substanz, wie sie gespeichert ist: nur fuer ein
+ * Vial, mit der Anmischmenge aus dem Bestand (sonst der Altspalte) und dem
+ * Spritzentyp. Fuer alles andere null — dort zieht man nichts auf.
+ */
+export function spritzeFuer(item: {
+  dosage_form: string | null
+  ingredients?: readonly StackItemIngredient[] | null
+  reconstitution_ml?: number | null
+  syringe_type?: string | null
+  inventory?: StackItemInventory | null
+}): SpritzenRechnung | null {
+  if (anbruchArt(item.dosage_form as DosageFormKey | null) !== 'vial') return null
+  const ingredients = item.ingredients ?? []
+  const ml = item.inventory && vialBuchtUeberBestand(item.inventory, ingredients)
+    ? item.inventory.reconstitution_ml ?? item.reconstitution_ml
+    : item.reconstitution_ml
+  return spritzenRechnung(ingredients, ml, item.syringe_type)
+}
+
 /** Wie viele Einheiten fuer diese Dosis aufzuziehen sind, auf eine Stelle. */
 export function aufzuziehendeEinheiten(
   dose: number | null,

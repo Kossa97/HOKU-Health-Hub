@@ -101,6 +101,18 @@ function GeneralSection({ settings, save, locale }: { settings: TrainingSettings
             </Chip>
           ))}
         </ChipGroup>
+        <Switch checked={settings.restSound} onChange={next => void save({ restSound: next })} label={tt('rest_sound')} />
+        <Switch
+          checked={settings.restNotify}
+          onChange={next => {
+            // Erlaubnis nur auf ausdruecklichen Wunsch und aus dem Tippen heraus
+            try {
+              if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') void Notification.requestPermission().catch(() => {})
+            } catch { /* kein Notification-API */ }
+            void save({ restNotify: next })
+          }}
+          label={tt('rest_notify')}
+        />
 
         <ChipGroup
           label={tt('settings_weekly_goal')}

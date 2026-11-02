@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { dotText } from '../../dot/texte'
 import { DEFAULT_GOALS } from './nutrition'
-import { RF_ABSTAND_MS, RF_ZEIT, haltPunkt, merkeRundflug, rundflugBahn, rundflugFaellig, rundflugPlan, rundflugTexte, type Lage } from './dotRundflug'
+import { RF_ABSTAND_MS, RF_ZEIT, UMLAUF_ZEIT, haltPunkt, merkeRundflug, rundflugBahn, rundflugFaellig, rundflugPlan, rundflugTexte, umlaufBahn, zaehleBesuch, type Lage } from './dotRundflug'
 
 const lage: Lage = {
   main: { x: 195, y: 130, r: 90 },
@@ -48,6 +48,29 @@ describe('rundflugBahn', () => {
 
   it('Dauer: herein, vier Halte, drei Wege, an den Platz', () => {
     expect(bahn.dauer).toBeCloseTo(RF_ZEIT.herein + 4 * RF_ZEIT.halt + 3 * RF_ZEIT.weg + RF_ZEIT.heim)
+  })
+})
+
+describe('umlaufBahn', () => {
+  const bahn = umlaufBahn({ start: { x: -46, y: 110 }, lage: () => lage, platz: () => ({ x: 352, y: 450 }) })
+
+  it('vom Start eine Runde um die Kugel, dann an seinen Platz', () => {
+    expect(bahn.dauer).toBeCloseTo(UMLAUF_ZEIT.herein + UMLAUF_ZEIT.runde + UMLAUF_ZEIT.heim)
+    expect(bahn.pos(0)).toMatchObject({ x: -46, y: 110 })
+    const ende = bahn.pos(bahn.dauer)
+    expect(ende.x).toBeCloseTo(352)
+    expect(ende.y).toBeCloseTo(450)
+  })
+
+  it('kommt hinter der Kugel vorbei (dort verdeckt) und springt nirgends', () => {
+    let hinten = 0, vorher = bahn.pos(0)
+    for (let t = 1 / 60; t <= bahn.dauer; t += 1 / 60) {
+      const p = bahn.pos(t)
+      if (p.hinter) { hinten++; expect(p.depth).toBeLessThan(0); expect(p.hinter).toEqual(lage.main) }
+      expect(Math.hypot(p.x - vorher.x, p.y - vorher.y)).toBeLessThan(40)
+      vorher = p
+    }
+    expect(hinten).toBeGreaterThan(20)
   })
 })
 
@@ -102,6 +125,28 @@ describe('rundflugFaellig', () => {
     merkeRundflug(t)
     expect(rundflugFaellig(t + RF_ABSTAND_MS - 1000)).toBe(false)
     expect(rundflugFaellig(t + RF_ABSTAND_MS)).toBe(true)
+  })
+
+  it('zusätzlich beim dritten Hineinnavigieren seit dem letzten Rundflug', () => {
+    const t = Date.parse('2026-10-29T12:00:00Z')
+    merkeRundflug(t) // geflogen beim Öffnen
+    zaehleBesuch() // 1.
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch() // 2.
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch() // 3. → fliegt
+    expect(rundflugFaellig(t + 60_000)).toBe(true)
+    merkeRundflug(t + 60_000)
+    zaehleBesuch()
+    expect(rundflugFaellig(t + 120_000)).toBe(false)
+  })
+
+  it('alter Speicherstand (nur die Zeit) gilt weiter', () => {
+    const t = Date.parse('2026-10-29T12:00:00Z')
+    localStorage.setItem('tyd.dot.rundflug.v1', String(t))
+    expect(rundflugFaellig(t + 60_000)).toBe(false)
+    zaehleBesuch(); zaehleBesuch(); zaehleBesuch()
+    expect(rundflugFaellig(t + 60_000)).toBe(true)
   })
 
   it('Uhr zurückgestellt (gemerkte Zeit in der Zukunft): fällig', () => {

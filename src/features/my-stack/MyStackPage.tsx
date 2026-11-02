@@ -28,7 +28,7 @@ import {
   type DetailFeld,
 } from './lib/stackDetailSections'
 import { BestandCard, BestandEditorHost, type BestandActions, type BestandEditorArt } from './components/Bestand'
-import { anbruchArt, buchtEinnahmenAb, haltbarkeitArt, istLoesungsVial, spritzenRechnung, stueckRechnung } from './lib/bestand'
+import { anbruchArt, buchtEinnahmenAb, haltbarkeitArt, istLoesungsVial, spritzeFuer, stueckRechnung } from './lib/bestand'
 import { inWochenfolge } from './lib/intakeRhythm'
 import {
   openInventoryContainer,
@@ -973,11 +973,7 @@ export function MyStackPage({ stackDataClient = supabase }: MyStackPageProps = {
 
   // Angemischtes Vial: die Plan-Ansichten zeigen je Einnahme die Einheiten
   // auf der Spritze. Die Fluessigkeit kommt aus dem Bestand (`withVialInventory`).
-  const syringeOf = (p: Peptide) => (
-    anbruchArt(p.dosage_form) === 'vial'
-      ? spritzenRechnung(p.ingredients, p.reconstitution_ml, p.syringe_type)
-      : null
-  )
+  const syringeOf = (p: Peptide) => spritzeFuer(p)
   // Was man zaehlt (Spray, Tablette, Tropfen …): je Einnahme die Stueckzahl.
   const stueckOf = (p: Peptide) => (syringeOf(p) ? null : stueckRechnung(p.ingredients))
 

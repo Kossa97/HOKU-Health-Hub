@@ -1,0 +1,388 @@
+<title>Hoku-Arme</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: eine Buehne fuer Hoku und seine Arme, darunter Regler und Knoepfe.
+   Farben aus der App: Tiefschwarz, Hokus Cyan/Violett/Pink. */
+:root{
+  --bg:#02030a;
+  --ink:#eef1fa;
+  --dim:#8e99b5;
+  --faint:#5d6680;
+  --cyan:#6ee6ff;
+  --cyan-soft:rgba(110,230,255,.12);
+  --line:rgba(160,200,255,.12);
+  --chip:rgba(255,255,255,.05);
+  --font-display:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+.app{position:relative;height:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:10px max(14px, env(safe-area-inset-bottom, 0px));gap:10px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.eyebrow{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+.tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);background:var(--cyan-soft);border:1px solid rgba(110,230,255,.35);border-radius:999px;padding:2px 8px}
+.stage{flex:1;min-height:0;position:relative;border-radius:14px;overflow:hidden;background:var(--bg)}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:pointer}
+.ctl{display:flex;flex-direction:column;gap:8px}
+.slider{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--dim)}
+.slider output{min-width:48px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+input[type=range]{flex:1;accent-color:var(--cyan)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;border:none;background:transparent;color:inherit;padding:0;transition:transform 140ms cubic-bezier(.23,1,.32,1)}
+button:active{transform:scale(.96)}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.chip{min-height:38px;padding:0 14px;border-radius:999px;background:var(--chip);border:1px solid var(--line);color:#c7d6f0;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:rgba(110,230,255,.55);background:var(--cyan-soft);color:var(--cyan)}
+.chip.primary{background:var(--cyan);border-color:var(--cyan);color:#001018;box-shadow:0 0 24px rgba(110,230,255,.2)}
+.hint{margin:0;font-size:12px;color:var(--faint);min-height:1.4em}
+</style>
+
+<div class="app" id="app">
+  <div class="head"><span class="eyebrow">Hoku · Arme</span><span class="tag">Baustein</span></div>
+  <div class="stage"><canvas id="stage" role="img" aria-label="Hoku, die Punktkugel, mit zwei riesigen muskulösen Armen aus leuchtenden Punkten, die einen Bus über ihm halten."></canvas></div>
+  <div class="ctl">
+    <label class="slider">Last<input type="range" id="load" min="0" max="100" value="55"><output id="loadOut">55 %</output></label>
+    <div class="row">
+      <button type="button" class="chip primary" id="drop">Bus fallen lassen</button>
+      <button type="button" class="chip" id="poke">Anstupsen</button>
+      <button type="button" class="chip" id="veins" aria-pressed="true">Adern</button>
+      <button type="button" class="chip" id="bones" aria-pressed="false">Skelett</button>
+    </div>
+    <p class="hint" id="hint">Die Arme federn, zittern mit der Last und schwingen nach. Tipp auf die Bühne stupst sie an.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id)
+  const TAU = Math.PI * 2
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+  const lerp = (a, b, t) => a + (b - a) * t
+  function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  // ---------- Hokus Farben und Punkte (wie in der App) ----------
+  const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200]
+  const mischen = (a, b, m) => a.map((v, i) => v + (b[i] - v) * m)
+  const SPRITES = []
+  for (let i = 0; i < 12; i++) {
+    const c = i < 8 ? mischen(CYAN, VIOLET, i / 7) : mischen(mischen(CYAN, VIOLET, 0.5), PINK, (i - 7) / 4)
+    const s = canvas(32, 32), g = s.getContext('2d'), col = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`
+    const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16)
+    gr.addColorStop(0, col); gr.addColorStop(0.55, col); gr.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = gr; g.beginPath(); g.arc(16, 16, 16, 0, TAU); g.fill()
+    SPRITES.push(s)
+  }
+  const WHITE = (() => { const s = canvas(32, 32), g = s.getContext('2d'); const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, '#fff'); gr.addColorStop(0.5, '#e8f6ff'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(16, 16, 16, 0, TAU); g.fill(); return s })()
+  // Farbe nach Lage (x, y in -1..1, y nach unten), wie das Logo: Cyan oben links -> Violett unten rechts, Pink ganz unten
+  const spriteFor = (x, y) => y > 0.55 ? 8 + Math.min(3, Math.round((y - 0.55) * 1.4 * 3)) : Math.round(clamp((x - y) * 0.32 + 0.5, 0, 1) * 7)
+  let seed = 20261029
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
+  const BODY = []
+  { const ga = Math.PI * (3 - Math.sqrt(5)), N = 460; for (let i = 0; i < N; i++) { const y = 1 - (2 * (i + 0.5)) / N, r = Math.sqrt(1 - y * y), th = ga * i; BODY.push({ x: Math.cos(th) * r, y, z: Math.sin(th) * r, j: rnd() }) } }
+
+  // ---------- Arm: Muskeln als Profile entlang der Knochen ----------
+  // u laeuft von 0 (koerpernah) bis 1 (koerperfern). Halbbreite je Seite: innen (zum Koerper/Last) und aussen.
+  // Werte in Einheiten des Hoku-Radius R. Die Arme sind absichtlich viel groesser als Hoku.
+  const ARM = {
+    upper: { len: 3.4, inner: u => 0.7 + 0.85 * bump(u, 0.48, 0.34) + 0.25 * bump(u, 0.05, 0.2), outer: u => 0.74 + 0.5 * bump(u, 0.55, 0.3) + 0.7 * bump(u, 0.08, 0.24) },  // Bizeps innen, Trizeps aussen, Deltamuskel am Ansatz
+    fore:  { len: 3.0, inner: u => 0.48 + 0.55 * bump(u, 0.22, 0.32) - 0.14 * u, outer: u => 0.5 + 0.4 * bump(u, 0.18, 0.3) - 0.16 * u },                                   // Unterarm: dick am Ellbogen, schmal zum Handgelenk
+    fist:  { len: 1.05, w: 0.8 },
+  }
+  function bump(u, c, w) { const t = (u - c) / w; return t < -1 || t > 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * t) }
+  // Punkte einmal in Knochen-Koordinaten setzen: (u, v) mit v in -1..1 relativ zur Halbbreite, Tiefe aus v
+  function samplePart(part, n, fistLike) {
+    const out = []
+    let tries = 0
+    while (out.length < n && tries++ < n * 40) {
+      const u = fistLike ? rnd() : -0.08 + rnd() * 1.16, v = rnd() * 2 - 1
+      const side = v < 0 ? 'inner' : 'outer'
+      const half = fistLike ? part.w : part[side](clamp(u, 0, 1))
+      // Rundungen an den Enden: Kapsel
+      const endR = fistLike ? part.w : (u < 0 ? part.outer(0) : u > 1 ? part.inner(1) : 0)
+      if (u < 0 || u > 1) { const du = (u < 0 ? -u : u - 1) * part.len; if (du * du + (v * half) * (v * half) > endR * endR) continue }
+      const depth = Math.sqrt(Math.max(0, 1 - v * v))
+      out.push({ u, v, depth, j: rnd(), sz: 0.75 + rnd() * 0.5 })
+    }
+    return out
+  }
+  const UPPER = samplePart(ARM.upper, 1000), FORE = samplePart(ARM.fore, 760), FIST = samplePart(ARM.fist, 220, true)
+  // Knoechel: vier Beulen oben auf der Faust
+  const KNUCKLES = [0.18, 0.4, 0.62, 0.84]
+  // Adern: wenige geschwungene Linien auf Bizeps und Unterarm
+  const VEINS = [
+    { part: 'upper', pts: [[0.12, -0.55], [0.3, -0.75], [0.52, -0.8], [0.72, -0.6], [0.9, -0.45]] },
+    { part: 'upper', pts: [[0.35, -0.35], [0.5, -0.6], [0.66, -0.7]] },
+    { part: 'fore', pts: [[0.05, -0.3], [0.25, -0.6], [0.5, -0.5], [0.75, -0.35], [0.95, -0.2]] },
+    { part: 'fore', pts: [[0.1, 0.5], [0.35, 0.65], [0.6, 0.45]] },
+  ]
+
+  // ---------- Physik: zwei Knochen je Arm als gedaempfte Winkelfedern, Muskelmasse schwingt nach ----------
+  function makeArm(sgn) {
+    return { sgn, a1: sgn * 1.0, a2: -sgn * 1.9, v1: 0, v2: 0, t1: 0, t2: 0, flex: 0, flexV: 0, jig: 0, jigV: 0, prevE: null }
+  }
+  const arms = [makeArm(-1), makeArm(1)]
+  const hoku = { R: 44, load: 0.55, L: 0.55, squash: 0, squashV: 0, spin: 0, trem: 0 }
+  const bus = { y: 0, vy: 0, held: true, img: null, w: 0, h: 0, airY: 0, dropT: 0 }
+  // Ziel der Faeuste: unter den Ecken der Last. Ellbogen nach aussen.
+  function ik(S, T, L1, L2, sgn) {
+    const dx = T.x - S.x, dy = T.y - S.y, d = clamp(Math.hypot(dx, dy), Math.abs(L1 - L2) + 1e-3, L1 + L2 - 1e-3)
+    const a = Math.atan2(dy, dx)
+    const c1 = clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1)
+    const a1 = a + sgn * Math.acos(c1)                   // Ellbogen nach aussen (sgn: links -1, rechts +1)
+    const c2 = clamp((L1 * L1 + L2 * L2 - d * d) / (2 * L1 * L2), -1, 1)
+    const a2 = a1 - sgn * (Math.PI - Math.acos(c2))
+    return { a1, a2 }
+  }
+  function stepPhysics(dt) {
+    const R = hoku.R, L = hoku.L
+    hoku.L += (hoku.load - hoku.L) * Math.min(1, dt * 2.5)
+    hoku.trem += dt * (5 + 14 * L)
+    // Koerper federt
+    hoku.squashV += (-140 * hoku.squash - 11 * hoku.squashV) * dt
+    hoku.squash = clamp(hoku.squash + hoku.squashV * dt, -0.3, 0.5)
+    const rx = R * (1 + 1.1 * L), ry = R * (1 - 0.42 * L) * (1 - 0.15 * hoku.squash)
+    const cy = -ry
+    const L1 = ARM.upper.len * R * (0.78 + 0.22 * L), L2 = ARM.fore.len * R * (0.78 + 0.22 * L)
+    // Last faellt oder liegt in den Faeusten
+    const gripY = -(2 * ry) - R * (2.3 + 0.7 * L)           // Ruhehoehe der Faeuste: ueber Kopf gestemmt, Ellbogen brechen nach aussen
+    if (!bus.held) {
+      bus.vy += 2600 * dt; bus.y += bus.vy * dt
+      if (bus.y >= gripY + bus.sag) { bus.held = true; const hit = clamp(bus.vy / 1400, 0, 1); for (const a of arms) { a.v1 += a.sgn * 6 * hit; a.v2 -= a.sgn * 9 * hit; a.flexV += 6 * hit; a.jigV += 10 * hit } hoku.squashV += 3.5 * hit; bus.vy = 0; bus.sagV = -hit * 260 }
+    }
+    // Durchhaengen unter der Last: eine eigene Feder fuer die Hoehe der Faeuste
+    bus.sagV = (bus.sagV || 0) + (-(90 + 60 * L) * (bus.sag || 0) - 9 * (bus.sagV || 0) + 1400 * L * 0.15) * dt
+    bus.sag = (bus.sag || 0) + bus.sagV * dt
+    const handY = gripY + (bus.held ? bus.sag : 0)
+    if (bus.held) bus.y = handY
+    for (const a of arms) {
+      const S = { x: a.sgn * rx * 0.92, y: cy - ry * 0.15 }
+      const grip = bus.w * 0.44
+      const T = { x: a.sgn * grip, y: handY + 6 }
+      const trem = (reduce ? 0 : 1) * L * L * R * 0.11 * (Math.sin(hoku.trem * 7.3 + a.sgn) * 0.6 + Math.sin(hoku.trem * 11.1 + a.sgn * 2) * 0.4)
+      const target = ik(S, { x: T.x + a.sgn * trem * 0.5, y: T.y + trem }, L1, L2, a.sgn)
+      a.t1 = target.a1; a.t2 = target.a2
+      const k = 160 + 90 * L, c = 2 * Math.sqrt(k) * 0.55
+      a.v1 += (k * angDiff(a.t1, a.a1) - c * a.v1) * dt
+      a.v2 += (k * angDiff(a.t2, a.a2) - c * a.v2) * dt
+      a.a1 += a.v1 * dt; a.a2 += a.v2 * dt
+      // Muskelanspannung folgt der Last, Masse schwingt bei Beschleunigung nach
+      a.flexV += ((L - a.flex) * 60 - 8 * a.flexV) * dt
+      a.flex += a.flexV * dt
+      const E = { x: S.x + Math.cos(a.a1) * L1, y: S.y + Math.sin(a.a1) * L1 }
+      if (a.prevE) { const acc = Math.hypot(E.x - a.prevE.x, E.y - a.prevE.y) / Math.max(dt, 1e-3); a.jigV += clamp(acc / 900, 0, 3) * dt * 40 }
+      a.prevE = E
+      a.jigV += (-180 * a.jig - 9 * a.jigV) * dt
+      a.jig += a.jigV * dt
+      a.S = S; a.E = E; a.W = { x: E.x + Math.cos(a.a2) * L2, y: E.y + Math.sin(a.a2) * L2 }; a.L1 = L1; a.L2 = L2
+    }
+    hoku.rx = rx; hoku.ry = ry; hoku.cy = cy
+  }
+  function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU; return d }
+
+  // ---------- Zeichnen ----------
+  const cv = $('stage'), ctx = cv.getContext('2d')
+  const layout = { W: 0, H: 0, dpr: 1, cx: 0, floor: 0, k: 1 }
+  let bg = null
+  function resize() {
+    const r = cv.parentElement.getBoundingClientRect()
+    layout.W = r.width; layout.H = r.height; layout.dpr = Math.min(2, devicePixelRatio || 1)
+    cv.width = Math.round(r.width * layout.dpr); cv.height = Math.round(r.height * layout.dpr)
+    layout.cx = r.width / 2; layout.floor = r.height - 36
+    layout.k = Math.min(1, r.width / 430, r.height / 640)
+    bg = canvas(cv.width, cv.height); const g = bg.getContext('2d'); g.scale(layout.dpr, layout.dpr)
+    g.fillStyle = '#02030a'; g.fillRect(0, 0, r.width, r.height)
+    const gr = g.createRadialGradient(r.width / 2, -20, 10, r.width / 2, -20, r.height * 0.8)
+    gr.addColorStop(0, 'rgba(120,200,255,.12)'); gr.addColorStop(.5, 'rgba(60,120,200,.04)'); gr.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = gr; g.fillRect(0, 0, r.width, r.height)
+  }
+  // Punkt auf dem Arm: Knochen-Koordinaten -> Bild. Breite skaliert mit Anspannung und Nachschwingen.
+  function partPoint(part, p, A, B, flexW, jig, sgn) {
+    const dx = B.x - A.x, dy = B.y - A.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len
+    const nx = -uy * sgn, ny = ux * sgn                        // "innen" zeigt zur Mitte (Last), v < 0 innen
+    const side = p.v < 0 ? 'inner' : 'outer'
+    const half = part[side](clamp(p.u, 0, 1)) * hoku.R * flexW * (1 + jig * 0.06 * Math.sin(p.u * 9))
+    const w = p.v * half
+    return { x: A.x + ux * p.u * len + nx * w, y: A.y + uy * p.u * len + ny * w, nx, ny, ux, uy, half }
+  }
+  function volume(g, part, A, B, flexW, jig, sgn, k, ox, oy) {
+    // Muskelstraenge als Reihe runder Verlaeufe entlang des Knochens: heller Kern, dunkler Rand,
+    // dazu ein Lichtstreifen auf der dem Licht zugewandten Seite (oben links)
+    const N = 18
+    for (let i = 0; i <= N; i++) {
+      const u = i / N
+      const pi = partPoint(part, { u, v: -1 }, A, B, flexW, jig, sgn), po = partPoint(part, { u, v: 1 }, A, B, flexW, jig, sgn)
+      const cx = (pi.x + po.x) / 2, cy = (pi.y + po.y) / 2, r = Math.hypot(po.x - pi.x, po.y - pi.y) / 2
+      const X = ox + cx * k, Y = oy + cy * k, Rk = r * k * 1.05
+      const gr = g.createRadialGradient(X - Rk * 0.25, Y - Rk * 0.3, 0, X, Y, Rk)
+      gr.addColorStop(0, 'rgba(170,210,255,.16)'); gr.addColorStop(0.55, 'rgba(130,120,240,.09)'); gr.addColorStop(1, 'rgba(60,40,140,0)')
+      g.fillStyle = gr; g.beginPath(); g.arc(X, Y, Rk, 0, TAU); g.fill()
+    }
+  }
+  function drawArm(g, a, k, ox, oy, L) {
+    const flexW = 0.72 + 0.28 * a.flex + 0.05 * Math.max(0, a.jig)
+    const sgn = a.sgn
+    const ps = Math.max(1.6, 2.4 * k)
+    const parts = [[ARM.upper, UPPER, a.S, a.E], [ARM.fore, FORE, a.E, a.W]]
+    for (const [part, , A, B] of parts) volume(g, part, A, B, flexW, a.jig, sgn, k, ox, oy)
+    for (const [part, pts, A, B] of parts) {
+      for (const p of pts) {
+        const q = partPoint(part, p, A, B, flexW, a.jig, sgn)
+        // Licht von oben links, Rundung aus der Tiefe, Muskeltrennung als dunkle Rille bei v ~ 0 (nur auf dem Oberarm)
+        // Licht von oben links; Rundung aus der Tiefe; Muskeltrennung als dunkle Rille (Oberarm, Bizeps/Trizeps)
+        const nlx = q.nx * p.v, nly = q.ny * p.v                 // Normale an diesem Punkt (nach aussen vom Knochen)
+        const light = clamp(0.55 + 0.45 * (-nlx * 0.55 - nly * 0.83), 0.15, 1)
+        let b = (0.2 + 0.8 * p.depth) * light
+        if (part === ARM.upper && Math.abs(p.v) < 0.1 && p.u > 0.2 && p.u < 0.85) b *= 0.35
+        if (part === ARM.fore && Math.abs(p.v) < 0.07 && p.u > 0.1 && p.u < 0.6) b *= 0.5
+        const spec = p.depth > 0.9 && light > 0.8 ? 0.22 : 0
+        const cx = (q.x - ox) / (hoku.R * 4), cyy = (q.y - oy) / (hoku.R * 4)
+        const sz = ps * p.sz * (0.6 + 0.5 * p.depth)
+        g.globalAlpha = clamp(b * 0.55, 0.04, 0.6)
+        g.drawImage(SPRITES[spriteFor(cx, cyy)], ox + q.x * k - sz, oy + q.y * k - sz, sz * 2, sz * 2)
+        if (spec) { g.globalAlpha = spec; g.drawImage(WHITE, ox + q.x * k - sz * 0.5, oy + q.y * k - sz * 0.5, sz, sz) }
+      }
+    }
+    // Faust: Block am Handgelenk, Knoechel oben
+    const fw = ARM.fist.w * hoku.R * flexW, fl = ARM.fist.len * hoku.R
+    const dx = a.W.x - a.E.x, dy = a.W.y - a.E.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, nx = -uy * sgn, ny = ux * sgn
+    for (const p of FIST) {
+      const u = p.u, v = p.v
+      let x = a.W.x + ux * u * fl + nx * v * fw, y = a.W.y + uy * u * fl + ny * v * fw
+      const sz = ps * p.sz * (0.7 + 0.5 * p.depth)
+      g.globalAlpha = clamp((0.3 + 0.7 * p.depth) * 0.42, 0.05, 0.5)
+      g.drawImage(SPRITES[spriteFor((x - ox) / (hoku.R * 4), (y - oy) / (hoku.R * 4))], ox + x * k - sz, oy + y * k - sz, sz * 2, sz * 2)
+    }
+    for (const kn of KNUCKLES) {
+      const x = a.W.x + ux * kn * fl - nx * fw * 0.95, y = a.W.y + uy * kn * fl - ny * fw * 0.95
+      for (let i = 0; i < 14; i++) { const ang = rndFix(i) * TAU, rr = Math.sqrt(rndFix(i + 7)) * fw * 0.26; const px = x + Math.cos(ang) * rr, py = y + Math.sin(ang) * rr; const sz = ps * 0.8; g.globalAlpha = 0.3; g.drawImage(WHITE, ox + px * k - sz, oy + py * k - sz, sz * 2, sz * 2) }
+    }
+    // Adern bei hoher Last
+    if (veinsOn && L > 0.35) {
+      g.globalAlpha = clamp((L - 0.35) * 1.2, 0, 0.55)
+      for (const vn of VEINS) {
+        const [part, A, B] = vn.part === 'upper' ? [ARM.upper, a.S, a.E] : [ARM.fore, a.E, a.W]
+        const pts = vn.pts.map(([u, v]) => partPoint(part, { u, v: v * 0.92 }, A, B, flexW, a.jig, sgn))
+        for (let i = 0; i < pts.length - 1; i++) {
+          const n = 7
+          for (let j = 0; j < n; j++) {
+            const t = j / n, tt = t * t * (3 - 2 * t)
+            const x = lerp(pts[i].x, pts[i + 1].x, tt) + Math.sin((i + t) * 5 + hoku.trem) * hoku.R * 0.015
+            const y = lerp(pts[i].y, pts[i + 1].y, tt)
+            const sz = ps * 0.55
+            g.drawImage(WHITE, ox + x * k - sz, oy + y * k - sz, sz * 2, sz * 2)
+          }
+        }
+      }
+    }
+    g.globalAlpha = 1
+  }
+  const RF = []; for (let i = 0; i < 64; i++) RF.push(rnd())
+  const rndFix = i => RF[i % RF.length]
+  function drawBody(g, k, ox, oy) {
+    const { rx, ry, cy } = hoku, L = hoku.L
+    const trem = 0.01 + 0.04 * L
+    const cs = Math.cos(hoku.spin), sn = Math.sin(hoku.spin)
+    const ps = Math.max(2.2, 4.6 * k)
+    for (const p of BODY) {
+      const x3 = p.x * cs - p.z * sn, z3 = p.x * sn + p.z * cs, y3 = p.y, f = (z3 + 1) / 2
+      const th = Math.atan2(y3, x3), wob = 1 + trem * Math.sin(3 * th + hoku.trem * 1.4 + p.j * 6)
+      let X = x3 * rx * wob, Y = y3 * ry * wob
+      if (Y > 0) Y *= 1 - 0.35 * L
+      const sz = ps * (0.55 + 0.7 * f)
+      g.globalAlpha = 0.15 + 0.85 * f * f
+      g.drawImage(SPRITES[spriteFor(x3, y3)], ox + X * k - sz, oy + (cy + Y) * k - sz, sz * 2, sz * 2)
+    }
+    g.globalAlpha = 1
+  }
+  function drawBus(g, k, ox, oy) {
+    if (!bus.img) return
+    const w = bus.w * k, h = bus.h * k, x = ox - w / 2, y = oy + bus.y * k - h
+    g.save(); g.globalCompositeOperation = 'source-over'
+    g.filter = 'saturate(0.72) brightness(0.92)'
+    g.drawImage(bus.img, x, y, w, h)
+    g.filter = 'none'
+    g.restore()
+  }
+  let bonesOn = false, veinsOn = true
+  // Kamera: alles im Bild halten (Arme samt Muskelbreite, Last), weich nachgefuehrt
+  function fitCamera() {
+    const R = hoku.R, pad = R * 1.2
+    let minX = -hoku.rx, maxX = hoku.rx, minY = -2 * hoku.ry
+    for (const a of arms) { for (const P of [a.S, a.E, a.W]) { minX = Math.min(minX, P.x - pad); maxX = Math.max(maxX, P.x + pad); minY = Math.min(minY, P.y - pad) } }
+    minY = Math.min(minY, (bus.held ? bus.y : Math.max(bus.y, -layout.H)) - bus.h)
+    const kx = (layout.W - 24) / (maxX - minX), ky = (layout.H - 60) / (-minY + 10)
+    const t = Math.min(1, kx, ky)
+    layout.k += (t - layout.k) * 0.12
+    layout.cx = layout.W / 2 - (minX + maxX) / 2 * layout.k
+  }
+  function draw() {
+    fitCamera()
+    const { W, H, dpr, cx, floor, k } = layout
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(bg, 0, 0)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // Boden
+    ctx.fillStyle = (() => { const gr = ctx.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, 'rgba(110,230,255,0)'); gr.addColorStop(0.5, 'rgba(110,230,255,.22)'); gr.addColorStop(1, 'rgba(110,230,255,0)'); return gr })()
+    ctx.fillRect(0, floor, W, 1.5)
+    const ox = cx, oy = floor
+    // Schein
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'
+    const glow = ctx.createRadialGradient(ox, oy + hoku.cy * k, 0, ox, oy + hoku.cy * k, hoku.R * k * 4)
+    glow.addColorStop(0, 'rgba(110,200,255,.14)'); glow.addColorStop(0.5, 'rgba(150,130,255,.05)'); glow.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H)
+    drawBody(ctx, k, ox, oy)
+    for (const a of arms) drawArm(ctx, a, k, ox, oy, hoku.L)
+    ctx.restore()
+    drawBus(ctx, k, ox, oy)
+    // Faeuste liegen vor dem Bus: Knoechelreihe nochmal obenauf
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'
+    for (const a of arms) {
+      const sgn = a.sgn, flexW = 0.72 + 0.28 * a.flex, fw = ARM.fist.w * hoku.R * flexW, fl = ARM.fist.len * hoku.R
+      const dx = a.W.x - a.E.x, dy = a.W.y - a.E.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, nx = -uy * sgn, ny = ux * sgn
+      for (const p of FIST) { if (p.v > -0.2) continue; const x = a.W.x + ux * p.u * fl + nx * p.v * fw, y = a.W.y + uy * p.u * fl + ny * p.v * fw; const sz = Math.max(1.6, 2.4 * k) * p.sz; ctx.globalAlpha = 0.25; ctx.drawImage(SPRITES[spriteFor(0, 0.3)], ox + x * k - sz, oy + y * k - sz, sz * 2, sz * 2) }
+    }
+    ctx.restore()
+    if (bonesOn) {
+      ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.5
+      for (const a of arms) { ctx.beginPath(); ctx.moveTo(ox + a.S.x * k, oy + a.S.y * k); ctx.lineTo(ox + a.E.x * k, oy + a.E.y * k); ctx.lineTo(ox + a.W.x * k, oy + a.W.y * k); ctx.stroke(); for (const P of [a.S, a.E, a.W]) { ctx.beginPath(); ctx.arc(ox + P.x * k, oy + P.y * k, 4, 0, TAU); ctx.stroke() } }
+    }
+  }
+
+  // ---------- Bedienung ----------
+  $('load').addEventListener('input', e => { hoku.load = +e.target.value / 100; $('loadOut').value = e.target.value + ' %' })
+  $('drop').addEventListener('click', () => { if (!bus.held) return; bus.held = false; bus.vy = 0; bus.y = -layout.H / layout.k - bus.h })
+  $('poke').addEventListener('click', poke)
+  function poke() { for (const a of arms) { a.v1 += a.sgn * (2 + Math.random() * 3); a.v2 -= a.sgn * (3 + Math.random() * 3); a.jigV += 8 } hoku.squashV += 2 }
+  cv.addEventListener('click', poke)
+  $('veins').addEventListener('click', e => { veinsOn = !veinsOn; e.currentTarget.setAttribute('aria-pressed', String(veinsOn)) })
+  $('bones').addEventListener('click', e => { bonesOn = !bonesOn; e.currentTarget.setAttribute('aria-pressed', String(bonesOn)) })
+  window.addEventListener('resize', resize)
+
+  // ---------- Start ----------
+  let last = 0
+  function frame(now) {
+    const dt = Math.min(0.04, (now - last) / 1000 || 0.016); last = now
+    hoku.spin += dt * 0.16
+    const sub = 4
+    for (let i = 0; i < sub; i++) stepPhysics(dt / sub)
+    draw()
+    requestAnimationFrame(frame)
+  }
+  const im = new Image()
+  im.onload = () => { bus.img = im; bus.w = hoku.R * 5.4; bus.h = bus.w * im.height / im.width; start() }
+  im.onerror = () => { bus.w = hoku.R * 5.4; bus.h = bus.w * 0.6; start() }
+  im.src = 'obj-bus.png'
+  let started = false
+  function start() {
+    if (started) return; started = true
+    resize()
+    for (let i = 0; i < 120; i++) stepPhysics(1 / 60)
+    for (const a of arms) { a.v1 = a.v2 = 0; a.flex = hoku.L; a.jig = 0 }
+    requestAnimationFrame(frame)
+  }
+})()
+</script>

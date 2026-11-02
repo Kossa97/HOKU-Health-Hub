@@ -50,6 +50,8 @@ export function seedPeptide(
     }
     /** false: nur der Eintrag, ohne Plan. */
     plan?: boolean
+    /** Tageszeit des Plans; ohne Angabe morgens. */
+    intakeTime?: 'morgens' | 'mittags' | 'abends'
   },
 ): void {
   const item = {
@@ -77,7 +79,7 @@ export function seedPeptide(
     p_plan: {
       id: null, name, dose: 250, unit: 'mcg', method: 'Subkutan', frequency: 'Täglich',
       x_days_interval: null, interval_unit: null, cycle_on_days: null, cycle_off_days: null, schedule_days: [],
-      start_date: options.startDate, end_date: null, intake_time: 'morgens', intake_time_custom: null,
+      start_date: options.startDate, end_date: null, intake_time: options.intakeTime ?? 'morgens', intake_time_custom: null,
       slot_doses: null, slot_days: null, reminder: [], timezone: 'Europe/Berlin',
     },
     p_idempotency_key: `seed-${name}`,

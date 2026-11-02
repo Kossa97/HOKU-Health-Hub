@@ -107,6 +107,11 @@ export interface TrainingSet {
   /** Wie schwer: RPE 6–10 in halben Schritten. */
   rpe?: number | null
   done: boolean
+  /**
+   * Nur im laufenden Training: der Nutzer hat Gewicht/Wdh. selbst getippt.
+   * Ein Vorschlag ueberschreibt solche Saetze nie. Wird beim Speichern entfernt.
+   */
+  touched?: boolean
 }
 
 export interface SessionExercise {
@@ -147,7 +152,18 @@ export interface RoutineExercise {
   restS?: number | null
   notes?: string | null
   /** Vorgabe je Satz; Gewicht/Wdh. sind Startwerte, der Logger nimmt sonst die vom letzten Mal. */
-  sets: Array<Pick<TrainingSet, 'type' | 'weightKg' | 'reps' | 'durationS' | 'distanceM'>>
+  sets: RoutineSet[]
+}
+
+/**
+ * Ein Satz in der Vorlage. `repsMin`/`repsMax` ist der Wdh.-Bereich der
+ * Doppelprogression (z. B. 8–12), `rpe` die Zielanstrengung; `reps` bleibt
+ * als einfacher Startwert aus v1 erhalten.
+ */
+export type RoutineSet = Pick<TrainingSet, 'type' | 'weightKg' | 'reps' | 'durationS' | 'distanceM'> & {
+  repsMin?: number | null
+  repsMax?: number | null
+  rpe?: number | null
 }
 
 export interface TrainingRoutine {
@@ -158,7 +174,32 @@ export interface TrainingRoutine {
   /** Wochentage, an denen die Routine geplant ist: 1 = Montag … 7 = Sonntag. */
   weekdays: number[]
   sortOrder: number
+  /** Ordner = Plan (z. B. „Push/Pull/Beine"), max. 40 Zeichen; null = ohne Plan. */
+  folder: string | null
 }
+
+export const ROUTINE_FOLDER_MAX = 40
+
+/**
+ * Wie ein Plan geplant wird. „weekdays": feste Wochentage an den Workouts
+ * (Standard, auch wenn es keinen Eintrag gibt). „per_week": X-mal pro Woche,
+ * die Workouts der Reihe nach. „interval": alle X Tage ab der letzten Einheit.
+ */
+export type PlanSchedule =
+  | { mode: 'weekdays' }
+  | { mode: 'per_week'; perWeek: number }
+  | { mode: 'interval'; everyDays: number }
+
+/** Zeitplan eines Plans; verknuepft ueber den Namen (`folder` der Workouts). */
+export interface PlanConfig {
+  id: string
+  name: string
+  schedule: PlanSchedule
+  sortOrder: number
+}
+
+export const PER_WEEK_MAX = 7
+export const EVERY_DAYS_MAX = 14
 
 export type WeightUnit = 'kg' | 'lb'
 
@@ -182,6 +223,12 @@ export interface TrainingSettings {
    * Abgleich schaut ohnehin nur 30 Tage zurueck.
    */
   dismissedExternalIds: string[]
+  /** Ton (und Vibration) am Ende der Pause. */
+  restSound: boolean
+  /** Systembenachrichtigung am Ende der Pause, wenn die App im Hintergrund ist. */
+  restNotify: boolean
+  /** Uebungen mit Stern (IDs), in der Reihenfolge des Markierens. */
+  favoriteExercises: string[]
 }
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
@@ -193,4 +240,7 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   healthImport: false,
   glp1Mode: null,
   dismissedExternalIds: [],
+  restSound: true,
+  restNotify: false,
+  favoriteExercises: [],
 }

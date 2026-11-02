@@ -12,6 +12,7 @@ import {
   istLoesungsVial,
   reichweite,
   spritzenEinheitenProMl,
+  spritzeFuer,
   spritzenRechnung,
   stueckRechnung,
   stueckZahl,
@@ -209,6 +210,24 @@ describe('Spritzeneinheiten', () => {
   it('has no answer without liquid or for a blend', () => {
     expect(spritzenRechnung([ingredient()], null, null)).toBeNull()
     expect(spritzenRechnung([ingredient(), ingredient()], 2, null)).toBeNull()
+  })
+})
+
+describe('spritzeFuer', () => {
+  it('takes the liquid from the stock and counts with the syringe type of the substance', () => {
+    const spritze = spritzeFuer({
+      dosage_form: 'vial', ingredients: [ingredient({ amount_value: 50 })], reconstitution_ml: null,
+      syringe_type: '1 mL (40 Einheiten)', inventory: inventory({ reconstitution_ml: 1.5 }),
+    })!
+    // 1 mg aus 50 mg auf 1,5 ml sind 0,03 ml — auf U-40 1,2 E, auf U-100 wären es 3.
+    expect(aufzuziehendeEinheiten(1, 'mg', spritze)).toBe(1.2)
+  })
+
+  it('falls back to the stored liquid and is null for anything but a vial', () => {
+    const ohneBestand = spritzeFuer({ dosage_form: 'vial', ingredients: [ingredient({ amount_value: 50 })], reconstitution_ml: 1.5 })!
+    expect(aufzuziehendeEinheiten(1, 'mg', ohneBestand)).toBe(3)
+    expect(spritzeFuer({ dosage_form: 'capsule', ingredients: [ingredient()], reconstitution_ml: 2 })).toBeNull()
+    expect(spritzeFuer({ dosage_form: 'vial', ingredients: [], reconstitution_ml: 2 })).toBeNull()
   })
 })
 

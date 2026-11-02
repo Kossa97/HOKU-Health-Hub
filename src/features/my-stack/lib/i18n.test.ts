@@ -1298,6 +1298,28 @@ const EXPECTED_MY_STACK_KEYS = [
   'bundle_nothing_open',
   'bundle_confirm_open',
   'bundle_empty_hint',
+  'bundle_undo',
+  'bundle_added',
+  'bundle_created',
+  'bundle_created_hint',
+  'bundle_taken_out',
+  'bundle_dissolved',
+  'bundle_period_only',
+  'bundle_stays_in',
+  'bundle_drop_single',
+  'bundle_not_created',
+  'bundle_discarded',
+  'bundle_card_label',
+  'bundle_naming',
+  'bundle_remove_item',
+  'bundle_discard',
+  'bundle_done',
+  'bundle_edit_short',
+  'day_confirmed_label',
+  'bundle_period_locked',
+  'bundle_merged_hint',
+  'syringe_draw_units',
+  'dose_once',
   'my_stack_scan',
   'my_stack_scan_hint',
   'my_stack_scan_hint_photo',
@@ -1389,6 +1411,7 @@ const EXPECTED_MY_STACK_KEYS = [
   'my_stack_scan_expiry',
   'my_stack_scan_batch',
   'my_stack_scan_pzn',
+  'my_stack_scan_amazon',
 ] as const
 // Die Pruefsumme ueber ALLES ausserhalb des My-Stack-Blocks. Sie soll eine
 // unbeabsichtigte Aenderung dort auffallen lassen — und tut das auch: mit
@@ -1425,25 +1448,25 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'cecb430dc918a643619c262d6663a37de114c49a7f674172855bda6b26ded0a9',
-  en: 'ec5554e4264c4538330bea4c890c77b7a40413d059aa45bd912ecad2585832fd',
+  de: '5befc7efdc1cff3e4a96aa95868b8ecc65c5d347e85a64471039fe7d12d31781',
+  en: '0e4dced3d901c43d136ffad58759c6f6e352ec105ab6c6d38ae294ea88da75d4',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '72bac29557b02f326ad6e96bc473cde09db7ba68f200c07dbd4730f58f0cac28',
-  es: 'aadb1724e27e0c9c2714fbf05b6f84630ff44ce00d8fe89c8019b74ef0ca74a0',
-  fr: 'c14e12c08ed8b3e63f0a93be0aa5d2b7bdf22f24ed0bc35b5a1865dc07f7172a',
-  hi: 'a0a1246eeed927d8e40e8edf092c118bff2f51f590ee7c29e9f76cd3cff0fce0',
-  id: '7b45590d0210922387251065412d22e38620f8ddcc70dee9e94f46f217a4d4ee',
-  it: '9a67a7666ddd97326f5f167f3b326616ff329d4cea04d8d9d76ef71089b4d6f8',
-  ja: 'ad3caab12a6183aeb2885892afcf8d68421db4a9c46d2e1cbe7c999151ab3642',
-  ko: 'b0dc3e006f37676005a779ddae25856fa85d6ac29f8e93c7ec02edb81e25c5b5',
-  pt: 'f334e986564cbed76ee1bea72c3f067eba2fca9f06a43e8f9a0e4bcee951f536',
-  ru: '286a70a756b536145fcab613c10e6d6b2cf7f469e6ff19b721122837115be495',
-  tr: '5730a2c19d472e464be42728d0de123f18d5fc6a29e934aaba6c5881833081fb',
-  zh: '9023d108f073940400b17c7a5ec4c479aa38c83547f2b41c451bf18497fc4291',
+  ar: 'c1816eb597d260a3277317acf0a6dca8ac570cc85a6da4b88fd01cb62dc8c7f6',
+  es: '7790897d8e420182410e4a380d69ee1ef7b1902cd33c8dc2928560f92813fe81',
+  fr: 'a550f7843ea8f0de78ced7c66520444d5a48a24e3adb8090c9b492cf935311c8',
+  hi: '89f31d44b0d5d5d3eab94e0971201b87c348c4134a79ea0465893d0301feab69',
+  id: '7fd0e4f3ff6df1373b528a26922f238cfa3a151b8494718a8319da5faf476fab',
+  it: '47c857bc9d09f153ab62a99446aa7761525dc1728ca1a4837d3daf32968d7da0',
+  ja: 'b031a41234e9d2764c04cdef5cc069f7d79319c5d83a8679949a4f79fa03b413',
+  ko: '044fa10c19d0945e58f48734155211fbb8097bc7ed1ae1ef26d88a712640ce97',
+  pt: '2078c1651d3de78196be1b253d7785214623aadda9cc6cccd18fd0ff54fffec4',
+  ru: 'adb6c23a2036f1ed33bc6315f8ffb5452a52d3027261f4954e7bcce3487fe860',
+  tr: '23c591ce245b447540ee910978df28c3210f48c15b9ba1c47d520aca3dc16f0a',
+  zh: '03dff22839631b41183d83a7bb42b3ee486ea4e7ca5e47b1cc8a18bf7ff53d08',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

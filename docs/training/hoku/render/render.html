@@ -1,0 +1,70 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Render</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/lib/package/build/three.module.js","three/addons/":"/lib/package/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+
+const q = new URLSearchParams(location.search)
+const SIZE = +q.get('size') || 2048
+const model = q.get('model')
+const yaw = (+q.get('yaw') || 0) * Math.PI / 180      // 0 = Seitenansicht, Blick nach links
+const pitch = (+q.get('pitch') || 8) * Math.PI / 180  // Kamera leicht von oben
+const expo = +q.get('exposure') || 1
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+renderer.setSize(SIZE, SIZE, false)
+renderer.setPixelRatio(1)
+renderer.setClearColor(0x000000, 0)
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = expo
+renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+document.body.appendChild(renderer.domElement)
+
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(22, 1, 0.01, 1000)
+
+// Studio: HDRI nur als Reflexion, dazu Hauptlicht oben links und kuehles Fuelllicht
+const pmrem = new THREE.PMREMGenerator(renderer)
+const hdr = await new RGBELoader().loadAsync('/hdr/studio.hdr')
+scene.environment = pmrem.fromEquirectangular(hdr).texture
+scene.environmentIntensity = 0.55
+const key = new THREE.DirectionalLight(0xfff2e6, 2.6); key.position.set(-3, 5, 4); key.castShadow = true
+key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0005; key.shadow.radius = 4
+const fill = new THREE.DirectionalLight(0x6ee6ff, 0.9); fill.position.set(2, -2, 3)
+const rim = new THREE.DirectionalLight(0xaf87ff, 1.2); rim.position.set(3, 3, -4)
+scene.add(key, fill, rim, new THREE.AmbientLight(0x404a60, 0.5))
+
+const draco = new DRACOLoader(); draco.setDecoderPath('/lib/package/examples/jsm/libs/draco/')
+const loader = new GLTFLoader(); loader.setDRACOLoader(draco)
+const gltf = await loader.loadAsync('/models/' + model)
+const obj = gltf.scene
+obj.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true } })
+scene.add(obj)
+
+// Modell einpassen: Mitte auf den Ursprung, Unterkante auf y = 0, laengste Seite = 1
+const box = new THREE.Box3().setFromObject(obj)
+const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3())
+const s = 1 / Math.max(size.x, size.y, size.z)
+obj.position.sub(c).multiplyScalar(s); obj.scale.setScalar(s)
+obj.position.y += size.y * s / 2
+obj.rotation.y = yaw
+const box2 = new THREE.Box3().setFromObject(obj)
+const sz = box2.getSize(new THREE.Vector3()), mid = box2.getCenter(new THREE.Vector3())
+// Kamera: Seitenansicht (schaut entlang +x nach links auf die Seite), Abstand nach Groesse
+const fit = Math.max(sz.x, sz.y) * 1.12
+const dist = fit / 2 / Math.tan(camera.fov * Math.PI / 360)
+camera.position.set(mid.x, mid.y + Math.sin(pitch) * dist, mid.z + Math.cos(pitch) * dist)
+camera.lookAt(mid)
+key.shadow.camera.left = -2; key.shadow.camera.right = 2; key.shadow.camera.top = 2; key.shadow.camera.bottom = -2
+camera.updateProjectionMatrix()
+renderer.render(scene, camera)
+window.__done = { w: sz.x, h: sz.y, d: sz.z, bottom: box2.min.y, mid: [mid.x, mid.y, mid.z] }
+</script>
+</body></html>

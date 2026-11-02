@@ -29,7 +29,14 @@ export const test = base.extend<{ mock: MockSupabase; language: 'de' | 'en'; now
     const mock = new MockSupabase({ now })
     if (!dotFrei) await page.addInitScript(() => { try { localStorage.setItem('tyd.e2e.dot-im-haus', '1') } catch { /* ohne Speicher */ } })
     const pageErrors: string[] = []
-    page.on('pageerror', error => pageErrors.push(error.message))
+    // WebKit meldet Anfragen, die ein Neuladen oder Wegnavigieren abbricht,
+    // als Seitenfehler („… due to access control checks.“). Echte CORS-Fehler
+    // gibt es hier nicht — jede Anfrage beantwortet der Mock —, also ist das
+    // nur der Abbruch und kein Fehler der App.
+    page.on('pageerror', error => {
+      if (/due to access control checks\.?$/.test(error.message)) return
+      pageErrors.push(error.message)
+    })
     await page.clock.install({ time: now })
     await mock.install(page, { language })
     await provide(mock)

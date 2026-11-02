@@ -98,6 +98,8 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     if (!dot || arbeitet.current) return
     dot.setStimmung(sprache.hoert ? 'listen' : 'idle')
   }, [dot, sprache.hoert])
+  // Jedes gehörte Wort treibt seinen Irisring an (Zuhören 4)
+  useEffect(() => { if (dot && sprache.hoert && sprache.zwischen) dot.stimme(0.6) }, [dot, sprache.hoert, sprache.zwischen])
   // Chat zu: nicht weiter zuhören, nichts schicken
   const { abbrechen: zuhoerenAbbrechen } = sprache
   useEffect(() => { if (!offen) zuhoerenAbbrechen() }, [offen, zuhoerenAbbrechen])

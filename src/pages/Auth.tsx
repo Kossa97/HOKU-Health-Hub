@@ -47,10 +47,8 @@ const HINWEIS = 3500
 // Begrüßung (Mockup „Feinschliff"): Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s. Das Winken
 // dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
 const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
-// Augen zuhalten: von hier bis hier steht die Sprechblase (ms, wie im Mockup G1)
-const AUGEN_BLASE = { ab: 850, bis: 3000 }
 // alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
-const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
+const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_'))
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
@@ -92,6 +90,7 @@ export function Auth() {
   // so viele Gesten und Sätze von Hoku laufen gerade; solange kommt kein Hinweis
   const aktiv = useRef(0)
   const hinweisLauf = useRef(0), hinweisAn = useRef(false), zeigtSatz = useRef(false)
+  const wegGesagt = useRef(-1e9), letzteWeg = useRef<DotTextKey | null>(null)
   const pwFokus = useRef(false), wartet = useRef(false), vieleGezeigt = useRef(false)
   const letzterGruss = useRef<DotTextKey | null>(null)
   // Sätze in späten Abläufen: immer in der aktuellen Sprache
@@ -101,10 +100,9 @@ export function Auth() {
   const dot = () => dotStore.api()
   const warte = (ms: number) => new Promise<void>(r => { uhren.current.push(window.setTimeout(r, Math.max(0, ms))) })
   const tipp = () => { void hapticTick() }
-  /** Nach einer Geste: zurück zur Kugel, oder wieder zuhören, solange der Fokus im Passwortfeld liegt. */
+  /** Nach einer Geste: zurück zur Kugel (im Passwortfeld bleibt er weggedreht). */
   function ruheForm() {
-    if (pwFokus.current) dot()?.setStimmung('listen')
-    else dot()?.zeigeForm(null)
+    dot()?.zeigeForm(null)
   }
   const neueStille = () => { stille.current = { ansicht: ansichtRef.current, seit: performance.now(), gezeigt: 0, geklopft: false } }
   /** Eine Geste oder ein Satz von Hoku: solange sie läuft, kommt kein Hinweis; danach beginnt die Stille neu. */
@@ -265,6 +263,9 @@ export function Auth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur solange die Meldung steht
   }, [meldung])
 
+  // Verlässt man die Anmeldung mit dem Fokus im Passwort, dreht er sich trotzdem wieder um
+  useEffect(() => () => dotStore.api()?.wegsehen(false), [])
+
   if (session && !halten) return <Navigate to="/" replace />
 
   /** Alles Laufende abbrechen: Abläufe, Dots Form, Meldung. */
@@ -341,32 +342,30 @@ export function Auth() {
     }, 4000))
   }
 
-  // Fokus: im Passwort hört er zu (Kreis), sonst neigt er sich zum Formular
+  // Fokus: im Passwort dreht er sich weg und sagt es (Nutzer 02.11.2026), sonst neigt er sich zum Formular
   const beiFokus = (pw: boolean) => {
     eingabe()
-    if (laeuft) return
     pwFokus.current = pw
-    dot()?.setStimmung(pw ? 'listen' : 'idle')
+    dot()?.wegsehen(pw)
+    if (laeuft) return
+    dot()?.setStimmung('idle')
     dot()?.setNeigung(pw ? 0 : 10)
+    // die Blase nur beim ersten Wegdrehen, nicht beim Wechsel ins zweite Passwortfeld
+    if (pw && performance.now() - wegGesagt.current > 8000 && dot()?.imBlick()) {
+      wegGesagt.current = performance.now()
+      const keys = ['weg_1', 'weg_2', 'weg_3'] as const
+      const andere = keys.filter(k => k !== letzteWeg.current)
+      const k = andere[Math.floor(Math.random() * andere.length)]
+      letzteWeg.current = k
+      dot()?.sag(dtRef.current(k), 2200)
+    }
   }
   const beiVerlassen = () => {
     pwFokus.current = false
+    // ins nächste Passwortfeld gewechselt: kurz warten, sonst dreht er sich dazwischen um
+    window.setTimeout(() => { if (!pwFokus.current) dot()?.wegsehen(false) }, 120)
     if (laeuft) return
     dot()?.setStimmung('idle'); dot()?.setNeigung(0)
-  }
-
-  /** Passwort eingeblendet, während Hoku zu sehen ist: er hält sich die Augen zu (Mockup G1), dazu die Blase. */
-  function augenZu() {
-    if (laeuft || weniger || !dot()?.imBlick()) return
-    const gen = ++lauf.current
-    void mitHoku(async () => {
-      dot()?.setStimmung('idle'); dot()?.zeigeForm('augen')
-      await warte(AUGEN_BLASE.ab)
-      if (gen !== lauf.current) return
-      dot()?.sag(dtRef.current('login_sehe_nichts'), AUGEN_BLASE.bis - AUGEN_BLASE.ab)
-      await warte((FORM_DAUER.augen ?? 4.2) * 1000 - AUGEN_BLASE.ab)
-      if (gen === lauf.current) ruheForm()
-    })
   }
 
   /** Fehler im Gerät: sofort X und Schütteln, ohne Denken. */
@@ -552,11 +551,11 @@ export function Auth() {
       <button type="button" className="tyd-auth-zurueck" onClick={() => wechsle('start')} aria-label={t('back')}>
         <ChevronLeft size={22} aria-hidden="true" />
       </button>
-      <h2>{titel}</h2>
+      <h2 data-dot-frei>{titel}</h2>
     </div>
   )
   const auge = (
-    <button type="button" className="tyd-auth-auge" onClick={() => { if (!zeigePw) augenZu(); setZeigePw(!zeigePw) }} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
+    <button type="button" className="tyd-auth-auge" onClick={() => setZeigePw(!zeigePw)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
       {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   )
@@ -617,7 +616,7 @@ export function Auth() {
       <div ref={buehne} className="tyd-auth-buehne" aria-hidden="true" data-dot-buehne />
       <p className={weniger ? 'tyd-auth-gruss' : 'tyd-auth-sr'} role="status">{satz ? dt(satz).replace('\n', ' ') : ''}</p>
 
-      <div className="tyd-auth-karte">
+      <div className="tyd-auth-karte" data-dot-kante>
         {ansicht === 'start' && (
           <div key="start" className="tyd-auth-ansicht" data-von={von} data-start>
             <button type="button" className="tyd-auth-knopf" data-art="haupt" onClick={() => wechsle('login')} data-auth-start-login>

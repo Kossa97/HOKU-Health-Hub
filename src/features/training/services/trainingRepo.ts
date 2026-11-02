@@ -1,12 +1,17 @@
 import { supabase } from '../../../lib/supabase'
 import {
   DEFAULT_TRAINING_SETTINGS,
+  ROUTINE_FOLDER_MAX,
+  type PlanConfig,
+  type PlanSchedule,
   type CustomExercise,
   type SessionExercise,
   type TrainingRoutine,
   type TrainingSession,
   type TrainingSettings,
 } from '../types'
+import { normalizeFavorites } from '../lib/favorites'
+import { normalizeSchedule } from '../lib/planSchedule'
 
 /**
  * Lesen und Schreiben des Workout-Trackers in Supabase.
@@ -172,26 +177,49 @@ interface RoutineRow {
   exercises: TrainingRoutine['exercises'] | null
   weekdays: number[] | null
   sort_order: number
+  folder?: string | null
 }
 
-const routineFromRow = (row: RoutineRow): TrainingRoutine => ({
+/**
+ * `folder` kommt mit `supabase-training-v2.sql`; die Migration gehoert VOR das
+ * Frontend-Deploy. Fehlt sie doch, liest `loadRoutines` ohne die Spalte weiter,
+ * `saveRoutine` scheitert (Fehler-Toast in der Oberflaeche).
+ */
+const ROUTINE_COLUMNS = 'id, name, kind, exercises, weekdays, sort_order, folder'
+const ROUTINE_COLUMNS_V1 = 'id, name, kind, exercises, weekdays, sort_order'
+
+/** Postgres 42703: Spalte gibt es nicht. */
+export const isUndefinedColumn = (error: { code?: string } | null | undefined): boolean => error?.code === '42703'
+
+export const routineFromRow = (row: RoutineRow): TrainingRoutine => ({
   id: row.id,
   name: row.name,
   kind: row.kind,
   exercises: Array.isArray(row.exercises) ? row.exercises : [],
   weekdays: row.weekdays ?? [],
   sortOrder: row.sort_order,
+  folder: normalizeFolder(row.folder),
 })
 
+/** Ordnername wie die Datenbank ihn prueft: getrimmt, 1–40 Zeichen, sonst null. */
+export function normalizeFolder(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim().slice(0, ROUTINE_FOLDER_MAX)
+  return trimmed.length > 0 ? trimmed : null
+}
+
 export async function loadRoutines(userId: string): Promise<TrainingRoutine[]> {
-  const { data, error } = await supabase
+  const select = (columns: string) => supabase
     .from('training_routines')
-    .select('id, name, kind, exercises, weekdays, sort_order')
+    .select(columns)
     .eq('user_id', userId)
     .order('sort_order')
     .order('created_at')
+  let { data, error } = await select(ROUTINE_COLUMNS)
+  // Frontend vor der v2-Migration ausgerollt: Routinen trotzdem zeigen, Ordner leer.
+  if (isUndefinedColumn(error)) ({ data, error } = await select(ROUTINE_COLUMNS_V1))
   if (error) throw error
-  return ((data ?? []) as RoutineRow[]).map(routineFromRow)
+  return ((data ?? []) as unknown as RoutineRow[]).map(routineFromRow)
 }
 
 export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine, 'id'> & { id?: string }): Promise<TrainingRoutine> {
@@ -202,12 +230,13 @@ export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine,
     exercises: routine.exercises,
     weekdays: [...new Set(routine.weekdays)].sort(),
     sort_order: routine.sortOrder,
+    folder: normalizeFolder(routine.folder),
     updated_at: new Date().toISOString(),
   }
   const query = routine.id
     ? supabase.from('training_routines').update(row).eq('id', routine.id).eq('user_id', userId)
     : supabase.from('training_routines').insert(row)
-  const { data, error } = await query.select('id, name, kind, exercises, weekdays, sort_order').single()
+  const { data, error } = await query.select(ROUTINE_COLUMNS).single()
   if (error) throw error
   return routineFromRow(data as RoutineRow)
 }
@@ -215,6 +244,91 @@ export async function saveRoutine(userId: string, routine: Omit<TrainingRoutine,
 export async function deleteRoutine(userId: string, id: string) {
   const { error } = await supabase.from('training_routines').delete().eq('id', id).eq('user_id', userId)
   if (error) throw error
+}
+
+// ─── Plaene (Zeitplan je Plan) ──────────────────────────────────────────────
+//
+// `supabase-training-v3.sql`. Ein Plan ist der Name im `folder` der Workouts;
+// die Tabelle haelt nur seinen Zeitplan. Fehlt sie (Migration noch nicht
+// eingespielt), laedt die App ohne Zeitplaene weiter — alles gilt als
+// „Wochentage", wie bisher.
+
+interface PlanRow {
+  id: string
+  name: string
+  schedule: unknown
+  sort_order: number
+}
+
+const PLAN_COLUMNS = 'id, name, schedule, sort_order'
+
+const planFromRow = (row: PlanRow): PlanConfig => ({
+  id: row.id, name: row.name, schedule: normalizeSchedule(row.schedule), sortOrder: row.sort_order,
+})
+
+export async function loadPlans(userId: string): Promise<PlanConfig[]> {
+  const { data, error } = await supabase
+    .from('training_plans')
+    .select(PLAN_COLUMNS)
+    .eq('user_id', userId)
+    .order('sort_order')
+  if (isMissingTable(error)) return []
+  if (error) throw error
+  return ((data ?? []) as PlanRow[]).map(planFromRow)
+}
+
+/** Zeitplan eines Plans setzen (anlegen oder ersetzen, je Name). */
+export async function savePlanSchedule(userId: string, name: string, schedule: PlanSchedule, sortOrder = 0): Promise<PlanConfig> {
+  const planName = normalizeFolder(name)
+  if (!planName) throw new Error('plan name required')
+  const { data, error } = await supabase
+    .from('training_plans')
+    .upsert({ user_id: userId, name: planName, schedule, sort_order: sortOrder, updated_at: new Date().toISOString() }, { onConflict: 'user_id,name' })
+    .select(PLAN_COLUMNS)
+    .single()
+  if (error) throw error
+  return planFromRow(data as PlanRow)
+}
+
+/**
+ * Plan umbenennen: erst die Workouts (ihr `folder`), dann der Zeitplan. Ohne
+ * Zeitplan-Zeile (oder ohne Tabelle) bleibt es beim ersten Schritt.
+ */
+export async function renamePlan(userId: string, from: string, to: string) {
+  const next = normalizeFolder(to)
+  if (!next) throw new Error('plan name required')
+  const { error } = await supabase
+    .from('training_routines')
+    .update({ folder: next, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('folder', from)
+  if (error) throw error
+  const plan = await supabase.from('training_plans').update({ name: next, updated_at: new Date().toISOString() }).eq('user_id', userId).eq('name', from)
+  if (plan.error && !isMissingTable(plan.error)) throw plan.error
+}
+
+/**
+ * Plan loeschen, nie halb: erst alle seine Workouts in EINER Anweisung (alle
+ * oder keins), dann der Zeitplan. Scheitert der zweite Schritt, steht der Plan
+ * leer, aber sichtbar in „Heute" und laesst sich erneut loeschen — es bleibt
+ * nichts Unsichtbares zurueck. Bisherige Trainings bleiben (sie verweisen nur
+ * per `routineId`, ohne Fremdschluessel).
+ */
+export async function deletePlan(userId: string, name: string): Promise<{ workoutsDeleted: boolean; scheduleDeleted: boolean }> {
+  const workouts = await supabase.from('training_routines').delete().eq('user_id', userId).eq('folder', name)
+  if (workouts.error) throw workouts.error
+  try {
+    await deletePlanSchedule(userId, name)
+    return { workoutsDeleted: true, scheduleDeleted: true }
+  } catch {
+    return { workoutsDeleted: true, scheduleDeleted: false }
+  }
+}
+
+/** Zeitplan-Zeile eines Plans entfernen (die Workouts bleiben, wie sie sind). */
+export async function deletePlanSchedule(userId: string, name: string) {
+  const { error } = await supabase.from('training_plans').delete().eq('user_id', userId).eq('name', name)
+  if (error && !isMissingTable(error)) throw error
 }
 
 // ─── Eigene Uebungen ────────────────────────────────────────────────────────
@@ -291,6 +405,10 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
     dismissedExternalIds: Array.isArray(value.dismissedExternalIds)
       ? value.dismissedExternalIds.filter((id): id is string => typeof id === 'string' && id.length <= 200).slice(-MAX_DISMISSED)
       : [],
+    // Fehlt der Schluessel (Einstellungen aus v1), gilt der Standard „an".
+    restSound: value.restSound !== false,
+    restNotify: value.restNotify === true,
+    favoriteExercises: normalizeFavorites(value.favoriteExercises),
   }
 }
 

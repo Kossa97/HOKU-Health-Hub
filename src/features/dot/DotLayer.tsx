@@ -132,6 +132,9 @@ export function DotLayer() {
         tschuess: () => t('tschuess'),
         daBin: () => t('da_bin'),
         gruss: () => {
+          // Gibt die Seite ihm etwas mit (Training: was heute dran ist), grüßt er damit
+          const seitenHinweis = dotStore.stand().hinweis
+          if (seitenHinweis) return `${tagesgruss()} ${seitenHinweis}`
           const k = aktuellerKontext.current()
           if (!k) return tagesgruss()
           const hinweis = heuteHinweis(heuteOffen(k, jetztIn(k)))
@@ -179,6 +182,17 @@ export function DotLayer() {
     window.addEventListener(AUTO_EREIGNIS, beiAuto)
     return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
   }, [dot])
+
+  // Hinweis der Seite: ist er draußen, sagt er ihn – jeden Text nur einmal,
+  // bis die Seite ihn zurücknimmt (verlassen) und wieder setzt
+  const gesagt = useRef<string | null>(null)
+  useEffect(() => {
+    if (!stand.hinweis) { gesagt.current = null; return }
+    if (!dot || stand.hinweis === gesagt.current) return
+    if (stand.modus !== 'home') return
+    gesagt.current = stand.hinweis
+    dot.sag(stand.hinweis, 4500)
+  }, [dot, stand.hinweis, stand.modus])
 
   // Anmeldung: auf ihre Bühne. Sonst verlässt er sie (vorerst still ins Haus;
   // der Flug in die Leiste kommt mit dem Erfolg der Anmeldung)

@@ -12,8 +12,8 @@ export {
 } from '../../lib/tagebuch/diary'
 export type { Symptom, SymptomKind } from '../../lib/tagebuch/diary'
 
-/** Farbe der Art: grün = Wirkung, orange = Nebenwirkung. */
-export const kindColor = (kind: SymptomKind) => kind === 'effect' ? 'var(--lg-good-text)' : 'var(--lg-warn-text)'
+/** Schriftfarbe je Art — dieselben Farben wie im Diagramm der Auswertung, nur heller. */
+export const kindColor = (kind: SymptomKind) => kind === 'effect' ? 'var(--diary-effect-text)' : 'var(--diary-side-effect-text)'
 
 type Translate = (key: string, options?: Record<string, unknown>) => string
 

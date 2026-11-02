@@ -95,8 +95,8 @@ export function ErnaehrungPage() {
   }
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
-  // Dot fliegt beim Öffnen einmal um die Kugel und sagt, was heute offen ist (höchstens alle 2 h)
-  useDotRundflug({ heute: isToday, bereit: !!n.day && isToday, total: n.total, goals: n.goals })
+  // Dot fliegt beim Öffnen um die Kugel; nach 2 h oder beim dritten Öffnen mit Halt und Sätzen
+  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
@@ -110,13 +110,13 @@ export function ErnaehrungPage() {
   /**
    * Ein Eintrag zeigt beim Bearbeiten SEINE Werte (Schnappschuss), nicht die
    * heutigen des Lebensmittels — sonst schriebe eine Mengenänderung alte Tage
-   * still um. Von „Meine Lebensmittel" kommen nur Stern, Portion und Barcode.
+   * still um. Von „Meine Lebensmittel" kommen nur Stern, „korrigiert“, Portion und Barcode.
    */
   const openEntry = (entry: LogEntry) => {
     const snapshot = foodFromEntry(entry)
     if (!snapshot) { setSheet({ kind: 'quick', entry }); return }
     const mine = entry.itemId ? n.myFoods.find(f => f.itemId === entry.itemId) : undefined
-    const food = mine ? { ...snapshot, favorite: mine.favorite, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
+    const food = mine ? { ...snapshot, favorite: mine.favorite, edited: mine.edited, serving: mine.serving, barcode: mine.barcode, recipe: mine.recipe } : snapshot
     setSheet({ kind: 'edit', entry, food })
   }
 

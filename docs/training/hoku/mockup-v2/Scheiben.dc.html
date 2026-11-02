@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Scheiben legen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#030308;-webkit-tap-highlight-color:transparent}
+a{color:#22d3ee}a:hover{color:#67e8f9}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;border:none;background:transparent;color:inherit;padding:0;transition:transform 140ms cubic-bezier(.23,1,.32,1)}
+button:active{transform:scale(0.95)}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+/* Eine Scheibe als Turm-Element: Seitenflaeche + Oberseite, Position per transform */
+.disc{position:absolute;left:50%;bottom:0;transition:transform 240ms cubic-bezier(.77,0,.175,1),opacity 180ms cubic-bezier(.23,1,.32,1);will-change:transform;pointer-events:auto}
+/* Rand (Frontansicht): Gusseisen, zylindrisch schattiert, Zahl erhaben eingearbeitet */
+.disc .side{position:absolute;left:0;right:0;bottom:0;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.55) 0 5%, rgba(0,0,0,.22) 5% 20%, rgba(0,0,0,0) 20% 80%, rgba(0,0,0,.22) 80% 95%, rgba(0,0,0,.55) 95% 100%),
+    linear-gradient(180deg, #a3a6ad 0 10%, #2e3035 10% 26%, #5d6168 26% 60%, #27292e 60% 86%, #141517 86% 100%);
+  box-shadow:0 5px 0 rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center}
+.disc .side::before{content:"";position:absolute;left:0;right:0;top:0;height:10%;border-radius:inherit;background:linear-gradient(90deg, rgba(0,0,0,.4) 0 5%, rgba(0,0,0,0) 20% 80%, rgba(0,0,0,.4) 95% 100%)}
+.disc .top{display:none}
+.disc .ring{display:none}
+.disc .lbl{position:relative;font-family:'Space Grotesk',Inter,sans-serif;font-weight:700;letter-spacing:.14em;color:#b8bcc4;
+  text-shadow:0 1px 0 rgba(0,0,0,.9), 0 -1px 0 rgba(255,255,255,.25);white-space:nowrap}
+.disc .lbl small{font-size:.62em;letter-spacing:.2em;margin-left:.35em;color:#9094a0}
+/* Verschluss (Sternmutter) oben auf dem Turm */
+.lock{position:absolute;left:50%;width:34px;height:14px;transform:translateX(-50%);z-index:40;border-radius:4px;background:linear-gradient(180deg,#e8ebf1 0 30%,#8f97a8 30% 70%,#4c5363 70% 100%);box-shadow:0 3px 0 rgba(0,0,0,.4);transition:top 240ms cubic-bezier(.77,0,.175,1)}
+.lock::before,.lock::after{content:"";position:absolute;top:2px;bottom:2px;width:6px;background:linear-gradient(180deg,#c9cfdb,#6b7383);border-radius:2px}
+.lock::before{left:-5px}.lock::after{right:-5px}
+.disc.drop{animation:discDrop 460ms cubic-bezier(.45,0,1,.55) both}
+.disc.leave{opacity:0;transform:translate(-50%,-80px) !important}
+@keyframes discDrop{0%{transform:translate(-50%,-640px)}70%{transform:translate(-50%,0)}80%{transform:translate(-50%,-6px) scaleY(.98)}88%{transform:translate(-50%,0) scaleY(1.03)}100%{transform:translate(-50%,0)}}
+.stack.thud{animation:thud 180ms cubic-bezier(.23,1,.32,1)}
+@keyframes thud{0%{transform:translateY(3px)}100%{transform:translateY(0)}}
+/* Kreide: Partikel fliegen flach nach aussen, Wolke bleibt kurz */
+.dust{position:absolute;border-radius:50%;background:#efe9dd;opacity:0;pointer-events:none;animation:puff 620ms cubic-bezier(.23,1,.32,1) forwards}
+@keyframes puff{0%{opacity:.95;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.8)}}
+.cloud{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(239,233,221,.5),rgba(239,233,221,0));opacity:0;pointer-events:none;animation:cloud 640ms cubic-bezier(.23,1,.32,1) forwards}
+@keyframes cloud{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
+.pick{width:48px;height:34px;border-radius:8px;position:relative;display:inline-flex;align-items:center;justify-content:center;font-family:'Space Grotesk',Inter,sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;color:#c3c7cf;text-shadow:0 1px 0 rgba(0,0,0,.9);background:linear-gradient(90deg, rgba(0,0,0,.5) 0 8%, rgba(0,0,0,0) 22% 78%, rgba(0,0,0,.5) 92% 100%), linear-gradient(180deg, #a3a6ad 0 12%, #2e3035 12% 28%, #5d6168 28% 62%, #27292e 62% 88%, #141517 88% 100%);box-shadow:0 4px 0 rgba(0,0,0,.45)}
+.pick span{position:relative}
+.chip{min-height:32px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#c7cfe2;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(6px)}
+.chip.on{border-color:rgba(249,115,22,.6);background:rgba(249,115,22,.16);color:#fed7aa}
+@media (prefers-reduced-motion: reduce){.disc{transition:opacity 180ms ease}.disc.drop{animation:discFade 180ms ease both}.dust,.cloud{display:none}.stack.thud{animation:none}}
+@keyframes discFade{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #030308; color: #eaeefc; font-family: Inter, system-ui, sans-serif">
+
+<!-- Buehne: Lichtkegel von oben, Boden, Vignette -->
+<div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(60% 45% at 50% 0%, rgba(255,243,224,.22) 0%, rgba(255,243,224,.06) 45%, rgba(0,0,0,0) 75%)"></div>
+<div aria-hidden="true" style="position: absolute; left: 50%; top: -40px; width: 260px; height: 760px; transform: translateX(-50%); background: linear-gradient(180deg, rgba(255,240,214,.10) 0%, rgba(255,240,214,.03) 60%, rgba(255,240,214,0) 100%); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%)"></div>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 640px; bottom: 0; background: linear-gradient(180deg, #0c0d17 0%, #05060c 100%)"></div>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 639px; height: 1px; background: linear-gradient(90deg, rgba(255,236,205,0), rgba(255,236,205,.25) 50%, rgba(255,236,205,0))"></div>
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 590px; width: 440px; height: 110px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(255,236,205,.16), rgba(255,236,205,0))"></div>
+<div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.65) 100%)"></div>
+
+<!-- Kopf -->
+<div style="position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 6px; padding: 14px 12px 0 6px">
+<a href="Main.dc.html" aria-label="Zurück" style="width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; color: #8e99b5">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+</a>
+<div style="flex: 1; min-width: 0; font-size: 13px; color: #8e99b5; font-weight: 600">Bankdrücken · Satz 2</div>
+<button type="button" onClick="{{takeOver}}" class="chip on" style="min-height: 38px; font-size: 13px; padding: 0 14px">Übernehmen</button>
+</div>
+
+<!-- Zahl -->
+<div style="position: absolute; left: 0; right: 0; top: 66px; text-align: center">
+<div style="display: inline-flex; align-items: baseline; gap: 6px">
+<span class="num" style="font-family: 'Space Grotesk', sans-serif; font-size: 64px; font-weight: 700; line-height: 1; color: #fff7ed; text-shadow: 0 0 40px rgba(255,200,140,.25)">{{totalText}}</span>
+<span style="font-size: 18px; font-weight: 700; color: #8e99b5">kg</span>
+</div>
+<div style="font-size: 12px; color: #6f7a94; margin-top: 2px">Stange {{barKg}} kg · je Seite {{sideText}} kg</div>
+</div>
+
+<!-- Stange, senkrecht, mittig -->
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 150px; width: 16px; height: {{barH}}px; transform: translateX(-50%); z-index: 6; border-radius: 3px 3px 0 0; background: repeating-linear-gradient(-55deg, rgba(0,0,0,.22) 0 1px, rgba(0,0,0,0) 1px 3px), linear-gradient(90deg, #3a3f4d 0%, #c9d0dd 32%, #f3f5f9 42%, #a2aabb 60%, #3c4150 100%); box-shadow: 0 0 18px rgba(0,0,0,.6)"></div>
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 632px; width: 26px; height: 8px; transform: translateX(-50%); z-index: 6; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, #4b5162, #c9d0dd 50%, #4b5162)"></div>
+<sc-if value="{{hasPlates}}" hint-placeholder-val="{{ true }}"><div aria-hidden="true" class="lock" style="top: {{lockY}}px"></div></sc-if>
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 146px; width: 20px; height: 6px; transform: translateX(-50%); z-index: 7; border-radius: 2px; background: linear-gradient(90deg, #6b7389, #ffffff 50%, #6b7389)"></div>
+
+<!-- Turm: Scheiben liegen flach aufeinander, Frontansicht, Boden bei y = 640 -->
+<div class="stack {{thud}}" style="position: absolute; left: 0; right: 0; top: 0; height: 640px; pointer-events: none; z-index: 20">
+<sc-for list="{{plates}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.remove}}" class="disc {{p.cls}}" aria-label="{{p.aria}}" style="width: {{p.w}}px; height: {{p.h}}px; transform: translate(-50%, {{p.ty}}px); z-index: {{p.z}}; border-radius: {{p.r}}px">
+<span class="top" style="height: {{p.e}}px"></span>
+<span class="side" style="height: {{p.t}}px; border-radius: {{p.r}}px"><span class="lbl" style="font-size: {{p.fs}}px">{{p.label}}<small>KG</small></span></span>
+</button>
+</sc-for>
+</div>
+
+
+<!-- Staub -->
+<sc-for list="{{dust}}" as="d" hint-placeholder-count="0">
+<span aria-hidden="true" class="dust" style="left: {{d.x}}px; top: {{d.y}}px; width: {{d.s}}px; height: {{d.s}}px; --dx: {{d.dx}}px; --dy: {{d.dy}}px; animation-delay: {{d.delay}}ms; z-index: 70"></span>
+</sc-for>
+<sc-for list="{{clouds}}" as="c" hint-placeholder-count="0">
+<span aria-hidden="true" class="cloud" style="left: {{c.x}}px; top: {{c.y}}px; width: {{c.w}}px; height: {{c.h}}px; z-index: 69"></span>
+</sc-for>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 40px; right: 40px; top: 400px; text-align: center; font-size: 13px; color: #6f7a94; line-height: 1.5">Tippe unten auf eine Scheibe.<br>Sie fällt auf den Boden, die schwerste liegt unten.</div>
+</sc-if>
+
+<sc-if value="{{hint}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{stackTarget}}" class="chip" style="position: absolute; left: 50%; top: 660px; transform: translateX(-50%); min-height: 34px; color: #fed7aa; border-color: rgba(253,186,116,.35)">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>
+{{hint}}
+</button>
+</sc-if>
+
+<!-- Auswahl unten -->
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 18px; background: linear-gradient(180deg, rgba(3,3,8,0) 0%, rgba(3,3,8,.9) 30%)">
+<div style="display: flex; justify-content: space-between; gap: 4px; padding: 0 2px 2px">
+<sc-for list="{{picker}}" as="k" hint-placeholder-count="7">
+<button type="button" onClick="{{k.add}}" class="pick" aria-label="{{k.aria}}"><span>{{k.label}}</span></button>
+</sc-for>
+</div>
+<div style="display: flex; gap: 6px; align-items: center">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+<button type="button" onClick="{{b.pick}}" class="chip {{b.cls}}">{{b.label}}</button>
+</sc-for>
+<span style="flex: 1"></span>
+<button type="button" onClick="{{undo}}" class="chip" aria-label="Letzte Scheibe zurück">↶</button>
+<button type="button" onClick="{{clear}}" class="chip">Leeren</button>
+<button type="button" onClick="{{toggleSound}}" class="chip {{soundCls}}" aria-pressed="{{sound}}">Ton</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+// Scheiben: Gewicht, Durchmesser (px), Dicke (px), Farben (Oberseite / Seite)
+// Gusseisen: Durchmesser und Dicke in px (Frontansicht, Zahl im Rand)
+const KINDS = [
+  { kg: 20, d: 300, t: 40, fs: 17, label: '20' },
+  { kg: 15, d: 270, t: 36, fs: 16, label: '15' },
+  { kg: 10, d: 238, t: 32, fs: 15, label: '10' },
+  { kg: 7.5, d: 206, t: 28, fs: 13, label: '7,5' },
+  { kg: 5, d: 176, t: 26, fs: 12, label: '5' },
+  { kg: 2.5, d: 146, t: 22, fs: 11, label: '2,5' },
+  { kg: 1.25, d: 118, t: 20, fs: 10, label: '1,25' },
+];
+const byKg = Object.fromEntries(KINDS.map(k => [k.kg, k]));
+const fmt = n => String(Math.round(n * 100) / 100).replace('.', ',');
+const FLOOR = 640;      // y des Bodens im Artboard
+const ELLIPSE = 0;      // reine Frontansicht wie die Vorlage
+let seq = 1;
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { plates: [], barKg: 20, dust: [], clouds: [], leaving: null, sound: false, shown: 20, target: 82.5, thud: false };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { const id = setTimeout(fn, ms); this.timers.push(id); return id; }
+  sideKg(plates) { return plates.reduce((s, p) => s + p.kg, 0); }
+  total(plates, barKg) { return (barKg ?? this.state.barKg) + 2 * this.sideKg(plates ?? this.state.plates); }
+
+  // Turm: schwerste unten. ty = Verschiebung nach oben (negativ) in px
+  layout(plates) {
+    const sorted = [...plates].sort((a, b) => b.kg - a.kg || a.id - b.id);
+    let y = 0;
+    return sorted.map((p, i) => { const k = byKg[p.kg]; const e = Math.round(k.d * ELLIPSE); const out = { ...p, ty: -y, w: k.d, t: k.t, e, h: e + k.t, z: 30 - i, label: k.label, fs: k.fs, r: Math.round(k.t * 0.4) }; y += k.t; return out; });
+  }
+  topY(plates) { const laid = this.layout(plates); if (!laid.length) return FLOOR; const top = laid[laid.length - 1]; return FLOOR + top.ty - top.t - top.e / 2; }
+
+  tweenTotal(to) {
+    const from = this.state.shown; const t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / 260); const e = 1 - Math.pow(1 - k, 3); this.setState({ shown: from + (to - from) * e }); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+
+  // Aufprall: Kreide fliegt flach nach aussen, zwei Wolken, Turm sackt kurz
+  puff(y, d) {
+    const n = 16 + Math.floor(Math.random() * 8), cx = 195;
+    const dust = Array.from({ length: n }, () => { const a = Math.random() * Math.PI * 2, r = d / 2 + Math.random() * 8; const spread = 30 + Math.random() * 70;
+      return { id: seq++, x: cx + Math.cos(a) * r, y: y + (Math.random() * 4 - 2), dx: Math.cos(a) * spread, dy: -4 - Math.random() * 18, delay: Math.floor(Math.random() * 50), s: 3 + Math.random() * 5 }; });
+    const clouds = [{ id: seq++, x: cx, y: y + 2, w: d + 60, h: 26 }, { id: seq++, x: cx - d * 0.35, y: y, w: 70, h: 20 }, { id: seq++, x: cx + d * 0.35, y: y, w: 70, h: 20 }];
+    this.setState({ dust: [...this.state.dust, ...dust], clouds: [...this.state.clouds, ...clouds], thud: true });
+    const ids = new Set([...dust, ...clouds].map(x => x.id));
+    this.later(() => this.setState({ thud: false }), 200);
+    this.later(() => this.setState({ dust: this.state.dust.filter(x => !ids.has(x.id)), clouds: this.state.clouds.filter(x => !ids.has(x.id)) }), 750);
+    try { navigator.vibrate && navigator.vibrate(14); } catch (e) {}
+    if (this.state.sound) this.chalk();
+  }
+  chalk() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
+      this.ctx = this.ctx || new Ctx();
+      const ctx = this.ctx, len = Math.floor(ctx.sampleRate * 0.14), buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
+      const g = ctx.createGain(); g.gain.value = 0.4;
+      src.connect(lp).connect(g).connect(ctx.destination); src.start();
+    } catch (e) {}
+  }
+  add(kg) {
+    const id = seq++;
+    const plates = [...this.state.plates, { id, kg, drop: true }];
+    this.setState({ plates });
+    this.tweenTotal(this.total(plates));
+    const laid = this.layout(plates); const me = laid.find(p => p.id === id);
+    // Landung bei 70 % der 460 ms Fallzeit
+    this.later(() => this.puff(FLOOR + me.ty, me.w), 320);
+    this.later(() => this.setState({ plates: this.state.plates.map(p => p.id === id ? { ...p, drop: false } : p) }), 500);
+  }
+  remove(id) {
+    this.setState({ leaving: id });
+    this.later(() => { const plates = this.state.plates.filter(p => p.id !== id); this.setState({ plates, leaving: null }); this.tweenTotal(this.total(plates)); }, 180);
+  }
+  stackTarget() {
+    let rest = (this.state.target - this.state.barKg) / 2 - this.sideKg(this.state.plates); const seqKg = [];
+    for (const k of KINDS) while (rest >= k.kg - 1e-9) { seqKg.push(k.kg); rest -= k.kg; }
+    seqKg.forEach((kg, i) => this.later(() => this.add(kg), i * 300));
+  }
+
+  renderVals() {
+    const st = this.state;
+    const laid = this.layout(st.plates);
+    const plates = laid.map(p => ({ ...p, cls: (p.drop ? 'drop' : '') + (st.leaving === p.id ? ' leave' : ''), aria: p.label + ' kg abnehmen', remove: () => this.remove(p.id) }));
+    const topY = this.topY(st.plates);
+    const total = this.total();
+    return {
+      plates, dust: st.dust, clouds: st.clouds, empty: st.plates.length === 0, thud: st.thud ? 'thud' : '',
+      barH: Math.max(40, Math.round(FLOOR - 150)), hasPlates: st.plates.length > 0, lockY: Math.round(topY - 16),
+      totalText: fmt(st.shown), sideText: fmt(this.sideKg(st.plates)), barKg: fmt(st.barKg),
+      hint: Math.abs(total - st.target) > 0.01 ? 'Vorschlag 82,5 kg auflegen' : null, stackTarget: () => this.stackTarget(),
+      picker: KINDS.map(k => ({ label: k.label, aria: k.label + ' kg auflegen', add: () => this.add(k.kg) })),
+      bars: [[20, 'Stange 20'], [15, '15'], [10, '10']].map(([kg, l]) => ({ label: l, cls: st.barKg === kg ? 'on' : '', pick: () => { this.setState({ barKg: kg }); this.tweenTotal(this.total(st.plates, kg)); } })),
+      undo: () => { const last = st.plates[st.plates.length - 1]; if (last) this.remove(last.id); },
+      clear: () => { this.setState({ plates: [] }); this.tweenTotal(st.barKg); },
+      sound: st.sound, soundCls: st.sound ? 'on' : '', toggleSound: () => this.setState({ sound: !st.sound }),
+      takeOver: () => { try { navigator.vibrate && navigator.vibrate([10, 30, 10]); } catch (e) {} },
+    };
+  }
+}
+</script>
+</body>
+</html>

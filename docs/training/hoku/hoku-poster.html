@@ -1,0 +1,459 @@
+<title>Hoku trägt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: ein Poster (4:5) fuellt die Buehne, darunter Regler und Varianten.
+   Farben aus der App: Tiefschwarz, Hokus Cyan/Violett/Pink, Orange nur fuer die Steigerung. */
+:root{
+  --bg:#02030a;
+  --ink:#eef1fa;
+  --dim:#8e99b5;
+  --faint:#5d6680;
+  --cyan:#6ee6ff;
+  --cyan-soft:rgba(110,230,255,.12);
+  --up-2:#fdba74;
+  --line:rgba(160,200,255,.12);
+  --chip:rgba(255,255,255,.05);
+  --font-display:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+.app{position:relative;height:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:10px max(14px, env(safe-area-inset-bottom, 0px));gap:10px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.eyebrow{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+.tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);background:var(--cyan-soft);border:1px solid rgba(110,230,255,.35);border-radius:999px;padding:2px 8px}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.stage.checker{background:repeating-conic-gradient(#1a1d29 0 25%, #10121b 0 50%) 0 0/20px 20px;border-radius:14px}
+#poster{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.ctl{display:flex;flex-direction:column;gap:8px}
+.slider{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--dim)}
+.slider output{min-width:64px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+input[type=range]{flex:1;accent-color:var(--cyan)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,label.chip{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;border:none;background:transparent;color:inherit;padding:0;transition:transform 140ms cubic-bezier(.23,1,.32,1)}
+button:active{transform:scale(.96)}
+button:focus-visible,label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
+.chip{min-height:36px;padding:0 13px;border-radius:999px;background:var(--chip);border:1px solid var(--line);color:#c7d6f0;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:rgba(110,230,255,.55);background:var(--cyan-soft);color:var(--cyan)}
+.cta{flex:1;min-height:44px;border-radius:14px;background:var(--cyan);color:#001018;font-size:14px;font-weight:800;box-shadow:0 0 24px rgba(110,230,255,.2)}
+.cta[disabled]{opacity:.45;cursor:default}
+.hint{margin:0;font-size:12px;color:var(--faint);min-height:1.4em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+
+<div class="app" id="app">
+  <div class="head"><span class="eyebrow">Push A · Abschluss</span><span class="tag">Beispiel</span></div>
+  <div class="stage" id="stageBox"><canvas id="poster" width="1080" height="1350" role="img" aria-label="Poster: Hoku, die Punktkugel, trägt einen Stapel aus Gegenständen, die zusammen das Trainingsvolumen wiegen."></canvas></div>
+  <div class="ctl">
+    <label class="slider">Volumen<input type="range" id="kgRange" min="250" max="30000" step="25" value="7615"><output id="kgOut" for="kgRange">7.615 kg</output></label>
+    <div class="row" role="group" aria-label="Variante">
+      <button type="button" class="chip" data-mode="card" aria-pressed="true">Karte</button>
+      <button type="button" class="chip" data-mode="sticker" aria-pressed="false">Sticker</button>
+      <button type="button" class="chip" data-mode="photo" aria-pressed="false">Auf Foto</button>
+      <label class="chip" id="photoPick" hidden>Foto wählen<input type="file" accept="image/*" id="photoInput" class="vh"></label>
+    </div>
+    <div class="row"><button type="button" class="cta" id="saveBtn">Bild speichern</button></div>
+    <p class="hint" id="hint">Zieh am Regler: Die Gegenstände ändern sich mit dem Gewicht.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id)
+  const TAU = Math.PI * 2
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+  const deNum = n => n.toLocaleString('de-DE')
+  function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c }
+  function rgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})` }
+  function spacing(g, px) { try { g.letterSpacing = px + 'px' } catch (_) {} }
+
+  const WORKOUT = { name: 'Push A', last: 6975, exercises: 5, sets: 16 }
+  const today = new Date()
+  const dateText = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const isoDate = today.toISOString().slice(0, 10)
+
+  // ---------- Gegenstaende: Gewicht, Name, Zeichnung ----------
+  // Jede Zeichnung arbeitet in 100 Einheiten Breite; Hoehe H, Unterkante bei y = H.
+  // `outline` ist die Silhouette (Glas), `details` zeichnet Linien und Lichter darauf.
+  const rr = (p, x, y, w, h, r) => { r = Math.min(r, w / 2, h / 2); p.moveTo(x + r, y); p.arcTo(x + w, y, x + w, y + h, r); p.arcTo(x + w, y + h, x, y + h, r); p.arcTo(x, y + h, x, y, r); p.arcTo(x, y, x + w, y, r); p.closePath() }
+  const circ = (p, x, y, r) => { p.moveTo(x + r, y); p.arc(x, y, r, 0, TAU) }
+  const ell = (p, x, y, rx, ry, rot) => { p.moveTo(x + rx * Math.cos(rot || 0), y + rx * Math.sin(rot || 0)); p.ellipse(x, y, rx, ry, rot || 0, 0, TAU) }
+
+  const OBJECTS = {
+    bus: { kg: 12000, name: 'Linienbus', plural: 'Linienbusse', H: 64.3, aspect: 1.56, img: 'obj-bus.png', credit: 'HCR2 Bus von oakar258, CC BY',
+      outline: p => { rr(p, 2, 2, 96, 30, 5) },
+      details: (g, S) => {
+        S.panel(p => { for (let i = 0; i < 6; i++) rr(p, 8 + i * 12.5, 7, 10, 10, 1.5) })
+        S.panel(p => { rr(p, 85, 7, 9, 23, 1.5) })
+        S.line(p => { p.moveTo(2, 19); p.lineTo(84, 19) })
+        S.wheel(18, 32, 5.5); S.wheel(72, 32, 5.5)
+        S.light(p => { circ(p, 6, 26, 1.6); circ(p, 94, 26, 1.6) })
+      } },
+    elephant: { kg: 6000, name: 'Elefant', plural: 'Elefanten', H: 72, aspect: 1.39,
+      outline: p => {
+        // Beine, Koerper, Kopf, Ohr, Ruessel, Schwanz (Seitenansicht, Blick nach links)
+        rr(p, 29, 50, 11, 22, 4); rr(p, 43, 52, 10, 20, 4); rr(p, 62, 50, 11, 22, 4); rr(p, 76, 52, 10, 20, 4)
+        ell(p, 56, 34, 36, 24)
+        circ(p, 21, 30, 17)
+        p.moveTo(13, 36); p.bezierCurveTo(2, 44, -1, 56, 5, 68); p.bezierCurveTo(7, 71, 11, 70, 11, 67); p.bezierCurveTo(7, 58, 9, 48, 21, 42); p.closePath()
+        p.moveTo(90, 26); p.quadraticCurveTo(97, 36, 93, 48); p.lineTo(91, 47); p.quadraticCurveTo(94, 37, 88, 29); p.closePath()
+      },
+      details: (g, S) => {
+        S.panel(p => { ell(p, 27, 33, 10, 14, 0.12) })
+        S.light(p => { circ(p, 15, 26, 1.4) })
+        S.ivory(p => { p.moveTo(9, 41); p.quadraticCurveTo(4, 48, 7, 53); p.lineTo(9, 52); p.quadraticCurveTo(7, 48, 11, 43); p.closePath() })
+        S.line(p => { p.moveTo(29, 50); p.lineTo(29, 56); p.moveTo(62, 50); p.lineTo(62, 56) })
+      } },
+    car: { kg: 1000, name: 'Kleinwagen', plural: 'Kleinwagen', H: 40, aspect: 2.5,
+      outline: p => {
+        p.moveTo(4, 30); p.lineTo(4, 22); p.quadraticCurveTo(6, 16, 14, 15); p.lineTo(26, 14); p.lineTo(36, 6); p.quadraticCurveTo(40, 4, 48, 4); p.lineTo(70, 4)
+        p.quadraticCurveTo(80, 4, 86, 12); p.lineTo(94, 16); p.quadraticCurveTo(98, 18, 98, 24); p.lineTo(98, 30); p.quadraticCurveTo(98, 33, 94, 33); p.lineTo(8, 33); p.quadraticCurveTo(4, 33, 4, 30); p.closePath()
+      },
+      details: (g, S) => {
+        S.panel(p => { p.moveTo(31, 14); p.lineTo(38, 7.5); p.quadraticCurveTo(41, 6, 47, 6); p.lineTo(58, 6); p.lineTo(58, 14); p.closePath(); p.moveTo(62, 6); p.lineTo(70, 6); p.quadraticCurveTo(77, 6, 82, 13); p.lineTo(62, 14); p.closePath() })
+        S.line(p => { p.moveTo(60, 14); p.lineTo(60, 30); p.moveTo(26, 14); p.lineTo(26, 30) })
+        S.wheel(22, 32, 7); S.wheel(78, 32, 7)
+        S.light(p => { rr(p, 5, 19, 5, 3, 1); rr(p, 92, 19, 4.5, 3, 1) })
+      } },
+    piano: { kg: 500, name: 'Konzertflügel', plural: 'Konzertflügel', H: 62, aspect: 1.6,
+      outline: p => {
+        rr(p, 8, 26, 88, 22, 4)
+        p.moveTo(12, 25); p.lineTo(86, -6); p.lineTo(90, -1); p.lineTo(18, 29); p.closePath()
+        rr(p, 14, 47, 6, 14, 2); rr(p, 50, 47, 6, 14, 2); rr(p, 84, 47, 6, 14, 2)
+        rr(p, 0, 32, 9, 7, 1.5)
+      },
+      details: (g, S) => {
+        S.line(p => { p.moveTo(72, 26); p.lineTo(80, -2); p.moveTo(8, 44); p.lineTo(96, 44) })
+        S.ivory(p => { for (let i = 0; i < 4; i++) rr(p, 1 + i * 2, 33, 1.2, 5, 0.3) })
+        S.light(p => { rr(p, 20, 29, 50, 1.4, 0.7) })
+      } },
+    moto: { kg: 200, name: 'Motorrad', plural: 'Motorräder', H: 52, aspect: 1.9,
+      outline: p => {
+        circ(p, 21, 40, 11); circ(p, 79, 40, 11)
+        p.moveTo(24, 36); p.lineTo(40, 22); p.lineTo(66, 22); p.lineTo(78, 36); p.lineTo(70, 38); p.lineTo(58, 30); p.lineTo(44, 30); p.lineTo(30, 40); p.closePath()
+        ell(p, 50, 24, 14, 7)
+        p.moveTo(58, 21); p.lineTo(84, 23); p.lineTo(86, 26); p.lineTo(62, 28); p.closePath()
+        p.moveTo(31, 14); p.lineTo(35, 12); p.lineTo(29, 34); p.lineTo(25, 34); p.closePath()
+        p.moveTo(22, 14); p.lineTo(32, 12); p.lineTo(32, 15); p.lineTo(22, 17); p.closePath()
+        rr(p, 44, 28, 16, 11, 2)
+        p.moveTo(46, 37); p.lineTo(88, 33); p.lineTo(88, 36); p.lineTo(46, 40); p.closePath()
+      },
+      details: (g, S) => {
+        S.wheel(21, 40, 11); S.wheel(79, 40, 11)
+        S.line(p => { p.moveTo(46, 31); p.lineTo(58, 31); p.moveTo(46, 34); p.lineTo(58, 34) })
+        S.light(p => { circ(p, 24, 20, 2) })
+      } },
+    washer: { kg: 70, name: 'Waschmaschine', plural: 'Waschmaschinen', H: 100, aspect: 1,
+      outline: p => { rr(p, 4, 2, 92, 96, 6) },
+      details: (g, S) => {
+        S.panel(p => { rr(p, 10, 8, 80, 14, 2) })
+        S.light(p => { circ(p, 80, 15, 4); rr(p, 16, 13, 18, 3, 1); rr(p, 38, 13, 10, 3, 1) })
+        S.ring(50, 58, 30, 3); S.panel(p => { circ(p, 50, 58, 22) })
+        S.line(p => { p.moveTo(4, 28); p.lineTo(96, 28) })
+      } },
+    plate: { kg: 20, name: 'Hantelscheibe', plural: 'Hantelscheiben', H: 14, aspect: 7,
+      outline: p => { rr(p, 0, 0, 100, 14, 5) },
+      details: (g, S, kg) => {
+        S.line(p => { p.moveTo(10, 4); p.lineTo(90, 4) })
+        S.text(deNum(kg) + ' KG', 50, 9.6, 6)
+      } },
+  }
+  const PLATES = [20, 10, 5, 2.5, 1.25]
+  const BIG = ['bus', 'elephant', 'car', 'piano', 'moto', 'washer']
+
+  // Zerlegung: grosse Dinge zuerst, der Rest als Scheiben (hoechstens 6, der Rest verfaellt)
+  function decompose(kg) {
+    const out = []
+    let rest = kg
+    for (const key of BIG) { const o = OBJECTS[key]; while (rest >= o.kg - 1e-9) { out.push({ key, kg: o.kg }); rest -= o.kg } }
+    let n = 0
+    for (const p of PLATES) while (rest >= p - 1e-9 && n < 6) { out.push({ key: 'plate', kg: p }); rest -= p; n++ }
+    return out
+  }
+  // Groesse: Kantenlaenge ~ Kubikwurzel des Gewichts (alles gleich dicht gedacht)
+  const widthFor = (key, kg) => { const o = OBJECTS[key]; const vol = Math.cbrt(kg); return key === 'plate' ? vol * 19 : vol * 26 * Math.sqrt(o.aspect) }
+
+  // ---------- Hoku ----------
+  const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200]
+  const PUNKTE = 460, R0 = 118
+  const mischen = (a, b, m) => a.map((v, i) => v + (b[i] - v) * m)
+  const SPRITES = []
+  function buildSprites() {
+    for (let i = 0; i < 10; i++) {
+      const c = i < 7 ? mischen(CYAN, VIOLET, i / 6) : mischen(mischen(CYAN, VIOLET, 0.55), PINK, (i - 6) / 3)
+      const s = canvas(32, 32), g = s.getContext('2d'), col = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`
+      const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16)
+      gr.addColorStop(0, col); gr.addColorStop(0.55, col); gr.addColorStop(1, 'rgba(0,0,0,0)')
+      g.fillStyle = gr; g.beginPath(); g.arc(16, 16, 16, 0, TAU); g.fill()
+      SPRITES.push(s)
+    }
+  }
+  const spriteFor = (x, y) => y > 0.55 ? 7 + Math.min(2, Math.round((y - 0.55) * 1.4 * 2)) : Math.round(clamp((x - y) * 0.32 + 0.5, 0, 1) * 6)
+  const SPHERE = []
+  { const ga = Math.PI * (3 - Math.sqrt(5)); for (let i = 0; i < PUNKTE; i++) { const y = 1 - (2 * (i + 0.5)) / PUNKTE, rr2 = Math.sqrt(1 - y * y), th = ga * i; SPHERE.push({ x: Math.cos(th) * rr2, y, z: Math.sin(th) * rr2, j: (i * 0.618) % 1 }) } }
+  let seed = 7
+  const srnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
+  const ARM = [[], []]
+  for (const side of ARM) for (let i = 0; i < 240; i++) side.push({ u: srnd(), v: srnd() * 2 - 1, p: srnd() * TAU })
+
+  // Hoku an der Stelle (cx, floorY), zerflossen nach L, Haende bei den Punkten hands[] (Bildkoordinaten).
+  function drawHoku(g, cx, floorY, k, L, hands, opts) {
+    const rx = R0 * k * (1 + 2.1 * L), ry = R0 * k * (1 - 0.58 * L), cy = floorY - ry
+    const trem = 0.012 + 0.045 * L
+    g.save(); g.globalCompositeOperation = 'lighter'
+    const glow = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry) * 1.7)
+    glow.addColorStop(0, 'rgba(110,200,255,.17)'); glow.addColorStop(0.5, 'rgba(150,130,255,.06)'); glow.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = glow; g.fillRect(cx - rx * 2.2, cy - ry * 2.5, rx * 4.4, ry * 5)
+    const ps = Math.max(3.2, 5.4 * k * (1 - 0.3 * L)), spin = 0.9
+    const cs = Math.cos(spin), sn = Math.sin(spin)
+    for (const p of SPHERE) {
+      const x3 = p.x * cs - p.z * sn, z3 = p.x * sn + p.z * cs, y3 = p.y, f = (z3 + 1) / 2
+      const th = Math.atan2(y3, x3), wob = 1 + trem * Math.sin(3 * th + p.j * 6) + 0.5 * trem * Math.sin(5 * th + 1.3)
+      let X = x3 * rx * wob, Y = y3 * ry * wob
+      if (Y > 0) Y *= 1 - 0.35 * L
+      const sz = ps * (0.55 + 0.7 * f)
+      g.globalAlpha = 0.15 + 0.85 * f * f
+      g.drawImage(SPRITES[spriteFor(x3, y3)], cx + X - sz, cy + Y - sz, sz * 2, sz * 2)
+    }
+    // Arme: Schulter -> Ellbogen aussen -> Hand unter dem Gegenstand
+    const t = (12 + 70 * L) * k, armFill = clamp(L * 3, 0, 1)
+    if (armFill > 0.02 && hands) {
+      hands.forEach((H, i) => {
+        const sgn = i === 0 ? -1 : 1, side = ARM[i]
+        const S = { x: cx + sgn * rx * 0.7, y: cy - ry * 0.2 }
+        const E = { x: Math.max(Math.abs(H.x - cx), rx * 0.9) * sgn + cx + sgn * (t * 0.9 + 24 * k), y: (S.y + H.y) / 2 + 16 * k }
+        const P = q => { const a = 1 - q; return { x: a * a * S.x + 2 * a * q * E.x + q * q * H.x, y: a * a * S.y + 2 * a * q * E.y + q * q * H.y } }
+        const thick = q => t * (0.5 + 0.75 * Math.sin(Math.PI * q) * (0.35 + 0.65 * L)) * (q > 0.92 ? 1.25 : 1)
+        const grad = g.createLinearGradient(S.x, S.y, H.x, H.y)
+        grad.addColorStop(0, `rgba(110,230,255,${0.24 * armFill})`); grad.addColorStop(1, `rgba(175,135,255,${0.3 * armFill})`)
+        g.strokeStyle = grad; g.lineCap = 'round'
+        for (let s2 = 0; s2 < 16; s2++) { const a = P(s2 / 16), b = P((s2 + 1) / 16); g.lineWidth = Math.max(4, thick((s2 + 0.5) / 16)); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke() }
+        const hr = Math.max(6, t * 0.5), hg = g.createRadialGradient(H.x, H.y, 0, H.x, H.y, hr * 1.5)
+        hg.addColorStop(0, `rgba(190,170,255,${0.28 * armFill})`); hg.addColorStop(1, 'rgba(0,0,0,0)')
+        g.fillStyle = hg; g.fillRect(H.x - hr * 2, H.y - hr * 2, hr * 4, hr * 4)
+        const lenPx = Math.hypot(H.x - S.x, H.y - S.y), n = Math.round(clamp(lenPx / 3, 24, 240) * armFill)
+        for (let j = 0; j < n; j++) {
+          const q = side[j], c = P(q.u), c2 = P(Math.min(1, q.u + 0.02)), nx = -(c2.y - c.y), ny = c2.x - c.x, nl = Math.hypot(nx, ny) || 1, th2 = thick(q.u)
+          const X = c.x + nx / nl * q.v * th2 * 0.5, Y = c.y + ny / nl * q.v * th2 * 0.5, depth = 1 - Math.abs(q.v)
+          const sz = Math.max(2.2, ps * 0.9) * (0.5 + 0.6 * depth)
+          g.globalAlpha = (0.25 + 0.75 * depth * depth) * armFill
+          g.drawImage(SPRITES[spriteFor(sgn * 0.6, -0.3 + q.u)], X - sz, Y - sz, sz * 2, sz * 2)
+        }
+      })
+    }
+    g.restore()
+    return { rx, ry, cy }
+  }
+
+  // ---------- Gegenstand im Glas-Stil ----------
+  // Dunkles Glas, Lichtkante cyan->violett, Scheiben (Fenster) heller, Lichter weiss, Raeder mit Felge.
+  const IMG = {}
+  function loadImages() { return Promise.all(Object.values(OBJECTS).filter(o => o.img).map(o => new Promise(r => { const im = new Image(); im.onload = () => { IMG[o.img] = im; r() }; im.onerror = () => r(); im.src = o.img }))) }
+  // Gerendertes Bild: leicht entsaettigt und kuehl, Kontaktschatten unten, Hokus Lichtsaum auf der Unterseite
+  function drawImageObject(g, o, im, x, y, w, rot) {
+    const h = w * im.height / im.width
+    g.save(); g.translate(x, y); g.rotate(rot || 0)
+    const sh = g.createRadialGradient(0, 0, 0, 0, 0, w * 0.55)
+    sh.addColorStop(0, 'rgba(0,0,0,.55)'); sh.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = sh; g.save(); g.scale(1, 0.12); g.fillRect(-w * 0.6, -w * 0.6, w * 1.2, w * 1.2); g.restore()
+    const off = canvas(Math.ceil(w), Math.ceil(h)), og = off.getContext('2d')
+    og.filter = 'saturate(0.72) brightness(0.92) contrast(1.05)'
+    og.drawImage(im, 0, 0, w, h)
+    og.filter = 'none'
+    og.globalCompositeOperation = 'source-atop'
+    const cool = og.createLinearGradient(0, 0, 0, h); cool.addColorStop(0, 'rgba(40,60,120,.10)'); cool.addColorStop(1, 'rgba(110,200,255,.16)')
+    og.fillStyle = cool; og.fillRect(0, 0, w, h)
+    og.globalCompositeOperation = 'lighter'
+    const rim = og.createLinearGradient(0, h, 0, h * 0.6); rim.addColorStop(0, 'rgba(110,200,255,.28)'); rim.addColorStop(1, 'rgba(110,200,255,0)')
+    og.fillStyle = rim; og.fillRect(0, 0, w, h)
+    g.drawImage(off, -w / 2, -h)
+    g.restore()
+    return h
+  }
+  function drawObject(g, key, kg, x, y, w, rot) {
+    const o = OBJECTS[key]
+    if (o.img && IMG[o.img]) return drawImageObject(g, o, IMG[o.img], x, y, w, rot)
+    const s = w / 100, h = o.H * s
+    g.save(); g.translate(x, y); g.rotate(rot || 0); g.translate(-w / 2, -h); g.scale(s, s)
+    const outline = new Path2D(); o.outline(outline)
+    // Glas
+    g.fillStyle = (() => { const gr = g.createLinearGradient(0, 0, 0, o.H); gr.addColorStop(0, '#141a33'); gr.addColorStop(0.55, '#0a0e1e'); gr.addColorStop(1, '#0d1226'); return gr })()
+    g.fill(outline)
+    // Lichtschein von Hoku unten
+    g.save(); g.clip(outline)
+    const lg = g.createLinearGradient(0, o.H, 0, o.H - Math.min(o.H, 40))
+    lg.addColorStop(0, 'rgba(110,200,255,.16)'); lg.addColorStop(1, 'rgba(110,200,255,0)')
+    g.fillStyle = lg; g.fillRect(-5, 0, 110, o.H + 5)
+    const tg = g.createLinearGradient(0, 0, 0, 18)
+    tg.addColorStop(0, 'rgba(255,255,255,.08)'); tg.addColorStop(1, 'rgba(255,255,255,0)')
+    g.fillStyle = tg; g.fillRect(-5, -5, 110, 25)
+    g.restore()
+    const S = {
+      panel: fn => { const p = new Path2D(); fn(p); g.fillStyle = 'rgba(110,200,255,.13)'; g.fill(p); g.lineWidth = 0.9 / s; g.strokeStyle = 'rgba(160,220,255,.5)'; g.stroke(p) },
+      line: fn => { const p = new Path2D(); fn(p); g.lineWidth = 0.9 / s; g.strokeStyle = 'rgba(160,220,255,.35)'; g.stroke(p) },
+      light: fn => { const p = new Path2D(); fn(p); g.save(); g.shadowColor = 'rgba(255,255,255,.9)'; g.shadowBlur = 6; g.fillStyle = '#eaf6ff'; g.fill(p); g.restore() },
+      ivory: fn => { const p = new Path2D(); fn(p); g.fillStyle = '#dfe7f6'; g.fill(p) },
+      wheel: (cx, cy, r) => { const p = new Path2D(); circ(p, cx, cy, r); g.fillStyle = '#05070f'; g.fill(p); g.lineWidth = 1.2 / s; g.strokeStyle = 'rgba(160,220,255,.6)'; g.stroke(p); const q = new Path2D(); circ(q, cx, cy, r * 0.45); g.fillStyle = 'rgba(160,220,255,.25)'; g.fill(q); g.stroke(q) },
+      ring: (cx, cy, r, wd) => { const p = new Path2D(); circ(p, cx, cy, r); g.lineWidth = wd; g.strokeStyle = 'rgba(160,220,255,.35)'; g.stroke(p) },
+      text: (str, cx, cy, size) => { g.font = `700 ${size}px "Space Grotesk", Inter, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; spacing(g, size * 0.1); g.fillStyle = 'rgba(200,230,255,.85)'; g.fillText(str, cx, cy) },
+    }
+    o.details(g, S, kg)
+    // Lichtkante
+    g.save()
+    g.shadowColor = 'rgba(110,230,255,.55)'; g.shadowBlur = 10
+    const eg = g.createLinearGradient(0, 0, 100, o.H); eg.addColorStop(0, 'rgba(140,235,255,.95)'); eg.addColorStop(1, 'rgba(175,135,255,.8)')
+    g.lineWidth = 1.6 / s; g.strokeStyle = eg; g.stroke(outline)
+    g.restore()
+    g.restore()
+    return h
+  }
+
+  // ---------- Poster ----------
+  const LOAD_KG = 3200
+  function stackFor(kg) {
+    const items = decompose(kg)
+    // schwerste unten; gleiche Dinge nebeneinander wird nicht gemacht, sie stapeln sich
+    let s2 = 11
+    const r = () => { s2 = (s2 * 1664525 + 1013904223) >>> 0; return s2 / 4294967296 }
+    return items.map((it, i) => ({ ...it, w: widthFor(it.key, it.kg), h: OBJECTS[it.key].H / 100 * widthFor(it.key, it.kg), dx: (r() - 0.5) * 0.1, rot: (r() - 0.5) * 0.04 * (i ? 1 : 0.3) }))
+  }
+  function layout(stack) {
+    let y = 0, maxW = 0
+    for (const it of stack) { it.y = y; y -= it.h * Math.cos(it.rot) - 2; maxW = Math.max(maxW, it.w) }
+    return { height: -y, width: maxW }
+  }
+  function paintStage(g, W, H) {
+    g.fillStyle = '#02030a'; g.fillRect(0, 0, W, H)
+    const gr = g.createRadialGradient(W / 2, -20, 10, W / 2, -20, H * 0.75)
+    gr.addColorStop(0, 'rgba(120,200,255,.12)'); gr.addColorStop(.5, 'rgba(60,120,200,.04)'); gr.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = gr; g.fillRect(0, 0, W, H)
+  }
+  function paintVignette(g, W, H) {
+    const gr = g.createRadialGradient(W / 2, H * 0.45, H * 0.3, W / 2, H * 0.45, H * 0.85)
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.55)')
+    g.fillStyle = gr; g.fillRect(0, 0, W, H)
+  }
+  function text(g, str, x, y, font, color, align, ls) { g.font = font; g.fillStyle = color; g.textAlign = align || 'left'; g.textBaseline = 'alphabetic'; spacing(g, ls || 0); g.fillText(str, x, y) }
+  // Szene: Hoku + Stapel in ein Rechteck einpassen; Legende rechts mit Fuehrungslinien
+  function drawScene(g, kg, rx0, ry0, rw, rh, ink, legend) {
+    const stack = stackFor(kg), L = 1 - Math.exp(-kg / LOAD_KG)
+    const lay = layout(stack)
+    const hokuH = 2 * R0 * (1 - 0.58 * L) + 50 + 150 * L + 20, hokuW = 2 * R0 * (1 + 2.1 * L) + 2 * (14 + 95 * L) + 60
+    const legendW = legend ? 300 : 0
+    const k = Math.min((rw - legendW) / Math.max(lay.width + 40, hokuW), rh / (lay.height + hokuH + 20))
+    const cx = rx0 + (rw - legendW) / 2, floorY = ry0 + rh - 6
+    // Boden
+    g.fillStyle = (() => { const gr = g.createLinearGradient(rx0, 0, rx0 + rw, 0); gr.addColorStop(0, 'rgba(110,230,255,0)'); gr.addColorStop(0.5, 'rgba(110,230,255,.22)'); gr.addColorStop(1, 'rgba(110,230,255,0)'); return gr })()
+    g.fillRect(rx0, floorY, rw, 1.5)
+    const hokuRy = R0 * k * (1 - 0.58 * L)
+    const rise = (50 + 150 * L) * k                 // so hoch stemmt er den Stapel ueber seinen Scheitel
+    const bottomY = floorY - 2 * hokuRy - rise      // Unterkante des untersten Gegenstands
+    const first = stack[0]
+    const hands = first ? [{ x: cx - first.w * k * 0.4, y: bottomY + 6 * k }, { x: cx + first.w * k * 0.4, y: bottomY + 6 * k }] : null
+    drawHoku(g, cx, floorY, k, L, hands)
+    // Stapel von unten nach oben, Legende dazu
+    const rows = []
+    for (const it of stack) {
+      const x = cx + it.dx * it.w * k, y = bottomY + it.y * k
+      drawObject(g, it.key, it.kg, x, y, it.w * k, it.rot)
+      rows.push({ key: it.key, kg: it.kg, yMid: y - it.h * k / 2, xRight: x + it.w * k / 2 })
+    }
+    if (legend) {
+      // gleiche Dinge in einer Zeile zusammenfassen (Scheiben als Summe)
+      const groups = []
+      for (const r of rows) {
+        const last = groups[groups.length - 1]
+        if (last && last.key === r.key) { last.n++; last.kg += r.kg; last.yMid = (last.yMid + r.yMid) / 2; last.xRight = Math.max(last.xRight, r.xRight) }
+        else groups.push({ key: r.key, n: 1, kg: r.kg, yMid: r.yMid, xRight: r.xRight })
+      }
+      const lx = rx0 + rw - legendW + 36, px = 26, gap = px * 2.6
+      let prev = Infinity
+      for (const gr of groups.slice().reverse()) { gr.yL = Math.min(gr.yMid, prev - gap); prev = gr.yL }
+      for (let i = 0, lim = ry0 + px; i < groups.length; i++) { const gr = groups[groups.length - 1 - i]; if (gr.yL < lim) gr.yL = lim; lim = gr.yL + gap }
+      for (const gr of groups) {
+        const o = OBJECTS[gr.key], name = gr.n > 1 ? `${gr.n} ${o.plural}` : (gr.key === 'plate' ? '1 Hantelscheibe' : `1 ${o.name}`)
+        g.strokeStyle = rgba(ink, 0.3); g.lineWidth = 1.2
+        g.beginPath(); g.moveTo(gr.xRight + 10, gr.yMid); g.lineTo(lx - 18, gr.yMid); g.lineTo(lx - 10, gr.yL - 4); g.stroke()
+        g.fillStyle = rgba(ink, 0.6); g.beginPath(); g.arc(gr.xRight + 10, gr.yMid, 2.5, 0, TAU); g.fill()
+        text(g, name, lx, gr.yL, `700 ${px}px "Space Grotesk", Inter, sans-serif`, ink, 'left')
+        text(g, `${deNum(gr.kg)} kg`, lx, gr.yL + px * 1.15, `500 ${Math.round(px * 0.85)}px Inter, sans-serif`, rgba(ink, 0.6), 'left')
+      }
+    }
+  }
+  function headBlock(g, x, top, kg, ink, glow) {
+    const up = kg - WORKOUT.last
+    if (glow) { g.shadowColor = glow; g.shadowBlur = 18 }
+    text(g, `${WORKOUT.name.toUpperCase()} · ${dateText}`, x, top + 40, '600 28px Inter, sans-serif', rgba(ink, 0.7), 'left', 5)
+    const num = deNum(Math.round(kg))
+    g.font = '700 150px "Space Grotesk", Inter, sans-serif'; spacing(g, -4)
+    const nw = g.measureText(num).width
+    text(g, num, x - 4, top + 186, '700 150px "Space Grotesk", Inter, sans-serif', ink, 'left', -4)
+    text(g, 'kg', x + nw + 10, top + 186, '600 52px Inter, sans-serif', rgba(ink, 0.6), 'left')
+    text(g, `${WORKOUT.exercises} Übungen · ${WORKOUT.sets} Sätze · Hoku trägt alles`, x, top + 240, '500 30px Inter, sans-serif', rgba(ink, 0.6), 'left')
+    if (up > 0) text(g, `+${deNum(up)} kg mehr als letztes Mal`, x, top + 284, '700 30px Inter, sans-serif', '#fdba74', 'left')
+    g.shadowBlur = 0; g.shadowColor = 'transparent'
+  }
+  function footer(g, W, H, ink, rule) {
+    if (rule) { g.fillStyle = rgba(ink, 0.15); g.fillRect(72, H - 92, W - 144, 1.5) }
+    text(g, 'TrackYourDose', 72, H - 44, '700 30px "Space Grotesk", Inter, sans-serif', rgba(ink, 0.9), 'left', 2)
+    text(g, 'Hoku trägt', W - 72, H - 44, '500 26px Inter, sans-serif', rgba(ink, 0.5), 'right', 1)
+  }
+  function renderCard(kg) {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    paintStage(g, W, H); headBlock(g, 72, 60, kg, '#eef3fc'); drawScene(g, kg, 60, 340, 960, 880, '#eef3fc', true); paintVignette(g, W, H); footer(g, W, H, '#eef3fc', true)
+    return c
+  }
+  function renderSticker(kg) {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    headBlock(g, 72, 60, kg, '#ffffff', 'rgba(0,0,0,.5)'); drawScene(g, kg, 60, 360, 960, 890, '#ffffff', true); footer(g, W, H, '#ffffff', false)
+    return c
+  }
+  function renderOnPhoto(kg, img) {
+    const W = 1080, H = 1350, c = canvas(W, H), g = c.getContext('2d')
+    const sc = Math.max(W / img.width, H / img.height), iw = img.width * sc, ih = img.height * sc
+    g.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih)
+    const gr = g.createLinearGradient(0, H * 0.45, 0, H); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.55)')
+    g.fillStyle = gr; g.fillRect(0, H * 0.45, W, H * 0.55)
+    const st = renderSticker(kg), sw = 600, sh = sw * st.height / st.width
+    g.drawImage(st, 20, H - sh - 10, sw, sh)
+    return c
+  }
+
+  // ---------- Seite ----------
+  const poster = $('poster'), pctx = poster.getContext('2d')
+  let kg = 7615, mode = 'card', photo = null, blob = null, dl = null, dlChecked = false, token = 0
+  const saveBtn = $('saveBtn'), hint = $('hint')
+  ;(async () => { try { if (window.claude && typeof window.claude.use === 'function') dl = await window.claude.use('downloads') } catch (_) { dl = null } dlChecked = true; syncSave() })()
+  function syncSave() { saveBtn.hidden = !dl; saveBtn.disabled = !blob; if (!dl && dlChecked && blob) hint.textContent = 'Halte das Bild gedrückt, um es zu sichern.' }
+  async function render() {
+    const t = ++token
+    $('stageBox').classList.toggle('checker', mode === 'sticker')
+    $('photoPick').hidden = mode !== 'photo'
+    pctx.clearRect(0, 0, poster.width, poster.height)
+    if (mode === 'photo' && !photo) { pctx.fillStyle = '#05060c'; pctx.fillRect(0, 0, 1080, 1350); text(pctx, 'Wähle ein Foto vom Training.', 540, 660, '600 40px Inter, sans-serif', '#8e99b5', 'center'); text(pctx, 'Hoku mit dem Stapel kommt unten links darauf.', 540, 720, '500 32px Inter, sans-serif', '#5d6680', 'center'); blob = null; syncSave(); return }
+    const c = mode === 'card' ? renderCard(kg) : mode === 'sticker' ? renderSticker(kg) : renderOnPhoto(kg, photo)
+    pctx.drawImage(c, 0, 0)
+    const b = await new Promise(r => c.toBlob(r, mode === 'photo' ? 'image/jpeg' : 'image/png', 0.92))
+    if (t !== token) return
+    blob = b; syncSave()
+  }
+  $('kgRange').addEventListener('input', e => { kg = +e.target.value; $('kgOut').value = deNum(kg) + ' kg'; render() })
+  for (const b of document.querySelectorAll('[data-mode]')) b.addEventListener('click', () => { mode = b.dataset.mode; for (const o of document.querySelectorAll('[data-mode]')) o.setAttribute('aria-pressed', String(o === b)); render() })
+  $('photoInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (!f) return; const im = new Image(); im.onload = () => { photo = im; render() }; im.onerror = () => { hint.textContent = 'Dieses Bild ließ sich nicht öffnen. Versuche ein JPG oder PNG.' }; im.src = URL.createObjectURL(f) })
+  saveBtn.addEventListener('click', async () => {
+    if (!dl || !blob) return
+    const name = `tyd-hoku-${isoDate}-${mode === 'card' ? 'karte' : mode === 'sticker' ? 'sticker' : 'foto'}.${mode === 'photo' ? 'jpg' : 'png'}`
+    try { await dl.save({ filename: name, data: blob }); hint.textContent = 'Gespeichert.' }
+    catch (err) { const code = err && err.code; hint.textContent = code === 'declined' ? 'Nicht gespeichert.' : code === 'rate_limited' ? 'Einen Moment, dann noch einmal.' : code === 'too_large' ? 'Das Bild ist zu groß. Wähle ein kleineres Foto.' : 'Speichern ist hier nicht möglich.'; if (!['declined', 'rate_limited', 'too_large'].includes(code)) { dl = null; syncSave() } }
+  })
+  const fontsReady = document.fonts && document.fonts.load ? Promise.race([
+    Promise.all([document.fonts.load('700 16px "Space Grotesk"'), document.fonts.load('700 16px Inter'), document.fonts.load('600 16px Inter'), document.fonts.load('500 16px Inter')]),
+    new Promise(r => setTimeout(r, 1500)),
+  ]) : Promise.resolve()
+  fontsReady.catch(() => {}).then(loadImages).then(() => { buildSprites(); render() })
+})()
+</script>

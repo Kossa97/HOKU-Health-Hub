@@ -68,6 +68,15 @@ const text = (v: unknown, max = 120): string | null => {
 const positiv = (v: unknown): number | null =>
   typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null
 
+/**
+ * Amazons Lageretikett (FNSKU `X00…`, sonst die ASIN `B0…`): gilt nur im
+ * Haendlerkonto, keine Datenbank loest es auf. Es klebt oft ueber dem EAN —
+ * dann hilft nur das Etikett mit den Inhaltsstoffen.
+ */
+export function istAmazonEtikett(raw: string): boolean {
+  return /^(X0|B0)[0-9A-Z]{8}$/.test(raw.trim())
+}
+
 /** Die Antwort der Edge Function noch einmal pruefen — sie kommt aus dem Netz. */
 export function parseEtikett(data: unknown): Etikett | null {
   const label = data && typeof data === 'object' ? (data as { label?: unknown }).label : null
