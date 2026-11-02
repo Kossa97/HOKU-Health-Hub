@@ -13,6 +13,11 @@
 --                                     fuer die Auswertung gelten
 --   hoku_funde                        ein Fund je (Nutzer, Schluessel)
 --   hoku_wochen                       ein Zettel je (Nutzer, lokaler Sonntag)
+--   Trigger profiles_stamp_erkenntnisse_consent
+--                                     (BEFORE INSERT OR UPDATE OF
+--                                     erkenntnisse_consent_at) setzt den
+--                                     Zeitpunkt der Einwilligung auf now(),
+--                                     statt dem Geraet zu glauben
 --   Trigger hoku_widerruf             Widerruf loescht beide Tabellen dieses
 --                                     Nutzers
 --   Trigger hoku_nur_mit_einwilligung (je einer auf hoku_funde und hoku_wochen,
@@ -32,8 +37,8 @@
 -- eigener Zeilen ist erlaubt (das Loeschen ist die Nutzerseite von "meine
 -- Daten loeschen").
 --
--- Rein additiv und idempotent: zwei neue Spalten, zwei neue Tabellen, zwei
--- Funktionen, drei Trigger. Keine bestehende Zeile wird geaendert. Zweimal
+-- Rein additiv und idempotent: zwei neue Spalten, zwei neue Tabellen, drei
+-- Funktionen, vier Trigger. Keine bestehende Zeile wird geaendert. Zweimal
 -- laufen lassen ist erlaubt.
 --
 -- Voraussetzung: `public.tyd_is_valid_timezone` (supabase-perf-timezone-check.sql).
@@ -51,10 +56,12 @@
 --   select count(*) from public.hoku_wochen;                        -- 0 nach dem Lauf
 --   select proname from pg_proc
 --    where pronamespace = 'public'::regnamespace
---      and proname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung'); -- 2 Zeilen
+--      and proname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung',
+--                      'stamp_erkenntnisse_consent');                 -- 3 Zeilen
 --   select tgrelid::regclass, tgname from pg_trigger
 --    where not tgisinternal
---      and tgname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung');  -- 3 Zeilen
+--      and tgname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung',
+--                     'profiles_stamp_erkenntnisse_consent');         -- 4 Zeilen
 
 begin;
 
@@ -76,6 +83,39 @@ begin
   end if;
 end;
 $$;
+
+-- ── Zeitpunkt der Einwilligung setzt die Datenbank ──────────────────────────
+-- Wie `stamp_coach_consent` (supabase-coach.sql): schickt die App einen Wert,
+-- wird er durch now() ersetzt, egal was die Uhr des Geraets sagt. null bleibt
+-- null (Widerruf), derselbe Wert bleibt derselbe. Anders als beim Coach wird
+-- ein geaenderter Wert neu gestempelt statt beim alten zu bleiben. Nur fuer
+-- anon/authenticated; Service-Rolle und Admin-SQL setzen, was sie setzen.
+-- Laeuft vor dem AFTER-Trigger `hoku_widerruf` und aendert nichts an dessen
+-- Bedingung (null bleibt null, nicht-null bleibt nicht-null).
+
+create or replace function public.stamp_erkenntnisse_consent()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if new.erkenntnisse_consent_at is null then
+      return new;
+    end if;
+    if tg_op = 'UPDATE' and new.erkenntnisse_consent_at is not distinct from old.erkenntnisse_consent_at then
+      return new;
+    end if;
+    new.erkenntnisse_consent_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_stamp_erkenntnisse_consent on public.profiles;
+create trigger profiles_stamp_erkenntnisse_consent
+before insert or update of erkenntnisse_consent_at on public.profiles
+for each row execute function public.stamp_erkenntnisse_consent();
 
 -- ── Funde ───────────────────────────────────────────────────────────────────
 -- `schluessel` benennt, was gefunden wurde (z. B. Auffaelligkeit + Bezug), so
