@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793633995.9934213,
-    "seen": 1793643176.8264227,
-    "ast_hash": "430288793c6082b5a8c9d2049390cb0b",
+    "mtime": 1793649338.3343632,
+    "seen": 1793649811.048796,
+    "ast_hash": "734c08090485aa4a4016e6c74da1dffb",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -1338,9 +1338,9 @@
     "semantic_hash": ""
   },
   "vite.config.ts": {
-    "mtime": 1793644646.1134114,
-    "seen": 1793647587.2279372,
-    "ast_hash": "c3290b708dff185cfe597318b61930d0",
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.0511982,
+    "ast_hash": "911374e82b62f07f6fdf63beab116053",
     "semantic_hash": ""
   },
   "vitest.config.ts": {
@@ -7794,9 +7794,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
-    "mtime": 1793644646.1134114,
-    "seen": 1793647587.2091842,
-    "ast_hash": "8a62a93ea4d792f3131462b361fc74f6",
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.032003,
+    "ast_hash": "4f108d0017dddd488a9d52feb5858195",
     "semantic_hash": ""
   },
   "src/features/dot/chat/CoachPanel.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793647306.3350985,
-    "seen": 1793647587.2095995,
-    "ast_hash": "fd9b4cbf8727e09de64f0dacc8bd2e8b",
+    "mtime": 1793649338.3335683,
+    "seen": 1793649811.032411,
+    "ast_hash": "a1b16bfa83f9b8d3491bbec198f25a75",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793647557.6294625,
-    "seen": 1793647587.232197,
-    "ast_hash": "54abfaac7b0edb2cf7ac01fae31a1b0e",
+    "mtime": 1793649789.2150664,
+    "seen": 1793649811.0559525,
+    "ast_hash": "454ac87ea860be9cef7f8ebaaf096e37",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -17178,9 +17178,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793647513.7657166,
-    "seen": 1793647587.203923,
-    "ast_hash": "9eabf5f9c49552577c63844f44df76fc",
+    "mtime": 1793649348.313706,
+    "seen": 1793649811.026625,
+    "ast_hash": "b94ae8519dc9b72fa6c3d32da3a023b8",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
@@ -18828,9 +18828,9 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/EINBAU.md": {
-    "mtime": 1793644645.4068058,
-    "seen": 1793647587.2293413,
-    "ast_hash": "024d99fd75b6b7b5ee6d3b16b32163ab",
+    "mtime": 1793648962.5271707,
+    "seen": 1793649811.0525374,
+    "ast_hash": "4fab36dce915f47bdd799074fb5d8428",
     "semantic_hash": ""
   },
   "docs/logo/hoku/eingebaut.png": {
@@ -19662,15 +19662,15 @@
     "semantic_hash": ""
   },
   "scripts/verify-hoku-icons.cjs": {
-    "mtime": 1793644646.1134114,
-    "seen": 1793647587.2049406,
-    "ast_hash": "32155942cb0501498a504040388bc37b",
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.027784,
+    "ast_hash": "a6edd4626274abd99e04b226c3e1e174",
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.test.tsx": {
-    "mtime": 1793644646.1134114,
-    "seen": 1793647587.2091815,
-    "ast_hash": "759f27355089c61b8fbf5772b2a64f06",
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.0320008,
+    "ast_hash": "f31fbe04632359aafe5e89b356933245",
     "semantic_hash": ""
   },
   "docs/logo/hoku/README.md": {
@@ -19722,9 +19722,9 @@
     "semantic_hash": ""
   },
   "docs/logo/hoku/branding/ENTSCHEIDUNGEN.md": {
-    "mtime": 1793644645.999999,
-    "seen": 1793647587.229416,
-    "ast_hash": "16422979071994953a55d7a5fa1a6a09",
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.0528517,
+    "ast_hash": "3cba4dafd41a61fb5dcb618e94585930",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v1/07-KI-Button-Symbol/HOKU-KI-Symbol-Uebersicht.png": {
@@ -21051,6 +21051,12 @@
     "mtime": 1793644646.1118455,
     "seen": 1793647587.274244,
     "ast_hash": "a3914162192cb5e88cd2d4526f6c18fc",
+    "semantic_hash": ""
+  },
+  "docs/logo/hoku/branding/hoku-nav-etwas-dichter.svg": {
+    "mtime": 1793648962.5311706,
+    "seen": 1793649811.1047206,
+    "ast_hash": "8f5d09330a7bb8683ea23e77bb196652",
     "semantic_hash": ""
   }
 }

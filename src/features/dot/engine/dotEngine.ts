@@ -127,8 +127,6 @@ export interface DotApi {
   schweige(): void
   /** Anmeldung: Hoku ist ganz zu sehen (nicht hinter der Tastatur, nicht aus dem Bild gescrollt). */
   imBlick(): boolean
-  /** Messwerte für die versteckte Anzeige auf der Anmeldung (Lage, Ausschnitt, Tastatur), zur Fehlersuche auf dem iPhone. */
-  diagnose(): Record<string, number | string>
   /** Wo er gerade ist und wo sein Platz ist (Bildschirm-px). */
   lage(): { x: number; y: number }
   platz(): { x: number; y: number }
@@ -528,8 +526,18 @@ export function createDot(host: DotHost): DotApi {
   // deshalb um diesen Ursprung verschoben, sonst zeichnet er sich um den Scrollweg zu hoch, außerhalb des Bilds.
   const URS = { x: 0, y: 0 }
   const inEbene = (r: DOMRect) => URS.x || URS.y ? new DOMRect(r.left - URS.x, r.top - URS.y, r.width, r.height) : r
+  // Verschiebt sich die Ebene, wird sie zurück an den Bildschirm geschoben: Die Zeichenfläche ist nur so groß
+  // wie der Bildschirm; um den Scrollweg verschoben deckte sie unten (oder oben) einen Streifen nicht ab, und
+  // Hoku käme dort nicht hin (Nutzer 02.11.2026: „immer das gesamte Bild des Geräts ausnutzen“). Mit
+  // `translate`, damit ein `transform` der Ebene (Test) bestehen bleibt
+  const ebene = canvas.parentElement, ZURUECK = { x: 0, y: 0 }
   const messeBuehne = () => {
-    const c = canvas.getBoundingClientRect()
+    let c = canvas.getBoundingClientRect()
+    if (ebene && (Math.abs(c.left) > 0.5 || Math.abs(c.top) > 0.5)) {
+      ZURUECK.x = Math.round(ZURUECK.x - c.left); ZURUECK.y = Math.round(ZURUECK.y - c.top)
+      ebene.style.translate = ZURUECK.x || ZURUECK.y ? `${ZURUECK.x}px ${ZURUECK.y}px` : ''
+      c = canvas.getBoundingClientRect()
+    }
     URS.x = c.left; URS.y = c.top
     BUEHNE = B.stage?.isConnected ? inEbene(B.stage.getBoundingClientRect()) : null
   }
@@ -852,12 +860,12 @@ export function createDot(host: DotHost): DotApi {
     if (!karte || !karte.contains(el)) return KEIN_PLATZ
     const K = inEbene(karte.getBoundingClientRect()), fr = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
     const F = fr ? inEbene(fr) : undefined
-    const r0 = loginGrundRadius(), vv = window.visualViewport
-    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste, im sichtbaren Ausschnitt. Auf dem iPhone
-    // liegt die Ebene um offsetTop höher (URS.y = -offsetTop), die Rechtecke kommen aber schon bildschirmbezogen;
-    // in der Ebene ist der Bildschirmrand deshalb bei offsetTop (Messung 02.11.2026: oben ein zweites Mal
-    // URS abgezogen ließ ihn trotz Platz in die Ecke neben die Überschrift ausweichen)
-    const oben = Math.max(0, vv ? vv.offsetTop : 0) + OBEN + 4
+    const r0 = loginGrundRadius()
+    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste. Die Rechtecke kommen bildschirmbezogen,
+    // der Bildschirmrand liegt in der Ebene also bei -URS.y (Messung 02.11.2026: Ebene um den Scrollweg höher,
+    // URS.y = -offsetTop; seit sie zurückgeschoben wird, ist das 0). Nicht `offsetTop` der Tastatur nehmen:
+    // die bleibt, auch wenn die Ebene wieder am Bildschirm sitzt
+    const oben = Math.max(0, -URS.y) + OBEN + 4
     // Die Schrift der Überschrift (nicht die ganze Zeile): nur wo er über ihr säße, endet er darüber
     let T: DOMRect | undefined
     const h = karte.querySelector('[data-dot-frei]')
@@ -2442,18 +2450,6 @@ export function createDot(host: DotHost): DotApi {
     sag: (text, ms) => { sag(text, ms); laufen() },
     schweige: () => versteckeBlase(),
     imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },
-    diagnose: () => {
-      const vv = window.visualViewport, c = canvas.getBoundingClientRect()
-      const karte = B.stage?.parentElement?.querySelector('[data-dot-kante]')?.getBoundingClientRect()
-      const r1 = (n: number) => Math.round(n)
-      return {
-        modus: B.mode, phase: B.login.phase, x: r1(B.x), y: r1(B.y), r: r1(B.r), rTipp: r1(B.login.rTipp),
-        rutsch: r1(B.login.rutsch), rutschX: r1(B.login.rutschX), W, H, oben: OBEN, kb: r1(NAV.kb),
-        innerH: window.innerHeight, vvH: vv ? r1(vv.height) : -1, vvTop: vv ? r1(vv.offsetTop) : -1, vvPageTop: vv ? r1(vv.pageTop) : -1,
-        scrollY: r1(window.scrollY), ebeneTop: r1(c.top), ebeneH: r1(c.height), karteTop: karte ? r1(karte.top) : -1,
-        buehneTop: BUEHNE ? r1(BUEHNE.top) : -1, fokus: document.activeElement?.tagName ?? '',
-      }
-    },
     lage: () => ({ x: B.x, y: B.y }),
     platz: () => homeTarget(),
     rundflug: r => startTour(r),
