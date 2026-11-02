@@ -3,6 +3,10 @@
  * Zur Auswahl stehen bestaetigte Einnahmen (`taken = true`) der gewaehlten
  * Substanz vor dem Zeitpunkt des Eintrags — die Wahl ist freiwillig.
  */
+import { format } from 'date-fns'
+import type { Locale } from 'date-fns'
+import { planZeitAusSchluessel } from '../../features/routines/lib/slotKey'
+
 export const INTAKE_OPTIONS = 5
 
 export interface IntakeOption {
@@ -10,7 +14,11 @@ export interface IntakeOption {
   dose: number | null
   unit: string | null
   logged_at: string
+  /** Platz im Plan (`<zyklus>@YYYY-MM-DDTHH:MM`); `null` ohne Plan. */
+  routine_slot_key: string | null
 }
+
+export const INTAKE_COLUMNS = 'id, dose, unit, logged_at, routine_slot_key'
 
 type Translate = (key: string, options?: Record<string, unknown>) => string
 
@@ -33,4 +41,19 @@ export function intakeDose(option: Pick<IntakeOption, 'dose' | 'unit'>, language
   if (option.dose == null) return ''
   const amount = new Intl.NumberFormat(language, { maximumFractionDigits: 3 }).format(Number(option.dose))
   return option.unit ? `${amount} ${option.unit}` : amount
+}
+
+/**
+ * „Sa 31.10. 04:00" — mit Wochentag, damit man den Tag erkennt. Wurde die
+ * Einnahme an einem anderen Tag bestätigt, als sie im Plan steht (Abenddosis
+ * nach Mitternacht), steht der Platz dahinter: „für Fr 20:00".
+ */
+export function intakeWhen(option: Pick<IntakeOption, 'logged_at' | 'routine_slot_key'>, locale: Locale, t: Translate): string {
+  const at = new Date(option.logged_at)
+  const when = format(at, 'EEE dd.MM. HH:mm', { locale })
+  const plan = planZeitAusSchluessel(option.routine_slot_key)
+  if (!plan || plan.slice(0, 10) === format(at, 'yyyy-MM-dd')) return when
+  const [y, m, d] = plan.slice(0, 10).split('-').map(Number)
+  const planAt = new Date(y, m - 1, d, Number(plan.slice(11, 13)), Number(plan.slice(14, 16)))
+  return `${when} · ${t('tagebuch_einnahme_fuer', { zeit: format(planAt, 'EEE HH:mm', { locale }) })}`
 }
