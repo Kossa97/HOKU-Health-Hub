@@ -16,6 +16,7 @@ import {
 } from './erkenntnisseService'
 import { FundDetail } from './FundDetail'
 import { FundKarte } from './FundKarte'
+import { vergissErkenntnisseZugang } from './homeZugang'
 import { useErkenntnisseTexte } from './texte'
 import type { Namen } from './vorlagen'
 import { WochenKarte } from './WochenKarte'
@@ -67,6 +68,7 @@ export function ErkenntnissePage() {
           onFertig={zeit => {
             // Die Einwilligung speichert die Zeitzone des Geräts gleich mit.
             zoneGeprueft.current = true
+            vergissErkenntnisseZugang(user.id)
             zugang.setErkenntnisseEinwilligung(zeit)
             setEinwilligungOffen(false)
           }}
@@ -154,6 +156,7 @@ function MitEinwilligung({ userId, onWiderrufen }: { userId: string; onWiderrufe
     setBusy(true)
     try {
       await setzeErkenntnisseEinwilligung(userId, false)
+      vergissErkenntnisseZugang(userId)
       onWiderrufen()
     } catch (e) {
       console.error('[Erkenntnisse] Widerruf:', e)

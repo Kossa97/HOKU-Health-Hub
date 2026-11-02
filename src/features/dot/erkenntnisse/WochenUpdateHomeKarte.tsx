@@ -2,19 +2,20 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { useAuth } from '../../../context/AuthContext'
-import { supabase } from '../../../lib/supabase'
-import { darfErkenntnisseSehen, ERKENNTNISSE_FREI } from '../lib/zugang'
+import type { supabase } from '../../../lib/supabase'
 import { ladeWoche } from './erkenntnisseService'
+import { erkenntnisseAktivFuer } from './homeZugang'
 import { useErkenntnisseTexte } from './texte'
 
 /**
  * Karte auf Home: „Dein Wochen-Update ist da" — nur mit Freischaltung,
  * Einwilligung und einer ungelesenen sichtbaren Woche. Geladen wird nach dem
- * ersten Bild, alles in einem try: Fehler bleiben still, Home läuft für alle
- * anderen unverändert. (Bewusst nicht über `useDotZugang` — dessen Abfrage
- * steht nicht im try, und ein Wurf dort risse Home mit.)
+ * ersten Bild über Homes Daten-Client, alles in einem try: Fehler bleiben
+ * still, Home läuft für alle anderen unverändert. (Bewusst nicht über
+ * `useDotZugang` — dessen Abfrage steht nicht im try, und ein Wurf dort risse
+ * Home mit.) Die Freischaltung fragt `homeZugang.ts` nur einmal je Sitzung.
  */
-export function WochenUpdateHomeKarte() {
+export function WochenUpdateHomeKarte({ client }: { client: typeof supabase }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { et } = useErkenntnisseTexte()
@@ -25,18 +26,15 @@ export function WochenUpdateHomeKarte() {
     let aus = false
     void (async () => {
       try {
-        const { data, error } = await supabase.from('profiles').select('is_admin, erkenntnisse_consent_at').eq('id', user.id).maybeSingle()
-        if (error || !data) return
-        const p = data as { is_admin: boolean | null; erkenntnisse_consent_at: string | null }
-        if (!darfErkenntnisseSehen(ERKENNTNISSE_FREI, p.is_admin === true, import.meta.env.DEV) || !p.erkenntnisse_consent_at) return
-        const woche = await ladeWoche(user.id)
+        if (!(await erkenntnisseAktivFuer(client, user.id))) return
+        const woche = await ladeWoche(user.id, new Date(), client)
         if (!aus && woche && !woche.gelesen) setUngelesenFuer(user.id)
       } catch {
         // still: Home bleibt, wie es ist
       }
     })()
     return () => { aus = true }
-  }, [user])
+  }, [client, user])
 
   if (!user || ungelesenFuer !== user.id) return null
   return (

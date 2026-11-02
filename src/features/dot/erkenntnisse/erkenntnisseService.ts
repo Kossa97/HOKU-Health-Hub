@@ -68,9 +68,9 @@ export function sichtbareWochenFunde(woche: Woche, gueltige: GespeicherterFund[]
   return woche.funde.filter(g => ids.has(g.id))
 }
 
-/** Jüngster sichtbarer Wochenzettel samt seinen Funden, oder null. */
-export async function ladeWoche(userId: string, jetzt = new Date()): Promise<Woche | null> {
-  const { data, error } = await supabase.from('hoku_wochen')
+/** Jüngster sichtbarer Wochenzettel samt seinen Funden, oder null. `client`: Home reicht seinen eigenen durch. */
+export async function ladeWoche(userId: string, jetzt = new Date(), client: typeof supabase = supabase): Promise<Woche | null> {
+  const { data, error } = await client.from('hoku_wochen')
     .select('woche, fund_ids, tage_eingeflossen, gelesen_am')
     .eq('user_id', userId)
     .lte('sichtbar_ab', jetzt.toISOString())
@@ -82,7 +82,7 @@ export async function ladeWoche(userId: string, jetzt = new Date()): Promise<Woc
   const w = data as { woche: string; fund_ids: string[]; tage_eingeflossen: number; gelesen_am: string | null }
   let funde: GespeicherterFund[] = []
   if (w.fund_ids.length > 0) {
-    const r = await supabase.from('hoku_funde').select('id, fund, datenlage').eq('user_id', userId).in('id', w.fund_ids)
+    const r = await client.from('hoku_funde').select('id, fund, datenlage').eq('user_id', userId).in('id', w.fund_ids)
     if (r.error) throw new Error(r.error.message)
     funde = ordneFunde(w.fund_ids, (r.data ?? []) as FundZeile[])
   }

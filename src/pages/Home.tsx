@@ -1013,7 +1013,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         </button>
       </header>
 
-      <WochenUpdateHomeKarte />
+      <WochenUpdateHomeKarte client={homeDataClient} />
 
       {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
       <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
