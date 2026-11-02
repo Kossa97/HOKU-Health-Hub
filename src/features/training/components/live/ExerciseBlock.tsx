@@ -8,7 +8,7 @@ import { formatNumber, formatWeight } from '../../lib/format'
 import type { Suggestion } from '../../lib/progression'
 import { platesPerSide, toDisplayWeight } from '../../lib/stats'
 import { setMatchesSuggestion, suggestionApplied } from '../../lib/suggest'
-import { Button, Chip, TrainingSheet, TRAINING_ACCENT, inputStyle } from '../ui'
+import { accentMix, Button, Chip, TrainingSheet, TRAINING_ACCENT, inputStyle } from '../ui'
 import { SetRow, gridColumns, previousLabel } from './SetRow'
 
 /**
@@ -275,7 +275,7 @@ function SuggestionBox({ suggestion, tracking, unit, applied, onApply, onHide }:
       aria-label={`${tt('suggestion')} ${target}`}
       style={{
         margin: '0 6px 8px', padding: '8px 8px 8px 10px', borderRadius: 12,
-        background: `${TRAINING_ACCENT}14`, border: `1px dashed ${TRAINING_ACCENT}66`,
+        background: accentMix(8), border: `1px dashed ${accentMix(40)}`,
         display: 'flex', gap: 8, alignItems: 'flex-start',
       }}
     >

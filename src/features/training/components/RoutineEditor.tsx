@@ -15,7 +15,7 @@ import { DEFAULT_SCHEDULE } from '../lib/planSchedule'
 import { clipboardCopies, copyToClipboard, copyWorkout, useExerciseClipboard } from '../lib/exerciseClipboard'
 import { ExercisePicker } from './ExercisePicker'
 import { SUPERSET_COLORS } from './live/ExerciseBlock'
-import { Button, Chip, SelectCircle, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
+import { accentMix, Button, Chip, SelectCircle, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
 import { MuscleBars } from './plan/MuscleVolume'
 import { useDragReorder } from './plan/useDragReorder'
 
@@ -835,8 +835,8 @@ const rowLabel: CSSProperties = { fontSize: '0.75rem', color: 'var(--lg-text-3)'
 const smallChip = (active: boolean, color = TRAINING_ACCENT): CSSProperties => ({
   minHeight: 30, padding: '0 9px', borderRadius: 999, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
   fontSize: '0.72rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-  background: active ? `${color}22` : 'var(--lg-fill)',
-  border: `1px solid ${active ? `${color}66` : 'var(--lg-separator)'}`,
+  background: active ? accentMix(13, color) : 'var(--lg-fill)',
+  border: `1px solid ${active ? accentMix(40, color) : 'var(--lg-separator)'}`,
   color: active ? color : 'var(--lg-text-3)',
 })
 
