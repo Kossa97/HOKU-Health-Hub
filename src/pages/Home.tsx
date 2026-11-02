@@ -34,6 +34,7 @@ import {
 } from '../lib/intakeSchedule'
 import { loadCycleTimelines } from '../features/my-stack/services/planLifecycle'
 import { AUTO_EREIGNIS, dotTraegtEin, ladeAutoKarte, type AutoKarte } from '../features/dot/autoTracking/autoTracking'
+import { WochenUpdateHomeKarte } from '../features/dot/erkenntnisse/WochenUpdateHomeKarte'
 import { localDateBoundaryInstant, localDateTimeKey, resolveCycleAt, type CycleTimeline } from '../lib/planTimeline'
 import { ExpiryWarningBanners } from '../components/ExpiryWarningBanners'
 import { WorkflowBanner } from '../components/WorkflowBanner'
@@ -1014,6 +1015,8 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           <User size={20} />
         </button>
       </header>
+
+      <WochenUpdateHomeKarte client={homeDataClient} />
 
       {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
       <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
