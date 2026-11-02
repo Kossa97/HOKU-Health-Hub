@@ -1,0 +1,225 @@
+<title>Hoku Werkbank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: eine Spalte, oben Zähler + Schnell-Idee, darunter Arbeiten nach Dringlichkeit gruppiert */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --line:#dfe3df; --fg:#1b2420; --muted:#5f6b65;
+  --accent:#1f6f5c; --accent-soft:#e2efea;
+  --wait:#b4541a; --wait-soft:#fbeadf; --run:#1f6f5c; --run-soft:#e2efea;
+  --pause:#6b6f86; --pause-soft:#eceef4; --done:#7a857f; --done-soft:#eef0ee;
+  --warn:#8a5a00; --warn-soft:#fff3d6;
+  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --line:#2c3531; --fg:#e6ece9; --muted:#9aa7a0;
+  --accent:#5cc3a6; --accent-soft:#1f3a32;
+  --wait:#f0965c; --wait-soft:#3a2518; --run:#5cc3a6; --run-soft:#1f3a32;
+  --pause:#a6abc6; --pause-soft:#272a38; --done:#8b968f; --done-soft:#242a27;
+  --warn:#f2c453; --warn-soft:#3a3018; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --line:#2c3531; --fg:#e6ece9; --muted:#9aa7a0;
+  --accent:#5cc3a6; --accent-soft:#1f3a32;
+  --wait:#f0965c; --wait-soft:#3a2518; --run:#5cc3a6; --run-soft:#1f3a32;
+  --pause:#a6abc6; --pause-soft:#272a38; --done:#8b968f; --done-soft:#242a27;
+  --warn:#f2c453; --warn-soft:#3a3018; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip b{font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;font-size:13px}
+.warn strong{display:block;margin-bottom:2px}
+.quick{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.quick label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+textarea,input[type=text],select{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{width:100%;min-height:64px;resize:vertical}
+.quick select{flex:1;min-width:0}
+button.primary{font:inherit;font-weight:600;background:var(--accent);color:var(--surface);border:0;border-radius:8px;padding:8px 16px;cursor:pointer}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.group{display:flex;flex-direction:column;gap:10px}
+.group h2{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:4px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.head h3{font-size:16px;margin:0;text-wrap:balance;min-width:0}
+.head select{font-size:13px;padding:4px 6px;background:var(--cs);color:var(--c);border-color:transparent;font-weight:600}
+.ask{background:var(--wait-soft);color:var(--wait);border-radius:8px;padding:8px 10px;font-size:14px}
+.ask strong{font-weight:600}
+.last{font-size:14px}
+.last span{color:var(--muted);font-size:12px;margin-left:6px;white-space:nowrap}
+.k{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.meta a{color:var(--accent)}
+.meta code{overflow-wrap:anywhere}
+.ideas{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.idea{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.idea input{margin-top:3px}
+.idea.done span{text-decoration:line-through;color:var(--muted)}
+.idea time{color:var(--muted);font-size:11px;white-space:nowrap;margin-left:auto}
+.idea button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px}
+.addidea{display:flex;gap:6px}
+.addidea input{flex:1;min-width:0;font-size:15px;padding:6px 8px}
+.addidea button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:0 10px;cursor:pointer}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;color:var(--muted);font-size:14px}
+.note{color:var(--muted);font-size:12px}
+details>summary{cursor:pointer;color:var(--muted);font-size:13px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Hoku Werkbank</h1>
+    <p class="sub" id="status">Lade Arbeiten …</p>
+  </header>
+
+  <div class="chips" id="chips" role="group" aria-label="Nach Status filtern"></div>
+  <div id="warnings"></div>
+
+  <form class="quick" id="quick">
+    <label for="q-text">Idee aufschreiben</label>
+    <textarea id="q-text" placeholder="Was ist dir eingefallen?"></textarea>
+    <div class="row">
+      <select id="q-arbeit" aria-label="Zu welcher Arbeit"></select>
+      <button class="primary" type="submit">Speichern</button>
+    </div>
+  </form>
+
+  <div id="list"></div>
+
+  <p class="note">Jede Claude-Sitzung trägt hier am Ende ihrer Runde Status, letzten Schritt und offene Punkte ein. Den Status und die Ideen änderst du selbst. Fensterlinks öffnen sich nur in der Claude-Desktop-App.</p>
+</div>
+
+<script>
+const ORDER=["wartet","laeuft","pausiert","fertig"];
+const META={
+  wartet:{label:"Wartet auf dich",c:"--wait",cs:"--wait-soft"},
+  laeuft:{label:"Läuft",c:"--run",cs:"--run-soft"},
+  pausiert:{label:"Pausiert",c:"--pause",cs:"--pause-soft"},
+  fertig:{label:"Fertig",c:"--done",cs:"--done-soft"}
+};
+let arbeiten=[],ideen=[],filter=null,db=null,readOnly=false;
+const $=s=>document.querySelector(s);
+const el=(t,props={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(props)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}for(const k of kids)if(k)e.append(k);return e};
+
+function ago(iso){if(!iso)return"";const d=(Date.now()-new Date(iso))/60000;if(d<1)return"gerade eben";if(d<60)return`vor ${Math.round(d)} Min.`;const h=d/60;if(h<24)return`vor ${Math.round(h)} Std.`;const t=Math.round(h/24);return t===1?"gestern":`vor ${t} Tagen`}
+
+function render(){
+  // halbfertige Eingaben überleben neue Daten aus anderen Sitzungen
+  const drafts={};document.querySelectorAll(".addidea input").forEach(i=>{if(i.value)drafts[i.id]=i.value});
+  const focusId=document.activeElement?.id;
+  draw();
+  for(const[id,v]of Object.entries(drafts)){const i=document.getElementById(id);if(i)i.value=v}
+  if(focusId)document.getElementById(focusId)?.focus();
+}
+function draw(){
+  const counts=Object.fromEntries(ORDER.map(s=>[s,arbeiten.filter(a=>a.status===s).length]));
+  const chips=$("#chips");chips.replaceChildren();
+  for(const s of ORDER){
+    const b=el("button",{class:"chip",type:"button","aria-pressed":String(filter===s),onclick:()=>{filter=filter===s?null:s;render()}});
+    const d=el("span",{class:"dot"});d.style.background=`var(${META[s].c})`;
+    b.append(d,el("span",{text:META[s].label}),el("b",{text:String(counts[s])}));chips.append(b);
+  }
+
+  // Ordner-Konflikte: mehrere nicht fertige Arbeiten im selben Ordner
+  const byFolder={};
+  for(const a of arbeiten){if(a.status==="fertig"||!a.ordner)continue;(byFolder[a.ordner]??=[]).push(a)}
+  const w=$("#warnings");w.replaceChildren();
+  for(const[folder,list]of Object.entries(byFolder)){
+    if(list.length<2)continue;
+    const box=el("div",{class:"warn"},el("strong",{text:`${list.length} Arbeiten teilen sich einen Ordner`}));
+    box.append(document.createTextNode(`${folder}: ${list.map(a=>a.titel).join(", ")}. Hier können sich Branch-Wechsel, Commits und Pushes überschneiden. Eine davon in einen eigenen Worktree verschieben.`));
+    w.append(box);
+  }
+
+  const sel=$("#q-arbeit"),cur=sel.value;sel.replaceChildren(el("option",{value:"",text:"Allgemein / neue Arbeit"}));
+  for(const a of arbeiten.filter(a=>a.status!=="fertig"))sel.append(el("option",{value:a.id,text:a.titel}));
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:"";
+
+  const list=$("#list");list.replaceChildren();
+  const loose=ideen.filter(i=>!i.arbeit||!arbeiten.some(a=>a.id===i.arbeit));
+  if(loose.length&&!filter){const g=el("section",{class:"group"},el("h2",{text:"Ideen ohne Arbeit"}));const c=el("div",{class:"card"});c.append(ideasBlock(loose,""));g.append(c);list.append(g)}
+
+  if(!arbeiten.length){list.append(el("div",{class:"empty",text:"Noch keine Arbeiten eingetragen. Sobald eine Claude-Sitzung ihre Runde beendet, erscheint sie hier."}));return}
+  for(const s of ORDER){
+    if(filter&&filter!==s)continue;
+    const items=arbeiten.filter(a=>a.status===s).sort((a,b)=>(b.aktualisiert||"").localeCompare(a.aktualisiert||""));
+    if(!items.length)continue;
+    const g=el("section",{class:"group"});
+    const cards=items.map(card);
+    if(s==="fertig"&&!filter){const d=el("details",{},el("summary",{text:`${META[s].label} (${items.length})`}));const inner=el("div",{class:"group"});inner.style.marginTop="10px";inner.append(...cards);d.append(inner);g.append(d)}
+    else{g.append(el("h2",{text:META[s].label}),...cards)}
+    list.append(g);
+  }
+}
+
+function card(a){
+  const m=META[a.status]||META.laeuft;
+  const c=el("article",{class:"card"});c.style.setProperty("--c",`var(${m.c})`);c.style.setProperty("--cs",`var(${m.cs})`);
+  const st=el("select",{"aria-label":`Status von ${a.titel}`,id:`st-${a.id}`});
+  for(const s of ORDER)st.append(el("option",{value:s,text:META[s].label}));
+  st.value=a.status;st.disabled=readOnly;
+  st.addEventListener("change",async()=>{try{await db.doc(`arbeiten/${a.id}`).update({status:st.value,aktualisiert:new Date().toISOString()})}catch(e){fail(e)}});
+  c.append(el("div",{class:"head"},el("h3",{text:a.titel}),st));
+  if(a.status==="wartet"&&a.wartetAuf){const ask=el("div",{class:"ask"},el("strong",{text:"Deine Antwort fehlt: "}));ask.append(document.createTextNode(a.wartetAuf));c.append(ask)}
+  if(a.letzterSchritt){const l=el("div",{class:"last"},el("div",{class:"k",text:"Zuletzt"}));l.append(document.createTextNode(a.letzterSchritt),el("span",{text:ago(a.aktualisiert)}));c.append(l)}
+  if(Array.isArray(a.offen)&&a.offen.length){const u=el("ul");for(const o of a.offen)u.append(el("li",{text:o}));c.append(el("div",{},el("div",{class:"k",text:`Offen (${a.offen.length})`}),u))}
+  const meta=el("div",{class:"meta"});
+  if(a.branch)meta.append(el("code",{text:`⎇ ${a.branch}`}));
+  if(a.ordner)meta.append(el("code",{text:a.ordner}));
+  if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("a",{href:a.pr,target:"_blank",rel:"noopener",text:"Pull Request"}));
+  if(a.sitzungLink&&/^claude:\/\//.test(a.sitzungLink))meta.append(el("a",{href:a.sitzungLink,text:"Fenster öffnen"}));
+  if(meta.childNodes.length)c.append(meta);
+  c.append(ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id));
+  return c;
+}
+
+function ideasBlock(list,arbeitId){
+  const box=el("div",{class:"ideas"},el("div",{class:"k",text:list.length?`Ideen (${list.length})`:"Ideen"}));
+  for(const i of list.sort((x,y)=>(x.erledigt-y.erledigt)||(y.am||"").localeCompare(x.am||""))){
+    const cb=el("input",{type:"checkbox","aria-label":"Erledigt",id:`i-${i.id}`});cb.checked=!!i.erledigt;cb.disabled=readOnly;
+    cb.addEventListener("change",async()=>{try{await db.doc(`ideen/${i.id}`).update({erledigt:cb.checked})}catch(e){fail(e)}});
+    const rm=el("button",{type:"button","aria-label":"Idee löschen",text:"×"});rm.hidden=readOnly;
+    rm.addEventListener("click",async()=>{if(rm.dataset.armed){try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}}else{rm.dataset.armed="1";rm.textContent="löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.textContent="×"},3000)}});
+    box.append(el("div",{class:"idea"+(i.erledigt?" done":"")},cb,el("span",{text:i.text}),el("time",{text:ago(i.am)}),rm));
+  }
+  if(!readOnly){
+    const inp=el("input",{type:"text",placeholder:"Idee für diese Arbeit …",id:`add-${arbeitId||"allg"}`,"aria-label":"Neue Idee"});
+    const f=el("form",{class:"addidea"},inp,el("button",{type:"submit",text:"+"}));
+    f.addEventListener("submit",async ev=>{ev.preventDefault();const t=inp.value.trim();if(!t)return;inp.value="";await addIdea(t,arbeitId)});
+    box.append(f);
+  }
+  return box;
+}
+
+async function addIdea(text,arbeit){
+  if(!db)return;
+  try{await db.collection("ideen").add({text,arbeit:arbeit||"",am:new Date().toISOString(),erledigt:false})}catch(e){fail(e)}
+}
+function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#status").textContent="Speichern hat nicht geklappt. Bitte neu laden und erneut versuchen."}
+
+$("#quick").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#q-text").value.trim();if(!t)return;$("#q-text").value="";await addIdea(t,$("#q-arbeit").value)});
+
+render();
+(async()=>{
+  db=await window.claude?.use?.("db");
+  if(!db){$("#status").textContent="Die Daten sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet in claude.ai.";$("#quick").hidden=true;return}
+  const timer=setTimeout(()=>{$("#status").textContent="Die Daten sind gerade nicht erreichbar. Stand evtl. veraltet."},10000);
+  let gotA=false;
+  db.collection("arbeiten").onSnapshot(s=>{arbeiten=s.docs.map(d=>({id:d.id,...d.data()}));if(!s.metadata.fromCache){clearTimeout(timer);gotA=true}
+    const w=arbeiten.filter(a=>a.status==="wartet").length;
+    $("#status").textContent=gotA?(w?`${w} ${w===1?"Arbeit wartet":"Arbeiten warten"} auf deine Antwort.`:"Nichts wartet auf dich."):"Lade Arbeiten …";render()},
+    e=>{clearTimeout(timer);$("#status").textContent="Arbeiten konnten nicht geladen werden."});
+  db.collection("ideen").onSnapshot(s=>{ideen=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{});
+})();
+</script>
