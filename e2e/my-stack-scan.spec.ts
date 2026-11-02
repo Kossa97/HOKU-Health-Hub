@@ -201,16 +201,20 @@ test('Unbekannter Barcode: Etikett fotografieren, übernehmen — der nächste S
   const ergebnis = scanner.locator('[data-scan-result]')
   await expect(ergebnis).toContainText('Citrus Bergamot')
   // Gemerkt wird erst beim Übernehmen.
-  expect(mock.table('scan_produkte')).toHaveLength(0)
+  expect(mock.table('scan_etiketten')).toHaveLength(0)
   await ergebnis.locator('[data-scan-apply]').click()
   await expect(scanner).toBeHidden()
-  await expect.poll(() => mock.table('scan_produkte').map(row => ({ ean: row.ean, name: (row.etikett as { name: string }).name })))
-    .toEqual([{ ean: '8721008368139', name: 'Citrus Bergamot' }])
+  await expect.poll(() => mock.table('scan_etiketten').map(row => ({
+    user: row.user_id, ean: row.ean, name: (row.etikett as { name: string }).name,
+  }))).toEqual([{ user: TEST_USER.id, ean: '8721008368139', name: 'Citrus Bergamot' }])
 })
 
-test('Gemerktes Produkt: der Barcode reicht, mit Wirkstoffen und ohne KI', async ({ page, mock }) => {
+const FREMD_1 = '00000000-0000-4000-8000-0000000000f1'
+const FREMD_2 = '00000000-0000-4000-8000-0000000000f2'
+
+test('Eigenes Etikett: der Barcode reicht, mit Wirkstoffen und ohne KI', async ({ page, mock }) => {
   await kameraMitCode(page, '8721008368139')
-  mock.table('scan_produkte').push({ ean: '8721008368139', etikett: BERGAMOT })
+  mock.table('scan_etiketten').push({ user_id: TEST_USER.id, ean: '8721008368139', etikett: BERGAMOT })
   const { scanner } = await scannerOeffnen(page)
 
   const ergebnis = scanner.locator('[data-scan-result]')
@@ -218,4 +222,41 @@ test('Gemerktes Produkt: der Barcode reicht, mit Wirkstoffen und ohne KI', async
   await expect(ergebnis).toContainText('1.500 mg')
   await expect(ergebnis).toContainText('Kapsel')
   expect(mock.labelExtract.calls).toHaveLength(0)
+})
+
+test('Fremde Etiketten: einer allein zählt nicht, zwei gleiche schon', async ({ page, mock }) => {
+  await kameraMitCode(page, '8721008368139')
+  const falsch = { ...BERGAMOT, ingredients: [{ ...BERGAMOT.ingredients[0], amount: 150 }] }
+  mock.table('scan_etiketten').push({ user_id: FREMD_1, ean: '8721008368139', etikett: falsch })
+  const { scanner } = await scannerOeffnen(page)
+  // Ein einzelner fremder Eintrag (womöglich falsch) wird nicht vorgeschlagen.
+  await expect(scanner.locator('[data-scan-hint]')).toContainText('kennen wir noch nicht')
+
+  mock.table('scan_etiketten').push(
+    { user_id: FREMD_1, ean: '4006381333931', etikett: BERGAMOT },
+    { user_id: FREMD_2, ean: '4006381333931', etikett: BERGAMOT },
+  )
+  expect(mock.callRpc('scan_produkt_laden', { p_ean: '4006381333931' })).toEqual(BERGAMOT)
+})
+
+test('Neu fotografiert: das eigene Etikett wird überschrieben', async ({ page, mock }) => {
+  await kameraMitCode(page, '8721008368139')
+  const falsch = { ...BERGAMOT, ingredients: [{ ...BERGAMOT.ingredients[0], amount: 150 }] }
+  mock.table('scan_etiketten').push({ user_id: TEST_USER.id, ean: '8721008368139', etikett: falsch })
+  mock.labelExtract.label = BERGAMOT
+  const { scanner } = await scannerOeffnen(page)
+
+  const ergebnis = scanner.locator('[data-scan-result]')
+  await expect(ergebnis).toContainText('150 mg')
+  // Stimmt nicht: Etikett stattdessen fotografieren.
+  await ergebnis.locator('[data-scan-again]').click()
+  await scanner.locator('[data-scan-file-input]').setInputFiles(ETIKETT)
+  const einwilligung = scanner.locator('[data-ai-consent]')
+  await einwilligung.locator('[data-ai-consent-check]').check()
+  await einwilligung.locator('[data-ai-consent-accept]').click()
+  await expect(ergebnis).toContainText('1.500 mg')
+  await ergebnis.locator('[data-scan-apply]').click()
+  await expect(scanner).toBeHidden()
+  await expect.poll(() => mock.table('scan_etiketten').map(row => (row.etikett as typeof BERGAMOT).ingredients[0].amount))
+    .toEqual([1500])
 })
