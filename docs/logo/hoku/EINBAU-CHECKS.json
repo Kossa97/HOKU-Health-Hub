@@ -123,6 +123,40 @@
       "sha256": "652f54fcf0b2d8a6dee17936fe7531b1fc981e848c9f2c99c9f4b4e319e6da44"
     },
     {
+      "file": "public/apple-touch-icon.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 12,
+        "right": 167,
+        "top": 11,
+        "bottom": 168,
+        "width": 156,
+        "height": 158,
+        "radius": 79.30006305167733
+      },
+      "sha256": "21b205b0add43069a9217513d76e8fcdf62ae7a20a106a6bac5af41decdb6776"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 67,
+        "right": 957,
+        "top": 61,
+        "bottom": 962,
+        "width": 891,
+        "height": 902,
+        "radius": 453.4208861532517
+      },
+      "sha256": "c9e50b6e09e044f661338d32d9f3caa8c35e3738570c7bbf27dbcb516cc6bbe1"
+    },
+    {
       "file": "public/icons/hoku-dunkel-maskable-512.png",
       "kind": "maskable",
       "width": 512,

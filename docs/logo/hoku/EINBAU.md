@@ -32,6 +32,12 @@ Hintergrund für Android, PWA-Start und Startbilder: #000101, passend zum dunkle
 
 ## Aktualisierung und Prüfung
 
+### iPhone-Korrektur vom 02.11.2026
+
+Das vorhandene dunkle Cyan-Motiv bleibt unverändert. Eine neu generierte Alternative wurde abgelehnt und wird nicht eingebaut. Die öffentliche Standard-Adresse `/apple-touch-icon.png` lieferte bei der Prüfung HTML statt eines Bildes. Sie enthält jetzt denselben vollständig deckenden 180-px-Export wie die vorhandene iPhone-Fassung. Zusätzlich ist derselbe freigegebene 1024-px-Export wie beim nativen iOS-App-Icon als größeres Touch-Icon verlinkt. Die neuen Links tragen eine Versionskennung. Es gibt keine neue weiße Kachel, keine vorgezeichneten runden Ecken und keinen veränderten Partikelausschnitt in diesen Dateien.
+
+Die Auswirkungen auf Safaris Installationsvorschau müssen nach Veröffentlichung am Gerät geprüft werden; das beobachtete weiße Vorschaubild lässt sich aus dem Screenshot allein nicht vollständig erklären. Grundlage für den Standard-Pfad und die Größenwahl: [Apple Safari Web Content Guide](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
+
 HTML und PWA-Manifest verwenden neue Icon-URLs, damit alte zwischengespeicherte Fassungen leichter abgelöst werden. Die bisher verwendeten Dateien sind ebenfalls überschrieben. `EINBAU-CHECKS.json` hält Größen, tatsächliche Inhaltsgrenzen, Sicherheitsbereich und Dateiprüfsummen fest. `eingebaut.png` zeigt die konkreten Exporte einschließlich einer adaptiven Kreis-Maske und der Startbildschirme.
 
 Diese Dateien sind im Projekt eingebaut. Veröffentlichung und ein neuer nativer App-Build sind eigene Schritte; eine bereits installierte App wird durch lokale Dateiersetzung nicht ausgetauscht.
