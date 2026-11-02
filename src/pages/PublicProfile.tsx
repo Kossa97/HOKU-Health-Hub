@@ -13,6 +13,8 @@ import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { Sheet } from '../features/compliance/components/Sheet'
 import { ProfilKopf } from '../features/profil/components/ProfilKopf'
 import { ProfilKarten } from '../features/profil/components/ProfilKarten'
+import { FortschrittKarte } from '../features/profil/components/FortschrittKarte'
+import { AbzeichenKarte } from '../features/profil/components/AbzeichenKarte'
 import { useSignedUrl } from '../features/profil/hooks/useSignedUrl'
 import { parseProfileView, type ProfileView } from '../features/profil/lib/profileView'
 
@@ -237,6 +239,11 @@ function AppAnsicht({ view, band, onNeuLaden }: { view: ProfileView; band: React
           </section>
         ) : (
           <>
+            {/* 2b: nur bei Freigabe; ohne Chips, ohne Einzelwerte, ohne Zeitreise */}
+            {view.fields.progress && (
+              <FortschrittKarte summary={{ total: view.fields.progress.total, areas: view.fields.progress.areas, since: view.fields.progress.since }} />
+            )}
+            {view.fields.badges && <AbzeichenKarte own={false} ids={view.fields.badges} />}
             <ProfilKarten fields={view.fields} />
             {view.fields.reviews && (
               <Berichte username={view.username} fremd={fremd} onMelden={review => setMeldet({ art: 'erfahrung', review })} />

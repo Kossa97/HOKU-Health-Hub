@@ -26,6 +26,8 @@ const Profil = lazyPage(() => import('./pages/Profil'), 'Profil')
 const ProfilEinstellungen = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilEinstellungen')
 const ProfilSichtbarkeit = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilSichtbarkeit')
 const ProfilBlockiert = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilBlockiert')
+const ProfilFortschritt = lazyPage(() => import('./pages/ProfilFortschritt'), 'ProfilFortschritt')
+const ProfilAbzeichen = lazyPage(() => import('./pages/ProfilAbzeichen'), 'ProfilAbzeichen')
 const PublicProfile = lazyPage(() => import('./pages/PublicProfile'), 'PublicProfile')
 const FAQ = lazyPage(() => import('./pages/FAQ'), 'FAQ')
 const Rechner = lazyPage(() => import('./pages/Rechner'), 'Rechner')
@@ -111,6 +113,8 @@ function PersonalApp() {
             <Route path="profil/einstellungen" element={<LazyPage><ProfilEinstellungen /></LazyPage>} />
             <Route path="profil/sichtbarkeit" element={<LazyPage><ProfilSichtbarkeit /></LazyPage>} />
             <Route path="profil/blockiert" element={<LazyPage><ProfilBlockiert /></LazyPage>} />
+            <Route path="profil/fortschritt" element={<LazyPage><ProfilFortschritt /></LazyPage>} />
+            <Route path="profil/abzeichen" element={<LazyPage><ProfilAbzeichen /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
             <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />
