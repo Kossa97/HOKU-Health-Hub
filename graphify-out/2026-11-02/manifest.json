@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793642703.2001908,
-    "seen": 1793643176.8252823,
-    "ast_hash": "340ec4c5e6f08fdceec89dc103ff6ea7",
+    "mtime": 1793644356.0745873,
+    "seen": 1793644644.6477964,
+    "ast_hash": "f7deeb0e475ffe6b97bb264a1e035fd3",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793643133.571272,
-    "seen": 1793643176.8268967,
-    "ast_hash": "3be0b8a017b6d2f16497901c68002e12",
+    "mtime": 1793644621.7111187,
+    "seen": 1793644644.6709569,
+    "ast_hash": "6920a70ae3e0cd946deb59183acb656b",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -17178,9 +17178,9 @@
     "semantic_hash": ""
   },
   "e2e/login.spec.ts": {
-    "mtime": 1793643064.0676382,
-    "seen": 1793643176.824783,
-    "ast_hash": "5d9f5ebc9bc4de984ea826c548152d66",
+    "mtime": 1793644577.3225517,
+    "seen": 1793644644.6419168,
+    "ast_hash": "402afa1596bba6011f246cee78ab1d20",
     "semantic_hash": ""
   },
   "src/features/auth/lib/sitzung.test.ts": {
