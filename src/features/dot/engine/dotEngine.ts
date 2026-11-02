@@ -973,6 +973,10 @@ export function createDot(host: DotHost): DotApi {
     } else { B.x = Z.x; B.y = Z.y; B.r = rB; B.login.phase = 'ruhe'; auftrittEnde(true) }
   }
   function loginBetreten(el: HTMLElement) {
+    // Die Anmeldung hat keine Leiste. Kommt man aus der App (Abmelden), galt sonst noch die alte: ihr Tor
+    // leuchtete über der Fußzeile, und ihre Kapsel war eine unsichtbare Wand, unter die er nicht kam (Nutzer
+    // 02.11.2026). In die App zurück setzt `setSeite` sie wieder
+    NAV.on = false; vermessen()
     B.stage = el; messeBuehne()
     if (B.mode === 'login') return
     B.mode = 'login'; B.drag = null; B.flat = 0; B.thinT = 0; B.recedeT = 0

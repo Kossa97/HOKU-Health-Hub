@@ -126,3 +126,27 @@ test('Kalorientracker sonst: nur ein Umlauf, ohne Sätze; der Rundflug kommt ers
   expect(JSON.parse((await page.evaluate(() => localStorage.getItem('tyd.dot.rundflug.v1')))!).n).toBe(1)
   expect(mock.coach.calls).toEqual([])
 })
+
+test('nach dem Abmelden: auf der Anmeldung gilt die Leiste der App nicht mehr, Hoku kommt bis an den unteren Rand', async ({ page, mock }) => {
+  // Nutzer 02.11.2026: im Login nur oben an den Rand, und das Tor seines Hauses leuchtete über der Fußzeile
+  void mock
+  await page.goto('/profil')
+  await bereit(page)
+  await logo(page).click()
+  await lassLaufen(page, 3000)
+  page.on('dialog', d => d.accept())
+  await page.getByRole('button', { name: /Abmelden/ }).click()
+  await lassLaufen(page, 7000)
+  await expect(page).toHaveURL(/auth/)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const { width: W, height: H } = page.viewportSize()!
+  const b = (await figur.boundingBox())!
+  const x = b.x + b.width / 2, y = b.y + b.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  for (let i = 1; i <= 20; i++) { await page.mouse.move(x + (W / 2 - x) * i / 20, y + (H - 2 - y) * i / 20); await page.clock.runFor(16) }
+  await lassLaufen(page, 300)
+  const g = (await figur.boundingBox())!
+  await page.mouse.up()
+  expect(g.y + g.height).toBeGreaterThan(H - 12)
+})
