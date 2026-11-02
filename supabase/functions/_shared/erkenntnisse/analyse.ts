@@ -7,6 +7,7 @@ import type { Fund, Rohdaten } from './typen.ts'
 import { tagePlus } from './zeit.ts'
 
 const FENSTER_TAGE = 90
+const SERIE_TAGE = 366
 const Q_DEUTLICH = 0.05
 const Q_HINWEIS = 0.1
 const MIN_TAGE_DEUTLICH = 12
@@ -26,7 +27,8 @@ export function analysiere(roh: Rohdaten, zone: string, heute: string): Fund[] {
     else if (q[i] <= Q_HINWEIS) funde.push({ ...k.fund, datenlage: 'hinweis' })
   })
 
-  const serie = tagebuchSerie(tage)
+  // T7 braucht eine längere Reihe: die Marken 100 und 365 liegen jenseits der 90 Tage
+  const serie = tagebuchSerie(baueTage(roh, zone, tagePlus(heute, -SERIE_TAGE), bis))
   if (serie) funde.push(serie)
   funde.push(...kraftRekorde(roh.trainings, zone, bis))
   return funde

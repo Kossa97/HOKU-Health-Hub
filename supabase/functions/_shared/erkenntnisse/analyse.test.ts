@@ -56,6 +56,21 @@ describe('erkenntnisse: analysiere', () => {
     expect(analysiere(roh, ZONE, HEUTE)).toEqual(analysiere(schlafRoh(12, 470, 420), ZONE, HEUTE))
   })
 
+  it('T7 sieht länger zurück als 90 Tage: Serie von 103 Tagen bis gestern gibt Marke 100', () => {
+    const roh: Rohdaten = { ...leer, tagebuch: [] }
+    for (let i = 103; i >= 1; i--) roh.tagebuch.push({ log_date: tagePlus(HEUTE, -i), energie: null })
+    const funde = analysiere(roh, ZONE, HEUTE)
+    expect(funde).toHaveLength(1)
+    expect(funde[0]).toMatchObject({ id: 'T7', schluessel: 'T7:tagebuch:100' })
+    expect(funde[0].werte).toEqual({ tage: 100 })
+  })
+
+  it('T7: Serie von 40 Tagen hat Marke 30 vor 10 Tagen erreicht, kein Fund', () => {
+    const roh: Rohdaten = { ...leer, tagebuch: [] }
+    for (let i = 40; i >= 1; i--) roh.tagebuch.push({ log_date: tagePlus(HEUTE, -i), energie: null })
+    expect(analysiere(roh, ZONE, HEUTE)).toEqual([])
+  })
+
   it('hängt T7 und R4 unverändert an', () => {
     const roh = schlafRoh(12, 470, 420)
     for (let i = 0; i < 8; i++) roh.tagebuch.push({ log_date: tagePlus('2026-10-25', i), energie: null })
