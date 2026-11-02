@@ -2,14 +2,15 @@
 -- Spec: docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md
 -- Setzt supabase-profil-p2a-sichtbarkeit.sql voraus (laeuft danach).
 --
--- Additiv und idempotent: eine neue Tabelle (create table if not exists),
--- Pruefungen nur wenn noch nicht da, Funktionen per create or replace, Policy
+-- Additiv und idempotent: eine neue Tabelle (create table if not exists), ihre
+-- Spalte earned_badges per add column if not exists, Pruefungen nur wenn noch nicht da, Funktionen per create or replace, Policy
 -- per drop policy if exists + create policy. Kein drop von Tabellen oder
 -- Spalten, kein delete, kein update. Bestehende Zeilen bleiben unberuehrt.
 --
 -- Neu:
 -- - progress_settings: Start, fruehere Starts, Richtung je Wert, Baseline aus
---   Apple Health / Health Connect, Wochenreihe fuer die Zeitreise. Nur der
+--   Apple Health / Health Connect, Wochenreihe fuer die Zeitreise, verdiente
+--   Abzeichen mit dem Tag des Erhalts. Nur der
 --   Nutzer selbst liest und schreibt (RLS); andere sehen davon nie etwas.
 -- - Sichtbarkeitsfelder "progress" (Gesamt + Bereiche) und "badges" (verdiente
 --   Abzeichen). Die Feldliste steht jetzt einmal in profile_fields();
@@ -37,13 +38,14 @@
 --   select count(*) from public.progress_settings;                                         -- 0
 --   select count(*) from pg_policies where schemaname = 'public' and tablename = 'progress_settings'; -- 1
 --   select count(*) from pg_constraint where conrelid = 'public.progress_settings'::regclass
---      and contype = 'c';                                                                  -- 6
+--      and contype = 'c';                                                                  -- 7
 --   select cardinality(public.profile_fields());                                           -- 32
 --   select cardinality(public.profile_badge_ids());                                        -- 39
 --   select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --    where n.nspname = 'public' and p.proname in ('profile_fields','profile_badge_ids',
 --          'progress_day_ok','progress_metric_ok','progress_directions_ok','progress_baselines_ok',
---          'progress_days_ok','profile_visibility_ok','profile_snapshot_clean','profile_view'); -- 10
+--          'progress_days_ok','progress_earned_ok','profile_visibility_ok','profile_snapshot_clean',
+--          'profile_view');                                                                  -- 11
 --   select public.profile_visibility_ok('{"progress":"all","badges":"friends"}');          -- true
 --   select count(*) from public.profiles where not public.profile_visibility_ok(field_visibility); -- 0
 
@@ -203,6 +205,23 @@ as $$
          else false end;
 $$;
 
+-- Verdiente Abzeichen: Objekt { Abzeichen-ID: Tag des Erhalts }, nur bekannte IDs.
+create or replace function public.progress_earned_ok(v jsonb)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when jsonb_typeof(v) = 'object' then
+           pg_column_size(v) <= 4096
+           and not exists (
+             select 1 from jsonb_each(v) e
+              where e.key <> all (public.profile_badge_ids())
+                 or jsonb_typeof(e.value) <> 'string'
+                 or not public.progress_day_ok(e.value #>> '{}'))
+         else false end;
+$$;
+
 -- 4. Einstellungen des Gesamtfortschritts -------------------------------------
 -- Gehoert nur dem Nutzer. Das Geraet rechnet; andere sehen nur, was im
 -- Schnappschuss unter "progress" steht und profile_view freigibt.
@@ -213,8 +232,13 @@ create table if not exists public.progress_settings (
   directions jsonb not null default '{}'::jsonb,
   baselines jsonb not null default '{}'::jsonb,
   history jsonb not null default '[]'::jsonb,
+  earned_badges jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+-- Verdiente Abzeichen (einmal verdient bleibt verdient). Fuer Datenbanken, in
+-- denen eine fruehere Fassung dieser Datei die Tabelle ohne die Spalte anlegte.
+alter table public.progress_settings add column if not exists earned_badges jsonb not null default '{}'::jsonb;
 
 do $$
 begin
@@ -240,6 +264,10 @@ begin
       check (case when jsonb_typeof(history) = 'array'
                   then jsonb_array_length(history) <= 104 and pg_column_size(history) <= 32768
                   else false end);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'progress_settings_earned_badges_check') then
+    alter table public.progress_settings add constraint progress_settings_earned_badges_check
+      check (public.progress_earned_ok(earned_badges));
   end if;
   if not exists (select 1 from pg_constraint where conname = 'progress_settings_size_check') then
     alter table public.progress_settings add constraint progress_settings_size_check
