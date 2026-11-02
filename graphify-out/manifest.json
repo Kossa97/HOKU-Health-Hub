@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793366445.5483093,
-    "seen": 1793605832.724161,
-    "ast_hash": "5419200592cb9838cb6d863aaf521fe0",
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.9002297,
+    "ast_hash": "09c2fd009572ce20232d3adfc9d92981",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793366445.5545874,
-    "seen": 1793605832.7242343,
-    "ast_hash": "caa2fb41db887a82f638bbab5734167b",
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.9002807,
+    "ast_hash": "f35a937008e926762f7b4ec1a86270c7",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793600048.870861,
-    "seen": 1793605832.7246587,
+    "mtime": 1793607605.7909713,
+    "seen": 1793608054.9006073,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -6420,9 +6420,9 @@
     "semantic_hash": ""
   },
   "e2e/training.spec.ts": {
-    "mtime": 1793605465.0968268,
-    "seen": 1793605832.7202425,
-    "ast_hash": "b9719bae392062a7c87a6bfa34c977c6",
+    "mtime": 1793607256.3860335,
+    "seen": 1793608054.8979368,
+    "ast_hash": "047b3f51cd2c3c207f958cf372f24b30",
     "semantic_hash": ""
   },
   "src/features/training/TrainingPage.tsx": {
@@ -6630,15 +6630,15 @@
     "semantic_hash": ""
   },
   "src/features/training/hooks/useTrainingData.ts": {
-    "mtime": 1793594711.3510387,
-    "seen": 1793605832.7233572,
-    "ast_hash": "5a8a29a4747712ade8ea358ba0c323cf",
+    "mtime": 1793606959.97751,
+    "seen": 1793608054.8997738,
+    "ast_hash": "cd4462b9a741572c1ca021cf457235dd",
     "semantic_hash": ""
   },
   "src/features/training/i18n/coreTexts.ts": {
-    "mtime": 1793593695.7450302,
-    "seen": 1793605832.7233608,
-    "ast_hash": "8e91ccc7e2bf9c4d32ae407af7c3ada8",
+    "mtime": 1793607132.4459934,
+    "seen": 1793608054.899776,
+    "ast_hash": "9f9a5aa324ac209fb3d1545ef70b381b",
     "semantic_hash": ""
   },
   "src/features/training/i18n/index.ts": {
@@ -6762,9 +6762,9 @@
     "semantic_hash": ""
   },
   "src/features/training/services/trainingRepo.ts": {
-    "mtime": 1793593438.2576334,
-    "seen": 1793605832.7235525,
-    "ast_hash": "60e3e6364525d9e8d1f7853819b84ba9",
+    "mtime": 1793606959.9759893,
+    "seen": 1793608054.8999064,
+    "ast_hash": "48043e8c115b832ac60b43cd1a4c982a",
     "semantic_hash": ""
   },
   "src/features/training/types.ts": {
@@ -7794,15 +7794,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
-    "mtime": 1793366445.3181026,
-    "seen": 1793605832.7212324,
-    "ast_hash": "7704dd19b61be6410cb248f91bd426a8",
+    "mtime": 1793606944.9069865,
+    "seen": 1793608054.8985329,
+    "ast_hash": "9b20ae147dc03a5ff29dd6e17d4fe0cf",
     "semantic_hash": ""
   },
   "src/features/dot/chat/CoachPanel.tsx": {
-    "mtime": 1793366445.3197849,
-    "seen": 1793605832.7212632,
-    "ast_hash": "3dc3dde4d898298e13f9646c1ef4e157",
+    "mtime": 1793606944.911332,
+    "seen": 1793608054.8985548,
+    "ast_hash": "f1e1084b9732c8db11682a277cc424af",
     "semantic_hash": ""
   },
   "src/features/dot/chat/coachService.ts": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793412512.4806836,
-    "seen": 1793605832.7212915,
-    "ast_hash": "222235a124db70e50c32719e61928bee",
+    "mtime": 1793606944.911332,
+    "seen": 1793608054.8985772,
+    "ast_hash": "3d5349b6069dd2a83f60f76dab0a8fa2",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -7860,15 +7860,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
-    "mtime": 1793366445.3239534,
-    "seen": 1793605832.7213287,
-    "ast_hash": "bd49b2fe70c9aeb2561dfcc5974ecd4a",
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8987095,
+    "ast_hash": "351ea32ed2eff5762372b1014003a6a1",
     "semantic_hash": ""
   },
   "src/features/dot/texte.ts": {
-    "mtime": 1793366445.3245385,
-    "seen": 1793605832.7213335,
-    "ast_hash": "6492ae1fb67aeffbad0fda495f1d6d8b",
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8987114,
+    "ast_hash": "f0c9edf31f5853a89f2dc2b665c75327",
     "semantic_hash": ""
   },
   "src/features/dot/useDotWeg.ts": {
@@ -7914,9 +7914,9 @@
     "semantic_hash": ""
   },
   "memory/projects/ki-coach.md": {
-    "mtime": 1793412512.4766834,
-    "seen": 1793605832.7257426,
-    "ast_hash": "f22cf4f262b1fbca3eb1a89e224f9f58",
+    "mtime": 1793606944.9029863,
+    "seen": 1793608054.901335,
+    "ast_hash": "c7f900e52a2b3a99300bb16c9ce6fecf",
     "semantic_hash": ""
   },
   "e2e/dot-auto.spec.ts": {
@@ -17310,15 +17310,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.test.ts": {
-    "mtime": 1793366445.3228285,
-    "seen": 1793605832.7213063,
-    "ast_hash": "4c7e1fe0fbf92665a9d3d44443499253",
+    "mtime": 1793606944.911332,
+    "seen": 1793608054.898683,
+    "ast_hash": "e132e57415dedd93269d4f2b8d7f71bd",
     "semantic_hash": ""
   },
   "src/features/dot/engine/gesten.ts": {
-    "mtime": 1793366445.323718,
-    "seen": 1793605832.7213097,
-    "ast_hash": "9b09f3d09222c76dda714abf79d61fb4",
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8986871,
+    "ast_hash": "a54ad4ccf912a4c082969c655c739b37",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-29-hoku-login-fuehrung.md": {
@@ -18924,9 +18924,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/plan/PlanSection.tsx": {
-    "mtime": 1793605594.4004416,
-    "seen": 1793605832.7232625,
-    "ast_hash": "25b7eb9f33709af14179e2d7c0893d7b",
+    "mtime": 1793607413.0282974,
+    "seen": 1793608054.8997147,
+    "ast_hash": "e5d53ca67e366f6a24f9ee59f3417dc3",
     "semantic_hash": ""
   },
   "src/features/training/components/plan/useDragReorder.ts": {
@@ -18954,9 +18954,9 @@
     "semantic_hash": ""
   },
   "src/features/training/i18n/editorTexts.ts": {
-    "mtime": 1793605374.031583,
-    "seen": 1793605832.7233646,
-    "ast_hash": "f6f1528475a468f3afabc4f6b7f69c70",
+    "mtime": 1793607046.5390441,
+    "seen": 1793608054.8997784,
+    "ast_hash": "20c254c1249852b74a50a56b0723c25f",
     "semantic_hash": ""
   },
   "src/features/training/i18n/liveTexts.ts": {
@@ -19236,9 +19236,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/plan/PlanEditor.tsx": {
-    "mtime": 1793594711.350458,
-    "seen": 1793605832.7232583,
-    "ast_hash": "1f8bbe4aafe3834ba7f36dd4f180ff56",
+    "mtime": 1793607046.5383463,
+    "seen": 1793608054.899712,
+    "ast_hash": "903646aae4c8dc2330751979245783f7",
     "semantic_hash": ""
   },
   "src/features/training/lib/clipboard.ts": {
@@ -19293,6 +19293,54 @@
     "mtime": 1793593055.9465826,
     "seen": 1793605832.7247484,
     "ast_hash": "fd1187cf58acd76b4a701b8e6bc8bb9e",
+    "semantic_hash": ""
+  },
+  "src/features/dot/HokuFarbAuswahl.tsx": {
+    "mtime": 1793606944.9069865,
+    "seen": 1793608054.8985388,
+    "ast_hash": "48d64938609c9353ad7afd52633117ee",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/auge.test.ts": {
+    "mtime": 1793606944.911332,
+    "seen": 1793608054.8985732,
+    "ast_hash": "f8a670860dc967bac4fd819fd80fc804",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/auge.ts": {
+    "mtime": 1793606944.911332,
+    "seen": 1793608054.8985748,
+    "ast_hash": "c50b66483f54c1ce60f25fe248fa0720",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/schreibmarke.test.ts": {
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8986895,
+    "ast_hash": "2aaad197a5ab0594b54066034dd8a5c1",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/schreibmarke.ts": {
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8986914,
+    "ast_hash": "2b9b9b0c87d1819399b22e6dda74f7cd",
+    "semantic_hash": ""
+  },
+  "src/features/dot/lib/hokuFarbe.test.ts": {
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8987002,
+    "ast_hash": "2b3502453dbf663dc798e1a98f37b9fb",
+    "semantic_hash": ""
+  },
+  "src/features/dot/lib/hokuFarbe.ts": {
+    "mtime": 1793606944.9143364,
+    "seen": 1793608054.8987026,
+    "ast_hash": "727f0be4e5b67991c22835c7031555de",
+    "semantic_hash": ""
+  },
+  "src/features/training/services/trainingRepo.deletePlan.test.ts": {
+    "mtime": 1793607206.181319,
+    "seen": 1793608054.8999019,
+    "ast_hash": "b8936ee9067ef757db533aef9d159665",
     "semantic_hash": ""
   }
 }
