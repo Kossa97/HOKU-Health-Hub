@@ -18,7 +18,7 @@ import {
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
 import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibmarke'
-import { FREUDE, GESTE_FERN, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { FREUDE, GESTE_FERN, GESTE_N, STILL, formMitAuge, gestenBild, gestenVorbereiten, naechsterFehler, neueGestenKugel, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
 import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
 import { LOOKS, type Look } from '../../../lib/look'
@@ -473,7 +473,7 @@ export function createDot(host: DotHost): DotApi {
   const OX = new Float32Array(ALLE), OY = new Float32Array(ALLE), OZ = new Float32Array(ALLE)
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
-  const GB: GestenBild = { P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) }
+  const GB: GestenBild = { P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N), K: neueGestenKugel() }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
   const REL = new Float32Array(ALLE), SX = new Float32Array(ALLE), SY = new Float32Array(ALLE)
 
@@ -1502,7 +1502,7 @@ export function createDot(host: DotHost): DotApi {
   function wechsel() {
     const tf = B.textF
     // Verlässt er die Kugel, schließt er vorher das Auge (alte Ziele mit geschlossenem Lid)
-    if (letzteForm === 'sphere' && B.shape !== 'sphere' && AUGE.offen > 0.05) {
+    if (letzteForm === 'sphere' && B.shape !== 'sphere' && !formMitAuge(B.form, B.wahl) && AUGE.offen > 0.05) {
       const neu = B.shape, kante = AUGE.lidKante, hoer = AUGE.hoer
       B.shape = 'sphere'; AUGE.lidKante = AUGE.rp * 1.08; AUGE.hoer = 0
       for (let i = 0; i < PUNKTE; i++) { const z = shapeTarget(B.pts[i], letztesT); TX[i] = z[0]; TY[i] = z[1]; TZ[i] = z[2] }
@@ -1562,8 +1562,18 @@ export function createDot(host: DotHost): DotApi {
       case 'freude': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
         if (p.i >= GESTE_N) return ziel(0, 0, 0)
-        const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
-        return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
+        const j = p.i * 3, K = GB.K!
+        let X = GB.P[j], Y = GB.P[j + 1], z = GB.P[j + 2], sicht = 1, licht = GB.L[p.i]
+        // Auge auf dem Kugelkörper der Geste (Nutzer 02.11.2026): nur Punkte, die auf der Kugel liegen, nicht Funken oder Wolken
+        if (K.an && AUGE.offen > 0.005) {
+          const lx = (X - K.x) / K.sx, ly = (Y - K.y) / K.sy, lz = z / K.s
+          if (Math.abs(lx * lx + ly * ly + lz * lz - 1) < 0.12) {
+            augePunkt(AUGE, lx, ly, lz, p.iris, p.i, AUS)
+            X = K.x + AUS[0] * K.sx; Y = K.y + AUS[1] * K.sy; z = AUS[4] * K.s; sicht = AUS[2]; licht *= AUS[3]
+          }
+        }
+        const s = GESTE.fern / (GESTE.fern - z)
+        return ziel(X * s, Y * s, (0.28 + 0.72 * clamp01((z + 1) / 2)) * sicht, licht, GB.H[p.i])
       }
       case 'frame': {
         // Portal (Nutzer 29.10.2026, S3 + S5): ein Kreis um Hokus Platz wächst über das Display hinaus. Jeder
@@ -1808,11 +1818,14 @@ export function createDot(host: DotHost): DotApi {
     TEMPO.lx = B.x; TEMPO.ly = B.y
     const tempo = Math.hypot(TEMPO.x, TEMPO.y)
     let ziel: { gx: number; gy: number } | null = null, gross = false
+    const gestenKugel = !!B.form && B.shape === B.form && formMitAuge(B.form, B.wahl) && GB.K!.an
     if (B.drag) { ziel = tempo > 80 ? { gx: (TEMPO.x / tempo) * 0.45, gy: (TEMPO.y / tempo) * 0.45 } : { gx: 0, gy: 0 }; gross = true }
     else if (tempo > 260) { const s = Math.min(0.55, tempo / 1400) / tempo; ziel = { gx: TEMPO.x * s, gy: TEMPO.y * s }; gross = true }
+    // eine Geste mit Kugelkörper gibt den Blick vor (nicken, schütteln, Funken nachsehen …)
+    else if (gestenKugel && GB.K!.blick) ziel = { gx: GB.K!.gx, gy: GB.K!.gy }
     else if (performance.now() < BLICK.bis) ziel = blickZu(B.x, B.y, Math.max(B.r, 1), BLICK.x, BLICK.y)
     if (ziel && Math.hypot(ziel.gx - AUGE.gx, ziel.gy - AUGE.gy) > 0.35) gross = true
-    const kugel = B.shape === 'sphere'
+    const kugel = B.shape === 'sphere' || gestenKugel
     const draussen = !schlaeft && B.mode !== 'exit' && B.mode !== 'enter' && B.mode !== 'away' && B.mode !== 'gather' && B.mode !== 'portal' && !B.intro.an
     augeSchritt(AUGE, dt, {
       ziel, gross, weniger, weg: WEG_SEITE,

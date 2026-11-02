@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FEHLER, FORM_DAUER, GESTE_N, GRUSS_DAUER, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type GestenWahl, type Gruss, type Netz } from './gesten'
+import { FEHLER, FORM_DAUER, GESTE_N, GRUSS_DAUER, formMitAuge, neueGestenKugel, HAKEN_ENDE, HAKEN_GRUEN, gestenBild, naechsterFehler, type DotForm, type Fehler, type GestenBild, type GestenWahl, type Gruss, type Netz } from './gesten'
 
 const bild = (): GestenBild => ({ P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) })
 // Abstand jedes Punkts von Dots Mitte (Einheit: sein Radius)
@@ -154,5 +154,45 @@ describe('Dot: Gesten', () => {
     }
     expect(hellsterAbstand(spaet)).toBeGreaterThan(hellsterAbstand(frueh) + 0.4)
     expect(frueh.L.filter(v => Math.abs(v - 1.05) < 1e-4).length).toBeGreaterThan(30)
+  })
+})
+
+describe('Auge auf dem Kugelkörper der Gesten (Nutzer 02.11.2026)', () => {
+  const wahl = (w: Partial<GestenWahl> = {}): GestenWahl => ({ gruss: 'einArm', fehler: null, netz: 'sucht', ...w })
+  const mitK = () => ({ ...bild(), K: neueGestenKugel() })
+  it('Gesten mit Kugelkörper melden Mitte und Maße, die Punkte liegen dort auf der Kugel', () => {
+    const faelle: [DotForm, Partial<GestenWahl>, number][] = [
+      ['freude', { freude: 'huepfen' }, 0.3], ['freude', { freude: 'funken' }, 1], ['warten', { warten: 'welle' }, 1],
+      ['warten', { warten: 'wolken' }, 0.1], ['nicken', {}, 0.3], ['schuetteln', {}, 0.5], ['cross', { fehler: 'kugel' }, 0.5],
+      ['hand', { gruss: 'einArm' }, 0.1],
+    ]
+    for (const [f, w, t] of faelle) {
+      const b = mitK()
+      gestenBild(f, t, wahl(w), b)
+      expect(b.K.an, f).toBe(true)
+      expect(formMitAuge(f, wahl(w)), f).toBe(true)
+      // die meisten Punkte liegen auf der gemeldeten Kugel
+      let auf = 0
+      for (let i = 0; i < GESTE_N; i++) {
+        const lx = (b.P[i * 3] - b.K.x) / b.K.sx, ly = (b.P[i * 3 + 1] - b.K.y) / b.K.sy, lz = b.P[i * 3 + 2] / b.K.s
+        if (Math.abs(lx * lx + ly * ly + lz * lz - 1) < 0.12) auf++
+      }
+      expect(auf, f).toBeGreaterThan(GESTE_N * 0.6)
+    }
+  })
+  it('Gesten ohne Kugelkörper (Herz, Haken, X, WLAN, Sanduhr, Brief) melden keinen', () => {
+    for (const [f, w] of [['heart', {}], ['haken', {}], ['cross', { fehler: 'heute' }], ['cross', { fehler: 'balken' }], ['wifi', {}], ['sanduhr', {}], ['brief', {}]] as [DotForm, Partial<GestenWahl>][]) {
+      const b = mitK()
+      gestenBild('nicken', 0.3, wahl(), b)
+      gestenBild(f, 1, wahl(w), b)
+      expect(b.K.an, f).toBe(false)
+      expect(formMitAuge(f, wahl(w)), f).toBe(false)
+    }
+  })
+  it('Nicken und Schütteln geben den Blick vor', () => {
+    const n = mitK(); gestenBild('nicken', 0.26, wahl(), n)
+    expect(n.K.blick).toBe(true); expect(n.K.gy).toBeGreaterThan(0.2)
+    const s = mitK(); gestenBild('schuetteln', 0.56, wahl(), s)
+    expect(Math.abs(s.K.gx)).toBeGreaterThan(0.1)
   })
 })

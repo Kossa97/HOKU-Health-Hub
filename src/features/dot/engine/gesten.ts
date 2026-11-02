@@ -19,7 +19,23 @@ export type DotForm = 'hand' | 'heart' | 'cross' | 'wifi' | 'haken'
 export const GESTE_N = 460
 /** Perspektive der Gesten: so weit (in Hokus Radius) steht das Auge vor seiner Mitte. */
 export const GESTE_FERN = 3.4
-export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array }
+/**
+ * Kugelkörper einer Geste, auf den die Engine Hokus Auge setzt (Nutzer 02.11.2026: die Pupille in allen
+ * Animationen): Mitte und Maße im Gestenraum, dazu ein Blick, den die Geste vorgibt (`blick`).
+ * `an` false: die Geste hat gerade keinen Kugelkörper (Herz, Haken, X, WLAN, Sanduhr, Brief).
+ */
+export interface GestenKugel { an: boolean; x: number; y: number; sx: number; sy: number; s: number; blick: boolean; gx: number; gy: number }
+export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array; K?: GestenKugel }
+export const neueGestenKugel = (): GestenKugel => ({ an: false, x: 0, y: 0, sx: 1, sy: 1, s: 1, blick: false, gx: 0, gy: 0 })
+/** Gesten, die Hoku als Kugel zeigen und deshalb das Auge offen lassen. */
+export function formMitAuge(f: DotForm | null, v: GestenWahl): boolean {
+  return f === 'hand' || f === 'freude' || f === 'warten' || f === 'nicken' || f === 'schuetteln' || (f === 'cross' && v.fehler === 'kugel')
+}
+const kugelAn = (out: GestenBild, x: number, y: number, sx: number, sy: number, s: number) => {
+  const K = out.K
+  if (K) { K.an = true; K.x = x; K.y = y; K.sx = sx; K.sy = sy; K.s = s }
+}
+const blickAuf = (out: GestenBild, gx: number, gy: number) => { const K = out.K; if (K) { K.blick = true; K.gx = gx; K.gy = gy } }
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
 export type Gruss = 'einArm' | 'beideArme'
 /**
@@ -211,6 +227,7 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
     }
   }
   const cl = Math.cos(k.neig), sl = Math.sin(k.neig), sx = k.sx ?? 1, sy = k.sy ?? 1, { P, L, H } = out
+  kugelAn(out, k.ox ?? 0, k.oy, k.sc * sx, k.sc * sy, k.sc)
   for (let i = 0; i < N; i++) {
     const q = i * 3, w = kp.wer[i]
     let x = KUGEL_FEST[q], y = KUGEL_FEST[q + 1], z = KUGEL_FEST[q + 2]
@@ -325,7 +342,7 @@ let balken: Float32Array | null = null
 const baueBalken = () => flaechenPunkte([{ a: [-0.92, -0.92, 0], b: [0.92, 0.92, 0], r: 0.26 }, { a: [0.92, -0.92, 0], b: [-0.92, 0.92, 0], r: 0.26 }], N).p
 function fehler(t: number, art: Fehler | null, out: GestenBild) {
   if (art === 'balken') drehe((balken ??= baueBalken()), out.P, { yaw: 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.95 })
-  else drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 })
+  else { drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 }); kugelAn(out, 0, 0, 0.92, 0.92, 0.92); blickAuf(out, 0, 0.32) }
   out.L.fill(1); out.H.fill(0)
 }
 
@@ -418,6 +435,7 @@ function kreuzBild(t: number, out: GestenBild) {
 // Kugel um (tx, ty), gestaucht um ihren Boden: sx quer, sy hoch; Licht und Farbe für alle gleich
 function kugelBild(tx: number, ty: number, sx: number, sy: number, yaw: number, licht: number, farbe: number, out: GestenBild) {
   drehe(KUGEL_FEST, TMP, { yaw })
+  kugelAn(out, tx, ty + 1 - sy, sx, sy, 1)
   for (let i = 0; i < N; i++) {
     const j = i * 3
     out.P[j] = tx + TMP[j] * sx; out.P[j + 1] = ty + 1 + (TMP[j + 1] - 1) * sy; out.P[j + 2] = TMP[j + 2]
@@ -432,6 +450,7 @@ function huepfen(t: number, out: GestenBild) {
   const h1 = Math.sin(Math.PI * clamp01((t - 0.1) / 0.42)), h2 = Math.sin(Math.PI * clamp01((t - 0.62) / 0.5)), hy = -0.49 * h1 - 0.69 * h2
   const land = Math.max(Math.sin(Math.PI * clamp01((t - 0.52) / 0.12)), Math.sin(Math.PI * clamp01((t - 1.12) / 0.16)))
   kugelBild(0, hy, 1 + 0.14 * land, 1 - 0.16 * land, TAU * weich((t - 0.62) / 0.5), 1, 0, out)
+  blickAuf(out, 0, -0.3)
   const fk = clamp01((t - 0.78) / 0.75)
   if (fk <= 0 || fk >= 1) return
   for (let i = 0; i < N; i++) {
@@ -447,11 +466,14 @@ function strecken(t: number, out: GestenBild) {
   const wo = t > 0.93 ? Math.exp(-(t - 0.93) * 5) * Math.sin((t - 0.93) * 22) : 0
   const sy = 1 - 0.2 * an + 0.22 * Math.max(0, st) - 0.18 * la + 0.08 * wo
   kugelBild(0, hy, 2 - sy, sy, 0, 1 + 0.3 * Math.sin(Math.PI * fl), 0, out)
+  blickAuf(out, 0, -0.4 * Math.sin(Math.PI * fl))
 }
 // F3: federt leicht, aus der Oberseite sprudeln Funken wie ein Springbrunnen und fallen zurück
 function funken(t: number, out: GestenBild) {
   const hy = t < 1.5 ? -0.14 * Math.abs(Math.sin(t * 6)) : 0
   kugelBild(0, hy, 1, 1, 0, 1, 0, out)
+  // er schaut seinen Funken nach
+  blickAuf(out, 0, -0.42)
   for (let i = 0; i < N; i++) {
     const j = i * 3
     if (ZA[j] >= 0.3) continue
@@ -467,6 +489,8 @@ function funken(t: number, out: GestenBild) {
 function welle(t: number, out: GestenBild) {
   const an = clamp01(t / 0.3)
   drehe(KUGEL_FEST, TMP, { yaw: 0.3 * t, s: 0.94 })
+  // er folgt dem Licht mit dem Blick
+  kugelAn(out, 0, 0, 0.94, 0.94, 0.94); blickAuf(out, 0.38 * Math.cos(t * 4.2) * an, 0.3 * Math.sin(t * 4.2) * an)
   for (let i = 0; i < N; i++) {
     const j = i * 3, x = TMP[j], y = TMP[j + 1], z = TMP[j + 2]
     const band = Math.exp(-Math.pow(wickelWinkel(Math.atan2(y, x) - t * 4.2) / 0.45, 2)) * (z > -0.2 ? 1 : 0.35) * an
@@ -482,6 +506,8 @@ function wolken(t: number, out: GestenBild) {
   const nei = 0.08 * Math.sin(t * 2.2), tau = (t - 0.15) % 2.0, schwebe = 0.06 * Math.sin(t * 2.4)
   kugelBild(0, 0, 1, 1, 0.3 * t, 1, 0, out)
   drehe(out.P, out.P, { roll: nei, ty: 0 })
+  // nachdenklich nach oben zu den Wolken
+  blickAuf(out, 0.25, -0.45)
   if (t < 0.15) return
   for (let i = 0; i < N; i++) {
     const j = i * 3, q = ZA[j]
@@ -550,10 +576,14 @@ function brief(t: number, out: GestenBild) {
 function nicken(t: number, out: GestenBild) {
   const n = Math.sin(Math.PI * clamp01((t - 0.1) / 0.32)) + 0.75 * Math.sin(Math.PI * clamp01((t - 0.5) / 0.32)), gl = Math.sin(Math.PI * clamp01((t - 0.1) / 1.05))
   kugelBild(0, 0.13 * n, 1 + 0.04 * n, 1 - 0.05 * n, 0, 1 + 0.55 * gl, clamp01(gl * 1.25), out)
+  // der Blick nickt mit
+  blickAuf(out, 0, 0.42 * n)
 }
 function schuetteln(t: number, out: GestenBild) {
   const dx = 0.13 * Math.sin(t * 14) * Math.sin(Math.PI * clamp01((t - 0.1) / 0.9)), gl = Math.sin(Math.PI * clamp01((t - 0.1) / 1.05))
   kugelBild(dx, 0, 1, 1, 0, 1 + 0.55 * gl, clamp01(gl * 1.25), out)
+  // der Blick schüttelt mit
+  blickAuf(out, dx * 3.5, 0)
 }
 
 /** Herz und Haken vorab bauen (Kandidaten und Auswahl dauern einige Millisekunden), damit ihr erstes Bild nicht ruckelt. */
@@ -571,6 +601,7 @@ export function gestenVorbereiten() {
 
 /** Ein Bild der Geste zum Zeitpunkt t (s seit ihrem Beginn). */
 export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenBild) {
+  if (out.K) { out.K.an = false; out.K.blick = false }
   if (form === 'hand') (v.gruss === 'beideArme' ? beideArme : einArm)(t, out)
   else if (form === 'heart') herz(t, out)
   else if (form === 'cross') { if (v.fehler === 'heute') kreuzBild(t, out); else fehler(t, v.fehler, out) }
