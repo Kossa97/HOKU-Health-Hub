@@ -109,3 +109,22 @@ describe('Wegdrehen (Passwort)', () => {
     expect(Math.abs(a.yaw)).toBeLessThan(0.1)
   })
 })
+
+describe('Denken und Sprechen mit Auge (Nutzer 02.11.2026)', () => {
+  const basis: AugenEingabe = { ziel: { gx: 0, gy: 0 }, gross: false, sichtbar: true, hoert: false, stimme: 0, weniger: false, zufall: () => 0.5 }
+  const lauf = (e: AugenEingabe, s = 1.5) => { const a = neuesAuge(); for (let i = 0; i < s * 60; i++) augeSchritt(a, 1 / 60, e); return a }
+  it('Denken: Pupille enger, Irisring ruhig zu sehen', () => {
+    const ruhe = lauf(basis), denkt = lauf({ ...basis, denkt: true })
+    expect(denkt.rp).toBeLessThan(ruhe.rp * 0.9)
+    const aus = [0, 0, 0, 0, 0]
+    augePunkt(denkt, 0.6, 0.6, Math.sqrt(1 - 0.72), true, 7, aus)
+    // der Irispunkt hat sich vom Körper gelöst und sitzt nahe am Pupillenrand
+    expect(Math.hypot(aus[0], aus[1])).toBeLessThan(0.75)
+  })
+  it('Sprechen: die Pupille weitet sich mit den Worten und fällt danach zurück', () => {
+    const ruhe = lauf(basis), spricht = lauf({ ...basis, spricht: 1 }, 0.3)
+    expect(spricht.rp).toBeGreaterThan(ruhe.rp * 1.25)
+    for (let i = 0; i < 60; i++) augeSchritt(spricht, 1 / 60, { ...basis, spricht: 0 })
+    expect(spricht.rp).toBeLessThan(ruhe.rp * 1.02)
+  })
+})
