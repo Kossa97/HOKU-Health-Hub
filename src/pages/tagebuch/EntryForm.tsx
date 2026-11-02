@@ -27,9 +27,17 @@ interface FormState {
   chips: ChipDraft[]
 }
 
-function initialState(entry: DiaryEntry | null): FormState {
+/** Neuer Eintrag zu einer bestimmten Einnahme (aus dem Kalender). */
+export interface EntryPrefill { stack_item_id: string; dose_log_id: string; occurred_at: Date }
+
+function initialState(entry: DiaryEntry | null, prefill?: EntryPrefill | null): FormState {
   if (!entry) {
-    return { title: '', occurred_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"), stack_item_id: '', dose_log_id: '', notes: '', chips: [] }
+    // Der Eintrag liegt nie vor der Einnahme — sonst stünde sie nicht zur Wahl.
+    const at = prefill && prefill.occurred_at.getTime() > Date.now() ? prefill.occurred_at : new Date()
+    return {
+      title: '', occurred_at: format(at, "yyyy-MM-dd'T'HH:mm"),
+      stack_item_id: prefill?.stack_item_id ?? '', dose_log_id: prefill?.dose_log_id ?? '', notes: '', chips: [],
+    }
   }
   const rows = sortedChips(entry)
   // Ältere Einträge ohne Chips: ihre Wirkung wird ein eigener Chip.
@@ -51,17 +59,18 @@ function initialState(entry: DiaryEntry | null): FormState {
  * Wirkungen/Nebenwirkungen als Chips mit eigenem Editor, Notizen.
  * Planung und Entscheidungen: memory/projects/tagebuch.md.
  */
-export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
+export function EntryForm({ userId, stackItems, entry, prefill, onClose, onSaved }: {
   userId: string
   stackItems: StackItem[]
   entry: DiaryEntry | null
+  prefill?: EntryPrefill | null
   onClose: () => void
   onSaved: () => void
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const locale = getDateLocale()
-  const [atOpen] = useState(() => initialState(entry))
+  const [atOpen] = useState(() => initialState(entry, prefill))
   const [form, setForm] = useState(atOpen)
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState<SymptomKind>('effect')
