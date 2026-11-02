@@ -17,7 +17,11 @@ import {
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
-import { FREUDE, GESTE_FERN, GESTE_N, GESTE_PLATZ, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibmarke'
+import { FREUDE, GESTE_FERN, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
+import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
+import { LOOKS, type Look } from '../../../lib/look'
 
 export type { DotForm } from './gesten'
 
@@ -114,6 +118,8 @@ export interface DotApi {
   /** Bricht einen Hinweis oder das Klopfen sofort ab; Hoku federt zur Bühne. */
   stoppeAuftritt(): void
   stimme(v: number): void
+  /** Passwort: er dreht sich weg (Pupille hinter den Rand), weg vom Feld mit dem Fokus; `false` dreht zurück. */
+  wegsehen(an: boolean): void
   sag(text: string, ms?: number): void
   /** Die Sprechblase sofort schließen. */
   schweige(): void
@@ -141,7 +147,8 @@ const TARGETS: Record<DotStimmung, { spin: number; bright: number; glow: number;
   listen: { spin: 0.2, bright: 0.9, glow: 0.5, hue: 0.3 },
   joy: { spin: 0.5, bright: 1.1, glow: 0.9, hue: 0.25 },
 }
-const SHAPE: Record<DotStimmung, string> = { idle: 'sphere', think: 'rings', speak: 'wave', joy: 'check', listen: 'circle' }
+// Zuhören (Nutzer 02.11.2026, Zuhören 4): Kugel mit Auge, ein Irisring dreht im Takt der Stimme
+const SHAPE: Record<DotStimmung, string> = { idle: 'sphere', think: 'rings', speak: 'wave', joy: 'check', listen: 'sphere' }
 const CYAN = [110, 230, 255], VIOLET = [175, 135, 255], PINK = [255, 120, 200]
 // Fehlerfarben der App: --lg-bad und --lg-warn
 const BAD = [255, 69, 58], WARN = [255, 159, 10], GOOD = [48, 209, 88]
@@ -160,7 +167,6 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
   haken: { bright: 1, glow: 0.5, hue: 0.45 },
   // Hoku führt durch die Anmeldung (Mockup „Dots Auftritte" Version 12)
   freude: { bright: 1.05, glow: 0.6, hue: 0.45 },
-  augen: { bright: 1, glow: 0.4, hue: 0.45 },
   warten: { bright: 1, glow: 0.55, hue: 0.5 },
   sanduhr: { bright: 1, glow: 0.45, hue: 0.45 },
   brief: { bright: 1, glow: 0.5, hue: 0.45 },
@@ -240,7 +246,7 @@ interface Wand extends Abstand {
   L?: number
   hc?: number
 }
-interface Punkt { i: number; u: number; x: number; y: number; z: number; s: number; k: number; par: number }
+interface Punkt { i: number; u: number; iris: boolean; x: number; y: number; z: number; s: number; k: number; par: number }
 interface Funke { x: number; y: number; vx: number; vy: number; t: number; life: number }
 
 interface Auftritt {
@@ -287,6 +293,83 @@ export function createDot(host: DotHost): DotApi {
   const inselSdf = (x: number, y: number) => INSEL ? kastenAbstand(x, y, INSEL, 18) : FERN
   const obstacle = (x: number, y: number) => leistenAbstand(x, y, CAP, PLUS)
 
+  /* ── Auge und Farbe ───────────────────────────────────────────────────── */
+  const AUGE = neuesAuge(), AUS = [0, 0, 0, 0, 0]
+  // Ausrichtung des Augapfels für dieses Bild
+  const LAGE = { cp: 1, sp: 0, cy: 1, sy: 0 }
+  // wohin zuletzt getippt wurde oder was den Fokus bekam (Bildschirm-px) und bis wann das gilt
+  const BLICK = { x: 0, y: 0, bis: 0 }
+  const TEMPO = { x: 0, y: 0, lx: NaN, ly: NaN }
+  let letzteForm = 'sphere', letztesT = 0
+  const blickAuf = (x: number, y: number, ms: number) => { BLICK.x = x; BLICK.y = y; BLICK.bis = performance.now() + ms }
+  const beiFingerAb = (e: PointerEvent) => blickAuf(e.clientX, e.clientY, 2500)
+  const beiFingerZug = (e: PointerEvent) => { if (e.pointerType === 'mouse' || e.buttons) blickAuf(e.clientX, e.clientY, e.pointerType === 'mouse' ? 1600 : 2500) }
+  const beiFokus = (e: FocusEvent) => {
+    const el = e.target
+    if (!(el instanceof HTMLElement) || el === hit) return
+    const m = istSchreibfeld(el) ? schreibmarke(el) : null
+    if (m) { blickAuf(m.x, m.y, 3000); return }
+    const r = el.getBoundingClientRect()
+    if (r.width || r.height) blickAuf(r.left + r.width / 2, r.top + r.height / 2, 3000)
+  }
+  // Schreiben, egal wo in der App: er hört zu und schaut auf die Schreibmarke (Nutzer 02.11.2026)
+  let schreibtBis = 0
+  // Passwort: zu welcher Seite er sich weggedreht hat (0 = schaut normal)
+  let WEG_SEITE = 0
+  const beiEingabe = (e: Event) => {
+    const el = e.target
+    if (!istSchreibfeld(el)) return
+    schreibtBis = performance.now() + 1800
+    B.voice = Math.min(1, B.voice + 0.35)
+    const m = schreibmarke(el)
+    if (m) blickAuf(m.x, m.y, 2500)
+  }
+  // Marke mit Pfeiltasten oder Tippen versetzt: er schaut mit, ohne zuzuhören
+  const beiAuswahl = () => {
+    const el = document.activeElement
+    if (!istSchreibfeld(el)) return
+    const m = schreibmarke(el)
+    if (m) blickAuf(m.x, m.y, 2500)
+  }
+  // Auf dem Handy übernimmt beim Wischen der Browser (Scrollen) und meldet keine Zeigerbewegung mehr;
+  // Berührungen laufen weiter. Danach schaut er dem nachgleitenden Inhalt hinterher.
+  let fingerAuf = false
+  const ROLL = new WeakMap<object, number>()
+  const beiBeruehrung = (e: TouchEvent) => {
+    const f = e.touches[0]
+    fingerAuf = !!f
+    if (f) blickAuf(f.clientX, f.clientY, 2500)
+  }
+  const beiRollen = (e: Event) => {
+    if (fingerAuf) return
+    const ziel = e.target === document ? document.scrollingElement : e.target
+    if (!(ziel instanceof Element)) return
+    const y = ziel.scrollTop, vorher = ROLL.get(ziel)
+    ROLL.set(ziel, y)
+    if (vorher === undefined || Math.abs(y - vorher) < 1) return
+    // rollt der Inhalt nach oben (weiter nach unten gescrollt), schaut er nach oben, und umgekehrt
+    blickAuf(B.x, B.y - Math.sign(y - vorher) * Math.max(B.r, 1) * 4, 450)
+  }
+  window.addEventListener('pointerdown', beiFingerAb, { capture: true, passive: true })
+  window.addEventListener('pointermove', beiFingerZug, { capture: true, passive: true })
+  window.addEventListener('touchstart', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchmove', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchend', beiBeruehrung, { capture: true, passive: true })
+  window.addEventListener('touchcancel', beiBeruehrung, { capture: true, passive: true })
+  document.addEventListener('scroll', beiRollen, { capture: true, passive: true })
+  document.addEventListener('focusin', beiFokus)
+  document.addEventListener('input', beiEingabe, { capture: true, passive: true })
+  document.addEventListener('selectionchange', beiAuswahl)
+  // Farbe: Wahl im Profil, sonst passend zum App-Design
+  let FARBE: HokuFarbe = 'heute', KRAEFTIG = false
+  const leseLook = (): Look => LOOKS.find(l => l === document.documentElement.getAttribute('data-look')) ?? 'schwarz'
+  const farbeNeu = () => {
+    FARBE = aktiveHokuFarbe(leseLook())
+    KRAEFTIG = FARBE !== 'heute' && FARBE !== 'stimmung' && PALETTEN[FARBE].kraeftig
+  }
+  farbeNeu()
+  const farbeAb = beobachteHokuFarbe(farbeNeu)
+
   const sonde = document.createElement('div')
   sonde.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
   document.body.appendChild(sonde)
@@ -331,7 +414,8 @@ export function createDot(host: DotHost): DotApi {
     const pts: Punkt[] = [], ga = Math.PI * (3 - Math.sqrt(5))
     for (let i = 0; i < n; i++) {
       const y = 1 - (2 * (i + 0.5)) / n, r = Math.sqrt(1 - y * y), th = ga * i
-      pts.push({ i, u: i / n, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random(), par: i })
+      // Irisring: jeder zehnte Punkt, über die ganze Kugel verteilt (eine Kappe ließe beim Zuhören ein Loch)
+      pts.push({ i, u: i / n, iris: (i * IRIS_ANTEIL) % 1 < IRIS_ANTEIL - 1e-9, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random(), par: i })
     }
     return pts
   }
@@ -339,7 +423,7 @@ export function createDot(host: DotHost): DotApi {
     const pts = fib(PUNKTE)
     for (let i = PUNKTE; i < ALLE; i++) {
       const q = pts[i % PUNKTE]
-      pts.push({ i, u: i / ALLE, x: q.x, y: q.y, z: q.z, s: Math.random() * TAU, k: Math.random(), par: q.i })
+      pts.push({ i, u: i / ALLE, iris: false, x: q.x, y: q.y, z: q.z, s: Math.random() * TAU, k: Math.random(), par: q.i })
     }
     return pts
   }
@@ -389,7 +473,7 @@ export function createDot(host: DotHost): DotApi {
   const OX = new Float32Array(ALLE), OY = new Float32Array(ALLE), OZ = new Float32Array(ALLE)
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
-  const GB: GestenBild = { P: new Float32Array(GESTE_PLATZ * 3), L: new Float32Array(GESTE_PLATZ), H: new Float32Array(GESTE_PLATZ) }
+  const GB: GestenBild = { P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
   const REL = new Float32Array(ALLE), SX = new Float32Array(ALLE), SY = new Float32Array(ALLE)
 
@@ -606,6 +690,7 @@ export function createDot(host: DotHost): DotApi {
     if (speed < 70) return
     const nx = w.nx, ny = w.ny
     B.flash = Math.min(0.8, B.flash + speed / 2600)
+    if (speed > 320) blinzleAuge(AUGE)
     if (w.id === 'nav') B.navFlash = Math.min(1, B.navFlash + speed / 1500)
     if (w.id === 'insel') B.inselFlash = Math.min(1, B.inselFlash + speed / 1500)
     if (weniger) return
@@ -1290,10 +1375,18 @@ export function createDot(host: DotHost): DotApi {
   const SURF = { a0: 0, da: 1, v: new Float32Array(64 * 4) }
   let ROT_C = 1, ROT_S = 0
   const CB = [0, 0, 0]
-  function dotColorInto(X: number, Y: number, hue: number, heal: number) {
-    const m = clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7)
-    let r = CYAN[0] + (VIOLET[0] - CYAN[0]) * m, g = CYAN[1] + (VIOLET[1] - CYAN[1]) * m, b = CYAN[2] + (VIOLET[2] - CYAN[2]) * m
-    if (Y > 0.55) { const q = Math.min(1, (Y - 0.55) * 1.4); r += (PINK[0] - r) * q; g += (PINK[1] - g) * q; b += (PINK[2] - b) * q }
+  function dotColorInto(X: number, Y: number, hue: number, heal: number, z = 0.9) {
+    let r: number, g: number, b: number
+    if (FARBE === 'heute' || (FARBE === 'stimmung' && B.state === 'think')) {
+      const m = clamp01((X - Y) * 0.32 + 0.5 + (hue - 0.5) * 0.7)
+      r = CYAN[0] + (VIOLET[0] - CYAN[0]) * m; g = CYAN[1] + (VIOLET[1] - CYAN[1]) * m; b = CYAN[2] + (VIOLET[2] - CYAN[2]) * m
+      if (Y > 0.55) { const q = Math.min(1, (Y - 0.55) * 1.4); r += (PINK[0] - r) * q; g += (PINK[1] - g) * q; b += (PINK[2] - b) * q }
+    } else {
+      // gewählte Farbe nach der Tiefe; die Kugel gibt ihre Tiefe als Sichtbarkeit weiter (siehe shapeTarget)
+      const f = B.shape === 'sphere' ? (KRAEFTIG ? Math.pow(clamp01((z - 0.32) / 0.63), 1 / 1.2) : Math.sqrt(clamp01((z - 0.1) / 0.85))) : clamp01(z)
+      const c = tonInTiefe(FARBE, 1 - f)!
+      r = c[0]; g = c[1]; b = c[2]
+    }
     if (heal > 0.01) { const q = Math.min(0.7, heal); r += (225 - r) * q; g += (250 - g) * q; b += (255 - b) * q }
     CB[0] = r; CB[1] = g; CB[2] = b
     return CB
@@ -1378,16 +1471,6 @@ export function createDot(host: DotHost): DotApi {
     B.formT = 0
     B.punktFarbe = f === 'haken' || f === 'nicken' ? GOOD : f === 'cross' || f === 'schuetteln' ? BAD : PINK
     wechsel()
-    if (f === 'augen') armeAnsetzen()
-  }
-  /** Augen zuhalten: die Armpunkte (Kinder) warten unsichtbar an den Schultern, von dort wachsen die Arme. */
-  function armeAnsetzen() {
-    gestenBild('augen', 0, B.wahl, GB)
-    for (let i = GESTE_N; i < GESTE_PLATZ; i++) {
-      QX[i] = TX[i] = OX[i] = GB.P[i * 3]; QY[i] = TY[i] = OY[i] = GB.P[i * 3 + 1]
-      QZ[i] = TZ[i] = OZ[i] = 0; VX[i] = VY[i] = 0; SZ[i] = 1
-    }
-    B.kinderAn = true
   }
   function setText(text: string | null) {
     if (text && !B.kinderAn) { kinderAnsetzen(); B.kinderAn = true }
@@ -1398,6 +1481,13 @@ export function createDot(host: DotHost): DotApi {
   /** Neues Ziel: jeder Punkt startet gestaffelt von dort, wo sein altes Ziel lag. */
   function wechsel() {
     const tf = B.textF
+    // Verlässt er die Kugel, schließt er vorher das Auge (alte Ziele mit geschlossenem Lid)
+    if (letzteForm === 'sphere' && B.shape !== 'sphere' && AUGE.offen > 0.05) {
+      const neu = B.shape, kante = AUGE.lidKante, hoer = AUGE.hoer
+      B.shape = 'sphere'; AUGE.lidKante = AUGE.rp * 1.08; AUGE.hoer = 0
+      for (let i = 0; i < PUNKTE; i++) { const z = shapeTarget(B.pts[i], letztesT); TX[i] = z[0]; TY[i] = z[1]; TZ[i] = z[2] }
+      B.shape = neu; AUGE.lidKante = kante; AUGE.hoer = hoer; AUGE.offen = 0
+    }
     for (let i = 0; i < ALLE; i++) {
       OX[i] = TX[i]; OY[i] = TY[i]; OZ[i] = TZ[i]
       const k = B.pts[i].k
@@ -1414,10 +1504,10 @@ export function createDot(host: DotHost): DotApi {
       QZ[i] = TZ[i] = OZ[i] = 0; VX[i] = VY[i] = 0; SZ[i] = SZ[q]
     }
   }
-  /** Kinder rechnen nur, solange Schrift oder die Arme beim Augen zuhalten laufen (und kurz danach, bis sie verblasst sind). */
+  /** Kinder rechnen nur, solange Schrift läuft (und kurz danach, bis sie verblasst sind). */
   function kinderAktiv() {
     const jetzt = performance.now()
-    if (B.shape === 'text' || B.shape === 'augen') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
+    if (B.shape === 'text') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
     if (B.kinderAn && jetzt < B.kinderBis) return true
     B.kinderAn = false
     return false
@@ -1448,17 +1538,10 @@ export function createDot(host: DotHost): DotApi {
         else { const q = (s - L1) / L2; x = -0.15 + 0.77 * q + j * 0.55; y = 0.4 - 0.82 * q + j * 0.83 }
         return ziel(x + j2, y - 0.02 + j2, 1)
       }
-      case 'circle': {
-        const th = p.u * TAU + t * 0.4, rr = 1 + 0.06 * Math.sin(th * 8 + t * 6) + (p.k - 0.5) * 0.05
-        return ziel(Math.cos(th) * rr, Math.sin(th) * rr, 0.85)
-      }
       case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken':
-      case 'freude': case 'augen': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
+      case 'freude': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
-        // beim Augen zuhalten bleibt der Körper die ruhige Kugel (dieselben Ziele, kein Umspringen),
-        // die Arme sind Kinderpunkte
-        if (B.shape === 'augen' && p.i < GESTE_N) { B.shape = 'sphere'; const k = shapeTarget(p, t); B.shape = 'augen'; return k }
-        if (p.i >= (B.shape === 'augen' ? GESTE_PLATZ : GESTE_N)) return ziel(0, 0, 0)
+        if (p.i >= GESTE_N) return ziel(0, 0, 0)
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
@@ -1486,12 +1569,18 @@ export function createDot(host: DotHost): DotApi {
         return ziel(x / B.r, y / B.r, f[j + 2] < 0 ? 0 : 0.55 + 0.45 * f[j + 2], licht)
       }
       default: {
-        const X = p.x * ROT_C + p.z * ROT_S, Z0 = -p.x * ROT_S + p.z * ROT_C, ct = Math.cos(0.38), st = Math.sin(0.38)
-        const Y = p.y * ct - Z0 * st, Z = p.y * st + Z0 * ct, f = (Z + 1) / 2
+        // Augapfel (Nutzer 02.11.2026, D10/D11): die Punkte rollen langsam um die Blickachse, der ganze
+        // Körper dreht sich zum Blick; dann die Pupille als Irisblende, das Lid und beim Zuhören der Irisring
+        const x0 = p.x * ROT_C - p.y * ROT_S, y0 = p.x * ROT_S + p.y * ROT_C, z0 = p.z
+        const y1 = y0 * LAGE.cp - z0 * LAGE.sp, z1 = y0 * LAGE.sp + z0 * LAGE.cp
+        augePunkt(AUGE, x0 * LAGE.cy + z1 * LAGE.sy, y1, -x0 * LAGE.sy + z1 * LAGE.cy, p.iris, p.i, AUS)
+        const X = AUS[0], Y = AUS[1], Z = clamp(AUS[4], -1, 1), f = (Z + 1) / 2
+        // kräftige Farben: auch die hinteren Punkte bleiben sichtbar (Handy, Sonne)
+        const sicht = (KRAEFTIG ? 0.32 + 0.63 * Math.pow(f, 1.2) : 0.1 + 0.85 * f * f) * AUS[2]
         // frei schwebend atmet jeder Punkt und ein Lichtschein zieht über die Kugel
         const kq = weniger ? 0 : B.kugel, atmen = KUGEL.atmen * kq, licht = KUGEL.licht * kq
         const rj = 1 + atmen * (0.022 * Math.sin(t * 2.1 + p.s) + 0.012 * Math.sin(t * 3.7 + p.s * 2.3))
-        return ziel(X * rj, Y * rj, 0.1 + 0.85 * f * f, 1 + 0.18 * licht * Math.max(0, Math.sin(t * 0.9 + X * 1.6 + Y * 0.8)) * f)
+        return ziel(X * rj, Y * rj, sicht, (1 + 0.18 * licht * Math.max(0, Math.sin(t * 0.9 + X * 1.6 + Y * 0.8)) * f) * AUS[3])
       }
     }
   }
@@ -1508,8 +1597,8 @@ export function createDot(host: DotHost): DotApi {
     const tempo2 = FEDER.tempo * FEDER.tempo, dBase = 0.58 + 0.24 * FEDER.nachschwingen
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
-    // Kinder haben eigene Ziele nur in der Schrift und als Arme beim Augen zuhalten
-    const sparse = B.shape !== 'text' && B.shape !== 'augen'
+    // Kinder haben eigene Ziele nur in der Schrift
+    const sparse = B.shape !== 'text'
     // auf dem Weg vom Rahmen in die Mitte bleiben die Punkte klein, sonst wirken sie wie Konfetti über der App
     const klein = B.portal?.phase === 'sammeln' && B.trans < 0.45
     const groesse = B.shape === 'text' ? TEXT.groesse : klein ? 3 / 4.3 : 1
@@ -1536,8 +1625,7 @@ export function createDot(host: DotHost): DotApi {
       // die Eröffnung führt nur Dots eigene Punkte; Kinder (Schrift) folgen ihren Federn
       if (I.an && !kind) { bahn(i, ti, tx, ty, tz, R); ROSA[i] = rosa; continue }
       SZ[i] += (groesse - SZ[i]) * sA
-      // die Arme beim Augen zuhalten federn schon in ihrer Bahn (Mockup G1): ohne zweite Feder, sonst verwischen sie
-      if (sofort || (kind && B.shape === 'augen')) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
+      if (sofort) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
       const k = (0.1 + 0.07 * KR[i]) * tempo2 * B.kMul, dh = Math.pow(Math.min(0.9, dBase + (DR[i] - 0.5) * 0.1), h)
       for (let n = 0; n < schritte; n++) {
         const dx = tx - QX[i], dy = ty - QY[i]
@@ -1684,6 +1772,37 @@ export function createDot(host: DotHost): DotApi {
     QX[i] = x; QY[i] = Math.min(y, unten); QZ[i] = z; SZ[i] = s; VX[i] = VY[i] = 0
   }
 
+  /**
+   * Hokus Auge je Bild: wohin er schaut (Flugrichtung, gezogen, zuletzt getippt oder fokussiert, sonst
+   * umher), ob es zu sehen ist (nur als Kugel, groß genug, nicht an der Wand) und ob er zuhört.
+   */
+  function augeBild(dt: number, schlaeft: boolean) {
+    const sek = Math.max(dt, 1e-3)
+    const sprung = Math.hypot(B.x - TEMPO.lx, B.y - TEMPO.ly)
+    // ein Sprung (an seinen Platz gesetzt, Bühne, neue Größe) ist kein Flug
+    if (!Number.isFinite(sprung) || sprung > Math.max(60, B.r * 2)) { TEMPO.x = 0; TEMPO.y = 0 }
+    else {
+      const k = 1 - Math.exp(-dt * 10)
+      TEMPO.x += ((B.x - TEMPO.lx) / sek - TEMPO.x) * k; TEMPO.y += ((B.y - TEMPO.ly) / sek - TEMPO.y) * k
+    }
+    TEMPO.lx = B.x; TEMPO.ly = B.y
+    const tempo = Math.hypot(TEMPO.x, TEMPO.y)
+    let ziel: { gx: number; gy: number } | null = null, gross = false
+    if (B.drag) { ziel = tempo > 80 ? { gx: (TEMPO.x / tempo) * 0.45, gy: (TEMPO.y / tempo) * 0.45 } : { gx: 0, gy: 0 }; gross = true }
+    else if (tempo > 260) { const s = Math.min(0.55, tempo / 1400) / tempo; ziel = { gx: TEMPO.x * s, gy: TEMPO.y * s }; gross = true }
+    else if (performance.now() < BLICK.bis) ziel = blickZu(B.x, B.y, Math.max(B.r, 1), BLICK.x, BLICK.y)
+    if (ziel && Math.hypot(ziel.gx - AUGE.gx, ziel.gy - AUGE.gy) > 0.35) gross = true
+    const kugel = B.shape === 'sphere'
+    const draussen = !schlaeft && B.mode !== 'exit' && B.mode !== 'enter' && B.mode !== 'away' && B.mode !== 'gather' && B.mode !== 'portal' && !B.intro.an
+    augeSchritt(AUGE, dt, {
+      ziel, gross, weniger, weg: WEG_SEITE,
+      sichtbar: kugel && draussen && B.r >= 16 && B.flat < 0.5,
+      hoert: !WEG_SEITE && (B.state === 'listen' || performance.now() < schreibtBis) && B.shape === 'sphere',
+      stimme: B.voice,
+    })
+    LAGE.cp = Math.cos(AUGE.pitch); LAGE.sp = Math.sin(AUGE.pitch); LAGE.cy = Math.cos(AUGE.yaw); LAGE.sy = Math.sin(AUGE.yaw)
+  }
+
   function render(t: number, dt: number) {
     const st = TARGETS[B.state], tg = B.form ? { ...FORM_LOOK[B.form], spin: st.spin } : st, cur = B.cur, k = 1 - Math.exp(-dt * 6)
     B.kugel = 1 - B.flat
@@ -1699,6 +1818,7 @@ export function createDot(host: DotHost): DotApi {
     // X: gedämpftes Schütteln zur Seite wie das iOS-Passwortfeld
     const su = (B.formT - SCHUETTELN.start) / SCHUETTELN.dauer
     B.shakeX = B.form === 'cross' && !weniger && su > 0 && su < 1 ? SCHUETTELN.staerke * Math.exp(-su * 3.2) * Math.sin(su * TAU * SCHUETTELN.schwingungen) : 0
+    letzteForm = B.shape
     if (B.state === 'joy' && B.joyT > 1.9 && B.mode !== 'portal') setState('idle')
     B.voice *= Math.exp(-dt * 3)
     const sleeping = B.mode === 'house'
@@ -1727,8 +1847,9 @@ export function createDot(host: DotHost): DotApi {
     const g = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 2)
     const tn = B.toenung, tc = tn.c, ti = B.tint, mix = (a: number, b: number) => (a + (b - a) * ti) | 0
     const glow = cur.glow * (B.form === 'heart' && !weniger ? 1 + 1.2 * herzSchlag(B.formT, HERZ.bpm) : 1)
-    g.addColorStop(0, `rgba(${mix(70, tc[0])},${mix(170, tc[1])},${mix(255, tc[2])},${0.18 * glow * (1 + ti * 0.4)})`)
-    g.addColorStop(0.5, `rgba(${mix(150, tc[0])},${mix(110, tc[1] * 0.85)},${mix(255, tc[2] + 50)},${0.08 * glow})`); g.addColorStop(1, 'rgba(0,0,0,0)')
+    const sc = FARBE === 'heute' || (FARBE === 'stimmung' && B.state === 'think') ? null : PALETTEN[FARBE === 'stimmung' ? 'glut' : FARBE].schein
+    g.addColorStop(0, `rgba(${mix(sc ? sc[0] : 70, tc[0])},${mix(sc ? sc[1] : 170, tc[1])},${mix(sc ? sc[2] : 255, tc[2])},${0.18 * glow * (1 + ti * 0.4)})`)
+    g.addColorStop(0.5, `rgba(${mix(sc ? sc[0] * 0.8 : 150, tc[0])},${mix(sc ? sc[1] * 0.8 : 110, tc[1] * 0.85)},${mix(sc ? sc[2] * 0.8 : 255, tc[2] + 50)},${0.08 * glow})`); g.addColorStop(1, 'rgba(0,0,0,0)')
     const glowA = scatter ? (away ? clamp01(1 - B.te / 0.5) : clamp01((B.te - 0.35) / 0.6)) : swirling ? clamp01(1 - B.te / 1.1) : !streaming ? 1 : B.mode === 'exit' ? clamp01((B.te - 0.6) / 0.8) : clamp01(1 - B.te / 0.9)
     ctx.fillStyle = g
     if (!hidden && glowA > 0.01 && B.shape !== 'frame') {
@@ -1740,7 +1861,7 @@ export function createDot(host: DotHost): DotApi {
     }
 
     let nPts = 0
-    ROT_C = Math.cos(B.rot); ROT_S = Math.sin(B.rot)
+    ROT_C = Math.cos(B.rot * 0.35); ROT_S = Math.sin(B.rot * 0.35)
     const pan = B.pan
     if (pan && pan.w.sdf && pan.w.fn && B.flat > 0.01) {
       const w = pan.w, fn = pan.w.fn, tx = -w.ny, ty = w.nx, half = (pan.hi - pan.lo) / 2, mid = (pan.lo + pan.hi) / 2
@@ -1760,6 +1881,8 @@ export function createDot(host: DotHost): DotApi {
     if (B.form) gestenBild(B.form, weniger ? STILL[B.form] : B.formT, B.wahl, GB)
     // die Grenze zum Formular folgt der Bühne, falls die Seite sich während der Eröffnung verschiebt
     if (B.intro.an) messeBuehne()
+    augeBild(dt, sleeping)
+    letztesT = tt
     federSchritt(dt, tt, anzahl)
     const imDisplay = loginWand() || B.intro.an, cp = [0, 0, 0], verdeckt = B.auftritt?.hinten ? B.auftritt.rect : null
     ctx.globalCompositeOperation = 'lighter'
@@ -1796,7 +1919,7 @@ export function createDot(host: DotHost): DotApi {
       const c = B.shape === 'frame' && B.portal && B.portal.fe > 0.02
         ? dotColorInto((cx + cp[0] * r - W / 2) / (W / 2), ((cy + cp[1] * r - H / 2) / (H / 2)) * 1.1, cur.hue + hueShift, heal)
         : B.portal && rho > 1 ? dotColorInto(cp[0] / rho, cp[1] / rho, cur.hue + hueShift, heal) // weit draußen (Sammeln): Dots Farben, nicht hochgerechnet
-          : dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal)
+          : dotColorInto(cp[0], cp[1], cur.hue + hueShift, heal, cp[2])
       // Farbe je Punkt: Rosa (Herz in Dot), Grün (Haken), Rot (X)
       const ro = ROSA[i], pf = B.punktFarbe
       if (ro > 0.01) { c[0] += (pf[0] - c[0]) * ro; c[1] += (pf[1] - c[1]) * ro; c[2] += (pf[2] - c[2]) * ro }
@@ -2228,6 +2351,14 @@ export function createDot(host: DotHost): DotApi {
     stoppeAuftritt: () => auftrittEnde(false),
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
+    wegsehen: an => {
+      if (!an) { WEG_SEITE = 0; return }
+      if (WEG_SEITE) return
+      // weg von dem Feld, das gerade den Fokus hat; steht es genau unter ihm, nach rechts
+      const el = document.activeElement, r = el instanceof HTMLElement ? el.getBoundingClientRect() : null
+      const dx = r ? B.x - (r.left + r.width / 2) : 0
+      WEG_SEITE = Math.abs(dx) > 8 ? Math.sign(dx) : 1
+    },
     sag: (text, ms) => { sag(text, ms); laufen() },
     schweige: () => versteckeBlase(),
     imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },
@@ -2252,6 +2383,15 @@ export function createDot(host: DotHost): DotApi {
       window.removeEventListener('pointerdown', rufAb, true)
       window.removeEventListener('pointerup', rufAuf, true)
       glCanvas.removeEventListener('webglcontextlost', kontextWeg)
+      window.removeEventListener('pointerdown', beiFingerAb, true)
+      window.removeEventListener('pointermove', beiFingerZug, true)
+      for (const art of ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const) window.removeEventListener(art, beiBeruehrung, true)
+      document.removeEventListener('scroll', beiRollen, true)
+      document.removeEventListener('focusin', beiFokus)
+      document.removeEventListener('input', beiEingabe, true)
+      document.removeEventListener('selectionchange', beiAuswahl)
+      schreibmarkeAufraeumen()
+      farbeAb()
       sonde.remove()
     },
   }

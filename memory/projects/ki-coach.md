@@ -475,6 +475,30 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Folgenabschätzung: `docs/datenschutz/dsfa-ki.md` (Entwurf). Vor
   „Blutwerte-Hinweisen“ MDR neu prüfen.
 
+## Hokus Auge und Farbwahl (02.11.2026)
+Mockup „Hoku Varianten“ (https://claude.ai/artifact/Ra2CfkyYfG73VCYGfYPQvb), sieben Runden.
+- **Auge:** Pupille aus D3 als Irisblende (Punkte weichen an den Rand, dahinter liegende
+  verschwinden), Augapfel: der ganze Körper dreht sich zum Blick, kleine Blicke ruhig (D10,
+  k 70, ζ 1), große Bewegungen mit Masse (D11, k 46, ζ 0,72). Punkte rollen langsam um die
+  Blickachse. Blinzeln mit Lid aus Punkten (zu 90 ms, 50 ms zu, auf 170 ms, manchmal doppelt),
+  danach Pupille kurz weiter. Code: `engine/auge.ts`, angewendet in `shapeTarget` (Kugel).
+- **Regel:** Auge nur als Kugel (und bei „augen“), groß genug (r ≥ 16), nicht an der Wand,
+  nicht im Haus/Portal/Eröffnung. Verlässt er die Kugel, schließt er vorher das Auge (`wechsel`).
+- **Blickziel:** gezogen → Zugrichtung, Flug → Flugrichtung, sonst zuletzt getippt/fokussiert
+  (2,5–3 s), sonst Blicksprünge. Aufprall > 320 px/s → Blinzeln.
+- **Zuhören = Zuhören 4:** Kugel statt Ring; Pupille ×1,12, 10 % der Punkte lösen sich als
+  heller Irisring, der im Takt der Stimme dreht (`stimme()`: je gehörtem Wort im Chat 0,6, je
+  Tastendruck im Passwort 0,5).
+- **Herz = Herz 2:** Auge zu, Herz wie bisher (Gesten haben ohnehin kein Auge).
+- **Farbe:** Nutzer wählt im Profil (`HokuFarbAuswahl`, `lib/hokuFarbe.ts`, localStorage
+  `tyd.hoku.farbe`); Standard „Passend zum Design“: Schwarz Cyan-Weiß, Satin Schneeweiß,
+  Licht Weißlicht, Nacht Cyan-Violett (heute), Instrument Eiscyan, Soft Dark Schneeweiß.
+  Kräftige Farben halten hintere Punkte sichtbar (Handy, Sonne). Logo in der Leiste folgt.
+- **Login-Gesten** (Winken, Herz, Freude, Haken, Nicken …) laufen bisher nur auf der Anmeldung;
+  welche appweit kommen, wird später geplant (Nutzer 02.11.2026).
+- **Offen:** Auge in Gesten mit Kugelkörper (Freude F1–F3, Nicken, Kopfschütteln, Warten über
+  `kugelBild` in `gesten.ts`), Blick zu neuen Karten, Prüfung auf dem iPhone.
+
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
 - Zustände: Ruhe (Drehen, Atmen), Zuhören, Denken (Wirbeln), Sprechen (Pulsieren),
@@ -498,3 +522,10 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Seite: `ernaehrung/lib/dotRundflug.ts` (Bahn, Texte, Abstand), `hooks/useDotRundflug.ts`; Kugel über `orbBridge` (`setOrbBuehne`: `koerper()`, stiller Fokus ohne Etikett und Haptik). Antippen kürzt ab; „Bewegung reduzieren“: nur der Satz. Nur heute, nur wenn er heraus darf.
 - Texte in `dot/texte.ts` (`rf_*`, de/en). Über dem Ziel neutral, Freude-Haken nur bei „Alles erledigt“.
 - **Umlauf bei jedem Öffnen (Nutzer 30.10.):** sonst immer Variante A (eine Runde um die Kugel, ohne Daten, hinten verdeckt per Maske auf Dots Flächen, `hinter` in `Rundflug.pos`). Nach 2 h oder beim 3. Öffnen Variante B mit Halten und Sätzen (nur heute). Draußen startet er an seinem Platz, sonst am linken Rand.
+
+### Nachträge 02.11.2026 (Nutzer)
+- „Augen zuhalten“ (Login, Passwort einblenden) komplett entfernt: Geste `augen`, Armpunkte, Satz `login_sehe_nichts`.
+- Irisring beim Zuhören: jeder zehnte Punkt über die ganze Kugel (`Punkt.iris`), nicht mehr eine Polkappe; die Kappe ließ ein Loch im Körper.
+- Blick folgt auf dem Handy auch beim Wischen (touch*-Ereignisse) und dem nachgleitenden Inhalt (scroll).
+- Schreiben überall in der App (input/textarea/contenteditable, kein Passwort): Hoku hört zu (1,8 s nach dem letzten Zeichen) und schaut auf die Schreibmarke (`engine/schreibmarke.ts`, Spiegel-Div). Zuhören deutlicher: Pupille ×1,22, Ring `HOER_RING` (1,32 / Puls 0,16 / heb 1,15), heller, schneller.
+- Passwort: Hoku dreht sich weg (Pupille hinter den Rand, `wegsehen()`, `WEG` in auge.ts), Blase weg_1…3 einmal je 8 s; zurück beim Verlassen (120 ms Puffer für das zweite Feld) und beim Verlassen der Anmeldung.
