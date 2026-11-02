@@ -551,7 +551,7 @@ export function Auth() {
       <button type="button" className="tyd-auth-zurueck" onClick={() => wechsle('start')} aria-label={t('back')}>
         <ChevronLeft size={22} aria-hidden="true" />
       </button>
-      <h2>{titel}</h2>
+      <h2 data-dot-frei>{titel}</h2>
     </div>
   )
   const auge = (

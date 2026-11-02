@@ -348,6 +348,8 @@ test('Tippen ins Formular: Hoku rutscht auf die Oberkante der Karte und ragt dar
   expect(auf.y).toBeGreaterThan(vorher.y + 10)
   expect(auf.y).toBeLessThan(kante)
   expect(auf.y + auf.r).toBeGreaterThan(kante)
+  // die Überschrift bleibt lesbar (die Trefferfläche ist etwas größer als sein Körper)
+  expect(auf.y + auf.r * 0.9).toBeLessThanOrEqual((await page.locator('[data-dot-frei]').boundingBox())!.y)
   await page.locator('.tyd-auth-kopf h2').click()
   await lassLaufen(page, 1500)
   expect(Math.abs((await mitte()).y - vorher.y)).toBeLessThan(4)
