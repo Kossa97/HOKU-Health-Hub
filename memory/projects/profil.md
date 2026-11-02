@@ -120,6 +120,10 @@ Nutzer 02.11. zu Mockup v2: „trackt N“ = einzelne Werte zählen (nur erlaubt
 Nutzer selbst aus; Zahl hervorheben; Zahlen und Karten marketingorientiert einfärben/gestalten (Psychologie).
 Ziel-Tag „Blutwerte optimieren“ so lassen (im Web/Karte A sichtbar, nur Karte C filtert). Fortschritts-Abzeichen
 (+10/+25 %) ab Werk an lassen. Wahl von Teaser/A1-A2/C-Text/Slogan erst nach Überarbeitung (Mockup v3).
+Nutzer 02.11. zu Mockup v3: Karte **A1** (mit Abzeichen) gefällt am besten, aber zu viele Tags/Chips an derselben
+Stelle; insgesamt zu viel Farbe → dezenter, seriöser, hochwertiger. Slogans „geht so“ → mehr Vorschläge (Idee Nutzer:
+„Du im Vergleich zum besseren Dir“). Web-Abzeichen: nur eine Reihe, die seltensten/schwersten zuerst, 3 zeigen,
+das letzte weichgezeichnet + „+x“ für den Rest. Teaser T1–T3 noch offen.
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
