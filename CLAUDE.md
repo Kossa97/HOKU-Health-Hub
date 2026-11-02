@@ -71,6 +71,10 @@ diese Arbeit, wird sie weiterverwendet. Danach `ideen` mit `arbeit == <id>`
 lesen; offene Ideen des Nutzers kurz ansprechen. Ideen mit `uebernehmen: true`
 (ohne Arbeit) dem Nutzer vorschlagen: daraus eine neue Arbeit machen, sie danach
 mit `arbeit` verknüpfen und `uebernehmen` auf `false` setzen.
+Weitere Felder in `ideen` setzt der Nutzer selbst, nicht ungefragt ändern:
+`art` (`notiz` | `idee` | `todo`), `feld` (Gewichtung: `wd` wichtig und dringend,
+`w` wichtig, `d` dringend, `s` später), `pos` (eigene Reihenfolge), `erledigtAm`.
+Hohe Gewichtung (`wd`, `w`) zuerst ansprechen.
 
 **Am Ende jeder Runde, in der an der App gearbeitet wurde** (vor `wrap_up`),
 die eigene Zeile in `arbeiten` schreiben. `doc_id` ist ein kurzer, stabiler Slug
