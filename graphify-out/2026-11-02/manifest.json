@@ -1332,9 +1332,9 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1793615177.0092044,
-    "seen": 1793615420.267782,
-    "ast_hash": "913ee9124015f70fce08fdafcf065859",
+    "mtime": 1793617427.4143305,
+    "seen": 1793617561.4721441,
+    "ast_hash": "0f9f0d06a845d3e08a994b738daf5980",
     "semantic_hash": ""
   },
   "vite.config.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793617023.4797063,
-    "seen": 1793617085.5662205,
+    "mtime": 1793617449.3898385,
+    "seen": 1793617561.4721005,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -19053,6 +19053,36 @@
     "mtime": 1793617011.5551324,
     "seen": 1793617085.5662396,
     "ast_hash": "3d8178df235225502dc0f2abbd55fd9b",
+    "semantic_hash": ""
+  },
+  "api/hoku-anstoss.js": {
+    "mtime": 1793617334.249395,
+    "seen": 1793617561.4713082,
+    "ast_hash": "d6ad4563fc0d49ff90628de4f48b2ce9",
+    "semantic_hash": ""
+  },
+  "api/hoku-anstoss.test.js": {
+    "mtime": 1793617304.6193988,
+    "seen": 1793617561.4713097,
+    "ast_hash": "11d401a03b6098e0948f0f4c360a37a2",
+    "semantic_hash": ""
+  },
+  "supabase/functions/erkenntnisse/index.ts": {
+    "mtime": 1793617504.916671,
+    "seen": 1793617561.47213,
+    "ast_hash": "39ed2600ec7e9911625b50e0e68773d7",
+    "semantic_hash": ""
+  },
+  "supabase/functions/erkenntnisse/laden.test.ts": {
+    "mtime": 1793617304.481979,
+    "seen": 1793617561.472131,
+    "ast_hash": "64aaed1321beeb9d1b8c91b224549ded",
+    "semantic_hash": ""
+  },
+  "supabase/functions/erkenntnisse/laden.ts": {
+    "mtime": 1793617334.1051252,
+    "seen": 1793617561.4721317,
+    "ast_hash": "38f228eed9f3d7126eff9c3e587cf198",
     "semantic_hash": ""
   }
 }
