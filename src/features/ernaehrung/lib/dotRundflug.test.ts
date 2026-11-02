@@ -37,6 +37,21 @@ describe('rundflugBahn', () => {
     expect(fertig).toBe(0) // fertig ruft die Engine nach der Landung
   })
 
+  it('das Auge schaut auf das, was er ansieht — und beim Hinfliegen schon voraus', () => {
+    const { abschnitte } = rundflugPlan(3)
+    const mitte = (art: string, i: number) => { const a = abschnitte.find(x => x.art === art && x.i === i)!; return bahn.pos((a.t0 + a.t1) / 2) }
+    expect(mitte('halt', 0).blick).toEqual(lage.main)
+    expect(mitte('halt', 1).blick).toEqual(lage.moons.fat)
+    expect(mitte('halt', 3).blick).toEqual(lage.moons.protein)
+    // auf dem Weg zum Kohlenhydrat-Mond schaut er schon dorthin
+    const weg = abschnitte.find(x => x.art === 'weg' && x.i === 2)!
+    expect(bahn.pos(weg.t0 + 0.01).blick).toEqual(lage.moons.carbs)
+    // heim: auf seinen Platz, kurz vor der Landung frei (dann schaut er dich an)
+    const heim = abschnitte.find(x => x.art === 'heim')!
+    expect(bahn.pos(heim.t0 + 0.1).blick).toEqual({ x: 352, y: 450 })
+    expect(bahn.pos(heim.t1 - 0.01).blick).toBeNull()
+  })
+
   it('springt nirgends (höchstens 40 px je Bild bei 60 Hz)', () => {
     let vorher = bahn.pos(0)
     for (let t = 1 / 60; t <= bahn.dauer; t += 1 / 60) {
@@ -60,6 +75,15 @@ describe('umlaufBahn', () => {
     const ende = bahn.pos(bahn.dauer)
     expect(ende.x).toBeCloseTo(352)
     expect(ende.y).toBeCloseTo(450)
+  })
+
+  it('schaut beim Umlauf auf die Kugel, an einem nahen Mond kurz zu ihm', () => {
+    const blicke = new Set<string>()
+    for (let t = 0; t <= UMLAUF_ZEIT.herein + UMLAUF_ZEIT.runde; t += 1 / 60) {
+      const b = bahn.pos(t).blick
+      if (b) blicke.add(b === lage.main || (b.x === lage.main.x && b.y === lage.main.y) ? 'kugel' : 'mond')
+    }
+    expect(blicke).toEqual(new Set(['kugel', 'mond']))
   })
 
   it('kommt hinter der Kugel vorbei (dort verdeckt) und springt nirgends', () => {

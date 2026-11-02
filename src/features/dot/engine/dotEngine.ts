@@ -38,8 +38,10 @@ export interface Rundflug {
   /**
    * Lage zum Zeitpunkt t (s), Bildschirm-px; `depth` 1 = vorn (volle Größe), −1 = hinten.
    * `hinter`: er ist gerade hinter diesem Kreis (Kugel) — was davon verdeckt ist, wird ausgeblendet.
+   * `blick`: wohin sein Auge schaut (Bildschirm-px) — das nächste Ziel, was er sich ansieht; ohne gilt
+   * die Flugrichtung.
    */
-  pos(t: number): { x: number; y: number; depth: number; hinter?: { x: number; y: number; r: number } | null }
+  pos(t: number): { x: number; y: number; depth: number; hinter?: { x: number; y: number; r: number } | null; blick?: { x: number; y: number } | null }
   /** Gelandet (auch nach dem Abkürzen); nicht, wenn etwas anderes ihn unterbrach. */
   fertig?(): void
   /** Etwas anderes hat ihn herausgeholt (Chat, Kamera, Zugang weg). */
@@ -454,7 +456,7 @@ export function createDot(host: DotHost): DotApi {
     portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; te: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
     kMul: 1,
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
-    tour: null as null | { r: Rundflug; ab: null | { t0: number; x: number; y: number; d: number } }, tourBald: 0,
+    tour: null as null | { r: Rundflug; ab: null | { t0: number; x: number; y: number; d: number }; blick: { x: number; y: number } | null }, tourBald: 0,
     orbitCool: 0, herkunft: null as null | { x: number; y: number; t: number },
     pref: null as null | { dock: { x: DockX; y: DockY }; along: { x: number; y: number } },
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
@@ -952,7 +954,7 @@ export function createDot(host: DotHost): DotApi {
     // beim Hineinnavigieren, und geht mit der Leiste wieder ins Haus
     if (B.mode === 'house' && !navOn()) { toStrip(); B.autoOut = true }
     B.tourBald = 0
-    B.tour = { r, ab: null }
+    B.tour = { r, ab: null, blick: p.blick ?? null }
     B.orbit = { x0: p.x, y0: p.y, a: 0, b: 0, th0: 0, total: 0, depth: p.depth }
     B.x = p.x; B.y = p.y; B.vx = 0; B.vy = 0
     B.mode = 'orbit'; B.te = 0; versteckeTreffer(); wake(true); melde(); laufen()
@@ -974,9 +976,11 @@ export function createDot(host: DotHost): DotApi {
       // abgekürzt: von der Stelle, an der er war, an seinen Platz
       const q = clamp01((B.te - T.ab.t0) / T.ab.d), e = easeIO(q), h = homeTarget()
       x = T.ab.x + (h.x - T.ab.x) * e; y = T.ab.y + (h.y - T.ab.y) * e; fertig = q >= 1
+      T.blick = h
     } else {
       const p = T.r.pos(Math.min(B.te, T.r.dauer))
       x = p.x; y = p.y; depth = p.depth; hinter = p.hinter; fertig = B.te >= T.r.dauer
+      T.blick = p.blick ?? null
     }
     if (B.orbit) B.orbit.depth = depth
     verdecke(fertig ? null : hinter)
@@ -986,6 +990,8 @@ export function createDot(host: DotHost): DotApi {
       B.mode = 'home'; B.contact = {}; zeigeTreffer(); B.orbitCool = 2; B.idleT = 0
       // mit etwas Schwung landen, den Rest macht die Feder
       B.vx *= 0.6; B.vy *= 0.6
+      // angekommen: er schaut dich an (während er sagt, was offen ist)
+      blickAuf(x, y, 2600)
       melde(); T.r.fertig?.()
     }
   }
@@ -1809,6 +1815,8 @@ export function createDot(host: DotHost): DotApi {
     let ziel: { gx: number; gy: number } | null = null, gross = false
     const gestenKugel = !!B.form && B.shape === B.form && formMitAuge(B.form, B.wahl) && GB.K!.an
     if (B.drag) { ziel = tempo > 80 ? { gx: (TEMPO.x / tempo) * 0.45, gy: (TEMPO.y / tempo) * 0.45 } : { gx: 0, gy: 0 }; gross = true }
+    // Rundflug: die Bahn sagt, wohin er schaut (nächstes Ziel, was er sich gerade ansieht)
+    else if (B.tour?.blick) ziel = blickZu(B.x, B.y, Math.max(B.r, 1), B.tour.blick.x, B.tour.blick.y)
     else if (tempo > 260) { const s = Math.min(0.55, tempo / 1400) / tempo; ziel = { gx: TEMPO.x * s, gy: TEMPO.y * s }; gross = true }
     // eine Geste mit Kugelkörper gibt den Blick vor (nicken, schütteln, Funken nachsehen …)
     else if (gestenKugel && GB.K!.blick) ziel = { gx: GB.K!.gx, gy: GB.K!.gy }

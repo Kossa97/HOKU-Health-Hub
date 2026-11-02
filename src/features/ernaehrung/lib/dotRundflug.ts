@@ -113,6 +113,8 @@ export function rundflugBahn(o: {
   let letzte: Lage | null = null
   const gesagt = new Set<number>()
   const halt = (i: number) => (letzte ? haltPunkt(i, letzte, o.order, o.rand) : o.start)
+  /** Was er an Halt i ansieht: 0 = die Kugel, sonst der Mond. */
+  const koerper = (i: number): Punkt | null => (letzte ? (i > 0 ? letzte.moons[o.order[i - 1]] ?? letzte.main : letzte.main) : null)
   return {
     dauer,
     fertig: o.fertig,
@@ -121,25 +123,31 @@ export function rundflugBahn(o: {
       letzte = o.lage() ?? letzte
       const s = abschnitte.find(a => t <= a.t1) ?? abschnitte[abschnitte.length - 1]
       const q = clamp01((t - s.t0) / (s.t1 - s.t0))
-      let p: Punkt
+      let p: Punkt, blick: Punkt | null
       if (s.art === 'herein') {
         // vom Rand im flachen Bogen an die Kugel
         const h = halt(0), e = easeOut3(q)
         p = { x: o.start.x + (h.x - o.start.x) * e, y: o.start.y + (h.y - o.start.y) * e - Math.sin(Math.PI * q) * 26 }
+        blick = koerper(0)
       } else if (s.art === 'weg') {
         // zum nächsten Mond, leicht gebogen
         const a = halt(s.i - 1), b = halt(s.i), e = easeIO(q)
         const nx = -(b.y - a.y), ny = b.x - a.x, nd = Math.hypot(nx, ny) || 1, bogen = Math.sin(Math.PI * q) * 34
         p = { x: a.x + (b.x - a.x) * e + (nx / nd) * bogen, y: a.y + (b.y - a.y) * e + (ny / nd) * bogen }
+        // das Auge springt voraus: schon beim Losfliegen auf den nächsten Mond
+        blick = koerper(s.i)
       } else if (s.art === 'halt') {
         const h = halt(s.i)
         p = { x: h.x, y: h.y + Math.sin(q * Math.PI * 2) * 2.5 }
+        blick = koerper(s.i)
         if (!gesagt.has(s.i)) { gesagt.add(s.i); o.beiHalt(s.i) }
       } else {
         const a = halt(s.i), h = o.platz(), e = easeIO(q)
         p = { x: a.x + (h.x - a.x) * e, y: a.y + (h.y - a.y) * e + Math.sin(Math.PI * q) * 30 }
+        // auf seinen Platz; kurz vor der Landung gibt er den Blick frei (dann schaut er dich an)
+        blick = q < 0.8 ? h : null
       }
-      return { ...p, depth: 1 }
+      return { ...p, depth: 1, blick }
     },
   }
 }
@@ -166,6 +174,18 @@ export function umlaufBahn(o: { start: Punkt; lage: () => Lage | null; platz: ()
     const ex = a * Math.cos(th), ey = b * Math.sin(th)
     return { x: m.x + ex * Math.cos(phi) - ey * Math.sin(phi), y: m.y + ex * Math.sin(phi) + ey * Math.cos(phi) + m.r * 0.08, depth: Math.sin(th) }
   }
+  /**
+   * Wohin er beim Umlauf schaut: auf die Kugel, um die er fliegt — kommt er nah an einem Mond
+   * vorbei, schaut er kurz zu ihm (der nächste gewinnt).
+   */
+  const umlaufBlick = (x: number, y: number): Punkt => {
+    let best: Punkt = letzte!.main, nah = Infinity
+    for (const m of Object.values(letzte!.moons)) {
+      const d = Math.hypot(m!.x - x, m!.y - y) - m!.r
+      if (d < 46 && d < nah) { nah = d; best = m! }
+    }
+    return best
+  }
   // Winkel: von links (π) rückwärts — zuerst vorn unten; gleichmäßig mit weichem Anfang und Ende
   const winkel = (t: number) => { const u = clamp01(t / kreis); return Math.PI - 2 * Math.PI * (0.25 * easeIO(u) + 0.75 * u) }
   return {
@@ -178,12 +198,13 @@ export function umlaufBahn(o: { start: Punkt; lage: () => Lage | null; platz: ()
       if (t <= kreis) {
         const L = bahn(winkel(t)), m = easeOut3(clamp01(t / herein))
         const depth = L.depth * m + (1 - m)
-        return { x: o.start.x + (L.x - o.start.x) * m, y: o.start.y + (L.y - o.start.y) * m, depth, hinter: depth < -0.05 ? letzte.main : null }
+        const x = o.start.x + (L.x - o.start.x) * m, y = o.start.y + (L.y - o.start.y) * m
+        return { x, y, depth, hinter: depth < -0.05 ? letzte.main : null, blick: umlaufBlick(x, y) }
       }
-      // mit dem Tempo am Ende der Runde an seinen Platz
+      // mit dem Tempo am Ende der Runde an seinen Platz; kurz vor der Landung gibt er den Blick frei
       const q = clamp01((t - kreis) / heim), a = bahn(winkel(kreis)), b = bahn(winkel(kreis - 0.02)), h = o.platz()
       const vx = ((a.x - b.x) / 0.02) * heim, vy = ((a.y - b.y) / 0.02) * heim
-      return { x: hermite(a.x, vx, h.x, 0, q), y: hermite(a.y, vy, h.y, 0, q), depth: 1 }
+      return { x: hermite(a.x, vx, h.x, 0, q), y: hermite(a.y, vy, h.y, 0, q), depth: 1, blick: q < 0.8 ? h : null }
     },
   }
 }
