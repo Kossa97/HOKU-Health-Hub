@@ -107,7 +107,10 @@ const de = {
   login_online: 'Wieder\nonline!',
   login_durchatmen: 'Kurz\ndurchatmen',
   login_postfach: 'Schau in\ndein Postfach!',
-  // Sprechblase, während Hoku sich die Augen zuhält (Passwort eingeblendet)
+  // Sprechblase, wenn Hoku sich beim Passwort wegdreht
+  weg_1: 'Ich schau weg.',
+  weg_2: 'Ich dreh mich um.',
+  weg_3: 'Ich seh nichts.',
   heim_antwort: 'Bis später. Tipp auf mein Logo in der Leiste, wenn du mich brauchst.',
   hinweis_unten: 'Hoku ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
@@ -272,6 +275,9 @@ const en: Record<keyof typeof de, string> = {
   login_online: 'Back\nonline!',
   login_durchatmen: 'Take a\nbreather',
   login_postfach: 'Check your\ninbox!',
+  weg_1: "I'm looking away.",
+  weg_2: "I'm turning around.",
+  weg_3: "Can't see a thing.",
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Hoku is an AI and can be wrong. No diagnosis, no dose recommendations.',
 

@@ -74,8 +74,13 @@ export interface AugenEingabe {
   /** Lautstärke der Stimme 0 … 1 (beim Zuhören). */
   stimme: number
   weniger: boolean
+  /** Wegdrehen (Passwort): -1 nach links, 1 nach rechts, 0 nicht; die Pupille geht hinter den Rand. */
+  weg?: number
   zufall?: () => number
 }
+
+/** So weit dreht er sich beim Wegschauen (rad): die Pupille liegt dann hinten, leicht nach oben. */
+export const WEG = { yaw: 2.45, pitch: 0.3 }
 
 const feder = (x: number, v: number, ziel: number, k: number, zeta: number, dt: number): [number, number] => {
   v += (k * (ziel - x) - 2 * Math.sqrt(k) * zeta * v) * dt
@@ -105,11 +110,14 @@ export function augeSchritt(a: Auge, dt: number, e: AugenEingabe) {
   a.gx += (a.sx - a.gx) * kb; a.gy += (a.sy - a.gy) * kb
 
   // Körper dreht sich zum Blick (D10 ruhig, D11 bei großen Bewegungen mit Masse)
-  const yawZiel = Math.asin(Math.max(-0.62, Math.min(0.62, a.gx)))
-  const pitchZiel = -Math.asin(Math.max(-0.5, Math.min(0.5, a.gy)))
+  const weg = e.weg ? Math.sign(e.weg) : 0
+  const yawZiel = weg ? weg * WEG.yaw : Math.asin(Math.max(-0.62, Math.min(0.62, a.gx)))
+  const pitchZiel = weg ? WEG.pitch : -Math.asin(Math.max(-0.5, Math.min(0.5, a.gy)))
   if (e.weniger) { a.yaw = yawZiel; a.pitch = pitchZiel; a.vyaw = a.vpitch = 0 }
   else {
-    const k = e.gross ? 46 : 70, z = e.gross ? 0.72 : 1
+    // weg und zurück immer mit Masse (D11)
+    const gross = e.gross || weg !== 0 || Math.abs(a.yaw) > 1
+    const k = gross ? 46 : 70, z = gross ? 0.72 : 1
     ;[a.yaw, a.vyaw] = feder(a.yaw, a.vyaw, yawZiel, k, z, dt)
     ;[a.pitch, a.vpitch] = feder(a.pitch, a.vpitch, pitchZiel, k, z, dt)
   }

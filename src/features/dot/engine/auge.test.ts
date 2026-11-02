@@ -89,3 +89,15 @@ describe('Hokus Auge: Pupille', () => {
     expect(aus[3]).toBeGreaterThan(1.3)
   })
 })
+
+describe('Wegdrehen (Passwort)', () => {
+  it('dreht die Pupille hinter den Rand und mit Masse wieder zurück', () => {
+    const a = neuesAuge()
+    const e: AugenEingabe = { ziel: { gx: 0, gy: 0 }, gross: false, sichtbar: true, hoert: false, stimme: 0, weniger: false, weg: 1, zufall: () => 0.5 }
+    for (let i = 0; i < 120; i++) augeSchritt(a, 1 / 60, e)
+    expect(a.yaw).toBeGreaterThan(Math.PI / 2)
+    expect(a.G[2]).toBeLessThan(0)
+    for (let i = 0; i < 120; i++) augeSchritt(a, 1 / 60, { ...e, weg: 0 })
+    expect(Math.abs(a.yaw)).toBeLessThan(0.1)
+  })
+})

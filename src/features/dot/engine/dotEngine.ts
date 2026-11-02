@@ -118,6 +118,8 @@ export interface DotApi {
   /** Bricht einen Hinweis oder das Klopfen sofort ab; Hoku federt zur Bühne. */
   stoppeAuftritt(): void
   stimme(v: number): void
+  /** Passwort: er dreht sich weg (Pupille hinter den Rand), weg vom Feld mit dem Fokus; `false` dreht zurück. */
+  wegsehen(an: boolean): void
   sag(text: string, ms?: number): void
   /** Die Sprechblase sofort schließen. */
   schweige(): void
@@ -312,6 +314,8 @@ export function createDot(host: DotHost): DotApi {
   }
   // Schreiben, egal wo in der App: er hört zu und schaut auf die Schreibmarke (Nutzer 02.11.2026)
   let schreibtBis = 0
+  // Passwort: zu welcher Seite er sich weggedreht hat (0 = schaut normal)
+  let WEG_SEITE = 0
   const beiEingabe = (e: Event) => {
     const el = e.target
     if (!istSchreibfeld(el)) return
@@ -1791,9 +1795,9 @@ export function createDot(host: DotHost): DotApi {
     const kugel = B.shape === 'sphere'
     const draussen = !schlaeft && B.mode !== 'exit' && B.mode !== 'enter' && B.mode !== 'away' && B.mode !== 'gather' && B.mode !== 'portal' && !B.intro.an
     augeSchritt(AUGE, dt, {
-      ziel, gross, weniger,
+      ziel, gross, weniger, weg: WEG_SEITE,
       sichtbar: kugel && draussen && B.r >= 16 && B.flat < 0.5,
-      hoert: (B.state === 'listen' || performance.now() < schreibtBis) && B.shape === 'sphere',
+      hoert: !WEG_SEITE && (B.state === 'listen' || performance.now() < schreibtBis) && B.shape === 'sphere',
       stimme: B.voice,
     })
     LAGE.cp = Math.cos(AUGE.pitch); LAGE.sp = Math.sin(AUGE.pitch); LAGE.cy = Math.cos(AUGE.yaw); LAGE.sy = Math.sin(AUGE.yaw)
@@ -2347,6 +2351,14 @@ export function createDot(host: DotHost): DotApi {
     stoppeAuftritt: () => auftrittEnde(false),
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
+    wegsehen: an => {
+      if (!an) { WEG_SEITE = 0; return }
+      if (WEG_SEITE) return
+      // weg von dem Feld, das gerade den Fokus hat; steht es genau unter ihm, nach rechts
+      const el = document.activeElement, r = el instanceof HTMLElement ? el.getBoundingClientRect() : null
+      const dx = r ? B.x - (r.left + r.width / 2) : 0
+      WEG_SEITE = Math.abs(dx) > 8 ? Math.sign(dx) : 1
+    },
     sag: (text, ms) => { sag(text, ms); laufen() },
     schweige: () => versteckeBlase(),
     imBlick: () => { const b = bounds(); return B.mode === 'login' && B.y - B.r >= b.t && B.y + B.r <= b.b },

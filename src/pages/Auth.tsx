@@ -90,6 +90,7 @@ export function Auth() {
   // so viele Gesten und Sätze von Hoku laufen gerade; solange kommt kein Hinweis
   const aktiv = useRef(0)
   const hinweisLauf = useRef(0), hinweisAn = useRef(false), zeigtSatz = useRef(false)
+  const wegGesagt = useRef(-1e9), letzteWeg = useRef<DotTextKey | null>(null)
   const pwFokus = useRef(false), wartet = useRef(false), vieleGezeigt = useRef(false)
   const letzterGruss = useRef<DotTextKey | null>(null)
   // Sätze in späten Abläufen: immer in der aktuellen Sprache
@@ -99,10 +100,9 @@ export function Auth() {
   const dot = () => dotStore.api()
   const warte = (ms: number) => new Promise<void>(r => { uhren.current.push(window.setTimeout(r, Math.max(0, ms))) })
   const tipp = () => { void hapticTick() }
-  /** Nach einer Geste: zurück zur Kugel, oder wieder zuhören, solange der Fokus im Passwortfeld liegt. */
+  /** Nach einer Geste: zurück zur Kugel (im Passwortfeld bleibt er weggedreht). */
   function ruheForm() {
-    if (pwFokus.current) dot()?.setStimmung('listen')
-    else dot()?.zeigeForm(null)
+    dot()?.zeigeForm(null)
   }
   const neueStille = () => { stille.current = { ansicht: ansichtRef.current, seit: performance.now(), gezeigt: 0, geklopft: false } }
   /** Eine Geste oder ein Satz von Hoku: solange sie läuft, kommt kein Hinweis; danach beginnt die Stille neu. */
@@ -263,8 +263,8 @@ export function Auth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur solange die Meldung steht
   }, [meldung])
 
-  // Jeder Tastendruck im Passwort treibt seinen Irisring an (er hört zu)
-  useEffect(() => { if (pwFokus.current) dotStore.api()?.stimme(0.5) }, [passwort, passwort2])
+  // Verlässt man die Anmeldung mit dem Fokus im Passwort, dreht er sich trotzdem wieder um
+  useEffect(() => () => dotStore.api()?.wegsehen(false), [])
 
   if (session && !halten) return <Navigate to="/" replace />
 
@@ -342,16 +342,28 @@ export function Auth() {
     }, 4000))
   }
 
-  // Fokus: im Passwort hört er zu (Kugel mit Irisring), sonst neigt er sich zum Formular
+  // Fokus: im Passwort dreht er sich weg und sagt es (Nutzer 02.11.2026), sonst neigt er sich zum Formular
   const beiFokus = (pw: boolean) => {
     eingabe()
-    if (laeuft) return
     pwFokus.current = pw
-    dot()?.setStimmung(pw ? 'listen' : 'idle')
+    dot()?.wegsehen(pw)
+    if (laeuft) return
+    dot()?.setStimmung('idle')
     dot()?.setNeigung(pw ? 0 : 10)
+    // die Blase nur beim ersten Wegdrehen, nicht beim Wechsel ins zweite Passwortfeld
+    if (pw && performance.now() - wegGesagt.current > 8000 && dot()?.imBlick()) {
+      wegGesagt.current = performance.now()
+      const keys = ['weg_1', 'weg_2', 'weg_3'] as const
+      const andere = keys.filter(k => k !== letzteWeg.current)
+      const k = andere[Math.floor(Math.random() * andere.length)]
+      letzteWeg.current = k
+      dot()?.sag(dtRef.current(k), 2200)
+    }
   }
   const beiVerlassen = () => {
     pwFokus.current = false
+    // ins nächste Passwortfeld gewechselt: kurz warten, sonst dreht er sich dazwischen um
+    window.setTimeout(() => { if (!pwFokus.current) dot()?.wegsehen(false) }, 120)
     if (laeuft) return
     dot()?.setStimmung('idle'); dot()?.setNeigung(0)
   }
