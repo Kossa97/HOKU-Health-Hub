@@ -160,12 +160,15 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select jsonb_typeof(v) = 'object'
-     and (select count(*) from jsonb_object_keys(v)) <= 100
-     and not exists (
-       select 1 from jsonb_each(v) e
-        where jsonb_typeof(e.value) <> 'string'
-           or not public.progress_metric_ok(e.key, e.value #>> '{}'));
+  -- case statt and: die Reihenfolge von and ist in SQL nicht festgelegt, und
+  -- jsonb_each wirft bei allem ausser einem Objekt.
+  select case when jsonb_typeof(v) = 'object' then
+           (select count(*) from jsonb_object_keys(v)) <= 100
+           and not exists (
+             select 1 from jsonb_each(v) e
+              where jsonb_typeof(e.value) <> 'string'
+                 or not public.progress_metric_ok(e.key, e.value #>> '{}'))
+         else false end;
 $$;
 
 -- Baseline der Wearable-Werte: Objekt { Wert-ID: Objekt }, nur die sieben
@@ -176,12 +179,13 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select jsonb_typeof(v) = 'object'
-     and pg_column_size(v) <= 4096
-     and not exists (
-       select 1 from jsonb_each(v) e
-        where e.key not in ('steps', 'active_kcal', 'resting_hr', 'bp_sys', 'sleep_nights', 'hrv', 'vo2max')
-           or jsonb_typeof(e.value) <> 'object');
+  select case when jsonb_typeof(v) = 'object' then
+           pg_column_size(v) <= 4096
+           and not exists (
+             select 1 from jsonb_each(v) e
+              where e.key not in ('steps', 'active_kcal', 'resting_hr', 'bp_sys', 'sleep_nights', 'hrv', 'vo2max')
+                 or jsonb_typeof(e.value) <> 'object')
+         else false end;
 $$;
 
 -- Fruehere Starts: Liste von Kalendertagen, hoechstens 50.
@@ -191,11 +195,12 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select jsonb_typeof(v) = 'array'
-     and jsonb_array_length(v) <= 50
-     and not exists (
-       select 1 from jsonb_array_elements(v) e(x)
-        where jsonb_typeof(e.x) <> 'string' or not public.progress_day_ok(e.x #>> '{}'));
+  select case when jsonb_typeof(v) = 'array' then
+           jsonb_array_length(v) <= 50
+           and not exists (
+             select 1 from jsonb_array_elements(v) e(x)
+              where jsonb_typeof(e.x) <> 'string' or not public.progress_day_ok(e.x #>> '{}'))
+         else false end;
 $$;
 
 -- 4. Einstellungen des Gesamtfortschritts -------------------------------------
@@ -232,8 +237,9 @@ begin
   -- Wochenreihe der Zeitreise: hoechstens 104 Wochen (zwei Jahre).
   if not exists (select 1 from pg_constraint where conname = 'progress_settings_history_check') then
     alter table public.progress_settings add constraint progress_settings_history_check
-      check (jsonb_typeof(history) = 'array' and jsonb_array_length(history) <= 104
-             and pg_column_size(history) <= 32768);
+      check (case when jsonb_typeof(history) = 'array'
+                  then jsonb_array_length(history) <= 104 and pg_column_size(history) <= 32768
+                  else false end);
   end if;
   if not exists (select 1 from pg_constraint where conname = 'progress_settings_size_check') then
     alter table public.progress_settings add constraint progress_settings_size_check
