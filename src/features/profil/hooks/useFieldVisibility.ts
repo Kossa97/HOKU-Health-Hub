@@ -15,6 +15,11 @@ type Stand = { von: VisibilityMap | null; map: VisibilityMap }
  * sichtbar, dann gespeichert. Scheitert das Speichern, kommt der vorige Stand
  * zurück — aber nur, wenn inzwischen kein neuerer Tipp darüber liegt.
  *
+ * Gespeichert wird nacheinander: Jeder Tipp schreibt die ganze Karte, und zwei
+ * gleichzeitige Anfragen können in beliebiger Reihenfolge ankommen. Ohne
+ * Reihenfolge stünde nach „Freunde“ → „Alle“ womöglich „Freunde“ in der
+ * Datenbank, während die App „Alle“ zeigt.
+ *
  * `geladen` ist der Stand vom Server; kommt ein neuer, gilt wieder er (ohne
  * Effekt, also ohne kurzes Aufblitzen der alten Stufen).
  */
@@ -23,6 +28,8 @@ export function useFieldVisibility(userId: string | undefined, geladen: Visibili
   const [eigen, setEigen] = useState<Stand | null>(null)
   // Letzter gesetzter Stand für schnelle Tipps hintereinander (der Render-Stand hinkt nach)
   const stand = useRef<Stand | null>(null)
+  // Speichern in Tipp-Reihenfolge (siehe oben)
+  const kette = useRef<Promise<unknown>>(Promise.resolve())
   const map = eigen && eigen.von === geladen ? eigen.map : geladen ?? {}
 
   const apply = useCallback(async (make: (current: VisibilityMap) => VisibilityMap): Promise<boolean> => {
@@ -31,7 +38,9 @@ export function useFieldVisibility(userId: string | undefined, geladen: Visibili
     const next = make(prev)
     const setze = (m: VisibilityMap) => { stand.current = { von: geladen, map: m }; setEigen(stand.current) }
     setze(next)
-    const { error } = await supabase.from('profiles').update({ field_visibility: next }).eq('id', userId)
+    const speichern = kette.current.then(() => supabase.from('profiles').update({ field_visibility: next }).eq('id', userId))
+    kette.current = speichern.catch(() => undefined)
+    const { error } = await speichern
     if (!error) return true
     if (stand.current?.map === next) setze(prev)
     // Die Bio läuft durch den Textfilter, sobald sie nicht mehr privat ist — dann sagen, warum.
