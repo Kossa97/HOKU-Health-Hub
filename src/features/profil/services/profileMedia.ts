@@ -69,14 +69,42 @@ function leseGroesse(file: File): Promise<{ w: number; h: number } | null> {
   })
 }
 
+/** Dekodiertes Bild mit seinen echten Maßen; `schliessen` gibt den Speicher frei. */
+interface Dekodiert { quelle: CanvasImageSource; w: number; h: number; schliessen: () => void }
+
+const ausBitmap = (b: ImageBitmap): Dekodiert => ({ quelle: b, w: b.width, h: b.height, schliessen: () => b.close?.() })
+
+/**
+ * Rückfall über `<img>`: Nicht jede WebView kann `createImageBitmap` mit
+ * Optionen (ältere WebKit-Stände lehnen `imageOrientation: 'from-image'` ab).
+ * Ein `<img>` wendet die EXIF-Drehung von sich aus an, auch beim Zeichnen.
+ */
+function alsImg(file: File): Promise<Dekodiert> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        resolve({ quelle: img, w: img.naturalWidth, h: img.naturalHeight, schliessen: () => URL.revokeObjectURL(url) })
+      } else {
+        URL.revokeObjectURL(url)
+        reject(new Error('Bild konnte nicht dekodiert werden'))
+      }
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht dekodiert werden')) }
+    img.src = url
+  })
+}
+
 /**
  * Bild dekodieren. EXIF-Drehung wird ausdrücklich angefordert (nicht jede
  * WebView wendet sie von selbst an). Ist die Quelle viel größer als nötig,
  * wird gleich verkleinert dekodiert (mit Reserve, damit die Ausgabe nicht
  * unscharf wird) — der Zuschnitt wird danach aus den echten Maßen des
- * Bitmaps berechnet, nicht aus der geschätzten Größe.
+ * Bitmaps berechnet, nicht aus der geschätzten Größe. Scheitert
+ * `createImageBitmap` ganz, dekodiert ein `<img>`.
  */
-async function dekodiere(file: File, kind: MediaKind): Promise<ImageBitmap> {
+async function dekodiere(file: File, kind: MediaKind): Promise<Dekodiert> {
   const optionen = { imageOrientation: 'from-image' } as const
   const groesse = await leseGroesse(file)
   if (groesse) {
@@ -85,16 +113,20 @@ async function dekodiere(file: File, kind: MediaKind): Promise<ImageBitmap> {
     if (faktor > DEKODIER_RESERVE) {
       const skala = DEKODIER_RESERVE / faktor
       try {
-        return await createImageBitmap(file, {
+        return ausBitmap(await createImageBitmap(file, {
           ...optionen,
           resizeWidth: Math.max(1, Math.round(groesse.w * skala)),
           resizeHeight: Math.max(1, Math.round(groesse.h * skala)),
           resizeQuality: 'high',
-        })
+        }))
       } catch { /* Resize-Optionen nicht unterstützt: voll dekodieren */ }
     }
   }
-  return createImageBitmap(file, optionen)
+  try {
+    return ausBitmap(await createImageBitmap(file, optionen))
+  } catch {
+    return alsImg(file)
+  }
 }
 
 /** Zuschneiden, verkleinern, als JPEG neu kodieren (ohne EXIF), Ziel unter 500 KB. */
@@ -102,13 +134,13 @@ export async function prepareImage(file: File, kind: MediaKind): Promise<Blob> {
   if (file.size > MAX_FILE_BYTES) throw new BildZuGrossError()
   const bild = await dekodiere(file, kind)
   try {
-    const z = targetSize(bild.width, bild.height, kind)
+    const z = targetSize(bild.w, bild.h, kind)
     const canvas = document.createElement('canvas')
     canvas.width = z.outW
     canvas.height = z.outH
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas nicht verfügbar')
-    ctx.drawImage(bild, z.sx, z.sy, z.sw, z.sh, 0, 0, z.outW, z.outH)
+    ctx.drawImage(bild.quelle, z.sx, z.sy, z.sw, z.sh, 0, 0, z.outW, z.outH)
     let qualitaet = START_QUALITY
     for (;;) {
       const blob = await alsJpeg(canvas, qualitaet)
@@ -116,7 +148,7 @@ export async function prepareImage(file: File, kind: MediaKind): Promise<Blob> {
       qualitaet = Math.max(MIN_QUALITY, qualitaet - 0.1)
     }
   } finally {
-    bild.close?.()
+    bild.schliessen()
   }
 }
 

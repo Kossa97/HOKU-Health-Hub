@@ -187,6 +187,23 @@ describe('prepareImage', () => {
     expect(bitmap).toHaveBeenCalledWith(expect.anything(), { imageOrientation: 'from-image' })
   })
 
+  it('createImageBitmap scheitert ganz (aeltere WebKit-Staende): dekodiert ueber <img>', async () => {
+    const { bitmap, zeichnungen, dims } = canvasAttrappe([100_000], { w: 800, h: 600 })
+    bitmap.mockImplementation(async () => { throw new TypeError('imageOrientation') })
+    const blob = await prepareImage(png(), 'avatar')
+    expect(blob.size).toBe(100_000)
+    expect(zeichnungen[0].slice(1)).toEqual([100, 0, 600, 600, 0, 0, 512, 512])
+    expect(dims).toEqual([{ width: 512, height: 512 }])
+    // Objekt-URL fuer die Probe und fuer das Rueckfall-Bild wieder freigegeben
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+  })
+
+  it('weder Bitmap noch <img> koennen dekodieren: Fehler statt haengen', async () => {
+    const { bitmap } = canvasAttrappe([100_000], null)
+    bitmap.mockImplementation(async () => { throw new TypeError('decode') })
+    await expect(prepareImage(png(), 'avatar')).rejects.toThrow('Bild konnte nicht dekodiert werden')
+  })
+
   it('Datei ueber 25 MB: eigener Fehler, nichts wird dekodiert', async () => {
     const { bitmap } = canvasAttrappe([100_000])
     const gross = png()
