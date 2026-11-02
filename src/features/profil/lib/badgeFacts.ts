@@ -48,8 +48,8 @@ export function badgeFacts(
   // Einnahmen je Tag: alle faelligen selbst bestaetigt (Auto-Tracking zaehlt hier nicht als bestaetigt)
   const intake = new Map<string, boolean>()
   for (const d of input.doseLogs) {
-    if (d.taken == null || !d.stack_item_id) continue
-    const day = d.logged_at.slice(0, 10)
+    const day = dayOfStamp(d.logged_at)
+    if (d.taken == null || !d.stack_item_id || !day) continue
     intake.set(day, (intake.get(day) ?? true) && d.taken === true && !d.auto_logged)
   }
   const steps = new Map<string, { sum: number; days: number }>()
@@ -72,7 +72,7 @@ export function badgeFacts(
     today,
     entryDays: [...entryDays(input)].filter(d => d <= today).sort(),
     sessionDays: days(input.sessions.map(s => dayOfStamp(s.startedAt))),
-    weightDays: days(input.weightLogs.map(w => w.logged_at.slice(0, 10))),
+    weightDays: days(input.weightLogs.map(w => dayOfStamp(w.logged_at))),
     intakeDays: [...intake.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([day, all]) => ({ day, all })),
     dailyLogDays: days(input.dailyLogs.map(l => l.log_date)),
     measurementDays: days(input.measurements.map(m => m.measured_on)),

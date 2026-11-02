@@ -62,11 +62,11 @@ export function progressSeries(input: ProfileSnapshotInput): ProgressSeries {
     points: s.history.flatMap(p => point(dayOfStamp(p.date), p.bestE1rm)),
   })).filter(e => e.points.length > 0)
 
-  // Einnahmen je Tag: bestaetigt ÷ faellig (eingetragen = faellig; Auto-Tracking zaehlt wie in der Einnahmetreue)
+  // Einnahmen je Kalendertag (lokal, wie die Einnahmetreue): bestaetigt ÷ faellig (eingetragen = faellig; Auto-Tracking zaehlt wie in der Einnahmetreue)
   const dose = new Map<string, DoseDay>()
   for (const d of input.doseLogs) {
-    if (d.taken == null || !d.stack_item_id) continue
-    const day = d.logged_at.slice(0, 10)
+    const day = dayOfStamp(d.logged_at)
+    if (d.taken == null || !d.stack_item_id || !day) continue
     const e = dose.get(day) ?? { day, taken: 0, due: 0 }
     e.due++
     if (d.taken) e.taken++
@@ -74,7 +74,7 @@ export function progressSeries(input: ProfileSnapshotInput): ProgressSeries {
   }
 
   return {
-    weight: input.weightLogs.flatMap(w => point(w.logged_at.slice(0, 10), w.weight_kg)),
+    weight: input.weightLogs.flatMap(w => point(dayOfStamp(w.logged_at), w.weight_kg)),
     bodyFat: input.dailyLogs.flatMap(l => point(l.log_date, l.body_fat_pct)),
     muscleMass: input.dailyLogs.flatMap(l => point(l.log_date, l.muscle_mass_kg)),
     circumferences,

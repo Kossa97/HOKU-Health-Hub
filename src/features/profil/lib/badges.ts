@@ -182,7 +182,7 @@ export const BADGES: readonly BadgeDef[] = [
   b('wearable_connected', 'meilensteine', '⌚', 'Wearable verbunden', 'Wearable connected',
     f => ({ earnedOn: f.wearableSince && f.wearableSince > f.today ? f.today : f.wearableSince })),
   b('profile_complete', 'meilensteine', '🪪', 'Profil vollständig', 'Profile complete',
-    f => ({ earnedOn: f.profileChecks.have >= f.profileChecks.need ? f.today : null, ...f.profileChecks, unit: 'count' })),
+    f => ({ earnedOn: f.profileChecks.need > 0 && f.profileChecks.have >= f.profileChecks.need ? f.today : null, ...f.profileChecks, unit: 'count' })),
   b('first_progress_photo', 'meilensteine', '📸', 'Erstes Fortschrittsfoto', 'First progress photo', f => first(f.photoDays)),
   // Fortschritt
   b('body_fat_5', 'fortschritt', '📉', '−5 % Körperfett', '−5% body fat', f => dropBy(f.bodyFat, 5)),

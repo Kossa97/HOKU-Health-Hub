@@ -60,6 +60,8 @@ describe('Bedingungen', () => {
     expect(check('first_daily_log', facts({ dailyLogDays: ['2026-05-02', '2026-04-01'] })).earnedOn).toBe('2026-04-01')
     expect(check('profile_complete', facts({ profileChecks: { have: 7, need: 9 } }))).toMatchObject({ earnedOn: null, have: 7, need: 9 })
     expect(check('profile_complete', facts({ profileChecks: { have: 9, need: 9 } })).earnedOn).toBe(TODAY)
+    // ohne Prüfpunkte (z. B. nichts geladen) nie verdient
+    expect(check('profile_complete', facts({ profileChecks: { have: 0, need: 0 } })).earnedOn).toBeNull()
   })
 
   it('−x % Koerperfett relativ wie die Rechnung, fruehestens 14 Tage nach der ersten Messung', () => {

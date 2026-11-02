@@ -3,7 +3,7 @@ import type { BloodworkEntry } from '../../blutwerte/types'
 import type { HealthDailyRow } from '../../wearables/lib/healthDaily'
 import type { TrainingSession, TrainingSet } from '../../training/types'
 import type { ProfileSnapshotInput } from './profileSnapshot'
-import type { BadgeExtras } from './badgeFacts'
+import { badgeFacts, type BadgeExtras } from './badgeFacts'
 import { bloodReports, implicitStart, progressSeries, progressSetup } from './progressInput'
 import { computeProgressState, mergedHistory, type ProgressData } from './progressState'
 import { EMPTY_PROGRESS_SETTINGS } from './progressSettings'
@@ -49,6 +49,21 @@ describe('Eingabe aus den eigenen Daten', () => {
       blood('Glukose', 90, '2026-06-20', [70, 99]),
     ] }
     expect(bloodReports(input)).toEqual([{ day: '2026-03-01', inRange: 1, of: 2 }, { day: '2026-06-20', inRange: 1, of: 1 }])
+  })
+
+  it('Einnahmen und Gewicht nach lokalem Kalendertag (wie Einnahmetreue und Serie), nicht nach UTC', () => {
+    // 23:30 Uhr UTC am 14.03. ist in Berlin (TZ der Tests) schon der 15.03.
+    const dose = (logged_at: string, taken: boolean) => ({ id: logged_at, stack_item_id: 's1', logged_at, taken, auto_logged: false })
+    const input = {
+      ...empty(),
+      doseLogs: [dose('2026-03-14T23:30:00Z', true), dose('2026-03-15T08:00:00Z', false)],
+      weightLogs: [{ id: '1', logged_at: '2026-03-14T23:30:00Z', weight_kg: 80 }],
+    }
+    expect(progressSeries(input).doseDays).toEqual([{ day: '2026-03-15', taken: 1, due: 2 }])
+    expect(progressSeries(input).weight).toEqual([{ day: '2026-03-15', value: 80 }])
+    const facts = badgeFacts(input, extras(), null, null, [], TODAY)
+    expect(facts.intakeDays).toEqual([{ day: '2026-03-15', all: false }])
+    expect(facts.weightDays).toEqual(['2026-03-15'])
   })
 
   it('ohne gesetzten Start: erste Messung; Wearables beginnen bei ihrem eigenen ersten Tag', () => {
