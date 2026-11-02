@@ -98,3 +98,10 @@ heißt **Hoku** statt Dot. Umgestellt in allen sichtbaren de/en-Texten, Rechtste
 iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-Prompt. Unverändert: App-ID
 `com.kossa97.tyd`, Speicherschlüssel `tyd_*`, Code-Bezeichner (`features/dot`, `Dot…`), die zwölf weiteren Sprachen
 (CLAUDE.md), User-Agent der Lebensmittel-Suche.
+
+**Logo mit Hokus Pupille (02.11.2026):** Mit dem Logo-Skill drei Richtungen gezeichnet
+(A „Hoku, echt", B „Hoku hört zu", C „Blickkugel", `docs/logo/hoku/auge/konzepte`). Renderer
+`docs/logo/hoku/auge/hoku-auge.html` nutzt `engine/auge.ts` (esbuild-Bündel). Nutzer wählte **A**
+als Dateien: 1400 Partikel, Größenstreuung 0,9, Raster gelockert 0,45, Blick leicht nach oben
+rechts; SVG + transparente PNG farbig/weiß/schwarz bis 8192 px, App-Icon
+(`docs/logo/hoku/A-hoku-echt`, 8192er nicht im Repo). Noch nicht in die App eingebaut.
