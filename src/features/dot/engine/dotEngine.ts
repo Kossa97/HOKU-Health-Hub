@@ -817,19 +817,17 @@ export function createDot(host: DotHost): DotApi {
     const S = stageCenter()
     return { x: S.x, y: S.y + B.login.n + B.login.rutsch }
   }
-  // Beim Tippen ins Formular (Tastatur offen, Seite gescrollt) rutscht er in den sichtbaren Bereich nach,
-  // höchstens bis auf die Oberkante des Formulars, über die er ein Stück ragt (Nutzer 02.11.2026)
+  // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
+  // auch bei offener Tastatur (Seite gescrollt) zu sehen (Nutzer 02.11.2026)
   const KANTE = 0.55
   function rutschZiel(mitte: number) {
     const el = document.activeElement
     if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return 0
     const karte = B.stage.parentElement?.querySelector('[data-dot-kante]')
     if (!karte || !karte.contains(el)) return 0
-    // nur wenn er sonst oben aus dem Bild gerutscht wäre
-    const r = koerper(), vv = window.visualViewport
-    if (mitte - r >= (vv ? vv.offsetTop : 0) + OBEN + 6) return 0
-    // er setzt sich auf die Kante, auch wenn darüber mehr Platz wäre
-    return Math.max(0, karte.getBoundingClientRect().top - KANTE * r - mitte)
+    // immer, solange ein Feld den Fokus hat: was das iPhone bei offener Tastatur als sichtbaren Bereich
+    // meldet, ist nicht verlässlich; die Kante der Karte liegt dagegen sicher im Bild (dort wird getippt)
+    return Math.max(0, karte.getBoundingClientRect().top - KANTE * koerper() - mitte)
   }
   // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
