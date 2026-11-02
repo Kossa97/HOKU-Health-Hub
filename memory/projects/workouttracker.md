@@ -203,3 +203,13 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 | Schnellzugriff-Label | „Training" (öffnet den Bereich, 30.10.2026) hart deutsch wie die übrigen Einträge in `Layout.tsx` |
 | Live Activity / Apple Watch | braucht nativen Swift-Code, v2 |
 | Auto-Progression / Deload-Vorschlag | v2 |
+
+## Plan mit Hoku (Teil 1, auf main seit 2026-11-02)
+- Edge Function `coach`: Werkzeug `plan_entwerfen` (strict), `pruefePlaene`; Seite `training` → effort medium.
+  Ungültige Anzahl → `pro_woche` mit Anzahl = Workouts.
+- App: `lib/hokuPlan.ts` (Katalog-Kontext, Lesen, Entwurf→Workouts), `HokuPlanChat` (Neuer-Plan-Blatt,
+  Pro-Gate über PRO_PFLICHT), `HokuPlanPreview` (Name, tauschen/entfernen, Übernehmen). Globaler Hoku-Chat auf
+  /training zeigt Karte „Plan ansehen" → Vorschau via `location.state.hokuPlan`.
+- Offen: Edge Function `coach` deployen (bis dahin liefert Hoku nur Text). Globaler Chat schickt den Katalog
+  ohne eigene Übungen/Plannamen (bewusst, Vorschau fängt doppelte Namen ab).
+- Nächste Teile: 2 = Schreiben/Sprechen im Live-Workout ohne KI, 3 = Hoku-Fragen im Training (Pro).
