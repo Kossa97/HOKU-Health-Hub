@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowDown, ArrowUp, GripVertical, Link2, MoreHorizontal, Play, Plus, StickyNote, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { ArrowDown, ArrowRightLeft, ArrowUp, Check, ClipboardPaste, Copy, CopyPlus, GripVertical, Link2, MoreHorizontal, Play, Plus, Star, StickyNote, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { ROUTINE_FOLDER_MAX, type RoutineExercise, type RoutineSet, type SetType, type TrackingMode, type TrainingRoutine } from '../types'
 import { useTrainingText, type TrainingTextKey } from '../i18n'
@@ -10,9 +10,11 @@ import { fromDisplayWeight, toDisplayWeight } from '../lib/stats'
 import { routineSetsPerMuscle, sortedMuscles, weeklySetsPerMuscle } from '../lib/muscleVolume'
 import { migrateRepsRange } from '../lib/repsRange'
 import { toggleSupersetAt } from '../lib/supersets'
+import { duplicateSelected, pickSelected, withoutSelected } from '../lib/exerciseSelection'
+import { clipboardCopies, copyToClipboard, useExerciseClipboard } from '../lib/exerciseClipboard'
 import { ExercisePicker } from './ExercisePicker'
 import { SUPERSET_COLORS } from './live/ExerciseBlock'
-import { Button, Chip, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
+import { Button, Chip, SelectCircle, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
 import { MuscleBars } from './plan/MuscleVolume'
 import { useDragReorder } from './plan/useDragReorder'
 
@@ -21,7 +23,16 @@ import { useDragReorder } from './plan/useDragReorder'
  * mit Satzzeilen (Wdh.-Bereich, Startgewicht, Ziel-RPE, Satzart), Pause,
  * Supersatz, Notiz. Gespeichert wird implizit beim Schliessen — es gibt keinen
  * Speichern-Knopf; nur wenn sich etwas geaendert hat, wird geschrieben.
+ *
+ * Mehrfachauswahl („Auswaehlen" oder lange auf eine Uebung druecken): die
+ * markierten Uebungen kopieren (in die Ablage, einfuegen in jedem Workout),
+ * in ein anderes Workout verschieben, duplizieren oder loeschen. Kopierte und
+ * verschobene Uebungen behalten alle Werte; neu aus dem Katalog hinzugefuegte
+ * kommen leer.
  */
+
+/** So lange druecken, bis die Auswahl beginnt (wie in iOS-Listen). */
+const LONG_PRESS_MS = 450
 
 const REST_OPTIONS = [60, 90, 120, 180]
 const TYPE_ORDER: SetType[] = ['normal', 'warmup', 'drop', 'failure']
@@ -70,6 +81,14 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
   const [menu, setMenu] = useState<number | null>(null)
   const [picker, setPicker] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [selecting, setSelecting] = useState(false)
+  const [selected, setSelected] = useState<number[]>([])
+  const [moveOpen, setMoveOpen] = useState(false)
+  const clipboard = useExerciseClipboard()
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const pressStart = useRef<{ x: number; y: number } | null>(null)
+  /** Nach dem langen Druecken: der Klick beim Loslassen darf die erste Wahl nicht gleich wieder aufheben. */
+  const ignoreClick = useRef(false)
   const kind = routine?.kind ?? 'strength'
   const unit = data.settings.unit
 
@@ -182,13 +201,10 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
     setOpenNotes([])
   }, [])
 
-  const removeExercise = (index: number) => {
-    const snapshot = exercises
-    setExercises(prev => prev.filter((_, i) => i !== index))
-    setOpenNotes([])
+  const undoToast = (message: string, snapshot: RoutineExercise[]) =>
     toast(t => (
       <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span>{tt('exercise_removed')}</span>
+        <span>{message}</span>
         <button
           type="button"
           onClick={() => { setExercises(snapshot); toast.dismiss(t.id) }}
@@ -199,6 +215,133 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
         </button>
       </span>
     ), { duration: 6000 })
+
+  const removeExercise = (index: number) => {
+    const snapshot = exercises
+    setExercises(prev => prev.filter((_, i) => i !== index))
+    setOpenNotes([])
+    undoToast(tt('exercise_removed'), snapshot)
+  }
+
+  // ── Mehrfachauswahl ────────────────────────────────────────────────────────
+
+  const what = (count: number) => tt('exercises_n', { count })
+  const allSelected = exercises.length > 0 && selected.length === exercises.length
+
+  const startSelect = (index?: number) => {
+    setMenu(null)
+    setSelecting(true)
+    setSelected(index == null ? [] : [index])
+  }
+  const stopSelect = () => { setSelecting(false); setSelected([]) }
+  const toggleSelected = (index: number) => {
+    if (ignoreClick.current) return
+    setSelected(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]))
+  }
+
+  // Lange druecken auf den Kopf einer Uebung beginnt die Auswahl. Wer dabei
+  // scrollt (Finger wandert), bricht ab.
+  const swallowClick = () => {
+    ignoreClick.current = true
+    setTimeout(() => { ignoreClick.current = false }, 500)
+  }
+  const cancelPress = () => { clearTimeout(pressTimer.current); pressStart.current = null }
+  const pressProps = (index: number) => ({
+    onPointerDown: (event: ReactPointerEvent) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return
+      pressStart.current = { x: event.clientX, y: event.clientY }
+      clearTimeout(pressTimer.current)
+      pressTimer.current = setTimeout(() => { pressStart.current = null; swallowClick(); startSelect(index) }, LONG_PRESS_MS)
+    },
+    onPointerMove: (event: ReactPointerEvent) => {
+      const start = pressStart.current
+      if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) cancelPress()
+    },
+    onPointerUp: cancelPress,
+    onPointerCancel: cancelPress,
+    onPointerLeave: cancelPress,
+    // Rechtsklick bzw. das Kontextmenue beim langen Druecken: stattdessen auswaehlen
+    onContextMenu: (event: ReactMouseEvent) => {
+      event.preventDefault()
+      cancelPress()
+      if (!selecting) { swallowClick(); startSelect(index) }
+    },
+  })
+  useEffect(() => () => clearTimeout(pressTimer.current), [])
+
+  const copySelected = () => {
+    const count = selected.length
+    copyToClipboard(pickSelected(exercises, selected))
+    stopSelect()
+    toast.success(tt('clip_copied', { what: what(count) }))
+  }
+
+  const duplicateSel = () => {
+    const count = selected.length
+    const snapshot = exercises
+    setExercises(prev => duplicateSelected(prev, selected))
+    setOpenNotes([])
+    stopSelect()
+    undoToast(tt('duplicated', { what: what(count) }), snapshot)
+  }
+
+  const deleteSelected = () => {
+    const count = selected.length
+    const snapshot = exercises
+    setExercises(prev => withoutSelected(prev, selected))
+    setOpenNotes([])
+    stopSelect()
+    undoToast(tt('removed_n', { what: what(count) }), snapshot)
+  }
+
+  const paste = () => {
+    const copies = clipboardCopies()
+    if (copies.length === 0) return
+    setExercises(prev => [...prev, ...copies])
+    toast.success(tt('clip_pasted', { what: what(copies.length) }))
+  }
+
+  // Ziele zum Verschieben: alle anderen Workouts, nach Plan gruppiert.
+  const moveTargets = useMemo(() => {
+    const groups = new Map<string | null, TrainingRoutine[]>()
+    for (const r of data.routines) {
+      if (r.id === routine?.id) continue
+      const list = groups.get(r.folder) ?? []
+      list.push(r)
+      groups.set(r.folder, list)
+    }
+    return [...groups.entries()].sort(([a], [b]) => (a == null ? 1 : b == null ? -1 : a.localeCompare(b)))
+  }, [data.routines, routine?.id])
+
+  // Beide Workouts werden sofort gespeichert: erst das Ziel, dann dieses ohne
+  // die Uebungen. Klappt das zweite nicht, wird das Ziel zurueckgesetzt — so
+  // liegt eine Uebung nie in beiden.
+  const moveTo = async (target: TrainingRoutine) => {
+    const moving = pickSelected(exercises, selected)
+    const remaining = withoutSelected(exercises, selected)
+    const count = moving.length
+    setBusy(true)
+    try {
+      await data.saveRoutine({ ...target, exercises: [...target.exercises, ...moving] })
+      if (routine?.id) {
+        try {
+          const saved = await data.saveRoutine({ ...build(), exercises: remaining })
+          initial.current = serialize(saved)
+        } catch (error) {
+          await data.saveRoutine(target).catch(() => {})
+          throw error
+        }
+      }
+      setExercises(remaining)
+      setOpenNotes([])
+      setMoveOpen(false)
+      stopSelect()
+      toast.success(tt('moved_to', { what: what(count), name: target.name }))
+    } catch {
+      toast.error(tt('save_error'))
+    } finally {
+      setBusy(false)
+    }
   }
 
   const drag = useDragReorder<HTMLUListElement>(move)
@@ -231,7 +374,8 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           setExercises(prev => [...prev, ...ids.map(id => ({
             exerciseId: id,
             restS: data.settings.defaultRestS,
-            sets: Array.from({ length: 3 }, (): RoutineSet => ({ type: 'normal', repsMin: 8, repsMax: 12 })),
+            // Neu aus dem Katalog: leer. Werte bringt nur Kopieren/Verschieben mit.
+            sets: Array.from({ length: 3 }, (): RoutineSet => ({ type: 'normal' })),
           }))])
           setPicker(false)
         }}
@@ -244,20 +388,49 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
   return (
     <TrainingSheet
       title={routine?.id ? tt('routine_title_edit') : tt('routine_title_new')}
-      onClose={close}
+      // Waehrend der Auswahl beendet Schliessen (Escape, Wischen) nur die Auswahl
+      onClose={selecting ? stopSelect : close}
       busy={busy}
       closeLabel={tt('editor_close_save')}
       tall
+      footer={selecting ? (
+        <div role="toolbar" aria-label={tt('select_count', { count: selected.length })} style={{ display: 'flex', gap: 4 }}>
+          <ActionButton icon={<Copy size={22} aria-hidden="true" />} disabled={selected.length === 0} onClick={copySelected}>{tt('sel_copy')}</ActionButton>
+          <ActionButton icon={<ArrowRightLeft size={22} aria-hidden="true" />} disabled={selected.length === 0} onClick={() => setMoveOpen(true)}>{tt('sel_move')}</ActionButton>
+          <ActionButton icon={<CopyPlus size={22} aria-hidden="true" />} disabled={selected.length === 0} onClick={duplicateSel}>{tt('sel_duplicate')}</ActionButton>
+          <ActionButton icon={<Trash2 size={22} aria-hidden="true" />} disabled={selected.length === 0} danger onClick={deleteSelected}>{tt('sel_delete')}</ActionButton>
+        </div>
+      ) : undefined}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('editor_saves_on_close')}</span>
-          {onStart && (
-            <Button tone="ghost" disabled={busy} onClick={start} style={{ minHeight: 38, padding: '0 12px', fontSize: '0.85rem' }}>
-              <Play size={14} aria-hidden="true" /> {tt('start')}
-            </Button>
-          )}
-        </div>
+        {selecting ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 38 }}>
+            <span aria-live="polite" style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>{tt('select_count', { count: selected.length })}</span>
+            <button
+              type="button"
+              onClick={() => setSelected(allSelected ? [] : exercises.map((_, i) => i))}
+              className="tyd-train-press"
+              style={{ minHeight: 38, padding: '0 8px', color: 'var(--accent)', fontSize: 16 }}
+            >
+              {allSelected ? tt('select_none') : tt('select_all')}
+            </button>
+            <Button tone="ghost" onClick={stopSelect} style={{ minHeight: 38, padding: '0 14px', fontSize: '0.85rem' }}>{tt('select_done')}</Button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>{tt('editor_saves_on_close')}</span>
+            {exercises.length > 0 && (
+              <Button tone="ghost" disabled={busy} onClick={() => startSelect()} style={{ minHeight: 38, padding: '0 12px', fontSize: '0.85rem' }}>
+                {tt('select_start')}
+              </Button>
+            )}
+            {onStart && (
+              <Button tone="ghost" disabled={busy} onClick={start} style={{ minHeight: 38, padding: '0 12px', fontSize: '0.85rem' }}>
+                <Play size={14} aria-hidden="true" /> {tt('start')}
+              </Button>
+            )}
+          </div>
+        )}
 
         <section style={cardStyle}>
           <input
@@ -309,6 +482,37 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
         </section>
 
         {exercises.length === 0 && <p style={{ color: 'var(--lg-text-3)', padding: '4px 2px', fontSize: '0.9rem' }}>{tt('routine_no_exercises')}</p>}
+        {selecting ? (
+          <ul aria-label={tt('select_count', { count: selected.length })} style={{ ...cardStyle, listStyle: 'none', margin: 0, padding: 0, gap: 0, overflow: 'hidden' }}>
+            {exercises.map((ex, index) => {
+              const exName = info(ex.exerciseId)?.name ?? ex.exerciseId.replace(/_/g, ' ')
+              const isSelected = selected.includes(index)
+              return (
+                <li key={`${ex.exerciseId}-${index}`} style={{ borderTop: index === 0 ? undefined : '0.5px solid var(--lg-separator)' }}>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    onClick={() => toggleSelected(index)}
+                    className="tyd-train-press"
+                    style={{
+                      width: '100%', minHeight: 60, display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', textAlign: 'left',
+                      background: isSelected ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent',
+                    }}
+                  >
+                    <SelectCircle checked={isSelected} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exName}</span>
+                      <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {exerciseSummary(ex, tt, unit, locale, data.settings.defaultRestS)}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
         <ul {...drag.containerProps} style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {exercises.map((ex, index) => {
             const exInfo = info(ex.exerciseId)
@@ -340,8 +544,13 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
                   >
                     <GripVertical size={18} aria-hidden="true" />
                   </button>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exName}</div>
+                  <div {...pressProps(index)} style={{ flex: 1, minWidth: 0, WebkitUserSelect: 'none', userSelect: 'none', WebkitTouchCallout: 'none' }}>
+                    <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {data.settings.favoriteExercises.includes(ex.exerciseId) && (
+                        <Star size={13} fill="currentColor" aria-label={tt('picker_favorites')} style={{ color: FAVORITE_STAR, marginRight: 5, verticalAlign: '-1px' }} />
+                      )}
+                      {exName}
+                    </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {exInfo?.primary.map(m => tt(`muscle_${m}` as TrainingTextKey)).join(', ')}
                     </div>
@@ -449,10 +658,18 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
             )
           })}
         </ul>
+        )}
 
-        <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 52, borderStyle: 'dashed', color: TRAINING_ACCENT }}>
-          <Plus size={18} aria-hidden="true" /> {tt('add_from_catalog')}
-        </Button>
+        {!selecting && (
+          <Button tone="ghost" block onClick={() => setPicker(true)} style={{ minHeight: 52, borderStyle: 'dashed', color: TRAINING_ACCENT }}>
+            <Plus size={18} aria-hidden="true" /> {tt('add_from_catalog')}
+          </Button>
+        )}
+        {!selecting && clipboard.length > 0 && (
+          <Button tone="ghost" block onClick={paste} style={{ minHeight: 48, borderStyle: 'dashed', color: 'var(--accent)' }}>
+            <ClipboardPaste size={18} aria-hidden="true" /> {tt('clip_paste', { what: what(clipboard.length) })}
+          </Button>
+        )}
 
         <section style={{ ...cardStyle, padding: '14px 16px' }} aria-labelledby="routine-muscle-title">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
@@ -482,7 +699,35 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
             <MenuItem icon={<StickyNote size={18} aria-hidden="true" />} onClick={() => { setOpenNotes(prev => (prev.includes(menu) ? prev : [...prev, menu])); setMenu(null) }}>
               {menuExercise.notes ? tt('note_show') : tt('note_add')}
             </MenuItem>
+            <MenuItem
+              icon={<Star size={18} aria-hidden="true" fill={data.settings.favoriteExercises.includes(menuExercise.exerciseId) ? 'currentColor' : 'none'} />}
+              onClick={() => { data.toggleFavorite(menuExercise.exerciseId).catch(() => toast.error(tt('save_error'))); setMenu(null) }}
+            >
+              {data.settings.favoriteExercises.includes(menuExercise.exerciseId) ? tt('favorite_menu_remove') : tt('favorite_menu_add')}
+            </MenuItem>
+            <MenuItem icon={<Check size={18} aria-hidden="true" />} onClick={() => startSelect(menu)}>{tt('select_start')}</MenuItem>
             <MenuItem icon={<Trash2 size={18} aria-hidden="true" />} danger onClick={() => { removeExercise(menu); setMenu(null) }}>{tt('remove_exercise')}</MenuItem>
+          </div>
+        </TrainingSheet>
+      )}
+
+      {moveOpen && (
+        <TrainingSheet title={tt('move_title', { what: what(selected.length) })} onClose={() => setMoveOpen(false)} zIndex={100} busy={busy}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 8 }}>
+            {moveTargets.length === 0 && <p style={{ color: 'var(--lg-text-3)', fontSize: 15, padding: '8px 2px' }}>{tt('move_no_targets')}</p>}
+            {moveTargets.map(([plan, list]) => (
+              <section key={plan ?? ''} aria-label={plan ?? tt('move_without_plan')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--lg-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '10px 4px 0' }}>
+                  {plan ?? tt('move_without_plan')}
+                </h3>
+                {list.map(target => (
+                  <MenuItem key={target.id} icon={<ArrowRightLeft size={18} aria-hidden="true" />} disabled={busy} onClick={() => { void moveTo(target) }}>
+                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{target.name}</span>
+                    <span style={{ fontSize: 13, color: 'var(--lg-text-3)' }}>{what(target.exercises.length)}</span>
+                  </MenuItem>
+                ))}
+              </section>
+            ))}
           </div>
         </TrainingSheet>
       )}
@@ -491,6 +736,41 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 }
 
 // ─── Bausteine ──────────────────────────────────────────────────────────────
+
+/** Gelb wie der Stern in der Uebungsauswahl. */
+const FAVORITE_STAR = '#ffd60a'
+
+/** Eine Zeile Werte fuer die Auswahlliste: „3 Saetze · 8–12 · 80 kg · 90 s". */
+function exerciseSummary(ex: RoutineExercise, tt: ReturnType<typeof useTrainingText>['tt'], unit: 'kg' | 'lb', locale: string, defaultRestS: number): string {
+  const first = ex.sets.find(s => s.type !== 'warmup') ?? ex.sets[0]
+  const min = first?.repsMin ?? first?.reps ?? null
+  const max = first?.repsMax ?? first?.reps ?? null
+  const reps = min != null && max != null ? (min === max ? String(min) : `${min}–${max}`) : min ?? max
+  return [
+    tt('sets_count', { count: ex.sets.length }),
+    reps != null ? `${reps} ${tt('col_reps')}` : null,
+    first?.weightKg != null ? `${formatNumber(toDisplayWeight(first.weightKg, unit), locale, 2)} ${unit}` : null,
+    tt('rest_seconds', { s: ex.restS ?? defaultRestS }),
+  ].filter(Boolean).join(' · ')
+}
+
+function ActionButton({ icon, children, onClick, disabled, danger }: { icon: ReactNode; children: ReactNode; onClick: () => void; disabled?: boolean; danger?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="tyd-train-press"
+      style={{
+        flex: 1, minWidth: 0, minHeight: 56, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+        fontSize: 12, fontWeight: 600, borderRadius: 14,
+        color: danger ? 'var(--lg-bad-text)' : 'var(--accent)', opacity: disabled ? 0.35 : 1, cursor: disabled ? 'default' : 'pointer',
+      }}
+    >
+      {icon}{children}
+    </button>
+  )
+}
 
 const cardStyle: CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 10, padding: '12px 14px', borderRadius: 18,

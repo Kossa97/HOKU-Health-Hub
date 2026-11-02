@@ -1,7 +1,7 @@
 import { useEffect, useId, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Activity, Bike, Dumbbell, Flame, Footprints, Mountain, PersonStanding, Sparkles,
+  Activity, Bike, Check, Dumbbell, Flame, Footprints, Mountain, PersonStanding, Sparkles,
   Timer, Trophy, Waves, type LucideIcon,
 } from 'lucide-react'
 import type { SessionKind } from '../types'
@@ -113,6 +113,24 @@ export function Button({ tone = 'primary', block, style, className, children, ..
 }
 
 /** An/aus-Kapsel. Mit `color` ein Farbpunkt davor (z. B. die Art). */
+/** Auswahlkreis wie in iOS-Listen (Mehrfachauswahl); rein optisch. */
+export function SelectCircle({ checked }: { checked: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        background: checked ? 'var(--lg-accent)' : 'transparent',
+        boxShadow: checked ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
+        color: 'var(--accent-contrast)',
+      }}
+    >
+      {checked && <Check size={16} strokeWidth={3} />}
+    </span>
+  )
+}
+
 export function Chip({ active, children, onClick, color, ariaLabel }: {
   active: boolean
   children: ReactNode

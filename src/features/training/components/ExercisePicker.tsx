@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Check, Plus, Search, Star } from 'lucide-react'
+import { Plus, Search, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { CustomExercise, ExerciseCategory, MuscleGroup, TrackingMode, TrainingSession } from '../types'
 import { useTrainingText, type TrainingTextKey } from '../i18n'
 import { allExercises, matchesSearch, type ExerciseInfo } from '../lib/exerciseLookup'
-import { Button, Chip, Field, TrainingSheet, inputStyle } from './ui'
+import { Button, Chip, Field, SelectCircle, TrainingSheet, inputStyle } from './ui'
 
 /**
  * Uebung waehlen — Suche ueber Deutsch, Englisch und die Schreibweisen aus
@@ -166,21 +166,7 @@ export function ExercisePicker({ sessions, customExercises, favorites, onToggleF
                     className="tyd-train-press"
                     style={{ flex: 1, minWidth: 0, minHeight: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px', textAlign: 'left' }}
                   >
-                    {multiple && (
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          // Auswahlkreis wie in iOS-Listen
-                          width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          background: isSelected ? 'var(--lg-accent)' : 'transparent',
-                          boxShadow: isSelected ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
-                          color: 'var(--accent-contrast)',
-                        }}
-                      >
-                        {isSelected && <Check size={16} strokeWidth={3} />}
-                      </span>
-                    )}
+                    {multiple && <SelectCircle checked={isSelected} />}
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 17, fontWeight: 400, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</span>
                       <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

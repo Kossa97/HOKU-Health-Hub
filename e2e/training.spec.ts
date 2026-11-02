@@ -151,6 +151,57 @@ test('Training: Uebung mit Stern steht oben in der Auswahl', async ({ page, mock
   await expect(picker.getByRole('listitem')).toHaveCount(1)
 })
 
+test('Training: Uebungen auswaehlen, kopieren, einfuegen, verschieben', async ({ page, mock }) => {
+  mock.insert('training_routines', {
+    user_id: TEST_USER.id, name: 'Push', kind: 'strength', weekdays: [1], sort_order: 0, folder: 'PPL',
+    exercises: [
+      { exerciseId: 'bench_press_barbell', restS: 120, sets: [{ type: 'normal', weightKg: 80, repsMin: 8, repsMax: 10 }] },
+      { exerciseId: 'overhead_press_barbell', restS: 90, sets: [{ type: 'normal', weightKg: 50, repsMin: 6, repsMax: 8 }] },
+      { exerciseId: 'lateral_raise_dumbbell', restS: 60, sets: [{ type: 'normal', weightKg: 10, repsMin: 15, repsMax: 15 }] },
+    ],
+  })
+  mock.insert('training_routines', {
+    user_id: TEST_USER.id, name: 'Pull', kind: 'strength', weekdays: [3], sort_order: 1, folder: 'PPL', exercises: [],
+  })
+  await page.goto('/training')
+
+  // Push: zwei Uebungen kopieren
+  await page.getByRole('button', { name: 'Push – Bearbeiten' }).click()
+  const editor = page.getByRole('dialog', { name: 'Routine bearbeiten' })
+  await editor.getByRole('button', { name: 'Auswählen' }).click()
+  await editor.getByRole('checkbox', { name: /Bankdrücken/ }).click()
+  await editor.getByRole('checkbox', { name: /Seitheben/ }).click()
+  await expect(editor.getByText('2 ausgewählt', { exact: true })).toBeVisible()
+  await editor.getByRole('button', { name: 'Kopieren' }).click()
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+
+  // Pull: einfuegen — mit allen Werten
+  await page.getByRole('button', { name: 'Pull – Bearbeiten' }).click()
+  const pull = page.getByRole('dialog', { name: 'Routine bearbeiten' })
+  await pull.getByRole('button', { name: '2 Übungen einfügen' }).click()
+  await pull.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => {
+    const row = mock.table('training_routines').find(r => r.name === 'Pull') as { exercises: Array<{ exerciseId: string; restS: number; sets: Array<{ weightKg?: number }> }> }
+    return row.exercises.map(e => `${e.exerciseId}:${e.restS}:${e.sets[0].weightKg}`)
+  }).toEqual(['bench_press_barbell:120:80', 'lateral_raise_dumbbell:60:10'])
+
+  // Push: Schulterdruecken nach Pull verschieben
+  await page.getByRole('button', { name: 'Push – Bearbeiten' }).click()
+  await editor.getByRole('button', { name: 'Auswählen' }).click()
+  await editor.getByRole('checkbox', { name: /Schulterdrücken/ }).click()
+  await editor.getByRole('button', { name: 'Verschieben' }).click()
+  await page.getByRole('dialog', { name: /verschieben nach/ }).getByRole('button', { name: /^Pull/ }).click()
+  await expect(editor.getByRole('checkbox')).toHaveCount(0)
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => {
+    const rows = mock.table('training_routines') as Array<{ name: string; exercises: Array<{ exerciseId: string }> }>
+    return rows.map(r => `${r.name}:${r.exercises.map(e => e.exerciseId).join(',')}`).sort()
+  }).toEqual([
+    'Pull:bench_press_barbell,lateral_raise_dumbbell,overhead_press_barbell',
+    'Push:bench_press_barbell,lateral_raise_dumbbell',
+  ])
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')
