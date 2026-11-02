@@ -210,9 +210,9 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1793615176.573426,
-    "seen": 1793615420.267144,
-    "ast_hash": "8051f83107f74112fe0e6f081dd6f6f1",
+    "mtime": 1793619000.1904712,
+    "seen": 1793619232.7293663,
+    "ast_hash": "c994046589acf188506302a74371ddec",
     "semantic_hash": ""
   },
   "src/components/ExpiryWarningBanners.tsx": {
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   "src/pages/Home.tsx": {
-    "mtime": 1793615176.938868,
-    "seen": 1793615420.267684,
-    "ast_hash": "5fd6fd08596b8dd1cca09f0a3466783b",
+    "mtime": 1793618989.0192094,
+    "seen": 1793619232.729991,
+    "ast_hash": "c72c8e6efbdb4d7f2b8955fca638d975",
     "semantic_hash": ""
   },
   "src/pages/InjektionsTracker.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793618307.2312398,
-    "seen": 1793618368.128078,
+    "mtime": 1793619111.4811282,
+    "seen": 1793619232.7300777,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7854,9 +7854,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/lib/zugang.ts": {
-    "mtime": 1793618214.3770933,
-    "seen": 1793618368.1275434,
-    "ast_hash": "9cad6f537a7c98bfc7a634a0b945271c",
+    "mtime": 1793618916.1691513,
+    "seen": 1793619232.7295346,
+    "ast_hash": "9c62295a56b181b0e266d72b60a418b7",
     "semantic_hash": ""
   },
   "src/features/dot/texte.test.ts": {
@@ -19092,15 +19092,15 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/erkenntnisseService.test.ts": {
-    "mtime": 1793618285.0252137,
-    "seen": 1793618368.1275384,
-    "ast_hash": "83496072f75f42a5856532c6db91fa44",
+    "mtime": 1793618879.7636578,
+    "seen": 1793619232.7295268,
+    "ast_hash": "9cda564d841b484c43315faee3db3de4",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/erkenntnisseService.ts": {
-    "mtime": 1793618225.6768687,
-    "seen": 1793618368.1275392,
-    "ast_hash": "3b6f5b6167deaecde1922ae48245c19f",
+    "mtime": 1793618861.321585,
+    "seen": 1793619232.729528,
+    "ast_hash": "6713d58cceac4c739295ba5a349bb353",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/texte.test.ts": {
@@ -19110,9 +19110,57 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/texte.ts": {
-    "mtime": 1793618225.9449222,
-    "seen": 1793618368.1275406,
-    "ast_hash": "5e964037fb1a27ec738e9d68c71266ea",
+    "mtime": 1793618816.3262444,
+    "seen": 1793619232.7295306,
+    "ast_hash": "1658fdcdbe29a33c100a7603af245fc7",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/ErkenntnissePage.tsx": {
+    "mtime": 1793618977.1435878,
+    "seen": 1793619232.7295232,
+    "ast_hash": "78d83800b13f11f7591527aca20f74df",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/FundDetail.tsx": {
+    "mtime": 1793618899.20232,
+    "seen": 1793619232.7295244,
+    "ast_hash": "56a911aae52a36f513069f27321472e1",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/FundKarte.tsx": {
+    "mtime": 1793618898.9144974,
+    "seen": 1793619232.7295253,
+    "ast_hash": "21d6766edc2ec09cbb14a58fe3de5e31",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/WochenKarte.tsx": {
+    "mtime": 1793618899.069066,
+    "seen": 1793619232.7295258,
+    "ast_hash": "b350a17b6562d17c5d543cb647186a22",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/WochenUpdateHomeKarte.tsx": {
+    "mtime": 1793619087.8534698,
+    "seen": 1793619232.7295263,
+    "ast_hash": "eed4094ea3cff1a5c29a83bff9ca7731",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/komponenten.test.tsx": {
+    "mtime": 1793618781.7930813,
+    "seen": 1793619232.7295291,
+    "ast_hash": "38577ab47e5c11d086d44ce6a255cd36",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/vorlagen.test.ts": {
+    "mtime": 1793618766.1121502,
+    "seen": 1793619232.7295313,
+    "ast_hash": "33a1a5b09656b12eeba6250d5f7b8b67",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/vorlagen.ts": {
+    "mtime": 1793618861.4665668,
+    "seen": 1793619232.729532,
+    "ast_hash": "e4689c53894a52ec898b9e4313bd12b8",
     "semantic_hash": ""
   }
 }

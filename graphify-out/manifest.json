@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   "src/pages/Home.tsx": {
-    "mtime": 1793618989.0192094,
-    "seen": 1793619232.729991,
-    "ast_hash": "c72c8e6efbdb4d7f2b8955fca638d975",
+    "mtime": 1793619501.292986,
+    "seen": 1793619671.846784,
+    "ast_hash": "03f3875a15fa113719316f10a7d8ce5c",
     "semantic_hash": ""
   },
   "src/pages/InjektionsTracker.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793619111.4811282,
-    "seen": 1793619232.7300777,
+    "mtime": 1793619616.8714797,
+    "seen": 1793619671.8468661,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -19098,9 +19098,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/erkenntnisseService.ts": {
-    "mtime": 1793618861.321585,
-    "seen": 1793619232.729528,
-    "ast_hash": "6713d58cceac4c739295ba5a349bb353",
+    "mtime": 1793619491.5490363,
+    "seen": 1793619671.8463142,
+    "ast_hash": "ecc809f950bc7df494c7d6ff6fd9d08c",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/texte.test.ts": {
@@ -19116,9 +19116,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/ErkenntnissePage.tsx": {
-    "mtime": 1793618977.1435878,
-    "seen": 1793619232.7295232,
-    "ast_hash": "78d83800b13f11f7591527aca20f74df",
+    "mtime": 1793619507.134509,
+    "seen": 1793619671.8463075,
+    "ast_hash": "06b7b39000079e95c3c07233c9224873",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/FundDetail.tsx": {
@@ -19140,9 +19140,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/WochenUpdateHomeKarte.tsx": {
-    "mtime": 1793619087.8534698,
-    "seen": 1793619232.7295263,
-    "ast_hash": "eed4094ea3cff1a5c29a83bff9ca7731",
+    "mtime": 1793619554.2967913,
+    "seen": 1793619671.8463128,
+    "ast_hash": "62780171e872a3bb2aba24e54abb9eaa",
     "semantic_hash": ""
   },
   "src/features/dot/erkenntnisse/komponenten.test.tsx": {
@@ -19161,6 +19161,18 @@
     "mtime": 1793618861.4665668,
     "seen": 1793619232.729532,
     "ast_hash": "e4689c53894a52ec898b9e4313bd12b8",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/WochenUpdateHomeKarte.test.tsx": {
+    "mtime": 1793619525.633571,
+    "seen": 1793619671.8463116,
+    "ast_hash": "a1d272e1d173353ea77b298a9d4a0488",
+    "semantic_hash": ""
+  },
+  "src/features/dot/erkenntnisse/homeZugang.ts": {
+    "mtime": 1793619491.6879048,
+    "seen": 1793619671.8463156,
+    "ast_hash": "f0af82aee6f3a6e0e146c165ab2543fd",
     "semantic_hash": ""
   }
 }
