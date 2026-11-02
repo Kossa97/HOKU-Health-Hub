@@ -4,46 +4,49 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Michroma&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
-/* Layout: Kopf mit Schalter, dann vier Abschnitte in der Reihenfolge der Entscheidungen (Link-Karte, Web-Vorschau, Abzeichen im Web, Hoku-Code).
-   Handys, Chat und Vorschaubilder sind feste App-Flaechen (Hoku Soft Dark, Chat dunkel, Code hell); nur die Seite drumherum folgt dem Theme. Dunkel zuerst. */
+/* Layout: Kopf mit Simulationsliste, dann vier Abschnitte in der Reihenfolge der Entscheidungen (Link-Karte, Web-Vorschau, Abzeichen im Web, Hoku-Code).
+   Handys, Chat und Vorschaubilder sind feste dunkle App-Flaechen; nur die Seite drumherum folgt dem Theme. Dunkel zuerst.
+   v4: weitgehend monochrom. Ein Akzent (Champagner) nur fuer die Hauptzahl; Hierarchie ueber Groesse, Gewicht und Graustufen. */
 :root {
   /* Seite */
-  --page: #141518; --panel: #1b1c20; --ink: #f2f4f8; --ink2: rgba(235,240,255,.68); --ink3: rgba(235,240,255,.46);
-  --line: rgba(255,255,255,.09); --accent: #4ea8ff; --accent-ink: #9ccdff; --warn: #ffb340; --ok: #5fe07f;
-  --frame-shadow: 0 30px 80px rgba(0,0,0,.6); --on-accent: #ffffff; --on-accent2: rgba(255,255,255,.8);
+  --page: #131416; --panel: #1a1b1e; --ink: #f1f2f4; --ink2: rgba(241,242,244,.7); --ink3: rgba(241,242,244,.56);
+  --line: rgba(255,255,255,.09); --line2: rgba(255,255,255,.18); --focus: #f1f2f4;
+  --sw-on: #f1f2f4; --sw-knob-on: #131416; --sw-off: rgba(255,255,255,.16); --sw-knob-off: #d9dadf;
+  --sel-bg: #f1f2f4; --sel-ink: #131416; --frame-shadow: 0 30px 80px rgba(0,0,0,.6);
   /* App (fest, Soft Dark wie 2a/2b) */
   --a-bg: #1f2023; --a-top: #2a2b2f; --a-s1: #303136; --a-s2: #27282c; --a-sheet: #232428;
-  --a-text: #f2f4f8; --a-t2: rgba(235,240,255,.66); --a-t3: rgba(235,240,255,.45); --a-hair: rgba(255,255,255,.08);
-  --blue: #4ea8ff; --blue-soft: #9ccdff; --cyan: #64d2ff; --violet: #8a6bff; --pink: #ff6fb5;
-  --good: #5fe07f; --a-warn: #ffb340; --bad: #ff6961; --white: #ffffff;
-  /* Zahlen nach Bedeutung (fest, nur auf dunklen App-Flaechen, Kontrast in Abschnitt 1 belegt):
-     Fortschritt = warmer Verlauf Gold -> Pfirsich, Track-Zahl = Hoku-Cyan */
-  --warm-1: #ffd166; --warm-2: #ff9f6e; --track: #64d2ff;
-  /* Bereichsfarben wie 2b (--pf-*, dunkel); -t = helle Stufe fuer Schrift auf getoentem Chip */
-  --ar-koerper: #3987e5; --ar-koerper-t: #a8cdff; --ar-training: #199e70; --ar-training-t: #79deb5;
-  --ar-erholung: #d55181; --ar-erholung-t: #f8a6c8; --ar-blut: #d95926; --ar-einnahmen: #c98500;
-  /* Chat (dunkler Messenger-Stil) */
+  --a-text: #f2f2f4; --a-t2: rgba(236,238,243,.72); --a-t3: rgba(236,238,243,.58); --a-hair: rgba(255,255,255,.08); --a-fill: rgba(255,255,255,.06);
+  --a-sw-on: #ececef; --a-knob-on: #1f2023; --a-sw-off: rgba(255,255,255,.16); --a-knob-off: #d9dadf;
+  --white: #ffffff;
+  /* Der eine Akzent: Champagner, nur fuer die Hauptzahl (Fortschritt). Kontrast in Abschnitt 1 belegt. */
+  --gold: #e9d7ae;
+  /* Vorschaubild 1200x630 (fest dunkel) */
+  --og-1: #1e1f22; --og-2: #111214; --og-t1: #f2f2f4; --og-t2: rgba(242,242,244,.72); --og-t3: rgba(242,242,244,.58); --og-hair: rgba(255,255,255,.12);
+  /* Chat (dunkler Messenger-Stil, Farben des Messengers) */
   --wa-bg: #0b141a; --wa-head: #202c33; --wa-in: #202c33; --wa-prev: #182229; --wa-text: #e9edef; --wa-t2: #8696a0; --wa-link: #53bdeb;
   /* Hoku-Code (hell, damit Kameras ihn lesen) */
-  --qr-ink: #121629; --qr-paper: #ffffff; --qr-wash: #eef3ff; --qr-t2: rgba(18,22,41,.62);
+  --qr-ink: #16171b; --qr-paper: #ffffff; --qr-wash: #f1f2f4; --qr-t2: rgba(22,23,27,.64); --qr-fill: #d4d6dc; --qr-ring: #c9ccd3;
   /* Schrift */
   --ui: -apple-system, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
   --disp: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --mark: "Michroma", "Eurostile", "Arial Black", sans-serif;
+  --ease: cubic-bezier(.23, 1, .32, 1);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --page: #eceef3; --panel: #ffffff; --ink: #161821; --ink2: rgba(22,24,33,.7); --ink3: rgba(22,24,33,.52);
-    --line: rgba(22,24,33,.1); --accent: #2a78d6; --accent-ink: #1d5fb0; --warn: #9a5a00; --ok: #1f8a3c;
-    --frame-shadow: 0 24px 60px rgba(30,40,70,.28); color-scheme: light;
+    --page: #eef0f3; --panel: #ffffff; --ink: #16171b; --ink2: rgba(22,23,27,.74); --ink3: rgba(22,23,27,.64);
+    --line: rgba(22,23,27,.1); --line2: rgba(22,23,27,.2); --focus: #16171b;
+    --sw-on: #16171b; --sw-knob-on: #ffffff; --sw-off: rgba(22,23,27,.18); --sw-knob-off: #ffffff;
+    --sel-bg: #16171b; --sel-ink: #ffffff; --frame-shadow: 0 24px 60px rgba(30,34,45,.26); color-scheme: light;
   }
 }
 :root[data-theme="light"] {
-  --page: #eceef3; --panel: #ffffff; --ink: #161821; --ink2: rgba(22,24,33,.7); --ink3: rgba(22,24,33,.52);
-  --line: rgba(22,24,33,.1); --accent: #2a78d6; --accent-ink: #1d5fb0; --warn: #9a5a00; --ok: #1f8a3c;
-  --frame-shadow: 0 24px 60px rgba(30,40,70,.28); color-scheme: light;
+  --page: #eef0f3; --panel: #ffffff; --ink: #16171b; --ink2: rgba(22,23,27,.74); --ink3: rgba(22,23,27,.64);
+  --line: rgba(22,23,27,.1); --line2: rgba(22,23,27,.2); --focus: #16171b;
+  --sw-on: #16171b; --sw-knob-on: #ffffff; --sw-off: rgba(22,23,27,.18); --sw-knob-off: #ffffff;
+  --sel-bg: #16171b; --sel-ink: #ffffff; --frame-shadow: 0 24px 60px rgba(30,34,45,.26); color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -51,39 +54,77 @@ html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--ui); font-size: 14px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
 button { font-family: var(--ui); color: inherit; -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.page { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.page { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 64px; }
+.ic { width: 1em; height: 1em; flex: none; display: inline-block; vertical-align: -.14em; }
 
 /* Kopf */
-.top { display: grid; gap: 14px; max-width: 760px; }
+.top { display: grid; gap: 16px; }
 .eyebrow { font: 500 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
-h1 { font: 600 clamp(26px, 4.4vw, 38px)/1.1 var(--disp); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
-.lead { margin: 0; color: var(--ink2); font-size: 15px; max-width: 65ch; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding-top: 4px; }
-.ctl { display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink2); cursor: pointer; background: none; border: 0; padding: 0; text-align: left; }
-.fake { font: 500 11.5px var(--mono); color: var(--ink3); border: 1px dashed var(--line); border-radius: 8px; padding: 3px 8px; }
+h1 { font: 600 clamp(26px, 4.4vw, 38px)/1.1 var(--disp); margin: 0; text-wrap: balance; letter-spacing: -.015em; max-width: 760px; }
+.lead { margin: 0; color: var(--ink2); font-size: 15px; max-width: 68ch; }
+.fake { font: 500 11.5px var(--mono); color: var(--ink3); }
+.sim-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-top: 6px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; min-width: 0; }
+fieldset.panel { margin: 0; }
+.panel legend, .panel .ph { font: 600 14px var(--ui); color: var(--ink); padding: 0; float: left; width: 100%; }
+.panel .pn { clear: both; margin: 4px 0 0; color: var(--ink3); font-size: 12.5px; max-width: 62ch; }
+.sim-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; }
+.sim-row { display: grid; grid-template-columns: 46px 13.5em minmax(0, 1fr); gap: 4px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.sim-row label { font-size: 14px; color: var(--ink); cursor: pointer; }
+.sim-row .eff { font-size: 12.5px; color: var(--ink2); line-height: 1.4; }
+.sim-row .eff b { color: var(--ink); font-weight: 600; }
+.side-stack { display: grid; gap: 16px; min-width: 0; }
+.opt { display: grid; gap: 10px; }
+.opt .pn { margin: 0; }
+.teaser-note { margin: 0; font-size: 12.5px; color: var(--ink2); max-width: 62ch; min-height: 2.8em; }
 
 /* Abschnitte */
 section { display: grid; gap: 20px; min-width: 0; }
-.sec-head { display: grid; gap: 6px; max-width: 760px; }
-.sec-head .eyebrow { color: var(--accent-ink); }
-h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: balance; }
-.sec-head p { margin: 0; color: var(--ink2); max-width: 65ch; }
+.sec-head { display: grid; gap: 8px; max-width: 780px; }
+h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.sec-head p { margin: 0; color: var(--ink2); max-width: 68ch; }
+.sec-head p b { color: var(--ink); font-weight: 600; }
 .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
-.aside { flex: 1 1 280px; max-width: 420px; min-width: 0; display: grid; gap: 14px; }
-.box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+.aside { flex: 1 1 280px; max-width: 440px; min-width: 0; display: grid; gap: 14px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; min-width: 0; }
 .box h3 { margin: 0 0 6px; font: 600 14px var(--ui); }
 .box p, .box li { color: var(--ink2); font-size: 13px; margin: 0; }
-.box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
-.box .ok { color: var(--ok); font-weight: 600; }
+.box p + p { margin-top: 8px; }
+.box ul, .box ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.box b { color: var(--ink); font-weight: 600; }
+.box .ok { color: var(--ink); font-weight: 600; }
 .box code, .mono { font-family: var(--mono); font-size: 12px; }
-.tag-no { color: var(--warn); }
+.box details { margin-top: 8px; font-size: 13px; color: var(--ink2); }
+.box summary { cursor: pointer; color: var(--ink); }
+.box details ol { margin-top: 8px; font-size: 12.5px; gap: 2px; }
+.box .risk-i { color: var(--ink3); }
 
-/* Schalter (Seite und App) */
-.sw { width: 46px; height: 28px; border-radius: 99px; background: rgba(127,135,150,.35); position: relative; flex: none; cursor: pointer; border: none; padding: 0; }
-.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s cubic-bezier(.32,.72,0,1); }
-.sw[aria-checked="true"] { background: var(--blue); }
-.sw[aria-checked="true"]::after { transform: translateX(18px); }
+/* Schalter: Seite */
+.sw { width: 46px; height: 28px; border-radius: 99px; background: var(--sw-off); position: relative; flex: none; cursor: pointer; border: none; padding: 0; transition: background-color .2s ease; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--sw-knob-off); box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .22s var(--ease), background-color .2s ease; }
+.sw[aria-checked="true"] { background: var(--sw-on); }
+.sw[aria-checked="true"]::after { transform: translateX(18px); background: var(--sw-knob-on); }
+/* Schalter: App (fest dunkel) */
+.phone .sw { background: var(--a-sw-off); }
+.phone .sw::after { background: var(--a-knob-off); }
+.phone .sw[aria-checked="true"] { background: var(--a-sw-on); }
+.phone .sw[aria-checked="true"]::after { background: var(--a-knob-on); box-shadow: none; }
+
+/* Auswahl im Kopf: Bereiche und Teaser */
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 7px 10px; border-radius: 99px; border: 1px solid var(--line2); background: transparent; color: var(--ink2); font: 500 13.5px var(--ui); cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+.pick button .ck { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; opacity: .7; }
+.pick button .ck svg { width: 10px; height: 10px; opacity: 0; }
+.pick button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink3); }
+.pick button[aria-pressed="true"] .ck { background: var(--sel-bg); border-color: var(--sel-bg); opacity: 1; color: var(--sel-ink); }
+.pick button[aria-pressed="true"] .ck svg { opacity: 1; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; background: var(--page); border: 1px solid var(--line); width: fit-content; max-width: 100%; }
+.seg button { border: 0; background: none; padding: 7px 14px 8px; border-radius: 10px; font: 600 14px var(--ui); color: var(--ink2); cursor: pointer; display: inline-flex; gap: 8px; align-items: baseline; transition: background-color .15s ease, color .15s ease; }
+.seg button small { font: 500 11px var(--mono); color: var(--ink3); letter-spacing: .04em; }
+.seg button[aria-pressed="true"] { background: var(--sel-bg); color: var(--sel-ink); }
+.seg button[aria-pressed="true"] small { color: inherit; opacity: .7; }
+@media (hover: hover) and (pointer: fine) { .pick button:hover, .seg button:hover { color: var(--ink); } .seg button[aria-pressed="true"]:hover { color: var(--sel-ink); } }
 
 /* ───── 1 · Chat ───── */
 .chats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px 22px; }
@@ -91,17 +132,19 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .sub-h .k { font: 500 11px var(--mono); letter-spacing: .06em; color: var(--ink3); text-transform: uppercase; }
 .rec { grid-row: span 2; align-self: start; display: grid; gap: 10px; }
 .rec h3 { margin: 0; font: 600 15px var(--disp); color: var(--ink); }
-.slogans { display: grid; gap: 6px; margin-top: 4px; }
-.slg { display: grid; gap: 1px; text-align: left; padding: 8px 11px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; color: var(--ink); font-size: 13px; }
+.slogans { display: grid; gap: 6px; margin-top: 6px; }
+.slg-h { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin-top: 6px; }
+.slg { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 1px 6px; text-align: left; padding: 8px 11px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; color: var(--ink); font-size: 13px; transition: border-color .15s ease; }
+.slg i { font: 500 11px/1.6 var(--mono); color: var(--ink3); font-style: normal; grid-row: span 2; }
 .slg b { font-weight: 600; }
 .slg span { font-size: 12px; color: var(--ink3); }
-.slg[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.slg[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.slg:active, .pick button:active, .seg button:active, .btn:active, .store:active { transform: scale(.97); }
 .chat-col { display: grid; grid-row: span 2; grid-template-rows: subgrid; gap: 12px; align-content: start; min-width: 0; }
-.chat { align-self: stretch; }
-.chat { background: var(--wa-bg); border-radius: 22px; overflow: hidden; box-shadow: var(--frame-shadow); color: var(--wa-text);
-  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px); background-size: 14px 14px; }
+.chat { align-self: stretch; background: var(--wa-bg); border-radius: 22px; overflow: hidden; box-shadow: var(--frame-shadow); color: var(--wa-text);
+  background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px); background-size: 14px 14px; }
 .chat-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--wa-head); font-size: 14.5px; }
-.chat-head .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 13px var(--disp); background: linear-gradient(140deg, #6fb6ff, #8a6bff); color: var(--white); }
+.chat-head .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 13px var(--disp); background: #3a3c42; color: var(--white); }
 .chat-head small { display: block; color: var(--wa-t2); font-size: 11.5px; }
 .chat-body { padding: 14px 10px 16px; display: grid; gap: 6px; justify-items: start; }
 .msg { background: var(--wa-in); border-radius: 0 10px 10px 10px; padding: 6px 8px 5px; font-size: 14px; line-height: 1.35; max-width: 92%; position: relative; }
@@ -118,62 +161,53 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .cap h3 { margin: 0; font: 600 16px var(--disp); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .cap h3 .k { font: 500 11px var(--mono); letter-spacing: .06em; color: var(--ink3); text-transform: uppercase; }
 .cap p { margin: 0; color: var(--ink2); font-size: 13px; }
+.cap .moved { font-size: 13px; color: var(--ink); padding-left: 10px; border-left: 2px solid var(--line2); }
 .cap .uses { font-size: 12px; color: var(--ink3); }
 .cap .uses b { color: var(--ink2); font-weight: 600; }
-.cap .pc { font-size: 12.5px; color: var(--ink2); display: grid; gap: 2px; }
-.cap .pc span::before { content: "+ "; color: var(--ok); font-weight: 700; }
-.cap .pc span.m::before { content: "− "; color: var(--warn); }
-.fallback-note { font: 500 12px var(--ui); color: var(--warn); }
+.fallback-note { font: 600 12.5px var(--ui); color: var(--ink); }
 
-/* Vorschaubild 1200x630, skaliert ueber cqw */
-.og { aspect-ratio: 1200 / 630; width: 100%; max-width: 100%; container-type: inline-size; position: relative; overflow: hidden; color: var(--white);
-  background: radial-gradient(60% 80% at 10% 16%, rgba(100,210,255,.2), transparent 62%), radial-gradient(55% 70% at 96% 92%, rgba(255,160,110,.16), transparent 62%), linear-gradient(160deg, #232a3a, #14161c); }
-.og .brand { position: absolute; left: 5cqw; top: 4.6cqw; display: flex; align-items: center; gap: 1.6cqw; font: 400 2.9cqw/1 var(--mark); letter-spacing: .16em; }
-.og .brand img { width: 4.4cqw; height: 4.4cqw; }
-.og .addr { position: absolute; right: 5cqw; top: 5.5cqw; font: 500 2.4cqw/1 var(--mono); color: rgba(255,255,255,.62); }
-.og .who { position: absolute; left: 5cqw; bottom: 7cqw; display: grid; gap: 1.5cqw; justify-items: start; max-width: 29cqw; }
-.og .ava { width: 16cqw; height: 16cqw; border-radius: 50%; display: grid; place-items: center; font: 700 6.6cqw/1 var(--disp); background: linear-gradient(140deg, #6fb6ff, #8a6bff); box-shadow: 0 0 0 .55cqw #1b1f2a, 0 0 0 1.05cqw rgba(255,209,102,.9), 0 0 0 1.3cqw rgba(255,159,110,.5); }
-.og .stk { font: 600 2.7cqw/1 var(--ui); color: rgba(255,255,255,.86); white-space: nowrap; }
-.og .stk b { font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
-.og .nm { font: 600 5cqw/1.05 var(--disp); }
-.og .bdg { display: flex; align-items: center; gap: .8cqw; font: 600 2.7cqw/1 var(--ui); color: rgba(255,255,255,.86); white-space: nowrap; }
-.og .bdg i { font-style: normal; width: 4.6cqw; height: 4.6cqw; border-radius: 1.4cqw; display: grid; place-items: center; font-size: 2.6cqw; background: linear-gradient(160deg, rgba(100,210,255,.3), rgba(138,107,255,.3)); }
-.og .bdg span { margin-left: .4cqw; }
-.og .right { position: absolute; left: 37cqw; right: 4.6cqw; top: 11.4cqw; display: grid; gap: 1.2cqw; justify-items: start; }
-.og .huge { position: relative; display: flex; align-items: baseline; gap: 1.6cqw; font: 700 10cqw/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.og .huge svg { width: 6.4cqw; height: 6.4cqw; align-self: center; flex: none; color: var(--warm-1); }
-.og .huge small { font: 500 4cqw/1 var(--ui); letter-spacing: 0; color: rgba(255,255,255,.8); }
-.og .grad, .warm { background: linear-gradient(90deg, var(--warm-1), var(--warm-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .06em; }
+/* Vorschaubild 1200x630, skaliert ueber cqw (1cqw = 12 px im echten Bild) */
+.og { aspect-ratio: 1200 / 630; width: 100%; max-width: 100%; container-type: inline-size; position: relative; overflow: hidden; color: var(--og-t1);
+  background: radial-gradient(70% 90% at 0% 0%, rgba(255,255,255,.05), transparent 62%), linear-gradient(160deg, var(--og-1), var(--og-2)); }
+.og .brand { position: absolute; left: 5cqw; top: 4.6cqw; display: flex; align-items: center; gap: 1.5cqw; font: 400 2.6cqw/1 var(--mark); letter-spacing: .18em; color: var(--og-t2); }
+.og .brand img { width: 4cqw; height: 4cqw; opacity: .9; }
+.og .addr { position: absolute; right: 5cqw; top: 5.2cqw; font: 500 2.2cqw/1 var(--mono); color: var(--og-t3); }
+.og .body { position: absolute; left: 5cqw; right: 5cqw; top: 11cqw; bottom: 5cqw; display: grid; grid-template-columns: 27cqw minmax(0, 1fr); gap: 0 5cqw; align-items: center; }
+.og .who { display: grid; gap: 1.4cqw; justify-items: start; align-content: center; min-width: 0; }
+.og .ava { width: 15cqw; height: 15cqw; border-radius: 50%; display: grid; place-items: center; font: 600 6.2cqw/1 var(--disp); color: var(--og-t1);
+  background: linear-gradient(160deg, #4a4c52, #2c2d31); box-shadow: inset 0 0 0 .12cqw rgba(255,255,255,.14); margin-bottom: .6cqw; }
+.og .nm { font: 600 4.6cqw/1.05 var(--disp); letter-spacing: -.01em; }
+.og .meta { display: grid; gap: .9cqw; font: 500 2.5cqw/1.2 var(--ui); color: var(--og-t2); }
+.og .meta .ic { width: 2.6cqw; height: 2.6cqw; vertical-align: 0; }
+.og .meta .it { display: inline-flex; align-items: center; gap: .8cqw; white-space: nowrap; }
+.og .main { display: grid; gap: 1.3cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 5cqw; border-left: .1cqw solid var(--og-hair); min-height: 30cqw; }
+.og .huge { position: relative; display: flex; align-items: baseline; gap: 1.4cqw; font: 600 10cqw/.95 var(--disp); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.og .huge .acc { color: var(--gold); }
+.og .huge .ic { width: 6cqw; height: 6cqw; align-self: center; color: var(--gold); }
+.og .huge small { font: 500 3.4cqw/1 var(--ui); letter-spacing: 0; color: var(--og-t2); }
 .og .vz { filter: blur(1.4cqw); }
-.og .lock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 7.4cqw; height: 7.4cqw; border-radius: 50%; display: grid; place-items: center; background: rgba(18,20,28,.74); color: var(--white); box-shadow: 0 0 0 .3cqw rgba(255,255,255,.2); }
-.og .lock svg { width: 3.6cqw; height: 3.6cqw; }
-.og .lbl { font: 500 3.1cqw/1.25 var(--ui); color: rgba(255,255,255,.8); display: flex; flex-wrap: wrap; gap: .4cqw 1.2cqw; align-items: center; }
-.og .tkrow { display: flex; flex-wrap: wrap; align-items: center; gap: 1cqw 1.6cqw; margin-top: 1.4cqw; }
-.og .tk { display: flex; align-items: baseline; gap: 1.3cqw; font: 500 3cqw/1 var(--ui); color: rgba(255,255,255,.8); white-space: nowrap; }
-.og .tk .tn { font: 700 6.4cqw/1 var(--disp); letter-spacing: -.01em; }
-.og .tkrow .ac, .og .lbl .ac { font-size: 2.6cqw; }
-.og .chips { display: flex; gap: 1cqw; flex-wrap: wrap; margin-top: .6cqw; }
-.og .chips span { font: 500 2.5cqw/1 var(--ui); padding: 1cqw 2cqw; border-radius: 99px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.88); }
-/* Zahl, die zaehlt: Track-Zahl in Hoku-Cyan; Bereiche als Chip mit Punkt in ihrer Farbe */
-.tn { color: var(--track); font-variant-numeric: tabular-nums; }
-.ac { display: inline-flex; align-items: center; gap: .45em; padding: .34em .75em .36em .6em; border-radius: 99px; line-height: 1; font-weight: 500; white-space: nowrap;
-  background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--t); }
-.ac::before { content: ""; width: .58em; height: .58em; border-radius: 50%; background: var(--c); flex: none; }
-.ac.koerper, .w-koerper { --c: var(--ar-koerper); --t: var(--ar-koerper-t); }
-.ac.training, .w-training { --c: var(--ar-training); --t: var(--ar-training-t); }
-.ac.erholung, .w-erholung { --c: var(--ar-erholung); --t: var(--ar-erholung-t); }
-.og .say .w { color: var(--t); text-decoration: underline; text-decoration-color: var(--c); text-decoration-thickness: .5cqw; text-underline-offset: .9cqw; }
-.og .say { position: absolute; left: 37cqw; right: 5cqw; top: 11cqw; display: grid; gap: 2.2cqw; justify-items: start; }
-.og .say .q { font: 500 3.1cqw/1.2 var(--ui); color: rgba(255,255,255,.72); }
-.og .say p { margin: -1cqw 0 0; font: 600 4.7cqw/1.22 var(--disp); text-wrap: balance; }
-.og .say .sfoot { display: flex; flex-wrap: wrap; align-items: center; gap: 1.6cqw 3.4cqw; }
-.og .pill { font: 600 3.2cqw/1 var(--ui); padding: 1.8cqw 3.4cqw; border-radius: 99px; background: linear-gradient(180deg, #5db2ff, #3a8fe8); }
-.og.neutral { background: radial-gradient(70% 60% at 50% 118%, rgba(100,210,255,.16), transparent 70%), radial-gradient(45% 55% at 100% 0%, rgba(175,120,255,.12), transparent 70%), #0f1116; }
-.og .n-logo { position: absolute; left: 13cqw; top: 8.5cqw; width: 74cqw; height: auto; max-width: none; }
-.og .n-slogan { position: absolute; left: 6cqw; right: 6cqw; top: 33.5cqw; text-align: center; font: 500 3.9cqw/1.25 var(--ui); color: rgba(255,255,255,.86); text-wrap: balance; }
-.og .n-areas { position: absolute; left: 0; right: 0; top: 41.5cqw; display: flex; justify-content: center; gap: 1.2cqw; font-size: 2.4cqw; }
-.og .n-addr { position: absolute; left: 0; right: 0; bottom: 4.2cqw; text-align: center; font: 500 2.3cqw/1 var(--mono); color: rgba(255,255,255,.5); letter-spacing: .04em; }
-.og-size { font: 500 10.5px var(--mono); color: var(--wa-t2); padding: 3px 4px 0; }
+.og .lock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 7cqw; height: 7cqw; border-radius: 50%; display: grid; place-items: center; background: rgba(20,21,24,.78); color: var(--og-t1); box-shadow: inset 0 0 0 .15cqw rgba(255,255,255,.18); }
+.og .lock .ic { width: 3.2cqw; height: 3.2cqw; color: var(--og-t1); }
+.og .lbl { font: 500 2.9cqw/1.25 var(--ui); color: var(--og-t2); text-wrap: balance; }
+.og .rule { width: 100%; height: .1cqw; background: var(--og-hair); margin: 1.2cqw 0 .6cqw; }
+.og .tk { display: flex; align-items: baseline; gap: 1.2cqw; font: 500 2.9cqw/1 var(--ui); color: var(--og-t2); white-space: nowrap; }
+.og .tk .tn { font: 600 5cqw/1 var(--disp); color: var(--og-t1); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.og .ar { font: 500 2.6cqw/1.3 var(--ui); color: var(--og-t3); }
+.og .goals { display: flex; flex-wrap: wrap; gap: 1cqw; align-items: center; margin-top: .8cqw; }
+.og .goals .gl { font: 500 2.3cqw/1 var(--ui); color: var(--og-t3); margin-right: .4cqw; }
+.og .goals span:not(.gl) { font: 500 2.4cqw/1 var(--ui); padding: .9cqw 1.8cqw; border-radius: 99px; color: var(--og-t2); box-shadow: inset 0 0 0 .12cqw rgba(255,255,255,.2); }
+.og .say { display: grid; gap: 2cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 5cqw; border-left: .1cqw solid var(--og-hair); min-height: 30cqw; }
+.og .say .q { font: 500 2.6cqw/1.2 var(--ui); color: var(--og-t3); letter-spacing: .01em; }
+.og .say p { margin: -.6cqw 0 0; font: 600 4.4cqw/1.22 var(--disp); letter-spacing: -.01em; text-wrap: balance; }
+.og .say p .w { color: var(--og-t1); }
+.og .say p .r { color: var(--og-t2); font-weight: 500; }
+.og .say .sfoot { display: flex; flex-wrap: wrap; align-items: center; gap: 1.6cqw 3.4cqw; margin-top: .6cqw; }
+.og .pill { font: 600 2.8cqw/1 var(--ui); padding: 1.7cqw 3.2cqw; border-radius: 99px; background: var(--og-t1); color: var(--og-2); }
+.og.neutral { background: radial-gradient(70% 60% at 50% 115%, rgba(255,255,255,.06), transparent 70%), linear-gradient(180deg, #17181b, #0f1012); }
+.og .n-logo { position: absolute; left: 15cqw; top: 9cqw; width: 70cqw; height: auto; max-width: none; }
+.og .n-slogan { position: absolute; left: 6cqw; right: 6cqw; top: 33.5cqw; text-align: center; font: 500 3.7cqw/1.25 var(--ui); color: var(--og-t1); text-wrap: balance; letter-spacing: -.005em; }
+.og .n-areas { position: absolute; left: 0; right: 0; top: 41.6cqw; text-align: center; font: 500 2.3cqw/1 var(--ui); color: var(--og-t3); letter-spacing: .04em; }
+.og .n-addr { position: absolute; left: 0; right: 0; bottom: 4cqw; text-align: center; font: 500 2.1cqw/1 var(--mono); color: var(--og-t3); letter-spacing: .04em; }
 
 /* ───── Handy ───── */
 .phone { width: 390px; max-width: 100%; border-radius: 46px; background: linear-gradient(180deg, var(--a-top), var(--a-bg) 30%); border: 1px solid rgba(255,255,255,.07);
@@ -185,55 +219,86 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .frame-col { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; min-width: 0; max-width: 100%; flex: 0 1 390px; }
 .statusbar { height: 44px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 4px; font: 600 14px var(--ui); }
 .statusbar span:last-child { font-size: 12px; letter-spacing: .1em; }
-.inner { padding: 0 16px 28px; }
-.card { background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); }
-.card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card { background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.24); }
+.card h3 { margin: 0 0 14px; font: 600 15px var(--ui); display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .card h3 .sub { color: var(--a-t3); font-size: 12px; font-weight: 400; margin-left: auto; }
-.btn { width: 100%; padding: 12px; border-radius: 14px; border: none; font: 600 15px var(--ui); color: var(--white); cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); box-shadow: 0 6px 18px rgba(78,168,255,.3); }
-.btn.ghost { background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); color: var(--a-text); }
-.btn.sm { width: auto; padding: 8px 12px; font-size: 13px; border-radius: 11px; box-shadow: none; }
+.btn { width: 100%; padding: 12px; border-radius: 14px; border: none; font: 600 15px var(--ui); color: #16171b; cursor: pointer; background: var(--a-text); transition: transform .16s var(--ease); }
+.btn.ghost { background: var(--a-fill); box-shadow: inset 0 0 0 1px var(--a-hair); color: var(--a-text); }
+.btn.sm { width: auto; padding: 8px 12px; font-size: 13px; border-radius: 11px; }
 
 /* Web-Seite im Handy */
-.urlbar { margin: 4px 12px 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,255,255,.08); border-radius: 12px; height: 36px; font: 500 14px var(--ui); color: var(--a-t2); }
+.urlbar { margin: 4px 12px 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,255,255,.07); border-radius: 12px; height: 36px; font: 500 14px var(--ui); color: var(--a-t2); }
 .urlbar b { color: var(--a-text); font-weight: 500; }
+.urlbar .ic { width: 12px; height: 12px; color: var(--a-t3); }
 .webhead { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; }
 .wordmark { display: inline-flex; align-items: center; gap: 8px; font: 400 13px/1 var(--mark); letter-spacing: .16em; color: var(--a-text); }
 .wordmark img { width: 22px; height: 22px; }
-.cover { height: 132px; margin: 0 12px; border-radius: 22px; background: radial-gradient(80% 90% at 20% 20%, rgba(100,210,255,.35), transparent 60%), radial-gradient(70% 80% at 85% 70%, rgba(175,120,255,.32), transparent 60%), linear-gradient(160deg, #2c3546, #1d2029); }
+.cover { height: 132px; margin: 0 12px; border-radius: 22px; background: radial-gradient(90% 120% at 15% 0%, rgba(255,255,255,.1), transparent 60%), linear-gradient(160deg, #34363c, #222327); }
 .head { display: flex; align-items: flex-end; gap: 12px; margin-top: -40px; padding: 0 22px; position: relative; }
-.avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--a-bg); background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 30px var(--disp); flex: none; color: var(--white); }
+.avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--a-bg); background: linear-gradient(160deg, #4a4c52, #2c2d31); display: grid; place-items: center; font: 600 30px var(--disp); flex: none; color: var(--a-text); }
 .who { padding-bottom: 4px; min-width: 0; }
-.who .name { font: 600 21px/1.15 var(--disp); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.who .land { font: 600 12.5px var(--ui); color: var(--a-t2); background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 8px; letter-spacing: .04em; }
+.who .name { font: 600 21px/1.15 var(--disp); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -.01em; }
+.who .land { font: 600 12px var(--ui); color: var(--a-t2); background: var(--a-fill); padding: 2px 7px; border-radius: 8px; letter-spacing: .04em; }
 .who .nick { color: var(--a-t2); font-size: 14px; }
+.bio { margin: 14px 22px 0; color: var(--a-text); font-size: 14px; line-height: 1.5; }
+.facts { margin: 14px 22px 0; display: grid; gap: 6px; font-size: 13px; color: var(--a-t2); }
+.facts .f { display: flex; gap: 8px; align-items: center; }
+.facts .f .ic { width: 15px; height: 15px; color: var(--a-t3); }
+.facts b { color: var(--a-text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 22px 0; }
-.chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.07); color: rgba(242,244,248,.86); }
-.streak { margin: 12px 22px 0; color: var(--a-t2); font-size: 13px; display: inline-flex; gap: 6px; align-items: center; padding: 5px 11px 5px 9px; border-radius: 99px; background: rgba(255,209,102,.1); }
-.streak b { color: var(--a-text); font-variant-numeric: tabular-nums; }
-.cta { margin: 16px 16px 0; display: grid; gap: 8px; }
+.chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; color: var(--a-t2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.cta { margin: 18px 16px 0; display: grid; gap: 8px; }
 .cta p { margin: 0; text-align: center; color: var(--a-t3); font-size: 12.5px; line-height: 1.4; }
 .webbody { padding: 0 16px; }
+.tracks { margin: 18px 22px 0; padding: 14px 0 0; border-top: 1px solid var(--a-hair); display: grid; gap: 4px; }
+.tracks .tk { display: flex; align-items: baseline; gap: 7px; font-size: 14px; color: var(--a-t2); flex-wrap: wrap; }
+.tracks .tn { font: 600 26px/1 var(--disp); color: var(--a-text); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tracks .tk em { font-style: normal; color: var(--a-t3); font-size: 12px; margin-left: auto; }
+.tracks .ar { font-size: 13px; color: var(--a-t3); }
 
-/* Gesamtfortschritt (wie 2b) */
+/* Gesamtfortschritt */
 .total { display: flex; gap: 14px; align-items: center; }
 .ring { width: 108px; height: 108px; flex: none; position: relative; }
 .ring svg { transform: rotate(-90deg); display: block; width: 108px; height: 108px; }
 .ring .num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.ring .num b { font: 600 19px/1 var(--disp); color: var(--cyan); font-variant-numeric: tabular-nums; }
+.ring .num b { font: 600 19px/1 var(--disp); font-variant-numeric: tabular-nums; }
 .ring .num small { font-size: 10px; color: var(--a-t3); margin-top: 3px; display: block; line-height: 1.25; }
-.parts { flex: 1; display: grid; gap: 7px; min-width: 0; }
-.part { font-size: 12px; color: var(--a-t2); }
-.part .r { display: flex; justify-content: space-between; margin-bottom: 3px; gap: 6px; }
-.part .r b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--good); }
-.track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); position: relative; overflow: hidden; }
-.track i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--cyan); }
-.track .mid { position: absolute; left: 30%; top: -2px; bottom: -2px; width: 1px; background: rgba(255,255,255,.25); }
+.ring .veil b { filter: blur(5px); color: var(--gold); }
+.ring .lk { display: grid; place-items: center; color: var(--a-t2); margin-bottom: 4px; }
+.ring .lk .ic { width: 18px; height: 18px; }
+.parts { flex: 1; display: grid; gap: 8px; min-width: 0; justify-items: start; }
 .small-note { color: var(--a-t3); font-size: 12px; margin-top: 12px; line-height: 1.45; }
+.teaser .big { display: flex; align-items: baseline; gap: 6px; font: 600 40px/1 var(--disp); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.teaser .big .acc { color: var(--gold); }
+.teaser .big small { font: 500 15px var(--ui); color: var(--a-t2); letter-spacing: 0; }
+.teaser .big .ic { width: 26px; height: 26px; align-self: center; color: var(--gold); }
+.lab { font-size: 13px; color: var(--a-t2); margin: 8px 0 0; line-height: 1.4; }
+.parts .lab { margin: 0; }
+.tiers, .tier-l { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+.tiers { margin-top: 14px; }
+.tiers i { height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); }
+.tiers i.on { background: rgba(242,242,244,.78); }
+.tier-l { margin-top: 5px; font: 500 10.5px var(--mono); color: var(--a-t3); }
+.tier-l span { text-align: right; }
+.names { margin-top: 12px; font-size: 12.5px; color: var(--a-t3); }
+.names b { color: var(--a-t2); font-weight: 500; }
+.applink { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--a-hair); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12.5px; color: var(--a-t3); line-height: 1.35; }
+.applink .btn { flex: none; }
 
-/* Abzeichen */
-.bgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 6px; }
-.badge { text-align: center; font-size: 11px; color: var(--a-t2); line-height: 1.3; hyphens: auto; overflow-wrap: anywhere; min-width: 0; }
-.badge .ic { width: 52px; height: 52px; margin: 0 auto 6px; border-radius: 17px; display: grid; place-items: center; font-size: 23px; background: linear-gradient(160deg, rgba(100,210,255,.22), rgba(138,107,255,.22)); }
+/* Abzeichen: eine Reihe */
+.brow3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bt { position: relative; display: grid; justify-items: center; align-content: start; gap: 8px; padding: 14px 4px 12px; border-radius: 16px; background: var(--a-fill); box-shadow: inset 0 0 0 1px var(--a-hair); text-align: center; min-width: 0; overflow: hidden; }
+.bt .bt-ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--a-text); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
+.bt .bt-ic .ic { width: 20px; height: 20px; }
+.bt .bt-n { font-size: 11px; line-height: 1.3; color: var(--a-t2); hyphens: manual; overflow-wrap: anywhere; text-wrap: balance; }
+.bt .bt-veil { display: grid; justify-items: center; gap: 8px; width: 100%; filter: blur(5px); opacity: .38; }
+.bt .bt-veil .bars { display: grid; gap: 4px; justify-items: center; width: 100%; }
+.bt .bt-veil .bars i { height: 7px; border-radius: 4px; background: rgba(255,255,255,.35); width: 80%; }
+.bt .bt-veil .bars i + i { width: 55%; }
+.bt .bt-plus { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; }
+.bt .bt-plus b { font: 600 24px/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.bt .bt-plus small { font-size: 11.5px; color: var(--a-t2); }
+.morelink { margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; background: none; border: 0; padding: 6px; font: 500 13px var(--ui); color: var(--a-t2); cursor: pointer; }
 .empty { color: var(--a-t3); font-size: 13px; }
 
 /* Was ist Hoku */
@@ -241,10 +306,10 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .about h3 { margin: 0 0 8px; font: 600 18px var(--disp); }
 .about > p { margin: 0 0 12px; color: var(--a-t2); font-size: 14px; line-height: 1.5; }
 .about ul { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 8px; }
-.about li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; color: var(--a-t2); font-size: 13.5px; line-height: 1.45; }
-.about li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; margin: 7px 0 0 4px; background: linear-gradient(140deg, var(--cyan), var(--violet)); }
+.about li { display: grid; grid-template-columns: 14px 1fr; gap: 8px; color: var(--a-t2); font-size: 13.5px; line-height: 1.45; }
+.about li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; margin: 8px 0 0 3px; background: var(--a-t3); }
 .stores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.store { display: grid; gap: 1px; text-align: left; padding: 9px 12px; border-radius: 13px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); cursor: pointer; color: var(--a-text); min-width: 0; }
+.store { display: grid; gap: 1px; text-align: left; padding: 9px 12px; border-radius: 13px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.03); cursor: pointer; color: var(--a-text); min-width: 0; transition: transform .16s var(--ease); }
 .store small { font-size: 11px; color: var(--a-t3); }
 .store b { font: 600 15px var(--disp); }
 .foot { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; padding: 18px 16px 26px; color: var(--a-t3); font-size: 12px; }
@@ -253,57 +318,46 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .nf h3 { margin: 0; font: 600 21px var(--disp); }
 .nf p { margin: 0; color: var(--a-t2); font-size: 14px; max-width: 30ch; }
 
-/* ───── 3 · Abzeichen im Web (Einstellungen) ───── */
+/* ───── 3 · Einstellungen ───── */
 .bar { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 16px; font-weight: 600; gap: 8px; }
 .bar .ttl { flex: 1; text-align: center; }
-.icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); font-size: 18px; display: grid; place-items: center; flex: none; color: var(--a-text); }
+.icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: var(--a-fill); font-size: 18px; display: grid; place-items: center; flex: none; color: var(--a-text); }
 .icb.leer { visibility: hidden; }
-.crumb { font-size: 12px; color: var(--a-t3); padding: 0 20px; }
 .set-intro { margin: 8px 20px 0; color: var(--a-t2); font-size: 13px; line-height: 1.45; }
-.count { margin: 12px 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: rgba(78,168,255,.1); border: 1px solid rgba(78,168,255,.28); border-radius: 14px; padding: 10px 12px; font-size: 13px; color: var(--a-t2); }
+.count { margin: 12px 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--a-fill); border-radius: 14px; padding: 10px 12px; font-size: 13px; color: var(--a-t2); }
 .count b { color: var(--a-text); font-variant-numeric: tabular-nums; }
 .grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--a-t3); margin: 20px 20px 6px; display: flex; justify-content: space-between; gap: 8px; }
-.list { margin: 0 16px; background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 18px; padding: 2px 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.list { margin: 0 16px; background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 18px; padding: 2px 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
 .brow { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--a-hair); }
-.brow:last-child { border-bottom: 0; }
-.brow .bi { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 17px; background: linear-gradient(160deg, rgba(100,210,255,.2), rgba(138,107,255,.2)); }
-.brow.zu .bi { filter: grayscale(1); opacity: .5; background: rgba(255,255,255,.05); }
+.brow:last-child, .arow:last-child { border-bottom: 0; }
+.brow .bi, .arow .ad { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--a-fill); color: var(--a-text); }
+.brow .bi .ic, .arow .ad .ic { width: 17px; height: 17px; }
+.brow.zu .bi { color: var(--a-t3); }
 .brow .bn { font-size: 14px; line-height: 1.3; }
 .brow .bs { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 2px; font-size: 11.5px; color: var(--a-t3); }
 .brow.zu .bn { color: var(--a-t2); }
-.risk { display: inline-flex; align-items: center; gap: 4px; color: var(--a-warn); font-weight: 500; }
-.risk::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.risk { display: inline-flex; align-items: center; gap: 4px; color: var(--a-t2); font-weight: 500; }
+.risk .ic { width: 12px; height: 12px; }
 .reset { margin: 16px; display: grid; gap: 8px; }
 .reset p { margin: 0; font-size: 12px; color: var(--a-t3); line-height: 1.45; text-align: center; }
-
-/* Was du trackst */
-.tprev { margin: 12px 16px 0; padding: 12px 14px; border-radius: 16px; background: rgba(100,210,255,.07); border: 1px solid rgba(100,210,255,.2); display: grid; gap: 8px; }
-.tprev .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--a-t3); }
+.tprev { margin: 12px 16px 0; padding: 12px 14px; border-radius: 16px; background: var(--a-fill); display: grid; gap: 4px; }
+.tprev .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--a-t3); margin-bottom: 2px; }
 .tprev .tk { display: flex; align-items: baseline; gap: 7px; font-size: 14px; color: var(--a-t2); }
-.tprev .tn { font: 700 28px/1 var(--disp); }
+.tprev .tn { font: 600 26px/1 var(--disp); color: var(--a-text); letter-spacing: -.02em; }
+.tprev .ar { font-size: 13px; color: var(--a-t3); }
 .tprev .none { font-size: 13px; color: var(--a-t3); }
 .arow { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--a-hair); }
-.arow:last-child { border-bottom: 0; }
-.arow .ad { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 20%, transparent); }
-.arow .ad::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--c); }
 .arow .an { font-size: 14.5px; line-height: 1.3; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .arow .an .cnt { font-size: 12px; color: var(--a-t3); font-variant-numeric: tabular-nums; }
 .arow .av { font-size: 11.5px; color: var(--a-t3); margin-top: 2px; line-height: 1.35; }
-.arow.lock .ad { background: rgba(255,255,255,.05); }
-.arow.lock .ad::before { opacity: .45; }
+.arow.lock .ad { color: var(--a-t3); }
 .arow.lock .an { color: var(--a-t2); }
 .lockt { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--a-t3); white-space: nowrap; }
-.lockt svg { width: 13px; height: 13px; }
-.why-lock { margin: 10px 16px 0; padding: 11px 13px; border-radius: 14px; background: rgba(255,179,64,.08); border: 1px solid rgba(255,179,64,.22); font-size: 12.5px; line-height: 1.45; color: var(--a-t2); }
+.lockt .ic { width: 13px; height: 13px; }
+.why-lock { margin: 10px 16px 0; padding: 11px 13px; border-radius: 14px; background: var(--a-fill); font-size: 12.5px; line-height: 1.45; color: var(--a-t2); }
 .why-lock b { color: var(--a-text); font-weight: 600; }
 
-/* Seite: Bereichswahl im Kopf, Psychologie- und Farbkasten */
-.area-ctl { display: flex; flex-wrap: wrap; gap: 6px; }
-.area-ctl button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 7px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); color: var(--ink2); font: 500 13.5px var(--ui); cursor: pointer; }
-.area-ctl button::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); opacity: .35; }
-.area-ctl button[aria-pressed="true"] { color: var(--ink); border-color: var(--c); }
-.area-ctl button[aria-pressed="true"]::before { opacity: 1; }
-.area-ctl .koerper { --c: var(--ar-koerper); } .area-ctl .training { --c: var(--ar-training); } .area-ctl .erholung { --c: var(--ar-erholung); }
+/* Warum so gestaltet, Farbtabelle */
 .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px 22px; align-items: start; }
 .why { display: grid; gap: 10px; }
 .why ol { margin: 0; padding-left: 20px; display: grid; gap: 7px; }
@@ -313,7 +367,7 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .ctab th { text-align: left; font: 500 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); padding: 0 8px 6px 0; }
 .ctab td { padding: 7px 8px 7px 0; border-top: 1px solid var(--line); color: var(--ink2); vertical-align: top; }
 .ctab td:last-child { text-align: right; font-family: var(--mono); font-size: 12px; color: var(--ink); white-space: nowrap; padding-right: 0; }
-.ctab .sw-c { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 7px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(127,127,127,.25); }
+.ctab .sw-c { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 7px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(127,127,127,.35); }
 .ctab small { display: block; color: var(--ink3); font-size: 11.5px; }
 .tbl-wrap { overflow-x: auto; }
 
@@ -332,107 +386,85 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .qr-tap { border: 0; padding: 0; background: none; cursor: pointer; display: grid; gap: 6px; justify-items: center; color: var(--a-t3); font-size: 11.5px; }
 .qr-tap svg { width: 124px; height: 124px; display: block; }
 .share-btns { display: grid; gap: 8px; min-width: 0; }
-.linkrow { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.05); border: 1px solid var(--a-hair); border-radius: 13px; padding: 6px 6px 6px 12px; margin-top: 14px; }
+.linkrow { display: flex; align-items: center; gap: 8px; background: var(--a-fill); border: 1px solid var(--a-hair); border-radius: 13px; padding: 6px 6px 6px 12px; margin-top: 14px; }
 .linkrow span { flex: 1; min-width: 0; font: 500 13.5px var(--mono); color: var(--a-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .web-on { margin-top: 12px; display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--a-t3); }
-.web-on b { color: var(--good); font-weight: 600; }
-.web-on .nw { white-space: nowrap; }
-
-.qrfull { position: absolute; inset: 0; z-index: 8; display: block; color: var(--qr-ink);
-  background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); }
+.web-on b { color: var(--a-text); font-weight: 600; }
+.qrfull { position: absolute; inset: 0; z-index: 8; display: block; color: var(--qr-ink); background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); }
 .qrfull[hidden] { display: none; }
-.phone.light { background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); color: var(--qr-ink); border-color: rgba(18,22,41,.12); }
+.phone.light { background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); color: var(--qr-ink); border-color: rgba(22,23,27,.12); }
 .qrfull .top-r, .qr-screen .top-r { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 0; }
-.qbtn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(18,22,41,.07); color: var(--qr-ink); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
+.qbtn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(22,23,27,.07); color: var(--qr-ink); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
 .qr-stage { display: grid; justify-items: center; align-content: center; gap: 14px; padding: 0 20px; text-align: center; }
 .qr-stage svg { width: min(300px, 78vw); height: auto; aspect-ratio: 1; display: block; max-width: 100%; }
 .qr-stage .qn { font: 600 22px/1.15 var(--disp); }
 .qr-stage .qk { font: 500 14px var(--mono); color: var(--qr-t2); margin-top: -10px; }
 .qr-stage .qh { font-size: 14px; color: var(--qr-t2); max-width: 28ch; }
 .qr-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 20px 34px; }
-.qr-bottom button { padding: 12px; border-radius: 14px; border: 0; font: 600 14.5px var(--ui); cursor: pointer; background: rgba(18,22,41,.07); color: var(--qr-ink); }
+.qr-bottom button { padding: 12px; border-radius: 14px; border: 0; font: 600 14.5px var(--ui); cursor: pointer; background: rgba(22,23,27,.07); color: var(--qr-ink); }
 .qr-bottom button.pri { background: var(--qr-ink); color: var(--white); }
 .qr-screen { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; }
 .statusbar.dark { color: var(--qr-ink); }
-.bright { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--qr-t2); background: rgba(18,22,41,.06); border-radius: 99px; padding: 5px 10px; }
+.bright { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--qr-t2); background: rgba(22,23,27,.06); border-radius: 99px; padding: 5px 10px; }
 .qr-missing { width: 100%; aspect-ratio: 1; display: grid; place-items: center; text-align: center; font-size: 12px; color: var(--qr-t2); border-radius: 50%; background: var(--qr-paper); padding: 20px; }
-
-.result { border-color: rgba(95,224,127,.35); }
-
-/* Teaser-Schalter im Kopf */
-.teaser-ctl { display: grid; gap: 8px; padding-top: 6px; }
-.seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); width: fit-content; max-width: 100%; }
-.seg button { border: 0; background: none; padding: 7px 14px 8px; border-radius: 10px; font: 600 14px var(--ui); color: var(--ink2); cursor: pointer; display: inline-flex; gap: 8px; align-items: baseline; }
-.seg button small { font: 500 11px var(--mono); color: var(--ink3); letter-spacing: .04em; }
-.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
-.seg button[aria-pressed="true"] small { color: var(--on-accent2); }
-.teaser-note { margin: 0; font-size: 13px; color: var(--ink2); max-width: 65ch; min-height: 2.9em; }
-
-/* Web: Bio, Bereiche, Teaser */
-.bio { margin: 12px 22px 0; color: var(--a-text); font-size: 14px; line-height: 1.45; }
-.tracks { margin: 14px 16px 0; padding: 12px 14px 13px; border-radius: 18px; background: rgba(100,210,255,.06); border: 1px solid rgba(100,210,255,.16); display: grid; gap: 9px; }
-.tracks .tk { display: flex; align-items: baseline; gap: 7px; font-size: 14px; color: var(--a-t2); flex-wrap: wrap; }
-.tracks .tn { font: 700 30px/1 var(--disp); letter-spacing: -.01em; }
-.tracks .tk em { font-style: normal; color: var(--a-t3); font-size: 12px; margin-left: auto; }
-.acs { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; }
-.teaser .big { display: flex; align-items: baseline; gap: 6px; font: 700 38px/1 var(--disp); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.teaser .big small { font: 500 15px var(--ui); color: var(--a-t2); letter-spacing: 0; }
-.teaser .big svg { width: 26px; height: 26px; align-self: center; flex: none; color: var(--warm-1); }
-.lab { font-size: 13px; color: var(--a-t2); margin: 6px 0 0; line-height: 1.4; }
-.parts .lab { margin: 0; }
-.tiers, .tier-l { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
-.tiers { margin-top: 14px; }
-.tiers i { height: 8px; border-radius: 3px; background: rgba(255,255,255,.08); }
-.tiers i.on { background: linear-gradient(90deg, var(--warm-1), var(--warm-2)); }
-.tier-l { margin-top: 5px; font: 500 10.5px var(--mono); color: var(--a-t3); }
-.tier-l span { text-align: right; }
-.names { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--a-t3); }
-.names .acs { font-size: 12px; }
-.applink { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--a-hair); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12.5px; color: var(--a-t3); line-height: 1.35; }
-.applink .btn { flex: none; }
-.ring .veil b { filter: blur(5px); color: var(--a-text); }
-.ring .lk { display: grid; place-items: center; color: var(--a-t2); margin-bottom: 4px; }
-.ring .lk svg { width: 18px; height: 18px; }
 .nw { white-space: nowrap; }
 
+@media (max-width: 900px) {
+  .sim-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .sim-row { grid-template-columns: 46px minmax(0, 1fr); }
+  .sim-row .eff { grid-column: 2; }
+}
 @media (max-width: 460px) {
   body { padding-block: 20px 48px; }
-  .page { gap: 44px; }
+  .page { gap: 48px; }
   .row { gap: 22px; }
+  .panel { padding: 14px 14px; }
   .phone { border-radius: 38px; }
   .phone.fix { height: 760px; }
   .share-main { grid-template-columns: 108px minmax(0, 1fr); }
   .qr-tap svg { width: 108px; height: 108px; }
 }
-@media (prefers-reduced-motion: reduce) { .sw::after { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .sw, .sw::after, .pick button, .seg button, .slg, .btn, .store { transition: none; } .slg:active, .pick button:active, .seg button:active, .btn:active, .store:active { transform: none; } }
 </style>
 
 <div class="page" lang="de">
 
   <header class="top">
-    <div class="eyebrow">Profil · Teilprojekt 2c · Entwurf v3 · 02.11.2026</div>
+    <div class="eyebrow">Profil · Teilprojekt 2c · Entwurf v4 · 02.11.2026</div>
     <h1>Geteilter Link, Web-Vorschau und Hoku-Code</h1>
-    <p class="lead">So sieht Maras Profil aus, wenn sie den Link weitergibt: zuerst als Karte im Chat, dann als Seite ohne Anmeldung, dazu der Code zum Vorzeigen. Gezeigt wird nur, was auf „Alle“ steht. Gesundheitswerte, Substanzen und Berichte erscheinen nirgends. Den Fortschritt gibt es im Web nur angeteasert, die genaue Zahl und die Werte je Bereich nur in der App. Neu in v3: „trackt 9 Werte“ zählt einzelne Werte, Mara wählt die Bereiche selbst, und Zahlen tragen Farbe nach Bedeutung.</p>
-    <div class="controls">
-      <button type="button" class="ctl" data-ctl="nameAlle" aria-pressed="true"><span class="sw" role="switch" aria-checked="true" aria-label="Profilbild und Name auf Alle"></span>Profilbild und Name stehen auf „Alle“</button>
-      <button type="button" class="ctl" data-ctl="plus" aria-pressed="true"><span class="sw" role="switch" aria-checked="true" aria-label="Gesamtfortschritt positiv und auf Alle"></span>Gesamtfortschritt positiv und auf „Alle“</button>
-      <button type="button" class="ctl" data-ctl="bio" aria-pressed="true"><span class="sw" role="switch" aria-checked="true" aria-label="Bio auf Alle"></span>Bio auf „Alle“</button>
-      <button type="button" class="ctl" data-ctl="streak" aria-pressed="true"><span class="sw" role="switch" aria-checked="true" aria-label="Streak auf Alle"></span>Streak auf „Alle“</button>
-      <span class="fake">Daten erfunden · Mara K. · Start 14.03.2026</span>
-    </div>
-    <div class="teaser-ctl">
-      <div class="eyebrow">Was Mara trackt · im Web zeigen · dieselben Schalter wie in Abschnitt 3</div>
-      <div class="area-ctl" id="areaCtl" role="group" aria-label="Bereiche im Web zeigen"></div>
-    </div>
-    <div class="teaser-ctl">
-      <div class="eyebrow">Fortschritt teasern · stellt Karte A und die Web-Seite zugleich um</div>
-      <div class="seg" role="group" aria-label="Teaser-Variante">
-        <button type="button" data-teaser="t1" aria-pressed="true"><small>T1</small>Stufe</button>
-        <button type="button" data-teaser="t2" aria-pressed="false"><small>T2</small>Richtung</button>
-        <button type="button" data-teaser="t3" aria-pressed="false"><small>T3</small>Verdeckt</button>
+    <p class="lead">So sieht Maras Profil aus, wenn sie den Link weitergibt: zuerst als Karte im Chat, dann als Seite ohne Anmeldung, dazu der Code zum Vorzeigen. Gezeigt wird nur, was auf „Alle“ steht. Neu in v4: Karte A1 ist gesetzt und in zwei entzerrten Fassungen zu sehen, alles ist fast farblos, nur die Hauptzahl trägt einen warmen Ton. Dazu neue Slogans und im Web eine einzige Reihe Abzeichen, die schwersten zuerst.</p>
+    <div class="sim-grid">
+      <fieldset class="panel" aria-describedby="simNote">
+        <legend>Simulation: Was Mara auf „Alle“ gestellt hat</legend>
+        <p class="pn" id="simNote">Jeder Schalter steht für ein Sichtbarkeitsfeld aus 2a. Sie hängen nicht voneinander ab. In die Wahl der Karte greifen nur die ersten beiden ein.</p>
+        <ul class="sim-list">
+          <li class="sim-row"><button type="button" class="sw" role="switch" id="sw-nameAlle" data-ctl="nameAlle" aria-checked="true" aria-describedby="eff-nameAlle"></button><label for="sw-nameAlle">Profilbild und Name</label><span class="eff" id="eff-nameAlle"><b>Übersteuert die Karte.</b> Aus: jede Variante wird zur neutralen Hoku-Karte.</span></li>
+          <li class="sim-row"><button type="button" class="sw" role="switch" id="sw-plus" data-ctl="plus" aria-checked="true" aria-describedby="eff-plus"></button><label for="sw-plus">Gesamtfortschritt (positiv)</label><span class="eff" id="eff-plus"><b>Wählt Karte A oder C.</b> Aus: Karte C, und die Web-Seite zeigt keinen Fortschritt.</span></li>
+          <li class="sim-row"><button type="button" class="sw" role="switch" id="sw-bio" data-ctl="bio" aria-checked="true" aria-describedby="eff-bio"></button><label for="sw-bio">Bio</label><span class="eff" id="eff-bio">Nur die Web-Seite: der Text unter dem Namen.</span></li>
+          <li class="sim-row"><button type="button" class="sw" role="switch" id="sw-streak" data-ctl="streak" aria-checked="true" aria-describedby="eff-streak"></button><label for="sw-streak">Streak</label><span class="eff" id="eff-streak">„41 Tage dabei“ auf der Web-Seite, im Kartentext und bei Fassung a unter dem Namen.</span></li>
+        </ul>
+      </fieldset>
+      <div class="side-stack">
+        <div class="panel opt">
+          <div class="ph">Was Mara trackt: Bereiche im Web</div>
+          <p class="pn">Dieselben Schalter wie im Bildschirm „Was du trackst“ in Abschnitt 3.</p>
+          <div class="pick" id="areaCtl" role="group" aria-label="Bereiche im Web zeigen"></div>
+        </div>
+        <div class="panel opt">
+          <div class="ph">Fortschritt teasern</div>
+          <p class="pn">Stellt Karte A1 und die Web-Seite zugleich um.</p>
+          <div class="seg" role="group" aria-label="Teaser-Variante">
+            <button type="button" data-teaser="t1" aria-pressed="true"><small>T1</small>Stufe</button>
+            <button type="button" data-teaser="t2" aria-pressed="false"><small>T2</small>Richtung</button>
+            <button type="button" data-teaser="t3" aria-pressed="false"><small>T3</small>Verdeckt</button>
+          </div>
+          <p class="teaser-note" id="teaserNote"></p>
+        </div>
       </div>
-      <p class="teaser-note" id="teaserNote"></p>
     </div>
+    <span class="fake">Daten erfunden · Mara K. · Start 14.03.2026</span>
   </header>
 
   <!-- 1 · Link-Karte -->
@@ -440,9 +472,9 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
     <div class="sec-head">
       <div class="eyebrow">Entscheidung 1 · nur bei Web-Link an</div>
       <h2 id="h-karte">Link-Karte im Chat</h2>
-      <p>Gewählt ist Karte A. Sie erscheint nur, wenn der Gesamtfortschritt positiv ist und auf „Alle“ steht, sonst Karte C. Stehen Profilbild oder Name nicht auf „Alle“, kommt die neutrale Karte. Eine Hauptzahl (Fortschritt, warm) und eine Nebenzahl (Werte, Cyan). Gezählt werden einzelne Werte, nur aus den Bereichen, die Mara freigibt. Blut, Einnahmen und Substanzen nie. iMessage zeigt Bild, Titel und Domain, WhatsApp zusätzlich die Beschreibung.</p>
+      <p>Gewählt ist <b>Karte A1</b> mit Abzeichen. Sie erscheint nur, wenn der Gesamtfortschritt positiv ist und auf „Alle“ steht, sonst Karte C. Stehen Profilbild oder Name nicht auf „Alle“, kommt die neutrale Karte. Links steht, wer teilt, rechts, was sich getan hat. Farbe trägt nur die Hauptzahl. Blut, Einnahmen und Substanzen erscheinen nie.</p>
     </div>
-    <h3 class="sub-h"><span class="k">Karte A</span>Fortschritt, mit und ohne Abzeichen</h3>
+    <h3 class="sub-h"><span class="k">Karte A1</span>Zwei entzerrte Fassungen zur Wahl</h3>
     <div class="chats" id="chatsA"></div>
     <h3 class="sub-h"><span class="k">Rückfall</span>Karte C in zwei Texten und die neutrale Karte</h3>
     <div class="chats" id="chatsB"></div>
@@ -450,28 +482,28 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
       <div class="box why"><h3>Warum so gestaltet</h3>
         <ol>
           <li><b>Gesicht und Name zuerst.</b> Ein Link von einer Bekannten wird geöffnet, weil man die Person kennt, nicht wegen der Marke.</li>
-          <li><b>Eine Hauptzahl, eine Nebenzahl.</b> Das Auge braucht einen Einstieg: die große Zahl wird zuerst gelesen, die kleinere bestätigt sie.</li>
-          <li><b>Fortschritt warm.</b> Gold bis Pfirsich liest sich als Energie und Erfolg und hebt sich vom kühlen Chat-Grau ab, ganz ohne Rot-Grün-Logik.</li>
-          <li><b>Track-Zahl in Hoku-Cyan.</b> Die kühle Farbe steht für Messen und Sorgfalt: „trackt 9 Werte“ zeigt, dass hier jemand genau hinschaut, und schafft Vertrauen.</li>
-          <li><b>Bereiche in ihren Farben.</b> Dieselben Farben wie in der App machen Hoku wiedererkennbar; der Name steht immer daneben, die Farbe allein trägt nichts.</li>
-          <li><b>Neugier-Lücke.</b> Die Karte sagt, dass sich etwas getan hat, aber nicht genau wie viel; die offene Frage ist echt und löst sich mit einem Tipp.</li>
-          <li><b>Beständigkeit.</b> „41 Tage dabei“ zeigt Dranbleiben statt Wundern und erscheint nur, wenn Mara ihre Streak freigibt.</li>
-          <li><b>Ziel-Tags als Spiegel.</b> Wer ähnliche Ziele hat, erkennt sich in „Recomp, Kraft, Longevity“ wieder; deshalb neutral gesetzt, damit sie nicht mit den Bereichen konkurrieren.</li>
-          <li><b>Ehrlich.</b> Stufen runden ab, nie auf; kein Countdown, keine künstliche Knappheit, kein Heilsversprechen, Fortschritt nur gegenüber dem eigenen Start.</li>
+          <li><b>Zwei Zonen.</b> Links die Person, rechts das Ergebnis, getrennt durch eine Haarlinie. Kleine Angaben stehen in höchstens einer Zeile oder Reihe je Zone.</li>
+          <li><b>Eine Zahl trägt Farbe.</b> Alles andere ist Weiß in drei Stufen. Größe, Gewicht und Abstand ordnen, die Farbe sagt nur noch: hier zuerst hinsehen.</li>
+          <li><b>Champagner statt Hoku-Blau.</b> In WhatsApp und iMessage ist Blau die Farbe von Links. Eine blaue Zahl sähe anklickbar aus und stünde in Konkurrenz zum Link direkt darunter. Ein leicht warmes Weiß hebt sich ruhig vom kühlen Grau ab, liest sich als Wert statt als Signal und braucht keine Rot-Grün-Logik. Blau bleibt der App vorbehalten.</li>
+          <li><b>Bereiche als Wörter.</b> „Körper · Training · Erholung &amp; Fitness“ sagt alles. Farbige Punkte wiederholten nur, was schon dasteht, und machten die kleine Vorschau bunt.</li>
+          <li><b>Linien statt Emoji.</b> Symbole in einer Strichstärke und einer Farbe. Emoji bringen ihre eigenen Farben mit.</li>
+          <li><b>Neugier-Lücke.</b> Die Karte sagt, dass sich etwas getan hat, aber nicht genau wie viel. Die offene Frage ist echt und löst sich mit einem Tipp.</li>
+          <li><b>Ehrlich.</b> Stufen runden ab, nie auf. Kein Countdown, keine künstliche Knappheit, kein Heilsversprechen, Fortschritt nur gegenüber dem eigenen Start.</li>
         </ol></div>
       <div class="box why"><h3>Farben und Kontrast</h3>
-        <p>Gemessen nach WCAG gegen die hellste Stelle der jeweiligen Fläche (Vorschaubild #2e3446, App-Karte #303136). Schrift braucht 4,5:1, Punkte als Form 3:1.</p>
+        <p>Gemessen nach WCAG gegen die hellste Stelle der jeweiligen Fläche (Vorschaubild #292a2d, App-Karte #303136). Schrift braucht 4,5:1, Bedienelemente 3:1.</p>
         <div class="tbl-wrap"><table class="ctab">
           <thead><tr><th>Element</th><th>Kontrast</th></tr></thead>
           <tbody>
-            <tr><td><span class="sw-c" style="--c: linear-gradient(90deg,#ffd166,#ff9f6e)"></span>Fortschritt, Verlauf #ffd166 → #ff9f6e<small>Hauptzahl: warm, Erfolg</small></td><td>8,6 → 6,2</td></tr>
-            <tr><td><span class="sw-c" style="--c:#64d2ff"></span>Track-Zahl #64d2ff<small>Nebenzahl: Hoku-Cyan, Sorgfalt</small></td><td>7,2</td></tr>
-            <tr><td><span class="sw-c" style="--c:#3987e5"></span>Punkt Körper #3987e5<small>Chip-Schrift #a8cdff</small></td><td>3,4 · 5,9</td></tr>
-            <tr><td><span class="sw-c" style="--c:#199e70"></span>Punkt Training #199e70<small>Chip-Schrift #79deb5</small></td><td>3,6 · 6,0</td></tr>
-            <tr><td><span class="sw-c" style="--c:#d55181"></span>Punkt Erholung &amp; Fitness #d55181<small>Chip-Schrift #f8a6c8</small></td><td>3,1 · 5,5</td></tr>
-            <tr><td><span class="sw-c" style="--c:rgba(255,255,255,.12)"></span>Ziel-Tags, neutral<small>Schrift 88 % Weiß auf 8 % Weiß</small></td><td>8,0</td></tr>
+            <tr><td><span class="sw-c" style="--c:#e9d7ae"></span>Hauptzahl, Champagner #e9d7ae<small>der einzige Akzent, auf Vorschaubild und App-Karte</small></td><td>10,1 · 9,1</td></tr>
+            <tr><td><span class="sw-c" style="--c:#f2f2f4"></span>Schrift Stufe 1, #f2f2f4<small>Name, Werte-Zahl, Satz auf Karte C</small></td><td>12,8</td></tr>
+            <tr><td><span class="sw-c" style="--c:rgba(242,242,244,.72)"></span>Stufe 2, Weiß 72 %<small>Beschriftungen, Abzeichen-Zeile</small></td><td>7,4 · 6,6</td></tr>
+            <tr><td><span class="sw-c" style="--c:rgba(242,242,244,.58)"></span>Stufe 3, Weiß 58 %<small>Bereiche, Adresse, Hinweise</small></td><td>5,4 · 4,9</td></tr>
+            <tr><td><span class="sw-c" style="--c:rgba(255,255,255,.12)"></span>Haarlinie, Weiß 12 %<small>trennt Zonen, trägt keine Information</small></td><td>–</td></tr>
+            <tr><td><span class="sw-c" style="--c:#ececef"></span>Schalter an, #ececef<small>gegen die App-Karte; aus ist dunkel mit hellem Knopf links</small></td><td>11,0</td></tr>
+            <tr><td><span class="sw-c" style="--c:#16171b"></span>Hoku-Code, #16171b auf Weiß<small>Füllpunkte #d4d6dc, so hell, dass Kameras sie als Grund lesen</small></td><td>17,9</td></tr>
           </tbody></table></div>
-        <p>Training und Erholung &amp; Fitness sind bei Rot-Grün-Schwäche kaum zu trennen (ΔE 1,6). Deshalb steht der Name immer am Punkt. Die Werte gelten für die festen dunklen App-Flächen, die im hellen Seiten-Theme gleich bleiben.</p></div>
+        <p>Bereichsfarben kommen außerhalb der App nicht mehr vor. Damit entfällt auch das Problem aus v3, dass Training und Erholung &amp; Fitness bei Rot-Grün-Schwäche kaum zu trennen waren.</p></div>
     </div>
   </section>
 
@@ -480,14 +512,18 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
     <div class="sec-head">
       <div class="eyebrow">Entscheidung 2 · ohne Anmeldung</div>
       <h2 id="h-web">Web-Vorschau hokuhealth.app/u/mara</h2>
-      <p>Eine feste Seite, ganz gezeigt. Der Gesamtfortschritt folgt dem Teaser-Schalter oben, die Bio dem Schalter „Bio auf Alle“, die Abzeichen den Schaltern in Abschnitt 3. Rechts daneben dieselbe Adresse mit Web-Link aus oder privatem Profil.</p>
+      <p>Eine feste Seite, ganz gezeigt. Der Fortschritt folgt dem Teaser-Schalter oben, Bio und Streak den Simulationsschaltern, die Abzeichen den Schaltern in Abschnitt 3. Abzeichen stehen in einer einzigen Reihe: zwei offen, das dritte weichgezeichnet mit der Zahl der übrigen. Rechts daneben dieselbe Adresse mit Web-Link aus oder privatem Profil.</p>
     </div>
     <div class="row">
       <div class="frame-col"><div class="frame-cap">Web-Link an</div><div class="phone" id="webOn"></div></div>
       <div class="frame-col"><div class="frame-cap">Web-Link aus · Profil privat · Name unbekannt</div><div class="phone" id="webOff"></div></div>
       <div class="aside">
+        <div class="box"><h3>Abzeichen: eine Reihe</h3>
+          <p id="rowNow"></p>
+          <p>Die dritte Kachel zeigt unter der Unschärfe nur ein Platzhalter-Symbol. Welches Abzeichen dort läge, steht nicht in der Seite. „+x“ zählt alle übrigen freigegebenen, die verdeckte Kachel eingeschlossen. Im Bau rendert der Server nur die zwei offenen Abzeichen und die Zahl; das Mockup hält zur Simulation alle Daten im Skript.</p>
+          <p>Reihenfolge und Begründung stehen in Abschnitt 3.</p></div>
         <div class="box"><h3>Zeigt, jeweils nur bei „Alle“</h3>
-          <ul><li>Titelbild, Profilbild, Name, Flagge mit Kürzel, Bio</li><li>Ziel-Tags, Streak als „41 Tage dabei“</li><li>Wie viele Werte Mara trackt und aus welchen Bereichen, nur aus den Bereichen, die sie freigibt (Körper, Training, Erholung &amp; Fitness). Keiner frei: Zeile entfällt</li><li>Gesamtfortschritt nur als Teaser und nur, wenn er positiv ist</li><li>Abzeichen, die für das Web freigegeben sind</li><li>Anzahl der Erfahrungsberichte als Hinweis, ohne Inhalt</li></ul></div>
+          <ul><li>Titelbild, Profilbild, Name, Flagge mit Kürzel, Bio</li><li>Streak als „41 Tage in Folge dabei“, Ziel-Tags (alle)</li><li>Wie viele Werte Mara trackt und aus welchen Bereichen, nur aus den freigegebenen (Körper, Training, Erholung &amp; Fitness). Keiner frei: Zeile entfällt</li><li>Gesamtfortschritt nur als Teaser und nur, wenn er positiv ist</li><li>Abzeichen, die für das Web freigegeben sind, in einer Reihe</li><li>Anzahl der Erfahrungsberichte als Hinweis, ohne Inhalt</li></ul></div>
         <div class="box"><h3>Zeigt nie</h3>
           <ul><li>Die genaue Gesamtzahl und die Werte je Bereich</li><li>Die Bereiche Blut und Einnahmen, auch nicht als Name oder in der Zahl der Werte</li><li>Welche Werte Mara trackt, nur wie viele</li><li>Gesundheitswerte, Blutwerte, Körperwerte im Einzelnen</li><li>Substanzen, Stack, Einnahmen</li><li>Erfahrungsberichte, auch keine Anrisse oder Titel</li><li>Story, Freunde</li></ul></div>
         <div class="box"><h3>Fortschritt teasern</h3>
@@ -503,18 +539,25 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
     </div>
   </section>
 
-  <!-- 3 · Abzeichen im Web -->
+  <!-- 3 · Was du trackst, Abzeichen im Web -->
   <section id="abzeichen" aria-labelledby="h-abz">
     <div class="sec-head">
       <div class="eyebrow">Entscheidung 3 · Einstellungen › Web-Link</div>
       <h2 id="h-abz">Im Web zeigen: was du trackst und Abzeichen</h2>
-      <p><b>Was du trackst:</b> ein Schalter je erlaubtem Bereich. Mara sieht, welche Werte dahinter zählen; im Web stehen nur die Zahl und die Bereichsnamen. Blut und Einnahmen sind gar nicht wählbar. Die Auswahl wirkt sofort auf Karte A, Karte C (Text 1) und die Web-Seite. Ist keiner an, entfällt die Zeile; Karte C nimmt dann die Ziel-Tags.</p>
-      <p><b>Abzeichen im Web:</b> je Abzeichen ein Schalter. Ab Werk an: Beständigkeit, Training, Gemeinschaft und harmlose Meilensteine. Ab Werk aus: alles zu Blut, Zyklen, Einnahmen und Körperwerten, mit dem Hinweis „verrät Gesundheitsdaten“. Die Schalter wirken sofort auf die Web-Vorschau und auf die Anzahl in Karte A1.</p>
+      <p><b>Was du trackst:</b> ein Schalter je erlaubtem Bereich. Mara sieht, welche Werte dahinter zählen; im Web stehen nur die Zahl und die Bereichsnamen. Blut und Einnahmen sind gar nicht wählbar. Die Auswahl wirkt sofort auf Karte A1, Karte C (Text 1) und die Web-Seite. Ist keiner an, entfällt die Zeile; Karte C nimmt dann die Ziel-Tags.</p>
+      <p><b>Abzeichen im Web:</b> je Abzeichen ein Schalter. Ab Werk an: Beständigkeit, Training, Gemeinschaft und harmlose Meilensteine. Ab Werk aus: alles zu Blut, Zyklen, Einnahmen und Körperwerten, mit dem Hinweis „verrät Gesundheitsdaten“. Im Web stehen die schwersten zuerst.</p>
     </div>
     <div class="row">
       <div class="frame-col"><div class="frame-cap">Profil › ⚙︎ › Web-Link › Was du trackst</div><div class="phone fix"><div class="scroll" id="trackSet"></div></div></div>
       <div class="frame-col"><div class="frame-cap">Profil › ⚙︎ › Web-Link › Abzeichen im Web</div><div class="phone fix"><div class="scroll" id="badgeSet"></div></div></div>
       <div class="aside">
+        <div class="box"><h3>Reihenfolge im Web: die schwersten zuerst</h3>
+          <p>Maßstab ist der Mindestaufwand: wie lange es frühestens dauert und ob ein einziger Aussetzer alles zurücksetzt.</p>
+          <ul><li><b>Lückenlose Serien vor Summen</b> gleicher Dauer: 365 Tage ohne Lücke vor 52 Trainingswochen in Folge vor 250 Workouts.</li>
+            <li><b>Ergebnisse vor Menge:</b> +50 % Gesamtfortschritt vor 100 Tagen ohne Lücke, weil Fortschritt sich nicht durch Fleiß allein erzwingen lässt.</li>
+            <li><b>Gemeinschaft</b> nach Aufwand einsortiert: 25 Berichte und 10 Freunde liegen bei 100 Workouts.</li>
+            <li><b>Erstes Mal und Einrichten ganz hinten:</b> Wearable verbunden, Profil geteilt, erster Eintrag.</li></ul>
+          <details><summary>Ganze Rangfolge (39)</summary><ol id="rankList"></ol></details></div>
         <div class="box"><h3>Was als Wert zählt</h3>
           <p>Ein Wert ist alles, was Hoku für den Fortschritt misst (2b): je Messgröße einer, je Übung mit e1RM einer. Gezählt wird, wofür Mara Daten hat. Körper: Gewicht, Körperfett, Muskelmasse, neun Umfänge. Training: Workouts pro Woche, e1RM je Übung. Erholung &amp; Fitness: Schritte, Aktivkalorien, VO2max, Ruhepuls, Blutdruck, Schlaf, HRV.</p></div>
         <div class="box"><h3>Ab Werk aus (heikel)</h3>
@@ -530,13 +573,13 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
     <div class="sec-head">
       <div class="eyebrow">Entscheidung 4 · im Sheet „Profil teilen“</div>
       <h2 id="h-code">Hoku-Code</h2>
-      <p>Ein echter QR-Code mit Inhalt <span class="mono">https://hokuhealth.app/u/mara</span>, Fehlerkorrektur Q. Rund gesetzt, Punkte statt Quadrate, Suchmarken als abgerundete Ringe, Hoku in der Mitte, Farbverlauf am Rand. Den kleinen Code antippen öffnet das Vollbild.</p>
+      <p>Ein echter QR-Code mit Inhalt <span class="mono">https://hokuhealth.app/u/mara</span>, Fehlerkorrektur Q. Rund gesetzt, Punkte statt Quadrate, Suchmarken als abgerundete Ringe, Hoku in der Mitte. In v4 ohne Farbverlauf: Graphit auf Weiß, der Rand in hellem Grau. Den kleinen Code antippen öffnet das Vollbild.</p>
     </div>
     <div class="row">
       <div class="frame-col"><div class="frame-cap">Profil teilen</div><div class="phone fix" id="sharePhone"></div></div>
       <div class="frame-col"><div class="frame-cap">Vollbild zum Vorzeigen</div><div class="phone fix light" id="fullPhone"></div></div>
       <div class="aside">
-        <div class="box result" id="readTest"><h3>Lesetest</h3>
+        <div class="box" id="readTest"><h3>Lesetest</h3>
           <p>Gerendert mit Chromium (Playwright), Bildschirmfoto dekodiert mit <code>jsQR 1.4.0</code> und <code>ZXing 0.21.3</code>. Inhalt in jedem Fall: <code>https://hokuhealth.app/u/mara</code>.</p>
           <ul style="margin-top:8px">
             <li>Vollbild, 300 px: <span class="ok">gelesen</span> (beide)</li>
@@ -544,10 +587,10 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
             <li>Vollbild halbe Auflösung, weichgezeichnet und als JPEG: <span class="ok">gelesen</span> (beide)</li>
             <li>Vollbild um 17° gedreht: <span class="ok">gelesen</span> (beide)</li>
           </ul>
-          <p style="margin-top:8px">Warum Q statt H: Mit der längeren Adresse braucht H Version 4 (33 Module, kleinere Punkte). Dort las ZXing den 124-px-Code nicht, die verschlechterte Fassung las keiner der beiden. Mit Q bleibt es bei Version 3 (29 Module) wie bisher. Vor dem Bau am echten Gerät prüfen.</p></div>
+          <p>Warum Q statt H: Mit der längeren Adresse braucht H Version 4 (33 Module, kleinere Punkte). Dort las ZXing den 124-px-Code nicht. Mit Q bleibt es bei Version 3 (29 Module). Vor dem Bau am echten Gerät prüfen.</p></div>
         <div class="box"><h3>Aufbau</h3>
           <ul><li>Matrix aus <code>qrcode-generator 1.4.4</code>, selbst als SVG gezeichnet: Datenmodule als Punkte, die drei Suchmarken als runde Ringe mit Kern.</li>
-            <li>Rund um das Quadrat bleibt ein Modul frei. Dahinter füllen helle Punkte im Hoku-Verlauf den Kreis. Sie tragen keine Daten und sind so hell, dass Kameras sie als Hintergrund lesen.</li>
+            <li>Rund um das Quadrat bleibt ein Modul frei. Dahinter füllen hellgraue Punkte den Kreis. Sie tragen keine Daten und sind so hell, dass Kameras sie als Hintergrund lesen.</li>
             <li>Mitte: Hoku-App-Symbol in einer Aussparung von etwa 7 % der Fläche. Fehlerkorrektur Q gleicht bis zu 25 % aus.</li>
             <li>Immer dunkel auf hell, auch im dunklen Sheet. Im Vollbild wird die Bildschirmhelligkeit hochgesetzt.</li></ul></div>
       </div>
@@ -563,6 +606,38 @@ const LOGO_MAIN = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAGICAYAAAB
 const URL_ = 'https://hokuhealth.app/u/mara';
 const PATH_ = 'hokuhealth.app/u/mara';
 
+// ── Symbole: Linien in einer Strichstaerke, eine Farbe (currentColor) statt Emoji ──
+const P = {
+  flame: 'M12 3.2c.9 3.4 5.2 5.3 5.2 10.1a5.2 5.2 0 0 1-10.4 0c0-2.4 1.2-4 2.6-5.2.3 1.6 1 2.6 2 3.1-.1-3.1.1-5.6.6-8z',
+  dumbbell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11',
+  pill: 'M10.6 20.4a4.9 4.9 0 0 1-7-7l6-6a4.9 4.9 0 0 1 7 7zM8.6 8.6l6.8 6.8',
+  scale: 'M5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4zM8.5 10a4.6 4.6 0 0 1 7 0M12 10l1.2-1.8',
+  pen: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4',
+  ruler: 'M3 16.5 16.5 3 21 7.5 7.5 21zM7 12.5l2 2M10 9.5l2 2M13 6.5l2 2',
+  drop: 'M12 3.5s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',
+  cycle: 'M19.5 12a7.5 7.5 0 0 1-13.2 4.9M4.5 12a7.5 7.5 0 0 1 13.2-4.9M18 3.5v3.8h-3.8M6 20.5v-3.8h3.8',
+  watch: 'M9 3.5h6l.6 3.3M9 20.5h6l.6-3.3M9 3.5l-.6 3.3M9 20.5l-.6-3.3M8.5 6.8h7a2 2 0 0 1 2 2v6.4a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2V8.8a2 2 0 0 1 2-2z',
+  id: 'M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17V7a1.5 1.5 0 0 1 1.5-1.5zM9 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 15.8c.6-1.3 1.7-2 3-2s2.4.7 3 2M14.5 10h3.5M14.5 13h3',
+  camera: 'M4.5 7.5h3l1.5-2h6l1.5 2h3A1.5 1.5 0 0 1 21 9v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V9a1.5 1.5 0 0 1 1.5-1.5zM12 16.5a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6z',
+  down: 'M3 7l6.5 6.5 4-4L21 17M21 11.5V17h-5.5',
+  up: 'M3 17l6.5-6.5 4 4L21 7M21 12.5V7h-5.5',
+  trophy: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4.5a3 3 0 0 0 2.7 4M17 6h2.5a3 3 0 0 1-2.7 4M12 14v3.5M8 20.5h8M9.5 17.5h5',
+  target: 'M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 12.6a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2z',
+  heart: 'M12 20s-7.5-4.5-7.5-10A4.2 4.2 0 0 1 12 7.4 4.2 4.2 0 0 1 19.5 10c0 5.5-7.5 10-7.5 10z',
+  steps: 'M8 3.5c1.7 0 2.7 2 2.7 4.4S9.7 11.6 8 11.6 5.3 10.3 5.3 7.9 6.3 3.5 8 3.5zM6.1 14h3.8v1.4a1.9 1.9 0 0 1-3.8 0zM16 7.9c1.7 0 2.7 2 2.7 4.4s-1 3.7-2.7 3.7-2.7-1.3-2.7-3.7 1-4.4 2.7-4.4zM14.1 18.4h3.8v.4a1.9 1.9 0 0 1-3.8 0z',
+  note: 'M6.5 3.5h8l3.5 3.5v12a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5zM14 3.5V7.5h4M8.5 11.5h7M8.5 14.5h7M8.5 17.5h4',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  people: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M16.5 11.2a2.5 2.5 0 1 0 0-5M16.2 14.6c2.4.1 4 1.5 4.6 4',
+  medal: 'M8.5 3.5h7L13.6 9h-3.2zM12 21a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM12 13.2l.9 1.9 2 .2-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.2z',
+  moon: 'M19 14.6A7.6 7.6 0 0 1 9.4 5a7.6 7.6 0 1 0 9.6 9.6z',
+  lock: 'M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5M6.5 10.5h11a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19v-7a1.5 1.5 0 0 1 1.5-1.5z',
+  arrow: 'M6 18 18 6M9 6h9v9',
+  shield: 'M12 3.5 19 6v5.5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6zM12 8.5v4.5M12 16.2v.1',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  chev: 'M9.5 6l6 6-6 6',
+};
+const ic = (k, sw = 1.7) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[k]}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
 // ── Daten (erfunden, wie 2b) ──
 const PERSON = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', nick: 'mara', land: '🇩🇪 DE', tags: ['Recomp', 'Kraft', 'Longevity', 'Blutwerte optimieren', 'Schlaf & Erholung'], streak: 41, reviews: 12, start: '14.03.2026', monat: 'März',
   bio: 'Kraftsport seit 2019, seit März im Recomp. Hier halte ich fest, was ich trainiere und wie ich schlafe.' };
@@ -571,11 +646,11 @@ const PERSON = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', nick: 'mara', land:
 // werte: was Mara je Bereich trackt (Wert-IDs aus progressScore.ts, Branch profil-p2b-fortschritt):
 // weight, body_fat, circ_waist | workouts_per_week, e1rm:squat | steps, sleep_nights, resting_hr, active_kcal
 const AREAS = [
-  { id: 'koerper', n: 'Körper', v: 7.66, web: true, wort: 'Körpermessungen', ord: 3, werte: ['Gewicht', 'Körperfett', 'Taillenumfang'] },
-  { id: 'blut', n: 'Blut', v: 58.33, web: false, werte: ['Blutwerte im Zielbereich'] },
-  { id: 'training', n: 'Training', v: 32.61, web: true, wort: 'Training', ord: 1, werte: ['Workouts pro Woche', 'e1RM Kniebeuge'] },
-  { id: 'einnahmen', n: 'Einnahmen', v: 16.05, web: false, werte: ['Einnahmetreue'] },
-  { id: 'erholung', n: 'Erholung & Fitness', v: 47.88, web: true, wort: 'Schlaf', ord: 2, werte: ['Schritte', 'Schlaf (Nächte mit 7–9 h)', 'Ruhepuls', 'Aktivkalorien'] },
+  { id: 'koerper', n: 'Körper', v: 7.66, web: true, wort: 'Körpermessungen', ord: 3, icon: 'ruler', werte: ['Gewicht', 'Körperfett', 'Taillenumfang'] },
+  { id: 'blut', n: 'Blut', v: 58.33, web: false, icon: 'drop', werte: ['Blutwerte im Zielbereich'] },
+  { id: 'training', n: 'Training', v: 32.61, web: true, wort: 'Training', ord: 1, icon: 'dumbbell', werte: ['Workouts pro Woche', 'e1RM Kniebeuge'] },
+  { id: 'einnahmen', n: 'Einnahmen', v: 16.05, web: false, icon: 'pill', werte: ['Einnahmetreue'] },
+  { id: 'erholung', n: 'Erholung & Fitness', v: 47.88, web: true, wort: 'Schlaf', ord: 2, icon: 'moon', werte: ['Schritte', 'Schlaf (Nächte mit 7–9 h)', 'Ruhepuls', 'Aktivkalorien'] },
 ];
 const TOTAL = AREAS.reduce((a, b) => a + b.v, 0) / AREAS.length;   // genaue Zahl: nur in der App
 const WEB_AREAS = AREAS.filter(a => a.web);
@@ -584,15 +659,23 @@ const SHOWN = () => WEB_AREAS.filter(a => st.areas.has(a.id));
 const COUNT = () => SHOWN().reduce((n, a) => n + a.werte.length, 0);
 const IMPROVED = () => SHOWN().filter(a => a.v > 0);
 const BEST = () => SHOWN().reduce((a, b) => (!a || b.v > a.v ? b : a), null);
-// Ziel-Tags für Karte C: ohne Bezug zu Blut, Einnahmen oder Substanzen
+// Ziel-Tags für Karte C und Fassung b: ohne Bezug zu Blut, Einnahmen oder Substanzen
 const SAFE_TAGS = PERSON.tags.filter(t => !/blut|einnahm|substanz|peptid|dosis|stack|zyklus/i.test(t));
 // Stufen für T1: „über X %“, X = höchste Stufe unter dem Wert; unter 10 % keine Zahl
 const TIERS = [10, 20, 30, 50, 75, 100];
 const tierOf = v => TIERS.filter(t => v > t).pop() || 0;
+// Slogans v4: zuerst die zwei Fassungen der Nutzer-Idee, dann acht weitere. Nur de und en.
 const SLOGANS = [
-  { de: 'Fortschritt, gemessen an deinem Start.', en: 'Progress, measured against your own start.' },
-  { de: 'Halte fest, was sich verändert.', en: 'Keep track of what changes.' },
-  { de: 'Du im Vergleich zu dir.', en: 'You, compared to you.' },
+  { de: 'Du und dein besseres Ich. Sonst niemand.', en: 'You and your better self. No one else.', idee: true },
+  { de: 'Vergleich dich nur mit deinem besseren Ich.', en: 'Only compare yourself to your better self.', idee: true },
+  { de: 'Sieh, wie weit du gekommen bist.', en: 'See how far you’ve come.' },
+  { de: 'Dein Start ist der Maßstab.', en: 'Your starting point is the benchmark.' },
+  { de: 'Fortschritt, den du belegen kannst.', en: 'Progress you can back up.' },
+  { de: 'Kleine Schritte, klar gemessen.', en: 'Small steps, clearly measured.' },
+  { de: 'Dranbleiben, sichtbar gemacht.', en: 'Consistency, made visible.' },
+  { de: 'Miss, was dich weiterbringt.', en: 'Measure what moves you forward.' },
+  { de: 'Weniger raten, mehr wissen.', en: 'Less guessing, more knowing.' },
+  { de: 'Training, Körper, Erholung. Alles an einem Ort.', en: 'Training, body, recovery. All in one place.' },
 ];
 const TEASERS = {
   t1: 'T1 Stufe: abgerundete Stufe statt genauer Zahl („über 30 %“), dazu die verbesserten Bereiche als Namen.',
@@ -603,35 +686,45 @@ const TEASERS = {
 // Abzeichen aus src/features/profil/lib/badges.ts (Branch profil-p2b-fortschritt): id, Gruppe, Symbol, Name (de)
 // earned: wie in profil-2b.html; risk: verraet Gesundheitsdaten (Blut, Zyklen, Einnahmen, Koerperwerte) -> ab Werk aus
 const BADGES = [
-  ['streak_7', 'bestaendigkeit', '🔥', '7 Tage ohne Lücke', 1], ['streak_30', 'bestaendigkeit', '🔥', '30 Tage ohne Lücke', 1],
-  ['streak_100', 'bestaendigkeit', '🔥', '100 Tage ohne Lücke', 0], ['streak_365', 'bestaendigkeit', '🔥', '365 Tage ohne Lücke', 0],
-  ['training_weeks_4', 'bestaendigkeit', '🏋️', '4 Wochen Training in Folge', 1], ['training_weeks_12', 'bestaendigkeit', '🏋️', '12 Wochen Training in Folge', 1],
-  ['training_weeks_52', 'bestaendigkeit', '🏋️', '52 Wochen Training in Folge', 0],
-  ['intake_all_30', 'bestaendigkeit', '💊', '30 Tage alle Einnahmen bestätigt', 0, 'Einnahmen'],
-  ['weighed_weeks_8', 'bestaendigkeit', '⚖️', '8 Wochen jede Woche gewogen', 1],
-  ['first_daily_log', 'meilensteine', '✍️', 'Erster Tageseintrag', 1], ['first_measurement', 'meilensteine', '📏', 'Erste Umfangsmessung', 1],
-  ['first_bloodwork', 'meilensteine', '🩸', 'Erstes Blutbild', 1, 'Blut'], ['bloodwork_3', 'meilensteine', '🩸', '3 Blutbilder', 1, 'Blut'],
-  ['workouts_10', 'meilensteine', '🏋️', '10 Workouts', 1], ['workouts_50', 'meilensteine', '🏋️', '50 Workouts', 1],
-  ['workouts_100', 'meilensteine', '🏋️', '100 Workouts', 0], ['workouts_250', 'meilensteine', '🏋️', '250 Workouts', 0],
-  ['first_cycle_done', 'meilensteine', '🔁', 'Erster Zyklus abgeschlossen', 1, 'Zyklen'],
-  ['wearable_connected', 'meilensteine', '⌚', 'Wearable verbunden', 1], ['profile_complete', 'meilensteine', '🪪', 'Profil vollständig', 0],
-  ['first_progress_photo', 'meilensteine', '📸', 'Erstes Fortschrittsfoto', 0],
-  ['body_fat_5', 'fortschritt', '📉', '−5 % Körperfett', 1, 'Körperwerte'], ['body_fat_10', 'fortschritt', '📉', '−10 % Körperfett', 1, 'Körperwerte'],
-  ['body_fat_20', 'fortschritt', '📉', '−20 % Körperfett', 0, 'Körperwerte'], ['weight_5', 'fortschritt', '⚖️', '−5 % Gewicht', 0, 'Körperwerte'],
-  ['first_pr', 'fortschritt', '🏆', 'Neue Bestleistung', 1], ['pr_3_month', 'fortschritt', '🏆', '3 Bestleistungen in einem Monat', 0],
-  ['all_markers_in_range', 'fortschritt', '🎯', 'Alle Blutwerte im Zielbereich', 0, 'Blut'],
-  ['resting_hr_5', 'fortschritt', '❤️', 'Ruhepuls −5 bpm', 1, 'Körperwerte'], ['steps_week_10k', 'fortschritt', '🚶', 'Eine Woche Ø 10.000 Schritte', 0],
-  ['progress_10', 'fortschritt', '📈', 'Gesamtfortschritt +10 %', 1], ['progress_25', 'fortschritt', '📈', 'Gesamtfortschritt +25 %', 1],
-  ['progress_50', 'fortschritt', '📈', 'Gesamtfortschritt +50 %', 0],
-  ['first_review', 'gemeinschaft', '📝', 'Erster Erfahrungsbericht', 1], ['reviews_5', 'gemeinschaft', '📝', '5 Erfahrungsberichte', 1],
-  ['reviews_25', 'gemeinschaft', '📝', '25 Erfahrungsberichte', 0], ['profile_shared', 'gemeinschaft', '🔗', 'Profil geteilt', 1],
-  ['first_friend', 'gemeinschaft', '👥', 'Erster Freund', 0], ['friends_10', 'gemeinschaft', '👥', '10 Freunde', 0],
+  ['streak_7', 'bestaendigkeit', 'flame', '7 Tage ohne Lücke', 1], ['streak_30', 'bestaendigkeit', 'flame', '30 Tage ohne Lücke', 1],
+  ['streak_100', 'bestaendigkeit', 'flame', '100 Tage ohne Lücke', 0], ['streak_365', 'bestaendigkeit', 'flame', '365 Tage ohne Lücke', 0],
+  ['training_weeks_4', 'bestaendigkeit', 'dumbbell', '4 Wochen Training in Folge', 1], ['training_weeks_12', 'bestaendigkeit', 'dumbbell', '12 Wochen Training in Folge', 1],
+  ['training_weeks_52', 'bestaendigkeit', 'dumbbell', '52 Wochen Training in Folge', 0],
+  ['intake_all_30', 'bestaendigkeit', 'pill', '30 Tage alle Einnahmen bestätigt', 0, 'Einnahmen'],
+  ['weighed_weeks_8', 'bestaendigkeit', 'scale', '8 Wochen jede Woche gewogen', 1],
+  ['first_daily_log', 'meilensteine', 'pen', 'Erster Tageseintrag', 1], ['first_measurement', 'meilensteine', 'ruler', 'Erste Umfangsmessung', 1],
+  ['first_bloodwork', 'meilensteine', 'drop', 'Erstes Blutbild', 1, 'Blut'], ['bloodwork_3', 'meilensteine', 'drop', '3 Blutbilder', 1, 'Blut'],
+  ['workouts_10', 'meilensteine', 'dumbbell', '10 Workouts', 1], ['workouts_50', 'meilensteine', 'dumbbell', '50 Workouts', 1],
+  ['workouts_100', 'meilensteine', 'dumbbell', '100 Workouts', 0], ['workouts_250', 'meilensteine', 'dumbbell', '250 Workouts', 0],
+  ['first_cycle_done', 'meilensteine', 'cycle', 'Erster Zyklus abgeschlossen', 1, 'Zyklen'],
+  ['wearable_connected', 'meilensteine', 'watch', 'Wearable verbunden', 1], ['profile_complete', 'meilensteine', 'id', 'Profil vollständig', 0],
+  ['first_progress_photo', 'meilensteine', 'camera', 'Erstes Fortschrittsfoto', 0],
+  ['body_fat_5', 'fortschritt', 'down', '−5 % Körperfett', 1, 'Körperwerte'], ['body_fat_10', 'fortschritt', 'down', '−10 % Körperfett', 1, 'Körperwerte'],
+  ['body_fat_20', 'fortschritt', 'down', '−20 % Körperfett', 0, 'Körperwerte'], ['weight_5', 'fortschritt', 'scale', '−5 % Gewicht', 0, 'Körperwerte'],
+  ['first_pr', 'fortschritt', 'trophy', 'Neue Bestleistung', 1], ['pr_3_month', 'fortschritt', 'trophy', '3 Bestleistungen in einem Monat', 0],
+  ['all_markers_in_range', 'fortschritt', 'target', 'Alle Blutwerte im Zielbereich', 0, 'Blut'],
+  ['resting_hr_5', 'fortschritt', 'heart', 'Ruhepuls −5 bpm', 1, 'Körperwerte'], ['steps_week_10k', 'fortschritt', 'steps', 'Eine Woche Ø 10.000 Schritte', 0],
+  ['progress_10', 'fortschritt', 'up', 'Gesamtfortschritt +10 %', 1], ['progress_25', 'fortschritt', 'up', 'Gesamtfortschritt +25 %', 1],
+  ['progress_50', 'fortschritt', 'up', 'Gesamtfortschritt +50 %', 0],
+  ['first_review', 'gemeinschaft', 'note', 'Erster Erfahrungsbericht', 1], ['reviews_5', 'gemeinschaft', 'note', '5 Erfahrungsberichte', 1],
+  ['reviews_25', 'gemeinschaft', 'note', '25 Erfahrungsberichte', 0], ['profile_shared', 'gemeinschaft', 'link', 'Profil geteilt', 1],
+  ['first_friend', 'gemeinschaft', 'people', 'Erster Freund', 0], ['friends_10', 'gemeinschaft', 'people', '10 Freunde', 0],
 ].map(([id, group, icon, name, earned, risk]) => ({ id, group, icon, name, earned: !!earned, risk: risk || null }));
 const GROUPS = [['bestaendigkeit', 'Beständigkeit'], ['meilensteine', 'Meilensteine'], ['fortschritt', 'Fortschritt'], ['gemeinschaft', 'Gemeinschaft']];
 const DEFAULT_WEB = () => new Set(BADGES.filter(b => !b.risk).map(b => b.id));
+// Rangfolge nach Schwierigkeit (schwer -> leicht): Mindestdauer, lueckenlose Serie vor Summe, Ergebnis vor Menge,
+// Erstes-Mal und Einrichten zuletzt. Heikle (ab Werk aus) mit einsortiert, falls Mara sie freigibt.
+const RANK = ['streak_365', 'training_weeks_52', 'workouts_250', 'all_markers_in_range', 'progress_50', 'body_fat_20', 'streak_100',
+  'reviews_25', 'friends_10', 'workouts_100', 'body_fat_10', 'training_weeks_12', 'progress_25', 'pr_3_month', 'intake_all_30',
+  'streak_30', 'weight_5', 'steps_week_10k', 'workouts_50', 'weighed_weeks_8', 'body_fat_5', 'resting_hr_5', 'progress_10',
+  'bloodwork_3', 'reviews_5', 'training_weeks_4', 'streak_7', 'first_pr', 'workouts_10', 'first_cycle_done', 'profile_complete',
+  'first_progress_photo', 'first_bloodwork', 'first_review', 'first_friend', 'first_measurement', 'first_daily_log',
+  'wearable_connected', 'profile_shared'];
+if (RANK.length !== BADGES.length || BADGES.some(b => !RANK.includes(b.id))) console.error('RANK unvollständig');
+const rankOf = id => RANK.indexOf(id);
 
 const st = { nameAlle: true, plus: true, bio: true, streak: true, teaser: 't1', slogan: 0, web: DEFAULT_WEB(), areas: new Set(WEB_AREAS.map(a => a.id)), qrOpen: false };
-const webBadges = () => BADGES.filter(b => b.earned && st.web.has(b.id));
+const webBadges = () => BADGES.filter(b => b.earned && st.web.has(b.id)).sort((a, b) => rankOf(a.id) - rankOf(b.id));
 
 // ── Hilfen ──
 const $ = s => document.querySelector(s);
@@ -639,89 +732,107 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const listDe = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' und ' + a[a.length - 1];
 const sw = (key, on, label) => `<button type="button" class="sw" role="switch" aria-checked="${on}" aria-label="${esc(label)}" data-sw="${key}"></button>`;
 const brand = () => `<span class="brand"><img src="${SYMW}" alt="">HOKU</span>`;
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="5" y="10.5" width="14" height="10" rx="2.6" fill="currentColor"/></svg>';
-const ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M9 6h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const PLACEHOLDER = '+00,0 %';   // T3: steht unter der Unschärfe, die echte Zahl kommt nie in Bild oder Seite
 const areaNames = () => SHOWN().map(a => a.n);
-const ac = a => `<span class="ac ${a.id}">${esc(a.n)}</span>`;
-const acs = list => `<span class="acs">${list.map(ac).join('')}</span>`;
+const areaLine = () => esc(areaNames().join(' · '));
 const cAreas = () => SHOWN().slice().sort((a, b) => a.ord - b.ord);
 const cWords = () => cAreas().map(a => a.wort);
-const cWordsHtml = () => cAreas().map(a => `<span class="w w-${a.id}">${a.wort}</span>`);
 const werteDe = n => `${n} ${n === 1 ? 'Wert' : 'Werte'}`;
-// Nebenzahl: „trackt 9 Werte“ — entfällt, wenn Mara keinen Bereich freigibt
-const trackOg = chips => COUNT() ? `<div class="tkrow"><div class="tk">trackt <span class="tn">${COUNT()}</span> Werte</div>${chips ? SHOWN().map(ac).join('') : ''}</div>` : '';
+const abzDe = n => `${n} Abzeichen`;
 
 // ── 1 · Link-Karten ──
+// Hauptzahl: der einzige Akzent (Champagner)
 function teaserOg() {
   const t = tierOf(TOTAL);
-  if (st.teaser === 't1' && t) return `<div class="huge"><small>über</small><span class="grad">${t} %</span></div><div class="lbl">positive Veränderung seit ${PERSON.monat}</div>`;
-  if (st.teaser === 't3') return `<div class="huge"><span class="grad vz" aria-hidden="true">${PLACEHOLDER}</span><span class="lock">${LOCK}</span></div><div class="lbl">Fortschritt seit ${PERSON.monat} · wie viel, zeigt Hoku</div>`;
+  if (st.teaser === 't1' && t) return `<div class="huge"><small>über</small><span class="acc">${t} %</span></div><div class="lbl">positive Veränderung seit ${PERSON.monat}</div>`;
+  if (st.teaser === 't3') return `<div class="huge"><span class="acc vz" aria-hidden="true">${PLACEHOLDER}</span><span class="lock">${ic('lock', 2)}</span></div><div class="lbl">Fortschritt seit ${PERSON.monat}. Wie viel, zeigt Hoku.</div>`;
   const b = BEST();
-  return `<div class="huge">${ARROW}<span class="grad">Im Plus</span></div><div class="lbl"><span>seit ${PERSON.monat}${b ? ' · am stärksten' : ''}</span>${b ? ac(b) : ''}</div>`;
+  return `<div class="huge">${ic('arrow', 2.4)}<span class="acc">Im Plus</span></div><div class="lbl">seit ${PERSON.monat}${b ? ` · am stärksten ${esc(b.n)}` : ''}</div>`;
 }
-function ogImage(kind, badges) {
+// Linke Zone: Person. meta = höchstens eine kleine Zeile unter dem Namen.
+function whoOg(meta) {
+  const m = meta.filter(Boolean);
+  return `<div class="who"><div class="ava">M</div><div class="nm">${PERSON.name}</div>${m.length ? `<div class="meta">${m.join('')}</div>` : ''}</div>`;
+}
+const metaBadges = () => { const n = webBadges().length; return n ? `<span class="it">${ic('medal', 1.8)}${abzDe(n)}</span>` : ''; };
+const metaStreak = () => st.streak ? `<span class="it">${ic('flame', 1.8)}${PERSON.streak} Tage dabei</span>` : '';
+const trackOg = () => COUNT() ? `<div class="tk">trackt <span class="tn">${COUNT()}</span> Werte</div>` : '';
+function ogImage(kind) {
   if (kind === 'n') return `<div class="og neutral" role="img" aria-label="Vorschaubild: Hoku Health Hub, ${esc(SLOGANS[st.slogan].de)}">
       <img class="n-logo" src="${LOGO_MAIN}" alt=""><div class="n-slogan">${SLOGANS[st.slogan].de}</div>
-      <div class="n-areas">${['training', 'koerper', 'erholung'].map(id => ac(AREAS.find(a => a.id === id))).join('')}</div><div class="n-addr">hokuhealth.app</div></div>`;
-  const wb = webBadges(), icons = [...new Set(wb.map(b => b.icon))].slice(0, 2);
-  const stk = st.streak ? `<div class="stk">🔥 <b>${PERSON.streak}</b> Tage dabei</div>` : '';
-  const who = `<div class="who"><div class="ava">M</div><div class="nm">${PERSON.name}</div>${stk}${badges && wb.length ? `<div class="bdg">${icons.map(i => `<i>${i}</i>`).join('')}<span>${wb.length} Abzeichen</span></div>` : ''}</div>`;
-  const top = `${brand()}<div class="addr">${PATH_}</div>${who}`;
-  if (kind === 'a') return `<div class="og" role="img" aria-label="Vorschaubild Karte A">${top}
-      <div class="right">${teaserOg()}${trackOg(true)}
-        <div class="chips">${PERSON.tags.slice(0, 3).map(t => `<span>${t}</span>`).join('')}${PERSON.tags.length > 3 ? `<span>+${PERSON.tags.length - 3}</span>` : ''}</div></div></div>`;
-  if (kind === 'c2' || !COUNT()) return `<div class="og" role="img" aria-label="Vorschaubild Karte C, Text 2">${top}
-      <div class="say"><span class="q">Wofür nutzt ${PERSON.vor} Hoku?</span><p>Für ${listDe(SAFE_TAGS.slice(0, 3))}.</p><span class="pill">Profil ansehen</span></div></div>`;
-  return `<div class="og" role="img" aria-label="Vorschaubild Karte C, Text 1">${top}
-      <div class="say"><span class="q">Wofür nutzt ${PERSON.vor} Hoku?</span><p>${PERSON.vor} nutzt Hoku für ${listDe(cWordsHtml())}.</p><div class="sfoot">${trackOg(false)}<span class="pill">Profil ansehen</span></div></div></div>`;
+      <div class="n-areas">Training · Körper · Erholung</div><div class="n-addr">hokuhealth.app</div></div>`;
+  const top = `${brand()}<div class="addr">${PATH_}</div>`;
+  if (kind === 'a1a') return `<div class="og" role="img" aria-label="Vorschaubild Karte A1, Fassung a">${top}<div class="body">
+      ${whoOg([metaBadges(), metaStreak()])}
+      <div class="main">${teaserOg()}${COUNT() ? `<div class="rule"></div>${trackOg()}<div class="ar">${areaLine()}</div>` : ''}</div></div></div>`;
+  if (kind === 'a1b') {
+    const goals = SAFE_TAGS.slice(0, 2);
+    return `<div class="og" role="img" aria-label="Vorschaubild Karte A1, Fassung b">${top}<div class="body">
+      ${whoOg([metaBadges()])}
+      <div class="main">${teaserOg()}<div class="rule"></div>${trackOg()}${COUNT() ? `<div class="ar">${areaLine()}</div>` : ''}
+        ${goals.length ? `<div class="goals"><span class="gl">Ziele</span>${goals.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}</div></div></div>`;
+  }
+  const who = whoOg([metaStreak()]);
+  if (kind === 'c2' || !COUNT()) return `<div class="og" role="img" aria-label="Vorschaubild Karte C, Text 2">${top}<div class="body">${who}
+      <div class="say"><span class="q">Wofür nutzt ${PERSON.vor} Hoku?</span><p><span class="r">Für</span> ${listDe(SAFE_TAGS.slice(0, 3))}<span class="r">.</span></p><span class="pill">Profil ansehen</span></div></div></div>`;
+  return `<div class="og" role="img" aria-label="Vorschaubild Karte C, Text 1">${top}<div class="body">${who}
+      <div class="say"><span class="q">Wofür nutzt ${PERSON.vor} Hoku?</span><p><span class="r">${PERSON.vor} nutzt Hoku für</span> ${listDe(cWords())}<span class="r">.</span></p><div class="sfoot">${trackOg()}<span class="pill">Profil ansehen</span></div></div></div></div>`;
 }
-function meta(kind, badges) {
+function meta(kind) {
   const trk = COUNT() ? `${PERSON.vor} trackt ${COUNT()} Werte mit Hoku: ${listDe(areaNames())}. ` : '';
   const stk = st.streak ? `${PERSON.streak} Tage dabei. ` : '';
   if (kind === 'n') return { t: 'Hoku Health Hub', d: `${SLOGANS[st.slogan].de} Training, Körper und Erholung an einem Ort.` };
-  if (kind === 'a') {
-    const t = tierOf(TOTAL);
+  if (kind === 'a1a' || kind === 'a1b') {
+    const t = tierOf(TOTAL), n = webBadges().length;
     const head = st.teaser === 't1' && t ? `über ${t} % positive Veränderung seit ${PERSON.monat}` : st.teaser === 't3' ? `Fortschritt seit ${PERSON.monat}` : `im Plus seit ${PERSON.monat}`;
-    const b = badges ? `${webBadges().length} Abzeichen. ` : '';
-    return { t: `${PERSON.name} auf Hoku: ${head}`, d: `${trk}${stk}${b}${st.teaser === 't3' ? 'Wie viel, zeigt Hoku' : 'Wie genau, zeigt Hoku'}: sieh dir ${PERSON.gen} Profil an.` };
+    return { t: `${PERSON.name} auf Hoku: ${head}`, d: `${trk}${stk}${n ? abzDe(n) + '. ' : ''}${st.teaser === 't3' ? 'Wie viel, zeigt Hoku' : 'Wie genau, zeigt Hoku'}: sieh dir ${PERSON.gen} Profil an.` };
   }
   if (kind === 'c2' || !COUNT()) return { t: `Wofür nutzt ${PERSON.name} Hoku?`, d: `Für ${listDe(SAFE_TAGS.slice(0, 3))}. ${stk}Sieh dir ${PERSON.gen} Profil auf Hoku an.` };
   return { t: `Wofür nutzt ${PERSON.name} Hoku?`, d: `${PERSON.vor} nutzt Hoku für ${listDe(cWords())} und trackt ${COUNT()} Werte. ${stk}Sieh dir ${PERSON.gen} Profil an.` };
 }
 const CARDS_A = [
-  { kind: 'a', badges: true, k: 'A1', h: 'mit Abzeichen-Zahl', p: 'Wie A2, dazu unter dem Namen zwei Abzeichen-Symbole und die Zahl der Web-Abzeichen.',
-    uses: 'Profilbild, Name, Streak, Fortschritt als Teaser (warm), Zahl der Werte (Cyan) und freigegebene Bereiche, Ziel-Tags, Anzahl der Web-Abzeichen' },
-  { kind: 'a', badges: false, k: 'A2', h: 'ohne Abzeichen', p: 'Hauptzahl Fortschritt, Nebenzahl „trackt 9 Werte“ mit den Bereichen als Farbpunkte, darunter die Ziel-Tags neutral.',
-    uses: 'Profilbild, Name, Streak, Fortschritt als Teaser (warm), Zahl der Werte (Cyan) und freigegebene Bereiche, Ziel-Tags' },
+  { kind: 'a1a', k: 'A1 · Fassung a', h: 'Ruhig, ohne Ziel-Tags',
+    p: 'Links Bild, Name und darunter zwei kleine Zeilen: Abzeichen und Streak. Rechts die Hauptzahl, darunter „trackt 9 Werte“ und die Bereiche als Text.',
+    moved: 'Ziel-Tags fallen von der Karte weg und stehen nur noch auf der Web-Seite; Abzeichen und Streak stehen als zwei kleine Zeilen unter dem Namen.',
+    uses: 'Profilbild, Name, Anzahl der Web-Abzeichen, Streak, Fortschritt als Teaser, Zahl der Werte und freigegebene Bereiche' },
+  { kind: 'a1b', k: 'A1 · Fassung b', h: 'Mit zwei Zielen',
+    p: 'Links Bild, Name und nur die Zahl der Abzeichen. Rechts dieselbe Hauptzahl und Werte-Zeile, darunter als einzige Reihe kleiner Elemente zwei Ziel-Tags.',
+    moved: 'Die Streak wandert vom Bild in den Text unter der Vorschau; von den Ziel-Tags bleiben zwei, ohne Bezug zu Blut, Einnahmen oder Substanzen.',
+    uses: 'Profilbild, Name, Anzahl der Web-Abzeichen, Fortschritt als Teaser, Zahl der Werte und freigegebene Bereiche, zwei Ziel-Tags; Streak nur im Text' },
 ];
 const CARDS_B = [
-  { kind: 'c1', k: 'C · Text 1', h: 'Aus den Bereichen', p: 'Beantwortet „Wofür nutzt Mara Hoku?“ mit den freigegebenen Bereichen in Alltagswörtern, unterstrichen in ihrer Farbe, dazu „trackt 9 Werte“ als einzige Zahl.',
+  { kind: 'c1', k: 'C · Text 1', h: 'Aus den Bereichen', p: 'Beantwortet „Wofür nutzt Mara Hoku?“ mit den freigegebenen Bereichen in Alltagswörtern, dazu „trackt 9 Werte“ als einzige Zahl. Die Bereichswörter stehen heller als der Rest des Satzes.',
     uses: 'Profilbild, Name, Streak, freigegebene Bereiche als Wörter, Zahl der Werte. Feste Reihenfolge, nie nach Wert sortiert. Blut, Einnahmen und Substanzen nie' },
   { kind: 'c2', k: 'C · Text 2', h: 'Aus den Ziel-Tags', p: 'Dieselbe Frage, beantwortet mit Maras Ziel-Tags. Ohne Zahl: die Person und ihr Ziel tragen die Karte.',
     uses: `Profilbild, Name, Streak, Ziel-Tags ohne Bezug zu Blut, Einnahmen oder Substanzen. „Blutwerte optimieren“ fällt hier weg` },
-  { kind: 'n', k: 'Ersatz', h: 'Neutrale Karte', p: 'Hauptlogo aus dem Brand-Kit, weiß auf ruhigem dunklem Grund, darunter der Slogan und die drei Bereiche als Farbpunkte (was Hoku kann, nichts über die Person). Kein Bild, kein Name, keine Zahl. Dieselbe Karte für jede unbekannte Adresse unter hokuhealth.app/u/.',
-    uses: 'nichts aus dem Profil. Erscheint, wenn Bild oder Name nicht auf „Alle“ stehen, der Web-Link aus ist oder es den Namen nicht gibt. Im echten Bild (1200 px) ist das Logo 890 px breit, in der Chat-Vorschau etwa 260 px' },
+  { kind: 'n', k: 'Ersatz', h: 'Neutrale Karte', p: 'Hauptlogo aus dem Brand-Kit, weiß auf ruhigem dunklem Grund, darunter der Slogan und in kleiner grauer Schrift, was Hoku abdeckt. Kein Bild, kein Name, keine Zahl. Dieselbe Karte für jede unbekannte Adresse unter hokuhealth.app/u/.',
+    uses: 'nichts aus dem Profil. Erscheint, wenn Bild oder Name nicht auf „Alle“ stehen, der Web-Link aus ist oder es den Namen nicht gibt' },
 ];
 function shownKind(kind) {
   if (kind === 'n' || !st.nameAlle) return 'n';
-  if (kind === 'a' && !st.plus) return 'c1';
+  if ((kind === 'a1a' || kind === 'a1b') && !st.plus) return 'c1';
   return kind;
 }
+function sloganPicker() {
+  const btn = (s, i) => `<button type="button" class="slg" data-slogan="${i}" aria-pressed="${st.slogan === i}"><i>${i + 1}</i><b>${s.de}</b><span lang="en">${s.en}</span></button>`;
+  return `<div class="slogans" role="group" aria-label="Slogan wählen">
+      <div class="slg-h">Aus deiner Idee „Du im Vergleich zum besseren Dir“</div>${SLOGANS.map((s, i) => s.idee ? btn(s, i) : '').join('')}
+      <div class="slg-h">Weitere Vorschläge</div>${SLOGANS.map((s, i) => s.idee ? '' : btn(s, i)).join('')}</div>`;
+}
 function chatCol(V) {
-  const shown = shownKind(V.kind), bd = shown === 'a' && V.badges, m = meta(shown, bd);
+  const shown = shownKind(V.kind), m = meta(shown);
+  const isA = V.kind === 'a1a' || V.kind === 'a1b';
   const note = shown !== V.kind ? (shown === 'n'
     ? 'Profilbild oder Name nicht auf „Alle“: es erscheint die neutrale Karte.'
     : 'Gesamtfortschritt nicht positiv oder nicht auf „Alle“: es erscheint Karte C.')
     : shown === 'c1' && !COUNT() ? 'Kein Bereich freigegeben: Text 1 hat nichts zu sagen, es erscheint Text 2 mit den Ziel-Tags.'
-    : shown === 'a' && !COUNT() ? 'Kein Bereich freigegeben: die Zeile „trackt … Werte“ entfällt.' : '';
-  const slogans = V.kind === 'n' ? `<div class="slogans" role="group" aria-label="Slogan wählen">${SLOGANS.map((s, i) => `<button type="button" class="slg" data-slogan="${i}" aria-pressed="${st.slogan === i}"><b>${i + 1} · ${s.de}</b><span lang="en">${s.en}</span></button>`).join('')}</div>` : '';
+    : isA && !COUNT() ? 'Kein Bereich freigegeben: die Zeile „trackt … Werte“ entfällt.' : '';
   return `<div class="chat-col">
       <div class="chat" aria-label="Chat-Ausschnitt ${V.k}">
         <div class="chat-head"><span class="av">M</span><div>Mara<small>online</small></div></div>
         <div class="chat-body">
           <div class="msg">Mein Profil, falls du sehen willst, was ich so mache<time>14:31</time></div>
-          <div class="msg cont big"><div class="prev">${ogImage(shown, bd)}<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hokuhealth.app</small></div></div>
+          <div class="msg cont big"><div class="prev">${ogImage(shown)}<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hokuhealth.app</small></div></div>
             <span class="url">${URL_}</span><time>14:32</time></div>
         </div>
       </div>
@@ -729,23 +840,26 @@ function chatCol(V) {
         <h3><span class="k">${V.k}</span>${V.h}</h3>
         ${note ? `<div class="fallback-note">${note}</div>` : ''}
         <p>${V.p}</p>
+        ${V.moved ? `<div class="moved">${V.moved}</div>` : ''}
         <div class="uses"><b>Nutzt:</b> ${V.uses}.</div>
-        ${slogans}
+        ${V.kind === 'n' ? sloganPicker() : ''}
       </div></div>`;
 }
 function renderChats() {
   $('#chatsA').innerHTML = CARDS_A.map(chatCol).join('') + `<div class="box rec">
-      <h3>Empfehlung: A2, ohne Abzeichen-Zahl</h3>
-      <ul><li>Wer Hoku nicht kennt, kann mit „${webBadges().length} Abzeichen“ wenig anfangen. Was ein Abzeichen ist, erklärt erst die Seite.</li>
-        <li>Die Karte trägt schon eine Hauptzahl, eine Nebenzahl, Streak und Ziel-Tags. Eine dritte Zahl schwächt die Hierarchie und macht die kleine Chat-Vorschau unruhig.</li>
-        <li>Die Abzeichen gehen nicht verloren: Wer tippt, sieht sie auf der Web-Seite.</li></ul>
-      <p>Für A1 spräche: eine zweite, unverfängliche Zahl, die auch dann trägt, wenn der Fortschritt verdeckt ist (T3).</p></div>`;
+      <h3>Gegenüber v3</h3>
+      <ul><li>A2 ist entfallen, A1 ist gesetzt.</li>
+        <li>Keine Bereichs-Chips mehr. Die Bereiche stehen als ruhiger Text unter der Werte-Zahl.</li>
+        <li>Abzeichen als kleine Zeile mit einem Symbol unter dem Namen statt zweier bunter Kacheln.</li>
+        <li>Profilbild ohne farbigen Ring, Hintergrund ohne Farbschleier, „trackt 9 Werte“ in Weiß statt Cyan.</li>
+        <li>Die Hauptzahl ist die einzige farbige Stelle, ohne Verlauf.</li></ul>
+      <p><b>Empfehlung: Fassung a.</b> In der Chat-Vorschau ist das Bild nur gut 300 px breit; die Ziel-Tags wären dort etwa 8 px hoch und kaum lesbar. Auf der Web-Seite haben sie Platz. Für b spricht der Wiedererkennungseffekt, den du an den Ziel-Tags mochtest.</p></div>`;
   $('#chatsB').innerHTML = CARDS_B.map(chatCol).join('');
 }
 
 // ── 2 · Web-Vorschau ──
 function ringTrack() {
-  return `<svg viewBox="0 0 104 104" aria-hidden="true"><circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/></svg>`;
+  return `<svg viewBox="0 0 104 104" aria-hidden="true"><circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/></svg>`;
 }
 function progressWeb() {
   const head = `<h3>Gesamtfortschritt<span class="sub">seit ${PERSON.start}</span></h3>`;
@@ -753,20 +867,35 @@ function progressWeb() {
   const app = `<div class="applink"><span>Genaue Zahl und Werte je Bereich zeigt Hoku in der App.</span><button type="button" class="btn sm ghost">In Hoku ansehen</button></div>`;
   const t = tierOf(TOTAL);
   if (st.teaser === 't3') return `<div class="card">${head}
-      <div class="total"><div class="ring">${ringTrack()}<div class="num veil"><span class="lk">${LOCK}</span><b aria-hidden="true">${PLACEHOLDER}</b><small>verdeckt</small></div></div>
-        <div class="parts"><p class="lab">Wie viel sich seit ${PERSON.gen} Start verändert hat, zeigt Hoku.</p><button type="button" class="btn sm">In Hoku ansehen</button></div></div>
+      <div class="total"><div class="ring">${ringTrack()}<div class="num veil"><span class="lk">${ic('lock', 2)}</span><b aria-hidden="true">${PLACEHOLDER}</b><small>verdeckt</small></div></div>
+        <div class="parts"><p class="lab">Wie viel sich seit ${PERSON.gen} Start verändert hat, zeigt Hoku.</p><button type="button" class="btn sm ghost">In Hoku ansehen</button></div></div>
       ${note}</div>`;
   const imp = IMPROVED(), best = BEST();
   if (st.teaser === 't1' && t) return `<div class="card">${head}
-      <div class="teaser"><div class="big"><small>über</small><span class="warm">${t} %</span></div><p class="lab">positive Veränderung gegenüber ${PERSON.gen} Start</p>
+      <div class="teaser"><div class="big"><small>über</small><span class="acc">${t} %</span></div><p class="lab">positive Veränderung gegenüber ${PERSON.gen} Start</p>
         <div class="tiers" role="img" aria-label="Stufe über ${t} Prozent">${TIERS.map(x => `<i class="${x <= t ? 'on' : ''}"></i>`).join('')}</div>
         <div class="tier-l" aria-hidden="true">${TIERS.map(x => `<span>${x}${x === 100 ? ' %' : ''}</span>`).join('')}</div>
-        ${imp.length ? `<div class="names"><span>Verbessert:</span>${acs(imp)}</div>` : ''}</div>
+        ${imp.length ? `<div class="names">Verbessert: <b>${esc(imp.map(a => a.n).join(' · '))}</b></div>` : ''}</div>
       ${app}${note}</div>`;
   return `<div class="card">${head}
-      <div class="teaser"><div class="big">${ARROW}<span class="warm">Im Plus</span></div><p class="lab">seit ${PERSON.monat}, gegenüber ${PERSON.gen} Start</p>
-        ${best ? `<div class="names"><span>Am stärksten:</span>${acs([best])}</div>` : ''}</div>
+      <div class="teaser"><div class="big">${ic('arrow', 2.4)}<span class="acc">Im Plus</span></div><p class="lab">seit ${PERSON.monat}, gegenüber ${PERSON.gen} Start</p>
+        ${best ? `<div class="names">Am stärksten: <b>${esc(best.n)}</b></div>` : ''}</div>
       ${app}${note}</div>`;
+}
+// Eine Reihe, drei Kacheln: zwei offen, die dritte weichgezeichnet mit „+x“ (x = Rest inkl. der verdeckten).
+// Unter der Unschaerfe steht nur ein Platzhalter-Symbol; Name und Symbol des echten Abzeichens kommen nicht in die Seite.
+function badgeRow() {
+  const wb = webBadges(), n = wb.length;
+  if (!n) return `<div class="empty">Keine Abzeichen freigegeben.</div>`;
+  // Weiche Trennstellen fuer lange Woerter in schmalen Kacheln
+  const shy = t => t.replace(/(Gesamt|Erfahrungs|Fortschritts|Umfangs|Tages)(?=[a-zäöü])/g, '$1&shy;');
+  const tile = b => `<div class="bt"><span class="bt-ic">${ic(b.icon)}</span><span class="bt-n">${shy(b.name)}</span></div>`;
+  if (n <= 3) return `<div class="brow3">${wb.map(tile).join('')}</div>`;
+  const rest = n - 2;
+  return `<div class="brow3">${wb.slice(0, 2).map(tile).join('')}
+      <div class="bt more" role="img" aria-label="${rest} weitere Abzeichen"><div class="bt-veil" aria-hidden="true"><span class="bt-ic">${ic('medal')}</span><span class="bars"><i></i><i></i></span></div>
+        <div class="bt-plus" aria-hidden="true"><b>+${rest}</b><small>weitere</small></div></div></div>
+    <button type="button" class="morelink">Alle in Hoku ansehen ${ic('chev', 2)}</button>`;
 }
 const aboutHoku = () => `<div class="about">
     <h3>Was ist Hoku?</h3>
@@ -778,7 +907,7 @@ const aboutHoku = () => `<div class="about">
   </div>
   <div class="foot"><span>Impressum</span><span>Datenschutz</span><span>Profil melden</span></div>`;
 const webTop = () => `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
-  <div class="urlbar"><span aria-hidden="true">🔒</span><span><b>hokuhealth.app</b>/u/mara</span></div>
+  <div class="urlbar">${ic('lock', 2)}<span><b>hokuhealth.app</b>/u/mara</span></div>
   <div class="webhead"><span class="wordmark"><img src="${SYMW}" alt="">HOKU</span><button type="button" class="btn sm ghost">App laden</button></div>`;
 function renderWebOn() {
   const wb = webBadges();
@@ -786,17 +915,20 @@ function renderWebOn() {
     <div class="cover" role="img" aria-label="Titelbild"></div>
     <div class="head"><div class="avatar">M</div><div class="who"><div class="name">${PERSON.name}<span class="land">${PERSON.land}</span></div><div class="nick">@${PERSON.nick}</div></div></div>
     ${st.bio ? `<p class="bio">${PERSON.bio}</p>` : ''}
+    ${st.streak ? `<div class="facts"><div class="f">${ic('flame')}<span><b>${PERSON.streak} Tage</b> in Folge dabei</span></div></div>` : ''}
     <div class="tags">${PERSON.tags.map(t => `<span class="chip">${t}</span>`).join('')}</div>
-    ${st.streak ? `<div class="streak">🔥 <span><b>${PERSON.streak} Tage</b> in Folge dabei</span></div>` : ''}
-    ${COUNT() ? `<div class="tracks"><div class="tk">${PERSON.vor} trackt <span class="tn">${COUNT()}</span> Werte<em>seit ${PERSON.monat}</em></div>${acs(SHOWN())}</div>` : ''}
+    ${COUNT() ? `<div class="tracks"><div class="tk">${PERSON.vor} trackt <span class="tn">${COUNT()}</span> Werte<em>seit ${PERSON.monat}</em></div><div class="ar">${areaLine()}</div></div>` : ''}
     <div class="cta"><button type="button" class="btn">In Hoku öffnen</button>
       <p>${PERSON.reviews} Erfahrungsberichte, genaue Werte und mehr nur in der App.</p></div>
     <div class="webbody">
       ${st.plus ? progressWeb() : ''}
-      <div class="card"><h3>Abzeichen<span class="sub">${wb.length}</span></h3>
-        ${wb.length ? `<div class="bgrid">${wb.map(b => `<div class="badge"><div class="ic">${b.icon}</div>${b.name}</div>`).join('')}</div>` : `<div class="empty">Keine Abzeichen freigegeben.</div>`}</div>
+      <div class="card"><h3>Abzeichen<span class="sub">${wb.length}</span></h3>${badgeRow()}</div>
     </div>
     ${aboutHoku()}`;
+  const n = wb.length;
+  $('#rowNow').innerHTML = n > 3
+    ? `Für Mara gerade ${n} freigegeben. Offen: <b>${wb[0].name}</b> und <b>${wb[1].name}</b>. Die dritte Kachel steht für die übrigen ${n - 2}.`
+    : n ? `Für Mara gerade ${n} freigegeben, alle offen sichtbar.` : 'Für Mara gerade keine freigegeben: die Kachelreihe entfällt.';
 }
 function renderWebOff() {
   $('#webOff').innerHTML = `${webTop()}
@@ -813,13 +945,13 @@ function renderBadgeSet() {
   const earned = BADGES.filter(b => b.earned).length;
   let h = `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
     <div class="bar"><span class="icb" aria-hidden="true">‹</span><span class="ttl">Abzeichen im Web</span><span class="icb leer"></span></div>
-    <div class="set-intro">Gilt für hokuhealth.app/u/mara und die Link-Karte im Chat. Abzeichen, die etwas über Blut, Zyklen, Einnahmen oder Körperwerte verraten, sind ab Werk aus.</div>
+    <div class="set-intro">Gilt für hokuhealth.app/u/mara und die Link-Karte im Chat. Im Web stehen die schwersten zuerst. Abzeichen, die etwas über Blut, Zyklen, Einnahmen oder Körperwerte verraten, sind ab Werk aus.</div>
     <div class="count"><span>Im Web sichtbar</span><span><b>${webBadges().length}</b> von ${earned} verdienten</span></div>`;
   for (const [g, label] of GROUPS) {
     const bs = BADGES.filter(b => b.group === g);
     h += `<div class="grp"><span>${label}</span><span>${bs.filter(b => st.web.has(b.id)).length}/${bs.length} an</span></div><div class="list">`;
-    h += bs.map(b => `<div class="brow ${b.earned ? '' : 'zu'}"><div class="bi" aria-hidden="true">${b.icon}</div>
-      <div><div class="bn">${b.name}</div><div class="bs">${b.risk ? `<span class="risk" title="${b.risk}">verrät Gesundheitsdaten</span>` : ''}<span>${b.earned ? 'verdient' : 'noch nicht verdient'}</span></div></div>
+    h += bs.map(b => `<div class="brow ${b.earned ? '' : 'zu'}"><div class="bi" aria-hidden="true">${ic(b.icon)}</div>
+      <div><div class="bn">${b.name}</div><div class="bs">${b.risk ? `<span class="risk" title="${b.risk}">${ic('shield', 2)}verrät Gesundheitsdaten</span>` : ''}<span>${b.earned ? 'verdient' : 'noch nicht verdient'}</span></div></div>
       ${sw('b:' + b.id, st.web.has(b.id), b.name + ' im Web zeigen')}</div>`).join('');
     h += `</div>`;
   }
@@ -829,8 +961,9 @@ function renderBadgeSet() {
   sc.innerHTML = h; sc.scrollTop = y;
 }
 // ── 3a · Was du trackst ──
+const CHECK = `<span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${P.check}" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
 function renderAreaCtl() {
-  $('#areaCtl').innerHTML = WEB_AREAS.map(a => `<button type="button" class="${a.id}" data-area="${a.id}" aria-pressed="${st.areas.has(a.id)}">${esc(a.n)} · ${werteDe(a.werte.length)}</button>`).join('');
+  $('#areaCtl').innerHTML = WEB_AREAS.map(a => `<button type="button" data-area="${a.id}" aria-pressed="${st.areas.has(a.id)}">${CHECK}${esc(a.n)} · ${werteDe(a.werte.length)}</button>`).join('');
 }
 function renderTrackSet() {
   const locked = AREAS.filter(a => !a.web);
@@ -838,16 +971,16 @@ function renderTrackSet() {
     <div class="bar"><span class="icb" aria-hidden="true">‹</span><span class="ttl">Was du trackst</span><span class="icb leer"></span></div>
     <div class="set-intro">Im Web und auf der Link-Karte steht, wie viele Werte du trackst und aus welchen Bereichen. Welche Werte und ihre Zahlen erscheinen nie.</div>
     <div class="tprev"><span class="k">So steht es im Web</span>${COUNT()
-      ? `<div class="tk">${PERSON.vor} trackt <span class="tn">${COUNT()}</span> Werte</div>${acs(SHOWN())}`
+      ? `<div class="tk">${PERSON.vor} trackt <span class="tn">${COUNT()}</span> Werte</div><div class="ar">${areaLine()}</div>`
       : `<div class="none">Kein Bereich an: die Zeile entfällt. Karte C nennt dann deine Ziel-Tags.</div>`}</div>
     <div class="grp"><span>Im Web zeigen</span><span>${SHOWN().length}/${WEB_AREAS.length} an</span></div><div class="list">`;
-  h += WEB_AREAS.map(a => `<div class="arow"><div class="ad" style="--c: var(--ar-${a.id})" aria-hidden="true"></div>
+  h += WEB_AREAS.map(a => `<div class="arow"><div class="ad" aria-hidden="true">${ic(a.icon)}</div>
       <div><div class="an">${esc(a.n)}<span class="cnt">${werteDe(a.werte.length)}</span></div><div class="av">${a.werte.join(', ')}</div></div>
       ${sw('a:' + a.id, st.areas.has(a.id), a.n + ' im Web zeigen')}</div>`).join('');
   h += `</div><div class="grp"><span>Nie im Web</span><span>nicht wählbar</span></div><div class="list">`;
-  h += locked.map(a => `<div class="arow lock"><div class="ad" style="--c: var(--ar-${a.id})" aria-hidden="true"></div>
+  h += locked.map(a => `<div class="arow lock"><div class="ad" aria-hidden="true">${ic(a.icon)}</div>
       <div><div class="an">${esc(a.n)}<span class="cnt">${werteDe(a.werte.length)}</span></div><div class="av">${a.werte.join(', ')}</div></div>
-      <span class="lockt">${LOCK}nur App</span></div>`).join('');
+      <span class="lockt">${ic('lock', 2)}nur App</span></div>`).join('');
   h += `</div><div class="why-lock"><b>Warum nicht wählbar?</b> Blutwerte und Einnahmen verraten Gesundheitsdaten und welche Substanzen du nimmst. Hoku zeigt sie deshalb nie ohne Anmeldung, auch nicht als Name oder in der Zahl. In der App sehen Freunde sie weiter nach deiner Stufe.</div>
     <div class="reset"><p>Standard: alle drei Bereiche an. Gezählt wird, wofür du Daten hast.</p></div>`;
   const sc = $('#trackSet'), y = sc.scrollTop;
@@ -857,10 +990,12 @@ function renderRiskList() {
   const by = {};
   BADGES.filter(b => b.risk).forEach(b => (by[b.risk] = by[b.risk] || []).push(b.name));
   $('#riskList').innerHTML = Object.entries(by).map(([k, ns]) => `<li><b>${k}:</b> ${ns.join(', ')}</li>`).join('');
+  const byId = Object.fromEntries(BADGES.map(b => [b.id, b]));
+  $('#rankList').innerHTML = RANK.map(id => `<li>${byId[id].name}${byId[id].risk ? ' <span class="risk-i">(ab Werk aus)</span>' : ''}</li>`).join('');
 }
 
 // ── 4 · Hoku-Code ──
-// Matrix aus qrcode-generator (Fehlerkorrektur Q, haelt die laengere Adresse bei Version 3), gezeichnet als SVG: Punkte, runde Suchmarken, Aussparung mit Logo, Fuellpunkte im Verlauf bis zum Kreisrand.
+// Matrix aus qrcode-generator (Fehlerkorrektur Q, haelt die laengere Adresse bei Version 3), gezeichnet als SVG: Punkte, runde Suchmarken, Aussparung mit Logo, hellgraue Fuellpunkte bis zum Kreisrand.
 let qrCount = 0;
 function hokuCode(text, label) {
   if (typeof qrcode === 'undefined') return `<div class="qr-missing">QR-Bibliothek nicht geladen (cdnjs). Seite neu laden.</div>`;
@@ -890,21 +1025,16 @@ function hokuCode(text, label) {
   const fm = (x, y) => {
     const px = x - h, py = y - h;
     return `<rect x="${px + .5}" y="${py + .5}" width="6" height="6" rx="2.2" fill="none" stroke="var(--qr-ink)" stroke-width="1"/>
-      <rect x="${px + 2}" y="${py + 2}" width="3" height="3" rx="1.1" fill="url(#${id}c)"/>`;
+      <rect x="${px + 2}" y="${py + 2}" width="3" height="3" rx="1.1" fill="var(--qr-ink)"/>`;
   };
   return `<svg viewBox="${-R} ${-R} ${2 * R} ${2 * R}" role="img" aria-label="${esc(label)}">
-    <defs>
-      <linearGradient id="${id}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset=".55" stop-color="#8a6bff"/><stop offset="1" stop-color="#ff6fb5"/></linearGradient>
-      <linearGradient id="${id}f" gradientUnits="userSpaceOnUse" x1="${-R}" y1="${-R}" x2="${R}" y2="${R}"><stop offset="0" stop-color="#a9e6ff"/><stop offset=".55" stop-color="#cfc3ff"/><stop offset="1" stop-color="#ffc4e2"/></linearGradient>
-      <linearGradient id="${id}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d3a8a"/><stop offset="1" stop-color="#3a1f78"/></linearGradient>
-      <clipPath id="${id}l"><circle r="${LOGO - .75}"/></clipPath>
-    </defs>
+    <defs><clipPath id="${id}l"><circle r="${LOGO - .75}"/></clipPath></defs>
     <circle r="${R}" fill="var(--qr-paper)"/>
-    <circle r="${R - .45}" fill="none" stroke="url(#${id}r)" stroke-width=".7"/>
-    <g fill="url(#${id}f)">${fill}</g>
+    <circle r="${R - .45}" fill="none" stroke="var(--qr-ring)" stroke-width=".5"/>
+    <g fill="var(--qr-fill)">${fill}</g>
     <g fill="var(--qr-ink)">${dots}</g>
     ${fm(0, 0)}${fm(n - 7, 0)}${fm(0, n - 7)}
-    <circle r="${LOGO - .3}" fill="var(--qr-paper)" stroke="url(#${id}r)" stroke-width=".35"/>
+    <circle r="${LOGO - .3}" fill="var(--qr-paper)" stroke="var(--qr-ring)" stroke-width=".3"/>
     <image href="${ICON}" x="${-(LOGO - .75)}" y="${-(LOGO - .75)}" width="${2 * (LOGO - .75)}" height="${2 * (LOGO - .75)}" clip-path="url(#${id}l)" preserveAspectRatio="xMidYMid slice"/>
   </svg>`;
 }
@@ -948,7 +1078,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.ctl) {
     const k = t.dataset.ctl; st[k] = !st[k];
-    t.setAttribute('aria-pressed', st[k]); t.querySelector('.sw').setAttribute('aria-checked', st[k]);
+    t.setAttribute('aria-checked', st[k]);
     renderChats(); renderWebOn(); return;
   }
   if (t.dataset.teaser) { st.teaser = t.dataset.teaser; renderTeaserCtl(); renderChats(); renderWebOn(); return; }
