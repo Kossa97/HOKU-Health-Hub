@@ -57,6 +57,11 @@ test('Richtung ändern rechnet sofort neu und wird gespeichert', async ({ page, 
   await expect(gesamt).toHaveText(vorher!)
   await expect.poll(() => settings(mock).directions).toEqual({})
 
+  // e1RM mit dem Übungsnamen in der App-Sprache, nie mit der Kennung
+  const e1rm = page.locator('[data-progress-metric="e1rm:deadlift_barbell"]')
+  await expect(e1rm).toContainText('Kreuzheben (Langhantel) e1RM')
+  await expect(e1rm).not.toContainText('deadlift')
+
   // Anteilswerte: nur Zielbereich oder aus
   const blut = page.locator('[data-progress-direction="markers_in_range"]')
   await expect(blut.getByRole('button')).toHaveText(['Zielbereich', 'aus'])

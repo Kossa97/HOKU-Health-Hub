@@ -16,7 +16,7 @@ function session(mock: MockSupabase, on: string, kg: number) {
   mock.insert('training_sessions', {
     user_id: TEST_USER.id, kind: 'strength', title: 'Ganzkörper', started_at: `${on}T16:00:00.000Z`, ended_at: `${on}T17:00:00.000Z`,
     duration_s: 3600, distance_m: null, kcal: null, avg_hr: null, rpe: null, notes: null, routine_id: null, source: 'manual', external_id: null,
-    exercises: [{ exerciseId: 'deadlift', sets: [{ type: 'normal', weightKg: kg, reps: 1, done: true }] }],
+    exercises: [{ exerciseId: 'deadlift_barbell', sets: [{ type: 'normal', weightKg: kg, reps: 1, done: true }] }],
   })
 }
 

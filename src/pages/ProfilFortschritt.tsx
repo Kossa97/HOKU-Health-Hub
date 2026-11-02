@@ -182,7 +182,7 @@ function WertZeile({ v, standard, eigene, exerciseNames, onDirection }: {
 }) {
   const { t, i18n } = useTranslation()
   const locale = i18n?.language || 'de'
-  const name = metricName(v.id, t, exerciseNames)
+  const name = metricName(v.id, t, exerciseNames, locale)
   const sammelt = baselineText(v.baseline, t)
   const verlauf = v.baseline.status === 'counts' ? startToNow(v, locale) : null
   const grund = eigene && v.direction !== standard ? t('pf_von_dir') : v.source === 'goals' ? t('pf_aus_zielen') : null

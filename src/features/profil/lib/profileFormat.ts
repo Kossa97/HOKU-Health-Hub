@@ -2,10 +2,22 @@
  * Anzeige der Profilwerte: Zahl, Einheit und Unterzeile je Feld. Rein, damit
  * eigene und fremde Ansicht (Task 7) denselben Text zeigen.
  */
+import { catalogExercise } from '../../training/lib/exerciseLookup'
 import type { ProfileField } from './profileVisibility'
 import type { ProfileViewFields } from './profileView'
 
 export type Translate = (key: string, vars?: Record<string, unknown>) => string
+
+/** App-Sprache der Übungsnamen (Katalog hat nur de/en). */
+export const exerciseLang = (locale: string): 'de' | 'en' => (locale.toLowerCase().startsWith('de') ? 'de' : 'en')
+
+/**
+ * Übungsname aus dem Schnappschuss in der App-Sprache des Betrachters:
+ * Katalog-Übungen neu aufgelöst, sonst der gespeicherte Name (eigene Übung).
+ */
+export function shownExerciseName(e: { id: string; name: string }, locale: string): string {
+  return catalogExercise(e.id)?.name[exerciseLang(locale)] ?? e.name
+}
 
 export interface TileText {
   /** Beschriftung über dem Wert */
@@ -102,10 +114,10 @@ export function tileText(field: ProfileField, fields: ProfileViewFields, t: Tran
     case 'routine':
       return fields.routine ? { label, value: fields.routine.name } : null
     case 'favorite_exercise':
-      return fields.favorite_exercise ? { label, value: fields.favorite_exercise.name } : null
+      return fields.favorite_exercise ? { label, value: shownExerciseName(fields.favorite_exercise, locale) } : null
     case 'e1rm': {
       const top = fields.e1rm?.top[0]
-      return top ? { label, value: `${top.name} ${n(top.v)}`, unit: 'kg' } : null
+      return top ? { label, value: `${shownExerciseName(top, locale)} ${n(top.v)}`, unit: 'kg' } : null
     }
     case 'reviews':
       return fields.reviews

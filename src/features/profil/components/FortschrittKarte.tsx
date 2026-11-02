@@ -176,7 +176,7 @@ function WerteListe({ values, exerciseNames }: { values: readonly ProgressValueR
         return (
           <li key={v.id} className="flex items-baseline justify-between gap-3 text-[13px]" data-progress-value={v.id}>
             <span className="min-w-0 text-[var(--lg-text-2)]">
-              {metricName(v.id, t, exerciseNames)}
+              {metricName(v.id, t, exerciseNames, locale)}
               {verlauf && <span className="text-[var(--lg-text-3)]"> {verlauf}</span>}
             </span>
             <span className={`shrink-0 tabular-nums ${v.change === null ? 'text-[var(--lg-text-3)]' : 'font-semibold text-[var(--lg-text)]'}`}>{wert}</span>

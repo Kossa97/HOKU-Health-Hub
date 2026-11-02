@@ -3,7 +3,8 @@
  * Rein bis auf `t`, damit Karte und Seite dieselben Worte zeigen.
  */
 import type { MeasurementSite } from '../../fortschritt/lib/measurements'
-import type { Translate } from './profileFormat'
+import { exerciseName } from '../../training/lib/exerciseLookup'
+import { exerciseLang, type Translate } from './profileFormat'
 import type { BaselineState, MetricId, ProgressArea, ProgressValueResult } from './progressScore'
 import type { BadgeCheck } from './badges'
 
@@ -41,10 +42,14 @@ export function formatDayShort(day: string, locale: string): string {
 
 export const areaName = (area: ProgressArea, t: Translate) => t(`pf_area_${area}`)
 
-export function metricName(id: MetricId, t: Translate, exerciseNames: Record<string, string> = {}): string {
+/**
+ * Name eines Werts. e1RM: Übungsname aus `exerciseNames` (eigene Übungen,
+ * App-Sprache), sonst über den Katalog — nie die Kennung.
+ */
+export function metricName(id: MetricId, t: Translate, exerciseNames: Record<string, string> | undefined, locale: string): string {
   if (id.startsWith('e1rm:')) {
     const exercise = id.slice('e1rm:'.length)
-    return t('pf_wert_e1rm', { name: exerciseNames[exercise] ?? exercise })
+    return t('pf_wert_e1rm', { name: exerciseNames?.[exercise] ?? exerciseName(exercise, exerciseLang(locale), []) })
   }
   if (id.startsWith('circ_')) return t(`umfang_${id.slice('circ_'.length) as MeasurementSite}`)
   return t(`pf_wert_${id}`)
