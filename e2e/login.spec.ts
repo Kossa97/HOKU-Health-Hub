@@ -314,23 +314,43 @@ test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
   await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
-test('Passwort einblenden: Hoku hält sich die Augen zu und sagt, dass er nichts sieht', async ({ page, mock }) => {
+test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine neue Blase', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
   await zumFormular(page)
   await lassLaufen(page, 6000)
+  await page.locator('#auth-pw').click()
+  await lassLaufen(page, 600)
+  const blase = page.locator('.tyd-dot-blase')
+  await expect(blase).toHaveText(/^(Ich schau weg\.|Ich dreh mich um\.|Ich seh nichts\.)$/)
+  await expect(blase).toHaveAttribute('data-zeigen', 'true')
+  await lassLaufen(page, 3000)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
+  // Passwort einblenden: keine neue Blase
   await page.locator('#auth-pw').fill('geheim1')
   await page.locator('.tyd-auth-auge').click()
   await lassLaufen(page, 1200)
-  const blase = page.locator('.tyd-dot-blase')
-  await expect(blase).toHaveText('Keine Sorge, ich sehe nichts.')
-  await expect(blase).toHaveAttribute('data-zeigen', 'true')
-  await lassLaufen(page, 3500)
   await expect(blase).not.toHaveAttribute('data-zeigen')
-  // wieder ausblenden: keine Blase
-  await page.locator('.tyd-auth-auge').click()
-  await lassLaufen(page, 1200)
-  await expect(blase).not.toHaveAttribute('data-zeigen')
+})
+
+test('Tippen ins Formular: Hoku rutscht auf die Oberkante der Karte und ragt darüber, danach zurück', async ({ page }) => {
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const karte = page.locator('[data-dot-kante]')
+  const mitte = async () => { const b = (await figur.boundingBox())!; return { y: b.y + b.height / 2, r: b.height / 2 } }
+  const vorher = await mitte()
+  await page.locator('#auth-kennung').click()
+  await lassLaufen(page, 1500)
+  const kante = (await karte.boundingBox())!.y, auf = await mitte()
+  // ein Stück über die Kante: die Mitte liegt knapp darüber, der untere Rand darunter
+  expect(auf.y).toBeGreaterThan(vorher.y + 10)
+  expect(auf.y).toBeLessThan(kante)
+  expect(auf.y + auf.r).toBeGreaterThan(kante)
+  await page.locator('.tyd-auth-kopf h2').click()
+  await lassLaufen(page, 1500)
+  expect(Math.abs((await mitte()).y - vorher.y)).toBeLessThan(4)
 })
 
 test('Face ID (Passkey): nach der Landung einrichten, danach mit einem Tipp anmelden', async ({ page, mock }) => {
