@@ -73,6 +73,21 @@ Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` 
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
+## Teilprojekt 2b gebaut (02.11.2026, Branch `profil-p2b-fortschritt`, nicht gepusht, kein PR)
+Tasks 1–7 fertig: Migration `supabase-profil-p2b-fortschritt.sql` (progress_settings mit RLS nur Nutzer, Felder
+progress/badges, profile_snapshot_clean baut für andere nur Gesamt, fünf Bereiche, since und bekannte Abzeichen-IDs)
+— Trockenlauf zweimal im Container, NICHT gegen Produktion (nach 2a, vor dem Merge). Rechnung `progressScore.ts`,
+Baseline aus Health beim Setzen des Starts (`progressBaseline.ts`, 60 Tage davor, nur mit health_store_consent_at),
+39 Abzeichen (`badges.ts`, „Profil geteilt“ beim Teilen), Karte Gesamtfortschritt + Zeitreise + Aufschlüsselung
+(`/profil/fortschritt`), „Alle Abzeichen“ (`/profil/abzeichen`), fremdes Profil ohne Einzelwerte, e2e
+`profil-fortschritt.spec.ts`. Task 7: e1RM-Namen in App-Sprache (nie Kennung; auch Bestleistungen/Lieblingsübung aus
+dem Schnappschuss), Datenschutz Abschnitt 6 ergänzt (TERMS_VERSION unverändert), Texte de/en gegengelesen,
+code-review: Einnahme-/Wiegetage jetzt lokaler Kalendertag, profile_complete nie ohne Prüfpunkte.
+Offen 2b: Produktivlauf der Migration (Ja nötig, zusammen mit 2a); security-review vor dem PR; „Stand“ der
+Datenschutzerklärung (Oktober 2026) ggf. anheben; Spec-Wörter „wartet“ (Karte) und „positive Veränderung“ bewusst
+gelassen; andere sehen bei Freigabe auch den Starttag (`since`) — so im Datenschutztext; Rechtlich prüfen:
+Baseline-Lesen aus Health und Speichern der Baseline (Art. 9) über die bestehende Einwilligung.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
