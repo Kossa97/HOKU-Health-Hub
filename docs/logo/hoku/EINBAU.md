@@ -1,20 +1,37 @@
-# HOKU in der App (30.10.2026)
+# HOKU in der App – dunkles Cyan-Icon
 
-Nutzer: „Das App-Logo ist neu, es liegt in HOKU-Brand-Kit-v1.zip; überall vernünftig ersetzen, dann auf main.“
-App-Icon ist die **blaue Fassung** aus `brand-kit-v1/04-Icons` (laut Brand-Guide die erste App-Icon-Fassung).
-Export: `python3 -I docs/logo/hoku/export_app.py $PWD`; Übersicht `eingebaut.png`.
+Stand: 02.11.2026. Nutzer: „das neue icon überall überschreiben, vernünftig immer in richtiger größe keine toten ränder“.
 
-| Wo | Datei | Quelle |
+Aktuelle Quelle: `brand-kit-v2/QUELLEN/hoku-app-icon-cyan-dunkel-master.png`. Der bestätigte Master und die Branding-Logos bleiben unverändert erhalten. Für die tatsächlichen App-Flächen werden die leeren Originalränder enger zugeschnitten und die Größe pro Einsatz angepasst.
+
+Erzeugen: `npm run icons:update`. Prüfen: `npm run icons:verify`. Die frühere Python-Einstiegsdatei leitet auf denselben aktuellen Export weiter.
+
+## Eingesetzte Dateien
+
+| Einsatz | Dateien | Größe und Ausschnitt |
 |---|---|---|
-| iOS App-Icon | `AppIcon-512@2x.png` (1024) | Kit `hoku-app-blau-1024.png`, ohne Alphakanal |
-| iOS Startbildschirm | `Splash.imageset/splash-2732x2732*.png` | erzeugt: Grund `#080b13`, Hoku mittig (22 % der kurzen Kante) |
-| Android Launcher | `mipmap-*/ic_launcher(_round).png` | erzeugt aus `hoku-app-blau-original-1254.png` |
-| Android adaptiv | `mipmap-*/ic_launcher_foreground.png`, Hintergrund `#080b13` | erzeugt, Kugel ~58 % von 108 dp |
-| Android Startbildschirm | `drawable*/splash.png` | erzeugt wie iOS |
-| Web Home-Bildschirm | `public/icons/hoku-180.png` | Kit `hoku-app-blau-180.png` |
-| Web Manifest | `public/icons/hoku-192/512.png`, `hoku-maskable-512.png` | Kit blau 192/512 |
-| Favicon | `public/favicon.ico` (16/32/48/64), `icons/hoku-fav-blau-32/48/64.png`, `favicon.svg` | blaues Icon, eng um die Kugel (92 %); die einfarbigen Kit-Favicons waren bei 16 px nur Rauschen (Nutzer 30.10.) |
-| Benachrichtigungen | `public/icon-192.png`, `icon-512.png`, `icon.svg` | Kit blau |
+| iOS App-Icon | `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` | 1024 × 1024, RGB ohne Alphakanal, Hoku ca. 88 % der Kante; Abrundung durch iOS |
+| Android Launcher | `android/app/src/main/res/mipmap-*/ic_launcher.png` und `ic_launcher_round.png` | 48 / 72 / 96 / 144 / 192 px, Hoku ca. 88 %, passende vorhandene Kreis-/Rechteckform |
+| Android adaptiv | `mipmap-*/ic_launcher_foreground.png`, `values/ic_launcher_background.xml` | 108 / 162 / 216 / 324 / 432 px, transparenter Vordergrund, Hoku ca. 59 % der gesamten Ebene; Hintergrund #000101 |
+| Web/PWA | `public/icons/hoku-dunkel-180.png`, `hoku-dunkel-192.png`, `hoku-dunkel-512.png` | 180 / 192 / 512 px, RGB, Hoku ca. 88 % |
+| Maskierbare PWA | `public/icons/hoku-dunkel-maskable-512.png` | 512 px, deckend, Hoku ca. 76 % |
+| Favicons | `public/favicon.ico`, `favicon.svg`, `icons/hoku-fav-dunkel-*.png` | 16 / 32 / 48 / 64 px, enger Ausschnitt mit ca. 94 % Hoku |
+| Benachrichtigungen / ältere Verweise | `public/icon-192.png`, `icon-512.png`, `icon.svg`, bisherige `icons/hoku-*.png` und `hoku-fav-blau-*.png` | Auch diese vorhandenen URLs enthalten das neue dunkle Motiv |
+| Untere App-Leiste | `src/features/dot/DotLogo.tsx`, `public/icons/hoku-dunkel-symbol-64.png`, `hoku-dunkel-symbol-128.png` | Transparenter Ableger, Anzeige 30 px, Hoku ca. 92 %; vorhandene Animationen erhalten |
+| Startbildschirme | iOS `Splash.imageset/splash-2732x2732*.png`, Android `drawable*/splash.png` | Bestehende Auflösungen erhalten, Hoku mittig, 24 % der kurzen Bildkante, keine zusätzliche dunkle Bildkachel |
 
-Vorher: das Codex-Bild (`docs/logo/dot/codex`) als `icons/dot-codex-*` – entfernt. Die Startbildschirme zeigten noch das
-Capacitor-Standardkreuz auf Weiß. Nicht geändert: Name der App/Web-App und Dots Logo in der Tab-Leiste (`DotLogo.tsx`).
+Die untere Leiste verwendet jetzt den aktuellen Hoku mit Pupille statt der älteren Punktkugel. Die auf main ergänzte Farbwahl im Profil und die automatische Anpassung an das App-Design bleiben dabei erhalten. Das separate KI-Button-Symbol mit Funkeln und der lebende Assistent werden nicht verändert.
+
+## Sicherheitsbereiche und Hintergrund
+
+Der Rand wird je Ziel berechnet und nicht vom klein dargestellten Original übernommen. Androids adaptive Darstellung benötigt dennoch Platz für Masken und Bewegungen: 108-dp-Ebene mit geschütztem 66-dp-Bereich; die tatsächlich sichtbare Darstellung füllt Hoku entsprechend stärker aus. [Android-Dokumentation](https://developer.android.com/develop/ui/compose/system/icon_design_adaptive).
+
+Maskierbare PWA-Icons schützen ihren wichtigen Inhalt innerhalb eines mittigen Kreises mit 40 % Radius. Der 76-%-Ausschnitt wird gegen diesen Kreis geprüft. [Web-App-Manifest-Spezifikation](https://www.w3.org/TR/appmanifest/#icon-masks).
+
+Hintergrund für Android, PWA-Start und Startbilder: #000101, passend zum dunklen Master. iOS erhält ein quadratisches RGB-Icon ohne vorgezeichnete transparente Ecken. Native Vordergrund- und Leistenzeichen entfernen den dunklen Hintergrund über einen SVG-Alphafilter; die hellen Partikelkerne behalten ihre Farbe.
+
+## Aktualisierung und Prüfung
+
+HTML und PWA-Manifest verwenden neue Icon-URLs, damit alte zwischengespeicherte Fassungen leichter abgelöst werden. Die bisher verwendeten Dateien sind ebenfalls überschrieben. `EINBAU-CHECKS.json` hält Größen, tatsächliche Inhaltsgrenzen, Sicherheitsbereich und Dateiprüfsummen fest. `eingebaut.png` zeigt die konkreten Exporte einschließlich einer adaptiven Kreis-Maske und der Startbildschirme.
+
+Diese Dateien sind im Projekt eingebaut. Veröffentlichung und ein neuer nativer App-Build sind eigene Schritte; eine bereits installierte App wird durch lokale Dateiersetzung nicht ausgetauscht.

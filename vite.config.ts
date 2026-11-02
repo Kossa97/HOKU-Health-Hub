@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => {
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
+      includeAssets: ['icons/hoku-dunkel-symbol-128.png'],
       injectManifest: {
         rollupFormat: 'es',
         // Der Service Worker entsteht nach dem Sentry-Upload; seine Map
@@ -54,13 +55,13 @@ export default defineConfig(({ mode }) => {
         short_name: 'HOKU',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
-        background_color: '#080b13',
+        background_color: '#000101',
         display: 'standalone',
         icons: [
-          // HOKU (docs/logo/hoku/brand-kit-v1). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
-          { src: '/icons/hoku-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // Dunkler Cyan-Hoku (Brand-Kit v2); neue URLs aktualisieren auch installierte PWA-Icons.
+          { src: '/icons/hoku-dunkel-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-dunkel-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-dunkel-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),
