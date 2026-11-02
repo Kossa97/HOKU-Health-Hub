@@ -67,7 +67,7 @@ Start, sonst erste 28 Tage nach Start = Baseline, zählt ab Tag 29; Schlaf ≥14
 Kein Fallback „erste 7 Tage“. Untergrenze C verworfen (+600 % ist echter Fortschritt); Start 0 % → Prozentpunkte.
 Anteilswerte (Schlaf, Blut) [Nutzer 02.11.]: „Lücke geschlossen“ = (jetzt − Start) ÷ (100 % − Start), −100…+100 %;
 übrige Werte relativ ohne Deckel. Darstellung: statt Ring Varianten-Mockup (Leitzahl+Nulllinien-Balken, Zeitreise,
-Turm, Höhenprofil) — Nutzer wählt.
+Turm, Höhenprofil) — Nutzer wählt. Mockup: https://claude.ai/artifact/AiZDk3AGF5PiKcrT2Ztkn7 (scratchpad fortschritt-varianten.html).
 Spec `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`, Plan `docs/superpowers/plans/2026-11-02-profil-p2b-fortschritt.md`,
 Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Bau wartet auf Nutzer-Durchsicht.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
