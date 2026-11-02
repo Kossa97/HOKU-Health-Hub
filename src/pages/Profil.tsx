@@ -110,6 +110,7 @@ export function Profil() {
         void import('../features/profil/services/progressStore')
           .then(m => m.awardBadge(user.id, 'profile_shared'))
           .then(neu => { if (neu) requestProfileSnapshot() })
+          .catch(() => {}) // Chunk nicht ladbar (offline): beim nächsten Teilen erneut
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') toast.error(t('error'))
