@@ -15,14 +15,25 @@
 --   hoku_wochen                       ein Zettel je (Nutzer, lokaler Sonntag)
 --   Trigger hoku_widerruf             Widerruf loescht beide Tabellen dieses
 --                                     Nutzers
+--   Trigger hoku_nur_mit_einwilligung (je einer auf hoku_funde und hoku_wochen,
+--                                     nur BEFORE INSERT) Einfuegen ohne
+--                                     Einwilligung scheitert mit
+--                                     'hoku_ohne_einwilligung'. Schliesst das
+--                                     Fenster, in dem ein Widerruf zwischen
+--                                     Pruefung und Einfuegen der Auswertung
+--                                     laeuft: der Widerruf-Trigger sieht die
+--                                     noch nicht festgeschriebene Zeile nicht
+--                                     und loescht sie nie. `for share` auf dem
+--                                     Profil kollidiert mit der Zeilensperre
+--                                     des Widerrufs, egal wer zuerst kommt.
 --
 -- Schreiben tut nur die Edge Function mit der Service-Rolle: `authenticated`
 -- hat kein insert und darf update nur auf je eine Spalte. Lesen und Loeschen
 -- eigener Zeilen ist erlaubt (das Loeschen ist die Nutzerseite von "meine
 -- Daten loeschen").
 --
--- Rein additiv und idempotent: zwei neue Spalten, zwei neue Tabellen, eine
--- Funktion, ein Trigger. Keine bestehende Zeile wird geaendert. Zweimal
+-- Rein additiv und idempotent: zwei neue Spalten, zwei neue Tabellen, zwei
+-- Funktionen, drei Trigger. Keine bestehende Zeile wird geaendert. Zweimal
 -- laufen lassen ist erlaubt.
 --
 -- Voraussetzung: `public.tyd_is_valid_timezone` (supabase-perf-timezone-check.sql).
@@ -38,6 +49,12 @@
 --      and relname in ('hoku_funde', 'hoku_wochen');                  -- 2 Zeilen, beide true
 --   select count(*) from public.hoku_funde;                         -- 0 nach dem Lauf
 --   select count(*) from public.hoku_wochen;                        -- 0 nach dem Lauf
+--   select proname from pg_proc
+--    where pronamespace = 'public'::regnamespace
+--      and proname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung'); -- 2 Zeilen
+--   select tgrelid::regclass, tgname from pg_trigger
+--    where not tgisinternal
+--      and tgname in ('hoku_widerruf', 'hoku_nur_mit_einwilligung');  -- 3 Zeilen
 
 begin;
 
@@ -165,5 +182,47 @@ drop trigger if exists hoku_widerruf on public.profiles;
 create trigger hoku_widerruf
 after update of erkenntnisse_consent_at on public.profiles
 for each row execute function public.hoku_widerruf();
+
+-- ── Einfuegen nur mit Einwilligung ──────────────────────────────────────────
+-- Zwischen der Pruefung der Einwilligung in der Edge Function und dem
+-- Festschreiben des Inserts vergehen Millisekunden. Widerruft der Nutzer genau
+-- dann, loescht `hoku_widerruf` zuerst (die neue Zeile ist noch nicht sichtbar),
+-- danach wird der Insert festgeschrieben: Gesundheitsableitungen ohne
+-- Einwilligung, die nie jemand aufraeumt. Darum prueft die Datenbank selbst,
+-- und zwar mit `for share` auf der Profilzeile: das kollidiert mit der
+-- Zeilensperre des Widerrufs-Updates. Kommt der Widerruf zuerst, sieht der
+-- Insert nach dessen Ende die Einwilligung als null und scheitert; kommt der
+-- Insert zuerst, wartet der Widerruf und loescht danach auch diese Zeile.
+-- Nur bei insert, nicht bei update: ein Update darf den Widerruf nicht in einen
+-- Deadlock mit seinem delete laufen lassen.
+
+create or replace function public.hoku_nur_mit_einwilligung()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform 1 from public.profiles
+   where id = new.user_id and erkenntnisse_consent_at is not null
+   for share;
+  if not found then
+    raise exception 'hoku_ohne_einwilligung';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.hoku_nur_mit_einwilligung() from public, anon, authenticated;
+
+drop trigger if exists hoku_nur_mit_einwilligung on public.hoku_funde;
+create trigger hoku_nur_mit_einwilligung
+before insert on public.hoku_funde
+for each row execute function public.hoku_nur_mit_einwilligung();
+
+drop trigger if exists hoku_nur_mit_einwilligung on public.hoku_wochen;
+create trigger hoku_nur_mit_einwilligung
+before insert on public.hoku_wochen
+for each row execute function public.hoku_nur_mit_einwilligung();
 
 commit;

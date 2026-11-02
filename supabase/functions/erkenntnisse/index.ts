@@ -56,6 +56,15 @@ function pruefe(antwort: { error: { code?: string } | null }): void {
   if (antwort.error) throw new DbFehler(antwort.error.code ?? 'db')
 }
 
+/**
+ * Die Datenbank (Trigger hoku_nur_mit_einwilligung) lehnt Inserts ohne Einwilligung ab:
+ * SQLSTATE P0001, Meldung 'hoku_ohne_einwilligung'. Das heißt "Widerruf mitten im Lauf",
+ * kein Fehler: dieser Nutzer wird still übersprungen.
+ */
+function ohneEinwilligung(error: { code?: string; message?: string } | null): boolean {
+  return error?.code === 'P0001' && (error.message ?? '').includes('hoku_ohne_einwilligung')
+}
+
 /** Liest alle Zeilen einer Abfrage seitenweise (PostgREST kappt bei 1000). */
 async function leseAlle(seite: (von: number, bis: number) => PromiseLike<Antwort>): Promise<unknown[]> {
   const alle: unknown[] = []
@@ -131,7 +140,9 @@ async function verarbeite(db: Db, profil: Profil, jetzt: Date): Promise<boolean>
 
   const jetztIso = jetzt.toISOString()
   if (einfuegen.length > 0) {
-    pruefe(await db.from('hoku_funde').insert(einfuegen.map((f) => ({ user_id: userId, schluessel: f.schluessel, fund: f, datenlage: f.datenlage }))))
+    const eingefuegt = await db.from('hoku_funde').insert(einfuegen.map((f) => ({ user_id: userId, schluessel: f.schluessel, fund: f, datenlage: f.datenlage })))
+    if (ohneEinwilligung(eingefuegt.error)) return false // Widerruf zwischen Prüfung und Insert: nichts mehr schreiben
+    pruefe(eingefuegt)
   }
   for (const { id, fund } of aktualisieren) {
     pruefe(await db.from('hoku_funde')
@@ -163,6 +174,7 @@ async function wochenUpdate(db: Db, userId: string, zone: string, heute: string,
   // Zettel zuerst, dann die Marke "gemeldet": scheitert das Zweite, steht der Fund eine Woche später
   // wieder zur Wahl, statt nie in einem Zettel zu landen. Doppelter Lauf (23505): nichts tun.
   if (eingefuegt.error?.code === '23505') return
+  if (ohneEinwilligung(eingefuegt.error)) return // Widerruf zwischen Prüfung und Insert
   pruefe(eingefuegt)
 
   for (const datenlage of ['hinweis', 'deutlich'] as const) {
