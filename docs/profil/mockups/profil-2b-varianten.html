@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoku Fortschritt Varianten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout wie die Profil-Mockups: Steuerung links, Handy rechts. Bewusst nur dunkel (Soft Dark).
+   Bereichsfarben: dataviz-Referenzpalette, Slots 1–5 dunkel, gegen #2a2b30 validiert. */
+:root {
+  --page: #141518; --bg: #1f2023; --bg-top: #2a2b2f; --s1: #303136; --s2: #27282c;
+  --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45); --hair: rgba(255,255,255,.08);
+  --grid: rgba(255,255,255,.10); --blue: #4ea8ff; --cyan: #64d2ff;
+  --a1: #3987e5; --a2: #d95926; --a3: #199e70; --a4: #c98500; --a5: #d55181;
+  --ui: -apple-system, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --disp: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--text); font-family: var(--ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+button { font-family: var(--ui); color: inherit; }
+button:focus-visible, svg:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.wrap { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+.ctrl { width: 330px; max-width: 100%; }
+.ctrl h1 { font: 600 20px/1.2 var(--disp); margin: 0 0 4px; }
+.ctrl p { color: var(--t2); font-size: 13px; line-height: 1.5; margin: 0; }
+.lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 0 8px; }
+.views { display: grid; gap: 6px; }
+.views button { text-align: left; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hair); background: var(--s2); font: 500 14px var(--ui); cursor: pointer; }
+.views button small { display: block; color: var(--t3); font-size: 12px; font-weight: 400; margin-top: 2px; line-height: 1.4; }
+.views button.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 18px rgba(78,168,255,.18); }
+.box { background: var(--s2); border: 1px solid var(--hair); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; color: var(--t2); line-height: 1.55; }
+.box b { color: var(--text); font-weight: 600; }
+
+.phone { width: 390px; max-width: 100%; height: 844px; border-radius: 46px; background: linear-gradient(180deg, var(--bg-top), var(--bg) 30%); border: 1px solid rgba(255,255,255,.07); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; }
+.scroll { height: 100%; overflow-y: auto; padding: 0 16px 40px; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.bar { height: 54px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: 15px; font-weight: 600; }
+.kopf { display: flex; align-items: center; gap: 12px; padding: 6px 4px 0; }
+.kopf .av { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 19px var(--disp); }
+.kopf b { font: 600 17px var(--disp); display: block; }
+.kopf small { color: var(--t2); font-size: 13px; }
+.card { background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); }
+.card h3 { margin: 0; font: 600 15px var(--ui); display: flex; align-items: center; gap: 6px; }
+.card h3 .sub { color: var(--t3); font-size: 12px; font-weight: 400; margin-left: auto; }
+.vis { display: inline-flex; align-items: center; gap: 4px; font: 500 10px/1 var(--ui); color: #5fe07f; }
+.vis i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.hero { display: flex; align-items: baseline; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.hero b { font: 700 48px/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.hero span { color: var(--t2); font-size: 13px; }
+.unter { color: var(--t3); font-size: 12px; margin-top: 6px; line-height: 1.45; }
+.hint { color: var(--t3); font-size: 12px; margin-top: 10px; line-height: 1.45; }
+
+/* V1: Balken um die Nulllinie */
+.rows { display: grid; gap: 2px; margin-top: 14px; }
+.row { display: grid; grid-template-columns: 92px 1fr 62px; gap: 8px; align-items: center; width: 100%; background: none; border: 0; padding: 7px 0; cursor: pointer; text-align: left; font-size: 13px; }
+.row .n { display: flex; align-items: center; gap: 6px; color: var(--t2); min-width: 0; }
+.row .n i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.row .v { text-align: right; font: 600 13px var(--disp); font-variant-numeric: tabular-nums; }
+.track { position: relative; height: 14px; }
+.track .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: rgba(255,255,255,.35); }
+.track .fill { position: absolute; top: 2px; height: 10px; border-radius: 4px; transition: left .35s ease, width .35s ease; }
+.track .wait { position: absolute; top: 4px; height: 6px; left: 0; right: 0; border-radius: 3px; background: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 4px, transparent 4px 8px); }
+.detail { margin: 2px 0 8px 14px; padding: 8px 10px; border-left: 2px solid var(--hair); display: grid; gap: 6px; font-size: 12px; color: var(--t2); }
+.detail div { display: flex; justify-content: space-between; gap: 8px; }
+.detail b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.axis { display: grid; grid-template-columns: 92px 1fr 62px; gap: 8px; font-size: 10px; color: var(--t3); margin-top: 2px; }
+.axis div { position: relative; height: 12px; }
+.axis span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+
+/* V2 Zeitreise / V5 Berg: Diagrammfläche */
+.chart { width: 100%; height: auto; display: block; margin-top: 12px; touch-action: none; cursor: crosshair; }
+.chart text { fill: var(--t3); font: 10px var(--ui); }
+.mini { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
+.mini div { background: rgba(255,255,255,.035); border-radius: 10px; padding: 7px 6px; text-align: center; font-size: 10.5px; color: var(--t3); }
+.mini b { display: block; font: 600 13px var(--disp); color: var(--text); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.mini i { display: block; height: 3px; border-radius: 2px; margin: 0 auto 5px; width: 22px; }
+
+/* V3 Turm */
+.turm { position: relative; height: 300px; margin-top: 14px; display: grid; grid-template-columns: 110px 1fr; gap: 12px; }
+.saeule { position: relative; }
+.boden { position: absolute; left: -6px; right: -6px; height: 2px; background: rgba(255,255,255,.4); border-radius: 1px; }
+.boden span { position: absolute; right: 0; top: 4px; font-size: 10px; color: var(--t3); }
+.block { position: absolute; left: 0; right: 0; border-radius: 6px; border: 0; padding: 0; cursor: pointer; transition: top .45s cubic-bezier(.34,1.3,.64,1), height .45s cubic-bezier(.34,1.3,.64,1); }
+.block.neg { opacity: .85; background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.25) 0 5px, transparent 5px 10px); }
+.legende { display: grid; align-content: center; gap: 8px; font-size: 12.5px; color: var(--t2); }
+.legende button { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; background: none; border: 0; padding: 4px 0; text-align: left; cursor: pointer; font-size: 12.5px; color: var(--t2); }
+.legende button.on { color: var(--text); }
+.legende i { width: 10px; height: 10px; border-radius: 3px; }
+.legende b { font: 600 12.5px var(--disp); color: var(--text); font-variant-numeric: tabular-nums; }
+.zeile { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+.zeile input { flex: 1; accent-color: var(--blue); }
+.play { width: 36px; height: 36px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #5db2ff, #3a8fe8); cursor: pointer; font-size: 13px; flex: none; }
+.datum { font-size: 12px; color: var(--t2); min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .track .fill, .block { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="ctrl">
+    <h1>Gesamtfortschritt · Varianten</h1>
+    <p>Vier Darstellungen derselben Daten (Mara, Start 14.03.2026). Wähle eine aus und probier sie im Handy aus: tippen, wischen, abspielen. Daten erfunden.</p>
+    <div class="lbl">Variante</div>
+    <div class="views" id="views">
+      <button type="button" data-v="v1" class="on">1 · Leitzahl + Balken<small>große Zahl, Bereiche um eine Nulllinie, antippen klappt Werte auf</small></button>
+      <button type="button" data-v="v2">2 · Zeitreise<small>Verlauf seit Start, mit dem Finger über die Linie fahren; Abzeichen als Punkte</small></button>
+      <button type="button" data-v="v3">3 · Turm<small>Bereiche stapeln sich über der Bodenlinie, Rückschritte hängen darunter; abspielen</small></button>
+      <button type="button" data-v="v5">5 · Höhenprofil<small>deine Bergtour: Höhe = Fortschritt, Fahnen = Abzeichen, Täler = Rückschritte</small></button>
+    </div>
+    <div class="lbl">Rechnung (wie besprochen)</div>
+    <div class="box">
+      Je Wert: Veränderung seit Start ÷ Startwert. <b>Schlaf und Blut</b>: Lücke zum Ziel geschlossen, (jetzt − Start) ÷ (100 % − Start).<br>
+      Je Bereich das Mittel, Gesamt = Mittel der Bereiche, ohne Deckel.<br>
+      Ein Wert zählt erst mit belastbarer Baseline; bis dahin steht „sammelt Baseline“ (hier: Blut bis zum 2. Befund am 20.06., HRV).
+    </div>
+  </div>
+  <div class="phone"><div class="scroll" id="scroll"></div></div>
+</div>
+
+<script>
+const START = new Date(2026, 2, 14);
+const W = 33; // 14.03. bis 31.10.
+const datum = w => { const d = new Date(START); d.setDate(d.getDate() + 7 * w); return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }); };
+const de = (x, d = 1) => x.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = x => x == null ? '–' : (x > 0.05 ? '+' : x < -0.05 ? '−' : '±') + de(Math.abs(x)) + ' %';
+
+const AREAS = [
+  { id: 'koerper', t: 'Körper', c: 'var(--a1)', from: 2, k: [[2, 0], [6, -3], [10, -1.5], [16, 2], [24, 5], [33, 7.65]],
+    werte: [['Körperfett 19,4 → 15,8 %', '+18,6 %'], ['Muskelmasse 37,5 → 38,9 kg', '+3,7 %'], ['Taille 89 → 84 cm', '+5,6 %'], ['Oberarm 36,5 → 37,5 cm', '+2,7 %'], ['Gewicht', 'aus (Recomp)']] },
+  { id: 'blut', t: 'Blut', c: 'var(--a2)', from: 14, step: [[14, 33.3], [31, 58.3]],
+    werte: [['Marker im Zielbereich 12/24 → 19/24', '+58,3 %'], ['Rechnung', 'Lücke geschlossen']] },
+  { id: 'training', t: 'Training', c: 'var(--a3)', from: 4, k: [[4, 3], [8, 9], [14, 15], [20, 21], [27, 28], [33, 32.6]],
+    werte: [['Workouts pro Woche 2,0 → 3,6', '+80,0 %'], ['Kreuzheben e1RM 120 → 142 kg', '+18,3 %'], ['Kniebeuge e1RM 100 → 118 kg', '+18,0 %'], ['Bankdrücken e1RM 85 → 97 kg', '+14,1 %']] },
+  { id: 'einnahmen', t: 'Einnahmen', c: 'var(--a4)', from: 4, k: [[4, 4], [12, 10], [17, -2], [20, 6], [33, 16]],
+    werte: [['Adherence 81 → 94 %', '+16,0 %']] },
+  { id: 'erholung', t: 'Erholung & Fitness', c: 'var(--a5)', from: 4, k: [[4, 3], [10, 9], [18, 15], [26, 22], [33, 27.14]],
+    werte: [['Schritte Ø 6.140 → 9.840', '+60,3 %'], ['Ruhepuls 61 → 54 bpm', '+11,5 %'], ['Schlaf: Nächte 7–9 h 2/28 → 14/28', '+46,2 % (Lücke)'], ['VO2max 41 → 46', '+12,2 %'], ['Blutdruck 128 → 121 mmHg', '+5,5 %'], ['HRV', 'sammelt Baseline 9/14 Tage']] },
+];
+const kurz = { koerper: 'Körper', blut: 'Blut', training: 'Training', einnahmen: 'Einnahm.', erholung: 'Erholung' };
+
+function wert(a, w) {
+  if (w < a.from) return null;
+  if (a.step) { let v = null; for (const [sw, sv] of a.step) if (w >= sw) v = sv; return v; }
+  for (let i = 0; i < a.k.length - 1; i++) {
+    const [w0, v0] = a.k[i], [w1, v1] = a.k[i + 1];
+    if (w >= w0 && w <= w1) {
+      const v = v0 + (v1 - v0) * (w - w0) / (w1 - w0);
+      return w === W ? v : v + Math.sin(w * 1.7 + a.id.length) * 1.1;
+    }
+  }
+  return a.k[a.k.length - 1][1];
+}
+function gesamt(w) {
+  const xs = AREAS.map(a => wert(a, w)).filter(x => x !== null);
+  return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null;
+}
+const SERIE = Array.from({ length: W + 1 }, (_, w) => gesamt(w));
+
+// Abzeichen mit Woche: feste plus Gesamt-Schwellen (erste Woche über dem Wert)
+const schwelle = s => SERIE.findIndex(x => x !== null && x >= s);
+const ABZ = [
+  [0, '🩸', 'Erstes Blutbild'], [1, '🔥', '7 Tage ohne Lücke'], [4, '🔥', '30 Tage ohne Lücke'], [7, '🏆', 'Neue Bestleistung'],
+  [21, '🏋️', '50 Workouts'], [31, '🩸', '3 Blutbilder'],
+  [schwelle(10), '📈', 'Gesamtfortschritt +10 %'], [schwelle(25), '📈', 'Gesamtfortschritt +25 %'],
+].filter(b => b[0] >= 0).sort((a, b) => a[0] - b[0]);
+
+const st = { v: 'v1', offen: null, w: W, turmSel: null, spielt: null };
+
+function kopf(titel) {
+  return `<div class="bar">Profil</div>
+    <div class="kopf"><div class="av">M</div><div><b>Mara K. ♀ 🇩🇪 DE</b><small>@mara.lifts</small></div></div>
+    <div class="card"><h3>${titel} <span class="vis"><i></i>Alle</span><span class="sub">seit 14.03.2026</span></h3>`;
+}
+function heroHtml(w) {
+  const g = SERIE[w];
+  return `<div class="hero"><b>${g == null ? '…' : pct(g)}</b><span>${g == null ? 'sammelt Baseline' : 'positive Veränderung'}</span></div>
+    <div class="unter">${w === W ? 'heute' : 'am ' + datum(w) + '2026'} · Mittel aus ${AREAS.filter(a => wert(a, w) !== null).length} von 5 Bereichen</div>`;
+}
+
+// ── V1 ───────────────────────────────────────────────
+function v1() {
+  const vals = AREAS.map(a => wert(a, W));
+  const max = Math.max(20, ...vals.filter(v => v != null).map(Math.abs));
+  const lo = -Math.max(10, ...vals.filter(v => v != null).map(v => -v)), hi = Math.ceil(max / 20) * 20;
+  const pos = v => (v - lo) / (hi - lo) * 100;
+  let h = kopf('Gesamtfortschritt') + heroHtml(W) + '<div class="rows">';
+  AREAS.forEach((a, i) => {
+    const v = vals[i];
+    const z = pos(0);
+    const bar = v == null ? '<span class="wait"></span>' :
+      `<span class="fill" style="background:${a.c};left:${v >= 0 ? z : pos(v)}%;width:${Math.abs(pos(v) - z)}%"></span>`;
+    h += `<button type="button" class="row" data-a="${a.id}" aria-expanded="${st.offen === a.id}">
+      <span class="n"><i style="background:${a.c}"></i>${a.t}</span>
+      <span class="track"><span class="zero" style="left:${z}%"></span>${bar}</span>
+      <span class="v">${v == null ? '<span style="color:var(--t3);font-weight:400">wartet</span>' : pct(v)}</span></button>`;
+    if (st.offen === a.id) h += `<div class="detail">${a.werte.map(([n, p]) => `<div><span>${n}</span><b>${p}</b></div>`).join('')}</div>`;
+  });
+  h += `</div><div class="axis"><div></div><div>${[lo, 0, hi / 2, hi].map(t => `<span style="left:${pos(t)}%">${t > 0 ? '+' : t < 0 ? '−' : ''}${Math.abs(t)}</span>`).join('')}</div><div></div></div>
+    <p class="hint">Rechts besser, links schlechter. Die Skala wächst mit, es gibt kein Maximum. Tippe auf einen Bereich für seine Werte.</p></div>`;
+  return h;
+}
+
+// ── gemeinsame Diagrammgeometrie für V2 und V5 ─────────
+const CW = 326, CH = 170, PADL = 30, PADR = 8, PADT = 14, PADB = 22;
+const ymin = Math.min(-5, ...SERIE.filter(x => x != null)), ymax = Math.max(...SERIE.filter(x => x != null)) * 1.12;
+const X = w => PADL + (CW - PADL - PADR) * w / W;
+const Y = v => PADT + (CH - PADT - PADB) * (1 - (v - ymin) / (ymax - ymin));
+const pts = SERIE.map((g, w) => [X(w), Y(g ?? 0)]);
+function glatt(p) { // Catmull-Rom → Bézier
+  let d = `M${p[0][0]},${p[0][1]}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+    d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+}
+function achse() {
+  const ticks = [0, 10, 20, 30].filter(t => t <= ymax && t >= ymin);
+  return ticks.map(t => `<line x1="${PADL}" x2="${CW - PADR}" y1="${Y(t)}" y2="${Y(t)}" stroke="${t === 0 ? 'rgba(255,255,255,.35)' : 'var(--grid)'}" stroke-width="1"/>
+    <text x="${PADL - 6}" y="${Y(t) + 3}" text-anchor="end">${t === 0 ? '0' : '+' + t}</text>`).join('') +
+    [0, 11, 22, W].map(w => `<text x="${X(w)}" y="${CH - 6}" text-anchor="${w === 0 ? 'start' : w === W ? 'end' : 'middle'}">${datum(w)}</text>`).join('');
+}
+function miniHtml(w) {
+  return `<div class="mini">${AREAS.map(a => { const v = wert(a, w); return `<div><i style="background:${a.c}"></i>${kurz[a.id]}<b>${v == null ? '–' : pct(v).replace(' %', '')}</b></div>`; }).join('')}</div>`;
+}
+
+// ── V2 ───────────────────────────────────────────────
+function v2() {
+  const w = st.w;
+  const linie = glatt(pts.slice(2));
+  const flaeche = linie + ` L${X(W)},${Y(0)} L${X(2)},${Y(0)} Z`;
+  let h = kopf('Gesamtfortschritt') + `<div id="v2hero">${heroHtml(w)}</div>
+    <svg class="chart" id="chart" viewBox="0 0 ${CW} ${CH}" role="img" tabindex="0" aria-label="Verlauf des Gesamtfortschritts, mit Pfeiltasten durch die Wochen">
+      <defs><linearGradient id="fl" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#64d2ff" stop-opacity=".35"/><stop offset="1" stop-color="#64d2ff" stop-opacity="0"/></linearGradient></defs>
+      ${achse()}
+      <path d="${flaeche}" fill="url(#fl)"/>
+      <path d="${linie}" fill="none" stroke="#64d2ff" stroke-width="2" stroke-linecap="round"/>
+      ${ABZ.map(([bw, ic, n]) => `<g><circle cx="${X(bw)}" cy="${Y(SERIE[bw] ?? 0)}" r="5" fill="#2a2b30" stroke="#ffb340" stroke-width="2"/><title>${n} (${datum(bw)})</title></g>`).join('')}
+      <g id="cross"><line id="cx" y1="${PADT}" y2="${CH - PADB}" stroke="rgba(255,255,255,.5)" stroke-width="1"/><circle id="cd" r="5" fill="#64d2ff" stroke="#2a2b30" stroke-width="2"/></g>
+    </svg>
+    <div id="v2mini">${miniHtml(w)}</div>
+    <div id="v2abz" class="hint"></div>
+    <p class="hint">Fahr mit dem Finger über die Linie. Gelbe Ringe sind Abzeichen am Tag, an dem du sie bekommen hast.</p></div>`;
+  return h;
+}
+function v2setze(w) {
+  st.w = w;
+  document.getElementById('v2hero').innerHTML = heroHtml(w);
+  document.getElementById('v2mini').innerHTML = miniHtml(w);
+  const x = X(w), y = Y(SERIE[w] ?? 0);
+  document.getElementById('cx').setAttribute('x1', x); document.getElementById('cx').setAttribute('x2', x);
+  document.getElementById('cd').setAttribute('cx', x); document.getElementById('cd').setAttribute('cy', y);
+  const ab = ABZ.filter(b => b[0] === w).map(b => b[1] + ' ' + b[2]).join(' · ');
+  document.getElementById('v2abz').textContent = ab ? 'Abzeichen an diesem Tag: ' + ab : '';
+}
+
+// ── V3 ───────────────────────────────────────────────
+const TURM = (() => { // feste Skala über alle Wochen, damit der Turm beim Abspielen nicht springt
+  let up = 0, dn = 0;
+  for (let w = 0; w <= W; w++) {
+    const vs = AREAS.map(a => wert(a, w)).filter(v => v !== null); const n = vs.length || 1;
+    up = Math.max(up, vs.filter(v => v > 0).reduce((s, v) => s + v / n, 0));
+    dn = Math.max(dn, vs.filter(v => v < 0).reduce((s, v) => s - v / n, 0));
+  }
+  return { up: up * 1.08, dn: Math.max(dn * 1.2, 4) };
+})();
+function v3() {
+  return kopf('Gesamtfortschritt') + `<div id="v3hero">${heroHtml(st.w)}</div>
+    <div class="turm"><div class="saeule" id="saeule"></div><div class="legende" id="legende"></div></div>
+    <div class="zeile"><button type="button" class="play" id="play" aria-label="Abspielen">▶</button>
+      <input type="range" id="wk" min="0" max="${W}" value="${st.w}" aria-label="Woche"><span class="datum" id="wkd"></span></div>
+    <p class="hint" id="v3hint">Jeder Block ist ein Bereich und zählt ein Fünftel. Was besser wurde, stapelt sich nach oben; Rückschritte hängen unter der Bodenlinie. Tippe auf einen Block.</p></div>`;
+}
+function v3setze(w) {
+  st.w = w;
+  document.getElementById('v3hero').innerHTML = heroHtml(w);
+  document.getElementById('wk').value = w;
+  document.getElementById('wkd').textContent = w === W ? 'heute' : datum(w);
+  const H = 300, boden = H * TURM.up / (TURM.up + TURM.dn), px = boden / TURM.up;
+  const vs = AREAS.map(a => wert(a, w)); const n = vs.filter(v => v !== null).length || 1;
+  let up = 0, dn = 0, html = `<div class="boden" style="top:${boden - 1}px"><span>Start</span></div>`;
+  AREAS.forEach((a, i) => {
+    const v = vs[i]; const hgt = v == null ? 0 : Math.abs(v / n) * px;
+    let top;
+    if (v == null || v >= 0) { up += hgt; top = boden - up; } else { top = boden + dn; dn += hgt; }
+    html += `<button type="button" class="block ${v != null && v < 0 ? 'neg' : ''}" data-b="${a.id}" aria-label="${a.t} ${pct(v)}"
+      style="background-color:${a.c};top:${top + (hgt > 3 ? 1 : 0)}px;height:${Math.max(0, hgt - (hgt > 3 ? 2 : 0))}px;${st.turmSel && st.turmSel !== a.id ? 'opacity:.35' : ''}"></button>`;
+  });
+  document.getElementById('saeule').innerHTML = html;
+  document.getElementById('legende').innerHTML = AREAS.map((a, i) => `<button type="button" data-b="${a.id}" class="${st.turmSel === a.id ? 'on' : ''}"><i style="background:${a.c}"></i><span>${a.t}</span><b>${vs[i] == null ? 'wartet' : pct(vs[i])}</b></button>`).join('');
+  const sel = AREAS.find(a => a.id === st.turmSel);
+  document.getElementById('v3hint').innerHTML = sel
+    ? `<b style="color:var(--text)">${sel.t}: ${pct(wert(sel, w))}</b>, zählt mit ${pct(wert(sel, w) == null ? null : wert(sel, w) / n)} zum Turm. ${sel.werte.map(x => x.join(' ')).join(' · ')}`
+    : 'Jeder Block ist ein Bereich und zählt ein Fünftel. Was besser wurde, stapelt sich nach oben; Rückschritte hängen unter der Bodenlinie. Tippe auf einen Block.';
+}
+
+// ── V5 ───────────────────────────────────────────────
+function v5() {
+  const p = pts.slice(2).map(([x, y]) => [x, y]);
+  const kamm = glatt([[X(0), Y(0)], [X(1), Y(0)], ...p]);
+  const berg = kamm + ` L${X(W)},${CH - PADB} L${X(0)},${CH - PADB} Z`;
+  const fahnen = ABZ.map(([bw, ic, n]) => { const x = X(bw), y = Y(SERIE[bw] ?? 0);
+    return `<g><line x1="${x}" x2="${x}" y1="${y}" y2="${y - 18}" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><path d="M${x},${y - 18} l9,3.5 l-9,3.5 Z" fill="#ffb340"/><title>${ic} ${n} (${datum(bw)})</title></g>`; }).join('');
+  return kopf('Deine Bergtour') + `<div id="v5hero">${heroHtml(st.w)}</div>
+    <svg class="chart" id="chart" viewBox="0 0 ${CW} ${CH}" role="img" tabindex="0" aria-label="Höhenprofil des Gesamtfortschritts, mit Pfeiltasten wandern">
+      <defs>
+        <linearGradient id="bg1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9085e9"/><stop offset=".55" stop-color="#3987e5" stop-opacity=".55"/><stop offset="1" stop-color="#1f2023" stop-opacity=".2"/></linearGradient>
+        <clipPath id="unten"><rect x="0" y="${Y(0)}" width="${CW}" height="${CH}"/></clipPath>
+      </defs>
+      ${achse()}
+      <path d="${berg}" fill="url(#bg1)"/>
+      <path d="${berg}" fill="#0b0c0f" opacity=".55" clip-path="url(#unten)"/>
+      <path d="${kamm}" fill="none" stroke="#e7e3ff" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="${PADL}" x2="${CW - PADR}" y1="${Y(0)}" y2="${Y(0)}" stroke="rgba(255,255,255,.45)" stroke-dasharray="3 3"/>
+      <text x="${X(0) + 4}" y="${Y(0) + 13}">⛺ Basislager</text>
+      ${fahnen}
+      <g id="cross"><line id="cx" y1="${PADT}" y2="${CH - PADB}" stroke="rgba(255,255,255,.35)" stroke-width="1"/><circle id="cd" r="6" fill="#fff" stroke="#3987e5" stroke-width="3"/></g>
+    </svg>
+    <div id="v5abz" class="hint"></div>
+    <p class="hint">Die Höhe ist dein Gesamtfortschritt, die gestrichelte Linie dein Start. Ein Tal unter der Linie ist ein Rückschritt, kein rotes Minus. Fahnen sind Abzeichen; ein neuer Start ist ein neues Basislager.</p></div>`;
+}
+function v5setze(w) {
+  st.w = w;
+  document.getElementById('v5hero').innerHTML = heroHtml(w).replace('positive Veränderung', 'Höhe über dem Start');
+  const x = X(w), y = Y(w < 2 ? 0 : SERIE[w] ?? 0);
+  document.getElementById('cx').setAttribute('x1', x); document.getElementById('cx').setAttribute('x2', x);
+  document.getElementById('cd').setAttribute('cx', x); document.getElementById('cd').setAttribute('cy', y);
+  const ab = ABZ.filter(b => b[0] <= w).length;
+  document.getElementById('v5abz').textContent = `${ab} von ${ABZ.length} Gipfelfahnen erreicht`;
+}
+
+function chartEvents(setze) {
+  const svg = document.getElementById('chart');
+  const vonX = e => { const r = svg.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * CW; return Math.max(0, Math.min(W, Math.round((x - PADL) / (CW - PADL - PADR) * W))); };
+  let drin = false;
+  svg.addEventListener('pointerdown', e => { drin = true; svg.setPointerCapture(e.pointerId); setze(vonX(e)); });
+  svg.addEventListener('pointermove', e => { if (drin || e.pointerType === 'mouse') setze(vonX(e)); });
+  svg.addEventListener('pointerup', () => { drin = false; });
+  svg.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') setze(Math.max(0, st.w - 1)); if (e.key === 'ArrowRight') setze(Math.min(W, st.w + 1)); });
+}
+
+function render() {
+  if (st.spielt) { clearInterval(st.spielt); st.spielt = null; }
+  const sc = document.getElementById('scroll');
+  sc.innerHTML = { v1, v2, v3, v5 }[st.v]();
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === st.v));
+  if (st.v === 'v2') { chartEvents(v2setze); v2setze(st.w); }
+  if (st.v === 'v5') { chartEvents(v5setze); v5setze(st.w); }
+  if (st.v === 'v3') {
+    v3setze(st.w);
+    document.getElementById('wk').addEventListener('input', e => v3setze(Number(e.target.value)));
+    document.getElementById('play').addEventListener('click', () => {
+      const btn = document.getElementById('play');
+      if (st.spielt) { clearInterval(st.spielt); st.spielt = null; btn.textContent = '▶'; return; }
+      let w = st.w >= W ? 0 : st.w; btn.textContent = '❚❚';
+      st.spielt = setInterval(() => { v3setze(w); w++; if (w > W) { clearInterval(st.spielt); st.spielt = null; btn.textContent = '▶'; } }, 220);
+    });
+  }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.v) { st.v = t.dataset.v; st.w = W; st.turmSel = null; st.offen = null; return render(); }
+  if (t.dataset.a) { st.offen = st.offen === t.dataset.a ? null : t.dataset.a; const y = document.getElementById('scroll').scrollTop; render(); document.getElementById('scroll').scrollTop = y; return; }
+  if (t.dataset.b) { st.turmSel = st.turmSel === t.dataset.b ? null : t.dataset.b; v3setze(st.w); }
+});
+render();
+</script>
+</body>
+</html>

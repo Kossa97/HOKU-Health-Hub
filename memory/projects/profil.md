@@ -67,9 +67,9 @@ Start, sonst erste 28 Tage nach Start = Baseline, zählt ab Tag 29; Schlaf ≥14
 Kein Fallback „erste 7 Tage“. Untergrenze C verworfen (+600 % ist echter Fortschritt); Start 0 % → Prozentpunkte.
 Anteilswerte (Schlaf, Blut) [Nutzer 02.11.]: „Lücke geschlossen“ = (jetzt − Start) ÷ (100 % − Start), −100…+100 %;
 übrige Werte relativ ohne Deckel. Darstellung: statt Ring Varianten-Mockup (Leitzahl+Nulllinien-Balken, Zeitreise,
-Turm, Höhenprofil) — Nutzer wählt. Mockup: https://claude.ai/artifact/AiZDk3AGF5PiKcrT2Ztkn7 (scratchpad fortschritt-varianten.html).
+Turm, Höhenprofil); Nutzer 02.11.: Variante 1 (Leitzahl + Balken) als Karte, Antippen öffnet 2 (Zeitreise). Mockup: https://claude.ai/artifact/AiZDk3AGF5PiKcrT2Ztkn7 (scratchpad fortschritt-varianten.html).
 Spec `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`, Plan `docs/superpowers/plans/2026-11-02-profil-p2b-fortschritt.md`,
-Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Bau wartet auf Nutzer-Durchsicht.
+Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Spec/Plan mit allen Entscheidungen nachgezogen; Bau kann starten.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 

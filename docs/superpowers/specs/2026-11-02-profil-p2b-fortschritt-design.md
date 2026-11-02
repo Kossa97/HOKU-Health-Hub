@@ -3,7 +3,8 @@
 Stand 02.11.2026, mit dem Nutzer geplant. Gehört zu
 `2026-10-31-profil-social-gesamtbild-design.md`; baut auf 2a
 (`2026-10-31-profil-p2a-sichtbarkeit-design.md`, PR #119) auf.
-Mockup: `docs/profil/mockups/profil-2b.html`.
+Mockups: `docs/profil/mockups/profil-2b.html` (Aufschlüsselung, Abzeichen) und
+`docs/profil/mockups/profil-2b-varianten.html` (Darstellung, Variante 1 + 2 gewählt).
 Markierungen: **[Nutzer]**, **[Claude]** (vorgeschlagen und bestätigt),
 **[Claude, ungeprüft]**, **[Bauende]**.
 
@@ -13,7 +14,7 @@ Das Profil zeigt in einer Zahl, wie weit man seit dem eigenen Start gekommen ist
 und darunter, woraus sie sich zusammensetzt. Abzeichen belohnen Beständigkeit,
 Meilensteine und Fortschritt. Verglichen wird nie mit anderen. **[Nutzer]**
 
-Erfolg: Ein Nutzer sieht im Profil „+32,5 % positive Veränderung seit 14.03.2026“,
+Erfolg: Ein Nutzer sieht im Profil „+28,3 % positive Veränderung seit 14.03.2026“,
 tippt darauf, versteht jeden Teilwert, ändert eine Richtung oder schließt einen
 Wert aus, und die Zahl rechnet sofort neu. Verdiente Abzeichen erscheinen im Profil.
 
@@ -33,15 +34,19 @@ Wert aus, und die Zahl rechnet sofort neu. Verdiente Abzeichen erscheinen im Pro
 |---|---|---|
 | runter | (Start − jetzt) ÷ Start | Gewicht 120 → 100 kg = +16,67 % |
 | hoch | (jetzt − Start) ÷ Start | Kreuzheben e1RM 120 → 142 kg = +18,3 % |
-| Zielbereich | Anteil im Bereich, (jetzt − Start) ÷ Start | Marker im Zielbereich 12/24 → 19/24 = +58,3 % |
+| Zielbereich (Anteil) | **Lücke zum Ziel geschlossen:** (jetzt − Start) ÷ (100 % − Start) | Marker 12/24 → 19/24 = +58,3 %; Schlaf 2/28 → 14/28 Nächte = +46,2 % |
 
 - Schlechter wird negativ. Werte, die schon Prozent sind (KFA, Adherence), rechnen
   genauso relativ: 19,4 → 15,8 % KFA = +18,6 %. **[Nutzer]**
 - Erklärung in der App, nach dem Hinweis des Nutzers: „Die Prozent gelten für den
   Wert selbst, nicht automatisch für dein Körperfett oder deine Gesundheit.“ **[Nutzer]**
-- Ein Wert zählt ab zwei Messungen. **[Claude]**
-- Start im Zielbereich bei 0 %: Prozentpunkte statt Teilen durch null
-  (0 → 50 % der Marker = +50 %). **[Claude, ungeprüft]**
+- Anteilswerte (Schlaf, Blut) haben ein natürliches Ziel (100 % im Bereich) und
+  rechnen deshalb als geschlossene Lücke, −100 … +100 %. Relativ zum Start ergäben
+  kleine Startanteile riesige Zahlen (2/28 → 14/28 = +600 %), die alles andere
+  überstrahlen. **[Nutzer]**, Vorschlag **[Claude]**
+- Eine Untergrenze für kleine Startwerte gibt es nicht: echte große Fortschritte
+  bei relativen Werten zählen voll. **[Nutzer]**
+- Ein Wert zählt erst mit belastbarer Baseline (Abschnitt 2). **[Nutzer]**
 
 **Zusammenrechnen** **[Nutzer]:** Mittel der Werte je Bereich, dann Mittel der
 Bereiche. Fünf Bereiche zählen gleich viel: Körper, Blut, Training, Einnahmen,
@@ -68,11 +73,19 @@ neuen Start setzen (neue Phase); der alte bleibt im Verlauf und lässt sich wied
 
 Der Nutzer kann jede Richtung ändern oder den Wert ausschließen. **[Nutzer]**
 
-**Wearable-Werte: Baseline statt erster Woche** **[Nutzer]**
-- Startwert = Durchschnitt der **60 Tage vor dem Start** aus Apple Health /
-  Health Connect, wenn dort mindestens 14 Tage mit Daten liegen; sonst die ersten
-  7 Tage nach dem Start. Bei Schlaf: Anteil der Nächte mit 7–9 h in diesen Tagen.
-  Gilt für alle Wearable-Werte. **[Nutzer]**, Schwellen **[Claude, ungeprüft]**
+**Belastbare Baseline** **[Nutzer]**, Schwellen **[Claude, vom Nutzer bestätigt]**
+
+| Wert | zählt, wenn … | sonst |
+|---|---|---|
+| Schritte, kcal, Ruhepuls, Blutdruck, HRV, VO2max | ≥ 14 Tage Daten in den 60 Tagen vor dem Start (Apple Health / Health Connect); Startwert = deren Durchschnitt | die ersten 28 Tage nach dem Start werden die Baseline, der Wert zählt ab Tag 29 |
+| Schlaf | ≥ 14 Nächte in den 60 Tagen vor dem Start; Startwert = Anteil der Nächte mit 7–9 h | wie oben, 28 Nächte |
+| Gewicht, KFA, Muskelmasse, Umfänge | erste Messung + eine zweite mindestens 14 Tage später | zählt noch nicht |
+| Blutwerte | ab dem zweiten Befund | zählt noch nicht |
+| e1RM je Übung | ab 3 Einheiten mit der Übung | zählt noch nicht |
+| Workouts pro Woche, Adherence | ab 4 Wochen Daten | zählt noch nicht |
+
+Bis dahin zeigt die eigene Aufschlüsselung „sammelt Baseline: 9 von 14 Tagen“;
+andere sehen den Wert nicht. Es gibt keinen Rückfall auf „erste 7 Tage“.
 - „Jetzt“ = Durchschnitt bzw. Anteil der **letzten 28 Tage**. **[Nutzer]**
 - Die Baseline wird beim Setzen des Starts einmal auf dem Gerät gelesen und
   gespeichert (sie ändert sich danach nicht mehr).
@@ -82,13 +95,21 @@ Der Nutzer kann jede Richtung ändern oder den Wert ausschließen. **[Nutzer]**
 
 ## 3. Darstellung (Mockup `profil-2b.html`)
 
-- **Profil:** Karte „Gesamtfortschritt“ nach „Über mich“. Ring mit der Zahl
-  („+32,5 %“, darunter „positive Veränderung“), daneben je Bereich ein Balken mit
-  Vorzeichen. Der Ring füllt sich bis +100 %, darüber bleibt er voll; negativ rot.
-  **[Claude, ungeprüft]** Antippen öffnet die Aufschlüsselung.
-- **Aufschlüsselung:** je Bereich das Mittel, je Wert Start → jetzt, Prozent und
-  die Richtungswahl (↓ runter, ↑ hoch, Zielbereich, aus). Unten „Neuen Start setzen“,
-  vorheriger Start wieder wählbar, und die Erklärung der Rechnung.
+- **Kein Ring:** Ein Ring bedeutet „Anteil an einem Ganzen“ und endet bei 100 %;
+  der Gesamtfortschritt geht realistisch darüber und kann negativ sein. **[Nutzer]**
+- **Profil, Karte „Gesamtfortschritt“** (Variante 1) **[Nutzer]**: große Leitzahl
+  mit Vorzeichen („+28,3 %“, „positive Veränderung“, „seit 14.03.2026 · Mittel aus
+  5 von 5 Bereichen“), darunter die fünf Bereiche als Balken um eine Nulllinie
+  (rechts besser, links schlechter), Skala wächst mit, jeder Balken mit Zahl.
+  Antippen eines Bereichs klappt seine Werte auf; Werte ohne Baseline mit „wartet“.
+- **Antippen der Karte öffnet die Zeitreise** (Variante 2) **[Nutzer]**: Verlauf
+  des Gesamtwerts seit Start; mit dem Finger über die Linie fahren setzt Zahl und
+  die fünf Bereichswerte auf diesen Tag; Abzeichen als Punkte am Tag des Erhalts;
+  mit Pfeiltasten bedienbar. Darunter die Aufschlüsselung je Wert (Start → jetzt,
+  Prozent, Richtungswahl ↓/↑/Zielbereich/aus), „Neuen Start setzen“, vorheriger
+  Start wieder wählbar, Erklärung der Rechnung.
+- Farben der Bereiche aus der dataviz-Referenzpalette (dunkel, Slots 1–5), gegen den
+  Kartenhintergrund geprüft; jede Farbe trägt zusätzlich ihre Zahl und ihren Namen.
 - **Abzeichen:** Zeile im Profil (zuletzt verdiente), Seite „Alle Abzeichen“ nach
   Gruppen. Nicht verdiente zeigt nur der Nutzer selbst, grau mit Stand („41/100“).
 - Neue Sichtbarkeitsfelder `progress` (Gesamtfortschritt samt Aufschlüsselung je
@@ -119,6 +140,8 @@ pflegen kann (Name, Symbol, Bedingung, Gruppe).
 ## 5. Technik **[Claude, ungeprüft]**
 
 - Rechnung als reine, getestete Funktion auf dem Gerät (wie der Schnappschuss in 2a).
+- Für die Zeitreise speichert das Gerät eine Wochenreihe von Gesamt und Bereichen
+  (`progress_settings.history` oder im Schnappschuss, höchstens 104 Wochen).
 - Neue Tabelle `progress_settings(user_id, start_on, previous_starts, directions,
   excluded, baselines, updated_at)`, RLS nur für den Nutzer.
 - Gesamt, Bereichswerte und verdiente Abzeichen kommen in den Schnappschuss

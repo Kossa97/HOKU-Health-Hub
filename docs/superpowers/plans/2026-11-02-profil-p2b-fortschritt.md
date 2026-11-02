@@ -8,7 +8,7 @@
 
 **Tech Stack:** wie 2a (React 19 + TS, Vitest, Playwright-Mock, Supabase, Capacitor-Health).
 
-**Spec:** `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`. Mockup: `docs/profil/mockups/profil-2b.html`. Baut auf 2a (PR #119) auf.
+**Spec:** `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`. Mockups: `docs/profil/mockups/profil-2b.html`, `docs/profil/mockups/profil-2b-varianten.html` (Variante 1 als Karte, 2 als Detail). Baut auf 2a (PR #119) auf.
 
 ## Global Constraints
 
@@ -19,8 +19,8 @@
 
 ## Review Focus
 
-1. **Rechnung:** 120 → 100 kg runter = +16,67 %; KFA 19,4 → 15,8 = +18,6 %; 12/24 → 19/24 = +58,3 %; Start 0 % → Prozentpunkte; Bereich ohne Werte fällt aus dem Mittel. (Task 2)
-2. **Baseline:** 60 Tage vor Start, ≥ 14 Tage Daten, sonst erste 7 Tage; „jetzt“ = letzte 28 Tage; Schlaf als Anteil der Nächte 7–9 h. (Task 2, Task 3)
+1. **Rechnung:** 120 → 100 kg runter = +16,67 %; KFA 19,4 → 15,8 = +18,6 %; Anteilswerte als geschlossene Lücke: 12/24 → 19/24 = +58,3 %, 2/28 → 14/28 = +46,2 %, Start 100 % und gleich geblieben = 0 %; Bereich ohne Werte fällt aus dem Mittel; kein Deckel. (Task 2)
+2. **Baseline:** Schwellen aus Spec Abschnitt 2 (60 Tage vor Start ≥ 14 Tage, sonst erste 28 Tage, zählt ab Tag 29; Körperwerte ab 2. Messung ≥ 14 Tage später; Blut ab 2. Befund; e1RM ab 3 Einheiten; Workouts/Adherence ab 4 Wochen); „jetzt“ = letzte 28 Tage. (Task 2, Task 3)
 3. **Leck:** Andere sehen bei `progress` nur Gesamt und Bereichswerte, nie Einzelwerte; `badges` nur verdiente, nur bekannte Schlüssel. (Task 1)
 4. **Neuer Start:** alter Start bleibt in `previous_starts` und ist wiederherstellbar. (Task 4)
 
@@ -42,8 +42,8 @@
 ### Task 5: Abzeichen (`src/features/profil/lib/badges.ts` + Datei mit der Liste)
 - [ ] 39 Abzeichen aus der Spec als Daten (ID, Gruppe, Symbol, Bedingung), Auswertung aus vorhandenen Daten, einmal verdient = bleibt (Zeitpunkt speichern). Seite „Alle Abzeichen“, Zeile im Profil.
 
-### Task 6: Profilkarte, Schnappschuss, fremde Ansicht
-- [ ] Karte „Gesamtfortschritt“ (Ring, Bereichsbalken) und „Abzeichen“ im eigenen Profil mit Chips; in den Schnappschuss; fremdes Profil zeigt beides nur bei Freigabe; Layoutregel aus 2a gilt.
+### Task 6: Profilkarte, Zeitreise, Schnappschuss, fremde Ansicht
+- [ ] Karte „Gesamtfortschritt“ (Leitzahl + Balken um die Nulllinie, Variante 1), Antippen öffnet die Zeitreise (Variante 2, Wochenreihe, Wischen + Pfeiltasten, Abzeichen-Punkte) und „Abzeichen“ im eigenen Profil mit Chips; in den Schnappschuss; fremdes Profil zeigt beides nur bei Freigabe; Layoutregel aus 2a gilt.
 
 ### Task 7: Texte, Datenschutz, Tests, Abschluss
 - [ ] de/en, Datenschutz-Satz zur Baseline (aus Health gelesen, im Konto gespeichert), e2e (Richtung ändern rechnet neu, neuer Start, fremdes Profil ohne Einzelwerte), `code-review`, `security-review`, Projektgedächtnis, PR.
