@@ -8,7 +8,7 @@ import { useActiveWorkout } from './hooks/useActiveWorkout'
 import { startWorkout, workoutFromSession, type ActiveWorkout } from './lib/activeWorkout'
 import { formatClock } from './lib/format'
 import { buildSuggestFn } from './lib/suggest'
-import { Button, Card, TRAINING_ACCENT, TRAINING_CSS } from './components/ui'
+import { accentMix, Button, Card, TRAINING_ACCENT, TRAINING_CSS } from './components/ui'
 import { TodayTab } from './components/today/TodayTab'
 import { HistoryTab } from './components/history/HistoryTab'
 import { SessionDetailSheet } from './components/history/SessionDetailSheet'
@@ -226,7 +226,7 @@ function RunningBanner({ workout, data, onResume }: { workout: ActiveWorkout; da
   return (
     <Card onClick={onResume} style={{ padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${TRAINING_ACCENT}33` }} />
+        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${accentMix(20)}` }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{workout.title || tt('running_banner')}</div>
           {sub && <div style={{ fontSize: 13, color: restLeftS != null ? TRAINING_ACCENT : 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}

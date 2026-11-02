@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { getRestingHeartRate, getSleep, getWorkouts, isIOS, isNative } from '../../../lib/health'
-import type { CustomExercise, TrainingRoutine, TrainingSession, TrainingSettings } from '../types'
+import type { CustomExercise, PlanConfig, PlanSchedule, TrainingRoutine, TrainingSession, TrainingSettings } from '../types'
 import { DEFAULT_TRAINING_SETTINGS } from '../types'
 import * as repo from '../services/trainingRepo'
 import { isGlp1Substance, type WeightPoint } from '../lib/glp1'
 import { dedupeAgainst, mapHealthWorkout } from '../lib/healthImport'
 import { localDateKey } from '../lib/energy'
 import type { ReadinessInput } from '../lib/readiness'
+import { toggleFavorite as toggleFavoriteId } from '../lib/favorites'
 
 /**
  * Alles, was der Workout-Tracker liest — eigene Daten und der Kontext aus dem
@@ -146,10 +147,19 @@ export function useTrainingData() {
   const [sessions, setSessions] = useState<TrainingSession[]>([])
   const [routines, setRoutines] = useState<TrainingRoutine[]>([])
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([])
+  const [plans, setPlans] = useState<PlanConfig[]>([])
   const [settings, setSettings] = useState<TrainingSettings>(DEFAULT_TRAINING_SETTINGS)
   const [context, setContext] = useState<TrainingContext>(EMPTY_CONTEXT)
   const [reloadKey, setReloadKey] = useState(0)
   const syncedRef = useRef(false)
+  // Einstellungen: der neueste Stand (auch vor dem naechsten Rendern) und der
+  // zuletzt gespeicherte. Gespeichert wird der Reihe nach, immer der neueste
+  // Stand — so ueberholt kein aelterer einen neueren, und schnelle Sterne
+  // bauen aufeinander auf. Schlaegt ein Speichern fehl, gilt wieder der
+  // zuletzt gespeicherte Stand.
+  const settingsRef = useRef(settings)
+  const savedSettingsRef = useRef(settings)
+  const settingsQueue = useRef<Promise<unknown>>(Promise.resolve())
 
   useEffect(() => {
     if (!userId) return
@@ -161,9 +171,12 @@ export function useTrainingData() {
       repo.loadRoutines(userId),
       repo.loadCustomExercises(userId),
       repo.loadSettings(userId),
-    ]).then(([s, r, c, st]) => {
+      repo.loadPlans(userId),
+    ]).then(([s, r, c, st, p]) => {
       if (cancelled) return
-      setSessions(s); setRoutines(r); setCustomExercises(c); setSettings(st)
+      setSessions(s); setRoutines(r); setCustomExercises(c); setSettings(st); setPlans(p)
+      settingsRef.current = st
+      savedSettingsRef.current = st
       setState('ready')
     }).catch(error => {
       if (cancelled) return
@@ -183,6 +196,23 @@ export function useTrainingData() {
 
   const reload = useCallback(() => setReloadKey(k => k + 1), [])
 
+  const commitSettings = useCallback(async (next: TrainingSettings) => {
+    if (!userId) return
+    settingsRef.current = next
+    setSettings(next)
+    const save = settingsQueue.current.then(async () => {
+      const latest = settingsRef.current
+      await repo.saveSettings(userId, latest)
+      savedSettingsRef.current = latest
+    })
+    settingsQueue.current = save.catch(() => {})
+    try { await save } catch (error) {
+      settingsRef.current = savedSettingsRef.current
+      setSettings(savedSettingsRef.current)
+      throw error
+    }
+  }, [userId])
+
   const saveSession = useCallback(async (session: Omit<TrainingSession, 'id'> & { id?: string }) => {
     if (!userId) throw new Error('not signed in')
     const saved = session.id
@@ -200,15 +230,14 @@ export function useTrainingData() {
     setSessions(prev => prev.filter(s => s.id !== id))
     // Von der Uhr uebernommen? Dann merken, damit der Abgleich es nicht zurueckholt.
     if (removed?.externalId && (removed.source === 'healthkit' || removed.source === 'health_connect')) {
-      const next = {
-        ...settings,
-        dismissedExternalIds: [...settings.dismissedExternalIds.filter(x => x !== removed.externalId), removed.externalId]
+      const current = settingsRef.current
+      await commitSettings({
+        ...current,
+        dismissedExternalIds: [...current.dismissedExternalIds.filter(x => x !== removed.externalId), removed.externalId]
           .slice(-repo.MAX_DISMISSED),
-      }
-      setSettings(next)
-      await repo.saveSettings(userId, next).catch(() => {})
+      }).catch(() => {})
     }
-  }, [userId, sessions, settings])
+  }, [userId, sessions, commitSettings])
 
   const saveRoutine = useCallback(async (routine: Omit<TrainingRoutine, 'id'> & { id?: string }) => {
     if (!userId) throw new Error('not signed in')
@@ -226,6 +255,43 @@ export function useTrainingData() {
     setRoutines(prev => prev.filter(r => r.id !== id))
   }, [userId])
 
+  /** Zeitplan je Plan-Name (fuer `nextInPlan`, Wochenleiste). */
+  const schedules = useMemo(() => new Map(plans.map(p => [p.name, p.schedule])), [plans])
+
+  // Neuester Stand der Plaene auch zwischen zwei Rendern (Umbenennen, dann
+  // Zeitplan speichern in einem Zug): sonst fehlte der umbenannte Plan.
+  const plansRef = useRef(plans)
+  useEffect(() => { plansRef.current = plans }, [plans])
+  const applyPlans = (next: PlanConfig[]) => { plansRef.current = next; setPlans(next) }
+
+  const savePlanSchedule = useCallback(async (name: string, schedule: PlanSchedule) => {
+    if (!userId) return
+    const current = plansRef.current
+    const existing = current.find(p => p.name === name)
+    const saved = await repo.savePlanSchedule(userId, name, schedule, existing?.sortOrder ?? current.length)
+    applyPlans([...plansRef.current.filter(p => p.name !== saved.name), saved].sort((a, b) => a.sortOrder - b.sortOrder))
+  }, [userId])
+
+  const renamePlan = useCallback(async (from: string, to: string) => {
+    if (!userId) return
+    const next = repo.normalizeFolder(to)
+    if (!next || next === from) return
+    await repo.renamePlan(userId, from, next)
+    setRoutines(prev => prev.map(r => (r.folder === from ? { ...r, folder: next } : r)))
+    applyPlans(plansRef.current.map(p => (p.name === from ? { ...p, name: next } : p)))
+  }, [userId])
+
+  /** Plan loeschen: seine Workouts und den Zeitplan. */
+  const removePlan = useCallback(async (name: string) => {
+    if (!userId) return
+    for (const routine of routines.filter(r => r.folder === name)) {
+      await repo.deleteRoutine(userId, routine.id)
+      setRoutines(prev => prev.filter(r => r.id !== routine.id))
+    }
+    await repo.deletePlanSchedule(userId, name)
+    applyPlans(plansRef.current.filter(p => p.name !== name))
+  }, [userId, routines])
+
   const addCustomExercise = useCallback(async (exercise: Omit<CustomExercise, 'id'>) => {
     if (!userId) throw new Error('not signed in')
     const saved = await repo.insertCustomExercise(userId, exercise)
@@ -233,12 +299,12 @@ export function useTrainingData() {
     return saved
   }, [userId])
 
-  const updateSettings = useCallback(async (next: TrainingSettings) => {
-    if (!userId) return
-    const previous = settings
-    setSettings(next)
-    try { await repo.saveSettings(userId, next) } catch (error) { setSettings(previous); throw error }
-  }, [userId, settings])
+  const updateSettings = useCallback((next: TrainingSettings) => commitSettings(next), [commitSettings])
+
+  const toggleFavorite = useCallback((exerciseId: string) => commitSettings({
+    ...settingsRef.current,
+    favoriteExercises: toggleFavoriteId(settingsRef.current.favoriteExercises, exerciseId),
+  }), [commitSettings])
 
   const importSessions = useCallback(async (incoming: Array<Omit<TrainingSession, 'id'>>) => {
     if (!userId) return 0
@@ -282,12 +348,14 @@ export function useTrainingData() {
   const glp1Active = settings.glp1Mode ?? context.glp1Names.length > 0
 
   return useMemo(() => ({
-    state, sessions, routines, customExercises, settings, context, glp1Active,
+    state, sessions, routines, customExercises, settings, context, glp1Active, plans, schedules,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
-    updateSettings, importSessions, syncHealthWorkouts,
-  }), [state, sessions, routines, customExercises, settings, context, glp1Active,
+    updateSettings, toggleFavorite, importSessions, syncHealthWorkouts,
+    savePlanSchedule, renamePlan, removePlan,
+  }), [state, sessions, routines, customExercises, settings, context, glp1Active, plans, schedules,
     reload, saveSession, removeSession, saveRoutine, removeRoutine, addCustomExercise,
-    updateSettings, importSessions, syncHealthWorkouts])
+    updateSettings, toggleFavorite, importSessions, syncHealthWorkouts,
+    savePlanSchedule, renamePlan, removePlan])
 }
 
 export type TrainingData = ReturnType<typeof useTrainingData>

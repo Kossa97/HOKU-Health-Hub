@@ -7,7 +7,7 @@ import { sessionKcal } from '../../lib/energy'
 import { computeReadiness, type ReadinessFactor } from '../../lib/readiness'
 import { weekSummary } from '../../lib/stats'
 import { formatDuration, formatNumber, formatVolume } from '../../lib/format'
-import { Button, Card, SectionTitle, Stat, TRAINING_ACCENT } from '../ui'
+import { Button, Card, SectionTitle, Stat } from '../ui'
 import { Glp1Card } from './Glp1Card'
 import { SessionRow } from '../history/SessionRow'
 import { nextInPlan } from '../../lib/planRotation'
@@ -61,14 +61,15 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
     [data.sessions, now, data.settings.weeklyGoal, data.context.latestWeightKg],
   )
 
-  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now), [data.routines, data.sessions, now])
+  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now, data.schedules), [data.routines, data.sessions, now, data.schedules])
   const todaySessions = useMemo(
     () => data.sessions.filter(s => new Date(s.startedAt).toDateString() === now.toDateString()),
     [data.sessions, now],
   )
-  // Ruhetag: es gibt einen Wochenplan, fuer heute steht nichts darin und heute wurde nicht trainiert.
+  // Ruhetag: es gibt einen Zeitplan (Wochentage oder Plan-Zeitplan), fuer
+  // heute steht nichts an und heute wurde nicht trainiert.
   const restDay = next != null && !next.plannedToday && todaySessions.length === 0
-    && data.routines.some(r => r.weekdays.length > 0)
+    && (data.routines.some(r => r.weekdays.length > 0) || data.plans.some(p => p.schedule.mode !== 'weekdays'))
 
   // Dot sagt, was heute dran ist (er lebt in der Leiste, nicht in den Karten)
   const hint = dotHint({
@@ -114,7 +115,7 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
           </div>
           <div aria-hidden="true" style={{ display: 'flex', gap: 4, marginTop: 14 }}>
             {Array.from({ length: Math.max(week.goal, week.sessions) }, (_, i) => (
-              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? TRAINING_ACCENT : 'var(--lg-fill)' }} />
+              <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < week.sessions ? 'var(--lg-good)' : 'var(--lg-fill)' }} />
             ))}
           </div>
           {week.streakWeeks > 1 && (

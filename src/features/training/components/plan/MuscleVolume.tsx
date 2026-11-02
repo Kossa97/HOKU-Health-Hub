@@ -1,7 +1,7 @@
 import type { MuscleGroup } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import { SETS_BAND, SETS_SCALE_MAX } from '../../lib/muscleVolume'
-import { TRAINING_ACCENT } from '../ui'
+import { accentMix, TRAINING_ACCENT } from '../ui'
 
 /**
  * Liegende Balken „Saetze je Muskel" mit dem hinterlegten Band 10–20 pro
@@ -23,7 +23,7 @@ const OVER_COLOR = '#f43f5e'
 
 function barColor(week: number): string {
   if (week > SETS_BAND.high) return OVER_COLOR
-  if (week < SETS_BAND.low) return `${TRAINING_ACCENT}8c`
+  if (week < SETS_BAND.low) return accentMix(55)
   return TRAINING_ACCENT
 }
 
