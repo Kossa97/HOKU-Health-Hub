@@ -10,7 +10,7 @@
   --fg:#eef1f3; --muted:#8a939b; --accent:#7ab8ff; --accent-soft:rgba(122,184,255,.12); --on-accent:#04121f;
   --wait:#ff9f5a; --wait-soft:rgba(255,159,90,.12); --run:#4fd1b5; --run-soft:rgba(79,209,181,.12);
   --pause:#aab0cc; --pause-soft:rgba(170,176,204,.12); --done:#76808a; --done-soft:rgba(118,128,138,.14);
-  --warn:#f2c453; --warn-soft:rgba(242,196,83,.12); --star:#f2c453;
+  --warn:#f2c453; --warn-soft:rgba(242,196,83,.12); --star:#f2c453; --hot:#ff7a6b;
   --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
   --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
@@ -116,19 +116,52 @@ details.tech dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:
 details.tech dd{margin:0;overflow-wrap:anywhere}
 details.tech a{color:var(--accent)}
 
-.ideas{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
-.idea{display:flex;gap:8px;align-items:flex-start;font-size:14px;flex-wrap:wrap}
-.idea input[type=checkbox]{margin-top:4px;accent-color:var(--accent)}
-.idea .txt{flex:1;min-width:0}
-.idea.done .txt{text-decoration:line-through;color:var(--muted)}
-.idea time{display:block;color:var(--muted);font-size:11px}
-.idea.done time{text-decoration:none}
-.idea .x{background:none;border:0;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
-.idea .take{font-size:12px;padding:3px 10px}
-.idea .taken{font-size:12px;color:var(--accent);width:100%;padding-left:26px}
-.addidea{display:flex;gap:6px}
-.addidea input{flex:1;min-width:0;font-size:15px;padding:6px 8px}
-.addidea button{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:0 12px}
+/* Notizen · Ideen · To-dos: vier Felder nach Wichtigkeit und Dringlichkeit.
+   Die Spalte misst ihre eigene Breite: schmal untereinander, breit als 2×2. */
+.ideacol{container-type:inline-size}
+.qopts{gap:6px}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:2px}
+.seg button{border:0;background:none;color:var(--muted);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:background-color 150ms ease,color 150ms ease}
+.seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--fg)}
+.tog{font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--bg);color:var(--muted);border-radius:999px;padding:4px 10px;display:inline-flex;align-items:center;gap:5px;transition:transform 120ms var(--ease-out),background-color 150ms ease,color 150ms ease,border-color 150ms ease}
+.tog[aria-pressed="true"]{color:var(--c);border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.tog[aria-pressed="true"] .ic{fill:currentColor}
+.tog:active{transform:scale(.97)}
+.matrix{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@container (min-width:480px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.feld{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:background-color 150ms ease,border-color 150ms ease}
+.feld.over{background:color-mix(in srgb,var(--c) 10%,var(--surface));border-color:var(--c)}
+.feld-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;min-width:0}
+.feld-h .ic{color:var(--c)}
+.feld-h small{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feld-h .count{margin-left:auto;background:var(--surface-2);border-radius:999px;padding:0 8px;font-size:12px}
+.nrows{display:flex;flex-direction:column;gap:6px}
+.nrows.clip{overflow:hidden;border-radius:10px}
+.nleer{color:var(--muted);font-size:12px;border:1px dashed var(--line-2);border-radius:8px;padding:8px;text-align:center}
+.nrow{position:relative;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 10px;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;
+  transition:transform 200ms var(--ease-out),box-shadow 150ms var(--ease-out),border-color 150ms ease}
+.nrow.lifted{z-index:5;cursor:grabbing;border-color:var(--line-2);box-shadow:0 16px 36px -12px rgba(0,0,0,.85);transition:box-shadow 150ms var(--ease-out)}
+.nrow.settling{transition:transform 220ms var(--ease-out)}
+.nrow.leaving{opacity:0;transform:translateX(16px);transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out)}
+.nrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nrow>.ic{margin-top:3px;color:var(--ac)}
+.nrow .t{flex:1;min-width:0}
+.nrow .txt{display:block;font-size:14px;overflow-wrap:anywhere}
+.nrow .meta{display:block;font-size:11px;color:var(--muted)}
+.nrow .taken{color:var(--accent)}
+.iconbtn{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--bg);border:1px solid var(--line-2);color:var(--run);transition:transform 120ms var(--ease-out),border-color 150ms ease}
+.iconbtn:active{transform:scale(.94)}
+.nedit{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--line);animation:fadeIn 200ms var(--ease-out) both}
+.nedit .del{margin-left:auto;color:var(--muted)}
+.nedit .del[data-armed]{color:var(--hot);border-color:var(--hot)}
+.ndone .nrow{cursor:default;opacity:.75}
+.ndone .nrow .txt{text-decoration:line-through;color:var(--muted)}
+details.ndone{margin-top:4px}
+details.ndone>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:4px 0}
+details.ndone .nrows{margin-top:8px}
+@media (hover:hover) and (pointer:fine){.nrow:not(.lifted):hover{border-color:var(--line-2)}}
+@media (prefers-reduced-motion: reduce){.nrow,.nrow.settling{transition:box-shadow 150ms ease}.nrow.leaving{transform:none}.nedit{animation:none}}
 details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:20px;color:var(--muted);font-size:14px}
 .note{color:var(--muted);font-size:13px}
@@ -137,15 +170,22 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
 .ideacol{gap:12px}
 .ideacol-h{font-size:13px}
 .more-btn{display:none}
-#alleideen{display:none}
+.split{display:none}
 
-/* Großer Bildschirm: links "Für dich zu tun", Mitte alle Arbeiten als Kartenraster, rechts die Ideen.
-   Jeder Bereich scrollt für sich. */
+/* Großer Bildschirm: links "Für dich zu tun", Mitte alle Arbeiten als Kartenraster, rechts die Notizen.
+   Jeder Bereich scrollt für sich; die Ränder dazwischen lassen sich ziehen. */
 @media (min-width:1200px){
   html,body{height:100%}
   body{padding-block:16px}
-  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr) minmax(340px,420px);
-    grid-template-areas:"head head head" "todo board ideas";grid-template-rows:auto 1fr;gap:16px 24px}
+  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:var(--w-todo,320px) 20px minmax(0,1fr) 20px var(--w-ideas,560px);
+    grid-template-areas:"head head head head head" "todo sl board sr ideas";grid-template-rows:auto 1fr;gap:16px 0}
+  .split{display:block;position:relative;cursor:col-resize;touch-action:none}
+  #split-l{grid-area:sl}
+  #split-r{grid-area:sr}
+  .split::after{content:"";position:absolute;inset:0 9px;border-radius:1px;background:var(--line);transition:background-color 150ms ease,transform 150ms var(--ease-out)}
+  .split:hover::after,.split.active::after,.split:focus-visible::after{background:var(--accent);transform:scaleX(1.5)}
+  .split:focus-visible{outline:none}
+  body.resizing{cursor:col-resize;-webkit-user-select:none;user-select:none}
   .wrap>header{grid-area:head;display:flex;align-items:baseline;gap:16px}
   .side{grid-area:todo;overflow-y:auto;min-height:0;padding-right:4px;gap:16px}
   .board{grid-area:board;overflow-y:auto;min-height:0;gap:16px;padding-right:4px}
@@ -153,11 +193,7 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
   .ideacol .box{background:var(--bg)}
   .ideacol-h{font-size:18px;text-transform:none;letter-spacing:0;color:var(--fg)}
   .ideacol #q-text{min-height:140px;font-size:17px}
-  .ideacol .idea{font-size:15px}
-  #alleideen{display:flex}
-  .ideagroup-h{font-weight:700;font-size:14px}
-  .ideagroup .ideas{border-top:0;padding-top:0}
-  .ideagroup .ideas>.k{display:none}
+  .ideacol .feld{background:var(--bg)}
   .card .head h3{flex:1 1 14ch}
   .topbar{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:12px}
   .topbar #warnings{flex:1;min-width:280px}
@@ -198,8 +234,8 @@ textarea,input[type=text],select{background:var(--bg);border-color:var(--line-2)
 .primary{box-shadow:0 6px 20px -8px rgba(122,184,255,.6)}
 
 /* Bewegung: Rückmeldung beim Drücken, sanftes Anheben, Einblenden beim ersten Laden */
-.ghost,.primary,.chip,.addidea button{transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
-.ghost:active,.primary:active,.chip:active,.addidea button:active{transform:scale(.97)}
+.ghost,.primary,.chip{transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
+.ghost:active,.primary:active,.chip:active{transform:scale(.97)}
 @media (hover:hover) and (pointer:fine){
   .card{transition:transform 200ms var(--ease-out),border-color 200ms ease,box-shadow 200ms var(--ease-out)}
   .card:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 12px 30px -18px rgba(0,0,0,.9)}
@@ -220,7 +256,7 @@ textarea,input[type=text],select{background:var(--bg);border-color:var(--line-2)
   .enter .steps li::before{animation:none}
   .card:hover{transform:none}
   .task.leaving{transform:none}
-  .ghost:active,.primary:active,.chip:active{transform:none}
+  .ghost:active,.primary:active,.chip:active,.tog:active,.iconbtn:active{transform:none}
 }
 </style>
 
@@ -237,20 +273,24 @@ textarea,input[type=text],select{background:var(--bg);border-color:var(--line-2)
     </section>
   </aside>
 
+  <div class="split" id="split-l" role="separator" aria-orientation="vertical" aria-label="Breite von „Für dich zu tun“" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
+
   <aside class="ideacol" aria-labelledby="ideen-h">
-    <h2 id="ideen-h" class="ideacol-h"><span class="h-ic" data-ic="bulb"></span>Ideen</h2>
+    <h2 id="ideen-h" class="ideacol-h"><span class="h-ic" data-ic="note"></span>Notizen · Ideen · To-dos</h2>
     <form class="box" id="quick">
-      <label class="k" for="q-text">Idee aufschreiben</label>
-      <textarea id="q-text" placeholder="Was ist dir eingefallen?"></textarea>
+      <label class="k" for="q-text">Neuer Eintrag</label>
+      <textarea id="q-text" placeholder="Notiz, Idee oder To-do …"></textarea>
+      <div class="row qopts" id="q-opts"></div>
       <div class="row">
-        <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört die Idee"></select>
+        <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört der Eintrag"></select>
         <button class="primary" type="submit"><span class="h-ic" data-ic="plus"></span>Speichern</button>
       </div>
     </form>
 
-    <div id="eingang" class="section"></div>
-    <div id="alleideen" class="section"></div>
+    <div id="notes" class="section"></div>
   </aside>
+
+  <div class="split" id="split-r" role="separator" aria-orientation="vertical" aria-label="Breite von „Notizen · Ideen · To-dos“" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
 
   <main class="board">
     <div class="section topbar">
@@ -258,7 +298,7 @@ textarea,input[type=text],select{background:var(--bg);border-color:var(--line-2)
       <div id="warnings" class="section"></div>
     </div>
     <div id="list" class="section"></div>
-    <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
+    <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Notizen, Ideen und To-dos dazu. Einträge gedrückt halten und in ein anderes Feld ziehen ändert ihre Gewichtung; antippen zeigt mehr Möglichkeiten. Am PC lassen sich die Spalten an ihren Rändern breiter oder schmaler ziehen. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
   </main>
 </div>
 
@@ -292,7 +332,14 @@ const ICONS={
   alert:'<path d="M10.3 4 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
   chevron:'<path d="m6 9 6 6 6-6"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
-  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H12"/>'
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H12"/>',
+  note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  todo:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="m8 12 3 3 5-6"/>',
+  flag:'<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>',
+  flame:'<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.5 1 2.5 2 3 0-3-.5-5.5.5-8z"/>',
+  later:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  sprout:'<path d="M12 20v-8M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 12c0-3 2.5-5 6-5 0 3.5-2.5 5-6 5z"/>'
 };
 function ic(name,cls=""){
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
@@ -311,28 +358,19 @@ function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#s
 
 function render(){
   if(dragging){renderPending=true;return}
-  // halbfertige Eingaben überleben neue Daten aus anderen Fenstern
-  const drafts={};document.querySelectorAll(".addidea input").forEach(i=>{if(i.value)drafts[i.id]=i.value});
   const focusId=document.activeElement?.id;
   draw();
-  for(const[id,v]of Object.entries(drafts)){const i=document.getElementById(id);if(i)i.value=v}
   if(focusId)document.getElementById(focusId)?.focus();
 }
 
 function draw(){
   drawTodo();drawChips();drawWarnings();drawQuickSelect();
   queueMicrotask(()=>{
-    if(animateIn)document.querySelectorAll("#todo .task, #list .card, #alleideen .box, #eingang .box").forEach((n,i)=>{n.classList.add("enter");n.style.setProperty("--i",Math.min(i,14))});
+    if(animateIn)document.querySelectorAll("#todo .task, #list .card, #notes .feld").forEach((n,i)=>{n.classList.add("enter");n.style.setProperty("--i",Math.min(i,14))});
     animateIn=false;justOpened=null;freshIds=new Set();
   });
   const list=$("#list");list.replaceChildren();
-
-  const eingangBox=$("#eingang");eingangBox.replaceChildren();
-  const eingang=ideen.filter(i=>!i.arbeit||!arbeiten.some(a=>a.id===i.arbeit));
-  if(eingang.length){
-    eingangBox.append(el("h2",{text:"Ideen ohne Arbeit"}),el("div",{class:"box"},ideasBlock(eingang,"",true)));
-  }
-  drawAllIdeas();
+  drawNotes();
   if(!arbeiten.length){list.append(el("div",{class:"empty",text:"Noch keine Arbeiten eingetragen. Sobald ein Claude-Fenster seine Runde beendet, erscheint es hier."}));return}
 
   let shown=arbeiten;
@@ -356,25 +394,9 @@ function draw(){
     list.append(g);
   }
 }
-// Großer Bildschirm: alle Ideen zu Arbeiten gesammelt in der rechten Spalte, nach Arbeit gruppiert
-function drawAllIdeas(){
-  const box=$("#alleideen");box.replaceChildren();
-  if(!isBoard())return;
-  const offeneArbeiten=arbeiten.filter(a=>a.status!=="fertig").sort((x,y)=>(y.aktualisiert||"").localeCompare(x.aktualisiert||""));
-  const mit=offeneArbeiten.filter(a=>ideen.some(i=>i.arbeit===a.id));
-  if(!mit.length)return;
-  box.append(el("h2",{text:"Ideen zu Arbeiten"}));
-  for(const a of mit){
-    const b=el("div",{class:"box ideagroup"},el("div",{class:"ideagroup-h",text:a.titel}),ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id,false));
-    box.append(b);
-  }
-}
 let openDone=false,openCards=new Set();
 // Bewegung: Einblenden nur beim ersten Laden, Aufleuchten nur bei Änderungen aus anderen Fenstern
 let animateIn=false,justOpened=null,freshIds=new Set(),lastSeen=null;
-const BOARD=matchMedia("(min-width: 1200px)");
-const isBoard=()=>BOARD.matches;
-BOARD.addEventListener?.("change",()=>render());
 
 function todoItems(){
   const items=[];
@@ -628,47 +650,277 @@ function card(a){
   if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("dt",{text:"Pull Request"}),el("dd",{},el("a",{href:a.pr,target:"_blank",rel:"noopener",text:a.pr.replace(/^https:\/\/github\.com\//,"")})));
   if(meta.childNodes.length)inner.append(meta);
   if(inner.childNodes.length){tech.append(inner);c.append(tech)}
-
-  // auf dem großen Bildschirm stehen die Ideen in der eigenen Spalte rechts
-  if(!isBoard()){const ib=ideasBlock(ideen.filter(i=>i.arbeit===a.id),a.id,false);c.append(ib)}
   return c;
 }
 
-function ideasBlock(list,arbeitId,eingang){
-  const box=el("div",{class:"ideas"},eingang?null:el("div",{class:"k",text:list.length?`Ideen (${list.length})`:"Ideen"}));
-  if(eingang){box.style.borderTop="0";box.style.paddingTop="0"}
-  for(const i of [...list].sort((x,y)=>(x.erledigt-y.erledigt)||(y.am||"").localeCompare(x.am||""))){
-    const cb=el("input",{type:"checkbox","aria-label":"Erledigt",id:`i-${i.id}`});cb.checked=!!i.erledigt;cb.disabled=readOnly;
-    cb.addEventListener("change",()=>save(`ideen/${i.id}`,{erledigt:cb.checked}));
-    const row=el("div",{class:"idea"+(i.erledigt?" done":"")},cb,el("span",{class:"txt"},i.text,el("time",{text:ago(i.am)})));
-    if(eingang&&!i.erledigt&&!readOnly){
-      const take=el("button",{class:"ghost take",type:"button","aria-pressed":String(!!i.uebernehmen),text:i.uebernehmen?"Wird übernommen":"Daraus eine Arbeit machen"});
-      take.addEventListener("click",()=>save(`ideen/${i.id}`,{uebernehmen:!i.uebernehmen}));
-      row.append(take);
-    }
-    if(!readOnly){
-      const rm=el("button",{class:"x",type:"button","aria-label":"Idee löschen",text:"×"});
-      rm.addEventListener("click",async()=>{if(rm.dataset.armed){try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}}else{rm.dataset.armed="1";rm.textContent="löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.textContent="×"},3000)}});
-      row.append(rm);
-    }
-    if(eingang&&i.uebernehmen&&!i.erledigt)row.append(el("span",{class:"taken",text:"Das nächste Claude-Fenster legt daraus eine Arbeit an."}));
-    box.append(row);
+// ---- Notizen · Ideen · To-dos ----
+// Gewichtung wie die Eisenhower-Matrix: zwei Fragen (wichtig? dringend?) ergeben vier Felder.
+const FELDER=[
+  {key:"wd",label:"Wichtig & dringend",sub:"Zuerst",icon:"flame",c:"--hot"},
+  {key:"w",label:"Wichtig",sub:"Einplanen",icon:"flag",c:"--accent"},
+  {key:"d",label:"Dringend",sub:"Schnell erledigen",icon:"clock",c:"--warn"},
+  {key:"s",label:"Später",sub:"Irgendwann",icon:"later",c:"--pause"}
+];
+const ARTEN={notiz:{label:"Notiz",mehr:"Notizen",icon:"note",c:"--muted"},idee:{label:"Idee",mehr:"Ideen",icon:"bulb",c:"--star"},todo:{label:"To-do",mehr:"To-dos",icon:"todo",c:"--run"}};
+const artOf=i=>ARTEN[i.art]?i.art:"idee";
+const feldOf=i=>FELDER.some(f=>f.key===i.feld)?i.feld:"s";
+const feldAus=(w,d)=>w&&d?"wd":w?"w":d?"d":"s";
+// eigene Reihenfolge über "pos"; ohne pos: neueste oben
+const rang=i=>typeof i.pos==="number"?i.pos:-Date.parse(i.am||0)/1000;
+let artFilter=null,openNote=null,openNDone=false;
+const titelVon=id=>arbeiten.find(a=>a.id===id)?.titel;
+const sichtbar=feld=>ideen.filter(i=>!i.erledigt&&feldOf(i)===feld&&(!artFilter||artOf(i)===artFilter)).sort((x,y)=>rang(x)-rang(y));
+
+function drawNotes(){
+  const box=$("#notes");box.replaceChildren();
+  const offen=ideen.filter(i=>!i.erledigt);
+  const chips=el("div",{class:"chips",role:"group","aria-label":"Nach Art filtern"});
+  const add=(key,label,n,icon,c)=>{
+    const b=el("button",{class:"chip",type:"button","aria-pressed":String(artFilter===key)});
+    if(icon){const i=ic(icon);i.style.color=`var(${c})`;b.append(i)}
+    b.append(el("span",{text:label}),el("b",{text:String(n)}));
+    b.addEventListener("click",()=>{artFilter=artFilter===key?null:key;render()});chips.append(b);
+  };
+  add(null,"Alle",offen.length);
+  for(const[k,a]of Object.entries(ARTEN))add(k,a.mehr,offen.filter(i=>artOf(i)===k).length,a.icon,a.c);
+  box.append(chips);
+
+  const matrix=el("div",{class:"matrix"});
+  for(const f of FELDER){
+    const items=sichtbar(f.key);
+    const rows=el("div",{class:"nrows"});
+    if(!items.length)rows.append(el("p",{class:"nleer",text:readOnly?"Leer":"Leer – Einträge hierher ziehen"}));
+    for(const i of items)rows.append(noteRow(i));
+    const s=el("section",{class:"feld","aria-label":f.label},el("div",{class:"feld-h"},ic(f.icon),el("span",{text:f.label}),el("small",{text:f.sub}),el("span",{class:"count",text:String(items.length)})),rows);
+    s.dataset.feld=f.key;s.style.setProperty("--c",`var(${f.c})`);
+    matrix.append(s);
   }
-  if(!readOnly){
-    const inp=el("input",{type:"text",placeholder:eingang?"Noch eine Idee …":"Idee für diese Arbeit …",id:`add-${arbeitId||"allg"}`,"aria-label":"Neue Idee"});
-    const f=el("form",{class:"addidea"},inp,el("button",{type:"submit",text:"+"}));
-    f.addEventListener("submit",async ev=>{ev.preventDefault();const t=inp.value.trim();if(!t)return;inp.value="";await addIdea(t,arbeitId)});
-    box.append(f);
+  box.append(matrix);
+
+  // Erledigtes eingeklappt, neuestes oben
+  const done=ideen.filter(i=>i.erledigt).sort((x,y)=>(y.erledigtAm||y.am||"").localeCompare(x.erledigtAm||x.am||""));
+  if(done.length){
+    const det=el("details",{class:"ndone"},el("summary",{text:`Erledigt (${done.length})`}));
+    if(openNDone)det.open=true;det.addEventListener("toggle",()=>{openNDone=det.open});
+    const rows=el("div",{class:"nrows"});
+    for(const i of done){
+      const back=el("button",{type:"button",class:"ghost"},...lbl("undo","Zurückholen"));back.disabled=readOnly;
+      back.addEventListener("click",()=>save(`ideen/${i.id}`,{erledigt:false,erledigtAm:null}));
+      const r=el("div",{class:"nrow"},ic(ARTEN[artOf(i)].icon),el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)})),back);
+      r.style.setProperty("--ac",`var(${ARTEN[artOf(i)].c})`);rows.append(r);
+    }
+    det.append(rows);box.append(det);
   }
+}
+
+function metaText(i){
+  const parts=[ARTEN[artOf(i)].label];
+  const t=titelVon(i.arbeit);if(t)parts.push(`für „${t}“`);
+  parts.push(i.erledigt&&i.erledigtAm?`erledigt ${ago(i.erledigtAm)}`:ago(i.am));
+  return parts.join(" · ");
+}
+
+function noteRow(i){
+  const art=artOf(i),feld=feldOf(i);
+  const row=el("div",{class:"nrow",id:`n-${i.id}`});row.dataset.id=i.id;
+  row.style.setProperty("--ac",`var(${ARTEN[art].c})`);
+  const t=el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)}));
+  if(!i.arbeit&&i.uebernehmen)t.append(el("span",{class:"meta taken",text:"Das nächste Claude-Fenster macht daraus eine Arbeit."}));
+  const done=el("button",{type:"button",class:"iconbtn","aria-label":"Erledigt",title:"Erledigt"},ic("check"));done.disabled=readOnly;
+  // kurz wegschieben, dann speichern: man sieht, dass der Klick angekommen ist
+  done.addEventListener("click",()=>{row.classList.add("leaving");setTimeout(()=>save(`ideen/${i.id}`,{erledigt:true,erledigtAm:new Date().toISOString()}),reduceMotion()?0:180)});
+  row.append(ic(ARTEN[art].icon),t,done);
+  if(readOnly)return row;
+
+  // Antippen klappt Einstellungen auf, gedrückt halten hebt den Eintrag zum Verschieben an
+  row.tabIndex=0;row.setAttribute("aria-expanded",String(openNote===i.id));
+  row.setAttribute("aria-label",`${i.text}. Antippen für Einstellungen, Pfeil hoch oder runter zum Verschieben.`);
+  row.addEventListener("click",ev=>{if(ev.target.closest("button,select,input"))return;openNote=openNote===i.id?null:i.id;render()});
+  row.addEventListener("keydown",ev=>{
+    if(ev.target!==row)return;
+    if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openNote=openNote===i.id?null:i.id;render();return}
+    const d=ev.key==="ArrowUp"?-1:ev.key==="ArrowDown"?1:0;if(!d)return;ev.preventDefault();
+    const list=sichtbar(feld),k=list.findIndex(x=>x.id===i.id)+d;if(k<0||k>=list.length)return;
+    placeNote(i.id,feld,k);render();
+  });
+  if(openNote===i.id)row.append(noteEdit(i));
+  enableNoteDrag(row);
+  return row;
+}
+
+function noteEdit(i){
+  const art=artOf(i),feld=feldOf(i),w=feld==="wd"||feld==="w",d=feld==="wd"||feld==="d";
+  const box=el("div",{class:"nedit"});
+  const seg=el("div",{class:"seg",role:"group","aria-label":"Art"});
+  for(const[k,a]of Object.entries(ARTEN)){
+    const b=el("button",{type:"button","aria-pressed":String(k===art)},...lbl(a.icon,a.label));
+    b.addEventListener("click",()=>save(`ideen/${i.id}`,{art:k}));seg.append(b);
+  }
+  const tw=toggle("flag","Wichtig","--accent",w,()=>setFeld(i,feldAus(!w,d)));
+  const td=toggle("flame","Dringend","--hot",d,()=>setFeld(i,feldAus(w,!d)));
+  box.append(seg,tw,td);
+  if(!i.arbeit){
+    const take=el("button",{class:"ghost",type:"button","aria-pressed":String(!!i.uebernehmen)},...lbl("sprout",i.uebernehmen?"Wird zur Arbeit":"Daraus eine Arbeit machen"));
+    take.addEventListener("click",()=>save(`ideen/${i.id}`,{uebernehmen:!i.uebernehmen}));box.append(take);
+  }
+  const rm=el("button",{class:"ghost del",type:"button"},...lbl("trash","Löschen"));
+  rm.addEventListener("click",async()=>{
+    if(!rm.dataset.armed){rm.dataset.armed="1";rm.lastChild.textContent="Wirklich löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.lastChild.textContent="Löschen"},3000);return}
+    try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}
+  });
+  box.append(rm);
   return box;
 }
 
-async function addIdea(text,arbeit){
-  if(!db)return;
-  try{await db.collection("ideen").add({text,arbeit:arbeit||"",am:new Date().toISOString(),erledigt:false,uebernehmen:false})}catch(e){fail(e)}
+function toggle(icon,label,c,on,onclick){
+  const b=el("button",{type:"button",class:"tog","aria-pressed":String(on)},...lbl(icon,label));
+  b.style.setProperty("--c",`var(${c})`);b.addEventListener("click",onclick);return b;
 }
 
-$("#quick").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#q-text").value.trim();if(!t)return;$("#q-text").value="";await addIdea(t,$("#q-arbeit").value)});
+// Wechsel des Feldes: der Eintrag kommt dort ganz nach oben
+function setFeld(i,feld){
+  const top=sichtbar(feld)[0];
+  save(`ideen/${i.id}`,{feld,pos:top?rang(top)-1:0});
+}
+
+// Eintrag an Stelle "to" im Feld setzen. Nur der bewegte Eintrag bekommt einen neuen Rang
+// zwischen seinen Nachbarn, alle anderen bleiben unverändert.
+function placeNote(id,feld,to){
+  const it=ideen.find(i=>i.id===id);if(!it)return;
+  const list=sichtbar(feld).filter(i=>i.id!==id);
+  const prev=list[to-1],next=list[to];
+  const pos=prev&&next?(rang(prev)+rang(next))/2:prev?rang(prev)+1:next?rang(next)-1:0;
+  it.feld=feld;it.pos=pos;
+  save(`ideen/${id}`,{feld,pos});
+}
+
+// Gedrückt halten (350 ms) hebt den Eintrag an. Er folgt dem Finger, auch in andere Felder;
+// die übrigen Einträge machen Platz. Beim Loslassen gleitet er an seinen neuen Platz.
+const GAP=6;
+function enableNoteDrag(row){
+  let timer=null,sx=0,sy=0,pid=null,fields=[],src=null,tgt=null,from=0,to=0,h=0;
+  const cancelWait=()=>{clearTimeout(timer);timer=null};
+  row.addEventListener("pointerdown",ev=>{
+    if(ev.button!==0||dragging)return;
+    if(ev.target.closest("button,select,input,a"))return;
+    sx=ev.clientX;sy=ev.clientY;pid=ev.pointerId;
+    timer=setTimeout(lift,350);
+  });
+  row.addEventListener("pointermove",ev=>{
+    if(ev.pointerId!==pid)return;
+    if(timer&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){cancelWait();return}
+    if(!row.classList.contains("lifted"))return;
+    row.style.transform=`translate(${ev.clientX-sx}px,${ev.clientY-sy}px) scale(1.03)`;
+    const f=fields.find(f=>ev.clientX>=f.r.left&&ev.clientX<=f.r.right&&ev.clientY>=f.r.top&&ev.clientY<=f.r.bottom)||tgt;
+    const t=f.rows.filter(r=>r.el!==row&&r.top+r.h/2<ev.clientY).length;
+    if(f===tgt&&t===to)return;
+    tgt=f;to=t;
+    for(const x of fields){
+      x.el.classList.toggle("over",x===tgt&&x!==src);
+      x.rows.forEach((r,i)=>{
+        if(r.el===row)return;
+        let s=0;
+        if(x===src&&x===tgt){const j=i<from?i:i-1;s=(j<to?j:j+1)-i}
+        else if(x===src)s=i>from?-1:0;
+        else if(x===tgt)s=i>=to?1:0;
+        r.el.style.transform=s?`translateY(${s*h}px)`:"";
+      });
+    }
+  });
+  const end=ev=>{
+    if(ev&&ev.pointerId!==pid)return;
+    cancelWait();
+    if(!row.classList.contains("lifted"))return;
+    // ein Klick nach dem Ziehen soll nichts aufklappen
+    row.addEventListener("click",e=>{e.preventDefault();e.stopPropagation()},{capture:true,once:true});
+    const before=row.getBoundingClientRect(),id=row.dataset.id;
+    if(tgt!==src||to!==from)placeNote(id,tgt.feld,to);
+    dragging=false;renderPending=false;render();
+    // vom Loslass-Punkt an den neuen Platz gleiten
+    const n=document.getElementById(`n-${id}`);
+    if(n&&!reduceMotion()){
+      const a=n.getBoundingClientRect();
+      n.style.transition="none";n.style.transform=`translate(${before.left-a.left}px,${before.top-a.top}px)`;
+      n.getBoundingClientRect();
+      n.style.transition="";n.classList.add("settling");n.style.transform="";
+      setTimeout(()=>n.classList.remove("settling"),240);
+    }
+  };
+  row.addEventListener("pointerup",end);
+  row.addEventListener("pointercancel",end);
+  row.addEventListener("contextmenu",ev=>{if(timer||dragging)ev.preventDefault()});
+  row.addEventListener("touchmove",ev=>{if(dragging)ev.preventDefault()},{passive:false});
+  function lift(){
+    timer=null;dragging=true;
+    fields=[...document.querySelectorAll("#notes .feld")].map(el=>({el,feld:el.dataset.feld,r:el.getBoundingClientRect(),
+      rows:[...el.querySelectorAll(".nrow")].map(e=>{const r=e.getBoundingClientRect();return{el:e,top:r.top,h:r.height}})}));
+    src=tgt=fields.find(f=>f.rows.some(r=>r.el===row));
+    from=to=src.rows.findIndex(r=>r.el===row);h=src.rows[from].h+GAP;
+    // Platz machende Einträge bleiben in ihrem Feld; nur das Ausgangsfeld lässt den gezogenen hinaus
+    for(const f of fields)if(f!==src)f.el.querySelector(".nrows").classList.add("clip");
+    try{row.setPointerCapture(pid)}catch(e){}
+    row.classList.add("lifted");row.style.transform="scale(1.03)";
+    navigator.vibrate?.(10);
+  }
+}
+
+// Eingabe oben: Art und Gewichtung gleich mit wählen
+let qArt="idee",qW=false,qD=false;
+function drawQuickOpts(){
+  const box=$("#q-opts");box.replaceChildren();
+  const seg=el("div",{class:"seg",role:"group","aria-label":"Art"});
+  for(const[k,a]of Object.entries(ARTEN)){
+    const b=el("button",{type:"button","aria-pressed":String(k===qArt)},...lbl(a.icon,a.label));
+    b.addEventListener("click",()=>{qArt=k;drawQuickOpts()});seg.append(b);
+  }
+  box.append(seg,toggle("flag","Wichtig","--accent",qW,()=>{qW=!qW;drawQuickOpts()}),toggle("flame","Dringend","--hot",qD,()=>{qD=!qD;drawQuickOpts()}));
+}
+
+async function addNote(text,arbeit){
+  if(!db)return;
+  const feld=feldAus(qW,qD),top=sichtbar(feld)[0];
+  try{await db.collection("ideen").add({text,arbeit:arbeit||"",art:qArt,feld,pos:top?rang(top)-1:0,am:new Date().toISOString(),erledigt:false,uebernehmen:false})}catch(e){fail(e)}
+}
+
+$("#quick").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#q-text").value.trim();if(!t)return;$("#q-text").value="";await addNote(t,$("#q-arbeit").value)});
+
+// ---- Spaltenbreiten am PC: Ränder ziehen, Pfeiltasten, Doppelklick setzt zurück ----
+// Gespeichert nur in diesem Browser; die Mitte behält immer genug Platz für eine Kartenspalte.
+const STANDARD={todo:320,ideas:560},GRENZEN={todo:[240,560],ideas:[320,1100]},MITTE_MIN=360;
+let breiten={...STANDARD};
+try{Object.assign(breiten,JSON.parse(localStorage.getItem("werkbank-breiten"))||{})}catch(e){}
+const klemme=(v,[a,b])=>Math.max(a,Math.min(b,v));
+function applySizes(){
+  breiten.todo=klemme(breiten.todo,GRENZEN.todo);breiten.ideas=klemme(breiten.ideas,GRENZEN.ideas);
+  const wrap=$(".wrap"),frei=wrap.clientWidth-40-MITTE_MIN;
+  let t=breiten.todo,i=breiten.ideas;
+  const zuviel=t+i-frei;
+  if(zuviel>0){const ab=Math.min(zuviel*t/(t+i),t-GRENZEN.todo[0]);t-=ab;i=Math.max(GRENZEN.ideas[0],i-(zuviel-ab))}
+  wrap.style.setProperty("--w-todo",`${Math.round(t)}px`);wrap.style.setProperty("--w-ideas",`${Math.round(i)}px`);
+  $("#split-l").setAttribute("aria-valuenow",String(Math.round(t)));$("#split-r").setAttribute("aria-valuenow",String(Math.round(i)));
+}
+function merke(){try{localStorage.setItem("werkbank-breiten",JSON.stringify(breiten))}catch(e){}}
+function splitter(node,key,richtung){
+  node.addEventListener("pointerdown",ev=>{
+    if(ev.button!==0)return;ev.preventDefault();
+    const x0=ev.clientX,start=breiten[key];
+    node.setPointerCapture(ev.pointerId);node.classList.add("active");document.body.classList.add("resizing");
+    const move=e=>{breiten[key]=klemme(start+richtung*(e.clientX-x0),GRENZEN[key]);applySizes()};
+    const up=()=>{node.removeEventListener("pointermove",move);node.classList.remove("active");document.body.classList.remove("resizing");merke()};
+    node.addEventListener("pointermove",move);
+    node.addEventListener("pointerup",up,{once:true});node.addEventListener("pointercancel",up,{once:true});
+  });
+  node.addEventListener("keydown",ev=>{
+    const d=ev.key==="ArrowRight"?1:ev.key==="ArrowLeft"?-1:0;if(!d)return;ev.preventDefault();
+    breiten[key]=klemme(breiten[key]+richtung*d*24,GRENZEN[key]);applySizes();merke();
+  });
+  node.addEventListener("dblclick",()=>{breiten[key]=STANDARD[key];applySizes();merke()});
+}
+splitter($("#split-l"),"todo",1);
+splitter($("#split-r"),"ideas",-1);
+addEventListener("resize",applySizes);
+applySizes();
+drawQuickOpts();
 
 document.querySelectorAll(".h-ic").forEach(n=>n.replaceWith(ic(n.dataset.ic)));
 render();
