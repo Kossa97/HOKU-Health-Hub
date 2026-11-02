@@ -1,0 +1,671 @@
+<title>Hoku Profil 2c</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Michroma&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: Kopf mit Schalter, dann vier Abschnitte in der Reihenfolge der Entscheidungen (Link-Karte, Web-Vorschau, Abzeichen im Web, Hoku-Code).
+   Handys, Chat und Vorschaubilder sind feste App-Flaechen (Hoku Soft Dark, Chat dunkel, Code hell); nur die Seite drumherum folgt dem Theme. Dunkel zuerst. */
+:root {
+  /* Seite */
+  --page: #141518; --panel: #1b1c20; --ink: #f2f4f8; --ink2: rgba(235,240,255,.68); --ink3: rgba(235,240,255,.46);
+  --line: rgba(255,255,255,.09); --accent: #4ea8ff; --accent-ink: #9ccdff; --warn: #ffb340; --ok: #5fe07f;
+  --frame-shadow: 0 30px 80px rgba(0,0,0,.6);
+  /* App (fest, Soft Dark wie 2a/2b) */
+  --a-bg: #1f2023; --a-top: #2a2b2f; --a-s1: #303136; --a-s2: #27282c; --a-sheet: #232428;
+  --a-text: #f2f4f8; --a-t2: rgba(235,240,255,.66); --a-t3: rgba(235,240,255,.45); --a-hair: rgba(255,255,255,.08);
+  --blue: #4ea8ff; --blue-soft: #9ccdff; --cyan: #64d2ff; --violet: #8a6bff; --pink: #ff6fb5;
+  --good: #5fe07f; --a-warn: #ffb340; --bad: #ff6961; --white: #ffffff;
+  /* Chat (dunkler Messenger-Stil) */
+  --wa-bg: #0b141a; --wa-head: #202c33; --wa-in: #202c33; --wa-prev: #182229; --wa-text: #e9edef; --wa-t2: #8696a0; --wa-link: #53bdeb;
+  /* Hoku-Code (hell, damit Kameras ihn lesen) */
+  --qr-ink: #121629; --qr-paper: #ffffff; --qr-wash: #eef3ff; --qr-t2: rgba(18,22,41,.62);
+  /* Schrift */
+  --ui: -apple-system, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --disp: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --mark: "Michroma", "Eurostile", "Arial Black", sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --page: #eceef3; --panel: #ffffff; --ink: #161821; --ink2: rgba(22,24,33,.7); --ink3: rgba(22,24,33,.52);
+    --line: rgba(22,24,33,.1); --accent: #2a78d6; --accent-ink: #1d5fb0; --warn: #9a5a00; --ok: #1f8a3c;
+    --frame-shadow: 0 24px 60px rgba(30,40,70,.28); color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --page: #eceef3; --panel: #ffffff; --ink: #161821; --ink2: rgba(22,24,33,.7); --ink3: rgba(22,24,33,.52);
+  --line: rgba(22,24,33,.1); --accent: #2a78d6; --accent-ink: #1d5fb0; --warn: #9a5a00; --ok: #1f8a3c;
+  --frame-shadow: 0 24px 60px rgba(30,40,70,.28); color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--ui); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+button { font-family: var(--ui); color: inherit; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.page { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+
+/* Kopf */
+.top { display: grid; gap: 14px; max-width: 760px; }
+.eyebrow { font: 500 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
+h1 { font: 600 clamp(26px, 4.4vw, 38px)/1.1 var(--disp); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lead { margin: 0; color: var(--ink2); font-size: 15px; max-width: 65ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding-top: 4px; }
+.ctl { display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink2); cursor: pointer; background: none; border: 0; padding: 0; text-align: left; }
+.fake { font: 500 11.5px var(--mono); color: var(--ink3); border: 1px dashed var(--line); border-radius: 8px; padding: 3px 8px; }
+
+/* Abschnitte */
+section { display: grid; gap: 20px; min-width: 0; }
+.sec-head { display: grid; gap: 6px; max-width: 760px; }
+.sec-head .eyebrow { color: var(--accent-ink); }
+h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: balance; }
+.sec-head p { margin: 0; color: var(--ink2); max-width: 65ch; }
+.row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.aside { flex: 1 1 280px; max-width: 420px; min-width: 0; display: grid; gap: 14px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+.box h3 { margin: 0 0 6px; font: 600 14px var(--ui); }
+.box p, .box li { color: var(--ink2); font-size: 13px; margin: 0; }
+.box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.box .ok { color: var(--ok); font-weight: 600; }
+.box code, .mono { font-family: var(--mono); font-size: 12px; }
+.tag-no { color: var(--warn); }
+
+/* Schalter (Seite und App) */
+.sw { width: 46px; height: 28px; border-radius: 99px; background: rgba(127,135,150,.35); position: relative; flex: none; cursor: pointer; border: none; padding: 0; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s cubic-bezier(.32,.72,0,1); }
+.sw[aria-checked="true"] { background: var(--blue); }
+.sw[aria-checked="true"]::after { transform: translateX(18px); }
+
+/* ───── 1 · Chat ───── */
+.chats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 282px), 1fr)); gap: 12px 22px; }
+.chat-col { display: grid; grid-row: span 2; grid-template-rows: subgrid; gap: 12px; align-content: start; min-width: 0; }
+.chat { align-self: stretch; }
+.chat { background: var(--wa-bg); border-radius: 22px; overflow: hidden; box-shadow: var(--frame-shadow); color: var(--wa-text);
+  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px); background-size: 14px 14px; }
+.chat-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--wa-head); font-size: 14.5px; }
+.chat-head .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 13px var(--disp); background: linear-gradient(140deg, #6fb6ff, #8a6bff); color: var(--white); }
+.chat-head small { display: block; color: var(--wa-t2); font-size: 11.5px; }
+.chat-body { padding: 14px 10px 16px; display: grid; gap: 6px; justify-items: start; }
+.msg { background: var(--wa-in); border-radius: 0 10px 10px 10px; padding: 6px 8px 5px; font-size: 14px; line-height: 1.35; max-width: 92%; position: relative; }
+.msg.cont { border-radius: 10px; }
+.msg time { float: right; margin: 6px 0 0 10px; font-size: 10.5px; color: var(--wa-t2); }
+.msg.big { padding: 4px 4px 5px; width: 92%; }
+.msg.big .url { padding: 5px 4px 0; display: block; color: var(--wa-link); overflow-wrap: anywhere; font-size: 13.5px; }
+.prev { background: var(--wa-prev); border-radius: 7px; overflow: hidden; }
+.prev-t { padding: 8px 10px 9px; display: grid; gap: 2px; }
+.prev-t b { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.prev-t span { font-size: 12.5px; color: var(--wa-t2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.prev-t small { font-size: 11.5px; color: var(--wa-t2); }
+.cap { display: grid; gap: 6px; align-content: start; padding-bottom: 16px; }
+.cap h3 { margin: 0; font: 600 16px var(--disp); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.cap h3 .k { font: 500 11px var(--mono); letter-spacing: .06em; color: var(--ink3); text-transform: uppercase; }
+.cap p { margin: 0; color: var(--ink2); font-size: 13px; }
+.cap .uses { font-size: 12px; color: var(--ink3); }
+.cap .uses b { color: var(--ink2); font-weight: 600; }
+.cap .pc { font-size: 12.5px; color: var(--ink2); display: grid; gap: 2px; }
+.cap .pc span::before { content: "+ "; color: var(--ok); font-weight: 700; }
+.cap .pc span.m::before { content: "− "; color: var(--warn); }
+.fallback-note { font: 500 12px var(--ui); color: var(--warn); }
+
+/* Vorschaubild 1200x630, skaliert ueber cqw */
+.og { aspect-ratio: 1200 / 630; width: 100%; max-width: 100%; container-type: inline-size; position: relative; overflow: hidden; color: var(--white);
+  background: radial-gradient(70% 90% at 12% 18%, rgba(100,210,255,.34), transparent 62%), radial-gradient(60% 80% at 92% 86%, rgba(175,120,255,.34), transparent 60%), linear-gradient(160deg, #263044, #15171d); }
+.og .brand { position: absolute; left: 5cqw; top: 4.6cqw; display: flex; align-items: center; gap: 1.6cqw; font: 400 2.9cqw/1 var(--mark); letter-spacing: .16em; }
+.og .brand img { width: 4.4cqw; height: 4.4cqw; }
+.og .addr { position: absolute; right: 5cqw; bottom: 4.4cqw; font: 500 2.5cqw/1 var(--mono); color: rgba(255,255,255,.62); }
+.og .who { position: absolute; left: 5cqw; bottom: 9cqw; display: grid; gap: 1.6cqw; justify-items: start; }
+.og .ava { width: 17cqw; height: 17cqw; border-radius: 50%; display: grid; place-items: center; font: 700 7cqw/1 var(--disp); background: linear-gradient(140deg, #6fb6ff, #8a6bff); box-shadow: 0 0 0 .8cqw rgba(255,255,255,.14); }
+.og .nm { font: 600 5cqw/1.05 var(--disp); }
+.og .right { position: absolute; left: 34cqw; right: 5cqw; top: 15cqw; display: grid; gap: 1.4cqw; }
+.og .huge { font: 600 13.5cqw/0.95 var(--disp); letter-spacing: -.02em; background: linear-gradient(90deg, #8fe0ff, #b6a2ff 70%, #ffa3d0); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.og .huge .emo { -webkit-text-fill-color: initial; color: initial; font-size: .8em; }
+.og .lbl { font: 500 3.5cqw/1.25 var(--ui); color: rgba(255,255,255,.8); }
+.og .icons { display: flex; gap: 1.4cqw; align-items: center; margin-top: 2cqw; font: 600 3.3cqw/1 var(--ui); color: rgba(255,255,255,.86); }
+.og .icons i { font-style: normal; width: 6.8cqw; height: 6.8cqw; border-radius: 2cqw; display: grid; place-items: center; font-size: 3.6cqw; background: linear-gradient(160deg, rgba(100,210,255,.3), rgba(138,107,255,.3)); }
+.og .icons span { margin-left: .6cqw; }
+.og .chips { display: flex; gap: 1.2cqw; flex-wrap: wrap; margin-top: 2cqw; }
+.og .chips span { font: 500 2.9cqw/1 var(--ui); padding: 1.1cqw 2.2cqw; border-radius: 99px; background: rgba(78,168,255,.22); color: #cfe6ff; }
+.og .say { position: absolute; left: 34cqw; right: 6cqw; top: 15cqw; display: grid; gap: 3cqw; justify-items: start; }
+.og .say p { margin: 0; font: 600 5.6cqw/1.18 var(--disp); text-wrap: balance; }
+.og .pill { font: 600 3.2cqw/1 var(--ui); padding: 1.8cqw 3.4cqw; border-radius: 99px; background: linear-gradient(180deg, #5db2ff, #3a8fe8); }
+.og.neutral { background: radial-gradient(55% 80% at 26% 50%, rgba(100,210,255,.26), transparent 65%), radial-gradient(50% 70% at 86% 80%, rgba(175,120,255,.26), transparent 60%), linear-gradient(160deg, #1f2430, #121318); }
+.og .n-center { position: absolute; inset: 0; display: flex; align-items: center; gap: 5cqw; padding: 0 7cqw; }
+.og .n-center img { width: 25cqw; height: 25cqw; border-radius: 50%; flex: none; }
+.og .n-center div { display: grid; gap: 2cqw; }
+.og .n-center b { font: 400 8.6cqw/1 var(--mark); letter-spacing: .16em; font-weight: 400; }
+.og .n-center span { font: 500 3.6cqw/1.3 var(--ui); color: rgba(255,255,255,.78); }
+.og-size { font: 500 10.5px var(--mono); color: var(--wa-t2); padding: 3px 4px 0; }
+
+/* ───── Handy ───── */
+.phone { width: 390px; max-width: 100%; border-radius: 46px; background: linear-gradient(180deg, var(--a-top), var(--a-bg) 30%); border: 1px solid rgba(255,255,255,.07);
+  box-shadow: var(--frame-shadow); overflow: hidden; position: relative; color: var(--a-text); flex: none; }
+.phone.fix { height: 812px; }
+.phone .scroll { height: 100%; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; }
+.phone .scroll::-webkit-scrollbar { display: none; }
+.frame-cap { font: 500 11.5px var(--mono); color: var(--ink3); margin: 0 0 10px 6px; letter-spacing: .04em; }
+.frame-col { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; min-width: 0; max-width: 100%; flex: 0 1 390px; }
+.statusbar { height: 44px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 4px; font: 600 14px var(--ui); }
+.statusbar span:last-child { font-size: 12px; letter-spacing: .1em; }
+.inner { padding: 0 16px 28px; }
+.card { background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); }
+.card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card h3 .sub { color: var(--a-t3); font-size: 12px; font-weight: 400; margin-left: auto; }
+.btn { width: 100%; padding: 12px; border-radius: 14px; border: none; font: 600 15px var(--ui); color: var(--white); cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); box-shadow: 0 6px 18px rgba(78,168,255,.3); }
+.btn.ghost { background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); color: var(--a-text); }
+.btn.sm { width: auto; padding: 8px 12px; font-size: 13px; border-radius: 11px; box-shadow: none; }
+
+/* Web-Seite im Handy */
+.urlbar { margin: 4px 12px 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,255,255,.08); border-radius: 12px; height: 36px; font: 500 14px var(--ui); color: var(--a-t2); }
+.urlbar b { color: var(--a-text); font-weight: 500; }
+.webhead { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; }
+.wordmark { display: inline-flex; align-items: center; gap: 8px; font: 400 13px/1 var(--mark); letter-spacing: .16em; color: var(--a-text); }
+.wordmark img { width: 22px; height: 22px; }
+.cover { height: 132px; margin: 0 12px; border-radius: 22px; background: radial-gradient(80% 90% at 20% 20%, rgba(100,210,255,.35), transparent 60%), radial-gradient(70% 80% at 85% 70%, rgba(175,120,255,.32), transparent 60%), linear-gradient(160deg, #2c3546, #1d2029); }
+.head { display: flex; align-items: flex-end; gap: 12px; margin-top: -40px; padding: 0 22px; position: relative; }
+.avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--a-bg); background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 30px var(--disp); flex: none; color: var(--white); }
+.who { padding-bottom: 4px; min-width: 0; }
+.who .name { font: 600 21px/1.15 var(--disp); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.who .land { font: 600 12.5px var(--ui); color: var(--a-t2); background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 8px; letter-spacing: .04em; }
+.who .nick { color: var(--a-t2); font-size: 14px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 22px 0; }
+.chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(78,168,255,.14); color: var(--blue-soft); }
+.streak { margin: 12px 22px 0; color: var(--a-t2); font-size: 13px; }
+.streak b { color: var(--a-text); font-variant-numeric: tabular-nums; }
+.cta { margin: 16px 16px 0; display: grid; gap: 8px; }
+.cta p { margin: 0; text-align: center; color: var(--a-t3); font-size: 12.5px; line-height: 1.4; }
+.webbody { padding: 0 16px; }
+
+/* Gesamtfortschritt (wie 2b) */
+.total { display: flex; gap: 14px; align-items: center; }
+.ring { width: 108px; height: 108px; flex: none; position: relative; }
+.ring svg { transform: rotate(-90deg); display: block; width: 108px; height: 108px; }
+.ring .num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .num b { font: 600 19px/1 var(--disp); color: var(--cyan); font-variant-numeric: tabular-nums; }
+.ring .num small { font-size: 10px; color: var(--a-t3); margin-top: 3px; display: block; line-height: 1.25; }
+.parts { flex: 1; display: grid; gap: 7px; min-width: 0; }
+.part { font-size: 12px; color: var(--a-t2); }
+.part .r { display: flex; justify-content: space-between; margin-bottom: 3px; gap: 6px; }
+.part .r b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--good); }
+.track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); position: relative; overflow: hidden; }
+.track i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--cyan); }
+.track .mid { position: absolute; left: 30%; top: -2px; bottom: -2px; width: 1px; background: rgba(255,255,255,.25); }
+.small-note { color: var(--a-t3); font-size: 12px; margin-top: 12px; line-height: 1.45; }
+
+/* Abzeichen */
+.bgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 6px; }
+.badge { text-align: center; font-size: 11px; color: var(--a-t2); line-height: 1.3; hyphens: auto; overflow-wrap: anywhere; min-width: 0; }
+.badge .ic { width: 52px; height: 52px; margin: 0 auto 6px; border-radius: 17px; display: grid; place-items: center; font-size: 23px; background: linear-gradient(160deg, rgba(100,210,255,.22), rgba(138,107,255,.22)); }
+.empty { color: var(--a-t3); font-size: 13px; }
+
+/* Was ist Hoku */
+.about { margin: 28px 0 0; padding: 22px 18px 6px; border-top: 1px solid var(--a-hair); }
+.about h3 { margin: 0 0 8px; font: 600 18px var(--disp); }
+.about > p { margin: 0 0 12px; color: var(--a-t2); font-size: 14px; line-height: 1.5; }
+.about ul { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.about li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; color: var(--a-t2); font-size: 13.5px; line-height: 1.45; }
+.about li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; margin: 7px 0 0 4px; background: linear-gradient(140deg, var(--cyan), var(--violet)); }
+.stores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.store { display: grid; gap: 1px; text-align: left; padding: 9px 12px; border-radius: 13px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); cursor: pointer; color: var(--a-text); min-width: 0; }
+.store small { font-size: 11px; color: var(--a-t3); }
+.store b { font: 600 15px var(--disp); }
+.foot { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; padding: 18px 16px 26px; color: var(--a-t3); font-size: 12px; }
+.nf { padding: 54px 26px 10px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.nf .code { font: 600 54px/1 var(--disp); letter-spacing: -.02em; color: rgba(255,255,255,.14); }
+.nf h3 { margin: 0; font: 600 21px var(--disp); }
+.nf p { margin: 0; color: var(--a-t2); font-size: 14px; max-width: 30ch; }
+
+/* ───── 3 · Abzeichen im Web (Einstellungen) ───── */
+.bar { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 16px; font-weight: 600; gap: 8px; }
+.bar .ttl { flex: 1; text-align: center; }
+.icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); font-size: 18px; display: grid; place-items: center; flex: none; color: var(--a-text); }
+.icb.leer { visibility: hidden; }
+.crumb { font-size: 12px; color: var(--a-t3); padding: 0 20px; }
+.set-intro { margin: 8px 20px 0; color: var(--a-t2); font-size: 13px; line-height: 1.45; }
+.count { margin: 12px 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: rgba(78,168,255,.1); border: 1px solid rgba(78,168,255,.28); border-radius: 14px; padding: 10px 12px; font-size: 13px; color: var(--a-t2); }
+.count b { color: var(--a-text); font-variant-numeric: tabular-nums; }
+.grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--a-t3); margin: 20px 20px 6px; display: flex; justify-content: space-between; gap: 8px; }
+.list { margin: 0 16px; background: linear-gradient(180deg, var(--a-s1), var(--a-s2)); border-radius: 18px; padding: 2px 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.brow { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--a-hair); }
+.brow:last-child { border-bottom: 0; }
+.brow .bi { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 17px; background: linear-gradient(160deg, rgba(100,210,255,.2), rgba(138,107,255,.2)); }
+.brow.zu .bi { filter: grayscale(1); opacity: .5; background: rgba(255,255,255,.05); }
+.brow .bn { font-size: 14px; line-height: 1.3; }
+.brow .bs { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 2px; font-size: 11.5px; color: var(--a-t3); }
+.brow.zu .bn { color: var(--a-t2); }
+.risk { display: inline-flex; align-items: center; gap: 4px; color: var(--a-warn); font-weight: 500; }
+.risk::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.reset { margin: 16px; display: grid; gap: 8px; }
+.reset p { margin: 0; font-size: 12px; color: var(--a-t3); line-height: 1.45; text-align: center; }
+
+/* ───── 4 · Hoku-Code ───── */
+.mini-prof { padding: 6px 16px 0; }
+.mini-prof .cover { margin: 0; height: 110px; }
+.mini-prof .head { padding: 0 6px; }
+.actions { display: flex; gap: 8px; margin-top: 14px; }
+.actions .btn { flex: 1; }
+.sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.5); z-index: 4; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--a-sheet); border-radius: 28px 28px 0 0; padding: 10px 16px 30px; z-index: 5; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 -10px 40px rgba(0,0,0,.35); }
+.grab { width: 38px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.2); margin: 0 auto 14px; }
+.sheet h4 { margin: 0; font: 600 19px var(--disp); }
+.sheet .sub { color: var(--a-t3); font-size: 13px; margin: 2px 0 14px; }
+.share-main { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; align-items: center; }
+.qr-tap { border: 0; padding: 0; background: none; cursor: pointer; display: grid; gap: 6px; justify-items: center; color: var(--a-t3); font-size: 11.5px; }
+.qr-tap svg { width: 124px; height: 124px; display: block; }
+.share-btns { display: grid; gap: 8px; min-width: 0; }
+.linkrow { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.05); border: 1px solid var(--a-hair); border-radius: 13px; padding: 6px 6px 6px 12px; margin-top: 14px; }
+.linkrow span { flex: 1; min-width: 0; font: 500 13.5px var(--mono); color: var(--a-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.web-on { margin-top: 12px; display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--a-t3); }
+.web-on b { color: var(--good); font-weight: 600; }
+.web-on .nw { white-space: nowrap; }
+
+.qrfull { position: absolute; inset: 0; z-index: 8; display: block; color: var(--qr-ink);
+  background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); }
+.qrfull[hidden] { display: none; }
+.phone.light { background: radial-gradient(90% 60% at 50% 38%, var(--qr-paper), var(--qr-wash)); color: var(--qr-ink); border-color: rgba(18,22,41,.12); }
+.qrfull .top-r, .qr-screen .top-r { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 0; }
+.qbtn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(18,22,41,.07); color: var(--qr-ink); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
+.qr-stage { display: grid; justify-items: center; align-content: center; gap: 14px; padding: 0 20px; text-align: center; }
+.qr-stage svg { width: min(300px, 78vw); height: auto; aspect-ratio: 1; display: block; max-width: 100%; }
+.qr-stage .qn { font: 600 22px/1.15 var(--disp); }
+.qr-stage .qk { font: 500 14px var(--mono); color: var(--qr-t2); margin-top: -10px; }
+.qr-stage .qh { font-size: 14px; color: var(--qr-t2); max-width: 28ch; }
+.qr-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 20px 34px; }
+.qr-bottom button { padding: 12px; border-radius: 14px; border: 0; font: 600 14.5px var(--ui); cursor: pointer; background: rgba(18,22,41,.07); color: var(--qr-ink); }
+.qr-bottom button.pri { background: var(--qr-ink); color: var(--white); }
+.qr-screen { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; }
+.statusbar.dark { color: var(--qr-ink); }
+.bright { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--qr-t2); background: rgba(18,22,41,.06); border-radius: 99px; padding: 5px 10px; }
+.qr-missing { width: 100%; aspect-ratio: 1; display: grid; place-items: center; text-align: center; font-size: 12px; color: var(--qr-t2); border-radius: 50%; background: var(--qr-paper); padding: 20px; }
+
+.result { border-color: rgba(95,224,127,.35); }
+
+@media (max-width: 460px) {
+  body { padding-block: 20px 48px; }
+  .page { gap: 44px; }
+  .row { gap: 22px; }
+  .phone { border-radius: 38px; }
+  .phone.fix { height: 760px; }
+  .share-main { grid-template-columns: 108px minmax(0, 1fr); }
+  .qr-tap svg { width: 108px; height: 108px; }
+}
+@media (prefers-reduced-motion: reduce) { .sw::after { transition: none; } }
+</style>
+
+<div class="page" lang="de">
+
+  <header class="top">
+    <div class="eyebrow">Profil · Teilprojekt 2c · Entwurf 02.11.2026</div>
+    <h1>Geteilter Link, Web-Vorschau und Hoku-Code</h1>
+    <p class="lead">So sieht Maras Profil aus, wenn sie den Link weitergibt: zuerst als Karte im Chat, dann als Seite ohne Anmeldung, dazu der Code zum Vorzeigen. Gezeigt wird nur, was auf „Alle“ steht. Gesundheitswerte, Substanzen und Berichte erscheinen nirgends.</p>
+    <div class="controls">
+      <button type="button" class="ctl" id="ctlName" aria-pressed="true"><span class="sw" role="switch" aria-checked="true" aria-label="Profilbild und Name auf Alle"></span>Profilbild und Name stehen auf „Alle“</button>
+      <span class="fake">Daten erfunden · Mara K. · Start 14.03.2026</span>
+    </div>
+  </header>
+
+  <!-- 1 · Link-Karte -->
+  <section id="karte" aria-labelledby="h-karte">
+    <div class="sec-head">
+      <div class="eyebrow">Entscheidung 1 · nur bei Web-Link an</div>
+      <h2 id="h-karte">Link-Karte im Chat</h2>
+      <p>Profilbild und Name nur, wenn beides auf „Alle“ steht, sonst die neutrale Karte. Dazu ein Element, das Leute ohne Hoku neugierig macht. Drei Varianten zur Wahl, jede nur aus Feldern auf „Alle“. iMessage zeigt Bild, Titel und Domain, WhatsApp zusätzlich die Beschreibung.</p>
+    </div>
+    <div class="chats" id="chats"></div>
+  </section>
+
+  <!-- 2 · Web-Vorschau -->
+  <section id="web" aria-labelledby="h-web">
+    <div class="sec-head">
+      <div class="eyebrow">Entscheidung 2 · ohne Anmeldung</div>
+      <h2 id="h-web">Web-Vorschau hoku.app/u/mara</h2>
+      <p>Eine feste Seite, ganz gezeigt. Die Abzeichen darauf folgen den Schaltern in Abschnitt 3. Rechts daneben dieselbe Adresse mit Web-Link aus oder privatem Profil.</p>
+    </div>
+    <div class="row">
+      <div class="frame-col"><div class="frame-cap">Web-Link an</div><div class="phone" id="webOn"></div></div>
+      <div class="frame-col"><div class="frame-cap">Web-Link aus · Profil privat · Name unbekannt</div><div class="phone" id="webOff"></div></div>
+      <div class="aside">
+        <div class="box"><h3>Zeigt, jeweils nur bei „Alle“</h3>
+          <ul><li>Titelbild, Profilbild, Name, Flagge mit Kürzel</li><li>Ziel-Tags, Streak</li><li>Gesamtfortschritt: Leitzahl und Bereichsbalken wie die 2b-Karte</li><li>Abzeichen, die für das Web freigegeben sind</li><li>Anzahl der Erfahrungsberichte als Hinweis, ohne Inhalt</li></ul></div>
+        <div class="box"><h3>Zeigt nie</h3>
+          <ul><li>Gesundheitswerte, Blutwerte, Körperwerte im Einzelnen</li><li>Substanzen, Stack, Einnahmen</li><li>Erfahrungsberichte, auch keine Anrisse oder Titel</li><li>Story, Bio, Freunde</li></ul></div>
+        <div class="box"><h3>„In Hoku öffnen“</h3>
+          <p>Universal Link (iOS) bzw. App Link (Android): Ist Hoku installiert, öffnet die App direkt Maras Profil. Sonst geht es in den App Store oder zu Google Play. Braucht <code>apple-app-site-association</code> und <code>assetlinks.json</code> auf hoku.app und ein App-Update.</p></div>
+        <div class="box"><h3>Nicht gefunden</h3>
+          <p>Gleiche Seite, gleicher Status 404 und gleiche Link-Karte für: Web-Link aus, Profil privat, Name gibt es nicht. Von außen ist nicht zu erkennen, ob es das Konto gibt.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Abzeichen im Web -->
+  <section id="abzeichen" aria-labelledby="h-abz">
+    <div class="sec-head">
+      <div class="eyebrow">Entscheidung 3 · Einstellungen › Web-Link</div>
+      <h2 id="h-abz">Abzeichen im Web</h2>
+      <p>Je Abzeichen ein Schalter. Ab Werk an: Beständigkeit, Training, Gemeinschaft und harmlose Meilensteine. Ab Werk aus: alles zu Blut, Zyklen, Einnahmen und Körperwerten, mit dem Hinweis „verrät Gesundheitsdaten“. Die Schalter wirken sofort auf die Web-Vorschau und auf die Anzahl in Karte A.</p>
+    </div>
+    <div class="row">
+      <div class="frame-col"><div class="frame-cap">Profil › ⚙︎ › Web-Link › Abzeichen im Web</div><div class="phone fix"><div class="scroll" id="badgeSet"></div></div></div>
+      <div class="aside">
+        <div class="box"><h3>Ab Werk aus (heikel)</h3>
+          <ul id="riskList"></ul></div>
+        <div class="box"><h3>Was die Schalter nicht ändern</h3>
+          <p>Freunde und angemeldete Hoku-Nutzer sehen Abzeichen weiter nach der Stufe im Profil (2b). Der Schalter gilt nur für die Seite ohne Anmeldung und die Link-Karte. Noch nicht verdiente Abzeichen lassen sich vorab einstellen und erscheinen erst, wenn sie verdient sind.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Hoku-Code -->
+  <section id="code" aria-labelledby="h-code">
+    <div class="sec-head">
+      <div class="eyebrow">Entscheidung 4 · im Sheet „Profil teilen“</div>
+      <h2 id="h-code">Hoku-Code</h2>
+      <p>Ein echter QR-Code mit Inhalt <span class="mono">https://hoku.app/u/mara</span>, Fehlerkorrektur H. Rund gesetzt, Punkte statt Quadrate, Suchmarken als abgerundete Ringe, Hoku in der Mitte, Farbverlauf am Rand. Den kleinen Code antippen öffnet das Vollbild.</p>
+    </div>
+    <div class="row">
+      <div class="frame-col"><div class="frame-cap">Profil teilen</div><div class="phone fix" id="sharePhone"></div></div>
+      <div class="frame-col"><div class="frame-cap">Vollbild zum Vorzeigen</div><div class="phone fix light" id="fullPhone"></div></div>
+      <div class="aside">
+        <div class="box result" id="readTest"><h3>Lesetest</h3>
+          <p>Gerendert mit Chromium (Playwright), Bildschirmfoto dekodiert mit <code>jsQR 1.4.0</code> und <code>ZXing 0.21.3</code>. Inhalt in jedem Fall: <code>https://hoku.app/u/mara</code>.</p>
+          <ul style="margin-top:8px">
+            <li>Vollbild, 300 px: <span class="ok">gelesen</span> (beide)</li>
+            <li>Sheet, 124 px: <span class="ok">gelesen</span> (beide)</li>
+            <li>Vollbild halbe Auflösung, weichgezeichnet und als JPEG: <span class="ok">gelesen</span> (beide)</li>
+            <li>Vollbild um 17° gedreht: jsQR <span class="ok">gelesen</span>, ZXing nicht (Prüfsummenfehler). Handykameras lesen gedrehte Codes in der Regel; vor dem Bau am echten Gerät prüfen.</li>
+          </ul></div>
+        <div class="box"><h3>Aufbau</h3>
+          <ul><li>Matrix aus <code>qrcode-generator 1.4.4</code>, selbst als SVG gezeichnet: Datenmodule als Punkte, die drei Suchmarken als runde Ringe mit Kern.</li>
+            <li>Rund um das Quadrat bleibt ein Modul frei. Dahinter füllen helle Punkte im Hoku-Verlauf den Kreis. Sie tragen keine Daten und sind so hell, dass Kameras sie als Hintergrund lesen.</li>
+            <li>Mitte: Hoku-App-Symbol in einer Aussparung von etwa 7 % der Fläche. Fehlerkorrektur H gleicht bis zu 30 % aus.</li>
+            <li>Immer dunkel auf hell, auch im dunklen Sheet. Im Vollbild wird die Bildschirmhelligkeit hochgesetzt.</li></ul></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const ICON = 'data:image/jpeg;base64,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';
+const SYMW = 'data:image/png;base64,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';
+const URL_ = 'https://hoku.app/u/mara';
+
+// ── Daten (erfunden, wie 2b) ──
+const PERSON = { name: 'Mara K.', vor: 'Mara', nick: 'mara', land: '🇩🇪 DE', tags: ['Recomp', 'Kraft', 'Longevity', 'Blutwerte optimieren', 'Schlaf & Erholung'], streak: 41, reviews: 12, start: '14.03.2026' };
+// Gesamtfortschritt aus den 2b-Beispielwerten: Mittel der Bereiche
+const AREAS = [['Körper', 7.66], ['Blut', 58.33], ['Training', 32.61], ['Einnahmen', 16.05], ['Erholung & Fitness', 47.88]];
+const TOTAL = AREAS.reduce((a, [, v]) => a + v, 0) / AREAS.length;
+
+// Abzeichen aus src/features/profil/lib/badges.ts (Branch profil-p2b-fortschritt): id, Gruppe, Symbol, Name (de)
+// earned: wie in profil-2b.html; risk: verraet Gesundheitsdaten (Blut, Zyklen, Einnahmen, Koerperwerte) -> ab Werk aus
+const BADGES = [
+  ['streak_7', 'bestaendigkeit', '🔥', '7 Tage ohne Lücke', 1], ['streak_30', 'bestaendigkeit', '🔥', '30 Tage ohne Lücke', 1],
+  ['streak_100', 'bestaendigkeit', '🔥', '100 Tage ohne Lücke', 0], ['streak_365', 'bestaendigkeit', '🔥', '365 Tage ohne Lücke', 0],
+  ['training_weeks_4', 'bestaendigkeit', '🏋️', '4 Wochen Training in Folge', 1], ['training_weeks_12', 'bestaendigkeit', '🏋️', '12 Wochen Training in Folge', 1],
+  ['training_weeks_52', 'bestaendigkeit', '🏋️', '52 Wochen Training in Folge', 0],
+  ['intake_all_30', 'bestaendigkeit', '💊', '30 Tage alle Einnahmen bestätigt', 0, 'Einnahmen'],
+  ['weighed_weeks_8', 'bestaendigkeit', '⚖️', '8 Wochen jede Woche gewogen', 1],
+  ['first_daily_log', 'meilensteine', '✍️', 'Erster Tageseintrag', 1], ['first_measurement', 'meilensteine', '📏', 'Erste Umfangsmessung', 1],
+  ['first_bloodwork', 'meilensteine', '🩸', 'Erstes Blutbild', 1, 'Blut'], ['bloodwork_3', 'meilensteine', '🩸', '3 Blutbilder', 1, 'Blut'],
+  ['workouts_10', 'meilensteine', '🏋️', '10 Workouts', 1], ['workouts_50', 'meilensteine', '🏋️', '50 Workouts', 1],
+  ['workouts_100', 'meilensteine', '🏋️', '100 Workouts', 0], ['workouts_250', 'meilensteine', '🏋️', '250 Workouts', 0],
+  ['first_cycle_done', 'meilensteine', '🔁', 'Erster Zyklus abgeschlossen', 1, 'Zyklen'],
+  ['wearable_connected', 'meilensteine', '⌚', 'Wearable verbunden', 1], ['profile_complete', 'meilensteine', '🪪', 'Profil vollständig', 0],
+  ['first_progress_photo', 'meilensteine', '📸', 'Erstes Fortschrittsfoto', 0],
+  ['body_fat_5', 'fortschritt', '📉', '−5 % Körperfett', 1, 'Körperwerte'], ['body_fat_10', 'fortschritt', '📉', '−10 % Körperfett', 1, 'Körperwerte'],
+  ['body_fat_20', 'fortschritt', '📉', '−20 % Körperfett', 0, 'Körperwerte'], ['weight_5', 'fortschritt', '⚖️', '−5 % Gewicht', 0, 'Körperwerte'],
+  ['first_pr', 'fortschritt', '🏆', 'Neue Bestleistung', 1], ['pr_3_month', 'fortschritt', '🏆', '3 Bestleistungen in einem Monat', 0],
+  ['all_markers_in_range', 'fortschritt', '🎯', 'Alle Blutwerte im Zielbereich', 0, 'Blut'],
+  ['resting_hr_5', 'fortschritt', '❤️', 'Ruhepuls −5 bpm', 1, 'Körperwerte'], ['steps_week_10k', 'fortschritt', '🚶', 'Eine Woche Ø 10.000 Schritte', 0],
+  ['progress_10', 'fortschritt', '📈', 'Gesamtfortschritt +10 %', 1], ['progress_25', 'fortschritt', '📈', 'Gesamtfortschritt +25 %', 1],
+  ['progress_50', 'fortschritt', '📈', 'Gesamtfortschritt +50 %', 0],
+  ['first_review', 'gemeinschaft', '📝', 'Erster Erfahrungsbericht', 1], ['reviews_5', 'gemeinschaft', '📝', '5 Erfahrungsberichte', 1],
+  ['reviews_25', 'gemeinschaft', '📝', '25 Erfahrungsberichte', 0], ['profile_shared', 'gemeinschaft', '🔗', 'Profil geteilt', 1],
+  ['first_friend', 'gemeinschaft', '👥', 'Erster Freund', 0], ['friends_10', 'gemeinschaft', '👥', '10 Freunde', 0],
+].map(([id, group, icon, name, earned, risk]) => ({ id, group, icon, name, earned: !!earned, risk: risk || null }));
+const GROUPS = [['bestaendigkeit', 'Beständigkeit'], ['meilensteine', 'Meilensteine'], ['fortschritt', 'Fortschritt'], ['gemeinschaft', 'Gemeinschaft']];
+const DEFAULT_WEB = () => new Set(BADGES.filter(b => !b.risk).map(b => b.id));
+
+const st = { nameAlle: true, web: DEFAULT_WEB(), qrOpen: false };
+const webBadges = () => BADGES.filter(b => b.earned && st.web.has(b.id));
+
+// ── Hilfen ──
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const de1 = x => x.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const pct = x => (x >= 0 ? '+' : '−') + de1(Math.abs(x)) + ' %';
+const sw = (key, on, label) => `<button type="button" class="sw" role="switch" aria-checked="${on}" aria-label="${esc(label)}" data-sw="${key}"></button>`;
+const brand = () => `<span class="brand"><img src="${SYMW}" alt="">HOKU</span>`;
+
+// ── 1 · Link-Karten ──
+function ogImage(v) {
+  const wb = webBadges();
+  if (v === 'n') return `<div class="og neutral" role="img" aria-label="Vorschaubild: Hoku"><div class="n-center"><img src="${ICON}" alt=""><div><b>HOKU</b><span>Fortschritt gegenüber deinem eigenen Start.</span></div></div></div>`;
+  const who = `<div class="who"><div class="ava">M</div><div class="nm">${PERSON.name}</div></div>`;
+  if (v === 'a') return `<div class="og" role="img" aria-label="Vorschaubild Variante A">${brand()}${who}
+      <div class="right"><div class="huge">${pct(TOTAL)}</div><div class="lbl">Gesamtfortschritt seit März</div>
+      <div class="icons">${wb.slice(0, 4).map(b => `<i>${b.icon}</i>`).join('')}<span>${wb.length} Abzeichen</span></div></div>
+      <div class="addr">hoku.app/u/mara</div></div>`;
+  if (v === 'b') return `<div class="og" role="img" aria-label="Vorschaubild Variante B">${brand()}${who}
+      <div class="right"><div class="huge"><span class="emo">🔥</span> ${PERSON.streak}</div><div class="lbl">Tage in Folge dabei</div>
+      <div class="chips">${PERSON.tags.slice(0, 3).map(t => `<span>${t}</span>`).join('')}<span>+${PERSON.tags.length - 3}</span></div></div>
+      <div class="addr">hoku.app/u/mara</div></div>`;
+  return `<div class="og" role="img" aria-label="Vorschaubild Variante C">${brand()}${who}
+      <div class="say"><p>${PERSON.vor} nutzt Hoku, um ihren Fortschritt zu sehen.</p><span class="pill">Profil ansehen</span></div>
+      <div class="addr">hoku.app/u/mara</div></div>`;
+}
+function meta(v) {
+  const n = webBadges().length;
+  if (v === 'n') return { t: 'Hoku', d: 'Training, Messungen und Routinen an einem Ort. Fortschritt gegenüber deinem eigenen Start.' };
+  if (v === 'a') return { t: `${PERSON.name} auf Hoku: ${pct(TOTAL)} seit März`, d: `${n} Abzeichen. Sieh dir Maras Profil an oder lade Hoku.` };
+  if (v === 'b') return { t: `${PERSON.name}: ${PERSON.streak} Tage in Folge`, d: `Ziele: ${PERSON.tags.slice(0, 3).join(', ')}. Sieh dir Maras Profil auf Hoku an.` };
+  return { t: `${PERSON.name} nutzt Hoku`, d: `${PERSON.vor} nutzt Hoku, um ihren Fortschritt zu sehen. Schau dir ihr Profil an.` };
+}
+const VARIANTS = [
+  { v: 'a', k: 'Variante A', h: 'Fortschritt', p: 'Die Leitzahl groß im Bild, dazu wie viele Abzeichen Mara hat.', uses: 'Profilbild, Name, Gesamtfortschritt, Anzahl der Web-Abzeichen', fb: 'Steht der Gesamtfortschritt nicht auf „Alle“: Karte C.',
+    pro: 'Eine Zahl macht am ehesten neugierig.', con: 'Ohne Zusammenhang kann sie wie ein Werbeversprechen wirken.' },
+  { v: 'b', k: 'Variante B', h: 'Dranbleiben', p: 'Streak groß im Bild, dazu die ersten Ziel-Tags.', uses: 'Profilbild, Name, Streak, Ziel-Tags', fb: 'Steht der Streak nicht auf „Alle“: Karte C.',
+    pro: 'Dranbleiben ist unverfänglich und leicht zu verstehen.', con: 'Ein Tag „Blutwerte optimieren“ kann im Bild landen, wenn Mara ihn wählt.' },
+  { v: 'c', k: 'Variante C', h: 'Einladung', p: 'Ein Satz, der Mara mit Hoku verbindet, und ein Knopf zum Ansehen.', uses: 'Profilbild, Name', fb: 'Braucht nur Bild und Name, geht also immer, wenn die Karte persönlich sein darf.',
+    pro: 'Zeigt am wenigsten und funktioniert für jedes Profil.', con: 'Keine Zahl, also weniger Anreiz zum Tippen.' },
+  { v: 'n', k: 'Ersatz', h: 'Neutrale Karte', p: 'Kein Bild, kein Name, keine Zahl. Dieselbe Karte wie für jede unbekannte Adresse unter hoku.app/u/.', uses: 'nichts aus dem Profil', fb: 'Erscheint, wenn Bild oder Name nicht auf „Alle“ stehen, der Web-Link aus ist oder es den Namen nicht gibt.',
+    pro: '', con: '' },
+];
+function renderChats() {
+  $('#chats').innerHTML = VARIANTS.map(V => {
+    const shown = V.v === 'n' || st.nameAlle ? V.v : 'n';
+    const m = meta(shown);
+    return `<div class="chat-col">
+      <div class="chat" aria-label="Chat-Ausschnitt ${V.k}">
+        <div class="chat-head"><span class="av">M</span><div>Mara<small>online</small></div></div>
+        <div class="chat-body">
+          <div class="msg">Mein Profil, falls du sehen willst, was ich so mache<time>14:31</time></div>
+          <div class="msg cont big"><div class="prev">${ogImage(shown)}<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hoku.app</small></div></div>
+            <span class="url">${URL_}</span><time>14:32</time></div>
+        </div>
+      </div>
+      <div class="cap">
+        <h3><span class="k">${V.k}</span>${V.h}</h3>
+        ${shown !== V.v ? `<div class="fallback-note">Profilbild oder Name nicht auf „Alle“: es erscheint die neutrale Karte.</div>` : ''}
+        <p>${V.p}</p>
+        <div class="uses"><b>Nutzt:</b> ${V.uses}. ${V.fb}</div>
+        ${V.pro ? `<div class="pc"><span>${V.pro}</span><span class="m">${V.con}</span></div>` : ''}
+      </div></div>`;
+  }).join('');
+}
+
+// ── 2 · Web-Vorschau ──
+function ringSvg(v) {
+  const r = 44, c = 2 * Math.PI * r, f = Math.max(0, Math.min(1, Math.abs(v) / 100));
+  return `<svg viewBox="0 0 104 104" aria-hidden="true"><defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#8a6bff"/></linearGradient></defs>
+    <circle cx="52" cy="52" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/>
+    <circle cx="52" cy="52" r="${r}" fill="none" stroke="url(#gr)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c * f} ${c}"/></svg>`;
+}
+const balken = v => `<div class="track"><span class="mid"></span><i style="left:30%;width:${Math.min(v * .7, 70)}%"></i></div>`;
+const aboutHoku = () => `<div class="about">
+    <h3>Was ist Hoku?</h3>
+    <p>Hoku ist ein persönliches Logbuch für Training, Körpermessungen, Blutwerte und Einnahmepläne, dazu Daten aus Apple Health oder Health Connect. Die App zeigt dir, was sich seit deinem eigenen Start verändert hat.</p>
+    <ul><li>Du entscheidest für jedes Feld, wer es sieht. Ab Werk ist fast alles privat.</li>
+      <li>Kein Vergleich mit anderen. Fortschritt heißt bei Hoku: du gegenüber deinem Start.</li>
+      <li>Hoku stellt keine Diagnosen und ersetzt keine ärztliche Beratung.</li></ul>
+    <div class="stores"><button type="button" class="store"><small>Für iPhone</small><b>App Store</b></button><button type="button" class="store"><small>Für Android</small><b>Google Play</b></button></div>
+  </div>
+  <div class="foot"><span>Impressum</span><span>Datenschutz</span><span>Profil melden</span></div>`;
+const webTop = () => `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="urlbar"><span aria-hidden="true">🔒</span><span><b>hoku.app</b>/u/mara</span></div>
+  <div class="webhead"><span class="wordmark"><img src="${SYMW}" alt="">HOKU</span><button type="button" class="btn sm ghost">App laden</button></div>`;
+function renderWebOn() {
+  const wb = webBadges();
+  $('#webOn').innerHTML = `${webTop()}
+    <div class="cover" role="img" aria-label="Titelbild"></div>
+    <div class="head"><div class="avatar">M</div><div class="who"><div class="name">${PERSON.name}<span class="land">${PERSON.land}</span></div><div class="nick">@${PERSON.nick}</div></div></div>
+    <div class="tags">${PERSON.tags.map(t => `<span class="chip">${t}</span>`).join('')}</div>
+    <div class="streak">🔥 <b>${PERSON.streak} Tage</b> in Folge dabei</div>
+    <div class="cta"><button type="button" class="btn">In Hoku öffnen</button>
+      <p>${PERSON.reviews} Erfahrungsberichte und weitere Werte nur in der App.</p></div>
+    <div class="webbody">
+      <div class="card"><h3>Gesamtfortschritt<span class="sub">seit ${PERSON.start}</span></h3>
+        <div class="total"><div class="ring">${ringSvg(TOTAL)}<div class="num"><b>${pct(TOTAL)}</b><small>positive<br>Veränderung</small></div></div>
+          <div class="parts">${AREAS.map(([n, v]) => `<div class="part"><div class="r"><span>${n}</span><b>${pct(v)}</b></div>${balken(v)}</div>`).join('')}</div></div>
+        <div class="small-note">Gegenüber Maras eigenem Start, nie gegenüber anderen.</div></div>
+      <div class="card"><h3>Abzeichen<span class="sub">${wb.length}</span></h3>
+        ${wb.length ? `<div class="bgrid">${wb.map(b => `<div class="badge"><div class="ic">${b.icon}</div>${b.name}</div>`).join('')}</div>` : `<div class="empty">Keine Abzeichen freigegeben.</div>`}</div>
+    </div>
+    ${aboutHoku()}`;
+}
+function renderWebOff() {
+  $('#webOff').innerHTML = `${webTop()}
+    <div class="nf"><div class="code">404</div><h3>Seite nicht gefunden</h3><p>Unter dieser Adresse gibt es kein Profil zu sehen. Prüf den Link oder frag nach einem neuen.</p></div>
+    ${aboutHoku()}`;
+}
+
+// ── 3 · Abzeichen im Web ──
+function renderBadgeSet() {
+  const earned = BADGES.filter(b => b.earned).length;
+  let h = `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar"><span class="icb" aria-hidden="true">‹</span><span class="ttl">Abzeichen im Web</span><span class="icb leer"></span></div>
+    <div class="set-intro">Gilt für hoku.app/u/mara und die Link-Karte im Chat. Abzeichen, die etwas über Blut, Zyklen, Einnahmen oder Körperwerte verraten, sind ab Werk aus.</div>
+    <div class="count"><span>Im Web sichtbar</span><span><b>${webBadges().length}</b> von ${earned} verdienten</span></div>`;
+  for (const [g, label] of GROUPS) {
+    const bs = BADGES.filter(b => b.group === g);
+    h += `<div class="grp"><span>${label}</span><span>${bs.filter(b => st.web.has(b.id)).length}/${bs.length} an</span></div><div class="list">`;
+    h += bs.map(b => `<div class="brow ${b.earned ? '' : 'zu'}"><div class="bi" aria-hidden="true">${b.icon}</div>
+      <div><div class="bn">${b.name}</div><div class="bs">${b.risk ? `<span class="risk" title="${b.risk}">verrät Gesundheitsdaten</span>` : ''}<span>${b.earned ? 'verdient' : 'noch nicht verdient'}</span></div></div>
+      ${sw('b:' + b.id, st.web.has(b.id), b.name + ' im Web zeigen')}</div>`).join('');
+    h += `</div>`;
+  }
+  h += `<div class="reset"><button type="button" class="btn ghost" data-act="reset">Auf Standard zurücksetzen</button>
+    <p>Standard: Beständigkeit, Training, Gemeinschaft und Meilensteine ohne Gesundheitsbezug an, der Rest aus.</p></div>`;
+  const sc = $('#badgeSet'), y = sc.scrollTop;
+  sc.innerHTML = h; sc.scrollTop = y;
+}
+function renderRiskList() {
+  const by = {};
+  BADGES.filter(b => b.risk).forEach(b => (by[b.risk] = by[b.risk] || []).push(b.name));
+  $('#riskList').innerHTML = Object.entries(by).map(([k, ns]) => `<li><b>${k}:</b> ${ns.join(', ')}</li>`).join('');
+}
+
+// ── 4 · Hoku-Code ──
+// Matrix aus qrcode-generator (Fehlerkorrektur H), gezeichnet als SVG: Punkte, runde Suchmarken, Aussparung mit Logo, Fuellpunkte im Verlauf bis zum Kreisrand.
+let qrCount = 0;
+function hokuCode(text, label) {
+  if (typeof qrcode === 'undefined') return `<div class="qr-missing">QR-Bibliothek nicht geladen (cdnjs). Seite neu laden.</div>`;
+  const qr = qrcode(0, 'H'); qr.addData(text); qr.make();
+  const n = qr.getModuleCount(), h = n / 2, id = 'hq' + (++qrCount);
+  const R = h * Math.SQRT2 + 2.4;          // Kreis umschliesst das Quadrat samt Rand
+  const LOGO = 3.9;                         // Aussparung (Module) um die Mitte
+  const finder = (x, y) => (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
+  let dots = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    if (!qr.isDark(y, x) || finder(x, y)) continue;
+    const cx = x - h + .5, cy = y - h + .5;
+    if (Math.hypot(cx, cy) < LOGO) continue;
+    dots += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r=".43"/>`;
+  }
+  // Fuellpunkte: ausserhalb des Quadrats plus ein freies Modul, deterministisch aus dem Text
+  let seed = 2166136261; for (const c of text) seed = Math.imul(seed ^ c.charCodeAt(0), 16777619);
+  const rnd = () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return ((seed >>> 0) % 1000) / 1000; };
+  let fill = '';
+  const span = Math.ceil(R);
+  for (let y = -span; y < n + span; y++) for (let x = -span; x < n + span; x++) {
+    if (x >= -1 && x <= n && y >= -1 && y <= n) continue;
+    const cx = x - h + .5, cy = y - h + .5;
+    if (Math.hypot(cx, cy) > R - 1.3) continue;
+    if (rnd() < .5) fill += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r=".36"/>`;
+  }
+  const fm = (x, y) => {
+    const px = x - h, py = y - h;
+    return `<rect x="${px + .5}" y="${py + .5}" width="6" height="6" rx="2.2" fill="none" stroke="var(--qr-ink)" stroke-width="1"/>
+      <rect x="${px + 2}" y="${py + 2}" width="3" height="3" rx="1.1" fill="url(#${id}c)"/>`;
+  };
+  return `<svg viewBox="${-R} ${-R} ${2 * R} ${2 * R}" role="img" aria-label="${esc(label)}">
+    <defs>
+      <linearGradient id="${id}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset=".55" stop-color="#8a6bff"/><stop offset="1" stop-color="#ff6fb5"/></linearGradient>
+      <linearGradient id="${id}f" gradientUnits="userSpaceOnUse" x1="${-R}" y1="${-R}" x2="${R}" y2="${R}"><stop offset="0" stop-color="#a9e6ff"/><stop offset=".55" stop-color="#cfc3ff"/><stop offset="1" stop-color="#ffc4e2"/></linearGradient>
+      <linearGradient id="${id}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d3a8a"/><stop offset="1" stop-color="#3a1f78"/></linearGradient>
+      <clipPath id="${id}l"><circle r="${LOGO - .75}"/></clipPath>
+    </defs>
+    <circle r="${R}" fill="var(--qr-paper)"/>
+    <circle r="${R - .45}" fill="none" stroke="url(#${id}r)" stroke-width=".7"/>
+    <g fill="url(#${id}f)">${fill}</g>
+    <g fill="var(--qr-ink)">${dots}</g>
+    ${fm(0, 0)}${fm(n - 7, 0)}${fm(0, n - 7)}
+    <circle r="${LOGO - .3}" fill="var(--qr-paper)" stroke="url(#${id}r)" stroke-width=".35"/>
+    <image href="${ICON}" x="${-(LOGO - .75)}" y="${-(LOGO - .75)}" width="${2 * (LOGO - .75)}" height="${2 * (LOGO - .75)}" clip-path="url(#${id}l)" preserveAspectRatio="xMidYMid slice"/>
+  </svg>`;
+}
+function qrScreen(closeable) {
+  return `<div class="qr-screen">
+    <div class="statusbar dark"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="top-r">${closeable ? `<button type="button" class="qbtn" data-act="qrclose" aria-label="Schließen">✕</button>` : `<span class="qbtn" aria-hidden="true">✕</span>`}<span class="bright">☀︎ Helligkeit hoch</span></div>
+    <div class="qr-stage">${hokuCode(URL_, 'Hoku-Code für hoku.app/u/mara')}
+      <div class="qn">${PERSON.name}</div><div class="qk">@${PERSON.nick}</div>
+      <div class="qh">Mit der Handykamera scannen. Öffnet Maras Profil in Hoku oder im Browser.</div></div>
+    <div class="qr-bottom"><button type="button" class="pri">Teilen …</button><button type="button" data-act="copy">Link kopieren</button></div>
+  </div>`;
+}
+function renderShare() {
+  $('#sharePhone').innerHTML = `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar"><span class="icb leer"></span><span class="ttl">Profil</span><span class="icb" aria-hidden="true">⚙︎</span></div>
+    <div class="mini-prof"><div class="cover"></div>
+      <div class="head"><div class="avatar">M</div><div class="who"><div class="name">${PERSON.name}<span class="land">${PERSON.land}</span></div><div class="nick">@${PERSON.nick}</div></div></div>
+      <div class="actions"><button type="button" class="btn">Profil teilen</button><button type="button" class="btn ghost">Bearbeiten</button></div></div>
+    <div class="sheet-bg"></div>
+    <div class="sheet" role="dialog" aria-label="Profil teilen"><div class="grab"></div>
+      <h4>Profil teilen</h4><div class="sub">Wer den Link öffnet, sieht deine Felder auf „Alle“.</div>
+      <div class="share-main">
+        <button type="button" class="qr-tap" data-act="qropen" aria-label="Hoku-Code im Vollbild zeigen">${hokuCode(URL_, 'Hoku-Code klein')}<span>Antippen zum Vorzeigen</span></button>
+        <div class="share-btns"><button type="button" class="btn">Teilen …</button><button type="button" class="btn ghost" data-act="copy">Link kopieren</button></div>
+      </div>
+      <div class="linkrow"><span>hoku.app/u/mara</span><button type="button" class="btn sm ghost" data-act="copy">Kopieren</button></div>
+      <div class="web-on"><span>Web-Link <b>an</b> · Karte mit Bild und Name</span><span class="nw">Ändern ›</span></div>
+    </div>
+    <div class="qrfull" id="qrOverlay" ${st.qrOpen ? '' : 'hidden'}>${qrScreen(true)}</div>`;
+  $('#fullPhone').innerHTML = qrScreen(false);
+}
+
+function renderAll() { renderChats(); renderWebOn(); renderWebOff(); renderBadgeSet(); renderRiskList(); renderShare(); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.id === 'ctlName') {
+    st.nameAlle = !st.nameAlle; t.setAttribute('aria-pressed', st.nameAlle); t.querySelector('.sw').setAttribute('aria-checked', st.nameAlle);
+    return renderChats();
+  }
+  if (t.dataset.sw && t.dataset.sw.startsWith('b:')) {
+    const id = t.dataset.sw.slice(2);
+    st.web.has(id) ? st.web.delete(id) : st.web.add(id);
+    renderBadgeSet(); renderWebOn(); renderChats(); return;
+  }
+  if (t.dataset.act === 'reset') { st.web = DEFAULT_WEB(); renderBadgeSet(); renderWebOn(); renderChats(); return; }
+  if (t.dataset.act === 'qropen') { st.qrOpen = true; $('#qrOverlay').hidden = false; return; }
+  if (t.dataset.act === 'qrclose') { st.qrOpen = false; $('#qrOverlay').hidden = true; return; }
+  if (t.dataset.act === 'copy') {
+    const done = () => { const o = t.textContent; t.textContent = 'Kopiert'; setTimeout(() => { t.textContent = o; }, 1400); };
+    try { navigator.clipboard.writeText(URL_).then(done, () => {}); } catch (_) { /* Zwischenablage gesperrt: nichts melden */ }
+  }
+});
+renderAll();
+</script>
