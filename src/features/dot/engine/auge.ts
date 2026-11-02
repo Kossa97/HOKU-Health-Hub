@@ -176,8 +176,18 @@ export function augePunkt(a: Auge, x: number, y: number, z: number, iris: boolea
   const bedeckt = pb < kante
 
   if (dd <= 0.5) {
-    // dahinter: was durch die Pupille zu sehen wäre, verschwindet
-    if (!bedeckt) aus[2] = 1 - 0.97 * (1 - glatt(rp * 0.85, rp * 1.05, Math.hypot(pa, pb))) * offen
+    // dahinter: was der Betrachter durch die Pupille sähe, verschwindet. Gemessen auf dem Bildschirm, nicht in
+    // der Pupillenebene; sonst fehlt auch die Stelle gegenüber der Pupille, und die sieht man, wenn er wegschaut
+    const vorn = clamp01(G[2] * 5)
+    if (z < 0 && vorn > 0) {
+      const tief = Math.sqrt(Math.max(0, 1 - rp * rp)), dx = x - G[0] * tief, dy = y - G[1] * tief
+      const det = rx[0] * uy[1] - rx[1] * uy[0]
+      if (Math.abs(det) > 1e-3) {
+        // Lage in der Pupille: dx, dy = u·rx + v·uy (auf den Bildschirm projiziert)
+        const u = (dx * uy[1] - dy * uy[0]) / det, v = (rx[0] * dy - rx[1] * dx) / det
+        if (v >= a.lidKante - 1.1 * u * u) aus[2] = 1 - 0.97 * (1 - glatt(rp * 0.85, rp * 1.05, Math.hypot(u, v))) * offen * vorn
+      }
+    }
   } else {
     const r = Math.hypot(pa, pb), aussen = rp * 1.3
     if (!bedeckt && r < aussen) {

@@ -97,6 +97,14 @@ describe('Wegdrehen (Passwort)', () => {
     for (let i = 0; i < 120; i++) augeSchritt(a, 1 / 60, e)
     expect(a.yaw).toBeGreaterThan(Math.PI / 2)
     expect(a.G[2]).toBeLessThan(0)
+    // kein Loch auf der Seite, die er dem Betrachter zuwendet (gegenüber der Pupille)
+    const aus = [0, 0, 0, 0, 0]
+    for (const [x, y] of [[0, 0], [0.05, 0.03], [-0.1, 0.1]]) {
+      augePunkt(a, x, y, Math.sqrt(1 - x * x - y * y), false, 0, aus)
+      expect(aus[2], `${x} ${y}`).toBe(1)
+      augePunkt(a, x, y, -Math.sqrt(1 - x * x - y * y), false, 0, aus)
+      expect(aus[2], `hinten ${x} ${y}`).toBe(1)
+    }
     for (let i = 0; i < 120; i++) augeSchritt(a, 1 / 60, { ...e, weg: 0 })
     expect(Math.abs(a.yaw)).toBeLessThan(0.1)
   })
