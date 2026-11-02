@@ -105,3 +105,10 @@ iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-
 als Dateien: 1400 Partikel, Größenstreuung 0,9, Raster gelockert 0,45, Blick leicht nach oben
 rechts; SVG + transparente PNG farbig/weiß/schwarz bis 8192 px, App-Icon
 (`docs/logo/hoku/A-hoku-echt`, 8192er nicht im Repo). Noch nicht in die App eingebaut.
+
+**App-Logo aus dem H-Monogramm (02.11.2026):** Pupillen-Versuche (Monogramm als Hokus Pupille,
+`docs/logo/hoku/monogramm`) vom Nutzer verworfen. Neuer Anlauf: das Monogramm selbst als Logo
+(`docs/logo/hoku/h-logo/h_logo.py`, exakt symmetrisch, optisch mittig, Strich 0,19, Cyan-Verlauf
+#e9fdff → #68e6fc → #0096c0 auf dunkler Kachel). **Nutzer: „A merken"** → Favorit ist **A · Linie**
+(`h-logo/konzepte/a-*`). Danach Wunsch: Fassung B (Partikel) als Hoku, der sich zum Monogramm
+formt bzw. es als Emote zeigt.

@@ -115,7 +115,8 @@ window.renderHoku = function (o) {
   const sh = (t, src) => { const x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); return x }
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr)
   const data = [], dotR = 0.034 * R, bright = o.bright ?? 0.85
-  for (const p of hokuPunkte(o)) {
+  // eigene Punktliste (Emote, Verwandlung): o.punkte, sonst Hokus Kugel mit Auge
+  for (const p of (o.punkte || (o.emote ? EMOTE(o) : hokuPunkte(o)))) {
     if (p.sicht < 0.003) continue
     let c = o.einfarbig || farbe(p.X, p.Y, o.hue ?? 0.45, p.sicht, o.pal)
     if (o.kanteWeiss && !o.einfarbig && p.licht > 1) { const q = Math.min(1, (p.licht - 1) * o.kanteWeiss); c = c.map((v, k) => v + ((o.weiss || [255, 255, 255])[k] - v) * q) }
