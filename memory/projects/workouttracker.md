@@ -161,6 +161,18 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - Pläne mit Zeitplan brauchen eine eigene Tabelle; vorhandene Ordnernamen werden
   übernommen, `folder` bleibt stehen. Migration nach Datenbankregel (Trockenlauf, Zustimmung).
 - Reihenfolge: Favoriten → Mehrfachauswahl/Kopieren → Pläne mit Zeitplan.
+- **Gebaut (Branch `claude/training-plaene`, 31.10.–2.11.2026), alles zusammen nach main (Wunsch):**
+  Wochenleiste/„Heute" in Kalender-Optik (App-Akzent statt Orange auf „Heute"); Favoriten
+  (`lib/favorites.ts`, max. 50, Einstellungen jetzt seriell gespeichert); Mehrfachauswahl im
+  Workout-Editor (`lib/exerciseSelection.ts`, Ablage `lib/clipboard.ts` + `exerciseClipboard.ts`);
+  Plan-Bildschirm `components/plan/PlanEditor.tsx` (Zeitplan, Workouts duplizieren/kopieren/
+  verschieben, Plan duplizieren/löschen); Zeitplan-Logik `lib/planSchedule.ts`, in
+  `nextInPlan`/`weekDays` eingebaut. Texte de/en: Routine → Workout (Schlüssel heißen weiter `routine_*`).
+- **DB:** `supabase-training-v3.sql` = neue Tabelle `training_plans` (user_id, name, schedule jsonb,
+  sort_order; unique(user_id,name); RLS). Nur additiv, Trockenlauf 2× ok. Ohne Tabelle: alles
+  „Wochentage" wie bisher. **Vor dem Deploy in Prod einspielen** (Zustimmung nötig).
+- Offen: Plan löschen nicht atomar; verwaiste Zeitplan-Zeile vererbt sich an gleichnamigen neuen Plan;
+  „Neuer Plan" nur über den Plan-Chip im Workout-Editor; „Plan kopieren" (nur duplizieren).
 
 ## Offen
 
