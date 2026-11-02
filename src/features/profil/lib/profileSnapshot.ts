@@ -28,6 +28,8 @@ import type { CustomExercise, TrainingRoutine, TrainingSession } from '../../tra
 import { bestOf, exerciseSummaries, weeklyModel } from '../../training/components/progress/progressModel'
 import { exerciseName } from '../../training/lib/exerciseLookup'
 import type { ProfileField } from './profileVisibility'
+import type { ProgressSnapshot } from './progressScore'
+import type { BadgeId } from './badgeIds'
 
 // ─── Eingabe ────────────────────────────────────────────────────────────────
 
@@ -94,6 +96,10 @@ export interface ProfileSnapshotData {
   e1rm?: { unit: 'kg'; top: { id: string; name: string; v: number }[] }
   reviews?: { count: number; avgRating: number }
   streak?: { days: number }
+  /** 2b: Gesamtfortschritt (nur Gesamt, Bereiche, Start — nie Einzelwerte oder Verlauf). */
+  progress?: ProgressSnapshot
+  /** 2b: verdiente Abzeichen, zuletzt verdiente zuerst. */
+  badges?: BadgeId[]
 }
 
 export type SnapshotFieldKey = keyof ProfileSnapshotData
@@ -173,7 +179,7 @@ function healthNumber<U extends string>(
 /**
  * Tage in Folge bis heute mit mindestens einem eigenen Eintrag (Einnahme
  * bestaetigt oder ausgelassen, Tageseintrag, Gewicht, Umfang, Training).
- * Auto-Tracking zaehlt nicht. Ist heute noch nichts eingetragen, zaehlt die
+ * Auto-Tracking zaehlt nicht (`entryDays`). Ist heute noch nichts eingetragen, zaehlt die
  * Serie ab gestern — der Tag ist ja noch offen.
  */
 export function entryStreak(days: ReadonlySet<string>, today: string, maxDays = STREAK_MAX_DAYS): number {
@@ -186,7 +192,7 @@ export function entryStreak(days: ReadonlySet<string>, today: string, maxDays = 
   return streak
 }
 
-function entryDays(input: ProfileSnapshotInput): Set<string> {
+export function entryDays(input: ProfileSnapshotInput): Set<string> {
   const days = new Set<string>()
   const add = (value: string | null | undefined) => {
     const day = value ? dayOf(value) : null

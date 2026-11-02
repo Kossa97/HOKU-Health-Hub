@@ -11,6 +11,9 @@
 import { MEASUREMENT_SITES, type MeasurementSite } from '../../fortschritt/lib/measurements'
 import { GOAL_TAGS, isProfileGender, knownCountry, type GoalTag, type ProfileGender } from './profileFields'
 import type { ProfileSnapshotData, SnapshotNumber } from './profileSnapshot'
+import { isBadgeId } from './badgeIds'
+import { PROGRESS_AREAS, type ProgressArea } from './progressScore'
+import { isDay } from './progressSettings'
 import { fieldsOfSection, parseVisibilityMap, type ProfileField, type ProfileSection, type VisibilityMap } from './profileVisibility'
 
 /** Werte aus der Profilzeile selbst (liest der Server direkt aus `profiles`). */
@@ -160,6 +163,20 @@ export function parseFields(raw: unknown): ProfileViewFields {
   }
   if (isObj(raw.streak) && num(raw.streak.days) !== undefined && num(raw.streak.days)! > 0) {
     out.streak = { days: num(raw.streak.days)! }
+  }
+  // 2b: nur Gesamt, die fuenf Bereiche und der Start; Einzelwerte gibt es hier nie
+  if (isObj(raw.progress) && num(raw.progress.total) !== undefined && isDay(raw.progress.since)) {
+    const areas: Partial<Record<ProgressArea, number>> = {}
+    const rawAreas = isObj(raw.progress.areas) ? raw.progress.areas : {}
+    for (const a of PROGRESS_AREAS) {
+      const v = num(rawAreas[a])
+      if (v !== undefined) areas[a] = v
+    }
+    out.progress = { total: num(raw.progress.total)!, areas, since: raw.progress.since }
+  }
+  if (Array.isArray(raw.badges)) {
+    const badges = [...new Set(raw.badges.filter(isBadgeId))]
+    if (badges.length > 0) out.badges = badges
   }
   return out
 }

@@ -400,7 +400,8 @@ export type StoredBaseline =
 
 export type StoredBaselines = Partial<Record<WearableMetricId, StoredBaseline>>
 
-const WEARABLE_COLUMN: Partial<Record<WearableMetricId, Exclude<keyof HealthDailyRow, 'day'>>> = {
+/** Spalte in `health_daily` je Wearable-Wert (HRV, VO2max erst mit Schritt 1b). */
+export const WEARABLE_COLUMN: Partial<Record<WearableMetricId, Exclude<keyof HealthDailyRow, 'day'>>> = {
   steps: 'steps', active_kcal: 'active_kcal', resting_hr: 'resting_hr', bp_sys: 'bp_sys', sleep_nights: 'sleep_min',
 }
 
@@ -497,6 +498,11 @@ export interface ProgressInput {
   doseDays: readonly DoseDay[]
   healthDaily: readonly HealthDailyRow[]
   baselines: StoredBaselines
+  /**
+   * Ohne gesetzten Start („erste Messung je Wert“): eigener Start je
+   * Wearable-Wert = sein erster Tag mit Daten. Sonst gilt `startOn`.
+   */
+  wearableStarts?: Partial<Record<WearableMetricId, string>>
 }
 
 /** Alle Werte der fuenf Bereiche; Werte ohne Daten seit dem Start fehlen. */
@@ -511,7 +517,8 @@ export function buildProgressValues(input: ProgressInput): ProgressValueInput[] 
     workoutsValue(input.sessionDays, startOn, today),
     ...e1rmValues(input.e1rm, startOn, today),
     adherenceValue(input.doseDays, startOn, today),
-    ...WEARABLE_METRICS.map(id => wearableValue(id, input.healthDaily, input.baselines[id], startOn, today)),
+    ...WEARABLE_METRICS.map(id =>
+      wearableValue(id, input.healthDaily, input.baselines[id], input.wearableStarts?.[id] ?? startOn, today)),
   ]
   return values.filter(v => v.baseline.status !== 'none')
 }
