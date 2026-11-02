@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, BookHeart, Zap, AlertTriangle, Clock, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookHeart, Zap, AlertTriangle, Clock, Search, CloudOff } from 'lucide-react'
 import { format } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { getDateLocale } from '../i18n/dateLocales'
@@ -13,6 +13,8 @@ import { intakeDose, intakeGap } from './tagebuch/intake'
 import { Sheet } from '../features/compliance/components/Sheet'
 import { Auswertung } from './tagebuch/Auswertung'
 import { EntryForm, type EntryPrefill } from './tagebuch/EntryForm'
+import { useQueueCounts } from './tagebuch/useTagebuchOfflineSync'
+import { discardFailed } from '../lib/tagebuch/offlineQueue'
 import { SymptomChip } from './tagebuch/SymptomChip'
 import { ENTRY_SELECT, sortedChips, type DiaryEntry } from './tagebuch/entry'
 import { chipAria, chipLabel, durationText, fromRow, kindColor } from './tagebuch/chips'
@@ -54,6 +56,16 @@ export function Tagebuch() {
 
   const userId = user!.id
   const reload = () => setReloadToken(n => n + 1)
+
+  // Ohne Netz gemerkte neue Einträge (gesendet wird app-weit, siehe Layout).
+  const { waiting: pendingCount, failed: failedCount } = useQueueCounts(userId)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  // Sinkt die Zahl der wartenden, sind welche angekommen — Liste neu laden.
+  const [lastPending, setLastPending] = useState(pendingCount)
+  if (pendingCount !== lastPending) {
+    setLastPending(pendingCount)
+    if (pendingCount < lastPending) setReloadToken(n => n + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -198,6 +210,20 @@ export function Tagebuch() {
         </select>
       </div>
 
+      {pendingCount > 0 && (
+        <p className="lg-surface lg-flat mb-3 flex items-center gap-2 px-4 py-2.5 text-[13px] text-[var(--lg-text-2)]" role="status" data-tagebuch-offline>
+          <CloudOff size={15} aria-hidden="true" className="shrink-0" />
+          {t('tagebuch_offline_wartet', { count: pendingCount })}
+        </p>
+      )}
+      {failedCount > 0 && (
+        <div className="lg-surface lg-flat mb-3 flex items-center gap-2 px-4 py-2.5 text-[13px] text-[var(--lg-text-2)]" role="alert" data-tagebuch-offline-failed>
+          <AlertTriangle size={15} aria-hidden="true" className="shrink-0 text-[var(--lg-warn-text)]" />
+          <span className="flex-1">{t('tagebuch_offline_gescheitert', { count: failedCount })}</span>
+          <button type="button" data-quiet className="lg-gray-btn !px-3 !text-[13px]" onClick={() => setDiscardOpen(true)}>{t('verwerfen')}</button>
+        </div>
+      )}
+
       {loadError ? (
         <div className="lg-surface lg-flat text-center px-5 py-10 text-[var(--lg-text-2)]" role="alert">
           <AlertTriangle size={30} className="mx-auto mb-2 text-[var(--lg-warn-text)]" />
@@ -310,6 +336,20 @@ export function Tagebuch() {
           userId={userId} stackItems={stackItems} entry={editing} prefill={prefill}
           onClose={() => setShowForm(false)}
           onSaved={() => { setShowForm(false); reload() }} />
+      )}
+
+      {discardOpen && (
+        <Sheet labelledBy="tagebuch-discard-title" onClose={() => setDiscardOpen(false)} role="alertdialog">
+          <h2 id="tagebuch-discard-title" className="lg-title2">{t('tagebuch_offline_verwerfen_titel', { count: failedCount })}</h2>
+          <div className="mt-5 flex gap-2">
+            <button type="button" autoFocus data-app-back-close onClick={() => setDiscardOpen(false)} data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
+              {t('cancel')}
+            </button>
+            <button type="button" onClick={() => { discardFailed(userId); setDiscardOpen(false) }} data-tone="bad" className="lg-gray-btn flex-1 !min-h-12 !text-[17px]">
+              {t('verwerfen')}
+            </button>
+          </div>
+        </Sheet>
       )}
 
       {deleting && (
