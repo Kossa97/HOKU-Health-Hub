@@ -14,6 +14,9 @@ import { HYROX_DIVISIONS, hyroxRoutine, type HyroxDivisionId } from '../../data/
 import { Button, Card, Chip, SectionTitle, TrainingSheet, inputStyle } from '../ui'
 import { BandLegend, MuscleBars } from './MuscleVolume'
 import { PlanEditor } from './PlanEditor'
+import { HokuPlanChat } from './HokuPlanChat'
+import { useDotStand } from '../../../dot/dotStore'
+import { PRO_PFLICHT } from '../../../dot/lib/zugang'
 
 /**
  * Der Plan-Teil von „Heute": die Routinen nach Ordner, Vorlagen zum Anlegen
@@ -41,6 +44,11 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   const [busy, setBusy] = useState(false)
   const [editingPlan, setEditingPlan] = useState<string | null>(null)
   const [newPlan, setNewPlan] = useState<string | null>(null)
+  const [hokuChat, setHokuChat] = useState(false)
+  const [hokuUpsell, setHokuUpsell] = useState(false)
+  // Hoku-Pläne nur mit Pro, sobald Pro gilt (gleicher Schalter wie der Hoku-Chat)
+  const darfHoku = useDotStand().darfRaus
+  const hokuGesperrt = PRO_PFLICHT && !darfHoku
 
   // Die hervorgehobene Routine nach oben in ihrem Ordner. Plaene ohne Workout
   // (frisch angelegt) stehen hinter den uebrigen Plaenen, vor „Ohne Plan".
@@ -283,6 +291,38 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
             {newPlanTaken && newPlanName && <p role="alert" style={{ fontSize: 14, color: 'var(--lg-bad-text)', margin: '0 4px' }}>{tt('plan_name_taken')}</p>}
             <p style={{ fontSize: 14, color: 'var(--lg-text-3)', margin: '0 4px' }}>{tt('plan_new_hint')}</p>
           </form>
+          <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--lg-text-3)', fontSize: 13, margin: '6px 0 12px' }}>
+            <span style={{ flex: 1, height: 0.5, background: 'var(--lg-separator)' }} />{tt('hoku_or')}<span style={{ flex: 1, height: 0.5, background: 'var(--lg-separator)' }} />
+          </div>
+          <button
+            type="button"
+            onClick={() => { setNewPlan(null); if (hokuGesperrt) setHokuUpsell(true); else setHokuChat(true) }}
+            className="tyd-train-press"
+            style={{
+              width: '100%', minHeight: 64, borderRadius: 18, display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', textAlign: 'left',
+              background: 'color-mix(in srgb, var(--accent) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 40%, transparent)', marginBottom: 8,
+            }}
+          >
+            <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, background: 'radial-gradient(circle at 35% 30%, #bff3ff 0 8%, #4fd6ff 30%, #6f6cff 70%, #2a1f6b 100%)' }} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 17, fontWeight: 700 }}>{tt('hoku_create')}</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)' }}>{tt('hoku_create_hint')}</span>
+            </span>
+            {hokuGesperrt && <span style={{ fontSize: 12, fontWeight: 800, padding: '4px 8px', borderRadius: 8, background: '#ffd60a', color: '#3a2c00' }}>PRO</span>}
+          </button>
+        </TrainingSheet>
+      )}
+
+      {hokuChat && (
+        <HokuPlanChat data={data} onClose={() => setHokuChat(false)} onSaved={() => setHokuChat(false)} />
+      )}
+
+      {hokuUpsell && (
+        <TrainingSheet title={tt('hoku_upsell_title')} onClose={() => setHokuUpsell(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 8 }}>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: 'var(--lg-text-2)' }}>{tt('hoku_upsell_text')}</p>
+            <Button tone="ghost" block onClick={() => { setHokuUpsell(false); setNewPlan('') }}>{tt('new_plan')}</Button>
+          </div>
         </TrainingSheet>
       )}
 

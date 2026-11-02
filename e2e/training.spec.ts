@@ -302,6 +302,59 @@ test('Training: Plan loeschen mit Bestaetigung, Trainings bleiben', async ({ pag
   expect(mock.table('training_sessions')).toHaveLength(2)
 })
 
+test('Training: Plan mit Hoku – schreiben, Vorschau, Übung tauschen, übernehmen', async ({ page, mock }) => {
+  seedHistory(mock)
+  mock.table('profiles').find(row => row.id === TEST_USER.id)!.coach_consent_at = '2026-09-01T00:00:00.000Z'
+  mock.coach.antwort = 'Hier ist dein Plan.'
+  mock.coach.plaene = [{
+    name: 'Ganzkörper · Kurzhanteln', zeitplan: 'pro_woche', anzahl: 3,
+    workouts: [
+      { name: 'Ganzkörper A', wochentage: [], uebungen: [
+        { id: 'bench_press_dumbbell', saetze: 3, wdhMin: 8, wdhMax: 12, sekunden: null, pauseS: 90 },
+        { id: 'erfundene_uebung', saetze: 3, wdhMin: 10, wdhMax: 10, sekunden: null, pauseS: null },
+      ] },
+      { name: 'Ganzkörper B', wochentage: [], uebungen: [{ id: 'plank', saetze: 3, wdhMin: null, wdhMax: null, sekunden: 45, pauseS: null }] },
+    ],
+  }]
+  await page.goto('/training')
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  await page.getByRole('button', { name: /Mit Hoku erstellen/ }).click()
+
+  const chat = page.getByRole('dialog', { name: 'Plan mit Hoku' })
+  await chat.getByRole('textbox', { name: 'Schreib Hoku …' }).fill('3× pro Woche Ganzkörper, nur Kurzhanteln')
+  await chat.getByRole('button', { name: 'Senden' }).click()
+
+  // An Hoku gehen Katalog und Seite, keine Verlaufsdaten
+  await expect.poll(() => mock.coach.calls.length).toBe(1)
+  const call = mock.coach.calls[0] as { seite: string; kontext: { training: { katalog: string[] } } & Record<string, unknown> }
+  expect(call.seite).toBe('training')
+  expect(call.kontext.training.katalog.some(z => z.startsWith('bench_press_dumbbell|'))).toBe(true)
+  expect(Object.keys(call.kontext)).toEqual(['training'])
+
+  // Vorschau: die unbekannte Übung ist markiert, Übernehmen geht erst ohne sie
+  const preview = page.getByRole('dialog', { name: 'Vorschau' })
+  await expect(preview.getByText('Noch nicht gespeichert')).toBeVisible()
+  await expect(preview.getByText('Diese Übung kennt die App nicht – bitte tauschen oder entfernen.')).toBeVisible()
+  await expect(preview.getByRole('button', { name: 'Übernehmen' })).toBeDisabled()
+  await preview.getByRole('button', { name: /^erfundene uebung entfernen$/ }).click()
+
+  // Tauschen: Bankdrücken (Kurzhantel) → Schrägbankdrücken (Kurzhantel)
+  await preview.getByRole('button', { name: 'Bankdrücken (Kurzhantel) tauschen' }).click()
+  const picker = page.getByRole('dialog', { name: 'Übung wählen' })
+  await picker.getByRole('searchbox').fill('schrägbank kurzhantel')
+  await picker.getByRole('button', { name: /^Schrägbankdrücken \(Kurzhantel\)/ }).first().click()
+  await expect(preview.getByText('Schrägbankdrücken (Kurzhantel)')).toBeVisible()
+
+  await preview.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect.poll(() => mock.table('training_plans').map(p => `${p.name}:${JSON.stringify(p.schedule)}`))
+    .toEqual(['Ganzkörper · Kurzhanteln:{"mode":"per_week","perWeek":3}'])
+  await expect.poll(() => (mock.table('training_routines') as Array<{ name: string; folder: string | null; exercises: Array<{ exerciseId: string; sets: unknown[] }> }>)
+    .filter(r => r.folder === 'Ganzkörper · Kurzhanteln')
+    .map(r => `${r.name}:${r.exercises.map(e => `${e.exerciseId}×${e.sets.length}`).join(',')}`))
+    .toEqual(['Ganzkörper A:incline_bench_press_dumbbell×3', 'Ganzkörper B:plank×3'])
+  await expect(page.getByRole('button', { name: 'Plan · Ganzkörper · Kurzhanteln – Plan bearbeiten' })).toBeVisible()
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')
