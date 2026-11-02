@@ -114,6 +114,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .actions select{font-size:13px;padding:6px 8px;border-radius:8px}
 .copied{font-size:12px;color:var(--accent)}
+a.ghost{text-decoration:none;display:inline-block}
+a.fenster{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.fhint{font-size:12px;color:var(--muted);max-width:28ch}
 .copybox{width:100%;font-size:13px}
 
 details.tech{border-top:1px dashed var(--line);padding-top:10px}
@@ -170,7 +173,7 @@ details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-
 
   <div id="list" class="section"></div>
 
-  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Fenster öffnen“ funktioniert nur in der Claude-App am Computer, „Cloud-Fenster öffnen“ überall.</p>
+  <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Ideen dazu. „Zum Fenster“ öffnet bei Cloud-Arbeiten das Cloud-Fenster (auch am Handy), bei Arbeiten auf dem Computer das Fenster in der Claude-App.</p>
 </div>
 
 <script>
@@ -260,7 +263,7 @@ function drawTodo(){
     const{a}=it;let row;
     if(it.frage){
       const t=el("div",{class:"t"},el("span",{class:"txt",text:a.wartetAuf}),el("span",{class:"from",text:`Frage aus „${a.titel}“, im Fenster beantworten`}));
-      row=el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,copyButton(a));
+      row=el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,fensterButton(a)||copyButton(a));
     }else{
       const t=el("div",{class:"t"},el("span",{class:"txt",text:it.d.text}),el("span",{class:"from",text:`für „${a.titel}“`}));
       const done=el("button",{type:"button",class:"ghost",text:"Erledigt"});done.disabled=readOnly;
@@ -392,6 +395,28 @@ function drawQuickSelect(){
   sel.value=[...sel.options].some(o=>o.value===cur)?cur:"";
 }
 
+// Knopf, der das Claude-Fenster der Arbeit öffnet. Cloud-Fenster sind normale Webadressen;
+// Fenster auf dem Computer öffnen sich über die Claude-App (claude://). Bleibt die Seite
+// danach im Vordergrund, hat sich vermutlich nichts geöffnet: dann Link kopieren und erklären.
+function fensterButton(a){
+  const link=a.sitzungLink||"";
+  const web=/^https:\/\/claude\.ai\//.test(link),app=/^claude:\/\//.test(link);
+  if(!web&&!app)return null;
+  const wrap=el("span",{class:"actions"});
+  const b=el("a",{class:"ghost fenster",href:link,text:"Zum Fenster"});
+  b.title=web?"Öffnet das Cloud-Fenster dieser Arbeit":"Öffnet das Fenster dieser Arbeit in der Claude-App am Computer";
+  if(web){b.target="_blank";b.rel="noopener"}
+  else b.addEventListener("click",()=>{
+    setTimeout(()=>{
+      if(document.hidden||!document.hasFocus()||wrap.querySelector(".fhint"))return;
+      const msg=el("span",{class:"fhint",text:"Nichts passiert? Das klappt nur am Computer mit der Claude-App. Der Link ist kopiert."});
+      try{navigator.clipboard.writeText(link).catch(()=>{})}catch(e){}
+      wrap.append(msg);setTimeout(()=>msg.remove(),6000);
+    },1500);
+  });
+  wrap.append(b);return wrap;
+}
+
 function copyButton(a){
   const wrap=el("span",{class:"actions"});
   const text=`Mach mit der Arbeit „${a.titel}“ weiter. Lies zuerst ihren Eintrag „${a.id}“ in der Hoku Werkbank: Stand, offene Punkte und meine Ideen.`;
@@ -442,6 +467,7 @@ function card(a){
   const star=el("button",{class:"ghost",type:"button","aria-pressed":String(!!a.fuerStart),text:a.fuerStart?"★ Für den Start nötig":"☆ Für den Start nötig?"});
   star.disabled=readOnly;star.addEventListener("click",()=>save(`arbeiten/${a.id}`,{fuerStart:!a.fuerStart}));
   act.append(st,star);
+  const fb=fensterButton(a);if(fb)act.append(fb);
   if(a.status!=="fertig")act.append(copyButton(a));
   c.append(act);
 
@@ -454,10 +480,6 @@ function card(a){
   if(a.branch)meta.append(el("dt",{text:"Branch"}),el("dd",{text:a.branch}));
   if(a.ordner)meta.append(el("dt",{text:"Ordner"}),el("dd",{text:a.ordner}));
   if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("dt",{text:"Pull Request"}),el("dd",{},el("a",{href:a.pr,target:"_blank",rel:"noopener",text:a.pr.replace(/^https:\/\/github\.com\//,"")})));
-  if(a.sitzungLink&&/^(claude:\/\/|https:\/\/claude\.ai\/)/.test(a.sitzungLink)){
-    const web=a.sitzungLink.startsWith("https://");
-    meta.append(el("dt",{text:"Fenster"}),el("dd",{},el("a",{href:a.sitzungLink,...(web?{target:"_blank",rel:"noopener"}:{}),text:web?"Cloud-Fenster öffnen":"Fenster öffnen"})));
-  }
   if(meta.childNodes.length)inner.append(meta);
   if(inner.childNodes.length){tech.append(inner);c.append(tech)}
 
