@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793616000.1803033,
-    "seen": 1793616074.4894352,
+    "mtime": 1793616273.710294,
+    "seen": 1793616342.8806775,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -18984,15 +18984,15 @@
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/analyse.test.ts": {
-    "mtime": 1793615938.3653512,
-    "seen": 1793616074.4894524,
-    "ast_hash": "ca46704b993cfb098f62c38017b82a60",
+    "mtime": 1793616258.2953978,
+    "seen": 1793616342.8806934,
+    "ast_hash": "d0585cc0059a7000c1d4c0555ca4395c",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/analyse.ts": {
-    "mtime": 1793615985.080899,
-    "seen": 1793616074.4894533,
-    "ast_hash": "9c136311eddcf88b98341d602e6d1e7a",
+    "mtime": 1793616265.705109,
+    "seen": 1793616342.8806944,
+    "ast_hash": "f376b47f6c93e043756a6740bb381784",
     "semantic_hash": ""
   },
   "supabase/functions/_shared/erkenntnisse/detektoren.test.ts": {

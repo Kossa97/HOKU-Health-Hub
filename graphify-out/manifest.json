@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793616273.710294,
-    "seen": 1793616342.8806775,
+    "mtime": 1793616483.2003858,
+    "seen": 1793616543.2550607,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -19029,6 +19029,18 @@
     "mtime": 1793615957.6339588,
     "seen": 1793616074.4894583,
     "ast_hash": "2b0c53473d52743f710ead2f3cbc238e",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/waechter.test.ts": {
+    "mtime": 1793616448.2097228,
+    "seen": 1793616543.2550843,
+    "ast_hash": "ad58c1ad9fbfe26bc805d62411ab86f2",
+    "semantic_hash": ""
+  },
+  "supabase/functions/_shared/erkenntnisse/waechter.ts": {
+    "mtime": 1793616476.0846536,
+    "seen": 1793616543.255085,
+    "ast_hash": "d50f8f8e6d150f9b8d0fba57282577ee",
     "semantic_hash": ""
   }
 }
