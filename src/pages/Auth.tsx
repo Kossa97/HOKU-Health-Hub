@@ -616,7 +616,7 @@ export function Auth() {
       <div ref={buehne} className="tyd-auth-buehne" aria-hidden="true" data-dot-buehne />
       <p className={weniger ? 'tyd-auth-gruss' : 'tyd-auth-sr'} role="status">{satz ? dt(satz).replace('\n', ' ') : ''}</p>
 
-      <div className="tyd-auth-karte">
+      <div className="tyd-auth-karte" data-dot-kante>
         {ansicht === 'start' && (
           <div key="start" className="tyd-auth-ansicht" data-von={von} data-start>
             <button type="button" className="tyd-auth-knopf" data-art="haupt" onClick={() => wechsle('login')} data-auth-start-login>

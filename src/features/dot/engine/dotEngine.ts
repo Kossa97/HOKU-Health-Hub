@@ -460,7 +460,7 @@ export function createDot(host: DotHost): DotApi {
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
     form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
-    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0 },
+    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0 },
   // Hinweis oder Klopfen auf der Anmeldung (Spec Hoku führt); quetsch staucht ihn beim Aufprall
   punktFarbe: PINK, auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
   }
@@ -815,7 +815,21 @@ export function createDot(host: DotHost): DotApi {
   const loginGrenzen = () => { const b = bounds(); return { ...b, t: b.t + OBEN } }
   function loginZiel() {
     const S = stageCenter()
-    return { x: S.x, y: S.y + B.login.n }
+    return { x: S.x, y: S.y + B.login.n + B.login.rutsch }
+  }
+  // Beim Tippen ins Formular (Tastatur offen, Seite gescrollt) rutscht er in den sichtbaren Bereich nach,
+  // höchstens bis auf die Oberkante des Formulars, über die er ein Stück ragt (Nutzer 02.11.2026)
+  const KANTE = 0.55
+  function rutschZiel(mitte: number) {
+    const el = document.activeElement
+    if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return 0
+    const karte = B.stage.parentElement?.querySelector('[data-dot-kante]')
+    if (!karte || !karte.contains(el)) return 0
+    // nur wenn er sonst oben aus dem Bild gerutscht wäre
+    const r = koerper(), vv = window.visualViewport
+    if (mitte - r >= (vv ? vv.offsetTop : 0) + OBEN + 6) return 0
+    // er setzt sich auf die Kante, auch wenn darüber mehr Platz wäre
+    return Math.max(0, karte.getBoundingClientRect().top - KANTE * r - mitte)
   }
   // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
@@ -824,6 +838,10 @@ export function createDot(host: DotHost): DotApi {
     if (L.phase === 'auftritt') { auftrittStep(dt); return }
     // die Neigung zum Formular weich, das Scrollen der Seite sofort
     L.n += (L.neigung - L.n) * (1 - Math.exp(-dt * 10))
+    // nachrutschen mit etwas Schwung (Feder), zurück genauso
+    const rz = rutschZiel(stageCenter().y + L.n), h = Math.min(dt, 0.05)
+    if (weniger) { L.rutsch = rz; L.rv = 0 }
+    else { L.rv += (90 * (rz - L.rutsch) - 2 * Math.sqrt(90) * 0.78 * L.rv) * h; L.rutsch += L.rv * h }
     const Z = loginZiel()
     // In Ruhe ist er Teil der Seite: Scrollen und Layoutsprünge tragen ihn mit,
     // ohne Trägheit (sonst würde jeder Sprung den weichen Rand aufschaukeln)
@@ -907,7 +925,7 @@ export function createDot(host: DotHost): DotApi {
     B.x = B.lx = Z.x; B.y = B.ly = Z.y; B.vx = B.vy = B.lvx = B.lvy = 0
     // wächst auf der Bühne auf; die Eröffnung aus den Partikeln folgt später
     B.r = B.size * 0.3; B.rv = 0
-    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung }
+    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung, rutsch: 0, rv: 0 }
     setState('idle'); arbeitet = false
     versteckeBlase(); zeigeTreffer(); melde(); laufen()
     // Gesten im Leerlauf vorab bauen, nicht im ersten Bild von Herz oder Haken
