@@ -44,4 +44,20 @@ Design vom Nutzer freigegeben. Aufgeteilt in Teile 1–7 + R (Recht/Datenschutz,
 Freischaltung für Nutzer). Plan Teil 1: `docs/superpowers/plans/2026-11-02-hoku-erkenntnisse-teil1.md`
 (Kern unter `supabase/functions/_shared/erkenntnisse/`, Edge Function `erkenntnisse`,
 Vercel-Cron stößt nur an, Seite `/erkenntnisse` nur für Tester bis Teil R).
-Offen: Ausführungsweise für Teil 1.
+
+## Stand Teil 1 (02.11.2026)
+Gebaut mit Subagenten auf Branch `hoku-erkenntnisse` (Worktree `.claude/worktrees/hoku-erkenntnisse`,
+von `main`), jede Aufgabe einzeln geprüft, Gesamtprüfung bestanden. **Nichts davon ist live.**
+- Migration `supabase-hoku-erkenntnisse.sql`: Einwilligung (vom Server gestempelt), `hoku_zeitzone`,
+  `hoku_funde`, `hoku_wochen`, Widerruf löscht per Trigger, BEFORE-INSERT-Sperre ohne Einwilligung.
+  Trockenlauf mit PGlite (Postgres 16) zweimal, 55/55 Prüfungen. **Nicht in Produktion.**
+- Edge Function `erkenntnisse` (nicht deployt), `api/hoku-anstoss.js` + Cron `0 2 * * *`
+  (Secret `HOKU_ANSTOSS_SECRET` fehlt noch in Supabase und Vercel).
+- Seite `/erkenntnisse` + Startseiten-Karte, nur für Tester (`ERKENNTNISSE_FREI = false`).
+  Wer eingewilligt hat, erreicht die Seite immer zum Widerrufen.
+- Abweichungen vom Plan: T7-Schlüssel enthält den Serienstart, T7-Reihe 372 Tage; R4 lädt die
+  ganze Trainingshistorie und überspringt unterstützte Übungen.
+- Offen: Produktivlauf der Migration, Secret, Deploy, Cron, Sichtprüfung in der App (alles erst nach
+  Ja des Nutzers); H1/W1 brauchen `health_daily`-Schreiber vom Profil-Branch (nicht auf main);
+  vor `ERKENNTNISSE_FREI`: Teil R, Seitenfluss-Tests, Paging-/Nutzergrenzen, `maxDuration`;
+  vor KI-Text (Teil 3): Wächter mit NFC und Wortstämmen härten.
