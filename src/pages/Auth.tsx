@@ -47,10 +47,8 @@ const HINWEIS = 3500
 // Begrüßung (Mockup „Feinschliff"): Text 2,2 s (auf dem Start 15 % länger), Herz 2,4 s. Das Winken
 // dauert, bis die Arme wieder in Dot stecken (Gesten-Mockup D1/D4)
 const GRUSS = { hand: GRUSS_DAUER * 1000, text: 2200, herz: 2400 }
-// Augen zuhalten: von hier bis hier steht die Sprechblase (ms, wie im Mockup G1)
-const AUGEN_BLASE = { ab: 850, bis: 3000 }
 // alle Sätze, die Hoku auf der Anmeldung mit seinen Punkten schreibt; vorab abgetastet, damit sie ohne Ruckler erscheinen
-const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_') && k !== 'login_sehe_nichts')
+const SAETZE = (Object.keys(DOT_TEXTE.de) as DotTextKey[]).filter(k => k.startsWith('login_'))
 
 const fuehlen = (ok: boolean) => { void hapticErgebnis(ok) }
 
@@ -358,20 +356,6 @@ export function Auth() {
     dot()?.setStimmung('idle'); dot()?.setNeigung(0)
   }
 
-  /** Passwort eingeblendet, während Hoku zu sehen ist: er hält sich die Augen zu (Mockup G1), dazu die Blase. */
-  function augenZu() {
-    if (laeuft || weniger || !dot()?.imBlick()) return
-    const gen = ++lauf.current
-    void mitHoku(async () => {
-      dot()?.setStimmung('idle'); dot()?.zeigeForm('augen')
-      await warte(AUGEN_BLASE.ab)
-      if (gen !== lauf.current) return
-      dot()?.sag(dtRef.current('login_sehe_nichts'), AUGEN_BLASE.bis - AUGEN_BLASE.ab)
-      await warte((FORM_DAUER.augen ?? 4.2) * 1000 - AUGEN_BLASE.ab)
-      if (gen === lauf.current) ruheForm()
-    })
-  }
-
   /** Fehler im Gerät: sofort X und Schütteln, ohne Denken. */
   async function eingabeFehler(feld: Feld, text: string) {
     eingabe()
@@ -559,7 +543,7 @@ export function Auth() {
     </div>
   )
   const auge = (
-    <button type="button" className="tyd-auth-auge" onClick={() => { if (!zeigePw) augenZu(); setZeigePw(!zeigePw) }} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
+    <button type="button" className="tyd-auth-auge" onClick={() => setZeigePw(!zeigePw)} aria-label={t(zeigePw ? 'login_pw_hide' : 'login_pw_show')} aria-pressed={zeigePw}>
       {zeigePw ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   )

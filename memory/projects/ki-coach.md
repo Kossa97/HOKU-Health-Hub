@@ -522,3 +522,8 @@ Mockup „Hoku Varianten“ (https://claude.ai/artifact/Ra2CfkyYfG73VCYGfYPQvb),
 - Seite: `ernaehrung/lib/dotRundflug.ts` (Bahn, Texte, Abstand), `hooks/useDotRundflug.ts`; Kugel über `orbBridge` (`setOrbBuehne`: `koerper()`, stiller Fokus ohne Etikett und Haptik). Antippen kürzt ab; „Bewegung reduzieren“: nur der Satz. Nur heute, nur wenn er heraus darf.
 - Texte in `dot/texte.ts` (`rf_*`, de/en). Über dem Ziel neutral, Freude-Haken nur bei „Alles erledigt“.
 - **Umlauf bei jedem Öffnen (Nutzer 30.10.):** sonst immer Variante A (eine Runde um die Kugel, ohne Daten, hinten verdeckt per Maske auf Dots Flächen, `hinter` in `Rundflug.pos`). Nach 2 h oder beim 3. Öffnen Variante B mit Halten und Sätzen (nur heute). Draußen startet er an seinem Platz, sonst am linken Rand.
+
+### Nachträge 02.11.2026 (Nutzer)
+- „Augen zuhalten“ (Login, Passwort einblenden) komplett entfernt: Geste `augen`, Armpunkte, Satz `login_sehe_nichts`.
+- Irisring beim Zuhören: jeder zehnte Punkt über die ganze Kugel (`Punkt.iris`), nicht mehr eine Polkappe; die Kappe ließ ein Loch im Körper.
+- Blick folgt auf dem Handy auch beim Wischen (touch*-Ereignisse) und dem nachgleitenden Inhalt (scroll).

@@ -17,7 +17,7 @@ import {
 } from './geometry'
 import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
-import { FREUDE, GESTE_FERN, GESTE_N, GESTE_PLATZ, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
+import { FREUDE, GESTE_FERN, GESTE_N, STILL, gestenBild, gestenVorbereiten, naechsterFehler, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
 import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
 import { LOOKS, type Look } from '../../../lib/look'
@@ -164,7 +164,6 @@ const FORM_LOOK: Record<DotForm, { bright: number; glow: number; hue: number }> 
   haken: { bright: 1, glow: 0.5, hue: 0.45 },
   // Hoku führt durch die Anmeldung (Mockup „Dots Auftritte" Version 12)
   freude: { bright: 1.05, glow: 0.6, hue: 0.45 },
-  augen: { bright: 1, glow: 0.4, hue: 0.45 },
   warten: { bright: 1, glow: 0.55, hue: 0.5 },
   sanduhr: { bright: 1, glow: 0.45, hue: 0.45 },
   brief: { bright: 1, glow: 0.5, hue: 0.45 },
@@ -244,7 +243,7 @@ interface Wand extends Abstand {
   L?: number
   hc?: number
 }
-interface Punkt { i: number; u: number; x: number; y: number; z: number; s: number; k: number; par: number }
+interface Punkt { i: number; u: number; iris: boolean; x: number; y: number; z: number; s: number; k: number; par: number }
 interface Funke { x: number; y: number; vx: number; vy: number; t: number; life: number }
 
 interface Auftritt {
@@ -389,7 +388,8 @@ export function createDot(host: DotHost): DotApi {
     const pts: Punkt[] = [], ga = Math.PI * (3 - Math.sqrt(5))
     for (let i = 0; i < n; i++) {
       const y = 1 - (2 * (i + 0.5)) / n, r = Math.sqrt(1 - y * y), th = ga * i
-      pts.push({ i, u: i / n, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random(), par: i })
+      // Irisring: jeder zehnte Punkt, über die ganze Kugel verteilt (eine Kappe ließe beim Zuhören ein Loch)
+      pts.push({ i, u: i / n, iris: (i * IRIS_ANTEIL) % 1 < IRIS_ANTEIL - 1e-9, x: Math.cos(th) * r, y, z: Math.sin(th) * r, s: Math.random() * TAU, k: Math.random(), par: i })
     }
     return pts
   }
@@ -397,7 +397,7 @@ export function createDot(host: DotHost): DotApi {
     const pts = fib(PUNKTE)
     for (let i = PUNKTE; i < ALLE; i++) {
       const q = pts[i % PUNKTE]
-      pts.push({ i, u: i / ALLE, x: q.x, y: q.y, z: q.z, s: Math.random() * TAU, k: Math.random(), par: q.i })
+      pts.push({ i, u: i / ALLE, iris: false, x: q.x, y: q.y, z: q.z, s: Math.random() * TAU, k: Math.random(), par: q.i })
     }
     return pts
   }
@@ -447,7 +447,7 @@ export function createDot(host: DotHost): DotApi {
   const OX = new Float32Array(ALLE), OY = new Float32Array(ALLE), OZ = new Float32Array(ALLE)
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
-  const GB: GestenBild = { P: new Float32Array(GESTE_PLATZ * 3), L: new Float32Array(GESTE_PLATZ), H: new Float32Array(GESTE_PLATZ) }
+  const GB: GestenBild = { P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N) }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
   const REL = new Float32Array(ALLE), SX = new Float32Array(ALLE), SY = new Float32Array(ALLE)
 
@@ -1445,16 +1445,6 @@ export function createDot(host: DotHost): DotApi {
     B.formT = 0
     B.punktFarbe = f === 'haken' || f === 'nicken' ? GOOD : f === 'cross' || f === 'schuetteln' ? BAD : PINK
     wechsel()
-    if (f === 'augen') armeAnsetzen()
-  }
-  /** Augen zuhalten: die Armpunkte (Kinder) warten unsichtbar an den Schultern, von dort wachsen die Arme. */
-  function armeAnsetzen() {
-    gestenBild('augen', 0, B.wahl, GB)
-    for (let i = GESTE_N; i < GESTE_PLATZ; i++) {
-      QX[i] = TX[i] = OX[i] = GB.P[i * 3]; QY[i] = TY[i] = OY[i] = GB.P[i * 3 + 1]
-      QZ[i] = TZ[i] = OZ[i] = 0; VX[i] = VY[i] = 0; SZ[i] = 1
-    }
-    B.kinderAn = true
   }
   function setText(text: string | null) {
     if (text && !B.kinderAn) { kinderAnsetzen(); B.kinderAn = true }
@@ -1465,8 +1455,8 @@ export function createDot(host: DotHost): DotApi {
   /** Neues Ziel: jeder Punkt startet gestaffelt von dort, wo sein altes Ziel lag. */
   function wechsel() {
     const tf = B.textF
-    // Verlässt er die Kugel, schließt er vorher das Auge (alte Ziele mit geschlossenem Lid); „augen“ behält die Kugel
-    if (letzteForm === 'sphere' && B.shape !== 'sphere' && B.shape !== 'augen' && AUGE.offen > 0.05) {
+    // Verlässt er die Kugel, schließt er vorher das Auge (alte Ziele mit geschlossenem Lid)
+    if (letzteForm === 'sphere' && B.shape !== 'sphere' && AUGE.offen > 0.05) {
       const neu = B.shape, kante = AUGE.lidKante, hoer = AUGE.hoer
       B.shape = 'sphere'; AUGE.lidKante = AUGE.rp * 1.08; AUGE.hoer = 0
       for (let i = 0; i < PUNKTE; i++) { const z = shapeTarget(B.pts[i], letztesT); TX[i] = z[0]; TY[i] = z[1]; TZ[i] = z[2] }
@@ -1488,10 +1478,10 @@ export function createDot(host: DotHost): DotApi {
       QZ[i] = TZ[i] = OZ[i] = 0; VX[i] = VY[i] = 0; SZ[i] = SZ[q]
     }
   }
-  /** Kinder rechnen nur, solange Schrift oder die Arme beim Augen zuhalten laufen (und kurz danach, bis sie verblasst sind). */
+  /** Kinder rechnen nur, solange Schrift läuft (und kurz danach, bis sie verblasst sind). */
   function kinderAktiv() {
     const jetzt = performance.now()
-    if (B.shape === 'text' || B.shape === 'augen') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
+    if (B.shape === 'text') { B.kinderAn = true; B.kinderBis = jetzt + 1500; return true }
     if (B.kinderAn && jetzt < B.kinderBis) return true
     B.kinderAn = false
     return false
@@ -1523,12 +1513,9 @@ export function createDot(host: DotHost): DotApi {
         return ziel(x + j2, y - 0.02 + j2, 1)
       }
       case 'hand': case 'heart': case 'cross': case 'wifi': case 'haken':
-      case 'freude': case 'augen': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
+      case 'freude': case 'warten': case 'sanduhr': case 'brief': case 'nicken': case 'schuetteln': {
         // Geste aus dem Mockup: Tiefe wird Sichtbarkeit und Größe wie dort, mit derselben Perspektive
-        // beim Augen zuhalten bleibt der Körper die ruhige Kugel (dieselben Ziele, kein Umspringen),
-        // die Arme sind Kinderpunkte
-        if (B.shape === 'augen' && p.i < GESTE_N) { B.shape = 'sphere'; const k = shapeTarget(p, t); B.shape = 'augen'; return k }
-        if (p.i >= (B.shape === 'augen' ? GESTE_PLATZ : GESTE_N)) return ziel(0, 0, 0)
+        if (p.i >= GESTE_N) return ziel(0, 0, 0)
         const j = p.i * 3, z = GB.P[j + 2], s = GESTE.fern / (GESTE.fern - z)
         return ziel(GB.P[j] * s, GB.P[j + 1] * s, 0.28 + 0.72 * clamp01((z + 1) / 2), GB.L[p.i], GB.H[p.i])
       }
@@ -1560,7 +1547,7 @@ export function createDot(host: DotHost): DotApi {
         // Körper dreht sich zum Blick; dann die Pupille als Irisblende, das Lid und beim Zuhören der Irisring
         const x0 = p.x * ROT_C - p.y * ROT_S, y0 = p.x * ROT_S + p.y * ROT_C, z0 = p.z
         const y1 = y0 * LAGE.cp - z0 * LAGE.sp, z1 = y0 * LAGE.sp + z0 * LAGE.cp
-        augePunkt(AUGE, x0 * LAGE.cy + z1 * LAGE.sy, y1, -x0 * LAGE.sy + z1 * LAGE.cy, p.u < IRIS_ANTEIL, p.i, AUS)
+        augePunkt(AUGE, x0 * LAGE.cy + z1 * LAGE.sy, y1, -x0 * LAGE.sy + z1 * LAGE.cy, p.iris, p.i, AUS)
         const X = AUS[0], Y = AUS[1], Z = clamp(AUS[4], -1, 1), f = (Z + 1) / 2
         // kräftige Farben: auch die hinteren Punkte bleiben sichtbar (Handy, Sonne)
         const sicht = (KRAEFTIG ? 0.32 + 0.63 * Math.pow(f, 1.2) : 0.1 + 0.85 * f * f) * AUS[2]
@@ -1584,8 +1571,8 @@ export function createDot(host: DotHost): DotApi {
     const tempo2 = FEDER.tempo * FEDER.tempo, dBase = 0.58 + 0.24 * FEDER.nachschwingen
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
-    // Kinder haben eigene Ziele nur in der Schrift und als Arme beim Augen zuhalten
-    const sparse = B.shape !== 'text' && B.shape !== 'augen'
+    // Kinder haben eigene Ziele nur in der Schrift
+    const sparse = B.shape !== 'text'
     // auf dem Weg vom Rahmen in die Mitte bleiben die Punkte klein, sonst wirken sie wie Konfetti über der App
     const klein = B.portal?.phase === 'sammeln' && B.trans < 0.45
     const groesse = B.shape === 'text' ? TEXT.groesse : klein ? 3 / 4.3 : 1
@@ -1612,8 +1599,7 @@ export function createDot(host: DotHost): DotApi {
       // die Eröffnung führt nur Dots eigene Punkte; Kinder (Schrift) folgen ihren Federn
       if (I.an && !kind) { bahn(i, ti, tx, ty, tz, R); ROSA[i] = rosa; continue }
       SZ[i] += (groesse - SZ[i]) * sA
-      // die Arme beim Augen zuhalten federn schon in ihrer Bahn (Mockup G1): ohne zweite Feder, sonst verwischen sie
-      if (sofort || (kind && B.shape === 'augen')) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
+      if (sofort) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
       const k = (0.1 + 0.07 * KR[i]) * tempo2 * B.kMul, dh = Math.pow(Math.min(0.9, dBase + (DR[i] - 0.5) * 0.1), h)
       for (let n = 0; n < schritte; n++) {
         const dx = tx - QX[i], dy = ty - QY[i]
@@ -1780,7 +1766,7 @@ export function createDot(host: DotHost): DotApi {
     else if (tempo > 260) { const s = Math.min(0.55, tempo / 1400) / tempo; ziel = { gx: TEMPO.x * s, gy: TEMPO.y * s }; gross = true }
     else if (performance.now() < BLICK.bis) ziel = blickZu(B.x, B.y, Math.max(B.r, 1), BLICK.x, BLICK.y)
     if (ziel && Math.hypot(ziel.gx - AUGE.gx, ziel.gy - AUGE.gy) > 0.35) gross = true
-    const kugel = B.shape === 'sphere' || B.shape === 'augen'
+    const kugel = B.shape === 'sphere'
     const draussen = !schlaeft && B.mode !== 'exit' && B.mode !== 'enter' && B.mode !== 'away' && B.mode !== 'gather' && B.mode !== 'portal' && !B.intro.an
     augeSchritt(AUGE, dt, {
       ziel, gross, weniger,
