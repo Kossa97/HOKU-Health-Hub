@@ -8,10 +8,18 @@ import { TEST_USER, type MockSupabase } from './support/mockSupabase'
  * Datenschutzerklärung, erreichbar aus den Einstellungen.
  */
 
-/** Eva: Alter (Über mich) startet auf „Nur ich“, Körperfett (Körper) auf „Alle“. */
-function eva(mock: MockSupabase) {
+/**
+ * Eva: Alter (Über mich) startet auf „Nur ich“, Körperfett (Körper) auf „Alle“.
+ * Die Quelldaten (Geburtsdatum, Tageseintrag) passen zum Schnappschuss: Das
+ * Öffnen von /profil stößt nach 2 s einen neuen Schnappschuss an, der den
+ * vorgegebenen ersetzt. In WebKit war „Ansehen als“ oft erst danach dran, und
+ * ohne Geburtsdatum fehlte dann das Alter.
+ */
+function eva(mock: MockSupabase, heute: Date) {
   const profil = mock.table('profiles').find(row => row.id === TEST_USER.id)!
-  Object.assign(profil, { username: 'e2e', display_name: 'Eva', field_visibility: { body_fat: 'all' } })
+  const geboren = new Date(Date.UTC(heute.getUTCFullYear() - 30, heute.getUTCMonth(), 1) + 45 * 864e5).toISOString().slice(0, 10)
+  Object.assign(profil, { username: 'e2e', display_name: 'Eva', birth_date: geboren, field_visibility: { body_fat: 'all' } })
+  mock.insert('daily_logs', { user_id: TEST_USER.id, log_date: heute.toISOString().slice(0, 10), body_fat_pct: 15.8 })
   mock.insert('profile_snapshots', { user_id: TEST_USER.id, data: { age: { v: 29 }, body_fat: { v: 15.8, unit: '%' } } })
   return profil
 }
@@ -25,8 +33,8 @@ async function ansehenAlsAppNutzer(page: import('@playwright/test').Page) {
   await expect(page.locator('[data-view-as="all"]')).toBeVisible()
 }
 
-test('Chip auf „Alle“ → „Ansehen als“ zeigt den Wert; zurück auf „Nur ich“ → Wert und Karte weg, keine Lücke', async ({ page, mock }) => {
-  const profil = eva(mock)
+test('Chip auf „Alle“ → „Ansehen als“ zeigt den Wert; zurück auf „Nur ich“ → Wert und Karte weg, keine Lücke', async ({ page, mock, now }) => {
+  const profil = eva(mock, now)
   await page.goto('/profil')
 
   // Nur ich → Freunde → Alle
