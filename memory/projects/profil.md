@@ -65,7 +65,9 @@ Nutzer 02.11.: Werte zählen erst mit belastbarer Baseline (Schwellen bestätigt
 Start, sonst erste 28 Tage nach Start = Baseline, zählt ab Tag 29; Schlaf ≥14 Nächte bzw. 28; Körperwerte ab 2. Messung
 ≥14 Tage nach der ersten; Blut ab 2. Befund; e1RM ab 3 Einheiten; Workouts/Woche und Adherence ab 4 Wochen.
 Kein Fallback „erste 7 Tage“. Untergrenze C verworfen (+600 % ist echter Fortschritt); Start 0 % → Prozentpunkte.
-Offen: Gewichtung von Anteilswerten (Schlaf/Blut) und Darstellung statt Ring (Nutzer: Ring passt nicht über 100 %).
+Anteilswerte (Schlaf, Blut) [Nutzer 02.11.]: „Lücke geschlossen“ = (jetzt − Start) ÷ (100 % − Start), −100…+100 %;
+übrige Werte relativ ohne Deckel. Darstellung: statt Ring Varianten-Mockup (Leitzahl+Nulllinien-Balken, Zeitreise,
+Turm, Höhenprofil) — Nutzer wählt.
 Spec `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`, Plan `docs/superpowers/plans/2026-11-02-profil-p2b-fortschritt.md`,
 Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Bau wartet auf Nutzer-Durchsicht.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
