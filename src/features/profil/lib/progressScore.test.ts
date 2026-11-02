@@ -6,7 +6,7 @@ import {
   HISTORY_MAX_WEEKS, PROGRESS_METRIC_IDS, addDays, adherenceValue, allowedDirections, areaOf, bloodValue, bodyValue,
   buildProgressValues, changePercent, computeProgress, defaultDirection, directionSource, e1rmValues, effectiveDirection,
   isMetricId, parseBaselines, parseDirections, parseHistory, progressHistory, progressSnapshot, scoreProgress, wearableValue,
-  weekOf, withHistory, workoutsValue,
+  wearableDays, weekOf, withHistory, workoutsValue,
   type DatedValue, type ProgressInput, type ProgressValueInput,
 } from './progressScore'
 
@@ -397,6 +397,21 @@ describe('Baseline: Wearables (60 Tage davor oder die ersten 28 Tage danach)', (
     expect(am(28)).toMatchObject({ start: 60, now: 60, baseline: { status: 'counts' } })
     expect(am(56)).toMatchObject({ start: 60, now: 54 })
     expect(scoreProgress([am(56)], []).total).toBeCloseTo(10)
+  })
+
+  it('28-Tage-Regel braucht mindestens 14 Tage mit Daten in diesen 28 Tagen, sonst sammelt der Wert weiter', () => {
+    // 13 Tage Daten in den ersten 28, danach taeglich
+    const duenn = [...days(0, 27, d => ({ steps: d % 2 === 0 && d < 26 ? 4000 : null })), ...days(28, 60, () => ({ steps: 9000 }))]
+    expect(wearableDays(duenn, 'steps', START, addDays(START, 27))).toHaveLength(13)
+    expect(wearableValue('steps', duenn, undefined, START, addDays(START, 50)).baseline)
+      .toEqual({ status: 'collecting', have: 13, need: 14, unit: 'days' })
+    const genug = [...duenn, row(26, { steps: 4000 })]
+    expect(wearableValue('steps', genug, undefined, START, addDays(START, 60)))
+      .toMatchObject({ start: 4000, now: 9000, baseline: { status: 'counts' } })
+    // Schlaf: Naechte als Einheit
+    const schlaf = days(0, 40, d => ({ sleep_min: d < 5 || d >= 28 ? 450 : null }))
+    expect(wearableValue('sleep_nights', schlaf, undefined, START, addDays(START, 40)).baseline)
+      .toEqual({ status: 'collecting', have: 5, need: 14, unit: 'nights' })
   })
 
   it('ohne gespeicherte Baseline gilt dieselbe 28-Tage-Regel (kein Rueckfall auf 7 Tage)', () => {

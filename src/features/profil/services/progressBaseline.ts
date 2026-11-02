@@ -6,7 +6,9 @@
  * - Mindestens 14 Tage (Schlaf: Naechte) mit Daten → Startwert = deren Mittel
  *   (Schlaf: Anteil der Naechte mit 7–9 h), `source: 'before'`.
  * - Sonst `source: 'after_start'`: die ersten 28 Tage nach dem Start werden die
- *   Baseline (rechnet `progressScore.wearableValue`). Kein Rueckfall auf „erste 7 Tage“.
+ *   Baseline, wenn darin mindestens 14 Tage (Naechte) Daten liegen; sonst
+ *   sammelt der Wert weiter (rechnet `progressScore.wearableValue`). Kein
+ *   Rueckfall auf „erste 7 Tage“.
  *
  * Gelesen wird nur mit Einwilligung (`profiles.health_store_consent_at`), vor dem
  * Lesen und vor dem Speichern frisch geladen. Nach Berechtigungen fragt diese

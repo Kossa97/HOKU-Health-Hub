@@ -391,7 +391,7 @@ export function e1rmValues(exercises: readonly ExerciseE1rm[], startOn: string, 
  * - `before`: mindestens 14 Tage Daten in den 60 Tagen vor dem Start; `value`
  *   ist deren Mittel (Schlaf: Anteil der Naechte mit 7–9 h, 0…1).
  * - `after_start`: zu wenig davor (`days` gefunden); die ersten 28 Tage nach dem
- *   Start werden die Baseline, der Wert zaehlt ab Tag 29.
+ *   Start werden die Baseline (mindestens 14 Tage mit Daten), der Wert zaehlt ab Tag 29.
  * `on` = Start, fuer den gelesen wurde; eine Baseline fuer einen anderen Start gilt nicht.
  */
 export type StoredBaseline =
@@ -446,7 +446,8 @@ export function parseBaselines(raw: unknown, startOn: string): StoredBaselines {
  * Wearable-Wert. Jetzt = die 28 abgeschlossenen Tage vor heute, nie vor dem
  * Start (der heutige Tag ist noch nicht vorbei). Mit `before`-Baseline zaehlt
  * er sofort; sonst sammelt er 28 Tage ab dem Start und zaehlt ab Tag 29 mit
- * deren Mittel als Start. Kein Rueckfall auf „erste 7 Tage“.
+ * deren Mittel als Start — aber nur, wenn in diesen 28 Tagen mindestens 14
+ * Tage (Naechte) Daten liegen. Kein Rueckfall auf „erste 7 Tage“.
  */
 export function wearableValue(
   id: WearableMetricId, rows: readonly HealthDailyRow[], baseline: StoredBaseline | undefined, startOn: string, today: string,
@@ -467,8 +468,12 @@ export function wearableValue(
   if (elapsed < BASELINE_AFTER_DAYS) {
     return { id, start: null, now: null, baseline: { status: 'collecting', have: elapsed, need: BASELINE_AFTER_DAYS, unit } }
   }
+  // Auch die 28 Tage nach dem Start brauchen mindestens 14 Tage (Naechte) mit
+  // Daten; sonst sammelt der Wert weiter („9 von 14 Tagen“), bis ein neuer Start gesetzt wird.
   const firstDays = wearableDays(rows, id, startOn, addDays(startOn, BASELINE_AFTER_DAYS - 1))
-  if (firstDays.length === 0) return { id, start: null, now: null, baseline: { status: 'none' } }
+  if (firstDays.length < BASELINE_MIN_DAYS) {
+    return { id, start: null, now: null, baseline: { status: 'collecting', have: firstDays.length, need: BASELINE_MIN_DAYS, unit } }
+  }
   return { id, start: wearableStat(id, firstDays), now, startOf: of(firstDays), nowOf: of(nowDays), baseline: { status: 'counts' } }
 }
 
