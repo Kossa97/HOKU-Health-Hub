@@ -819,7 +819,7 @@ export function createDot(host: DotHost): DotApi {
   }
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
   // auch bei offener Tastatur (Seite gescrollt) zu sehen (Nutzer 02.11.2026)
-  const KANTE = 0.55
+  const KANTE = 0.15
   function rutschZiel(mitte: number) {
     const el = document.activeElement
     if (!BUEHNE || !B.stage || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return 0
