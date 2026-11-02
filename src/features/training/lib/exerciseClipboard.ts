@@ -1,49 +1,30 @@
-import { useSyncExternalStore } from 'react'
-import type { RoutineExercise } from '../types'
+import type { RoutineExercise, TrainingRoutine } from '../types'
+import { createClipboard } from './clipboard'
 import { cloneExercise, isRoutineExercise } from './exerciseSelection'
 
-/**
- * Ablage fuer kopierte Uebungen — app-weit, damit man in einem Workout
- * kopiert und in einem anderen einfuegt. Liegt fuer die Sitzung im
- * sessionStorage (uebersteht Neuladen, nicht das Schliessen des Tabs).
- */
+/** Ablage fuer kopierte Uebungen (Workout-Editor). */
+const exercises = createClipboard<RoutineExercise>('tyd.training.clipboard', isRoutineExercise, cloneExercise)
 
-const KEY = 'tyd.training.clipboard'
-const MAX_ITEMS = 50
+export const copyToClipboard = exercises.copy
+export const clipboardCopies = exercises.copies
+export const clearClipboard = exercises.clear
+export const useExerciseClipboard = exercises.useItems
 
-function load(): RoutineExercise[] {
-  try {
-    const raw = JSON.parse(sessionStorage.getItem(KEY) ?? '[]') as unknown
-    return Array.isArray(raw) ? raw.filter(isRoutineExercise).slice(0, MAX_ITEMS) : []
-  } catch {
-    return []
-  }
+/** Ein kopiertes Workout: alles ausser Kennung und Plan (die setzt das Einfuegen). */
+export type WorkoutCopy = Pick<TrainingRoutine, 'name' | 'kind' | 'exercises' | 'weekdays'>
+
+const isWorkoutCopy = (value: unknown): value is WorkoutCopy => {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Partial<WorkoutCopy>
+  return typeof v.name === 'string' && typeof v.kind === 'string' && Array.isArray(v.weekdays)
+    && Array.isArray(v.exercises) && v.exercises.every(isRoutineExercise)
 }
 
-let items: RoutineExercise[] = load()
-const listeners = new Set<() => void>()
+const cloneWorkout = (w: WorkoutCopy): WorkoutCopy => ({ name: w.name, kind: w.kind, weekdays: [...w.weekdays], exercises: w.exercises.map(e => JSON.parse(JSON.stringify(e)) as RoutineExercise) })
 
-function set(next: RoutineExercise[]) {
-  items = next
-  try { sessionStorage.setItem(KEY, JSON.stringify(next)) } catch { /* ohne Speicher: nur im Speicher */ }
-  listeners.forEach(fn => fn())
-}
+/** Ablage fuer kopierte Workouts (Plan-Bildschirm, Workout-Editor). */
+const workouts = createClipboard<WorkoutCopy>('tyd.training.clipboard.workouts', isWorkoutCopy, cloneWorkout, 10)
 
-export function copyToClipboard(exercises: readonly RoutineExercise[]) {
-  set(exercises.slice(0, MAX_ITEMS).map(cloneExercise))
-}
-
-/** Frische Kopien zum Einfuegen — die Ablage bleibt, man kann mehrfach einfuegen. */
-export function clipboardCopies(): RoutineExercise[] {
-  return items.map(cloneExercise)
-}
-
-export function clearClipboard() {
-  set([])
-}
-
-const subscribe = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn) } }
-
-export function useExerciseClipboard(): readonly RoutineExercise[] {
-  return useSyncExternalStore(subscribe, () => items, () => items)
-}
+export const copyWorkout = (routine: TrainingRoutine | WorkoutCopy) => workouts.copy([{ name: routine.name, kind: routine.kind, weekdays: routine.weekdays, exercises: routine.exercises }])
+export const workoutCopies = workouts.copies
+export const useWorkoutClipboard = workouts.useItems

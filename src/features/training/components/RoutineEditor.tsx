@@ -10,8 +10,9 @@ import { fromDisplayWeight, toDisplayWeight } from '../lib/stats'
 import { routineSetsPerMuscle, sortedMuscles, weeklySetsPerMuscle } from '../lib/muscleVolume'
 import { migrateRepsRange } from '../lib/repsRange'
 import { toggleSupersetAt } from '../lib/supersets'
-import { duplicateSelected, pickSelected, withoutSelected } from '../lib/exerciseSelection'
-import { clipboardCopies, copyToClipboard, useExerciseClipboard } from '../lib/exerciseClipboard'
+import { cloneExercise, duplicateSelected, pickSelected, withoutSelected } from '../lib/exerciseSelection'
+import { DEFAULT_SCHEDULE } from '../lib/planSchedule'
+import { clipboardCopies, copyToClipboard, copyWorkout, useExerciseClipboard } from '../lib/exerciseClipboard'
 import { ExercisePicker } from './ExercisePicker'
 import { SUPERSET_COLORS } from './live/ExerciseBlock'
 import { Button, Chip, SelectCircle, TrainingSheet, TRAINING_ACCENT, inputStyle } from './ui'
@@ -102,6 +103,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
   }, [data.routines, folder])
 
   const info = useCallback((id: string) => exerciseInfo(id, lang, data.customExercises), [lang, data.customExercises])
+  const planSchedule = (folder ? data.schedules.get(folder) : undefined) ?? DEFAULT_SCHEDULE
 
   // ── Speichern ──────────────────────────────────────────────────────────────
 
@@ -142,6 +144,27 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
       onClose()
       onStart(saved)
     } catch { toast.error(tt('save_error')); setBusy(false) }
+  }
+
+  /** Dieses Workout (mit dem, was gerade im Editor steht) als Kopie im selben Plan anlegen. */
+  const duplicateWorkout = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      const current = build()
+      await persist()
+      await data.saveRoutine({
+        ...current, id: undefined,
+        name: tt('workout_copy_name', { name: current.name }).slice(0, 60),
+        exercises: current.exercises.map(cloneExercise),
+        sortOrder: Math.max(-1, ...data.routines.map(r => r.sortOrder)) + 1,
+      })
+      toast.success(tt('workout_duplicated', { name: current.name }))
+    } catch {
+      toast.error(tt('save_error'))
+    } finally {
+      setBusy(false)
+    }
   }
 
   const remove = async () => {
@@ -348,16 +371,24 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
 
   // ── Saetze je Muskel ───────────────────────────────────────────────────────
 
-  const times = Math.max(1, weekdays.length)
+  // Wie oft das Workout pro Woche drankommt: nach Wochentagen, oder aus dem
+  // Zeitplan des Plans verteilt auf seine Workouts (mindestens einmal).
+  const planSize = Math.max(1, data.routines.filter(r => r.folder != null && r.folder === folder && r.id !== routine?.id).length + 1)
+  const times = planSchedule.mode === 'per_week' ? Math.max(1, Math.round(planSchedule.perWeek / planSize))
+    : planSchedule.mode === 'interval' ? Math.max(1, Math.round(7 / planSchedule.everyDays / planSize))
+    : Math.max(1, weekdays.length)
   const muscleRows = useMemo(() => {
     const own = routineSetsPerMuscle(exercises, info)
     const others = folder ? data.routines.filter(r => r.id !== routine?.id && r.folder === folder) : []
-    const weekly = weeklySetsPerMuscle([...others, { exercises, weekdays }], info)
+    // Mit Plan-Zeitplan zaehlt jedes Workout so oft, wie der Zeitplan es verteilt — nicht nach Wochentagen.
+    const byPlan = planSchedule.mode !== 'weekdays'
+    const days = (own: number[]) => (byPlan ? Array.from({ length: times }, (_, i) => i + 1) : own)
+    const weekly = weeklySetsPerMuscle([...others.map(o => ({ exercises: o.exercises, weekdays: days(o.weekdays) })), { exercises, weekdays: days(weekdays) }], info)
     return sortedMuscles(own).map(row => {
       const week = weekly.get(row.muscle) ?? 0
       return { muscle: row.muscle, week, label: tt('muscle_sets_week', { sets: formatNumber(row.sets, locale, 1), week: formatNumber(week, locale, 1) }) }
     })
-  }, [exercises, weekdays, folder, info, data.routines, routine?.id, tt, locale])
+  }, [exercises, weekdays, folder, info, data.routines, routine?.id, tt, locale, planSchedule.mode, times])
 
   // ── Darstellung ────────────────────────────────────────────────────────────
 
@@ -465,6 +496,17 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
               )}
             </div>
           </div>
+          {planSchedule.mode !== 'weekdays' ? (
+            // Der Plan hat einen eigenen Zeitplan: dann zaehlen die Wochentage am Workout nicht
+            <div style={rowStyle}>
+              <span style={rowLabel}>{tt('routine_days')}</span>
+              <span style={{ fontSize: '0.88rem', color: 'var(--lg-text-2)', paddingTop: 9 }}>
+                {planSchedule.mode === 'per_week'
+                  ? tt('sched_per_week_value', { count: planSchedule.perWeek })
+                  : tt('sched_interval_value', { count: planSchedule.everyDays })} · {tt('plan_title')}
+              </span>
+            </div>
+          ) : (
           <div style={rowStyle}>
             <span style={rowLabel}>{tt('routine_days')}</span>
             <div role="group" aria-label={tt('routine_days')} style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -479,6 +521,7 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
               ))}
             </div>
           </div>
+          )}
         </section>
 
         {exercises.length === 0 && <p style={{ color: 'var(--lg-text-3)', padding: '4px 2px', fontSize: '0.9rem' }}>{tt('routine_no_exercises')}</p>}
@@ -684,6 +727,16 @@ export function RoutineEditor({ routine, data, onClose, onStart }: {
           <p style={{ margin: '10px 0 0', fontSize: '0.72rem', color: 'var(--lg-text-3)', lineHeight: 1.4 }}>{tt('muscle_band_hint')}</p>
         </section>
 
+        {routine?.id && !selecting && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button tone="ghost" disabled={busy} onClick={() => { copyWorkout(build()); toast.success(tt('workout_copied', { name: build().name })) }} style={{ flex: 1 }}>
+              <Copy size={16} aria-hidden="true" /> {tt('workout_copy')}
+            </Button>
+            <Button tone="ghost" disabled={busy} onClick={duplicateWorkout} style={{ flex: 1 }}>
+              <CopyPlus size={16} aria-hidden="true" /> {tt('workout_duplicate')}
+            </Button>
+          </div>
+        )}
         {routine?.id && (
           <Button tone="danger" block disabled={busy} onClick={remove}>
             <Trash2 size={16} aria-hidden="true" /> {tt('routine_delete')}

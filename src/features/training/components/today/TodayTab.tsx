@@ -61,14 +61,15 @@ export function TodayTab({ data, dotQuiet = false, onStartRoutine, onStartEmpty,
     [data.sessions, now, data.settings.weeklyGoal, data.context.latestWeightKg],
   )
 
-  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now), [data.routines, data.sessions, now])
+  const next = useMemo(() => nextInPlan(data.routines, data.sessions, now, data.schedules), [data.routines, data.sessions, now, data.schedules])
   const todaySessions = useMemo(
     () => data.sessions.filter(s => new Date(s.startedAt).toDateString() === now.toDateString()),
     [data.sessions, now],
   )
-  // Ruhetag: es gibt einen Wochenplan, fuer heute steht nichts darin und heute wurde nicht trainiert.
+  // Ruhetag: es gibt einen Zeitplan (Wochentage oder Plan-Zeitplan), fuer
+  // heute steht nichts an und heute wurde nicht trainiert.
   const restDay = next != null && !next.plannedToday && todaySessions.length === 0
-    && data.routines.some(r => r.weekdays.length > 0)
+    && (data.routines.some(r => r.weekdays.length > 0) || data.plans.some(p => p.schedule.mode !== 'weekdays'))
 
   // Dot sagt, was heute dran ist (er lebt in der Leiste, nicht in den Karten)
   const hint = dotHint({

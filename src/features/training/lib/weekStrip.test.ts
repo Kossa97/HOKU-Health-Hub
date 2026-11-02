@@ -39,3 +39,22 @@ describe('weekDays', () => {
     expect(days[5].planned.map(r => r.name)).toEqual(['Push'])
   })
 })
+
+describe('weekDays mit Plan-Zeitplan', () => {
+  const plan: TrainingRoutine[] = [
+    { id: 'push', name: 'Push', kind: 'strength', exercises: [], weekdays: [1], sortOrder: 0, folder: 'PPL' },
+    { id: 'pull', name: 'Pull', kind: 'strength', exercises: [], weekdays: [3], sortOrder: 1, folder: 'PPL' },
+  ]
+  // Mittwoch, 4.11.2026
+  const wednesday = new Date(2026, 10, 4, 10)
+
+  it('pro Woche: nur heute geplant, Wochentage der Workouts zaehlen nicht', () => {
+    const days = weekDays(wednesday, [], plan, new Map([['PPL', { mode: 'per_week' as const, perWeek: 3 }]]))
+    expect(days.map(d => d.planned.map(r => r.id).join())).toEqual(['', '', 'push', '', '', '', ''])
+  })
+
+  it('alle X Tage: die faelligen Tage ab heute', () => {
+    const days = weekDays(wednesday, [], plan, new Map([['PPL', { mode: 'interval' as const, everyDays: 2 }]]))
+    expect(days.map(d => d.planned.length)).toEqual([0, 0, 1, 0, 1, 0, 1])
+  })
+})

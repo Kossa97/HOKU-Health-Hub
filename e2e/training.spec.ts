@@ -167,7 +167,7 @@ test('Training: Uebungen auswaehlen, kopieren, einfuegen, verschieben', async ({
 
   // Push: zwei Uebungen kopieren
   await page.getByRole('button', { name: 'Push – Bearbeiten' }).click()
-  const editor = page.getByRole('dialog', { name: 'Routine bearbeiten' })
+  const editor = page.getByRole('dialog', { name: 'Workout bearbeiten' })
   await editor.getByRole('button', { name: 'Auswählen' }).click()
   await editor.getByRole('checkbox', { name: /Bankdrücken/ }).click()
   await editor.getByRole('checkbox', { name: /Seitheben/ }).click()
@@ -177,7 +177,7 @@ test('Training: Uebungen auswaehlen, kopieren, einfuegen, verschieben', async ({
 
   // Pull: einfuegen — mit allen Werten
   await page.getByRole('button', { name: 'Pull – Bearbeiten' }).click()
-  const pull = page.getByRole('dialog', { name: 'Routine bearbeiten' })
+  const pull = page.getByRole('dialog', { name: 'Workout bearbeiten' })
   await pull.getByRole('button', { name: '2 Übungen einfügen' }).click()
   await pull.getByRole('button', { name: 'Schließen und speichern' }).click()
   await expect.poll(() => {
@@ -200,6 +200,50 @@ test('Training: Uebungen auswaehlen, kopieren, einfuegen, verschieben', async ({
     'Pull:bench_press_barbell,lateral_raise_dumbbell,overhead_press_barbell',
     'Push:bench_press_barbell,lateral_raise_dumbbell',
   ])
+})
+
+test('Training: Plan mit Zeitplan, Workouts duplizieren und verschieben', async ({ page, mock }) => {
+  for (const [i, name] of ['Push', 'Pull', 'Beine'].entries()) {
+    mock.insert('training_routines', {
+      user_id: TEST_USER.id, name, kind: 'strength', weekdays: [], sort_order: i, folder: 'PPL',
+      exercises: [{ exerciseId: 'bench_press_barbell', restS: 90, sets: [{ type: 'normal', weightKg: 80, repsMin: 8, repsMax: 10 }] }],
+    })
+  }
+  mock.insert('training_routines', { user_id: TEST_USER.id, name: 'Lauf', kind: 'run', weekdays: [], sort_order: 3, folder: null, exercises: [] })
+  await page.goto('/training')
+
+  // Zeitplan: 4× pro Woche
+  await page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' }).click()
+  const plan = page.getByRole('dialog', { name: 'Plan' })
+  await plan.getByRole('radio', { name: 'Pro Woche' }).click()
+  await plan.getByRole('button', { name: 'Mehr', exact: true }).click()
+  await expect(plan.getByRole('status', { name: '4× pro Woche' })).toBeVisible()
+  await expect(plan.getByText('Diese Woche 0 von 4')).toBeVisible()
+  await expect(plan.getByText('Heute dran: Push')).toBeVisible()
+
+  // Workout duplizieren — mit allen Werten, im selben Plan
+  await plan.getByRole('button', { name: 'Mehr zu Pull' }).click()
+  await page.getByRole('dialog', { name: 'Pull' }).getByRole('button', { name: 'Duplizieren' }).click()
+  await expect(plan.getByRole('listitem')).toHaveCount(4)
+  await expect.poll(() => {
+    const copy = mock.table('training_routines').find(r => r.name === 'Pull (Kopie)') as { folder: string; exercises: Array<{ sets: Array<{ weightKg: number }> }> } | undefined
+    return copy && `${copy.folder}:${copy.exercises[0].sets[0].weightKg}`
+  }).toBe('PPL:80')
+
+  // Beine nach „Ohne Plan" verschieben
+  await plan.getByRole('button', { name: 'Mehr zu Beine' }).click()
+  await page.getByRole('dialog', { name: 'Beine' }).getByRole('button', { name: 'Verschieben' }).click()
+  await page.getByRole('dialog', { name: /Beine.*verschieben nach/ }).getByRole('button', { name: 'Ohne Plan' }).click()
+  await expect(plan.getByRole('listitem')).toHaveCount(3)
+
+  await plan.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => mock.table('training_plans').map(p => `${p.name}:${JSON.stringify(p.schedule)}`))
+    .toEqual(['PPL:{"mode":"per_week","perWeek":4}'])
+  await expect.poll(() => (mock.table('training_routines').find(r => r.name === 'Beine') as { folder: string | null }).folder).toBeNull()
+
+  // „Heute": der Plan zeigt den Zeitplan, Push ist heute dran
+  await expect(page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' })).toContainText('4× pro Woche')
+  await expect(page.getByText('Heute geplant', { exact: true })).toBeVisible()
 })
 
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {

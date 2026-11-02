@@ -180,6 +180,27 @@ export interface TrainingRoutine {
 
 export const ROUTINE_FOLDER_MAX = 40
 
+/**
+ * Wie ein Plan geplant wird. „weekdays": feste Wochentage an den Workouts
+ * (Standard, auch wenn es keinen Eintrag gibt). „per_week": X-mal pro Woche,
+ * die Workouts der Reihe nach. „interval": alle X Tage ab der letzten Einheit.
+ */
+export type PlanSchedule =
+  | { mode: 'weekdays' }
+  | { mode: 'per_week'; perWeek: number }
+  | { mode: 'interval'; everyDays: number }
+
+/** Zeitplan eines Plans; verknuepft ueber den Namen (`folder` der Workouts). */
+export interface PlanConfig {
+  id: string
+  name: string
+  schedule: PlanSchedule
+  sortOrder: number
+}
+
+export const PER_WEEK_MAX = 7
+export const EVERY_DAYS_MAX = 14
+
 export type WeightUnit = 'kg' | 'lb'
 
 export interface TrainingSettings {

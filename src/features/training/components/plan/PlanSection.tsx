@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Moon, Pencil, Play, Plus, Timer } from 'lucide-react'
+import { ChevronRight, Moon, Pencil, Play, Plus, Timer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { TrainingRoutine } from '../../types'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
@@ -13,6 +13,7 @@ import { createPlanRoutines, TRAINING_PLANS, type TrainingPlan } from '../../dat
 import { HYROX_DIVISIONS, hyroxRoutine, type HyroxDivisionId } from '../../data/hyrox'
 import { Button, Card, Chip, SectionTitle, TrainingSheet } from '../ui'
 import { BandLegend, MuscleBars } from './MuscleVolume'
+import { PlanEditor } from './PlanEditor'
 
 /**
  * Der Plan-Teil von „Heute": die Routinen nach Ordner, Vorlagen zum Anlegen
@@ -38,6 +39,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   const [template, setTemplate] = useState<TrainingPlan | null>(null)
   const [hyroxPick, setHyroxPick] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<string | null>(null)
 
   // Die hervorgehobene Routine nach oben in ihrem Ordner.
   const groups = useMemo(() => groupByFolder(data.routines).map(group => ({
@@ -56,6 +58,14 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
   }
 
   const weekdayList = (days: number[]) => days.map(d => tt(`weekday_${d}` as TrainingTextKey)).join(', ')
+  /** Wochentage an einem Workout zeigen — nur, wenn sein Plan nach Wochentagen geht. */
+  const byWeekdays = (r: TrainingRoutine) => r.folder == null || (data.schedules.get(r.folder)?.mode ?? 'weekdays') === 'weekdays'
+  const scheduleLabel = (plan: string) => {
+    const schedule = data.schedules.get(plan)
+    if (schedule?.mode === 'per_week') return tt('sched_per_week_value', { count: schedule.perWeek })
+    if (schedule?.mode === 'interval') return tt('sched_interval_value', { count: schedule.everyDays })
+    return null
+  }
 
   const createPlan = async () => {
     if (!template) return
@@ -90,12 +100,29 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
           {groups.map(group => (
             <div key={group.folder ?? '\0'} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {(groups.length > 1 || group.folder != null) && (
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, margin: '0 2px' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {group.folder != null ? tt('plan_heading', { name: group.folder }) : tt('routine_folder_none')}
-                  </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
-                </div>
+                group.folder != null ? (
+                  // Der Kopf eines Plans oeffnet den Plan (Name, Zeitplan, Workouts)
+                  <button
+                    type="button"
+                    onClick={() => setEditingPlan(group.folder)}
+                    aria-label={`${tt('plan_heading', { name: group.folder })} – ${tt('plan_edit')}`}
+                    className="tyd-train-press"
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 36, margin: '0 2px', textAlign: 'left' }}
+                  >
+                    <span style={{ flex: 1, minWidth: 0, fontSize: '0.82rem', fontWeight: 800, color: 'var(--lg-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {tt('plan_heading', { name: group.folder })}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', flexShrink: 0 }}>
+                      {scheduleLabel(group.folder) ?? tt('routines_count', { count: group.routines.length })}
+                    </span>
+                    <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--lg-text-4)', flexShrink: 0 }} />
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, margin: '0 2px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--lg-text)' }}>{tt('routine_folder_none')}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', flexShrink: 0 }}>{tt('routines_count', { count: group.routines.length })}</span>
+                  </div>
+                )
               )}
               {group.routines.map(r => r.id === next?.routine.id ? (
                 <Card key={r.id} style={{ padding: 14, boxShadow: restDay ? undefined : `var(--lg-surface-shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 60%, transparent)` }}>
@@ -117,7 +144,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                   <div style={{ fontSize: '0.8rem', color: 'var(--lg-text-3)', margin: '2px 0 12px' }}>
                     {restDay && `${tt('plan_next_title')} · `}
                     {tt('exercises_count', { count: r.exercises.length })}
-                    {r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
+                    {byWeekdays(r) && r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
                     {` · ${lastLabel(next.lastTrainedAt)}`}
                   </div>
                   <Button block tone={restDay ? 'ghost' : 'primary'} onClick={() => onStartRoutine(r)} style={{ minHeight: 48 }}>
@@ -131,7 +158,7 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
                       <div style={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--lg-text-3)' }}>
                         {tt('exercises_count', { count: r.exercises.length })}
-                        {r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
+                        {byWeekdays(r) && r.weekdays.length > 0 && ` · ${weekdayList(r.weekdays)}`}
                       </div>
                     </div>
                     <button type="button" aria-label={`${r.name} – ${tt('edit')}`} onClick={() => onEditRoutine(r)} className="tyd-train-press" style={{ width: 44, height: 44, borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lg-text-3)' }}>
@@ -178,6 +205,16 @@ export function PlanSection({ data, next, restDay, now, onStartRoutine, onEditRo
           <p style={{ fontSize: '0.75rem', color: 'var(--lg-text-3)', margin: '8px 2px 0' }}>{tt('plan_template_hint')}</p>
         </div>
       </section>
+
+      {editingPlan != null && (
+        <PlanEditor
+          data={data}
+          planName={editingPlan}
+          now={now}
+          onClose={() => setEditingPlan(null)}
+          onEditWorkout={workout => { setEditingPlan(null); onEditRoutine(workout) }}
+        />
+      )}
 
       {template && (
         <TrainingSheet

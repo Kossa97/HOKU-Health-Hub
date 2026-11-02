@@ -16,10 +16,10 @@ import { weekDays, type WeekDay } from '../../lib/weekStrip'
  */
 export function WeekStrip({ data, now }: { data: TrainingData; now: Date }) {
   const { tt, locale } = useTrainingText()
-  const days = useMemo(() => weekDays(now, data.sessions, data.routines), [now, data.sessions, data.routines])
+  const days = useMemo(() => weekDays(now, data.sessions, data.routines, data.schedules), [now, data.sessions, data.routines, data.schedules])
   const [selected, setSelected] = useState(() => Math.max(0, days.findIndex(d => d.isToday)))
   const buttons = useRef<Array<HTMLButtonElement | null>>([])
-  const hasPlan = data.routines.some(r => r.weekdays.length > 0)
+  const hasPlan = data.routines.some(r => r.weekdays.length > 0) || data.plans.some(p => p.schedule.mode !== 'weekdays')
   const longDate = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }), [locale])
   const weekTitle = useMemo(() => {
     const range = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
