@@ -86,6 +86,17 @@ gründlichere Grundlage.
    begleiten**.
 8. **Nativer Push** (iOS/Android) für die Store-App wird in diesem Projekt gebaut.
 
+Ergänzt am 03.11.2026:
+
+9. **Alles Erlaubte wird paarweise verglichen**, auch wenn ein Nutzer nur wenige Dinge
+   trackt (Beispiel des Nutzers: nur Schritte und Schlaf) → **Paar-Vergleiche**.
+10. **Echte Ausreißer zählen**, besonders aus verifizierter Quelle. Ein einzelner
+    PR-Test oder ein ungewöhnlich langer Lauf wird berücksichtigt und gefeiert →
+    **Datenqualität**.
+11. **Unnatürliche manuelle Eingaben**, auch übertriebene Dosen, verfälschen keine
+    Funde. Dosen werden dabei nie fachlich bewertet → **Datenqualität**, Absatz
+    Substanzen.
+
 ## Aufbau
 
 ```
@@ -125,8 +136,9 @@ Detektoren sind **richtungsneutral**: derselbe Detektor findet „besser" wie �
   und **Mindesteffekt** je Detektor (z. B. Schlaf ≥ 15 min).
 - **Viele Tests → Zufallstreffer:** Je Lauf und Nutzer laufen viele Detektoren. Die
   Schwellen gelten deshalb nach einer Korrektur über alle Tests des Laufs
-  (z. B. Benjamini-Hochberg). Kein freies Durchsuchen aller Messwerte gegeneinander
-  (Nicht-Ziel des Wirkungs-Check-PRD) — nur der feste Katalog.
+  (z. B. Benjamini-Hochberg). Messwerte werden nicht frei gegeneinander durchsucht,
+  sondern nach festen Regeln paarweise verglichen (siehe **Paar-Vergleiche** unten;
+  ersetzt am 03.11.2026 das frühere „nur der feste Katalog").
 - Tage werden in der **Zeitzone des Nutzers** geschnitten.
 - **Zeitversatz ist fest je Detektor** (z. B. V1: +1 und +2 Tage), nie frei über viele
   Verschiebungen gesucht. Jede geprüfte Verschiebung zählt als eigener Test in der
@@ -137,6 +149,137 @@ Detektoren sind **richtungsneutral**: derselbe Detektor findet „besser" wie �
 - Mit der Erweiterung laufen über 100 Fundarten. Die Korrektur über alle Tests eines
   Laufs ist deshalb Pflicht, nicht Kür; Fundarten, deren Daten fehlen, laufen nicht
   und zählen nicht mit.
+
+### Datenqualität: fehlende, falsche und echte Ausreißer (Nutzer, 03.11.2026)
+
+Grundsatz: **Ungewöhnlich ist nicht falsch.** Ein PR-Test, ein Lauf doppelt so lang wie
+sonst oder eine Nacht mit 11 Stunden Schlaf nach einer Reise sind echt und zählen. Die
+Engine unterscheidet deshalb Tippfehler von echten Ausnahmen, statt Ausreißer
+pauschal zu streichen. Jeder Wert fällt in eine von drei Klassen:
+
+| Klasse | Woran erkannt | Was die Engine tut |
+|---|---|---|
+| **fehlt** | kein Wert; 0, wo 0 nicht gemeint sein kann (0 Schritte, 0 min Schlaf = Uhr nicht getragen); Essen ohne Menge | zählt nicht, auch nicht als 0 |
+| **unmöglich** | außerhalb fester Grenzen je Messwert (Tabelle unten) | zählt nicht; bei manuellen Einträgen leiser Hinweis „Eintrag prüfen" am Eintrag und im Beleg, nie im Wochen-Update, nie per Push |
+| **ungewöhnlich** | innerhalb der Grenzen, aber weit weg vom eigenen Verlauf (robuster Abstand zum eigenen Median der letzten 90 Tage, Richtwert mehr als 5 MAD) | zählt mit; wie, hängt von **Quelle** und **Fundart** ab (unten) |
+
+**Feste Grenzen (meine Wahl, Richtwerte).** Absichtlich weit: Sie fangen Komma-,
+Einheiten- und Tippfehler, nie eine echte Leistung. Der Bauende prüft jede Grenze gegen
+bekannte Rekorde und schreibt sie als Daten in den Katalog.
+
+| Messwert | gültig |
+|---|---|
+| Schlaf je Nacht | über 0 bis 18 h |
+| Schritte je Tag | über 0 bis 150.000 |
+| Ruhepuls | 25–150 /min |
+| Aktive kcal je Tag | bis 15.000 |
+| Protein je Tag | bis 800 g |
+| Körpergewicht | 25–400 kg |
+| Satz im Krafttraining | Gewicht bis 600 kg, 1–100 Wiederholungen |
+| Ausdauer-Einheit | Dauer bis 24 h; Strecke je Sportart (Lauf bis 350 km, Rad bis 1.000 km) |
+
+**Die Quelle entscheidet, wie sehr einem ungewöhnlichen Wert geglaubt wird.**
+
+- **Verifizierte Quelle** (Apple Health / Health Connect, Uhr- und Geräte-Import;
+  erkennbar an `health_daily.source`, `training_sessions.source` / `external_id`): nur
+  die festen Grenzen. Ein ungewöhnlicher Wert zählt **voll**, er wurde gemessen und
+  nicht getippt. Einzige Ausnahme sind technische Doppelungen: Derselbe Tag oder
+  dieselbe Einheit aus zwei Quellen zählt einmal (feste Rangfolge der Quellen, wählt
+  der Bauende).
+- **Manuell eingetragen:** Grenzen **und** Abgleich mit dem eigenen Verlauf. Ist ein
+  manueller Wert ungewöhnlich, fragt die App beim Speichern einmal nach („Ungewöhnlich
+  hoch für dich: 1.500 g Protein. Stimmt das?" → „Ja, stimmt" / „Korrigieren").
+  **Bestätigt** zählt er wie ein verifizierter Wert. **Nicht bestätigt** (Frage
+  weggeklickt) bleibt er gespeichert und sichtbar, zählt aber in keinem Muster. Wo die
+  Frage beim Speichern nicht möglich ist (ältere Einträge), steht sie leise am Eintrag
+  und im Beleg. Die Bestätigung wird am Eintrag gespeichert (Ablage wählt der Bauende).
+
+**Wie ungewöhnliche Werte in die Funde eingehen** hängt davon ab, ob der Fund ein
+Muster beschreibt oder einen einzelnen Bestwert feiert:
+
+- **Muster** (Katalog-Vergleiche, Paar-Vergleiche, Schwellen, Verläufe): robust
+  gerechnet, mit **Medianen statt Mittelwerten** und einem Test auf Rängen bzw. Mediane
+  (Verfahren wählt der Bauende). Ein echter Ausnahmetag bleibt drin, kann aber **allein
+  kein Muster tragen**. Dazu die **Einzeltag-Probe:** Ein Fund wird verworfen, wenn er
+  ohne seinen stärksten Einzeltag nicht mehr wenigstens „Hinweis" wäre. Verläufe (R6)
+  nehmen je Woche den besten Wert; ein Testtag verschiebt den Trend nicht allein.
+- **Bestwerte und Rekorde** (R4, Lauf-Bestleistungen, L-Funde): Hier **ist** der
+  Ausnahmetag der Fund. Ein PR-Test zählt sofort und wird gefeiert. Ein Einer
+  (1 Wiederholung) zählt direkt mit seinem Gewicht. Der längste Lauf zählt ebenso. Das
+  gilt, wenn
+  - die Quelle verifiziert ist, **oder**
+  - der manuelle Wert nicht ungewöhnlich ist, **oder**
+  - der Nutzer ihn bestätigt hat.
+
+  Bei einem **großen Sprung in einem manuellen Eintrag** kommt statt des Funds erst
+  die Rückfrage. Richtwerte: mehr als 25 % über dem bisherigen Bestwert
+  (geschätztes Einer-Maximum), oder mehr als doppelt so weit bzw. so lang wie die
+  bisher längste Einheit derselben Sportart. Nach „Ja, stimmt" ist es ein Rekord.
+  Bleibt die Frage unbeantwortet, gibt es keinen Rekord und **keine neue Bestmarke**.
+  So blockiert ein Tippfehler nie spätere echte Rekorde.
+- Korrigiert der Nutzer später einen Eintrag, prüft der nächste Nachtlauf neu; ein
+  Fund, den die Daten nicht mehr tragen, wird ungültig (`gueltig = false`, gibt es seit
+  Teil 1).
+
+**Substanzen und Dosen.** Hier gibt es bewusst **keine Grenzen aus Fachwissen**: Eine
+Dosis „zu hoch" zu nennen oder mit Normdosen zu vergleichen, wäre eine
+Dosisbewertung (Anti-Ziel, MDR). Geprüft wird nur die **Eingabe**, und zwar
+ausschließlich gegen die eigenen Angaben des Nutzers:
+
+- Weicht eine manuell eingetragene Dosis um **Faktor 10 oder mehr** vom geplanten Wert
+  derselben Substanz ab, fragt die App beim Speichern neutral nach. Ohne Plan zählt
+  der Median der eigenen bisherigen Dosen dieser Substanz. Faktor 10 ist das typische
+  Muster bei mg/mcg-Verwechslung und Kommafehlern. Beispiel: „Geplant sind 250 mcg,
+  eingetragen sind 2.500 mcg. Stimmt das?" → „Ja, stimmt" / „Korrigieren". Die Frage
+  hat keinen Warnton, nennt keine Risiken und gibt keine Empfehlung. Bei der ersten
+  Dosis einer Substanz ohne Plan gibt es nichts zum Vergleichen, also keine Frage.
+- **In der Engine** gilt eine unbestätigte Abweichung um Faktor 10 nicht als
+  Dosisänderung: S7 beginnt keinen neuen Zeitraum, die Substanz-Bilanz zählt sie
+  nicht. Bestätigt ist sie eine echte Änderung. Die Dosis selbst nennt Hoku weiterhin
+  nie (S7).
+- **Kein Dosis-Wirkungs-Vergleich:** Die Engine stellt nie „mehr Dosis → mehr oder
+  weniger X" auf. Sie vergleicht nur Zeiträume vor und nach einer Änderung (S1, S7).
+  Die Dosishöhe ist deshalb auch in den Paar-Vergleichen kein Messwert.
+- Auch eine extreme Eingabe löst **keine Warnung** aus (Anti-Ziel Alarm). Die Frage
+  betrifft nur die Eingabe. Ob es bei sehr großen Abweichungen zusätzlich einen festen
+  allgemeinen Hinweis (Arzt, Giftnotruf) geben soll, ist offen (Offene Punkte).
+
+### Paar-Vergleiche (Nutzer, 03.11.2026)
+
+Ziel: Jeder Nutzer bekommt Funde aus dem, was er tatsächlich trackt, **auch wenn es nur
+zwei Messreihen sind** (z. B. nur Schritte und Schlaf von der Uhr). Dafür werden alle
+erlaubten Paare von Messreihen nach **festen Regeln** verglichen; nichts wird frei
+gesucht.
+
+- **Messreihen:** eine feste, versionierte Liste von Tageswerten im Katalog. Startliste
+  (meine Wahl): Schlaf, Schritte, Ruhepuls, aktive kcal (Uhr); Trainingstag ja/nein,
+  Trainingsdauer, Kraft- bzw. Ausdauerleistung (Training); Energie, Stimmung und weitere
+  Skalen aus dem Tagebuch; kcal, Protein, Wasser, Koffein-Getränke (Ernährung); Gewicht.
+- **Nie in Paaren:** Blutwerte und Blutdruck (Stufe 2), SpO₂ und Atemfrequenz (meine
+  Wahl: zu nah an Körperwert-Bewertung), Dosen und Substanzen (laufen nur über S1/S7).
+- **Selbstverständliche Paare ausgeschlossen** (feste Liste im Katalog), z. B.
+  Schritte ↔ aktive kcal, Trainingsdauer ↔ aktive kcal, kcal ↔ Protein am selben Tag.
+- **Form:** Für ein Paar (A, B) werden die eigenen Tage nach A geteilt: obere gegen
+  untere Hälfte am eigenen Median, bei Ja/Nein-Reihen die beiden Werte. Verglichen wird B
+  am **selben Tag** und am **Folgetag**. Der Folgetag wird in beide Richtungen geprüft
+  (A → B und B → A). Je Paar höchstens drei Tests, keine anderen Versätze, keine frei
+  gesuchten Grenzen.
+- **Statistik:** wie oben. Mindestens 8 Tage je Gruppe; „deutlich" ab 12 Tagen je Gruppe
+  und q ≤ 0,05 nach Benjamini-Hochberg über **alle** Tests des Laufs (Katalog und Paare
+  zusammen). Dazu Mindesteffekt je Messreihe, robuste Rechnung und Einzeltag-Probe aus
+  **Datenqualität**. Eine Reihe ohne Streuung läuft nicht.
+- **Vorrang:** Deckt ein Katalog-Detektor dasselbe Paar ab (z. B. H1, W1), läuft das Paar
+  nicht zusätzlich.
+- **Text:** eine neutrale Vorlage je Form mit Pflichtsatz („Zusammenhang, kein Beweis."),
+  Richtung immer neutral, keine Wertung „besser". Beispiel: „An Tagen mit mehr
+  Schritten (über 8.400) hast du in der Nacht danach im Schnitt 24 min länger geschlafen
+  (19 gegen 21 Tage). Zusammenhang, kein Beweis." Läuft durch den Regelwächter wie
+  jede Vorlage.
+- **Erwartung:** Mit wenigen Messreihen kommen Funde schnell. Mit vielen braucht es
+  länger, weil die Korrektur strenger wird: grob 2–3 Monate bis „deutlich". Das sagt
+  T6 („noch 9 Nächte") ehrlich.
+- Unverändert gilt: Die Paare sind Teil des Katalogs, nicht zur Laufzeit änderbar, und
+  **keine KI sucht selbst** in den Daten (Nicht-Ziel).
 
 ### Katalog als Daten (meine Wahl)
 
@@ -683,3 +826,12 @@ Voraussetzung: Einstufungsbegründung für Stufe 2, möglichst BfArM-Innovations
   gebaut wird.
 - **Schlafphasen** hängen am Plugin-Wechsel aus Profil P1, Schritt 1b; der ist noch
   nicht gebaut.
+- **Rückfrage bei ungewöhnlichen Eingaben** (Ernährung, Training, Gewicht, Dosen): Text
+  und Gestaltung per Mockup, bevor UI gebaut wird. Sie berührt mehrere Features.
+- **Hinweis bei sehr großen Dosis-Abweichungen:** Soll es zusätzlich zur neutralen
+  Eingabe-Frage einen festen allgemeinen Hinweis geben (Arzt, Giftnotruf)? Entscheidung
+  des Nutzers, rechtlich in der Einstufungsbegründung zu prüfen.
+- **Teil 1 nachrüsten:** R4 kennt weder feste Grenzen noch die Rückfrage bei großen
+  Sprüngen. Ein manueller Tippfehler kann heute einen falschen Rekord und eine
+  falsche Bestmarke setzen. Das wird vor der Freischaltung (`ERKENNTNISSE_FREI`)
+  behoben, mindestens die festen Grenzen.

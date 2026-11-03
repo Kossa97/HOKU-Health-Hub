@@ -15,7 +15,8 @@ import {
   kastenAbstand, rahmenAbstand, rahmenPunkt, ueberlappt, winkelAbstand,
   type Abstand, type Flaeche, type Kapsel, type Knopf,
 } from './geometry'
-import { FORM_R, herzSchlag, ladeSchrift, textForm } from './formen'
+import { FORM_R, herzSchlag, ladeSchrift, textForm, type TextForm } from './formen'
+import { BAHN_DAUER, bahn as schriftBahn, istBahn, lichtLauf, naechsteSchrift, schriftSicht, type BahnArt, type BahnLage, type BahnPunkt, type SchriftArt } from './schrift'
 import { AUFTRITT, randAbstand, ringPunkt, runde, stoss } from './auftritt'
 import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibmarke'
 import { FREUDE, GESTE_FERN, GESTE_N, STILL, formMitAuge, gestenBild, gestenVorbereiten, naechsterFehler, neueGestenKugel, type DotForm, type GestenBild, type GestenWahl } from './gesten'
@@ -187,8 +188,14 @@ const SCHUETTELN = { start: 0.35, dauer: 0.8, staerke: 24, schwingungen: 3.5 }
 const LOGIN = { warten: 0.45, haften: 1.2, loesen: 1.4, rueckK: 16.2 }
 // Formwechsel als Feder je Punkt (Mockup „trans"): Tempo, Nachschwingen, Staffel, Wirbel
 const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
-// Schrift: Gitterabstand 5,5, Punktgröße 1,6 statt 4,3; Lichtlauf 100 %, Flackern 40 %
-const TEXT = { dichte: 5.5, groesse: 1.6 / 4.3, licht: 1, funkeln: 0.4 }
+// Schrift (Nutzer 3.11.2026, finales Mockup „Hokus Schrift"): Gitter 5,5, Punktgröße 0,6, Tempo 1;
+// Lichtlauf 50 %, Flackern 15 %
+const TEXT = { dichte: 5.5, groesse: 0.6, licht: 0.5, funkeln: 0.15 }
+// So schreibt Hoku: die bisherige Feder mit Wirbel, „klar" (ohne Wirbel, in Leserichtung), vier Bahnen; im Wechsel
+const KLAR = { tempo: 1.25, nachschwingen: 0.15, wirbel: 0 }
+// Die Schrift leuchtet im Neon-Cyan der App (--accent #00ccf5), damit sie auf dem dunklen Grund gut zu sehen ist (Nutzer 3.11.2026)
+const TEXT_FARBE = [0, 204, 245]
+const SCHRIFT_FOLGE = 'tyd.dot.schrift'
 // Eröffnung (Nutzer 28.10.2026, Mockup „Dots Auftritte"): wieder schnell, im Zufall E1 vom Rand, E2 aus
 // dem Dunkel, E5 Ringe; Länge je Variante in s. Jeder Punkt folgt einer festen Bahn, ohne Federn und
 // ohne Kinder, nichts über dem Formular. E3, E4 und E6 aus dem Mockup bleiben für später.
@@ -450,7 +457,10 @@ export function createDot(host: DotHost): DotApi {
     flash: 0, navFlash: 0, inselFlash: 0, sparks: [] as Funke[],
     state: 'idle' as DotStimmung, cur: { ...TARGETS.idle }, voice: 0, joyT: 9, poke: 9, rot: 0,
     pts: punkte(), shape: 'sphere', trans: 9, swirl: 0, erstes: true,
-    text: null as string | null, textF: null as Float32Array | null, kinderAn: false, kinderBis: 0,
+    text: null as string | null, textF: null as TextForm | null, kinderAn: false, kinderBis: 0,
+    // Art, mit der er gerade schreibt; Phase ein/aus, solange sie läuft; alt = der Satz, aus dem er zurückkehrt
+    // direkt = von einem Satz gleich in den nächsten (dann federn, die Bahnen beginnen in der Kugel)
+    schrift: { art: null as SchriftArt | null, stapel: [] as SchriftArt[], phase: null as null | 'ein' | 'aus', alt: null as TextForm | null, direkt: false },
     // v: zuletzt gezeigte Eröffnung; null = noch keine, dann ist jede möglich
     intro: { an: false, t0: 0, v: null as Variante | null },
     // Erfolg: Phase, Start der Phase, Fortschritt des Rahmens, Flugbahn; kMul macht die Federn weich
@@ -476,6 +486,10 @@ export function createDot(host: DotHost): DotApi {
   const TX = new Float32Array(ALLE), TY = new Float32Array(ALLE), TZ = new Float32Array(ALLE)
   const OX = new Float32Array(ALLE), OY = new Float32Array(ALLE), OZ = new Float32Array(ALLE)
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
+  // Lage beim Wechsel (Anfang der Bahnen, wenn Hoku zu schreiben beginnt)
+  const AX = new Float32Array(ALLE), AY = new Float32Array(ALLE), AZ = new Float32Array(ALLE)
+  // Anteil Neon-Cyan je Punkt: 1 im Satz, 0 in der Kugel; wechselt mit dem Aufbruch des Punkts
+  const NEON = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
   const GB: GestenBild = { P: new Float32Array(GESTE_N * 3), L: new Float32Array(GESTE_N), H: new Float32Array(GESTE_N), K: neueGestenKugel() }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
@@ -1542,13 +1556,24 @@ export function createDot(host: DotHost): DotApi {
   }
   function setText(text: string | null) {
     if (text && !B.kinderAn) { kinderAnsetzen(); B.kinderAn = true }
+    const alt = B.textF
+    // jeder Satz bekommt die nächste Art, egal welcher und wo (über Besuche hinweg nie dieselbe wie zuletzt)
+    if (text) {
+      let letzte = B.schrift.art
+      if (!letzte) try { letzte = localStorage.getItem(SCHRIFT_FOLGE) as SchriftArt | null } catch { /* kein Speicher */ }
+      B.schrift.art = naechsteSchrift(B.schrift.stapel, letzte)
+      try { localStorage.setItem(SCHRIFT_FOLGE, B.schrift.art) } catch { /* kein Speicher */ }
+    }
+    B.schrift.direkt = !!text && !!B.text
     B.text = text; B.textF = text ? textForm(text, ALLE, TEXT.dichte) : null
     B.shape = text ? 'text' : SHAPE[B.state]; B.form = null; B.formT = 0
-    wechsel()
+    B.schrift.alt = text ? null : alt
+    wechsel(text ? 'ein' : alt ? 'aus' : null)
   }
   /** Neues Ziel: jeder Punkt startet gestaffelt von dort, wo sein altes Ziel lag. */
-  function wechsel() {
-    const tf = B.textF
+  function wechsel(schrift: 'ein' | 'aus' | null = null) {
+    const tf = B.textF, art = B.schrift.art, klar = schrift && art === 'klar', lese = (tf ?? B.schrift.alt)?.lese
+    B.schrift.phase = schrift
     // Verlässt er die Kugel, schließt er vorher das Auge (alte Ziele mit geschlossenem Lid)
     if (letzteForm === 'sphere' && B.shape !== 'sphere' && !formMitAuge(B.form, B.wahl) && AUGE.offen > 0.05) {
       const neu = B.shape, kante = AUGE.lidKante, hoer = AUGE.hoer
@@ -1557,12 +1582,14 @@ export function createDot(host: DotHost): DotApi {
       B.shape = neu; AUGE.lidKante = kante; AUGE.hoer = hoer; AUGE.offen = 0
     }
     for (let i = 0; i < ALLE; i++) {
-      OX[i] = TX[i]; OY[i] = TY[i]; OZ[i] = TZ[i]
+      OX[i] = TX[i]; OY[i] = TY[i]; OZ[i] = TZ[i]; AX[i] = QX[i]; AY[i] = QY[i]; AZ[i] = QZ[i]
       const k = B.pts[i].k
-      // Schrift entsteht aus der Mitte nach außen
-      DEL[i] = tf ? k * 0.12 + (Math.abs(tf[i * 3]) / 150) * 0.4 : k * FEDER.staffel
+      // Schrift entsteht aus der Mitte nach außen, „klar" in Leserichtung (und geht von rechts nach links)
+      DEL[i] = klar && lese ? (schrift === 'ein' ? lese[i] * 0.45 : (1 - lese[i]) * 0.3) + k * 0.06
+        : tf ? k * 0.12 + (Math.abs(tf.p[i * 3]) / 150) * 0.4 : k * FEDER.staffel
     }
-    B.trans = 0; B.swirl = weniger ? 0 : 1
+    // ohne Wirbel bei „klar" und auf Bahnen (der Wirbel klänge sonst nach, wenn die Federn übernehmen)
+    B.trans = 0; B.swirl = weniger || klar || (schrift && art && istBahn(art)) ? 0 : 1
   }
   /** Kinder sitzen unsichtbar in ihren Eltern, bevor sie heraustreten. */
   function kinderAnsetzen() {
@@ -1627,12 +1654,12 @@ export function createDot(host: DotHost): DotApi {
       }
       case 'text': {
         // Lichtlauf von links nach rechts, leises Flackern, die Punkte zittern kaum
-        const f = B.textF, j = p.i * 3
+        const f = B.textF?.p, j = p.i * 3
         if (!f) return ziel(0, 0, 0)
         const x0 = f[j] * TEXT_SC, y0 = f[j + 1] * TEXT_SC
-        const licht = 1 + TEXT.licht * Math.max(0, Math.sin(t * 2.2 - x0 * 0.028)) + TEXT.funkeln * Math.sin(t * 3.1 + p.s * 4)
+        const licht = lichtLauf(t, x0, p.s, TEXT.licht, TEXT.funkeln)
         const x = x0 + Math.sin(t * 1.3 + p.s) * 0.4, y = y0 + Math.cos(t * 1.1 + p.s * 1.7) * 0.4
-        return ziel(x / B.r, y / B.r, f[j + 2] < 0 ? 0 : 0.55 + 0.45 * f[j + 2], licht)
+        return ziel(x / B.r, y / B.r, schriftSicht(f[j + 2]), licht)
       }
       default: {
         // Augapfel (Nutzer 02.11.2026, D10/D11): die Punkte rollen langsam um die Blickachse, der ganze
@@ -1659,8 +1686,16 @@ export function createDot(host: DotHost): DotApi {
   function federSchritt(dt: number, t: number, anzahl: number) {
     const te = B.trans, f = Math.min(dt * 60, 3), schritte = Math.max(1, Math.ceil(f / 1.2)), h = f / schritte
     B.swirl *= Math.pow(0.955, f)
-    const sw0 = B.swirl > 0.01 ? B.swirl * 0.028 * FEDER.wirbel : 0
-    const tempo2 = FEDER.tempo * FEDER.tempo, dBase = 0.58 + 0.24 * FEDER.nachschwingen
+    // „klar": steifere, kaum nachschwingende Federn ohne Wirbel, solange er schreibt oder zurückkehrt
+    const Sch = B.schrift, fp = Sch.phase && Sch.art === 'klar' ? KLAR : FEDER
+    const sw0 = B.swirl > 0.01 ? B.swirl * 0.028 * fp.wirbel : 0
+    const tempo2 = fp.tempo * fp.tempo, dBase = 0.58 + 0.24 * fp.nachschwingen
+    // Bahnen statt Federn, solange eine Bahn-Art schreibt oder zurückkehrt
+    const bArt = Sch.art && istBahn(Sch.art) ? Sch.art : null, ein = Sch.phase === 'ein' && B.shape === 'text'
+    const bf = ein ? B.textF : Sch.phase === 'aus' ? Sch.alt : null
+    const aufBahn = !!bArt && !!bf && !weniger && !Sch.direkt && te < BAHN_DAUER[bArt][ein ? 'ein' : 'aus']
+    // vorbei: wieder die gewohnten Federn (die Schrift selbst hält „klar" mit seinen Federn)
+    if (Sch.phase && (bArt ? !aufBahn && te > 0 : Sch.phase === 'aus' && te > 2)) Sch.phase = null
     const I = B.intro, ti = I.an ? (performance.now() - I.t0) / 1000 : 99
     if (I.an && I.v && ti > EROEFFNUNG[I.v]) I.an = false
     // Kinder haben eigene Ziele nur in der Schrift
@@ -1685,11 +1720,14 @@ export function createDot(host: DotHost): DotApi {
         const z = shapeTarget(p, t)
         tx = z[0]; ty = z[1]; tz = z[2]; licht = z[3]; rosa = z[4]
         // bis zu seiner Staffel behält der Punkt sein altes Ziel, auch die Farbe
-        if (te < DEL[i]) { tx = OX[i]; ty = OY[i]; tz = OZ[i]; rosa = ROSA[i] }
+        if (te < DEL[i] && !aufBahn) { tx = OX[i]; ty = OY[i]; tz = OZ[i]; rosa = ROSA[i] }
       }
       TX[i] = tx; TY[i] = ty; TZ[i] = tz; LICHT[i] = licht
+      const neon = B.shape === 'text' && tz > 0 && (aufBahn || te >= DEL[i]) ? 1 : 0
+      NEON[i] += (neon - NEON[i]) * (sofort ? 1 : zA)
       // die Eröffnung führt nur Dots eigene Punkte; Kinder (Schrift) folgen ihren Federn
       if (I.an && !kind) { bahn(i, ti, tx, ty, tz, R); ROSA[i] = rosa; continue }
+      if (aufBahn && bArt && bf) { schriftPunkt(bArt, ein, bf, i, te, t, tx, ty, tz, R); ROSA[i] += (rosa - ROSA[i]) * zA; continue }
       SZ[i] += (groesse - SZ[i]) * sA
       if (sofort) { QX[i] = tx; QY[i] = ty; QZ[i] = tz; ROSA[i] = rosa; VX[i] = VY[i] = 0; continue }
       const k = (0.1 + 0.07 * KR[i]) * tempo2 * B.kMul, dh = Math.pow(Math.min(0.9, dBase + (DR[i] - 0.5) * 0.1), h)
@@ -1702,6 +1740,19 @@ export function createDot(host: DotHost): DotApi {
       }
       QZ[i] += (tz - QZ[i]) * zA; ROSA[i] += (rosa - ROSA[i]) * zA
     }
+  }
+  // Ein Punkt auf der Bahn seiner Schreib-Art, von seiner Lage beim Wechsel zu seinem Ziel: beim Schreiben
+  // im Satz, beim Zurückkehren in der Kugel (in px gerechnet, wie im Mockup)
+  const BP: BahnPunkt = { ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, k: 0, s: 0, kind: false, lese: 0, bi: 0, mx: 0, my: 0, n: 1 }
+  const BL: BahnLage = [0, 0, 0, 1, 1]
+  function schriftPunkt(art: BahnArt, ein: boolean, f: TextForm, i: number, pt: number, t: number, tx: number, ty: number, tz: number, R: number) {
+    const p = B.pts[i], bi = f.bi[i]
+    BP.ax = AX[i] * R; BP.ay = AY[i] * R; BP.az = AZ[i]
+    BP.bx = tx * R; BP.by = ty * R; BP.bz = tz
+    BP.k = p.k; BP.s = p.s; BP.kind = i >= PUNKTE
+    BP.lese = f.lese[i]; BP.bi = bi; BP.mx = f.mitte[bi * 2] * TEXT_SC; BP.my = f.mitte[bi * 2 + 1] * TEXT_SC; BP.n = f.n
+    schriftBahn(art, ein, pt, BP, TEXT.groesse, t, TEXT, BL)
+    QX[i] = BL[0] / R; QY[i] = BL[1] / R; QZ[i] = BL[2]; LICHT[i] = BL[3]; SZ[i] = BL[4]; VX[i] = VY[i] = 0
   }
   /* ── Erfolg: Portal und Heimweg ───────────────────────────────────────── */
   // So weit muss der Kreis um Hokus Platz wachsen, bis er das ganze Display bedeckt
@@ -1971,9 +2022,12 @@ export function createDot(host: DotHost): DotApi {
       cp[0] = QX[i]; cp[1] = QY[i]; cp[2] = QZ[i]
       const th = Math.atan2(cp[1], cp[0]), rho = Math.hypot(cp[0], cp[1])
       const rf = ((th / TAU + 1) % 1) * RK, ri = rf | 0, rq = rf - ri, rj = (ri + 1) % RK, ra = ri % RK
-      const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = B.shape === 'frame' ? 1 : 1 + ur
-      let dx = cp[0] * r * s, dy = cp[1] * r * s
-      if (B.quetsch > 0.001) { dx *= 1 + 0.14 * B.quetsch; dy *= 1 - 0.11 * B.quetsch }
+      // im Satz steht die Schrift starr (Nutzer 3.11.2026): kein Atmen, Puls, Schwabbeln, Quetschen oder Taumeln
+      // des Körpers; nur die Punkte selbst leben und funkeln. Wirkt je Punkt, sobald er im Satz angekommen ist.
+      const ne = NEON[i], koerper = 1 - ne
+      const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = B.shape === 'frame' ? 1 : 1 + ur * koerper, rP = ne > 0.01 ? B.r * (1 + (pulse - 1) * koerper) : r
+      let dx = cp[0] * rP * s, dy = cp[1] * rP * s
+      if (B.quetsch > 0.001) { dx *= 1 + 0.14 * B.quetsch * koerper; dy *= 1 - 0.11 * B.quetsch * koerper }
       if (pan && B.flat > 0.01) {
         const w = pan.w, tx = -w.ny, ty = w.nx, mid = (pan.lo + pan.hi) / 2, half = (pan.hi - pan.lo) / 2
         // Punkte nah der Mitte haben keine stabile Richtung: dort kein Wackel-Anteil (sonst zucken sie)
@@ -2001,6 +2055,8 @@ export function createDot(host: DotHost): DotApi {
       // Farbe je Punkt: Rosa (Herz in Dot), Grün (Haken), Rot (X)
       const ro = ROSA[i], pf = B.punktFarbe
       if (ro > 0.01) { c[0] += (pf[0] - c[0]) * ro; c[1] += (pf[1] - c[1]) * ro; c[2] += (pf[2] - c[2]) * ro }
+      // im Satz: Neon-Cyan
+      if (ne > 0.01) { c[0] += (TEXT_FARBE[0] - c[0]) * ne; c[1] += (TEXT_FARBE[1] - c[1]) * ne; c[2] += (TEXT_FARBE[2] - c[2]) * ne }
       if (ti > 0.01) {
         // Farbe der App (Rot, Orange, Grün), unten rechts leicht verschoben
         const mm = clamp01((cp[0] - cp[1]) * 0.3 + 0.5)
@@ -2008,7 +2064,7 @@ export function createDot(host: DotHost): DotApi {
       }
       const licht = LICHT[i]
       let alpha = clamp01(cp[2] * (bright + heal) * dens * licht)
-      let X = cx + dx, Y = cy + dy, aMul = 1
+      let X = cx + (B.x + B.shakeX - cx) * ne + dx, Y = cy + (B.y - cy) * ne + dy, aMul = 1
       if (streaming) {
         const sx = ENT.x + (p.k - 0.5) * ENT.w * 0.8, sy = TAB + 2
         let qi = B.mode === 'exit' ? clamp01((B.te - 0.25 - p.k * 0.6) / 0.6) : 1 - clamp01((B.te - p.k * 0.6) / 0.55)
