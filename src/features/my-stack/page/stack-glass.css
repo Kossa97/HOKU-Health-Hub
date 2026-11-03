@@ -79,10 +79,10 @@
 .stack-tab > span { font-size: 13px; color: var(--lg-text-3); font-variant-numeric: tabular-nums; transition: color 200ms ease; }
 .stack-tab[aria-selected='true'] {
   background: var(--lg-text);
-  color: #000;
+  color: rgb(var(--ground-rgb));
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
-.stack-tab[aria-selected='true'] > span { color: rgba(0, 0, 0, 0.55); }
+.stack-tab[aria-selected='true'] > span { color: rgb(var(--ground-rgb) / 0.55); }
 .stack-tab[data-stack-tab-count='0'] { opacity: 0.4; cursor: default; }
 .stack-tab:active { transform: scale(0.95); transition-duration: 100ms; }
 .stack-tab:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 2px; }

@@ -1107,6 +1107,32 @@ html[data-look='papier'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-
 /* Hoku schwarz auf Weiß wie im Logo: die Engine zeichnet ihn hell und leuchtend
    (additiv); umgekehrt wird daraus schwarze Tinte, die Leere bleibt durchsichtig. */
 html[data-look='papier'] .tyd-dot-flaeche { filter: invert(1); }
+/* Gezeichnete Kugeln der Ernährung (Canvas, hell für dunklen Grund): Helligkeit
+   umkehren, Farbton zurückdrehen — Eiweiß bleibt grün, Kohlenhydrate violett. */
+html[data-look='papier'] .tyd-orb { filter: invert(1) hue-rotate(180deg); }
+/* Hoku in der Leiste: Schatten statt Cyan-Schein */
+html[data-look='papier'] .tyd-dot-slot[data-dot-drinnen='true'] .tyd-dot-logo-glow { filter: drop-shadow(0 0 3px rgba(0,0,0,0.35)); }
+/* Hauptknopf als Symbol: .lg-icon-btn setzt die Schrift zurück auf --lg-text */
+html[data-look='papier'] .lg-btn-primary { color: var(--accent-contrast); }
+/* Helle Schriftstufen (für dunklen Grund gedacht) werden auf Papier zur
+   dunklen Stufe derselben Farbe — sonst stünde helles Grün auf Weiß. */
+html[data-look='papier'] :is(.text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400) { color: #047857; }
+html[data-look='papier'] :is(.text-green-100, .text-green-200, .text-green-300, .text-green-400) { color: #15803d; }
+html[data-look='papier'] :is(.text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400) { color: #b45309; }
+html[data-look='papier'] :is(.text-orange-100, .text-orange-200, .text-orange-300, .text-orange-400) { color: #c2410c; }
+html[data-look='papier'] :is(.text-rose-100, .text-rose-200, .text-rose-300, .text-rose-400) { color: #be123c; }
+html[data-look='papier'] :is(.text-red-100, .text-red-200, .text-red-300, .text-red-400) { color: #b91c1c; }
+html[data-look='papier'] :is(.text-cyan-100, .text-cyan-200, .text-cyan-300, .text-cyan-400) { color: #0e7490; }
+html[data-look='papier'] :is(.text-teal-100, .text-teal-200, .text-teal-300, .text-teal-400) { color: #0f766e; }
+html[data-look='papier'] :is(.text-violet-100, .text-violet-200, .text-violet-300, .text-violet-400) { color: #6d28d9; }
+html[data-look='papier'] :is(.text-purple-100, .text-purple-200, .text-purple-300, .text-purple-400) { color: #7e22ce; }
+html[data-look='papier'] :is(.text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400) { color: #a16207; }
+html[data-look='papier'] :is(.text-blue-100, .text-blue-200, .text-blue-300, .text-blue-400) { color: #1d4ed8; }
+html[data-look='papier'] :is(.text-indigo-100, .text-indigo-200, .text-indigo-300, .text-indigo-400) { color: #4338ca; }
+html[data-look='papier'] :is(.text-pink-100, .text-pink-200, .text-pink-300, .text-pink-400) { color: #be185d; }
+html[data-look='papier'] :is(.text-fuchsia-100, .text-fuchsia-200, .text-fuchsia-300, .text-fuchsia-400) { color: #a21caf; }
+html[data-look='papier'] :is(.text-lime-100, .text-lime-200, .text-lime-300, .text-lime-400) { color: #4d7c0f; }
+html[data-look='papier'] :is(.text-sky-100, .text-sky-200, .text-sky-300, .text-sky-400) { color: #006680; }
 
 /* ── Erscheinungsbild „Satin" ───────────────────────────────────────────
    Schwarzer Grund wie „Schwarz", aber die Kante ist ein gewölbter Glasrand:

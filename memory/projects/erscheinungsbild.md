@@ -123,10 +123,16 @@ in der App, jeweils **vollständig**. Mockup: https://claude.ai/artifact/XCK2vkX
   + Eintrag in `LOOKS`, `STANDARD_JE_LOOK` (hokuFarbe.ts), Profil-Umschalter,
   `look_*`-Text; dann `npm run looks:audit`.
 
+Papier nachgezogen (03.11.2026): Prüfung meldet 0 Stellen. Gelöst: My-Stack-Reiter
+(Schrift in `--ground-rgb`), Fortschritt-Ringe (Farben aus `--lg-good/-warn/-bad/-text-3`),
+Neu-Kachel (`--glass-bg`), Kopfband Fortschritt (`--ground-rgb`), helle Tailwind-
+Schriftstufen `text-<farbe>-100…400` → Stufe 700, Ernährungs-Kugeln (`.tyd-orb`:
+`invert(1) hue-rotate(180deg)`), Hoku-Logo-Schein, Hauptknopf als Symbol.
+
 Offen (nächste Schritte, je Bereich):
-- Papier: My-Stack-Reiter „Alle“ (schwarz auf schwarz), Fortschritt-Ringe „–“,
-  Ernährungs-Kugel (Canvas zeichnet hell), Hoku-Logo in der Leiste (eigene Farben),
-  Injektions-Bühne/3D-Licht, Diagramme mit festen Farben (Canvas, SVG-Attribute).
+- Papier: Injektions-Bühne/3D-Licht (zu hell?), Diagramme mit festen Farben
+  (Canvas, SVG-Attribute), Verläufe/Schleier auf Schwarz (`rgba(0,0,0,…)` in
+  Stildateien, nur wo es kein Schatten ist), Sheets/Menüs mit eigenen Farben.
 - Feste Farben in tsx: ~1100 (meist SVG-Attribute in den Produktbildern, die bleiben),
   `#000`/`#fff` in Stildateien.
 - Hoku-Licht als gemeinsamer Baustein (flashlight.ts + Position aus dotEngine).
