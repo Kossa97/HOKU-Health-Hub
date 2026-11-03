@@ -10,6 +10,8 @@ Stand 03.11.2026 · Brainstorm mit dem Nutzer. Mockup Entwurf 1: `docs/profil/mo
 - **Rang zählt nur Tage mit eigenem Eintrag** (`BadgeFacts.entryDays`), keine automatisch übertragenen Wearable-Tage.
 - **Anzeige:** eigenes Profil, Profil für Freunde, Web und Link-Karte (dort ab Werk an, abschaltbar wie Abzeichen im Web).
 
+- **Getragener Rang steigt von selbst mit** (Nutzer 03.11.: „passt so“); gefragt wird nur, wer gerade eine Prägung trägt.
+
 ## Vorschlag [Claude, ungeprüft]
 Rangleiter (Tage mit eigenem Eintrag): 1 Neuling/Newcomer · 7 Entdecker/Explorer · 30 Dranbleiber/Committed ·
 90 Routinier/Regular · 180 Veteran/Veteran · 365 Legende/Legend.
