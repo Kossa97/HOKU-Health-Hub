@@ -2882,5 +2882,10 @@
   "syringe_draw_units": "{{units}} Einheiten aufziehen",
   "dose_once": "einmalig",
   "bundle_merged_hint": "Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind.",
-  "my_stack_scan_amazon": "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen."
+  "my_stack_scan_amazon": "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen.",
+  "nutr_day_title": "Dein Tag",
+  "nutr_day_hint": "Tippe auf die Kugel, dann siehst du deinen ganzen Tag.",
+  "nutr_day_hint_close": "Hinweis schließen",
+  "nutr_day_edit_goal": "Ziel ändern",
+  "nutr_daypanel_macros": "Makros"
 }

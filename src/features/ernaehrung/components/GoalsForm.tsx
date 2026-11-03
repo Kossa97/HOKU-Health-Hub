@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Sheet } from './Panel'
 import { alterAm } from '../../blutwerte/lib/referenzbereiche'
 import { type Activity, DEFAULT_GOALS, GOAL_LIMITS, type GoalKind, type Goals, parseAmount, suggestGoals } from '../lib/nutrition'
 import { orbLayout } from '../lib/orb'
 import { type BodyData, loadBodyData } from '../services/nutritionStore'
 import { setSoundsWanted, soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
-import { SheetClose } from '../../../components/ui/SheetClose'
 
 type Key = keyof typeof GOAL_LIMITS
 const KEYS: Key[] = ['kcal', 'proteinG', 'carbsG', 'fatG', 'waterMl']
@@ -16,14 +14,15 @@ const LABEL: Record<Key, string> = {
   kcal: 'nutr_f_kcal', proteinG: 'nutr_goal_protein', carbsG: 'nutr_goal_carbs', fatG: 'nutr_goal_fat', waterMl: 'nutr_goal_water',
 }
 
-export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
+/** Ziele bearbeiten — steht in „Dein Tag“ unter dem Reiter „Ziele“. */
+export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
   userId: string
   today: string
   current: Goals
   busy: boolean
   /** Gibt false zurück, wenn das Speichern scheiterte. */
   onSave: (g: Goals) => Promise<boolean> | void
-  onClose: () => void
+  onCancel: () => void
 }) {
   const { t, i18n } = useTranslation()
   const [v, setV] = useState<Record<Key, string>>(() => Object.fromEntries(KEYS.map(k => [k, String(current[k])])) as Record<Key, string>)
@@ -60,12 +59,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
   }
 
   return (
-    <Sheet labelledBy="nutr-goals-title" busy={busy} onClose={onClose} tall>
-      <div className="flex items-center justify-between gap-2">
-        <h2 id="nutr-goals-title" className="lg-title2">{t('nutr_goals_title')}</h2>
-        <SheetClose onClick={onClose} disabled={busy} />
-      </div>
-
+    <>
       <section aria-labelledby="nutr-suggest" className="mt-3 rounded-[18px] bg-[var(--lg-surface-2)] p-4">
         <h3 id="nutr-suggest" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_suggest_title')}</h3>
         {body === null && <p className={`mt-1 text-[13px] ${MUTED}`}>…</p>}
@@ -125,7 +119,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
       </p>}
 
       <div className="mt-5 flex gap-2">
-        <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" disabled={busy} onClick={onClose}>{t('cancel')}</button>
+        <button type="button" data-quiet className="lg-gray-btn flex-1 !min-h-12 !text-[17px]" disabled={busy} onClick={onCancel}>{t('cancel')}</button>
         <button type="button" className="lg-btn lg-btn-primary flex-1 !px-4" disabled={!valid || busy}
           onClick={() => {
             // Ton jetzt freischalten (noch in der Geste), die Wahl erst nach erfolgreichem Speichern merken.
@@ -133,7 +127,7 @@ export function GoalsSheet({ userId, today, current, busy, onSave, onClose }: {
             void Promise.resolve(onSave({ ...nums, hideKcal })).then(ok => { if (ok !== false) setSoundsWanted(sounds) })
           }}>{t('nutr_save')}</button>
       </div>
-    </Sheet>
+    </>
   )
 }
 

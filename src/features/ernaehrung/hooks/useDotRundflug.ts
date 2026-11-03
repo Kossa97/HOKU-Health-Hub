@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { dotStore, useDotStand } from '../../dot/dotStore'
 import { useDotText } from '../../dot/texte'
 import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, umlaufBahn, zaehleBesuch } from '../lib/dotRundflug'
-import { orbBuehne } from '../lib/orbBridge'
+import { orbBuehne, takeOrbTap } from '../lib/orbBridge'
 import type { MacroKey } from '../lib/orb'
 import type { Goals, Nutrients } from '../lib/nutrition'
 import { leseHokuEinstellungen } from '../../dot/lib/hokuEinstellungen'
@@ -64,7 +64,7 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
       const start = s.modus === 'home' ? dot.lage() : { x: -46, y: main.y - main.r * 0.25 }
       const lage = () => { const k = orbBuehne()?.koerper(); return k?.main ? { main: k.main, moons: k.moons } : null }
       let laeuft = true
-      const abkuerzen = () => { if (!laeuft) return; orbBuehne()?.fokus(null); dot.rundflugAbkuerzen(0.5) }
+      const abkuerzen = () => { if (!laeuft) return; takeOrbTap(); orbBuehne()?.fokus(null); dot.rundflugAbkuerzen(0.5) }
       const aufraeumen = () => {
         laeuft = false
         document.removeEventListener('pointerdown', abkuerzen, true)
