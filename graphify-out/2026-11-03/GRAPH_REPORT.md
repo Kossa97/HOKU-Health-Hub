@@ -1,17 +1,17 @@
 # Graph Report - TYD-TrackYourDose  (2026-11-03)
 
 ## Corpus Check
-- 1549 files · ~7,798,778 words
+- 1549 files · ~7,798,963 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 75 file(s) not represented in the graph (top: (none) 27, .xml 10, .css 9)
 
 ## Summary
-- 11569 nodes · 28710 edges · 635 communities (428 shown, 207 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 966 edges (avg confidence: 0.92)
+- 11569 nodes · 28711 edges · 635 communities (428 shown, 207 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 967 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7db9b15c`
+- Built from commit: `b14b2c58`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -2295,7 +2295,7 @@ Nodes (31): bloodwork_user_id_idx, cycle_migration_conflicts_stack_item_id_idx, 
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `vitest` connect `vitest` to `Protokoll.tsx`, `StackItemWizard.tsx`, `stoerung.ts`, `StocksChart.tsx`, `lib/stats.ts`, `bestand.ts`, `planLabels.ts`, `InjectionMapCanvas.tsx`, `intakeSchedule.ts`, `off.ts`, `AmbientLight.tsx`, `rechnerVial.ts`, `planTimeline.js`, `FotosTab.tsx`, `injectionLogTypes.ts`, `gesten.ts`, `stackItems.ts`, `csvImport.ts`, `useTrainingText`, `vorlagen.test.ts`, `PowderVisual.tsx`, `react`, `content/types.ts`, `StackItemWizard.interaction.test.tsx`, `Home.tsx`, `useBarcodeKamera.ts`, `IntakePlanEditor.tsx`, `rating.ts`, `Silhouette`, `planTimeline.ts`, `TodayLogSheet.tsx`, `label-extract/prompt.ts`, `fortschritt/types.ts`, `package.json`, `chartMath.ts`, `useAuth`, `Bewertungen.tsx`, `planLifecycle.ts`, `TubeVisual.tsx`, `BefundEditor.tsx`, `schrift.ts`, `PatchVisual.tsx`, `PenVisual.tsx`, `photo.ts`, `useFortschrittData.ts`, `date-fns`, `entries.ts`, `dates.ts`, `ui.tsx`, `LiquidGlassTabBar.test.tsx`, `legacyMyStackPersistence.ts`, `metrics.ts`, `PhotoSheet.tsx`, `ColorField.tsx`, `BlutwertePage.tsx`, `duration.ts`, `Auth.tsx`, `blutspiegelHistory.ts`, `stackInventory.ts`, `dotEngine.ts`, `StageLabel`, `supabase.ts`, `TrainingPage.tsx`, `MyStackPage.visibility.test.tsx`, `App.tsx`, `intakeConfirmation.ts`, `TabletVisual.tsx`, `PeptideDetailPage.tsx`, `RoutineEditor.tsx`, `i18n/texts.test.ts`, `dosePlan.ts`, `bioProfile.ts`, `My Stack — Stärke je Darreichungsform`, `injectionPersistence.ts`, `ErkenntnissePage.tsx`, `healthImport.ts`, `auge.ts`, `PeptideLibrary.tsx`, `GelVisual.tsx`, `lib/stats.ts`, `MockSupabase`, `planSegments.ts`, `date-fns`, `erkenntnisse/index.ts`, `getStableStackItemColor`, `trainingRepo.ts`, `Dashboard.tsx`, `injectionHistory.ts`, `SubstanzScanner.tsx`, `WerteCard.tsx`, `DropsVisual.tsx`, `loadProtocolData.ts`, `SprayVisual.tsx`, `CapsuleVisual.tsx`, `detektoren.ts`, `carriesLabel`, `stageLightDirection.test.ts`, `SubstanceCatalogEntry`, `liquidCalculation.ts`, `audit-peptipedia.ts`, `Einnahmeplan: Enddatum, mehrmals täglich, bei Bedarf`, `Layout.tsx`, `wellnessBuckets.ts`, `ManualSimulation.tsx`, `coach/prompt.ts`, `units.ts`, `Dashboard.test.ts`, `DoseCalculator.tsx`, `UnitConverter.tsx`, `react-router-dom`, `protocolPdf.test.ts`, `ExerciseBlock.tsx`, `my-stack/lib/i18n.test.ts`, `Home.test.ts`, `recipe.ts`, `LiquidGraphic`, `dotRundflug.ts`, `markerGuidance.ts`, `bloodwork-extract/index.ts`, `DishStage.tsx`, `LiveBlutspiegelChart.tsx`, `hokuFarbe.ts`, `StageFit.test.tsx`, `ref_node_path`, `SyringeScale.test.tsx`, `dotFlight.ts`, `exercises.test.ts`, `AppBackNavigation.test.tsx`, `auftritt.ts`, `objektSkala`, `account.ts`, `chartData.test.ts`, `Profil.tsx`, `@supabase/supabase-js`, `hokuLicht.ts`, `dosageForms.ts`, `PeptideCalculatorPanel.tsx`, `progress-year-data.ts`, `inventoryMath.ts`, `fortschritt/lib/i18n.test.ts`, `react`, `StageDetailSheet.tsx`, `silhouetteTakt.ts`, `autoTracking.ts`, `ExpiredBadge.tsx`, `reflex.ts`, `FotosTab.tsx`, `login-name/index.ts`, `hoku-anstoss.test.js`, `index.test.ts`, `BatchDateiLink.test.tsx`, `formUmrisse.ts`, `UnitConverter.test.tsx`, `my-stack/lib/colors.ts`, `MyStackPage.tsx`, `PeptideVialVisual.tsx`, `FortschrittDashboard.tsx`?**
-  _High betweenness centrality (0.218) - this node is a cross-community bridge._
+  _High betweenness centrality (0.217) - this node is a cross-community bridge._
 - **What connects `../tsconfig.node.json`, `UIKit`, `Capacitor` to the rest of the system?**
   _82 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `renderProtocolPdf.ts` be split into smaller, more focused modules?**
