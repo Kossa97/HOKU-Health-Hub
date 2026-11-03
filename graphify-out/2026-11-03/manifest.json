@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793742327.1438017,
-    "seen": 1793742576.4780035,
-    "ast_hash": "b5367edd0567c82c502d5b1b02ae01ce",
+    "mtime": 1793747917.3206112,
+    "seen": 1793748286.8355052,
+    "ast_hash": "02ad65602a92d683a86ff3976e81aa86",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -2784,9 +2784,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/BottomNavigation.tsx": {
-    "mtime": 1793726752.0059345,
-    "seen": 1793727234.9245918,
-    "ast_hash": "dc07fb8159fbbf1b4a759b844df3ea5e",
+    "mtime": 1793747954.9012983,
+    "seen": 1793748286.8342597,
+    "ast_hash": "07d65a4a821c9678ce6bb29d96956a50",
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.test.tsx": {
@@ -2796,9 +2796,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.tsx": {
-    "mtime": 1793744946.6356874,
-    "seen": 1793745278.317729,
-    "ast_hash": "9179bad248a2aff8748e24022dc0c898",
+    "mtime": 1793748264.6469772,
+    "seen": 1793748286.8342633,
+    "ast_hash": "c38a334e84ad54f043a9d70d2b41741b",
     "semantic_hash": ""
   },
   "src/components/navigation/bottomNavMetrics.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793745131.4000406,
-    "seen": 1793745278.319527,
+    "mtime": 1793748132.3919768,
+    "seen": 1793748286.835652,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7722,9 +7722,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793725469.752688,
-    "seen": 1793725507.9746792,
-    "ast_hash": "631d3d825279e435f4e101016fc773d7",
+    "mtime": 1793748081.3072453,
+    "seen": 1793748286.8360267,
+    "ast_hash": "08d6001f8851be7b73828be1bbd19624",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -7788,9 +7788,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
-    "mtime": 1793724774.2259312,
-    "seen": 1793724933.468418,
-    "ast_hash": "00408d459a8a6516d721af30f2b050f8",
+    "mtime": 1793747954.9027,
+    "seen": 1793748286.8344567,
+    "ast_hash": "82e1f69a27a108f13e285227dccc4145",
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793724762.4440377,
-    "seen": 1793724933.4684603,
-    "ast_hash": "ac7e9d29c2826336468100ed3b3dd4ff",
+    "mtime": 1793747954.9023316,
+    "seen": 1793748286.8344882,
+    "ast_hash": "516e6ef2f60e44e325b7881618343fa3",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -21690,9 +21690,9 @@
     "semantic_hash": ""
   },
   "src/lib/linse.ts": {
-    "mtime": 1793742443.2511115,
-    "seen": 1793742576.4779072,
-    "ast_hash": "5dd4bff9be931c106447949d5808dcc4",
+    "mtime": 1793748081.3072453,
+    "seen": 1793748286.835365,
+    "ast_hash": "86dc9c290b4e09274e79a33e88b5e004",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.test.ts": {

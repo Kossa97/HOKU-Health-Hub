@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793747917.3206112,
-    "seen": 1793748286.8355052,
-    "ast_hash": "02ad65602a92d683a86ff3976e81aa86",
+    "mtime": 1793749353.8353953,
+    "seen": 1793749621.0642855,
+    "ast_hash": "41c2119cb39df7d18cd6d05724b918b7",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -2796,9 +2796,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.tsx": {
-    "mtime": 1793748264.6469772,
-    "seen": 1793748286.8342633,
-    "ast_hash": "c38a334e84ad54f043a9d70d2b41741b",
+    "mtime": 1793749385.0937943,
+    "seen": 1793749621.0627913,
+    "ast_hash": "f902c71b445deee392d840ae57078f59",
     "semantic_hash": ""
   },
   "src/components/navigation/bottomNavMetrics.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793748132.3919768,
-    "seen": 1793748286.835652,
+    "mtime": 1793749482.4781113,
+    "seen": 1793749621.0644841,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7722,8 +7722,8 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793748081.3072453,
-    "seen": 1793748286.8360267,
+    "mtime": 1793749599.7070417,
+    "seen": 1793749621.064962,
     "ast_hash": "08d6001f8851be7b73828be1bbd19624",
     "semantic_hash": ""
   },
@@ -7788,9 +7788,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/DotLayer.tsx": {
-    "mtime": 1793747954.9027,
-    "seen": 1793748286.8344567,
-    "ast_hash": "82e1f69a27a108f13e285227dccc4145",
+    "mtime": 1793749385.0957897,
+    "seen": 1793749621.0630045,
+    "ast_hash": "a68c5c1ceed25621a48fc41444b8dcca",
     "semantic_hash": ""
   },
   "src/features/dot/DotLogo.tsx": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793747954.9023316,
-    "seen": 1793748286.8344882,
-    "ast_hash": "516e6ef2f60e44e325b7881618343fa3",
+    "mtime": 1793749385.0952272,
+    "seen": 1793749621.0630388,
+    "ast_hash": "3601aa9fb5bb455f83493da94c241188",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -21690,9 +21690,9 @@
     "semantic_hash": ""
   },
   "src/lib/linse.ts": {
-    "mtime": 1793748081.3072453,
-    "seen": 1793748286.835365,
-    "ast_hash": "86dc9c290b4e09274e79a33e88b5e004",
+    "mtime": 1793749353.8348074,
+    "seen": 1793749621.0641518,
+    "ast_hash": "cf6bfca01461d9abd536dfb042678426",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.test.ts": {
@@ -21702,9 +21702,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.ts": {
-    "mtime": 1793744973.807576,
-    "seen": 1793745278.317738,
-    "ast_hash": "d27acadfb2a14fc8b51cb26ca4086ec5",
+    "mtime": 1793749385.0932937,
+    "seen": 1793749621.0627995,
+    "ast_hash": "f4a5a0b0c9a7146140d6b1f9004b76c0",
     "semantic_hash": ""
   }
 }
