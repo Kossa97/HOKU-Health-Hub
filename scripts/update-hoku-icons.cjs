@@ -1,4 +1,4 @@
-// Install the approved dark Hoku master, with a crop appropriate to each surface.
+// Install the approved organic cyan Hoku, with a crop appropriate to each surface.
 const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
@@ -6,7 +6,7 @@ const zlib = require('node:zlib')
 const { Resvg } = require('@resvg/resvg-js')
 
 const root = path.resolve(process.argv[2] || path.join(__dirname, '..'))
-const sourceFile = 'docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-cyan-dunkel-master.png'
+const sourceFile = 'docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-organisch-cyan-v3-master.png'
 const source = fs.readFileSync(path.join(root, sourceFile))
 const sourceWidth = source.readUInt32BE(16), sourceHeight = source.readUInt32BE(20)
 const dataUrl = 'data:image/png;base64,' + source.toString('base64')
@@ -80,7 +80,7 @@ function exportPng(file, content, kind, transparent = false) {
   checks.push({ file, kind, width: render.width, height: render.height, colorType: png[25], occupied, sha256: hash(png) })
   return png
 }
-function app(file, size, ratio = .88, kind = 'app') {
+function app(file, size, ratio = .84, kind = 'app') {
   return exportPng(file, scene(size, size, size * ratio), kind)
 }
 function ico(entries) {
@@ -93,17 +93,21 @@ function ico(entries) {
 
 // Web/PWA: current names bust old icon caches; old public URLs remain updated aliases.
 for (const size of [180, 192, 512]) {
+  app(`public/icons/hoku-organisch-v3-${size}.png`, size)
   app(`public/icons/hoku-dunkel-${size}.png`, size)
   app(`public/icons/hoku-${size}.png`, size)
 }
 app('public/apple-touch-icon.png', 180)
+app('public/icons/hoku-organisch-v3-1024.png', 1024)
 app('public/icons/hoku-dunkel-1024.png', 1024)
+app('public/icons/hoku-organisch-v3-maskable-512.png', 512, .76, 'maskable')
 app('public/icons/hoku-dunkel-maskable-512.png', 512, .76, 'maskable')
 app('public/icons/hoku-maskable-512.png', 512, .76, 'maskable')
 for (const size of [192, 512]) app(`public/icon-${size}.png`, size)
 const faviconEntries = []
 for (const size of [16, 32, 48, 64]) {
-  const content = scene(size, size, size * .94)
+  const content = scene(size, size, size * .92)
+  exportPng(`public/icons/hoku-fav-organisch-v3-${size}.png`, content, 'favicon')
   const png = exportPng(`public/icons/hoku-fav-dunkel-${size}.png`, content, 'favicon')
   if (size !== 16) exportPng(`public/icons/hoku-fav-blau-${size}.png`, content, 'favicon')
   faviconEntries.push({ size, png })
@@ -111,13 +115,13 @@ for (const size of [16, 32, 48, 64]) {
 write('public/favicon.ico', ico(faviconEntries))
 const embedded = (file, size) => svg(size, size, `<image width="${size}" height="${size}" href="data:image/png;base64,${fs.readFileSync(path.join(root, file)).toString('base64')}"/>`)
 write('public/icon.svg', embedded('public/icon-512.png', 512))
-write('public/favicon.svg', embedded('public/icons/hoku-fav-dunkel-64.png', 64))
+write('public/favicon.svg', embedded('public/icons/hoku-fav-organisch-v3-64.png', 64))
 for (const size of [64, 128]) exportPng(`public/icons/hoku-dunkel-symbol-${size}.png`, scene(size, size, size * .92, { transparent: true, isolated: true }), 'symbol', true)
 
 // iOS supplies its own corner mask. The submitted square PNG has no alpha channel.
 app('ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png', 1024)
 for (const [density, size] of [['mdpi', 48], ['hdpi', 72], ['xhdpi', 96], ['xxhdpi', 144], ['xxxhdpi', 192]]) {
-  for (const [name, mask] of [['ic_launcher', 'rounded'], ['ic_launcher_round', 'circle']]) exportPng(`android/app/src/main/res/mipmap-${density}/${name}.png`, scene(size, size, size * .88, { mask }), 'legacy', true)
+  for (const [name, mask] of [['ic_launcher', 'rounded'], ['ic_launcher_round', 'circle']]) exportPng(`android/app/src/main/res/mipmap-${density}/${name}.png`, scene(size, size, size * .84, { mask }), 'legacy', true)
   const foregroundSize = Math.round(size * 108 / 48)
   exportPng(`android/app/src/main/res/mipmap-${density}/ic_launcher_foreground.png`, scene(foregroundSize, foregroundSize, foregroundSize * .59, { transparent: true, isolated: true }), 'adaptive', true)
 }
@@ -136,7 +140,7 @@ for (const dir of fs.readdirSync(path.join(root, res))) {
 // Reproducible visual proof, including the launcher's final 72dp crop of its 108dp layer.
 const embed = (file, x, y, w, h) => `<image x="${x}" y="${y}" width="${w}" height="${h}" href="data:image/png;base64,${fs.readFileSync(path.join(root, file)).toString('base64')}"/>`
 const label = (text, x, y, size = 23) => `<text x="${x}" y="${y}" font-family="Segoe UI" font-size="${size}" fill="#FFFFFF">${text}</text>`
-let proof = `<rect width="1800" height="1450" fill="#081014"/>${label('HOKU / DUNKLES ICON IN DER APP',40,55,32)}`
+let proof = `<rect width="1800" height="1450" fill="#081014"/>${label('HOKU / ORGANISCHES CYAN-ICON IN DER APP',40,55,32)}`
 proof += label('iOS · tatsächliches App-Icon', 40, 110) + embed('ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png', 40, 145, 360, 360)
 proof += label('PWA · normale Fassung', 480, 110) + embed('public/icons/hoku-dunkel-512.png', 480, 145, 360, 360)
 proof += label('Android · adaptive Kreis-Maske', 920, 110)
@@ -145,12 +149,13 @@ proof += `<svg x="920" y="145" width="360" height="360" viewBox="72 72 288 288">
 proof += label('PWA · maskierbar', 1360, 110) + embed('public/icons/hoku-dunkel-maskable-512.png', 1360, 145, 360, 360)
 proof += label('Favicons / Leistenzeichen · tatsächliche Pixelgrößen',40,580)
 for (const [i, size] of [16, 32, 48, 64].entries()) proof += embed(`public/icons/hoku-fav-dunkel-${size}.png`, 40 + i * 180, 620, size, size) + label(`${size} px`,40+i*180,730,19)
-proof += embed('public/icons/hoku-dunkel-symbol-128.png', 800, 618, 30, 30) + label('Leiste · 30 px',800,730,19)
+const nav = fs.readFileSync(path.join(root, 'docs/logo/hoku/branding/hoku-nav-etwas-dichter.svg'), 'utf8').replace(/<svg[^>]*>|<\/svg>/g, '')
+proof += `<svg x="800" y="618" width="30" height="30" viewBox="0 0 30 30"><g color="#A1A1A6">${nav}</g></svg>` + label('Leiste · separat gewählt',800,730,19)
 proof += label('Android Startbildschirm · 360 × 640', 40, 815) + embed('android/app/src/main/res/drawable-port-xhdpi/splash.png', 40, 850, 281, 500)
 proof += label('iOS Startbildschirm · Aspect Fill', 480, 815)
 const splash = fs.readFileSync(path.join(root, iosSplash + 'splash-2732x2732.png')).toString('base64')
 proof += `<svg x="480" y="850" width="281" height="500" viewBox="0 0 393 699"><image width="393" height="699" preserveAspectRatio="xMidYMid slice" href="data:image/png;base64,${splash}"/></svg>`
 proof += label('Keine zusätzliche Kachel im adaptiven Vordergrund.',920,920,23) + label('Kontrollierte Ausschnitte statt verkleinerter Originalränder.',920,965,23)
 write('docs/logo/hoku/eingebaut.png', new Resvg(svg(1800, 1450, proof), { font: { loadSystemFonts: true, defaultFontFamily: 'Segoe UI' } }).render().asPng())
-write('docs/logo/hoku/EINBAU-CHECKS.json', JSON.stringify({ source: sourceFile, sourceSha256: hash(source), sourceBounds, background, ratios: { app: .88, favicon: .94, maskable: .76, adaptive: .59, symbol: .92, splash: .24 }, pngs: checks, faviconSha256: hash(fs.readFileSync(path.join(root, 'public/favicon.ico'))) }, null, 2))
+write('docs/logo/hoku/EINBAU-CHECKS.json', JSON.stringify({ source: sourceFile, sourceSha256: hash(source), sourceBounds, background, ratios: { app: .84, favicon: .92, maskable: .76, adaptive: .59, symbol: .92, splash: .24 }, pngs: checks, faviconSha256: hash(fs.readFileSync(path.join(root, 'public/favicon.ico'))) }, null, 2))
 console.log(JSON.stringify({ installedPngs: checks.length, background, sourceBounds, checks: 'passed' }))

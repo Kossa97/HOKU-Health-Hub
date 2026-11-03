@@ -116,3 +116,7 @@ Der Nutzer hat **„Zeichen links“** als beste und hochwertigste Fassung gewä
 ## Zusätzliche Freigabe: Organisch / Cyan, 03.11.2026
 
 Bestätigt mit „so ist perfekt“. Original: `../entwuerfe/hoku-app-icon-organisch-cyan-v3.png`. Als zusätzliche Variante in allen üblichen Einbindungsformaten unter `../brand-kit-v2/09-Organisch-Cyan` aufgenommen. Der bestätigte dunkle Master bleibt unverändert; Freistellung und monochrome Symbole sind gekennzeichnete Ableitungen. Bestehendes Branding, App-Icon, KI- und Nav-Symbol bleiben erhalten. SVG und PDF enthalten Rasterbilder.
+
+## Organischer Master als App-Icon – 03.11.2026
+
+Nach der zusätzlichen Aufnahme in das Brand-Kit ausdrücklich für alle eingebundenen App-Icons gewählt. Original: hoku-app-icon-organisch-cyan-v3-master.png, bytegleich zum bestätigten exec-8233a755-bd9f-4458-8699-579876229c60.png. Web/PWA, Apple-Touch, iOS, Android, Favicons, Benachrichtigungen und Startbilder verwenden die neue Fassung; alte öffentliche Icon-URLs werden ebenfalls überschrieben. Neue kanonische URLs mit organisch-v3 dienen der Aktualisierung. Das unabhängig gewählte Nav-Symbol „Etwas dichter“ und das KI-Symbol bleiben erhalten.

@@ -103,7 +103,7 @@ self.addEventListener('push', (event) => {
   const body    = payload.body ?? ''
 
   // iOS braucht absolute Icon-URLs
-  const iconUrl = new URL('/icon-192.png', self.location.origin).href
+  const iconUrl = new URL('/icons/hoku-organisch-v3-192.png', self.location.origin).href
   const options: NotificationOptions = {
     body,
     icon: iconUrl,
