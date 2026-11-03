@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FEDER_GLEITEN, FEDER_LINSE, federSchritt } from './linsenFeder'
+import { FEDER_GLEITEN, FEDER_LINSE, federSchritt, linsenBild, planeWeg } from './linsenFeder'
 
 const lauf = (start: number, ziel: number, f = FEDER_GLEITEN, sek = 1.5) => {
   let x = start, v = 0, max = start
@@ -24,5 +24,42 @@ describe('federSchritt', () => {
     const { x, max } = lauf(0, 1, FEDER_LINSE)
     expect(max).toBeGreaterThan(1.02)
     expect(x).toBeCloseTo(1, 2)
+  })
+})
+
+describe('planeWeg und linsenBild', () => {
+  const m = { w0: 60, h0: 48, einzug: 7, wachsen: 30, hoehe: 12, heben: 0, zoom: 1.3 }
+  const start = { x: 280, w: 60, t: 0, vx: 0, vw: 0, vt: 0 }
+  const ziel = { x: 10, w: 60, gehalten: false }
+
+  it('gleitet bis zum Ziel, groß unterwegs, klein am Ende', () => {
+    const weg = planeWeg(start, ziel, FEDER_GLEITEN)
+    expect(weg.length).toBeGreaterThan(20)
+    expect(Math.max(...weg.map(s => s.t))).toBeGreaterThan(0.8)
+    expect(weg[weg.length - 1]).toEqual({ x: 10, w: 60, t: 0, vx: 0, vw: 0, vt: 0 })
+  })
+
+  it('in Ruhe nur verschoben, die Kopie läuft genau entgegen', () => {
+    const b = linsenBild({ ...start }, m)
+    expect(b.pille).toBe('translateX(280px)')
+    expect(b.kopie).toBe('translateX(-280px)')
+    expect(b.glas).toBe(0)
+  })
+
+  it('als Linse: jedes Symbol steht über seinem echten, um die Linsenmitte vergrößert', () => {
+    const s = { x: 100, w: 60, t: 1, vx: 0, vw: 0, vt: 0 }
+    const b = linsenBild(s, m)
+    // Kopie und Pille zusammen abbilden: ein Punkt p der Leiste landet bei
+    // Linsenmitte + zoom · (p − Linsenmitte)
+    const zahlen = (str: string) => (str.match(/-?[\d.]+/g) ?? []).map(Number)
+    const [tx, , sx, sy] = zahlen(b.pille)
+    const [bx, by, ax, ay] = zahlen(b.kopie)
+    const p = { x: 150, y: 20 }
+    const q = { x: bx + ax * p.x, y: -m.einzug + by + ay * p.y }
+    const bildX = m.w0 / 2 + tx + sx * (q.x - m.w0 / 2)
+    const bildY = m.einzug + m.h0 / 2 + sy * (q.y - m.h0 / 2)
+    const mitte = { x: 130, y: m.einzug + m.h0 / 2 }
+    expect(bildX).toBeCloseTo(mitte.x + 1.3 * (p.x - mitte.x), 1)
+    expect(bildY).toBeCloseTo(mitte.y + 1.3 * (p.y - mitte.y), 1)
   })
 })

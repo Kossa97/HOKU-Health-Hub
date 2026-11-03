@@ -1270,32 +1270,71 @@ main.flex-1 {
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
   /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
   z-index: 2;
-  overflow: hidden;
-  /* Lage, Breite und Größe der Linse schreibt die Feder in LiquidGlassTabBar
-     jedes Bild selbst — keine CSS-Übergänge darauf, sie würden nachziehen. */
+  /* Lage, Wachsen und Dehnen sind EIN transform um die Mitte, geschrieben von
+     der Feder in LiquidGlassTabBar (am Finger Bild für Bild, sonst als
+     vorab gerechnete Animation des Browsers). Nichts davon misst neu — darum
+     bleibt die Fahrt flüssig, auch während die neue Seite aufgebaut wird. */
   transition: background 160ms linear, box-shadow 160ms linear, opacity 200ms linear;
-  /* `scale` wirkt nach `transform` und vergrößert damit auch die Verschiebung:
-     um die Mitte der VERSCHOBENEN Pille skalieren (--pill-x). */
-  transform-origin: calc(50% + var(--pill-x, 0px)) 50%;
-  /* --linse-t: 0 Pille, 1 Linse (aus der Feder). Sie wächst oben und unten
-     gleich weit (--linse-hoehe, flacher als breit: Kapsel); --linse-heben
-     verschiebt sie zusätzlich nach oben. */
-  --pill-oben: calc(var(--bottom-nav-pill-inset) - (var(--linse-hoehe) * 0.5 + var(--linse-heben)) * var(--linse-t, 0));
-  top: var(--pill-oben);
-  bottom: calc(var(--bottom-nav-pill-inset) - (var(--linse-hoehe) * 0.5 - var(--linse-heben)) * var(--linse-t, 0));
+  transform-origin: 50% 50%;
+  scale: none;
+  will-change: transform;
 }
-.tyd-tabbar-linse {
-  position: absolute;
-  top: calc(-1 * var(--pill-oben));
-  height: var(--bottom-nav-capsule);
-  left: 0;
-  pointer-events: none;
-}
-.tyd-tabbar-linse-zoom {
+/* Das deckende Glas der Linse; blendet mit ihrer Größe ein (opacity). */
+.tyd-tabbar-linse-glas,
+.tyd-tabbar-linse-ring {
   position: absolute;
   inset: 0;
-  /* Die vergrößerte Kopie wandert mit einer gehobenen Linse mit */
-  transform: translateY(calc(-1 * var(--linse-heben) * var(--linse-t, 0))) scale(calc(1 + (var(--linse-zoom) - 1) * var(--linse-t, 0)));
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+}
+.tyd-tabbar-linse-glas {
+  background:
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.18) 0%, rgb(var(--ink-rgb) / 0.05) 70%),
+    linear-gradient(var(--surface), var(--surface)),
+    var(--app-bg);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.18),
+    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
+    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
+    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
+    0 10px 26px rgba(0, 0, 0, 0.40);
+}
+/* Farbsaum wie bei Apple (Glisse: „Dispersion"): ein Regenbogenring an der
+   Kante — rosa links, gelb unten, cyan/blau rechts. Stärke: --linse-farbe. */
+.tyd-tabbar-linse-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from 200deg at 50% 50%,
+    rgb(255 70 160), rgb(255 150 60), rgb(255 230 90), rgb(120 255 170),
+    rgb(60 200 255), rgb(120 110 255), rgb(255 70 160));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: calc(var(--linse-farbe) * 0.9);
+}
+/* Schneidet die Kopie auf die Form der Pille zu (das Glas darunter wirft
+   seinen Schatten frei nach außen). */
+.tyd-tabbar-linse-rahmen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Die Kopie liegt auf Höhe der Kapsel; ihr transform (aus der Feder) hebt
+   Lage und Skalierung der Pille auf und vergrößert um die Linsenmitte. */
+.tyd-tabbar-linse {
+  position: absolute;
+  top: calc(-1 * var(--bottom-nav-pill-inset));
+  height: var(--bottom-nav-capsule);
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
 }
 .tyd-tabbar-linse-platz {
   position: absolute;
@@ -1312,46 +1351,15 @@ main.flex-1 {
   filter: none !important;
 }
 .tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) svg { filter: none !important; }
-/* Die Linse (groß, solange ein Finger liegt oder sie noch gleitet). Doppelte
-   Klasse schlägt die Pillen-Farbe jedes Looks, auch im gehaltenen Zustand. */
-.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] {
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.18) 0%, rgb(var(--ink-rgb) / 0.05) 70%),
-    linear-gradient(var(--surface), var(--surface)),
-    var(--app-bg);
-  box-shadow:
-    inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
-    inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.18),
-    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
-    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
-    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
-    0 10px 26px rgba(0, 0, 0, 0.40);
-}
-/* Farbsaum wie bei Apple (Glisse: „Dispersion"): ein Regenbogenring an der
-   Kante — rosa links, gelb unten, cyan/blau rechts — und die vergrößerten
-   Symbole fächern leicht in Rot und Blau auf. Stärke: --linse-farbe. */
-.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1.5px;
-  pointer-events: none;
-  background: conic-gradient(from 200deg at 50% 50%,
-    rgb(255 70 160), rgb(255 150 60), rgb(255 230 90), rgb(120 255 170),
-    rgb(60 200 255), rgb(120 110 255), rgb(255 70 160));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: calc(var(--linse-farbe) * var(--linse-t, 0) * 0.9);
-}
+/* Als Linse (groß, solange ein Finger liegt oder sie noch gleitet): rund wie
+   eine Kapsel, auch in Looks mit eckiger Pille, und die vergrößerten Symbole
+   fächern leicht in Rot und Blau auf. */
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: 999px; }
 .tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-platz svg {
   filter:
     drop-shadow(calc(var(--linse-farbe) * 1.6px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.75)))
     drop-shadow(calc(var(--linse-farbe) * -1.6px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.75)));
 }
-.tyd-tabbar .tyd-tabbar-pill[data-gehalten='true'] { scale: 1; }
 html:is([data-look='schwarz'], [data-look='satin'], [data-look='licht'], [data-look='nacht']) :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {
   padding: 0;
   background: var(--glas-kante) center / 100% 100% no-repeat;

@@ -4,7 +4,10 @@ import {
 } from 'react'
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
 import { haengeGlasKante } from '../../lib/glasKante'
-import { federSchritt, FEDER_FINGER, FEDER_LINSE } from './linsenFeder'
+import {
+  BILD, FEDER_FINGER, endStand, linsenBild, linsenSchritt, planeWeg, ruhig,
+  type LinsenMasse, type LinsenStand, type LinsenZiel,
+} from './linsenFeder'
 import { gleitFeder } from '../../lib/linse'
 
 /**
@@ -114,20 +117,28 @@ export function LiquidGlassTabBar({
   const zugBreiteRef = useRef(0)
   /** Masse aller Plaetze, zuletzt gemessen. */
   const plaetzeRef = useRef<PlatzMass[]>([])
-  /** Wie viel breiter die gehaltene Linse wird (--linse-wachsen, beim Aufsetzen gelesen). */
-  const wachsenRef = useRef(0)
   const pilleRef = useRef<HTMLDivElement | null>(null)
   const kopieRef = useRef<HTMLDivElement | null>(null)
-  const zoomRef = useRef<HTMLDivElement | null>(null)
+  const glasRef = useRef<HTMLDivElement | null>(null)
+  const ringRef = useRef<HTMLDivElement | null>(null)
   /**
-   * Die Feder der Linse. React rendert das ZIEL (links, Breite); die Feder
-   * schreibt jedes Bild den aktuellen Stand ins DOM, im Layout-Effekt noch vor
-   * dem Zeichnen — so springt nichts, und jede neue Geste setzt dort an, wo
-   * die Linse gerade ist (unterbrechbar). `t` ist die Linse selbst: 0 Pille,
-   * 1 groß. Ohne Animation (weniger Bewegung, Testumgebung) gilt sofort das Ziel.
+   * Die Feder der Linse. React rendert das ZIEL (Breite); Lage und Größe sind
+   * reines `transform`/`opacity`, gesetzt im Layout-Effekt noch vor dem
+   * Zeichnen. Am Finger rechnet die Feder Bild für Bild. Gleitet die Linse
+   * allein (Tippen, Loslassen), wird ihr ganzer Weg vorab gerechnet und dem
+   * Browser als Animation übergeben: die läuft weiter, auch wenn die neue
+   * Seite gerade aufgebaut wird und das Skript keine Zeit hat — vorher hakte
+   * genau dort die Fahrt. Jede neue Geste setzt dort an, wo die Linse gerade
+   * ist (unterbrechbar). Ohne Animation (weniger Bewegung, Testumgebung) gilt
+   * sofort das Ziel.
    */
-  const feder = useRef({ x: 0, w: 0, t: 0, vx: 0, vw: 0, vt: 0, start: false, frame: 0, zuletzt: 0 })
-  const zielRef = useRef({ x: 0, w: 0, frei: false, gehalten: false, kapsel: 0 })
+  const feder = useRef<{ s: LinsenStand; start: boolean; frame: number; zuletzt: number }>({
+    s: { x: 0, w: 0, t: 0, vx: 0, vw: 0, vt: 0 }, start: false, frame: 0, zuletzt: 0,
+  })
+  const zielRef = useRef<LinsenZiel & { frei: boolean; kapsel: number }>({ x: 0, w: 0, gehalten: false, frei: false, kapsel: 0 })
+  const masseRef = useRef<LinsenMasse>({ w0: 0, h0: 0, einzug: 0, wachsen: 0, hoehe: 0, heben: 0, zoom: 1 })
+  /** Die laufende Fahrt: ihr Weg, die Animationen und für welches Ziel sie gerechnet ist. */
+  const fahrtRef = useRef<{ weg: LinsenStand[]; anim: Animation[]; schluessel: string } | null>(null)
 
   // Gerechnete Glaskante (src/lib/glasKante.ts): glänzt oben links, wo das
   // Licht hinfällt. Welche Looks sie zeigen, steht in index.css.
@@ -190,70 +201,133 @@ export function LiquidGlassTabBar({
     return { links: platz.links + (platz.breite - breite) / 2, breite, kapselBreite, frei: false }
   }
 
-  /** Schreibt den Stand der Feder ins DOM. */
-  const zeichne = () => {
-    const el = pilleRef.current
-    const f = feder.current, z = zielRef.current
-    if (!el) return
-    const wx = wachsenRef.current * f.t
-    const l = f.x - wx / 2
-    const w = Math.max(0, f.w + wx)
-    // Schnell bewegt, dehnt sich das Glas in Laufrichtung und wird flacher
-    const dehnen = Math.min(0.22, Math.abs(f.vx) / 2200)
-    el.style.width = `${w}px`
-    el.style.transform = `translateX(${l}px)`
-    el.style.setProperty('--pill-x', `${l}px`)
-    el.style.setProperty('--linse-t', f.t.toFixed(3))
-    el.style.scale = dehnen > 0.004 ? `${(1 + dehnen).toFixed(3)} ${(1 - dehnen * 0.5).toFixed(3)}` : ''
-    if (f.t > 0.02) el.setAttribute('data-linse', 'true')
-    else el.removeAttribute('data-linse')
-    if (kopieRef.current) {
-      kopieRef.current.style.width = `${z.kapsel}px`
-      kopieRef.current.style.transform = `translateX(${-l}px)`
+  /** Liest Größe und Stärke der Linse (die --linse-* Variablen, src/lib/linse.ts). */
+  const miss = (el: HTMLElement, w0: number) => {
+    const css = getComputedStyle(el)
+    const zahl = (name: string, ersatz: number) => {
+      const n = parseFloat(css.getPropertyValue(name))
+      return Number.isFinite(n) ? n : ersatz
     }
-    if (zoomRef.current) zoomRef.current.style.transformOrigin = `${l + w / 2}px 50%`
+    masseRef.current = {
+      w0, h0: el.offsetHeight, einzug: el.offsetTop,
+      wachsen: zahl('--linse-wachsen', 0), hoehe: zahl('--linse-hoehe', 0),
+      heben: zahl('--linse-heben', 0), zoom: zahl('--linse-zoom', 1),
+    }
+  }
+
+  /** Schreibt einen Stand ins DOM — nur transform und opacity. */
+  const zeichne = (s: LinsenStand = feder.current.s) => {
+    const el = pilleRef.current
+    if (!el) return
+    const b = linsenBild(s, masseRef.current)
+    el.style.transform = b.pille
+    if (kopieRef.current) kopieRef.current.style.transform = b.kopie
+    if (glasRef.current) glasRef.current.style.opacity = String(b.glas)
+    if (ringRef.current) ringRef.current.style.opacity = String(b.glas)
+    if (b.linse) el.setAttribute('data-linse', 'true')
+    else el.removeAttribute('data-linse')
   }
 
   const ohneAnimation = () =>
     typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    || typeof pilleRef.current?.animate !== 'function'
 
+  /** Hält eine laufende Fahrt an und übernimmt ihren aktuellen Stand. */
+  const halteFahrt = () => {
+    const fahrt = fahrtRef.current
+    if (!fahrt) return
+    fahrtRef.current = null
+    const ms = Number(fahrt.anim[0]?.currentTime ?? 0) || 0
+    const i = Math.min(fahrt.weg.length - 1, Math.max(0, Math.round(ms / (BILD * 1000))))
+    feder.current.s = { ...fahrt.weg[i] }
+    zeichne()
+    for (const a of fahrt.anim) a.cancel()
+  }
+
+  /** Rechnet den Weg bis zur Ruhe und übergibt ihn dem Browser. */
+  const starteFahrt = (schluessel: string) => {
+    const z = zielRef.current, m = masseRef.current
+    const weg = planeWeg(feder.current.s, z, gleitFeder())
+    const ende = weg[weg.length - 1]
+    if (weg.length < 3) {
+      feder.current.s = ende
+      zeichne()
+      return
+    }
+    const bilder = weg.map(s => linsenBild(s, m))
+    const dauer = (weg.length - 1) * BILD * 1000
+    const optionen: KeyframeAnimationOptions = { duration: dauer, easing: 'linear', fill: 'forwards' }
+    const anim: Animation[] = []
+    const el = pilleRef.current!
+    if (bilder.some(b => b.linse)) el.setAttribute('data-linse', 'true')
+    anim.push(el.animate(bilder.map(b => ({ transform: b.pille })), optionen))
+    if (kopieRef.current) anim.push(kopieRef.current.animate(bilder.map(b => ({ transform: b.kopie })), optionen))
+    for (const schicht of [glasRef.current, ringRef.current]) {
+      if (schicht) anim.push(schicht.animate(bilder.map(b => ({ opacity: b.glas })), optionen))
+    }
+    const fahrt = { weg, anim, schluessel }
+    fahrtRef.current = fahrt
+    anim[0].onfinish = () => {
+      if (fahrtRef.current !== fahrt) return
+      fahrtRef.current = null
+      feder.current.s = ende
+      zeichne()
+      for (const a of anim) a.cancel()
+    }
+  }
+
+  /** Am Finger: Bild für Bild, die Linse hängt eng am Finger. */
   const schritt = (jetzt: number) => {
     const f = feder.current, z = zielRef.current
     f.frame = 0
     const dt = Math.min(1 / 30, Math.max(0.001, (jetzt - (f.zuletzt || jetzt - 16)) / 1000))
     f.zuletzt = jetzt
-    const lage = z.frei ? FEDER_FINGER : gleitFeder()
-    ;[f.x, f.vx] = federSchritt(f.x, f.vx, z.x, lage, dt)
-    ;[f.w, f.vw] = federSchritt(f.w, f.vw, z.w, lage, dt)
-    // Groß, solange ein Finger liegt oder die Linse noch unterwegs ist
-    const unterwegs = Math.abs(z.x - f.x) > 1.5 || Math.abs(f.vx) > 40
-    ;[f.t, f.vt] = federSchritt(f.t, f.vt, z.gehalten || unterwegs ? 1 : 0, FEDER_LINSE, dt)
-    zeichne()
-    const ruhig = Math.abs(z.x - f.x) < 0.3 && Math.abs(f.vx) < 4 && Math.abs(z.w - f.w) < 0.3 && Math.abs(f.vw) < 4
-      && Math.abs((z.gehalten ? 1 : 0) - f.t) < 0.005 && Math.abs(f.vt) < 0.05
-    if (ruhig) {
-      f.x = z.x; f.w = z.w; f.t = z.gehalten ? 1 : 0; f.vx = f.vw = f.vt = 0; f.zuletzt = 0
-      zeichne()
-    } else {
-      f.frame = requestAnimationFrame(schritt)
-    }
-  }
-
-  useLayoutEffect(() => {
-    if (!pille) return
-    const z = zielRef.current
-    z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
-    const f = feder.current
-    if (!f.start || ohneAnimation()) {
-      f.start = true
-      f.x = z.x; f.w = z.w; f.t = gedrueckt ? 1 : 0; f.vx = f.vw = f.vt = 0
+    f.s = linsenSchritt(f.s, z, FEDER_FINGER, dt)
+    if (ruhig(f.s, z)) {
+      f.s = endStand(z)
+      f.zuletzt = 0
       zeichne()
       return
     }
     zeichne()
-    if (!f.frame) f.frame = requestAnimationFrame(schritt)
+    f.frame = requestAnimationFrame(schritt)
+  }
+
+  useLayoutEffect(() => {
+    const el = pilleRef.current
+    if (!pille || !el) return
+    const z = zielRef.current
+    z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
+    const f = feder.current
+    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}`
+    if (!f.start || ohneAnimation()) {
+      f.start = true
+      miss(el, pille.breite)
+      halteFahrt()
+      cancelAnimationFrame(f.frame); f.frame = 0
+      f.s = endStand(z)
+      zeichne()
+      return
+    }
+    if (z.frei) {
+      halteFahrt()
+      if (masseRef.current.w0 !== pille.breite) miss(el, pille.breite)
+      if (!f.frame) f.frame = requestAnimationFrame(schritt)
+      return
+    }
+    // Gleitet allein. Läuft schon eine Fahrt zum selben Ziel, bleibt sie
+    // unberührt — ein Neuzeichnen der Seite (etwa beim Seitenwechsel) darf
+    // sie nicht anhalten.
+    if (fahrtRef.current?.schluessel === schluessel) return
+    cancelAnimationFrame(f.frame); f.frame = 0; f.zuletzt = 0
+    halteFahrt()
+    miss(el, pille.breite)
+    starteFahrt(schluessel)
   })
-  useEffect(() => () => cancelAnimationFrame(feder.current.frame), [])
+  useEffect(() => () => {
+    cancelAnimationFrame(feder.current.frame)
+    for (const a of fahrtRef.current?.anim ?? []) a.cancel()
+  }, [])
 
   // Der Schimmer im Glas folgt der Pille — das ist der raeumliche Anteil.
   const schimmer = pille
@@ -273,7 +347,6 @@ export function LiquidGlassTabBar({
     ziehtRef.current = true
     gewandertRef.current = false
     zugBreiteRef.current = pillenBreite(auf.offsetWidth)
-    wachsenRef.current = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-wachsen')) || 0
     setGedrueckt(true)
     setzeVorschau(id)
     // Die Pille springt auf den gedrueckten Platz — von dort aus haengt sie
@@ -386,51 +459,43 @@ export function LiquidGlassTabBar({
       onPointerCancel={beiZeigerAbbruch}
       onClickCapture={beiKlick}
     >
-      {(() => {
-        // Gehalten wächst die Linse seitlich über ihren Platz hinaus; die Mitte
-        // bleibt beim Finger. In der Höhe wächst und hebt sie sich per CSS.
-        const wx = gedrueckt ? wachsenRef.current : 0
-        const l = pille ? pille.links - wx / 2 : 0
-        const w = pille ? pille.breite + wx : 0
-        return (
-          <div
-            ref={pilleRef}
-            className="tyd-tabbar-pill"
-            data-tyd-pill
-            data-gehalten={gedrueckt ? 'true' : 'false'}
-            data-frei={pille?.frei ? 'true' : 'false'}
-            data-ohne-ziel={pille ? 'false' : 'true'}
-            aria-hidden="true"
-            style={pille
-              ? { width: w, transform: `translateX(${l}px)`, ['--pill-x' as string]: `${l}px` }
-              : undefined}
-          >
-            {/*
-              In der Pille liegt immer eine Kopie der Symbole, genau über den
-              echten, in der Farbe des aktiven Reiters. Die echten bleiben grau.
-              So färbt sich — wie bei Apple — nur der Teil eines Symbols, über dem
-              die Pille gerade steht, auch während sie gleitet. Gehalten wird die
-              Kopie um die Mitte der Pille vergrößert: die Linse (Idee aus Glisse).
-              Die Kopie läuft der Pille entgegen, damit sie über den echten steht.
-            */}
-            {pille && (
-              <div ref={kopieRef} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-l}px)` }}>
-                <div ref={zoomRef} className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${l + w / 2}px 50%` }}>
-                  {plaetzeRef.current.map(p => {
-                    const item = items.find(i => i.id === p.id)
-                    if (!item) return null
-                    return (
-                      <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
-                        {item.icon}
-                      </span>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+      <div
+        ref={pilleRef}
+        className="tyd-tabbar-pill"
+        data-tyd-pill
+        data-gehalten={gedrueckt ? 'true' : 'false'}
+        data-frei={pille?.frei ? 'true' : 'false'}
+        data-ohne-ziel={pille ? 'false' : 'true'}
+        aria-hidden="true"
+        style={pille ? { width: pille.breite } : undefined}
+      >
+        {/*
+          Die Linse in Schichten: das deckende Glas, darüber die farbige Kopie
+          der Symbole, oben der Farbsaum. Glas und Saum blenden mit der Größe
+          der Linse ein. In der Pille liegt immer die Kopie, genau über den
+          echten Symbolen, in der Farbe des aktiven Reiters — die echten bleiben
+          grau. So färbt sich wie bei Apple nur der Teil eines Symbols, über dem
+          die Pille gerade steht, auch während sie gleitet. Als Linse wird die
+          Kopie um ihre Mitte vergrößert (Idee aus Glisse).
+        */}
+        <div ref={glasRef} className="tyd-tabbar-linse-glas" />
+        {pille && (
+          <div className="tyd-tabbar-linse-rahmen">
+            <div ref={kopieRef} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite }}>
+              {plaetzeRef.current.map(p => {
+                const item = items.find(i => i.id === p.id)
+                if (!item) return null
+                return (
+                  <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
+                    {item.icon}
+                  </span>
+                )
+              })}
+            </div>
           </div>
-        )
-      })()}
+        )}
+        <div ref={ringRef} className="tyd-tabbar-linse-ring" />
+      </div>
       {items.map(item => (
         <TabTraeger key={item.id}>{platz(item)}</TabTraeger>
       ))}

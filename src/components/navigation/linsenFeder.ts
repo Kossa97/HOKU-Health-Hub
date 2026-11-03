@@ -20,3 +20,83 @@ export function federSchritt(x: number, v: number, ziel: number, f: Feder, dt: n
   const v2 = v + a * dt
   return [x + v2 * dt, v2]
 }
+
+/** Stand der Linse: linke Kante und Breite der Pille, `t` 0 Pille … 1 Linse, je mit Geschwindigkeit. */
+export interface LinsenStand { x: number; w: number; t: number; vx: number; vw: number; vt: number }
+/** Wohin sie will. */
+export interface LinsenZiel { x: number; w: number; gehalten: boolean }
+/** Maße der gerenderten Pille und wie stark die Linse wird (aus den --linse-* Variablen). */
+export interface LinsenMasse {
+  /** gerenderte Breite, Höhe und Einzug der Pille (px) */
+  w0: number; h0: number; einzug: number
+  wachsen: number; hoehe: number; heben: number; zoom: number
+}
+
+export const BILD = 1 / 60
+
+/** Groß, solange ein Finger liegt oder die Linse noch unterwegs ist. */
+export const tZiel = (s: LinsenStand, z: LinsenZiel) =>
+  z.gehalten || Math.abs(z.x - s.x) > 1.5 || Math.abs(s.vx) > 40 ? 1 : 0
+
+/** Ein Bild der Feder; `lage` treibt Ort und Breite, FEDER_LINSE die Größe. */
+export function linsenSchritt(s: LinsenStand, z: LinsenZiel, lage: Feder, dt: number): LinsenStand {
+  const [x, vx] = federSchritt(s.x, s.vx, z.x, lage, dt)
+  const [w, vw] = federSchritt(s.w, s.vw, z.w, lage, dt)
+  const [t, vt] = federSchritt(s.t, s.vt, tZiel(s, z), FEDER_LINSE, dt)
+  return { x, w, t, vx, vw, vt }
+}
+
+export const ruhig = (s: LinsenStand, z: LinsenZiel) =>
+  Math.abs(z.x - s.x) < 0.3 && Math.abs(s.vx) < 4 && Math.abs(z.w - s.w) < 0.3 && Math.abs(s.vw) < 4
+  && Math.abs((z.gehalten ? 1 : 0) - s.t) < 0.005 && Math.abs(s.vt) < 0.05
+
+export const endStand = (z: LinsenZiel): LinsenStand =>
+  ({ x: z.x, w: z.w, t: z.gehalten ? 1 : 0, vx: 0, vw: 0, vt: 0 })
+
+/**
+ * Der ganze Weg bis zur Ruhe, ein Stand je Bild (1/60 s), der letzte ist das
+ * Ziel. Daraus werden Keyframes: der Browser spielt sie selbst ab, auch wenn
+ * die Seite gerade aufgebaut wird und das Skript keine Zeit hat.
+ */
+export function planeWeg(start: LinsenStand, z: LinsenZiel, lage: Feder, maxSek = 4): LinsenStand[] {
+  const weg = [start]
+  let s = start
+  for (let i = 0; i < maxSek / BILD && !ruhig(s, z); i++) {
+    s = linsenSchritt(s, z, lage, BILD)
+    weg.push(s)
+  }
+  weg[weg.length - 1] = endStand(z)
+  return weg
+}
+
+const px = (n: number) => `${Math.round(n * 100) / 100}px`
+const zahl = (n: number) => String(Math.round(n * 10000) / 10000)
+
+/**
+ * Wie die Linse in einem Stand aussieht — nur `transform` und `opacity`, damit
+ * nichts neu vermessen oder gemalt werden muss.
+ *
+ * Die Pille ist so breit gerendert wie ihr Ziel (`w0`); Ort, Wachsen und
+ * Dehnen sind ein `transform` um ihre Mitte. Die farbige Kopie der Symbole
+ * liegt IN der Pille und muss deren Skalierung aufheben: sie wird so gesetzt,
+ * dass jedes Symbol über seinem echten steht, um die Mitte der Linse um
+ * `zoom` vergrößert.
+ */
+export function linsenBild(s: LinsenStand, m: LinsenMasse) {
+  const t = s.t
+  const dehnen = Math.min(0.22, Math.abs(s.vx) / 2200)
+  const sx = (m.w0 > 0 ? (s.w + m.wachsen * t) / m.w0 : 1) * (1 + dehnen)
+  const sy = (m.h0 > 0 ? (m.h0 + m.hoehe * t) / m.h0 : 1) * (1 - dehnen * 0.5)
+  const cx = s.x + s.w / 2
+  const tx = cx - m.w0 / 2
+  const ty = -m.heben * t
+  const z = 1 + (m.zoom - 1) * t
+  const glatt = Math.abs(sx - 1) < 1e-4 && Math.abs(sy - 1) < 1e-4 && Math.abs(ty) < 1e-3
+  const pille = glatt ? `translateX(${px(tx)})` : `translateX(${px(tx)}) translateY(${px(ty)}) scale(${zahl(sx)}, ${zahl(sy)})`
+  const bx = m.w0 / 2 - (z / sx) * cx
+  const by = m.h0 / 2 + m.einzug - (z / sy) * (m.einzug + m.h0 / 2 + ty)
+  const kopie = glatt && Math.abs(z - 1) < 1e-4
+    ? `translateX(${px(bx)})`
+    : `translate(${px(bx)}, ${px(by)}) scale(${zahl(z / sx)}, ${zahl(z / sy)})`
+  return { pille, kopie, glas: Math.min(1, Math.max(0, t)), linse: t > 0.02 }
+}
