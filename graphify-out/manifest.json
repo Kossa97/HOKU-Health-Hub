@@ -1494,9 +1494,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1793400155.1162539,
-    "seen": 1793400497.1685817,
-    "ast_hash": "f31341cc55f22043cd8d92b4290cdd7e",
+    "mtime": 1793711790.5679173,
+    "seen": 1793712115.4315798,
+    "ast_hash": "aa89dabe77bc56fdfe24516869d1771d",
     "semantic_hash": ""
   },
   "ios/App/CapApp-SPM/README.md": {
@@ -7818,9 +7818,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793707959.4599652,
-    "seen": 1793708129.4043124,
-    "ast_hash": "b8a47aafb9873e465cfdc61efe62f5d2",
+    "mtime": 1793711790.5661871,
+    "seen": 1793712115.3963773,
+    "ast_hash": "3e5073d45efbbb294f5d2120ceed0368",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -8124,9 +8124,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/formen.ts": {
-    "mtime": 1793407878.3582692,
-    "seen": 1793408162.8361557,
-    "ast_hash": "eb2b572535c4b282211b851181b520d4",
+    "mtime": 1793711790.5670455,
+    "seen": 1793712115.3963838,
+    "ast_hash": "841523c72a3e15425cd5a916da9f930f",
     "semantic_hash": ""
   },
   "supabase-auto-tracking.sql": {
@@ -8418,9 +8418,9 @@
     "semantic_hash": ""
   },
   "memory/projects/login.md": {
-    "mtime": 1793708091.1303296,
-    "seen": 1793708129.4438846,
-    "ast_hash": "6c749ee4b79d90ea4aa578b9f850b765",
+    "mtime": 1793712084.7378623,
+    "seen": 1793712115.4318016,
+    "ast_hash": "c88aba0c2916d33812ecebf0cf68109a",
     "semantic_hash": ""
   },
   ".claude/skills/logo-design/assets/library/svg/100tb.svg": {
