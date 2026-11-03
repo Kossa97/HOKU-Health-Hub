@@ -14,7 +14,21 @@ Stand 03.11.2026 · Brainstorm mit dem Nutzer. Mockup Entwurf 1: `docs/profil/mo
 
 - **Getragener Rang steigt von selbst mit** (Nutzer 03.11.: „passt so“); gefragt wird nur, wer gerade eine Prägung trägt.
 
-## Vorschlag [Claude, ungeprüft]
+## Nutzer 03.11. (zweite Runde)
+- **Rang zählt Tage mit eigenem Eintrag, zusammengezählt** (nicht „App geöffnet“, nicht „in Folge“).
+- **Schwellen: 1 · 10 · 50 · 100 · 200 · 365** (Neuling, Entdecker, Dranbleiber, Routinier, Veteran, Legende) — weg von 7/30,
+  damit nichts mit den Serien-Abzeichen „7/30/100/365 Tage ohne Lücke“ verwechselt wird.
+- **Prägungen als eigenes Konzept gestrichen** (doppelten sich mit 2b-Abzeichen: Unaufhaltsam = „100 Tage ohne Lücke“,
+  Trainingstier = „100 Workouts“ …). Stattdessen **tragbare Abzeichen**: besondere Abzeichen haben einen Titelnamen und
+  lassen sich statt des Rangs tragen. Nur Rang + Abzeichen.
+- **Sportarten:** Hyrox ja, dazu weitere Sportarten aus `SessionKind` (strength, run, cycle, swim, row, walk, hike, hiit,
+  hyrox, yoga, mobility, sport, other). **Aus Apple Health / Health Connect eingeführte Einheiten zählen** für Sportart-Titel
+  (der Rang zählt weiter nur eigene Einträge).
+- **Einstieg ins Sheet: beides** (Chip im Profil und Profil-Einstellungen › Titel).
+- **Sichtbarkeit Standard „Alle“** — abweichend von 2a/2b (dort jedes Feld „Nur ich“): juristisch prüfen (Art. 25 DSGVO,
+  datenschutzfreundliche Voreinstellung; Titel ist kein Gesundheitsdatum, solange nur aus unverfänglichen Abzeichen).
+
+## Vorschlag (alt, durch „tragbare Abzeichen“ ersetzt) [Claude]
 Rangleiter (Tage mit eigenem Eintrag): 1 Neuling/Newcomer · 7 Entdecker/Explorer · 30 Dranbleiber/Committed ·
 90 Routinier/Regular · 180 Veteran/Veteran · 365 Legende/Legend.
 
