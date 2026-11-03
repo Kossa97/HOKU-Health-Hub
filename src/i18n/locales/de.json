@@ -2717,7 +2717,7 @@
   "my_stack_scan_err_lookup": "Der Barcode ließ sich gerade nicht nachschlagen. Fotografiere stattdessen das Etikett.",
   "my_stack_scan_err": "Das Etikett ließ sich nicht lesen. Bitte versuche es noch einmal.",
   "my_stack_scan_err_limit": "Zu viele Scans in kurzer Zeit. Versuche es später noch einmal oder trage es von Hand ein.",
-  "my_stack_scan_no_label": "Auf dem Foto ist kein lesbares Etikett. Geh etwas näher heran und achte auf ein scharfes Bild.",
+  "my_stack_scan_no_label": "Auf dem Foto ist kein lesbares Etikett. Fotografiere die Inhaltsstoffe aus der Nähe, mit gutem Licht – oder nimm „Foto auswählen“ und die normale Kamera.",
   "my_stack_scan_image_only": "Bitte wähle ein Foto aus.",
   "my_stack_scan_not_found": "Nicht erkannt",
   "my_stack_scan_strength": "Stärke",

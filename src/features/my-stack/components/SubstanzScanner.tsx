@@ -30,18 +30,39 @@ type Phase =
   | { art: 'laeuft'; was: 'barcode' | 'foto' }
   | { art: 'ergebnis'; vorschlag: ScanVorschlag }
 
-/** Das aktuelle Kamerabild als JPEG, so gross wie fuer die Bilderkennung noetig. */
-function fotoAusVideo(video: HTMLVideoElement): Foto | null {
-  if (!video.videoWidth || !video.videoHeight) return null
-  const size = targetSize(video.videoWidth, video.videoHeight)
+/** Ein Bild als JPEG, so gross wie fuer die Bilderkennung noetig. */
+function alsJpeg(quelle: CanvasImageSource, breite: number, hoehe: number): Foto | null {
+  if (!breite || !hoehe) return null
+  const size = targetSize(breite, hoehe)
   const canvas = document.createElement('canvas')
   canvas.width = size.width
   canvas.height = size.height
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
-  ctx.drawImage(video, 0, 0, size.width, size.height)
+  ctx.drawImage(quelle, 0, 0, size.width, size.height)
   const dataUrl = canvas.toDataURL('image/jpeg', 0.88)
   return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/jpeg' }
+}
+
+type BildAufnahme = { takePhoto(): Promise<Blob> }
+type BildAufnahmeCtor = new (track: MediaStreamTrack) => BildAufnahme
+
+/**
+ * Das Etikettfoto: wo der Browser es kann (Chrome/Android), ein echtes Foto in
+ * voller Sensoraufloesung — sonst das aktuelle Kamerabild.
+ */
+async function fotoAufnehmen(video: HTMLVideoElement): Promise<Foto | null> {
+  const Aufnahme = (globalThis as { ImageCapture?: BildAufnahmeCtor }).ImageCapture
+  const spur = video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : undefined
+  if (Aufnahme && spur) {
+    try {
+      const bild = await createImageBitmap(await new Aufnahme(spur).takePhoto())
+      const foto = alsJpeg(bild, bild.width, bild.height)
+      bild.close()
+      if (foto) return foto
+    } catch { /* weiter mit dem Kamerabild */ }
+  }
+  return alsJpeg(video, video.videoWidth, video.videoHeight)
 }
 
 // Roh angenommen: der Data-Matrix-Code einer Arzneimittelpackung und Amazons
@@ -56,7 +77,7 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
   onFoto: (foto: Foto) => void
 }) {
   const { t } = useTranslation()
-  const { videoRef, cam } = useBarcodeKamera(onCode, istRohcode)
+  const { videoRef, cam } = useBarcodeKamera(onCode, istRohcode, true)
   // Ohne Barcode-Leser (nicht ladbar) bleibt das Foto.
   const bildLaeuft = cam === 'scanning' || cam === 'photo_only'
   const camMessage: Partial<Record<KameraStand, string>> = {
@@ -66,9 +87,16 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
     failed: t('my_stack_scan_unavailable'),
   }
 
-  const ausloesen = () => {
-    const foto = videoRef.current ? fotoAusVideo(videoRef.current) : null
-    if (foto) onFoto(foto)
+  const [nimmtAuf, setNimmtAuf] = useState(false)
+  const ausloesen = async () => {
+    if (!videoRef.current || nimmtAuf) return
+    setNimmtAuf(true)
+    try {
+      const foto = await fotoAufnehmen(videoRef.current)
+      if (foto) onFoto(foto)
+    } finally {
+      setNimmtAuf(false)
+    }
   }
 
   return (
@@ -91,7 +119,7 @@ function KameraAnsicht({ hinweis, fotoBereit, onCode, onFoto }: {
         {hinweis ?? (cam === 'unavailable' ? camMessage.unavailable : t(onCode && cam !== 'photo_only' ? 'my_stack_scan_hint' : 'my_stack_scan_hint_photo'))}
       </p>
       {bildLaeuft && (
-        <button type="button" data-scan-shutter onClick={ausloesen} disabled={!fotoBereit}
+        <button type="button" data-scan-shutter onClick={() => void ausloesen()} disabled={!fotoBereit || nimmtAuf}
           className="lg-btn lg-btn-primary mt-3 flex w-full items-center justify-center gap-2">
           <Camera size={18} aria-hidden="true" /> {t('my_stack_scan_photo')}
         </button>
