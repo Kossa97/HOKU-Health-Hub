@@ -194,6 +194,8 @@ function pkIntentSteps(
   plan: StackItemSetupDraft['plan'] | undefined,
   iuPerMg: number | null = null,
   pkRoutes: readonly string[] = [],
+  /** Katalog-ids mit PK-Profil: nur deren Staerke rechnet die Einheit um. */
+  pkKatalogIds: ReadonlySet<string> = new Set(),
 ): WizardStep[] {
   const steps: WizardStep[] = []
   // Ohne Staerke (Tiefe unter „gruendlich") geht es ueber die
@@ -220,7 +222,7 @@ function pkIntentSteps(
         if (menge == null || plan.unit == null) return false
         // Kapseln, Tabletten oder ml rechnen sich ueber die Staerke einer Zutat um.
         const umrechenbar = toPkMilligrams(menge, plan.unit, iuPerMg) != null
-          || item.ingredients.some(zutat => toPkMilligrams(
+          || item.ingredients.some(zutat => zutat.catalog_substance_id != null && pkKatalogIds.has(zutat.catalog_substance_id) && toPkMilligrams(
             menge, plan.unit!, iuPerMg,
             mgPerMlFromStrength(zutat.amount_value, zutat.amount_unit, zutat.basis_value, zutat.basis_unit),
             staerkeJeEinheit(zutat.amount_value, zutat.amount_unit, zutat.basis_value, zutat.basis_unit, iuPerMg),
@@ -296,7 +298,8 @@ export function StackItemWizard({
   // Die Schritte fuer „PK vervollstaendigen" — einmal beim Oeffnen bestimmt.
   const [pkIntentStepList] = useState<WizardStep[] | null>(() => (
     intent === 'pk' && existingItem
-      ? pkIntentSteps(existingItem, selectedPlan, null, ersteProfilRouten(existingItem, catalogEntries))
+      ? pkIntentSteps(existingItem, selectedPlan, null, ersteProfilRouten(existingItem, catalogEntries),
+        new Set(catalogEntries.filter(entry => entry.pk_profile_id).map(entry => entry.id)))
       : null
   ))
   const [state, dispatch] = useReducer(

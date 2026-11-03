@@ -98,6 +98,9 @@ export function kombiNameNachfuehren(
   aktuellerName: string,
   katalogNamen: Readonly<Record<string, string>>,
 ): string | null {
+  // Nur, was als Substanz aus dem Katalog begann: ein eigenes Produkt
+  // („Foo") traegt einen Namen, den man nicht aus den Zutaten ableitet.
+  if (!vorher[0]?.catalog_substance_id) return null
   const alt = kombiName(vorher, katalogNamen)
   if (!alt || alt !== aktuellerName.trim()) return null
   const neu = kombiName(nachher, katalogNamen)

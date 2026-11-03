@@ -86,6 +86,8 @@ describe('kombiNameNachfuehren', () => {
     expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile('tb', 'TB-500')], 'BPC-157', namen)).toBe('BPC-157 + TB-500')
     // Eine leere neue Zeile aendert noch nichts.
     expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile(null)], 'BPC-157', namen)).toBeNull()
+    // Ein eigenes Produkt behaelt seinen Namen.
+    expect(kombiNameNachfuehren([zeile(null, 'Foo')], [zeile(null, 'Foo'), zeile(null, 'Bar')], 'Foo', namen)).toBeNull()
     // Eigene Zutat ohne Katalog zaehlt mit ihrem Namen.
     expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile(null, 'GHK-Cu')], 'BPC-157', namen)).toBe('BPC-157 + GHK-Cu')
     // Entfernt man ihn wieder, kehrt der Name zurueck.

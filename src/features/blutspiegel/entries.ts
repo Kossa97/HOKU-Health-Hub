@@ -133,7 +133,10 @@ export const CATEGORY_ACCENT: Record<PkCategory, string> = {
 /**
  * Linienfarben in einem Kombipraeparat, in fester Reihenfolge je Zutat.
  * Die Akzente der App, so geordnet, dass Nachbarn auch bei Farbfehlsichtigkeit
- * getrennt bleiben (geprueft mit dem Paletten-Pruefer des dataviz-Skills).
+ * getrennt bleiben: im Paletten-Pruefer des dataviz-Skills bestehen
+ * Farbabstand und Fehlsichtigkeit; das Helligkeitsband nicht (die Akzente
+ * sind heller als vorgesehen), und im hellen Look liegt der Kontrast unter
+ * 3:1. Deshalb steht jeder Wert mit Namen in der Legende, nie nur als Farbe.
  * Die Kategoriefarbe allein reicht hier nicht: zwei Peptide waeren gleich blau.
  */
 export const KOMBI_FARBEN = ['#00ccf5', '#f59e0b', '#a855f7', '#10b981'] as const
