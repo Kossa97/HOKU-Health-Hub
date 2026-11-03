@@ -179,3 +179,8 @@ Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Kn
   Link (1 h) liefert nach Löschen + Neuanlegen unter gleichem Namen den neuen Inhalt.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
+
+### Canva-Vorlage (03.11.)
+Nutzer bearbeitet die Karten selbst in Canva. `docs/profil/canva/hoku-link-karten.pptx`
+(20 Folien 1200 × 630, aus Karten-Mockup Fassung 2, Elemente einzeln). Skripte in
+`docs/profil/canva/quelle/`. Canva-Verbindung im Container nicht erreichbar, daher Datei-Import.
