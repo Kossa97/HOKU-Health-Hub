@@ -176,4 +176,5 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   unterwegs andere Seiten).
 - Regler im Profil (LinsenTest, vor Übernahme entfernen) mit Preset „Apple" nach
   einer Bildschirmaufnahme aus iOS 26: klar, graue breite Ruhekapsel, Regenbogen
-  an den Enden. Keine echte Brechung am Rand (geht im iPhone-WebView nicht).
+  an den Enden. Randbrechung (Regler): zwei maskierte Ringe an der Innenkante, darin
+  die Kopie kleiner abgebildet. Echte Brechung des Hintergrunds geht im iPhone-WebView nicht.
