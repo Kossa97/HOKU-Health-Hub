@@ -105,6 +105,8 @@ export function LiquidGlassTabBar({
   const zugBreiteRef = useRef(0)
   /** Masse aller Plaetze, zuletzt gemessen. */
   const plaetzeRef = useRef<PlatzMass[]>([])
+  /** Wie viel breiter die gehaltene Linse wird (--linse-wachsen, beim Aufsetzen gelesen). */
+  const wachsenRef = useRef(0)
 
   // Gerechnete Glaskante (src/lib/glasKante.ts): glänzt oben links, wo das
   // Licht hinfällt. Welche Looks sie zeigen, steht in index.css.
@@ -184,6 +186,7 @@ export function LiquidGlassTabBar({
     ziehtRef.current = true
     gewandertRef.current = false
     zugBreiteRef.current = pillenBreite(auf.offsetWidth)
+    wachsenRef.current = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-wachsen')) || 0
     setGedrueckt(true)
     setzeVorschau(id)
     // Die Pille springt auf den gedrueckten Platz — von dort aus haengt sie
@@ -280,6 +283,7 @@ export function LiquidGlassTabBar({
       aria-label={ariaLabel}
       className="tyd-tabbar flex items-stretch"
       data-gedrueckt={gedrueckt ? 'true' : 'false'}
+      data-farbe-in-pille={pille ? 'true' : undefined}
       style={{ ['--tyd-glint' as string]: schimmer }}
       onPointerDown={beiZeigerAb}
       onPointerMove={beiZeigerBewegung}
@@ -287,41 +291,51 @@ export function LiquidGlassTabBar({
       onPointerCancel={beiZeigerAbbruch}
       onClickCapture={beiKlick}
     >
-      <div
-        className="tyd-tabbar-pill"
-        data-tyd-pill
-        data-gehalten={gedrueckt ? 'true' : 'false'}
-        data-frei={pille?.frei ? 'true' : 'false'}
-        data-ohne-ziel={pille ? 'false' : 'true'}
-        data-linse={gedrueckt && pille ? 'true' : undefined}
-        aria-hidden="true"
-        style={pille
-          ? { width: pille.breite, transform: `translateX(${pille.links}px)`, ['--pill-x' as string]: `${pille.links}px` }
-          : undefined}
-      >
-        {/*
-          Linse (Idee aus Glisse): Gehalten wird die Pille zur Glaslinse. In ihr
-          liegt eine Kopie der Symbole, genau über den echten, und wird um die
-          Mitte der Pille vergrößert — wie Glas, das die Leiste darunter bricht.
-          Die Kopie läuft der Pille entgegen, damit sie stehen bleibt, während
-          die Pille wandert. Nur solange ein Finger liegt.
-        */}
-        {gedrueckt && pille && (
-          <div className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-pille.links}px)` }}>
-            <div className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${pille.links + pille.breite / 2}px 50%` }}>
-              {plaetzeRef.current.map(p => {
-                const item = items.find(i => i.id === p.id)
-                if (!item) return null
-                return (
-                  <span key={p.id} className="tyd-tabbar-linse-platz" data-tyd-nah={p.id === vorschau ? 'true' : undefined} style={{ left: p.links, width: p.breite }}>
-                    {item.icon}
-                  </span>
-                )
-              })}
-            </div>
+      {(() => {
+        // Gehalten wächst die Linse seitlich über ihren Platz hinaus; die Mitte
+        // bleibt beim Finger. In der Höhe wächst und hebt sie sich per CSS.
+        const wx = gedrueckt ? wachsenRef.current : 0
+        const l = pille ? pille.links - wx / 2 : 0
+        const w = pille ? pille.breite + wx : 0
+        return (
+          <div
+            className="tyd-tabbar-pill"
+            data-tyd-pill
+            data-gehalten={gedrueckt ? 'true' : 'false'}
+            data-frei={pille?.frei ? 'true' : 'false'}
+            data-ohne-ziel={pille ? 'false' : 'true'}
+            data-linse={gedrueckt && pille ? 'true' : undefined}
+            aria-hidden="true"
+            style={pille
+              ? { width: w, transform: `translateX(${l}px)`, ['--pill-x' as string]: `${l}px` }
+              : undefined}
+          >
+            {/*
+              In der Pille liegt immer eine Kopie der Symbole, genau über den
+              echten, in der Farbe des aktiven Reiters. Die echten bleiben grau.
+              So färbt sich — wie bei Apple — nur der Teil eines Symbols, über dem
+              die Pille gerade steht, auch während sie gleitet. Gehalten wird die
+              Kopie um die Mitte der Pille vergrößert: die Linse (Idee aus Glisse).
+              Die Kopie läuft der Pille entgegen, damit sie über den echten steht.
+            */}
+            {pille && (
+              <div className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-l}px)` }}>
+                <div className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${l + w / 2}px 50%` }}>
+                  {plaetzeRef.current.map(p => {
+                    const item = items.find(i => i.id === p.id)
+                    if (!item) return null
+                    return (
+                      <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
+                        {item.icon}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        )
+      })()}
       {items.map(item => (
         <TabTraeger key={item.id}>{platz(item)}</TabTraeger>
       ))}

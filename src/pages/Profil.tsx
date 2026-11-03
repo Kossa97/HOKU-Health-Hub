@@ -10,6 +10,7 @@ import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
+import { LINSE_GRENZEN, LINSE_STANDARD, useLinse, type LinsenWerte } from '../lib/linse'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
@@ -236,6 +237,7 @@ export function Profil() {
 
       {/* ── Erscheinungsbild: Schwarz oder Licht ── */}
       <LookSwitcher vorschau={isAdmin || import.meta.env.DEV} />
+      <LinsenTest />
       {/* Hoku: Farbe, Bewegung und Hinweise auf eigener Seite mit Bühne */}
       <HokuEintrag />
 
@@ -575,6 +577,51 @@ function LanguageSwitcher() {
           material="fill"
           equal
         />
+      </div>
+    </div>
+  )
+}
+
+// ── Glaslinse (Test) ─────────────────────────────────────────────────────────
+// Nur auf dem Test-Zweig claude/glas-linse: Regler für die Linse in der
+// Tab-Leiste (src/lib/linse.ts). Vor dem Übernehmen entfernen oder in feste
+// Werte überführen.
+
+function LinsenTest() {
+  const { werte, setze } = useLinse()
+  const regler = (key: keyof LinsenWerte, name: string, einheit: string) => {
+    const g = LINSE_GRENZEN[key]
+    return (
+      <label key={key} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 56px', alignItems: 'center', gap: 10, minHeight: 44 }}>
+        <span style={{ fontSize: 15 }}>{name}</span>
+        <input
+          type="range"
+          min={g.min}
+          max={g.max}
+          step={g.schritt}
+          value={werte[key]}
+          onChange={e => setze({ ...werte, [key]: Number(e.target.value) })}
+          aria-label={name}
+        />
+        <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
+          {key === 'zoom' ? `${Math.round(werte[key] * 100)} %` : `${werte[key]} ${einheit}`}
+        </span>
+      </label>
+    )
+  }
+  return (
+    <div style={{ marginTop: 24 }} data-linsen-test>
+      <p className="lg-group-title">Glaslinse (Test)</p>
+      <div className="card">
+        <p style={{ margin: '0 0 6px', fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
+          Einen Reiter in der Leiste unten gedrückt halten und ziehen.
+        </p>
+        {regler('zoom', 'Vergrößerung', '')}
+        {regler('heben', 'Anheben', 'px')}
+        {regler('wachsen', 'Wachsen', 'px')}
+        <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" style={{ marginTop: 6 }} onClick={() => setze({ ...LINSE_STANDARD })}>
+          Zurücksetzen
+        </button>
       </div>
     </div>
   )
