@@ -846,12 +846,11 @@ export function createDot(host: DotHost): DotApi {
   // Beim Tippen ins Formular rutscht er auf die Oberkante der Karte und ragt ein Stück darüber; so bleibt er
   // auch bei offener Tastatur (Seite gescrollt) zu sehen. Die Überschrift der Karte (`data-dot-frei`) bleibt
   // lesbar: sein unterer Rand endet knapp darüber (Nutzer 02.11.2026)
-  const KANTE = 0.45, TIPP_MIN = 18, RUTSCH = { k: 40, z: 0.88 }
+  const KANTE = 0.45, RUTSCH = { k: 40, z: 0.88 }
   const KEIN_PLATZ = { dx: 0, dy: 0, r: 0 }
   /**
    * Sein Platz, solange ein Feld der Karte den Fokus hat: Versatz zur Bühnenmitte und Radius (0 = normal).
-   * Schiebt die Tastatur die Karte so weit hoch, dass über ihr nicht genug Platz ist, wird er kleiner (bis 18 px)
-   * und bleibt auf der Kante.
+   * Er bleibt immer gleich groß auf der Kante, auch wenn die Tastatur die Karte weit hochschiebt.
    */
   function rutschZiel(mx: number, my: number): { dx: number; dy: number; r: number } {
     const el = document.activeElement
@@ -861,26 +860,13 @@ export function createDot(host: DotHost): DotApi {
     const K = inEbene(karte.getBoundingClientRect()), fr = karte.querySelector('[data-dot-frei]')?.getBoundingClientRect()
     const F = fr ? inEbene(fr) : undefined
     const r0 = loginGrundRadius()
-    // oberster sichtbarer Punkt, in der Ebene: unter der Statusleiste. Die Rechtecke kommen bildschirmbezogen,
-    // der Bildschirmrand liegt in der Ebene also bei -URS.y (Messung 02.11.2026: Ebene um den Scrollweg höher,
-    // URS.y = -offsetTop; seit sie zurückgeschoben wird, ist das 0). Nicht `offsetTop` der Tastatur nehmen:
-    // die bleibt, auch wenn die Ebene wieder am Bildschirm sitzt
-    const oben = Math.max(0, -URS.y) + OBEN + 4
-    // Die Schrift der Überschrift (nicht die ganze Zeile): nur wo er über ihr säße, endet er darüber
-    let T: DOMRect | undefined
-    const h = karte.querySelector('[data-dot-frei]')
-    if (h && F && F.height) { const rg = document.createRange(); rg.selectNodeContents(h); T = inEbene(rg.getBoundingClientRect()) }
-    const ueber = (r: number) => !!T && T.width > 0 && T.right > mx - r && T.left < mx + r
-    // größter Radius, mit dem er auf der Kante sitzt und unter der Statusleiste bleibt: neben der Schrift ragt
-    // er 0,55 r über die Kante, über ihr endet er 3 px darüber; der größere gewinnt. Schiebt die Tastatur das
-    // Formular beim Passwort noch ein Stück höher, wird er so etwas kleiner und bleibt an derselben Stelle
-    // (Nutzer 02.11.2026; die Ecke neben der Überschrift ist weg, er sprang auf dem iPhone manchmal hinein)
-    const frei = !T || T.width <= 0 ? Infinity : T.right <= mx ? mx - T.right - 1 : T.left >= mx ? T.left - mx - 1 : 0
-    const rFrei = Math.min(r0, (K.top - oben) / (1 + KANTE), frei)
-    const rUeber = F && F.height ? Math.min(r0, (F.top - 3 - oben) / 2) : -Infinity
-    const r = Math.max(TIPP_MIN, rFrei, rUeber)
-    const unten = F && F.height && (rUeber >= rFrei || ueber(r)) ? F.top - 3 : K.top + (1 - KANTE) * r
-    return { dx: 0, dy: Math.max(0, unten - r - my), r: r < r0 - 0.5 ? r : 0 }
+    // Immer in voller Größe, beim Passwort genauso wie bei der E-Mail, auch wenn die Tastatur das Formular dort
+    // noch ein Stück höher schiebt: Er ragt 0,55 r über die Kante, sein unterer Rand endet höchstens 3 px über der
+    // Überschrift, damit „Anmelden“ lesbar bleibt (Nutzer 03.11.2026: „genau so groß lassen, sieht flüssiger
+    // aus“; Verkleinern und die Ecke neben der Überschrift sind verworfen)
+    let unten = K.top + (1 - KANTE) * r0
+    if (F && F.height) unten = Math.min(unten, F.top - 3)
+    return { dx: 0, dy: Math.max(0, unten - r0 - my), r: 0 }
   }
   // Würfe auf der Anmeldung setzen ihn nur vorübergehend an eine Wand; danach gilt sein Platz in der App
   const appPlatz = () => { if (B.pref) { B.dock = { ...B.pref.dock }; B.along = { ...B.pref.along } } }
