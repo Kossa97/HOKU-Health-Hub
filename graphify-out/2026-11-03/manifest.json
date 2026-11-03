@@ -1134,9 +1134,9 @@
     "semantic_hash": ""
   },
   "src/services/blutspiegelHistory.ts": {
-    "mtime": 1793737519.528265,
-    "seen": 1793737900.4077227,
-    "ast_hash": "24f018ec748be024e0aaa50f175782d2",
+    "mtime": 1793743646.1506064,
+    "seen": 1793744360.8092673,
+    "ast_hash": "274b48365e5e363a63a227d87f21d5b1",
     "semantic_hash": ""
   },
   "src/services/liveBlutspiegelChart.ts": {
@@ -2922,9 +2922,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/components/IntakePlanEditor.tsx": {
-    "mtime": 1793324692.1827502,
-    "seen": 1793737900.405859,
-    "ast_hash": "4be55b297487aee326a0c1839f0182e9",
+    "mtime": 1793743580.7882493,
+    "seen": 1793744360.808038,
+    "ast_hash": "ccff39bec3750d23605cc84a847eaa7e",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/PlanManagementSection.test.tsx": {
@@ -2970,9 +2970,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/components/StackItemWizard.tsx": {
-    "mtime": 1793737519.5082648,
-    "seen": 1793737900.4058857,
-    "ast_hash": "6062964539b15d4cdf31ed0bf69941b5",
+    "mtime": 1793743514.8119104,
+    "seen": 1793744360.8080633,
+    "ast_hash": "cf91159509757f4267d2287bc978a11f",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/StackStage.test.ts": {
@@ -3462,15 +3462,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/dosageForms.test.ts": {
-    "mtime": 1791845686.4083495,
-    "seen": 1793737900.406084,
-    "ast_hash": "a808ccc40ad0c05339d092006f2fd03b",
+    "mtime": 1793743790.8516657,
+    "seen": 1793744360.8082266,
+    "ast_hash": "cccbffac2295a06125068e94ebad1dd3",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/dosageForms.ts": {
-    "mtime": 1793324692.188195,
-    "seen": 1793737900.4060864,
-    "ast_hash": "ffd1bbbb9b6311bb66ff893309785aec",
+    "mtime": 1793743488.8595083,
+    "seen": 1793744360.808228,
+    "ast_hash": "b46e2ad1a810fc6bd16c875c70ab619e",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/dosePlan.test.ts": {
@@ -3594,15 +3594,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/pkReadiness.test.ts": {
-    "mtime": 1793737519.5082648,
-    "seen": 1793737900.406161,
-    "ast_hash": "5a3cf1fba9b661b731f0182d1fcb930f",
+    "mtime": 1793743771.4068217,
+    "seen": 1793744360.808281,
+    "ast_hash": "415b75efca706a51f060b142a81b65ac",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/pkReadiness.ts": {
-    "mtime": 1793737519.5082648,
-    "seen": 1793737900.4061635,
-    "ast_hash": "419e8a9278022ddcfac6e4be909d3e17",
+    "mtime": 1793743646.1496873,
+    "seen": 1793744360.8082824,
+    "ast_hash": "017ee801adda02e7015b50c328640a98",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/planIntegritySchema.test.ts": {
@@ -3738,15 +3738,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/wizardState.test.ts": {
-    "mtime": 1793324692.19294,
-    "seen": 1793737900.4062545,
-    "ast_hash": "2b6c81c75b5542bc8a76123253457771",
+    "mtime": 1793743790.851179,
+    "seen": 1793744360.8083522,
+    "ast_hash": "b87a78fb090c9bee56401e822f6fc9d1",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/wizardState.ts": {
-    "mtime": 1793324692.19294,
-    "seen": 1793737900.4062567,
-    "ast_hash": "d7e81a628cb0dfd0fa2f7faa5ac1b908",
+    "mtime": 1793744178.4782932,
+    "seen": 1793744360.808354,
+    "ast_hash": "980054482bf4b5646c86b9f014fcf050",
     "semantic_hash": ""
   },
   "src/features/my-stack/services/planLifecycle.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793737731.7002776,
-    "seen": 1793737900.4079652,
+    "mtime": 1793744250.9179883,
+    "seen": 1793744360.8094082,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -5880,15 +5880,15 @@
     "semantic_hash": ""
   },
   "src/features/blutspiegel/entries.test.ts": {
-    "mtime": 1793737519.5048325,
-    "seen": 1793737900.4050615,
-    "ast_hash": "9ecc299d9103ef345019bcedd5e29ea9",
+    "mtime": 1793743771.4060512,
+    "seen": 1793744360.8074152,
+    "ast_hash": "51f8b3a635126f36583f0571a16e2540",
     "semantic_hash": ""
   },
   "src/features/blutspiegel/entries.ts": {
-    "mtime": 1793737519.5048325,
-    "seen": 1793737900.4050648,
-    "ast_hash": "05d47d9486cf7f3208b3aefec88f7627",
+    "mtime": 1793743658.693915,
+    "seen": 1793744360.8074188,
+    "ast_hash": "542eece0688ebe50d2884e2cdf44d01f",
     "semantic_hash": ""
   },
   "src/features/blutspiegel/format.ts": {
