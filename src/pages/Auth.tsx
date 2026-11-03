@@ -13,7 +13,7 @@ import { PORTAL_AUF } from '../features/dot/engine/dotEngine'
 import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
-import { KEINE_ZUSTIMMUNG, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
+import { KEINE_ZUSTIMMUNG, geburtsdatumZeile, heuteLokal, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
 import { BENUTZERNAME, istEmail, pruefeLogin, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
@@ -21,6 +21,7 @@ import { merkeAngemeldetBleiben } from '../features/auth/lib/sitzung'
 import { ANBIETER, mitAnbieter, rueckkehr, type Anbieter } from '../features/auth/lib/anbieter'
 import { AppleLogo, GoogleLogo } from '../features/auth/AnbieterLogos'
 import { PASSKEY_AN, anmeldenMitPasskey, merkePasskeyAnbieten, passkeyArt, passkeyAufGeraet, passkeyMoeglich } from '../features/auth/lib/passkey'
+import { GEBURTSDATUM_MIN } from '../features/blutwerte/lib/bioProfile'
 import '../features/auth/auth.css'
 
 /**
@@ -72,6 +73,7 @@ export function Auth() {
   const [passwort, setPasswort] = useState('')
   const [passwort2, setPasswort2] = useState('')
   const [benutzer, setBenutzer] = useState('')
+  const [geburt, setGeburt] = useState('')
   const [zustimmung, setZustimmung] = useState(KEINE_ZUSTIMMUNG)
   const [zeigePw, setZeigePw] = useState(false)
   const [meldung, setMeldung] = useState<Meldung | null>(null)
@@ -213,7 +215,7 @@ export function Auth() {
       const leer = ansicht === 'login'
         ? erstesLeeres({ kennung: !!kennung.trim(), passwort: !!passwort }, ['kennung', 'passwort'])
         : ansicht === 'register'
-          ? erstesLeeres({ benutzer: !!benutzer.trim(), email: !!email.trim(), passwort: !!passwort, passwort2: !!passwort2, zustimmung: vollstaendig(zustimmung) }, ['benutzer', 'email', 'passwort', 'passwort2', 'zustimmung'])
+          ? erstesLeeres({ benutzer: !!benutzer.trim(), email: !!email.trim(), geburtsdatum: !!geburt, passwort: !!passwort, passwort2: !!passwort2, zustimmung: vollstaendig(zustimmung) }, ['benutzer', 'email', 'geburtsdatum', 'passwort', 'passwort2', 'zustimmung'])
           : null
       const schritt = faellig(stille.current, performance.now(), leer)
       if (schritt) void hinweis(schritt)
@@ -306,7 +308,7 @@ export function Auth() {
     const wahl: Record<HinweisZiel, string> = {
       'start-anmelden': '[data-auth-start-login]', 'start-registrieren': '[data-auth-start-register]',
       kennung: '#auth-kennung', passwort: reg ? '#auth-reg-pw' : '#auth-pw', benutzer: '#auth-user', email: '#auth-reg-email',
-      passwort2: '#auth-reg-pw2', zustimmung: '[data-auth-zustimmung]', absenden: '[data-auth-submit]',
+      passwort2: '#auth-reg-pw2', geburtsdatum: '#auth-geburt', zustimmung: '[data-auth-zustimmung]', absenden: '[data-auth-submit]',
     }
     return document.querySelector<HTMLElement>(wahl[z])
   }
@@ -470,7 +472,8 @@ export function Auth() {
     e.preventDefault()
     if (laeuft) return
     eingabe()
-    const fehler = pruefeRegistrierung({ benutzer, email, passwort, passwort2, zugestimmt: vollstaendig(zustimmung) })
+    const heute = heuteLokal()
+    const fehler = pruefeRegistrierung({ benutzer, email, geburtsdatum: geburt, heute, passwort, passwort2, zugestimmt: vollstaendig(zustimmung) })
     if (fehler) return void eingabeFehler(fehler.feld, fehler.text)
     const gen = ++lauf.current
     setMeldung(null); setNochmal(false); setLaeuft(true); setHalten(true)
@@ -485,7 +488,13 @@ export function Auth() {
     if (frei === 'netz') return void serverAntwort(gen, 'netz', seit, null, 'login_err_generic')
     if (frei === false) return void serverAntwort(gen, 'falsch', seit, 'benutzer', 'login_err_user_taken')
     const felder = zustimmungsZeile(new Date())
-    const antwort = await supabase.auth.signUp({ email: email.trim(), password: passwort, options: { data: { username: name, ...felder } } })
+    // Sprache und Zeitzone für die Mails (supabase/functions/auth-mail), Geburtsdatum fürs Profil
+    const meta = {
+      username: name, ...felder, birth_date: geburt,
+      sprache: i18n.language.startsWith('de') ? 'de' : 'en',
+      zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }
+    const antwort = await supabase.auth.signUp({ email: email.trim(), password: passwort, options: { data: meta } })
       .then(r => r, (err: unknown) => ({ data: { user: null, session: null }, error: err }))
     const error: unknown = antwort.error
     if (gen !== lauf.current) return
@@ -495,7 +504,7 @@ export function Auth() {
     }
     // Registrieren bleibt immer angemeldet
     merkeAngemeldetBleiben(true)
-    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder })
+    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...geburtsdatumZeile(geburt, heute) })
       .then(r => r, (err: unknown) => ({ error: err }))
     if (gen !== lauf.current) return
     if (antwort.data.session) {
@@ -681,6 +690,12 @@ export function Auth() {
               <input id="auth-reg-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false}
                 placeholder={t('email')} value={email} onChange={tippe(setEmail)}
                 onFocus={() => beiFokus(false)} onBlur={beiVerlassen} {...feldProps('email')} />
+            </div>
+            <div className="tyd-auth-feld tyd-auth-datum">
+              <label htmlFor="auth-geburt">{t('login_birth')}</label>
+              <input id="auth-geburt" type="date" autoComplete="bday" min={GEBURTSDATUM_MIN} max={heuteLokal()}
+                value={geburt} data-leer={!geburt || undefined} onChange={tippe(setGeburt)}
+                onFocus={() => beiFokus(false)} onBlur={beiVerlassen} {...feldProps('geburtsdatum')} />
             </div>
             <div className="tyd-auth-feld">
               <label className="tyd-auth-sr" htmlFor="auth-reg-pw">{t('password')}</label>

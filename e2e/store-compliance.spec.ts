@@ -22,7 +22,7 @@ function fremdesProfil(mock: MockSupabase) {
   })
 }
 
-test('Ohne Zustimmung kommt erst die Zustimmungsseite; alle drei Häkchen nötig', async ({ page, mock }) => {
+test('Ohne Zustimmung kommt erst die Zustimmungsseite; alle drei Häkchen und Geburtsdatum ab 18 nötig', async ({ page, mock }) => {
   Object.assign(mock.table('profiles')[0], { age_confirmed_at: null, terms_accepted_at: null, terms_version: null })
   await page.goto('/')
 
@@ -44,9 +44,20 @@ test('Ohne Zustimmung kommt erst die Zustimmungsseite; alle drei Häkchen nötig
   expect(mock.table('profiles')[0].terms_version).toBeNull()
 
   await gate.locator('[data-consent="gesundheit"]').check()
+  // Ohne Geburtsdatum geht es nicht weiter, unter 18 auch nicht
+  await gate.locator('[data-consent-submit]').click()
+  await expect(gate.getByRole('alert')).toHaveText('Gib dein Geburtsdatum an.')
+  const unter18 = new Date()
+  unter18.setFullYear(unter18.getFullYear() - 17)
+  await gate.locator('[data-consent-geburt]').fill(unter18.toISOString().slice(0, 10))
+  await gate.locator('[data-consent-submit]').click()
+  await expect(gate.getByRole('alert')).toHaveText('Hoku ist erst ab 18 Jahren.')
+  expect(mock.table('profiles')[0].terms_version).toBeNull()
+
+  await gate.locator('[data-consent-geburt]').fill('1990-05-17')
   await gate.locator('[data-consent-submit]').click()
   await expect(gate).toBeHidden()
-  expect(mock.table('profiles')[0]).toMatchObject({ terms_version: TERMS_VERSION })
+  expect(mock.table('profiles')[0]).toMatchObject({ terms_version: TERMS_VERSION, birth_date: '1990-05-17' })
   expect(mock.table('profiles')[0].age_confirmed_at).toBeTruthy()
   expect(mock.table('profiles')[0].terms_accepted_at).toBeTruthy()
 })

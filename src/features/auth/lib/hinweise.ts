@@ -23,7 +23,7 @@ const LOGIN_TEXT: Partial<Record<HinweisZiel, DotTextKey>> = {
   kennung: 'login_tipp_email', passwort: 'login_tipp_passwort', absenden: 'login_tipp_anmelden',
 }
 const REG_TEXT: Partial<Record<HinweisZiel, DotTextKey>> = {
-  benutzer: 'login_tipp_name', email: 'login_tipp_reg_email', passwort: 'login_tipp_reg_passwort',
+  benutzer: 'login_tipp_name', email: 'login_tipp_reg_email', geburtsdatum: 'login_tipp_geburt', passwort: 'login_tipp_reg_passwort',
   passwort2: 'login_tipp_passwort2', zustimmung: 'login_tipp_zustimmung', absenden: 'login_tipp_konto',
 }
 

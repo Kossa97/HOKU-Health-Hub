@@ -15,3 +15,10 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
 ## Offen
 - Absender und Resend-Domain vom Nutzer bestätigen lassen (Vorschlag `Hoku <hallo@hokuhealth.app>`).
 - Passkeys (RP-ID Vercel-Domain) und OAuth-Rücksprung passen nicht zu „nativ" — eigene Aufgabe.
+
+## Geburtsdatum (Nutzer 03.11.2026)
+- Pflicht bei der Registrierung, ab 18 (`pruefeGeburtsdatum` in `compliance/lib/consent.ts`), gespeichert in
+  `profiles.birth_date` (+ altes `age`) und in den Metadaten; Nutzer: „brauchen wir fürs biologische Alter".
+- Zustimmungsseite fragt es nur **zusammen mit der Zustimmung** (Apple/Google, neue Bedingungen), weil man es im
+  Körperprofil löschen darf. Bestandskonten werden nicht gezwungen.
+- Offen: Altersgrenze serverseitig (Trigger/Check auf `profiles` beim Anlegen), Häkchen „18+" evtl. streichen.

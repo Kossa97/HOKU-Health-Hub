@@ -56,6 +56,15 @@
 .tyd-auth-feld input::placeholder { color: var(--lg-text-3); }
 .tyd-auth-feld input:focus { border-color: rgba(0, 204, 245, 0.5); box-shadow: 0 0 0 3px rgba(0, 204, 245, 0.14); }
 .tyd-auth-feld input[aria-invalid='true'] { border-color: rgba(255, 69, 58, 0.7); box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.15); }
+/* Geburtsdatum: Datumsfelder zeigen keinen Platzhalter, deshalb steht die Beschriftung links im Feld
+   und das gewählte Datum rechts (wie eine Zeile in den iOS-Einstellungen) */
+.tyd-auth-datum label {
+  position: absolute; left: 14px; top: 0; height: 48px; display: flex; align-items: center;
+  color: var(--lg-text-3); font-size: 16px; pointer-events: none;
+}
+.tyd-auth-datum input { padding: 0 14px 0 140px; text-align: right; -webkit-appearance: none; appearance: none; }
+.tyd-auth-datum input::-webkit-date-and-time-value { text-align: right; }
+.tyd-auth-datum input[data-leer] { color: var(--lg-text-3); }
 .tyd-auth-auge {
   position: absolute; right: 4px; top: 4px; width: 40px; height: 40px; border: 0; border-radius: 10px;
   background: transparent; color: var(--lg-text-3); display: grid; place-items: center; cursor: pointer;
