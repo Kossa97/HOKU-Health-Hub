@@ -230,4 +230,4 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   („1.240 Einträge“, alle Bereiche, ohne Aufschlüsselung; Nutzer: „Einträge sind gut“), wahlweise Abzeichen. **Titel**
   (künftig, muss man sich verdienen, z. B. „Routinier“) als leise Marke unter dem Namen — neues Vorhaben, Spec fehlt.
   Trend-Symbol jetzt neben „30 %“. Rückfall linke Spalte 25cqw.
-- Nutzer 03.11.: Fortschritt „trackt 9 Werte **aus**“ über den Bereichen (Nutzer schlug „in“ vor; „aus“ grammatisch sauberer).
+- Nutzer 03.11.: Fortschritt bleibt bei „trackt 9 Werte“ (ohne „aus“/„in“/„in den Bereichen“).
