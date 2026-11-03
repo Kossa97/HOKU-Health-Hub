@@ -5,14 +5,15 @@
  * sich an und vergrößert die Symbole darunter. Wie stark, steht hier — auf dem
  * Gerät gespeichert und als CSS-Variablen am <html>:
  *   --linse-zoom     Vergrößerung der Symbole in der Linse
- *   --linse-heben    wie weit sich die Linse nach oben hebt (px)
- *   --linse-wachsen  wie viel breiter sie wird (px); in der Höhe drei Viertel davon
+ *   --linse-heben    wie weit sich die Linse zusätzlich nach oben hebt (px)
+ *   --linse-wachsen  wie viel breiter sie wird (px); in der Höhe genauso viel,
+ *                    je zur Hälfte oben und unten
  */
 import { useCallback, useState } from 'react'
 
 export interface LinsenWerte { zoom: number; heben: number; wachsen: number }
 
-export const LINSE_STANDARD: LinsenWerte = { zoom: 1.32, heben: 14, wachsen: 20 }
+export const LINSE_STANDARD: LinsenWerte = { zoom: 1.32, heben: 0, wachsen: 24 }
 export const LINSE_GRENZEN = {
   zoom: { min: 1, max: 1.8, schritt: 0.02 },
   heben: { min: 0, max: 30, schritt: 1 },

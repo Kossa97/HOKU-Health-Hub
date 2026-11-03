@@ -4,6 +4,7 @@ import {
 } from 'react'
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
 import { haengeGlasKante } from '../../lib/glasKante'
+import { federSchritt, FEDER_FINGER, FEDER_GLEITEN, FEDER_LINSE } from './linsenFeder'
 
 /**
  * Die Web-Fassung der Liquid-Glass-Tab-Bar.
@@ -107,6 +108,18 @@ export function LiquidGlassTabBar({
   const plaetzeRef = useRef<PlatzMass[]>([])
   /** Wie viel breiter die gehaltene Linse wird (--linse-wachsen, beim Aufsetzen gelesen). */
   const wachsenRef = useRef(0)
+  const pilleRef = useRef<HTMLDivElement | null>(null)
+  const kopieRef = useRef<HTMLDivElement | null>(null)
+  const zoomRef = useRef<HTMLDivElement | null>(null)
+  /**
+   * Die Feder der Linse. React rendert das ZIEL (links, Breite); die Feder
+   * schreibt jedes Bild den aktuellen Stand ins DOM, im Layout-Effekt noch vor
+   * dem Zeichnen — so springt nichts, und jede neue Geste setzt dort an, wo
+   * die Linse gerade ist (unterbrechbar). `t` ist die Linse selbst: 0 Pille,
+   * 1 groß. Ohne Animation (weniger Bewegung, Testumgebung) gilt sofort das Ziel.
+   */
+  const feder = useRef({ x: 0, w: 0, t: 0, vx: 0, vw: 0, vt: 0, start: false, frame: 0, zuletzt: 0 })
+  const zielRef = useRef({ x: 0, w: 0, frei: false, gehalten: false, kapsel: 0 })
 
   // Gerechnete Glaskante (src/lib/glasKante.ts): glänzt oben links, wo das
   // Licht hinfällt. Welche Looks sie zeigen, steht in index.css.
@@ -168,6 +181,71 @@ export function LiquidGlassTabBar({
     const breite = pillenBreite(platz.breite)
     return { links: platz.links + (platz.breite - breite) / 2, breite, kapselBreite, frei: false }
   }
+
+  /** Schreibt den Stand der Feder ins DOM. */
+  const zeichne = () => {
+    const el = pilleRef.current
+    const f = feder.current, z = zielRef.current
+    if (!el) return
+    const wx = wachsenRef.current * f.t
+    const l = f.x - wx / 2
+    const w = Math.max(0, f.w + wx)
+    // Schnell bewegt, dehnt sich das Glas in Laufrichtung und wird flacher
+    const dehnen = Math.min(0.22, Math.abs(f.vx) / 2200)
+    el.style.width = `${w}px`
+    el.style.transform = `translateX(${l}px)`
+    el.style.setProperty('--pill-x', `${l}px`)
+    el.style.setProperty('--linse-t', f.t.toFixed(3))
+    el.style.scale = dehnen > 0.004 ? `${(1 + dehnen).toFixed(3)} ${(1 - dehnen * 0.5).toFixed(3)}` : ''
+    if (f.t > 0.02) el.setAttribute('data-linse', 'true')
+    else el.removeAttribute('data-linse')
+    if (kopieRef.current) {
+      kopieRef.current.style.width = `${z.kapsel}px`
+      kopieRef.current.style.transform = `translateX(${-l}px)`
+    }
+    if (zoomRef.current) zoomRef.current.style.transformOrigin = `${l + w / 2}px 50%`
+  }
+
+  const ohneAnimation = () =>
+    typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  const schritt = (jetzt: number) => {
+    const f = feder.current, z = zielRef.current
+    f.frame = 0
+    const dt = Math.min(1 / 30, Math.max(0.001, (jetzt - (f.zuletzt || jetzt - 16)) / 1000))
+    f.zuletzt = jetzt
+    const lage = z.frei ? FEDER_FINGER : FEDER_GLEITEN
+    ;[f.x, f.vx] = federSchritt(f.x, f.vx, z.x, lage, dt)
+    ;[f.w, f.vw] = federSchritt(f.w, f.vw, z.w, lage, dt)
+    // Groß, solange ein Finger liegt oder die Linse noch unterwegs ist
+    const unterwegs = Math.abs(z.x - f.x) > 1.5 || Math.abs(f.vx) > 40
+    ;[f.t, f.vt] = federSchritt(f.t, f.vt, z.gehalten || unterwegs ? 1 : 0, FEDER_LINSE, dt)
+    zeichne()
+    const ruhig = Math.abs(z.x - f.x) < 0.3 && Math.abs(f.vx) < 4 && Math.abs(z.w - f.w) < 0.3 && Math.abs(f.vw) < 4
+      && Math.abs((z.gehalten ? 1 : 0) - f.t) < 0.005 && Math.abs(f.vt) < 0.05
+    if (ruhig) {
+      f.x = z.x; f.w = z.w; f.t = z.gehalten ? 1 : 0; f.vx = f.vw = f.vt = 0; f.zuletzt = 0
+      zeichne()
+    } else {
+      f.frame = requestAnimationFrame(schritt)
+    }
+  }
+
+  useLayoutEffect(() => {
+    if (!pille) return
+    const z = zielRef.current
+    z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
+    const f = feder.current
+    if (!f.start || ohneAnimation()) {
+      f.start = true
+      f.x = z.x; f.w = z.w; f.t = gedrueckt ? 1 : 0; f.vx = f.vw = f.vt = 0
+      zeichne()
+      return
+    }
+    zeichne()
+    if (!f.frame) f.frame = requestAnimationFrame(schritt)
+  })
+  useEffect(() => () => cancelAnimationFrame(feder.current.frame), [])
 
   // Der Schimmer im Glas folgt der Pille — das ist der raeumliche Anteil.
   const schimmer = pille
@@ -299,12 +377,12 @@ export function LiquidGlassTabBar({
         const w = pille ? pille.breite + wx : 0
         return (
           <div
+            ref={pilleRef}
             className="tyd-tabbar-pill"
             data-tyd-pill
             data-gehalten={gedrueckt ? 'true' : 'false'}
             data-frei={pille?.frei ? 'true' : 'false'}
             data-ohne-ziel={pille ? 'false' : 'true'}
-            data-linse={gedrueckt && pille ? 'true' : undefined}
             aria-hidden="true"
             style={pille
               ? { width: w, transform: `translateX(${l}px)`, ['--pill-x' as string]: `${l}px` }
@@ -319,8 +397,8 @@ export function LiquidGlassTabBar({
               Die Kopie läuft der Pille entgegen, damit sie über den echten steht.
             */}
             {pille && (
-              <div className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-l}px)` }}>
-                <div className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${l + w / 2}px 50%` }}>
+              <div ref={kopieRef} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-l}px)` }}>
+                <div ref={zoomRef} className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${l + w / 2}px 50%` }}>
                   {plaetzeRef.current.map(p => {
                     const item = items.find(i => i.id === p.id)
                     if (!item) return null
