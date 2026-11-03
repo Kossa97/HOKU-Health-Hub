@@ -112,3 +112,7 @@ Der Nutzer hat **„Zeichen links“** als beste und hochwertigste Fassung gewä
 - Referenz: `hoku-nav-etwas-dichter.svg`. Die Partikelpositionen, Größen, Deckkraft und ausgesparte Pupille werden exakt übernommen.
 - Grundfarbe: `currentColor`, passend zu den übrigen Symbolen der Navleiste. Keine eigene Cyan-Füllung und keine Profilfarbwahl im Nav-Symbol.
 - Leuchten: bestehender Cyan-Effekt in `src/features/dot/dot.css`; Pulsieren, Wackeln und Zustandswechsel bleiben erhalten.
+
+## Zusätzliche Freigabe: Organisch / Cyan, 03.11.2026
+
+Bestätigt mit „so ist perfekt“. Original: `../entwuerfe/hoku-app-icon-organisch-cyan-v3.png`. Als zusätzliche Variante in allen üblichen Einbindungsformaten unter `../brand-kit-v2/09-Organisch-Cyan` aufgenommen. Der bestätigte dunkle Master bleibt unverändert; Freistellung und monochrome Symbole sind gekennzeichnete Ableitungen. Bestehendes Branding, App-Icon, KI- und Nav-Symbol bleiben erhalten. SVG und PDF enthalten Rasterbilder.
