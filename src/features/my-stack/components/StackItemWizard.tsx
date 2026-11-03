@@ -41,13 +41,13 @@ import {
   type LaterStepChange,
   istPulverVial,
 } from '../lib/wizardState'
-import { bestandteileAufloesen } from '../lib/kombination'
+import { bestandteileAufloesen, kombiNameNachfuehren } from '../lib/kombination'
 import { buildReview, carryOverReview, planBaseAt, reviewedSnapshot, reviewStepChanged, stepsAround, type LaterPlanStep, type ReviewStep } from '../lib/planAdoption'
 import { formatLocalDay, laterLocalDay, shiftLocalDay } from '../lib/localDays'
 import { fuehrendeMenge, inWochenfolge, rhythmSummary, rhythmText } from '../lib/intakeRhythm'
 import { weekdayLabel } from '../lib/planLabels'
 import { validateIntakePlan, validateStackItemDraft } from '../lib/validation'
-import { evaluatePkReadiness, pkRouteAccepted, pkRouteStatus, toPkMilligrams } from '../lib/pkReadiness'
+import { evaluatePkReadiness, mgPerMlFromStrength, pkRouteAccepted, pkRouteStatus, staerkeJeEinheit, toPkMilligrams } from '../lib/pkReadiness'
 import { DOSAGE_FORMS, isStageRenderable, showsColor } from '../lib/dosageForms'
 import { methodLabel } from '../../../lib/intakeMethods'
 import { DosageFormPreview } from './DosageFormPreview'
@@ -217,7 +217,15 @@ function pkIntentSteps(
     || !plan.slots.some(slot => slot.time?.trim())
     || (() => {
         const menge = fuehrendeMenge(plan.slots)
-        return menge != null && plan.unit != null && toPkMilligrams(menge, plan.unit, iuPerMg) == null
+        if (menge == null || plan.unit == null) return false
+        // Kapseln, Tabletten oder ml rechnen sich ueber die Staerke einer Zutat um.
+        const umrechenbar = toPkMilligrams(menge, plan.unit, iuPerMg) != null
+          || item.ingredients.some(zutat => toPkMilligrams(
+            menge, plan.unit!, iuPerMg,
+            mgPerMlFromStrength(zutat.amount_value, zutat.amount_unit, zutat.basis_value, zutat.basis_unit),
+            staerkeJeEinheit(zutat.amount_value, zutat.amount_unit, zutat.basis_value, zutat.basis_unit, iuPerMg),
+          ) != null)
+        return !umrechenbar
       })()
   if (planNeedsAttention) steps.push('plan')
   return steps.length ? steps : ['plan']
@@ -391,6 +399,16 @@ export function StackItemWizard({
   const catalogNames = useMemo(() => Object.fromEntries(
     catalogEntries.map(entry => [entry.id, entry.canonical_name]),
   ), [catalogEntries])
+  // Aus einer Substanz wird nachtraeglich eine Kombination („Weiterer
+  // Wirkstoff"): der Name zieht mit, solange er nicht selbst vergeben ist.
+  const vorigeZutaten = useRef(state.draft.ingredients)
+  useEffect(() => {
+    const vorher = vorigeZutaten.current
+    vorigeZutaten.current = state.draft.ingredients
+    if (vorher === state.draft.ingredients) return
+    const name = kombiNameNachfuehren(vorher, state.draft.ingredients, state.draft.displayName, catalogNames)
+    if (name) dispatch({ type: 'display_name_changed', displayName: name })
+  }, [state.draft.ingredients, state.draft.displayName, catalogNames])
   const matchingEntries = useMemo(() => {
     const normalizedQuery = state.draft.displayName.trim().toLocaleLowerCase()
     if (!normalizedQuery) return []
@@ -699,6 +717,9 @@ export function StackItemWizard({
 
     if (intent === 'pk') {
       const linkedProfileId = selectedPkCatalogEntry?.pk_profile_id ?? null
+      // Die Staerke der Zutat mit dem Profil: ohne sie liesse sich ein in
+      // Kapseln oder ml geplantes Produkt nicht umrechnen.
+      const pkZutat = state.draft.ingredients.find(zutat => zutat.catalog_substance_id === selectedPkCatalogEntry?.id)
       const readiness = evaluatePkReadiness({
         trackingLevel: state.draft.trackingLevel,
         pkProfileId: linkedProfileId,
@@ -710,6 +731,8 @@ export function StackItemWizard({
         // Die PK-Kurve braucht EINEN Startzeitpunkt. Bei mehreren Einnahmen
         // am Tag ist das die erste mit gesetzter Uhrzeit.
         scheduledAt: state.draft.plan.slots.find(slot => slot.time?.trim())?.time ?? null,
+        mgPerMl: pkZutat ? mgPerMlFromStrength(pkZutat.amount_value, pkZutat.amount_unit, pkZutat.basis_value, pkZutat.basis_unit) : null,
+        mgJe: pkZutat ? staerkeJeEinheit(pkZutat.amount_value, pkZutat.amount_unit, pkZutat.basis_value, pkZutat.basis_unit) : null,
       })
       if (readiness.status !== 'ready') {
         const field = readiness.status === 'unsupported'

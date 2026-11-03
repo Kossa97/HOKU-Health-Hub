@@ -2882,5 +2882,7 @@
   "syringe_draw_units": "{{units}} Einheiten aufziehen",
   "dose_once": "einmalig",
   "bundle_merged_hint": "Heute zusammengelegt, weil diese Bündel gleichzeitig fällig sind.",
-  "my_stack_scan_amazon": "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen."
+  "my_stack_scan_amazon": "Das ist Amazons Versandetikett, nicht der Produkt-Barcode. Fotografiere stattdessen die Rückseite mit den Inhaltsstoffen.",
+  "pk_select_ingredient": "Wirkstoff wählen",
+  "pk_stats_for": "Kennzahlen · {{name}}"
 }

@@ -31,6 +31,14 @@ export interface PkReadinessInput {
   iuPerMg?: number | null
   /** Milligramm Wirkstoff je Milliliter Loesung; null, wenn keine vorliegt. */
   mgPerMl?: number | null
+  /** Milligramm Wirkstoff je Stueck (Kapsel, Tablette, Spruehstoss …); siehe `staerkeJeEinheit`. */
+  mgJe?: StaerkeJe | null
+}
+
+/** Wirkstoff je Einheit des Produkts: „50 mg je Kapsel" ist { einheit: 'capsule', mg: 50 }. */
+export interface StaerkeJe {
+  einheit: string
+  mg: number
 }
 
 /**
@@ -62,6 +70,33 @@ export function mgPerMlFromStrength(
   return proEinheit / basisValue
 }
 
+/**
+ * Milligramm Wirkstoff je Einheit des Produkts — aus der Staerke einer Zutat.
+ *
+ * Das Gegenstueck zu `mgPerMlFromStrength` fuer alles, was man zaehlt statt
+ * aufzieht: eine Kombi-Kapsel mit 100 mg Koffein und 200 mg L-Theanin wird
+ * als „2 Kapseln" eingenommen, nicht als Milligramm. Aus derselben Zahl folgt
+ * dann fuer jeden Wirkstoff seine eigene Menge: 200 mg Koffein, 400 mg L-Theanin.
+ *
+ * Gilt fuer jede Bezugseinheit (Kapsel, Tablette, Spruehstoss, Tropfen,
+ * Portion, ml, g …) — sie muss nur dieselbe sein wie die Einheit im Plan.
+ */
+export function staerkeJeEinheit(
+  amountValue: number | null,
+  amountUnit: string | null,
+  basisValue: number | null,
+  basisUnit: string | null,
+  iuPerMg: number | null = null,
+): StaerkeJe | null {
+  const einheit = basisUnit?.trim().toLocaleLowerCase() ?? ''
+  if (!einheit) return null
+  if (amountValue == null || !Number.isFinite(amountValue) || amountValue <= 0) return null
+  if (basisValue == null || !Number.isFinite(basisValue) || basisValue <= 0) return null
+  const proBezug = toPkMilligrams(amountValue, amountUnit ?? '', iuPerMg)
+  if (proBezug == null) return null
+  return { einheit, mg: proBezug / basisValue }
+}
+
 export type PkScheduleCycle = ScheduleCycle & { method: string | null; timeline?: CycleTimeline }
 
 export type ResolvedPkSchedule = ScheduleSegment & {
@@ -91,6 +126,7 @@ export function toPkMilligrams(
   unit: string,
   iuPerMg: number | null = null,
   mgPerMl: number | null = null,
+  mgJe: StaerkeJe | null = null,
 ): number | null {
   if (!Number.isFinite(value)) return null
   const normalizedUnit = unit.trim().toLocaleLowerCase()
@@ -103,9 +139,13 @@ export function toPkMilligrams(
   // Milliliter sind keine Wirkstoffmenge, sondern ein Volumen — sie werden zur
   // Menge erst mit der Konzentration der Loesung. Genau so dosiert man ein
   // aufgeloestes Vial: man zieht Volumen auf, nicht Milligramm.
-  if (normalizedUnit === 'ml') {
-    if (mgPerMl == null || !Number.isFinite(mgPerMl) || mgPerMl <= 0) return null
+  if (normalizedUnit === 'ml' && mgPerMl != null && Number.isFinite(mgPerMl) && mgPerMl > 0) {
     return value * mgPerMl
+  }
+  // Gezaehlte Einheiten (Kapsel, Tablette, Spruehstoss …) werden zur Menge erst
+  // mit der Staerke je Stueck — bei einem Kombipraeparat je Wirkstoff eine eigene.
+  if (mgJe && normalizedUnit === mgJe.einheit && Number.isFinite(mgJe.mg) && mgJe.mg > 0) {
+    return value * mgJe.mg
   }
   return null
 }
@@ -191,7 +231,7 @@ export function evaluatePkReadiness(input: PkReadinessInput): PkReadiness {
   if (!input.scheduledAt?.trim()) missing.push('time')
 
   if (missing.length) return { status: 'missing', missing }
-  if (toPkMilligrams(input.dose!, input.unit!, input.iuPerMg ?? null, input.mgPerMl ?? null) == null) {
+  if (toPkMilligrams(input.dose!, input.unit!, input.iuPerMg ?? null, input.mgPerMl ?? null, input.mgJe ?? null) == null) {
     return { status: 'unsupported', reason: 'unit_conversion' }
   }
 
