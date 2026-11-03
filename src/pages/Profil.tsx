@@ -235,7 +235,7 @@ export function Profil() {
       <LanguageSwitcher />
 
       {/* ── Erscheinungsbild: Schwarz oder Licht ── */}
-      <LookSwitcher />
+      <LookSwitcher vorschau={isAdmin || import.meta.env.DEV} />
       <HokuFarbAuswahl />
 
       {/* ── Push-Notifications ── */}
@@ -276,7 +276,8 @@ export function Profil() {
 
 // ── LookSwitcher ─────────────────────────────────────────────────────────────
 
-function LookSwitcher() {
+/** `vorschau`: auch Looks zeigen, die noch nicht die ganze App erreichen (nur Admin/Entwicklung). */
+function LookSwitcher({ vorschau = false }: { vorschau?: boolean }) {
   const { t } = useTranslation()
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
@@ -286,6 +287,7 @@ function LookSwitcher() {
     { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
     { key: 'nacht', label: String(t('look_night', { defaultValue: 'Nacht' })) },
+    ...(vorschau || look === 'papier' ? [{ key: 'papier' as const, label: String(t('look_paper', { defaultValue: 'Papier' })) }] : []),
   ]
   return (
     <div style={{ marginTop: 24 }} data-look-switcher>
