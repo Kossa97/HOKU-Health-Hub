@@ -52,7 +52,7 @@ const leisteFinden = () => {
     logo,
     plus: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabdock-action'),
     spalt: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-dot-spalt'),
-    spaltKopie: () => document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabbar-linse-tor'),
+    spaltKopie: () => document.querySelectorAll<HTMLElement>('.tyd-tabdock .tyd-tabbar-linse-tor'),
   }
 }
 

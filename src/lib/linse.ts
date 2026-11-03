@@ -13,6 +13,7 @@
  *   --linse-klar     Durchsicht der Linse, 0 deckend … 1 klar wie bei Apple
  *   --linse-ruhe     Breite der ruhenden Pille, 0 schmal … 1 so breit wie der Reiter
  *   --linse-fuellung ruhende Pille als graue, gefüllte Kapsel, 0–1
+ *   --linse-rand     Brechung am Rand, 0–1: dort wird der Inhalt zusammengedrückt
  * Tempo und Nachschwingen gelten für die Feder beim Gleiten (gleitFeder()).
  */
 import { useCallback, useState } from 'react'
@@ -31,11 +32,12 @@ export interface LinsenWerte {
   klar: number
   ruhe: number
   fuellung: number
+  rand: number
 }
 
 export const LINSE_STANDARD: LinsenWerte = {
   zoom: 1.32, heben: 0, wachsen: 30, hoehe: 12, farbe: 0.5, tempo: 0.75, schwingen: 0.3,
-  klar: 0, ruhe: 0, fuellung: 0,
+  klar: 0, ruhe: 0, fuellung: 0, rand: 0,
 }
 
 /**
@@ -46,7 +48,7 @@ export const LINSE_STANDARD: LinsenWerte = {
  */
 export const LINSE_APPLE: LinsenWerte = {
   zoom: 1.08, heben: 0, wachsen: 36, hoehe: 26, farbe: 0.9, tempo: 0.5, schwingen: 0.24,
-  klar: 1, ruhe: 1, fuellung: 1,
+  klar: 1, ruhe: 1, fuellung: 1, rand: 0.8,
 }
 export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number; schritt: number }> = {
   zoom: { min: 1, max: 1.8, schritt: 0.02 },
@@ -59,6 +61,7 @@ export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number
   klar: { min: 0, max: 1, schritt: 0.05 },
   ruhe: { min: 0, max: 1, schritt: 0.05 },
   fuellung: { min: 0, max: 1, schritt: 0.05 },
+  rand: { min: 0, max: 1, schritt: 0.05 },
 }
 
 const SCHLUESSEL = 'tyd_linse_2'
@@ -98,6 +101,7 @@ export function wendeLinseAn(w: LinsenWerte): void {
   s.setProperty('--linse-klar', String(w.klar))
   s.setProperty('--linse-ruhe', String(w.ruhe))
   s.setProperty('--linse-fuellung', String(w.fuellung))
+  s.setProperty('--linse-rand', String(w.rand))
   // Die Tab-Leiste misst die Pille neu (ihre Breite hängt an --linse-ruhe)
   window.dispatchEvent(new Event(LINSE_GEAENDERT))
 }

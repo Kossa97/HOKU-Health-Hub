@@ -1266,7 +1266,7 @@ main.flex-1 {
    bei echter Brechung.
    Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
    gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
-:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; --linse-klar: 0; --linse-ruhe: 0; --linse-fuellung: 0; }
+:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; --linse-klar: 0; --linse-ruhe: 0; --linse-fuellung: 0; --linse-rand: 0; }
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
   /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
   z-index: 2;
@@ -1398,6 +1398,23 @@ main.flex-1 {
   box-shadow: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
   opacity: var(--linse-fuellung);
   pointer-events: none;
+}
+/* Ein Ring der Randbrechung: eine weitere Kopie, auf den Rand maskiert
+   (Maske rechnet LiquidGlassTabBar, saumMaske). Darin deckt das Abbild der
+   Leiste immer, und die Farbe fächert stärker auf — wie an Apples Glaskante. */
+.tyd-tabbar-linse-saum {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.tyd-tabbar-linse-saum .tyd-tabbar-linse-abbild { opacity: 1; }
+.tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-saum .tyd-tabbar-linse-platz svg {
+  filter:
+    drop-shadow(calc(var(--linse-farbe) * 2.2px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.8)))
+    drop-shadow(calc(var(--linse-farbe) * -2.2px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.8)));
 }
 .tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-platz svg {
   filter:

@@ -30,7 +30,20 @@ export interface LinsenMasse {
   /** gerenderte Breite, Höhe und Einzug der Pille (px) */
   w0: number; h0: number; einzug: number
   wachsen: number; hoehe: number; heben: number; zoom: number
+  /** Brechung am Rand, 0–1 (--linse-rand) */
+  rand?: number
 }
+
+/**
+ * Die Brechung am Rand, in Ringen von außen nach innen: im Ring wird die
+ * Kopie mit kleinerem Maßstab abgebildet — dort zeigt das Glas wie eine dicke,
+ * gewölbte Kante mehr von der Umgebung, zusammengedrückt. `breite` in px der
+ * ungewachsenen Pille, `faktor` wie stark der Maßstab dort sinkt (× rand).
+ */
+export const SAEUME = [
+  { breite: 8, faktor: 0.22 },
+  { breite: 3.5, faktor: 0.5 },
+] as const
 
 export const BILD = 1 / 60
 
@@ -98,5 +111,36 @@ export function linsenBild(s: LinsenStand, m: LinsenMasse) {
   const kopie = glatt && Math.abs(z - 1) < 1e-4
     ? `translateX(${px(bx)})`
     : `translate(${px(bx)}, ${px(by)}) scale(${zahl(z / sx)}, ${zahl(z / sy)})`
-  return { pille, kopie, glas: Math.min(1, Math.max(0, t)), linse: t > 0.02 }
+  const rand = m.rand ?? 0
+  const saeume = SAEUME.map(({ faktor }) => {
+    const zs = 1 + (m.zoom * (1 - faktor * rand) - 1) * t
+    const sbx = m.w0 / 2 - (zs / sx) * cx
+    const sby = m.h0 / 2 + m.einzug - (zs / sy) * (m.einzug + m.h0 / 2 + ty)
+    return `translate(${px(sbx)}, ${px(sby)}) scale(${zahl(zs / sx)}, ${zahl(zs / sy)})`
+  })
+  return { pille, kopie, saeume, glas: Math.min(1, Math.max(0, t)), linse: t > 0.02 }
+}
+
+const masken = new Map<string, string>()
+
+/**
+ * Maske eines Rings an der Innenkante einer Kapsel (w × h), `breite` px
+ * breit, weich auslaufend. Als SVG-Bild, einmal je Größe gerechnet.
+ */
+export function saumMaske(w: number, h: number, breite: number): string {
+  const key = `${Math.round(w)}|${Math.round(h)}|${breite}`
+  const fertig = masken.get(key)
+  if (fertig) return fertig
+  const b = breite
+  const kapsel = (x: number, y: number, kw: number, kh: number) => {
+    const kr = Math.max(0, kh / 2)
+    return `M${x + kr},${y}H${x + kw - kr}A${kr},${kr} 0 0 1 ${x + kw - kr},${y + kh}H${x + kr}A${kr},${kr} 0 0 1 ${x + kr},${y}Z`
+  }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>`
+    + `<defs><filter id='f' x='-10%' y='-10%' width='120%' height='120%'><feGaussianBlur stdDeviation='${Math.max(0.6, b / 4)}'/></filter></defs>`
+    + `<path fill-rule='evenodd' fill='#000' filter='url(#f)' d='${kapsel(-2, -2, w + 4, h + 4)}${kapsel(b, b, Math.max(0, w - 2 * b), Math.max(0, h - 2 * b))}'/>`
+    + `</svg>`
+  const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+  masken.set(key, url)
+  return url
 }

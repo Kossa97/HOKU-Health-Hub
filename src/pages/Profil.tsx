@@ -604,7 +604,7 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung'
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand'
             ? `${Math.round(werte[key] * 100)} %`
             : key === 'tempo' ? `${werte[key].toFixed(2)} s` : `${werte[key]} ${einheit}`}
         </span>
@@ -628,6 +628,7 @@ function LinsenTest() {
         {regler('klar', 'Durchsicht', '')}
         {regler('ruhe', 'Pille breit', '')}
         {regler('fuellung', 'Pille grau', '')}
+        {regler('rand', 'Randbrechung', '')}
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_APPLE })}>
             Apple

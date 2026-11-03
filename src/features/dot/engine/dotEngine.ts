@@ -65,8 +65,8 @@ export interface DotLeiste {
   plus: HTMLElement | null
   logo: HTMLElement
   spalt: HTMLElement | null
-  /** Das Tor im Abbild der Leiste in der Glaslinse; bewegt sich mit dem echten. */
-  spaltKopie?: () => HTMLElement | null
+  /** Das Tor in den Abbildern der Leiste in der Glaslinse; bewegt sich mit dem echten. */
+  spaltKopie?: () => Iterable<HTMLElement>
 }
 
 export interface DotHost {
@@ -1403,7 +1403,7 @@ export function createDot(host: DotHost): DotApi {
     const spalt = leiste?.spalt
     if (spalt) {
       const breite = ow.toFixed(1) + 'px', lage = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
-      for (const el of [spalt, leiste?.spaltKopie?.()]) {
+      for (const el of [spalt, ...(leiste?.spaltKopie?.() ?? [])]) {
         if (!el || (el.style.width === breite && el.style.transform === lage)) continue
         el.style.width = breite
         el.style.transform = lage

@@ -5,7 +5,7 @@ import {
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
 import { haengeGlasKante } from '../../lib/glasKante'
 import {
-  BILD, FEDER_FINGER, endStand, linsenBild, linsenSchritt, planeWeg, ruhig,
+  BILD, FEDER_FINGER, SAEUME, endStand, linsenBild, linsenSchritt, planeWeg, ruhig, saumMaske,
   type LinsenMasse, type LinsenStand, type LinsenZiel,
 } from './linsenFeder'
 import { LINSE_GEAENDERT, gleitFeder } from '../../lib/linse'
@@ -129,6 +129,11 @@ export function LiquidGlassTabBar({
   /** Abbild der Leiste in der Linse: deckt die echten Symbole ab, zeigt den Rahmen vergrößert. */
   const abbildRef = useRef<HTMLDivElement | null>(null)
   const abbildGlasRef = useRef<HTMLDivElement | null>(null)
+  /** Die Ringe der Randbrechung (je eine weitere Kopie, maskiert auf den Rand) und ihre Kopien. */
+  const saumRefs = useRef<(HTMLDivElement | null)[]>([])
+  const saumKopieRefs = useRef<(HTMLDivElement | null)[]>([])
+  /** Randbrechung an? (--linse-rand > 0); sonst werden die Ringe gar nicht gebaut. */
+  const [mitRand, setMitRand] = useState(false)
   /** Breite der ruhenden Pille, 0 schmal … 1 so breit wie der Reiter (--linse-ruhe). */
   const ruheRef = useRef(0)
   /** Zählt Änderungen an den Linsen-Einstellungen, damit neu gemessen wird. */
@@ -190,6 +195,8 @@ export function LiquidGlassTabBar({
     const messen = () => {
       const ruhe = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-ruhe'))
       ruheRef.current = Number.isFinite(ruhe) ? Math.min(1, Math.max(0, ruhe)) : 0
+      const rand = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-rand'))
+      setMitRand(Number.isFinite(rand) && rand > 0)
       plaetzeRef.current = plaetze().map(el => ({
         // Gesucht wird ueber den Attributwert und nicht ueber einen Selektor
         // mit eingesetzter Kennung: das braucht kein `CSS.escape` (das jsdom
@@ -236,17 +243,27 @@ export function LiquidGlassTabBar({
       return Number.isFinite(n) ? n : ersatz
     }
     // Das Abbild trägt das Aussehen der echten Leiste (je Look verschieden)
-    const kapsel = kapselRef.current, abbild = abbildGlasRef.current
-    if (kapsel && abbild) {
+    const kapsel = kapselRef.current
+    if (kapsel) {
       const k = getComputedStyle(kapsel)
-      abbild.style.backgroundImage = k.backgroundImage
-      abbild.style.backgroundColor = k.backgroundColor
-      abbild.style.boxShadow = k.boxShadow
+      for (const abbild of el.querySelectorAll<HTMLElement>('.tyd-tabbar-linse-abbild-glas')) {
+        abbild.style.backgroundImage = k.backgroundImage
+        abbild.style.backgroundColor = k.backgroundColor
+        abbild.style.boxShadow = k.boxShadow
+      }
     }
+    // Die Ringe der Randbrechung: Maske in der Größe der ungewachsenen Pille
+    saumRefs.current.forEach((saum, i) => {
+      if (!saum || !w0 || !el.offsetHeight) return
+      const maske = saumMaske(w0, el.offsetHeight, SAEUME[i].breite)
+      saum.style.maskImage = maske
+      saum.style.setProperty('-webkit-mask-image', maske)
+    })
     masseRef.current = {
       w0, h0: el.offsetHeight, einzug: el.offsetTop,
       wachsen: zahl('--linse-wachsen', 0), hoehe: zahl('--linse-hoehe', 0),
       heben: zahl('--linse-heben', 0), zoom: zahl('--linse-zoom', 1),
+      rand: zahl('--linse-rand', 0),
     }
   }
 
@@ -260,6 +277,8 @@ export function LiquidGlassTabBar({
     if (glasRef.current) glasRef.current.style.opacity = String(b.glas)
     if (ringRef.current) ringRef.current.style.opacity = String(b.glas)
     if (abbildRef.current) abbildRef.current.style.opacity = String(b.glas)
+    saumKopieRefs.current.forEach((k, i) => { if (k) k.style.transform = b.saeume[i] })
+    for (const saum of saumRefs.current) if (saum) saum.style.opacity = String(b.glas)
     if (b.linse) el.setAttribute('data-linse', 'true')
     else el.removeAttribute('data-linse')
   }
@@ -298,7 +317,10 @@ export function LiquidGlassTabBar({
     if (bilder.some(b => b.linse)) el.setAttribute('data-linse', 'true')
     anim.push(el.animate(bilder.map(b => ({ transform: b.pille })), optionen))
     if (kopieRef.current) anim.push(kopieRef.current.animate(bilder.map(b => ({ transform: b.kopie })), optionen))
-    for (const schicht of [glasRef.current, ringRef.current, abbildRef.current]) {
+    saumKopieRefs.current.forEach((k, i) => {
+      if (k) anim.push(k.animate(bilder.map(b => ({ transform: b.saeume[i] })), optionen))
+    })
+    for (const schicht of [glasRef.current, ringRef.current, abbildRef.current, ...saumRefs.current]) {
       if (schicht) anim.push(schicht.animate(bilder.map(b => ({ opacity: b.glas })), optionen))
     }
     const fahrt = { weg, anim, schluessel }
@@ -335,7 +357,7 @@ export function LiquidGlassTabBar({
     const z = zielRef.current
     z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
     const f = feder.current
-    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}`
+    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}|${mitRand}`
     if (!f.start || ohneAnimation()) {
       f.start = true
       miss(el, pille.breite)
@@ -481,6 +503,17 @@ export function LiquidGlassTabBar({
     children: item.icon,
   })
 
+  /** Die farbigen Symbole an ihren echten Plätzen (für die Kopien in der Pille). */
+  const symbolKopie = () => plaetzeRef.current.map(p => {
+    const item = items.find(i => i.id === p.id)
+    if (!item) return null
+    return (
+      <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
+        {item.icon}
+      </span>
+    )
+  })
+
   return (
     <nav
       ref={kapselRef}
@@ -524,16 +557,21 @@ export function LiquidGlassTabBar({
                 <div ref={abbildGlasRef} className="tyd-tabbar-linse-abbild-glas" />
                 <span className="tyd-tabbar-linse-tor" />
               </div>
-              {plaetzeRef.current.map(p => {
-                const item = items.find(i => i.id === p.id)
-                if (!item) return null
-                return (
-                  <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
-                    {item.icon}
-                  </span>
-                )
-              })}
+              {symbolKopie()}
             </div>
+            {/* Randbrechung: dieselbe Kopie in Ringen an der Kante, kleiner
+                abgebildet — dort drückt das Glas den Inhalt zusammen. */}
+            {mitRand && SAEUME.map((saum, i) => (
+              <div key={saum.breite} ref={el => { saumRefs.current[i] = el }} className="tyd-tabbar-linse-saum">
+                <div ref={el => { saumKopieRefs.current[i] = el }} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite }}>
+                  <div className="tyd-tabbar-linse-abbild">
+                    <div className="tyd-tabbar-linse-abbild-glas" />
+                    <span className="tyd-tabbar-linse-tor" />
+                  </div>
+                  {symbolKopie()}
+                </div>
+              </div>
+            ))}
           </div>
         )}
         <div ref={ringRef} className="tyd-tabbar-linse-ring" />
