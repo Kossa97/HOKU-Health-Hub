@@ -218,3 +218,5 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   (Anschnitt erlaubt). Rückfall-Zeile: Einstieg „Du trackst. / Hoku verbindet.“ in Space Grotesk, „Hoku verbindet.“ Cyan,
   Rest 70 % Weiß. **Logo weiß, wo Hoku groß im Bild ist**: neutral Hauptlogo weiß (Nutzer-Idee), Rückfall Kompaktlogo weiß
   (meine Ergänzung, gleiche Regel); A1 Hauptlogo bleibt Cyan. Mockup-Stand „zur Freigabe“; Z1–Z6 in Git-Historie (c0c999f).
+- Nutzer 03.11.: Rückfall-Überschrift „Mehr als nur Tracking.“ **in einer Zeile** (darf über die Spalte bis vor die Bildmarke),
+  Engine-Satz **kursiv** (Inter Italic 500, 76 % Weiß).
