@@ -7,6 +7,36 @@ Stand 2026-11-03. Entscheidungen des Nutzers in dieser Sitzung:
 - **Eigene Mails, de/en**, verschickt von der App über Resend (nicht die Supabase-Standardtexte).
 - **„Passwort vergessen" gleich mit**, über denselben Code-Weg.
 
+Nachtrag (Nutzer 03.11.2026):
+
+- **Kopieren ohne Markieren.** Ein echter Kopier-Knopf geht in Mails nicht: Mail-Apps führen kein
+  JavaScript aus. Stattdessen:
+  - **Ausfüllen über der Tastatur** („Aus Mail" bzw. „Aus Nachrichten"): iOS ab 17 erkennt Codes aus
+    **Apple Mail** wie aus SMS. Voraussetzung: Feld mit `autoComplete="one-time-code"` (geht auch in
+    der Capacitor-App) und das Wort „Code" nah an der Zahl, Code auch im Betreff. Mit der Gmail-App
+    auf dem iPhone klappt das nicht, Gmail zeigt aber selbst einen Knopf „Kopieren" an.
+  - In der Mail steht der Code groß, ohne Leerzeichen und mit `user-select: all`: ein Tipp
+    markiert den ganzen Code (hängt von der Mail-App ab, wird auf dem iPhone getestet).
+  - In der App: Einfügen-Knopf neben dem Feld und automatisches Prüfen bei 6 Ziffern.
+- **Code läuft ab:** **15 Minuten** (Supabase-Einstellung), in der Mail mit Uhrzeit genannt
+  („gültig bis 11:35"). Ein benutzter Code und jeder ältere Code gelten nicht mehr, sobald ein
+  neuer angefordert ist.
+- **SMS erst nach dem Start** (eigener Schritt): Resend verschickt keine SMS, dafür bräuchte es einen
+  zweiten Anbieter (Twilio o. ä.), Kosten pro SMS, Länderfilter und Bot-Prüfung gegen SMS-Betrug.
+- **Anmeldewege zum Start:** Apple, Google, E-Mail **oder** Benutzername mit Passwort; Code per Mail
+  beim Registrieren und bei „Passwort vergessen". Telefonnummer später (s. o.).
+
+## Anmeldewege in der nativen App
+
+- **Apple/Google** sind gebaut (6b), aber noch als Web-Rücksprung. In der App gehören die
+  nativen Fenster dazu (Apple-Blatt, Google-Auswahl, über ein Capacitor-Plugin) und
+  `signInWithIdToken` statt Weiterleitung. Apple verlangt „Mit Apple anmelden", sobald Google
+  angeboten wird — beides ist geplant.
+- **„E-Mail verbergen" bei Apple:** Apple gibt dann eine Weiterleitungsadresse
+  (`…@privaterelay.appleid.com`). Mails dorthin kommen nur an, wenn `hokuhealth.app` und der
+  Absender im Apple-Entwicklerkonto beim „Private Email Relay" eingetragen sind (Nutzer).
+- Gleiche bestätigte E-Mail bei Apple/Google und Passwort-Konto → Supabase verknüpft die Konten.
+
 ## Ist-Zustand
 
 - Formular steht (`src/pages/Auth.tsx`, `registrieren()`): Benutzername, E-Mail, Passwort ×2,
@@ -119,6 +149,7 @@ Keine Datenbank-Migration nötig (Sprache steht in den Konto-Metadaten).
   Resend `hokuhealth.app` ist (DNS grün).
 - In Resend einen API-Schlüssel nur zum Senden anlegen und selbst in Supabase als Secret
   `RESEND_API_KEY` eintragen (nicht in den Chat).
+- Im Apple-Entwicklerkonto `hokuhealth.app` und den Absender beim „Private Email Relay" eintragen.
 - Datenschutzerklärung: Resend als Dienstleister für den Mailversand nennen; Vertrag zur
   Auftragsverarbeitung (DPA) bei Resend abschließen.
 
