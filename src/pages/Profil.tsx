@@ -604,7 +604,9 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' ? `${Math.round(werte[key] * 100)} %` : `${werte[key]} ${einheit}`}
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen'
+            ? `${Math.round(werte[key] * 100)} %`
+            : key === 'tempo' ? `${werte[key].toFixed(2)} s` : `${werte[key]} ${einheit}`}
         </span>
       </label>
     )
@@ -614,11 +616,15 @@ function LinsenTest() {
       <p className="lg-group-title">Glaslinse (Test)</p>
       <div className="card">
         <p style={{ margin: '0 0 6px', fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-          Einen Reiter in der Leiste unten gedrückt halten und ziehen.
+          Einen Reiter in der Leiste unten gedrückt halten und ziehen, oder ein Symbol antippen.
         </p>
         {regler('zoom', 'Vergrößerung', '')}
         {regler('heben', 'Anheben', 'px')}
-        {regler('wachsen', 'Wachsen', 'px')}
+        {regler('wachsen', 'Breiter', 'px')}
+        {regler('hoehe', 'Höher', 'px')}
+        {regler('farbe', 'Farbsaum', '')}
+        {regler('tempo', 'Gleiten (Zeit)', '')}
+        {regler('schwingen', 'Nachschwingen', '')}
         <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" style={{ marginTop: 6 }} onClick={() => setze({ ...LINSE_STANDARD })}>
           Zurücksetzen
         </button>

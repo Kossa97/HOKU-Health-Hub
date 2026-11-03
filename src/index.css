@@ -1266,7 +1266,7 @@ main.flex-1 {
    bei echter Brechung.
    Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
    gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
-:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 24px; }
+:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; }
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
   /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
   z-index: 2;
@@ -1278,10 +1278,11 @@ main.flex-1 {
      um die Mitte der VERSCHOBENEN Pille skalieren (--pill-x). */
   transform-origin: calc(50% + var(--pill-x, 0px)) 50%;
   /* --linse-t: 0 Pille, 1 Linse (aus der Feder). Sie wächst oben und unten
-     gleich weit; --linse-heben verschiebt sie zusätzlich nach oben. */
-  --pill-oben: calc(var(--bottom-nav-pill-inset) - (var(--linse-wachsen) * 0.5 + var(--linse-heben)) * var(--linse-t, 0));
+     gleich weit (--linse-hoehe, flacher als breit: Kapsel); --linse-heben
+     verschiebt sie zusätzlich nach oben. */
+  --pill-oben: calc(var(--bottom-nav-pill-inset) - (var(--linse-hoehe) * 0.5 + var(--linse-heben)) * var(--linse-t, 0));
   top: var(--pill-oben);
-  bottom: calc(var(--bottom-nav-pill-inset) - (var(--linse-wachsen) * 0.5 - var(--linse-heben)) * var(--linse-t, 0));
+  bottom: calc(var(--bottom-nav-pill-inset) - (var(--linse-hoehe) * 0.5 - var(--linse-heben)) * var(--linse-t, 0));
 }
 .tyd-tabbar-linse {
   position: absolute;
@@ -1322,9 +1323,33 @@ main.flex-1 {
   box-shadow:
     inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
     inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.18),
-    inset 4px 0 5px -3px rgba(255, 90, 130, 0.28),
-    inset -4px 0 5px -3px rgba(90, 200, 255, 0.28),
+    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
+    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
+    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
     0 10px 26px rgba(0, 0, 0, 0.40);
+}
+/* Farbsaum wie bei Apple (Glisse: „Dispersion"): ein Regenbogenring an der
+   Kante — rosa links, gelb unten, cyan/blau rechts — und die vergrößerten
+   Symbole fächern leicht in Rot und Blau auf. Stärke: --linse-farbe. */
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background: conic-gradient(from 200deg at 50% 50%,
+    rgb(255 70 160), rgb(255 150 60), rgb(255 230 90), rgb(120 255 170),
+    rgb(60 200 255), rgb(120 110 255), rgb(255 70 160));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: calc(var(--linse-farbe) * var(--linse-t, 0) * 0.9);
+}
+.tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-platz svg {
+  filter:
+    drop-shadow(calc(var(--linse-farbe) * 1.6px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.75)))
+    drop-shadow(calc(var(--linse-farbe) * -1.6px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.75)));
 }
 .tyd-tabbar .tyd-tabbar-pill[data-gehalten='true'] { scale: 1; }
 html:is([data-look='schwarz'], [data-look='satin'], [data-look='licht'], [data-look='nacht']) :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {

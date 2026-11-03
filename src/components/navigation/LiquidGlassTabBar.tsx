@@ -4,7 +4,8 @@ import {
 } from 'react'
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
 import { haengeGlasKante } from '../../lib/glasKante'
-import { federSchritt, FEDER_FINGER, FEDER_GLEITEN, FEDER_LINSE } from './linsenFeder'
+import { federSchritt, FEDER_FINGER, FEDER_LINSE } from './linsenFeder'
+import { gleitFeder } from '../../lib/linse'
 
 /**
  * Die Web-Fassung der Liquid-Glass-Tab-Bar.
@@ -214,7 +215,7 @@ export function LiquidGlassTabBar({
     f.frame = 0
     const dt = Math.min(1 / 30, Math.max(0.001, (jetzt - (f.zuletzt || jetzt - 16)) / 1000))
     f.zuletzt = jetzt
-    const lage = z.frei ? FEDER_FINGER : FEDER_GLEITEN
+    const lage = z.frei ? FEDER_FINGER : gleitFeder()
     ;[f.x, f.vx] = federSchritt(f.x, f.vx, z.x, lage, dt)
     ;[f.w, f.vw] = federSchritt(f.w, f.vw, z.w, lage, dt)
     // Groß, solange ein Finger liegt oder die Linse noch unterwegs ist
