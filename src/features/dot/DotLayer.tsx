@@ -14,6 +14,7 @@ import { useDotZugang } from './lib/zugang'
 import { useDotText } from './texte'
 import { CoachPanel, type DotSeite } from './chat/CoachPanel'
 import { setHokuLichtQuelle } from '../../lib/hokuLicht'
+import { leseHokuEinstellungen } from './lib/hokuEinstellungen'
 import './dot.css'
 
 /**
@@ -187,7 +188,7 @@ export function DotLayer() {
     const beiAuto = (e: Event) => {
       const anzahl = (e as CustomEvent<{ anzahl: number }>).detail?.anzahl ?? 0
       kontext.current.zeit = 0
-      if (anzahl > 0 && dot.modus() === 'home') dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
+      if (anzahl > 0 && dot.modus() === 'home' && leseHokuEinstellungen().hinweise) dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
     }
     window.addEventListener(AUTO_EREIGNIS, beiAuto)
     return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
@@ -199,7 +200,7 @@ export function DotLayer() {
   useEffect(() => {
     if (!stand.hinweis) { gesagt.current = null; return }
     if (!dot || stand.hinweis === gesagt.current) return
-    if (stand.modus !== 'home') return
+    if (stand.modus !== 'home' || !leseHokuEinstellungen().hinweise) return
     gesagt.current = stand.hinweis
     dot.sag(stand.hinweis, 4500)
   }, [dot, stand.hinweis, stand.modus])
