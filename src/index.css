@@ -1303,8 +1303,10 @@ main.flex-1 {
   bottom: 0;
   display: grid;
   place-items: center;
-  color: var(--accent);
+  /* Unterwegs überstrichene Symbole: nur vergrößert, nicht „gedrückt" */
+  color: var(--text-dim);
 }
+.tyd-tabbar-linse-platz[data-ziel='true'] { color: var(--accent); }
 /* Die echten Symbole bleiben grau, solange die Pille die Farbe trägt — auch in
    Looks, die den aktiven Reiter einfärben oder leuchten lassen. */
 .tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) {

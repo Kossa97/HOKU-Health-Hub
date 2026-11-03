@@ -100,6 +100,13 @@ export function LiquidGlassTabBar({
   const [vorschau, setVorschau] = useState<string | null>(null)
 
   const vorschauRef = useRef<string | null>(null)
+  /**
+   * Wohin die Linse nach dem Loslassen gleitet, bis die Seite gewechselt hat.
+   * Nur dieses Symbol (oder das unter dem Finger) wird in der Linse farbig —
+   * die Symbole, über die sie unterwegs streicht, bleiben grau.
+   */
+  const [farbZiel, setFarbZiel] = useState<string | null>(null)
+  useEffect(() => { setFarbZiel(null) }, [activeId])
   const ziehtRef = useRef(false)
   const gewandertRef = useRef(false)
   const klickSchluckenRef = useRef(false)
@@ -311,6 +318,7 @@ export function LiquidGlassTabBar({
     // Eine Aktion bleibt nicht unter der Pille stehen: sie fuehrt zu keiner
     // Seite, also gehoert die Pille dorthin zurueck, wo man wirklich ist.
     const einrastZiel = ziel && !istAktion(ziel) ? ziel : activeId
+    setFarbZiel(einrastZiel)
     if (kapsel) setPille(lageVon(einrastZiel, kapsel.offsetWidth))
 
     // Ein einfacher Tipp wird NICHT hier behandelt: dann liegt der Finger noch
@@ -330,6 +338,7 @@ export function LiquidGlassTabBar({
     ziehtRef.current = false
     setGedrueckt(false)
     setzeVorschau(null)
+    setFarbZiel(null)
     const kapsel = kapselRef.current
     if (kapsel) setPille(lageVon(activeId, kapsel.offsetWidth))
   }
@@ -403,8 +412,9 @@ export function LiquidGlassTabBar({
                   {plaetzeRef.current.map(p => {
                     const item = items.find(i => i.id === p.id)
                     if (!item) return null
+                    const ziel = (vorschau ?? farbZiel ?? activeId) === p.id
                     return (
-                      <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
+                      <span key={p.id} className="tyd-tabbar-linse-platz" data-ziel={ziel ? 'true' : undefined} style={{ left: p.links, width: p.breite }}>
                         {item.icon}
                       </span>
                     )
