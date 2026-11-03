@@ -1,6 +1,6 @@
 # Titel (Profil-Zusatz, nach 2c)
 
-Stand 03.11.2026 · Brainstorm mit dem Nutzer. Noch kein Mockup, keine Spec.
+Stand 03.11.2026 · Brainstorm mit dem Nutzer. Mockup Entwurf 1: `docs/profil/mockups/profil-titel.html`, https://claude.ai/artifact/21JomB4qaYMvUkjFXLm3UP. Keine Spec.
 
 ## Entschieden [Nutzer]
 - **Rang und Prägungen.** Ein Titel ist eine Identität („wer du auf Hoku bist“), genau einer wird getragen, neben dem
