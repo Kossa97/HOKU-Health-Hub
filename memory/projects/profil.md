@@ -232,3 +232,7 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   Trend-Symbol jetzt neben „30 %“. Rückfall linke Spalte 25cqw.
 - Nutzer 03.11.: Fortschritt bleibt bei „trackt 9 Werte“ (ohne „aus“/„in“/„in den Bereichen“).
 - **03.11. Link-Karten endgültig freigegeben** (Nutzer). Canva-Vorlage aktualisiert (6 Folien), Spec 3.3 und Plan Task 6 nachgezogen; profile_view web braucht zusätzlich Mitglied-seit, Einträge, Zahl Web-Werte.
+- Musterfunktion/Engine: Nutzer arbeitet daran in einem **eigenen Kontextfenster** (03.11.) — hier nicht weiterführen.
+  Für die Abstimmung relevant: Rückfall-Text „kann Muster finden“ hängt daran (Ersatztext bereit); Wirkungs-Check-PRD
+  (2026-10-18) schließt „Kreuzkorrelation über alle Messwerte“ ausdrücklich aus (Zufallstreffer) — muss dort aufgelöst werden;
+  60 Tage Wearable-Vorgeschichte aus P1 könnten erste Muster am ersten Tag liefern.
