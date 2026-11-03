@@ -203,3 +203,6 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   Enden V1–V6 im Mockup; V1–V3 stimmen heute (Vergleich mit Start, KI-Coach erklärt), V4–V6 (Zusammenhänge, Muster,
   „was dich weiterbringt“) erst mit echter Zusammenhangs-/Mustersuche — sonst irreführende Werbung (UWG) und „erkennt“ klingt
   nach Medizinprodukt. Empfehlung V1. Wahl offen. Alte T1–T6 in der Git-Historie (c7413e3).
+- Nutzer 03.11.: Sein Zeilen-Anfang war nur ein Beispiel für den Stil. Überschrift bleibt „Mehr als nur Tracking.“;
+  Zeilen Z1–Z6 im Mockup (fetter Kurzsatz + Satz über die Engine). Empfehlung **Z4 „Einzeln sind es Zahlen. Zusammen
+  bist es du.“**; Z6 (Muster finden) braucht erst eine echte Mustersuche. Wahl offen. V1–V6 in der Git-Historie (82918f1).
