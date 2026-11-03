@@ -151,7 +151,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
         className="fixed inset-x-0 z-[30] mx-auto max-w-lg bg-[var(--c-bg)] px-3 shadow-[0_6px_12px_4px_var(--c-bg)]"
         style={{ top: 'env(safe-area-inset-top, 0px)', height: ZONE_MAX }}>
         <canvas ref={canvasRef} role="img" aria-label={aria}
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
+          className="tyd-orb pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
           style={{ height: ZONE_MAX + BELOW }} />
         {/* Gesten auf der Kugel; die Zeichenfläche selbst lässt Taps auf die Formulare darunter durch. */}
         <div aria-hidden="true" className="absolute inset-x-0 top-0 bottom-[76px] z-[1] cursor-grab touch-pan-y"
@@ -209,7 +209,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
         </div>
       </section>
       {typeof document !== 'undefined' && createPortal(
-        <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
+        <canvas ref={setFx} aria-hidden="true" className="tyd-orb pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
         document.body,
       )}
     </>

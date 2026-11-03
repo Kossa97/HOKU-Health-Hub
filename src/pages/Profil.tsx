@@ -8,7 +8,7 @@ import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
-import { HokuFarbAuswahl } from '../features/dot/HokuFarbAuswahl'
+import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
@@ -235,8 +235,9 @@ export function Profil() {
       <LanguageSwitcher />
 
       {/* ── Erscheinungsbild: Schwarz oder Licht ── */}
-      <LookSwitcher />
-      <HokuFarbAuswahl />
+      <LookSwitcher vorschau={isAdmin || import.meta.env.DEV} />
+      {/* Hoku: Farbe, Bewegung und Hinweise auf eigener Seite mit Bühne */}
+      <HokuEintrag />
 
       {/* ── Push-Notifications ── */}
       <PushSettings />
@@ -276,16 +277,19 @@ export function Profil() {
 
 // ── LookSwitcher ─────────────────────────────────────────────────────────────
 
-function LookSwitcher() {
+/** `vorschau`: auch Looks zeigen, die noch nicht die ganze App erreichen (nur Admin/Entwicklung). */
+function LookSwitcher({ vorschau = false }: { vorschau?: boolean }) {
   const { t } = useTranslation()
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
     { key: 'softdark', label: String(t('look_softdark', { defaultValue: 'Soft Dark' })) },
+    { key: 'frost', label: String(t('look_frost', { defaultValue: 'Frost' })) },
     { key: 'instrument', label: String(t('look_instrument', { defaultValue: 'Instrument' })) },
     { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
     { key: 'nacht', label: String(t('look_night', { defaultValue: 'Nacht' })) },
+    ...(vorschau || look === 'papier' ? [{ key: 'papier' as const, label: String(t('look_paper', { defaultValue: 'Papier' })) }] : []),
   ]
   return (
     <div style={{ marginTop: 24 }} data-look-switcher>
@@ -303,7 +307,7 @@ function LookSwitcher() {
       />
       {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung. Frost: dunkles Cyan wie mattiertes Glas – wo Hoku ist, leuchten die Kanten.' })}
       </p>
       </div>
     </div>

@@ -21,6 +21,9 @@ export const STANDARD_JE_LOOK: Record<Look, HokuFarbe> = {
   nacht: 'heute',
   instrument: 'eiscyan',
   softdark: 'schnee',
+  frost: 'heute',
+  // Papier: Hoku wird per Farbumkehr schwarz gezeichnet (liquid-glass.css)
+  papier: 'schnee',
 }
 
 /** Drei Töne von vorn nach hinten, dazu der Schein; `kraeftig`: hintere Punkte bleiben sichtbar (Handy, Sonne). */

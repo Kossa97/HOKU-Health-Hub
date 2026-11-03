@@ -1,25 +1,59 @@
 {
-  "source": "docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-cyan-dunkel-master.png",
-  "sourceSha256": "0dabfbf18621f291a0d879459271b9dd2550d5c29fe2e0797c065921110203a9",
+  "source": "docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-organisch-cyan-v3-master.png",
+  "sourceSha256": "7ad6eb3a98518403f02d7da1bd1d754581c10aa21f8b869997e014fabdba5348",
   "sourceBounds": {
-    "left": 200,
+    "left": 199,
     "right": 1051,
-    "top": 178,
-    "bottom": 1039,
-    "width": 852,
-    "height": 862,
-    "radius": 448.5627046467417
+    "top": 174,
+    "bottom": 1041,
+    "width": 853,
+    "height": 868,
+    "radius": 454.95329430612986
   },
   "background": "#000101",
   "ratios": {
-    "app": 0.88,
-    "favicon": 0.94,
-    "maskable": 0.76,
-    "adaptive": 0.59,
+    "app": 0.74,
+    "favicon": 0.92,
+    "maskable": 0.67,
+    "adaptive": 0.52,
     "symbol": 0.92,
     "splash": 0.24
   },
   "pngs": [
+    {
+      "file": "public/icons/hoku-organisch-v4-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
     {
       "file": "public/icons/hoku-dunkel-180.png",
       "kind": "app",
@@ -27,15 +61,15 @@
       "height": 180,
       "colorType": 2,
       "occupied": {
-        "left": 12,
-        "right": 167,
-        "top": 11,
-        "bottom": 168,
-        "width": 156,
-        "height": 158,
-        "radius": 79.30006305167733
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
       },
-      "sha256": "21b205b0add43069a9217513d76e8fcdf62ae7a20a106a6bac5af41decdb6776"
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
     },
     {
       "file": "public/icons/hoku-180.png",
@@ -44,15 +78,49 @@
       "height": 180,
       "colorType": 2,
       "occupied": {
-        "left": 12,
-        "right": 167,
-        "top": 11,
-        "bottom": 168,
-        "width": 156,
-        "height": 158,
-        "radius": 79.30006305167733
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
       },
-      "sha256": "21b205b0add43069a9217513d76e8fcdf62ae7a20a106a6bac5af41decdb6776"
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
     },
     {
       "file": "public/icons/hoku-dunkel-192.png",
@@ -61,15 +129,15 @@
       "height": 192,
       "colorType": 2,
       "occupied": {
-        "left": 13,
-        "right": 179,
-        "top": 11,
-        "bottom": 180,
-        "width": 167,
-        "height": 170,
-        "radius": 84.57245414436073
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
       },
-      "sha256": "22d907b696e1ce50233ae37100781bb44c4252be4dbd968395aac41950cbf70f"
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
     },
     {
       "file": "public/icons/hoku-192.png",
@@ -78,15 +146,49 @@
       "height": 192,
       "colorType": 2,
       "occupied": {
-        "left": 13,
-        "right": 179,
-        "top": 11,
-        "bottom": 180,
-        "width": 167,
-        "height": 170,
-        "radius": 84.57245414436073
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
       },
-      "sha256": "22d907b696e1ce50233ae37100781bb44c4252be4dbd968395aac41950cbf70f"
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
     },
     {
       "file": "public/icons/hoku-dunkel-512.png",
@@ -95,15 +197,15 @@
       "height": 512,
       "colorType": 2,
       "occupied": {
-        "left": 33,
-        "right": 478,
-        "top": 31,
-        "bottom": 480,
-        "width": 446,
-        "height": 450,
-        "radius": 226.1249654505225
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
       },
-      "sha256": "652f54fcf0b2d8a6dee17936fe7531b1fc981e848c9f2c99c9f4b4e319e6da44"
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
     },
     {
       "file": "public/icons/hoku-512.png",
@@ -112,15 +214,15 @@
       "height": 512,
       "colorType": 2,
       "occupied": {
-        "left": 33,
-        "right": 478,
-        "top": 31,
-        "bottom": 480,
-        "width": 446,
-        "height": 450,
-        "radius": 226.1249654505225
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
       },
-      "sha256": "652f54fcf0b2d8a6dee17936fe7531b1fc981e848c9f2c99c9f4b4e319e6da44"
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
     },
     {
       "file": "public/apple-touch-icon.png",
@@ -129,15 +231,49 @@
       "height": 180,
       "colorType": 2,
       "occupied": {
-        "left": 12,
-        "right": 167,
-        "top": 11,
-        "bottom": 168,
-        "width": 156,
-        "height": 158,
-        "radius": 79.30006305167733
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
       },
-      "sha256": "21b205b0add43069a9217513d76e8fcdf62ae7a20a106a6bac5af41decdb6776"
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
     },
     {
       "file": "public/icons/hoku-dunkel-1024.png",
@@ -146,15 +282,49 @@
       "height": 1024,
       "colorType": 2,
       "occupied": {
-        "left": 67,
-        "right": 957,
-        "top": 61,
-        "bottom": 962,
-        "width": 891,
-        "height": 902,
-        "radius": 453.4208861532517
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
       },
-      "sha256": "c9e50b6e09e044f661338d32d9f3caa8c35e3738570c7bbf27dbcb516cc6bbe1"
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
     },
     {
       "file": "public/icons/hoku-dunkel-maskable-512.png",
@@ -163,15 +333,15 @@
       "height": 512,
       "colorType": 2,
       "occupied": {
-        "left": 64,
-        "right": 447,
-        "top": 61,
-        "bottom": 450,
-        "width": 384,
-        "height": 390,
-        "radius": 195.53132741328176
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
       },
-      "sha256": "f47aaf9da06528aa441684fcdd457c66da0e8070c527fef33bc96d248c7ea2f8"
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
     },
     {
       "file": "public/icons/hoku-maskable-512.png",
@@ -180,15 +350,15 @@
       "height": 512,
       "colorType": 2,
       "occupied": {
-        "left": 64,
-        "right": 447,
-        "top": 61,
-        "bottom": 450,
-        "width": 384,
-        "height": 390,
-        "radius": 195.53132741328176
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
       },
-      "sha256": "f47aaf9da06528aa441684fcdd457c66da0e8070c527fef33bc96d248c7ea2f8"
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
     },
     {
       "file": "public/icon-192.png",
@@ -197,15 +367,15 @@
       "height": 192,
       "colorType": 2,
       "occupied": {
-        "left": 13,
-        "right": 179,
-        "top": 11,
-        "bottom": 180,
-        "width": 167,
-        "height": 170,
-        "radius": 84.57245414436073
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
       },
-      "sha256": "22d907b696e1ce50233ae37100781bb44c4252be4dbd968395aac41950cbf70f"
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
     },
     {
       "file": "public/icon-512.png",
@@ -214,15 +384,32 @@
       "height": 512,
       "colorType": 2,
       "occupied": {
-        "left": 33,
-        "right": 478,
-        "top": 31,
-        "bottom": 480,
-        "width": 446,
-        "height": 450,
-        "radius": 226.1249654505225
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
       },
-      "sha256": "652f54fcf0b2d8a6dee17936fe7531b1fc981e848c9f2c99c9f4b4e319e6da44"
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-16.png",
+      "kind": "favicon",
+      "width": 16,
+      "height": 16,
+      "colorType": 2,
+      "occupied": {
+        "left": 1,
+        "right": 13,
+        "top": 1,
+        "bottom": 14,
+        "width": 13,
+        "height": 14,
+        "radius": 7.1063352017759485
+      },
+      "sha256": "fddff42d5bc67a3a6609fe05f76c26c8ae573dd8f16246a74ec40a4506be38f3"
     },
     {
       "file": "public/icons/hoku-fav-dunkel-16.png",
@@ -232,14 +419,31 @@
       "colorType": 2,
       "occupied": {
         "left": 1,
-        "right": 14,
+        "right": 13,
         "top": 1,
         "bottom": 14,
-        "width": 14,
+        "width": 13,
         "height": 14,
-        "radius": 7.3824115301167
+        "radius": 7.1063352017759485
       },
-      "sha256": "7e376d63626b775db7159ef3aef02c483e04d918401e77ba27a6e64f301af676"
+      "sha256": "fddff42d5bc67a3a6609fe05f76c26c8ae573dd8f16246a74ec40a4506be38f3"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-32.png",
+      "kind": "favicon",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 29,
+        "top": 1,
+        "bottom": 30,
+        "width": 28,
+        "height": 30,
+        "radius": 14.57737973711325
+      },
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
     },
     {
       "file": "public/icons/hoku-fav-dunkel-32.png",
@@ -248,15 +452,15 @@
       "height": 32,
       "colorType": 2,
       "occupied": {
-        "left": 1,
-        "right": 30,
+        "left": 2,
+        "right": 29,
         "top": 1,
         "bottom": 30,
-        "width": 30,
+        "width": 28,
         "height": 30,
-        "radius": 14.916433890176297
+        "radius": 14.57737973711325
       },
-      "sha256": "7039d69d2d4ba55a3aca8d996fa9d2b3b785757e1dfb3a82ada5b6c052d6fd4b"
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
     },
     {
       "file": "public/icons/hoku-fav-blau-32.png",
@@ -265,15 +469,32 @@
       "height": 32,
       "colorType": 2,
       "occupied": {
-        "left": 1,
-        "right": 30,
+        "left": 2,
+        "right": 29,
         "top": 1,
         "bottom": 30,
-        "width": 30,
+        "width": 28,
         "height": 30,
-        "radius": 14.916433890176297
+        "radius": 14.57737973711325
       },
-      "sha256": "7039d69d2d4ba55a3aca8d996fa9d2b3b785757e1dfb3a82ada5b6c052d6fd4b"
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-48.png",
+      "kind": "favicon",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 45,
+        "top": 2,
+        "bottom": 45,
+        "width": 44,
+        "height": 44,
+        "radius": 21.965882636488796
+      },
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
     },
     {
       "file": "public/icons/hoku-fav-dunkel-48.png",
@@ -285,12 +506,12 @@
         "left": 2,
         "right": 45,
         "top": 2,
-        "bottom": 46,
+        "bottom": 45,
         "width": 44,
-        "height": 45,
-        "radius": 22.505554869853796
+        "height": 44,
+        "radius": 21.965882636488796
       },
-      "sha256": "7090caebc05e76e9a31c5aeab1b206e314d396ea616fdcbc764f387e7b8a32c3"
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
     },
     {
       "file": "public/icons/hoku-fav-blau-48.png",
@@ -302,12 +523,29 @@
         "left": 2,
         "right": 45,
         "top": 2,
-        "bottom": 46,
+        "bottom": 45,
         "width": 44,
-        "height": 45,
-        "radius": 22.505554869853796
+        "height": 44,
+        "radius": 21.965882636488796
       },
-      "sha256": "7090caebc05e76e9a31c5aeab1b206e314d396ea616fdcbc764f387e7b8a32c3"
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-64.png",
+      "kind": "favicon",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "occupied": {
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
+      },
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
     },
     {
       "file": "public/icons/hoku-fav-dunkel-64.png",
@@ -316,15 +554,15 @@
       "height": 64,
       "colorType": 2,
       "occupied": {
-        "left": 2,
-        "right": 61,
-        "top": 2,
-        "bottom": 61,
-        "width": 60,
-        "height": 60,
-        "radius": 30.008332176247315
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
       },
-      "sha256": "c86fbf93546fce5ca8f6d52ee86571520d139764a00bbe3b1ba230c2fe8dcf60"
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
     },
     {
       "file": "public/icons/hoku-fav-blau-64.png",
@@ -333,15 +571,15 @@
       "height": 64,
       "colorType": 2,
       "occupied": {
-        "left": 2,
-        "right": 61,
-        "top": 2,
-        "bottom": 61,
-        "width": 60,
-        "height": 60,
-        "radius": 30.008332176247315
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
       },
-      "sha256": "c86fbf93546fce5ca8f6d52ee86571520d139764a00bbe3b1ba230c2fe8dcf60"
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
     },
     {
       "file": "public/icons/hoku-dunkel-symbol-64.png",
@@ -358,7 +596,7 @@
         "height": 58,
         "radius": 29.334280287745255
       },
-      "sha256": "5bc0818933886bb39461772775b9e6cab90551a0ed7c53481e34d1353b62dabd"
+      "sha256": "568ca8970c6638c122e9899ed454bea04ff6ff97bd46d590c5af56b8b99efd2b"
     },
     {
       "file": "public/icons/hoku-dunkel-symbol-128.png",
@@ -373,9 +611,9 @@
         "bottom": 122,
         "width": 116,
         "height": 118,
-        "radius": 58.961852074031725
+        "radius": 59.11429607125505
       },
-      "sha256": "b2b36ee5f3d57ee2a445ab0b0a17f8d300e946f07cd87c90abfc45c5115d3e34"
+      "sha256": "37e90a19053b37efef6aa07dab7a39ecb02fef2afe6fbf1b4a5e6e2c883a4ce7"
     },
     {
       "file": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
@@ -384,15 +622,15 @@
       "height": 1024,
       "colorType": 2,
       "occupied": {
-        "left": 67,
-        "right": 957,
-        "top": 61,
-        "bottom": 962,
-        "width": 891,
-        "height": 902,
-        "radius": 453.4208861532517
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
       },
-      "sha256": "c9e50b6e09e044f661338d32d9f3caa8c35e3738570c7bbf27dbcb516cc6bbe1"
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
     },
     {
       "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
@@ -409,7 +647,7 @@
         "height": 48,
         "radius": 30.43846251044885
       },
-      "sha256": "7f64aee1de1402a97bdec96f635db5555c5b720c378b59b5e26085af03a171f9"
+      "sha256": "3a0ac53403a2276beb6819993ba30f76d2c1a2d0f94ac2d51b06c6f225a54a0a"
     },
     {
       "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
@@ -426,7 +664,7 @@
         "height": 48,
         "radius": 24.010414407085936
       },
-      "sha256": "0ec92984f86df0620a8bbaafeffd9a390f0ed105339053dad334b41d915c4d8d"
+      "sha256": "f7c7abf934c796539f8425ecbca880e513256995b45f761fca321295b6aff32c"
     },
     {
       "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
@@ -435,15 +673,15 @@
       "height": 108,
       "colorType": 6,
       "occupied": {
-        "left": 23,
-        "right": 84,
-        "top": 22,
-        "bottom": 85,
-        "width": 62,
-        "height": 64,
-        "radius": 31.85121661726597
+        "left": 26,
+        "right": 81,
+        "top": 26,
+        "bottom": 81,
+        "width": 56,
+        "height": 56,
+        "radius": 28.044607324760317
       },
-      "sha256": "8e84a781ab26fb7dbda019c54a2e1a43a866c1ffbf207816312915a1fac8c7a4"
+      "sha256": "78fa49be06d110e217d59c69a2cdfba68a3563220095492df85a3fe3143b4762"
     },
     {
       "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
@@ -460,7 +698,7 @@
         "height": 72,
         "radius": 45.39273069556402
       },
-      "sha256": "5619d8245c00656bb0093a5a8ccc99d2598a0009b677ab6bd11b211597709536"
+      "sha256": "ba210ab08928481cecc44ad86db62e8316e8b69963c918b91b4a62e1683bda39"
     },
     {
       "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
@@ -477,7 +715,7 @@
         "height": 72,
         "radius": 36.0347054934545
       },
-      "sha256": "a1ef7ed352b5a25e26d22a6c013cff2c1e2fe7f598d62fb0469ea7c5546cacf6"
+      "sha256": "4e5499a6c3252f73baecb40ddb521db30a5bd3b8c7f493022ccdc992f71b1a19"
     },
     {
       "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
@@ -486,15 +724,15 @@
       "height": 162,
       "colorType": 6,
       "occupied": {
-        "left": 34,
-        "right": 127,
-        "top": 33,
-        "bottom": 128,
-        "width": 94,
-        "height": 96,
-        "radius": 47.900939447989956
+        "left": 40,
+        "right": 122,
+        "top": 39,
+        "bottom": 122,
+        "width": 83,
+        "height": 84,
+        "radius": 42.101068870041765
       },
-      "sha256": "d8eee025d4a7dbe328e97aaeb9e826db4199ca13e40c15b21cd7203d07250bb0"
+      "sha256": "3a1d49116e8eb5a617d32c8de0e714e3af9c346f130ac59eb65674b945005953"
     },
     {
       "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
@@ -511,7 +749,7 @@
         "height": 96,
         "radius": 60.848171706305195
       },
-      "sha256": "bf539cd78e71a86f436adfc6b15574e09385d6115f2a2844d819b9108db0c819"
+      "sha256": "79b34a02b3d83ae8645048beeb2f09fecfcdeada52db27b973335b44a7380dac"
     },
     {
       "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
@@ -528,7 +766,7 @@
         "height": 96,
         "radius": 47.94267410147248
       },
-      "sha256": "affa85d147a0e92061a0345700004a6f298e51cec7839647544f2b41c42f1658"
+      "sha256": "c978a61bab64a01c373dd01793202ad76acbb599035b2e444130277f20cd5b1b"
     },
     {
       "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
@@ -537,15 +775,15 @@
       "height": 216,
       "colorType": 6,
       "occupied": {
-        "left": 45,
-        "right": 170,
-        "top": 44,
-        "bottom": 171,
-        "width": 126,
-        "height": 128,
-        "radius": 63.81614215854794
+        "left": 53,
+        "right": 163,
+        "top": 52,
+        "bottom": 163,
+        "width": 111,
+        "height": 112,
+        "radius": 56.14712815451917
       },
-      "sha256": "23c127b4a856fc06530bc2eed46b8375fb16c40e6df4a1c07900b34ad7a72e22"
+      "sha256": "077f95d6fd153cb90864f21a1d85c62b52e8827adf1e0670ed622256bbc6c69e"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
@@ -562,7 +800,7 @@
         "height": 144,
         "radius": 91.31538753134654
       },
-      "sha256": "1a7db468abaefccf00e0414afefe0bc881631f419d303b64d19d2bd1e8bab7ec"
+      "sha256": "aef65211cacb29180c2e254261192bb03a3784d9a42dbd4966686a1715895188"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
@@ -579,7 +817,7 @@
         "height": 144,
         "radius": 72.00347213850178
       },
-      "sha256": "5c6083b3b3481995e11cf570241434f9221eeef6b0e78aea3f49db47734f1894"
+      "sha256": "f3b2ddd954ff0ceafdbaf05ff392feceaa5eec151185948c8d50b013dd740324"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
@@ -588,15 +826,15 @@
       "height": 324,
       "colorType": 6,
       "occupied": {
-        "left": 68,
-        "right": 256,
-        "top": 66,
-        "bottom": 257,
-        "width": 189,
-        "height": 192,
-        "radius": 96.29382119326245
+        "left": 79,
+        "right": 244,
+        "top": 78,
+        "bottom": 245,
+        "width": 166,
+        "height": 168,
+        "radius": 84.4422879841611
       },
-      "sha256": "096e6343b67ee2050c3542de21a47fc5f22f24f60ce50d7d901d5b8e8d506897"
+      "sha256": "cd79988727227da8cd9afb707da19032e1c2571e8607337b370cd5b6fdb291f2"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
@@ -613,7 +851,7 @@
         "height": 192,
         "radius": 121.78875153313626
       },
-      "sha256": "c34e1bf5a87f9510b044cc2479bb3a8804fa5fbf5a36f500967301102393e21e"
+      "sha256": "fd1a0d0a92977e044b891e42f96333ceb0f693a9ed0225bae0d9e453186a7cb0"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
@@ -630,7 +868,7 @@
         "height": 192,
         "radius": 96.07549115148983
       },
-      "sha256": "57d031f9dbd2e736d1224a199f34e53bc60bed81583438b3cbc57b34dc9df42d"
+      "sha256": "ff7a856c7673907e3bcd7f56c4ccbe964e0906b3cf38e5c5ec9cb6abf33b6519"
     },
     {
       "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
@@ -639,15 +877,15 @@
       "height": 432,
       "colorType": 6,
       "occupied": {
-        "left": 90,
-        "right": 341,
-        "top": 88,
-        "bottom": 343,
-        "width": 252,
-        "height": 256,
-        "radius": 128.06443690580144
+        "left": 105,
+        "right": 326,
+        "top": 103,
+        "bottom": 327,
+        "width": 222,
+        "height": 225,
+        "radius": 113.19231422671771
       },
-      "sha256": "d28871ad29e2c1a102b0d6ebbc91201773e71210ec91f4891b805123f5e06fa7"
+      "sha256": "19b591c1e5177e08841c3d6e9477d6a49495bada8196c20645afbd857be1cd1e"
     },
     {
       "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png",
@@ -656,15 +894,15 @@
       "height": 2732,
       "colorType": 2,
       "occupied": {
-        "left": 1042,
-        "right": 1689,
+        "left": 1044,
+        "right": 1687,
         "top": 1038,
         "bottom": 1693,
-        "width": 648,
+        "width": 644,
         "height": 656,
-        "radius": 329.284831111304
+        "radius": 329.12687523202965
       },
-      "sha256": "ab7c375603ebec6ee6f87f931b1a0666ca00dfc81e8c83fef740cc9f351c81ab"
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
     },
     {
       "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png",
@@ -673,15 +911,15 @@
       "height": 2732,
       "colorType": 2,
       "occupied": {
-        "left": 1042,
-        "right": 1689,
+        "left": 1044,
+        "right": 1687,
         "top": 1038,
         "bottom": 1693,
-        "width": 648,
+        "width": 644,
         "height": 656,
-        "radius": 329.284831111304
+        "radius": 329.12687523202965
       },
-      "sha256": "ab7c375603ebec6ee6f87f931b1a0666ca00dfc81e8c83fef740cc9f351c81ab"
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
     },
     {
       "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png",
@@ -690,15 +928,15 @@
       "height": 2732,
       "colorType": 2,
       "occupied": {
-        "left": 1042,
-        "right": 1689,
+        "left": 1044,
+        "right": 1687,
         "top": 1038,
         "bottom": 1693,
-        "width": 648,
+        "width": 644,
         "height": 656,
-        "radius": 329.284831111304
+        "radius": 329.12687523202965
       },
-      "sha256": "ab7c375603ebec6ee6f87f931b1a0666ca00dfc81e8c83fef740cc9f351c81ab"
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
     },
     {
       "file": "android/app/src/main/res/drawable/splash.png",
@@ -713,9 +951,9 @@
         "bottom": 197,
         "width": 76,
         "height": 76,
-        "radius": 38.34709897762802
+        "radius": 38.451267859460756
       },
-      "sha256": "3a3c758f5ffbf174074272f9949e5abf7aa2f8fffc6f81fe2494364ccce29ce4"
+      "sha256": "003be21a2672c6fd0db4cb791405e4c519e8a496716da6ff3f5aaebb9fac811b"
     },
     {
       "file": "android/app/src/main/res/drawable-land-hdpi/splash.png",
@@ -730,9 +968,9 @@
         "bottom": 297,
         "width": 114,
         "height": 116,
-        "radius": 57.6584772605035
+        "radius": 57.55432216610669
       },
-      "sha256": "76de59182aeddc66c457f3b46ffe44dc47fbc706b4368d82428fb13ca4737238"
+      "sha256": "2ac70f8207b8f3b6b9db8652393b89eb04422d781465e1d67b28075a56ca011b"
     },
     {
       "file": "android/app/src/main/res/drawable-land-mdpi/splash.png",
@@ -747,9 +985,9 @@
         "bottom": 197,
         "width": 76,
         "height": 76,
-        "radius": 38.34709897762802
+        "radius": 38.451267859460756
       },
-      "sha256": "3a3c758f5ffbf174074272f9949e5abf7aa2f8fffc6f81fe2494364ccce29ce4"
+      "sha256": "003be21a2672c6fd0db4cb791405e4c519e8a496716da6ff3f5aaebb9fac811b"
     },
     {
       "file": "android/app/src/main/res/drawable-land-xhdpi/splash.png",
@@ -764,9 +1002,9 @@
         "bottom": 445,
         "width": 170,
         "height": 172,
-        "radius": 86.64006001844643
+        "radius": 86.40891157745247
       },
-      "sha256": "f7262be2cf378b3ddfa3aae28ab4c08e9ca5cdcda04c5cd8e999bd98904a1661"
+      "sha256": "4f04f97a4354a911ba97b9a5eed50c52bdac7d719d15ad8d31d763ea3d007e74"
     },
     {
       "file": "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
@@ -775,15 +1013,15 @@
       "height": 960,
       "colorType": 2,
       "occupied": {
-        "left": 686,
-        "right": 913,
+        "left": 687,
+        "right": 912,
         "top": 365,
         "bottom": 594,
-        "width": 228,
+        "width": 226,
         "height": 230,
-        "radius": 115.70868593152376
+        "radius": 115.68275584545864
       },
-      "sha256": "a21e49f70d6c250217ef7826a77ec5c8058cefd6791a9ba855276935e37bf06b"
+      "sha256": "3ba5b43c27475fa4f1b5054ed299f8d929d858ba52eae57e1eadbf28ebe1d903"
     },
     {
       "file": "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
@@ -792,15 +1030,15 @@
       "height": 1280,
       "colorType": 2,
       "occupied": {
-        "left": 808,
-        "right": 1111,
+        "left": 809,
+        "right": 1110,
         "top": 486,
         "bottom": 793,
-        "width": 304,
+        "width": 302,
         "height": 308,
-        "radius": 154.34539189752311
+        "radius": 154.00811666921973
       },
-      "sha256": "aadf7e30b98c357fca6e01ee8a58a5b114c89059d7ab54e9fc70c5168b82f3b3"
+      "sha256": "7f6c04aa8f6323059e431e5edd1fff5d54197fe4c1c120d6bc9d25105e9a307e"
     },
     {
       "file": "android/app/src/main/res/drawable-port-hdpi/splash.png",
@@ -815,9 +1053,9 @@
         "bottom": 457,
         "width": 114,
         "height": 116,
-        "radius": 57.6584772605035
+        "radius": 57.55432216610669
       },
-      "sha256": "3d10d58516de6aee0ffedd49c8e0359c1fcc16ec949a23560e9b1a05d61b8a13"
+      "sha256": "46a919a6ee76c44288be21a3f0af1bf5678f754931883827a6e1bbff4aa9b657"
     },
     {
       "file": "android/app/src/main/res/drawable-port-mdpi/splash.png",
@@ -832,9 +1070,9 @@
         "bottom": 277,
         "width": 76,
         "height": 76,
-        "radius": 38.34709897762802
+        "radius": 38.451267859460756
       },
-      "sha256": "0cb922a88b5c8d68dd30aaa6991c91295961190a5191b413f6aa27c25f1f4367"
+      "sha256": "61d082b218b2be712b384e97e0803e9da78f329a4a5da0e47c9ee23422e9c990"
     },
     {
       "file": "android/app/src/main/res/drawable-port-xhdpi/splash.png",
@@ -849,9 +1087,9 @@
         "bottom": 725,
         "width": 170,
         "height": 172,
-        "radius": 86.64006001844643
+        "radius": 86.40891157745247
       },
-      "sha256": "69d213894931a5ad13fb18f384943cb1bec528216df97ac19d02cb5d132cce36"
+      "sha256": "4deaa291c7d27c0b9304bdbc098fdac471ecb1ec84ce0b1347e3f333e6d4275a"
     },
     {
       "file": "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
@@ -860,15 +1098,15 @@
       "height": 1600,
       "colorType": 2,
       "occupied": {
-        "left": 366,
-        "right": 593,
+        "left": 367,
+        "right": 592,
         "top": 685,
         "bottom": 914,
-        "width": 228,
+        "width": 226,
         "height": 230,
-        "radius": 115.70868593152376
+        "radius": 115.68275584545864
       },
-      "sha256": "11f22df1bb6d50b972a6ea560d0b28ed2701ef3faa8ca91872c35526a945a677"
+      "sha256": "205ba03945934c6289ab0c7817c7d2d962bb5f396b68d62725c589e1f021cf14"
     },
     {
       "file": "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
@@ -877,16 +1115,16 @@
       "height": 1920,
       "colorType": 2,
       "occupied": {
-        "left": 488,
-        "right": 791,
+        "left": 489,
+        "right": 790,
         "top": 806,
         "bottom": 1113,
-        "width": 304,
+        "width": 302,
         "height": 308,
-        "radius": 154.34539189752311
+        "radius": 154.00811666921973
       },
-      "sha256": "ee9546d1f28095fdcca42976789e925e02696c50501aeff245d6ff181e9dfcdb"
+      "sha256": "be4b9901b390e3d2023d616651eceadb3e89f87fd63b563b8b9e7752caad87d6"
     }
   ],
-  "faviconSha256": "aa132326ecb3a35723fb6de8fcb71b3872d7e30339808dd1912c2aeb077f0eca"
+  "faviconSha256": "583726503c1e76bee4f5acdf02e74892d0a3b066f4a56c0325d160cea03f9bf7"
 }

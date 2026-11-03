@@ -21,7 +21,7 @@
 .tyd-dot-blase {
   position: absolute; left: 0; top: 0; max-width: 240px; padding: 8px 12px; border-radius: 16px;
   font-size: 13px; line-height: 1.35; color: var(--text, #f5f5f7); pointer-events: none;
-  background: rgba(36, 36, 40, 0.94); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: rgba(36, 36, 40, 0.94); box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 8px 24px rgba(0, 0, 0, 0.45);
   opacity: 0; scale: 0.9; transition: opacity 180ms var(--lg-ease-out), scale 220ms var(--lg-ease-out);
 }
 .tyd-dot-blase[data-zeigen='true'] { opacity: 1; scale: 1; }
@@ -77,7 +77,7 @@
   border-radius: 14px; background: rgba(44, 44, 46, 0.98); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 .tyd-dot-menue button { text-align: left; padding: 11px 12px; border: 0; border-radius: 10px; background: none; color: var(--text, #f5f5f7); font-size: 15px; }
-.tyd-dot-menue button:active { background: rgba(255, 255, 255, 0.08); }
+.tyd-dot-menue button:active { background: rgb(var(--ink-rgb) / 0.08); }
 .tyd-dot-buehne { height: 150px; flex: none; }
 @media (max-height: 700px) { .tyd-dot-buehne { height: 104px; } }
 .tyd-dot-status { min-height: 18px; margin: 0; text-align: center; font-size: 13px; color: var(--text-muted, #98989d); }
@@ -85,7 +85,7 @@
 .tyd-dot-intro { margin: auto 8px 8px; text-align: center; color: var(--text-muted, #98989d); font-size: 14px; line-height: 1.45; text-wrap: balance; }
 .tyd-dot-msg { max-width: 84%; padding: 10px 13px; border-radius: 18px; font-size: 15px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tyd-dot-msg[data-rolle='ich'] { align-self: flex-end; background: var(--lg-accent, #00ccf5); color: #00141c; border-bottom-right-radius: 6px; }
-.tyd-dot-msg[data-rolle='dot'] { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border-bottom-left-radius: 6px; }
+.tyd-dot-msg[data-rolle='dot'] { align-self: flex-start; background: rgb(var(--ink-rgb) / 0.08); border-bottom-left-radius: 6px; }
 .tyd-dot-msg[data-karte='true'] { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .tyd-dot-zurueck {
   border: 0; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600;
@@ -115,7 +115,7 @@
 @keyframes tyd-dot-mikro { from { box-shadow: 0 0 0 0 rgba(0, 204, 245, 0.55); } to { box-shadow: 0 0 0 8px rgba(0, 204, 245, 0); } }
 @media (prefers-reduced-motion: reduce) { .tyd-dot-senden[data-mikro='an'] { animation: none; box-shadow: 0 0 0 3px rgba(0, 204, 245, 0.45); } }
 .tyd-dot-hinweis { margin: 6px 0 8px; text-align: center; font-size: 11px; color: var(--text-muted, #98989d); }
-.tyd-dot-einw { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; margin: auto 0 12px; border-radius: 20px; background: rgba(255, 255, 255, 0.06); }
+.tyd-dot-einw { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; margin: auto 0 12px; border-radius: 20px; background: rgb(var(--ink-rgb) / 0.06); }
 .tyd-dot-einw h2 { margin: 0 0 8px; font-size: 18px; }
 .tyd-dot-einw p, .tyd-dot-einw li { font-size: 14px; line-height: 1.45; color: var(--text-muted, #c7c7cc); }
 .tyd-dot-einw ul { margin: 10px 0 14px; padding-left: 18px; display: grid; gap: 4px; }
@@ -145,3 +145,29 @@
   .tyd-dot-arbeitet .tyd-dot-kugel, .tyd-dot-arbeitet .tyd-dot-funke { animation: none; }
 }
 @keyframes tyd-dot-puls { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* Seite „Hoku“ im Profil: Bühne, auf der er sitzt, und die Schalter darunter */
+.tyd-hoku-zurueck { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -6px 0 0 -12px; color: var(--lg-text-2); }
+/* Platzhalter in der Seite; die Bühne selbst heftet sich oben an, sobald man an ihr vorbeiscrollt */
+.tyd-hoku-platz { --hoku-oben: calc(env(safe-area-inset-top, 0px) + 6px); scroll-margin-top: var(--hoku-oben); height: 170px; margin-top: 12px; }
+.tyd-hoku-buehne {
+  height: 100%; border-radius: var(--r-xl, 22px);
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 58%, rgba(110, 220, 255, 0.10), transparent 70%),
+    linear-gradient(var(--lg-surface-2, rgba(255, 255, 255, 0.04)), var(--lg-surface-2, rgba(255, 255, 255, 0.04))),
+    var(--c-bg, #000);
+}
+.tyd-hoku-buehne[data-angeheftet='true'] {
+  position: fixed; top: var(--hoku-oben); height: 170px; z-index: 30;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.85);
+}
+@media (max-height: 700px) { .tyd-hoku-platz, .tyd-hoku-buehne[data-angeheftet='true'] { height: 130px; } }
+.tyd-hoku-buehne-text { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }
+.tyd-hoku-einst-karte { display: flex; flex-direction: column; gap: 14px; }
+.tyd-hoku-einst > button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px;
+  background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font: inherit;
+}
+.tyd-hoku-einst > button[aria-disabled='true'] { cursor: default; opacity: 0.6; }
+.tyd-hoku-einst-titel { flex: 1; font-size: 15px; color: var(--lg-text); }
+.tyd-hoku-einst > p { margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }

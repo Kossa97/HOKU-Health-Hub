@@ -1,336 +1,159 @@
-<title>Hoku Werkbank</title>
+<title>Hoku Notizen</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: eine Spalte. Oben "Für dich zu tun", dann Filter, Ideen, Arbeiten nach "wer ist dran" gruppiert */
-/* Nur dunkel: fast schwarzer Grund wie Hokus Erscheinungsbild, Hoku-Blau als Akzent, Status als Signalfarben */
+/* Notizen, Ideen und To-dos in vier Feldern nach Wichtigkeit und Dringlichkeit.
+   Handy: alles untereinander. PC: links Eingabe und Erledigtes, rechts die vier Felder bildschirmfüllend. */
+/* Nur dunkel: fast schwarzer Grund wie Hokus Erscheinungsbild, Hoku-Blau als Akzent */
 :root{
   --bg:#050607; --surface:#0e1012; --surface-2:#15181b; --line:#23272b; --line-2:#30363b;
   --fg:#eef1f3; --muted:#8a939b; --accent:#7ab8ff; --accent-soft:rgba(122,184,255,.12); --on-accent:#04121f;
-  --wait:#ff9f5a; --wait-soft:rgba(255,159,90,.12); --run:#4fd1b5; --run-soft:rgba(79,209,181,.12);
-  --pause:#aab0cc; --pause-soft:rgba(170,176,204,.12); --done:#76808a; --done-soft:rgba(118,128,138,.14);
-  --warn:#f2c453; --warn-soft:rgba(242,196,83,.12); --star:#f2c453; --hot:#ff7a6b;
-  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --run:#4fd1b5; --pause:#aab0cc; --warn:#f2c453; --star:#f2c453; --hot:#ff7a6b;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
   --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
-.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
-h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+h1 .ic{width:22px;height:22px;color:var(--accent)}
 .sub{color:var(--muted);font-size:14px;margin:2px 0 0}
-h2{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:0}
-.section{display:flex;flex-direction:column;gap:10px}
 .box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
-
-/* Für dich zu tun */
-.todo{border:2px solid var(--wait);background:var(--surface)}
-.todo h2{color:var(--wait);font-size:15px;text-transform:none;letter-spacing:0}
-.task{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
-.task:first-of-type{border-top:0}
-.task input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
-.task .t{flex:1;min-width:0}
-.task .from{display:block;font-size:12px;color:var(--muted)}
-.task.done .txt{text-decoration:line-through;color:var(--muted)}
-.qmark{flex:none;width:18px;height:18px;border-radius:50%;background:var(--wait);color:var(--surface);font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:3px}
-.calm{color:var(--muted);font-size:14px}
-/* Verschieben: gedrückt halten, ziehen. Nur transform, Nachbarn gleiten per Übergang */
-.task{position:relative;background:var(--surface);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  transition:transform 200ms cubic-bezier(0.23,1,0.32,1),box-shadow 150ms cubic-bezier(0.23,1,0.32,1)}
-.task.lifted{z-index:2;transition:box-shadow 150ms cubic-bezier(0.23,1,0.32,1);box-shadow:0 8px 24px rgba(0,0,0,.18);border-radius:10px;border-top-color:transparent}
-.task.settling{transition:transform 200ms cubic-bezier(0.23,1,0.32,1)}
-.task:not(.done){cursor:grab}
-.task.lifted{cursor:grabbing}
-.task:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
-.task .ghost{flex:none;align-self:center}
-.bullet{flex:none;width:8px;height:8px;border-radius:50%;background:var(--wait);margin:8px 5px 0}
-.tick{flex:none;width:18px;color:var(--accent);font-weight:700;margin-top:1px;text-align:center}
-details.donelist{border-top:1px solid var(--line);padding-top:8px}
-details.donelist>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:4px 0}
-.todo .hint{color:var(--muted);font-size:12px;margin:-4px 0 0}
-@media (prefers-reduced-motion: reduce){.task,.task.settling{transition:box-shadow 150ms ease}}
-
-/* Filter */
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
-.chip b{font-variant-numeric:tabular-nums}
-.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
-
-.warn{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px}
-.warn strong{display:block}
-
-/* Eingaben */
-label.k,.k{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-textarea,input[type=text],select{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-textarea{width:100%;min-height:64px;resize:vertical}
-.row select{flex:1;min-width:0}
+.k{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;width:100%;min-height:72px;resize:vertical}
 button{font:inherit;cursor:pointer}
-.primary{font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:8px;padding:8px 16px}
-.ghost{font-size:13px;font-weight:600;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
-.ghost[aria-pressed="true"]{border-color:var(--star);color:var(--star)}
-button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:9px 18px;display:inline-flex;align-items:center;gap:6px;margin-left:auto;box-shadow:0 6px 20px -8px rgba(122,184,255,.6)}
+.ghost{font-size:13px;font-weight:600;background:var(--surface-2);color:var(--fg);border:1px solid var(--line-2);border-radius:8px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px}
+.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* Karten */
-.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.head{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.head h3{font-size:17px;margin:0;text-wrap:balance;min-width:0;flex:1}
-.badges{display:flex;gap:6px;flex-wrap:wrap}
-.badge{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
-.b-start{background:var(--warn-soft);color:var(--star)}
-.b-still{background:var(--pause-soft);color:var(--pause)}
-.b-ort{background:var(--bg);color:var(--muted);border:1px solid var(--line);font-weight:500}
-.what{color:var(--muted);margin:-6px 0 0;font-size:14px}
-.ask{background:var(--wait-soft);color:var(--wait);border-radius:10px;padding:10px 12px;font-size:14px}
-.ask strong{display:block}
-.lines{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
-.lines dt{color:var(--muted);font-weight:600}
-.lines dd{margin:0;min-width:0}
-.lines .ago{color:var(--muted);font-size:12px;margin-left:6px;white-space:nowrap}
-
-/* Fortschritts-Stufen */
-.steps{display:flex;gap:4px;list-style:none;margin:0;padding:0}
-.steps li{flex:1;display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--muted);min-width:0}
-.steps li::before{content:"";height:6px;border-radius:3px;background:var(--line)}
-.steps li.past::before{background:var(--c)}
-.steps li.now::before{background:var(--c)}
-.steps li.now{color:var(--fg);font-weight:700}
-.steps span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.actions select{font-size:13px;padding:6px 8px;border-radius:8px}
-.copied{font-size:12px;color:var(--accent)}
-a.ghost{text-decoration:none;display:inline-flex}
-a.fenster{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.fhint{font-size:13px;color:var(--fg);background:var(--accent-soft);border-radius:8px;padding:6px 10px;flex-basis:100%}
-.fhint strong{font-weight:700}
-.copybox{width:100%;font-size:13px}
-
-details.tech{border-top:1px dashed var(--line);padding-top:10px}
-details.tech summary{cursor:pointer;color:var(--muted);font-size:13px}
-details.tech .in{display:flex;flex-direction:column;gap:8px;margin-top:8px;font-size:13px}
-details.tech ul{margin:0;padding-left:18px}
-details.tech dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;color:var(--muted)}
-details.tech dd{margin:0;overflow-wrap:anywhere}
-details.tech a{color:var(--accent)}
-
-/* Notizen · Ideen · To-dos: vier Felder nach Wichtigkeit und Dringlichkeit.
-   Die Spalte misst ihre eigene Breite: schmal untereinander, breit als 2×2. */
-.ideacol{container-type:inline-size}
-.qopts{gap:6px}
+/* Wahlknöpfe: Art und Gewichtung */
 .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:2px}
 .seg button{border:0;background:none;color:var(--muted);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:background-color 150ms ease,color 150ms ease}
 .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--fg)}
 .tog{font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--bg);color:var(--muted);border-radius:999px;padding:4px 10px;display:inline-flex;align-items:center;gap:5px;transition:transform 120ms var(--ease-out),background-color 150ms ease,color 150ms ease,border-color 150ms ease}
 .tog[aria-pressed="true"]{color:var(--c);border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
 .tog[aria-pressed="true"] .ic{fill:currentColor}
-.tog:active{transform:scale(.97)}
-.matrix{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-@container (min-width:480px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.feld{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:background-color 150ms ease,border-color 150ms ease}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.chip b{font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+/* Die vier Felder */
+.matrix{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.feld{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;transition:background-color 150ms ease,border-color 150ms ease}
 .feld.over{background:color-mix(in srgb,var(--c) 10%,var(--surface));border-color:var(--c)}
-.feld-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;min-width:0}
-.feld-h .ic{color:var(--c)}
+.feld-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;min-width:0}
+.feld-h .ic{color:var(--c);width:18px;height:18px}
 .feld-h small{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feld-h .count{margin-left:auto;background:var(--surface-2);border-radius:999px;padding:0 8px;font-size:12px}
-.nrows{display:flex;flex-direction:column;gap:6px}
-.nrows.clip{overflow:hidden;border-radius:10px}
-.nleer{color:var(--muted);font-size:12px;border:1px dashed var(--line-2);border-radius:8px;padding:8px;text-align:center}
-.nrow{position:relative;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 10px;
+.feld-h .count{margin-left:auto;background:var(--surface-2);border-radius:999px;padding:0 9px;font-size:12px}
+.nrows{display:flex;flex-direction:column;gap:6px;min-height:0}
+.nleer{color:var(--muted);font-size:12px;border:1px dashed var(--line-2);border-radius:10px;padding:10px;text-align:center;margin:0}
+.nrow{position:relative;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 9px 9px 11px;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;
-  transition:transform 200ms var(--ease-out),box-shadow 150ms var(--ease-out),border-color 150ms ease}
-.nrow.lifted{z-index:5;cursor:grabbing;border-color:var(--line-2);box-shadow:0 16px 36px -12px rgba(0,0,0,.85);transition:box-shadow 150ms var(--ease-out)}
+  transition:transform 200ms var(--ease-out),opacity 150ms ease,border-color 150ms ease}
+.nrow.hold{opacity:0}
 .nrow.settling{transition:transform 220ms var(--ease-out)}
 .nrow.leaving{opacity:0;transform:translateX(16px);transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out)}
 .nrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .nrow>.ic{margin-top:3px;color:var(--ac)}
 .nrow .t{flex:1;min-width:0}
-.nrow .txt{display:block;font-size:14px;overflow-wrap:anywhere}
-.nrow .meta{display:block;font-size:11px;color:var(--muted)}
-.nrow .taken{color:var(--accent)}
-.iconbtn{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--bg);border:1px solid var(--line-2);color:var(--run);transition:transform 120ms var(--ease-out),border-color 150ms ease}
-.iconbtn:active{transform:scale(.94)}
+.nrow .txt{display:block;font-size:15px;overflow-wrap:anywhere}
+.nrow .meta{display:block;font-size:12px;color:var(--muted)}
+/* der angehobene Eintrag schwebt als Kopie über allem, damit kein Feldrand ihn abschneidet */
+.ghostrow{position:fixed;z-index:50;margin:0;pointer-events:none;cursor:grabbing;border-color:var(--line-2);box-shadow:0 18px 40px -12px rgba(0,0,0,.9);transition:none}
+.iconbtn{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:8px;background:var(--bg);border:1px solid var(--line-2);color:var(--run);transition:transform 120ms var(--ease-out),border-color 150ms ease}
+.iconbtn:active,.tog:active,.ghost:active,.chip:active,.primary:active{transform:scale(.97)}
+.ghost,.chip,.primary{transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
 .nedit{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--line);animation:fadeIn 200ms var(--ease-out) both}
 .nedit .del{margin-left:auto;color:var(--muted)}
 .nedit .del[data-armed]{color:var(--hot);border-color:var(--hot)}
-.ndone .nrow{cursor:default;opacity:.75}
-.ndone .nrow .txt{text-decoration:line-through;color:var(--muted)}
-details.ndone{margin-top:4px}
+
+/* Erledigt */
 details.ndone>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:4px 0}
 details.ndone .nrows{margin-top:8px}
-@media (hover:hover) and (pointer:fine){.nrow:not(.lifted):hover{border-color:var(--line-2)}}
-@media (prefers-reduced-motion: reduce){.nrow,.nrow.settling{transition:box-shadow 150ms ease}.nrow.leaving{transform:none}.nedit{animation:none}}
-details.donegroup>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600}
-.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:20px;color:var(--muted);font-size:14px}
-.note{color:var(--muted);font-size:13px}
-@media (max-width:420px){.steps span{font-size:10px}}
-.side,.board,.ideacol{display:flex;flex-direction:column;gap:22px;min-width:0}
-.ideacol{gap:12px}
-.ideacol-h{font-size:13px}
-.more-btn{display:none}
-.split{display:none}
+.ndone .nrow{cursor:default}
+.ndone .nrow .txt{text-decoration:line-through;color:var(--muted)}
+.hinweis{color:var(--muted);font-size:13px;margin:0}
 
-/* Großer Bildschirm: links "Für dich zu tun", Mitte alle Arbeiten als Kartenraster, rechts die Notizen.
-   Jeder Bereich scrollt für sich; die Ränder dazwischen lassen sich ziehen. */
-@media (min-width:1200px){
+.split{display:none}
+@media (hover:hover) and (pointer:fine){.nrow:hover{border-color:var(--line-2)}.ghost:hover{border-color:var(--muted)}.chip:hover{border-color:var(--line-2)}}
+
+/* Großer Bildschirm: links Eingabe, Filter und Erledigtes; rechts die vier Felder füllen den Rest.
+   Jedes Feld scrollt für sich. Die Grenze dazwischen lässt sich ziehen. */
+@media (min-width:1000px){
   html,body{height:100%}
   body{padding-block:16px}
-  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:var(--w-todo,320px) 20px minmax(0,1fr) 20px var(--w-ideas,560px);
-    grid-template-areas:"head head head head head" "todo sl board sr ideas";grid-template-rows:auto 1fr;gap:16px 0}
-  .split{display:block;position:relative;cursor:col-resize;touch-action:none}
-  #split-l{grid-area:sl}
-  #split-r{grid-area:sr}
+  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:var(--w-seite,380px) 20px minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"head sl main" "form sl main" "done sl main";gap:16px 0}
+  .wrap>header{grid-area:head}
+  #eingabe{grid-area:form}
+  #erledigt{grid-area:done;overflow-y:auto;min-height:0;padding-right:4px}
+  main{grid-area:main;min-height:0;container-type:inline-size;display:flex;flex-direction:column;overflow-y:auto}
+  .matrix{flex:1;min-height:0;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+  .feld .nrows{overflow-y:auto;flex:1;padding:2px;margin:-2px}
+  textarea{min-height:120px;font-size:17px}
+  .split{display:block;grid-area:sl;position:relative;cursor:col-resize;touch-action:none}
   .split::after{content:"";position:absolute;inset:0 9px;border-radius:1px;background:var(--line);transition:background-color 150ms ease,transform 150ms var(--ease-out)}
   .split:hover::after,.split.active::after,.split:focus-visible::after{background:var(--accent);transform:scaleX(1.5)}
   .split:focus-visible{outline:none}
   body.resizing{cursor:col-resize;-webkit-user-select:none;user-select:none}
-  .wrap>header{grid-area:head;display:flex;align-items:baseline;gap:16px}
-  .side{grid-area:todo;overflow-y:auto;min-height:0;padding-right:4px;gap:16px}
-  .board{grid-area:board;overflow-y:auto;min-height:0;gap:16px;padding-right:4px}
-  .ideacol{grid-area:ideas;overflow-y:auto;min-height:0;padding-right:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .ideacol .box{background:var(--bg)}
-  .ideacol-h{font-size:18px;text-transform:none;letter-spacing:0;color:var(--fg)}
-  .ideacol #q-text{min-height:140px;font-size:17px}
-  .ideacol .feld{background:var(--bg)}
-  .card .head h3{flex:1 1 14ch}
-  .topbar{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:12px}
-  .topbar #warnings{flex:1;min-width:280px}
-  #list>.col{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;align-items:start}
-  #list>.col>h2,#list>.col>details{grid-column:1/-1}
-  #list>.col-fertig .donecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;align-items:start}
-  .card{padding:14px;gap:10px}
-  .card .head h3{font-size:15px}
-  .card:not(.open) .detail{display:none}
-  .card .more-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:0;color:var(--accent);font-size:12px;font-weight:600;padding:2px 0;margin-left:auto}
 }
+/* Felder als 2×2, sobald genug Breite da ist; sehr schmal untereinander (dann scrollt die Seite) */
+@container (min-width:560px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:559px){.matrix{grid-template-rows:none;flex:none}.feld .nrows{overflow:visible}}
+@media (min-width:600px) and (max-width:999px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* Symbole */
-.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
-.ghost,.primary,.badge,.chip{display:inline-flex;align-items:center;gap:6px}
-.head h3{flex:1 1 12ch}
-.badge .ic{width:12px;height:12px}
-.b-start .ic{fill:currentColor}
-.starbtn[aria-pressed="true"] .ic{fill:currentColor}
-h2 .ic,.todo h2 .ic{width:18px;height:18px;margin-right:6px;vertical-align:-4px}
-h2.grp{display:flex;align-items:center;gap:8px}
-h2.grp .ic{color:var(--c);margin:0}
-h2.grp .count{background:var(--surface-2);color:var(--fg);border-radius:999px;padding:0 8px;font-size:12px;letter-spacing:0}
-.warn{display:grid;grid-template-columns:auto 1fr;column-gap:10px}
-.warn .warn-ic{grid-row:span 2;width:20px;height:20px;margin-top:2px}
-.ghost.ok{color:var(--run);border-color:color-mix(in srgb,var(--run) 40%,var(--line))}
-.more-btn .chev{width:14px;height:14px;transition:transform 200ms var(--ease-out)}
-.card.open .more-btn .chev{transform:rotate(180deg)}
-
-/* Tiefe im Dunkeln: Flächen leicht abgesetzt, Akzent-Schein an der Seite */
-.box,.card{background:var(--surface);border-color:var(--line)}
-.todo{border-color:var(--wait);box-shadow:0 0 0 1px rgba(255,159,90,.15),0 10px 40px -20px rgba(255,159,90,.45)}
-.card{border-left-width:3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
-.chip{background:var(--surface);border-color:var(--line)}
-.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
-textarea,input[type=text],select{background:var(--bg);border-color:var(--line-2)}
-.ghost{background:var(--surface-2);border-color:var(--line-2)}
-.primary{box-shadow:0 6px 20px -8px rgba(122,184,255,.6)}
-
-/* Bewegung: Rückmeldung beim Drücken, sanftes Anheben, Einblenden beim ersten Laden */
-.ghost,.primary,.chip{transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
-.ghost:active,.primary:active,.chip:active{transform:scale(.97)}
-@media (hover:hover) and (pointer:fine){
-  .card{transition:transform 200ms var(--ease-out),border-color 200ms ease,box-shadow 200ms var(--ease-out)}
-  .card:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 12px 30px -18px rgba(0,0,0,.9)}
-  .ghost:hover{border-color:var(--muted)}
-  .chip:hover{border-color:var(--line-2)}
-}
+/* Bewegung */
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@keyframes glow{0%{box-shadow:0 0 0 1px var(--accent),0 0 24px -4px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
-.enter{animation:rise 300ms var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 35ms)}
-.enter .steps li.past::before,.enter .steps li.now::before{transform-origin:left;animation:fill 500ms var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 35ms + 150ms)}
-.card.opening .detail{animation:fadeIn 200ms var(--ease-out) both}
-.card.fresh{animation:glow 1400ms var(--ease-out)}
-.task.leaving{opacity:0;transform:translateX(16px);transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out)}
+.enter{animation:rise 300ms var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 40ms)}
 @media (prefers-reduced-motion: reduce){
-  .enter,.card.opening .detail{animation:fadeIn 150ms ease both;animation-delay:0s}
-  .enter .steps li::before{animation:none}
-  .card:hover{transform:none}
-  .task.leaving{transform:none}
-  .ghost:active,.primary:active,.chip:active,.tog:active,.iconbtn:active{transform:none}
+  .enter,.nedit{animation:fadeIn 150ms ease both;animation-delay:0s}
+  .nrow,.nrow.settling{transition:opacity 150ms ease}
+  .nrow.leaving{transform:none}
+  .iconbtn:active,.tog:active,.ghost:active,.chip:active,.primary:active{transform:none}
 }
 </style>
 
 <div class="wrap">
   <header>
-    <h1>Hoku Werkbank</h1>
-    <p class="sub" id="status">Lade Arbeiten …</p>
+    <h1><span class="h-ic" data-ic="note"></span>Hoku Notizen</h1>
+    <p class="sub" id="status">Lade …</p>
   </header>
 
-  <aside class="side">
-    <section class="box todo" aria-labelledby="todo-h">
-      <h2 id="todo-h"><span class="h-ic" data-ic="inbox"></span>Für dich zu tun</h2>
-      <div id="todo"><p class="calm">Lade …</p></div>
-    </section>
-  </aside>
-
-  <div class="split" id="split-l" role="separator" aria-orientation="vertical" aria-label="Breite von „Für dich zu tun“" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
-
-  <aside class="ideacol" aria-labelledby="ideen-h">
-    <h2 id="ideen-h" class="ideacol-h"><span class="h-ic" data-ic="note"></span>Notizen · Ideen · To-dos</h2>
+  <section id="eingabe" class="section" style="display:flex;flex-direction:column;gap:12px">
     <form class="box" id="quick">
       <label class="k" for="q-text">Neuer Eintrag</label>
       <textarea id="q-text" placeholder="Notiz, Idee oder To-do …"></textarea>
-      <div class="row qopts" id="q-opts"></div>
-      <div class="row">
-        <select id="q-arbeit" aria-label="Zu welcher Arbeit gehört der Eintrag"></select>
-        <button class="primary" type="submit"><span class="h-ic" data-ic="plus"></span>Speichern</button>
-      </div>
+      <div class="row" id="q-opts"></div>
+      <div class="row"><button class="primary" type="submit"><span class="h-ic" data-ic="plus"></span>Speichern</button></div>
     </form>
+    <div class="chips" id="chips" role="group" aria-label="Nach Art filtern"></div>
+  </section>
 
-    <div id="notes" class="section"></div>
-  </aside>
+  <div class="split" id="split" role="separator" aria-orientation="vertical" aria-label="Breite der linken Spalte" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
 
-  <div class="split" id="split-r" role="separator" aria-orientation="vertical" aria-label="Breite von „Notizen · Ideen · To-dos“" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
+  <main><div class="matrix" id="matrix"></div></main>
 
-  <main class="board">
-    <div class="section topbar">
-      <div class="chips" id="chips" role="group" aria-label="Arbeiten filtern"></div>
-      <div id="warnings" class="section"></div>
-    </div>
-    <div id="list" class="section"></div>
-    <p class="note">Jedes Claude-Fenster trägt hier am Ende seiner Runde ein, was passiert ist und was als Nächstes kommt. Du änderst nur, wer dran ist, setzt Sterne für den Start, hakst deine Aufgaben ab und schreibst Notizen, Ideen und To-dos dazu. Einträge gedrückt halten und in ein anderes Feld ziehen ändert ihre Gewichtung; antippen zeigt mehr Möglichkeiten. Am PC lassen sich die Spalten an ihren Rändern breiter oder schmaler ziehen. „Zum Fenster“ öffnet bei Cloud-Arbeiten direkt das Cloud-Fenster (auch am Handy). Bei Arbeiten auf dem Computer lässt die Claude-App keinen direkten Sprung zu; der Knopf zeigt dann den Namen des Fensters in der Seitenleiste.</p>
-  </main>
+  <section id="erledigt">
+    <div id="done"></div>
+    <p class="hinweis">Eintrag gedrückt halten und ziehen: verschieben, auch in ein anderes Feld. Antippen: Art und Gewichtung ändern oder löschen.</p>
+  </section>
 </div>
 
 <script>
-const ORDER=["wartet","laeuft","pausiert","fertig"];
-const META={
-  wartet:{icon:"user",label:"Wartet auf dich",short:"Du bist dran",c:"--wait",cs:"--wait-soft"},
-  laeuft:{icon:"play",label:"In Arbeit",short:"Claude ist dran",c:"--run",cs:"--run-soft"},
-  pausiert:{icon:"pause",label:"Pausiert",short:"Pausiert",c:"--pause",cs:"--pause-soft"},
-  fertig:{icon:"check",label:"Erledigt",short:"Erledigt",c:"--done",cs:"--done-soft"}
-};
-const STUFEN=[["idee","Idee"],["geplant","Geplant"],["bau","Wird gebaut"],["pruefung","Wird geprüft"],["live","In der App"]];
-const STILL_TAGE=14;
-let arbeiten=[],ideen=[],filter=null,db=null,readOnly=false;
 const $=s=>document.querySelector(s);
-const el=(t,props={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(props)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}for(const k of kids)if(k!=null&&k!==false)e.append(k);return e};
-// Symbole: eigene schlichte Linien-Icons (24er Raster, Strichstärke 2), Farbe vom Text
+const el=(t,props={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(props)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else e.setAttribute(k,v)}for(const k of kids)if(k!=null&&k!==false)e.append(k);return e};
+// Symbole: schlichte Linien-Icons (24er Raster, Strichstärke 2), Farbe vom Text
 const ICONS={
   check:'<path d="M20 6 9 17l-5-5"/>',
-  open:'<path d="M7 17 17 7M8 7h9v9"/>',
-  copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
-  star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
-  cloud:'<path d="M17.5 19H8a5.5 5.5 0 1 1 5.2-7.3A4 4 0 1 1 17.5 19z"/>',
-  monitor:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-  play:'<path d="M7 4.5v15l12-7.5z"/>',
-  pause:'<path d="M8 5v14M16 5v14"/>',
-  inbox:'<path d="M3 13h5l2 3h4l2-3h5"/><path d="M5.5 5h13L21 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/>',
-  alert:'<path d="M10.3 4 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
-  chevron:'<path d="m6 9 6 6 6-6"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H12"/>',
   note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
@@ -338,322 +161,21 @@ const ICONS={
   flag:'<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>',
   flame:'<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.5 1 2.5 2 3 0-3-.5-5.5.5-8z"/>',
   later:'<path d="M5 12h14M13 6l6 6-6 6"/>',
-  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
-  sprout:'<path d="M12 20v-8M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 12c0-3 2.5-5 6-5 0 3.5-2.5 5-6 5z"/>'
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'
 };
-function ic(name,cls=""){
+function ic(name){
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("aria-hidden","true");svg.setAttribute("class",("ic "+cls).trim());
+  svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("aria-hidden","true");svg.setAttribute("class","ic");
   svg.innerHTML=ICONS[name];return svg;
 }
 const lbl=(name,text)=>[ic(name),el("span",{text})];
 const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
-const tageHer=iso=>iso?Math.floor((Date.now()-new Date(iso))/864e5):0;
 function ago(iso){if(!iso)return"";const d=(Date.now()-new Date(iso))/60000;if(d<1)return"gerade eben";if(d<60)return`vor ${Math.round(d)} Min.`;const h=d/60;if(h<24)return`vor ${Math.round(h)} Std.`;const t=Math.round(h/24);return t===1?"gestern":`vor ${t} Tagen`}
-const liegtStill=a=>a.status!=="fertig"&&tageHer(a.aktualisiert)>=STILL_TAGE;
-const deinTeil=a=>Array.isArray(a.deinTeil)?a.deinTeil.map(x=>typeof x==="string"?{text:x,erledigt:false}:x):[];
 
-async function save(path,data){if(!db||readOnly)return;try{await db.doc(path).update(data)}catch(e){fail(e)}}
+let ideen=[],db=null,readOnly=false,dragging=false,renderPending=false,animateIn=false;
+async function save(id,data){if(!db||readOnly)return;try{await db.doc(`ideen/${id}`).update(data)}catch(e){fail(e)}}
 function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#status").textContent="Speichern hat nicht geklappt. Bitte die Seite neu laden und noch einmal versuchen."}
 
-function render(){
-  if(dragging){renderPending=true;return}
-  const focusId=document.activeElement?.id;
-  draw();
-  if(focusId)document.getElementById(focusId)?.focus();
-}
-
-function draw(){
-  drawTodo();drawChips();drawWarnings();drawQuickSelect();
-  queueMicrotask(()=>{
-    if(animateIn)document.querySelectorAll("#todo .task, #list .card, #notes .feld").forEach((n,i)=>{n.classList.add("enter");n.style.setProperty("--i",Math.min(i,14))});
-    animateIn=false;justOpened=null;freshIds=new Set();
-  });
-  const list=$("#list");list.replaceChildren();
-  drawNotes();
-  if(!arbeiten.length){list.append(el("div",{class:"empty",text:"Noch keine Arbeiten eingetragen. Sobald ein Claude-Fenster seine Runde beendet, erscheint es hier."}));return}
-
-  let shown=arbeiten;
-  if(filter==="start")shown=arbeiten.filter(a=>a.fuerStart);
-  else if(filter==="still")shown=arbeiten.filter(liegtStill);
-  else if(filter)shown=arbeiten.filter(a=>a.status===filter);
-  if(!shown.length){list.append(el("div",{class:"empty",text:"Keine Arbeiten für diesen Filter."}));return}
-
-  for(const s of ORDER){
-    const items=shown.filter(a=>(a.status||"laeuft")===s).sort((a,b)=>(b.fuerStart?1:0)-(a.fuerStart?1:0)||(b.aktualisiert||"").localeCompare(a.aktualisiert||""));
-    if(!items.length)continue;
-    const g=el("section",{class:`section col col-${s}`});g.dataset.status=s;
-    g.style.setProperty("--c",`var(${META[s].c})`);
-    if(s==="fertig"&&!filter){
-      const d=el("details",{class:"donegroup",id:"done-group"},el("summary",{text:`${META[s].label} (${items.length})`}));
-      if(openDone)d.open=true;d.addEventListener("toggle",()=>{openDone=d.open});
-      const inner=el("div",{class:"section donecards"});inner.style.marginTop="10px";inner.append(...items.map(card));d.append(inner);g.append(d);
-    }else{
-      g.append(el("h2",{class:"grp"},ic(META[s].icon),el("span",{text:META[s].label}),el("span",{class:"count",text:String(items.length)})),...items.map(card));
-    }
-    list.append(g);
-  }
-}
-let openDone=false,openCards=new Set();
-// Bewegung: Einblenden nur beim ersten Laden, Aufleuchten nur bei Änderungen aus anderen Fenstern
-let animateIn=false,justOpened=null,freshIds=new Set(),lastSeen=null;
-
-function todoItems(){
-  const items=[];
-  for(const a of arbeiten){
-    if(a.status==="wartet"&&a.wartetAuf)items.push({key:`frage:${a.id}`,a,frage:true});
-    deinTeil(a).forEach((d,idx)=>{if(!d.erledigt)items.push({key:`teil:${a.id}:${d.text}`,a,d,idx})});
-  }
-  // eigene Reihenfolge zuerst, neue Einträge hinten anhängen
-  const pos=new Map(reihenfolge.map((k,i)=>[k,i]));
-  return items.map((it,i)=>({it,i})).sort((x,y)=>(pos.get(x.it.key)??1e6+x.i)-(pos.get(y.it.key)??1e6+y.i)).map(x=>x.it);
-}
-
-function setErledigt(a,idx,wert){
-  const list=deinTeil(a);
-  list[idx]=wert?{...list[idx],erledigt:true,erledigtAm:new Date().toISOString()}:{text:list[idx].text,erledigt:false};
-  save(`arbeiten/${a.id}`,{deinTeil:list});
-}
-
-function drawTodo(){
-  const box=$("#todo");box.replaceChildren();
-  const items=todoItems();
-  const list=el("div",{class:"tasks"});
-  if(!items.length)box.append(el("p",{class:"calm",text:"Gerade hängt nichts an dir."}));
-  else if(items.length>1&&!readOnly)box.append(el("p",{class:"hint",text:"Zeile gedrückt halten und ziehen, um die Reihenfolge zu ändern."}));
-  for(const it of items){
-    const{a}=it;let row;
-    if(it.frage){
-      const t=el("div",{class:"t"},el("span",{class:"txt",text:a.wartetAuf}),el("span",{class:"from",text:`Frage aus „${a.titel}“, im Fenster beantworten`}));
-      row=el("div",{class:"task"},el("span",{class:"qmark","aria-hidden":"true",text:"?"}),t,fensterButton(a)||copyButton(a));
-    }else{
-      const t=el("div",{class:"t"},el("span",{class:"txt",text:it.d.text}),el("span",{class:"from",text:`für „${a.titel}“`}));
-      const done=el("button",{type:"button",class:"ghost ok"},...lbl("check","Erledigt"));done.disabled=readOnly;
-      // kurz ausblenden, dann speichern: man sieht, dass der Klick angekommen ist
-      done.addEventListener("click",()=>{row.classList.add("leaving");setTimeout(()=>setErledigt(a,it.idx,true),reduceMotion()?0:180)});
-      row=el("div",{class:"task"},el("span",{class:"bullet","aria-hidden":"true"}),t,done);
-    }
-    row.dataset.key=it.key;
-    if(items.length>1&&!readOnly){
-      // Tastatur: Zeile anwählen, Pfeil hoch/runter
-      row.tabIndex=0;row.id=`row-${it.key}`;row.setAttribute("aria-label",`${row.querySelector(".txt").textContent}. Mit Pfeil hoch oder runter verschieben.`);
-      row.addEventListener("keydown",ev=>{
-        if(ev.target!==row)return;
-        const d=ev.key==="ArrowUp"?-1:ev.key==="ArrowDown"?1:0;if(!d)return;ev.preventDefault();
-        const keys=items.map(x=>x.key),i=keys.indexOf(it.key),j=i+d;if(j<0||j>=keys.length)return;
-        [keys[i],keys[j]]=[keys[j],keys[i]];saveOrder(keys);render();document.getElementById(row.id)?.focus();
-      });
-      enableDrag(row,list);
-    }
-    list.append(row);
-  }
-  box.append(list);
-
-  // Erledigtes eingeklappt, neuestes oben
-  const erledigt=[];
-  for(const a of arbeiten)deinTeil(a).forEach((d,idx)=>{if(d.erledigt)erledigt.push({a,d,idx})});
-  if(erledigt.length){
-    erledigt.sort((x,y)=>(y.d.erledigtAm||"").localeCompare(x.d.erledigtAm||""));
-    const det=el("details",{class:"donelist",id:"todo-erledigt"},el("summary",{text:`Erledigt (${erledigt.length})`}));
-    if(openErledigt)det.open=true;
-    det.addEventListener("toggle",()=>{openErledigt=det.open});
-    for(const{a,d,idx}of erledigt){
-      const back=el("button",{type:"button",class:"ghost"},...lbl("undo","Zurückholen"));back.disabled=readOnly;
-      back.addEventListener("click",()=>setErledigt(a,idx,false));
-      det.append(el("div",{class:"task done"},el("span",{class:"tick","aria-hidden":"true",text:"✓"}),
-        el("div",{class:"t"},el("span",{class:"txt",text:d.text}),el("span",{class:"from",text:`für „${a.titel}“${d.erledigtAm?` · ${ago(d.erledigtAm)}`:""}`})),back));
-    }
-    box.append(det);
-  }
-}
-let openErledigt=false;
-
-let reihenfolge=[],dragging=false,renderPending=false;
-async function saveOrder(keys){
-  reihenfolge=keys;
-  if(!db||readOnly)return;
-  try{await db.doc("einstellungen/todo").set({reihenfolge:keys})}catch(e){fail(e)}
-}
-
-// Gedrückt halten (350 ms) hebt den Eintrag an, dann folgt er dem Finger; die anderen machen Platz.
-function enableDrag(row,box){
-  let timer=null,startY=0,startX=0,pid=null,rows=[],from=0,to=0,step=0;
-  const cancelWait=()=>{clearTimeout(timer);timer=null};
-  row.addEventListener("pointerdown",ev=>{
-    if(ev.button!==0||dragging)return;
-    if(ev.target.closest("input,a,button,.copybox"))return;
-    startY=ev.clientY;startX=ev.clientX;pid=ev.pointerId;
-    timer=setTimeout(()=>lift(),350);
-  });
-  row.addEventListener("pointermove",ev=>{
-    if(ev.pointerId!==pid)return;
-    if(timer&&Math.hypot(ev.clientX-startX,ev.clientY-startY)>8){cancelWait();return}
-    if(!dragging||!row.classList.contains("lifted"))return;
-    const dy=ev.clientY-startY;
-    row.style.transform=`translateY(${dy}px) scale(1.03)`;
-    // Ziel-Platz aus der Mitte des gezogenen Eintrags
-    const mid=rows[from].top+rows[from].h/2+dy;
-    to=rows.findIndex(r=>mid<r.top+r.h);if(to<0)to=rows.length-1;
-    rows.forEach((r,i)=>{if(i===from)return;
-      const shift=(from<to&&i>from&&i<=to)?-step:(from>to&&i<from&&i>=to)?step:0;
-      r.el.style.transform=shift?`translateY(${shift}px)`:""});
-  });
-  const end=ev=>{
-    if(ev&&ev.pointerId!==pid)return;
-    cancelWait();
-    if(!dragging||!row.classList.contains("lifted"))return;
-    // auf den Ziel-Platz gleiten, dann neue Reihenfolge übernehmen
-    const target=rows[to].top-rows[from].top+(to>from?rows[to].h-rows[from].h:0);
-    row.classList.remove("lifted");row.classList.add("settling");
-    row.style.transform=`translateY(${target}px)`;
-    const keys=rows.map(r=>r.el.dataset.key);const [k]=keys.splice(from,1);keys.splice(to,0,k);
-    // ein Klick auf das Label nach dem Ziehen soll nichts abhaken
-    row.addEventListener("click",e=>{e.preventDefault();e.stopPropagation()},{capture:true,once:true});
-    const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setTimeout(()=>{dragging=false;if(from!==to)saveOrder(keys);renderPending=false;render()},reduce?0:200);
-  };
-  row.addEventListener("pointerup",end);
-  row.addEventListener("pointercancel",end);
-  row.addEventListener("contextmenu",ev=>{if(timer||dragging)ev.preventDefault()});
-  // Während des Ziehens darf die Seite nicht scrollen
-  row.addEventListener("touchmove",ev=>{if(dragging)ev.preventDefault()},{passive:false});
-  function lift(){
-    timer=null;dragging=true;
-    rows=[...box.querySelectorAll(":scope>.task")].map(el=>{const r=el.getBoundingClientRect();return{el,top:r.top,h:r.height}});
-    from=to=rows.findIndex(r=>r.el===row);
-    step=rows[from].h;
-    try{row.setPointerCapture(pid)}catch(e){}
-    row.classList.add("lifted");row.style.transform="scale(1.03)";
-    navigator.vibrate?.(10);
-  }
-}
-
-function drawChips(){
-  const chips=$("#chips");chips.replaceChildren();
-  const add=(key,label,count,color,icon)=>{
-    const b=el("button",{class:"chip",type:"button","aria-pressed":String(filter===key),onclick:()=>{filter=filter===key?null:key;render()}});
-    if(icon){const i=ic(icon);i.style.color=`var(${color})`;b.append(i)}
-    b.append(el("span",{text:label}),el("b",{text:String(count)}));chips.append(b);
-  };
-  for(const s of ORDER)add(s,META[s].label,arbeiten.filter(a=>a.status===s).length,META[s].c,META[s].icon);
-  add("start","Für den Start nötig",arbeiten.filter(a=>a.fuerStart&&a.status!=="fertig").length,"--star","star");
-  add("still","Liegt still",arbeiten.filter(liegtStill).length,"--pause","clock");
-}
-
-function drawWarnings(){
-  const w=$("#warnings");w.replaceChildren();
-  const byFolder={};
-  for(const a of arbeiten){if(a.status==="fertig"||!a.ordner||a.ort==="cloud")continue;(byFolder[a.ordner]??=[]).push(a)}
-  for(const list of Object.values(byFolder)){
-    if(list.length<2)continue;
-    const box=el("div",{class:"warn"},ic("alert","warn-ic"),el("strong",{text:`${list.length} Arbeiten basteln an derselben Stelle`}));
-    box.append(document.createTextNode(`${list.map(a=>a.titel).join(", ")}. Sie können sich gegenseitig in die Quere kommen. Sag dem nächsten Fenster einer dieser Arbeiten: „Zieh in einen eigenen Arbeitsbereich um.“`));
-    w.append(box);
-  }
-}
-
-function drawQuickSelect(){
-  const sel=$("#q-arbeit"),cur=sel.value;sel.replaceChildren(el("option",{value:"",text:"Neue Arbeit / allgemein"}));
-  for(const a of arbeiten.filter(a=>a.status!=="fertig"))sel.append(el("option",{value:a.id,text:a.titel}));
-  sel.value=[...sel.options].some(o=>o.value===cur)?cur:"";
-}
-
-// Knopf, der das Claude-Fenster der Arbeit öffnet. Cloud-Fenster sind normale Webadressen;
-// Fenster auf dem Computer öffnen sich über die Claude-App (claude://). Bleibt die Seite
-// danach im Vordergrund, hat sich vermutlich nichts geöffnet: dann Link kopieren und erklären.
-function fensterButton(a){
-  const link=a.sitzungLink||"";
-  const web=/^https:\/\/claude\.ai\//.test(link),app=/^claude:\/\//.test(link);
-  if(!web&&!app)return null;
-  const wrap=el("span",{class:"actions"});
-  if(web){
-    wrap.append(el("a",{class:"ghost fenster",href:link,target:"_blank",rel:"noopener",title:"Öffnet das Cloud-Fenster dieser Arbeit"},...lbl("open","Zum Fenster")));
-    return wrap;
-  }
-  // Fenster auf dem Computer: Die Claude-App lässt aus dieser Seite keinen Sprung zu.
-  // Stattdessen den genauen Namen in der Seitenleiste zeigen.
-  const name=a.fensterTitel||a.titel;
-  const b=el("button",{type:"button",class:"ghost fenster"},...lbl("open","Zum Fenster"));
-  b.addEventListener("click",()=>{
-    wrap.querySelector(".fhint")?.remove();
-    const msg=el("span",{class:"fhint"},"In der Claude-App links in der Seitenleiste: ",el("strong",{text:`„${name}“`}));
-    wrap.append(msg);setTimeout(()=>msg.remove(),10000);
-  });
-  wrap.append(b);return wrap;
-}
-
-function copyButton(a){
-  const wrap=el("span",{class:"actions"});
-  const text=`Mach mit der Arbeit „${a.titel}“ weiter. Lies zuerst ihren Eintrag „${a.id}“ in der Hoku Werkbank: Stand, offene Punkte und meine Ideen.`;
-  const b=el("button",{class:"ghost",type:"button"},...lbl("copy","Weitermachen"));
-  b.title="Kopiert einen Satz, den du in ein neues Claude-Fenster einfügst";
-  b.addEventListener("click",()=>{
-    const done=()=>{b.textContent="Kopiert ✓";setTimeout(()=>b.textContent="Weitermachen",2000)};
-    const fallback=()=>{if(wrap.querySelector("input"))return;const i=el("input",{type:"text",class:"copybox","aria-label":"Text zum Kopieren"});i.value=text;wrap.append(i);i.select()};
-    try{navigator.clipboard.writeText(text).then(done,fallback)}catch(e){fallback()}
-  });
-  wrap.append(b);return wrap;
-}
-
-function card(a){
-  const m=META[a.status]||META.laeuft;
-  const c=el("article",{class:"card"+(openCards.has(a.id)?" open":"")+(justOpened===a.id?" opening":"")+(freshIds.has(a.id)?" fresh":"")});c.style.setProperty("--c",`var(${m.c})`);c.dataset.id=a.id;
-
-  const badges=el("div",{class:"badges"});
-  if(a.fuerStart)badges.append(el("span",{class:"badge b-start"},...lbl("star","Für den Start")));
-  badges.append(el("span",{class:"badge b-ort",title:a.ort==="cloud"?"Läuft in einem Cloud-Fenster (claude.ai)":"Läuft in einem Fenster auf deinem Computer"},...lbl(a.ort==="cloud"?"cloud":"monitor",a.ort==="cloud"?"Cloud":"Computer")));
-  if(liegtStill(a))badges.append(el("span",{class:"badge b-still",title:`Liegt seit ${tageHer(a.aktualisiert)} Tagen still`},...lbl("clock",`${tageHer(a.aktualisiert)} Tage still`)));
-  // auf der Tafel: Karte kompakt, "Mehr" klappt Details auf
-  const more=el("button",{type:"button",class:"more-btn","aria-expanded":String(openCards.has(a.id))},el("span",{text:openCards.has(a.id)?"Weniger":"Mehr"}),ic("chevron","chev"));
-  more.addEventListener("click",()=>{if(openCards.has(a.id))openCards.delete(a.id);else{openCards.add(a.id);justOpened=a.id}render()});
-  c.append(el("div",{class:"head"},el("h3",{text:a.titel}),badges,more));
-  if(a.wasIstDas)c.append(el("p",{class:"what detail",text:a.wasIstDas}));
-
-  // Fortschritt
-  const idx=STUFEN.findIndex(([k])=>k===a.stufe);
-  if(idx>=0){
-    const ol=el("ol",{class:"steps","aria-label":`Fortschritt: ${STUFEN[idx][1]}`});
-    STUFEN.forEach(([,label],i)=>ol.append(el("li",{class:i<idx?"past":i===idx?"now":""},el("span",{text:label}))));
-    c.append(ol);
-  }
-
-  if(a.status==="wartet"&&a.wartetAuf)c.append(el("div",{class:"ask"},el("strong",{text:"Wartet auf deine Antwort"}),a.wartetAuf));
-
-  const dl=el("dl",{class:"lines"});
-  if(a.letzterSchritt)dl.append(el("dt",{class:"detail",text:"Zuletzt"}),el("dd",{class:"detail"},a.letzterSchritt,el("span",{class:"ago",text:ago(a.aktualisiert)})));
-  if(a.naechsterSchritt)dl.append(el("dt",{text:"Als Nächstes"}),el("dd",{text:a.naechsterSchritt}));
-  const offenDu=deinTeil(a).filter(d=>!d.erledigt);
-  if(offenDu.length)dl.append(el("dt",{class:"detail",text:"Von dir"}),el("dd",{class:"detail",text:offenDu.map(d=>d.text).join(" · ")}));
-  if(dl.childNodes.length)c.append(dl);
-
-  // Aktionen
-  const act=el("div",{class:"actions"});
-  const st=el("select",{class:"detail","aria-label":`Wer ist dran bei ${a.titel}`,id:`st-${a.id}`});
-  for(const s of ORDER)st.append(el("option",{value:s,text:META[s].short}));
-  st.value=a.status||"laeuft";st.disabled=readOnly;
-  st.addEventListener("change",()=>save(`arbeiten/${a.id}`,{status:st.value,aktualisiert:new Date().toISOString()}));
-  const star=el("button",{class:"ghost starbtn",type:"button","aria-pressed":String(!!a.fuerStart)},...lbl("star",a.fuerStart?"Für den Start nötig":"Für den Start nötig?"));
-  star.disabled=readOnly;star.addEventListener("click",()=>save(`arbeiten/${a.id}`,{fuerStart:!a.fuerStart}));
-  act.append(st,star);
-  const fb=fensterButton(a);if(fb)act.append(fb);
-  if(a.status!=="fertig"){const cp=copyButton(a);cp.classList.add("detail");act.append(cp)}
-  c.append(act);
-
-  // Technik-Details
-  const offen=Array.isArray(a.offen)?a.offen:[];
-  const tech=el("details",{class:"tech detail"},el("summary",{text:`Technik-Details${offen.length?` · ${offen.length} ${offen.length===1?"offener Punkt":"offene Punkte"} für Claude`:""}`}));
-  const inner=el("div",{class:"in"});
-  if(offen.length){const u=el("ul");offen.forEach(o=>u.append(el("li",{text:o})));inner.append(el("div",{},el("div",{class:"k",text:"Offen für Claude"}),u))}
-  const meta=el("dl");
-  if(a.branch)meta.append(el("dt",{text:"Branch"}),el("dd",{text:a.branch}));
-  if(a.ordner)meta.append(el("dt",{text:"Ordner"}),el("dd",{text:a.ordner}));
-  if(a.pr&&/^https:\/\//.test(a.pr))meta.append(el("dt",{text:"Pull Request"}),el("dd",{},el("a",{href:a.pr,target:"_blank",rel:"noopener",text:a.pr.replace(/^https:\/\/github\.com\//,"")})));
-  if(meta.childNodes.length)inner.append(meta);
-  if(inner.childNodes.length){tech.append(inner);c.append(tech)}
-  return c;
-}
-
-// ---- Notizen · Ideen · To-dos ----
 // Gewichtung wie die Eisenhower-Matrix: zwei Fragen (wichtig? dringend?) ergeben vier Felder.
 const FELDER=[
   {key:"wd",label:"Wichtig & dringend",sub:"Zuerst",icon:"flame",c:"--hot"},
@@ -667,25 +189,41 @@ const feldOf=i=>FELDER.some(f=>f.key===i.feld)?i.feld:"s";
 const feldAus=(w,d)=>w&&d?"wd":w?"w":d?"d":"s";
 // eigene Reihenfolge über "pos"; ohne pos: neueste oben
 const rang=i=>typeof i.pos==="number"?i.pos:-Date.parse(i.am||0)/1000;
-let artFilter=null,openNote=null,openNDone=false;
-const titelVon=id=>arbeiten.find(a=>a.id===id)?.titel;
+let artFilter=null,openNote=null,openDone=false;
 const sichtbar=feld=>ideen.filter(i=>!i.erledigt&&feldOf(i)===feld&&(!artFilter||artOf(i)===artFilter)).sort((x,y)=>rang(x)-rang(y));
 
-function drawNotes(){
-  const box=$("#notes");box.replaceChildren();
+function render(){
+  if(dragging){renderPending=true;return}
+  const focusId=document.activeElement?.id;
+  drawChips();drawMatrix();drawDone();drawStatus();
+  if(focusId&&focusId!=="q-text")document.getElementById(focusId)?.focus();
+  if(animateIn){
+    document.querySelectorAll("#matrix .feld").forEach((n,i)=>{n.classList.add("enter");n.style.setProperty("--i",i)});
+    animateIn=false;
+  }
+}
+
+function drawStatus(){
+  if(!db)return;
+  const offen=ideen.filter(i=>!i.erledigt),zuerst=offen.filter(i=>feldOf(i)==="wd").length;
+  $("#status").textContent=`${offen.length} offen${zuerst?` · ${zuerst} wichtig und dringend`:""}`;
+}
+
+function drawChips(){
+  const box=$("#chips");box.replaceChildren();
   const offen=ideen.filter(i=>!i.erledigt);
-  const chips=el("div",{class:"chips",role:"group","aria-label":"Nach Art filtern"});
   const add=(key,label,n,icon,c)=>{
     const b=el("button",{class:"chip",type:"button","aria-pressed":String(artFilter===key)});
     if(icon){const i=ic(icon);i.style.color=`var(${c})`;b.append(i)}
     b.append(el("span",{text:label}),el("b",{text:String(n)}));
-    b.addEventListener("click",()=>{artFilter=artFilter===key?null:key;render()});chips.append(b);
+    b.addEventListener("click",()=>{artFilter=artFilter===key?null:key;render()});box.append(b);
   };
   add(null,"Alle",offen.length);
   for(const[k,a]of Object.entries(ARTEN))add(k,a.mehr,offen.filter(i=>artOf(i)===k).length,a.icon,a.c);
-  box.append(chips);
+}
 
-  const matrix=el("div",{class:"matrix"});
+function drawMatrix(){
+  const matrix=$("#matrix");matrix.replaceChildren();
   for(const f of FELDER){
     const items=sichtbar(f.key);
     const rows=el("div",{class:"nrows"});
@@ -695,47 +233,42 @@ function drawNotes(){
     s.dataset.feld=f.key;s.style.setProperty("--c",`var(${f.c})`);
     matrix.append(s);
   }
-  box.append(matrix);
+}
 
-  // Erledigtes eingeklappt, neuestes oben
+// Erledigtes eingeklappt, neuestes oben
+function drawDone(){
+  const box=$("#done");box.replaceChildren();
   const done=ideen.filter(i=>i.erledigt).sort((x,y)=>(y.erledigtAm||y.am||"").localeCompare(x.erledigtAm||x.am||""));
-  if(done.length){
-    const det=el("details",{class:"ndone"},el("summary",{text:`Erledigt (${done.length})`}));
-    if(openNDone)det.open=true;det.addEventListener("toggle",()=>{openNDone=det.open});
-    const rows=el("div",{class:"nrows"});
-    for(const i of done){
-      const back=el("button",{type:"button",class:"ghost"},...lbl("undo","Zurückholen"));back.disabled=readOnly;
-      back.addEventListener("click",()=>save(`ideen/${i.id}`,{erledigt:false,erledigtAm:null}));
-      const r=el("div",{class:"nrow"},ic(ARTEN[artOf(i)].icon),el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)})),back);
-      r.style.setProperty("--ac",`var(${ARTEN[artOf(i)].c})`);rows.append(r);
-    }
-    det.append(rows);box.append(det);
+  if(!done.length)return;
+  const det=el("details",{class:"ndone"},el("summary",{text:`Erledigt (${done.length})`}));
+  if(openDone)det.open=true;det.addEventListener("toggle",()=>{openDone=det.open});
+  const rows=el("div",{class:"nrows"});
+  for(const i of done){
+    const back=el("button",{type:"button",class:"ghost"},...lbl("undo","Zurückholen"));back.disabled=readOnly;
+    back.addEventListener("click",()=>save(i.id,{erledigt:false,erledigtAm:null}));
+    const r=el("div",{class:"nrow"},ic(ARTEN[artOf(i)].icon),el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)})),back);
+    r.style.setProperty("--ac",`var(${ARTEN[artOf(i)].c})`);rows.append(r);
   }
+  det.append(rows);box.append(det);
 }
 
-function metaText(i){
-  const parts=[ARTEN[artOf(i)].label];
-  const t=titelVon(i.arbeit);if(t)parts.push(`für „${t}“`);
-  parts.push(i.erledigt&&i.erledigtAm?`erledigt ${ago(i.erledigtAm)}`:ago(i.am));
-  return parts.join(" · ");
-}
+const metaText=i=>[ARTEN[artOf(i)].label,i.erledigt&&i.erledigtAm?`erledigt ${ago(i.erledigtAm)}`:ago(i.am)].join(" · ");
 
 function noteRow(i){
   const art=artOf(i),feld=feldOf(i);
   const row=el("div",{class:"nrow",id:`n-${i.id}`});row.dataset.id=i.id;
   row.style.setProperty("--ac",`var(${ARTEN[art].c})`);
   const t=el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)}));
-  if(!i.arbeit&&i.uebernehmen)t.append(el("span",{class:"meta taken",text:"Das nächste Claude-Fenster macht daraus eine Arbeit."}));
   const done=el("button",{type:"button",class:"iconbtn","aria-label":"Erledigt",title:"Erledigt"},ic("check"));done.disabled=readOnly;
   // kurz wegschieben, dann speichern: man sieht, dass der Klick angekommen ist
-  done.addEventListener("click",()=>{row.classList.add("leaving");setTimeout(()=>save(`ideen/${i.id}`,{erledigt:true,erledigtAm:new Date().toISOString()}),reduceMotion()?0:180)});
+  done.addEventListener("click",()=>{row.classList.add("leaving");setTimeout(()=>save(i.id,{erledigt:true,erledigtAm:new Date().toISOString()}),reduceMotion()?0:180)});
   row.append(ic(ARTEN[art].icon),t,done);
   if(readOnly)return row;
 
   // Antippen klappt Einstellungen auf, gedrückt halten hebt den Eintrag zum Verschieben an
   row.tabIndex=0;row.setAttribute("aria-expanded",String(openNote===i.id));
   row.setAttribute("aria-label",`${i.text}. Antippen für Einstellungen, Pfeil hoch oder runter zum Verschieben.`);
-  row.addEventListener("click",ev=>{if(ev.target.closest("button,select,input"))return;openNote=openNote===i.id?null:i.id;render()});
+  row.addEventListener("click",ev=>{if(ev.target.closest("button"))return;openNote=openNote===i.id?null:i.id;render()});
   row.addEventListener("keydown",ev=>{
     if(ev.target!==row)return;
     if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openNote=openNote===i.id?null:i.id;render();return}
@@ -744,7 +277,7 @@ function noteRow(i){
     placeNote(i.id,feld,k);render();
   });
   if(openNote===i.id)row.append(noteEdit(i));
-  enableNoteDrag(row);
+  enableDrag(row);
   return row;
 }
 
@@ -754,21 +287,14 @@ function noteEdit(i){
   const seg=el("div",{class:"seg",role:"group","aria-label":"Art"});
   for(const[k,a]of Object.entries(ARTEN)){
     const b=el("button",{type:"button","aria-pressed":String(k===art)},...lbl(a.icon,a.label));
-    b.addEventListener("click",()=>save(`ideen/${i.id}`,{art:k}));seg.append(b);
-  }
-  const tw=toggle("flag","Wichtig","--accent",w,()=>setFeld(i,feldAus(!w,d)));
-  const td=toggle("flame","Dringend","--hot",d,()=>setFeld(i,feldAus(w,!d)));
-  box.append(seg,tw,td);
-  if(!i.arbeit){
-    const take=el("button",{class:"ghost",type:"button","aria-pressed":String(!!i.uebernehmen)},...lbl("sprout",i.uebernehmen?"Wird zur Arbeit":"Daraus eine Arbeit machen"));
-    take.addEventListener("click",()=>save(`ideen/${i.id}`,{uebernehmen:!i.uebernehmen}));box.append(take);
+    b.addEventListener("click",()=>save(i.id,{art:k}));seg.append(b);
   }
   const rm=el("button",{class:"ghost del",type:"button"},...lbl("trash","Löschen"));
   rm.addEventListener("click",async()=>{
     if(!rm.dataset.armed){rm.dataset.armed="1";rm.lastChild.textContent="Wirklich löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.lastChild.textContent="Löschen"},3000);return}
     try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}
   });
-  box.append(rm);
+  box.append(seg,toggle("flag","Wichtig","--accent",w,()=>setFeld(i,feldAus(!w,d))),toggle("flame","Dringend","--hot",d,()=>setFeld(i,feldAus(w,!d))),rm);
   return box;
 }
 
@@ -778,10 +304,7 @@ function toggle(icon,label,c,on,onclick){
 }
 
 // Wechsel des Feldes: der Eintrag kommt dort ganz nach oben
-function setFeld(i,feld){
-  const top=sichtbar(feld)[0];
-  save(`ideen/${i.id}`,{feld,pos:top?rang(top)-1:0});
-}
+function setFeld(i,feld){const top=sichtbar(feld)[0];save(i.id,{feld,pos:top?rang(top)-1:0})}
 
 // Eintrag an Stelle "to" im Feld setzen. Nur der bewegte Eintrag bekommt einen neuen Rang
 // zwischen seinen Nachbarn, alle anderen bleiben unverändert.
@@ -791,26 +314,26 @@ function placeNote(id,feld,to){
   const prev=list[to-1],next=list[to];
   const pos=prev&&next?(rang(prev)+rang(next))/2:prev?rang(prev)+1:next?rang(next)-1:0;
   it.feld=feld;it.pos=pos;
-  save(`ideen/${id}`,{feld,pos});
+  save(id,{feld,pos});
 }
 
-// Gedrückt halten (350 ms) hebt den Eintrag an. Er folgt dem Finger, auch in andere Felder;
-// die übrigen Einträge machen Platz. Beim Loslassen gleitet er an seinen neuen Platz.
+// Gedrückt halten (350 ms) hebt den Eintrag an. Eine schwebende Kopie folgt dem Finger, auch in
+// andere Felder; die übrigen Einträge machen Platz. Beim Loslassen gleitet er an seinen neuen Platz.
 const GAP=6;
-function enableNoteDrag(row){
-  let timer=null,sx=0,sy=0,pid=null,fields=[],src=null,tgt=null,from=0,to=0,h=0;
+function enableDrag(row){
+  let timer=null,sx=0,sy=0,pid=null,fields=[],src=null,tgt=null,from=0,to=0,h=0,ghost=null,r0=null;
   const cancelWait=()=>{clearTimeout(timer);timer=null};
   row.addEventListener("pointerdown",ev=>{
     if(ev.button!==0||dragging)return;
-    if(ev.target.closest("button,select,input,a"))return;
+    if(ev.target.closest("button"))return;
     sx=ev.clientX;sy=ev.clientY;pid=ev.pointerId;
     timer=setTimeout(lift,350);
   });
   row.addEventListener("pointermove",ev=>{
     if(ev.pointerId!==pid)return;
     if(timer&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){cancelWait();return}
-    if(!row.classList.contains("lifted"))return;
-    row.style.transform=`translate(${ev.clientX-sx}px,${ev.clientY-sy}px) scale(1.03)`;
+    if(!ghost)return;
+    ghost.style.transform=`translate(${ev.clientX-sx}px,${ev.clientY-sy}px) scale(1.03)`;
     const f=fields.find(f=>ev.clientX>=f.r.left&&ev.clientX<=f.r.right&&ev.clientY>=f.r.top&&ev.clientY<=f.r.bottom)||tgt;
     const t=f.rows.filter(r=>r.el!==row&&r.top+r.h/2<ev.clientY).length;
     if(f===tgt&&t===to)return;
@@ -830,15 +353,18 @@ function enableNoteDrag(row){
   const end=ev=>{
     if(ev&&ev.pointerId!==pid)return;
     cancelWait();
-    if(!row.classList.contains("lifted"))return;
+    if(!ghost)return;
     // ein Klick nach dem Ziehen soll nichts aufklappen
     row.addEventListener("click",e=>{e.preventDefault();e.stopPropagation()},{capture:true,once:true});
-    const before=row.getBoundingClientRect(),id=row.dataset.id;
+    const before=ghost.getBoundingClientRect(),id=row.dataset.id;
+    ghost.remove();ghost=null;
     if(tgt!==src||to!==from)placeNote(id,tgt.feld,to);
     dragging=false;renderPending=false;render();
     // vom Loslass-Punkt an den neuen Platz gleiten
     const n=document.getElementById(`n-${id}`);
-    if(n&&!reduceMotion()){
+    if(n){
+      n.scrollIntoView({block:"nearest"});
+      if(reduceMotion())return;
       const a=n.getBoundingClientRect();
       n.style.transition="none";n.style.transform=`translate(${before.left-a.left}px,${before.top-a.top}px)`;
       n.getBoundingClientRect();
@@ -852,19 +378,21 @@ function enableNoteDrag(row){
   row.addEventListener("touchmove",ev=>{if(dragging)ev.preventDefault()},{passive:false});
   function lift(){
     timer=null;dragging=true;
-    fields=[...document.querySelectorAll("#notes .feld")].map(el=>({el,feld:el.dataset.feld,r:el.getBoundingClientRect(),
+    fields=[...document.querySelectorAll("#matrix .feld")].map(el=>({el,feld:el.dataset.feld,r:el.getBoundingClientRect(),
       rows:[...el.querySelectorAll(".nrow")].map(e=>{const r=e.getBoundingClientRect();return{el:e,top:r.top,h:r.height}})}));
     src=tgt=fields.find(f=>f.rows.some(r=>r.el===row));
     from=to=src.rows.findIndex(r=>r.el===row);h=src.rows[from].h+GAP;
-    // Platz machende Einträge bleiben in ihrem Feld; nur das Ausgangsfeld lässt den gezogenen hinaus
-    for(const f of fields)if(f!==src)f.el.querySelector(".nrows").classList.add("clip");
+    r0=row.getBoundingClientRect();
+    ghost=row.cloneNode(true);ghost.removeAttribute("id");ghost.classList.add("ghostrow");
+    Object.assign(ghost.style,{left:`${r0.left}px`,top:`${r0.top}px`,width:`${r0.width}px`,transform:"scale(1.03)"});
+    document.body.append(ghost);
+    row.classList.add("hold");
     try{row.setPointerCapture(pid)}catch(e){}
-    row.classList.add("lifted");row.style.transform="scale(1.03)";
     navigator.vibrate?.(10);
   }
 }
 
-// Eingabe oben: Art und Gewichtung gleich mit wählen
+// Eingabe: Art und Gewichtung gleich mit wählen
 let qArt="idee",qW=false,qD=false;
 function drawQuickOpts(){
   const box=$("#q-opts");box.replaceChildren();
@@ -875,72 +403,48 @@ function drawQuickOpts(){
   }
   box.append(seg,toggle("flag","Wichtig","--accent",qW,()=>{qW=!qW;drawQuickOpts()}),toggle("flame","Dringend","--hot",qD,()=>{qD=!qD;drawQuickOpts()}));
 }
-
-async function addNote(text,arbeit){
-  if(!db)return;
+$("#quick").addEventListener("submit",async ev=>{
+  ev.preventDefault();const text=$("#q-text").value.trim();if(!text||!db)return;$("#q-text").value="";
   const feld=feldAus(qW,qD),top=sichtbar(feld)[0];
-  try{await db.collection("ideen").add({text,arbeit:arbeit||"",art:qArt,feld,pos:top?rang(top)-1:0,am:new Date().toISOString(),erledigt:false,uebernehmen:false})}catch(e){fail(e)}
-}
+  try{await db.collection("ideen").add({text,arbeit:"",art:qArt,feld,pos:top?rang(top)-1:0,am:new Date().toISOString(),erledigt:false,uebernehmen:false})}catch(e){fail(e)}
+});
 
-$("#quick").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#q-text").value.trim();if(!t)return;$("#q-text").value="";await addNote(t,$("#q-arbeit").value)});
-
-// ---- Spaltenbreiten am PC: Ränder ziehen, Pfeiltasten, Doppelklick setzt zurück ----
-// Gespeichert nur in diesem Browser; die Mitte behält immer genug Platz für eine Kartenspalte.
-const STANDARD={todo:320,ideas:560},GRENZEN={todo:[240,560],ideas:[320,1100]},MITTE_MIN=360;
-let breiten={...STANDARD};
-try{Object.assign(breiten,JSON.parse(localStorage.getItem("werkbank-breiten"))||{})}catch(e){}
-const klemme=(v,[a,b])=>Math.max(a,Math.min(b,v));
-function applySizes(){
-  breiten.todo=klemme(breiten.todo,GRENZEN.todo);breiten.ideas=klemme(breiten.ideas,GRENZEN.ideas);
-  const wrap=$(".wrap"),frei=wrap.clientWidth-40-MITTE_MIN;
-  let t=breiten.todo,i=breiten.ideas;
-  const zuviel=t+i-frei;
-  if(zuviel>0){const ab=Math.min(zuviel*t/(t+i),t-GRENZEN.todo[0]);t-=ab;i=Math.max(GRENZEN.ideas[0],i-(zuviel-ab))}
-  wrap.style.setProperty("--w-todo",`${Math.round(t)}px`);wrap.style.setProperty("--w-ideas",`${Math.round(i)}px`);
-  $("#split-l").setAttribute("aria-valuenow",String(Math.round(t)));$("#split-r").setAttribute("aria-valuenow",String(Math.round(i)));
+// Breite der linken Spalte am PC: Rand ziehen, Pfeiltasten, Doppelklick setzt zurück.
+// Gespeichert nur in diesem Browser.
+const STANDARD=380,GRENZEN=[300,640];
+let seite=STANDARD;
+try{const v=Number(localStorage.getItem("notizen-seite"));if(v)seite=v}catch(e){}
+const klemme=v=>Math.max(GRENZEN[0],Math.min(GRENZEN[1],v));
+function applySize(){
+  seite=klemme(seite);
+  $(".wrap").style.setProperty("--w-seite",`${seite}px`);$("#split").setAttribute("aria-valuenow",String(seite));
 }
-function merke(){try{localStorage.setItem("werkbank-breiten",JSON.stringify(breiten))}catch(e){}}
-function splitter(node,key,richtung){
-  node.addEventListener("pointerdown",ev=>{
-    if(ev.button!==0)return;ev.preventDefault();
-    const x0=ev.clientX,start=breiten[key];
-    node.setPointerCapture(ev.pointerId);node.classList.add("active");document.body.classList.add("resizing");
-    const move=e=>{breiten[key]=klemme(start+richtung*(e.clientX-x0),GRENZEN[key]);applySizes()};
-    const up=()=>{node.removeEventListener("pointermove",move);node.classList.remove("active");document.body.classList.remove("resizing");merke()};
-    node.addEventListener("pointermove",move);
-    node.addEventListener("pointerup",up,{once:true});node.addEventListener("pointercancel",up,{once:true});
-  });
-  node.addEventListener("keydown",ev=>{
-    const d=ev.key==="ArrowRight"?1:ev.key==="ArrowLeft"?-1:0;if(!d)return;ev.preventDefault();
-    breiten[key]=klemme(breiten[key]+richtung*d*24,GRENZEN[key]);applySizes();merke();
-  });
-  node.addEventListener("dblclick",()=>{breiten[key]=STANDARD[key];applySizes();merke()});
-}
-splitter($("#split-l"),"todo",1);
-splitter($("#split-r"),"ideas",-1);
-addEventListener("resize",applySizes);
-applySizes();
-drawQuickOpts();
+function merke(){try{localStorage.setItem("notizen-seite",String(seite))}catch(e){}}
+const split=$("#split");
+split.addEventListener("pointerdown",ev=>{
+  if(ev.button!==0)return;ev.preventDefault();
+  const x0=ev.clientX,start=seite;
+  split.setPointerCapture(ev.pointerId);split.classList.add("active");document.body.classList.add("resizing");
+  const move=e=>{seite=klemme(start+e.clientX-x0);applySize()};
+  const up=()=>{split.removeEventListener("pointermove",move);split.classList.remove("active");document.body.classList.remove("resizing");merke()};
+  split.addEventListener("pointermove",move);
+  split.addEventListener("pointerup",up,{once:true});split.addEventListener("pointercancel",up,{once:true});
+});
+split.addEventListener("keydown",ev=>{const d=ev.key==="ArrowRight"?1:ev.key==="ArrowLeft"?-1:0;if(!d)return;ev.preventDefault();seite=klemme(seite+d*24);applySize();merke()});
+split.addEventListener("dblclick",()=>{seite=STANDARD;applySize();merke()});
+applySize();
 
 document.querySelectorAll(".h-ic").forEach(n=>n.replaceWith(ic(n.dataset.ic)));
-render();
+drawQuickOpts();render();
 (async()=>{
   db=await window.claude?.use?.("db");
-  if(!db){$("#status").textContent="Die Daten sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet in claude.ai.";$("#quick").hidden=true;$("#todo").replaceChildren();return}
-  const timer=setTimeout(()=>{$("#status").textContent="Die Daten sind gerade nicht erreichbar. Was du siehst, ist vielleicht nicht aktuell."},10000);
+  if(!db){$("#status").textContent="Die Notizen sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet in claude.ai.";$("#quick").hidden=true;return}
+  const timer=setTimeout(()=>{$("#status").textContent="Die Notizen sind gerade nicht erreichbar. Was du siehst, ist vielleicht nicht aktuell."},10000);
   let loaded=false;
-  db.collection("arbeiten").onSnapshot(s=>{
-    arbeiten=s.docs.map(d=>({id:d.id,...d.data()}));
+  db.collection("ideen").onSnapshot(s=>{
+    ideen=s.docs.map(d=>({id:d.id,...d.data()}));
     if(!s.metadata.fromCache){clearTimeout(timer);if(!loaded)animateIn=true;loaded=true}
-    const now=new Map(arbeiten.map(a=>[a.id,a.aktualisiert]));
-    if(lastSeen)for(const[id,t]of now)if(lastSeen.get(id)!==t)freshIds.add(id);
-    if(loaded)lastSeen=now;
-    const offen=arbeiten.filter(a=>a.status!=="fertig").length;
-    const du=arbeiten.reduce((n,a)=>n+(a.status==="wartet"&&a.wartetAuf?1:0)+deinTeil(a).filter(d=>!d.erledigt).length,0);
-    $("#status").textContent=loaded?`${offen} offene Arbeiten · ${du?`${du} ${du===1?"Sache wartet":"Sachen warten"} auf dich`:"nichts wartet auf dich"}`:"Lade Arbeiten …";
     render();
-  },()=>{clearTimeout(timer);$("#status").textContent="Die Arbeiten konnten nicht geladen werden. Bitte die Seite neu laden."});
-  db.collection("ideen").onSnapshot(s=>{ideen=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{});
-  db.doc("einstellungen/todo").onSnapshot(d=>{const r=d.exists?d.data().reihenfolge:null;if(Array.isArray(r)){reihenfolge=r;render()}},()=>{});
+  },()=>{clearTimeout(timer);$("#status").textContent="Die Notizen konnten nicht geladen werden. Bitte die Seite neu laden."});
 })();
 </script>

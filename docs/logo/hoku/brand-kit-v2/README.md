@@ -16,3 +16,13 @@ Prüfen: node docs/logo/hoku/brand-kit-v2/QUELLEN/verify.cjs
 ## Dunkle App-Icon-Variante
 
 04-Icons/Dunkel enthält den dunklen Originalmaster, 24 RGB-PNG-Größen, Favicons und ICO. Die hellere Variante bleibt erhalten. Vergleich: HOKU-App-Icons-Uebersicht.png.
+
+<!-- HOKU-ORGANISCH -->
+## Organisch / Cyan – zusätzliche bestätigte Fassung
+
+Am 03.11.2026 zusätzlich gewählt. **09-Organisch-Cyan** enthält den unveränderten Originalmaster, 25 App-Icon-PNG-Größen (16–1024 px), ein maskierbares 512-px-Icon, transparente Symbole in Cyan/Weiß/Schwarz, JPG, WebP, SVG, PDF sowie Favicons und ICO. App-Exporte nutzen einen zentrierten 84-%-Ausschnitt; der Originalmaster bleibt bytegleich. Freistellung als eigene Imagegen-Ableitung, nicht als veränderter App-Master.
+
+SVG und PDF betten das Rastermotiv ein; sie sind keine reine Vektorzeichnung. JPG und App-Icon-PNGs sind deckend; für Platzierung transparente PNG/SVG/WebP oder die entsprechenden PDFs nutzen. Cyan und Weiß auf dunklen Flächen, Schwarz auf hellen Flächen. Keine automatische Ersetzung der laufenden App, der bisherigen Logos oder des KI-/Nav-Symbols.
+
+Erzeugen: node docs/logo/hoku/brand-kit-v2/QUELLEN/organisch.cjs. Prüfen: node docs/logo/hoku/brand-kit-v2/QUELLEN/verify.cjs. Übersicht: 09-Organisch-Cyan/HOKU-Organisch-Uebersicht.png.
+<!-- /HOKU-ORGANISCH -->

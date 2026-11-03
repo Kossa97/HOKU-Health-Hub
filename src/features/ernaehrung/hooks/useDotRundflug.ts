@@ -5,6 +5,7 @@ import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, umlaufBahn
 import { orbBuehne } from '../lib/orbBridge'
 import type { MacroKey } from '../lib/orb'
 import type { Goals, Nutrients } from '../lib/nutrition'
+import { leseHokuEinstellungen } from '../../dot/lib/hokuEinstellungen'
 
 /** Erst landen lassen: Seite gleitet herein, die Kugel steht. */
 const WARTEN_MS = 700
@@ -110,7 +111,8 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
       })
       if (fliege(bahn)) merkeRundflug(Date.now())
       // Weniger Bewegung (oder er kann gerade nicht fliegen): nur der Satz, wenn er draußen ist
-      else if (s.modus === 'home') { dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
+      // Hinweise aus (Seite „Hoku“): auch der Satz nicht
+      else if (s.modus === 'home') { if (leseHokuEinstellungen().hinweise) dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
     }
     timer = window.setTimeout(los, WARTEN_MS)
     return () => window.clearTimeout(timer)

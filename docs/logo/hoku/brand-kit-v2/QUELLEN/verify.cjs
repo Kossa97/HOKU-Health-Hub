@@ -5,9 +5,10 @@ const {Resvg}=require('@resvg/resvg-js');
 const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path.join(root,'EXPORT-CHECKS.json'),'utf8'));
 const vertical=fs.existsSync(path.join(root,'VERTIKAL-CHECKS.json'))?JSON.parse(fs.readFileSync(path.join(root,'VERTIKAL-CHECKS.json'),'utf8')):null;
 const dark=fs.existsSync(path.join(root,'APP-DUNKEL-CHECKS.json'))?JSON.parse(fs.readFileSync(path.join(root,'APP-DUNKEL-CHECKS.json'),'utf8')):null;
+const organic=fs.existsSync(path.join(root,'ORGANISCH-CHECKS.json'))?JSON.parse(fs.readFileSync(path.join(root,'ORGANISCH-CHECKS.json'),'utf8')):null;
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const assert=(condition,message)=>{if(!condition)throw new Error(message);};
-const allPngs=[...new Map([...manifest.pngs,...(vertical?.pngs||[]),...(dark?.pngs||[])].map(p=>[p.file,p])).values()];
+const allPngs=[...new Map([...manifest.pngs,...(vertical?.pngs||[]),...(dark?.pngs||[]),...(organic?.files.filter(p=>p.file.endsWith('.png'))||[])].map(p=>[p.file,p])).values()];
 for(const p of allPngs){
  const b=fs.readFileSync(path.join(root,p.file));
  assert(b.subarray(0,8).toString('hex')==='89504e470d0a1a0a',p.file+': invalid PNG');
@@ -56,4 +57,5 @@ for(const file of ['Michroma-Regular.ttf','IBMPlexMono-Medium.ttf','Michroma-OFL
 const html=fs.readFileSync(path.join(root,'HOKU-Brand-Guide.html'),'utf8');
 for(const match of html.matchAll(/href="([^"]+)"/g))assert(fs.existsSync(path.join(root,match[1])),'Broken guide link: '+match[1]);
 assert(!html.includes('Blau–Violett')&&!html.includes('hoku-app-blau'),'Stale branding in guide');
+if(fs.existsSync(path.join(root,'ORGANISCH-CHECKS.json')))require('./verify-organisch.cjs')();
 console.log(JSON.stringify({pngsVerified:allPngs.length,approvedMasterExact:true,verticalVariant6Exact:!!vertical,darkIconSizes:dark?.sizes.length||0,darkRgbWithoutAlpha:!!dark,transparentPupil:true,kiFilesUnchanged:manifest.kiHashes.length,fontsAndLicenses:4,icoEntries:dark?8:4,guideLinks:'passed',failures:0}));
