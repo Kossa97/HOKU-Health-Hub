@@ -1039,14 +1039,10 @@ html[data-look='frost'] {
   --lg-surface-bg: linear-gradient(180deg, rgba(150,225,255,0.075) 0%, rgba(150,225,255,0.035) 100%);
   --lg-surface-blur: none;
   --lg-surface-shadow: inset 0 1px 0 rgba(200,245,255,0.07), 0 16px 34px -18px rgba(0,0,0,0.85);
-  --lg-card-rim: conic-gradient(from var(--hl-a),
-    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 0deg,
-    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(var(--hl-w) * 0.5),
-    var(--frost-rim-ruhe) var(--hl-w),
-    var(--frost-rim-ruhe) calc(360deg - var(--hl-w)),
-    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(360deg - var(--hl-w) * 0.5),
-    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 360deg);
-  --lg-card-sheen: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
+  /* Ruhe-Kante; das Licht selbst steht in den Regeln unten: var(--hl-*) muss am
+     Element aufgelöst werden, nicht hier an der Wurzel (dort ist --hl-i immer 0). */
+  --lg-card-rim: linear-gradient(var(--frost-rim-ruhe), var(--frost-rim-ruhe));
+  --lg-card-sheen: none;
   --lg-surface-2: rgba(150,225,255,0.06);
 
   --lg-glass-fill: linear-gradient(180deg, rgba(150,225,255,0.10) 0%, rgba(150,225,255,0.04) 100%);
@@ -1074,6 +1070,19 @@ html[data-look='frost'] body {
     var(--app-bg);
 }
 html[data-look='frost'] .lg-backdrop { background-color: #050c11; }
+/* Hoku-Licht: die Kante leuchtet auf der Seite, die zu Hoku zeigt */
+html[data-look='frost'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 0deg,
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(var(--hl-w) * 0.5),
+    var(--frost-rim-ruhe) var(--hl-w),
+    var(--frost-rim-ruhe) calc(360deg - var(--hl-w)),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(360deg - var(--hl-w) * 0.5),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 360deg);
+}
+html[data-look='frost'] :is(.lg-surface, .card, .lg-group)::after {
+  background: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
+}
 /* Knöpfe in Hokus Nähe glimmen (Stufe 2): Schein wächst mit --hl-i */
 html[data-look='frost'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.65));
@@ -1092,13 +1101,290 @@ html[data-look='frost'] .tyd-tabbar {
   background: linear-gradient(180deg, rgba(150,225,255,0.10), rgba(150,225,255,0.04)), rgba(6,16,20,0.55);
   box-shadow: 0 12px 32px -12px rgba(0,0,0,0.85), 0 0 calc(var(--hl-i) * 26px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.30));
 }
-html[data-look='frost'] .tyd-tabbar::before { background: var(--lg-card-rim); }
 html[data-look='frost'] .tyd-tabbar::after { display: none; }
 html[data-look='frost'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); box-shadow: inset 0 1px 0 rgba(200,245,255,0.20); }
 html[data-look='frost'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
 @media (prefers-reduced-transparency: reduce) {
   html[data-look='frost'] { --lg-glass-filter: none; --lg-glass-fill: #0c1a20; --lg-sheet-blur: none; --lg-sheet-bg: #0a161c; }
 }
+
+/* ── Erscheinungsbild „Labor" (Labor-HUD) ───────────────────────────────
+   Wie ein Messgerät im Biohacking-Labor: Schwarz mit feinem Raster, eckige
+   Rahmen mit Eckwinkeln, Beschriftung in Maschinenschrift. Hoku-Licht lässt
+   Rahmen und Eckwinkel aufglühen. Mockup: Variante „Labor-HUD". */
+html[data-look='labor'] {
+  --hoku-licht: 1;
+  --lab-cyan: 95 220 255;
+  --lab-mono: 'SF Mono', ui-monospace, Menlo, 'Roboto Mono', monospace;
+  --app-bg: #020405;
+  --surface: rgba(3,10,13,0.98);
+  --surface-raised: #07141a;
+  --glass-bg: rgba(3,10,13,0.94);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.40);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #7fe6ff;
+  --lg-text-2: rgba(222,240,248,0.70);
+  --lg-text-3: rgba(222,240,248,0.54);
+  --r-sm: 6px; --r-md: 6px; --r-lg: 8px; --r-xl: 8px;
+  --lg-surface-fill: rgba(3,10,13,0.88);
+  --lg-surface-bg: rgba(3,10,13,0.88);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: none;
+  --lg-card-rim: linear-gradient(rgba(95,220,255,0.14), rgba(95,220,255,0.14));
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(95,220,255,0.05);
+  --lg-glass-fill: rgba(3,10,13,0.92);
+  --lg-glass-filter: none;
+  --lg-glass-shadow: none;
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: rgba(95,220,255,0.12);
+  --shadow-btn-primary: inset 0 0 0 1px rgba(95,220,255,0.60);
+  --lg-pill-fill: rgba(95,220,255,0.16);
+  --lg-pill-shadow: inset 0 0 0 1px rgba(95,220,255,0.45);
+  --lg-fill: rgba(95,220,255,0.06);
+  --lg-fill-selected: rgba(95,220,255,0.20);
+  --lg-sheet-bg: #03090c;
+  --lg-sheet-solid: #03090c;
+  --lg-sheet-blur: none;
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(95,220,255,0.08), rgba(95,220,255,0) 70%), #020405;
+}
+html[data-look='labor'] body {
+  background:
+    linear-gradient(rgba(95,220,255,0.045) 1px, transparent 1px) 0 0 / 26px 26px,
+    linear-gradient(90deg, rgba(95,220,255,0.045) 1px, transparent 1px) 0 0 / 26px 26px,
+    radial-gradient(90% 600px at 50% 0, rgba(95,220,255,0.07), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='labor'] .lg-backdrop { background-color: #020405; }
+html[data-look='labor'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--lab-cyan) / calc(0.14 + var(--hl-i) * 0.80)) 0deg,
+    rgb(var(--lab-cyan) / 0.14) var(--hl-w),
+    rgb(var(--lab-cyan) / 0.14) calc(360deg - var(--hl-w)),
+    rgb(var(--lab-cyan) / calc(0.14 + var(--hl-i) * 0.80)) 360deg);
+}
+/* Eckwinkel oben links und unten rechts; sie glühen mit Hokus Nähe */
+html[data-look='labor'] :is(.lg-surface, .card, .lg-group)::after {
+  background:
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) left top / 12px 1.5px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) left top / 1.5px 12px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) right bottom / 12px 1.5px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) right bottom / 1.5px 12px no-repeat;
+}
+html[data-look='labor'] :is(.lg-btn, .lg-chip, .stack-tab) { border-radius: 6px; }
+html[data-look='labor'] .lg-icon-btn { border-radius: 8px; }
+html[data-look='labor'] .tyd-tabbar { border-radius: 10px; background: rgba(3,10,13,0.94); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 calc(var(--hl-i) * 24px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.35)); }
+html[data-look='labor'] .tyd-tabbar::after { display: none; }
+html[data-look='labor'] .tyd-tabbar-pill { border-radius: 7px; background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.30); }
+html[data-look='labor'] .lg-sheet { border-radius: 14px; box-shadow: 0 -12px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(95,220,255,0.18); }
+html[data-look='labor'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #7fe6ff;
+  font-family: var(--lab-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 28px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.6));
+}
+html[data-look='labor'] .lg-btn-tint { color: #7fe6ff; background: rgba(95,220,255,0.08); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 0 0 1px rgba(95,220,255,0.35); animation: none; }
+html[data-look='labor'] :is(.lg-group-title, .lg-tag, .lg-large-title + p) { font-family: var(--lab-mono); letter-spacing: 0.06em; }
+html[data-look='labor'] .lg-large-title { font-family: var(--lab-mono); font-weight: 500; letter-spacing: -0.01em; }
+html[data-look='labor'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #7fe6ff; }
+
+/* ── Erscheinungsbild „Neon" ────────────────────────────────────────────
+   Tiefes Schwarz, Kanten wie Leuchtröhren. Nähert sich Hoku, glühen sie auf
+   und strahlen nach außen. Mockup: Variante „Neon". */
+html[data-look='neon'] {
+  --hoku-licht: 1;
+  --neon: 95 220 255;
+  --app-bg: #010203;
+  --surface: rgba(4,7,10,0.98);
+  --surface-raised: #070c10;
+  --glass-bg: rgba(4,7,10,0.94);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.45);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --lg-surface-fill: #04070a;
+  --lg-surface-bg: #04070a;
+  --lg-surface-blur: none;
+  --lg-card-rim: none;
+  --lg-card-sheen: none;
+  --lg-glass-fill: #04070a;
+  --lg-glass-filter: none;
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: #04070a;
+  --lg-pill-fill: rgba(95,220,255,0.14);
+  --lg-pill-shadow: 0 0 0 1px rgba(95,220,255,0.55), 0 0 12px rgba(95,220,255,0.35);
+  --lg-fill: rgba(95,220,255,0.06);
+  --lg-fill-selected: rgba(95,220,255,0.18);
+  --lg-sheet-bg: #04070a;
+  --lg-sheet-solid: #04070a;
+  --lg-sheet-blur: none;
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(95,220,255,0.08), rgba(95,220,255,0) 70%), #010203;
+}
+html[data-look='neon'] body {
+  background:
+    radial-gradient(70% 420px at 85% 0, rgba(120,80,255,0.10), transparent 70%),
+    radial-gradient(70% 480px at 10% 700px, rgba(95,220,255,0.07), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='neon'] .lg-backdrop { background-color: #010203; }
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass) {
+  box-shadow:
+    0 0 0 1px rgb(var(--neon) / calc(0.28 + var(--hl-i) * 0.72)),
+    0 0 calc(4px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.55)),
+    inset 0 0 calc(var(--hl-i) * 22px) rgb(var(--neon) / calc(var(--hl-i) * 0.22));
+}
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none; }
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #8eeaff;
+  text-shadow: 0 0 10px rgba(95,220,255,0.7);
+  box-shadow:
+    0 0 0 1.5px rgb(var(--neon) / calc(0.6 + var(--hl-i) * 0.4)),
+    0 0 calc(10px + var(--hl-i) * 30px) rgb(var(--neon) / calc(0.25 + var(--hl-i) * 0.5)),
+    inset 0 0 calc(8px + var(--hl-i) * 16px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.3));
+}
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::before,
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::after { display: none; }
+html[data-look='neon'] .lg-btn-tint { color: #8eeaff; background: #04070a; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(95,220,255,0.5), 0 0 14px rgba(95,220,255,0.25); animation: none; }
+html[data-look='neon'] .lg-large-title { text-shadow: 0 0 18px rgba(95,220,255,0.35); }
+html[data-look='neon'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(95,220,255,0.35), 0 0 24px rgba(95,220,255,0.15); }
+html[data-look='neon'] .tyd-tabbar {
+  background: #04070a;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 0 0 1px rgb(var(--neon) / calc(0.35 + var(--hl-i) * 0.6)), 0 0 calc(8px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.15 + var(--hl-i) * 0.45));
+}
+html[data-look='neon'] .tyd-tabbar::before, html[data-look='neon'] .tyd-tabbar::after { display: none; }
+html[data-look='neon'] .tyd-tabbar-pill { background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); }
+html[data-look='neon'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; filter: drop-shadow(0 0 6px rgba(95,220,255,0.6)); }
+
+/* ── Erscheinungsbild „Tiefsee" ─────────────────────────────────────────
+   Biolumineszenz: dunkles Petrol, weiche runde Formen; Hokus Licht sammelt
+   sich in der Fläche, wie unter Wasser. Mockup: Variante „Tiefsee". */
+html[data-look='tiefsee'] {
+  --hoku-licht: 1;
+  --see: 70 242 214;
+  --app-bg: #01090b;
+  --surface: rgba(2,20,22,0.97);
+  --surface-raised: #062226;
+  --glass-bg: rgba(2,20,22,0.85);
+  --accent: #46f2d6;
+  --accent-weak: rgba(70,242,214,0.14);
+  --accent-border: rgba(70,242,214,0.38);
+  --accent-contrast: #00150f;
+  --lg-accent-text: #8ff7e5;
+  --lg-text-2: rgba(220,248,244,0.70);
+  --lg-text-3: rgba(220,248,244,0.54);
+  --r-xl: 32px; --r-lg: 24px;
+  --lg-surface-fill: rgba(2,20,22,0.6);
+  --lg-surface-bg: rgba(2,20,22,0.6);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: 0 20px 40px -20px rgba(0,0,0,0.9);
+  --lg-card-rim: linear-gradient(rgba(70,242,214,0.10), rgba(70,242,214,0.10));
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(70,242,214,0.06);
+  --lg-glass-fill: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04));
+  --lg-glass-filter: blur(24px) saturate(150%);
+  --lg-glass-shadow: 0 14px 30px -14px rgba(0,0,0,0.85);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: linear-gradient(180deg, #74f7e2 0%, #3ee0c4 55%, #24c7ab 100%);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 26px -10px rgba(70,242,214,0.55);
+  --lg-pill-fill: linear-gradient(180deg, rgba(70,242,214,0.30), rgba(70,242,214,0.12));
+  --lg-pill-shadow: inset 0 1px 0 rgba(220,255,248,0.2);
+  --lg-fill: rgba(70,242,214,0.07);
+  --lg-fill-selected: rgba(70,242,214,0.20);
+  --lg-sheet-bg: rgba(2,20,22,0.9);
+  --lg-sheet-solid: #031a1d;
+  --lg-sheet-blur: blur(30px) saturate(150%);
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(70,242,214,0.10), rgba(70,242,214,0) 70%), #01090b;
+}
+html[data-look='tiefsee'] body {
+  background:
+    radial-gradient(90% 500px at 50% 0, rgba(20,110,110,0.30), transparent 70%),
+    radial-gradient(80% 500px at 0 900px, rgba(10,80,90,0.30), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='tiefsee'] .lg-backdrop { background-color: #01090b; }
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group) {
+  background: radial-gradient(110% 120% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(0.04 + var(--hl-i) * 0.16)), rgba(2,20,22,0.6) 65%);
+}
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--see) / calc(0.10 + var(--hl-i) * 0.70)) 0deg,
+    rgb(var(--see) / 0.10) var(--hl-w),
+    rgb(var(--see) / 0.10) calc(360deg - var(--hl-w)),
+    rgb(var(--see) / calc(0.10 + var(--hl-i) * 0.70)) 360deg);
+}
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group)::after {
+  background: radial-gradient(50% 50% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(var(--hl-i) * 0.22)), transparent 70%);
+}
+html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--see) / calc(var(--hl-i) * 0.6));
+}
+html[data-look='tiefsee'] .lg-btn-tint { color: #b5fbef; background: linear-gradient(180deg, rgba(70,242,214,0.24), rgba(70,242,214,0.08)); animation: none; }
+html[data-look='tiefsee'] .tyd-tabbar { background: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04)), rgba(2,16,18,0.6); }
+html[data-look='tiefsee'] .tyd-tabbar::after { display: none; }
+html[data-look='tiefsee'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); box-shadow: inset 0 1px 0 rgba(220,255,248,0.18); }
+html[data-look='tiefsee'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8ff7e5; }
+
+/* ── Erscheinungsbild „Obsidian" ────────────────────────────────────────
+   Schwarzes Vulkanglas, am dunkelsten und edelsten. Hoku spiegelt sich als
+   scharfer Reflex auf jeder Fläche. Mockup: Variante „Obsidian". */
+html[data-look='obsidian'] {
+  --hoku-licht: 1;
+  --obs: 95 220 255;
+  --app-bg: #000000;
+  --surface: rgba(8,10,12,0.98);
+  --surface-raised: #0d1013;
+  --glass-bg: rgba(8,10,12,0.92);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.35);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --lg-surface-fill: #07090b;
+  --lg-surface-bg: linear-gradient(165deg, #0d1013 0%, #050607 55%, #020203 100%);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 18px 34px -16px rgba(0,0,0,1);
+  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.02));
+  --lg-card-sheen: none;
+  --lg-glass-fill: linear-gradient(165deg, #12171b, #050607);
+  --lg-glass-filter: none;
+  --lg-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px -12px rgba(0,0,0,1);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: linear-gradient(165deg, #121a1f, #040506);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(95,220,255,0.35), 0 10px 24px -12px rgba(0,0,0,1);
+  --lg-pill-fill: linear-gradient(165deg, #1b2228, #0a0d10);
+  --lg-pill-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(95,220,255,0.25);
+  --lg-sheet-bg: linear-gradient(165deg, #0d1013, #030405);
+  --lg-sheet-solid: #07090b;
+  --lg-sheet-blur: none;
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(210,248,255,0.06), rgba(210,248,255,0) 70%), #000;
+}
+html[data-look='obsidian'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after {
+  background:
+    radial-gradient(38% 22% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.30)), transparent 70%),
+    radial-gradient(80% 60% at var(--hl-x) var(--hl-y), rgb(var(--obs) / calc(var(--hl-i) * 0.10)), transparent 70%);
+}
+html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #8eeaff;
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 24px) rgb(var(--obs) / calc(var(--hl-i) * 0.45));
+}
+html[data-look='obsidian'] .lg-btn-tint { color: #8eeaff; background: linear-gradient(165deg, #10161a, #040506); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--lg-glass-shadow); animation: none; }
+html[data-look='obsidian'] .tyd-tabbar { background: linear-gradient(165deg, #10141a, #030405); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 30px -12px rgba(0,0,0,1); }
+html[data-look='obsidian'] .tyd-tabbar::after {
+  opacity: 1;
+  background: radial-gradient(30% 120% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.22)), transparent 70%);
+}
+html[data-look='obsidian'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
 
 /* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
    Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen

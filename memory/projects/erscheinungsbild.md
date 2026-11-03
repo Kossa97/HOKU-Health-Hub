@@ -153,3 +153,13 @@ Offen (nächste Schritte, je Bereich):
 - Prüfung: Schrift über Verläufen wird nicht mehr gewertet (Fehlalarme am
   Hauptknopf). Stand: Schwarz, Soft Dark, Frost, Papier je 0 Stellen.
 - Nächste Looks aus dem Mockup: Labor-HUD, Neon, Tiefsee, Obsidian.
+
+## Labor, Neon, Tiefsee, Obsidian (03.11.2026)
+
+Alle vier aus dem Mockup als echte Looks, alle mit Hoku-Licht, im Profil wählbar.
+Prüfung: je 0 Stellen. **Wichtig für neue Looks:** `var(--hl-*)` nie in einem
+Token an der Wurzel (`--lg-card-rim: conic(... var(--hl-a))`) — der Browser löst
+Variablen dort auf, wo das Token steht (am `<html>`, dort ist --hl-i = 0). Die
+Licht-Formel gehört in eine Regel am Element (`:is(.lg-surface,…)::before`).
+Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
+(`getComputedStyle(el,'::before')` zeigt den Winkel der Karte).
