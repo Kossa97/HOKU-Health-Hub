@@ -377,11 +377,13 @@ export interface DoseUmrechnung {
   iuPerMg?: number | null
   mgPerMl?: number | null
   mgJe?: StaerkeJe | null
+  /** Kombipraeparat: Anteil an der Wirkstoffsumme (mg-Mengen werden aufgeteilt). */
+  anteil?: number | null
 }
 
 /** Eine Menge in Milligramm — mit allen Faktoren der Umrechnung. */
 export function umrechnenInMg(value: number, unit: string, umrechnung: DoseUmrechnung = {}): number | null {
-  return toPkMilligrams(value, unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null, umrechnung.mgJe ?? null)
+  return toPkMilligrams(value, unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null, umrechnung.mgJe ?? null, umrechnung.anteil)
 }
 
 /** Berechnet den Blutspiegel-Verlauf basierend auf echten Einnahme-Events. */

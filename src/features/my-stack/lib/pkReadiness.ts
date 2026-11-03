@@ -33,6 +33,8 @@ export interface PkReadinessInput {
   mgPerMl?: number | null
   /** Milligramm Wirkstoff je Stueck (Kapsel, Tablette, Spruehstoss …); siehe `staerkeJeEinheit`. */
   mgJe?: StaerkeJe | null
+  /** Kombipraeparat: Anteil dieser Zutat an der Wirkstoffsumme; siehe `anteileAmGesamt`. */
+  anteil?: number | null
 }
 
 /** Wirkstoff je Einheit des Produkts: „50 mg je Kapsel" ist { einheit: 'capsule', mg: 50 }. */
@@ -97,6 +99,24 @@ export function staerkeJeEinheit(
   return { einheit, mg: proBezug / basisValue }
 }
 
+/**
+ * Wie sich eine in mg geplante Menge eines Kombipraeparats auf die Zutaten
+ * verteilt: „mg" ist die Summe aller Wirkstoffe, aufgeteilt nach der
+ * Zusammensetzung — Dreisatz. Eine Tablette mit 200 mg Ibuprofen und 500 mg
+ * Paracetamol: 700 mg sind 200 + 500, 350 mg sind 100 + 250.
+ *
+ * Aufteilen laesst sich nur, wenn jede Zutat ihre Staerke auf dieselbe
+ * Einheit bezieht (alle „je Tablette", alle „je ml"); sonst ist jeder Anteil
+ * null — und null heisst „nicht umrechenbar", nicht „0 %".
+ */
+export function anteileAmGesamt(staerken: ReadonlyArray<StaerkeJe | null>): Array<number | null> {
+  const einheit = staerken[0]?.einheit
+  const vollstaendig = staerken.length > 0 && staerken.every(je => je != null && je.einheit === einheit && je.mg > 0)
+  if (!vollstaendig) return staerken.map(() => null)
+  const summe = staerken.reduce((gesamt, je) => gesamt + je!.mg, 0)
+  return staerken.map(je => je!.mg / summe)
+}
+
 export type PkScheduleCycle = ScheduleCycle & { method: string | null; timeline?: CycleTimeline }
 
 export type ResolvedPkSchedule = ScheduleSegment & {
@@ -127,9 +147,20 @@ export function toPkMilligrams(
   iuPerMg: number | null = null,
   mgPerMl: number | null = null,
   mgJe: StaerkeJe | null = null,
+  /**
+   * Nur bei einem Kombipraeparat: Anteil der Zutat an der Wirkstoffsumme.
+   * mg und mcg sind dann die Summe und werden aufgeteilt; null = laesst sich
+   * nicht aufteilen. Ohne Angabe (eine Substanz) zaehlt die Menge ganz.
+   */
+  anteil?: number | null,
 ): number | null {
   if (!Number.isFinite(value)) return null
   const normalizedUnit = unit.trim().toLocaleLowerCase()
+  if (anteil !== undefined && (normalizedUnit === 'mg' || normalizedUnit === 'mcg' || normalizedUnit === 'iu')) {
+    // I.E. lassen sich ueber Wirkstoffe hinweg nicht summieren.
+    if (anteil == null || normalizedUnit === 'iu') return null
+    return (normalizedUnit === 'mg' ? value : value / 1000) * anteil
+  }
   if (normalizedUnit === 'mg') return value
   if (normalizedUnit === 'mcg') return value / 1000
   if (normalizedUnit === 'iu') {
@@ -231,7 +262,7 @@ export function evaluatePkReadiness(input: PkReadinessInput): PkReadiness {
   if (!input.scheduledAt?.trim()) missing.push('time')
 
   if (missing.length) return { status: 'missing', missing }
-  if (toPkMilligrams(input.dose!, input.unit!, input.iuPerMg ?? null, input.mgPerMl ?? null, input.mgJe ?? null) == null) {
+  if (toPkMilligrams(input.dose!, input.unit!, input.iuPerMg ?? null, input.mgPerMl ?? null, input.mgJe ?? null, input.anteil) == null) {
     return { status: 'unsupported', reason: 'unit_conversion' }
   }
 

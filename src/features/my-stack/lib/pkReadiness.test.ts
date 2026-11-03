@@ -334,3 +334,30 @@ describe('Staerke je Stueck', () => {
     expect(staerkeJeEinheit(1000, 'IU', 1, 'drop', 100)).toEqual({ einheit: 'drop', mg: 10 })
   })
 })
+
+describe('Kombipraeparat in mg: Dreisatz nach Zusammensetzung', () => {
+  it('teilt die Wirkstoffsumme nach den Staerken auf', async () => {
+    const { anteileAmGesamt, toPkMilligrams } = await import('./pkReadiness')
+    // 200 mg Ibuprofen + 500 mg Paracetamol je Tablette
+    const [ibu, para] = anteileAmGesamt([{ einheit: 'tablet', mg: 200 }, { einheit: 'tablet', mg: 500 }])
+    expect(toPkMilligrams(700, 'mg', null, null, null, ibu)).toBeCloseTo(200)
+    expect(toPkMilligrams(700, 'mg', null, null, null, para)).toBeCloseTo(500)
+    // weniger: proportional herunter
+    expect(toPkMilligrams(350, 'mg', null, null, null, ibu)).toBeCloseTo(100)
+    expect(toPkMilligrams(350, 'mg', null, null, null, para)).toBeCloseTo(250)
+    expect(toPkMilligrams(250, 'mcg', null, null, null, 0.5)).toBeCloseTo(0.125)
+    // Stueck bleibt eindeutig und ignoriert den Anteil.
+    expect(toPkMilligrams(1, 'tablet', null, null, { einheit: 'tablet', mg: 200 }, ibu)).toBe(200)
+  })
+
+  it('teilt nicht auf, wenn eine Staerke fehlt oder sich auf etwas anderes bezieht', async () => {
+    const { anteileAmGesamt, toPkMilligrams } = await import('./pkReadiness')
+    expect(anteileAmGesamt([{ einheit: 'tablet', mg: 200 }, null])).toEqual([null, null])
+    expect(anteileAmGesamt([{ einheit: 'tablet', mg: 200 }, { einheit: 'ml', mg: 5 }])).toEqual([null, null])
+    expect(toPkMilligrams(400, 'mg', null, null, null, null)).toBeNull()
+    // I.E. verschiedener Wirkstoffe lassen sich nicht summieren.
+    expect(toPkMilligrams(10, 'IU', 3, null, null, 0.5)).toBeNull()
+    // Eine einzelne Substanz (ohne Anteil) zaehlt ganz.
+    expect(toPkMilligrams(400, 'mg')).toBe(400)
+  })
+})

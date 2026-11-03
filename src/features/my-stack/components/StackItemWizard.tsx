@@ -1288,6 +1288,7 @@ export function StackItemWizard({
               plan={state.draft.plan}
               dosageForm={state.draft.dosageForm}
               catalogEntry={selectedCatalogEntry}
+              kombi={state.draft.ingredients.length > 1 ? { category: state.draft.category } : null}
               errors={planValidationErrors}
               onChange={changes => {
                 dispatch({ type: 'plan_changed', changes })

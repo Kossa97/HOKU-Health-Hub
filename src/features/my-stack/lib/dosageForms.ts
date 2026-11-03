@@ -155,10 +155,36 @@ export function strengthHintKey(
   return `my_stack_strength_hint_${shape}`
 }
 
+/** Wirkstoffmengen: bei einem Kombipraeparat mehrdeutig (siehe unten). */
+const WIRKSTOFFMENGEN = new Set(['mcg', 'mg', 'g', 'IU'])
+
+/**
+ * Einheiten fuer den Plan eines Kombipraeparats: nur, was man zaehlt oder
+ * aufzieht. „400 mg" einer Tablette mit 200 mg Ibuprofen und 500 mg
+ * Paracetamol koennte 400 mg insgesamt heissen oder 400 mg Ibuprofen — „1
+ * Tablette" ist eindeutig, und aus der Staerke jeder Zutat folgt ihre Menge.
+ * Vorn steht die Bezugseinheit der Staerke („pro 1 Kapsel", „pro 1 ml"):
+ * genau mit ihr rechnet die Kurve.
+ */
+export function kombiPlanEinheiten(key: DosageFormKey, category: StackCategory | null = null): string[] {
+  const form = getDosageForm(key)
+  const bezug = strengthBasisDefault(key, category).unit
+  // Pulver: „g" ist hier die Menge des Produkts, nicht eines Wirkstoffs.
+  const erlaubt = (unit: string) => !WIRKSTOFFMENGEN.has(unit) || (unit === 'g' && bezug === 'g')
+  return Array.from(new Set([
+    ...(bezug ? [bezug] : []),
+    form.intakeUnit,
+    ...form.basisUnits,
+  ])).filter(unit => erlaubt(unit) && unit !== 'syringe' && unit !== 'hour')
+}
+
 export function getIntakePlanUnitSuggestions(
   key: DosageFormKey,
   catalogSuggestedUnits: readonly string[] = [],
+  /** Kombipraeparat: nur eindeutige Einheiten (`kombiPlanEinheiten`). */
+  kombi: { category: StackCategory | null } | null = null,
 ): string[] {
+  if (kombi) return kombiPlanEinheiten(key, kombi.category)
   const form = getDosageForm(key)
   const catalogUnits = catalogSuggestedUnits
     .filter(unit => form.suggestedUnits.includes(unit))
@@ -248,6 +274,12 @@ export function defaultMethodFor(key: DosageFormKey): string {
 export function defaultIntakeUnitFor(
   key: DosageFormKey,
   catalogSuggestedUnits: readonly string[] = [],
+  kombi: { category: StackCategory | null } | null = null,
 ): string | null {
-  return getIntakePlanUnitSuggestions(key, catalogSuggestedUnits)[0] ?? null
+  return getIntakePlanUnitSuggestions(key, catalogSuggestedUnits, kombi)[0] ?? null
+}
+
+/** Ist die Einheit eine Wirkstoffmenge (mg, mcg, g, IU) statt Stueck oder Volumen? */
+export function istWirkstoffmenge(unit: string | null | undefined): boolean {
+  return WIRKSTOFFMENGEN.has(unit?.trim() ?? '')
 }

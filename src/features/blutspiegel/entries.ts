@@ -19,6 +19,7 @@ import {
   evaluatePkReadiness,
   mgPerMlFromStrength,
   resolvePkScheduleForDay,
+  anteileAmGesamt,
   staerkeJeEinheit,
   type StaerkeJe,
   type PkRequirement,
@@ -195,6 +196,8 @@ interface VerknuepfteZutat {
   name: string
   mgPerMl: number | null
   mgJe: StaerkeJe | null
+  /** Nur bei mehreren Zutaten: Anteil an der Wirkstoffsumme (undefined = eine Substanz). */
+  anteil: number | null | undefined
 }
 
 /**
@@ -206,8 +209,16 @@ interface VerknuepfteZutat {
  */
 function linkedProfiles(cycle: CycleWithPk): VerknuepfteZutat[] {
   const ingredients = cycle.stack_items?.ingredients.slice().sort((a, b) => a.position - b.position) ?? []
+  // Bei mehreren Zutaten ist eine Menge in mg die Summe aller Wirkstoffe —
+  // auch der ohne Profil (ein Vitamin in der Kapsel zaehlt mit).
+  const anteile = ingredients.length > 1
+    ? anteileAmGesamt(ingredients.map(zutat => staerkeJeEinheit(
+      zahl(zutat.amount_value), zutat.amount_unit, zahl(zutat.basis_value), zutat.basis_unit,
+      zutat.substance_catalog?.pk_profiles?.iu_per_mg ?? null,
+    )))
+    : null
   const verknuepft: VerknuepfteZutat[] = []
-  for (const ingredient of ingredients) {
+  for (const [index, ingredient] of ingredients.entries()) {
     const catalog = ingredient.substance_catalog
     if (!catalog?.pk_profile_id || !catalog.pk_profiles) continue
     verknuepft.push({
@@ -224,6 +235,7 @@ function linkedProfiles(cycle: CycleWithPk): VerknuepfteZutat[] {
         zahl(ingredient.basis_value), ingredient.basis_unit,
         catalog.pk_profiles.iu_per_mg ?? null,
       ),
+      anteil: anteile ? anteile[index] : undefined,
     })
   }
   return verknuepft
@@ -291,6 +303,7 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
       iuPerMg: zutat?.profile.iu_per_mg ?? null,
       mgPerMl: zutat?.mgPerMl ?? null,
       mgJe: zutat?.mgJe ?? null,
+      anteil: zutat?.anteil,
     })
     const base = { cycleId: cycle.id, stackItemId: item.id }
 
@@ -340,7 +353,10 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
         profileId: zutat.id,
         profile: zutat.profile,
         accent: kombi ? KOMBI_FARBEN[index % KOMBI_FARBEN.length] : CATEGORY_ACCENT[normalizeCategory(zutat.profile.category)],
-        umrechnung: { iuPerMg: zutat.profile.iu_per_mg ?? null, mgPerMl: zutat.mgPerMl, mgJe: zutat.mgJe },
+        umrechnung: {
+          iuPerMg: zutat.profile.iu_per_mg ?? null, mgPerMl: zutat.mgPerMl, mgJe: zutat.mgJe,
+          ...(zutat.anteil !== undefined ? { anteil: zutat.anteil } : {}),
+        },
         pkProfileMethod: item.pk_profile_method ?? null,
         nextDoseAt,
       })

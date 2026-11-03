@@ -100,8 +100,8 @@ describe('loadBlutspiegelEntries', () => {
     db.normalized = [normalizedCycle(base)]
     const entries = await loadBlutspiegelEntries('user-1', NOW) as ReadyEntry[]
     expect(entries.map(e => [e.key, e.name, e.umrechnung])).toEqual([
-      ['cycle-1:pk-0', 'BPC-157 · Zutat 0', { iuPerMg: 3, mgPerMl: 2.5, mgJe: { einheit: 'ml', mg: 2.5 } }],
-      ['cycle-1:pk-1', 'BPC-157 · Zutat 1', { iuPerMg: 4, mgPerMl: 5, mgJe: { einheit: 'ml', mg: 5 } }],
+      ['cycle-1:pk-0', 'BPC-157 · Zutat 0', { iuPerMg: 3, mgPerMl: 2.5, mgJe: { einheit: 'ml', mg: 2.5 }, anteil: 1 / 3 }],
+      ['cycle-1:pk-1', 'BPC-157 · Zutat 1', { iuPerMg: 4, mgPerMl: 5, mgJe: { einheit: 'ml', mg: 5 }, anteil: 2 / 3 }],
     ])
   })
 
