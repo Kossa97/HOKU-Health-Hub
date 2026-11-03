@@ -182,6 +182,29 @@ describe('LiquidGlassTabBar', () => {
     expect(geoeffnet).toEqual([])
   })
 
+  it('öffnet nach einem Tipp nur den angetippten Platz, nicht die überglittenen', () => {
+    // Gemeldet auf dem iPhone: Tipp von Profil auf Home öffnete unterwegs
+    // Kalender, Hoku und My Stack. Nur der Platz unter dem Finger zählt, einmal.
+    masse({ home: { links: 8, breite: 70 }, kalender: { links: 160, breite: 70 } })
+    bauen('profil')
+    zeigerfaehig(leiste())
+    const klick = (id: string, detail = 1) => {
+      const e = new MouseEvent('click', { bubbles: true, cancelable: true, detail })
+      act(() => { reiter(id).dispatchEvent(e) })
+      return e.defaultPrevented
+    }
+
+    zeiger('pointerdown', reiter('home'), 40)
+    zeiger('pointerup', leiste(), 40)
+
+    expect(klick('kalender')).toBe(true)
+    expect(klick('plus')).toBe(true)
+    expect(klick('home')).toBe(false)
+    expect(klick('home')).toBe(true)
+    // Tastatur und Vorlesung klicken ohne Finger: das bleibt erlaubt
+    expect(klick('kalender', 0)).toBe(false)
+  })
+
   it('laesst einen Tipp ohne Pointer-Capture beim eigentlichen Link', () => {
     masse({ home: { links: 8, breite: 70 } })
     bauen('home')

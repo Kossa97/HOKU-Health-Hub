@@ -101,12 +101,12 @@ export function LiquidGlassTabBar({
 
   const vorschauRef = useRef<string | null>(null)
   /**
-   * Wohin die Linse nach dem Loslassen gleitet, bis die Seite gewechselt hat.
-   * Nur dieses Symbol (oder das unter dem Finger) wird in der Linse farbig —
-   * die Symbole, über die sie unterwegs streicht, bleiben grau.
+   * Der Platz, auf dem der Finger zuletzt aufgesetzt hat. Nur dort darf der
+   * folgende Klick etwas öffnen, und nur einmal: Klicks auf Plätze, über die
+   * die Linse bloß gleitet, werden geschluckt (gemeldet auf dem iPhone: beim
+   * Tipp von Profil auf Home öffneten sich unterwegs Kalender, Hoku, My Stack).
    */
-  const [farbZiel, setFarbZiel] = useState<string | null>(null)
-  useEffect(() => { setFarbZiel(null) }, [activeId])
+  const tippRef = useRef<{ platz: string | null; zeit: number; offen: boolean }>({ platz: null, zeit: 0, offen: false })
   const ziehtRef = useRef(false)
   const gewandertRef = useRef(false)
   const klickSchluckenRef = useRef(false)
@@ -269,6 +269,7 @@ export function LiquidGlassTabBar({
     if (!auf || !kapsel) return
 
     const id = auf.getAttribute(SLOT_ATTR)
+    tippRef.current = { platz: id, zeit: performance.now(), offen: true }
     ziehtRef.current = true
     gewandertRef.current = false
     zugBreiteRef.current = pillenBreite(auf.offsetWidth)
@@ -318,7 +319,6 @@ export function LiquidGlassTabBar({
     // Eine Aktion bleibt nicht unter der Pille stehen: sie fuehrt zu keiner
     // Seite, also gehoert die Pille dorthin zurueck, wo man wirklich ist.
     const einrastZiel = ziel && !istAktion(ziel) ? ziel : activeId
-    setFarbZiel(einrastZiel)
     if (kapsel) setPille(lageVon(einrastZiel, kapsel.offsetWidth))
 
     // Ein einfacher Tipp wird NICHT hier behandelt: dann liegt der Finger noch
@@ -338,15 +338,22 @@ export function LiquidGlassTabBar({
     ziehtRef.current = false
     setGedrueckt(false)
     setzeVorschau(null)
-    setFarbZiel(null)
     const kapsel = kapselRef.current
     if (kapsel) setPille(lageVon(activeId, kapsel.offsetWidth))
   }
 
   const beiKlick = (e: ReactMouseEvent<HTMLElement>) => {
-    if (!klickSchluckenRef.current) return
-    e.preventDefault()
-    e.stopPropagation()
+    const schlucken = () => { e.preventDefault(); e.stopPropagation() }
+    if (klickSchluckenRef.current) { schlucken(); return }
+    const platz = (e.target as HTMLElement).closest?.(`[${SLOT_ATTR}]`)?.getAttribute(SLOT_ATTR) ?? null
+    // Tastatur und Vorlesung klicken ohne Finger (detail 0): die gelten immer
+    if (!platz || e.detail === 0) return
+    const t = tippRef.current
+    if (t.offen && t.platz === platz && performance.now() - t.zeit < 3000) {
+      t.offen = false
+      return
+    }
+    schlucken()
   }
 
   const platz = (item: GlassTabItem) => item.render({
@@ -412,9 +419,8 @@ export function LiquidGlassTabBar({
                   {plaetzeRef.current.map(p => {
                     const item = items.find(i => i.id === p.id)
                     if (!item) return null
-                    const ziel = (vorschau ?? farbZiel ?? activeId) === p.id
                     return (
-                      <span key={p.id} className="tyd-tabbar-linse-platz" data-ziel={ziel ? 'true' : undefined} style={{ left: p.links, width: p.breite }}>
+                      <span key={p.id} className="tyd-tabbar-linse-platz" style={{ left: p.links, width: p.breite }}>
                         {item.icon}
                       </span>
                     )
