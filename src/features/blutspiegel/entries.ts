@@ -11,6 +11,7 @@ import {
   calculateHistoryBlutspiegelCurve,
   findNextPkDose,
   loadDoseHistory,
+  nachRouteSchneiden,
   type DoseEvent,
   type DoseUmrechnung,
 } from '../../services/blutspiegelHistory'
@@ -18,6 +19,8 @@ import {
   evaluatePkReadiness,
   mgPerMlFromStrength,
   resolvePkScheduleForDay,
+  staerkeJeEinheit,
+  type StaerkeJe,
   type PkRequirement,
   type PkScheduleCycle,
 } from '../my-stack/lib/pkReadiness'
@@ -73,10 +76,16 @@ export interface ReadyEntry {
   cycleId: string
   stackItemId: string
   name: string
+  /** Name des Produkts (wie in My Stack). */
+  produkt: string
+  /** Name des Wirkstoffs, fuer den diese Kurve gilt. */
+  wirkstoff: string
   profileId: string
   profile: PkProfileEmbed
   accent: string
   umrechnung: DoseUmrechnung
+  /** Vom Nutzer bestaetigte Route (fuer Profile ohne Routenangabe). */
+  pkProfileMethod: string | null
   /** Naechste geplante Einnahme (Unix ms); null ohne Plan. */
   nextDoseAt: number | null
 }
@@ -121,6 +130,54 @@ export const CATEGORY_ACCENT: Record<PkCategory, string> = {
   other: '#94a3b8',
 }
 
+/**
+ * Linienfarben in einem Kombipraeparat, in fester Reihenfolge je Zutat.
+ * Die Akzente der App, so geordnet, dass Nachbarn auch bei Farbfehlsichtigkeit
+ * getrennt bleiben: im Paletten-Pruefer des dataviz-Skills bestehen
+ * Farbabstand und Fehlsichtigkeit; das Helligkeitsband nicht (die Akzente
+ * sind heller als vorgesehen), und im hellen Look liegt der Kontrast unter
+ * 3:1. Deshalb steht jeder Wert mit Namen in der Legende, nie nur als Farbe.
+ * Die Kategoriefarbe allein reicht hier nicht: zwei Peptide waeren gleich blau.
+ */
+export const KOMBI_FARBEN = ['#00ccf5', '#f59e0b', '#a855f7', '#10b981'] as const
+
+/** Alle Kurven eines Produkts — ein Graph, eine Linie je Wirkstoff. */
+export interface ProduktGruppe {
+  /** Die Zyklus-id: Adresse der Detailseite. */
+  key: string
+  cycleId: string
+  stackItemId: string
+  name: string
+  /** In Reihenfolge der Zutaten; mindestens einer. */
+  wirkstoffe: ReadyEntry[]
+}
+
+/** Fasst die Kurven je Produkt zusammen, in der Reihenfolge, in der sie kamen. */
+export function nachProdukt(ready: readonly ReadyEntry[]): ProduktGruppe[] {
+  const gruppen = new Map<string, ProduktGruppe>()
+  for (const entry of ready) {
+    const gruppe = gruppen.get(entry.cycleId)
+    if (gruppe) gruppe.wirkstoffe.push(entry)
+    else gruppen.set(entry.cycleId, { key: entry.cycleId, cycleId: entry.cycleId, stackItemId: entry.stackItemId, name: entry.produkt, wirkstoffe: [entry] })
+  }
+  return [...gruppen.values()]
+}
+
+/**
+ * Welche Gruppe und welcher Wirkstoff zu einer Adresse gehoeren. Frueher
+ * hatte jeder Wirkstoff seine eigene Detailseite (`zyklus:profil`) — solche
+ * Links fuehren jetzt zum Produkt, mit genau diesem Wirkstoff vorn.
+ */
+export function gruppeZu(gruppen: readonly ProduktGruppe[], key: string | null | undefined): { gruppe: ProduktGruppe; wirkstoff: ReadyEntry } | null {
+  if (!key) return null
+  for (const gruppe of gruppen) {
+    if (gruppe.key === key) return { gruppe, wirkstoff: gruppe.wirkstoffe[0] }
+    const wirkstoff = gruppe.wirkstoffe.find(entry => entry.key === key)
+    if (wirkstoff) return { gruppe, wirkstoff }
+  }
+  return null
+}
+
 export function normalizeCategory(raw: string | undefined): PkCategory {
   if (raw === 'peptide' || raw === 'glp1' || raw === 'hormone' || raw === 'sarm') return raw
   return 'other'
@@ -137,6 +194,7 @@ interface VerknuepfteZutat {
   profile: PkProfileEmbed
   name: string
   mgPerMl: number | null
+  mgJe: StaerkeJe | null
 }
 
 /**
@@ -159,6 +217,12 @@ function linkedProfiles(cycle: CycleWithPk): VerknuepfteZutat[] {
       mgPerMl: mgPerMlFromStrength(
         zahl(ingredient.amount_value), ingredient.amount_unit,
         zahl(ingredient.basis_value), ingredient.basis_unit,
+      ),
+      // Kapsel, Tablette, Spruehstoss …: jede Zutat ihre eigene Menge je Stueck.
+      mgJe: staerkeJeEinheit(
+        zahl(ingredient.amount_value), ingredient.amount_unit,
+        zahl(ingredient.basis_value), ingredient.basis_unit,
+        catalog.pk_profiles.iu_per_mg ?? null,
       ),
     })
   }
@@ -226,6 +290,7 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
       // Einnahme hier durch und der Eintrag verschwaende wortlos.
       iuPerMg: zutat?.profile.iu_per_mg ?? null,
       mgPerMl: zutat?.mgPerMl ?? null,
+      mgJe: zutat?.mgJe ?? null,
     })
     const base = { cycleId: cycle.id, stackItemId: item.id }
 
@@ -234,10 +299,15 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
       entries.push({ kind: 'missing', key: cycle.id, ...base, name: item.display_name, missing: first.missing })
       continue
     }
-    if (first.status === 'unsupported' || !verknuepft.length) {
+    // Bei einem Kombipraeparat entscheidet jede Zutat fuer sich (Schleife
+    // unten): fehlt der ersten die Staerke oder passt ihre Route nicht, hat
+    // die zweite trotzdem ihre Kurve. Fehlende Angaben oben gelten dagegen
+    // dem ganzen Produkt — Plan, Dosis und Uhrzeit sind fuer alle dieselben.
+    const ganzesProdukt = !verknuepft.length || verknuepft.length === 1 || !schedule
+    if (first.status === 'unsupported' && ganzesProdukt) {
       entries.push({
         kind: 'unsupported', key: cycle.id, ...base, name: item.display_name,
-        reason: first.status === 'unsupported' ? grund(first.reason) : 'profile',
+        reason: grund(first.reason),
         method: schedule?.method ?? null,
       })
       continue
@@ -250,9 +320,10 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
     } catch {
       nextDoseAt = null
     }
-    for (const zutat of verknuepft) {
+    const kombi = verknuepft.length > 1
+    for (const [index, zutat] of verknuepft.entries()) {
       const key = `${cycle.id}:${zutat.id}`
-      const name = verknuepft.length > 1 ? `${item.display_name} · ${zutat.name}` : item.display_name
+      const name = kombi ? `${item.display_name} · ${zutat.name}` : item.display_name
       const readiness = zutat === verknuepft[0] ? first : pruefe(zutat)
       if (readiness.status === 'missing') {
         entries.push({ kind: 'missing', key, ...base, name, missing: readiness.missing })
@@ -264,10 +335,13 @@ export async function loadBlutspiegelEntries(userId: string, now = new Date()): 
       }
       entries.push({
         kind: 'ready', key, ...base, name,
+        produkt: item.display_name,
+        wirkstoff: zutat.name,
         profileId: zutat.id,
         profile: zutat.profile,
-        accent: CATEGORY_ACCENT[normalizeCategory(zutat.profile.category)],
-        umrechnung: { iuPerMg: zutat.profile.iu_per_mg ?? null, mgPerMl: zutat.mgPerMl },
+        accent: kombi ? KOMBI_FARBEN[index % KOMBI_FARBEN.length] : CATEGORY_ACCENT[normalizeCategory(zutat.profile.category)],
+        umrechnung: { iuPerMg: zutat.profile.iu_per_mg ?? null, mgPerMl: zutat.mgPerMl, mgJe: zutat.mgJe },
+        pkProfileMethod: item.pk_profile_method ?? null,
         nextDoseAt,
       })
     }
@@ -311,7 +385,23 @@ export interface EntryCurve {
 
 const CURVE_RESOLUTION_MINUTES = 15
 
-export function buildEntryCurve(entry: ReadyEntry, history: EntryHistory | undefined): EntryCurve {
+/** Der Verlauf des Zyklus aus Sicht dieses Wirkstoffs: endet, wo seine Route nicht mehr passt. */
+function verlaufFuer(entry: ReadyEntry, history: EntryHistory): EntryHistory {
+  const geschnitten = nachRouteSchneiden(
+    { events: history.events, interruptedAt: null },
+    entry.pkProfileMethod,
+    entry.profile.routes ?? null,
+  )
+  if (!geschnitten.interruptedAt) return history
+  const eigene = new Date(geschnitten.interruptedAt).getTime()
+  return {
+    events: geschnitten.events,
+    interruptedAt: history.interruptedAt != null ? Math.min(history.interruptedAt, eigene) : eigene,
+  }
+}
+
+export function buildEntryCurve(entry: ReadyEntry, gesamt: EntryHistory | undefined): EntryCurve {
+  const history = gesamt ? verlaufFuer(entry, gesamt) : undefined
   const empty: EntryCurve = { points: [], intakes: [], doses: [], current: null, lastPeak: null, interruptedAt: history?.interruptedAt ?? null }
   if (!history) return empty
   const taken = history.events.filter(e => e.status === 'taken')

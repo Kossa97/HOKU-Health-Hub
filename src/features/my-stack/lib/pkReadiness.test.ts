@@ -319,3 +319,18 @@ describe('PK-Route aus dem Profil', () => {
       .toEqual({ status: 'missing', missing: ['method'] })
   })
 })
+
+describe('Staerke je Stueck', () => {
+  it('rechnet „50 mg je Kapsel" in Milligramm je Kapsel um', async () => {
+    const { staerkeJeEinheit, toPkMilligrams } = await import('./pkReadiness')
+    const je = staerkeJeEinheit(100, 'mg', 2, 'Capsule')
+    expect(je).toEqual({ einheit: 'capsule', mg: 50 })
+    expect(toPkMilligrams(3, 'capsule', null, null, je)).toBe(150)
+    // Eine andere Einheit im Plan passt nicht zur Staerke.
+    expect(toPkMilligrams(3, 'tablet', null, null, je)).toBeNull()
+    expect(staerkeJeEinheit(500, 'mcg', 1, 'tablet')).toEqual({ einheit: 'tablet', mg: 0.5 })
+    expect(staerkeJeEinheit(null, 'mg', 1, 'tablet')).toBeNull()
+    expect(staerkeJeEinheit(1000, 'IU', 1, 'drop')).toBeNull()
+    expect(staerkeJeEinheit(1000, 'IU', 1, 'drop', 100)).toEqual({ einheit: 'drop', mg: 10 })
+  })
+})

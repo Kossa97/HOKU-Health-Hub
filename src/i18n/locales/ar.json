@@ -2652,5 +2652,7 @@
   "syringe_draw_units": "Draw {{units}} units",
   "dose_once": "one-off",
   "bundle_merged_hint": "Combined today because these bundles are due at the same time.",
-  "my_stack_scan_amazon": "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead."
+  "my_stack_scan_amazon": "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead.",
+  "pk_select_ingredient": "Choose active ingredient",
+  "pk_stats_for": "Key figures · {{name}}"
 }
