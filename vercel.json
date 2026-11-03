@@ -12,6 +12,7 @@
   ],
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/landing", "dest": "/landing.html" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

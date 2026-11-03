@@ -23,7 +23,9 @@ registerRoute(new NavigationRoute(async ({ request }) => {
   } catch {
     return (await matchPrecache('/index.html')) ?? Response.error()
   }
-}, { denylist: [/^\/api\//] }))
+// Die Landing Page (landing.html, landing-mockup.html) ist keine App-Seite:
+// ohne Netz gibt es sie nicht aus dem Vorrat, mit Netz hat sie ihr eigenes HTML.
+}, { denylist: [/^\/api\//, /^\/landing/] }))
 
 // ── pdf.js erst bei Gebrauch cachen ──────────────────────────────────────────
 // pdf.js (~1,8 MB mit Worker) ist vom Precache ausgenommen (vite.config.ts):

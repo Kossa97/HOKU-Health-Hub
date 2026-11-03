@@ -1,0 +1,141 @@
+/*
+ * Landing Page (src/landing/). Dasselbe Schwarz und dieselben Glasflächen wie
+ * die App (index.css, liquid-glass.css); hier nur Aufbau und Schrift der Seite.
+ * Hoku zeichnet die DotLayer-Ebene (dot.css) über allem.
+ */
+:root {
+  --ld-max: 1120px;
+  --ld-rand: 20px;
+  --ld-marke: 'Michroma', 'Space Grotesk', system-ui, sans-serif;
+  --ld-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { padding: 0; overflow-x: clip; }
+#root { overflow: visible; }
+
+/* Hokus Bühne: unsichtbarer Rahmen, den HokuBuehne.tsx dem Anker nachführt */
+.ld-buehne { position: fixed; left: 0; top: 0; width: 0; height: 0; pointer-events: none; z-index: -1; will-change: transform; }
+/* Anker in der Seite: wo Hoku je Abschnitt steht */
+.ld-anker { pointer-events: none; }
+
+/* ── Kopf ──────────────────────────────────────────────────────────────── */
+.ld-kopf {
+  position: fixed; inset: 0 0 auto; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) var(--ld-rand) 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.ld-kopf > * { pointer-events: auto; }
+.ld-wortmarke { display: inline-flex; align-items: center; gap: 10px; color: var(--lg-text); text-decoration: none; }
+.ld-wortmarke img { width: 28px; height: 28px; border-radius: 8px; }
+.ld-wortmarke span { font-family: var(--ld-marke); font-size: 14px; letter-spacing: 0.16em; }
+.ld-kopf-rechts { display: flex; align-items: center; gap: 8px; }
+.ld-sprache { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--lg-fill); }
+.ld-sprache button {
+  font: inherit; font-size: 12px; font-weight: 600; padding: 5px 10px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--lg-text-2); cursor: pointer;
+}
+.ld-sprache button[aria-pressed='true'] { background: var(--lg-fill-selected); color: var(--lg-text); }
+.ld-knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  border: 0; border-radius: 999px; font: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ld-knopf:active { transform: scale(0.97); }
+.ld-knopf[data-art='haupt'] {
+  background: var(--lg-primary-fill); color: var(--accent-contrast, #00141c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 204, 245, 0.25);
+}
+.ld-knopf[data-art='glas'] { background: var(--lg-fill); color: var(--lg-text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+.ld-knopf[data-art='klein'] { min-height: 36px; padding: 0 14px; font-size: 13px; background: var(--lg-fill); color: var(--lg-text); }
+
+/* ── Abschnitte ────────────────────────────────────────────────────────── */
+.ld-abschnitt { position: relative; max-width: var(--ld-max); margin: 0 auto; padding: 96px var(--ld-rand); }
+.ld-eyebrow { margin: 0 0 12px; font-family: var(--ld-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.5em; text-transform: uppercase; color: var(--accent); }
+.ld-h2 { margin: 0; font-family: var(--lg-display); font-size: clamp(30px, 4.6vw, 48px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; color: var(--lg-text); text-wrap: balance; }
+.ld-text { margin: 16px 0 0; max-width: 560px; font-size: 17px; line-height: 1.5; color: var(--lg-text-2); text-wrap: pretty; }
+.ld-tipp { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; padding: 8px 12px 8px 10px; border-radius: 999px; background: var(--accent-weak); color: var(--accent); font-size: 14px; font-weight: 600; }
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.ld-hero { min-height: 100svh; display: grid; grid-template-columns: 1fr; align-content: center; gap: 24px; padding-top: calc(96px + env(safe-area-inset-top)); }
+.ld-hero-marke { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
+.ld-hero-marke .ld-hoku { font-family: var(--ld-marke); font-size: clamp(34px, 7vw, 64px); letter-spacing: 0.16em; line-height: 1; color: var(--lg-text); }
+.ld-hero-marke .ld-hub { font-family: var(--ld-mono); font-size: clamp(11px, 2vw, 17px); font-weight: 500; letter-spacing: 0.5em; color: var(--lg-text-2); }
+.ld-hero h1 { margin: 0; font-family: var(--lg-display); font-size: clamp(36px, 6vw, 68px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.02; color: var(--lg-text); white-space: pre-line; }
+.ld-hero .ld-text { font-size: 19px; }
+.ld-hero-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.ld-hero-buehne { position: relative; height: clamp(230px, 36vh, 300px); }
+.ld-hero-scroll[data-aus='true'] { opacity: 0; }
+.ld-hero-scroll { transition: opacity 300ms ease; position: absolute; left: 50%; bottom: 18px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--lg-text-3); animation: ld-wippen 2.2s ease-in-out infinite; }
+@keyframes ld-wippen { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@media (min-width: 860px) {
+  .ld-hero { grid-template-columns: 1.1fr 0.9fr; align-items: center; gap: 40px; }
+  .ld-hero-buehne { height: 420px; }
+}
+
+/* ── Hoku stellt sich vor ──────────────────────────────────────────────── */
+.ld-hoku-karten { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 36px; }
+.ld-karte { padding: 22px; border-radius: var(--r-xl); display: flex; flex-direction: column; gap: 8px; }
+.ld-karte h3 { margin: 0; font-size: 19px; font-weight: 700; color: var(--lg-text); }
+.ld-karte p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--lg-text-2); }
+.ld-karte .ld-knopf { align-self: flex-start; margin-top: 8px; }
+.ld-hoku-buehne { height: 200px; margin-top: 16px; }
+/* Auf dem Handy bleibt Hoku im Bild, während die Karten unter ihm durchscrollen (Knöpfe lösen Gesten aus) */
+@media (max-width: 859px) { .ld-hoku-buehne { position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 1; height: 170px; } }
+@media (min-width: 860px) {
+  .ld-hoku-kopf { display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: center; }
+  .ld-hoku-buehne { height: 260px; margin: 0; }
+  .ld-hoku-karten { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Features mit Handy ────────────────────────────────────────────────── */
+.ld-feature { display: grid; grid-template-columns: 1fr; gap: 36px; align-items: center; }
+.ld-feature-text { max-width: 520px; }
+.ld-feature-anker { height: 150px; margin-top: 10px; }
+@media (max-width: 859px) { .ld-feature-anker { height: 90px; margin-top: 0; } }
+.ld-feature-handy { display: flex; justify-content: center; }
+.ld-feature-handy > div { width: min(100%, 390px); display: flex; justify-content: center; }
+@media (min-width: 860px) {
+  .ld-feature { grid-template-columns: 1fr 1fr; gap: 56px; min-height: 100svh; }
+  .ld-feature[data-seite='links'] .ld-feature-handy { order: -1; }
+}
+.ld-handy {
+  position: relative; border-radius: 48px; padding: 0; overflow: hidden; isolation: isolate;
+  background: #000; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 0 0 9px #0b0b0d, 0 0 0 10px rgba(255, 255, 255, 0.08), 0 30px 80px rgba(0, 0, 0, 0.7);
+}
+.ld-handy-schirm { position: absolute; left: 0; top: 0; width: 390px; height: 760px; transform-origin: 0 0; }
+.ld-handy iframe { display: block; border: 0; width: 390px; height: 760px; background: #000; }
+.ld-handy[data-bereit='false']::after {
+  content: ''; position: absolute; inset: 0; background: #000; animation: ld-warten 1.4s ease-in-out infinite alternate;
+}
+@keyframes ld-warten { from { opacity: 1; } to { opacity: 0.85; } }
+/* Kamera-Insel wie in der Leiste der App gedacht: nur Deko */
+.ld-handy::before {
+  content: ''; position: absolute; left: 50%; top: 11px; translate: -50% 0; width: 96px; height: 28px; border-radius: 999px; background: #000;
+  z-index: 2; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ── Mehr ──────────────────────────────────────────────────────────────── */
+.ld-mehr-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 36px; }
+.ld-mehr-karte { padding: 18px; border-radius: var(--r-xl); min-height: 150px; display: flex; flex-direction: column; gap: 6px; }
+.ld-mehr-karte svg { color: var(--accent); }
+.ld-mehr-karte h3 { margin: 6px 0 0; font-size: 17px; font-weight: 700; color: var(--lg-text); }
+.ld-mehr-karte p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--lg-text-2); }
+.ld-mehr-karte small { margin-top: auto; padding-top: 10px; font-size: 12px; font-weight: 600; color: var(--lg-text-3); }
+@media (min-width: 860px) { .ld-mehr-raster { grid-template-columns: repeat(3, 1fr); } }
+
+/* ── Schluss und Fuß ───────────────────────────────────────────────────── */
+.ld-cta { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.ld-cta .ld-text { text-align: center; }
+.ld-cta-buehne { height: 220px; width: 100%; }
+.ld-stores { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+.ld-store { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 12px; background: var(--lg-fill); color: var(--lg-text-3); font-size: 13px; font-weight: 600; }
+.ld-fuss { max-width: var(--ld-max); margin: 0 auto; padding: 24px var(--ld-rand) calc(32px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+.ld-fuss nav { display: flex; flex-wrap: wrap; gap: 18px; }
+.ld-fuss a { color: var(--lg-text-2); text-decoration: none; font-size: 14px; }
+.ld-fuss p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--lg-text-3); }
+
+/* Hokus Trefferfläche über den Handy-Rahmen und über dem Kopf; die Ebene liegt bei 44 (dot.css) */
+.tyd-dot-blase { z-index: 2; }

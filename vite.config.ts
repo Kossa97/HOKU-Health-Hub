@@ -16,6 +16,15 @@ export default defineConfig(({ mode }) => {
   return {
   build: {
     sourcemap: sentryUpload ? 'hidden' : false,
+    // Drei Seiten aus einem Bau: die App, die Landing Page (meethoku.com) und die
+    // Handy-Vorschauen, die die Landing Page in Rahmen zeigt (src/landing/).
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        landing: 'landing.html',
+        'landing-mockup': 'landing-mockup.html',
+      },
+    },
   },
   define: {
     'import.meta.env.VITE_PUBLIC_SITE_URL': JSON.stringify(env.VITE_PUBLIC_SITE_URL || (publicHost ? `https://${publicHost}` : '')),
@@ -47,7 +56,8 @@ export default defineConfig(({ mode }) => {
         // Barcode-Leser (ZXing, ~1,1 MB) nicht vorab laden: er kommt erst beim
         // ersten Scan, sonst laedt jedes Geraet ihn bei jeder neuen Version mit.
         // Dasselbe fuer pdf.js (~490 KB + Worker): nur die PDF-Vorschau braucht es.
-        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*'],
+        // Die Landing Page gehört nicht in den Vorrat der App.
+        globIgnores: ['**/node_modules/**/*', '**/zxing_reader-*.wasm', '**/assets/pdf-*.js', '**/assets/pdf.worker*', 'landing.html', 'landing-mockup.html', '**/assets/landing*'],
       },
       manifest: {
         name: 'HOKU: Health Hub',
@@ -64,6 +74,16 @@ export default defineConfig(({ mode }) => {
         ],
       },
     }),
+    // Nach VitePWA (das den Eintrag setzt): die Landing Page (landing*.html) bekommt keinen Service Worker: sie ist
+    // keine App-Seite und soll den Vorrat der App nicht bei jedem Besuch laden.
+    {
+      name: 'hoku-landing-ohne-sw',
+      enforce: 'post' as const,
+      transformIndexHtml: {
+        order: 'post' as const,
+        handler: (html: string, ctx: { filename: string }) => (/landing[^/]*\.html$/.test(ctx.filename) ? html.replace(/<script[^>]*registerSW[^>]*><\/script>\s*/g, '') : html),
+      },
+    },
     // Muss das letzte Plugin sein.
     sentryUpload && sentryVitePlugin({
       authToken: env.SENTRY_AUTH_TOKEN,
