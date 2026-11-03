@@ -213,3 +213,8 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   der Funktion freischalten; sonst übergangsweise Ersatz „… und zeigt dir, was sich seit deinem Start verändert hat.“
   Muster über die genannten Bereiche (Training, Ernährung, Schlaf, Körper); keine Kausalaussagen. Musterfunktion = eigenes
   Vorhaben (Spec fehlt; Wirkungs-Check-PRD 2026-10-18 ist nur Vorher/Nachher für Stack-Einträge).
+- Nutzer 03.11. (vor Endfreigabe): **Web-Fortschritt rechnet über ALLE Bereiche** (wie im Profil), weil nur grob in Stufen und
+  nie je Bereich gezeigt — mein Vorschlag „nur freigegebene Bereiche“ abgelehnt. **B1 und B3 nach Brand-Guide freigegeben**
+  (Anschnitt erlaubt). Rückfall-Zeile: Einstieg „Du trackst. / Hoku verbindet.“ in Space Grotesk, „Hoku verbindet.“ Cyan,
+  Rest 70 % Weiß. **Logo weiß, wo Hoku groß im Bild ist**: neutral Hauptlogo weiß (Nutzer-Idee), Rückfall Kompaktlogo weiß
+  (meine Ergänzung, gleiche Regel); A1 Hauptlogo bleibt Cyan. Mockup-Stand „zur Freigabe“; Z1–Z6 in Git-Historie (c0c999f).
