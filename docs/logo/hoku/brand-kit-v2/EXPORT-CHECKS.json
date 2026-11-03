@@ -1,0 +1,713 @@
+{
+  "date": "2026-11-02",
+  "masterSha256": "51d4c848bcd3e4221f0a738895d70abcaa94b177497de32f02f1702122ce1576",
+  "sourceSha256": "d4b3d5c23e29a93be34525b3a5da6d7eb36c6c2fbc59f0a4e7d879476046a25a",
+  "sourceDimensions": {
+    "width": 1254,
+    "height": 1254
+  },
+  "sourceVisibleBounds": {
+    "left": 115,
+    "right": 1152,
+    "top": 119,
+    "bottom": 1163,
+    "width": 1038,
+    "height": 1045
+  },
+  "equalWidths": {
+    "HOKU": 410,
+    "HEALTH_HUB": 410
+  },
+  "compactEqualHeights": {
+    "HOKU": 71.96107081583669,
+    "Hoku": 71.96107081583669
+  },
+  "fullEqualHeights": {
+    "text": 120.01619803249051,
+    "Hoku": 120.01619803249051
+  },
+  "kiHashes": [
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-128.png",
+      "sha256": "bfc825cfe5f1e50b37210db95e4bb7408f282ed68fb4d5e453d910e85a219108"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-24.png",
+      "sha256": "5667b3bde3dcffc25624589a9cdacc7d0579af0bf5fe4f6979389f7deaf56416"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-256.png",
+      "sha256": "565c33ae30816851e68e4bd531f5487accc70808d19a1b1dbe1d888d80cb71ce"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-32.png",
+      "sha256": "139dd29cf5cf781110c3a55066eec8fd852ed30f9d4a116587695bf2dede6a6d"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-48.png",
+      "sha256": "65a276bc9b0a5446dcc284d7c77ccd0c543a2d37a1619e1d721eb4530880f3df"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau-64.png",
+      "sha256": "f44a1b9608656e7cb206d0ac9bb5ad13547549912528b0ee9b9f5f0d2691a7db"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-blau.svg",
+      "sha256": "83abc31b4734ff24861a69d4fe18948517b74c9cafcb4f8f7fb75f4d86a00b59"
+    },
+    {
+      "file": "07-KI-Button-Symbol/HOKU-KI-Symbol-Uebersicht.png",
+      "sha256": "9b32d0e707c2c59fd1fa0f8243275a8f7858f0b8d1d4e2b0fd8cd468aacb398c"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-128.png",
+      "sha256": "320a6cd55c74a47be4ac9f0e23f2f4d9c4ec673c9cc5f7acaaa5917a6f5c94d4"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-24.png",
+      "sha256": "4bf47ae03599ae0f5294401e82526479ce500863f0ab7740df927d94aa15c15c"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-256.png",
+      "sha256": "8be67883e5df9f3bd007f7301f1d20fbb71fa6e1948adc5af37c1bea35524de8"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-32.png",
+      "sha256": "b5f865dfa7787aaf882109ece14990c68ca40622acd632086870be5bda5f0a32"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-48.png",
+      "sha256": "858af9425e7fa1d46f61e11952bbed179a75af2604a0afd70f32c09029d8929f"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss-64.png",
+      "sha256": "b81914873b7c7fbad6d58d98b30f86ce9497554ca753ba3953e72ba609d1b618"
+    },
+    {
+      "file": "07-KI-Button-Symbol/hoku-ki-symbol-weiss.svg",
+      "sha256": "07de7869ac5ad213195bae1280785bc8680f1297d5acd0f7154bd5821cb564a9"
+    }
+  ],
+  "pngs": [
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "clear": 422431,
+      "visible": 47969,
+      "opaque": 26905,
+      "colored": 0,
+      "sha256": "9deca19e85da56cd219857c15ccfb5588c5800803a6d5a18070b50a9bd1996b6"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 1691936,
+      "visible": 187264,
+      "opaque": 110833,
+      "colored": 0,
+      "sha256": "1db17bebf5450759de79580f6a113038147a0eca7cdd59bb552629320aed2ab1"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 0,
+      "visible": 1879200,
+      "opaque": 1879200,
+      "colored": 0,
+      "sha256": "30039a4bae21cefa0526eab39673f2281f0d18ede976915c0d19612aaabfc0df"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "clear": 410193,
+      "visible": 60207,
+      "opaque": 26905,
+      "colored": 27907,
+      "sha256": "48418878e31d036ae8740dbbd22da6250d329663f32c5b1dc7a6e4be1d7ee6ec"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 1643040,
+      "visible": 236160,
+      "opaque": 110833,
+      "colored": 111444,
+      "sha256": "319b3aedbe6d7e7a32f69edeac2dc31d4277c1e03384462b8346dcece720dc32"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 0,
+      "visible": 1879200,
+      "opaque": 1879200,
+      "colored": 111459,
+      "sha256": "f41e94815c52c7c763343323aa139666f0fa835a4d7ef70168a30d9004773177"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "clear": 422431,
+      "visible": 47969,
+      "opaque": 26905,
+      "colored": 0,
+      "sha256": "1e7766aede3ec6b357187c437e0f7b958473c5a5c9f979ed1b96929c85e46533"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 1691936,
+      "visible": 187264,
+      "opaque": 110833,
+      "colored": 0,
+      "sha256": "93380db7640ff7daeee407019ec00e1cc99530a4d3ee24f2fbefbd8ad01a8fd9"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 0,
+      "visible": 1879200,
+      "opaque": 1879200,
+      "colored": 0,
+      "sha256": "06c2c7d6b1cf7aa132bdf6eb149c689cfa70c6092528f3035c64b44d9d5b2698"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 392,
+      "clear": 410193,
+      "visible": 60207,
+      "opaque": 26905,
+      "colored": 27907,
+      "sha256": "29032f7641cfe443c94037dff00a8c046d53f5f18c7be47fb5a386d243fec684"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 1643040,
+      "visible": 236160,
+      "opaque": 110833,
+      "colored": 111444,
+      "sha256": "e8e64059eaa2a2280849571f3b66563582aac21b1fcce4f6e954d1cc7e61e234"
+    },
+    {
+      "file": "01-Hauptlogo/hoku-health-hub-cyan-schrift-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 783,
+      "clear": 0,
+      "visible": 1879200,
+      "opaque": 1879200,
+      "colored": 111453,
+      "sha256": "3d234fd7f47f24f8534bc3a6f0024ca5e5a0fb59f67d0f5a5b5232a066780be7"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 295,
+      "clear": 315931,
+      "visible": 38069,
+      "opaque": 27136,
+      "colored": 0,
+      "sha256": "0588a5f0104ff93f6723aeb2669499e7437ad6b9f4a2f3863607407d1a52551f"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 1266031,
+      "visible": 149969,
+      "opaque": 111270,
+      "colored": 0,
+      "sha256": "43cdef5cab1545e6fc5f3cfac91a65ae370d038182ff5b7b872f84eaba660a51"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 0,
+      "visible": 1416000,
+      "opaque": 1416000,
+      "colored": 0,
+      "sha256": "e26c509774f61e07b94d908247763891cf53800d2f6b5478d02a5bc9125e3d74"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 295,
+      "clear": 310094,
+      "visible": 43906,
+      "opaque": 27136,
+      "colored": 13269,
+      "sha256": "7bbe772c0f16cf15a0d341efc5429774fdc1ee6d587d3808f3360b35bf0fe660"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 1242722,
+      "visible": 173278,
+      "opaque": 111270,
+      "colored": 53121,
+      "sha256": "bead43016590e4b773cae18d2fb75e1144e563672e1e5bff35fd649cb068fd73"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 0,
+      "visible": 1416000,
+      "opaque": 1416000,
+      "colored": 53127,
+      "sha256": "55c711190e8e97463de9d641c1eee52a850f6fd54b46f9ffd2795203e3faabf0"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 295,
+      "clear": 315931,
+      "visible": 38069,
+      "opaque": 27136,
+      "colored": 0,
+      "sha256": "44f4530e06a49acdcffe577ecbb72913b4c800aef4adbec31d5380b9a3d34524"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 1266031,
+      "visible": 149969,
+      "opaque": 111270,
+      "colored": 0,
+      "sha256": "c9775c5e7037da7f93ff3d1e0628ca3c9bd64e2c833341122909d6832e08cedd"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 0,
+      "visible": 1416000,
+      "opaque": 1416000,
+      "colored": 0,
+      "sha256": "8d46b2018b10a967140c6794f705a0ea6dd86f869681b9af524ed6508de4103a"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 295,
+      "clear": 310094,
+      "visible": 43906,
+      "opaque": 27136,
+      "colored": 13269,
+      "sha256": "e78e319c666c623845b8d887e9b3d7616fdfec71f059733bcb688e4fb83dec1c"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 1242722,
+      "visible": 173278,
+      "opaque": 111270,
+      "colored": 53121,
+      "sha256": "d016766a24c60c761ab15c370063ab95de658e2970b225dec12c96a525bc5e26"
+    },
+    {
+      "file": "02-Kompaktlogo/hoku-kompakt-cyan-schrift-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 590,
+      "clear": 0,
+      "visible": 1416000,
+      "opaque": 1416000,
+      "colored": 53135,
+      "sha256": "59fe0746ae790b9e3d623c60e682113425ff6d971eb60f1407b547c98c292542"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "clear": 410377,
+      "visible": 27623,
+      "opaque": 12722,
+      "colored": 0,
+      "sha256": "fa0b2f9488e7005e7db7fa3b2ebe6a5686eb79619ab0017715f7ded9a45b14eb"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1649879,
+      "visible": 102121,
+      "opaque": 59144,
+      "colored": 0,
+      "sha256": "4fac8429b5224b07d7f57594c51d06b00f2f33d8dc69d291066e18f8b74d6870"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 0,
+      "visible": 1752000,
+      "opaque": 1752000,
+      "colored": 0,
+      "sha256": "79c8974b1a8cb1359d942ba2efc482e52a27fa21c8c24b238931624ac4f44edf"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-weiss-dezent-35-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1652007,
+      "visible": 99993,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "55fb891124de3f901d77f0b36ac62278eda12be4e3191202dd36594381605b21"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-weiss-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "clear": 405888,
+      "visible": 32112,
+      "opaque": 12722,
+      "colored": 10160,
+      "sha256": "1ba70a4e182ecc11b525bfbc22c095008877c038a0288f6caa5bc005a5719d1a"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-weiss-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1631673,
+      "visible": 120327,
+      "opaque": 59144,
+      "colored": 40696,
+      "sha256": "2c19a71cbc281ce85e002c90feb3770d5f74a54e4e9cf8079f5f8f59870a93a3"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-weiss-auf-schwarz-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 0,
+      "visible": 1752000,
+      "opaque": 1752000,
+      "colored": 40698,
+      "sha256": "eab5ad643c1ca617034f0fd38a600dd16b2381078749301fd9ac808cd48ca786"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "clear": 410377,
+      "visible": 27623,
+      "opaque": 12722,
+      "colored": 0,
+      "sha256": "89b8c4a668037762330802ea28244f21c67ac2d0f90f6a22be9338c177da2cb4"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1649879,
+      "visible": 102121,
+      "opaque": 59144,
+      "colored": 0,
+      "sha256": "e8948dcd6283337d5ebb51310448481dea1e19d3ff2a05b5fd764dea02502a58"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 0,
+      "visible": 1752000,
+      "opaque": 1752000,
+      "colored": 0,
+      "sha256": "785d6fec09f8887db09e2c1bea1b807d5847a2f17415968e71a8a5c4086d29c0"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-schwarz-dezent-35-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1652007,
+      "visible": 99993,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "911a7d19d612c53ac4c2172a6e0cf92631cec010e2e05465c85196de1335acc9"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-schwarz-transparent-1200.png",
+      "width": 1200,
+      "height": 365,
+      "clear": 405888,
+      "visible": 32112,
+      "opaque": 12722,
+      "colored": 10160,
+      "sha256": "37f10696a882eff78953d56cc0be4fc473537c3be3100a2381d5ec6b31b2058f"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-schwarz-transparent-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 1631673,
+      "visible": 120327,
+      "opaque": 59144,
+      "colored": 40696,
+      "sha256": "ea060ce132069f8d81265f8cad2c0a802010030afa023296ba1a9695763bd3d8"
+    },
+    {
+      "file": "03-Tracked-by-Plakette/hoku-tracked-by-plakette-cyan-schrift-schwarz-auf-weiss-2400.png",
+      "width": 2400,
+      "height": 730,
+      "clear": 0,
+      "visible": 1752000,
+      "opaque": 1752000,
+      "colored": 40687,
+      "sha256": "bcc6218a39470c1d4c2467c31018dff70ee89c2aefd918001257098610f1ced1"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-cyan-transparent-512.png",
+      "width": 512,
+      "height": 512,
+      "clear": 159807,
+      "visible": 102337,
+      "opaque": 0,
+      "colored": 97679,
+      "sha256": "b676eb1869094ced134dc6e075c4470b9ad647e191c58bc7bba597d752ac1c91"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-cyan-transparent-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "clear": 639515,
+      "visible": 409061,
+      "opaque": 0,
+      "colored": 390816,
+      "sha256": "ac2aaf9044cad6baad2d0e2df70970441ea7ecf52cf396114e947a02eb09c229"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-weiss-transparent-512.png",
+      "width": 512,
+      "height": 512,
+      "clear": 202648,
+      "visible": 59496,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "2a0365643400b377ebf82b91ea36713c3b1e1a6f4ef853bb53cbece55729aa73"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-weiss-transparent-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "clear": 810921,
+      "visible": 237655,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "e94952d96eeb78dcf5c3ae810b2ad4b4f41cf2a6ab4ac4e9b0f6b3d25811c80b"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-schwarz-transparent-512.png",
+      "width": 512,
+      "height": 512,
+      "clear": 202648,
+      "visible": 59496,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "31a1fb08b59a837957e2f29a6365ebf48ae92d950b649870e8b9cf26723f3640"
+    },
+    {
+      "file": "04-Icons/hoku-symbol-schwarz-transparent-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "clear": 810921,
+      "visible": 237655,
+      "opaque": 0,
+      "colored": 0,
+      "sha256": "5da4a008221da12f64a05d92b6ef5f2f90cd6740da2018e9f83c11f47d871b21"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "clear": 0,
+      "visible": 1048576,
+      "opaque": 1048576,
+      "colored": 1047980,
+      "sha256": "38359457b744bf4b32a674eaf8c4801d4c3ce56c74fe13e45b0317c307e8fef7"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-512.png",
+      "width": 512,
+      "height": 512,
+      "clear": 0,
+      "visible": 262144,
+      "opaque": 262144,
+      "colored": 262007,
+      "sha256": "981fb94b90d4af71902da00d2c5fc5150b068489ca37d2e86873636ce6281ac4"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-192.png",
+      "width": 192,
+      "height": 192,
+      "clear": 0,
+      "visible": 36864,
+      "opaque": 36864,
+      "colored": 36836,
+      "sha256": "48e237b5dfe81dbeaa6d070e9acba6fe0447126b6c8c2663021e9fa89829bc76"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-180.png",
+      "width": 180,
+      "height": 180,
+      "clear": 0,
+      "visible": 32400,
+      "opaque": 32400,
+      "colored": 32379,
+      "sha256": "f1f6d7651e798c3cc1b78e8190c7c453f5d4f736b2ff351d30161e594e572a55"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-96.png",
+      "width": 96,
+      "height": 96,
+      "clear": 0,
+      "visible": 9216,
+      "opaque": 9216,
+      "colored": 9208,
+      "sha256": "ff9e79911609fb6857e164cbc3447dab35380a45a2995f46e7947896fd4f16cc"
+    },
+    {
+      "file": "04-Icons/hoku-app-cyan-64.png",
+      "width": 64,
+      "height": 64,
+      "clear": 0,
+      "visible": 4096,
+      "opaque": 4096,
+      "colored": 4091,
+      "sha256": "c0e3abddc4922b629ceb66bbfd38ec7cd2b61d80099430d7544c037bb90a8644"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "clear": 0,
+      "visible": 1048576,
+      "opaque": 1048576,
+      "colored": 0,
+      "sha256": "2cc6a07a7e752f7b68a17a98f52dbffd9d74af3f02efaaecf6a069ddfd800a1a"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-512.png",
+      "width": 512,
+      "height": 512,
+      "clear": 0,
+      "visible": 262144,
+      "opaque": 262144,
+      "colored": 0,
+      "sha256": "269f5e1855bd223591bc89af4f17fad1b462bf46860d69fe7fc1781ccc043685"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-192.png",
+      "width": 192,
+      "height": 192,
+      "clear": 0,
+      "visible": 36864,
+      "opaque": 36864,
+      "colored": 0,
+      "sha256": "35b2f5d106624db08632bc610ae923f7f915f5e1cf3e75960ea67c85655e25a6"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-180.png",
+      "width": 180,
+      "height": 180,
+      "clear": 0,
+      "visible": 32400,
+      "opaque": 32400,
+      "colored": 0,
+      "sha256": "a8b92282ac78b4c1cc85388c5919ef88353c8112beefb152fd66349792bd317c"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-96.png",
+      "width": 96,
+      "height": 96,
+      "clear": 0,
+      "visible": 9216,
+      "opaque": 9216,
+      "colored": 0,
+      "sha256": "328f6a480a77fe7ea736e7463947308f166f8b804601b71e60af55b828a8aa54"
+    },
+    {
+      "file": "04-Icons/hoku-app-monochrom-64.png",
+      "width": 64,
+      "height": 64,
+      "clear": 0,
+      "visible": 4096,
+      "opaque": 4096,
+      "colored": 0,
+      "sha256": "c6ca892da7693fff1cafd7763d76a59019478dcc8b0242c0443bbe10271caa20"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-16.png",
+      "width": 16,
+      "height": 16,
+      "clear": 0,
+      "visible": 256,
+      "opaque": 256,
+      "colored": 256,
+      "sha256": "2aa738a8469c5acf2dad963b2ddee9ba9eacdb540544761623e2701e376c299b"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-32.png",
+      "width": 32,
+      "height": 32,
+      "clear": 0,
+      "visible": 1024,
+      "opaque": 1024,
+      "colored": 1024,
+      "sha256": "c15ecba29525a978aa6a4f66ec5aade6572a2f61082be1cfb7ae5ef5e7808227"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-48.png",
+      "width": 48,
+      "height": 48,
+      "clear": 0,
+      "visible": 2304,
+      "opaque": 2304,
+      "colored": 2301,
+      "sha256": "a5c7c67d11863825b3b9caf635a586ed926198c60d3e878bf744d314ab301e5a"
+    },
+    {
+      "file": "04-Icons/hoku-favicon-64.png",
+      "width": 64,
+      "height": 64,
+      "clear": 0,
+      "visible": 4096,
+      "opaque": 4096,
+      "colored": 4096,
+      "sha256": "1e115942c8ef60f88b7bcb3ea42ff63e6966fc0b2002fc8b31a28f2ca3a4ecac"
+    },
+    {
+      "file": "HOKU-Uebersicht.png",
+      "width": 2000,
+      "height": 1650,
+      "clear": 0,
+      "visible": 3300000,
+      "opaque": 3300000,
+      "colored": 1958537,
+      "sha256": "0265d3dd6ba7a674f0dfddf635823888b6cef2732816eb91d997368cbd1aa56f"
+    },
+    {
+      "file": "HOKU-Groessenprobe.png",
+      "width": 1200,
+      "height": 650,
+      "clear": 0,
+      "visible": 780000,
+      "opaque": 780000,
+      "colored": 7677,
+      "sha256": "635d413977b08b81c87ab3ef7349c36b33caaa4220b04574edfe460efa8c1c7f"
+    }
+  ]
+}

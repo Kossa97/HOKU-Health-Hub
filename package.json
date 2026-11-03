@@ -11,6 +11,8 @@
     "build": "tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender-peptipedia.ts",
     "lint": "eslint .",
     "preview": "vite preview",
+    "icons:update": "node scripts/update-hoku-icons.cjs",
+    "icons:verify": "node scripts/verify-hoku-icons.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

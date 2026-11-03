@@ -77,6 +77,10 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
       per100,
       serving: serving ? { amount: serving, label: servingLabel.trim().slice(0, 40) || null } : null,
       favorite: base?.favorite ?? false,
+      // Werte eines fremden Produkts geändert: ab jetzt „von dir korrigiert“ (bleibt es, einmal gesetzt)
+      edited: base && base.source !== 'custom'
+        ? !!base.edited || (Object.keys(per100) as (keyof typeof per100)[]).some(k => per100[k] !== base.per100[k])
+        : undefined,
     })
   }
 

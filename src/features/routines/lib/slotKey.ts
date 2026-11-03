@@ -105,3 +105,19 @@ export function istSlotSchluessel(schluessel: string | null | undefined, cycleId
   return schluessel.startsWith(praefix) && ZEITTEIL.test(schluessel.slice(praefix.length))
 }
 
+/**
+ * Der Tag im Plan, zu dem ein Schluessel gehoert (`YYYY-MM-DD`), oder `null`
+ * ohne (gueltigen) Schluessel. Danach sortiert der Kalender: die Einnahme vom
+ * Donnerstagabend, nach Mitternacht bestaetigt, gehoert zum Donnerstag —
+ * genommen wurde sie trotzdem am Freitag (`logged_at`).
+ */
+export function planTagAusSchluessel(schluessel: string | null | undefined): string | null {
+  return planZeitAusSchluessel(schluessel)?.slice(0, 10) ?? null
+}
+
+/** Der geplante Platz als Wanduhr (`YYYY-MM-DDTHH:MM`), oder `null` ohne (gueltigen) Schluessel. */
+export function planZeitAusSchluessel(schluessel: string | null | undefined): string | null {
+  if (!schluessel || !schluessel.includes(TRENNER)) return null
+  const zeit = schluessel.slice(schluessel.lastIndexOf(TRENNER) + 1)
+  return ZEITTEIL.test(zeit) ? zeit : null
+}

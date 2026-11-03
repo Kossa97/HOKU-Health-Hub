@@ -409,7 +409,43 @@ test('Bearbeiten: Menge ändern skaliert den Schnappschuss, Werte korrigieren ä
   await expect(page.getByRole('button', { name: 'Skyr Natur bearbeiten' })).toContainText('200 g')
   await expect(page.getByRole('button', { name: 'Skyr Natur bearbeiten' })).toContainText('126')
   expect(mock.table('food_logs')[0]).toMatchObject({ amount: 200, kcal: 126, food_item_id: mock.table('food_items')[0].id })
-  expect(mock.table('food_items')[0]).toMatchObject({ barcode: SKYR.barcode, source: 'off', kcal_100: 63 })
+  expect(mock.table('food_items')[0]).toMatchObject({ barcode: SKYR.barcode, source: 'off', kcal_100: 63, edited: true })
+})
+
+test('Stern merkt nur: Herkunft bleibt Open Food Facts, Favorit unter dem Stern-Reiter; korrigierte Werte zeigen „von dir korrigiert“', async ({ page, mock }) => {
+  mock.foodLookup.products[SKYR.barcode] = SKYR
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Barcode scannen' }).click()
+  await page.getByLabel('Ziffern unter dem Barcode').fill('4002671157751')
+  await page.getByRole('button', { name: 'Suchen', exact: true }).click()
+  await expect(dialog.getByText('Open Food Facts', { exact: true })).toBeVisible()
+
+  // Merken: gespeichert, aber weiter Open Food Facts — nicht „Eigenes Lebensmittel“
+  await dialog.getByRole('button', { name: 'Merken' }).click()
+  await expect.poll(() => mock.table('food_items').length).toBe(1)
+  await expect(dialog.getByText('Open Food Facts', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Eigenes Lebensmittel')).toHaveCount(0)
+  expect(mock.table('food_items')[0]).toMatchObject({ source: 'off', favorite: true })
+  await dialog.getByRole('button', { name: 'Schließen' }).click()
+
+  // Zurück in der Auswahl: unter dem Stern steht er, mit Herkunft OFF; unter „Meine“ nicht
+  // (nur gemerkt, nicht selbst angelegt)
+  await dialog.getByRole('tab', { name: 'Favoriten' }).click()
+  await expect(dialog.getByRole('button', { name: /Skyr Natur/ }).getByText('OFF', { exact: true })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: /Skyr Natur/ })).toBeVisible()
+  await dialog.getByRole('tab', { name: 'Meine' }).click()
+  await expect(dialog.getByText('Noch keine eigenen Lebensmittel.', { exact: false })).toBeVisible()
+
+  // Werte korrigiert: „Open Food Facts · von dir korrigiert“, jetzt auch unter „Meine“
+  await dialog.getByRole('tab', { name: 'Favoriten' }).click()
+  await dialog.getByRole('button', { name: /Skyr Natur/ }).click()
+  await dialog.getByRole('button', { name: 'Werte korrigieren' }).click()
+  await page.getByLabel('Kalorien (kcal)').fill('64')
+  await page.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect(dialog.getByText('Open Food Facts · von dir korrigiert')).toBeVisible()
+  expect(mock.table('food_items')[0]).toMatchObject({ source: 'off', favorite: true, edited: true, kcal_100: 64 })
 })
 
 test('Markensuche nur auf Knopfdruck; nicht erreichbar → verständlicher Hinweis, eigene Lebensmittel bleiben', async ({ page, mock }) => {

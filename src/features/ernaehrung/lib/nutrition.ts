@@ -38,7 +38,10 @@ export interface Food {
   per100: Per100
   /** Portion in g/ml, etwa „1 Scheibe = 40 g". */
   serving: { amount: number; label: string | null } | null
+  /** Mit dem Stern gemerkt — nur zum Wiederfinden (Reiter „Favoriten“), ändert nichts an der Herkunft. */
   favorite: boolean
+  /** Werte eines Produkts aus Open Food Facts oder dem BLS vom Nutzer korrigiert (bei eigenen nicht gesetzt). */
+  edited?: boolean
   /** Nur bei Gerichten: Zutaten und Portionen (siehe recipe.ts). */
   recipe?: Recipe | null
   /** Nur bei Gerichten: passt zu dieser Mahlzeit (steht dort beim Hinzufügen oben). */

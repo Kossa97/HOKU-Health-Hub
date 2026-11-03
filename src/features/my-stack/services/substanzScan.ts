@@ -1,6 +1,7 @@
 /**
- * Substanz-Scan: Barcode ueber `food-lookup` (Open Food Facts, nur Name und
- * Marke), Etikettfoto ueber `label-extract` (Anthropic, mit Einwilligung).
+ * Substanz-Scan: Barcode zuerst in den gemerkten Etiketten (`scan_etiketten`),
+ * dann ueber `food-lookup` (Open Food Facts, nur Name und Marke), Etikettfoto
+ * ueber `label-extract` (Anthropic, mit Einwilligung).
  */
 import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import { EINWILLIGUNG_FEHLT } from '../../blutwerte/lib/aiConsent'
@@ -24,6 +25,28 @@ async function fehlerCode(response: Response | undefined): Promise<string | null
   } catch {
     return null
   }
+}
+
+/**
+ * Das Etikett zu diesem Barcode: das eigene, sonst eins, das mindestens zwei
+ * Nutzer gleich hinterlegt haben (`scan_produkt_laden`). `null`, wenn es
+ * keins gibt — oder die Abfrage scheitert: dann geht es einfach ueber Open
+ * Food Facts weiter.
+ */
+export async function gemerktesEtikett(ean: string): Promise<Etikett | null> {
+  const { data, error } = await supabase.rpc('scan_produkt_laden', { p_ean: ean })
+  if (error || !data) return null
+  return parseEtikett({ label: data })
+}
+
+/**
+ * Das Etikett zum Barcode fuer sich merken. Neu fotografiert ueberschreibt
+ * es den eigenen Eintrag; scheitert das Speichern, merkt der Nutzer nichts.
+ */
+export async function merkeEtikett(ean: string, etikett: Etikett): Promise<void> {
+  const { error } = await supabase.from('scan_etiketten')
+    .upsert({ ean, etikett, updated_at: new Date().toISOString() }, { onConflict: 'user_id,ean' })
+  if (error) throw error
 }
 
 /** `null` = Open Food Facts kennt den Barcode nicht. */

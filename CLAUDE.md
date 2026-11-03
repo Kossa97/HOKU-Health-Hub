@@ -56,3 +56,19 @@ Auch nicht „nur kurz zum Testen".
 Lesen ist erlaubt, aber sparsam: Nutzerzeilen (`stack_items`, `daily_logs`,
 Blutwerte) nur, wenn die Aufgabe es verlangt — und Inhalte nie in Antworten,
 Commits oder Artefakte kopieren.
+
+## Notizen des Nutzers
+
+Der Nutzer führt Notizen, Ideen und To-dos auf der Seite **Hoku Notizen**
+(https://claude.ai/artifact/1TdihdC4AWy2Vv79LpPbjG, Quelle
+`docs/werkbank/werkbank.html`, Collection `ideen`). Nur lesen, wenn der Nutzer
+darum bittet; nichts ungefragt eintragen oder ändern.
+
+## Git bei parallelen Fenstern
+
+- **Jede Feature-Arbeit läuft in einem eigenen Worktree auf einem eigenen Branch**
+  (neue Sitzung mit Worktree oder `EnterWorktree`). Im Hauptordner
+  `peptid-tracker` wird kein Branch gewechselt, solange dort eine andere Sitzung
+  arbeitet.
+- **Merges nach `main` laufen nur in einem Fenster gleichzeitig.** Vor dem Merge
+  `main` holen.

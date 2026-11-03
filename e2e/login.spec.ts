@@ -314,23 +314,158 @@ test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
   await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
-test('Passwort einblenden: Hoku hält sich die Augen zu und sagt, dass er nichts sieht', async ({ page, mock }) => {
+test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt gleich groß auf der Kante, nie in der Ecke', async ({ page }) => {
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.setViewportSize({ width: 390, height: 360 })
+  await page.locator('#auth-kennung').click()
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  for (const abstand of [200, 95, 40]) {
+    await page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, abstand)
+    await lassLaufen(page, 1500)
+    const b = (await figur.boundingBox())!, mitte = b.y + b.height / 2
+    // seine Mitte liegt im Bild; liegt die Karte ganz oben, ragt er in voller Größe etwas hinaus (Nutzer
+    // 03.11.2026: Größe nie ändern), sein unterer Teil bleibt auf der Kante zu sehen
+    if (abstand > 50) expect(mitte, String(abstand)).toBeGreaterThan(0)
+    const titel = (await page.locator('[data-dot-frei]').boundingBox())!
+    const karte = (await page.locator('[data-dot-kante]').boundingBox())!
+    expect(mitte, String(abstand)).toBeLessThan(karte.y)
+    expect(b.y + b.height, String(abstand)).toBeGreaterThan(karte.y)
+    // nie in die Ecke neben der Überschrift (sprang auf dem iPhone manchmal hinein)
+    expect(b.x, String(abstand)).toBeLessThan(titel.x + titel.width)
+  }
+})
+
+test('Passwort bei hochgeschobener Karte: Hoku bleibt so groß wie bei der E-Mail und sitzt auf der Kante', async ({ page }) => {
+  // Nutzer 02./03.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher; Größe nicht ändern
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.setViewportSize({ width: 390, height: 360 })
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const schiebe = (a: number) => page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, a)
+  await page.locator('#auth-kennung').click()
+  await schiebe(200)
+  await lassLaufen(page, 1500)
+  const email = (await figur.boundingBox())!
+  await page.locator('#auth-pw').click()
+  for (const abstand of [110, 70]) {
+    await schiebe(abstand)
+    await lassLaufen(page, 1500)
+    const b = (await figur.boundingBox())!, karte = (await page.locator('[data-dot-kante]').boundingBox())!
+    // gleich groß (Atmen und Wegdrehen bewegen die Trefferfläche um wenige px)
+    expect(Math.abs(b.height - email.height), String(abstand)).toBeLessThan(email.height * 0.05)
+    expect(b.y + b.height / 2, String(abstand)).toBeLessThan(karte.y)
+    expect(b.y + b.height, String(abstand)).toBeGreaterThan(karte.y)
+  }
+})
+
+test('iPhone-App: verschiebt sich Hokus Ebene mit der Seite, sitzt er trotzdem auf der Kante', async ({ page }) => {
+  // gemessen 02.11.2026: bei offener Tastatur liegt die feste Ebene um den Scrollweg höher (ebeneTop -316 bei scrollY 316)
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  await page.locator('#auth-kennung').click()
+  await page.evaluate(() => { (document.querySelector('.tyd-dot-ebene') as HTMLElement).style.transform = 'translateY(-200px)' })
+  await lassLaufen(page, 1500)
+  const karte = (await page.locator('[data-dot-kante]').boundingBox())!
+  const b = (await page.getByRole('button', { name: /Hoku, dein KI-Coach/ }).boundingBox())!
+  expect(b.y + b.height / 2).toBeLessThan(karte.y)
+  expect(b.y + b.height).toBeGreaterThan(karte.y)
+})
+
+test('iPhone-App: verschiebt sich Hokus Ebene, kommt er trotzdem oben und unten an den Bildschirmrand', async ({ page }) => {
+  // Nutzer 02.11.2026: „immer das gesamte Bild des Geräts ausnutzen“; die Ebene wird zurück an den Bildschirm geschoben
+  await abgemeldet(page)
+  await page.goto('/auth')
+  await lassLaufen(page, 6000)
+  await page.evaluate(() => { (document.querySelector('.tyd-dot-ebene') as HTMLElement).style.transform = 'translateY(-200px)' })
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const { width: W, height: H } = page.viewportSize()!
+  for (const [zy, name] of [[H - 2, 'unten'], [2, 'oben']] as const) {
+    const b = (await figur.boundingBox())!
+    const x = b.x + b.width / 2, y = b.y + b.height / 2
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    for (let i = 1; i <= 20; i++) { await page.mouse.move(x + (W / 2 - x) * i / 20, y + (zy - y) * i / 20); await page.clock.runFor(16) }
+    await lassLaufen(page, 300)
+    const g = (await figur.boundingBox())!
+    await page.mouse.up()
+    await lassLaufen(page, 300)
+    if (name === 'unten') expect(g.y + g.height, name).toBeGreaterThan(H - 12)
+    else expect(g.y, name).toBeLessThan(10)
+  }
+})
+
+test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine neue Blase', async ({ page, mock }) => {
   void mock
   await abgemeldet(page)
   await zumFormular(page)
   await lassLaufen(page, 6000)
+  await page.locator('#auth-pw').click()
+  await lassLaufen(page, 600)
+  const blase = page.locator('.tyd-dot-blase')
+  await expect(blase).toHaveText(/^(Ich schau weg\.|Ich dreh mich um\.|Ich seh nichts\.)$/)
+  await expect(blase).toHaveAttribute('data-zeigen', 'true')
+  await lassLaufen(page, 3000)
+  await expect(blase).not.toHaveAttribute('data-zeigen')
+  // Passwort einblenden: keine neue Blase
   await page.locator('#auth-pw').fill('geheim1')
   await page.locator('.tyd-auth-auge').click()
   await lassLaufen(page, 1200)
-  const blase = page.locator('.tyd-dot-blase')
-  await expect(blase).toHaveText('Keine Sorge, ich sehe nichts.')
-  await expect(blase).toHaveAttribute('data-zeigen', 'true')
-  await lassLaufen(page, 3500)
   await expect(blase).not.toHaveAttribute('data-zeigen')
-  // wieder ausblenden: keine Blase
+})
+
+test('Passwort sichtbar machen: Hoku dreht sich weg, auch wenn das Feld den Fokus schon verloren hat', async ({ page, mock }) => {
+  // Nutzer 03.11.2026: Passwort getippt, Feld verlassen, aufs Auge getippt: er drehte sich nicht mehr weg
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  await page.locator('#auth-pw').click()
+  await page.locator('#auth-pw').fill('geheim1')
+  await lassLaufen(page, 300)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // Feld verlassen: er dreht sich wieder um
+  await page.locator('[data-dot-frei]').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
+  // Passwort einblenden: weg, solange es lesbar ist
   await page.locator('.tyd-auth-auge').click()
-  await lassLaufen(page, 1200)
-  await expect(blase).not.toHaveAttribute('data-zeigen')
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  await page.locator('#auth-kennung').click()
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // wieder verbergen: er dreht sich um
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
+})
+
+test('Tippen ins Formular: Hoku rutscht auf die Oberkante der Karte und ragt darüber, danach zurück', async ({ page }) => {
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const karte = page.locator('[data-dot-kante]')
+  const mitte = async () => { const b = (await figur.boundingBox())!; return { y: b.y + b.height / 2, r: b.height / 2 } }
+  const vorher = await mitte()
+  await page.locator('#auth-kennung').click()
+  await lassLaufen(page, 1500)
+  const kante = (await karte.boundingBox())!.y, auf = await mitte()
+  // ein Stück über die Kante: die Mitte liegt knapp darüber, der untere Rand darunter
+  expect(auf.y).toBeGreaterThan(vorher.y + 10)
+  expect(auf.y).toBeLessThan(kante)
+  expect(auf.y + auf.r).toBeGreaterThan(kante)
+  // die Überschrift bleibt lesbar: sein Körper endet 3 px darüber; die Trefferfläche ist gut ein Zehntel größer
+  // als er und atmet mit, deshalb mit Spielraum gemessen (auf pixel-7 lag 0,9 r knapp 1 px darüber)
+  expect(auf.y + auf.r * 0.8).toBeLessThanOrEqual((await page.locator('[data-dot-frei]').boundingBox())!.y)
+  await page.locator('.tyd-auth-kopf h2').click()
+  await lassLaufen(page, 1500)
+  expect(Math.abs((await mitte()).y - vorher.y)).toBeLessThan(4)
 })
 
 test('Face ID (Passkey): nach der Landung einrichten, danach mit einem Tipp anmelden', async ({ page, mock }) => {

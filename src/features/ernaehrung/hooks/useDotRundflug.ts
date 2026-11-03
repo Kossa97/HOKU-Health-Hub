@@ -114,5 +114,5 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
     }
     timer = window.setTimeout(los, WARTEN_MS)
     return () => window.clearTimeout(timer)
-  }, [bereit, dotFrei])
+  }, [bereit, dotFrei, heute])
 }

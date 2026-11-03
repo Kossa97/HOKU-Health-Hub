@@ -121,10 +121,15 @@
   --cat-emerald:     #10b981;
   --cat-amber:       #f59e0b;
   --cat-rose:        #f43f5e;
-  /* Tagebuch-Auswertung: Wirkung / Nebenwirkung. Mit dem dataviz-Validator
-     geprueft (Helligkeitsband, Farbsehschwaeche, Kontrast) — hell wie dunkel. */
+  /* Tagebuch: Wirkung / Nebenwirkung — eine Farbe je Art, ueberall gleich.
+     Flaechen (Diagramm) mit dem dataviz-Validator geprueft (Helligkeitsband,
+     Farbsehschwaeche, Kontrast). Schrift (Chips, Liste) ist dieselbe Farbe
+     heller: >= 7:1 auf den dunklen Flaechen; Abstand bei Rot-Gruen-Schwaeche
+     15,6 (das fruehere Gruen/Orange lag bei 7,1). */
   --chart-effect:      #0d9488;
   --chart-side-effect: #d97706;
+  --diary-effect-text:      #2dd4bf;
+  --diary-side-effect-text: #fbbf24;
   --glow-accent:     0 0 28px rgba(0,204,245,0.24);
 
   --c-bg:          var(--app-bg);

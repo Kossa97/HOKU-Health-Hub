@@ -127,6 +127,234 @@ test('Training: Schnellzugriff fuehrt nach Training, ohne zu starten', async ({ 
   expect(mock.table('training_sessions')).toHaveLength(2)
 })
 
+test('Training: Uebung mit Stern steht oben in der Auswahl', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/training?start=empty')
+  const live = page.getByRole('dialog', { name: 'Training' })
+  await live.getByRole('button', { name: 'Übung hinzufügen' }).click()
+  const picker = page.getByRole('dialog', { name: 'Übung wählen' })
+  await expect(picker.getByRole('region', { name: 'Favoriten' })).toHaveCount(0)
+  await picker.getByRole('searchbox').fill('kniebeuge')
+  const star = picker.getByRole('button', { name: /^Kniebeuge.*als Favorit markieren$/ }).first()
+  const name = (await star.getAttribute('aria-label'))!.replace(' als Favorit markieren', '')
+  await star.click()
+  await expect(picker.getByRole('button', { name: `${name}: Favorit entfernen` })).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => (mock.table('training_settings')[0]?.settings as { favoriteExercises?: string[] } | undefined)?.favoriteExercises?.length).toBe(1)
+
+  // Ohne Suche: eigener Abschnitt oben, dazu der Filter
+  await picker.getByRole('searchbox').fill('')
+  const favs = picker.getByRole('region', { name: 'Favoriten' })
+  await expect(favs.getByRole('listitem')).toHaveCount(1)
+  await expect(favs).toContainText(name)
+  await expect(picker.getByRole('region', { name: 'Alle Übungen' })).toBeVisible()
+  await picker.getByRole('button', { name: 'Favoriten', exact: true }).click()
+  await expect(picker.getByRole('listitem')).toHaveCount(1)
+})
+
+test('Training: Uebungen auswaehlen, kopieren, einfuegen, verschieben', async ({ page, mock }) => {
+  mock.insert('training_routines', {
+    user_id: TEST_USER.id, name: 'Push', kind: 'strength', weekdays: [1], sort_order: 0, folder: 'PPL',
+    exercises: [
+      { exerciseId: 'bench_press_barbell', restS: 120, sets: [{ type: 'normal', weightKg: 80, repsMin: 8, repsMax: 10 }] },
+      { exerciseId: 'overhead_press_barbell', restS: 90, sets: [{ type: 'normal', weightKg: 50, repsMin: 6, repsMax: 8 }] },
+      { exerciseId: 'lateral_raise_dumbbell', restS: 60, sets: [{ type: 'normal', weightKg: 10, repsMin: 15, repsMax: 15 }] },
+    ],
+  })
+  mock.insert('training_routines', {
+    user_id: TEST_USER.id, name: 'Pull', kind: 'strength', weekdays: [3], sort_order: 1, folder: 'PPL', exercises: [],
+  })
+  await page.goto('/training')
+
+  // Push: zwei Uebungen kopieren
+  await page.getByRole('button', { name: 'Push – Bearbeiten' }).click()
+  const editor = page.getByRole('dialog', { name: 'Workout bearbeiten' })
+  await editor.getByRole('button', { name: 'Auswählen' }).click()
+  await editor.getByRole('checkbox', { name: /Bankdrücken/ }).click()
+  await editor.getByRole('checkbox', { name: /Seitheben/ }).click()
+  await expect(editor.getByText('2 ausgewählt', { exact: true })).toBeVisible()
+  await editor.getByRole('button', { name: 'Kopieren' }).click()
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+
+  // Pull: einfuegen — mit allen Werten
+  await page.getByRole('button', { name: 'Pull – Bearbeiten' }).click()
+  const pull = page.getByRole('dialog', { name: 'Workout bearbeiten' })
+  await pull.getByRole('button', { name: '2 Übungen einfügen' }).click()
+  await pull.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => {
+    const row = mock.table('training_routines').find(r => r.name === 'Pull') as { exercises: Array<{ exerciseId: string; restS: number; sets: Array<{ weightKg?: number }> }> }
+    return row.exercises.map(e => `${e.exerciseId}:${e.restS}:${e.sets[0].weightKg}`)
+  }).toEqual(['bench_press_barbell:120:80', 'lateral_raise_dumbbell:60:10'])
+
+  // Push: Schulterdruecken nach Pull verschieben
+  await page.getByRole('button', { name: 'Push – Bearbeiten' }).click()
+  await editor.getByRole('button', { name: 'Auswählen' }).click()
+  await editor.getByRole('checkbox', { name: /Schulterdrücken/ }).click()
+  await editor.getByRole('button', { name: 'Verschieben' }).click()
+  await page.getByRole('dialog', { name: /verschieben nach/ }).getByRole('button', { name: /^Pull/ }).click()
+  await expect(editor.getByRole('checkbox')).toHaveCount(0)
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => {
+    const rows = mock.table('training_routines') as Array<{ name: string; exercises: Array<{ exerciseId: string }> }>
+    return rows.map(r => `${r.name}:${r.exercises.map(e => e.exerciseId).join(',')}`).sort()
+  }).toEqual([
+    'Pull:bench_press_barbell,lateral_raise_dumbbell,overhead_press_barbell',
+    'Push:bench_press_barbell,lateral_raise_dumbbell',
+  ])
+})
+
+test('Training: Plan mit Zeitplan, Workouts duplizieren und verschieben', async ({ page, mock }) => {
+  for (const [i, name] of ['Push', 'Pull', 'Beine'].entries()) {
+    mock.insert('training_routines', {
+      user_id: TEST_USER.id, name, kind: 'strength', weekdays: [], sort_order: i, folder: 'PPL',
+      exercises: [{ exerciseId: 'bench_press_barbell', restS: 90, sets: [{ type: 'normal', weightKg: 80, repsMin: 8, repsMax: 10 }] }],
+    })
+  }
+  mock.insert('training_routines', { user_id: TEST_USER.id, name: 'Lauf', kind: 'run', weekdays: [], sort_order: 3, folder: null, exercises: [] })
+  await page.goto('/training')
+
+  // Zeitplan: 4× pro Woche
+  await page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' }).click()
+  const plan = page.getByRole('dialog', { name: 'Plan' })
+  await plan.getByRole('radio', { name: 'Pro Woche' }).click()
+  await plan.getByRole('button', { name: 'Mehr', exact: true }).click()
+  await expect(plan.getByRole('status', { name: '4× pro Woche' })).toBeVisible()
+  await expect(plan.getByText('Diese Woche 0 von 4')).toBeVisible()
+  await expect(plan.getByText('Heute dran: Push')).toBeVisible()
+
+  // Workout duplizieren — mit allen Werten, im selben Plan
+  await plan.getByRole('button', { name: 'Mehr zu Pull' }).click()
+  await page.getByRole('dialog', { name: 'Pull' }).getByRole('button', { name: 'Duplizieren' }).click()
+  await expect(plan.getByRole('listitem')).toHaveCount(4)
+  await expect.poll(() => {
+    const copy = mock.table('training_routines').find(r => r.name === 'Pull (Kopie)') as { folder: string; exercises: Array<{ sets: Array<{ weightKg: number }> }> } | undefined
+    return copy && `${copy.folder}:${copy.exercises[0].sets[0].weightKg}`
+  }).toBe('PPL:80')
+
+  // Beine nach „Ohne Plan" verschieben
+  await plan.getByRole('button', { name: 'Mehr zu Beine' }).click()
+  await page.getByRole('dialog', { name: 'Beine' }).getByRole('button', { name: 'Verschieben' }).click()
+  await page.getByRole('dialog', { name: /Beine.*verschieben nach/ }).getByRole('button', { name: 'Ohne Plan' }).click()
+  await expect(plan.getByRole('listitem')).toHaveCount(3)
+
+  await plan.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => mock.table('training_plans').map(p => `${p.name}:${JSON.stringify(p.schedule)}`))
+    .toEqual(['PPL:{"mode":"per_week","perWeek":4}'])
+  await expect.poll(() => (mock.table('training_routines').find(r => r.name === 'Beine') as { folder: string | null }).folder).toBeNull()
+
+  // „Heute": der Plan zeigt den Zeitplan, Push ist heute dran
+  await expect(page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' })).toContainText('4× pro Woche')
+  await expect(page.getByText('Heute geplant', { exact: true })).toBeVisible()
+})
+
+test('Training: neuer Plan aus „Heute"', async ({ page, mock }) => {
+  seedHistory(mock)
+  await page.goto('/training')
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Neuer Plan' })
+  await sheet.getByRole('textbox').fill('Oberkörper/Unterkörper')
+  await sheet.getByRole('button', { name: 'Anlegen' }).click()
+
+  // Der Plan oeffnet sich gleich; noch ohne Workout
+  const plan = page.getByRole('dialog', { name: 'Plan' })
+  await expect(plan.getByRole('textbox')).toHaveValue('Oberkörper/Unterkörper')
+  await expect.poll(() => mock.table('training_plans').map(p => p.name)).toEqual(['Oberkörper/Unterkörper'])
+  await plan.getByRole('button', { name: 'Schließen und speichern' }).click()
+
+  // In „Heute" steht der leere Plan mit „Workout hinzufügen"; den Namen gibt es nur einmal
+  await expect(page.getByRole('button', { name: 'Plan · Oberkörper/Unterkörper – Plan bearbeiten' })).toBeVisible()
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  await sheet.getByRole('textbox').fill('Oberkörper/Unterkörper')
+  await expect(sheet.getByRole('alert')).toHaveText('Diesen Plan gibt es schon.')
+  await expect(sheet.getByRole('button', { name: 'Anlegen' })).toBeDisabled()
+  await sheet.getByRole('button', { name: /Schließen/ }).first().click()
+
+  await page.getByRole('button', { name: 'Workout hinzufügen' }).click()
+  const editor = page.getByRole('dialog', { name: 'Neues Workout' })
+  await editor.getByRole('textbox', { name: 'Name' }).fill('OK A')
+  await editor.getByRole('button', { name: 'Schließen und speichern' }).click()
+  await expect.poll(() => (mock.table('training_routines').find(r => r.name === 'OK A') as { folder: string } | undefined)?.folder).toBe('Oberkörper/Unterkörper')
+})
+
+test('Training: Plan loeschen mit Bestaetigung, Trainings bleiben', async ({ page, mock }) => {
+  seedHistory(mock)
+  for (const name of ['Push', 'Pull']) {
+    mock.insert('training_routines', { user_id: TEST_USER.id, name, kind: 'strength', weekdays: [], sort_order: 1, folder: 'PPL', exercises: [] })
+  }
+  mock.insert('training_plans', { user_id: TEST_USER.id, name: 'PPL', schedule: { mode: 'per_week', perWeek: 3 }, sort_order: 0 })
+  await page.goto('/training')
+  await expect(page.getByRole('heading', { name: 'Pläne & Workouts' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' }).click()
+  await page.getByRole('dialog', { name: 'Plan' }).getByRole('button', { name: 'Plan löschen' }).click()
+  const confirm = page.getByRole('dialog', { name: '„PPL" löschen?' })
+  await expect(confirm).toContainText('Mit dem Plan werden 2 Workouts gelöscht: Pull, Push.')
+  // Abbrechen laesst alles stehen
+  await confirm.getByRole('button', { name: 'Abbrechen' }).click()
+  expect(mock.table('training_routines').filter(r => r.folder === 'PPL')).toHaveLength(2)
+
+  await page.getByRole('dialog', { name: 'Plan' }).getByRole('button', { name: 'Plan löschen' }).click()
+  await confirm.getByRole('button', { name: 'Plan und 2 Workouts löschen' }).click()
+  await expect(page.getByRole('button', { name: 'Plan · PPL – Plan bearbeiten' })).toHaveCount(0)
+  await expect.poll(() => mock.table('training_routines').filter(r => r.folder === 'PPL').length).toBe(0)
+  expect(mock.table('training_plans')).toHaveLength(0)
+  // Das Workout ohne Plan und die bisherigen Trainings bleiben
+  expect(mock.table('training_routines').map(r => r.name)).toEqual(['Push'])
+  expect(mock.table('training_sessions')).toHaveLength(2)
+})
+
+test('Training: Plan mit Hoku – schreiben, Vorschau, Übung tauschen, übernehmen', async ({ page, mock }) => {
+  seedHistory(mock)
+  mock.table('profiles').find(row => row.id === TEST_USER.id)!.coach_consent_at = '2026-09-01T00:00:00.000Z'
+  mock.coach.antwort = 'Hier ist dein Plan.'
+  mock.coach.plaene = [{
+    name: 'Ganzkörper · Kurzhanteln', zeitplan: 'pro_woche', anzahl: 3,
+    workouts: [
+      { name: 'Ganzkörper A', wochentage: [], uebungen: [
+        { id: 'bench_press_dumbbell', saetze: 3, wdhMin: 8, wdhMax: 12, sekunden: null, pauseS: 90 },
+        { id: 'erfundene_uebung', saetze: 3, wdhMin: 10, wdhMax: 10, sekunden: null, pauseS: null },
+      ] },
+      { name: 'Ganzkörper B', wochentage: [], uebungen: [{ id: 'plank', saetze: 3, wdhMin: null, wdhMax: null, sekunden: 45, pauseS: null }] },
+    ],
+  }]
+  await page.goto('/training')
+  await page.getByRole('button', { name: 'Neuer Plan' }).click()
+  await page.getByRole('button', { name: /Mit Hoku erstellen/ }).click()
+
+  const chat = page.getByRole('dialog', { name: 'Plan mit Hoku' })
+  await chat.getByRole('textbox', { name: 'Schreib Hoku …' }).fill('3× pro Woche Ganzkörper, nur Kurzhanteln')
+  await chat.getByRole('button', { name: 'Senden' }).click()
+
+  // An Hoku gehen Katalog und Seite, keine Verlaufsdaten
+  await expect.poll(() => mock.coach.calls.length).toBe(1)
+  const call = mock.coach.calls[0] as { seite: string; kontext: { training: { katalog: string[] } } & Record<string, unknown> }
+  expect(call.seite).toBe('training')
+  expect(call.kontext.training.katalog.some(z => z.startsWith('bench_press_dumbbell|'))).toBe(true)
+  expect(Object.keys(call.kontext)).toEqual(['training'])
+
+  // Vorschau: die unbekannte Übung ist markiert, Übernehmen geht erst ohne sie
+  const preview = page.getByRole('dialog', { name: 'Vorschau' })
+  await expect(preview.getByText('Noch nicht gespeichert')).toBeVisible()
+  await expect(preview.getByText('Diese Übung kennt die App nicht – bitte tauschen oder entfernen.')).toBeVisible()
+  await expect(preview.getByRole('button', { name: 'Übernehmen' })).toBeDisabled()
+  await preview.getByRole('button', { name: /^erfundene uebung entfernen$/ }).click()
+
+  // Tauschen: Bankdrücken (Kurzhantel) → Schrägbankdrücken (Kurzhantel)
+  await preview.getByRole('button', { name: 'Bankdrücken (Kurzhantel) tauschen' }).click()
+  const picker = page.getByRole('dialog', { name: 'Übung wählen' })
+  await picker.getByRole('searchbox').fill('schrägbank kurzhantel')
+  await picker.getByRole('button', { name: /^Schrägbankdrücken \(Kurzhantel\)/ }).first().click()
+  await expect(preview.getByText('Schrägbankdrücken (Kurzhantel)')).toBeVisible()
+
+  await preview.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect.poll(() => mock.table('training_plans').map(p => `${p.name}:${JSON.stringify(p.schedule)}`))
+    .toEqual(['Ganzkörper · Kurzhanteln:{"mode":"per_week","perWeek":3}'])
+  await expect.poll(() => (mock.table('training_routines') as Array<{ name: string; folder: string | null; exercises: Array<{ exerciseId: string; sets: unknown[] }> }>)
+    .filter(r => r.folder === 'Ganzkörper · Kurzhanteln')
+    .map(r => `${r.name}:${r.exercises.map(e => `${e.exerciseId}×${e.sets.length}`).join(',')}`))
+    .toEqual(['Ganzkörper A:incline_bench_press_dumbbell×3', 'Ganzkörper B:plank×3'])
+  await expect(page.getByRole('button', { name: 'Plan · Ganzkörper · Kurzhanteln – Plan bearbeiten' })).toBeVisible()
+})
+
 test('Training: Aktivitaet eintragen', async ({ page, mock }) => {
   seedHistory(mock)
   await page.goto('/training')

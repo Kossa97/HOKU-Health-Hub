@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { cameraAvailable, createDetector } from './barcodeDetector'
+import { PRODUCT_FORMATS, cameraAvailable, createDetector } from './barcodeDetector'
 import { normalizeBarcode } from './barcode'
 import { useDotWeg } from '../../dot/useDotWeg'
 
@@ -19,8 +19,9 @@ const FRAME_MS = 180
 export function useBarcodeKamera(
   onCode: ((code: string) => void) | null,
   /**
-   * Auch Data-Matrix-Codes lesen; angenommen wird ein Code, fuer den das
-   * `true` ergibt, und dann roh weitergereicht (My Stack: Arzneimittelpackung).
+   * Auch Data-Matrix- und Code-128-Codes lesen; angenommen wird ein Code, fuer
+   * den das `true` ergibt, und dann roh weitergereicht (My Stack:
+   * Arzneimittelpackung, Amazon-Lageretikett).
    */
   dataMatrix?: (raw: string) => boolean,
 ) {
@@ -74,9 +75,13 @@ export function useBarcodeKamera(
           try {
             if (video.readyState >= 2) {
               const found = await detector.detect(video)
-              const code = found
-                .map(f => normalizeBarcode(f.rawValue) ?? (mitDataMatrix?.(f.rawValue) ? f.rawValue : null))
-                .find(Boolean) ?? ''
+              // Als EAN gilt nur, was als EAN/UPC gelesen wurde — ein Code-128-
+              // Aufkleber mit Ziffern (Apotheke, Paket) ist kein Produkt. Und der
+              // EAN geht vor, wenn daneben ein Amazon-Etikett im Bild ist.
+              const produkt = (f: { format?: string }) => !f.format || (PRODUCT_FORMATS as readonly string[]).includes(f.format)
+              const ean = found.filter(produkt).map(f => normalizeBarcode(f.rawValue)).find(Boolean)
+              const roh = mitDataMatrix ? found.map(f => f.rawValue).find(raw => mitDataMatrix(raw)) : undefined
+              const code = ean ?? roh ?? ''
               seen = code && code === last ? seen + 1 : code ? 1 : 0
               last = code
               if (code && seen >= CONFIRM_FRAMES) {

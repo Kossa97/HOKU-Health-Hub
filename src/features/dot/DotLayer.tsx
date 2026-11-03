@@ -37,6 +37,7 @@ function seiteVon(pathname: string): DotSeite {
   if (pathname === '/my-stack') return 'my-stack'
   if (pathname === '/kalender') return 'kalender'
   if (pathname === '/ernaehrung') return 'ernaehrung'
+  if (pathname === '/training') return 'training'
   return 'sonst'
 }
 
