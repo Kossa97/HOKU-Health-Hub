@@ -184,3 +184,17 @@ Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Kn
 Nutzer bearbeitet die Karten selbst in Canva. `docs/profil/canva/hoku-link-karten.pptx`
 (20 Folien 1200 × 630, aus Karten-Mockup Fassung 2, Elemente einzeln). Skripte in
 `docs/profil/canva/quelle/`. Canva-Verbindung im Container nicht erreichbar, daher Datei-Import.
+
+### Nutzer 03.11. zu den Karten — Auswahl (Fassung 3)
+Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/artifact/9dsm9rL8JLVzYMw5KVL4cy.
+- **Slogan entschieden: „Sieh, wer du wirst.“ / “See who you’re becoming.”**
+- **Fortschritt (A1) = H**: Profil mittig im linken Teil, „trackt 9 Werte“ (9 in Cyan) + Bereiche OBEN, darunter „über 30 %“.
+- **Rückfall (C) = B3, angepasst**: Profil mittig im linken Teil, 9 in Cyan. Auf den Partikeln war Schrift unlesbar →
+  Hoku kleiner (528 px) links oben angeschnitten, Profilbild in der Pupille, Name + Werte darunter; Kompaktlogo unten rechts.
+- **Neutral = B3**: Hoku links aus der Kante, Hauptlogo 480 px + Slogan mittig rechts auf Pupillenhöhe, Adresse darunter.
+- C-Text: Nutzer will beschreiben, was Hoku alles kann + die „Engine“ dahinter, kurz; C1–C6 „so lala“. Neue Texte T1–T6
+  (Empfehlung T1 „Du trackst. Hoku verbindet.“). Wahl offen.
+- Offen: Web-Fortschritt nur aus den freigegebenen Bereichen rechnen (sonst passt „trackt 9 Werte“ über dem Ergebnis nicht,
+  und die Zahl verrät etwas über Blut/Einnahmen). Brand-Guide-Freigabe für B3 (Anschnitt, Profilbild in der Pupille).
+- Recht: in Werbetexten nicht „überwacht“, „erkennt“, „warnt“, „optimiert Gesundheit“ (Medizinprodukt-Anschein, Irreführung).
+- Archiv: Fassung 2 (B1–B6, C1–C6, alle Slogans) in `profil-2c-karten.html` und Canva-Vorlage `docs/profil/canva/` bleiben.
