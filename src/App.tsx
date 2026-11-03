@@ -23,6 +23,7 @@ const MyStackPage = lazyPage(() => import('./features/my-stack/MyStackPage'), 'M
 const Tagebuch = lazyPage(() => import('./pages/Tagebuch'), 'Tagebuch')
 const Bewertungen = lazyPage(() => import('./pages/Bewertungen'), 'Bewertungen')
 const Profil = lazyPage(() => import('./pages/Profil'), 'Profil')
+const HokuSeite = lazyPage(() => import('./pages/HokuSeite'), 'HokuSeite')
 const PublicProfile = lazyPage(() => import('./pages/PublicProfile'), 'PublicProfile')
 const FAQ = lazyPage(() => import('./pages/FAQ'), 'FAQ')
 const Rechner = lazyPage(() => import('./pages/Rechner'), 'Rechner')
@@ -106,6 +107,7 @@ function PersonalApp() {
             <Route path="tagebuch" element={<LazyPage><Tagebuch /></LazyPage>} />
             <Route path="bewertungen" element={<LazyPage><Bewertungen /></LazyPage>} />
             <Route path="profil" element={<LazyPage><Profil /></LazyPage>} />
+            <Route path="profil/hoku" element={<LazyPage><HokuSeite /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
             <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />

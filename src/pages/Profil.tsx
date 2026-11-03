@@ -8,7 +8,7 @@ import { ResearchDisclaimer } from '../components/ui/DesignSystem'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
-import { HokuFarbAuswahl } from '../features/dot/HokuFarbAuswahl'
+import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
@@ -236,7 +236,8 @@ export function Profil() {
 
       {/* ── Erscheinungsbild: Schwarz oder Licht ── */}
       <LookSwitcher vorschau={isAdmin || import.meta.env.DEV} />
-      <HokuFarbAuswahl />
+      {/* Hoku: Farbe, Bewegung und Hinweise auf eigener Seite mit Bühne */}
+      <HokuEintrag />
 
       {/* ── Push-Notifications ── */}
       <PushSettings />

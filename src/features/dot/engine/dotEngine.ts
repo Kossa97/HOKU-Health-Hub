@@ -22,6 +22,7 @@ import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibm
 import { FREUDE, GESTE_FERN, GESTE_N, STILL, formMitAuge, gestenBild, gestenVorbereiten, naechsterFehler, neueGestenKugel, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
 import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
+import { beobachteHokuEinstellungen, leseHokuEinstellungen } from '../lib/hokuEinstellungen'
 import { LOOKS, type Look } from '../../../lib/look'
 
 export type { DotForm } from './gesten'
@@ -380,6 +381,9 @@ export function createDot(host: DotHost): DotApi {
   }
   farbeNeu()
   const farbeAb = beobachteHokuFarbe(farbeNeu)
+  // Einstellungen der Seite „Hoku“ (Profil): ruhig, für Hinweise heraus, Hinweise
+  let EIN = leseHokuEinstellungen()
+  const einstellungenAb = beobachteHokuEinstellungen(() => { EIN = leseHokuEinstellungen() })
 
   const sonde = document.createElement('div')
   sonde.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
@@ -918,7 +922,7 @@ export function createDot(host: DotHost): DotApi {
   const imBild = (k: DOMRect) => { const b = bounds(); return k.width > 0 && k.top >= b.t && k.bottom <= b.b }
   function auftrittStart(art: Auftritt['art'], el: HTMLElement | null, beiStoss: (() => void) | undefined, fertig: (ok: boolean) => void) {
     // nur aus der Ruhe auf der Bühne: geworfen, an der Wand oder auf dem Rückweg zeigt er nichts
-    if (weniger || B.mode !== 'login' || B.drag || B.auftritt || B.intro.an || B.login.phase !== 'ruhe') { fertig(false); return }
+    if (weniger || EIN.ruhig || B.mode !== 'login' || B.drag || B.auftritt || B.intro.an || B.login.phase !== 'ruhe') { fertig(false); return }
     const rect = el ? el.getBoundingClientRect() : null
     if (el && (!rect || !imBild(rect))) { fertig(false); return }
     if (B.form || B.text) setState(B.state)
@@ -1003,7 +1007,9 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Rundflug (von einer Seite vorgegeben) ─────────────────────────────── */
   function startTour(r: Rundflug) {
-    if (weniger || (B.mode !== 'home' && B.mode !== 'house') || B.drag || NAV.cam || !NAV.darfRaus) return false
+    if (weniger || EIN.ruhig || !EIN.hinweise || (B.mode !== 'home' && B.mode !== 'house') || B.drag || NAV.cam || !NAV.darfRaus) return false
+    // aus dem Haus nur, wenn er für Hinweise herauskommen darf
+    if (B.mode === 'house' && !EIN.raus) return false
     const p = r.pos(0)
     // Aus dem Haus auf einer Seite ohne Leiste: danach liegt er als Streifen am Rand wie sonst
     // beim Hineinnavigieren, und geht mit der Leiste wieder ins Haus
@@ -1117,7 +1123,8 @@ export function createDot(host: DotHost): DotApi {
   function versteckeBlase() { delete blase.dataset.zeigen }
   function placeBubble() {
     if (blase.dataset.zeigen !== 'true') return
-    if (B.mode !== 'home' && B.mode !== 'login' && !B.tour) { versteckeBlase(); return }
+    // auf einer Bühne (Seite „Hoku“) darf er sprechen; im Chat sagt er nichts in Blasen
+    if (B.mode !== 'home' && B.mode !== 'login' && B.mode !== 'stage' && !B.tour) { versteckeBlase(); return }
     const bw = blase.offsetWidth, bh = blase.offsetHeight
     const above = B.y - B.r - 14 - bh > Math.max(56, OBEN + 8)
     const x = clamp(B.x - bw / 2, 12, W - bw - 12), y = above ? B.y - B.r - 14 - bh : B.y + B.r + 14
@@ -1135,7 +1142,10 @@ export function createDot(host: DotHost): DotApi {
   }
   function greet() {
     if (B.mode !== 'home') return
-    wake(true); B.waveT = 0; B.waveSide = B.x < W / 2 ? 1 : -1; sag(texte.gruss(), 3600)
+    wake(true); B.waveT = 0; B.waveSide = B.x < W / 2 ? 1 : -1
+    // von selbst herausgekommen und Hinweise aus (Seite „Hoku“): nur winken, nichts sagen
+    if (B.autoOut && !EIN.hinweise) return
+    sag(texte.gruss(), 3600)
   }
   function giggle() {
     if (B.mode !== 'home') return
@@ -1760,7 +1770,7 @@ export function createDot(host: DotHost): DotApi {
   const portalFlaeche = () => document.querySelector<HTMLElement>('[data-dot-portal]')
   function erfolg(): boolean {
     auftrittEnde(false)
-    if (weniger || B.mode !== 'login') return false
+    if (weniger || EIN.ruhig || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
     appPlatz()
     B.portal = { phase: 'ring', te: 0, fe: 0, r0: B.r }
@@ -1838,7 +1848,7 @@ export function createDot(host: DotHost): DotApi {
    * rechts in einer Drehung, E2 (dunkel) aus einer Wolke um seinen Platz, E5 (ringe) aus einer Lichtlinie.
    */
   function eroeffnung(): number {
-    if (weniger || B.mode !== 'login') return 0
+    if (weniger || EIN.ruhig || B.mode !== 'login') return 0
     const pool = VARIANTEN.filter(v => v !== B.intro.v), v = pool[(Math.random() * pool.length) | 0]
     messeBuehne()
     setState('idle')
@@ -2371,7 +2381,7 @@ export function createDot(host: DotHost): DotApi {
     if (!navOn()) {
       // Seite ohne Leiste: ist er zu Hause (und darf heraus), kommt er beim Hineinnavigieren
       // heraus — dort, wo die Leiste war, vom unteren Rand — und legt sich als Streifen an den Rand
-      if (B.mode === 'house' && NAV.darfRaus) {
+      if (B.mode === 'house' && NAV.darfRaus && EIN.raus) {
         // Ein Rundflug ist angekündigt: er kommt mit ihm vom Rand, nicht hier von unten
         const warte = B.tourBald - performance.now()
         if (warte > 0) { syncT = window.setTimeout(sync, warte + 50); return }
@@ -2528,6 +2538,7 @@ export function createDot(host: DotHost): DotApi {
       document.removeEventListener('selectionchange', beiAuswahl)
       schreibmarkeAufraeumen()
       farbeAb()
+      einstellungenAb()
       sonde.remove()
     },
   }
