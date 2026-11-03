@@ -57,64 +57,12 @@ Lesen ist erlaubt, aber sparsam: Nutzerzeilen (`stack_items`, `daily_logs`,
 Blutwerte) nur, wenn die Aufgabe es verlangt — und Inhalte nie in Antworten,
 Commits oder Artefakte kopieren.
 
-## Werkbank: Übersicht aller Arbeiten
+## Notizen des Nutzers
 
-Der Nutzer arbeitet in vielen Fenstern parallel, auf dem Computer und in der
-Cloud (claude.ai/code; das Repo hieß dort früher TYD-TrackYourDose, heute
-HOKU-Health-Hub). Die Regel gilt für beide. Den Überblick hält die Seite
-**Hoku Werkbank**: https://claude.ai/artifact/1TdihdC4AWy2Vv79LpPbjG
-(Quelle: `docs/werkbank/werkbank.html`). Ihre Daten liegen in der
-Artefakt-Datenbank, gelesen und geschrieben mit dem Werkzeug `ArtifactData`.
-
-**Zu Beginn einer Arbeit:** `list` auf `arbeiten` ausführen. Gibt es schon eine Zeile für
-diese Arbeit, wird sie weiterverwendet. Danach `ideen` mit `arbeit == <id>`
-lesen; offene Ideen des Nutzers kurz ansprechen. Ideen mit `uebernehmen: true`
-(ohne Arbeit) dem Nutzer vorschlagen: daraus eine neue Arbeit machen, sie danach
-mit `arbeit` verknüpfen und `uebernehmen` auf `false` setzen.
-Weitere Felder in `ideen` setzt der Nutzer selbst, nicht ungefragt ändern:
-`art` (`notiz` | `idee` | `todo`), `feld` (Gewichtung: `wd` wichtig und dringend,
-`w` wichtig, `d` dringend, `s` später), `pos` (eigene Reihenfolge), `erledigtAm`.
-Hohe Gewichtung (`wd`, `w`) zuerst ansprechen.
-
-**Am Ende jeder Runde, in der an der App gearbeitet wurde** (vor `wrap_up`),
-die eigene Zeile in `arbeiten` schreiben. `doc_id` ist ein kurzer, stabiler Slug
-der Arbeit (z. B. `profil`, `push-erinnerungen`). Bei bestehender Zeile wird
-`update` mit `if_version` benutzt.
-
-**Der Nutzer programmiert nicht.** Alles auf der Seite ist Alltagssprache ohne
-Fachwörter (kein Branch, Merge, PR, Commit, Deploy, Migration). Technisches
-gehört nur in `offen`, `branch`, `ordner`, `pr`, die auf der Seite eingeklappt sind.
-
-Für den Nutzer, in Alltagssprache:
-- `titel`: kurzer Name der Arbeit
-- `wasIstDas`: ein Satz, was die Arbeit für die App bedeutet
-- `stufe`: `idee` | `geplant` | `bau` (wird gebaut) | `pruefung` (wird geprüft) |
-  `live` (ist in der App)
-- `status` (wer dran ist): `laeuft` (Claude) | `wartet` (die Runde endet mit
-  einer Frage an den Nutzer) | `pausiert` | `fertig`
-- `wartetAuf`: die offene Frage an den Nutzer, so gestellt, dass sie sich ohne
-  Vorwissen beantworten lässt (sonst leer)
-- `letzterSchritt`: ein Satz, was zuletzt passiert ist
-- `naechsterSchritt`: ein Satz, was als Nächstes passiert
-- `deinTeil`: Liste `{text, erledigt}` mit Aufgaben, die **nur der Nutzer** erledigen
-  kann (auf dem iPhone testen, Konto bei Apple, Entscheidung treffen). Vom Nutzer
-  abgehakte Einträge stehen lassen.
-- `fuerStart`: setzt der Nutzer selbst (Stern), nicht ungefragt ändern
-
-Technik (eingeklappt):
-- `offen`: offene Punkte, die Claude erledigt (kurz, Fachsprache erlaubt)
-- `branch`, `ordner` (Arbeitsordner der Sitzung), `pr` (volle URL oder leer)
-- `ort`: `computer` (Fenster in der Desktop-App) oder `cloud` (claude.ai/code)
-- `sitzungLink`: `link` aus `get_session("self")`; in der Cloud die
-  `https://claude.ai/code/...`-Adresse der Sitzung
-- `fensterTitel`: `title` aus `get_session("self")`, also der Name in der
-  Seitenleiste. Fenster auf dem Computer lassen sich aus der Seite nicht direkt
-  öffnen; der Knopf „Zum Fenster“ zeigt dann diesen Namen.
-- `aktualisiert`: jetzt, ISO-Zeit
-
-Keine Gesundheitsdaten von Nutzern in die Werkbank schreiben, nur die Arbeit
-beschreiben. Den Status, den der Nutzer auf der Seite gesetzt hat, nicht
-ungefragt zurücksetzen. Ideen nicht löschen, erledigte nur abhaken.
+Der Nutzer führt Notizen, Ideen und To-dos auf der Seite **Hoku Notizen**
+(https://claude.ai/artifact/1TdihdC4AWy2Vv79LpPbjG, Quelle
+`docs/werkbank/werkbank.html`, Collection `ideen`). Nur lesen, wenn der Nutzer
+darum bittet; nichts ungefragt eintragen oder ändern.
 
 ## Git bei parallelen Fenstern
 
@@ -123,5 +71,4 @@ ungefragt zurücksetzen. Ideen nicht löschen, erledigte nur abhaken.
   `peptid-tracker` wird kein Branch gewechselt, solange dort eine andere Sitzung
   arbeitet.
 - **Merges nach `main` laufen nur in einem Fenster gleichzeitig.** Vor dem Merge
-  `main` holen; zeigt die Werkbank eine andere Arbeit, die gerade merged, wird gewartet.
-- Die Werkbank warnt, wenn sich zwei offene Arbeiten einen Ordner teilen.
+  `main` holen.
