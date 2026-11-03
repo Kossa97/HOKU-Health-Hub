@@ -13,6 +13,7 @@ import { heuteHinweis, heuteOffen, kontextVonHeute, ladeDotKontext, type DotKont
 import { useDotZugang } from './lib/zugang'
 import { useDotText } from './texte'
 import { CoachPanel, type DotSeite } from './chat/CoachPanel'
+import { setHokuLichtQuelle } from '../../lib/hokuLicht'
 import './dot.css'
 
 /**
@@ -164,6 +165,14 @@ export function DotLayer() {
     setDot(neu)
   }, [aktiv])
   useEffect(() => () => { api.current?.zerstoeren(); api.current = null; dotStore.verbinde(null, null); setDot(null) }, [])
+  // Hoku-Licht (src/lib/hokuLicht.ts): wo Hoku ist, leuchten die Kanten in seiner Nähe
+  useEffect(() => {
+    setHokuLichtQuelle(() => {
+      const a = api.current
+      return a && a.modus() !== 'away' ? a.lage() : null
+    })
+    return () => setHokuLichtQuelle(null)
+  }, [])
 
   // Mit dem Logo verbinden; gesperrt heißt: Hinweis auf Pro
   useEffect(() => {

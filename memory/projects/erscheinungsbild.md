@@ -137,3 +137,19 @@ Offen (nächste Schritte, je Bereich):
   `#000`/`#fff` in Stildateien.
 - Hoku-Licht als gemeinsamer Baustein (flashlight.ts + Position aus dotEngine).
 - Danach die Mockup-Looks als echte Looks.
+
+## Hoku-Licht und Look „Frost“ (03.11.2026)
+
+- **Hoku-Licht** `src/lib/hokuLicht.ts`: Quelle ist `api.lage()` der Dot-Engine
+  (gesetzt in DotLayer, `null` bei Modus `away`). Für sichtbare Flächen und Knöpfe
+  (`.lg-surface, .card, .lg-group, .lg-btn, .lg-icon-btn, .lg-chip, .tyd-tabbar,
+  .tyd-tabdock-action`) schreibt es `--hl-a` (Richtung), `--hl-w` (Breite),
+  `--hl-i` (Helligkeit, quadratisch, Reichweite 230 px), `--hl-x/--hl-y`.
+  Läuft nur, wenn der Look `--hoku-licht: 1` setzt; erst messen, dann schreiben;
+  unveränderte Werte nicht neu schreiben.
+- **Frost** (öffentlich wählbar): dunkles Cyan, Korn, Karten ohne Weichzeichner,
+  Kante als konischer Verlauf aus den `--hl-*`-Werten, Knöpfe glimmen mit `--hl-i`.
+  Hoku-Farbe „heute“ (Cyan → Violett → Pink).
+- Prüfung: Schrift über Verläufen wird nicht mehr gewertet (Fehlalarme am
+  Hauptknopf). Stand: Schwarz, Soft Dark, Frost, Papier je 0 Stellen.
+- Nächste Looks aus dem Mockup: Labor-HUD, Neon, Tiefsee, Obsidian.

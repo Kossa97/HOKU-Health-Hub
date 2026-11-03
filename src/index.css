@@ -105,6 +105,14 @@
      Jeder Look kann sie umstellen; ein heller Look kehrt sie um.
      --ink-rgb: Schrift, Linien und helle Schleier; --ground-rgb: der Grund.
      Tailwind liest `white`, `black` und `slate-*` aus diesen Kanälen. */
+  /* Hoku-Licht (src/lib/hokuLicht.ts): ein Look schaltet es mit --hoku-licht: 1
+     ein; die übrigen Werte setzt das Skript je Fläche, hier die Ruhelage. */
+  --hoku-licht: 0;
+  --hl-a: 0deg;
+  --hl-w: 60deg;
+  --hl-i: 0;
+  --hl-x: 50%;
+  --hl-y: 0%;
   --ink-rgb:    255 255 255;
   --ground-rgb: 0 0 0;
   --slate-50:  245 245 247;
