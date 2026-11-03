@@ -1454,25 +1454,25 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'bac3c8c312e0fa06c29c79d77ee5b12870d8d757e16f68517614a495c1523464',
-  en: '123811d8827b23bc6d77a886350a8ac659387b34535807fc900e795ae7227a48',
+  de: '631e24ccf1aa48111f39491de3159fbe0de1abf2c0e0f10f127f3c13a7c31d6b',
+  en: 'cf35a8ef8fd5944ad284f9b5c326be5c7df8a0080aeac36bdf15ac5396ff8121',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '0ab55e17ef153faf0ff440f902d413753352c790169f1c2fb510e514f70e31fe',
-  es: '552167fb7b269ba40ceb215e735ce38074baec0f27bcee7024abb4471d73cec0',
-  fr: 'b1e08ea8a8cfaec416715d42f3ec80c1a8a6cc862eeb00bfe49ec7a27d48ed03',
-  hi: '3d3869f9dfd976032c387ed60cbcbc9dc8eb2b3c17e6ea4599085fbde271d63f',
-  id: 'f35d14d2b725fb5209d4380089164f1f6d3f657195fce3b663e6f7e38880c4e8',
-  it: 'f4b6a606ea4e9f87255f7adbb6b243794f72e78e0325295540a6fa26b12efc87',
-  ja: 'b9f30f016248abe4118842780f3ac6b7b49bc3a7c5a3476e4902cf80da18de41',
-  ko: '4235fad6d9a671cf992659d2a25cf69ec30988d5ef6688bd5bbbade2a0f58a9d',
-  pt: '7fd78dd581f5b2a0c38c8d6d9b29e06cdc668a80ff6b2a73fb5c616c5565fc7f',
-  ru: 'af9d0529ce759445e71693b2a23a123ed8e8ec5b854279541063eb6bfa21839e',
-  tr: 'c00c206bda30c20216f77782c279ec3112d6ec3d988004c89839324986341f58',
-  zh: 'a391edec1c9879f0b199df33c461eef0731060df63479aee333d743935aa5b9e',
+  ar: '7cd970c8bd2cea193c538e240163f8424ed3785f5bc291ad7a5f481d251d1842',
+  es: '500652af6606fb52fdd20e4c5ff373bef650e999b46d07d87e03c919b0d226e2',
+  fr: 'e5f216a398539b862b45367f6ab36f10cecce6c28eacf9325d1e1bc28dea2ea6',
+  hi: '50178322bf93d98da0d51e3ac90c05b70a3146bcff6111ead11a1226af0ad3cb',
+  id: '45a4a7002803561d62a353c337fe078f19162ed9d505269fc5eab9a1aa9fda81',
+  it: '2b3eb6ef808128ff60a891e103c8f3d1c10ee6ecc72b5dc70646370ec0454fc6',
+  ja: '2b78b8b0dff990b6b698e87aa9043f5c19005a3be2875534598c0d5cde71138a',
+  ko: '1cba9673446705b7292d08920292a9e13faa7bb993f33c507605a842618ef435',
+  pt: '26d5a9410e47e4fec33586133a0d41261cca7c47eba9f2d194d899d6e363e20c',
+  ru: '82560cddc104e5a2afdfa27ac98273508ffc3a2ed98c185ea1e9b1952f69004a',
+  tr: 'adf56737b2ada6d2454bed0242d7c5b8e41fce3c03d0b4df676c300b056fbef2',
+  zh: 'b0db50932055a97bd636f7ee3df0c11687987d5a04aa31364ae3114ec84ed339',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

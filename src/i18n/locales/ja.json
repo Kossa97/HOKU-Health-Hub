@@ -2653,5 +2653,7 @@
   "nutr_day_hint": "Tap the orb to see your whole day.",
   "nutr_day_hint_close": "Dismiss tip",
   "nutr_day_edit_goal": "Change goal",
-  "nutr_daypanel_macros": "Macros"
+  "nutr_daypanel_macros": "Macros",
+  "pk_select_ingredient": "Choose active ingredient",
+  "pk_stats_for": "Key figures · {{name}}"
 }
