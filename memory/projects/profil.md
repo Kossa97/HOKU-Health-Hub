@@ -220,3 +220,7 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   (meine Ergänzung, gleiche Regel); A1 Hauptlogo bleibt Cyan. Mockup-Stand „zur Freigabe“; Z1–Z6 in Git-Historie (c0c999f).
 - Nutzer 03.11.: Rückfall-Überschrift „Mehr als nur Tracking.“ **in einer Zeile** (darf über die Spalte bis vor die Bildmarke),
   Engine-Satz **kursiv** (Inter Italic 500, 76 % Weiß).
+- Nutzer 03.11.: **Fortschrittskarte links statt „16 Abzeichen“ + „41 Tage dabei“**: Zeile 1 „7 Werte verbessert“ (nur unter
+  den Web-Werten der Karte gezählt) → Fallback „16 Abzeichen“ → Zeile entfällt. Zeile 2 „91 % der Tage getrackt“ (Tage mit
+  Eintrag seit Start, abgerundet) ab 70 %, darunter „131 Tage getrackt“. Abzeichen bleiben im Web-Profil. Linke Spalte 30cqw.
+  „41 Tage dabei“ war im Mockup die Serie (Flamme), las sich aber wie Mitgliedschaft → auf Rückfall-Karte noch zu klären.

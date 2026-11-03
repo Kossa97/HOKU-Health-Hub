@@ -70,6 +70,7 @@ h1 { font: 600 clamp(26px, 4.4vw, 38px)/1.1 var(--disp); margin: 0; text-wrap: b
 .seg button { border: 0; background: none; padding: 7px 12px 8px; border-radius: 10px; font: 600 14px var(--ui); color: var(--ink2); cursor: pointer; transition: background-color .15s ease, color .15s ease, transform .16s var(--ease); }
 .seg button[aria-pressed="true"] { background: var(--sel-bg); color: var(--sel-ink); }
 .seg button:active { transform: scale(.97); }
+.seg.sm button { padding: 5px 10px 6px; font-size: 12.5px; }
 .sel { width: 100%; max-width: 520px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line2); background: var(--page); color: var(--ink); font: 500 14px var(--ui); }
 .chk { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--ink2); cursor: pointer; }
 .chk input { width: 18px; height: 18px; accent-color: var(--ink); margin: 0; flex: none; }
@@ -143,8 +144,9 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 
 /* A1 · H: Hauptlogo unten Mitte; links die Person mittig, rechts erst was sie trackt, dann das Ergebnis darauf */
 .og.t-a1 .lg { left: 35cqw; bottom: .8cqw; width: 30cqw; }
-.og.t-a1 .body { position: absolute; left: 5cqw; right: 5cqw; top: 5cqw; bottom: 12.4cqw; display: grid; grid-template-columns: 27cqw minmax(0, 1fr); gap: 0 5cqw; align-items: center; }
-.og .main { display: grid; gap: 1.1cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 5cqw; border-left: .1cqw solid var(--o-hair); min-height: 30cqw; }
+.og.t-a1 .body { position: absolute; left: 5cqw; right: 5cqw; top: 5cqw; bottom: 12.4cqw; display: grid; grid-template-columns: 30cqw minmax(0, 1fr); gap: 0 4.4cqw; align-items: center; }
+.og.t-a1 .who { --mt: 2.3cqw; }
+.og .main { display: grid; gap: 1.1cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 4.4cqw; border-left: .1cqw solid var(--o-hair); min-height: 30cqw; }
 .og .tk { display: flex; align-items: baseline; gap: 1.2cqw; font: 500 2.9cqw/1 var(--ui); color: var(--o-t2); white-space: nowrap; }
 .og .tk .tn { font: 600 5cqw/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .og .ar { font: 500 2.6cqw/1.3 var(--ui); color: var(--o-t3); text-wrap: balance; }
@@ -292,13 +294,17 @@ const P = {
   medal: 'M8.5 3.5h7L13.6 9h-3.2zM12 21a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM12 13.2l.9 1.9 2 .2-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.2z',
   check: 'M5 12.5l4.5 4.5L19 7.5',
   pulse: 'M3 12h4l2.2-5 4 10 2.3-5H21',
+  trend: 'M4 16.5l5-5 4 3.5 7-7.5M15 7.5h5v5',
+  cal: 'M5 6.5h14v12.5H5zM5 10.5h14M9 4.5v3.5M15 4.5v3.5M9.2 14.8l1.9 1.9 3.8-3.8',
 };
 const ic = (k, sw = 1.8) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[k]}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = s => document.querySelector(s);
 
 // Daten erfunden, wie Fassung 2
-const D = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', monat: 'März', abz: 16, streak: 41, werte: 9, tier: 30, areas: ['Körper', 'Training', 'Erholung & Fitness'] };
+// Start 14.03.2026 bis 02.11.2026 = 233 Tage, davon 214 mit Eintrag; 7 der 9 Web-Werte besser als am Start
+const D = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', monat: 'März', abz: 16, streak: 41, werte: 9, tier: 30, areas: ['Körper', 'Training', 'Erholung & Fitness'],
+  besser: 7, tage: 214, seit: 233 };
 const SLOGAN = { de: 'Sieh, wer du wirst.', en: 'See who you’re becoming.' };
 
 // Rueckfall: was Hoku kann und was dahinter arbeitet. Nur Funktionen, die es gibt; keine Substanzen, keine Heilversprechen.
@@ -312,10 +318,26 @@ const CT = [
 ];
 CT.forEach(T => { T.hb = T.h; T.h = T.h.replace('|', ' '); T.full = T.lead + ' ' + T.l; });
 const CT_REC = 0;
-const st = { ct: CT_REC, chat: 'dark' };
+const st = { ct: CT_REC, chat: 'dark', fb: 'normal' };
 
 const mBadges = `<span class="it">${ic('medal')}${D.abz} Abzeichen</span>`;
 const mStreak = `<span class="it">${ic('flame')}${D.streak} Tage dabei</span>`;
+// Fortschritt, links unter dem Namen. Zeile 1: verbesserte Werte (nur unter den Web-Werten), sonst Abzeichen, sonst nichts.
+// Zeile 2: Anteil getrackter Tage seit dem Start, ab 70 %; darunter die Anzahl der Tage (wirkt immer positiv).
+const FB = [
+  { k: 'normal', n: 'Normalfall', d: { ...{} } },
+  { k: 'keinbesser', n: 'kein Wert besser', d: { besser: 0 } },
+  { k: 'leer', n: 'kein Wert besser, keine Abzeichen', d: { besser: 0, abz: 0 } },
+  { k: 'selten', n: 'unter 70 % der Tage', d: { tage: 131 } },
+];
+function a1Lines(fb) {
+  const x = { ...D, ...(FB.find(f => f.k === fb) || FB[0]).d }, out = []
+  if (x.besser > 0) out.push(`<span class="it">${ic('trend')}${x.besser} ${x.besser === 1 ? 'Wert' : 'Werte'} verbessert</span>`)
+  else if (x.abz > 0) out.push(`<span class="it">${ic('medal')}${x.abz} Abzeichen</span>`)
+  const anteil = Math.floor(x.tage / x.seit * 100)
+  out.push(`<span class="it">${ic('cal')}${anteil >= 70 ? `${anteil} % der Tage getrackt` : `${x.tage} Tage getrackt`}</span>`)
+  return { html: out, x, anteil }
+}
 const mTrack = `<span class="it">${ic('pulse')}trackt <b class="acc">${D.werte}</b> Werte</span>`;
 const img = (k, cls, extra = '') => `<img class="${cls}" src="${BK[k].src}" width="${BK[k].w}" height="${BK[k].h}" alt=""${extra}>`;
 // Bildmarke: Breite W, links L, oben T in cqw
@@ -324,10 +346,10 @@ const nbh = s => s.replace(/(KI)-(Coach)/g, '$1‑$2');
 const sq = '<div class="sq" aria-hidden="true"></div>';
 const who = meta => `<div class="who"><div class="ava" aria-hidden="true">M</div><div class="nm">${D.name}</div><div class="meta">${meta.join('')}</div></div>`;
 
-function ogA1() {
+function ogA1(fb = st.fb) {
   return `<div class="og t-a1" role="img" aria-label="Vorschaubild Fortschritt: ${D.name}, trackt ${D.werte} Werte, über ${D.tier} % positive Veränderung seit ${D.monat}">
     ${img('haupt_cw', 'lg')}
-    <div class="body">${who([mBadges, mStreak])}
+    <div class="body">${who(a1Lines(fb).html)}
       <div class="main">
         <div class="tk">trackt <span class="tn acc">${D.werte}</span> Werte</div>
         <div class="ar">${esc(D.areas.join(' · '))}</div>
@@ -355,14 +377,16 @@ function meta(type, ct = st.ct) {
   const T = CT[ct];
   if (type === 'n') return { t: 'Hoku Health Hub', d: `${SLOGAN.de} ${T.full}` };
   if (type === 'a1') return { t: `${D.name} auf Hoku: über ${D.tier} % positive Veränderung seit ${D.monat}`,
-    d: `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}. ${D.streak} Tage dabei, ${D.abz} Abzeichen. Sieh dir ${D.gen} Profil an.` };
+    d: (() => { const { x, anteil } = a1Lines(st.fb); const z1 = x.besser > 0 ? ` ${x.besser} davon verbessert.` : x.abz > 0 ? ` ${x.abz} Abzeichen.` : ''; const z2 = anteil >= 70 ? ` ${anteil} % der Tage getrackt.` : ` ${x.tage} Tage getrackt.`; return `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}.${z1}${z2} Sieh dir ${D.gen} Profil an.` })() };
   return { t: `${D.name} auf Hoku · ${T.h}`, d: `${D.vor} trackt ${D.werte} Werte mit Hoku. ${T.full}` };
 }
 const prevT = m => `<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hokuhealth.app</small></div>`;
 
 const PICKS = [
   { k: 'Fortschritt', h: 'Hauptlogo unten Mitte', og: ogA1, li: [
-    '<b>Profil mittig</b> im linken Teil: Bild, Name, Abzeichen und Tage stehen zentriert.',
+    '<b>Profil mittig</b> im linken Teil: Bild, Name und zwei Angaben zentriert.',
+    '<b>„7 Werte verbessert“</b> zählt nur unter den 9 Werten der Karte. Ist keiner besser, stehen die Abzeichen da; gibt es keine, entfällt die Zeile.',
+    '<b>„91 % der Tage getrackt“</b> seit dem Start. Unter 70 % steht die Anzahl („131 Tage getrackt“). Die Abzeichen bleiben im Web-Profil.',
     '<b>Erst „trackt 9 Werte“</b>, dann das Ergebnis. Der Fortschritt rechnet über alle Bereiche und bleibt grob (über 10/20/30/50/75/100 %).',
     '<b>Die 9 in Cyan</b>, wie die 30 %. Mehr Farbe gibt es nicht.'] },
   { k: 'Rückfall', h: 'Hoku unten rechts (B1)', og: () => ogC(st.ct), li: [
@@ -376,7 +400,8 @@ const PICKS = [
 ];
 
 function renderTrio() {
-  $('#trio').innerHTML = PICKS.map(p => `<div class="pick">${p.og()}<div class="pick-t"><h3><span class="k">${p.k}</span>${p.h}</h3><ul>${p.li.map(x => `<li>${x}</li>`).join('')}</ul></div></div>`).join('');
+  const fbCtl = `<span class="lbl-s">Fallback ansehen</span><div class="seg sm" role="group" aria-label="Fallback der Fortschrittskarte">${FB.map(f => `<button type="button" data-fb="${f.k}" aria-pressed="${st.fb === f.k}">${f.n}</button>`).join('')}</div>`;
+  $('#trio').innerHTML = PICKS.map(p => `<div class="pick">${p.og()}<div class="pick-t"><h3><span class="k">${p.k}</span>${p.h}</h3><ul>${p.li.map(x => `<li>${x}</li>`).join('')}</ul>${p.k === 'Fortschritt' ? fbCtl : ''}</div></div>`).join('');
 }
 function renderCT() {
   $('#galCT').innerHTML = CT.map((T, i) => {
@@ -410,6 +435,7 @@ function renderAll() { renderTrio(); renderCT(); renderChats(); }
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.ct) { st.ct = +t.dataset.ct; renderAll(); return; }
+  if (t.dataset.fb) { st.fb = t.dataset.fb; renderTrio(); renderChats(); return; }
   if (t.dataset.chat) { st.chat = t.dataset.chat; renderChats(); }
 });
 $('#ctSel').addEventListener('change', e => { st.ct = +e.target.value; renderAll(); });
