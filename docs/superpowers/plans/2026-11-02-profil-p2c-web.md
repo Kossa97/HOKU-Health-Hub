@@ -8,7 +8,7 @@
 
 **Tech Stack:** wie 2a/2b (React 19 + TS, Vitest, Playwright-Mock, Supabase), dazu Vercel Node-Funktionen (`api/`, JS wie `send-reminders.js`), `@resvg/resvg-js` (wird `dependency`), `qrcode-generator`, `zxing-wasm` (vorhanden), `@capacitor/app` (neu).
 
-**Spec:** `docs/superpowers/specs/2026-11-02-profil-p2c-web-design.md`. Mockup: `docs/profil/mockups/profil-2c.html` (Link-Karten A/B/C/neutral — gewählt A mit Rückfall C; Web-Vorschau und 404; „Abzeichen im Web“; Hoku-Code im Sheet und Vollbild). Entscheidungen: `memory/projects/profil.md`, „Teilprojekt 2c geplant“. Baut auf 2b (PR #128) und 2a (PR #119) auf.
+**Spec:** `docs/superpowers/specs/2026-11-02-profil-p2c-web-design.md`. Mockup: `docs/profil/mockups/profil-2c.html` (Web-Vorschau und 404; „Abzeichen im Web“; Hoku-Code im Sheet und Vollbild). Link-Karten freigegeben 03.11.2026: `docs/profil/mockups/profil-2c-karten-auswahl.html` (Spec 3.3), Canva-Vorlage `docs/profil/canva/hoku-link-karten.pptx`. Entscheidungen: `memory/projects/profil.md`, „Teilprojekt 2c geplant“. Baut auf 2b (PR #128) und 2a (PR #119) auf.
 
 ## Global Constraints
 
@@ -73,7 +73,8 @@
 
 ### Task 6: Link-Karte (Vercel-Funktionen)
 
-- [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl A / C / neutral (negativ → C, 0 Abzeichen ohne Zeile, kein Bild → Initiale), Texte de/en für Titel/Beschreibung/Bild, Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten.
+- [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl Fortschritt / Rückfall / neutral nach Spec 3.3 (nicht positiv → Rückfall, kein geprüftes Bild → Initiale), „Seit … dabei“ (Tage/Monate/Jahre, abgerundet), Einträge mit Tausenderpunkt, Fortschrittsstufe abgerundet, Texte de/en für Titel/Beschreibung/Bild, Rückfall-Text per Schalter: Musterfunktion live → „kann Muster finden“, sonst Ersatztext; Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten wie im freigegebenen Mockup (Logos weiß neben großem Hoku).
+- [ ] `profile_view` Stufe `web` liefert dafür zusätzlich: Mitglied seit (Datum), Zahl aller Einträge (ohne Aufschlüsselung), Zahl der Werte in den Web-Bereichen. In Task 2 (Migration) ergänzen, Trockenlauf wie dort.
 - [ ] `api/u.js`: anon-`profile_view`, gebautes `index.html` (über `functions.includeFiles`) mit Titel, `og:*`, `twitter:card`, `robots noindex`; 200/404; `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=60`, `Vary: Accept-Language`, `X-Robots-Tag: noindex`.
 - [ ] `api/og.js`: anon-`profile_view` + Profilbild über Storage (anon), SVG → PNG mit `@resvg/resvg-js` (Schriften im Paket, Lizenz geprüft), `v` veraltet → neutrale Karte, `s-maxage=600`.
 - [ ] `vercel.json`: Route `/u/([^/]+)/?` → `/api/u?name=$1` vor dem Rückfall; `functions`-Eintrag für `includeFiles`. `@resvg/resvg-js` nach `dependencies`.

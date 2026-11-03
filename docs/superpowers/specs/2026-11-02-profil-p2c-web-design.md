@@ -21,7 +21,7 @@ die App oder in den Store. Gesundheitswerte, Substanzen und Berichte bleiben in
 der App. **[Nutzer]**
 
 Erfolg: Mara teilt ihr Profil in WhatsApp. Die Karte zeigt ihr Bild, ihren Namen,
-„+28,3 %“ und „7 Abzeichen“. Ihr Freund ohne Hoku tippt, sieht die Seite mit
+„trackt 9 Werte“ und „über 30 %“ (Fortschrittskarte, 3.3). Ihr Freund ohne Hoku tippt, sieht die Seite mit
 Streak, Ziel-Tags, Gesamtfortschritt (Körper, Training, Erholung & Fitness) und
 den fürs Web freigegebenen Abzeichen, liest „Was ist Hoku?“ und lädt die App.
 Ein Freund mit Hoku landet direkt in der App auf Maras Profil. Schaltet Mara den
@@ -224,30 +224,53 @@ User-Agent). Der Browser startet danach die SPA wie heute.
 - Der Service Worker (`src/sw.ts`) holt Seitenaufrufe zuerst vom Netz; die
   Server-Antwort mit 404 und Tags kommt also unverändert an.
 
-### 3.3 Welche Karte **[Nutzer]**
+### 3.3 Welche Karte **[Nutzer, freigegeben 03.11.2026]**
+
+Gestaltung und Texte sind freigegeben. Maßgeblich ist das Mockup
+`docs/profil/mockups/profil-2c-karten-auswahl.html`
+(Canva-Vorlage: `docs/profil/canva/hoku-link-karten.pptx`). Alle Karten nutzen den Stil
+„Hoku-Licht“ (#0f1116, Cyan-Licht von unten) und das Brand-Kit v2. Cyan #00ccf5 steht nur
+für Zahlen und „Hoku verbindet.“.
 
 | Lage | Karte | Bild | `og:title` / `og:description` (de) |
 |---|---|---|---|
-| Web-Link an, `progress` im Web vorhanden | **A Fortschritt** | Profilbild, Name, Leitzahl groß („+28,3 %“, „Gesamtfortschritt seit März“), Zahl der Web-Abzeichen | „Mara K. auf Hoku: +28,3 % seit März“ / „7 Abzeichen. Sieh dir Maras Profil an oder lade Hoku.“ |
-| Web-Link an, `progress` nicht auf „Alle“ (oder Schutzregel) | **C Einladung** | Profilbild, Name, ein Satz, Knopf „Profil ansehen“ | „Mara K. auf Hoku“ / „Sieh dir Maras Profil an oder lade Hoku.“ |
-| Web-Link aus, privat, unbekannt, ausgeblendet | **neutral** | Hoku-Zeichen, „Fortschritt gegenüber deinem eigenen Start.“ | „Hoku“ / „Training, Messungen und Routinen an einem Ort. Fortschritt gegenüber deinem eigenen Start.“ |
+| Web-Link an, Gesamtfortschritt positiv und auf „Alle“ | **Fortschritt** (Hauptlogo Cyan unten Mitte) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „1.240 Einträge“; rechts: „trackt **9** Werte“, Bereiche, „über **30 %**“ mit Trend-Symbol, „positive Veränderung seit März“ | „Mara K. auf Hoku: über 30 % positive Veränderung seit März“ / „Mara trackt 9 Werte mit Hoku: Körper, Training und Erholung & Fitness. Seit 7 Monaten dabei, 1.240 Einträge. Sieh dir Maras Profil an.“ |
+| Web-Link an, Fortschritt nicht positiv oder nicht auf „Alle“ | **Rückfall** (B1: Hoku unten rechts angeschnitten, Kompaktlogo weiß oben rechts) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „trackt **9** Werte“; rechts: „ÜBER HOKU“, „Mehr als nur Tracking.“, „Du trackst. / **Hoku verbindet.**“, kursiv „Hokus intelligente Engine legt deine Werte übereinander und kann Muster finden, die du allein nicht gesehen hättest.“, Knopf „Profil ansehen“ | „Mara K. auf Hoku · Mehr als nur Tracking.“ / „Mara trackt 9 Werte mit Hoku. Du trackst. Hoku verbindet. Hokus intelligente Engine …“ |
+| Web-Link aus, privat, unbekannt, ausgeblendet | **Neutral** (B3: Hoku links angeschnitten, Hauptlogo weiß) | Hauptlogo 480 px und Slogan „Sieh, wer du wirst.“ mittig auf Höhe der Pupille, Adresse darunter | „Hoku Health Hub“ / „Sieh, wer du wirst. Du trackst. Hoku verbindet. …“ |
+
+EN: „More than just tracking.“ / „You track. Hoku connects.“ / „Hoku’s smart engine layers your
+data and can find patterns you’d never have spotted on your own.“ / Slogan „See who you’re becoming.“
+
+Regeln **[Nutzer]**:
+
+- **Profilbild:** gezeigt, sobald der Web-Link an und das Profil nicht privat ist (2a hat keine
+  eigene Stufe für Bild und Name). Nur das geprüfte Bild aus dem Bild-Check; sonst die Initiale
+  im Kreis, keine neutrale Karte.
+- **Fortschritt** rechnet über alle Bereiche wie im Profil (auch Blut und Einnahmen), gezeigt nur
+  grob in Stufen (über 10/20/30/50/75/100 %, abgerundet) und nie je Bereich.
+- **„trackt N Werte“** zählt einzelne Werte nur aus den fürs Web gewählten Bereichen
+  („Was du trackst“: Körper, Training, Erholung & Fitness; Blut und Einnahmen nie).
+- **„Seit … dabei“** = Mitgliedschaft: unter einem Monat in Tagen, unter einem Jahr in Monaten,
+  danach in Jahren, immer abgerundet.
+- **Einträge** = Zahl aller Einträge, ohne Aufschlüsselung nach Bereichen. Varianten für später:
+  Abzeichen statt Einträge; ein **Titel**, den man sich verdienen muss (eigenes Vorhaben, noch ohne Spec).
+- **Rückfall-Text nur mit Musterfunktion:** „kann Muster finden“ geht erst zusammen mit der
+  Musterfunktion live (eigenes Vorhaben, zum Start geplant; Muster über Training, Ernährung, Schlaf,
+  Körper; keine Kausalaussagen). Bis dahin Ersatz: „… legt deine Werte übereinander und zeigt dir,
+  was sich seit deinem Start verändert hat.“
+- **Logofarbe:** Steht Hoku groß im Bild, ist das kleine Logo monochrom weiß; auf der Fortschrittskarte Cyan.
+- **Brand-Guide:** Anschnitt der Bildmarke an der Bildkante für B1 und B3 freigegeben; Pupille und
+  heller Rand bleiben ganz im Bild.
+- **Wortwahl:** nicht „überwacht“, „erkennt Krankheiten“, „warnt“, „optimiert Gesundheit“.
 
 Präzisierungen **[Claude, ungeprüft]**:
 
-- Name und Profilbild haben in 2a **keine eigene Stufe** (sie sind sichtbar, sobald
-  jemand das Profil findet). „Bild und Name auf ‚Alle‘“ heißt deshalb: Web-Link an
-  und Profil nicht privat. Ohne geprüftes Profilbild zeigt die Karte die Initiale
-  im Hoku-Verlauf (wie im Mockup), keine neutrale Karte. (Frage 4)
-- **Negativer Gesamtfortschritt:** Karte C statt A; die Zahl bleibt auf der Seite
-  sichtbar, die Karte soll einladen, nicht bloßstellen. (Frage 6)
-- 0 Web-Abzeichen: Karte A ohne Abzeichen-Zeile.
-- Einladungssatz ohne Geschlecht: „Mara ist auf Hoku.“ statt „… ihren Fortschritt“.
-- Abzeichen erscheinen im Bild als Zahl mit einem Hoku-Abzeichen-Symbol, nicht als
-  Emoji (spart eine Emoji-Schrift im Renderer).
 - Sprache der Karte: `Accept-Language` des Abrufers (de, sonst en), Antwort mit
   `Vary: Accept-Language`. Messenger-Bots senden oft keine Sprache, dann en. (Frage 9)
-- Meta-Description und Bild enthalten nie mehr als die Karte selbst: keine Bereiche,
-  keine Ziel-Tags, keine Streak, keine Berichtezahl.
+- Meta-Description und Bild enthalten nie mehr als die Karte selbst: keine Ziel-Tags, keine
+  einzelnen Werte, keine Aufschlüsselung des Fortschritts.
+- Schriften im Renderer: Space Grotesk, Inter (mit Kursiv), IBM Plex Mono, Michroma nur in den
+  Logo-Dateien.
 
 ### 3.4 Bild rendern: Optionen **[Claude, ungeprüft]**
 
