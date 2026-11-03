@@ -224,3 +224,9 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   den Web-Werten der Karte gezählt) → Fallback „16 Abzeichen“ → Zeile entfällt. Zeile 2 „91 % der Tage getrackt“ (Tage mit
   Eintrag seit Start, abgerundet) ab 70 %, darunter „131 Tage getrackt“. Abzeichen bleiben im Web-Profil. Linke Spalte 30cqw.
   „41 Tage dabei“ war im Mockup die Serie (Flamme), las sich aber wie Mitgliedschaft → auf Rückfall-Karte noch zu klären.
+- Nutzer 03.11. (ersetzt den Eintrag davor): „Werte verbessert“ und „% der Tage getrackt“ raus (Veränderung steht schon in %).
+  Links unter dem Profil jetzt **„Seit 7 Monaten dabei“** = Mitgliedschaft (unter 1 Monat in Tagen, ab 1 Jahr in Jahren,
+  abgerundet) — auf Fortschritt UND Rückfall (ersetzt „41 Tage dabei“). Fortschritt zweite Angabe: **Einträge**
+  („1.240 Einträge“, alle Bereiche, ohne Aufschlüsselung; Nutzer: „Einträge sind gut“), wahlweise Abzeichen. **Titel**
+  (künftig, muss man sich verdienen, z. B. „Routinier“) als leise Marke unter dem Namen — neues Vorhaben, Spec fehlt.
+  Trend-Symbol jetzt neben „30 %“. Rückfall linke Spalte 25cqw.

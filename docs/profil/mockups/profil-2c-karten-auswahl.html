@@ -146,6 +146,8 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 .og.t-a1 .lg { left: 35cqw; bottom: .8cqw; width: 30cqw; }
 .og.t-a1 .body { position: absolute; left: 5cqw; right: 5cqw; top: 5cqw; bottom: 12.4cqw; display: grid; grid-template-columns: 30cqw minmax(0, 1fr); gap: 0 4.4cqw; align-items: center; }
 .og.t-a1 .who { --mt: 2.3cqw; }
+.og .ttl { margin-top: -.4cqw; font: 500 1.9cqw/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--o-t2); padding: .7cqw 1.4cqw; border-radius: 99px; box-shadow: inset 0 0 0 .1cqw rgba(255,255,255,.28); }
+.og .huge .tr .ic { width: .42em; height: .42em; vertical-align: .1em; }
 .og .main { display: grid; gap: 1.1cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 4.4cqw; border-left: .1cqw solid var(--o-hair); min-height: 30cqw; }
 .og .tk { display: flex; align-items: baseline; gap: 1.2cqw; font: 500 2.9cqw/1 var(--ui); color: var(--o-t2); white-space: nowrap; }
 .og .tk .tn { font: 600 5cqw/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -157,8 +159,8 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 
 /* C · B1: Hoku schaut von unten rechts ins Bild (angeschnitten), Kompaktlogo oben rechts. Links die Person mittig
    wie bei A1, Trennlinie, dann der Text ueber Hoku in der Spalte vor der Bildmarke. */
-.og.t-c .body { position: absolute; left: 5cqw; right: 33cqw; top: 6cqw; bottom: 6cqw; display: grid; grid-template-columns: 21cqw minmax(0, 1fr); gap: 0 3.6cqw; align-items: center; }
-.og.t-c .who { --ava: 12cqw; --nm: 3.9cqw; --mt: 2.3cqw; }
+.og.t-c .body { position: absolute; left: 4cqw; right: 31cqw; top: 6cqw; bottom: 6cqw; display: grid; grid-template-columns: 25cqw minmax(0, 1fr); gap: 0 3.4cqw; align-items: center; }
+.og.t-c .who { --ava: 12cqw; --nm: 3.9cqw; --mt: 2.1cqw; }
 .og.t-c .say { display: grid; gap: 1.4cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 3.6cqw; border-left: .1cqw solid var(--o-hair); min-height: 32cqw; }
 .og.t-c .say .hl { font-size: 3.5cqw; }
 .og.t-c .say .ln { font-size: 2.3cqw; }
@@ -295,16 +297,17 @@ const P = {
   check: 'M5 12.5l4.5 4.5L19 7.5',
   pulse: 'M3 12h4l2.2-5 4 10 2.3-5H21',
   trend: 'M4 16.5l5-5 4 3.5 7-7.5M15 7.5h5v5',
-  cal: 'M5 6.5h14v12.5H5zM5 10.5h14M9 4.5v3.5M15 4.5v3.5M9.2 14.8l1.9 1.9 3.8-3.8',
+  cal: 'M5 6.5h14v12.5H5zM5 10.5h14M9 4.5v3.5M15 4.5v3.5',
+  pen: 'M5 19h4l9.5-9.5a2.1 2.1 0 0 0-4-4L5 15z',
 };
 const ic = (k, sw = 1.8) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[k]}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = s => document.querySelector(s);
 
 // Daten erfunden, wie Fassung 2
-// Start 14.03.2026 bis 02.11.2026 = 233 Tage, davon 214 mit Eintrag; 7 der 9 Web-Werte besser als am Start
-const D = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', monat: 'März', abz: 16, streak: 41, werte: 9, tier: 30, areas: ['Körper', 'Training', 'Erholung & Fitness'],
-  besser: 7, tage: 214, seit: 233 };
+// Mitglied seit 14.03.2026 (Mockup-Tag 02.11.2026 = 233 Tage). 1.240 Einträge über alle Bereiche, ohne Aufschlüsselung.
+const D = { name: 'Mara K.', vor: 'Mara', gen: 'Maras', monat: 'März', abz: 16, werte: 9, tier: 30, areas: ['Körper', 'Training', 'Erholung & Fitness'],
+  dabeiTage: 233, eintraege: 1240, titel: 'Routinier' };
 const SLOGAN = { de: 'Sieh, wer du wirst.', en: 'See who you’re becoming.' };
 
 // Rueckfall: was Hoku kann und was dahinter arbeitet. Nur Funktionen, die es gibt; keine Substanzen, keine Heilversprechen.
@@ -318,25 +321,22 @@ const CT = [
 ];
 CT.forEach(T => { T.hb = T.h; T.h = T.h.replace('|', ' '); T.full = T.lead + ' ' + T.l; });
 const CT_REC = 0;
-const st = { ct: CT_REC, chat: 'dark', fb: 'normal' };
+const st = { ct: CT_REC, chat: 'dark', dabei: 'monate', zw: 'eintraege' };
 
-const mBadges = `<span class="it">${ic('medal')}${D.abz} Abzeichen</span>`;
-const mStreak = `<span class="it">${ic('flame')}${D.streak} Tage dabei</span>`;
-// Fortschritt, links unter dem Namen. Zeile 1: verbesserte Werte (nur unter den Web-Werten), sonst Abzeichen, sonst nichts.
-// Zeile 2: Anteil getrackter Tage seit dem Start, ab 70 %; darunter die Anzahl der Tage (wirkt immer positiv).
-const FB = [
-  { k: 'normal', n: 'Normalfall', d: { ...{} } },
-  { k: 'keinbesser', n: 'kein Wert besser', d: { besser: 0 } },
-  { k: 'leer', n: 'kein Wert besser, keine Abzeichen', d: { besser: 0, abz: 0 } },
-  { k: 'selten', n: 'unter 70 % der Tage', d: { tage: 131 } },
-];
-function a1Lines(fb) {
-  const x = { ...D, ...(FB.find(f => f.k === fb) || FB[0]).d }, out = []
-  if (x.besser > 0) out.push(`<span class="it">${ic('trend')}${x.besser} ${x.besser === 1 ? 'Wert' : 'Werte'} verbessert</span>`)
-  else if (x.abz > 0) out.push(`<span class="it">${ic('medal')}${x.abz} Abzeichen</span>`)
-  const anteil = Math.floor(x.tage / x.seit * 100)
-  out.push(`<span class="it">${ic('cal')}${anteil >= 70 ? `${anteil} % der Tage getrackt` : `${x.tage} Tage getrackt`}</span>`)
-  return { html: out, x, anteil }
+// Links unter dem Namen (Fortschritt und Rückfall): wie lange dabei. Unter einem Monat in Tagen, unter einem Jahr in
+// Monaten, danach in Jahren, immer abgerundet. Fortschritt zusaetzlich: Einträge, Abzeichen oder ein Titel (kuenftig).
+const DABEI = [{ k: 'tage', n: '12 Tage', v: 12 }, { k: 'monate', n: '7 Monate', v: 233 }, { k: 'jahre', n: '2 Jahre', v: 790 }];
+function dabeiText(tage) {
+  if (tage < 31) return `Seit ${tage} ${tage === 1 ? 'Tag' : 'Tagen'} dabei`;
+  if (tage < 365) { const m = Math.floor(tage / 30.44); return `Seit ${m} ${m === 1 ? 'Monat' : 'Monaten'} dabei`; }
+  const j = Math.floor(tage / 365.25); return `Seit ${j} ${j === 1 ? 'Jahr' : 'Jahren'} dabei`;
+}
+const ZWEIT = [{ k: 'eintraege', n: 'Einträge' }, { k: 'abzeichen', n: 'Abzeichen' }, { k: 'titel', n: 'Titel (künftig)' }];
+const fmt = n => n.toLocaleString('de-DE');
+const mDabei = (tage = (DABEI.find(d => d.k === st.dabei) || DABEI[1]).v) => `<span class="it">${ic('cal')}${dabeiText(tage)}</span>`;
+function a1Lines(zw = st.zw) {
+  const z = zw === 'abzeichen' ? `<span class="it">${ic('medal')}${D.abz} Abzeichen</span>` : `<span class="it">${ic('pen')}${fmt(D.eintraege)} Einträge</span>`;
+  return [mDabei(), z];
 }
 const mTrack = `<span class="it">${ic('pulse')}trackt <b class="acc">${D.werte}</b> Werte</span>`;
 const img = (k, cls, extra = '') => `<img class="${cls}" src="${BK[k].src}" width="${BK[k].w}" height="${BK[k].h}" alt=""${extra}>`;
@@ -344,17 +344,19 @@ const img = (k, cls, extra = '') => `<img class="${cls}" src="${BK[k].src}" widt
 const mark = (W, L, T) => img('bildmarke_c', 'mk', ` style="width:${W}cqw;left:${L}cqw;top:${T}cqw"`);
 const nbh = s => s.replace(/(KI)-(Coach)/g, '$1‑$2');
 const sq = '<div class="sq" aria-hidden="true"></div>';
-const who = meta => `<div class="who"><div class="ava" aria-hidden="true">M</div><div class="nm">${D.name}</div><div class="meta">${meta.join('')}</div></div>`;
+const who = meta => whoT(meta, false);
+// Titel (kuenftig, muss man sich verdienen): leise Marke unter dem Namen
+const whoT = (meta, titel) => `<div class="who"><div class="ava" aria-hidden="true">M</div><div class="nm">${D.name}</div>${titel ? `<div class="ttl">${D.titel}</div>` : ''}<div class="meta">${meta.join('')}</div></div>`;
 
-function ogA1(fb = st.fb) {
+function ogA1(zw = st.zw) {
   return `<div class="og t-a1" role="img" aria-label="Vorschaubild Fortschritt: ${D.name}, trackt ${D.werte} Werte, über ${D.tier} % positive Veränderung seit ${D.monat}">
     ${img('haupt_cw', 'lg')}
-    <div class="body">${who(a1Lines(fb).html)}
+    <div class="body">${whoT(a1Lines(zw), zw === 'titel')}
       <div class="main">
         <div class="tk">trackt <span class="tn acc">${D.werte}</span> Werte</div>
         <div class="ar">${esc(D.areas.join(' · '))}</div>
         <div class="rule"></div>
-        <div class="huge"><small>über</small><span class="acc">${D.tier} %</span></div>
+        <div class="huge"><small>über</small><span class="acc">${D.tier} %</span><span class="acc tr">${ic('trend', 2)}</span></div>
         <div class="lbl">positive Veränderung seit ${D.monat}</div>
       </div></div>${sq}</div>`;
 }
@@ -362,7 +364,7 @@ function ogC(ct) {
   const T = CT[ct];
   return `<div class="og t-c" role="img" aria-label="Vorschaubild Rückfall, Text ${T.k}: ${esc(T.h)}">
     ${mark(42, 66.5, 23)}
-    <div class="body">${who([mStreak, mTrack])}
+    <div class="body">${who([mDabei(), mTrack])}
       <div class="say"><span class="q">Über Hoku</span><p class="hl">${nbh(esc(T.hb)).replace('|', '<br>')}</p><p class="ld">${esc(T.lead).replace(/(Hoku [^.]*\.)$/, '<span class="acc">$1</span>')}</p><p class="ln">${nbh(esc(T.l))}</p><span class="pill">Profil ansehen</span></div></div>
     ${img('kompakt_w', 'lg')}${sq}</div>`;
 }
@@ -377,7 +379,7 @@ function meta(type, ct = st.ct) {
   const T = CT[ct];
   if (type === 'n') return { t: 'Hoku Health Hub', d: `${SLOGAN.de} ${T.full}` };
   if (type === 'a1') return { t: `${D.name} auf Hoku: über ${D.tier} % positive Veränderung seit ${D.monat}`,
-    d: (() => { const { x, anteil } = a1Lines(st.fb); const z1 = x.besser > 0 ? ` ${x.besser} davon verbessert.` : x.abz > 0 ? ` ${x.abz} Abzeichen.` : ''; const z2 = anteil >= 70 ? ` ${anteil} % der Tage getrackt.` : ` ${x.tage} Tage getrackt.`; return `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}.${z1}${z2} Sieh dir ${D.gen} Profil an.` })() };
+    d: `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}. ${dabeiText((DABEI.find(d => d.k === st.dabei) || DABEI[1]).v)}${st.zw === 'abzeichen' ? `, ${D.abz} Abzeichen` : `, ${fmt(D.eintraege)} Einträge`}. Sieh dir ${D.gen} Profil an.` };
   return { t: `${D.name} auf Hoku · ${T.h}`, d: `${D.vor} trackt ${D.werte} Werte mit Hoku. ${T.full}` };
 }
 const prevT = m => `<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hokuhealth.app</small></div>`;
@@ -385,8 +387,9 @@ const prevT = m => `<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</spa
 const PICKS = [
   { k: 'Fortschritt', h: 'Hauptlogo unten Mitte', og: ogA1, li: [
     '<b>Profil mittig</b> im linken Teil: Bild, Name und zwei Angaben zentriert.',
-    '<b>„7 Werte verbessert“</b> zählt nur unter den 9 Werten der Karte. Ist keiner besser, stehen die Abzeichen da; gibt es keine, entfällt die Zeile.',
-    '<b>„91 % der Tage getrackt“</b> seit dem Start. Unter 70 % steht die Anzahl („131 Tage getrackt“). Die Abzeichen bleiben im Web-Profil.',
+    '<b>„Seit 7 Monaten dabei“</b>: wie lange Mara Mitglied ist. Unter einem Monat in Tagen, ab einem Jahr in Jahren, immer abgerundet. Steht auch auf dem Rückfall.',
+    '<b>„1.240 Einträge“</b>: alles, was sie eingetragen hat, ohne Aufschlüsselung nach Bereichen. Wahlweise die Abzeichen, oder später ein <b>Titel</b>, den man sich verdienen muss.',
+    'Das Trend-Symbol steht jetzt neben den 30 %. Getrackte Tage und verbesserte Werte sind raus.',
     '<b>Erst „trackt 9 Werte“</b>, dann das Ergebnis. Der Fortschritt rechnet über alle Bereiche und bleibt grob (über 10/20/30/50/75/100 %).',
     '<b>Die 9 in Cyan</b>, wie die 30 %. Mehr Farbe gibt es nicht.'] },
   { k: 'Rückfall', h: 'Hoku unten rechts (B1)', og: () => ogC(st.ct), li: [
@@ -400,7 +403,8 @@ const PICKS = [
 ];
 
 function renderTrio() {
-  const fbCtl = `<span class="lbl-s">Fallback ansehen</span><div class="seg sm" role="group" aria-label="Fallback der Fortschrittskarte">${FB.map(f => `<button type="button" data-fb="${f.k}" aria-pressed="${st.fb === f.k}">${f.n}</button>`).join('')}</div>`;
+  const seg = (lbl, key, list) => `<span class="lbl-s">${lbl}</span><div class="seg sm" role="group" aria-label="${lbl}">${list.map(f => `<button type="button" data-${key}="${f.k}" aria-pressed="${st[key] === f.k}">${f.n}</button>`).join('')}</div>`;
+  const fbCtl = seg('Dabei seit', 'dabei', DABEI) + seg('Zweite Angabe', 'zw', ZWEIT);
   $('#trio').innerHTML = PICKS.map(p => `<div class="pick">${p.og()}<div class="pick-t"><h3><span class="k">${p.k}</span>${p.h}</h3><ul>${p.li.map(x => `<li>${x}</li>`).join('')}</ul>${p.k === 'Fortschritt' ? fbCtl : ''}</div></div>`).join('');
 }
 function renderCT() {
@@ -435,7 +439,8 @@ function renderAll() { renderTrio(); renderCT(); renderChats(); }
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.ct) { st.ct = +t.dataset.ct; renderAll(); return; }
-  if (t.dataset.fb) { st.fb = t.dataset.fb; renderTrio(); renderChats(); return; }
+  if (t.dataset.dabei) { st.dabei = t.dataset.dabei; renderAll(); return; }
+  if (t.dataset.zw) { st.zw = t.dataset.zw; renderTrio(); renderChats(); return; }
   if (t.dataset.chat) { st.chat = t.dataset.chat; renderChats(); }
 });
 $('#ctSel').addEventListener('change', e => { st.ct = +e.target.value; renderAll(); });
