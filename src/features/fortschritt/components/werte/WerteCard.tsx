@@ -25,10 +25,10 @@ const RING_KEYS = Object.keys(RING_COLORS) as RingKey[]
 
 const ARROWS = { up: '↑', down: '↓', flat: '→' } as const
 const TONE: Record<ValueOverviewRow['tone'], string> = {
-  positive: '#30d158',
-  neutral: 'rgba(235, 240, 255, 0.52)',
-  warning: '#ff9f0a',
-  negative: '#ff453a',
+  positive: 'var(--lg-good)',
+  neutral: 'var(--lg-text-3)',
+  warning: 'var(--lg-warn)',
+  negative: 'var(--lg-bad)',
 }
 
 const one = (value: number) => formatNumber(value, 1)
