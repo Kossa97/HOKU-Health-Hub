@@ -3,6 +3,7 @@
  * Ein Lebensmittel trägt seine Werte je 100 g bzw. 100 ml; ein Eintrag im
  * Protokoll trägt die ausgerechneten Werte seiner Menge als Schnappschuss.
  */
+import { type ActivitySettings, DEFAULT_ACTIVITY } from './activity'
 import type { Recipe } from './recipe'
 import { byEntryOrder } from './entryOrder'
 
@@ -201,7 +202,7 @@ export type GoalKind = 'lose' | 'maintain' | 'gain'
 
 export const ACTIVITY_FACTOR: Record<Activity, number> = { sedentary: 1.2, light: 1.375, moderate: 1.55, high: 1.725 }
 
-export interface Goals {
+export interface Goals extends ActivitySettings {
   kcal: number
   proteinG: number
   carbsG: number
@@ -210,7 +211,7 @@ export interface Goals {
   hideKcal: boolean
 }
 
-export const DEFAULT_GOALS: Goals = { kcal: 2000, proteinG: 110, carbsG: 230, fatG: 65, waterMl: 2000, hideKcal: false }
+export const DEFAULT_GOALS: Goals = { kcal: 2000, proteinG: 110, carbsG: 230, fatG: 65, waterMl: 2000, hideKcal: false, ...DEFAULT_ACTIVITY }
 
 /** Grenzen wie in der Datenbank (`nutrition_goals`). */
 export const GOAL_LIMITS = {
@@ -250,7 +251,7 @@ export function proteinReferenceKg(weightKg: number, heightCm: number): number {
  * Muskulatur erhalten bleibt (unter GLP-1 besonders wichtig); Fett 27 % der
  * Energie, Rest Kohlenhydrate.
  */
-export function suggestGoals(p: GoalInput): Omit<Goals, 'hideKcal'> {
+export function suggestGoals(p: GoalInput): Omit<Goals, 'hideKcal' | keyof ActivitySettings> {
   const tdee = bmr(p) * ACTIVITY_FACTOR[p.activity]
   const factor = p.goal === 'lose' ? 0.85 : p.goal === 'gain' ? 1.1 : 1
   const kcal = Math.max(MIN_SUGGESTED_KCAL[p.sex], Math.round((tdee * factor) / 10) * 10)

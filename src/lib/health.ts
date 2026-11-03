@@ -6,8 +6,9 @@ import type { Record as HealthConnectRecord, RecordType } from 'capacitor-health
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// 'activity' gibt in @perfood/capacitor-healthkit Schlaf UND Workouts frei.
-const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'heartRate', 'restingHeartRate'];
+// 'activity' gibt in @perfood/capacitor-healthkit Schlaf UND Workouts frei,
+// 'calories' die aktive Energie (Aktivitätskalorien in der Ernährung).
+const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'calories', 'heartRate', 'restingHeartRate'];
 // 'ExerciseSession' fehlt mit Absicht: capacitor-health-connect 0.7 kann solche
 // Eintraege nicht lesen (siehe getWorkouts). Jede Health-Connect-Berechtigung
 // muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
@@ -446,3 +447,22 @@ export async function getRestingHeartRate(options?: HealthQueryOptions): Promise
 // Kein getHrv(): weder @perfood/capacitor-healthkit 1.3 (keine Sample-Art fuer
 // heartRateVariabilitySDNN) noch capacitor-health-connect 0.7 (kein
 // HeartRateVariabilityRmssd im Serializer) liefern Herzratenvariabilitaet.
+
+/**
+ * Aktive Energie (kcal) von Uhr und iPhone im Zeitraum, Standard: heute.
+ * null = nicht verfügbar (Browser, Android noch nicht angebunden, Fehler).
+ * HealthKit meldet einen verweigerten Lesezugriff nicht; dann kommt 0.
+ */
+export async function getActiveEnergy(options?: HealthQueryOptions): Promise<number | null> {
+  if (!isNative || !isIOS) return null;
+  try {
+    const samples = await queryHealthKit<OtherData>('activeEnergyBurned', {
+      ...options,
+      startDate: options?.startDate ?? startOfToday(),
+      endDate: options?.endDate ?? new Date(),
+    });
+    return Math.round(samples.reduce((sum, sample) => sum + (sample.value > 0 ? sample.value : 0), 0));
+  } catch {
+    return null;
+  }
+}

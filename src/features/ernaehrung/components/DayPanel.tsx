@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronRight, Flame } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { GoalsForm } from './GoalsForm'
@@ -14,7 +15,7 @@ export type DayTab = 'today' | 'goals'
  * will — beide in derselben Reihenfolge, damit man jeden Wert an derselben
  * Stelle wiederfindet.
  */
-export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, userId, today, busy, onSaveGoals, onClose }: {
+export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity, userId, today, busy, onSaveGoals, onOpenActivity, onClose }: {
   tab: DayTab
   onTab: (tab: DayTab) => void
   /** „Heute, 3. Nov.“ — der Tag, der gerade oben steht. */
@@ -22,10 +23,12 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, userId, 
   total: Nutrients
   waterMl: number | null
   goals: Goals
+  activity: { active: number; bonus: number }
   userId: string
   today: string
   busy: boolean
   onSaveGoals: (g: Goals) => Promise<boolean> | void
+  onOpenActivity: () => void
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -56,7 +59,7 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, userId, 
 
       {/* Beide Reiter bleiben stehen (der inaktive verborgen): ungespeicherte Ziele gehen beim Umschalten nicht verloren. */}
       <div role="tabpanel" id="nutr-day-panel-today" aria-labelledby="nutr-day-tab-today" hidden={tab !== 'today'}>
-        <TodayView total={total} waterMl={waterMl} goals={goals} onEditGoals={() => onTab('goals')} />
+        <TodayView total={total} waterMl={waterMl} goals={goals} activity={activity} onEditGoals={() => onTab('goals')} onOpenActivity={onOpenActivity} />
       </div>
       <div role="tabpanel" id="nutr-day-panel-goals" aria-labelledby="nutr-day-tab-goals" hidden={tab !== 'goals'}>
         <GoalsForm key={goalsKey} userId={userId} today={today} current={goals} busy={busy} onSave={onSaveGoals} onCancel={() => { setGoalsKey(k => k + 1); onTab('today') }} />
@@ -65,11 +68,13 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, userId, 
   )
 }
 
-function TodayView({ total, waterMl, goals, onEditGoals }: {
+function TodayView({ total, waterMl, goals, activity, onEditGoals, onOpenActivity }: {
   total: Nutrients
   waterMl: number | null
   goals: Goals
+  activity: { active: number; bonus: number }
   onEditGoals: () => void
+  onOpenActivity: () => void
 }) {
   const { t } = useTranslation()
   // Ohne Tausenderpunkt, wie die Zahl unter der Kugel.
@@ -77,7 +82,9 @@ function TodayView({ total, waterMl, goals, onEditGoals }: {
   // Kalorien ausgeblendet: Eiweiß ist die Hauptzahl (wie in der Kugel), ohne „übrig“.
   const hide = goals.hideKcal
   const value = hide ? total.protein : total.kcal
-  const goal = hide ? goals.proteinG : goals.kcal
+  // Bewegung auf dem Tagesbedarf: das Ziel wächst um den Bonus (wie die Kugel).
+  const bonus = hide ? 0 : activity.bonus
+  const goal = hide ? goals.proteinG : goals.kcal + bonus
   const unit = hide ? 'g' : 'kcal'
   const rest = Math.round(goal - value)
   const macros = (['protein', 'carbs', 'fat'] as const).map(key => ({
@@ -95,13 +102,34 @@ function TodayView({ total, waterMl, goals, onEditGoals }: {
         <Bar value={value} goal={goal} color="var(--accent)" big />
         <div className="mt-2 flex items-center justify-between gap-3">
           {!hide
-            ? <span className="text-[13px] tabular-nums text-[var(--lg-text-2)]">{rest >= 0 ? `${n(rest)} ${t('nutr_kcal_left')}` : `${n(-rest)} ${t('nutr_kcal_above')}`}</span>
+            ? <span className="text-[13px] leading-snug tabular-nums text-[var(--lg-text-2)]">
+                {rest >= 0 ? `${n(rest)} ${t('nutr_kcal_left')}` : `${n(-rest)} ${t('nutr_kcal_above')}`}
+                {bonus > 0 && <span className="block text-[12px] text-[var(--lg-text-3)]">{t('nutr_move_goal_plus', { goal: goals.kcal, bonus })}</span>}
+              </span>
             : <span />}
           <button type="button" onClick={onEditGoals} className="min-h-9 shrink-0 text-[15px] font-semibold text-[var(--lg-accent-text)]">
             {t('nutr_day_edit_goal')} ›
           </button>
         </div>
       </section>
+
+      {!hide && (
+        <button type="button" onClick={onOpenActivity}
+          className="flex min-h-14 w-full items-center gap-3 rounded-[18px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] px-4 py-3 text-left">
+          <Flame size={18} fill="currentColor" aria-hidden="true" className="shrink-0 text-[var(--lg-warn-text)]" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold text-[var(--lg-text)]">
+              {activity.active > 0 ? t('nutr_move_today_row', { kcal: activity.active }) : t('nutr_move_today_none')}
+            </span>
+            <span className={`block text-[12px] ${MUTED}`}>
+              {goals.activityMode === 'budget'
+                ? t(`nutr_move_today_budget_${goals.activityShare}`, { kcal: bonus })
+                : t('nutr_move_today_deficit')}
+            </span>
+          </span>
+          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-[var(--lg-text-3)]" />
+        </button>
+      )}
 
       <section aria-labelledby="nutr-day-macros" className="rounded-[18px] bg-[var(--lg-surface-2)] px-4 py-1">
         <h3 id="nutr-day-macros" className="sr-only">{t('nutr_daypanel_macros')}</h3>

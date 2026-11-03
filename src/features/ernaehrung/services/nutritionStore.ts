@@ -10,6 +10,7 @@ import {
   nutrientsFor, scaleNutrients,
 } from '../lib/nutrition'
 import { parseIngredients } from '../lib/recipe'
+import { type ActivityLog, parseSources } from '../lib/activity'
 import { type DayTotals, EMPTY_TOTALS } from '../lib/dayRings'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
@@ -276,13 +277,18 @@ export async function loadGoals(userId: string): Promise<Goals | null> {
   return {
     kcal: num(data.kcal), proteinG: num(data.protein_g), carbsG: num(data.carbs_g), fatG: num(data.fat_g),
     waterMl: num(data.water_ml), hideKcal: data.hide_kcal === true,
+    activityMode: data.activity_mode === 'budget' ? 'budget' : 'deficit',
+    activityShare: data.activity_share === 'full' ? 'full' : 'half',
+    activitySources: parseSources(data.activity_sources),
   }
 }
 
 export async function saveGoals(userId: string, g: Goals): Promise<void> {
   const { error } = await supabase.from('nutrition_goals').upsert({
     user_id: userId, kcal: g.kcal, protein_g: g.proteinG, carbs_g: g.carbsG, fat_g: g.fatG,
-    water_ml: g.waterMl, hide_kcal: g.hideKcal, updated_at: new Date().toISOString(),
+    water_ml: g.waterMl, hide_kcal: g.hideKcal,
+    activity_mode: g.activityMode, activity_share: g.activityShare, activity_sources: [...g.activitySources],
+    updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' })
   if (error) throw error
 }
@@ -320,4 +326,40 @@ export async function loadBodyData(userId: string): Promise<BodyData> {
     birthDate: bio.birthDate,
     sex: bio.sex ?? geschlechtAusAltangabe(p.gender),
   }
+}
+
+// ─── Aktivität ──────────────────────────────────────────────────────────
+
+/** Selbst eingetragene Aktivität eines Tages, älteste zuerst. */
+export async function loadActivityLogs(userId: string, date: string): Promise<ActivityLog[]> {
+  const { data, error } = await supabase.from('activity_logs').select('id,label,minutes,kcal')
+    .eq('user_id', userId).eq('log_date', date).order('created_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((r: Row) => ({ id: String(r.id), label: String(r.label), minutes: opt(r.minutes), kcal: num(r.kcal) }))
+}
+
+export async function addActivityLog(userId: string, date: string, log: Omit<ActivityLog, 'id'>): Promise<ActivityLog> {
+  const { data, error } = await supabase.from('activity_logs')
+    .insert({ user_id: userId, log_date: date, label: log.label.trim().slice(0, 60), minutes: log.minutes, kcal: Math.round(log.kcal) })
+    .select('id,label,minutes,kcal').single()
+  if (error) throw error
+  return { id: String(data.id), label: String(data.label), minutes: opt(data.minutes), kcal: num(data.kcal) }
+}
+
+export async function deleteActivityLog(id: string): Promise<void> {
+  const { error } = await supabase.from('activity_logs').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Trainings aus der App, die an diesem (lokalen) Tag begonnen haben. */
+export async function loadDayTrainings(userId: string, date: string): Promise<{ id: string; title: string; startedAt: string; durationS: number | null; kcal: number | null }[]> {
+  const from = parseISO(date)
+  const to = addDays(from, 1)
+  const { data, error } = await supabase.from('training_sessions').select('id,title,started_at,duration_s,kcal')
+    .eq('user_id', userId).gte('started_at', from.toISOString()).lt('started_at', to.toISOString())
+    .order('started_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((r: Row) => ({
+    id: String(r.id), title: String(r.title ?? ''), startedAt: String(r.started_at), durationS: opt(r.duration_s), kcal: opt(r.kcal),
+  }))
 }
