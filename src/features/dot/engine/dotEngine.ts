@@ -2430,6 +2430,8 @@ export function createDot(host: DotHost): DotApi {
     erfolg: () => erfolg(),
     stimme: v => { B.voice = Math.min(1, B.voice + v) },
     wegsehen: an => {
+      // ablesbar für Tests: weggedreht ja oder nein
+      if (an) hit.dataset.dotWeg = 'an'; else delete hit.dataset.dotWeg
       if (!an) { WEG_SEITE = 0; return }
       if (WEG_SEITE) return
       // weg von dem Feld, das gerade den Fokus hat; steht es genau unter ihm, nach rechts

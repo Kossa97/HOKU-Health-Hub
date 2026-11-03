@@ -417,6 +417,34 @@ test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine 
   await expect(blase).not.toHaveAttribute('data-zeigen')
 })
 
+test('Passwort sichtbar machen: Hoku dreht sich weg, auch wenn das Feld den Fokus schon verloren hat', async ({ page, mock }) => {
+  // Nutzer 03.11.2026: Passwort getippt, Feld verlassen, aufs Auge getippt: er drehte sich nicht mehr weg
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  await page.locator('#auth-pw').click()
+  await page.locator('#auth-pw').fill('geheim1')
+  await lassLaufen(page, 300)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // Feld verlassen: er dreht sich wieder um
+  await page.locator('[data-dot-frei]').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
+  // Passwort einblenden: weg, solange es lesbar ist
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  await page.locator('#auth-kennung').click()
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // wieder verbergen: er dreht sich um
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
+})
+
 test('Tippen ins Formular: Hoku rutscht auf die Oberkante der Karte und ragt darüber, danach zurück', async ({ page }) => {
   await abgemeldet(page)
   await zumFormular(page)
