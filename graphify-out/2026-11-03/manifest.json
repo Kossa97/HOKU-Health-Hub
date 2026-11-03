@@ -21120,15 +21120,15 @@
     "semantic_hash": ""
   },
   "docs/registrierung/PLAN.md": {
-    "mtime": 1793704711.0027056,
-    "seen": 1793704792.8388186,
-    "ast_hash": "bd675f733d2e6a8c5b6c89ae18c3e3d6",
+    "mtime": 1793737149.4237974,
+    "seen": 1793737221.6416726,
+    "ast_hash": "adc2a879bec0823bc1f2a2c557ffe669",
     "semantic_hash": ""
   },
   "memory/projects/registrierung.md": {
-    "mtime": 1793704714.1227055,
-    "seen": 1793704792.8389547,
-    "ast_hash": "02654791d3312824acc097697da67f64",
+    "mtime": 1793707050.4112754,
+    "seen": 1793737221.6418524,
+    "ast_hash": "d62e2248354add0c43c333b07338c306",
     "semantic_hash": ""
   },
   "docs/logo/hoku/brand-kit-v2/09-Organisch-Cyan/03-Formate/hoku-organisch-app.pdf": {
@@ -21639,6 +21639,42 @@
     "mtime": 1793703183.0970445,
     "seen": 1793704792.8412204,
     "ast_hash": "1bac8bf15d9b8507bbac42883fdd5631",
+    "semantic_hash": ""
+  },
+  "supabase/functions/auth-mail/auth-mail.test.ts": {
+    "mtime": 1793737035.233119,
+    "seen": 1793737221.641513,
+    "ast_hash": "37ea464953582a845db800e746a42c66",
+    "semantic_hash": ""
+  },
+  "supabase/functions/auth-mail/index.ts": {
+    "mtime": 1793737143.765114,
+    "seen": 1793737221.6415153,
+    "ast_hash": "19a2f4ca88fa269c4500214bb1a73247",
+    "semantic_hash": ""
+  },
+  "supabase/functions/auth-mail/logik.ts": {
+    "mtime": 1793736985.1051214,
+    "seen": 1793737221.6415162,
+    "ast_hash": "e243738dafd6f142baa5a54445c74499",
+    "semantic_hash": ""
+  },
+  "supabase/functions/auth-mail/signatur.ts": {
+    "mtime": 1793736924.3864996,
+    "seen": 1793737221.6415176,
+    "ast_hash": "7247b981b74a74843435c8ddd429f501",
+    "semantic_hash": ""
+  },
+  "supabase/functions/auth-mail/vorlagen.ts": {
+    "mtime": 1793737136.0524735,
+    "seen": 1793737221.6415184,
+    "ast_hash": "edd9a8c2268aa1f0da4f51f3ce8bc594",
+    "semantic_hash": ""
+  },
+  "docs/registrierung/EINSTELLUNGEN.md": {
+    "mtime": 1793737154.527922,
+    "seen": 1793737221.6416712,
+    "ast_hash": "ca470e4efc048fa86f862de7172cc59e",
     "semantic_hash": ""
   }
 }
