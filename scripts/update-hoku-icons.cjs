@@ -80,7 +80,7 @@ function exportPng(file, content, kind, transparent = false) {
   checks.push({ file, kind, width: render.width, height: render.height, colorType: png[25], occupied, sha256: hash(png) })
   return png
 }
-function app(file, size, ratio = .84, kind = 'app') {
+function app(file, size, ratio = .74, kind = 'app') {
   return exportPng(file, scene(size, size, size * ratio), kind)
 }
 function ico(entries) {
@@ -93,16 +93,19 @@ function ico(entries) {
 
 // Web/PWA: current names bust old icon caches; old public URLs remain updated aliases.
 for (const size of [180, 192, 512]) {
+  app(`public/icons/hoku-organisch-v4-${size}.png`, size)
   app(`public/icons/hoku-organisch-v3-${size}.png`, size)
   app(`public/icons/hoku-dunkel-${size}.png`, size)
   app(`public/icons/hoku-${size}.png`, size)
 }
 app('public/apple-touch-icon.png', 180)
+app('public/icons/hoku-organisch-v4-1024.png', 1024)
 app('public/icons/hoku-organisch-v3-1024.png', 1024)
 app('public/icons/hoku-dunkel-1024.png', 1024)
-app('public/icons/hoku-organisch-v3-maskable-512.png', 512, .76, 'maskable')
-app('public/icons/hoku-dunkel-maskable-512.png', 512, .76, 'maskable')
-app('public/icons/hoku-maskable-512.png', 512, .76, 'maskable')
+app('public/icons/hoku-organisch-v4-maskable-512.png', 512, .67, 'maskable')
+app('public/icons/hoku-organisch-v3-maskable-512.png', 512, .67, 'maskable')
+app('public/icons/hoku-dunkel-maskable-512.png', 512, .67, 'maskable')
+app('public/icons/hoku-maskable-512.png', 512, .67, 'maskable')
 for (const size of [192, 512]) app(`public/icon-${size}.png`, size)
 const faviconEntries = []
 for (const size of [16, 32, 48, 64]) {
@@ -121,9 +124,9 @@ for (const size of [64, 128]) exportPng(`public/icons/hoku-dunkel-symbol-${size}
 // iOS supplies its own corner mask. The submitted square PNG has no alpha channel.
 app('ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png', 1024)
 for (const [density, size] of [['mdpi', 48], ['hdpi', 72], ['xhdpi', 96], ['xxhdpi', 144], ['xxxhdpi', 192]]) {
-  for (const [name, mask] of [['ic_launcher', 'rounded'], ['ic_launcher_round', 'circle']]) exportPng(`android/app/src/main/res/mipmap-${density}/${name}.png`, scene(size, size, size * .84, { mask }), 'legacy', true)
+  for (const [name, mask] of [['ic_launcher', 'rounded'], ['ic_launcher_round', 'circle']]) exportPng(`android/app/src/main/res/mipmap-${density}/${name}.png`, scene(size, size, size * .74, { mask }), 'legacy', true)
   const foregroundSize = Math.round(size * 108 / 48)
-  exportPng(`android/app/src/main/res/mipmap-${density}/ic_launcher_foreground.png`, scene(foregroundSize, foregroundSize, foregroundSize * .59, { transparent: true, isolated: true }), 'adaptive', true)
+  exportPng(`android/app/src/main/res/mipmap-${density}/ic_launcher_foreground.png`, scene(foregroundSize, foregroundSize, foregroundSize * .52, { transparent: true, isolated: true }), 'adaptive', true)
 }
 
 // Launch screens retain their existing dimensions; only their centered artwork changes.
@@ -157,5 +160,5 @@ const splash = fs.readFileSync(path.join(root, iosSplash + 'splash-2732x2732.png
 proof += `<svg x="480" y="850" width="281" height="500" viewBox="0 0 393 699"><image width="393" height="699" preserveAspectRatio="xMidYMid slice" href="data:image/png;base64,${splash}"/></svg>`
 proof += label('Keine zusätzliche Kachel im adaptiven Vordergrund.',920,920,23) + label('Kontrollierte Ausschnitte statt verkleinerter Originalränder.',920,965,23)
 write('docs/logo/hoku/eingebaut.png', new Resvg(svg(1800, 1450, proof), { font: { loadSystemFonts: true, defaultFontFamily: 'Segoe UI' } }).render().asPng())
-write('docs/logo/hoku/EINBAU-CHECKS.json', JSON.stringify({ source: sourceFile, sourceSha256: hash(source), sourceBounds, background, ratios: { app: .84, favicon: .92, maskable: .76, adaptive: .59, symbol: .92, splash: .24 }, pngs: checks, faviconSha256: hash(fs.readFileSync(path.join(root, 'public/favicon.ico'))) }, null, 2))
+write('docs/logo/hoku/EINBAU-CHECKS.json', JSON.stringify({ source: sourceFile, sourceSha256: hash(source), sourceBounds, background, ratios: { app: .74, favicon: .92, maskable: .67, adaptive: .52, symbol: .92, splash: .24 }, pngs: checks, faviconSha256: hash(fs.readFileSync(path.join(root, 'public/favicon.ico'))) }, null, 2))
 console.log(JSON.stringify({ installedPngs: checks.length, background, sourceBounds, checks: 'passed' }))

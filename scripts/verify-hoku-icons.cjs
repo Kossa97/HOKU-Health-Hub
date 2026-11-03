@@ -10,6 +10,7 @@ const manifest = JSON.parse(read('docs/logo/hoku/EINBAU-CHECKS.json'))
 assert(manifest.source === 'docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-organisch-cyan-v3-master.png', 'Installed icon uses the previous master')
 assert(hash(read(manifest.source)) === manifest.sourceSha256, 'Approved organic source changed')
 assert(manifest.sourceSha256 === hash(read('docs/logo/hoku/entwuerfe/hoku-app-icon-organisch-cyan-v3.png')), 'Installed master differs from approved organic Hoku')
+assert(manifest.ratios.app === .74 && manifest.ratios.maskable === .67 && manifest.ratios.adaptive === .52, 'Installed size differs from selected Ausgewogen variant')
 for (const p of manifest.pngs) {
   const bytes = read(p.file)
   assert(bytes.readUInt32BE(16) === p.width && bytes.readUInt32BE(20) === p.height, p.file + ': dimensions changed')
@@ -18,7 +19,7 @@ for (const p of manifest.pngs) {
   assert(bytes[25] === (opaque ? 2 : 6), p.file + ': RGB/alpha format')
   if (p.kind === 'app' || p.kind === 'favicon') {
     const fill = Math.max(p.occupied.width, p.occupied.height) / p.width
-    assert(fill >= (p.kind === 'app' ? .82 : .85) && fill <= (p.kind === 'app' ? .90 : .99), p.file + ': empty margins or clipped artwork')
+    assert(fill >= (p.kind === 'app' ? .72 : .85) && fill <= (p.kind === 'app' ? .78 : .99), p.file + ': empty margins or clipped artwork')
   }
   if (p.kind === 'maskable') assert(p.occupied.radius <= p.width * .4, p.file + ': maskable crop')
   if (p.kind === 'adaptive') {
@@ -30,8 +31,9 @@ for (const p of manifest.pngs) {
 }
 for (const size of [180, 192, 512]) assert(hash(read(`public/icons/hoku-${size}.png`)) === hash(read(`public/icons/hoku-dunkel-${size}.png`)), 'Stale public icon alias: ' + size)
 for (const size of [180, 192, 512, 1024]) assert(hash(read(`public/icons/hoku-organisch-v3-${size}.png`)) === hash(read(`public/icons/hoku-dunkel-${size}.png`)), 'Canonical organic icon differs from legacy alias: ' + size)
-assert(hash(read('public/icons/hoku-organisch-v3-1024.png')) === hash(read('docs/logo/hoku/brand-kit-v2/09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-1024.png')), 'App export differs from confirmed brand-kit crop')
+for (const size of [180, 192, 512, 1024]) assert(hash(read(`public/icons/hoku-organisch-v4-${size}.png`)) === hash(read(`public/icons/hoku-organisch-v3-${size}.png`)), 'Ausgewogen icon differs from legacy alias: ' + size)
 assert(hash(read('public/icons/hoku-organisch-v3-maskable-512.png')) === hash(read('public/icons/hoku-dunkel-maskable-512.png')) && hash(read('public/icons/hoku-organisch-v3-maskable-512.png')) === hash(read('public/icons/hoku-maskable-512.png')), 'Maskable aliases differ')
+assert(hash(read('public/icons/hoku-organisch-v4-maskable-512.png')) === hash(read('public/icons/hoku-organisch-v3-maskable-512.png')), 'Ausgewogen maskable alias differs')
 for (const size of [192, 512]) assert(hash(read(`public/icon-${size}.png`)) === hash(read(`public/icons/hoku-dunkel-${size}.png`)), 'Stale notification icon: ' + size)
 for (const size of [32, 48, 64]) assert(hash(read(`public/icons/hoku-fav-blau-${size}.png`)) === hash(read(`public/icons/hoku-fav-dunkel-${size}.png`)), 'Stale favicon alias: ' + size)
 for (const size of [16, 32, 48, 64]) assert(hash(read(`public/icons/hoku-fav-organisch-v3-${size}.png`)) === hash(read(`public/icons/hoku-fav-dunkel-${size}.png`)), 'Organic favicon alias mismatch: ' + size)
@@ -42,13 +44,13 @@ for (const [i, size] of [16, 32, 48, 64].entries()) {
   assert(ico[p] === size && bytes.readUInt32BE(16) === size && bytes.readUInt32BE(20) === size && hash(bytes) === hash(read(`public/icons/hoku-fav-dunkel-${size}.png`)), 'ICO entry ' + size)
 }
 const html = read('index.html').toString(), vite = read('vite.config.ts').toString()
-assert(html.includes('/apple-touch-icon.png?v=hoku-organisch-v3') && html.includes('/favicon.ico?v=hoku-organisch-v3') && !html.includes('hoku-fav-blau') && !html.includes('hoku-dunkel'), 'HTML references old icons')
+assert(html.includes('/apple-touch-icon.png?v=hoku-organisch-v4') && html.includes('/favicon.ico?v=hoku-organisch-v3') && !html.includes('hoku-fav-blau') && !html.includes('hoku-dunkel'), 'HTML references old icons')
 assert(hash(read('public/apple-touch-icon.png')) === hash(read('public/icons/hoku-dunkel-180.png')), 'Apple fallback differs from approved icon')
 assert(hash(read('public/icons/hoku-dunkel-1024.png')) === hash(read('ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png')), 'Large Apple icon differs from approved icon')
-assert(html.includes('sizes="1024x1024" href="/icons/hoku-organisch-v3-1024.png"'), 'Large Apple icon is not linked')
+assert(html.includes('sizes="1024x1024" href="/icons/hoku-organisch-v4-1024.png"'), 'Large Apple icon is not linked')
 for (const m of html.matchAll(/href="(\/icons\/[^"?]+)(?:\?[^"]*)?"/g)) assert(fs.existsSync(path.join(root, 'public', m[1])), 'Missing HTML icon: ' + m[1])
-for (const name of ['hoku-organisch-v3-192.png', 'hoku-organisch-v3-512.png', 'hoku-organisch-v3-maskable-512.png']) assert(vite.includes('/icons/' + name) && fs.existsSync(path.join(root, 'public/icons', name)), 'Missing PWA icon: ' + name)
-assert(read('src/sw.ts').toString().includes("new URL('/icons/hoku-organisch-v3-192.png'"), 'Notifications reference an unversioned icon')
+for (const name of ['hoku-organisch-v4-192.png', 'hoku-organisch-v4-512.png', 'hoku-organisch-v4-maskable-512.png']) assert(vite.includes('/icons/' + name) && fs.existsSync(path.join(root, 'public/icons', name)), 'Missing PWA icon: ' + name)
+assert(read('src/sw.ts').toString().includes("new URL('/icons/hoku-organisch-v4-192.png'"), 'Notifications reference an unversioned icon')
 assert(vite.includes("background_color: '#000101'"), 'PWA background mismatch')
 assert(read('android/app/src/main/res/values/ic_launcher_background.xml').toString().includes('#000101'), 'Android background mismatch')
 assert(read('src/features/dot/DotLogo.tsx').toString().includes('fill="currentColor"'), 'Navigation does not inherit the icon color')

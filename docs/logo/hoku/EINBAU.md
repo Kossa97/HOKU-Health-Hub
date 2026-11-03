@@ -6,15 +6,19 @@ Aktuelle Quelle: `brand-kit-v2/QUELLEN/hoku-app-icon-organisch-cyan-v3-master.pn
 
 Erzeugen: `npm run icons:update`. Prüfen: `npm run icons:verify`. Die frühere Python-Einstiegsdatei leitet auf denselben aktuellen Export weiter.
 
+## Gewählte Größe „Ausgewogen“
+
+Am 03.11.2026 gewählt: Hoku nimmt 74 % statt 84 % der normalen Iconbreite ein. Maskierbare PWA-Icons nutzen 67 %, Androids adaptive Vordergrundebene 52 %; das erhält den zuvor gewählten zusätzlichen Sicherheitsrand. Neue Icon-URLs mit v4 lösen die v3-Einbindung ab. Die alten URLs enthalten dieselben neu zugeschnittenen Dateien. Die 84-%-Exporte bleiben als zusätzliche Variante im Brand-Kit erhalten.
+
 ## Eingesetzte Dateien
 
 | Einsatz | Dateien | Größe und Ausschnitt |
 |---|---|---|
-| iOS App-Icon | `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` | 1024 × 1024, RGB ohne Alphakanal, Hoku ca. 84 % der Kante; Abrundung durch iOS |
-| Android Launcher | `android/app/src/main/res/mipmap-*/ic_launcher.png` und `ic_launcher_round.png` | 48 / 72 / 96 / 144 / 192 px, Hoku ca. 84 %, passende vorhandene Kreis-/Rechteckform |
-| Android adaptiv | `mipmap-*/ic_launcher_foreground.png`, `values/ic_launcher_background.xml` | 108 / 162 / 216 / 324 / 432 px, transparenter Vordergrund, Hoku ca. 59 % der gesamten Ebene; Hintergrund #000101 |
-| Web/PWA | `public/icons/hoku-organisch-v3-180.png`, `hoku-organisch-v3-192.png`, `hoku-organisch-v3-512.png`, `hoku-organisch-v3-1024.png`, `public/apple-touch-icon.png` | 180 / 192 / 512 / 1024 px, RGB, Hoku ca. 84 % |
-| Maskierbare PWA | `public/icons/hoku-organisch-v3-maskable-512.png` | 512 px, deckend, Hoku ca. 76 % |
+| iOS App-Icon | `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` | 1024 × 1024, RGB ohne Alphakanal, Hoku ca. 74 % der Kante; Abrundung durch iOS |
+| Android Launcher | `android/app/src/main/res/mipmap-*/ic_launcher.png` und `ic_launcher_round.png` | 48 / 72 / 96 / 144 / 192 px, Hoku ca. 74 %, passende vorhandene Kreis-/Rechteckform |
+| Android adaptiv | `mipmap-*/ic_launcher_foreground.png`, `values/ic_launcher_background.xml` | 108 / 162 / 216 / 324 / 432 px, transparenter Vordergrund, Hoku ca. 52 % der gesamten Ebene; Hintergrund #000101 |
+| Web/PWA | `public/icons/hoku-organisch-v4-180.png`, `hoku-organisch-v4-192.png`, `hoku-organisch-v4-512.png`, `hoku-organisch-v4-1024.png`, `public/apple-touch-icon.png` | 180 / 192 / 512 / 1024 px, RGB, Hoku ca. 74 % |
+| Maskierbare PWA | `public/icons/hoku-organisch-v4-maskable-512.png` | 512 px, deckend, Hoku ca. 67 % |
 | Favicons | `public/favicon.ico`, `favicon.svg`, `icons/hoku-fav-organisch-v3-*.png` | 16 / 32 / 48 / 64 px, enger Ausschnitt mit ca. 92 % Hoku |
 | Benachrichtigungen / ältere Verweise | `public/icon-192.png`, `icon-512.png`, `icon.svg`, bisherige `icons/hoku-*.png` und `hoku-fav-blau-*.png` | Auch diese vorhandenen URLs enthalten das neue dunkle Motiv |
 | Untere App-Leiste | `src/features/dot/DotLogo.tsx`, Referenz `branding/hoku-nav-etwas-dichter.svg` | Gewählter Vektor „Etwas dichter“, Anzeige 30 px; Grundfarbe wie Nachbar-Icons, Cyan-Leuchten und vorhandene Animationen erhalten |
@@ -26,7 +30,7 @@ Für die untere Leiste wurde am 02.11.2026 die Vorschau „Etwas dichter“ (zwe
 
 Der Rand wird je Ziel berechnet und nicht vom klein dargestellten Original übernommen. Androids adaptive Darstellung benötigt dennoch Platz für Masken und Bewegungen: 108-dp-Ebene mit geschütztem 66-dp-Bereich; die tatsächlich sichtbare Darstellung füllt Hoku entsprechend stärker aus. [Android-Dokumentation](https://developer.android.com/develop/ui/compose/system/icon_design_adaptive).
 
-Maskierbare PWA-Icons schützen ihren wichtigen Inhalt innerhalb eines mittigen Kreises mit 40 % Radius. Der 76-%-Ausschnitt wird gegen diesen Kreis geprüft. [Web-App-Manifest-Spezifikation](https://www.w3.org/TR/appmanifest/#icon-masks).
+Maskierbare PWA-Icons schützen ihren wichtigen Inhalt innerhalb eines mittigen Kreises mit 40 % Radius. Der 67-%-Ausschnitt wird gegen diesen Kreis geprüft. [Web-App-Manifest-Spezifikation](https://www.w3.org/TR/appmanifest/#icon-masks).
 
 Hintergrund für Android, PWA-Start und Startbilder: #000101, passend zum dunklen Master. iOS erhält ein quadratisches RGB-Icon ohne vorgezeichnete transparente Ecken. Native Vordergrund- und Leistenzeichen entfernen den dunklen Hintergrund über einen SVG-Alphafilter; die hellen Partikelkerne behalten ihre Farbe.
 
