@@ -69,7 +69,7 @@ App ◀── verifyOtp({ email, token, type }) → Sitzung → Haken, Portal, H
   geschützt über die Hook-Signatur, Standard Webhooks, Secret `SEND_EMAIL_HOOK_SECRET`).
 - Secrets: `RESEND_API_KEY` (nur Sende-Recht, nur Domain hokuhealth.app), `SEND_EMAIL_HOOK_SECRET`,
   `MAIL_FROM` (Vorschlag `Hoku <hallo@hokuhealth.app>`).
-- Sprache: `user.user_metadata.sprache` (`de` | `en`), sonst `en`.
+- Sprache: `user.user_metadata.sprache` (`de` | `en`), sonst `de` (Konten ohne Angabe stammen aus der Zeit vor dem Start und sind deutsch). Zusätzlich `zeitzone` für die Uhrzeit „gültig bis".
 - Alle Arten bedienen, sonst brechen sie still: `signup`, `recovery`, `email_change`,
   `reauthentication`, `magiclink` (Fallback-Text). Jede Mail: Betreff mit Code, großer Code,
   Gültigkeit, „Nicht du? Ignorieren", Text- und HTML-Teil, keine Links außer Impressum/Datenschutz.
@@ -88,7 +88,7 @@ App ◀── verifyOtp({ email, token, type }) → Sitzung → Haken, Portal, H
 
 ### 3. App: Code nach dem Registrieren
 
-- `signUp` schickt zusätzlich `sprache` (App-Sprache, de/en) in den Metadaten.
+- `signUp` schickt zusätzlich `sprache` (App-Sprache, de/en) und `zeitzone` in den Metadaten; Sprachwechsel in der App aktualisiert `sprache` im Konto.
 - Ohne Sitzung neue Ansicht **`code`** statt nur Postfach-Hinweis: ein Feld,
   `inputMode="numeric"`, `autoComplete="one-time-code"` (iOS schlägt den Code aus Mail vor),
   Einfügen aus der Zwischenablage, Prüfung bei 6 Ziffern automatisch.
