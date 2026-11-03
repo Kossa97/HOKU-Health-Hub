@@ -8,7 +8,7 @@ import {
   BILD, FEDER_FINGER, endStand, linsenBild, linsenSchritt, planeWeg, ruhig,
   type LinsenMasse, type LinsenStand, type LinsenZiel,
 } from './linsenFeder'
-import { gleitFeder } from '../../lib/linse'
+import { LINSE_GEAENDERT, gleitFeder } from '../../lib/linse'
 
 /**
  * Die Web-Fassung der Liquid-Glass-Tab-Bar.
@@ -64,6 +64,11 @@ export interface LiquidGlassTabBarProps {
   onSelect?: (id: string) => void
   /** Ein Platz ist unter dem Finger durchgeglitten. Fuer den Klick am Geraet. */
   onPreviewChange?: (id: string) => void
+  /**
+   * Was zum Rahmen der Kapsel gehört und UNTER der Linse liegen muss — Hokus
+   * Tor. Die Linse zeigt den Rahmen vergrößert mit (`.tyd-tabbar-linse-tor`).
+   */
+  unterLinse?: ReactNode
 }
 
 interface PlatzMass {
@@ -90,6 +95,7 @@ export function LiquidGlassTabBar({
   ariaLabel,
   onSelect,
   onPreviewChange,
+  unterLinse,
 }: LiquidGlassTabBarProps) {
   const kapselRef = useRef<HTMLElement | null>(null)
   const [pille, setPille] = useState<PilleLage | null>(null)
@@ -120,6 +126,18 @@ export function LiquidGlassTabBar({
   const pilleRef = useRef<HTMLDivElement | null>(null)
   const kopieRef = useRef<HTMLDivElement | null>(null)
   const glasRef = useRef<HTMLDivElement | null>(null)
+  /** Abbild der Leiste in der Linse: deckt die echten Symbole ab, zeigt den Rahmen vergrößert. */
+  const abbildRef = useRef<HTMLDivElement | null>(null)
+  const abbildGlasRef = useRef<HTMLDivElement | null>(null)
+  /** Breite der ruhenden Pille, 0 schmal … 1 so breit wie der Reiter (--linse-ruhe). */
+  const ruheRef = useRef(0)
+  /** Zählt Änderungen an den Linsen-Einstellungen, damit neu gemessen wird. */
+  const [linsenStand, setLinsenStand] = useState(0)
+  useEffect(() => {
+    const neu = () => setLinsenStand(n => n + 1)
+    window.addEventListener(LINSE_GEAENDERT, neu)
+    return () => window.removeEventListener(LINSE_GEAENDERT, neu)
+  }, [])
   const ringRef = useRef<HTMLDivElement | null>(null)
   /**
    * Die Feder der Linse. React rendert das ZIEL (Breite); Lage und Größe sind
@@ -170,6 +188,8 @@ export function LiquidGlassTabBar({
     const plaetze = () => [...kapsel.querySelectorAll<HTMLElement>(`[${SLOT_ATTR}]`)]
 
     const messen = () => {
+      const ruhe = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-ruhe'))
+      ruheRef.current = Number.isFinite(ruhe) ? Math.min(1, Math.max(0, ruhe)) : 0
       plaetzeRef.current = plaetze().map(el => ({
         // Gesucht wird ueber den Attributwert und nicht ueber einen Selektor
         // mit eingesetzter Kennung: das braucht kein `CSS.escape` (das jsdom
@@ -191,13 +211,20 @@ export function LiquidGlassTabBar({
     beobachter.observe(kapsel)
     for (const el of plaetze()) beobachter.observe(el)
     return () => beobachter.disconnect()
-  }, [activeId, items])
+  }, [activeId, items, linsenStand])
+
+  /** Breite der Pille auf einem Platz: schmal (pillenBreite) bis fast so breit wie der Reiter. */
+  function breiteFuer(platzBreite: number) {
+    const schmal = pillenBreite(platzBreite)
+    const breit = Math.max(schmal, platzBreite - 4)
+    return schmal + (breit - schmal) * ruheRef.current
+  }
 
   /** Wo die Pille steht, wenn sie auf einem Platz eingerastet ist. */
   function lageVon(id: string | null, kapselBreite: number): PilleLage | null {
     const platz = id ? plaetzeRef.current.find(p => p.id === id) : undefined
     if (!platz || !kapselBreite) return null
-    const breite = pillenBreite(platz.breite)
+    const breite = breiteFuer(platz.breite)
     return { links: platz.links + (platz.breite - breite) / 2, breite, kapselBreite, frei: false }
   }
 
@@ -207,6 +234,14 @@ export function LiquidGlassTabBar({
     const zahl = (name: string, ersatz: number) => {
       const n = parseFloat(css.getPropertyValue(name))
       return Number.isFinite(n) ? n : ersatz
+    }
+    // Das Abbild trägt das Aussehen der echten Leiste (je Look verschieden)
+    const kapsel = kapselRef.current, abbild = abbildGlasRef.current
+    if (kapsel && abbild) {
+      const k = getComputedStyle(kapsel)
+      abbild.style.backgroundImage = k.backgroundImage
+      abbild.style.backgroundColor = k.backgroundColor
+      abbild.style.boxShadow = k.boxShadow
     }
     masseRef.current = {
       w0, h0: el.offsetHeight, einzug: el.offsetTop,
@@ -224,6 +259,7 @@ export function LiquidGlassTabBar({
     if (kopieRef.current) kopieRef.current.style.transform = b.kopie
     if (glasRef.current) glasRef.current.style.opacity = String(b.glas)
     if (ringRef.current) ringRef.current.style.opacity = String(b.glas)
+    if (abbildRef.current) abbildRef.current.style.opacity = String(b.glas)
     if (b.linse) el.setAttribute('data-linse', 'true')
     else el.removeAttribute('data-linse')
   }
@@ -262,7 +298,7 @@ export function LiquidGlassTabBar({
     if (bilder.some(b => b.linse)) el.setAttribute('data-linse', 'true')
     anim.push(el.animate(bilder.map(b => ({ transform: b.pille })), optionen))
     if (kopieRef.current) anim.push(kopieRef.current.animate(bilder.map(b => ({ transform: b.kopie })), optionen))
-    for (const schicht of [glasRef.current, ringRef.current]) {
+    for (const schicht of [glasRef.current, ringRef.current, abbildRef.current]) {
       if (schicht) anim.push(schicht.animate(bilder.map(b => ({ opacity: b.glas })), optionen))
     }
     const fahrt = { weg, anim, schluessel }
@@ -299,7 +335,7 @@ export function LiquidGlassTabBar({
     const z = zielRef.current
     z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
     const f = feder.current
-    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}`
+    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}`
     if (!f.start || ohneAnimation()) {
       f.start = true
       miss(el, pille.breite)
@@ -346,7 +382,7 @@ export function LiquidGlassTabBar({
     tippRef.current = { platz: id, zeit: performance.now(), offen: true }
     ziehtRef.current = true
     gewandertRef.current = false
-    zugBreiteRef.current = pillenBreite(auf.offsetWidth)
+    zugBreiteRef.current = breiteFuer(auf.offsetWidth)
     setGedrueckt(true)
     setzeVorschau(id)
     // Die Pille springt auf den gedrueckten Platz — von dort aus haengt sie
@@ -459,6 +495,7 @@ export function LiquidGlassTabBar({
       onPointerCancel={beiZeigerAbbruch}
       onClickCapture={beiKlick}
     >
+      {unterLinse}
       <div
         ref={pilleRef}
         className="tyd-tabbar-pill"
@@ -482,6 +519,11 @@ export function LiquidGlassTabBar({
         {pille && (
           <div className="tyd-tabbar-linse-rahmen">
             <div ref={kopieRef} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite }}>
+              {/* Die Leiste selbst, samt Rahmen und Hokus Tor — in der Linse vergrößert */}
+              <div ref={abbildRef} className="tyd-tabbar-linse-abbild">
+                <div ref={abbildGlasRef} className="tyd-tabbar-linse-abbild-glas" />
+                <span className="tyd-tabbar-linse-tor" />
+              </div>
               {plaetzeRef.current.map(p => {
                 const item = items.find(i => i.id === p.id)
                 if (!item) return null

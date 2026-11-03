@@ -102,8 +102,6 @@ export function BottomNavigation({
 
   return (
     <div className="tyd-tabdock" data-open={quickActionsOpen}>
-      {/* Sein Eingang: hier öffnet sich der Rahmen der Kapsel, solange Dot draußen ist */}
-      <span className="tyd-dot-spalt" aria-hidden="true" />
       <LiquidGlassTabBar
         items={reiter}
         activeId={activeId}
@@ -112,6 +110,9 @@ export function BottomNavigation({
         // Uhr, und dasselbe Gefuehl wie im My-Stack-Karussell.
         onPreviewChange={() => { void hapticTick() }}
         ariaLabel={String(t('nav_aria_label', { defaultValue: 'Navigation' }))}
+        // Sein Eingang: hier öffnet sich der Rahmen der Kapsel, solange Dot
+        // draußen ist. Er gehört zum Rahmen und liegt darum unter der Linse.
+        unterLinse={<span className="tyd-dot-spalt" aria-hidden="true" />}
       />
       {/* Der Schnellzugriff ist kein Reiter: er führt zu keiner Seite. Darum
           steht er wie in iOS 26 als eigene Glas-Scheibe neben der Kapsel. Offen

@@ -1266,7 +1266,7 @@ main.flex-1 {
    bei echter Brechung.
    Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
    gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
-:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; }
+:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; --linse-klar: 0; --linse-ruhe: 0; --linse-fuellung: 0; }
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
   /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
   z-index: 2;
@@ -1288,18 +1288,46 @@ main.flex-1 {
   pointer-events: none;
   opacity: 0;
 }
+/* Das Glas trägt Kante und Schatten; seine Füllung (::before) wird mit
+   --linse-klar durchsichtig — bei Apple ist die Linse klar, man sieht die
+   Seite über und unter der Leiste hindurch. Klarer Rand: weniger Schatten. */
 .tyd-tabbar-linse-glas {
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
+    inset 0 -1px 1px rgb(var(--ink-rgb) / calc(0.25 * var(--linse-klar))),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb) / calc(0.18 + 0.22 * var(--linse-klar))),
+    inset 0 0 8px rgb(var(--ink-rgb) / calc(0.12 * var(--linse-klar))),
+    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
+    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
+    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
+    0 10px 26px rgb(0 0 0 / calc(0.40 * (1 - 0.6 * var(--linse-klar))));
+}
+.tyd-tabbar-linse-glas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background:
     linear-gradient(180deg, rgb(var(--ink-rgb) / 0.18) 0%, rgb(var(--ink-rgb) / 0.05) 70%),
     linear-gradient(var(--surface), var(--surface)),
     var(--app-bg);
-  box-shadow:
-    inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
-    inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.18),
-    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
-    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
-    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
-    0 10px 26px rgba(0, 0, 0, 0.40);
+  opacity: calc(1 - var(--linse-klar));
+}
+/* Das Abbild der Leiste in der Linse: deckend (Grund der App unter dem Glas
+   der Leiste), damit die echten Symbole darunter nicht doppelt erscheinen.
+   Aussehen der Leiste überträgt LiquidGlassTabBar. In der Linse vergrößert,
+   liegt ihr Rand oben und unten sichtbar im Glas — wie bei Apple. */
+.tyd-tabbar-linse-abbild {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--app-bg);
+  opacity: 0;
+}
+.tyd-tabbar-linse-abbild-glas {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 /* Farbsaum wie bei Apple (Glisse: „Dispersion"): ein Regenbogenring an der
    Kante — rosa links, gelb unten, cyan/blau rechts. Stärke: --linse-farbe. */
@@ -1309,9 +1337,14 @@ main.flex-1 {
   inset: 0;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(from 200deg at 50% 50%,
-    rgb(255 70 160), rgb(255 150 60), rgb(255 230 90), rgb(120 255 170),
-    rgb(60 200 255), rgb(120 110 255), rgb(255 70 160));
+  /* Oben und unten hell und fast weiß, an den Enden links und rechts der
+     Regenbogen — dort bricht das Licht in der Rundung am stärksten. */
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgb(255 255 255 / 0.85) 0deg, rgb(255 255 255 / 0.5) 40deg,
+    rgb(255 220 90) 62deg, rgb(120 255 170) 78deg, rgb(60 200 255) 94deg, rgb(130 110 255) 110deg, rgb(255 80 170) 124deg,
+    rgb(255 255 255 / 0.35) 145deg, rgb(255 255 255 / 0.55) 180deg, rgb(255 255 255 / 0.35) 215deg,
+    rgb(255 80 170) 236deg, rgb(130 110 255) 250deg, rgb(60 200 255) 266deg, rgb(120 255 170) 282deg, rgb(255 220 90) 298deg,
+    rgb(255 255 255 / 0.5) 320deg, rgb(255 255 255 / 0.85) 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
@@ -1355,10 +1388,21 @@ main.flex-1 {
    eine Kapsel, auch in Looks mit eckiger Pille, und die vergrößerten Symbole
    fächern leicht in Rot und Blau auf. */
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: 999px; }
+/* Ruhend als graue, gefüllte Kapsel wie bei Apple (--linse-fuellung). */
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(var(--ink-rgb) / 0.15);
+  box-shadow: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
+  opacity: var(--linse-fuellung);
+  pointer-events: none;
+}
 .tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-platz svg {
   filter:
-    drop-shadow(calc(var(--linse-farbe) * 1.6px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.75)))
-    drop-shadow(calc(var(--linse-farbe) * -1.6px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.75)));
+    drop-shadow(calc(var(--linse-farbe) * 0.9px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.55)))
+    drop-shadow(calc(var(--linse-farbe) * -0.9px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.55)));
 }
 html:is([data-look='schwarz'], [data-look='satin'], [data-look='licht'], [data-look='nacht']) :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {
   padding: 0;

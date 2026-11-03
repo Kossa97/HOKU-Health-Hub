@@ -65,6 +65,8 @@ export interface DotLeiste {
   plus: HTMLElement | null
   logo: HTMLElement
   spalt: HTMLElement | null
+  /** Das Tor im Abbild der Leiste in der Glaslinse; bewegt sich mit dem echten. */
+  spaltKopie?: () => HTMLElement | null
 }
 
 export interface DotHost {
@@ -1400,8 +1402,12 @@ export function createDot(host: DotHost): DotApi {
     const open = B.door, ow = ENT.w * easeOut3(clamp01(open))
     const spalt = leiste?.spalt
     if (spalt) {
-      spalt.style.width = ow.toFixed(1) + 'px'
-      spalt.style.transform = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
+      const breite = ow.toFixed(1) + 'px', lage = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
+      for (const el of [spalt, leiste?.spaltKopie?.()]) {
+        if (!el || (el.style.width === breite && el.style.transform === lage)) continue
+        el.style.width = breite
+        el.style.transform = lage
+      }
     }
     // Der Strahl gehört zur Leiste: über dem Chat (Bühne) und unter einem Blatt
     // oder Dialog (er tritt zurück) liegt die Zeichenfläche über dem Fenster

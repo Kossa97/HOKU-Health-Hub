@@ -10,7 +10,7 @@ import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
-import { LINSE_GRENZEN, LINSE_STANDARD, useLinse, type LinsenWerte } from '../lib/linse'
+import { LINSE_APPLE, LINSE_GRENZEN, LINSE_STANDARD, useLinse, type LinsenWerte } from '../lib/linse'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
@@ -604,7 +604,7 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' || key === 'farbe' || key === 'schwingen'
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung'
             ? `${Math.round(werte[key] * 100)} %`
             : key === 'tempo' ? `${werte[key].toFixed(2)} s` : `${werte[key]} ${einheit}`}
         </span>
@@ -625,9 +625,17 @@ function LinsenTest() {
         {regler('farbe', 'Farbsaum', '')}
         {regler('tempo', 'Gleiten (Zeit)', '')}
         {regler('schwingen', 'Nachschwingen', '')}
-        <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" style={{ marginTop: 6 }} onClick={() => setze({ ...LINSE_STANDARD })}>
-          Zurücksetzen
-        </button>
+        {regler('klar', 'Durchsicht', '')}
+        {regler('ruhe', 'Pille breit', '')}
+        {regler('fuellung', 'Pille grau', '')}
+        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+          <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_APPLE })}>
+            Apple
+          </button>
+          <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_STANDARD })}>
+            HOKU (Standard)
+          </button>
+        </div>
       </div>
     </div>
   )

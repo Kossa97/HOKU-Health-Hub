@@ -47,8 +47,11 @@
 @keyframes tyd-dot-huepf { 0% { transform: scale(1); } 35% { transform: scale(1.32, 0.8); } 70% { transform: scale(0.9, 1.12); } 100% { transform: scale(1); } }
 
 /* Sein Eingang: ein Stück des Rahmens oben öffnet sich (Breite setzt die Engine) */
-.tyd-tabdock > .tyd-dot-spalt {
-  position: absolute; top: -0.5px; left: 0; height: 2px; width: 0; z-index: 42; pointer-events: none;
+/* Er liegt IN der Leiste, unter der Glaslinse (z-index 2); in der Linse
+   erscheint er vergrößert mit (.tyd-tabbar-linse-tor, gleiche Maße). */
+.tyd-tabbar > .tyd-dot-spalt,
+.tyd-tabbar-linse-tor {
+  position: absolute; top: -0.5px; left: 0; height: 2px; width: 0; z-index: 1; pointer-events: none;
   background: rgba(14, 14, 16, 0.96); border-radius: 1px;
 }
 

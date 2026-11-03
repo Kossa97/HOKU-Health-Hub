@@ -10,6 +10,9 @@
  *   --linse-hoehe    wie viel höher sie wird (px), je zur Hälfte oben und unten;
  *                    kleiner als die Breite ergibt die Kapsel
  *   --linse-farbe    Farbsaum am Rand, 0–1 (bei Glisse „Dispersion")
+ *   --linse-klar     Durchsicht der Linse, 0 deckend … 1 klar wie bei Apple
+ *   --linse-ruhe     Breite der ruhenden Pille, 0 schmal … 1 so breit wie der Reiter
+ *   --linse-fuellung ruhende Pille als graue, gefüllte Kapsel, 0–1
  * Tempo und Nachschwingen gelten für die Feder beim Gleiten (gleitFeder()).
  */
 import { useCallback, useState } from 'react'
@@ -25,10 +28,25 @@ export interface LinsenWerte {
   tempo: number
   /** 0 = ohne Nachschwingen, größer = federnder */
   schwingen: number
+  klar: number
+  ruhe: number
+  fuellung: number
 }
 
 export const LINSE_STANDARD: LinsenWerte = {
   zoom: 1.32, heben: 0, wachsen: 30, hoehe: 12, farbe: 0.5, tempo: 0.75, schwingen: 0.3,
+  klar: 0, ruhe: 0, fuellung: 0,
+}
+
+/**
+ * Nach Apples Leiste aus iOS 26 (Bildschirmaufnahme vom iPhone): in Ruhe eine
+ * graue, gefüllte Kapsel so breit wie der Reiter; gedrückt eine KLARE Linse,
+ * die oben und unten über die Leiste ragt, die Leiste samt Rand darin leicht
+ * vergrößert, eine helle Kante mit Regenbogen an den Enden.
+ */
+export const LINSE_APPLE: LinsenWerte = {
+  zoom: 1.08, heben: 0, wachsen: 36, hoehe: 26, farbe: 0.9, tempo: 0.5, schwingen: 0.24,
+  klar: 1, ruhe: 1, fuellung: 1,
 }
 export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number; schritt: number }> = {
   zoom: { min: 1, max: 1.8, schritt: 0.02 },
@@ -38,6 +56,9 @@ export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number
   farbe: { min: 0, max: 1, schritt: 0.05 },
   tempo: { min: 0.2, max: 1.4, schritt: 0.05 },
   schwingen: { min: 0, max: 0.6, schritt: 0.02 },
+  klar: { min: 0, max: 1, schritt: 0.05 },
+  ruhe: { min: 0, max: 1, schritt: 0.05 },
+  fuellung: { min: 0, max: 1, schritt: 0.05 },
 }
 
 const SCHLUESSEL = 'tyd_linse_2'
@@ -74,7 +95,14 @@ export function wendeLinseAn(w: LinsenWerte): void {
   s.setProperty('--linse-wachsen', `${w.wachsen}px`)
   s.setProperty('--linse-hoehe', `${w.hoehe}px`)
   s.setProperty('--linse-farbe', String(w.farbe))
+  s.setProperty('--linse-klar', String(w.klar))
+  s.setProperty('--linse-ruhe', String(w.ruhe))
+  s.setProperty('--linse-fuellung', String(w.fuellung))
+  // Die Tab-Leiste misst die Pille neu (ihre Breite hängt an --linse-ruhe)
+  window.dispatchEvent(new Event(LINSE_GEAENDERT))
 }
+
+export const LINSE_GEAENDERT = 'tyd-linse-geaendert'
 
 export function useLinse() {
   const [werte, setWerte] = useState<LinsenWerte>(leseLinse)

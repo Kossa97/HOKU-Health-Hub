@@ -163,3 +163,17 @@ Variablen dort auf, wo das Token steht (am `<html>`, dort ist --hl-i = 0). Die
 Licht-Formel gehört in eine Regel am Element (`:is(.lg-surface,…)::before`).
 Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 (`getComputedStyle(el,'::before')` zeigt den Winkel der Karte).
+
+## Glaslinse der Tab-Leiste (Branch claude/glas-linse, Test)
+
+- Nur transform/opacity: am Finger Feder je Bild (rAF), allein gleitend wird der Weg
+  vorab gerechnet und als Web Animation übergeben (läuft weiter, während die neue
+  Seite aufgebaut wird — vorher hakte es dort). Logik in `linsenFeder.ts`.
+- In der Linse liegt ein Abbild der Leiste (Aussehen per getComputedStyle übernommen)
+  samt Hokus Tor (`.tyd-tabbar-linse-tor`, die Engine bewegt es mit dem echten).
+  Das echte Tor liegt jetzt IN der Leiste unter der Linse (`unterLinse`).
+- Klicks: nur der Platz, auf dem der Finger aufsetzte, öffnet (iPhone öffnete
+  unterwegs andere Seiten).
+- Regler im Profil (LinsenTest, vor Übernahme entfernen) mit Preset „Apple" nach
+  einer Bildschirmaufnahme aus iOS 26: klar, graue breite Ruhekapsel, Regenbogen
+  an den Enden. Keine echte Brechung am Rand (geht im iPhone-WebView nicht).
