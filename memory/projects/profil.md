@@ -207,8 +207,8 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   Zeilen Z1–Z6 im Mockup (fetter Kurzsatz + Satz über die Engine). Empfehlung **Z4 „Einzeln sind es Zahlen. Zusammen
   bist es du.“**; Z6 (Muster finden) braucht erst eine echte Mustersuche. Wahl offen. V1–V6 in der Git-Historie (82918f1).
 - **Rückfall-Text entschieden (Nutzer 03.11.):** „Mehr als nur Tracking.“ / „**Du trackst. Hoku verbindet.** Hokus intelligente
-  Engine legt deine Werte übereinander und findet Muster, die du allein nicht gesehen hättest.“ EN: “More than just tracking.” /
-  “You track. Hoku connects. Hoku’s smart engine layers your data and finds patterns you’d never have spotted on your own.”
+  Engine legt deine Werte übereinander und kann Muster finden, die du allein nicht gesehen hättest.“ (Nutzer 03.11.: „kann“, verspricht Fähigkeit statt Ergebnis) EN: “More than just tracking.” /
+  “You track. Hoku connects. Hoku’s smart engine layers your data and can find patterns you’d never have spotted on your own.”
   Voraussetzung: **Musterfunktion läuft zum Start** (Nutzer: ja, Blutwerte evtl. ohne oder gedrosselt). Text nur zusammen mit
   der Funktion freischalten; sonst übergangsweise Ersatz „… und zeigt dir, was sich seit deinem Start verändert hat.“
   Muster über die genannten Bereiche (Training, Ernährung, Schlaf, Körper); keine Kausalaussagen. Musterfunktion = eigenes
