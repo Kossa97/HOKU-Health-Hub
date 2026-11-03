@@ -8,7 +8,9 @@ Stand 03.11.2026 · Brainstorm mit dem Nutzer. Mockup Entwurf 1: `docs/profil/mo
 - **Einmal erreicht, für immer.** Kein Verlieren, kein Ruhen (wie Abzeichen: Rückschritt nimmt nichts weg).
 - **Rang-Namen wie vorgeschlagen** (freundlich, leicht spielerisch).
 - **Rang zählt nur Tage mit eigenem Eintrag** (`BadgeFacts.entryDays`), keine automatisch übertragenen Wearable-Tage.
-- **Anzeige:** eigenes Profil, Profil für Freunde, Web und Link-Karte (dort ab Werk an, abschaltbar wie Abzeichen im Web).
+- **Sichtbarkeit (Nutzer 03.11., ersetzt „Web-Schalter“):** Titel ist ein Feld mit Stufe wie in 2a (Nur ich / Freunde /
+  Alle), ab Werk **Alle**. Vier Sichten: ich, Freunde, App-Nutzer (angemeldet, nicht befreundet), Web. Web und Link-Karte
+  zeigen ihn nur auf „Alle“ + Web-Link an (wie jedes Feld in 2c). Kein eigener Web-Schalter. Mockup Entwurf 2.
 
 - **Getragener Rang steigt von selbst mit** (Nutzer 03.11.: „passt so“); gefragt wird nur, wer gerade eine Prägung trägt.
 

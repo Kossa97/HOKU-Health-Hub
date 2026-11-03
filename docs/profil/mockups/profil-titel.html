@@ -141,7 +141,7 @@ h2 { font: 600 clamp(21px, 3vw, 26px)/1.2 var(--disp); margin: 0; text-wrap: bal
 .frame-cap b { color: var(--ink2); font-weight: 500; }
 .frame-col { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; justify-items: center; min-width: 0; }
 .frame-col > .frame-cap { justify-self: stretch; max-width: 390px; width: 100%; margin-inline: auto; }
-.views3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 28px 24px; }
+.views3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 28px 24px; max-width: 840px; }
 .cardrow { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px 26px; align-items: center; }
 .cardrow .og { border-radius: 14px; box-shadow: var(--frame-shadow); }
 @media (max-width: 860px) { .cardrow { grid-template-columns: minmax(0, 1fr); } }
@@ -202,7 +202,17 @@ button.tchip .ic { width: 11px; height: 11px; margin-right: -3px; opacity: .8; }
 .btn.link { background: none; box-shadow: none; color: var(--a-blue-soft); width: auto; padding: 6px 4px; font-size: 15px; }
 .btn:active { transform: scale(.97); }
 
-/* Popover bei Freunden: Was ist das fuer ein Titel? */
+/* Sichtbarkeits-Chip wie in 2a („Nur ich / Freunde / Alle“), antippen schaltet weiter */
+.vchip { display: inline-flex; align-items: center; gap: 4px; font: 500 11.5px/1 var(--app); color: var(--a-t2); background: var(--a-fill); border: 0; padding: 5px 9px; border-radius: 99px; cursor: pointer; white-space: nowrap; transition: transform .16s var(--ease); }
+.vchip .ic { width: 12px; height: 12px; color: var(--a-t3); }
+.vchip:active { transform: scale(.96); }
+.trow { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* Segmente im Handy: feste App-Farben */
+.phone .seg { background: var(--a-fill); border-color: var(--a-hair); }
+.phone .seg button { color: var(--a-t2); font-family: var(--app); }
+.phone .seg button[aria-pressed="true"] { background: var(--a-text); color: var(--a-bg); }
+.hidden-note { margin: 12px 22px 0; font-size: 12px; color: var(--a-t3); }
+/* Popover bei Freunden und App-Nutzern: Was ist das fuer ein Titel? */
 .tc-wrap { position: relative; display: inline-flex; }
 .tpop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 3; width: 236px; max-width: 64vw; padding: 10px 12px; border-radius: 14px; background: var(--a-pop); box-shadow: 0 12px 30px rgba(0,0,0,.45), inset 0 0 0 1px var(--a-hair);
   font-size: 12.5px; line-height: 1.4; color: var(--a-t2); transform-origin: 18px -6px; opacity: 0; transform: scale(.96) translateY(-2px); pointer-events: none; transition: opacity .16s ease-out, transform .18s var(--ease); }
@@ -392,9 +402,9 @@ button.prow:active .pn { opacity: .7; }
 <div class="page" lang="de">
 
   <header class="top">
-    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 1 · 03.11.2026</div>
+    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 2 · 03.11.2026</div>
     <h1>Titel neben dem Namen</h1>
-    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder eine <b>Prägung</b>, die du dir verdient hast. Einmal erreicht, für immer. Abzeichen bleiben Sammelstücke.</p>
+    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder eine <b>Prägung</b>, die du dir verdient hast. Einmal erreicht, für immer. Abzeichen bleiben Sammelstücke. Wer ihn sieht, regelt die Stufe wie bei jedem Feld aus 2a: <b>Nur ich, Freunde oder Alle</b>, ab Werk Alle.</p>
     <div class="ctlbar" role="group" aria-label="Steuerung für alle Ansichten">
       <div class="ctl-grid">
         <div class="ctl">
@@ -412,8 +422,11 @@ button.prow:active .pn { opacity: .7; }
           <p class="cross" id="cross" aria-live="polite"></p>
         </div>
         <div class="ctl">
-          <span class="lbl-s" id="webLbl">Titel im Web zeigen</span>
-          <div class="sw-row"><button type="button" class="sw" role="switch" id="webSw" aria-checked="true" aria-labelledby="webLbl" data-act="web"></button><span id="webState">an</span></div>
+          <span class="lbl-s" id="visLbl">Titel sichtbar für</span>
+          <div class="seg" role="group" aria-labelledby="visLbl">
+            <button type="button" data-vis="me" aria-pressed="false">Nur ich</button><button type="button" data-vis="friends" aria-pressed="false">Freunde</button><button type="button" data-vis="all" aria-pressed="true">Alle</button>
+          </div>
+          <p class="help" id="visState"></p>
         </div>
       </div>
     </div>
@@ -423,13 +436,14 @@ button.prow:active .pn { opacity: .7; }
   <!-- 2 · Wo der Titel erscheint -->
   <section id="wo" aria-labelledby="h-wo">
     <div class="sec-head">
-      <div class="eyebrow">Ansichten · vier Orte</div>
+      <div class="eyebrow">Ansichten · vier Sichten und die Link-Karte</div>
       <h2 id="h-wo">Wo der Titel erscheint</h2>
-      <p>Immer an derselben Stelle: als leiser Chip direkt unter dem Namen, in Großbuchstaben und Mono-Schrift wie auf der Link-Karte. Im eigenen Profil lässt er sich antippen und öffnet <b>„Dein Titel“</b>. Freunde sehen ihn in der App immer. Im Web und auf der Link-Karte steht er ab Werk auch, lässt sich dort aber abschalten.</p>
+      <p>Immer an derselben Stelle: als leiser Chip direkt unter dem Namen, in Großbuchstaben und Mono-Schrift wie auf der Link-Karte. Wer ihn sieht, folgt den vier Sichten aus 2a: <b>du</b>, <b>Freunde</b>, <b>alle angemeldeten Hoku-Nutzer</b> und das <b>Web</b>. Web und Link-Karte zeigen ihn nur auf „Alle“ und bei eingeschaltetem Web-Link, wie jedes Feld. Im eigenen Profil öffnet der Chip „Dein Titel“, der kleine Chip daneben schaltet die Stufe weiter.</p>
     </div>
     <div class="views3">
       <div class="frame-col"><div class="frame-cap"><b>Dein Profil</b> · Chip antippen öffnet „Dein Titel“</div><div class="phone fix"><div class="scroll" id="ownPhone"></div></div></div>
-      <div class="frame-col"><div class="frame-cap"><b>Profil für Freunde</b> · in der App, Chip antippen erklärt ihn</div><div class="phone fix"><div class="scroll" id="friendPhone"></div></div></div>
+      <div class="frame-col"><div class="frame-cap" id="friendCap"></div><div class="phone fix"><div class="scroll" id="friendPhone"></div></div></div>
+      <div class="frame-col"><div class="frame-cap" id="allCap"></div><div class="phone fix"><div class="scroll" id="allPhone"></div></div></div>
       <div class="frame-col"><div class="frame-cap" id="webCap"></div><div class="phone fix"><div class="scroll" id="webPhone"></div></div></div>
     </div>
     <div class="cardrow">
@@ -533,7 +547,7 @@ button.prow:active .pn { opacity: .7; }
           <li><b>Feier auch für Prägungen?</b> Vorschlag: derselbe Moment mit „Neue Prägung“. Weil Prägungen seltener sind, wirkt er dort eher noch stärker.</li>
           <li><b>Rang steigt von selbst mit,</b> wenn er getragen wird (so im Mockup). Wer eine Prägung trägt, wird beim neuen Rang gefragt.</li>
           <li><b>Datenprofi:</b> Die Zählung der Einträge kommt mit 2c (für die Link-Karte). Vorher lässt sich die Prägung nicht vergeben.</li>
-          <li><b>Sichtbarkeit in der App:</b> Freunde sehen den Titel im Mockup immer. Soll er ein eigenes Feld mit Stufe wie in 2a bekommen?</li>
+          <li><b>Sichtbarkeit (entschieden):</b> Der Titel ist ein Feld mit Stufe wie in 2a, ab Werk „Alle“. Kein eigener Web-Schalter: Web und Link-Karte zeigen ihn nur auf „Alle“ und bei eingeschaltetem Web-Link.</li>
         </ol></div>
     </div>
   </section>
@@ -607,7 +621,12 @@ const NEVER = [
 const PERSON = { name: 'Mara K.', vor: 'Mara', nick: 'mara', land: '🇩🇪 DE', dabei: 'Seit 7 Monaten dabei', eintraege: 1240, abz: 16,
   bio: 'Kraftsport seit 2019, seit März im Recomp. Hier halte ich fest, was ich trainiere und wie ich schlafe.', tags: ['Recomp', 'Kraft', 'Schlaf & Erholung'] };
 
-const st = { days: 150, worn: 'rang', web: true, sheet: true, pop: false, cw: 'praeg', played: false };
+const st = { days: 150, worn: 'rang', vis: 'all', sheet: true, cw: 'praeg', played: false };
+// Wer den Titel sieht (Web-Link an, Profil nicht privat angenommen)
+const VIS = { me: 'Nur ich', friends: 'Freunde', all: 'Alle' };
+const VIS_ORDER = ['me', 'friends', 'all'];
+const seen = mode => mode === 'own' || (mode === 'friend' ? st.vis !== 'me' : st.vis === 'all');
+const visIcon = () => st.vis === 'me' ? 'lock' : 'people';
 let committed = 3;                 // Rang-Index beim letzten Loslassen des Reglers
 
 const earned = p => p.have >= p.need;
@@ -635,13 +654,14 @@ const statusbar = `<div class="statusbar"><span>9:41</span><span>●●● ▮</
 function chip(mode) {
   const w = worn();
   if (mode === 'own') {
-    if (!w) return `<button type="button" class="tchip none" data-act="sheet" aria-label="Noch kein Titel, Titel ansehen">noch kein Titel ${ic('chev', 2.4)}</button>`;
-    return `<button type="button" class="tchip" data-act="sheet" aria-label="Titel ${esc(w.de)}, Titel ändern">${esc(w.de)}${ic('chev', 2.4)}</button>`;
+    const t = !w ? `<button type="button" class="tchip none" data-act="sheet" aria-label="Noch kein Titel, Titel ansehen">noch kein Titel ${ic('chev', 2.4)}</button>`
+      : `<button type="button" class="tchip" data-act="sheet" aria-label="Titel ${esc(w.de)}, Titel ändern">${esc(w.de)}${ic('chev', 2.4)}</button>`;
+    return `<span class="trow">${t}<button type="button" class="vchip" data-act="viscycle" aria-label="Titel sichtbar für ${VIS[st.vis]}, antippen zum Ändern">${ic(visIcon(), 2)}${VIS[st.vis]}</button></span>`;
   }
-  if (!w) return '';
-  if (mode === 'friend') return `<span class="tc-wrap"><button type="button" class="tchip" data-act="pop" aria-expanded="${st.pop}" aria-controls="tpop">${esc(w.de)}</button>
-    <span class="tpop" id="tpop" role="note" data-open="${st.pop}"><b>${esc(w.de)}</b> · ${whatIs(w)}. Einmal erreicht, für immer.</span></span>`;
-  return st.web ? `<span class="tchip">${esc(w.de)}</span>` : '';
+  if (!w || !seen(mode)) return '';
+  if (mode === 'friend' || mode === 'all') return `<span class="tc-wrap"><button type="button" class="tchip" data-act="pop" aria-expanded="false" aria-controls="tpop-${mode}">${esc(w.de)}</button>
+    <span class="tpop" id="tpop-${mode}" role="note" data-open="false"><b>${esc(w.de)}</b> · ${whatIs(w)}. Einmal erreicht, für immer.</span></span>`;
+  return `<span class="tchip">${esc(w.de)}</span>`;
 }
 const head = mode => `<div class="cover" role="img" aria-label="Titelbild"></div>
   <div class="head"><div class="avatar" aria-hidden="true">M</div><div class="p-who"><div class="name">${PERSON.name}<span class="land">${PERSON.land}</span></div>${chip(mode)}<div class="nick">@${PERSON.nick}</div></div></div>`;
@@ -669,6 +689,12 @@ function friendProfile() {
     <div class="actions"><button type="button" class="btn">Nachricht</button><button type="button" class="btn ghost">Befreundet</button></div>
     ${badgeCard()}${dimCard}`;
 }
+function allProfile() {
+  return `${statusbar}<div class="bar"><span class="icb" aria-hidden="true">‹</span><span class="ttl">${PERSON.name}</span><span class="icb" aria-hidden="true">···</span></div>
+    ${head('all')}<p class="bio">${PERSON.bio}</p>${facts()}
+    <div class="actions"><button type="button" class="btn">Als Freund hinzufügen</button></div>
+    ${badgeCard()}${dimCard}`;
+}
 function webPage() {
   return `${statusbar}<div class="urlbar">${ic('lock', 2)}<span><b>hokuhealth.app</b>/u/mara</span></div>
     <div class="webhead">${img('kompakt_cw', 'wordmark', 'Hoku')}<button type="button" class="btn sm ghost">App laden</button></div>
@@ -680,7 +706,7 @@ function webPage() {
 
 // ── Link-Karte A1 (wie profil-2c-karten-auswahl, ogA1 mit Titel) ──
 function ogA1() {
-  const w = worn(), show = st.web && w;
+  const w = worn(), show = seen('web') && w;
   const lines = `<span class="it">${ic('cal')}${PERSON.dabei}</span><span class="it">${ic('pen')}${fmt(PERSON.eintraege)} Einträge</span>`;
   return `<div class="og t-a1" role="img" aria-label="Vorschaubild Fortschritt: ${PERSON.name}${show ? ', Titel ' + esc(w.de) : ''}, trackt 9 Werte, über 30 % positive Veränderung seit März">
     ${img('haupt_cw', 'lg')}
@@ -698,7 +724,7 @@ function ogA1() {
 function sheetBody() {
   const w = worn(), i = rIdx(st.days), nx = nextInfo();
   const top = w ? `<div class="worn"><span class="k">Du trägst · ${w.kind}</span><span class="tchip">${esc(w.de)}</span><div class="wn">${esc(w.de)}</div><div class="we">EN · ${esc(w.en)}</div>
-      <p>Steht neben deinem Namen im Profil, bei Freunden${st.web ? ', im Web und auf der Link-Karte' : ''}.</p></div>`
+      <p>${st.vis === 'me' ? 'Nur du siehst ihn, in deinem Profil.' : st.vis === 'friends' ? 'Steht neben deinem Namen in deinem Profil und bei Freunden.' : 'Steht neben deinem Namen für alle Hoku-Nutzer, im Web und auf der Link-Karte.'}</p></div>`
     : `<div class="worn"><span class="k">Noch kein Titel</span><div class="wn">Neuling</div><div class="we">EN · Newcomer</div><p>Dein erster Eintrag macht dich zum Neuling.</p></div>`;
   let lad = '';
   RANKS.forEach((r, k) => {
@@ -725,9 +751,9 @@ function sheetBody() {
     <div class="list" role="radiogroup" aria-label="Titel tragen: Prägung">${eRows}</div>
     <div class="grp"><span>Noch offen</span><span>${opn.length}</span></div>
     <div class="list">${oRows}</div>
-    <div class="grp"><span>Web-Link</span><span></span></div>
-    <div class="list"><div class="srow"><div><div class="pn" id="sheetWebL">Titel im Web zeigen</div><div class="ps">hokuhealth.app/u/mara und Link-Karte. In der App sehen Freunde ihn immer.</div></div>
-      <button type="button" class="sw" role="switch" aria-checked="${st.web}" aria-labelledby="sheetWebL" data-act="web"></button></div></div>
+    <div class="grp"><span>Sichtbar für</span><span></span></div>
+    <div class="list"><div class="srow"><div><div class="pn">Wer deinen Titel sieht</div><div class="ps">Wie bei jedem Feld deines Profils. Auf „Alle“ steht er auch im Web und auf der Link-Karte, wenn dein Web-Link an ist.</div></div></div>
+      <div style="padding: 0 0 12px"><div class="seg" role="group" aria-label="Titel sichtbar für">${VIS_ORDER.map(k => `<button type="button" data-vis="${k}" aria-pressed="${st.vis === k}">${VIS[k]}</button>`).join('')}</div></div></div>
     <p class="foot-n"><b>Einmal erreicht, für immer.</b> Ein Rang oder eine Prägung geht nie verloren, auch nicht nach einer Pause.</p>`;
 }
 function renderSheetPhone() {
@@ -851,8 +877,8 @@ function renderCtl() {
       ? `<option value="${p.id}"${st.worn === p.id ? ' selected' : ''}>Prägung · ${p.de}</option>`
       : `<option value="${p.id}" disabled>Prägung · ${p.de} (${prLeft(p)})</option>`));
   $('#wornSel').innerHTML = opts.join('');
-  $('#webSw').setAttribute('aria-checked', String(st.web));
-  $('#webState').textContent = st.web ? 'an · Web-Vorschau und Link-Karte zeigen den Chip' : 'aus · nur in der App';
+  document.querySelectorAll('[data-vis]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vis === st.vis)));
+  $('#visState').textContent = st.vis === 'me' ? 'Nur in deinem Profil.' : st.vis === 'friends' ? 'Du und Freunde. Andere App-Nutzer und das Web sehen ihn nicht.' : 'Freunde, alle App-Nutzer, Web und Link-Karte (Standard).';
 }
 function renderTicks() {
   $('#ticks').innerHTML = [30, 90, 180, 365].map(d => `<span style="left:${(d / 400 * 100).toFixed(2)}%">${d}</span>`).join('');
@@ -870,15 +896,19 @@ function renderTables() {
 function renderViews() {
   $('#ownPhone').innerHTML = ownProfile();
   $('#friendPhone').innerHTML = friendProfile();
+  $('#allPhone').innerHTML = allProfile();
+  const s = k => seen(k) ? 'sieht den Titel' : '<b>sieht ihn nicht</b>';
+  $('#friendCap').innerHTML = `<b>Freunde</b> · in der App · ${s('friend')}`;
+  $('#allCap').innerHTML = `<b>App-Nutzer</b> · angemeldet, nicht befreundet · ${s('all')}`;
   $('#webPhone').innerHTML = webPage();
-  $('#webCap').innerHTML = `<b>Web-Vorschau</b> · hokuhealth.app/u/mara · Titel im Web <b>${st.web ? 'an' : 'aus'}</b>`;
+  $('#webCap').innerHTML = `<b>Web</b> · hokuhealth.app/u/mara, ohne Anmeldung · ${s('web')}`;
   $('#cardBox').innerHTML = ogA1();
   const w = worn();
-  $('#cardH').textContent = `Link-Karte Fortschritt · Titel ${st.web && w ? 'an' : 'aus'}`;
+  $('#cardH').textContent = `Link-Karte Fortschritt · Titel ${seen('web') && w ? 'sichtbar' : 'nicht sichtbar'}`;
   $('#cardList').innerHTML = [
     `Karte aus 2c (Fortschritt, Hauptlogo unten Mitte), 1200 × 630 px, hier verkleinert. Der Titel steht als <b>Chip unter dem Namen</b>.`,
-    st.web ? (w ? `Gerade: <b>${esc(w.de)}</b> (${w.kind}). Schaltet Mara „Titel im Web zeigen“ aus, rückt die Zeile darunter einfach nach oben.` : 'Ohne Titel entfällt der Chip, die Karte bleibt sonst gleich.')
-      : '„Titel im Web zeigen“ ist aus: kein Chip, die Zeilen darunter rücken nach oben. In der App sehen Freunde den Titel weiter.',
+    seen('web') ? (w ? `Gerade: <b>${esc(w.de)}</b> (${w.kind}). Steht der Titel nicht auf „Alle“, rückt die Zeile darunter einfach nach oben.` : 'Ohne Titel entfällt der Chip, die Karte bleibt sonst gleich.')
+      : `Der Titel steht auf „${VIS[st.vis]}“: kein Chip, die Zeilen darunter rücken nach oben. Die Karte sieht für jeden gleich aus, auch für Freunde, weil der Messenger sie ohne Anmeldung holt.`,
     'Keine Farbe für den Titel. Cyan bleibt den Zahlen vorbehalten (9 Werte, 30 %).',
   ].map(x => `<li>${x}</li>`).join('');
 }
@@ -886,7 +916,7 @@ function renderAll() { renderCtl(); renderViews(); renderSheetPhone(); renderTab
 
 // ── Ereignisse ──
 const range = $('#daysIn');
-range.addEventListener('input', () => { st.days = +range.value; st.pop = false; renderAll(); });
+range.addEventListener('input', () => { st.days = +range.value; renderAll(); });
 range.addEventListener('change', () => {
   const i = rIdx(st.days);
   if (i > committed) {
@@ -903,8 +933,9 @@ document.addEventListener('click', e => {
   const act = t.dataset.act;
   if (t.dataset.wear) { st.worn = t.dataset.wear; renderAll(); return; }
   if (t.dataset.cw) { st.cw = t.dataset.cw; renderCelebText(); return; }
-  if (act === 'web') { st.web = !st.web; renderAll(); return; }
-  if (act === 'pop') { st.pop = !st.pop; const p = $('#tpop'); p.dataset.open = String(st.pop); t.setAttribute('aria-expanded', String(st.pop)); return; }
+  if (t.dataset.vis) { st.vis = t.dataset.vis; renderAll(); return; }
+  if (act === 'viscycle') { st.vis = VIS_ORDER[(VIS_ORDER.indexOf(st.vis) + 1) % 3]; renderAll(); return; }
+  if (act === 'pop') { const p = t.nextElementSibling, o = p.dataset.open !== 'true'; p.dataset.open = String(o); t.setAttribute('aria-expanded', String(o)); return; }
   if (act === 'sheet') {
     const inSheetPhone = !!t.closest('#sheetPhone');
     if (!inSheetPhone) $('#sheet').scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth', block: 'start' });
@@ -924,7 +955,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (st.pop) { st.pop = false; const p = $('#tpop'); if (p) p.dataset.open = 'false'; }
+  document.querySelectorAll('.tpop[data-open="true"]').forEach(p => { p.dataset.open = 'false'; });
 });
 
 $('#momentPhone').innerHTML = momentScreen();
