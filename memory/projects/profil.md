@@ -198,3 +198,8 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   und die Zahl verrät etwas über Blut/Einnahmen). Brand-Guide-Freigabe für B1 und B3 (Anschnitt).
 - Recht: in Werbetexten nicht „überwacht“, „erkennt“, „warnt“, „optimiert Gesundheit“ (Medizinprodukt-Anschein, Irreführung).
 - Archiv: Fassung 2 (B1–B6, C1–C6, alle Slogans) in `profil-2c-karten.html` und Canva-Vorlage `docs/profil/canva/` bleiben.
+- Nutzer 03.11.: Rückfall-Überschrift **„Mehr als nur Tracking.“**, Einstieg **„Du trackst. Hoku verbindet.“**, dann
+  „Hokus intelligente Engine legt alles, was du trackst, übereinander …“ (Nutzer-Idee: „erkennt Synergien/Zusammenhänge“).
+  Enden V1–V6 im Mockup; V1–V3 stimmen heute (Vergleich mit Start, KI-Coach erklärt), V4–V6 (Zusammenhänge, Muster,
+  „was dich weiterbringt“) erst mit echter Zusammenhangs-/Mustersuche — sonst irreführende Werbung (UWG) und „erkennt“ klingt
+  nach Medizinprodukt. Empfehlung V1. Wahl offen. Alte T1–T6 in der Git-Historie (c7413e3).

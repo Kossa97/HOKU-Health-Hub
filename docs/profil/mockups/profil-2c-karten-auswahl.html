@@ -160,6 +160,9 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 .og.t-c .say { display: grid; gap: 1.4cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 3.6cqw; border-left: .1cqw solid var(--o-hair); min-height: 32cqw; }
 .og.t-c .say .hl { font-size: 3.5cqw; }
 .og.t-c .say .ln { font-size: 2.3cqw; }
+.og .say .ln .ld { font-weight: 600; color: var(--o-t1); }
+.sty-h .tag.ok { color: var(--ink2); }
+.sty-h .tag.no { color: var(--ink); text-decoration: underline; text-decoration-color: var(--warn-line); text-underline-offset: 3px; }
 .og.t-c .say .pill { font-size: 2.4cqw; }
 .og .say .q { font: 500 2cqw/1 var(--mono); color: var(--o-t3); letter-spacing: .08em; text-transform: uppercase; }
 .og .say .hl { margin: 0; font: 600 4cqw/1.12 var(--disp); letter-spacing: -.015em; text-wrap: balance; color: var(--o-t1); }
@@ -236,8 +239,8 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 
   <section aria-labelledby="h-ct">
     <div class="sec-head">
-      <h2 id="h-ct"><span class="k">Rückfall</span>Sechs Texte über Hoku</h2>
-      <p>Jeder sagt kurz, <b>was Hoku alles kann</b> und <b>was dahinter arbeitet</b>: Hoku verbindet alle Werte, vergleicht sie mit deinem Start und erklärt sie über den KI-Coach. Darunter steht jeweils, wie der Messenger Titel und Beschreibung zeigt. Antippen wählt den Text.</p>
+      <h2 id="h-ct"><span class="k">Rückfall</span>„Mehr als nur Tracking.“ · sechs Enden für die Zeile</h2>
+      <p>Überschrift und Einstieg stehen: <b>„Mehr als nur Tracking.“</b> und <b>„Du trackst. Hoku verbindet.“</b> Danach folgt deine Zeile über die Engine mit sechs Enden. <b>„stimmt heute“</b> heißt: Die App kann das schon. <b>„braucht Funktion“</b> heißt: Erst muss die Engine Zusammenhänge oder Muster wirklich suchen, sonst wäre der Satz irreführend. Antippen wählt den Text.</p>
     </div>
     <div class="gal" id="galCT"></div>
   </section>
@@ -295,26 +298,26 @@ const SLOGAN = { de: 'Sieh, wer du wirst.', en: 'See who you’re becoming.' };
 
 // Rueckfall: was Hoku kann und was dahinter arbeitet. Nur Funktionen, die es gibt; keine Substanzen, keine Heilversprechen.
 const CT = [
-  { k: 'T1', h: 'Du trackst.|Hoku verbindet.', l: 'Training, Ernährung, Schlaf, Körper und Blutwerte in einer App. Hoku vergleicht alles mit deinem Start und erklärt dir, was sich tut.',
-    en: ['You track. Hoku connects.', 'Training, nutrition, sleep, body and blood work in one app. Hoku compares it all with your start and explains what’s changing.'],
-    w: 'Klare Rollen: Du sammelst, Hoku arbeitet. Nennt alle Bereiche und beide Aufgaben der Engine in zwei Zeilen.' },
-  { k: 'T2', h: 'Alles, was du trackst.|In einem Bild.', l: 'Training, Ernährung, Schlaf, Körper, Blutwerte und Tagebuch. Hoku legt alles nebeneinander und zeigt, was sich verändert.',
-    en: ['Everything you track. In one picture.', 'Training, nutrition, sleep, body, blood work and journal. Hoku puts it side by side and shows what changes.'],
-    w: 'Das Versprechen ist der Überblick. „In einem Bild“ passt zur Karte, die selbst ein Bild ist.' },
-  { k: 'T3', h: 'Eine App.|Hoku hat alles im Blick.', l: 'Training, Ernährung, Schlaf, Körper, Blutwerte, Tagebuch. Hoku verbindet alles und misst, wie weit du seit dem Start bist.',
-    en: ['One app. Hoku sees the whole picture.', 'Training, nutrition, sleep, body, blood work, journal. Hoku connects it all and measures how far you’ve come.'],
-    w: 'Spielt mit Hoku als Auge. „Im Blick“ ist bewusst weich gewählt, „überwacht“ wäre zu viel.' },
-  { k: 'T4', h: 'Hinter jeder Zahl|steckt Hoku.', l: 'Hoku verbindet Training, Ernährung, Schlaf, Körper und Blutwerte, vergleicht alles mit deinem Start und beantwortet deine Fragen.',
-    en: ['Behind every number is Hoku.', 'Hoku connects training, nutrition, sleep, body and blood work, compares it with your start and answers your questions.'],
-    w: 'Stellt die Engine nach vorn. Neugier auf das, was die Zahlen zusammenhält.' },
-  { k: 'T5', h: 'Mehr als Tracking.', l: 'Training, Ernährung, Schlaf, Körper und Blutwerte, verbunden zu einem Bild. Mit Fortschritt seit dem Start, Abzeichen und KI-Coach.',
-    en: ['More than tracking.', 'Training, nutrition, sleep, body and blood work, joined into one picture. With progress since your start, badges and an AI coach.'],
-    w: 'Am kürzesten in der Überschrift, dafür die vollständigste Liste. Nennt auch Abzeichen.' },
-  { k: 'T6', h: 'Sieh alles.|Zusammen.', l: 'Vom Training bis zum Blutwert: Hoku sammelt alles in einer App, misst deinen Fortschritt und erklärt ihn dir.',
-    en: ['See it all. Together.', 'From workouts to blood work: Hoku gathers it all in one app, measures your progress and explains it.'],
-    w: 'Greift das „Sieh“ aus dem Slogan auf. Beide Karten klingen dann wie aus einem Guss.' },
+  { k: 'V1', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander und vergleicht es mit deinem Start. So siehst du, was sich bewegt.', ok: true,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track and compares it with your start, so you see what’s moving.'],
+    w: 'Beschreibt genau, was die Engine heute tut: zusammenführen und mit dem Start vergleichen.' },
+  { k: 'V2', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander und zeigt dir, wie weit du seit dem Start gekommen bist.', ok: true,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track and shows how far you’ve come since your start.'],
+    w: 'Am nächsten am Fortschritt der Person, ruhig und belegbar.' },
+  { k: 'V3', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander. Der KI-Coach erklärt dir, was dahintersteckt.', ok: true,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track. The AI coach explains what’s behind it.'],
+    w: 'Nennt die zweite Hälfte der Engine, den KI-Coach. Wahr, weil der Coach auf Nachfrage erklärt.' },
+  { k: 'V4', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander und zeigt dir, was zusammenhängt.', ok: false,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track and shows you what’s connected.'],
+    w: 'Kurz und stark. Braucht eine Funktion, die Zusammenhänge wirklich sucht und zeigt.' },
+  { k: 'V5', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander und findet Muster, die du allein nicht siehst.', ok: false,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track and finds patterns you’d miss on your own.'],
+    w: 'Der stärkste Sog: Neugier auf das Unsichtbare. Braucht eine echte Mustersuche.' },
+  { k: 'V6', h: 'Mehr als nur|Tracking.', lead: 'Du trackst. Hoku verbindet.', l: 'Hokus intelligente Engine legt alles, was du trackst, übereinander und zeigt, was dich wirklich weiterbringt.', ok: false,
+    en: ['More than just tracking.', 'You track. Hoku connects. Hoku’s smart engine layers everything you track and shows what really moves you forward.'],
+    w: 'Verspricht eine Wirkungsanalyse. Ohne sie wäre das irreführend.' },
 ];
-CT.forEach(T => { T.hb = T.h; T.h = T.h.replace('|', ' '); });
+CT.forEach(T => { T.hb = T.h; T.h = T.h.replace('|', ' '); T.full = T.lead + ' ' + T.l; T.end = T.l.slice(66).trim(); });
 const CT_REC = 0;
 const st = { ct: CT_REC, chat: 'dark' };
 
@@ -345,7 +348,7 @@ function ogC(ct) {
   return `<div class="og t-c" role="img" aria-label="Vorschaubild Rückfall, Text ${T.k}: ${esc(T.h)}">
     ${mark(42, 66.5, 23)}
     <div class="body">${who([mStreak, mTrack])}
-      <div class="say"><span class="q">Über Hoku</span><p class="hl">${nbh(esc(T.hb)).replace('|', '<br>')}</p><p class="ln">${nbh(esc(T.l))}</p><span class="pill">Profil ansehen</span></div></div>
+      <div class="say"><span class="q">Über Hoku</span><p class="hl">${nbh(esc(T.hb)).replace('|', '<br>')}</p><p class="ln"><b class="ld">${esc(T.lead)}</b> ${nbh(esc(T.l))}</p><span class="pill">Profil ansehen</span></div></div>
     ${img('kompakt_cw', 'lg')}${sq}</div>`;
 }
 function ogN() {
@@ -357,10 +360,10 @@ function ogN() {
 
 function meta(type, ct = st.ct) {
   const T = CT[ct];
-  if (type === 'n') return { t: 'Hoku Health Hub', d: `${SLOGAN.de} ${T.l}` };
+  if (type === 'n') return { t: 'Hoku Health Hub', d: `${SLOGAN.de} ${T.full}` };
   if (type === 'a1') return { t: `${D.name} auf Hoku: über ${D.tier} % positive Veränderung seit ${D.monat}`,
     d: `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}. ${D.streak} Tage dabei, ${D.abz} Abzeichen. Sieh dir ${D.gen} Profil an.` };
-  return { t: `${D.name} auf Hoku · ${T.h}`, d: `${D.vor} trackt ${D.werte} Werte mit Hoku. ${T.l}` };
+  return { t: `${D.name} auf Hoku · ${T.h}`, d: `${D.vor} trackt ${D.werte} Werte mit Hoku. ${T.full}` };
 }
 const prevT = m => `<div class="prev-t"><b>${esc(m.t)}</b><span>${esc(m.d)}</span><small>hokuhealth.app</small></div>`;
 
@@ -386,11 +389,11 @@ function renderCT() {
   $('#galCT').innerHTML = CT.map((T, i) => {
     const on = st.ct === i;
     return `<div class="sty" data-on="${on}">${ogC(i)}<div class="prev">${prevT(meta('c', i))}</div>
-      <div class="sty-h"><button type="button" data-ct="${i}" aria-pressed="${on}"><span class="tag">${T.k}</span>${esc(T.h)}</button>${i === CT_REC ? '<span class="tag">Empfehlung</span>' : ''}<span class="state">${ic('check', 2.4)}gewählt</span></div>
-      <div class="txt"><span><b>Zeile:</b> ${esc(T.l)}</span><span class="en">EN: ${esc(T.en.join(' / '))}</span></div>
+      <div class="sty-h"><button type="button" data-ct="${i}" aria-pressed="${on}"><span class="tag">${T.k}</span>… ${esc(T.end)}</button><span class="tag ${T.ok ? 'ok' : 'no'}">${T.ok ? 'stimmt heute' : 'braucht Funktion'}</span>${i === CT_REC ? '<span class="tag">Empfehlung</span>' : ''}<span class="state">${ic('check', 2.4)}gewählt</span></div>
+      <div class="txt"><span><b>Zeile:</b> ${esc(T.full)}</span><span class="en">EN: ${esc(T.en.join(' / '))}</span></div>
       <p>${esc(T.w)}</p></div>`;
   }).join('');
-  $('#ctSel').innerHTML = CT.map((T, i) => `<option value="${i}"${i === st.ct ? ' selected' : ''}>${T.k} · ${esc(T.h)}${i === CT_REC ? ' (Empfehlung)' : ''}</option>`).join('');
+  $('#ctSel').innerHTML = CT.map((T, i) => `<option value="${i}"${i === st.ct ? ' selected' : ''}>${T.k} · … ${esc(T.end)}${T.ok ? '' : ' (braucht Funktion)'}${i === CT_REC ? ' (Empfehlung)' : ''}</option>`).join('');
 }
 const CHATS = [
   { type: 'a1', og: ogA1, k: 'Fortschritt', p: 'Wenn Bild, Name und ein positiver Fortschritt auf „Alle“ stehen.' },
