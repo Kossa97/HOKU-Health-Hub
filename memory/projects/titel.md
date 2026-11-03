@@ -50,3 +50,11 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
 ## Geparkt
 - Prägungen aus Körper-/Blutwerten nur in der App (nicht Web): später prüfen.
 - Ruhender Titel nach langer Pause.
+
+## Nutzer 03.11. (dritte Runde)
+- Fragte, warum Körperwerte, Gewicht, Blut, Ruhepuls, Einnahmen, Erfahrungsberichte, Gesamtfortschritt nie tragbar sind.
+  Begründung: Titel steht ab Werk auf „Alle“ (auch Web/Karte); diese Daten haben eigene Felder mit Standard „Nur ich“ —
+  ein Titel würde sie an der Einstellung vorbei zeigen (Art. 9). Später denkbar: tragbar nur, solange das zugehörige
+  Feld selbst auf „Alle“ steht (geparkt).
+- Mockup Entwurf 3: tragbare Abzeichen (17, davon 5 aus 2b), Schwellen 1·10·50·100·200·365, offene Liste im Sheet
+  zeigt die 5 nächsten.

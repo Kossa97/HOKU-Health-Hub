@@ -2,8 +2,8 @@
 
 Stand: 2026-11-03 · Status: Entwurf zur Freigabe · baut auf 2a (Sichtbarkeit), 2b (Abzeichen)
 und 2c (Web, Link-Karte) auf.
-Mockup: `docs/profil/mockups/profil-titel.html` (Entwurf 2; Abschnitt „Prägungen“ dort ist durch
-„tragbare Abzeichen“ ersetzt, siehe 3). Entscheidungen: `memory/projects/titel.md`.
+Mockup: `docs/profil/mockups/profil-titel.html` (Entwurf 3, mit tragbaren Abzeichen und den
+Schwellen aus 2). Entscheidungen: `memory/projects/titel.md`.
 
 Kennzeichnung wie in den Profil-Specs: **[Nutzer]** = vom Nutzer entschieden,
 **[Claude, ungeprüft]** = Vorschlag, noch nicht bestätigt.

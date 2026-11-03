@@ -402,9 +402,9 @@ button.prow:active .pn { opacity: .7; }
 <div class="page" lang="de">
 
   <header class="top">
-    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 2 · 03.11.2026</div>
+    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 3 · 03.11.2026</div>
     <h1>Titel neben dem Namen</h1>
-    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder eine <b>Prägung</b>, die du dir verdient hast. Einmal erreicht, für immer. Abzeichen bleiben Sammelstücke. Wer ihn sieht, regelt die Stufe wie bei jedem Feld aus 2a: <b>Nur ich, Freunde oder Alle</b>, ab Werk Alle.</p>
+    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder ein <b>Abzeichen</b>, das du dir verdient hast und das einen Titelnamen trägt. Einmal erreicht, für immer. Wer ihn sieht, regelt die Stufe wie bei jedem Feld aus 2a: <b>Nur ich, Freunde oder Alle</b>, ab Werk Alle.</p>
     <div class="ctlbar" role="group" aria-label="Steuerung für alle Ansichten">
       <div class="ctl-grid">
         <div class="ctl">
@@ -460,7 +460,7 @@ button.prow:active .pn { opacity: .7; }
     <div class="sec-head">
       <div class="eyebrow">Sheet · am Titel im eigenen Profil</div>
       <h2 id="h-sheet">Dein Titel</h2>
-      <p>Oben steht, was du gerade trägst. Darunter die Rangleiter mit deiner Stufe und dem Weg zur nächsten, dann die Prägungen. Verdiente lassen sich statt des Rangs tragen, offene zeigen ihren Stand. Was du hier wählst, ändert alle Ansichten oben.</p>
+      <p>Oben steht, was du gerade trägst. Darunter die Rangleiter mit deiner Stufe und dem Weg zur nächsten, dann die Abzeichen mit Titelnamen. Verdiente lassen sich statt des Rangs tragen, offene zeigen ihren Stand. Was du hier wählst, ändert alle Ansichten oben.</p>
     </div>
     <div class="row">
       <div class="frame-col"><div class="frame-cap"><b>Profil › Titel antippen</b> · Hintergrund antippen schließt</div><div class="phone fix" id="sheetPhone"></div></div>
@@ -471,11 +471,11 @@ button.prow:active .pn { opacity: .7; }
             <li><b>Wer den Rang trägt, steigt von selbst mit.</b> Mit 180 Tagen steht dort Veteran, ohne dass man etwas wählen muss.</li>
             <li>Nur der nächste Schritt zeigt einen Abstand („noch 30 Tage“). Weiter entfernte Stufen nennen nur ihre Schwelle.</li>
           </ul></div>
-        <div class="box"><h3>Prägungen</h3>
+        <div class="box"><h3>Titel aus Abzeichen</h3>
           <ul>
-            <li>Gekoppelt an Abzeichen aus 2b: gleiche Zählung, keine zweite Logik.</li>
+            <li>Kein eigenes Konzept: Einige Abzeichen haben einen <b>Titelnamen</b> („100 Workouts“ heißt als Titel Trainingstier). Gleiche Zählung, keine zweite Logik.</li>
             <li><b>Verdient:</b> antippbar wie ein Auswahlknopf. <b>Offen:</b> gedimmt, mit Schloss und Stand („18/25 Bestleistungen“).</li>
-            <li>Unaufhaltsam zählt die Serie. Eine Lücke setzt den Stand zurück, der verdiente Titel bleibt.</li>
+            <li>Sportarten zählen auch Einheiten aus Apple Health und Health Connect. Der Rang zählt nur eigene Einträge.</li>
           </ul></div>
         <div class="box"><h3>Bewegung</h3>
           <p>Das Sheet fährt von unten herein (440 ms, iOS-Kurve) und schneller wieder hinaus (240 ms). Mit „Bewegung reduzieren“ blendet es nur ein. Der Auswahlpunkt wächst in 180 ms, sonst bewegt sich nichts.</p></div>
@@ -498,7 +498,7 @@ button.prow:active .pn { opacity: .7; }
           <div class="replay-row">
             <button type="button" class="pbtn" data-act="play"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>Abspielen</button>
             <div class="seg" role="group" aria-label="Was Mara gerade trägt" id="celebSeg">
-              <button type="button" data-cw="praeg" aria-pressed="true">trägt Prägung</button>
+              <button type="button" data-cw="praeg" aria-pressed="true">trägt Abzeichen-Titel</button>
               <button type="button" data-cw="rang" aria-pressed="false">trägt Rang</button>
             </div>
           </div>
@@ -533,21 +533,20 @@ button.prow:active .pn { opacity: .7; }
           <tbody id="rankTab"></tbody></table></div>
         <p>Gezählt werden Tage mit eigenem Eintrag (<code>BadgeFacts.entryDays</code>), keine automatisch übertragenen Wearable-Tage. Die Tage müssen nicht am Stück liegen.</p></div>
       <div class="box"><h3>Nie als Titel</h3>
-        <p>Ein Titel steht im Web und auf der Link-Karte. Er darf deshalb nichts über Gesundheit oder Substanzen verraten.</p>
+        <p>Ein Titel steht im Web und auf der Link-Karte. Er darf deshalb nichts verraten, das sonst ein eigenes Feld mit strengerer Stufe hat (Standard „Nur ich“).</p>
         <ul class="never" id="neverList"></ul></div>
-      <div class="box wide"><h3>Prägungen</h3>
+      <div class="box wide"><h3>Abzeichen mit Titelnamen</h3>
         <div class="tbl-wrap"><table class="tab">
-          <thead><tr><th>Prägung</th><th>Englisch</th><th>Bedingung</th><th>Datenquelle</th><th>Abzeichen (2b)</th><th>Mara</th></tr></thead>
+          <thead><tr><th>Abzeichen</th><th>Titel</th><th>Englisch</th><th>Herkunft</th><th>Mara</th></tr></thead>
           <tbody id="prTab"></tbody></table></div></div>
       <div class="box wide"><h3>Offene Fragen</h3>
         <ol>
-          <li><b>Schwellen bestätigen:</b> 1, 7, 30, 90, 180, 365 Tage mit Eintrag. Reicht 365 als oberste Stufe, oder kommt später etwas darüber?</li>
-          <li><b>Prägungen-Liste bestätigen:</b> die sieben oben, alle an bestehende Abzeichen gekoppelt. Hybrid-Athlet braucht eine Einheitenart „Hyrox“, das ist noch zu prüfen.</li>
-          <li><b>Einstieg ins Sheet:</b> Chip im eigenen Profil antippen (so im Mockup), über Profil › ⚙︎ › Titel, oder beides?</li>
-          <li><b>Feier auch für Prägungen?</b> Vorschlag: derselbe Moment mit „Neue Prägung“. Weil Prägungen seltener sind, wirkt er dort eher noch stärker.</li>
-          <li><b>Rang steigt von selbst mit,</b> wenn er getragen wird (so im Mockup). Wer eine Prägung trägt, wird beim neuen Rang gefragt.</li>
-          <li><b>Datenprofi:</b> Die Zählung der Einträge kommt mit 2c (für die Link-Karte). Vorher lässt sich die Prägung nicht vergeben.</li>
-          <li><b>Sichtbarkeit (entschieden):</b> Der Titel ist ein Feld mit Stufe wie in 2a, ab Werk „Alle“. Kein eigener Web-Schalter: Web und Link-Karte zeigen ihn nur auf „Alle“ und bei eingeschaltetem Web-Link.</li>
+          <li><b>Titelnamen bestätigen</b> (Tabelle oben).</li>
+          <li><b>Schwellen der Sportarten:</b> 50 Läufe, 50 Radeinheiten, 30 Schwimm- und Rudereinheiten, 25 Wanderungen, 20 Hyrox, 50 HIIT, 50 Yoga/Mobility, Allrounder 5 Arten mit je 10.</li>
+          <li><b>Feier auch für neue Abzeichen-Titel?</b> Vorschlag: derselbe Moment mit „Neuer Titel freigeschaltet“ und „Als Titel tragen“ / „Später“.</li>
+          <li><b>Standard „Alle“</b> juristisch freigeben lassen: Alle anderen Felder stehen ab Werk auf „Nur ich“ (Art. 25 DSGVO).</li>
+          <li><b>Erster Start für bestehende Nutzer:</b> nur der aktuelle Rang mit einem Moment, keine Feier für jede Zwischenstufe.</li>
+          <li><b>Entschieden:</b> Rang nach Tagen mit eigenem Eintrag, zusammengezählt (1 · 10 · 50 · 100 · 200 · 365). Einstieg ins Sheet über den Chip und über Profil › ⚙︎ › Titel. Sichtbarkeit als Feld, Standard „Alle“.</li>
         </ol></div>
     </div>
   </section>
@@ -592,31 +591,37 @@ const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').match
 // ── Daten (erfunden) ──
 // Rang: Tage mit eigenem Eintrag (BadgeFacts.entryDays)
 const RANKS = [
-  { d: 1, de: 'Neuling', en: 'Newcomer' }, { d: 7, de: 'Entdecker', en: 'Explorer' }, { d: 30, de: 'Dranbleiber', en: 'Committed' },
-  { d: 90, de: 'Routinier', en: 'Regular' }, { d: 180, de: 'Veteran', en: 'Veteran' }, { d: 365, de: 'Legende', en: 'Legend' },
+  { d: 1, de: 'Neuling', en: 'Newcomer' }, { d: 10, de: 'Entdecker', en: 'Explorer' }, { d: 50, de: 'Dranbleiber', en: 'Committed' },
+  { d: 100, de: 'Routinier', en: 'Regular' }, { d: 200, de: 'Veteran', en: 'Veteran' }, { d: 365, de: 'Legende', en: 'Legend' },
 ];
 // Praegungen: an Abzeichen aus 2b gekoppelt. have = Maras Stand (erfunden).
+// Abzeichen mit Titelnamen (tragbar). cond = Name des Abzeichens, have = Maras Stand (erfunden).
 const PR = [
-  { id: 'kraft', de: 'Kraftpaket', en: 'Powerhouse', icon: 'trophy', need: 25, have: 18, cond: '25 Bestleistungen', unit: 'Bestleistungen',
-    src: '<code>prDays</code>, Tage mit Bestleistung', badge: '„Neue Bestleistung“, „3 Bestleistungen in einem Monat“' },
-  { id: 'tier', de: 'Trainingstier', en: 'Workhorse', icon: 'dumbbell', need: 100, have: 112, cond: '100 Trainings', unit: 'Trainings',
-    src: '<code>sessionDays</code>', badge: '„100 Workouts“' },
-  { id: 'schritt', de: 'Schrittmacher', en: 'Pacesetter', icon: 'steps', need: 12, have: 14, cond: '12 Wochen Ø ≥ 10.000 Schritte', unit: 'Wochen',
-    src: '<code>stepWeeks</code>, Wochen mit Ø ≥ 10.000', badge: '„Eine Woche Ø 10.000 Schritte“', done: h => `${h} Wochen mit Ø ≥ 10.000 Schritten` },
-  { id: 'unauf', de: 'Unaufhaltsam', en: 'Unstoppable', icon: 'flame', need: 100, have: 41, cond: '100 Tage in Folge mit Eintrag', unit: 'Tage in Folge',
-    src: 'Serie aus <code>entryDays</code>', badge: '„100 Tage ohne Lücke“', extra: 'aktuelle Serie' },
-  { id: 'daten', de: 'Datenprofi', en: 'Data Pro', icon: 'note', need: 1000, have: 1240, cond: '1.000 Einträge', unit: 'Einträge',
-    src: 'Zahl der Einträge <small>kommt mit 2c (Link-Karte)</small>', badge: '–' },
-  { id: 'hybrid', de: 'Hybrid-Athlet', en: 'Hybrid Athlete', icon: 'bolt', need: 20, have: 6, cond: '20 Hyrox-Einheiten', unit: 'Hyrox-Einheiten',
-    src: '<code>sessionDays</code> mit Art „Hyrox“ <small>Art der Einheit prüfen</small>', badge: '–' },
-  { id: 'motiv', de: 'Motivator', en: 'Motivator', icon: 'people', need: 5, have: 2, cond: '5 Freunde auf Hoku', unit: 'Freunde',
-    src: 'Freundesliste <small>kommt mit Freunden</small>', badge: '„Erster Freund“, „10 Freunde“' },
+  { id: 'tier', de: 'Trainingstier', en: 'Workhorse', icon: 'dumbbell', need: 100, have: 112, cond: '100 Workouts', unit: 'Workouts', origin: 'aus 2b' },
+  { id: 'lauf', de: 'Läufer', en: 'Runner', icon: 'steps', need: 50, have: 54, cond: '50 Läufe', unit: 'Läufe', origin: 'neu · Sportart, auch importiert' },
+  { id: 'schritt', de: 'Schrittmacher', en: 'Pacesetter', icon: 'steps', need: 12, have: 14, cond: '12 Wochen Ø ≥ 10.000 Schritte', unit: 'Wochen', origin: 'neu', done: h => `${h} Wochen mit Ø ≥ 10.000 Schritten` },
+  { id: 'daten', de: 'Datenprofi', en: 'Data Pro', icon: 'note', need: 1000, have: 1240, cond: '1.000 Einträge', unit: 'Einträge', origin: 'neu · Zählung kommt mit 2c' },
+  { id: 'kraft', de: 'Kraftpaket', en: 'Powerhouse', icon: 'trophy', need: 25, have: 18, cond: '25 Bestleistungen', unit: 'Bestleistungen', origin: 'neu' },
+  { id: 'unauf', de: 'Unaufhaltsam', en: 'Unstoppable', icon: 'flame', need: 100, have: 41, cond: '100 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
+  { id: 'eisern', de: 'Eiserner Wille', en: 'Iron Will', icon: 'flame', need: 365, have: 41, cond: '365 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
+  { id: 'jahr', de: 'Ganzjahres-Athlet', en: 'Year-Round Athlete', icon: 'dumbbell', need: 52, have: 19, cond: '52 Wochen Training in Folge', unit: 'Wochen in Folge', origin: 'aus 2b' },
+  { id: 'hybrid', de: 'Hybrid-Athlet', en: 'Hybrid Athlete', icon: 'bolt', need: 20, have: 6, cond: '20 Hyrox-Einheiten', unit: 'Hyrox-Einheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'rad', de: 'Radsportler', en: 'Cyclist', icon: 'bolt', need: 50, have: 9, cond: '50 Radeinheiten', unit: 'Radeinheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'schwimm', de: 'Schwimmer', en: 'Swimmer', icon: 'drop', need: 30, have: 4, cond: '30 Schwimmeinheiten', unit: 'Schwimmeinheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'ruder', de: 'Ruderer', en: 'Rower', icon: 'bolt', need: 30, have: 0, cond: '30 Rudereinheiten', unit: 'Rudereinheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'wander', de: 'Wanderer', en: 'Hiker', icon: 'steps', need: 25, have: 3, cond: '25 Wanderungen', unit: 'Wanderungen', origin: 'neu · Sportart, auch importiert' },
+  { id: 'hiit', de: 'Intervall-Profi', en: 'Interval Pro', icon: 'bolt', need: 50, have: 12, cond: '50 HIIT-Einheiten', unit: 'HIIT-Einheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'yogi', de: 'Yogi', en: 'Yogi', icon: 'moon', need: 50, have: 7, cond: '50 Yoga- oder Mobility-Einheiten', unit: 'Einheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'allround', de: 'Allrounder', en: 'All-Rounder', icon: 'trophy', need: 5, have: 3, cond: '5 Sportarten mit je ≥ 10 Einheiten', unit: 'Sportarten', origin: 'neu' },
+  { id: 'motiv', de: 'Motivator', en: 'Motivator', icon: 'people', need: 10, have: 2, cond: '10 Freunde', unit: 'Freunde', origin: 'aus 2b · kommt mit Freunden' },
 ];
 const NEVER = [
-  ['ruler', 'Körperwerte', 'Körperfett, Muskelmasse, Umfänge. Gesundheitsdaten nach Art. 9 DSGVO, die im Web offen stünden.'],
-  ['scale', 'Gewicht', 'Auch nicht als Veränderung („−10 kg“). Verrät den Körper und lädt zum Vergleich ein.'],
-  ['drop', 'Blutwerte', 'Gesundheitsdaten. Erscheinen im Web nie, auch nicht als Bereich oder in der Zahl der Werte.'],
-  ['pill', 'Einnahmen und Stack', 'Ein Titel würde zeigen, welche Substanzen jemand nimmt.'],
+  ['ruler', 'Körperwerte', 'Körperfett, Muskelmasse, Umfänge: Gesundheitsdaten nach Art. 9 DSGVO, die im Web offen stünden. Laden außerdem zum Vergleichen von Körpern ein.'],
+  ['scale', 'Gewicht', 'Auch nicht als Veränderung („−5 % Gewicht“).'],
+  ['drop', 'Blut und Ruhepuls', 'Medizinische Befunde und Herz-Kreislauf-Werte. Klingen zudem nach Diagnose.'],
+  ['pill', 'Einnahmen und Stack', 'Ein Titel würde zeigen, dass und was jemand regelmäßig nimmt.'],
+  ['note', 'Erfahrungsberichte', 'Verraten, dass jemand Substanzen nimmt, über die er schreibt.'],
+  ['trend', 'Gesamtfortschritt', 'Rechnet Blut und Einnahmen mit ein.'],
 ];
 const PERSON = { name: 'Mara K.', vor: 'Mara', nick: 'mara', land: '🇩🇪 DE', dabei: 'Seit 7 Monaten dabei', eintraege: 1240, abz: 16,
   bio: 'Kraftsport seit 2019, seit März im Recomp. Hier halte ich fest, was ich trainiere und wie ich schlafe.', tags: ['Recomp', 'Kraft', 'Schlaf & Erholung'] };
@@ -641,13 +646,13 @@ function nextInfo() {
 function worn() {
   if (st.worn === 'rang') { const r = rankNow(); return r ? { de: r.de, en: r.en, kind: 'Rang', r } : null; }
   const p = PR.find(x => x.id === st.worn);
-  return p && earned(p) ? { de: p.de, en: p.en, kind: 'Prägung', p } : null;
+  return p && earned(p) ? { de: p.de, en: p.en, kind: 'Abzeichen', p } : null;
 }
 const tageDe = n => `${fmt(n)} ${n === 1 ? 'Tag' : 'Tagen'}`;
 const restDe = n => `${fmt(n)} ${n === 1 ? 'Tag' : 'Tage'}`;
 const prDone = p => p.done ? p.done(p.have) : `${fmt(p.have)} ${p.unit}`;
 const prLeft = p => `${fmt(p.have)}/${fmt(p.need)} ${p.unit}`;
-const whatIs = w => w.kind === 'Rang' ? `Rang ab ${tageDe(w.r.d)} mit eigenem Eintrag` : `Prägung für ${w.p.cond}`;
+const whatIs = w => w.kind === 'Rang' ? `Rang ab ${tageDe(w.r.d)} mit eigenem Eintrag` : `Titel aus dem Abzeichen „${w.p.cond}“`;
 
 // ── Gemeinsame Teile ──
 const statusbar = `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>`;
@@ -737,24 +742,25 @@ function sheetBody() {
   if (i < 0) lad = `<li class="prog"><span class="tr" aria-hidden="true"><i style="width:0%"></i></span><span class="pt">noch <b>1 Tag</b> mit Eintrag bis Neuling</span></li>` + lad;
   const rOn = st.worn === 'rang';
   const rRow = `<button type="button" class="rrow" role="radio" aria-checked="${rOn}" data-wear="rang"><div><div class="pn">Rang tragen${i >= 0 ? ` · ${RANKS[i].de}` : ''}</div><div class="ps">Steigt von selbst mit</div></div><span class="radio" aria-hidden="true"></span></button>`;
-  const ern = PR.filter(earned), opn = PR.filter(p => !earned(p));
+  const ern = PR.filter(earned), opn = PR.filter(p => !earned(p)).sort((x, y) => y.have / y.need - x.have / x.need);
+  const opnShow = opn.slice(0, 5);
   const eRows = ern.map(p => `<button type="button" class="prow" role="radio" aria-checked="${st.worn === p.id}" data-wear="${p.id}">
       <span class="pi" aria-hidden="true">${ic(p.icon)}</span><div><div class="pn">${p.de}<small>${p.en}</small></div><div class="ps">${prDone(p)} · verdient</div></div><span class="radio" aria-hidden="true"></span></button>`).join('');
-  const oRows = opn.map(p => `<div class="prow lock" aria-disabled="true">
+  const oRows = opnShow.map(p => `<div class="prow lock" aria-disabled="true">
       <span class="pi" aria-hidden="true">${ic(p.icon)}</span><div><div class="pn">${p.de}<small>${p.en}</small></div>
       <div class="pbar"><span class="tr" aria-hidden="true"><i style="width:${Math.min(100, p.have / p.need * 100).toFixed(0)}%"></i></span><span>${prLeft(p)}${p.extra ? ' · ' + p.extra : ''}</span></div></div>
-      <span class="lockt" aria-label="noch nicht verdient">${ic('lock', 2)}</span></div>`).join('');
+      <span class="lockt" aria-label="noch nicht verdient">${ic('lock', 2)}</span></div>`).join('') + (opn.length > 5 ? `<div class="prow" style="grid-template-columns:minmax(0,1fr) auto"><div class="pn" style="color:var(--a-blue-soft)">Alle ${opn.length} offenen ansehen</div><span class="lockt">${ic('chev', 2)}</span></div>` : '');
   return `${top}
     <div class="grp"><span>Rang</span><span>${fmt(st.days)} ${st.days === 1 ? 'Tag' : 'Tage'} mit Eintrag</span></div>
     <div class="list" role="radiogroup" aria-label="Titel tragen: Rang">${rRow}<ol class="ladder" aria-label="Rangleiter">${lad}</ol></div>
-    <div class="grp"><span>Prägungen</span><span>${ern.length} von ${PR.length} verdient</span></div>
-    <div class="list" role="radiogroup" aria-label="Titel tragen: Prägung">${eRows}</div>
-    <div class="grp"><span>Noch offen</span><span>${opn.length}</span></div>
+    <div class="grp"><span>Titel aus Abzeichen</span><span>${ern.length} von ${PR.length} verdient</span></div>
+    <div class="list" role="radiogroup" aria-label="Titel tragen: aus Abzeichen">${eRows}</div>
+    <div class="grp"><span>Noch offen · am nächsten dran</span><span>${opn.length}</span></div>
     <div class="list">${oRows}</div>
     <div class="grp"><span>Sichtbar für</span><span></span></div>
     <div class="list"><div class="srow"><div><div class="pn">Wer deinen Titel sieht</div><div class="ps">Wie bei jedem Feld deines Profils. Auf „Alle“ steht er auch im Web und auf der Link-Karte, wenn dein Web-Link an ist.</div></div></div>
       <div style="padding: 0 0 12px"><div class="seg" role="group" aria-label="Titel sichtbar für">${VIS_ORDER.map(k => `<button type="button" data-vis="${k}" aria-pressed="${st.vis === k}">${VIS[k]}</button>`).join('')}</div></div></div>
-    <p class="foot-n"><b>Einmal erreicht, für immer.</b> Ein Rang oder eine Prägung geht nie verloren, auch nicht nach einer Pause.</p>`;
+    <p class="foot-n"><b>Einmal erreicht, für immer.</b> Ein Rang oder ein Abzeichen-Titel geht nie verloren, auch nicht nach einer Pause.</p>`;
 }
 function renderSheetPhone() {
   const ph = $('#sheetPhone');
@@ -807,7 +813,7 @@ function momentScreen() {
 function celebRank() { const i = rIdx(st.days); return i < 0 ? 0 : i; }
 function renderCelebText() {
   const i = celebRank(), r = RANKS[i], pre = rIdx(st.days) < 0;
-  const wornP = PR.find(p => p.id === 'tier');
+  const wornP = PR.find(p => p.id === 'lauf');
   $('#cChip').textContent = r.de;
   $('#cName').textContent = r.de;
   $('#cEn').textContent = 'EN · ' + r.en;
@@ -820,7 +826,7 @@ function renderCelebText() {
     : `<button type="button" class="btn" data-act="cclose">Fertig</button><button type="button" class="btn ghost" data-act="cview">Titel ansehen</button>`;
   $('#momentCap').innerHTML = `<b>Tagebuch › Eintrag gespeichert</b> · ${pre ? 'Vorschau: Neuling ab dem ersten Tag' : `${r.de} ab ${tageDe(r.d)}`}`;
   $('#celebNote').innerHTML = st.cw === 'praeg'
-    ? 'Mara trägt in diesem Moment <b>Trainingstier</b>. Hoku fragt, ob sie zum neuen Rang wechseln will. „Später“ lässt alles, wie es ist.'
+    ? 'Mara trägt in diesem Moment <b>Läufer</b>. Hoku fragt, ob sie zum neuen Rang wechseln will. „Später“ lässt alles, wie es ist.'
     : 'Mara trägt ihren Rang. Er rückt von selbst nach, die Feier zeigt darum nur „Fertig“ und den Weg ins Sheet.';
   document.querySelectorAll('[data-cw]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cw === st.cw)));
 }
@@ -874,14 +880,14 @@ function renderCtl() {
   $('#daysRes').innerHTML = r ? `Rang <b>${r.de}</b>${nx ? ` · noch ${restDe(nx.left)} bis ${nx.n.de}` : ' · höchster Rang'}` : 'noch kein Rang · ab 1 Tag Neuling';
   const opts = [`<option value="rang"${st.worn === 'rang' ? ' selected' : ''}>Rang · ${r ? r.de : 'noch keiner'} (steigt mit)</option>`]
     .concat(PR.map(p => earned(p)
-      ? `<option value="${p.id}"${st.worn === p.id ? ' selected' : ''}>Prägung · ${p.de}</option>`
-      : `<option value="${p.id}" disabled>Prägung · ${p.de} (${prLeft(p)})</option>`));
+      ? `<option value="${p.id}"${st.worn === p.id ? ' selected' : ''}>Abzeichen · ${p.de}</option>`
+      : `<option value="${p.id}" disabled>Abzeichen · ${p.de} (${prLeft(p)})</option>`));
   $('#wornSel').innerHTML = opts.join('');
   document.querySelectorAll('[data-vis]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vis === st.vis)));
   $('#visState').textContent = st.vis === 'me' ? 'Nur in deinem Profil.' : st.vis === 'friends' ? 'Du und Freunde. Andere App-Nutzer und das Web sehen ihn nicht.' : 'Freunde, alle App-Nutzer, Web und Link-Karte (Standard).';
 }
 function renderTicks() {
-  $('#ticks').innerHTML = [30, 90, 180, 365].map(d => `<span style="left:${(d / 400 * 100).toFixed(2)}%">${d}</span>`).join('');
+  $('#ticks').innerHTML = [50, 100, 200, 365].map(d => `<span style="left:${(d / 400 * 100).toFixed(2)}%">${d}</span>`).join('');
 }
 function renderTables() {
   const i = rIdx(st.days);
@@ -889,7 +895,7 @@ function renderTables() {
     const s = k < i ? 'erreicht' : k === i ? 'aktuell' : k === i + 1 ? `noch ${restDe(r.d - st.days)}` : '–';
     return `<tr class="${k === i ? 'cur' : ''}"><td class="num">${fmt(r.d)}</td><td><b>${r.de}</b></td><td>${r.en}</td><td class="st ${k === i ? 'now' : ''}">${s}</td></tr>`;
   }).join('');
-  $('#prTab').innerHTML = PR.map(p => `<tr><td><b>${p.de}</b></td><td>${p.en}</td><td>${p.cond}</td><td>${p.src}</td><td>${p.badge}</td>
+  $('#prTab').innerHTML = PR.map(p => `<tr><td>${p.cond}</td><td><b>${p.de}</b></td><td>${p.en}</td><td>${p.origin}</td>
     <td class="st">${earned(p) ? 'verdient' : prLeft(p).replace(' ' + p.unit, '')}</td></tr>`).join('');
   $('#neverList').innerHTML = NEVER.map(([k, n, t]) => `<li>${ic(k)}<span><b>${n}.</b> ${t}</span></li>`).join('');
 }
