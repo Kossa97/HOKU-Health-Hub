@@ -55,9 +55,12 @@ for (const look of LOOKS) {
           return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
         }
         const bodyBg = parse(getComputedStyle(document.body).backgroundColor) ?? [0, 0, 0, 1]
-        const grund = (el: Element): RGBA => {
+        // Liegt ein Verlauf oder Bild unter der Schrift, ist der Grund nicht
+        // eindeutig (z. B. der Cyan-Verlauf des Hauptknopfs): nicht werten.
+        const grund = (el: Element): RGBA | null => {
           const stack: RGBA[] = []
           for (let n: Element | null = el; n; n = n.parentElement) {
+            if (getComputedStyle(n).backgroundImage !== 'none' && n !== document.body) return null
             const c = parse(getComputedStyle(n).backgroundColor)
             if (c && c[3] > 0) { stack.push(c); if (c[3] >= 1) break }
           }
@@ -85,6 +88,7 @@ for (const look of LOOKS) {
           if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || cs.visibility === 'hidden' || Number(cs.opacity) < 0.1) continue
           const fg = parse(cs.color); if (!fg) continue
           const bg = grund(el)
+          if (!bg) continue
           const sichtbar = over(fg, bg)
           const l1 = lum(sichtbar), l2 = lum(bg)
           const k = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)

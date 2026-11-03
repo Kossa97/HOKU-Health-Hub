@@ -1011,6 +1011,95 @@ html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabba
   html[data-look='softdark'] { --lg-card-rim: linear-gradient(rgb(var(--ink-rgb) / 0.22), rgb(var(--ink-rgb) / 0.22)); }
 }
 
+/* ── Erscheinungsbild „Frost" ────────────────────────────────────────────
+   Dunkles Cyan, mattiertes Glas, feines Korn. Hoku ist das Licht: wo er ist,
+   leuchten die Kanten zu ihm hin (Richtung --hl-a, Breite --hl-w, Helligkeit
+   --hl-i, aus src/lib/hokuLicht.ts), Knöpfe in seiner Nähe glimmen.
+   Inhaltsflächen ohne Weichzeichner (der Grund ist dunkel, er brächte wenig
+   und kostete beim Scrollen); echtes Glas nur für die schwebende Bedienung.
+   Mockup: https://claude.ai/artifact/XCK2vkXnMq4Ryp1RnEnRDT (Variante „Frost") */
+html[data-look='frost'] {
+  --hoku-licht: 1;
+  --frost-cyan: 95 220 255;
+  --frost-rim-ruhe: rgba(170,235,255,0.10);
+  --app-bg: #050c11;
+  --surface: rgba(10,22,28,0.97);
+  --surface-raised: rgba(20,38,46,0.96);
+  --glass-bg: rgba(12,26,32,0.80);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.14);
+  --accent-border: rgba(95,220,255,0.36);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --glow-accent: 0 0 28px rgba(95,220,255,0.28);
+  --lg-text-2: rgba(222,240,248,0.70);
+  --lg-text-3: rgba(222,240,248,0.54);
+
+  --lg-surface-fill: rgba(150,225,255,0.06);
+  --lg-surface-bg: linear-gradient(180deg, rgba(150,225,255,0.075) 0%, rgba(150,225,255,0.035) 100%);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 1px 0 rgba(200,245,255,0.07), 0 16px 34px -18px rgba(0,0,0,0.85);
+  --lg-card-rim: conic-gradient(from var(--hl-a),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 0deg,
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(var(--hl-w) * 0.5),
+    var(--frost-rim-ruhe) var(--hl-w),
+    var(--frost-rim-ruhe) calc(360deg - var(--hl-w)),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(360deg - var(--hl-w) * 0.5),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 360deg);
+  --lg-card-sheen: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
+  --lg-surface-2: rgba(150,225,255,0.06);
+
+  --lg-glass-fill: linear-gradient(180deg, rgba(150,225,255,0.10) 0%, rgba(150,225,255,0.04) 100%);
+  --lg-glass-filter: blur(22px) saturate(160%);
+  --lg-glass-shadow: inset 0 1px 0 rgba(200,245,255,0.10), 0 12px 32px -14px rgba(0,0,0,0.8);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: var(--lg-card-sheen);
+  --lg-primary-fill: linear-gradient(180deg, #7de6ff 0%, #45cdf0 55%, #2bb6dc 100%);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.45), 0 10px 26px -10px rgba(95,220,255,0.55);
+  --lg-pill-fill: linear-gradient(180deg, rgba(95,220,255,0.30), rgba(95,220,255,0.14));
+  --lg-pill-shadow: inset 0 1px 0 rgba(200,245,255,0.25), 0 2px 10px rgba(0,0,0,0.35);
+  --lg-fill: rgba(150,225,255,0.08);
+  --lg-fill-selected: rgba(95,220,255,0.22);
+  --lg-sheet-bg: rgba(10,22,28,0.86);
+  --lg-sheet-solid: #0a161c;
+  --lg-sheet-blur: blur(30px) saturate(160%);
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(95,220,255,0.10), rgba(95,220,255,0) 70%), #050c11;
+}
+/* Grund: drei weiche Cyan-Felder und feines Korn, scrollen mit der Seite */
+html[data-look='frost'] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px,
+    radial-gradient(80% 420px at 10% 0, rgba(40,140,170,0.20), transparent 70%),
+    radial-gradient(70% 480px at 100% 520px, rgba(30,90,140,0.14), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='frost'] .lg-backdrop { background-color: #050c11; }
+/* Knöpfe in Hokus Nähe glimmen (Stufe 2): Schein wächst mit --hl-i */
+html[data-look='frost'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.65));
+}
+html[data-look='frost'] :is(.lg-btn-tint, .lg-btn-glass, .lg-chip, .lg-icon-btn.lg-glass) {
+  box-shadow: var(--lg-glass-shadow), 0 0 calc(var(--hl-i) * 22px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.45));
+}
+html[data-look='frost'] .lg-btn-tint {
+  color: #bff3ff;
+  background: linear-gradient(180deg, rgba(95,220,255,0.26), rgba(95,220,255,0.10));
+  animation: none;
+}
+html[data-look='frost'] .lg-sheet { box-shadow: 0 -16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,245,255,0.14); }
+/* Leiste: getöntes Glas, ihre Kante fängt Hokus Licht wie die Karten */
+html[data-look='frost'] .tyd-tabbar {
+  background: linear-gradient(180deg, rgba(150,225,255,0.10), rgba(150,225,255,0.04)), rgba(6,16,20,0.55);
+  box-shadow: 0 12px 32px -12px rgba(0,0,0,0.85), 0 0 calc(var(--hl-i) * 26px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.30));
+}
+html[data-look='frost'] .tyd-tabbar::before { background: var(--lg-card-rim); }
+html[data-look='frost'] .tyd-tabbar::after { display: none; }
+html[data-look='frost'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); box-shadow: inset 0 1px 0 rgba(200,245,255,0.20); }
+html[data-look='frost'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
+@media (prefers-reduced-transparency: reduce) {
+  html[data-look='frost'] { --lg-glass-filter: none; --lg-glass-fill: #0c1a20; --lg-sheet-blur: none; --lg-sheet-bg: #0a161c; }
+}
+
 /* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
    Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen
    umstellt: die Kanäle (--ink-rgb Schrift/Linien, --ground-rgb Grund, die

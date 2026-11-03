@@ -10,6 +10,7 @@ import { installUpdateWatch } from './lib/staleChunkReload'
 import { applyLook, getLook } from './lib/look'
 import { installReflex } from './lib/reflex'
 import { installFlashlight } from './lib/flashlight'
+import { installHokuLicht } from './lib/hokuLicht'
 import { installStoerungsFetch } from './lib/stoerung'
 
 // Vor allem anderen: jede Dienst-Anfrage läuft ab jetzt über lib/stoerung.ts
@@ -20,6 +21,7 @@ installStoerungsFetch()
 applyLook(getLook())
 installReflex()
 installFlashlight()
+installHokuLicht()
 
 const DEV_SW_RESET_KEY = 'tyd_dev_sw_reset'
 
