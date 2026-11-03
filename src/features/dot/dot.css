@@ -145,3 +145,29 @@
   .tyd-dot-arbeitet .tyd-dot-kugel, .tyd-dot-arbeitet .tyd-dot-funke { animation: none; }
 }
 @keyframes tyd-dot-puls { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* Seite „Hoku“ im Profil: Bühne, auf der er sitzt, und die Schalter darunter */
+.tyd-hoku-zurueck { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -6px 0 0 -12px; color: var(--lg-text-2); }
+/* Platzhalter in der Seite; die Bühne selbst heftet sich oben an, sobald man an ihr vorbeiscrollt */
+.tyd-hoku-platz { --hoku-oben: calc(env(safe-area-inset-top, 0px) + 6px); scroll-margin-top: var(--hoku-oben); height: 170px; margin-top: 12px; }
+.tyd-hoku-buehne {
+  height: 100%; border-radius: var(--r-xl, 22px);
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 58%, rgba(110, 220, 255, 0.10), transparent 70%),
+    linear-gradient(var(--lg-surface-2, rgba(255, 255, 255, 0.04)), var(--lg-surface-2, rgba(255, 255, 255, 0.04))),
+    var(--c-bg, #000);
+}
+.tyd-hoku-buehne[data-angeheftet='true'] {
+  position: fixed; top: var(--hoku-oben); height: 170px; z-index: 30;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.85);
+}
+@media (max-height: 700px) { .tyd-hoku-platz, .tyd-hoku-buehne[data-angeheftet='true'] { height: 130px; } }
+.tyd-hoku-buehne-text { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }
+.tyd-hoku-einst-karte { display: flex; flex-direction: column; gap: 14px; }
+.tyd-hoku-einst > button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px;
+  background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font: inherit;
+}
+.tyd-hoku-einst > button[aria-disabled='true'] { cursor: default; opacity: 0.6; }
+.tyd-hoku-einst-titel { flex: 1; font-size: 15px; color: var(--lg-text); }
+.tyd-hoku-einst > p { margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }

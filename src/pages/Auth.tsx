@@ -21,6 +21,7 @@ import { merkeAngemeldetBleiben } from '../features/auth/lib/sitzung'
 import { ANBIETER, mitAnbieter, rueckkehr, type Anbieter } from '../features/auth/lib/anbieter'
 import { AppleLogo, GoogleLogo } from '../features/auth/AnbieterLogos'
 import { PASSKEY_AN, anmeldenMitPasskey, merkePasskeyAnbieten, passkeyArt, passkeyAufGeraet, passkeyMoeglich } from '../features/auth/lib/passkey'
+import { leseHokuEinstellungen } from '../features/dot/lib/hokuEinstellungen'
 import '../features/auth/auth.css'
 
 /**
@@ -210,6 +211,8 @@ export function Auth() {
   useEffect(() => {
     const id = window.setInterval(() => {
       if (!gegruesst.current || aktiv.current || laeuft || verlassen || meldung || pwFokus.current || stand.modus !== 'login') return
+      // Hinweise aus (Seite „Hoku“, gilt auf diesem Gerät auch vor der Anmeldung)
+      if (!leseHokuEinstellungen().hinweise) return
       const leer = ansicht === 'login'
         ? erstesLeeres({ kennung: !!kennung.trim(), passwort: !!passwort }, ['kennung', 'passwort'])
         : ansicht === 'register'

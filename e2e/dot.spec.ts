@@ -150,3 +150,47 @@ test('nach dem Abmelden: auf der Anmeldung gilt die Leiste der App nicht mehr, H
   await page.mouse.up()
   expect(g.y + g.height).toBeGreaterThan(H - 12)
 })
+
+test('Seite „Hoku“: er kommt aus dem Haus auf die Bühne und geht beim Verlassen wieder hinein', async ({ page, mock }) => {
+  void mock
+  await page.goto('/profil')
+  await bereit(page)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
+  await page.locator('[data-profil-hoku]').click()
+  await expect(page).toHaveURL(/\/profil\/hoku$/)
+  await lassLaufen(page, 4000)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')
+  // er sitzt auf der Bühne (seine Trefferfläche ist dort verborgen, also über das Bild der Bühne prüfen)
+  const lage = await page.evaluate(() => {
+    const b = document.querySelector('[data-hoku-buehne]')!.getBoundingClientRect()
+    return { b: { x: b.left, y: b.top, w: b.width, h: b.height } }
+  })
+  expect(lage.b.h).toBeGreaterThan(100)
+  // Einstellungen bleiben auf dem Gerät
+  await page.locator('[data-hoku-einst="raus"] button').click()
+  await expect(page.locator('[data-hoku-einst="raus"] button')).toHaveAttribute('aria-checked', 'false')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.raus'))).toBe('0')
+  await page.goBack()
+  await lassLaufen(page, 4000)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
+})
+
+test('„Kommt für Hinweise heraus“ aus: auf einer Seite ohne Leiste bleibt er im Haus', async ({ page, mock }) => {
+  void mock
+  await page.addInitScript(() => { try { localStorage.setItem('tyd.hoku.raus', '0') } catch { /* ohne Speicher */ } })
+  await page.goto('/injektionen')
+  await lassLaufen(page, 5000)
+  await expect(page.getByRole('button', { name: /Hoku, dein KI-Coach/ })).toBeHidden()
+})
+
+test('Hinweise aus: im Kalorientracker kein Rundflug und keine Sprechblase', async ({ page, mock }) => {
+  void mock
+  await page.addInitScript(() => { try { localStorage.setItem('tyd.hoku.hinweise', '0') } catch { /* ohne Speicher */ } })
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('region', { name: 'Frühstück' })).toBeVisible()
+  const blase = page.locator('.tyd-dot-blase')
+  for (let t = 0; t < 12_000; t += 100) {
+    await page.clock.runFor(100)
+    expect(await blase.getAttribute('data-zeigen')).toBeNull()
+  }
+})
