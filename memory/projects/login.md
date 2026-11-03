@@ -193,7 +193,12 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   dieselbe hintereinander, letzte Art in `tyd.dot.schrift` (auch über Besuche). Bahn-Arten laufen auf festen
   Bahnen, danach Federn. Schrift war blass: Punkte jetzt **so groß wie Hokus im Schnitt** (nach Helligkeit
   gewichtet, Größe 0,8), Gitter 9 statt 5,5, Sichtbarkeit nie unter 0,8, Licht 50 %/15 %.
-  Offen: **futuristischere Schrift** — Runde 2 zeigt Orbitron, Audiowide, Michroma, Oxanium, Chakra Petch,
+  **Farbe (Nutzer 3.11.):** Schrift im Neon-Cyan der App (`TEXT_FARBE` = --accent #00ccf5), je Punkt
+  überblendet, sobald er aufbricht; die Kugel behält ihre Farben. Sci-Fi-Schriften und danach „gut lesbare“
+  (Atkinson, Lexend, Nunito …) vom Nutzer verworfen: er will **schlichte, ästhetische** Schriften —
+  Runde 4 zeigt Jost, Urbanist, Sora, Quicksand, Comfortaa, Raleway, Josefin Sans, Plus Jakarta Sans,
+  Albert Sans, Red Hat Display.
+  Offen: **Schrift** — Runde 2 zeigt Orbitron, Audiowide, Michroma, Oxanium, Chakra Petch,
   Exo 2, Zen Dots, Tomorrow, Russo One, Turret Road, Syncopate; Wahl des Nutzers steht aus (dann `SCHRIFT` in
   `formen.ts` und Google-Fonts-Link in `index.html` tauschen).
 

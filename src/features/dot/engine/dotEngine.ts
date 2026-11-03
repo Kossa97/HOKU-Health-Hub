@@ -185,6 +185,8 @@ const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
 const TEXT = { dichte: 9, groesse: 0.8, licht: 0.5, funkeln: 0.15 }
 // So schreibt Hoku: die bisherige Feder mit Wirbel, „klar" (ohne Wirbel, in Leserichtung), vier Bahnen; im Wechsel
 const KLAR = { tempo: 1.25, nachschwingen: 0.15, wirbel: 0 }
+// Die Schrift leuchtet im Neon-Cyan der App (--accent #00ccf5), damit sie auf dem dunklen Grund gut zu sehen ist (Nutzer 3.11.2026)
+const TEXT_FARBE = [0, 204, 245]
 const SCHRIFT_FOLGE = 'tyd.dot.schrift'
 // Eröffnung (Nutzer 28.10.2026, Mockup „Dots Auftritte"): wieder schnell, im Zufall E1 vom Rand, E2 aus
 // dem Dunkel, E5 Ringe; Länge je Variante in s. Jeder Punkt folgt einer festen Bahn, ohne Federn und
@@ -399,6 +401,8 @@ export function createDot(host: DotHost): DotApi {
   const DEL = new Float32Array(ALLE), LICHT = new Float32Array(ALLE).fill(1), SZ = new Float32Array(ALLE).fill(1), ROSA = new Float32Array(ALLE)
   // Lage beim Wechsel (Anfang der Bahnen, wenn Hoku zu schreiben beginnt)
   const AX = new Float32Array(ALLE), AY = new Float32Array(ALLE), AZ = new Float32Array(ALLE)
+  // Anteil Neon-Cyan je Punkt: 1 im Satz, 0 in der Kugel; wechselt mit dem Aufbruch des Punkts
+  const NEON = new Float32Array(ALLE)
   // Die Geste dieses Bilds, einmal je Bild gerechnet: Lage, Licht und Rosa je Punkt
   const GB: GestenBild = { P: new Float32Array(GESTE_PLATZ * 3), L: new Float32Array(GESTE_PLATZ), H: new Float32Array(GESTE_PLATZ) }
   const KR = Float32Array.from({ length: ALLE }, Math.random), DR = Float32Array.from({ length: ALLE }, Math.random)
@@ -1565,6 +1569,8 @@ export function createDot(host: DotHost): DotApi {
         if (te < DEL[i] && !aufBahn) { tx = OX[i]; ty = OY[i]; tz = OZ[i]; rosa = ROSA[i] }
       }
       TX[i] = tx; TY[i] = ty; TZ[i] = tz; LICHT[i] = licht
+      const neon = B.shape === 'text' && tz > 0 && (aufBahn || te >= DEL[i]) ? 1 : 0
+      NEON[i] += (neon - NEON[i]) * (sofort ? 1 : zA)
       // die Eröffnung führt nur Dots eigene Punkte; Kinder (Schrift) folgen ihren Federn
       if (I.an && !kind) { bahn(i, ti, tx, ty, tz, R); ROSA[i] = rosa; continue }
       if (aufBahn && bArt && bf) { schriftPunkt(bArt, ein, bf, i, te, t, tx, ty, tz, R); ROSA[i] += (rosa - ROSA[i]) * zA; continue }
@@ -1846,6 +1852,9 @@ export function createDot(host: DotHost): DotApi {
       // Farbe je Punkt: Rosa (Herz in Dot), Grün (Haken), Rot (X)
       const ro = ROSA[i], pf = B.punktFarbe
       if (ro > 0.01) { c[0] += (pf[0] - c[0]) * ro; c[1] += (pf[1] - c[1]) * ro; c[2] += (pf[2] - c[2]) * ro }
+      // im Satz: Neon-Cyan
+      const ne = NEON[i]
+      if (ne > 0.01) { c[0] += (TEXT_FARBE[0] - c[0]) * ne; c[1] += (TEXT_FARBE[1] - c[1]) * ne; c[2] += (TEXT_FARBE[2] - c[2]) * ne }
       if (ti > 0.01) {
         // Farbe der App (Rot, Orange, Grün), unten rechts leicht verschoben
         const mm = clamp01((cp[0] - cp[1]) * 0.3 + 0.5)
