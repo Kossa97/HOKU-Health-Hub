@@ -179,10 +179,9 @@ const SCHUETTELN = { start: 0.35, dauer: 0.8, staerke: 24, schwingungen: 3.5 }
 const LOGIN = { warten: 0.45, haften: 1.2, loesen: 1.4, rueckK: 16.2 }
 // Formwechsel als Feder je Punkt (Mockup „trans"): Tempo, Nachschwingen, Staffel, Wirbel
 const FEDER = { tempo: 1, nachschwingen: 0.6, staffel: 0.35, wirbel: 1 }
-// Schrift (Nutzer 31.10.2026, Mockup „Hokus Schrift"): Punkte im Schnitt so groß wie Hokus eigene
-// (nach Helligkeit gewichtet 0,8), dafür weiter auseinander (Gitter 9 statt 5,5), damit sie nicht
-// verlaufen; Lichtlauf 50 %, Flackern 15 %
-const TEXT = { dichte: 9, groesse: 0.8, licht: 0.5, funkeln: 0.15 }
+// Schrift (Nutzer 3.11.2026, finales Mockup „Hokus Schrift"): Gitter 5,5, Punktgröße 0,6, Tempo 1;
+// Lichtlauf 50 %, Flackern 15 %
+const TEXT = { dichte: 5.5, groesse: 0.6, licht: 0.5, funkeln: 0.15 }
 // So schreibt Hoku: die bisherige Feder mit Wirbel, „klar" (ohne Wirbel, in Leserichtung), vier Bahnen; im Wechsel
 const KLAR = { tempo: 1.25, nachschwingen: 0.15, wirbel: 0 }
 // Die Schrift leuchtet im Neon-Cyan der App (--accent #00ccf5), damit sie auf dem dunklen Grund gut zu sehen ist (Nutzer 3.11.2026)
@@ -1822,9 +1821,12 @@ export function createDot(host: DotHost): DotApi {
       cp[0] = QX[i]; cp[1] = QY[i]; cp[2] = QZ[i]
       const th = Math.atan2(cp[1], cp[0]), rho = Math.hypot(cp[0], cp[1])
       const rf = ((th / TAU + 1) % 1) * RK, ri = rf | 0, rq = rf - ri, rj = (ri + 1) % RK, ra = ri % RK
-      const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = B.shape === 'frame' ? 1 : 1 + ur
-      let dx = cp[0] * r * s, dy = cp[1] * r * s
-      if (B.quetsch > 0.001) { dx *= 1 + 0.14 * B.quetsch; dy *= 1 - 0.11 * B.quetsch }
+      // im Satz steht die Schrift starr (Nutzer 3.11.2026): kein Atmen, Puls, Schwabbeln, Quetschen oder Taumeln
+      // des Körpers; nur die Punkte selbst leben und funkeln. Wirkt je Punkt, sobald er im Satz angekommen ist.
+      const ne = NEON[i], koerper = 1 - ne
+      const ur = UR[ra] * (1 - rq) + UR[rj] * rq, s = B.shape === 'frame' ? 1 : 1 + ur * koerper, rP = ne > 0.01 ? B.r * (1 + (pulse - 1) * koerper) : r
+      let dx = cp[0] * rP * s, dy = cp[1] * rP * s
+      if (B.quetsch > 0.001) { dx *= 1 + 0.14 * B.quetsch * koerper; dy *= 1 - 0.11 * B.quetsch * koerper }
       if (pan && B.flat > 0.01) {
         const w = pan.w, tx = -w.ny, ty = w.nx, mid = (pan.lo + pan.hi) / 2, half = (pan.hi - pan.lo) / 2
         // Punkte nah der Mitte haben keine stabile Richtung: dort kein Wackel-Anteil (sonst zucken sie)
@@ -1853,7 +1855,6 @@ export function createDot(host: DotHost): DotApi {
       const ro = ROSA[i], pf = B.punktFarbe
       if (ro > 0.01) { c[0] += (pf[0] - c[0]) * ro; c[1] += (pf[1] - c[1]) * ro; c[2] += (pf[2] - c[2]) * ro }
       // im Satz: Neon-Cyan
-      const ne = NEON[i]
       if (ne > 0.01) { c[0] += (TEXT_FARBE[0] - c[0]) * ne; c[1] += (TEXT_FARBE[1] - c[1]) * ne; c[2] += (TEXT_FARBE[2] - c[2]) * ne }
       if (ti > 0.01) {
         // Farbe der App (Rot, Orange, Grün), unten rechts leicht verschoben
@@ -1862,7 +1863,7 @@ export function createDot(host: DotHost): DotApi {
       }
       const licht = LICHT[i]
       let alpha = clamp01(cp[2] * (bright + heal) * dens * licht)
-      let X = cx + dx, Y = cy + dy, aMul = 1
+      let X = cx + (B.x + B.shakeX - cx) * ne + dx, Y = cy + (B.y - cy) * ne + dy, aMul = 1
       if (streaming) {
         const sx = ENT.x + (p.k - 0.5) * ENT.w * 0.8, sy = TAB + 2
         let qi = B.mode === 'exit' ? clamp01((B.te - 0.25 - p.k * 0.6) / 0.6) : 1 - clamp01((B.te - p.k * 0.6) / 0.55)

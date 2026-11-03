@@ -73,9 +73,9 @@ function abtasten(zeichne: Zeichnung, anzahl: number, gitter?: number): Float32A
   return out
 }
 
-// Schrift: Space Grotesk 700, zentriert, höchstens 300 breit (sonst kleiner). Die Wahl einer
-// futuristischeren Schrift läuft noch (Mockup „Hokus Schrift", Runde 2); hier und in index.html tauschen.
-const SCHRIFT = '"Space Grotesk", system-ui, sans-serif'
+// Schrift: Raleway 700 (Nutzer 3.11.2026, Mockup „Hokus Schrift"), zentriert, höchstens 300 breit (sonst
+// kleiner). Geladen über index.html; ein Wechsel gehört an beide Stellen.
+const SCHRIFT = '"Raleway", system-ui, sans-serif'
 /** Ein Buchstabe im Satz: links, rechts, Mitte der Zeile (px). */
 interface Buchstabe { x0: number; x1: number; y: number }
 function zeilen(text: string[], groesse: number, buchst: Buchstabe[]): Zeichnung {

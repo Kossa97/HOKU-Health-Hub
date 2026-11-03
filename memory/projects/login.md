@@ -198,9 +198,10 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   (Atkinson, Lexend, Nunito …) vom Nutzer verworfen: er will **schlichte, ästhetische** Schriften —
   Runde 4 zeigt Jost, Urbanist, Sora, Quicksand, Comfortaa, Raleway, Josefin Sans, Plus Jakarta Sans,
   Albert Sans, Red Hat Display.
-  Offen: **Schrift** — Runde 2 zeigt Orbitron, Audiowide, Michroma, Oxanium, Chakra Petch,
-  Exo 2, Zen Dots, Tomorrow, Russo One, Turret Road, Syncopate; Wahl des Nutzers steht aus (dann `SCHRIFT` in
-  `formen.ts` und Google-Fonts-Link in `index.html` tauschen).
+  **Final (Nutzer 3.11.):** Schrift **Raleway 700**, Gitter 5,5, Punktgröße 0,6, Tempo 1; H + S1–S5 im
+  Zufall. Fertig geschriebener Satz steht **starr** bei allen Arten gleich: kein Atmen/Puls/Schwabbeln/
+  Quetschen/Taumeln des Körpers (je Punkt über `NEON`), nur Punkte zittern 0,4 px, funkeln, Lichtlauf.
+  Das Wackeln bei „Neu? Registriere dich!“ kam vom Körper (breitester Satz = stärkstes Schwabbeln).
 
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
