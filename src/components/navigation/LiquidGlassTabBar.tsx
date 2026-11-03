@@ -1,8 +1,9 @@
 import {
-  useLayoutEffect, useRef, useState,
+  useEffect, useLayoutEffect, useRef, useState,
   type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode,
 } from 'react'
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
+import { haengeGlasKante } from '../../lib/glasKante'
 
 /**
  * Die Web-Fassung der Liquid-Glass-Tab-Bar.
@@ -104,6 +105,13 @@ export function LiquidGlassTabBar({
   const zugBreiteRef = useRef(0)
   /** Masse aller Plaetze, zuletzt gemessen. */
   const plaetzeRef = useRef<PlatzMass[]>([])
+
+  // Gerechnete Glaskante (src/lib/glasKante.ts): glänzt oben links, wo das
+  // Licht hinfällt. Welche Looks sie zeigen, steht in index.css.
+  useEffect(() => {
+    const kapsel = kapselRef.current
+    return kapsel ? haengeGlasKante(kapsel, { fase: 2.5, glanz: 0.85 }) : undefined
+  }, [])
 
   const setzeVorschau = (id: string | null) => {
     vorschauRef.current = id
@@ -285,11 +293,35 @@ export function LiquidGlassTabBar({
         data-gehalten={gedrueckt ? 'true' : 'false'}
         data-frei={pille?.frei ? 'true' : 'false'}
         data-ohne-ziel={pille ? 'false' : 'true'}
+        data-linse={gedrueckt && pille ? 'true' : undefined}
         aria-hidden="true"
         style={pille
-          ? { width: pille.breite, transform: `translateX(${pille.links}px)` }
+          ? { width: pille.breite, transform: `translateX(${pille.links}px)`, ['--pill-x' as string]: `${pille.links}px` }
           : undefined}
-      />
+      >
+        {/*
+          Linse (Idee aus Glisse): Gehalten wird die Pille zur Glaslinse. In ihr
+          liegt eine Kopie der Symbole, genau über den echten, und wird um die
+          Mitte der Pille vergrößert — wie Glas, das die Leiste darunter bricht.
+          Die Kopie läuft der Pille entgegen, damit sie stehen bleibt, während
+          die Pille wandert. Nur solange ein Finger liegt.
+        */}
+        {gedrueckt && pille && (
+          <div className="tyd-tabbar-linse" style={{ width: pille.kapselBreite, transform: `translateX(${-pille.links}px)` }}>
+            <div className="tyd-tabbar-linse-zoom" style={{ transformOrigin: `${pille.links + pille.breite / 2}px 50%` }}>
+              {plaetzeRef.current.map(p => {
+                const item = items.find(i => i.id === p.id)
+                if (!item) return null
+                return (
+                  <span key={p.id} className="tyd-tabbar-linse-platz" data-tyd-nah={p.id === vorschau ? 'true' : undefined} style={{ left: p.links, width: p.breite }}>
+                    {item.icon}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
       {items.map(item => (
         <TabTraeger key={item.id}>{platz(item)}</TabTraeger>
       ))}

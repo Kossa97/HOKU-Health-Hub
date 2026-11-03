@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { CalendarDays, FlaskConical, Home, Plus, User } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -5,6 +6,7 @@ import { hapticTick } from '../../lib/haptics'
 import { TAB_ITEMS, resolveActiveTabId, type TabId } from './tabModel'
 import { LiquidGlassTabBar, type GlassTabItem } from './LiquidGlassTabBar'
 import { DotLogo } from '../../features/dot/DotLogo'
+import { haengeGlasKante } from '../../lib/glasKante'
 import { dotStore, useDotStand } from '../../features/dot/dotStore'
 import { useDotText } from '../../features/dot/texte'
 
@@ -37,6 +39,12 @@ export function BottomNavigation({
   onToggleQuickActions,
 }: BottomNavigationProps) {
   const { t } = useTranslation()
+  const plusRef = useRef<HTMLButtonElement | null>(null)
+  // Dieselbe gerechnete Glaskante wie die Leiste (src/lib/glasKante.ts)
+  useEffect(() => {
+    const plus = plusRef.current
+    return plus ? haengeGlasKante(plus, { fase: 2.5, glanz: 0.9 }) : undefined
+  }, [])
   const navigate = useNavigate()
   const activeId = resolveActiveTabId(pathname)
   const dot = useDotStand()
@@ -109,6 +117,7 @@ export function BottomNavigation({
           steht er wie in iOS 26 als eigene Glas-Scheibe neben der Kapsel. Offen
           dreht sich das Plus zum X; aria-expanded sagt es der Vorlesung. */}
       <button
+        ref={plusRef}
         type="button"
         onClick={onToggleQuickActions}
         aria-expanded={quickActionsOpen}

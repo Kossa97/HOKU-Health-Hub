@@ -1256,6 +1256,67 @@ main.flex-1 {
 
 .tyd-tabbar-pill[data-ohne-ziel='true'] { opacity: 0; }
 
+/* ── Linse und gerechnete Glaskante (Ideen aus Glisse) ─────────────────
+   Linse: gehalten wird die Pille zur Glaslinse. Sie wird fast deckend, damit
+   die echten Symbole darunter verschwinden, und zeigt eine vergrößerte Kopie
+   von ihnen (LiquidGlassTabBar). Am Rand ein Hauch Farbsaum wie bei echter
+   Brechung: rot nach außen, blau nach innen.
+   Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
+   gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
+.tyd-tabbar-pill {
+  overflow: hidden;
+  /* `scale` wirkt nach `transform` und vergrößert damit auch die Verschiebung:
+     um die Mitte der VERSCHOBENEN Pille skalieren, sonst rutscht sie gehalten
+     zur Seite (--pill-x setzt LiquidGlassTabBar). */
+  transform-origin: calc(50% + var(--pill-x, 0px)) 50%;
+}
+.tyd-tabbar-linse {
+  position: absolute;
+  top: calc(-1 * var(--bottom-nav-pill-inset));
+  bottom: calc(-1 * var(--bottom-nav-pill-inset));
+  left: 0;
+  pointer-events: none;
+}
+.tyd-tabbar-linse-zoom {
+  position: absolute;
+  inset: 0;
+  transform: scale(1);
+  animation: tyd-linse-auf 260ms cubic-bezier(0.34, 1.32, 0.52, 1) forwards;
+}
+@keyframes tyd-linse-auf { to { transform: scale(1.22); } }
+.tyd-tabbar-linse-platz {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+}
+.tyd-tabbar-linse-platz[data-tyd-nah='true'] { color: var(--accent); }
+/* Doppelte Klasse: schlägt die Pillen-Farbe jedes Looks */
+.tyd-tabbar .tyd-tabbar-pill[data-linse='true'] {
+  /* über den echten Symbolen: sie verschwinden unter der Linse, nur die Kopie zeigt sich */
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.16) 0%, rgb(var(--ink-rgb) / 0.05) 70%),
+    linear-gradient(var(--surface), var(--surface)),
+    var(--app-bg);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.35),
+    inset 3px 0 4px -2px rgba(255, 90, 130, 0.22),
+    inset -3px 0 4px -2px rgba(90, 200, 255, 0.22),
+    0 6px 18px rgba(0, 0, 0, 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tyd-tabbar-linse-zoom { animation: none; transform: scale(1.22); }
+}
+html:is([data-look='schwarz'], [data-look='satin'], [data-look='licht'], [data-look='nacht']) :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {
+  padding: 0;
+  background: var(--glas-kante) center / 100% 100% no-repeat;
+  -webkit-mask: none;
+  mask: none;
+}
+
 /*
  * Gehalten: aus der Pille wird eine Blase.
  *
