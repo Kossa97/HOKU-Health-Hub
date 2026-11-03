@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "looks:audit": "LOOK_AUDIT=1 playwright test e2e/look-audit.spec.ts --project=iphone-13",
     "test:e2e:typecheck": "tsc -p e2e/tsconfig.json --noEmit",
     "seed:pk": "tsx scripts/seed-pk-profiles.ts",
     "seed:test": "tsx scripts/seed-test-data.ts",

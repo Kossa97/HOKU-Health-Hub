@@ -98,3 +98,36 @@ heißt **Hoku** statt Dot. Umgestellt in allen sichtbaren de/en-Texten, Rechtste
 iOS/Android-Namen und Berechtigungstexten, Manifest, Capacitor `appName`, Coach-Prompt. Unverändert: App-ID
 `com.kossa97.tyd`, Speicherschlüssel `tyd_*`, Code-Bezeichner (`features/dot`, `Dot…`), die zwölf weiteren Sprachen
 (CLAUDE.md), User-Agent der Lebensmittel-Suche.
+
+## Grundlage für vollständige Looks (03.11.2026)
+
+Nutzer will alle Mockup-Looks (Frost, Labor-HUD, Neon, Tiefsee, Obsidian, Papier)
+in der App, jeweils **vollständig**. Mockup: https://claude.ai/artifact/XCK2vkXnMq4Ryp1RnEnRDT
+
+- **Farbkanäle** in `src/index.css` (`:root`): `--ink-rgb` (Schrift, Linien, helle
+  Schleier), `--ground-rgb` (Grund), `--slate-50 … --slate-950` (Graphit-Stufen),
+  Leerzeichen-getrennt für `rgb(var(--x) / Deckkraft)`.
+- **Tailwind** liest `white`, `black` und `slate-*` aus diesen Kanälen
+  (`tailwind.config.js`). Ein heller Look dreht sie um, ohne eine Klasse anzufassen.
+- **Stildateien**: alle `rgba(255,255,255,x)` sind `rgb(var(--ink-rgb) / x)`
+  (148 Stellen; nicht in `url(data:…)`). Für die dunklen Looks pixelgleich
+  (Vorher/Nachher-Bilder, Abweichungen nur wie zwischen zwei Läufen).
+- **Prüfung**: `npm run looks:audit` (e2e/look-audit.spec.ts, nur mit LOOK_AUDIT=1):
+  zehn Hauptseiten je Look als Bild nach `test-results/look-audit/<look>/` und
+  `bericht.json` mit Schrift unter 3:1 Kontrast. Looks wählbar über
+  `LOOK_AUDIT_LOOKS=papier,neon`.
+- **Papier** (hell, Schwarz-Weiß, Vorschau): erster Look, der alle Rollen umstellt.
+  Im Profil nur für Admins/Entwicklung. Hoku wird per `filter: invert(1)` auf
+  `.tyd-dot-flaeche` schwarz.
+- **Neuer Look** = ein Block `html[data-look='…']` mit den Rollen (Vorlage: Papier)
+  + Eintrag in `LOOKS`, `STANDARD_JE_LOOK` (hokuFarbe.ts), Profil-Umschalter,
+  `look_*`-Text; dann `npm run looks:audit`.
+
+Offen (nächste Schritte, je Bereich):
+- Papier: My-Stack-Reiter „Alle“ (schwarz auf schwarz), Fortschritt-Ringe „–“,
+  Ernährungs-Kugel (Canvas zeichnet hell), Hoku-Logo in der Leiste (eigene Farben),
+  Injektions-Bühne/3D-Licht, Diagramme mit festen Farben (Canvas, SVG-Attribute).
+- Feste Farben in tsx: ~1100 (meist SVG-Attribute in den Produktbildern, die bleiben),
+  `#000`/`#fff` in Stildateien.
+- Hoku-Licht als gemeinsamer Baustein (flashlight.ts + Position aus dotEngine).
+- Danach die Mockup-Looks als echte Looks.

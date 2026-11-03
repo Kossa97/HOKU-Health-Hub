@@ -144,7 +144,7 @@
   :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger, .lg-surface, .card, .lg-group)::before {
     padding: 0;
     background: none;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
   }
 }
 
@@ -190,7 +190,7 @@
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   backdrop-filter: blur(22px) saturate(180%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.38),
     inset 0 0 0 1px rgba(120, 230, 255, 0.28),
     inset 0 -1px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px rgba(0, 204, 245, 0.18);
@@ -213,7 +213,7 @@
 /* Noch nichts eingetragen: drei ruhige Atemzüge, dann still */
 @keyframes lg-breathe-tint {
   0%, 100% { box-shadow: var(--shadow-btn-primary); }
-  50% { box-shadow: inset 0 0 14px rgba(255,255,255,0.10), 0 10px 26px rgba(0,0,0,0.4), 0 6px 30px rgba(0,204,245,0.5); }
+  50% { box-shadow: inset 0 0 14px rgb(var(--ink-rgb) / 0.10), 0 10px 26px rgba(0,0,0,0.4), 0 6px 30px rgba(0,204,245,0.5); }
 }
 .lg-btn-tint[data-invite='true'] { animation: lg-breathe-tint 2400ms ease-in-out 600ms 3; }
 @media (hover: hover) and (pointer: fine) {
@@ -324,20 +324,20 @@
 .lg-seg-fill {
   padding: 2px;
   background: var(--lg-fill);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 -0.5px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 -0.5px 0 rgb(var(--ink-rgb) / 0.06);
 }
 .lg-seg-scroll.lg-seg-fill { padding: 0; }
 .lg-seg-fill .lg-seg-pill {
   top: 2px;
   bottom: 2px;
   background:
-    radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(120% 90% at 30% 0%, rgb(var(--ink-rgb) / 0.16), transparent 60%),
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.10), rgb(var(--ink-rgb) / 0) 70%),
     var(--lg-fill-selected);
   box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.10),
-    inset 0 -0.5px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.55),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.10),
+    inset 0 -0.5px 0 rgb(var(--ink-rgb) / 0.12),
     0 3px 10px rgba(0, 0, 0, 0.32);
 }
 .lg-seg-fill > button,
@@ -371,8 +371,8 @@
 .lg-chip-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cc); transition: background-color 200ms ease, transform 300ms var(--lg-ease-out); }
 .lg-chip[aria-pressed='true'] {
   color: var(--lg-text);
-  background: color-mix(in srgb, var(--cc) 22%, rgba(255, 255, 255, 0.05));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+  background: color-mix(in srgb, var(--cc) 22%, rgb(var(--ink-rgb) / 0.05));
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
 }
 .lg-chip[aria-pressed='true'] .lg-chip-dot { background: var(--cc); transform: scale(1.1); }
 @keyframes lg-chip-hint {
@@ -418,7 +418,7 @@
   background: var(--lg-sheet-bg);
   -webkit-backdrop-filter: var(--lg-sheet-blur);
   backdrop-filter: var(--lg-sheet-blur);
-  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgb(var(--ink-rgb) / 0.16), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06);
 }
 /* Sheet mit langem, scrollendem Inhalt: feste Fläche statt Glas —
    Weichzeichner auf einem scrollenden Element stört iOS Safari */
@@ -427,7 +427,7 @@
 input[type='search'] { -webkit-appearance: none; appearance: none; }
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-webkit-search-decoration { -webkit-appearance: none; display: none; }
-.lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgba(255, 255, 255, 0.25); }
+.lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgb(var(--ink-rgb) / 0.25); }
 
 /* Inhaltsfläche mit Ton: eine Haarlinie in der Farbe sagt Erfolg/Fehler,
    ohne die ganze Fläche einzufärben. */
@@ -540,7 +540,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
 }
 .lg-swipe::-webkit-scrollbar { display: none; }
 .lg-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
-.lg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); transition: width 260ms var(--lg-ease-out), background-color 260ms ease; }
+.lg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgb(var(--ink-rgb) / 0.2); transition: width 260ms var(--lg-ease-out), background-color 260ms ease; }
 .lg-dots > i[data-on='true'] { width: 18px; background: var(--lg-text); }
 
 /* ── Fokus und Bewegung ─────────────────────────────────────────────── */
@@ -585,7 +585,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
   transition: background-color 150ms ease;
 }
 .lg-menu-row[data-last='true'] { background-image: none; }
-.lg-menu-row:active { background-color: rgba(255, 255, 255, 0.08); }
+.lg-menu-row:active { background-color: rgb(var(--ink-rgb) / 0.08); }
 .lg-menu-tile {
   display: flex;
   flex-direction: column;
@@ -647,7 +647,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
   height: 0.5px;
   background: var(--lg-separator);
 }
-.lg-row:active { background-color: rgba(255, 255, 255, 0.06); }
+.lg-row:active { background-color: rgb(var(--ink-rgb) / 0.06); }
 .lg-row:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }
 
 /* Abschnitt einer gruppierten Liste: Titel über der Fläche, eingerückt */
@@ -717,9 +717,9 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
    leicht durchscheinendem Glas ohne Lichtkante — das Licht macht das Glas
    sichtbar. Standard ist „Schwarz" (Werte in index.css). */
 html[data-look='licht'] {
-  --lg-surface-fill: rgba(255,255,255,0.05);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
-  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
+  --lg-surface-fill: rgb(var(--ink-rgb) / 0.05);
+  --lg-surface-bg: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.065), rgb(var(--ink-rgb) / 0.03));
+  --lg-surface-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.10), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.05);
   --lg-card-rim: linear-gradient(transparent, transparent);
   --lg-card-sheen: none;
 }
@@ -743,8 +743,8 @@ html[data-look='licht'] .lg-backdrop {
    Auf dem Grund liegt feines Korn: es bricht die Stufen in den dunklen
    Verläufen, das Glas darüber verwischt es und bleibt glatt. */
 html[data-look='nacht'] {
-  --lg-surface-fill: rgba(255,255,255,0.035);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012));
+  --lg-surface-fill: rgb(var(--ink-rgb) / 0.035);
+  --lg-surface-bg: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.045), rgb(var(--ink-rgb) / 0.012));
   --lg-surface-blur: blur(30px) saturate(170%);
   --lg-surface-shadow:
     inset 0 2px 0 rgba(110,230,255,0.20),
@@ -753,9 +753,9 @@ html[data-look='nacht'] {
     inset -2px 0 0 rgba(255,105,190,0.06),
     inset 0 0 28px rgba(120,190,255,0.035),
     0 18px 40px rgba(0,0,0,0.6);
-  --lg-card-rim: linear-gradient(140deg, rgba(170,235,255,0.42), rgba(170,235,255,0.10) 28%, rgba(255,255,255,0.03) 55%, rgba(190,170,255,0.10) 80%, rgba(190,170,255,0.30));
+  --lg-card-rim: linear-gradient(140deg, rgba(170,235,255,0.42), rgba(170,235,255,0.10) 28%, rgb(var(--ink-rgb) / 0.03) 55%, rgba(190,170,255,0.10) 80%, rgba(190,170,255,0.30));
   --lg-card-sheen: radial-gradient(90% 50% at 20% -10%, rgba(160,220,255,0.07), transparent 60%);
-  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.025) 100%);
+  --lg-glass-fill: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.08) 0%, rgb(var(--ink-rgb) / 0.025) 100%);
   --lg-glass-shadow:
     inset 0 1px 0 rgba(180,235,255,0.30),
     inset 0 0 0 1px rgba(170,200,255,0.08),
@@ -811,20 +811,20 @@ html[data-look='instrument'] {
   --lg-surface-fill: #0b0c0e;
   --lg-surface-bg: #0b0c0e;
   --lg-surface-blur: none;
-  --lg-surface-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  --lg-surface-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
   --lg-card-rim: none;
   --lg-card-sheen: none;
-  --lg-surface-2: rgba(255,255,255,0.05);
+  --lg-surface-2: rgb(var(--ink-rgb) / 0.05);
   --lg-glass-fill: #0b0c0e;
   --lg-glass-filter: none;
-  --lg-glass-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+  --lg-glass-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.10);
   --lg-rim: none;
   --lg-sheen: none;
   --lg-primary-fill: #f2f2f2;
   --shadow-btn-primary: none;
   --lg-danger-fill: rgba(255,69,58,0.14);
-  --lg-pill-fill: rgba(255,255,255,0.10);
-  --lg-pill-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+  --lg-pill-fill: rgb(var(--ink-rgb) / 0.10);
+  --lg-pill-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.14);
   --lg-sheet-bg: #0b0c0e;
   --lg-sheet-blur: none;
 }
@@ -835,13 +835,13 @@ html[data-look='instrument'] .lg-btn-tint {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
   animation: none;
 }
-html[data-look='instrument'] .lg-seg-fill { background: #0b0c0e; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
-html[data-look='instrument'] .lg-seg-fill .lg-seg-pill { background: rgba(255,255,255,0.12); box-shadow: none; }
+html[data-look='instrument'] .lg-seg-fill { background: #0b0c0e; box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08); }
+html[data-look='instrument'] .lg-seg-fill .lg-seg-pill { background: rgb(var(--ink-rgb) / 0.12); box-shadow: none; }
 html[data-look='instrument'] .lg-sheet {
-  box-shadow: 0 -16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10);
+  box-shadow: 0 -16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgb(var(--ink-rgb) / 0.10);
 }
 html[data-look='instrument'] .lg-large-title {
   font-family: var(--lg-display);
@@ -858,12 +858,12 @@ html[data-look='instrument'] .tyd-tabbar {
   background: #0b0c0e;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.6);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08), 0 8px 24px rgba(0,0,0,0.6);
 }
 html[data-look='instrument'] .tyd-tabbar::before,
 html[data-look='instrument'] .tyd-tabbar::after { display: none; }
 html[data-look='instrument'] .tyd-tabbar-pill {
-  background: rgba(255,255,255,0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
   box-shadow: none;
 }
 html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
@@ -895,12 +895,12 @@ html[data-look='softdark'] {
   --sd-raise: linear-gradient(180deg, #21252a 0%, #20242a 50%, #1e2026 100%);
   --sd-raise-hi: linear-gradient(180deg, #23272d 0%, #1f2228 100%);
   /* Haarfeine Kante rundum: oben eine Spur heller, unten fast nichts */
-  --sd-rim: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 35%, rgba(255,255,255,0.02) 100%);
+  --sd-rim: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.06) 0%, rgb(var(--ink-rgb) / 0.03) 35%, rgb(var(--ink-rgb) / 0.02) 100%);
   --sd-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 24px -12px rgba(0,0,0,0.85);
   --sd-shadow-pressed: 0 1px 1px rgba(0,0,0,0.4), 0 5px 10px -6px rgba(0,0,0,0.75);
   --sd-blue: linear-gradient(180deg, #4ebbfe 0%, #3c8bf0 55%, #347cef 100%);
-  --sd-blue-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
-  --sd-blue-shadow-pressed: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
+  --sd-blue-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
+  --sd-blue-shadow-pressed: inset 0 1px 0 rgb(var(--ink-rgb) / 0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
 
   --lg-surface-fill: #20242a;
   --lg-surface-bg: var(--sd-raise);
@@ -908,7 +908,7 @@ html[data-look='softdark'] {
   --lg-surface-shadow: var(--sd-shadow);
   --lg-card-rim: var(--sd-rim);
   --lg-card-sheen: none;
-  --lg-surface-2: rgba(255,255,255,0.05);
+  --lg-surface-2: rgb(var(--ink-rgb) / 0.05);
   --lg-glass-fill: var(--sd-raise-hi);
   --lg-glass-filter: none;
   --lg-glass-shadow: var(--sd-shadow);
@@ -919,7 +919,7 @@ html[data-look='softdark'] {
   --lg-danger-fill: linear-gradient(180deg, rgba(255,90,80,0.30), rgba(255,69,58,0.18));
   --lg-pill-fill: var(--sd-blue);
   --lg-pill-shadow: var(--sd-blue-shadow);
-  --lg-fill: rgba(255,255,255,0.06);
+  --lg-fill: rgb(var(--ink-rgb) / 0.06);
   --lg-fill-selected: #30343a;
   --lg-sheet-bg: linear-gradient(180deg, #21252a 0%, #1e2026 100%);
   --lg-sheet-solid: #1f2228;
@@ -978,7 +978,7 @@ html[data-look='softdark'] .lg-seg > button { transition: color 240ms ease, tran
 
 /* Blätter: festes Material, oben ein Lichtsaum, kein Weichzeichner */
 html[data-look='softdark'] .lg-sheet {
-  box-shadow: 0 -18px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.035);
+  box-shadow: 0 -18px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgb(var(--ink-rgb) / 0.10), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.035);
 }
 
 /* Leiste: eine erhabene Kapsel. Die Pille ist eine Stufe heller, der aktive
@@ -987,16 +987,16 @@ html[data-look='softdark'] .tyd-tabbar {
   background: linear-gradient(180deg, #23272d 0%, #1e2026 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.06), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
 }
 html[data-look='softdark'] .tyd-tabbar::before,
 html[data-look='softdark'] .tyd-tabbar::after { display: none; }
 html[data-look='softdark'] .tyd-tabbar-pill {
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.07) 0%, rgb(var(--ink-rgb) / 0.03) 100%);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
 }
 html[data-look='softdark'] .tyd-tabbar-pill[data-gehalten='true'] {
-  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.05) 100%);
 }
 html[data-look='softdark'] .tyd-tabbar-item svg { transition: filter 240ms ease; }
 html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #6cbcff; }
@@ -1008,8 +1008,105 @@ html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabba
   html[data-look='softdark'] :is(a, button):is(.card, .lg-surface, .lg-group):active { transform: none; }
 }
 @media (prefers-contrast: more) {
-  html[data-look='softdark'] { --lg-card-rim: linear-gradient(rgba(255,255,255,0.22), rgba(255,255,255,0.22)); }
+  html[data-look='softdark'] { --lg-card-rim: linear-gradient(rgb(var(--ink-rgb) / 0.22), rgb(var(--ink-rgb) / 0.22)); }
 }
+
+/* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
+   Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen
+   umstellt: die Kanäle (--ink-rgb Schrift/Linien, --ground-rgb Grund, die
+   Graphit-Stufen --slate-*) drehen sich um, Flächen sind weißes Papier mit
+   Haarlinie und weichem Schatten, Bedienung ist schwarz. Was ihn noch nicht
+   erreicht, zeigt `npm run looks:audit` (feste Farben in Bausteinen). */
+html[data-look='papier'] {
+  color-scheme: light;
+  --ink-rgb: 11 11 12;
+  --ground-rgb: 246 246 244;
+  --slate-50: 11 11 12;
+  --slate-100: 28 28 30;
+  --slate-200: 44 44 46;
+  --slate-300: 72 72 76;
+  --slate-400: 88 88 92;
+  --slate-500: 108 108 113;
+  --slate-600: 150 150 155;
+  --slate-700: 222 222 225;
+  --slate-800: 236 236 238;
+  --slate-900: 244 244 245;
+  --slate-950: 250 250 249;
+
+  --app-bg: #f6f6f4;
+  --surface: rgba(255,255,255,0.98);
+  --surface-raised: #ffffff;
+  --surface-input: rgba(0,0,0,0.05);
+  --glass-bg: rgba(255,255,255,0.92);
+  --text: #0b0b0c;
+  --text-dim: #4f4f54;
+  --text-muted: #66666b;
+  --border: rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.16);
+  --card-border: rgba(0,0,0,0.09);
+  --accent: #0b0b0c;
+  --accent-weak: rgba(0,0,0,0.06);
+  --accent-border: rgba(0,0,0,0.28);
+  --accent-contrast: #ffffff;
+  --glow-accent: none;
+  --diary-effect-text: #0f766e;
+  --diary-side-effect-text: #b45309;
+
+  --lg-text-2: rgba(11,11,12,0.70);
+  --lg-text-3: rgba(11,11,12,0.58);
+  --lg-text-4: rgba(11,11,12,0.32);
+  --lg-hair: rgba(0,0,0,0.08);
+  --lg-good: #1f8a3e;
+  --lg-good-text: #1a7a36;
+  --lg-warn: #b86200;
+  --lg-warn-text: #9a5200;
+  --lg-bad: #d0302a;
+  --lg-bad-text: #b3261e;
+  --lg-accent-text: #0b0b0c;
+  --lg-surface-2: rgba(0,0,0,0.04);
+
+  --lg-glass-fill: #ffffff;
+  --lg-glass-filter: none;
+  --lg-glass-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 22px -12px rgba(0,0,0,0.28);
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: #0b0b0c;
+  --shadow-btn-primary: 0 10px 22px -12px rgba(0,0,0,0.55);
+  --lg-danger-fill: rgba(208,48,42,0.10);
+  --lg-surface-fill: #ffffff;
+  --lg-surface-bg: #ffffff;
+  --lg-surface-blur: none;
+  --lg-surface-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 14px 30px -18px rgba(0,0,0,0.30);
+  --lg-card-rim: linear-gradient(rgba(0,0,0,0.08), rgba(0,0,0,0.08));
+  --lg-card-sheen: none;
+  --lg-sheet-bg: #ffffff;
+  --lg-sheet-solid: #ffffff;
+  --lg-sheet-blur: none;
+  --lg-fill: rgba(0,0,0,0.06);
+  --lg-fill-selected: #e2e2e5;
+  --lg-separator: rgba(0,0,0,0.10);
+  /* Auswahl im Umschalter: weißer Stein auf grauer Spur, wie iOS hell */
+  --lg-pill-fill: #ffffff;
+  --lg-pill-shadow: 0 1px 3px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06);
+  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(0,0,0,0.04), rgba(0,0,0,0) 70%), #f6f6f4;
+}
+html[data-look='papier'] .lg-backdrop { background-color: #f6f6f4; }
+html[data-look='papier'] .lg-seg-fill .lg-seg-pill { background: #ffffff; box-shadow: var(--lg-pill-shadow); }
+html[data-look='papier'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06); }
+html[data-look='papier'] .lg-btn-tint { color: #0b0b0c; background: #ffffff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 6px 16px -10px rgba(0,0,0,0.35); animation: none; }
+html[data-look='papier'] .tyd-tabbar {
+  background: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 14px 30px -14px rgba(0,0,0,0.35);
+}
+html[data-look='papier'] .tyd-tabbar::before,
+html[data-look='papier'] .tyd-tabbar::after { display: none; }
+html[data-look='papier'] .tyd-tabbar-pill { background: rgba(0,0,0,0.06); box-shadow: none; }
+html[data-look='papier'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #0b0b0c; }
+/* Hoku schwarz auf Weiß wie im Logo: die Engine zeichnet ihn hell und leuchtend
+   (additiv); umgekehrt wird daraus schwarze Tinte, die Leere bleibt durchsichtig. */
+html[data-look='papier'] .tyd-dot-flaeche { filter: invert(1); }
 
 /* ── Erscheinungsbild „Satin" ───────────────────────────────────────────
    Schwarzer Grund wie „Schwarz", aber die Kante ist ein gewölbter Glasrand:
@@ -1019,11 +1116,11 @@ html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabba
    Kante (scrollgetriebene Animation, Lampe über dem Bildschirm), beim
    Berühren folgt er dem Finger (src/lib/reflex.ts). */
 html[data-look='satin'] {
-  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.17) 35%, rgba(255,255,255,0.11) 65%, rgba(255,255,255,0.22));
+  --lg-card-rim: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.40), rgb(var(--ink-rgb) / 0.17) 35%, rgb(var(--ink-rgb) / 0.11) 65%, rgb(var(--ink-rgb) / 0.22));
   --lg-surface-shadow:
-    inset 0 0 0 4px rgba(255,255,255,0.035),
-    inset 0 0 10px 2px rgba(255,255,255,0.07),
-    inset 0 5px 10px -6px rgba(255,255,255,0.20),
+    inset 0 0 0 4px rgb(var(--ink-rgb) / 0.035),
+    inset 0 0 10px 2px rgb(var(--ink-rgb) / 0.07),
+    inset 0 5px 10px -6px rgb(var(--ink-rgb) / 0.20),
     0 18px 40px rgba(0,0,0,0.7);
 }
 html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::before {
@@ -1032,8 +1129,8 @@ html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::before {
 html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after {
   --rx: 34%;
   background:
-    radial-gradient(closest-side, rgba(255,255,255,0.95), rgba(255,255,255,0.38) 45%, transparent),
-    radial-gradient(closest-side, rgba(255,255,255,0.13), transparent);
+    radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.95), rgb(var(--ink-rgb) / 0.38) 45%, transparent),
+    radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.13), transparent);
   background-size: 34% 3px, 64% 26px;
   background-repeat: no-repeat;
   background-position: var(--rx) 0, var(--rx) -6px;
@@ -1075,9 +1172,9 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::before {
   background: conic-gradient(from var(--la),
     rgba(255, 255, 255, var(--li)) 0deg,
     rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(var(--lw) * 0.5),
-    rgba(255, 255, 255, 0.08) var(--lw),
-    rgba(255, 255, 255, 0.05) 180deg,
-    rgba(255, 255, 255, 0.08) calc(360deg - var(--lw)),
+    rgb(var(--ink-rgb) / 0.08) var(--lw),
+    rgb(var(--ink-rgb) / 0.05) 180deg,
+    rgb(var(--ink-rgb) / 0.08) calc(360deg - var(--lw)),
     rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(360deg - var(--lw) * 0.5),
     rgba(255, 255, 255, var(--li)) 360deg);
 }
@@ -1092,7 +1189,7 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
    nach 250 ms sichtbar, damit schnelles Laden nicht aufblitzt; ohne
    Bewegung (prefers-reduced-motion) stehen sie still. */
 .lg-skel { animation: lg-fade-in 280ms var(--lg-ease-out) 250ms backwards; }
-.lg-skel-card { border-radius: var(--r-xl); background: rgba(255, 255, 255, 0.03); }
+.lg-skel-card { border-radius: var(--r-xl); background: rgb(var(--ink-rgb) / 0.03); }
 .lg-ph {
   display: block;
   flex-shrink: 0;

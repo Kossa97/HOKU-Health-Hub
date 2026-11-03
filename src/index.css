@@ -101,6 +101,23 @@
      --surface ist bewusst fast deckend — Sheets, Menüs und Kopfzeilen liegen
      darauf über Inhalt. Durchscheinendes Glas kommt aus den Bausteinen
      (.card, .lg-glass, .lg-surface), nicht aus diesem Token. */
+  /* Farbkanäle (Leerzeichen-getrennt, für rgb(var(--x) / Deckkraft)).
+     Jeder Look kann sie umstellen; ein heller Look kehrt sie um.
+     --ink-rgb: Schrift, Linien und helle Schleier; --ground-rgb: der Grund.
+     Tailwind liest `white`, `black` und `slate-*` aus diesen Kanälen. */
+  --ink-rgb:    255 255 255;
+  --ground-rgb: 0 0 0;
+  --slate-50:  245 245 247;
+  --slate-100: 235 235 240;
+  --slate-200: 209 209 214;
+  --slate-300: 174 174 178;
+  --slate-400: 152 152 157;
+  --slate-500: 124 124 130;
+  --slate-600: 84 84 88;
+  --slate-700: 44 44 46;
+  --slate-800: 28 28 30;
+  --slate-900: 18 18 20;
+  --slate-950: 5 5 6;
   --app-bg:          #000000;
   --surface:         rgba(22,22,24,0.97);
   --surface-raised:  rgba(44,44,46,0.94);
@@ -110,9 +127,9 @@
   --text:            #f5f5f7;
   --text-dim:        #a1a1a6;
   --text-muted:      #7c7c82;
-  --border:          rgba(255,255,255,0.08);
-  --border-strong:   rgba(255,255,255,0.14);
-  --card-border:     rgba(255,255,255,0.08);
+  --border:          rgb(var(--ink-rgb) / 0.08);
+  --border-strong:   rgb(var(--ink-rgb) / 0.14);
+  --card-border:     rgb(var(--ink-rgb) / 0.08);
   --accent:          #00ccf5;
   --accent-weak:     rgba(0,204,245,0.12);
   --accent-border:   rgba(0,204,245,0.32);
@@ -163,7 +180,7 @@
   --lg-text-2: rgba(235, 240, 255, 0.66);
   --lg-text-3: rgba(235, 240, 255, 0.52);
   --lg-text-4: rgba(235, 235, 245, 0.30);   /* nur Zeichen ohne Text: Chevrons */
-  --lg-hair:   rgba(255, 255, 255, 0.08);
+  --lg-hair:   rgb(var(--ink-rgb) / 0.08);
   --lg-accent: var(--accent);
   --lg-good:   #30d158;
   --lg-good-text: #5fe07f;   /* Grün als Schrift auf grün getönter Fläche */
@@ -174,7 +191,7 @@
   --lg-bad-text: #ff6961;
   --lg-accent-text: #64d2ff;
   /* Zweite Inhaltsebene auf Graphit (Felder, Karten im Sheet) */
-  --lg-surface-2: rgba(255,255,255,0.07);
+  --lg-surface-2: rgb(var(--ink-rgb) / 0.07);
   --lg-display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   --lg-ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
   /* Materialien — eine Quelle für lg-* und die Tailwind-Schicht (.card, .btn-*).
@@ -183,11 +200,11 @@
   /* Material wie Fortschritt im Schwarzglas-Entwurf (Stand af67ed5) —
      das Maß für die ganze App. Kante als Innenschatten: oben hell, ringsum
      eine Haarlinie, unten ein Hauch. */
-  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.04) 100%);
+  --lg-glass-fill: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.11) 0%, rgb(var(--ink-rgb) / 0.04) 100%);
   --lg-glass-filter: blur(26px) saturate(180%);
-  --lg-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.09), inset 0 -1px 0 rgba(255,255,255,0.04), 0 12px 40px rgba(0,0,0,0.55);
+  --lg-glass-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.28), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.09), inset 0 -1px 0 rgb(var(--ink-rgb) / 0.04), 0 12px 40px rgba(0,0,0,0.55);
   --lg-rim: linear-gradient(transparent, transparent);
-  --lg-sheen: radial-gradient(120% 70% at 18% 0%, rgba(255,255,255,0.16), transparent 55%);
+  --lg-sheen: radial-gradient(120% 70% at 18% 0%, rgb(var(--ink-rgb) / 0.16), transparent 55%);
   /* Prominent: Glas, in Cyan getönt; Schrift dunkel (≈ 11:1) */
   --lg-primary-fill: linear-gradient(180deg, #4fe2ff 0%, #00c2ec 55%, #00a9d4 100%);
   --lg-danger-fill: linear-gradient(180deg, rgba(255,69,58,0.42), rgba(255,69,58,0.22));
@@ -196,12 +213,12 @@
      dahinter — sichtbar wird das Glas durch seine Kante, die Licht oben
      links und unten rechts fängt (--lg-card-rim), und einen Glanz oben.
      --lg-surface-fill ist die flache Fassung (für background-color). */
-  --lg-surface-fill: rgba(255,255,255,0.04);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+  --lg-surface-fill: rgb(var(--ink-rgb) / 0.04);
+  --lg-surface-bg: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.05), rgb(var(--ink-rgb) / 0.015));
   --lg-surface-blur: blur(18px) saturate(140%);
-  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 18px 40px rgba(0,0,0,0.7);
-  --lg-card-rim: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.12) 30%, rgba(255,255,255,0.02) 55%, rgba(255,255,255,0.10) 78%, rgba(255,255,255,0.45));
-  --lg-card-sheen: radial-gradient(90% 60% at 20% -10%, rgba(255,255,255,0.12), transparent 60%);
+  --lg-surface-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.22), 0 18px 40px rgba(0,0,0,0.7);
+  --lg-card-rim: linear-gradient(135deg, rgb(var(--ink-rgb) / 0.75), rgb(var(--ink-rgb) / 0.12) 30%, rgb(var(--ink-rgb) / 0.02) 55%, rgb(var(--ink-rgb) / 0.10) 78%, rgb(var(--ink-rgb) / 0.45));
+  --lg-card-sheen: radial-gradient(90% 60% at 20% -10%, rgb(var(--ink-rgb) / 0.12), transparent 60%);
   /* Sheets: dichteres Glas, Text und Felder bleiben lesbar */
   --lg-sheet-bg: rgba(30,30,34,0.74);
   --lg-sheet-solid: #1c1c1e;
@@ -210,14 +227,14 @@
   --lg-fill-selected: #636366;
   --lg-separator: rgba(84,84,88,0.65);
   /* gewählter Eintrag in einer Glas-Leiste: heller Glas-Stein */
-  --lg-pill-fill: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(255,255,255,0.10));
-  --lg-pill-shadow: inset 0 0.5px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.3);
+  --lg-pill-fill: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.26), rgb(var(--ink-rgb) / 0.10));
+  --lg-pill-shadow: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.6), 0 2px 8px rgba(0,0,0,0.3);
 
   --shadow-card: none;
-  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,40,60,0.25), 0 1px 2px rgba(0,0,0,0.6), 0 8px 22px rgba(0,204,245,0.30);
+  --shadow-btn-primary: inset 0 1px 0 rgb(var(--ink-rgb) / 0.6), inset 0 -1px 0 rgba(0,40,60,0.25), 0 1px 2px rgba(0,0,0,0.6), 0 8px 22px rgba(0,204,245,0.30);
   --shadow-input:
     inset 0 1px 2px rgba(0,0,0,0.45),
-    inset 0 0 0 1px rgba(255,255,255,0.06);
+    inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06);
   --shadow-input-focus:
     0 0 0 3px rgba(0,204,245,0.22),
     inset 0 0 0 1px rgba(0,204,245,0.55);
@@ -346,11 +363,11 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.07) transparent;
+    scrollbar-color: rgb(var(--ink-rgb) / 0.07) transparent;
   }
   ::-webkit-scrollbar       { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--ink-rgb) / 0.09); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(0,204,245,0.28); }
   ::selection { background: rgba(0,204,245,0.28); color: #fff; }
 
@@ -718,7 +735,7 @@
 button.bg-sky-500:not(.btn-primary) {
   background: var(--lg-primary-fill) !important;
   border: 0 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,40,60,0.25) !important;
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.5), inset 0 -1px 0 rgba(0,40,60,0.25) !important;
   color: var(--accent-contrast) !important;
   font-weight: 700 !important;
 }
@@ -756,7 +773,7 @@ button.bg-slate-800:active { transform: scale(0.96); transition-duration: 100ms;
 
 /* ── Toggle Track: iOS-Grün, Daumen weiß mit Schatten ─────────────────── */
 div.w-9.h-5.rounded-full {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06) !important;
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06) !important;
 }
 div.w-9.h-5.rounded-full.bg-emerald-500 {
   background: #30d158 !important;
@@ -779,7 +796,7 @@ div.w-9.h-5.rounded-full > span.bg-white.rounded-full {
   border-top: 0 !important;
   box-shadow:
     0 -20px 60px rgba(0,0,0,0.75),
-    inset 0 1px 0 rgba(255,255,255,0.10) !important;
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.10) !important;
 }
 
 /* Große Rundung nur, wo es ein Sheet von unten ist; ab 640 px werden viele
@@ -810,8 +827,8 @@ div.w-9.h-5.rounded-full > span.bg-white.rounded-full {
   border: 0 !important;
   box-shadow:
     0 20px 60px rgba(0,0,0,0.6),
-    inset 1px 1px 0 rgba(255,255,255,0.22),
-    inset -1px -1px 0 rgba(255,255,255,0.08) !important;
+    inset 1px 1px 0 rgb(var(--ink-rgb) / 0.22),
+    inset -1px -1px 0 rgb(var(--ink-rgb) / 0.08) !important;
   -webkit-backdrop-filter: blur(30px) saturate(190%);
   backdrop-filter: blur(30px) saturate(190%);
 }
@@ -865,10 +882,10 @@ div.w-9.h-5.rounded-full > span.bg-white.rounded-full {
 
 /* Inactive hover */
 .nav-item-inactive:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--ink-rgb) / 0.03);
 }
 .nav-item-inactive:hover svg {
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.15));
+  filter: drop-shadow(0 0 3px rgb(var(--ink-rgb) / 0.15));
 }
 
 /* animate-ping uses Tailwind's built-in definition — no override needed */
@@ -1095,7 +1112,7 @@ main.flex-1 {
   /* Kein schwerer Schatten: Glas liegt auf dem Bild, es schwebt nicht davor. */
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.10),
     inset 0 -1px 0 rgba(0, 0, 0, 0.16);
   /* Ziehen laeuft ueber Zeigerereignisse — der Browser darf die Geste nicht
      als Scrollen fuer sich beanspruchen. Die Leiste ist keine Rollflaeche. */
@@ -1111,9 +1128,9 @@ main.flex-1 {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.07) 0%,
-      rgba(255, 255, 255, 0.03) 46%,
-      rgba(255, 255, 255, 0.015) 100%
+      rgb(var(--ink-rgb) / 0.07) 0%,
+      rgb(var(--ink-rgb) / 0.03) 46%,
+      rgb(var(--ink-rgb) / 0.015) 100%
     ),
     rgba(18, 18, 20, 0.30);
 }
@@ -1147,10 +1164,10 @@ main.flex-1 {
   pointer-events: none;
   background: linear-gradient(
     155deg,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(255, 255, 255, 0.07) 28%,
-    rgba(255, 255, 255, 0.03) 56%,
-    rgba(255, 255, 255, 0.18) 100%
+    rgb(var(--ink-rgb) / 0.34) 0%,
+    rgb(var(--ink-rgb) / 0.07) 28%,
+    rgb(var(--ink-rgb) / 0.03) 56%,
+    rgb(var(--ink-rgb) / 0.18) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -1185,11 +1202,11 @@ main.flex-1 {
      Kante. Die Zwischenstufen legen die Steigung allmaehlich auf null. */
   background: radial-gradient(
     120% 160% at var(--tyd-glint, 50%) -40%,
-    rgba(255, 255, 255, 0.13) 0%,
-    rgba(255, 255, 255, 0.04) 42%,
-    rgba(255, 255, 255, 0.022) 52%,
-    rgba(255, 255, 255, 0.01) 61%,
-    rgba(255, 255, 255, 0.003) 68%,
+    rgb(var(--ink-rgb) / 0.13) 0%,
+    rgb(var(--ink-rgb) / 0.04) 42%,
+    rgb(var(--ink-rgb) / 0.022) 52%,
+    rgb(var(--ink-rgb) / 0.01) 61%,
+    rgb(var(--ink-rgb) / 0.003) 68%,
     transparent 74%
   );
   transition: background 420ms cubic-bezier(0.32, 0.72, 0, 1);
@@ -1212,12 +1229,12 @@ main.flex-1 {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.13) 0%,
-    rgba(255, 255, 255, 0.06) 60%,
-    rgba(255, 255, 255, 0.04) 100%
+    rgb(var(--ink-rgb) / 0.13) 0%,
+    rgb(var(--ink-rgb) / 0.06) 60%,
+    rgb(var(--ink-rgb) / 0.04) 100%
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.18),
     inset 0 -1px 0 rgba(0, 0, 0, 0.10),
     0 2px 8px rgba(0, 0, 0, 0.12);
   /* Weich mit leichtem Ueberschwingen — das ist der Feder-Anteil. Nur
@@ -1241,12 +1258,12 @@ main.flex-1 {
 .tyd-tabbar-pill[data-gehalten='true'] {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0.12) 60%,
-    rgba(255, 255, 255, 0.08) 100%
+    rgb(var(--ink-rgb) / 0.22) 0%,
+    rgb(var(--ink-rgb) / 0.12) 60%,
+    rgb(var(--ink-rgb) / 0.08) 100%
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.30),
     inset 0 -1px 0 rgba(0, 0, 0, 0.10),
     0 4px 14px rgba(0, 0, 0, 0.18);
   scale: 1.07;
@@ -1543,7 +1560,7 @@ main.flex-1 {
   -webkit-tap-highlight-color: transparent;
 }
 .stack-swatch:focus-visible { outline: none; }
-.stack-swatch:focus-visible .stack-swatch-dot { box-shadow: 0 0 0 3px #000, 0 0 0 5px rgba(255, 255, 255, 0.7); }
+.stack-swatch:focus-visible .stack-swatch-dot { box-shadow: 0 0 0 3px #000, 0 0 0 5px rgb(var(--ink-rgb) / 0.7); }
 .stack-swatch-dot {
   display: grid;
   place-items: center;
@@ -1551,7 +1568,7 @@ main.flex-1 {
   height: 30px;
   border-radius: 999px;
   background: var(--swatch);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.22), 0 1px 3px rgba(0, 0, 0, 0.45);
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .stack-swatch-dot[data-checked] {

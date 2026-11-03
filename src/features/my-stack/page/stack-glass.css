@@ -91,10 +91,10 @@
 }
 
 /* ── Positionszeile: Punkte wie die Seitenpunkte in iOS ──────────────── */
-.stack-dot { display: block; height: 7px; width: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.24); transition: width 300ms var(--lg-ease-out), background-color 300ms ease; }
+.stack-dot { display: block; height: 7px; width: 7px; border-radius: 4px; background: rgb(var(--ink-rgb) / 0.24); transition: width 300ms var(--lg-ease-out), background-color 300ms ease; }
 .stack-dot[data-on='true'] { width: 20px; background: var(--lg-text); }
 @media (hover: hover) and (pointer: fine) {
-  button:hover > .stack-dot:not([data-on='true']) { background: rgba(255, 255, 255, 0.45); }
+  button:hover > .stack-dot:not([data-on='true']) { background: rgb(var(--ink-rgb) / 0.45); }
 }
 
 @media (prefers-reduced-motion: reduce) {
