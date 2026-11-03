@@ -1,4 +1,4 @@
-import type { StackCategory, SubstanceCatalogEntry } from '../types'
+import type { StackCategory, StackItemIngredient, SubstanceCatalogEntry } from '../types'
 
 // Kombipraeparate im Katalog.
 //
@@ -67,4 +67,42 @@ export function bestandteileAufloesen(
         category: gefunden.default_category,
       }
     })
+}
+
+/**
+ * Der Name, den ein Produkt aus seinen Zutaten bekommt: „BPC-157 + TB-500".
+ * Zutaten aus dem Katalog mit ihrem Katalognamen, eigene mit ihrem Namen;
+ * Zeilen ohne Namen zaehlen nicht.
+ */
+export function kombiName(
+  zutaten: readonly Pick<StackItemIngredient, 'catalog_substance_id' | 'custom_name'>[],
+  katalogNamen: Readonly<Record<string, string>>,
+): string {
+  return zutaten
+    .map(zutat => (zutat.catalog_substance_id ? katalogNamen[zutat.catalog_substance_id] : null) ?? zutat.custom_name ?? '')
+    .map(name => name.trim())
+    .filter(Boolean)
+    .join(' + ')
+}
+
+/**
+ * Wird aus einer Substanz nachtraeglich eine Kombination, zieht der Name mit:
+ * aus „BPC-157" wird mit TB-500 „BPC-157 + TB-500". Aber nur, solange der
+ * Name noch der ist, der sich aus den Zutaten ergab — einen selbst
+ * vergebenen Namen („Wolverine-Stack") faesst das nicht an. Gibt den neuen
+ * Namen zurueck oder null, wenn er bleibt.
+ */
+export function kombiNameNachfuehren(
+  vorher: readonly Pick<StackItemIngredient, 'catalog_substance_id' | 'custom_name'>[],
+  nachher: readonly Pick<StackItemIngredient, 'catalog_substance_id' | 'custom_name'>[],
+  aktuellerName: string,
+  katalogNamen: Readonly<Record<string, string>>,
+): string | null {
+  // Nur, was als Substanz aus dem Katalog begann: ein eigenes Produkt
+  // („Foo") traegt einen Namen, den man nicht aus den Zutaten ableitet.
+  if (!vorher[0]?.catalog_substance_id) return null
+  const alt = kombiName(vorher, katalogNamen)
+  if (!alt || alt !== aktuellerName.trim()) return null
+  const neu = kombiName(nachher, katalogNamen)
+  return neu && neu !== alt ? neu : null
 }

@@ -2723,7 +2723,7 @@
   "my_stack_scan_err_lookup": "The barcode could not be looked up right now. Take a photo of the label instead.",
   "my_stack_scan_err": "The label could not be read. Please try again.",
   "my_stack_scan_err_limit": "Too many scans in a short time. Try again later or enter it by hand.",
-  "my_stack_scan_no_label": "No readable label in the photo. Move a little closer and make sure it is sharp.",
+  "my_stack_scan_no_label": "No readable label in the photo. Photograph the ingredients up close in good light – or use “Choose photo” and your regular camera.",
   "my_stack_scan_image_only": "Please choose a photo.",
   "my_stack_scan_not_found": "Not recognised",
   "my_stack_scan_strength": "Strength",
@@ -2882,5 +2882,7 @@
   "syringe_draw_units": "Draw {{units}} units",
   "dose_once": "one-off",
   "bundle_merged_hint": "Combined today because these bundles are due at the same time.",
-  "my_stack_scan_amazon": "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead."
+  "my_stack_scan_amazon": "This is Amazon’s shipping label, not the product barcode. Take a photo of the back with the ingredients instead.",
+  "pk_select_ingredient": "Choose active ingredient",
+  "pk_stats_for": "Key figures · {{name}}"
 }
