@@ -1,6 +1,6 @@
 # Titel (Profil-Zusatz, nach 2c)
 
-Stand 03.11.2026 · Spec `docs/superpowers/specs/2026-11-03-profil-titel-design.md`, Plan `docs/superpowers/plans/2026-11-03-profil-titel.md`. Mockup: `docs/profil/mockups/profil-titel.html`, https://claude.ai/artifact/21JomB4qaYMvUkjFXLm3UP. Keine Spec.
+Stand 03.11.2026 · Spec `docs/superpowers/specs/2026-11-03-profil-titel-design.md`, Plan `docs/superpowers/plans/2026-11-03-profil-titel.md`. Mockup: `docs/profil/mockups/profil-titel.html`, https://claude.ai/artifact/21JomB4qaYMvUkjFXLm3UP.
 
 ## Entschieden [Nutzer]
 - **Rang und Prägungen.** Ein Titel ist eine Identität („wer du auf Hoku bist“), genau einer wird getragen, neben dem
