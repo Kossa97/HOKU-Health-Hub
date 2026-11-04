@@ -1,12 +1,11 @@
 # Trockenlauf `supabase-profil-p2c-web.sql`
 
 Stand 04.11.2026 (dritte Fassung: dazu „Profil melden ohne Konto“, Abschnitt 7 der Migration, Proben
-M1–M10; zweite Fassung nach den Entscheidungen des Nutzers vom 04.11.: Fortschritt im Web nur
+M1–M11; zweite Fassung nach den Entscheidungen des Nutzers vom 04.11.: Fortschritt im Web nur
 als Stufe, Blut/Einnahmen in den Einträgen nur bei Freigabe, Mitgliedschaft und „trackt N Werte“ ohne
 Feld-Gate, Mitgliedschaft nur als Dauer). Postgres 16.15 im Container (`/var/tmp/p2c-web`, als `postgres`),
-zweimal je ein frischer Cluster (`voll.sh data5`, `voll.sh data6`; beide gleich bis auf die in Lauf 2
-nachgeschärfte Probe M8b/M8c). Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja,
-Reihenfolge 2a → 2b → 2c.
+nach dem Code-Review zweimal je ein frischer Cluster (`voll.sh data7`, `voll.sh data8`), beide Ausgaben
+gleich. Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja, Reihenfolge 2a → 2b → 2c.
 
 ## Aufbau
 
@@ -58,17 +57,17 @@ Reihenfolge 2a → 2b → 2c.
 | ungültige `web_badges` | – | 0 | 0 | 0 |
 | heikel / Grenzfall / Web-Felder | – | 10 / 8 / 8 | 10 / 8 / 8 | 10 / 8 / 8 |
 | `anon` darf `profile_entry_count` | – | nein | nein | nein |
-| Meldungen gesamt / offen / ohne Melder | 3 / 1 / 1 | 3 / 1 / 1 | 3 / 1 / 1 | 13 / 11 / 9 (Proben M) |
+| Meldungen gesamt / offen / ohne Melder | 3 / 1 / 1 | 3 / 1 / 1 | 3 / 1 / 1 | 15 / 13 / 11 (Proben M) |
 | Spalten `source`, `reporter_contact` | 0 | 2 | 2 | 2 |
 | Index `content_reports_web_zeit` | 0 | 1 | 1 | 1 |
 | `report_public_profile_web` da / `anon` darf | nein / nein | ja / ja | ja / ja | ja / ja |
 | `anon` darf `moderation_queue` | nein | nein | nein | nein |
 | Policies auf `content_reports` | 1 | 1 | 1 | 1 |
-| Meldungen `web` / `app` / mit E-Mail | – | 0 / 3 / 0 | 0 / 3 / 0 | 9 / 4 / 1 |
+| Meldungen `web` / `app` / mit E-Mail | – | 0 / 3 / 0 | 0 / 3 / 0 | 11 / 4 / 3 |
 
 „–“ = vor 2c nicht gezählt. Lauf 2 meldet nur „column … already exists, skipping“ (vier Spalten) und
 „relation content_reports_web_zeit already exists, skipping“. Lauf 3 lässt die Abweichungen aus W11 und die
-Meldungen aus M1–M8 stehen (M4b, M5 und M9 laufen in einer Transaktion mit `rollback`). In den Proben W genau
+Meldungen aus M1–M8 und M11 stehen (M4b, M5, M8e und M9 laufen in einer Transaktion mit `rollback`). In den Proben W genau
 7 erwartete Fehler (W9 einmal, W12 sechsmal), Ausgabe gleich wie in der zweiten Fassung; in M genau 4
 erwartete Fehler (M6 dreimal, M7 einmal). Bestehende Meldungen: `source = 'app'`, `reporter_contact` null.
 
@@ -121,10 +120,10 @@ erwartete Fehler (M6 dreimal, M7 einmal). Bestehende Meldungen: `source = 'app'`
 - **M3** falscher oder fehlender Grund → `meldung_ungueltig`; E-Mail ohne @, ohne Punkt, mit Leerzeichen, über
   254 Zeichen → `kontakt_ungueltig` — für mara, otto und niemand gleich (geprüft vor der Profilsuche).
 - **M3b** Details mit 1500 Zeichen → 1000; E-Mail nur aus Leerzeichen → keine.
-- **M4** je Profil: mara 3., 4., 5. Web-Meldung ok, 6. → `zu_viele_meldungen`; frieda weiter ok; otto weiter
-  `meldung_nicht_moeglich` (die Grenze je Profil verrät nichts über Unsichtbare).
+- **M4** je Profil (anonym): mara 3., 4., 5. Web-Meldung ok, 6. → `zu_viele_meldungen`; frieda weiter ok; otto
+  weiter `meldung_nicht_moeglich` (die Grenze je Profil verrät nichts über Unsichtbare).
 - **M4b** nach einer Stunde (Zeitstempel in der Transaktion zurückgesetzt) ist mara wieder meldbar.
-- **M5** 200 Web-Meldungen in der letzten Stunde → `zu_viele_meldungen` für dan, niemand und otto gleich.
+- **M5** 200 anonyme Web-Meldungen in der letzten Stunde → `zu_viele_meldungen` für dan, niemand und otto gleich.
 - **M6** `anon`: liest 0 Meldungen, `insert` → RLS-Fehler, `update` → 0 Zeilen, `moderation_queue` →
   permission denied, `resolve_content_report` → `nur_admins`.
 - **M7** angemeldet ohne Admin (cleo): 0 Meldungen, `moderation_queue` → `nur_admins`.
@@ -133,14 +132,19 @@ erwartete Fehler (M6 dreimal, M7 einmal). Bestehende Meldungen: `source = 'app'`
 - **M8b** App-Weg unverändert: `report_public_profile` (cleo → frieda) → `source = 'app'`, ohne E-Mail.
 - **M8c** Die Doppelsperre der App sieht auch die Web-Meldung eines Angemeldeten: cleo meldet dan danach per App →
   kein zweiter offener Eintrag (1).
+- **M8d** umgekehrt: cleo meldet dan noch einmal über die Web-Funktion → ok, weiter 1 offener Eintrag.
+- **M8e** Angemeldete haben über die Web-Funktion die Grenze der App (20 je Stunde): danach `zu_viele_meldungen`.
 - **M9** Admin: `moderation_queue` zeigt alle offenen Meldungen, die alten mit `source: app`, die aus dem Web mit
   `source: web` und `contact` (nur bei M1 gesetzt); „Ausblenden“ einer Web-Meldung blendet mara aus und erledigt
   alle offenen Profilmeldungen zu ihr (0 offen); danach `meldung_nicht_moeglich` und `profile_view` null.
+- **M11** Gleiche anonyme Meldung (Profil, Grund, Details getrimmt, E-Mail) zweimal → eine Zeile; mit anderer
+  E-Mail → eine neue.
 - **M10** `report_public_profile_web`: `anon` und `authenticated` ja, `public` nein; `moderation_queue`: `anon`
   nein.
 
 Grenzen der Meldefunktion, offen benannt: Eine IP-Adresse gibt es in SQL nicht; die Grenzen zählen deshalb nur
-Web-Meldungen je Profil (5) und insgesamt (200) je Stunde. Wer die Gesamtgrenze ausschöpft, sperrt eine Stunde
+anonyme Web-Meldungen je Profil (5) und insgesamt (200) je Stunde; Angemeldete haben die Grenze der App (20 je
+Stunde, eine offene Profilmeldung je Melder und Profil). Wer die Gesamtgrenze ausschöpft, sperrt eine Stunde
 lang alle Web-Meldungen — dann bleibt der Weg über das Impressum, den die Seite in diesem Fall nennt. Die
 Vercel-Firewall-Regel „Profil-Links bremsen“ deckt nur `/u/` und `/api/og`; für diese Funktion lässt sich dort
 keine Regel anlegen, weil der Browser direkt mit Supabase spricht (`/rest/v1/rpc/…`), nicht über Vercel.
@@ -293,7 +297,7 @@ union all select null, public.profile_web_member_for(null, date '2026-11-04');
 select public.profile_web_member_for('2026-11-03 23:30+00', date '2026-11-04') as dauer;
 ```
 
-## Proben-SQL Melden (M1–M10, als `postgres` gestartet, wechselt selbst die Rolle)
+## Proben-SQL Melden (M1–M11, als `postgres` gestartet, wechselt selbst die Rolle)
 
 Vorher im Aufbau zusätzlich: `content_reports` wie in Produktion (siehe Aufbau 1), drei App-Meldungen (Aufbau 2).
 Gezählt mit derselben Abfrage vor 2c, nach jedem Lauf (Tabelle oben).
@@ -344,8 +348,8 @@ select char_length(details) as zeichen, reporter_contact is null as ohne_kontakt
 
 \echo '--- M4: Grenze je Profil: mara hat 2 Web-Meldungen; 3 weitere ok, die 6. -> zu_viele_meldungen; frieda weiter ok; otto weiter meldung_nicht_moeglich'
 set role anon; set request.jwt.claim.sub = '';
-select i, pruef.melde('mara') as ergebnis from generate_series(3, 6) i;
-select pruef.melde('frieda') as frieda, pruef.melde('otto') as otto;
+select i, pruef.melde('mara', 'spam', 'M4 ' || i) as ergebnis from generate_series(3, 6) i;
+select pruef.melde('frieda', 'spam', 'M4 frieda') as frieda, pruef.melde('otto') as otto;
 reset role;
 select snapshot ->> 'username' as profil, count(*) as web_meldungen from public.content_reports where source = 'web' group by 1 order by 1;
 
@@ -361,8 +365,8 @@ rollback;
 begin;
 insert into public.content_reports (reported_user_id, reason, snapshot, source)
 select '00000000-0000-0000-0000-00000000000f', 'spam', '{"art":"profil","username":"frieda"}', 'web'
-  from generate_series(1, 200 - (select count(*) from public.content_reports where source = 'web' and created_at > now() - interval '1 hour'));
-select count(*) as web_letzte_stunde from public.content_reports where source = 'web' and created_at > now() - interval '1 hour';
+  from generate_series(1, 200 - (select count(*) from public.content_reports where source = 'web' and reporter_id is null and created_at > now() - interval '1 hour'));
+select count(*) as anon_web_letzte_stunde from public.content_reports where source = 'web' and reporter_id is null and created_at > now() - interval '1 hour';
 set role anon; set request.jwt.claim.sub = '';
 select pruef.melde('dan') as dan, pruef.melde('niemand') as niemand, pruef.melde('otto') as otto;
 reset role;
@@ -398,6 +402,20 @@ select public.report_public_profile('dan', 'werbung', 'zweites mal');
 reset role;
 select count(*) as cleo_offen_zu_dan from public.content_reports
  where reported_user_id = '00000000-0000-0000-0000-00000000000d' and reporter_id = '00000000-0000-0000-0000-00000000000c' and status = 'offen';
+\echo '--- M8d: und umgekehrt: cleo meldet dan noch einmal ueber die Web-Funktion -> ok, weiter 1 offener Eintrag'
+set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select pruef.melde('dan', 'beleidigung', 'nochmal web') as cleo_nochmal;
+reset role;
+select count(*) as cleo_offen_zu_dan from public.content_reports
+ where reported_user_id = '00000000-0000-0000-0000-00000000000d' and reporter_id = '00000000-0000-0000-0000-00000000000c' and status = 'offen';
+\echo '--- M8e: Angemeldete haben die Grenze der App (20 je Stunde, in Transaktion): danach zu_viele_meldungen, auch ueber die Web-Funktion'
+begin;
+insert into public.content_reports (reported_user_id, reporter_id, reason, snapshot)
+select '00000000-0000-0000-0000-00000000000f', '00000000-0000-0000-0000-00000000000c', 'spam', '{"art":"erfahrung"}' from generate_series(1, 20);
+set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select pruef.melde('frieda', 'spam', 'ueber der grenze') as cleo_ueber_grenze;
+reset role;
+rollback;
 
 \echo '--- M9: Admin (Probe in Transaktion): Liste zeigt Web-Meldungen mit source/contact, alte mit source app; Ausblenden erledigt alle offenen Profilmeldungen zu mara'
 begin;
@@ -413,6 +431,13 @@ set role anon; set request.jwt.claim.sub = '';
 select pruef.melde('mara') as nach_ausblenden, public.profile_view('mara') is null as web_null;
 reset role;
 rollback;
+
+\echo '--- M11: gleiche anonyme Meldung (Profil, Grund, Details, E-Mail) innerhalb einer Stunde nur einmal; andere E-Mail -> neue Zeile'
+set role anon; set request.jwt.claim.sub = '';
+select pruef.melde('frieda', 'gefaehrlich', 'gleich', 'a@b.de') as erste, pruef.melde('frieda', 'gefaehrlich', ' gleich ', 'a@b.de') as zweite,
+       pruef.melde('frieda', 'gefaehrlich', 'gleich', 'c@d.de') as andere_mail;
+reset role;
+select reporter_contact, count(*) from public.content_reports where details = 'gleich' group by 1 order by 1;
 
 \echo '--- M10: Rechte: anon/authenticated duerfen melden, public nicht; anon nicht moderation_queue'
 select r, has_function_privilege(r, 'public.report_public_profile_web(text, text, text, text)', 'execute') as melden,

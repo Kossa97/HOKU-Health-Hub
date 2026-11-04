@@ -6,6 +6,9 @@
 -- voraus (Reihenfolge 2a -> 2b -> 2c). Diese Datei ersetzt profile_view und
 -- profile_media_visible. 2a und 2b danach NICHT erneut laufen lassen: sie setzten
 -- die Fassungen ohne Web-Regeln zurueck (anon bekaeme dann wieder die ungepruefte Bio).
+-- Ebenso supabase-store-compliance-2.sql nicht erneut: es setzte moderation_queue
+-- ohne source/contact zurueck (Web-Meldungen waeren in der Admin-Liste nicht mehr
+-- gekennzeichnet, die E-Mail fuer Rueckfragen fehlte).
 --
 -- Additiv und idempotent: vier Spalten per add column if not exists (zwei in
 -- profiles, zwei in content_reports), eine Pruefung nur wenn noch nicht da, ein
@@ -547,11 +550,17 @@ create index if not exists content_reports_web_zeit on public.content_reports (c
 --   hoechstens 254 Zeichen, Form x@y.z. Der Textfilter oeffentlicher_text_fehler
 --   laeuft hier bewusst nicht: Details und E-Mail sieht nur die Moderation, und eine
 --   Meldung ueber Handel oder Links muss genau solche Woerter enthalten duerfen.
--- - Grenzen (in SQL, eine IP gibt es hier nicht): hoechstens 200 Web-Meldungen je
---   Stunde insgesamt und 5 je gemeldetem Profil und Stunde, sonst zu_viele_meldungen.
---   Die Gesamtgrenze wird vor der Profilsuche geprueft, die je Profil danach (sie
---   erreicht nur, wer das Profil sehen kann). Eine Transaktionssperre ordnet
---   gleichzeitige Aufrufe, damit keiner an der Grenze vorbeirutscht.
+-- - Ohne Anmeldung (eine IP gibt es in SQL nicht): hoechstens 200 anonyme
+--   Web-Meldungen je Stunde insgesamt und 5 je gemeldetem Profil und Stunde, sonst
+--   zu_viele_meldungen. Die Gesamtgrenze wird vor der Profilsuche geprueft, die je
+--   Profil danach (sie erreicht nur, wer das Profil sehen kann). Eine gleiche
+--   Meldung (Profil, Grund, Details, E-Mail) innerhalb einer Stunde wird nicht noch
+--   einmal gespeichert (Doppelklick, Wiederholung), der Aufruf gilt trotzdem als ok.
+-- - Angemeldet: dieselben Regeln wie report_public_profile in der App
+--   (melde_grenze_pruefen: 20 je Stunde; eine offene Profilmeldung je Melder und
+--   Profil), nicht die anonymen Grenzen.
+-- - Eine Transaktionssperre ordnet gleichzeitige Aufrufe, damit keiner an einer
+--   Grenze oder an der Doppelpruefung vorbeirutscht.
 -- - Schnappschuss wie bei report_public_profile (art = 'profil'), damit
 --   moderation_queue und resolve_content_report die Meldung wie jede Profilmeldung
 --   behandeln ("Ausblenden" erledigt auch die Web-Meldungen); die Bio nur, wenn sie
@@ -576,8 +585,10 @@ begin
   end if;
 
   perform pg_advisory_xact_lock(hashtext('public.report_public_profile_web'));
-  if (select count(*) from public.content_reports c
-       where c.source = 'web' and c.created_at > now() - interval '1 hour') >= 200 then
+  if auth.uid() is not null then
+    perform public.melde_grenze_pruefen();
+  elsif (select count(*) from public.content_reports c
+          where c.source = 'web' and c.reporter_id is null and c.created_at > now() - interval '1 hour') >= 200 then
     raise exception 'zu_viele_meldungen' using errcode = 'P0001';
   end if;
 
@@ -593,10 +604,26 @@ begin
     raise exception 'meldung_nicht_moeglich' using errcode = 'P0001';
   end if;
 
-  if (select count(*) from public.content_reports c
-       where c.source = 'web' and c.reported_user_id = p.id
-         and c.created_at > now() - interval '1 hour') >= 5 then
-    raise exception 'zu_viele_meldungen' using errcode = 'P0001';
+  if auth.uid() is not null then
+    if exists (select 1 from public.content_reports c
+                where c.review_id is null and c.reported_user_id = p.id and c.reporter_id = auth.uid()
+                  and c.status = 'offen' and c.snapshot ->> 'art' = 'profil') then
+      return;
+    end if;
+  else
+    if exists (select 1 from public.content_reports c
+                where c.source = 'web' and c.reporter_id is null and c.reported_user_id = p.id
+                  and c.status = 'offen' and c.created_at > now() - interval '1 hour'
+                  and c.reason = p_reason
+                  and c.details is not distinct from nullif(left(trim(coalesce(p_details, '')), 1000), '')
+                  and c.reporter_contact is not distinct from kontakt) then
+      return;
+    end if;
+    if (select count(*) from public.content_reports c
+         where c.source = 'web' and c.reporter_id is null and c.reported_user_id = p.id
+           and c.created_at > now() - interval '1 hour') >= 5 then
+      raise exception 'zu_viele_meldungen' using errcode = 'P0001';
+    end if;
   end if;
 
   insert into public.content_reports (review_id, reported_user_id, reporter_id, reason, details, snapshot, source, reporter_contact)

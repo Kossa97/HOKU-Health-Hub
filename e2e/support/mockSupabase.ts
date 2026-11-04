@@ -1054,12 +1054,15 @@ export class MockSupabase {
       const kontakt = String(params.p_contact ?? '').trim() || null
       if (kontakt && (kontakt.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(kontakt))) throw new RpcError('kontakt_ungueltig')
       const ziel = profilVon(params.p_username)
-      if (!ziel || ziel.hidden_by_moderation === true || ziel.web_link_enabled !== true || ziel.profile_private === true) {
+      const melder = this.betrachter()
+      if (!ziel || ziel.hidden_by_moderation === true || ziel.web_link_enabled !== true || ziel.profile_private === true || ziel.id === melder) {
         throw new RpcError('meldung_nicht_moeglich')
       }
-      const bio = (ziel.field_visibility as Record<string, string> | undefined)?.bio === 'all' ? ziel.public_bio ?? null : null
+      // Grenzen (5 je Profil, 200 je Stunde; angemeldet die der App) und die Doppelpruefung bildet
+      // der Mock nicht nach; die Proben dazu stehen im Trockenlauf (M4, M5, M8e, M11).
+      const bio = (ziel.field_visibility as Record<string, string> | undefined)?.bio === 'all' ? String(ziel.public_bio ?? '').trim() || null : null
       this.insert('content_reports', {
-        review_id: null, reported_user_id: ziel.id, reporter_id: null,
+        review_id: null, reported_user_id: ziel.id, reporter_id: melder,
         reason: params.p_reason, details: String(params.p_details ?? '').trim().slice(0, 1000) || null, status: 'offen',
         snapshot: { art: 'profil', username: ziel.username, display_name: ziel.display_name ?? null, public_bio: bio },
         source: 'web', reporter_contact: kontakt,
