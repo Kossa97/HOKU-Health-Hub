@@ -210,6 +210,17 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - App: `lib/hokuPlan.ts` (Katalog-Kontext, Lesen, Entwurf→Workouts), `HokuPlanChat` (Neuer-Plan-Blatt,
   Pro-Gate über PRO_PFLICHT), `HokuPlanPreview` (Name, tauschen/entfernen, Übernehmen). Globaler Hoku-Chat auf
   /training zeigt Karte „Plan ansehen" → Vorschau via `location.state.hokuPlan`.
-- Offen: Edge Function `coach` deployen (bis dahin liefert Hoku nur Text). Globaler Chat schickt den Katalog
+- Edge Function `coach` v8 deployt (4.11.2026). Globaler Chat schickt den Katalog
   ohne eigene Übungen/Plannamen (bewusst, Vorschau fängt doppelte Namen ab).
 - Nächste Teile: 2 = Schreiben/Sprechen im Live-Workout ohne KI, 3 = Hoku-Fragen im Training (Pro).
+
+## Sprechen/Schreiben im Training (Teil 2, auf main seit 2026-11-04)
+- `lib/voiceCommand.ts` (Parser de/en, Zahlwörter, `planSet` je TrackingMode, Grenzen 700 kg/300 Wdh.),
+  `components/live/voiceRun.ts` (Befehl → Bedienungen + Hinweis, `findExercise`), `CommandBar.tsx` (Leiste unten:
+  Textfeld, Hilfe „Was kann ich sagen?", Mikrofon halten-und-sprechen über `useSpracheingabe`).
+- Reducer: `batch` (ein Eintrag = ein Rückgängig, `UndoSnapshot.label 'entry'` samt Pause), `rest_start`.
+- Fokus nach „nächste Übung" wird als Übungs-ID gemerkt (nicht Position); Ring und Pausen-Leiste zeigen dasselbe Ziel.
+- Nicht beim Bearbeiten gespeicherter Trainings. Info.plist-Texte (de/en) nennen das Training.
+- Offen: ob WKWebView in der iOS-App Spracherkennung anbietet (sonst fehlt nur das Mikrofon, Tippen geht);
+  ggf. eigenes Swift-Plugin (SFSpeechRecognizer), da das Community-Plugin kein SPM kann.
+- Nächster Teil 3: Hoku-Fragen im Training (Pro) über dieselbe Leiste (Text, der kein Befehl ist → Hoku).

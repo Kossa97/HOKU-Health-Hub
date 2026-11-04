@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChefHat, PenLine, Plus, ScanBarcode, Search, Star, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { type FrequentFood, mergeResults } from '../lib/foodSearch'
 import { type Food, type Meal, nutrientsFor, parseAmount } from '../lib/nutrition'
 import { searchBrands } from '../services/foodLookup'
+import { searchCatalog } from '../services/foodCatalog'
 import { DIM, MUTED } from '../styles'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import { SourceBadge } from './SourceBadge'
@@ -54,6 +55,9 @@ function FoodRow({ food, hint, hideKcal, goalKcal, onPick }: { food: Food; hint?
  * Lebensmittel suchen und wählen. `ingredient`: Zutat für ein Gericht — ohne
  * Schnelleintrag und ohne Gerichte-Liste.
  */
+/** Fester Leerwert: hält die useMemo-Abhängigkeiten stabil. */
+const NO_FOODS: Food[] = []
+
 export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFoods: allMyFoods, exclude = null, initialQuery = '', hideKcal, goalKcal, onPick, onScan, onPhoto, onCreate, onQuick, onNewDish, onClose }: {
   meal: Meal
   mode?: 'log' | 'ingredient'
@@ -89,24 +93,33 @@ export function AddFoodSheet({ meal, mode = 'log', frequent: allFrequent, myFood
   const [tab, setTab] = useState<Tab>(frequent.length ? 'frequent' : favorites.length ? 'favorites' : 'mine')
   const [query, setQuery] = useState(initialQuery)
   const [remote, setRemote] = useState<Remote | null>(null)
+  // BLS (Grundnahrungsmittel ohne Marke) läuft beim Tippen mit, kurz verzögert.
+  const [bls, setBls] = useState<{ query: string; results: Food[] } | null>(null)
   const [quick, setQuick] = useState<{ kcal: string; protein: string } | null>(null)
   const [quickBusy, setQuickBusy] = useState(false)
   const searchSeq = useRef(0)
   const q = query.trim()
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
 
-  // Lokal sofort beim Tippen: Häufig + Meine Lebensmittel.
-  const local = useMemo(() => {
-    if (!q) return []
-    const own = [...myFoods, ...frequent.map(f => f.food).filter(f => !f.itemId)]
-    return mergeResults(q, { own, bls: [], off: [] })
-  }, [q, myFoods, frequent])
+  useEffect(() => {
+    if (q.length < 2) return
+    let off = false
+    const timer = window.setTimeout(() => {
+      searchCatalog(q, lang).then(results => { if (!off) setBls({ query: q, results }) }).catch(() => { if (!off) setBls({ query: q, results: [] }) })
+    }, 220)
+    return () => { off = true; window.clearTimeout(timer) }
+  }, [q, lang])
+  const blsForQuery = bls && bls.query === q ? bls.results : NO_FOODS
+
+  // Sofort beim Tippen: Häufig + Meine Lebensmittel, dazu BLS, sobald da.
+  const own = useMemo(() => [...myFoods, ...frequent.map(f => f.food).filter(f => !f.itemId)], [myFoods, frequent])
+  const local = useMemo(() => (q ? mergeResults(q, { own, bls: blsForQuery, off: [] }) : []), [q, own, blsForQuery])
   const lastAmount = (f: Food) => frequent.find(x => x.food === f || (x.food.itemId && x.food.itemId === f.itemId))?.lastAmount
 
   const remoteForQuery = remote && remote.query === q ? remote : null
   const merged = useMemo(
-    () => (remoteForQuery?.state === 'done' ? mergeResults(q, { own: local, bls: [], off: remoteForQuery.results }) : local),
-    [q, local, remoteForQuery],
+    () => (remoteForQuery?.state === 'done' ? mergeResults(q, { own, bls: blsForQuery, off: remoteForQuery.results }) : local),
+    [q, own, blsForQuery, local, remoteForQuery],
   )
 
   const runSearch = async () => {

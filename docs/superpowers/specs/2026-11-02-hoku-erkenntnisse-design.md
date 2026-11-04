@@ -34,8 +34,11 @@ gründlichere Grundlage.
 
 ## Nicht-Ziele (Stufe 1)
 
-- Kein Kontext zu einzelnen Blutwerten, keine Blutwert-Trends, kein eigener
-  Zielbereich, keine Kombinationsbewertung aus Studien, keine Blutdruck-Muster (→ Stufe 2).
+- Hoku **verbindet nie einen Blutwert mit eigenem Verhalten oder einer Substanz**, auch
+  nicht neutral formuliert. Keine Aussage über Richtung oder Verlauf von Blutwerten,
+  kein eigener Zielbereich, keine Kombinationsbewertung aus Studien, keine
+  Blutdruck-Muster (→ Stufe 2). Erlaubt ist seit 04.11.2026 nur das Nebeneinander aus
+  **Blutwerte: Allgemeinwissen, eigener Alltag, eigene Werte**.
 - Keine KI, die selbst in den Daten sucht.
 - Kein Vergleich mit anderen Nutzern.
 - Keine Free-Version des Features.
@@ -86,6 +89,28 @@ gründlichere Grundlage.
    begleiten**.
 8. **Nativer Push** (iOS/Android) für die Store-App wird in diesem Projekt gebaut.
 
+Ergänzt am 03.11.2026:
+
+9. **Alles Erlaubte wird paarweise verglichen**, auch wenn ein Nutzer nur wenige Dinge
+   trackt (Beispiel des Nutzers: nur Schritte und Schlaf) → **Paar-Vergleiche**.
+10. **Echte Ausreißer zählen**, besonders aus verifizierter Quelle. Ein einzelner
+    PR-Test oder ein ungewöhnlich langer Lauf wird berücksichtigt und gefeiert →
+    **Datenqualität**.
+11. **Unnatürliche manuelle Eingaben**, auch übertriebene Dosen, verfälschen keine
+    Funde. Dosen werden dabei nie fachlich bewertet → **Datenqualität**, Absatz
+    Substanzen.
+
+Ergänzt am 04.11.2026:
+
+12. **Kurz- und langfristige Muster in allen erlaubten Werten:** Tage, Wochen, Monate →
+    **Zeitskalen**.
+13. **Blutwerte soft einbeziehen**, nur so weit, dass der Nutzer sich rechtlich keine
+    Gedanken machen muss: Allgemeinwissen je Marker, der eigene Alltag (Halbjahr, seit
+    der letzten Abnahme) und die eigenen Werte stehen nebeneinander. Den Schluss zieht
+    der Nutzer, Hoku verbindet nie → **Blutwerte: Allgemeinwissen, eigener Alltag,
+    eigene Werte**. Der weitergehende Wunsch („Ernährung angepasst, Blutfette besser")
+    bleibt Stufe 2. Die Karte selbst ist ein Grenzfall, den Teil R eigens begründet.
+
 ## Aufbau
 
 ```
@@ -125,8 +150,10 @@ Detektoren sind **richtungsneutral**: derselbe Detektor findet „besser" wie �
   und **Mindesteffekt** je Detektor (z. B. Schlaf ≥ 15 min).
 - **Viele Tests → Zufallstreffer:** Je Lauf und Nutzer laufen viele Detektoren. Die
   Schwellen gelten deshalb nach einer Korrektur über alle Tests des Laufs
-  (z. B. Benjamini-Hochberg). Kein freies Durchsuchen aller Messwerte gegeneinander
-  (Nicht-Ziel des Wirkungs-Check-PRD) — nur der feste Katalog.
+  (z. B. Benjamini-Hochberg). Messwerte werden nicht frei gegeneinander durchsucht,
+  sondern nach festen Regeln paarweise verglichen (siehe **Paar-Vergleiche** unten;
+  ersetzt am 03.11.2026 das frühere „nur der feste Katalog"), seit 04.11.2026 auf drei
+  Zeitskalen (siehe **Zeitskalen**).
 - Tage werden in der **Zeitzone des Nutzers** geschnitten.
 - **Zeitversatz ist fest je Detektor** (z. B. V1: +1 und +2 Tage), nie frei über viele
   Verschiebungen gesucht. Jede geprüfte Verschiebung zählt als eigener Test in der
@@ -137,6 +164,186 @@ Detektoren sind **richtungsneutral**: derselbe Detektor findet „besser" wie �
 - Mit der Erweiterung laufen über 100 Fundarten. Die Korrektur über alle Tests eines
   Laufs ist deshalb Pflicht, nicht Kür; Fundarten, deren Daten fehlen, laufen nicht
   und zählen nicht mit.
+
+### Datenqualität: fehlende, falsche und echte Ausreißer (Nutzer, 03.11.2026)
+
+Grundsatz: **Ungewöhnlich ist nicht falsch.** Ein PR-Test, ein Lauf doppelt so lang wie
+sonst oder eine Nacht mit 11 Stunden Schlaf nach einer Reise sind echt und zählen. Die
+Engine unterscheidet deshalb Tippfehler von echten Ausnahmen, statt Ausreißer
+pauschal zu streichen. Jeder Wert fällt in eine von drei Klassen:
+
+| Klasse | Woran erkannt | Was die Engine tut |
+|---|---|---|
+| **fehlt** | kein Wert; 0, wo 0 nicht gemeint sein kann (0 Schritte, 0 min Schlaf = Uhr nicht getragen); Essen ohne Menge | zählt nicht, auch nicht als 0 |
+| **unmöglich** | außerhalb fester Grenzen je Messwert (Tabelle unten) | zählt nicht; bei manuellen Einträgen leiser Hinweis „Eintrag prüfen" am Eintrag und im Beleg, nie im Wochen-Update, nie per Push |
+| **ungewöhnlich** | innerhalb der Grenzen, aber weit weg vom eigenen Verlauf (robuster Abstand zum eigenen Median der letzten 90 Tage, Richtwert mehr als 5 MAD) | zählt mit; wie, hängt von **Quelle** und **Fundart** ab (unten) |
+
+**Feste Grenzen (meine Wahl, Richtwerte).** Absichtlich weit: Sie fangen Komma-,
+Einheiten- und Tippfehler, nie eine echte Leistung. Der Bauende prüft jede Grenze gegen
+bekannte Rekorde und schreibt sie als Daten in den Katalog.
+
+| Messwert | gültig |
+|---|---|
+| Schlaf je Nacht | über 0 bis 18 h |
+| Schritte je Tag | über 0 bis 150.000 |
+| Ruhepuls | 25–150 /min |
+| Aktive kcal je Tag | bis 15.000 |
+| Protein je Tag | bis 800 g |
+| Körpergewicht | 25–400 kg |
+| Satz im Krafttraining | Gewicht bis 600 kg, 1–100 Wiederholungen |
+| Ausdauer-Einheit | Dauer bis 24 h; Strecke je Sportart (Lauf bis 350 km, Rad bis 1.000 km) |
+
+**Die Quelle entscheidet, wie sehr einem ungewöhnlichen Wert geglaubt wird.**
+
+- **Verifizierte Quelle** (Apple Health / Health Connect, Uhr- und Geräte-Import;
+  erkennbar an `health_daily.source`, `training_sessions.source` / `external_id`): nur
+  die festen Grenzen. Ein ungewöhnlicher Wert zählt **voll**, er wurde gemessen und
+  nicht getippt. Einzige Ausnahme sind technische Doppelungen: Derselbe Tag oder
+  dieselbe Einheit aus zwei Quellen zählt einmal (feste Rangfolge der Quellen, wählt
+  der Bauende).
+- **Manuell eingetragen:** Grenzen **und** Abgleich mit dem eigenen Verlauf. Ist ein
+  manueller Wert ungewöhnlich, fragt die App beim Speichern einmal nach („Ungewöhnlich
+  hoch für dich: 1.500 g Protein. Stimmt das?" → „Ja, stimmt" / „Korrigieren").
+  **Bestätigt** zählt er wie ein verifizierter Wert. **Nicht bestätigt** (Frage
+  weggeklickt) bleibt er gespeichert und sichtbar, zählt aber in keinem Muster. Wo die
+  Frage beim Speichern nicht möglich ist (ältere Einträge), steht sie leise am Eintrag
+  und im Beleg. Die Bestätigung wird am Eintrag gespeichert (Ablage wählt der Bauende).
+
+**Wie ungewöhnliche Werte in die Funde eingehen** hängt davon ab, ob der Fund ein
+Muster beschreibt oder einen einzelnen Bestwert feiert:
+
+- **Muster** (Katalog-Vergleiche, Paar-Vergleiche, Schwellen, Verläufe): robust
+  gerechnet, mit **Medianen statt Mittelwerten** und einem Test auf Rängen bzw. Mediane
+  (Verfahren wählt der Bauende). Ein echter Ausnahmetag bleibt drin, kann aber **allein
+  kein Muster tragen**. Dazu die **Einzeltag-Probe:** Ein Fund wird verworfen, wenn er
+  ohne seinen stärksten Einzeltag nicht mehr wenigstens „Hinweis" wäre. Verläufe (R6)
+  nehmen je Woche den besten Wert; ein Testtag verschiebt den Trend nicht allein.
+- **Bestwerte und Rekorde** (R4, Lauf-Bestleistungen, L-Funde): Hier **ist** der
+  Ausnahmetag der Fund. Ein PR-Test zählt sofort und wird gefeiert. Ein Einer
+  (1 Wiederholung) zählt direkt mit seinem Gewicht. Der längste Lauf zählt ebenso. Das
+  gilt, wenn
+  - die Quelle verifiziert ist, **oder**
+  - der manuelle Wert nicht ungewöhnlich ist, **oder**
+  - der Nutzer ihn bestätigt hat.
+
+  Bei einem **großen Sprung in einem manuellen Eintrag** kommt statt des Funds erst
+  die Rückfrage. Richtwerte: mehr als 25 % über dem bisherigen Bestwert
+  (geschätztes Einer-Maximum), oder mehr als doppelt so weit bzw. so lang wie die
+  bisher längste Einheit derselben Sportart. Nach „Ja, stimmt" ist es ein Rekord.
+  Bleibt die Frage unbeantwortet, gibt es keinen Rekord und **keine neue Bestmarke**.
+  So blockiert ein Tippfehler nie spätere echte Rekorde.
+- Korrigiert der Nutzer später einen Eintrag, prüft der nächste Nachtlauf neu; ein
+  Fund, den die Daten nicht mehr tragen, wird ungültig (`gueltig = false`, gibt es seit
+  Teil 1).
+
+**Substanzen und Dosen.** Hier gibt es bewusst **keine Grenzen aus Fachwissen**: Eine
+Dosis „zu hoch" zu nennen oder mit Normdosen zu vergleichen, wäre eine
+Dosisbewertung (Anti-Ziel, MDR). Geprüft wird nur die **Eingabe**, und zwar
+ausschließlich gegen die eigenen Angaben des Nutzers:
+
+- Weicht eine manuell eingetragene Dosis um **Faktor 10 oder mehr** vom geplanten Wert
+  derselben Substanz ab, fragt die App beim Speichern neutral nach. Ohne Plan zählt
+  der Median der eigenen bisherigen Dosen dieser Substanz. Faktor 10 ist das typische
+  Muster bei mg/mcg-Verwechslung und Kommafehlern. Beispiel: „Geplant sind 250 mcg,
+  eingetragen sind 2.500 mcg. Stimmt das?" → „Ja, stimmt" / „Korrigieren". Die Frage
+  hat keinen Warnton, nennt keine Risiken und gibt keine Empfehlung. Bei der ersten
+  Dosis einer Substanz ohne Plan gibt es nichts zum Vergleichen, also keine Frage.
+- **In der Engine** gilt eine unbestätigte Abweichung um Faktor 10 nicht als
+  Dosisänderung: S7 beginnt keinen neuen Zeitraum, die Substanz-Bilanz zählt sie
+  nicht. Bestätigt ist sie eine echte Änderung. Die Dosis selbst nennt Hoku weiterhin
+  nie (S7).
+- **Kein Dosis-Wirkungs-Vergleich:** Die Engine stellt nie „mehr Dosis → mehr oder
+  weniger X" auf. Sie vergleicht nur Zeiträume vor und nach einer Änderung (S1, S7).
+  Die Dosishöhe ist deshalb auch in den Paar-Vergleichen kein Messwert.
+- Auch eine extreme Eingabe löst **keine Warnung** aus (Anti-Ziel Alarm). Die Frage
+  betrifft nur die Eingabe. Ob es bei sehr großen Abweichungen zusätzlich einen festen
+  allgemeinen Hinweis (Arzt, Giftnotruf) geben soll, ist offen (Offene Punkte).
+
+### Paar-Vergleiche (Nutzer, 03.11.2026)
+
+Ziel: Jeder Nutzer bekommt Funde aus dem, was er tatsächlich trackt, **auch wenn es nur
+zwei Messreihen sind** (z. B. nur Schritte und Schlaf von der Uhr). Dafür werden alle
+erlaubten Paare von Messreihen nach **festen Regeln** verglichen; nichts wird frei
+gesucht.
+
+- **Messreihen:** eine feste, versionierte Liste von Tageswerten im Katalog. Startliste
+  (meine Wahl): Schlaf, Schritte, Ruhepuls, aktive kcal (Uhr); Trainingstag ja/nein,
+  Trainingsdauer, Kraft- bzw. Ausdauerleistung (Training); Energie, Stimmung und weitere
+  Skalen aus dem Tagebuch; kcal, Protein, Wasser, Koffein-Getränke (Ernährung); Gewicht.
+- **Nie in Paaren:** Blutwerte und Blutdruck (Stufe 2), SpO₂ und Atemfrequenz (meine
+  Wahl: zu nah an Körperwert-Bewertung), Dosen und Substanzen (laufen nur über S1/S7).
+- **Selbstverständliche Paare ausgeschlossen** (feste Liste im Katalog), z. B.
+  Schritte ↔ aktive kcal, Trainingsdauer ↔ aktive kcal, kcal ↔ Protein am selben Tag.
+- **Form:** Für ein Paar (A, B) werden die eigenen Tage nach A geteilt: obere gegen
+  untere Hälfte am eigenen Median, bei Ja/Nein-Reihen die beiden Werte. Verglichen wird B
+  am **selben Tag** und am **Folgetag**. Der Folgetag wird in beide Richtungen geprüft
+  (A → B und B → A). Je Paar höchstens drei Tests, keine anderen Versätze, keine frei
+  gesuchten Grenzen.
+- **Statistik:** wie oben. Mindestens 8 Tage je Gruppe; „deutlich" ab 12 Tagen je Gruppe
+  und q ≤ 0,05 nach Benjamini-Hochberg über **alle** Tests des Laufs (Katalog und Paare
+  zusammen). Dazu Mindesteffekt je Messreihe, robuste Rechnung und Einzeltag-Probe aus
+  **Datenqualität**. Eine Reihe ohne Streuung läuft nicht.
+- **Vorrang:** Deckt ein Katalog-Detektor dasselbe Paar ab (z. B. H1, W1), läuft das Paar
+  nicht zusätzlich.
+- **Text:** eine neutrale Vorlage je Form mit Pflichtsatz („Zusammenhang, kein Beweis."),
+  Richtung immer neutral, keine Wertung „besser". Beispiel: „An Tagen mit mehr
+  Schritten (über 8.400) hast du in der Nacht danach im Schnitt 24 min länger geschlafen
+  (19 gegen 21 Tage). Zusammenhang, kein Beweis." Läuft durch den Regelwächter wie
+  jede Vorlage.
+- **Erwartung:** Mit wenigen Messreihen kommen Funde schnell. Mit vielen braucht es
+  länger, weil die Korrektur strenger wird: grob 2–3 Monate bis „deutlich". Das sagt
+  T6 („noch 9 Nächte") ehrlich.
+- Unverändert gilt: Die Paare sind Teil des Katalogs, nicht zur Laufzeit änderbar, und
+  **keine KI sucht selbst** in den Daten (Nicht-Ziel).
+
+### Zeitskalen: Tage, Wochen, Monate (Nutzer, 04.11.2026)
+
+Ziel: Hoku erkennt **kurz- und langfristige** Muster in allen erlaubten Werten. Die
+Paar-Vergleiche oben sehen nur Tage. Dazu kommen Muster, die sich erst über Wochen
+aufbauen, und langsame Veränderungen über Monate. Es gelten dieselben Messreihen und
+dieselben Ausschlüsse wie bei den Paar-Vergleichen.
+
+| Skala | Grundlage | Was verglichen wird | Mindestdaten | Beispiel |
+|---|---|---|---|---|
+| **Tage** | Tageswert | wie **Paar-Vergleiche**: selber Tag, Folgetag | 8 Tage je Gruppe | „An Tagen mit mehr Schritten …" |
+| **Wochen** | Wochenschnitt | Paar (A, B): Wochen nach A geteilt (obere gegen untere Hälfte am eigenen Wochen-Median), B in **derselben** und der **folgenden** Woche, Folgewoche in beide Richtungen; höchstens drei Tests je Paar | 8 Wochen je Gruppe (gut 4 Monate) | „In Wochen mit mehr Training war dein Ruhepuls in der Woche danach im Schnitt 3 Schläge niedriger (9 gegen 9 Wochen). Zusammenhang, kein Beweis." |
+| **Monate** | Wochenschnitt | je Messreihe allein: **Verlauf** (Richtung über 13 bzw. 26 Wochen) und **Wendepunkt** (seit wann ein anderes Niveau) | 12 Wochen mit Wert | „Dein Ruhepuls ist über 3 Monate um 5 Schläge gesunken." / „Seit etwa Mitte September schläfst du im Schnitt 25 min länger." |
+
+- **Woche:** Montag bis Sonntag in der Zeitzone des Nutzers. Eine Woche zählt für eine
+  Messreihe, wenn sie an mindestens 4 Tagen einen gültigen Wert hat (meine Wahl).
+  Gültig heißt nach **Datenqualität**: Unmögliche und unbestätigte manuelle Ausreißer
+  fallen vorher heraus. Wochenschnitt ist der Median der Tage, bei Ja/Nein-Reihen die
+  Anzahl (z. B. Trainingstage).
+- **Benachbarte Wochen hängen zusammen** (eine gute Phase dauert mehrere Wochen). Die
+  Permutation läuft deshalb in **Blöcken** (Richtwert 4 Wochen) statt Woche für Woche,
+  sonst rutschen Zufallstreffer zu oft durch. Das genaue Verfahren bleibt dem Bauenden
+  überlassen, innerhalb dieser Vorgabe.
+- **Verlauf:** robuste Steigung (Theil-Sen) mit Trendtest, der die Abhängigkeit
+  berücksichtigt (Mann-Kendall mit Autokorrelations-Korrektur oder Block-Permutation).
+  Zwei feste Fenster, 13 und 26 Wochen; zeigen beide dasselbe, wird nur das längere
+  gemeldet. Gemeldet wird die Veränderung über das Fenster in der eigenen Einheit,
+  gerundet, mit demselben Mindesteffekt je Messreihe wie bei Tagen.
+- **Wendepunkt:** Kandidaten sind die Wochengrenzen mit mindestens 6 Wochen Abstand zu
+  beiden Enden. Geprüft wird der **größte** Vorher-nachher-Unterschied; seine
+  Vergleichsverteilung kommt aus der Block-Permutation **des Maximums**, damit die
+  Suche über die Kandidaten mitbezahlt ist. Gemeldet wird „seit etwa <Monatshälfte>",
+  nie ein Tagesdatum.
+- **Korrektur:** Alle drei Skalen liegen im **einen** Benjamini-Hochberg-Topf des Laufs,
+  zusammen mit Katalog und Paaren (meine Wahl: streng, dafür stabil). Folge: Wochen- und
+  Monatsfunde kommen später als Tagesfunde. T6 sagt das ehrlich.
+- **Vorrang:** Deckt ein Katalog-Detektor dieselbe Messreihe auf derselben Skala ab,
+  läuft die allgemeine Skala dafür nicht. **K5** (Ruhepuls, Schritte) wird zum Sonderfall
+  von **Monate** und entfällt als eigener Detektor. R6 (Kraft je Übung) und RY2
+  (Monatsvergleich) bleiben eigene Detektoren.
+- **Ausschlüsse** wie bei den Paar-Vergleichen: Blutwerte, Blutdruck, SpO₂, Atemfrequenz,
+  Dosen und Substanzen. Für Blutwerte gilt **Blutwerte: Allgemeinwissen, eigener Alltag,
+  eigene Werte**. Wer Lob und Kritik zum Essen abgeschaltet hat, bekommt auch keine
+  Verlaufsfunde zu kcal und Gewicht (meine Wahl).
+- **Text:** Wochen wie Tage, mit Pflichtsatz „Zusammenhang, kein Beweis.". Verlauf und
+  Wendepunkt beschreiben nur den eigenen Verlauf: ohne gut/schlecht, ohne Normwerte
+  (wie bisher K5) und **ohne Grund** — nie „seit du X …".
+- **Ort:** im jeweiligen Feature; ins Wochen-Update nach den üblichen Auswahlregeln;
+  Push nur bei „deutlich", wie bisher.
 
 ### Katalog als Daten (meine Wahl)
 
@@ -187,7 +394,10 @@ Läuft über **jeden** Text, der angezeigt wird (Vorlagen im Test, KI-Text zur L
   Alarmwörter (Achtung, Warnung, gefährlich);
 - jede Zahl im Satz muss im Fund vorkommen;
 - Pflichtsätze, wo die Fundart es verlangt („Zusammenhang, kein Beweis",
-  „Mit deinem Arzt besprechen").
+  „Mit deinem Arzt besprechen");
+- Blutwerte (seit 04.11.2026): Nennt ein Text einen Marker, darf er keine Messreihe,
+  kein Verhalten und keine Substanz nennen und keine Richtungs- oder Wertungswörter
+  enthalten (siehe **Blutwerte: Allgemeinwissen, eigener Alltag, eigene Werte**).
 
 Fällt KI-Text durch → feste Vorlage. Fällt eine Vorlage durch → Test rot, Build
 schlägt fehl. Der Wächter ist **eine** Funktion, die App, Server und Tests teilen.
@@ -392,7 +602,8 @@ bleiben verboten.
 | K5 | Langfristige Trends: Ruhepuls, Schritte | „Dein Ruhepuls ist über 3 Monate um 5 Schläge gesunken." | ± | S1v | Health |
 
 K5 beschreibt nur den eigenen Verlauf, ohne Einordnung als gut/schlecht für die
-Gesundheit und ohne Normwerte.
+Gesundheit und ohne Normwerte. Seit 04.11.2026 läuft K5 als Teil der Zeitskala
+**Monate** (siehe **Zeitskalen**).
 
 #### E (Fortsetzung) — Ernährung, genauer
 
@@ -619,6 +830,105 @@ Dabei gilt:
   zugelassene Stoffe passt, ist offen (siehe unten); bis dahin entfällt der Link bei
   Substanzen ohne Zulassung.
 
+## Blutwerte: Allgemeinwissen, eigener Alltag, eigene Werte (Nutzer, 04.11.2026)
+
+**Wunsch des Nutzers:** Hoku soll Blutwerte mit allem anderen in Verbindung bringen
+(„Schlaf und Ernährung besser, nächste Abnahme Testosteron besser"; „Ernährung angepasst,
+Blutfette besser"; „Vitamin D genommen, Vitamin D gestiegen"). Neutral formuliert und
+nur so weit, dass er sich rechtlich keine Gedanken machen muss.
+
+**Warum Hoku das nicht selbst verbindet:** Ob Software ein Medizinprodukt ist, hängt an
+ihrer Funktion, nicht am Ton.
+- Einen bestimmten Blutwert einer Person mit ihrem Verhalten oder einer Einnahme zu
+  verknüpfen, überwacht einen körperlichen Zustand (MDR Art. 2 Nr. 1). Angaben, die in
+  Gesundheitsentscheidungen einfließen, fallen meist mindestens unter Klasse IIa
+  (Anhang VIII Regel 11).
+- „Vitamin D genommen, Vitamin D gestiegen" ist im Kern eine Wirksamkeitskontrolle. Bei
+  Peptiden ohne Zulassung würde daraus eine Wirkungsaussage (HWG, AMG).
+- Rechnerisch ginge es auch nicht: Bei 2–4 Abnahmen im Jahr lässt sich ein Unterschied
+  zwischen zwei Werten nicht von Tagesschwankung und Messbedingungen trennen.
+
+Das bleibt **Stufe 2**. Stattdessen gibt es drei Bausteine **nebeneinander**. Den
+Schluss zieht der Nutzer selbst, wie bei einem Laborbefund neben einem Ratgeber.
+
+### Baustein 1: Allgemeinwissen je Marker
+
+Ausbau von `src/features/blutwerte/lib/markerGuidance.ts` um einen Abschnitt **„Was den
+Wert im Alltag beeinflussen kann"**.
+- Nennt Ernährung, Schlaf, Bewegung, Gewicht und Alkohol, soweit belegt, und **immer**
+  dazu Faktoren außerhalb des Alltags (Alter, Genetik, Erkrankungen, Medikamente).
+- Die Regeln der Datei gelten unverändert:
+  - für alle gleich;
+  - **nie nach eigenem Wert oder eigenen Daten ausgewählt, sortiert oder aufgeklappt**;
+  - „kann" statt „führt zu";
+  - Quellen mit Prüfdatum;
+  - der Weg zum Arzt am Ende;
+  - nur de/en.
+- Inhaltlich genau statt pauschal. Beispiel: Bei LDL zählen vor allem gesättigte Fette,
+  bei Triglyceriden eher Zucker und Alkohol. „Fettreich" allein ist zu grob.
+- Allgemeine Lebensstil-Aussagen nur als Leitlinien-Wissen („wird in Leitlinien mit …
+  in Verbindung gebracht"). Sie beziehen sich nie auf den Nutzer und sind nie ein
+  Risiko oder eine Prognose für ihn.
+
+### Baustein 2: Dein Alltag, in Zahlen und ohne Urteil
+
+- **Karte „Seit deiner letzten Abnahme"** im Blutwerte-Bereich.
+  - Zeitraum: zwischen den beiden Abnahmen, verglichen mit dem gleich langen Zeitraum
+    davor. Bei der ersten Abnahme: die 6 Monate davor gegen die 6 Monate davor
+    (meine Wahl).
+  - Inhalt: eine **feste, vollständige Liste in fester Reihenfolge**:
+    1. Schlaf
+    2. Schritte
+    3. Trainings pro Woche
+    4. kcal
+    5. Protein
+    6. Fett
+    7. Kohlenhydrate (soweit erfasst)
+    8. Gewicht
+    9. Stack-Änderungen mit Datum (begonnen, beendet; keine Dosis)
+  - Nicht Erfasstes steht als „nicht erfasst" da, statt wegzufallen.
+  - Nie nach Größe der Veränderung sortiert, nie hervorgehoben.
+- **Halbjahres-Rückblick:** dieselbe Liste, letztes Halbjahr gegen das davor.
+  - Ort (meine Wahl): Wochen-Update der ersten Januar- und Juliwoche, dazu im
+    Fortschritt.
+  - Keine Blutwerte darin.
+
+### Baustein 3: Deine Werte
+
+- Auf der Karte steht jeder Marker der Abnahme mit Wert, Einheit, Vorwert und dessen
+  Datum, wie auf einem Laborbefund.
+- Nicht erlaubt auf der Karte:
+  - Wertungs- und Richtungswörter (besser, schlechter, verbessert, gestiegen, gesunken);
+  - Farben für gut oder schlecht;
+  - Zielbereiche. Die Einordnung nach Laborbereich bleibt, wo sie heute steht, und kommt
+    nicht auf diese Karte.
+- Immer dabei: die **Messbedingungen** beider Abnahmen (M1, M2, M4).
+- Fester Schlusssatz der Karte: „Hoku zeigt, was sich verändert hat, nicht warum."
+  (en: "Hoku shows what changed, not why.")
+
+### Die Grenze (für Vorlagen, Gestaltung und Regelwächter)
+
+| Erlaubt | Nicht erlaubt |
+|---|---|
+| Allgemeintext, für alle gleich, auf der Marker-Seite | Hoku zeigt oder hebt einen Allgemeintext hervor, *weil* die eigenen Daten dazu passen |
+| Eigener Alltag in Zahlen und eigene Werte mit Vorwert auf derselben Karte | Ein Satz, der einen Blutwert **und** ein Verhalten oder eine Substanz nennt („Du hast viel Fett gegessen, das kann deine Blutfette erklären.") |
+| Feste Liste in fester Reihenfolge | Sortieren oder Markieren nach Größe der Veränderung, Auswahl je Marker |
+| Halbjahr in Zahlen | Urteil über den Lebensstil („ungesund", „gut gemacht") im Zusammenhang mit Blutwerten |
+| Allgemeine Leitlinien-Aussage | Risiko, Prognose oder Empfehlung für den Nutzer |
+
+- **Nur Vorlagen.** Die KI formuliert weder die Karte noch den Rückblick. Sie bekommt sie
+  auch nicht als Fund-Kontext. Rückfragen im Chat laufen über die bestehenden Regeln
+  (`docs/ki-coach/funktionen.md`).
+- **Kein Push**, und Blutwerte werden im Wochen-Update nicht erwähnt.
+- **Regelwächter**, neue Regel: Ein Text mit einem Marker-Namen (Liste aus
+  `markerGuidance`) darf keine Messreihe, kein Verhalten und keine Substanz nennen. Dazu
+  kommen die verbotenen Richtungs- und Wertungswörter für Blutwerte aus Baustein 3.
+- **Einstufung:** Die Karte ist ein Grenzfall. Die Einstufungsbegründung (Teil R)
+  begründet sie eigens, mit MDR Erwägungsgrund 19 (Lebensstil und Wohlbefinden) und
+  MDCG 2019-11 (Anzeige eigener Daten, allgemeines Wissen). Trägt die Begründung nicht,
+  entfällt die Karte. Allgemeinwissen und Halbjahres-Rückblick bleiben dann getrennt
+  voneinander bestehen.
+
 ## Datenschutz
 
 - **Eigene Einwilligung** für die Hintergrundanalyse (Profiling von Gesundheitsdaten,
@@ -647,14 +957,19 @@ kostenlos: Vorlage beim BfArM-Innovationsbüro (vor Stufe 2 empfohlen).
 - **Wirkungs-Check-PRD:** wird hier als S1 umgesetzt. Sein Nicht-Ziel „kein KI-Chat"
   ist überholt (Dot-Chat existiert), gilt aber sinngemäß: Die KI erklärt nur berechnete
   Funde.
-- **`markerGuidance.ts`:** bleibt allgemein und unverändert.
+- **`markerGuidance.ts`:** bleibt allgemein. Seit 04.11.2026 bekommt die Datei den
+  Abschnitt „Was den Wert im Alltag beeinflussen kann", nach ihren eigenen Regeln
+  (siehe **Blutwerte: Allgemeinwissen, eigener Alltag, eigene Werte**).
 
 ## Stufe 2 (nicht in diesem Projekt)
 
 Kontext zu einzelnen Blutwerten (Muster aus dem Gespräch: „Rund um diese Messung in
-deinen Daten …", bei jeder Messung, „kann/bekannt ist", immer Arzt), Blutwert-Trends,
-Laborwert-Vergleich vor/nach Substanz, eigener Zielbereich als zweiter Balken mit
-Quelle, Kombinationen und Synergien aus Studien mit Quelle, Blutdruck-Muster.
+deinen Daten …", bei jeder Messung, „kann/bekannt ist", immer Arzt), Aussagen über
+Richtung oder Verlauf von Blutwerten, jede Verbindung eines Blutwerts mit eigenem
+Verhalten oder einer Substanz durch Hoku (auch neutral formuliert, z. B. „Vitamin D
+genommen, Vitamin D gestiegen"), Laborwert-Vergleich vor/nach Substanz, eigener
+Zielbereich als zweiter Balken mit Quelle, Kombinationen und Synergien aus Studien mit
+Quelle, Blutdruck-Muster.
 Voraussetzung: Einstufungsbegründung für Stufe 2, möglichst BfArM-Innovationsbüro.
 
 ## Dem Bauenden überlassen
@@ -667,6 +982,8 @@ Voraussetzung: Einstufungsbegründung für Stufe 2, möglichst BfArM-Innovations
 - Reihenfolge des Baus (Vorschlag: Engine + Regelwächter + Katalog-Format +
   T/B/R/E/W/F → Wochen-Update + Push → V/VB/SW/WA/K/RY/G/C/H/L → S-Funde und
   Substanz-Bilanz → KO → M-Funde → Selbstversuch → HS nach Profil P1, Schritt 1b).
+  Zeitskalen Wochen und Monate nach den Paar-Vergleichen. Die Blutwerte-Karte kommt
+  nach den M-Funden und erst, wenn Teil R sie trägt.
 - Die gepflegte Koffein-Liste (Namen, BLS-Codes) und wie Open-Food-Facts-Angaben
   einbezogen werden.
 - Ob vorhandene Teile aus Dot-Phase 1 (Bestand, Einstichstellen) schon existieren und
@@ -683,3 +1000,17 @@ Voraussetzung: Einstufungsbegründung für Stufe 2, möglichst BfArM-Innovations
   gebaut wird.
 - **Schlafphasen** hängen am Plugin-Wechsel aus Profil P1, Schritt 1b; der ist noch
   nicht gebaut.
+- **Rückfrage bei ungewöhnlichen Eingaben** (Ernährung, Training, Gewicht, Dosen): Text
+  und Gestaltung per Mockup, bevor UI gebaut wird. Sie berührt mehrere Features.
+- **Hinweis bei sehr großen Dosis-Abweichungen:** Soll es zusätzlich zur neutralen
+  Eingabe-Frage einen festen allgemeinen Hinweis geben (Arzt, Giftnotruf)? Entscheidung
+  des Nutzers, rechtlich in der Einstufungsbegründung zu prüfen.
+- **Teil 1 nachrüsten:** R4 kennt weder feste Grenzen noch die Rückfrage bei großen
+  Sprüngen. Ein manueller Tippfehler kann heute einen falschen Rekord und eine
+  falsche Bestmarke setzen. Das wird vor der Freischaltung (`ERKENNTNISSE_FREI`)
+  behoben, mindestens die festen Grenzen.
+- **Blutwerte-Karte und Halbjahres-Rückblick:** Gestaltung per Mockup, bevor UI gebaut
+  wird.
+- **Allgemeinwissen je Marker:** Texte „Was den Wert im Alltag beeinflussen kann"
+  schreiben und mit Quellen abgleichen. Offen ist, mit welchen Markern es anfängt.
+- **Einstufung der Blutwerte-Karte** in Teil R. Trägt sie nicht, entfällt die Karte.

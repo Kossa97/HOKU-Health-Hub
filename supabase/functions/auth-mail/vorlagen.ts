@@ -3,7 +3,7 @@
  * trägt ihn im Betreff, groß im Text und im Vorschautext: so schlägt iOS ihn über der
  * Tastatur vor („Aus Mail"), Gmail zeigt „Kopieren", und ein Tipp markiert ihn ganz
  * (`user-select: all`). Einen echten Kopier-Knopf gibt es in Mails nicht (kein JavaScript).
- * Keine Links außer Impressum/Datenschutz, keine Gesundheitsdaten.
+ * Links nur: Knopf „In Hoku öffnen“ (App-Link), Impressum, Datenschutz. Keine Gesundheitsdaten.
  */
 
 export type Sprache = 'de' | 'en'

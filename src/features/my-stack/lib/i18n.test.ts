@@ -1318,6 +1318,13 @@ const EXPECTED_MY_STACK_KEYS = [
   'day_confirmed_label',
   'bundle_period_locked',
   'bundle_merged_hint',
+  'done_intakes_title',
+  'confirm_sheet_datetime_label',
+  'confirm_sheet_date_label',
+  'confirm_time_other_day',
+  'confirm_outside_cycle',
+  'confirm_outside_cycle_items',
+  'confirm_cycle_ended_prefill',
   'syringe_draw_units',
   'dose_once',
   'my_stack_scan',
@@ -1445,6 +1452,12 @@ const EXPECTED_MY_STACK_KEYS = [
 // nennt den fuenften Look (nur de/en); look_instrument ist neu.
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Soft Dark" — look_hint
 // nennt den sechsten Look (nur de/en); look_softdark ist neu (englischer Platzhalter).
+// Bewusst ergaenzt (November 2026): Look „Papier" (Vorschau) — look_paper neu
+// (de „Papier", sonst englischer Platzhalter).
+// Bewusst geaendert (November 2026): Look „Frost" — look_frost neu (englischer
+// Platzhalter), look_hint nennt Frost (nur de/en).
+// Bewusst geaendert (November 2026): Looks Labor, Neon, Tiefsee, Obsidian — look_lab,
+// look_neon, look_deepsea, look_obsidian neu (englischer Platzhalter), look_hint (nur de/en).
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 // Bewusst ergaenzt (November 2026): Geburtsdatum bei Registrierung und Zustimmung
@@ -1455,25 +1468,25 @@ const EXPECTED_MY_STACK_KEYS = [
 // Danach: `login_code_info` nennt die Gültigkeit (nur de/en).
 // Danach: `login_link_*` für den Knopf „In Hoku öffnen“ aus der Mail (de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '790048d47bbe86ffe05bc12476f9542057b5649a3730c95940ffc183b3c333d4',
-  en: '137ce768b98dbe40f71191e5d075769d7e13b53f2e82dab78d9664853f82c470',
+  de: '90bd5e34202080cc7739fcd9696f6f6885eee088aee5a3fecae1a5882cbc46e2',
+  en: 'bec5f9a55941ab040307c4ef815424bd6621499bb4d1e10cb8bc6576d123ec2f',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '9c4d68b5427da144dbceaf662932769b8281af559f67d20a48240c6acfeb8a1d',
-  es: 'fd5909aba4e34c624538e53ad96dc322aa8340573b86be0c6c1b5a9ad2693ca8',
-  fr: '64db2326a93dea465fb6340bee9e35bd426eb5cb34b6d69a3e440f83d41781b2',
-  hi: 'b660073660ff3e05e306444d7b0d0c77fdf8810d77562472ff9ba936e949e3f3',
-  id: 'd62f1aa12361937cffb422e87d425bec2f5b8e122998e64a1ab0c7fbc5cbec4e',
-  it: '3a79b53d5ee052c85ca14ceb0dd4420bdcb2ff33f78f70ad34b3843ce68d3b3f',
-  ja: '24e6bf34e189c2b54e5c9cc62659fac0e1a7e124ed56ca1a102192eea0c234c2',
-  ko: '90e1c2901f06ea347a9f59638ea012bf39736d2f463f24ce956b1015e6093fd1',
-  pt: '66e5318a02974e44a5af069e5ba6001364c9738688bd79f502b970c33ea2bf9c',
-  ru: 'a62b34b711d9bdbedc453eaae23e77a43e93cb35780979986be59eb9b97f092f',
-  tr: '71b0ada1117668392d0438382893e82234376e3c711f205c655836636799f140',
-  zh: '8c9a2f795a3053d9fdf4bcc5b03c7c38ea14537a3ab3a3cf4a735c3c647c246f',
+  ar: 'e7412403a8bd58a48b46ced4b5f7c28bad356eec2a6c882c140a4704c16edc0b',
+  es: '4310f4b59ec1332ceb1fa52ee6799633d1fdbf269ebff64bbb1b5c70b3524709',
+  fr: 'df7dd6c0370439c9a09a7968f14d6bd543188f1fa743d473229f999c3152542d',
+  hi: '57fd10caadfd4ac15b62d967875c91316648a3948a2662532c9af73477e9d2e5',
+  id: '136c96c2131e72fbc260a106ba48d081f56dafcb8a19c0000c2b01ee4abdb1d3',
+  it: '871c33ac5642eaafd791a7e5ed10b1ec9b4db1ac5bd039373987065843313d3f',
+  ja: '23bcff2d62521fd54ce749656fbaccf8dc7bb4f9966c964b3afe981b542f3fe4',
+  ko: '884351bdcc5949024a7af50a985f99aacdbf8db3675673c2182edd829354b4b9',
+  pt: 'b70b6c5277b75919ead3a055790e52e996e5a2ac6ec5cde83cad4fc8d9929f64',
+  ru: 'de57824584cccd10845c21887db47bc8decc60f05415c524fbbc34a22ed927a7',
+  tr: '804d51ab0d031a62a97e56080b292a4f5b42a38e2bbee4828251d9cdfa981c7b',
+  zh: '1c85a6182168083f79176f865f91068c817ae451f8c9c26525e9f3341063ef8d',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

@@ -24,6 +24,7 @@ import { ANBIETER, mitAnbieter, rueckkehr, type Anbieter } from '../features/aut
 import { AppleLogo, GoogleLogo } from '../features/auth/AnbieterLogos'
 import { PASSKEY_AN, anmeldenMitPasskey, merkePasskeyAnbieten, passkeyArt, passkeyAufGeraet, passkeyMoeglich } from '../features/auth/lib/passkey'
 import { GEBURTSDATUM_MIN } from '../features/blutwerte/lib/bioProfile'
+import { leseHokuEinstellungen } from '../features/dot/lib/hokuEinstellungen'
 import '../features/auth/auth.css'
 
 /**
@@ -148,6 +149,19 @@ export function Auth() {
     // Seite verlassen: späte Abläufe (Klopfen, Hinweise) schreiben nichts mehr
     lauf.current++; hinweisLauf.current++
   }, [])
+  // Formular offen: die Startseite der App vorab laden, sobald der Browser frei ist. Sonst lief ihr Code
+  // erst nach der Anmeldung an, mitten im Haken, und ließ ihn kurz stocken.
+  useEffect(() => {
+    if (ansicht === 'start') return
+    const lade = () => { void import('./Home').catch(() => { /* lädt die Route beim Wechsel selbst */ }) }
+    // Safari kennt requestIdleCallback erst seit Kurzem
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(lade, { timeout: 2000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(lade, 500)
+    return () => window.clearTimeout(id)
+  }, [ansicht])
 
   /** Dot schreibt einen Satz und wird danach wieder zur Kugel. */
   async function schreibe(gen: number, key: DotTextKey, ms: number) {
@@ -236,6 +250,8 @@ export function Auth() {
   useEffect(() => {
     const id = window.setInterval(() => {
       if (!gegruesst.current || aktiv.current || laeuft || verlassen || meldung || pwFokus.current || stand.modus !== 'login') return
+      // Hinweise aus (Seite „Hoku“, gilt auf diesem Gerät auch vor der Anmeldung)
+      if (!leseHokuEinstellungen().hinweise) return
       const leer = ansicht === 'login'
         ? erstesLeeres({ kennung: !!kennung.trim(), passwort: !!passwort }, ['kennung', 'passwort'])
         : ansicht === 'register'
@@ -312,6 +328,13 @@ export function Auth() {
 
   // Verlässt man die Anmeldung mit dem Fokus im Passwort, dreht er sich trotzdem wieder um
   useEffect(() => () => dotStore.api()?.wegsehen(false), [])
+  // Solange das Passwort lesbar ist, schaut er weg, auch wenn das Feld den Fokus nicht mehr hat: Wer nach dem
+  // Tippen auf das Auge tippt, verlässt das Feld (Nutzer 03.11.2026: „dreht sich nicht mehr weg“)
+  const zeigePwRef = useRef(false)
+  useEffect(() => {
+    zeigePwRef.current = zeigePw
+    dotStore.api()?.wegsehen(zeigePw || pwFokus.current)
+  }, [zeigePw])
 
   if (session && !halten) return <Navigate to="/" replace />
 
@@ -394,7 +417,7 @@ export function Auth() {
   const beiFokus = (pw: boolean) => {
     eingabe()
     pwFokus.current = pw
-    dot()?.wegsehen(pw)
+    dot()?.wegsehen(pw || zeigePwRef.current)
     if (laeuft) return
     // keine Stimmung setzen: das bräche eine laufende Geste mitten ab (Nutzer 02.11.2026)
     dot()?.setNeigung(pw ? 0 : 10)
@@ -411,7 +434,7 @@ export function Auth() {
   const beiVerlassen = () => {
     pwFokus.current = false
     // ins nächste Passwortfeld gewechselt: kurz warten, sonst dreht er sich dazwischen um
-    window.setTimeout(() => { if (!pwFokus.current) dot()?.wegsehen(false) }, 120)
+    window.setTimeout(() => { if (!pwFokus.current && !zeigePwRef.current) dot()?.wegsehen(false) }, 120)
     if (laeuft) return
     dot()?.setNeigung(0)
   }

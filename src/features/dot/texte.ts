@@ -119,6 +119,20 @@ const de = {
   hinweis_unten: 'Hoku ist eine KI und kann sich irren. Keine Diagnose, keine Dosisempfehlung.',
 
   // Einwilligung (Art. 9 DSGVO, Apple 5.1.2(i))
+  // Seite „Hoku“ im Profil: Bühne, Farbe, Bewegung, Hinweise
+  einst_titel: 'Hoku',
+  einst_zeile: 'Farbe, Bewegung und Hinweise',
+  einst_buehne: 'Hoku schwebt hier im Glas, solange die Seite offen ist. Greif und wirf ihn ruhig, er bleibt drin. Was du änderst, siehst du gleich an ihm.',
+  einst_zurueck: 'Zurück zum Profil',
+  einst_verhalten: 'Verhalten',
+  einst_ruhig: 'Ruhig bewegen',
+  einst_ruhig_text: 'Keine Rundflüge, kein Auftritt beim Anmelden und keine Hinweis-Flüge. Hoku atmet, schaut und reagiert weiter.',
+  einst_ruhig_geraet: 'Am Gerät ist „Bewegung reduzieren“ eingeschaltet. Hoku bewegt sich deshalb ohnehin ruhig.',
+  einst_raus: 'Kommt für Hinweise heraus',
+  einst_raus_text: 'Gilt nur für zwei Ausnahmen: Seiten ohne untere Leiste und den Rundflug im Kalorientracker. Sonst bleibt Hoku im Haus, bis du auf sein Logo tippst.',
+  einst_hinweise: 'Hinweise',
+  einst_hinweise_text: 'Was Hoku von selbst sagt: Hinweise der Seite, der Rundflug im Kalorientracker, „automatisch eingetragen“ und Hinweise beim Anmelden. Antworten im Chat bleiben.',
+  einst_hinweise_probe: 'So sage ich dir Bescheid.',
   // Hokus Farbe (Profil)
   farbe_titel: 'Hokus Farbe',
   farbe_auto: 'Passend zum Design',
@@ -292,6 +306,20 @@ const en: Record<keyof typeof de, string> = {
   heim_antwort: 'See you later. Tap my logo in the tab bar when you need me.',
   hinweis_unten: 'Hoku is an AI and can be wrong. No diagnosis, no dose recommendations.',
 
+  // "Hoku" page in the profile: stage, colour, motion, hints
+  einst_titel: 'Hoku',
+  einst_zeile: 'Colour, motion and hints',
+  einst_buehne: 'Hoku floats here in the glass while this page is open. Go ahead and grab and throw him, he stays inside. Whatever you change shows on him right away.',
+  einst_zurueck: 'Back to profile',
+  einst_verhalten: 'Behaviour',
+  einst_ruhig: 'Calm motion',
+  einst_ruhig_text: 'No fly-arounds, no entrance when signing in and no hint flights. Hoku keeps breathing, looking and reacting.',
+  einst_ruhig_geraet: '“Reduce Motion” is on for this device, so Hoku moves calmly anyway.',
+  einst_raus: 'Comes out for hints',
+  einst_raus_text: 'Applies to two exceptions only: pages without the bottom bar and the fly-around in the calorie tracker. Otherwise Hoku stays in his house until you tap his logo.',
+  einst_hinweise: 'Hints',
+  einst_hinweise_text: 'What Hoku says on his own: page hints, the fly-around in the calorie tracker, “logged automatically” and hints when signing in. Chat replies stay.',
+  einst_hinweise_probe: 'This is how I let you know.',
   // Hoku's colour (profile)
   farbe_titel: 'Hoku’s colour',
   farbe_auto: 'Matches the design',

@@ -24,6 +24,11 @@ export function useBarcodeKamera(
    * Arzneimittelpackung, Amazon-Lageretikett).
    */
   dataMatrix?: (raw: string) => boolean,
+  /**
+   * Fuer Etikettfotos: hoehere Aufloesung anfordern. Kleine Schrift auf einer
+   * runden Dose ist in 1280×720 oft nicht mehr lesbar (My Stack).
+   */
+  fuerFotos = false,
 ) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [cam, setCam] = useState<KameraStand>(cameraAvailable() ? 'starting' : 'unavailable')
@@ -35,6 +40,7 @@ export function useBarcodeKamera(
   // nachzuladen oder abzuschalten — dafuer wird neu eingesetzt.
   const [mitBarcode] = useState(onCode !== null)
   const [mitDataMatrix] = useState(() => dataMatrix)
+  const [hoch] = useState(fuerFotos)
 
   useEffect(() => {
     if (!cameraAvailable()) return
@@ -45,7 +51,9 @@ export function useBarcodeKamera(
     async function start() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: hoch
+            ? { facingMode: { ideal: 'environment' }, width: { ideal: 2560 }, height: { ideal: 1440 } }
+            : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false,
         })
       } catch (error) {
@@ -105,7 +113,7 @@ export function useBarcodeKamera(
       window.clearTimeout(timer)
       stream?.getTracks().forEach(tr => tr.stop())
     }
-  }, [mitBarcode, mitDataMatrix])
+  }, [mitBarcode, mitDataMatrix, hoch])
 
   return { videoRef, cam }
 }

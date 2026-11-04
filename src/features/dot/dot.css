@@ -21,7 +21,7 @@
 .tyd-dot-blase {
   position: absolute; left: 0; top: 0; max-width: 240px; padding: 8px 12px; border-radius: 16px;
   font-size: 13px; line-height: 1.35; color: var(--text, #f5f5f7); pointer-events: none;
-  background: rgba(36, 36, 40, 0.94); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: rgba(36, 36, 40, 0.94); box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 8px 24px rgba(0, 0, 0, 0.45);
   opacity: 0; scale: 0.9; transition: opacity 180ms var(--lg-ease-out), scale 220ms var(--lg-ease-out);
 }
 .tyd-dot-blase[data-zeigen='true'] { opacity: 1; scale: 1; }
@@ -47,9 +47,20 @@
 @keyframes tyd-dot-huepf { 0% { transform: scale(1); } 35% { transform: scale(1.32, 0.8); } 70% { transform: scale(0.9, 1.12); } 100% { transform: scale(1); } }
 
 /* Sein Eingang: ein Stück des Rahmens oben öffnet sich (Breite setzt die Engine) */
-.tyd-tabdock > .tyd-dot-spalt {
-  position: absolute; top: -0.5px; left: 0; height: 2px; width: 0; z-index: 42; pointer-events: none;
+/* Er liegt IN der Leiste, unter der Glaslinse (z-index 2); in der Linse
+   erscheint er vergrößert mit (.tyd-tabbar-linse-tor, gleiche Maße). */
+.tyd-tabbar > .tyd-dot-spalt,
+.tyd-tabbar-linse-tor {
+  position: absolute; top: -0.5px; left: 0; height: 2px; width: 0; z-index: 1; pointer-events: none;
   background: rgba(14, 14, 16, 0.96); border-radius: 1px;
+}
+
+/* Torschein und Torkanten: Hoku malt sie in die Leiste (unter die Glaslinse,
+   die sie in ihren Kopien mit verzerrt). Raum über/unter der Oberkante wie
+   TOR_OBEN/TOR_UNTEN in der Engine. Additiv wie früher auf Hokus Ebene. */
+.tyd-dot-torbild {
+  position: absolute; left: 0; top: -56px; width: 100%; height: 62px;
+  z-index: 1; pointer-events: none; mix-blend-mode: plus-lighter;
 }
 
 /* ── Chat ─────────────────────────────────────────────────────────────── */
@@ -77,7 +88,7 @@
   border-radius: 14px; background: rgba(44, 44, 46, 0.98); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 .tyd-dot-menue button { text-align: left; padding: 11px 12px; border: 0; border-radius: 10px; background: none; color: var(--text, #f5f5f7); font-size: 15px; }
-.tyd-dot-menue button:active { background: rgba(255, 255, 255, 0.08); }
+.tyd-dot-menue button:active { background: rgb(var(--ink-rgb) / 0.08); }
 .tyd-dot-buehne { height: 150px; flex: none; }
 @media (max-height: 700px) { .tyd-dot-buehne { height: 104px; } }
 .tyd-dot-status { min-height: 18px; margin: 0; text-align: center; font-size: 13px; color: var(--text-muted, #98989d); }
@@ -85,7 +96,7 @@
 .tyd-dot-intro { margin: auto 8px 8px; text-align: center; color: var(--text-muted, #98989d); font-size: 14px; line-height: 1.45; text-wrap: balance; }
 .tyd-dot-msg { max-width: 84%; padding: 10px 13px; border-radius: 18px; font-size: 15px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tyd-dot-msg[data-rolle='ich'] { align-self: flex-end; background: var(--lg-accent, #00ccf5); color: #00141c; border-bottom-right-radius: 6px; }
-.tyd-dot-msg[data-rolle='dot'] { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border-bottom-left-radius: 6px; }
+.tyd-dot-msg[data-rolle='dot'] { align-self: flex-start; background: rgb(var(--ink-rgb) / 0.08); border-bottom-left-radius: 6px; }
 .tyd-dot-msg[data-karte='true'] { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .tyd-dot-zurueck {
   border: 0; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600;
@@ -115,7 +126,7 @@
 @keyframes tyd-dot-mikro { from { box-shadow: 0 0 0 0 rgba(0, 204, 245, 0.55); } to { box-shadow: 0 0 0 8px rgba(0, 204, 245, 0); } }
 @media (prefers-reduced-motion: reduce) { .tyd-dot-senden[data-mikro='an'] { animation: none; box-shadow: 0 0 0 3px rgba(0, 204, 245, 0.45); } }
 .tyd-dot-hinweis { margin: 6px 0 8px; text-align: center; font-size: 11px; color: var(--text-muted, #98989d); }
-.tyd-dot-einw { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; margin: auto 0 12px; border-radius: 20px; background: rgba(255, 255, 255, 0.06); }
+.tyd-dot-einw { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; margin: auto 0 12px; border-radius: 20px; background: rgb(var(--ink-rgb) / 0.06); }
 .tyd-dot-einw h2 { margin: 0 0 8px; font-size: 18px; }
 .tyd-dot-einw p, .tyd-dot-einw li { font-size: 14px; line-height: 1.45; color: var(--text-muted, #c7c7cc); }
 .tyd-dot-einw ul { margin: 10px 0 14px; padding-left: 18px; display: grid; gap: 4px; }
@@ -145,3 +156,79 @@
   .tyd-dot-arbeitet .tyd-dot-kugel, .tyd-dot-arbeitet .tyd-dot-funke { animation: none; }
 }
 @keyframes tyd-dot-puls { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* Seite „Hoku“ im Profil: Bühne, auf der er sitzt, und die Schalter darunter */
+.tyd-hoku-zurueck { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -6px 0 0 -12px; color: var(--lg-text-2); }
+/* Glasgehäuse (Nutzer 04.11.2026): kein Hintergrund, nur Glas. Platzhalter in der Seite; Gehäuse und Glas
+   heften sich oben an, sobald man an ihnen vorbeiscrollt. Das Gehäuse ist Hokus Bühne und liegt unter ihm
+   (angeheftet deckt es die Seite darunter mit ihrem eigenen Grund ab); das Glas liegt über ihm (über der
+   Hoku-Ebene, z-index 44), damit er dahinter wirkt. Glas wie die Glaslinse der Tab-Leiste: gerechnete Kante
+   (--glas-kante, lib/glasKante), Kantenschatten der Linse, halber Farbsaum. */
+.tyd-hoku-platz {
+  --hoku-oben: calc(env(safe-area-inset-top, 0px) + 6px); --hoku-hoehe: min(230px, calc((100vw - 32px) * 0.64));
+  --hoku-farbe: 0.05;
+  position: relative; scroll-margin-top: var(--hoku-oben); height: var(--hoku-hoehe); margin-top: 12px;
+}
+.tyd-hoku-buehne { position: absolute; inset: 0; border-radius: 32px; }
+.tyd-hoku-buehne[data-angeheftet='true'] { position: fixed; inset: auto; top: var(--hoku-oben); height: var(--hoku-hoehe); z-index: 30; background: var(--c-bg, #000); }
+.tyd-hoku-glas {
+  position: absolute; inset: 0; border-radius: 32px; pointer-events: none; z-index: 45;
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink-rgb, 255 255 255) / 0.40),
+    inset 0 -1px 1px rgb(var(--ink-rgb, 255 255 255) / 0.25),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb, 255 255 255) / 0.40),
+    inset 0 0 8px rgb(var(--ink-rgb, 255 255 255) / 0.12),
+    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--hoku-farbe) * 0.7)),
+    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--hoku-farbe) * 0.7)),
+    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--hoku-farbe) * 0.45));
+}
+.tyd-hoku-glas[data-angeheftet='true'] { position: fixed; inset: auto; top: var(--hoku-oben); height: var(--hoku-hoehe); }
+.tyd-hoku-glas::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: var(--glas-kante, none) center / 100% 100% no-repeat; }
+/* Farbsaum wie bei Apple: Regenbogen an den Enden, oben und unten fast weiß */
+.tyd-hoku-glas::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgb(255 255 255 / 0.85) 0deg, rgb(255 255 255 / 0.5) 40deg,
+    rgb(255 220 90) 62deg, rgb(120 255 170) 78deg, rgb(60 200 255) 94deg, rgb(130 110 255) 110deg, rgb(255 80 170) 124deg,
+    rgb(255 255 255 / 0.35) 145deg, rgb(255 255 255 / 0.55) 180deg, rgb(255 255 255 / 0.35) 215deg,
+    rgb(255 80 170) 236deg, rgb(130 110 255) 250deg, rgb(60 200 255) 266deg, rgb(120 255 170) 282deg, rgb(255 220 90) 298deg,
+    rgb(255 255 255 / 0.5) 320deg, rgb(255 255 255 / 0.85) 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: calc(var(--hoku-farbe) * 0.9);
+}
+/* Bodenplatte: eine leise Lichtkante, auf der er liegt und sich spiegelt */
+.tyd-hoku-boden { position: absolute; left: 10px; right: 10px; height: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent); }
+.tyd-hoku-buehne-text { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }
+.tyd-hoku-einst-karte { display: flex; flex-direction: column; gap: 14px; }
+.tyd-hoku-einst-kopf { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.tyd-hoku-einst-titel { flex: 1; min-width: 0; font-size: 15px; color: var(--lg-text); }
+.tyd-hoku-einst > p { margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--lg-text-3); }
+
+/* Glas-Schalter (GlasSchalter.tsx): gedrückt hebt sich der Knopf als Linse und bricht die Spur */
+.tyd-glas-schalter {
+  position: relative; flex: none; width: 64px; height: 28px; padding: 0; border: 0; background: none; cursor: pointer;
+  touch-action: none; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none;
+}
+.tyd-glas-schalter[aria-disabled='true'] { cursor: default; opacity: 0.6; }
+.tyd-glas-schalter:focus-visible { outline: 2px solid var(--lg-accent, #00ccf5); outline-offset: 3px; border-radius: 999px; }
+.tyd-glas-schalter-bett { position: absolute; inset: -8px -14px; pointer-events: none; }
+.tyd-glas-schalter-spur { position: absolute; left: 14px; top: 8px; width: 64px; height: 28px; border-radius: 999px; background: rgba(120, 120, 128, 0.32); overflow: hidden; }
+.tyd-glas-schalter-fuell { position: absolute; inset: 0; border-radius: 999px; background: var(--lg-good, #30d158); transform-origin: left center; transform: scaleX(var(--fuell, 0)); }
+.tyd-glas-schalter-strich { position: absolute; top: 50%; left: 17px; width: 1.5px; height: 10px; margin-top: -5px; border-radius: 1px; background: rgba(255, 255, 255, 0.9); }
+.tyd-glas-schalter-kreis { position: absolute; top: 50%; right: 13px; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.55); }
+.tyd-glas-schalter-knopf {
+  position: absolute; top: 50%; left: 0; width: 38px; height: 24px; margin-top: -12px; border-radius: 999px; background: #fff; pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+  transform: translateX(var(--x, 2px)) scale(var(--s, 1));
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+.tyd-glas-schalter[data-gehoben] .tyd-glas-schalter-knopf {
+  background: var(--glas-kante, none) center / 100% 100% no-repeat, rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.40), inset 0 -1px 1px rgb(255 255 255 / 0.25),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.40), inset 0 0 8px rgb(255 255 255 / 0.12),
+    inset 5px 0 6px -3px rgb(255 70 140 / 0.1), inset -5px 0 6px -3px rgb(60 190 255 / 0.1),
+    0 6px 16px rgba(0, 0, 0, 0.35);
+}
+@media (prefers-reduced-motion: reduce) { .tyd-glas-schalter-knopf { transition: none; } }

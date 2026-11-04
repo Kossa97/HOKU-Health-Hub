@@ -38,5 +38,5 @@ export function DayOrb({ totals, goals, size, dim = false }: { totals: DayTotals
     r.end()
   }, [filled, size, dim, goals.hideKcal])
 
-  return <canvas ref={ref} aria-hidden="true" className="block" style={{ width: size, height: size }} />
+  return <canvas ref={ref} aria-hidden="true" className="tyd-orb block" style={{ width: size, height: size }} />
 }

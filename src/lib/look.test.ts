@@ -42,7 +42,7 @@ describe('Erscheinungsbild', () => {
   })
 
   it('nimmt unbekannte Werte als schwarz', () => {
-    localStorage.setItem('tyd_look', 'neon')
+    localStorage.setItem('tyd_look', 'regenbogen')
     expect(getLook()).toBe('schwarz')
   })
 

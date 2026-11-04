@@ -315,7 +315,7 @@ test('Sprache umstellen: Hokus Satz wechselt mit', async ({ page, mock }) => {
   await expect(hokuSagt(page)).toHaveText('Hi! Welcome to Hoku')
 })
 
-test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen und auf der Kante, nie in der Ecke', async ({ page }) => {
+test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt gleich groß auf der Kante, nie in der Ecke', async ({ page }) => {
   await abgemeldet(page)
   await zumFormular(page)
   await lassLaufen(page, 6000)
@@ -326,8 +326,9 @@ test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen und auf de
     await page.evaluate(a => { const k = document.querySelector('[data-dot-kante]')!; window.scrollBy(0, k.getBoundingClientRect().top - a) }, abstand)
     await lassLaufen(page, 1500)
     const b = (await figur.boundingBox())!, mitte = b.y + b.height / 2
-    // seine Mitte liegt im Bild, und die Überschrift bleibt frei
-    expect(mitte, String(abstand)).toBeGreaterThan(0)
+    // seine Mitte liegt im Bild; liegt die Karte ganz oben, ragt er in voller Größe etwas hinaus (Nutzer
+    // 03.11.2026: Größe nie ändern), sein unterer Teil bleibt auf der Kante zu sehen
+    if (abstand > 50) expect(mitte, String(abstand)).toBeGreaterThan(0)
     const titel = (await page.locator('[data-dot-frei]').boundingBox())!
     const karte = (await page.locator('[data-dot-kante]').boundingBox())!
     expect(mitte, String(abstand)).toBeLessThan(karte.y)
@@ -337,8 +338,8 @@ test('Tastatur schiebt die Karte ganz nach oben: Hoku bleibt zu sehen und auf de
   }
 })
 
-test('Passwort bei hochgeschobener Karte: Hoku wird etwas kleiner und bleibt an derselben Stelle auf der Kante', async ({ page }) => {
-  // Nutzer 02.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher
+test('Passwort bei hochgeschobener Karte: Hoku bleibt so groß wie bei der E-Mail und sitzt auf der Kante', async ({ page }) => {
+  // Nutzer 02./03.11.2026: beim Wechsel ins Passwort rutscht das Formular noch ein Stück höher; Größe nicht ändern
   await abgemeldet(page)
   await zumFormular(page)
   await lassLaufen(page, 6000)
@@ -350,18 +351,15 @@ test('Passwort bei hochgeschobener Karte: Hoku wird etwas kleiner und bleibt an 
   await lassLaufen(page, 1500)
   const email = (await figur.boundingBox())!
   await page.locator('#auth-pw').click()
-  let vorher = email.height
   for (const abstand of [110, 70]) {
     await schiebe(abstand)
     await lassLaufen(page, 1500)
     const b = (await figur.boundingBox())!, karte = (await page.locator('[data-dot-kante]').boundingBox())!
-    expect(b.height, String(abstand)).toBeLessThanOrEqual(vorher + 2)
-    vorher = b.height
-    expect(b.y + b.height * 0.2, String(abstand)).toBeGreaterThanOrEqual(0)
+    // gleich groß (Atmen und Wegdrehen bewegen die Trefferfläche um wenige px)
+    expect(Math.abs(b.height - email.height), String(abstand)).toBeLessThan(email.height * 0.05)
     expect(b.y + b.height / 2, String(abstand)).toBeLessThan(karte.y)
     expect(b.y + b.height, String(abstand)).toBeGreaterThan(karte.y)
   }
-  expect(vorher, 'kleiner als bei der E-Mail').toBeLessThan(email.height * 0.9)
 })
 
 test('iPhone-App: verschiebt sich Hokus Ebene mit der Seite, sitzt er trotzdem auf der Kante', async ({ page }) => {
@@ -418,6 +416,34 @@ test('Passwort: Hoku dreht sich weg und sagt es einmal; Einblenden bringt keine 
   await page.locator('.tyd-auth-auge').click()
   await lassLaufen(page, 1200)
   await expect(blase).not.toHaveAttribute('data-zeigen')
+})
+
+test('Passwort sichtbar machen: Hoku dreht sich weg, auch wenn das Feld den Fokus schon verloren hat', async ({ page, mock }) => {
+  // Nutzer 03.11.2026: Passwort getippt, Feld verlassen, aufs Auge getippt: er drehte sich nicht mehr weg
+  void mock
+  await abgemeldet(page)
+  await zumFormular(page)
+  await lassLaufen(page, 6000)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  await page.locator('#auth-pw').click()
+  await page.locator('#auth-pw').fill('geheim1')
+  await lassLaufen(page, 300)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // Feld verlassen: er dreht sich wieder um
+  await page.locator('[data-dot-frei]').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
+  // Passwort einblenden: weg, solange es lesbar ist
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  await page.locator('#auth-kennung').click()
+  await lassLaufen(page, 400)
+  await expect(figur).toHaveAttribute('data-dot-weg', 'an')
+  // wieder verbergen: er dreht sich um
+  await page.locator('.tyd-auth-auge').click()
+  await lassLaufen(page, 400)
+  await expect(figur).not.toHaveAttribute('data-dot-weg')
 })
 
 test('Tippen ins Formular: Hoku rutscht auf die Oberkante der Karte und ragt darüber, danach zurück', async ({ page }) => {

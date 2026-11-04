@@ -40,7 +40,10 @@ export interface ActiveWorkout {
 export interface UndoSnapshot {
   id: number
   exercises: SessionExercise[]
-  label: 'set' | 'exercise'
+  /** `entry`: ein gesprochener oder getippter Eintrag (`batch`), samt Pause davor. */
+  label: 'set' | 'exercise' | 'entry'
+  /** Nur bei `entry`: die Pause vor dem Eintrag, damit Rückgängig auch sie zurückholt. */
+  rest?: { endsAt: number | null; totalS: number | null }
 }
 
 /** Vorschlag je Uebung (`suggestNextSets`), vom Aufrufer mit Katalog und Verlauf versorgt. */
@@ -199,6 +202,13 @@ export type WorkoutAction =
   | { type: 'toggle_done'; index: number; setIndex: number; defaultRestS: number; now: number }
   | { type: 'rest_adjust'; deltaS: number; now: number }
   | { type: 'rest_skip' }
+  /** Pause mit fester Länge starten („Pause 2 Minuten"). */
+  | { type: 'rest_start'; seconds: number; now: number }
+  /**
+   * Mehrere Bedienungen als ein Eintrag (Sprechen/Schreiben im Training):
+   * nacheinander angewandt, mit einem Rückgängig für alle zusammen.
+   */
+  | { type: 'batch'; actions: WorkoutAction[] }
 
 const SET_TYPE_CYCLE: SetType[] = ['normal', 'warmup', 'drop', 'failure']
 const VALUE_KEYS: Array<keyof TrainingSet> = ['weightKg', 'reps', 'durationS', 'distanceM']
@@ -217,11 +227,14 @@ function updateExercise(w: ActiveWorkout, index: number, fn: (ex: SessionExercis
 let lastUndoId = 0
 function undoSnapshot(w: ActiveWorkout, label: UndoSnapshot['label']): UndoSnapshot {
   lastUndoId = Math.max(Date.now(), lastUndoId + 1, (w.undo?.id ?? 0) + 1)
-  return { id: lastUndoId, exercises: w.exercises, label }
+  return {
+    id: lastUndoId, exercises: w.exercises, label,
+    ...(label === 'entry' ? { rest: { endsAt: w.restEndsAt, totalS: w.restTotalS } } : {}),
+  }
 }
 
 /** Bedienungen, die den Rueckgaengig-Schnappschuss setzen oder brauchen; alle anderen verwerfen ihn. */
-const KEEPS_UNDO: ReadonlySet<WorkoutAction['type']> = new Set(['undo', 'remove_set', 'remove_exercise', 'replace_exercise'])
+const KEEPS_UNDO: ReadonlySet<WorkoutAction['type']> = new Set(['undo', 'remove_set', 'remove_exercise', 'replace_exercise', 'batch'])
 
 /**
  * Was nach dem Haken an Satz `setIndex` folgt: nichts (Haken weg, oder ein
@@ -294,7 +307,16 @@ function applyAction(w: ActiveWorkout, action: WorkoutAction): ActiveWorkout {
 
     case 'undo':
       if (!w.undo || w.undo.id !== action.id) return w
-      return { ...w, exercises: w.undo.exercises, undo: null }
+      return {
+        ...w, exercises: w.undo.exercises, undo: null,
+        ...(w.undo.rest ? { restEndsAt: w.undo.rest.endsAt, restTotalS: w.undo.rest.totalS } : {}),
+      }
+
+    case 'batch': {
+      if (action.actions.length === 0) return w
+      const next = action.actions.reduce((acc, a) => (a.type === 'batch' || a.type === 'undo' ? acc : applyAction(acc, a)), w)
+      return next === w ? w : { ...next, undo: undoSnapshot(w, 'entry') }
+    }
 
     case 'apply_suggestion':
       return updateExercise(w, action.index, ex => ({
@@ -388,6 +410,12 @@ function applyAction(w: ActiveWorkout, action: WorkoutAction): ActiveWorkout {
 
     case 'rest_skip':
       return { ...w, restEndsAt: null, restTotalS: null }
+
+    case 'rest_start': {
+      const seconds = Math.round(action.seconds)
+      if (!(seconds > 0)) return w
+      return { ...w, restEndsAt: action.now + seconds * 1000, restTotalS: seconds }
+    }
   }
 }
 
