@@ -201,3 +201,7 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   Linsen-Kopien. In e2e bleibt Hoku im Haus (`tyd.e2e.dot-im-haus`), zum Prüfen auf 0.
 - Glisse archiviert (Schalter nur im Test-Menü), schlank: eine Verschiebung, nur
   solange ein Finger liegt.
+- Glas der Navbar: EIN Material für Leiste und Plus nach Glisse „Glass“ (index.css,
+  --glas-fuellung/-toenung/-kante-farbe/-tropfen/-unschaerfe/-glimmen). Looks tönen nur.
+  Eigene Navbar-Materialien der Looks (v. a. Papier, Obsidian, Instrument) stehen in
+  liquid-glass.css, gelten nur mit <html data-navbar="eigen"> (Entscheidung: erst alle Glas).

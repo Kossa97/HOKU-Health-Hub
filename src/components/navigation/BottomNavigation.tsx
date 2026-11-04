@@ -45,27 +45,6 @@ export function BottomNavigation({
     const plus = plusRef.current
     return plus ? haengeGlasKante(plus, { fase: 2.5, glanz: 0.9 }) : undefined
   }, [])
-  // Das Plus ist ein Glasknopf aus demselben Glas wie die Leiste: ihr Aussehen
-  // je Look wird übernommen (auch die Rundung — im eckigen Labor eckig).
-  useEffect(() => {
-    const plus = plusRef.current
-    const leiste = plus?.parentElement?.querySelector<HTMLElement>('.tyd-tabbar')
-    if (!plus || !leiste) return
-    const uebernimm = () => {
-      const k = getComputedStyle(leiste)
-      plus.style.backgroundImage = k.backgroundImage
-      plus.style.backgroundColor = k.backgroundColor
-      plus.style.boxShadow = k.boxShadow
-      plus.style.borderRadius = k.borderTopLeftRadius
-      plus.style.setProperty('-webkit-backdrop-filter', k.getPropertyValue('-webkit-backdrop-filter') || k.backdropFilter)
-      plus.style.backdropFilter = k.backdropFilter
-    }
-    uebernimm()
-    if (typeof MutationObserver === 'undefined') return
-    const beob = new MutationObserver(uebernimm)
-    beob.observe(document.documentElement, { attributes: true, attributeFilter: ['data-look', 'data-theme', 'class'] })
-    return () => beob.disconnect()
-  }, [])
   const navigate = useNavigate()
   const activeId = resolveActiveTabId(pathname)
   const dot = useDotStand()
