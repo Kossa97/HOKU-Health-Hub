@@ -220,3 +220,9 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   ohne zweite Füllung; in den Ringen Kopie ohne Grund.
 - Linse: Gleitzeit nach Weg (federFuerWeg, Regler „Tempo nach Weg“), Verformung mit
   Tempo und Bremsen (ax, Regler „Verformung“).
+- Leistung Looks (2026-11-04): hokuLicht schrieb jedes Bild --hl-* an alle sichtbaren
+  Flächen, vererbt → ganzer Karteninhalt neu berechnet. Jetzt @property inherits:false
+  (index.css), Pseudo-Kanten holen per `inherit`, .lg-glass/.btn-primary eigene Ziele,
+  Werte in Stufen (2°, 2 %, 0,02). Gemessen Frost: Stil 131 → 38 ms/s (wie Schwarz).
+  Hokus Tor in Linsen-Kopien nur bei sichtbarer Linse. Achtung: Chromium im Container
+  rendert backdrop-filter NICHT (Software-Compositing) — Glas nur am Gerät beurteilbar.

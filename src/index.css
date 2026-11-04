@@ -106,13 +106,8 @@
      --ink-rgb: Schrift, Linien und helle Schleier; --ground-rgb: der Grund.
      Tailwind liest `white`, `black` und `slate-*` aus diesen Kanälen. */
   /* Hoku-Licht (src/lib/hokuLicht.ts): ein Look schaltet es mit --hoku-licht: 1
-     ein; die übrigen Werte setzt das Skript je Fläche, hier die Ruhelage. */
+     ein; die übrigen Werte setzt das Skript je Fläche (Ruhelage: @property unten). */
   --hoku-licht: 0;
-  --hl-a: 0deg;
-  --hl-w: 60deg;
-  --hl-i: 0;
-  --hl-x: 50%;
-  --hl-y: 0%;
   --ink-rgb:    255 255 255;
   --ground-rgb: 0 0 0;
   --slate-50:  245 245 247;
@@ -1970,3 +1965,23 @@ body[data-zieht] [data-abgelehnt] [data-periode-sperre] { color: var(--lg-warn);
   }
 }
 @keyframes tyd-wackeln { from { transform: rotate(-0.35deg); } to { transform: rotate(0.35deg); } }
+
+/* ── Hoku-Licht: Werte je Fläche, NICHT vererbt ───────────────────────────
+   hokuLicht.ts schreibt sie jedes Bild, in dem Hoku sich bewegt, an jede
+   sichtbare Fläche. Vererbt hätten sie jedes Mal den ganzen Inhalt der Karte
+   neu berechnen lassen (gemessen: im Frost-Look viermal so viel Stilarbeit
+   wie ohne Licht). Nicht vererbt rechnet nur die Fläche selbst; ihre Kanten
+   (::before/::after) holen sich die Werte ausdrücklich. Ruhelage = initial. */
+@property --hl-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --hl-w { syntax: '<angle>'; inherits: false; initial-value: 60deg; }
+@property --hl-i { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --hl-x { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --hl-y { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+:is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action)::before,
+:is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action)::after {
+  --hl-a: inherit;
+  --hl-w: inherit;
+  --hl-i: inherit;
+  --hl-x: inherit;
+  --hl-y: inherit;
+}

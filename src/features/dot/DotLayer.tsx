@@ -43,6 +43,8 @@ function seiteVon(pathname: string): DotSeite {
   return 'sonst'
 }
 
+const linseSichtbar = () => !!document.querySelector('.tyd-tabdock .tyd-tabbar-pill[data-linse]')
+
 const leisteFinden = () => {
   const kapsel = document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabbar')
   const logo = document.querySelector<HTMLElement>('.tyd-tabdock [data-tyd-slot="dot"]')
@@ -52,10 +54,12 @@ const leisteFinden = () => {
     logo,
     plus: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabdock-action'),
     spalt: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-dot-spalt'),
-    spaltKopie: () => document.querySelectorAll<HTMLElement>('.tyd-tabdock .tyd-tabbar-linse-tor'),
+    // Die Kopien in der Glaslinse nur, solange die Linse zu sehen ist — sonst
+    // malte Hoku jedes Bild dreimal umsonst (sie sind dann unsichtbar).
+    spaltKopie: () => linseSichtbar() ? document.querySelectorAll<HTMLElement>('.tyd-tabdock .tyd-tabbar-linse-tor') : [],
     torBild: () => ({
       haupt: document.querySelector<HTMLCanvasElement>('.tyd-tabdock .tyd-tabbar > .tyd-dot-torbild'),
-      kopien: document.querySelectorAll<HTMLCanvasElement>('.tyd-tabdock .tyd-tabbar-linse-torbild'),
+      kopien: linseSichtbar() ? document.querySelectorAll<HTMLCanvasElement>('.tyd-tabdock .tyd-tabbar-linse-torbild') : [],
     }),
   }
 }
