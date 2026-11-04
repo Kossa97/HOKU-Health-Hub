@@ -1277,8 +1277,8 @@ main.flex-1 {
      --tabbar-aktiv            Farbe des aktiven Symbols und des Plus
      --tabbar-rund             Rundung der Leiste (Kapsel: halbe Höhe)
      --linse-rund              Rundung der Linse */
-  --tabbar-kapsel: rgb(var(--ink-rgb) / 0.17);
-  --tabbar-kapsel-kante: none;
+  --tabbar-kapsel: rgb(var(--ink-rgb) / 0.15);
+  --tabbar-kapsel-kante: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
   --tabbar-aktiv: var(--accent);
   --tabbar-rund: calc(var(--bottom-nav-capsule) / 2);
   --linse-rund: 999px;
@@ -1345,26 +1345,8 @@ main.flex-1 {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  /* durchsichtig: hinter der Linse liegt die verschwommene Seite (…-hinter) */
-  background: transparent;
+  background: var(--app-bg);
   opacity: 0;
-}
-/* Hinter der Linse: dieselbe Unschärfe wie im Glas der Leiste. Liegt direkt
-   in der Pille (kein Maske/Filter darüber), damit sie die Seite sieht. */
-.tyd-tabbar-linse-hinter {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--linse-rund);
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(var(--glas-toenung), var(--glas-toenung)), linear-gradient(var(--glas-fuellung), var(--glas-fuellung));
-  -webkit-backdrop-filter: var(--glas-koerper-filter);
-  backdrop-filter: var(--glas-koerper-filter);
-}
-/* Als Linse zeigt der Rahmen nur den Kern; den Rand tragen die Ringe */
-.tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-rahmen {
-  -webkit-mask: var(--kern-maske, none) center / 100% 100% no-repeat;
-  mask: var(--kern-maske, none) center / 100% 100% no-repeat;
 }
 .tyd-tabbar-linse-abbild-glas {
   position: absolute;
@@ -1466,53 +1448,18 @@ main.flex-1 {
    Inhalt. Ein Look tönt es nur über diese Werte (liquid-glass.css); eigene
    Materialien der Looks gelten nur mit <html data-navbar="eigen">. */
 :root {
-  /* Regler (src/lib/linse.ts): Unschärfe, Deckkraft der Füllung, Breite des Randbands */
-  /* Werte gemessen an Apples Leiste (Bildschirmaufnahme iOS 26): über Schwarz
-     25 statt 5, über Pink (134,55,126) etwa (63,32,82), 1 px Lichtlinie +28 */
-  --glas-unschaerfe: 10px;
-  --glas-deckkraft: 0.5;
-  --glas-saum: 6px;
-  --glas-fuellung: rgb(30 30 32 / var(--glas-deckkraft));
+  --glas-fuellung: rgba(40, 40, 40, 0.62);
   --glas-toenung: transparent;
-  --glas-kante-farbe: rgba(255, 255, 255, 0.10);
+  --glas-kante-farbe: rgba(255, 255, 255, 0.08);
   --glas-tropfen: transparent;
+  --glas-unschaerfe: 3px;
   --glas-glimmen: rgba(255, 255, 255, 0.09);
-  /* Körper: verschwommen und kräftiger in der Farbe, leicht abgedunkelt —
-     Randband: schärfer, heller und farbiger, so wirkt die Kante wie dickes,
-     brechendes Glas (echtes Verbiegen des Hintergrunds kann Safari nicht). */
-  --glas-koerper-filter: blur(var(--glas-unschaerfe)) saturate(1.9);
-  --glas-saum-filter: blur(3px) saturate(1.9);
 }
-/* Apple wie in der Bildschirmaufnahme: klares Glas, der Inhalt dahinter
-   verschwommen sichtbar. Die Unschärfe tragen zwei eigene Schichten in der
-   Leiste und im Plus (.tyd-glas-koerper, .tyd-glas-saum) — die Leiste selbst
-   hat keinen backdrop-filter, sonst sähen die Schichten nur sie statt der Seite. */
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action) {
   background: linear-gradient(var(--glas-toenung), var(--glas-toenung)), linear-gradient(var(--glas-fuellung), var(--glas-fuellung));
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px var(--glas-kante-farbe), 0 1px 3px var(--glas-tropfen);
-}
-.tyd-glas-koerper,
-.tyd-glas-saum {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-html[data-navbar='eigen'] :is(.tyd-glas-koerper, .tyd-glas-saum) { display: none; }
-.tyd-glas-koerper {
-  -webkit-backdrop-filter: var(--glas-koerper-filter);
-  backdrop-filter: var(--glas-koerper-filter);
-}
-.tyd-glas-saum {
-  padding: var(--glas-saum);
-  -webkit-backdrop-filter: var(--glas-saum-filter);
-  backdrop-filter: var(--glas-saum-filter);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  -webkit-backdrop-filter: blur(var(--glas-unschaerfe)) saturate(1.5);
+  backdrop-filter: blur(var(--glas-unschaerfe)) saturate(1.5);
+  box-shadow: inset 0 0 0 0.5px var(--glas-kante-farbe), 0 1px 3px var(--glas-tropfen);
 }
 /* Lichtrand: das gerechnete Bild, sonst eine feine Haarlinie */
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::before {
@@ -1528,9 +1475,6 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-actio
   background: var(--glas-kante) center / 100% 100% no-repeat;
   -webkit-mask: none;
   mask: none;
-  /* Apples Rand ist eine gleichmäßige Haarlinie (box-shadow); der gerechnete
-     Glanz oben links nur als Hauch darüber */
-  opacity: 0.15;
 }
 /* Glimmen beim Drücken (Glisse: :after mit weichem Schein) */
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::after {

@@ -99,8 +99,7 @@ describe('LiquidGlassTabBar', () => {
     masse({ home: { links: 8, breite: 70 } })
     bauen('home')
 
-    // Nur die Plätze, in ihrer Reihenfolge (davor liegen Glas und Pille)
-    const kinder = [...leiste().children].filter(k => k.hasAttribute(SLOT_ATTR))
+    const kinder = [...leiste().children].slice(1)   // ohne die Pille
     expect(kinder.map(k => k.getAttribute(SLOT_ATTR)))
       .toEqual(['home', 'my-stack', 'plus', 'kalender', 'profil'])
   })

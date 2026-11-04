@@ -205,10 +205,8 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   --glas-fuellung/-toenung/-kante-farbe/-tropfen/-unschaerfe/-glimmen). Looks tönen nur.
   Eigene Navbar-Materialien der Looks (v. a. Papier, Obsidian, Instrument) stehen in
   liquid-glass.css, gelten nur mit <html data-navbar="eigen"> (Entscheidung: erst alle Glas).
-- Glas nach Apple-Aufnahme (Ticket-App): Leiste/Plus ohne eigenen backdrop-filter;
-  zwei Schichten darin (.tyd-glas-koerper verschwommen, .tyd-glas-saum Randband
-  schärfer/heller) — Grund: ein Element mit backdrop-filter/Maske ist „Backdrop Root“,
-  Kinder sähen sonst nicht die Seite. Linse: klare Schicht .tyd-tabbar-linse-hinter
-  direkt in der Pille, Kopie durchsichtig, Rahmen als Linse auf den Kern maskiert,
-  Ringe außerhalb. Gespiegelte/verbogene Seite am Rand wie bei Apple geht in WebKit
-  nicht (nur nativ, UITabBar/UIGlassEffect). Regler: Glas unscharf/Füllung/Randband.
+- 2026-11-04: Versuch „Glas wie Apples Ticket-App-Aufnahme“ (klare Linse über
+  verschwommener Seite, zwei Glasschichten in der Leiste, gemessene Werte) auf
+  Wunsch des Nutzers ganz zurückgenommen („komplett Müll“, Linse hatte sich mit
+  verändert). Lehre: bei Navbar-Änderungen die Linse nicht anfassen; Änderungen
+  am Aussehen klein halten und einzeln zeigen.
