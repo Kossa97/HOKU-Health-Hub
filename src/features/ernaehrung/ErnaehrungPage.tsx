@@ -15,6 +15,8 @@ import { DishStage } from './components/DishStage'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
 import { DayPanel, type DayTab } from './components/DayPanel'
+import { ActivitySheet } from './components/ActivitySheet'
+import { useActivityDay } from './hooks/useActivityDay'
 import { pieceFor } from './lib/pieces'
 import { MonthSheet } from './components/MonthSheet'
 import { EntryRowContent, MealSection } from './components/MealSection'
@@ -67,6 +69,7 @@ type SheetState =
   | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
   | DishSheet
   | { kind: 'day'; tab: DayTab }
+  | { kind: 'activity' }
   | { kind: 'month' }
 
 /** Das gewählte Lebensmittel mit Menge zurück an Gericht bzw. Foto-Prüfliste. */
@@ -98,6 +101,8 @@ export function ErnaehrungPage() {
   // Dot fliegt beim Öffnen um die Kugel; nach 2 h oder beim dritten Öffnen mit Halt und Sätzen
   useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
+  const move = useActivityDay(userId, date, n.goals)
+  const activity = { active: move.total.kcal, bonus: move.bonus }
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
 
@@ -328,6 +333,7 @@ export function ErnaehrungPage() {
       {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
       {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
         formOpen={!!sheet && sheet.kind !== 'day'}
+        activity={activity} onOpenActivity={() => setSheet({ kind: 'activity' })}
         onOpenDay={() => setSheet({ kind: 'day', tab: 'today' })}
         // Zurück, woher man kam; direkt eingestiegen (kein Verlauf) zur Startseite.
         onClose={() => (typeof window.history.state?.idx === 'number' && window.history.state.idx > 0 ? navigate(-1) : navigate('/'))} />}
@@ -534,9 +540,16 @@ export function ErnaehrungPage() {
 
       {sheet?.kind === 'day' && (
         <DayPanel tab={sheet.tab} onTab={tab => setSheet({ kind: 'day', tab })} dayLabel={dayLabel}
-          total={n.total} waterMl={n.day ? n.day.waterMl : null} goals={n.goals} userId={userId} today={todayKey} busy={busy}
+          total={n.total} waterMl={n.day ? n.day.waterMl : null} goals={n.goals} activity={activity} userId={userId} today={todayKey} busy={busy}
+          onOpenActivity={() => setSheet({ kind: 'activity' })}
           onClose={() => setSheet(null)}
           onSaveGoals={g => run(async () => { await n.saveGoals(g); setSheet({ kind: 'day', tab: 'today' }); toast.success(t('nutr_goals_saved')) })} />
+      )}
+
+      {sheet?.kind === 'activity' && (
+        <ActivitySheet dayLabel={dayLabel} day={move.day} error={move.error} total={move.total} bonus={move.bonus} goals={n.goals}
+          weightKg={move.weightKg} onAdd={move.add} onRemove={move.remove} onReload={move.reload}
+          onEditGoals={() => setSheet({ kind: 'day', tab: 'goals' })} onClose={() => setSheet(null)} />
       )}
 
       {entryDrag.ghost}

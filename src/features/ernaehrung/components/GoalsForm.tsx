@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { alterAm } from '../../blutwerte/lib/referenzbereiche'
 import { type Activity, DEFAULT_GOALS, GOAL_LIMITS, type GoalKind, type Goals, parseAmount, suggestGoals } from '../lib/nutrition'
 import { orbLayout } from '../lib/orb'
+import { ACTIVITY_SOURCES, type ActivityMode, type ActivityShare, type ActivitySource } from '../lib/activity'
 import { type BodyData, loadBodyData } from '../services/nutritionStore'
 import { setSoundsWanted, soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
@@ -27,6 +28,11 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
   const { t, i18n } = useTranslation()
   const [v, setV] = useState<Record<Key, string>>(() => Object.fromEntries(KEYS.map(k => [k, String(current[k])])) as Record<Key, string>)
   const [hideKcal, setHideKcal] = useState(current.hideKcal)
+  const [mode, setMode] = useState<ActivityMode>(current.activityMode)
+  const [share, setShare] = useState<ActivityShare>(current.activityShare)
+  const [sources, setSources] = useState<readonly ActivitySource[]>(current.activitySources)
+  const toggleSource = (src: ActivitySource, on: boolean) =>
+    setSources(list => ACTIVITY_SOURCES.filter(s => (s === src ? on : list.includes(s))))
   // Töne gelten für dieses Gerät (nicht in der Datenbank), gespeichert mit „Speichern“.
   const [sounds, setSounds] = useState(soundsWanted)
   const [body, setBody] = useState<BodyData | null | 'error'>(null)
@@ -110,6 +116,39 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
         </p>
       )}
 
+      <section aria-labelledby="nutr-move-title" className="mt-4 rounded-[18px] bg-[var(--lg-surface-2)] p-4">
+        <h3 id="nutr-move-title" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_move_title')}</h3>
+        <div role="radiogroup" aria-labelledby="nutr-move-title" className="mt-3 grid grid-cols-2 gap-1.5">
+          {(['deficit', 'budget'] as const).map(m => (
+            <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={chip(mode === m)}>
+              {t(`nutr_move_mode_${m}`)}
+            </button>
+          ))}
+        </div>
+        <p className={`mt-2 text-[13px] leading-snug ${DIM}`}>{t(`nutr_move_mode_${mode}_hint`)}</p>
+        {mode === 'budget' && (
+          <>
+            <p className="label mt-3" id="nutr-move-share">{t('nutr_move_share')}</p>
+            <div role="radiogroup" aria-labelledby="nutr-move-share" className="grid grid-cols-2 gap-1.5">
+              {(['half', 'full'] as const).map(sh => (
+                <button key={sh} type="button" role="radio" aria-checked={share === sh} onClick={() => setShare(sh)} className={chip(share === sh)}>
+                  {t(`nutr_move_share_${sh}`)}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 rounded-[12px] bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)] p-3 text-[13px] leading-snug text-[var(--lg-text-2)]">
+              {t(`nutr_move_share_${share}_hint`)}
+            </p>
+            <p className={`mt-2 text-[12px] leading-relaxed ${MUTED}`}>{t('nutr_move_budget_note', { level: t('nutr_act_sedentary') })}</p>
+          </>
+        )}
+        <p className="label mt-3">{t('nutr_move_sources')}</p>
+        {ACTIVITY_SOURCES.map(src => (
+          <SwitchRow key={src} compact label={t(`nutr_move_src_${src}`)} hint={t(`nutr_move_src_${src}_hint`)}
+            checked={sources.includes(src)} onChange={on => toggleSource(src, on)} />
+        ))}
+      </section>
+
       <SwitchRow label={t('nutr_hide_kcal')} hint={t('nutr_hide_kcal_hint')} checked={hideKcal} onChange={setHideKcal} />
       <SwitchRow label={t('nutr_orb_sounds')} hint={t('nutr_orb_sounds_hint')} checked={sounds} onChange={setSounds} />
       {/* Maßstab der Kugel: stand früher unter ihr, jetzt hier (oben ist nur Zahl und Makros). */}
@@ -124,7 +163,7 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
           onClick={() => {
             // Ton jetzt freischalten (noch in der Geste), die Wahl erst nach erfolgreichem Speichern merken.
             if (sounds) unlockAudio()
-            void Promise.resolve(onSave({ ...nums, hideKcal })).then(ok => { if (ok !== false) setSoundsWanted(sounds) })
+            void Promise.resolve(onSave({ ...nums, hideKcal, activityMode: mode, activityShare: share, activitySources: sources })).then(ok => { if (ok !== false) setSoundsWanted(sounds) })
           }}>{t('nutr_save')}</button>
       </div>
     </>
@@ -132,9 +171,18 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
 }
 
 /** iOS-Schalter; darunter bleibt ein echtes Kontrollkästchen (Tastatur, Screenreader). */
-function SwitchRow({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (on: boolean) => void }) {
+function SwitchRow({ label, hint, checked, onChange, compact = false }: {
+  label: string
+  hint: string
+  checked: boolean
+  onChange: (on: boolean) => void
+  /** In einer Karte: ohne eigene Fläche, enger. */
+  compact?: boolean
+}) {
   return (
-    <label className="mt-4 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-[18px] bg-[var(--lg-surface-2)] px-4 py-3">
+    <label className={compact
+      ? 'flex min-h-[52px] cursor-pointer items-center gap-3 border-b border-[var(--lg-separator)] py-2 last:border-0'
+      : 'mt-4 flex min-h-[52px] cursor-pointer items-center gap-3 rounded-[18px] bg-[var(--lg-surface-2)] px-4 py-3'}>
       <span className="min-w-0 flex-1">
         <span className="block text-[17px] text-[var(--lg-text)]">{label}</span>
         <span className={`mt-0.5 block text-[13px] leading-snug ${MUTED}`}>{hint}</span>

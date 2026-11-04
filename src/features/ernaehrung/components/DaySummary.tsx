@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CircleGauge, X } from 'lucide-react'
+import { CircleGauge, Flame, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
@@ -20,9 +20,11 @@ import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
  * antippen, die Kugel selbst öffnet „Dein Tag“. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
  * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, date, ready, formOpen, onOpenDay, onClose }: {
+export function DaySummary({ total, goals, activity, date, ready, formOpen, onOpenDay, onOpenActivity, onClose }: {
   total: Nutrients
   goals: Goals
+  /** Bewegung heute (kcal) und was davon aufs Ziel kommt (0 beim Defizit). */
+  activity: { active: number; bonus: number }
   date: string
   /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
   ready: boolean
@@ -30,6 +32,7 @@ export function DaySummary({ total, goals, date, ready, formOpen, onOpenDay, onC
   formOpen: boolean
   /** „Dein Tag“ öffnen (Knopf oben rechts oder Tipp auf die Kugel). */
   onOpenDay: () => void
+  onOpenActivity: () => void
   /** Seite schließen (oben links; die Zurück-Geste löst denselben Knopf aus). */
   onClose: () => void
 }) {
@@ -49,18 +52,21 @@ export function DaySummary({ total, goals, date, ready, formOpen, onOpenDay, onC
   useEffect(() => { openDayFn.current = openDay; formOpenRef.current = formOpen })
 
   const { kcal, protein, carbs, fat } = total
-  const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, goals), [kcal, protein, carbs, fat, goals])
+  // Bewegung auf dem Tagesbedarf: die Kugel füllt sich bis Ziel + Bonus. Ohne Kalorienzahlen zählt nur Eiweiß.
+  const bonus = goals.hideKcal ? 0 : activity.bonus
+  const orbGoals = useMemo(() => (bonus > 0 ? { ...goals, kcal: goals.kcal + bonus } : goals), [goals, bonus])
+  const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, orbGoals), [kcal, protein, carbs, fat, orbGoals])
   const layoutRef = useRef(layout)
   /** Breite und Höhe der Zone (CSS-Pixel) und die Anpassung der Kugel daran. */
   const zoneSize = useRef({ w: 390, h: ZONE_MAX, fit: () => {} })
   // Andere Ziele → andere Mondgrößen → Kugel neu einpassen.
   useEffect(() => { layoutRef.current = layout; zoneSize.current.fit() }, [layout])
   const previewLayout = useMemo(
-    () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, goals) : null),
-    [add, kcal, protein, carbs, fat, goals],
+    () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, orbGoals) : null),
+    [add, kcal, protein, carbs, fat, orbGoals],
   )
   const prev = useRef<{ date: string; goals: string; layout: OrbLayout } | null>(null)
-  const goalsKey = `${goals.kcal}|${goals.proteinG}|${goals.carbsG}|${goals.fatG}|${goals.hideKcal}`
+  const goalsKey = `${orbGoals.kcal}|${goals.proteinG}|${goals.carbsG}|${goals.fatG}|${goals.hideKcal}`
 
   // Kugel anlegen; Größe, Scrollen und Farben verfolgen.
   useEffect(() => {
@@ -141,7 +147,7 @@ export function DaySummary({ total, goals, date, ready, formOpen, onOpenDay, onC
   const plus = add ? Math.round(goals.hideKcal ? add.protein : add.kcal) : 0
   const aria = goals.hideKcal
     ? t('nutr_protein_aria', { value: Math.round(protein), goal: goals.proteinG })
-    : t('nutr_kcal_aria', { value: Math.round(kcal), goal: goals.kcal })
+    : t('nutr_kcal_aria', { value: Math.round(kcal), goal: orbGoals.kcal })
   // Alle Makros in der Zeile, auch mit Ziel 0 g — dann ohne Mond und nicht antippbar.
   const macros = (goals.hideKcal ? ['carbs', 'fat'] as const : ['protein', 'carbs', 'fat'] as const).map(key => ({
     key, value: shown[key], goal: key === 'protein' ? goals.proteinG : key === 'carbs' ? goals.carbsG : goals.fatG,
@@ -212,6 +218,14 @@ export function DaySummary({ total, goals, date, ready, formOpen, onOpenDay, onC
               {t('nutr_slash_goal', { goal: goals.hideKcal ? goals.proteinG : goals.kcal, unit: goals.hideKcal ? 'g' : 'kcal' })}
             </span>
             {plus > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plus}</span>}
+            {!goals.hideKcal && activity.active > 0 && (
+              // Flamme: beim Tagesbedarf „+Bonus“, beim Defizit die Bewegung selbst. Öffnet „Aktivität“.
+              <button type="button" onClick={onOpenActivity}
+                aria-label={bonus > 0 ? t('nutr_move_chip_budget', { active: activity.active, bonus }) : t('nutr_move_chip_deficit', { active: activity.active })}
+                className="pointer-events-auto ml-0.5 inline-flex min-h-8 items-center gap-1 self-center rounded-full bg-[color-mix(in_srgb,var(--lg-warn)_16%,transparent)] px-2.5 text-[13px] font-semibold tabular-nums text-[var(--lg-warn-text)]">
+                <Flame size={12} fill="currentColor" aria-hidden="true" />{bonus > 0 ? `+${bonus}` : activity.active}
+              </button>
+            )}
           </p>
           <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[clamp(9px,2.8vw,11px)]' : 'text-[clamp(10px,3.1vw,12px)]'}`}>
             {macros.map(m => (

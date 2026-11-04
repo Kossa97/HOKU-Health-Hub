@@ -528,6 +528,46 @@ test('Dein Tag: Tipp auf die Kugel öffnet den Tag; Heute und Ziele; der Hinweis
   await expect(hint).toHaveCount(0)
 })
 
+test('Aktivität: auf den Tagesbedarf zur Hälfte — Flamme +Bonus, eintragen, löschen; in den Zielen aufs Defizit', async ({ page, mock }) => {
+  logEntry(mock, {})
+  mock.insert('nutrition_goals', {
+    user_id: TEST_USER.id, kcal: 2000, protein_g: 110, carbs_g: 230, fat_g: 65, water_ml: 2000, hide_kcal: false,
+    activity_mode: 'budget', activity_share: 'half', activity_sources: ['health', 'training', 'manual'],
+  })
+  mock.insert('activity_logs', { user_id: TEST_USER.id, log_date: '2026-09-28', label: 'Laufen', minutes: 30, kcal: 320, created_at: '2026-09-28T07:00:00Z' })
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('img', { name: '126 von 2160 kcal gegessen' })).toBeVisible()
+
+  const chip = page.getByRole('button', { name: 'Aktiv 320 kcal, 160 kcal mehr fürs Tagesziel' })
+  await expect(chip).toHaveText('+160')
+  await chip.click()
+  const sheet = page.getByRole('dialog', { name: 'Aktivität' })
+  await expect(sheet.getByText('Angerechnet: zur Hälfte · +160 kcal aufs Tagesziel')).toBeVisible()
+  await expect(sheet.getByText('Nur in der App auf dem iPhone')).toBeVisible()
+
+  await sheet.getByRole('button', { name: 'Aktivität eintragen' }).click()
+  await sheet.getByLabel('Was').fill('Fahrrad zur Arbeit')
+  await sheet.getByLabel('Dauer (min)').fill('45')
+  await sheet.getByLabel('kcal', { exact: true }).fill('300')
+  await sheet.getByRole('button', { name: 'Eintragen', exact: true }).click()
+  await expect(sheet.getByText('Fahrrad zur Arbeit · 45 min')).toBeVisible()
+  await expect(sheet.getByText('+310 kcal aufs Tagesziel')).toBeVisible()
+  expect(mock.table('activity_logs')).toHaveLength(2)
+  await expect(page.getByRole('img', { name: '126 von 2310 kcal gegessen' })).toBeVisible()
+
+  await sheet.getByRole('button', { name: 'Laufen löschen' }).click()
+  await expect(sheet.getByText('Laufen · 30 min')).toHaveCount(0)
+  expect(mock.table('activity_logs')).toHaveLength(1)
+
+  await sheet.getByRole('button', { name: /In den Zielen ändern/ }).click()
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  await day.getByRole('radio', { name: 'Aufs Defizit' }).click()
+  await day.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  expect(mock.table('nutrition_goals')[0]).toMatchObject({ activity_mode: 'deficit', activity_share: 'half' })
+  await expect(page.getByRole('button', { name: 'Aktiv 300 kcal, zählt aufs Defizit' })).toHaveText('300')
+})
+
 function ownFood(mock: MockSupabase, name: string, per100: { kcal: number; protein: number; carbs: number; fat: number }) {
   return mock.insert('food_items', {
     user_id: TEST_USER.id, source: 'custom', source_ref: null, barcode: null, name, brand: null, unit: 'g',
