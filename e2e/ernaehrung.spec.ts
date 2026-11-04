@@ -77,6 +77,22 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
   })
 })
 
+test('BLS: „haferflocken“ findet „Hafer Flocken“ ohne Marke; der Eintrag merkt sich Vitamine und Mineralstoffe', async ({ page, mock }) => {
+  // Der BLS liegt als Datei in der App (public/data/bls-4.0.json): echte Werte.
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('searchbox').fill('haferflocken')
+  await page.getByRole('dialog').getByRole('button', { name: /^Hafer Flocken\b/ }).first().click()
+  await expect(page.getByRole('heading', { name: 'Hafer Flocken' })).toBeVisible()
+  await page.getByLabel('Menge in g').fill('50')
+  await addAndClose(page)
+
+  await expect(mealCard(page, 'Frühstück').getByText('Hafer Flocken')).toBeVisible()
+  expect(mock.table('food_logs')[0]).toMatchObject({
+    source: 'bls', source_ref: 'C133000', amount: 50, kcal: 174, micros: { b1: 0.281, mg: 60.65, fe: 2.219 },
+  })
+})
+
 test('Tippfehler im Barcode wird abgefangen, ohne den Server zu fragen', async ({ page, mock }) => {
   await page.goto('/ernaehrung')
   await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()

@@ -129,6 +129,19 @@ export function Auth() {
     // Seite verlassen: späte Abläufe (Klopfen, Hinweise) schreiben nichts mehr
     lauf.current++; hinweisLauf.current++
   }, [])
+  // Formular offen: die Startseite der App vorab laden, sobald der Browser frei ist. Sonst lief ihr Code
+  // erst nach der Anmeldung an, mitten im Haken, und ließ ihn kurz stocken.
+  useEffect(() => {
+    if (ansicht === 'start') return
+    const lade = () => { void import('./Home').catch(() => { /* lädt die Route beim Wechsel selbst */ }) }
+    // Safari kennt requestIdleCallback erst seit Kurzem
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(lade, { timeout: 2000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(lade, 500)
+    return () => window.clearTimeout(id)
+  }, [ansicht])
 
   /** Dot schreibt einen Satz und wird danach wieder zur Kugel. */
   async function schreibe(gen: number, key: DotTextKey, ms: number) {
