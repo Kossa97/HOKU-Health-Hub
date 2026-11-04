@@ -13,6 +13,9 @@
   position: absolute; left: 0; top: 0; border: 0; padding: 0; background: transparent; border-radius: 50%;
   pointer-events: auto; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  /* Eigene Grafikebene: er folgt Hoku jedes Bild, ohne dass darunter neu
+     gemalt wird (sonst samt teurem Seitenhintergrund, siehe dotEngine). */
+  will-change: transform;
 }
 .tyd-dot-treffer[hidden] { display: none; }
 .tyd-dot-treffer:active { cursor: grabbing; }

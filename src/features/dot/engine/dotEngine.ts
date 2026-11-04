@@ -2092,6 +2092,8 @@ export function createDot(host: DotHost): DotApi {
     LAGE.cp = Math.cos(AUGE.pitch); LAGE.sp = Math.sin(AUGE.pitch); LAGE.cy = Math.cos(AUGE.yaw); LAGE.sy = Math.sin(AUGE.yaw)
   }
 
+  /** Zuletzt gesetzte Größe der Trefferfläche (nur bei Änderung neu setzen). */
+  const trefferMass = { w: -1, h: -1 }
   function render(t: number, dt: number) {
     const st = TARGETS[B.state], tg = B.form ? { ...FORM_LOOK[B.form], spin: st.spin } : st, cur = B.cur, k = 1 - Math.exp(-dt * 6)
     B.kugel = 1 - B.flat
@@ -2327,8 +2329,17 @@ export function createDot(host: DotHost): DotApi {
     const pad = 10
     // an der linken Wand nach innen großzügiger: dort greift man ihn neben der Randzone
     if (B.dock.x === 'left' && B.mode === 'home') x1 += 14
-    hit.style.width = (x1 - x0 + 2 * pad).toFixed(1) + 'px'; hit.style.height = (y1 - y0 + 2 * pad).toFixed(1) + 'px'
-    hit.style.borderRadius = Math.min(x1 - x0, y1 - y0) / 2 + pad + 'px'
+    // Größe nur in 2-px-Schritten und nur bei Änderung: jedes Setzen von
+    // Breite/Höhe ließ den Browser die Stelle darunter samt Seitenhintergrund
+    // neu malen — in Looks mit Rauschen oder großen Verläufen (Frost, Neon,
+    // Tiefsee) jedes Bild teuer, Hoku wirkte schwammig. Bewegt wird nur per
+    // transform (eigene Grafikebene, dot.css).
+    const bw = Math.round((x1 - x0 + 2 * pad) / 2) * 2, bh = Math.round((y1 - y0 + 2 * pad) / 2) * 2
+    if (bw !== trefferMass.w || bh !== trefferMass.h) {
+      trefferMass.w = bw; trefferMass.h = bh
+      hit.style.width = bw + 'px'; hit.style.height = bh + 'px'
+      hit.style.borderRadius = Math.min(bw, bh) / 2 + 'px'
+    }
     hit.style.transform = `translate(${(x0 - pad).toFixed(1)}px, ${(y0 - pad).toFixed(1)}px)`
   }
 

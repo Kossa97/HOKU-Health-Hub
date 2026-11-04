@@ -231,3 +231,9 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   jetzt nur bei Bedarf (Scroll/Resize/Inhalt, sonst alle 500 ms) und rechnet höchstens
   30×/s. Prüfschalter am Gerät per Adresse: ?licht=aus, ?effekte=aus (main.tsx,
   index.css) — Ergebnis vom iPhone steht noch aus.
+- Nutzer (iPhone): Labor und Obsidian flüssig, Frost/Neon/Tiefsee mit Hoku schwammig —
+  auch mit ?licht=aus und ?effekte=aus. Unterschied der Looks: Seitenhintergrund (Frost
+  Rauschen per feTurbulence, Neon/Tiefsee große Verläufe; Obsidian keiner, Labor Raster).
+  Gefunden: Hokus Trefferknopf (.tyd-dot-treffer) bekam jedes Bild Breite/Höhe neu →
+  Neumalen darunter. Jetzt eigene Ebene (will-change) und Größe nur bei Änderung (2 px).
+  Prüfschalter ?hintergrund=aus. Ergebnis vom iPhone steht aus.

@@ -1997,3 +1997,5 @@ html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .b
 }
 html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
 html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none !important; }
+/* Prüfschalter ?hintergrund=aus: einfarbiger Grund statt Rauschen und Verläufen */
+html[data-hintergrund-aus] body { background: var(--app-bg) !important; }

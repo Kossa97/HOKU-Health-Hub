@@ -24,11 +24,13 @@ installReflex()
 installFlashlight()
 // Prüfschalter fürs Gerät, nur über die Adresse (kein Knopf): ?licht=aus
 // schaltet Hokus Licht ab, ?effekte=aus die schweren Look-Effekte (Leuchtschatten,
-// Glas auf Karten, Kanten). So lässt sich am iPhone eingrenzen, was bremst.
+// Glas auf Karten, Kanten), ?hintergrund=aus den Seitenhintergrund der Looks
+// (Rauschen, große Verläufe). So lässt sich am iPhone eingrenzen, was bremst.
 try {
   const pruef = new URLSearchParams(location.search)
   if (pruef.get('licht') === 'aus') document.documentElement.dataset.lichtAus = ''
   if (pruef.get('effekte') === 'aus') document.documentElement.dataset.effekteAus = ''
+  if (pruef.get('hintergrund') === 'aus') document.documentElement.dataset.hintergrundAus = ''
 } catch { /* ohne Adresse nichts zu tun */ }
 installHokuLicht()
 wendeLinseAn(LINSE_STANDARD)
