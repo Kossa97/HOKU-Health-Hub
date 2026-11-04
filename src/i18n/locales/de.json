@@ -3132,5 +3132,6 @@
   "pf_abz_verdient": "verdient",
   "pf_abz_nicht_verdient": "noch nicht verdient",
   "pf_abz_verdient_am": "verdient am {{datum}}",
-  "pf_abz_hinweis": "Andere sehen nur verdiente Abzeichen, und nur bei „Freunde“ oder „Alle“. Den Stand der übrigen siehst nur du."
+  "pf_abz_hinweis": "Andere sehen nur verdiente Abzeichen, und nur bei „Freunde“ oder „Alle“. Den Stand der übrigen siehst nur du.",
+  "profil_hoku_code_aria": "Hoku-Code für {{adresse}}"
 }

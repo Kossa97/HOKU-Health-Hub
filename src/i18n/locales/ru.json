@@ -2900,5 +2900,6 @@
   "pf_abz_verdient": "earned",
   "pf_abz_nicht_verdient": "not earned yet",
   "pf_abz_verdient_am": "earned on {{datum}}",
-  "pf_abz_hinweis": "Others only see badges you have earned, and only with “Friends” or “Everyone”. Only you see the progress on the rest."
+  "pf_abz_hinweis": "Others only see badges you have earned, and only with “Friends” or “Everyone”. Only you see the progress on the rest.",
+  "profil_hoku_code_aria": "Hoku code for {{adresse}}"
 }
