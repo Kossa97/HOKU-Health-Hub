@@ -3020,7 +3020,7 @@
   "profil_als_web_sub": "Only while the web link is on",
   "profil_neue_felder": "New fields by default",
   "profil_web_link": "Web link",
-  "profil_web_link_sub": "Visible without signing in: profile picture, name, nickname, your bio if set to “Everyone”, and “Open in Hoku”.",
+  "profil_web_link_sub": "Visible without signing in: profile picture, name, nickname and everything set to “Everyone”. Never shown: blood values, intakes or what your reports say.",
   "profil_kontrolle": "Control",
   "profil_einst_datenquellen": "Data sources & consents",
   "profil_safety_data_2a": "Your data stays in your account. Others only see values you set to “Friends” or “Everyone” on your profile.",

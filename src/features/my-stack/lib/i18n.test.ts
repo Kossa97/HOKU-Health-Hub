@@ -1503,9 +1503,10 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (November 2026): Profil 2c, Melden ohne Konto mit Serverweg —
 // report_web_too_many, report_email_invalid, moderation_source_web,
 // moderation_contact; de/en echt, sonst englischer Platzhalter.
+// Bewusst geaendert (November 2026): profil_web_link_sub beschreibt die Web-Seite aus 2c (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '9140d81e528a6ce683ff766c1f968d3d3156469988fe2b874be7c95a56e5855d',
-  en: 'e97fcb401996b8ebb9dcfd8b4ebc8972ff81f332a93c76c9182d264af6f01be4',
+  de: '91d8a07d4feaaa2fd3691df6d053b230f4f71569bd277f907ab41148f39b4572',
+  en: '6332142e5551d0554c84548741baba9114fdb18e2fdc1abd4513860098d6bebf',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
