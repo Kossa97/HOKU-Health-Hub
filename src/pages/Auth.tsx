@@ -14,7 +14,8 @@ import { ConsentChecks } from '../features/compliance/components/ConsentChecks'
 import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { KEINE_ZUSTIMMUNG, geburtsdatumZeile, heuteLokal, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
-import { BENUTZERNAME, istEmail, pruefeLogin, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
+import { BENUTZERNAME, istEmail, pruefeEmail, pruefeLogin, pruefeNeuesPasswort, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
+import { CODE_LAENGE, NEU_SPERRE_MS, alsUhr, codePruefen, codeSenden, istUnbestaetigt, kontoVorhanden, nurZiffern, passwortSetzen, restSekunden, type CodeArt } from '../features/auth/lib/code'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
 import { merkeAngemeldetBleiben } from '../features/auth/lib/sitzung'
@@ -33,8 +34,9 @@ import '../features/auth/auth.css'
  * meldet sich bei Stille mit einem Satz und fliegt zum Feld oder Knopf, um den es geht.
  */
 
-type Ansicht = 'start' | 'login' | 'register'
-type Feld = LoginFeld | RegFeld
+/** `code`: Code aus der Mail; `vergessen`: Passwort vergessen; `neuesPw`: nach dem Code ein neues Passwort. */
+type Ansicht = 'start' | 'login' | 'register' | 'code' | 'vergessen' | 'neuesPw'
+type Feld = LoginFeld | RegFeld | 'code'
 interface Meldung { feld: Feld | null; text: string; art: 'fehler' | 'info' }
 
 // Zeiten aus dem Mockup: Denken vor dem Urteil des Servers, Dauer der Fehler
@@ -74,6 +76,11 @@ export function Auth() {
   const [passwort2, setPasswort2] = useState('')
   const [benutzer, setBenutzer] = useState('')
   const [geburt, setGeburt] = useState('')
+  // Code aus der Mail: für welche Adresse und wofür; die Sperre für „Neuen Code senden"
+  const [codeFuer, setCodeFuer] = useState<{ email: string; art: CodeArt } | null>(null)
+  const [code, setCode] = useState('')
+  const [sperreBis, setSperreBis] = useState(0)
+  const [uhr, setUhr] = useState(() => Date.now())
   const [zustimmung, setZustimmung] = useState(KEINE_ZUSTIMMUNG)
   const [zeigePw, setZeigePw] = useState(false)
   const [meldung, setMeldung] = useState<Meldung | null>(null)
@@ -265,6 +272,18 @@ export function Auth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur solange die Meldung steht
   }, [meldung])
 
+  // Sperre für „Neuen Code senden" herunterzählen
+  useEffect(() => {
+    if (ansicht !== 'code' || sperreBis <= Date.now()) return
+    const id = window.setInterval(() => {
+      const jetzt = Date.now()
+      setUhr(jetzt)
+      // abgelaufen: nicht weiter jede Sekunde neu zeichnen
+      if (jetzt >= sperreBis) window.clearInterval(id)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [ansicht, sperreBis])
+
   // Verlässt man die Anmeldung mit dem Fokus im Passwort, dreht er sich trotzdem wieder um
   useEffect(() => () => dotStore.api()?.wegsehen(false), [])
 
@@ -286,8 +305,8 @@ export function Auth() {
     setZeigePw(false)
     setAnsicht(ziel); ansichtRef.current = ziel; pwFokus.current = false
     neueStille()
-    // Jedes Formular öffnet mit einem Satz von Hoku, danach freut er sich
-    if (ziel === 'start') return
+    // Anmelden und Registrieren öffnen mit einem Satz von Hoku, danach freut er sich
+    if (ziel !== 'login' && ziel !== 'register') return
     void mitHoku(async () => {
       const gen = lauf.current, key = ziel === 'login' ? naechsterGruss() : 'login_hey'
       await schreibe(gen, key, GRUSS.text)
@@ -384,11 +403,12 @@ export function Auth() {
   }
 
   /** Antwort des Servers: denken lassen, dann X (falsch) oder Kein-Netz. */
-  async function serverAntwort(gen: number, art: NamensFehler, seit: number, feld: Feld | null, falschText: string) {
+  async function serverAntwort(gen: number, art: NamensFehler, seit: number, feld: Feld | null, falschText: string, haltenBleibt = false) {
     await warte(DENKEN[art] - (performance.now() - seit))
     if (gen !== lauf.current) return
     wartet.current = false
-    setHalten(false)
+    // beim neuen Passwort steht die Sitzung schon: die Seite bleibt, sonst ginge es ohne Passwort in die App
+    if (!haltenBleibt) setHalten(false)
     dot()?.setStimmung('idle')
     fuehlen(false)
     await mitHoku(async () => {
@@ -457,12 +477,23 @@ export function Auth() {
     const seit = performance.now()
     // Mit @ direkt bei Supabase, sonst über die Edge Function (sie kennt die E-Mail zum Namen).
     // Ein abgebrochener fetch wirft, statt `error` zu liefern.
+    let unbestaetigt = false
     const art: NamensFehler | null = istEmail(kennung)
       ? await supabase.auth.signInWithPassword({ email: kennung.trim(), password: passwort })
-        .then(r => (r.error ? serverFehler(r.error) : null), (err: unknown) => serverFehler(err))
+        .then(r => {
+          if (r.error && istUnbestaetigt(r.error)) { unbestaetigt = true; return null }
+          return r.error ? serverFehler(r.error) : null
+        }, (err: unknown) => serverFehler(err))
       : await anmeldenMitName(kennung, passwort)
     if (gen !== lauf.current) return
     if (art) return void serverAntwort(gen, art, seit, 'passwort', 'login_err_wrong')
+    // Konto da, Adresse noch nicht bestätigt (App zwischendurch geschlossen): neuer Code, Code-Ansicht
+    if (unbestaetigt) {
+      const adresse = kennung.trim()
+      await codeSenden(adresse, 'signup')
+      if (gen !== lauf.current) return
+      return void zurCodeAnsicht(gen, seit, adresse, 'signup', 'login_unbestaetigt')
+    }
     merkeAngemeldetBleiben(bleiben)
     merkePasskeyAnbieten()
     void erfolg(gen, seit)
@@ -502,9 +533,12 @@ export function Auth() {
       const vorhanden = (error as { code?: string } | null)?.code === 'user_already_exists'
       return void serverAntwort(gen, serverFehler(error), seit, vorhanden ? 'email' : null, vorhanden ? 'login_err_exists' : 'login_err_generic')
     }
+    // Mit „E-Mail bestätigen" kommt für eine vergebene Adresse kein Fehler, sondern ein Konto ohne Anmeldewege
+    if (kontoVorhanden(antwort.data.user)) return void serverAntwort(gen, 'falsch', seit, 'email', 'login_err_exists')
     // Registrieren bleibt immer angemeldet
     merkeAngemeldetBleiben(true)
-    const { error: profilFehler } = await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...geburtsdatumZeile(geburt, heute) })
+    // ohne Sitzung (E-Mail noch nicht bestätigt) legt ConsentGate das Profil später aus den Metadaten an
+    const { error: profilFehler } = !antwort.data.session ? { error: null } : await supabase.from('profiles').upsert({ id: antwort.data.user.id, username: name, ...felder, ...geburtsdatumZeile(geburt, heute) })
       .then(r => r, (err: unknown) => ({ error: err }))
     if (gen !== lauf.current) return
     if (antwort.data.session) {
@@ -518,24 +552,150 @@ export function Auth() {
       }
       return void erfolg(gen, seit)
     }
-    // Ohne Sitzung wartet das Konto auf die Bestätigung der E-Mail
+    // Ohne Sitzung wartet das Konto auf die Bestätigung der E-Mail: weiter mit dem Code aus der Mail
+    void zurCodeAnsicht(gen, seit, email.trim(), 'signup', 'account_created')
+  }
+
+  /**
+   * Weiter zur Code-Ansicht, nachdem eine Mail mit Code unterwegs ist: Haken, dann ein Brief
+   * und „Schau in dein Postfach!". `info` steht als Zeile unter dem Feld.
+   */
+  async function zurCodeAnsicht(gen: number, seit: number, adresse: string, art: CodeArt, info: string) {
     await warte(DENKEN.erfolg - (performance.now() - seit))
     if (gen !== lauf.current) return
     wartet.current = false
-    setHalten(false); setLaeuft(false)
     fuehlen(true)
-    // derselbe Haken wie nach dem Anmelden, dann ein Brief: die Bestätigung kommt per Mail
+    wechsle('code')
+    setCodeFuer({ email: adresse, art }); setCode(''); setSperreBis(Date.now() + NEU_SPERRE_MS); setUhr(Date.now())
+    setMeldung({ feld: null, text: info, art: 'info' })
+    const g = lauf.current
     await mitHoku(async () => {
       dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
-      setMeldung({ feld: null, text: 'account_created', art: 'info' })
       await warte(ZEIGEN.haken)
-      if (gen !== lauf.current || weniger) return
+      if (g !== lauf.current || weniger) return
       dot()?.zeigeForm('brief')
       await warte((FORM_DAUER.brief ?? 2.4) * 1000)
-      if (gen !== lauf.current) return
+      if (g !== lauf.current) return
       dot()?.zeigeForm(null)
-      await schreibe(gen, 'login_postfach', GRUSS.text)
+      await schreibe(g, 'login_postfach', GRUSS.text)
     })
+  }
+
+  /** Code prüfen: Registrieren → angemeldet, Portal, Heimflug; Passwort vergessen → neues Passwort. */
+  async function codeAbsenden(e?: FormEvent, wert = code) {
+    e?.preventDefault()
+    if (laeuft || !codeFuer) return
+    eingabe()
+    if (wert.length !== CODE_LAENGE) return void eingabeFehler('code', 'login_code_leer')
+    const gen = ++lauf.current
+    setMeldung(null); setNochmal(false); setLaeuft(true); setHalten(true)
+    dot()?.setNeigung(0); mitWarten(gen)
+    const seit = performance.now()
+    const fehler = await codePruefen(codeFuer.email, wert, codeFuer.art)
+    if (gen !== lauf.current) return
+    if (fehler) {
+      setCode('')
+      return void serverAntwort(gen, fehler, seit, 'code', 'login_code_falsch')
+    }
+    if (codeFuer.art === 'recovery') {
+      // Die Sitzung steht; erst mit neuem Passwort geht es in die App. Wird die App vorher
+      // geschlossen, gilt sie nur bis zum nächsten Start (wie „Angemeldet bleiben" aus)
+      merkeAngemeldetBleiben(false)
+      await warte(DENKEN.erfolg - (performance.now() - seit))
+      if (gen !== lauf.current) return
+      wartet.current = false
+      fuehlen(true)
+      wechsle('neuesPw'); setHalten(true)
+      setPasswort(''); setPasswort2('')
+      const g = lauf.current
+      void mitHoku(async () => {
+        dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
+        await warte(ZEIGEN.haken)
+        if (g === lauf.current) ruheForm()
+      })
+      return
+    }
+    merkeAngemeldetBleiben(true)
+    merkePasskeyAnbieten()
+    void erfolg(gen, seit)
+  }
+
+  /** „Neuen Code senden": gesperrt, bis die Minute um ist. */
+  async function neuerCode() {
+    if (!codeFuer || laeuft || Date.now() < sperreBis) return
+    eingabe()
+    // gleich sperren, damit ein zweites Tippen nicht doppelt sendet; scheitert es, gleich wieder frei
+    setSperreBis(Date.now() + NEU_SPERRE_MS); setUhr(Date.now())
+    const fehler = await codeSenden(codeFuer.email, codeFuer.art)
+    if (fehler && fehler !== 'viele') setSperreBis(0)
+    const text = fehler === 'netz' ? 'login_err_net' : fehler === 'viele' ? 'login_err_many' : fehler ? 'login_err_generic' : 'login_code_gesendet'
+    setMeldung({ feld: null, text, art: fehler ? 'fehler' : 'info' })
+    fuehlen(!fehler)
+    if (fehler) return
+    const gen = lauf.current
+    void mitHoku(async () => {
+      if (weniger) return
+      dot()?.zeigeForm('brief')
+      await warte((FORM_DAUER.brief ?? 2.4) * 1000)
+      if (gen === lauf.current) ruheForm()
+    })
+  }
+
+  /** Code aus der Zwischenablage (iOS fragt beim ersten Mal nach). */
+  async function codeEinfuegen() {
+    const text = await navigator.clipboard?.readText?.().catch(() => '') ?? ''
+    const wert = nurZiffern(text)
+    if (!wert) return
+    setCode(wert)
+    if (meldung?.art === 'fehler') setMeldung(null)
+    if (wert.length === CODE_LAENGE) void codeAbsenden(undefined, wert)
+  }
+
+  /** Passwort vergessen: Code an die Adresse. Die Antwort ist immer gleich, ob es ein Konto gibt oder nicht. */
+  async function vergessenAbsenden(e: FormEvent) {
+    e.preventDefault()
+    if (laeuft) return
+    eingabe()
+    const f = pruefeEmail(email)
+    if (f) return void eingabeFehler('email', f)
+    const gen = ++lauf.current
+    setMeldung(null); setNochmal(false); setLaeuft(true)
+    dot()?.setNeigung(0); mitWarten(gen)
+    const seit = performance.now()
+    const fehler = await codeSenden(email.trim(), 'recovery')
+    if (gen !== lauf.current) return
+    // zu viele Anfragen: es ist schon ein Code unterwegs, also trotzdem weiter
+    if (fehler === 'netz' || fehler === 'fehler') return void serverAntwort(gen, fehler, seit, null, 'login_err_generic')
+    void zurCodeAnsicht(gen, seit, email.trim(), 'recovery', 'login_vergessen_unterwegs')
+  }
+
+  /** Nach dem Code: neues Passwort setzen, dann wie nach dem Anmelden in die App. */
+  async function neuesPasswortAbsenden(e: FormEvent) {
+    e.preventDefault()
+    if (laeuft) return
+    eingabe()
+    const f = pruefeNeuesPasswort(passwort, passwort2)
+    if (f) return void eingabeFehler(f.feld, f.text)
+    const gen = ++lauf.current
+    setMeldung(null); setNochmal(false); setLaeuft(true); setHalten(true)
+    dot()?.setNeigung(0); mitWarten(gen)
+    const seit = performance.now()
+    const fehler = await passwortSetzen(passwort)
+    if (gen !== lauf.current) return
+    if (fehler === 'gleich' || fehler === 'schwach') {
+      return void serverAntwort(gen, 'falsch', seit, 'passwort', fehler === 'gleich' ? 'login_pw_gleich' : 'login_err_pw_short', true)
+    }
+    if (fehler) return void serverAntwort(gen, fehler, seit, null, 'login_err_generic', true)
+    merkeAngemeldetBleiben(bleiben)
+    merkePasskeyAnbieten()
+    void erfolg(gen, seit)
+  }
+
+  /** Zurück aus „neues Passwort": die Sitzung aus dem Code wieder abmelden, sonst wäre man ohne Passwort drin. */
+  async function neuesPasswortAbbrechen() {
+    abbrechen(); setHalten(true)
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => { /* offline: die Sitzung verfällt von selbst */ })
+    wechsle('login')
   }
 
   const fehlerAn = (feld: Feld) => meldung?.art === 'fehler' && meldung.feld === feld
@@ -555,9 +715,9 @@ export function Auth() {
       {t(meldung.text)}
     </p>
   )
-  const kopf = (titel: string) => (
+  const kopf = (titel: string, zurueck: () => void = () => wechsle('start')) => (
     <div className="tyd-auth-kopf">
-      <button type="button" className="tyd-auth-zurueck" onClick={() => wechsle('start')} aria-label={t('back')}>
+      <button type="button" className="tyd-auth-zurueck" onClick={zurueck} aria-label={t('back')}>
         <ChevronLeft size={22} aria-hidden="true" />
       </button>
       <h2 data-dot-frei>{titel}</h2>
@@ -655,11 +815,18 @@ export function Auth() {
                 onFocus={() => beiFokus(true)} onBlur={beiVerlassen} {...feldProps('passwort')} />
               {auge}
             </div>
-            <label className="tyd-auth-schalter">
-              <input type="checkbox" checked={bleiben} onChange={e => setBleiben(e.target.checked)} data-auth-bleiben />
-              <span className="tyd-auth-spur" aria-hidden="true" />
-              <span>{t('login_remember')}</span>
-            </label>
+            {/* „Passwort vergessen?" in derselben Zeile: das Formular wird nicht höher (iPhone SE: der Knopf bleibt im Bild) */}
+            <div className="tyd-auth-zeile" data-art="schalter">
+              <label className="tyd-auth-schalter">
+                <input type="checkbox" checked={bleiben} onChange={e => setBleiben(e.target.checked)} data-auth-bleiben />
+                <span className="tyd-auth-spur" aria-hidden="true" />
+                <span>{t('login_remember')}</span>
+              </label>
+              <button type="button" className="tyd-auth-link" data-auth-vergessen
+                onClick={() => { if (istEmail(kennung) && !email) setEmail(kennung.trim()); wechsle('vergessen') }}>
+                {t('login_vergessen')}
+              </button>
+            </div>
             {meldungZeile}
             <div className="tyd-auth-zeile">
               <button className="tyd-auth-knopf" data-art="haupt" data-ok={geschafft} type="submit" disabled={laeuft} data-auth-submit>
@@ -718,6 +885,92 @@ export function Auth() {
               {laeuft ? t('loading') : nochmal ? t('login_retry') : t('create_account')}
             </button>
             <MedicalNotice />
+          </form>
+        )}
+
+        {ansicht === 'code' && codeFuer && (
+          <form key="code" className="tyd-auth-ansicht" data-von={von} onSubmit={codeAbsenden} noValidate data-auth-code-ansicht>
+            {kopf(t('login_code_titel'), () => wechsle(codeFuer.art === 'signup' ? 'register' : 'vergessen'))}
+            <p className="tyd-auth-text">{t('login_code_info', { email: codeFuer.email })}</p>
+            <div className="tyd-auth-feld tyd-auth-code">
+              <label className="tyd-auth-sr" htmlFor="auth-code">{t('login_code_feld')}</label>
+              <input id="auth-code" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code"
+                placeholder={'·'.repeat(CODE_LAENGE)} value={code} disabled={laeuft}
+                onChange={e => {
+                  eingabe()
+                  const wert = nurZiffern(e.target.value)
+                  setCode(wert)
+                  if (meldung?.art === 'fehler') setMeldung(null)
+                  // sechs Ziffern (getippt oder über der Tastatur eingesetzt): gleich prüfen
+                  if (wert.length === CODE_LAENGE) void codeAbsenden(undefined, wert)
+                }}
+                onFocus={() => beiFokus(false)} onBlur={beiVerlassen} {...feldProps('code')} />
+              {typeof navigator !== 'undefined' && !!navigator.clipboard?.readText && (
+                <button type="button" className="tyd-auth-einfuegen" onClick={() => void codeEinfuegen()} disabled={laeuft} data-auth-einfuegen>
+                  {t('login_code_einfuegen')}
+                </button>
+              )}
+            </div>
+            {meldungZeile}
+            <button className="tyd-auth-knopf" data-art="haupt" data-ok={geschafft} type="submit" disabled={laeuft} data-auth-submit>
+              {laeuft ? t('loading') : nochmal ? t('login_retry') : t('login_code_pruefen')}
+            </button>
+            <div className="tyd-auth-zeile" data-art="links">
+              {(() => {
+                const rest = restSekunden(sperreBis, uhr)
+                return (
+                  <button type="button" className="tyd-auth-link" onClick={() => void neuerCode()} disabled={laeuft || rest > 0} data-auth-neuer-code>
+                    {rest > 0 ? t('login_code_neu_in', { zeit: alsUhr(rest) }) : t('login_code_neu')}
+                  </button>
+                )
+              })()}
+              {codeFuer.art === 'signup' && (
+                <button type="button" className="tyd-auth-link" onClick={() => wechsle('register')} disabled={laeuft} data-auth-email-aendern>
+                  {t('login_email_aendern')}
+                </button>
+              )}
+            </div>
+            <p className="tyd-auth-text" data-leise>{t('login_code_spam')}</p>
+          </form>
+        )}
+
+        {ansicht === 'vergessen' && (
+          <form key="vergessen" className="tyd-auth-ansicht" data-von={von} onSubmit={vergessenAbsenden} noValidate>
+            {kopf(t('login_vergessen_titel'), () => wechsle('login'))}
+            <p className="tyd-auth-text">{t('login_vergessen_info')}</p>
+            <div className="tyd-auth-feld">
+              <label className="tyd-auth-sr" htmlFor="auth-vergessen-email">{t('email')}</label>
+              <input id="auth-vergessen-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false}
+                placeholder={t('email')} value={email} onChange={tippe(setEmail)}
+                onFocus={() => beiFokus(false)} onBlur={beiVerlassen} {...feldProps('email')} />
+            </div>
+            {meldungZeile}
+            <button className="tyd-auth-knopf" data-art="haupt" type="submit" disabled={laeuft} data-auth-submit>
+              {laeuft ? t('loading') : nochmal ? t('login_retry') : t('login_vergessen_senden')}
+            </button>
+          </form>
+        )}
+
+        {ansicht === 'neuesPw' && (
+          <form key="neuesPw" className="tyd-auth-ansicht" data-von={von} onSubmit={neuesPasswortAbsenden} noValidate data-auth-neues-pw>
+            {kopf(t('login_neues_pw_titel'), () => void neuesPasswortAbbrechen())}
+            <div className="tyd-auth-feld">
+              <label className="tyd-auth-sr" htmlFor="auth-neu-pw">{t('password')}</label>
+              <input id="auth-neu-pw" type={zeigePw ? 'text' : 'password'} autoComplete="new-password"
+                placeholder={t('login_pw_new')} value={passwort} onChange={tippe(setPasswort)}
+                onFocus={() => beiFokus(true)} onBlur={beiVerlassen} {...feldProps('passwort')} />
+              {auge}
+            </div>
+            <div className="tyd-auth-feld">
+              <label className="tyd-auth-sr" htmlFor="auth-neu-pw2">{t('login_pw_repeat')}</label>
+              <input id="auth-neu-pw2" type={zeigePw ? 'text' : 'password'} autoComplete="new-password"
+                placeholder={t('login_pw_repeat')} value={passwort2} onChange={tippe(setPasswort2)}
+                onFocus={() => beiFokus(true)} onBlur={beiVerlassen} {...feldProps('passwort2')} />
+            </div>
+            {meldungZeile}
+            <button className="tyd-auth-knopf" data-art="haupt" data-ok={geschafft} type="submit" disabled={laeuft} data-auth-submit>
+              {laeuft ? t('loading') : nochmal ? t('login_retry') : t('login_neues_pw_speichern')}
+            </button>
           </form>
         )}
       </div>

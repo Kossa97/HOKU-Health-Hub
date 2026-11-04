@@ -45,10 +45,17 @@ export function pruefeRegistrierung(f: {
   if (e) return { feld: 'email', text: e }
   const g = pruefeGeburtsdatum(f.geburtsdatum, f.heute)
   if (g) return { feld: 'geburtsdatum', text: g }
-  if (f.passwort.length < MIN_PASSWORT) return { feld: 'passwort', text: 'login_err_pw_short' }
-  if (!f.passwort2) return { feld: 'passwort2', text: 'login_err_pw2_empty' }
-  if (f.passwort2 !== f.passwort) return { feld: 'passwort2', text: 'login_err_pw_mismatch' }
+  const p = pruefeNeuesPasswort(f.passwort, f.passwort2)
+  if (p) return p
   if (!f.zugestimmt) return { feld: 'zustimmung', text: 'consent_required' }
+  return null
+}
+
+/** Neues Passwort zweimal: beim Registrieren und nach „Passwort vergessen". */
+export function pruefeNeuesPasswort(passwort: string, passwort2: string): Eingabefehler<'passwort' | 'passwort2'> | null {
+  if (passwort.length < MIN_PASSWORT) return { feld: 'passwort', text: 'login_err_pw_short' }
+  if (!passwort2) return { feld: 'passwort2', text: 'login_err_pw2_empty' }
+  if (passwort2 !== passwort) return { feld: 'passwort2', text: 'login_err_pw_mismatch' }
   return null
 }
 

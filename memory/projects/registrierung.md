@@ -23,3 +23,14 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
   Körperprofil löschen darf. Bestandskonten werden nicht gezwungen.
 - Häkchen „18+" gestrichen (Nutzer 04.11.): das Geburtsdatum belegt das Alter; die Zustimmungsseite verlangt ein Datum ab 18, wenn das Profil keins hat oder es unter 18 liegt.
 - Offen: Altersgrenze serverseitig (Trigger/Check auf `profiles` beim Anlegen).
+
+## Code-Eingabe und Passwort vergessen (gebaut 04.11.2026)
+- `Auth.tsx`: Ansichten `code`, `vergessen`, `neuesPw`; Logik in `features/auth/lib/code.ts` (verifyOtp `email`/`recovery`,
+  resend, resetPasswordForEmail, updateUser). Sechs Ziffern prüfen sich selbst; Einfügen-Knopf; „Neuen Code" 60 s gesperrt.
+- Vergebene Adresse = Konto ohne `identities` → `login_err_exists`. Anmelden mit unbestätigter Adresse (nur per E-Mail) →
+  neuer Code, Code-Ansicht.
+- Nach Recovery-Code: Sitzung gilt bis zum Neustart (`merkeAngemeldetBleiben(false)`), erst das neue Passwort setzt
+  „Angemeldet bleiben"; zurück = abmelden.
+- „Passwort vergessen?" steht in der Zeile von „Angemeldet bleiben" (iPhone SE: sonst rutscht der Knopf aus dem Bild
+  und Hoku zeigt nicht mehr darauf — e2e „Absenden während des Hinweises").
+- Offen: Benutzername-Anmeldung bei unbestätigter Adresse (Edge Function `login-name` meldet nur 401).
