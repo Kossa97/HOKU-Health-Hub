@@ -563,10 +563,8 @@ Ergebnis berichten.
 
 Alles mit **[Claude, ungeprüft]**, nummeriert, je mit Empfehlung:
 
-1. **Domain:** Gehört `hoku.app` dem Projekt? Heute läuft die App unter
-   `tyd-track-your-dose.vercel.app` (Passkey-RP-ID, `memory/projects/login.md`).
-   Links und gedruckte/gezeigte Codes leben lange. Empfehlung: eigene Domain vor
-   dem Start von 2c festlegen; die Passkey-Frage dabei mitbedenken.
+1. **Domain: entschieden** — `hokuhealth.app` (Vercel; `meethoku.com` leitet weiter). Offen bleibt nur
+   die Passkey-RP-ID (heute `tyd-track-your-dose.vercel.app`, `memory/projects/login.md`).
 2. **Ohne Store-Einträge:** Solange die Apps nicht in den Stores sind, führt
    „In Hoku öffnen“ zu `/auth`. Empfehlung: so lassen.
 3. **Bio im Web:** wegfallen lassen (Gesamtbild-Liste, Mockup) statt wie im
@@ -602,7 +600,9 @@ Alles mit **[Claude, ungeprüft]**, nummeriert, je mit Empfehlung:
 20. **Berichte-Hinweis** nur bei Feld Erfahrungsberichte auf „Alle“ und Anzahl > 0,
     sonst kein Satz über Verborgenes. Empfehlung: so.
 21. **Desktop:** „In Hoku öffnen“ zeigt Store-Knöpfe und den Hoku-Code. Empfehlung: so.
-22. **Geschlecht-Zeichen und „Mitglied seit“** nicht im Web. Empfehlung: so.
+22. **Geschlecht-Zeichen** nicht im Web. **„Seit … dabei“ (Mitgliedschaft) jetzt doch im Web**: steht seit
+   der Freigabe der Link-Karten (03.11.) auf Fortschritts- und Rückfall-Karte; die Web-Seite zeigt es
+   deshalb auch. Empfehlung: so.
 23. **`@capacitor/app`** für das Routing der Links in der App. Empfehlung: so.
 
 ## Randbedingungen
