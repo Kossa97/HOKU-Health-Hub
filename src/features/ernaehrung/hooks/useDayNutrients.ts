@@ -3,6 +3,11 @@ import { alterAm } from '../../blutwerte/lib/referenzbereiche'
 import type { Goals, LogEntry } from '../lib/nutrition'
 import { type TargetContext, dayNutrients, gapsOf, nutrientStatus } from '../lib/nutrientTargets'
 import { type BodyData, loadBodyData } from '../services/nutritionStore'
+import { loadStackNutrients } from '../services/stackNutrients'
+import type { Micros } from '../lib/micros'
+import type { StackPart } from '../lib/stackMicros'
+
+const NO_PARTS: StackPart[] = []
 
 /**
  * Nährstoffe des gezeigten Tages gegen die Ziele (Richtwert nach Alter und Geschlecht
@@ -33,12 +38,21 @@ export function useDayNutrients({ userId, date, today, entries, goals, kcal, bon
     kcal: goals.kcal,
   }), [body, today, goals.kcal])
 
+  // Supplements aus My Stack, die an diesem Tag genommen wurden.
+  const [stack, setStack] = useState<{ date: string; total: Micros; parts: StackPart[] } | null>(null)
+  useEffect(() => {
+    let off = false
+    loadStackNutrients(userId, date).then(r => { if (!off) setStack({ date, ...r }) }).catch(() => { if (!off) setStack({ date, total: {}, parts: [] }) })
+    return () => { off = true }
+  }, [userId, date])
+  const stackNow = stack?.date === date ? stack : null
+
   const foodEntries = useMemo(() => entries.filter(e => e.source !== 'quick'), [entries])
   const dayDone = date < today || (goals.kcal + bonus > 0 && kcal >= 0.7 * (goals.kcal + bonus))
   const list = useMemo(
-    () => nutrientStatus(dayNutrients(foodEntries.map(e => e.nutrients)), ctx, goals.nutrientGoals, dayDone),
-    [foodEntries, ctx, goals.nutrientGoals, dayDone],
+    () => nutrientStatus(dayNutrients(foodEntries.map(e => e.nutrients)), ctx, goals.nutrientGoals, dayDone, stackNow?.total),
+    [foodEntries, ctx, goals.nutrientGoals, dayDone, stackNow],
   )
   const gaps = useMemo(() => gapsOf(list), [list])
-  return { list, gaps, ctx, dayDone, entries: foodEntries }
+  return { list, gaps, ctx, dayDone, entries: foodEntries, stackParts: stackNow?.parts ?? NO_PARTS }
 }

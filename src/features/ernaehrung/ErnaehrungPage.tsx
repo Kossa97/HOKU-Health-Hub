@@ -18,6 +18,7 @@ import { DayPanel, type DayTab } from './components/DayPanel'
 import { ActivitySheet } from './components/ActivitySheet'
 import { useActivityDay } from './hooks/useActivityDay'
 import { useDayNutrients } from './hooks/useDayNutrients'
+import { useGapTip } from './hooks/useGapTip'
 import { NutrientSheet } from './components/NutrientSheet'
 import type { NutrientId } from './lib/nutrientTargets'
 import { pieceFor } from './lib/pieces'
@@ -106,11 +107,12 @@ export function ErnaehrungPage() {
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
   // Dot fliegt beim Öffnen um die Kugel; nach 2 h oder beim dritten Öffnen mit Halt und Sätzen
-  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
   const move = useActivityDay(userId, date, n.goals)
   const activity = { active: move.total.kcal, bonus: move.bonus }
   const nut = useDayNutrients({ userId, date, today: todayKey, entries: n.day?.entries ?? NO_ENTRIES, goals: n.goals, kcal: n.total.kcal, bonus: move.bonus })
+  const gapTip = useGapTip(nut.gaps)
+  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals, nachsatz: gapTip })
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
 
@@ -554,7 +556,7 @@ export function ErnaehrungPage() {
         <DayPanel tab={sheet.tab} onTab={tab => setSheet({ kind: 'day', tab })} dayLabel={dayLabel}
           total={n.total} waterMl={n.day ? n.day.waterMl : null} goals={n.goals} activity={activity} userId={userId} today={todayKey} busy={busy}
           onOpenActivity={() => setSheet({ kind: 'activity' })}
-          nutrients={nut.list} dayDone={nut.dayDone} onOpenNutrient={id => setSheet({ kind: 'nutrient', id })}
+          nutrients={nut.list} dayDone={nut.dayDone} hokuLine={gapTip} onOpenNutrient={id => setSheet({ kind: 'nutrient', id })}
           onClose={() => setSheet(null)}
           onSaveGoals={g => run(async () => { await n.saveGoals(g); setSheet({ kind: 'day', tab: 'today' }); toast.success(t('nutr_goals_saved')) })} />
       )}
@@ -568,7 +570,7 @@ export function ErnaehrungPage() {
       {sheet?.kind === 'nutrient' && (() => {
         const status = nut.list.find(s => s.def.id === sheet.id)
         return status ? (
-          <NutrientSheet status={status} ctx={nut.ctx} own={n.goals.nutrientGoals} entries={nut.entries} busy={busy}
+          <NutrientSheet status={status} ctx={nut.ctx} own={n.goals.nutrientGoals} entries={nut.entries} stackParts={nut.stackParts} busy={busy}
             onSaveOwn={nutrientGoals => run(async () => { await n.saveGoals({ ...n.goals, nutrientGoals }); toast.success(t('nutr_goals_saved')) })}
             onBack={() => setSheet({ kind: 'day', tab: 'today' })} onClose={() => setSheet(null)} />
         ) : null

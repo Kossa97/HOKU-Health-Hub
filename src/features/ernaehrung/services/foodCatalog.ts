@@ -101,3 +101,38 @@ export async function topSources(id: string, lang: 'de' | 'en', limit = 4): Prom
     .slice(0, limit)
     .map(({ row, v }) => ({ name: lang === 'en' && row[2] ? row[2] : row[1], per100: v }))
 }
+
+/** Name zum Sprechen: „Hering roh“ → „Hering“, „Köhler/Seelachs, roh“ → „Seelachs“. */
+export function spokenName(name: string): string {
+  const base = name.replace(/,?\s+(roh|reif|raw|ripe|frisch|fresh)\b.*$/i, '').replace(/\s+mind\..*$/i, '').trim()
+  const slash = base.split('/')
+  return (slash.length > 1 ? slash[slash.length - 1] : base).trim()
+}
+
+/**
+ * Ein Alltagslebensmittel, das die offenen Lücken mit einer Portion (150 g) am besten füllt.
+ * `rest` = was je Nährstoff noch bis zum Ziel fehlt. Null, wenn keins wenigstens eine Lücke
+ * zu gut der Hälfte füllt.
+ */
+export async function bestFoodFor(rest: Partial<Record<string, number>>, lang: 'de' | 'en'): Promise<{ name: string; covers: string[] } | null> {
+  const ids = Object.keys(rest).filter(id => (rest[id] ?? 0) > 0)
+  if (!ids.length) return null
+  const { entries, keys } = await load()
+  let best: { name: string; covers: string[]; score: number } | null = null
+  for (const { row } of entries) {
+    if (!EVERYDAY.has(row[0])) continue
+    let score = 0
+    const covers: string[] = []
+    for (const id of ids) {
+      const mi = keys.indexOf(id as MicroKey)
+      const col = MACRO_COL[id]
+      const v = col !== undefined ? row[col] : mi >= 0 ? row[11][mi] : null
+      if (typeof v !== 'number' || v <= 0) continue
+      const part = Math.min(1, (v * 1.5) / rest[id]!)
+      score += part
+      if (part >= 0.5) covers.push(id)
+    }
+    if (covers.length && (!best || score > best.score)) best = { name: spokenName(lang === 'en' && row[2] ? row[2] : row[1]), covers, score }
+  }
+  return best && { name: best.name, covers: best.covers }
+}

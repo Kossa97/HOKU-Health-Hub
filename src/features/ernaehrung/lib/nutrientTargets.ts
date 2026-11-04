@@ -137,6 +137,8 @@ export interface NutrientStatus {
   lowData: boolean
   known: number
   entries: number
+  /** Davon aus Supplements (My Stack). */
+  stack: number
 }
 
 /**
@@ -146,17 +148,19 @@ export interface NutrientStatus {
  * für alles, was noch etwas fehlt).
  * Grenzen: ab 80 % = nah dran, über 100 % = drüber — ohne Rot, nie eine „Lücke“.
  */
-export function nutrientStatus(day: DayNutrients, ctx: TargetContext, own: OwnGoals, dayDone: boolean): NutrientStatus[] {
+export function nutrientStatus(day: DayNutrients, ctx: TargetContext, own: OwnGoals, dayDone: boolean, extra: Micros = {}): NutrientStatus[] {
   return NUTRIENTS.map(def => {
     const { value: target, own: isOwn } = targetFor(def.id, ctx, own)
-    const value = day.total[def.id] ?? 0
-    const known = day.count[def.id] ?? 0
-    const lowData = day.entries === 0 || known / day.entries < 0.5
+    // Supplements (My Stack) zählen dazu; ein genommener Wert ist bekannt — dann keine „wenig Daten“.
+    const fromStack = def.id in extra ? extra[def.id as MicroKey] ?? 0 : 0
+    const value = (day.total[def.id] ?? 0) + fromStack
+    const known = (day.count[def.id] ?? 0) + (fromStack > 0 ? 1 : 0)
+    const lowData = fromStack > 0 ? false : day.entries === 0 || known / day.entries < 0.5
     const p = target > 0 ? value / target : 0
     let state: NutrientState
     if (def.kind === 'max') state = p > 1 ? 'over' : p >= 0.8 ? 'near' : 'ok'
     else state = p >= 0.9 ? 'full' : p >= 0.5 ? 'low' : dayDone && !lowData ? 'gap' : 'low'
-    return { def, value, target, own: isOwn, p, state, lowData, known, entries: day.entries }
+    return { def, value, target, own: isOwn, p, state, lowData, known, entries: day.entries, stack: fromStack }
   })
 }
 

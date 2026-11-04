@@ -25,15 +25,24 @@ const wenigerBewegung = () => typeof matchMedia === 'function' && matchMedia('(p
  * ist; draußen startet er, wo er ist, sonst am linken Rand. Antippen kürzt ab. Bei „Bewegung
  * reduzieren“ kein Flug — beim Rundflug nur der Satz.
  */
-export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean; bereit: boolean; total: Nutrients; goals: Goals }) {
+export function useDotRundflug({ heute, bereit, total, goals, nachsatz = '' }: {
+  heute: boolean
+  bereit: boolean
+  total: Nutrients
+  goals: Goals
+  /** Nach der Zusammenfassung noch ein Satz (Nährstoff-Lücken mit Tipp); leer = keiner. */
+  nachsatz?: string
+}) {
   const { dt } = useDotText()
   const stand = useDotStand()
-  const aktuell = useRef({ total, goals, dt })
-  useEffect(() => { aktuell.current = { total, goals, dt } })
+  const aktuell = useRef({ total, goals, dt, nachsatz })
+  useEffect(() => { aktuell.current = { total, goals, dt, nachsatz } })
   const gestartet = useRef(false)
   /** Seite verlassen mitten im Flug: er fliegt direkt an seinen Platz, ohne Zusammenfassung. */
   const abbrechen = useRef<() => void>(() => {})
-  useEffect(() => () => abbrechen.current(), [])
+  /** Satz zu den Lücken nach der Zusammenfassung — beim Verlassen der Seite nicht mehr sagen. */
+  const nachTimer = useRef(0)
+  useEffect(() => () => { abbrechen.current(); window.clearTimeout(nachTimer.current) }, [])
 
   // Vor Dots eigenem Seitenwechsel (Layout-Effekt): dieses Hineinnavigieren zählen; kommt gleich ein
   // Rundflug, wartet er im Haus, statt unten herauszukommen — dann erscheint er am linken Rand.
@@ -105,6 +114,9 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
           if (!war) return
           dot.sag(T.summe, SUMME_MS)
           if (T.erledigt) { dot.setStimmung('joy'); window.setTimeout(() => dot.setStimmung('idle'), 1800) }
+          // Danach die Lücken mit Tipp, wenn es welche gibt (der Satz steht auch in „Dein Tag“).
+          const nach = aktuell.current.nachsatz
+          if (nach) nachTimer.current = window.setTimeout(() => dotStore.api()?.sag(nach, SUMME_MS + 600), SUMME_MS)
         },
         // Chat, Kamera oder Zugang weg haben ihn herausgeholt: nur aufräumen
         abgebrochen: aufraeumen,

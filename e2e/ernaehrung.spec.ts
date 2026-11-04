@@ -611,6 +611,25 @@ test('Nährstoffe: Lücken am Knopf und in „Dein Tag“, Wert im Detail, eigen
   await expect(page.getByRole('dialog', { name: 'Dein Tag' })).toBeVisible()
 })
 
+test('Nährstoffe: Supplements aus My Stack zählen mit; Hoku nennt die größten Lücken', async ({ page, mock }) => {
+  logEntry(mock, { kcal: 1500, fiber_g: 10, micros: { vitD: 2, vitC: 120, i: 50, mg: 300 } })
+  const item = mock.insert('stack_items', { user_id: TEST_USER.id, display_name: 'Vitamin D3 1000 IE', category: 'vitamin', dosage_form: 'capsule', tracking_level: 'simple', archived: false })
+  mock.insert('stack_item_ingredients', { stack_item_id: item.id, catalog_substance_id: null, custom_name: 'Vitamin D3', amount_value: 1000, amount_unit: 'IU', basis_value: 1, basis_unit: 'capsule', position: 0 })
+  mock.insert('dose_logs', { user_id: TEST_USER.id, stack_item_id: item.id, logged_at: '2026-09-28T07:00:00Z', dose: 1, unit: 'capsule', taken: true })
+  await page.goto('/ernaehrung')
+  await page.getByRole('button', { name: /^Dein Tag/ }).click()
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  // Vitamin D: 2 µg aus dem Essen + 25 µg aus der Kapsel = im Ziel, keine Lücke mehr.
+  await expect(day.getByText('Lücken · 2')).toBeVisible()
+  await expect(day.getByText(/Jod und Ballaststoffe fehlen dir heute noch\. Für /)).toBeVisible()
+  await day.getByRole('button', { name: /Vitamine/ }).click()
+  await expect(day.getByText('davon 25 µg aus deinem Stack')).toBeVisible()
+  await day.getByRole('button', { name: /^Vitamin D/ }).first().click()
+  const detail = page.getByRole('dialog', { name: 'Vitamin D' })
+  await expect(detail.getByText('Vitamin D3 1000 IE')).toBeVisible()
+  await expect(detail.getByText('aus deinem Stack')).toBeVisible()
+})
+
 function ownFood(mock: MockSupabase, name: string, per100: { kcal: number; protein: number; carbs: number; fat: number }) {
   return mock.insert('food_items', {
     user_id: TEST_USER.id, source: 'custom', source_ref: null, barcode: null, name, brand: null, unit: 'g',
