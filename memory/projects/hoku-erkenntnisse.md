@@ -95,3 +95,27 @@ Die Spec ist um zwei Abschnitte erweitert: **Datenqualität** und **Paar-Verglei
   - Mockup der Rückfrage.
   - Hinweis (Arzt, Giftnotruf) bei extremen Dosen: Entscheidung des Nutzers, rechtlich zu prüfen.
   - Teil 1 nachrüsten: R4 hat noch keine Grenzen und keine Rückfrage; vor der Freischaltung beheben.
+
+## Zeitskalen und Blutwerte (Nutzer, 04.11.2026)
+- **Zeitskalen:** Muster werden auf drei Skalen gesucht, für dieselben Messreihen wie bei den
+  Paar-Vergleichen.
+  - Tage: wie die Paar-Vergleiche.
+  - Wochen: Wochenschnitte, dieselbe und die folgende Woche.
+  - Monate: Verlauf über 13 bzw. 26 Wochen und Wendepunkt.
+  - Statistik: Block-Permutation, ein gemeinsamer Benjamini-Hochberg-Topf.
+  - K5 geht in der Skala „Monate" auf.
+- **Blutwerte:** Der Nutzer wollte, dass Hoku Blutwerte mit Verhalten verbindet („Vitamin D
+  genommen, Vitamin D gestiegen"). Das ist auch neutral formuliert Stufe 2 (MDR Art. 2 Nr. 1,
+  Regel 11). Stattdessen stehen drei Bausteine nebeneinander, und den Schluss zieht der Nutzer:
+  - Allgemeinwissen je Marker (`markerGuidance.ts`, neuer Abschnitt, nie nach eigenen Daten
+    ausgewählt);
+  - eigener Alltag: Karte „Seit deiner letzten Abnahme" mit fester Liste, dazu ein
+    Halbjahres-Rückblick;
+  - eigene Werte mit Vorwert, ohne Wertung.
+- Regeln für die Blutwerte-Bausteine:
+  - Die Karte entsteht nur aus Vorlagen, ohne KI.
+  - Kein Push.
+  - Der Wächter sperrt jeden Text, der einen Marker zusammen mit einem Verhalten nennt.
+- Die Karte ist ein Grenzfall. Teil R begründet sie eigens; trägt die Begründung nicht,
+  entfällt sie.
+- Offen: Mockup der Karte, Allgemeinwissen-Texte mit Quellen, mit welchen Markern es anfängt.
