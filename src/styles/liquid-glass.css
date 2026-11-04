@@ -144,7 +144,7 @@
   :is(.lg-glass, .lg-btn-primary, .lg-btn-tint, .lg-btn-danger, .btn-primary, .btn-secondary, .btn-danger, .lg-surface, .card, .lg-group)::before {
     padding: 0;
     background: none;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
   }
 }
 
@@ -190,7 +190,7 @@
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   backdrop-filter: blur(22px) saturate(180%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.38),
     inset 0 0 0 1px rgba(120, 230, 255, 0.28),
     inset 0 -1px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px rgba(0, 204, 245, 0.18);
@@ -213,7 +213,7 @@
 /* Noch nichts eingetragen: drei ruhige Atemzüge, dann still */
 @keyframes lg-breathe-tint {
   0%, 100% { box-shadow: var(--shadow-btn-primary); }
-  50% { box-shadow: inset 0 0 14px rgba(255,255,255,0.10), 0 10px 26px rgba(0,0,0,0.4), 0 6px 30px rgba(0,204,245,0.5); }
+  50% { box-shadow: inset 0 0 14px rgb(var(--ink-rgb) / 0.10), 0 10px 26px rgba(0,0,0,0.4), 0 6px 30px rgba(0,204,245,0.5); }
 }
 .lg-btn-tint[data-invite='true'] { animation: lg-breathe-tint 2400ms ease-in-out 600ms 3; }
 @media (hover: hover) and (pointer: fine) {
@@ -324,20 +324,20 @@
 .lg-seg-fill {
   padding: 2px;
   background: var(--lg-fill);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 -0.5px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 -0.5px 0 rgb(var(--ink-rgb) / 0.06);
 }
 .lg-seg-scroll.lg-seg-fill { padding: 0; }
 .lg-seg-fill .lg-seg-pill {
   top: 2px;
   bottom: 2px;
   background:
-    radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(120% 90% at 30% 0%, rgb(var(--ink-rgb) / 0.16), transparent 60%),
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.10), rgb(var(--ink-rgb) / 0) 70%),
     var(--lg-fill-selected);
   box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.10),
-    inset 0 -0.5px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.55),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.10),
+    inset 0 -0.5px 0 rgb(var(--ink-rgb) / 0.12),
     0 3px 10px rgba(0, 0, 0, 0.32);
 }
 .lg-seg-fill > button,
@@ -371,8 +371,8 @@
 .lg-chip-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cc); transition: background-color 200ms ease, transform 300ms var(--lg-ease-out); }
 .lg-chip[aria-pressed='true'] {
   color: var(--lg-text);
-  background: color-mix(in srgb, var(--cc) 22%, rgba(255, 255, 255, 0.05));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+  background: color-mix(in srgb, var(--cc) 22%, rgb(var(--ink-rgb) / 0.05));
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.18), inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
 }
 .lg-chip[aria-pressed='true'] .lg-chip-dot { background: var(--cc); transform: scale(1.1); }
 @keyframes lg-chip-hint {
@@ -418,7 +418,7 @@
   background: var(--lg-sheet-bg);
   -webkit-backdrop-filter: var(--lg-sheet-blur);
   backdrop-filter: var(--lg-sheet-blur);
-  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgb(var(--ink-rgb) / 0.16), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.06);
 }
 /* Sheet mit langem, scrollendem Inhalt: feste Fläche statt Glas —
    Weichzeichner auf einem scrollenden Element stört iOS Safari */
@@ -427,7 +427,7 @@
 input[type='search'] { -webkit-appearance: none; appearance: none; }
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-webkit-search-decoration { -webkit-appearance: none; display: none; }
-.lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgba(255, 255, 255, 0.25); }
+.lg-grabber { display: block; width: 36px; height: 5px; margin-inline: auto; border-radius: 999px; background: rgb(var(--ink-rgb) / 0.25); }
 
 /* Inhaltsfläche mit Ton: eine Haarlinie in der Farbe sagt Erfolg/Fehler,
    ohne die ganze Fläche einzufärben. */
@@ -435,8 +435,10 @@ input[type='search']::-webkit-search-decoration { -webkit-appearance: none; disp
 .lg-surface[data-tone='bad'] { box-shadow: var(--lg-surface-shadow), inset 0 0 0 1px color-mix(in srgb, var(--lg-bad) 45%, transparent); }
 
 /* ── Bühne der 3D-Injektionskarte (Karte und Vorschau auf Home) ────────
-   Schwarz mit weichem, warmem Schein um die Figur („Studio"); „Nacht"
-   setzt einen eigenen Wert (unten). */
+   Schwarz mit weichem, warmem Schein um die Figur („Studio"), in jedem
+   Erscheinungsbild gleich: Die Karte ist eine Bühne wie die Kamera-App, das
+   Licht auf der Haut ist auf genau diesen Grund abgestimmt (Nutzer 03.11.2026).
+   Bitte keine eigenen Werte je Look. */
 :root {
   --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(255,244,230,0.10), rgba(255,244,230,0) 70%), #000;
 }
@@ -540,7 +542,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
 }
 .lg-swipe::-webkit-scrollbar { display: none; }
 .lg-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
-.lg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); transition: width 260ms var(--lg-ease-out), background-color 260ms ease; }
+.lg-dots > i { width: 6px; height: 6px; border-radius: 3px; background: rgb(var(--ink-rgb) / 0.2); transition: width 260ms var(--lg-ease-out), background-color 260ms ease; }
 .lg-dots > i[data-on='true'] { width: 18px; background: var(--lg-text); }
 
 /* ── Fokus und Bewegung ─────────────────────────────────────────────── */
@@ -585,7 +587,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
   transition: background-color 150ms ease;
 }
 .lg-menu-row[data-last='true'] { background-image: none; }
-.lg-menu-row:active { background-color: rgba(255, 255, 255, 0.08); }
+.lg-menu-row:active { background-color: rgb(var(--ink-rgb) / 0.08); }
 .lg-menu-tile {
   display: flex;
   flex-direction: column;
@@ -647,7 +649,7 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
   height: 0.5px;
   background: var(--lg-separator);
 }
-.lg-row:active { background-color: rgba(255, 255, 255, 0.06); }
+.lg-row:active { background-color: rgb(var(--ink-rgb) / 0.06); }
 .lg-row:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }
 
 /* Abschnitt einer gruppierten Liste: Titel über der Fläche, eingerückt */
@@ -717,9 +719,9 @@ html:not([data-look='licht']):not([data-look='nacht']) .lg-flat { -webkit-backdr
    leicht durchscheinendem Glas ohne Lichtkante — das Licht macht das Glas
    sichtbar. Standard ist „Schwarz" (Werte in index.css). */
 html[data-look='licht'] {
-  --lg-surface-fill: rgba(255,255,255,0.05);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.03));
-  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05);
+  --lg-surface-fill: rgb(var(--ink-rgb) / 0.05);
+  --lg-surface-bg: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.065), rgb(var(--ink-rgb) / 0.03));
+  --lg-surface-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.10), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.05);
   --lg-card-rim: linear-gradient(transparent, transparent);
   --lg-card-sheen: none;
 }
@@ -743,8 +745,8 @@ html[data-look='licht'] .lg-backdrop {
    Auf dem Grund liegt feines Korn: es bricht die Stufen in den dunklen
    Verläufen, das Glas darüber verwischt es und bleibt glatt. */
 html[data-look='nacht'] {
-  --lg-surface-fill: rgba(255,255,255,0.035);
-  --lg-surface-bg: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012));
+  --lg-surface-fill: rgb(var(--ink-rgb) / 0.035);
+  --lg-surface-bg: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.045), rgb(var(--ink-rgb) / 0.012));
   --lg-surface-blur: blur(30px) saturate(170%);
   --lg-surface-shadow:
     inset 0 2px 0 rgba(110,230,255,0.20),
@@ -753,9 +755,9 @@ html[data-look='nacht'] {
     inset -2px 0 0 rgba(255,105,190,0.06),
     inset 0 0 28px rgba(120,190,255,0.035),
     0 18px 40px rgba(0,0,0,0.6);
-  --lg-card-rim: linear-gradient(140deg, rgba(170,235,255,0.42), rgba(170,235,255,0.10) 28%, rgba(255,255,255,0.03) 55%, rgba(190,170,255,0.10) 80%, rgba(190,170,255,0.30));
+  --lg-card-rim: linear-gradient(140deg, rgba(170,235,255,0.42), rgba(170,235,255,0.10) 28%, rgb(var(--ink-rgb) / 0.03) 55%, rgba(190,170,255,0.10) 80%, rgba(190,170,255,0.30));
   --lg-card-sheen: radial-gradient(90% 50% at 20% -10%, rgba(160,220,255,0.07), transparent 60%);
-  --lg-glass-fill: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.025) 100%);
+  --lg-glass-fill: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.08) 0%, rgb(var(--ink-rgb) / 0.025) 100%);
   --lg-glass-shadow:
     inset 0 1px 0 rgba(180,235,255,0.30),
     inset 0 0 0 1px rgba(170,200,255,0.08),
@@ -783,16 +785,6 @@ html[data-look='nacht'] .lg-sheet {
     inset 0 2px 0 rgba(110,230,255,0.16),
     inset 0 -2px 0 rgba(255,105,190,0.10);
 }
-/* Bühne der Injektionskarte: kühler Schein hinter der Figur, die Farben des
-   Bereichs (Grün oben links, Violett unten rechts) gedämpft, feines Korn */
-html[data-look='nacht'] {
-  --inj-backdrop:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.08 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px,
-    radial-gradient(ellipse 60% 48% at 50% 46%, rgba(120,210,255,0.08), rgba(120,210,255,0) 70%),
-    radial-gradient(70% 45% at 0% 8%, rgba(16,185,129,0.10), rgba(16,185,129,0) 70%),
-    radial-gradient(70% 45% at 100% 92%, rgba(139,92,246,0.11), rgba(139,92,246,0) 70%),
-    #000;
-}
 html[data-look='nacht'] .lg-backdrop {
   background-image:
     radial-gradient(70% 42% at -6% 6%, rgba(0, 204, 245, 0.09), transparent 70%),
@@ -811,20 +803,20 @@ html[data-look='instrument'] {
   --lg-surface-fill: #0b0c0e;
   --lg-surface-bg: #0b0c0e;
   --lg-surface-blur: none;
-  --lg-surface-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  --lg-surface-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
   --lg-card-rim: none;
   --lg-card-sheen: none;
-  --lg-surface-2: rgba(255,255,255,0.05);
+  --lg-surface-2: rgb(var(--ink-rgb) / 0.05);
   --lg-glass-fill: #0b0c0e;
   --lg-glass-filter: none;
-  --lg-glass-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+  --lg-glass-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.10);
   --lg-rim: none;
   --lg-sheen: none;
   --lg-primary-fill: #f2f2f2;
   --shadow-btn-primary: none;
   --lg-danger-fill: rgba(255,69,58,0.14);
-  --lg-pill-fill: rgba(255,255,255,0.10);
-  --lg-pill-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+  --lg-pill-fill: rgb(var(--ink-rgb) / 0.10);
+  --lg-pill-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.14);
   --lg-sheet-bg: #0b0c0e;
   --lg-sheet-blur: none;
 }
@@ -835,13 +827,13 @@ html[data-look='instrument'] .lg-btn-tint {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
   animation: none;
 }
-html[data-look='instrument'] .lg-seg-fill { background: #0b0c0e; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
-html[data-look='instrument'] .lg-seg-fill .lg-seg-pill { background: rgba(255,255,255,0.12); box-shadow: none; }
+html[data-look='instrument'] .lg-seg-fill { background: #0b0c0e; box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08); }
+html[data-look='instrument'] .lg-seg-fill .lg-seg-pill { background: rgb(var(--ink-rgb) / 0.12); box-shadow: none; }
 html[data-look='instrument'] .lg-sheet {
-  box-shadow: 0 -16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10);
+  box-shadow: 0 -16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgb(var(--ink-rgb) / 0.10);
 }
 html[data-look='instrument'] .lg-large-title {
   font-family: var(--lg-display);
@@ -858,12 +850,12 @@ html[data-look='instrument'] .tyd-tabbar {
   background: #0b0c0e;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.6);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08), 0 8px 24px rgba(0,0,0,0.6);
 }
 html[data-look='instrument'] .tyd-tabbar::before,
 html[data-look='instrument'] .tyd-tabbar::after { display: none; }
 html[data-look='instrument'] .tyd-tabbar-pill {
-  background: rgba(255,255,255,0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
   box-shadow: none;
 }
 html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
@@ -895,12 +887,12 @@ html[data-look='softdark'] {
   --sd-raise: linear-gradient(180deg, #21252a 0%, #20242a 50%, #1e2026 100%);
   --sd-raise-hi: linear-gradient(180deg, #23272d 0%, #1f2228 100%);
   /* Haarfeine Kante rundum: oben eine Spur heller, unten fast nichts */
-  --sd-rim: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 35%, rgba(255,255,255,0.02) 100%);
+  --sd-rim: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.06) 0%, rgb(var(--ink-rgb) / 0.03) 35%, rgb(var(--ink-rgb) / 0.02) 100%);
   --sd-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 24px -12px rgba(0,0,0,0.85);
   --sd-shadow-pressed: 0 1px 1px rgba(0,0,0,0.4), 0 5px 10px -6px rgba(0,0,0,0.75);
   --sd-blue: linear-gradient(180deg, #4ebbfe 0%, #3c8bf0 55%, #347cef 100%);
-  --sd-blue-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
-  --sd-blue-shadow-pressed: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
+  --sd-blue-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.45), inset 0 -6px 14px rgba(16,50,140,0.30), 0 12px 26px -10px rgba(47,123,234,0.70);
+  --sd-blue-shadow-pressed: inset 0 1px 0 rgb(var(--ink-rgb) / 0.35), inset 0 -4px 10px rgba(16,50,140,0.30), 0 6px 14px -8px rgba(47,123,234,0.60);
 
   --lg-surface-fill: #20242a;
   --lg-surface-bg: var(--sd-raise);
@@ -908,7 +900,7 @@ html[data-look='softdark'] {
   --lg-surface-shadow: var(--sd-shadow);
   --lg-card-rim: var(--sd-rim);
   --lg-card-sheen: none;
-  --lg-surface-2: rgba(255,255,255,0.05);
+  --lg-surface-2: rgb(var(--ink-rgb) / 0.05);
   --lg-glass-fill: var(--sd-raise-hi);
   --lg-glass-filter: none;
   --lg-glass-shadow: var(--sd-shadow);
@@ -919,12 +911,11 @@ html[data-look='softdark'] {
   --lg-danger-fill: linear-gradient(180deg, rgba(255,90,80,0.30), rgba(255,69,58,0.18));
   --lg-pill-fill: var(--sd-blue);
   --lg-pill-shadow: var(--sd-blue-shadow);
-  --lg-fill: rgba(255,255,255,0.06);
+  --lg-fill: rgb(var(--ink-rgb) / 0.06);
   --lg-fill-selected: #30343a;
   --lg-sheet-bg: linear-gradient(180deg, #21252a 0%, #1e2026 100%);
   --lg-sheet-solid: #1f2228;
   --lg-sheet-blur: none;
-  --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(170,180,255,0.10), rgba(170,180,255,0) 70%), #17181c;
 }
 /* Grund: oben eine Spur heller, wie unter einer Deckenleuchte */
 html[data-look='softdark'] body {
@@ -978,7 +969,7 @@ html[data-look='softdark'] .lg-seg > button { transition: color 240ms ease, tran
 
 /* Blätter: festes Material, oben ein Lichtsaum, kein Weichzeichner */
 html[data-look='softdark'] .lg-sheet {
-  box-shadow: 0 -18px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.035);
+  box-shadow: 0 -18px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgb(var(--ink-rgb) / 0.10), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.035);
 }
 
 /* Leiste: eine erhabene Kapsel. Die Pille ist eine Stufe heller, der aktive
@@ -987,16 +978,16 @@ html[data-look='softdark'] .tyd-tabbar {
   background: linear-gradient(180deg, #23272d 0%, #1e2026 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.06), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
 }
 html[data-look='softdark'] .tyd-tabbar::before,
 html[data-look='softdark'] .tyd-tabbar::after { display: none; }
 html[data-look='softdark'] .tyd-tabbar-pill {
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.07) 0%, rgb(var(--ink-rgb) / 0.03) 100%);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
 }
 html[data-look='softdark'] .tyd-tabbar-pill[data-gehalten='true'] {
-  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.05) 100%);
 }
 html[data-look='softdark'] .tyd-tabbar-item svg { transition: filter 240ms ease; }
 html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #6cbcff; }
@@ -1008,8 +999,500 @@ html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabba
   html[data-look='softdark'] :is(a, button):is(.card, .lg-surface, .lg-group):active { transform: none; }
 }
 @media (prefers-contrast: more) {
-  html[data-look='softdark'] { --lg-card-rim: linear-gradient(rgba(255,255,255,0.22), rgba(255,255,255,0.22)); }
+  html[data-look='softdark'] { --lg-card-rim: linear-gradient(rgb(var(--ink-rgb) / 0.22), rgb(var(--ink-rgb) / 0.22)); }
 }
+
+/* ── Erscheinungsbild „Frost" ────────────────────────────────────────────
+   Dunkles Cyan, mattiertes Glas, feines Korn. Hoku ist das Licht: wo er ist,
+   leuchten die Kanten zu ihm hin (Richtung --hl-a, Breite --hl-w, Helligkeit
+   --hl-i, aus src/lib/hokuLicht.ts), Knöpfe in seiner Nähe glimmen.
+   Inhaltsflächen ohne Weichzeichner (der Grund ist dunkel, er brächte wenig
+   und kostete beim Scrollen); echtes Glas nur für die schwebende Bedienung.
+   Mockup: https://claude.ai/artifact/XCK2vkXnMq4Ryp1RnEnRDT (Variante „Frost") */
+html[data-look='frost'] {
+  --hoku-licht: 1;
+  --frost-cyan: 95 220 255;
+  --frost-rim-ruhe: rgba(170,235,255,0.10);
+  --app-bg: #050c11;
+  --surface: rgba(10,22,28,0.97);
+  --surface-raised: rgba(20,38,46,0.96);
+  --glass-bg: rgba(12,26,32,0.80);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.14);
+  --accent-border: rgba(95,220,255,0.36);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --glow-accent: 0 0 28px rgba(95,220,255,0.28);
+  --lg-text-2: rgba(222,240,248,0.70);
+  --lg-text-3: rgba(222,240,248,0.54);
+
+  --lg-surface-fill: rgba(150,225,255,0.06);
+  --lg-surface-bg: linear-gradient(180deg, rgba(150,225,255,0.075) 0%, rgba(150,225,255,0.035) 100%);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 1px 0 rgba(200,245,255,0.07), 0 16px 34px -18px rgba(0,0,0,0.85);
+  /* Ruhe-Kante; das Licht selbst steht in den Regeln unten: var(--hl-*) muss am
+     Element aufgelöst werden, nicht hier an der Wurzel (dort ist --hl-i immer 0). */
+  --lg-card-rim: linear-gradient(var(--frost-rim-ruhe), var(--frost-rim-ruhe));
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(150,225,255,0.06);
+
+  --lg-glass-fill: linear-gradient(180deg, rgba(150,225,255,0.10) 0%, rgba(150,225,255,0.04) 100%);
+  --lg-glass-filter: blur(22px) saturate(160%);
+  --lg-glass-shadow: inset 0 1px 0 rgba(200,245,255,0.10), 0 12px 32px -14px rgba(0,0,0,0.8);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: var(--lg-card-sheen);
+  --lg-primary-fill: linear-gradient(180deg, #7de6ff 0%, #45cdf0 55%, #2bb6dc 100%);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.45), 0 10px 26px -10px rgba(95,220,255,0.55);
+  --lg-pill-fill: linear-gradient(180deg, rgba(95,220,255,0.30), rgba(95,220,255,0.14));
+  --lg-pill-shadow: inset 0 1px 0 rgba(200,245,255,0.25), 0 2px 10px rgba(0,0,0,0.35);
+  --lg-fill: rgba(150,225,255,0.08);
+  --lg-fill-selected: rgba(95,220,255,0.22);
+  --lg-sheet-bg: rgba(10,22,28,0.86);
+  --lg-sheet-solid: #0a161c;
+  --lg-sheet-blur: blur(30px) saturate(160%);
+}
+/* Grund: drei weiche Cyan-Felder und feines Korn, scrollen mit der Seite */
+html[data-look='frost'] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px,
+    radial-gradient(80% 420px at 10% 0, rgba(40,140,170,0.20), transparent 70%),
+    radial-gradient(70% 480px at 100% 520px, rgba(30,90,140,0.14), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='frost'] .lg-backdrop { background-color: #050c11; }
+/* Hoku-Licht: die Kante leuchtet auf der Seite, die zu Hoku zeigt */
+html[data-look='frost'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 0deg,
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(var(--hl-w) * 0.5),
+    var(--frost-rim-ruhe) var(--hl-w),
+    var(--frost-rim-ruhe) calc(360deg - var(--hl-w)),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(360deg - var(--hl-w) * 0.5),
+    rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 360deg);
+}
+html[data-look='frost'] :is(.lg-surface, .card, .lg-group)::after {
+  background: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
+}
+/* Knöpfe in Hokus Nähe glimmen (Stufe 2): Schein wächst mit --hl-i */
+html[data-look='frost'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.65));
+}
+html[data-look='frost'] :is(.lg-btn-tint, .lg-btn-glass, .lg-chip, .lg-icon-btn.lg-glass) {
+  box-shadow: var(--lg-glass-shadow), 0 0 calc(var(--hl-i) * 22px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.45));
+}
+html[data-look='frost'] .lg-btn-tint {
+  color: #bff3ff;
+  background: linear-gradient(180deg, rgba(95,220,255,0.26), rgba(95,220,255,0.10));
+  animation: none;
+}
+html[data-look='frost'] .lg-sheet { box-shadow: 0 -16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,245,255,0.14); }
+/* Leiste: getöntes Glas, ihre Kante fängt Hokus Licht wie die Karten */
+html[data-look='frost'] .tyd-tabbar {
+  background: linear-gradient(180deg, rgba(150,225,255,0.10), rgba(150,225,255,0.04)), rgba(6,16,20,0.55);
+  box-shadow: 0 12px 32px -12px rgba(0,0,0,0.85), 0 0 calc(var(--hl-i) * 26px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.30));
+}
+html[data-look='frost'] .tyd-tabbar::after { display: none; }
+html[data-look='frost'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); box-shadow: inset 0 1px 0 rgba(200,245,255,0.20); }
+html[data-look='frost'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
+@media (prefers-reduced-transparency: reduce) {
+  html[data-look='frost'] { --lg-glass-filter: none; --lg-glass-fill: #0c1a20; --lg-sheet-blur: none; --lg-sheet-bg: #0a161c; }
+}
+
+/* ── Erscheinungsbild „Labor" (Labor-HUD) ───────────────────────────────
+   Wie ein Messgerät im Biohacking-Labor: Schwarz mit feinem Raster, eckige
+   Rahmen mit Eckwinkeln, Beschriftung in Maschinenschrift. Hoku-Licht lässt
+   Rahmen und Eckwinkel aufglühen. Mockup: Variante „Labor-HUD". */
+html[data-look='labor'] {
+  --hoku-licht: 1;
+  --lab-cyan: 95 220 255;
+  --lab-mono: 'SF Mono', ui-monospace, Menlo, 'Roboto Mono', monospace;
+  --app-bg: #020405;
+  --surface: rgba(3,10,13,0.98);
+  --surface-raised: #07141a;
+  --glass-bg: rgba(3,10,13,0.94);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.40);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #7fe6ff;
+  --lg-text-2: rgba(222,240,248,0.70);
+  --lg-text-3: rgba(222,240,248,0.54);
+  --r-sm: 6px; --r-md: 6px; --r-lg: 8px; --r-xl: 8px;
+  --lg-surface-fill: rgba(3,10,13,0.88);
+  --lg-surface-bg: rgba(3,10,13,0.88);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: none;
+  --lg-card-rim: linear-gradient(rgba(95,220,255,0.14), rgba(95,220,255,0.14));
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(95,220,255,0.05);
+  --lg-glass-fill: rgba(3,10,13,0.92);
+  --lg-glass-filter: none;
+  --lg-glass-shadow: none;
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: rgba(95,220,255,0.12);
+  --shadow-btn-primary: inset 0 0 0 1px rgba(95,220,255,0.60);
+  --lg-pill-fill: rgba(95,220,255,0.16);
+  --lg-pill-shadow: inset 0 0 0 1px rgba(95,220,255,0.45);
+  --lg-fill: rgba(95,220,255,0.06);
+  --lg-fill-selected: rgba(95,220,255,0.20);
+  --lg-sheet-bg: #03090c;
+  --lg-sheet-solid: #03090c;
+  --lg-sheet-blur: none;
+}
+html[data-look='labor'] body {
+  background:
+    linear-gradient(rgba(95,220,255,0.045) 1px, transparent 1px) 0 0 / 26px 26px,
+    linear-gradient(90deg, rgba(95,220,255,0.045) 1px, transparent 1px) 0 0 / 26px 26px,
+    radial-gradient(90% 600px at 50% 0, rgba(95,220,255,0.07), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='labor'] .lg-backdrop { background-color: #020405; }
+html[data-look='labor'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--lab-cyan) / calc(0.14 + var(--hl-i) * 0.80)) 0deg,
+    rgb(var(--lab-cyan) / 0.14) var(--hl-w),
+    rgb(var(--lab-cyan) / 0.14) calc(360deg - var(--hl-w)),
+    rgb(var(--lab-cyan) / calc(0.14 + var(--hl-i) * 0.80)) 360deg);
+}
+/* Eckwinkel oben links und unten rechts; sie glühen mit Hokus Nähe */
+html[data-look='labor'] :is(.lg-surface, .card, .lg-group)::after {
+  background:
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) left top / 12px 1.5px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) left top / 1.5px 12px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) right bottom / 12px 1.5px no-repeat,
+    linear-gradient(rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45)), rgb(var(--lab-cyan) / calc(0.55 + var(--hl-i) * 0.45))) right bottom / 1.5px 12px no-repeat;
+}
+html[data-look='labor'] :is(.lg-btn, .lg-chip, .stack-tab) { border-radius: 6px; }
+html[data-look='labor'] .lg-icon-btn { border-radius: 8px; }
+html[data-look='labor'] .tyd-tabbar { border-radius: 10px; background: rgba(3,10,13,0.94); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 calc(var(--hl-i) * 24px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.35)); }
+html[data-look='labor'] .tyd-tabbar::after { display: none; }
+html[data-look='labor'] .tyd-tabbar-pill { border-radius: 7px; background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.30); }
+html[data-look='labor'] .lg-sheet { border-radius: 14px; box-shadow: 0 -12px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(95,220,255,0.18); }
+html[data-look='labor'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #7fe6ff;
+  font-family: var(--lab-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 28px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.6));
+}
+html[data-look='labor'] .lg-btn-tint { color: #7fe6ff; background: rgba(95,220,255,0.08); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 0 0 1px rgba(95,220,255,0.35); animation: none; }
+html[data-look='labor'] :is(.lg-group-title, .lg-tag, .lg-large-title + p) { font-family: var(--lab-mono); letter-spacing: 0.06em; }
+html[data-look='labor'] .lg-large-title { font-family: var(--lab-mono); font-weight: 500; letter-spacing: -0.01em; }
+html[data-look='labor'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #7fe6ff; }
+
+/* ── Erscheinungsbild „Neon" ────────────────────────────────────────────
+   Tiefes Schwarz, Kanten wie Leuchtröhren. Nähert sich Hoku, glühen sie auf
+   und strahlen nach außen. Mockup: Variante „Neon". */
+html[data-look='neon'] {
+  --hoku-licht: 1;
+  --neon: 95 220 255;
+  --app-bg: #010203;
+  --surface: rgba(4,7,10,0.98);
+  --surface-raised: #070c10;
+  --glass-bg: rgba(4,7,10,0.94);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.45);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --lg-surface-fill: #04070a;
+  --lg-surface-bg: #04070a;
+  --lg-surface-blur: none;
+  --lg-card-rim: none;
+  --lg-card-sheen: none;
+  --lg-glass-fill: #04070a;
+  --lg-glass-filter: none;
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: #04070a;
+  --lg-pill-fill: rgba(95,220,255,0.14);
+  --lg-pill-shadow: 0 0 0 1px rgba(95,220,255,0.55), 0 0 12px rgba(95,220,255,0.35);
+  --lg-fill: rgba(95,220,255,0.06);
+  --lg-fill-selected: rgba(95,220,255,0.18);
+  --lg-sheet-bg: #04070a;
+  --lg-sheet-solid: #04070a;
+  --lg-sheet-blur: none;
+}
+html[data-look='neon'] body {
+  background:
+    radial-gradient(70% 420px at 85% 0, rgba(120,80,255,0.10), transparent 70%),
+    radial-gradient(70% 480px at 10% 700px, rgba(95,220,255,0.07), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='neon'] .lg-backdrop { background-color: #010203; }
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass) {
+  box-shadow:
+    0 0 0 1px rgb(var(--neon) / calc(0.28 + var(--hl-i) * 0.72)),
+    0 0 calc(4px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.55)),
+    inset 0 0 calc(var(--hl-i) * 22px) rgb(var(--neon) / calc(var(--hl-i) * 0.22));
+}
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
+html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none; }
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #8eeaff;
+  text-shadow: 0 0 10px rgba(95,220,255,0.7);
+  box-shadow:
+    0 0 0 1.5px rgb(var(--neon) / calc(0.6 + var(--hl-i) * 0.4)),
+    0 0 calc(10px + var(--hl-i) * 30px) rgb(var(--neon) / calc(0.25 + var(--hl-i) * 0.5)),
+    inset 0 0 calc(8px + var(--hl-i) * 16px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.3));
+}
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::before,
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::after { display: none; }
+html[data-look='neon'] .lg-btn-tint { color: #8eeaff; background: #04070a; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(95,220,255,0.5), 0 0 14px rgba(95,220,255,0.25); animation: none; }
+html[data-look='neon'] .lg-large-title { text-shadow: 0 0 18px rgba(95,220,255,0.35); }
+html[data-look='neon'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(95,220,255,0.35), 0 0 24px rgba(95,220,255,0.15); }
+html[data-look='neon'] .tyd-tabbar {
+  background: #04070a;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 0 0 1px rgb(var(--neon) / calc(0.35 + var(--hl-i) * 0.6)), 0 0 calc(8px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.15 + var(--hl-i) * 0.45));
+}
+html[data-look='neon'] .tyd-tabbar::before, html[data-look='neon'] .tyd-tabbar::after { display: none; }
+html[data-look='neon'] .tyd-tabbar-pill { background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); }
+html[data-look='neon'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; filter: drop-shadow(0 0 6px rgba(95,220,255,0.6)); }
+
+/* ── Erscheinungsbild „Tiefsee" ─────────────────────────────────────────
+   Biolumineszenz: dunkles Petrol, weiche runde Formen; Hokus Licht sammelt
+   sich in der Fläche, wie unter Wasser. Mockup: Variante „Tiefsee". */
+html[data-look='tiefsee'] {
+  --hoku-licht: 1;
+  --see: 70 242 214;
+  --app-bg: #01090b;
+  --surface: rgba(2,20,22,0.97);
+  --surface-raised: #062226;
+  --glass-bg: rgba(2,20,22,0.85);
+  --accent: #46f2d6;
+  --accent-weak: rgba(70,242,214,0.14);
+  --accent-border: rgba(70,242,214,0.38);
+  --accent-contrast: #00150f;
+  --lg-accent-text: #8ff7e5;
+  --lg-text-2: rgba(220,248,244,0.70);
+  --lg-text-3: rgba(220,248,244,0.54);
+  --r-xl: 32px; --r-lg: 24px;
+  --lg-surface-fill: rgba(2,20,22,0.6);
+  --lg-surface-bg: rgba(2,20,22,0.6);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: 0 20px 40px -20px rgba(0,0,0,0.9);
+  --lg-card-rim: linear-gradient(rgba(70,242,214,0.10), rgba(70,242,214,0.10));
+  --lg-card-sheen: none;
+  --lg-surface-2: rgba(70,242,214,0.06);
+  --lg-glass-fill: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04));
+  --lg-glass-filter: blur(24px) saturate(150%);
+  --lg-glass-shadow: 0 14px 30px -14px rgba(0,0,0,0.85);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: linear-gradient(180deg, #74f7e2 0%, #3ee0c4 55%, #24c7ab 100%);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 26px -10px rgba(70,242,214,0.55);
+  --lg-pill-fill: linear-gradient(180deg, rgba(70,242,214,0.30), rgba(70,242,214,0.12));
+  --lg-pill-shadow: inset 0 1px 0 rgba(220,255,248,0.2);
+  --lg-fill: rgba(70,242,214,0.07);
+  --lg-fill-selected: rgba(70,242,214,0.20);
+  --lg-sheet-bg: rgba(2,20,22,0.9);
+  --lg-sheet-solid: #031a1d;
+  --lg-sheet-blur: blur(30px) saturate(150%);
+}
+html[data-look='tiefsee'] body {
+  background:
+    radial-gradient(90% 500px at 50% 0, rgba(20,110,110,0.30), transparent 70%),
+    radial-gradient(80% 500px at 0 900px, rgba(10,80,90,0.30), transparent 70%),
+    var(--app-bg);
+}
+html[data-look='tiefsee'] .lg-backdrop { background-color: #01090b; }
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group) {
+  background: radial-gradient(110% 120% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(0.04 + var(--hl-i) * 0.16)), rgba(2,20,22,0.6) 65%);
+}
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+  background: conic-gradient(from var(--hl-a),
+    rgb(var(--see) / calc(0.10 + var(--hl-i) * 0.70)) 0deg,
+    rgb(var(--see) / 0.10) var(--hl-w),
+    rgb(var(--see) / 0.10) calc(360deg - var(--hl-w)),
+    rgb(var(--see) / calc(0.10 + var(--hl-i) * 0.70)) 360deg);
+}
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group)::after {
+  background: radial-gradient(50% 50% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(var(--hl-i) * 0.22)), transparent 70%);
+}
+html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--see) / calc(var(--hl-i) * 0.6));
+}
+html[data-look='tiefsee'] .lg-btn-tint { color: #b5fbef; background: linear-gradient(180deg, rgba(70,242,214,0.24), rgba(70,242,214,0.08)); animation: none; }
+html[data-look='tiefsee'] .tyd-tabbar { background: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04)), rgba(2,16,18,0.6); }
+html[data-look='tiefsee'] .tyd-tabbar::after { display: none; }
+html[data-look='tiefsee'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); box-shadow: inset 0 1px 0 rgba(220,255,248,0.18); }
+html[data-look='tiefsee'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8ff7e5; }
+
+/* ── Erscheinungsbild „Obsidian" ────────────────────────────────────────
+   Schwarzes Vulkanglas, am dunkelsten und edelsten. Hoku spiegelt sich als
+   scharfer Reflex auf jeder Fläche. Mockup: Variante „Obsidian". */
+html[data-look='obsidian'] {
+  --hoku-licht: 1;
+  --obs: 95 220 255;
+  --app-bg: #000000;
+  --surface: rgba(8,10,12,0.98);
+  --surface-raised: #0d1013;
+  --glass-bg: rgba(8,10,12,0.92);
+  --accent: #5fdcff;
+  --accent-weak: rgba(95,220,255,0.12);
+  --accent-border: rgba(95,220,255,0.35);
+  --accent-contrast: #00131a;
+  --lg-accent-text: #8eeaff;
+  --lg-surface-fill: #07090b;
+  --lg-surface-bg: linear-gradient(165deg, #0d1013 0%, #050607 55%, #020203 100%);
+  --lg-surface-blur: none;
+  --lg-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 18px 34px -16px rgba(0,0,0,1);
+  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.02));
+  --lg-card-sheen: none;
+  --lg-glass-fill: linear-gradient(165deg, #12171b, #050607);
+  --lg-glass-filter: none;
+  --lg-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px -12px rgba(0,0,0,1);
+  --lg-rim: var(--lg-card-rim);
+  --lg-sheen: none;
+  --lg-primary-fill: linear-gradient(165deg, #121a1f, #040506);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(95,220,255,0.35), 0 10px 24px -12px rgba(0,0,0,1);
+  --lg-pill-fill: linear-gradient(165deg, #1b2228, #0a0d10);
+  --lg-pill-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(95,220,255,0.25);
+  --lg-sheet-bg: linear-gradient(165deg, #0d1013, #030405);
+  --lg-sheet-solid: #07090b;
+  --lg-sheet-blur: none;
+}
+html[data-look='obsidian'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after {
+  background:
+    radial-gradient(38% 22% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.30)), transparent 70%),
+    radial-gradient(80% 60% at var(--hl-x) var(--hl-y), rgb(var(--obs) / calc(var(--hl-i) * 0.10)), transparent 70%);
+}
+html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+  color: #8eeaff;
+  box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 24px) rgb(var(--obs) / calc(var(--hl-i) * 0.45));
+}
+html[data-look='obsidian'] .lg-btn-tint { color: #8eeaff; background: linear-gradient(165deg, #10161a, #040506); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--lg-glass-shadow); animation: none; }
+html[data-look='obsidian'] .tyd-tabbar { background: linear-gradient(165deg, #10141a, #030405); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 30px -12px rgba(0,0,0,1); }
+html[data-look='obsidian'] .tyd-tabbar::after {
+  opacity: 1;
+  background: radial-gradient(30% 120% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.22)), transparent 70%);
+}
+html[data-look='obsidian'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
+
+/* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
+   Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen
+   umstellt: die Kanäle (--ink-rgb Schrift/Linien, --ground-rgb Grund, die
+   Graphit-Stufen --slate-*) drehen sich um, Flächen sind weißes Papier mit
+   Haarlinie und weichem Schatten, Bedienung ist schwarz. Was ihn noch nicht
+   erreicht, zeigt `npm run looks:audit` (feste Farben in Bausteinen). */
+html[data-look='papier'] {
+  color-scheme: light;
+  --ink-rgb: 11 11 12;
+  --ground-rgb: 246 246 244;
+  --slate-50: 11 11 12;
+  --slate-100: 28 28 30;
+  --slate-200: 44 44 46;
+  --slate-300: 72 72 76;
+  --slate-400: 88 88 92;
+  --slate-500: 108 108 113;
+  --slate-600: 150 150 155;
+  --slate-700: 222 222 225;
+  --slate-800: 236 236 238;
+  --slate-900: 244 244 245;
+  --slate-950: 250 250 249;
+
+  --app-bg: #f6f6f4;
+  --surface: rgba(255,255,255,0.98);
+  --surface-raised: #ffffff;
+  --surface-input: rgba(0,0,0,0.05);
+  --glass-bg: rgba(255,255,255,0.92);
+  --text: #0b0b0c;
+  --text-dim: #4f4f54;
+  --text-muted: #66666b;
+  --border: rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.16);
+  --card-border: rgba(0,0,0,0.09);
+  --accent: #0b0b0c;
+  --accent-weak: rgba(0,0,0,0.06);
+  --accent-border: rgba(0,0,0,0.28);
+  --accent-contrast: #ffffff;
+  --glow-accent: none;
+  --diary-effect-text: #0f766e;
+  --diary-side-effect-text: #b45309;
+
+  --lg-text-2: rgba(11,11,12,0.70);
+  --lg-text-3: rgba(11,11,12,0.58);
+  --lg-text-4: rgba(11,11,12,0.32);
+  --lg-hair: rgba(0,0,0,0.08);
+  --lg-good: #1f8a3e;
+  --lg-good-text: #1a7a36;
+  --lg-warn: #b86200;
+  --lg-warn-text: #9a5200;
+  --lg-bad: #d0302a;
+  --lg-bad-text: #b3261e;
+  --lg-accent-text: #0b0b0c;
+  --lg-surface-2: rgba(0,0,0,0.04);
+
+  --lg-glass-fill: #ffffff;
+  --lg-glass-filter: none;
+  --lg-glass-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 22px -12px rgba(0,0,0,0.28);
+  --lg-rim: none;
+  --lg-sheen: none;
+  --lg-primary-fill: #0b0b0c;
+  --shadow-btn-primary: 0 10px 22px -12px rgba(0,0,0,0.55);
+  --lg-danger-fill: rgba(208,48,42,0.10);
+  --lg-surface-fill: #ffffff;
+  --lg-surface-bg: #ffffff;
+  --lg-surface-blur: none;
+  --lg-surface-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 14px 30px -18px rgba(0,0,0,0.30);
+  --lg-card-rim: linear-gradient(rgba(0,0,0,0.08), rgba(0,0,0,0.08));
+  --lg-card-sheen: none;
+  --lg-sheet-bg: #ffffff;
+  --lg-sheet-solid: #ffffff;
+  --lg-sheet-blur: none;
+  --lg-fill: rgba(0,0,0,0.06);
+  --lg-fill-selected: #e2e2e5;
+  --lg-separator: rgba(0,0,0,0.10);
+  /* Auswahl im Umschalter: weißer Stein auf grauer Spur, wie iOS hell */
+  --lg-pill-fill: #ffffff;
+  --lg-pill-shadow: 0 1px 3px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06);
+}
+html[data-look='papier'] .lg-backdrop { background-color: #f6f6f4; }
+html[data-look='papier'] .lg-seg-fill .lg-seg-pill { background: #ffffff; box-shadow: var(--lg-pill-shadow); }
+html[data-look='papier'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06); }
+html[data-look='papier'] .lg-btn-tint { color: #0b0b0c; background: #ffffff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 6px 16px -10px rgba(0,0,0,0.35); animation: none; }
+html[data-look='papier'] .tyd-tabbar {
+  background: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 14px 30px -14px rgba(0,0,0,0.35);
+}
+html[data-look='papier'] .tyd-tabbar::before,
+html[data-look='papier'] .tyd-tabbar::after { display: none; }
+html[data-look='papier'] .tyd-tabbar-pill { background: rgba(0,0,0,0.06); box-shadow: none; }
+html[data-look='papier'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #0b0b0c; }
+/* Hoku schwarz auf Weiß wie im Logo: die Engine zeichnet ihn hell und leuchtend
+   (additiv); umgekehrt wird daraus schwarze Tinte, die Leere bleibt durchsichtig. */
+html[data-look='papier'] .tyd-dot-flaeche { filter: invert(1); }
+/* Gezeichnete Kugeln der Ernährung (Canvas, hell für dunklen Grund): Helligkeit
+   umkehren, Farbton zurückdrehen — Eiweiß bleibt grün, Kohlenhydrate violett. */
+html[data-look='papier'] .tyd-orb { filter: invert(1) hue-rotate(180deg); }
+/* Hoku in der Leiste: Schatten statt Cyan-Schein */
+html[data-look='papier'] .tyd-dot-slot[data-dot-drinnen='true'] .tyd-dot-logo-glow { filter: drop-shadow(0 0 3px rgba(0,0,0,0.35)); }
+/* Hauptknopf als Symbol: .lg-icon-btn setzt die Schrift zurück auf --lg-text */
+html[data-look='papier'] .lg-btn-primary { color: var(--accent-contrast); }
+/* Helle Schriftstufen (für dunklen Grund gedacht) werden auf Papier zur
+   dunklen Stufe derselben Farbe — sonst stünde helles Grün auf Weiß. */
+html[data-look='papier'] :is(.text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400) { color: #047857; }
+html[data-look='papier'] :is(.text-green-100, .text-green-200, .text-green-300, .text-green-400) { color: #15803d; }
+html[data-look='papier'] :is(.text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400) { color: #b45309; }
+html[data-look='papier'] :is(.text-orange-100, .text-orange-200, .text-orange-300, .text-orange-400) { color: #c2410c; }
+html[data-look='papier'] :is(.text-rose-100, .text-rose-200, .text-rose-300, .text-rose-400) { color: #be123c; }
+html[data-look='papier'] :is(.text-red-100, .text-red-200, .text-red-300, .text-red-400) { color: #b91c1c; }
+html[data-look='papier'] :is(.text-cyan-100, .text-cyan-200, .text-cyan-300, .text-cyan-400) { color: #0e7490; }
+html[data-look='papier'] :is(.text-teal-100, .text-teal-200, .text-teal-300, .text-teal-400) { color: #0f766e; }
+html[data-look='papier'] :is(.text-violet-100, .text-violet-200, .text-violet-300, .text-violet-400) { color: #6d28d9; }
+html[data-look='papier'] :is(.text-purple-100, .text-purple-200, .text-purple-300, .text-purple-400) { color: #7e22ce; }
+html[data-look='papier'] :is(.text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400) { color: #a16207; }
+html[data-look='papier'] :is(.text-blue-100, .text-blue-200, .text-blue-300, .text-blue-400) { color: #1d4ed8; }
+html[data-look='papier'] :is(.text-indigo-100, .text-indigo-200, .text-indigo-300, .text-indigo-400) { color: #4338ca; }
+html[data-look='papier'] :is(.text-pink-100, .text-pink-200, .text-pink-300, .text-pink-400) { color: #be185d; }
+html[data-look='papier'] :is(.text-fuchsia-100, .text-fuchsia-200, .text-fuchsia-300, .text-fuchsia-400) { color: #a21caf; }
+html[data-look='papier'] :is(.text-lime-100, .text-lime-200, .text-lime-300, .text-lime-400) { color: #4d7c0f; }
+html[data-look='papier'] :is(.text-sky-100, .text-sky-200, .text-sky-300, .text-sky-400) { color: #006680; }
 
 /* ── Erscheinungsbild „Satin" ───────────────────────────────────────────
    Schwarzer Grund wie „Schwarz", aber die Kante ist ein gewölbter Glasrand:
@@ -1019,11 +1502,11 @@ html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabba
    Kante (scrollgetriebene Animation, Lampe über dem Bildschirm), beim
    Berühren folgt er dem Finger (src/lib/reflex.ts). */
 html[data-look='satin'] {
-  --lg-card-rim: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.17) 35%, rgba(255,255,255,0.11) 65%, rgba(255,255,255,0.22));
+  --lg-card-rim: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.40), rgb(var(--ink-rgb) / 0.17) 35%, rgb(var(--ink-rgb) / 0.11) 65%, rgb(var(--ink-rgb) / 0.22));
   --lg-surface-shadow:
-    inset 0 0 0 4px rgba(255,255,255,0.035),
-    inset 0 0 10px 2px rgba(255,255,255,0.07),
-    inset 0 5px 10px -6px rgba(255,255,255,0.20),
+    inset 0 0 0 4px rgb(var(--ink-rgb) / 0.035),
+    inset 0 0 10px 2px rgb(var(--ink-rgb) / 0.07),
+    inset 0 5px 10px -6px rgb(var(--ink-rgb) / 0.20),
     0 18px 40px rgba(0,0,0,0.7);
 }
 html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::before {
@@ -1032,8 +1515,8 @@ html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::before {
 html[data-look='satin'] :is(.lg-surface, .card, .lg-group)::after {
   --rx: 34%;
   background:
-    radial-gradient(closest-side, rgba(255,255,255,0.95), rgba(255,255,255,0.38) 45%, transparent),
-    radial-gradient(closest-side, rgba(255,255,255,0.13), transparent);
+    radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.95), rgb(var(--ink-rgb) / 0.38) 45%, transparent),
+    radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.13), transparent);
   background-size: 34% 3px, 64% 26px;
   background-repeat: no-repeat;
   background-position: var(--rx) 0, var(--rx) -6px;
@@ -1075,9 +1558,9 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::before {
   background: conic-gradient(from var(--la),
     rgba(255, 255, 255, var(--li)) 0deg,
     rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(var(--lw) * 0.5),
-    rgba(255, 255, 255, 0.08) var(--lw),
-    rgba(255, 255, 255, 0.05) 180deg,
-    rgba(255, 255, 255, 0.08) calc(360deg - var(--lw)),
+    rgb(var(--ink-rgb) / 0.08) var(--lw),
+    rgb(var(--ink-rgb) / 0.05) 180deg,
+    rgb(var(--ink-rgb) / 0.08) calc(360deg - var(--lw)),
     rgba(255, 255, 255, calc(var(--li) * 0.35)) calc(360deg - var(--lw) * 0.5),
     rgba(255, 255, 255, var(--li)) 360deg);
 }
@@ -1092,7 +1575,7 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
    nach 250 ms sichtbar, damit schnelles Laden nicht aufblitzt; ohne
    Bewegung (prefers-reduced-motion) stehen sie still. */
 .lg-skel { animation: lg-fade-in 280ms var(--lg-ease-out) 250ms backwards; }
-.lg-skel-card { border-radius: var(--r-xl); background: rgba(255, 255, 255, 0.03); }
+.lg-skel-card { border-radius: var(--r-xl); background: rgb(var(--ink-rgb) / 0.03); }
 .lg-ph {
   display: block;
   flex-shrink: 0;

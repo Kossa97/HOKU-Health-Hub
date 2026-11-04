@@ -10,6 +10,8 @@ Hoku trägt eine natürliche Pupille mit nahezu weißem Partikelrand. Die neue B
 - [Bestätigter App-Icon-Master](brand-kit-v2/04-Icons/hoku-app-cyan-original.png)
 - [Vertikale Variante 6 und Plaketten](brand-kit-v2/HOKU-Vertikal-Uebersicht.png)
 - [App-Icons: Cyan und Dunkel](brand-kit-v2/HOKU-App-Icons-Uebersicht.png)
+- [Zusätzliche bestätigte Fassung: Organisch / Cyan](brand-kit-v2/09-Organisch-Cyan/README.md)
+- [Organisch / Cyan – Formate und Größen](brand-kit-v2/09-Organisch-Cyan/HOKU-Organisch-Uebersicht.png)
 - [Branding-Entscheidungen](branding/ENTSCHEIDUNGEN.md)
 
 `brand-kit-v1`, die älteren `exports` und `06-Originale` dokumentieren frühere Fassungen. Für neue Anwendungen die Dateien aus v2 verwenden. Die Branding-Aktualisierung installiert oder veröffentlicht keine App-Änderung.

@@ -260,3 +260,18 @@ test('Neu fotografiert: das eigene Etikett wird überschrieben', async ({ page, 
   await expect.poll(() => mock.table('scan_etiketten').map(row => (row.etikett as typeof BERGAMOT).ingredients[0].amount))
     .toEqual([1500])
 })
+
+test('Auslöser: das Kamerafoto geht als JPEG an die Etikett-Erkennung', async ({ page, mock }) => {
+  // Der Leser „sieht" nichts Brauchbares — es bleibt das Foto.
+  await kameraMitCode(page, 'kein-code')
+  mock.labelExtract.label = BERGAMOT
+  const { scanner } = await scannerOeffnen(page)
+
+  await scanner.locator('[data-scan-shutter]').click()
+  const einwilligung = scanner.locator('[data-ai-consent]')
+  await einwilligung.locator('[data-ai-consent-check]').check()
+  await einwilligung.locator('[data-ai-consent-accept]').click()
+  await expect(scanner.locator('[data-scan-result]')).toContainText('Citrus Bergamot')
+  expect(mock.labelExtract.calls).toHaveLength(1)
+  expect(mock.labelExtract.calls[0].mimeType).toBe('image/jpeg')
+})

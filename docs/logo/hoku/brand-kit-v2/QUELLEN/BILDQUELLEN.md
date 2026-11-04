@@ -17,3 +17,11 @@ Verwendeter Freistellungs-Prompt:
 ## Reproduzierbare Exporte
 
 `build.cjs` setzt die vorhandenen Schriften als Vektorpfade und bettet den freigestellten Master ein. Monochrome Fassungen nutzen neutrale SVG-Farbfilter mit reduzierter Randweichheit. App-Icon-Größen werden direkt aus dem bestätigten Bildmaster gerendert. Die Dateien in 07-KI-Button-Symbol wurden unverändert aus v1 kopiert und werden durch `verify.cjs` auf Bytegleichheit geprüft.
+
+## Zusätzliche organische Cyan-Fassung – bestätigt am 03.11.2026
+
+hoku-app-icon-organisch-cyan-v3-master.png ist bytegleich zum bestätigten Entwurf ../../entwuerfe/hoku-app-icon-organisch-cyan-v3.png. Die Bearbeitung mit dem integrierten Imagegen-Werkzeug verwendete den aktuellen Hoku als Identitätsreferenz, das ursprüngliche dunkle Icon als Referenz für ruhige Partikelverteilung und Lichtkerne sowie die vorherige Generierung als Material-/Cyan-Referenz. Auftrag: organischer und räumlicher, aber schlicht und ästhetisch; natürliche Pupille und aktuelles Cyan beibehalten.
+
+hoku-organisch-cyan-freigestellt-master.png ist eine eigene Imagegen-Freistellungsableitung. Auftrag: ausschließlich dunklen Hintergrund und breiten atmosphärischen Farbschleier entfernen; Partikel, Framing, Pupille und unterbrochenen hellen Pupillenrand erhalten; alle Zwischenräume einschließlich Pupille transparent; keine neuen Elemente. Die 1280-px-Freistellung ist keine bytegleiche Kopie des 1254-px-App-Masters. Für das dunkle App-Icon bleibt der bestätigte Originalmaster maßgeblich.
+
+organisch.cjs erstellt die zusätzlichen Formate in 09-Organisch-Cyan; verify-organisch.cjs prüft Originalidentität, Formate, Transparenz, Monochromie, ICO und Maskable-Sicherheitsbereich. SVG/PDF enthalten Rasterbilder. Bestehende Logo-Kompositionen und laufende App werden durch die zusätzliche Freigabe nicht ersetzt.

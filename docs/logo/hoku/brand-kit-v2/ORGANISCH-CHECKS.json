@@ -1,0 +1,535 @@
+{
+  "approvedMasterSha256": "7ad6eb3a98518403f02d7da1bd1d754581c10aa21f8b869997e014fabdba5348",
+  "cutoutSha256": "b3dfc17d9ea1df1428e3433ec087b30b2f0ae39b61441b544f9dce52f346d1fb",
+  "sizes": [
+    16,
+    20,
+    24,
+    29,
+    32,
+    40,
+    48,
+    58,
+    60,
+    64,
+    72,
+    76,
+    80,
+    87,
+    96,
+    120,
+    128,
+    144,
+    152,
+    167,
+    180,
+    192,
+    256,
+    512,
+    1024
+  ],
+  "ratios": {
+    "app": 0.84,
+    "maskable": 0.76,
+    "favicon": 0.92,
+    "symbol": 0.84
+  },
+  "files": [
+    {
+      "file": "09-Organisch-Cyan/hoku-organisch-cyan-original.png",
+      "bytes": 1526982,
+      "sha256": "7ad6eb3a98518403f02d7da1bd1d754581c10aa21f8b869997e014fabdba5348",
+      "width": 1254,
+      "height": 1254,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-original.png",
+      "bytes": 1198542,
+      "sha256": "b3dfc17d9ea1df1428e3433ec087b30b2f0ae39b61441b544f9dce52f346d1fb",
+      "width": 1254,
+      "height": 1254,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-16.png",
+      "bytes": 589,
+      "sha256": "7b435d79d6175ad292061f194588d9a3593505b703b35bdd5a80afa4fef6b1e8",
+      "width": 16,
+      "height": 16,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-20.png",
+      "bytes": 821,
+      "sha256": "ea0f9453afda8398da5fdb707ec965481f5371aea723927625133775d262581b",
+      "width": 20,
+      "height": 20,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-24.png",
+      "bytes": 1158,
+      "sha256": "b71605123e534016278375a4d2d438e75fe9211d53ff78e120d96c5140e7ab3a",
+      "width": 24,
+      "height": 24,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-29.png",
+      "bytes": 1567,
+      "sha256": "fd5bcb604f7e943ce6a342109427326485e00c868b404871cdd52101645318ec",
+      "width": 29,
+      "height": 29,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-32.png",
+      "bytes": 1873,
+      "sha256": "3b6c4e264d6a141d3c44664943e8952ac185dba93b1d4fa7f3860910fea32ec4",
+      "width": 32,
+      "height": 32,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-40.png",
+      "bytes": 2796,
+      "sha256": "63ae67ff00165c0d1428ef3e056b8c764454ed3aff590e1277f74821f5328bd6",
+      "width": 40,
+      "height": 40,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-48.png",
+      "bytes": 3888,
+      "sha256": "9f58feadb1b11586d516f09059a8eb9e3aee5a8f58762f333bc0424836dffc37",
+      "width": 48,
+      "height": 48,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-58.png",
+      "bytes": 5503,
+      "sha256": "79184458220219f57ad742cefd07611cf6a4b7bae8cdc8ea38f9a428e5934ee0",
+      "width": 58,
+      "height": 58,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-60.png",
+      "bytes": 5825,
+      "sha256": "6da9a437dc98e8b00d5bebfad79f3734bfde26f76822965d287d48545d258513",
+      "width": 60,
+      "height": 60,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-64.png",
+      "bytes": 6562,
+      "sha256": "0d9afd5050637c3dc054ebb763152516544d3f91a326d1f8573c350948ddcdf5",
+      "width": 64,
+      "height": 64,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-72.png",
+      "bytes": 8156,
+      "sha256": "45e247665dd9bdae6900f408e3e17f8e4f680c15a49c7d7d2f9ad56679281af9",
+      "width": 72,
+      "height": 72,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-76.png",
+      "bytes": 9022,
+      "sha256": "a1ceffd65a1af99b43055564d856eb2e0cf6a81a04a41054844abe2ecd2d2203",
+      "width": 76,
+      "height": 76,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-80.png",
+      "bytes": 9961,
+      "sha256": "b5e09a100ece0491fd295f884ec9a791bb8b86e21aec7a32132e5a333f69c749",
+      "width": 80,
+      "height": 80,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-87.png",
+      "bytes": 11582,
+      "sha256": "3131321660dd792719bc0fbabe1b3e2acf22b1910779fbe2c251d24a56e55406",
+      "width": 87,
+      "height": 87,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-96.png",
+      "bytes": 13951,
+      "sha256": "bdcb69741ee7ac70fa0e753542ba76e8e206898ea64cba3a3d9700b68ec8cefb",
+      "width": 96,
+      "height": 96,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-120.png",
+      "bytes": 21097,
+      "sha256": "f825158e61036808a805a66e798f41655164b98b40c9ca153dc5b176eca2846f",
+      "width": 120,
+      "height": 120,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-128.png",
+      "bytes": 23698,
+      "sha256": "493a656def2b727172d4ee4a0e612dfb5dd5b1a56e177b3f8751e410cb868dc8",
+      "width": 128,
+      "height": 128,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-144.png",
+      "bytes": 29701,
+      "sha256": "00005b0ef1429c72bf65baa2b912fb421a82ce125a786729cf35dcb444180ab4",
+      "width": 144,
+      "height": 144,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-152.png",
+      "bytes": 32730,
+      "sha256": "75f987513ce3bf0072574edabb45c8d5453f091c5c322ea0a743dc23b7dfe5ae",
+      "width": 152,
+      "height": 152,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-167.png",
+      "bytes": 39058,
+      "sha256": "fe6ce56e5b6798eda9414fba9e0d9882b8ae5140f1eaf6eb4c6913a1a5af4b9f",
+      "width": 167,
+      "height": 167,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-180.png",
+      "bytes": 44910,
+      "sha256": "c744a00e211c8592f36eec554c0f8228d28aae403ed3f180162e76a447ad1bb7",
+      "width": 180,
+      "height": 180,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-192.png",
+      "bytes": 50565,
+      "sha256": "a95f4f83a1ba06e1456db85121e3267dfae12c99d7574a8683189adf1696043a",
+      "width": 192,
+      "height": 192,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-256.png",
+      "bytes": 87060,
+      "sha256": "10e02faa9bb2329af30b1f5473470c71cf65a71b1aa7f588a6960a47d94d0b22",
+      "width": 256,
+      "height": 256,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-512.png",
+      "bytes": 323063,
+      "sha256": "ca47788c785db55b512514fa7f32f282b0831dead5407b6f0385286ec341949f",
+      "width": 512,
+      "height": 512,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-1024.png",
+      "bytes": 1162500,
+      "sha256": "ff7920af91dc3ae789784e2077483070bf00498ed5b9643c928518af922daff1",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan-maskable-512.png",
+      "bytes": 303366,
+      "sha256": "f69df769037cd11aaacb9d8f20ae4b20d10d1d09ecbcd8d18bafcf44f68d90af",
+      "width": 512,
+      "height": 512,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/01-App-Icons/hoku-app-organisch-cyan.svg",
+      "bytes": 2036297,
+      "sha256": "de9f911ed25bc9487d5b016c81057b82b9989d9c95c9fa00a45b7198c9c4ff3e"
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-64.png",
+      "bytes": 8134,
+      "sha256": "9e765ca53ac6c4382a37ae6068f33f6779eba11ffde526c6999d679b872b85b4",
+      "width": 64,
+      "height": 64,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-128.png",
+      "bytes": 27951,
+      "sha256": "3fc4b589cda0de8ca85fb4b656a27ae9e70aacdb9972377877705d8922c0421c",
+      "width": 128,
+      "height": 128,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-256.png",
+      "bytes": 95685,
+      "sha256": "04f180f45db6ca76f91b6f5ffc8355ccd0655f0d9417753fe1cd90e641ff66a3",
+      "width": 256,
+      "height": 256,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-512.png",
+      "bytes": 331501,
+      "sha256": "b906f44337a2c679ed63409bf86a066270447277eec7f675524f73772dc79ef3",
+      "width": 512,
+      "height": 512,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent-1024.png",
+      "bytes": 1153170,
+      "sha256": "b32e4ab577776971e627f2a9d3f4783dc3c5eb668fae32cda460f331f8b355ac",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-cyan-transparent.svg",
+      "bytes": 1598325,
+      "sha256": "0d8c99519b0006aa18235d4f73c4cafe12555e48c8f74567d22948e474566aa4"
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent-64.png",
+      "bytes": 3891,
+      "sha256": "3dcb817e407a5c685285077125a520918349453e4049c8e25c83e2e88ca2813a",
+      "width": 64,
+      "height": 64,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent-128.png",
+      "bytes": 12450,
+      "sha256": "e42db00b7eb6626e5e6a9edd4335569d7aecea4513a465569606af4420f629f9",
+      "width": 128,
+      "height": 128,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent-256.png",
+      "bytes": 39606,
+      "sha256": "1f79660168c53ea81c6de470f85f4625fa15898bd3f5c244cc54d90c8b0c20de",
+      "width": 256,
+      "height": 256,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent-512.png",
+      "bytes": 125944,
+      "sha256": "cbc5065c92575390360f5e21458d41c8911d29f04b0e07936fc81af563bdd26b",
+      "width": 512,
+      "height": 512,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent-1024.png",
+      "bytes": 398959,
+      "sha256": "20eee54150de0bb12e3fa03a71736ebc6e9281393270817ef24e13962d89b9c2",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-weiss-transparent.svg",
+      "bytes": 1598602,
+      "sha256": "3755da76e186c97e6f61991724e7ad5a412a5f5a8b5586096dcb79135b6b6d60"
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent-64.png",
+      "bytes": 3075,
+      "sha256": "85663c92bee08f47e893321172c443066135047c912a3caa2d142e0c06f7b6ce",
+      "width": 64,
+      "height": 64,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent-128.png",
+      "bytes": 10315,
+      "sha256": "9a5311211200eb7aba5f4fe0dc362481ea9d94e925ccf4aae6e2de889cb6b28e",
+      "width": 128,
+      "height": 128,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent-256.png",
+      "bytes": 35377,
+      "sha256": "4a204422c63b68a24b9d4ad0d053975487b776bfbbc98fddbbd5274c348c7c40",
+      "width": 256,
+      "height": 256,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent-512.png",
+      "bytes": 119856,
+      "sha256": "a69728ac35985dfe4f5dc899683fe67c4efb72f5ef247cbc70698ba367d8bb74",
+      "width": 512,
+      "height": 512,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent-1024.png",
+      "bytes": 388133,
+      "sha256": "5b4cef67e4399a1d312d1cfc775c6ad6ca7e05b4c1bd70998f745f3c3f7751eb",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 6
+    },
+    {
+      "file": "09-Organisch-Cyan/02-Symbole/hoku-organisch-schwarz-transparent.svg",
+      "bytes": 1598602,
+      "sha256": "00ca3194f0dfeaf3f413954618a5cd9ceaf2b30d750ac403c2fe16087fdd3970"
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-16.png",
+      "bytes": 614,
+      "sha256": "fddff42d5bc67a3a6609fe05f76c26c8ae573dd8f16246a74ec40a4506be38f3",
+      "width": 16,
+      "height": 16,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-24.png",
+      "bytes": 1213,
+      "sha256": "dbe86b60312ed86a12d12ad8a7b5d4c804be63c1a5a8f3ef436e506e65b69fcb",
+      "width": 24,
+      "height": 24,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-32.png",
+      "bytes": 1970,
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1",
+      "width": 32,
+      "height": 32,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-48.png",
+      "bytes": 4120,
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c",
+      "width": 48,
+      "height": 48,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-64.png",
+      "bytes": 6951,
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35",
+      "width": 64,
+      "height": 64,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-128.png",
+      "bytes": 25302,
+      "sha256": "45084aa0f1e2e889c844a5298aa4eac0ed298db499a9c05fa9d93de4bdbcfd11",
+      "width": 128,
+      "height": 128,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/hoku-favicon-organisch-256.png",
+      "bytes": 92939,
+      "sha256": "16139a3f88631b4ea52a08cca07fa9af3c9307f34323a0827859bdc71f69d566",
+      "width": 256,
+      "height": 256,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/favicon.ico",
+      "bytes": 133227,
+      "sha256": "84c41821b189346b5e1861b8069cfa4025dee8385e7358c84ffe1eb7a7bdd44b"
+    },
+    {
+      "file": "09-Organisch-Cyan/04-Favicons/favicon.svg",
+      "bytes": 2036288,
+      "sha256": "045619f970e1465232eb6688a7253f9b14dad746eb5a3d08743f71871827ffed"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-app-organisch-cyan.jpg",
+      "bytes": 285395,
+      "sha256": "6f724ac88807954b6c6f8b74eec811877c00424e6b6c2b9864559ad4f75fa0f3"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-app-organisch-cyan.webp",
+      "bytes": 892462,
+      "sha256": "b4d83942569c2cd20662a9d050d82328618116cafbef7aa88f9d25b4a390925a"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-cyan-transparent.webp",
+      "bytes": 1000994,
+      "sha256": "c33283a96e79cfb5c5db3f9dfa664202662c1a4c7d0cc42a09207abf17c1cfa9"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-weiss-transparent.webp",
+      "bytes": 256804,
+      "sha256": "34907753ab2247832f464bb9df8d11e40c047752c12c4d0d994b269f32b19adc"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-schwarz-transparent.webp",
+      "bytes": 256774,
+      "sha256": "6e6004671eed06526e81bd61bbf41ff4e486ee806f1203ee0d7b5c154e5c6529"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-app.pdf",
+      "bytes": 1131783,
+      "sha256": "3c1d91a38a23590675c39fb6088257378d9902dfa9b8858bc9bd103f42b1a115"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-cyan.pdf",
+      "bytes": 1160417,
+      "sha256": "08d2ffd869150700ad0f7daa5d05dd2d22c0a216868d8abe2652a788963000d2"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-weiss.pdf",
+      "bytes": 279536,
+      "sha256": "bc4f52b0a2590eb03bd390391dd52f55a60ea76b46fb9f9bf002ae6cf148f55c"
+    },
+    {
+      "file": "09-Organisch-Cyan/03-Formate/hoku-organisch-schwarz.pdf",
+      "bytes": 235346,
+      "sha256": "a116cd64ab14745b0889c201bfb5784e19f52c9b401d1f4d46f961b26b7d8176"
+    },
+    {
+      "file": "09-Organisch-Cyan/HOKU-Organisch-Uebersicht.png",
+      "bytes": 596154,
+      "sha256": "1b9a37dd2e052c1e9435a40a51df3fccafc3ee6615732bb6c08e8570f1797bf9",
+      "width": 1600,
+      "height": 1030,
+      "colorType": 2
+    },
+    {
+      "file": "HOKU-Uebersicht.png",
+      "bytes": 2769004,
+      "sha256": "67dc30f5ffee89407178bf8b64aff6acbd51b97c304a411c214044e355808ee6",
+      "width": 2000,
+      "height": 5068,
+      "colorType": 2
+    },
+    {
+      "file": "09-Organisch-Cyan/README.md",
+      "bytes": 1355,
+      "sha256": "b4162ac71428a56bb417e7d2bdd87bc427810c133398d0f24e53c538aee4fb34"
+    }
+  ]
+}

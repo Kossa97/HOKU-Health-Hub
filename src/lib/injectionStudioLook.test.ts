@@ -1,21 +1,12 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { INJECTION_STUDIO_LIGHTS, injectionStudioLightsFor } from './injectionStudioLook'
+import { INJECTION_STUDIO_BACKDROP } from './injectionStudioLook'
 
-describe('Studio-Licht je Erscheinungsbild', () => {
-  it('bleibt außer bei Nacht das Studio-Licht', () => {
-    for (const look of ['schwarz', 'satin', 'licht'] as const) {
-      expect(injectionStudioLightsFor(look)).toBe(INJECTION_STUDIO_LIGHTS)
-    }
-  })
-
-  it('tönt bei Nacht nur die Kantenlichter, links cyan, rechts violett', () => {
-    const nacht = injectionStudioLightsFor('nacht')
-    expect(nacht.key).toEqual(INJECTION_STUDIO_LIGHTS.key)
-    expect(nacht.fill).toEqual(INJECTION_STUDIO_LIGHTS.fill)
-    expect(nacht.environmentIntensity).toBe(INJECTION_STUDIO_LIGHTS.environmentIntensity)
-    expect(nacht.rimLeft.position).toEqual(INJECTION_STUDIO_LIGHTS.rimLeft.position)
-    expect(nacht.rimRight.position).toEqual(INJECTION_STUDIO_LIGHTS.rimRight.position)
-    expect(nacht.rimLeft.color).toBe('#7fe3ff')
-    expect(nacht.rimRight.color).toBe('#b7a3ff')
+describe('Bühne der Injektionskarte', () => {
+  it('nutzt in jedem Erscheinungsbild denselben Hintergrund', () => {
+    const css = readFileSync(new URL('../styles/liquid-glass.css', import.meta.url), 'utf8')
+    expect(INJECTION_STUDIO_BACKDROP).toBe('var(--inj-backdrop)')
+    // Genau eine Definition (in :root), kein Look setzt einen eigenen Wert.
+    expect(css.match(/--inj-backdrop\s*:/g)).toHaveLength(1)
   })
 })

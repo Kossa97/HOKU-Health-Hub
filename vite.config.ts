@@ -57,10 +57,10 @@ export default defineConfig(({ mode }) => {
         background_color: '#000101',
         display: 'standalone',
         icons: [
-          // Dunkler Cyan-Hoku (Brand-Kit v2); neue URLs aktualisieren auch installierte PWA-Icons.
-          { src: '/icons/hoku-dunkel-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-dunkel-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-dunkel-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // Bestätigter organischer Cyan-Hoku; neue URLs lösen ältere PWA-Icon-Caches ab.
+          { src: '/icons/hoku-organisch-v4-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-organisch-v4-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-organisch-v4-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

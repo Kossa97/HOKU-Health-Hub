@@ -13,6 +13,8 @@ import { FoodOrb, type FoodOrbHandle } from './FoodOrb'
 import { FLIGHT_MS, setOrbOrigin, setOrbPreview } from '../lib/orbBridge'
 import { SourceBadge } from './SourceBadge'
 import { ScoreBadge } from './ScoreBadge'
+import { PortionGain } from './PortionGain'
+import type { NutrientStatus } from '../lib/nutrientTargets'
 import { ScoreInfo } from './ScoreInfo'
 
 /** Zahl fürs Feld, auf Deutsch mit Komma: g/ml mit zwei, kg/l mit vier Nachkommastellen (82,5 g = 0,0825 kg). */
@@ -45,7 +47,7 @@ function scrollToTop(smooth: boolean, ms = 900): Promise<void> {
  * nichts zurück (Klage über Yazio: Menge springt zurück).
  * `ingredient`: Menge einer Zutat fürs Gericht — ohne Mahlzeit.
  */
-export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal, goalKcal, preview = false }: {
+export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLabel, busy, onSave, onClose, onDelete, onCorrect, onToggleFavorite, hideKcal, goalKcal, preview = false, nutrientDay }: {
   food: Food
   meal: Meal
   startAmount?: number
@@ -65,6 +67,8 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
   goalKcal: number
   /** Nur beim Eintragen für den gezeigten Tag: die Tageskugel oben zeigt diese Portion als Vorschau. */
   preview?: boolean
+  /** Nährstoffe des Tages: zeigt, was diese Portion heute bringt (nur beim Eintragen). */
+  nutrientDay?: readonly NutrientStatus[]
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language ?? 'de'
@@ -293,6 +297,7 @@ export function PortionSheet({ food, meal: startMeal, startAmount, mode, pickLab
       )}
 
       <div className="mt-3.5"><MacroCells nutrients={nu} hideKcal={hideKcal} compact /></div>
+      {nutrientDay && nu && <PortionGain day={nutrientDay} portion={nu} />}
 
       <div className="mt-3.5 flex gap-2">
         {mode !== 'ingredient' && (

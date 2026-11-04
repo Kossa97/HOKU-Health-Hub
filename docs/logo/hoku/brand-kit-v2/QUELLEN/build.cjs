@@ -154,3 +154,4 @@ write('EXPORT-CHECKS.json',JSON.stringify({date:'2026-11-02',masterSha256:hash(m
 console.log(JSON.stringify({root,pngs:checks.length,sourceBounds:box,checks:'passed'}));
 require('./vertikal.cjs')(fs.readFileSync(path.join(root,'HOKU-Uebersicht.png')));
 require('./app-dunkel.cjs')(fs.readFileSync(path.join(root,'HOKU-Uebersicht.png')));
+require('./organisch.cjs')(fs.readFileSync(path.join(root,'HOKU-Uebersicht.png'))).catch(e=>{console.error(e);process.exitCode=1;});

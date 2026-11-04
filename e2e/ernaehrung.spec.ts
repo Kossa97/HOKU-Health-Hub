@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
 import { TEST_USER, type MockSupabase } from './support/mockSupabase'
 
@@ -73,6 +74,22 @@ test('Barcode eingeben → Produkt aus Open Food Facts → Portion → eingetrag
   expect(mock.table('food_logs')).toHaveLength(1)
   expect(mock.table('food_logs')[0]).toMatchObject({
     meal: 'breakfast', source: 'off', source_ref: '4002671157751', amount: 150, kcal: 94.5, protein_g: 16.5,
+  })
+})
+
+test('BLS: „haferflocken“ findet „Hafer Flocken“ ohne Marke; der Eintrag merkt sich Vitamine und Mineralstoffe', async ({ page, mock }) => {
+  // Der BLS liegt als Datei in der App (public/data/bls-4.0.json): echte Werte.
+  await page.goto('/ernaehrung')
+  await mealCard(page, 'Frühstück').getByRole('button', { name: 'Hinzufügen' }).click()
+  await page.getByRole('dialog').getByRole('searchbox').fill('haferflocken')
+  await page.getByRole('dialog').getByRole('button', { name: /^Hafer Flocken\b/ }).first().click()
+  await expect(page.getByRole('heading', { name: 'Hafer Flocken' })).toBeVisible()
+  await page.getByLabel('Menge in g').fill('50')
+  await addAndClose(page)
+
+  await expect(mealCard(page, 'Frühstück').getByText('Hafer Flocken')).toBeVisible()
+  expect(mock.table('food_logs')[0]).toMatchObject({
+    source: 'bls', source_ref: 'C133000', amount: 50, kcal: 174, micros: { b1: 0.281, mg: 60.65, fe: 2.219 },
   })
 })
 
@@ -473,7 +490,7 @@ test('Ziele: Kalorien ausblenden zeigt Eiweiß als Hauptzahl', async ({ page, mo
   await page.goto('/ernaehrung')
   await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Ziele', exact: true }).click()
+  await openGoals(page)
   await page.getByLabel('Kalorienzahlen ausblenden').check()
   await page.getByRole('button', { name: 'Speichern', exact: true }).click()
 
@@ -481,6 +498,117 @@ test('Ziele: Kalorien ausblenden zeigt Eiweiß als Hauptzahl', async ({ page, mo
   await expect(page.getByRole('region', { name: 'Tagesübersicht' }).getByText('kcal')).toHaveCount(0)
   expect(mock.table('nutrition_goals')).toHaveLength(1)
   expect(mock.table('nutrition_goals')[0]).toMatchObject({ hide_kcal: true, kcal: 2000 })
+})
+
+/** Ziele liegen in „Dein Tag“ (Knopf oben rechts), Reiter „Ziele“. */
+async function openGoals(page: Page) {
+  await page.getByRole('button', { name: 'Dein Tag', exact: true }).click()
+  await page.getByRole('tab', { name: 'Ziele', exact: true }).click()
+}
+
+test('Dein Tag: Tipp auf die Kugel öffnet den Tag; Heute und Ziele; der Hinweis kommt nur einmal', async ({ page, mock }) => {
+  logEntry(mock, {})
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  const hint = page.getByText('Tippe auf die Kugel, dann siehst du deinen ganzen Tag.')
+  await expect(hint).toBeVisible()
+
+  // Mitte der Kugel: oberer Teil der Zone (unten stehen Zahl und Makros).
+  const zone = (await page.getByRole('region', { name: 'Tagesübersicht' }).boundingBox())!
+  await page.mouse.click(zone.x + zone.width / 2, zone.y + 110)
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  await expect(day).toBeVisible()
+  await expect(day.getByRole('tab', { name: 'Heute' })).toHaveAttribute('aria-selected', 'true')
+  await expect(day.getByText('1874 kcal übrig')).toBeVisible()
+  await expect(hint).toHaveCount(0)
+
+  await day.getByRole('button', { name: /Ziel ändern/ }).click()
+  await expect(day.getByRole('tab', { name: 'Ziele' })).toHaveAttribute('aria-selected', 'true')
+  const kcal = day.getByRole('textbox', { name: 'Kalorien (kcal)' })
+  await expect(kcal).toHaveValue('2000')
+  // Umschalten behält die Eingabe, „Abbrechen“ verwirft sie.
+  await kcal.fill('1800')
+  await day.getByRole('tab', { name: 'Heute' }).click()
+  await day.getByRole('tab', { name: 'Ziele' }).click()
+  await expect(kcal).toHaveValue('1800')
+  await day.getByRole('button', { name: 'Abbrechen' }).click()
+  await expect(day.getByRole('tab', { name: 'Heute' })).toHaveAttribute('aria-selected', 'true')
+  await day.getByRole('tab', { name: 'Ziele' }).click()
+  await expect(kcal).toHaveValue('2000')
+  await day.getByRole('tab', { name: 'Heute' }).click()
+  await day.getByRole('button', { name: 'Schließen' }).click()
+  await expect(day).toHaveCount(0)
+
+  await page.reload()
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  await expect(hint).toHaveCount(0)
+})
+
+test('Aktivität: auf den Tagesbedarf zur Hälfte — Flamme +Bonus, eintragen, löschen; in den Zielen aufs Defizit', async ({ page, mock }) => {
+  logEntry(mock, {})
+  mock.insert('nutrition_goals', {
+    user_id: TEST_USER.id, kcal: 2000, protein_g: 110, carbs_g: 230, fat_g: 65, water_ml: 2000, hide_kcal: false,
+    activity_mode: 'budget', activity_share: 'half', activity_sources: ['health', 'training', 'manual'],
+  })
+  mock.insert('activity_logs', { user_id: TEST_USER.id, log_date: '2026-09-28', label: 'Laufen', minutes: 30, kcal: 320, created_at: '2026-09-28T07:00:00Z' })
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('img', { name: '126 von 2160 kcal gegessen' })).toBeVisible()
+
+  const chip = page.getByRole('button', { name: 'Aktiv 320 kcal, 160 kcal mehr fürs Tagesziel' })
+  await expect(chip).toHaveText('+160')
+  await chip.click()
+  const sheet = page.getByRole('dialog', { name: 'Aktivität' })
+  await expect(sheet.getByText('Angerechnet: zur Hälfte · +160 kcal aufs Tagesziel')).toBeVisible()
+  await expect(sheet.getByText('Nur in der App auf dem iPhone')).toBeVisible()
+
+  await sheet.getByRole('button', { name: 'Aktivität eintragen' }).click()
+  await sheet.getByLabel('Was').fill('Fahrrad zur Arbeit')
+  await sheet.getByLabel('Dauer (min)').fill('45')
+  await sheet.getByLabel('kcal', { exact: true }).fill('300')
+  await sheet.getByRole('button', { name: 'Eintragen', exact: true }).click()
+  await expect(sheet.getByText('Fahrrad zur Arbeit · 45 min')).toBeVisible()
+  await expect(sheet.getByText('+310 kcal aufs Tagesziel')).toBeVisible()
+  expect(mock.table('activity_logs')).toHaveLength(2)
+  await expect(page.getByRole('img', { name: '126 von 2310 kcal gegessen' })).toBeVisible()
+
+  await sheet.getByRole('button', { name: 'Laufen löschen' }).click()
+  await expect(sheet.getByText('Laufen · 30 min')).toHaveCount(0)
+  expect(mock.table('activity_logs')).toHaveLength(1)
+
+  await sheet.getByRole('button', { name: /In den Zielen ändern/ }).click()
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  await day.getByRole('radio', { name: 'Aufs Defizit' }).click()
+  await day.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect(page.getByRole('img', { name: '126 von 2000 kcal gegessen' })).toBeVisible()
+  expect(mock.table('nutrition_goals')[0]).toMatchObject({ activity_mode: 'deficit', activity_share: 'half' })
+  await expect(page.getByRole('button', { name: 'Aktiv 300 kcal, zählt aufs Defizit' })).toHaveText('300')
+})
+
+test('Nährstoffe: Lücken am Knopf und in „Dein Tag“, Wert im Detail, eigenes Ziel', async ({ page, mock }) => {
+  logEntry(mock, { kcal: 1500, fiber_g: 10, micros: { vitD: 2, vitC: 120, i: 50, mg: 300 } })
+  await page.goto('/ernaehrung')
+  // 1500 von 2000 kcal: der Tag ist weit genug für Lücken (Vitamin D, Jod, Ballaststoffe).
+  const button = page.getByRole('button', { name: /^Dein Tag/ })
+  await expect(button).toContainText('3')
+  await button.click()
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  await expect(day.getByText('Lücken · 3')).toBeVisible()
+  // Werte ohne Daten (z. B. Selen) zählen nicht als Lücke; Vitamin C ist im Ziel.
+  await day.getByRole('button', { name: /^Vitamin D/ }).first().click()
+
+  const detail = page.getByRole('dialog', { name: 'Vitamin D' })
+  await expect(detail.getByText('von 20 µg heute')).toBeVisible()
+  await expect(detail.getByText('Skyr Natur')).toBeVisible()
+  await expect(detail.getByText('Gute Quellen')).toBeVisible()
+  await detail.getByRole('button', { name: 'Mehr' }).click()
+  await detail.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect.poll(() => mock.table('nutrition_goals')[0]?.nutrient_goals).toEqual({ vitD: 21 })
+  await expect(detail.getByText('eigenes Ziel')).toBeVisible()
+  await detail.getByRole('button', { name: 'Auf Richtwert zurücksetzen' }).click()
+  await expect.poll(() => mock.table('nutrition_goals')[0]?.nutrient_goals).toEqual({})
+
+  await detail.getByRole('button', { name: 'Zurück zu deinem Tag' }).click()
+  await expect(page.getByRole('dialog', { name: 'Dein Tag' })).toBeVisible()
 })
 
 function ownFood(mock: MockSupabase, name: string, per100: { kcal: number; protein: number; carbs: number; fat: number }) {
@@ -823,7 +951,7 @@ test('Kugel bleibt oben: beim Scrollen sichtbar und gleich groß; Töne schaltet
   await expect(orb).toBeInViewport()
   await expect(page.getByRole('region', { name: 'Tagesübersicht' })).toHaveCSS('height', '316px')
 
-  await page.getByRole('button', { name: 'Ziele', exact: true }).click()
+  await openGoals(page)
   await page.getByLabel('Töne der Kalorien-Kugel').check()
   await page.getByRole('button', { name: 'Speichern', exact: true }).click()
   await expect.poll(() => page.evaluate(() => localStorage.getItem('tyd.orbSounds'))).toBe('on')

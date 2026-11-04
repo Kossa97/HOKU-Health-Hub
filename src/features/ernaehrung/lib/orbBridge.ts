@@ -79,3 +79,13 @@ export function setOrbBuehne(b: OrbBuehne) { buehne = b }
 /** Nur die eigene Bühne abmelden (eine neue Kugel kann sich schon angemeldet haben). */
 export function clearOrbBuehne(b: OrbBuehne) { if (buehne === b) buehne = null }
 export function orbBuehne(): OrbBuehne | null { return buehne }
+
+// ─── Tipp, der schon vergeben ist ─────────────────────────────────────
+// Ein Tipp während Hokus Rundflug kürzt nur den Flug ab; er soll nicht zusätzlich „Dein Tag“ öffnen.
+let tapTakenAt = -Infinity
+
+/** Dieser Tipp ist schon verbraucht (gerade abgekürzt). */
+export function takeOrbTap() { tapTakenAt = performance.now() }
+
+/** Wurde der laufende Tipp schon verbraucht? (pointerdown → pointerup dauert höchstens 400 ms) */
+export function orbTapTaken(): boolean { return performance.now() - tapTakenAt < 500 }

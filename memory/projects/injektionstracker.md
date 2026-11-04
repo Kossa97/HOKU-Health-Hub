@@ -72,10 +72,20 @@ oben). Haut bleibt im Originalmaterial. Licht in `src/lib/injectionStudioLook.ts
 vorn, schwaches kühles Fülllicht rechts, zwei kühle Kantenlichter seitlich
 hinten (zeichnen auch die Rückseite), weiche Spiegelungen aus lokal erzeugter
 RoomEnvironment (kein HDR aus dem Netz). Hintergrund Schwarz mit warmem
-Schein. Gilt für Karte und Vorschau-Karte auf Home. Pinköpfe leuchten
+Schein. Gilt für die Karte (die 3D-Vorschau auf Home ist seit 3.11.2026 entfernt: sie
+ließ den Übergang nach der Anmeldung stocken; Home zeigt eine Karte mit Knopf, Ersatz plant der Nutzer). Pinköpfe leuchten
 leicht. Kontaktschatten entfernt (auf Schwarz unsichtbar).
 Offen: Test auf echtem iPhone.
 
 22.10.2026, Look „Nacht“: nur die Kantenlichter getönt (links cyan, rechts
 violett), Bühne über `--inj-backdrop` in liquid-glass.css. Details in
 `erscheinungsbild.md`.
+
+03./04.11.2026 (Nutzer): **Hintergrund und Licht in jedem Erscheinungsbild gleich**
+(Studio-Schwarz mit warmem Schein, Studio-Licht); die eigenen Werte der Looks sind
+entfernt, ein Test wacht darüber (`src/lib/injectionStudioLook.test.ts`).
+**Hoku-Rundflug** beim Öffnen geplant: Pins der letzten 3 Tage, Kamera dreht mit,
+Sätze je Stelle + freie Stellen am Ende. Spezifikation:
+`docs/superpowers/specs/2026-11-04-hoku-injektion-rundflug-design.md`. Nächster
+Schritt: Live-Mockup mit echter Engine und echtem Torso, dann Bau.
+

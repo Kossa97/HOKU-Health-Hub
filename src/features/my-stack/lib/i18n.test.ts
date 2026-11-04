@@ -1445,28 +1445,34 @@ const EXPECTED_MY_STACK_KEYS = [
 // nennt den fuenften Look (nur de/en); look_instrument ist neu.
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Soft Dark" — look_hint
 // nennt den sechsten Look (nur de/en); look_softdark ist neu (englischer Platzhalter).
+// Bewusst ergaenzt (November 2026): Look „Papier" (Vorschau) — look_paper neu
+// (de „Papier", sonst englischer Platzhalter).
+// Bewusst geaendert (November 2026): Look „Frost" — look_frost neu (englischer
+// Platzhalter), look_hint nennt Frost (nur de/en).
+// Bewusst geaendert (November 2026): Looks Labor, Neon, Tiefsee, Obsidian — look_lab,
+// look_neon, look_deepsea, look_obsidian neu (englischer Platzhalter), look_hint (nur de/en).
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '5befc7efdc1cff3e4a96aa95868b8ecc65c5d347e85a64471039fe7d12d31781',
-  en: '0e4dced3d901c43d136ffad58759c6f6e352ec105ab6c6d38ae294ea88da75d4',
+  de: '216151df9a9889761b6c84857803916eaa0e84767e2dcef1747ebfc366c23b6a',
+  en: '07789df6d63bb8a91750cc8439702d1d3c63e6e4cc3ca3315a90e4aa1733ff5b',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'c1816eb597d260a3277317acf0a6dca8ac570cc85a6da4b88fd01cb62dc8c7f6',
-  es: '7790897d8e420182410e4a380d69ee1ef7b1902cd33c8dc2928560f92813fe81',
-  fr: 'a550f7843ea8f0de78ced7c66520444d5a48a24e3adb8090c9b492cf935311c8',
-  hi: '89f31d44b0d5d5d3eab94e0971201b87c348c4134a79ea0465893d0301feab69',
-  id: '7fd0e4f3ff6df1373b528a26922f238cfa3a151b8494718a8319da5faf476fab',
-  it: '47c857bc9d09f153ab62a99446aa7761525dc1728ca1a4837d3daf32968d7da0',
-  ja: 'b031a41234e9d2764c04cdef5cc069f7d79319c5d83a8679949a4f79fa03b413',
-  ko: '044fa10c19d0945e58f48734155211fbb8097bc7ed1ae1ef26d88a712640ce97',
-  pt: '2078c1651d3de78196be1b253d7785214623aadda9cc6cccd18fd0ff54fffec4',
-  ru: 'adb6c23a2036f1ed33bc6315f8ffb5452a52d3027261f4954e7bcce3487fe860',
-  tr: '23c591ce245b447540ee910978df28c3210f48c15b9ba1c47d520aca3dc16f0a',
-  zh: '03dff22839631b41183d83a7bb42b3ee486ea4e7ca5e47b1cc8a18bf7ff53d08',
+  ar: '78895adc77e2fe13c545f4f841078f215fc2b3fd8e3ac0d13918d591e6d814d5',
+  es: '7e58f91fa20ea7d226d445d42c4ca1322befaee7a530d94d8dd1ba46db7dca03',
+  fr: '6c154c0ef74b1ef0490c720f106872bf964b669fd6e266ab6e2d9612e83dccd6',
+  hi: '0ff708fad9ab724c494d13baa80686326b94f9a59636dda404c25a34f4e2c3a4',
+  id: 'fb68d5fa70e759abac8cf4578a4225d262936ddc41895ac17f10de2a05a1ed23',
+  it: '45762a62dfdc008844446929d2631ce7007ba87c4745106a2ef7ca13c1c9e5e2',
+  ja: 'b759b9acc4a4aedf6037c118fae599778cc162cc48e1995e9b2ece62d4c0072a',
+  ko: '94cb29df61437c9115e3a06bd16bb8ff0674970143ef571ea5a4802d6c058dd6',
+  pt: '2bbbca607113c20920f2e84cf4e5dd5023c19c15e4b8777fa112c6671894631f',
+  ru: '558a9d18d59094e5ed09c5eb58345e0a1d598b1429b31e4cb2fab0de629b14c8',
+  tr: '7b6ddc4b08147c3705d603860170de007eb1bfad869ae6a128fbf9b7cb1e678a',
+  zh: '0737973a3fe4155e6b1eebb2efe7779af28c09554adfefa2da0e9c091adebedf',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 
