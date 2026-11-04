@@ -212,6 +212,18 @@ button.tchip .ic { width: 11px; height: 11px; margin-right: -3px; opacity: .8; }
 .phone .seg button { color: var(--a-t2); font-family: var(--app); }
 .phone .seg button[aria-pressed="true"] { background: var(--a-text); color: var(--a-bg); }
 .hidden-note { margin: 12px 22px 0; font-size: 12px; color: var(--a-t3); }
+/* Rueckfrage im Moment, wer den Titel sehen soll (Standard Nur ich) */
+.c-ask { margin-top: 16px; display: grid; justify-items: center; gap: 8px; font-size: 12.5px; color: var(--a-t2); }
+.c-ask .seg { background: rgba(255,255,255,.07); border-color: var(--a-hair); }
+/* Bestaetigung fuer persoenliche Titel (Einwilligung, Art. 9 DSGVO) */
+.cdlg { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 22px; background: var(--a-scrim); }
+.cdlg .card { margin: 0; display: grid; gap: 10px; max-width: 320px; }
+.cdlg h5 { margin: 0; font: 600 17px var(--disp); }
+.cdlg p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--a-t2); }
+.cdlg p b { color: var(--a-text); font-weight: 600; }
+.cdlg .btns { display: grid; gap: 8px; margin-top: 4px; }
+.prow .cap { font-size: 11.5px; color: var(--a-t3); margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+.prow .cap .ic { width: 12px; height: 12px; }
 /* Popover bei Freunden und App-Nutzern: Was ist das fuer ein Titel? */
 .tc-wrap { position: relative; display: inline-flex; }
 .tpop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 3; width: 236px; max-width: 64vw; padding: 10px 12px; border-radius: 14px; background: var(--a-pop); box-shadow: 0 12px 30px rgba(0,0,0,.45), inset 0 0 0 1px var(--a-hair);
@@ -402,9 +414,9 @@ button.prow:active .pn { opacity: .7; }
 <div class="page" lang="de">
 
   <header class="top">
-    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 3 · 03.11.2026</div>
+    <div class="eyebrow">Profil · Zusatz nach 2c · Titel · Entwurf 4 · 04.11.2026</div>
     <h1>Titel neben dem Namen</h1>
-    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder ein <b>Abzeichen</b>, das du dir verdient hast und das einen Titelnamen trägt. Einmal erreicht, für immer. Wer ihn sieht, regelt die Stufe wie bei jedem Feld aus 2a: <b>Nur ich, Freunde oder Alle</b>, ab Werk Alle.</p>
+    <p class="lead">Genau ein Titel steht neben deinem Namen: dein <b>Rang</b>, der mit den Tagen wächst, an denen du selbst etwas einträgst, oder ein <b>Abzeichen</b>, das du dir verdient hast und das einen Titelnamen trägt. Einmal erreicht, für immer. Wer ihn sieht, regelt die Stufe wie bei jedem Feld aus 2a: <b>Nur ich, Freunde oder Alle</b>, ab Werk Nur ich. Die erste Rang-Feier fragt, wer ihn sehen soll.</p>
     <div class="ctlbar" role="group" aria-label="Steuerung für alle Ansichten">
       <div class="ctl-grid">
         <div class="ctl">
@@ -424,7 +436,7 @@ button.prow:active .pn { opacity: .7; }
         <div class="ctl">
           <span class="lbl-s" id="visLbl">Titel sichtbar für</span>
           <div class="seg" role="group" aria-labelledby="visLbl">
-            <button type="button" data-vis="me" aria-pressed="false">Nur ich</button><button type="button" data-vis="friends" aria-pressed="false">Freunde</button><button type="button" data-vis="all" aria-pressed="true">Alle</button>
+            <button type="button" data-vis="me" aria-pressed="true">Nur ich</button><button type="button" data-vis="friends" aria-pressed="false">Freunde</button><button type="button" data-vis="all" aria-pressed="false">Alle</button>
           </div>
           <p class="help" id="visState"></p>
         </div>
@@ -532,8 +544,8 @@ button.prow:active .pn { opacity: .7; }
           <thead><tr><th>Ab Tag</th><th>Deutsch</th><th>Englisch</th><th>Mara</th></tr></thead>
           <tbody id="rankTab"></tbody></table></div>
         <p>Gezählt werden Tage mit eigenem Eintrag (<code>BadgeFacts.entryDays</code>), keine automatisch übertragenen Wearable-Tage. Die Tage müssen nicht am Stück liegen.</p></div>
-      <div class="box"><h3>Nie als Titel</h3>
-        <p>Ein Titel steht im Web und auf der Link-Karte. Er darf deshalb nichts verraten, das sonst ein eigenes Feld mit strengerer Stufe hat (Standard „Nur ich“).</p>
+      <div class="box"><h3>Persönliche Titel</h3>
+        <p>Ein Titel steht im Web und auf der Link-Karte. Titel aus Körper-, Gewichts-, Blut-, Puls-, Einnahme- und Berichtsdaten gibt es, aber nur so:</p>
         <ul class="never" id="neverList"></ul></div>
       <div class="box wide"><h3>Abzeichen mit Titelnamen</h3>
         <div class="tbl-wrap"><table class="tab">
@@ -542,11 +554,10 @@ button.prow:active .pn { opacity: .7; }
       <div class="box wide"><h3>Offene Fragen</h3>
         <ol>
           <li><b>Titelnamen bestätigen</b> (Tabelle oben).</li>
-          <li><b>Schwellen der Sportarten:</b> 50 Läufe, 50 Radeinheiten, 30 Schwimm- und Rudereinheiten, 25 Wanderungen, 20 Hyrox, 50 HIIT, 50 Yoga/Mobility, Allrounder 5 Arten mit je 10.</li>
-          <li><b>Feier auch für neue Abzeichen-Titel?</b> Vorschlag: derselbe Moment mit „Neuer Titel freigeschaltet“ und „Als Titel tragen“ / „Später“.</li>
-          <li><b>Standard „Alle“</b> juristisch freigeben lassen: Alle anderen Felder stehen ab Werk auf „Nur ich“ (Art. 25 DSGVO).</li>
+          <li><b>Stufen der Sportarten bestätigen:</b> Namen und Zahlen in der Tabelle (je drei Stufen).</li>
+          <li><b>Persönliche Titel juristisch prüfen:</b> Text der Bestätigung (Einwilligung nach Art. 9 DSGVO) und neutrale Titelnamen (App-Store-Richtlinien zu Substanzen).</li>
           <li><b>Erster Start für bestehende Nutzer:</b> nur der aktuelle Rang mit einem Moment, keine Feier für jede Zwischenstufe.</li>
-          <li><b>Entschieden:</b> Rang nach Tagen mit eigenem Eintrag, zusammengezählt (1 · 10 · 50 · 100 · 200 · 365). Einstieg ins Sheet über den Chip und über Profil › ⚙︎ › Titel. Sichtbarkeit als Feld, Standard „Alle“.</li>
+          <li><b>Entschieden:</b> Rang nach Tagen mit eigenem Eintrag, zusammengezählt (1 · 10 · 50 · 100 · 200 · 365). Einstieg ins Sheet über den Chip und über Profil › ⚙︎ › Titel. Sichtbarkeit als Feld, Standard „Nur ich“, die erste Rang-Feier fragt nach. Feier auch für neue Abzeichen-Titel. Stufen je Sportart.</li>
         </ol></div>
     </div>
   </section>
@@ -592,28 +603,53 @@ const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').match
 // Rang: Tage mit eigenem Eintrag (BadgeFacts.entryDays)
 const RANKS = [
   { d: 1, de: 'Neuling', en: 'Newcomer' }, { d: 10, de: 'Entdecker', en: 'Explorer' }, { d: 50, de: 'Dranbleiber', en: 'Committed' },
-  { d: 100, de: 'Routinier', en: 'Regular' }, { d: 200, de: 'Veteran', en: 'Veteran' }, { d: 365, de: 'Legende', en: 'Legend' },
+  { d: 100, de: 'Routinier', en: 'Steady' }, { d: 200, de: 'Veteran', en: 'Veteran' }, { d: 365, de: 'Legende', en: 'Legend' },
 ];
 // Praegungen: an Abzeichen aus 2b gekoppelt. have = Maras Stand (erfunden).
 // Abzeichen mit Titelnamen (tragbar). cond = Name des Abzeichens, have = Maras Stand (erfunden).
 const PR = [
   { id: 'tier', de: 'Trainingstier', en: 'Workhorse', icon: 'dumbbell', need: 100, have: 112, cond: '100 Workouts', unit: 'Workouts', origin: 'aus 2b' },
-  { id: 'lauf', de: 'Läufer', en: 'Runner', icon: 'steps', need: 50, have: 54, cond: '50 Läufe', unit: 'Läufe', origin: 'neu · Sportart, auch importiert' },
+  { id: 'lauf', icon: 'steps', have: 54, unit: 'Läufe', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Hobbyläufer', 'Hobby Runner'], [50, 'Läufer', 'Runner'], [150, 'Ausdauerläufer', 'Endurance Runner']] },
   { id: 'schritt', de: 'Schrittmacher', en: 'Pacesetter', icon: 'steps', need: 12, have: 14, cond: '12 Wochen Ø ≥ 10.000 Schritte', unit: 'Wochen', origin: 'neu', done: h => `${h} Wochen mit Ø ≥ 10.000 Schritten` },
   { id: 'daten', de: 'Datenprofi', en: 'Data Pro', icon: 'note', need: 1000, have: 1240, cond: '1.000 Einträge', unit: 'Einträge', origin: 'neu · Zählung kommt mit 2c' },
   { id: 'kraft', de: 'Kraftpaket', en: 'Powerhouse', icon: 'trophy', need: 25, have: 18, cond: '25 Bestleistungen', unit: 'Bestleistungen', origin: 'neu' },
   { id: 'unauf', de: 'Unaufhaltsam', en: 'Unstoppable', icon: 'flame', need: 100, have: 41, cond: '100 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
   { id: 'eisern', de: 'Eiserner Wille', en: 'Iron Will', icon: 'flame', need: 365, have: 41, cond: '365 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
   { id: 'jahr', de: 'Ganzjahres-Athlet', en: 'Year-Round Athlete', icon: 'dumbbell', need: 52, have: 19, cond: '52 Wochen Training in Folge', unit: 'Wochen in Folge', origin: 'aus 2b' },
-  { id: 'hybrid', de: 'Hybrid-Athlet', en: 'Hybrid Athlete', icon: 'bolt', need: 20, have: 6, cond: '20 Hyrox-Einheiten', unit: 'Hyrox-Einheiten', origin: 'neu · Sportart, auch importiert' },
-  { id: 'rad', de: 'Radsportler', en: 'Cyclist', icon: 'bolt', need: 50, have: 9, cond: '50 Radeinheiten', unit: 'Radeinheiten', origin: 'neu · Sportart, auch importiert' },
-  { id: 'schwimm', de: 'Schwimmer', en: 'Swimmer', icon: 'drop', need: 30, have: 4, cond: '30 Schwimmeinheiten', unit: 'Schwimmeinheiten', origin: 'neu · Sportart, auch importiert' },
-  { id: 'ruder', de: 'Ruderer', en: 'Rower', icon: 'bolt', need: 30, have: 0, cond: '30 Rudereinheiten', unit: 'Rudereinheiten', origin: 'neu · Sportart, auch importiert' },
-  { id: 'wander', de: 'Wanderer', en: 'Hiker', icon: 'steps', need: 25, have: 3, cond: '25 Wanderungen', unit: 'Wanderungen', origin: 'neu · Sportart, auch importiert' },
-  { id: 'hiit', de: 'Intervall-Profi', en: 'Interval Pro', icon: 'bolt', need: 50, have: 12, cond: '50 HIIT-Einheiten', unit: 'HIIT-Einheiten', origin: 'neu · Sportart, auch importiert' },
-  { id: 'yogi', de: 'Yogi', en: 'Yogi', icon: 'moon', need: 50, have: 7, cond: '50 Yoga- oder Mobility-Einheiten', unit: 'Einheiten', origin: 'neu · Sportart, auch importiert' },
+  { id: 'hybrid', icon: 'bolt', have: 6, unit: 'Hyrox-Einheiten', origin: 'neu · Sportart, auch importiert', tiers: [[5, 'Hyrox-Starter', 'Hyrox Starter'], [20, 'Hybrid-Athlet', 'Hybrid Athlete'], [60, 'Hyrox-Veteran', 'Hyrox Veteran']] },
+  { id: 'rad', icon: 'bolt', have: 9, unit: 'Radeinheiten', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Gelegenheitsradler', 'Casual Cyclist'], [50, 'Radsportler', 'Cyclist'], [150, 'Kilometerfresser', 'Road Warrior']] },
+  { id: 'schwimm', icon: 'drop', have: 4, unit: 'Schwimmeinheiten', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Schwimmfreund', 'Swim Fan'], [30, 'Schwimmer', 'Swimmer'], [100, 'Bahnenzieher', 'Lap Master']] },
+  { id: 'ruder', icon: 'bolt', have: 0, unit: 'Rudereinheiten', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Ruderfreund', 'Rowing Fan'], [30, 'Ruderer', 'Rower'], [100, 'Schlagmann', 'Stroke Master']] },
+  { id: 'wander', icon: 'steps', have: 3, unit: 'Wanderungen', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Wanderfreund', 'Trail Friend'], [25, 'Wanderer', 'Hiker'], [75, 'Gipfelstürmer', 'Summit Seeker']] },
+  { id: 'hiit', icon: 'bolt', have: 12, unit: 'HIIT-Einheiten', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Intervall-Starter', 'Interval Starter'], [50, 'Intervall-Profi', 'Interval Pro'], [150, 'Pulsjäger', 'Pulse Chaser']] },
+  { id: 'yogi', icon: 'moon', have: 7, unit: 'Yoga-/Mobility-Einheiten', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Yoga-Einsteiger', 'Yoga Beginner'], [50, 'Yogi', 'Yogi'], [150, 'Zen-Meister', 'Zen Master']] },
   { id: 'allround', de: 'Allrounder', en: 'All-Rounder', icon: 'trophy', need: 5, have: 3, cond: '5 Sportarten mit je ≥ 10 Einheiten', unit: 'Sportarten', origin: 'neu' },
   { id: 'motiv', de: 'Motivator', en: 'Motivator', icon: 'people', need: 10, have: 2, cond: '10 Freunde', unit: 'Freunde', origin: 'aus 2b · kommt mit Freunden' },
+];
+// Stufen je Sportart: aktueller Name = hoechste erreichte Stufe, sonst die erste
+PR.forEach(p => {
+  if (!p.tiers) return;
+  const T = p.tiers.map(([n, de, en]) => ({ n, de, en })), lvl = T.filter(x => p.have >= x.n).length, cur = T[Math.max(0, lvl - 1)];
+  Object.assign(p, { T, lvl, next: T[lvl] || null, de: cur.de, en: cur.en, need: cur.n, condNow: `${fmt(cur.n)} ${p.unit}`,
+    cond: T.map(x => `${x.de} ${fmt(x.n)}`).join(' · ') + ` ${p.unit}` });
+});
+// Persoenliche Titel: ab Werk aus, je Titel bestaetigen, nie sichtbarer als das zugehoerige Feld (Maras Stufen erfunden)
+const PS = [
+  { id: 'form', de: 'In Form', en: 'In Shape', icon: 'ruler', cond: '−5 % Körperfett', field: 'Körperfett', src: 'friends', got: true, tell: 'dass du dein Körperfett um mindestens 5 % gesenkt hast' },
+  { id: 'aufkurs', de: 'Im Aufwind', en: 'On the Rise', icon: 'trend', cond: 'Gesamtfortschritt +25 %', field: 'Gesamtfortschritt', src: 'friends', got: true, tell: 'dass dein Gesamtfortschritt über 25 % liegt' },
+  { id: 'leicht', de: 'Leichter unterwegs', en: 'Lighter Steps', icon: 'scale', cond: '−5 % Gewicht', field: 'Gewicht', src: 'me', got: true, tell: 'dass du mindestens 5 % Gewicht verloren hast' },
+  { id: 'werte', de: 'Werte-Kenner', en: 'Lab Regular', icon: 'drop', cond: 'Erstes Blutbild', field: 'Blutwerte', src: 'me', got: true, tell: 'dass du Blutbilder in Hoku einträgst' },
+  { id: 'konsequent', de: 'Konsequent', en: 'Consistent', icon: 'pill', cond: '30 Tage alle Einnahmen bestätigt', field: 'Einnahmen', src: 'me', got: true, tell: 'dass du regelmäßig etwas einnimmst und es bestätigst' },
+  { id: 'gruen', de: 'Im grünen Bereich', en: 'In the Green', icon: 'drop', cond: 'Alle Blutwerte im Zielbereich', field: 'Blutwerte', src: 'me', got: false },
+  { id: 'ruhe', de: 'Ruhepol', en: 'Calm Heart', icon: 'pulse', cond: 'Ruhepuls −5 bpm', field: 'Ruhepuls', src: 'me', got: false },
+  { id: 'durch', de: 'Durchgezogen', en: 'Saw It Through', icon: 'pill', cond: 'Erster Zyklus abgeschlossen', field: 'Einnahmen', src: 'me', got: false },
+  { id: 'bericht', de: 'Berichterstatter', en: 'Reporter', icon: 'note', cond: 'Erster Erfahrungsbericht', field: 'Erfahrungsberichte', src: 'me', got: false },
+];
+const RULES_P = [
+  ['lock', 'Ab Werk aus', 'Persönliche Titel erscheinen erst, wenn man sie im Sheet „Dein Titel“ erlaubt.'],
+  ['check', 'Bestätigen je Titel', 'Vor dem ersten Tragen sagt Hoku, was der Titel verrät, und fragt „Trotzdem tragen“. Das ist die Einwilligung nach Art. 9 DSGVO; zurücknehmen geht jederzeit.'],
+  ['people', 'Nie sichtbarer als das Feld', 'Der Titel ist höchstens so sichtbar wie das zugehörige Feld. Steht Körperfett auf „Freunde“, sehen App-Nutzer und das Web „In Form“ nicht, auch wenn der Titel auf „Alle“ steht.'],
+  ['note', 'Neutrale Namen', 'Kein Bezug auf Substanzen oder Körperideale („Konsequent“ statt „Stack-Profi“). Apple und Google lehnen Apps ab, die Substanzkonsum verherrlichen.'],
 ];
 const NEVER = [
   ['ruler', 'Körperwerte', 'Körperfett, Muskelmasse, Umfänge: Gesundheitsdaten nach Art. 9 DSGVO, die im Web offen stünden. Laden außerdem zum Vergleichen von Körpern ein.'],
@@ -626,11 +662,14 @@ const NEVER = [
 const PERSON = { name: 'Mara K.', vor: 'Mara', nick: 'mara', land: '🇩🇪 DE', dabei: 'Seit 7 Monaten dabei', eintraege: 1240, abz: 16,
   bio: 'Kraftsport seit 2019, seit März im Recomp. Hier halte ich fest, was ich trainiere und wie ich schlafe.', tags: ['Recomp', 'Kraft', 'Schlaf & Erholung'] };
 
-const st = { days: 150, worn: 'rang', vis: 'all', sheet: true, cw: 'praeg', played: false };
+const st = { days: 150, worn: 'rang', vis: 'me', sheet: true, cw: 'praeg', played: false, pers: false, ok: [], pending: null };
 // Wer den Titel sieht (Web-Link an, Profil nicht privat angenommen)
 const VIS = { me: 'Nur ich', friends: 'Freunde', all: 'Alle' };
 const VIS_ORDER = ['me', 'friends', 'all'];
-const seen = mode => mode === 'own' || (mode === 'friend' ? st.vis !== 'me' : st.vis === 'all');
+const visRank = v => VIS_ORDER.indexOf(v);
+// Persoenliche Titel: hoechstens so sichtbar wie das Feld, aus dem sie kommen
+const effVis = () => { const w = worn(); return w && w.kind === 'persönlich' && visRank(w.s.src) < visRank(st.vis) ? w.s.src : st.vis; };
+const seen = mode => mode === 'own' || (mode === 'friend' ? effVis() !== 'me' : effVis() === 'all');
 const visIcon = () => st.vis === 'me' ? 'lock' : 'people';
 let committed = 3;                 // Rang-Index beim letzten Loslassen des Reglers
 
@@ -646,13 +685,15 @@ function nextInfo() {
 function worn() {
   if (st.worn === 'rang') { const r = rankNow(); return r ? { de: r.de, en: r.en, kind: 'Rang', r } : null; }
   const p = PR.find(x => x.id === st.worn);
-  return p && earned(p) ? { de: p.de, en: p.en, kind: 'Abzeichen', p } : null;
+  if (p) return earned(p) ? { de: p.de, en: p.en, kind: 'Abzeichen', p } : null;
+  const s = PS.find(x => x.id === st.worn);
+  return s && s.got && st.pers ? { de: s.de, en: s.en, kind: 'persönlich', s } : null;
 }
 const tageDe = n => `${fmt(n)} ${n === 1 ? 'Tag' : 'Tagen'}`;
 const restDe = n => `${fmt(n)} ${n === 1 ? 'Tag' : 'Tage'}`;
 const prDone = p => p.done ? p.done(p.have) : `${fmt(p.have)} ${p.unit}`;
 const prLeft = p => `${fmt(p.have)}/${fmt(p.need)} ${p.unit}`;
-const whatIs = w => w.kind === 'Rang' ? `Rang ab ${tageDe(w.r.d)} mit eigenem Eintrag` : `Titel aus dem Abzeichen „${w.p.cond}“`;
+const whatIs = w => w.kind === 'Rang' ? `Rang ab ${tageDe(w.r.d)} mit eigenem Eintrag` : w.kind === 'persönlich' ? `persönlicher Titel aus „${w.s.cond}“` : `Titel aus dem Abzeichen „${w.p.condNow || w.p.cond}“`;
 
 // ── Gemeinsame Teile ──
 const statusbar = `<div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>`;
@@ -745,7 +786,7 @@ function sheetBody() {
   const ern = PR.filter(earned), opn = PR.filter(p => !earned(p)).sort((x, y) => y.have / y.need - x.have / x.need);
   const opnShow = opn.slice(0, 5);
   const eRows = ern.map(p => `<button type="button" class="prow" role="radio" aria-checked="${st.worn === p.id}" data-wear="${p.id}">
-      <span class="pi" aria-hidden="true">${ic(p.icon)}</span><div><div class="pn">${p.de}<small>${p.en}</small></div><div class="ps">${prDone(p)} · verdient</div></div><span class="radio" aria-hidden="true"></span></button>`).join('');
+      <span class="pi" aria-hidden="true">${ic(p.icon)}</span><div><div class="pn">${p.de}<small>${p.en}</small></div><div class="ps">${prDone(p)} · ${p.T ? `Stufe ${p.lvl} von 3${p.next ? ` · ${p.next.de} ab ${fmt(p.next.n)}` : ''}` : 'verdient'}</div></div><span class="radio" aria-hidden="true"></span></button>`).join('');
   const oRows = opnShow.map(p => `<div class="prow lock" aria-disabled="true">
       <span class="pi" aria-hidden="true">${ic(p.icon)}</span><div><div class="pn">${p.de}<small>${p.en}</small></div>
       <div class="pbar"><span class="tr" aria-hidden="true"><i style="width:${Math.min(100, p.have / p.need * 100).toFixed(0)}%"></i></span><span>${prLeft(p)}${p.extra ? ' · ' + p.extra : ''}</span></div></div>
@@ -757,6 +798,13 @@ function sheetBody() {
     <div class="list" role="radiogroup" aria-label="Titel tragen: aus Abzeichen">${eRows}</div>
     <div class="grp"><span>Noch offen · am nächsten dran</span><span>${opn.length}</span></div>
     <div class="list">${oRows}</div>
+    <div class="grp"><span>Persönliche Titel</span><span>ab Werk aus</span></div>
+    <div class="list"><div class="srow"><div><div class="pn" id="persL">Persönliche Titel erlauben</div><div class="ps">Aus Körperwerten, Gewicht, Blut, Ruhepuls, Einnahmen, Berichten und Gesamtfortschritt. Höchstens so sichtbar wie das zugehörige Feld.</div></div>
+      <button type="button" class="sw" role="switch" aria-checked="${st.pers}" aria-labelledby="persL" data-act="pers"></button></div>
+      ${st.pers ? PS.filter(s => s.got).map(s => `<button type="button" class="prow" role="radio" aria-checked="${st.worn === s.id}" data-wears="${s.id}">
+        <span class="pi" aria-hidden="true">${ic(s.icon)}</span><div><div class="pn">${s.de}<small>${s.en}</small></div><div class="ps">${s.cond} · verdient</div>
+        <div class="cap">${ic(s.src === 'me' ? 'lock' : 'people', 2)}höchstens ${VIS[s.src]}, wie dein Feld ${s.field}${st.ok.includes(s.id) ? ' · bestätigt' : ''}</div></div><span class="radio" aria-hidden="true"></span></button>`).join('')
+        + `<div class="prow" style="grid-template-columns:minmax(0,1fr)"><div class="ps">${PS.filter(s => !s.got).length} weitere noch offen</div></div>` : ''}</div>
     <div class="grp"><span>Sichtbar für</span><span></span></div>
     <div class="list"><div class="srow"><div><div class="pn">Wer deinen Titel sieht</div><div class="ps">Wie bei jedem Feld deines Profils. Auf „Alle“ steht er auch im Web und auf der Link-Karte, wenn dein Web-Link an ist.</div></div></div>
       <div style="padding: 0 0 12px"><div class="seg" role="group" aria-label="Titel sichtbar für">${VIS_ORDER.map(k => `<button type="button" data-vis="${k}" aria-pressed="${st.vis === k}">${VIS[k]}</button>`).join('')}</div></div></div>
@@ -774,6 +822,14 @@ function renderSheetPhone() {
   }
   $('#sheetBgProfile').innerHTML = ownProfile();
   $('#sheetBgProfile').toggleAttribute('inert', st.sheet);
+  let host = $('#cdlgHost');
+  if (!host) { host = document.createElement('div'); host.id = 'cdlgHost'; $('#sheetWrap').appendChild(host); }
+  const s = st.pending && PS.find(x => x.id === st.pending);
+  host.innerHTML = s ? `<div class="cdlg" role="alertdialog" aria-labelledby="cdlgH" aria-describedby="cdlgT"><div class="card">
+      <h5 id="cdlgH">„${s.de}“ tragen?</h5>
+      <p id="cdlgT">Dieser Titel zeigt anderen, <b>${s.tell}</b>. Das ist ein Gesundheitsdatum. Sichtbar ist er höchstens wie dein Feld ${s.field}: <b>${VIS[s.src]}</b>.</p>
+      <p>Du kannst das jederzeit zurücknehmen: anderen Titel wählen oder persönliche Titel ausschalten.</p>
+      <div class="btns"><button type="button" class="btn" data-act="consent">Trotzdem tragen</button><button type="button" class="btn ghost" data-act="cancelc">Abbrechen</button></div></div></div>` : '';
   const sc = $('#sheetScroll'), y = sc.scrollTop;
   sc.innerHTML = sheetBody(); sc.scrollTop = y;
 }
@@ -805,6 +861,7 @@ function momentScreen() {
         <p class="c-line" id="cLine"></p>
         <p class="c-sub" id="cSub"></p>
         <div class="c-steps" id="cSteps" aria-hidden="true"></div>
+        <div class="c-ask" id="cAsk"></div>
       </div>
       <div class="c-btns" id="cBtns"></div>
     </div>
@@ -821,6 +878,7 @@ function renderCelebText() {
   $('#cSub').innerHTML = `<span class="n">${fmt(r.d)}</span> ${r.d === 1 ? 'Tag' : 'Tage'}, an ${r.d === 1 ? 'dem' : 'denen'} du selbst etwas eingetragen hast.` +
     (st.cw === 'praeg' ? ` Du trägst gerade ${wornP.de}.` : ' Dein Rang steht ab jetzt neben deinem Namen.');
   $('#cSteps').innerHTML = RANKS.map((_, k) => `<i class="${k < i ? 'on' : k === i ? 'new' : ''}"></i>`).join('');
+  $('#cAsk').innerHTML = `<span>Wer soll deinen Titel sehen?</span><div class="seg" role="group" aria-label="Titel sichtbar für">${VIS_ORDER.map(k => `<button type="button" data-vis="${k}" aria-pressed="${st.vis === k}">${VIS[k]}</button>`).join('')}</div>`;
   $('#cBtns').innerHTML = st.cw === 'praeg'
     ? `<button type="button" class="btn" data-act="cwear">Als Titel tragen</button><button type="button" class="btn ghost" data-act="cclose">Später</button>`
     : `<button type="button" class="btn" data-act="cclose">Fertig</button><button type="button" class="btn ghost" data-act="cview">Titel ansehen</button>`;
@@ -882,9 +940,10 @@ function renderCtl() {
     .concat(PR.map(p => earned(p)
       ? `<option value="${p.id}"${st.worn === p.id ? ' selected' : ''}>Abzeichen · ${p.de}</option>`
       : `<option value="${p.id}" disabled>Abzeichen · ${p.de} (${prLeft(p)})</option>`));
+  if (st.pers) PS.filter(s => s.got).forEach(s => opts.push(`<option value="${s.id}"${st.worn === s.id ? ' selected' : ''}>Persönlich · ${s.de}${st.ok.includes(s.id) ? '' : ' (bestätigen im Sheet)'}</option>`));
   $('#wornSel').innerHTML = opts.join('');
   document.querySelectorAll('[data-vis]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vis === st.vis)));
-  $('#visState').textContent = st.vis === 'me' ? 'Nur in deinem Profil.' : st.vis === 'friends' ? 'Du und Freunde. Andere App-Nutzer und das Web sehen ihn nicht.' : 'Freunde, alle App-Nutzer, Web und Link-Karte (Standard).';
+  $('#visState').textContent = st.vis === 'me' ? 'Nur in deinem Profil (Standard).' : st.vis === 'friends' ? 'Du und Freunde. Andere App-Nutzer und das Web sehen ihn nicht.' : 'Freunde, alle App-Nutzer, Web und Link-Karte.';
 }
 function renderTicks() {
   $('#ticks').innerHTML = [50, 100, 200, 365].map(d => `<span style="left:${(d / 400 * 100).toFixed(2)}%">${d}</span>`).join('');
@@ -895,9 +954,10 @@ function renderTables() {
     const s = k < i ? 'erreicht' : k === i ? 'aktuell' : k === i + 1 ? `noch ${restDe(r.d - st.days)}` : '–';
     return `<tr class="${k === i ? 'cur' : ''}"><td class="num">${fmt(r.d)}</td><td><b>${r.de}</b></td><td>${r.en}</td><td class="st ${k === i ? 'now' : ''}">${s}</td></tr>`;
   }).join('');
-  $('#prTab').innerHTML = PR.map(p => `<tr><td>${p.cond}</td><td><b>${p.de}</b></td><td>${p.en}</td><td>${p.origin}</td>
-    <td class="st">${earned(p) ? 'verdient' : prLeft(p).replace(' ' + p.unit, '')}</td></tr>`).join('');
-  $('#neverList').innerHTML = NEVER.map(([k, n, t]) => `<li>${ic(k)}<span><b>${n}.</b> ${t}</span></li>`).join('');
+  $('#prTab').innerHTML = PR.map(p => `<tr><td>${p.cond}</td><td><b>${p.de}</b>${p.T ? `<small>Stufe ${p.lvl} von 3</small>` : ''}</td><td>${p.en}</td><td>${p.origin}</td>
+    <td class="st">${earned(p) ? 'verdient' : prLeft(p).replace(' ' + p.unit, '')}</td></tr>`).join('')
+    + PS.map(s => `<tr><td>${s.cond}</td><td><b>${s.de}</b></td><td>${s.en}</td><td>persönlich · höchstens wie Feld ${s.field}</td><td class="st">${s.got ? 'verdient' : '–'}</td></tr>`).join('');
+  $('#neverList').innerHTML = RULES_P.map(([k, n, t]) => `<li>${ic(k)}<span><b>${n}.</b> ${t}</span></li>`).join('');
 }
 function renderViews() {
   $('#ownPhone').innerHTML = ownProfile();
@@ -932,12 +992,16 @@ range.addEventListener('change', () => {
   } else $('#cross').textContent = '';
   committed = i;
 });
-$('#wornSel').addEventListener('change', e => { st.worn = e.target.value; renderAll(); });
+$('#wornSel').addEventListener('change', e => { const v = e.target.value; if (PS.some(s => s.id === v) && !st.ok.includes(v)) { st.pending = v; setSheet(true, false); $('#sheet').scrollIntoView({ behavior: 'smooth', block: 'start' }); } else st.worn = v; renderAll(); });
 
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
   const act = t.dataset.act;
   if (t.dataset.wear) { st.worn = t.dataset.wear; renderAll(); return; }
+  if (t.dataset.wears) { const id = t.dataset.wears; if (st.ok.includes(id)) st.worn = id; else st.pending = id; renderAll(); return; }
+  if (act === 'pers') { st.pers = !st.pers; if (!st.pers && PS.some(s => s.id === st.worn)) st.worn = 'rang'; renderAll(); return; }
+  if (act === 'consent') { st.ok.push(st.pending); st.worn = st.pending; st.pending = null; renderAll(); return; }
+  if (act === 'cancelc') { st.pending = null; renderAll(); return; }
   if (t.dataset.cw) { st.cw = t.dataset.cw; renderCelebText(); return; }
   if (t.dataset.vis) { st.vis = t.dataset.vis; renderAll(); return; }
   if (act === 'viscycle') { st.vis = VIS_ORDER[(VIS_ORDER.indexOf(st.vis) + 1) % 3]; renderAll(); return; }

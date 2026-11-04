@@ -64,3 +64,9 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
 - Wünscht **Stufen je Sportart** (z. B. Amateurwanderer → … ), Vorschlag folgt.
 - Fragt: Titel-Standard „Nur ich“ statt „Alle“ (löst Art. 25). Und: **sensible Abzeichen (Körper, Gewicht, Blut,
   Ruhepuls, Einnahmen, Berichte, Gesamtfortschritt) doch tragbar, Standard aus** — Bedingungen in Klärung.
+- 04.11. entschieden: **Titel Standard „Nur ich“** (Art. 25 erledigt); **Feier fragt jedes Mal** „Wer soll deinen Titel
+  sehen?“. Bestehende-Nutzer-Frage betrifft nur, wer vor dem Titel-Update getrackt hat. **Sportarten mit drei Stufen**
+  (Tabelle Spec 3.2). **Persönliche Titel** (Körper, Gewicht, Blut, Ruhepuls, Einnahmen, Zyklen, Berichte,
+  Gesamtfortschritt) **tragbar**: Standard aus, Bestätigung je Titel (Einwilligung Art. 9), nie sichtbarer als das
+  Quellfeld (serverseitig), neutrale Namen (App-Store-Richtlinien Substanzen). Juristisch prüfen: Bestätigungstext, Namen.
+  Mockup Entwurf 4. Routinier en = Steady.

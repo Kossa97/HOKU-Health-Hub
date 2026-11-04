@@ -17,7 +17,8 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 
 - Datenbank nach CLAUDE.md: Migration als Datei, Trockenlauf mit Postgres 16 zweimal mit
   nachgestelltem Ist-Zustand und Zählung, Produktivlauf nur nach ausdrücklichem Ja.
-- Keine Titel aus Körper-, Gewichts-, Blut-, Einnahme- oder Berichtsdaten (Test prüft die Liste).
+- Persönliche Titel (Körper, Gewicht, Blut, Puls, Einnahmen, Zyklen, Berichte, Gesamtfortschritt): ab Werk aus,
+  Bestätigung je Titel, wirksame Stufe nie offener als das Quellfeld — serverseitig geprüft (Tests).
 - Texte nur de/en; neue Schlüssel in den zwölf anderen Sprachen mit englischem Platzhalter.
 - Nach jeder Codeänderung `graphify update .` (in Cloud-Sitzungen lokal nachziehen).
 
@@ -26,21 +27,23 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 ### Task 1: Abzeichen-IDs und Migration
 - [ ] `badgeIds.ts`: Gruppe `rang` (`rank_1`…`rank_6`) und neue IDs (`prs_25`, `steps_weeks_12`,
   `entries_1000`, `run_50`, `cycle_50`, `swim_30`, `row_30`, `hike_25`, `hyrox_20`, `hiit_50`,
-  `yoga_50`, `allrounder`); Test „IDs = SQL-Liste“ anpassen.
+  `yoga_50`, `allrounder`; Sportarten je drei Stufen statt einer ID, Spec 3.2); Test „IDs = SQL-Liste“ anpassen.
 - [ ] `supabase-profil-titel.sql`: `profile_badge_ids()` erweitern, `profile_title_badge_ids()`,
   `profile_rank_ids()`, `profiles.title_choice` (add column if not exists, Check über die
-  tragbaren IDs), `profile_fields()` um `title`, `profile_view`: `title` je Stufe (fehlender
-  Schlüssel = „Alle“), nur verdiente Wahl, sonst höchster Rang.
+  tragbaren IDs), `profiles.personal_titles boolean default false`, `profiles.title_consents jsonb`
+  (ID → Datum), `profile_fields()` um `title` (Standard „Nur ich“ wie alle), `profile_view`: `title`
+  je Stufe, nur verdiente Wahl, persönliche nur mit Schalter + Einwilligung und höchstens in der
+  Stufe des Quellfelds, sonst höchster Rang.
 - [ ] Trockenlauf: Schema aus 2a/2b/2c nachbauen, Ist-Zustand mit Beispielzeilen, Migration
   zweimal, Zählungen (IDs, Spalten, `profile_view` je Stufe) festhalten.
 
 ### Task 2: Auswertung
 - [ ] `BadgeFacts` um `sessionsByKind` (eigene + eingeführte Einheiten) und `entryCount`.
-- [ ] `badges.ts`: Ränge (Tage mit Eintrag 1/10/50/100/200/365), neue Abzeichen, Feld
-  `title: { de, en }` an tragbaren; `TITLE_BADGES` abgeleitet.
+- [ ] `badges.ts`: Ränge (Tage mit Eintrag 1/10/50/100/200/365), neue Abzeichen, Sportart-Stufen,
+  Feld `title: { de, en }` an tragbaren, `personal: { sourceField }` an persönlichen; `TITLE_BADGES` abgeleitet.
 - [ ] Tests: Schwellen, Lücken erlaubt, Wearable-Tage zählen nicht für den Rang, Importe zählen
-  für Sportarten, „einmal verdient“, Verbotsliste (keine Gruppe `fortschritt`-Körperwerte,
-  keine Blut/Einnahmen/Berichte tragbar), `allrounder`.
+  für Sportarten, Stufen steigen mit, „einmal verdient“, persönliche Titel nur mit Schalter und
+  Einwilligung, Deckel durch das Quellfeld, `allrounder`.
 
 ### Task 3: Titel im Profil
 - [ ] `TitleChip` unter dem Namen (eigenes Profil mit Pfeil und Sichtbarkeits-Chip; Freunde und
@@ -48,14 +51,15 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 - [ ] Sichtbarkeit über die bestehende Feld-Logik aus 2a (`useFieldVisibility`), Standard „Alle“.
 
 ### Task 4: Sheet „Dein Titel“
-- [ ] Bottom-Sheet nach Mockup: getragener Titel, Rang mit Leiter, Titel aus Abzeichen,
-  „Sichtbar für“, Fußnote. Schreiben von `title_choice` (null = Rang).
+- [ ] Bottom-Sheet nach Mockup: getragener Titel, Rang mit Leiter, Titel aus Abzeichen (Sportarten
+  mit Stufe, fünf offene), persönliche Titel (Schalter, Bestätigungsdialog), „Sichtbar für“, Fußnote.
+  Schreiben von `title_choice` (null = Rang), `personal_titles`, `title_consents`.
 - [ ] Einstieg auch aus Profil › Einstellungen › Titel.
 - [ ] Abzeichen-Seite: tragbare zeigen Titelnamen und „Als Titel tragen“.
 
 ### Task 5: Moment „Neuer Rang“ / „Neuer Titel freigeschaltet“
 - [ ] Nach dem Speichern eines Eintrags: neu verdiente Rang- bzw. tragbare Abzeichen erkennen
-  (vorher/nachher), Moment zeigen; Knöpfe je nach getragenem Titel.
+  (vorher/nachher), Moment zeigen; jedes Mal „Wer soll deinen Titel sehen?“; Knöpfe je nach getragenem Titel.
 - [ ] Erster Start: nur der aktuelle Rang, ein Moment, keine Zwischenstufen.
 - [ ] Web Animations API, nur `transform`/`opacity`, Abbruch bei erneutem Abspielen,
   „Bewegung reduzieren“ nur Einblenden.
@@ -67,7 +71,8 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 
 ### Task 7: Texte, Datenschutz, Tests
 - [ ] de/en für Ränge, Titelnamen, Sheet, Moment; Platzhalter in den zwölf anderen Sprachen.
-- [ ] Datenschutztext „Profil und Sichtbarkeit“: Titel, Standard „Alle“, woraus er entsteht.
+- [ ] Datenschutztext „Profil und Sichtbarkeit“: Titel, Standard „Nur ich“, woraus er entsteht,
+  persönliche Titel als Einwilligung nach Art. 9 (juristisch prüfen).
 - [ ] E2E: Chip und Sichtbarkeit je Sicht (ich, Freunde, App-Nutzer, Web), Sheet-Wahl, Moment
   bei Schwelle, Web zeigt Titel nur auf „Alle“ + Web-Link.
 
