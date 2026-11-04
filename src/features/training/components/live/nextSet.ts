@@ -20,8 +20,10 @@ export function describeNextSet(
   locale: string,
   unit: WeightUnit,
   customExercises: readonly CustomExercise[],
+  /** Wohin der nächste Eintrag geht, wenn nicht der erste offene Satz (nach „nächste Übung"). */
+  at: { index: number; setIndex: number } | null = nextOpenSet(workout),
 ): NextSetInfo | null {
-  const next = nextOpenSet(workout)
+  const next = at
   if (!next) return null
   const exercise = workout.exercises[next.index]
   const set = exercise.sets[next.setIndex]

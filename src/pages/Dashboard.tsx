@@ -14,7 +14,7 @@ import {
 } from 'date-fns'
 import {
   AlertTriangle, BookHeart, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
-  Layers, Lock, Minus, MinusCircle, Moon, Pencil, Pill, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X, XCircle,
+  Layers, Lock, Minus, MinusCircle, Moon, Pencil, Pin, Plus, RotateCcw, Sun, Sunrise, Syringe, X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -286,6 +286,43 @@ type IntakeGroupKey = 'morgens' | 'mittags' | 'abends' | 'custom' | 'later'
 type PeriodKey = 'morgens' | 'mittags' | 'abends'
 
 const PERIOD_ORDER: PeriodKey[] = ['morgens', 'mittags', 'abends']
+/** Ein Eintrag der Liste „Eingenommen · Verpasst · Übersprungen". */
+interface ErledigterEintrag {
+  key: string
+  stackItemId: string
+  scheduledAt: string
+  routineGroup: ResolvedRoutineGroup | null
+  status: 'genommen' | 'verpasst' | 'uebersprungen'
+  /** Entschieden: die Zeile dazu. */
+  log?: DoseLog
+  /** Vergangener Tag, nichts entschieden: der offene Platz, jetzt verpasst. */
+  slot?: { key: string }
+}
+
+type ErledigterBlock =
+  | { art: 'liste'; eintraege: ErledigterEintrag[] }
+  | { art: 'buendel'; schluessel: string; bundle: IntakeBundle; name: string; anzahl: number; eintraege: ErledigterEintrag[] }
+
+/**
+ * Der Tagesbalken in Stücken: eines je geplanter Einnahme, nach Stand
+ * gefärbt — grün eingenommen, rot verpasst, grau übersprungen, leer offen.
+ */
+function TagesSegmente({ stand, className = '' }: {
+  stand: { genommen: number; verpasst: number; uebersprungen: number; offen: number }
+  className?: string
+}) {
+  const teile = ([
+    ['genommen', 'var(--lg-good)'], ['verpasst', 'var(--lg-bad)'], ['uebersprungen', '#636366'], ['offen', 'var(--lg-fill)'],
+  ] as const).flatMap(([art, farbe]) => Array.from({ length: stand[art] }, () => ({ art, farbe })))
+  return (
+    <span aria-hidden="true" data-tages-segmente className={`flex gap-[3px] ${className}`}>
+      {teile.map((teil, i) => (
+        <span key={i} data-segment={teil.art} className="h-full min-w-[3px] flex-1 rounded-full transition-colors duration-300" style={{ background: teil.farbe }} />
+      ))}
+    </span>
+  )
+}
+
 const PERIOD_TO_ROUTINE_GROUP = {
   morgens: 'morning',
   mittags: 'midday',
@@ -401,13 +438,17 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
   // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string; plannedTime?: string }) | null>(null)
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string; initialDate?: string; plannedTime?: string; plannedDate?: string; zyklusVorbei?: boolean }) | null>(null)
   const [bundles, setBundles] = useState<IntakeBundle[]>([])
   // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
   const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
   const [confirmTime, setConfirmTime]   = useState('')
   // Die geplante Uhrzeit fuer den Knopf „Geplant", null ohne Plan.
   const [confirmPlanTime, setConfirmPlanTime] = useState<string | null>(null)
+  // Der Tag zur geplanten Uhrzeit, für denselben Knopf.
+  const [confirmPlanDay, setConfirmPlanDay] = useState<Date>(() => new Date())
+  // Der Zyklus läuft jetzt nicht mehr: vorbelegt ist der geplante Zeitpunkt.
+  const [confirmZyklusVorbei, setConfirmZyklusVorbei] = useState(false)
   // Der Tag zur Uhrzeit im Feld. null: der Tag der Einnahme. „Jetzt" setzt
   // heute — wer die Einnahme von gestern Abend nach Mitternacht mit „Jetzt"
   // bestaetigt, hat sie heute um 00:30 genommen, nicht gestern um 00:30.
@@ -431,8 +472,11 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // statt eine ungueltige Menge an die RPC zu schicken.
   const confirmDoseUngueltig = confirmUnit != null
     && (confirmDoseWert == null || !Number.isFinite(confirmDoseWert) || confirmDoseWert <= 0)
-  const [completedExpanded, setCompletedExpanded] = useState(false)
-  const [unloggedExpanded, setUnloggedExpanded] = useState(false)
+  // Die Liste „Eingenommen · Verpasst · Übersprungen": null = voreingestellt
+  // (an einem vergangenen Tag offen, heute zu).
+  const [erledigtAuf, setErledigtAuf] = useState<boolean | null>(null)
+  const [offenesErledigtesBuendel, setOffenesErledigtesBuendel] = useState<string | null>(null)
+  const [aufgeklappteVerpasste, setAufgeklappteVerpasste] = useState<string | null>(null)
   // Welche protokollierte Einnahme ihre Aktionen zeigt — hoechstens eine.
   const [aufgeklappterLog, setAufgeklappterLog] = useState<string | null>(null)
   /** Welche Einnahme aufgeklappt ist.
@@ -1063,6 +1107,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const selCycles   = cyclesForDay(selectedDay)
   const selOnDemand = onDemandCyclesForDay(selectedDay)
   const selectedLocalDate = localDateTimeKey(selectedDay, timeZone).slice(0, 10)
+  // Ein anderer Tag: die Liste „Eingenommen · Verpasst · Übersprungen" wieder
+  // wie voreingestellt (vergangen offen, heute zu), nichts darin aufgeklappt.
+  useEffect(() => {
+    setErledigtAuf(null)
+    setOffenesErledigtesBuendel(null)
+    setAufgeklappteVerpasste(null)
+  }, [selectedLocalDate])
   const selectedPause = FEATURES.planTimelineV2 && timelineReady
     ? timelines.flatMap(timeline => {
         const start = resolveCycleAtLocalSlot(timeline, selectedLocalDate, 0, timeZone)
@@ -1087,14 +1138,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     : format(selectedDay, 'EEEE, d. MMMM', { locale })
   // Wieder oeffnen darf man nur, was danach auch wieder auftaucht.
   //
-  // `taken = null` nimmt die Zeile aus „Bereits protokolliert" heraus. Steht
+  // `taken = null` nimmt die Zeile aus der Liste „Eingenommen · Verpasst · Übersprungen" heraus. Steht
   // ihr Slot nicht im Tagesplan — bei Bedarf genommen, Substanz geloescht,
   // Zyklus nicht mehr aufloesbar —, erscheint sie danach auch nicht als
   // faellig: unsichtbar und nicht mehr loeschbar, denn der Loeschknopf sitzt
   // nur an protokollierten Zeilen.
-  const geplanteSchluesselHeute = new Set(
-    timelineOccurrencesForDay(selectedDay).map(intake => intake.routineSlotKey),
-  )
+  const geplanteHeute = timelineOccurrencesForDay(selectedDay)
+  const geplanteSchluesselHeute = new Set(geplanteHeute.map(intake => intake.routineSlotKey))
   const kannWiederGeoeffnetWerden = (log: DoseLog) => (
     !FEATURES.planTimelineV2
     || Boolean(log.routine_slot_key && geplanteSchluesselHeute.has(log.routine_slot_key))
@@ -1119,7 +1169,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     geplantJeTageszeit.set(gruppe, menge)
   }
   if (FEATURES.planTimelineV2) {
-    const planned = timelineOccurrencesForDay(selectedDay)
+    const planned = geplanteHeute
     for (const intake of planned) alsGeplant(intake.routineGroup, intake.stackItemId)
     const open = collectOpenTimelineIntakes(
       timelineReady ? timelines : [], logs as IntakeLog[], selectedDay, timeZone,
@@ -1222,6 +1272,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       method: slot.cycle.method,
     })
   }))
+  const offeneEinnahmeNachSchluessel = new Map(dueRoutineGroups.flatMap(gruppe => gruppe.items).map(intake => [intake.key, intake]))
   const dueRoutineGroupByKey = new Map(dueRoutineGroups.map(group => [group.key, group]))
   const bundleRows = bundles.map(bundle => ({ bundle, itemIds: liveBundleItemIds(bundle, stackItemById) }))
   const duePeriodCarousels = PERIOD_ORDER.map(key => {
@@ -1241,7 +1292,9 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Tages, sie brauchten einen Tap, bevor man ueberhaupt sah was ansteht, und
   // nach einem Ladevorgang stand der aktive Reiter gern auf einer leeren
   // Tageszeit.
-  const offeneGruppen = duePeriodCarousels.filter(periode => periode.slots.length > 0)
+  // Ein vergangener Tag hat nichts mehr offen: was nicht entschieden wurde,
+  // gilt als verpasst und steht unten in der Liste (`erledigteBloecke`).
+  const offeneGruppen = isPastSelected ? [] : duePeriodCarousels.filter(periode => periode.slots.length > 0)
   // Ein Bündel steht in seiner Tageszeit, als eine Zeile an der Stelle seiner
   // fruehesten Einnahme. Was es enthaelt, steht dort nicht noch einmal einzeln
   // — erst aufgeklappt, dann mit allem, was eine Einzelzeile kann. Hat es
@@ -1295,6 +1348,76 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     }
     return { ...gruppe, eintraege, bloecke }
   })
+
+  // ── Eingenommen · Verpasst · Übersprungen ──────────────────────────────
+  // Eine Liste für alles Entschiedene des Tages. Verpasst ist, was der
+  // Auto-Miss eingetragen hat, und an einem vergangenen Tag alles, was offen
+  // blieb — nicht bewusst übersprungen heißt verpasst. Bündel stehen darin
+  // wie oben, nach denselben Regeln (`bundlesForPeriod`).
+  const geplantNachSchluessel = new Map(geplanteHeute.map(intake => [intake.routineSlotKey, intake]))
+  const erledigte: ErledigterEintrag[] = [
+    ...decidedLogsSorted.map(log => {
+      const geplant = log.routine_slot_key ? geplantNachSchluessel.get(log.routine_slot_key) : undefined
+      return {
+        key: `log:${log.id}`,
+        stackItemId: log.stack_item_id,
+        scheduledAt: geplant?.scheduledAt ?? log.logged_at,
+        routineGroup: geplant?.routineGroup ?? null,
+        status: log.taken === true ? 'genommen' as const
+          : log.notes === AUTO_MISSED_NOTE ? 'verpasst' as const : 'uebersprungen' as const,
+        log,
+      }
+    }),
+    ...(isPastSelected ? dueSlots.map(slot => ({
+      key: `slot:${slot.key}`,
+      stackItemId: slot.cycle.stack_item_id,
+      scheduledAt: slot.scheduledAt,
+      routineGroup: slot.routineGroup,
+      status: 'verpasst' as const,
+      slot,
+    })) : []),
+  ]
+  const erledigteBloecke: ErledigterBlock[] = (() => {
+    const vergeben = new Set<string>()
+    const bloecke: { minuten: string; block: ErledigterBlock }[] = []
+    for (const gruppe of ['morning', 'midday', 'evening'] as const) {
+      const hier = erledigte.filter(eintrag => eintrag.routineGroup === gruppe)
+      if (hier.length === 0) continue
+      const { entries } = bundlesForPeriod(bundleRows, hier, geplantJeTageszeit.get(gruppe) ?? new Set())
+      for (const { bundle, alle, intakes, anzahl } of entries) {
+        for (const eintrag of intakes) vergeben.add(eintrag.key)
+        const sortiert = [...intakes].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+        bloecke.push({
+          minuten: sortiert[0].scheduledAt,
+          block: {
+            art: 'buendel', schluessel: `${alle.map(eines => eines.id).join('+')}@${gruppe}`,
+            bundle, name: alle.map(eines => eines.name).join(' & '), anzahl, eintraege: sortiert,
+          },
+        })
+      }
+    }
+    for (const eintrag of erledigte) {
+      if (!vergeben.has(eintrag.key)) bloecke.push({ minuten: eintrag.scheduledAt, block: { art: 'liste', eintraege: [eintrag] } })
+    }
+    bloecke.sort((a, b) => a.minuten.localeCompare(b.minuten))
+    // Aufeinanderfolgende Einzelne teilen sich eine Liste, wie oben.
+    const ergebnis: ErledigterBlock[] = []
+    for (const { block } of bloecke) {
+      const letzter = ergebnis[ergebnis.length - 1]
+      if (block.art === 'liste' && letzter?.art === 'liste') letzter.eintraege.push(...block.eintraege)
+      else ergebnis.push(block)
+    }
+    return ergebnis
+  })()
+  const erledigtZahl = (status: ErledigterEintrag['status']) => erledigte.filter(eintrag => eintrag.status === status).length
+  // Der Balken: ein Stück je geplanter Einnahme, Farbe nach Stand.
+  const tagesSegmente = (() => {
+    const verpasst = isPastSelected
+      ? Math.max(0, totalDaySlots - genommeneSlots - uebersprungeneHeute)
+      : verpassteHeute
+    const offen = Math.max(0, totalDaySlots - genommeneSlots - uebersprungeneHeute - verpasst)
+    return { genommen: genommeneSlots, verpasst, uebersprungen: uebersprungeneHeute, offen }
+  })()
   // Jede offene Einnahme kann die grosse Ansicht bekommen — aber nur eine auf
   // einmal, und nur auf Antippen. Voreingestellt ist die erste offene; tippt
   // man eine andere an, wandert die grosse Ansicht dorthin und die bisherige
@@ -1700,6 +1823,26 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   // ── Bestätigungs-Sheet ───────────────────────────────────────────────────
+  /**
+   * Liegt der Zeitpunkt in einer aktiven Planversion dieses Zyklus? Nur dann
+   * lässt sich eine Einnahme dort speichern. Ohne Zeitleiste: immer.
+   */
+  const zeitpunktImZyklus = (cycleId: string, zeitpunkt: Date) => {
+    if (!FEATURES.planTimelineV2) return true
+    const timeline = timelines.find(item => item.cycle.id === cycleId)
+    const aufgeloest = timeline && resolveCycleAt(timeline, zeitpunkt, timeZone)
+    return Boolean(aufgeloest?.planVersion && aufgeloest.status === 'active')
+  }
+  const jetztImPlan = (cycleId: string) => zeitpunktImZyklus(cycleId, new Date())
+  // Das Einzel-Blatt: liegt der gewählte Tag mit Uhrzeit außerhalb des Zyklus?
+  const confirmAusserhalb = (() => {
+    if (!confirmSheet?.cycle || !/^\d{2}:\d{2}$/.test(confirmTime)) return false
+    const [stunde, minute] = confirmTime.split(':').map(Number)
+    const zeitpunkt = new Date(confirmDay ?? selectedDay)
+    zeitpunkt.setHours(stunde, minute, 0, 0)
+    return !zeitpunktImZyklus(confirmSheet.cycle.id, zeitpunkt)
+  })()
+
   const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false, ohnePlan = false) => {
     let geplant: string | null = null
     if (ohnePlan) {
@@ -1711,19 +1854,22 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     } else if (log) {
       geplant = format(new Date(log.logged_at), 'HH:mm')
     }
-    // Vorbelegt ist jetzt: gespeichert wird, wann wirklich genommen wurde,
-    // die geplante Zeit ist einen Tipp entfernt. Ausnahme: eine ausgelassene
-    // oder verpasste (Auto-Miss) Einnahme nachtragen, oder ein anderer Tag —
-    // dann ist „jetzt" sicher falsch, und es steht die geplante Zeit.
-    const tag = log && !cycle ? new Date(log.logged_at) : selectedDay
-    const nachPlan = nachtragen || log?.taken === false || !isSameDay(tag, new Date())
-    if (geplant !== null && nachPlan) {
-      setConfirmTime(geplant)
-      setConfirmDay(null)
+    // Vorbelegt ist immer jetzt, mit Tag: gespeichert wird, wann wirklich
+    // genommen wurde — auch beim Nachtragen und nach Mitternacht. Der geplante
+    // Tag mit Uhrzeit ist einen Tipp entfernt („Geplant").
+    const tag = scheduledAt ? new Date(scheduledAt) : log && !cycle ? new Date(log.logged_at) : selectedDay
+    setConfirmPlanTime(geplant)
+    setConfirmPlanDay(tag)
+    // Ist der Plan jetzt nicht mehr aktiv (Kurs beendet, pausiert), ließe sich
+    // „jetzt" nicht speichern — dann steht der geplante Zeitpunkt da.
+    const vorbei = geplant !== null && Boolean(cycle) && !jetztImPlan(cycle!.id)
+    setConfirmZyklusVorbei(vorbei)
+    if (vorbei) {
+      setConfirmTime(geplant!)
+      setConfirmDay(tag)
     } else {
       confirmJetzt()
     }
-    setConfirmPlanTime(geplant)
     // Vorausgefuellt mit der geplanten Menge dieses Slots -- derselbe
     // Resolver, den `confirmCycleDose` selbst benutzt, damit hier steht,
     // was tatsaechlich gilt (Eskalation, Slot-eigene Menge), nicht geraten.
@@ -1831,7 +1977,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     setConfirmSheet(null)
   }
 
-  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string, heute = false): Promise<string[]> => {
+  const confirmRoutineGroup = async (entries: RoutineConfirmationEntry[], time?: string, datum?: string): Promise<string[]> => {
     if (FEATURES.planTimelineV2 && !timelineReady) throw new Error('Timeline is not current')
     // Eine abgefragte Uhrzeit gilt fuer alle gewaehlten Einnahmen. Unter der
     // Zeitleiste entscheidet der TATSAECHLICHE Zeitpunkt, welche Planversion
@@ -1840,8 +1986,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       ? entries.map(entry => {
           if (!entry.selected) return entry
           const [stunde, minute] = time.split(':').map(Number)
-          // „Jetzt" im Blatt: heute, auch wenn ein anderer Tag offen ist.
-          const zeitpunkt = heute ? new Date() : new Date(selectedDay)
+          // Der Tag aus dem Blatt — nach Mitternacht nicht der geöffnete.
+          const zeitpunkt = datum ? parseISO(datum) : new Date(selectedDay)
           zeitpunkt.setHours(stunde, minute, 0, 0)
           const actualLoggedAt = zeitpunkt.toISOString()
           if (!FEATURES.planTimelineV2) return { ...entry, actualLoggedAt }
@@ -1861,17 +2007,25 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
   /**
    * Ein Tipp auf das Bündel oeffnet das Bestaetigungsblatt mit je Substanz der
-   * naechsten offenen Einnahme. Die Uhrzeit wird immer abgefragt, vorbelegt
-   * mit jetzt (an einem anderen Tag mit der fruehesten geplanten, die auch
-   * per Knopf bereitsteht); Mengen und Injektionsstelle wie gewohnt.
+   * naechsten offenen Einnahme. Datum und Uhrzeit werden immer abgefragt,
+   * vorbelegt mit jetzt; die frueheste geplante steht per Knopf bereit.
+   * Mengen und Injektionsstelle wie gewohnt.
    */
   const openBundle = (bundle: IntakeBundle, items: RoutineIntake[]) => {
     if (items.length === 0) return
     const frueheste = items.reduce((min, item) => item.scheduledAt < min ? item.scheduledAt : min, items[0].scheduledAt)
     routineCommitted.current = false
     const geplant = format(new Date(frueheste), 'HH:mm')
-    const initialTime = isSameDay(selectedDay, new Date()) ? format(new Date(), 'HH:mm') : geplant
-    setRoutineGroupSheet({ key: items[0].group, items, label: bundle.name, initialTime, plannedTime: geplant })
+    // Immer jetzt, mit Tag; der geplante Tag mit Uhrzeit per Knopf. Ist einer
+    // der Kurse jetzt nicht mehr aktiv, steht der geplante Zeitpunkt da.
+    const plannedDate = format(new Date(frueheste), 'yyyy-MM-dd')
+    const jetzt = items.every(item => jetztImPlan(item.cycleId))
+    setRoutineGroupSheet({
+      key: items[0].group, items, label: bundle.name, plannedTime: geplant, plannedDate,
+      initialTime: jetzt ? format(new Date(), 'HH:mm') : geplant,
+      initialDate: jetzt ? format(new Date(), 'yyyy-MM-dd') : plannedDate,
+      zyklusVorbei: !jetzt,
+    })
   }
 
   const saveBundle = async (draft: { name: string; stackItemIds: string[] }) => {
@@ -2602,7 +2756,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
               className="lg-gray-btn w-full !min-h-[52px] !text-[17px]"
             >
               <Check size={20} aria-hidden="true" />
-              {isPastSelected ? t('dose_mark_taken', { defaultValue: 'Doch eingenommen' }) : t('eingenommen')}
+              {t('eingenommen')}
             </button>
 
             {/* Unter der Zeitleiste hat das Bestaetigungsblatt ein Mengenfeld;
@@ -2659,53 +2813,84 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
    * stehen nicht dauerhaft in jeder Zeile — bei sechs ausgelassenen Einnahmen
    * war die Liste sonst drei Bildschirme lang. Antippen klappt sie auf.
    */
+  /** Farbe und Symbol je Stand: eingenommen grün, verpasst rot, übersprungen grau. */
+  const STAND_TON = {
+    genommen: { farbe: 'var(--lg-good)', text: 'text-[var(--lg-good-text)]', Icon: Check },
+    verpasst: { farbe: 'var(--lg-bad)', text: 'text-[var(--lg-bad-text)]', Icon: X },
+    uebersprungen: { farbe: '#636366', text: 'text-[var(--lg-text-3)]', Icon: Minus },
+  } as const
+  const standText = (stand: ErledigterEintrag['status']) => stand === 'genommen' ? t('eingenommen')
+    : stand === 'verpasst' ? t('verpasst', { defaultValue: 'Verpasst' }) : t('uebersprungen')
+  const standKachel = (stand: ErledigterEintrag['status']) => {
+    const { farbe, Icon } = STAND_TON[stand]
+    return (
+      <span aria-hidden="true" data-stand={stand} className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white" style={{ background: farbe }}>
+        <Icon size={16} strokeWidth={2.8} />
+      </span>
+    )
+  }
+  /** Immer mit Tag: nach Mitternacht eingetragen ist sonst nicht zu erkennen, welcher Tag. */
+  const tagUndZeit = (zeitpunkt: string) => format(new Date(zeitpunkt), 'EEE dd.MM. · HH:mm', { locale })
+  // Unter dem Text, eingerückt wie er: daneben ließe der Knopf Menge und Zeit nicht lesen.
+  const dochKnopf = (onClick: () => void) => (
+    <div className="-mt-1 pb-3 pl-[62px] pr-4">
+      <button
+        type="button"
+        data-doch-eingenommen
+        onClick={onClick}
+        data-tone="good"
+        className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
+      >
+        <Check size={14} aria-hidden="true" /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
+      </button>
+    </div>
+  )
+  /** „3 verpasst" — Zahl und Stand für Kopf und gemischte Bündel. */
+  const standZahl = (stand: ErledigterEintrag['status'], n: number) => String(stand === 'genommen'
+    ? t('day_count_taken', { defaultValue: '{{n}} genommen', n })
+    : stand === 'verpasst'
+      ? t('day_count_missed', { defaultValue: '{{n}} verpasst', n })
+      : t('day_count_skipped', { defaultValue: '{{n}} übersprungen', n }))
+
   const renderLogRow = (log: DoseLog) => {
-    const verpasst = log.taken === false && log.notes === AUTO_MISSED_NOTE
-    const ton = log.taken === true ? 'text-[var(--lg-good-text)]'
-      : log.taken === false ? (verpasst ? 'text-[var(--lg-warn-text)]' : 'text-[var(--lg-text-3)]')
-      : 'text-[var(--lg-accent-text)]'
-    const Symbol = isInjectableMethod(log.method) ? Syringe : Pill
-    const status = log.taken === true ? t('eingenommen')
-      : log.taken === false ? (verpasst ? t('verpasst', { defaultValue: 'Verpasst' }) : t('uebersprungen'))
-      : null
+    const stand: ErledigterEintrag['status'] = log.taken === true ? 'genommen'
+      : log.notes === AUTO_MISSED_NOTE ? 'verpasst' : 'uebersprungen'
+    const ton = STAND_TON[stand].text
     const wiederOeffnen = log.taken !== null && kannWiederGeoeffnetWerden(log)
-    const loeschbar = !FEATURES.planTimelineV2 || log.taken === null
+    // Die Liste führt nur Entschiedenes; löschen geht nur ohne Zeitleiste.
+    const loeschbar = !FEATURES.planTimelineV2
     // Genommen und einer Substanz zugeordnet: ein Tagebuch-Eintrag dazu ist ein Tipp entfernt
     const tagebuch = log.taken === true && !!log.stack_item_id
-    const hatAktionen = wiederOeffnen || loeschbar || log.taken === null || tagebuch
+    const hatAktionen = (wiederOeffnen && (log.taken === true || !isPastSelected)) || loeschbar || tagebuch
     const offen = hatAktionen && aufgeklappterLog === log.id
     const menge = formatTrackedQuantity(log.dose, log.unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
+    // Genommen an einem anderen Tag als dem des Platzes (nach Mitternacht)
+    const planTag = planTagAusSchluessel(log.routine_slot_key)
+    const andererTag = Boolean(planTag && planTag !== format(new Date(log.logged_at), 'yyyy-MM-dd'))
 
     const kopf = (
       <>
-        <Symbol size={18} aria-hidden="true" className={`shrink-0 ${ton}`} />
+        {standKachel(stand)}
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[17px] text-[var(--lg-text)]">
             {log.stack_items?.display_name ?? t('geloeschte_substanz')}
           </span>
-          {/* Drei Teile, drei Elemente: einzeln auffindbar, zusammen gekuerzt */}
+          {/* Einzelne Teile, einzeln auffindbar, zusammen gekuerzt */}
           <span className="block truncate text-[13px] text-[var(--lg-text-3)]">
-            <span>{menge}</span>
+            {/* Tag und Uhrzeit vorn: sie dürfen nicht dem Kürzen zum Opfer fallen. */}
+            <span className={ton}>{standText(stand)}</span>
+            {' · '}<span data-log-zeit data-log-anderer-tag={andererTag ? '' : undefined} className="tabular-nums">{tagUndZeit(log.logged_at)}</span>
+            {' · '}<span>{menge}</span>
             {log.method && <> · <span>{log.method}</span></>}
-            {' · '}<span className="tabular-nums">{format(new Date(log.logged_at), 'HH:mm')}</span>
-            {/* Genommen an einem anderen Tag als dem des Platzes (nach Mitternacht): der Tag dazu */}
-            {(() => {
-              const planTag = planTagAusSchluessel(log.routine_slot_key)
-              const genommen = new Date(log.logged_at)
-              return planTag && planTag !== format(genommen, 'yyyy-MM-dd')
-                ? <span data-log-anderer-tag className="tabular-nums"> ({format(genommen, 'EEE', { locale })})</span>
-                : null
-            })()}
             {log.notes && log.notes !== AUTO_MISSED_NOTE && <> · <span>{log.notes}</span></>}
             {log.auto_logged && log.taken === true && <> · <span data-auto-logged className="text-[var(--lg-accent-text)]">{dt('auto_marke')}</span></>}
           </span>
         </span>
-        {status && <span className={`shrink-0 text-[15px] ${ton}`}>{status}</span>}
       </>
     )
 
     return (
-      <div key={log.id} data-log-row={log.id}>
+      <div key={log.id} data-log-row={log.id} data-stand={stand}>
         {hatAktionen ? (
           <button
             type="button"
@@ -2718,40 +2903,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         ) : (
           <div className="flex min-h-[60px] items-center gap-3.5 px-4 py-2.5">{kopf}</div>
         )}
+        {/* Ausgelassen oder verpasst: direkt nachtragen, mit dem üblichen Blatt. */}
+        {wiederOeffnen && log.taken === false && dochKnopf(() => (
+          FEATURES.planTimelineV2 ? dochEingenommen(log) : openConfirmSheet(undefined, log)
+        ))}
 
         {offen && (
           <div className="flex flex-wrap gap-2 pb-3 pl-[50px] pr-4">
-            {log.taken === null && <>
-              <button
-                type="button"
-                onClick={() => openConfirmSheet(undefined, log)}
-                data-tone="good"
-                className="lg-gray-btn !px-3.5 !text-[13px]">
-                <Check size={14} aria-hidden="true" /> {t('eingenommen')}
-              </button>
-              <button
-                type="button"
-                onClick={() => confirmDose(log, false)}
-                data-tone="bad"
-                className="lg-gray-btn !px-3.5 !text-[13px]">
-                <XCircle size={14} aria-hidden="true" /> {t('uebersprungen')}
-              </button>
-            </>}
             {/* Eine entschiedene Einnahme laesst sich wieder oeffnen.
                 NUR oeffnen — nicht an Ort und Stelle umschreiben: unter
                 `planTimelineV2` laeuft jede Entscheidung ueber
                 `confirm_intake_group`, das Herkunft und Lebenszyklus prueft.
                 `reverse_inventory_confirmation('undo')` setzt `taken` auf null
                 und bucht den Bestand in einer Transaktion zurueck. */}
-            {wiederOeffnen && log.taken === false && (
-              <button
-                type="button"
-                onClick={() => FEATURES.planTimelineV2 ? dochEingenommen(log) : openConfirmSheet(undefined, log)}
-                data-tone="good"
-                className="lg-gray-btn !px-3.5 !text-[13px]">
-                <Check size={14} aria-hidden="true" /> {t('dose_mark_taken', { defaultValue: 'Doch eingenommen' })}
-              </button>
-            )}
             {/* Wieder oeffnen heisst: zurueck auf die Liste von heute. Fuer
                 einen vergangenen Tag ist das ein Umweg — dort fuehrt eine
                 ausgelassene Einnahme direkt ueber „Doch eingenommen". Eine
@@ -2784,6 +2948,126 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <X size={14} aria-hidden="true" /> {t('loeschen', { defaultValue: 'Löschen' })}
               </button>
             )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+
+  /** Vergangener Tag, nichts entschieden: verpasst. Nachtragen wie gewohnt. */
+  const renderVerpasstZeile = (schluessel: string) => {
+    const slot = dueSlotByKey.get(schluessel)
+    if (!slot) return null
+    const c = slot.cycle
+    const { dose, unit } = resolveDashboardCycleQuantity(c, selectedDay, escalations, slot.dose)
+    const menge = formatTrackedQuantity(dose, unit, String(t('quantity_not_tracked', { defaultValue: 'Menge nicht getrackt' })))
+    return (
+      <div key={slot.key} data-verpasst-row={slot.key} data-stand="verpasst">
+        {/* Antippen: bewusst übersprungen markieren oder mit Injektion nachtragen. */}
+        <button
+          type="button"
+          aria-expanded={aufgeklappteVerpasste === slot.key}
+          onClick={() => setAufgeklappteVerpasste(aufgeklappteVerpasste === slot.key ? null : slot.key)}
+          className="flex min-h-[60px] w-full items-center gap-3.5 px-4 py-2.5 text-left transition-colors duration-150 active:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--lg-accent)]"
+        >
+          {standKachel('verpasst')}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[17px] text-[var(--lg-text)]">{c.stack_items?.display_name}</span>
+            <span className="block truncate text-[13px] text-[var(--lg-text-3)]">
+              <span className={STAND_TON.verpasst.text}>{standText('verpasst')}</span>
+              {' · '}<span data-log-zeit className="tabular-nums">{tagUndZeit(slot.scheduledAt)}</span>
+              {' · '}<span>{menge}</span>
+              {c.method && <> · <span>{c.method}</span></>}
+            </span>
+          </span>
+        </button>
+        {dochKnopf(() => openConfirmSheet(c, slot.pendingLog ?? undefined, slot.time || undefined, slot.dose, slot.scheduledAt, slot.key))}
+        {aufgeklappteVerpasste === slot.key && (
+          <div className="-mt-1 flex flex-wrap gap-2 pb-3 pl-[62px] pr-4">
+            <button
+              type="button"
+              data-quiet
+              onClick={() => FEATURES.planTimelineV2
+                ? void confirmCycleDose(c, false, slot.pendingLog?.logged_at ?? slot.scheduledAt, slot.dose, slot.scheduledAt, slot.pendingLog ?? undefined, slot.key)
+                : slot.pendingLog
+                  ? void confirmDose(slot.pendingLog, false, undefined, resolveDashboardCycleQuantity(c, selectedDay, escalations, slot.dose))
+                  : void confirmCycleDose(c, false, slot.scheduledAt, slot.dose, slot.scheduledAt, undefined, slot.key)}
+              className="lg-gray-btn !px-3.5 !text-[13px]"
+            >
+              <Minus size={14} aria-hidden="true" /> {t('uebersprungen')}
+            </button>
+            {isInjectableMethod(c.method) && (
+              <button
+                type="button"
+                onClick={() => openInjectionTrackerForSlot(slot)}
+                className="lg-gray-btn !px-3.5 !text-[13px]"
+              >
+                <Syringe size={14} aria-hidden="true" /> {t('due_confirm_with_injection', { defaultValue: 'Mit Injektion tracken' })}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderErledigt = (eintrag: ErledigterEintrag) => eintrag.log
+    ? renderLogRow(eintrag.log)
+    : eintrag.slot ? renderVerpasstZeile(eintrag.slot.key) : null
+
+  /**
+   * Ein Bündel in der Liste: wie oben eine eigene Karte, mit dem Stand seiner
+   * Einnahmen. Alle gleich: die Karte trägt dessen Farbe; gemischt zählt sie auf.
+   */
+  const renderErledigtesBuendel = (block: Extract<ErledigterBlock, { art: 'buendel' }>) => {
+    const staende = [...new Set(block.eintraege.map(eintrag => eintrag.status))]
+    const einheitlich = staende.length === 1 ? staende[0] : null
+    const offen = offenesErledigtesBuendel === block.schluessel
+    const zeitpunkte = block.eintraege.map(eintrag => eintrag.log?.logged_at ?? eintrag.scheduledAt).sort()
+    const zeiten = zeitpunkte.map(zeitpunkt => format(new Date(zeitpunkt), 'HH:mm'))
+    // Alles Verpasste ohne eigene Zeile (vergangener Tag) laesst sich als
+    // Bündel nachtragen — mit dem Bündel-Blatt, wie oben.
+    const nachzutragen = block.eintraege.filter(eintrag => eintrag.status !== 'genommen')
+    const alsBuendelNachtragen = nachzutragen.length > 0 && nachzutragen.every(eintrag => eintrag.slot)
+      ? nachzutragen.flatMap(eintrag => {
+          const intake = offeneEinnahmeNachSchluessel.get(eintrag.slot!.key)
+          return intake ? [intake] : []
+        })
+      : []
+    return (
+      <div key={block.schluessel} data-erledigt-buendel={block.bundle.id} data-stand={einheitlich ?? 'gemischt'}
+        className="lg-group tyd-buendel" data-offen={offen ? '' : undefined}>
+        <div>
+          <button
+            type="button"
+            aria-expanded={offen}
+            onClick={() => setOffenesErledigtesBuendel(offen ? null : block.schluessel)}
+            className="flex min-h-[64px] w-full items-center gap-3 py-2.5 pl-4 pr-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300"
+          >
+            {einheitlich
+              ? standKachel(einheitlich)
+              : <span aria-hidden="true" className="lg-icon-tile shrink-0 !bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] !text-[var(--accent)]"><Layers size={17} /></span>}
+            <span className="min-w-0 flex-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--accent)]">
+                {t('bundle_card_label', { defaultValue: 'Bündel · {{n}} Einnahmen', n: block.anzahl })}
+              </span>
+              <span className="block truncate text-[17px] font-semibold text-[var(--lg-text)]">{block.name}</span>
+              <span className="mt-0.5 block truncate text-[13px] text-[var(--lg-text-3)]">
+                {(['genommen', 'verpasst', 'uebersprungen'] as const).flatMap(stand => {
+                  const n = block.eintraege.filter(eintrag => eintrag.status === stand).length
+                  return n === 0 ? [] : [<span key={stand} className={STAND_TON[stand].text}>{einheitlich ? standText(stand) : standZahl(stand, n)}</span>]
+                }).reduce<React.ReactNode[]>((alle, teil, i) => i === 0 ? [teil] : [...alle, ' · ', teil], [])}
+                {' · '}<span className="tabular-nums">{format(new Date(zeitpunkte[0]), 'EEE dd.MM.', { locale })} · {zeiten[0] === zeiten[zeiten.length - 1] ? zeiten[0] : `${zeiten[0]}–${zeiten[zeiten.length - 1]}`}</span>
+              </span>
+            </span>
+            <ChevronDown size={18} aria-hidden="true" className={`shrink-0 text-[var(--lg-text-3)] transition-transform duration-200 motion-reduce:transition-none ${offen ? 'rotate-180' : ''}`} />
+          </button>
+          {alsBuendelNachtragen.length > 0 && dochKnopf(() => openBundle({ ...block.bundle, name: block.name }, alsBuendelNachtragen))}
+        </div>
+        {offen && (
+          <div className="tyd-buendel-glieder lg-rows">
+            {block.eintraege.map(renderErledigt)}
           </div>
         )}
       </div>
@@ -3019,9 +3303,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {genommeneSlots}/{totalDaySlots}
               </b>
             </span>
-            <span aria-hidden="true" className="h-1 w-[72px] overflow-hidden rounded-full bg-[var(--lg-fill)]">
-              <span className="block h-full rounded-full bg-[var(--lg-good)] transition-[width] duration-300" style={{ width: `${Math.min(100, Math.round(genommeneSlots / totalDaySlots * 100))}%` }} />
-            </span>
+            <TagesSegmente stand={tagesSegmente} className="h-1 w-[96px]" />
           </div>
         )}
 
@@ -3082,16 +3364,12 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   genommen: genommeneSlots, geplant: totalDaySlots,
                 })}
               </h3>
-              <span className="shrink-0 text-[13px] tabular-nums text-[var(--lg-text-3)]">
-                {t('due_open_count', { defaultValue: '{{n}} offen', n: dueSlots.length })}
+              {/* Der Tag ist vorbei: was offen blieb, ist verpasst. */}
+              <span className="shrink-0 text-[13px] tabular-nums text-[var(--lg-bad-text)]">
+                {t('day_count_missed', { defaultValue: '{{n}} verpasst', n: tagesSegmente.verpasst })}
               </span>
             </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--lg-fill)]">
-              <span
-                className="block h-full rounded-full bg-[var(--lg-good)]"
-                style={{ width: totalDaySlots > 0 ? `${Math.round((genommeneSlots / totalDaySlots) * 100)}%` : '0%' }}
-              />
-            </div>
+            <TagesSegmente stand={tagesSegmente} className="mt-3 h-1.5" />
           </div>
         )}
 
@@ -3104,7 +3382,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           >
             <span
               className="flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ background: alleGenommen ? 'var(--lg-good)' : verpassteHeute > 0 ? 'var(--lg-warn)' : '#636366' }}
+              style={{ background: alleGenommen ? 'var(--lg-good)' : verpassteHeute > 0 ? 'var(--lg-bad)' : '#636366' }}
             >
               {alleGenommen
                 ? <Check size={28} strokeWidth={2.6} className="text-white" aria-hidden="true" />
@@ -3165,6 +3443,54 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         ))}
 
+        {/* ── Eingenommen · Verpasst · Übersprungen ─────────────────────
+            Eine Liste für alles Entschiedene, Bündel darin wie oben. Die Farbe
+            sagt den Stand: grün eingenommen, rot verpasst, grau übersprungen. */}
+        {erledigte.length > 0 && (() => {
+          const auf = erledigtAuf ?? isPastSelected
+          return (
+            <div data-erledigt className="mb-3 space-y-2">
+              <button
+                type="button"
+                onClick={() => setErledigtAuf(!auf)}
+                aria-expanded={auf}
+                className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
+              >
+                <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><Check size={17} strokeWidth={2.6} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[17px] text-[var(--lg-text)]">
+                    {t('done_intakes_title', { defaultValue: 'Eingenommen · Verpasst · Übersprungen' })}
+                  </span>
+                  <span data-erledigt-zahlen className="block text-[13px] tabular-nums">
+                    {(['genommen', 'verpasst', 'uebersprungen'] as const).flatMap(stand => {
+                      const n = erledigtZahl(stand)
+                      return n === 0 ? [] : [<span key={stand} className={STAND_TON[stand].text}>{standZahl(stand, n)}</span>]
+                    }).reduce<React.ReactNode[]>((alle, teil, i) => i === 0 ? [teil] : [...alle, <span key={i} className="text-[var(--lg-text-3)]"> · </span>, teil], [])}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="text-[17px] tabular-nums text-[var(--lg-text-3)]">{erledigte.length}</span>
+                  <ChevronDown
+                    size={18}
+                    className={`text-[var(--lg-text-4)] transition-transform duration-200 ${auf ? 'rotate-180' : ''}`}
+                  />
+                </span>
+              </button>
+              {auf && (
+                <div className="space-y-2.5">
+                  {erledigteBloecke.map(block => block.art === 'liste'
+                    ? (
+                        <div key={`liste-${block.eintraege[0].key}`} className="lg-group lg-rows">
+                          {block.eintraege.map(renderErledigt)}
+                        </div>
+                      )
+                    : renderErledigtesBuendel(block))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Die Bündel selbst: anlegen und bearbeiten. Bestaetigt werden sie
             oben in ihrer Tageszeit; hier stehen sie auch, wenn heute nichts
             von ihnen offen ist. */}
@@ -3206,79 +3532,6 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </section>
         )}
 
-        {/* Bestätigte und nicht bestätigte Einnahmen getrennt ausklappen. */}
-        {loggedLogs.length > 0 && (
-          <div className="mb-3 space-y-2">
-            {/* Eine Zeile wie in den iOS-Einstellungen: farbiges Symbol,
-                Titel, Anzahl, Pfeil — darunter klappt die Liste auf. */}
-            <button
-              type="button"
-              onClick={() => setCompletedExpanded(expanded => !expanded)}
-              aria-expanded={completedExpanded}
-              data-tone="good"
-              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
-            >
-              <span aria-hidden="true" className="lg-icon-tile bg-[var(--lg-good)]"><Check size={17} strokeWidth={2.6} /></span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[17px] text-[var(--lg-text)]">
-                  {t('completed_intakes_title', { defaultValue: 'Bereits protokolliert' })}
-                </p>
-                <p className="text-[13px] text-[var(--lg-text-3)]">
-                  {t('completed_intakes_hint', { defaultValue: 'Bestätigte Einnahmen.' })}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="text-[17px] tabular-nums text-[var(--lg-text-3)]">
-                  {loggedLogs.length}
-                </span>
-                <ChevronDown
-                  size={18}
-                  className={`text-[var(--lg-text-4)] transition-transform duration-200 ${completedExpanded ? 'rotate-180' : ''}`}
-                />
-              </div>
-            </button>
-            {completedExpanded && (
-              <div className="lg-group lg-rows">
-                {loggedLogs.map(log => renderLogRow(log))}
-              </div>
-            )}
-          </div>
-        )}
-        {unloggedLogs.length > 0 && (
-          <div className="mb-3 space-y-2">
-            <button
-              type="button"
-              onClick={() => setUnloggedExpanded(expanded => !expanded)}
-              aria-expanded={unloggedExpanded}
-              className="lg-surface flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors active:bg-[var(--lg-surface-2)]"
-            >
-              {/* Neutral: ausgelassen heisst entschieden, nicht falsch */}
-              <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><MinusCircle size={17} strokeWidth={2.4} /></span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[17px] text-[var(--lg-text)]">
-                  {t('unlogged_intakes_title', { defaultValue: 'Nicht protokolliert' })}
-                </p>
-                <p className="text-[13px] text-[var(--lg-text-3)]">
-                  {t('unlogged_intakes_hint', { defaultValue: 'Übersprungene und verpasste Einnahmen.' })}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="text-[17px] tabular-nums text-[var(--lg-text-3)]">
-                  {unloggedLogs.length}
-                </span>
-                <ChevronDown
-                  size={18}
-                  className={`text-[var(--lg-text-4)] transition-transform duration-200 ${unloggedExpanded ? 'rotate-180' : ''}`}
-                />
-              </div>
-            </button>
-            {unloggedExpanded && (
-              <div className="lg-group lg-rows">
-                {unloggedLogs.map(log => renderLogRow(log))}
-              </div>
-            )}
-          </div>
-        )}
         {loggedLogs.length === 0 && unloggedLogs.length === 0 && dueSlots.length === 0 && selCycles.length === 0 && selOnDemand.length === 0 && !selectedPause
           && timezoneReviewStackItemIds.length === 0 && (!FEATURES.planTimelineV2 || timelineReady) ? (
           <p className="py-6 text-center text-[15px] text-[var(--lg-text-3)]">
@@ -3337,7 +3590,16 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         <RoutineConfirmationSheet
           group={routineGroupSheet}
           initialTime={routineGroupSheet.initialTime}
+          initialDate={routineGroupSheet.initialDate}
+          zyklusVorbei={routineGroupSheet.zyklusVorbei}
+          ausserhalbZyklus={(eintraege, datum, zeit) => {
+            const [stunde, minute] = zeit.split(':').map(Number)
+            const zeitpunkt = parseISO(datum)
+            zeitpunkt.setHours(stunde, minute, 0, 0)
+            return eintraege.filter(eintrag => !zeitpunktImZyklus(eintrag.cycleId, zeitpunkt))
+          }}
           plannedTime={routineGroupSheet.plannedTime}
+          plannedDate={routineGroupSheet.plannedDate}
           onClose={() => setRoutineGroupSheet(null)}
           onConfirm={confirmRoutineGroup}
           onAfterConfirm={afterRoutineGroupConfirmed}
@@ -3388,8 +3650,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 {t('confirm_sheet_hint', { defaultValue: 'Wann hast du tatsächlich eingenommen?' })}
               </p>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="confirm-sheet-time" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
-                  {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
+                <label htmlFor="confirm-sheet-date" className="text-[13px] font-semibold text-[var(--lg-text-3)]">
+                  {t('confirm_sheet_datetime_label', { defaultValue: 'Datum und Uhrzeit' })}
                 </label>
                 <div className="flex items-center gap-2">
                   <button
@@ -3405,7 +3667,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                     <button
                       type="button"
                       data-confirm-time-planned
-                      onClick={() => { setConfirmTime(confirmPlanTime); setConfirmDay(null) }}
+                      onClick={() => { setConfirmTime(confirmPlanTime); setConfirmDay(confirmPlanDay) }}
                       className="lg-gray-btn !min-h-9 !px-3 !text-[13px]"
                     >
                       {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: confirmPlanTime })}
@@ -3413,17 +3675,44 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   )}
                 </div>
               </div>
-              <input
-                id="confirm-sheet-time"
-                type="time"
-                value={confirmTime}
-                onChange={e => setConfirmTime(e.target.value)}
-                className={`input font-semibold ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}
-                style={{ colorScheme: 'dark' }}
-              />
+              {/* Immer mit Tag: wer nach Mitternacht bestätigt, sieht und
+                  ändert, für welchen Tag die Einnahme zählt. */}
+              <div className={`flex gap-2 ${confirmUnit != null ? 'mb-4' : 'mb-5'}`}>
+                <input
+                  id="confirm-sheet-date"
+                  type="date"
+                  aria-label={String(t('confirm_sheet_date_label', { defaultValue: 'Datum' }))}
+                  value={format(confirmDay ?? selectedDay, 'yyyy-MM-dd')}
+                  onChange={e => { if (e.target.value) setConfirmDay(parseISO(e.target.value)) }}
+                  className="input min-w-0 flex-1 font-semibold"
+                  style={{ colorScheme: 'dark' }}
+                />
+                <input
+                  id="confirm-sheet-time"
+                  type="time"
+                  aria-label={String(t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' }))}
+                  value={confirmTime}
+                  onChange={e => setConfirmTime(e.target.value)}
+                  className="input w-[8.5rem] shrink-0 font-semibold"
+                  style={{ colorScheme: 'dark' }}
+                />
+              </div>
+              {/* Außerhalb des Zyklus lässt sich nicht speichern — das sagen,
+                  bevor es beim Speichern scheitert. */}
+              {confirmAusserhalb && (
+                <p role="alert" data-confirm-ausserhalb className="-mt-2 mb-4 flex items-start gap-1.5 text-[13px] leading-snug text-[var(--lg-bad-text)]">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  {t('confirm_outside_cycle', { defaultValue: 'Zu diesem Zeitpunkt läuft der Zyklus nicht (beendet oder pausiert). So lässt sich die Einnahme nicht speichern.' })}
+                </p>
+              )}
+              {!confirmAusserhalb && confirmZyklusVorbei && (
+                <p data-confirm-zyklus-vorbei className="-mt-2 mb-4 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                  {t('confirm_cycle_ended_prefill', { defaultValue: 'Der Zyklus läuft jetzt nicht mehr. Vorbelegt ist der geplante Zeitpunkt.' })}
+                </p>
+              )}
               {confirmDay && !isSameDay(confirmDay, selectedDay) && (
                 <p data-confirm-time-today className="-mt-2 mb-4 text-[13px] text-[var(--lg-text-3)]">
-                  {t('confirm_time_today', { defaultValue: 'Eingetragen für heute, nicht für den geöffneten Tag.' })}
+                  {t('confirm_time_other_day', { defaultValue: 'Eingetragen für {{day}}, nicht für den geöffneten Tag.', day: format(confirmDay, 'EEEE, d. MMMM', { locale }) })}
                 </p>
               )}
               {confirmUnit != null && (
@@ -3478,8 +3767,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   {t('cancel', { defaultValue: 'Abbrechen' })}
                 </button>
                 <button
-                  onClick={() => { if (!confirmDoseUngueltig) void handleConfirmSheet() }}
-                  {...denyProps(confirmDoseUngueltig)}
+                  onClick={() => { if (!confirmDoseUngueltig && !confirmAusserhalb) void handleConfirmSheet() }}
+                  {...denyProps(confirmDoseUngueltig || confirmAusserhalb)}
                   data-tone="good"
                   className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
                 >

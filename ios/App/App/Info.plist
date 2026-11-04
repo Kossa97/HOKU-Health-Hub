@@ -27,9 +27,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>HOKU uses the camera to scan barcodes on food and products and, after your consent, to photograph labels that are sent to be read. No images are stored.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Hoku listens when you tap the microphone in the chat and writes what you say into the input field. Nothing is recorded or stored.</string>
+	<string>Hoku listens when you tap the microphone in the chat, and HOKU listens while you hold the microphone during a workout, turning what you say into text. Nothing is recorded or stored.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Apple's speech recognition turns what you say to Hoku in the chat into text. HOKU does not store any recordings.</string>
+	<string>Apple's speech recognition turns what you say to Hoku in the chat, or your sets during a workout (e.g. “80 kg, 8 reps”), into text. HOKU does not store any recordings.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>HOKU reads health data to show weight, steps, sleep, heart rate and active energy in your records and calorie tracker.</string>
 	<key>NSHealthUpdateUsageDescription</key>

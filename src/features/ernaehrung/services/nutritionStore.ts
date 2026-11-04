@@ -12,6 +12,7 @@ import {
 import { parseIngredients } from '../lib/recipe'
 import { type ActivityLog, parseSources } from '../lib/activity'
 import { parseMicros } from '../lib/micros'
+import { parseOwnGoals } from '../lib/nutrientTargets'
 import { type DayTotals, EMPTY_TOTALS } from '../lib/dayRings'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
@@ -285,6 +286,7 @@ export async function loadGoals(userId: string): Promise<Goals | null> {
     activityMode: data.activity_mode === 'budget' ? 'budget' : 'deficit',
     activityShare: data.activity_share === 'full' ? 'full' : 'half',
     activitySources: parseSources(data.activity_sources),
+    nutrientGoals: parseOwnGoals(data.nutrient_goals),
   }
 }
 
@@ -293,6 +295,7 @@ export async function saveGoals(userId: string, g: Goals): Promise<void> {
     user_id: userId, kcal: g.kcal, protein_g: g.proteinG, carbs_g: g.carbsG, fat_g: g.fatG,
     water_ml: g.waterMl, hide_kcal: g.hideKcal,
     activity_mode: g.activityMode, activity_share: g.activityShare, activity_sources: [...g.activitySources],
+    nutrient_goals: g.nutrientGoals,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' })
   if (error) throw error
@@ -314,8 +317,21 @@ export interface BodyData {
   sex: 'male' | 'female' | null
 }
 
-/** Gewicht bevorzugt aus `weight_logs` (neuester Wert), sonst aus dem Profil. */
-export async function loadBodyData(userId: string): Promise<BodyData> {
+/**
+ * Gewicht bevorzugt aus `weight_logs` (neuester Wert), sonst aus dem Profil.
+ * Kurz gemerkt (30 s): Ziele, Aktivität und Nährstoffe fragen beim Öffnen gleichzeitig.
+ */
+let bodyCache: { userId: string; at: number; data: Promise<BodyData> } | null = null
+export function loadBodyData(userId: string): Promise<BodyData> {
+  const now = Date.now()
+  if (bodyCache && bodyCache.userId === userId && now - bodyCache.at < 30_000) return bodyCache.data
+  const data = fetchBodyData(userId)
+  bodyCache = { userId, at: now, data }
+  data.catch(() => { if (bodyCache?.data === data) bodyCache = null })
+  return data
+}
+
+async function fetchBodyData(userId: string): Promise<BodyData> {
   const [profile, weight] = await Promise.all([
     supabase.from('profiles').select('weight_kg,height_cm,birth_date,bio_sex,gender').eq('id', userId).maybeSingle(),
     supabase.from('weight_logs').select('weight_kg').eq('user_id', userId).order('logged_at', { ascending: false }).limit(1),

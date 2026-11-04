@@ -65,7 +65,19 @@ export interface DotLeiste {
   plus: HTMLElement | null
   logo: HTMLElement
   spalt: HTMLElement | null
+  /** Das Tor in den Abbildern der Leiste in der Glaslinse; bewegt sich mit dem echten. */
+  spaltKopie?: () => Iterable<HTMLElement>
+  /**
+   * Die Zeichenfläche für Torschein und Torkanten IN der Leiste (unter der
+   * Glaslinse) und ihre Kopien in der Linse. Gibt es sie, malt Hoku das Tor
+   * dort statt auf seiner eigenen Ebene — so verzerrt die Linse es mit.
+   */
+  torBild?: () => { haupt: HTMLCanvasElement | null; kopien: Iterable<HTMLCanvasElement> }
 }
+
+/** Platz der Tor-Zeichenfläche über und unter der Oberkante der Leiste (px). */
+export const TOR_OBEN = 56
+export const TOR_UNTEN = 6
 
 export interface DotHost {
   canvas: HTMLCanvasElement
@@ -107,6 +119,11 @@ export interface DotApi {
   erfolg(): boolean
   /** Anmeldung: Dot steht auf dieser Bühne, lässt sich ziehen und werfen und kehrt zurück. */
   loginBuehne(el: HTMLElement): void
+  /**
+   * Seite „Hoku“: `el` ist ein Glasgehäuse (`data-dot-boden` = Höhe der Bodenplatte als Anteil, Standard 0,82).
+   * Er federt von dort, wo er ist, hinein und bleibt darin; `null` lässt ihn an seinen Platz in der App zurück.
+   */
+  gehege(el: HTMLElement | null): void
   /** Die Anmeldung ist vorbei: still ins Haus (der Flug in die Leiste folgt mit dem Erfolg). */
   verlasseLogin(): void
   /** Auf der Anmeldung: um so viele Pixel zum Formular hin neigen. */
@@ -291,6 +308,8 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Geometrie der Umgebung ───────────────────────────────────────────── */
   let W = 0, H = 0, dpr = 1, CR = 0, TAB = 0, CAPX = 0, OBEN = 0
+  /** Ist die Tor-Zeichenfläche in der Leiste gerade leer (Tor zu)? */
+  let torLeer = false
   let ENT = { x: window.innerWidth / 2, w: 44 }
   let CAP: Kapsel = { l: 0, r: 0, t: 0, b: 0 }
   let PLUS: Knopf | null = null
@@ -299,11 +318,20 @@ export function createDot(host: DotHost): DotApi {
   let INSEL: { l: number; r: number; t: number; b: number } | null = null
   let leiste: DotLeiste | null = null
   const NAV = { on: true, kb: 0, kbT: 0, cam: false, darfRaus: false }
-  const navOn = () => NAV.on && !!leiste && NAV.kb < 1 && !NAV.kbT
-  const ueberTastatur = () => NAV.kb > 0.5 || NAV.kbT > 0
-  const bounds = () => ({ l: 4, t: 4, r: W - 4, b: H - 6 - NAV.kb })
-  const cornerSdf = (x: number, y: number) => eckenAbstand(x, y, bounds(), CR, ueberTastatur())
-  const frameSdf = (x: number, y: number) => rahmenAbstand(x, y, bounds(), CR, ueberTastatur())
+  /**
+   * Glasgehäuse auf der Seite „Hoku“ (Nutzer 04.11.2026): solange es steht, sind seine Glaswände und die
+   * Bodenplatte die Wände, nicht der Bildschirm. Gemessen je Bild in messeBuehne (Ebene-Koordinaten).
+   * `l, t, r, b` innen an der Glaskante, `b` ist die Oberkante der Bodenplatte; `rund` die Ecken.
+   */
+  let GEHEGE: { l: number; t: number; r: number; b: number; rund: number; unten: number; kante: number } | null = null
+  const navOn = () => NAV.on && !!leiste && NAV.kb < 1 && !NAV.kbT && !GEHEGE
+  const ueberTastatur = () => !GEHEGE && (NAV.kb > 0.5 || NAV.kbT > 0)
+  const bounds = () => GEHEGE ? { l: GEHEGE.l, t: GEHEGE.t, r: GEHEGE.r, b: GEHEGE.b } : { l: 4, t: 4, r: W - 4, b: H - 6 - NAV.kb }
+  // im Gehäuse rundet es seine Ecken, sonst die des Bildschirms (CR): eine gebogene Auflage, damit er in der
+  // Ecke liegt statt an zwei Wänden zu zucken
+  const rund = () => GEHEGE ? GEHEGE.rund : CR
+  const cornerSdf = (x: number, y: number) => eckenAbstand(x, y, bounds(), rund(), ueberTastatur())
+  const frameSdf = (x: number, y: number) => rahmenAbstand(x, y, bounds(), rund(), ueberTastatur())
   const inselSdf = (x: number, y: number) => INSEL ? kastenAbstand(x, y, INSEL, 18) : FERN
   const obstacle = (x: number, y: number) => leistenAbstand(x, y, CAP, PLUS)
 
@@ -482,8 +510,10 @@ export function createDot(host: DotHost): DotApi {
     displaced: false, autoOut: false, thin: 0, thinT: 0, recede: 0, recedeT: 0,
     pan: null as null | { w: Wand; T: number; base: number; lo: number; hi: number }, panId: '',
     stage: null as HTMLElement | null,
+    // Seite „Hoku“: die Bühne ist ein Glasgehäuse (siehe GEHEGE)
+    gehege: false,
     form: null as DotForm | null, formT: 0, tint: 0, toenung: TOENUNG.bad, kugel: 1, shakeX: 0, wahl: { gruss: 'einArm', fehler: null, netz: Math.random() < 0.5 ? 'boegen' : 'sucht' } as GestenWahl,
-    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0 },
+    login: { phase: 'ruhe' as 'ruhe' | 'frei' | 'loesen' | 'zurueck' | 'auftritt', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0, haftenZufall: 0.5 },
   // Hinweis oder Klopfen auf der Anmeldung (Spec Hoku führt); quetsch staucht ihn beim Aufprall
   punktFarbe: PINK, auftritt: null as Auftritt | null, quetsch: 0, glas: [] as { x: number; y: number; r: number; t: number }[],
   }
@@ -527,8 +557,8 @@ export function createDot(host: DotHost): DotApi {
       { id: 'bottom', d: b.b - B.y, nx: 0, ny: -1 },
     ]
     if (navOn()) ws.push({ id: 'nav', sdf: true, fn: obstacle, ...obstacle(B.x, B.y) })
-    if (INSEL) ws.push({ id: 'insel', sdf: true, fn: inselSdf, ...inselSdf(B.x, B.y) })
-    if (CR > 0) ws.push({ id: 'corner', sdf: true, fn: cornerSdf, ...cornerSdf(B.x, B.y) })
+    if (INSEL && !GEHEGE) ws.push({ id: 'insel', sdf: true, fn: inselSdf, ...inselSdf(B.x, B.y) })
+    if (rund() > 0) ws.push({ id: 'corner', sdf: true, fn: cornerSdf, ...cornerSdf(B.x, B.y) })
     return ws
   }
   function dockY(): DockY {
@@ -563,13 +593,20 @@ export function createDot(host: DotHost): DotApi {
     }
     URS.x = c.left; URS.y = c.top
     BUEHNE = B.stage?.isConnected ? inEbene(B.stage.getBoundingClientRect()) : null
+    // Gehäuse: innen an der Kante (Glasdicke), unten auf der Bodenplatte (`data-dot-boden`, Anteil der Höhe)
+    if (B.gehege && BUEHNE && B.stage) {
+      const k = 3, rr = parseFloat(getComputedStyle(B.stage).borderTopLeftRadius) || 28
+      const boden = parseFloat(B.stage.dataset.dotBoden ?? '') || 0.82
+      GEHEGE = { l: BUEHNE.left + k, t: BUEHNE.top + k, r: BUEHNE.right - k, b: BUEHNE.top + BUEHNE.height * boden, rund: Math.max(8, rr - k - 4), unten: BUEHNE.bottom - k, kante: k }
+    } else GEHEGE = null
   }
   function stageCenter() {
     const s = BUEHNE
+    if (GEHEGE) return { x: (GEHEGE.l + GEHEGE.r) / 2, y: (GEHEGE.t + GEHEGE.b) / 2 }
     return s ? { x: s.left + s.width / 2, y: s.top + s.height / 2 } : { x: W / 2, y: H * 0.3 }
   }
-  // Auf der Anmeldung behält er auch an der Wand seine Bühnengröße
-  const loginGrundRadius = () => BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
+  // Auf der Anmeldung behält er auch an der Wand seine Bühnengröße; im Gehäuse etwas kleiner (Platz zum Schweben)
+  const loginGrundRadius = () => GEHEGE ? Math.min(44, (GEHEGE.b - GEHEGE.t) * 0.24) : BUEHNE ? Math.min(66, BUEHNE.height * 0.26) : 46
   // beim Tippen kann er kleiner werden, damit er über der Karte Platz hat (rutschZiel)
   const loginRadius = () => B.login.rTipp || loginGrundRadius()
   const koerper = () => B.mode === 'login' ? loginRadius() : B.size
@@ -578,8 +615,8 @@ export function createDot(host: DotHost): DotApi {
     let x = B.dock.x === 'left' ? b.l + r * rest : B.dock.x === 'right' ? b.r - r * rest : clamp(B.along.x, b.l + r, b.r - r)
     const floor = B.squeezed || !navOn() ? b.b : TAB, dy = dockY()
     let y = dy === 'top' ? b.t + r * rest : dy === 'nav' ? TAB - r * rest : dy === 'bottom' ? b.b - r * rest : clamp(B.along.y, b.t + r, floor - r)
-    // nicht in die Mitte der Statusleiste: oben zur Seite, sonst darunter
-    if (INSEL) {
+    // nicht in die Mitte der Statusleiste: oben zur Seite, sonst darunter (im Glasgehäuse gibt es sie nicht)
+    if (INSEL && !GEHEGE) {
       const k = inselSdf(x, y), m = dy === 'top' ? r * rest : r
       if (k.d < m) {
         if (dy === 'top') x = x < W / 2 ? INSEL.l - m : INSEL.r + m
@@ -724,8 +761,12 @@ export function createDot(host: DotHost): DotApi {
     let dx: DockX = Math.min(dl, dr) < snap ? (dl < dr ? 'left' : 'right') : null
     let dy: DockY = Math.min(dt, db) < snap ? (dt < db ? 'top' : floorId) : null
     if (dx && dy && !(Math.min(dl, dr) < snap * 0.6 && Math.min(dt, db) < snap * 0.6)) { if (Math.min(dl, dr) < Math.min(dt, db)) dy = null; else dx = null }
+    // im Glasgehäuse liegt er in einer Ecke nur an einer Fläche: unten auf dem Boden (an die Scheibe geschmiegt),
+    // oben an der näheren – um die kleine Ecke herum gebogen sähe er aus wie ein „L“ (Nutzer 04.11.2026)
+    if (GEHEGE && dx && dy) { if (dy !== 'top' || Math.min(dl, dr) >= Math.min(dt, db)) dx = null; else dy = null }
+    if (GEHEGE && !dx && dy && dy !== 'top') px = clamp(px, b.l + r * 1.5, b.r - r * 1.5)
     // unter der Mitte der Statusleiste ist deren Unterkante die Decke: dort bleibt er
-    if (INSEL && dy === 'top' && px > INSEL.l - r * 0.5 && px < INSEL.r + r * 0.5) { dy = null; py = INSEL.b + r }
+    if (INSEL && !GEHEGE && dy === 'top' && px > INSEL.l - r * 0.5 && px < INSEL.r + r * 0.5) { dy = null; py = INSEL.b + r }
     if (speed < 300 && !dx && !dy) { px = B.x; py = B.y }
     B.dock = { x: dx, y: dy }; B.along = { x: px, y: py }
     B.vx = vx; B.vy = vy
@@ -916,7 +957,9 @@ export function createDot(host: DotHost): DotApi {
       const gedockt = !!(B.dock.x || B.dock.y)
       if (sp < 14) {
         L.still += dt
-        if (L.still > (gedockt ? LOGIN.haften : LOGIN.warten)) { L.phase = gedockt ? 'loesen' : 'zurueck'; L.still = 0 }
+        // im Gehäuse bleibt er länger kleben (Mockup: 3 bis 5 s), auf der Anmeldung kurz
+        const haften = GEHEGE ? 3.4 + L.haftenZufall * 1.4 : LOGIN.haften
+        if (L.still > (gedockt ? haften : LOGIN.warten)) { L.phase = gedockt ? 'loesen' : 'zurueck'; L.still = 0 }
       } else L.still = 0
     } else if (L.phase === 'loesen') {
       if (B.flat < 0.06) { B.dock = { x: null, y: null }; L.phase = 'zurueck' }
@@ -994,7 +1037,7 @@ export function createDot(host: DotHost): DotApi {
     B.x = B.lx = Z.x; B.y = B.ly = Z.y; B.vx = B.vy = B.lvx = B.lvy = 0
     // wächst auf der Bühne auf; die Eröffnung aus den Partikeln folgt später
     B.r = B.size * 0.3; B.rv = 0
-    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0 }
+    B.login = { phase: 'ruhe', still: 0, neigung: B.login.neigung, n: B.login.neigung, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0, haftenZufall: 0.5 }
     setState('idle'); arbeitet = false
     versteckeBlase(); zeigeTreffer(); melde(); laufen()
     // Gesten im Leerlauf vorab bauen, nicht im ersten Bild von Herz oder Haken
@@ -1004,10 +1047,36 @@ export function createDot(host: DotHost): DotApi {
   }
   function loginVerlassen() {
     auftrittEnde(false)
-    if (B.mode !== 'login') return
+    // das Gehäuse der Seite „Hoku“ ist keine Anmeldung: verlassen wird es mit gehegeVerlassen
+    if (B.mode !== 'login' || B.gehege) return
     B.mode = 'house'; B.stage = null; B.drag = null; B.login.neigung = 0
     appPlatz()
     setState('idle'); versteckeTreffer(); versteckeBlase(); melde(); laufen()
+  }
+
+  /**
+   * Seite „Hoku“: das Glasgehäuse ist seine Bühne. Es nutzt die Physik der Anmeldung (greifen, werfen, an
+   * Scheibe oder Boden kleben, langsam lösen, zur Mitte zurück), nur mit dem Gehäuse als Wänden. Er kommt von
+   * dort, wo er gerade ist, und federt hinein. Nur wenn er draußen ist (`home`); sonst holt ihn die Seite heraus.
+   */
+  function gehegeBetreten(el: HTMLElement) {
+    B.stage = el; B.gehege = true; messeBuehne()
+    if (B.mode === 'login') return
+    if (B.mode !== 'home' && B.mode !== 'stage') { B.gehege = false; B.stage = null; GEHEGE = null; return }
+    B.mode = 'login'; B.drag = null; B.thinT = 0; B.recedeT = 0; B.dock = { x: null, y: null }; B.contact = {}
+    B.mood = 'awake'; B.sleepAmt = 0; B.yawnT = -1; B.waveT = -1; B.giggleT = -1; B.dizzyT = -1
+    B.login = { phase: 'zurueck', still: 0, neigung: 0, n: 0, rutsch: 0, rv: 0, rutschX: 0, rvx: 0, rTipp: 0, haftenZufall: Math.random() }
+    setState('idle'); arbeitet = false
+    zeigeTreffer(); melde(); laufen()
+  }
+  function gehegeVerlassen() {
+    if (!B.gehege) return
+    B.gehege = false; GEHEGE = null; B.stage = null
+    if (B.mode !== 'login') return
+    auftrittEnde(false)
+    B.mode = 'home'; B.drag = null; B.contact = {}; B.dock = { x: null, y: null }
+    appPlatz()
+    setState('idle'); melde(); laufen()
   }
 
   /* ── Rundflug (von einer Seite vorgegeben) ─────────────────────────────── */
@@ -1319,7 +1388,7 @@ export function createDot(host: DotHost): DotApi {
     }
     let domes = wl.filter(w => (w.dock ?? 0) > 0.001)
     const dyc = dockY()
-    if (CR > 0 && domes.length && B.dock.x && (dyc === 'top' || dyc === 'bottom')) {
+    if (rund() > 0 && domes.length && B.dock.x && (dyc === 'top' || dyc === 'bottom')) {
       const f = frameSdf(B.x, B.y), d0 = domes[0]
       domes = [{ id: 'frame', sdf: true, fn: frameSdf, ...f, dock: B.flat, T: d0.T, L: (d0.L ?? 0) * 1.15, hc: Math.min(f.d, (d0.T ?? 0) * 0.6) }]
     }
@@ -1405,33 +1474,65 @@ export function createDot(host: DotHost): DotApi {
     const open = B.door, ow = ENT.w * easeOut3(clamp01(open))
     const spalt = leiste?.spalt
     if (spalt) {
-      spalt.style.width = ow.toFixed(1) + 'px'
-      spalt.style.transform = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
+      const breite = ow.toFixed(1) + 'px', lage = `translateX(${(ENT.x - CAPX - ow / 2).toFixed(1)}px)`
+      for (const el of [spalt, ...(leiste?.spaltKopie?.() ?? [])]) {
+        if (!el || (el.style.width === breite && el.style.transform === lage)) continue
+        el.style.width = breite
+        el.style.transform = lage
+      }
     }
     // Der Strahl gehört zur Leiste: über dem Chat (Bühne) und unter einem Blatt
     // oder Dialog (er tritt zurück) liegt die Zeichenfläche über dem Fenster
     const frei = B.mode === 'stage' ? 0 : 1 - B.recede
-    if (open < 0.01 || !navOn() || frei < 0.02) return
+    const zu = open < 0.01 || !navOn() || frei < 0.02
+    // Hat die Leiste eine eigene Tor-Zeichenfläche, malt Hoku dorthin
+    const tor = leiste?.torBild?.()
+    const haupt = tor?.haupt ?? null
+    let c: CanvasRenderingContext2D = ctx
+    if (haupt) {
+      if (zu && torLeer) return
+      const cw = Math.max(1, Math.round((CAP.r - CAP.l) * dpr)), ch = Math.round((TOR_OBEN + TOR_UNTEN) * dpr)
+      if (haupt.width !== cw || haupt.height !== ch) { haupt.width = cw; haupt.height = ch }
+      const hc = haupt.getContext('2d')
+      if (!hc) return
+      hc.setTransform(1, 0, 0, 1, 0, 0)
+      hc.clearRect(0, 0, cw, ch)
+      if (zu) { torLeer = true; kopiereTor(haupt, tor!.kopien); return }
+      torLeer = false
+      hc.setTransform(dpr, 0, 0, dpr, -CAPX * dpr, (TOR_OBEN - TAB) * dpr)
+      c = hc
+    } else if (zu) return
     const a = frei * clamp01(open * (0.75 + 0.08 * Math.sin(t * 2.1) + 0.3 * B.near) + B.doorFlash * 0.35)
     const ex = ENT.x, bh = (26 + 14 * B.near + 10 * B.doorFlash) * open
-    ctx.globalCompositeOperation = 'lighter'
-    ctx.save(); ctx.translate(ex, TAB); ctx.scale(ow * 0.62 + 4, bh)
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+    c.globalCompositeOperation = 'lighter'
+    c.save(); c.translate(ex, TAB); c.scale(ow * 0.62 + 4, bh)
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, 1)
     g.addColorStop(0, `rgba(110,220,255,${(0.16 * a).toFixed(3)})`); g.addColorStop(1, 'rgba(110,220,255,0)')
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, Math.PI, TAU); ctx.fill(); ctx.restore()
+    c.fillStyle = g; c.beginPath(); c.arc(0, 0, 1, Math.PI, TAU); c.fill(); c.restore()
     if (ow > 4) for (let i = 0; i < 5; i++) {
       const u = (i + 0.5) / 5 - 0.5, x = ex + u * ow * 0.8 + Math.sin(t * 0.9 + i * 2.3) * 1.5
       const len = bh * (0.9 + 0.5 * Math.sin(t * 1.3 + i * 1.7)), lean = u * 6
-      const gr = ctx.createLinearGradient(0, TAB, 0, TAB - len)
+      const gr = c.createLinearGradient(0, TAB, 0, TAB - len)
       gr.addColorStop(0, `rgba(170,240,255,${(0.2 * a).toFixed(3)})`); gr.addColorStop(1, 'rgba(170,240,255,0)')
-      ctx.strokeStyle = gr; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, TAB - 0.5); ctx.lineTo(x + lean, TAB - len); ctx.stroke()
+      c.strokeStyle = gr; c.lineWidth = 1; c.beginPath(); c.moveTo(x, TAB - 0.5); c.lineTo(x + lean, TAB - len); c.stroke()
     }
-    ctx.lineWidth = 1.2; ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(200,245,255,${(0.55 * a).toFixed(3)})`
+    c.lineWidth = 1.2; c.lineCap = 'round'; c.strokeStyle = `rgba(200,245,255,${(0.55 * a).toFixed(3)})`
     for (const sd of [-1, 1]) {
       const x0 = ex + (sd * ow) / 2
-      ctx.beginPath(); ctx.moveTo(x0 + sd * 7, TAB + 0.3); ctx.quadraticCurveTo(x0 + sd * 1.5, TAB + 0.3, x0, TAB - 2.2 * open); ctx.stroke()
+      c.beginPath(); c.moveTo(x0 + sd * 7, TAB + 0.3); c.quadraticCurveTo(x0 + sd * 1.5, TAB + 0.3, x0, TAB - 2.2 * open); c.stroke()
     }
-    ctx.globalCompositeOperation = 'source-over'
+    c.globalCompositeOperation = 'source-over'
+    if (haupt) kopiereTor(haupt, tor!.kopien)
+  }
+  /** Das Torbild in die Kopien der Leiste in der Glaslinse übertragen. */
+  function kopiereTor(quelle: HTMLCanvasElement, kopien: Iterable<HTMLCanvasElement>) {
+    for (const k of kopien) {
+      if (k.width !== quelle.width || k.height !== quelle.height) { k.width = quelle.width; k.height = quelle.height }
+      const kc = k.getContext('2d')
+      if (!kc) continue
+      kc.clearRect(0, 0, k.width, k.height)
+      kc.drawImage(quelle, 0, 0)
+    }
   }
   // Die Mitte der Statusleiste leuchtet an der Berührstelle, wie die Leiste unten
   function drawInselGlow() {
@@ -1491,7 +1592,8 @@ export function createDot(host: DotHost): DotApi {
   let GL: WebGLRenderingContext | null = null
   let GLU: { r: WebGLUniformLocation | null; d: WebGLUniformLocation | null; k: WebGLUniformLocation | null } | null = null
   // je Punkt höchstens zwei Einträge: der Punkt und sein Schweif
-  const GLD = new Float32Array(ALLE * 2 * 7)
+  // dazu im Glasgehäuse je Punkt sein Spiegelbild und sein Abbild in der Glaskante (gehegeAbbilder)
+  const GLD = new Float32Array(ALLE * 2 * 7 * 3)
   function glInit(): WebGLRenderingContext | null {
     const gl = glCanvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false })
     if (!gl) return null
@@ -1520,6 +1622,44 @@ export function createDot(host: DotHost): DotApi {
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr)
     if (glCanvas.width !== cw || glCanvas.height !== ch) { glCanvas.width = cw; glCanvas.height = ch }
     GL.viewport(0, 0, cw, ch)
+  }
+  /**
+   * Glasgehäuse: zu jedem Punkt (schon in GLD) zwei Abbilder. In der dicken Glaskante erscheint, was nahe der
+   * Scheibe ist, ein zweites Mal gestaucht (Brechung am Rand). Auf der Bodenplatte spiegelt er sich, gestaucht
+   * und blasser, je höher er schwebt. Gibt die neue Anzahl zurück.
+   */
+  const RAND_TIEF = 46, RAND_STAUCH = 0.36
+  function gehegeAbbilder(n: number): number {
+    const G = GEHEGE, S = BUEHNE
+    if (!G || !S) return n
+    const max = GLD.length / 7
+    let m = n
+    const boden = G.b, nah = clamp01(1 - (boden - (B.y + B.r)) / Math.max(40, (boden - G.t) * 0.9))
+    const r = G.rund + G.kante + 4, w = S.width, h = S.height, cx = S.left + w / 2, cy = S.top + h / 2
+    for (let i = 0; i < n && m < max - 2; i++) {
+      const o = i * 7, X = GLD[o], Y = GLD[o + 1], a = GLD[o + 6]
+      // Abstand zur Außenkante des Gehäuses (innen positiv) und die Richtung nach außen
+      const px = X - cx, py = Y - cy, qx = Math.abs(px) - (w / 2 - r), qy = Math.abs(py) - (h / 2 - r)
+      let d: number, nx: number, ny: number
+      if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy) || 1; d = r - l; nx = (qx / l) * Math.sign(px); ny = (qy / l) * Math.sign(py) }
+      else if (qx > qy) { d = r - qx; nx = Math.sign(px); ny = 0 } else { d = r - qy; nx = 0; ny = Math.sign(py) }
+      if (d > 6 && d < RAND_TIEF) {
+        const d2 = d * RAND_STAUCH, f = 1 - d / RAND_TIEF, q = m * 7
+        GLD[q] = X + nx * (d - d2); GLD[q + 1] = Y + ny * (d - d2); GLD[q + 2] = GLD[o + 2] * 0.8
+        GLD[q + 3] = GLD[o + 3]; GLD[q + 4] = GLD[o + 4]; GLD[q + 5] = GLD[o + 5]; GLD[q + 6] = a * 0.6 * f
+        m++
+      }
+      if (nah > 0.02 && Y < boden) {
+        const my = boden + (boden - Y) * 0.42
+        if (my < G.unten) {
+          const q = m * 7, aus = 1 - (my - boden) / Math.max(1, G.unten - boden)
+          GLD[q] = X; GLD[q + 1] = my; GLD[q + 2] = GLD[o + 2] * 0.9
+          GLD[q + 3] = GLD[o + 3]; GLD[q + 4] = GLD[o + 4]; GLD[q + 5] = GLD[o + 5]; GLD[q + 6] = a * 0.22 * nah * aus
+          m++
+        }
+      }
+    }
+    return m
   }
   function glDraw(n: number, clipY: number) {
     const gl = GL
@@ -2114,7 +2254,9 @@ export function createDot(host: DotHost): DotApi {
       // schnelle Punkte werden etwas größer und ziehen einen Schweif; bei Eröffnung und Portal nicht, dort bleiben sie klar
       const sp = B.intro.an || B.portal ? 0 : (Math.abs(VX[i]) + Math.abs(VY[i])) * r
       const sz = dotR * (0.55 + 0.6 * cp[2]) * 3 * SZ[i] * (1 + Math.min(sp * 0.05, 0.6))
-      if ((B.mode === 'home' || imDisplay) && CR > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
+      if ((B.mode === 'home' || imDisplay) && rund() > 0) { const oc = cornerSdf(X, Y); if (oc.d < 0) { X -= oc.nx * oc.d; Y -= oc.ny * oc.d } }
+      // im Glasgehäuse bleibt jeder Punkt innerhalb der Scheiben und über der Bodenplatte (sonst ragte er platt über die Kante)
+      if (GEHEGE && imDisplay) { X = clamp(X, GEHEGE.l, GEHEGE.r); Y = clamp(Y, GEHEGE.t, GEHEGE.b) }
       // Bei der Eröffnung verlässt kein Punkt das Display. Sonst halten ihn die Wände wie in
       // der App; eine rechteckige Grenze gäbe oben in den runden Ecken eine Kante, an der er zuckt.
       // hinter einem Knopf verdeckt der Knopf ihn
@@ -2138,6 +2280,7 @@ export function createDot(host: DotHost): DotApi {
     }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'
     if (clipped) ctx.restore()
+    if (GL && GEHEGE) nPts = gehegeAbbilder(nPts)
     if (GL) glDraw(nPts, clipped ? TAB : -1)
 
     ctx.globalCompositeOperation = 'lighter'
@@ -2209,8 +2352,8 @@ export function createDot(host: DotHost): DotApi {
       if (nav) { const o = obstacle(qx, qy); if (o.d < allow) { qx += o.nx * (allow - o.d); qy += o.ny * (allow - o.d) } }
       qx = clamp(qx, b.l + r * 0.2, b.r - r * 0.2); qy = clamp(qy, b.t + r * 0.2, b.b - r * 0.2)
       if (nav) { const o2 = obstacle(qx, qy); if (o2.d < r * 0.2) { qx += o2.nx * (r * 0.2 - o2.d); qy += o2.ny * (r * 0.2 - o2.d) } }
-      if (CR > 0) { const oc = cornerSdf(qx, qy); if (oc.d < r * 0.2) { qx += oc.nx * (r * 0.2 - oc.d); qy += oc.ny * (r * 0.2 - oc.d) } }
-      if (INSEL) { const oi = inselSdf(qx, qy); if (oi.d < r * 0.2) { qx += oi.nx * (r * 0.2 - oi.d); qy += oi.ny * (r * 0.2 - oi.d) } }
+      if (rund() > 0) { const oc = cornerSdf(qx, qy); if (oc.d < r * 0.2) { qx += oc.nx * (r * 0.2 - oc.d); qy += oc.ny * (r * 0.2 - oc.d) } }
+      if (INSEL && !GEHEGE) { const oi = inselSdf(qx, qy); if (oi.d < r * 0.2) { qx += oi.nx * (r * 0.2 - oi.d); qy += oi.ny * (r * 0.2 - oi.d) } }
     }
     B.x = qx; B.y = qy
   }
@@ -2287,7 +2430,7 @@ export function createDot(host: DotHost): DotApi {
   function loslassen(vx: number, vy: number) {
     release(vx, vy)
     // Kontakte der letzten Wand gelten nicht mehr: sonst bliebe der Aufprall an derselben Wand ohne Lichtblitz
-    if (B.mode === 'login') { B.login.phase = 'frei'; B.login.still = 0; B.contact = {} }
+    if (B.mode === 'login') { B.login.phase = 'frei'; B.login.still = 0; B.login.haftenZufall = Math.random(); B.contact = {} }
   }
   const beiTaste = (e: KeyboardEvent) => {
     if (e.key !== 'Enter' && e.key !== ' ') return
@@ -2498,6 +2641,7 @@ export function createDot(host: DotHost): DotApi {
     bereiteTexte: async liste => { await ladeSchrift(); for (const t of liste) textForm(t, ALLE, TEXT.dichte) },
     eroeffnung: () => { const d = eroeffnung(); laufen(); return d },
     loginBuehne: el => loginBetreten(el),
+    gehege: el => { if (el) gehegeBetreten(el); else gehegeVerlassen() },
     verlasseLogin: () => loginVerlassen(),
     setNeigung: px => { B.login.neigung = px },
     umkreise: el => new Promise<boolean>(fertig => auftrittStart('knopf', el, undefined, fertig)),
