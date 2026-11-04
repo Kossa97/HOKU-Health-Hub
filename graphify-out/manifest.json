@@ -1356,9 +1356,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793713326.904502,
-    "seen": 1793758911.400482,
-    "ast_hash": "ce4714aa884df752b9ba3ca2a8e13560",
+    "mtime": 1793759120.012889,
+    "seen": 1793759172.662673,
+    "ast_hash": "a9097588a64f665e6ce0c2a4e82d6752",
     "semantic_hash": ""
   },
   "HANDOFF.md": {
@@ -19188,9 +19188,9 @@
     "semantic_hash": ""
   },
   "docs/werkbank/werkbank.html": {
-    "mtime": 1793713430.0744452,
-    "seen": 1793758911.4005806,
-    "ast_hash": "5bc1b5badaf4833cc99c13406f3b9512",
+    "mtime": 1793759120.012889,
+    "seen": 1793759172.675739,
+    "ast_hash": "e7b965367a37b88b12c8bc74114d90e3",
     "semantic_hash": ""
   },
   ".claude/hooks/session-start.sh": {
