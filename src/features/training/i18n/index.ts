@@ -5,6 +5,7 @@ import { EDITOR_TEXTS } from './editorTexts'
 import { LIVE_TEXTS } from './liveTexts'
 import { PROGRESS_TEXTS } from './progressTexts'
 import { SETTINGS_TEXTS } from './settingsTexts'
+import { VOICE_TEXTS } from './voiceTexts'
 
 /**
  * Texte des Workout-Trackers — eigener kleiner Namensraum wie bei der FAQ.
@@ -21,8 +22,8 @@ import { SETTINGS_TEXTS } from './settingsTexts'
  */
 
 export const TRAINING_TEXTS = {
-  de: { ...CORE_TEXTS.de, ...PROGRESS_TEXTS.de, ...SETTINGS_TEXTS.de, ...LIVE_TEXTS.de, ...EDITOR_TEXTS.de },
-  en: { ...CORE_TEXTS.en, ...PROGRESS_TEXTS.en, ...SETTINGS_TEXTS.en, ...LIVE_TEXTS.en, ...EDITOR_TEXTS.en },
+  de: { ...CORE_TEXTS.de, ...PROGRESS_TEXTS.de, ...SETTINGS_TEXTS.de, ...LIVE_TEXTS.de, ...EDITOR_TEXTS.de, ...VOICE_TEXTS.de },
+  en: { ...CORE_TEXTS.en, ...PROGRESS_TEXTS.en, ...SETTINGS_TEXTS.en, ...LIVE_TEXTS.en, ...EDITOR_TEXTS.en, ...VOICE_TEXTS.en },
 }
 
 export type TrainingTextKey = keyof typeof TRAINING_TEXTS.de

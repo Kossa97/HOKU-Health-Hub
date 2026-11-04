@@ -4,9 +4,11 @@ import {
   buildEntryCurve,
   loadBlutspiegelEntries,
   loadEntryHistories,
+  nachProdukt,
   type BlutspiegelEntry,
   type EntryCurve,
   type EntryHistory,
+  type ProduktGruppe,
   type ReadyEntry,
 } from './entries'
 
@@ -26,6 +28,8 @@ export interface BlutspiegelData {
   error: boolean
   entries: BlutspiegelEntry[]
   ready: ReadyEntry[]
+  /** Dieselben Kurven je Produkt: ein Graph, eine Linie je Wirkstoff. */
+  produkte: ProduktGruppe[]
   curves: Map<string, EntryCurve>
   /** Stand der Kurve (Unix ms) — „jetzt" fuer die Ansicht, alle 5 s neu. */
   asOf: number
@@ -115,6 +119,7 @@ export function useBlutspiegelData(): BlutspiegelData {
   const current = loaded && loaded.userId === userId ? loaded : null
   const entries = useMemo(() => current?.entries ?? [], [current])
   const ready = useMemo(() => entries.filter((e): e is ReadyEntry => e.kind === 'ready'), [entries])
+  const produkte = useMemo(() => nachProdukt(ready), [ready])
   // Neu gerechnet bei jedem Takt: die Kurve endet „jetzt" (buildEntryCurve
   // rechnet bis zur aktuellen Uhrzeit).
   const curves = useMemo(
@@ -129,6 +134,7 @@ export function useBlutspiegelData(): BlutspiegelData {
     error,
     entries,
     ready,
+    produkte,
     curves,
     asOf: current ? Math.max(current.asOf, takt.jetzt) : 0,
     // Das Nachladen im Hintergrund unterbricht den Countdown nicht; nur der Takt dreht.

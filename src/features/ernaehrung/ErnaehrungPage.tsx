@@ -14,7 +14,13 @@ import { DaySummary } from './components/DaySummary'
 import { DishStage } from './components/DishStage'
 import { DishEditorSheet } from './components/DishEditorSheet'
 import { FoodEditorSheet } from './components/FoodEditorSheet'
-import { GoalsSheet } from './components/GoalsSheet'
+import { DayPanel, type DayTab } from './components/DayPanel'
+import { ActivitySheet } from './components/ActivitySheet'
+import { useActivityDay } from './hooks/useActivityDay'
+import { useDayNutrients } from './hooks/useDayNutrients'
+import { useGapTip } from './hooks/useGapTip'
+import { NutrientSheet } from './components/NutrientSheet'
+import type { NutrientId } from './lib/nutrientTargets'
 import { pieceFor } from './lib/pieces'
 import { MonthSheet } from './components/MonthSheet'
 import { EntryRowContent, MealSection } from './components/MealSection'
@@ -66,7 +72,9 @@ type SheetState =
   | { kind: 'quick'; entry: LogEntry }
   | { kind: 'editor'; meal: Meal; base: Food | null; name?: string; barcode: string | null; then: { entry?: LogEntry; amount?: number }; pick?: Picker }
   | DishSheet
-  | { kind: 'goals' }
+  | { kind: 'day'; tab: DayTab }
+  | { kind: 'activity' }
+  | { kind: 'nutrient'; id: NutrientId }
   | { kind: 'month' }
 
 /** Das gewählte Lebensmittel mit Menge zurück an Gericht bzw. Foto-Prüfliste. */
@@ -74,6 +82,9 @@ function withPicked(pick: Picker, food: Food, amount: number, lang: string): She
   if (pick.kind === 'dish') return { ...pick, draft: addToDraft(pick.draft, food, amount, lang) }
   return { ...pick, row: null, flow: { ...pick.flow, rows: chooseFood(pick.flow.rows ?? [], pick.row, food, amount) } }
 }
+
+/** Fester Leerwert, damit die Nährstoff-Berechnung nicht bei jedem Rendern neu läuft. */
+const NO_ENTRIES: LogEntry[] = []
 
 export function ErnaehrungPage() {
   const { user } = useAuth()
@@ -96,8 +107,12 @@ export function ErnaehrungPage() {
   const isToday = date === todayKey
   const n = useNutritionDay(userId, date)
   // Dot fliegt beim Öffnen um die Kugel; nach 2 h oder beim dritten Öffnen mit Halt und Sätzen
-  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals })
   const [sheet, setSheet] = useState<SheetState>(null)
+  const move = useActivityDay(userId, date, n.goals)
+  const activity = { active: move.total.kcal, bonus: move.bonus }
+  const nut = useDayNutrients({ userId, date, today: todayKey, entries: n.day?.entries ?? NO_ENTRIES, goals: n.goals, kcal: n.total.kcal, bonus: move.bonus })
+  const gapTip = useGapTip(nut.gaps)
+  useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals, nachsatz: gapTip })
   const [busy, setBusy] = useState(false)
   const lang = i18n.language?.startsWith('en') ? 'en' : 'de'
 
@@ -318,12 +333,18 @@ export function ErnaehrungPage() {
     setSheet({ kind: 'dish', draft: draftFromIngredients(ingredients, lang, undefined, meal), meal: null, back: null })
   }
 
+  const dayLabel = isToday
+    ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
+    : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })
+
   return (
     <div className="mx-auto max-w-lg pb-6">
       <h1 className="sr-only">{t('nutr_title')}</h1>
       {/* Feste Kugel oben; alles Weitere — Tag oder Formular — läuft darunter. Beim Gericht (auch beim Zutat-Suchen) dessen Kugel. */}
       {dishOpen ? <DishStage draft={dishOpen.draft} goals={n.goals} focus={sheet?.kind === 'dish' ? dishFocus : null} /> : <DaySummary total={n.total} goals={n.goals} date={date} ready={!!n.day}
-        onOpenGoals={() => setSheet({ kind: 'goals' })}
+        formOpen={!!sheet && sheet.kind !== 'day'}
+        activity={activity} onOpenActivity={() => setSheet({ kind: 'activity' })} gaps={nut.gaps.length}
+        onOpenDay={() => setSheet({ kind: 'day', tab: 'today' })}
         // Zurück, woher man kam; direkt eingestiegen (kein Verlauf) zur Startseite.
         onClose={() => (typeof window.history.state?.idx === 'number' && window.history.state.idx > 0 ? navigate(-1) : navigate('/'))} />}
 
@@ -336,7 +357,7 @@ export function ErnaehrungPage() {
       )}
 
       {n.goalsSet === false && (
-        <button type="button" onClick={() => setSheet({ kind: 'goals' })}
+        <button type="button" onClick={() => setSheet({ kind: 'day', tab: 'goals' })}
           className="lg-surface lg-flat mt-2 flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors active:bg-[var(--lg-surface-2)]">
           <span className="lg-icon-tile" style={{ background: 'var(--accent)', color: 'var(--accent-contrast)' }} aria-hidden="true"><Target size={17} /></span>
           <span className="min-w-0 flex-1 text-[15px] leading-snug">
@@ -349,9 +370,7 @@ export function ErnaehrungPage() {
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
         <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...Object.fromEntries(Object.entries(held).map(([d, h]) => [d, h.totals])) }} goals={n.goals}
-          dayLabel={isToday
-            ? `${t('nutr_today')}, ${format(parseISO(date), 'd. MMM', { locale })}`
-            : date === toDateKey(addDays(new Date(), -1)) ? t('nutr_yesterday') : format(parseISO(date), 'EEEE, d. MMM', { locale })}
+          dayLabel={dayLabel}
           onPick={pickDate} onWeek={step => pickDate(dayKey(addDays(parseISO(date), step * 7)))}
           onOpenMonth={() => setSheet({ kind: 'month' })}
           dropDay={entryDrag.drag?.target.kind === 'day' ? entryDrag.drag.target.date : null} />
@@ -378,6 +397,9 @@ export function ErnaehrungPage() {
         {t('nutr_credit_off')}{' '}
         <a href="https://world.openfoodfacts.org" target="_blank" rel="noreferrer" className="underline">Open Food Facts</a>
         {' '}(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer" className="underline">ODbL</a>).
+        {' '}{t('nutr_credit_bls')}{' '}
+        <a href="https://blsdb.de" target="_blank" rel="noreferrer" className="underline">{t('nutr_credit_bls_source')}</a>
+        {' '}(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>).
         {' '}{t('nutr_credit_note')}
       </p>
       </>)}
@@ -437,6 +459,7 @@ export function ErnaehrungPage() {
           busy={busy} hideKcal={n.goals.hideKcal} goalKcal={n.goals.kcal}
           // Vorschau oben: in der Tageskugel beim Eintragen (Tag geladen), in der Gericht-Kugel bei einer Zutat dafür.
           preview={sheet.pick ? sheet.pick.kind === 'dish' : !!n.day}
+          nutrientDay={sheet.pick ? undefined : nut.list}
           onClose={() => setSheet(sheet.done ? null : sheet.back ?? { kind: 'add', meal: sheet.meal, pick: sheet.pick })}
           onSave={(amount, meal) => {
             if (sheet.pick) { setSheet(withPicked(sheet.pick, sheet.food, amount, lang)); return }
@@ -529,10 +552,29 @@ export function ErnaehrungPage() {
           }) : undefined} />
       )}
 
-      {sheet?.kind === 'goals' && (
-        <GoalsSheet userId={userId} today={todayKey} current={n.goals} busy={busy} onClose={() => setSheet(null)}
-          onSave={g => run(async () => { await n.saveGoals(g); setSheet(null); toast.success(t('nutr_goals_saved')) })} />
+      {sheet?.kind === 'day' && (
+        <DayPanel tab={sheet.tab} onTab={tab => setSheet({ kind: 'day', tab })} dayLabel={dayLabel}
+          total={n.total} waterMl={n.day ? n.day.waterMl : null} goals={n.goals} activity={activity} userId={userId} today={todayKey} busy={busy}
+          onOpenActivity={() => setSheet({ kind: 'activity' })}
+          nutrients={nut.list} dayDone={nut.dayDone} hokuLine={gapTip} onOpenNutrient={id => setSheet({ kind: 'nutrient', id })}
+          onClose={() => setSheet(null)}
+          onSaveGoals={g => run(async () => { await n.saveGoals(g); setSheet({ kind: 'day', tab: 'today' }); toast.success(t('nutr_goals_saved')) })} />
       )}
+
+      {sheet?.kind === 'activity' && (
+        <ActivitySheet dayLabel={dayLabel} day={move.day} error={move.error} total={move.total} bonus={move.bonus} goals={n.goals}
+          weightKg={move.weightKg} onAdd={move.add} onRemove={move.remove} onReload={move.reload}
+          onEditGoals={() => setSheet({ kind: 'day', tab: 'goals' })} onClose={() => setSheet(null)} />
+      )}
+
+      {sheet?.kind === 'nutrient' && (() => {
+        const status = nut.list.find(s => s.def.id === sheet.id)
+        return status ? (
+          <NutrientSheet status={status} ctx={nut.ctx} own={n.goals.nutrientGoals} entries={nut.entries} stackParts={nut.stackParts} busy={busy}
+            onSaveOwn={nutrientGoals => run(async () => { await n.saveGoals({ ...n.goals, nutrientGoals }); toast.success(t('nutr_goals_saved')) })}
+            onBack={() => setSheet({ kind: 'day', tab: 'today' })} onClose={() => setSheet(null)} />
+        ) : null
+      })()}
 
       {entryDrag.ghost}
 

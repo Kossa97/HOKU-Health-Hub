@@ -203,6 +203,14 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Quetschen/Taumeln des Körpers (je Punkt über `NEON`), nur Punkte zittern 0,4 px, funkeln, Lichtlauf.
   Das Wackeln bei „Neu? Registriere dich!“ kam vom Körper (breitester Satz = stärkstes Schwabbeln).
 
+- **Übergang in die App flüssiger (Nutzer 3.11.2026):** Messung (Bild für Bild, CPU 1×/4×) zeigte mitten
+  im Öffnen des Kreises 0,5–0,75 s ohne Bild: Startseite baute ihr 3D-Modell (GLB, three.js) und sich selbst
+  auf. Jetzt: 3D-Modell von der Startseite entfernt (Karte mit Knopf, Nutzer: kommt sowieso raus, Ersatz
+  folgt), Ring öffnet erst, wenn die App da ist und 0,3 s kein Bild > 45 ms kam (höchstens 1,2 s länger),
+  Startseiten-Code lädt schon beim Öffnen des Formulars (Leerlauf), Zeichenflächen nur bei neuer Größe neu.
+  Danach keine Pause mehr; Rest: 1–2 Bilder 55–90 ms beim Aufgehen = erstes Rastern der Startseite (GPU,
+  im Test-Browser vermutlich Software). Kreis billiger machen (WAAPI/Blende, Lage einmal messen): Nutzer nein.
+
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
   Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand

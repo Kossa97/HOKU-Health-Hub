@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Target, X } from 'lucide-react'
+import { CircleGauge, Flame, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { type OrbLayout, fitOrb, gramText, orbLayout } from '../lib/orb'
 import { orbPalette } from '../lib/orbDraw'
 import { type OrbFocus, OrbEngine } from '../lib/orbEngine'
-import { clearOrbBuehne, setOrbBuehne, takeOrbOrigin, takeOrbTarget, useOrbPreview } from '../lib/orbBridge'
+import { clearOrbBuehne, orbTapTaken, setOrbBuehne, takeOrbOrigin, takeOrbTarget, useOrbPreview } from '../lib/orbBridge'
 import { soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { ZONE_BELOW as BELOW, ZONE_MAX, trackZone, usePrefersReducedMotion } from '../lib/orbZone'
 import type { Goals, Nutrients } from '../lib/nutrition'
@@ -17,16 +17,24 @@ import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
  * groß im Hintergrund. 1 Punkt = 1 kcal, von unten gefüllt, Makros als Monde
  * (1 Punkt = 1 g); über dem Ziel eine Hülle in derselben Farbe, ohne Wertung.
  * Seitlich wischen dreht, ein Mond (oder sein Eintrag darunter) lässt sich
- * antippen. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
+ * antippen, die Kugel selbst öffnet „Dein Tag“. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
  * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: {
+export function DaySummary({ total, goals, activity, gaps, date, ready, formOpen, onOpenDay, onOpenActivity, onClose }: {
   total: Nutrients
   goals: Goals
+  /** Bewegung heute (kcal) und was davon aufs Ziel kommt (0 beim Defizit). */
+  activity: { active: number; bonus: number }
+  /** Nährstoff-Lücken heute (kleine orange Zahl am Knopf; 0 = keine). */
+  gaps: number
   date: string
   /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
   ready: boolean
-  onOpenGoals: () => void
+  /** Steht ein Formular darunter? Dann öffnet ein Tipp auf die Kugel nichts (sonst wäre die Eingabe weg), der Hinweis ruht. */
+  formOpen: boolean
+  /** „Dein Tag“ öffnen (Knopf oben rechts oder Tipp auf die Kugel). */
+  onOpenDay: () => void
+  onOpenActivity: () => void
   /** Seite schließen (oben links; die Zurück-Geste löst denselben Knopf aus). */
   onClose: () => void
 }) {
@@ -38,27 +46,36 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
   const [fx, setFx] = useState<HTMLCanvasElement | null>(null)
   const [focus, setFocus] = useState<OrbFocus | null>(null)
   const add = useOrbPreview()
+  const [hint, setHint] = useState(() => !dayHintSeen())
+  const openDay = () => { if (hint) { setHint(false); markDayHintSeen() } onOpenDay() }
+  // Der Tipp auf die Kugel kommt aus der Engine (einmal angelegt): immer den aktuellen Rückruf nehmen.
+  const openDayFn = useRef(openDay)
+  const formOpenRef = useRef(formOpen)
+  useEffect(() => { openDayFn.current = openDay; formOpenRef.current = formOpen })
 
   const { kcal, protein, carbs, fat } = total
-  const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, goals), [kcal, protein, carbs, fat, goals])
+  // Bewegung auf dem Tagesbedarf: die Kugel füllt sich bis Ziel + Bonus. Ohne Kalorienzahlen zählt nur Eiweiß.
+  const bonus = goals.hideKcal ? 0 : activity.bonus
+  const orbGoals = useMemo(() => (bonus > 0 ? { ...goals, kcal: goals.kcal + bonus } : goals), [goals, bonus])
+  const layout = useMemo(() => orbLayout({ kcal, protein, carbs, fat }, orbGoals), [kcal, protein, carbs, fat, orbGoals])
   const layoutRef = useRef(layout)
   /** Breite und Höhe der Zone (CSS-Pixel) und die Anpassung der Kugel daran. */
   const zoneSize = useRef({ w: 390, h: ZONE_MAX, fit: () => {} })
   // Andere Ziele → andere Mondgrößen → Kugel neu einpassen.
   useEffect(() => { layoutRef.current = layout; zoneSize.current.fit() }, [layout])
   const previewLayout = useMemo(
-    () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, goals) : null),
-    [add, kcal, protein, carbs, fat, goals],
+    () => (add ? orbLayout({ kcal: kcal + add.kcal, protein: protein + add.protein, carbs: carbs + add.carbs, fat: fat + add.fat }, orbGoals) : null),
+    [add, kcal, protein, carbs, fat, orbGoals],
   )
   const prev = useRef<{ date: string; goals: string; layout: OrbLayout } | null>(null)
-  const goalsKey = `${goals.kcal}|${goals.proteinG}|${goals.carbsG}|${goals.fatG}|${goals.hideKcal}`
+  const goalsKey = `${orbGoals.kcal}|${goals.proteinG}|${goals.carbsG}|${goals.fatG}|${goals.hideKcal}`
 
   // Kugel anlegen; Größe, Scrollen und Farben verfolgen.
   useEffect(() => {
     const canvas = canvasRef.current
     const zone = zoneRef.current
     if (!canvas || !zone) return
-    const engine = new OrbEngine(canvas, { reduce, onFocus: setFocus })
+    const engine = new OrbEngine(canvas, { reduce, onFocus: setFocus, onTapMain: () => { if (!orbTapTaken() && !formOpenRef.current) openDayFn.current() } })
     engineRef.current = engine
     const palette = () => engine.setPalette(orbPalette(zone))
     palette()
@@ -132,7 +149,7 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
   const plus = add ? Math.round(goals.hideKcal ? add.protein : add.kcal) : 0
   const aria = goals.hideKcal
     ? t('nutr_protein_aria', { value: Math.round(protein), goal: goals.proteinG })
-    : t('nutr_kcal_aria', { value: Math.round(kcal), goal: goals.kcal })
+    : t('nutr_kcal_aria', { value: Math.round(kcal), goal: orbGoals.kcal })
   // Alle Makros in der Zeile, auch mit Ziel 0 g — dann ohne Mond und nicht antippbar.
   const macros = (goals.hideKcal ? ['carbs', 'fat'] as const : ['protein', 'carbs', 'fat'] as const).map(key => ({
     key, value: shown[key], goal: key === 'protein' ? goals.proteinG : key === 'carbs' ? goals.carbsG : goals.fatG,
@@ -168,11 +185,28 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
         </div>
         {/* Eigener Rahmen: .lg-glass setzt position: relative. */}
         <div className="absolute right-3 top-1.5 z-[2]">
-          <button type="button" onClick={onOpenGoals}
+          <button type="button" onClick={openDay}
             className="lg-glass lg-press flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-[var(--lg-text)]">
-            <Target size={14} aria-hidden="true" />{t('nutr_goals')}
+            <CircleGauge size={14} aria-hidden="true" />{t('nutr_day_title')}
+            {gaps > 0 && (
+              <span className="-mr-1 ml-0.5 min-w-5 rounded-full bg-[var(--lg-warn-text)] px-1.5 text-center text-[11px] font-bold leading-5 tabular-nums text-black">
+                <span aria-hidden="true">{gaps}</span><span className="sr-only">{t('nutr_nut_gaps_aria', { count: gaps })}</span>
+              </span>
+            )}
           </button>
         </div>
+        {/* Einmal zeigen, dass die Kugel antippbar ist; weg mit × oder sobald „Dein Tag“ einmal offen war. */}
+        {hint && ready && !formOpen && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-[80px] z-[2] flex justify-center px-14">
+            <div className="pointer-events-auto flex max-w-[300px] items-center gap-2 rounded-[14px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] py-1.5 pl-3 pr-1 text-[13px] leading-snug text-[var(--lg-text)] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
+              <span className="flex-1">{t('nutr_day_hint')}</span>
+              <button type="button" aria-label={t('nutr_day_hint_close')} onClick={() => { setHint(false); markDayHintSeen() }}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--lg-text-3)]">
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        )}
         <div role="status" aria-live="polite" className="pointer-events-none absolute left-0 top-0 z-[3] h-0 w-0 overflow-visible">
           {focus && focused && !focus.still && (
             <div ref={el => engineRef.current?.setLabel(el)} className="absolute flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-[12px] border border-[var(--lg-separator)] bg-[var(--lg-surface-2)] px-2.5 py-1.5 text-[13px] font-medium tabular-nums text-[var(--lg-text)] shadow-[0_4px_14px_rgba(0,0,0,0.3)]"
@@ -191,6 +225,14 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
               {t('nutr_slash_goal', { goal: goals.hideKcal ? goals.proteinG : goals.kcal, unit: goals.hideKcal ? 'g' : 'kcal' })}
             </span>
             {plus > 0 && <span className="text-[13px] font-semibold tabular-nums text-[var(--accent)]">+{plus}</span>}
+            {!goals.hideKcal && activity.active > 0 && (
+              // Flamme: beim Tagesbedarf „+Bonus“, beim Defizit die Bewegung selbst. Öffnet „Aktivität“.
+              <button type="button" onClick={onOpenActivity}
+                aria-label={bonus > 0 ? t('nutr_move_chip_budget', { active: activity.active, bonus }) : t('nutr_move_chip_deficit', { active: activity.active })}
+                className="pointer-events-auto ml-0.5 inline-flex min-h-8 items-center gap-1 self-center rounded-full bg-[color-mix(in_srgb,var(--lg-warn)_16%,transparent)] px-2.5 text-[13px] font-semibold tabular-nums text-[var(--lg-warn-text)]">
+                <Flame size={12} fill="currentColor" aria-hidden="true" />{bonus > 0 ? `+${bonus}` : activity.active}
+              </button>
+            )}
           </p>
           <div className={`mt-1.5 flex w-full justify-between gap-2 ${digits > 18 ? 'text-[clamp(9px,2.8vw,11px)]' : 'text-[clamp(10px,3.1vw,12px)]'}`}>
             {macros.map(m => (
@@ -214,4 +256,14 @@ export function DaySummary({ total, goals, date, ready, onOpenGoals, onClose }: 
       )}
     </>
   )
+}
+
+const DAY_HINT_KEY = 'tyd.nutr.dayHint.v1'
+
+function dayHintSeen(): boolean {
+  try { return localStorage.getItem(DAY_HINT_KEY) === '1' } catch { return true }
+}
+
+function markDayHintSeen() {
+  try { localStorage.setItem(DAY_HINT_KEY, '1') } catch { /* privates Fenster: dann eben jedes Mal */ }
 }

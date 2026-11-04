@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bestandteileAufloesen, istKombination } from './kombination'
+import { bestandteileAufloesen, istKombination, kombiNameNachfuehren } from './kombination'
 import type { SubstanceCatalogEntry } from '../types'
 
 function eintrag(teile: Partial<SubstanceCatalogEntry> & { id: string; canonical_name: string }): SubstanceCatalogEntry {
@@ -75,5 +75,26 @@ describe('Kombipräparate im Katalog', () => {
 
   it('gibt für eine einzelne Substanz nichts zurück', () => {
     expect(bestandteileAufloesen(cjc, KATALOG)).toEqual([])
+  })
+})
+
+describe('kombiNameNachfuehren', () => {
+  const namen = { bpc: 'BPC-157', tb: 'TB-500' }
+  const zeile = (catalog_substance_id: string | null, custom_name = '') => ({ catalog_substance_id, custom_name })
+
+  it('macht aus einer Substanz mit weiterem Wirkstoff eine benannte Kombination', () => {
+    expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile('tb', 'TB-500')], 'BPC-157', namen)).toBe('BPC-157 + TB-500')
+    // Eine leere neue Zeile aendert noch nichts.
+    expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile(null)], 'BPC-157', namen)).toBeNull()
+    // Ein eigenes Produkt behaelt seinen Namen.
+    expect(kombiNameNachfuehren([zeile(null, 'Foo')], [zeile(null, 'Foo'), zeile(null, 'Bar')], 'Foo', namen)).toBeNull()
+    // Eigene Zutat ohne Katalog zaehlt mit ihrem Namen.
+    expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile(null, 'GHK-Cu')], 'BPC-157', namen)).toBe('BPC-157 + GHK-Cu')
+    // Entfernt man ihn wieder, kehrt der Name zurueck.
+    expect(kombiNameNachfuehren([zeile('bpc'), zeile('tb')], [zeile('bpc')], 'BPC-157 + TB-500', namen)).toBe('BPC-157')
+  })
+
+  it('laesst einen selbst vergebenen Namen stehen', () => {
+    expect(kombiNameNachfuehren([zeile('bpc')], [zeile('bpc'), zeile('tb')], 'Wolverine', namen)).toBeNull()
   })
 })
