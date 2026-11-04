@@ -163,3 +163,66 @@ Variablen dort auf, wo das Token steht (am `<html>`, dort ist --hl-i = 0). Die
 Licht-Formel gehört in eine Regel am Element (`:is(.lg-surface,…)::before`).
 Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 (`getComputedStyle(el,'::before')` zeigt den Winkel der Karte).
+
+## Glaslinse der Tab-Leiste (Branch claude/glas-linse, Test)
+
+- Nur transform/opacity: am Finger Feder je Bild (rAF), allein gleitend wird der Weg
+  vorab gerechnet und als Web Animation übergeben (läuft weiter, während die neue
+  Seite aufgebaut wird — vorher hakte es dort). Logik in `linsenFeder.ts`.
+- In der Linse liegt ein Abbild der Leiste (Aussehen per getComputedStyle übernommen)
+  samt Hokus Tor (`.tyd-tabbar-linse-tor`, die Engine bewegt es mit dem echten).
+  Das echte Tor liegt jetzt IN der Leiste unter der Linse (`unterLinse`).
+- Klicks: nur der Platz, auf dem der Finger aufsetzte, öffnet (iPhone öffnete
+  unterwegs andere Seiten).
+- Regler im Profil (LinsenTest, vor Übernahme entfernen) mit Preset „Apple" nach
+  einer Bildschirmaufnahme aus iOS 26: klar, graue breite Ruhekapsel, Regenbogen
+  an den Enden. Randbrechung (Regler): zwei maskierte Ringe an der Innenkante, darin
+  die Kopie kleiner abgebildet. Echte Brechung des Hintergrunds geht im iPhone-WebView nicht.
+- Randbrechung zwei Varianten, Schalter „Brechung als“ (--linse-art): Ringe (1) oder
+  Glisse (2, `src/lib/glasBrechung.ts`, SVG-Verschiebungskarte auf der Kopie, nach
+  Glisse/MIT; WebKit in objectBoundingBox). Messung Chromium, 4× gedrosselt, Tipp
+  Profil→Home: ohne Brechung max. 17 ms Lücke, Ringe 32 ms, Glisse bis 124 ms
+  (Filter rechnet jedes Bild neu). drop-shadow an den Symbolen der Kopien halbierte
+  die Bildrate → entfernt.
+
+## Navbar im Apple-Stil (Branch claude/glas-linse)
+
+- Grundform für alle Looks; ein Look pflegt nur Werte: `--tabbar-kapsel`,
+  `--tabbar-kapsel-kante`, `--tabbar-aktiv`, `--tabbar-rund`, `--linse-rund`
+  (liquid-glass.css). Labor eckig (10px/14px), Papier hell.
+- Ruhende Kapsel füllt den Reiter; die Leiste hat seitlich denselben Einzug wie
+  oben/unten → am äußeren Reiter parallel zur Rundung. In Ruhe auf Gerätepixel
+  gerastet, graues Original unter der Kapsel ausgeblendet (`data-ruhig`) gegen
+  Zucken beim Scrollen (nur auf dem Branch, auf main nicht).
+- „+“ ist ein Glasknopf: übernimmt das Glas der Leiste je Look (BottomNavigation),
+  Plus in `--tabbar-aktiv`.
+- Hokus Tor: Spalt und Torbild (Canvas `.tyd-dot-torbild`) liegen IN der Leiste unter
+  der Linse; die Engine malt dorthin (`torBild` in DotLeiste) und kopiert in die
+  Linsen-Kopien. In e2e bleibt Hoku im Haus (`tyd.e2e.dot-im-haus`), zum Prüfen auf 0.
+- Glisse archiviert (Schalter nur im Test-Menü), schlank: eine Verschiebung, nur
+  solange ein Finger liegt.
+- Glas der Navbar: EIN Material für Leiste und Plus nach Glisse „Glass“ (index.css,
+  --glas-fuellung/-toenung/-kante-farbe/-tropfen/-unschaerfe/-glimmen). Looks tönen nur.
+  Eigene Navbar-Materialien der Looks (v. a. Papier, Obsidian, Instrument) stehen in
+  liquid-glass.css, gelten nur mit <html data-navbar="eigen"> (Entscheidung: erst alle Glas).
+- 2026-11-04: Versuch „Glas wie Apples Ticket-App-Aufnahme“ (klare Linse über
+  verschwommener Seite, zwei Glasschichten in der Leiste, gemessene Werte) auf
+  Wunsch des Nutzers ganz zurückgenommen („komplett Müll“, Linse hatte sich mit
+  verändert). Lehre: bei Navbar-Änderungen die Linse nicht anfassen; Änderungen
+  am Aussehen klein halten und einzeln zeigen.
+- Leistung (2026-11-04, gemessen 4× gedrosselt, Halten+Wischen): Stilberechnung
+  1420→~690 ms, Skript 311→~180 ms. Ursachen: hokuLicht schrieb --hl-* an die Leiste
+  (jetzt nur mit data-navbar="eigen"); React-setPille bei jeder Fingerbewegung
+  (jetzt freiLageRef + direkte Feder). will-change auf allen Linsen-Schichten
+  machte es schlechter (verworfen).
+- Leiste in der Linse nicht mehr dunkel: Unschärfe der Leiste in eigener Ebene
+  (.tyd-glas-koerper, sonst Backdrop Root), Kopie mit eigenem backdrop-filter und
+  ohne zweite Füllung; in den Ringen Kopie ohne Grund.
+- Linse: Gleitzeit nach Weg (federFuerWeg, Regler „Tempo nach Weg“), Verformung mit
+  Tempo und Bremsen (ax, Regler „Verformung“).
+- Leistung Looks (2026-11-04): hokuLicht schrieb jedes Bild --hl-* an alle sichtbaren
+  Flächen, vererbt → ganzer Karteninhalt neu berechnet. Jetzt @property inherits:false
+  (index.css), Pseudo-Kanten holen per `inherit`, .lg-glass/.btn-primary eigene Ziele,
+  Werte in Stufen (2°, 2 %, 0,02). Gemessen Frost: Stil 131 → 38 ms/s (wie Schwarz).
+  Hokus Tor in Linsen-Kopien nur bei sichtbarer Linse. Achtung: Chromium im Container
+  rendert backdrop-filter NICHT (Software-Compositing) — Glas nur am Gerät beurteilbar.

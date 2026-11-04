@@ -22,7 +22,17 @@ export interface HokuSchein { angle: number; spread: number; intensity: number; 
 /** Bis zu diesem Abstand von der Kante (px) fängt eine Fläche Hokus Licht. */
 export const REICHWEITE = 230
 
-const ZIELE = '.lg-surface, .card, .lg-group, .lg-btn, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action'
+/*
+ * Die Navbar fängt Hokus Licht nur in ihren eigenen Materialien
+ * (<html data-navbar="eigen">). Im gemeinsamen Glas nutzt sie die --hl-Werte
+ * nicht — dann wird sie gar nicht erst beschrieben: jeder Wert dort erbt der
+ * ganze Baum der Leiste (samt Kopien in der Linse) und rechnete jedes Bild neu.
+ */
+// .lg-glass und .btn-primary bekamen ihr Licht früher geerbt; seit die Werte
+// nicht mehr vererbt werden (index.css, @property), bekommen sie ein eigenes.
+const ZIELE_ALLGEMEIN = '.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-icon-btn, .lg-chip'
+const ZIELE_LEISTE = '.tyd-tabbar, .tyd-tabdock-action'
+const ziele = () => document.documentElement.dataset.navbar === 'eigen' ? `${ZIELE_ALLGEMEIN}, ${ZIELE_LEISTE}` : ZIELE_ALLGEMEIN
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
 
@@ -93,6 +103,13 @@ export function installHokuLicht(): () => void {
       for (const [el, r] of lagen) {
         if (r.width === 0) continue
         const s = hokuSchein(r, hoku)
+        // In Stufen, die man nicht sieht (2°, 2 %, 0,02): so ändert sich ein
+        // Wert nur, wenn er sich sichtbar ändert, und es wird seltener geschrieben.
+        s.angle = Math.round(s.angle / 2) * 2
+        s.spread = Math.round(s.spread / 2) * 2
+        s.intensity = Math.round(s.intensity * 50) / 50
+        s.x = Math.round(s.x / 2) * 2
+        s.y = Math.round(s.y / 2) * 2
         const werte = `${s.angle.toFixed(0)}|${s.spread.toFixed(0)}|${s.intensity.toFixed(2)}|${s.x.toFixed(0)}|${s.y.toFixed(0)}`
         if (geschrieben.get(el) === werte) continue
         geschrieben.set(el, werte)
@@ -122,7 +139,7 @@ export function installHokuLicht(): () => void {
   }, { rootMargin: '40px' })
   const beobachtet = new WeakSet<Element>()
   const sammeln = () => {
-    for (const el of document.querySelectorAll<HTMLElement>(ZIELE)) {
+    for (const el of document.querySelectorAll<HTMLElement>(ziele())) {
       if (beobachtet.has(el)) continue
       beobachtet.add(el)
       if (io) io.observe(el)
