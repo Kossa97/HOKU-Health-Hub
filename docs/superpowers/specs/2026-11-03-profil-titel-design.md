@@ -70,21 +70,25 @@ Ein Abzeichen ist tragbar, wenn es in `badges.ts` einen Titelnamen (de/en) hat. 
 | 100 Tage ohne Lücke (`streak_100`) | Unaufhaltsam / Unstoppable |
 | 365 Tage ohne Lücke (`streak_365`) | Eiserner Wille / Iron Will |
 | 52 Wochen Training in Folge (`training_weeks_52`) | Ganzjahres-Athlet / Year-Round Athlete |
-| 100 Workouts (`workouts_100`) | Trainingstier / Workhorse |
 | 10 Freunde (`friends_10`) | Motivator / Motivator |
 
-Neu ohne Stufen: `prs_25` Kraftpaket / Powerhouse (25 Bestleistungen) · `steps_weeks_12`
+Neu ohne Stufen: `steps_weeks_12`
 Schrittmacher / Pacesetter (12 Wochen Ø ≥ 10.000 Schritte) · `entries_1000` Datenprofi / Data Pro
-(1.000 Einträge) · `allrounder` Allrounder / All-Rounder (5 Sportarten mit je ≥ 10 Einheiten).
+(1.000 Einträge) · `allrounder` Allrounder / All-Rounder (5 Sportarten mit je ≥ 10 Einheiten) ·
+`sleep_tracked_30` Schlafbeobachter / Sleep Watcher (30 Nächte mit Schlaf getrackt, auch aus Wearables;
+wie gut man schläft, steht in 3.3).
 
-### 3.2 Sportarten mit drei Stufen **[Nutzer: Stufen]**
+### 3.2 Leitern mit drei Stufen **[Nutzer: Stufen und Namen]**
 
 Getragen wird die höchste erreichte Stufe; sie steigt von selbst mit. Einheiten zählen **auch aus
 Apple Health / Health Connect eingeführt** (`TrainingSession.kind`, ohne Doppelte über `externalId`).
 
 | Sportart (`kind`) | Stufe 1 | Stufe 2 | Stufe 3 |
 |---|---|---|---|
-| Laufen (`run`) | Hobbyläufer / Hobby Runner · 10 | Läufer / Runner · 50 | Ausdauerläufer / Endurance Runner · 150 |
+| Workouts (2b: 50/100/250) | Fitnessfan / Fitness Fan · 50 | Trainingstier / Workhorse · 100 | Trainingsmaschine / Training Machine · 250 |
+| Bestleistungen | Rekordjäger / Record Hunter · 5 | Kraftpaket / Powerhouse · 25 | Kraftmeister / Strength Master · 100 |
+| Tagebuch (Tage mit Eintrag, nie Inhalte) | Tagebuchschreiber / Journal Keeper · 30 | Chronist / Chronicler · 100 | Lebensbuch / Life Log · 365 |
+| Laufen, Joggen (`run`) | Jogger / Jogger · 10 | Läufer / Runner · 50 | Ausdauerläufer / Endurance Runner · 150 |
 | Rad (`cycle`) | Gelegenheitsradler / Casual Cyclist · 10 | Radsportler / Cyclist · 50 | Kilometerfresser / Road Warrior · 150 |
 | Schwimmen (`swim`) | Schwimmfreund / Swim Fan · 10 | Schwimmer / Swimmer · 30 | Bahnenzieher / Lap Master · 100 |
 | Rudern (`row`) | Ruderfreund / Rowing Fan · 10 | Ruderer / Rower · 30 | Schlagmann / Stroke Master · 100 |
@@ -98,7 +102,7 @@ Schrittmacher). Keine Wörter wie „-süchtig“.
 
 ### 3.3 Persönliche Titel **[Nutzer: tragbar, Standard aus; Bedingungen bestätigt]**
 
-Titel aus Körperfett, Gewicht, Blut, Ruhepuls, Einnahmen, Zyklen, Erfahrungsberichten und
+Titel aus Körperfett, Gewicht, Schlafqualität, Blut, Ruhepuls, Einnahmen, Zyklen, Erfahrungsberichten und
 Gesamtfortschritt gibt es, unter vier Bedingungen:
 
 1. **Ab Werk aus:** Schalter „Persönliche Titel erlauben“ im Sheet, Standard aus.
@@ -116,7 +120,8 @@ Vorschlag **[Claude, ungeprüft]**: In Form / In Shape (−5 % Körperfett) · F
 Werte-Kenner / Lab Regular (erstes Blutbild) · Im grünen Bereich / In the Green (alle Blutwerte im
 Zielbereich) · Ruhepol / Calm Heart (Ruhepuls −5 bpm) · Konsequent / Consistent (30 Tage alle
 Einnahmen bestätigt) · Durchgezogen / Saw It Through (erster Zyklus) · Berichterstatter / Reporter
-(erster Erfahrungsbericht) · Auf Kurs / On Track, Im Aufwind / On the Rise, Verwandelt / Transformed
+(erster Erfahrungsbericht) · Ausgeschlafen / Well Rested (30 Nächte mit 7–9 h), Schlafprofi / Sleep Pro
+(100 Nächte mit 7–9 h; Quellfeld Schlaf, Wearable-Nächte zählen) · Auf Kurs / On Track, Im Aufwind / On the Rise, Verwandelt / Transformed
 (Gesamtfortschritt +10/+25/+50 %).
 
 ## 4. Anzeige und Bedienung **[Nutzer]**, Gestaltung nach Mockup
@@ -178,7 +183,7 @@ englischen Text als Platzhalter (i18n-Vertrag, CLAUDE.md). Datenschutztext Absch
 
 ## Offene Fragen
 
-1. Titelnamen bestätigen (3.1–3.3), auch die Stufen-Zahlen der Sportarten.
+1. Namen und Stufen: **bestätigt** (Nutzer 04.11.).
 2. Persönliche Titel juristisch prüfen: Text der Bestätigung und Namen (3.3).
 3. Rang für Nutzer, die schon vor dem Titel-Update getrackt haben (nur wenn die Titel nach dem
    App-Start kommen): nur der aktuelle Rang, ein Moment, keine Feier für Zwischenstufen.

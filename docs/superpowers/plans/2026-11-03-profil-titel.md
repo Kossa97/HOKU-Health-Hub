@@ -27,7 +27,8 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 ### Task 1: Abzeichen-IDs und Migration
 - [ ] `badgeIds.ts`: Gruppe `rang` (`rank_1`…`rank_6`) und neue IDs (`prs_25`, `steps_weeks_12`,
   `entries_1000`, `run_50`, `cycle_50`, `swim_30`, `row_30`, `hike_25`, `hyrox_20`, `hiit_50`,
-  `yoga_50`, `allrounder`; Sportarten je drei Stufen statt einer ID, Spec 3.2); Test „IDs = SQL-Liste“ anpassen.
+  `yoga_50`, `allrounder`; Leitern je drei Stufen: Workouts, Bestleistungen, Tagebuch, Sportarten, Spec 3.2;
+  `sleep_tracked_30`; persönliche Schlaf-Titel); Test „IDs = SQL-Liste“ anpassen.
 - [ ] `supabase-profil-titel.sql`: `profile_badge_ids()` erweitern, `profile_title_badge_ids()`,
   `profile_rank_ids()`, `profiles.title_choice` (add column if not exists, Check über die
   tragbaren IDs), `profiles.personal_titles boolean default false`, `profiles.title_consents jsonb`

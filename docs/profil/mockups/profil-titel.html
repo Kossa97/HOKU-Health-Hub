@@ -608,11 +608,13 @@ const RANKS = [
 // Praegungen: an Abzeichen aus 2b gekoppelt. have = Maras Stand (erfunden).
 // Abzeichen mit Titelnamen (tragbar). cond = Name des Abzeichens, have = Maras Stand (erfunden).
 const PR = [
-  { id: 'tier', de: 'Trainingstier', en: 'Workhorse', icon: 'dumbbell', need: 100, have: 112, cond: '100 Workouts', unit: 'Workouts', origin: 'aus 2b' },
-  { id: 'lauf', icon: 'steps', have: 54, unit: 'Läufe', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Hobbyläufer', 'Hobby Runner'], [50, 'Läufer', 'Runner'], [150, 'Ausdauerläufer', 'Endurance Runner']] },
+  { id: 'tier', icon: 'dumbbell', have: 112, unit: 'Workouts', origin: 'aus 2b (50/100/250 Workouts)', tiers: [[50, 'Fitnessfan', 'Fitness Fan'], [100, 'Trainingstier', 'Workhorse'], [250, 'Trainingsmaschine', 'Training Machine']] },
+  { id: 'tagebuch', icon: 'note', have: 64, unit: 'Tage mit Tagebuch', origin: 'neu · zählt Tage, nicht Inhalte', tiers: [[30, 'Tagebuchschreiber', 'Journal Keeper'], [100, 'Chronist', 'Chronicler'], [365, 'Lebensbuch', 'Life Log']] },
+  { id: 'schlafb', de: 'Schlafbeobachter', en: 'Sleep Watcher', icon: 'moon', need: 30, have: 120, cond: '30 Nächte mit Schlaf getrackt', unit: 'Nächte getrackt', origin: 'neu · auch aus Wearables; Stufe 2 und 3 sind persönlich' },
+  { id: 'lauf', icon: 'steps', have: 54, unit: 'Läufe', origin: 'neu · Sportart, auch importiert', tiers: [[10, 'Jogger', 'Jogger'], [50, 'Läufer', 'Runner'], [150, 'Ausdauerläufer', 'Endurance Runner']] },
   { id: 'schritt', de: 'Schrittmacher', en: 'Pacesetter', icon: 'steps', need: 12, have: 14, cond: '12 Wochen Ø ≥ 10.000 Schritte', unit: 'Wochen', origin: 'neu', done: h => `${h} Wochen mit Ø ≥ 10.000 Schritten` },
   { id: 'daten', de: 'Datenprofi', en: 'Data Pro', icon: 'note', need: 1000, have: 1240, cond: '1.000 Einträge', unit: 'Einträge', origin: 'neu · Zählung kommt mit 2c' },
-  { id: 'kraft', de: 'Kraftpaket', en: 'Powerhouse', icon: 'trophy', need: 25, have: 18, cond: '25 Bestleistungen', unit: 'Bestleistungen', origin: 'neu' },
+  { id: 'kraft', icon: 'trophy', have: 18, unit: 'Bestleistungen', origin: 'neu', tiers: [[5, 'Rekordjäger', 'Record Hunter'], [25, 'Kraftpaket', 'Powerhouse'], [100, 'Kraftmeister', 'Strength Master']] },
   { id: 'unauf', de: 'Unaufhaltsam', en: 'Unstoppable', icon: 'flame', need: 100, have: 41, cond: '100 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
   { id: 'eisern', de: 'Eiserner Wille', en: 'Iron Will', icon: 'flame', need: 365, have: 41, cond: '365 Tage ohne Lücke', unit: 'Tage in Folge', origin: 'aus 2b', extra: 'aktuelle Serie' },
   { id: 'jahr', de: 'Ganzjahres-Athlet', en: 'Year-Round Athlete', icon: 'dumbbell', need: 52, have: 19, cond: '52 Wochen Training in Folge', unit: 'Wochen in Folge', origin: 'aus 2b' },
@@ -640,6 +642,8 @@ const PS = [
   { id: 'leicht', de: 'Leichter unterwegs', en: 'Lighter Steps', icon: 'scale', cond: '−5 % Gewicht', field: 'Gewicht', src: 'me', got: true, tell: 'dass du mindestens 5 % Gewicht verloren hast' },
   { id: 'werte', de: 'Werte-Kenner', en: 'Lab Regular', icon: 'drop', cond: 'Erstes Blutbild', field: 'Blutwerte', src: 'me', got: true, tell: 'dass du Blutbilder in Hoku einträgst' },
   { id: 'konsequent', de: 'Konsequent', en: 'Consistent', icon: 'pill', cond: '30 Tage alle Einnahmen bestätigt', field: 'Einnahmen', src: 'me', got: true, tell: 'dass du regelmäßig etwas einnimmst und es bestätigst' },
+  { id: 'ausgeschl', de: 'Ausgeschlafen', en: 'Well Rested', icon: 'moon', cond: '30 Nächte mit 7–9 h Schlaf', field: 'Schlaf', src: 'friends', got: true, tell: 'wie gut du schläfst: mindestens 30 Nächte mit 7 bis 9 Stunden' },
+  { id: 'schlafpro', de: 'Schlafprofi', en: 'Sleep Pro', icon: 'moon', cond: '100 Nächte mit 7–9 h Schlaf', field: 'Schlaf', src: 'friends', got: false },
   { id: 'gruen', de: 'Im grünen Bereich', en: 'In the Green', icon: 'drop', cond: 'Alle Blutwerte im Zielbereich', field: 'Blutwerte', src: 'me', got: false },
   { id: 'ruhe', de: 'Ruhepol', en: 'Calm Heart', icon: 'pulse', cond: 'Ruhepuls −5 bpm', field: 'Ruhepuls', src: 'me', got: false },
   { id: 'durch', de: 'Durchgezogen', en: 'Saw It Through', icon: 'pill', cond: 'Erster Zyklus abgeschlossen', field: 'Einnahmen', src: 'me', got: false },
@@ -799,7 +803,7 @@ function sheetBody() {
     <div class="grp"><span>Noch offen · am nächsten dran</span><span>${opn.length}</span></div>
     <div class="list">${oRows}</div>
     <div class="grp"><span>Persönliche Titel</span><span>ab Werk aus</span></div>
-    <div class="list"><div class="srow"><div><div class="pn" id="persL">Persönliche Titel erlauben</div><div class="ps">Aus Körperwerten, Gewicht, Blut, Ruhepuls, Einnahmen, Berichten und Gesamtfortschritt. Höchstens so sichtbar wie das zugehörige Feld.</div></div>
+    <div class="list"><div class="srow"><div><div class="pn" id="persL">Persönliche Titel erlauben</div><div class="ps">Aus Körperwerten, Gewicht, Schlafqualität, Blut, Ruhepuls, Einnahmen, Berichten und Gesamtfortschritt. Höchstens so sichtbar wie das zugehörige Feld.</div></div>
       <button type="button" class="sw" role="switch" aria-checked="${st.pers}" aria-labelledby="persL" data-act="pers"></button></div>
       ${st.pers ? PS.filter(s => s.got).map(s => `<button type="button" class="prow" role="radio" aria-checked="${st.worn === s.id}" data-wears="${s.id}">
         <span class="pi" aria-hidden="true">${ic(s.icon)}</span><div><div class="pn">${s.de}<small>${s.en}</small></div><div class="ps">${s.cond} · verdient</div>

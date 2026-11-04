@@ -70,3 +70,7 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
   Gesamtfortschritt) **tragbar**: Standard aus, Bestätigung je Titel (Einwilligung Art. 9), nie sichtbarer als das
   Quellfeld (serverseitig), neutrale Namen (App-Store-Richtlinien Substanzen). Juristisch prüfen: Bestätigungstext, Namen.
   Mockup Entwurf 4. Routinier en = Steady.
+- 04.11.: **Namen bestätigt.** Ergänzt (Nutzer „ja übernehmen“): Laufen Stufe 1 „Jogger“; Leitern für Workouts
+  (Fitnessfan 50 → Trainingstier 100 → Trainingsmaschine 250), Bestleistungen (Rekordjäger 5 → Kraftpaket 25 →
+  Kraftmeister 100), Tagebuch (Tagebuchschreiber 30 → Chronist 100 → Lebensbuch 365, nur Tage), Schlaf: Schlafbeobachter
+  (30 Nächte getrackt, normal) + persönlich Ausgeschlafen (30 Nächte 7–9 h) / Schlafprofi (100), Quellfeld Schlaf.
