@@ -80,3 +80,12 @@ Offen: Test auf echtem iPhone.
 22.10.2026, Look „Nacht“: nur die Kantenlichter getönt (links cyan, rechts
 violett), Bühne über `--inj-backdrop` in liquid-glass.css. Details in
 `erscheinungsbild.md`.
+
+03./04.11.2026 (Nutzer): **Hintergrund und Licht in jedem Erscheinungsbild gleich**
+(Studio-Schwarz mit warmem Schein, Studio-Licht); die eigenen Werte der Looks sind
+entfernt, ein Test wacht darüber (`src/lib/injectionStudioLook.test.ts`).
+**Hoku-Rundflug** beim Öffnen geplant: Pins der letzten 3 Tage, Kamera dreht mit,
+Sätze je Stelle + freie Stellen am Ende. Spezifikation:
+`docs/superpowers/specs/2026-11-04-hoku-injektion-rundflug-design.md`. Nächster
+Schritt: Live-Mockup mit echter Engine und echtem Torso, dann Bau.
+
