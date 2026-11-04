@@ -247,3 +247,13 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   web_badges, @capacitor/app, Lesetest macht der Nutzer). Abweichend: **Bio im Web bei „Alle“ nach Textprüfung**
   (wie Anzeigename); **Grenzfall-Abzeichen ab Werk aus**; **Suchmaschinen: Standard noindex + Schalter
   „In Suchmaschinen auffindbar“** (`profiles.web_indexable`). 2c wird jetzt gestapelt auf 2b gebaut.
+- **2c Task 1 (04.11.)**: `supabase-profil-p2c-web.sql` geschrieben, im Container geprüft (Trockenlauf und Proben:
+  `docs/profil/profil-p2c-trockenlauf.md`), NICHT gegen Produktion. Zwei Läufe gleiche Zählung (9 Profile, 8
+  Schnappschüsse, 8 mit Sichtbarkeit, 7 Web-Link an; 2 neue Spalten, 1 Prüfung, 9 Funktionen, 0 Abweichungen).
+  Web-Stufe: Felder `cover, country, goals, bio (Textfilter), streak, progress (nur Körper/Training/Erholung),
+  badges (web_badges/Standard), reviews (nur count)`, dazu `card` (`member_since` nur bei Feld auf „Alle“;
+  `entry_count` und `web_value_count` nur wenn progress im Web steht) und `web_indexable`. Grenzfall-Abzeichen
+  eigene Liste `profile_badge_web_borderline()` (8) neben `profile_badge_web_sensitive()` (10). `web_value_count`
+  braucht `progress.counts` im Schnappschuss (Task 2). Fortschrittsstufe rundet `profileCard.js`, nicht SQL.
+  Nebenbefund 2a: Bestands-update bricht ab, wenn eine `is_public`-Alt-Bio den Filter nicht besteht (Zählabfrage
+  in der Trockenlauf-Notiz) — vor dem 2a-Produktivlauf zählen.
