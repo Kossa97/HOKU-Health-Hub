@@ -7,10 +7,12 @@
 -- profile_media_visible. 2a und 2b danach NICHT erneut laufen lassen: sie setzten
 -- die Fassungen ohne Web-Regeln zurueck (anon bekaeme dann wieder die ungepruefte Bio).
 --
--- Additiv und idempotent: zwei Spalten per add column if not exists, eine Pruefung
--- nur wenn noch nicht da, Funktionen per create or replace. Kein drop, kein
+-- Additiv und idempotent: vier Spalten per add column if not exists (zwei in
+-- profiles, zwei in content_reports), eine Pruefung nur wenn noch nicht da, ein
+-- Index per if not exists, Funktionen per create or replace. Kein drop, kein
 -- delete, kein update, kein truncate. Bestehende Zeilen bleiben unberuehrt
--- (web_badges = '{}' = alles nach Standard, web_indexable = false).
+-- (web_badges = '{}' = alles nach Standard, web_indexable = false; bestehende
+-- Meldungen bekommen source = 'app', reporter_contact = null).
 --
 -- Neu:
 -- - profiles.web_badges: nur ABWEICHUNGEN vom Standard je Abzeichen (true = im Web
@@ -56,6 +58,13 @@
 -- - profile_media_visible: Titelbild auch ohne Anmeldung bei Web-Link an, nicht privat,
 --   cover auf "Alle", geprueft, Objekt-ID passt (wie das Profilbild in 2a).
 -- Stufen owner/friends/all bleiben wie in 2b (Probe 9 im Trockenlauf vergleicht sie).
+-- - Profil melden ohne Konto (DSA Art. 16, Spec 7.4 Punkt 5, Frage 8; Abschnitt 7 unten):
+--   report_public_profile_web(p_username, p_reason, p_details, p_contact) fuer anon und
+--   authenticated. Gespeichert in der bestehenden Tabelle content_reports (reporter_id ist
+--   dort nullable, also keine eigene Tabelle), mit den neuen Spalten
+--   content_reports.source ('app' | 'web') und content_reports.reporter_contact
+--   (freiwillige E-Mail, nur bei source = 'web'). Lesen weiter nur Admins
+--   ("Admins lesen Meldungen"); moderation_queue gibt beide Spalten mit aus.
 --
 -- Vertrag mit dem Geraet (Task 2): Der Schnappschuss darf unter progress.counts je
 -- Bereich die Zahl der Werte ablegen, die in den Fortschritt eingehen, z. B.
@@ -81,7 +90,16 @@
 --   select count(*) from public.profile_snapshots;                              -- unveraendert
 --   select count(*) from public.profiles where field_visibility <> '{}'::jsonb; -- unveraendert
 --   select count(*) from public.profiles where web_link_enabled;                -- unveraendert
+--   select count(*) from public.content_reports;                                -- unveraendert
+--   select count(*) from public.content_reports where status = 'offen';         -- unveraendert
 -- Danach pruefen (Erwartung in Klammern):
+--   select count(*) from information_schema.columns
+--    where table_schema = 'public' and table_name = 'content_reports'
+--      and column_name in ('source','reporter_contact');                        -- 2
+--   select count(*) from public.content_reports where source <> 'app' or reporter_contact is not null; -- 0
+--   select has_function_privilege('anon', 'public.report_public_profile_web(text, text, text, text)', 'execute'); -- true
+--   select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--    where n.nspname = 'public' and p.proname in ('report_public_profile_web','moderation_queue'); -- 2
 --   select count(*) from information_schema.columns
 --    where table_schema = 'public' and table_name = 'profiles'
 --      and column_name in ('web_badges','web_indexable');                       -- 2
@@ -503,5 +521,135 @@ $$;
 
 revoke all on function public.profile_view(text, text) from public;
 grant execute on function public.profile_view(text, text) to anon, authenticated;
+
+-- 7. Profil melden ohne Konto (DSA Art. 16) ------------------------------------
+-- Ablage in content_reports: reporter_id ist dort nullable ("on delete set null"),
+-- eine Web-Meldung passt also ohne Aenderung an bestehenden Spalten hinein. Neu sind
+-- nur zwei Spalten mit Standardwert bzw. null; bestehende Zeilen und die Funktionen
+-- fuer angemeldete Melder bleiben, wie sie sind.
+--   source            'app' (alle bisherigen Meldungen) oder 'web'
+--   reporter_contact  freiwillige E-Mail fuer Rueckfragen, nur aus dem Web
+alter table public.content_reports
+  add column if not exists source text not null default 'app' check (source in ('app', 'web')),
+  add column if not exists reporter_contact text check (reporter_contact is null or char_length(reporter_contact) <= 254);
+
+-- Fuer die Grenzen unten (zaehlen nur Web-Meldungen der letzten Stunde).
+create index if not exists content_reports_web_zeit on public.content_reports (created_at) where source = 'web';
+
+-- Melden von der Web-Seite /u/<name>, ohne Anmeldung.
+-- - Nur Profile, die in der Stufe web zu sehen sind (Web-Link an, nicht privat, nicht
+--   ausgeblendet), gefunden wie in profile_view (erst die Zeile, exakte Schreibweise
+--   zuerst, dann die Pruefung). Fuer alles andere (aus, privat, ausgeblendet,
+--   unbekannt, leer, das eigene Profil) derselbe Fehler meldung_nicht_moeglich.
+-- - Grund und E-Mail werden VOR der Profilsuche geprueft: Ihre Fehler
+--   (meldung_ungueltig, kontakt_ungueltig) haengen nicht vom Ziel ab.
+-- - Details: getrimmt, hoechstens 1000 Zeichen (wie die App). E-Mail: getrimmt,
+--   hoechstens 254 Zeichen, Form x@y.z. Der Textfilter oeffentlicher_text_fehler
+--   laeuft hier bewusst nicht: Details und E-Mail sieht nur die Moderation, und eine
+--   Meldung ueber Handel oder Links muss genau solche Woerter enthalten duerfen.
+-- - Grenzen (in SQL, eine IP gibt es hier nicht): hoechstens 200 Web-Meldungen je
+--   Stunde insgesamt und 5 je gemeldetem Profil und Stunde, sonst zu_viele_meldungen.
+--   Die Gesamtgrenze wird vor der Profilsuche geprueft, die je Profil danach (sie
+--   erreicht nur, wer das Profil sehen kann). Eine Transaktionssperre ordnet
+--   gleichzeitige Aufrufe, damit keiner an der Grenze vorbeirutscht.
+-- - Schnappschuss wie bei report_public_profile (art = 'profil'), damit
+--   moderation_queue und resolve_content_report die Meldung wie jede Profilmeldung
+--   behandeln ("Ausblenden" erledigt auch die Web-Meldungen); die Bio nur, wenn sie
+--   im Web zu sehen war. reporter_id = auth.uid(), ohne Anmeldung also null.
+create or replace function public.report_public_profile_web(
+  p_username text, p_reason text, p_details text default null, p_contact text default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  p record;
+  kontakt text := nullif(trim(coalesce(p_contact, '')), '');
+begin
+  if p_reason is null or p_reason <> all (array['spam', 'werbung', 'beleidigung', 'gefaehrlich', 'sonstiges']) then
+    raise exception 'meldung_ungueltig' using errcode = 'P0001';
+  end if;
+  if kontakt is not null
+     and (char_length(kontakt) > 254 or kontakt !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:].]+$') then
+    raise exception 'kontakt_ungueltig' using errcode = 'P0001';
+  end if;
+
+  perform pg_advisory_xact_lock(hashtext('public.report_public_profile_web'));
+  if (select count(*) from public.content_reports c
+       where c.source = 'web' and c.created_at > now() - interval '1 hour') >= 200 then
+    raise exception 'zu_viele_meldungen' using errcode = 'P0001';
+  end if;
+
+  select pr.id, pr.username, pr.display_name, pr.public_bio, pr.field_visibility,
+         pr.web_link_enabled, pr.profile_private, pr.hidden_by_moderation
+    into p
+    from public.profiles pr
+   where lower(pr.username) = lower(trim(p_username))
+   order by (pr.username = trim(p_username)) desc
+   limit 1;
+  if p.id is null or p.hidden_by_moderation or not p.web_link_enabled or p.profile_private
+     or p.id is not distinct from auth.uid() then
+    raise exception 'meldung_nicht_moeglich' using errcode = 'P0001';
+  end if;
+
+  if (select count(*) from public.content_reports c
+       where c.source = 'web' and c.reported_user_id = p.id
+         and c.created_at > now() - interval '1 hour') >= 5 then
+    raise exception 'zu_viele_meldungen' using errcode = 'P0001';
+  end if;
+
+  insert into public.content_reports (review_id, reported_user_id, reporter_id, reason, details, snapshot, source, reporter_contact)
+  values (null, p.id, auth.uid(), p_reason, nullif(left(trim(coalesce(p_details, '')), 1000), ''),
+          jsonb_build_object('art', 'profil', 'username', p.username, 'display_name', p.display_name,
+            'public_bio', case when p.field_visibility ->> 'bio' = 'all' and nullif(trim(p.public_bio), '') is not null
+                                    and public.oeffentlicher_text_fehler(p.public_bio) is null
+                               then p.public_bio end),
+          'web', kontakt);
+end;
+$$;
+
+revoke all on function public.report_public_profile_web(text, text, text, text) from public;
+grant execute on function public.report_public_profile_web(text, text, text, text) to anon, authenticated;
+
+-- Moderation: wie supabase-store-compliance-2.sql, dazu source und contact, damit die
+-- Admin-Liste Web-Meldungen kennzeichnet und die E-Mail fuer Rueckfragen zeigt.
+create or replace function public.moderation_queue()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'nur_admins' using errcode = '42501';
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+        'report_id', c.id,
+        'reason', c.reason,
+        'details', c.details,
+        'created_at', c.created_at,
+        'art', coalesce(c.snapshot ->> 'art', case when c.review_id is null then 'profil' else 'erfahrung' end),
+        'review_id', c.review_id,
+        'review_exists', r.id is not null,
+        'username', coalesce(p.username, c.snapshot ->> 'username'),
+        'snapshot', coalesce(c.snapshot, jsonb_build_object(
+          'substanz', s.display_name, 'title', r.title, 'body', r.body, 'pros', r.pros, 'cons', r.cons)),
+        'source', c.source,
+        'contact', c.reporter_contact
+      ) order by c.created_at)
+      from public.content_reports c
+      left join public.reviews r on r.id = c.review_id
+      left join public.stack_items s on s.id = r.stack_item_id
+      left join public.profiles p on p.id = c.reported_user_id
+     where c.status = 'offen'
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function public.moderation_queue() from public, anon;
+grant execute on function public.moderation_queue() to authenticated;
 
 commit;

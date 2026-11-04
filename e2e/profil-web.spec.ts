@@ -174,8 +174,6 @@ test.describe('ohne Anmeldung', () => {
 
   test('Profil melden ohne Konto: Grund und freiwillige E-Mail gehen an die Moderation', async ({ page, mock }) => {
     mara(mock)
-    const meldungen: Record<string, unknown>[] = []
-    mock.onRpc('report_public_profile_web', params => { meldungen.push(params); return null })
     await page.goto('/u/mara')
     await page.locator('[data-web-report]').click()
     const sheet = page.locator('[data-report-sheet]')
@@ -187,17 +185,33 @@ test.describe('ohne Anmeldung', () => {
     await sheet.locator('[data-report-send]').click()
     await expect(sheet).toHaveCount(0)
     await expect(page.getByText('Danke — die Meldung ist eingegangen.')).toBeVisible()
-    expect(meldungen).toEqual([{ p_username: 'mara', p_reason: 'werbung', p_details: 'Verkauft etwas', p_contact: 'melder@example.org' }])
+    // wie report_public_profile_web: in content_reports, ohne Melder, als Web-Meldung mit E-Mail
+    expect(mock.table('content_reports')).toMatchObject([{
+      reported_user_id: MARA_ID, reporter_id: null, reason: 'werbung', details: 'Verkauft etwas', status: 'offen',
+      source: 'web', reporter_contact: 'melder@example.org',
+      snapshot: { art: 'profil', username: 'mara', public_bio: 'Laufen, Heben, Schlafen.' },
+    }])
   })
 
-  test('Profil melden, solange der Server-Weg fehlt: Hinweis aufs Impressum', async ({ page, mock }) => {
+  test('Profil melden: zu viele Meldungen, unvollständige E-Mail und andere Fehler', async ({ page, mock }) => {
     mara(mock)
-    // Wie die echte Datenbank heute: die Funktion gibt es noch nicht (hier als Fehler nachgebildet)
-    mock.onRpc('report_public_profile_web', () => { throw new RpcError('Could not find the function public.report_public_profile_web') })
+    let fehler = 'zu_viele_meldungen'
+    mock.onRpc('report_public_profile_web', () => { throw new RpcError(fehler) })
     await page.goto('/u/mara')
     await page.locator('[data-web-report]').click()
     const sheet = page.locator('[data-report-sheet]')
     await sheet.locator('[data-report-reason="spam"]').check()
+    await sheet.locator('[data-report-send]').click()
+    await expect(sheet.locator('[data-report-web-error="zu_viele"]')).toContainText('Gerade gehen sehr viele Meldungen ein')
+    await expect(sheet.locator('[data-report-web-imprint]')).toBeVisible()
+
+    fehler = 'kontakt_ungueltig'
+    await sheet.locator('[data-report-send]').click()
+    await expect(sheet.locator('[data-report-web-error="kontakt"]')).toContainText('E-Mail-Adresse sieht unvollständig aus')
+    await expect(sheet.locator('[data-report-web-imprint]')).toHaveCount(0)
+
+    // z. B. Netzfehler oder das Profil ist inzwischen aus: Weg über das Impressum
+    fehler = 'meldung_nicht_moeglich'
     await sheet.locator('[data-report-send]').click()
     await expect(sheet.locator('[data-report-web-error="fehler"]')).toContainText('Impressum')
     await sheet.locator('[data-report-web-imprint]').click()

@@ -18,13 +18,19 @@ interface Meldung {
     substanz?: string | null; title?: string | null; body?: string | null; pros?: string | null; cons?: string | null
     display_name?: string | null; public_bio?: string | null
   } | null
+  /** 'web': ohne Konto von der Web-Seite gemeldet (supabase-profil-p2c-web.sql). */
+  source?: 'app' | 'web'
+  /** Freiwillige E-Mail fuer Rueckfragen, nur bei Web-Meldungen. */
+  contact?: string | null
 }
 
 /**
  * Offene Meldungen fuer Admins (`moderation_queue`). Ausblenden nimmt die
  * Erfahrung bzw. das ganze Profil aus der Oeffentlichkeit und erledigt alle
  * Meldungen dazu; Ablehnen schliesst nur diese Meldung. Gezeigt wird, was
- * beim Melden zu sehen war — auch wenn es inzwischen geloescht ist. Die Datenbank prueft das Admin-Recht
+ * beim Melden zu sehen war — auch wenn es inzwischen geloescht ist. Meldungen
+ * ohne Konto (Web-Seite) sind gekennzeichnet, mit der E-Mail fuer Rueckfragen,
+ * falls angegeben. Die Datenbank prueft das Admin-Recht
  * selbst — diese Ansicht ist nur die Oberflaeche dafuer.
  */
 export function ModerationQueue() {
@@ -70,6 +76,12 @@ export function ModerationQueue() {
                 {t(`report_reason_${m.reason}`)} · {datum(m.created_at)}
                 {m.username && <> · @{m.username}</>}
               </p>
+              {m.source === 'web' && (
+                <p className="mt-1 text-xs text-slate-400" data-moderation-web>
+                  {t('moderation_source_web')}
+                  {m.contact && <> · <span className="break-all">{t('moderation_contact', { email: m.contact })}</span></>}
+                </p>
+              )}
               {m.details && <p className="mt-1 text-xs italic text-slate-400">„{m.details}"</p>}
               <div className="mt-2 rounded-lg bg-slate-900 p-2 text-slate-300">
                 {m.art === 'profil' ? (

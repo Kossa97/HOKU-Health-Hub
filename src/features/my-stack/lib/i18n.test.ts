@@ -1500,26 +1500,29 @@ const EXPECTED_MY_STACK_KEYS = [
 // „Was ist Hoku?“, Stores, Desktop-Code, 404-Text) und Profil melden ohne Konto
 // (report_email, report_email_hint, report_web_failed(_link)); de/en echt,
 // sonst englischer Platzhalter.
+// Bewusst ergaenzt (November 2026): Profil 2c, Melden ohne Konto mit Serverweg —
+// report_web_too_many, report_email_invalid, moderation_source_web,
+// moderation_contact; de/en echt, sonst englischer Platzhalter.
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '19a631e19bac7fcc43c03233b1d08dba57a243e9f756df475fca1c28e6731609',
-  en: '4ad143651a6f32da7cd1c9c8e681ab943ad73fe455b514a3c17a7f9c23cb7630',
+  de: '9140d81e528a6ce683ff766c1f968d3d3156469988fe2b874be7c95a56e5855d',
+  en: 'e97fcb401996b8ebb9dcfd8b4ebc8972ff81f332a93c76c9182d264af6f01be4',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: 'ae56154aa0d2900c19c5f1ff2a5b085180653294be68db2b8189d5f5c6de8f46',
-  es: '295e30ab299123269621b5b584a68ba4be0dd073a5913995507ac5b9fd394362',
-  fr: 'b2e49e69ea81abb164db99f2f6dcda61e04d9f2154db36b7389fd86862ab8e46',
-  hi: 'de01362f83448e5b0a96fd5dd7a90c3cc1c6f86c078993019b523062e86adf80',
-  id: 'f2885b146f7c8443a56bb81989be1f51e9c9843c783280bf2bee5a4b419f025f',
-  it: 'ec79c93bc1ac4d1e73f642a07d07db76780f70a365f5739b45c4b8cb1a625307',
-  ja: '8ea932c020a53790faf4e0ac9a7d63108a957d8ac16cf06b65c91128577d6240',
-  ko: 'a28d66d74a775216fc3dcb6f42f9c373872dcd3faea659d8de7346dfdfcae0cd',
-  pt: 'af9a328347fe1da29f4b22109635690d3eb87a67425a3fc7d9822f7b76e34db3',
-  ru: '570b6ae834a3f84c3e07383616e6879bcc6375ef56df03a02299d5e839e094c7',
-  tr: '03d887e7e4b7bf0d67f1a5afd502e0ed7f5d90997c633cab09084ebdb85c9427',
-  zh: '45e96e7856b0d8e9528d214d9929863d5ddf7c8201e778b214dd7c9c5b17f993',
+  ar: 'b8191f2f6e0abf265d195b14b0f9f53ca83b6879ea901f79fe3eb544f8d4514b',
+  es: '5e04c1ba0e322f46a3abd6a06e14826d8bcd856c7b8aa45b50821bc7fa280346',
+  fr: 'f6721b907f812b7f17a6644c074d1116ef7c660f34b865fcb3daaeb79b9e5cd0',
+  hi: '63290d27b254aef9ca14b7ca9b6925ba24a9fa634fbe0a81937a89c73a7334e2',
+  id: '0ef93a3bcbd92ee1ac50263387e1aec61b4191647fd96a76fb7f4fb2c1304db9',
+  it: '7eed1a5dae4fe6428c949c6c53d29ab229f4d8a4419baaa06fa827d37b221c53',
+  ja: '4034efb2b3c2e42e2e6a3e30c71a09752b45d0988e38e7b32db33c5ac62e2aed',
+  ko: 'ae73088ac07c4688c6b39ff5c9fdfa4f3ae8eede412b83177df6275e394fc248',
+  pt: 'd896192ada9830c981cc2616ae1f2d7cbd8554d6c0853a4f3882914ac5da1827',
+  ru: '7f3a1e35730126ce76358388b93e738e80ee6df932531b0d8bd4b16d08de5cf8',
+  tr: '4ddd0d6064a8da00091c1cecd020c23fa0451f7a62a1cfaadb9e47b6c22548fe',
+  zh: 'c79bcca3be6916252f4423f3c52461bdb454f0614cf70b4642a09f0d62f5f7da',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

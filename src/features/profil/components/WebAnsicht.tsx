@@ -311,16 +311,26 @@ function WebAbzeichen({ ids, username }: { ids: readonly BadgeId[]; username: st
 
 // ─── Profil melden ohne Konto ──────────────────────────────────────────────
 
+/** Fehler der Web-Meldung: Code aus `report_public_profile_web` → Hinweis. */
+type WebMeldeFehler = 'zu_viele' | 'kontakt' | 'fehler'
+
+function webMeldeFehler(message: string | undefined): WebMeldeFehler {
+  if (message?.includes('zu_viele_meldungen')) return 'zu_viele'
+  if (message?.includes('kontakt_ungueltig')) return 'kontakt'
+  return 'fehler'
+}
+
 /**
  * DSA Art. 16 (Spec 7.4, Frage 8): melden ohne Konto, Grund und freiwillig eine
- * E-Mail. Ziel ist `report_public_profile_web` — die Serverseite dazu gibt es
- * noch nicht (anon-Meldung in `content_reports`, Grenze je IP). Bis dahin
- * scheitert das Senden und die Seite nennt den Weg über das Impressum.
+ * E-Mail, an `report_public_profile_web` (supabase-profil-p2c-web.sql, Abschnitt
+ * 7: landet in `content_reports` mit `source = 'web'`, Grenzen 5 je Profil und
+ * 200 insgesamt je Stunde). Scheitert das Senden, nennt die Seite den Weg über
+ * das Impressum; eine unvollständige E-Mail meldet sie eigens.
  */
 function ProfilMeldenWeb({ username, onClose }: { username: string; onClose: () => void }) {
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
-  const [fehler, setFehler] = useState<'zu_viele' | 'fehler' | null>(null)
+  const [fehler, setFehler] = useState<WebMeldeFehler | null>(null)
   const senden = async (grund: Meldegrund, details: string, email: string) => {
     setBusy(true)
     setFehler(null)
@@ -334,7 +344,7 @@ function ProfilMeldenWeb({ username, onClose }: { username: string; onClose: () 
     } finally {
       setBusy(false)
     }
-    if (error) return setFehler(error.message?.includes('zu_viele_meldungen') ? 'zu_viele' : 'fehler')
+    if (error) return setFehler(webMeldeFehler(error.message))
     onClose()
     toast.success(t('report_sent'))
   }
@@ -348,8 +358,8 @@ function ProfilMeldenWeb({ username, onClose }: { username: string; onClose: () 
       onSend={(grund, details, email) => void senden(grund, details, email)}
       hinweis={fehler && (
         <p role="alert" className="text-[13px] leading-snug text-[var(--lg-warn-text)]" data-report-web-error={fehler}>
-          {fehler === 'zu_viele' ? t('report_too_many') : t('report_web_failed')}{' '}
-          {fehler === 'fehler' && (
+          {t(fehler === 'zu_viele' ? 'report_web_too_many' : fehler === 'kontakt' ? 'report_email_invalid' : 'report_web_failed')}{' '}
+          {fehler !== 'kontakt' && (
             <Link to={LEGAL_PATHS.impressum} className="font-semibold underline underline-offset-2" data-report-web-imprint>
               {t('report_web_failed_link')}
             </Link>

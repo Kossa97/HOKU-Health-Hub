@@ -2989,5 +2989,9 @@
   "report_email": "Email for follow-up questions (optional)",
   "report_email_hint": "No account needed. We only use the address for questions about this report.",
   "report_web_failed": "The report couldn’t be sent right now. You can also reach us via the contact details in the imprint.",
-  "report_web_failed_link": "Go to imprint"
+  "report_web_failed_link": "Go to imprint",
+  "report_web_too_many": "We’re receiving a lot of reports right now. Please try again later or reach us via the contact details in the imprint.",
+  "report_email_invalid": "This email address looks incomplete. Check it or leave the field empty.",
+  "moderation_source_web": "Via the web page, without an account",
+  "moderation_contact": "Contact for follow-up: {{email}}"
 }

@@ -5,6 +5,7 @@ import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 import { hatZugang } from '../../supabase/functions/coach/prompt'
 import { isBadgeId, parseWebBadges, webBadgeOn } from '../../src/features/profil/lib/badgeIds'
+import { MELDEGRUENDE } from '../../src/features/compliance/lib/moderation'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -1046,6 +1047,26 @@ export class MockSupabase {
       return null
     })
 
+    // Melden ohne Konto von der Web-Seite (supabase-profil-p2c-web.sql, Abschnitt 7): nur, was in der
+    // Stufe web zu sehen ist; sonst fuer jeden Fall derselbe Fehler. Grund und E-Mail vor der Suche.
+    this.onRpc('report_public_profile_web', params => {
+      if (!(MELDEGRUENDE as readonly string[]).includes(String(params.p_reason))) throw new RpcError('meldung_ungueltig')
+      const kontakt = String(params.p_contact ?? '').trim() || null
+      if (kontakt && (kontakt.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(kontakt))) throw new RpcError('kontakt_ungueltig')
+      const ziel = profilVon(params.p_username)
+      if (!ziel || ziel.hidden_by_moderation === true || ziel.web_link_enabled !== true || ziel.profile_private === true) {
+        throw new RpcError('meldung_nicht_moeglich')
+      }
+      const bio = (ziel.field_visibility as Record<string, string> | undefined)?.bio === 'all' ? ziel.public_bio ?? null : null
+      this.insert('content_reports', {
+        review_id: null, reported_user_id: ziel.id, reporter_id: null,
+        reason: params.p_reason, details: String(params.p_details ?? '').trim().slice(0, 1000) || null, status: 'offen',
+        snapshot: { art: 'profil', username: ziel.username, display_name: ziel.display_name ?? null, public_bio: bio },
+        source: 'web', reporter_contact: kontakt,
+      })
+      return null
+    })
+
     this.onRpc('set_profile_block', params => {
       const ziel = profilVon(params.p_username)
       if (!ziel || ziel.id === TEST_USER.id) return null
@@ -1070,6 +1091,7 @@ export class MockSupabase {
           review_id: row.review_id ?? null, review_exists: Boolean(review),
           username: this.table('profiles').find(p => p.id === row.reported_user_id)?.username ?? snapshot?.username ?? null,
           snapshot: snapshot ?? null,
+          source: row.source ?? 'app', contact: row.reporter_contact ?? null,
         }
       })
     })

@@ -3219,5 +3219,9 @@
   "report_email": "E-Mail für Rückfragen (optional)",
   "report_email_hint": "Kein Konto nötig. Die Adresse nutzen wir nur für Rückfragen zu dieser Meldung.",
   "report_web_failed": "Die Meldung ließ sich gerade nicht senden. Du erreichst uns auch über die Kontaktdaten im Impressum.",
-  "report_web_failed_link": "Zum Impressum"
+  "report_web_failed_link": "Zum Impressum",
+  "report_web_too_many": "Gerade gehen sehr viele Meldungen ein. Bitte versuch es später noch einmal oder schreib uns über die Kontaktdaten im Impressum.",
+  "report_email_invalid": "Diese E-Mail-Adresse sieht unvollständig aus. Prüf sie oder lass das Feld leer.",
+  "moderation_source_web": "Über die Web-Seite, ohne Konto",
+  "moderation_contact": "Kontakt für Rückfragen: {{email}}"
 }
