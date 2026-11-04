@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { localProfileView, parseFields, parseProfileView, profileUrl, shownFields } from './profileView'
+import { isWebProgress, localProfileView, parseFields, parseProfileView, parseWebCard, profileUrl, shownFields } from './profileView'
 
 describe('parseFields', () => {
   it('übernimmt nur bekannte Felder in erwarteter Form', () => {
@@ -19,6 +19,56 @@ describe('parseFields', () => {
     expect(parseFields({ reviews: { count: 0, avgRating: 4 }, streak: { days: 0 }, markers: 3 })).toEqual({})
     expect(parseFields(null)).toEqual({})
     expect(parseFields([1, 2])).toEqual({})
+  })
+})
+
+describe('parseFields, Formen der Stufe web (2c)', () => {
+  it('progress nur {tier} aus den sechs Stufen; Zusaetzliches faellt weg', () => {
+    expect(parseFields({ progress: { tier: 30 } })).toEqual({ progress: { tier: 30 } })
+    expect(parseFields({ progress: { tier: 100, total: 128.3, areas: { blut: 90 }, since: '2026-03-14' } }))
+      .toEqual({ progress: { tier: 100 } })
+    for (const tier of [10, 20, 30, 50, 75, 100]) expect(parseFields({ progress: { tier } }).progress).toEqual({ tier })
+  })
+
+  it('ungueltige Stufe: kein progress (auch kein Rueckfall auf die 2b-Form)', () => {
+    for (const tier of [0, 5, 25, 40, 99, 101, -10, '30', null, 30.5]) {
+      expect(parseFields({ progress: { tier } })).toEqual({})
+    }
+    expect(parseFields({ progress: { tier: 'x', total: 28, areas: {}, since: '2026-03-14' } })).toEqual({})
+  })
+
+  it('2b-Form bleibt, wie sie war, und ist keine Web-Form', () => {
+    const f = parseFields({ progress: { total: 28.4, areas: { koerper: 7.7, nase: 1 }, since: '2026-03-14', counts: { koerper: 4 } } })
+    expect(f.progress).toEqual({ total: 28.4, areas: { koerper: 7.7 }, since: '2026-03-14' })
+    expect(isWebProgress(f.progress!)).toBe(false)
+    expect(isWebProgress({ tier: 10 })).toBe(true)
+  })
+
+  it('reviews im Web nur {count}: keine erfundene Bewertung 0', () => {
+    expect(parseFields({ reviews: { count: 12 } })).toEqual({ reviews: { count: 12 } })
+    expect(parseFields({ reviews: { count: 3, avgRating: 4.5 } })).toEqual({ reviews: { count: 3, avgRating: 4.5 } })
+    expect(parseFields({ reviews: { count: 0 } })).toEqual({})
+    expect(parseFields({ reviews: { count: '12' } })).toEqual({})
+  })
+})
+
+describe('parseWebCard', () => {
+  it('liest member_since als Dauer, web_value_count und entry_count', () => {
+    expect(parseWebCard({ member_since: { unit: 'months', n: 7 }, web_value_count: 9, entry_count: 1240 }))
+      .toEqual({ memberFor: { unit: 'months', n: 7 }, webValueCount: 9, entryCount: 1240 })
+    expect(parseWebCard({ member_since: { unit: 'days', n: 0 } })).toEqual({ memberFor: { unit: 'days', n: 0 } })
+  })
+
+  it('ungueltige Angaben fallen einzeln weg; ohne gueltige Angabe null', () => {
+    expect(parseWebCard({
+      member_since: { unit: 'weeks', n: 3 }, web_value_count: 9, entry_count: 2.5, extra: 'x',
+    })).toEqual({ webValueCount: 9 })
+    expect(parseWebCard({ member_since: { unit: 'years', n: -1 }, web_value_count: 0, entry_count: '12' })).toBeNull()
+    expect(parseWebCard({ member_since: '2026-03' })).toBeNull()
+    expect(parseWebCard({ member_since: { unit: 'months', n: 1.5 } })).toBeNull()
+    expect(parseWebCard(null)).toBeNull()
+    expect(parseWebCard([1])).toBeNull()
+    expect(parseWebCard({})).toBeNull()
   })
 })
 
@@ -46,6 +96,42 @@ describe('parseProfileView', () => {
   it('fremde Sicht ohne Stufen', () => {
     expect(parseProfileView({ username: 'max', own: false, fields: {} })?.visibility).toBeNull()
   })
+
+  it('Antwort der Stufe web (wie Probe W2 im Trockenlauf)', () => {
+    const v = parseProfileView({
+      username: 'mara', display_name: 'Mara K.', own: false, blocked: false, private: false, avatar: 'u/a.jpg',
+      fields: {
+        cover: 'u/c.jpg', country: 'DE', goals: ['kraft'], bio: 'Hallo', streak: { days: 12 },
+        progress: { tier: 20 }, badges: ['streak_7', 'unbekannt'], reviews: { count: 12 },
+      },
+      card: { member_since: { unit: 'months', n: 7 }, web_value_count: 9, entry_count: 25 },
+      web_indexable: false,
+      neu_vom_server: { x: 1 },
+    })
+    expect(v).toMatchObject({
+      username: 'mara', own: false, card: { memberFor: { unit: 'months', n: 7 }, webValueCount: 9, entryCount: 25 },
+      webIndexable: false, webBadges: null, visibility: null,
+    })
+    expect(v?.fields).toEqual({
+      cover: 'u/c.jpg', country: 'DE', goals: ['kraft'], bio: 'Hallo', streak: { days: 12 },
+      progress: { tier: 20 }, badges: ['streak_7'], reviews: { count: 12 },
+    })
+    expect(v).not.toHaveProperty('neu_vom_server')
+  })
+
+  it('Eigentuemer: web_badges (nur gueltige Abweichungen) und web_indexable', () => {
+    const v = parseProfileView({
+      username: 'mara', own: true, as: 'owner', web_indexable: true,
+      web_badges: { first_bloodwork: true, workouts_10: false, streak_7: true, hack: true, weight_5: 'ja' },
+    })
+    expect(v).toMatchObject({ webIndexable: true, webBadges: { first_bloodwork: true, workouts_10: false }, card: null })
+  })
+
+  it('falsche Formen: null statt Raten', () => {
+    expect(parseProfileView({ username: 'mara', web_indexable: 'true', web_badges: ['first_bloodwork'], card: 'x' }))
+      .toMatchObject({ webIndexable: null, webBadges: null, card: null })
+    expect(parseProfileView({ username: 'mara' })).toMatchObject({ webIndexable: null, webBadges: null, card: null })
+  })
 })
 
 describe('localProfileView', () => {
@@ -57,6 +143,13 @@ describe('localProfileView', () => {
     }, { age: { v: 29 } })
     expect(v.fields).toEqual({ bio: 'Recomp', goals: ['recomp'], country: 'DE', gender: 'female', member_since: '2026-03', cover: 'u/c.jpg', age: { v: 29 } })
     expect(v).toMatchObject({ own: true, displayName: null, visibility: { age: 'friends' }, profilePrivate: true, webLinkEnabled: false })
+    // vor der Migration 2c: Spalten fehlen
+    expect(v).toMatchObject({ webIndexable: null, webBadges: null, card: null })
+  })
+
+  it('liest web_badges und web_indexable aus der Zeile (2c)', () => {
+    const v = localProfileView({ username: 'mara', web_indexable: true, web_badges: { first_bloodwork: true } }, null)
+    expect(v).toMatchObject({ webIndexable: true, webBadges: { first_bloodwork: true } })
   })
 })
 

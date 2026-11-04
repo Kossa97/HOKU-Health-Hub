@@ -11,8 +11,8 @@
 import { MEASUREMENT_SITES, type MeasurementSite } from '../../fortschritt/lib/measurements'
 import { GOAL_TAGS, isProfileGender, knownCountry, type GoalTag, type ProfileGender } from './profileFields'
 import type { ProfileSnapshotData, SnapshotNumber } from './profileSnapshot'
-import { isBadgeId } from './badgeIds'
-import { PROGRESS_AREAS, type ProgressArea } from './progressScore'
+import { isBadgeId, parseWebBadges, type WebBadgeOverrides } from './badgeIds'
+import { PROGRESS_AREAS, type ProgressArea, type ProgressSnapshot } from './progressScore'
 import { isDay } from './progressSettings'
 import { fieldsOfSection, parseVisibilityMap, type ProfileField, type ProfileSection, type VisibilityMap } from './profileVisibility'
 
@@ -28,7 +28,36 @@ export interface ProfileRowFields {
   cover?: string
 }
 
-export type ProfileViewFields = ProfileSnapshotData & ProfileRowFields
+/** Stufen „über X %“ (`profile_web_progress_tier`). */
+export const WEB_PROGRESS_TIERS = [10, 20, 30, 50, 75, 100] as const
+export type WebProgressTier = typeof WEB_PROGRESS_TIERS[number]
+
+/** Gesamtfortschritt in der Stufe web: nur die abgerundete Stufe, nie Zahl, Bereiche oder Start. */
+export interface WebProgress { tier: WebProgressTier }
+
+export const isWebProgress = (p: ProgressSnapshot | WebProgress): p is WebProgress => 'tier' in p
+
+export type ProfileViewFields = Omit<ProfileSnapshotData, 'progress' | 'reviews'> & ProfileRowFields & {
+  /** Stufen owner/friends/all: Gesamt, Bereiche, Start (2b); Stufe web: nur die Stufe (2c). */
+  progress?: ProgressSnapshot | WebProgress
+  /** In der Stufe web nur die Anzahl, ohne Bewertung. */
+  reviews?: { count: number; avgRating?: number }
+}
+
+/** Mitgliedschaft als Dauer, abgerundet (`profile_web_member_for`); das Datum kommt nie. */
+export interface MemberFor {
+  unit: 'days' | 'months' | 'years'
+  n: number
+}
+
+/** Angaben fuer Link-Karte und Web-Seite (`card`, nur Stufe web). */
+export interface WebCard {
+  memberFor?: MemberFor
+  /** „trackt N Werte“: Werte in Koerper, Training, Erholung. */
+  webValueCount?: number
+  /** Zahl aller Eintraege; nur, wenn die Fortschrittsstufe im Web steht. */
+  entryCount?: number
+}
 
 /** Stufe der Antwort: `owner` = eigene Sicht; sonst „Ansehen als …“. */
 export type ViewAs = 'owner' | 'friends' | 'all' | 'web'
@@ -57,6 +86,12 @@ export interface ProfileView {
   /** Nur in der eigenen Sicht: Stand des Bild-Checks. */
   avatarStatus: MediaStatus | null
   coverStatus: MediaStatus | null
+  /** Nur in der Stufe web (2c); `null`, wenn keine Angabe gueltig ist. */
+  card: WebCard | null
+  /** Suchmaschinen-Schalter: in der Stufe web und in der eigenen Sicht. */
+  webIndexable: boolean | null
+  /** Nur in der eigenen Sicht: Abweichungen vom Standard der Abzeichen im Web. */
+  webBadges: WebBadgeOverrides | null
 }
 
 // ─── Prüfen ─────────────────────────────────────────────────────────────────
@@ -66,6 +101,10 @@ const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.i
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined)
 const text = (v: unknown, max = 200): string | undefined =>
   typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : undefined
+/** Ganze Zahl in den Grenzen, sonst `undefined`. */
+const int = (v: unknown, min: number, max: number): number | undefined =>
+  Number.isInteger(v) && (v as number) >= min && (v as number) <= max ? v as number : undefined
+const isWebTier = (v: unknown): v is WebProgressTier => (WEB_PROGRESS_TIERS as readonly unknown[]).includes(v)
 
 function snapNumber<U extends string>(v: unknown, unit: U): SnapshotNumber<U> | undefined {
   if (!isObj(v)) return undefined
@@ -159,13 +198,18 @@ export function parseFields(raw: unknown): ProfileViewFields {
     if (top.length > 0) out.e1rm = { unit: 'kg', top }
   }
   if (isObj(raw.reviews) && num(raw.reviews.count) !== undefined && num(raw.reviews.count)! > 0) {
-    out.reviews = { count: num(raw.reviews.count)!, avgRating: num(raw.reviews.avgRating) ?? 0 }
+    // Stufe web: nur {count} — dann fehlt die Bewertung, statt als 0 zu erscheinen.
+    const avg = num(raw.reviews.avgRating)
+    out.reviews = avg === undefined ? { count: num(raw.reviews.count)! } : { count: num(raw.reviews.count)!, avgRating: avg }
   }
   if (isObj(raw.streak) && num(raw.streak.days) !== undefined && num(raw.streak.days)! > 0) {
     out.streak = { days: num(raw.streak.days)! }
   }
+  // 2c, Stufe web: nur {tier}. Steht `tier` da, gilt allein diese Form (ungueltig → weg).
+  if (isObj(raw.progress) && 'tier' in raw.progress) {
+    if (isWebTier(raw.progress.tier)) out.progress = { tier: raw.progress.tier }
   // 2b: nur Gesamt, die fuenf Bereiche und der Start; Einzelwerte gibt es hier nie
-  if (isObj(raw.progress) && num(raw.progress.total) !== undefined && isDay(raw.progress.since)) {
+  } else if (isObj(raw.progress) && num(raw.progress.total) !== undefined && isDay(raw.progress.since)) {
     const areas: Partial<Record<ProgressArea, number>> = {}
     const rawAreas = isObj(raw.progress.areas) ? raw.progress.areas : {}
     for (const a of PROGRESS_AREAS) {
@@ -182,6 +226,26 @@ export function parseFields(raw: unknown): ProfileViewFields {
 }
 
 const bool = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null)
+
+/** Obergrenze fuer Zaehler der Karte (Schutz gegen Unsinn; SQL liefert weit weniger). */
+const CARD_COUNT_MAX = 100_000_000
+const MEMBER_UNITS: readonly MemberFor['unit'][] = ['days', 'months', 'years']
+
+/** `card` der Stufe web: nur bekannte Angaben in ihrer Form; ungueltige fallen einzeln weg. */
+export function parseWebCard(raw: unknown): WebCard | null {
+  if (!isObj(raw)) return null
+  const out: WebCard = {}
+  const m = raw.member_since
+  if (isObj(m) && (MEMBER_UNITS as readonly unknown[]).includes(m.unit)) {
+    const n = int(m.n, 0, 10_000)
+    if (n !== undefined) out.memberFor = { unit: m.unit as MemberFor['unit'], n }
+  }
+  const values = int(raw.web_value_count, 1, CARD_COUNT_MAX)
+  if (values !== undefined) out.webValueCount = values
+  const entries = int(raw.entry_count, 1, CARD_COUNT_MAX)
+  if (entries !== undefined) out.entryCount = entries
+  return Object.keys(out).length > 0 ? out : null
+}
 
 /** Antwort von `profile_view`; `null` = nicht gefunden oder unbrauchbar. */
 export function parseProfileView(raw: unknown): ProfileView | null {
@@ -200,6 +264,9 @@ export function parseProfileView(raw: unknown): ProfileView | null {
     as: (VIEW_AS as readonly unknown[]).includes(raw.as) ? raw.as as ViewAs : null,
     avatarStatus: isMediaStatus(raw.avatar_status) ? raw.avatar_status : null,
     coverStatus: isMediaStatus(raw.cover_status) ? raw.cover_status : null,
+    card: parseWebCard(raw.card),
+    webIndexable: bool(raw.web_indexable),
+    webBadges: isObj(raw.web_badges) ? parseWebBadges(raw.web_badges) : null,
   }
 }
 
@@ -231,6 +298,10 @@ export function localProfileView(row: Obj, snapshot: ProfileSnapshotData | null)
     as: 'owner',
     avatarStatus: isMediaStatus(row.avatar_status) ? row.avatar_status : null,
     coverStatus: isMediaStatus(row.cover_status) ? row.cover_status : null,
+    card: null,
+    // vor der Migration 2c fehlen beide Spalten
+    webIndexable: bool(row.web_indexable),
+    webBadges: isObj(row.web_badges) ? parseWebBadges(row.web_badges) : null,
   }
 }
 

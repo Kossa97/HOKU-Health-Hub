@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { HealthDailyRow } from '../../wearables/lib/healthDaily'
 import {
-  HISTORY_MAX_WEEKS, PROGRESS_METRIC_IDS, addDays, adherenceValue, allowedDirections, areaOf, bloodValue, bodyValue,
+  HISTORY_MAX_WEEKS, PROGRESS_AREAS, PROGRESS_COUNT_MAX, PROGRESS_METRIC_IDS, addDays, adherenceValue, allowedDirections, areaOf, bloodValue, bodyValue,
   buildProgressValues, changePercent, computeProgress, defaultDirection, directionSource, e1rmValues, effectiveDirection,
   isMetricId, parseBaselines, parseDirections, parseHistory, progressHistory, progressSnapshot, scoreProgress, wearableValue,
   wearableDays, weekOf, withHistory, workoutsValue,
@@ -244,6 +244,8 @@ describe('Zusammenrechnen', () => {
     expect(progressSnapshot(r, '2026-03-14')).toEqual({
       total: 28.4, since: '2026-03-14',
       areas: { koerper: 7.7, blut: 58.3, training: 32.6, einnahmen: 16, erholung: 27.1 },
+      // Gewicht (Richtung aus) und HRV (sammelt noch) zaehlen nicht mit
+      counts: { koerper: 4, blut: 1, training: 4, einnahmen: 1, erholung: 5 },
     })
   })
 })
@@ -473,7 +475,17 @@ describe('buildProgressValues / computeProgress', () => {
 
   it('Schnappschuss nur mit Bereichen, die zaehlen', () => {
     const r = scoreProgress([v('body_fat', 20, 18)], [])
-    expect(progressSnapshot(r, START)).toEqual({ total: 10, areas: { koerper: 10 }, since: START })
+    expect(progressSnapshot(r, START)).toEqual({ total: 10, areas: { koerper: 10 }, since: START, counts: { koerper: 1 } })
+  })
+
+  it('counts zaehlt je Bereich nur Werte, die eingehen (2c, Grundlage von web_value_count)', () => {
+    const r = scoreProgress([
+      v('body_fat', 20, 18), v('muscle_mass', 30, 31), v('weight', 80, 78),
+      v('steps', 5000, 6000),
+      { id: 'hrv', start: null, now: null, baseline: { status: 'collecting', have: 3, need: 14, unit: 'days' } },
+    ], ['recomp'])
+    // weight hat bei recomp keine Richtung, hrv sammelt noch
+    expect(progressSnapshot(r, START)?.counts).toEqual({ koerper: 2, erholung: 1 })
   })
 })
 
@@ -521,5 +533,18 @@ describe('Wochenreihe (history)', () => {
       { week: '2026-03-16', total: 3.5, areas: { koerper: 1 } },
     ])
     expect(parseHistory({})).toEqual([])
+  })
+})
+
+describe('Vertrag progress.counts mit supabase-profil-p2c-web.sql', () => {
+  it('der Server liest dieselben Bereichsnamen und dieselbe Obergrenze', () => {
+    const sql = readFileSync(resolve(__dirname, '../../../../supabase-profil-p2c-web.sql'), 'utf8')
+    const fn = sql.match(/function public\.profile_web_value_count\(s jsonb\)[\s\S]*?\$\$;/)?.[0]
+    expect(fn).toBeDefined()
+    expect(fn).toContain("array['progress', 'counts', a.k]")
+    const bereiche = fn!.match(/unnest\(array\[([^\]]*)\]\)/)?.[1].match(/'([a-z]+)'/g)?.map(x => x.slice(1, -1))
+    expect(bereiche).toEqual(['koerper', 'training', 'erholung'])
+    expect(bereiche!.every(b => (PROGRESS_AREAS as readonly string[]).includes(b))).toBe(true)
+    expect(fn).toContain(`between 0 and ${PROGRESS_COUNT_MAX}`)
   })
 })

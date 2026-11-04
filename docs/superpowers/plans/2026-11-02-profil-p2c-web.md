@@ -44,11 +44,11 @@
 
 ### Task 2: Lib und Filter auf dem Gerät (`badgeIds.ts`, `profileView.ts`)
 
-- [ ] `BADGES_WEB_SENSITIVE` in `src/features/profil/lib/badgeIds.ts`; Paritätstest gegen die SQL-Liste (wie `BADGE_IDS`).
-- [ ] `webBadgeEnabled(id, overrides)` und `webBadgeOverrides(set)` (Abweichungen vom Standard bilden, „zurücksetzen“ = `{}`), mit Tests.
-- [ ] `parseProfileView` versteht `web_badges`/`web_indexable` (nur Eigentümer) und die Web-Formen (`reviews.count`, `progress.tier`, `card`); unbekannte Schlüssel weiter ignorieren.
-- [ ] Schnappschuss schreibt `progress.counts` (Werte je Bereich, die in den Fortschritt eingehen); Grundlage von `card.web_value_count`.
-- [ ] Speichern von `web_badges` im Profildienst (Tipp-Reihenfolge wie die Sichtbarkeit aus 2a, Rücksetzen bei Fehler).
+- [x] `BADGES_WEB_SENSITIVE` und `BADGES_WEB_BORDERLINE` in `src/features/profil/lib/badgeIds.ts`; Paritätstest gegen beide SQL-Listen (wie `BADGE_IDS`).
+- [x] `webBadgeOn(id, overrides)` (wie `profile_web_badge_on`), `withWebBadge(overrides, id, on)` (nur Abweichungen vom Standard, „zurücksetzen“ = `{}`), `parseWebBadges`, mit Tests.
+- [x] `parseProfileView` versteht `web_badges`/`web_indexable` (nur Eigentümer) und die Web-Formen (`reviews.count`, `progress.tier`, `card`); unbekannte Schlüssel weiter ignorieren.
+- [x] Schnappschuss schreibt `progress.counts` (Werte je Bereich, die in den Fortschritt eingehen); Grundlage von `card.web_value_count`.
+- [x] Speichern von `web_badges` und `web_indexable` (`hooks/useWebSettings.ts`; Tipp-Reihenfolge wie die Sichtbarkeit aus 2a, Rücksetzen bei Fehler auf den zuletzt gespeicherten Stand).
 
 ### Task 3: Einstellung „Abzeichen im Web“ (`/profil/web-abzeichen`)
 

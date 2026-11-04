@@ -16,7 +16,7 @@ import { useEigenesProfil, type ProfilZeile } from '../features/profil/hooks/use
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
 import { requestProfileSnapshot } from '../features/profil/hooks/useProfileSnapshotSync'
 import { GOAL_TAGS, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
-import { isMediaStatus, parseFields, profileUrl, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
+import { isMediaStatus, isWebProgress, parseFields, profileUrl, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
 import { useBildPruefungNachholen } from '../features/profil/hooks/useBildPruefungNachholen'
 import { dismissRejectedMedia, type MediaKind } from '../features/profil/services/profileMedia'
 import { importWithReload } from '../lib/staleChunkReload'
@@ -73,7 +73,7 @@ function fortschrittsZusammenfassung(
   if (f.status === 'ok') {
     return { total: f.state.result?.total ?? null, areas: f.state.result?.areas ?? {}, since: f.state.setup?.startOn ?? null }
   }
-  return snap ? { total: snap.total, areas: snap.areas, since: snap.since } : { total: null, areas: {}, since: null }
+  return snap && !isWebProgress(snap) ? { total: snap.total, areas: snap.areas, since: snap.since } : { total: null, areas: {}, since: null }
 }
 
 /**

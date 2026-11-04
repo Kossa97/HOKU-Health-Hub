@@ -16,7 +16,7 @@ import { ProfilKarten } from '../features/profil/components/ProfilKarten'
 import { FortschrittKarte } from '../features/profil/components/FortschrittKarte'
 import { AbzeichenKarte } from '../features/profil/components/AbzeichenKarte'
 import { useSignedUrl } from '../features/profil/hooks/useSignedUrl'
-import { parseProfileView, type ProfileView } from '../features/profil/lib/profileView'
+import { isWebProgress, parseProfileView, type ProfileView } from '../features/profil/lib/profileView'
 
 /**
  * Fremdes Profil unter /u/<name> (Teilprojekt 2a). Alles kommt aus
@@ -239,8 +239,9 @@ function AppAnsicht({ view, band, onNeuLaden }: { view: ProfileView; band: React
           </section>
         ) : (
           <>
-            {/* 2b: nur bei Freigabe; ohne Chips, ohne Einzelwerte, ohne Zeitreise */}
-            {view.fields.progress && (
+            {/* 2b: nur bei Freigabe; ohne Chips, ohne Einzelwerte, ohne Zeitreise.
+                Stufe web bringt nur {tier}: das zeigt die Web-Ansicht (2c, Task 4). */}
+            {view.fields.progress && !isWebProgress(view.fields.progress) && (
               <FortschrittKarte summary={{ total: view.fields.progress.total, areas: view.fields.progress.areas, since: view.fields.progress.since }} />
             )}
             {view.fields.badges && <AbzeichenKarte own={false} ids={view.fields.badges} />}

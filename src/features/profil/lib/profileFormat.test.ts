@@ -21,6 +21,13 @@ describe('tileText', () => {
     expect(tileText('hrv', {}, t, 'de')?.value).toBe('–')
   })
 
+  it('Berichte: mit Bewertung Sterne, in der Stufe web nur die Anzahl', () => {
+    expect(tileText('reviews', { reviews: { count: 3, avgRating: 4.5 } }, t, 'de')?.value).toBe('★ 4,5')
+    expect(tileText('reviews', { reviews: { count: 1240 } }, t, 'de')).toEqual({
+      label: 'profil_feld_reviews', value: '1.240', sub: 'profil_berichte_sub',
+    })
+  })
+
   it('Bestleistung als halbe Karte: beste Übung mit Wert', () => {
     expect(tileText('e1rm', { e1rm: { unit: 'kg', top: [{ id: 'a', name: 'Kreuzheben', v: 142 }] } }, t, 'de')).toMatchObject({ value: 'Kreuzheben 142', unit: 'kg' })
   })
