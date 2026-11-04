@@ -24,6 +24,9 @@ function loadTemplate() {
 }
 
 /** Name aus `?name=` (Umleitung in vercel.json) oder, falls nicht umgeschrieben, aus `/u/<name>`. */
+/** Einzige Adresse, die die App-Links (AASA, assetlinks, Manifest) annehmen. */
+const APP_LINK_ORIGIN = 'https://hokuhealth.app'
+
 export function requestedName(req) {
   const q = req.query?.name
   if (typeof q === 'string') return q
@@ -49,7 +52,7 @@ function headerValue(req, key) {
  * Setzt die Tags in das gebaute `index.html` (wie `scripts/prerender-peptipedia.ts`).
  * Ersetzt wird nur über Funktionen, damit `$&` o. Ä. in einem Namen nichts auslöst.
  */
-export function renderPage(template, { lang, meta, image, url, indexable, found }) {
+export function renderPage(template, { lang, meta, image, url, indexable, found, banner = null }) {
   if (!template.includes('</head>') || !/<html\b/.test(template) || !/<title>[\s\S]*?<\/title>/.test(template)) {
     throw new Error('index.html ohne head/title')
   }
@@ -58,6 +61,8 @@ export function renderPage(template, { lang, meta, image, url, indexable, found 
     tag('name', 'description', meta.description),
     ...(indexable ? [] : [tag('name', 'robots', 'noindex, nofollow')]),
     ...(url ? [`<link data-hoku-card rel="canonical" href="${escapeXml(url)}">`] : []),
+    // Smart App Banner: Safari liest ihn nur aus dem ersten HTML, nicht aus JS.
+    ...(banner ? [tag('name', 'apple-itunes-app', banner)] : []),
     tag('property', 'og:type', found ? 'profile' : 'website'),
     tag('property', 'og:site_name', SITE_NAME),
     tag('property', 'og:locale', lang === 'de' ? 'de_DE' : 'en_US'),
@@ -86,7 +91,14 @@ export function renderPage(template, { lang, meta, image, url, indexable, found 
 }
 
 /** Seite für Treffer oder neutrale Seite (dann ohne Namen, für alle Fälle gleich). */
-export function buildPage(template, { view, lang, patternFeature, origin }) {
+/** Inhalt von `apple-itunes-app`; App-Links gelten nur für hokuhealth.app. */
+export function smartAppBanner(appStoreId, nickname) {
+  const id = typeof appStoreId === 'string' ? appStoreId.trim() : ''
+  if (!/^\d{6,12}$/.test(id)) return null
+  return `app-id=${id}, app-argument=${APP_LINK_ORIGIN}/u/${encodeURIComponent(nickname.toLowerCase())}`
+}
+
+export function buildPage(template, { view, lang, patternFeature, origin, appStoreId = null }) {
   const input = toCardInput(view, { lang, patternFeature })
   const found = chooseCard(input) !== 'neutral'
   const meta = cardMeta(input)
@@ -106,7 +118,9 @@ export function buildPage(template, { view, lang, patternFeature, origin }) {
     html: renderPage(template, {
       lang, meta, indexable, found,
       image: `${origin}/api/og?name=${name}&lang=${lang}&v=${v}`,
-      url: `${origin}/u/${name}`,
+      // Klein wie die geteilte Adresse (`profileUrl`), sonst gäbe es zwei URLs
+      url: `${origin}/u/${encodeURIComponent(input.nickname.toLowerCase())}`,
+      banner: smartAppBanner(appStoreId, input.nickname),
     }),
   }
 }
@@ -138,7 +152,7 @@ export function createHandler({ fetch = globalThis.fetch, env = process.env, tem
       return fail(res, 500)
     }
     const lang = pickLang(headerValue(req, 'accept-language'))
-    const ctx = { lang, patternFeature: patternFeatureOn(env), origin: siteOrigin(env) }
+    const ctx = { lang, patternFeature: patternFeatureOn(env), origin: siteOrigin(env), appStoreId: env.VITE_APP_STORE_ID ?? null }
     const base = {
       'Content-Type': 'text/html; charset=utf-8',
       Vary: 'Accept-Language',

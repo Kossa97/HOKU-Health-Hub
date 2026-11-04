@@ -137,21 +137,21 @@ describe('api/og.js: neutrale Karte', () => {
     }
   })
 
-  it('veraltetes oder fremdes v: dasselbe neutrale Bild, aber nur 60 s im CDN', async () => {
+  it('veraltetes oder fremdes v: die aktuelle Karte (Messenger behalten das Bild), aber nur 60 s im CDN', async () => {
     const neutral = await image('/api/og?lang=de')
-    const v = new URL(await ogUrl('mara', { mara: MARA }), 'http://x').searchParams.get('v')
+    const aktuellUrl = await ogUrl('mara', { mara: MARA })
+    const aktuell = await image(aktuellUrl, { views: { mara: MARA } })
     const vEn = new URL(await ogUrl('mara', { mara: MARA }, 'en'), 'http://x').searchParams.get('v')
-    expect(vEn).not.toBe(v)
+    expect(vEn).not.toBe(new URL(aktuellUrl, 'http://x').searchParams.get('v'))
     for (const url of ['/api/og?name=mara&lang=de&v=AAAAAAAAAA', `/api/og?name=mara&lang=de&v=${vEn}`]) {
       const r = await image(url, { views: { mara: MARA } })
-      expect(Buffer.compare(r.body, neutral.body), url).toBe(0)
-      expect(r.headers, url).toEqual({ ...neutral.headers, 'cache-control': 'public, max-age=0, s-maxage=60' })
+      expect(Buffer.compare(r.body, neutral.body), url).not.toBe(0)
+      expect(Buffer.compare(r.body, aktuell.body), url).toBe(0)
+      expect(r.headers, url).toEqual({ ...aktuell.headers, 'cache-control': 'public, max-age=0, s-maxage=60' })
     }
   })
 
-  it('veraltetes v: kein Storage-Abruf, ungültiger Name: gar kein Abruf', async () => {
-    const stale = await image('/api/og?name=mara&lang=de&v=AAAAAAAAAA', { views: { mara: MARA } })
-    expect(stale.fetch.mock.calls.some(([u]) => u.includes('/storage/'))).toBe(false)
+  it('ungültiger Name: gar kein Abruf', async () => {
     const bad = await image('/api/og?name=a%22b&lang=de&v=x')
     expect(bad.fetch).not.toHaveBeenCalled()
   })

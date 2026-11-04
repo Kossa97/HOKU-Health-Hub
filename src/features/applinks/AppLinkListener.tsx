@@ -19,7 +19,10 @@ export function AppLinkListener() {
       const route = appLinkRoute(url)
       if (route) navigate(route)
     })
-    return () => { void handle.then(h => h.remove()) }
+    // Plugin fehlt (Build ohne `cap sync`): kein unbehandelter Fehler, Links
+    // öffnen dann nur nicht in der App
+    handle.catch(() => {})
+    return () => { handle.then(h => h.remove()).catch(() => {}) }
   }, [navigate])
 
   return null

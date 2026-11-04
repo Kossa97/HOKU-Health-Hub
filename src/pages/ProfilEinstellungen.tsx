@@ -167,7 +167,9 @@ export function ProfilEinstellungen() {
             titel={t('profil_web_indexable')}
             sub={indexWirkt || !werte ? t('profil_web_indexable_sub') : t('profil_web_indexable_gesperrt')}
             an={web.indexable}
-            disabled={!indexBereit || !indexWirkt}
+            // Ausschalten geht immer: sonst bliebe ein altes „an“ stehen und wirkte
+            // still wieder, sobald der Web-Link später an geht
+            disabled={!indexBereit || (!indexWirkt && !web.indexable)}
             onClick={() => void web.setIndexable(!web.indexable)}
             data-setting-indexable
           />

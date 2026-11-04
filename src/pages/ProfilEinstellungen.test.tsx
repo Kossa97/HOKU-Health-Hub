@@ -207,15 +207,20 @@ describe('Einstellungen', () => {
   it.each([
     ['Web-Link aus', { web_link_enabled: false }, '[data-setting-weblink]'],
     ['privat', { profile_private: true }, '[data-setting-private]'],
-  ])('Suchmaschinen-Schalter gesperrt mit Erklärung: %s', async (_name, patch, umlegen) => {
+  ])('Suchmaschinen-Schalter ohne Wirkung (%s): Erklärung, Einschalten gesperrt, Ausschalten geht', async (_name, patch, umlegen) => {
     db.row = { ...db.row, ...patch, web_indexable: true }
     const { container } = renderAt('/profil/einstellungen')
     await waitFor(() => expect(container.querySelector('[data-setting-private]')?.hasAttribute('disabled')).toBe(false))
     const schalter = container.querySelector('[data-setting-indexable]')!
-    expect(schalter.hasAttribute('disabled')).toBe(true)
     expect(schalter.getAttribute('aria-checked')).toBe('true')
     expect(schalter.textContent).toContain('profil_web_indexable_gesperrt')
-    // Web-Link wieder an (bzw. privat aus): Schalter wird bedienbar
+    // Ein altes „an“ lässt sich abschalten, damit es nicht später still wieder wirkt
+    expect(schalter.hasAttribute('disabled')).toBe(false)
+    await act(async () => { fireEvent.click(schalter) })
+    await waitFor(() => expect(schalter.getAttribute('aria-checked')).toBe('false'))
+    expect(db.updates).toContainEqual({ web_indexable: false })
+    // Aus: Einschalten geht erst wieder mit Web-Link an (bzw. privat aus)
+    expect(schalter.hasAttribute('disabled')).toBe(true)
     await act(async () => { fireEvent.click(container.querySelector(umlegen)!) })
     expect(schalter.hasAttribute('disabled')).toBe(false)
     expect(schalter.textContent).toContain('profil_web_indexable_sub')

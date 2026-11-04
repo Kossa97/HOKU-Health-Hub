@@ -22,8 +22,6 @@ export interface StoreConfig {
   appStoreUrl?: string
   /** `https://play.google.com/store/apps/details?id=…` */
   playStoreUrl?: string
-  /** Numerische App-Store-ID für das Smart-App-Banner. */
-  appStoreId?: string
 }
 
 export type StoreLink = { store: 'app-store' | 'play-store'; href: string }
@@ -38,7 +36,6 @@ export const AUTH_TARGET = { kind: 'auth', href: '/auth' } as const
 
 const APP_STORE_HOST = 'apps.apple.com'
 const PLAY_STORE_HOST = 'play.google.com'
-const APP_STORE_ID = /^\d{6,12}$/
 
 /** Nur echte Store-Adressen über HTTPS; alles andere gilt als „nicht gesetzt“. */
 function storeUrl(value: string | undefined, host: string): string | null {
@@ -60,7 +57,6 @@ export function storeConfigFromEnv(env: Record<string, string | boolean | undefi
   return {
     appStoreUrl: text('VITE_APP_STORE_URL'),
     playStoreUrl: text('VITE_PLAY_STORE_URL'),
-    appStoreId: text('VITE_APP_STORE_ID'),
   }
 }
 
@@ -77,16 +73,6 @@ export function androidIntentUrl(profileUrl: string, fallbackUrl: string): strin
   const url = new URL(profileUrl)
   return `intent://${url.host}${url.pathname}#Intent;scheme=https;package=${ANDROID_PACKAGE};`
     + `S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};end`
-}
-
-/**
- * Inhalt für `<meta name="apple-itunes-app">`, nur mit gültiger App-Store-ID;
- * `app-argument` gibt die Profiladresse an die App weiter.
- */
-export function smartAppBannerContent(config: StoreConfig, profileUrl: string): string | null {
-  const id = config.appStoreId?.trim()
-  if (!id || !APP_STORE_ID.test(id)) return null
-  return `app-id=${id}, app-argument=${profileUrl}`
 }
 
 /** Ziel von „In Hoku öffnen“ für Plattform, Profiladresse und Store-Adressen. */

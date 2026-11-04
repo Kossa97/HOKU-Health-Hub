@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   detectWebPlatform,
   openInHokuTarget,
-  smartAppBannerContent,
   storeConfigFromEnv,
   type StoreConfig,
 } from './openInHoku'
@@ -10,7 +9,7 @@ import {
 const PROFILE = 'https://hokuhealth.app/u/anna'
 const APP_STORE = 'https://apps.apple.com/app/hoku-health-hub/id1234567890'
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.trackyourdose.app'
-const BOTH: StoreConfig = { appStoreUrl: APP_STORE, playStoreUrl: PLAY_STORE, appStoreId: '1234567890' }
+const BOTH: StoreConfig = { appStoreUrl: APP_STORE, playStoreUrl: PLAY_STORE }
 
 describe('openInHokuTarget', () => {
   it('ohne Store-Adressen: /auth auf allen Plattformen (Entscheidung 2)', () => {
@@ -64,15 +63,6 @@ describe('openInHokuTarget', () => {
   })
 })
 
-describe('smartAppBannerContent', () => {
-  it('nur mit numerischer App-ID', () => {
-    expect(smartAppBannerContent(BOTH, PROFILE)).toBe(`app-id=1234567890, app-argument=${PROFILE}`)
-    expect(smartAppBannerContent({}, PROFILE)).toBeNull()
-    expect(smartAppBannerContent({ appStoreId: 'id123456' }, PROFILE)).toBeNull()
-    expect(smartAppBannerContent({ appStoreId: '123' }, PROFILE)).toBeNull()
-  })
-})
-
 describe('detectWebPlatform', () => {
   it.each([
     ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15', 0, 'ios'],
@@ -87,13 +77,12 @@ describe('detectWebPlatform', () => {
 })
 
 describe('storeConfigFromEnv', () => {
-  it('liest die drei Variablen, ignoriert Nicht-Texte', () => {
+  it('liest die beiden Store-Adressen, ignoriert Nicht-Texte', () => {
     expect(storeConfigFromEnv({
       VITE_APP_STORE_URL: APP_STORE,
       VITE_PLAY_STORE_URL: PLAY_STORE,
-      VITE_APP_STORE_ID: '1234567890',
       DEV: true,
     })).toEqual(BOTH)
-    expect(storeConfigFromEnv({})).toEqual({ appStoreUrl: undefined, playStoreUrl: undefined, appStoreId: undefined })
+    expect(storeConfigFromEnv({})).toEqual({ appStoreUrl: undefined, playStoreUrl: undefined })
   })
 })

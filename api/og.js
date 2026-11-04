@@ -80,12 +80,11 @@ export function createHandler({ fetch = globalThis.fetch, env = process.env } = 
     const input = toCardInput(result.view, { lang, patternFeature: patternFeatureOn(env) })
     if (chooseCard(input) === 'neutral') return neutral()
     // Profil ist da, `v` aber alt: Das HTML mit dem alten `v` kann noch bis zu
-    // 2 min im CDN liegen. Die neutrale Karte unter dieser URL deshalb nur kurz
-    // halten, sonst bliebe sie 10 min an einem frisch geteilten Link hängen.
-    // (Verrät nichts: dass der Web-Link an ist, zeigt /u/<name> ohnehin.)
-    if (cardVersion(input) !== v) return neutral(SHORT_CACHE)
-
-    let cache = IMAGE_CACHE
+    // 2 min im CDN liegen (neuer Eintrag, neuer Tag). Ein Messenger, der dann
+    // abruft, behält das Bild für immer, also die aktuelle Karte zeigen, nicht
+    // die neutrale, und unter dieser URL nur kurz halten. Verrät nichts: Es
+    // sind dieselben Angaben wie unter dem aktuellen `v`.
+    let cache = cardVersion(input) === v ? IMAGE_CACHE : SHORT_CACHE
     if (input.avatar) {
       const png = await fetchAvatar(input.avatar.id, { fetch })
       if (png) input.avatar = { ...input.avatar, png }

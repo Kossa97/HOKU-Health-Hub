@@ -16,7 +16,7 @@ import toast from 'react-hot-toast'
 import { CalendarDays, ChevronRight, Flame, TrendingUp } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import {
-  detectWebPlatform, openInHokuTarget, smartAppBannerContent, storeConfigFromEnv, type StoreLink,
+  detectWebPlatform, openInHokuTarget, storeConfigFromEnv, type StoreLink,
 } from '../../applinks/lib/openInHoku'
 import { LegalLinks } from '../../compliance/components/LegalLinks'
 import { ReportSheet } from '../../compliance/components/ReportSheet'
@@ -26,10 +26,11 @@ import { BADGE_BY_ID, badgeName } from '../lib/badges'
 import type { BadgeId } from '../lib/badgeIds'
 import { flagOf } from '../lib/profileFields'
 import { numberFormat } from '../lib/profileFormat'
-import { profileUrl, WEB_PROGRESS_TIERS, type ProfileView, type WebProgressTier } from '../lib/profileView'
+import { WEB_PROGRESS_TIERS, type ProfileView, type WebProgressTier } from '../lib/profileView'
 import { firstName, memberForText, webBadgeRow } from '../lib/webProfile'
 import { useSignedUrl } from '../hooks/useSignedUrl'
 import { HokuCode } from './HokuCode'
+import { hokuCodeUrl } from '../lib/hokuCode'
 
 const APP_ICON = '/icons/hoku-192.png'
 /** Store-Adressen stehen zur Bauzeit fest, die Plattform je Gerät. */
@@ -50,7 +51,7 @@ const STORE_LINKS: StoreLink[] = (() => {
  * es um die Seite, wenn die App sie selbst zeigt (Wechsel innerhalb der App,
  * „Ansehen als“).
  */
-function useWebKopf(titel: string, indexierbar: boolean, banner: string | null = null) {
+function useWebKopf(titel: string, indexierbar: boolean) {
   useEffect(() => {
     const vorher = document.title
     document.title = titel
@@ -65,12 +66,16 @@ function useWebKopf(titel: string, indexierbar: boolean, banner: string | null =
       tags.push(meta)
     }
     if (!indexierbar) tag('robots', 'noindex, nofollow')
-    if (banner) tag('apple-itunes-app', banner)
     return () => {
       tags.forEach(meta => meta.remove())
       document.title = vorher
     }
-  }, [titel, indexierbar, banner])
+  }, [titel, indexierbar])
+  // Die Tags aus `api/u.js` (canonical, og:*, robots, Smart App Banner) gehören
+  // zu dieser Seite: beim Verlassen weg, sonst trüge /auth noch Maras Vorschau.
+  useEffect(() => () => {
+    document.head.querySelectorAll('[data-hoku-card]').forEach(node => node.remove())
+  }, [])
 }
 
 /**
@@ -188,7 +193,8 @@ function InHokuOeffnen({ username, className = '', children }: { username: strin
   const { t } = useTranslation()
   const [offen, setOffen] = useState(false)
   const panelId = useId()
-  const adresse = profileUrl(username)
+  // Feste Adresse wie im Hoku-Code: nur hokuhealth.app öffnet die App
+  const adresse = hokuCodeUrl(username)
   if (PLATTFORM !== 'desktop') {
     const ziel = openInHokuTarget(PLATTFORM, adresse, STORES)
     if (ziel.kind === 'auth') return <Link to={ziel.href} className={className} data-web-open>{children}</Link>
@@ -382,7 +388,7 @@ export function WebAnsicht({ view, band }: { view: ProfileView; band?: ReactNode
   const avatarUrl = useSignedUrl(view.avatar)
   const coverUrl = useSignedUrl(f.cover ?? null)
   const [meldet, setMeldet] = useState(false)
-  useWebKopf(`${name} (@${view.username}) · Hoku`, view.webIndexable === true, smartAppBannerContent(STORES, profileUrl(view.username)))
+  useWebKopf(`${name} (@${view.username}) · Hoku`, view.webIndexable === true)
 
   const tier = f.progress && 'tier' in f.progress ? f.progress.tier : null
   const member = view.card?.memberFor ? memberForText(view.card.memberFor) : null

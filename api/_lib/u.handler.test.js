@@ -99,6 +99,19 @@ describe('api/u.js: Treffer', () => {
     }
   })
 
+  it('Smart App Banner im Server-HTML (Safari liest ihn nicht aus JS), nur mit gültiger ID', async () => {
+    const mit = await call({ name: 'Mara', views: { Mara: { ...MARA, username: 'Mara' } }, env: { ...ENV, VITE_APP_STORE_ID: '1234567890' } })
+    expect(metaContent(mit.body, 'apple-itunes-app')).toBe('app-id=1234567890, app-argument=https://hokuhealth.app/u/mara')
+    expect(metaContent(mit.body, 'og:url')).toBe('https://hokuhealth.app/u/mara')
+    expect(mit.body).toContain('rel="canonical" href="https://hokuhealth.app/u/mara"')
+    for (const id of [undefined, '', 'id123456', '123']) {
+      const ohne = await call({ name: 'mara', views: { mara: MARA }, env: { ...ENV, VITE_APP_STORE_ID: id } })
+      expect(metaContent(ohne.body, 'apple-itunes-app'), String(id)).toBeUndefined()
+    }
+    const neutral = await call({ name: 'niemand', views: {}, env: { ...ENV, VITE_APP_STORE_ID: '1234567890' } })
+    expect(metaContent(neutral.body, 'apple-itunes-app')).toBeUndefined()
+  })
+
   it('Suchmaschinen an: ohne noindex (Meta und Kopfzeile), mit canonical', async () => {
     const { status, headers, body } = await call({ name: 'mara', views: { mara: { ...MARA, web_indexable: true } } })
     expect(status).toBe(200)
