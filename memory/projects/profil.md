@@ -140,6 +140,21 @@ Neuer, richtig guter Slogan gesucht (gern tiefgründig, psychologisch).
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
+## Teilprojekt 2c gebaut (04.11.2026, Branch `profil-p2c-web`, Basis 2b)
+Web-Seite `/u/<name>` (api/u.js setzt Meta-Tags, Smart App Banner serverseitig), Link-Karte `/api/og` (resvg,
+drei Karten wie freigegeben), Hoku-Code + Teilen-Sheet mit Vollbild, „Abzeichen im Web“, Suchmaschinen-Schalter,
+Profil melden ohne Konto, App-Links (Platzhalter Team-ID/SHA-256), TERMS_VERSION 2026-11. Migration
+`supabase-profil-p2c-web.sql` im Container geprüft (Trockenlauf-Doku `docs/profil/profil-p2c-trockenlauf.md`),
+NICHT gegen Produktion. Reihenfolge Produktion: 2a → 2b → 2c, jede direkt vor dem Merge ihres PRs (Nutzer mergt).
+Prüfungen 04.11.: Unit 4313 grün, E2E voll (831) bis auf behobene Fälle grün, nach Korrekturen 354/354 Profil-E2E;
+code-review: 7 Funde behoben (altes v zeigt aktuelle Karte, Banner im Server-HTML, canonical klein, feste
+hokuhealth.app für App-Links, Server-Tags beim Verlassen weg, Suchmaschinen-Schalter abschaltbar, Listener-catch);
+offen gelassen: anonyme Meldegrenzen gemeinsam (200/h, 5/Profil/h) erschöpfbar; profile_entry_count läuft bei
+jedem Web-Aufruf (auch für die Seite, die die Zahl nicht zeigt) — später ggf. eigene Karten-Funktion.
+security-review 04.11.: keine Funde. Bewusst freigeben: Eintragszahl zeigt Aktivität über die Zeit.
+Firewall-Regel „Profil-Links bremsen“ (100/min je IP, /u/ und /api/og, 429 für 1 min) vom Nutzer angelegt.
+VITE_APP_STORE_ID muss in Vercel auch zur Laufzeit gesetzt sein (api/u.js liest sie für den Banner).
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
