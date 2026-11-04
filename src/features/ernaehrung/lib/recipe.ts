@@ -11,6 +11,7 @@
  * wenige Prozent).
  */
 import { type Food, type FoodSource, type FoodUnit, type LogEntry, type Meal, type Nutrients, type Per100, MAX_AMOUNT, nutrientsFor, per100FromEntry, sumNutrients } from './nutrition'
+import { parseMicros, scaleMicros, sumMicros } from './micros'
 
 export interface Ingredient {
   name: string
@@ -76,6 +77,8 @@ export function recipeFood(d: { itemId: string | null; name: string; portions: n
     per100: {
       kcal: r1(n.kcal * f), protein: r1(n.protein * f), carbs: r1(n.carbs * f), fat: r1(n.fat * f),
       fiber: opt(n.fiber), sugar: opt(n.sugar), satFat: opt(n.satFat), salt: opt(n.salt, r2),
+      // Vitamine und Mineralstoffe: Summe der Zutaten (nur bekannte Werte), auf 100 g gerechnet.
+      micros: scaleMicros(sumMicros(d.ingredients.map(i => scaleMicros(i.per100.micros, i.amount / 100))).total, f),
     },
     serving: { amount: portion, label: null },
     favorite: d.favorite,
@@ -106,6 +109,7 @@ export function parseIngredients(raw: unknown): Ingredient[] | null {
       per100: {
         kcal: p.kcal, protein: optNum(p.protein) ?? 0, carbs: optNum(p.carbs) ?? 0, fat: optNum(p.fat) ?? 0,
         fiber: optNum(p.fiber), sugar: optNum(p.sugar), satFat: optNum(p.satFat), salt: optNum(p.salt),
+        micros: parseMicros(p.micros),
       },
     })
   }

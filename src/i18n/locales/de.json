@@ -2941,5 +2941,7 @@
   "nutr_move_today_none": "Noch keine Bewegung",
   "nutr_move_today_budget_half": "zur Hälfte aufs Ziel · +{{kcal}} kcal",
   "nutr_move_today_budget_full": "voll aufs Ziel · +{{kcal}} kcal",
-  "nutr_move_today_deficit": "zählt aufs Defizit"
+  "nutr_move_today_deficit": "zählt aufs Defizit",
+  "nutr_credit_bls": "Grunddaten:",
+  "nutr_credit_bls_source": "Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0"
 }

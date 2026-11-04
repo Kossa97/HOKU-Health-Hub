@@ -75,9 +75,11 @@ export function matchScore(query: string, food: Pick<Food, 'name' | 'brand'>): n
   const words = fold(query).split(/\s+/).filter(Boolean)
   if (!words.length) return 0
   const name = fold(food.name)
-  const hay = `${name} ${fold(food.brand ?? '')}`
+  // Auch zusammengeschrieben: „haferflocken“ findet „Hafer Flocken“ (so schreibt der BLS).
+  const squashed = name.replace(/[\s,()/-]+/g, '')
+  const hay = `${name} ${fold(food.brand ?? '')} ${squashed}`
   if (!words.every(w => hay.includes(w))) return 0
-  if (name.startsWith(words.join(' '))) return 3
+  if (name.startsWith(words.join(' ')) || squashed.startsWith(words.join(''))) return 3
   return name.split(/[\s,()/-]+/).some(part => part.startsWith(words[0])) ? 2 : 1
 }
 

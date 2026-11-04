@@ -11,6 +11,7 @@ import {
 } from '../lib/nutrition'
 import { parseIngredients } from '../lib/recipe'
 import { type ActivityLog, parseSources } from '../lib/activity'
+import { parseMicros } from '../lib/micros'
 import { type DayTotals, EMPTY_TOTALS } from '../lib/dayRings'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
@@ -34,6 +35,7 @@ export function rowToEntry(r: Row): LogEntry {
     nutrients: {
       kcal: num(r.kcal), protein: num(r.protein_g), carbs: num(r.carbs_g), fat: num(r.fat_g),
       fiber: opt(r.fiber_g), sugar: opt(r.sugar_g), satFat: opt(r.sat_fat_g), salt: opt(r.salt_g),
+      micros: parseMicros(r.micros),
     },
     createdAt: r.created_at as string,
     sortKey: r.sort_key == null ? null : Number(r.sort_key),
@@ -55,6 +57,7 @@ export function rowToFood(r: Row): Food {
     per100: {
       kcal: num(r.kcal_100), protein: num(r.protein_100), carbs: num(r.carbs_100), fat: num(r.fat_100),
       fiber: opt(r.fiber_100), sugar: opt(r.sugar_100), satFat: opt(r.sat_fat_100), salt: opt(r.salt_100),
+      micros: parseMicros(r.micros),
     },
     serving: r.serving_amount == null ? null : { amount: num(r.serving_amount), label: str(r.serving_label) },
     favorite: r.favorite === true,
@@ -68,6 +71,7 @@ function nutrientColumns(n: Nutrients) {
   return {
     kcal: n.kcal, protein_g: n.protein, carbs_g: n.carbs, fat_g: n.fat,
     fiber_g: n.fiber, sugar_g: n.sugar, sat_fat_g: n.satFat, salt_g: n.salt,
+    micros: n.micros ?? null,
   }
 }
 
@@ -75,6 +79,7 @@ function per100Columns(p: Per100) {
   return {
     kcal_100: p.kcal, protein_100: p.protein, carbs_100: p.carbs, fat_100: p.fat,
     fiber_100: p.fiber, sugar_100: p.sugar, sat_fat_100: p.satFat, salt_100: p.salt,
+    micros: p.micros ?? null,
   }
 }
 
