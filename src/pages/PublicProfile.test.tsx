@@ -120,6 +120,12 @@ describe('PublicProfile angemeldet', () => {
     expect(container.querySelector('[data-profile-tile="age"]')).toBeTruthy()
   })
 
+  it('Ansehen als Web ohne Antwort (Web-Link aus): die 404 des Webs mit Band', async () => {
+    const { container } = renderAt('/u/mara?als=web')
+    await waitFor(() => expect(container.querySelector('[data-web-not-found]')).toBeTruthy())
+    expect(container.querySelector('[data-view-as="web"]')).toBeTruthy()
+  })
+
   it('Ansehen als Web: Web-Ansicht', async () => {
     db.view = { username: 'mara', own: true, as: 'web', fields: { bio: 'Hallo' } }
     const { container } = renderAt('/u/mara?als=web')
@@ -132,21 +138,63 @@ describe('PublicProfile angemeldet', () => {
 describe('PublicProfile ohne Anmeldung', () => {
   beforeEach(() => { db.user = null })
 
-  it('nur Bild, Name, Nickname, Bio und „In Hoku öffnen“ — keine Berichte', async () => {
-    db.view = { username: 'max', display_name: 'Max', own: false, avatar: null, fields: { bio: 'Hallo', reviews: { count: 2, avgRating: 5 } } }
+  it('Web-Seite: nur, was die Stufe web liefert — keine Berichte, keine Werte', async () => {
+    db.view = {
+      username: 'max', display_name: 'Max Muster', own: false, avatar: null, private: false,
+      fields: { bio: 'Hallo', goals: ['kraft'], country: 'DE', streak: { days: 41 }, progress: { tier: 30 },
+        badges: ['streak_7', 'workouts_250', 'streak_30', 'first_pr'], reviews: { count: 2 } },
+      card: { member_since: { unit: 'months', n: 7 }, web_value_count: 9, entry_count: 1240 },
+      web_indexable: false,
+    }
     const { container, getByText } = renderAt('/u/max')
     await waitFor(() => expect(container.querySelector('[data-web-profile]')).toBeTruthy())
-    expect(getByText('Max')).toBeTruthy()
+    expect(getByText('Max Muster')).toBeTruthy()
     expect(getByText('@max')).toBeTruthy()
-    expect(container.querySelector('[data-web-open]')).toBeTruthy()
-    expect(container.querySelector('[data-web-app-only]')).toBeTruthy()
+    expect(container.querySelector('[data-profile-bio]')?.textContent).toBe('Hallo')
+    // jsdom meldet sich wie ein Rechner: der Knopf klappt Hoku-Code und Browser-Weg auf
+    fireEvent.click(container.querySelector('[data-web-open]')!)
+    expect(container.querySelector('[data-web-desktop-open] [data-hoku-code]')).toBeTruthy()
+    expect(container.querySelector('[data-web-progress="30"]')).toBeTruthy()
+    expect(container.querySelector('[data-web-values="9"]')).toBeTruthy()
+    expect(container.querySelector('[data-web-member]')).toBeTruthy()
+    expect(container.querySelector('[data-web-reviews-hint]')).toBeTruthy()
+    // Schwerste zuerst: zwei offen, die dritte Kachel verdeckt mit „+2“
+    expect([...container.querySelectorAll('[data-web-badges-row] [data-badge]')].map(n => n.getAttribute('data-badge')))
+      .toEqual(['workouts_250', 'streak_30'])
+    expect(container.querySelector('[data-web-badges-more="2"]')).toBeTruthy()
     expect(container.querySelector('[data-profile-tile]')).toBeNull()
     expect(container.querySelector('[data-report-open], [data-report-profile]')).toBeNull()
     expect(rpcNamen()).toEqual(['profile_view'])
+    expect(document.head.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex, nofollow')
+  })
+
+  it('ohne Berichte keine Zeile über Verborgenes; web_indexable hebt noindex auf', async () => {
+    db.view = { username: 'max', own: false, fields: {}, web_indexable: true }
+    const { container } = renderAt('/u/max')
+    await waitFor(() => expect(container.querySelector('[data-web-profile]')).toBeTruthy())
+    expect(container.querySelector('[data-web-reviews-hint]')).toBeNull()
+    expect(container.querySelector('[data-web-progress]')).toBeNull()
+    expect(container.querySelector('[data-web-badges]')).toBeNull()
+    expect(document.head.querySelector('meta[name="robots"]')).toBeNull()
+  })
+
+  it('Profil melden ohne Konto: Grund und E-Mail an report_public_profile_web', async () => {
+    db.view = { username: 'max', own: false, fields: {} }
+    const { container } = renderAt('/u/max')
+    await waitFor(() => expect(container.querySelector('[data-web-report]')).toBeTruthy())
+    fireEvent.click(container.querySelector('[data-web-report]')!)
+    fireEvent.click(document.querySelector('[data-report-reason="spam"]')!)
+    fireEvent.change(document.querySelector('[data-report-email]')!, { target: { value: ' a@b.de ' } })
+    fireEvent.click(document.querySelector('[data-report-send]')!)
+    await waitFor(() => expect(rpcNamen()).toContain('report_public_profile_web'))
+    expect(db.calls.find(c => c.name === 'report_public_profile_web')!.params)
+      .toEqual({ p_username: 'max', p_reason: 'spam', p_details: null, p_contact: 'a@b.de' })
   })
 
   it('null: „Seite nicht gefunden“', async () => {
     const { container } = renderAt('/u/max')
     await waitFor(() => expect(container.querySelector('[data-web-not-found]')).toBeTruthy())
+    expect(container.querySelector('[data-web-about]')).toBeTruthy()
+    expect(document.head.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex, nofollow')
   })
 })

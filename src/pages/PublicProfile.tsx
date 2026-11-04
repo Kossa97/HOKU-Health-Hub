@@ -15,7 +15,7 @@ import { ProfilKopf } from '../features/profil/components/ProfilKopf'
 import { ProfilKarten } from '../features/profil/components/ProfilKarten'
 import { FortschrittKarte } from '../features/profil/components/FortschrittKarte'
 import { AbzeichenKarte } from '../features/profil/components/AbzeichenKarte'
-import { useSignedUrl } from '../features/profil/hooks/useSignedUrl'
+import { WebAnsicht, WebNichtGefunden } from '../features/profil/components/WebAnsicht'
 import { isWebProgress, parseProfileView, type ProfileView } from '../features/profil/lib/profileView'
 
 /**
@@ -26,8 +26,9 @@ import { isWebProgress, parseProfileView, type ProfileView } from '../features/p
  * - Angemeldet: App-Ansicht mit denselben Bausteinen wie das eigene Profil,
  *   Leiste ‹ @nick ⋯ (Melden, Blockieren). Erfahrungsberichte nur, wenn das
  *   Feld freigegeben ist, dann über `public_profile_reviews`.
- * - Ohne Anmeldung: nur Bild, Name, Nickname, Bio und „In Hoku öffnen“ —
- *   keine Berichte. Web-Link aus, privat und unbekannt sehen gleich aus.
+ * - Ohne Anmeldung: die feste Web-Seite (2c, `WebAnsicht`) mit dem, was die
+ *   Stufe `web` liefert — keine Berichte, keine Werte. Web-Link aus, privat,
+ *   unbekannt und ausgeblendet ergeben dieselbe 404-Seite.
  * - „Ansehen als“: `/u/<eigener name>?als=friends|all|web` zeigt die Sicht
  *   der Stufe, oben ein schmales Band mit Zurück.
  */
@@ -85,9 +86,13 @@ export function PublicProfile() {
 
   const view = gilt.view
   if (gilt.zustand === 'fehler') return <Leer icon={<Lock size={40} aria-hidden="true" className="opacity-30" />} titel="public_profile_error" />
-  if (!view) return user
-    ? <Leer icon={<User size={40} aria-hidden="true" className="opacity-30" />} titel="public_profile_not_found" text="public_profile_not_found_desc" data-profile-not-found />
-    : <Leer icon={<Lock size={40} aria-hidden="true" className="opacity-30" />} titel="web_page_not_found" data-web-not-found />
+  // Ohne Anmeldung und in „Ansehen als › Web-Link“ (eigener Web-Link aus oder
+  // privat): die eine 404-Seite des Webs. Angemeldet sonst die App-Meldung.
+  if (!view) {
+    if (!user) return <WebNichtGefunden />
+    if (als === 'web') return <WebNichtGefunden band={<AlsBand stufe="web" />} />
+    return <Leer icon={<User size={40} aria-hidden="true" className="opacity-30" />} titel="public_profile_not_found" text="public_profile_not_found_desc" data-profile-not-found />
+  }
 
   // Eigenes Profil ohne „Ansehen als“: das Schaufenster mit Chips liegt unter /profil.
   if (view.own && !als && user) return <Navigate to="/profil" replace />
@@ -124,32 +129,6 @@ function AlsBand({ stufe }: { stufe: AlsStufe }) {
       <Link to="/profil/einstellungen" className="inline-flex min-h-11 shrink-0 items-center font-semibold text-[var(--lg-accent-text)]" data-view-as-back>
         {t('back')}
       </Link>
-    </div>
-  )
-}
-
-/** Ohne Anmeldung: Bild, Name, Nickname, Bio — sonst nichts. */
-function WebAnsicht({ view, band }: { view: ProfileView; band: ReactNode }) {
-  const { t } = useTranslation()
-  const avatarUrl = useSignedUrl(view.avatar)
-  return (
-    <div className="min-h-screen bg-[var(--app-bg)] text-[var(--lg-text)]" data-web-profile>
-      {band}
-      <div className={`mx-auto flex max-w-sm flex-col items-center px-4 pb-8 text-center ${band ? 'pt-10' : 'pt-[calc(4rem+env(safe-area-inset-top))]'}`}>
-        <div className="grid h-[96px] w-[96px] place-items-center overflow-hidden rounded-full bg-[var(--lg-fill)]" data-profile-avatar>
-          {avatarUrl
-            ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-            : <User size={42} className="text-[var(--lg-text-2)]" aria-hidden="true" />}
-        </div>
-        <h1 className="mt-4 max-w-full truncate text-[26px] font-bold leading-tight">{view.displayName || view.username}</h1>
-        <p className="mt-0.5 text-[15px] text-[var(--lg-text-2)]">@{view.username}</p>
-        {view.fields.bio && (
-          <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed" data-profile-bio>{view.fields.bio}</p>
-        )}
-        <Link to="/auth" className="lg-btn lg-btn-primary mt-6 w-full" data-web-open>{t('web_open_in_hoku')}</Link>
-        <p className="mt-3 text-[13px] leading-snug text-[var(--lg-text-3)]" data-web-app-only>{t('web_profile_app_only')}</p>
-        <LegalLinks className="mt-8" />
-      </div>
     </div>
   )
 }
