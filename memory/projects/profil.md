@@ -261,3 +261,9 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   bricht die ganze Migration ab, wenn eine alte öffentliche Bio den heutigen Textfilter nicht besteht
   (`ERROR: oeffentliches_profil_link`). Diese Zählung muss 0 ergeben, sonst Treffer von Hand klären:
   `select count(*) from public.profiles where is_public and field_visibility = '{}'::jsonb and public.oeffentlicher_text_fehler(public_bio) is not null;`
+- **2c Task 1 (Migration) und Task 5a (Hoku-Code) gebaut** (04.11.): `supabase-profil-p2c-web.sql` + Trockenlauf
+  (`docs/profil/profil-p2c-trockenlauf.md`), `hokuCode.ts`/`HokuCode.tsx` mit Lesetest (qrcode-generator 2.0.4).
+  Nutzer-Entscheidungen zu den Migrationsfragen: **Web zeigt beim Fortschritt nur die Stufe** (keine genaue Zahl,
+  keine Bereiche — sonst ließe sich Blut/Einnahmen zurückrechnen); **Einträge zählen Blut/Einnahmen nur, wenn der
+  Nutzer es erlaubt** (Feld auf „Alle“); **„Seit … dabei“ und „trackt N Werte“ immer bei Web-Link an**;
+  **„Seit … dabei“ nur als Dauer**, nie als Datum.
