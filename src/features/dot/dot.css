@@ -232,3 +232,29 @@
     0 6px 16px rgba(0, 0, 0, 0.35);
 }
 @media (prefers-reduced-motion: reduce) { .tyd-glas-schalter-knopf { transition: none; } }
+
+/* Farbwahl als Karussell (HokuFarbAuswahl): wischen, die Kugel in der Mitte ist gewählt */
+.tyd-farbe-band {
+  display: flex; gap: 2px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+  padding-inline: calc(50% - 42px); padding-block: 6px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+.tyd-farbe-band::-webkit-scrollbar { display: none; }
+.tyd-farbe-wahl {
+  flex: none; width: 84px; scroll-snap-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 6px 0; border: 0; background: none; font: inherit; color: var(--lg-text-3); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tyd-farbe-kugel {
+  width: 46px; height: 46px; border-radius: 50%; flex: none;
+  transform: scale(0.82); opacity: 0.6; transition: transform 260ms var(--lg-ease-out, ease-out), opacity 200ms ease, outline-color 200ms ease;
+  outline: 2px solid transparent; outline-offset: 4px;
+}
+.tyd-farbe-wahl[aria-checked='true'] .tyd-farbe-kugel { transform: scale(1.08); opacity: 1; outline-color: rgb(255 255 255 / 0.55); }
+.tyd-farbe-name { font-size: 12px; line-height: 1.25; text-align: center; min-height: 2.5em; display: flex; align-items: flex-start; justify-content: center; }
+.tyd-farbe-wahl[aria-checked='true'] .tyd-farbe-name { color: var(--lg-text); }
+.tyd-farbe-wahl:focus-visible { outline: none; }
+.tyd-farbe-wahl:focus-visible .tyd-farbe-kugel { outline-color: var(--lg-accent, #00ccf5); }
+.tyd-farbe-jetzt { margin-top: 4px; text-align: center; font-size: 14px; font-weight: 500; color: var(--lg-text); }
+@media (prefers-reduced-motion: reduce) { .tyd-farbe-kugel { transition: none; } }

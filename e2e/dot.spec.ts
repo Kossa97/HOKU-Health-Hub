@@ -230,3 +230,20 @@ test('Hinweise aus: im Kalorientracker kein Rundflug und keine Sprechblase', asy
     expect(await blase.getAttribute('data-zeigen')).toBeNull()
   }
 })
+
+test('Farbwahl als Karussell: antippen wählt, wischen wählt die Kugel in der Mitte', async ({ page, mock }) => {
+  void mock
+  await page.goto('/profil/hoku')
+  await lassLaufen(page, 1500)
+  const band = page.locator('.tyd-farbe-band')
+  await expect(page.locator('[data-hoku-farbe="auto"]')).toHaveAttribute('aria-checked', 'true')
+  await page.locator('[data-hoku-farbe="minze"]').click()
+  await lassLaufen(page, 800)
+  await expect(page.locator('[data-hoku-farbe="minze"]')).toHaveAttribute('aria-checked', 'true')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.farbe'))).toBe('minze')
+  // eine Kugel weiter wischen
+  await band.evaluate(b => b.scrollBy({ left: 86 }))
+  await lassLaufen(page, 600)
+  await expect(page.locator('[data-hoku-farbe="minze"]')).toHaveAttribute('aria-checked', 'false')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.farbe'))).not.toBe('minze')
+})
