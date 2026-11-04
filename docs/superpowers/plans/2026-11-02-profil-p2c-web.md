@@ -69,10 +69,10 @@
 
 - [ ] `qrcode-generator` mit exakter Version; `src/features/profil/lib/hokuCode.ts` (Matrix → SVG: Punkte, runde Suchmarken, Aussparung mit App-Symbol ≈ 7 %, Füllpunkte im Verlauf, deterministisch) + Komponente `HokuCode` (`role="img"`, `aria-label`), immer dunkel auf hell.
 - [ ] `hokuCode.read.test.ts`: resvg rastert, `zxing-wasm` dekodiert; 124/300 px, halbe Auflösung, Weichzeichnung, ±10°, kürzester/längster Name, Sonderzeichen; Matrix-Abdruck für eine feste Adresse.
-- [ ] `src/pages/Profil.tsx`: „Profil teilen“ öffnet das Sheet (Code klein → Vollbild, „Teilen …“, „Link kopieren“, Adresszeile, Statuszeile mit Kartenart und „Ändern ›“, Messenger-Hinweis); „Profil geteilt“ wie bisher.
-- [ ] Web-Link aus: Hinweis und Schalter „Web-Link einschalten“; privat: eigener Hinweis.
-- [ ] Kein Helligkeits-Knopf (kein Plugin, Spec-Frage 11).
-- [ ] e2e (`profil-teilen.spec.ts`): Sheet, Vollbild, Bildschirmfoto dekodieren, Web-Link-aus-Schalter.
+- [x] `src/pages/Profil.tsx`: „Profil teilen“ öffnet das Sheet (Code klein → Vollbild, „Teilen …“, „Link kopieren“, Adresszeile, Statuszeile mit Kartenart und „Ändern ›“, Messenger-Hinweis); „Profil geteilt“ wie bisher.
+- [x] Web-Link aus: Hinweis und Schalter „Web-Link einschalten“; privat: eigener Hinweis.
+- [x] Kein Helligkeits-Knopf (kein Plugin, Spec-Frage 11).
+- [x] e2e (`profil-teilen.spec.ts`): Sheet, Vollbild, Bildschirmfoto dekodieren, Web-Link-aus-Schalter.
 
 ### Task 6: Link-Karte (Vercel-Funktionen)
 
