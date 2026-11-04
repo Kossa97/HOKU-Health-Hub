@@ -9,6 +9,7 @@ import {
   pkRouteStatus,
   resolvePkScheduleForDay,
   toPkMilligrams,
+  type StaerkeJe,
   type PkScheduleCycle,
   type ResolvedPkSchedule,
 } from '../features/my-stack/lib/pkReadiness'
@@ -232,14 +233,18 @@ interface NormalisierteZeile {
 function zuEreignissen(
   zeilen: NormalisierteZeile[],
   profileMethod: string | undefined,
-  profileRoutes: readonly string[] | null = null,
+  /** Routen je verknuepftem Profil; ein Kombipraeparat hat mehrere. */
+  profileRoutes: ReadonlyArray<readonly string[] | null> = [null],
 ): DoseHistory {
   const events: DoseEvent[] = []
+  const routenListe = profileRoutes.length ? profileRoutes : [null]
   for (const row of zeilen) {
     const dose = row.dose == null ? null : Number(row.dose)
-    // Eine Einnahme ueber eine Route, fuer die das Profil nicht gilt, beendet
-    // die Kurve — bestaetigt oder vom Profil abgedeckt muss sie sein.
-    if (!pkRouteAccepted(pkRouteStatus(row.method, profileMethod, profileRoutes))) {
+    // Eine Einnahme ueber eine Route, fuer die kein Profil gilt, beendet die
+    // Kurve — bestaetigt oder vom Profil abgedeckt muss sie sein. Gilt sie nur
+    // fuer einen Wirkstoff eines Kombipraeparats, schneidet `nachRouteSchneiden`
+    // die Kurve des anderen.
+    if (!routenListe.some(routes => pkRouteAccepted(pkRouteStatus(row.method, profileMethod, routes)))) {
       return { events, interruptedAt: row.logged_at }
     }
     if (dose == null || !Number.isFinite(dose) || !row.unit?.trim()) {
@@ -256,10 +261,28 @@ interface ZyklusSubstanz {
   ingredients?: Array<{ position: number; substance_catalog: { pk_profiles: { routes?: string[] | null } | null } | null }> | null
 }
 
-/** Routen des ersten verknuepften Profils — dasselbe Profil, das die Bereitschaft prueft. */
-function ersteProfilRouten(item: ZyklusSubstanz | null): string[] | null {
-  const zutaten = (item?.ingredients ?? []).slice().sort((a, b) => a.position - b.position)
-  return zutaten.find(z => z.substance_catalog?.pk_profiles)?.substance_catalog?.pk_profiles?.routes ?? null
+/** Routen jedes verknuepften Profils, in Reihenfolge der Zutaten. */
+function alleProfilRouten(item: ZyklusSubstanz | null): Array<string[] | null> {
+  return (item?.ingredients ?? []).slice().sort((a, b) => a.position - b.position)
+    .filter(z => z.substance_catalog?.pk_profiles)
+    .map(z => z.substance_catalog?.pk_profiles?.routes ?? null)
+}
+
+/**
+ * Der Verlauf aus Sicht EINES Profils: er endet bei der ersten Einnahme ueber
+ * eine Route, fuer die dieses Profil nicht gilt. Der Zyklus traegt die
+ * Einnahmen fuer alle Wirkstoffe; ob eine Route passt, entscheidet jeder fuer
+ * sich. Einnahmen ohne Route (alte Zeilen) bleiben stehen.
+ */
+export function nachRouteSchneiden(
+  history: DoseHistory,
+  profileMethod: string | null | undefined,
+  routes: readonly string[] | null | undefined,
+): DoseHistory {
+  const index = history.events.findIndex(event => event.method !== undefined
+    && !pkRouteAccepted(pkRouteStatus(event.method, profileMethod, routes)))
+  if (index < 0) return history
+  return { events: history.events.slice(0, index), interruptedAt: history.events[index].timestamp.toISOString() }
 }
 
 async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHistory>> {
@@ -322,7 +345,7 @@ async function ladeDoseHistories(cycleIds: string[]): Promise<Map<string, DoseHi
     const zeilen = [...(exaktNachZyklus.get(zyklus.id) ?? []), ...alt]
       .sort((a, b) => a.logged_at.localeCompare(b.logged_at))
     const item = zyklus.stack_items as unknown as ZyklusSubstanz | null
-    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, item?.pk_profile_method ?? undefined, ersteProfilRouten(item)))
+    ergebnisse.set(zyklus.id, zuEreignissen(zeilen, item?.pk_profile_method ?? undefined, alleProfilRouten(item)))
   }
   return ergebnisse
 }
@@ -343,6 +366,8 @@ export interface BlutspiegelCurvePoint {
  *             Steht im PK-Profil.
  *   mgPerMl   Milliliter sind ein Volumen, keine Menge. Aus der Staerke der
  *             Zutat: 5 mg im Vial auf 2 ml Loesungsmittel sind 2,5 mg/ml.
+ *   mgJe      Gezaehlte Einheiten (Kapsel, Tablette …): Wirkstoff je Stueck.
+ *             Bei einem Kombipraeparat je Wirkstoff eine eigene Zahl.
  *
  * Als Objekt statt als zwei weitere Stellen in der Argumentliste: die Kurve
  * nahm zuletzt sieben Argumente, und das siebte war schon eine Zahl, die man
@@ -351,6 +376,14 @@ export interface BlutspiegelCurvePoint {
 export interface DoseUmrechnung {
   iuPerMg?: number | null
   mgPerMl?: number | null
+  mgJe?: StaerkeJe | null
+  /** Kombipraeparat: Anteil an der Wirkstoffsumme (mg-Mengen werden aufgeteilt). */
+  anteil?: number | null
+}
+
+/** Eine Menge in Milligramm — mit allen Faktoren der Umrechnung. */
+export function umrechnenInMg(value: number, unit: string, umrechnung: DoseUmrechnung = {}): number | null {
+  return toPkMilligrams(value, unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null, umrechnung.mgJe ?? null, umrechnung.anteil)
 }
 
 /** Berechnet den Blutspiegel-Verlauf basierend auf echten Einnahme-Events. */
@@ -496,7 +529,7 @@ function calculateCurveTo(
     .filter(event => event.status !== 'skipped')
     .map(event => ({
       ms: event.timestamp.getTime(),
-      mg: toPkMilligrams(event.dose, event.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null),
+      mg: umrechnenInMg(event.dose, event.unit, umrechnung),
     }))
     .filter((dose): dose is { ms: number; mg: number } => dose.mg != null)
     .sort((a, b) => a.ms - b.ms)
@@ -605,7 +638,7 @@ export async function getCurrentBlutspiegelLevel(
   const canProject = Boolean(nextDose && (!FEATURES.planTimelineV2 || (
     schedule && pkRouteAccepted(pkRouteStatus(nextDose.method, pkProfileMethod, pkProfileRoutes))
     && nextDose.dose != null && nextDose.dose > 0 && nextDose.unit
-    && toPkMilligrams(nextDose.dose, nextDose.unit, umrechnung.iuPerMg ?? null, umrechnung.mgPerMl ?? null) != null
+    && umrechnenInMg(nextDose.dose, nextDose.unit, umrechnung) != null
   )))
   const nextDoseIn = nextDose ? formatDurationShort(nextDose.timestamp.getTime() - now.getTime()) : '—'
 
