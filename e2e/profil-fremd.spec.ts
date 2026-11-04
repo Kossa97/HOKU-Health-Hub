@@ -144,7 +144,7 @@ test('Eigenes Profil ohne „Ansehen als“ führt zum Schaufenster', async ({ p
 test.describe('ohne Anmeldung', () => {
   test.use({ angemeldet: false })
 
-  test('Web-Link: Bild, Name, Nickname, Bio und „In Hoku öffnen“ — keine Berichte, keine Werte', async ({ page, mock }) => {
+  test('Web-Link: Bild, Name, Nickname, Bio und „In Hoku öffnen“ — keine Berichte, keine Werte (Web-Seite im Einzelnen: profil-web.spec.ts)', async ({ page, mock }) => {
     max(mock)
     await page.goto('/u/max')
     const web = page.locator('[data-web-profile]')
@@ -153,7 +153,8 @@ test.describe('ohne Anmeldung', () => {
     await expect(web.locator('[data-profile-bio]')).toContainText('Kraft und Ausdauer.')
     await expect(web.locator('[data-profile-avatar] img')).toBeVisible()
     await expect(web.locator('[data-web-open]')).toHaveText('In Hoku öffnen')
-    await expect(web.locator('[data-web-app-only]')).toContainText('nur in der App sichtbar')
+    // Feld Erfahrungsberichte auf „Alle“: nur die Anzahl, ohne Inhalt (2c)
+    await expect(web.locator('[data-web-reviews-hint]')).toHaveText('1 Erfahrungsbericht und weitere Werte nur in der App.')
     await expect(page.locator('[data-public-review]')).toHaveCount(0)
     await expect(page.getByText('Bericht von Max')).toHaveCount(0)
     await expect(page.locator('[data-profile-tile]')).toHaveCount(0)
