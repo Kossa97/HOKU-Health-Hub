@@ -21,4 +21,5 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
   `profiles.birth_date` (+ altes `age`) und in den Metadaten; Nutzer: „brauchen wir fürs biologische Alter".
 - Zustimmungsseite fragt es nur **zusammen mit der Zustimmung** (Apple/Google, neue Bedingungen), weil man es im
   Körperprofil löschen darf. Bestandskonten werden nicht gezwungen.
-- Offen: Altersgrenze serverseitig (Trigger/Check auf `profiles` beim Anlegen), Häkchen „18+" evtl. streichen.
+- Häkchen „18+" gestrichen (Nutzer 04.11.): das Geburtsdatum belegt das Alter; die Zustimmungsseite verlangt ein Datum ab 18, wenn das Profil keins hat oder es unter 18 liegt.
+- Offen: Altersgrenze serverseitig (Trigger/Check auf `profiles` beim Anlegen).
