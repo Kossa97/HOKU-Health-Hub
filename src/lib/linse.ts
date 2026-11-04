@@ -42,6 +42,10 @@ export interface LinsenWerte {
   saumAussen: number
   saumInnenBreite: number
   saumInnen: number
+  /** Glas der Navbar: Unschärfe (px), Deckkraft der Füllung, Breite des Randbands (px) */
+  glasUnschaerfe: number
+  glasDeckkraft: number
+  glasSaum: number
 }
 
 /**
@@ -56,6 +60,7 @@ export const LINSE_STANDARD: LinsenWerte = {
   zoom: 1.08, heben: 0, wachsen: 36, hoehe: 40, farbe: 0.1, tempo: 0.6, schwingen: 0.3,
   klar: 1, ruhe: 1, fuellung: 1, rand: 1, art: 1,
   saumAussenBreite: 3.5, saumAussen: 0.5, saumInnenBreite: 8, saumInnen: 0.22,
+  glasUnschaerfe: 8, glasDeckkraft: 0.38, glasSaum: 7,
 }
 
 /** Früherer Name des Standards. */
@@ -77,6 +82,9 @@ export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number
   saumAussen: { min: 0, max: 1, schritt: 0.02 },
   saumInnenBreite: { min: 2, max: 24, schritt: 0.5 },
   saumInnen: { min: 0, max: 1, schritt: 0.02 },
+  glasUnschaerfe: { min: 0, max: 30, schritt: 1 },
+  glasDeckkraft: { min: 0, max: 0.95, schritt: 0.01 },
+  glasSaum: { min: 0, max: 16, schritt: 0.5 },
 }
 
 const SCHLUESSEL = 'tyd_linse_3'
@@ -122,6 +130,9 @@ export function wendeLinseAn(w: LinsenWerte): void {
   s.setProperty('--linse-saum-aussen', String(w.saumAussen))
   s.setProperty('--linse-saum-innen-breite', String(w.saumInnenBreite))
   s.setProperty('--linse-saum-innen', String(w.saumInnen))
+  s.setProperty('--glas-unschaerfe', `${w.glasUnschaerfe}px`)
+  s.setProperty('--glas-deckkraft', String(w.glasDeckkraft))
+  s.setProperty('--glas-saum', `${w.glasSaum}px`)
   // Die Tab-Leiste misst die Pille neu (ihre Breite hängt an --linse-ruhe)
   window.dispatchEvent(new Event(LINSE_GEAENDERT))
 }

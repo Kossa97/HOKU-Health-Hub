@@ -152,3 +152,20 @@ export function saumMaske(w: number, h: number, breite: number, rund = h / 2): s
   masken.set(key, url)
   return url
 }
+
+/** Maske des Kerns einer Kapsel w × h: alles innerhalb eines Rands von `breite` px, weich auslaufend. */
+export function kernMaske(w: number, h: number, breite: number, rund = h / 2): string {
+  const key = `kern|${Math.round(w)}|${Math.round(h)}|${breite}|${Math.round(rund)}`
+  const fertig = masken.get(key)
+  if (fertig) return fertig
+  const b = breite
+  const kw = Math.max(0, w - 2 * b), kh = Math.max(0, h - 2 * b)
+  const kr = Math.max(0, Math.min(kh / 2, kw / 2, rund - b))
+  const d = `M${b + kr},${b}H${b + kw - kr}A${kr},${kr} 0 0 1 ${b + kw - kr},${b + kh}H${b + kr}A${kr},${kr} 0 0 1 ${b + kr},${b}Z`
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>`
+    + `<defs><filter id='f' x='-10%' y='-10%' width='120%' height='120%'><feGaussianBlur stdDeviation='${Math.max(0.6, b / 4)}'/></filter></defs>`
+    + `<path fill='#000' filter='url(#f)' d='${d}'/></svg>`
+  const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+  masken.set(key, url)
+  return url
+}

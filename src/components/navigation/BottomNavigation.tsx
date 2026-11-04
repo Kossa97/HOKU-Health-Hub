@@ -129,6 +129,8 @@ export function BottomNavigation({
         aria-label={String(t('home_quick_actions', { defaultValue: 'Quick Actions' }))}
         className="tyd-tabdock-action"
       >
+        <span className="tyd-glas-koerper" aria-hidden="true" />
+        <span className="tyd-glas-saum" aria-hidden="true" />
         <Plus size={26} strokeWidth={2.6} aria-hidden="true" />
       </button>
     </div>

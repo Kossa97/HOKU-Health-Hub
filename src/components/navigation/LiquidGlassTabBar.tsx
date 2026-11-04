@@ -5,7 +5,7 @@ import {
 import { SLOT_ATTR, freieLage, pillenBreite, platzBei } from './tabBarGeometry'
 import { haengeGlasKante } from '../../lib/glasKante'
 import {
-  BILD, FEDER_FINGER, SAEUME, endStand, linsenBild, linsenSchritt, planeWeg, ruhig, saumMaske,
+  BILD, FEDER_FINGER, SAEUME, endStand, kernMaske, linsenBild, linsenSchritt, planeWeg, ruhig, saumMaske,
   type LinsenMasse, type LinsenStand, type LinsenZiel,
 } from './linsenFeder'
 import { LINSE_GEAENDERT, gleitFeder } from '../../lib/linse'
@@ -127,6 +127,7 @@ export function LiquidGlassTabBar({
   const pilleRef = useRef<HTMLDivElement | null>(null)
   const kopieRef = useRef<HTMLDivElement | null>(null)
   const glasRef = useRef<HTMLDivElement | null>(null)
+  const hinterRef = useRef<HTMLDivElement | null>(null)
   /** Abbild der Leiste in der Linse: deckt die echten Symbole ab, zeigt den Rahmen vergrößert. */
   const abbildRef = useRef<HTMLDivElement | null>(null)
   const abbildGlasRef = useRef<HTMLDivElement | null>(null)
@@ -259,9 +260,8 @@ export function LiquidGlassTabBar({
     const kapsel = kapselRef.current
     if (kapsel) {
       const k = getComputedStyle(kapsel)
+      // Nur Kante und Rundung: die Füllung trägt die verschwommene Schicht dahinter
       for (const abbild of el.querySelectorAll<HTMLElement>('.tyd-tabbar-linse-abbild-glas')) {
-        abbild.style.backgroundImage = k.backgroundImage
-        abbild.style.backgroundColor = k.backgroundColor
         abbild.style.boxShadow = k.boxShadow
         abbild.style.borderRadius = k.borderTopLeftRadius
         if (abbild.parentElement) abbild.parentElement.style.borderRadius = k.borderTopLeftRadius
@@ -274,6 +274,12 @@ export function LiquidGlassTabBar({
       { breite: zahl('--linse-saum-innen-breite', SAEUME[0].breite), faktor: zahl('--linse-saum-innen', SAEUME[0].faktor) },
       { breite: zahl('--linse-saum-aussen-breite', SAEUME[1].breite), faktor: zahl('--linse-saum-aussen', SAEUME[1].faktor) },
     ]
+    // Der Rahmen zeigt als Linse nur den Kern innerhalb der Ringe
+    const rahmen = rahmenRef.current
+    if (rahmen) {
+      const kern = brechung === 'ringe' && w0 && el.offsetHeight ? kernMaske(w0, el.offsetHeight, saeume[0].breite, rund) : ''
+      rahmen.style.setProperty('--kern-maske', kern || 'none')
+    }
     // Maske in der Größe der ungewachsenen Pille
     saumRefs.current.forEach((saum, i) => {
       if (!saum || !w0 || !el.offsetHeight) return
@@ -320,6 +326,7 @@ export function LiquidGlassTabBar({
     if (kopieRef.current) kopieRef.current.style.transform = b.kopie
     if (glasRef.current) glasRef.current.style.opacity = String(b.glas)
     if (ringRef.current) ringRef.current.style.opacity = String(b.glas)
+    if (hinterRef.current) hinterRef.current.style.opacity = String(b.glas)
     if (abbildRef.current) abbildRef.current.style.opacity = String(b.glas)
     saumKopieRefs.current.forEach((k, i) => { if (k) k.style.transform = b.saeume[i] })
     for (const saum of saumRefs.current) if (saum) saum.style.opacity = String(b.glas)
@@ -384,7 +391,7 @@ export function LiquidGlassTabBar({
     saumKopieRefs.current.forEach((k, i) => {
       if (k) anim.push(k.animate(bilder.map(b => ({ transform: b.saeume[i] })), optionen))
     })
-    for (const schicht of [glasRef.current, ringRef.current, abbildRef.current, ...saumRefs.current]) {
+    for (const schicht of [hinterRef.current, glasRef.current, ringRef.current, abbildRef.current, ...saumRefs.current]) {
       if (schicht) anim.push(schicht.animate(bilder.map(b => ({ opacity: b.glas })), optionen))
     }
     const fahrt = { weg, anim, schluessel }
@@ -592,6 +599,9 @@ export function LiquidGlassTabBar({
       onPointerCancel={beiZeigerAbbruch}
       onClickCapture={beiKlick}
     >
+      {/* Das Glas: verschwommener Körper und brechendes Randband (index.css) */}
+      <span className="tyd-glas-koerper" aria-hidden="true" />
+      <span className="tyd-glas-saum" aria-hidden="true" />
       {unterLinse}
       <div
         ref={pilleRef}
@@ -612,6 +622,8 @@ export function LiquidGlassTabBar({
           die Pille gerade steht, auch während sie gleitet. Als Linse wird die
           Kopie um ihre Mitte vergrößert (Idee aus Glisse).
         */}
+        {/* Hinter der Linse: die Seite verschwommen wie im Glas der Leiste */}
+        <div ref={hinterRef} className="tyd-tabbar-linse-hinter" />
         <div ref={glasRef} className="tyd-tabbar-linse-glas" />
         {pille && (
           <div ref={rahmenRef} className="tyd-tabbar-linse-rahmen">
@@ -624,9 +636,12 @@ export function LiquidGlassTabBar({
               </div>
               {symbolKopie()}
             </div>
-            {/* Randbrechung: dieselbe Kopie in Ringen an der Kante, kleiner
-                abgebildet — dort drückt das Glas den Inhalt zusammen. */}
-            {mitRand && SAEUME.map((saum, i) => (
+          </div>
+        )}
+        {/* Randbrechung: dieselbe Kopie in Ringen an der Kante, kleiner
+            abgebildet — dort drückt das Glas den Inhalt zusammen. Außerhalb
+            des Rahmens, der als Linse nur den Kern zeigt (keine Doppelung). */}
+        {pille && mitRand && SAEUME.map((saum, i) => (
               <div key={saum.breite} ref={el => { saumRefs.current[i] = el }} className="tyd-tabbar-linse-saum">
                 <div ref={el => { saumKopieRefs.current[i] = el }} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite }}>
                   <div className="tyd-tabbar-linse-abbild">
@@ -638,8 +653,6 @@ export function LiquidGlassTabBar({
                 </div>
               </div>
             ))}
-          </div>
-        )}
         <div ref={ringRef} className="tyd-tabbar-linse-ring" />
       </div>
       {items.map(item => (
