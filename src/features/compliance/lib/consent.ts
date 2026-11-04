@@ -75,15 +75,18 @@ export function zustimmungAusMetadaten(meta: Record<string, unknown> | null | un
   return zustimmungFehlt(row) ? null : row
 }
 
-/** Die drei Haekchen der Registrierung bzw. der Zustimmungsseite. */
+/**
+ * Die zwei Haekchen der Registrierung bzw. der Zustimmungsseite. Das Alter
+ * bestaetigt das Geburtsdatum (ab 18, `pruefeGeburtsdatum`); ein eigenes
+ * Haekchen dafuer gibt es seit November 2026 nicht mehr (Nutzer).
+ */
 export interface ConsentState {
-  alter: boolean
   bedingungen: boolean
   gesundheit: boolean
 }
 
-export const KEINE_ZUSTIMMUNG: ConsentState = { alter: false, bedingungen: false, gesundheit: false }
+export const KEINE_ZUSTIMMUNG: ConsentState = { bedingungen: false, gesundheit: false }
 
 export function vollstaendig(state: ConsentState): boolean {
-  return state.alter && state.bedingungen && state.gesundheit
+  return state.bedingungen && state.gesundheit
 }

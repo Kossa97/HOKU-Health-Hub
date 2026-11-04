@@ -79,12 +79,14 @@ export function ConsentGate({ children }: { children: ReactNode }) {
       if (!aktuell) return
       if (error) return setErgebnis({ fuer: userId, fehlt: null, profilDa: true })
       const profilDa = Boolean(data)
-      const ohneGeburt = !(data as { birth_date?: string | null } | null)?.birth_date
+      const geburtImProfil = (data as { birth_date?: string | null } | null)?.birth_date ?? ''
+      const ohneGeburt = !geburtImProfil
       // Das Geburtsdatum wird nur zusammen mit der Zustimmung verlangt (neue Konten über
       // Apple/Google, neue Fassung der Bedingungen). Im Körperprofil darf man es löschen,
       // ohne dass danach bei jedem Start diese Seite kommt.
       const fehlt: Fehlt = { zustimmung: zustimmungFehlt(data as ConsentRow | null), geburt: false }
-      fehlt.geburt = fehlt.zustimmung && ohneGeburt
+      // Mit der Zustimmung wird das Alter bestätigt: dafür braucht es ein Geburtsdatum ab 18
+      fehlt.geburt = fehlt.zustimmung && !!pruefeGeburtsdatum(geburtImProfil.slice(0, 10), heute)
       // Aus der Registrierung übernehmen, was dort schon angegeben wurde
       const uebernehmen = {
         ...(fehlt.zustimmung && metaZustimmung ? metaZustimmung : {}),
@@ -97,7 +99,7 @@ export function ConsentGate({ children }: { children: ReactNode }) {
         angelegt = ok
         if (ok) {
           if (fehlt.zustimmung && metaZustimmung) fehlt.zustimmung = false
-          if (fehlt.geburt && metaGeburt) fehlt.geburt = false
+          if (fehlt.geburt && metaGeburt && ohneGeburt) fehlt.geburt = false
         }
       }
       const offen = fehlt.zustimmung || fehlt.geburt

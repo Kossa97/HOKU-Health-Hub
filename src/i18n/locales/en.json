@@ -1721,7 +1721,7 @@
   "consent_title": "Before you continue",
   "consent_desc": "Please confirm the following to use HOKU.",
   "consent_continue": "Continue",
-  "consent_required": "Please confirm all three points.",
+  "consent_required": "Please confirm both points.",
   "legal_privacy": "Privacy Policy",
   "legal_terms": "Terms of Use",
   "legal_imprint": "Legal notice",
