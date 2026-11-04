@@ -205,6 +205,9 @@ const EROEFFNUNG = { rand: 1.9, dunkel: 1.6, ringe: 1.6 }
 // Ring, der Ring öffnet sich als weicher Kreis über die App und lässt seine Punkte am äußersten Rand des
 // Geräts liegen (unruhiges Band wie S5), kurze Ruhe, Sammeln in der Mitte, Heimflug im Bogen. Radien in px.
 const ERFOLG = { ring: 0.45, portal: 0.85, ruhe: 0.25, sammeln: 0.7, flug: 0.75, logoR: 13 }
+// Der Ring öffnet erst, wenn die App sich aufgebaut hat: so lange (s) kein Bild länger als `bild` (s),
+// höchstens `warten` (s) über `ring` hinaus. Sonst fiel ihr Aufbau ins Öffnen und es stockte.
+const PORTAL_RUHE = { dauer: 0.3, bild: 0.045, warten: 1.2 }
 /** So lange nach `erfolg()` geht das Portal auf (ms); bis dahin kann die Anmeldung stehen bleiben. */
 export const PORTAL_AUF = ERFOLG.ring * 1000
 type Variante = keyof typeof EROEFFNUNG
@@ -391,7 +394,9 @@ export function createDot(host: DotHost): DotApi {
 
   function vermessen() {
     W = window.innerWidth; H = window.innerHeight; dpr = Math.min(2, window.devicePixelRatio || 1)
-    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr)
+    // Zeichenflächen nur bei neuer Größe neu anlegen: jedes Setzen leert sie und legt ihren Speicher neu an
+    const cw = Math.round(W * dpr), ch = Math.round(H * dpr)
+    if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     glResize()
     const cs = getComputedStyle(sonde)
@@ -468,7 +473,7 @@ export function createDot(host: DotHost): DotApi {
     // v: zuletzt gezeigte Eröffnung; null = noch keine, dann ist jede möglich
     intro: { an: false, t0: 0, v: null as Variante | null },
     // Erfolg: Phase, Start der Phase, Fortschritt des Rahmens, Flugbahn; kMul macht die Federn weich
-    portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; te: number; fe: number; r0: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
+    portal: null as null | { phase: 'ring' | 'rahmen' | 'rand' | 'sammeln' | 'flug'; te: number; fe: number; r0: number; ruhig: number; flug?: { sx: number; sy: number; ex: number; ey: number } },
     kMul: 1,
     orbit: null as null | { x0: number; y0: number; a: number; b: number; th0: number; total: number; depth: number },
     tour: null as null | { r: Rundflug; ab: null | { t0: number; x: number; y: number; d: number }; blick: { x: number; y: number } | null }, tourBald: 0,
@@ -1512,7 +1517,9 @@ export function createDot(host: DotHost): DotApi {
   glCanvas.addEventListener('webglcontextlost', kontextWeg)
   function glResize() {
     if (!GL) return
-    glCanvas.width = Math.round(W * dpr); glCanvas.height = Math.round(H * dpr); GL.viewport(0, 0, glCanvas.width, glCanvas.height)
+    const cw = Math.round(W * dpr), ch = Math.round(H * dpr)
+    if (glCanvas.width !== cw || glCanvas.height !== ch) { glCanvas.width = cw; glCanvas.height = ch }
+    GL.viewport(0, 0, cw, ch)
   }
   function glDraw(n: number, clipY: number) {
     const gl = GL
@@ -1773,7 +1780,7 @@ export function createDot(host: DotHost): DotApi {
     if (weniger || EIN.ruhig || B.mode !== 'login') return false
     B.mode = 'portal'; B.drag = null; B.stage = null
     appPlatz()
-    B.portal = { phase: 'ring', te: 0, fe: 0, r0: B.r }
+    B.portal = { phase: 'ring', te: 0, fe: 0, r0: B.r, ruhig: 0 }
     // der Haken wird zum Ring um Dots Platz, schon unruhig wie später der Rahmen
     B.state = 'idle'; B.shape = 'frame'; B.form = null; B.text = null; B.textF = null
     wechsel()
@@ -1791,8 +1798,11 @@ export function createDot(host: DotHost): DotApi {
     if (P0.phase === 'ring') {
       // die App bleibt verborgen, bis das Portal aufgeht
       if (el) el.style.clipPath = 'circle(0px)'
-      // erst wenn die App da ist (sonst wüchse der Kreis über nichts und sie erschiene mittendrin); notfalls nach 3 s
-      if ((te > ERFOLG.ring && el?.isConnected) || te > 3) {
+      // erst wenn die App da ist (sonst wüchse der Kreis über nichts und sie erschiene mittendrin) und sich
+      // aufgebaut hat (Bilder kommen wieder ohne Lücke); notfalls nach 3 s
+      P0.ruhig = el?.isConnected && dt <= PORTAL_RUHE.bild ? P0.ruhig + dt : 0
+      const bereit = el?.isConnected && (P0.ruhig >= PORTAL_RUHE.dauer || te > ERFOLG.ring + PORTAL_RUHE.warten)
+      if ((te > ERFOLG.ring && bereit) || te > 3) {
         // das Portal schießt hinaus, die Punkte folgen fast gleichzeitig und straff
         P0.phase = 'rahmen'; P0.te = 0; P0.r0 = B.r
         for (let i = 0; i < PUNKTE; i++) DEL[i] = B.pts[i].k * 0.05
