@@ -9,6 +9,7 @@ import {
   type LinsenMasse, type LinsenStand, type LinsenZiel,
 } from './linsenFeder'
 import { LINSE_GEAENDERT, gleitFeder } from '../../lib/linse'
+import { brechungsFilter, entferneBrechung } from '../../lib/glasBrechung'
 
 /**
  * Die Web-Fassung der Liquid-Glass-Tab-Bar.
@@ -132,8 +133,16 @@ export function LiquidGlassTabBar({
   /** Die Ringe der Randbrechung (je eine weitere Kopie, maskiert auf den Rand) und ihre Kopien. */
   const saumRefs = useRef<(HTMLDivElement | null)[]>([])
   const saumKopieRefs = useRef<(HTMLDivElement | null)[]>([])
-  /** Randbrechung an? (--linse-rand > 0); sonst werden die Ringe gar nicht gebaut. */
-  const [mitRand, setMitRand] = useState(false)
+  /**
+   * Randbrechung: aus, als Ringe (zwei maskierte Kopien, laufen ohne Skript)
+   * oder nach Glisse (SVG-Filter auf der Kopie, stufenlos). --linse-rand / --linse-art.
+   */
+  const [brechung, setBrechung] = useState<'aus' | 'ringe' | 'glisse'>('aus')
+  const mitRand = brechung === 'ringe'
+  const rahmenRef = useRef<HTMLDivElement | null>(null)
+  /** Der gebaute Glisse-Filter (id) und ob er gerade an der Kopie hängt. */
+  const filterRef = useRef<{ id: string | null; an: boolean }>({ id: null, an: false })
+  useEffect(() => () => entferneBrechung(filterRef.current.id), [])
   /** Breite der ruhenden Pille, 0 schmal … 1 so breit wie der Reiter (--linse-ruhe). */
   const ruheRef = useRef(0)
   /** Zählt Änderungen an den Linsen-Einstellungen, damit neu gemessen wird. */
@@ -196,7 +205,8 @@ export function LiquidGlassTabBar({
       const ruhe = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-ruhe'))
       ruheRef.current = Number.isFinite(ruhe) ? Math.min(1, Math.max(0, ruhe)) : 0
       const rand = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-rand'))
-      setMitRand(Number.isFinite(rand) && rand > 0)
+      const art = parseFloat(getComputedStyle(kapsel).getPropertyValue('--linse-art'))
+      setBrechung(!(Number.isFinite(rand) && rand > 0) ? 'aus' : art === 2 ? 'glisse' : 'ringe')
       plaetzeRef.current = plaetze().map(el => ({
         // Gesucht wird ueber den Attributwert und nicht ueber einen Selektor
         // mit eingesetzter Kennung: das braucht kein `CSS.escape` (das jsdom
@@ -259,6 +269,24 @@ export function LiquidGlassTabBar({
       saum.style.maskImage = maske
       saum.style.setProperty('-webkit-mask-image', maske)
     })
+    // Glisse: der Filter in der Größe der ungewachsenen Pille (die Kopie
+    // wird mit der Pille skaliert, die Karte also mit)
+    if (brechung === 'glisse' && w0 && el.offsetHeight) {
+      const h0 = el.offsetHeight
+      const rand = zahl('--linse-rand', 0)
+      filterRef.current.id = brechungsFilter(w0, h0, {
+        tiefe: Math.round(4 + 8 * rand),
+        weite: rand * 0.3 * h0,
+        farbe: 1.5 * zahl('--linse-farbe', 0),
+        alt: filterRef.current.id,
+      })
+      filterRef.current.an = false
+      rahmenRef.current?.style.removeProperty('filter')
+    } else if (filterRef.current.id) {
+      entferneBrechung(filterRef.current.id)
+      filterRef.current = { id: null, an: false }
+      rahmenRef.current?.style.removeProperty('filter')
+    }
     masseRef.current = {
       w0, h0: el.offsetHeight, einzug: el.offsetTop,
       wachsen: zahl('--linse-wachsen', 0), hoehe: zahl('--linse-hoehe', 0),
@@ -281,6 +309,17 @@ export function LiquidGlassTabBar({
     for (const saum of saumRefs.current) if (saum) saum.style.opacity = String(b.glas)
     if (b.linse) el.setAttribute('data-linse', 'true')
     else el.removeAttribute('data-linse')
+    setzeFilter(b.linse)
+  }
+
+  /** Hängt den Glisse-Filter an die Kopie, solange die Linse groß ist. */
+  const setzeFilter = (an: boolean) => {
+    const f = filterRef.current, rahmen = rahmenRef.current
+    if (!rahmen || !f.id) return
+    if (f.an === an) return
+    f.an = an
+    if (an) rahmen.style.filter = `url("#${f.id}")`
+    else rahmen.style.removeProperty('filter')
   }
 
   const ohneAnimation = () =>
@@ -314,7 +353,10 @@ export function LiquidGlassTabBar({
     const optionen: KeyframeAnimationOptions = { duration: dauer, easing: 'linear', fill: 'forwards' }
     const anim: Animation[] = []
     const el = pilleRef.current!
-    if (bilder.some(b => b.linse)) el.setAttribute('data-linse', 'true')
+    if (bilder.some(b => b.linse)) {
+      el.setAttribute('data-linse', 'true')
+      setzeFilter(true)
+    }
     anim.push(el.animate(bilder.map(b => ({ transform: b.pille })), optionen))
     if (kopieRef.current) anim.push(kopieRef.current.animate(bilder.map(b => ({ transform: b.kopie })), optionen))
     saumKopieRefs.current.forEach((k, i) => {
@@ -357,7 +399,7 @@ export function LiquidGlassTabBar({
     const z = zielRef.current
     z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
     const f = feder.current
-    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}|${mitRand}`
+    const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}|${brechung}`
     if (!f.start || ohneAnimation()) {
       f.start = true
       miss(el, pille.breite)
@@ -550,7 +592,7 @@ export function LiquidGlassTabBar({
         */}
         <div ref={glasRef} className="tyd-tabbar-linse-glas" />
         {pille && (
-          <div className="tyd-tabbar-linse-rahmen">
+          <div ref={rahmenRef} className="tyd-tabbar-linse-rahmen">
             <div ref={kopieRef} className="tyd-tabbar-linse" style={{ width: pille.kapselBreite }}>
               {/* Die Leiste selbst, samt Rahmen und Hokus Tor — in der Linse vergrößert */}
               <div ref={abbildRef} className="tyd-tabbar-linse-abbild">

@@ -629,6 +629,23 @@ function LinsenTest() {
         {regler('ruhe', 'Pille breit', '')}
         {regler('fuellung', 'Pille grau', '')}
         {regler('rand', 'Randbrechung', '')}
+        <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', alignItems: 'center', gap: 10, minHeight: 44 }}>
+          <span style={{ fontSize: 15 }}>Brechung als</span>
+          <div style={{ display: 'flex', gap: 8 }} role="radiogroup" aria-label="Brechung als">
+            {([[1, 'Ringe'], [2, 'Glisse']] as const).map(([art, name]) => (
+              <button
+                key={art}
+                type="button"
+                role="radio"
+                aria-checked={werte.art === art}
+                className={`lg-btn lg-btn-compact ${werte.art === art ? 'lg-btn-primary' : 'lg-btn-glass'}`}
+                onClick={() => setze({ ...werte, art })}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_APPLE })}>
             Apple

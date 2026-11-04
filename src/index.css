@@ -1385,8 +1385,7 @@ main.flex-1 {
 }
 .tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) svg { filter: none !important; }
 /* Als Linse (groß, solange ein Finger liegt oder sie noch gleitet): rund wie
-   eine Kapsel, auch in Looks mit eckiger Pille, und die vergrößerten Symbole
-   fächern leicht in Rot und Blau auf. */
+   eine Kapsel, auch in Looks mit eckiger Pille. */
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: 999px; }
 /* Ruhend als graue, gefüllte Kapsel wie bei Apple (--linse-fuellung). */
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::before {
@@ -1401,7 +1400,9 @@ main.flex-1 {
 }
 /* Ein Ring der Randbrechung: eine weitere Kopie, auf den Rand maskiert
    (Maske rechnet LiquidGlassTabBar, saumMaske). Darin deckt das Abbild der
-   Leiste immer, und die Farbe fächert stärker auf — wie an Apples Glaskante. */
+   Leiste immer. Kein Farbschatten an den Symbolen: drop-shadow in den
+   bewegten Kopien kostete im Test die Hälfte der Bilder; den Farbsaum trägt
+   der Glasrand (bei Glisse der Filter selbst). */
 .tyd-tabbar-linse-saum {
   position: absolute;
   inset: 0;
@@ -1411,16 +1412,6 @@ main.flex-1 {
   mask-size: 100% 100%;
 }
 .tyd-tabbar-linse-saum .tyd-tabbar-linse-abbild { opacity: 1; }
-.tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-saum .tyd-tabbar-linse-platz svg {
-  filter:
-    drop-shadow(calc(var(--linse-farbe) * 2.2px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.8)))
-    drop-shadow(calc(var(--linse-farbe) * -2.2px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.8)));
-}
-.tyd-tabbar .tyd-tabbar-pill[data-linse='true'] .tyd-tabbar-linse-platz svg {
-  filter:
-    drop-shadow(calc(var(--linse-farbe) * 0.9px) 0 0 rgb(255 60 120 / calc(var(--linse-farbe) * 0.55)))
-    drop-shadow(calc(var(--linse-farbe) * -0.9px) 0 0 rgb(50 180 255 / calc(var(--linse-farbe) * 0.55)));
-}
 html:is([data-look='schwarz'], [data-look='satin'], [data-look='licht'], [data-look='nacht']) :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {
   padding: 0;
   background: var(--glas-kante) center / 100% 100% no-repeat;

@@ -178,3 +178,9 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   einer Bildschirmaufnahme aus iOS 26: klar, graue breite Ruhekapsel, Regenbogen
   an den Enden. Randbrechung (Regler): zwei maskierte Ringe an der Innenkante, darin
   die Kopie kleiner abgebildet. Echte Brechung des Hintergrunds geht im iPhone-WebView nicht.
+- Randbrechung zwei Varianten, Schalter „Brechung als“ (--linse-art): Ringe (1) oder
+  Glisse (2, `src/lib/glasBrechung.ts`, SVG-Verschiebungskarte auf der Kopie, nach
+  Glisse/MIT; WebKit in objectBoundingBox). Messung Chromium, 4× gedrosselt, Tipp
+  Profil→Home: ohne Brechung max. 17 ms Lücke, Ringe 32 ms, Glisse bis 124 ms
+  (Filter rechnet jedes Bild neu). drop-shadow an den Symbolen der Kopien halbierte
+  die Bildrate → entfernt.
