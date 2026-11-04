@@ -121,7 +121,7 @@ const de = {
   // Seite „Hoku“ im Profil: Bühne, Farbe, Bewegung, Hinweise
   einst_titel: 'Hoku',
   einst_zeile: 'Farbe, Bewegung und Hinweise',
-  einst_buehne: 'Hoku sitzt hier, solange die Seite offen ist. Was du änderst, siehst du gleich an ihm.',
+  einst_buehne: 'Hoku schwebt hier im Glas, solange die Seite offen ist. Greif und wirf ihn ruhig, er bleibt drin. Was du änderst, siehst du gleich an ihm.',
   einst_zurueck: 'Zurück zum Profil',
   einst_verhalten: 'Verhalten',
   einst_ruhig: 'Ruhig bewegen',
@@ -307,7 +307,7 @@ const en: Record<keyof typeof de, string> = {
   // "Hoku" page in the profile: stage, colour, motion, hints
   einst_titel: 'Hoku',
   einst_zeile: 'Colour, motion and hints',
-  einst_buehne: 'Hoku sits here while this page is open. Whatever you change shows on him right away.',
+  einst_buehne: 'Hoku floats here in the glass while this page is open. Go ahead and grab and throw him, he stays inside. Whatever you change shows on him right away.',
   einst_zurueck: 'Back to profile',
   einst_verhalten: 'Behaviour',
   einst_ruhig: 'Calm motion',
