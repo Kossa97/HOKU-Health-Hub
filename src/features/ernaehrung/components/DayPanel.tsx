@@ -3,6 +3,8 @@ import { ChevronRight, Flame } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sheet } from './Panel'
 import { GoalsForm } from './GoalsForm'
+import { NutrientList } from './NutrientList'
+import type { NutrientId, NutrientStatus } from '../lib/nutrientTargets'
 import { SheetClose } from '../../../components/ui/SheetClose'
 import type { Goals, Nutrients } from '../lib/nutrition'
 import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
@@ -15,7 +17,7 @@ export type DayTab = 'today' | 'goals'
  * will — beide in derselben Reihenfolge, damit man jeden Wert an derselben
  * Stelle wiederfindet.
  */
-export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity, userId, today, busy, onSaveGoals, onOpenActivity, onClose }: {
+export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity, nutrients, dayDone, userId, today, busy, onSaveGoals, onOpenActivity, onOpenNutrient, onClose }: {
   tab: DayTab
   onTab: (tab: DayTab) => void
   /** „Heute, 3. Nov.“ — der Tag, der gerade oben steht. */
@@ -24,11 +26,14 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity
   waterMl: number | null
   goals: Goals
   activity: { active: number; bonus: number }
+  nutrients: readonly NutrientStatus[]
+  dayDone: boolean
   userId: string
   today: string
   busy: boolean
   onSaveGoals: (g: Goals) => Promise<boolean> | void
   onOpenActivity: () => void
+  onOpenNutrient: (id: NutrientId) => void
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -60,6 +65,7 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity
       {/* Beide Reiter bleiben stehen (der inaktive verborgen): ungespeicherte Ziele gehen beim Umschalten nicht verloren. */}
       <div role="tabpanel" id="nutr-day-panel-today" aria-labelledby="nutr-day-tab-today" hidden={tab !== 'today'}>
         <TodayView total={total} waterMl={waterMl} goals={goals} activity={activity} onEditGoals={() => onTab('goals')} onOpenActivity={onOpenActivity} />
+        <div className="mt-4"><NutrientList list={nutrients} dayDone={dayDone} onOpen={onOpenNutrient} /></div>
       </div>
       <div role="tabpanel" id="nutr-day-panel-goals" aria-labelledby="nutr-day-tab-goals" hidden={tab !== 'goals'}>
         <GoalsForm key={goalsKey} userId={userId} today={today} current={goals} busy={busy} onSave={onSaveGoals} onCancel={() => { setGoalsKey(k => k + 1); onTab('today') }} />

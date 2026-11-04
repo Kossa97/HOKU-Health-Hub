@@ -584,6 +584,33 @@ test('Aktivität: auf den Tagesbedarf zur Hälfte — Flamme +Bonus, eintragen, 
   await expect(page.getByRole('button', { name: 'Aktiv 300 kcal, zählt aufs Defizit' })).toHaveText('300')
 })
 
+test('Nährstoffe: Lücken am Knopf und in „Dein Tag“, Wert im Detail, eigenes Ziel', async ({ page, mock }) => {
+  logEntry(mock, { kcal: 1500, fiber_g: 10, micros: { vitD: 2, vitC: 120, i: 50, mg: 300 } })
+  await page.goto('/ernaehrung')
+  // 1500 von 2000 kcal: der Tag ist weit genug für Lücken (Vitamin D, Jod, Ballaststoffe).
+  const button = page.getByRole('button', { name: /^Dein Tag/ })
+  await expect(button).toContainText('3')
+  await button.click()
+  const day = page.getByRole('dialog', { name: 'Dein Tag' })
+  await expect(day.getByText('Lücken · 3')).toBeVisible()
+  // Werte ohne Daten (z. B. Selen) zählen nicht als Lücke; Vitamin C ist im Ziel.
+  await day.getByRole('button', { name: /^Vitamin D/ }).first().click()
+
+  const detail = page.getByRole('dialog', { name: 'Vitamin D' })
+  await expect(detail.getByText('von 20 µg heute')).toBeVisible()
+  await expect(detail.getByText('Skyr Natur')).toBeVisible()
+  await expect(detail.getByText('Gute Quellen')).toBeVisible()
+  await detail.getByRole('button', { name: 'Mehr' }).click()
+  await detail.getByRole('button', { name: 'Speichern', exact: true }).click()
+  await expect.poll(() => mock.table('nutrition_goals')[0]?.nutrient_goals).toEqual({ vitD: 21 })
+  await expect(detail.getByText('eigenes Ziel')).toBeVisible()
+  await detail.getByRole('button', { name: 'Auf Richtwert zurücksetzen' }).click()
+  await expect.poll(() => mock.table('nutrition_goals')[0]?.nutrient_goals).toEqual({})
+
+  await detail.getByRole('button', { name: 'Zurück zu deinem Tag' }).click()
+  await expect(page.getByRole('dialog', { name: 'Dein Tag' })).toBeVisible()
+})
+
 function ownFood(mock: MockSupabase, name: string, per100: { kcal: number; protein: number; carbs: number; fat: number }) {
   return mock.insert('food_items', {
     user_id: TEST_USER.id, source: 'custom', source_ref: null, barcode: null, name, brand: null, unit: 'g',

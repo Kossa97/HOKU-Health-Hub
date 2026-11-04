@@ -5,6 +5,7 @@ import { alterAm } from '../../blutwerte/lib/referenzbereiche'
 import { type Activity, DEFAULT_GOALS, GOAL_LIMITS, type GoalKind, type Goals, parseAmount, suggestGoals } from '../lib/nutrition'
 import { orbLayout } from '../lib/orb'
 import { ACTIVITY_SOURCES, type ActivityMode, type ActivityShare, type ActivitySource } from '../lib/activity'
+import { type NutrientId, formatAmount, nutrientDef } from '../lib/nutrientTargets'
 import { type BodyData, loadBodyData } from '../services/nutritionStore'
 import { setSoundsWanted, soundsWanted, unlockAudio } from '../lib/orbFeedback'
 import { DIM, ERROR_TEXT, MUTED, chip } from '../styles'
@@ -31,6 +32,7 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
   const [mode, setMode] = useState<ActivityMode>(current.activityMode)
   const [share, setShare] = useState<ActivityShare>(current.activityShare)
   const [sources, setSources] = useState<readonly ActivitySource[]>(current.activitySources)
+  const ownNutrients = (Object.entries(current.nutrientGoals) as [NutrientId, number][]).filter(([, v]) => v > 0)
   const toggleSource = (src: ActivitySource, on: boolean) =>
     setSources(list => ACTIVITY_SOURCES.filter(s => (s === src ? on : list.includes(s))))
   // Töne gelten für dieses Gerät (nicht in der Datenbank), gespeichert mit „Speichern“.
@@ -149,6 +151,21 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
         ))}
       </section>
 
+      <section aria-labelledby="nutr-own-nut" className="mt-4 rounded-[18px] bg-[var(--lg-surface-2)] p-4">
+        <h3 id="nutr-own-nut" className="text-[17px] font-semibold text-[var(--lg-text)]">{t('nutr_nut_goals_title')}</h3>
+        {ownNutrients.length > 0 && (
+          <ul className="mt-2">
+            {ownNutrients.map(([id, v]) => (
+              <li key={id} className="flex min-h-10 items-center justify-between gap-3 border-b border-[var(--lg-separator)] last:border-0">
+                <span className="text-[15px] text-[var(--lg-text)]">{t(`nutr_n_${id}`)}</span>
+                <span className="text-[15px] tabular-nums text-[var(--lg-text-2)]">{formatAmount(v, i18n.language)} {nutrientDef(id).unit}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className={`mt-2 text-[13px] leading-snug ${MUTED}`}>{t('nutr_nut_goals_hint')}</p>
+      </section>
+
       <SwitchRow label={t('nutr_hide_kcal')} hint={t('nutr_hide_kcal_hint')} checked={hideKcal} onChange={setHideKcal} />
       <SwitchRow label={t('nutr_orb_sounds')} hint={t('nutr_orb_sounds_hint')} checked={sounds} onChange={setSounds} />
       {/* Maßstab der Kugel: stand früher unter ihr, jetzt hier (oben ist nur Zahl und Makros). */}
@@ -163,7 +180,7 @@ export function GoalsForm({ userId, today, current, busy, onSave, onCancel }: {
           onClick={() => {
             // Ton jetzt freischalten (noch in der Geste), die Wahl erst nach erfolgreichem Speichern merken.
             if (sounds) unlockAudio()
-            void Promise.resolve(onSave({ ...nums, hideKcal, activityMode: mode, activityShare: share, activitySources: sources })).then(ok => { if (ok !== false) setSoundsWanted(sounds) })
+            void Promise.resolve(onSave({ ...nums, hideKcal, activityMode: mode, activityShare: share, activitySources: sources, nutrientGoals: current.nutrientGoals })).then(ok => { if (ok !== false) setSoundsWanted(sounds) })
           }}>{t('nutr_save')}</button>
       </div>
     </>
