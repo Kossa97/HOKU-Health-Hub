@@ -286,7 +286,7 @@ type IntakeGroupKey = 'morgens' | 'mittags' | 'abends' | 'custom' | 'later'
 type PeriodKey = 'morgens' | 'mittags' | 'abends'
 
 const PERIOD_ORDER: PeriodKey[] = ['morgens', 'mittags', 'abends']
-/** Ein Eintrag der Liste „Eingenommen · Verpasst · Übersprungen". */
+/** Ein Eintrag der Liste „Bereits protokolliert". */
 interface ErledigterEintrag {
   key: string
   stackItemId: string
@@ -472,7 +472,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // statt eine ungueltige Menge an die RPC zu schicken.
   const confirmDoseUngueltig = confirmUnit != null
     && (confirmDoseWert == null || !Number.isFinite(confirmDoseWert) || confirmDoseWert <= 0)
-  // Die Liste „Eingenommen · Verpasst · Übersprungen": null = voreingestellt
+  // Die Liste „Bereits protokolliert": null = voreingestellt
   // (an einem vergangenen Tag offen, heute zu).
   const [erledigtAuf, setErledigtAuf] = useState<boolean | null>(null)
   const [offenesErledigtesBuendel, setOffenesErledigtesBuendel] = useState<string | null>(null)
@@ -1107,7 +1107,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const selCycles   = cyclesForDay(selectedDay)
   const selOnDemand = onDemandCyclesForDay(selectedDay)
   const selectedLocalDate = localDateTimeKey(selectedDay, timeZone).slice(0, 10)
-  // Ein anderer Tag: die Liste „Eingenommen · Verpasst · Übersprungen" wieder
+  // Ein anderer Tag: die Liste „Bereits protokolliert" wieder
   // wie voreingestellt (vergangen offen, heute zu), nichts darin aufgeklappt.
   useEffect(() => {
     setErledigtAuf(null)
@@ -1138,7 +1138,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     : format(selectedDay, 'EEEE, d. MMMM', { locale })
   // Wieder oeffnen darf man nur, was danach auch wieder auftaucht.
   //
-  // `taken = null` nimmt die Zeile aus der Liste „Eingenommen · Verpasst · Übersprungen" heraus. Steht
+  // `taken = null` nimmt die Zeile aus der Liste „Bereits protokolliert" heraus. Steht
   // ihr Slot nicht im Tagesplan — bei Bedarf genommen, Substanz geloescht,
   // Zyklus nicht mehr aufloesbar —, erscheint sie danach auch nicht als
   // faellig: unsichtbar und nicht mehr loeschbar, denn der Loeschknopf sitzt
@@ -1349,7 +1349,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     return { ...gruppe, eintraege, bloecke }
   })
 
-  // ── Eingenommen · Verpasst · Übersprungen ──────────────────────────────
+  // ── Bereits protokolliert ──────────────────────────────
   // Eine Liste für alles Entschiedene des Tages. Verpasst ist, was der
   // Auto-Miss eingetragen hat, und an einem vergangenen Tag alles, was offen
   // blieb — nicht bewusst übersprungen heißt verpasst. Bündel stehen darin
@@ -3443,7 +3443,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         ))}
 
-        {/* ── Eingenommen · Verpasst · Übersprungen ─────────────────────
+        {/* ── Bereits protokolliert ─────────────────────
             Eine Liste für alles Entschiedene, Bündel darin wie oben. Die Farbe
             sagt den Stand: grün eingenommen, rot verpasst, grau übersprungen. */}
         {erledigte.length > 0 && (() => {
@@ -3459,7 +3459,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><Check size={17} strokeWidth={2.6} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[17px] text-[var(--lg-text)]">
-                    {t('done_intakes_title', { defaultValue: 'Eingenommen · Verpasst · Übersprungen' })}
+                    {t('completed_intakes_title', { defaultValue: 'Bereits protokolliert' })}
                   </span>
                   <span data-erledigt-zahlen className="block text-[13px] tabular-nums">
                     {(['genommen', 'verpasst', 'uebersprungen'] as const).flatMap(stand => {

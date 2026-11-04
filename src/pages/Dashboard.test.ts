@@ -25,9 +25,9 @@ async function protokollZeileOeffnen() {
 }
 
 const BUENDEL_KNOPF = /^Alle Substanzen\s*\d+ bestätigen$/
-/** Die Liste „Eingenommen · Verpasst · Übersprungen" aufklappen (an vergangenen Tagen ist sie es schon). */
+/** Die Liste „Bereits protokolliert" aufklappen (an vergangenen Tagen ist sie es schon). */
 async function erledigtOeffnen() {
-  const knopf = await screen.findByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+  const knopf = await screen.findByRole('button', { name: /Bereits protokolliert/ })
   if (knopf.getAttribute('aria-expanded') !== 'true') fireEvent.click(knopf)
 }
 
@@ -422,7 +422,7 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
 
     // Die Zeile steht im Protokoll — aber ohne Rückweg.
-    expect(screen.getByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Bereits protokolliert/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
     // Ohne Aktion ist die Zeile auch nicht antippbar.
     expect(document.querySelector('[data-log-row]')).toBeTruthy()
@@ -594,7 +594,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     await waitFor(() => expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull())
-    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Eingenommen · Verpasst · Übersprungen')
+    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Bereits protokolliert')
     const initialQueries = client.logQueries.length
     browseToNovember()
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(initialQueries))
@@ -1200,7 +1200,7 @@ describe('Dashboard normalized timeline path', () => {
     // Heute (19.): nichts Protokolliertes.
     await waitFor(() => expect(screen.getAllByRole('status')
       .some(element => element.textContent?.includes('Lädt'))).toBe(false))
-    expect(screen.queryByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
 
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
     await erledigtOeffnen()
@@ -1255,7 +1255,7 @@ describe('Dashboard normalized timeline path', () => {
       .toEqual(['genommen', 'verpasst'])
 
     // Unten: offen (vergangener Tag), grün und rot, und das Verpasste lässt sich nachtragen.
-    const liste = screen.getByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+    const liste = screen.getByRole('button', { name: /Bereits protokolliert/ })
     expect(liste.getAttribute('aria-expanded')).toBe('true')
     expect(document.querySelector('[data-log-row]')?.getAttribute('data-stand')).toBe('genommen')
     const verpasst = document.querySelector<HTMLElement>('[data-verpasst-row]')!
@@ -1330,7 +1330,7 @@ describe('Dashboard normalized timeline path', () => {
     ]
     renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
 
-    const liste = await screen.findByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+    const liste = await screen.findByRole('button', { name: /Bereits protokolliert/ })
     // Heute ist sie zu; die Zahlen stehen schon im Kopf.
     expect(liste.getAttribute('aria-expanded')).toBe('false')
     expect(liste.querySelector('[data-erledigt-zahlen]')?.textContent).toBe('1 genommen · 1 übersprungen')
@@ -1825,7 +1825,7 @@ describe('Dashboard normalized timeline path', () => {
     fixtures.dose_logs = [{ ...pendingLog(false), taken: true, logged_at: '2026-08-31T22:30:00.000Z' }]
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
-    expect(await screen.findByText('Eingenommen · Verpasst · Übersprungen')).toBeTruthy()
+    expect(await screen.findByText('Bereits protokolliert')).toBeTruthy()
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(client.logQueries[0].gte).toHaveBeenCalledWith('logged_at', '2026-08-30T22:00:00.000Z')
     // Einen Tag ueber das Raster hinaus: der letzte Abend kann nach Mitternacht bestaetigt sein.

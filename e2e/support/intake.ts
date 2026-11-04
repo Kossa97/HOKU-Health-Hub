@@ -57,7 +57,7 @@ export async function confirmHomeRoutine(page: Page): Promise<void> {
 
 export async function expectCalendarTaken(page: Page): Promise<void> {
   await page.goto('/kalender?date=2026-09-28')
-  const completed = page.getByRole('button', { name: /^Eingenommen · Verpasst · Übersprungen/ })
+  const completed = page.getByRole('button', { name: /^Bereits protokolliert/ })
   await expect(completed).toContainText('1')
   await expect(page.locator('[data-due-row]')).toHaveCount(0)
   await completed.click()

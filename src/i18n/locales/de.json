@@ -3023,7 +3023,6 @@
   "nutr_hoku_gap_two": "{{a}} und {{b}} fehlen dir heute noch.",
   "nutr_hoku_tip_one": "Für {{name}} gut: {{food}}.",
   "nutr_hoku_tip_both": "{{food}} füllt beides gut auf.",
-  "done_intakes_title": "Eingenommen · Verpasst · Übersprungen",
   "confirm_sheet_datetime_label": "Datum und Uhrzeit",
   "confirm_sheet_date_label": "Datum",
   "confirm_time_other_day": "Eingetragen für {{day}}, nicht für den geöffneten Tag.",

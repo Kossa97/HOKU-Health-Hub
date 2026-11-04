@@ -1318,7 +1318,6 @@ const EXPECTED_MY_STACK_KEYS = [
   'day_confirmed_label',
   'bundle_period_locked',
   'bundle_merged_hint',
-  'done_intakes_title',
   'confirm_sheet_datetime_label',
   'confirm_sheet_date_label',
   'confirm_time_other_day',
