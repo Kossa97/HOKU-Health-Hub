@@ -330,15 +330,15 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionMapCanvas.test.ts": {
-    "mtime": 1792394586.9015663,
-    "seen": 1793758954.3811772,
-    "ast_hash": "ecd6d42324adf71eb08920a4fe5eed3e",
+    "mtime": 1793821254.9864857,
+    "seen": 1793821686.8227453,
+    "ast_hash": "ecce3874625be7214a81b8816480a18c",
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionMapCanvas.tsx": {
-    "mtime": 1793759171.256529,
-    "seen": 1793759771.795875,
-    "ast_hash": "c03669ff6c396612d651d616821b5c57",
+    "mtime": 1793821479.1720667,
+    "seen": 1793821686.8227515,
+    "ast_hash": "1b5a8a0808b128ccbdb20b92da8fe675",
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionPin.tsx": {
@@ -6378,9 +6378,9 @@
     "semantic_hash": ""
   },
   "memory/projects/injektionstracker.md": {
-    "mtime": 1793758922.1793275,
-    "seen": 1793758954.3835065,
-    "ast_hash": "84aae7f493e38b7fd65425a8cbb3ea3d",
+    "mtime": 1793760455.1736462,
+    "seen": 1793821686.8740401,
+    "ast_hash": "199d4a585aae3940f20f328d9acafbe4",
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionIntakeList.tsx": {
@@ -21738,15 +21738,27 @@
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-11-04-hoku-injektion-rundflug-design.md": {
-    "mtime": 1793758911.0952194,
-    "seen": 1793758954.3834763,
-    "ast_hash": "4b02424d293ef3b9c7024843eeee7d0f",
+    "mtime": 1793760445.4812057,
+    "seen": 1793821686.8732564,
+    "ast_hash": "ee10749827ff9b7ba4f667a1d235fbc0",
     "semantic_hash": ""
   },
   "supabase-nutrition-micros.sql": {
     "mtime": 1793758538.7870398,
     "seen": 1793759771.829645,
     "ast_hash": "9dc5b2a0100d60919b945fd86e36dbbb",
+    "semantic_hash": ""
+  },
+  "src/lib/injectionCameraFlight.test.ts": {
+    "mtime": 1793821156.4371176,
+    "seen": 1793821686.852274,
+    "ast_hash": "131e11b099f3a6108809fad7c46b180f",
+    "semantic_hash": ""
+  },
+  "src/lib/injectionCameraFlight.ts": {
+    "mtime": 1793821149.3211172,
+    "seen": 1793821686.8522782,
+    "ast_hash": "df038ca4ec96a32c3fdb5a48e85ffd91",
     "semantic_hash": ""
   }
 }
