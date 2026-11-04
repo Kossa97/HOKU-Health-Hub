@@ -13,6 +13,8 @@ Jede Folie ist eine Link-Karte in 1200 × 630 px (Open-Graph-Bild).
 
 In den Notizen jeder Folie stehen, wann die Karte erscheint, der englische Text und die Regeln aus dem Brand-Guide.
 
+Wird nur noch bei Bedarf aktualisiert (z. B. für Marketing); maßgeblich sind Mockup, Spec und Code.
+
 Archiv: `hoku-link-karten-fassung2-varianten.pptx` (20 Folien, alle Logo-Varianten B1–B6 aus Fassung 2).
 
 ## In Canva öffnen

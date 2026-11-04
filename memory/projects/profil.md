@@ -240,3 +240,5 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   Für die Abstimmung relevant: Rückfall-Text „kann Muster finden“ hängt daran (Ersatztext bereit); Wirkungs-Check-PRD
   (2026-10-18) schließt „Kreuzkorrelation über alle Messwerte“ ausdrücklich aus (Zufallstreffer) — muss dort aufgelöst werden;
   60 Tage Wearable-Vorgeschichte aus P1 könnten erste Muster am ersten Tag liefern.
+- **Canva-Vorlagen nur noch bei Bedarf** (Nutzer 04.11.): nicht mehr von selbst nachziehen. Maßgeblich sind Mockup,
+  Spec und Code; Link-Karten erzeugt später `api/og.js`. Letzter Stand: `docs/profil/canva/hoku-link-karten.pptx` (9 Folien).
