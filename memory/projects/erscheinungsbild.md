@@ -210,3 +210,13 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   Wunsch des Nutzers ganz zurückgenommen („komplett Müll“, Linse hatte sich mit
   verändert). Lehre: bei Navbar-Änderungen die Linse nicht anfassen; Änderungen
   am Aussehen klein halten und einzeln zeigen.
+- Leistung (2026-11-04, gemessen 4× gedrosselt, Halten+Wischen): Stilberechnung
+  1420→~690 ms, Skript 311→~180 ms. Ursachen: hokuLicht schrieb --hl-* an die Leiste
+  (jetzt nur mit data-navbar="eigen"); React-setPille bei jeder Fingerbewegung
+  (jetzt freiLageRef + direkte Feder). will-change auf allen Linsen-Schichten
+  machte es schlechter (verworfen).
+- Leiste in der Linse nicht mehr dunkel: Unschärfe der Leiste in eigener Ebene
+  (.tyd-glas-koerper, sonst Backdrop Root), Kopie mit eigenem backdrop-filter und
+  ohne zweite Füllung; in den Ringen Kopie ohne Grund.
+- Linse: Gleitzeit nach Weg (federFuerWeg, Regler „Tempo nach Weg“), Verformung mit
+  Tempo und Bremsen (ax, Regler „Verformung“).

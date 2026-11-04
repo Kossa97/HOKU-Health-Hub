@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FEDER_GLEITEN, FEDER_LINSE, federSchritt, linsenBild, planeWeg } from './linsenFeder'
+import { FEDER_GLEITEN, FEDER_LINSE, federFuerWeg, federSchritt, linsenBild, planeWeg } from './linsenFeder'
 
 const lauf = (start: number, ziel: number, f = FEDER_GLEITEN, sek = 1.5) => {
   let x = start, v = 0, max = start
@@ -61,5 +61,31 @@ describe('planeWeg und linsenBild', () => {
     const mitte = { x: 130, y: m.einzug + m.h0 / 2 }
     expect(bildX).toBeCloseTo(mitte.x + 1.3 * (p.x - mitte.x), 1)
     expect(bildY).toBeCloseTo(mitte.y + 1.3 * (p.y - mitte.y), 1)
+  })
+})
+
+describe('Tempo und Form je nach Fahrt', () => {
+  const m = { w0: 60, h0: 48, einzug: 7, wachsen: 0, hoehe: 0, heben: 0, zoom: 1 }
+  const zahlen = (str: string) => (str.match(/-?[\d.]+/g) ?? []).map(Number)
+
+  it('lange Wege dauern etwas länger, kurze sind flinker — nicht im selben Maß', () => {
+    const f = { response: 0.6, damping: 0.7 }
+    const kurz = federFuerWeg(f, 60, 1).response
+    const lang = federFuerWeg(f, 240, 1).response
+    expect(kurz).toBeLessThan(0.6)
+    expect(lang).toBeGreaterThan(0.6)
+    expect(lang / kurz).toBeLessThan(240 / 60)
+    expect(federFuerWeg(f, 240, 0).response).toBe(0.6)
+  })
+
+  it('schnell wird sie lang und flach, beim Bremsen staucht sie sich und quillt', () => {
+    const fahrt = linsenBild({ x: 100, w: 60, t: 0, vx: 900, vw: 0, vt: 0, ax: 0 }, m)
+    const [, , sx, sy] = zahlen(fahrt.pille)
+    expect(sx).toBeGreaterThan(1)
+    expect(sy).toBeLessThan(1)
+    const bremst = linsenBild({ x: 100, w: 60, t: 0, vx: 300, vw: 0, vt: 0, ax: -6000 }, m)
+    const ohne = linsenBild({ x: 100, w: 60, t: 0, vx: 300, vw: 0, vt: 0, ax: 0 }, m)
+    expect(zahlen(bremst.pille)[2]).toBeLessThan(zahlen(ohne.pille)[2])
+    expect(zahlen(bremst.pille)[3]).toBeGreaterThan(zahlen(ohne.pille)[3])
   })
 })

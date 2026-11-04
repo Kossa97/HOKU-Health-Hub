@@ -604,7 +604,7 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand' || key === 'saumAussen' || key === 'saumInnen' || key === 'navDeckkraft' || key === 'navGlanz'
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand' || key === 'saumAussen' || key === 'saumInnen' || key === 'navDeckkraft' || key === 'navGlanz' || key === 'weite' || key === 'verformung'
             ? `${Math.round(werte[key] * 100)} %`
             : key === 'tempo' ? `${werte[key].toFixed(2)} s`
               : key === 'navSaettigung' ? `${werte[key].toFixed(2)}×` : `${werte[key]} ${einheit}`}
@@ -626,6 +626,8 @@ function LinsenTest() {
         {regler('farbe', 'Farbsaum', '')}
         {regler('tempo', 'Gleiten (Zeit)', '')}
         {regler('schwingen', 'Nachschwingen', '')}
+        {regler('weite', 'Tempo nach Weg', '')}
+        {regler('verformung', 'Verformung', '')}
         {regler('klar', 'Durchsicht', '')}
         {regler('ruhe', 'Pille breit', '')}
         {regler('fuellung', 'Pille grau', '')}

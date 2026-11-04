@@ -19,7 +19,7 @@
  * Tempo und Nachschwingen gelten für die Feder beim Gleiten (gleitFeder()).
  */
 import { useCallback, useState } from 'react'
-import type { Feder } from '../components/navigation/linsenFeder'
+import { federFuerWeg, type Feder } from '../components/navigation/linsenFeder'
 
 export interface LinsenWerte {
   zoom: number
@@ -48,6 +48,10 @@ export interface LinsenWerte {
   navSaettigung: number
   navKante: number
   navGlanz: number
+  /** Wie sehr die Gleitzeit vom Weg abhängt (0 aus, 1 voll) */
+  weite: number
+  /** Wie stark sich die Linse mit Tempo und Bremsen verformt */
+  verformung: number
 }
 
 /**
@@ -63,6 +67,7 @@ export const LINSE_STANDARD: LinsenWerte = {
   klar: 1, ruhe: 1, fuellung: 1, rand: 1, art: 1,
   saumAussenBreite: 3.5, saumAussen: 0.5, saumInnenBreite: 8, saumInnen: 0.22,
   navUnschaerfe: 3, navDeckkraft: 0.62, navSaettigung: 1.5, navKante: 0.5, navGlanz: 1,
+  weite: 0.6, verformung: 1,
 }
 
 /** Früherer Name des Standards. */
@@ -89,6 +94,8 @@ export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number
   navSaettigung: { min: 0.5, max: 3, schritt: 0.05 },
   navKante: { min: 0, max: 3, schritt: 0.25 },
   navGlanz: { min: 0, max: 1, schritt: 0.05 },
+  weite: { min: 0, max: 1, schritt: 0.05 },
+  verformung: { min: 0, max: 2, schritt: 0.05 },
 }
 
 const SCHLUESSEL = 'tyd_linse_3'
@@ -113,8 +120,8 @@ export function leseLinse(): LinsenWerte {
 let aktuell: LinsenWerte = { ...LINSE_STANDARD }
 
 /** Die Feder, mit der die Linse zu ihrem Platz gleitet. */
-export function gleitFeder(): Feder {
-  return { response: aktuell.tempo, damping: 1 - aktuell.schwingen }
+export function gleitFeder(weg = 120): Feder {
+  return federFuerWeg({ response: aktuell.tempo, damping: 1 - aktuell.schwingen }, weg, aktuell.weite)
 }
 
 export function wendeLinseAn(w: LinsenWerte): void {
@@ -139,6 +146,7 @@ export function wendeLinseAn(w: LinsenWerte): void {
   s.setProperty('--nav-saettigung', String(w.navSaettigung))
   s.setProperty('--nav-kante', `${w.navKante}px`)
   s.setProperty('--nav-glanz', String(w.navGlanz))
+  s.setProperty('--linse-verformung', String(w.verformung))
   // Die Tab-Leiste misst die Pille neu (ihre Breite hängt an --linse-ruhe)
   window.dispatchEvent(new Event(LINSE_GEAENDERT))
 }

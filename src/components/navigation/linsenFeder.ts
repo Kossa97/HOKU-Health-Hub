@@ -22,7 +22,11 @@ export function federSchritt(x: number, v: number, ziel: number, f: Feder, dt: n
 }
 
 /** Stand der Linse: linke Kante und Breite der Pille, `t` 0 Pille … 1 Linse, je mit Geschwindigkeit. */
-export interface LinsenStand { x: number; w: number; t: number; vx: number; vw: number; vt: number }
+export interface LinsenStand {
+  x: number; w: number; t: number; vx: number; vw: number; vt: number
+  /** Beschleunigung waagrecht (px/s², geglättet): treibt das Stauchen beim Bremsen */
+  ax?: number
+}
 /** Wohin sie will. */
 export interface LinsenZiel { x: number; w: number; gehalten: boolean }
 /** Maße der gerenderten Pille und wie stark die Linse wird (aus den --linse-* Variablen). */
@@ -36,6 +40,8 @@ export interface LinsenMasse {
   raster?: number
   /** Die Ringe der Randbrechung (sonst SAEUME) */
   saeume?: readonly { breite: number; faktor: number }[]
+  /** Wie stark sich die Linse mit Tempo und Bremsen verformt (1 = Standard) */
+  verformung?: number
 }
 
 /**
@@ -60,7 +66,21 @@ export function linsenSchritt(s: LinsenStand, z: LinsenZiel, lage: Feder, dt: nu
   const [x, vx] = federSchritt(s.x, s.vx, z.x, lage, dt)
   const [w, vw] = federSchritt(s.w, s.vw, z.w, lage, dt)
   const [t, vt] = federSchritt(s.t, s.vt, tZiel(s, z), FEDER_LINSE, dt)
-  return { x, w, t, vx, vw, vt }
+  // geglättet, damit einzelne Fingerzuckungen die Form nicht zappeln lassen
+  const vorher = Number.isFinite(s.ax) ? s.ax! : 0
+  const ax = dt > 0 ? vorher * 0.5 + ((vx - s.vx) / dt) * 0.5 : vorher
+  return { x, w, t, vx, vw, vt, ax }
+}
+
+/**
+ * Wie schnell die Linse gleitet, hängt am Weg: ein Sprung zum Nachbarn ist
+ * flink, eine lange Fahrt über die ganze Leiste nimmt sich etwas mehr Zeit —
+ * aber nicht im selben Maß (Wurzel), sonst schliche sie. `weite` 0 schaltet
+ * das ab, 1 ist die volle Wirkung.
+ */
+export function federFuerWeg(f: Feder, weg: number, weite: number): Feder {
+  const faktor = Math.min(1.5, Math.max(0.7, 1 + weite * 0.5 * (Math.sqrt(Math.abs(weg) / 120) - 1)))
+  return { response: f.response * faktor, damping: f.damping }
 }
 
 export const ruhig = (s: LinsenStand, z: LinsenZiel) =>
@@ -101,9 +121,17 @@ const zahl = (n: number) => String(Math.round(n * 10000) / 10000)
  */
 export function linsenBild(s: LinsenStand, m: LinsenMasse) {
   const t = s.t
-  const dehnen = Math.min(0.22, Math.abs(s.vx) / 2200)
-  const sx = (m.w0 > 0 ? (s.w + m.wachsen * t) / m.w0 : 1) * (1 + dehnen)
-  const sy = (m.h0 > 0 ? (m.h0 + m.hoehe * t) / m.h0 : 1) * (1 - dehnen * 0.5)
+  // Verformung: schnell gezogen wird sie lang und flach; beim Bremsen staucht
+  // sie sich in Laufrichtung und quillt in der Höhe (wie ein Tropfen, der
+  // ankommt), beim Anfahren umgekehrt. Die Richtung ist weich (kein Sprung,
+  // wenn sie am Ziel umkehrt).
+  const k = m.verformung ?? 1
+  const dehnen = Math.min(0.22, Math.abs(s.vx) / 2600) * k
+  const richtung = s.vx / (Math.abs(s.vx) + 80)
+  // Bremsen wirkt stärker als Anfahren: das Ankommen soll man sehen
+  const bremsen = Math.min(0.18, Math.max(-0.06, -((s.ax ?? 0) * richtung) / 14000)) * k
+  const sx = (m.w0 > 0 ? (s.w + m.wachsen * t) / m.w0 : 1) * (1 + dehnen - bremsen)
+  const sy = (m.h0 > 0 ? (m.h0 + m.hoehe * t) / m.h0 : 1) * (1 - dehnen * 0.5 + bremsen * 0.8)
   const mitte = s.x + s.w / 2
   const ty = -m.heben * t
   const z = 1 + (m.zoom - 1) * t

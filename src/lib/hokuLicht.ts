@@ -22,7 +22,15 @@ export interface HokuSchein { angle: number; spread: number; intensity: number; 
 /** Bis zu diesem Abstand von der Kante (px) fängt eine Fläche Hokus Licht. */
 export const REICHWEITE = 230
 
-const ZIELE = '.lg-surface, .card, .lg-group, .lg-btn, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action'
+/*
+ * Die Navbar fängt Hokus Licht nur in ihren eigenen Materialien
+ * (<html data-navbar="eigen">). Im gemeinsamen Glas nutzt sie die --hl-Werte
+ * nicht — dann wird sie gar nicht erst beschrieben: jeder Wert dort erbt der
+ * ganze Baum der Leiste (samt Kopien in der Linse) und rechnete jedes Bild neu.
+ */
+const ZIELE_ALLGEMEIN = '.lg-surface, .card, .lg-group, .lg-btn, .lg-icon-btn, .lg-chip'
+const ZIELE_LEISTE = '.tyd-tabbar, .tyd-tabdock-action'
+const ziele = () => document.documentElement.dataset.navbar === 'eigen' ? `${ZIELE_ALLGEMEIN}, ${ZIELE_LEISTE}` : ZIELE_ALLGEMEIN
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
 
@@ -122,7 +130,7 @@ export function installHokuLicht(): () => void {
   }, { rootMargin: '40px' })
   const beobachtet = new WeakSet<Element>()
   const sammeln = () => {
-    for (const el of document.querySelectorAll<HTMLElement>(ZIELE)) {
+    for (const el of document.querySelectorAll<HTMLElement>(ziele())) {
       if (beobachtet.has(el)) continue
       beobachtet.add(el)
       if (io) io.observe(el)

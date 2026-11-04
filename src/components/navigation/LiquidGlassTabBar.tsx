@@ -103,6 +103,15 @@ export function LiquidGlassTabBar({
   /** Liegt gerade ein Finger auf der Leiste? Traegt Vergroesserung und Blase. */
   const [gedrueckt, setGedrueckt] = useState(false)
   /**
+   * Am Finger: die freie Lage steht nur in einer Ref, nicht im React-Zustand.
+   * Sonst zeichnete React bei JEDER Fingerbewegung die ganze Leiste samt
+   * aller Kopien in der Linse neu (und setzte --tyd-glint, das der ganze
+   * Baum erbt) — das kostete beim Wischen spürbar Bilder. `frei` als Zustand
+   * wechselt nur einmal je Zug.
+   */
+  const freiLageRef = useRef<{ links: number; breite: number } | null>(null)
+  const [frei, setFrei] = useState(false)
+  /**
    * Der Platz, der dem Finger gerade am naechsten liegt. Er bestimmt NICHT,
    * wo die Pille steht — solange der Finger liegt, steht sie beim Finger —,
    * sondern nur, was beim Loslassen passiert und wo es klickt.
@@ -260,8 +269,8 @@ export function LiquidGlassTabBar({
     if (kapsel) {
       const k = getComputedStyle(kapsel)
       for (const abbild of el.querySelectorAll<HTMLElement>('.tyd-tabbar-linse-abbild-glas')) {
-        abbild.style.backgroundImage = k.backgroundImage
-        abbild.style.backgroundColor = k.backgroundColor
+        // Nur Kante und Rundung: die Füllung liegt schon in der echten Leiste
+        // dahinter, die die Kopie durch ihr Glas sieht — doppelt wäre sie zu dunkel.
         abbild.style.boxShadow = k.boxShadow
         abbild.style.borderRadius = k.borderTopLeftRadius
         if (abbild.parentElement) abbild.parentElement.style.borderRadius = k.borderTopLeftRadius
@@ -307,6 +316,7 @@ export function LiquidGlassTabBar({
       heben: zahl('--linse-heben', 0), zoom: zahl('--linse-zoom', 1),
       rand: zahl('--linse-rand', 0),
       raster: 1 / (window.devicePixelRatio || 1),
+      verformung: zahl('--linse-verformung', 1),
       saeume,
     }
   }
@@ -362,7 +372,7 @@ export function LiquidGlassTabBar({
   /** Rechnet den Weg bis zur Ruhe und übergibt ihn dem Browser. */
   const starteFahrt = (schluessel: string) => {
     const z = zielRef.current, m = masseRef.current
-    const weg = planeWeg(feder.current.s, z, gleitFeder())
+    const weg = planeWeg(feder.current.s, z, gleitFeder(z.x - feder.current.s.x))
     const ende = weg[weg.length - 1]
     if (weg.length < 3) {
       feder.current.s = ende
@@ -419,7 +429,9 @@ export function LiquidGlassTabBar({
     const el = pilleRef.current
     if (!pille || !el) return
     const z = zielRef.current
-    z.x = pille.links; z.w = pille.breite; z.frei = pille.frei; z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
+    const am = ziehtRef.current ? freiLageRef.current : null
+    z.x = am ? am.links : pille.links; z.w = am ? am.breite : pille.breite; z.frei = !!am || pille.frei
+    z.gehalten = gedrueckt; z.kapsel = pille.kapselBreite
     const f = feder.current
     const schluessel = `${z.x}|${z.w}|${z.gehalten}|${z.frei}|${linsenStand}|${brechung}`
     if (!f.start || ohneAnimation()) {
@@ -493,7 +505,7 @@ export function LiquidGlassTabBar({
     const x = e.clientX - kapsel.getBoundingClientRect().left
     const breite = zugBreiteRef.current
     const links = freieLage(x, breite, kapsel.offsetWidth)
-    setPille({ links, breite, kapselBreite: kapsel.offsetWidth, frei: true })
+    folgeFinger(links, breite)
 
     const naechster = platzBei(plaetzeRef.current, x)
     if (!naechster || naechster === vorschauRef.current) return
@@ -502,9 +514,32 @@ export function LiquidGlassTabBar({
     onPreviewChange?.(naechster)
   }
 
+  /** Die Linse hängt am Finger: Ziel direkt setzen, Feder läuft ohne React. */
+  const folgeFinger = (links: number, breite: number) => {
+    freiLageRef.current = { links, breite }
+    if (!frei) setFrei(true)
+    const z = zielRef.current, f = feder.current, el = pilleRef.current
+    z.x = links; z.w = breite; z.frei = true
+    if (!el) return
+    el.dataset.frei = 'true'
+    if (ohneAnimation()) {
+      f.s = endStand(z)
+      zeichne()
+      return
+    }
+    halteFahrt()
+    if (!f.frame) f.frame = requestAnimationFrame(schritt)
+  }
+
+  const loesFinger = () => {
+    freiLageRef.current = null
+    setFrei(false)
+  }
+
   const beiZeigerAuf = () => {
     if (!ziehtRef.current) return
     ziehtRef.current = false
+    loesFinger()
     const ziel = vorschauRef.current
     const kapsel = kapselRef.current
     setGedrueckt(false)
@@ -531,6 +566,7 @@ export function LiquidGlassTabBar({
   const beiZeigerAbbruch = () => {
     if (!ziehtRef.current) return
     ziehtRef.current = false
+    loesFinger()
     setGedrueckt(false)
     setzeVorschau(null)
     const kapsel = kapselRef.current
@@ -592,13 +628,15 @@ export function LiquidGlassTabBar({
       onPointerCancel={beiZeigerAbbruch}
       onClickCapture={beiKlick}
     >
+      {/* Die Unschärfe des Glases (index.css, „Glas der Navbar“) */}
+      <span className="tyd-glas-koerper" aria-hidden="true" />
       {unterLinse}
       <div
         ref={pilleRef}
         className="tyd-tabbar-pill"
         data-tyd-pill
         data-gehalten={gedrueckt ? 'true' : 'false'}
-        data-frei={pille?.frei ? 'true' : 'false'}
+        data-frei={frei || pille?.frei ? 'true' : 'false'}
         data-ohne-ziel={pille ? 'false' : 'true'}
         aria-hidden="true"
         style={pille ? { width: pille.breite } : undefined}
