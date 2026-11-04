@@ -1731,11 +1731,11 @@ html[data-theme='light'] {
 .hoku-vollbild-knopf:active { transform: scale(0.97); transition-duration: 100ms; }
 .hoku-vollbild-primaer { background: var(--hoku-vollbild-ink); color: #ffffff; }
 .hoku-vollbild-knopf:focus-visible { outline: 2px solid var(--hoku-vollbild-ink); outline-offset: 2px; }
+/* Standard ist die reine Überblendung (gilt auch bei reduzierter Bewegung);
+   nur ohne diesen Wunsch kommt das Hereinwachsen dazu. */
+.hoku-vollbild { animation: tyd-fade-in 150ms ease both; }
 @media (prefers-reduced-motion: no-preference) {
   .hoku-vollbild { animation: tyd-fade-in 180ms ease-out both; }
   .hoku-vollbild-buehne { animation: hoku-vollbild-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hoku-vollbild { animation: tyd-fade-in 150ms ease both; }
 }
 @keyframes hoku-vollbild-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
