@@ -20,11 +20,13 @@ import { MACRO_COLORS, MACRO_NAME, MUTED } from '../styles'
  * antippen, die Kugel selbst öffnet „Dein Tag“. Kommt etwas dazu, fliegen Punkte in die Kugel — aus der Essens-Kugel,
  * aus der eingetragen wurde; wird etwas entfernt, fallen sie unten heraus.
  */
-export function DaySummary({ total, goals, activity, date, ready, formOpen, onOpenDay, onOpenActivity, onClose }: {
+export function DaySummary({ total, goals, activity, gaps, date, ready, formOpen, onOpenDay, onOpenActivity, onClose }: {
   total: Nutrients
   goals: Goals
   /** Bewegung heute (kcal) und was davon aufs Ziel kommt (0 beim Defizit). */
   activity: { active: number; bonus: number }
+  /** Nährstoff-Lücken heute (kleine orange Zahl am Knopf; 0 = keine). */
+  gaps: number
   date: string
   /** Tag geladen? Vorher zählt der Stand nicht als Ausgangspunkt — sonst flöge beim Laden der ganze Tag ein. */
   ready: boolean
@@ -186,6 +188,11 @@ export function DaySummary({ total, goals, activity, date, ready, formOpen, onOp
           <button type="button" onClick={openDay}
             className="lg-glass lg-press flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-[var(--lg-text)]">
             <CircleGauge size={14} aria-hidden="true" />{t('nutr_day_title')}
+            {gaps > 0 && (
+              <span className="-mr-1 ml-0.5 min-w-5 rounded-full bg-[var(--lg-warn-text)] px-1.5 text-center text-[11px] font-bold leading-5 tabular-nums text-black">
+                <span aria-hidden="true">{gaps}</span><span className="sr-only">{t('nutr_nut_gaps_aria', { count: gaps })}</span>
+              </span>
+            )}
           </button>
         </div>
         {/* Einmal zeigen, dass die Kugel antippbar ist; weg mit × oder sobald „Dein Tag“ einmal offen war. */}

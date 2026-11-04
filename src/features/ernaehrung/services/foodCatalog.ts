@@ -71,3 +71,33 @@ export async function searchCatalog(query: string, lang: 'de' | 'en', limit = 60
     .slice(0, limit)
     .map(h => h.food)
 }
+
+/** Spalte eines Nährstoffs außerhalb von `micros` (Ballaststoffe, Zucker, Salz, gesättigte Fette). */
+const MACRO_COL: Record<string, number> = { fiber: 7, sugar: 8, salt: 9, satFat: 10 }
+
+/**
+ * Alltagslebensmittel (BLS-Codes), aus denen die „guten Quellen“ eines Nährstoffs gewählt werden.
+ * Reine Rangfolge je 100 g brächte sonst Innereien, Kleie, Jodsalz und Lebertran nach vorn.
+ */
+const EVERYDAY = new Set([
+  'C133000', 'B101000', 'H725100', 'F302100', 'T410100', 'Q160000', 'H120100', 'Q180000', 'K110100', 'F503100',
+  'G211100', 'M304600', 'M111300', 'M141300', 'G322100', 'H430100', 'H170100', 'V416100', 'U201000', 'H310100',
+  'H130100', 'C359000', 'T207100', 'T204100', 'G620100', 'K420100', 'G543100', 'G312100', 'F603100', 'F514100',
+  'T102100', 'K701100', 'E111100', 'H210100', 'Q320000', 'G250100', 'U601000', 'G760100', 'T121100', 'H110600',
+  'F502100', 'G770400', 'Q630000', 'T105100',
+])
+
+/** Gute Quellen eines Nährstoffs: die reichsten Alltagslebensmittel je 100 g. */
+export async function topSources(id: string, lang: 'de' | 'en', limit = 4): Promise<{ name: string; per100: number }[]> {
+  const { entries, keys } = await load()
+  const mi = keys.indexOf(id as MicroKey)
+  const col = MACRO_COL[id]
+  if (mi < 0 && col === undefined) return []
+  return entries
+    .filter(e => EVERYDAY.has(e.row[0]))
+    .map(({ row }) => ({ row, v: col !== undefined ? row[col] : row[11][mi] }))
+    .filter((x): x is { row: Row; v: number } => typeof x.v === 'number' && x.v > 0)
+    .sort((a, b) => b.v - a.v)
+    .slice(0, limit)
+    .map(({ row, v }) => ({ name: lang === 'en' && row[2] ? row[2] : row[1], per100: v }))
+}
