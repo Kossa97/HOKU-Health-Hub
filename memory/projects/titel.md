@@ -58,3 +58,9 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
   Feld selbst auf „Alle“ steht (geparkt).
 - Mockup Entwurf 3: tragbare Abzeichen (17, davon 5 aus 2b), Schwellen 1·10·50·100·200·365, offene Liste im Sheet
   zeigt die 5 nächsten.
+
+## Nutzer 04.11.
+- Routinier en = **Steady**. Feier auch für neue Abzeichen-Titel: **ja**.
+- Wünscht **Stufen je Sportart** (z. B. Amateurwanderer → … ), Vorschlag folgt.
+- Fragt: Titel-Standard „Nur ich“ statt „Alle“ (löst Art. 25). Und: **sensible Abzeichen (Körper, Gewicht, Blut,
+  Ruhepuls, Einnahmen, Berichte, Gesamtfortschritt) doch tragbar, Standard aus** — Bedingungen in Klärung.
