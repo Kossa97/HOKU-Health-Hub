@@ -52,9 +52,10 @@
 
 ### Task 3: Einstellung „Abzeichen im Web“ (`/profil/web-abzeichen`)
 
-- [ ] Eintrag unter Einstellungen › Web-Link; Bildschirm nach Mockup Abschnitt 3: Einleitung, Zähler „Im Web sichtbar x von y verdienten“, Gruppen mit „n/m an“, Zeilen mit Symbol, Name, „verrät Gesundheitsdaten“, verdient/noch nicht, Schalter; „Auf Standard zurücksetzen“; Kasten „Was die Schalter nicht ändern“.
-- [ ] Hinweis oben, wenn `badges` nicht auf „Alle“ oder Web-Link aus, mit Sprung zur Einstellung.
-- [ ] Komponententest: Standard (heikle aus), Abweichung, Zurücksetzen, Zähler.
+- [x] Eintrag unter Einstellungen › Web-Link; Bildschirm nach Mockup Abschnitt 3: Einleitung, Zähler „Im Web sichtbar x von y verdienten“, Gruppen mit „n/m an“, Zeilen mit Symbol, Name, „verrät Gesundheitsdaten“, verdient/noch nicht, Schalter; „Auf Standard zurücksetzen“; Kasten „Was die Schalter nicht ändern“.
+- [x] Hinweis oben, wenn `badges` nicht auf „Alle“ oder Web-Link aus, mit Sprung zur Einstellung.
+- [x] Komponententest: Standard (heikle aus), Abweichung, Zurücksetzen, Zähler.
+- [x] Schalter „In Suchmaschinen auffindbar“ unter Einstellungen › Web-Link (Spec 7.2), gesperrt mit Erklärung bei Web-Link aus oder privat.
 
 ### Task 4: Web-Seite `/u/<name>` (`src/pages/PublicProfile.tsx`, `WebAnsicht`)
 

@@ -59,8 +59,9 @@ const KEINE: WebBadgeOverrides = {}
  * Abzeichen im Web (`profiles.web_badges`, nur Abweichungen vom Standard) und
  * „In Suchmaschinen auffindbar“ (`profiles.web_indexable`).
  *
- * `geladen` kommt aus der eigenen Sicht von `profile_view` (`webBadges`,
- * `webIndexable`); `null` = noch nicht geladen oder vor der Migration 2c.
+ * `geladen` kommt aus der eigenen Profilzeile (`useEinstellungen`) oder der
+ * eigenen Sicht von `profile_view` (`webBadges`, `webIndexable`); `null` =
+ * noch nicht geladen oder vor der Migration 2c.
  */
 export function useWebSettings(
   userId: string | undefined,

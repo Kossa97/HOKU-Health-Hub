@@ -28,6 +28,7 @@ const ProfilSichtbarkeit = lazyPage(() => import('./pages/ProfilEinstellungen'),
 const ProfilBlockiert = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilBlockiert')
 const ProfilFortschritt = lazyPage(() => import('./pages/ProfilFortschritt'), 'ProfilFortschritt')
 const ProfilAbzeichen = lazyPage(() => import('./pages/ProfilAbzeichen'), 'ProfilAbzeichen')
+const ProfilWebAbzeichen = lazyPage(() => import('./pages/ProfilWebAbzeichen'), 'ProfilWebAbzeichen')
 const PublicProfile = lazyPage(() => import('./pages/PublicProfile'), 'PublicProfile')
 const FAQ = lazyPage(() => import('./pages/FAQ'), 'FAQ')
 const Rechner = lazyPage(() => import('./pages/Rechner'), 'Rechner')
@@ -115,6 +116,7 @@ function PersonalApp() {
             <Route path="profil/blockiert" element={<LazyPage><ProfilBlockiert /></LazyPage>} />
             <Route path="profil/fortschritt" element={<LazyPage><ProfilFortschritt /></LazyPage>} />
             <Route path="profil/abzeichen" element={<LazyPage><ProfilAbzeichen /></LazyPage>} />
+            <Route path="profil/web-abzeichen" element={<LazyPage><ProfilWebAbzeichen /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
             <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />
