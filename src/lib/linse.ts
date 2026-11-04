@@ -66,7 +66,7 @@ export const LINSE_STANDARD: LinsenWerte = {
   zoom: 1.08, heben: 0, wachsen: 36, hoehe: 40, farbe: 0.1, tempo: 0.6, schwingen: 0.3,
   klar: 1, ruhe: 1, fuellung: 1, rand: 1, art: 1,
   saumAussenBreite: 3.5, saumAussen: 0.5, saumInnenBreite: 8, saumInnen: 0.22,
-  navUnschaerfe: 3, navDeckkraft: 0.62, navSaettigung: 1.5, navKante: 0.5, navGlanz: 1,
+  navUnschaerfe: 30, navDeckkraft: 0, navSaettigung: 3, navKante: 1, navGlanz: 0.2,
   weite: 0.6, verformung: 1,
 }
 

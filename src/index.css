@@ -1348,9 +1348,10 @@ main.flex-1 {
   opacity: 0;
   /* Wie die echte Leiste: Glas über der Seite, nicht deckend dunkel (sonst
      zeigte die Linse die Navbar als dunklen Fleck). Stärker verschwommen als
-     die Leiste, damit die echten Symbole darunter nicht doppelt erscheinen. */
-  -webkit-backdrop-filter: blur(calc(var(--nav-unschaerfe, 3px) + 7px)) saturate(var(--nav-saettigung, 1.5));
-  backdrop-filter: blur(calc(var(--nav-unschaerfe, 3px) + 7px)) saturate(var(--nav-saettigung, 1.5));
+     die Leiste, damit die echten Symbole darunter nicht doppelt erscheinen.
+     Höchstens 24 px: mehr Unschärfe kostet auf dem iPhone spürbar Bilder. */
+  -webkit-backdrop-filter: blur(min(calc(var(--nav-unschaerfe, 3px) + 7px), 24px)) saturate(var(--nav-saettigung, 1.5));
+  backdrop-filter: blur(min(calc(var(--nav-unschaerfe, 3px) + 7px), 24px)) saturate(var(--nav-saettigung, 1.5));
 }
 /* In den Ringen sieht die Kopie die Seite nicht (die Maske trennt sie davon):
    dort ohne eigenes Glas; die Symbole liegen dann gestaucht über den
@@ -1462,11 +1463,12 @@ main.flex-1 {
 :root {
   /* Regler für das Navbar-Glas (src/lib/linse.ts, Test-Menü im Profil):
      Unschärfe, Deckkraft der Füllung, Sättigung, Kantenbreite, Glanz */
-  --nav-unschaerfe: 3px;
-  --nav-deckkraft: 0.62;
-  --nav-saettigung: 1.5;
-  --nav-kante: 0.5px;
-  --nav-glanz: 1;
+  /* vom Nutzer am iPhone eingestellt (2026-11-04) */
+  --nav-unschaerfe: 30px;
+  --nav-deckkraft: 0;
+  --nav-saettigung: 3;
+  --nav-kante: 1px;
+  --nav-glanz: 0.2;
   --glas-fuellung: rgb(40 40 40 / var(--nav-deckkraft));
   --glas-toenung: transparent;
   --glas-kante-farbe: rgba(255, 255, 255, 0.08);
