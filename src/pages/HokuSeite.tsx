@@ -1,19 +1,23 @@
 /**
- * Seite „Hoku“ im Profil (Nutzer 03.11.2026): oben eine Bühne, auf der Hoku sitzt, solange die
- * Seite offen ist; darunter Farbe, ruhige Bewegung, „kommt für Hinweise heraus“ und Hinweise.
- * Was man ändert, sieht man sofort an ihm. War er im Haus, kommt er für die Seite heraus und geht
- * beim Verlassen wieder hinein.
+ * Seite „Hoku“ im Profil (Nutzer 03.11.2026): oben ein Glasgehäuse (Nutzer 04.11.2026, Vorschau „Hoku
+ * Aquarium“), in dem Hoku sitzt, solange die Seite offen ist. Man kann ihn greifen und werfen, er bleibt im
+ * Glas, klebt an Scheibe oder Boden und löst sich nach einer Weile. Darunter Farbe, ruhige Bewegung,
+ * „kommt für Hinweise heraus“ und Hinweise, als Glas-Schalter. War er im Haus, kommt er für die Seite heraus
+ * und geht beim Verlassen wieder hinein.
  */
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
-import { Schalter } from '../components/ui/Schalter'
+import { haengeGlasKante } from '../lib/glasKante'
+import { GlasSchalter } from '../features/dot/GlasSchalter'
 import { HokuFarbAuswahl } from '../features/dot/HokuFarbAuswahl'
 import { dotStore, useDotStand } from '../features/dot/dotStore'
 import { useHokuEinstellungen, type HokuEinstellung } from '../features/dot/lib/hokuEinstellungen'
 import { useDotText, type DotTextKey } from '../features/dot/texte'
 import '../features/dot/dot.css'
 
+// Oberkante der Bodenplatte als Anteil der Höhe; darunter spiegelt er sich
+const BODEN = 0.82
 const weniger = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export function HokuSeite() {
@@ -21,6 +25,7 @@ export function HokuSeite() {
   const stand = useDotStand()
   const [werte, setze] = useHokuEinstellungen()
   const buehne = useRef<HTMLDivElement>(null)
+  const glas = useRef<HTMLDivElement>(null)
   const warDrinnen = useRef<boolean | null>(null)
   const geraetRuhig = weniger()
   // Die Bühne bleibt oben stehen, sobald man an ihr vorbeiscrollt: so sieht man jede Änderung an ihm.
@@ -56,41 +61,37 @@ export function HokuSeite() {
   useEffect(() => () => {
     const dot = dotStore.api()
     if (!dot) return
-    dot.schliesseBuehne()
+    dot.gehege(null)
     if (warDrinnen.current) dot.heimgehen()
   }, [])
-  // Sobald er draußen ist, auf die Bühne
+  // Sobald er draußen ist, ins Glas
   useEffect(() => {
     const dot = dotStore.api(), el = buehne.current
-    if (dot && el && stand.modus === 'home') dot.oeffneBuehne(el)
+    if (dot && el && stand.modus === 'home') dot.gehege(el)
   }, [stand.modus])
+  // die Glaskante aus dem App-Design (gerechnet, auch im iPhone-WebView), so groß wie das Gehäuse
+  useEffect(() => { const el = glas.current; return el ? haengeGlasKante(el, { fase: 4, glanz: 0.95 }) : undefined }, [])
 
-  const schalter = (k: HokuEinstellung, titel: DotTextKey, text: DotTextKey, gesperrt = false) => {
-    const an = gesperrt || werte[k]
-    return (
-      <div className="tyd-hoku-einst" data-hoku-einst={k}>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={an}
-          aria-disabled={gesperrt || undefined}
-          onClick={() => {
-            if (gesperrt) return
-            const neu = !werte[k]
+  const schalter = (k: HokuEinstellung, titel: DotTextKey, text: DotTextKey, gesperrt = false) => (
+    <div className="tyd-hoku-einst" data-hoku-einst={k}>
+      <div className="tyd-hoku-einst-kopf">
+        <span className="tyd-hoku-einst-titel" id={`hoku-einst-${k}`}>{dt(titel)}</span>
+        <GlasSchalter
+          an={gesperrt || werte[k]}
+          gesperrt={gesperrt}
+          beschriftetVon={`hoku-einst-${k}`}
+          onWechsel={neu => {
             setze(k, neu)
             const dot = dotStore.api()
-            // kleine Vorführung auf der Bühne
+            // kleine Vorführung im Glas
             if (k === 'ruhig' && !neu) dot?.zeigeForm('freude')
             if (k === 'hinweise' && neu) dot?.sag(dt('einst_hinweise_probe'), 2200)
           }}
-        >
-          <span className="tyd-hoku-einst-titel">{dt(titel)}</span>
-          <Schalter an={an} />
-        </button>
-        <p>{gesperrt ? dt('einst_ruhig_geraet') : dt(text)}</p>
+        />
       </div>
-    )
-  }
+      <p>{gesperrt ? dt('einst_ruhig_geraet') : dt(text)}</p>
+    </div>
+  )
 
   return (
     <div data-hoku-seite>
@@ -99,14 +100,25 @@ export function HokuSeite() {
       </Link>
       <h1 className="lg-large-title">{dt('einst_titel')}</h1>
       <div ref={platz} className="tyd-hoku-platz">
+        {/* das Gehäuse ist Hokus Bühne (unter ihm); das Glas liegt über ihm, damit er dahinter wirkt */}
         <div
           ref={buehne}
           className="tyd-hoku-buehne"
           data-hoku-buehne
+          data-dot-boden={BODEN}
           data-angeheftet={angeheftet ? 'true' : undefined}
           style={angeheftet ? { left: angeheftet.left, width: angeheftet.width } : undefined}
           aria-hidden="true"
         />
+        <div
+          ref={glas}
+          className="tyd-hoku-glas"
+          data-angeheftet={angeheftet ? 'true' : undefined}
+          style={angeheftet ? { left: angeheftet.left, width: angeheftet.width } : undefined}
+          aria-hidden="true"
+        >
+          <span className="tyd-hoku-boden" style={{ top: `${BODEN * 100}%` }} />
+        </div>
       </div>
       <p className="tyd-hoku-buehne-text">{dt('einst_buehne')}</p>
 
